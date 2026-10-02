@@ -1,0 +1,5 @@
+## Journal
+j
+
+## Other
+o

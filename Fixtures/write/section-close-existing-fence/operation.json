@@ -1,0 +1,11 @@
+{
+  "sections": {
+    "operation": "append",
+    "kind": "Journal",
+    "lines": [
+      "```",
+      "not"
+    ]
+  },
+  "expectedError": "section-not-writable"
+}

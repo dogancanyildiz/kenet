@@ -1,0 +1,10 @@
+{
+  "sections": {
+    "operation": "append",
+    "kind": "Journal",
+    "lines": [
+      "# Başlık"
+    ]
+  },
+  "expectedError": "section-not-writable"
+}

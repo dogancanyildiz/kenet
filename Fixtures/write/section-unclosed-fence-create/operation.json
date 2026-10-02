@@ -1,0 +1,10 @@
+{
+  "sections": {
+    "operation": "append",
+    "kind": "Events",
+    "lines": [
+      "yeni"
+    ]
+  },
+  "expectedError": "section-not-writable"
+}

@@ -15,6 +15,10 @@ public enum EditError: Error, Hashable, Sendable {
     case rawField(key: String)
     /// The field holds a value, so entries cannot be written under it.
     case notAMapping(key: String)
+    /// The appended lines must remain in the target section without changing document structure.
+    case sectionNotWritable
+    /// A section append requires at least one nonblank line.
+    case emptySectionAppend
     /// The key is empty or is the YAML merge key `<<`.
     case invalidKey
     /// The value has no spelling in the vault format (a number that is not written as digits).

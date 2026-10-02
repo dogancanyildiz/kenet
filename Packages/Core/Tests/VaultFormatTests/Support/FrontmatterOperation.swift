@@ -117,6 +117,8 @@ extension EditError {
         case .rawField: "raw-field"
         case .notAMapping: "not-a-mapping"
         case .invalidKey: "invalid-key"
+        case .sectionNotWritable: "section-not-writable"
+        case .emptySectionAppend: "empty-section-append"
         case .invalidValue: "invalid-value"
         }
     }

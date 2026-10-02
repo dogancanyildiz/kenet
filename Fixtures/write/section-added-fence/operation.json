@@ -1,0 +1,10 @@
+{
+  "sections": {
+    "operation": "append",
+    "kind": "Tasks",
+    "lines": [
+      "```"
+    ]
+  },
+  "expectedError": "section-not-writable"
+}

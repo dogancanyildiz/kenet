@@ -1,0 +1,8 @@
+{
+  "sections": {
+    "operation": "append",
+    "kind": "Tasks",
+    "lines": []
+  },
+  "expectedError": "empty-section-append"
+}

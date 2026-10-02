@@ -1,0 +1,31 @@
+{
+  "sections": {
+    "preamble": {
+      "firstLine": 1,
+      "lastLine": 1
+    },
+    "items": [
+      {
+        "kind": null,
+        "headingLine": 2,
+        "level": 2,
+        "firstLine": 2,
+        "lastLine": 3
+      },
+      {
+        "kind": "Tasks",
+        "headingLine": 4,
+        "level": 2,
+        "firstLine": 4,
+        "lastLine": 5
+      },
+      {
+        "kind": null,
+        "headingLine": 6,
+        "level": 1,
+        "firstLine": 6,
+        "lastLine": 7
+      }
+    ]
+  }
+}

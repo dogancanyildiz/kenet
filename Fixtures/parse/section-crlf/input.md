@@ -1,0 +1,4 @@
+## Tasks
+not
+## Journal
+yazı

@@ -241,11 +241,16 @@ Bugün genel olarak verimli geçti...
 
 ### Bölümler
 
+- Başlık satırı, satır başında en çok üç boşluktan sonra gelen 1 ile 6 arası `#` ve ardından boşluk, sekme ya da satır sonudur. Altı çizili başlıklar tanınmaz. Tanınan bölüm başlığında `##` ile ad arasında tek boşluk bulunur.
+- Çitli kod bloğu içindeki satırlar başlık sayılmaz.
+
 - Bölüm başlığı tam olarak `## Tasks`, `## Events` ya da `## Journal` satırıdır (sondaki boşluklar yok sayılır). Bölüm, aynı ya da daha üst düzeydeki bir sonraki başlığa kadar sürer.
 - Aynı başlık birden fazla geçerse ilki geçerlidir.
 - Tanınmayan başlıklar ve ilk başlıktan önceki içerik korunur, düz metin olarak gösterilir.
 - Bölümler ilk ihtiyaç duyulduğunda oluşturulur. Boş bölüm yazılmaz; içi sonradan boşalan bölümün başlığı silinmez.
-- Yeni bölüm Tasks, Events, Journal sırasındaki yerine açılır: bu sırada kendinden sonra gelen ilk mevcut bölümün önüne, öyle bir bölüm yoksa dosyanın sonuna. Öncesinde bir boş satır bırakılır.
+- Yeni bölüm Tasks, Events, Journal sırasındaki yerine açılır: bu sırada kendinden sonra gelen ilk mevcut bölümün önüne, öyle bir bölüm yoksa dosyanın sonuna. Öncesinde bir boş satır bırakılır (frontmatter'dan hemen sonra açılıyorsa da); dosyanın ilk içeriğiyse bırakılmaz.
+- Ekleme yeniden okunduğunda satır hedef bölümde görünmeyecekse (kapanmayan kod çiti, çözülemeyen frontmatter) ya da eklenen metin belgenin yapısını değiştirecekse (birinci ya da ikinci düzey başlık, kapanmayan kod çiti, frontmatter sınırı) işlem reddedilir ve dosyaya dokunulmaz. Alt başlık (`###` ve aşağısı) ve kapalı kod bloğu eklenebilir.
+- Yalnızca boş satırlardan oluşan ekleme yapılmaz.
 - Bölümün sonuna eklenen satır, bölümdeki son boş olmayan satırın ardına yazılır.
 
 ### Olay satırı

@@ -1,0 +1,28 @@
+{
+  "sections": {
+    "preamble": null,
+    "items": [
+      {
+        "kind": null,
+        "headingLine": 1,
+        "level": 2,
+        "firstLine": 1,
+        "lastLine": 1
+      },
+      {
+        "kind": null,
+        "headingLine": 2,
+        "level": 2,
+        "firstLine": 2,
+        "lastLine": 2
+      },
+      {
+        "kind": null,
+        "headingLine": 3,
+        "level": 2,
+        "firstLine": 3,
+        "lastLine": 9
+      }
+    ]
+  }
+}

@@ -42,7 +42,7 @@ Bu kategoriye, korunması gereken bir bayt özelliğini taşıyan dosyalar konur
 
 Okuma örnekleri. Her örnek bir klasördür: `input.md` okunur, sonuç `expected.json` ile karşılaştırılır. Yeni örnek eklemek için klasör açmak yeter.
 
-`expected.json` kökünde her konu kendi anahtarını taşır; bugün yalnızca `frontmatter` vardır, bölümler, olaylar ve bağlantılar geldikçe yeni anahtarlar eklenir. İstemci yalnızca dosyada bulunan anahtarları karşılaştırır; karşılaştırma katıdır (fazla ya da eksik alan hatadır, metinler bayt bayt karşılaştırılır). Satır numaraları 1'den başlar; BOM satır sayılmaz.
+`expected.json` kökünde her konu kendi anahtarını taşır; `frontmatter` ve `sections` vardır; olaylar ve bağlantılar geldikçe yeni anahtarlar eklenir. İstemci yalnızca dosyada bulunan anahtarları karşılaştırır; karşılaştırma katıdır (fazla ya da eksik alan hatadır, metinler bayt bayt karşılaştırılır). Satır numaraları 1'den başlar; BOM satır sayılmaz.
 
 ```json
 {
@@ -69,6 +69,8 @@ Okuma örnekleri. Her örnek bir klasördür: `input.md` okunur, sonuç `expecte
 - `listItems`: alanın liste olarak görünümü (öğelerin `text` değerleri); tek değer tek öğeli, boş değer boş listedir. `mapping` ve `raw` alanlarında bulunmaz.
 - `fields` dosya sırasındadır.
 
+`parse/section-<ad>/expected.json` kökündeki `sections`, `preamble` (ön içerik) ve dosya sırasındaki `items` listesini taşır. Her aralık `firstLine` ve `lastLine` ile 1 tabanlı, iki ucu dahil yazılır; boş ön içerik `null` olur. Her öğe `kind` (`Tasks`, `Events`, `Journal` ya da tanınmayan/yinelenen başlık için `null`), `headingLine`, `level`, `firstLine`, `lastLine` taşır. Aralık başlığı ve sondaki boş satırları içerir. İç başlıklar ayrı öğe değildir. Örnek: `{ "sections": { "preamble": null, "items": [{ "kind": "Tasks", "headingLine": 1, "level": 2, "firstLine": 1, "lastLine": 2 }] } }`.
+
 ### `write/`
 
 Yazma örnekleri. Her örnek bir klasördür: `input.md` üzerine `operation.json` içindeki işlem uygulanır, sonuç `expected.md` ile bayt bayt karşılaştırılır. Reddedilmesi gereken işlemlerde `expected.md` bulunmaz; `operation.json` içindeki `expectedError` beklenen hatayı adlandırır ve dosyaya dokunulmaz.
@@ -90,9 +92,11 @@ Yazma örnekleri. Her örnek bir klasördür: `input.md` üzerine `operation.jso
 - Değer, türünü adlandıran tek anahtarlı nesnedir: `{ "text": "..." }`, `{ "boolean": true }`, `{ "integer": 25 }`, `{ "number": "20.029" }`, `{ "date": "2026-10-02" }`. `number` yazılacak yazımı metin olarak taşır; böylece beklenen çıktı bir dilin ondalık sayı biçimlendirmesine bağlı kalmaz.
 - Beklenen çıktının her baytı `vault-format.md` içindeki "Tırnaklama" ve "Yazma kuralları" başlıklarından türetilebilir.
 - `expectedError` değerleri: `read-only-document` (dosya UTF-8 değil), `unreadable-frontmatter`, `raw-field` (ham alan), `not-a-mapping` (değeri olan alana kayıt yazma), `invalid-key` (boş anahtar ya da `<<`), `invalid-value` (sayı yazımına uymayan `number`).
-- Kök anahtar işlemin hedefini söyler (`frontmatter`); bölüm ve satır işlemleri geldikçe yeni kök anahtarlar eklenir.
+- Kök anahtar işlemin hedefini söyler (`frontmatter` ya da `sections`); diğer işlemler geldikçe yeni kök anahtarlar eklenir.
 
-İstemci her yazma örneğinde şunları da denetler: frontmatter dışındaki baytlar değişmez, frontmatter içinde yalnızca hedef anahtarın satırları değişir, yazılan değer yeniden okununca aynı değeri verir, işlem ikinci kez uygulanınca dosya değişmez.
+`write/section-<ad>/operation.json` kökündeki `sections`, `{ "operation": "append", "kind": "Tasks", "lines": ["- [ ] kitap"] }` biçimindedir. En az bir boş olmayan satır gerekir. Hatalar: `section-not-writable`, `empty-section-append`, `line-break-in-content`, `read-only-document`. Beklenen çıktı bağımsız yazılır; test baytları ve yeniden okunan modeli karşılaştırır. Ekleme tekrarlandığında yeni satırlar tekrar eklenir; frontmatter işlemlerindeki eşgüçlülük denetimi burada uygulanmaz.
+
+İstemci her frontmatter yazma örneğinde şunları da denetler: frontmatter dışındaki baytlar değişmez, frontmatter içinde yalnızca hedef anahtarın satırları değişir, yazılan değer yeniden okununca aynı değeri verir, işlem ikinci kez uygulanınca dosya değişmez.
 
 ### Başka okuyucularla karşılaştırma
 

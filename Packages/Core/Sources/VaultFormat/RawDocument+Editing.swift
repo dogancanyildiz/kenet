@@ -5,6 +5,9 @@ struct LineEdit: Hashable, Sendable {
     /// The contents of the lines that take their place, without line endings.
     let contents: [String]
 
+    /// An insertion may preserve a separating blank after CR without merging it into CRLF.
+    var firstLineEnding: LineEnding? = nil
+
     /// Replaces the content of one line.
     static func replacing(line: Int, with content: String) -> LineEdit {
         LineEdit(range: line..<(line + 1), contents: [content])
@@ -73,7 +76,10 @@ extension RawDocument {
         for edit in ordered {
             assembled.append(contentsOf: lines[next..<edit.range.lowerBound])
             for (offset, content) in edit.contents.enumerated() {
-                let ending = offset < edit.range.count ? lines[edit.range.lowerBound + offset].ending : newLineEnding
+                let ending =
+                    offset == 0 && edit.firstLineEnding != nil
+                    ? edit.firstLineEnding
+                    : (offset < edit.range.count ? lines[edit.range.lowerBound + offset].ending : newLineEnding)
                 assembled.append(RawLine(content: Array(content.utf8), ending: ending))
             }
             next = edit.range.upperBound

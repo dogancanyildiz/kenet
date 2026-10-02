@@ -2,7 +2,7 @@
 
 Kişiler, konumlar ve olaylar etrafında dönen; görevleri, hedefleri ve alışkanlık zincirlerini tek yerde toplayan kişisel günlük uygulaması. iPhone ve Mac için SwiftUI ile yazılır. Veriler Obsidian uyumlu düz Markdown dosyalarında durur.
 
-**Durum:** Planlama. Henüz kod yok.
+**Durum:** Aşama 0 (temel) sürüyor.
 
 ## Belgeler
 

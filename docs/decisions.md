@@ -54,6 +54,8 @@ Verilen her karar tek satır olarak eklenir. Açık sorular kapandığında altt
 | 2026-10-02 | İndeks şeması değişikliği onay gerektirmez: şema sürümü artar, indeks yeniden kurulur | İndeks dosyalardan yeniden üretilebilir; geriye uyum kaygısı yok |
 | 2026-10-02 | Hotfix sonrası `main`, `dev`'e merge commit ile geri birleştirilir | Squash iki dalın ortak geçmişini koparır |
 | 2026-10-02 | Commit ve PR'larda yapay zeka imzası yok (`Co-Authored-By`, "Generated with" ve benzerleri) | Proje sahibinin tercihi |
+| 2026-10-02 | Core paketinde ayrıştırma katmanı (`VaultFormat` hedefi) paket bağımlılığı taşımaz; indeks ayrı hedefte kurulacak | GRDB ve indeks hedefi, bağımlılık olarak bildirilmeden ayrıştırıcıdan kullanılamaz; ayrıştırıcı indeks olmadan tek başına derlenir ve sınanır |
+| 2026-10-02 | Test için Swift Testing, biçim ve lint için `swift format` | İkisi de araç zinciriyle gelir; ek bağımlılık gerekmez |
 
 ## Açık sorular
 

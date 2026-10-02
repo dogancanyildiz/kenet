@@ -46,6 +46,8 @@ Sorumlulukları:
 
 Kısıt: Yalnızca Foundation ve SQLite katmanı. Bu sayede aynı kod uygulamada, widget'ta ve testlerde çalışır; ileride başka dile çevirmek kolay olur.
 
+Paket hedeflere ayrılır. `VaultFormat` hedefi ayrıştırıcıyı, yazıcıyı, birleştirmeyi ve modelleri taşır; paket bağımlılığı yoktur ve Foundation dışında bir çerçeve kullanmaz. İndeks ve sorgular SQLite'a bağlanan ayrı bir hedefte kurulur.
+
 Varlık tipleri (kişi, konum ve ileride eklenecekler) koda dağılmaz; her tip tek bir veri tanımıdır: tip adı, varsayılan klasör, ayrılmış alanlar. Bu tanımlar şimdilik Core içinde durur ve indeks tipi serbest metin olarak tutar. Özel tipler ve şirket paketi geldiğinde (aşama 7) aynı tanım kasadaki bir şema dosyasından okunur; dosyanın biçimi o zaman `vault-format.md` içinde belirlenir.
 
 ## İndeks

@@ -14,6 +14,7 @@ Kişiler, konumlar ve olaylar etrafında dönen; görevleri, hedefleri ve alış
 | [docs/screens.md](docs/screens.md) | Ekranlar, içerikleri ve geçişler |
 | [docs/architecture.md](docs/architecture.md) | Teknik mimari ve stack |
 | [docs/decisions.md](docs/decisions.md) | Karar günlüğü ve açık sorular |
+| [docs/fixtures.md](docs/fixtures.md) | Test verisi klasörü: kurallar, kategoriler, kurgusal adlar |
 
 Ajanlar (Claude Code ve diğerleri) için kurallar: [AGENTS.md](AGENTS.md)
 

@@ -1,0 +1,1 @@
+## Tasks- [ ] [[Deniz Arıkan]]'ı ara 📅 2026-10-05 ^c1r2d3- [x] Rapor gönderildi ✅ 2026-10-02 ^c4r5d6

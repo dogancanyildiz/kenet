@@ -242,7 +242,7 @@ Bugün genel olarak verimli geçti...
 ### Bölümler
 
 - Başlık satırı, satır başında en çok üç boşluktan sonra gelen 1 ile 6 arası `#` ve ardından boşluk, sekme ya da satır sonudur. Altı çizili başlıklar tanınmaz. Tanınan bölüm başlığında `##` ile ad arasında tek boşluk bulunur.
-- Çitli kod bloğu, satır başındaki boşluk ve sekmelerden sonra gelen en az üç `` ` `` ya da `~` ile açılır ve aynı işaretten en az o kadarıyla kapanır; kapanmayan çit dosya sonuna kadar sürer. İçindeki satırlar başlık, olay, görev ya da bağlantı sayılmaz.
+- Çitli kod bloğu, satır başında en çok üç boşluktan sonra gelen en az üç `` ` `` ya da `~` ile açılır; bir liste öğesinin içindeyse girinti öğenin içerik sütununa göre ölçülür. Ters tırnaklı çitin açılış satırında başka ters tırnak bulunmaz. Çit, aynı işaretten en az o kadarını taşıyan ve başka içeriği olmayan satırla kapanır; kapanmayan çit dosya sonuna kadar sürer. İçindeki satırlar başlık, olay, görev ya da bağlantı sayılmaz.
 
 - Bölüm başlığı tam olarak `## Tasks`, `## Events` ya da `## Journal` satırıdır (sondaki boşluklar yok sayılır). Bölüm, aynı ya da daha üst düzeydeki bir sonraki başlığa kadar sürer.
 - Aynı başlık birden fazla geçerse ilki geçerlidir.
@@ -267,7 +267,7 @@ Bugün genel olarak verimli geçti...
 
 ## Görev satırı
 
-Obsidian Tasks biçimi. Onay kutusu taşıyan her liste satırı görevdir; hangi dosyada ya da bölümde durduğu fark etmez. Girintili görev satırı (alt görev) de görevdir. Okurken `*` ve `+` işaretleri, numaralı liste (`1.` ya da `1)`), işaretten sonra birden çok boşluk ve alıntı içindeki görev (`> - [ ] ...`) de kabul edilir. Kutunun içinde tek karakter bulunur ve `]` işaretinden sonra boşluk ya da satır sonu gelir.
+Obsidian Tasks biçimi. Onay kutusu taşıyan her liste satırı görevdir; hangi dosyada ya da bölümde durduğu fark etmez. Girintili görev satırı (alt görev) de görevdir. Okurken `*` ve `+` işaretleri, numaralı liste (`1.` ya da `1)`) (en çok dokuz rakam), işaretten sonra birden çok boşluk ve alıntı içindeki görev (`> - [ ] ...`) de kabul edilir. Kutunun içinde tek karakter bulunur ve `]` işaretinden sonra boşluk ya da satır sonu gelir.
 
 | Öğe | Yazım |
 |---|---|

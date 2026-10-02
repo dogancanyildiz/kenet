@@ -10,7 +10,7 @@ Kullanıcıya görünen bir şey yok; her şey bunun üstüne kurulur.
 
 - [ ] Xcode projesi: iOS ve macOS hedefleri, `Core` Swift paketi
 - [x] CI (GitHub Actions): her PR'da derleme, `Core` testleri, biçim ve lint denetimi
-- [ ] Sürüm otomasyonu: `main`'e birleşince etiket ve GitHub Release
+- [x] Sürüm otomasyonu: `main`'e birleşince etiket ve GitHub Release
 - [x] Dal koruması: `main` ve `dev` için PR ve geçen test zorunluluğu
 - [x] Ayrıştırıcı ve yazıcı: frontmatter, bölümler, olay satırı, görev satırı (durum, metin, kimlik), wikilink, blok kimliği
 - [x] Gidiş dönüş testi ve `Fixtures/` örnek kasası

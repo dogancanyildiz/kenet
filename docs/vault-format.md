@@ -196,6 +196,10 @@ Sözdizimi: `[[hedef]]`, `[[hedef|görünen metin]]`, `[[hedef#çapa]]`, `[[hede
 - Hedefi kasada bulunmayan bağlantı geçerlidir ve korunur. Taranmayan klasörlerdeki dosyalar hedef olamaz.
 - Markdown biçimli bağlantılar (`[metin](dosya.md)`) korunur ama varlık bağlantısı sayılmaz ve yeniden adlandırmada güncellenmez.
 
+- Görünen metin, ilk `|` karakterinden sonraki her şeydir. Hedefi ve çapası birlikte boş olan yazım bağlantı değildir.
+- Satır içi kod, bir ya da daha çok ters tırnakla açılır ve aynı satırda aynı sayıda ters tırnakla kapanır. Ters bölüyle kaçırılmış açılış (`\[[`) bağlantı değildir.
+- Frontmatter'da bağlantı, çözülmüş değerlerin metninde aranır; ham alanlarda ve çözülemeyen blokta aranmaz.
+
 ## Blok kimliği
 
 - Uygulamanın ürettiği her olay ve görev satırı sonunda bir kimlik taşır: `^a1b2c3`

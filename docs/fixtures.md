@@ -16,6 +16,7 @@
 | Kişi | Deniz Arıkan, Selin Korkmaz, Baran Tunç, Ece Yalın, Mert Aksu |
 | Konum | Çınaraltı Kafe, Liman Ofis, Tepe Spor Salonu, Ev |
 | Hedef | Spor, Kitap, Su |
+| Emoji örneği | Ev 🏠 |
 
 Yeni ad gerekirse önce bu tabloya eklenir.
 
@@ -42,7 +43,7 @@ Bu kategoriye, korunması gereken bir bayt özelliğini taşıyan dosyalar konur
 
 Okuma örnekleri. Her örnek bir klasördür: `input.md` okunur, sonuç `expected.json` ile karşılaştırılır. Yeni örnek eklemek için klasör açmak yeter.
 
-`expected.json` kökünde her konu kendi anahtarını taşır; `frontmatter`, `sections`, `tasks` ve `events` vardır; bağlantılar geldikçe yeni anahtarlar eklenir. İstemci yalnızca dosyada bulunan anahtarları karşılaştırır; karşılaştırma katıdır (fazla ya da eksik alan hatadır, metinler bayt bayt karşılaştırılır). Satır numaraları 1'den başlar; BOM satır sayılmaz.
+`expected.json` kökünde her konu kendi anahtarını taşır; `frontmatter`, `sections`, `tasks`, `events` ve `links` vardır. İstemci yalnızca dosyada bulunan anahtarları karşılaştırır; karşılaştırma katıdır (fazla ya da eksik alan hatadır, metinler bayt bayt karşılaştırılır). Satır numaraları 1'den başlar; BOM satır sayılmaz.
 
 ```json
 {
@@ -74,6 +75,12 @@ Okuma örnekleri. Her örnek bir klasördür: `input.md` okunur, sonuç `expecte
 `parse/line-<ad>/expected.json` kökündeki `tasks` ve `events` dosya sırasındaki listelerdir. Her öğe `line` (ilk satır), `firstLine`, `lastLine` (iki ucu dahil blok aralığı), `id` (şapkasız kimlik veya `null`) ve `text` taşır. Aralık ilk satırdan daha girintili devamları ve aralarında kalan boş satırları içerir; sondaki boş satırları içermez. İç içe görevlerin aralıkları örtüşebilir; kardeş görevler birbirinin aralığına girmez. Girinti yalnızca satır başındaki boşluk ve sekmelerle ölçülür: boşluk bir sütun, sekme bir sonraki dördün katına ilerler; `>` girinti sayılmaz. Alıntı içindeki görevler tek satırlık bloklardır. Metin yalnızca ilk satırdan gelir: görevde kutuya kadar olan liste/alıntı sözdizimi, olayda liste işareti ve tek ayırıcı boşluk çıkarılır; kutu ve saat sonrasındaki tek ayırıcı boşluk da çıkarılır. Diğer boşluklar, emoji alanları, Türkçe karakterler ve bağlantılar aynen kalır. Kimlik önündeki tek boşluk ve kimlik sonrasındaki boşluk/sekme çıkarılır; kimlik yoksa sondaki boşluklar da metinde kalır.
 
 Görev ayrıca `rawStatus` (tek Unicode skaleri), `status` (`todo`, `inProgress`, `done`, `cancelled`, `unknown`), `isClosed` ve `isOpen` taşır. Olay ayrıca `time` taşır: `null` veya `{ "hour": 9, "minute": 5, "raw": "9:05" }`. Kimlik uzunluğu ve yinelenmesi korunur. Örnek: `{ "tasks": [{ "line": 1, "firstLine": 1, "lastLine": 1, "id": null, "text": "kitap", "rawStatus": " ", "status": "todo", "isClosed": false, "isOpen": true }], "events": [] }`.
+
+`parse/link-<ad>/expected.json` kökündeki `links`, fiziksel dosya sırasındaki bağlantı listesidir. `line` 1 tabanlıdır. `byteRange` ve `targetRange`, satır içeriğinin UTF-8 baytlarında 0 tabanlı, başlangıcı dahil sonu hariç `[başlangıç, son]` çiftleridir; BOM ve satır sonu sayılmaz. Bağlantı aralığı `[[` ile `]]` dahil yazımı kapsar, gömmenin `!` işaretini kapsamaz. Hedef aralığı çevresindeki boşluklar ve `.md` dahil hedefin tamamını kapsar; boş hedefte iki uç eşittir.
+
+Her öğe `target` (çözülmüş, çevresindeki Unicode boşlukları ve tam `.md` soneki atılmış hedef), `rawTarget` (hedef aralığındaki özgün kaynak yazımı), `anchor` (`null` veya `{ "kind": "heading"|"block", "text": "..." }`; hash ve blok şapkası hariç), `displayText` (`null` veya ilk borudan sonraki metin), `isEmbedded`, `isSameFile`, `isPath` ve `source` taşır. Kaynak `{ "kind": "body" }` veya `{ "kind": "frontmatter", "key": "...", "entry": null|"..." }` biçimindedir; `entry` yalnızca eşlem kaydında doludur. Çapa ve görünen metin kırpılmaz, boş ama yazılmış değer boş metin olarak korunur.
+
+Frontmatter'da tarama çözülmüş metinde yapılır; aralıklar fiziksel YAML satırına geri eşlenir. Bir kaçışın ürettiği baytlar kaçışın tamamını kapsar; `rawTarget` kaçışları korur. Kaçışla yazılmış ayraçlarda bağlantı aralığının fiziksel uçları da kaçış yazımıdır. Çözülmüş satır sonları bağlantıyı böler. Kod, kaçış ve gömme tanıması çözülmüş metinde uygulanır; ham alanlar, anahtarlar ve yorumlar taranmaz. Yinelenen hedefler ayrı öğelerdir. `links: []` hiç bağlantı olmadığını denetler.
 
 ### `write/`
 

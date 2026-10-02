@@ -1,0 +1,358 @@
+{
+  "links": [
+    {
+      "line": 1,
+      "byteRange": [
+        0,
+        17
+      ],
+      "targetRange": [
+        2,
+        15
+      ],
+      "target": "Deniz Arıkan",
+      "rawTarget": "Deniz Arıkan",
+      "anchor": null,
+      "displayText": null,
+      "isEmbedded": false,
+      "isSameFile": false,
+      "isPath": false,
+      "source": {
+        "kind": "body"
+      }
+    },
+    {
+      "line": 1,
+      "byteRange": [
+        18,
+        41
+      ],
+      "targetRange": [
+        20,
+        33
+      ],
+      "target": "Selin Korkmaz",
+      "rawTarget": "Selin Korkmaz",
+      "anchor": null,
+      "displayText": "Selin",
+      "isEmbedded": false,
+      "isSameFile": false,
+      "isPath": false,
+      "source": {
+        "kind": "body"
+      }
+    },
+    {
+      "line": 2,
+      "byteRange": [
+        0,
+        24
+      ],
+      "targetRange": [
+        2,
+        13
+      ],
+      "target": "Baran Tunç",
+      "rawTarget": "Baran Tunç",
+      "anchor": {
+        "kind": "heading",
+        "text": "Başlık"
+      },
+      "displayText": null,
+      "isEmbedded": false,
+      "isSameFile": false,
+      "isPath": false,
+      "source": {
+        "kind": "body"
+      }
+    },
+    {
+      "line": 2,
+      "byteRange": [
+        25,
+        54
+      ],
+      "targetRange": [
+        27,
+        37
+      ],
+      "target": "Ece Yalın",
+      "rawTarget": "Ece Yalın",
+      "anchor": {
+        "kind": "block",
+        "text": "kimlik"
+      },
+      "displayText": "Ece|ek",
+      "isEmbedded": false,
+      "isSameFile": false,
+      "isPath": false,
+      "source": {
+        "kind": "body"
+      }
+    },
+    {
+      "line": 3,
+      "byteRange": [
+        0,
+        21
+      ],
+      "targetRange": [
+        4,
+        17
+      ],
+      "target": "Liman Ofis",
+      "rawTarget": "Liman Ofis.md",
+      "anchor": null,
+      "displayText": null,
+      "isEmbedded": false,
+      "isSameFile": false,
+      "isPath": false,
+      "source": {
+        "kind": "body"
+      }
+    },
+    {
+      "line": 3,
+      "byteRange": [
+        25,
+        48
+      ],
+      "targetRange": [
+        27,
+        46
+      ],
+      "target": "people/Mert Aksu",
+      "rawTarget": "people/Mert Aksu.md",
+      "anchor": null,
+      "displayText": null,
+      "isEmbedded": false,
+      "isSameFile": false,
+      "isPath": true,
+      "source": {
+        "kind": "body"
+      }
+    },
+    {
+      "line": 4,
+      "byteRange": [
+        0,
+        13
+      ],
+      "targetRange": [
+        2,
+        2
+      ],
+      "target": "",
+      "rawTarget": "",
+      "anchor": {
+        "kind": "heading",
+        "text": "Başlık"
+      },
+      "displayText": null,
+      "isEmbedded": false,
+      "isSameFile": true,
+      "isPath": false,
+      "source": {
+        "kind": "body"
+      }
+    },
+    {
+      "line": 4,
+      "byteRange": [
+        14,
+        26
+      ],
+      "targetRange": [
+        16,
+        16
+      ],
+      "target": "",
+      "rawTarget": "",
+      "anchor": {
+        "kind": "block",
+        "text": "kimlik"
+      },
+      "displayText": null,
+      "isEmbedded": false,
+      "isSameFile": true,
+      "isPath": false,
+      "source": {
+        "kind": "body"
+      }
+    },
+    {
+      "line": 4,
+      "byteRange": [
+        28,
+        34
+      ],
+      "targetRange": [
+        30,
+        32
+      ],
+      "target": "Ev",
+      "rawTarget": "Ev",
+      "anchor": null,
+      "displayText": null,
+      "isEmbedded": true,
+      "isSameFile": false,
+      "isPath": false,
+      "source": {
+        "kind": "body"
+      }
+    },
+    {
+      "line": 5,
+      "byteRange": [
+        5,
+        26
+      ],
+      "targetRange": [
+        7,
+        24
+      ],
+      "target": "Çınaraltı Kafe",
+      "rawTarget": "Çınaraltı Kafe",
+      "anchor": null,
+      "displayText": null,
+      "isEmbedded": false,
+      "isSameFile": false,
+      "isPath": false,
+      "source": {
+        "kind": "body"
+      }
+    },
+    {
+      "line": 5,
+      "byteRange": [
+        27,
+        38
+      ],
+      "targetRange": [
+        29,
+        36
+      ],
+      "target": "Ev 🏠",
+      "rawTarget": "Ev 🏠",
+      "anchor": null,
+      "displayText": null,
+      "isEmbedded": false,
+      "isSameFile": false,
+      "isPath": false,
+      "source": {
+        "kind": "body"
+      }
+    },
+    {
+      "line": 6,
+      "byteRange": [
+        0,
+        7
+      ],
+      "targetRange": [
+        2,
+        4
+      ],
+      "target": "Ev",
+      "rawTarget": "Ev",
+      "anchor": {
+        "kind": "heading",
+        "text": ""
+      },
+      "displayText": null,
+      "isEmbedded": false,
+      "isSameFile": false,
+      "isPath": false,
+      "source": {
+        "kind": "body"
+      }
+    },
+    {
+      "line": 6,
+      "byteRange": [
+        8,
+        15
+      ],
+      "targetRange": [
+        10,
+        12
+      ],
+      "target": "Ev",
+      "rawTarget": "Ev",
+      "anchor": null,
+      "displayText": "",
+      "isEmbedded": false,
+      "isSameFile": false,
+      "isPath": false,
+      "source": {
+        "kind": "body"
+      }
+    },
+    {
+      "line": 6,
+      "byteRange": [
+        16,
+        44
+      ],
+      "targetRange": [
+        18,
+        20
+      ],
+      "target": "Ev",
+      "rawTarget": "Ev",
+      "anchor": {
+        "kind": "heading",
+        "text": "Başlık#alt"
+      },
+      "displayText": "metin|ek",
+      "isEmbedded": false,
+      "isSameFile": false,
+      "isPath": false,
+      "source": {
+        "kind": "body"
+      }
+    },
+    {
+      "line": 7,
+      "byteRange": [
+        0,
+        8
+      ],
+      "targetRange": [
+        3,
+        5
+      ],
+      "target": "Ev",
+      "rawTarget": "Ev",
+      "anchor": null,
+      "displayText": null,
+      "isEmbedded": false,
+      "isSameFile": false,
+      "isPath": false,
+      "source": {
+        "kind": "body"
+      }
+    },
+    {
+      "line": 7,
+      "byteRange": [
+        9,
+        19
+      ],
+      "targetRange": [
+        13,
+        15
+      ],
+      "target": "Ev",
+      "rawTarget": "Ev",
+      "anchor": null,
+      "displayText": null,
+      "isEmbedded": false,
+      "isSameFile": false,
+      "isPath": false,
+      "source": {
+        "kind": "body"
+      }
+    }
+  ]
+}

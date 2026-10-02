@@ -1,0 +1,118 @@
+{
+  "links": [
+    {
+      "line": 1,
+      "byteRange": [
+        2,
+        26
+      ],
+      "targetRange": [
+        4,
+        17
+      ],
+      "target": "Deniz Arıkan",
+      "rawTarget": "Deniz Arıkan",
+      "anchor": null,
+      "displayText": "Deniz",
+      "isEmbedded": false,
+      "isSameFile": false,
+      "isPath": false,
+      "source": {
+        "kind": "body"
+      }
+    },
+    {
+      "line": 2,
+      "byteRange": [
+        0,
+        33
+      ],
+      "targetRange": [
+        2,
+        15
+      ],
+      "target": "Deniz Arıkan",
+      "rawTarget": "Deniz Arıkan",
+      "anchor": {
+        "kind": "heading",
+        "text": "Başlık"
+      },
+      "displayText": "Deniz",
+      "isEmbedded": false,
+      "isSameFile": false,
+      "isPath": false,
+      "source": {
+        "kind": "body"
+      }
+    },
+    {
+      "line": 3,
+      "byteRange": [
+        0,
+        18
+      ],
+      "targetRange": [
+        2,
+        4
+      ],
+      "target": "Ev",
+      "rawTarget": "Ev",
+      "anchor": {
+        "kind": "block",
+        "text": "kimlik"
+      },
+      "displayText": "ev",
+      "isEmbedded": false,
+      "isSameFile": false,
+      "isPath": false,
+      "source": {
+        "kind": "body"
+      }
+    },
+    {
+      "line": 4,
+      "byteRange": [
+        0,
+        15
+      ],
+      "targetRange": [
+        3,
+        5
+      ],
+      "target": "Ev",
+      "rawTarget": "Ev",
+      "anchor": null,
+      "displayText": "ev|ek",
+      "isEmbedded": false,
+      "isSameFile": false,
+      "isPath": false,
+      "source": {
+        "kind": "body"
+      }
+    },
+    {
+      "line": 5,
+      "byteRange": [
+        0,
+        23
+      ],
+      "targetRange": [
+        2,
+        2
+      ],
+      "target": "",
+      "rawTarget": "",
+      "anchor": {
+        "kind": "heading",
+        "text": "Başlık"
+      },
+      "displayText": "başlık",
+      "isEmbedded": false,
+      "isSameFile": true,
+      "isPath": false,
+      "source": {
+        "kind": "body"
+      }
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "links": [
+    {
+      "line": 2,
+      "byteRange": [
+        8,
+        34
+      ],
+      "targetRange": [
+        18,
+        20
+      ],
+      "target": "Ev",
+      "rawTarget": "Ev",
+      "anchor": null,
+      "displayText": null,
+      "isEmbedded": false,
+      "isSameFile": false,
+      "isPath": false,
+      "source": {
+        "kind": "frontmatter",
+        "key": "place",
+        "entry": null
+      }
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "links": [
+    {
+      "line": 5,
+      "byteRange": [
+        0,
+        17
+      ],
+      "targetRange": [
+        2,
+        15
+      ],
+      "target": "Selin Korkmaz",
+      "rawTarget": "Selin Korkmaz",
+      "anchor": null,
+      "displayText": null,
+      "isEmbedded": false,
+      "isSameFile": false,
+      "isPath": false,
+      "source": {
+        "kind": "body"
+      }
+    }
+  ]
+}

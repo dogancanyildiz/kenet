@@ -4,7 +4,7 @@ import VaultFormat
 /// Every directory under `Fixtures/parse` holds an `input.md` and the `expected.json` a reader must produce.
 struct ParseFixtureTests {
     /// The top-level keys of `expected.json` this client checks. A file may hold any subset.
-    static let knownSections: Set<String> = ["frontmatter", "sections"]
+    static let knownSections: Set<String> = ["frontmatter", "sections", "tasks", "events"]
 
     @Test func casesExist() throws {
         #expect(try !Fixtures.caseNames(in: "parse").isEmpty)
@@ -19,6 +19,13 @@ struct ParseFixtureTests {
         #expect(!expected.keys.isEmpty, "expected.json checks nothing")
         #expect(Set(expected.keys).isSubset(of: Self.knownSections), "unknown keys in \(expected.keys)")
 
+        let body = document.bodyLines
+        if let tasks = expected["tasks"] {
+            #expect(BodyLineSnapshot.tasks(body.tasks) == tasks)
+        }
+        if let events = expected["events"] {
+            #expect(BodyLineSnapshot.events(body.events) == events)
+        }
         if let sections = expected["sections"] {
             #expect(SectionSnapshot.json(document.daySections) == sections)
         }

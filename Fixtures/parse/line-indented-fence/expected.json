@@ -1,0 +1,36 @@
+{
+  "tasks": [
+    {
+      "line": 2,
+      "firstLine": 2,
+      "lastLine": 7,
+      "id": null,
+      "text": "dış",
+      "rawStatus": " ",
+      "status": "todo",
+      "isClosed": false,
+      "isOpen": true
+    },
+    {
+      "line": 14,
+      "firstLine": 14,
+      "lastLine": 15,
+      "id": null,
+      "text": "dış",
+      "rawStatus": "/",
+      "status": "inProgress",
+      "isClosed": false,
+      "isOpen": true
+    }
+  ],
+  "events": [
+    {
+      "line": 8,
+      "firstLine": 8,
+      "lastLine": 10,
+      "id": null,
+      "text": "olay",
+      "time": null
+    }
+  ]
+}

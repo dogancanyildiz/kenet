@@ -1,0 +1,115 @@
+{
+  "tasks": [
+    {
+      "line": 1,
+      "firstLine": 1,
+      "lastLine": 5,
+      "id": null,
+      "text": "kitap",
+      "rawStatus": " ",
+      "status": "todo",
+      "isClosed": false,
+      "isOpen": true
+    },
+    {
+      "line": 2,
+      "firstLine": 2,
+      "lastLine": 2,
+      "id": null,
+      "text": "spor",
+      "rawStatus": " ",
+      "status": "todo",
+      "isClosed": false,
+      "isOpen": true
+    },
+    {
+      "line": 3,
+      "firstLine": 3,
+      "lastLine": 4,
+      "id": null,
+      "text": "su",
+      "rawStatus": " ",
+      "status": "todo",
+      "isClosed": false,
+      "isOpen": true
+    },
+    {
+      "line": 4,
+      "firstLine": 4,
+      "lastLine": 4,
+      "id": null,
+      "text": "kitap",
+      "rawStatus": " ",
+      "status": "todo",
+      "isClosed": false,
+      "isOpen": true
+    },
+    {
+      "line": 5,
+      "firstLine": 5,
+      "lastLine": 5,
+      "id": null,
+      "text": "spor",
+      "rawStatus": " ",
+      "status": "todo",
+      "isClosed": false,
+      "isOpen": true
+    },
+    {
+      "line": 6,
+      "firstLine": 6,
+      "lastLine": 15,
+      "id": null,
+      "text": "su",
+      "rawStatus": " ",
+      "status": "todo",
+      "isClosed": false,
+      "isOpen": true
+    },
+    {
+      "line": 7,
+      "firstLine": 7,
+      "lastLine": 10,
+      "id": null,
+      "text": "kitap",
+      "rawStatus": " ",
+      "status": "todo",
+      "isClosed": false,
+      "isOpen": true
+    },
+    {
+      "line": 8,
+      "firstLine": 8,
+      "lastLine": 8,
+      "id": null,
+      "text": "spor",
+      "rawStatus": " ",
+      "status": "todo",
+      "isClosed": false,
+      "isOpen": true
+    },
+    {
+      "line": 12,
+      "firstLine": 12,
+      "lastLine": 12,
+      "id": null,
+      "text": "su",
+      "rawStatus": " ",
+      "status": "todo",
+      "isClosed": false,
+      "isOpen": true
+    },
+    {
+      "line": 13,
+      "firstLine": 13,
+      "lastLine": 15,
+      "id": null,
+      "text": "kitap",
+      "rawStatus": " ",
+      "status": "todo",
+      "isClosed": false,
+      "isOpen": true
+    }
+  ],
+  "events": []
+}

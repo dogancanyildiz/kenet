@@ -1,0 +1,40 @@
+{
+  "tasks": [
+    {
+      "line": 5,
+      "firstLine": 5,
+      "lastLine": 5,
+      "id": null,
+      "text": "ön",
+      "rawStatus": " ",
+      "status": "todo",
+      "isClosed": false,
+      "isOpen": true
+    },
+    {
+      "line": 17,
+      "firstLine": 17,
+      "lastLine": 17,
+      "id": null,
+      "text": "görev",
+      "rawStatus": "/",
+      "status": "inProgress",
+      "isClosed": false,
+      "isOpen": true
+    }
+  ],
+  "events": [
+    {
+      "line": 12,
+      "firstLine": 12,
+      "lastLine": 13,
+      "id": "ok",
+      "text": "dış",
+      "time": {
+        "hour": 10,
+        "minute": 0,
+        "raw": "10:00"
+      }
+    }
+  ]
+}

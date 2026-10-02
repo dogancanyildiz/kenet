@@ -1,0 +1,28 @@
+{
+  "sections": {
+    "preamble": {
+      "firstLine": 1,
+      "lastLine": 3
+    },
+    "items": [
+      {
+        "kind": "Events",
+        "headingLine": 4,
+        "level": 2,
+        "firstLine": 4,
+        "lastLine": 5
+      }
+    ]
+  },
+  "tasks": [],
+  "events": [
+    {
+      "line": 5,
+      "firstLine": 5,
+      "lastLine": 5,
+      "id": null,
+      "text": "olay",
+      "time": null
+    }
+  ]
+}

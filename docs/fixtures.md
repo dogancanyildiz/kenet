@@ -42,7 +42,7 @@ Bu kategoriye, korunması gereken bir bayt özelliğini taşıyan dosyalar konur
 
 Okuma örnekleri. Her örnek bir klasördür: `input.md` okunur, sonuç `expected.json` ile karşılaştırılır. Yeni örnek eklemek için klasör açmak yeter.
 
-`expected.json` kökünde her konu kendi anahtarını taşır; `frontmatter` ve `sections` vardır; olaylar ve bağlantılar geldikçe yeni anahtarlar eklenir. İstemci yalnızca dosyada bulunan anahtarları karşılaştırır; karşılaştırma katıdır (fazla ya da eksik alan hatadır, metinler bayt bayt karşılaştırılır). Satır numaraları 1'den başlar; BOM satır sayılmaz.
+`expected.json` kökünde her konu kendi anahtarını taşır; `frontmatter`, `sections`, `tasks` ve `events` vardır; bağlantılar geldikçe yeni anahtarlar eklenir. İstemci yalnızca dosyada bulunan anahtarları karşılaştırır; karşılaştırma katıdır (fazla ya da eksik alan hatadır, metinler bayt bayt karşılaştırılır). Satır numaraları 1'den başlar; BOM satır sayılmaz.
 
 ```json
 {
@@ -70,6 +70,10 @@ Okuma örnekleri. Her örnek bir klasördür: `input.md` okunur, sonuç `expecte
 - `fields` dosya sırasındadır.
 
 `parse/section-<ad>/expected.json` kökündeki `sections`, `preamble` (ön içerik) ve dosya sırasındaki `items` listesini taşır. Her aralık `firstLine` ve `lastLine` ile 1 tabanlı, iki ucu dahil yazılır; boş ön içerik `null` olur. Her öğe `kind` (`Tasks`, `Events`, `Journal` ya da tanınmayan/yinelenen başlık için `null`), `headingLine`, `level`, `firstLine`, `lastLine` taşır. Aralık başlığı ve sondaki boş satırları içerir. İç başlıklar ayrı öğe değildir. Örnek: `{ "sections": { "preamble": null, "items": [{ "kind": "Tasks", "headingLine": 1, "level": 2, "firstLine": 1, "lastLine": 2 }] } }`.
+
+`parse/line-<ad>/expected.json` kökündeki `tasks` ve `events` dosya sırasındaki listelerdir. Her öğe `line` (ilk satır), `firstLine`, `lastLine` (iki ucu dahil blok aralığı), `id` (şapkasız kimlik veya `null`) ve `text` taşır. Aralık ilk satırdan daha girintili devamları ve aralarında kalan boş satırları içerir; sondaki boş satırları içermez. İç içe görevlerin aralıkları örtüşebilir; kardeş görevler birbirinin aralığına girmez. Girinti yalnızca satır başındaki boşluk ve sekmelerle ölçülür: boşluk bir sütun, sekme bir sonraki dördün katına ilerler; `>` girinti sayılmaz. Alıntı içindeki görevler tek satırlık bloklardır. Metin yalnızca ilk satırdan gelir: görevde kutuya kadar olan liste/alıntı sözdizimi, olayda liste işareti ve tek ayırıcı boşluk çıkarılır; kutu ve saat sonrasındaki tek ayırıcı boşluk da çıkarılır. Diğer boşluklar, emoji alanları, Türkçe karakterler ve bağlantılar aynen kalır. Kimlik önündeki tek boşluk ve kimlik sonrasındaki boşluk/sekme çıkarılır; kimlik yoksa sondaki boşluklar da metinde kalır.
+
+Görev ayrıca `rawStatus` (tek Unicode skaleri), `status` (`todo`, `inProgress`, `done`, `cancelled`, `unknown`), `isClosed` ve `isOpen` taşır. Olay ayrıca `time` taşır: `null` veya `{ "hour": 9, "minute": 5, "raw": "9:05" }`. Kimlik uzunluğu ve yinelenmesi korunur. Örnek: `{ "tasks": [{ "line": 1, "firstLine": 1, "lastLine": 1, "id": null, "text": "kitap", "rawStatus": " ", "status": "todo", "isClosed": false, "isOpen": true }], "events": [] }`.
 
 ### `write/`
 
@@ -110,7 +114,7 @@ Uygulamanın okuyucusu ve yazıcısı aynı kuralları paylaşır; ikisinde bird
 
 Kasa formatının ve istemci uygulamaların (ayrıştırıcı, modeller, indeksleyici, Obsidian uyumluluğu, arayüz, arama) uçtan uca test edilmesi için kullanılan tam ve tutarlı kurgusal örnek kasa. `Fixtures/vaults/sample/` altında yer alır:
 
-- `journal/`: 2026-09-14 ile 2026-09-27 arası 14 gün dosyası.
+- `journal/`: 2026-09-14 ile 2026-09-27 arası 14 gün dosyası; toplam 40 olay ve 22 görev.
 - `people/`: 6 kişi dosyası.
 - `places/`: 4 konum dosyası.
 - `goals/`: 3 hedef tanımı (`Spor.md`, `Kitap.md`, `Su.md`).
@@ -129,7 +133,7 @@ Kasa formatının ve istemci uygulamaların (ayrıştırıcı, modeller, indeksl
 
 1. **Aynı adlı iki kişi:** `people/Mert Aksu.md` ve ayırt edicili `people/Mert Aksu (iş).md` (`qualifier: iş`). Bağlantılarda `[[Mert Aksu]]` ve `[[Mert Aksu (iş)|Mert]]` olarak kullanılır.
 2. **Var olmayan hedefe bağlantı:** `journal/2026-09-18.md` içinde `[[Henüz Yazılmamış Not]]` bağlantısı (kasada hedef dosyası bulunmayan tek bağlantı).
-3. **Frontmatter'sız not:** `notes/Proje Fikirleri.md` dosyası frontmatter taşımaz ve içinde elle yazılmış gibi blok kimliği bulunmayan görev satırları (`- [ ]`) ile bağlantılar içerir.
+3. **Frontmatter'sız not:** `notes/Proje Fikirleri.md` dosyası frontmatter taşımaz ve içinde elle yazılmış gibi blok kimliği bulunmayan görev satırları (`- [ ]`) ile bağlantılar içerir; toplam 2 kimliksiz görev vardır.
 4. **Kod bloğu içindeki bağlantı ve başlık:** `notes/Toplantı Notları.md` içinde çitli kod bloğunda `[[Deniz Arıkan]]` ve `## Events` yer alır; bunlar ayrıştırıcı tarafından varlık bağlantısı ya da bölüm başlığı sayılmamalıdır.
 5. **Çakışma kopyası:** `conflicts/2026-09-20 (conflict 20260920T183000Z).md`, `journal/2026-09-20.md` dosyasının bir olay metni farklı sürümüdür; taranmayan klasörler kuralı gereği indekslenmez.
 6. **Çok satırlı `aliases`:** `people/Deniz Arıkan.md` dosyasında Obsidian'ın yazdığı gibi blok liste biçiminde (`- Deniz\n  - Deniz abi`), diğer varlıklarda tek satırlı liste (`[Selin]`) biçimindedir.

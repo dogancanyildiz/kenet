@@ -1,0 +1,40 @@
+{
+  "sections": {
+    "preamble": {
+      "firstLine": 1,
+      "lastLine": 6
+    },
+    "items": [
+      {
+        "kind": "Events",
+        "headingLine": 7,
+        "level": 2,
+        "firstLine": 7,
+        "lastLine": 9
+      }
+    ]
+  },
+  "tasks": [
+    {
+      "line": 9,
+      "firstLine": 9,
+      "lastLine": 9,
+      "id": null,
+      "text": "görev",
+      "rawStatus": " ",
+      "status": "todo",
+      "isClosed": false,
+      "isOpen": true
+    }
+  ],
+  "events": [
+    {
+      "line": 8,
+      "firstLine": 8,
+      "lastLine": 8,
+      "id": null,
+      "text": "olay",
+      "time": null
+    }
+  ]
+}

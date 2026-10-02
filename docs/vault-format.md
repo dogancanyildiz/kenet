@@ -205,7 +205,7 @@ Sözdizimi: `[[hedef]]`, `[[hedef|görünen metin]]`, `[[hedef#çapa]]`, `[[hede
 - Kimliği olmayan (elle ya da Obsidian'da yazılmış) satıra, uygulama o satırı ilk kez değiştirdiğinde kimlik eklenir.
 - Okurken Obsidian'ın kabul ettiği her kimlik (harf, rakam ve `-`, herhangi bir uzunlukta) tanınır ve değiştirilmez.
 - Kimliğin kasa genelinde benzersiz olması amaçlanır ama garanti değildir: dışarıda yapılan kopyalama aynı kimliği çoğaltabilir. Bu durumda kimliğin sahibi ilk geçen satırdır (dosya yolu sırası, sonra dosya içi sıra). Diğer satırlar kendiliğinden değiştirilmez; uygulama onlardan birini değiştirdiğinde o satıra yeni kimlik verir.
-- Bir olay ya da görev satırının altındaki girintili satırlar (alt madde, devam satırı) o satırın parçasıdır: onunla birlikte taşınır, birleştirilir ve silinir. Uygulama bu satırları üretmez, yalnızca korur.
+- Bir olay ya da görev satırının altındaki, kendisinden daha girintili satırlar (alt madde, devam satırı) o satırın parçasıdır: onunla birlikte taşınır, birleştirilir ve silinir. Uygulama bu satırları üretmez, yalnızca korur. Aradaki boş satırlar, ardından yine girintili bir satır geliyorsa bloğa dahildir. Girinti yalnızca satır başındaki boşluk ve sekmelerle sütun olarak ölçülür; sekme bir sonraki dördün katına ilerler. Alıntı içindeki görevler tek satırlık bloklardır; `>` girinti sayılmaz.
 
 ## Gün dosyası
 
@@ -242,7 +242,7 @@ Bugün genel olarak verimli geçti...
 ### Bölümler
 
 - Başlık satırı, satır başında en çok üç boşluktan sonra gelen 1 ile 6 arası `#` ve ardından boşluk, sekme ya da satır sonudur. Altı çizili başlıklar tanınmaz. Tanınan bölüm başlığında `##` ile ad arasında tek boşluk bulunur.
-- Çitli kod bloğu içindeki satırlar başlık sayılmaz.
+- Çitli kod bloğu, satır başında en çok üç boşluktan sonra gelen en az üç `` ` `` ya da `~` ile açılır; bir liste öğesinin içindeyse girinti öğenin içerik sütununa göre ölçülür. Ters tırnaklı çitin açılış satırında başka ters tırnak bulunmaz. Çit, aynı işaretten en az o kadarını taşıyan ve başka içeriği olmayan satırla kapanır; kapanmayan çit dosya sonuna kadar sürer. İçindeki satırlar başlık, olay, görev ya da bağlantı sayılmaz.
 
 - Bölüm başlığı tam olarak `## Tasks`, `## Events` ya da `## Journal` satırıdır (sondaki boşluklar yok sayılır). Bölüm, aynı ya da daha üst düzeydeki bir sonraki başlığa kadar sürer.
 - Aynı başlık birden fazla geçerse ilki geçerlidir.
@@ -257,6 +257,7 @@ Bugün genel olarak verimli geçti...
 
 - Events bölümündeki, girintisiz `- ` ile başlayan ve görev olmayan her liste satırı bir olaydır. Okurken `* ` ve `+ ` liste işaretleri de kabul edilir.
 - Saatli: `- HH:MM metin ^kimlik` (24 saat, iki haneli). Okurken tek haneli saat (`9:05`) de kabul edilir ve olduğu gibi korunur.
+- Saat 0-23, dakika 00-59 olmalıdır; geçersiz yazım saat sayılmaz, satır saatsiz olaydır ve yazım metnin parçası kalır.
 - Saatsiz: `- metin ^kimlik` (saat isteğe bağlıdır)
 - Saat, olayın yazıldığı yerin yerel saatidir; saat dilimi tutulmaz.
 - Geçmiş bir güne sonradan olay eklenebilir; satır o günün dosyasına yazılır.
@@ -266,7 +267,7 @@ Bugün genel olarak verimli geçti...
 
 ## Görev satırı
 
-Obsidian Tasks biçimi. Onay kutusu taşıyan her liste satırı görevdir; hangi dosyada ya da bölümde durduğu fark etmez. Girintili görev satırı (alt görev) de görevdir. Okurken `* ` ve `+ ` liste işaretleri de kabul edilir.
+Obsidian Tasks biçimi. Onay kutusu taşıyan her liste satırı görevdir; hangi dosyada ya da bölümde durduğu fark etmez. Girintili görev satırı (alt görev) de görevdir. Okurken `*` ve `+` işaretleri, numaralı liste (`1.` ya da `1)`) (en çok dokuz rakam), işaretten sonra birden çok boşluk ve alıntı içindeki görev (`> - [ ] ...`) de kabul edilir. Kutunun içinde tek karakter bulunur ve `]` işaretinden sonra boşluk ya da satır sonu gelir.
 
 | Öğe | Yazım |
 |---|---|
@@ -283,6 +284,7 @@ Obsidian Tasks biçimi. Onay kutusu taşıyan her liste satırı görevdir; hang
 
 Örnek: `- [/] Portfolyo sitesini bitir 🛫 2026-10-05 📅 2026-10-20 #project/portfolyo ^z5n4r2`
 
+- Çitli kod bloğu ve frontmatter içindeki satırlar olay ya da görev sayılmaz.
 - Tanınmayan durum karakteri korunur ve açık görev sayılır; `[X]` bitti sayılır.
 - Uygulamanın ayrıştırmadığı alanlar (tanımadığı emoji alanları dahil) metnin parçası olarak korunur.
 

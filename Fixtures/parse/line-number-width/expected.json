@@ -1,0 +1,27 @@
+{
+  "tasks": [
+    {
+      "line": 1,
+      "firstLine": 1,
+      "lastLine": 1,
+      "id": null,
+      "text": "kitap",
+      "rawStatus": " ",
+      "status": "todo",
+      "isClosed": false,
+      "isOpen": true
+    },
+    {
+      "line": 3,
+      "firstLine": 3,
+      "lastLine": 3,
+      "id": null,
+      "text": "su",
+      "rawStatus": " ",
+      "status": "todo",
+      "isClosed": false,
+      "isOpen": true
+    }
+  ],
+  "events": []
+}

@@ -8,25 +8,14 @@ enum SectionParser {
         var fencedBoundaries: Set<Int> = []
         var headings: [(line: Int, level: Int, kind: DaySectionKind?)] = []
         var seen: Set<DaySectionKind> = []
-        var fence: (byte: UInt8, count: Int)?
+        var fence = FenceScanner()
         for index in start..<lines.count {
             let bytes = lines[index].content
-            let indent = bytes.prefix { $0 == Syntax.space }.count
-            if fence != nil { fencedBoundaries.insert(index) }
-            guard indent <= 3 else { continue }
+            let indent = bytes.prefix(while: Syntax.isBlank).count
+            if fence.isOpen { fencedBoundaries.insert(index) }
+            if fence.consumes(bytes) { continue }
             let text = Array(bytes.dropFirst(indent))
-            if let open = fence {
-                let run = text.prefix { $0 == open.byte }.count
-                if run >= open.count, text.dropFirst(run).allSatisfy(Syntax.isBlank) { fence = nil }
-                continue
-            }
-            if let marker = text.first, marker == 0x60 || marker == 0x7E {
-                let count = text.prefix { $0 == marker }.count
-                if count >= 3 {
-                    fence = (marker, count)
-                    continue
-                }
-            }
+            guard indent <= 3, !bytes.prefix(indent).contains(Syntax.tab) else { continue }
             let level = text.prefix { $0 == Syntax.hash }.count
             guard (1...6).contains(level), text.count == level || Syntax.isBlank(text[level]) else { continue }
             // Deeper headings belong to the current section, rather than splitting it.
@@ -37,7 +26,7 @@ enum SectionParser {
             headings.append((index, level, kind))
         }
         // A boundary records the state before a line, including the boundary at EOF.
-        if fence != nil { fencedBoundaries.insert(lines.count) }
+        if fence.isOpen { fencedBoundaries.insert(lines.count) }
         let sections = headings.enumerated().map { offset, heading in
             let end = offset + 1 < headings.count ? headings[offset + 1].line : lines.count
             return DaySection(

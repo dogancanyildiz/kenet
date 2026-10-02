@@ -48,7 +48,7 @@ enum BodyLineParser {
         } else {
             let start = cursor
             while cursor < bytes.count, Syntax.isDigit(bytes[cursor]) { cursor += 1 }
-            guard cursor > start, cursor < bytes.count,
+            guard (1...9).contains(cursor - start), cursor < bytes.count,
                 bytes[cursor] == UInt8(ascii: ".") || bytes[cursor] == UInt8(ascii: ")")
             else { return nil }
             cursor += 1
@@ -66,19 +66,8 @@ enum BodyLineParser {
         return (raw, Syntax.string(bytes.dropFirst(min(cursor + 1, bytes.count))))
     }
 
-    /// Measures the prefix in columns, using only leading whitespace and four-column tab stops.
     private static func indentation(_ bytes: [UInt8]) -> Int {
-        var columns = 0
-        for byte in bytes {
-            if byte == Syntax.tab {
-                columns += 4 - columns % 4
-            } else if byte == Syntax.space {
-                columns += 1
-            } else {
-                break
-            }
-        }
-        return columns
+        LineSyntax.indentation(bytes).columns
     }
 
     private static func status(_ raw: String) -> TaskStatus {

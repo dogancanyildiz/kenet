@@ -80,6 +80,7 @@ Bunlar zevk değil, ürünün temel vaatleridir (veri kullanıcınındır, hiçb
 - Conventional Commits: `feat:`, `fix:`, `docs:`, `test:`, `refactor:`, `chore:`
 - Önek İngilizce, açıklama Türkçe: `feat: olay satırı ayrıştırıcısı`
 - Küçük ve tek amaçlı commit'ler.
+- Commit mesajına ve PR açıklamasına yapay zeka imzası eklenmez: `Co-Authored-By`, "Generated with" ve benzeri satırlar yazılmaz. Hangi ajan çalışırsa çalışsın geçerlidir.
 
 ### Yasaklar
 

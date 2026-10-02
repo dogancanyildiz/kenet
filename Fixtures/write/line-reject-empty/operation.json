@@ -1,0 +1,8 @@
+{
+  "lines": {
+    "operation": "text",
+    "line": 2,
+    "text": " \t "
+  },
+  "expectedError": "empty-text"
+}

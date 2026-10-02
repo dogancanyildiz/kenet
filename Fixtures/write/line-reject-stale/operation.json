@@ -1,0 +1,8 @@
+{
+  "lines": {
+    "operation": "stale",
+    "line": 2,
+    "text": "Kitap"
+  },
+  "expectedError": "target-not-found"
+}

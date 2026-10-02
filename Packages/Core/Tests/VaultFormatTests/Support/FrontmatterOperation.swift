@@ -120,6 +120,10 @@ extension EditError {
         case .sectionNotWritable: "section-not-writable"
         case .emptySectionAppend: "empty-section-append"
         case .invalidValue: "invalid-value"
+        case .targetNotFound: "target-not-found"
+        case .emptyText: "empty-text"
+        case .identifierExhausted: "identifier-exhausted"
+        case .contentNotRepresentable: "content-not-representable"
         }
     }
 }

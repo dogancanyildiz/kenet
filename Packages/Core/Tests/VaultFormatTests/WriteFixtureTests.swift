@@ -15,8 +15,12 @@ struct WriteFixtureTests {
         let before = RawDocument(bytes: input)
 
         #expect(
-            Set(description.keys).isSubset(of: ["frontmatter", "sections", "expectedError"]),
+            Set(description.keys).isSubset(of: ["frontmatter", "sections", "lines", "expectedError"]),
             "unknown keys in \(description.keys)")
+        if let line = description["lines"] {
+            try BodyOperation.check(line, description: description, before: before, name: name)
+            return
+        }
         if let section = description["sections"] {
             try SectionOperation.check(section, description: description, before: before, name: name)
             return

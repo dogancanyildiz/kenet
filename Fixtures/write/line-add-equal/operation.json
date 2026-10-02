@@ -1,0 +1,11 @@
+{
+  "lines": {
+    "operation": "add-event",
+    "text": "Kitap",
+    "id": "new456",
+    "time": {
+      "hour": 14,
+      "minute": 0
+    }
+  }
+}

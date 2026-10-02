@@ -1,0 +1,9 @@
+{
+  "lines": {
+    "operation": "stale-delete",
+    "line": 2,
+    "text": "Kitap",
+    "replacement": "## Events\n- 10:00 Su\n"
+  },
+  "expectedError": "target-not-found"
+}

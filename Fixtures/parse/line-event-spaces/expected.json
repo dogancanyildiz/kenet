@@ -1,0 +1,33 @@
+{
+  "tasks": [],
+  "events": [
+    {
+      "line": 2,
+      "firstLine": 2,
+      "lastLine": 2,
+      "id": "a",
+      "text": "Su",
+      "time": null
+    },
+    {
+      "line": 3,
+      "firstLine": 3,
+      "lastLine": 3,
+      "id": "b",
+      "text": "Kitap",
+      "time": {
+        "hour": 9,
+        "minute": 5,
+        "raw": "9:05"
+      }
+    },
+    {
+      "line": 4,
+      "firstLine": 4,
+      "lastLine": 4,
+      "id": "empty",
+      "text": "",
+      "time": null
+    }
+  ]
+}

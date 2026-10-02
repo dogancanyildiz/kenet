@@ -1,0 +1,159 @@
+{
+  "tasks": [
+    {
+      "line": 1,
+      "firstLine": 1,
+      "lastLine": 1,
+      "id": "a1b2c3",
+      "text": "kitap",
+      "rawStatus": " ",
+      "status": "todo",
+      "isClosed": false,
+      "isOpen": true
+    },
+    {
+      "line": 2,
+      "firstLine": 2,
+      "lastLine": 2,
+      "id": null,
+      "text": "spor",
+      "rawStatus": "/",
+      "status": "inProgress",
+      "isClosed": false,
+      "isOpen": true
+    },
+    {
+      "line": 3,
+      "firstLine": 3,
+      "lastLine": 3,
+      "id": null,
+      "text": "su",
+      "rawStatus": "x",
+      "status": "done",
+      "isClosed": true,
+      "isOpen": false
+    },
+    {
+      "line": 4,
+      "firstLine": 4,
+      "lastLine": 4,
+      "id": null,
+      "text": "bitti",
+      "rawStatus": "X",
+      "status": "done",
+      "isClosed": true,
+      "isOpen": false
+    },
+    {
+      "line": 5,
+      "firstLine": 5,
+      "lastLine": 5,
+      "id": null,
+      "text": "iptal",
+      "rawStatus": "-",
+      "status": "cancelled",
+      "isClosed": true,
+      "isOpen": false
+    },
+    {
+      "line": 6,
+      "firstLine": 6,
+      "lastLine": 7,
+      "id": null,
+      "text": "bilinmeyen",
+      "rawStatus": "?",
+      "status": "unknown",
+      "isClosed": false,
+      "isOpen": true
+    },
+    {
+      "line": 7,
+      "firstLine": 7,
+      "lastLine": 7,
+      "id": null,
+      "text": "Türkçe [[Deniz Arıkan]]",
+      "rawStatus": "ö",
+      "status": "unknown",
+      "isClosed": false,
+      "isOpen": true
+    },
+    {
+      "line": 8,
+      "firstLine": 8,
+      "lastLine": 8,
+      "id": null,
+      "text": "",
+      "rawStatus": " ",
+      "status": "todo",
+      "isClosed": false,
+      "isOpen": true
+    },
+    {
+      "line": 9,
+      "firstLine": 9,
+      "lastLine": 9,
+      "id": "ONLY-ID",
+      "text": "",
+      "rawStatus": " ",
+      "status": "todo",
+      "isClosed": false,
+      "isOpen": true
+    },
+    {
+      "line": 10,
+      "firstLine": 10,
+      "lastLine": 10,
+      "id": "a",
+      "text": " boşluk ",
+      "rawStatus": " ",
+      "status": "todo",
+      "isClosed": false,
+      "isOpen": true
+    },
+    {
+      "line": 11,
+      "firstLine": 11,
+      "lastLine": 11,
+      "id": null,
+      "text": "tarih 📅 2026-10-05 🛫 2026-10-01 ✅ 2026-10-02 ⏫ 🔁 every week #project/portfolyo",
+      "rawStatus": " ",
+      "status": "todo",
+      "isClosed": false,
+      "isOpen": true
+    },
+    {
+      "line": 14,
+      "firstLine": 14,
+      "lastLine": 14,
+      "id": null,
+      "text": "metin",
+      "rawStatus": " ",
+      "status": "todo",
+      "isClosed": false,
+      "isOpen": true
+    },
+    {
+      "line": 17,
+      "firstLine": 17,
+      "lastLine": 17,
+      "id": null,
+      "text": "emoji durum",
+      "rawStatus": "🙂",
+      "status": "unknown",
+      "isClosed": false,
+      "isOpen": true
+    },
+    {
+      "line": 18,
+      "firstLine": 18,
+      "lastLine": 18,
+      "id": null,
+      "text": "sekme\t^id",
+      "rawStatus": " ",
+      "status": "todo",
+      "isClosed": false,
+      "isOpen": true
+    }
+  ],
+  "events": []
+}

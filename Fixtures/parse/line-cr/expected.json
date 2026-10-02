@@ -1,0 +1,29 @@
+{
+  "tasks": [
+    {
+      "line": 3,
+      "firstLine": 3,
+      "lastLine": 3,
+      "id": "t",
+      "text": "görev",
+      "rawStatus": "X",
+      "status": "done",
+      "isClosed": true,
+      "isOpen": false
+    }
+  ],
+  "events": [
+    {
+      "line": 2,
+      "firstLine": 2,
+      "lastLine": 2,
+      "id": "e",
+      "text": "olay",
+      "time": {
+        "hour": 9,
+        "minute": 5,
+        "raw": "9:05"
+      }
+    }
+  ]
+}

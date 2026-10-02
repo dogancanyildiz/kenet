@@ -1,0 +1,55 @@
+{
+  "tasks": [
+    {
+      "line": 5,
+      "firstLine": 5,
+      "lastLine": 5,
+      "id": "child",
+      "text": "alt",
+      "rawStatus": " ",
+      "status": "todo",
+      "isClosed": false,
+      "isOpen": true
+    },
+    {
+      "line": 11,
+      "firstLine": 11,
+      "lastLine": 12,
+      "id": null,
+      "text": "üst",
+      "rawStatus": "/",
+      "status": "inProgress",
+      "isClosed": false,
+      "isOpen": true
+    },
+    {
+      "line": 12,
+      "firstLine": 12,
+      "lastLine": 12,
+      "id": null,
+      "text": "alt",
+      "rawStatus": "x",
+      "status": "done",
+      "isClosed": true,
+      "isOpen": false
+    }
+  ],
+  "events": [
+    {
+      "line": 2,
+      "firstLine": 2,
+      "lastLine": 9,
+      "id": "parent",
+      "text": "olay",
+      "time": null
+    },
+    {
+      "line": 15,
+      "firstLine": 15,
+      "lastLine": 15,
+      "id": null,
+      "text": "son olay",
+      "time": null
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "tasks": [
+    {
+      "line": 2,
+      "firstLine": 2,
+      "lastLine": 3,
+      "id": null,
+      "text": "[[Baran Tunç]] ile görüş",
+      "rawStatus": " ",
+      "status": "todo",
+      "isClosed": false,
+      "isOpen": true
+    },
+    {
+      "line": 3,
+      "firstLine": 3,
+      "lastLine": 3,
+      "id": null,
+      "text": "iptal",
+      "rawStatus": "-",
+      "status": "cancelled",
+      "isClosed": true,
+      "isOpen": false
+    },
+    {
+      "line": 8,
+      "firstLine": 8,
+      "lastLine": 8,
+      "id": null,
+      "text": "sor",
+      "rawStatus": "?",
+      "status": "unknown",
+      "isClosed": false,
+      "isOpen": true
+    },
+    {
+      "line": 10,
+      "firstLine": 10,
+      "lastLine": 10,
+      "id": null,
+      "text": "tamam",
+      "rawStatus": "X",
+      "status": "done",
+      "isClosed": true,
+      "isOpen": false
+    }
+  ],
+  "events": []
+}

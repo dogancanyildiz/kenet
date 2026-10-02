@@ -27,7 +27,7 @@ enum FrontmatterParser {
 
     /// Whether the line is `---` followed by blanks. Readers disagree on whether that is a
     /// delimiter, so a block that depends on the answer is not trusted.
-    private static func isDelimiterLookalike(_ content: [UInt8]) -> Bool {
+    static func isDelimiterLookalike(_ content: [UInt8]) -> Bool {
         content.count > Syntax.delimiter.count && content.starts(with: Syntax.delimiter)
             && content.dropFirst(Syntax.delimiter.count).allSatisfy(Syntax.isBlank)
     }

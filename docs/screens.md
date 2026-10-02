@@ -21,7 +21,7 @@ Uygulama bu ekranda açılır. Yukarıdan aşağıya:
 1. **Hedefler şeridi (3):** Günün hedefleri, tek dokunuşla işaretlenir. Sayısal hedefte dokununca miktar girilir. Yapılmamışlar belirgin, yapılmışlar soluk.
 2. **Görevler (2):** Geciken görevler, bugünün görevleri ve bugün oluşturulan tarihsiz görevler. Dokununca tamamlanır, basılı tutunca düzenlenir.
 3. **Takvim (2):** Cihaz takvimindeki bugünkü etkinlikler, salt okunur.
-4. **Olaylar (1):** Bugün yazılan olaylar, saat sırasıyla. Kişi ve konum adları dokunulabilir bağlantıdır.
+4. **Olaylar (1):** Bugün yazılan olaylar, dosyadaki sırayla (uygulama saatli olayı saat sırasındaki yerine yazar). Kişi ve konum adları dokunulabilir bağlantıdır.
 5. **Günlük yazısı (1):** Varsa serbest yazının ilk satırları; dokununca tam ekran yazma alanı açılır.
 
 En altta sabit **hızlı giriş kutusu**.

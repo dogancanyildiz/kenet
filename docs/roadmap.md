@@ -1,6 +1,6 @@
 # Yol haritası
 
-**Aktif aşama:** 0 (henüz başlamadı)
+**Aktif aşama:** 0
 
 Kural: Bir aşamanın çıkış ölçütü sağlanmadan sonrakine geçilmez. Her modül gerçek kullanımda sınanır.
 
@@ -12,7 +12,7 @@ Kullanıcıya görünen bir şey yok; her şey bunun üstüne kurulur.
 - [ ] CI (GitHub Actions): her PR'da derleme, `Core` testleri, biçim ve lint denetimi
 - [ ] Sürüm otomasyonu: `main`'e birleşince etiket ve GitHub Release
 - [ ] Dal koruması: `main` ve `dev` için PR ve geçen test zorunluluğu
-- [ ] Ayrıştırıcı ve yazıcı: frontmatter, bölümler, olay satırı, wikilink, blok kimliği
+- [ ] Ayrıştırıcı ve yazıcı: frontmatter, bölümler, olay satırı, görev satırı (durum, metin, kimlik), wikilink, blok kimliği
 - [ ] Gidiş dönüş testi ve `Fixtures/` örnek kasası
 - [ ] SQLite indeksi (GRDB, FTS5) ve dosyalardan yeniden üretme
 - [ ] Kasa konumu: iCloud kapsayıcısı, yerel yedek seçenek
@@ -71,6 +71,8 @@ Kullanıcıya görünen bir şey yok; her şey bunun üstüne kurulur.
 - [ ] Konuma girince hedefi otomatik işaretleme ya da tek dokunuşluk bildirim
 - [ ] Kısayollar ve Siri ile giriş (App Intents)
 
+**Çıkış ölçütü:** İki hafta boyunca hatırlatmalar kaçmadan geliyor; konuma bağlı hedefler elle işaretlemeden kaydediliyor.
+
 ## Aşama 5: Proje görünümleri
 
 - [ ] Kanban: duruma, projeye ya da kişiye göre
@@ -89,6 +91,8 @@ Kullanıcıya görünen bir şey yok; her şey bunun üstüne kurulur.
   - Haftalık ve aylık değerlendirme: dönemin günlüklerini, görevlerini ve hedeflerini inceleyip yazılı geri bildirim verme (örüntüler, iyi gidenler, aksayanlar, öneriler)
   - Yeni varlık önerisi ve olgu çıkarımı
   - Notlara soru sorma
+
+**Çıkış ölçütü:** Haftalık özet dört hafta üst üste okunuyor.
 
 ## Aşama 7: Genişleme
 

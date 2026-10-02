@@ -59,6 +59,8 @@ Verilen her karar tek satır olarak eklenir. Açık sorular kapandığında altt
 | 2026-10-02 | Commit ve PR'larda yapay zeka imzası yok (`Co-Authored-By`, "Generated with" ve benzerleri) | Proje sahibinin tercihi |
 | 2026-10-02 | Core paketinde ayrıştırma katmanı (`VaultFormat` hedefi) paket bağımlılığı taşımaz; indeks ayrı hedefte kurulacak | GRDB ve indeks hedefi, bağımlılık olarak bildirilmeden ayrıştırıcıdan kullanılamaz; ayrıştırıcı indeks olmadan tek başına derlenir ve sınanır |
 | 2026-10-02 | Test için Swift Testing, biçim ve lint için `swift format` | İkisi de araç zinciriyle gelir; ek bağımlılık gerekmez |
+| 2026-10-02 | Belge modeli satır tabanlı ve kayıpsız: her satır ham baytlarını ve satır sonunu saklar, metin isteğe bağlı olarak baytlardan çözülür, serileştirme baytları birleştirir | Gidiş dönüş tasarımdan gelir; ayrıştırıp yeniden üretme yaklaşımı bayt korumayı garanti edemez |
+| 2026-10-02 | Ardından LF gelmeyen tek CR de satır sonu sayılır | Obsidian ve CommonMark ile uyum; yalnız CR kullanan dosyada satırlar, görevler ve başlıklar doğru tanınır. Bayt koruması değişmez |
 
 ## Açık sorular
 

@@ -7,9 +7,10 @@ Bu belge platformlar arası sözleşmedir. Uygulamanın her sürümü ve ileride
 ## Genel kurallar
 
 - Uygulamanın oluşturduğu dosyalar UTF-8'dir (BOM'suz), satır sonu LF'tir.
-- Okurken CRLF satır sonu, baştaki BOM ve yeni satırla bitmeyen son satır kabul edilir ve aynen korunur.
-- Uygulama var olan bir dosyaya satır eklerken o dosyadaki ilk satır sonunun biçimini kullanır. Son satır yeni satırla bitmiyorsa ardına satır eklenmeden önce sonlandırılır.
-- UTF-8 olarak çözülemeyen dosya salt okunurdur: çözülebildiği kadarıyla gösterilir, uygulama içine yazmaz.
+- Satır sonu LF, CRLF ya da ardından LF gelmeyen tek CR'dir (Obsidian ve CommonMark da böyle sayar). Okurken üçü de, baştaki BOM ve satır sonuyla bitmeyen son satır kabul edilir ve aynen korunur.
+- Uygulama var olan bir dosyaya satır eklerken o dosyadaki ilk satır sonunun biçimini kullanır. Son satır yeni satırla bitmiyorsa ardına satır eklenmeden önce sonlandırılır. Dosyada hiç satır sonu yoksa LF kullanılır.
+- Baştaki BOM dosyanın özelliğidir ve her zaman en başta kalır; dosyanın başına içerik (örneğin yeni frontmatter) eklendiğinde de. Baş dışındaki BOM baytları sıradan içeriktir.
+- UTF-8 olarak çözülemeyen dosya salt okunurdur: uygulama içine yazmaz. Çözülemeyen, Unicode'a göre iyi biçimli olmayan bayt dizisi demektir (aşırı uzun kodlama, vekil kod noktası, yarım dizi); NUL ve U+FFFD geçerlidir. Gösterirken geçerli satırlar olduğu gibi, geçersiz bayt dizileri U+FFFD olarak gösterilir.
 - Sözdizimi Obsidian uyumludur: YAML frontmatter, `[[wikilink]]`, `#etiket`, blok kimliği, Obsidian Tasks görev biçimi.
 - Kasa uygulamanın kendi iCloud klasöründe durur. Mac'te Obsidian ile kasa olarak açılabilir.
 
@@ -326,6 +327,7 @@ Uygulama iki sürümü tek içerikte birleştirir. Kopya dosya birleştirildikte
 - Sürümlerin veriliş sırası sonucu değiştirmez. Sonucu sürümlerden biriyle yeniden birleştirmek de değiştirmez.
 - Böylece iki cihaz aynı çakışmayı ayrı ayrı çözse de aynı içeriğe varır.
 - **Yeni sürüm**, değişiklik zamanı daha büyük olandır; zamanlar eşitse içeriği bayt sırasında büyük olandır.
+- Birleşmiş dosyanın BOM'u ve yeni eklenen satırların satır sonu yeni sürümden alınır; iki sürümden aynen alınan satırlar kendi satır sonlarını korur. Satırlar eşleştirilirken satır sonu biçimi dikkate alınmaz.
 
 ### Satırlar
 

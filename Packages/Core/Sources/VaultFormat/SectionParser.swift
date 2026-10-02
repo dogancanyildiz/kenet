@@ -11,9 +11,8 @@ enum SectionParser {
         var fence: (byte: UInt8, count: Int)?
         for index in start..<lines.count {
             let bytes = lines[index].content
-            let indent = bytes.prefix { $0 == Syntax.space }.count
+            let indent = bytes.prefix(while: Syntax.isBlank).count
             if fence != nil { fencedBoundaries.insert(index) }
-            guard indent <= 3 else { continue }
             let text = Array(bytes.dropFirst(indent))
             if let open = fence {
                 let run = text.prefix { $0 == open.byte }.count
@@ -27,6 +26,7 @@ enum SectionParser {
                     continue
                 }
             }
+            guard indent <= 3, !bytes.prefix(indent).contains(Syntax.tab) else { continue }
             let level = text.prefix { $0 == Syntax.hash }.count
             guard (1...6).contains(level), text.count == level || Syntax.isBlank(text[level]) else { continue }
             // Deeper headings belong to the current section, rather than splitting it.

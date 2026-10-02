@@ -69,6 +69,7 @@ Verilen her karar tek satır olarak eklenir. Açık sorular kapandığında altt
 | 2026-10-03 | Alt satır olan bir görev silinebilir: yalnızca kendi satırları silinir, üst blok o kadar kısalır | Alt görev silme sıradan kullanıcı işlemidir; "yalnızca hedeflenen satır değişir" kuralıyla uyumludur |
 | 2026-10-03 | Blok kimliği üretimi Core'da, rastgelelik ve "kimlik alınmış mı" sorusu dışarıdan verilir | Core Foundation'sız kalır; kasa genelinde benzersizlik indeksin bilgisidir |
 | 2026-10-03 | Sürüm numarası kök dizindeki `VERSION` dosyasında tutulur; `main`'e push'ta iş akışı bu numarayla etiket ve Release oluşturur, etiket varsa atlar | Numara tek yerde durur ve Xcode projesi gelmeden önce de sürüm kesilebilir; iş akışı yeniden çalışsa da ikinci etiket üretmez |
+| 2026-10-03 | Xcode projesi XcodeGen ile `project.yml` dosyasından üretilir, `Journal.xcodeproj` takip edilmez; bundle kimliği geçici `com.dravcore.journal.dev`, en düşük sürüm iOS 26 ve macOS 26 (ikisi de değiştirilebilir) | Proje dosyası çakışması olmaz ve ajanlar projeyi metinle düzenler; kalıcı kimlik kullanıcı kararını bekler, geçici kimlik yalnız simülatörde kullanılır |
 
 ## Açık sorular
 

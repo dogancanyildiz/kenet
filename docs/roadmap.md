@@ -8,7 +8,7 @@ Kural: Bir aşamanın çıkış ölçütü sağlanmadan sonrakine geçilmez. Her
 
 Kullanıcıya görünen bir şey yok; her şey bunun üstüne kurulur.
 
-- [ ] Xcode projesi: iOS ve macOS hedefleri, `Core` Swift paketi
+- [x] Xcode projesi: iOS ve macOS hedefleri, `Core` Swift paketi
 - [x] CI (GitHub Actions): her PR'da derleme, `Core` testleri, biçim ve lint denetimi
 - [x] Sürüm otomasyonu: `main`'e birleşince etiket ve GitHub Release
 - [x] Dal koruması: `main` ve `dev` için PR ve geçen test zorunluluğu

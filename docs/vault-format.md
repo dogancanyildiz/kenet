@@ -38,13 +38,14 @@ Vault/
   goals/         Hedef tanımları
   notes/         Serbest notlar
   templates/     Varlık şablonları (person.md, place.md)
+  conflicts/     Çakışma kopyaları (bkz. Senkronizasyon çakışması)
   .app/          Ayarlar ve görünüm tercihleri (JSON)
 ```
 
 - Bir dosyanın türünü klasör değil frontmatter'daki `type` belirler. Klasörler, uygulamanın yeni dosyayı nereye koyacağını söyler. Tek istisna gün dosyalarıdır: kimlikleri yollarıdır (bkz. Gün dosyası).
 - `type` alanı olmayan ya da tanınmayan bir `type` taşıyan dosya düz nottur.
 - Yalnızca `.md` uzantılı dosyalar okunur. Diğer dosyalar (görsel, PDF) yok sayılır ve korunur.
-- Şunlar taranmaz; içlerindeki dosyalar varlık sayılmaz ve indekslenmez: adı nokta ile başlayan klasörler (`.app/`, `.obsidian/`, `.trash/`) ve `templates/`.
+- Şunlar taranmaz; içlerindeki dosyalar varlık sayılmaz ve indekslenmez: adı nokta ile başlayan klasörler (`.app/`, `.obsidian/`, `.trash/`), `templates/` ve `conflicts/`.
 - Kullanıcının açtığı diğer klasörler ve alt klasörler taranır.
 - İndeks veritabanı kasanın içinde durmaz.
 
@@ -312,9 +313,60 @@ Zincir, en uzun seri ve ilerleme dosyada tutulmaz; gün dosyalarındaki kayıtla
 
 ## Senkronizasyon çakışması
 
-Aynı dosya iki cihazda eşitlenmeden düzenlenirse uygulama iki sürümü birleştirir:
+Aynı içeriğin iki sürümü iki yoldan oluşur:
 
-- Olay ve görev satırları blok kimliğine göre birleştirilir. Yalnızca bir sürümde olan satır eklenir; iki sürümde de olan ve aynı kalan satır tek kez yazılır.
-- Aynı kimlikli satır iki sürümde farklıysa son değiştirilen sürüm alınır.
-- Frontmatter'daki `goals` kayıtları anahtar bazında birleştirilir; aynı anahtar için son değiştirilen değer alınır.
-- Birleştirilemeyen içerik (iki sürümde farklı düzenlenmiş serbest yazı) için ikinci sürüm çakışan kopya olarak ayrı dosyada saklanır ve kullanıcıya gösterilir. Hiçbir içerik sessizce silinmez.
+- **Aynı dosya iki cihazda eşitlenmeden düzenlenir.** iCloud sürümlerden birini geçerli sayar, diğerini çakışan sürüm olarak saklar.
+- **Aynı gün dosyası iki cihazda eşitlenmeden oluşturulur.** iCloud ikinci dosyayı adının sonuna sayı ekleyerek ayırır: `journal/2026-10-02 2.md`. Bu adı taşıyan dosya o günün kopyasıdır.
+
+Uygulama iki sürümü tek içerikte birleştirir. Kopya dosya birleştirildikten sonra silinir; ana dosya yoksa kopya onun adını alır.
+
+### Birleştirme işlevi
+
+- Yalnızca iki sürümün içeriğine ve değişiklik zamanlarına bağlıdır; cihazın durumuna ya da indekse bağlı değildir.
+- Sürümlerin veriliş sırası sonucu değiştirmez. Sonucu sürümlerden biriyle yeniden birleştirmek de değiştirmez.
+- Böylece iki cihaz aynı çakışmayı ayrı ayrı çözse de aynı içeriğe varır.
+- **Yeni sürüm**, değişiklik zamanı daha büyük olandır; zamanlar eşitse içeriği bayt sırasında büyük olandır.
+
+### Satırlar
+
+- Olay ve görev satırları blok kimliğine göre eşleştirilir. Kimliği olmayan ya da kimliği aynı sürümde birden fazla geçen satırlar, metinleri birebir aynıysa eşleşir.
+- Eşleştirme girintisiz satırlar üzerinden yapılır; altındaki girintili satırlar o satırla birlikte tek blok sayılır.
+- Yalnızca bir sürümde olan satır sonuca eklenir. İki sürümde aynı olan satır tek kez yazılır.
+- Aynı kimlikli satır iki sürümde farklıysa:
+  - Görevlerden biri kapalı (`x`, `-`), diğeri açıksa kapalı olan alınır.
+  - Diğer durumlarda yeni sürümdeki satır alınır.
+  - İki satır arasında durum işareti ve tamamlanma tarihi (`✅`) dışında bir fark varsa, satırı alınmayan sürüm çakışma kopyası olarak saklanır.
+
+### Frontmatter
+
+- Alanlar anahtar bazında birleştirilir; `goals` altındaki kayıtlar da öyle. Yalnızca bir sürümde olan anahtar sonuca eklenir.
+- Değerler anlamca karşılaştırılır: yalnızca yazımı farklı olan değerler (tek satırlı ve çok satırlı liste gibi) aynı sayılır.
+- Aynı `goals` anahtarı iki sürümde farklıysa ilerleyen değer alınır: `false` karşısında `true`, küçük sayı karşısında büyük sayı. Türleri farklıysa yeni sürümdeki değer alınır.
+- Başka bir anahtar iki sürümde farklıysa yeni sürümdeki değer alınır ve diğer sürüm çakışma kopyası olarak saklanır.
+
+### Serbest yazı
+
+Frontmatter ile olay ve görev satırları dışındaki her şey serbest yazıdır; bölüm bölüm karşılaştırılır.
+
+- Bir sürümün yazısı diğerinin tüm satırlarını aynı sırayla içeriyorsa (diğeri yalnızca eksikse) kapsayan sürüm alınır.
+- İki sürüm de farklı yönde değişmişse yeni sürümün yazısı alınır ve diğer sürüm çakışma kopyası olarak saklanır.
+
+### Sıra
+
+Sonuçta yeni sürümün düzeni esas alınır. Yalnızca diğer sürümde bulunan olaylar olay ekleme kuralıyla yerleştirilir; görevler, kendi aralarındaki sırayla, bulundukları bölümün (bölüm yoksa dosyanın) sonuna eklenir.
+
+### Çakışma kopyası
+
+- Kaybeden sürüm bayt bayt aynen `conflicts/` klasörüne yazılır: `conflicts/2026-10-02 (conflict 20261002T110533Z).md`. Addaki zaman, o sürümün UTC değişiklik zamanıdır.
+- `conflicts/` taranmaz: kopyalar indekslenmez, içlerindeki satırlar olay ya da görev sayılmaz.
+- Uygulama kopyaları kullanıcıya gösterir; kullanıcı gerekeni ana dosyaya aldıktan sonra kopyayı siler.
+- Birleştirilmiş içerik ve gerekiyorsa çakışma kopyası yazılmadan hiçbir sürüm silinmez. Hiçbir içerik sessizce kaybolmaz.
+
+### Bilinen sonuçlar
+
+İki sürümün ortak atası bilinmediği için silme ile ekleme, geri alma ile ilerleme birbirinden ayırt edilemez. Bu yüzden çakışma anında:
+
+- Bir cihazda silinen satır geri gelebilir.
+- Geri alınan bir işaret (yeniden açılan görev, kaldırılan hedef işareti, küçültülen sayı) eski haline dönebilir.
+
+Gün dosyaları dışında iCloud'un ayırdığı kopyalar (`Elif 2.md` gibi) kendiliğinden birleştirilmez; kuralı aşama 1'de belirlenir.

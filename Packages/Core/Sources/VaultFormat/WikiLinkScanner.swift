@@ -43,13 +43,15 @@ enum WikiLinkScanner {
     private static func match(_ bytes: [UInt8], start: Int, end: Int) -> Match? {
         let body = (start + 2)..<end
         let pipe = body.first { bytes[$0] == 124 }
-        let hash = body.prefix { $0 < (pipe ?? end) }.first { bytes[$0] == 35 }
-        let targetRange = (start + 2)..<(hash ?? pipe ?? end)
-        var target = String(
-            Syntax.string(bytes[targetRange]).drop(while: { $0.isWhitespace })
-                .reversed().drop(while: { $0.isWhitespace }).reversed())
-        if target.hasSuffix(".md") { target.removeLast(3) }
-        let anchorText = hash.map { Syntax.string(bytes[($0 + 1)..<(pipe ?? end)]) }
+        let separator = pipe.map { $0 > start + 2 && bytes[$0 - 1] == 92 ? $0 - 1 : $0 } ?? end
+        let hash = body.prefix { $0 < separator }.first { bytes[$0] == 35 }
+        let targetRange = trimmedRange(bytes, range: (start + 2)..<(hash ?? separator))
+        var normalizedRange = targetRange
+        if Syntax.string(bytes[targetRange]).hasSuffix(".md") {
+            normalizedRange = targetRange.lowerBound..<(targetRange.upperBound - 3)
+        }
+        let target = Syntax.string(bytes[trimmedRange(bytes, range: normalizedRange)])
+        let anchorText = hash.map { Syntax.string(bytes[($0 + 1)..<separator]) }
         guard !target.isEmpty || anchorText?.isEmpty == false else { return nil }
         let anchor = anchorText.map { text -> WikiLinkAnchor in
             text.hasPrefix("^") ? .block(String(text.dropFirst())) : .heading(text)
@@ -57,7 +59,16 @@ enum WikiLinkScanner {
         return Match(
             range: start..<(end + 2), targetRange: targetRange, target: target,
             anchor: anchor, display: pipe.map { Syntax.string(bytes[($0 + 1)..<end]) },
-            embedded: start > 0 && bytes[start - 1] == 33)
+            embedded: start > 0 && bytes[start - 1] == 33 && !escaped(bytes, at: start - 1))
+    }
+
+    /// Trims whitespace while retaining offsets into the original decoded UTF-8 bytes.
+    private static func trimmedRange(_ bytes: [UInt8], range: Range<Int>) -> Range<Int> {
+        let text = Syntax.string(bytes[range])
+        let leading = text.prefix { $0.isWhitespace }.utf8.count
+        let kept = text.drop(while: { $0.isWhitespace }).reversed().drop(while: { $0.isWhitespace }).reversed()
+        let lower = range.lowerBound + leading
+        return lower..<(lower + String(kept).utf8.count)
     }
 
     /// Pair maximal backtick runs of equal length within each physical decoded line.

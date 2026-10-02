@@ -4,7 +4,7 @@ public struct WikiLink: Hashable, Sendable {
     public let line: Int
     /// Zero-based, half-open UTF-8 byte offsets, excluding an embedding exclamation mark.
     public let byteRange: Range<Int>
-    /// The entire target spelling, including surrounding whitespace and the extension.
+    /// The target spelling including its extension, excluding outer whitespace and separator escapes.
     public let targetRange: Range<Int>
     /// The decoded target with surrounding whitespace and a trailing `.md` removed.
     public let target: String
@@ -14,7 +14,7 @@ public struct WikiLink: Hashable, Sendable {
     public let anchor: WikiLinkAnchor?
     /// Everything after the first pipe, or nil when no pipe occurs.
     public let displayText: String?
-    /// Whether an exclamation mark immediately precedes the opening brackets.
+    /// Whether an unescaped exclamation mark immediately precedes the opening brackets.
     public let isEmbedded: Bool
     /// Whether the target is empty and the anchor refers to the current file.
     public var isSameFile: Bool { target.isEmpty }

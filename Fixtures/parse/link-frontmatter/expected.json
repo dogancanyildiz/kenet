@@ -1,0 +1,258 @@
+{
+  "links": [
+    {
+      "line": 2,
+      "byteRange": [
+        8,
+        28
+      ],
+      "targetRange": [
+        10,
+        26
+      ],
+      "target": "Tepe Spor Salonu",
+      "rawTarget": "Tepe Spor Salonu",
+      "anchor": null,
+      "displayText": null,
+      "isEmbedded": false,
+      "isSameFile": false,
+      "isPath": false,
+      "source": {
+        "kind": "frontmatter",
+        "key": "place",
+        "entry": null
+      }
+    },
+    {
+      "line": 3,
+      "byteRange": [
+        10,
+        27
+      ],
+      "targetRange": [
+        12,
+        25
+      ],
+      "target": "Deniz Arıkan",
+      "rawTarget": "Deniz Arıkan",
+      "anchor": null,
+      "displayText": null,
+      "isEmbedded": false,
+      "isSameFile": false,
+      "isPath": false,
+      "source": {
+        "kind": "frontmatter",
+        "key": "inline",
+        "entry": null
+      }
+    },
+    {
+      "line": 3,
+      "byteRange": [
+        31,
+        48
+      ],
+      "targetRange": [
+        33,
+        46
+      ],
+      "target": "Selin Korkmaz",
+      "rawTarget": "Selin Korkmaz",
+      "anchor": null,
+      "displayText": null,
+      "isEmbedded": false,
+      "isSameFile": false,
+      "isPath": false,
+      "source": {
+        "kind": "frontmatter",
+        "key": "inline",
+        "entry": null
+      }
+    },
+    {
+      "line": 3,
+      "byteRange": [
+        52,
+        58
+      ],
+      "targetRange": [
+        54,
+        56
+      ],
+      "target": "Ev",
+      "rawTarget": "Ev",
+      "anchor": null,
+      "displayText": null,
+      "isEmbedded": false,
+      "isSameFile": false,
+      "isPath": false,
+      "source": {
+        "kind": "frontmatter",
+        "key": "inline",
+        "entry": null
+      }
+    },
+    {
+      "line": 3,
+      "byteRange": [
+        62,
+        68
+      ],
+      "targetRange": [
+        64,
+        66
+      ],
+      "target": "Ev",
+      "rawTarget": "Ev",
+      "anchor": null,
+      "displayText": null,
+      "isEmbedded": false,
+      "isSameFile": false,
+      "isPath": false,
+      "source": {
+        "kind": "frontmatter",
+        "key": "inline",
+        "entry": null
+      }
+    },
+    {
+      "line": 5,
+      "byteRange": [
+        5,
+        20
+      ],
+      "targetRange": [
+        7,
+        18
+      ],
+      "target": "Baran Tunç",
+      "rawTarget": "Baran Tunç",
+      "anchor": null,
+      "displayText": null,
+      "isEmbedded": false,
+      "isSameFile": false,
+      "isPath": false,
+      "source": {
+        "kind": "frontmatter",
+        "key": "list",
+        "entry": null
+      }
+    },
+    {
+      "line": 6,
+      "byteRange": [
+        6,
+        20
+      ],
+      "targetRange": [
+        8,
+        18
+      ],
+      "target": "Ece Yalın",
+      "rawTarget": "Ece Yalın",
+      "anchor": null,
+      "displayText": null,
+      "isEmbedded": true,
+      "isSameFile": false,
+      "isPath": false,
+      "source": {
+        "kind": "frontmatter",
+        "key": "list",
+        "entry": null
+      }
+    },
+    {
+      "line": 8,
+      "byteRange": [
+        10,
+        38
+      ],
+      "targetRange": [
+        12,
+        22
+      ],
+      "target": "Liman Ofis",
+      "rawTarget": "Liman Ofis",
+      "anchor": {
+        "kind": "heading",
+        "text": "Başlık"
+      },
+      "displayText": "ofis",
+      "isEmbedded": false,
+      "isSameFile": false,
+      "isPath": false,
+      "source": {
+        "kind": "frontmatter",
+        "key": "mapping",
+        "entry": "place"
+      }
+    },
+    {
+      "line": 12,
+      "byteRange": [
+        16,
+        37
+      ],
+      "targetRange": [
+        18,
+        35
+      ],
+      "target": "Çınaraltı Kafe",
+      "rawTarget": "Çınaraltı Kafe",
+      "anchor": null,
+      "displayText": null,
+      "isEmbedded": false,
+      "isSameFile": false,
+      "isPath": false,
+      "source": {
+        "kind": "frontmatter",
+        "key": "code",
+        "entry": null
+      }
+    },
+    {
+      "line": 13,
+      "byteRange": [
+        15,
+        21
+      ],
+      "targetRange": [
+        17,
+        19
+      ],
+      "target": "Ev",
+      "rawTarget": "Ev",
+      "anchor": null,
+      "displayText": null,
+      "isEmbedded": false,
+      "isSameFile": false,
+      "isPath": false,
+      "source": {
+        "kind": "frontmatter",
+        "key": "plain",
+        "entry": null
+      }
+    },
+    {
+      "line": 15,
+      "byteRange": [
+        0,
+        6
+      ],
+      "targetRange": [
+        2,
+        4
+      ],
+      "target": "Ev",
+      "rawTarget": "Ev",
+      "anchor": null,
+      "displayText": null,
+      "isEmbedded": false,
+      "isSameFile": false,
+      "isPath": false,
+      "source": {
+        "kind": "body"
+      }
+    }
+  ]
+}

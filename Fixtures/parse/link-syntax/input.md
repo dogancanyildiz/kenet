@@ -1,0 +1,7 @@
+[[Deniz Arıkan]] [[Selin Korkmaz|Selin]]
+[[Baran Tunç#Başlık]] [[Ece Yalın#^kimlik|Ece|ek]]
+[[  Liman Ofis.md  ]]'te [[people/Mert Aksu.md]]
+[[#Başlık]] [[#^kimlik]] ![[Ev]]
+🙂 [[Çınaraltı Kafe]] [[Ev 🏠]]
+[[Ev#]] [[Ev|]] [[Ev#Başlık#alt|metin|ek]]
+[[	Ev	]] [[ Ev ]]

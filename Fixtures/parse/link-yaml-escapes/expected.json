@@ -1,0 +1,96 @@
+{
+  "links": [
+    {
+      "line": 2,
+      "byteRange": [
+        8,
+        32
+      ],
+      "targetRange": [
+        10,
+        30
+      ],
+      "target": "Deniz Arıkan",
+      "rawTarget": "Deniz Ar\\u0131kan.md",
+      "anchor": null,
+      "displayText": null,
+      "isEmbedded": false,
+      "isSameFile": false,
+      "isPath": false,
+      "source": {
+        "kind": "frontmatter",
+        "key": "place",
+        "entry": null
+      }
+    },
+    {
+      "line": 3,
+      "byteRange": [
+        8,
+        14
+      ],
+      "targetRange": [
+        10,
+        12
+      ],
+      "target": "Ev",
+      "rawTarget": "Ev",
+      "anchor": null,
+      "displayText": null,
+      "isEmbedded": false,
+      "isSameFile": false,
+      "isPath": false,
+      "source": {
+        "kind": "frontmatter",
+        "key": "list",
+        "entry": null
+      }
+    },
+    {
+      "line": 3,
+      "byteRange": [
+        16,
+        33
+      ],
+      "targetRange": [
+        18,
+        31
+      ],
+      "target": "Selin Korkmaz",
+      "rawTarget": "Selin Korkmaz",
+      "anchor": null,
+      "displayText": null,
+      "isEmbedded": false,
+      "isSameFile": false,
+      "isPath": false,
+      "source": {
+        "kind": "frontmatter",
+        "key": "list",
+        "entry": null
+      }
+    },
+    {
+      "line": 4,
+      "byteRange": [
+        9,
+        22
+      ],
+      "targetRange": [
+        11,
+        13
+      ],
+      "target": "Ev",
+      "rawTarget": "Ev",
+      "anchor": null,
+      "displayText": "Ev'de",
+      "isEmbedded": false,
+      "isSameFile": false,
+      "isPath": false,
+      "source": {
+        "kind": "frontmatter",
+        "key": "single",
+        "entry": null
+      }
+    }
+  ]
+}

@@ -1,0 +1,130 @@
+{
+  "links": [
+    {
+      "line": 1,
+      "byteRange": [
+        4,
+        10
+      ],
+      "targetRange": [
+        6,
+        8
+      ],
+      "target": "Ev",
+      "rawTarget": "Ev",
+      "anchor": null,
+      "displayText": null,
+      "isEmbedded": false,
+      "isSameFile": false,
+      "isPath": false,
+      "source": {
+        "kind": "body"
+      }
+    },
+    {
+      "line": 3,
+      "byteRange": [
+        7,
+        24
+      ],
+      "targetRange": [
+        9,
+        22
+      ],
+      "target": "Deniz Arıkan",
+      "rawTarget": "Deniz Arıkan",
+      "anchor": null,
+      "displayText": null,
+      "isEmbedded": false,
+      "isSameFile": false,
+      "isPath": false,
+      "source": {
+        "kind": "body"
+      }
+    },
+    {
+      "line": 5,
+      "byteRange": [
+        6,
+        20
+      ],
+      "targetRange": [
+        8,
+        18
+      ],
+      "target": "Liman Ofis",
+      "rawTarget": "Liman Ofis",
+      "anchor": null,
+      "displayText": null,
+      "isEmbedded": false,
+      "isSameFile": false,
+      "isPath": false,
+      "source": {
+        "kind": "body"
+      }
+    },
+    {
+      "line": 6,
+      "byteRange": [
+        8,
+        23
+      ],
+      "targetRange": [
+        10,
+        21
+      ],
+      "target": "Baran Tunç",
+      "rawTarget": "Baran Tunç",
+      "anchor": null,
+      "displayText": null,
+      "isEmbedded": false,
+      "isSameFile": false,
+      "isPath": false,
+      "source": {
+        "kind": "body"
+      }
+    },
+    {
+      "line": 8,
+      "byteRange": [
+        8,
+        25
+      ],
+      "targetRange": [
+        10,
+        23
+      ],
+      "target": "Selin Korkmaz",
+      "rawTarget": "Selin Korkmaz",
+      "anchor": null,
+      "displayText": null,
+      "isEmbedded": false,
+      "isSameFile": false,
+      "isPath": false,
+      "source": {
+        "kind": "body"
+      }
+    },
+    {
+      "line": 9,
+      "byteRange": [
+        3,
+        17
+      ],
+      "targetRange": [
+        5,
+        15
+      ],
+      "target": "Ece Yalın",
+      "rawTarget": "Ece Yalın",
+      "anchor": null,
+      "displayText": null,
+      "isEmbedded": false,
+      "isSameFile": false,
+      "isPath": false,
+      "source": {
+        "kind": "body"
+      }
+    }
+  ]
+}

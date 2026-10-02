@@ -1,0 +1,2 @@
+# Fixtures bayt düzeyinde korunur: git satır sonu dönüşümü yapmaz.
+Fixtures/** -text

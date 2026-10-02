@@ -13,7 +13,7 @@ Kullanıcıya görünen bir şey yok; her şey bunun üstüne kurulur.
 - [ ] Sürüm otomasyonu: `main`'e birleşince etiket ve GitHub Release
 - [x] Dal koruması: `main` ve `dev` için PR ve geçen test zorunluluğu
 - [ ] Ayrıştırıcı ve yazıcı: frontmatter, bölümler, olay satırı, görev satırı (durum, metin, kimlik), wikilink, blok kimliği
-- [ ] Gidiş dönüş testi ve `Fixtures/` örnek kasası
+- [x] Gidiş dönüş testi ve `Fixtures/` örnek kasası
 - [ ] SQLite indeksi (GRDB, FTS5) ve dosyalardan yeniden üretme
 - [ ] Kasa konumu: iCloud kapsayıcısı, yerel yedek seçenek
 - [ ] Dosya değişikliklerini izleme ve artımlı yeniden indeksleme

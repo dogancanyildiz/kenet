@@ -13,8 +13,9 @@
 
 | Tür | Adlar |
 |---|---|
-| Kişi | Deniz Arıkan, Selin Korkmaz |
-| Konum | Çınaraltı Kafe, Liman Ofis |
+| Kişi | Deniz Arıkan, Selin Korkmaz, Baran Tunç, Ece Yalın, Mert Aksu |
+| Konum | Çınaraltı Kafe, Liman Ofis, Tepe Spor Salonu, Ev |
+| Hedef | Spor, Kitap, Su |
 
 Yeni ad gerekirse önce bu tabloya eklenir.
 
@@ -101,9 +102,37 @@ Uygulamanın okuyucusu ve yazıcısı aynı kuralları paylaşır; ikisinde bird
 
 `parse/` ve `write/` klasör adları taşıdıkları bayt özelliğini söyler ve testler bunu ham baytlardan denetler: adında `crlf`, `cr`, `bom` sözcüğü ya da `mixed-line-endings`, `no-final-newline`, `invalid-utf8`, `read-only`, `exact-key-match` geçen örneğin Markdown dosyaları o özelliği taşımak zorundadır.
 
+### `vaults/sample`
+
+Kasa formatının ve istemci uygulamaların (ayrıştırıcı, modeller, indeksleyici, Obsidian uyumluluğu, arayüz, arama) uçtan uca test edilmesi için kullanılan tam ve tutarlı kurgusal örnek kasa. `Fixtures/vaults/sample/` altında yer alır:
+
+- `journal/`: 2026-09-14 ile 2026-09-27 arası 14 gün dosyası.
+- `people/`: 6 kişi dosyası.
+- `places/`: 4 konum dosyası.
+- `goals/`: 3 hedef tanımı (`Spor.md`, `Kitap.md`, `Su.md`).
+- `notes/`: 3 serbest not (`Proje Fikirleri.md`, `Okuma Listesi.md`, `Toplantı Notları.md`).
+- `templates/`: `person.md` ve `place.md` şablonları.
+- `conflicts/`: 1 senkronizasyon çakışması kopyası.
+- `.app/`: `vault.json` (format sürümü).
+
+#### Kurgusal kadro
+
+- **Kişiler:** Deniz Arıkan (takma adlar: Deniz, Deniz abi), Selin Korkmaz (takma ad: Selin), Baran Tunç (takma ad: Baran), Ece Yalın (takma ad: Ece), Mert Aksu ve ikinci bir Mert Aksu (iş ayırt edicili).
+- **Konumlar:** Liman Ofis (takma ad: ofis, koordinat: `[10.5000, 20.0290]`, yarıçap: 100), Çınaraltı Kafe, Tepe Spor Salonu (takma ad: salon, koordinat: `[10.5210, 20.0415]`, yarıçap: 80), Ev.
+- **Hedefler:** Spor (`spor`, haftada 3 gün, boolean, konum: Tepe Spor Salonu), Kitap (`kitap`, günde 20, sayı, birim: sayfa), Su (`su`, günde 8, sayı, birim: bardak).
+
+#### Bilerek konmuş özel durumlar
+
+1. **Aynı adlı iki kişi:** `people/Mert Aksu.md` ve ayırt edicili `people/Mert Aksu (iş).md` (`qualifier: iş`). Bağlantılarda `[[Mert Aksu]]` ve `[[Mert Aksu (iş)|Mert]]` olarak kullanılır.
+2. **Var olmayan hedefe bağlantı:** `journal/2026-09-18.md` içinde `[[Henüz Yazılmamış Not]]` bağlantısı (kasada hedef dosyası bulunmayan tek bağlantı).
+3. **Frontmatter'sız not:** `notes/Proje Fikirleri.md` dosyası frontmatter taşımaz ve içinde elle yazılmış gibi blok kimliği bulunmayan görev satırları (`- [ ]`) ile bağlantılar içerir.
+4. **Kod bloğu içindeki bağlantı ve başlık:** `notes/Toplantı Notları.md` içinde çitli kod bloğunda `[[Deniz Arıkan]]` ve `## Events` yer alır; bunlar ayrıştırıcı tarafından varlık bağlantısı ya da bölüm başlığı sayılmamalıdır.
+5. **Çakışma kopyası:** `conflicts/2026-09-20 (conflict 20260920T183000Z).md`, `journal/2026-09-20.md` dosyasının bir olay metni farklı sürümüdür; taranmayan klasörler kuralı gereği indekslenmez.
+6. **Çok satırlı `aliases`:** `people/Deniz Arıkan.md` dosyasında Obsidian'ın yazdığı gibi blok liste biçiminde (`- Deniz\n  - Deniz abi`), diğer varlıklarda tek satırlı liste (`[Selin]`) biçimindedir.
+
 ### Diğer kategoriler
 
-Birleştirme ve örnek kasa kategorileri ilgili işle birlikte tanımlanır; klasör adları ve beklenen çıktı biçimleri o zaman bu belgeye eklenir.
+Birleştirme kategorisi ilgili işle birlikte tanımlanır; klasör adları ve beklenen çıktı biçimleri o zaman bu belgeye eklenir.
 
 ## Testlerin klasörü bulması
 

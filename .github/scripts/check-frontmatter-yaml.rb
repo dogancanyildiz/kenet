@@ -278,7 +278,7 @@ def check_fixtures
     description = JSON.parse(File.read(File.join(ROOT, 'write', name, 'operation.json')))
     expected_path = File.join(ROOT, 'write', name, 'expected.md')
     [name, description['frontmatter'], File.exist?(expected_path) ? block_of(expected_path) : nil]
-  end.select { |_, _, block| block }
+  end.select { |_, operation, block| operation && block }
 
   readers.each do |reader, load|
     parse_results = load.call(parse_cases.map { |_, _, block| block })

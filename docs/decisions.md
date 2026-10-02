@@ -39,6 +39,7 @@ Verilen her karar tek satır olarak eklenir. Açık sorular kapandığında altt
 | 2026-10-02 | CI aşama 0'da kod oluşunca kurulur; CD aşama 7'ye bırakıldı | Boş projeye CI anlamsız; kişisel kullanımda dağıtım Xcode'dan |
 | 2026-10-02 | CI, `Core` paketini macOS ve Linux'ta derleyip sınar; dal korumasının zorunlu tuttuğu tek denetim `ci` işidir | Linux derlemesi `Core`'un Apple çerçevelerinden bağımsız kalmasını zorlar; tek kapı işi yol filtresi olmadan her PR'da sonuç verir |
 | 2026-10-02 | `dev` ve `main` ruleset ile korunur: PR ve yeşil `ci` zorunlu, force push ve dal silme kapalı; `dev`'e squash ya da merge, `main`'e yalnız merge commit; onay incelemesi aranmaz | Tek geliştirici kendi PR'ını onaylayamaz; kontrol noktası CI'dır. Kimse için istisna tanımlı değil |
+| 2026-10-02 | GitHub'ın açık repo hizmetleri kullanılır: gizli anahtar taraması ve push koruması, Dependabot (güvenlik ve haftalık sürüm güncellemeleri), iş akışları için CodeQL; Swift için CodeQL uygulama kodu gelince açılır | Açık repoda ücretsiz; yanlışlıkla commit'lenen anahtarı push anında durdurur. Swift analizi her koşuda tam derleme ister, şimdilik karşılığı yok |
 | 2026-10-02 | Ajan kuralları: yalnızca ürün vaatlerini koruyan değişmez kurallar; uygulama, arayüz ayrıntısı ve kütüphane seçimi ajanın kararı | Gereksiz kısıt daha iyi çözümleri engeller |
 | 2026-10-02 | Repo herkese açık | Kullanılmak istenen GitHub özellikleri açık repoda ücretsiz |
 | 2026-10-02 | Gelir modeli (reklam, üyelik) sonraya | Önce ürün |

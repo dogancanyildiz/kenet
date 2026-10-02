@@ -30,7 +30,7 @@ Bunlar zevk değil, ürünün temel vaatleridir (veri kullanıcınındır, hiçb
 
 - **Markdown gerçek kaynaktır.** SQLite yalnızca indekstir; silinince dosyalardan eksiksiz yeniden üretilebilmelidir. Dosyada olmayan bilgi indekste tutulmaz.
 - **Önce dosyaya yaz, sonra indeksi güncelle.** Tersi yapılmaz.
-- **Tanımadığına dokunma.** Uygulama bir dosyada yalnızca kendi ürettiği satırları değiştirir; geri kalan içerik bayt düzeyinde korunur.
+- **Tanımadığına dokunma.** Uygulama bir dosyada yalnızca kullanıcının işleminin hedeflediği satırı ya da alanı değiştirir; geri kalan içerik bayt düzeyinde korunur.
 - **Core paketi Apple'a bağımsızdır.** `Core` içinde SwiftUI, UIKit, AppKit, EventKit, CoreLocation, WidgetKit ya da iCloud API'si kullanılmaz. Yalnızca Foundation ve SQLite katmanı.
 - **Format değişikliği önce belgede yapılır.** `docs/vault-format.md` güncellenmeden ayrıştırıcı ya da yazıcı davranışı değiştirilmez.
 - **Sonraki aşamaların özelliklerini erken yazma.** Aktif aşamayı bitirmeden ileriki özellikler eklenmez. Onları kolaylaştıracak tasarım tercihleri ise serbesttir ve teşvik edilir.
@@ -50,6 +50,7 @@ Bunlar zevk değil, ürünün temel vaatleridir (veri kullanıcınındır, hiçb
 - Dil: Swift (güncel kararlı sürüm), SwiftUI. Kod, tip ve dosya adları İngilizce; kullanıcıya görünen metinler yerelleştirilmiş.
 - Ayrıştırıcı ve yazıcı için her davranış `Fixtures/` altında bir örnek Markdown dosyası ve beklenen çıktı ile test edilir. Bu dosyalar dilden bağımsızdır ve ileride başka platformlarda yeniden kullanılır.
 - Gidiş dönüş testi zorunludur: bir dosya okunup hiçbir değişiklik yapılmadan yazıldığında birebir aynı kalmalıdır.
+- İndeks şeması değiştiğinde şema sürümü artırılır; eski indeks silinip dosyalardan yeniden kurulur, göç yazılmaz.
 
 ## Git kuralları
 
@@ -58,7 +59,7 @@ Bunlar zevk değil, ürünün temel vaatleridir (veri kullanıcınındır, hiçb
 - `main`: Yalnızca yayınlanmış sürümler. Her birleştirme bir sürümdür.
 - `dev`: Geliştirme dalı ve reponun varsayılan dalı. Her zaman derlenir ve testleri geçer.
 - İş dalları `dev` üzerinden açılır: `feat/...`, `fix/...`, `docs/...`, `test/...`, `chore/...`
-- Acil düzeltme: `hotfix/...` dalı `main` üzerinden açılır, `main`'e PR ile girer, ardından `main` `dev`'e geri birleştirilir.
+- Acil düzeltme: `hotfix/...` dalı `main` üzerinden açılır, `main`'e PR ile girer, ardından `main` `dev`'e geri birleştirilir. Bu geri birleştirme squash ile değil merge commit ile yapılır; squash iki dalın ortak geçmişini koparır.
 
 ### Akış
 
@@ -96,7 +97,7 @@ Aşağıdakileri yapmadan önce dur ve kullanıcıya sor:
 
 - Kendi oluşturmadığın dosya ya da klasörleri silme, toplu yeniden adlandırma
 - Sekme yapısı gibi uygulamanın ana gezinme düzenini değiştirme
-- Kasa formatını ya da indeks şemasını geriye uyumsuz değiştirme
+- Kasa formatını geriye uyumsuz değiştirme
 - Bundle kimliği, iCloud kapsayıcı kimliği, App Group kimliği gibi sonradan değiştirmesi zor değerleri belirleme
 
 ## Planlanan dizin yapısı

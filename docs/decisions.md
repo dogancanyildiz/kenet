@@ -53,6 +53,7 @@ Verilen her karar tek satır olarak eklenir. Açık sorular kapandığında altt
 | 2026-10-02 | Kasa format sürümünü `.app/vault.json` içinde taşır; daha yeni sürümü gören istemci yazmaz | Cihazlarda farklı uygulama sürümleri aynı kasayı paylaşır |
 | 2026-10-02 | İndeks şeması değişikliği onay gerektirmez: şema sürümü artar, indeks yeniden kurulur | İndeks dosyalardan yeniden üretilebilir; geriye uyum kaygısı yok |
 | 2026-10-02 | Hotfix sonrası `main`, `dev`'e merge commit ile geri birleştirilir | Squash iki dalın ortak geçmişini koparır |
+| 2026-10-02 | Commit ve PR'larda yapay zeka imzası yok (`Co-Authored-By`, "Generated with" ve benzerleri) | Proje sahibinin tercihi |
 
 ## Açık sorular
 

@@ -20,16 +20,20 @@ enum BodyLineParser {
                 let end = isQuoted ? index + 1 : ends[index]
                 tasks.append(
                     TaskLine(
-                        block: LineBlock(lineRange: index..<end, id: identified.id, text: parsed?.text ?? ""),
+                        block: LineBlock(
+                            lineRange: index..<end, id: identified.id, text: parsed?.text ?? "",
+                            firstLineContent: bytes, kind: .task),
                         rawStatus: checkbox.raw, status: status(checkbox.raw)))
             } else if indent == 0, events?.contains(index) == true,
                 bytes.count >= 2, isBullet(bytes[0]), bytes[1] == Syntax.space
             {
                 let identified = splitID(Syntax.string(bytes))
-                let clock = time(Syntax.string(identified.text.utf8.dropFirst(2)))
+                let clock = event(bytes)
                 eventLines.append(
                     EventLine(
-                        block: LineBlock(lineRange: index..<ends[index], id: identified.id, text: clock.text),
+                        block: LineBlock(
+                            lineRange: index..<ends[index], id: identified.id, text: clock.text,
+                            firstLineContent: bytes, kind: .event),
                         time: clock.time))
             }
         }
@@ -40,7 +44,9 @@ enum BodyLineParser {
         [UInt8(ascii: "-"), UInt8(ascii: "*"), UInt8(ascii: "+")].contains(byte)
     }
 
-    private static func task(_ bytes: [UInt8]) -> (raw: String, text: String)? {
+    static func task(_ bytes: [UInt8]) -> (
+        raw: String, text: String, textStart: Int, statusRange: Range<Int>, hasSeparator: Bool
+    )? {
         var cursor = bytes.prefix { Syntax.isBlank($0) || $0 == UInt8(ascii: ">") }.count
         guard cursor < bytes.count else { return nil }
         if isBullet(bytes[cursor]) {
@@ -59,11 +65,16 @@ enum BodyLineParser {
         cursor += 1
         guard let scalar = Syntax.string(bytes.dropFirst(cursor)).unicodeScalars.first else { return nil }
         let raw = String(scalar)
+        let statusStart = cursor
         cursor += raw.utf8.count
         guard cursor < bytes.count, bytes[cursor] == Syntax.closeBracket else { return nil }
         cursor += 1
         guard cursor == bytes.count || bytes[cursor] == Syntax.space else { return nil }
-        return (raw, Syntax.string(bytes.dropFirst(min(cursor + 1, bytes.count))))
+        let textStart = min(cursor + 1, bytes.count)
+        return (
+            raw, Syntax.string(bytes.dropFirst(textStart)), textStart, statusStart..<(statusStart + raw.utf8.count),
+            cursor < bytes.count
+        )
     }
 
     private static func indentation(_ bytes: [UInt8]) -> Int {
@@ -80,7 +91,7 @@ enum BodyLineParser {
         }
     }
 
-    private static func splitID(_ text: String) -> (text: String, id: String?) {
+    static func splitID(_ text: String) -> (text: String, id: String?) {
         let bytes = Array(text.utf8)
         let end = bytes.count - bytes.reversed().prefix(while: Syntax.isBlank).count
         var caret = end
@@ -90,10 +101,29 @@ enum BodyLineParser {
         return (Syntax.string(bytes[..<(caret - 2)]), Syntax.string(bytes[caret..<end]))
     }
 
-    private static func isIDByte(_ byte: UInt8) -> Bool {
+    static func isIDByte(_ byte: UInt8) -> Bool {
         (UInt8(ascii: "a")...UInt8(ascii: "z")).contains(byte)
             || (UInt8(ascii: "A")...UInt8(ascii: "Z")).contains(byte)
             || Syntax.isDigit(byte) || byte == Syntax.dash
+    }
+
+    /// Returns event text and clock offsets in the original bytes, including empty identified items.
+    static func event(_ bytes: [UInt8]) -> (
+        time: EventTime?, text: String, textRange: Range<Int>, clockStart: Int, tokenRange: Range<Int>?,
+        removalRange: Range<Int>?, needsIDSuffix: Bool
+    ) {
+        let split = splitID(Syntax.string(bytes))
+        let textEnd = split.text.utf8.count
+        let clockStart = 1 + bytes.dropFirst().prefix(while: Syntax.isBlank).count
+        let clock = time(Syntax.string(bytes[clockStart..<max(clockStart, textEnd)]))
+        let tokenEnd = clockStart + (clock.time?.raw.utf8.count ?? 0)
+        let start = clock.time == nil ? clockStart : min(tokenEnd + 1, bytes.count)
+        let end = max(start, textEnd)
+        return (
+            clock.time, Syntax.string(bytes[start..<end]), start..<end, clockStart,
+            clock.time.map { _ in clockStart..<tokenEnd },
+            clock.time.map { _ in clockStart..<start }, split.id != nil && start > textEnd
+        )
     }
 
     private static func time(_ text: String) -> (time: EventTime?, text: String) {

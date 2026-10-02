@@ -187,10 +187,11 @@ Diğer türler: evet/hayır `true` ya da `false`; tam sayı ondalık rakamlarla;
 
 Sözdizimi: `[[hedef]]`, `[[hedef|görünen metin]]`, `[[hedef#çapa]]`, `[[hedef#çapa|görünen metin]]`.
 
-- Hedef, ilk `#` ya da `|` karakterine kadar olan kısımdır; baştaki ve sondaki boşluklar atılır. Hedef uzantısız dosya adıdır; sondaki `.md` yok sayılır. `/` içeren hedef kasa köküne göre yoldur.
+- Hedef, ilk `#` ya da `|` karakterine kadar olan kısımdır; baştaki ve sondaki boşluklar atılır. Hedef uzantısız dosya adıdır; sondaki `.md` yok sayılır. `/` içeren hedef kasa köküne göre yoldur. Sondaki `.md` atıldıktan sonra boşluklar yeniden atılır.
+- Tablo içinde görünen metin ayırıcısı `\|` olarak yazılabilir; ters bölü ayırıcının parçasıdır, hedefe dahil değildir.
 - Çapa bir başlık ya da `^` ile başlayan blok kimliğidir. Yeniden adlandırmada yalnızca hedef değişir; çapa ve görünen metin korunur.
 - Hedefi boş olan bağlantı (`[[#Başlık]]`) aynı dosyanın içine gider; varlık bağlantısı değildir.
-- Gömme (`![[hedef]]`) aynı kurallarla bağlantı sayılır.
+- Gömme (`![[hedef]]`) aynı kurallarla bağlantı sayılır. Kaçırılmış ünlem (`\![[hedef]]`) gömme değildir.
 - Bağlantı tek satırdadır ve içinde `[[` ya da `]]` bulunmaz.
 - Çitli kod bloğu (```` ``` ```` ya da `~~~` ile açılan) ve satır içi kod içindeki `[[...]]` bağlantı sayılmaz.
 - Hedefi kasada bulunmayan bağlantı geçerlidir ve korunur. Taranmayan klasörlerdeki dosyalar hedef olamaz.

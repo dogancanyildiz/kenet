@@ -1,0 +1,7 @@
+{
+  "lines": {
+    "operation": "delete",
+    "line": 3
+  },
+  "expectedError": "content-not-representable"
+}

@@ -1,0 +1,9 @@
+{
+  "lines": {
+    "operation": "text",
+    "line": 2,
+    "text": "Su",
+    "id": "bad_id"
+  },
+  "expectedError": "invalid-value"
+}

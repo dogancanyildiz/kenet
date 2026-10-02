@@ -210,7 +210,7 @@ Sözdizimi: `[[hedef]]`, `[[hedef|görünen metin]]`, `[[hedef#çapa]]`, `[[hede
 - Kimliği olmayan (elle ya da Obsidian'da yazılmış) satıra, uygulama o satırı ilk kez değiştirdiğinde kimlik eklenir.
 - Okurken Obsidian'ın kabul ettiği her kimlik (harf, rakam ve `-`, herhangi bir uzunlukta) tanınır ve değiştirilmez.
 - Kimliğin kasa genelinde benzersiz olması amaçlanır ama garanti değildir: dışarıda yapılan kopyalama aynı kimliği çoğaltabilir. Bu durumda kimliğin sahibi ilk geçen satırdır (dosya yolu sırası, sonra dosya içi sıra). Diğer satırlar kendiliğinden değiştirilmez; uygulama onlardan birini değiştirdiğinde o satıra yeni kimlik verir.
-- Bir olay ya da görev satırının altındaki, kendisinden daha girintili satırlar (alt madde, devam satırı) o satırın parçasıdır: onunla birlikte taşınır, birleştirilir ve silinir. Uygulama bu satırları üretmez, yalnızca korur. Aradaki boş satırlar, ardından yine girintili bir satır geliyorsa bloğa dahildir. Girinti yalnızca satır başındaki boşluk ve sekmelerle sütun olarak ölçülür; sekme bir sonraki dördün katına ilerler. Alıntı içindeki görevler tek satırlık bloklardır; `>` girinti sayılmaz.
+- Bir olay ya da görev satırının altındaki, kendisinden daha girintili satırlar (alt madde, devam satırı) o satırın parçasıdır: onunla birlikte taşınır, birleştirilir ve silinir. Uygulama bu satırları üretmez, yalnızca korur. Aradaki boş satırlar, ardından yine girintili bir satır geliyorsa bloğa dahildir. Girinti yalnızca satır başındaki boşluk ve sekmelerle sütun olarak ölçülür; sekme bir sonraki dördün katına ilerler. Alıntı içindeki görevler tek satırlık bloklardır; `>` girinti sayılmaz. Alt satır olan bir görev silinince yalnızca kendi satırları silinir; üst blok o kadar kısalır; sonunda kalan boş satırlar blok aralığından çıkar ama dosyada korunur.
 
 ## Gün dosyası
 
@@ -264,10 +264,12 @@ Bugün genel olarak verimli geçti...
 - Saatli: `- HH:MM metin ^kimlik` (24 saat, iki haneli). Okurken tek haneli saat (`9:05`) de kabul edilir ve olduğu gibi korunur.
 - Saat 0-23, dakika 00-59 olmalıdır; geçersiz yazım saat sayılmaz, satır saatsiz olaydır ve yazım metnin parçası kalır.
 - Saatsiz: `- metin ^kimlik` (saat isteğe bağlıdır)
+- Olay okunurken liste işaretinden sonraki boşluk ve sekmeler metne dahil edilmez; düzenlerken bu ayırıcıların özgün yazımı korunur.
 - Saat, olayın yazıldığı yerin yerel saatidir; saat dilimi tutulmaz.
 - Geçmiş bir güne sonradan olay eklenebilir; satır o günün dosyasına yazılır.
 - Saatli olay, saati kendisinden büyük olan ilk saatli olayın önüne eklenir; öyle bir olay yoksa bölümün sonuna. Saatsiz olay bölümün sonuna eklenir. Mevcut satırların yeri değişmez.
-- Olayın saati değiştirilirse satır aynı kuralla yeni yerine taşınır.
+- Olayın saati değiştirilirse ya da saatsiz olaya saat verilirse satır, altındaki satırlarla birlikte, aynı kuralla yeni yerine taşınır; kural onu zaten bulunduğu yere koyuyorsa satırlar yer değiştirmez. Saati kaldırılan olay yerinde kalır. Taşınan satırların içeriği korunur, satır sonları yeni satır kuralına uyar. Bu kural saati küçülen olayı, kendisinden büyük saatli olay yoksa, saatsiz olayların da arkasına koyar.
+- Uygulama yeni olayı `- ` işaretiyle yazar; saat, metin ve kimlik arasında tek boşluk bulunur. Mevcut satır düzenlenirken yalnızca değişen parça (metin, saat ya da kimlik) yeniden yazılır; girinti, liste işareti ve altındaki satırlar korunur.
 - Gösterim sırası dosyadaki sıradır.
 
 ## Görev satırı
@@ -291,6 +293,8 @@ Obsidian Tasks biçimi. Onay kutusu taşıyan her liste satırı görevdir; hang
 
 - Çitli kod bloğu ve frontmatter içindeki satırlar olay ya da görev sayılmaz.
 - Tanınmayan durum karakteri korunur ve açık görev sayılır; `[X]` bitti sayılır.
+- Durum değiştirilirken yalnızca kutunun içindeki karakter değişir. Metin değiştirilirken girinti, liste işareti, kutu ve altındaki satırlar korunur.
+- Yeniden okunduğunda istenenden farklı okunacak metin (saatsiz olayda saatle başlayan, olayda onay kutusuyla başlayan, kimlik gibi biten metin) yazılmaz; işlem reddedilir ve dosyaya dokunulmaz.
 - Uygulamanın ayrıştırmadığı alanlar (tanımadığı emoji alanları dahil) metnin parçası olarak korunur.
 
 **Tarihsiz görevler:** Bitiş tarihi olmayan görev, oluşturulduğu gün bugün ekranında görünür. Sonraki günlerde bugün ekranında yer almaz, "tarihsiz" listesinde durur.

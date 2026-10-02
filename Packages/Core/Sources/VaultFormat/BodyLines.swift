@@ -1,3 +1,11 @@
+/// The syntax category of a source block.
+public enum BodyLineKind: Hashable, Sendable {
+    /// An event in Events.
+    case event
+    /// A checkbox item.
+    case task
+}
+
 /// The source extent and first-line content of an event or task.
 public struct LineBlock: Hashable, Sendable {
     /// The first line's zero-based index.
@@ -8,6 +16,19 @@ public struct LineBlock: Hashable, Sendable {
     public let id: String?
     /// First-line text without syntax separators or a trailing identifier.
     public let text: String
+    /// The exact first-line bytes, excluding its terminator.
+    public let firstLineContent: [UInt8]
+    /// The source block's syntax category.
+    public let kind: BodyLineKind
+
+    init(lineRange: Range<Int>, id: String?, text: String, firstLineContent: [UInt8] = [], kind: BodyLineKind = .event)
+    {
+        self.lineRange = lineRange
+        self.id = id
+        self.text = text
+        self.firstLineContent = firstLineContent
+        self.kind = kind
+    }
 }
 
 /// The meaning of a task's checkbox character.

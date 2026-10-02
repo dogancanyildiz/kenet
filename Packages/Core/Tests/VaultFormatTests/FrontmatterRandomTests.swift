@@ -255,7 +255,7 @@ struct FrontmatterRandomTests {
             case .mapping, .raw, nil: return false
             }
         case .readOnlyDocument, .invalidKey, .invalidValue, .invalidLineRange, .lineBreakInContent, .emptySectionAppend,
-            .sectionNotWritable:
+            .sectionNotWritable, .targetNotFound, .emptyText, .contentNotRepresentable, .identifierExhausted:
             return false
         }
     }

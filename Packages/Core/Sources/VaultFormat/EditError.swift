@@ -21,6 +21,14 @@ public enum EditError: Error, Hashable, Sendable {
     case emptySectionAppend
     /// The key is empty or is the YAML merge key `<<`.
     case invalidKey
-    /// The value has no spelling in the vault format (a number that is not written as digits).
+    /// The supplied value or write option has no valid spelling in the vault format.
     case invalidValue
+    /// No current body block matches the supplied source extent and values.
+    case targetNotFound
+    /// Text is empty after trimming spaces and tabs.
+    case emptyText
+    /// All permitted identifier generation attempts collided.
+    case identifierExhausted
+    /// Reading the written bytes would change their intended meaning or block ownership.
+    case contentNotRepresentable
 }

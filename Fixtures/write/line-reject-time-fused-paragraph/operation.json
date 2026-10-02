@@ -1,0 +1,11 @@
+{
+  "lines": {
+    "operation": "time",
+    "line": 3,
+    "time": {
+      "hour": 11,
+      "minute": 0
+    }
+  },
+  "expectedError": "content-not-representable"
+}

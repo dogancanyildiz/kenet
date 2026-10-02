@@ -21,7 +21,6 @@ Verilen her karar tek satır olarak eklenir. Açık sorular kapandığında altt
 | 2026-10-02 | Uygulama kilidi ertelendi | iOS'un kendi Face ID kilidi yeterli |
 | 2026-10-02 | Dağıtım: önce kişisel, sonra App Store | Metinler baştan yerelleştirilebilir yazılır |
 | 2026-10-02 | Belgeler `docs/` altında; önce mevcut belgeye eklenir, ihtiyaç varsa yeni belge açılıp README tablosuna yazılır | Dağınıklığı ve tekrarı önlemek, ama esnek kalmak |
-
 | 2026-10-02 | Repo klasör adı `journal` | Çalışma adı; ürün ismi ayrıca belirlenecek |
 | 2026-10-02 | Dosyadaki yapı (klasör, anahtar, `type`, bölüm başlıkları) İngilizce ve sabit; arayüz kullanıcının dilinde | Kasa her dilde aynı okunur; sonradan göç gerekmez |
 | 2026-10-02 | Aynı adlı varlıklar: görünen ad `name` alanında, dosya adını uygulama ayırt ediciyle üretir; yazarken bağlama göre sıralama, emin değilse sorma | Kullanıcı dosya adı düşünmez; yanlış bağlama önlenir |

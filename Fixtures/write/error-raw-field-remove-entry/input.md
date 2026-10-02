@@ -1,0 +1,3 @@
+---
+goals: {spor: true}
+---

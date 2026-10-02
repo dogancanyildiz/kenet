@@ -1,0 +1,43 @@
+{
+  "frontmatter": {
+    "state": "parsed",
+    "firstLine": 1,
+    "lastLine": 15,
+    "fields": [
+      {
+        "key": "type",
+        "firstLine": 3,
+        "lastLine": 3,
+        "scalar": { "type": "text", "text": "person", "raw": "person" },
+        "listItems": ["person"]
+      },
+      {
+        "key": "name",
+        "firstLine": 5,
+        "lastLine": 5,
+        "scalar": { "type": "text", "text": "Deniz Arıkan", "raw": "Deniz Arıkan" },
+        "listItems": ["Deniz Arıkan"]
+      },
+      {
+        "key": "aliases",
+        "firstLine": 6,
+        "lastLine": 10,
+        "list": {
+          "style": "block",
+          "items": [
+            { "type": "text", "text": "Deniz", "raw": "Deniz" },
+            { "type": "text", "text": "Deniz abi", "raw": "Deniz abi" }
+          ]
+        },
+        "listItems": ["Deniz", "Deniz abi"]
+      },
+      {
+        "key": "etiket",
+        "firstLine": 12,
+        "lastLine": 12,
+        "scalar": { "type": "text", "text": "C# ve a#b", "raw": "C# ve a#b" },
+        "listItems": ["C# ve a#b"]
+      }
+    ]
+  }
+}

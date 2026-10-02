@@ -1,0 +1,77 @@
+{
+  "frontmatter": {
+    "state": "parsed",
+    "firstLine": 1,
+    "lastLine": 12,
+    "fields": [
+      {
+        "key": "tırnaklı anahtar",
+        "firstLine": 2,
+        "lastLine": 2,
+        "scalar": { "type": "number", "text": "1", "raw": "1" },
+        "listItems": ["1"]
+      },
+      {
+        "key": "tek: tırnak",
+        "firstLine": 3,
+        "lastLine": 3,
+        "scalar": { "type": "number", "text": "2", "raw": "2" },
+        "listItems": ["2"]
+      },
+      {
+        "key": "boşluklu anahtar",
+        "firstLine": 4,
+        "lastLine": 4,
+        "scalar": { "type": "number", "text": "3", "raw": "3" },
+        "listItems": ["3"]
+      },
+      {
+        "key": "a:b",
+        "firstLine": 5,
+        "lastLine": 5,
+        "scalar": { "type": "number", "text": "4", "raw": "4" },
+        "listItems": ["4"]
+      },
+      {
+        "key": "no",
+        "firstLine": 6,
+        "lastLine": 6,
+        "scalar": { "type": "number", "text": "12", "raw": "12" },
+        "listItems": ["12"]
+      },
+      {
+        "key": "2026",
+        "firstLine": 7,
+        "lastLine": 7,
+        "scalar": { "type": "text", "text": "yıl", "raw": "yıl" },
+        "listItems": ["yıl"]
+      },
+      {
+        "key": "true",
+        "firstLine": 8,
+        "lastLine": 8,
+        "scalar": { "type": "text", "text": "doğru", "raw": "doğru" },
+        "listItems": ["doğru"]
+      },
+      {
+        "key": "3 boyut",
+        "firstLine": 9,
+        "lastLine": 9,
+        "scalar": { "type": "text", "text": "var", "raw": "var" },
+        "listItems": ["var"]
+      },
+      {
+        "key": "goals",
+        "firstLine": 10,
+        "lastLine": 11,
+        "mapping": [
+          {
+            "key": "kitap okuma",
+            "line": 11,
+            "value": { "type": "number", "text": "25", "raw": "25" }
+          }
+        ]
+      }
+    ]
+  }
+}

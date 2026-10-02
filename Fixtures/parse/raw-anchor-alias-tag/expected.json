@@ -1,0 +1,19 @@
+{
+  "frontmatter": {
+    "state": "parsed",
+    "firstLine": 1,
+    "lastLine": 6,
+    "fields": [
+      { "key": "taban", "firstLine": 2, "lastLine": 2, "raw": "&taban Deniz" },
+      { "key": "kopya", "firstLine": 3, "lastLine": 3, "raw": "*taban" },
+      { "key": "etiketli", "firstLine": 4, "lastLine": 4, "raw": "!!str 100" },
+      {
+        "key": "name",
+        "firstLine": 5,
+        "lastLine": 5,
+        "scalar": { "type": "text", "text": "Deniz Arıkan", "raw": "Deniz Arıkan" },
+        "listItems": ["Deniz Arıkan"]
+      }
+    ]
+  }
+}

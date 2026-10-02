@@ -1,0 +1,48 @@
+{
+  "frontmatter": {
+    "state": "parsed",
+    "firstLine": 1,
+    "lastLine": 11,
+    "fields": [
+      {
+        "key": "aliases",
+        "firstLine": 2,
+        "lastLine": 4,
+        "list": {
+          "style": "block",
+          "items": [
+            { "type": "text", "text": "Deniz", "raw": "Deniz" },
+            { "type": "text", "text": "Deniz abi", "raw": "Deniz abi" }
+          ]
+        },
+        "listItems": ["Deniz", "Deniz abi"]
+      },
+      {
+        "key": "tags",
+        "firstLine": 5,
+        "lastLine": 7,
+        "list": {
+          "style": "block",
+          "items": [
+            { "type": "text", "text": "günlük", "raw": "günlük" },
+            { "type": "text", "text": "iş: proje", "raw": "\"iş: proje\"" }
+          ]
+        },
+        "listItems": ["günlük", "iş: proje"]
+      },
+      {
+        "key": "boşluklu",
+        "firstLine": 8,
+        "lastLine": 10,
+        "list": {
+          "style": "block",
+          "items": [
+            { "type": "text", "text": "geniş", "raw": "geniş" },
+            { "type": "empty", "text": "", "raw": "" }
+          ]
+        },
+        "listItems": ["geniş", ""]
+      }
+    ]
+  }
+}

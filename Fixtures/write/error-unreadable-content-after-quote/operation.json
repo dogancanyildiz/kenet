@@ -1,0 +1,4 @@
+{
+  "frontmatter": { "operation": "set-value", "key": "type", "value": { "text": "place" } },
+  "expectedError": "unreadable-frontmatter"
+}

@@ -1,0 +1,4 @@
+{
+  "frontmatter": { "operation": "set-value", "key": "qualifier", "value": { "text": "iş" } },
+  "expectedError": "unreadable-frontmatter"
+}

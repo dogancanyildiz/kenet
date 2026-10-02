@@ -1,0 +1,23 @@
+{
+  "frontmatter": {
+    "state": "parsed",
+    "firstLine": 1,
+    "lastLine": 4,
+    "fields": [
+      {
+        "key": "doğum günü",
+        "firstLine": 2,
+        "lastLine": 2,
+        "scalar": { "type": "date", "text": "1990-01-15", "raw": "1990-01-15" },
+        "listItems": ["1990-01-15"]
+      },
+      {
+        "key": "doğum günü",
+        "firstLine": 3,
+        "lastLine": 3,
+        "scalar": { "type": "date", "text": "1991-02-16", "raw": "1991-02-16" },
+        "listItems": ["1991-02-16"]
+      }
+    ]
+  }
+}

@@ -1,0 +1,4 @@
+{
+  "frontmatter": { "operation": "set-list", "key": "bağlantı", "items": [{ "text": "Liman Ofis" }] },
+  "expectedError": "raw-field"
+}

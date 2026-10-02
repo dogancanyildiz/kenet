@@ -1,0 +1,25 @@
+{
+  "frontmatter": {
+    "state": "parsed",
+    "firstLine": 1,
+    "lastLine": 12,
+    "fields": [
+      {
+        "key": "type",
+        "firstLine": 2,
+        "lastLine": 2,
+        "scalar": { "type": "text", "text": "person", "raw": "person" },
+        "listItems": ["person"]
+      },
+      { "key": "not", "firstLine": 3, "lastLine": 7, "raw": "|\n  İlk satır\n  # yorum değil, metin\n\n  Son satır" },
+      { "key": "özet", "firstLine": 8, "lastLine": 10, "raw": ">-\n  Katlanmış\n  metin" },
+      {
+        "key": "name",
+        "firstLine": 11,
+        "lastLine": 11,
+        "scalar": { "type": "text", "text": "Deniz Arıkan", "raw": "Deniz Arıkan" },
+        "listItems": ["Deniz Arıkan"]
+      }
+    ]
+  }
+}

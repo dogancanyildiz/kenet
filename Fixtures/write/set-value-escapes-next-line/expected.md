@@ -1,0 +1,3 @@
+---
+not: "ilk\Nikinci"
+---

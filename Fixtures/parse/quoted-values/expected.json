@@ -1,0 +1,79 @@
+{
+  "frontmatter": {
+    "state": "parsed",
+    "firstLine": 1,
+    "lastLine": 11,
+    "fields": [
+      {
+        "key": "place",
+        "firstLine": 2,
+        "lastLine": 2,
+        "scalar": { "type": "text", "text": "[[Çınaraltı Kafe]]", "raw": "\"[[Çınaraltı Kafe]]\"" },
+        "listItems": ["[[Çınaraltı Kafe]]"]
+      },
+      {
+        "key": "not",
+        "firstLine": 3,
+        "lastLine": 3,
+        "scalar": { "type": "text", "text": "Deniz'in notu", "raw": "'Deniz''in notu'" },
+        "listItems": ["Deniz'in notu"]
+      },
+      {
+        "key": "kaçış",
+        "firstLine": 4,
+        "lastLine": 4,
+        "scalar": { "type": "text", "text": "satır\nsonu, \"tırnak\", \\ ve ç ve A", "raw": "\"satır\\nsonu, \\\"tırnak\\\", \\\\ ve \\u00e7 ve \\x41\"" },
+        "listItems": ["satır\nsonu, \"tırnak\", \\ ve ç ve A"]
+      },
+      {
+        "key": "boş metin",
+        "firstLine": 5,
+        "lastLine": 5,
+        "scalar": { "type": "text", "text": "", "raw": "\"\"" },
+        "listItems": [""]
+      },
+      {
+        "key": "sayı gibi",
+        "firstLine": 6,
+        "lastLine": 6,
+        "scalar": { "type": "text", "text": "100", "raw": "\"100\"" },
+        "listItems": ["100"]
+      },
+      {
+        "key": "evet gibi",
+        "firstLine": 7,
+        "lastLine": 7,
+        "scalar": { "type": "text", "text": "true", "raw": "'true'" },
+        "listItems": ["true"]
+      },
+      {
+        "key": "iki nokta",
+        "firstLine": 8,
+        "lastLine": 8,
+        "scalar": { "type": "text", "text": "a: b", "raw": "\"a: b\"" },
+        "listItems": ["a: b"]
+      },
+      {
+        "key": "ters bölü",
+        "firstLine": 9,
+        "lastLine": 9,
+        "scalar": { "type": "text", "text": "a\\nb", "raw": "'a\\nb'" },
+        "listItems": ["a\\nb"]
+      },
+      {
+        "key": "liste",
+        "firstLine": 10,
+        "lastLine": 10,
+        "list": {
+          "style": "inline",
+          "items": [
+            { "type": "text", "text": "a, b", "raw": "\"a, b\"" },
+            { "type": "text", "text": "c", "raw": "'c'" },
+            { "type": "text", "text": "d", "raw": "d" }
+          ]
+        },
+        "listItems": ["a, b", "c", "d"]
+      }
+    ]
+  }
+}

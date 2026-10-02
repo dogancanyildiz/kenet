@@ -1,0 +1,4 @@
+{
+  "frontmatter": { "operation": "set-value", "key": "<<", "value": { "text": "x" } },
+  "expectedError": "invalid-key"
+}

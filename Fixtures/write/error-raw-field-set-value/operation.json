@@ -1,0 +1,4 @@
+{
+  "frontmatter": { "operation": "set-value", "key": "not", "value": { "text": "kısa" } },
+  "expectedError": "raw-field"
+}

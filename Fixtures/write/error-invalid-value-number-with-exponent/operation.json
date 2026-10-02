@@ -1,0 +1,4 @@
+{
+  "frontmatter": { "operation": "set-value", "key": "radius", "value": { "number": "1e5" } },
+  "expectedError": "invalid-value"
+}

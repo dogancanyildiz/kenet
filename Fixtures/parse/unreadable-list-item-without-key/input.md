@@ -1,0 +1,4 @@
+---
+- Deniz
+type: person
+---

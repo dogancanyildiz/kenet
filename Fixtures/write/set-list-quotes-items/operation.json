@@ -1,0 +1,3 @@
+{
+  "frontmatter": { "operation": "set-list", "key": "etiketler", "items": [{ "text": "a, b" }, { "text": "[[Liman Ofis]]" }, { "text": "x: y" }, { "text": "true" }, { "text": "düz metin" }, { "integer": 7 }, { "text": "7" }] }
+}

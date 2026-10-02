@@ -1,0 +1,5 @@
+---
+type: journal
+goals:
+  ~: boş
+---

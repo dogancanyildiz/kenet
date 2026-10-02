@@ -1,0 +1,4 @@
+{
+  "frontmatter": { "operation": "set-value", "key": "name", "value": { "text": "Deniz Arıkan" } },
+  "expectedError": "unreadable-frontmatter"
+}

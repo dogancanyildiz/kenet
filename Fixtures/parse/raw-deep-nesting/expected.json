@@ -1,0 +1,20 @@
+{
+  "frontmatter": {
+    "state": "parsed",
+    "firstLine": 1,
+    "lastLine": 18,
+    "fields": [
+      { "key": "goals", "firstLine": 2, "lastLine": 4, "raw": "\n  spor:\n    hafta: 3" },
+      { "key": "kişiler", "firstLine": 5, "lastLine": 8, "raw": "\n  - ad: Deniz\n    rol: konuk\n  - ad: Selin" },
+      { "key": "ayarlar", "firstLine": 9, "lastLine": 13, "raw": "\n  renkler: [mavi, yeşil]\n  boyutlar:\n  - 1\n  - 2" },
+      { "key": "matris", "firstLine": 14, "lastLine": 16, "raw": "\n  - - 1\n    - 2" },
+      {
+        "key": "type",
+        "firstLine": 17,
+        "lastLine": 17,
+        "scalar": { "type": "text", "text": "journal", "raw": "journal" },
+        "listItems": ["journal"]
+      }
+    ]
+  }
+}

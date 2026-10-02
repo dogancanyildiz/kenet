@@ -1,0 +1,16 @@
+{
+  "frontmatter": {
+    "state": "parsed",
+    "firstLine": 1,
+    "lastLine": 3,
+    "fields": [
+      {
+        "key": "type",
+        "firstLine": 2,
+        "lastLine": 2,
+        "scalar": { "type": "text", "text": "person", "raw": "person" },
+        "listItems": ["person"]
+      }
+    ]
+  }
+}

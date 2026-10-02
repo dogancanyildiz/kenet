@@ -1,0 +1,22 @@
+{
+  "frontmatter": {
+    "state": "parsed",
+    "firstLine": 1,
+    "lastLine": 12,
+    "fields": [
+      { "key": "eşlem", "firstLine": 2, "lastLine": 2, "raw": "{a: 1, b: 2}" },
+      { "key": "bağlantı", "firstLine": 3, "lastLine": 3, "raw": "[[Liman Ofis]]" },
+      { "key": "uzun metin", "firstLine": 4, "lastLine": 7, "raw": "ilk satır\n  devam satırı\n\n  son satır" },
+      { "key": "virgüllü liste", "firstLine": 8, "lastLine": 8, "raw": "[a, b,]" },
+      { "key": "çiftli liste", "firstLine": 9, "lastLine": 9, "raw": "[a: b, \"c\": d]" },
+      { "key": "boş eşlem", "firstLine": 10, "lastLine": 10, "raw": "{}" },
+      {
+        "key": "type",
+        "firstLine": 11,
+        "lastLine": 11,
+        "scalar": { "type": "text", "text": "person", "raw": "person" },
+        "listItems": ["person"]
+      }
+    ]
+  }
+}

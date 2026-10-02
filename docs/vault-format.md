@@ -61,7 +61,13 @@ Vault/
 
 ## Frontmatter
 
-Dosyanın ilk satırı (varsa BOM'dan sonra) `---` ise frontmatter başlar ve sonraki ilk `---` satırında biter. Kapanış satırı yoksa dosyada frontmatter yok sayılır.
+Dosyanın ilk satırı (varsa BOM'dan sonra) `---` ise frontmatter başlar ve sonraki ilk `---` satırında biter. Sınır satırı tam olarak `---` olmalıdır.
+
+Uygulama bir bloğu ancak bütün YAML okuyucularının (Obsidian dahil) aynı okuyacağından eminse okur. Blok üç durumdan birindedir:
+
+- **Yok:** dosya `---` ile başlamıyor ya da kapanış satırı da kapanış adayı da (ardında boşluk ya da sekme olan `---`) yok. Kapanışı olmayan `---` ile başlayan dosyaya alan yazılınca başa yeni bir blok eklenir; eski `---` satırı gövdede kalır.
+- **Okunur:** her alan desteklenen alt kümededir ya da ham alandır.
+- **Çözülemez:** frontmatter yok sayılır: `type` okunmaz, uygulama frontmatter'a yazmaz, alan yazma isteği hata döndürür (başa yeni blok da eklenmez). İki uygulama aynı dosyayı aynı görmelidir; Obsidian'ın okuyamadığı bloğa yazılmaz.
 
 Desteklenen YAML alt kümesi:
 
@@ -74,28 +80,103 @@ aliases: [Ahmet, Ahmet abi]   # tek satırlı liste
 diller:                       # çok satırlı liste
   - Türkçe
   - İngilizce
+etiketler:                    # çok satırlı liste, anahtarla aynı girintide
+- günlük
 goals:                        # tek düzey iç içe eşlem
   spor: true                  # evet/hayır
   kitap: 25
+"iki nokta: içeren": değer    # tırnaklı anahtar
 ```
 
-- Anahtar satır başında yazılır; boşluk ve Türkçe karakter içerebilir (`doğum günü`). Anahtarlar birebir karşılaştırılır.
-- Yorumlar (`#`) ve boş satırlar korunur.
-- İki liste biçimi eşdeğerdir; Obsidian bir özelliği düzenlediğinde listeyi çok satırlı biçimde yeniden yazar. Liste beklenen alandaki tek değer, tek öğeli liste sayılır.
-- Aynı anahtar iki kez geçerse ilki geçerlidir.
+- Anahtar satır başında yazılır; boşluk ve Türkçe karakter içerebilir (`doğum günü`). Anahtardan sonra `:` ve ardından boşluk, sekme ya da satır sonu gelir; `anahtar : değer` yazımı da kabul edilir. Anahtar tırnaklı olabilir.
+- Anahtarlar Unicode normalleştirmesi yapılmadan bayt bayt karşılaştırılır. Bir anahtar blokta (ve bir eşlemde) yalnızca bir kez geçer.
+- Yorum, satır başındaki ya da öncesinde boşluk olan `#` ile başlar. Yorumlar ve boş satırlar korunur.
+- İki liste biçimi eşdeğerdir; Obsidian bir özelliği düzenlediğinde listeyi çok satırlı biçimde yeniden yazar. Liste beklenen alandaki tek değer tek öğeli liste, boş değer boş liste sayılır.
+- Liste öğesi ve eşlem kaydı tek satırlık tek değerdir. Girinti boşlukla yapılır; bir listenin ya da eşlemin bütün satırları aynı girintidedir.
 
-Alt kümenin dışında kalan yapılar (çok satırlı metin blokları, çapa ve takma ad, daha derin iç içelik):
+### Türler
 
-- Yalnızca kendi anahtarını etkiler: o alan ham metin olarak gösterilir ve uygulama onu değiştirmez. Diğer alanlar okunur ve düzenlenir.
-- Frontmatter'ın bütünü çözülemiyorsa (satır başında anahtar olmayan içerik gibi) frontmatter yok sayılır: `type` okunmaz, uygulama frontmatter'a yazmaz.
+Tırnaklı değer her zaman metindir. Tırnaksız değerin türü yazımından okunur:
 
-Yazma kuralları:
+| Tür | Kabul edilen yazım |
+|---|---|
+| Sayı | `[-+]?(0\|[1-9][0-9]*)(\.[0-9]+)?` (örnek: `25`, `-3`, `+5`, `29.0290`) |
+| Evet/hayır | `true`, `True`, `TRUE`, `false`, `False`, `FALSE` |
+| Boş | değer yok, `null`, `Null`, `NULL`, `~` |
+| Tarih | `YYYY-MM-DD`; var olan bir gün, yıl 0100 ile 9999 arası |
+| Metin | diğer her şey |
+
+Okuyucuların birbirinden farklı okuduğu yazımlar metin okunur: `yes`, `no`, `on`, `off`, `012`, `0x1F`, `.5`, `5.`, `1_000`, `14:30`, üstel sayılar (`1e-5`), `2026-1-2`, zaman damgaları (`2026-10-02T10:00:00`), var olmayan tarihler.
+
+Çift tırnak içinde şu kaçışlar okunur: `\0 \a \b \t \n \v \f \r \e \" \/ \\ \N \_ \L \P`, ters bölüden sonra boşluk ya da sekme, `\xHH`, `\uHHHH`, `\UHHHHHHHH`. Tek tırnak içinde `''` tek tırnak demektir; başka kaçış yoktur.
+
+### Ham alanlar
+
+Geçerli YAML olan ama alt kümenin dışında kalan yapılar yalnızca kendi anahtarını etkiler: o alan ham metin olarak gösterilir, uygulama onu değiştirmez ve silmez. Diğer alanlar okunur ve düzenlenir. Ham alan olan yapılar:
+
+- Blok metin (`|`, `>`).
+- Çapa (`&ad`) ve daha önce tanımlanmış bir çapaya takma ad (`*ad`); ad yalnızca ASCII harf, rakam, `-` ve `_` içerir.
+- Tek satırlık tek değerin önündeki `!!str` etiketi.
+- Akış eşlemi (`{a: 1}`), iç içe akış (`[a, [b]]`, `[a: b]`) ve sonunda virgül olan liste (`[a, b,]`), tek satırda.
+- Daha derin iç içelik: eşlem içinde eşlem ya da liste, liste içinde eşlem ya da liste.
+- Tırnaksız bir değerin sonraki girintili satırlarda süren metni.
+
+### Çözülemeyen bloklar
+
+Aşağıdakilerden biri bloğun bütününü çözülemez kılar:
+
+- Açılış ya da kapanış adayında `---` ardından boşluk ya da sekme; blok içinde `---` ya da `...` ile başlayıp boşlukla süren ya da biten satır.
+- Yinelenen anahtar (üst düzeyde ya da aynı eşlem içinde) ve `<<` anahtarı.
+- Satır başında anahtar olmayan içerik; girintili ilk anahtar.
+- Tırnaksız yazılmış, metinden başka okunabilecek anahtar: Türler tablosunda metin olmayan bir yazım; Tırnaklama 7 ve 8'deki tarih ve `...` yazımları; `-`, `?`, `:` ile başlayan anahtar; sayıya benzeyen anahtar (isteğe bağlı `+` işaretinden sonra `.` ile başlayıp Tırnaklama 6'ya uyan, ya da rakamla başlayıp yalnızca rakam, `a`-`f`, `A`-`F`, `x`, `X`, `o`, `O`, `_`, `.`, `+`, `-`, `:` içeren). `yes`, `no`, `on`, `off` anahtar olarak kabul edilir.
+- Satırında kapanmayan tırnak, köşeli ya da süslü parantez.
+- Tırnaklı değerden ya da tek satırlı listeden sonra yorum dışında içerik (`"a" b`); araya boşluk konmadan yazılmış yorum (`"a"# yorum`).
+- Tırnaksız değerde ikinci `: ` (`a: b: c`) ya da sondaki `:`.
+- Yukarıda sayılmayan kaçış (`"\q"`).
+- Değeri olan satırın altında girintili `-` ya da `anahtar: değer` satırı; tırnaklı değerin, tek satırlı listenin ya da ham değerin altında girintili içerik. Süren metnin bir satırı `-`, `?`, `:` ya da Tırnaklama 2'deki karakterlerden biriyle başlıyorsa, `:` ardından boşluk ya da yorum içeriyorsa, ya da satırları arasında yorum varsa.
+- Liste ile eşlemin aynı düzeyde karışması; tutarsız girinti.
+- Girintide sekme, `-` işaretinden sonra sekme, yalnızca sekme içeren boş satır, sekmeyle girintilenmiş yorum.
+- Değerin başında `, ] } % @` ya da ters tırnak; değer olarak tek başına `-`, `?`, `:` ya da bunlardan sonra boşluk.
+- Tek satırlı listede boş öğe, öğe içinde yorum, tırnaksız öğede `?` ya da ardından boşluk gelmeyen `:` (`[a:b]`), çapa, takma ad ya da etiket.
+- Tanımlanmamış çapaya takma ad; takma addan sonra içerik; art arda iki çapa; `!!str` dışında etiket ya da `!!str` ardından tek satırlık tek değerden başka bir şey.
+- Blok metin başlığından sonra yorum dışında içerik (`> metin`); blok metnin, ilk satırından (başlık girinti belirtiyorsa o girintiden) daha az girintili satırı; satır başındaki bir yorumla bölünmesi; ilk satırından önce ondan uzun, yalnızca boşluktan oluşan satır.
+- Derin yapının içinde: sonraki satırda süren metin, girinti belirten blok metin başlığı (`|2`), blok metin bulunan alanda araya giren yorum ya da yalnızca boşluktan oluşan satır.
+- Kontrol karakteri (sekme dışında U+0000 ile U+001F arası, U+007F ile U+009F arası), U+2028, U+2029, U+FEFF, U+FFFE, U+FFFF ya da UTF-8 olarak çözülemeyen bayt.
+
+### Tırnaklama
+
+Uygulama metni, şu koşulların hepsi sağlanıyorsa tırnaksız, yoksa çift tırnak içinde yazar:
+
+1. Boş değildir; ilk ve son karakteri boşluk ya da sekme değildir.
+2. İlk karakteri şunlardan biri değildir: `- ? : , [ ] { } # & * ! | > ' " % @` ve ters tırnak.
+3. `:` ardından boşluk ya da sekme içermez, `:` ile bitmez; boşluk ya da sekme ardından `#` içermez.
+4. Kaçış gerektiren karakter içermez (aşağıda).
+5. Büyük küçük harf ayrımı yapılmadan şunlardan biri değildir: `true`, `false`, `yes`, `no`, `on`, `off`, `y`, `n`, `null`, `~`, `<<`, `=`.
+6. Sayıya benzemez. İsteğe bağlı bir `+` ya da `-` işaretinden sonra: rakamla başlıyor ve hiç boşluk ya da sekme içermiyorsa; ya da `.` ile başlıyor ve ardından rakam geliyorsa ya da kalanı (harf ayrımı yapılmadan) `inf` ya da `nan` ise sayıya benzer.
+7. Tarihe benzemez: dört rakam, `-`, bir ya da iki rakam, `-`, bir ya da iki rakamla başlamaz (devamı ne olursa olsun).
+8. `...` değildir ve `...` ardından boşluk ya da sekme ile başlamaz.
+9. Tek satırlı liste içindeyse ayrıca `, [ ] { } : ?` karakterlerinden hiçbirini içermez.
+
+Çift tırnak içinde: ters bölü `\\`, çift tırnak `\"`, LF `\n`, CR `\r`, sekme `\t`, U+0000 `\0`, U+0085 `\N`, U+2028 `\L`, U+2029 `\P` olarak yazılır. Kalan U+0001 ile U+001F arası ve U+007F ile U+009F arası karakterler `\xHH` (iki büyük harfli onaltılık hane), U+FEFF, U+FFFE ve U+FFFF `\uHHHH` olarak yazılır. Başka hiçbir karakter kaçışla yazılmaz. Böylece satır sonu içeren metin de tek satırda kalır.
+
+Anahtar da aynı kuralla (1 ile 8 arası) tırnaksız ya da çift tırnakla yazılır. Boş anahtar ve `<<` yazılamaz.
+
+Diğer türler: evet/hayır `true` ya da `false`; tam sayı ondalık rakamlarla; sayı, kendisine verilen yazımla (Türler bölümündeki sayı yazımına uymayan yazım reddedilir); tarih `YYYY-MM-DD`.
+
+### Yazma kuralları
 
 - Bir alan değişirken yalnızca o anahtarın satırları yeniden yazılır. Diğer satırlar, sıraları, tırnak biçimleri ve yorumlar korunur; değerler yeniden üretilmez (`29.0290`, `29.029` olmaz).
-- Değişen listenin mevcut biçimi (tek satırlı ya da çok satırlı) korunur.
-- Yeni anahtar frontmatter'ın sonuna eklenir. Uygulama yeni listeyi tek satırlı yazar.
-- Düz yazıldığında YAML'da başka anlama gelecek metin çift tırnak içinde yazılır.
-- Frontmatter'ı olmayan dosyaya alan yazılacaksa dosyanın başına yeni bir frontmatter bloğu eklenir.
+- Yeniden yazılan satırda anahtar, `:` ve değerden önceki boşluklar aynen kalır (değer yoksa tek boşluk konur); satır sonundaki yorum, önündeki boşluklarla birlikte korunur; yorum yoksa sondaki boşluklar atılır. Yeniden yazılan satır kendi satır sonunu korur.
+- Aynı değeri yeniden yazmak dosyayı değiştirmez. Metin bayt bayt ve yalnızca metinle karşılaştırılır. Sayılar değerce karşılaştırılır: işaret, tam kısım ve sondaki sıfırları atılmış kesir aynıysa sayı aynıdır (`20.029` ile `20.0290`, `+5` ile `5`, `-0` ile `0`). Evet/hayır ve tarih değerce, liste sırayla öğe öğe karşılaştırılır.
+- Değişen listenin mevcut biçimi (tek satırlı ya da çok satırlı) korunur. Listede ya da listeye çevrilen tek değerde, yeni bir öğeyle aynı olan mevcut değer dosyadaki yazımıyla yazılır (sırayla ilk eşleşen); tek satırlı listeye girecek tırnaksız yazım 9. koşulu sağlamıyorsa yeniden üretilir.
+- Tek satırlı liste `[a, b]` biçiminde, öğeler `, ` ile ayrılarak yazılır; boşalan liste `[]` olur.
+- Çok satırlı listede baştaki ve sondaki aynı kalan öğelerin satırlarına dokunulmaz. Aradaki satırlar sırayla yeniden yazılır (girinti, `-` sonrası boşluk ve yorum korunur); fazla yeni öğeler son yeniden yazılan satırın ardına (böyle bir satır yoksa aynı kalan önceki öğenin ardına, o da yoksa ilk öğenin önüne) mevcut girintiyle ve `- ` ile eklenir; fazla eski satırlar silinir. Boşalan listede `anahtar:` satırı kalır.
+- Eşlemde yalnızca hedef kaydın satırı değişir; yeni kayıt son kaydın ardına mevcut girintiyle eklenir. Son kaydı silinen eşlemin `anahtar:` satırı kalır. Değeri olmayan anahtara kayıt yazılınca kayıt anahtarın altına iki boşluk girintiyle eklenir; değeri olan bir alana kayıt yazılamaz.
+- Çok satırlı liste olmayan bir alana (tek değer, boş değer, eşlem) liste yazılırsa tek satırlı yazılır; liste ya da eşlem olan bir alana tek değer yazılırsa değer anahtar satırına yazılır. İki durumda da eski öğe ve kayıt satırları silinir.
+- Alan silinirken ya da biçimi değişirken aradaki yorum ve boş satırlar yerinde kalır. Olmayan alanı ya da kaydı silmek dosyayı değiştirmez.
+- Yeni anahtar frontmatter'ın sonuna, kapanış satırının hemen önüne eklenir. Uygulama yeni listeyi tek satırlı, yeni eşlemi iki boşluk girintiyle yazar.
+- Frontmatter'ı olmayan dosyaya alan yazılacaksa dosyanın başına yeni bir blok eklenir: `---`, alan satırları, `---`. Blok ile gövde arasına boş satır eklenmez.
+- Ham alan değiştirilemez ve silinemez; çözülemeyen bloğa yazılmaz.
 
 ## Bağlantılar
 

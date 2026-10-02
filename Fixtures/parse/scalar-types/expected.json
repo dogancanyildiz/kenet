@@ -1,0 +1,198 @@
+{
+  "frontmatter": {
+    "state": "parsed",
+    "firstLine": 1,
+    "lastLine": 29,
+    "fields": [
+      {
+        "key": "tam",
+        "firstLine": 2,
+        "lastLine": 2,
+        "scalar": { "type": "number", "text": "25", "raw": "25" },
+        "listItems": ["25"]
+      },
+      {
+        "key": "negatif",
+        "firstLine": 3,
+        "lastLine": 3,
+        "scalar": { "type": "number", "text": "-3", "raw": "-3" },
+        "listItems": ["-3"]
+      },
+      {
+        "key": "ondalık",
+        "firstLine": 4,
+        "lastLine": 4,
+        "scalar": { "type": "number", "text": "29.0290", "raw": "29.0290" },
+        "listItems": ["29.0290"]
+      },
+      {
+        "key": "artı",
+        "firstLine": 5,
+        "lastLine": 5,
+        "scalar": { "type": "number", "text": "+5", "raw": "+5" },
+        "listItems": ["+5"]
+      },
+      {
+        "key": "sıfır",
+        "firstLine": 6,
+        "lastLine": 6,
+        "scalar": { "type": "number", "text": "0", "raw": "0" },
+        "listItems": ["0"]
+      },
+      {
+        "key": "evet",
+        "firstLine": 7,
+        "lastLine": 7,
+        "scalar": { "type": "boolean", "text": "true", "raw": "true" },
+        "listItems": ["true"]
+      },
+      {
+        "key": "hayır",
+        "firstLine": 8,
+        "lastLine": 8,
+        "scalar": { "type": "boolean", "text": "false", "raw": "false" },
+        "listItems": ["false"]
+      },
+      {
+        "key": "büyük harf",
+        "firstLine": 9,
+        "lastLine": 9,
+        "scalar": { "type": "boolean", "text": "True", "raw": "True" },
+        "listItems": ["True"]
+      },
+      {
+        "key": "tarih",
+        "firstLine": 10,
+        "lastLine": 10,
+        "scalar": { "type": "date", "text": "2026-10-02", "raw": "2026-10-02" },
+        "listItems": ["2026-10-02"]
+      },
+      {
+        "key": "boş",
+        "firstLine": 11,
+        "lastLine": 11,
+        "scalar": { "type": "empty", "text": "", "raw": "" },
+        "listItems": []
+      },
+      {
+        "key": "null değer",
+        "firstLine": 12,
+        "lastLine": 12,
+        "scalar": { "type": "empty", "text": "", "raw": "null" },
+        "listItems": []
+      },
+      {
+        "key": "tilde",
+        "firstLine": 13,
+        "lastLine": 13,
+        "scalar": { "type": "empty", "text": "", "raw": "~" },
+        "listItems": []
+      },
+      {
+        "key": "metin",
+        "firstLine": 14,
+        "lastLine": 14,
+        "scalar": { "type": "text", "text": "Deniz Arıkan", "raw": "Deniz Arıkan" },
+        "listItems": ["Deniz Arıkan"]
+      },
+      {
+        "key": "evet sözcüğü",
+        "firstLine": 15,
+        "lastLine": 15,
+        "scalar": { "type": "text", "text": "yes", "raw": "yes" },
+        "listItems": ["yes"]
+      },
+      {
+        "key": "baştaki sıfır",
+        "firstLine": 16,
+        "lastLine": 16,
+        "scalar": { "type": "text", "text": "012", "raw": "012" },
+        "listItems": ["012"]
+      },
+      {
+        "key": "on altılık",
+        "firstLine": 17,
+        "lastLine": 17,
+        "scalar": { "type": "text", "text": "0x1F", "raw": "0x1F" },
+        "listItems": ["0x1F"]
+      },
+      {
+        "key": "nokta ile başlayan",
+        "firstLine": 18,
+        "lastLine": 18,
+        "scalar": { "type": "text", "text": ".5", "raw": ".5" },
+        "listItems": [".5"]
+      },
+      {
+        "key": "geçersiz tarih",
+        "firstLine": 19,
+        "lastLine": 19,
+        "scalar": { "type": "text", "text": "2026-13-45", "raw": "2026-13-45" },
+        "listItems": ["2026-13-45"]
+      },
+      {
+        "key": "saat",
+        "firstLine": 20,
+        "lastLine": 20,
+        "scalar": { "type": "text", "text": "14:30", "raw": "14:30" },
+        "listItems": ["14:30"]
+      },
+      {
+        "key": "sürüm",
+        "firstLine": 21,
+        "lastLine": 21,
+        "scalar": { "type": "text", "text": "1.2.3", "raw": "1.2.3" },
+        "listItems": ["1.2.3"]
+      },
+      {
+        "key": "üstel",
+        "firstLine": 22,
+        "lastLine": 22,
+        "scalar": { "type": "text", "text": "1e-5", "raw": "1e-5" },
+        "listItems": ["1e-5"]
+      },
+      {
+        "key": "büyük üstel",
+        "firstLine": 23,
+        "lastLine": 23,
+        "scalar": { "type": "text", "text": "1.0E5", "raw": "1.0E5" },
+        "listItems": ["1.0E5"]
+      },
+      {
+        "key": "kısa tarih",
+        "firstLine": 24,
+        "lastLine": 24,
+        "scalar": { "type": "text", "text": "2026-1-2", "raw": "2026-1-2" },
+        "listItems": ["2026-1-2"]
+      },
+      {
+        "key": "zaman damgası",
+        "firstLine": 25,
+        "lastLine": 25,
+        "scalar": { "type": "text", "text": "2026-10-02T10:00:00", "raw": "2026-10-02T10:00:00" },
+        "listItems": ["2026-10-02T10:00:00"]
+      },
+      {
+        "key": "hayır sözcüğü",
+        "firstLine": 26,
+        "lastLine": 26,
+        "scalar": { "type": "text", "text": "No", "raw": "No" },
+        "listItems": ["No"]
+      },
+      {
+        "key": "açık",
+        "firstLine": 27,
+        "lastLine": 27,
+        "scalar": { "type": "text", "text": "on", "raw": "on" },
+        "listItems": ["on"]
+      },
+      {
+        "key": "adres",
+        "firstLine": 28,
+        "lastLine": 28,
+        "scalar": { "type": "text", "text": "https://example.com/a?b=c#d", "raw": "https://example.com/a?b=c#d" },
+        "listItems": ["https://example.com/a?b=c#d"]
+      }
+    ]
+  }
+}

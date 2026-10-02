@@ -1,0 +1,3 @@
+---
+aliases: [ "Deniz",Deniz abi ]
+---

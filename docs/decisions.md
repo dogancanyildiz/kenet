@@ -61,6 +61,9 @@ Verilen her karar tek satır olarak eklenir. Açık sorular kapandığında altt
 | 2026-10-02 | Test için Swift Testing, biçim ve lint için `swift format` | İkisi de araç zinciriyle gelir; ek bağımlılık gerekmez |
 | 2026-10-02 | Belge modeli satır tabanlı ve kayıpsız: her satır ham baytlarını ve satır sonunu saklar, metin isteğe bağlı olarak baytlardan çözülür, serileştirme baytları birleştirir | Gidiş dönüş tasarımdan gelir; ayrıştırıp yeniden üretme yaklaşımı bayt korumayı garanti edemez |
 | 2026-10-02 | Ardından LF gelmeyen tek CR de satır sonu sayılır | Obsidian ve CommonMark ile uyum; yalnız CR kullanan dosyada satırlar, görevler ve başlıklar doğru tanınır. Bayt koruması değişmez |
+| 2026-10-02 | Belge tek bir ilkelle değişir: bir satır aralığı yeni satırlarla değiştirilir. Yeniden yazılan satır kendi satır sonunu korur; sonuç her zaman, baytları yeniden okunduğunda çıkacak belgedir | Değişmezler (satır sonu, BOM, salt okunurluk) tek yerde korunur ve sınanır; dokunulmayan satırlar bayt düzeyinde aynı kalır |
+| 2026-10-02 | Frontmatter genel bir YAML ayrıştırıcısıyla değil, alt kümeyi satır satır tanıyan ve her alanın satırlarını bilen bir okuyucuyla işlenir. Emin olunmayan yapı ham alan olur ya da bloğu çözülemez kılar; düzenleme yalnızca hedef satırları yeniden yazar, yorum ve boş satır silmez | Genel ayrıştırıcı yorumları, tırnakları ve yazımı korumaz; yanlış yorumlamak tanımamaktan kötüdür |
+| 2026-10-02 | Obsidian'ın reddettiği frontmatter bloğu bütünüyle çözülemezdir: geçersiz YAML ve yinelenen anahtar bloğu çözülemez kılar, ham alan yalnızca geçerli ama desteklenmeyen yapılar içindir | İki uygulama aynı dosyayı aynı görür; okunamayan bloğa yazılmaz |
 
 ## Açık sorular
 

@@ -1,0 +1,87 @@
+{
+  "frontmatter": {
+    "state": "parsed",
+    "firstLine": 1,
+    "lastLine": 14,
+    "fields": [
+      {
+        "key": "name",
+        "firstLine": 2,
+        "lastLine": 2,
+        "scalar": { "type": "text", "text": "Deniz Arıkan", "raw": "Deniz Arıkan" },
+        "listItems": ["Deniz Arıkan"]
+      },
+      {
+        "key": "place",
+        "firstLine": 3,
+        "lastLine": 3,
+        "scalar": { "type": "text", "text": "[[Liman Ofis]]", "raw": "\"[[Liman Ofis]]\"" },
+        "listItems": ["[[Liman Ofis]]"]
+      },
+      {
+        "key": "kafe",
+        "firstLine": 4,
+        "lastLine": 4,
+        "scalar": { "type": "text", "text": "[[Çınaraltı Kafe]]", "raw": "'[[Çınaraltı Kafe]]'" },
+        "listItems": ["[[Çınaraltı Kafe]]"]
+      },
+      {
+        "key": "radius",
+        "firstLine": 5,
+        "lastLine": 5,
+        "scalar": { "type": "number", "text": "100", "raw": "100" },
+        "listItems": ["100"]
+      },
+      {
+        "key": "date",
+        "firstLine": 6,
+        "lastLine": 6,
+        "scalar": { "type": "date", "text": "2026-10-02", "raw": "2026-10-02" },
+        "listItems": ["2026-10-02"]
+      },
+      {
+        "key": "aliases",
+        "firstLine": 7,
+        "lastLine": 7,
+        "list": {
+          "style": "inline",
+          "items": [
+            { "type": "text", "text": "Deniz", "raw": "Deniz" },
+            { "type": "text", "text": "Deniz abi", "raw": "Deniz abi" }
+          ]
+        },
+        "listItems": ["Deniz", "Deniz abi"]
+      },
+      {
+        "key": "diller",
+        "firstLine": 8,
+        "lastLine": 10,
+        "list": {
+          "style": "block",
+          "items": [
+            { "type": "text", "text": "Türkçe", "raw": "Türkçe" },
+            { "type": "text", "text": "İngilizce", "raw": "İngilizce" }
+          ]
+        },
+        "listItems": ["Türkçe", "İngilizce"]
+      },
+      {
+        "key": "goals",
+        "firstLine": 11,
+        "lastLine": 13,
+        "mapping": [
+          {
+            "key": "spor",
+            "line": 12,
+            "value": { "type": "boolean", "text": "true", "raw": "true" }
+          },
+          {
+            "key": "kitap",
+            "line": 13,
+            "value": { "type": "number", "text": "25", "raw": "25" }
+          }
+        ]
+      }
+    ]
+  }
+}

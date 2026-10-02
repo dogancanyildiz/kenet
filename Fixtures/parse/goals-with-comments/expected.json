@@ -1,0 +1,38 @@
+{
+  "frontmatter": {
+    "state": "parsed",
+    "firstLine": 1,
+    "lastLine": 9,
+    "fields": [
+      {
+        "key": "type",
+        "firstLine": 2,
+        "lastLine": 2,
+        "scalar": { "type": "text", "text": "journal", "raw": "journal" },
+        "listItems": ["journal"]
+      },
+      {
+        "key": "goals",
+        "firstLine": 3,
+        "lastLine": 8,
+        "mapping": [
+          {
+            "key": "spor",
+            "line": 5,
+            "value": { "type": "boolean", "text": "true", "raw": "true" }
+          },
+          {
+            "key": "kitap",
+            "line": 7,
+            "value": { "type": "number", "text": "25", "raw": "25" }
+          },
+          {
+            "key": "su",
+            "line": 8,
+            "value": { "type": "empty", "text": "", "raw": "" }
+          }
+        ]
+      }
+    ]
+  }
+}

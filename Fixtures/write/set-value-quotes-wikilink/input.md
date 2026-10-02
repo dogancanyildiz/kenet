@@ -1,0 +1,4 @@
+---
+type: goal
+name: Spor
+---

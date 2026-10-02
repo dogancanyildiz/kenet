@@ -1,0 +1,3 @@
+---
+aliases: ["Arıkan, Deniz", Deniz]
+---

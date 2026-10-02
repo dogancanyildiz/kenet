@@ -1,0 +1,3 @@
+---
+not: "ilk\Likinci\Pson"
+---

@@ -1,0 +1,73 @@
+# ----------------------------------------
+# macOS
+# ----------------------------------------
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# ----------------------------------------
+# Xcode
+# ----------------------------------------
+# Kullanıcıya özel ayarlar ve durum dosyaları
+xcuserdata/
+*.xcuserstate
+*.xcscmblueprint
+*.xccheckout
+
+# Derleme çıktıları
+build/
+DerivedData/
+*.ipa
+*.dSYM
+*.dSYM.zip
+
+# ----------------------------------------
+# Swift Package Manager
+# ----------------------------------------
+.build/
+.swiftpm/
+# Package.resolved bilerek takip edilir: herkes aynı bağımlılık sürümünü kullansın
+
+# ----------------------------------------
+# Gizli bilgiler
+# ----------------------------------------
+# Ortam değişkenleri ve anahtarlar repoya girmez
+.env
+.env.*
+!.env.example
+*.p8
+*.p12
+*.mobileprovision
+*.pem
+
+# fastlane çıktıları (ileride CD için)
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/
+fastlane/test_output/
+
+# ----------------------------------------
+# Kişisel veri
+# ----------------------------------------
+# Gerçek kasa repoya girmez; yalnızca Fixtures/ altındaki kurgusal örnek kasa takip edilir
+Vault/
+vault/
+.obsidian/
+
+
+# ----------------------------------------
+# Ajan ve editör dosyaları
+# ----------------------------------------
+# Kişisel Claude Code ayarları; paylaşılan .claude/settings.json takip edilir
+.claude/settings.local.json
+.idea/
+.vscode/
+.nodeterm/
+
+# ----------------------------------------
+# Genel
+# ----------------------------------------
+*.log
+*.tmp
+*.swp

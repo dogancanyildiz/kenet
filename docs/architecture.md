@@ -36,6 +36,7 @@ Sorumlulukları:
 
 - **Ayrıştırıcı:** Frontmatter, bölümler, olay ve görev satırları, bağlantılar, blok kimlikleri.
 - **Yazıcı:** Yalnızca hedef satırı değiştiren, dosyanın geri kalanını birebir koruyan düzenleme.
+- **Birleştirme:** Çakışan iki sürümü tek içerikte birleştiren saf işlev (kurallar: `vault-format.md`).
 - **Modeller:** Gün, olay, görev, varlık (kişi, konum), hedef.
 - **Yeniden adlandırma:** Varlık dosyasını yeniden adlandırma ve kasadaki tüm bağlantıları güncelleme.
 - **Varlık tanıma:** Metinde bilinen adları ve takma adları bulma; birden fazla aday varsa bağlama göre (konum, yakınlık, sıklık) sıralama; emin olunamayan durumları arayüze bildirme.
@@ -45,13 +46,16 @@ Sorumlulukları:
 
 Kısıt: Yalnızca Foundation ve SQLite katmanı. Bu sayede aynı kod uygulamada, widget'ta ve testlerde çalışır; ileride başka dile çevirmek kolay olur.
 
-Varlık tipleri (kişi, konum ve ileride eklenecekler) koda gömülmez, şema tanımından gelir. Şirket paketi ve özel tipler bu sayede eklenir.
+Varlık tipleri (kişi, konum ve ileride eklenecekler) koda dağılmaz; her tip tek bir veri tanımıdır: tip adı, varsayılan klasör, ayrılmış alanlar. Bu tanımlar şimdilik Core içinde durur ve indeks tipi serbest metin olarak tutar. Özel tipler ve şirket paketi geldiğinde (aşama 7) aynı tanım kasadaki bir şema dosyasından okunur; dosyanın biçimi o zaman `vault-format.md` içinde belirlenir.
 
 ## İndeks
 
 - Her cihazda yerel, kasanın dışında, eşitlenmez.
 - Dosyalardan eksiksiz yeniden üretilebilir; bozulursa silinip yeniden kurulur.
-- Taslak tablolar: `files` (yol, değişiklik zamanı, özet), `entities` (tip, ad, takma adlar, alanlar), `blocks` (kimlik, dosya, tür, metin, tarih, durum), `links` (kaynak blok, hedef varlık), `goal_logs` (anahtar, tarih, değer), `search` (FTS5).
+- Şema sürümü veritabanında tutulur. Uygulamanın beklediği sürümle uyuşmuyorsa indeks silinip dosyalardan yeniden kurulur; şema göçü yazılmaz.
+- Taslak tablolar: `files` (yol, değişiklik zamanı, özet), `entities` (tip, ad, takma adlar, alanlar), `blocks` (dosya, dosya içi sıra, tür, metin, tarih, durum, varsa blok kimliği), `links` (kaynak dosya ve blok, hedef ad, çözülen varlık), `goal_logs` (anahtar, tarih, değer), `search` (FTS5).
+- Bloğun anahtarı dosya ve dosya içi sıradır; blok kimliği isteğe bağlı bir sütundur. Kimliksiz satırlar, günlük paragrafları ve frontmatter'daki bağlantılar da blok ve bağlantı kaynağı olarak indekslenir.
+- Hedefi henüz kasada olmayan bağlantı da tutulur; varlık oluştuğunda çözülür.
 - Artımlı güncelleme: açılışta ve dosya değişiminde yalnızca özeti değişen dosyalar yeniden işlenir.
 
 ## Senkronizasyon
@@ -59,8 +63,9 @@ Varlık tipleri (kişi, konum ve ileride eklenecekler) koda gömülmez, şema ta
 - Kasa, uygulamanın iCloud kapsayıcısındadır ve Dosyalar ile Finder'da görünür.
 - Sunucu, hesap ya da özel senkronizasyon servisi yoktur.
 - iCloud kapalıysa kasa yerelde durur.
-- Çakışmada satırlar blok kimliğine göre birleştirilir, birleştirilemeyen içerik kopya olarak saklanır (kurallar: `vault-format.md`).
-- Henüz indirilmemiş dosyalar için davranış aşama 0'da belirlenir.
+- Kasa konumu ilk açılışta belirlenir (iCloud açıksa kapsayıcı, değilse yerel) ve cihazda kaydedilir. iCloud sonradan açılsa ya da kapansa uygulama kendiliğinden diğer konuma geçmez; kayıtlı konuma erişilemiyorsa yeni kasa açmaz, durumu bildirir. Konumlar arası taşıma, kullanıcının başlattığı ayrı bir işlemdir.
+- Çakışmada satırlar blok kimliğine göre birleştirilir, birleştirilemeyen içerik kopya olarak saklanır. iCloud'un aynı gün için ayırdığı kopya dosyalar da aynı işlevle birleştirilir (kurallar: `vault-format.md`).
+- Kasadaki tüm dosyalar cihazda tutulur: indirilmemiş dosya için indirme istenir, dosya geldikçe indekslenir. Arayüz eldeki içeriği gösterir ve eşitlemenin sürdüğünü belirtir.
 
 ## Widget'lar
 
@@ -91,4 +96,5 @@ Android ve Windows şu an kapsam dışı. İleride mümkün kalması için:
 - Ayrıştırıcı ve yazıcı: örnek dosya tabanlı testler.
 - Gidiş dönüş: oku ve değiştirmeden yaz, çıktı birebir aynı olmalı.
 - İndeks: örnek kasadan üretilen indeks beklenen sorgu sonuçlarını vermeli.
+- Birleştirme: sonuç sürümlerin sırasından bağımsız olmalı, tekrarlandığında değişmemeli, hiçbir satırı kaybetmemeli.
 - Dayanıklılık: bozuk frontmatter, tanınmayan sözdizimi, boş dosya hata üretmemeli.

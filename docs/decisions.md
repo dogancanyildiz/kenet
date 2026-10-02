@@ -21,7 +21,6 @@ Verilen her karar tek satır olarak eklenir. Açık sorular kapandığında altt
 | 2026-10-02 | Uygulama kilidi ertelendi | iOS'un kendi Face ID kilidi yeterli |
 | 2026-10-02 | Dağıtım: önce kişisel, sonra App Store | Metinler baştan yerelleştirilebilir yazılır |
 | 2026-10-02 | Belgeler `docs/` altında; önce mevcut belgeye eklenir, ihtiyaç varsa yeni belge açılıp README tablosuna yazılır | Dağınıklığı ve tekrarı önlemek, ama esnek kalmak |
-
 | 2026-10-02 | Repo klasör adı `journal` | Çalışma adı; ürün ismi ayrıca belirlenecek |
 | 2026-10-02 | Dosyadaki yapı (klasör, anahtar, `type`, bölüm başlıkları) İngilizce ve sabit; arayüz kullanıcının dilinde | Kasa her dilde aynı okunur; sonradan göç gerekmez |
 | 2026-10-02 | Aynı adlı varlıklar: görünen ad `name` alanında, dosya adını uygulama ayırt ediciyle üretir; yazarken bağlama göre sıralama, emin değilse sorma | Kullanıcı dosya adı düşünmez; yanlış bağlama önlenir |
@@ -41,6 +40,19 @@ Verilen her karar tek satır olarak eklenir. Açık sorular kapandığında altt
 | 2026-10-02 | Ajan kuralları: yalnızca ürün vaatlerini koruyan değişmez kurallar; uygulama, arayüz ayrıntısı ve kütüphane seçimi ajanın kararı | Gereksiz kısıt daha iyi çözümleri engeller |
 | 2026-10-02 | Repo herkese açık | Kullanılmak istenen GitHub özellikleri açık repoda ücretsiz |
 | 2026-10-02 | Gelir modeli (reklam, üyelik) sonraya | Önce ürün |
+| 2026-10-02 | "Tanımadığına dokunma" işlemin hedefine göre tanımlandı: yalnızca hedef satır ya da alan değişir; dışarıda yazılmış metin kendiliğinden yeniden yazılmaz | Eski ifade ("yalnızca kendi ürettiği satırlar") kimlik ekleme, bağlama ve yeniden adlandırmayla çelişiyordu |
+| 2026-10-02 | Okurken CRLF, BOM ve sonlanmamış son satır korunur; frontmatter için desteklenen YAML alt kümesi tanımlı, değerler yeniden üretilmez | Genel YAML ve Markdown kütüphaneleri dosyayı yeniden üretir, bayt düzeyinde korumayı bozar |
+| 2026-10-02 | Ad karşılaştırması NFC ve yerelden bağımsız küçük harf eşlemesiyle yapılır; Türkçeye özel eşleme yok | iPhone dosya sistemi harfe duyarlı, Mac ve Obsidian duyarsız; sonuç cihazın diline göre değişmemeli |
+| 2026-10-02 | Gün dosyasının kimliği yoludur (`journal/YYYY-MM-DD.md`); iCloud'un ayırdığı kopya (`… 2.md`) ana dosyayla birleştirilir | İki cihaz aynı günü çevrimdışı oluşturabilir; widget ve kısayol dosyayı indeks olmadan bulabilmeli |
+| 2026-10-02 | Saatli olay saat sırasındaki yerine, saatsiz olay sona eklenir; gösterim sırası dosya sırasıdır | Dosya Obsidian'da da kronolojik okunur; sıranın tek kaynağı dosyadır |
+| 2026-10-02 | Blok kimliği opak ve isteğe bağlı; indekste bloğun anahtarı dosya ve sıra | Dışarıda kopyalanan satır kimliği çoğaltır; kimliksiz satırlar ve paragraflar da indekslenir |
+| 2026-10-02 | Görev satırı aşama 0'da asgari düzeyde tanınır (durum, metin, kimlik); diğer alanlar kendi aşamasında ayrıştırılır, o zamana dek metin olarak korunur | Aşama 0'daki birleştirme görev satırlarını da kapsıyor |
+| 2026-10-02 | Çakışma birleştirme yalnızca iki sürüme bağlı saf işlev; kapalı görev, `true` ve büyük sayı kazanır; diğer farkta yeni sürüm kazanır ve kaybeden `conflicts/` altında saklanır | Değişiklik zamanı satırın değil dosyanın; "son değiştiren kazanır" düzenlemeyi sessizce kaybediyordu |
+| 2026-10-02 | Varlık tipleri şimdilik Core içinde veri tanımı; kasadaki şema dosyası aşama 7'de | Tipler koda dağılmaz ama özel tip özelliği erken yazılmaz |
+| 2026-10-02 | Kasa konumu kaydedilir ve kendiliğinden değişmez; tüm dosyalar cihaza indirilir | Sessiz konum değişimi veriyi kaybolmuş gösterir; metin dosyaları küçük |
+| 2026-10-02 | Kasa format sürümünü `.app/vault.json` içinde taşır; daha yeni sürümü gören istemci yazmaz | Cihazlarda farklı uygulama sürümleri aynı kasayı paylaşır |
+| 2026-10-02 | İndeks şeması değişikliği onay gerektirmez: şema sürümü artar, indeks yeniden kurulur | İndeks dosyalardan yeniden üretilebilir; geriye uyum kaygısı yok |
+| 2026-10-02 | Hotfix sonrası `main`, `dev`'e merge commit ile geri birleştirilir | Squash iki dalın ortak geçmişini koparır |
 
 ## Açık sorular
 
@@ -51,3 +63,8 @@ Verilen her karar tek satır olarak eklenir. Açık sorular kapandığında altt
 5. **Hedef türleri.** Sayılamayan yıllık hedeflerin proje olarak modellenmesi (aşama 5).
 6. **Zincirde esneklik.** Günlük hedeflerde tek kaçırmada zincirin sıfırlanmaması için telafi hakkı (örneğin ayda bir gün) olsun mu?
 7. **Widget veri erişimi.** iCloud kasasına doğrudan erişim ya da App Group anlık görüntüsü.
+8. **Hedef kaydının yazımı.** İşaret kaldırılınca `false` mı yazılır, anahtar mı silinir? İç içe `goals` eşlemini Obsidian'ın özellik arayüzü düzenleyemiyor; düz anahtar seçeneği değerlendirilecek (aşama 3).
+9. **Haftanın başlangıcı.** Haftalık hedefte hafta hangi gün başlar; cihazın bölge ayarından mı gelir, kasada mı tutulur (aşama 3)?
+10. **Türkçe ad tanıma ve arama.** Kesme işaretsiz ekler ("ofiste"), İ/ı eşlemesi, sık geçen sözcüklerin takma ad olması (aşama 1).
+11. **Yarıda kalan yeniden adlandırma.** Çok dosyaya dokunan işlem çökme ya da kısmi eşitlemeyle yarım kalırsa nasıl tamamlanır (aşama 1)?
+12. **Varlık dosyası kopyaları.** iCloud'un ayırdığı `Elif 2.md` gibi kopyalar ne zaman aynı varlık sayılıp birleştirilir (aşama 1)?

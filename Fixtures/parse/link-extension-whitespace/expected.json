@@ -1,0 +1,70 @@
+{
+  "links": [
+    {
+      "line": 1,
+      "byteRange": [
+        0,
+        14
+      ],
+      "targetRange": [
+        4,
+        10
+      ],
+      "target": "Ev",
+      "rawTarget": "Ev .md",
+      "anchor": null,
+      "displayText": null,
+      "isEmbedded": false,
+      "isSameFile": false,
+      "isPath": false,
+      "source": {
+        "kind": "body"
+      }
+    },
+    {
+      "line": 2,
+      "byteRange": [
+        0,
+        26
+      ],
+      "targetRange": [
+        4,
+        22
+      ],
+      "target": "Deniz Arıkan",
+      "rawTarget": "Deniz Arıkan \t.md",
+      "anchor": null,
+      "displayText": null,
+      "isEmbedded": false,
+      "isSameFile": false,
+      "isPath": false,
+      "source": {
+        "kind": "body"
+      }
+    },
+    {
+      "line": 3,
+      "byteRange": [
+        0,
+        24
+      ],
+      "targetRange": [
+        3,
+        9
+      ],
+      "target": "Ev",
+      "rawTarget": "Ev .md",
+      "anchor": {
+        "kind": "heading",
+        "text": "Başlık"
+      },
+      "displayText": "ev",
+      "isEmbedded": false,
+      "isSameFile": false,
+      "isPath": false,
+      "source": {
+        "kind": "body"
+      }
+    }
+  ]
+}

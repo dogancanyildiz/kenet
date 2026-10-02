@@ -97,11 +97,11 @@
         21
       ],
       "targetRange": [
-        2,
-        19
+        4,
+        17
       ],
       "target": "Liman Ofis",
-      "rawTarget": "  Liman Ofis.md  ",
+      "rawTarget": "Liman Ofis.md",
       "anchor": null,
       "displayText": null,
       "isEmbedded": false,
@@ -319,11 +319,11 @@
         8
       ],
       "targetRange": [
-        2,
-        6
+        3,
+        5
       ],
       "target": "Ev",
-      "rawTarget": "\tEv\t",
+      "rawTarget": "Ev",
       "anchor": null,
       "displayText": null,
       "isEmbedded": false,
@@ -340,11 +340,11 @@
         19
       ],
       "targetRange": [
-        11,
-        17
+        13,
+        15
       ],
       "target": "Ev",
-      "rawTarget": " Ev ",
+      "rawTarget": "Ev",
       "anchor": null,
       "displayText": null,
       "isEmbedded": false,

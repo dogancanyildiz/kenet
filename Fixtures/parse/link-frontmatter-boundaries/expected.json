@@ -1,0 +1,171 @@
+{
+  "links": [
+    {
+      "line": 2,
+      "byteRange": [
+        23,
+        29
+      ],
+      "targetRange": [
+        25,
+        27
+      ],
+      "target": "Ev",
+      "rawTarget": "Ev",
+      "anchor": null,
+      "displayText": null,
+      "isEmbedded": false,
+      "isSameFile": false,
+      "isPath": false,
+      "source": {
+        "kind": "frontmatter",
+        "key": "code",
+        "entry": null
+      }
+    },
+    {
+      "line": 3,
+      "byteRange": [
+        12,
+        18
+      ],
+      "targetRange": [
+        14,
+        16
+      ],
+      "target": "Ev",
+      "rawTarget": "Ev",
+      "anchor": null,
+      "displayText": null,
+      "isEmbedded": false,
+      "isSameFile": false,
+      "isPath": false,
+      "source": {
+        "kind": "frontmatter",
+        "key": "multiple",
+        "entry": null
+      }
+    },
+    {
+      "line": 3,
+      "byteRange": [
+        20,
+        37
+      ],
+      "targetRange": [
+        22,
+        35
+      ],
+      "target": "Deniz Arıkan",
+      "rawTarget": "Deniz Arıkan",
+      "anchor": null,
+      "displayText": null,
+      "isEmbedded": false,
+      "isSameFile": false,
+      "isPath": false,
+      "source": {
+        "kind": "frontmatter",
+        "key": "multiple",
+        "entry": null
+      }
+    },
+    {
+      "line": 4,
+      "byteRange": [
+        7,
+        20
+      ],
+      "targetRange": [
+        9,
+        9
+      ],
+      "target": "",
+      "rawTarget": "",
+      "anchor": {
+        "kind": "heading",
+        "text": "Başlık"
+      },
+      "displayText": null,
+      "isEmbedded": false,
+      "isSameFile": true,
+      "isPath": false,
+      "source": {
+        "kind": "frontmatter",
+        "key": "same",
+        "entry": null
+      }
+    },
+    {
+      "line": 5,
+      "byteRange": [
+        8,
+        20
+      ],
+      "targetRange": [
+        10,
+        10
+      ],
+      "target": "",
+      "rawTarget": "",
+      "anchor": {
+        "kind": "block",
+        "text": "kimlik"
+      },
+      "displayText": null,
+      "isEmbedded": false,
+      "isSameFile": true,
+      "isPath": false,
+      "source": {
+        "kind": "frontmatter",
+        "key": "block",
+        "entry": null
+      }
+    },
+    {
+      "line": 6,
+      "byteRange": [
+        8,
+        33
+      ],
+      "targetRange": [
+        10,
+        23
+      ],
+      "target": "Deniz Arıkan",
+      "rawTarget": "Deniz Arıkan",
+      "anchor": null,
+      "displayText": "Deniz",
+      "isEmbedded": false,
+      "isSameFile": false,
+      "isPath": false,
+      "source": {
+        "kind": "frontmatter",
+        "key": "table",
+        "entry": null
+      }
+    },
+    {
+      "line": 7,
+      "byteRange": [
+        11,
+        17
+      ],
+      "targetRange": [
+        13,
+        15
+      ],
+      "target": "Ev",
+      "rawTarget": "Ev",
+      "anchor": null,
+      "displayText": null,
+      "isEmbedded": false,
+      "isSameFile": false,
+      "isPath": false,
+      "source": {
+        "kind": "frontmatter",
+        "key": "embed",
+        "entry": null
+      }
+    }
+  ]
+}

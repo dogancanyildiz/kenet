@@ -37,6 +37,22 @@ jobs:
       - name: Derle ve test et
         run: swift test --package-path Packages/Core -Xswiftc -warnings-as-errors
 
+  # Uygulama hedefleri: proje project.yml dosyasından üretilir, iki platformda derlenir.
+  # İmza yok (CODE_SIGNING_ALLOWED=NO); runner'da sertifika bulunmaz.
+  app:
+    name: Uygulama (iOS ve macOS)
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v7
+      - name: XcodeGen
+        run: brew install xcodegen
+      - name: Projeyi üret
+        run: xcodegen generate
+      - name: macOS derlemesi
+        run: xcodebuild build -project Journal.xcodeproj -scheme Journal_macOS -destination 'platform=macOS' CODE_SIGNING_ALLOWED=NO -quiet
+      - name: iOS derlemesi
+        run: xcodebuild build -project Journal.xcodeproj -scheme Journal_iOS -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO -quiet
+
   # Biçim denetimi yereldeki ile aynı swift-format sürümünde koşar (Swift 6.4).
   lint:
     name: Biçim ve kurallar
@@ -45,7 +61,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Biçim ve lint
-        run: swift format lint --strict --recursive Packages
+        run: swift format lint --strict --recursive Packages App
       - name: Core içinde yasak import
         run: sh .github/scripts/check-core-imports.sh
       - name: Belgelerin yeri
@@ -58,7 +74,7 @@ jobs:
   ci:
     name: ci
     if: always()
-    needs: [core-macos, core-linux, lint]
+    needs: [core-macos, core-linux, app, lint]
     runs-on: ubuntu-latest
     steps:
       - name: Tüm işler başarılı mı

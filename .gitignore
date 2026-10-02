@@ -15,6 +15,9 @@ xcuserdata/
 *.xcscmblueprint
 *.xccheckout
 
+# XcodeGen ile üretilir: `xcodegen generate` (tanım project.yml içinde)
+Journal.xcodeproj/
+
 # Derleme çıktıları
 build/
 DerivedData/

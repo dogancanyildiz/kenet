@@ -60,7 +60,14 @@ enum TaskFieldWriter {
         if case .other = priority { throw .invalidValue }
         if let project, !TaskFieldParser.validProject(project) { throw .invalidValue }
         guard due != nil || start != nil || priority != nil || project != nil else { return text }
-        let parsed = TaskFieldParser.parse(text, offset: 0).values
+        let fields = TaskFieldParser.parse(text, offset: 0)
+        let parsed = fields.values
+        var rawText = Array(text.utf8)
+        for field in fields.ranges.reversed() {
+            let start = field.byteRange.lowerBound
+            let lower = start > 0 && Syntax.isBlank(rawText[start - 1]) ? start - 1 : start
+            rawText.removeSubrange(lower..<field.byteRange.upperBound)
+        }
         let tokens = [
             (start ?? parsed.startDate).map { "🛫 " + $0.description },
             (due ?? parsed.dueDate).map { "📅 " + $0.description },
@@ -68,6 +75,6 @@ enum TaskFieldWriter {
             (priority ?? parsed.priority)?.token,
             (project ?? parsed.project).map { "#project/" + $0 },
         ].compactMap { $0 }
-        return ([parsed.text] + tokens).filter { !$0.isEmpty }.joined(separator: " ")
+        return ([Syntax.string(rawText)] + tokens).filter { !$0.isEmpty }.joined(separator: " ")
     }
 }

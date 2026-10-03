@@ -53,7 +53,9 @@ extension RawDocument {
         var edits = [TaskFieldWriter.Edit(range: parts.status!, value: writtenStatus)]
         var values = target.fields.values
         if status == .done {
-            guard let date = completionDate ?? target.doneDate else { throw .invalidValue }
+            guard let date = completionDate ?? (target.status == .done ? target.doneDate : nil) else {
+                throw .invalidValue
+            }
             values.doneDate = date
             edits += TaskFieldWriter.setting(.doneDate, token: "✅ " + date.description, task: target)
         } else if status == .todo || status == .inProgress {

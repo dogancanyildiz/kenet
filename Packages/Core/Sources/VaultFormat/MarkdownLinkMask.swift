@@ -1,4 +1,4 @@
-/// Recognizes balanced inline Markdown links without changing their spelling.
+/// Recognizes balanced inline and reference Markdown links without changing their spelling.
 enum MarkdownLinkMask {
     static func ranges(_ bytes: [UInt8], excluding mask: [Bool]) -> [Range<Int>] {
         var ranges: [Range<Int>] = []
@@ -6,8 +6,9 @@ enum MarkdownLinkMask {
         while cursor < bytes.count {
             guard bytes[cursor] == 91, !mask[cursor], !escaped(bytes, at: cursor),
                 let labelEnd = end(bytes, from: cursor, opening: 91, closing: 93, mask: mask),
-                labelEnd < bytes.count, bytes[labelEnd] == 40,
-                let targetEnd = end(bytes, from: labelEnd, opening: 40, closing: 41)
+                labelEnd < bytes.count, bytes[labelEnd] == 40 || bytes[labelEnd] == 91,
+                let targetEnd = end(
+                    bytes, from: labelEnd, opening: bytes[labelEnd], closing: bytes[labelEnd] == 40 ? 41 : 93)
             else {
                 cursor += 1
                 continue

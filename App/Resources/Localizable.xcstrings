@@ -1,0 +1,38 @@
+{
+  "sourceLanguage" : "tr",
+  "strings" : {
+    "Henüz görünür bir şey yok." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nothing to show yet."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Henüz görünür bir şey yok."
+          }
+        }
+      }
+    },
+    "Kasa formatı sürümü: %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vault format version: %lld"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kasa formatı sürümü: %lld"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

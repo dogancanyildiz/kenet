@@ -70,8 +70,9 @@ Bunlar zevk değil, ürünün temel vaatleridir (veri kullanıcınındır, hiçb
 
 ### Sürüm
 
-- Sürüm, `dev`'den `main`'e açılan PR ile kesilir. Bu PR sürüm numarasını yükseltir ve merge commit ile birleştirilir (squash değil).
-- `main`'e birleşince `vX.Y.Z` etiketi ve GitHub Release otomatik oluşur.
+- Sürüm numarası kök dizindeki `VERSION` dosyasında durur (tek satır, `X.Y.Z`); Xcode projesi ve iş akışları numarayı oradan okur.
+- Sürüm, `dev`'den `main`'e açılan PR ile kesilir. Bu PR `VERSION` dosyasını yükseltir ve merge commit ile birleştirilir (squash değil).
+- `main`'e birleşince `.github/workflows/release.yml` `VERSION` içindeki numarayla `vX.Y.Z` etiketini ve GitHub Release'i oluşturur; etiket zaten varsa atlar.
 - Numaralandırma (SemVer): 1.0 öncesinde `0.<aşama>.<yama>`. Aşama 1 tamamlanınca `v0.1.0`, o aşamadaki düzeltmeler `v0.1.1`. İlk mağaza yayını `v1.0.0`.
 - Sürüm kesme kararı kullanıcınındır. Ajan `main`'e PR açmaz ve birleştirmez; yalnızca istendiğinde sürüm PR'ını hazırlar.
 

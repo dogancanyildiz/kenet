@@ -53,3 +53,17 @@ extension RawDocument {
         SectionParser.parse(lines, startingAt: frontmatterLineRange?.upperBound ?? 0)
     }
 }
+
+/// An ATX body heading outside code fences, including headings nested within sections.
+public struct BodyHeading: Hashable, Sendable {
+    public let line: Int
+    public let level: Int
+}
+
+extension RawDocument {
+    /// Reads every body heading using the same fence and heading rules as day sections.
+    public var bodyHeadings: [BodyHeading] {
+        SectionParser.scan(lines, startingAt: frontmatterLineRange?.upperBound ?? 0, includingNested: true)
+            .sections.sections.map { BodyHeading(line: $0.headingLine, level: $0.level) }
+    }
+}

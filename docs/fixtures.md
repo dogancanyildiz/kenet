@@ -147,6 +147,16 @@ Kasa formatının ve istemci uygulamaların (ayrıştırıcı, modeller, indeksl
 5. **Çakışma kopyası:** `conflicts/2026-09-20 (conflict 20260920T183000Z).md`, `journal/2026-09-20.md` dosyasının bir olay metni farklı sürümüdür; taranmayan klasörler kuralı gereği indekslenmez.
 6. **Çok satırlı `aliases`:** `people/Deniz Arıkan.md` dosyasında Obsidian'ın yazdığı gibi blok liste biçiminde (`- Deniz\n  - Deniz abi`), diğer varlıklarda tek satırlı liste (`[Selin]`) biçimindedir.
 
+### `index/`
+
+`index/sample/expected.json`, örnek kasanın tam yeniden üretiminden beklenen kanonik indeks dökümüdür. JSON kökünde `files`, `entities`, `aliases`, `blocks`, `links`, `goalLogs` dizileri bulunur. Dosyalar NFC yolun kod noktası sırasındadır; diğer diziler dosya yolu, ardından kaynak sıra (`ordinal`) ya da hedef anahtarı sırasındadır. Sıra sıfır tabanlı, satırlar bir tabanlı ve iki ucu dahildir; bayt aralıkları sıfır tabanlı, sonu hariçtir. İsteğe bağlı alanlar yoksa JSON anahtarı yazılmaz. Değişiklik zamanı, boyut ve içerik özeti döküme girmez.
+
+`files`: `path`, `kind`, isteğe bağlı `date`, `readable`. `entities`: `file`, `kind`, `name`, `comparisonKey`, isteğe bağlı `qualifier`, `goalKey`, `period`, `goalKind`, `target`, `unit`. `aliases`: `file`, `ordinal`, `name`, `comparisonKey`. `blocks`: `file`, `ordinal`, `kind`, `firstLine`, `lastLine`, `text`, `section`, `ownsIdentifier`; isteğe bağlı `time`, `status`, `rawStatus`, `identifier`, `headingLevel` (`heading` bloğunda 1–6). `links`: `file`, `ordinal`, `line`, `byteStart`, `byteEnd`, `target`, `targetKey`, `embedded`; isteğe bağlı `block`, `key`, `entry`, `anchorKind`, `anchor`, `displayText`, `resolvedFile`. `goalLogs`: `file`, `key`, `date`, `kind`, `value` (metin; boolean standart `true`/`false`, sayı özgün yazım, diğer tür ham yazım).
+
+Beklenti: 30 dosya, 13 varlık, 40 olay, 22 kimlikli ve 2 kimliksiz görev, 31 paragraf, 6 başlık, 61 bağlantı, 14 ayrı hedef adı, tek çözülmemiş hedef ve 31 hedef kaydı (`spor`: 6, `kitap`: 12, `su`: 13; 27 Eylül’de kayıt yok). Tam döküm paragraf metinlerini, kod çitlerini ve frontmatter bağlantılarını da denetler. Sentetik test kasaları geçici dizinlerde oluşturulur; fixture dosyası test sırasında güncellenmez.
+
+`index/continuation/`, görev devamındaki girintili başlığın ayrı başlık veya paragraf üretmediğini kanonik dökümle doğrular; `input.md` üç satırlık tek görev bloğudur.
+
 ### `merge/`
 
 Senkronizasyon çakışması birleştirme örnekleri (`vault-format.md`, "Senkronizasyon çakışması"). Her örnek bir klasördür: `a.md` ve `b.md` iki sürümün baytları, `case.json` zamanları ve saklanacak sürümleri, `expected.md` birleşmiş dosyanın baytlarıdır. Beklenen çıktılar koddan üretilmez; kurallar elle uygulanarak yazılır.

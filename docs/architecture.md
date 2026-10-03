@@ -14,6 +14,13 @@
 | Konum | CoreLocation |
 | Yerelleştirme | String Catalog (tr, en) |
 
+## Proje yapısı
+
+- Xcode projesi `project.yml` ile tanımlanır ve XcodeGen üretir; `Journal.xcodeproj` takip edilmez. Tek `Journal` hedefi iOS ve macOS için iki şema üretir; kaynaklar `App/` klasörüyle eşlenir, `Core` paketi yerel yoldan bağlanır.
+- Bundle kimliği şimdilik geçici (`com.dravcore.journal.dev`, yalnızca simülatör ve yerel çalıştırma). Kalıcı kimlik, iCloud kapsayıcısı ve App Group kullanıcı kararıyla gelir.
+- Sürüm numarası kök dizindeki `VERSION` dosyasından derleme sırasında Info.plist'e yazılır.
+- Uygulama metinleri `App/Resources/Localizable.xcstrings` içinde (kaynak dil Türkçe, çeviri İngilizce).
+
 ## Veri akışı
 
 ```
@@ -46,7 +53,7 @@ Sorumlulukları:
 
 Kısıt: Yalnızca Foundation ve SQLite katmanı. Bu sayede aynı kod uygulamada, widget'ta ve testlerde çalışır; ileride başka dile çevirmek kolay olur.
 
-Paket hedeflere ayrılır. `VaultFormat` hedefi ayrıştırıcıyı, yazıcıyı, birleştirmeyi ve modelleri taşır; paket bağımlılığı yoktur ve Foundation dışında bir çerçeve kullanmaz. İndeks ve sorgular SQLite'a bağlanan ayrı bir hedefte kurulur.
+Paket hedeflere ayrılır. `VaultFormat` hedefi ayrıştırıcıyı, yazıcıyı, birleştirmeyi ve modelleri taşır; paket bağımlılığı yoktur ve Foundation dışında bir çerçeve kullanmaz. `VaultIndex` hedefi GRDB ve `VaultFormat` üzerine kurulur; dosyalara yazmaz, tam yeniden üretim ve küçük sorgu API’si sunar.
 
 Varlık tipleri (kişi, konum ve ileride eklenecekler) koda dağılmaz; her tip tek bir veri tanımıdır: tip adı, varsayılan klasör, ayrılmış alanlar. Bu tanımlar şimdilik Core içinde durur ve indeks tipi serbest metin olarak tutar. Özel tipler ve şirket paketi geldiğinde (aşama 7) aynı tanım kasadaki bir şema dosyasından okunur; dosyanın biçimi o zaman `vault-format.md` içinde belirlenir.
 
@@ -55,10 +62,19 @@ Varlık tipleri (kişi, konum ve ileride eklenecekler) koda dağılmaz; her tip 
 - Her cihazda yerel, kasanın dışında, eşitlenmez.
 - Dosyalardan eksiksiz yeniden üretilebilir; bozulursa silinip yeniden kurulur.
 - Şema sürümü veritabanında tutulur. Uygulamanın beklediği sürümle uyuşmuyorsa indeks silinip dosyalardan yeniden kurulur; şema göçü yazılmaz.
-- Taslak tablolar: `files` (yol, değişiklik zamanı, özet), `entities` (tip, ad, takma adlar, alanlar), `blocks` (dosya, dosya içi sıra, tür, metin, tarih, durum, varsa blok kimliği), `links` (kaynak dosya ve blok, hedef ad, çözülen varlık), `goal_logs` (anahtar, tarih, değer), `search` (FTS5).
-- Bloğun anahtarı dosya ve dosya içi sıradır; blok kimliği isteğe bağlı bir sütundur. Kimliksiz satırlar, günlük paragrafları ve frontmatter'daki bağlantılar da blok ve bağlantı kaynağı olarak indekslenir.
-- Hedefi henüz kasada olmayan bağlantı da tutulur; varlık oluştuğunda çözülür.
-- Artımlı güncelleme: açılışta ve dosya değişiminde yalnızca özeti değişen dosyalar yeniden işlenir.
+- `files`: NFC yol birincil anahtarı ve tarih indeksi; tür, gün tarihi, değişiklik zamanı, bayt boyutu, SHA-256 ve UTF-8 okunabilirliği.
+- `entities`: dosya anahtarı; tip, görünen ad, ayırt edici, karşılaştırma anahtarı ve hedef alanları. `aliases`: dosya + sıra anahtarı; takma ad ve karşılaştırma anahtarı.
+- `blocks`: dosya + sıfır tabanlı sıra anahtarı; tür, bir tabanlı dahil satır aralığı, metin, bölüm, saat, görev durumu ve ham durum, isteğe bağlı kimlik, başlık düzeyi ve sahiplik. Sahip kimlikler benzersiz kısmi indeksle korunur.
+- `links`: kaynak dosya + sıra anahtarı; kaynak blok ya da frontmatter anahtarı/kaydı, fiziksel satır ve bayt aralığı, hedef ve indeksli `targetKey` karşılaştırma anahtarı, çapa türü/metni, görünen metin, gömme ve çözülen dosya. Çözülemeyen hedef `NULL` kalır.
+- `goal_logs`: dosya + hedef anahtarı ve hedef anahtarı indeksi; gün, değer türü ve kaynak değer yazımı. Boolean değerler `true`/`false`, sayılar kaynak yazımı, diğer türler ham yazım taşır.
+- `search`: FTS5; blok metinleri, varlık adları ve takma adlar; NFC metin üzerinde `unicode61 remove_diacritics 0`. Kullanıcı sorgusu boşluklarda bölünür; her parça çift tırnaklı deyim, son parça önek eşleşmesidir. Dosya ve blok sütunları aranmaz.
+- `PRAGMA user_version = 2`; farklı sürümde tüm indeks tabloları silinip güncel boş şema kurulur. Çağıran `rebuild(vaultRoot:)` ile dosyalardan doldurur; göç yapılmaz. Açılışta SQLite NOTADB/CORRUPT hatasında dosya ve `-wal`/`-shm`/`-journal` yardımcıları silinip boş şema kurulur; diğer hatalar fırlatılır.
+- Karşılaştırma anahtarı ve bağlantı çözümü `VaultIndex` içinde yapılır: NFC + yerelden bağımsız Unicode küçük harf. Boş hedef kaynağa, `/` içeren hedef köke göre uzantısız yola, diğer hedefler uzantısız dosya adına gider; yol hedefinde baştaki `/` ve `./` atılır. Çakışmada kod noktası sırasındaki ilk yol kazanır; `name` ve `aliases` yalnız varlık aramasında kullanılır.
+- Tam yeniden üretim tek GRDB işlemi içinde tarar ve doldurur; hata eski içeriği korur. Geçersiz UTF-8 dosya okunamaz `note` türünde yalnız `files` satırı üretir; okuma, tarama ve veritabanı hataları fırlatılır. Sembolik bağlantılar izlenmeden atlanır; aynı NFC yola dönüşen iki dosyadan fiziksel yolun bayt sırasında önce geleni indekslenir. `rebuild` sonucu atlanan fiziksel yolları ve nedenlerini bildirir. Her dosya bir kez okunur, belge tutulmadan içerik ve bağlantı satırları yazılır; dosyalar bitince bağlantılar yol/anahtar tablolarıyla çözülür.
+- Paragraf, olay/görev aralıkları ve başlıklar dışındaki ardışık boş olmayan gövde satırlarıdır; kod çitleri metin olarak dahildir. Başlık paragrafı böler; tanınan bölüm başlıkları blok üretmez, diğer başlıklar `heading` bloğu olarak işaretsiz metin ve düzey taşır; tanınmayan bölüm ve ön içerik `other` taşır. İç içe görevlerin bağlantısı en içteki bloğa bağlanır.
+- `refresh(vaultRoot:)` aynı tarayıcıyla kasayı karşılaştırır; `update(paths:vaultRoot:)` NFC kasa içi dosya veya dizin bildirimleriyle kapsamı sınırlar: zaman/boyut değişince SHA-256 okunur, özet aynıysa yalnız gözlenen metadata güncellenir, farklıysa dosyanın tüm içerik satırları tek işlemde yenilenir, eksik dosyalar silinir. Değişen yolların dosya adı/yol anahtarlarına sahip bağlantılar (çözülmüş yinelenen adlar dahil) ve yeni içerikteki bağlantılar yeniden çözülür; `name`/`aliases` varlık araması içindir. Eski ve yeni blok kimliklerinin sahipliği yol ve dosya içi sıra üzerinden yeniden hesaplanır; hata tüm değişiklikleri geri alır, ortak `RebuildResult` eklenen/güncellenen/silinen NFC yolları ve kapsamda atlanan fiziksel yolları bildirir.
+- Bildirim kapsamı kasa köküne göre NFC ve yerelden bağımsız küçük harf anahtarıyla karşılaştırılır; izleyici yeniden adlandırmada eski ve yeni yolu bildirir, eksik bildirimleri sonraki `refresh` düzeltir. Kök bir kez gerçek yola çözülür; silinmiş bildirimlerde en yakın mevcut üst dizinin gerçek yoluna kayıp kuyruk eklenerek `/private` yol yazımları aynı kasa kimliğinde birleştirilir.
+- Tarama tam, ayrıştırma ve yazma artımlıdır; büyük kasalarda taramanın bildirilen alt ağaçlarla sınırlanması sonraki iştir.
 
 ## Senkronizasyon
 

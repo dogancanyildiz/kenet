@@ -4,6 +4,18 @@ Kişiler, konumlar ve olaylar etrafında dönen; görevleri, hedefleri ve alış
 
 **Durum:** Aşama 0 (temel) sürüyor.
 
+## Kurulum
+
+Xcode projesi `project.yml` dosyasından üretilir ve repoya girmez:
+
+```sh
+brew install xcodegen
+xcodegen generate
+open Journal.xcodeproj
+```
+
+Şemalar: `Journal_iOS`, `Journal_macOS`, `VaultFormat` (Core testleri).
+
 ## Belgeler
 
 | Belge | İçerik |

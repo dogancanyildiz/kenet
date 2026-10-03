@@ -1,0 +1,22 @@
+{
+  "entities": [
+    {
+      "file": "people/Deniz Arıkan.md",
+      "kind": "person",
+      "name": "Deniz Arıkan",
+      "aliases": [
+        "Deniz",
+        "Deniz abi",
+        "Işık"
+      ]
+    },
+    {
+      "file": "places/Liman Ofis.md",
+      "kind": "place",
+      "name": "Liman Ofis",
+      "aliases": [
+        "ofis"
+      ]
+    }
+  ]
+}

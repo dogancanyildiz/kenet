@@ -1,0 +1,12 @@
+{
+  "entities": [
+    {
+      "file": "people/Deniz.md",
+      "name": "Deniz Arıkan",
+      "aliases": [
+        "Deniz"
+      ],
+      "kind": "person"
+    }
+  ]
+}

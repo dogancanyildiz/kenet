@@ -1,0 +1,18 @@
+{
+  "entities": [
+    {
+      "file": "people/Deniz Arıkan.md",
+      "name": "Deniz Arıkan",
+      "aliases": [
+        "Deniz Ece"
+      ],
+      "kind": "person"
+    },
+    {
+      "file": "people/Ece Yalın.md",
+      "name": "Ece Selin",
+      "aliases": [],
+      "kind": "person"
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "entities": [
+    {
+      "file": "people/Mert Aksu.md",
+      "kind": "person",
+      "name": "Mert Aksu",
+      "aliases": []
+    },
+    {
+      "file": "people/Mert Aksu (iş).md",
+      "kind": "person",
+      "name": "Mert Aksu",
+      "aliases": [
+        "Mert"
+      ],
+      "qualifier": "iş"
+    },
+    {
+      "file": "places/Liman Ofis.md",
+      "kind": "place",
+      "name": "Liman Ofis",
+      "aliases": [
+        "ofis"
+      ]
+    }
+  ],
+  "usage": [
+    {
+      "file": "people/Mert Aksu (iş).md",
+      "totalCount": 1,
+      "lastDate": "2026-09-14",
+      "cooccurrences": {
+        "places/Liman Ofis.md": 2
+      }
+    },
+    {
+      "file": "people/Mert Aksu.md",
+      "totalCount": 99,
+      "lastDate": "2026-09-27",
+      "cooccurrences": {}
+    }
+  ]
+}

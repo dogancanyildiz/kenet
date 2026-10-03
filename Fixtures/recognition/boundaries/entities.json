@@ -1,0 +1,29 @@
+{
+  "entities": [
+    {
+      "file": "people/Deniz Arıkan.md",
+      "kind": "person",
+      "name": "Deniz Arıkan",
+      "aliases": [
+        "Deniz",
+        "Deniz abi",
+        "Işık"
+      ]
+    },
+    {
+      "file": "people/Mert Aksu (iş).md",
+      "kind": "person",
+      "name": "Mert Aksu",
+      "aliases": [
+        "Mert"
+      ],
+      "qualifier": "iş"
+    },
+    {
+      "file": "people/Mert Aksu.md",
+      "kind": "person",
+      "name": "Mert Aksu",
+      "aliases": []
+    }
+  ]
+}

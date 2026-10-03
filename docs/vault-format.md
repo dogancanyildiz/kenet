@@ -347,7 +347,16 @@ aliases: [Ahmet]
 ### Otomatik tanıma ve belirsizlik
 
 - Tanıma `name` ve `aliases` üzerinden yapılır.
-- Bir ad ya da takma ad tek bir varlığa aitse otomatik bağlanır.
+- Eşleşme Unicode harf ve rakam sınırlarında yapılır; sözcük içindeki ad tanınmaz. NFC ve yerelden bağımsız küçük harf karşılaştırması kullanılır; çok sözcüklü adın aralarında bir veya daha çok Unicode boşluk olabilir, satır sonu olamaz.
+- Örtüşen eşleşmelerden en uzunu seçilir; eşit uzunlukta ad takma addan, sonra metinde önce başlayan eşleşme sonrakinden önce gelir. Aynı yazıma uyan bütün farklı varlıklar aday kalır.
+- Adın hemen ardından gelen `'` veya `’` ile başlayan ek bağlantının dışında kalır. Var olan wikilinkler ve `[metin](hedef)` Markdown bağlantılarının tamamı, satır içi kod, kod çiti satırları ve belge düzeyindeki çağrıda frontmatter satırları taranmaz. `://` içeren, e-posta gibi içinde `@` geçen veya harf.harf biçiminde noktayla birleşen boşluksuz parçalar taranmaz; sözcük başındaki açık anmanın `@` işareti bu dışlamanın istisnasıdır. `#` veya `^` ile başlayan boşluksuz etiket ve kimlik parçaları da taranmaz.
+- `@` yalnız önünde harf ya da rakam yokken açık anmadır; bilinen adda kaldırılır ve yalnız ad bağlanır. Bilinmeyen açık anmada `@` sonrasındaki büyük harfle başlayan en çok dört sözcük bildirilir; satır sonu, noktalama veya küçük harfle başlayan sözcük diziyi bitirir, kesmeyle başlayan ek dışarıda kalır.
+- Tek aday ve kaynak yazımın ilk harfi adın veya eşleşen takma adın ilk harfiyle aynı büyük/küçük harfteyse eşleşme kesindir. İlk harfin büyük/küçük harfi farklıysa `isCaseMismatch` ile öneri olarak bildirilir, kullanıcı seçmeden bağlanmaz; açık `@` anmasında bu fark kesinliği bozmaz. Birden fazla aday, puanı ne olursa olsun belirsizdir ve kullanıcı seçmeden bağlanmaz. Bilinmeyen açık anma da bağlanmaz.
+- Önünde boşluk olmadan `[`, `!`, `\`, `#`, `^` veya `|` bulunan ya da hemen arkasında `]` bulunan anma taranmaz; kaçırılmış ve kapanmamış bağlantı yazımı düz metin kalır. U+2028 ve U+0085 satır sonu sayılır, çok sözcüklü adın aralarındaki boşluk yerine geçmez.
+- Bağlantı hedefi uzantısız dosya adıdır. Kaynak yazımı dosya adıyla bayt bayt aynıysa `[[Dosya Adı]]`, diğer durumda `[[Dosya Adı|yazım]]` yazılır; ayırt edicili varlıkta görünen metin her zaman yazılır. Takma ad dosya adıyla bayt bayt aynıysa ayırt edicisiz hedefte görünen metin ayrıca yazılmaz. Başındaki boşluklardan sonra `|` ile başlayan tablo satırında görünen metin ayırıcısı `\|` yazılır. Yazımın harfleri, boşlukları, ekler ve metnin diğer bütün baytları korunur.
+- Kaynak yazımı artık aralıkla uyuşmuyorsa bağlantıya çevirme eski anma hatası verir. Hedef veya görünen metin wikilink sözdizimiyle temsil edilemiyorsa (örneğin görünen adda köşeli ayraç varsa) işlem reddedilir; hiçbir kısmi çıktı üretilmez.
+- Bağlanan anmalar yeniden tanınmaz; kullanıcı seçimi bekleyen öneri, belirsiz ve bilinmeyen anmalar metinde kalır ve yeniden bildirilir.
+- Bir ad ya da takma ad tek bir varlığa aitse ve yukarıdaki kesinlik koşulunu sağlıyorsa otomatik bağlanır.
 - Birden fazla varlığa aitse adaylar bağlama göre sıralanır: o konumda daha önce birlikte geçmiş olmak, yakın zamanda geçmiş olmak, geçme sıklığı. En olası aday üstte önerilir.
 - Uygulama emin değilse bağlamaz, kullanıcıya sorar. Sıralama ölçütleri dosyada tutulmaz, indeksten hesaplanır.
 

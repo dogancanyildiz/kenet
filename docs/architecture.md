@@ -108,6 +108,7 @@ Varlık tipleri (kişi, konum ve ileride eklenecekler) koda dağılmaz; her tip 
 
 - **iPhone:** Alt sekmeler; öncelik hızlı giriş ve hızlı bakış.
 - **Mac:** Kenar çubuğu ve çok sütunlu düzen; kanban, zaman çizelgesi ve not düzenleme burada.
+- Mac hızlı giriş, MenuBarExtra ve Carbon RegisterEventHotKey üzerinden açılan nonactivating NSPanel içinde ortak QuickEntryBar/QuickEntryModel ve IndexStore kullanır; kısayol UserDefaults'ta saklanır, uygulama Dock'ta kalır.
 - Ekranlar ortak SwiftUI görünümleridir; düzen platforma göre değişir.
 - Ekranların ayrıntısı: `screens.md`.
 

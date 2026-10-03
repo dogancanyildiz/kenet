@@ -1,8 +1,8 @@
 # Yol haritası
 
-**Aktif aşama:** 1
+**Aktif aşama:** 2
 
-Aşama 0'dan devreden tek madde: iCloud kasa konumu (bundle, iCloud kapsayıcısı ve App Group kimliği kararını bekliyor; yerel kasa ile ilerleniyor).
+Devreden maddeler (bundle, iCloud kapsayıcısı ve App Group kimliği kararını bekliyor): iCloud kasa konumu (aşama 0). Aşama 1'in teknik maddeleri tamamlandı; çıkış ölçütü (iki hafta günlük kullanım) kullanıcının gerçek kullanımıyla sağlanır.
 
 Kural: Bir aşamanın çıkış ölçütü sağlanmadan sonrakine geçilmez. Her modül gerçek kullanımda sınanır.
 
@@ -37,7 +37,7 @@ Kullanıcıya görünen bir şey yok; her şey bunun üstüne kurulur.
 - [x] Günler arasında gezinme
 - [x] Tam metin arama ve hızlı geçiş
 - [x] Mac'te kenar çubuklu, telefonda sekmeli düzen
-- [ ] Mac'te sistem genelinde kısayolla açılan hızlı giriş penceresi
+- [x] Mac'te sistem genelinde kısayolla açılan hızlı giriş penceresi
 
 **Çıkış ölçütü:** İki hafta boyunca her gün bununla günlük tutuluyor.
 

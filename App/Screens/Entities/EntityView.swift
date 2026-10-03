@@ -3,17 +3,26 @@ import SwiftUI
 struct EntityView: View {
     let store: IndexStore
     let entity: EntitySummary
+    let onRenamed: (String) -> Void
     @State private var model: EntityDetailModel
+    @State private var renamePresented = false
     @State private var newKey = ""
     @State private var newValue = ""
 
-    init(store: IndexStore, entity: EntitySummary) {
+    init(store: IndexStore, entity: EntitySummary, onRenamed: @escaping (String) -> Void = { _ in }) {
         self.store = store
         self.entity = entity
+        self.onRenamed = onRenamed
         _model = State(initialValue: EntityDetailModel(store: store, path: entity.id))
     }
 
-    private var current: EntitySummary { store.content.entities.first { $0.id == entity.id } ?? entity }
+    private var current: EntitySummary {
+        if let current = store.content.entities.first(where: { $0.id == model.path }) { return current }
+        guard let name = model.renamedName else { return entity }
+        return EntitySummary(
+            id: model.path, kind: entity.kind, name: name, qualifier: model.renamedQualifier,
+            aliases: model.aliases, incomingLinks: 0)
+    }
 
     var body: some View {
         Form {
@@ -21,6 +30,8 @@ struct EntityView: View {
                 LabeledContent("Ad") { Text(verbatim: current.name) }
                 if let qualifier = current.qualifier { LabeledContent("Ayırt edici") { Text(verbatim: qualifier) } }
                 LabeledContent("Gelen bağlantılar") { Text(current.incomingLinks, format: .number) }
+                Button("Adı değiştir") { renamePresented = true }.disabled(!model.canEdit)
+                if let result = model.renameResult { EntityRenameSummary(result: result) }
             }
             if let error = model.errorText { Text(verbatim: error).foregroundStyle(.red).font(.caption) }
             if !model.isLoaded {
@@ -61,7 +72,7 @@ struct EntityView: View {
                 }
             }
             Section("Zaman akışı") {
-                let timeline = store.content.entityTimeline[entity.id] ?? []
+                let timeline = store.content.entityTimeline[model.path] ?? []
                 if timeline.isEmpty { Text("Henüz günlük kaydı yok.").foregroundStyle(.secondary) }
                 ForEach(timeline) { day in
                     Text(LocalDay.instant(for: day.date), format: .dateTime.day().month().year()).font(.headline)
@@ -81,6 +92,10 @@ struct EntityView: View {
         .formStyle(.grouped)
         .navigationTitle(current.name)
         .toolbar { SearchButton() }
+        .sheet(isPresented: $renamePresented) {
+            EntityRenameView(model: EntityRenameModel(detail: model, name: current.name, qualifier: current.qualifier))
+        }
+        .onChange(of: model.path) { _, path in onRenamed(path) }
         .task(id: store.lastUpdated) { await model.load() }
     }
 }

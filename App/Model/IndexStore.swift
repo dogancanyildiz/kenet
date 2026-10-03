@@ -184,6 +184,36 @@ final class IndexStore {
         if let failure { throw failure }
     }
 
+    func renameEntity(at path: String, to name: String, qualifier: String?) async throws -> RenameResult {
+        guard canAddEvent, let writer, let index else { throw VaultStoreError.staleTarget }
+        isProcessing = true
+        isWriting = true
+        do {
+            let result = try await writer.renamingEntity(at: path, to: name, qualifier: qualifier)
+            do {
+                let snapshot = try await Task.detached { try index.snapshot() }.value
+                content = VaultReadModel(snapshot: snapshot)
+                counts = IndexCounts(snapshot: snapshot)
+                try await reloadRecognition()
+                lastUpdated = Date()
+            } catch {
+                entryErrorText = String(localized: "Varlık kaydedildi, indeks güncellenemedi.")
+                pendingRefresh = true
+                pendingRebuild = true
+            }
+            if result.failures.contains(where: { if case .index = $0.reason { true } else { false } }) {
+                pendingRefresh = true
+                pendingRebuild = true
+            }
+            await finishEntityWrite()
+            return result
+        } catch {
+            pendingRefresh = true
+            await finishEntityWrite()
+            throw error
+        }
+    }
+
     private func reloadRecognition() async throws {
         guard let index else { return }
         let values = try await Task.detached { (try index.knownEntities(), try index.entityUsage()) }.value

@@ -17,14 +17,14 @@ struct LinkedTextView: View {
                         let name = components.queryItems?.first(where: { $0.name == "name" })?.value
                     else { return .systemAction }
                     let path = components.queryItems?.first(where: { $0.name == "path" })?.value
-                    destination = LinkDestination(name: name, path: path)
+                    destination = LinkDestination(name: name, path: path, entity: entities.first { $0.id == path })
                     return .handled
                 }
             )
             .sheet(item: $destination) { link in
                 NavigationStack {
                     Group {
-                        if let entity = entities.first(where: { $0.id == link.path }) {
+                        if let entity = link.entity {
                             EntityView(store: store, entity: entity)
                         } else if link.path == nil {
                             UnresolvedEntityView(store: store, target: link.name)
@@ -60,6 +60,7 @@ struct LinkedTextView: View {
     private struct LinkDestination: Identifiable {
         let name: String
         let path: String?
+        let entity: EntitySummary?
         var id: String { path ?? name }
     }
 }

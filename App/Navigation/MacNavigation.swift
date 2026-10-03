@@ -8,6 +8,8 @@
         @State private var section: DesktopSection? = .today
         @State private var selectedDay: String?
         @State private var selectedEntity: String?
+        @State private var selectedSummary: EntitySummary?
+        @State private var entityRouteID = UUID()
         @State private var entityOrder = EntityOrdering.name
         @State private var entitySearch = ""
 
@@ -32,7 +34,7 @@
                         List(
                             EntityListQuery.entities(
                                 in: store.content, usage: store.entityUsage, kind: entityKind,
-                                search: entitySearch, order: entityOrder), selection: $selectedEntity
+                                search: entitySearch, order: entityOrder), selection: entitySelection
                         ) { entity in
                             EntityRow(entity: entity).tag(entity.id)
                         }
@@ -57,10 +59,11 @@
                                 .toolbar { SearchButton() }
                         }
                     case .people, .places:
-                        if let entity = store.content.entities.first(where: {
-                            $0.id == selectedEntity && $0.kind == entityKind
-                        }) {
-                            EntityView(store: store, entity: entity).id(entity.id)
+                        if let entity = selectedSummary, entity.kind == entityKind {
+                            EntityView(store: store, entity: entity) { path in
+                                selectedEntity = path
+                                selectedSummary = store.content.entities.first { $0.id == path } ?? selectedSummary
+                            }.id(entityRouteID)
                         } else {
                             ContentUnavailableView("Bir varlık seç", systemImage: "person.2")
                                 .toolbar { SearchButton() }
@@ -80,6 +83,16 @@
                 {
                     section = .today
                     selectedDay = nil
+                })
+        }
+
+        private var entitySelection: Binding<String?> {
+            Binding(
+                get: { selectedEntity },
+                set: { path in
+                    selectedEntity = path
+                    selectedSummary = store.content.entities.first { $0.id == path }
+                    entityRouteID = UUID()
                 })
         }
 

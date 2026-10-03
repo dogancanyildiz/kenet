@@ -1,0 +1,41 @@
+{
+  "path": "people/Deniz Arıkan.md",
+  "name": "Deniz Arıkan Yılmaz",
+  "newPath": "people/Deniz Arıkan Yılmaz.md",
+  "failures": 1,
+  "afterIndex": {
+    "path": "notes/Su.md",
+    "bytes": [
+      91,
+      91,
+      68,
+      101,
+      110,
+      105,
+      122,
+      32,
+      65,
+      114,
+      196,
+      177,
+      107,
+      97,
+      110,
+      93,
+      93,
+      10,
+      255
+    ]
+  },
+  "updatedFiles": [
+    "notes/Kitap.md",
+    "people/Deniz Arıkan Yılmaz.md"
+  ],
+  "failureDetails": [
+    {
+      "path": "notes/Su.md",
+      "kind": "file",
+      "detail": "readOnlyDocument"
+    }
+  ]
+}

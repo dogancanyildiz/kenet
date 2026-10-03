@@ -1954,6 +1954,118 @@
           }
         }
       }
+    },
+    "Adı değiştir" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adı değiştir"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rename"
+          }
+        }
+      }
+    },
+    "Bu ad kullanılıyor. Farklı bir ad veya ayırt edici yazın." : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bu ad kullanılıyor. Farklı bir ad veya ayırt edici yazın."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This name is taken. Enter another name or a qualifier."
+          }
+        }
+      }
+    },
+    "Yeniden adlandırma tamamlandı. Güncellenen dosya: %lld" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yeniden adlandırma tamamlandı. Güncellenen dosya: %lld"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rename completed. Files updated: %lld"
+          }
+        }
+      }
+    },
+    "Ham alan değiştirilmedi: %@" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ham alan değiştirilmedi: %@"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Raw field left unchanged: %@"
+          }
+        }
+      }
+    },
+    "Dosya güncellenemedi." : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dosya güncellenemedi."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The file could not be updated."
+          }
+        }
+      }
+    },
+    "Ad değiştirme tamamlanamadı; dosyada kısmi değişiklik kaldı." : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ad değiştirme tamamlanamadı; dosyada kısmi değişiklik kaldı."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rename could not be completed; the file contains a partial change."
+          }
+        }
+      }
+    },
+    "Özgün dosya geri yazılamadı." : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Özgün dosya geri yazılamadı."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The original file could not be restored."
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

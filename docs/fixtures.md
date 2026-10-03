@@ -13,7 +13,7 @@
 
 | Tür | Adlar |
 |---|---|
-| Kişi | Deniz Arıkan, Selin Korkmaz, Baran Tunç, Ece Yalın, Mert Aksu |
+| Kişi | Deniz Arıkan, Deniz Arıkan Yılmaz (yeniden adlandırma örneği), Selin Korkmaz, Baran Tunç, Ece Yalın, Mert Aksu |
 | Konum | Çınaraltı Kafe, Liman Ofis, Tepe Spor Salonu, Ev |
 | Hedef | Spor, Kitap, Su |
 | Emoji örneği | Ev 🏠 |
@@ -185,6 +185,12 @@ Uygulama katmanının günlük yazısı düzenleyicisi için örnek: `journal/ed
 ### `entities/`
 
 Varlık sayfası alan düzenleme örnekleri: `entities/fields/input.md` kurgusal bir kişi dosyası, `value.md` bir alan değeri değiştirildikten, `aliases.md` takma ad listesi yazıldıktan sonraki tam dosyadır (yalnız hedef anahtarın satırı değişir). Testi `Tests/JournalTests/EntityPageTests.swift` çalıştırır.
+
+### `rename/`
+
+Her klasör `input/` altında küçük girdi kasasını, `expected/` altında tam beklenen dosyaları ve `case.json` dosyasını taşır. JSON alanları: `path`, `name`, isteğe bağlı `qualifier`, `newPath`, beklenen bildirim sayısı `failures`, sıralı `updatedFiles` ve `failureDetails` (`path`, `kind`, `detail`) alanları. Hata ayrıntıları ham alan adı veya hata mesajının beklenen parçasını içerir. İsteğe bağlı `afterIndex` (`path`, ham bayt dizisi `bytes`), indeks oluşturulduktan sonra diskte değişen kaynak dosyayı modeller. Beklentiler elle yazılmıştır; test dosya listesini ve her dosyanın tüm baytlarını, ayrıca artımlı indeksin sıfırdan üretimle eşdeğerliğini denetler.
+
+Örnekler hedef çevresindeki boşluk, çapa, görünen metin, tablo `\|`, `.md` ve yol önekleri, gömme, kod koruması, BOM/CRLF ve sonlandırılmamış satır; scalar/liste/eşlem frontmatter bağlantıları ve YAML kaçışı; ham alan bildirimi; ayırt edici değişimi; aynı dosya adında yalnız metadata yazımı; indeks sonrası geçersiz UTF-8 kaynakta kısmi başarı davranışını kapsar. `list-2/3-grows/shrinks` örnekleri aynı satırda iç içe tırnak yazımlı iki/üç bağlantının uzayan ve kısalan adla doğru güncellenmesini; tırnaksız ve tırnaklı blok öğelerinin ve komşu değerlerin korunmasını sınar. `unrelated-fields`, BOM değerini, kaçışlı tırnağı, yorumları ve ham/eşlem/liste alanlarının hedef taşımadığında bayt bayt korunmasını doğrular.
 
 ## Testlerin klasörü bulması
 

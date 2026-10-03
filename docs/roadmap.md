@@ -31,7 +31,7 @@ Kullanıcıya görünen bir şey yok; her şey bunun üstüne kurulur.
 - [x] Bilinen adların ve takma adların otomatik tanınması
 - [x] Belirsiz eşleşmede bağlama göre sıralama; emin değilse kullanıcıya sorma
 - [x] Aynı adlı varlık oluştururken ayırt edici sorma, dosya adını otomatik üretme
-- [ ] Varlık adını değiştirme ve tüm bağlantıları güncelleme
+- [x] Varlık adını değiştirme ve tüm bağlantıları güncelleme
 - [x] Geçmiş güne olay ekleme, saatsiz olay
 - [x] Kişi ve konum sayfaları: şablon alanları, serbest ek alanlar, zaman akışı
 - [x] Günler arasında gezinme

@@ -9,7 +9,13 @@
       "rawStatus": "X",
       "status": "done",
       "isClosed": true,
-      "isOpen": false
+      "isOpen": false,
+      "dueDate": null,
+      "startDate": null,
+      "doneDate": null,
+      "priority": null,
+      "project": null,
+      "fieldRanges": []
     }
   ],
   "events": [

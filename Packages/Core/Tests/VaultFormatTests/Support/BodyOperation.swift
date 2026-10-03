@@ -18,6 +18,21 @@ struct BodyOperation {
         }
         if operation == "add-event" { return try document.addingEvent(text: text, id: try #require(id), time: time) }
         if operation == "add-task" { return try document.addingTask(text: text, id: try #require(id)) }
+        func date(_ key: String) -> CalendarDate? { json[key]?.stringValue.flatMap { CalendarDate($0) } }
+        func priority() -> TaskPriority? {
+            switch json["priority"]?.stringValue {
+            case "high": .high
+            case "medium": .medium
+            case "low": .low
+            case "🔺": .other("🔺")
+            default: nil
+            }
+        }
+        if operation == "add-task-fields" {
+            return try document.addingTask(
+                text: text, id: try #require(id), due: date("due"), start: date("start"),
+                priority: priority(), project: json["project"]?.stringValue)
+        }
         let line = try #require(json["line"]?.intValue) - 1
         let body = document.bodyLines
         let block = try #require((body.events.map(\.block) + body.tasks.map(\.block)).first { $0.line == line })
@@ -28,7 +43,15 @@ struct BodyOperation {
             let task = try #require(body.tasks.first { $0.block == block })
             let statusName = try #require(json["status"]?.stringValue)
             let status = try #require(TaskStatus(rawValue: statusName))
-            return try document.changingStatus(of: task, to: status, newID: id)
+            return try document.changingStatus(of: task, to: status, completionDate: date("completionDate"), newID: id)
+        case "due", "start", "priority", "project":
+            let task = try #require(body.tasks.first { $0.block == block })
+            switch operation {
+            case "due": return try document.settingTaskDueDate(of: task, to: date("due"), newID: id)
+            case "start": return try document.settingTaskStartDate(of: task, to: date("start"), newID: id)
+            case "priority": return try document.settingTaskPriority(of: task, to: priority(), newID: id)
+            default: return try document.settingTaskProject(of: task, to: json["project"]?.stringValue, newID: id)
+            }
         case "time":
             return try document.changingTime(
                 of: try #require(body.events.first { $0.block == block }), to: time, newID: id)
@@ -50,7 +73,11 @@ struct BodyOperation {
     }
 
     static func check(_ json: JSONValue, description: JSONValue, before: RawDocument, name: String) throws {
-        #expect(Set(json.keys).isSubset(of: ["operation", "line", "text", "id", "time", "status", "replacement"]))
+        #expect(
+            Set(json.keys).isSubset(of: [
+                "operation", "line", "text", "id", "time", "status", "replacement", "completionDate", "due", "start",
+                "priority", "project",
+            ]))
         let operation = Self(json: json)
         if let error = description["expectedError"] {
             #expect(try Fixtures.fileNames(in: "write/\(name)") == ["input.md", "operation.json"])

@@ -1,0 +1,44 @@
+{
+  "tasks": [
+    {
+      "line": 1,
+      "firstLine": 1,
+      "lastLine": 1,
+      "id": null,
+      "text": "",
+      "rawStatus": "?",
+      "status": "unknown",
+      "isClosed": false,
+      "isOpen": true,
+      "dueDate": "2026-10-05",
+      "startDate": null,
+      "doneDate": null,
+      "priority": "high",
+      "project": "iş",
+      "fieldRanges": [
+        {
+          "kind": "dueDate",
+          "byteRange": [
+            10,
+            25
+          ]
+        },
+        {
+          "kind": "priority",
+          "byteRange": [
+            28,
+            31
+          ]
+        },
+        {
+          "kind": "project",
+          "byteRange": [
+            34,
+            46
+          ]
+        }
+      ]
+    }
+  ],
+  "events": []
+}

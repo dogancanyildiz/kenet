@@ -9,7 +9,13 @@
       "rawStatus": " ",
       "status": "todo",
       "isClosed": false,
-      "isOpen": true
+      "isOpen": true,
+      "dueDate": null,
+      "startDate": null,
+      "doneDate": null,
+      "priority": null,
+      "project": null,
+      "fieldRanges": []
     },
     {
       "line": 3,
@@ -20,7 +26,13 @@
       "rawStatus": "/",
       "status": "inProgress",
       "isClosed": false,
-      "isOpen": true
+      "isOpen": true,
+      "dueDate": null,
+      "startDate": null,
+      "doneDate": null,
+      "priority": null,
+      "project": null,
+      "fieldRanges": []
     },
     {
       "line": 4,
@@ -31,7 +43,13 @@
       "rawStatus": "X",
       "status": "done",
       "isClosed": true,
-      "isOpen": false
+      "isOpen": false,
+      "dueDate": null,
+      "startDate": null,
+      "doneDate": null,
+      "priority": null,
+      "project": null,
+      "fieldRanges": []
     },
     {
       "line": 5,
@@ -42,7 +60,13 @@
       "rawStatus": "?",
       "status": "unknown",
       "isClosed": false,
-      "isOpen": true
+      "isOpen": true,
+      "dueDate": null,
+      "startDate": null,
+      "doneDate": null,
+      "priority": null,
+      "project": null,
+      "fieldRanges": []
     },
     {
       "line": 6,
@@ -53,7 +77,13 @@
       "rawStatus": "-",
       "status": "cancelled",
       "isClosed": true,
-      "isOpen": false
+      "isOpen": false,
+      "dueDate": null,
+      "startDate": null,
+      "doneDate": null,
+      "priority": null,
+      "project": null,
+      "fieldRanges": []
     },
     {
       "line": 7,
@@ -64,7 +94,13 @@
       "rawStatus": " ",
       "status": "todo",
       "isClosed": false,
-      "isOpen": true
+      "isOpen": true,
+      "dueDate": null,
+      "startDate": null,
+      "doneDate": null,
+      "priority": null,
+      "project": null,
+      "fieldRanges": []
     },
     {
       "line": 8,
@@ -75,7 +111,13 @@
       "rawStatus": " ",
       "status": "todo",
       "isClosed": false,
-      "isOpen": true
+      "isOpen": true,
+      "dueDate": null,
+      "startDate": null,
+      "doneDate": null,
+      "priority": null,
+      "project": null,
+      "fieldRanges": []
     },
     {
       "line": 13,
@@ -86,7 +128,13 @@
       "rawStatus": "́",
       "status": "unknown",
       "isClosed": false,
-      "isOpen": true
+      "isOpen": true,
+      "dueDate": null,
+      "startDate": null,
+      "doneDate": null,
+      "priority": null,
+      "project": null,
+      "fieldRanges": []
     },
     {
       "line": 15,
@@ -97,18 +145,30 @@
       "rawStatus": "🙂",
       "status": "unknown",
       "isClosed": false,
-      "isOpen": true
+      "isOpen": true,
+      "dueDate": null,
+      "startDate": null,
+      "doneDate": null,
+      "priority": null,
+      "project": null,
+      "fieldRanges": []
     },
     {
       "line": 16,
       "firstLine": 16,
       "lastLine": 17,
       "id": null,
-      "text": " metin",
+      "text": "metin",
       "rawStatus": " ",
       "status": "todo",
       "isClosed": false,
-      "isOpen": true
+      "isOpen": true,
+      "dueDate": null,
+      "startDate": null,
+      "doneDate": null,
+      "priority": null,
+      "project": null,
+      "fieldRanges": []
     },
     {
       "line": 21,
@@ -119,7 +179,13 @@
       "rawStatus": " ",
       "status": "todo",
       "isClosed": false,
-      "isOpen": true
+      "isOpen": true,
+      "dueDate": null,
+      "startDate": null,
+      "doneDate": null,
+      "priority": null,
+      "project": null,
+      "fieldRanges": []
     }
   ],
   "events": [

@@ -110,8 +110,9 @@ struct BodyWriterRandomTests {
                     let task = body.tasks[Int(random.next() % UInt64(body.tasks.count))]
                     target = task.block
                     let status = [TaskStatus.todo, .inProgress, .done, .cancelled][Int(random.next() % 4)]
-                    after = try before.changingStatus(of: task, to: status, newID: newID)
-                    desiredText = task.block.text
+                    after = try before.changingStatus(
+                        of: task, to: status, completionDate: CalendarDate("2026-10-03"), newID: newID)
+                    desiredText = after.bodyLines.tasks.first { $0.block.id == (newID ?? task.block.id) }!.block.text
                     desiredID = newID ?? task.block.id
                     let raw = [TaskStatus.todo: " ", .inProgress: "/", .done: "x", .cancelled: "-"]
                     desiredStatus = task.status == status ? task.rawStatus : raw[status]

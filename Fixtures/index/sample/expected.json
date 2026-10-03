@@ -61,7 +61,10 @@
       "rawStatus": " ",
       "section": "Tasks",
       "status": "todo",
-      "text": "Haftalık sprint hedeflerini belirle 📅 2026-09-14 ⏫ #project/mobil"
+      "text": "Haftalık sprint hedeflerini belirle",
+      "dueDate": "2026-09-14",
+      "priority": "⏫",
+      "project": "mobil"
     },
     {
       "file": "journal/2026-09-14.md",
@@ -74,7 +77,8 @@
       "rawStatus": "x",
       "section": "Tasks",
       "status": "done",
-      "text": "[[Liman Ofis]] toplantı odasını rezerve et ✅ 2026-09-14"
+      "text": "[[Liman Ofis]] toplantı odasını rezerve et",
+      "doneDate": "2026-09-14"
     },
     {
       "file": "journal/2026-09-14.md",
@@ -133,7 +137,11 @@
       "rawStatus": "/",
       "section": "Tasks",
       "status": "inProgress",
-      "text": "Veri tabanı indeks şablonunu hazırla 🛫 2026-09-15 📅 2026-09-18 🔼 #project/altyapi"
+      "text": "Veri tabanı indeks şablonunu hazırla",
+      "startDate": "2026-09-15",
+      "dueDate": "2026-09-18",
+      "priority": "🔼",
+      "project": "altyapi"
     },
     {
       "file": "journal/2026-09-15.md",
@@ -146,7 +154,8 @@
       "rawStatus": "x",
       "section": "Tasks",
       "status": "done",
-      "text": "[[Selin Korkmaz]]'a arayüz geri bildirimlerini ilet ✅ 2026-09-15"
+      "text": "[[Selin Korkmaz]]'a arayüz geri bildirimlerini ilet",
+      "doneDate": "2026-09-15"
     },
     {
       "file": "journal/2026-09-15.md",
@@ -204,7 +213,8 @@
       "rawStatus": " ",
       "section": "Tasks",
       "status": "todo",
-      "text": "[[Baran Tunç]] ile hafta sonu rotasını konuş 📅 2026-09-17"
+      "text": "[[Baran Tunç]] ile hafta sonu rotasını konuş",
+      "dueDate": "2026-09-17"
     },
     {
       "file": "journal/2026-09-16.md",
@@ -310,7 +320,9 @@
       "rawStatus": "x",
       "section": "Tasks",
       "status": "done",
-      "text": "Haftalık raporu tamamla ✅ 2026-09-18 #project/yonetim"
+      "text": "Haftalık raporu tamamla",
+      "doneDate": "2026-09-18",
+      "project": "yonetim"
     },
     {
       "file": "journal/2026-09-18.md",
@@ -323,7 +335,9 @@
       "rawStatus": " ",
       "section": "Tasks",
       "status": "todo",
-      "text": "[[Henüz Yazılmamış Not]] bağlantısını kontrol et 📅 2026-09-18 🔽"
+      "text": "[[Henüz Yazılmamış Not]] bağlantısını kontrol et",
+      "dueDate": "2026-09-18",
+      "priority": "🔽"
     },
     {
       "file": "journal/2026-09-18.md",
@@ -396,7 +410,8 @@
       "rawStatus": "x",
       "section": "Tasks",
       "status": "done",
-      "text": "Bisiklet bakımını yap ✅ 2026-09-19"
+      "text": "Bisiklet bakımını yap",
+      "doneDate": "2026-09-19"
     },
     {
       "file": "journal/2026-09-19.md",
@@ -443,7 +458,8 @@
       "rawStatus": " ",
       "section": "Tasks",
       "status": "todo",
-      "text": "Gelecek haftanın yemek planını hazırla 📅 2026-09-20"
+      "text": "Gelecek haftanın yemek planını hazırla",
+      "dueDate": "2026-09-20"
     },
     {
       "file": "journal/2026-09-20.md",
@@ -456,7 +472,8 @@
       "rawStatus": "x",
       "section": "Tasks",
       "status": "done",
-      "text": "Ev temizliği ✅ 2026-09-20"
+      "text": "Ev temizliği",
+      "doneDate": "2026-09-20"
     },
     {
       "file": "journal/2026-09-20.md",
@@ -503,7 +520,10 @@
       "rawStatus": " ",
       "section": "Tasks",
       "status": "todo",
-      "text": "[[Mert Aksu (iş)|Mert]] ile tedarikçi sözleşmesini imzala 📅 2026-09-22 ⏫ #project/tedarik"
+      "text": "[[Mert Aksu (iş)|Mert]] ile tedarikçi sözleşmesini imzala",
+      "dueDate": "2026-09-22",
+      "priority": "⏫",
+      "project": "tedarik"
     },
     {
       "file": "journal/2026-09-21.md",
@@ -516,7 +536,10 @@
       "rawStatus": " ",
       "section": "Tasks",
       "status": "todo",
-      "text": "Eski doküman arşivini temizle 📅 2026-09-15 🔽 #project/arsiv"
+      "text": "Eski doküman arşivini temizle",
+      "dueDate": "2026-09-15",
+      "priority": "🔽",
+      "project": "arsiv"
     },
     {
       "file": "journal/2026-09-21.md",
@@ -606,7 +629,10 @@
       "rawStatus": "/",
       "section": "Tasks",
       "status": "inProgress",
-      "text": "Performans testlerini koş 🛫 2026-09-23 📅 2026-09-25 #project/performans"
+      "text": "Performans testlerini koş",
+      "startDate": "2026-09-23",
+      "dueDate": "2026-09-25",
+      "project": "performans"
     },
     {
       "file": "journal/2026-09-23.md",
@@ -619,7 +645,8 @@
       "rawStatus": "x",
       "section": "Tasks",
       "status": "done",
-      "text": "Sunucu loglarını incele ✅ 2026-09-23"
+      "text": "Sunucu loglarını incele",
+      "doneDate": "2026-09-23"
     },
     {
       "file": "journal/2026-09-23.md",
@@ -690,7 +717,8 @@
       "rawStatus": " ",
       "section": "Tasks",
       "status": "todo",
-      "text": "[[Proje Fikirleri]] notundaki maddeleri gözden geçir 📅 2026-09-24"
+      "text": "[[Proje Fikirleri]] notundaki maddeleri gözden geçir",
+      "dueDate": "2026-09-24"
     },
     {
       "file": "journal/2026-09-24.md",
@@ -703,7 +731,8 @@
       "rawStatus": "x",
       "section": "Tasks",
       "status": "done",
-      "text": "[[Baran Tunç]]'a kamp malzemelerini teslim et ✅ 2026-09-24"
+      "text": "[[Baran Tunç]]'a kamp malzemelerini teslim et",
+      "doneDate": "2026-09-24"
     },
     {
       "file": "journal/2026-09-24.md",
@@ -752,7 +781,9 @@
       "rawStatus": "x",
       "section": "Tasks",
       "status": "done",
-      "text": "Haftalık kod dondurma sürecini tamamla ✅ 2026-09-25 #project/yayin"
+      "text": "Haftalık kod dondurma sürecini tamamla",
+      "doneDate": "2026-09-25",
+      "project": "yayin"
     },
     {
       "file": "journal/2026-09-25.md",
@@ -765,7 +796,9 @@
       "rawStatus": " ",
       "section": "Tasks",
       "status": "todo",
-      "text": "Hafta sonu dinlenme planı yap 📅 2026-09-26 🔽"
+      "text": "Hafta sonu dinlenme planı yap",
+      "dueDate": "2026-09-26",
+      "priority": "🔽"
     },
     {
       "file": "journal/2026-09-25.md",
@@ -904,7 +937,8 @@
       "rawStatus": "x",
       "section": "Tasks",
       "status": "done",
-      "text": "Yeni hafta hazırlıklarını tamamla ✅ 2026-09-27"
+      "text": "Yeni hafta hazırlıklarını tamamla",
+      "doneDate": "2026-09-27"
     },
     {
       "file": "journal/2026-09-27.md",
@@ -917,7 +951,9 @@
       "rawStatus": " ",
       "section": "Tasks",
       "status": "todo",
-      "text": "[[Toplantı Notları]] dosyasını güncelle 📅 2026-09-28 🔼"
+      "text": "[[Toplantı Notları]] dosyasını güncelle",
+      "dueDate": "2026-09-28",
+      "priority": "🔼"
     },
     {
       "file": "journal/2026-09-27.md",

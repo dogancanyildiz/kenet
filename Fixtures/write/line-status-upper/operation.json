@@ -2,6 +2,7 @@
   "lines": {
     "operation": "status",
     "line": 1,
-    "status": "done"
+    "status": "done",
+    "completionDate": "2026-10-03"
   }
 }

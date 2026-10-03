@@ -10,9 +10,12 @@ struct EditingTests {
         defer { vault.remove() }
         try vault.write(storePath, "## Tasks\n*  [ ] Kitap\n  Su\n\n## Events\n+  Deniz\n")
         let before = try await vault.store.dayDocument(for: storeDate)
-        let status = try await vault.store.changingStatus(of: before.bodyLines.tasks[0], at: storePath, to: .done)
+        let status = try await vault.store.changingStatus(
+            of: before.bodyLines.tasks[0], at: storePath, to: .done, completionDate: storeDate)
         #expect(status.bodyLines.tasks[0].block.id == "aaaaaa")
-        #expect(try vault.bytes() == Data("## Tasks\n*  [x] Kitap ^aaaaaa\n  Su\n\n## Events\n+  Deniz\n".utf8))
+        #expect(
+            try vault.bytes() == Data("## Tasks\n*  [x] Kitap ✅ 2026-09-27 ^aaaaaa\n  Su\n\n## Events\n+  Deniz\n".utf8)
+        )
         try vault.check()
         let text = try await vault.store.changingText(of: status.bodyLines.events[0].block, at: storePath, to: "Selin")
         #expect(text.bodyLines.events[0].block.id == "bbbbbb")
@@ -80,7 +83,7 @@ struct EditingTests {
             try await vault.store.changingText(of: task.block, at: storePath, to: "Deniz")
         }
         await #expect(throws: VaultStoreError.staleTarget) {
-            try await vault.store.changingStatus(of: task, at: storePath, to: .done)
+            try await vault.store.changingStatus(of: task, at: storePath, to: .done, completionDate: storeDate)
         }
         await #expect(throws: VaultStoreError.staleTarget) {
             try await vault.store.changingTime(of: event, at: storePath, to: nil)

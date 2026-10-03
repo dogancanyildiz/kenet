@@ -13,7 +13,7 @@ struct DayView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
-                if store.isProcessing { ProgressView("İndeks güncelleniyor…") }
+                if store.isProcessing && !store.isWriting { ProgressView("İndeks güncelleniyor…") }
                 if let error = store.errorText { Text(verbatim: error).foregroundStyle(.red) }
                 if day.events.isEmpty && day.journal.isEmpty {
                     Group {
@@ -58,7 +58,7 @@ struct DayView: View {
             }
             .padding().frame(maxWidth: 700, alignment: .leading).frame(maxWidth: .infinity)
         }
-        .safeAreaInset(edge: .bottom) { QuickEntryPlaceholder() }
+        .safeAreaInset(edge: .bottom) { QuickEntryBar(store: store, isEnabled: isToday) }
         .navigationTitle(
             isToday ? Text("Bugün") : Text(LocalDay.instant(for: date), format: .dateTime.day().month().year())
         )

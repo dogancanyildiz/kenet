@@ -57,7 +57,7 @@ Kısıt: Yalnızca Foundation ve SQLite katmanı. Bu sayede aynı kod uygulamada
 
 Paket hedeflere ayrılır. `VaultFormat` hedefi ayrıştırıcıyı, yazıcıyı, birleştirmeyi ve modelleri taşır; paket bağımlılığı yoktur ve Foundation dışında bir çerçeve kullanmaz. `VaultIndex` hedefi GRDB ve `VaultFormat` üzerine kurulur; dosyalara yazmaz, tam yeniden üretim ve küçük sorgu API’si sunar.
 
-`VaultStore`, uygulamanın kasa dosyalarına yazan tek kapısıdır; aynı kasa kökündeki yazmaları ortak seri bir Foundation işlem kuyruğunda sıralar. Her işlem belgeyi diskten yeniden okur, `VaultFormat` ile düzenler, atomik olarak dosyaya yazar ve ardından yalnız değişen yolu `VaultIndex` ile günceller; indeks hatası yazılmış dosyayı geri almaz ve `indexUpdateFailed(path:underlying:)` ile dosyanın yazıldığı açıkça bildirilir.
+`VaultStore`, uygulamanın kasa dosyalarına yazan tek kapısıdır; aynı kasa kökündeki yazmaları ortak seri bir Foundation işlem kuyruğunda sıralar. Her işlem belgeyi diskten yeniden okur, `VaultFormat` ile düzenler, dosyaya yazar (mevcut dosyayı atomik değiştirir; sabit bağlantı desteklenmiyorsa yeni dosyayı dışlayıcı oluşturur) ve ardından yalnız değişen yolu `VaultIndex` ile günceller; indeks hatası yazılmış dosyayı geri almaz ve `indexUpdateFailed(path:underlying:)` ile dosyanın yazıldığı açıkça bildirilir.
 
 Varlık tipleri (kişi, konum ve ileride eklenecekler) koda dağılmaz; her tip tek bir veri tanımıdır: tip adı, varsayılan klasör, ayrılmış alanlar. Bu tanımlar şimdilik Core içinde durur ve indeks tipi serbest metin olarak tutar. Özel tipler ve şirket paketi geldiğinde (aşama 7) aynı tanım kasadaki bir şema dosyasından okunur; dosyanın biçimi o zaman `vault-format.md` içinde belirlenir.
 

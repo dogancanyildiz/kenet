@@ -108,6 +108,8 @@ final class IndexStore {
         errorText = String(localized: "İşlem başarısız: \(error.localizedDescription)")
     }
 
+    func reportTaskEntryError(_ message: String?) { entryErrorText = message }
+
     /// Returns true once bytes are saved, including a failed index update; callers must not resend them.
     @discardableResult
     func addEvent(on day: CalendarDate = LocalDay.today(), text: String, time: LineClock?) async -> Bool {

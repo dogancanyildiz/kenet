@@ -9,6 +9,7 @@ struct QuickEntryBar: View {
     private let focusRequest: UUID?
     @State private var model: QuickEntryModel
     @State private var showsTimePicker = false
+    @State private var showsDatePicker = false
     @State private var selection: TextSelection?
     @FocusState private var isFocused: Bool
 
@@ -36,6 +37,8 @@ struct QuickEntryBar: View {
                 Text(verbatim: error).font(.caption).foregroundStyle(.red)
                     .accessibilityAddTraits(.updatesFrequently)
             }
+            QuickEntryTaskControls(model: model, showsPicker: $showsDatePicker)
+                .disabled(!isEnabled || model.isSubmitting || model.isCreating || store.isWriting)
             resolutionStrip
                 .disabled(model.isCreating || model.isSubmitting || !isEnabled)
             if !model.awaitingResolution {
@@ -62,45 +65,48 @@ struct QuickEntryBar: View {
                 Text(verbatim: error).font(.caption).foregroundStyle(.red)
             }
             HStack {
-                TimelineView(.periodic(from: .now, by: 60)) { context in
-                    Button {
-                        if model.isHistorical {
-                            showsTimePicker = true
-                        } else {
-                            model.includesTime.toggle()
-                        }
-                    } label: {
-                        if model.includesTime {
-                            Text(
-                                model.isHistorical ? model.selectedTime : context.date,
-                                format: .dateTime.hour().minute()
-                            )
-                            .monospacedDigit()
-                        } else {
-                            Image(systemName: "clock.badge.xmark")
-                        }
-                    }
-                    .accessibilityLabel(model.includesTime ? Text("Saati kaldır") : Text("Şu anki saati ekle"))
-                    .disabled(!isEnabled || store.isWriting)
-                    .popover(isPresented: $showsTimePicker) {
-                        VStack {
-                            DatePicker("Saat", selection: $model.selectedTime, displayedComponents: .hourAndMinute)
-                                .labelsHidden()
-                                .onChange(of: model.selectedTime) { model.includesTime = true }
-                            Button("Saati ekle") {
-                                model.includesTime = true
-                                showsTimePicker = false
+                modeButton
+                if model.mode == .event {
+                    TimelineView(.periodic(from: .now, by: 60)) { context in
+                        Button {
+                            if model.isHistorical {
+                                showsTimePicker = true
+                            } else {
+                                model.includesTime.toggle()
                             }
-                            Button("Saati kaldır") {
-                                model.includesTime = false
-                                showsTimePicker = false
+                        } label: {
+                            if model.includesTime {
+                                Text(
+                                    model.isHistorical ? model.selectedTime : context.date,
+                                    format: .dateTime.hour().minute()
+                                )
+                                .monospacedDigit()
+                            } else {
+                                Image(systemName: "clock.badge.xmark")
                             }
                         }
-                        .padding()
-                        .presentationCompactAdaptation(.popover)
+                        .accessibilityLabel(model.includesTime ? Text("Saati kaldır") : Text("Şu anki saati ekle"))
+                        .disabled(!isEnabled || store.isWriting)
+                        .popover(isPresented: $showsTimePicker) {
+                            VStack {
+                                DatePicker("Saat", selection: $model.selectedTime, displayedComponents: .hourAndMinute)
+                                    .labelsHidden()
+                                    .onChange(of: model.selectedTime) { model.includesTime = true }
+                                Button("Saati ekle") {
+                                    model.includesTime = true
+                                    showsTimePicker = false
+                                }
+                                Button("Saati kaldır") {
+                                    model.includesTime = false
+                                    showsTimePicker = false
+                                }
+                            }
+                            .padding()
+                            .presentationCompactAdaptation(.popover)
+                        }
                     }
                 }
-                TextField("Gününden bir an…", text: $model.text, selection: $selection)
+                TextField(placeholder, text: $model.text, selection: $selection)
                     .textFieldStyle(.roundedBorder)
                     .accessibilityLabel("Hızlı giriş")
                     .focused($isFocused)
@@ -116,9 +122,33 @@ struct QuickEntryBar: View {
         .onChange(of: focusRequest, initial: true) { _, request in
             if request != nil { isFocused = true }
         }
+        .onChange(of: showsDatePicker) { _, presented in
+            if !presented { isFocused = true }
+        }
         .onChange(of: isEnabled) { _, enabled in
             if enabled && focusRequest != nil { isFocused = true }
         }
+    }
+
+    private var placeholder: LocalizedStringKey {
+        model.mode == .task ? "Yapılacak bir şey…" : "Gününden bir an…"
+    }
+
+    private var modeButton: some View {
+        Button {
+            model.mode = model.mode == .event ? .task : .event
+            isFocused = true
+        } label: {
+            Label {
+                if model.mode == .task { Text("Görev") } else { Text("Olay") }
+            } icon: {
+                Image(systemName: model.mode == .task ? "checkmark.square" : "text.bubble")
+            }
+        }
+        .disabled(!isEnabled || model.isSubmitting || model.isCreating || store.isWriting)
+        #if os(macOS)
+            .keyboardShortcut("t", modifiers: [.command, .shift])
+        #endif
     }
 
     private func entityLabel(_ entity: KnownEntity) -> some View {

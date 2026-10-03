@@ -4,6 +4,7 @@ import VaultIndex
 
 /// Immutable screen data published together with the index counts.
 struct VaultReadModel: Sendable {
+    var tasks: [TaskRow] = []
     var days: [DaySummary] = []
     var entities: [EntitySummary] = []
     var entityTimeline: [String: [EntityTimelineDay]] = [:]
@@ -16,6 +17,9 @@ struct VaultReadModel: Sendable {
         entityTimeline = EntityTimeline.build(snapshot: snapshot)
         let blocks = Dictionary(grouping: snapshot.blocks, by: \.file)
         let links = Dictionary(grouping: snapshot.links, by: \.file)
+        tasks = snapshot.blocks.filter { $0.kind == "task" }.map {
+            TaskRow(row: $0, links: links[$0.file] ?? [])
+        }
         let aliases = Dictionary(grouping: snapshot.aliases, by: \.file)
         let incoming = Dictionary(grouping: snapshot.links.compactMap(\.resolvedFile), by: { $0 })
         entities = snapshot.entities.filter { ["person", "place"].contains($0.kind) }.map { entity in

@@ -1,12 +1,12 @@
 import SwiftUI
 import VaultFormat
 
-/// The same read-only layout serves today and a selected historical day.
+/// The same editable layout serves today and a selected historical day.
 struct DayView: View {
     let store: IndexStore
     let date: CalendarDate
     var isToday = false
-    @Environment(\.locale) private var locale
+    @State private var showsJournal = false
 
     private var day: DaySummary { store.content.day(on: date) }
 
@@ -29,41 +29,52 @@ struct DayView: View {
                     VStack(alignment: .leading, spacing: 16) {
                         Text("Olaylar").font(.headline).accessibilityAddTraits(.isHeader)
                         ForEach(day.events) { event in
-                            VStack(alignment: .leading, spacing: 4) {
-                                if let time = event.time {
-                                    Text(
-                                        LocalDay.instant(for: date, time: time, timeZone: .gmt),
-                                        format: Date.FormatStyle(
-                                            date: .omitted, time: .shortened, locale: locale, timeZone: .gmt)
-                                    )
-                                    .font(.subheadline).foregroundStyle(.secondary)
-                                }
-                                LinkedTextView(text: event.text, store: store)
-                            }
+                            DayEventView(store: store, day: date, event: event)
                         }
                     }
                 }
-                if !day.journal.isEmpty {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Günlük yazısı").font(.headline).accessibilityAddTraits(.isHeader)
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Günlük yazısı").font(.headline).accessibilityAddTraits(.isHeader)
+                    #if os(iOS)
+                        Button {
+                            showsJournal = true
+                        } label: {
+                            journalPreview
+                        }
+                        .accessibilityLabel("Günlük yazısını düzenle")
+                    #else
                         NavigationLink {
                             JournalView(store: store, date: date)
                         } label: {
-                            Text(verbatim: day.preview ?? day.journal[0].text.plainText)
-                                .lineLimit(4).frame(maxWidth: .infinity, alignment: .leading)
+                            journalPreview
                         }
-                        .accessibilityLabel("Günlük yazısını oku")
-                    }
+                        .accessibilityLabel("Günlük yazısını düzenle")
+                    #endif
                 }
             }
             .padding().frame(maxWidth: 700, alignment: .leading).frame(maxWidth: .infinity)
         }
-        .safeAreaInset(edge: .bottom) { QuickEntryBar(store: store, isEnabled: isToday) }
+        .safeAreaInset(edge: .bottom) {
+            QuickEntryBar(store: store, isEnabled: true, day: isToday ? nil : date)
+                .id(isToday ? "today" : date.description)
+        }
         .navigationTitle(
             isToday ? Text("Bugün") : Text(LocalDay.instant(for: date), format: .dateTime.day().month().year())
         )
         .toolbar { SearchButton() }
+        .sheet(isPresented: $showsJournal) {
+            NavigationStack { JournalView(store: store, date: date) }
+        }
     }
+
+    @ViewBuilder private var journalPreview: some View {
+        if let preview = day.preview {
+            Text(verbatim: preview).lineLimit(4).frame(maxWidth: .infinity, alignment: .leading)
+        } else {
+            Text("Günlük yazısı ekle…").frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
 }
 
 /// Recomputes the local day across midnight without reopening the app.

@@ -109,5 +109,6 @@ App/            iOS ve macOS SwiftUI uygulaması
 Widgets/        WidgetKit hedefi
 Packages/Core/  Ayrıştırıcı, modeller, indeksleyici (Apple'a bağımsız)
 Fixtures/       Örnek kasa ve test dosyaları
+Tests/          Uygulama katmanı testleri (JournalTests)
 docs/           Belgeler
 ```

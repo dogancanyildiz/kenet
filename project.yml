@@ -41,6 +41,8 @@ targets:
     dependencies:
       - package: Core
         product: VaultFormat
+      - package: Core
+        product: VaultIndex
     settings:
       base:
         PRODUCT_NAME: Journal
@@ -68,3 +70,25 @@ targets:
         inputFiles:
           - $(SRCROOT)/VERSION
         basedOnDependencyAnalysis: false
+
+  JournalTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: Tests/JournalTests
+    dependencies:
+      - target: Journal_macOS
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.dravcore.journal.dev.tests
+
+schemes:
+  Journal_macOS:
+    build:
+      targets:
+        Journal_macOS: all
+    test:
+      commandLineArguments:
+        JOURNAL_NO_AUTOSTART: true
+      targets:
+        - JournalTests

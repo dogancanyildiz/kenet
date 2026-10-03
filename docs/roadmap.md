@@ -15,8 +15,8 @@ Kullanıcıya görünen bir şey yok; her şey bunun üstüne kurulur.
 - [x] Ayrıştırıcı ve yazıcı: frontmatter, bölümler, olay satırı, görev satırı (durum, metin, kimlik), wikilink, blok kimliği
 - [x] Gidiş dönüş testi ve `Fixtures/` örnek kasası
 - [x] SQLite indeksi (GRDB, FTS5) ve dosyalardan yeniden üretme
-- [ ] Kasa konumu: iCloud kapsayıcısı, yerel yedek seçenek
-- [ ] Dosya değişikliklerini izleme ve artımlı yeniden indeksleme
+- [ ] Kasa konumu: iCloud kapsayıcısı, yerel yedek seçenek (yerel kasa ve klasör seçimi hazır; iCloud, bundle ve kapsayıcı kimliği kararını bekliyor)
+- [x] Dosya değişikliklerini izleme ve artımlı yeniden indeksleme
 - [x] Senkronizasyon çakışmalarını birleştirme
 
 **Çıkış ölçütü:** Örnek kasa okunuyor, indeksleniyor, değişiklikler yansıyor, tüm testler geçiyor.

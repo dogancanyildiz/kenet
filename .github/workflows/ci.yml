@@ -53,6 +53,8 @@ jobs:
         run: xcodegen generate
       - name: macOS derlemesi
         run: xcodebuild build -project Journal.xcodeproj -scheme Journal_macOS -destination 'platform=macOS' CODE_SIGNING_ALLOWED=NO -quiet
+      - name: macOS testleri
+        run: xcodebuild test -project Journal.xcodeproj -scheme Journal_macOS -destination 'platform=macOS' CODE_SIGNING_ALLOWED=NO -quiet
       - name: iOS derlemesi
         run: xcodebuild build -project Journal.xcodeproj -scheme Journal_iOS -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO -quiet
 

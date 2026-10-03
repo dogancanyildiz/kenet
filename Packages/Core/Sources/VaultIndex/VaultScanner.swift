@@ -6,9 +6,22 @@ public enum VaultIndexError: Error, Sendable {
     case databaseInsideVault
 }
 
-/// The outcome of an atomic rebuild, including physical paths deliberately skipped.
+/// The outcome of an atomic index operation, including normalized changed paths.
 public struct RebuildResult: Sendable, Equatable {
+    public let addedPaths: [String]
+    public let updatedPaths: [String]
+    public let deletedPaths: [String]
     public let skippedPaths: [SkippedPath]
+
+    init(
+        addedPaths: [String] = [], updatedPaths: [String] = [], deletedPaths: [String] = [],
+        skippedPaths: [SkippedPath]
+    ) {
+        self.addedPaths = addedPaths
+        self.updatedPaths = updatedPaths
+        self.deletedPaths = deletedPaths
+        self.skippedPaths = skippedPaths
+    }
 }
 
 /// A physical vault-relative path that was skipped without aborting the rebuild.
@@ -39,7 +52,19 @@ enum VaultScanner {
                 let values = try url.resourceValues(forKeys: [.isDirectoryKey, .isSymbolicLinkKey])
                 let name = url.lastPathComponent
                 let path = prefix + name
+                var directory = values.isDirectory == true
                 if values.isSymbolicLink == true {
+                    var isDirectory: ObjCBool = false
+                    _ = FileManager.default.fileExists(atPath: url.path, isDirectory: &isDirectory)
+                    directory = isDirectory.boolValue
+                }
+                if directory
+                    && (name.hasPrefix(".") || (prefix.isEmpty && (name == "templates" || name == "conflicts")))
+                {
+                    continue
+                }
+                if values.isSymbolicLink == true {
+                    guard directory || name.hasSuffix(".md") else { continue }
                     skipped.append(SkippedPath(path: path, reason: .symbolicLink))
                     continue
                 }
@@ -57,7 +82,7 @@ enum VaultScanner {
         try visit(root, prefix: "")
         files = deduplicate(files, skipped: &skipped)
         skipped.sort { $0.path.utf8.lexicographicallyPrecedes($1.path.utf8) }
-        return (files, RebuildResult(skippedPaths: skipped))
+        return (files, RebuildResult(addedPaths: files.map(\.path), skippedPaths: skipped))
     }
 
     static func deduplicate(_ candidates: [ScannedFile], skipped: inout [SkippedPath]) -> [ScannedFile] {

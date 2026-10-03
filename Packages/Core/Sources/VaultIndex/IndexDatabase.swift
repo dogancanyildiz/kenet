@@ -15,11 +15,15 @@ enum IndexDatabase {
         {
             guard let url else { throw error }
             // The failed queue has been released before replacing the disposable database files.
-            for suffix in ["", "-wal", "-shm"] {
-                let path = url.path + suffix
-                if FileManager.default.fileExists(atPath: path) { try FileManager.default.removeItem(atPath: path) }
-            }
+            try removeFiles(at: url)
             return try prepared()
+        }
+    }
+
+    static func removeFiles(at url: URL) throws {
+        for suffix in ["", "-wal", "-shm", "-journal"] {
+            let path = url.path + suffix
+            if FileManager.default.fileExists(atPath: path) { try FileManager.default.removeItem(atPath: path) }
         }
     }
 }

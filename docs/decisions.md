@@ -75,6 +75,8 @@ Verilen her karar tek satır olarak eklenir. Açık sorular kapandığında altt
 | 2026-10-03 | Tanınan bölüm başlıkları (`## Tasks`, `## Events`, `## Journal`) blok üretmez; diğer başlıklar `heading` türünde bloktur; paragraf, olay ve görev dışındaki ardışık boş olmayan satırlardır | Aramada "Events" her gün dosyasını döndürmesin; bölüm bilgisi zaten sütunda |
 | 2026-10-03 | Kullanıcı araması FTS5 ifadesine güvenli çevrilir: boşlukta bölünür, her parça tırnaklı deyim, son parçaya önek eşleşmesi | Kesme işareti ve `AND` gibi girdiler sorgu hatası vermesin |
 | 2026-10-03 | Linux CI kabına `libsqlite3-dev` kurulur; indeks Linux'ta da derlenir ve test edilir | GRDB sistem SQLite'ına bağlanır; Core'un Apple'dan bağımsızlığı indeks dahil Linux'ta kanıtlanır |
+| 2026-10-03 | Artımlı indeks: `refresh` tüm kasayı tarar, yalnızca değişiklik zamanı ya da boyutu farklı dosyaların özetini hesaplar, özeti değişenleri yeniden yazar; silinen ya da adı değişen dosyaların ve etkilenen anahtarların bağlantıları ile kimlik sahipliği yeniden hesaplanır. Ölçü: artımlı sonuç sıfırdan üretimle birebir aynı | Doğruluk tek bir ölçüye bağlanır; tarama ucuz (dosya başına ~20 µs), ayrıştırma pahalı |
+| 2026-10-03 | Dosya izleyici artımlı indekse yol bildirir; yeniden adlandırmada eski ve yeni yolu bildirir, bildirim kapsamı harfe duyarsız ve NFC'dir; eksik bildirimi sonraki `refresh` düzeltir | APFS harfe duyarsız; izleyici kaçırırsa indeks yine toparlanır |
 
 ## Açık sorular
 

@@ -1,0 +1,28 @@
+{
+  "files": [
+    {
+      "path": "input.md",
+      "kind": "note",
+      "readable": true
+    }
+  ],
+  "entities": [],
+  "aliases": [],
+  "blocks": [
+    {
+      "file": "input.md",
+      "ordinal": 0,
+      "kind": "task",
+      "firstLine": 1,
+      "lastLine": 3,
+      "text": "Su",
+      "section": "other",
+      "status": "todo",
+      "rawStatus": " ",
+      "identifier": "x",
+      "ownsIdentifier": true
+    }
+  ],
+  "links": [],
+  "goalLogs": []
+}

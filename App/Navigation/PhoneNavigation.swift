@@ -19,6 +19,9 @@ struct PhoneNavigation: View {
             Tab("Günlük", systemImage: "book.closed") {
                 NavigationStack { DaysView(store: store) }
             }
+            Tab("Görevler", systemImage: "checklist") {
+                NavigationStack { TasksView(store: store) }
+            }
             Tab("Kişiler ve Konumlar", systemImage: "person.2") {
                 NavigationStack { EntitiesView(store: store) }
             }

@@ -44,12 +44,12 @@ Kullanıcıya görünen bir şey yok; her şey bunun üstüne kurulur.
 ## Aşama 2: Görevler
 
 - [x] Görev ekleme, tarih verme, tamamlama; hızlı girişte olay / görev geçişi
-- [ ] Görevler sekmesi: yaklaşan, tarihsiz, tamamlanan
+- [x] Görevler sekmesi: yaklaşan, tarihsiz, tamamlanan
 - [x] Doğal dille tarih ("yarın", "cuma", "5 ekim")
 - [x] Bugün ekranında günün ve geciken görevler
-- [ ] Görevlerin kişi ve konumlara bağlanması; varlık sayfasında açık işler
+- [x] Görevlerin kişi ve konumlara bağlanması; varlık sayfasında açık işler
 - [ ] Cihaz takvimindeki etkinliklerin bugün ekranında görünmesi (EventKit, salt okunur)
-- [ ] İleri tarihli ajanda listesi
+- [x] İleri tarihli ajanda listesi
 
 **Çıkış ölçütü:** Günlük işler yalnızca buradan takip ediliyor.
 

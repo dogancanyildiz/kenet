@@ -71,6 +71,7 @@ struct EntityView: View {
                     }.disabled(!model.canEdit)
                 }
             }
+            EntityOpenTasksView(store: store, path: model.path).id(model.path)
             Section("Zaman akışı") {
                 let timeline = store.content.entityTimeline[model.path] ?? []
                 if timeline.isEmpty { Text("Henüz günlük kaydı yok.").foregroundStyle(.secondary) }

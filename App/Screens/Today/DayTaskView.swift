@@ -8,6 +8,7 @@ struct DayTaskView: View {
     let isOverdue: Bool
     let completed: Bool
     let isBusy: Bool
+    var allowsReopening = false
     let complete: () -> Void
     @State private var textEditor: TaskEditorModel?
     @State private var dateEditor: TaskEditorModel?
@@ -18,8 +19,10 @@ struct DayTaskView: View {
             Button(action: complete) {
                 Image(systemName: completed || row.isClosed ? "checkmark.square.fill" : "square")
             }
-            .accessibilityLabel("Görevi tamamla")
-            .disabled(row.isClosed || completed || isBusy || !store.canAddEvent)
+            .accessibilityLabel(
+                LocalizedStringKey(row.isClosed && allowsReopening ? "Görevi yeniden aç" : "Görevi tamamla")
+            )
+            .disabled((row.isClosed && !allowsReopening) || completed || isBusy || !store.canAddEvent)
             VStack(alignment: .leading, spacing: 4) {
                 LinkedTextView(text: row.text, store: store)
                 HStack(spacing: 8) {

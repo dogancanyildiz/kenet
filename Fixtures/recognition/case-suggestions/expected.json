@@ -1,0 +1,75 @@
+{
+  "mentions": [
+    {
+      "line": 0,
+      "byteRange": [
+        0,
+        5
+      ],
+      "spelling": "deniz",
+      "candidates": [
+        "people/Deniz Arıkan.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": true,
+      "isCertain": false
+    },
+    {
+      "line": 0,
+      "byteRange": [
+        14,
+        16
+      ],
+      "spelling": "ev",
+      "candidates": [
+        "places/Ev.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": true,
+      "isCertain": false
+    },
+    {
+      "line": 0,
+      "byteRange": [
+        28,
+        33
+      ],
+      "spelling": "Deniz",
+      "candidates": [
+        "people/Deniz Arıkan.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 0,
+      "byteRange": [
+        34,
+        36
+      ],
+      "spelling": "Ev",
+      "candidates": [
+        "places/Ev.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 0,
+      "byteRange": [
+        38,
+        43
+      ],
+      "spelling": "deniz",
+      "candidates": [
+        "people/Deniz Arıkan.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": true,
+      "isCertain": true
+    }
+  ],
+  "unknownMentions": []
+}

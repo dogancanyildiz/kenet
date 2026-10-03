@@ -1,0 +1,33 @@
+{
+  "mentions": [
+    {
+      "line": 0,
+      "byteRange": [
+        0,
+        17
+      ],
+      "spelling": "Çınaraltı Kafe",
+      "candidates": [
+        "places/Çınaraltı Kafe.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 0,
+      "byteRange": [
+        18,
+        36
+      ],
+      "spelling": "Çınaraltı Kafe",
+      "candidates": [
+        "places/Çınaraltı Kafe.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    }
+  ],
+  "unknownMentions": []
+}

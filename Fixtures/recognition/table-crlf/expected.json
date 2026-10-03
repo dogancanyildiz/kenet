@@ -1,0 +1,33 @@
+{
+  "mentions": [
+    {
+      "line": 0,
+      "byteRange": [
+        4,
+        9
+      ],
+      "spelling": "Deniz",
+      "candidates": [
+        "people/Deniz Arıkan.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 0,
+      "byteRange": [
+        12,
+        16
+      ],
+      "spelling": "ofis",
+      "candidates": [
+        "places/Liman Ofis.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    }
+  ],
+  "unknownMentions": []
+}

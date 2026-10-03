@@ -7,7 +7,8 @@ import VaultStore
 @testable import VaultIndex
 
 struct FailureTests {
-    @Test func failedAtomicWritePreservesOldBytesAndIndex() async throws {
+    // A read-only directory does not stop root (the Linux CI container), so the test needs a real user.
+    @Test(.enabled(if: geteuid() != 0)) func failedAtomicWritePreservesOldBytesAndIndex() async throws {
         let vault = try StoreVault()
         defer { vault.remove() }
         try vault.write(storePath, "## Events\n- Kitap ^old\n")

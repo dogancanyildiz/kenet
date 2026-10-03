@@ -1,0 +1,6 @@
+## Tasks
+- [ ] Deniz 📅 2026-10-05 ^id
+  continuation
+
+## Journal
+keep

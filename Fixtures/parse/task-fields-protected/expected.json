@@ -1,0 +1,30 @@
+{
+  "tasks": [
+    {
+      "line": 1,
+      "firstLine": 1,
+      "lastLine": 1,
+      "id": null,
+      "text": "`x 📅 2026-10-05 y` [[Note|x ⏫ y]] [x #project/test y](https://example.org)",
+      "rawStatus": " ",
+      "status": "todo",
+      "isClosed": false,
+      "isOpen": true,
+      "dueDate": null,
+      "startDate": null,
+      "doneDate": null,
+      "priority": null,
+      "project": "gerçek",
+      "fieldRanges": [
+        {
+          "kind": "project",
+          "byteRange": [
+            86,
+            102
+          ]
+        }
+      ]
+    }
+  ],
+  "events": []
+}

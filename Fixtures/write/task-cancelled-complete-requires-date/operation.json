@@ -1,0 +1,8 @@
+{
+  "lines": {
+    "operation": "status",
+    "line": 1,
+    "status": "done"
+  },
+  "expectedError": "invalid-value"
+}

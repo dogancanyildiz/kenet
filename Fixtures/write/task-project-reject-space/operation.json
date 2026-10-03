@@ -1,0 +1,8 @@
+{
+  "lines": {
+    "operation": "project",
+    "line": 2,
+    "project": "iki sözcük"
+  },
+  "expectedError": "invalid-value"
+}

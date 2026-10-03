@@ -9,7 +9,13 @@
       "rawStatus": " ",
       "status": "todo",
       "isClosed": false,
-      "isOpen": true
+      "isOpen": true,
+      "dueDate": null,
+      "startDate": null,
+      "doneDate": null,
+      "priority": null,
+      "project": null,
+      "fieldRanges": []
     },
     {
       "line": 3,
@@ -20,7 +26,13 @@
       "rawStatus": "-",
       "status": "cancelled",
       "isClosed": true,
-      "isOpen": false
+      "isOpen": false,
+      "dueDate": null,
+      "startDate": null,
+      "doneDate": null,
+      "priority": null,
+      "project": null,
+      "fieldRanges": []
     },
     {
       "line": 8,
@@ -31,7 +43,13 @@
       "rawStatus": "?",
       "status": "unknown",
       "isClosed": false,
-      "isOpen": true
+      "isOpen": true,
+      "dueDate": null,
+      "startDate": null,
+      "doneDate": null,
+      "priority": null,
+      "project": null,
+      "fieldRanges": []
     },
     {
       "line": 10,
@@ -42,7 +60,13 @@
       "rawStatus": "X",
       "status": "done",
       "isClosed": true,
-      "isOpen": false
+      "isOpen": false,
+      "dueDate": null,
+      "startDate": null,
+      "doneDate": null,
+      "priority": null,
+      "project": null,
+      "fieldRanges": []
     }
   ],
   "events": []

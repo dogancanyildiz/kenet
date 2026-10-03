@@ -67,11 +67,18 @@ public actor VaultStore {
         }
     }
 
-    /// Adds a task without interpreting dates or priorities in its text.
+    /// Adds a task with optional fields in canonical order.
     @discardableResult
-    public func addingTask(on date: CalendarDate, text: String) async throws -> RawDocument {
+    public func addingTask(
+        on date: CalendarDate, text: String, due: CalendarDate? = nil, start: CalendarDate? = nil,
+        priority: TaskPriority? = nil, project: String? = nil
+    ) async throws -> RawDocument {
         try await perform {
-            try self.editDay(date) { document in try document.addingTask(text: text, id: self.freshID(in: document)) }
+            try self.editDay(date) { document in
+                try document.addingTask(
+                    text: text, id: self.freshID(in: document), due: due, start: start,
+                    priority: priority, project: project)
+            }
         }
     }
 
@@ -88,12 +95,14 @@ public actor VaultStore {
 
     /// Changes a task's status, preserving unrelated bytes.
     @discardableResult
-    public func changingStatus(of target: TaskLine, at path: String, to status: TaskStatus) async throws -> RawDocument
-    {
+    public func changingStatus(
+        of target: TaskLine, at path: String, to status: TaskStatus, completionDate: CalendarDate? = nil
+    ) async throws -> RawDocument {
         try await perform {
             try self.edit(path) { document in
                 try document.changingStatus(
-                    of: target, to: status, newID: self.replacementID(target.block, path: path, in: document))
+                    of: target, to: status, completionDate: completionDate,
+                    newID: self.replacementID(target.block, path: path, in: document))
             }
         }
     }

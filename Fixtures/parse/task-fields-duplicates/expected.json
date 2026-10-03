@@ -1,0 +1,74 @@
+{
+  "tasks": [
+    {
+      "line": 1,
+      "firstLine": 1,
+      "lastLine": 1,
+      "id": "dup",
+      "text": "x y",
+      "rawStatus": "X",
+      "status": "done",
+      "isClosed": true,
+      "isOpen": false,
+      "dueDate": "2026-10-05",
+      "startDate": null,
+      "doneDate": "2026-10-03",
+      "priority": {
+        "other": "🔺"
+      },
+      "project": "ilk",
+      "fieldRanges": [
+        {
+          "kind": "dueDate",
+          "byteRange": [
+            6,
+            21
+          ]
+        },
+        {
+          "kind": "dueDate",
+          "byteRange": [
+            24,
+            39
+          ]
+        },
+        {
+          "kind": "project",
+          "byteRange": [
+            40,
+            52
+          ]
+        },
+        {
+          "kind": "project",
+          "byteRange": [
+            55,
+            67
+          ]
+        },
+        {
+          "kind": "priority",
+          "byteRange": [
+            68,
+            72
+          ]
+        },
+        {
+          "kind": "priority",
+          "byteRange": [
+            73,
+            76
+          ]
+        },
+        {
+          "kind": "doneDate",
+          "byteRange": [
+            77,
+            91
+          ]
+        }
+      ]
+    }
+  ],
+  "events": []
+}

@@ -75,6 +75,11 @@ enum IndexBuilder {
         var status: String? = nil
         var rawStatus: String? = nil
         var headingLevel: Int? = nil
+        var dueDate: String? = nil
+        var startDate: String? = nil
+        var doneDate: String? = nil
+        var priority: String? = nil
+        var project: String? = nil
     }
 
     private static func insertBlocks(document: RawDocument, file: String, db: Database, owners: inout Set<String>)
@@ -93,8 +98,10 @@ enum IndexBuilder {
             }
             + body.tasks.map {
                 Block(
-                    range: $0.block.lineRange, kind: "task", text: $0.block.text,
-                    identifier: $0.block.id, status: $0.status.rawValue, rawStatus: $0.rawStatus)
+                    range: $0.block.lineRange, kind: "task", text: $0.text,
+                    identifier: $0.block.id, status: $0.status.rawValue, rawStatus: $0.rawStatus,
+                    dueDate: $0.dueDate?.description, startDate: $0.startDate?.description,
+                    doneDate: $0.doneDate?.description, priority: $0.priority?.token, project: $0.project)
             }
         let occupied = Set(blocks.flatMap { Array($0.range) })
         let recognized = Set(sections.filter { $0.kind != nil }.map(\.headingLine))
@@ -134,11 +141,12 @@ enum IndexBuilder {
         for (ordinal, block) in blocks.enumerated() {
             let owns = block.identifier.map { owners.insert($0).inserted } ?? false
             try db.execute(
-                sql: "INSERT INTO blocks VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                sql: "INSERT INTO blocks VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                 arguments: [
                     file, ordinal, block.kind, block.range.lowerBound + 1, block.range.upperBound,
                     block.text, section(block.range.lowerBound), block.time, block.status, block.rawStatus,
                     block.identifier, block.headingLevel, owns,
+                    block.dueDate, block.startDate, block.doneDate, block.priority, block.project,
                 ])
             try search(file: file, block: ordinal, text: block.text, db: db)
         }

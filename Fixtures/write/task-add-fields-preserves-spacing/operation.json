@@ -1,0 +1,8 @@
+{
+  "lines": {
+    "operation": "add-task-fields",
+    "text": "a  b `a  b` [a  b](https://example.com) [a  b][r]",
+    "id": "task",
+    "due": "2026-10-05"
+  }
+}

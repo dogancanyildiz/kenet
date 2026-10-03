@@ -3,19 +3,23 @@ struct WrittenBlock: Equatable, Sendable {
     var block: LineBlock
     var time: EventTime?
     var status: String?
+    var task: TaskFieldValues? = nil
 
     static func == (lhs: Self, rhs: Self) -> Bool {
         lhs.block.lineRange == rhs.block.lineRange
             && Array(lhs.block.text.utf8) == Array(rhs.block.text.utf8)
             && lhs.block.id.map { Array($0.utf8) } == rhs.block.id.map { Array($0.utf8) }
             && lhs.time == rhs.time && lhs.status == rhs.status
+            && lhs.task == rhs.task
+            && lhs.task.map { Array($0.text.utf8) } == rhs.task.map { Array($0.text.utf8) }
+            && lhs.task?.project.map { Array($0.utf8) } == rhs.task?.project.map { Array($0.utf8) }
     }
 
     static func all(_ document: RawDocument) -> [Self] {
         let body = document.bodyLines
         return
             (body.events.map { Self(block: $0.block, time: $0.time, status: nil) }
-            + body.tasks.map { Self(block: $0.block, time: nil, status: $0.rawStatus) })
+            + body.tasks.map { Self(block: $0.block, time: nil, status: $0.rawStatus, task: $0.fields.values) })
             .sorted { $0.block.line < $1.block.line }
     }
 }

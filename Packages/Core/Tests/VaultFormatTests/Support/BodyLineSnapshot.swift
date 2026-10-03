@@ -12,17 +12,38 @@ enum BodyLineSnapshot {
         ]
     }
 
-    static func tasks(_ tasks: [TaskLine]) -> JSONValue {
-        .array(
-            tasks.map {
-                .object(
-                    block($0.block) + [
-                        .init(key: "rawStatus", value: .string($0.rawStatus)),
-                        .init(key: "status", value: .string($0.status.rawValue)),
-                        .init(key: "isClosed", value: .bool($0.status.isClosed)),
-                        .init(key: "isOpen", value: .bool($0.status.isOpen)),
-                    ])
-            })
+    static func tasks(_ tasks: [TaskLine]) -> JSONValue { .array(tasks.map(task)) }
+
+    private static func task(_ task: TaskLine) -> JSONValue {
+        var members = block(task.block).filter { $0.key != "text" }
+        let ranges: [JSONValue] = task.fieldRanges.map { field in
+            .object([
+                "kind": .string(field.kind.rawValue),
+                "byteRange": .array([.integer(field.byteRange.lowerBound), .integer(field.byteRange.upperBound)]),
+            ])
+        }
+        members.append(.init(key: "text", value: .string(task.text)))
+        members.append(.init(key: "dueDate", value: task.dueDate.map { .string($0.description) } ?? .null))
+        members.append(.init(key: "startDate", value: task.startDate.map { .string($0.description) } ?? .null))
+        members.append(.init(key: "doneDate", value: task.doneDate.map { .string($0.description) } ?? .null))
+        members.append(.init(key: "priority", value: priority(task.priority)))
+        members.append(.init(key: "project", value: task.project.map(JSONValue.string) ?? .null))
+        members.append(.init(key: "fieldRanges", value: .array(ranges)))
+        members.append(.init(key: "rawStatus", value: .string(task.rawStatus)))
+        members.append(.init(key: "status", value: .string(task.status.rawValue)))
+        members.append(.init(key: "isClosed", value: .bool(task.status.isClosed)))
+        members.append(.init(key: "isOpen", value: .bool(task.status.isOpen)))
+        return .object(members)
+    }
+
+    private static func priority(_ priority: TaskPriority?) -> JSONValue {
+        switch priority {
+        case .high: .string("high")
+        case .medium: .string("medium")
+        case .low: .string("low")
+        case .other(let token): .object(["other": .string(token)])
+        case nil: .null
+        }
     }
 
     static func events(_ events: [EventLine]) -> JSONValue {

@@ -49,6 +49,11 @@ public struct IndexedBlock: Codable, FetchableRecord, Sendable, Equatable {
     public let identifier: String?
     public let headingLevel: Int?
     public let ownsIdentifier: Bool
+    public let dueDate: String?
+    public let startDate: String?
+    public let doneDate: String?
+    public let priority: String?
+    public let project: String?
 }
 
 /// A wikilink with its physical source and optional resolved file.

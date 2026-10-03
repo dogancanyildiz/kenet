@@ -1,0 +1,21 @@
+{
+  "tasks": [
+    {
+      "line": 1,
+      "firstLine": 1,
+      "lastLine": 1,
+      "id": "task",
+      "text": "[x 📅 2026-10-05 y][r]",
+      "rawStatus": " ",
+      "status": "todo",
+      "isClosed": false,
+      "isOpen": true,
+      "dueDate": null,
+      "startDate": null,
+      "doneDate": null,
+      "priority": null,
+      "project": null,
+      "fieldRanges": []
+    }
+  ]
+}

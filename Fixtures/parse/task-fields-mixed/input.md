@@ -1,0 +1,1 @@
+- [/] Deniz 🛫 2026-10-01 ile 📅 2026-10-05 buluş 🔼 #project/iş ^task1

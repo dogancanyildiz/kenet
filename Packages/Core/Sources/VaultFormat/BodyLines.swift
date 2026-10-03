@@ -58,6 +58,23 @@ public struct TaskLine: Hashable, Sendable {
     public let rawStatus: String
     /// The checkbox's interpreted meaning.
     public let status: TaskStatus
+    /// Task text with recognized fields removed; raw first-line text remains in `block`.
+    public var text: String { fields.values.text }
+    public var dueDate: CalendarDate? { fields.values.dueDate }
+    public var startDate: CalendarDate? { fields.values.startDate }
+    public var doneDate: CalendarDate? { fields.values.doneDate }
+    public var priority: TaskPriority? { fields.values.priority }
+    public var project: String? { fields.values.project }
+    public var fieldRanges: [TaskFieldRange] { fields.ranges }
+    let fields: ParsedTaskFields
+
+    init(block: LineBlock, rawStatus: String, status: TaskStatus) {
+        self.block = block
+        self.rawStatus = rawStatus
+        self.status = status
+        let offset = BodyLineParser.task(block.firstLineContent)?.textStart ?? 0
+        fields = TaskFieldParser.parse(block.text, offset: offset)
+    }
 }
 
 /// A valid local clock time with its original spelling.

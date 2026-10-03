@@ -3,6 +3,7 @@
     "operation": "status",
     "line": 1,
     "status": "done",
-    "id": "new123"
+    "id": "new123",
+    "completionDate": "2026-10-03"
   }
 }

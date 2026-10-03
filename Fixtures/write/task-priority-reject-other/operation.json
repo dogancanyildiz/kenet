@@ -1,0 +1,8 @@
+{
+  "lines": {
+    "operation": "priority",
+    "line": 2,
+    "priority": "🔺"
+  },
+  "expectedError": "invalid-value"
+}

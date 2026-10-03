@@ -17,8 +17,9 @@ extension VaultIndex {
 
     private func incrementallyUpdate(vaultRoot: URL, paths: Set<String>?) throws -> RebuildResult {
         try validate(vaultRoot: vaultRoot)
+        let resolvedRoot = vaultRoot.resolvingSymlinksInPath()
         let requested = paths.map { notified in
-            Set(notified.compactMap { notificationPath($0, root: vaultRoot) })
+            Set(notified.compactMap { notificationPath($0, root: resolvedRoot) })
         }
         func includes(_ path: String) -> Bool {
             let key = comparisonKey(path)
@@ -153,9 +154,9 @@ private func repairLinks(keys: Set<String>, sources: [String], db: Database) thr
 }
 
 private func notificationPath(_ path: String, root: URL) -> String? {
-    let base = root.standardizedFileURL.path.precomposedStringWithCanonicalMapping
+    let base = root.path.precomposedStringWithCanonicalMapping
     let url = path.hasPrefix("/") ? URL(fileURLWithPath: path) : root.appendingPathComponent(path)
-    let absolute = url.standardizedFileURL.path.precomposedStringWithCanonicalMapping
+    let absolute = resolvedNotificationPath(url).precomposedStringWithCanonicalMapping
     guard
         comparisonKey(absolute) == comparisonKey(base)
             || comparisonKey(absolute).hasPrefix(comparisonKey(base) + "/")
@@ -167,4 +168,31 @@ private func notificationPath(_ path: String, root: URL) -> String? {
         !(components.last?.hasPrefix(".") == true && !relative.hasSuffix(".md"))
     else { return nil }
     return comparisonKey(relative)
+}
+
+// Resolve only an existing directory: Foundation standardization treats missing /private paths differently.
+private func resolvedNotificationPath(_ url: URL) -> String {
+    var components: [String] = []
+    for component in url.pathComponents where component != "/" && component != "." {
+        if component == ".." {
+            if !components.isEmpty { components.removeLast() }
+        } else {
+            components.append(component)
+        }
+    }
+    var ancestor = URL(fileURLWithPath: "/" + components.joined(separator: "/"))
+    var tail: [String] = []
+    while true {
+        var isDirectory: ObjCBool = false
+        if FileManager.default.fileExists(atPath: ancestor.path, isDirectory: &isDirectory), isDirectory.boolValue {
+            break
+        }
+        let parent = ancestor.deletingLastPathComponent()
+        guard parent.path != ancestor.path else { break }
+        tail.append(ancestor.lastPathComponent)
+        ancestor = parent
+    }
+    var resolved = ancestor.resolvingSymlinksInPath()
+    for component in tail.reversed() { resolved.appendPathComponent(component) }
+    return resolved.path
 }

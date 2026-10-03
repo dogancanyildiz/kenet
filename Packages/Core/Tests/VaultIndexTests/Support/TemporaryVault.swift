@@ -1,7 +1,9 @@
 import Foundation
 
-func withVault(_ action: (URL) throws -> Void) throws {
-    let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+func withVault(
+    in directory: URL = FileManager.default.temporaryDirectory, _ action: (URL) throws -> Void
+) throws {
+    let root = directory.appendingPathComponent(UUID().uuidString)
     try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
     defer { try? FileManager.default.removeItem(at: root) }
     try action(root)

@@ -157,9 +157,18 @@ Beklenti: 30 dosya, 13 varlık, 40 olay, 22 kimlikli ve 2 kimliksiz görev, 31 p
 
 `index/continuation/`, görev devamındaki girintili başlığın ayrı başlık veya paragraf üretmediğini kanonik dökümle doğrular; `input.md` üç satırlık tek görev bloğudur.
 
-### Diğer kategoriler
+### `merge/`
 
-Birleştirme kategorisi ilgili işle birlikte tanımlanır; klasör adları ve beklenen çıktı biçimleri o zaman bu belgeye eklenir.
+Senkronizasyon çakışması birleştirme örnekleri (`vault-format.md`, "Senkronizasyon çakışması"). Her örnek bir klasördür: `a.md` ve `b.md` iki sürümün baytları, `case.json` zamanları ve saklanacak sürümleri, `expected.md` birleşmiş dosyanın baytlarıdır. Beklenen çıktılar koddan üretilmez; kurallar elle uygulanarak yazılır.
+
+```json
+{ "times": { "a": 10, "b": 20 }, "preserved": ["a"] }
+```
+
+- `times`: her sürümün değişiklik zamanı, tam sayı. Birim yoktur; yalnızca sıra anlamlıdır. Eşit zamanlar yeni sürümün bayt sırasıyla seçildiğini sınar.
+- `preserved`: çakışma kopyası olarak saklanacak sürümlerin adları, alfabetik sırayla; hiçbiri saklanmıyorsa `[]`.
+
+İstemci her örnekte şunları denetler: iki veriliş sırası da aynı baytları ve aynı saklanacak sürümleri verir; sonuç, `times` değerlerinin ikisinden de büyük bir zamanla iki sürümden her biriyle yeniden birleştirilince baytları değişmez; sonuç okunup yazılınca aynı kalır; işlevin kendi denetiminden bağımsız bir kayıp denetimi tutar (her sürümün blokları, bölge bölge ve sayımlı olarak serbest yazı satırları, frontmatter alanları ve yorum satırları sonuçta vardır ya da o sürüm saklanır; yalnızca kapalı görevin açık görevin yerini alması, iki kapalı görev arasında yalnız `✅` tarihi farkı, `goals` altında ilerleme ve yalnızca yazım farkı kayıp sayılmaz); adında `falls-back` geçmeyen hiçbir örnekte işlev son güvenceye düşmez (`fellBack` yanlıştır). Adlandırma kuralı burada da geçerlidir: adında `crlf`, `cr`, `bom`, `mixed-line-endings`, `no-final-newline`, `invalid-utf8` ya da `read-only` geçen örneğin Markdown dosyalarından en az biri o özelliği taşır.
 
 ## Testlerin klasörü bulması
 

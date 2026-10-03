@@ -52,21 +52,11 @@
   "blocks": [
     {
       "file": "journal/2026-09-14.md",
-      "firstLine": 10,
-      "kind": "paragraph",
-      "lastLine": 10,
-      "ordinal": 0,
-      "ownsIdentifier": false,
-      "section": "Tasks",
-      "text": "## Tasks"
-    },
-    {
-      "file": "journal/2026-09-14.md",
       "firstLine": 11,
       "identifier": "g8f1cb",
       "kind": "task",
       "lastLine": 11,
-      "ordinal": 1,
+      "ordinal": 0,
       "ownsIdentifier": true,
       "rawStatus": " ",
       "section": "Tasks",
@@ -79,7 +69,7 @@
       "identifier": "fno6b9",
       "kind": "task",
       "lastLine": 12,
-      "ordinal": 2,
+      "ordinal": 1,
       "ownsIdentifier": true,
       "rawStatus": "x",
       "section": "Tasks",
@@ -88,21 +78,11 @@
     },
     {
       "file": "journal/2026-09-14.md",
-      "firstLine": 14,
-      "kind": "paragraph",
-      "lastLine": 14,
-      "ordinal": 3,
-      "ownsIdentifier": false,
-      "section": "Events",
-      "text": "## Events"
-    },
-    {
-      "file": "journal/2026-09-14.md",
       "firstLine": 15,
       "identifier": "m80o2r",
       "kind": "event",
       "lastLine": 15,
-      "ordinal": 4,
+      "ordinal": 2,
       "ownsIdentifier": true,
       "section": "Events",
       "text": "[[Liman Ofis]]'te haftalık başlangıç toplantısı",
@@ -114,7 +94,7 @@
       "identifier": "ak1vrj",
       "kind": "event",
       "lastLine": 16,
-      "ordinal": 5,
+      "ordinal": 3,
       "ownsIdentifier": true,
       "section": "Events",
       "text": "[[Deniz Arıkan|Deniz]] ile öğle yemeği",
@@ -126,7 +106,7 @@
       "identifier": "nvgfyg",
       "kind": "event",
       "lastLine": 17,
-      "ordinal": 6,
+      "ordinal": 4,
       "ownsIdentifier": true,
       "section": "Events",
       "text": "[[Tepe Spor Salonu|salon]] antrenmanı",
@@ -134,23 +114,13 @@
     },
     {
       "file": "journal/2026-09-14.md",
-      "firstLine": 19,
+      "firstLine": 20,
       "kind": "paragraph",
       "lastLine": 20,
-      "ordinal": 7,
+      "ordinal": 5,
       "ownsIdentifier": false,
       "section": "Journal",
-      "text": "## Journal\nYeni haftaya planlama toplantısıyla başladık. [[Deniz Arıkan|Deniz abi]] yeni mimari önerilerini sundu. Akşam [[Tepe Spor Salonu]] antrenmanı oldukça tempoluydu."
-    },
-    {
-      "file": "journal/2026-09-15.md",
-      "firstLine": 9,
-      "kind": "paragraph",
-      "lastLine": 9,
-      "ordinal": 0,
-      "ownsIdentifier": false,
-      "section": "Tasks",
-      "text": "## Tasks"
+      "text": "Yeni haftaya planlama toplantısıyla başladık. [[Deniz Arıkan|Deniz abi]] yeni mimari önerilerini sundu. Akşam [[Tepe Spor Salonu]] antrenmanı oldukça tempoluydu."
     },
     {
       "file": "journal/2026-09-15.md",
@@ -158,7 +128,7 @@
       "identifier": "wwqc38",
       "kind": "task",
       "lastLine": 10,
-      "ordinal": 1,
+      "ordinal": 0,
       "ownsIdentifier": true,
       "rawStatus": "/",
       "section": "Tasks",
@@ -171,7 +141,7 @@
       "identifier": "hyf9sx",
       "kind": "task",
       "lastLine": 11,
-      "ordinal": 2,
+      "ordinal": 1,
       "ownsIdentifier": true,
       "rawStatus": "x",
       "section": "Tasks",
@@ -180,21 +150,11 @@
     },
     {
       "file": "journal/2026-09-15.md",
-      "firstLine": 13,
-      "kind": "paragraph",
-      "lastLine": 13,
-      "ordinal": 3,
-      "ownsIdentifier": false,
-      "section": "Events",
-      "text": "## Events"
-    },
-    {
-      "file": "journal/2026-09-15.md",
       "firstLine": 14,
       "identifier": "mecosf",
       "kind": "event",
       "lastLine": 14,
-      "ordinal": 4,
+      "ordinal": 2,
       "ownsIdentifier": true,
       "section": "Events",
       "text": "[[Mert Aksu (iş)|Mert]] ile bütçe değerlendirmesi",
@@ -206,7 +166,7 @@
       "identifier": "ogyr3x",
       "kind": "event",
       "lastLine": 15,
-      "ordinal": 5,
+      "ordinal": 3,
       "ownsIdentifier": true,
       "section": "Events",
       "text": "Tasarım incelemesi",
@@ -218,30 +178,20 @@
       "identifier": "kxwnre",
       "kind": "event",
       "lastLine": 16,
-      "ordinal": 6,
+      "ordinal": 4,
       "ownsIdentifier": true,
       "section": "Events",
       "text": "Market alışverişi yapıldı"
     },
     {
       "file": "journal/2026-09-15.md",
-      "firstLine": 18,
+      "firstLine": 19,
       "kind": "paragraph",
       "lastLine": 19,
-      "ordinal": 7,
+      "ordinal": 5,
       "ownsIdentifier": false,
       "section": "Journal",
-      "text": "## Journal\nGünün büyük bölümü veri tabanı optimizasyonlarıyla geçti. [[Mert Aksu (iş)|Mert]] ile bütçe rakamlarını gözden geçirdik. Akşam evde biraz kitap okudum."
-    },
-    {
-      "file": "journal/2026-09-16.md",
-      "firstLine": 10,
-      "kind": "paragraph",
-      "lastLine": 10,
-      "ordinal": 0,
-      "ownsIdentifier": false,
-      "section": "Tasks",
-      "text": "## Tasks"
+      "text": "Günün büyük bölümü veri tabanı optimizasyonlarıyla geçti. [[Mert Aksu (iş)|Mert]] ile bütçe rakamlarını gözden geçirdik. Akşam evde biraz kitap okudum."
     },
     {
       "file": "journal/2026-09-16.md",
@@ -249,7 +199,7 @@
       "identifier": "k8pk3y",
       "kind": "task",
       "lastLine": 11,
-      "ordinal": 1,
+      "ordinal": 0,
       "ownsIdentifier": true,
       "rawStatus": " ",
       "section": "Tasks",
@@ -258,21 +208,11 @@
     },
     {
       "file": "journal/2026-09-16.md",
-      "firstLine": 13,
-      "kind": "paragraph",
-      "lastLine": 13,
-      "ordinal": 2,
-      "ownsIdentifier": false,
-      "section": "Events",
-      "text": "## Events"
-    },
-    {
-      "file": "journal/2026-09-16.md",
       "firstLine": 14,
       "identifier": "r9oudo",
       "kind": "event",
       "lastLine": 14,
-      "ordinal": 3,
+      "ordinal": 1,
       "ownsIdentifier": true,
       "section": "Events",
       "text": "[[Tepe Spor Salonu]]'nda sabah koşusu",
@@ -284,7 +224,7 @@
       "identifier": "cuzren",
       "kind": "event",
       "lastLine": 15,
-      "ordinal": 4,
+      "ordinal": 2,
       "ownsIdentifier": true,
       "section": "Events",
       "text": "Müşteri görüşmesi",
@@ -296,7 +236,7 @@
       "identifier": "un5z3j",
       "kind": "event",
       "lastLine": 16,
-      "ordinal": 5,
+      "ordinal": 3,
       "ownsIdentifier": true,
       "section": "Events",
       "text": "[[Çınaraltı Kafe]]'de kahve molası",
@@ -304,23 +244,13 @@
     },
     {
       "file": "journal/2026-09-16.md",
-      "firstLine": 18,
+      "firstLine": 19,
       "kind": "paragraph",
       "lastLine": 19,
-      "ordinal": 6,
+      "ordinal": 4,
       "ownsIdentifier": false,
       "section": "Journal",
-      "text": "## Journal\nSabah erken saatte [[Tepe Spor Salonu|salon]] sakindi. Öğleden sonra [[Çınaraltı Kafe]]'de kısa bir mola verip notlarımı toparladım."
-    },
-    {
-      "file": "journal/2026-09-17.md",
-      "firstLine": 9,
-      "kind": "paragraph",
-      "lastLine": 9,
-      "ordinal": 0,
-      "ownsIdentifier": false,
-      "section": "Events",
-      "text": "## Events"
+      "text": "Sabah erken saatte [[Tepe Spor Salonu|salon]] sakindi. Öğleden sonra [[Çınaraltı Kafe]]'de kısa bir mola verip notlarımı toparladım."
     },
     {
       "file": "journal/2026-09-17.md",
@@ -328,7 +258,7 @@
       "identifier": "qip98q",
       "kind": "event",
       "lastLine": 10,
-      "ordinal": 1,
+      "ordinal": 0,
       "ownsIdentifier": true,
       "section": "Events",
       "text": "[[Liman Ofis]] teknik değerlendirme sunumu",
@@ -340,7 +270,7 @@
       "identifier": "1zxoi6",
       "kind": "event",
       "lastLine": 11,
-      "ordinal": 2,
+      "ordinal": 1,
       "ownsIdentifier": true,
       "section": "Events",
       "text": "[[Ece Yalın|Ece]] ile öğle yemeği",
@@ -352,7 +282,7 @@
       "identifier": "5fdhjk",
       "kind": "event",
       "lastLine": 12,
-      "ordinal": 3,
+      "ordinal": 2,
       "ownsIdentifier": true,
       "section": "Events",
       "text": "Kod inceleme oturumu",
@@ -364,20 +294,10 @@
       "identifier": "1eyy37",
       "kind": "event",
       "lastLine": 13,
-      "ordinal": 4,
+      "ordinal": 3,
       "ownsIdentifier": true,
       "section": "Events",
       "text": "Akşam yürüyüşü"
-    },
-    {
-      "file": "journal/2026-09-18.md",
-      "firstLine": 9,
-      "kind": "paragraph",
-      "lastLine": 9,
-      "ordinal": 0,
-      "ownsIdentifier": false,
-      "section": "Tasks",
-      "text": "## Tasks"
     },
     {
       "file": "journal/2026-09-18.md",
@@ -385,7 +305,7 @@
       "identifier": "q9ah8r",
       "kind": "task",
       "lastLine": 10,
-      "ordinal": 1,
+      "ordinal": 0,
       "ownsIdentifier": true,
       "rawStatus": "x",
       "section": "Tasks",
@@ -398,7 +318,7 @@
       "identifier": "vhs1k3",
       "kind": "task",
       "lastLine": 11,
-      "ordinal": 2,
+      "ordinal": 1,
       "ownsIdentifier": true,
       "rawStatus": " ",
       "section": "Tasks",
@@ -411,7 +331,7 @@
       "identifier": "aq6l6g",
       "kind": "task",
       "lastLine": 12,
-      "ordinal": 3,
+      "ordinal": 2,
       "ownsIdentifier": true,
       "rawStatus": "-",
       "section": "Tasks",
@@ -420,21 +340,11 @@
     },
     {
       "file": "journal/2026-09-18.md",
-      "firstLine": 14,
-      "kind": "paragraph",
-      "lastLine": 14,
-      "ordinal": 4,
-      "ownsIdentifier": false,
-      "section": "Events",
-      "text": "## Events"
-    },
-    {
-      "file": "journal/2026-09-18.md",
       "firstLine": 15,
       "identifier": "t6mjxk",
       "kind": "event",
       "lastLine": 15,
-      "ordinal": 5,
+      "ordinal": 3,
       "ownsIdentifier": true,
       "section": "Events",
       "text": "Ekip retrospektif toplantısı",
@@ -446,7 +356,7 @@
       "identifier": "87au5b",
       "kind": "event",
       "lastLine": 16,
-      "ordinal": 6,
+      "ordinal": 4,
       "ownsIdentifier": true,
       "section": "Events",
       "text": "[[Tepe Spor Salonu|salon]] kardiyo seansı",
@@ -454,23 +364,13 @@
     },
     {
       "file": "journal/2026-09-18.md",
-      "firstLine": 18,
+      "firstLine": 19,
       "kind": "paragraph",
       "lastLine": 19,
-      "ordinal": 7,
+      "ordinal": 5,
       "ownsIdentifier": false,
       "section": "Journal",
-      "text": "## Journal\nHaftanın son iş gününü retrospektif ile kapattık. [[Deniz Arıkan]] ile bir sonraki çeyreğin planları üzerine konuştuk."
-    },
-    {
-      "file": "journal/2026-09-19.md",
-      "firstLine": 9,
-      "kind": "paragraph",
-      "lastLine": 9,
-      "ordinal": 0,
-      "ownsIdentifier": false,
-      "section": "Tasks",
-      "text": "## Tasks"
+      "text": "Haftanın son iş gününü retrospektif ile kapattık. [[Deniz Arıkan]] ile bir sonraki çeyreğin planları üzerine konuştuk."
     },
     {
       "file": "journal/2026-09-19.md",
@@ -478,7 +378,7 @@
       "identifier": "hxtpdp",
       "kind": "task",
       "lastLine": 10,
-      "ordinal": 1,
+      "ordinal": 0,
       "ownsIdentifier": true,
       "rawStatus": " ",
       "section": "Tasks",
@@ -491,7 +391,7 @@
       "identifier": "ff5e8i",
       "kind": "task",
       "lastLine": 11,
-      "ordinal": 2,
+      "ordinal": 1,
       "ownsIdentifier": true,
       "rawStatus": "x",
       "section": "Tasks",
@@ -500,21 +400,11 @@
     },
     {
       "file": "journal/2026-09-19.md",
-      "firstLine": 13,
-      "kind": "paragraph",
-      "lastLine": 13,
-      "ordinal": 3,
-      "ownsIdentifier": false,
-      "section": "Events",
-      "text": "## Events"
-    },
-    {
-      "file": "journal/2026-09-19.md",
       "firstLine": 14,
       "identifier": "i49kq7",
       "kind": "event",
       "lastLine": 14,
-      "ordinal": 4,
+      "ordinal": 2,
       "ownsIdentifier": true,
       "section": "Events",
       "text": "[[Baran Tunç|Baran]] ile sahil yürüyüşü",
@@ -526,7 +416,7 @@
       "identifier": "1n8mtz",
       "kind": "event",
       "lastLine": 15,
-      "ordinal": 5,
+      "ordinal": 3,
       "ownsIdentifier": true,
       "section": "Events",
       "text": "[[Çınaraltı Kafe]]'de kitap okuma",
@@ -534,23 +424,13 @@
     },
     {
       "file": "journal/2026-09-19.md",
-      "firstLine": 17,
+      "firstLine": 18,
       "kind": "paragraph",
       "lastLine": 18,
-      "ordinal": 6,
+      "ordinal": 4,
       "ownsIdentifier": false,
       "section": "Journal",
-      "text": "## Journal\nHafta sonu sakin başladı. [[Baran Tunç]] ile sahilde yürüyüp temiz hava aldık. Sonrasında [[Çınaraltı Kafe]]'de saatlerce kitap okudum."
-    },
-    {
-      "file": "journal/2026-09-20.md",
-      "firstLine": 9,
-      "kind": "paragraph",
-      "lastLine": 9,
-      "ordinal": 0,
-      "ownsIdentifier": false,
-      "section": "Tasks",
-      "text": "## Tasks"
+      "text": "Hafta sonu sakin başladı. [[Baran Tunç]] ile sahilde yürüyüp temiz hava aldık. Sonrasında [[Çınaraltı Kafe]]'de saatlerce kitap okudum."
     },
     {
       "file": "journal/2026-09-20.md",
@@ -558,7 +438,7 @@
       "identifier": "x272hp",
       "kind": "task",
       "lastLine": 10,
-      "ordinal": 1,
+      "ordinal": 0,
       "ownsIdentifier": true,
       "rawStatus": " ",
       "section": "Tasks",
@@ -571,7 +451,7 @@
       "identifier": "oevb9o",
       "kind": "task",
       "lastLine": 11,
-      "ordinal": 2,
+      "ordinal": 1,
       "ownsIdentifier": true,
       "rawStatus": "x",
       "section": "Tasks",
@@ -580,21 +460,11 @@
     },
     {
       "file": "journal/2026-09-20.md",
-      "firstLine": 13,
-      "kind": "paragraph",
-      "lastLine": 13,
-      "ordinal": 3,
-      "ownsIdentifier": false,
-      "section": "Events",
-      "text": "## Events"
-    },
-    {
-      "file": "journal/2026-09-20.md",
       "firstLine": 14,
       "identifier": "oaedoe",
       "kind": "event",
       "lastLine": 14,
-      "ordinal": 4,
+      "ordinal": 2,
       "ownsIdentifier": true,
       "section": "Events",
       "text": "[[Ev]]'de dinlenme ve haftalık plan",
@@ -606,7 +476,7 @@
       "identifier": "cve6pr",
       "kind": "event",
       "lastLine": 15,
-      "ordinal": 5,
+      "ordinal": 3,
       "ownsIdentifier": true,
       "section": "Events",
       "text": "[[Ece Yalın]] ile sergi ziyareti",
@@ -614,23 +484,13 @@
     },
     {
       "file": "journal/2026-09-20.md",
-      "firstLine": 17,
+      "firstLine": 18,
       "kind": "paragraph",
       "lastLine": 18,
-      "ordinal": 6,
+      "ordinal": 4,
       "ownsIdentifier": false,
       "section": "Journal",
-      "text": "## Journal\nPazar gününü evde toparlanarak geçirdim. Öğleden sonra [[Ece Yalın|Ece]] ile sergiyi gezdik."
-    },
-    {
-      "file": "journal/2026-09-21.md",
-      "firstLine": 10,
-      "kind": "paragraph",
-      "lastLine": 10,
-      "ordinal": 0,
-      "ownsIdentifier": false,
-      "section": "Tasks",
-      "text": "## Tasks"
+      "text": "Pazar gününü evde toparlanarak geçirdim. Öğleden sonra [[Ece Yalın|Ece]] ile sergiyi gezdik."
     },
     {
       "file": "journal/2026-09-21.md",
@@ -638,7 +498,7 @@
       "identifier": "5n8i4p",
       "kind": "task",
       "lastLine": 11,
-      "ordinal": 1,
+      "ordinal": 0,
       "ownsIdentifier": true,
       "rawStatus": " ",
       "section": "Tasks",
@@ -651,7 +511,7 @@
       "identifier": "40mgg1",
       "kind": "task",
       "lastLine": 12,
-      "ordinal": 2,
+      "ordinal": 1,
       "ownsIdentifier": true,
       "rawStatus": " ",
       "section": "Tasks",
@@ -660,21 +520,11 @@
     },
     {
       "file": "journal/2026-09-21.md",
-      "firstLine": 14,
-      "kind": "paragraph",
-      "lastLine": 14,
-      "ordinal": 3,
-      "ownsIdentifier": false,
-      "section": "Events",
-      "text": "## Events"
-    },
-    {
-      "file": "journal/2026-09-21.md",
       "firstLine": 15,
       "identifier": "w103dg",
       "kind": "event",
       "lastLine": 15,
-      "ordinal": 4,
+      "ordinal": 2,
       "ownsIdentifier": true,
       "section": "Events",
       "text": "[[Liman Ofis]] haftalık koordinasyon",
@@ -686,7 +536,7 @@
       "identifier": "dzvgpm",
       "kind": "event",
       "lastLine": 16,
-      "ordinal": 5,
+      "ordinal": 3,
       "ownsIdentifier": true,
       "section": "Events",
       "text": "[[Deniz Arıkan]] ile mimari değerlendirme",
@@ -698,7 +548,7 @@
       "identifier": "m82i1l",
       "kind": "event",
       "lastLine": 17,
-      "ordinal": 6,
+      "ordinal": 4,
       "ownsIdentifier": true,
       "section": "Events",
       "text": "[[Tepe Spor Salonu]] ağırlık çalışması",
@@ -706,43 +556,44 @@
     },
     {
       "file": "journal/2026-09-21.md",
-      "firstLine": 19,
+      "firstLine": 20,
       "kind": "paragraph",
       "lastLine": 20,
-      "ordinal": 7,
+      "ordinal": 5,
       "ownsIdentifier": false,
       "section": "Journal",
-      "text": "## Journal\nİkinci haftanın başlangıcı yoğun geçti. [[Liman Ofis]]'te yeni teslimat takvimini netleştirdik."
+      "text": "İkinci haftanın başlangıcı yoğun geçti. [[Liman Ofis]]'te yeni teslimat takvimini netleştirdik."
     },
     {
       "file": "journal/2026-09-22.md",
-      "firstLine": 9,
-      "kind": "paragraph",
-      "lastLine": 10,
-      "ordinal": 0,
-      "ownsIdentifier": false,
-      "section": "Journal",
-      "text": "## Journal\nBugün tüm gün odaklanarak çalıştım. Dışarı çıkmadan evde derinlemesine kod analizi ve refactoring yaptım. [[Deniz Arıkan]] ile uzaktan mesajlaşarak API tasarımı üzerinde uzlaştık."
-    },
-    {
-      "file": "journal/2026-09-22.md",
-      "firstLine": 12,
-      "kind": "paragraph",
-      "lastLine": 13,
-      "ordinal": 1,
-      "ownsIdentifier": false,
-      "section": "Journal",
-      "text": "### Akşam\nAkşam saatlerinde [[Okuma Listesi]] içindeki mimari kitabına vakit ayırdım. Sessiz ve verimli bir gün oldu."
-    },
-    {
-      "file": "journal/2026-09-23.md",
       "firstLine": 10,
       "kind": "paragraph",
       "lastLine": 10,
       "ordinal": 0,
       "ownsIdentifier": false,
-      "section": "Tasks",
-      "text": "## Tasks"
+      "section": "Journal",
+      "text": "Bugün tüm gün odaklanarak çalıştım. Dışarı çıkmadan evde derinlemesine kod analizi ve refactoring yaptım. [[Deniz Arıkan]] ile uzaktan mesajlaşarak API tasarımı üzerinde uzlaştık."
+    },
+    {
+      "file": "journal/2026-09-22.md",
+      "firstLine": 12,
+      "headingLevel": 3,
+      "kind": "heading",
+      "lastLine": 12,
+      "ordinal": 1,
+      "ownsIdentifier": false,
+      "section": "Journal",
+      "text": "Akşam"
+    },
+    {
+      "file": "journal/2026-09-22.md",
+      "firstLine": 13,
+      "kind": "paragraph",
+      "lastLine": 13,
+      "ordinal": 2,
+      "ownsIdentifier": false,
+      "section": "Journal",
+      "text": "Akşam saatlerinde [[Okuma Listesi]] içindeki mimari kitabına vakit ayırdım. Sessiz ve verimli bir gün oldu."
     },
     {
       "file": "journal/2026-09-23.md",
@@ -750,7 +601,7 @@
       "identifier": "r3pe29",
       "kind": "task",
       "lastLine": 11,
-      "ordinal": 1,
+      "ordinal": 0,
       "ownsIdentifier": true,
       "rawStatus": "/",
       "section": "Tasks",
@@ -763,7 +614,7 @@
       "identifier": "gd8afp",
       "kind": "task",
       "lastLine": 12,
-      "ordinal": 2,
+      "ordinal": 1,
       "ownsIdentifier": true,
       "rawStatus": "x",
       "section": "Tasks",
@@ -772,21 +623,11 @@
     },
     {
       "file": "journal/2026-09-23.md",
-      "firstLine": 14,
-      "kind": "paragraph",
-      "lastLine": 14,
-      "ordinal": 3,
-      "ownsIdentifier": false,
-      "section": "Events",
-      "text": "## Events"
-    },
-    {
-      "file": "journal/2026-09-23.md",
       "firstLine": 15,
       "identifier": "k054nz",
       "kind": "event",
       "lastLine": 15,
-      "ordinal": 4,
+      "ordinal": 2,
       "ownsIdentifier": true,
       "section": "Events",
       "text": "[[Tepe Spor Salonu|salon]] antrenmanı",
@@ -798,7 +639,7 @@
       "identifier": "dkyayq",
       "kind": "event",
       "lastLine": 16,
-      "ordinal": 5,
+      "ordinal": 3,
       "ownsIdentifier": true,
       "section": "Events",
       "text": "[[Liman Ofis]] ekip toplantısı",
@@ -810,7 +651,7 @@
       "identifier": "3s195j",
       "kind": "event",
       "lastLine": 17,
-      "ordinal": 6,
+      "ordinal": 4,
       "ownsIdentifier": true,
       "section": "Events",
       "text": "[[Selin Korkmaz|Selin]] ile tasarım revizyonu",
@@ -822,7 +663,7 @@
       "identifier": "msnd8d",
       "kind": "event",
       "lastLine": 18,
-      "ordinal": 7,
+      "ordinal": 5,
       "ownsIdentifier": true,
       "section": "Events",
       "text": "[[Mert Aksu]] ile kahve",
@@ -830,23 +671,13 @@
     },
     {
       "file": "journal/2026-09-23.md",
-      "firstLine": 20,
+      "firstLine": 21,
       "kind": "paragraph",
       "lastLine": 21,
-      "ordinal": 8,
+      "ordinal": 6,
       "ownsIdentifier": false,
       "section": "Journal",
-      "text": "## Journal\nÖğleden sonra [[Selin Korkmaz]] ile arayüz akışlarını yeniden çizdik. Akşamüstü eski arkadaşım [[Mert Aksu]] ile karşılaşıp ayaküstü sohbet ettik."
-    },
-    {
-      "file": "journal/2026-09-24.md",
-      "firstLine": 9,
-      "kind": "paragraph",
-      "lastLine": 9,
-      "ordinal": 0,
-      "ownsIdentifier": false,
-      "section": "Tasks",
-      "text": "## Tasks"
+      "text": "Öğleden sonra [[Selin Korkmaz]] ile arayüz akışlarını yeniden çizdik. Akşamüstü eski arkadaşım [[Mert Aksu]] ile karşılaşıp ayaküstü sohbet ettik."
     },
     {
       "file": "journal/2026-09-24.md",
@@ -854,7 +685,7 @@
       "identifier": "udd467",
       "kind": "task",
       "lastLine": 10,
-      "ordinal": 1,
+      "ordinal": 0,
       "ownsIdentifier": true,
       "rawStatus": " ",
       "section": "Tasks",
@@ -867,7 +698,7 @@
       "identifier": "kd6fle",
       "kind": "task",
       "lastLine": 11,
-      "ordinal": 2,
+      "ordinal": 1,
       "ownsIdentifier": true,
       "rawStatus": "x",
       "section": "Tasks",
@@ -876,21 +707,11 @@
     },
     {
       "file": "journal/2026-09-24.md",
-      "firstLine": 13,
-      "kind": "paragraph",
-      "lastLine": 13,
-      "ordinal": 3,
-      "ownsIdentifier": false,
-      "section": "Events",
-      "text": "## Events"
-    },
-    {
-      "file": "journal/2026-09-24.md",
       "firstLine": 14,
       "identifier": "epzhpc",
       "kind": "event",
       "lastLine": 14,
-      "ordinal": 4,
+      "ordinal": 2,
       "ownsIdentifier": true,
       "section": "Events",
       "text": "Kod inceleme",
@@ -902,7 +723,7 @@
       "identifier": "f07uqn",
       "kind": "event",
       "lastLine": 15,
-      "ordinal": 5,
+      "ordinal": 3,
       "ownsIdentifier": true,
       "section": "Events",
       "text": "[[Liman Ofis]] müşteri sunumu",
@@ -914,7 +735,7 @@
       "identifier": "upqzit",
       "kind": "event",
       "lastLine": 16,
-      "ordinal": 6,
+      "ordinal": 4,
       "ownsIdentifier": true,
       "section": "Events",
       "text": "[[Çınaraltı Kafe]]'de çalışma oturumu",
@@ -922,21 +743,11 @@
     },
     {
       "file": "journal/2026-09-25.md",
-      "firstLine": 10,
-      "kind": "paragraph",
-      "lastLine": 10,
-      "ordinal": 0,
-      "ownsIdentifier": false,
-      "section": "Tasks",
-      "text": "## Tasks"
-    },
-    {
-      "file": "journal/2026-09-25.md",
       "firstLine": 11,
       "identifier": "3uea3g",
       "kind": "task",
       "lastLine": 11,
-      "ordinal": 1,
+      "ordinal": 0,
       "ownsIdentifier": true,
       "rawStatus": "x",
       "section": "Tasks",
@@ -949,7 +760,7 @@
       "identifier": "e8n6qi",
       "kind": "task",
       "lastLine": 12,
-      "ordinal": 2,
+      "ordinal": 1,
       "ownsIdentifier": true,
       "rawStatus": " ",
       "section": "Tasks",
@@ -958,21 +769,11 @@
     },
     {
       "file": "journal/2026-09-25.md",
-      "firstLine": 14,
-      "kind": "paragraph",
-      "lastLine": 14,
-      "ordinal": 3,
-      "ownsIdentifier": false,
-      "section": "Events",
-      "text": "## Events"
-    },
-    {
-      "file": "journal/2026-09-25.md",
       "firstLine": 15,
       "identifier": "wepxsk",
       "kind": "event",
       "lastLine": 15,
-      "ordinal": 4,
+      "ordinal": 2,
       "ownsIdentifier": true,
       "section": "Events",
       "text": "Sprint kapanış toplantısı",
@@ -984,7 +785,7 @@
       "identifier": "28t7a9",
       "kind": "event",
       "lastLine": 16,
-      "ordinal": 5,
+      "ordinal": 3,
       "ownsIdentifier": true,
       "section": "Events",
       "text": "[[Deniz Arıkan|Deniz]] ve [[Mert Aksu (iş)|Mert]] ile öğle yemeği",
@@ -996,7 +797,7 @@
       "identifier": "tgiqhg",
       "kind": "event",
       "lastLine": 17,
-      "ordinal": 6,
+      "ordinal": 4,
       "ownsIdentifier": true,
       "section": "Events",
       "text": "[[Tepe Spor Salonu]] yüzme seansı",
@@ -1008,30 +809,20 @@
       "identifier": "9jrsnv",
       "kind": "event",
       "lastLine": 18,
-      "ordinal": 7,
+      "ordinal": 5,
       "ownsIdentifier": true,
       "section": "Events",
       "text": "Akşam alışverişi"
     },
     {
       "file": "journal/2026-09-25.md",
-      "firstLine": 20,
+      "firstLine": 21,
       "kind": "paragraph",
       "lastLine": 21,
-      "ordinal": 8,
+      "ordinal": 6,
       "ownsIdentifier": false,
       "section": "Journal",
-      "text": "## Journal\nHaftayı hedeflenen tüm görevleri tamamlayarak kapattık. [[Tepe Spor Salonu]] yüzme seansından sonra kendimi oldukça zinde hissediyorum."
-    },
-    {
-      "file": "journal/2026-09-26.md",
-      "firstLine": 9,
-      "kind": "paragraph",
-      "lastLine": 9,
-      "ordinal": 0,
-      "ownsIdentifier": false,
-      "section": "Events",
-      "text": "## Events"
+      "text": "Haftayı hedeflenen tüm görevleri tamamlayarak kapattık. [[Tepe Spor Salonu]] yüzme seansından sonra kendimi oldukça zinde hissediyorum."
     },
     {
       "file": "journal/2026-09-26.md",
@@ -1039,7 +830,7 @@
       "identifier": "nq65qd",
       "kind": "event",
       "lastLine": 10,
-      "ordinal": 1,
+      "ordinal": 0,
       "ownsIdentifier": true,
       "section": "Events",
       "text": "[[Baran Tunç]] ile orman parkuru yürüyüşü",
@@ -1051,7 +842,7 @@
       "identifier": "f1rcav",
       "kind": "event",
       "lastLine": 11,
-      "ordinal": 2,
+      "ordinal": 1,
       "ownsIdentifier": true,
       "section": "Events",
       "text": "[[Çınaraltı Kafe]]'de öğle yemeği",
@@ -1063,7 +854,7 @@
       "identifier": "iqk291",
       "kind": "event",
       "lastLine": 12,
-      "ordinal": 3,
+      "ordinal": 2,
       "ownsIdentifier": true,
       "section": "Events",
       "text": "Kitapçı turu",
@@ -1075,7 +866,7 @@
       "identifier": "9ahej8",
       "kind": "event",
       "lastLine": 13,
-      "ordinal": 4,
+      "ordinal": 3,
       "ownsIdentifier": true,
       "section": "Events",
       "text": "[[Ev]]'de film izleme",
@@ -1087,30 +878,20 @@
       "identifier": "cx9j1i",
       "kind": "event",
       "lastLine": 14,
-      "ordinal": 5,
+      "ordinal": 4,
       "ownsIdentifier": true,
       "section": "Events",
       "text": "Gün sonu notları yazıldı"
     },
     {
       "file": "journal/2026-09-26.md",
-      "firstLine": 16,
+      "firstLine": 17,
       "kind": "paragraph",
       "lastLine": 17,
-      "ordinal": 6,
+      "ordinal": 5,
       "ownsIdentifier": false,
       "section": "Journal",
-      "text": "## Journal\nHafta sonu doğa yürüyüşü çok iyi geldi. [[Baran Tunç|Baran]] ile uzun bir rota yürüdük, ardından [[Çınaraltı Kafe]]'de yemek yedik."
-    },
-    {
-      "file": "journal/2026-09-27.md",
-      "firstLine": 6,
-      "kind": "paragraph",
-      "lastLine": 6,
-      "ordinal": 0,
-      "ownsIdentifier": false,
-      "section": "Tasks",
-      "text": "## Tasks"
+      "text": "Hafta sonu doğa yürüyüşü çok iyi geldi. [[Baran Tunç|Baran]] ile uzun bir rota yürüdük, ardından [[Çınaraltı Kafe]]'de yemek yedik."
     },
     {
       "file": "journal/2026-09-27.md",
@@ -1118,7 +899,7 @@
       "identifier": "ctxcwn",
       "kind": "task",
       "lastLine": 7,
-      "ordinal": 1,
+      "ordinal": 0,
       "ownsIdentifier": true,
       "rawStatus": "x",
       "section": "Tasks",
@@ -1131,7 +912,7 @@
       "identifier": "pgw90j",
       "kind": "task",
       "lastLine": 8,
-      "ordinal": 2,
+      "ordinal": 1,
       "ownsIdentifier": true,
       "rawStatus": " ",
       "section": "Tasks",
@@ -1140,21 +921,11 @@
     },
     {
       "file": "journal/2026-09-27.md",
-      "firstLine": 10,
-      "kind": "paragraph",
-      "lastLine": 10,
-      "ordinal": 3,
-      "ownsIdentifier": false,
-      "section": "Events",
-      "text": "## Events"
-    },
-    {
-      "file": "journal/2026-09-27.md",
       "firstLine": 11,
       "identifier": "pkl0bl",
       "kind": "event",
       "lastLine": 11,
-      "ordinal": 4,
+      "ordinal": 2,
       "ownsIdentifier": true,
       "section": "Events",
       "text": "[[Ev]]'de kahvaltı",
@@ -1166,7 +937,7 @@
       "identifier": "v0prkg",
       "kind": "event",
       "lastLine": 12,
-      "ordinal": 5,
+      "ordinal": 3,
       "ownsIdentifier": true,
       "section": "Events",
       "text": "[[Ece Yalın]] ile kütüphane buluşması",
@@ -1174,23 +945,24 @@
     },
     {
       "file": "journal/2026-09-27.md",
-      "firstLine": 14,
+      "firstLine": 15,
       "kind": "paragraph",
       "lastLine": 15,
-      "ordinal": 6,
+      "ordinal": 4,
       "ownsIdentifier": false,
       "section": "Journal",
-      "text": "## Journal\nİki haftalık yoğun dönemin ardından pazar gününü sakin geçirdim. [[Ece Yalın]] ile kütüphanede buluşup araştırma konuları üzerine sohbet ettik."
+      "text": "İki haftalık yoğun dönemin ardından pazar gününü sakin geçirdim. [[Ece Yalın]] ile kütüphanede buluşup araştırma konuları üzerine sohbet ettik."
     },
     {
       "file": "notes/Okuma Listesi.md",
       "firstLine": 5,
-      "kind": "paragraph",
+      "headingLevel": 1,
+      "kind": "heading",
       "lastLine": 5,
       "ordinal": 0,
       "ownsIdentifier": false,
       "section": "other",
-      "text": "# Okuma Listesi"
+      "text": "Okuma Listesi"
     },
     {
       "file": "notes/Okuma Listesi.md",
@@ -1215,12 +987,13 @@
     {
       "file": "notes/Proje Fikirleri.md",
       "firstLine": 1,
-      "kind": "paragraph",
+      "headingLevel": 1,
+      "kind": "heading",
       "lastLine": 1,
       "ordinal": 0,
       "ownsIdentifier": false,
       "section": "other",
-      "text": "# Proje Fikirleri"
+      "text": "Proje Fikirleri"
     },
     {
       "file": "notes/Proje Fikirleri.md",
@@ -1269,12 +1042,13 @@
     {
       "file": "notes/Toplantı Notları.md",
       "firstLine": 1,
-      "kind": "paragraph",
+      "headingLevel": 1,
+      "kind": "heading",
       "lastLine": 1,
       "ordinal": 0,
       "ownsIdentifier": false,
       "section": "other",
-      "text": "# Toplantı Notları"
+      "text": "Toplantı Notları"
     },
     {
       "file": "notes/Toplantı Notları.md",
@@ -1289,12 +1063,13 @@
     {
       "file": "notes/Toplantı Notları.md",
       "firstLine": 5,
-      "kind": "paragraph",
+      "headingLevel": 2,
+      "kind": "heading",
       "lastLine": 5,
       "ordinal": 2,
       "ownsIdentifier": false,
       "section": "other",
-      "text": "## Örnek Format ve Şablon"
+      "text": "Örnek Format ve Şablon"
     },
     {
       "file": "notes/Toplantı Notları.md",
@@ -1319,12 +1094,13 @@
     {
       "file": "notes/Toplantı Notları.md",
       "firstLine": 14,
-      "kind": "paragraph",
+      "headingLevel": 2,
+      "kind": "heading",
       "lastLine": 14,
       "ordinal": 5,
       "ownsIdentifier": false,
       "section": "other",
-      "text": "## Değerlendirme"
+      "text": "Değerlendirme"
     },
     {
       "file": "notes/Toplantı Notları.md",
@@ -1927,10 +1703,11 @@
       "line": 8,
       "ordinal": 0,
       "resolvedFile": "places/Tepe Spor Salonu.md",
-      "target": "Tepe Spor Salonu"
+      "target": "Tepe Spor Salonu",
+      "targetKey": "tepe spor salonu"
     },
     {
-      "block": 2,
+      "block": 1,
       "byteEnd": 20,
       "byteStart": 6,
       "embedded": false,
@@ -1938,10 +1715,11 @@
       "line": 12,
       "ordinal": 0,
       "resolvedFile": "places/Liman Ofis.md",
-      "target": "Liman Ofis"
+      "target": "Liman Ofis",
+      "targetKey": "liman ofis"
     },
     {
-      "block": 4,
+      "block": 2,
       "byteEnd": 22,
       "byteStart": 8,
       "embedded": false,
@@ -1949,10 +1727,11 @@
       "line": 15,
       "ordinal": 1,
       "resolvedFile": "places/Liman Ofis.md",
-      "target": "Liman Ofis"
+      "target": "Liman Ofis",
+      "targetKey": "liman ofis"
     },
     {
-      "block": 5,
+      "block": 3,
       "byteEnd": 31,
       "byteStart": 8,
       "displayText": "Deniz",
@@ -1961,10 +1740,11 @@
       "line": 16,
       "ordinal": 2,
       "resolvedFile": "people/Deniz Arıkan.md",
-      "target": "Deniz Arıkan"
+      "target": "Deniz Arıkan",
+      "targetKey": "deniz arıkan"
     },
     {
-      "block": 6,
+      "block": 4,
       "byteEnd": 34,
       "byteStart": 8,
       "displayText": "salon",
@@ -1973,10 +1753,11 @@
       "line": 17,
       "ordinal": 3,
       "resolvedFile": "places/Tepe Spor Salonu.md",
-      "target": "Tepe Spor Salonu"
+      "target": "Tepe Spor Salonu",
+      "targetKey": "tepe spor salonu"
     },
     {
-      "block": 7,
+      "block": 5,
       "byteEnd": 77,
       "byteStart": 50,
       "displayText": "Deniz abi",
@@ -1985,10 +1766,11 @@
       "line": 20,
       "ordinal": 4,
       "resolvedFile": "people/Deniz Arıkan.md",
-      "target": "Deniz Arıkan"
+      "target": "Deniz Arıkan",
+      "targetKey": "deniz arıkan"
     },
     {
-      "block": 7,
+      "block": 5,
       "byteEnd": 137,
       "byteStart": 117,
       "embedded": false,
@@ -1996,10 +1778,11 @@
       "line": 20,
       "ordinal": 5,
       "resolvedFile": "places/Tepe Spor Salonu.md",
-      "target": "Tepe Spor Salonu"
+      "target": "Tepe Spor Salonu",
+      "targetKey": "tepe spor salonu"
     },
     {
-      "block": 2,
+      "block": 1,
       "byteEnd": 23,
       "byteStart": 6,
       "embedded": false,
@@ -2007,10 +1790,11 @@
       "line": 11,
       "ordinal": 0,
       "resolvedFile": "people/Selin Korkmaz.md",
-      "target": "Selin Korkmaz"
+      "target": "Selin Korkmaz",
+      "targetKey": "selin korkmaz"
     },
     {
-      "block": 4,
+      "block": 2,
       "byteEnd": 32,
       "byteStart": 8,
       "displayText": "Mert",
@@ -2019,10 +1803,11 @@
       "line": 14,
       "ordinal": 1,
       "resolvedFile": "people/Mert Aksu (iş).md",
-      "target": "Mert Aksu (iş)"
+      "target": "Mert Aksu (iş)",
+      "targetKey": "mert aksu (iş)"
     },
     {
-      "block": 7,
+      "block": 5,
       "byteEnd": 92,
       "byteStart": 68,
       "displayText": "Mert",
@@ -2031,10 +1816,11 @@
       "line": 19,
       "ordinal": 2,
       "resolvedFile": "people/Mert Aksu (iş).md",
-      "target": "Mert Aksu (iş)"
+      "target": "Mert Aksu (iş)",
+      "targetKey": "mert aksu (iş)"
     },
     {
-      "block": 1,
+      "block": 0,
       "byteEnd": 21,
       "byteStart": 6,
       "embedded": false,
@@ -2042,10 +1828,11 @@
       "line": 11,
       "ordinal": 0,
       "resolvedFile": "people/Baran Tunç.md",
-      "target": "Baran Tunç"
+      "target": "Baran Tunç",
+      "targetKey": "baran tunç"
     },
     {
-      "block": 3,
+      "block": 1,
       "byteEnd": 28,
       "byteStart": 8,
       "embedded": false,
@@ -2053,10 +1840,11 @@
       "line": 14,
       "ordinal": 1,
       "resolvedFile": "places/Tepe Spor Salonu.md",
-      "target": "Tepe Spor Salonu"
+      "target": "Tepe Spor Salonu",
+      "targetKey": "tepe spor salonu"
     },
     {
-      "block": 5,
+      "block": 3,
       "byteEnd": 29,
       "byteStart": 8,
       "embedded": false,
@@ -2064,10 +1852,11 @@
       "line": 16,
       "ordinal": 2,
       "resolvedFile": "places/Çınaraltı Kafe.md",
-      "target": "Çınaraltı Kafe"
+      "target": "Çınaraltı Kafe",
+      "targetKey": "çınaraltı kafe"
     },
     {
-      "block": 6,
+      "block": 4,
       "byteEnd": 45,
       "byteStart": 19,
       "displayText": "salon",
@@ -2076,10 +1865,11 @@
       "line": 19,
       "ordinal": 3,
       "resolvedFile": "places/Tepe Spor Salonu.md",
-      "target": "Tepe Spor Salonu"
+      "target": "Tepe Spor Salonu",
+      "targetKey": "tepe spor salonu"
     },
     {
-      "block": 6,
+      "block": 4,
       "byteEnd": 92,
       "byteStart": 71,
       "embedded": false,
@@ -2087,10 +1877,11 @@
       "line": 19,
       "ordinal": 4,
       "resolvedFile": "places/Çınaraltı Kafe.md",
-      "target": "Çınaraltı Kafe"
+      "target": "Çınaraltı Kafe",
+      "targetKey": "çınaraltı kafe"
     },
     {
-      "block": 1,
+      "block": 0,
       "byteEnd": 22,
       "byteStart": 8,
       "embedded": false,
@@ -2098,10 +1889,11 @@
       "line": 10,
       "ordinal": 0,
       "resolvedFile": "places/Liman Ofis.md",
-      "target": "Liman Ofis"
+      "target": "Liman Ofis",
+      "targetKey": "liman ofis"
     },
     {
-      "block": 2,
+      "block": 1,
       "byteEnd": 26,
       "byteStart": 8,
       "displayText": "Ece",
@@ -2110,20 +1902,22 @@
       "line": 11,
       "ordinal": 1,
       "resolvedFile": "people/Ece Yalın.md",
-      "target": "Ece Yalın"
+      "target": "Ece Yalın",
+      "targetKey": "ece yalın"
     },
     {
-      "block": 2,
+      "block": 1,
       "byteEnd": 34,
       "byteStart": 6,
       "embedded": false,
       "file": "journal/2026-09-18.md",
       "line": 11,
       "ordinal": 0,
-      "target": "Henüz Yazılmamış Not"
+      "target": "Henüz Yazılmamış Not",
+      "targetKey": "henüz yazılmamış not"
     },
     {
-      "block": 6,
+      "block": 4,
       "byteEnd": 34,
       "byteStart": 8,
       "displayText": "salon",
@@ -2132,10 +1926,11 @@
       "line": 16,
       "ordinal": 1,
       "resolvedFile": "places/Tepe Spor Salonu.md",
-      "target": "Tepe Spor Salonu"
+      "target": "Tepe Spor Salonu",
+      "targetKey": "tepe spor salonu"
     },
     {
-      "block": 7,
+      "block": 5,
       "byteEnd": 73,
       "byteStart": 56,
       "embedded": false,
@@ -2143,10 +1938,11 @@
       "line": 19,
       "ordinal": 2,
       "resolvedFile": "people/Deniz Arıkan.md",
-      "target": "Deniz Arıkan"
+      "target": "Deniz Arıkan",
+      "targetKey": "deniz arıkan"
     },
     {
-      "block": 4,
+      "block": 2,
       "byteEnd": 29,
       "byteStart": 8,
       "displayText": "Baran",
@@ -2155,10 +1951,11 @@
       "line": 14,
       "ordinal": 0,
       "resolvedFile": "people/Baran Tunç.md",
-      "target": "Baran Tunç"
+      "target": "Baran Tunç",
+      "targetKey": "baran tunç"
     },
     {
-      "block": 5,
+      "block": 3,
       "byteEnd": 29,
       "byteStart": 8,
       "embedded": false,
@@ -2166,10 +1963,11 @@
       "line": 15,
       "ordinal": 1,
       "resolvedFile": "places/Çınaraltı Kafe.md",
-      "target": "Çınaraltı Kafe"
+      "target": "Çınaraltı Kafe",
+      "targetKey": "çınaraltı kafe"
     },
     {
-      "block": 6,
+      "block": 4,
       "byteEnd": 43,
       "byteStart": 28,
       "embedded": false,
@@ -2177,10 +1975,11 @@
       "line": 18,
       "ordinal": 2,
       "resolvedFile": "people/Baran Tunç.md",
-      "target": "Baran Tunç"
+      "target": "Baran Tunç",
+      "targetKey": "baran tunç"
     },
     {
-      "block": 6,
+      "block": 4,
       "byteEnd": 119,
       "byteStart": 98,
       "embedded": false,
@@ -2188,10 +1987,11 @@
       "line": 18,
       "ordinal": 3,
       "resolvedFile": "places/Çınaraltı Kafe.md",
-      "target": "Çınaraltı Kafe"
+      "target": "Çınaraltı Kafe",
+      "targetKey": "çınaraltı kafe"
     },
     {
-      "block": 4,
+      "block": 2,
       "byteEnd": 14,
       "byteStart": 8,
       "embedded": false,
@@ -2199,10 +1999,11 @@
       "line": 14,
       "ordinal": 0,
       "resolvedFile": "places/Ev.md",
-      "target": "Ev"
+      "target": "Ev",
+      "targetKey": "ev"
     },
     {
-      "block": 5,
+      "block": 3,
       "byteEnd": 22,
       "byteStart": 8,
       "embedded": false,
@@ -2210,10 +2011,11 @@
       "line": 15,
       "ordinal": 1,
       "resolvedFile": "people/Ece Yalın.md",
-      "target": "Ece Yalın"
+      "target": "Ece Yalın",
+      "targetKey": "ece yalın"
     },
     {
-      "block": 6,
+      "block": 4,
       "byteEnd": 79,
       "byteStart": 61,
       "displayText": "Ece",
@@ -2222,10 +2024,11 @@
       "line": 18,
       "ordinal": 2,
       "resolvedFile": "people/Ece Yalın.md",
-      "target": "Ece Yalın"
+      "target": "Ece Yalın",
+      "targetKey": "ece yalın"
     },
     {
-      "block": 1,
+      "block": 0,
       "byteEnd": 30,
       "byteStart": 6,
       "displayText": "Mert",
@@ -2234,10 +2037,11 @@
       "line": 11,
       "ordinal": 0,
       "resolvedFile": "people/Mert Aksu (iş).md",
-      "target": "Mert Aksu (iş)"
+      "target": "Mert Aksu (iş)",
+      "targetKey": "mert aksu (iş)"
     },
     {
-      "block": 4,
+      "block": 2,
       "byteEnd": 22,
       "byteStart": 8,
       "embedded": false,
@@ -2245,10 +2049,11 @@
       "line": 15,
       "ordinal": 1,
       "resolvedFile": "places/Liman Ofis.md",
-      "target": "Liman Ofis"
+      "target": "Liman Ofis",
+      "targetKey": "liman ofis"
     },
     {
-      "block": 5,
+      "block": 3,
       "byteEnd": 25,
       "byteStart": 8,
       "embedded": false,
@@ -2256,10 +2061,11 @@
       "line": 16,
       "ordinal": 2,
       "resolvedFile": "people/Deniz Arıkan.md",
-      "target": "Deniz Arıkan"
+      "target": "Deniz Arıkan",
+      "targetKey": "deniz arıkan"
     },
     {
-      "block": 6,
+      "block": 4,
       "byteEnd": 28,
       "byteStart": 8,
       "embedded": false,
@@ -2267,10 +2073,11 @@
       "line": 17,
       "ordinal": 3,
       "resolvedFile": "places/Tepe Spor Salonu.md",
-      "target": "Tepe Spor Salonu"
+      "target": "Tepe Spor Salonu",
+      "targetKey": "tepe spor salonu"
     },
     {
-      "block": 7,
+      "block": 5,
       "byteEnd": 61,
       "byteStart": 47,
       "embedded": false,
@@ -2278,7 +2085,8 @@
       "line": 20,
       "ordinal": 4,
       "resolvedFile": "places/Liman Ofis.md",
-      "target": "Liman Ofis"
+      "target": "Liman Ofis",
+      "targetKey": "liman ofis"
     },
     {
       "block": 0,
@@ -2289,10 +2097,11 @@
       "line": 10,
       "ordinal": 0,
       "resolvedFile": "people/Deniz Arıkan.md",
-      "target": "Deniz Arıkan"
+      "target": "Deniz Arıkan",
+      "targetKey": "deniz arıkan"
     },
     {
-      "block": 1,
+      "block": 2,
       "byteEnd": 36,
       "byteStart": 19,
       "embedded": false,
@@ -2300,10 +2109,11 @@
       "line": 13,
       "ordinal": 1,
       "resolvedFile": "notes/Okuma Listesi.md",
-      "target": "Okuma Listesi"
+      "target": "Okuma Listesi",
+      "targetKey": "okuma listesi"
     },
     {
-      "block": 4,
+      "block": 2,
       "byteEnd": 34,
       "byteStart": 8,
       "displayText": "salon",
@@ -2312,10 +2122,11 @@
       "line": 15,
       "ordinal": 0,
       "resolvedFile": "places/Tepe Spor Salonu.md",
-      "target": "Tepe Spor Salonu"
+      "target": "Tepe Spor Salonu",
+      "targetKey": "tepe spor salonu"
     },
     {
-      "block": 5,
+      "block": 3,
       "byteEnd": 22,
       "byteStart": 8,
       "embedded": false,
@@ -2323,10 +2134,11 @@
       "line": 16,
       "ordinal": 1,
       "resolvedFile": "places/Liman Ofis.md",
-      "target": "Liman Ofis"
+      "target": "Liman Ofis",
+      "targetKey": "liman ofis"
     },
     {
-      "block": 6,
+      "block": 4,
       "byteEnd": 31,
       "byteStart": 8,
       "displayText": "Selin",
@@ -2335,10 +2147,11 @@
       "line": 17,
       "ordinal": 2,
       "resolvedFile": "people/Selin Korkmaz.md",
-      "target": "Selin Korkmaz"
+      "target": "Selin Korkmaz",
+      "targetKey": "selin korkmaz"
     },
     {
-      "block": 7,
+      "block": 5,
       "byteEnd": 21,
       "byteStart": 8,
       "embedded": false,
@@ -2346,10 +2159,11 @@
       "line": 18,
       "ordinal": 3,
       "resolvedFile": "people/Mert Aksu.md",
-      "target": "Mert Aksu"
+      "target": "Mert Aksu",
+      "targetKey": "mert aksu"
     },
     {
-      "block": 8,
+      "block": 6,
       "byteEnd": 33,
       "byteStart": 16,
       "embedded": false,
@@ -2357,10 +2171,11 @@
       "line": 21,
       "ordinal": 4,
       "resolvedFile": "people/Selin Korkmaz.md",
-      "target": "Selin Korkmaz"
+      "target": "Selin Korkmaz",
+      "targetKey": "selin korkmaz"
     },
     {
-      "block": 8,
+      "block": 6,
       "byteEnd": 121,
       "byteStart": 108,
       "embedded": false,
@@ -2368,10 +2183,11 @@
       "line": 21,
       "ordinal": 5,
       "resolvedFile": "people/Mert Aksu.md",
-      "target": "Mert Aksu"
+      "target": "Mert Aksu",
+      "targetKey": "mert aksu"
     },
     {
-      "block": 1,
+      "block": 0,
       "byteEnd": 25,
       "byteStart": 6,
       "embedded": false,
@@ -2379,10 +2195,11 @@
       "line": 10,
       "ordinal": 0,
       "resolvedFile": "notes/Proje Fikirleri.md",
-      "target": "Proje Fikirleri"
+      "target": "Proje Fikirleri",
+      "targetKey": "proje fikirleri"
     },
     {
-      "block": 2,
+      "block": 1,
       "byteEnd": 21,
       "byteStart": 6,
       "embedded": false,
@@ -2390,10 +2207,11 @@
       "line": 11,
       "ordinal": 1,
       "resolvedFile": "people/Baran Tunç.md",
-      "target": "Baran Tunç"
+      "target": "Baran Tunç",
+      "targetKey": "baran tunç"
     },
     {
-      "block": 5,
+      "block": 3,
       "byteEnd": 22,
       "byteStart": 8,
       "embedded": false,
@@ -2401,10 +2219,11 @@
       "line": 15,
       "ordinal": 2,
       "resolvedFile": "places/Liman Ofis.md",
-      "target": "Liman Ofis"
+      "target": "Liman Ofis",
+      "targetKey": "liman ofis"
     },
     {
-      "block": 6,
+      "block": 4,
       "byteEnd": 29,
       "byteStart": 8,
       "embedded": false,
@@ -2412,10 +2231,11 @@
       "line": 16,
       "ordinal": 3,
       "resolvedFile": "places/Çınaraltı Kafe.md",
-      "target": "Çınaraltı Kafe"
+      "target": "Çınaraltı Kafe",
+      "targetKey": "çınaraltı kafe"
     },
     {
-      "block": 5,
+      "block": 3,
       "byteEnd": 31,
       "byteStart": 8,
       "displayText": "Deniz",
@@ -2424,10 +2244,11 @@
       "line": 16,
       "ordinal": 0,
       "resolvedFile": "people/Deniz Arıkan.md",
-      "target": "Deniz Arıkan"
+      "target": "Deniz Arıkan",
+      "targetKey": "deniz arıkan"
     },
     {
-      "block": 5,
+      "block": 3,
       "byteEnd": 59,
       "byteStart": 35,
       "displayText": "Mert",
@@ -2436,10 +2257,11 @@
       "line": 16,
       "ordinal": 1,
       "resolvedFile": "people/Mert Aksu (iş).md",
-      "target": "Mert Aksu (iş)"
+      "target": "Mert Aksu (iş)",
+      "targetKey": "mert aksu (iş)"
     },
     {
-      "block": 6,
+      "block": 4,
       "byteEnd": 28,
       "byteStart": 8,
       "embedded": false,
@@ -2447,10 +2269,11 @@
       "line": 17,
       "ordinal": 2,
       "resolvedFile": "places/Tepe Spor Salonu.md",
-      "target": "Tepe Spor Salonu"
+      "target": "Tepe Spor Salonu",
+      "targetKey": "tepe spor salonu"
     },
     {
-      "block": 8,
+      "block": 6,
       "byteEnd": 80,
       "byteStart": 60,
       "embedded": false,
@@ -2458,10 +2281,11 @@
       "line": 21,
       "ordinal": 3,
       "resolvedFile": "places/Tepe Spor Salonu.md",
-      "target": "Tepe Spor Salonu"
+      "target": "Tepe Spor Salonu",
+      "targetKey": "tepe spor salonu"
     },
     {
-      "block": 1,
+      "block": 0,
       "byteEnd": 23,
       "byteStart": 8,
       "embedded": false,
@@ -2469,10 +2293,11 @@
       "line": 10,
       "ordinal": 0,
       "resolvedFile": "people/Baran Tunç.md",
-      "target": "Baran Tunç"
+      "target": "Baran Tunç",
+      "targetKey": "baran tunç"
     },
     {
-      "block": 2,
+      "block": 1,
       "byteEnd": 29,
       "byteStart": 8,
       "embedded": false,
@@ -2480,10 +2305,11 @@
       "line": 11,
       "ordinal": 1,
       "resolvedFile": "places/Çınaraltı Kafe.md",
-      "target": "Çınaraltı Kafe"
+      "target": "Çınaraltı Kafe",
+      "targetKey": "çınaraltı kafe"
     },
     {
-      "block": 4,
+      "block": 3,
       "byteEnd": 14,
       "byteStart": 8,
       "embedded": false,
@@ -2491,10 +2317,11 @@
       "line": 13,
       "ordinal": 2,
       "resolvedFile": "places/Ev.md",
-      "target": "Ev"
+      "target": "Ev",
+      "targetKey": "ev"
     },
     {
-      "block": 6,
+      "block": 5,
       "byteEnd": 68,
       "byteStart": 47,
       "displayText": "Baran",
@@ -2503,10 +2330,11 @@
       "line": 17,
       "ordinal": 3,
       "resolvedFile": "people/Baran Tunç.md",
-      "target": "Baran Tunç"
+      "target": "Baran Tunç",
+      "targetKey": "baran tunç"
     },
     {
-      "block": 6,
+      "block": 5,
       "byteEnd": 130,
       "byteStart": 109,
       "embedded": false,
@@ -2514,10 +2342,11 @@
       "line": 17,
       "ordinal": 4,
       "resolvedFile": "places/Çınaraltı Kafe.md",
-      "target": "Çınaraltı Kafe"
+      "target": "Çınaraltı Kafe",
+      "targetKey": "çınaraltı kafe"
     },
     {
-      "block": 2,
+      "block": 1,
       "byteEnd": 28,
       "byteStart": 6,
       "embedded": false,
@@ -2525,10 +2354,11 @@
       "line": 8,
       "ordinal": 0,
       "resolvedFile": "notes/Toplantı Notları.md",
-      "target": "Toplantı Notları"
+      "target": "Toplantı Notları",
+      "targetKey": "toplantı notları"
     },
     {
-      "block": 4,
+      "block": 2,
       "byteEnd": 14,
       "byteStart": 8,
       "embedded": false,
@@ -2536,10 +2366,11 @@
       "line": 11,
       "ordinal": 1,
       "resolvedFile": "places/Ev.md",
-      "target": "Ev"
+      "target": "Ev",
+      "targetKey": "ev"
     },
     {
-      "block": 5,
+      "block": 3,
       "byteEnd": 22,
       "byteStart": 8,
       "embedded": false,
@@ -2547,10 +2378,11 @@
       "line": 12,
       "ordinal": 2,
       "resolvedFile": "people/Ece Yalın.md",
-      "target": "Ece Yalın"
+      "target": "Ece Yalın",
+      "targetKey": "ece yalın"
     },
     {
-      "block": 6,
+      "block": 4,
       "byteEnd": 88,
       "byteStart": 74,
       "embedded": false,
@@ -2558,7 +2390,8 @@
       "line": 15,
       "ordinal": 3,
       "resolvedFile": "people/Ece Yalın.md",
-      "target": "Ece Yalın"
+      "target": "Ece Yalın",
+      "targetKey": "ece yalın"
     },
     {
       "block": 2,
@@ -2569,7 +2402,8 @@
       "line": 5,
       "ordinal": 0,
       "resolvedFile": "places/Liman Ofis.md",
-      "target": "Liman Ofis"
+      "target": "Liman Ofis",
+      "targetKey": "liman ofis"
     },
     {
       "block": 3,
@@ -2580,7 +2414,8 @@
       "line": 6,
       "ordinal": 1,
       "resolvedFile": "people/Deniz Arıkan.md",
-      "target": "Deniz Arıkan"
+      "target": "Deniz Arıkan",
+      "targetKey": "deniz arıkan"
     },
     {
       "block": 4,
@@ -2591,7 +2426,8 @@
       "line": 8,
       "ordinal": 2,
       "resolvedFile": "notes/Toplantı Notları.md",
-      "target": "Toplantı Notları"
+      "target": "Toplantı Notları",
+      "targetKey": "toplantı notları"
     },
     {
       "block": 6,
@@ -2602,7 +2438,8 @@
       "line": 16,
       "ordinal": 0,
       "resolvedFile": "places/Liman Ofis.md",
-      "target": "Liman Ofis"
+      "target": "Liman Ofis",
+      "targetKey": "liman ofis"
     }
   ]
 }

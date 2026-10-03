@@ -1,6 +1,8 @@
 # Yol haritası
 
-**Aktif aşama:** 0
+**Aktif aşama:** 1
+
+Aşama 0'dan devreden tek madde: iCloud kasa konumu (bundle, iCloud kapsayıcısı ve App Group kimliği kararını bekliyor; yerel kasa ile ilerleniyor).
 
 Kural: Bir aşamanın çıkış ölçütü sağlanmadan sonrakine geçilmez. Her modül gerçek kullanımda sınanır.
 

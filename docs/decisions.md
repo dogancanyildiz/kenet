@@ -83,6 +83,7 @@ Verilen her karar tek satır olarak eklenir. Açık sorular kapandığında altt
 | 2026-10-04 | Varsayılan kasa uygulamanın `Documents/Vault/` klasörüdür; kullanıcı güvenlik kapsamlı yer imiyle başka klasör seçebilir. Bayat yer imi yenilenir, erişilemeyen klasörde yer imi silinmez ve yerel kasaya dönülür; yalnız bozuk veri silinir | Geçici bir hata kullanıcının seçimini kalıcı unutturmamalı |
 | 2026-10-04 | Dosya izleme: dizin başına DispatchSource (en çok 256), 5 saniyelik ön plan zamanlayıcısı ve ön plana dönüş tetiği; 300 ms birleştirme sonrası `refresh`. Yol bazlı `update(paths:)` kullanılmaz | Dizin vnode'u dosya içeriği düzenlemesini göstermez; `refresh` ucuz ve bildirim eksiklerine dayanıklı. FSEvents yalnız macOS'ta var |
 | 2026-10-04 | Uygulama test altında (`XCTestConfigurationFilePath` ya da `JOURNAL_NO_AUTOSTART`) indeksi otomatik başlatmaz | İmzasız test derlemesinde sandbox yok; test, geliştiricinin gerçek `Documents/Vault` klasörüne dokunmamalı |
+| 2026-10-04 | Aşama 0 kapatıldı (iCloud kasa konumu dışında, o madde aşama 1'e devredildi); sürüm kesilmedi. Aşama 1 yerel kasayla başlar | Çıkış ölçütü (örnek kasa okunuyor, indeksleniyor, değişiklikler yansıyor, 210 test geçiyor) sağlandı; iCloud kimlik kararı kullanıcıda, geçici değer kabul etmez |
 
 ## Açık sorular
 

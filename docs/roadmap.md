@@ -17,7 +17,7 @@ Kullanıcıya görünen bir şey yok; her şey bunun üstüne kurulur.
 - [x] SQLite indeksi (GRDB, FTS5) ve dosyalardan yeniden üretme
 - [ ] Kasa konumu: iCloud kapsayıcısı, yerel yedek seçenek
 - [ ] Dosya değişikliklerini izleme ve artımlı yeniden indeksleme
-- [ ] Senkronizasyon çakışmalarını birleştirme
+- [x] Senkronizasyon çakışmalarını birleştirme
 
 **Çıkış ölçütü:** Örnek kasa okunuyor, indeksleniyor, değişiklikler yansıyor, tüm testler geçiyor.
 

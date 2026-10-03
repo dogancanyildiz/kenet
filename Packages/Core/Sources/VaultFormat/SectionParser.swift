@@ -11,17 +11,14 @@ enum SectionParser {
         var fence = FenceScanner()
         for index in start..<lines.count {
             let bytes = lines[index].content
-            let indent = bytes.prefix(while: Syntax.isBlank).count
             if fence.isOpen { fencedBoundaries.insert(index) }
             if fence.consumes(bytes) { continue }
-            let text = Array(bytes.dropFirst(indent))
-            guard indent <= 3, !bytes.prefix(indent).contains(Syntax.tab) else { continue }
-            let level = text.prefix { $0 == Syntax.hash }.count
-            guard (1...6).contains(level), text.count == level || Syntax.isBlank(text[level]) else { continue }
+            guard let level = headingLevel(bytes) else { continue }
             // Deeper headings belong to the current section, rather than splitting it.
             if let active = headings.last, level > 2, level > active.level { continue }
-            let trimmed = bytes.reversed().drop(while: Syntax.isBlank).reversed()
-            let candidate = DaySectionKind.allCases.first { trimmed.elementsEqual(("## " + $0.rawValue).utf8) }
+            let candidate = DaySectionKind.allCases.first {
+                trimmedHeading(bytes).elementsEqual(("## " + $0.rawValue).utf8)
+            }
             let kind = candidate.flatMap { seen.insert($0).inserted ? $0 : nil }
             headings.append((index, level, kind))
         }
@@ -37,5 +34,23 @@ enum SectionParser {
             DaySections(preambleRange: start..<(headings.first?.line ?? lines.count), sections: sections),
             fencedBoundaries
         )
+    }
+
+    /// The level of an ATX heading line outside a fence: at most three spaces, one to six `#`,
+    /// then a blank or the end of the line. `nil` for any other line.
+    static func headingLevel(_ bytes: [UInt8]) -> Int? {
+        let indent = bytes.prefix(while: Syntax.isBlank).count
+        guard indent <= 3, !bytes.prefix(indent).contains(Syntax.tab) else { return nil }
+        let text = bytes.dropFirst(indent)
+        let level = text.prefix { $0 == Syntax.hash }.count
+        guard (1...6).contains(level), text.count == level || Syntax.isBlank(text[text.startIndex + level]) else {
+            return nil
+        }
+        return level
+    }
+
+    /// The heading line without its trailing blanks, which is how headings are compared.
+    static func trimmedHeading(_ bytes: [UInt8]) -> [UInt8] {
+        Array(bytes.reversed().drop(while: Syntax.isBlank).reversed())
     }
 }

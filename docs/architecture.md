@@ -53,13 +53,15 @@ Sorumlulukları:
 - **Varlık tanıma:** Metinde bilinen adları ve takma adları bulma; birden fazla aday varsa bağlama göre (konum, yakınlık, sıklık) sıralama; emin olunamayan durumları arayüze bildirme.
 - **İndeksleyici:** Tam ve artımlı indeksleme.
 - **Sorgular:** Bugün, varlık zaman akışı, zincir hesabı, arama.
-- **Tarih ayrıştırma:** Doğal dil tarih ifadeleri.
+- **Tarih ayrıştırma (`DateParsing`):** Doğal dil tarih ifadeleri.
 
 Kısıt: Yalnızca Foundation ve SQLite katmanı. Bu sayede aynı kod uygulamada, widget'ta ve testlerde çalışır; ileride başka dile çevirmek kolay olur.
 
 Paket hedeflere ayrılır. `VaultFormat` hedefi ayrıştırıcıyı, yazıcıyı, birleştirmeyi ve modelleri taşır; paket bağımlılığı yoktur ve Foundation dışında bir çerçeve kullanmaz. `VaultIndex` hedefi GRDB ve `VaultFormat` üzerine kurulur; dosyalara yazmaz, tam yeniden üretim ve küçük sorgu API’si sunar.
 
 `VaultStore`, uygulamanın kasa dosyalarına yazan tek kapısıdır; aynı kasa kökündeki yazmaları ortak seri bir Foundation işlem kuyruğunda sıralar. Her işlem belgeyi diskten yeniden okur, `VaultFormat` ile düzenler, dosyaya yazar (mevcut dosyayı atomik değiştirir; sabit bağlantı desteklenmiyorsa yeni dosyayı dışlayıcı oluşturur) ve ardından yalnız değişen yolu `VaultIndex` ile günceller; indeks hatası yazılmış dosyayı geri almaz ve `indexUpdateFailed(path:underlying:)` ile dosyanın yazıldığı açıkça bildirilir.
+
+`DateParsing` (Tarih ayrıştırma) yalnız `VaultFormat` importu olan saf metin hedefidir. `DateExpressionParser`, çağıranın yerel günü ve sıralı dil tercihleriyle tek tarih, UTF-8 ifade aralığı, kalan metin ve güven döndürür; Foundation, saat veya dosya erişimi kullanmaz. Çıplak hafta günü bugünden sonraki ilk gündür (bugünse yedi gün sonra); `gelecek/next` bunun sonraki haftası, `bu/this` mevcut haftadaki gündür (geçtiyse sonraki hafta). Varsayılan hafta pazartesiden başlar; `weekStartsOnMonday=false` haftayı ve `next week` sonucunu pazardan başlatır. Hafta sonu cumartesidir, geçtiyse gelecek cumartesiye gider. Yılsız mutlak tarihte bugün dahil en yakın geçerli tarih seçilir; 29 Şubat için sonraki artık yıla kadar aranır. Noktalı yazım gün/ay, eğik çizgi dil sırasına göre Türkçe gün/ay ve İngilizce ay/gündür. Göreli ifadeler ve açık yıl kesin (`exact`); çıplak gün, çıplak hafta sonu ve yılsız mutlak tarih varsayım (`assumed`) taşır. İki yönde de geçerli eğik çizgi yazımı da varsayımdır. İlk konumdaki en uzun geçerli ifade seçilir; eşit uzunlukta dil sırası kullanılır. Sözcük içi, `@` anması, kod ve bağlantı içi taranmaz. İfade çıkarılırken bitişik boşluklar tek birleşme boşluğuna iner; kalan metnin diğer baytları korunur.
 
 `EntityRecognition` yalnız `VaultFormat` bağımlılığı ve importu olan saf metin işleme hedefidir; bilinen kişi ve konumlar ile kullanım verileri çağıran tarafından değer olarak verilir. Dosya okumaz veya yazmaz; tanıma sonucu ve kullanıcı seçimleriyle ürettiği bağlantılı metni çağıran `VaultStore` üzerinden kaydeder.
 

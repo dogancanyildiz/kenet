@@ -52,7 +52,7 @@ Vault/
 
 ## Adlar ve karşılaştırma
 
-- Dosya adları ve adlarla yapılan tüm karşılaştırmalar Unicode NFC'ye normalleştirilir (macOS ve iCloud dosya adlarını farklı biçimde döndürebilir; Türkçe karakterlerde eşleşme hatasına yol açar).
+- Dosya adları ve adlarla yapılan tüm karşılaştırmalar Unicode NFC'ye normalleştirilir (macOS ve iCloud dosya adlarını farklı biçimde döndürebilir; Türkçe karakterlerde eşleşme hatasına yol açar). Bu kural yalnızca dosya ve varlık adlarını kapsar; satırlar ve frontmatter değerleri bayt düzeyinde, normalleştirme yapılmadan karşılaştırılır.
 - Karşılaştırma büyük/küçük harfe duyarsızdır ve cihazın dilinden bağımsızdır: iki ad NFC'ye çevrildikten sonra Unicode'un varsayılan (yerelden bağımsız) küçük harf eşlemesiyle karşılaştırılır. Mac dosya sistemi ve Obsidian büyük/küçük harfe duyarsız, iPhone dosya sistemi duyarlıdır; bu yüzden kural dosya sistemine bırakılmaz.
 - Türkçeye özel eşleme uygulanmaz: `I` ile `i` aynı, `İ` ile `i` ve `I` ile `ı` farklı harflerdir. Örneğin `Işık` ile `işık` aynı ad, `ışık` ise ayrı bir ad sayılır. Uygulamanın yazdığı bağlantılar dosya adını birebir taşıdığı için bu kural yalnızca elle yazılan bağlantıları etkiler.
 - Dosya adları (uzantısız) kasa genelinde benzersizdir. Uygulama kendi oluşturduğu dosyalarda bunu sağlar.
@@ -420,43 +420,51 @@ Uygulama iki sürümü tek içerikte birleştirir. Kopya dosya birleştirildikte
 
 ### Birleştirme işlevi
 
-- Yalnızca iki sürümün içeriğine ve değişiklik zamanlarına bağlıdır; cihazın durumuna ya da indekse bağlı değildir.
-- Sürümlerin veriliş sırası sonucu değiştirmez. Sonucu sürümlerden biriyle yeniden birleştirmek de değiştirmez.
+- Yalnızca iki sürümün içeriğine ve değişiklik zamanlarına bağlıdır; cihazın durumuna ya da indekse bağlı değildir. Değişiklik zamanı tam sayıdır; birimini çağıran belirler.
+- Sürümlerin veriliş sırası sonucu değiştirmez. Sonuç, sürümlerin ikisinden de büyük bir zamanla (birleşmiş dosya sonradan yazılır) sürümlerden biriyle yeniden birleştirilirse içerik değişmez.
 - Böylece iki cihaz aynı çakışmayı ayrı ayrı çözse de aynı içeriğe varır.
-- **Yeni sürüm**, değişiklik zamanı daha büyük olandır; zamanlar eşitse içeriği bayt sırasında büyük olandır.
-- Birleşmiş dosyanın BOM'u ve yeni eklenen satırların satır sonu yeni sürümden alınır; iki sürümden aynen alınan satırlar kendi satır sonlarını korur. Satırlar eşleştirilirken satır sonu biçimi dikkate alınmaz.
+- **Yeni sürüm**, değişiklik zamanı daha büyük olandır; zamanlar eşitse içeriği bayt sırasında büyük olandır. Diğeri **eski sürüm**dür.
+- Bayt bayt aynı iki sürümün sonucu kendileridir; kopya saklanmaz. Yalnızca satır sonu biçimi ya da baştaki BOM'u farklı sürümlerin sonucu yeni sürümdür; kopya saklanmaz.
+- Sürümlerden biri salt okunursa (UTF-8 olarak çözülemiyorsa) birleştirme yapılmaz: sonuç yeni sürümdür, eski sürüm çakışma kopyası olarak saklanır.
+- Birleşmiş dosyanın BOM'u ve yeni eklenen satırların satır sonu yeni sürümden alınır; iki sürümden aynen alınan satırlar kendi satır sonlarını korur. Tek istisna: CR ile biten bir satırın ardına gelen, LF ile biten boş satır CR ile sonlandırılır; yoksa iki bayt tek CRLF okunur ve boş satır kaybolurdu. Satırlar ve değerler eşleştirilirken satır sonu biçimi dikkate alınmaz.
+- **Kayıp yok:** bir sürümdeki herhangi bir içerik (bir blok, boş olmayan bir serbest yazı satırı, bir frontmatter alanı) sonuçta yoksa o sürüm çakışma kopyası olarak saklanır. Tek istisnalar aşağıdaki kurallardır: kapalı görevin açık görevi yenmesindeki durum işareti ve tamamlanma tarihi farkı, iki kapalı görev arasındaki yalnız tamamlanma tarihi farkı, `goals` altında ilerleyen değerin alınması, yalnızca yazımı farklı frontmatter değerleri ve satır sonu biçimi. Denetim bölge bölge ve satır sayılarıyla yapılır: bir bölgedeki serbest yazı satırı ancak sonuçta aynı bölgenin serbest yazısında, en az o kadar sayıda bulunuyorsa var sayılır; frontmatter ya da blok satırı serbest yazı satırının yerine geçmez. İşlev sonucu vermeden önce onu yeniden okuyup bu koşulu ve yapının kurulduğu gibi okunduğunu (frontmatter sınırı, bölgeler, bloklar; örneğin bir sürümdeki kapanmayan kod çiti diğerinin satırlarını yutmamış) kendi üzerinde denetler; denetim tutmazsa birleştirme yapılmamış sayılır: sonuç yeni sürümdür, eski sürüm saklanır. Fazladan kopya zararsızdır, eksik kopya veri kaybıdır.
+
+### Bölgeler
+
+- Gövde (frontmatter'dan sonrası), kod çiti dışındaki birinci ve ikinci düzey başlıklarla bölgelere bölünür. Bölge, başlık satırından bir sonraki böyle başlığa kadar olan satırlardır. Bölgenin anahtarı başlık satırının içeriğidir (sondaki boşluklar hariç); ilk başlıktan önceki kısım başlıksız bölgedir ve her sürümde (boş da olsa) vardır.
+- Aynı anahtar iki sürümde eşleşir; bir sürümde birden çok geçiyorsa sırasıyla eşleşir (birinci birinciyle).
+- **Yalnızca bir sürümde olan bölge** bütünüyle sonuca eklenir. Tanınan bölümler (`## Tasks`, `## Events`, `## Journal` başlıklarının ilk geçenleri) bölüm açma kuralındaki yerine; diğerleri, kendi sürümünde kendisinden önce gelen ve sonuçta bulunan en yakın bölgenin ardına, öyle bir bölge yoksa sona. Eklenen bölgenin önüne, önceki satır boş değilse (frontmatter'ın kapanışı da olabilir), bir boş satır konur; ardından satır geliyorsa ve bölgenin son satırı boş değilse ardına da bir boş satır konur.
+- **İki sürümde de olan bölge** içinde bloklar "Satırlar", serbest yazı "Serbest yazı" kurallarıyla birleşir. Düzen yeni sürümünkidir; serbest yazısı kapsayan taraf yalnızca eski sürümse o bölgede eski sürümün düzeni esas alınır (yeni sürümün bölge sonundaki boş satırı korunur). Yalnızca diğer sürümde bulunan olaylar olay ekleme kuralıyla (saati kendisinden büyük olan ilk saatli olayın önüne, öyle bir olay yoksa bölgenin sonuna; saatsiz olay sona), görevler kendi sıralarıyla bölgenin son boş olmayan satırının ardına eklenir. Mevcut satırların yeri değişmez.
 
 ### Satırlar
 
-- Olay ve görev satırları blok kimliğine göre eşleştirilir. Kimliği olmayan ya da kimliği aynı sürümde birden fazla geçen satırlar, metinleri birebir aynıysa eşleşir.
-- Eşleştirme girintisiz satırlar üzerinden yapılır; altındaki girintili satırlar o satırla birlikte tek blok sayılır.
-- Yalnızca bir sürümde olan satır sonuca eklenir. İki sürümde aynı olan satır tek kez yazılır.
-- Aynı kimlikli satır iki sürümde farklıysa:
-  - Görevlerden biri kapalı (`x`, `-`), diğeri açıksa kapalı olan alınır.
-  - Diğer durumlarda yeni sürümdeki satır alınır.
-  - İki satır arasında durum işareti ve tamamlanma tarihi (`✅`) dışında bir fark varsa, satırı alınmayan sürüm çakışma kopyası olarak saklanır.
+- **Blok**, girintisiz bir olay ya da görev satırı ve altındaki daha girintili satırlardır (bkz. Blok kimliği). Girintisiz bir bloğa ait olmayan girintili görevler, alıntı içindeki görevler ve kod çiti içindeki satırlar serbest yazıdır.
+- Bloklar bölge içinde eşleştirilir; karşılaştırma satır içerikleriyle yapılır. Önce blok kimliğine göre: bir kimlik iki sürümden birinde birden fazla geçiyorsa o kimliği taşıyan bütün satırlar iki sürümde de kimliksiz sayılır. Kimliksiz bloklar, bütün satırlarının içeriği birebir aynıysa eşleşir; aynı blok bir sürümde k, diğerinde m kez geçiyorsa sırayla eşleşir ve sonuçta büyük olan sayı kadar bulunur.
+- Aynı kimlik iki sürümde farklı türdeyse (olay, görev) ya da farklı bölgedeyse farklı satır sayılır: yeni sürümdeki alınır, eski sürümdeki alınmaz ve eski sürüm saklanır.
+- Yalnızca bir sürümde olan blok sonuca eklenir. İki sürümde aynı olan blok tek kez, düzeni esas alınan sürümün satırlarıyla yazılır.
+- Aynı kimlikli blok iki sürümde farklıysa:
+  - Görevlerden biri kapalı (`x`, `-`), diğeri açıksa (` `, `/` ya da tanınmayan karakter) kapalı olan alınır.
+  - Diğer durumlarda yeni sürümdeki alınır.
+  - Bloğu alınmayan sürüm çakışma kopyası olarak saklanır; yalnız iki durumda saklanmaz: (a) kapalı görev açık görevi yenmiş ve normalize metinleri aynıdır; (b) ikisi de kapalı, durum karakterleri aynı ve yalnız tamamlanma tarihi farklıdır. Normalize metin: ilk satırdan kutunun içindeki karakter ve ilk satırın sonunda (kimlikten önce) duran, önündeki tek boşlukla birlikte `✅ YYYY-MM-DD` yazımı çıkarılır; blokların diğer satırları aynen karşılaştırılır. Metnin ortasındaki `✅` tarihi metnin parçasıdır. `/` ile ` `, `x` ile `-` ve tanınmayan karakterler arasındaki fark, her metin farkı gibi, saklanmayı gerektirir. Olaylarda her fark saklanmayı gerektirir.
 
 ### Frontmatter
 
-- Alanlar anahtar bazında birleştirilir; `goals` altındaki kayıtlar da öyle. Yalnızca bir sürümde olan anahtar sonuca eklenir.
-- Değerler anlamca karşılaştırılır: yalnızca yazımı farklı olan değerler (tek satırlı ve çok satırlı liste gibi) aynı sayılır.
-- Aynı `goals` anahtarı iki sürümde farklıysa ilerleyen değer alınır: `false` karşısında `true`, küçük sayı karşısında büyük sayı. Türleri farklıysa yeni sürümdeki değer alınır.
-- Başka bir anahtar iki sürümde farklıysa yeni sürümdeki değer alınır ve diğer sürüm çakışma kopyası olarak saklanır.
+- Alanlar anahtar bazında birleştirilir; yorumlar ve boş satırlar yeni sürümün bloğundan gelir. Eski sürümün bloğundaki boş olmayan bir satır (yorum satırı ya da satır sonu yorumu taşıyan alan satırı) sonucun bloğunda birebir yoksa ve yorumu aynı anahtarın satırında yeniden bulunmuyorsa eski sürüm saklanır. Anahtar sırası yeni sürümünkidir; yalnızca eski sürümde olan anahtarlar, eski sürümdeki sıralarıyla ve satırlarıyla aynen (ham alanlar dahil) kapanış satırının önüne eklenir. Yeni sürümde frontmatter yoksa dosyanın başına yeni blok açılır.
+- Değerler anlamca karşılaştırılır: Yazma kurallarındaki "aynı değer" tanımına uyan değerler aynı sayılır (yalnızca yazımı farklı olanlar: tırnaklı ve tırnaksız metin, `+5` ile `5`, tek satırlı ve çok satırlı liste, tek değer ile tek öğeli liste). Eşlemler kayıt bazında, sıraya bakılmadan; ham alanlar ham metinleriyle karşılaştırılır.
+- `goals` iki sürümde de eşlemse kayıtları da anahtar bazında birleştirilir; yalnızca eski sürümde olan kayıt, eski sürümdeki satırıyla (girintisi yeni sürümün eşlemine uydurularak) son kaydın ardına eklenir. Aynı kayıt iki sürümde farklıysa ilerleyen değer alınır: iki değer de sayıysa büyüğü (kazananın yazımıyla), ikisi de evet/hayırsa `true`. Türleri farklıysa ya da ikisi de başka türdense yeni sürümdeki değer alınır ve eski sürüm saklanır. `goals` iki sürümde de eşlem değilse sıradan anahtar gibi davranır.
+- Başka bir anahtar iki sürümde farklıysa yeni sürümdeki değer alınır ve eski sürüm çakışma kopyası olarak saklanır.
+- İki sürümden birinin bloğu çözülemiyorsa ve blokların satır içerikleri aynı değilse yeni sürümün bloğu aynen alınır ve eski sürüm saklanır. Birleştirilen blok yeniden okununca okunur değilse ya da beklenen alanları taşımıyorsa da öyle yapılır.
 
 ### Serbest yazı
 
-Frontmatter ile olay ve görev satırları dışındaki her şey serbest yazıdır; bölüm bölüm karşılaştırılır.
+Bölgede başlık satırı ve bloklar dışındaki her şey serbest yazıdır; bölge bölge karşılaştırılır. Satırlar içerikleriyle karşılaştırılır; boş satırlar sayılmaz (yalnızca boş satır farkı kopya gerektirmez).
 
 - Bir sürümün yazısı diğerinin tüm satırlarını aynı sırayla içeriyorsa (diğeri yalnızca eksikse) kapsayan sürüm alınır.
-- İki sürüm de farklı yönde değişmişse yeni sürümün yazısı alınır ve diğer sürüm çakışma kopyası olarak saklanır.
-
-### Sıra
-
-Sonuçta yeni sürümün düzeni esas alınır. Yalnızca diğer sürümde bulunan olaylar olay ekleme kuralıyla yerleştirilir; görevler, kendi aralarındaki sırayla, bulundukları bölümün (bölüm yoksa dosyanın) sonuna eklenir.
+- İki sürüm de farklı yönde değişmişse yeni sürümün yazısı alınır ve eski sürüm çakışma kopyası olarak saklanır.
 
 ### Çakışma kopyası
 
-- Kaybeden sürüm bayt bayt aynen `conflicts/` klasörüne yazılır: `conflicts/2026-10-02 (conflict 20261002T110533Z).md`. Addaki zaman, o sürümün UTC değişiklik zamanıdır.
+- Saklanacak sürüm (çoğunlukla eski sürüm; kapalı görev kuralında yeni sürüm de olabilir) bayt bayt aynen `conflicts/` klasörüne yazılır: `conflicts/2026-10-02 (conflict 20261002T110533Z).md`. Addaki zaman, o sürümün UTC değişiklik zamanıdır.
 - `conflicts/` taranmaz: kopyalar indekslenmez, içlerindeki satırlar olay ya da görev sayılmaz.
 - Uygulama kopyaları kullanıcıya gösterir; kullanıcı gerekeni ana dosyaya aldıktan sonra kopyayı siler.
 - Birleştirilmiş içerik ve gerekiyorsa çakışma kopyası yazılmadan hiçbir sürüm silinmez. Hiçbir içerik sessizce kaybolmaz.
@@ -467,5 +475,6 @@ Sonuçta yeni sürümün düzeni esas alınır. Yalnızca diğer sürümde bulun
 
 - Bir cihazda silinen satır geri gelebilir.
 - Geri alınan bir işaret (yeniden açılan görev, kaldırılan hedef işareti, küçültülen sayı) eski haline dönebilir.
+- Bir cihazda yeniden adlandırılan başlık iki bölge olarak geri gelir (eski ad, içindeki bloklar kimlikle eşleşirse boş kalır) ve diğer sürüm saklanır; aynı kimlikli blok farklı bölgelere taşındığında içerik aynı olsa da kopya saklanır. İkisi de kurala uygun, gürültülü sonuçlardır.
 
 Gün dosyaları dışında iCloud'un ayırdığı kopyalar (`Elif 2.md` gibi) kendiliğinden birleştirilmez; kuralı aşama 1'de belirlenir.

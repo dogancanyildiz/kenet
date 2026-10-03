@@ -36,7 +36,7 @@ Kullanıcıya görünen bir şey yok; her şey bunun üstüne kurulur.
 - [ ] Kişi ve konum sayfaları: şablon alanları, serbest ek alanlar, zaman akışı
 - [ ] Günler arasında gezinme
 - [ ] Tam metin arama ve hızlı geçiş
-- [ ] Mac'te kenar çubuklu, telefonda sekmeli düzen
+- [x] Mac'te kenar çubuklu, telefonda sekmeli düzen
 - [ ] Mac'te sistem genelinde kısayolla açılan hızlı giriş penceresi
 
 **Çıkış ölçütü:** İki hafta boyunca her gün bununla günlük tutuluyor.

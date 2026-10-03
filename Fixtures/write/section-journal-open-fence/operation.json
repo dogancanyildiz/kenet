@@ -1,0 +1,7 @@
+{
+  "sections": {
+    "operation": "replace-journal",
+    "text": "```\nSu"
+  },
+  "expectedError": "section-not-writable"
+}

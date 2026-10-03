@@ -3026,6 +3026,182 @@
           }
         }
       }
+    },
+    "Takvim" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Takvim"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calendar"
+          }
+        }
+      }
+    },
+    "Takvim etkinliklerini göstermek için izin ver" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Takvim etkinliklerini göstermek için izin ver"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allow access to show calendar events"
+          }
+        }
+      }
+    },
+    "Tüm gün" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tüm gün"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All day"
+          }
+        }
+      }
+    },
+    "Başlıksız etkinlik" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Başlıksız etkinlik"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Untitled event"
+          }
+        }
+      }
+    },
+    "Takvim etkinlikleri yalnızca gösterilir; takvimine ve günlük dosyalarına yazılmaz." : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Takvim etkinlikleri yalnızca gösterilir; takvimine ve günlük dosyalarına yazılmaz."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calendar events are displayed only; your calendar and journal files are unchanged."
+          }
+        }
+      }
+    },
+    "Takvim erişimine izin verildi." : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Takvim erişimine izin verildi."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calendar access is allowed."
+          }
+        }
+      }
+    },
+    "Takvim erişimi reddedildi. Etkinlikleri göstermek için sistem ayarlarından izin verebilirsin." : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Takvim erişimi reddedildi. Etkinlikleri göstermek için sistem ayarlarından izin verebilirsin."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calendar access was denied. You can allow access in system settings to display events."
+          }
+        }
+      }
+    },
+    "Takvim erişimi bu cihazda kısıtlanmış." : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Takvim erişimi bu cihazda kısıtlanmış."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calendar access is restricted on this device."
+          }
+        }
+      }
+    },
+    "Sistem ayarlarını aç" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sistem ayarlarını aç"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open system settings"
+          }
+        }
+      }
+    },
+    "Takvim izni alınamadı. Yeniden deneyebilirsin." : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Takvim izni alınamadı. Yeniden deneyebilirsin."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could not request calendar access. You can try again."
+          }
+        }
+      }
+    },
+    "Takvim etkinlikleri okunamadı." : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Takvim etkinlikleri okunamadı."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could not read calendar events."
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

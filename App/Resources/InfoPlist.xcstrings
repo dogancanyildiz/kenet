@@ -1,0 +1,22 @@
+{
+  "sourceLanguage" : "tr",
+  "strings" : {
+    "NSCalendarsFullAccessUsageDescription" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bugünün takvim etkinliklerini göstermek için takvim erişimi gerekir. Etkinlikler değiştirilmez."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calendar access is needed to show today's events. Events are never modified."
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

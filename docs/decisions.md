@@ -98,6 +98,8 @@ Verilen her karar tek satır olarak eklenir. Açık sorular kapandığında altt
 | 2026-10-04 | Doğal tarihte çıplak gün adı gelecekteki ilk gün; sayısal eğik çizgide Türkçe gün/ay, İngilizce ay/gün ve dil sırası | Çağıranın yerel günüyle taşınabilir, kullanıcıya gösterilebilir varsayımlar |
 | 2026-10-04 | Hızlı girişte doğal tarih canlı önerilir; ifade gönderim öncesi çıkarılır, bağlantılı görev kutudan tamamlanır | Kullanıcı tarih/yıl ifadesini yazmayı sürdürebilir; anma aralıkları ve kişi/konum bağlantısının dokunma eylemi korunur |
 
+| 2026-10-04 | Takvim erişimi yalnız kullanıcı izin düğmesine bastığında istenir, açılışta istenmez; EventKit verisi salt okunur ve kasa dosyalarına aktarılmaz | Kullanıcı takvimini göstermeyi kendisi seçer; günlük dosyaları gerçek kaynak olmayı sürdürür |
+
 ## Açık sorular
 
 1. **İsim.** İçinde "core" geçecek. Adaylar: Zincore, Ancore, Corenda. Karar ertelendi. Bundle ve iCloud kimliklerinde isim yerine nötr bir kimlik kullanılacak.

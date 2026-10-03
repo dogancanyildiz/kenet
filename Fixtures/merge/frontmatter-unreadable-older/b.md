@@ -1,0 +1,5 @@
+---
+type: journal
+---
+## Journal
+Gün.

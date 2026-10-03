@@ -1,0 +1,5 @@
+## Journal
+Gün.
+
+## Notlar
+Düşünce.

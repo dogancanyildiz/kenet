@@ -96,6 +96,7 @@ Verilen her karar tek satır olarak eklenir. Açık sorular kapandığında altt
 | 2026-10-03 | Mac hızlı giriş: MenuBarExtra + Carbon RegisterEventHotKey, varsayılan ⌃⌥Space (Ayarlar'da kaydedilir); nonactivating NSPanel içinde ortak giriş bileşeni | Erişilebilirlik izni, ek entitlement ve üçüncü taraf paket olmadan, uygulamayı öne getirmeden kayıt |
 | 2026-10-03 | Görev alanları geçerli token aralıklarıyla okunur ve yerinde düzenlenir; ilk yinelenen değer kullanılır, kaldırmada tüm aynı alanlar temizlenir; tamamlama tarihi çağırandan gelir; indeks şeması 3 | Tanınmayan yazımı ve hedef dışındaki baytları korumak, saat bağımlılığını Core format katmanına taşımamak |
 | 2026-10-04 | Doğal tarihte çıplak gün adı gelecekteki ilk gün; sayısal eğik çizgide Türkçe gün/ay, İngilizce ay/gün ve dil sırası | Çağıranın yerel günüyle taşınabilir, kullanıcıya gösterilebilir varsayımlar |
+| 2026-10-04 | Hızlı girişte doğal tarih canlı önerilir; ifade gönderim öncesi çıkarılır, bağlantılı görev kutudan tamamlanır | Kullanıcı tarih/yıl ifadesini yazmayı sürdürebilir; anma aralıkları ve kişi/konum bağlantısının dokunma eylemi korunur |
 
 ## Açık sorular
 

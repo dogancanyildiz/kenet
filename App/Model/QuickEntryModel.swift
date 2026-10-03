@@ -1,3 +1,4 @@
+import DateParsing
 import EntityRecognition
 import Foundation
 import Observation
@@ -15,6 +16,23 @@ final class QuickEntryModel {
         var range: Range<Int>
         let entity: KnownEntity
     }
+
+    enum Mode { case event, task }
+    var mode = Mode.event {
+        didSet {
+            awaitingResolution = false
+            overridesDate = false
+            manualDueDate = nil
+            manualDateIsAssumed = false
+        }
+    }
+    var languages: [DateParsing.Language] =
+        (Bundle.main.preferredLocalizations.first ?? Locale.preferredLanguages.first)?.hasPrefix("tr") == true
+        ? [.turkish, .english] : [.english, .turkish]
+    var overridesDate = false
+    var manualDueDate: CalendarDate?
+    var manualDateIsAssumed = false
+    let today: () -> CalendarDate
 
     let store: IndexStore
     let day: CalendarDate?
@@ -34,7 +52,8 @@ final class QuickEntryModel {
     var pins: [Pin] = []
     var skipped: Set<MentionPosition> = []
 
-    init(store: IndexStore, day: CalendarDate? = nil) {
+    init(store: IndexStore, day: CalendarDate? = nil, today: @escaping () -> CalendarDate = { LocalDay.today() }) {
+        self.today = today
         self.store = store
         self.day = day
         includesTime = day == nil || day == LocalDay.today()
@@ -42,12 +61,12 @@ final class QuickEntryModel {
 
     var isHistorical: Bool { day.map { $0 != LocalDay.today() } ?? false }
     var entryTime: LineClock? {
-        guard includesTime else { return nil }
+        guard mode == .event, includesTime else { return nil }
         return isHistorical ? LocalDay.clock(at: selectedTime) : LocalDay.clock()
     }
 
     var canSubmit: Bool {
-        store.canAddEvent && !isSubmitting && !isCreating && !text.allSatisfy(\.isWhitespace)
+        store.canAddEvent && !isSubmitting && !isCreating && !submissionText.allSatisfy(\.isWhitespace)
     }
 
     var mentions: [Mention] {
@@ -122,6 +141,7 @@ final class QuickEntryModel {
     @discardableResult
     func submit(time: LineClock?) async -> Bool {
         guard canSubmit else { return false }
+        if mode == .task { prepareTaskText() }
         awaitingResolution = true
         guard pendingAmbiguity == nil, pendingUnknown == nil else { return false }
         isSubmitting = true
@@ -130,10 +150,18 @@ final class QuickEntryModel {
         let draft = text
         do {
             let linked = try EntityRecognizer.linking(text, mentions: mentions, choices: choices)
-            let saved = await store.addEvent(
-                on: day ?? LocalDay.today(), text: removingUnboundPrefixes(from: linked), time: time)
+            let saved: Bool
+            if mode == .task {
+                saved = await store.addTask(on: today(), text: removingUnboundPrefixes(from: linked), due: dueDate)
+            } else {
+                saved = await store.addEvent(
+                    on: day ?? LocalDay.today(), text: removingUnboundPrefixes(from: linked), time: time)
+            }
             if saved && text == draft {
                 text = ""
+                overridesDate = false
+                manualDueDate = nil
+                manualDateIsAssumed = false
                 pins = []
                 skipped = []
                 awaitingResolution = false
@@ -174,6 +202,14 @@ final class QuickEntryModel {
 
     private func reconcile(oldText: String) {
         guard oldText != text else { return }
+        if mode == .task {
+            let previous = DateExpressionParser.parse(oldText, today: today(), language: languages)?.date
+            if previous != dateExpression?.date {
+                overridesDate = false
+                manualDueDate = nil
+                manualDateIsAssumed = false
+            }
+        }
         let old = Array(oldText.utf8)
         let new = Array(text.utf8)
         let prefix = zip(old, new).prefix(while: { $0 == $1 }).count

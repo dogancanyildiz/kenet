@@ -8,6 +8,7 @@ struct DayView: View {
     var isToday = false
     @State private var showsJournal = false
 
+    private var taskGroups: TaskGroups { TaskGroups(rows: store.content.tasks, on: date, isToday: isToday) }
     private var day: DaySummary { store.content.day(on: date) }
 
     var body: some View {
@@ -15,7 +16,7 @@ struct DayView: View {
             VStack(alignment: .leading, spacing: 24) {
                 if store.isProcessing && !store.isWriting { ProgressView("İndeks güncelleniyor…") }
                 if let error = store.errorText { Text(verbatim: error).foregroundStyle(.red) }
-                if day.events.isEmpty && day.journal.isEmpty {
+                if day.events.isEmpty && day.journal.isEmpty && taskGroups.isEmpty {
                     Group {
                         if isToday {
                             Text("Bugün henüz bir şey yazılmadı.")
@@ -25,6 +26,8 @@ struct DayView: View {
                     }
                     .foregroundStyle(.secondary)
                 }
+                DayTasksView(store: store, date: date, isToday: isToday)
+                    .id(date.description + (isToday ? "today-tasks" : "day-tasks"))
                 if !day.events.isEmpty {
                     VStack(alignment: .leading, spacing: 16) {
                         Text("Olaylar").font(.headline).accessibilityAddTraits(.isHeader)

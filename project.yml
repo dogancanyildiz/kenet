@@ -45,6 +45,10 @@ targets:
         product: VaultIndex
       - package: Core
         product: VaultStore
+      - package: Core
+        product: EntityRecognition
+      - package: Core
+        product: DateParsing
     settings:
       base:
         PRODUCT_NAME: Journal

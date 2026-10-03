@@ -5,8 +5,13 @@ extension RawDocument {
     }
 
     /// Appends an unchecked task to Tasks, creating that section if necessary.
-    public func addingTask(text: String, id: String) throws(EditError) -> RawDocument {
-        try addLine(text: text, id: id, time: nil, task: true)
+    public func addingTask(
+        text: String, id: String, due: CalendarDate? = nil, start: CalendarDate? = nil,
+        priority: TaskPriority? = nil, project: String? = nil
+    ) throws(EditError) -> RawDocument {
+        try addLine(
+            text: TaskFieldWriter.payload(text, due: due, start: start, priority: priority, project: project),
+            id: id, time: nil, task: true)
     }
 
     /// Replaces only the first-line text and, when supplied, the identifier.
@@ -16,6 +21,9 @@ extension RawDocument {
         var desired = try requireTarget(target)
         let text = try LineParts.clean(text)
         try LineParts.validateID(newID)
+        if let task = bodyLines.tasks.first(where: { $0.block == target }) {
+            return try changingTaskText(of: task, to: text, newID: newID)
+        }
         let parts = LineParts(lines[target.line].content)
         let content = parts.changing(
             lines[target.line].content, range: parts.text,
@@ -25,11 +33,11 @@ extension RawDocument {
         return try rewrite(target, content: content, desired: desired)
     }
 
-    /// Replaces only the checkbox character and, when supplied, the identifier.
+    /// Changes the checkbox and completion date, and optionally assigns an identifier.
     public func changingStatus(
-        of target: TaskLine, to status: TaskStatus, newID: String? = nil
+        of target: TaskLine, to status: TaskStatus, completionDate: CalendarDate? = nil, newID: String? = nil
     ) throws(EditError) -> RawDocument {
-        var desired = try requireTarget(target.block)
+        _ = try requireTarget(target.block)
         guard bodyLines.tasks.contains(target) else { throw .targetNotFound }
         try LineParts.validateID(newID)
         let raw: String
@@ -42,12 +50,18 @@ extension RawDocument {
         }
         let parts = LineParts(lines[target.block.line].content)
         let writtenStatus = status == target.status ? target.rawStatus : raw
-        let content = parts.changing(
-            lines[target.block.line].content, range: parts.status, value: writtenStatus, newID: newID)
-        desired.status = writtenStatus
-        desired.block = LineBlock(
-            lineRange: target.block.lineRange, id: newID ?? target.block.id, text: target.block.text)
-        return try rewrite(target.block, content: content, desired: desired)
+        var edits = [TaskFieldWriter.Edit(range: parts.status!, value: writtenStatus)]
+        var values = target.fields.values
+        if status == .done {
+            guard let date = completionDate ?? target.doneDate else { throw .invalidValue }
+            values.doneDate = date
+            edits += TaskFieldWriter.setting(.doneDate, token: "✅ " + date.description, task: target)
+        } else if status == .todo || status == .inProgress {
+            values.doneDate = nil
+            edits += TaskFieldWriter.setting(.doneDate, token: nil, task: target)
+        }
+        let content = TaskFieldWriter.applying(edits, to: target, newID: newID)
+        return try rewritingTask(target, content: content, values: values, status: writtenStatus, newID: newID)
     }
 
     /// Changes an event's time, moving the complete block only when the rule requires it.
@@ -145,7 +159,8 @@ extension RawDocument {
             origins.insert(nil, at: position)
             let desired = WrittenBlock(
                 block: LineBlock(lineRange: position..<(position + 1), id: id, text: text),
-                time: time?.eventTime, status: task ? " " : nil)
+                time: time?.eventTime, status: task ? " " : nil,
+                task: task ? TaskFieldParser.parse(text, offset: 0).values : nil)
             return try applyBodyLines(
                 [.inserting([content], at: position)], origins: origins, target: nil, desired: desired)
         } else {
@@ -159,7 +174,8 @@ extension RawDocument {
         let start = section != nil ? position : edited.daySections.section(kind)!.headingLine + 1
         let desired = WrittenBlock(
             block: LineBlock(lineRange: start..<(start + 1), id: id, text: text),
-            time: time?.eventTime, status: task ? " " : nil)
+            time: time?.eventTime, status: task ? " " : nil,
+            task: task ? TaskFieldParser.parse(text, offset: 0).values : nil)
         return try validatingLines(
             edited, origins: origins, target: nil, desired: desired, addedSection: section == nil ? kind : nil)
     }

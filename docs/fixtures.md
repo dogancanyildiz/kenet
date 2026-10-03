@@ -178,6 +178,10 @@ Senkronizasyon çakışması birleştirme örnekleri (`vault-format.md`, "Senkro
 
 İstemci her örnekte şunları denetler: iki veriliş sırası da aynı baytları ve aynı saklanacak sürümleri verir; sonuç, `times` değerlerinin ikisinden de büyük bir zamanla iki sürümden her biriyle yeniden birleştirilince baytları değişmez; sonuç okunup yazılınca aynı kalır; işlevin kendi denetiminden bağımsız bir kayıp denetimi tutar (her sürümün blokları, bölge bölge ve sayımlı olarak serbest yazı satırları, frontmatter alanları ve yorum satırları sonuçta vardır ya da o sürüm saklanır; yalnızca kapalı görevin açık görevin yerini alması, iki kapalı görev arasında yalnız `✅` tarihi farkı, `goals` altında ilerleme ve yalnızca yazım farkı kayıp sayılmaz); adında `falls-back` geçmeyen hiçbir örnekte işlev son güvenceye düşmez (`fellBack` yanlıştır). Adlandırma kuralı burada da geçerlidir: adında `crlf`, `cr`, `bom`, `mixed-line-endings`, `no-final-newline`, `invalid-utf8` ya da `read-only` geçen örneğin Markdown dosyalarından en az biri o özelliği taşır.
 
+### `journal/`
+
+Uygulama katmanının günlük yazısı düzenleyicisi için örnek: `journal/edit/input.md` bir gün dosyası, `expected.md` Journal bölümü değiştirildikten sonraki tam dosyadır (frontmatter ve Events bayt bayt aynı kalır). Testi `Tests/JournalTests/JournalEditingTests.swift` çalıştırır.
+
 ## Testlerin klasörü bulması
 
 Swift testleri `Fixtures/` klasörünü test kaynak dosyasından yukarı doğru çıkarak bulur. Paket deponun dışında derleniyorsa `FIXTURES_DIR` ortam değişkeni klasörün yolunu verir.

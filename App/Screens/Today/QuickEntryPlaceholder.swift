@@ -1,18 +1,20 @@
 import EntityRecognition
 import SwiftUI
+import VaultFormat
 import VaultStore
 
 struct QuickEntryBar: View {
     let store: IndexStore
     let isEnabled: Bool
     @State private var model: QuickEntryModel
+    @State private var showsTimePicker = false
     @State private var selection: TextSelection?
     @FocusState private var isFocused: Bool
 
-    init(store: IndexStore, isEnabled: Bool) {
+    init(store: IndexStore, isEnabled: Bool, day: CalendarDate? = nil) {
         self.store = store
         self.isEnabled = isEnabled
-        _model = State(initialValue: QuickEntryModel(store: store))
+        _model = State(initialValue: QuickEntryModel(store: store, day: day))
     }
 
     private var insertionOffset: Int? {
@@ -57,17 +59,41 @@ struct QuickEntryBar: View {
             HStack {
                 TimelineView(.periodic(from: .now, by: 60)) { context in
                     Button {
-                        model.includesTime.toggle()
+                        if model.isHistorical {
+                            showsTimePicker = true
+                        } else {
+                            model.includesTime.toggle()
+                        }
                     } label: {
                         if model.includesTime {
-                            Text(context.date, format: .dateTime.hour().minute())
-                                .monospacedDigit()
+                            Text(
+                                model.isHistorical ? model.selectedTime : context.date,
+                                format: .dateTime.hour().minute()
+                            )
+                            .monospacedDigit()
                         } else {
                             Image(systemName: "clock.badge.xmark")
                         }
                     }
                     .accessibilityLabel(model.includesTime ? Text("Saati kaldır") : Text("Şu anki saati ekle"))
                     .disabled(!isEnabled || store.isWriting)
+                    .popover(isPresented: $showsTimePicker) {
+                        VStack {
+                            DatePicker("Saat", selection: $model.selectedTime, displayedComponents: .hourAndMinute)
+                                .labelsHidden()
+                                .onChange(of: model.selectedTime) { model.includesTime = true }
+                            Button("Saati ekle") {
+                                model.includesTime = true
+                                showsTimePicker = false
+                            }
+                            Button("Saati kaldır") {
+                                model.includesTime = false
+                                showsTimePicker = false
+                            }
+                        }
+                        .padding()
+                        .presentationCompactAdaptation(.popover)
+                    }
                 }
                 TextField("Gününden bir an…", text: $model.text, selection: $selection)
                     .textFieldStyle(.roundedBorder)
@@ -156,7 +182,7 @@ struct QuickEntryBar: View {
         guard isEnabled && model.canSubmit else { return }
         isFocused = true
         Task { @MainActor in
-            await model.submit(time: model.includesTime ? LocalDay.clock() : nil)
+            await model.submit(time: model.entryTime)
             selection = nil
             isFocused = true
         }

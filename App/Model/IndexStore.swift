@@ -110,7 +110,7 @@ final class IndexStore {
 
     /// Returns true once bytes are saved, including a failed index update; callers must not resend them.
     @discardableResult
-    func addEvent(text: String, time: LineClock?) async -> Bool {
+    func addEvent(on day: CalendarDate = LocalDay.today(), text: String, time: LineClock?) async -> Bool {
         guard !text.allSatisfy(\.isWhitespace) else { return false }
         guard canAddEvent, let writer, let index else { return false }
         isProcessing = true
@@ -118,7 +118,7 @@ final class IndexStore {
         entryErrorText = nil
         var saved = false
         do {
-            try await writer.addingEvent(on: LocalDay.today(), text: text, time: time)
+            try await writer.addingEvent(on: day, text: text, time: time)
             saved = true
             let snapshot = try await Task.detached { try index.snapshot() }.value
             content = VaultReadModel(snapshot: snapshot)
@@ -136,6 +136,44 @@ final class IndexStore {
         if pendingRefresh && pendingSelection == nil { await refresh(rebuild: pendingRebuild) }
         await applyPendingSelection()
         return saved
+    }
+
+    /// Disk reads belong to the selected vault, never to the index's paragraph projection.
+    func dayDocument(for day: CalendarDate) async throws -> RawDocument {
+        guard let writer else { throw VaultStoreError.staleTarget }
+        let current = generation
+        let document: RawDocument
+        do { document = try await writer.dayDocument(for: day) } catch CocoaError.fileReadNoSuchFile {
+            document = RawDocument(bytes: [])
+        }
+        guard generation == current else { throw VaultStoreError.staleTarget }
+        guard !document.isReadOnly else { throw EditError.readOnlyDocument }
+        return document
+    }
+
+    /// Shared file-first edit lifecycle. A saved-but-unindexed edit must never be retried.
+    func performEdit(
+        path: String, operation: @Sendable (VaultStore) async throws -> Void
+    ) async throws {
+        guard canAddEvent, let writer, let index else { throw VaultStoreError.staleTarget }
+        isProcessing = true
+        isWriting = true
+        var saved = false
+        var failure: (any Error)?
+        do {
+            try await operation(writer)
+            saved = true
+            let snapshot = try await Task.detached { try index.snapshot() }.value
+            content = VaultReadModel(snapshot: snapshot)
+            counts = IndexCounts(snapshot: snapshot)
+            try await reloadRecognition()
+            lastUpdated = Date()
+        } catch {
+            failure = saved ? VaultStoreError.indexUpdateFailed(path: path, underlying: error) : error
+            if case VaultStoreError.staleTarget = error { pendingRefresh = true }
+        }
+        await finishEntityWrite()
+        if let failure { throw failure }
     }
 
     private func reloadRecognition() async throws {

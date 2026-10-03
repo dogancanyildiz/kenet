@@ -37,7 +37,9 @@ struct VaultReadModel: Sendable {
                     time: row.time.flatMap {
                         RawDocument(bytes: Array("## Events\n- \($0) event".utf8)).bodyLines.events.first?.time
                     },
-                    text: LinkedText(row: row, links: sourceLinks))
+                    text: LinkedText(row: row, links: sourceLinks),
+                    sourceLine: row.firstLine - 1, sourceEnd: row.lastLine,
+                    sourceText: row.text, sourceIdentifier: row.identifier)
             }
             let journal = rows.filter { $0.section == "Journal" && ["paragraph", "heading"].contains($0.kind) }
                 .map { row in
@@ -71,6 +73,10 @@ struct EventRow: Identifiable, Sendable {
     let id: Int
     let time: EventTime?
     let text: LinkedText
+    let sourceLine: Int
+    let sourceEnd: Int
+    let sourceText: String
+    let sourceIdentifier: String?
 }
 
 struct JournalRow: Identifiable, Sendable {

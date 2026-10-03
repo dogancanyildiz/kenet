@@ -17,6 +17,8 @@ final class QuickEntryModel {
     }
 
     let store: IndexStore
+    let day: CalendarDate?
+    var selectedTime = Date()
     var text = "" {
         didSet { reconcile(oldText: oldValue) }
     }
@@ -32,7 +34,17 @@ final class QuickEntryModel {
     var pins: [Pin] = []
     var skipped: Set<MentionPosition> = []
 
-    init(store: IndexStore) { self.store = store }
+    init(store: IndexStore, day: CalendarDate? = nil) {
+        self.store = store
+        self.day = day
+        includesTime = day == nil || day == LocalDay.today()
+    }
+
+    var isHistorical: Bool { day.map { $0 != LocalDay.today() } ?? false }
+    var entryTime: LineClock? {
+        guard includesTime else { return nil }
+        return isHistorical ? LocalDay.clock(at: selectedTime) : LocalDay.clock()
+    }
 
     var canSubmit: Bool {
         store.canAddEvent && !isSubmitting && !isCreating && !text.allSatisfy(\.isWhitespace)
@@ -118,7 +130,8 @@ final class QuickEntryModel {
         let draft = text
         do {
             let linked = try EntityRecognizer.linking(text, mentions: mentions, choices: choices)
-            let saved = await store.addEvent(text: removingUnboundPrefixes(from: linked), time: time)
+            let saved = await store.addEvent(
+                on: day ?? LocalDay.today(), text: removingUnboundPrefixes(from: linked), time: time)
             if saved && text == draft {
                 text = ""
                 pins = []

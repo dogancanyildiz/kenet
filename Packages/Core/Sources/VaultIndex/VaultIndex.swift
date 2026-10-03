@@ -120,10 +120,15 @@ public struct VaultIndex: Sendable {
     }
 
     /// Lists source goal values, optionally restricted to a goal key.
-    public func goalLogs(key: String? = nil) throws -> [IndexedGoalLog] {
+    public func goalLogs(key: String? = nil, from: CalendarDate? = nil, to: CalendarDate? = nil) throws
+        -> [IndexedGoalLog]
+    {
         try database.read {
             try IndexedGoalLog.fetchAll(
-                $0, sql: "SELECT * FROM goal_logs WHERE ? IS NULL OR key=? ORDER BY file,key", arguments: [key, key])
+                $0,
+                sql:
+                    "SELECT * FROM goal_logs WHERE (? IS NULL OR key=?) AND (? IS NULL OR date>=?) AND (? IS NULL OR date<=?) ORDER BY file,key",
+                arguments: [key, key, from?.description, from?.description, to?.description, to?.description])
         }
     }
 

@@ -249,6 +249,12 @@ Bugün genel olarak verimli geçti...
 - **Journal:** Serbest yazı. Uygulamada yazarken tanınan varlık adları bağlantıya çevrilir, başka değişiklik yapılmaz.
 - `goals` altındaki anahtar, hedef dosyasının `key` alanıdır. Değer evet/hayır hedefinde `true`, sayısal hedefte sayıdır.
 
+### Hedef gün kayıtları
+
+- `goals` eşleminde `true` yapıldı, `false` veya anahtarın yokluğu yapılmadı demektir. Sayısal kayıt o günün miktarıdır; `0` ve yokluk ilerleme sağlamaz. Kaldırma ilgili anahtarı siler, `false` yazmaz. Eksik dosyada kaldırma no-op'tur; değer yazılırken gün dosyası `type: journal` ve `date` ile oluşturulur.
+- Yalnız hedef eşlem kaydı değişir; komşu değerler, yorumlar ve gövde baytları korunur. Aynı anlamdaki değer no-op'tur. Eksik `goals` veya değersiz `goals:` açılabilir; ham, skaler, liste veya açık `null` alanına yazma/silme `notAMapping` hatası verir.
+- Miktarlar sonlu, negatif olmayan sayılardır. Negatif, taşan, ham veya tanımla türü uyuşmayan dış kayıtlar korunur ama hesaplara katılmaz. Aynı güne birden fazla kayıt verilirse son kayıt geçerlidir; iki kez toplanmaz. Hesaplar verilen günün sonuna kadarki kayıtları kullanır; gelecek kayıtlar güncel ilerlemeyi/seriyi artırmaz.
+
 ### Bölümler
 
 - Başlık satırı, satır başında en çok üç boşluktan sonra gelen 1 ile 6 arası `#` ve ardından boşluk, sekme ya da satır sonudur. Altı çizili başlıklar tanınmaz. Tanınan bölüm başlığında `##` ile ad arasında tek boşluk bulunur.
@@ -407,6 +413,11 @@ place: "[[Spor Salonu]]"
 | `target` | sayı | Dönem başına hedef (haftada 3 gün, yılda 24 kitap, günde 20 sayfa) |
 | `unit` | metin, isteğe bağlı | Sayısal hedefte birim (sayfa, bardak) |
 | `place` | bağlantı, isteğe bağlı | Aşama 4: konuma girince işaretleme |
+
+- Hafta pazartesi–pazar, yıl 1 Ocak–31 Aralık takvim yılı, günlük dönem tek gündür. Desteklenen aralık kenarında dönem sınırları 0100-01-01 / 9999-12-31 ile kırpılır.
+- `period`: `day`/`week`/`year`; `kind`: `boolean`/`number`; `key` boş olmayan metin; `target` sonlu, sıfırdan büyük sayı. Geçersiz tanımlar korunur ama hesaplanabilir tanımlar listesine alınmaz. Boolean `true` katkısı 1, diğer boolean katkısı 0; sayı katkısı gün miktarıdır. Dönem toplamı ≥ `target` ise dönem başarılıdır. Haftalık boolean 3, haftada üç farklı gün; yıllık sayısal 24, yıl kayıtlarının toplamıdır.
+- Zincir verilen günün döneminden geriye ardışık başarılı dönem sayısıdır. Güncel dönem henüz başarılı değilse önceki dönemden sayılır ve `isPendingToday` bayrağı döner (haftalık/yıllık hedeflerde güncel dönem bekliyor). Başarısız veya kayıtsız dönem zinciri keser. En uzun seri verilen güne kadarki tüm kayıtlardaki en uzun ardışık başarılı dönemdir.
+- Isı haritası iki ucu dahil aralıktaki her gün için işaret verir: boolean `true` tam; `false`/eksik ve sayısal `0` yok; pozitif sayı `target` altında kısmi, eşit/üstünde tam. Haftalık/yıllık başarı ayrı dönem toplamıdır; harita günlük katkıyı gösterir. Açık harita aralığı gelecek kayıtlarını da gösterebilir. Yıl toplamı güncel yılın verilen güne kadarki katkılarıdır; yıllık ilerleme bu toplamı hedef miktarla karşılaştırır.
 
 Zincir, en uzun seri ve ilerleme dosyada tutulmaz; gün dosyalarındaki kayıtlardan hesaplanır.
 

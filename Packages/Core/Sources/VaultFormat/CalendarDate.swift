@@ -10,7 +10,7 @@ public struct CalendarDate: Hashable, Sendable, Comparable, CustomStringConverti
     /// Creates a date, or returns `nil` when that day does not exist in the Gregorian calendar.
     public init?(year: Int, month: Int, day: Int) {
         guard (100...9999).contains(year), (1...12).contains(month) else { return nil }
-        guard (1...Self.dayCount(year: year, month: month)).contains(day) else { return nil }
+        guard (1...Self.daysInMonth(year: year, month: month)).contains(day) else { return nil }
         self.year = year
         self.month = month
         self.day = day
@@ -41,7 +41,7 @@ public struct CalendarDate: Hashable, Sendable, Comparable, CustomStringConverti
         (lhs.year, lhs.month, lhs.day) < (rhs.year, rhs.month, rhs.day)
     }
 
-    private static func dayCount(year: Int, month: Int) -> Int {
+    public static func daysInMonth(year: Int, month: Int) -> Int {
         switch month {
         case 2:
             let isLeapYear = year % 4 == 0 && (year % 100 != 0 || year % 400 == 0)

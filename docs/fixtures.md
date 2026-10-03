@@ -200,6 +200,12 @@ Her klasör `input/` altında küçük girdi kasasını, `expected/` altında ta
 
 `cases.json` doğal tarih ayrıştırmanın dilden bağımsız sözleşmesidir. Her kayıt `today` (ISO gün), `language` (sıralı `tr`/`en` listesi), `input`, `expectedDate` (ISO gün veya `null`), `remainder` (ham kalan metin), `confidence` (`exact`/`assumed` veya `null`), isteğe bağlı `expression` (beklenen özgün ifade) ve `weekStartsOnMonday` (varsayılan true) taşır. Tarih bulunmadığında metin aynen kalır. İfade aralığı özgün ifadenin UTF-8 baytlarıyla bağımsız karşılaştırılır. Örnekler göreli/haftalık/mutlak tarih, geçersiz günler, yıl ve artık yıl sınırları, dil sırası, Türkçe harfler, sözcük sınırı, anma/kod/bağlantı koruması, saatlerin korunması ve silmede boşluk baytlarını kapsar.
 
+### `goals/`
+
+`cases.json` hedef hesaplarının dilden bağımsız sözleşmesidir. Her durum `id`, `definition` (`id`, `key`, `name`, `period`, `kind`, `target`), `logs` (ISO `day`, boolean veya sayı `value`), `today`, iki ucu dahil `heatmapFrom`/`heatmapTo` ve `expected` taşır. Beklenti alanları `done`, `target`, `streak`, `longestStreak`, `isPendingToday`, `yearDone`, `periodStart`, `periodEnd`, `heatmap` (ISO gün → `none`/`partial`/`full`). Beklentiler sözleşmeden bağımsız sabitler olarak yazılır; Swift hesaplarından üretilmez. 38 durum günlük/haftalık/yıllık boolean ve sayı, eşik, boşluk, bugün/dönem bekliyor, pazartesi/pazar, yıl/artık yıl, yinelenen gün, tür uyuşmazlığı ve gelecek kayıtlarını kapsar.
+
+`goals/writes/cases.json`, Store yazma fixture'larını tarif eder: `id`, gün `day`, `key`, `value` (boolean/sayı/null), `input` ve `expected` Markdown yolları. Dosyalar aynı klasördedir; eksik girdi için `input: null` kullanılır. Her işlemin tam çıktı baytları ve artımlı indeksin yeniden üretimle eşitliği sınanır. Örnek kasa mevcut 31 kayıt ve Spor/Kitap/Su tanımlarını korur: Spor 14 ve 21 Eylül 2026 haftalarında üçer günle başarılıdır.
+
 ## Testlerin klasörü bulması
 
 Swift testleri `Fixtures/` klasörünü test kaynak dosyasından yukarı doğru çıkarak bulur. Paket deponun dışında derleniyorsa `FIXTURES_DIR` ortam değişkeni klasörün yolunu verir.

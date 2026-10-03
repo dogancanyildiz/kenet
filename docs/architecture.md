@@ -53,7 +53,7 @@ Sorumlulukları:
 
 Kısıt: Yalnızca Foundation ve SQLite katmanı. Bu sayede aynı kod uygulamada, widget'ta ve testlerde çalışır; ileride başka dile çevirmek kolay olur.
 
-Paket hedeflere ayrılır. `VaultFormat` hedefi ayrıştırıcıyı, yazıcıyı, birleştirmeyi ve modelleri taşır; paket bağımlılığı yoktur ve Foundation dışında bir çerçeve kullanmaz. İndeks ve sorgular SQLite'a bağlanan ayrı bir hedefte kurulur.
+Paket hedeflere ayrılır. `VaultFormat` hedefi ayrıştırıcıyı, yazıcıyı, birleştirmeyi ve modelleri taşır; paket bağımlılığı yoktur ve Foundation dışında bir çerçeve kullanmaz. `VaultIndex` hedefi GRDB ve `VaultFormat` üzerine kurulur; dosyalara yazmaz, tam yeniden üretim ve küçük sorgu API’si sunar.
 
 Varlık tipleri (kişi, konum ve ileride eklenecekler) koda dağılmaz; her tip tek bir veri tanımıdır: tip adı, varsayılan klasör, ayrılmış alanlar. Bu tanımlar şimdilik Core içinde durur ve indeks tipi serbest metin olarak tutar. Özel tipler ve şirket paketi geldiğinde (aşama 7) aynı tanım kasadaki bir şema dosyasından okunur; dosyanın biçimi o zaman `vault-format.md` içinde belirlenir.
 
@@ -62,10 +62,17 @@ Varlık tipleri (kişi, konum ve ileride eklenecekler) koda dağılmaz; her tip 
 - Her cihazda yerel, kasanın dışında, eşitlenmez.
 - Dosyalardan eksiksiz yeniden üretilebilir; bozulursa silinip yeniden kurulur.
 - Şema sürümü veritabanında tutulur. Uygulamanın beklediği sürümle uyuşmuyorsa indeks silinip dosyalardan yeniden kurulur; şema göçü yazılmaz.
-- Taslak tablolar: `files` (yol, değişiklik zamanı, özet), `entities` (tip, ad, takma adlar, alanlar), `blocks` (dosya, dosya içi sıra, tür, metin, tarih, durum, varsa blok kimliği), `links` (kaynak dosya ve blok, hedef ad, çözülen varlık), `goal_logs` (anahtar, tarih, değer), `search` (FTS5).
-- Bloğun anahtarı dosya ve dosya içi sıradır; blok kimliği isteğe bağlı bir sütundur. Kimliksiz satırlar, günlük paragrafları ve frontmatter'daki bağlantılar da blok ve bağlantı kaynağı olarak indekslenir.
-- Hedefi henüz kasada olmayan bağlantı da tutulur; varlık oluştuğunda çözülür.
-- Artımlı güncelleme: açılışta ve dosya değişiminde yalnızca özeti değişen dosyalar yeniden işlenir.
+- `files`: NFC yol birincil anahtarı; tür, gün tarihi, değişiklik zamanı, bayt boyutu, SHA-256 ve UTF-8 okunabilirliği.
+- `entities`: dosya anahtarı; tip, görünen ad, ayırt edici, karşılaştırma anahtarı ve hedef alanları. `aliases`: dosya + sıra anahtarı; takma ad ve karşılaştırma anahtarı.
+- `blocks`: dosya + sıfır tabanlı sıra anahtarı; tür, bir tabanlı dahil satır aralığı, metin, bölüm, saat, görev durumu ve ham durum, isteğe bağlı kimlik ve sahiplik. Sahip kimlikler benzersiz kısmi indeksle korunur.
+- `links`: kaynak dosya + sıra anahtarı; kaynak blok ya da frontmatter anahtarı/kaydı, fiziksel satır ve bayt aralığı, hedef, çapa türü/metni, görünen metin, gömme ve çözülen dosya. Çözülemeyen hedef `NULL` kalır.
+- `goal_logs`: dosya + hedef anahtarı; gün, değer türü ve kaynak değer yazımı. Boolean değerler `true`/`false`, sayılar kaynak yazımı, diğer türler ham yazım taşır.
+- `search`: FTS5; blok metinleri, varlık adları ve takma adlar; `unicode61 remove_diacritics 0`. Dosya ve blok sütunları aranmaz.
+- `PRAGMA user_version = 1`; farklı sürümde tüm indeks tabloları silinip güncel boş şema kurulur. Çağıran `rebuild(vaultRoot:)` ile dosyalardan doldurur; göç yapılmaz.
+- Karşılaştırma anahtarı ve bağlantı çözümü `VaultIndex` içinde yapılır: NFC + yerelden bağımsız Unicode küçük harf. Boş hedef kaynağa, `/` içeren hedef köke göre uzantısız yola, diğer hedefler uzantısız dosya adına gider. Çakışmada kod noktası sırasındaki ilk yol kazanır; `name` ve `aliases` yalnız varlık aramasında kullanılır.
+- Tam yeniden üretim tek GRDB işlemi içinde tarar ve doldurur; hata eski içeriği korur. Geçersiz UTF-8 dosya yalnız `files` satırı üretir; okuma, tarama ve veritabanı hataları fırlatılır. Sembolik bağlantılar kasa dışına çıkmayı ve döngüyü engellemek için reddedilir; aynı NFC yola normalleşen iki fiziksel dosya da açık hatadır.
+- Paragraf, olay/görev aralıkları dışındaki ardışık boş olmayan gövde satırlarıdır; bölüm başlıkları ve kod çitleri metin olarak dahildir. Bölüm sınırında yeni paragraf başlar; tanınmayan bölüm ve ön içerik `other` taşır. İç içe görevlerin bağlantısı en içteki bloğa bağlanır.
+- Sonraki yol haritası maddesinde artımlı güncelleme: açılışta ve dosya değişiminde yalnızca özeti değişen dosyalar yeniden işlenir.
 
 ## Senkronizasyon
 

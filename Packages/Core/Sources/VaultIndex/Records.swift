@@ -1,0 +1,102 @@
+import Foundation
+import GRDB
+
+/// A scanned Markdown file; invalid UTF-8 is recorded without content rows.
+public struct IndexedFile: Codable, FetchableRecord, Sendable, Equatable {
+    public let path: String
+    public let kind: String
+    public let date: String?
+    public let modified: Double
+    public let size: Int
+    public let digest: String
+    public let readable: Bool
+}
+
+/// A named person, place or goal, with its source fields.
+public struct IndexedEntity: Codable, FetchableRecord, Sendable, Equatable {
+    public let file: String
+    public let kind: String
+    public let name: String
+    public let qualifier: String?
+    public let comparisonKey: String
+    public let goalKey: String?
+    public let period: String?
+    public let goalKind: String?
+    public let target: String?
+    public let unit: String?
+}
+
+/// A source alias, in frontmatter order.
+public struct IndexedAlias: Codable, FetchableRecord, Sendable, Equatable {
+    public let file: String
+    public let ordinal: Int
+    public let name: String
+    public let comparisonKey: String
+}
+
+/// A source block; line numbers are one-based and inclusive.
+public struct IndexedBlock: Codable, FetchableRecord, Sendable, Equatable {
+    public let file: String
+    public let ordinal: Int
+    public let kind: String
+    public let firstLine: Int
+    public let lastLine: Int
+    public let text: String
+    public let section: String
+    public let time: String?
+    public let status: String?
+    public let rawStatus: String?
+    public let identifier: String?
+    public let ownsIdentifier: Bool
+}
+
+/// A wikilink with its physical source and optional resolved file.
+public struct IndexedLink: Codable, FetchableRecord, Sendable, Equatable {
+    public let file: String
+    public let ordinal: Int
+    public let block: Int?
+    public let line: Int
+    public let byteStart: Int
+    public let byteEnd: Int
+    public let key: String?
+    public let entry: String?
+    public let target: String
+    public let anchorKind: String?
+    public let anchor: String?
+    public let displayText: String?
+    public let embedded: Bool
+    public let resolvedFile: String?
+}
+
+/// A day frontmatter goal value, preserving its source spelling.
+public struct IndexedGoalLog: Codable, FetchableRecord, Sendable, Equatable {
+    public let file: String
+    public let key: String
+    public let date: String
+    public let kind: String
+    public let value: String
+}
+
+/// A full-text match in a block, entity name or alias.
+public struct SearchMatch: Codable, FetchableRecord, Sendable, Equatable {
+    public let file: String
+    public let block: Int?
+    public let text: String
+}
+
+/// A portable, ordered snapshot, excluding filesystem metadata and digests.
+public struct IndexSnapshot: Codable, Sendable, Equatable {
+    /// The source-derived file identity and classification.
+    public struct File: Codable, Sendable, Equatable {
+        public let path: String
+        public let kind: String
+        public let date: String?
+        public let readable: Bool
+    }
+    public let files: [File]
+    public let entities: [IndexedEntity]
+    public let aliases: [IndexedAlias]
+    public let blocks: [IndexedBlock]
+    public let links: [IndexedLink]
+    public let goalLogs: [IndexedGoalLog]
+}

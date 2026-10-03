@@ -1,5 +1,4 @@
 # Bağımlılık güncellemeleri. Haftada bir, ekosistem başına tek PR.
-# Swift paketleri, Core ilk bağımlılığını (GRDB) aldığında eklenecek.
 version: 2
 updates:
   - package-ecosystem: github-actions
@@ -9,5 +8,11 @@ updates:
     groups:
       actions:
         patterns: ["*"]
+    commit-message:
+      prefix: "chore"
+  - package-ecosystem: swift
+    directory: /Packages/Core
+    schedule:
+      interval: weekly
     commit-message:
       prefix: "chore"

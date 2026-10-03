@@ -4,7 +4,9 @@ enum SectionParser {
         scan(lines, startingAt: start).sections
     }
 
-    static func scan(_ lines: [RawLine], startingAt start: Int) -> (sections: DaySections, fencedBoundaries: Set<Int>) {
+    static func scan(_ lines: [RawLine], startingAt start: Int, includingNested: Bool = false) -> (
+        sections: DaySections, fencedBoundaries: Set<Int>
+    ) {
         var fencedBoundaries: Set<Int> = []
         var headings: [(line: Int, level: Int, kind: DaySectionKind?)] = []
         var seen: Set<DaySectionKind> = []
@@ -19,7 +21,7 @@ enum SectionParser {
             let level = text.prefix { $0 == Syntax.hash }.count
             guard (1...6).contains(level), text.count == level || Syntax.isBlank(text[level]) else { continue }
             // Deeper headings belong to the current section, rather than splitting it.
-            if let active = headings.last, level > 2, level > active.level { continue }
+            if !includingNested, let active = headings.last, level > 2, level > active.level { continue }
             let trimmed = bytes.reversed().drop(while: Syntax.isBlank).reversed()
             let candidate = DaySectionKind.allCases.first { trimmed.elementsEqual(("## " + $0.rawValue).utf8) }
             let kind = candidate.flatMap { seen.insert($0).inserted ? $0 : nil }

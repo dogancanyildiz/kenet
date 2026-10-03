@@ -3,8 +3,9 @@ import GRDB
 import VaultFormat
 
 enum IndexBuilder {
-    static func insert(file: String, data: Data, modified: Double, db: Database, owners: inout Set<String>) throws {
-        let document = RawDocument(bytes: data)
+    static func insert(
+        file: String, data: Data, document: RawDocument, modified: Double, db: Database, owners: inout Set<String>
+    ) throws {
         let frontmatter: Frontmatter?
         if case .parsed(let parsed) = document.frontmatter { frontmatter = parsed } else { frontmatter = nil }
         func scalar(_ key: String) -> String? {
@@ -15,13 +16,17 @@ enum IndexBuilder {
         let basename = (stem as NSString).lastPathComponent
         let date = file == "journal/" + basename + ".md" ? CalendarDate(basename)?.description : nil
         let type = scalar("type") ?? "note"
-        let kind = date != nil ? "day" : (["person", "place", "goal"].contains(type) ? type : "note")
+        let kind =
+            !document.isValidUTF8
+            ? "note" : (date != nil ? "day" : (["person", "place", "goal"].contains(type) ? type : "note"))
         try db.execute(
             sql: "INSERT INTO files VALUES (?,?,?,?,?,?,?)",
             arguments: [file, kind, date, modified, data.count, ByteDigest.hex(data), document.isValidUTF8])
         guard document.isValidUTF8 else { return }
         if ["person", "place", "goal"].contains(kind) {
-            let name = scalar("name") ?? basename
+            let sourceName = scalar("name")
+            let name =
+                sourceName.flatMap { $0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : $0 } ?? basename
             try db.execute(
                 sql: "INSERT INTO entities VALUES (?,?,?,?,?,?,?,?,?,?)",
                 arguments: [
@@ -69,6 +74,7 @@ enum IndexBuilder {
         var time: String? = nil
         var status: String? = nil
         var rawStatus: String? = nil
+        var headingLevel: Int? = nil
     }
 
     private static func insertBlocks(document: RawDocument, file: String, db: Database, owners: inout Set<String>)
@@ -91,7 +97,17 @@ enum IndexBuilder {
                     identifier: $0.block.id, status: $0.status.rawValue, rawStatus: $0.rawStatus)
             }
         let occupied = Set(blocks.flatMap { Array($0.range) })
-        let headings = Set(sections.map(\.headingLine))
+        let recognized = Set(sections.filter { $0.kind != nil }.map(\.headingLine))
+        let sourceHeadings = document.bodyHeadings
+        let headings = Set(sourceHeadings.map(\.line))
+        for heading in sourceHeadings where !recognized.contains(heading.line) {
+            let text = (document.lines[heading.line].text ?? "").trimmingCharacters(in: .whitespaces)
+            let title = String(text.dropFirst(heading.level)).trimmingCharacters(in: .whitespaces)
+            blocks.append(
+                Block(
+                    range: heading.line..<(heading.line + 1), kind: "heading", text: title,
+                    headingLevel: heading.level))
+        }
         var start: Int?
         func flush(_ end: Int) {
             if let first = start {
@@ -105,7 +121,7 @@ enum IndexBuilder {
         for line in (document.frontmatterLineRange?.upperBound ?? 0)..<document.lines.count {
             let text = document.lines[line].text ?? ""
             if headings.contains(line) { flush(line) }
-            if occupied.contains(line)
+            if occupied.contains(line) || headings.contains(line)
                 || text.trimmingCharacters(in: .whitespaces).isEmpty
             {
                 flush(line)
@@ -118,22 +134,24 @@ enum IndexBuilder {
         for (ordinal, block) in blocks.enumerated() {
             let owns = block.identifier.map { owners.insert($0).inserted } ?? false
             try db.execute(
-                sql: "INSERT INTO blocks VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+                sql: "INSERT INTO blocks VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
                 arguments: [
                     file, ordinal, block.kind, block.range.lowerBound + 1, block.range.upperBound,
                     block.text, section(block.range.lowerBound), block.time, block.status, block.rawStatus,
-                    block.identifier, owns,
+                    block.identifier, block.headingLevel, owns,
                 ])
             try search(file: file, block: ordinal, text: block.text, db: db)
         }
     }
 
     private static func search(file: String, block: Int?, text: String, db: Database) throws {
-        try db.execute(sql: "INSERT INTO search (file,block,text) VALUES (?,?,?)", arguments: [file, block, text])
+        try db.execute(
+            sql: "INSERT INTO search (file,block,text) VALUES (?,?,?)",
+            arguments: [file, block, text.precomposedStringWithCanonicalMapping])
     }
 
     static func insertLinks(
-        document: RawDocument, file: String, names: [String: String], paths: [String: String], db: Database
+        document: RawDocument, file: String, db: Database
     ) throws {
         for (ordinal, link) in document.links.enumerated() {
             let key: String?
@@ -168,12 +186,12 @@ enum IndexBuilder {
                 anchorKind = nil
                 anchor = nil
             }
-            let resolved = link.isSameFile ? file : (link.isPath ? paths : names)[comparisonKey(link.target)]
+            let targetKey = comparisonKey(normalizedLinkTarget(link.target))
             try db.execute(
-                sql: "INSERT INTO links VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                sql: "INSERT INTO links VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                 arguments: [
                     file, ordinal, block, link.line + 1, link.byteRange.lowerBound, link.byteRange.upperBound,
-                    key, entry, link.target, anchorKind, anchor, link.displayText, link.isEmbedded, resolved,
+                    key, entry, link.target, targetKey, anchorKind, anchor, link.displayText, link.isEmbedded, nil,
                 ])
         }
     }

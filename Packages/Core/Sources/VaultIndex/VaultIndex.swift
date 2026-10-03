@@ -10,25 +10,23 @@ public struct VaultIndex: Sendable {
     /// Opens an in-memory index, or a caller-supplied database outside the vault.
     public init(databaseURL: URL? = nil) throws {
         self.databaseURL = databaseURL
-        database = try databaseURL.map { try DatabaseQueue(path: $0.path) } ?? DatabaseQueue()
-        let version = try database.read { try Int.fetchOne($0, sql: "PRAGMA user_version") ?? 0 }
-        if version != IndexSchema.version { try database.erase() }
-        try database.write { db in try IndexSchema.prepare(db) }
+        database = try IndexDatabase.open(databaseURL)
     }
 
     /// Replaces all indexed content in one transaction. A failure leaves the previous content intact.
-    public func rebuild(vaultRoot: URL) throws {
+    @discardableResult
+    public func rebuild(vaultRoot: URL) throws -> RebuildResult {
         if let databaseURL {
             let root = vaultRoot.resolvingSymlinksInPath().standardizedFileURL.path
             let path = databaseURL.resolvingSymlinksInPath().standardizedFileURL.path
             guard path != root && !path.hasPrefix(root + "/") else { throw VaultIndexError.databaseInsideVault }
         }
-        try database.write { db in
+        return try database.write { db in
             for table in ["search", "links", "goal_logs", "aliases", "entities", "blocks", "files"] {
                 try db.execute(sql: "DELETE FROM " + table)
             }
-            let files = try VaultScanner.scan(vaultRoot)
-            var documents: [(String, RawDocument)] = []
+            let scan = try VaultScanner.scan(vaultRoot)
+            let files = scan.files
             var owners: Set<String> = []
             var names: [String: String] = [:]
             var paths: [String: String] = [:]
@@ -38,17 +36,29 @@ public struct VaultIndex: Sendable {
                 if names[comparisonKey(basename)] == nil { names[comparisonKey(basename)] = file.path }
                 if paths[comparisonKey(stem)] == nil { paths[comparisonKey(stem)] = file.path }
                 let data = try Data(contentsOf: file.url)
-                documents.append((file.path, RawDocument(bytes: data)))
+                let document = RawDocument(bytes: data)
                 let metadata = try file.url.resourceValues(forKeys: [.contentModificationDateKey])
                 try IndexBuilder.insert(
-                    file: file.path, data: data,
+                    file: file.path, data: data, document: document,
                     modified: metadata.contentModificationDate?.timeIntervalSince1970 ?? 0,
                     db: db, owners: &owners)
+                if document.isValidUTF8 {
+                    try IndexBuilder.insertLinks(document: document, file: file.path, db: db)
+                }
             }
-            for (path, document) in documents {
-                guard document.isValidUTF8 else { continue }
-                try IndexBuilder.insertLinks(document: document, file: path, names: names, paths: paths, db: db)
+            let links = try Row.fetchCursor(
+                db, sql: "SELECT file,ordinal,target,targetKey FROM links ORDER BY file,ordinal")
+            while let link = try links.next() {
+                let file: String = link["file"]
+                let ordinal: Int = link["ordinal"]
+                let target: String = link["target"]
+                let targetKey: String = link["targetKey"]
+                let resolved = target.isEmpty ? file : (target.contains("/") ? paths : names)[targetKey]
+                try db.execute(
+                    sql: "UPDATE links SET resolvedFile=? WHERE file=? AND ordinal=?",
+                    arguments: [resolved, file, ordinal])
             }
+            return scan.result
         }
     }
 
@@ -95,9 +105,10 @@ public struct VaultIndex: Sendable {
         }
     }
 
-    /// Executes an FTS5 expression against block text, entity names and aliases.
-    public func search(_ expression: String) throws -> [SearchMatch] {
-        try database.read {
+    /// Searches user text as quoted terms, allowing a prefix match on the final term.
+    public func search(_ text: String) throws -> [SearchMatch] {
+        guard let expression = searchExpression(text) else { return [] }
+        return try database.read {
             try SearchMatch.fetchAll(
                 $0, sql: "SELECT file,block,text FROM search WHERE search MATCH ? ORDER BY rank,file,block,text",
                 arguments: [expression])

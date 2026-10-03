@@ -47,6 +47,7 @@ public struct IndexedBlock: Codable, FetchableRecord, Sendable, Equatable {
     public let status: String?
     public let rawStatus: String?
     public let identifier: String?
+    public let headingLevel: Int?
     public let ownsIdentifier: Bool
 }
 
@@ -61,6 +62,7 @@ public struct IndexedLink: Codable, FetchableRecord, Sendable, Equatable {
     public let key: String?
     public let entry: String?
     public let target: String
+    public let targetKey: String
     public let anchorKind: String?
     public let anchor: String?
     public let displayText: String?

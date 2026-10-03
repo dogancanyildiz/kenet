@@ -33,8 +33,8 @@ Kullanıcıya görünen bir şey yok; her şey bunun üstüne kurulur.
 - [x] Aynı adlı varlık oluştururken ayırt edici sorma, dosya adını otomatik üretme
 - [ ] Varlık adını değiştirme ve tüm bağlantıları güncelleme
 - [x] Geçmiş güne olay ekleme, saatsiz olay
-- [ ] Kişi ve konum sayfaları: şablon alanları, serbest ek alanlar, zaman akışı
-- [ ] Günler arasında gezinme
+- [x] Kişi ve konum sayfaları: şablon alanları, serbest ek alanlar, zaman akışı
+- [x] Günler arasında gezinme
 - [ ] Tam metin arama ve hızlı geçiş
 - [x] Mac'te kenar çubuklu, telefonda sekmeli düzen
 - [ ] Mac'te sistem genelinde kısayolla açılan hızlı giriş penceresi

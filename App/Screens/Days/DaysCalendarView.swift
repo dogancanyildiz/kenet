@@ -1,0 +1,55 @@
+import SwiftUI
+import VaultFormat
+
+struct DaysCalendarView: View {
+    let store: IndexStore
+    let select: (CalendarDate) -> Void
+    @Environment(\.locale) private var locale
+    @State private var month = LocalDay.today()
+    private var model: JournalCalendar { JournalCalendar(month: month, days: store.content.days) }
+    private var calendar: Calendar {
+        var result = Calendar(identifier: .gregorian)
+        result.locale = locale
+        return result
+    }
+
+    var body: some View {
+        VStack(spacing: 8) {
+            HStack {
+                Button("Önceki ay", systemImage: "chevron.left") { month = model.adjacentMonth(-1) }.labelStyle(
+                    .iconOnly)
+                Spacer()
+                Text(LocalDay.instant(for: model.month), format: .dateTime.month(.wide).year()).font(.headline)
+                Spacer()
+                Button("Sonraki ay", systemImage: "chevron.right") { month = model.adjacentMonth(1) }.labelStyle(
+                    .iconOnly)
+            }
+            let symbols = calendar.veryShortStandaloneWeekdaySymbols
+            let weekday = calendar.firstWeekday
+            let cells = model.cells(firstWeekday: weekday)
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 7)) {
+                ForEach(0..<7, id: \.self) { offset in
+                    Text(verbatim: symbols[(weekday - 1 + offset) % 7]).font(.caption).foregroundStyle(.secondary)
+                }
+                ForEach(cells.indices, id: \.self) { index in
+                    if let day = cells[index] {
+                        Button {
+                            select(day)
+                        } label: {
+                            VStack(spacing: 2) {
+                                Text(day.day, format: .number)
+                                Circle().fill(model.markedDays.contains(day) ? Color.accentColor : Color.clear)
+                                    .frame(width: 4, height: 4)
+                            }.frame(maxWidth: .infinity, minHeight: 30)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel(Text(LocalDay.instant(for: day), format: .dateTime.day().month().year()))
+                        .accessibilityHint(model.markedDays.contains(day) ? Text("Günlük kaydı var") : Text("Boş gün"))
+                    } else {
+                        Color.clear.frame(height: 30)
+                    }
+                }
+            }
+        }.padding()
+    }
+}

@@ -151,6 +151,14 @@ final class IndexStore {
         return document
     }
 
+    func document(at path: String) async throws -> RawDocument {
+        guard let writer else { throw VaultStoreError.staleTarget }
+        let current = generation
+        let document = try await writer.document(at: path)
+        guard generation == current else { throw VaultStoreError.staleTarget }
+        return document
+    }
+
     /// Shared file-first edit lifecycle. A saved-but-unindexed edit must never be retried.
     func performEdit(
         path: String, operation: @Sendable (VaultStore) async throws -> Void

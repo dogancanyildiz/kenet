@@ -6,12 +6,14 @@ import VaultIndex
 struct VaultReadModel: Sendable {
     var days: [DaySummary] = []
     var entities: [EntitySummary] = []
+    var entityTimeline: [String: [EntityTimelineDay]] = [:]
 
     static let empty = VaultReadModel()
 
     init() {}
 
     init(snapshot: IndexSnapshot) {
+        entityTimeline = EntityTimeline.build(snapshot: snapshot)
         let blocks = Dictionary(grouping: snapshot.blocks, by: \.file)
         let links = Dictionary(grouping: snapshot.links, by: \.file)
         let aliases = Dictionary(grouping: snapshot.aliases, by: \.file)

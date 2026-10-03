@@ -1,5 +1,6 @@
 #if os(macOS)
     import SwiftUI
+    import VaultFormat
 
     /// Lists stay alongside their selection in the desktop's three columns.
     struct MacNavigation: View {
@@ -7,6 +8,8 @@
         @State private var section: DesktopSection? = .today
         @State private var selectedDay: String?
         @State private var selectedEntity: String?
+        @State private var entityOrder = EntityOrdering.name
+        @State private var entitySearch = ""
 
         var body: some View {
             NavigationSplitView {
@@ -17,16 +20,23 @@
             } content: {
                 switch section ?? .today {
                 case .today, .days:
-                    List(store.content.days, selection: $selectedDay) { day in
-                        DayRow(day: day).tag(day.id)
-                    }
-                    .navigationTitle("Günlük")
+                    VStack(spacing: 0) {
+                        DaysCalendarView(store: store) { selectedDay = "journal/\($0).md" }
+                        List(store.content.days, selection: $selectedDay) { day in
+                            DayRow(day: day).tag(day.id)
+                        }
+                    }.navigationTitle("Günlük")
                 case .people, .places:
-                    List(store.content.entities.filter { $0.kind == entityKind }, selection: $selectedEntity) {
-                        entity in
-                        EntityRow(entity: entity).tag(entity.id)
-                    }
-                    .navigationTitle((section ?? .people).title)
+                    VStack(spacing: 0) {
+                        EntityListControls(order: $entityOrder, search: $entitySearch)
+                        List(
+                            EntityListQuery.entities(
+                                in: store.content, usage: store.entityUsage, kind: entityKind,
+                                search: entitySearch, order: entityOrder), selection: $selectedEntity
+                        ) { entity in
+                            EntityRow(entity: entity).tag(entity.id)
+                        }
+                    }.navigationTitle((section ?? .people).title)
                 case .notes:
                     List { EmptyView() }
                         .overlay { Text("Notlar sonraki sürümde").foregroundStyle(.secondary) }
@@ -38,8 +48,10 @@
                     case .today:
                         TodayView(store: store)
                     case .days:
-                        if let day = store.content.days.first(where: { $0.id == selectedDay }) {
-                            DayView(store: store, date: day.date)
+                        if let path = selectedDay,
+                            let day = CalendarDate(String(path.dropFirst("journal/".count).dropLast(3)))
+                        {
+                            DayView(store: store, date: day).id(day)
                         } else {
                             ContentUnavailableView("Bir gün seç", systemImage: "book.closed")
                                 .toolbar { SearchButton() }
@@ -48,7 +60,7 @@
                         if let entity = store.content.entities.first(where: {
                             $0.id == selectedEntity && $0.kind == entityKind
                         }) {
-                            EntityView(store: store, entity: entity)
+                            EntityView(store: store, entity: entity).id(entity.id)
                         } else {
                             ContentUnavailableView("Bir varlık seç", systemImage: "person.2")
                                 .toolbar { SearchButton() }

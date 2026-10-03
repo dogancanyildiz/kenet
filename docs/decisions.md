@@ -91,6 +91,7 @@ Verilen her karar tek satır olarak eklenir. Açık sorular kapandığında altt
 | 2026-10-04 | Yazımın ilk harfi varlık adının ilk harfinden farklı büyük/küçük harfteyse eşleşme kesin değil öneridir (`isCaseMismatch`); `@` ile yazılmışsa kesindir. Belirsiz (birden çok aday) anma hiç otomatik bağlanmaz; adaylar birlikte geçme (konum 4, kişi 1), son tarih, toplam, yol sırasıyla sıralanır | `deniz`, `su`, `ev` gibi gündelik sözcükler kendiliğinden bağlanmasın; emin olunmayan yerde kullanıcı seçer |
 | 2026-10-03 | Hızlı girişte tanıma gönderimde uygulanır; küçük harfli öneriler sessizce düz kalır. Belirsiz ve bilinmeyen anmalar kutu üstündeki şeritte çözülür; öneriden seçilen varlık metin aralığına sabitlenir | Aşama 1 kapsamı: yanlış otomatik bağlantıdan kaçınma, aynı adlı varlık seçimini koruma, klavyeyi açık tutma |
 | 2026-10-03 | Günlük düzenleyicisi Journal gövdesini diskten okur; kesin varlık bağlantısı yalnız eklenen veya değişen satırlara uygulanır, tanıma tüm gövdenin Markdown bağlamında yapılır | Değişmeyen yazıyı sonradan bağlamamak, kod çitlerini ve mevcut bağlantıları korumak; günlükte belirsizlik sorusuyla yazmayı bölmemek |
+| 2026-10-03 | Varlık sayfası alanları diskten okunur ve VaultStore üzerinden anahtar bazında yazılır; zaman akışı indekste çözülen bağlantıların günlük olay/paragraf bloklarından günlere gruplanır, aynı bloktaki tekrar bağlantılar tek satırdır | Kullanıcıya ait YAML yazımını korumak; not/görev bağlantılarını günlük zaman akışıyla karıştırmamak; dosya kaynak, indeks yeniden üretilebilir kalır |
 
 ## Açık sorular
 

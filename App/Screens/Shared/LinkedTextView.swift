@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Native text links wrap normally and navigate to a read-only entity destination.
+/// Native links open the entity page or offer creation for an unresolved target.
 struct LinkedTextView: View {
     let text: LinkedText
     let store: IndexStore
@@ -26,12 +26,12 @@ struct LinkedTextView: View {
                     Group {
                         if let entity = entities.first(where: { $0.id == link.path }) {
                             EntityView(store: store, entity: entity)
+                        } else if link.path == nil {
+                            UnresolvedEntityView(store: store, target: link.name)
                         } else {
                             ContentUnavailableView(
-                                "Varlık sayfası henüz yok", systemImage: "link",
-                                description: Text(verbatim: link.name)
-                            )
-                            .toolbar { SearchButton() }
+                                "Bu bağlantı kişi veya konum değil", systemImage: "doc.text",
+                                description: Text(verbatim: link.name))
                         }
                     }
                     .toolbar { Button("Kapat") { destination = nil } }

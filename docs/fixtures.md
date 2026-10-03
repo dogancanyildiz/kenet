@@ -182,6 +182,10 @@ Senkronizasyon çakışması birleştirme örnekleri (`vault-format.md`, "Senkro
 
 Uygulama katmanının günlük yazısı düzenleyicisi için örnek: `journal/edit/input.md` bir gün dosyası, `expected.md` Journal bölümü değiştirildikten sonraki tam dosyadır (frontmatter ve Events bayt bayt aynı kalır). Testi `Tests/JournalTests/JournalEditingTests.swift` çalıştırır.
 
+### `entities/`
+
+Varlık sayfası alan düzenleme örnekleri: `entities/fields/input.md` kurgusal bir kişi dosyası, `value.md` bir alan değeri değiştirildikten, `aliases.md` takma ad listesi yazıldıktan sonraki tam dosyadır (yalnız hedef anahtarın satırı değişir). Testi `Tests/JournalTests/EntityPageTests.swift` çalıştırır.
+
 ## Testlerin klasörü bulması
 
 Swift testleri `Fixtures/` klasörünü test kaynak dosyasından yukarı doğru çıkarak bulur. Paket deponun dışında derleniyorsa `FIXTURES_DIR` ortam değişkeni klasörün yolunu verir.

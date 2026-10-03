@@ -46,8 +46,9 @@ Vault/
 - Bir dosyanın türünü klasör değil frontmatter'daki `type` belirler. Klasörler, uygulamanın yeni dosyayı nereye koyacağını söyler. Tek istisna gün dosyalarıdır: kimlikleri yollarıdır (bkz. Gün dosyası).
 - `type` alanı olmayan ya da tanınmayan bir `type` taşıyan dosya düz nottur.
 - Yalnızca `.md` uzantılı dosyalar okunur. Diğer dosyalar (görsel, PDF) yok sayılır ve korunur.
-- Şunlar taranmaz; içlerindeki dosyalar varlık sayılmaz ve indekslenmez: adı nokta ile başlayan klasörler (`.app/`, `.obsidian/`, `.trash/`), `templates/` ve `conflicts/`.
+- Şunlar taranmaz; içlerindeki dosyalar varlık sayılmaz ve indekslenmez: adı nokta ile başlayan klasörler (`.app/`, `.obsidian/`, `.trash/`), (kökteki) `templates/` ve `conflicts/`.
 - Kullanıcının açtığı diğer klasörler ve alt klasörler taranır.
+- Sembolik bağlantılar izlenmez. Adları aynı NFC biçimine dönüşen iki dosyadan bayt sırasında önce gelen indekslenir; diğeri bildirilir.
 - İndeks veritabanı kasanın içinde durmaz.
 
 ## Adlar ve karşılaştırma
@@ -187,7 +188,7 @@ Diğer türler: evet/hayır `true` ya da `false`; tam sayı ondalık rakamlarla;
 
 Sözdizimi: `[[hedef]]`, `[[hedef|görünen metin]]`, `[[hedef#çapa]]`, `[[hedef#çapa|görünen metin]]`.
 
-- Hedef, ilk `#` ya da `|` karakterine kadar olan kısımdır; baştaki ve sondaki boşluklar atılır. Hedef uzantısız dosya adıdır; sondaki `.md` yok sayılır. `/` içeren hedef kasa köküne göre yoldur. Sondaki `.md` atıldıktan sonra boşluklar yeniden atılır.
+- Hedef, ilk `#` ya da `|` karakterine kadar olan kısımdır; baştaki ve sondaki boşluklar atılır. Hedef uzantısız dosya adıdır; sondaki `.md` yok sayılır. `/` içeren hedef kasa köküne göre yoldur. Baştaki `/` ya da `./` yok sayılır. Sondaki `.md` atıldıktan sonra boşluklar yeniden atılır.
 - Tablo içinde görünen metin ayırıcısı `\|` olarak yazılabilir; ters bölü ayırıcının parçasıdır, hedefe dahil değildir.
 - Çapa bir başlık ya da `^` ile başlayan blok kimliğidir. Yeniden adlandırmada yalnızca hedef değişir; çapa ve görünen metin korunur.
 - Hedefi boş olan bağlantı (`[[#Başlık]]`) aynı dosyanın içine gider; varlık bağlantısı değildir.
@@ -316,7 +317,7 @@ Serbest notlar...
 ```
 
 - Uygulamanın kullandığı alanlar: `type`, `name`, `aliases`, `qualifier`.
-- `name` alanı yoksa görünen ad dosya adıdır.
+- `name` alanı yoksa, boşsa ya da yalnız boşluk içeriyorsa görünen ad dosya adıdır.
 - Diğer alanlar `templates/person.md` şablonundan gelir. Varsayılan şablon kasa oluşturulurken kullanıcının dilinde yazılır. Kullanıcı şablonu değiştirebilir ve kişi bazında istediği alanı ekleyebilir. Uygulama tanımadığı alanları korur ve kişi sayfasında gösterir.
 
 ### Aynı adlı varlıklar

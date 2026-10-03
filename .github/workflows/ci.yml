@@ -33,7 +33,10 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Araç zinciri
-        run: swift --version
+        # GRDB sistem SQLite'ına bağlanır; kapta başlık dosyaları yoktur.
+        run: |
+          apt-get update -q && apt-get install -y -q libsqlite3-dev
+          swift --version
       - name: Derle ve test et
         run: swift test --package-path Packages/Core -Xswiftc -warnings-as-errors
 

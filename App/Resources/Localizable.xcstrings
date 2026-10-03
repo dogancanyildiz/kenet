@@ -1,1062 +1,1063 @@
 {
-  "sourceLanguage": "tr",
-  "strings": {
-    "Kasa": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kasa"
+  "sourceLanguage" : "tr",
+  "strings" : {
+    "Ad" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Name"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Vault"
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ad"
           }
         }
       }
     },
-    "Klasör seç": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Klasör seç"
+    "Ara" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Choose folder"
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ara"
           }
         }
       }
     },
-    "Yeniden üret": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Yeniden üret"
+    "Arama sonraki sürümde" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search is coming in a future version"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Rebuild"
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arama sonraki sürümde"
           }
         }
       }
     },
-    "İndeks güncelleniyor…": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "İndeks güncelleniyor…"
+    "Atlanan yol yok." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No skipped paths."
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Updating index…"
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Atlanan yol yok."
           }
         }
       }
     },
-    "İndeks": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "İndeks"
+    "Atlanan yollar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skipped paths"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Index"
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Atlanan yollar"
           }
         }
       }
     },
-    "Dosyalar": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Dosyalar"
+    "Ayarlar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Settings"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Files"
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ayarlar"
           }
         }
       }
     },
-    "Günler": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Günler"
+    "Ayırt edici" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qualifier"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Days"
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ayırt edici"
           }
         }
       }
     },
-    "Kişiler": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kişiler"
+    "Bağlantılar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Links"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "People"
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bağlantılar"
           }
         }
       }
     },
-    "Konumlar": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Konumlar"
+    "Bir gün seç" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Select a day"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Places"
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bir gün seç"
           }
         }
       }
     },
-    "Hedefler": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hedefler"
+    "Bir varlık seç" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Select an entity"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Goals"
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bir varlık seç"
           }
         }
       }
     },
-    "Notlar": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Notlar"
+    "Bu gün henüz bir şey yazılmadı." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nothing has been written for this day yet."
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Notes"
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bu gün henüz bir şey yazılmadı."
           }
         }
       }
     },
-    "Olaylar": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Olaylar"
+    "Bugün" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Today"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Events"
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bugün"
           }
         }
       }
     },
-    "Görevler": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Görevler"
+    "Bugün henüz bir şey yazılmadı." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nothing has been written today yet."
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tasks"
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bugün henüz bir şey yazılmadı."
           }
         }
       }
     },
-    "Varlıklar": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Varlıklar"
+    "Bugüne git" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Go to Today"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Entities"
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bugüne git"
           }
         }
       }
     },
-    "Bağlantılar": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bağlantılar"
+    "Çözülmemiş bağlantılar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unresolved links"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Links"
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Çözülmemiş bağlantılar"
           }
         }
       }
     },
-    "Çözülmemiş bağlantılar": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Çözülmemiş bağlantılar"
+    "Dosya değişti. Yeniden dene." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The file changed. Try again."
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Unresolved links"
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dosya değişti. Yeniden dene."
           }
         }
       }
     },
-    "Son güncelleme": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Son güncelleme"
+    "Dosyalar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Files"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Last update"
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dosyalar"
           }
         }
       }
     },
-    "Atlanan yollar": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Atlanan yollar"
+    "Gelen bağlantılar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Incoming links"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Skipped paths"
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gelen bağlantılar"
           }
         }
       }
     },
-    "Atlanan yol yok.": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Atlanan yol yok."
+    "Git" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Go"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No skipped paths."
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Git"
           }
         }
       }
     },
-    "Sembolik bağlantı": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sembolik bağlantı"
+    "Gönder" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Send"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Symbolic link"
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gönder"
           }
         }
       }
     },
-    "Yinelenen normalleştirilmiş yol": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Yinelenen normalleştirilmiş yol"
+    "Görevler" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tasks"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Duplicate normalized path"
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Görevler"
           }
         }
       }
     },
-    "Kayıtlı klasöre erişilemedi. Yerel kasa açıldı.": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kayıtlı klasöre erişilemedi. Yerel kasa açıldı."
+    "Günler" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Days"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The saved folder could not be accessed. The local vault was opened."
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Günler"
           }
         }
       }
     },
-    "İşlem başarısız: %@": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "İşlem başarısız: %@"
+    "Günlerin burada görünecek." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your days will appear here."
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Operation failed: %@"
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Günlerin burada görünecek."
           }
         }
       }
     },
-    "Klasör açıldı ancak yer imi yenilenemedi. Sonraki açılışta yeniden denenecek.": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Klasör açıldı ancak yer imi yenilenemedi. Sonraki açılışta yeniden denenecek."
+    "Günlük" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Days"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The folder was opened but its bookmark could not be renewed. It will be retried on the next launch."
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Günlük"
           }
         }
       }
     },
-    "Klasör seçimi bekliyor…": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Klasör seçimi bekliyor…"
+    "Günlük yazısı" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Journal entry"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Folder selection pending…"
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Günlük yazısı"
           }
         }
       }
     },
-    "İzlenmeyen dizinler: %lld. Değişiklikler ön planda zamanlayıcıyla denetlenir.": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "İzlenmeyen dizinler: %lld. Değişiklikler ön planda zamanlayıcıyla denetlenir."
+    "Günlük yazısını oku" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Read journal entry"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Unwatched directories: %lld. Changes are checked by the timer while the app is in the foreground."
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Günlük yazısını oku"
           }
         }
       }
     },
-    "Ad": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ad"
+    "Gününden bir an…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A moment from your day…"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Name"
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gününden bir an…"
           }
         }
       }
     },
-    "Ara": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ara"
+    "Hedefler" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Goals"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Search"
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hedefler"
           }
         }
       }
     },
-    "Arama sonraki sürümde": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Arama sonraki sürümde"
+    "Henüz gün yok" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No days yet"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Search is coming in a future version"
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Henüz gün yok"
           }
         }
       }
     },
-    "Ayarlar": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ayarlar"
+    "Henüz varlık yok" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No entities yet"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Settings"
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Henüz varlık yok"
           }
         }
       }
     },
-    "Ayırt edici": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ayırt edici"
+    "Hızlı giriş" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quick entry"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Qualifier"
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hızlı giriş"
           }
         }
       }
     },
-    "Bir gün seç": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bir gün seç"
+    "Hızlı giriş sonraki sürümde" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quick entry is coming in a future version"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Select a day"
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hızlı giriş sonraki sürümde"
           }
         }
       }
     },
-    "Bir varlık seç": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bir varlık seç"
+    "İndeks" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Index"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Select an entity"
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "İndeks"
           }
         }
       }
     },
-    "Bu gün henüz bir şey yazılmadı.": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bu gün henüz bir şey yazılmadı."
+    "İndeks güncelleniyor…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Updating index…"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nothing has been written for this day yet."
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "İndeks güncelleniyor…"
           }
         }
       }
     },
-    "Bugün": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bugün"
+    "İşlem başarısız: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Operation failed: %@"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Today"
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "İşlem başarısız: %@"
           }
         }
       }
     },
-    "Bugün henüz bir şey yazılmadı.": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bugün henüz bir şey yazılmadı."
+    "İzlenmeyen dizinler: %lld. Değişiklikler ön planda zamanlayıcıyla denetlenir." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unwatched directories: %lld. Changes are checked by the timer while the app is in the foreground."
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nothing has been written today yet."
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "İzlenmeyen dizinler: %lld. Değişiklikler ön planda zamanlayıcıyla denetlenir."
           }
         }
       }
     },
-    "Bugüne git": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bugüne git"
+    "Journal" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Journal"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Go to Today"
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Journal"
           }
         }
       }
     },
-    "Gelen bağlantılar": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Gelen bağlantılar"
+    "Kapat" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Close"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Incoming links"
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kapat"
           }
         }
       }
     },
-    "Git": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Git"
+    "Kasa" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vault"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Go"
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kasa"
           }
         }
       }
     },
-    "Gönder": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Gönder"
+    "Kayıtlı klasöre erişilemedi. Yerel kasa açıldı." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The saved folder could not be accessed. The local vault was opened."
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Send"
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kayıtlı klasöre erişilemedi. Yerel kasa açıldı."
           }
         }
       }
     },
-    "Günlerin burada görünecek.": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Günlerin burada görünecek."
+    "Kişiler" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "People"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Your days will appear here."
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kişiler"
           }
         }
       }
     },
-    "Günlük": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Günlük"
+    "Kişiler ve Konumlar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "People & Places"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Days"
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kişiler ve Konumlar"
           }
         }
       }
     },
-    "Günlük yazısı": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Günlük yazısı"
+    "Kişiler ve konumlar burada görünecek." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "People and places will appear here."
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Journal entry"
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kişiler ve konumlar burada görünecek."
           }
         }
       }
     },
-    "Günlük yazısını oku": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Günlük yazısını oku"
+    "Klasör açıldı ancak yer imi yenilenemedi. Sonraki açılışta yeniden denenecek." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The folder was opened but its bookmark could not be renewed. It will be retried on the next launch."
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Read journal entry"
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klasör açıldı ancak yer imi yenilenemedi. Sonraki açılışta yeniden denenecek."
           }
         }
       }
     },
-    "Gününden bir an…": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Gününden bir an…"
+    "Klasör seç" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose folder"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "A moment from your day…"
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klasör seç"
           }
         }
       }
     },
-    "Henüz gün yok": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Henüz gün yok"
+    "Klasör seçimi bekliyor…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Folder selection pending…"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No days yet"
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klasör seçimi bekliyor…"
           }
         }
       }
     },
-    "Henüz varlık yok": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Henüz varlık yok"
+    "Konumlar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Places"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No entities yet"
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Konumlar"
           }
         }
       }
     },
-    "Hızlı giriş": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hızlı giriş"
+    "Notlar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notes"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Quick entry"
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notlar"
           }
         }
       }
     },
-    "Hızlı giriş sonraki sürümde": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hızlı giriş sonraki sürümde"
+    "Notlar sonraki sürümde" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notes are coming in a future version"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Quick entry is coming in a future version"
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notlar sonraki sürümde"
           }
         }
       }
     },
-    "Journal": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Journal"
+    "Olay kaydedildi, indeks güncellenemedi." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Event saved, but the index could not be updated."
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Journal"
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Olay kaydedildi, indeks güncellenemedi."
           }
         }
       }
     },
-    "Kapat": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kapat"
+    "Olay kaydedilemedi. Kasayı kontrol edip yeniden dene." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could not save the event. Check the vault and try again."
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Close"
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Olay kaydedilemedi. Kasayı kontrol edip yeniden dene."
           }
         }
       }
     },
-    "Kişiler ve Konumlar": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kişiler ve Konumlar"
+    "Olaylar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Events"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "People & Places"
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Olaylar"
           }
         }
       }
     },
-    "Kişiler ve konumlar burada görünecek.": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kişiler ve konumlar burada görünecek."
+    "Olaylar: %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Events: %lld"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "People and places will appear here."
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Olaylar: %lld"
           }
         }
       }
     },
-    "Notlar sonraki sürümde": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Notlar sonraki sürümde"
+    "Saati kaldır" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove time"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Notes are coming in a future version"
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saati kaldır"
           }
         }
       }
     },
-    "Olaylar: %lld": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Olaylar: %lld"
+    "Sembolik bağlantı" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Symbolic link"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Events: %lld"
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sembolik bağlantı"
           }
         }
       }
     },
-    "Takma ad yok": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Takma ad yok"
+    "Son güncelleme" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Last update"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No aliases"
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Son güncelleme"
           }
         }
       }
     },
-    "Takma adlar": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Takma adlar"
+    "Şu anki saati ekle" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add current time"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Aliases"
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Şu anki saati ekle"
           }
         }
       }
     },
-    "Varlık": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Varlık"
+    "Takma ad yok" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No aliases"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Entity"
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Takma ad yok"
           }
         }
       }
     },
-    "Varlık türü": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Varlık türü"
+    "Takma adlar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aliases"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Entity type"
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Takma adlar"
           }
         }
       }
     },
-    "Zaman akışı sonraki sürümde": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Zaman akışı sonraki sürümde"
+    "Varlık" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entity"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The timeline is coming in a future version"
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Varlık"
           }
         }
       }
     },
-    "Varlık sayfası henüz yok": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Varlık sayfası henüz yok"
+    "Varlık sayfası henüz yok" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No entity page yet"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No entity page yet"
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Varlık sayfası henüz yok"
           }
         }
       }
     },
-    "Olay kaydedildi, indeks güncellenemedi.": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Olay kaydedildi, indeks güncellenemedi."
+    "Varlık türü" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entity type"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Event saved, but the index could not be updated."
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Varlık türü"
           }
         }
       }
     },
-    "Dosya değişti. Yeniden dene.": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Dosya değişti. Yeniden dene."
+    "Varlıklar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entities"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The file changed. Try again."
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Varlıklar"
           }
         }
       }
     },
-    "Olay kaydedilemedi. Kasayı kontrol edip yeniden dene.": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Olay kaydedilemedi. Kasayı kontrol edip yeniden dene."
+    "Yeniden üret" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rebuild"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Could not save the event. Check the vault and try again."
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yeniden üret"
           }
         }
       }
     },
-    "Saati kaldır": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Saati kaldır"
+    "Yinelenen normalleştirilmiş yol" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Duplicate normalized path"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Remove time"
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yinelenen normalleştirilmiş yol"
           }
         }
       }
     },
-    "Şu anki saati ekle": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Şu anki saati ekle"
+    "Zaman akışı sonraki sürümde" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The timeline is coming in a future version"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Add current time"
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zaman akışı sonraki sürümde"
           }
         }
       }
     }
   },
-  "version": "1.0"
+  "version" : "1.0"
 }

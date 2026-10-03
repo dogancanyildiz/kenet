@@ -13,7 +13,10 @@ struct EntityField: Identifiable, Hashable {
 final class EntityDetailModel {
     static let reservedKeys = ["type", "name", "qualifier", "aliases"]
     let store: IndexStore
-    let path: String
+    private(set) var path: String
+    private(set) var renameResult: RenameResult?
+    private(set) var renamedName: String?
+    private(set) var renamedQualifier: String?
     private(set) var fields: [EntityField] = []
     private(set) var aliases: [String] = []
     private(set) var aliasesEditable = false
@@ -37,9 +40,11 @@ final class EntityDetailModel {
 
     func load() async {
         let selectedRoot = store.vaultURL
+        let selectedPath = path
         do {
-            let document = try await store.document(at: path)
-            guard store.vaultURL == selectedRoot else { throw VaultStoreError.staleTarget }
+            let document = try await store.document(at: selectedPath)
+            guard store.vaultURL == selectedRoot, path == selectedPath else { throw VaultStoreError.staleTarget }
+            errorText = nil
             isReadOnly = document.isReadOnly
             unreadableFrontmatter = document.frontmatter == .unreadable
             if case .parsed(let frontmatter) = document.frontmatter {
@@ -68,6 +73,20 @@ final class EntityDetailModel {
             root = selectedRoot
             isLoaded = true
         } catch { errorText = DayEditError.message(for: error) }
+    }
+
+    func rename(to name: String, qualifier: String?) async throws -> RenameResult {
+        guard canEdit else { throw VaultStoreError.staleTarget }
+        isWriting = true
+        defer { isWriting = false }
+        let selectedRoot = store.vaultURL
+        let result = try await store.renameEntity(at: path, to: name, qualifier: qualifier)
+        path = result.path
+        renameResult = result
+        renamedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        renamedQualifier = qualifier
+        if store.vaultURL == selectedRoot { await load() }
+        return result
     }
 
     @discardableResult

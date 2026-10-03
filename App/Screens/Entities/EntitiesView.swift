@@ -20,9 +20,7 @@ struct EntitiesView: View {
             .pickerStyle(.segmented).padding()
             EntityListControls(order: $order, search: $search)
             List(entities) { entity in
-                NavigationLink {
-                    EntityView(store: store, entity: entity).id(entity.id)
-                } label: {
+                NavigationLink(value: entity) {
                     EntityRow(entity: entity)
                 }
             }
@@ -36,6 +34,9 @@ struct EntitiesView: View {
         }
         .navigationTitle("Kişiler ve Konumlar")
         .toolbar { SearchButton() }
+        .navigationDestination(for: EntitySummary.self) { entity in
+            EntityView(store: store, entity: entity)
+        }
     }
 }
 

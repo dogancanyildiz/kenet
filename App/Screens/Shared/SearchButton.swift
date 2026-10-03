@@ -1,21 +1,34 @@
 import SwiftUI
 
-/// Search stays reachable while its results screen is being built.
-struct SearchButton: View {
-    @State private var isPresented = false
+private struct OpenSearchKey: EnvironmentKey {
+    static let defaultValue: @MainActor @Sendable () -> Void = {}
+}
 
-    var body: some View {
-        Button("Ara", systemImage: "magnifyingglass") { isPresented = true }
-            .labelStyle(.iconOnly)
-            .sheet(isPresented: $isPresented) {
-                NavigationStack {
-                    ContentUnavailableView("Arama sonraki sürümde", systemImage: "magnifyingglass")
-                        .navigationTitle("Ara")
-                        .toolbar {
-                            Button("Kapat") { isPresented = false }
-                        }
-                }
-                .frame(minWidth: 300, minHeight: 250)
-            }
+extension EnvironmentValues {
+    var openSearch: @MainActor @Sendable () -> Void {
+        get { self[OpenSearchKey.self] }
+        set { self[OpenSearchKey.self] = newValue }
     }
 }
+
+struct SearchButton: View {
+    @Environment(\.openSearch) private var openSearch
+
+    var body: some View {
+        Button("Ara", systemImage: "magnifyingglass", action: openSearch)
+            .labelStyle(.iconOnly)
+    }
+}
+
+#if os(macOS)
+    struct SearchNavigationKey: FocusedValueKey {
+        typealias Value = () -> Void
+    }
+
+    extension FocusedValues {
+        var openSearch: (() -> Void)? {
+            get { self[SearchNavigationKey.self] }
+            set { self[SearchNavigationKey.self] = newValue }
+        }
+    }
+#endif

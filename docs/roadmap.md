@@ -35,7 +35,7 @@ Kullanıcıya görünen bir şey yok; her şey bunun üstüne kurulur.
 - [x] Geçmiş güne olay ekleme, saatsiz olay
 - [x] Kişi ve konum sayfaları: şablon alanları, serbest ek alanlar, zaman akışı
 - [x] Günler arasında gezinme
-- [ ] Tam metin arama ve hızlı geçiş
+- [x] Tam metin arama ve hızlı geçiş
 - [x] Mac'te kenar çubuklu, telefonda sekmeli düzen
 - [ ] Mac'te sistem genelinde kısayolla açılan hızlı giriş penceresi
 

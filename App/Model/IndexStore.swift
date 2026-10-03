@@ -159,6 +159,14 @@ final class IndexStore {
         return document
     }
 
+    func search(_ query: String) async throws -> [SearchResult] {
+        guard let index else { return [] }
+        let current = generation
+        let results = try await Task.detached { try index.searchResults(query) }.value
+        guard generation == current else { throw VaultStoreError.staleTarget }
+        return results
+    }
+
     /// Shared file-first edit lifecycle. A saved-but-unindexed edit must never be retried.
     func performEdit(
         path: String, operation: @Sendable (VaultStore) async throws -> Void

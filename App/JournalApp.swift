@@ -7,11 +7,20 @@ struct JournalApp: App {
 
     #if os(macOS)
         @FocusedValue(\.goToToday) private var goToToday
+        @FocusedValue(\.openSearch) private var openSearch
     #endif
 
     var body: some Scene {
         #if os(macOS)
             mainWindow.commands {
+                CommandGroup(after: .textEditing) {
+                    Button("Ara") { openSearch?() }
+                        .keyboardShortcut("f", modifiers: .command)
+                        .disabled(openSearch == nil)
+                    Button("Hızlı geçiş") { openSearch?() }
+                        .keyboardShortcut("k", modifiers: .command)
+                        .disabled(openSearch == nil)
+                }
                 CommandMenu("Git") {
                     Button("Bugüne git") { goToToday?() }
                         .keyboardShortcut("t", modifiers: .command)

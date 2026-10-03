@@ -2162,6 +2162,230 @@
           }
         }
       }
+    },
+    "Boşluk" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Space"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Boşluk"
+          }
+        }
+      }
+    },
+    "Kısayol kaydedilemedi. Başka bir tuş birleşimi dene." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could not register the shortcut. Try another key combination."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kısayol kaydedilemedi. Başka bir tuş birleşimi dene."
+          }
+        }
+      }
+    },
+    "Kısayolda Control, Option veya Command kullan." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Use Control, Option or Command in the shortcut."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kısayolda Control, Option veya Command kullan."
+          }
+        }
+      }
+    },
+    "Kasa açık değil. Uygulamadan kasayı aç." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No vault is open. Open the vault in the app."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kasa açık değil. Uygulamadan kasayı aç."
+          }
+        }
+      }
+    },
+    "Kasa hazırlanıyor…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preparing vault…"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kasa hazırlanıyor…"
+          }
+        }
+      }
+    },
+    "Kasa kullanılamıyor. Uygulamadan kasayı kontrol et." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The vault is unavailable. Check it in the app."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kasa kullanılamıyor. Uygulamadan kasayı kontrol et."
+          }
+        }
+      }
+    },
+    "Hızlı giriş (%@)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quick entry (%@)"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hızlı giriş (%@)"
+          }
+        }
+      }
+    },
+    "Uygulamayı aç" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open app"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uygulamayı aç"
+          }
+        }
+      }
+    },
+    "Çıkış" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quit"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Çıkış"
+          }
+        }
+      }
+    },
+    "Bir tuş birleşimine bas…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Press a key combination…"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bir tuş birleşimine bas…"
+          }
+        }
+      }
+    },
+    "Hızlı giriş kısayolu" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quick entry shortcut"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hızlı giriş kısayolu"
+          }
+        }
+      }
+    },
+    "Alana tıkla, tuş birleşimine bas ve kaydet." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Click the field, press a key combination and save."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alana tıkla, tuş birleşimine bas ve kaydet."
+          }
+        }
+      }
+    },
+    "Varsayılan kısayol" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Default shortcut"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Varsayılan kısayol"
+          }
+        }
+      }
+    },
+    "Geçerli kısayol: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Current shortcut: %@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geçerli kısayol: %@"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

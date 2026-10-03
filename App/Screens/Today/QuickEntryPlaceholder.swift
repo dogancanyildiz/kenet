@@ -6,15 +6,20 @@ import VaultStore
 struct QuickEntryBar: View {
     let store: IndexStore
     let isEnabled: Bool
+    private let focusRequest: UUID?
     @State private var model: QuickEntryModel
     @State private var showsTimePicker = false
     @State private var selection: TextSelection?
     @FocusState private var isFocused: Bool
 
-    init(store: IndexStore, isEnabled: Bool, day: CalendarDate? = nil) {
+    init(
+        store: IndexStore, isEnabled: Bool, day: CalendarDate? = nil,
+        model: QuickEntryModel? = nil, focusRequest: UUID? = nil
+    ) {
         self.store = store
         self.isEnabled = isEnabled
-        _model = State(initialValue: QuickEntryModel(store: store, day: day))
+        self.focusRequest = focusRequest
+        _model = State(initialValue: model ?? QuickEntryModel(store: store, day: day))
     }
 
     private var insertionOffset: Int? {
@@ -108,6 +113,12 @@ struct QuickEntryBar: View {
         }
         .padding()
         .background(.bar)
+        .onChange(of: focusRequest, initial: true) { _, request in
+            if request != nil { isFocused = true }
+        }
+        .onChange(of: isEnabled) { _, enabled in
+            if enabled && focusRequest != nil { isFocused = true }
+        }
     }
 
     private func entityLabel(_ entity: KnownEntity) -> some View {

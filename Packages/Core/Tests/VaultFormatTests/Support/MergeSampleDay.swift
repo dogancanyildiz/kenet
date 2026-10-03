@@ -81,7 +81,7 @@ enum MergeSampleDay {
         var lines = ancestor
         var counter = 0
         for _ in 0..<(random.next() % 5) {
-            switch random.next() % 23 {
+            switch random.next() % 24 {
             case 0:
                 addToSection(
                     &lines, "## Tasks", "- [ ] \(pick(words, using: &random)) ^\(id(tag, &counter))", using: &random)
@@ -138,6 +138,13 @@ enum MergeSampleDay {
             case 21:
                 let starts = blockStarts(lines)
                 if !starts.isEmpty { lines.insert("\t- sekmeli not \(tag)", at: pick(starts, using: &random) + 1) }
+            case 22:
+                // The same comment on two list items: one surviving line must not answer for both.
+                if lines.first == "---", let closing = lines.dropFirst().firstIndex(of: "---") {
+                    let tag = chance(50, using: &random) ? "ortak" : "not \(tag)"
+                    lines.insert(contentsOf: ["etiketler\(counter):", "  - a # \(tag)", "  - b # \(tag)"], at: closing)
+                    counter += 1
+                }
             default: addToSection(&lines, "## Journal", "", using: &random)
             }
         }

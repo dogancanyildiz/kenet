@@ -42,7 +42,8 @@ struct MergeRandomTests {
                 #expect(hasFence, "fences \(iteration): fell back without a fence")
             }
         }
-        #expect(fallbacks > 0 && fallbacks * 100 <= count, "\(fallbacks) of \(count) merges fell back")
+        // The fallback path itself is covered by the `unclosed-fence-falls-back` fixture.
+        #expect(fallbacks * 100 <= count, "\(fallbacks) of \(count) merges fell back")
     }
 
     @Test func arbitraryBytesNeverCrashAndNeverLoseContent() {

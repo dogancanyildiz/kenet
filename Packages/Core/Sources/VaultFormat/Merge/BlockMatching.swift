@@ -78,12 +78,12 @@ struct BlockMatching: Sendable {
 
     /// Whether a task may stand in for another one without a conflict copy: a closed task for an
     /// open one with the same normalized text, or a closed task for a closed one with the same
-    /// checkbox character that differs in its completion date only.
+    /// checkbox character (`X` and `x` both mean done) that differs in its completion date only.
     static func isAllowedToReplace(_ kept: MergeBlock, _ lost: MergeBlock) -> Bool {
         guard let keptClosed = kept.isClosed, let lostClosed = lost.isClosed, keptClosed,
             kept.normalized == lost.normalized
         else { return false }
-        return !lostClosed || kept.status == lost.status
+        return !lostClosed || kept.status?.lowercased() == lost.status?.lowercased()
     }
 }
 

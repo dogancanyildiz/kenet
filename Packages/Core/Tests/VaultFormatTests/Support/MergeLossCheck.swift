@@ -111,7 +111,7 @@ enum MergeLossCheck {
         guard let keptTask = kept.task, let lostTask = lost.task, keptTask.status.isClosed,
             kept.normalized == lost.normalized
         else { return false }
-        return lostTask.status.isOpen || keptTask.rawStatus == lostTask.rawStatus
+        return lostTask.status.isOpen || keptTask.rawStatus.lowercased() == lostTask.rawStatus.lowercased()
     }
 
     /// The first line of a task with the checkbox character and a ` ✅ YYYY-MM-DD` that stands at

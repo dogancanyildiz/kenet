@@ -4,59 +4,79 @@
 /// Field values are compared elsewhere, by meaning. This check is about the bytes a value
 /// comparison does not see: comment lines, and comments at the end of field lines. A nonblank
 /// line of the block survives when the merged block has it verbatim, or when it is a field line
-/// without a comment, or when its comment reappears on a line with the same key part.
+/// without a comment, or when its comment reappears on a line of the same field with the same
+/// key part (and, for a list item, the same item). Every merged line answers for one line only.
 enum FrontmatterLineSurvival {
     static func linesSurvive(of document: RawDocument, in merged: RawDocument) -> Bool {
         guard case .parsed(let frontmatter) = document.frontmatter else { return true }
-        let innerLines = frontmatter.lineRange.dropFirst().dropLast()
-        var available: [[UInt8]: Int] = [:]
-        if let range = merged.frontmatterLineRange {
-            for index in range.dropFirst().dropLast() {
-                available[merged.lines[index].content, default: 0] += 1
-            }
-        }
-        var commentedParts = commentedParts(of: merged)
+        var pool = mergedLines(of: merged)
         let partByLine = Dictionary(uniqueKeysWithValues: parts(of: frontmatter).map { ($0.line, $0) })
 
-        for index in innerLines {
+        for index in frontmatter.lineRange.dropFirst().dropLast() {
             let content = document.lines[index].content
             if MergeBody.isBlank(content) { continue }
-            if let count = available[content], count > 0 {
-                available[content] = count - 1
+            if let found = pool.firstIndex(where: { $0.content == content }) {
+                pool.remove(at: found)
                 continue
             }
             guard let part = partByLine[index] else { return false }
-            guard part.tail.utf8.contains(Syntax.hash) else { continue }
-            let key = Key(head: part.head, tail: part.tail)
-            guard let count = commentedParts[key], count > 0 else { return false }
-            commentedParts[key] = count - 1
+            guard part.hasComment else { continue }
+            guard let found = pool.firstIndex(where: { $0.part?.key == part.key }) else { return false }
+            pool.remove(at: found)
         }
         return true
     }
 
-    private struct Key: Hashable {
-        let head: [UInt8]
-        let tail: [UInt8]
+    /// A field line split around its value, with what identifies it for a comment to move onto.
+    private struct Part {
+        let line: Int
+        let fieldKey: String
+        let head: String
+        /// The item of a list; empty for a key line or a mapping entry, whose value may change.
+        let item: String
+        let tail: String
 
-        init(head: String, tail: String) {
-            // The indentation of an entry taken from the other version is adjusted, so it is not part of the key.
-            self.head = Array(head.utf8.drop(while: Syntax.isBlank))
-            self.tail = Array(tail.utf8)
+        var hasComment: Bool { tail.utf8.contains(Syntax.hash) }
+
+        /// The indentation of an entry taken from the other version is adjusted, so it is not part of the key.
+        var key: [[UInt8]] {
+            [Array(fieldKey.utf8), Array(head.utf8.drop(while: Syntax.isBlank)), Array(item.utf8), Array(tail.utf8)]
         }
     }
 
-    /// The key lines and item or entry lines of every field, with how each is split around its value.
-    private static func parts(of frontmatter: Frontmatter) -> [LinePart] {
-        frontmatter.fields.flatMap { [$0.layout.keyPart] + $0.layout.children }
+    private struct PooledLine {
+        let content: [UInt8]
+        let part: Part?
     }
 
-    /// How many lines of the merged block carry each (key part, comment) combination.
-    private static func commentedParts(of merged: RawDocument) -> [Key: Int] {
-        guard case .parsed(let frontmatter) = merged.frontmatter else { return [:] }
-        var counts: [Key: Int] = [:]
-        for part in parts(of: frontmatter) where part.tail.utf8.contains(Syntax.hash) {
-            counts[Key(head: part.head, tail: part.tail), default: 0] += 1
+    /// The key lines and item or entry lines of every field.
+    private static func parts(of frontmatter: Frontmatter) -> [Part] {
+        frontmatter.fields.flatMap { field -> [Part] in
+            let keyPart = field.layout.keyPart
+            var parts = [
+                Part(line: keyPart.line, fieldKey: field.key, head: keyPart.head, item: "", tail: keyPart.tail)
+            ]
+            let items: [FrontmatterScalar]
+            if case .list(let listItems, style: .block) = field.value { items = listItems } else { items = [] }
+            for (offset, child) in field.layout.children.enumerated() {
+                let item = offset < items.count ? items[offset].raw : ""
+                parts.append(
+                    Part(line: child.line, fieldKey: field.key, head: child.head, item: item, tail: child.tail))
+            }
+            return parts
         }
-        return counts
+    }
+
+    /// The nonblank lines between the delimiters of the merged block, each with its field part.
+    private static func mergedLines(of merged: RawDocument) -> [PooledLine] {
+        guard let range = merged.frontmatterLineRange else { return [] }
+        var partByLine: [Int: Part] = [:]
+        if case .parsed(let frontmatter) = merged.frontmatter {
+            partByLine = Dictionary(uniqueKeysWithValues: parts(of: frontmatter).map { ($0.line, $0) })
+        }
+        return range.dropFirst().dropLast().compactMap { index in
+            let content = merged.lines[index].content
+            return MergeBody.isBlank(content) ? nil : PooledLine(content: content, part: partByLine[index])
+        }
     }
 }

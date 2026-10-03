@@ -14,7 +14,7 @@ Kullanıcıya görünen bir şey yok; her şey bunun üstüne kurulur.
 - [x] Dal koruması: `main` ve `dev` için PR ve geçen test zorunluluğu
 - [x] Ayrıştırıcı ve yazıcı: frontmatter, bölümler, olay satırı, görev satırı (durum, metin, kimlik), wikilink, blok kimliği
 - [x] Gidiş dönüş testi ve `Fixtures/` örnek kasası
-- [ ] SQLite indeksi (GRDB, FTS5) ve dosyalardan yeniden üretme
+- [x] SQLite indeksi (GRDB, FTS5) ve dosyalardan yeniden üretme
 - [ ] Kasa konumu: iCloud kapsayıcısı, yerel yedek seçenek
 - [ ] Dosya değişikliklerini izleme ve artımlı yeniden indeksleme
 - [ ] Senkronizasyon çakışmalarını birleştirme

@@ -70,6 +70,11 @@ Verilen her karar tek satır olarak eklenir. Açık sorular kapandığında altt
 | 2026-10-03 | Blok kimliği üretimi Core'da, rastgelelik ve "kimlik alınmış mı" sorusu dışarıdan verilir | Core Foundation'sız kalır; kasa genelinde benzersizlik indeksin bilgisidir |
 | 2026-10-03 | Sürüm numarası kök dizindeki `VERSION` dosyasında tutulur; `main`'e push'ta iş akışı bu numarayla etiket ve Release oluşturur, etiket varsa atlar | Numara tek yerde durur ve Xcode projesi gelmeden önce de sürüm kesilebilir; iş akışı yeniden çalışsa da ikinci etiket üretmez |
 | 2026-10-03 | Xcode projesi XcodeGen ile `project.yml` dosyasından üretilir, `Journal.xcodeproj` takip edilmez; bundle kimliği geçici `com.dravcore.journal.dev`, en düşük sürüm iOS 26 ve macOS 26 (ikisi de değiştirilebilir) | Proje dosyası çakışması olmaz ve ajanlar projeyi metinle düzenler; kalıcı kimlik kullanıcı kararını bekler, geçici kimlik yalnız simülatörde kullanılır |
+| 2026-10-03 | İndeks `VaultIndex` hedefinde, GRDB 7 ve FTS5 (`unicode61`, aksanlar korunur) ile; tam yeniden üretim tek işlemde, şema sürümü uyuşmazsa ya da dosya bozuksa veritabanı silinip sıfırdan kurulur | Göç yazılmaz; indeks her zaman dosyalardan yeniden üretilebilir |
+| 2026-10-03 | Taramada sembolik bağlantılar izlenmez, aynı NFC yola dönüşen dosyalardan bayt sırasında ilki alınır; atlanan dosyalar bildirilir, indeksleme durmaz | Tek bozuk dosya kullanıcıyı indekssiz bırakmamalı; kasa dışına çıkan bağlantı güvenlik riski |
+| 2026-10-03 | Tanınan bölüm başlıkları (`## Tasks`, `## Events`, `## Journal`) blok üretmez; diğer başlıklar `heading` türünde bloktur; paragraf, olay ve görev dışındaki ardışık boş olmayan satırlardır | Aramada "Events" her gün dosyasını döndürmesin; bölüm bilgisi zaten sütunda |
+| 2026-10-03 | Kullanıcı araması FTS5 ifadesine güvenli çevrilir: boşlukta bölünür, her parça tırnaklı deyim, son parçaya önek eşleşmesi | Kesme işareti ve `AND` gibi girdiler sorgu hatası vermesin |
+| 2026-10-03 | Linux CI kabına `libsqlite3-dev` kurulur; indeks Linux'ta da derlenir ve test edilir | GRDB sistem SQLite'ına bağlanır; Core'un Apple'dan bağımsızlığı indeks dahil Linux'ta kanıtlanır |
 
 ## Açık sorular
 

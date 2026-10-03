@@ -4,6 +4,12 @@ import SwiftUI
 struct EntitiesView: View {
     let store: IndexStore
     @State private var kind = "person"
+    @State private var order = EntityOrdering.name
+    @State private var search = ""
+
+    private var entities: [EntitySummary] {
+        EntityListQuery.entities(in: store.content, usage: store.entityUsage, kind: kind, search: search, order: order)
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -12,9 +18,10 @@ struct EntitiesView: View {
                 Text("Konumlar").tag("place")
             }
             .pickerStyle(.segmented).padding()
-            List(store.content.entities.filter { $0.kind == kind }) { entity in
+            EntityListControls(order: $order, search: $search)
+            List(entities) { entity in
                 NavigationLink {
-                    EntityView(store: store, entity: entity)
+                    EntityView(store: store, entity: entity).id(entity.id)
                 } label: {
                     EntityRow(entity: entity)
                 }

@@ -1,23 +1,26 @@
 import SwiftUI
+import VaultFormat
 
 /// Reverse chronological summaries lead into the shared day layout.
 struct DaysView: View {
     let store: IndexStore
+    @State private var selectedDay: CalendarDate?
 
     var body: some View {
-        List(store.content.days) { day in
-            NavigationLink {
-                DayView(store: store, date: day.date)
-            } label: {
-                DayRow(day: day)
+        List {
+            Section {
+                DaysCalendarView(store: store) { selectedDay = $0 }
             }
-        }
-        .overlay {
-            if store.content.days.isEmpty {
-                ContentUnavailableView(
-                    "Henüz gün yok", systemImage: "book.closed", description: Text("Günlerin burada görünecek."))
+            ForEach(store.content.days) { day in
+                NavigationLink {
+                    DayView(store: store, date: day.date)
+                } label: {
+                    DayRow(day: day)
+                }
             }
+            if store.content.days.isEmpty { Text("Henüz gün yok").foregroundStyle(.secondary) }
         }
+        .navigationDestination(item: $selectedDay) { day in DayView(store: store, date: day) }
         .navigationTitle("Günlük")
         .toolbar { SearchButton() }
     }

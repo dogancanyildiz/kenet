@@ -1,6 +1,22 @@
 {
   "sourceLanguage" : "tr",
   "strings" : {
+    "%@: hangisi?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@: which one?"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@: hangisi?"
+          }
+        }
+      }
+    },
     "Ad" : {
       "localizations" : {
         "en" : {
@@ -13,6 +29,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ad"
+          }
+        }
+      }
+    },
+    "Anmalar bağlanamadı. Metni kontrol edip yeniden dene." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could not link mentions. Check the text and try again."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anmalar bağlanamadı. Metni kontrol edip yeniden dene."
           }
         }
       }
@@ -113,6 +145,38 @@
         }
       }
     },
+    "Ayırt edici (ör. iş)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qualifier (e.g. work)"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ayırt edici (ör. iş)"
+          }
+        }
+      }
+    },
+    "Bağlamadan devam et" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continue without linking"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bağlamadan devam et"
+          }
+        }
+      }
+    },
     "Bağlantılar" : {
       "localizations" : {
         "en" : {
@@ -161,6 +225,22 @@
         }
       }
     },
+    "Bitti" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Done"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bitti"
+          }
+        }
+      }
+    },
     "Bu gün henüz bir şey yazılmadı." : {
       "localizations" : {
         "en" : {
@@ -173,6 +253,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bu gün henüz bir şey yazılmadı."
+          }
+        }
+      }
+    },
+    "Bu metin bölüm yapısını değiştiriyor. Başlıkları ve kod çitlerini kontrol et." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This text changes the section structure. Check headings and code fences."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bu metin bölüm yapısını değiştiriyor. Başlıkları ve kod çitlerini kontrol et."
           }
         }
       }
@@ -241,6 +337,38 @@
         }
       }
     },
+    "Değişiklik kaydedildi, indeks güncellenemedi." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Changes saved, but the index could not be updated."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Değişiklik kaydedildi, indeks güncellenemedi."
+          }
+        }
+      }
+    },
+    "Değişiklik kaydedilemedi. Kasayı kontrol edip yeniden dene." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could not save changes. Check the vault and try again."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Değişiklik kaydedilemedi. Kasayı kontrol edip yeniden dene."
+          }
+        }
+      }
+    },
     "Dosya değişti. Yeniden dene." : {
       "localizations" : {
         "en" : {
@@ -253,6 +381,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Dosya değişti. Yeniden dene."
+          }
+        }
+      }
+    },
+    "Dosya dışarıdan değişti. Yeniden dene." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The file changed externally. Please try again."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dosya dışarıdan değişti. Yeniden dene."
           }
         }
       }
@@ -401,7 +545,56 @@
         }
       }
     },
+    "Günlük yazısı ekle…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add journal text…"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Günlük yazısı ekle…"
+          }
+        }
+      }
+    },
+    "Günlük yazısı yükleniyor…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Loading journal text…"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Günlük yazısı yükleniyor…"
+          }
+        }
+      }
+    },
+    "Günlük yazısını düzenle" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit journal text"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Günlük yazısını düzenle"
+          }
+        }
+      }
+    },
     "Günlük yazısını oku" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -642,6 +835,22 @@
         }
       }
     },
+    "Kişi olarak ekle" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add as person"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kişi olarak ekle"
+          }
+        }
+      }
+    },
     "Kişiler" : {
       "localizations" : {
         "en" : {
@@ -738,6 +947,22 @@
         }
       }
     },
+    "Konum olarak ekle" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add as place"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Konum olarak ekle"
+          }
+        }
+      }
+    },
     "Konumlar" : {
       "localizations" : {
         "en" : {
@@ -750,6 +975,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Konumlar"
+          }
+        }
+      }
+    },
+    "Metni düzenle" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit text"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Metni düzenle"
           }
         }
       }
@@ -818,6 +1059,22 @@
         }
       }
     },
+    "Olay metni" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Event text"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Olay metni"
+          }
+        }
+      }
+    },
     "Olaylar" : {
       "localizations" : {
         "en" : {
@@ -850,6 +1107,54 @@
         }
       }
     },
+    "Oluştur" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Create"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Oluştur"
+          }
+        }
+      }
+    },
+    "Saat" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Time"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saat"
+          }
+        }
+      }
+    },
+    "Saati ekle" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add time"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saati ekle"
+          }
+        }
+      }
+    },
     "Saati kaldır" : {
       "localizations" : {
         "en" : {
@@ -878,6 +1183,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sembolik bağlantı"
+          }
+        }
+      }
+    },
+    "Sil" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sil"
           }
         }
       }
@@ -962,6 +1283,38 @@
         }
       }
     },
+    "Varlık kaydedildi, indeks güncellenemedi." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entity saved, but the index could not be updated."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Varlık kaydedildi, indeks güncellenemedi."
+          }
+        }
+      }
+    },
+    "Varlık oluşturulamadı. Kasayı kontrol edip yeniden dene." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could not create entity. Check the vault and try again."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Varlık oluşturulamadı. Kasayı kontrol edip yeniden dene."
+          }
+        }
+      }
+    },
     "Varlık sayfası henüz yok" : {
       "localizations" : {
         "en" : {
@@ -1006,6 +1359,70 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Varlıklar"
+          }
+        }
+      }
+    },
+    "Vazgeç" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vazgeç"
+          }
+        }
+      }
+    },
+    "Yeni kişi oluştur" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Create new person"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yeni kişi oluştur"
+          }
+        }
+      }
+    },
+    "Yeni konum oluştur" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Create new place"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yeni konum oluştur"
+          }
+        }
+      }
+    },
+    "Yeniden dene" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Try again"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yeniden dene"
           }
         }
       }
@@ -1058,418 +1475,482 @@
         }
       }
     },
-    "%@: hangisi?" : {
+    "Değer" : {
       "localizations" : {
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@: hangisi?"
+            "value" : "Değer"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@: which one?"
+            "value" : "Value"
           }
         }
       }
     },
-    "Bağlamadan devam et" : {
+    "Kaydet" : {
       "localizations" : {
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bağlamadan devam et"
+            "value" : "Kaydet"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Continue without linking"
+            "value" : "Save"
           }
         }
       }
     },
-    "Ayırt edici (ör. iş)" : {
+    "Geçerli bir sayı gir." : {
       "localizations" : {
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ayırt edici (ör. iş)"
+            "value" : "Geçerli bir sayı gir."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Qualifier (e.g. work)"
+            "value" : "Enter a valid number."
           }
         }
       }
     },
-    "Oluştur" : {
+    "Ham alan — salt okunur" : {
       "localizations" : {
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Oluştur"
+            "value" : "Ham alan — salt okunur"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Create"
+            "value" : "Raw field — read only"
           }
         }
       }
     },
-    "Kişi olarak ekle" : {
+    "Değeri boş bırak" : {
       "localizations" : {
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Kişi olarak ekle"
+            "value" : "Değeri boş bırak"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Add as person"
+            "value" : "Leave value empty"
           }
         }
       }
     },
-    "Konum olarak ekle" : {
+    "Alanı kaldır" : {
       "localizations" : {
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Konum olarak ekle"
+            "value" : "Alanı kaldır"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Add as place"
+            "value" : "Remove field"
           }
         }
       }
     },
-    "Vazgeç" : {
+    "Takma ad" : {
       "localizations" : {
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Vazgeç"
+            "value" : "Takma ad"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cancel"
+            "value" : "Alias"
           }
         }
       }
     },
-    "Varlık oluşturulamadı. Kasayı kontrol edip yeniden dene." : {
+    "Kaldır" : {
       "localizations" : {
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Varlık oluşturulamadı. Kasayı kontrol edip yeniden dene."
+            "value" : "Kaldır"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Could not create entity. Check the vault and try again."
+            "value" : "Remove"
           }
         }
       }
     },
-    "Anmalar bağlanamadı. Metni kontrol edip yeniden dene." : {
+    "Takma ad ekle" : {
       "localizations" : {
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Anmalar bağlanamadı. Metni kontrol edip yeniden dene."
+            "value" : "Takma ad ekle"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Could not link mentions. Check the text and try again."
+            "value" : "Add alias"
           }
         }
       }
     },
-    "Yeni kişi oluştur" : {
+    "Yükleniyor…" : {
       "localizations" : {
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Yeni kişi oluştur"
+            "value" : "Yükleniyor…"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Create new person"
+            "value" : "Loading…"
           }
         }
       }
     },
-    "Yeni konum oluştur" : {
+    "Frontmatter okunamıyor." : {
       "localizations" : {
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Yeni konum oluştur"
+            "value" : "Frontmatter okunamıyor."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Create new place"
+            "value" : "Frontmatter could not be read."
           }
         }
       }
     },
-    "Varlık kaydedildi, indeks güncellenemedi." : {
+    "Takma ad alanı salt okunur." : {
       "localizations" : {
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Varlık kaydedildi, indeks güncellenemedi."
+            "value" : "Takma ad alanı salt okunur."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Entity saved, but the index could not be updated."
+            "value" : "Aliases field is read only."
           }
         }
       }
     },
-    "Dosya dışarıdan değişti. Yeniden dene." : {
+    "Alanlar" : {
       "localizations" : {
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Dosya dışarıdan değişti. Yeniden dene."
+            "value" : "Alanlar"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The file changed externally. Please try again."
+            "value" : "Fields"
           }
         }
       }
     },
-    "Değişiklik kaydedildi, indeks güncellenemedi." : {
+    "Alan adı" : {
       "localizations" : {
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Değişiklik kaydedildi, indeks güncellenemedi."
+            "value" : "Alan adı"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Changes saved, but the index could not be updated."
+            "value" : "Field name"
           }
         }
       }
     },
-    "Bu metin bölüm yapısını değiştiriyor. Başlıkları ve kod çitlerini kontrol et." : {
+    "Alan ekle" : {
       "localizations" : {
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bu metin bölüm yapısını değiştiriyor. Başlıkları ve kod çitlerini kontrol et."
+            "value" : "Alan ekle"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This text changes the section structure. Check headings and code fences."
+            "value" : "Add field"
           }
         }
       }
     },
-    "Değişiklik kaydedilemedi. Kasayı kontrol edip yeniden dene." : {
+    "Zaman akışı" : {
       "localizations" : {
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Değişiklik kaydedilemedi. Kasayı kontrol edip yeniden dene."
+            "value" : "Zaman akışı"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Could not save changes. Check the vault and try again."
+            "value" : "Timeline"
           }
         }
       }
     },
-    "Günlük yazısı yükleniyor…" : {
+    "Henüz günlük kaydı yok." : {
       "localizations" : {
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Günlük yazısı yükleniyor…"
+            "value" : "Henüz günlük kaydı yok."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Loading journal text…"
+            "value" : "No journal entries yet."
           }
         }
       }
     },
-    "Yeniden dene" : {
+    "Serbest notlar" : {
       "localizations" : {
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Yeniden dene"
+            "value" : "Serbest notlar"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Try again"
+            "value" : "Notes"
           }
         }
       }
     },
-    "Bitti" : {
+    "Sıralama" : {
       "localizations" : {
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bitti"
+            "value" : "Sıralama"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Done"
+            "value" : "Sort order"
           }
         }
       }
     },
-    "Olay metni" : {
+    "Ada göre" : {
       "localizations" : {
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Olay metni"
+            "value" : "Ada göre"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Event text"
+            "value" : "By name"
           }
         }
       }
     },
-    "Metni düzenle" : {
+    "Son geçişe göre" : {
       "localizations" : {
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Metni düzenle"
+            "value" : "Son geçişe göre"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Edit text"
+            "value" : "By last mention"
           }
         }
       }
     },
-    "Sil" : {
+    "Kişi veya konum ara" : {
       "localizations" : {
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sil"
+            "value" : "Kişi veya konum ara"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Delete"
+            "value" : "Search people or places"
           }
         }
       }
     },
-    "Günlük yazısını düzenle" : {
+    "Bu ad için kişi veya konum oluştur." : {
       "localizations" : {
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Günlük yazısını düzenle"
+            "value" : "Bu ad için kişi veya konum oluştur."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Edit journal text"
+            "value" : "Create a person or place for this name."
           }
         }
       }
     },
-    "Günlük yazısı ekle…" : {
+    "Bağlantı bulunamadı" : {
       "localizations" : {
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Günlük yazısı ekle…"
+            "value" : "Bağlantı bulunamadı"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Add journal text…"
+            "value" : "Link not found"
           }
         }
       }
     },
-    "Saat" : {
+    "Bu bağlantı kişi veya konum değil" : {
       "localizations" : {
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Saat"
+            "value" : "Bu bağlantı kişi veya konum değil"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Time"
+            "value" : "This link is not a person or place"
           }
         }
       }
     },
-    "Saati ekle" : {
+    "Bu alan adı boş, ayrılmış veya zaten kullanılıyor." : {
       "localizations" : {
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Saati ekle"
+            "value" : "Bu alan adı boş, ayrılmış veya zaten kullanılıyor."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Add time"
+            "value" : "This field name is empty, reserved, or already in use."
+          }
+        }
+      }
+    },
+    "Önceki ay" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Önceki ay"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Previous month"
+          }
+        }
+      }
+    },
+    "Sonraki ay" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sonraki ay"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Next month"
+          }
+        }
+      }
+    },
+    "Günlük kaydı var" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Günlük kaydı var"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Has a journal entry"
+          }
+        }
+      }
+    },
+    "Boş gün" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Boş gün"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Empty day"
           }
         }
       }

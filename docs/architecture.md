@@ -16,6 +16,8 @@
 
 ## Proje yapısı
 
+Ekranlar `App/Screens/Today`, `Days`, `Entities` ve `Settings` altında; ortak görünüm parçaları `App/Screens/Shared`, platform gezinmesi `App/Navigation` altında tutulur.
+
 - Xcode projesi `project.yml` ile tanımlanır ve XcodeGen üretir; `Journal.xcodeproj` takip edilmez. Tek `Journal` hedefi iOS ve macOS için iki şema üretir; kaynaklar `App/` klasörüyle eşlenir, `Core` paketi yerel yoldan bağlanır.
 - Bundle kimliği şimdilik geçici (`com.dravcore.journal.dev`, yalnızca simülatör ve yerel çalıştırma). Kalıcı kimlik, iCloud kapsayıcısı ve App Group kullanıcı kararıyla gelir.
 - Sürüm numarası kök dizindeki `VERSION` dosyasından derleme sırasında Info.plist'e yazılır.

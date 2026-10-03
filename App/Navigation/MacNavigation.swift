@@ -6,6 +6,7 @@
     struct MacNavigation: View {
         let store: IndexStore
         @State private var section: DesktopSection? = .today
+        @State private var selectedTask: String?
         @State private var selectedDay: String?
         @State private var selectedEntity: String?
         @State private var selectedSummary: EntitySummary?
@@ -28,6 +29,8 @@
                             DayRow(day: day).tag(day.id)
                         }
                     }.navigationTitle("Günlük")
+                case .tasks:
+                    TasksView(store: store, selection: $selectedTask)
                 case .people, .places:
                     VStack(spacing: 0) {
                         EntityListControls(order: $entityOrder, search: $entitySearch)
@@ -58,6 +61,16 @@
                             ContentUnavailableView("Bir gün seç", systemImage: "book.closed")
                                 .toolbar { SearchButton() }
                         }
+                    case .tasks:
+                        if let row = store.content.tasks.first(where: { $0.id == selectedTask }) {
+                            TaskDetailView(store: store, row: row) { path in
+                                selectedDay = path
+                                section = .days
+                            }
+                        } else {
+                            ContentUnavailableView("Bir görev seç", systemImage: "checklist")
+                                .toolbar { SearchButton() }
+                        }
                     case .people, .places:
                         if let entity = selectedSummary, entity.kind == entityKind {
                             EntityView(store: store, entity: entity) { path in
@@ -75,6 +88,7 @@
                 }
                 .id(section)
             }
+            .onChange(of: store.vaultURL) { _, _ in selectedTask = nil }
             .onChange(of: selectedDay) { _, value in
                 if value != nil { section = .days }
             }
@@ -111,13 +125,14 @@
     }
 
     private enum DesktopSection: String, CaseIterable, Identifiable {
-        case today, days, people, places, notes
+        case today, days, tasks, people, places, notes
         var id: Self { self }
 
         var title: LocalizedStringKey {
             switch self {
             case .today: "Bugün"
             case .days: "Günlük"
+            case .tasks: "Görevler"
             case .people: "Kişiler"
             case .places: "Konumlar"
             case .notes: "Notlar"
@@ -128,6 +143,7 @@
             switch self {
             case .today: "sun.max"
             case .days: "book.closed"
+            case .tasks: "checklist"
             case .people: "person.2"
             case .places: "mappin.and.ellipse"
             case .notes: "note.text"

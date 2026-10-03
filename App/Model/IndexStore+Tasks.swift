@@ -40,4 +40,11 @@ extension IndexStore {
             try await writer.changingStatus(of: target, at: row.file, to: .done, completionDate: today)
         }
     }
+    func reopenTask(_ row: TaskRow) async throws {
+        let target = try await taskTarget(row)
+        try await performEdit(path: row.file) { writer in
+            try await writer.changingStatus(of: target, at: row.file, to: .todo)
+        }
+    }
+
 }

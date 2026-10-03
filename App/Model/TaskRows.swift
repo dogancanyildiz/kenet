@@ -15,6 +15,12 @@ struct TaskRow: Identifiable, Sendable {
     let done: CalendarDate?
     let priority: TaskPriority?
     let project: String?
+    let linkedFiles: Set<String>
+
+    var createdDate: CalendarDate? {
+        guard file.hasPrefix("journal/"), file.hasSuffix(".md") else { return nil }
+        return CalendarDate(String(file.dropFirst(8).dropLast(3)))
+    }
 
     var isClosed: Bool { rawStatus == "x" || rawStatus == "X" || rawStatus == "-" }
 
@@ -40,6 +46,7 @@ struct TaskRow: Identifiable, Sendable {
         case nil: priority = nil
         }
         project = row.project
+        linkedFiles = Set(links.filter { $0.block == row.ordinal }.compactMap(\.resolvedFile))
     }
 }
 

@@ -40,4 +40,22 @@ struct JournalTests {
         #expect(try vault.bytes() == Data((prefix + "Selin\r\n\n" + suffix).utf8))
         try vault.check()
     }
+    @Test(arguments: ["Kitap\n\n", "Kitap\n \n\t", " \n\t"])
+    func repeatedJournalSaveDoesNotGrowOrRewrite(text: String) async throws {
+        let vault = try StoreVault()
+        defer { vault.remove() }
+        try vault.write(storePath, "## Journal\nSu\n\n## Notes\nDeniz\n")
+        let first = try await vault.store.changingJournal(on: storeDate, to: text)
+        let url = vault.root.appendingPathComponent(storePath)
+        let before = try FileManager.default.attributesOfItem(atPath: url.path)
+        let second = try await vault.store.changingJournal(on: storeDate, to: text)
+        let after = try FileManager.default.attributesOfItem(atPath: url.path)
+        #expect(first.serialized() == second.serialized())
+        #expect(before[.modificationDate] as? Date == after[.modificationDate] as? Date)
+        #expect(before[.systemFileNumber] as? NSNumber == after[.systemFileNumber] as? NSNumber)
+        let content = text.hasPrefix("Kitap") ? "Kitap\n" : ""
+        #expect(try vault.bytes() == Data(("## Journal\n" + content + "\n## Notes\nDeniz\n").utf8))
+        try vault.check()
+    }
+
 }

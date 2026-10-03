@@ -2,7 +2,7 @@ import Foundation
 
 /// Store failures; format and filesystem errors otherwise retain their original type.
 public enum VaultStoreError: Error, Sendable, Equatable {
-    /// The caller's block no longer matches the freshly read document.
+    /// The target is stale, or a day-file creation collision persisted after one retry.
     case staleTarget
     /// A filename with the same comparison key already exists in the vault.
     case nameTaken

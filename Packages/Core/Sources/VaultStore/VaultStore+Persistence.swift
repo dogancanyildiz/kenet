@@ -25,10 +25,28 @@ extension VaultStore {
         } else {
             // Linking a complete sibling publishes atomically and never overwrites another process's file.
             do {
-                try manager.linkItem(at: temporary, to: url)
-            } catch CocoaError.fileWriteFileExists {
-                throw VaultStoreError.nameTaken
+                try linkFile(temporary, url)
+            } catch {
+                if isExistingFileError(error) { throw VaultStoreError.nameTaken }
+                // Some external vault filesystems cannot hard-link. Keep exclusive creation there,
+                // accepting a non-atomic initial write rather than overwriting another process's file.
+                do {
+                    try bytes.write(to: url, options: .withoutOverwriting)
+                } catch {
+                    if isExistingFileError(error) { throw VaultStoreError.nameTaken }
+                    throw error
+                }
             }
         }
     }
+}
+
+private func isExistingFileError(_ error: any Error) -> Bool {
+    let error = error as NSError
+    if error.domain == NSCocoaErrorDomain, error.code == CocoaError.fileWriteFileExists.rawValue { return true }
+    if error.domain == NSPOSIXErrorDomain, error.code == Int(POSIXErrorCode.EEXIST.rawValue) { return true }
+    if let underlying = error.userInfo[NSUnderlyingErrorKey] as? any Error {
+        return isExistingFileError(underlying)
+    }
+    return false
 }

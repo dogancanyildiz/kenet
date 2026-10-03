@@ -2,7 +2,8 @@ import Foundation
 import Testing
 import VaultFormat
 import VaultIndex
-import VaultStore
+
+@testable import VaultStore
 
 let storeDate = CalendarDate("2026-09-27")!
 let storePath = "journal/2026-09-27.md"
@@ -12,7 +13,10 @@ struct StoreVault: Sendable {
     let index: VaultIndex
     let store: VaultStore
 
-    init(sample: Bool = false, random: @escaping @Sendable () -> UInt64 = { 0 }) throws {
+    init(
+        sample: Bool = false, random: @escaping @Sendable () -> UInt64 = { 0 },
+        linkFile: (@Sendable (URL, URL) throws -> Void)? = nil
+    ) throws {
         root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         if sample {
             try FileManager.default.copyItem(at: Fixtures.root().appendingPathComponent("vaults/sample"), to: root)
@@ -20,7 +24,11 @@ struct StoreVault: Sendable {
             try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
         }
         index = try VaultIndex()
-        store = VaultStore(vaultRoot: root, index: index, randomValue: random)
+        if let linkFile {
+            store = VaultStore(vaultRoot: root, index: index, randomValue: random, linkFile: linkFile)
+        } else {
+            store = VaultStore(vaultRoot: root, index: index, randomValue: random)
+        }
         try index.rebuild(vaultRoot: root)
     }
 

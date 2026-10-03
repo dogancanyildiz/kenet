@@ -3,7 +3,10 @@ extension RawDocument {
     /// Empty text leaves a missing section unchanged.
     public func replacingJournal(with text: String) throws(EditError) -> RawDocument {
         guard !isReadOnly else { throw .readOnlyDocument }
-        let contents = RawDocument(bytes: [10] + text.utf8).lines.dropFirst().map { $0.text! }
+        let contents = Array(
+            RawDocument(bytes: [10] + text.utf8).lines.dropFirst()
+                .reversed().drop(while: { $0.content.allSatisfy(Syntax.isBlank) }).reversed()
+        ).map { $0.text! }
         let existing = daySections.section(.journal)
         if existing == nil, text.allSatisfy(\.isWhitespace) { return self }
         let base: RawDocument

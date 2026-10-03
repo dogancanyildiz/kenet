@@ -7,6 +7,7 @@ public actor VaultStore {
     let root: URL
     let index: VaultIndex
     let writeQueue: OperationQueue
+    let linkFile: @Sendable (URL, URL) throws -> Void
     let randomValue: @Sendable () -> UInt64
 
     /// Uses the caller's index and an existing vault root; random injection supports deterministic tests.
@@ -18,6 +19,19 @@ public actor VaultStore {
         self.index = index
         writeQueue = VaultWriteQueues.shared.queue(for: vaultRoot)
         self.randomValue = randomValue
+        linkFile = { try FileManager.default.linkItem(at: $0, to: $1) }
+    }
+
+    /// Internal filesystem seam for deterministic failure and creation-race tests.
+    init(
+        vaultRoot: URL, index: VaultIndex, randomValue: @escaping @Sendable () -> UInt64 = { 0 },
+        linkFile: @escaping @Sendable (URL, URL) throws -> Void
+    ) {
+        root = vaultRoot.resolvingSymlinksInPath().standardizedFileURL
+        self.index = index
+        writeQueue = VaultWriteQueues.shared.queue(for: vaultRoot)
+        self.randomValue = randomValue
+        self.linkFile = linkFile
     }
 
     /// Returns the canonical vault-relative path of a day.
@@ -122,12 +136,29 @@ public actor VaultStore {
         _ path: String, date: CalendarDate? = nil, createDay: Bool = true,
         transform: (RawDocument) throws -> RawDocument
     ) throws -> RawDocument {
+        for attempt in 0..<2 {
+            do {
+                return try editOnce(path, date: date, createDay: createDay, transform: transform)
+            } catch VaultStoreError.nameTaken where date != nil {
+                guard attempt == 0 else { throw VaultStoreError.staleTarget }
+            }
+        }
+        throw VaultStoreError.staleTarget
+    }
+
+    private nonisolated func editOnce(
+        _ path: String, date: CalendarDate?, createDay: Bool,
+        transform: (RawDocument) throws -> RawDocument
+    ) throws -> RawDocument {
         let url = try checkedURL(path, writing: true)
         let original: RawDocument
+        let wasMissing: Bool
         do {
             original = RawDocument(bytes: try Data(contentsOf: url))
+            wasMissing = false
         } catch CocoaError.fileReadNoSuchFile where date != nil {
             guard createDay else { return RawDocument(bytes: []) }
+            wasMissing = true
             original = try RawDocument(bytes: []).settingFrontmatterValue(.text("journal"), forKey: "type")
                 .settingFrontmatterValue(.date(date!), forKey: "date")
         }
@@ -136,7 +167,7 @@ public actor VaultStore {
             throw VaultStoreError.staleTarget
         }
         guard changed != original else { return original }
-        try persist(changed, path: path)
+        try persist(changed, path: path, exclusive: wasMissing)
         return changed
     }
 

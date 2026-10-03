@@ -15,6 +15,7 @@ enum SectionOperation {
                 let after = try before.replacingJournal(with: text)
                 #expect(after.serialized() == expected)
                 #expect(after == RawDocument(bytes: expected))
+                #expect(try after.replacingJournal(with: text).serialized() == after.serialized())
                 #expect(RawDocument(bytes: after.serialized()).serialized() == expected)
             }
             #expect(before == RawDocument(bytes: before.serialized()))

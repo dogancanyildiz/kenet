@@ -77,6 +77,9 @@ Verilen her karar tek satır olarak eklenir. Açık sorular kapandığında altt
 | 2026-10-03 | Linux CI kabına `libsqlite3-dev` kurulur; indeks Linux'ta da derlenir ve test edilir | GRDB sistem SQLite'ına bağlanır; Core'un Apple'dan bağımsızlığı indeks dahil Linux'ta kanıtlanır |
 | 2026-10-03 | Artımlı indeks: `refresh` tüm kasayı tarar, yalnızca değişiklik zamanı ya da boyutu farklı dosyaların özetini hesaplar, özeti değişenleri yeniden yazar; silinen ya da adı değişen dosyaların ve etkilenen anahtarların bağlantıları ile kimlik sahipliği yeniden hesaplanır. Ölçü: artımlı sonuç sıfırdan üretimle birebir aynı | Doğruluk tek bir ölçüye bağlanır; tarama ucuz (dosya başına ~20 µs), ayrıştırma pahalı |
 | 2026-10-03 | Dosya izleyici artımlı indekse yol bildirir; yeniden adlandırmada eski ve yeni yolu bildirir, bildirim kapsamı harfe duyarsız ve NFC'dir; eksik bildirimi sonraki `refresh` düzeltir | APFS harfe duyarsız; izleyici kaçırırsa indeks yine toparlanır |
+| 2026-10-04 | Varsayılan kasa uygulamanın `Documents/Vault/` klasörüdür; kullanıcı güvenlik kapsamlı yer imiyle başka klasör seçebilir. Bayat yer imi yenilenir, erişilemeyen klasörde yer imi silinmez ve yerel kasaya dönülür; yalnız bozuk veri silinir | Geçici bir hata kullanıcının seçimini kalıcı unutturmamalı |
+| 2026-10-04 | Dosya izleme: dizin başına DispatchSource (en çok 256), 5 saniyelik ön plan zamanlayıcısı ve ön plana dönüş tetiği; 300 ms birleştirme sonrası `refresh`. Yol bazlı `update(paths:)` kullanılmaz | Dizin vnode'u dosya içeriği düzenlemesini göstermez; `refresh` ucuz ve bildirim eksiklerine dayanıklı. FSEvents yalnız macOS'ta var |
+| 2026-10-04 | Uygulama test altında (`XCTestConfigurationFilePath` ya da `JOURNAL_NO_AUTOSTART`) indeksi otomatik başlatmaz | İmzasız test derlemesinde sandbox yok; test, geliştiricinin gerçek `Documents/Vault` klasörüne dokunmamalı |
 
 ## Açık sorular
 

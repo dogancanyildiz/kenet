@@ -27,10 +27,10 @@ Kullanıcıya görünen bir şey yok; her şey bunun üstüne kurulur.
 
 - [ ] Bugün sayfası ve hızlı giriş kutusu
 - [ ] Olay ekleme (saat damgalı satır) ve serbest günlük yazısı (olay ekleme hazır; günlük yazısı düzenleme sonraki PR)
-- [ ] `@` ile kişi, konum için öneri listesi; yeni varlık oluşturma
-- [ ] Bilinen adların ve takma adların otomatik tanınması
-- [ ] Belirsiz eşleşmede bağlama göre sıralama; emin değilse kullanıcıya sorma
-- [ ] Aynı adlı varlık oluştururken ayırt edici sorma, dosya adını otomatik üretme
+- [x] `@` ile kişi, konum için öneri listesi; yeni varlık oluşturma
+- [x] Bilinen adların ve takma adların otomatik tanınması
+- [x] Belirsiz eşleşmede bağlama göre sıralama; emin değilse kullanıcıya sorma
+- [x] Aynı adlı varlık oluştururken ayırt edici sorma, dosya adını otomatik üretme
 - [ ] Varlık adını değiştirme ve tüm bağlantıları güncelleme
 - [ ] Geçmiş güne olay ekleme, saatsiz olay
 - [ ] Kişi ve konum sayfaları: şablon alanları, serbest ek alanlar, zaman akışı

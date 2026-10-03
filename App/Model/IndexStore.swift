@@ -1,4 +1,5 @@
 import CryptoKit
+import EntityRecognition
 import Foundation
 import Observation
 import VaultFormat
@@ -30,6 +31,8 @@ struct IndexCounts: Sendable {
 final class IndexStore {
     private(set) var vaultURL: URL?
     private(set) var content = VaultReadModel.empty
+    private(set) var knownEntities: [KnownEntity] = []
+    private(set) var entityUsage: [EntityUsage] = []
     private(set) var counts = IndexCounts()
     private(set) var skippedPaths: [SkippedPath] = []
     private(set) var lastUpdated: Date?
@@ -120,6 +123,7 @@ final class IndexStore {
             let snapshot = try await Task.detached { try index.snapshot() }.value
             content = VaultReadModel(snapshot: snapshot)
             counts = IndexCounts(snapshot: snapshot)
+            try await reloadRecognition()
             lastUpdated = Date()
         } catch {
             if case VaultStoreError.indexUpdateFailed = error { saved = true }
@@ -132,6 +136,63 @@ final class IndexStore {
         if pendingRefresh && pendingSelection == nil { await refresh(rebuild: pendingRebuild) }
         await applyPendingSelection()
         return saved
+    }
+
+    private func reloadRecognition() async throws {
+        guard let index else { return }
+        let values = try await Task.detached { (try index.knownEntities(), try index.entityUsage()) }.value
+        knownEntities = values.0
+        entityUsage = values.1
+    }
+
+    func createEntity(kind: VaultEntityKind, name: String, qualifier: String?) async throws -> KnownEntity {
+        guard canAddEvent, let writer else { throw VaultStoreError.staleTarget }
+        isProcessing = true
+        isWriting = true
+        do {
+            let entity = try await persistEntity(writer: writer, kind: kind, name: name, qualifier: qualifier)
+            await finishEntityWrite()
+            return entity
+        } catch {
+            await finishEntityWrite()
+            throw error
+        }
+    }
+
+    private func finishEntityWrite() async {
+        isProcessing = false
+        isWriting = false
+        if pendingRefresh && pendingSelection == nil { await refresh(rebuild: pendingRebuild) }
+        await applyPendingSelection()
+    }
+
+    private func persistEntity(
+        writer: VaultStore, kind: VaultEntityKind, name: String, qualifier: String?
+    ) async throws -> KnownEntity {
+        let path: String
+        do {
+            path = try await writer.creatingEntity(kind: kind, name: name, qualifier: qualifier)
+        } catch VaultStoreError.indexUpdateFailed(let savedPath, _) {
+            // The entity already exists on disk. Never offer to create it again.
+            path = savedPath
+            entryErrorText = String(localized: "Varlık kaydedildi, indeks güncellenemedi.")
+            pendingRefresh = true
+            pendingRebuild = true
+        }
+        let entity = KnownEntity(
+            file: path, kind: kind == .person ? .person : .place, name: name, qualifier: qualifier)
+        knownEntities.append(entity)
+        do {
+            try await reloadRecognition()
+            if let index {
+                let snapshot = try await Task.detached { try index.snapshot() }.value
+                content = VaultReadModel(snapshot: snapshot)
+                counts = IndexCounts(snapshot: snapshot)
+                lastUpdated = Date()
+            }
+            if !knownEntities.contains(where: { $0.file == path }) { knownEntities.append(entity) }
+        } catch { entryErrorText = String(localized: "Varlık kaydedildi, indeks güncellenemedi.") }
+        return entity
     }
 
     private func applyPendingSelection() async {
@@ -153,6 +214,8 @@ final class IndexStore {
         writer = nil
         entryErrorText = nil
         content = .empty
+        knownEntities = []
+        entityUsage = []
         counts = IndexCounts()
         skippedPaths = []
         lastUpdated = nil
@@ -215,6 +278,7 @@ final class IndexStore {
                 content = result.content
                 counts = result.counts
                 skippedPaths = result.skippedPaths
+                try await reloadRecognition()
                 lastUpdated = Date()
                 errorText = nil
             } catch {

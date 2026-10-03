@@ -100,7 +100,7 @@ enum IndexBuilder {
         let recognized = Set(sections.filter { $0.kind != nil }.map(\.headingLine))
         let sourceHeadings = document.bodyHeadings
         let headings = Set(sourceHeadings.map(\.line))
-        for heading in sourceHeadings where !recognized.contains(heading.line) {
+        for heading in sourceHeadings where !recognized.contains(heading.line) && !occupied.contains(heading.line) {
             let text = (document.lines[heading.line].text ?? "").trimmingCharacters(in: .whitespaces)
             let title = String(text.dropFirst(heading.level)).trimmingCharacters(in: .whitespaces)
             blocks.append(

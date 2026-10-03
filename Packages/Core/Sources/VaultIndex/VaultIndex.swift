@@ -4,7 +4,7 @@ import VaultFormat
 
 /// A disposable SQLite index rebuilt atomically from Markdown files.
 public struct VaultIndex: Sendable {
-    private let database: DatabaseQueue
+    let database: DatabaseQueue
     private let databaseURL: URL?
 
     /// Opens an in-memory index, or a caller-supplied database outside the vault.
@@ -16,11 +16,7 @@ public struct VaultIndex: Sendable {
     /// Replaces all indexed content in one transaction. A failure leaves the previous content intact.
     @discardableResult
     public func rebuild(vaultRoot: URL) throws -> RebuildResult {
-        if let databaseURL {
-            let root = vaultRoot.resolvingSymlinksInPath().standardizedFileURL.path
-            let path = databaseURL.resolvingSymlinksInPath().standardizedFileURL.path
-            guard path != root && !path.hasPrefix(root + "/") else { throw VaultIndexError.databaseInsideVault }
-        }
+        try validate(vaultRoot: vaultRoot)
         return try database.write { db in
             for table in ["search", "links", "goal_logs", "aliases", "entities", "blocks", "files"] {
                 try db.execute(sql: "DELETE FROM " + table)
@@ -59,6 +55,14 @@ public struct VaultIndex: Sendable {
                     arguments: [resolved, file, ordinal])
             }
             return scan.result
+        }
+    }
+
+    func validate(vaultRoot: URL) throws {
+        if let databaseURL {
+            let root = vaultRoot.resolvingSymlinksInPath().standardizedFileURL.path
+            let path = databaseURL.resolvingSymlinksInPath().standardizedFileURL.path
+            guard path != root && !path.hasPrefix(root + "/") else { throw VaultIndexError.databaseInsideVault }
         }
     }
 

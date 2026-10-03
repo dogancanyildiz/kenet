@@ -92,6 +92,7 @@ Verilen her karar tek satır olarak eklenir. Açık sorular kapandığında altt
 | 2026-10-03 | Hızlı girişte tanıma gönderimde uygulanır; küçük harfli öneriler sessizce düz kalır. Belirsiz ve bilinmeyen anmalar kutu üstündeki şeritte çözülür; öneriden seçilen varlık metin aralığına sabitlenir | Aşama 1 kapsamı: yanlış otomatik bağlantıdan kaçınma, aynı adlı varlık seçimini koruma, klavyeyi açık tutma |
 | 2026-10-03 | Günlük düzenleyicisi Journal gövdesini diskten okur; kesin varlık bağlantısı yalnız eklenen veya değişen satırlara uygulanır, tanıma tüm gövdenin Markdown bağlamında yapılır | Değişmeyen yazıyı sonradan bağlamamak, kod çitlerini ve mevcut bağlantıları korumak; günlükte belirsizlik sorusuyla yazmayı bölmemek |
 | 2026-10-03 | Varlık sayfası alanları diskten okunur ve VaultStore üzerinden anahtar bazında yazılır; zaman akışı indekste çözülen bağlantıların günlük olay/paragraf bloklarından günlere gruplanır, aynı bloktaki tekrar bağlantılar tek satırdır | Kullanıcıya ait YAML yazımını korumak; not/görev bağlantılarını günlük zaman akışıyla karıştırmamak; dosya kaynak, indeks yeniden üretilebilir kalır |
+| 2026-10-03 | Varlık yeniden adlandırma aynı kasa yazma kuyruğunda metadata → taşıma → güncel kaynak bağlantıları → indeks sırasıyla yapılır; yalnız hedef değişir, ham alan ve kaynak hataları sonuçta bildirilir, taşıma başarısızsa özgün belge geri yazılır, bu da başarısızsa kısmi değişiklik gösterilir; kaynak güncellemeleri için çok dosyalı geri alma yapılmaz | Dosya baytlarını ve kullanıcı görünen metnini korumak; kısmi başarının yeni yolunu kaybetmemek, yeniden denemeyle yanlış dosyaya dokunmamak |
 
 ## Açık sorular
 
@@ -105,5 +106,4 @@ Verilen her karar tek satır olarak eklenir. Açık sorular kapandığında altt
 8. **Hedef kaydının yazımı.** İşaret kaldırılınca `false` mı yazılır, anahtar mı silinir? İç içe `goals` eşlemini Obsidian'ın özellik arayüzü düzenleyemiyor; düz anahtar seçeneği değerlendirilecek (aşama 3).
 9. **Haftanın başlangıcı.** Haftalık hedefte hafta hangi gün başlar; cihazın bölge ayarından mı gelir, kasada mı tutulur (aşama 3)?
 10. **Türkçe ad tanıma ve arama.** Kesme işaretsiz ekler ("ofiste"), İ/ı eşlemesi, sık geçen sözcüklerin takma ad olması (aşama 1).
-11. **Yarıda kalan yeniden adlandırma.** Çok dosyaya dokunan işlem çökme ya da kısmi eşitlemeyle yarım kalırsa nasıl tamamlanır (aşama 1)?
-12. **Varlık dosyası kopyaları.** iCloud'un ayırdığı `Elif 2.md` gibi kopyalar ne zaman aynı varlık sayılıp birleştirilir (aşama 1)?
+11. **Varlık dosyası kopyaları.** iCloud'un ayırdığı `Elif 2.md` gibi kopyalar ne zaman aynı varlık sayılıp birleştirilir (aşama 1)?

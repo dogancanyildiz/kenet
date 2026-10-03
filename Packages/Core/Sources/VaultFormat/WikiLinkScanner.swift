@@ -72,7 +72,7 @@ enum WikiLinkScanner {
     }
 
     /// Pair maximal backtick runs of equal length within each physical decoded line.
-    private static func inlineCode(_ bytes: [UInt8]) -> [Bool] {
+    static func inlineCode(_ bytes: [UInt8]) -> [Bool] {
         var runs: [(start: Int, end: Int)] = []
         var mask = Array(repeating: false, count: bytes.count)
         var index = 0

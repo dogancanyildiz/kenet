@@ -19,11 +19,37 @@ extension VaultStore {
         return url
     }
 
-    nonisolated func filenameIsTaken(_ name: String) throws -> Bool {
+    /// Current disk identities, using the same hidden/reserved/symlink exclusions as indexing.
+    nonisolated func markdownPaths() throws -> [String] {
+        var paths: [String] = []
+        func visit(_ directory: URL, prefix: String) throws {
+            for url in try FileManager.default.contentsOfDirectory(
+                at: directory, includingPropertiesForKeys: [.isDirectoryKey, .isSymbolicLinkKey])
+            {
+                let name = url.lastPathComponent
+                let values = try url.resourceValues(forKeys: [.isDirectoryKey, .isSymbolicLinkKey])
+                guard !name.hasPrefix("."), values.isSymbolicLink != true,
+                    !(prefix.isEmpty && ["templates", "conflicts"].contains(name))
+                else { continue }
+                let path = prefix + name
+                if values.isDirectory == true {
+                    try visit(url, prefix: path + "/")
+                } else if name.hasSuffix(".md") {
+                    paths.append(path.precomposedStringWithCanonicalMapping)
+                }
+            }
+        }
+        try visit(root, prefix: "")
+        return paths.sorted { $0.unicodeScalars.lexicographicallyPrecedes($1.unicodeScalars) { $0.value < $1.value } }
+    }
+
+    nonisolated func filenameIsTaken(_ name: String, excluding path: String? = nil) throws -> Bool {
         let key = storeComparisonKey(name)
         if try index.files().contains(where: {
-            storeComparisonKey(String(URL(fileURLWithPath: $0.path).lastPathComponent.dropLast(3))).utf8.elementsEqual(
-                key.utf8)
+            $0.path != path
+                && storeComparisonKey(String(URL(fileURLWithPath: $0.path).lastPathComponent.dropLast(3))).utf8
+                    .elementsEqual(
+                        key.utf8)
         }) {
             return true
         }
@@ -34,7 +60,13 @@ extension VaultStore {
                 let name = url.lastPathComponent
                 let values = try url.resourceValues(forKeys: [.isDirectoryKey, .isSymbolicLinkKey])
                 if name.hasPrefix(".") || (isRoot && ["templates", "conflicts"].contains(name)) { continue }
-                if name.hasSuffix(".md"), storeComparisonKey(String(name.dropLast(3))).utf8.elementsEqual(key.utf8) {
+                if url.resolvingSymlinksInPath().standardizedFileURL.path.precomposedStringWithCanonicalMapping
+                    != path.map({
+                        root.appendingPathComponent($0).resolvingSymlinksInPath().standardizedFileURL.path
+                            .precomposedStringWithCanonicalMapping
+                    }),
+                    name.hasSuffix(".md"), storeComparisonKey(String(name.dropLast(3))).utf8.elementsEqual(key.utf8)
+                {
                     return true
                 }
                 if values.isSymbolicLink != true, values.isDirectory == true, try visit(url, isRoot: false) {

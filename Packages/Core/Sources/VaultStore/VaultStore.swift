@@ -8,6 +8,8 @@ public actor VaultStore {
     let index: VaultIndex
     let writeQueue: OperationQueue
     let linkFile: @Sendable (URL, URL) throws -> Void
+    let moveFile: @Sendable (URL, URL) throws -> Void
+    let restoreRenameFile: (@Sendable (Data, URL) throws -> Void)?
     let randomValue: @Sendable () -> UInt64
 
     /// Uses the caller's index and an existing vault root; random injection supports deterministic tests.
@@ -20,18 +22,24 @@ public actor VaultStore {
         writeQueue = VaultWriteQueues.shared.queue(for: vaultRoot)
         self.randomValue = randomValue
         linkFile = { try FileManager.default.linkItem(at: $0, to: $1) }
+        moveFile = { try FileManager.default.moveItem(at: $0, to: $1) }
+        restoreRenameFile = nil
     }
 
     /// Internal filesystem seam for deterministic failure and creation-race tests.
     init(
         vaultRoot: URL, index: VaultIndex, randomValue: @escaping @Sendable () -> UInt64 = { 0 },
-        linkFile: @escaping @Sendable (URL, URL) throws -> Void
+        linkFile: @escaping @Sendable (URL, URL) throws -> Void,
+        moveFile: @escaping @Sendable (URL, URL) throws -> Void = { try FileManager.default.moveItem(at: $0, to: $1) },
+        restoreRenameFile: (@Sendable (Data, URL) throws -> Void)? = nil
     ) {
         root = vaultRoot.resolvingSymlinksInPath().standardizedFileURL
         self.index = index
         writeQueue = VaultWriteQueues.shared.queue(for: vaultRoot)
         self.randomValue = randomValue
         self.linkFile = linkFile
+        self.moveFile = moveFile
+        self.restoreRenameFile = restoreRenameFile
     }
 
     /// Returns the canonical vault-relative path of a day.

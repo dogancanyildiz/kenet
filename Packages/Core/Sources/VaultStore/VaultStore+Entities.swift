@@ -47,7 +47,7 @@ extension VaultStore {
         return try RawDocument(bytes: []).settingFrontmatterValue(.text(kind.rawValue), forKey: "type")
     }
 
-    private nonisolated func displayName(_ text: String) throws -> String {
+    nonisolated func displayName(_ text: String) throws -> String {
         let result = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !result.isEmpty,
             !result.unicodeScalars.contains(where: {
@@ -57,7 +57,7 @@ extension VaultStore {
         return result
     }
 
-    private nonisolated func filenameComponent(_ text: String) throws -> String {
+    nonisolated func filenameComponent(_ text: String) throws -> String {
         let forbidden = Set("/\\:*?\"<>|#^[]".unicodeScalars)
         let stripped = String(text.unicodeScalars.filter { !forbidden.contains($0) })
         let result = stripped.split(whereSeparator: \.isWhitespace).joined(separator: " ")

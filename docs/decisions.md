@@ -95,6 +95,7 @@ Verilen her karar tek satır olarak eklenir. Açık sorular kapandığında altt
 | 2026-10-03 | Varlık yeniden adlandırma aynı kasa yazma kuyruğunda metadata → taşıma → güncel kaynak bağlantıları → indeks sırasıyla yapılır; yalnız hedef değişir, ham alan ve kaynak hataları sonuçta bildirilir, taşıma başarısızsa özgün belge geri yazılır, bu da başarısızsa kısmi değişiklik gösterilir; kaynak güncellemeleri için çok dosyalı geri alma yapılmaz | Dosya baytlarını ve kullanıcı görünen metnini korumak; kısmi başarının yeni yolunu kaybetmemek, yeniden denemeyle yanlış dosyaya dokunmamak |
 | 2026-10-03 | Mac hızlı giriş: MenuBarExtra + Carbon RegisterEventHotKey, varsayılan ⌃⌥Space (Ayarlar'da kaydedilir); nonactivating NSPanel içinde ortak giriş bileşeni | Erişilebilirlik izni, ek entitlement ve üçüncü taraf paket olmadan, uygulamayı öne getirmeden kayıt |
 | 2026-10-03 | Görev alanları geçerli token aralıklarıyla okunur ve yerinde düzenlenir; ilk yinelenen değer kullanılır, kaldırmada tüm aynı alanlar temizlenir; tamamlama tarihi çağırandan gelir; indeks şeması 3 | Tanınmayan yazımı ve hedef dışındaki baytları korumak, saat bağımlılığını Core format katmanına taşımamak |
+| 2026-10-04 | Doğal tarihte çıplak gün adı gelecekteki ilk gün; sayısal eğik çizgide Türkçe gün/ay, İngilizce ay/gün ve dil sırası | Çağıranın yerel günüyle taşınabilir, kullanıcıya gösterilebilir varsayımlar |
 
 ## Açık sorular
 

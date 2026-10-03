@@ -196,6 +196,10 @@ Her klasör `input/` altında küçük girdi kasasını, `expected/` altında ta
 
 Örnekler hedef çevresindeki boşluk, çapa, görünen metin, tablo `\|`, `.md` ve yol önekleri, gömme, kod koruması, BOM/CRLF ve sonlandırılmamış satır; scalar/liste/eşlem frontmatter bağlantıları ve YAML kaçışı; ham alan bildirimi; ayırt edici değişimi; aynı dosya adında yalnız metadata yazımı; indeks sonrası geçersiz UTF-8 kaynakta kısmi başarı davranışını kapsar. `list-2/3-grows/shrinks` örnekleri aynı satırda iç içe tırnak yazımlı iki/üç bağlantının uzayan ve kısalan adla doğru güncellenmesini; tırnaksız ve tırnaklı blok öğelerinin ve komşu değerlerin korunmasını sınar. `unrelated-fields`, BOM değerini, kaçışlı tırnağı, yorumları ve ham/eşlem/liste alanlarının hedef taşımadığında bayt bayt korunmasını doğrular.
 
+### `dates/`
+
+`cases.json` doğal tarih ayrıştırmanın dilden bağımsız sözleşmesidir. Her kayıt `today` (ISO gün), `language` (sıralı `tr`/`en` listesi), `input`, `expectedDate` (ISO gün veya `null`), `remainder` (ham kalan metin), `confidence` (`exact`/`assumed` veya `null`), isteğe bağlı `expression` (beklenen özgün ifade) ve `weekStartsOnMonday` (varsayılan true) taşır. Tarih bulunmadığında metin aynen kalır. İfade aralığı özgün ifadenin UTF-8 baytlarıyla bağımsız karşılaştırılır. Örnekler göreli/haftalık/mutlak tarih, geçersiz günler, yıl ve artık yıl sınırları, dil sırası, Türkçe harfler, sözcük sınırı, anma/kod/bağlantı koruması, saatlerin korunması ve silmede boşluk baytlarını kapsar.
+
 ## Testlerin klasörü bulması
 
 Swift testleri `Fixtures/` klasörünü test kaynak dosyasından yukarı doğru çıkarak bulur. Paket deponun dışında derleniyorsa `FIXTURES_DIR` ortam değişkeni klasörün yolunu verir.

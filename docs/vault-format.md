@@ -253,6 +253,7 @@ Bugün genel olarak verimli geçti...
 - Bölüm başlığı tam olarak `## Tasks`, `## Events` ya da `## Journal` satırıdır (sondaki boşluklar yok sayılır). Bölüm, aynı ya da daha üst düzeydeki bir sonraki başlığa kadar sürer.
 - Aynı başlık birden fazla geçerse ilki geçerlidir.
 - Tanınmayan başlıklar ve ilk başlıktan önceki içerik korunur, düz metin olarak gösterilir.
+- Günlük yazısı değiştirilirken Journal bölümünün başlığından sonraki satırlar, bölümün sonundaki boş satırlar hariç, yeni metinle değiştirilir. Bölüm yoksa yalnız boş olmayan metin için açılır; bölüm yoksa ve metin boş ya da yalnız boşluklardan oluşuyorsa dosyaya dokunulmaz, eksik gün dosyası oluşturulmaz. Mevcut bölümde metin boşsa başlık ve sondaki boş satırlar kalır. Eklemedeki yapı kısıtları burada da geçerlidir; gövdedeki `---` yatay çizgisi frontmatter oluşturmadığı için kabul edilir.
 - Bölümler ilk ihtiyaç duyulduğunda oluşturulur. Boş bölüm yazılmaz; içi sonradan boşalan bölümün başlığı silinmez.
 - Yeni bölüm Tasks, Events, Journal sırasındaki yerine açılır: bu sırada kendinden sonra gelen ilk mevcut bölümün önüne, öyle bir bölüm yoksa dosyanın sonuna. Öncesinde bir boş satır bırakılır (frontmatter'dan hemen sonra açılıyorsa da); dosyanın ilk içeriğiyse bırakılmaz.
 - Ekleme yeniden okunduğunda satır hedef bölümde görünmeyecekse (kapanmayan kod çiti, çözülemeyen frontmatter) ya da eklenen metin belgenin yapısını değiştirecekse (birinci ya da ikinci düzey başlık, kapanmayan kod çiti, frontmatter sınırı) işlem reddedilir ve dosyaya dokunulmaz. Alt başlık (`###` ve aşağısı) ve kapalı kod bloğu eklenebilir.
@@ -317,6 +318,7 @@ Serbest notlar...
 ```
 
 - Uygulamanın kullandığı alanlar: `type`, `name`, `aliases`, `qualifier`.
+- Uygulama yeni varlık oluştururken `name` alanını her zaman yazar. `name` ve `qualifier` değerlerinin başındaki ve sonundaki boşluklar ve satır sonları kırpılır; içteki satır sonları ve kontrol karakterleri reddedilir. Boş takma adlar atılır. Üretilen dosya adı uzantısıyla birlikte en fazla 255 UTF-8 baytı olabilir; boş veya kontrol karakteri içeren adlar reddedilir.
 - `name` alanı yoksa, boşsa ya da yalnız boşluk içeriyorsa görünen ad dosya adıdır.
 - Diğer alanlar `templates/person.md` şablonundan gelir. Varsayılan şablon kasa oluşturulurken kullanıcının dilinde yazılır. Kullanıcı şablonu değiştirebilir ve kişi bazında istediği alanı ekleyebilir. Uygulama tanımadığı alanları korur ve kişi sayfasında gösterir.
 

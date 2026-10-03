@@ -97,8 +97,8 @@ Verilen her karar tek satır olarak eklenir. Açık sorular kapandığında altt
 | 2026-10-03 | Görev alanları geçerli token aralıklarıyla okunur ve yerinde düzenlenir; ilk yinelenen değer kullanılır, kaldırmada tüm aynı alanlar temizlenir; tamamlama tarihi çağırandan gelir; indeks şeması 3 | Tanınmayan yazımı ve hedef dışındaki baytları korumak, saat bağımlılığını Core format katmanına taşımamak |
 | 2026-10-04 | Doğal tarihte çıplak gün adı gelecekteki ilk gün; sayısal eğik çizgide Türkçe gün/ay, İngilizce ay/gün ve dil sırası | Çağıranın yerel günüyle taşınabilir, kullanıcıya gösterilebilir varsayımlar |
 | 2026-10-04 | Hızlı girişte doğal tarih canlı önerilir; ifade gönderim öncesi çıkarılır, bağlantılı görev kutudan tamamlanır | Kullanıcı tarih/yıl ifadesini yazmayı sürdürebilir; anma aralıkları ve kişi/konum bağlantısının dokunma eylemi korunur |
-
 | 2026-10-04 | Takvim erişimi yalnız kullanıcı izin düğmesine bastığında istenir, açılışta istenmez; EventKit verisi salt okunur ve kasa dosyalarına aktarılmaz | Kullanıcı takvimini göstermeyi kendisi seçer; günlük dosyaları gerçek kaynak olmayı sürdürür |
+| 2026-10-04 | Hedef dönemi pazartesi başlayan hafta/takvim yılı; kaldırma goals anahtarını siler; güncel dönem bekliyorsa zincir önceki dönemden sürer | Tek alışkanlık/hedef mekanizması ve geçmiş gün düzeltmesi için taşınabilir sözleşme |
 
 ## Açık sorular
 
@@ -109,7 +109,5 @@ Verilen her karar tek satır olarak eklenir. Açık sorular kapandığında altt
 5. **Hedef türleri.** Sayılamayan yıllık hedeflerin proje olarak modellenmesi (aşama 5).
 6. **Zincirde esneklik.** Günlük hedeflerde tek kaçırmada zincirin sıfırlanmaması için telafi hakkı (örneğin ayda bir gün) olsun mu?
 7. **Widget veri erişimi.** iCloud kasasına doğrudan erişim ya da App Group anlık görüntüsü.
-8. **Hedef kaydının yazımı.** İşaret kaldırılınca `false` mı yazılır, anahtar mı silinir? İç içe `goals` eşlemini Obsidian'ın özellik arayüzü düzenleyemiyor; düz anahtar seçeneği değerlendirilecek (aşama 3).
-9. **Haftanın başlangıcı.** Haftalık hedefte hafta hangi gün başlar; cihazın bölge ayarından mı gelir, kasada mı tutulur (aşama 3)?
 10. **Türkçe ad tanıma ve arama.** Kesme işaretsiz ekler ("ofiste"), İ/ı eşlemesi, sık geçen sözcüklerin takma ad olması (aşama 1).
 11. **Varlık dosyası kopyaları.** iCloud'un ayırdığı `Elif 2.md` gibi kopyalar ne zaman aynı varlık sayılıp birleştirilir (aşama 1)?

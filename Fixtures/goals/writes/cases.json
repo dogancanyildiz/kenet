@@ -1,0 +1,111 @@
+[
+  {
+    "id": "change-number",
+    "day": "2026-09-27",
+    "key": "kitap",
+    "value": 25,
+    "input": "change-number-input.md",
+    "expected": "change-number-expected.md"
+  },
+  {
+    "id": "same-value",
+    "day": "2026-09-27",
+    "key": "kitap",
+    "value": 20,
+    "input": "same-value-input.md",
+    "expected": "same-value-expected.md"
+  },
+  {
+    "id": "remove-entry",
+    "day": "2026-09-27",
+    "key": "kitap",
+    "value": null,
+    "input": "remove-entry-input.md",
+    "expected": "remove-entry-expected.md"
+  },
+  {
+    "id": "create-mapping",
+    "day": "2026-09-27",
+    "key": "spor",
+    "value": true,
+    "input": "create-mapping-input.md",
+    "expected": "create-mapping-expected.md"
+  },
+  {
+    "id": "create-day",
+    "day": "2026-09-27",
+    "key": "spor",
+    "value": true,
+    "input": null,
+    "expected": "create-day-expected.md"
+  },
+  {
+    "id": "remove-missing",
+    "day": "2026-09-27",
+    "key": "spor",
+    "value": null,
+    "input": null,
+    "expected": null
+  },
+  {
+    "id": "remove-absent-entry",
+    "day": "2026-09-27",
+    "key": "su",
+    "value": null,
+    "input": "remove-absent-entry-input.md",
+    "expected": "remove-absent-entry-expected.md"
+  },
+  {
+    "id": "mixed-endings-bom",
+    "day": "2026-09-27",
+    "key": "kitap",
+    "value": 25,
+    "input": "mixed-endings-bom-input.md",
+    "expected": "mixed-endings-bom-expected.md"
+  },
+  {
+    "id": "raw-goals",
+    "day": "2026-09-27",
+    "key": "spor",
+    "value": true,
+    "input": "raw-goals-input.md",
+    "expected": "raw-goals-expected.md",
+    "error": "notAMapping"
+  },
+  {
+    "id": "scalar-goals",
+    "day": "2026-09-27",
+    "key": "spor",
+    "value": true,
+    "input": "scalar-goals-input.md",
+    "expected": "scalar-goals-expected.md",
+    "error": "notAMapping"
+  },
+  {
+    "id": "list-goals",
+    "day": "2026-09-27",
+    "key": "spor",
+    "value": true,
+    "input": "list-goals-input.md",
+    "expected": "list-goals-expected.md",
+    "error": "notAMapping"
+  },
+  {
+    "id": "null-goals",
+    "day": "2026-09-27",
+    "key": "spor",
+    "value": true,
+    "input": "null-goals-input.md",
+    "expected": "null-goals-expected.md",
+    "error": "notAMapping"
+  },
+  {
+    "id": "remove-scalar-goals",
+    "day": "2026-09-27",
+    "key": "kitap",
+    "value": null,
+    "input": "remove-scalar-goals-input.md",
+    "expected": "remove-scalar-goals-expected.md",
+    "error": "notAMapping"
+  }
+]

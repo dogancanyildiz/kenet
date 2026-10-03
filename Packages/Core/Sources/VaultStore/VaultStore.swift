@@ -1,0 +1,170 @@
+import Foundation
+import VaultFormat
+import VaultIndex
+
+/// The serialized, file-first write gateway for one Markdown vault.
+public actor VaultStore {
+    let root: URL
+    let index: VaultIndex
+    let writeQueue: OperationQueue
+    let randomValue: @Sendable () -> UInt64
+
+    /// Uses the caller's index and an existing vault root; random injection supports deterministic tests.
+    public init(
+        vaultRoot: URL, index: VaultIndex,
+        randomValue: @escaping @Sendable () -> UInt64 = { UInt64.random(in: .min ... .max) }
+    ) {
+        root = vaultRoot.resolvingSymlinksInPath().standardizedFileURL
+        self.index = index
+        writeQueue = VaultWriteQueues.shared.queue(for: vaultRoot)
+        self.randomValue = randomValue
+    }
+
+    /// Returns the canonical vault-relative path of a day.
+    public nonisolated func dayFilePath(for date: CalendarDate) -> String {
+        "journal/" + date.description + ".md"
+    }
+
+    /// Reads the current disk bytes without querying the index.
+    public func document(at relativePath: String) throws -> RawDocument {
+        RawDocument(bytes: try Data(contentsOf: checkedURL(relativePath)))
+    }
+
+    /// Reads an existing day from disk, throwing if it does not exist.
+    public func dayDocument(for date: CalendarDate) throws -> RawDocument {
+        try document(at: dayFilePath(for: date))
+    }
+
+    /// Adds an event, optionally with a local clock time, and returns the written document.
+    @discardableResult
+    public func addingEvent(on date: CalendarDate, text: String, time: LineClock? = nil) async throws -> RawDocument {
+        try await perform {
+            try self.editDay(date) { document in
+                try document.addingEvent(text: text, id: self.freshID(in: document), time: time)
+            }
+        }
+    }
+
+    /// Adds a task without interpreting dates or priorities in its text.
+    @discardableResult
+    public func addingTask(on date: CalendarDate, text: String) async throws -> RawDocument {
+        try await perform {
+            try self.editDay(date) { document in try document.addingTask(text: text, id: self.freshID(in: document)) }
+        }
+    }
+
+    /// Replaces only the target's text, assigning a unique identifier when required.
+    @discardableResult
+    public func changingText(of target: LineBlock, at path: String, to text: String) async throws -> RawDocument {
+        try await perform {
+            try self.edit(path) { document in
+                try document.changingText(
+                    of: target, to: text, newID: self.replacementID(target, path: path, in: document))
+            }
+        }
+    }
+
+    /// Changes a task's status, preserving unrelated bytes.
+    @discardableResult
+    public func changingStatus(of target: TaskLine, at path: String, to status: TaskStatus) async throws -> RawDocument
+    {
+        try await perform {
+            try self.edit(path) { document in
+                try document.changingStatus(
+                    of: target, to: status, newID: self.replacementID(target.block, path: path, in: document))
+            }
+        }
+    }
+
+    /// Changes or removes an event's clock time, applying the format's ordering rule.
+    @discardableResult
+    public func changingTime(of target: EventLine, at path: String, to time: LineClock?) async throws -> RawDocument {
+        try await perform {
+            try self.edit(path) { document in
+                try document.changingTime(
+                    of: target, to: time, newID: self.replacementID(target.block, path: path, in: document))
+            }
+        }
+    }
+
+    /// Deletes the target's complete block, retaining the section heading.
+    @discardableResult
+    public func deletingBlock(_ target: LineBlock, at path: String) async throws -> RawDocument {
+        try await perform {
+            try self.edit(path) { try $0.deletingBlock(target) }
+        }
+    }
+
+    /// Replaces Journal content, preserving trailing blanks and leaving a missing section untouched for empty text.
+    @discardableResult
+    public func changingJournal(on date: CalendarDate, to text: String) async throws -> RawDocument {
+        try await perform {
+            try self.edit(self.dayFilePath(for: date), date: date, createDay: !text.allSatisfy(\.isWhitespace)) {
+                try $0.replacingJournal(with: text)
+            }
+        }
+    }
+
+    nonisolated func perform<T: Sendable>(_ action: @escaping @Sendable () throws -> T) async throws -> T {
+        try await withCheckedThrowingContinuation { continuation in
+            writeQueue.addOperation {
+                do { continuation.resume(returning: try action()) } catch { continuation.resume(throwing: error) }
+            }
+        }
+    }
+
+    nonisolated func editDay(_ date: CalendarDate, transform: (RawDocument) throws -> RawDocument) throws -> RawDocument
+    {
+        try edit(dayFilePath(for: date), date: date, transform: transform)
+    }
+
+    nonisolated func edit(
+        _ path: String, date: CalendarDate? = nil, createDay: Bool = true,
+        transform: (RawDocument) throws -> RawDocument
+    ) throws -> RawDocument {
+        let url = try checkedURL(path, writing: true)
+        let original: RawDocument
+        do {
+            original = RawDocument(bytes: try Data(contentsOf: url))
+        } catch CocoaError.fileReadNoSuchFile where date != nil {
+            guard createDay else { return RawDocument(bytes: []) }
+            original = try RawDocument(bytes: []).settingFrontmatterValue(.text("journal"), forKey: "type")
+                .settingFrontmatterValue(.date(date!), forKey: "date")
+        }
+        let changed: RawDocument
+        do { changed = try transform(original) } catch EditError.targetNotFound {
+            throw VaultStoreError.staleTarget
+        }
+        guard changed != original else { return original }
+        try persist(changed, path: path)
+        return changed
+    }
+
+    nonisolated func freshID(in document: RawDocument) throws -> String {
+        var taken = try index.blockIdentifiers()
+        taken.formUnion(document.bodyLines.tasks.compactMap { $0.block.id })
+        taken.formUnion(document.bodyLines.events.compactMap { $0.block.id })
+        var random = StoreRandom(nextValue: randomValue)
+        return try BlockIDGenerator.generate(using: &random, isTaken: { taken.contains($0) })
+    }
+
+    nonisolated func replacementID(_ target: LineBlock, path: String, in document: RawDocument) throws -> String? {
+        // Check staleness before consulting the index or consuming random candidates.
+        guard
+            document.bodyLines.tasks.contains(where: { $0.block == target })
+                || document.bodyLines.events.contains(where: { $0.block == target })
+        else { throw VaultStoreError.staleTarget }
+        if let id = target.id {
+            let normalizedPath = path.precomposedStringWithCanonicalMapping
+            let owner = try index.owner(of: id)
+            let earlierFileOwns =
+                owner.map {
+                    $0.file.utf8.lexicographicallyPrecedes(normalizedPath.utf8)
+                } ?? false
+            let blocks = document.bodyLines.tasks.map(\.block) + document.bodyLines.events.map(\.block)
+            let firstOccurrence = blocks.filter { $0.id == id }.min { $0.line < $1.line }
+            if !earlierFileOwns, firstOccurrence == target { return nil }
+        }
+        return try freshID(in: document)
+    }
+}

@@ -11,11 +11,16 @@ let package = Package(
     products: [
         .library(name: "VaultFormat", targets: ["VaultFormat"]),
         .library(name: "VaultIndex", targets: ["VaultIndex"]),
+        .library(name: "VaultStore", targets: ["VaultStore"]),
     ],
     dependencies: [
         .package(url: "https://github.com/groue/GRDB.swift.git", from: "7.0.0")
     ],
     targets: [
+        .target(name: "VaultStore", dependencies: ["VaultFormat", "VaultIndex"]),
+        .testTarget(
+            name: "VaultStoreTests",
+            dependencies: ["VaultStore", "VaultIndex", .product(name: "GRDB", package: "GRDB.swift")]),
         .target(name: "VaultFormat"),
         .testTarget(name: "VaultFormatTests", dependencies: ["VaultFormat"]),
         .target(name: "VaultIndex", dependencies: ["VaultFormat", .product(name: "GRDB", package: "GRDB.swift")]),

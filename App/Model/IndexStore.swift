@@ -1,7 +1,9 @@
 import CryptoKit
 import Foundation
 import Observation
+import VaultFormat
 import VaultIndex
+import VaultStore
 
 struct IndexCounts: Sendable {
     var filesByKind: [String: Int] = [:]
@@ -33,6 +35,9 @@ final class IndexStore {
     private(set) var lastUpdated: Date?
     private(set) var isProcessing = false
     private(set) var errorText: String?
+    private(set) var entryErrorText: String?
+    private(set) var isWriting = false
+    var canAddEvent: Bool { writer != nil && !isProcessing }
     private(set) var notice: String?
     private(set) var pendingSelection: URL?
     private(set) var unwatchedDirectoryCount = 0
@@ -41,6 +46,7 @@ final class IndexStore {
     @ObservationIgnored private let update: @Sendable (VaultIndex, URL, Bool) async throws -> IndexUpdate
     @ObservationIgnored private let watcherDirectoryLimit: Int
     @ObservationIgnored private var index: VaultIndex?
+    @ObservationIgnored private var writer: VaultStore?
     @ObservationIgnored private var watcher: VaultWatcher?
     @ObservationIgnored private var foreground = false
     @ObservationIgnored private var pendingRefresh = false
@@ -99,6 +105,35 @@ final class IndexStore {
         errorText = String(localized: "İşlem başarısız: \(error.localizedDescription)")
     }
 
+    /// Returns true once bytes are saved, including a failed index update; callers must not resend them.
+    @discardableResult
+    func addEvent(text: String, time: LineClock?) async -> Bool {
+        guard !text.allSatisfy(\.isWhitespace) else { return false }
+        guard canAddEvent, let writer, let index else { return false }
+        isProcessing = true
+        isWriting = true
+        entryErrorText = nil
+        var saved = false
+        do {
+            try await writer.addingEvent(on: LocalDay.today(), text: text, time: time)
+            saved = true
+            let snapshot = try await Task.detached { try index.snapshot() }.value
+            content = VaultReadModel(snapshot: snapshot)
+            counts = IndexCounts(snapshot: snapshot)
+            lastUpdated = Date()
+        } catch {
+            if case VaultStoreError.indexUpdateFailed = error { saved = true }
+            entryErrorText =
+                saved
+                ? EntryWriteError.savedWithoutIndex : EntryWriteError.message(for: error)
+        }
+        isWriting = false
+        isProcessing = false
+        if pendingRefresh && pendingSelection == nil { await refresh(rebuild: pendingRebuild) }
+        await applyPendingSelection()
+        return saved
+    }
+
     private func applyPendingSelection() async {
         guard let selected = pendingSelection else { return }
         pendingSelection = nil
@@ -115,6 +150,8 @@ final class IndexStore {
         unwatchedDirectoryCount = 0
         vaultURL = url
         index = nil
+        writer = nil
+        entryErrorText = nil
         content = .empty
         counts = IndexCounts()
         skippedPaths = []
@@ -131,6 +168,7 @@ final class IndexStore {
             }.value
             guard generation == current else { return }
             index = opened
+            writer = VaultStore(vaultRoot: url, index: opened)
         } catch {
             if generation == current { report(error) }
         }

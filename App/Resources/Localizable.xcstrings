@@ -976,6 +976,86 @@
           }
         }
       }
+    },
+    "Olay kaydedildi, indeks güncellenemedi.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Olay kaydedildi, indeks güncellenemedi."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Event saved, but the index could not be updated."
+          }
+        }
+      }
+    },
+    "Dosya değişti. Yeniden dene.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dosya değişti. Yeniden dene."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The file changed. Try again."
+          }
+        }
+      }
+    },
+    "Olay kaydedilemedi. Kasayı kontrol edip yeniden dene.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Olay kaydedilemedi. Kasayı kontrol edip yeniden dene."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not save the event. Check the vault and try again."
+          }
+        }
+      }
+    },
+    "Saati kaldır": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saati kaldır"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove time"
+          }
+        }
+      }
+    },
+    "Şu anki saati ekle": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Şu anki saati ekle"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add current time"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

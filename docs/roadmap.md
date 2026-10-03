@@ -26,7 +26,7 @@ Kullanıcıya görünen bir şey yok; her şey bunun üstüne kurulur.
 ## Aşama 1: Günlük
 
 - [ ] Bugün sayfası ve hızlı giriş kutusu
-- [ ] Olay ekleme (saat damgalı satır) ve serbest günlük yazısı
+- [ ] Olay ekleme (saat damgalı satır) ve serbest günlük yazısı (olay ekleme hazır; günlük yazısı düzenleme sonraki PR)
 - [ ] `@` ile kişi, konum için öneri listesi; yeni varlık oluşturma
 - [ ] Bilinen adların ve takma adların otomatik tanınması
 - [ ] Belirsiz eşleşmede bağlama göre sıralama; emin değilse kullanıcıya sorma

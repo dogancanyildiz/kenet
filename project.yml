@@ -43,6 +43,8 @@ targets:
         product: VaultFormat
       - package: Core
         product: VaultIndex
+      - package: Core
+        product: VaultStore
     settings:
       base:
         PRODUCT_NAME: Journal

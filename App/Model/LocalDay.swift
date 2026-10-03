@@ -10,6 +10,13 @@ enum LocalDay {
         return CalendarDate(year: components.year!, month: components.month!, day: components.day!)!
     }
 
+    static func clock(at instant: Date = Date(), timeZone: TimeZone = .current) -> LineClock {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = timeZone
+        let components = calendar.dateComponents([.hour, .minute], from: instant)
+        return try! LineClock(hour: components.hour!, minute: components.minute!)
+    }
+
     static func instant(for day: CalendarDate, time: EventTime? = nil, timeZone: TimeZone = .current) -> Date {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = timeZone

@@ -27,6 +27,7 @@ struct IndexCounts: Sendable {
 @MainActor @Observable
 final class IndexStore {
     private(set) var vaultURL: URL?
+    private(set) var content = VaultReadModel.empty
     private(set) var counts = IndexCounts()
     private(set) var skippedPaths: [SkippedPath] = []
     private(set) var lastUpdated: Date?
@@ -114,6 +115,7 @@ final class IndexStore {
         unwatchedDirectoryCount = 0
         vaultURL = url
         index = nil
+        content = .empty
         counts = IndexCounts()
         skippedPaths = []
         lastUpdated = nil
@@ -172,6 +174,7 @@ final class IndexStore {
             do {
                 let result = try await update(index, root, full)
                 guard generation == current else { break }
+                content = result.content
                 counts = result.counts
                 skippedPaths = result.skippedPaths
                 lastUpdated = Date()

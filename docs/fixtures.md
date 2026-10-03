@@ -155,6 +155,8 @@ Kasa formatının ve istemci uygulamaların (ayrıştırıcı, modeller, indeksl
 
 Beklenti: 30 dosya, 13 varlık, 40 olay, 22 kimlikli ve 2 kimliksiz görev, 31 paragraf, 6 başlık, 61 bağlantı, 14 ayrı hedef adı, tek çözülmemiş hedef ve 31 hedef kaydı (`spor`: 6, `kitap`: 12, `su`: 13; 27 Eylül’de kayıt yok). Tam döküm paragraf metinlerini, kod çitlerini ve frontmatter bağlantılarını da denetler. Sentetik test kasaları geçici dizinlerde oluşturulur; fixture dosyası test sırasında güncellenmez.
 
+`index/continuation/`, görev devamındaki girintili başlığın ayrı başlık veya paragraf üretmediğini kanonik dökümle doğrular; `input.md` üç satırlık tek görev bloğudur.
+
 ### Diğer kategoriler
 
 Birleştirme kategorisi ilgili işle birlikte tanımlanır; klasör adları ve beklenen çıktı biçimleri o zaman bu belgeye eklenir.

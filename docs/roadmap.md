@@ -1,8 +1,8 @@
 # Yol haritası
 
-**Aktif aşama:** 2
+**Aktif aşama:** 3
 
-Devreden maddeler (bundle, iCloud kapsayıcısı ve App Group kimliği kararını bekliyor): iCloud kasa konumu (aşama 0). Aşama 1'in teknik maddeleri tamamlandı; çıkış ölçütü (iki hafta günlük kullanım) kullanıcının gerçek kullanımıyla sağlanır.
+Devreden maddeler (bundle, iCloud kapsayıcısı ve App Group kimliği kararını bekliyor): iCloud kasa konumu (aşama 0); aşama 3'teki widget maddeleri (WidgetKit uzantısı kasaya App Group ile erişir). Aşama 1'in teknik maddeleri tamamlandı; çıkış ölçütü (iki hafta günlük kullanım) kullanıcının gerçek kullanımıyla sağlanır.
 
 Kural: Bir aşamanın çıkış ölçütü sağlanmadan sonrakine geçilmez. Her modül gerçek kullanımda sınanır.
 
@@ -48,7 +48,7 @@ Kullanıcıya görünen bir şey yok; her şey bunun üstüne kurulur.
 - [x] Doğal dille tarih ("yarın", "cuma", "5 ekim")
 - [x] Bugün ekranında günün ve geciken görevler
 - [x] Görevlerin kişi ve konumlara bağlanması; varlık sayfasında açık işler
-- [ ] Cihaz takvimindeki etkinliklerin bugün ekranında görünmesi (EventKit, salt okunur)
+- [x] Cihaz takvimindeki etkinliklerin bugün ekranında görünmesi (EventKit, salt okunur)
 - [x] İleri tarihli ajanda listesi
 
 **Çıkış ölçütü:** Günlük işler yalnızca buradan takip ediliyor.

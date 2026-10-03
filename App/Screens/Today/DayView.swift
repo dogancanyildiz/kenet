@@ -6,6 +6,7 @@ struct DayView: View {
     let store: IndexStore
     let date: CalendarDate
     var isToday = false
+    @Environment(CalendarService.self) private var calendar
     @State private var showsJournal = false
 
     private var taskGroups: TaskGroups { TaskGroups(rows: store.content.tasks, on: date, isToday: isToday) }
@@ -28,6 +29,7 @@ struct DayView: View {
                 }
                 DayTasksView(store: store, date: date, isToday: isToday)
                     .id(date.description + (isToday ? "today-tasks" : "day-tasks"))
+                DayCalendarView(date: date)
                 if !day.events.isEmpty {
                     VStack(alignment: .leading, spacing: 16) {
                         Text("Olaylar").font(.headline).accessibilityAddTraits(.isHeader)
@@ -65,6 +67,9 @@ struct DayView: View {
             isToday ? Text("Bugün") : Text(LocalDay.instant(for: date), format: .dateTime.day().month().year())
         )
         .toolbar { SearchButton() }
+        .task(id: date) {
+            if AppLaunchPolicy.allowsAutomaticStart() { await calendar.load(date) }
+        }
         .sheet(isPresented: $showsJournal) {
             NavigationStack { JournalView(store: store, date: date) }
         }

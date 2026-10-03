@@ -2,6 +2,7 @@ import SwiftUI
 
 @main
 struct JournalApp: App {
+    @State private var calendar = CalendarService()
     @State private var store: IndexStore
     @Environment(\.scenePhase) private var scenePhase
 
@@ -50,6 +51,7 @@ struct JournalApp: App {
                         .tabItem { Label("Kasa", systemImage: "folder") }
                 }
                 .frame(minWidth: 450, minHeight: 500)
+                .environment(calendar)
             }
         #else
             mainWindow
@@ -59,12 +61,16 @@ struct JournalApp: App {
     private var mainWindow: some Scene {
         WindowGroup(id: "main") {
             ContentView(store: store)
+                .environment(calendar)
                 #if os(macOS)
                     .background(MainWindowMarker())
                     .task { await desktop.start() }
                 #endif
         }
         .onChange(of: scenePhase, initial: true) { _, phase in
+            if phase == .active && AppLaunchPolicy.allowsAutomaticStart() {
+                Task { await calendar.refresh() }
+            }
             #if os(macOS)
                 store.setForeground(phase == .active || desktop.window.isPresented)
             #else

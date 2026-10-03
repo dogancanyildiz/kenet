@@ -8,6 +8,7 @@ struct DiagnosticsView: View {
 
     var body: some View {
         Form {
+            CalendarSettingsView()
             Section("Kasa") {
                 if let url = store.vaultURL {
                     Text(verbatim: url.path).textSelection(.enabled)

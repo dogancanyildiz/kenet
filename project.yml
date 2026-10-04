@@ -57,6 +57,7 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.dravcore.journal.dev
         INFOPLIST_KEY_CFBundleDisplayName: Journal
         INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription: Bugünün takvim etkinliklerini göstermek için takvim erişimi gerekir. Etkinlikler değiştirilmez.
+        INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription: Konum hedeflerini bölgeye girdiğinde işaretlemek veya bildirmek için arka planda konum erişimi gerekir.
         INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: Yakındaki konumları hızlı girişte önermek için konumuna erişilir.
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait

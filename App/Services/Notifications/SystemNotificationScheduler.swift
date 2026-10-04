@@ -4,6 +4,8 @@ import UserNotifications
 /// The system center is accessed lazily; constructing a test-host service cannot register a delegate.
 @MainActor
 final class SystemNotificationScheduler: NSObject, NotificationScheduling, UNUserNotificationCenterDelegate {
+    var geofenceRegistration: Task<Void, Never>?
+    var geofenceResponse: (@MainActor @Sendable (GeofenceAction) async -> Void)?
     private var response: (@MainActor @Sendable (NotificationDestination) -> Void)?
     func activate(response: @escaping @MainActor @Sendable (NotificationDestination) -> Void) {
         self.response = response
@@ -61,12 +63,24 @@ final class SystemNotificationScheduler: NSObject, NotificationScheduling, UNUse
 
     nonisolated func userNotificationCenter(
         _ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse,
-        withCompletionHandler completionHandler: @escaping () -> Void
+        withCompletionHandler completionHandler: @escaping @Sendable () -> Void
     ) {
-        if response.actionIdentifier == UNNotificationDefaultActionIdentifier,
-            let destination = NotificationDestination.from(identifier: response.notification.request.identifier)
+        if let action = GeofenceAction.decode(
+            response.notification.request.content.userInfo,
+            mark: response.actionIdentifier == "geofence.mark"),
+            response.actionIdentifier == "geofence.mark" || response.actionIdentifier == "geofence.skip"
         {
-            Task { @MainActor [weak self] in self?.response?(destination) }
+            Task { @MainActor [weak self] in
+                await self?.geofenceResponse?(action)
+                completionHandler()
+            }
+            return
+        }
+        if response.actionIdentifier == UNNotificationDefaultActionIdentifier {
+            let destination =
+                NotificationDestination.from(identifier: response.notification.request.identifier)
+                ?? (response.notification.request.identifier.hasPrefix("geofence-") ? .goals : nil)
+            if let destination { Task { @MainActor [weak self] in self?.response?(destination) } }
         }
         completionHandler()
     }

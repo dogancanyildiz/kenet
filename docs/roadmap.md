@@ -70,7 +70,7 @@ Kullanıcıya görünen bir şey yok; her şey bunun üstüne kurulur.
 
 - [x] Görev ve hedef bildirimleri, akşam günlük hatırlatması; bildirimlerin güvenilirlik testi
 - [x] Olay yazarken GPS ile konum önerisi
-- [ ] Konuma girince hedefi otomatik işaretleme ya da tek dokunuşluk bildirim
+- [x] Konuma girince hedefi otomatik işaretleme ya da tek dokunuşluk bildirim
 - [ ] Kısayollar ve Siri ile giriş (App Intents)
 
 **Çıkış ölçütü:** İki hafta boyunca hatırlatmalar kaçmadan geliyor; konuma bağlı hedefler elle işaretlemeden kaydediliyor.

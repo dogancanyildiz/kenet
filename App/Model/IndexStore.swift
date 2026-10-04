@@ -38,8 +38,12 @@ final class IndexStore {
     private(set) var counts = IndexCounts()
     private(set) var skippedPaths: [SkippedPath] = []
     private(set) var lastUpdated: Date? {
-        didSet { onSnapshotChange?(lastUpdated == nil ? nil : content, vaultURL) }
+        didSet {
+            onSnapshotChange?(lastUpdated == nil ? nil : content, vaultURL)
+            onGeofenceSnapshotChange?()
+        }
     }
+    @ObservationIgnored var onGeofenceSnapshotChange: (() -> Void)?
     @ObservationIgnored var onSnapshotChange: ((VaultReadModel?, URL?) -> Void)?
     private(set) var isProcessing = false
     private(set) var errorText: String?
@@ -90,6 +94,23 @@ final class IndexStore {
             notice = resolved.notice
             await open(resolved.url)
         } catch { report(error) }
+    }
+
+    /// Background callbacks must reopen security scope and finish indexing before any write.
+    func prepareForBackground() async throws {
+        if let vaultURL {
+            try location.resumeBackgroundAccess(to: vaultURL)
+        } else {
+            let root = try location.resolveForBackground()
+            await open(root)
+        }
+        for _ in 0..<400 {
+            if !isProcessing { break }
+            try await Task.sleep(for: .milliseconds(20))
+        }
+        guard canAddEvent, lastUpdated != nil else { throw VaultStoreError.staleTarget }
+        await refresh()
+        guard canAddEvent, errorText == nil else { throw VaultStoreError.staleTarget }
     }
 
     func select(_ url: URL) async {

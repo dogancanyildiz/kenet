@@ -15,9 +15,10 @@ struct DayView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
+                GoalStripView(store: store, day: date).id(date.description + (store.vaultURL?.path ?? ""))
                 if store.isProcessing && !store.isWriting { ProgressView("İndeks güncelleniyor…") }
                 if let error = store.errorText { Text(verbatim: error).foregroundStyle(.red) }
-                if day.events.isEmpty && day.journal.isEmpty && taskGroups.isEmpty {
+                if day.events.isEmpty && day.journal.isEmpty && taskGroups.isEmpty && !day.hasGoalRecords {
                     Group {
                         if isToday {
                             Text("Bugün henüz bir şey yazılmadı.")

@@ -31,7 +31,7 @@ extension VaultStore {
 }
 
 /// Expand Swift's shortest round-tripping decimal when it uses an exponent: YAML's numeric subset has none.
-private func goalNumberSpelling(_ value: Double) -> String {
+func goalNumberSpelling(_ value: Double) -> String {
     if value == 0 { return "0" }
     let text = String(value)
     let parts = text.split(separator: "e")

@@ -49,6 +49,8 @@ targets:
         product: EntityRecognition
       - package: Core
         product: DateParsing
+      - package: Core
+        product: GoalTracking
     settings:
       base:
         PRODUCT_NAME: Journal

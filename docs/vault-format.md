@@ -414,6 +414,9 @@ place: "[[Spor Salonu]]"
 | `unit` | metin, isteğe bağlı | Sayısal hedefte birim (sayfa, bardak) |
 | `place` | bağlantı, isteğe bağlı | Aşama 4: konuma girince işaretleme |
 
+- Yeni hedefler şablonsuz `goals/<Ad>.md` dosyasında oluşturulur; ad ve dosya gövde adı NFC + harf duyarsız karşılaştırmada benzersizdir. Dosya adında kişi/konum oluşturmayla aynı güvenli karakter kuralları uygulanır.
+- Otomatik anahtar: ad küçük harfe çevrilir; Türkçe `ç/ğ/ı/ö/ş/ü` → `c/g/i/o/s/u`, diğer aksanlar sadeleştirilir; ASCII harf ve rakam dışındaki ardışık karakterler tek `-` olur, uçtaki `-` kaldırılır. Boş sonuç `goal` olur. Örnek: `Su İçme` → `su-icme`. Kasadaki anahtarlarla NFC + harf duyarsız çakışmada `-2`, `-3`, … eklenir. Tanımı geçersiz hedeflerin anahtarları ve sahipsiz gün kayıtları da ayrılır. Anahtar oluşturulduktan sonra tanım düzenleyicisinde değişmez; ad değişikliği dosyayı taşımaz, geçmiş kayıtlar korunur.
+
 - Hafta pazartesi–pazar, yıl 1 Ocak–31 Aralık takvim yılı, günlük dönem tek gündür. Desteklenen aralık kenarında dönem sınırları 0100-01-01 / 9999-12-31 ile kırpılır.
 - `period`: `day`/`week`/`year`; `kind`: `boolean`/`number`; `key` boş olmayan metin; `target` sonlu, sıfırdan büyük sayı. Geçersiz tanımlar korunur ama hesaplanabilir tanımlar listesine alınmaz. Boolean `true` katkısı 1, diğer boolean katkısı 0; sayı katkısı gün miktarıdır. Dönem toplamı ≥ `target` ise dönem başarılıdır. Haftalık boolean 3, haftada üç farklı gün; yıllık sayısal 24, yıl kayıtlarının toplamıdır.
 - Zincir verilen günün döneminden geriye ardışık başarılı dönem sayısıdır. Güncel dönem henüz başarılı değilse önceki dönemden sayılır ve `isPendingToday` bayrağı döner (haftalık/yıllık hedeflerde güncel dönem bekliyor). Başarısız veya kayıtsız dönem zinciri keser. En uzun seri verilen güne kadarki tüm kayıtlardaki en uzun ardışık başarılı dönemdir.

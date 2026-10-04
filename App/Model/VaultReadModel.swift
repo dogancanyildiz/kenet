@@ -1,9 +1,15 @@
 import Foundation
+import GoalTracking
 import VaultFormat
 import VaultIndex
 
 /// Immutable screen data published together with the index counts.
 struct VaultReadModel: Sendable {
+    var goals: [GoalDefinition] = []
+    var goalLogs: [String: [GoalLog]] = [:]
+    var reservedGoalKeys: Set<String> = []
+    var goalLogStart = LocalDay.today().addingDays(-399)!
+    var goalStatuses: [String: GoalStatus] = [:]
     var tasks: [TaskRow] = []
     var days: [DaySummary] = []
     var entities: [EntitySummary] = []
@@ -13,8 +19,23 @@ struct VaultReadModel: Sendable {
 
     init() {}
 
-    init(snapshot: IndexSnapshot) {
+    init(snapshot: IndexSnapshot, today: CalendarDate = LocalDay.today()) {
+        goalLogStart = today.addingDays(-399) ?? today
+        let goalPlaces = Dictionary(grouping: snapshot.links.filter { $0.key == "place" }, by: \.file)
+        goals = snapshot.entities.compactMap { GoalDefinition(entity: $0, place: goalPlaces[$0.file]?.first?.target) }
+            .sorted {
+                $0.name.localizedStandardCompare($1.name) == .orderedAscending
+            }
+        reservedGoalKeys = Set(snapshot.entities.compactMap(\.goalKey) + snapshot.goalLogs.map(\.key))
+        let allLogs = Dictionary(grouping: snapshot.goalLogs, by: \.key).mapValues {
+            $0.compactMap(GoalLog.init(indexed:))
+        }
+        goalLogs = allLogs.mapValues { $0.filter { $0.day >= goalLogStart && $0.day <= today } }
+        for goal in goals {
+            goalStatuses[goal.key] = GoalProgress.compute(definition: goal, logs: allLogs[goal.key] ?? [], today: today)
+        }
         entityTimeline = EntityTimeline.build(snapshot: snapshot)
+        let goalFiles = Set(snapshot.goalLogs.map(\.file))
         let blocks = Dictionary(grouping: snapshot.blocks, by: \.file)
         let links = Dictionary(grouping: snapshot.links, by: \.file)
         tasks = snapshot.blocks.filter { $0.kind == "task" }.map {
@@ -53,7 +74,9 @@ struct VaultReadModel: Sendable {
                         id: row.ordinal, headingLevel: row.headingLevel,
                         text: LinkedText(row: row, links: sourceLinks))
                 }
-            return DaySummary(id: file.path, date: date, events: events, journal: journal)
+            return DaySummary(
+                id: file.path, date: date, events: events, journal: journal,
+                hasGoalRecords: goalFiles.contains(file.path))
         }.sorted { $0.date > $1.date }
     }
 
@@ -69,6 +92,7 @@ struct DaySummary: Identifiable, Sendable {
     let date: CalendarDate
     let events: [EventRow]
     let journal: [JournalRow]
+    var hasGoalRecords = false
 
     var preview: String? {
         journal.first { $0.headingLevel == nil }?.text.plainText.components(separatedBy: "\n").first

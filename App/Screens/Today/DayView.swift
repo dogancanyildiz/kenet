@@ -22,7 +22,7 @@ struct DayView: View {
                 if day.events.isEmpty && day.journal.isEmpty && taskGroups.isEmpty && !day.hasGoalRecords {
                     Group {
                         if isToday {
-                            Text("Bugün henüz bir şey yazılmadı.")
+                            Text("Gününden bir an yaz; @ ile kişi ekle")
                         } else {
                             Text("Bu gün henüz bir şey yazılmadı.")
                         }

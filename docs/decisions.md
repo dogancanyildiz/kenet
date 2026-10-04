@@ -6,6 +6,7 @@ Verilen her karar tek satır olarak eklenir. Açık sorular kapandığında altt
 
 | Tarih | Karar | Gerekçe |
 |---|---|---|
+| 2026-10-04 | Var olan kasa yerinde hazırlanır; kök/daily günleri taşınmaz, eksik kişi/konum type alanları ayrı onayla eklenir | Obsidian düzeni ve hedef dışındaki baytlar korunur; Atla yalnız indeksler, yeni yapı dosyaları mevcut dosyayı değiştirmeden oluşturulur |
 | 2026-10-04 | Zaman çizelgesi tarihleri gün ızgarasına kaydırır; çift tarih iki mevcut yazıcıyla, ilk yazımdan yeniden ayrıştırılan hedefle kaydedilir | Kasa formatı değişmez; başlangıçsız iş tek gün, bitişsiz iş açık uçludur; ters aralık reddi ve kısmi kayıt bildirimi dosya/indeks farkını gizlemez |
 | 2026-10-04 | Kanban kişi sütunlarında taşıma yok; kartlar bitiş tarihi, öncelik, metin ve eşitlerde kimlikle sıralanır | Çok kişili görevler her kişi sütununda görünür, bağlantı metni ve dosya sırası korunur; durum/proje taşıması mevcut atomik yazıcıları kullanır |
 | 2026-10-04 | Tekrar Obsidian Tasks alt kümesiyle, tamamlanan satırın üstüne yeni kimlikli açık satır üretir; hızlı giriş ! orta, !! yüksek ve aynı gündeki listeler öncelik sıralıdır | Tamamlama geçmişi ve bilinmeyen yazım korunur; ay sonu sıkıştırılır, indeks şeması 4 dosyalardan yeniden kurulur |

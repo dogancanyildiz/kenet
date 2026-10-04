@@ -14,7 +14,7 @@ struct VaultLocationTests {
         let root = try location.createDefaultVault()
         #expect(
             Set(try FileManager.default.contentsOfDirectory(atPath: root.path))
-                == Set([".app", "journal", "people", "places", "goals", "notes"]))
+                == Set([".app", "journal", "people", "places", "goals", "notes", "templates"]))
         let data = try Data(contentsOf: root.appendingPathComponent(".app/vault.json"))
         let json = try #require(JSONSerialization.jsonObject(with: data) as? [String: Int])
         #expect(json == ["formatVersion": 1])

@@ -21,7 +21,8 @@ struct DiagnosticsView: View {
                     Text(verbatim: url.path).textSelection(.enabled)
                 }
                 HStack {
-                    Button("Klasör seç") { choosingFolder = true }
+                    Button("Klasör seç") { choosingFolder = true }.disabled(
+                        store.isInspectingImport || store.importModel != nil)
                     Button("Yeniden üret") { Task { await store.refresh(rebuild: true) } }
                         .disabled(store.isProcessing)
                 }
@@ -35,7 +36,11 @@ struct DiagnosticsView: View {
                     )
                     .foregroundStyle(.secondary)
                 }
-                if store.isProcessing { ProgressView("İndeks güncelleniyor…") }
+                if store.isInspectingImport { ProgressView("Klasör inceleniyor…") }
+                if let model = store.importModel {
+                    NavigationLink("Kasa hazırlığı") { VaultImportView(store: store, model: model) }
+                }
+                if store.isProcessing { VaultIndexingProgress(store: store) }
                 if let notice = store.notice { Text(verbatim: notice).foregroundStyle(.secondary) }
                 if let error = store.errorText { Text(verbatim: error).foregroundStyle(.red) }
             }
@@ -72,7 +77,7 @@ struct DiagnosticsView: View {
         .formStyle(.grouped)
         .fileImporter(isPresented: $choosingFolder, allowedContentTypes: [.folder]) { result in
             switch result {
-            case .success(let url): Task { await store.select(url) }
+            case .success(let url): Task { await store.inspectSelection(url) }
             case .failure(let error): store.report(error)
             }
         }

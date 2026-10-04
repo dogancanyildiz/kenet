@@ -157,7 +157,7 @@ Uygulamaya yazmanın tüm yolları aynı hızlı giriş davranışına çıkar:
 
 ## Boş durumlar
 
-- **İlk açılış:** Boş Bugün ekranı ve giriş kutusunda örnek bir ipucu. Kurulum sihirbazı yoktur; ilk kişi ve konum yazarken oluşturulur.
+- **İlk açılış:** Yer imi ve varsayılan kasa yoksa Markdown veri sahipliğini anlatan tek ekran, “Yeni kasa oluştur” ve “Var olan klasörü seç” düğmelerini sunar. Çok adımlı kurulum sihirbazı yoktur. Kasa açılınca boş Bugün ekranında “Gününden bir an yaz; @ ile kişi ekle” ipucu görünür; ilk kişi ve konum yazarken oluşturulur.
 - **Boş gün:** Suçlayıcı olmayan kısa bir metin; giriş kutusu hazır.
 - **Kasa eşitlenirken:** Eldeki içerik gösterilir, eşitleme durumu küçük bir göstergeyle belirtilir.
 
@@ -172,3 +172,9 @@ Giriş bugünün hedef kaydı için günde bir kez işlenir; zaten true olan kay
 Journal ile günlüğe olay ekle, görev ekle, hedefi işaretle ve bugünü aç cümleleri Türkçe/İngilizce App Shortcuts olarak sunulur. Olayın saati verilmezse şimdi; görev tarihi metinden çıkarılır, açık tarih parametresi önceliklidir. Hedef seçiminde güncel tanımlar listelenir; boolean true, sayısal miktar bugünün toplam kaydı olarak yazılır (artırma değildir). Eksik/erişilemeyen kasada uygulamadan kasayı açma hatası verilir.
 
 Yazma işlemleri uygulamayı öne getirmez, kısa onay metni döndürür. Kesin anmalar mevcut hızlı giriş gibi bağlanır; belirsiz/bilinmeyen @ anmalarında soru açılamadığından @ kaldırılır ve metin düz kalır, yeni varlık oluşturulmaz. Bugünü aç uygulamayı öne getirip Bugün sekmesini/bölümünü seçer; detay, arama ve telefondaki ayarlar kapanır. Ana gezinme değişmez.
+
+### Var olan klasörü seçme
+
+İlk açılışta ve Ayarlar’da aynı klasör seçici kullanılır. Kasa yapısı eksikse bulunan klasörler, Markdown dosya sayısı, gün dosyaları, kişi/konum/hedef sayıları, eksik `type` alanları ve atlanan dosyalar raporlanır. Kökteki ve `daily/` altındaki gün dosyaları bilgi olarak listelenir; taşınmaz. Eksik klasör ve şablonları oluşturma, eksik kasa ayarını yazma ve kişi/konum türlerini ekleme teklifleri ayrı, varsayılan açık onay kutularıdır. Uygula sonrası oluşturulan/değiştirilen dosya sayıları ve atlanan/hatalı yollar gösterilir; Kasayı aç indeksi hazırlar. Atla dosyalara yazmadan indeksi açar. Desteklenmeyen veya okunamayan kasa sürümünde hazırlama kapalıdır, kasa salt okunur açılır.
+
+İlk indeksleme boyunca toplam dosya sayısıyla ilerleme göstergesi gösterilir. Mevcut indeks API’si dosya başına bildirim üretmediğinden gösterge belirsizdir; bitince gerçek indeks sayıları Ayarlar’da görünür.

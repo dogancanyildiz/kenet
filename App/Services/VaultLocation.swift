@@ -19,6 +19,11 @@ final class VaultLocation {
         scopedURL?.stopAccessingSecurityScopedResource()
     }
 
+    var needsFirstLaunch: Bool {
+        defaults.data(forKey: Self.bookmarkKey) == nil
+            && !FileManager.default.fileExists(atPath: documentsURL.appendingPathComponent("Vault").path)
+    }
+
     func resolve() throws -> (url: URL, notice: String?) {
         guard let data = defaults.data(forKey: Self.bookmarkKey) else {
             return (try createDefaultVault(), nil)
@@ -99,13 +104,14 @@ final class VaultLocation {
 
     func createDefaultVault() throws -> URL {
         let root = documentsURL.appendingPathComponent("Vault", isDirectory: true)
-        for name in [".app", "journal", "people", "places", "goals", "notes"] {
-            try FileManager.default.createDirectory(
-                at: root.appendingPathComponent(name), withIntermediateDirectories: true)
+        if !VaultImportScanner.supportsSettings(at: root) { return root }
+        for name in [".app"] + VaultImportReport.folders {
+            _ = try VaultImportBootstrap.directory(name, root: root)
         }
-        let settings = root.appendingPathComponent(".app/vault.json")
-        if !FileManager.default.fileExists(atPath: settings.path) {
-            try Data("{ \"formatVersion\": 1 }\n".utf8).write(to: settings, options: .atomic)
+        _ = try VaultImportBootstrap.file(".app/vault.json", bytes: Data("{ \"formatVersion\": 1 }\n".utf8), root: root)
+        for kind in ["person", "place"] {
+            _ = try VaultImportBootstrap.file(
+                "templates/" + kind + ".md", bytes: VaultImportBootstrap.template(kind), root: root)
         }
         return root
     }

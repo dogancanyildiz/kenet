@@ -56,6 +56,11 @@ final class TaskEditorModel: Identifiable {
         return await write { try await $0.settingTaskPriority(of: target, at: self.row.file, to: priority) }
     }
 
+    func setRecurrence(_ recurrence: TaskRecurrence?) async -> Bool {
+        guard let target else { return false }
+        return await write { try await $0.settingTaskRecurrence(of: target, at: self.row.file, to: recurrence) }
+    }
+
     func delete() async -> Bool {
         guard let target else { return false }
         return await write { try await $0.deletingBlock(target.block, at: self.row.file) }

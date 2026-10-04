@@ -27,7 +27,15 @@ struct DateTokens: Sendable {
         var result: [DateToken] = []
         var offset = document.hasByteOrderMark ? 3 : 0
         for line in document.lines {
-            let mask = scanner.excludedBytes(line.content)
+            var mask = scanner.excludedBytes(line.content)
+            // Already-written task metadata must not become a natural date expression.
+            let task = RawDocument(bytes: Array("- [ ] ".utf8) + line.content).bodyLines.tasks.first
+            let ranges =
+                (task?.fieldRanges.map(\.byteRange) ?? [])
+                + TaskRecurrenceField.fields(in: Array("- [ ] ".utf8) + line.content).map(\.range)
+            for range in ranges {
+                for byte in range where byte >= 6 && byte - 6 < mask.count { mask[byte - 6] = true }
+            }
             let characters = Array(String(decoding: line.content, as: UTF8.self))
             var positions = [0]
             for character in characters { positions.append(positions.last! + character.utf8.count) }

@@ -91,8 +91,12 @@ final class IntentActions {
     }
     func addTask(text: String, due: CalendarDate? = nil) async throws -> IntentActionResult {
         let day = LocalDay.today(at: now())
-        let expression = DateExpressionParser.parse(text, today: day, language: languages)
-        let remainder = expression?.remainder ?? text
+        let recurrence = RecurrenceExpressionParser.parse(text, language: languages)
+        let priority = PriorityExpressionParser.parse(recurrence?.remainder ?? text)
+        let input = priority?.remainder ?? recurrence?.remainder ?? text
+        let explicit = RawDocument(bytes: ("- [ ] " + text).utf8).bodyLines.tasks.first?.priority
+        let expression = DateExpressionParser.parse(input, today: day, language: languages)
+        let remainder = expression?.remainder ?? input
         guard !remainder.allSatisfy(\.isWhitespace) else { throw IntentActionError.emptyText }
         try await begin()
         defer { isPerforming = false }
@@ -100,7 +104,11 @@ final class IntentActions {
         do { linked = try IntentText.linking(remainder, entities: store.knownEntities) } catch {
             throw IntentActionError.writeFailed
         }
-        guard await store.addTask(on: day, text: linked, due: due ?? expression?.date) else {
+        guard
+            await store.addTask(
+                on: day, text: linked, due: due ?? expression?.date, priority: explicit ?? priority?.priority,
+                recurrence: recurrence?.recurrence)
+        else {
             throw IntentActionError.writeFailed
         }
         return IntentActionResult(dialog: "Görev eklendi: \(IntentText.display(linked))")

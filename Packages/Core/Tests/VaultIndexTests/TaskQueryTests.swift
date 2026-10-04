@@ -108,14 +108,14 @@ struct TaskQueryTests {
         #expect(try !index.projects().isEmpty)
     }
 
-    @Test func schemaTwoIsErasedAndTaskIndexesExist() throws {
+    @Test func schemaThreeIsErasedAndTaskIndexesExist() throws {
         try withVault { root in
             let url = root.appendingPathComponent("index.sqlite")
             let old = try DatabaseQueue(path: url.path)
-            try old.write { try $0.execute(sql: "CREATE TABLE old_data (value TEXT); PRAGMA user_version=2") }
+            try old.write { try $0.execute(sql: "CREATE TABLE old_data (value TEXT); PRAGMA user_version=3") }
             let index = try VaultIndex(databaseURL: url)
             #expect(try index.files().isEmpty)
-            #expect(try index.database.read { try Int.fetchOne($0, sql: "PRAGMA user_version") } == 3)
+            #expect(try index.database.read { try Int.fetchOne($0, sql: "PRAGMA user_version") } == 4)
             #expect(try index.database.read { try $0.tableExists("old_data") } == false)
             #expect(
                 try index.database.read {
@@ -125,6 +125,27 @@ struct TaskQueryTests {
                             "SELECT name FROM sqlite_master WHERE name IN ('task_due_dates','task_done_dates') ORDER BY name"
                     )
                 } == ["task_done_dates", "task_due_dates"])
+        }
+    }
+
+    @Test func recurrenceRefreshAndPriorityQueryOrder() throws {
+        try withVault { root in
+            let path = "notes/Recurring.md"
+            try write(
+                root, path,
+                "- [ ] Normal 📅 2026-10-04 🔁 every day ^normal\n- [ ] High 📅 2026-10-04 ⏫ 🔁 every weekday ^high\n- [ ] Low 📅 2026-10-04 🔽 ^low\n- [ ] Medium 📅 2026-10-04 🔼 ^medium"
+            )
+            let index = try VaultIndex()
+            try index.rebuild(vaultRoot: root)
+            #expect(
+                try index.tasks(dueOn: CalendarDate("2026-10-04")!).map(\.identifier) == [
+                    "high", "medium", "normal", "low",
+                ])
+            #expect(try index.tasks(dueOn: CalendarDate("2026-10-04")!).first?.recurrence == "every weekday")
+            try write(root, path, "- [ ] Normal 📅 2026-10-04 🔁 every 2 weeks ^normal")
+            try index.update(paths: [path], vaultRoot: root)
+            #expect(try index.tasks(dueOn: CalendarDate("2026-10-04")!).first?.recurrence == "every 2 weeks")
+            try equivalent(index, root)
         }
     }
 

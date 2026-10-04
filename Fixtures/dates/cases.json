@@ -1668,5 +1668,45 @@
     "remainder": "ara",
     "confidence": "exact",
     "expression": "bu cuma"
+  },
+  {
+    "today": "2026-10-04",
+    "language": [
+      "en",
+      "tr"
+    ],
+    "input": "Task 🔁 every monday",
+    "expectedDate": null,
+    "remainder": "Task 🔁 every monday"
+  },
+  {
+    "today": "2026-10-04",
+    "language": [
+      "en",
+      "tr"
+    ],
+    "input": "Task 🔁 every week on friday",
+    "expectedDate": null,
+    "remainder": "Task 🔁 every week on friday"
+  },
+  {
+    "today": "2026-10-04",
+    "language": [
+      "en",
+      "tr"
+    ],
+    "input": "Task 🔁 every month on the first monday",
+    "expectedDate": null,
+    "remainder": "Task 🔁 every month on the first monday"
+  },
+  {
+    "today": "2026-10-04",
+    "language": [
+      "en",
+      "tr"
+    ],
+    "input": "Task 📅 2026-10-05",
+    "expectedDate": null,
+    "remainder": "Task 📅 2026-10-05"
   }
 ]

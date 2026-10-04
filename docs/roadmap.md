@@ -80,7 +80,7 @@ Kullanıcıya görünen bir şey yok; her şey bunun üstüne kurulur.
 - [ ] Kanban: duruma, projeye ya da kişiye göre
 - [ ] Zaman çizelgesi: başlangıç ve bitiş tarihli görevler (ağırlıklı Mac)
 - [x] Proje etiketi ve proje sayfaları; sayılamayan yıllık hedefler
-- [ ] Tekrarlayan görevler, öncelikler
+- [x] Tekrarlayan görevler, öncelikler
 
 **Çıkış ölçütü:** Notion kanban ve zaman çizelgesi için açılmıyor.
 

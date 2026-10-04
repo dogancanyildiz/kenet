@@ -59,6 +59,9 @@ final class TasksModel {
                     guard let rhs = $1.done else { return true }
                     return lhs > rhs
                 }
+                if ($0.priority?.sortRank ?? 2) != ($1.priority?.sortRank ?? 2) {
+                    return ($0.priority?.sortRank ?? 2) < ($1.priority?.sortRank ?? 2)
+                }
                 if $0.file != $1.file { return $0.file < $1.file }
                 return $0.sourceLine < $1.sourceLine
             }.prefix(50))
@@ -68,11 +71,14 @@ final class TasksModel {
         store.content.tasks.filter { !$0.isClosed && $0.linkedFiles.contains(path) }.sorted(by: order)
     }
 
-    private static func order(_ lhs: TaskRow, _ rhs: TaskRow) -> Bool {
+    nonisolated static func order(_ lhs: TaskRow, _ rhs: TaskRow) -> Bool {
         if lhs.due != rhs.due {
             guard let left = lhs.due else { return false }
             guard let right = rhs.due else { return true }
             return left < right
+        }
+        if (lhs.priority?.sortRank ?? 2) != (rhs.priority?.sortRank ?? 2) {
+            return (lhs.priority?.sortRank ?? 2) < (rhs.priority?.sortRank ?? 2)
         }
         if lhs.file != rhs.file { return lhs.file < rhs.file }
         return lhs.sourceLine < rhs.sourceLine

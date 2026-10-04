@@ -15,6 +15,8 @@ struct TaskRow: Identifiable, Sendable {
     let done: CalendarDate?
     let priority: TaskPriority?
     let project: String?
+    let recurrenceSource: String?
+    var recurrence: TaskRecurrence? { recurrenceSource.flatMap(TaskRecurrence.init) }
     let linkedFiles: Set<String>
 
     var createdDate: CalendarDate? {
@@ -46,6 +48,7 @@ struct TaskRow: Identifiable, Sendable {
         case nil: priority = nil
         }
         project = row.project
+        recurrenceSource = row.recurrence
         linkedFiles = Set(links.filter { $0.block == row.ordinal }.compactMap(\.resolvedFile))
     }
 }
@@ -59,12 +62,9 @@ struct TaskGroups {
     init(rows: [TaskRow], on day: CalendarDate, isToday: Bool) {
         let eligible = rows.filter { !isToday || !$0.isClosed }
         if isToday {
-            overdue = eligible.filter { $0.due.map { $0 < day } ?? false }.sorted {
-                if $0.due != $1.due { return $0.due! < $1.due! }
-                return $0.id < $1.id
-            }
+            overdue = eligible.filter { $0.due.map { $0 < day } ?? false }.sorted(by: TasksModel.order)
         }
-        dated = eligible.filter { $0.due == day }
-        created = eligible.filter { $0.due == nil && $0.file == "journal/\(day).md" }
+        dated = eligible.filter { $0.due == day }.sorted(by: TasksModel.order)
+        created = eligible.filter { $0.due == nil && $0.file == "journal/\(day).md" }.sorted(by: TasksModel.order)
     }
 }

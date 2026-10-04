@@ -15,11 +15,14 @@ struct ProjectModel {
             guard let left = $0 else { return false }
             guard let right = $1 else { return true }
             return left < right
-        }.map { TaskAgendaGroup(date: $0, rows: groups[$0]!.sorted { $0.id < $1.id }) }
+        }.map { TaskAgendaGroup(date: $0, rows: groups[$0]!.sorted(by: TasksModel.order)) }
     }
     var completed: [TaskRow] {
         tasks.filter { $0.rawStatus == "x" || $0.rawStatus == "X" }.sorted {
             if $0.done != $1.done { return ($0.done?.description ?? "") > ($1.done?.description ?? "") }
+            if ($0.priority?.sortRank ?? 2) != ($1.priority?.sortRank ?? 2) {
+                return ($0.priority?.sortRank ?? 2) < ($1.priority?.sortRank ?? 2)
+            }
             return $0.id < $1.id
         }
     }

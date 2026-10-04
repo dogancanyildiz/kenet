@@ -11,6 +11,7 @@ struct DayTaskView: View {
     var allowsReopening = false
     let complete: () -> Void
     @State private var textEditor: TaskEditorModel?
+    @State private var recurrenceEditor: TaskEditorModel?
     @State private var dateEditor: TaskEditorModel?
     @State private var errorText: String?
 
@@ -30,7 +31,12 @@ struct DayTaskView: View {
                         Text(LocalDay.instant(for: date), format: .dateTime.day().month(.abbreviated))
                             .foregroundStyle(isOverdue ? Color.red.opacity(0.8) : Color.secondary)
                     }
-                    if let priority = row.priority { Text(verbatim: priority.token) }
+                    if let priority = row.priority { Text(verbatim: priority.token).accessibilityLabel("Öncelik") }
+                    if let recurrence = row.recurrence {
+                        TaskRecurrenceLabel(recurrence: recurrence)
+                    } else if row.recurrenceSource != nil {
+                        Label("Tanınmayan tekrar", systemImage: "repeat")
+                    }
                 }
                 .font(.caption)
                 if let error = errorText { Text(verbatim: error).font(.caption).foregroundStyle(.red) }
@@ -50,11 +56,12 @@ struct DayTaskView: View {
                     dateEditor = TaskEditorModel(store: store, row: row)
                 }
                 if row.due != nil { Button("Tarihi kaldır") { edit { await $0.setDue(nil) } } }
+                Button("Tekrar", systemImage: "repeat") { recurrenceEditor = TaskEditorModel(store: store, row: row) }
                 Menu("Öncelik") {
                     Button("Yüksek") { edit { await $0.setPriority(.high) } }
                     Button("Orta") { edit { await $0.setPriority(.medium) } }
                     Button("Düşük") { edit { await $0.setPriority(.low) } }
-                    Button("Önceliği kaldır") { edit { await $0.setPriority(nil) } }
+                    Button("Yok") { edit { await $0.setPriority(nil) } }
                 }
                 Button("Sil", systemImage: "trash", role: .destructive) { edit { await $0.delete() } }
             }
@@ -62,6 +69,9 @@ struct DayTaskView: View {
         .sheet(item: $textEditor) { model in
             NavigationStack { TaskTextEditor(model: model) }.frame(minWidth: 320, minHeight: 200)
                 .presentationDetents([.medium, .large])
+        }
+        .sheet(item: $recurrenceEditor) { model in
+            NavigationStack { TaskRecurrenceEditor(model: model) }.presentationDetents([.medium, .large])
         }
         .sheet(item: $dateEditor) { model in
             NavigationStack { TaskDateEditor(model: model) }.frame(minWidth: 320, minHeight: 200)

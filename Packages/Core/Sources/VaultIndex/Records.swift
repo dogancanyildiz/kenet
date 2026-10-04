@@ -54,6 +54,7 @@ public struct IndexedBlock: Codable, FetchableRecord, Sendable, Equatable {
     public let doneDate: String?
     public let priority: String?
     public let project: String?
+    public let recurrence: String?
 }
 
 /// A wikilink with its physical source and optional resolved file.

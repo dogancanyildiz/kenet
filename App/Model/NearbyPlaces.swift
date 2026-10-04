@@ -5,6 +5,19 @@ import VaultFormat
 struct PlaceCoordinate: Equatable, Sendable {
     let latitude: Double
     let longitude: Double
+    init(latitude: Double, longitude: Double) {
+        self.latitude = latitude
+        self.longitude = longitude
+    }
+    init?(document: RawDocument) {
+        guard case .parsed(let fields) = document.frontmatter,
+            case .list(let values, _) = fields.field(named: "coordinates")?.value,
+            values.count == 2, values.allSatisfy({ $0.kind == .number }),
+            let latitude = Double(values[0].text), let longitude = Double(values[1].text)
+        else { return nil }
+        self.init(latitude: latitude, longitude: longitude)
+        guard isValid else { return nil }
+    }
     var isValid: Bool {
         latitude.isFinite && longitude.isFinite && (-90...90).contains(latitude) && (-180...180).contains(longitude)
     }

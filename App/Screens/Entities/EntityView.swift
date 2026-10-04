@@ -26,6 +26,9 @@ struct EntityView: View {
 
     var body: some View {
         Form {
+            Section {
+                NavigationLink("Graph'ta göster") { GraphView(store: store, focus: model.path) }
+            }
             EntityInsightsCard(store: store, entity: current)
             Section("Varlık") {
                 LabeledContent("Ad") { Text(verbatim: current.name) }

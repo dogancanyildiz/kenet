@@ -113,6 +113,8 @@ Verilen her karar tek satır olarak eklenir. Açık sorular kapandığında altt
 
 | 2026-10-04 | Kişi/konum içgörüleri günlük olay ve Journal geçişlerinden, farklı günler üzerinden hesaplanır; görüşülmeyenler eşiği cihazda varsayılan 30 (1–365) gündür, dil nötrdür, hiç geçmemişler ayrıdır | Günlükte anılmayı gerçek görüşme diye doğrulamadan hatırlatma sunar; mevcut taslağa yol sabitli anma eklenir, bildirim ve kasa formatı eklenmez |
 
+| 2026-10-04 | Graph aynı günün çözülen kişi/konum bağlantılarından farklı ortak gün ağırlığıyla, sabit tohumlu sınırlı kuvvet yerleşimiyle; harita App MapKit katmanında mevcut koordinat/izinle gösterilir | Core ve kasa şeması değişmez, birlikte geçme karşılaşma diye yorumlanmaz; koordinat pini GPS önerisi yarıçapına bağlı değildir ve yeni izin istenmez |
+
 ## Açık sorular
 
 1. **İsim.** İçinde "core" geçecek. Adaylar: Zincore, Ancore, Corenda. Karar ertelendi. Bundle ve iCloud kimliklerinde isim yerine nötr bir kimlik kullanılacak.

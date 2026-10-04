@@ -92,6 +92,16 @@ Kişiler listesinin üstünde katlanabilir Bir süredir görüşmediklerin böl�
 
 Ayarlar'da Kişi hatırlatmaları bölümünden eşik 1–365 gün arasında seçilir; varsayılan 30 gündür ve cihaz tercihi olarak saklanır, kasa alanı değildir. Değişiklik listeye hemen yansır; tarih gece yarısından sonra periyodik yenilenir. Bildirim yoktur.
 
+### Graph ve harita (6)
+
+Mac kenar çubuğunda Graph ve Harita; telefonda Kişiler ve Konumlar araç çubuğunda iki giriş bulunur. Telefonda aynı gezinme yığınında tam sayfa açılır, yeni sekme eklenmez. Varlık sayfasındaki Graph'ta göster o düğümü seçip merkezler.
+
+Graph varsayılan olarak bütün kişi/konumları gösterir; bağlanmamış varlıklar da düğümdür. Gün düğümleri isteğe bağlıdır, bağlantı içeren günler için bir düğüm oluşturulur. Kenar ağırlığı aynı takvim gününün dosyalarında birlikte geçen farklı gün sayısıdır; yinelenen bağlantılar ve aynı tarihli dosyalar ortak günü artırmaz. Gövde/frontmatter ayrımı yapılmaz; çözülen kişi/konum bağlantıları kullanılır, bilinmeyen hedefler dışlanır. Gün–varlık kenarı bir gündür. Filtreler kişi/konum/gün, son 30/90/365 gün veya tümü ve en az ortak gün ağırlığıdır. Son N gün bugün dahil `bugün -(N-1)` … bugün aralığıdır; tümü gelecek günleri ve tarihsiz kaynak bağlantılarını da içerir. Düğüm boyutu tümü seçiliyken bütün kasadaki geçiş sayısına, tarih filtresinde seçilen günlerin geçiş sayısına bağlıdır. Eşik kenarları kaldırır, izole düğümleri silmez.
+
+Canvas üzerinde sürükleyerek kaydırma, pinch (Mac'te tekerlek/trackpad kaydırması) ve yakınlaştırma düğmeleri bulunur. Seçili düğümün adı ve komşuları vurgulanır; Sayfayı aç varlık/gün sayfasına gider. Düğüm seç menüsü klavye ve erişilebilirlik için aynı seçimi sunar. Renkler kişi mavi, konum yeşil, gün gri; açıklama birlikte geçmeyi gerçek karşılaşma diye yorumlamaz. Yerleşim sabit tohumlu, sınırlı adımlı kuvvet hesabıdır; arka planda çalışır, son aşamada daireler arası en az 8 nokta boşluk bırakılır. Kasa/filtre değişiminde eski sonuç uygulanmaz.
+
+Harita geçerli koordinatı olan konumları pin olarak gösterir. Pin boyutu ve renk yoğunluğu bütün kasadaki çözülen geçiş sayısına bağlıdır; sayı pin içinde görünür, pin dokununca konum sayfası açılır. Konum önerisi yarıçapı pin için gerekli değildir. Koordinat yoksa nötr boş görünüm vardır. Beni göster yalnız mevcut konum izni ve etkin konum tercihiyle tek konum ölçümü ister; yeni izin istemez, son geçerli konumu gösterip merkezler. GPS verisi kasaya yazılmaz. Harita döşemeleri MapKit tarafından sağlanır; günlük metni MapKit'e aktarılmaz.
+
 ### Hedefler (3)
 
 - Her hedef için kart: ad, dönem, güncel zincir ya da dönem ilerlemesi.
@@ -110,7 +120,7 @@ Telefonda okuma ve basit düzenleme. Aramadan ve bağlantılardan ulaşılır; a
 ## Mac
 
 - Görevler altında Kanban, Zaman çizelgesi ve proje adları yer alır. Kanban liste sütununu kullanmadan kenar çubuğunun yanına açılır; seçili kart sağ ayrıntı panelinde gösterilir.
-- **Kenar çubuğu:** Bugün, Günlük, Özetler, Görevler, Kişiler, Konumlar, Hedefler, Notlar.
+- **Kenar çubuğu:** Bugün, Günlük, Özetler, Görevler, Kişiler, Konumlar, Hedefler, Graph, Harita, Notlar.
 - **Çok sütunlu düzen:** Solda liste, ortada seçili öğe. Örneğin kişi listesi ve seçili kişinin sayfası yan yana.
 - **Kanban (5)** tam genişlikte; sürükle bırak ile durum ve proje değişir, tarih kart menüsünden değiştirilir. **Zaman çizelgesi (5)** aynı geniş alanda tarih taşımayı ve uç sürükleyerek uzatma/kısaltmayı destekler. Gün ızgarasına yapışır; çubukta tarih alanları aynı farkla kayar, uç yalnız ilgili alanı değiştirir. Sürükleme başlangıcındaki görev ve kasa doğrulanır. İki tarih mevcut yazıcıyla iki kez yazılır; ikinci yazma ilkinden dönen görev hedefini kullanır. Yazma sırasında geçici çubuk konumu, hata/başarı sonrası dosya yenilemesi vardır; kısmi yazma bildirimi otomatik tekrar göndermez. Ayrıntı sağ panelde açılır.
 - **Hızlı giriş penceresi (1):** Sistem genelinde klavye kısayoluyla açılan küçük pencere; telefondaki hızlı giriş kutusuyla aynı davranış. Uygulama öne gelmeden kayıt yapılır.

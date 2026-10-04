@@ -1,6 +1,6 @@
 # Yol haritası
 
-**Aktif aşama:** 6
+**Aktif aşama:** 7
 
 Devreden maddeler (bundle, iCloud kapsayıcısı ve App Group kimliği kararını bekliyor): iCloud kasa konumu (aşama 0); aşama 3'teki widget maddeleri (WidgetKit uzantısı kasaya App Group ile erişir). Aşama 1'in teknik maddeleri tamamlandı; çıkış ölçütü (iki hafta günlük kullanım) kullanıcının gerçek kullanımıyla sağlanır.
 
@@ -88,13 +88,15 @@ Kullanıcıya görünen bir şey yok; her şey bunun üstüne kurulur.
 
 - [x] Haftalık ve aylık özetler (sayılara dayalı, yapay zekasız): kimlerle, nerelerde, hedef ve görev durumu
 - [x] Kişi sayfasında son görüşme özeti; uzun süredir görüşülmeyenler
-- [ ] Graph ve harita görünümleri
+- [x] Graph ve harita görünümleri
 - [ ] İsteğe bağlı yapay zeka (karar açık):
   - Haftalık ve aylık değerlendirme: dönemin günlüklerini, görevlerini ve hedeflerini inceleyip yazılı geri bildirim verme (örüntüler, iyi gidenler, aksayanlar, öneriler)
   - Yeni varlık önerisi ve olgu çıkarımı
   - Notlara soru sorma
 
 **Çıkış ölçütü:** Haftalık özet dört hafta üst üste okunuyor.
+
+Aşama 6'nın sayılara dayalı teknik maddeleri tamamlandı; kullanıcı talimatıyla aşama 7 aktif. Dört haftalık özet okuma çıkış ölçütü gerçek kullanımda izlenmeye devam eder. İsteğe bağlı yapay zeka maddeleri kullanıcı kararını beklediği için açık kalır.
 
 ## Aşama 7: Genişleme
 

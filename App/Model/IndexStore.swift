@@ -1,6 +1,7 @@
 import CryptoKit
 import EntityRecognition
 import Foundation
+import GoalTracking
 import Observation
 import VaultFormat
 import VaultIndex
@@ -167,6 +168,18 @@ final class IndexStore {
         let results = try await Task.detached { try index.searchResults(query) }.value
         guard generation == current else { throw VaultStoreError.staleTarget }
         return results
+    }
+
+    /// Full history is read on demand for detail screens and dates outside the bounded snapshot.
+    func goalHistory(key: String? = nil) async throws -> [String: [GoalLog]] {
+        guard let index else { throw VaultStoreError.staleTarget }
+        let current = generation
+        let logs = try await Task.detached {
+            Dictionary(grouping: try index.goalLogs(key: key), by: \.key)
+                .mapValues { $0.compactMap(GoalLog.init(indexed:)) }
+        }.value
+        guard generation == current else { throw VaultStoreError.staleTarget }
+        return logs
     }
 
     /// Shared file-first edit lifecycle. A saved-but-unindexed edit must never be retried.

@@ -1,6 +1,6 @@
 # Yol haritası
 
-**Aktif aşama:** 3
+**Aktif aşama:** 4
 
 Devreden maddeler (bundle, iCloud kapsayıcısı ve App Group kimliği kararını bekliyor): iCloud kasa konumu (aşama 0); aşama 3'teki widget maddeleri (WidgetKit uzantısı kasaya App Group ile erişir). Aşama 1'in teknik maddeleri tamamlandı; çıkış ölçütü (iki hafta günlük kullanım) kullanıcının gerçek kullanımıyla sağlanır.
 
@@ -55,9 +55,9 @@ Kullanıcıya görünen bir şey yok; her şey bunun üstüne kurulur.
 
 ## Aşama 3: Hedefler ve widget'lar
 
-- [ ] Hedef tanımlama: dönem (gün, hafta, yıl), tür (evet/hayır, sayı), miktar
-- [ ] Zincir, en uzun seri, ısı haritası; yıllık hedefte ilerleme çubuğu
-- [ ] Geçmiş günlerin hedef kaydını düzeltme
+- [x] Hedef tanımlama: dönem (gün, hafta, yıl), tür (evet/hayır, sayı), miktar
+- [x] Zincir, en uzun seri, ısı haritası; yıllık hedefte ilerleme çubuğu
+- [x] Geçmiş günlerin hedef kaydını düzeltme
 - [ ] Ana ekran widget'ı: zincir ve tek dokunuşla işaretleme; yapılmamışlar vurgulu
 - [ ] Widget yenilenmesinin güvenilirlik testi
 - [ ] Kilit ekranı widget'ı: takvim etkinlikleri ve günün görevleri

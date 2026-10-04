@@ -25,6 +25,9 @@ struct PhoneNavigation: View {
             Tab("Kişiler ve Konumlar", systemImage: "person.2") {
                 NavigationStack { EntitiesView(store: store) }
             }
+            Tab("Hedefler", systemImage: "target") {
+                NavigationStack { GoalsView(store: store) }
+            }
         }
         .sheet(isPresented: $showingSettings) {
             NavigationStack {

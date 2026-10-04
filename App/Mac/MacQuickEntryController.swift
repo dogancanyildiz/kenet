@@ -6,6 +6,8 @@
     @MainActor @Observable
     final class MacQuickEntryController {
         let location: LocationService
+        let appLock: AppLockService
+        @ObservationIgnored private var opening = false
         let window: QuickEntryWindowModel
         let shortcut: HotKeySettingsModel
         @ObservationIgnored private let registration: HotKeyRegistration
@@ -14,13 +16,17 @@
         @ObservationIgnored private var localInput: Any?
         @ObservationIgnored private var termination: NSObjectProtocol?
         @ObservationIgnored private var started = false
+        @ObservationIgnored private var activityObservers: [NSObjectProtocol] = []
 
-        init(store: IndexStore, location: LocationService) {
+        init(store: IndexStore, location: LocationService, appLock: AppLockService = AppLockService()) {
+            self.appLock = appLock
             self.location = location
             window = QuickEntryWindowModel(store: store)
             let registration = HotKeyRegistration()
             self.registration = registration
-            shortcut = HotKeySettingsModel(register: { registration.register($0) }, pause: { registration.stop() })
+            shortcut = HotKeySettingsModel(
+                register: { registration.register($0) },
+                pause: { registration.stop() })
             registration.onPressed = { [weak self] in self?.open() }
         }
 
@@ -31,6 +37,23 @@
             else { return }
             started = true
             shortcut.start()
+            activityObservers.append(
+                NotificationCenter.default.addObserver(
+                    forName: NSApplication.willResignActiveNotification, object: nil, queue: .main
+                ) { [weak self] _ in
+                    MainActor.assumeIsolated {
+                        guard let self else { return }
+                        self.appLock.resignActive(startTimeout: !self.appLock.isAuthenticating)
+                        if !self.appLock.isAuthenticating { self.close() }
+                    }
+                })
+            activityObservers.append(
+                NotificationCenter.default.addObserver(
+                    forName: NSApplication.didBecomeActiveNotification, object: nil, queue: .main
+                ) { [weak self] _ in
+                    MainActor.assumeIsolated { self?.appLock.activate() }
+                })
+            if NSApp.isActive { appLock.activate() }
             termination = NotificationCenter.default.addObserver(
                 forName: NSApplication.willTerminateNotification, object: nil, queue: .main
             ) { [weak self] _ in
@@ -40,6 +63,17 @@
         }
 
         func open() {
+            guard !opening else { return }
+            opening = true
+            Task {
+                defer { opening = false }
+                // Failure presents the panel with a retry cover, never the entry field.
+                _ = await appLock.authorizeQuickEntry()
+                presentPanel()
+            }
+        }
+
+        private func presentPanel() {
             if panel == nil { makePanel() }
             guard let panel else { return }
             window.open()
@@ -54,8 +88,9 @@
         }
 
         func close() {
-            guard window.isPresented else { return }
+            guard window.isPresented, !appLock.isAuthenticating else { return }
             window.close()
+            appLock.quickEntryClosed()
             removeClickMonitors()
             panel?.orderOut(nil)
             window.entry.store.setForeground(NSApp.isActive)
@@ -77,8 +112,14 @@
             panel.contentView = NSHostingView(
                 rootView: QuickEntryPanelView(
                     model: window,
+                    appLock: appLock,
                     onHeightChange: { [weak self] height in self?.resize(height: height) },
-                    onClose: { [weak self] in self?.close() }
+                    onClose: { [weak self] in self?.close() },
+                    onUnlock: { [weak self] in
+                        guard let self, self.window.isPresented else { return }
+                        self.panel?.makeKeyAndOrderFront(nil)
+                        self.window.open()
+                    }
                 ).environment(location))
             self.panel = panel
         }
@@ -128,6 +169,8 @@
         private func stop() {
             close()
             registration.stop()
+            for observer in activityObservers { NotificationCenter.default.removeObserver(observer) }
+            activityObservers = []
             if let termination { NotificationCenter.default.removeObserver(termination) }
             termination = nil
         }

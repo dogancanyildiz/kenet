@@ -1,54 +1,70 @@
 {
-  "sourceLanguage" : "tr",
-  "strings" : {
-  "NSLocationAlwaysAndWhenInUseUsageDescription" : {
-    "localizations" : {
-      "tr" : {
-        "stringUnit" : {
-          "state" : "translated",
-          "value" : "Konum hedeflerini bölgeye girdiğinde işaretlemek veya bildirmek için arka planda konum erişimi gerekir."
-        }
-      },
-      "en" : {
-        "stringUnit" : {
-          "state" : "translated",
-          "value" : "Background location access is needed to mark or notify location goals when you arrive."
-        }
-      }
-    }
-  },
-  "NSLocationWhenInUseUsageDescription" : {
-    "localizations" : {
-      "tr" : {
-        "stringUnit" : {
-          "state" : "translated",
-          "value" : "Yakındaki konumları hızlı girişte önermek için konumuna erişilir."
-        }
-      },
-      "en" : {
-        "stringUnit" : {
-          "state" : "translated",
-          "value" : "Your location is used to suggest nearby places in quick entry."
-        }
-      }
-    }
-  },
-    "NSCalendarsFullAccessUsageDescription" : {
-      "localizations" : {
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bugünün takvim etkinliklerini göstermek için takvim erişimi gerekir. Etkinlikler değiştirilmez."
+  "sourceLanguage": "tr",
+  "strings": {
+    "NSLocationAlwaysAndWhenInUseUsageDescription": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Konum hedeflerini bölgeye girdiğinde işaretlemek veya bildirmek için arka planda konum erişimi gerekir."
           }
         },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Calendar access is needed to show today's events. Events are never modified."
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Background location access is needed to mark or notify location goals when you arrive."
+          }
+        }
+      }
+    },
+    "NSLocationWhenInUseUsageDescription": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yakındaki konumları hızlı girişte önermek için konumuna erişilir."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your location is used to suggest nearby places in quick entry."
+          }
+        }
+      }
+    },
+    "NSCalendarsFullAccessUsageDescription": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bugünün takvim etkinliklerini göstermek için takvim erişimi gerekir. Etkinlikler değiştirilmez."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Calendar access is needed to show today's events. Events are never modified."
+          }
+        }
+      }
+    },
+    "NSFaceIDUsageDescription": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Günlüğünün kilidini açmak için Face ID kullanılır."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Face ID is used to unlock your journal."
           }
         }
       }
     }
   },
-  "version" : "1.0"
+  "version": "1.0"
 }

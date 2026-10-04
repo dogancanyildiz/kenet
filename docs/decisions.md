@@ -6,6 +6,7 @@ Verilen her karar tek satır olarak eklenir. Açık sorular kapandığında altt
 
 | Tarih | Karar | Gerekçe |
 |---|---|---|
+| 2026-10-04 | App Intents ortak IntentActions/IndexStore ile uygulamayı açmadan mevcut kasaya yazar; kesin anmalar bağlanır, belirsiz/bilinmeyenler düz kalır | Kısayollar/Siri aynı dosya yazma yollarını kullanır, soru şeridi açılmaz; eksik/erişilemeyen kasa yerine yeni kasa oluşturulmaz, hedef seçimi kasa kimliğine bağlanır |
 | 2026-10-04 | iOS konum hedefleri açık Her zaman izniyle, hedef başına kapalı/bildir/otomatik ve en fazla 20 bölge; arka plan yazımı önce yer imi kapsamını ve indeksi açar | Sayısal hedefler dışarıda kalır, günde bir kez ve kasaya bağlı kimlikler tekrarları/yanlış kasaya yazmayı önler; macOS özelliği gizler |
 | 2026-10-04 | GPS önerisi yalnız ön planda tek seferlik, dakikada en fazla bir istek; koordinatlar kasa dosyalarından okunur, çip dokunulunca sabit anma eklenir | İzin kullanıcı düğmesiyle istenir; GPS gönderimi bekletmez, arka plan izleme ve indeks şema değişimi gerekmez |
 | 2026-10-02 | Öncelik kişisel günlük; şirket paketi sonraya | Önce çekirdek kullanım kanıtlanmalı |

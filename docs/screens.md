@@ -131,3 +131,9 @@ Uygulamaya yazmanın tüm yolları aynı hızlı giriş davranışına çıkar:
 Konum bölümünde açık düğmeyle Her zaman izni istenir; izin olmadan bölge izlenmez. Konum bağlantısı çözülmüş, koordinat ve açık yarıçap alanı olan boolean hedefler için kapalı / bildir / otomatik işaretle seçilir (varsayılan bildir). Bildirim izni ayrıca Bildirimler ayarından verilir. İzlenen bölgeler hedef, konum ve yarıçapla listelenir; 20 sınırını aşan hedef sayısı gösterilir. Hedef dosya yolu sırasındaki ilk 20 açık hedef izlenir.
 
 Giriş bugünün hedef kaydı için günde bir kez işlenir; zaten true olan kayda dokunulmaz. Bildirimde İşaretle / Şimdi değil eylemleri bulunur; İşaretle uygulamayı öne getirmeden dosyaya yazar. Otomatik mod doğrudan işaretleyip kısa bildirim gönderir. Eski güne ait eylemler, farklı kasa, kapanmış veya değişmiş bölge işlenmez. Yer imi erişimi başarısızsa başka kasaya düşülmez; sonraki girişte yeniden denenir. macOS'ta bu bölüm ve bölge izleme gizlidir.
+
+## Kısayollar ve Siri (4)
+
+Journal ile günlüğe olay ekle, görev ekle, hedefi işaretle ve bugünü aç cümleleri Türkçe/İngilizce App Shortcuts olarak sunulur. Olayın saati verilmezse şimdi; görev tarihi metinden çıkarılır, açık tarih parametresi önceliklidir. Hedef seçiminde güncel tanımlar listelenir; boolean true, sayısal miktar bugünün toplam kaydı olarak yazılır (artırma değildir). Eksik/erişilemeyen kasada uygulamadan kasayı açma hatası verilir.
+
+Yazma işlemleri uygulamayı öne getirmez, kısa onay metni döndürür. Kesin anmalar mevcut hızlı giriş gibi bağlanır; belirsiz/bilinmeyen @ anmalarında soru açılamadığından @ kaldırılır ve metin düz kalır, yeni varlık oluşturulmaz. Bugünü aç uygulamayı öne getirip Bugün sekmesini/bölümünü seçer; detay, arama ve telefondaki ayarlar kapanır. Ana gezinme değişmez.

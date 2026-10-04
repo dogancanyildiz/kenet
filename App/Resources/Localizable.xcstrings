@@ -1,6 +1,230 @@
 {
   "sourceLanguage" : "tr",
   "strings" : {
+  "Günlüğe olay ekle" : {
+    "localizations" : {
+      "tr" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Günlüğe olay ekle"
+        }
+      },
+      "en" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Add an event to journal"
+        }
+      }
+    }
+  },
+  "Görev ekle" : {
+    "localizations" : {
+      "tr" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Görev ekle"
+        }
+      },
+      "en" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Add task"
+        }
+      }
+    }
+  },
+  "Hedefi işaretle" : {
+    "localizations" : {
+      "tr" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Hedefi işaretle"
+        }
+      },
+      "en" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Mark goal"
+        }
+      }
+    }
+  },
+  "Bugünü aç" : {
+    "localizations" : {
+      "tr" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Bugünü aç"
+        }
+      },
+      "en" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Open today"
+        }
+      }
+    }
+  },
+  "Metin" : {
+    "localizations" : {
+      "tr" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Metin"
+        }
+      },
+      "en" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Text"
+        }
+      }
+    }
+  },
+  "Bugün açıldı." : {
+    "localizations" : {
+      "tr" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Bugün açıldı."
+        }
+      },
+      "en" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Today opened."
+        }
+      }
+    }
+  },
+  "Olay eklendi: %@" : {
+    "localizations" : {
+      "tr" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Olay eklendi: %@"
+        }
+      },
+      "en" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Event added: %@"
+        }
+      }
+    }
+  },
+  "Görev eklendi: %@" : {
+    "localizations" : {
+      "tr" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Görev eklendi: %@"
+        }
+      },
+      "en" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Task added: %@"
+        }
+      }
+    }
+  },
+  "Hedef kaydedildi: %@" : {
+    "localizations" : {
+      "tr" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Hedef kaydedildi: %@"
+        }
+      },
+      "en" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Goal saved: %@"
+        }
+      }
+    }
+  },
+  "Kasaya erişilemiyor. Journal'da kasanı açıp yeniden dene." : {
+    "localizations" : {
+      "tr" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Kasaya erişilemiyor. Journal'da kasanı açıp yeniden dene."
+        }
+      },
+      "en" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "The vault is unavailable. Open your vault in Journal and try again."
+        }
+      }
+    }
+  },
+  "Eklenecek metin boş olamaz." : {
+    "localizations" : {
+      "tr" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Eklenecek metin boş olamaz."
+        }
+      },
+      "en" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Entry text cannot be empty."
+        }
+      }
+    }
+  },
+  "Kayıt yazılamadı. Kasa erişimini ve metni kontrol et." : {
+    "localizations" : {
+      "tr" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Kayıt yazılamadı. Kasa erişimini ve metni kontrol et."
+        }
+      },
+      "en" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "The entry could not be saved. Check vault access and the text."
+        }
+      }
+    }
+  },
+  "Hedef bulunamadı. Kısayolda hedefi yeniden seç." : {
+    "localizations" : {
+      "tr" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Hedef bulunamadı. Kısayolda hedefi yeniden seç."
+        }
+      },
+      "en" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "The goal was not found. Select it again in your shortcut."
+        }
+      }
+    }
+  },
+  "Sayısal hedef için sıfır veya daha büyük, sonlu bir miktar gir." : {
+    "localizations" : {
+      "tr" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Sayısal hedef için sıfır veya daha büyük, sonlu bir miktar gir."
+        }
+      },
+      "en" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Enter a finite amount of zero or greater for a numeric goal."
+        }
+      }
+    }
+  },
   "Hızlı girişteki konum önerisi tek seferlik konumla çalışır; olayına kendiliğinden eklenmez." : {
     "localizations" : {
       "tr" : {

@@ -1,0 +1,70 @@
+{
+  "sourceLanguage" : "tr",
+  "strings" : {
+    "${applicationName} ile günlüğe olay ekle" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "${applicationName} ile günlüğe olay ekle"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add an event with ${applicationName}"
+          }
+        }
+      }
+    },
+    "${applicationName} ile görev ekle" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "${applicationName} ile görev ekle"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add a task with ${applicationName}"
+          }
+        }
+      }
+    },
+    "${applicationName} ile hedefi işaretle" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "${applicationName} ile hedefi işaretle"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mark a goal with ${applicationName}"
+          }
+        }
+      }
+    },
+    "${applicationName} ile bugünü aç" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "${applicationName} ile bugünü aç"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open today in ${applicationName}"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

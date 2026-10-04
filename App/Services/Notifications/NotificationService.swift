@@ -68,6 +68,8 @@ final class NotificationService {
         self.vaultID = vaultID
         queueReplan(after: changedVault ? .zero : debounce)
     }
+    func clearNavigationRequest() { navigationRequest = nil }
+
     func foreground() async { await replanNow() }
     func requestAccess() async {
         guard authorization.canRequest, !isRequesting else { return }

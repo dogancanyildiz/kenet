@@ -57,6 +57,7 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.dravcore.journal.dev
         INFOPLIST_KEY_CFBundleDisplayName: Journal
         INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription: Bugünün takvim etkinliklerini göstermek için takvim erişimi gerekir. Etkinlikler değiştirilmez.
+        INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: Yakındaki konumları hızlı girişte önermek için konumuna erişilir.
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight
@@ -72,6 +73,7 @@ targets:
         com.apple.security.app-sandbox: true
         com.apple.security.files.user-selected.read-write: true
         com.apple.security.personal-information.calendars: true
+        com.apple.security.personal-information.location: true
     postBuildScripts:
       - name: Sürümü yaz
         script: |

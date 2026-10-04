@@ -6,6 +6,7 @@ import SwiftUI
 
 @main
 struct JournalApp: App {
+    @State private var location: LocationService
     @State private var calendar = CalendarService()
     @State private var notifications: NotificationService
     @State private var store: IndexStore
@@ -19,6 +20,8 @@ struct JournalApp: App {
     #endif
 
     init() {
+        let location = LocationService()
+        _location = State(initialValue: location)
         let store = IndexStore()
         _store = State(initialValue: store)
         let notifications = NotificationService()
@@ -26,7 +29,7 @@ struct JournalApp: App {
         notifications.activateAutomatically()
         _notifications = State(initialValue: notifications)
         #if os(macOS)
-            _desktop = State(initialValue: MacQuickEntryController(store: store))
+            _desktop = State(initialValue: MacQuickEntryController(store: store, location: location))
         #endif
     }
 
@@ -70,6 +73,7 @@ struct JournalApp: App {
                 }
                 .frame(minWidth: 450, minHeight: 500)
                 .environment(calendar)
+                .environment(location)
                 .environment(notifications)
             }
         #else
@@ -81,6 +85,7 @@ struct JournalApp: App {
         WindowGroup(id: "main") {
             ContentView(store: store)
                 .environment(calendar)
+                .environment(location)
                 .environment(notifications)
                 #if os(macOS)
                     .background(MainWindowMarker())
@@ -90,6 +95,7 @@ struct JournalApp: App {
         .onChange(of: scenePhase, initial: true) { _, phase in
             if phase == .active && AppLaunchPolicy.allowsAutomaticStart() {
                 Task {
+                    location.refreshAuthorization()
                     await calendar.refresh()
                     await notifications.foreground()
                 }

@@ -4,6 +4,7 @@ import VaultFormat
 import VaultStore
 
 struct QuickEntryBar: View {
+    @Environment(LocationService.self) private var location
     let store: IndexStore
     let isEnabled: Bool
     private let focusRequest: UUID?
@@ -36,6 +37,25 @@ struct QuickEntryBar: View {
             if isEnabled, let error = store.entryErrorText {
                 Text(verbatim: error).font(.caption).foregroundStyle(.red)
                     .accessibilityAddTraits(.updatesFrequently)
+            }
+            if isEnabled, let place = model.suggestedPlace {
+                HStack {
+                    Button {
+                        model.selectLocation()
+                        selection = nil
+                        isFocused = true
+                    } label: {
+                        VStack(alignment: .leading) {
+                            Text("📍 \(place.entity.name)'te misin?")
+                            if let qualifier = place.entity.qualifier {
+                                Text(verbatim: qualifier).font(.caption).foregroundStyle(.secondary)
+                            }
+                        }
+                    }
+                    Button("Konum önerisini kapat", systemImage: "xmark") { model.dismissLocation() }
+                        .labelStyle(.iconOnly)
+                }
+                .disabled(model.isCreating || model.isSubmitting)
             }
             QuickEntryTaskControls(model: model, showsPicker: $showsDatePicker)
                 .disabled(!isEnabled || model.isSubmitting || model.isCreating || store.isWriting)
@@ -119,8 +139,19 @@ struct QuickEntryBar: View {
         }
         .padding()
         .background(.bar)
+        .onAppear { model.locationService = location }
+        .onChange(of: isFocused) { _, focused in
+            model.locationService = location
+            if focused { model.focusLocation() }
+        }
+        .onChange(of: location.authorization) { if isFocused { model.focusLocation() } }
+        .onChange(of: location.isEnabled) { if isFocused { model.focusLocation() } }
         .onChange(of: focusRequest, initial: true) { _, request in
-            if request != nil { isFocused = true }
+            if request != nil {
+                model.locationService = location
+                model.focusLocation()
+                isFocused = true
+            }
         }
         .onChange(of: showsDatePicker) { _, presented in
             if !presented { isFocused = true }

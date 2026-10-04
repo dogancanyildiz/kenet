@@ -387,7 +387,7 @@ radius: 100
 ---
 ```
 
-- `coordinates` enlem ve boylam, `radius` metre. İkisi de isteğe bağlıdır; yoksa konum yalnızca adla eşleşir.
+- `coordinates` enlem ve boylam, `radius` metre. İkisi de isteğe bağlıdır. Koordinat yoksa konum yalnızca adla eşleşir; GPS önerisinde yarıçap yoksa 100 metre kullanılır. Geçersiz koordinat veya yarıçap öneriye alınmaz; dosya değiştirilmez.
 
 ## Hedef dosyası
 

@@ -34,6 +34,8 @@ final class QuickEntryModel {
     var manualDateIsAssumed = false
     let today: () -> CalendarDate
 
+    var locationService: LocationService?
+    var dismissedLocation = false
     let store: IndexStore
     let day: CalendarDate?
     var selectedTime = Date()
@@ -141,6 +143,7 @@ final class QuickEntryModel {
     @discardableResult
     func submit(time: LineClock?) async -> Bool {
         guard canSubmit else { return false }
+        locationService?.requestLocationIfNeeded()
         if mode == .task { prepareTaskText() }
         awaitingResolution = true
         guard pendingAmbiguity == nil, pendingUnknown == nil else { return false }
@@ -158,6 +161,7 @@ final class QuickEntryModel {
                     on: day ?? LocalDay.today(), text: removingUnboundPrefixes(from: linked), time: time)
             }
             if saved && text == draft {
+                dismissedLocation = false
                 text = ""
                 overridesDate = false
                 manualDueDate = nil

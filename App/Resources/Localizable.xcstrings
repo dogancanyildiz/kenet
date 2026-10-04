@@ -1,6 +1,166 @@
 {
   "sourceLanguage" : "tr",
   "strings" : {
+  "Konum" : {
+    "localizations" : {
+      "tr" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Konum"
+        }
+      },
+      "en" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Location"
+        }
+      }
+    }
+  },
+  "Konum önerisi" : {
+    "localizations" : {
+      "tr" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Konum önerisi"
+        }
+      },
+      "en" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Location suggestions"
+        }
+      }
+    }
+  },
+  "Konum önerisini kapat" : {
+    "localizations" : {
+      "tr" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Konum önerisini kapat"
+        }
+      },
+      "en" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Dismiss location suggestion"
+        }
+      }
+    }
+  },
+  "📍 %@'te misin?" : {
+    "localizations" : {
+      "tr" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "📍 %@'te misin?"
+        }
+      },
+      "en" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "📍 Are you at %@?"
+        }
+      }
+    }
+  },
+  "Konum yalnız hızlı girişte tek seferlik alınır; günlüğe otomatik eklenmez." : {
+    "localizations" : {
+      "tr" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Konum yalnız hızlı girişte tek seferlik alınır; günlüğe otomatik eklenmez."
+        }
+      },
+      "en" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Location is requested once in quick entry; it is never added to your journal automatically."
+        }
+      }
+    }
+  },
+  "Konum izni henüz verilmedi." : {
+    "localizations" : {
+      "tr" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Konum izni henüz verilmedi."
+        }
+      },
+      "en" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Location permission has not been granted yet."
+        }
+      }
+    }
+  },
+  "Konum önerileri için izin ver" : {
+    "localizations" : {
+      "tr" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Konum önerileri için izin ver"
+        }
+      },
+      "en" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Allow location suggestions"
+        }
+      }
+    }
+  },
+  "Konum erişimine izin verildi." : {
+    "localizations" : {
+      "tr" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Konum erişimine izin verildi."
+        }
+      },
+      "en" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Location access is allowed."
+        }
+      }
+    }
+  },
+  "Konum erişimi reddedildi." : {
+    "localizations" : {
+      "tr" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Konum erişimi reddedildi."
+        }
+      },
+      "en" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Location access was denied."
+        }
+      }
+    }
+  },
+  "Konum erişimi bu cihazda kısıtlanmış." : {
+    "localizations" : {
+      "tr" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Konum erişimi bu cihazda kısıtlanmış."
+        }
+      },
+      "en" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Location access is restricted on this device."
+        }
+      }
+    }
+  },
     "%@: hangisi?" : {
       "localizations" : {
         "en" : {

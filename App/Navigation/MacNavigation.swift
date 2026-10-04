@@ -5,6 +5,8 @@
     /// Lists stay alongside their selection in the desktop's three columns.
     struct MacNavigation: View {
         let store: IndexStore
+        @Environment(NotificationService.self) private var notifications
+        @State private var detailPath = NavigationPath()
         @State private var section: DesktopSection? = .today
         @State private var selectedGoal: String?
         @State private var selectedTask: String?
@@ -31,7 +33,10 @@
                         }
                     }.navigationTitle("Günlük")
                 case .tasks:
-                    TasksView(store: store, selection: $selectedTask)
+                    TasksView(
+                        store: store, selection: $selectedTask,
+                        notificationRequest: notifications.navigationRequest?.destination == .tasks
+                            ? notifications.navigationRequest?.id : nil)
                 case .goals:
                     GoalsView(store: store, selection: $selectedGoal)
                 case .people, .places:
@@ -51,7 +56,7 @@
                         .navigationTitle("Notlar")
                 }
             } detail: {
-                NavigationStack {
+                NavigationStack(path: $detailPath) {
                     switch section ?? .today {
                     case .today:
                         TodayView(store: store)
@@ -96,6 +101,13 @@
                     }
                 }
                 .id(section)
+            }
+            .onChange(of: notifications.navigationRequest?.id, initial: true) { _, id in
+                guard id != nil, let request = notifications.navigationRequest else { return }
+                detailPath = NavigationPath()
+                selectedTask = nil
+                selectedDay = nil
+                section = request.destination == .tasks ? .tasks : .today
             }
             .onChange(of: store.vaultURL) { _, _ in
                 selectedTask = nil

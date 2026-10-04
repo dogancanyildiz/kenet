@@ -3,12 +3,16 @@ import SwiftUI
 /// Each phone tab retains its own navigation stack.
 struct PhoneNavigation: View {
     let store: IndexStore
+    @Environment(NotificationService.self) private var notifications
+    @State private var selectedTab = PhoneTab.today
+    @State private var todayPath = NavigationPath()
+    @State private var taskPath = NavigationPath()
     @State private var showingSettings = false
 
     var body: some View {
-        TabView {
-            Tab("Bugün", systemImage: "sun.max") {
-                NavigationStack {
+        TabView(selection: $selectedTab) {
+            Tab("Bugün", systemImage: "sun.max", value: PhoneTab.today) {
+                NavigationStack(path: $todayPath) {
                     TodayView(store: store)
                         .toolbar {
                             Button("Ayarlar", systemImage: "gearshape") { showingSettings = true }
@@ -16,17 +20,33 @@ struct PhoneNavigation: View {
                         }
                 }
             }
-            Tab("Günlük", systemImage: "book.closed") {
+            Tab("Günlük", systemImage: "book.closed", value: PhoneTab.days) {
                 NavigationStack { DaysView(store: store) }
             }
-            Tab("Görevler", systemImage: "checklist") {
-                NavigationStack { TasksView(store: store) }
+            Tab("Görevler", systemImage: "checklist", value: PhoneTab.tasks) {
+                NavigationStack(path: $taskPath) {
+                    TasksView(
+                        store: store,
+                        notificationRequest: notifications.navigationRequest?.destination == .tasks
+                            ? notifications.navigationRequest?.id : nil)
+                }
             }
-            Tab("Kişiler ve Konumlar", systemImage: "person.2") {
+            Tab("Kişiler ve Konumlar", systemImage: "person.2", value: PhoneTab.entities) {
                 NavigationStack { EntitiesView(store: store) }
             }
-            Tab("Hedefler", systemImage: "target") {
+            Tab("Hedefler", systemImage: "target", value: PhoneTab.goals) {
                 NavigationStack { GoalsView(store: store) }
+            }
+        }
+        .onChange(of: notifications.navigationRequest?.id, initial: true) { _, id in
+            guard id != nil, let request = notifications.navigationRequest else { return }
+            showingSettings = false
+            if request.destination == .tasks {
+                taskPath = NavigationPath()
+                selectedTab = .tasks
+            } else {
+                todayPath = NavigationPath()
+                selectedTab = .today
             }
         }
         .sheet(isPresented: $showingSettings) {
@@ -38,3 +58,5 @@ struct PhoneNavigation: View {
         }
     }
 }
+
+private enum PhoneTab: Hashable { case today, days, tasks, entities, goals }

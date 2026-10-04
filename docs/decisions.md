@@ -100,6 +100,7 @@ Verilen her karar tek satır olarak eklenir. Açık sorular kapandığında altt
 | 2026-10-04 | Takvim erişimi yalnız kullanıcı izin düğmesine bastığında istenir, açılışta istenmez; EventKit verisi salt okunur ve kasa dosyalarına aktarılmaz | Kullanıcı takvimini göstermeyi kendisi seçer; günlük dosyaları gerçek kaynak olmayı sürdürür |
 | 2026-10-04 | Hedef dönemi pazartesi başlayan hafta/takvim yılı; kaldırma goals anahtarını siler; güncel dönem bekliyorsa zincir önceki dönemden sürer | Tek alışkanlık/hedef mekanizması ve geçmiş gün düzeltmesi için taşınabilir sözleşme |
 | 2026-10-04 | Hedef oluşturma anahtarı ASCII kısa ad + sayısal çakışma eki; tanım düzenlemede anahtar ve dosya yolu sabit | Geçmiş gün kayıtlarını ada bağlı taşımadan korur; şerit günlük katkıyı dönem toplamından ayrı gösterir. |
+| 2026-10-04 | Yerel bildirimler yedi günlük tek seferlik plan, deterministik kategori/gün kimliği ve yalnız açık izin eylemiyle; saatler/kategori tercihleri cihaz UserDefaults'unda | Core ve kasa formatını sistem API'lerinden ayrı tutar; yeniden planlama eski planı kaldırır, kapalı uygulamada son plan geçerlidir. |
 
 ## Açık sorular
 

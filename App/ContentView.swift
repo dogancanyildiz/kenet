@@ -3,6 +3,7 @@ import SwiftUI
 /// Starts the vault once and presents the platform's phase-one navigation.
 struct ContentView: View {
     let store: IndexStore
+    @Environment(NotificationService.self) private var notifications
     @State private var searchPresented = false
 
     var body: some View {
@@ -21,6 +22,7 @@ struct ContentView: View {
         #if os(macOS)
             .focusedSceneValue(\.openSearch, { searchPresented = true })
         #endif
+        .onChange(of: notifications.navigationRequest?.id) { _, _ in searchPresented = false }
         .task { await store.startAutomatically() }
     }
 }

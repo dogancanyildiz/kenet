@@ -9,6 +9,11 @@ struct DiagnosticsView: View {
     var body: some View {
         Form {
             CalendarSettingsView()
+            #if os(iOS)
+                Section("Bildirimler") {
+                    NavigationLink("Bildirimler", destination: NotificationSettingsView())
+                }
+            #endif
             Section("Kasa") {
                 if let url = store.vaultURL {
                     Text(verbatim: url.path).textSelection(.enabled)

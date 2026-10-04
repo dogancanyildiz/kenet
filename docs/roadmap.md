@@ -100,7 +100,10 @@ Aşama 6'nın sayılara dayalı teknik maddeleri tamamlandı; kullanıcı talima
 
 ## Aşama 7: Genişleme
 
-- [ ] App Store hazırlığı: ilk kullanım akışı, Obsidian kasasından içe aktarma, uygulama kilidi
+- [ ] App Store hazırlığı
+  - [x] İlk kullanım akışı
+  - [x] Obsidian kasasından içe aktarma
+  - [ ] Uygulama kilidi
 - [ ] CD: TestFlight'a otomatik gönderim (Xcode Cloud ya da fastlane, o aşamada seçilecek)
 - [ ] Özel varlık tipleri (kitap, proje, vb.)
 - [ ] Şirket şema paketi

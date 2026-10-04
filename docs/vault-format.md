@@ -29,6 +29,12 @@ Bu belge platformlar arası sözleşmedir. Uygulamanın her sürümü ve ileride
 2. **Tanımadığını gösterebil.** Beklenmeyen dosya ya da sözdizimi hata üretmez; düz not olarak gösterilir.
 3. **Dosyada olmayan bilgi tutma.** Kasa tek başına tüm veriyi geri getirebilmelidir.
 
+### Var olan kasayı açma ve hazırlama
+
+İçe aktarma kaynak klasörde çalışır; dosyaları kopyalamaz veya taşımaz. Eksik yapı için rapor ve ayrı onay seçenekleri gösterilir: standart klasörler/eksik person-place şablonları, yalnız eksik `.app/vault.json`, `people/` ve `places/` altındaki `type` alanı bulunmayan okunabilir Markdown dosyalarına ilgili `type` eklenmesi. Mevcut `type` değeri, şablon, ayar, bilinmeyen alanlar ve gövde korunur. Çözülemeyen frontmatter/UTF-8 ve sembolik bağlantılar değiştirilmez, raporlanır. Kullanıcı Atla derse yalnız indekslenir; `.obsidian/` ve diğer dosyalar korunur.
+
+`journal/YYYY-MM-DD.md` tanınan gün yoludur. Kökte veya `daily/` altında aynı tarih adlı dosyalar raporda yalnız bilgi olarak gösterilir; kullanıcı isterse Obsidian'da kendisi düzenler. Uygulama bu dosyaları taşımaz, farklı yol için gün kimliği kuralını değiştirmez. Hazırlama format sürümünü yükseltmez ve var olan vault.json'u yeniden yazmaz; desteklenmeyen/okunamayan sürüm dosyası için hazırlama yazıları sunulmaz.
+
 ## Klasör yapısı
 
 ```

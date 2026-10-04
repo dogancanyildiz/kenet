@@ -31,6 +31,11 @@ struct IndexCounts: Sendable {
 
 @MainActor @Observable
 final class IndexStore {
+    var requiresOnboarding: Bool
+    var importModel: VaultImportModel?
+    private(set) var isInspectingImport = false
+    private(set) var indexingFileCount: Int?
+    private(set) var isVaultReadOnly = false
     private(set) var vaultURL: URL?
     private(set) var content = VaultReadModel.empty
     private(set) var knownEntities: [KnownEntity] = []
@@ -51,7 +56,7 @@ final class IndexStore {
     private(set) var errorText: String?
     private(set) var entryErrorText: String?
     private(set) var isWriting = false
-    var canAddEvent: Bool { writer != nil && !isProcessing }
+    var canAddEvent: Bool { writer != nil && !isProcessing && !isVaultReadOnly }
     private(set) var notice: String?
     private(set) var pendingSelection: URL?
     private(set) var unwatchedDirectoryCount = 0
@@ -73,6 +78,7 @@ final class IndexStore {
         update: @escaping @Sendable (VaultIndex, URL, Bool) async throws -> IndexUpdate = IndexUpdate.read
     ) {
         self.location = location
+        requiresOnboarding = location.needsFirstLaunch
         self.update = update
         self.watcherDirectoryLimit = watcherDirectoryLimit
         self.supportURL =
@@ -86,11 +92,15 @@ final class IndexStore {
         arguments: [String] = ProcessInfo.processInfo.arguments
     ) async {
         guard AppLaunchPolicy.allowsAutomaticStart(environment: environment, arguments: arguments) else { return }
+        guard !requiresOnboarding else { return }
         await start()
     }
 
     func start() async {
-        guard vaultURL == nil else { return }
+        if let vaultURL {
+            if requiresOnboarding { await open(vaultURL) }
+            return
+        }
         do {
             let resolved = try location.resolve()
             notice = resolved.notice
@@ -118,6 +128,22 @@ final class IndexStore {
         guard canAddEvent, lastUpdated != nil else { throw VaultStoreError.staleTarget }
         await refresh()
         guard canAddEvent, errorText == nil else { throw VaultStoreError.staleTarget }
+    }
+
+    func inspectSelection(_ url: URL) async {
+        guard !isInspectingImport, importModel == nil else { return }
+        isInspectingImport = true
+        defer { isInspectingImport = false }
+        do {
+            let model = try await VaultImportModel(root: url)
+            if model.report.needsPreparation { importModel = model } else { await select(url) }
+        } catch { report(error) }
+    }
+
+    func finishImport(_ model: VaultImportModel) async {
+        guard importModel?.id == model.id, !model.isApplying else { return }
+        await select(model.report.root)
+        if vaultURL == model.report.root, lastUpdated != nil, errorText == nil { importModel = nil }
     }
 
     func select(_ url: URL) async {
@@ -372,6 +398,11 @@ final class IndexStore {
         writer = nil
         entryErrorText = nil
         content = .empty
+        indexingFileCount = nil
+        isVaultReadOnly = !VaultImportScanner.supportsSettings(at: url)
+        if isVaultReadOnly {
+            notice = String(localized: "Kasa sürümü okunamıyor veya desteklenmiyor. Kasa salt okunur açıldı.")
+        }
         knownEntities = []
         nearbyPlaces = []
         mapPlaces = []
@@ -395,6 +426,10 @@ final class IndexStore {
         } catch {
             if generation == current { report(error) }
         }
+        if index != nil {
+            indexingFileCount = try? await Task.detached { try VaultImportScanner.markdownFiles(in: url).count }.value
+            guard generation == current else { return }
+        }
         isProcessing = false
         guard index != nil else {
             await applyPendingSelection()
@@ -417,6 +452,9 @@ final class IndexStore {
         // The explicit opening refresh also serves as the initial foreground refresh.
         watcher?.setForeground(foreground, triggerOnActivation: false)
         await refresh()
+        guard generation == current else { return }
+        indexingFileCount = nil
+        if lastUpdated != nil { requiresOnboarding = false }
     }
 
     func refresh(rebuild: Bool = false) async {

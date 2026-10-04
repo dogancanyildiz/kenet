@@ -25,7 +25,7 @@ Kullanıcıya görünen bir şey yok; her şey bunun üstüne kurulur.
 
 ## Aşama 1: Günlük
 
-- [ ] Bugün sayfası ve hızlı giriş kutusu
+- [x] Bugün sayfası ve hızlı giriş kutusu
 - [x] Olay ekleme (saat damgalı satır) ve serbest günlük yazısı
 - [x] `@` ile kişi, konum için öneri listesi; yeni varlık oluşturma
 - [x] Bilinen adların ve takma adların otomatik tanınması
@@ -100,7 +100,7 @@ Aşama 6'nın sayılara dayalı teknik maddeleri tamamlandı; kullanıcı talima
 
 ## Aşama 7: Genişleme
 
-- [ ] App Store hazırlığı
+- [x] App Store hazırlığı
   - [x] İlk kullanım akışı
   - [x] Obsidian kasasından içe aktarma
   - [x] Uygulama kilidi

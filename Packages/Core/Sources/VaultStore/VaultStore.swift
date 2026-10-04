@@ -71,13 +71,13 @@ public actor VaultStore {
     @discardableResult
     public func addingTask(
         on date: CalendarDate, text: String, due: CalendarDate? = nil, start: CalendarDate? = nil,
-        priority: TaskPriority? = nil, project: String? = nil
+        priority: TaskPriority? = nil, project: String? = nil, recurrence: TaskRecurrence? = nil
     ) async throws -> RawDocument {
         try await perform {
             try self.editDay(date) { document in
                 try document.addingTask(
                     text: text, id: self.freshID(in: document), due: due, start: start,
-                    priority: priority, project: project)
+                    priority: priority, project: project, recurrence: recurrence)
             }
         }
     }
@@ -100,9 +100,18 @@ public actor VaultStore {
     ) async throws -> RawDocument {
         try await perform {
             try self.edit(path) { document in
-                try document.changingStatus(
-                    of: target, to: status, completionDate: completionDate,
-                    newID: self.replacementID(target.block, path: path, in: document))
+                let replacement = try self.replacementID(target.block, path: path, in: document)
+                if status == .done, !target.status.isClosed, target.recurrence != nil {
+                    guard let completionDate else { throw EditError.invalidValue }
+                    // Reserve any repaired original identifier before generating the next one.
+                    let reserved = try document.changingStatus(
+                        of: target, to: .done, completionDate: completionDate, newID: replacement)
+                    return try document.completingRecurringTask(
+                        target, completionDate: completionDate,
+                        newID: self.freshID(in: reserved), completedID: replacement)
+                }
+                return try document.changingStatus(
+                    of: target, to: status, completionDate: completionDate, newID: replacement)
             }
         }
     }

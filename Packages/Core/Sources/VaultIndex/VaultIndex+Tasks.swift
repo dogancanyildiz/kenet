@@ -71,7 +71,8 @@ extension VaultIndex {
     }
 
     private func taskQuery(
-        _ predicate: String, arguments: StatementArguments = [], order: String = "dueDate,file,ordinal",
+        _ predicate: String, arguments: StatementArguments = [],
+        order: String = "dueDate,CASE priority WHEN '⏫' THEN 0 WHEN '🔼' THEN 1 WHEN '🔽' THEN 3 ELSE 2 END,file,ordinal",
         limit: Int? = nil
     ) throws -> [IndexedBlock] {
         try database.read {

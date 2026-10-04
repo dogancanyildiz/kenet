@@ -32,6 +32,13 @@ extension VaultStore {
         try await editingTask(task, at: path) { try $0.settingTaskProject(of: task, to: project, newID: $1) }
     }
 
+    @discardableResult
+    public func settingTaskRecurrence(of task: TaskLine, at path: String, to recurrence: TaskRecurrence?) async throws
+        -> RawDocument
+    {
+        try await editingTask(task, at: path) { try $0.settingTaskRecurrence(of: task, to: recurrence, newID: $1) }
+    }
+
     private func editingTask(
         _ task: TaskLine, at path: String,
         transform: @escaping @Sendable (RawDocument, String?) throws -> RawDocument

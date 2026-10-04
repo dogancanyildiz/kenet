@@ -1,0 +1,68 @@
+[
+  {
+    "rule": "every month",
+    "after": "2026-01-31",
+    "completedOn": "2026-02-05",
+    "expected": "2026-02-28"
+  },
+  {
+    "rule": "every month",
+    "after": "2024-01-31",
+    "completedOn": "2024-01-31",
+    "expected": "2024-02-29"
+  },
+  {
+    "rule": "every year",
+    "after": "2024-02-29",
+    "completedOn": "2024-02-29",
+    "expected": "2025-02-28"
+  },
+  {
+    "rule": "every month when done",
+    "after": "2026-01-01",
+    "completedOn": "2026-03-31",
+    "expected": "2026-04-30"
+  },
+  {
+    "rule": "every monday",
+    "after": "2026-10-05",
+    "completedOn": "2026-10-05",
+    "expected": "2026-10-12"
+  },
+  {
+    "rule": "every week on monday",
+    "after": "2026-10-04",
+    "completedOn": "2026-10-04",
+    "expected": "2026-10-05"
+  },
+  {
+    "rule": "every 3 days",
+    "after": "2026-12-30",
+    "completedOn": "2026-12-31",
+    "expected": "2027-01-02"
+  },
+  {
+    "rule": "every 2 weeks when done",
+    "after": "2026-10-01",
+    "completedOn": "2026-10-04",
+    "expected": "2026-10-18"
+  },
+  {
+    "rule": "every 2 months",
+    "after": "2026-12-31",
+    "completedOn": "2026-12-31",
+    "expected": "2027-02-28"
+  },
+  {
+    "rule": "every day",
+    "after": "9999-12-31",
+    "completedOn": "9999-12-31",
+    "expected": null
+  },
+  {
+    "rule": "every 9223372036854775807 weeks",
+    "after": "2026-10-01",
+    "completedOn": "2026-10-01",
+    "expected": null
+  }
+]

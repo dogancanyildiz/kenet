@@ -17,6 +17,20 @@ enum TaskFieldParser {
                 continue
             }
             let start = cursor
+            if let field = TaskRecurrenceField.scan(bytes, start: start, protected: protected) {
+                if values.recurrenceSource == nil { values.recurrenceSource = field.source }
+                if let recurrence = field.recurrence {
+                    if values.recurrence == nil {
+                        values.recurrence = recurrence
+                        values.recurrenceSource = field.source
+                    }
+                    ranges.append(
+                        TaskFieldRange(
+                            kind: .recurrence, byteRange: (start + offset)..<(field.range.upperBound + offset)))
+                }
+                cursor = max(cursor + 1, field.range.upperBound)
+                continue
+            }
             while cursor < bytes.count, !Syntax.isBlank(bytes[cursor]) { cursor += 1 }
             let token = Syntax.string(bytes[start..<cursor])
             var kind: TaskFieldRange.Kind?

@@ -1,0 +1,2 @@
+- [ ] Task 🔁 every 2 weeks when done 📅 2026-02-17 ^fresh
+- [x] Task 🔁 every 2 weeks when done 📅 2026-01-01 ✅ 2026-02-03 ^old

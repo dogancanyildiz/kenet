@@ -21,6 +21,8 @@ final class QuickEntryModel {
     var mode = Mode.event {
         didSet {
             awaitingResolution = false
+            taskRecurrence = nil
+            taskPriority = nil
             overridesDate = false
             manualDueDate = nil
             manualDateIsAssumed = false
@@ -29,6 +31,8 @@ final class QuickEntryModel {
     var languages: [DateParsing.Language] =
         (Bundle.main.preferredLocalizations.first ?? Locale.preferredLanguages.first)?.hasPrefix("tr") == true
         ? [.turkish, .english] : [.english, .turkish]
+    var taskRecurrence: TaskRecurrence?
+    var taskPriority: TaskPriority?
     var overridesDate = false
     var manualDueDate: CalendarDate?
     var manualDateIsAssumed = false
@@ -155,7 +159,9 @@ final class QuickEntryModel {
             let linked = try EntityRecognizer.linking(text, mentions: mentions, choices: choices)
             let saved: Bool
             if mode == .task {
-                saved = await store.addTask(on: today(), text: removingUnboundPrefixes(from: linked), due: dueDate)
+                saved = await store.addTask(
+                    on: today(), text: removingUnboundPrefixes(from: linked), due: dueDate, priority: taskPriority,
+                    recurrence: taskRecurrence)
             } else {
                 saved = await store.addEvent(
                     on: day ?? LocalDay.today(), text: removingUnboundPrefixes(from: linked), time: time)
@@ -163,6 +169,8 @@ final class QuickEntryModel {
             if saved && text == draft {
                 dismissedLocation = false
                 text = ""
+                taskRecurrence = nil
+                taskPriority = nil
                 overridesDate = false
                 manualDueDate = nil
                 manualDateIsAssumed = false

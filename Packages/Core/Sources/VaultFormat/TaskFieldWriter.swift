@@ -55,11 +55,12 @@ enum TaskFieldWriter {
     }
 
     static func payload(
-        _ text: String, due: CalendarDate?, start: CalendarDate?, priority: TaskPriority?, project: String?
+        _ text: String, due: CalendarDate?, start: CalendarDate?, priority: TaskPriority?, project: String?,
+        recurrence: TaskRecurrence? = nil
     ) throws(EditError) -> String {
         if case .other = priority { throw .invalidValue }
         if let project, !TaskFieldParser.validProject(project) { throw .invalidValue }
-        guard due != nil || start != nil || priority != nil || project != nil else { return text }
+        guard due != nil || start != nil || priority != nil || project != nil || recurrence != nil else { return text }
         let fields = TaskFieldParser.parse(text, offset: 0)
         let parsed = fields.values
         var rawText = Array(text.utf8)
@@ -68,13 +69,14 @@ enum TaskFieldWriter {
             let lower = start > 0 && Syntax.isBlank(rawText[start - 1]) ? start - 1 : start
             rawText.removeSubrange(lower..<field.byteRange.upperBound)
         }
-        let tokens = [
+        let tokens: [String?] = [
             (start ?? parsed.startDate).map { "🛫 " + $0.description },
             (due ?? parsed.dueDate).map { "📅 " + $0.description },
             parsed.doneDate.map { "✅ " + $0.description },
             (priority ?? parsed.priority)?.token,
+            (recurrence ?? parsed.recurrence).map { "🔁 " + $0.rule },
             (project ?? parsed.project).map { "#project/" + $0 },
-        ].compactMap { $0 }
-        return ([Syntax.string(rawText)] + tokens).filter { !$0.isEmpty }.joined(separator: " ")
+        ]
+        return ([Syntax.string(rawText)] + tokens.compactMap { $0 }).filter { !$0.isEmpty }.joined(separator: " ")
     }
 }

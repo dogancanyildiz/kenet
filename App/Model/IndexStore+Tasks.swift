@@ -3,12 +3,15 @@ import VaultStore
 
 extension IndexStore {
     @discardableResult
-    func addTask(on day: CalendarDate, text: String, due: CalendarDate?) async -> Bool {
+    func addTask(
+        on day: CalendarDate, text: String, due: CalendarDate?, priority: TaskPriority? = nil,
+        recurrence: TaskRecurrence? = nil
+    ) async -> Bool {
         guard !text.allSatisfy(\.isWhitespace), canAddEvent else { return false }
         reportTaskEntryError(nil)
         do {
             try await performEdit(path: "journal/\(day).md") { writer in
-                try await writer.addingTask(on: day, text: text, due: due)
+                try await writer.addingTask(on: day, text: text, due: due, priority: priority, recurrence: recurrence)
             }
             return true
         } catch VaultStoreError.indexUpdateFailed {
@@ -26,7 +29,8 @@ extension IndexStore {
             task.block.lineRange.upperBound == row.sourceEnd,
             task.text.utf8.elementsEqual(row.sourceText.utf8), task.block.id == row.sourceIdentifier,
             task.rawStatus == row.rawStatus, task.dueDate == row.due, task.startDate == row.start,
-            task.doneDate == row.done, task.priority == row.priority, task.project == row.project
+            task.doneDate == row.done, task.priority == row.priority, task.project == row.project,
+            task.recurrenceSource == row.recurrenceSource
         else {
             await refresh()
             throw VaultStoreError.staleTarget

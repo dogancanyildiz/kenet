@@ -7,6 +7,9 @@ struct QuickEntryTaskControls: View {
 
     var body: some View {
         if model.mode == .task {
+            if let recurrence = model.recurrenceExpression?.recurrence ?? model.taskRecurrence {
+                TaskRecurrenceLabel(recurrence: recurrence).font(.caption).foregroundStyle(.secondary)
+            }
             Button {
                 showsPicker = true
             } label: {

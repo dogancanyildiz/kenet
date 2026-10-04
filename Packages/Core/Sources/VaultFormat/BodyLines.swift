@@ -65,6 +65,8 @@ public struct TaskLine: Hashable, Sendable {
     public var doneDate: CalendarDate? { fields.values.doneDate }
     public var priority: TaskPriority? { fields.values.priority }
     public var project: String? { fields.values.project }
+    public var recurrence: TaskRecurrence? { fields.values.recurrence }
+    public var recurrenceSource: String? { fields.values.recurrenceSource }
     public var fieldRanges: [TaskFieldRange] { fields.ranges }
     let fields: ParsedTaskFields
 

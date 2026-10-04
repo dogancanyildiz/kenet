@@ -175,7 +175,7 @@
       "firstLine": 11,
       "lastLine": 11,
       "id": null,
-      "text": "tarih 🔁 every week",
+      "text": "tarih",
       "rawStatus": " ",
       "status": "todo",
       "isClosed": false,
@@ -215,13 +215,22 @@
           ]
         },
         {
+          "kind": "recurrence",
+          "byteRange": [
+            63,
+            78
+          ]
+        },
+        {
           "kind": "project",
           "byteRange": [
             79,
             97
           ]
         }
-      ]
+      ],
+      "recurrence": "every week",
+      "recurrenceSource": "every week"
     },
     {
       "line": 14,

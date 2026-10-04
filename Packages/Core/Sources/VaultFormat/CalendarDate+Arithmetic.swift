@@ -33,6 +33,17 @@ extension CalendarDate {
         return CalendarDate(year: low, month: month, day: day)
     }
 
+    /// Calendar month shifts clamp the day to the destination month's last day.
+    public func addingMonths(_ months: Int) -> CalendarDate? {
+        guard (-120_000...120_000).contains(months) else { return nil }
+        let index = year * 12 + month - 1 + months
+        guard (1200..<120_000).contains(index) else { return nil }
+        let nextYear = index / 12
+        let nextMonth = index % 12 + 1
+        return CalendarDate(
+            year: nextYear, month: nextMonth, day: min(day, Self.daysInMonth(year: nextYear, month: nextMonth)))
+    }
+
     private static func daysBeforeYear(_ year: Int) -> Int {
         let previous = year - 1
         return previous * 365 + previous / 4 - previous / 100 + previous / 400

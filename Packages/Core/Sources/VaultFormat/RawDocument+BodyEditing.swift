@@ -7,10 +7,11 @@ extension RawDocument {
     /// Appends an unchecked task to Tasks, creating that section if necessary.
     public func addingTask(
         text: String, id: String, due: CalendarDate? = nil, start: CalendarDate? = nil,
-        priority: TaskPriority? = nil, project: String? = nil
+        priority: TaskPriority? = nil, project: String? = nil, recurrence: TaskRecurrence? = nil
     ) throws(EditError) -> RawDocument {
         try addLine(
-            text: TaskFieldWriter.payload(text, due: due, start: start, priority: priority, project: project),
+            text: TaskFieldWriter.payload(
+                text, due: due, start: start, priority: priority, project: project, recurrence: recurrence),
             id: id, time: nil, task: true)
     }
 

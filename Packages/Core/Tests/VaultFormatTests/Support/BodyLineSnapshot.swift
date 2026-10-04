@@ -28,6 +28,10 @@ enum BodyLineSnapshot {
         members.append(.init(key: "doneDate", value: task.doneDate.map { .string($0.description) } ?? .null))
         members.append(.init(key: "priority", value: priority(task.priority)))
         members.append(.init(key: "project", value: task.project.map(JSONValue.string) ?? .null))
+        if let source = task.recurrenceSource {
+            members.append(.init(key: "recurrenceSource", value: .string(source)))
+            members.append(.init(key: "recurrence", value: task.recurrence.map { .string($0.rule) } ?? .null))
+        }
         members.append(.init(key: "fieldRanges", value: .array(ranges)))
         members.append(.init(key: "rawStatus", value: .string(task.rawStatus)))
         members.append(.init(key: "status", value: .string(task.status.rawValue)))

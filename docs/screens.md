@@ -33,6 +33,7 @@ En altta sabit **hızlı giriş kutusu**.
 - `@` yazınca kişi ve konum önerileri açılır. `@` kullanılmasa da bilinen adlar yazarken tanınır ve vurgulanır.
 - Birden fazla aday varsa en olası olan önerilir; uygulama emin değilse seçim ister.
 - Tanınmayan bir ad `@` ile yazıldıysa "kişi olarak ekle" ya da "konum olarak ekle" seçeneği çıkar. Aynı adda varlık varsa kısa bir ayırt edici sorulur.
+- Görev modunda baş/son bağımsız `!` orta, `!!` yüksek önceliktir; `her hafta`/`every week` gibi tekrar ifadesi önceden gösterilir ve gönderimde alanlara çevrilir.
 - Görev modunda tarih cümleden çıkarılır ("yarın Ahmet'i ara") ve kutunun üstünde onay için gösterilir; yanlışsa dokunup düzeltilir.
 - Olay varsayılan olarak şu anki saatle kaydedilir; saat kaldırılabilir ya da değiştirilebilir.
 - Gönderince kutu boşalır, klavye açık kalır; art arda giriş yapılabilir.
@@ -55,7 +56,7 @@ Bölümler:
 - **Projeler (5):** Etiketlerden türetilen liste ve açık görev sayısı. Proje sayfasında açık görevler bitiş gününe göre gruplu, tarihsizler ayrı; tamamlananlar, görevlerdeki kişi/konumlar ve son etkinlik (gün dosyası veya tamamlanma tarihinin en yenisi) bulunur. Planlanan başlangıç/bitiş tarihi etkinlik sayılmaz.
 - **Kanban ve zaman çizelgesi (5):** Telefonda sade sürüm; asıl kullanım Mac'te.
 
-Filtre: kişi, konum, proje.
+Filtre: kişi, konum, proje. Aynı gündeki görevler yüksek, orta, normal, düşük öncelik sırasındadır; eşitlerde dosya/satır sırası korunur. Görev satırında öncelik ve tekrar rozeti vardır; düzenleme menüsünden Tekrar ve Öncelik seçilir. Tekrar seçicisinde aralık, haftanın günü ve tamamlanma gününden hesaplama bulunur.
 
 ### Kişiler ve Konumlar (1)
 

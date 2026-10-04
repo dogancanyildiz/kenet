@@ -52,6 +52,14 @@ struct BodyOperation {
             case "priority": return try document.settingTaskPriority(of: task, to: priority(), newID: id)
             default: return try document.settingTaskProject(of: task, to: json["project"]?.stringValue, newID: id)
             }
+        case "complete-recurring":
+            return try document.completingRecurringTask(
+                try #require(body.tasks.first { $0.block == block }),
+                completionDate: try #require(date("completionDate")), newID: try #require(id))
+        case "recurrence":
+            let task = try #require(body.tasks.first { $0.block == block })
+            return try document.settingTaskRecurrence(
+                of: task, to: json["rule"]?.stringValue.flatMap(TaskRecurrence.init), newID: id)
         case "time":
             return try document.changingTime(
                 of: try #require(body.events.first { $0.block == block }), to: time, newID: id)
@@ -76,7 +84,7 @@ struct BodyOperation {
         #expect(
             Set(json.keys).isSubset(of: [
                 "operation", "line", "text", "id", "time", "status", "replacement", "completionDate", "due", "start",
-                "priority", "project",
+                "priority", "project", "rule",
             ]))
         let operation = Self(json: json)
         if let error = description["expectedError"] {

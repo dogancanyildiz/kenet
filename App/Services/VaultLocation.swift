@@ -49,6 +49,28 @@ final class VaultLocation {
         return (resolved.url, nil)
     }
 
+    /// No fallback vault is substituted for an inaccessible bookmark during automation.
+    func resolveForBackground() throws -> URL {
+        guard let data = defaults.data(forKey: Self.bookmarkKey) else { return try createDefaultVault() }
+        let resolved = try bookmarks.resolve(data)
+        try beginAccess(to: resolved.url)
+        if resolved.isStale { defaults.set(try bookmarks.create(resolved.url), forKey: Self.bookmarkKey) }
+        return resolved.url
+    }
+
+    func resumeBackgroundAccess(to expected: URL) throws {
+        if let data = defaults.data(forKey: Self.bookmarkKey) {
+            let resolved = try bookmarks.resolve(data)
+            guard resolved.url.standardizedFileURL == expected.standardizedFileURL else {
+                throw CocoaError(.fileReadNoPermission)
+            }
+            try beginAccess(to: resolved.url)
+            if resolved.isStale { defaults.set(try bookmarks.create(resolved.url), forKey: Self.bookmarkKey) }
+        } else {
+            try beginAccess(to: expected)
+        }
+    }
+
     func select(_ url: URL) throws -> URL {
         let accessed = url.startAccessingSecurityScopedResource()
         do {

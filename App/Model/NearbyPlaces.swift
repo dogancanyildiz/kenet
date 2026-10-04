@@ -14,6 +14,7 @@ struct NearbyPlace: Equatable, Sendable {
     let entity: KnownEntity
     let coordinate: PlaceCoordinate
     let radius: Double
+    let hasExplicitRadius: Bool
 
     init?(entity: KnownEntity, document: RawDocument) {
         guard entity.kind == .place, case .parsed(let fields) = document.frontmatter,
@@ -33,6 +34,7 @@ struct NearbyPlace: Equatable, Sendable {
         self.entity = entity
         self.coordinate = coordinate
         self.radius = radius
+        hasExplicitRadius = fields.field(named: "radius") != nil
     }
 }
 

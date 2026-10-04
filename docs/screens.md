@@ -125,3 +125,9 @@ Uygulamaya yazmanın tüm yolları aynı hızlı giriş davranışına çıkar:
 - **İlk açılış:** Boş Bugün ekranı ve giriş kutusunda örnek bir ipucu. Kurulum sihirbazı yoktur; ilk kişi ve konum yazarken oluşturulur.
 - **Boş gün:** Suçlayıcı olmayan kısa bir metin; giriş kutusu hazır.
 - **Kasa eşitlenirken:** Eldeki içerik gösterilir, eşitleme durumu küçük bir göstergeyle belirtilir.
+
+## Ayarlar — Konuma girince (4, iOS)
+
+Konum bölümünde açık düğmeyle Her zaman izni istenir; izin olmadan bölge izlenmez. Konum bağlantısı çözülmüş, koordinat ve açık yarıçap alanı olan boolean hedefler için kapalı / bildir / otomatik işaretle seçilir (varsayılan bildir). Bildirim izni ayrıca Bildirimler ayarından verilir. İzlenen bölgeler hedef, konum ve yarıçapla listelenir; 20 sınırını aşan hedef sayısı gösterilir. Hedef dosya yolu sırasındaki ilk 20 açık hedef izlenir.
+
+Giriş bugünün hedef kaydı için günde bir kez işlenir; zaten true olan kayda dokunulmaz. Bildirimde İşaretle / Şimdi değil eylemleri bulunur; İşaretle uygulamayı öne getirmeden dosyaya yazar. Otomatik mod doğrudan işaretleyip kısa bildirim gönderir. Eski güne ait eylemler, farklı kasa, kapanmış veya değişmiş bölge işlenmez. Yer imi erişimi başarısızsa başka kasaya düşülmez; sonraki girişte yeniden denenir. macOS'ta bu bölüm ve bölge izleme gizlidir.

@@ -412,7 +412,7 @@ place: "[[Spor Salonu]]"
 | `kind` | `boolean`, `number` | Kayıt türü |
 | `target` | sayı | Dönem başına hedef (haftada 3 gün, yılda 24 kitap, günde 20 sayfa) |
 | `unit` | metin, isteğe bağlı | Sayısal hedefte birim (sayfa, bardak) |
-| `place` | bağlantı, isteğe bağlı | Aşama 4: konuma girince işaretleme |
+| `place` | bağlantı, isteğe bağlı | Boolean hedefin koordinat ve açık yarıçap alanı olan konumuna girişte bugünün kaydı; cihaz tercihine göre bildir veya otomatik işaretle |
 
 - Yeni hedefler şablonsuz `goals/<Ad>.md` dosyasında oluşturulur; ad ve dosya gövde adı NFC + harf duyarsız karşılaştırmada benzersizdir. Dosya adında kişi/konum oluşturmayla aynı güvenli karakter kuralları uygulanır.
 - Otomatik anahtar: ad küçük harfe çevrilir; Türkçe `ç/ğ/ı/ö/ş/ü` → `c/g/i/o/s/u`, diğer aksanlar sadeleştirilir; ASCII harf ve rakam dışındaki ardışık karakterler tek `-` olur, uçtaki `-` kaldırılır. Boş sonuç `goal` olur. Örnek: `Su İçme` → `su-icme`. Kasadaki anahtarlarla NFC + harf duyarsız çakışmada `-2`, `-3`, … eklenir. Tanımı geçersiz hedeflerin anahtarları ve sahipsiz gün kayıtları da ayrılır. Anahtar oluşturulduktan sonra tanım düzenleyicisinde değişmez; ad değişikliği dosyayı taşımaz, geçmiş kayıtlar korunur.

@@ -1,6 +1,310 @@
 {
   "sourceLanguage" : "tr",
   "strings" : {
+  "Hızlı girişteki konum önerisi tek seferlik konumla çalışır; olayına kendiliğinden eklenmez." : {
+    "localizations" : {
+      "tr" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Hızlı girişteki konum önerisi tek seferlik konumla çalışır; olayına kendiliğinden eklenmez."
+        }
+      },
+      "en" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Quick entry suggestions use a single location fix; a place is never added to your event automatically."
+        }
+      }
+    }
+  },
+  "Konum bölgesi izlenemedi. Konum iznini ve sistem ayarlarını kontrol et." : {
+    "localizations" : {
+      "tr" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Konum bölgesi izlenemedi. Konum iznini ve sistem ayarlarını kontrol et."
+        }
+      },
+      "en" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "A location region could not be monitored. Check location permission and system settings."
+        }
+      }
+    }
+  },
+  "Konum hedefi işlenemedi. Kasayı ve bildirim izinlerini kontrol et." : {
+    "localizations" : {
+      "tr" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Konum hedefi işlenemedi. Kasayı ve bildirim izinlerini kontrol et."
+        }
+      },
+      "en" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "The location goal could not be processed. Check your vault and notification permissions."
+        }
+      }
+    }
+  },
+  "Şimdi değil" : {
+    "localizations" : {
+      "tr" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Şimdi değil"
+        }
+      },
+      "en" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Not now"
+        }
+      }
+    }
+  },
+  "%@ işaretlendi" : {
+    "localizations" : {
+      "tr" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "%@ işaretlendi"
+        }
+      },
+      "en" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "%@ marked complete"
+        }
+      }
+    }
+  },
+  "%@'ndasın. %@ işaretlensin mi?" : {
+    "localizations" : {
+      "tr" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "%@'ndasın. %@ işaretlensin mi?"
+        }
+      },
+      "en" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "You are at %@. Mark %@ complete?"
+        }
+      }
+    }
+  },
+  "Konuma girince" : {
+    "localizations" : {
+      "tr" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Konuma girince"
+        }
+      },
+      "en" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "On arrival"
+        }
+      }
+    }
+  },
+  "Konum hedefleri için Her zaman izni gerekir. Bölgeye girişte bugünün kaydı işaretlenir." : {
+    "localizations" : {
+      "tr" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Konum hedefleri için Her zaman izni gerekir. Bölgeye girişte bugünün kaydı işaretlenir."
+        }
+      },
+      "en" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Location goals require Always permission. Arrival marks today’s record."
+        }
+      }
+    }
+  },
+  "Her zaman konum izni verildi." : {
+    "localizations" : {
+      "tr" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Her zaman konum izni verildi."
+        }
+      },
+      "en" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Always location permission is granted."
+        }
+      }
+    }
+  },
+  "Her zaman konum izni ver" : {
+    "localizations" : {
+      "tr" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Her zaman konum izni ver"
+        }
+      },
+      "en" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Allow Always location access"
+        }
+      }
+    }
+  },
+  "Bildir seçeneği için Bildirimler ayarından bildirim izni ver." : {
+    "localizations" : {
+      "tr" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Bildir seçeneği için Bildirimler ayarından bildirim izni ver."
+        }
+      },
+      "en" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Allow notifications in Notifications settings to use Notify."
+        }
+      }
+    }
+  },
+  "Konum bağlantısı olan uygun hedef yok." : {
+    "localizations" : {
+      "tr" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Konum bağlantısı olan uygun hedef yok."
+        }
+      },
+      "en" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "No eligible goals with a place link."
+        }
+      }
+    }
+  },
+  "Kapalı" : {
+    "localizations" : {
+      "tr" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Kapalı"
+        }
+      },
+      "en" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Off"
+        }
+      }
+    }
+  },
+  "Bildir" : {
+    "localizations" : {
+      "tr" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Bildir"
+        }
+      },
+      "en" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Notify"
+        }
+      }
+    }
+  },
+  "Otomatik işaretle" : {
+    "localizations" : {
+      "tr" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Otomatik işaretle"
+        }
+      },
+      "en" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Mark automatically"
+        }
+      }
+    }
+  },
+  "İzlenen bölgeler" : {
+    "localizations" : {
+      "tr" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "İzlenen bölgeler"
+        }
+      },
+      "en" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Monitored regions"
+        }
+      }
+    }
+  },
+  "İzlenen bölge yok." : {
+    "localizations" : {
+      "tr" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "İzlenen bölge yok."
+        }
+      },
+      "en" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "No monitored regions."
+        }
+      }
+    }
+  },
+  "%@ · %@ m" : {
+    "localizations" : {
+      "tr" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "%@ · %@ m"
+        }
+      },
+      "en" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "%@ · %@ m"
+        }
+      }
+    }
+  },
+  "20 bölge sınırı: %lld hedef izlenmiyor." : {
+    "localizations" : {
+      "tr" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "20 bölge sınırı: %lld hedef izlenmiyor."
+        }
+      },
+      "en" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "20-region limit: %lld goals are not monitored."
+        }
+      }
+    }
+  },
   "Konum" : {
     "localizations" : {
       "tr" : {

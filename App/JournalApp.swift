@@ -6,6 +6,7 @@ import SwiftUI
 
 @main
 struct JournalApp: App {
+    @State private var geofences: GeofenceService
     @State private var location: LocationService
     @State private var calendar = CalendarService()
     @State private var notifications: NotificationService
@@ -24,10 +25,15 @@ struct JournalApp: App {
         _location = State(initialValue: location)
         let store = IndexStore()
         _store = State(initialValue: store)
-        let notifications = NotificationService()
+        let center = SystemNotificationScheduler()
+        let geofences = GeofenceService(location: location, center: center)
+        geofences.attach(to: store)
+        _geofences = State(initialValue: geofences)
+        let notifications = NotificationService(center: center)
         notifications.attach(to: store)
         notifications.activateAutomatically()
         _notifications = State(initialValue: notifications)
+        geofences.activateAutomatically()
         #if os(macOS)
             _desktop = State(initialValue: MacQuickEntryController(store: store, location: location))
         #endif
@@ -74,6 +80,7 @@ struct JournalApp: App {
                 .frame(minWidth: 450, minHeight: 500)
                 .environment(calendar)
                 .environment(location)
+                .environment(geofences)
                 .environment(notifications)
             }
         #else
@@ -86,6 +93,7 @@ struct JournalApp: App {
             ContentView(store: store)
                 .environment(calendar)
                 .environment(location)
+                .environment(geofences)
                 .environment(notifications)
                 #if os(macOS)
                     .background(MainWindowMarker())

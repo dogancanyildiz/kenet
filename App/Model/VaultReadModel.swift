@@ -6,6 +6,7 @@ import VaultIndex
 /// Immutable screen data published together with the index counts.
 struct VaultReadModel: Sendable {
     var goals: [GoalDefinition] = []
+    var goalPlaceFiles: [String: String] = [:]
     var goalLogs: [String: [GoalLog]] = [:]
     var reservedGoalKeys: Set<String> = []
     var goalLogStart = LocalDay.today().addingDays(-399)!
@@ -22,6 +23,7 @@ struct VaultReadModel: Sendable {
     init(snapshot: IndexSnapshot, today: CalendarDate = LocalDay.today()) {
         goalLogStart = today.addingDays(-399) ?? today
         let goalPlaces = Dictionary(grouping: snapshot.links.filter { $0.key == "place" }, by: \.file)
+        goalPlaceFiles = goalPlaces.compactMapValues { $0.first?.resolvedFile }
         goals = snapshot.entities.compactMap { GoalDefinition(entity: $0, place: goalPlaces[$0.file]?.first?.target) }
             .sorted {
                 $0.name.localizedStandardCompare($1.name) == .orderedAscending

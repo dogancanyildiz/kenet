@@ -65,7 +65,7 @@ struct DayView: View {
             QuickEntryBar(
                 store: store, isEnabled: true, day: isToday ? nil : date,
                 focusRequest: isToday && notifications.navigationRequest?.destination == .journal
-                    ? notifications.navigationRequest?.id : nil
+                    ? notifications.navigationRequest?.id : nil, acceptsPeopleMentions: isToday
             )
             .id(isToday ? "today" : date.description)
         }

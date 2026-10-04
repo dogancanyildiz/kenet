@@ -5,6 +5,8 @@ import VaultStore
 
 struct QuickEntryBar: View {
     @Environment(LocationService.self) private var location
+    @Environment(IntentNavigation.self) private var navigation: IntentNavigation?
+    private let acceptsPeopleMentions: Bool
     let store: IndexStore
     let isEnabled: Bool
     private let focusRequest: UUID?
@@ -16,11 +18,12 @@ struct QuickEntryBar: View {
 
     init(
         store: IndexStore, isEnabled: Bool, day: CalendarDate? = nil,
-        model: QuickEntryModel? = nil, focusRequest: UUID? = nil
+        model: QuickEntryModel? = nil, focusRequest: UUID? = nil, acceptsPeopleMentions: Bool = false
     ) {
         self.store = store
         self.isEnabled = isEnabled
         self.focusRequest = focusRequest
+        self.acceptsPeopleMentions = acceptsPeopleMentions
         _model = State(initialValue: model ?? QuickEntryModel(store: store, day: day))
     }
 
@@ -150,6 +153,9 @@ struct QuickEntryBar: View {
         .padding()
         .background(.bar)
         .onAppear { model.locationService = location }
+        .onChange(of: navigation?.mentionRequest?.id, initial: true) { _, id in
+            if id != nil { applyMention() }
+        }
         .onChange(of: isFocused) { _, focused in
             model.locationService = location
             if focused { model.focusLocation() }
@@ -166,9 +172,20 @@ struct QuickEntryBar: View {
         .onChange(of: showsDatePicker) { _, presented in
             if !presented { isFocused = true }
         }
+        .onChange(of: model.isSubmitting || model.isCreating || store.isWriting) { applyMention() }
         .onChange(of: isEnabled) { _, enabled in
+            if enabled { applyMention() }
             if enabled && focusRequest != nil { isFocused = true }
         }
+    }
+
+    private func applyMention() {
+        guard acceptsPeopleMentions, isEnabled, !model.isSubmitting, !model.isCreating, !store.isWriting,
+            let entity = navigation?.takeMention(vault: store.vaultURL)
+        else { return }
+        model.prefillMention(entity)
+        selection = nil
+        isFocused = true
     }
 
     private var placeholder: LocalizedStringKey {

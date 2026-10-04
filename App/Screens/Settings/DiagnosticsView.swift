@@ -8,6 +8,7 @@ struct DiagnosticsView: View {
 
     var body: some View {
         Form {
+            PeopleInsightsSettingsView()
             CalendarSettingsView()
             LocationSettingsView()
             #if os(iOS)

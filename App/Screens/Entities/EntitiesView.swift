@@ -19,9 +19,10 @@ struct EntitiesView: View {
             }
             .pickerStyle(.segmented).padding()
             EntityListControls(order: $order, search: $search)
-            List(entities) { entity in
-                NavigationLink(value: entity) {
-                    EntityRow(entity: entity)
+            List {
+                if kind == "person" { UnseenPeopleSection(store: store, people: entities) }
+                ForEach(entities) { entity in
+                    NavigationLink(value: entity) { EntityRow(entity: entity) }
                 }
             }
             .overlay {

@@ -189,12 +189,16 @@
                 case .people, .places:
                     VStack(spacing: 0) {
                         EntityListControls(order: $entityOrder, search: $entitySearch)
-                        List(
-                            EntityListQuery.entities(
-                                in: store.content, usage: store.entityUsage, kind: entityKind,
-                                search: entitySearch, order: entityOrder), selection: entitySelection
-                        ) { entity in
-                            EntityRow(entity: entity).tag(entity.id)
+                        let entities = EntityListQuery.entities(
+                            in: store.content, usage: store.entityUsage, kind: entityKind,
+                            search: entitySearch, order: entityOrder)
+                        List(selection: entitySelection) {
+                            if entityKind == "person" {
+                                UnseenPeopleSection(store: store, people: entities) { entity in
+                                    entitySelection.wrappedValue = entity.id
+                                }
+                            }
+                            ForEach(entities) { entity in EntityRow(entity: entity).tag(entity.id) }
                         }
                     }.navigationTitle((section ?? .people).title)
                 case .notes:

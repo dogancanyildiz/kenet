@@ -3,6 +3,7 @@ import SwiftUI
 /// Each phone tab retains its own navigation stack.
 struct PhoneNavigation: View {
     let store: IndexStore
+    @Environment(IntentNavigation.self) private var intentNavigation
     @Environment(NotificationService.self) private var notifications
     @State private var selectedTab = PhoneTab.today
     @State private var todayPath = NavigationPath()
@@ -37,6 +38,12 @@ struct PhoneNavigation: View {
             Tab("Hedefler", systemImage: "target", value: PhoneTab.goals) {
                 NavigationStack { GoalsView(store: store) }
             }
+        }
+        .onChange(of: intentNavigation.todayRequest, initial: true) { _, request in
+            guard request != nil else { return }
+            showingSettings = false
+            todayPath = NavigationPath()
+            selectedTab = .today
         }
         .onChange(of: notifications.navigationRequest?.id, initial: true) { _, id in
             guard id != nil, let request = notifications.navigationRequest else { return }

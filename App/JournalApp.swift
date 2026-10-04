@@ -6,6 +6,7 @@ import SwiftUI
 
 @main
 struct JournalApp: App {
+    @State private var intentNavigation = IntentNavigation.shared
     @State private var geofences: GeofenceService
     @State private var location: LocationService
     @State private var calendar = CalendarService()
@@ -23,7 +24,7 @@ struct JournalApp: App {
     init() {
         let location = LocationService()
         _location = State(initialValue: location)
-        let store = IndexStore()
+        let store = IntentActions.shared.store
         _store = State(initialValue: store)
         let center = SystemNotificationScheduler()
         let geofences = GeofenceService(location: location, center: center)
@@ -33,6 +34,7 @@ struct JournalApp: App {
         notifications.attach(to: store)
         notifications.activateAutomatically()
         _notifications = State(initialValue: notifications)
+        IntentNavigation.shared.onOpenToday = { [weak notifications] in notifications?.clearNavigationRequest() }
         geofences.activateAutomatically()
         #if os(macOS)
             _desktop = State(initialValue: MacQuickEntryController(store: store, location: location))
@@ -61,6 +63,12 @@ struct JournalApp: App {
             } label: {
                 Label("Hızlı giriş", systemImage: "square.and.pencil")
                     .task { await desktop.start() }
+                    .onChange(of: intentNavigation.todayRequest, initial: true) { _, request in
+                        if request != nil {
+                            NSApp.activate(ignoringOtherApps: true)
+                            openWindow(id: "main")
+                        }
+                    }
                     .onChange(of: notifications.navigationRequest?.id, initial: true) { _, request in
                         if request != nil {
                             NSApp.activate(ignoringOtherApps: true)
@@ -82,6 +90,7 @@ struct JournalApp: App {
                 .environment(location)
                 .environment(geofences)
                 .environment(notifications)
+                .environment(intentNavigation)
             }
         #else
             mainWindow
@@ -95,6 +104,7 @@ struct JournalApp: App {
                 .environment(location)
                 .environment(geofences)
                 .environment(notifications)
+                .environment(intentNavigation)
                 #if os(macOS)
                     .background(MainWindowMarker())
                     .task { await desktop.start() }

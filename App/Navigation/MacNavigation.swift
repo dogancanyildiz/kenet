@@ -5,6 +5,7 @@
     /// Lists stay alongside their selection in the desktop's three columns.
     struct MacNavigation: View {
         let store: IndexStore
+        @Environment(IntentNavigation.self) private var intentNavigation
         @Environment(NotificationService.self) private var notifications
         @State private var detailPath = NavigationPath()
         @State private var section: DesktopSection? = .today
@@ -101,6 +102,14 @@
                     }
                 }
                 .id(section)
+            }
+            .onChange(of: intentNavigation.todayRequest, initial: true) { _, request in
+                guard request != nil else { return }
+                detailPath = NavigationPath()
+                selectedDay = nil
+                selectedTask = nil
+                selectedGoal = nil
+                section = .today
             }
             .onChange(of: notifications.navigationRequest?.id, initial: true) { _, id in
                 guard id != nil, let request = notifications.navigationRequest else { return }

@@ -43,6 +43,8 @@ Aşama 0'da kasa varsayılan olarak uygulamanın yerel `Documents/Vault/` klasö
 
 Bildirimler yalnız App katmanında `NotificationPlanner` ile snapshot/cihaz tercihleri/yerel saatten üretilir, `NotificationService` seri yeniden planlama ve izin durumunu protokolle ayrılmış `UserNotifications` merkezine uygular; indeks yayınları iki saniye birleştirilir, uygulama kapalıyken yedi günlük planın içeriği yeniden hesaplanmaz.
 
+App Intents, yer imi kapsamını ve indeksi açan ortak `IntentActions`/`IndexStore` üzerinden olay, görev ve hedef kaydı yazar; `AppShortcutsProvider` tr/en Siri cümlelerini sunar ve `IntentNavigation` Bugün ekranına yönlendirir.
+
 ## Core paketi
 
 Sorumlulukları:

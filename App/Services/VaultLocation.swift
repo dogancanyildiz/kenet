@@ -50,6 +50,13 @@ final class VaultLocation {
     }
 
     /// No fallback vault is substituted for an inaccessible bookmark during automation.
+    func existingVaultForIntent() throws -> URL {
+        if defaults.data(forKey: Self.bookmarkKey) != nil { return try resolveForBackground() }
+        let root = documentsURL.appendingPathComponent("Vault", isDirectory: true)
+        try validateDirectory(root)
+        return root
+    }
+
     func resolveForBackground() throws -> URL {
         guard let data = defaults.data(forKey: Self.bookmarkKey) else { return try createDefaultVault() }
         let resolved = try bookmarks.resolve(data)

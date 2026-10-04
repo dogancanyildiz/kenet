@@ -97,6 +97,11 @@ final class IndexStore {
     }
 
     /// Background callbacks must reopen security scope and finish indexing before any write.
+    func prepareForIntent() async throws {
+        if vaultURL == nil { await open(try location.existingVaultForIntent()) }
+        try await prepareForBackground()
+    }
+
     func prepareForBackground() async throws {
         if let vaultURL {
             try location.resumeBackgroundAccess(to: vaultURL)

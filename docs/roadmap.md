@@ -1,6 +1,6 @@
 # Yol haritası
 
-**Aktif aşama:** 4
+**Aktif aşama:** 5
 
 Devreden maddeler (bundle, iCloud kapsayıcısı ve App Group kimliği kararını bekliyor): iCloud kasa konumu (aşama 0); aşama 3'teki widget maddeleri (WidgetKit uzantısı kasaya App Group ile erişir). Aşama 1'in teknik maddeleri tamamlandı; çıkış ölçütü (iki hafta günlük kullanım) kullanıcının gerçek kullanımıyla sağlanır.
 
@@ -71,7 +71,7 @@ Kullanıcıya görünen bir şey yok; her şey bunun üstüne kurulur.
 - [x] Görev ve hedef bildirimleri, akşam günlük hatırlatması; bildirimlerin güvenilirlik testi
 - [x] Olay yazarken GPS ile konum önerisi
 - [x] Konuma girince hedefi otomatik işaretleme ya da tek dokunuşluk bildirim
-- [ ] Kısayollar ve Siri ile giriş (App Intents)
+- [x] Kısayollar ve Siri ile giriş (App Intents)
 
 **Çıkış ölçütü:** İki hafta boyunca hatırlatmalar kaçmadan geliyor; konuma bağlı hedefler elle işaretlemeden kaydediliyor.
 

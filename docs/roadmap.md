@@ -87,7 +87,7 @@ Kullanıcıya görünen bir şey yok; her şey bunun üstüne kurulur.
 ## Aşama 6: Geri bildirim
 
 - [x] Haftalık ve aylık özetler (sayılara dayalı, yapay zekasız): kimlerle, nerelerde, hedef ve görev durumu
-- [ ] Kişi sayfasında son görüşme özeti; uzun süredir görüşülmeyenler
+- [x] Kişi sayfasında son görüşme özeti; uzun süredir görüşülmeyenler
 - [ ] Graph ve harita görünümleri
 - [ ] İsteğe bağlı yapay zeka (karar açık):
   - Haftalık ve aylık değerlendirme: dönemin günlüklerini, görevlerini ve hedeflerini inceleyip yazılı geri bildirim verme (örüntüler, iyi gidenler, aksayanlar, öneriler)

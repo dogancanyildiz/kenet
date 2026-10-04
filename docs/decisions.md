@@ -111,6 +111,8 @@ Verilen her karar tek satır olarak eklenir. Açık sorular kapandığında altt
 
 | 2026-10-04 | Haftalık/aylık özetler saf `Summaries` katmanında, tek indeks okuma snapshot'ından yeniden hesaplanır; varlık oluşturulma tarihi yerine açıkça adlandırılmış ilk günlük geçişi sayılır, görev envanteri kaynak gün ve tamamlanma tarihinden çıkarılır | Markdown'da bulunmayan oluşturulma/değişiklik geçmişi uydurulmaz; şema ve format değişmeden sayılar, önceki dönem farkları ve dönem sonu zinciri taşınabilir kalır |
 
+| 2026-10-04 | Kişi/konum içgörüleri günlük olay ve Journal geçişlerinden, farklı günler üzerinden hesaplanır; görüşülmeyenler eşiği cihazda varsayılan 30 (1–365) gündür, dil nötrdür, hiç geçmemişler ayrıdır | Günlükte anılmayı gerçek görüşme diye doğrulamadan hatırlatma sunar; mevcut taslağa yol sabitli anma eklenir, bildirim ve kasa formatı eklenmez |
+
 ## Açık sorular
 
 1. **İsim.** İçinde "core" geçecek. Adaylar: Zincore, Ancore, Corenda. Karar ertelendi. Bundle ve iCloud kimliklerinde isim yerine nötr bir kimlik kullanılacak.

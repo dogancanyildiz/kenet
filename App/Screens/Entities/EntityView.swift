@@ -26,6 +26,7 @@ struct EntityView: View {
 
     var body: some View {
         Form {
+            EntityInsightsCard(store: store, entity: current)
             Section("Varlık") {
                 LabeledContent("Ad") { Text(verbatim: current.name) }
                 if let qualifier = current.qualifier { LabeledContent("Ayırt edici") { Text(verbatim: qualifier) } }

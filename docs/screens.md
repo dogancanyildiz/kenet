@@ -82,6 +82,16 @@ Filtre: kişi, konum, proje. Aynı gündeki görevler yüksek, orta, normal, dü
 5. Serbest notlar
 6. Konumda ek olarak harita ve koordinat (4)
 
+### Kişi ve konum içgörüleri (6)
+
+Varlık sayfasının üstünde Son görüşme / Son ziyaret kartı bulunur. Hesap mevcut zaman akışıyla aynı kapsamı kullanır: gün dosyalarındaki olaylar ve Journal paragraflarının çözülen bağlantıları. Görev, frontmatter, serbest not ve gelecek tarihli geçişler görüşme sayılmaz. Kart, günlük kaydının görüşme kanıtı olmadığını nötr biçimde belirtir. Son ve ilk geçiş tarihleri, son günün varlığa bağlı metinleri (dokunulabilir bağlantıları korunarak), o gün bütün olay/Journal yazılarında geçen diğer kişi ve konumlar gösterilir; aynı olayda karşılaşma çıkarımı yapılmaz.
+
+Sıklık bugün dahil son 90 takvim gününde (`bugün -89` … bugün) geçilen farklı gün sayısıdır; tekrarlar tek gün sayılır. Ortalama aralık bu penceredeki son ve ilk gün farkının `gün sayısı -1` değerine bölünmesidir; iki günden azsa hesap gösterilmez. İlk geçiş bütün geçmişten alınır.
+
+Kişiler listesinin üstünde katlanabilir Bir süredir görüşmediklerin bölümü vardır (Mac ve telefon). Son geçişten bu yana gün sayısı eşik dahil aşılmışsa listelenir; eski kayıt önce, eşitlerde yol sırası kullanılır. Henüz hiç geçmemişler ayrı gruptadır; gelecekteki kayıt tek başına geçmiş görüşme sayılmaz. Arama filtresi bu bölüme de uygulanır. Satır adı ve geçen tam hafta/gün sayısını nötr gösterir; kişiye açılır. Hızlı girişte an düğmesi Bugün'e geçer ve taslağın sonuna `@Ad ` ekler; mevcut taslak korunur, aynı adlı kişinin yolu sabitlenir. İstek yalnız Bugün girişinde bir kez ve aynı kasada tüketilir; menü çubuğundaki giriş isteği almaz.
+
+Ayarlar'da Kişi hatırlatmaları bölümünden eşik 1–365 gün arasında seçilir; varsayılan 30 gündür ve cihaz tercihi olarak saklanır, kasa alanı değildir. Değişiklik listeye hemen yansır; tarih gece yarısından sonra periyodik yenilenir. Bildirim yoktur.
+
 ### Hedefler (3)
 
 - Her hedef için kart: ad, dönem, güncel zincir ya da dönem ilerlemesi.

@@ -42,9 +42,18 @@ En altta sabit **hızlı giriş kutusu**.
 ### Günlük (1)
 
 - Günlerin ters kronolojik listesi; her günde olay sayısı ve günlük yazısının ilk satırı.
-- Üstte takvim ile güne atlama.
+- Üstte Özetler girişi ve takvim ile güne atlama.
 - Bir güne girince: o günün olayları, görevleri, hedef kayıtları ve serbest yazısı. Bugün ekranıyla aynı düzen, herhangi bir gün için.
 - Geçmiş bir güne olay eklenebilir ve o günün hedef kayıtları düzeltilebilir.
+
+### Özetler (6)
+
+Günlük içinden ve Mac kenar çubuğundan açılır. Hafta (pazartesi–pazar) / takvim ayı seçicisi, önceki/sonraki dönem ve Bu hafta / Bu ay düğmesi vardır. Günlük, Kişiler, Konumlar, Hedefler ve Görevler kartları sayıları ve önceki eş dönem farklarını nötr oklarla gösterir. Kişi/konumların ilk beşi kendi sayfasına bağlanır; sıralama geçiş sayısı azalan, eşitlerde ad ve yol sırasıdır. Boş dönemde “Bu dönemde kayıt yok.” gösterilir; taşınan açık işler yine görülebilir.
+
+- Olay sayısı olay bloklarını; yazılan gün sayısı en az bir olay veya boş olmayan Journal paragrafı/başlığı bulunan farklı gün tarihlerini sayar. Yalnız görev veya hedef kaydı yazılan gün sayılmaz.
+- Kişi/konum geçişi, gün dosyalarının gövdesindeki çözülen her bağlantıdır; tekrarlar ayrı sayılır, frontmatter bağlantıları sayılmaz. Kart toplamı ilk beş dışındakileri de içerir. Oluşturulma tarihi kasada bulunmadığından **İlk kez geçenler**, bütün günlük geçmişinde ilk gövde bağlantısı bu döneme düşen varlıkları sayar; dosya oluşturulma sayısı değildir.
+- Görev oluşturulma günü kaynak gün dosyasının tarihidir (tekrarlayan görev de kaynak gününe sayılır). Tamamlanan, mevcut durumu tamamlanmış ve `✅` tarihi dönemde olan görevdir. Dönem sonu açık envanteri, o güne kadar kaynak gün dosyasında bulunan ve henüz tamamlanmamış görevlerden üretilir; sonraki tarihli tamamlanma geçmişte açık sayılır. Bitiş tarihi dönem sonundan önceyse geciken, bitiş tarihi yoksa tarihsiz açıktır. İptaller ve tamamlanma tarihi olmayan tamamlanmış görevler envantere katılmaz. Kaynak gün tarihi olmayan görev oluşturulma/açık sayısına girmez; geçerli tamamlanma tarihiyle tamamlanan sayısına girebilir. Dosyalar durum/değişiklik geçmişi tutmadığından yeniden açma, iptal tarihi veya eski bitiş tarihi geri kurulamaz.
+- Günlük hedefte dönem katkısı ve hedef × gün sayısı; haftalık hedefte katkı ve hedef × dönemin değdiği pazartesi haftalarının sayısı (ay kenarlarındaki kısmi haftalar dahil) gösterilir. Yıllık hedefte dönem sonundaki yıl başından ilerleme, farkta yalnız seçilen dönemin katkısı gösterilir. Zincir bütün geçmişten dönem sonu itibarıyla hesaplanır. Kilometre taşında yıl içindeki ilk tamamlanma ve tarihi gösterilir; aynı yıl tekrarlanan kayıt katkıyı artırmaz, zincir gösterilmez. Önceki dönem ilerleme farkı iki dönemin katkı farkıdır; zincir farkı dönem sonlarının farkıdır.
 
 ### Görevler (2, 5)
 
@@ -91,7 +100,7 @@ Telefonda okuma ve basit düzenleme. Aramadan ve bağlantılardan ulaşılır; a
 ## Mac
 
 - Görevler altında Kanban, Zaman çizelgesi ve proje adları yer alır. Kanban liste sütununu kullanmadan kenar çubuğunun yanına açılır; seçili kart sağ ayrıntı panelinde gösterilir.
-- **Kenar çubuğu:** Bugün, Günlük, Görevler, Kişiler, Konumlar, Hedefler, Notlar.
+- **Kenar çubuğu:** Bugün, Günlük, Özetler, Görevler, Kişiler, Konumlar, Hedefler, Notlar.
 - **Çok sütunlu düzen:** Solda liste, ortada seçili öğe. Örneğin kişi listesi ve seçili kişinin sayfası yan yana.
 - **Kanban (5)** tam genişlikte; sürükle bırak ile durum ve proje değişir, tarih kart menüsünden değiştirilir. **Zaman çizelgesi (5)** aynı geniş alanda tarih taşımayı ve uç sürükleyerek uzatma/kısaltmayı destekler. Gün ızgarasına yapışır; çubukta tarih alanları aynı farkla kayar, uç yalnız ilgili alanı değiştirir. Sürükleme başlangıcındaki görev ve kasa doğrulanır. İki tarih mevcut yazıcıyla iki kez yazılır; ikinci yazma ilkinden dönen görev hedefini kullanır. Yazma sırasında geçici çubuk konumu, hata/başarı sonrası dosya yenilemesi vardır; kısmi yazma bildirimi otomatik tekrar göndermez. Ayrıntı sağ panelde açılır.
 - **Hızlı giriş penceresi (1):** Sistem genelinde klavye kısayoluyla açılan küçük pencere; telefondaki hızlı giriş kutusuyla aynı davranış. Uygulama öne gelmeden kayıt yapılır.

@@ -8,6 +8,11 @@ struct DaysView: View {
 
     var body: some View {
         List {
+            NavigationLink {
+                SummariesView(store: store)
+            } label: {
+                Label("Özetler", systemImage: "chart.bar")
+            }
             Section {
                 DaysCalendarView(store: store) { selectedDay = $0 }
             }

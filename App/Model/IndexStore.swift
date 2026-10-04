@@ -3,6 +3,7 @@ import EntityRecognition
 import Foundation
 import GoalTracking
 import Observation
+import Summaries
 import VaultFormat
 import VaultIndex
 import VaultStore
@@ -198,6 +199,19 @@ final class IndexStore {
         let results = try await Task.detached { try index.searchResults(query) }.value
         guard generation == current else { throw VaultStoreError.staleTarget }
         return results
+    }
+
+    /// Summary history is queried on demand and belongs to this vault generation.
+    func computeSummary(period: SummaryPeriod, day: CalendarDate, from: CalendarDate, to: CalendarDate) async throws
+        -> PeriodSummary
+    {
+        guard let index else { throw VaultStoreError.staleTarget }
+        let current = generation
+        let result = try await Task.detached {
+            PeriodSummary.compute(period: period, containing: day, data: try index.summaryInput(from: from, to: to))
+        }.value
+        guard generation == current else { throw VaultStoreError.staleTarget }
+        return result
     }
 
     /// Full history is read on demand for detail screens and dates outside the bounded snapshot.

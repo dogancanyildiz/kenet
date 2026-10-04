@@ -15,6 +15,7 @@ let package = Package(
         .library(name: "EntityRecognition", targets: ["EntityRecognition"]),
         .library(name: "DateParsing", targets: ["DateParsing"]),
         .library(name: "GoalTracking", targets: ["GoalTracking"]),
+        .library(name: "Summaries", targets: ["Summaries"]),
     ],
     dependencies: [
         .package(url: "https://github.com/groue/GRDB.swift.git", from: "7.0.0")
@@ -24,6 +25,8 @@ let package = Package(
         .testTarget(
             name: "VaultStoreTests",
             dependencies: ["VaultStore", "VaultIndex", "GoalTracking", .product(name: "GRDB", package: "GRDB.swift")]),
+        .target(name: "Summaries", dependencies: ["VaultFormat", "GoalTracking"]),
+        .testTarget(name: "SummariesTests", dependencies: ["Summaries", "VaultIndex", "GoalTracking", "VaultFormat"]),
         .target(name: "GoalTracking", dependencies: ["VaultFormat"]),
         .testTarget(name: "GoalTrackingTests", dependencies: ["GoalTracking", "VaultFormat"]),
         .target(name: "DateParsing", dependencies: ["VaultFormat"]),
@@ -35,7 +38,8 @@ let package = Package(
         .target(
             name: "VaultIndex",
             dependencies: [
-                "VaultFormat", "EntityRecognition", "GoalTracking", .product(name: "GRDB", package: "GRDB.swift"),
+                "VaultFormat", "EntityRecognition", "GoalTracking", "Summaries",
+                .product(name: "GRDB", package: "GRDB.swift"),
             ]),
         .testTarget(
             name: "VaultIndexTests",

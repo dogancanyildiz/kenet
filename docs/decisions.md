@@ -109,6 +109,8 @@ Verilen her karar tek satır olarak eklenir. Açık sorular kapandığında altt
 | 2026-10-04 | Hedef oluşturma anahtarı ASCII kısa ad + sayısal çakışma eki; tanım düzenlemede anahtar ve dosya yolu sabit | Geçmiş gün kayıtlarını ada bağlı taşımadan korur; şerit günlük katkıyı dönem toplamından ayrı gösterir. |
 | 2026-10-04 | Yerel bildirimler yedi günlük tek seferlik plan, deterministik kategori/gün kimliği ve yalnız açık izin eylemiyle; saatler/kategori tercihleri cihaz UserDefaults'unda | Core ve kasa formatını sistem API'lerinden ayrı tutar; yeniden planlama eski planı kaldırır, kapalı uygulamada son plan geçerlidir. |
 
+| 2026-10-04 | Haftalık/aylık özetler saf `Summaries` katmanında, tek indeks okuma snapshot'ından yeniden hesaplanır; varlık oluşturulma tarihi yerine açıkça adlandırılmış ilk günlük geçişi sayılır, görev envanteri kaynak gün ve tamamlanma tarihinden çıkarılır | Markdown'da bulunmayan oluşturulma/değişiklik geçmişi uydurulmaz; şema ve format değişmeden sayılar, önceki dönem farkları ve dönem sonu zinciri taşınabilir kalır |
+
 ## Açık sorular
 
 1. **İsim.** İçinde "core" geçecek. Adaylar: Zincore, Ancore, Corenda. Karar ertelendi. Bundle ve iCloud kimliklerinde isim yerine nötr bir kimlik kullanılacak.

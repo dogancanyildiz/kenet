@@ -4,15 +4,20 @@ import VaultFormat
 struct TasksView: View {
     let store: IndexStore
     let notificationRequest: UUID?
+    let onKanbanSelected: (() -> Void)?
     @Binding var selection: String?
     @State private var pendingNotificationScroll: UUID?
     @State private var model: TasksModel
 
-    init(store: IndexStore, selection: Binding<String?> = .constant(nil), notificationRequest: UUID? = nil) {
+    init(
+        store: IndexStore, selection: Binding<String?> = .constant(nil), notificationRequest: UUID? = nil,
+        tasks: TasksModel? = nil, onKanbanSelected: (() -> Void)? = nil
+    ) {
         self.store = store
         self.notificationRequest = notificationRequest
+        self.onKanbanSelected = onKanbanSelected
         _selection = selection
-        _model = State(initialValue: TasksModel(store: store))
+        _model = State(initialValue: tasks ?? TasksModel(store: store))
     }
 
     var body: some View {
@@ -23,7 +28,8 @@ struct TasksView: View {
                     Text("Tarihsiz").tag(TasksModel.Section.undated)
                     Text("Tamamlanan").tag(TasksModel.Section.completed)
                     Text("Projeler").tag(TasksModel.Section.projects)
-                }.pickerStyle(.segmented).padding()
+                    Text("Kanban").tag(TasksModel.Section.kanban)
+                }.pickerStyle(.menu).frame(maxWidth: .infinity, alignment: .leading).padding()
                 if model.hasFilters {
                     HStack {
                         if let path = model.entityFilter,
@@ -37,37 +43,42 @@ struct TasksView: View {
                             .labelStyle(.iconOnly)
                     }.font(.caption).padding(8).background(.quaternary, in: Capsule()).padding(.horizontal)
                 }
-                List(selection: $selection) {
-                    if let error = model.errorText { Text(verbatim: error).foregroundStyle(.red) }
-                    switch model.section {
-                    case .projects:
-                        ForEach(model.projects, id: \.self) { project in
-                            NavigationLink {
-                                ProjectView(store: store, name: project)
-                            } label: {
-                                LabeledContent {
-                                    Text(ProjectModel(store: store, name: project).openCount.formatted())
+                if model.section == .kanban {
+                    KanbanView(tasks: model)
+                } else {
+                    List(selection: $selection) {
+                        if let error = model.errorText { Text(verbatim: error).foregroundStyle(.red) }
+                        switch model.section {
+                        case .kanban: EmptyView()
+                        case .projects:
+                            ForEach(model.projects, id: \.self) { project in
+                                NavigationLink {
+                                    ProjectView(store: store, name: project)
                                 } label: {
-                                    Text(verbatim: project)
+                                    LabeledContent {
+                                        Text(ProjectModel(store: store, name: project).openCount.formatted())
+                                    } label: {
+                                        Text(verbatim: project)
+                                    }
                                 }
                             }
+                            if model.projects.isEmpty { Text("Henüz proje yok").foregroundStyle(.secondary) }
+                        case .upcoming:
+                            ForEach(model.agenda) { group in
+                                Section {
+                                    rows(group.rows)
+                                } header: {
+                                    heading(group.date)
+                                }.id(group.id)
+                            }
+                            if model.agenda.isEmpty { Text("Görev yok.").foregroundStyle(.secondary) }
+                        case .undated:
+                            rows(model.undated)
+                            if model.undated.isEmpty { Text("Görev yok.").foregroundStyle(.secondary) }
+                        case .completed:
+                            rows(model.completed)
+                            if model.completed.isEmpty { Text("Görev yok.").foregroundStyle(.secondary) }
                         }
-                        if model.projects.isEmpty { Text("Henüz proje yok").foregroundStyle(.secondary) }
-                    case .upcoming:
-                        ForEach(model.agenda) { group in
-                            Section {
-                                rows(group.rows)
-                            } header: {
-                                heading(group.date)
-                            }.id(group.id)
-                        }
-                        if model.agenda.isEmpty { Text("Görev yok.").foregroundStyle(.secondary) }
-                    case .undated:
-                        rows(model.undated)
-                        if model.undated.isEmpty { Text("Görev yok.").foregroundStyle(.secondary) }
-                    case .completed:
-                        rows(model.completed)
-                        if model.completed.isEmpty { Text("Görev yok.").foregroundStyle(.secondary) }
                     }
                 }
             }
@@ -75,6 +86,9 @@ struct TasksView: View {
             .toolbar {
                 TaskFiltersMenu(model: model)
                 SearchButton()
+            }
+            .onChange(of: model.section) { _, section in
+                if section == .kanban { onKanbanSelected?() }
             }
             .onChange(of: notificationRequest, initial: true) { _, request in
                 guard request != nil else { return }
@@ -153,7 +167,7 @@ struct TasksView: View {
     }
 }
 
-private struct TaskFiltersMenu: View {
+struct TaskFiltersMenu: View {
     @Bindable var model: TasksModel
     var body: some View {
         Menu {

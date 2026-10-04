@@ -12,7 +12,7 @@ struct TaskAgendaGroup: Identifiable {
 
 @MainActor @Observable
 final class TasksModel {
-    enum Section: String, CaseIterable { case upcoming, undated, completed, projects }
+    enum Section: String, CaseIterable { case upcoming, undated, completed, projects, kanban }
     let store: IndexStore
     var section = Section.upcoming
     var entityFilter: String?
@@ -34,7 +34,7 @@ final class TasksModel {
         projectFilter = nil
     }
 
-    private var filtered: [TaskRow] {
+    var filtered: [TaskRow] {
         store.content.tasks.filter {
             (entityFilter == nil || $0.linkedFiles.contains(entityFilter!))
                 && (projectFilter == nil

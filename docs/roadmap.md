@@ -77,7 +77,7 @@ Kullanıcıya görünen bir şey yok; her şey bunun üstüne kurulur.
 
 ## Aşama 5: Proje görünümleri
 
-- [ ] Kanban: duruma, projeye ya da kişiye göre
+- [x] Kanban: duruma, projeye ya da kişiye göre
 - [ ] Zaman çizelgesi: başlangıç ve bitiş tarihli görevler (ağırlıklı Mac)
 - [x] Proje etiketi ve proje sayfaları; sayılamayan yıllık hedefler
 - [x] Tekrarlayan görevler, öncelikler

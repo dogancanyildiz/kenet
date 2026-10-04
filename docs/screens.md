@@ -54,7 +54,8 @@ Bölümler:
 - **Tarihsiz:** Bitiş tarihi olmayan açık görevler.
 - **Tamamlanan:** Son tamamlananlar.
 - **Projeler (5):** Etiketlerden türetilen liste ve açık görev sayısı. Proje sayfasında açık görevler bitiş gününe göre gruplu, tarihsizler ayrı; tamamlananlar, görevlerdeki kişi/konumlar ve son etkinlik (gün dosyası veya tamamlanma tarihinin en yenisi) bulunur. Planlanan başlangıç/bitiş tarihi etkinlik sayılmaz.
-- **Kanban ve zaman çizelgesi (5):** Telefonda sade sürüm; asıl kullanım Mac'te.
+- **Kanban (5):** Durum, proje veya kişi sütunları. İptal edilenler seçenekle açılır; tamamlanan görevler son 30 takvim günüyle sınırlıdır (bugün dahil, tarihsiz/future tamamlanmalar dışarıda). Kişi/konum/proje filtreleri ortak kullanılır. Birden çok çözülen kişiye bağlı görev her kişi sütununda görünür; kişisiz ve projesiz sütunlar vardır. Kartlar bitiş tarihi (tarihsiz en son), öncelik, metin ve eşitlerde kimlik sırasındadır; dosya sırası değişmez. Bilinmeyen açık durumlar Yapılacak sütununda korunur. Telefonda yatay kaydırmalı sütunlar, kart menüsünden taşıma ve ayrıntı sheet'i; Mac'te sürükle bırak ve sağ ayrıntı paneli. Durum/proje taşıması mevcut dosya yazıcılarını kullanır; kişi sütunları bağlantı metnini değiştirmez ve taşıma kabul etmez. Tarih kart menüsündeki seçiciden değişir.
+- **Zaman çizelgesi (5):** Telefonda sade sürüm; asıl kullanım Mac'te.
 
 Filtre: kişi, konum, proje. Aynı gündeki görevler yüksek, orta, normal, düşük öncelik sırasındadır; eşitlerde dosya/satır sırası korunur. Görev satırında öncelik ve tekrar rozeti vardır; düzenleme menüsünden Tekrar ve Öncelik seçilir. Tekrar seçicisinde aralık, haftanın günü ve tamamlanma gününden hesaplama bulunur.
 
@@ -89,10 +90,10 @@ Telefonda okuma ve basit düzenleme. Aramadan ve bağlantılardan ulaşılır; a
 
 ## Mac
 
-- Görevler altında proje adları yer alır ve proje sayfasını açar.
+- Görevler altında Kanban ve proje adları yer alır. Kanban liste sütununu kullanmadan kenar çubuğunun yanına açılır; seçili kart sağ ayrıntı panelinde gösterilir.
 - **Kenar çubuğu:** Bugün, Günlük, Görevler, Kişiler, Konumlar, Hedefler, Notlar.
 - **Çok sütunlu düzen:** Solda liste, ortada seçili öğe. Örneğin kişi listesi ve seçili kişinin sayfası yan yana.
-- **Kanban ve zaman çizelgesi (5)** tam genişlikte; sürükle bırak ile durum ve tarih değişir.
+- **Kanban (5)** tam genişlikte; sürükle bırak ile durum ve proje değişir, tarih kart menüsünden değiştirilir. **Zaman çizelgesi (5)** için tarih sürükle bırak ayrı aşama maddesidir.
 - **Hızlı giriş penceresi (1):** Sistem genelinde klavye kısayoluyla açılan küçük pencere; telefondaki hızlı giriş kutusuyla aynı davranış. Uygulama öne gelmeden kayıt yapılır.
 - **Notlar:** Serbest notlar için düzenleme alanı.
 - Klavye kısayolları: arama ve hızlı geçiş, yeni olay, yeni görev, bugüne git.

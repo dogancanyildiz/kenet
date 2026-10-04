@@ -7,6 +7,8 @@
         let store: IndexStore
         @Environment(IntentNavigation.self) private var intentNavigation
         @Environment(NotificationService.self) private var notifications
+        @State private var showingKanban = false
+        @State private var kanbanTasks: TasksModel
         @State private var detailPath = NavigationPath()
         @State private var section: DesktopSection? = .today
         @State private var selectedGoal: String?
@@ -19,30 +21,114 @@
         @State private var entityOrder = EntityOrdering.name
         @State private var entitySearch = ""
 
+        init(store: IndexStore) {
+            self.store = store
+            _kanbanTasks = State(initialValue: TasksModel(store: store))
+        }
+
         var body: some View {
-            NavigationSplitView {
-                List(selection: $section) {
-                    ForEach(DesktopSection.allCases) { item in
-                        Label(item.title, systemImage: item.symbol).tag(item)
-                            .simultaneousGesture(TapGesture().onEnded { if item == .tasks { selectedProject = nil } })
-                        if item == .tasks {
-                            ForEach(store.content.projects, id: \.self) { project in
-                                Button {
-                                    section = .tasks
-                                    selectedTask = nil
-                                    selectedProject = project
-                                } label: {
-                                    Label {
-                                        Text(verbatim: project)
-                                    } icon: {
-                                        Image(systemName: "folder")
-                                    }
-                                }.buttonStyle(.plain).padding(.leading)
-                            }
+            Group {
+                if section == .tasks && showingKanban {
+                    NavigationSplitView {
+                        sidebar
+                    } detail: {
+                        KanbanView(tasks: kanbanTasks, showsFilters: true) { path in
+                            selectedDay = path
+                            section = .days
+                        }.toolbar { SearchButton() }
+                    }
+                } else {
+                    standardLayout
+                }
+            }
+            .onChange(of: intentNavigation.todayRequest, initial: true) { _, request in
+                guard request != nil else { return }
+                detailPath = NavigationPath()
+                selectedDay = nil
+                selectedTask = nil
+                selectedProject = nil
+                showingKanban = false
+                selectedGoal = nil
+                section = .today
+            }
+            .onChange(of: notifications.navigationRequest?.id, initial: true) { _, id in
+                guard id != nil, let request = notifications.navigationRequest else { return }
+                detailPath = NavigationPath()
+                selectedProject = nil
+                showingKanban = false
+                selectedTask = nil
+                selectedDay = nil
+                section = request.destination == .tasks ? .tasks : .today
+            }
+            .onChange(of: store.vaultURL) { _, _ in
+                selectedTask = nil
+                selectedProject = nil
+                showingKanban = false
+                kanbanTasks.clearFilters()
+                selectedGoal = nil
+            }
+            .onChange(of: section) { _, value in
+                if value != .tasks {
+                    selectedProject = nil
+                    showingKanban = false
+                }
+            }
+            .onChange(of: selectedDay) { _, value in
+                if value != nil { section = .days }
+            }
+            .focusedSceneValue(
+                \.goToToday,
+                {
+                    section = .today
+                    selectedDay = nil
+                })
+        }
+
+        private var sidebar: some View {
+            List(selection: $section) {
+                ForEach(DesktopSection.allCases) { item in
+                    Label(item.title, systemImage: item.symbol).tag(item)
+                        .simultaneousGesture(
+                            TapGesture().onEnded {
+                                if item == .tasks {
+                                    selectedProject = nil
+                                    showingKanban = false
+                                    kanbanTasks.section = .upcoming
+                                }
+                            })
+                    if item == .tasks {
+                        Button {
+                            section = .tasks
+                            selectedProject = nil
+                            selectedTask = nil
+                            showingKanban = true
+                        } label: {
+                            Label("Kanban", systemImage: "rectangle.split.3x1")
+                        }
+                        .buttonStyle(.plain).padding(.leading)
+                        ForEach(store.content.projects, id: \.self) { project in
+                            Button {
+                                showingKanban = false
+                                section = .tasks
+                                selectedTask = nil
+                                selectedProject = project
+                            } label: {
+                                Label {
+                                    Text(verbatim: project)
+                                } icon: {
+                                    Image(systemName: "folder")
+                                }
+                            }.buttonStyle(.plain).padding(.leading)
                         }
                     }
                 }
-                .navigationTitle("Journal")
+            }
+            .navigationTitle("Journal")
+        }
+
+        private var standardLayout: some View {
+            NavigationSplitView {
+                sidebar
             } content: {
                 switch section ?? .today {
                 case .today, .days:
@@ -59,7 +145,8 @@
                         TasksView(
                             store: store, selection: $selectedTask,
                             notificationRequest: notifications.navigationRequest?.destination == .tasks
-                                ? notifications.navigationRequest?.id : nil)
+                                ? notifications.navigationRequest?.id : nil,
+                            tasks: kanbanTasks, onKanbanSelected: { showingKanban = true })
                     }
                 case .goals:
                     GoalsView(store: store, selection: $selectedGoal)
@@ -126,38 +213,6 @@
                 }
                 .id(section)
             }
-            .onChange(of: intentNavigation.todayRequest, initial: true) { _, request in
-                guard request != nil else { return }
-                detailPath = NavigationPath()
-                selectedDay = nil
-                selectedTask = nil
-                selectedProject = nil
-                selectedGoal = nil
-                section = .today
-            }
-            .onChange(of: notifications.navigationRequest?.id, initial: true) { _, id in
-                guard id != nil, let request = notifications.navigationRequest else { return }
-                detailPath = NavigationPath()
-                selectedProject = nil
-                selectedTask = nil
-                selectedDay = nil
-                section = request.destination == .tasks ? .tasks : .today
-            }
-            .onChange(of: store.vaultURL) { _, _ in
-                selectedTask = nil
-                selectedProject = nil
-                selectedGoal = nil
-            }
-            .onChange(of: section) { _, value in if value != .tasks { selectedProject = nil } }
-            .onChange(of: selectedDay) { _, value in
-                if value != nil { section = .days }
-            }
-            .focusedSceneValue(
-                \.goToToday,
-                {
-                    section = .today
-                    selectedDay = nil
-                })
         }
 
         private var entitySelection: Binding<String?> {

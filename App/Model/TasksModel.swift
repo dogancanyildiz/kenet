@@ -1,6 +1,7 @@
 import Foundation
 import Observation
 import VaultFormat
+import VaultIndex
 import VaultStore
 
 struct TaskAgendaGroup: Identifiable {
@@ -11,7 +12,7 @@ struct TaskAgendaGroup: Identifiable {
 
 @MainActor @Observable
 final class TasksModel {
-    enum Section: String, CaseIterable { case upcoming, undated, completed }
+    enum Section: String, CaseIterable { case upcoming, undated, completed, projects }
     let store: IndexStore
     var section = Section.upcoming
     var entityFilter: String?
@@ -26,7 +27,7 @@ final class TasksModel {
     }
 
     var day: CalendarDate { today() }
-    var projects: [String] { Set(store.content.tasks.compactMap(\.project)).sorted() }
+    var projects: [String] { store.content.projects }
     var hasFilters: Bool { entityFilter != nil || projectFilter != nil }
     func clearFilters() {
         entityFilter = nil
@@ -36,7 +37,8 @@ final class TasksModel {
     private var filtered: [TaskRow] {
         store.content.tasks.filter {
             (entityFilter == nil || $0.linkedFiles.contains(entityFilter!))
-                && (projectFilter == nil || $0.project == projectFilter)
+                && (projectFilter == nil
+                    || $0.project.map(VaultIndex.projectKey) == projectFilter.map(VaultIndex.projectKey))
         }
     }
 

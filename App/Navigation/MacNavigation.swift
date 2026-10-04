@@ -10,6 +10,7 @@
         @State private var detailPath = NavigationPath()
         @State private var section: DesktopSection? = .today
         @State private var selectedGoal: String?
+        @State private var selectedProject: String?
         @State private var selectedTask: String?
         @State private var selectedDay: String?
         @State private var selectedEntity: String?
@@ -20,8 +21,26 @@
 
         var body: some View {
             NavigationSplitView {
-                List(DesktopSection.allCases, selection: $section) { item in
-                    Label(item.title, systemImage: item.symbol).tag(item)
+                List(selection: $section) {
+                    ForEach(DesktopSection.allCases) { item in
+                        Label(item.title, systemImage: item.symbol).tag(item)
+                            .simultaneousGesture(TapGesture().onEnded { if item == .tasks { selectedProject = nil } })
+                        if item == .tasks {
+                            ForEach(store.content.projects, id: \.self) { project in
+                                Button {
+                                    section = .tasks
+                                    selectedTask = nil
+                                    selectedProject = project
+                                } label: {
+                                    Label {
+                                        Text(verbatim: project)
+                                    } icon: {
+                                        Image(systemName: "folder")
+                                    }
+                                }.buttonStyle(.plain).padding(.leading)
+                            }
+                        }
+                    }
                 }
                 .navigationTitle("Journal")
             } content: {
@@ -34,10 +53,14 @@
                         }
                     }.navigationTitle("Günlük")
                 case .tasks:
-                    TasksView(
-                        store: store, selection: $selectedTask,
-                        notificationRequest: notifications.navigationRequest?.destination == .tasks
-                            ? notifications.navigationRequest?.id : nil)
+                    if let project = selectedProject {
+                        NavigationStack { ProjectView(store: store, name: project).id(project) }
+                    } else {
+                        TasksView(
+                            store: store, selection: $selectedTask,
+                            notificationRequest: notifications.navigationRequest?.destination == .tasks
+                                ? notifications.navigationRequest?.id : nil)
+                    }
                 case .goals:
                     GoalsView(store: store, selection: $selectedGoal)
                 case .people, .places:
@@ -108,20 +131,24 @@
                 detailPath = NavigationPath()
                 selectedDay = nil
                 selectedTask = nil
+                selectedProject = nil
                 selectedGoal = nil
                 section = .today
             }
             .onChange(of: notifications.navigationRequest?.id, initial: true) { _, id in
                 guard id != nil, let request = notifications.navigationRequest else { return }
                 detailPath = NavigationPath()
+                selectedProject = nil
                 selectedTask = nil
                 selectedDay = nil
                 section = request.destination == .tasks ? .tasks : .today
             }
             .onChange(of: store.vaultURL) { _, _ in
                 selectedTask = nil
+                selectedProject = nil
                 selectedGoal = nil
             }
+            .onChange(of: section) { _, value in if value != .tasks { selectedProject = nil } }
             .onChange(of: selectedDay) { _, value in
                 if value != nil { section = .days }
             }

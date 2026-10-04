@@ -8,7 +8,7 @@ struct GoalValueEditor: View {
         Form {
             Section {
                 Text(LocalDay.instant(for: model.dayModel.day), format: .dateTime.day().month().year())
-                if model.goal.kind == .boolean {
+                if model.goal.kind != .number {
                     Toggle("Yapıldı", isOn: $model.done)
                 } else {
                     HStack {

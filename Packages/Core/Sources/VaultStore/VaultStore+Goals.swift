@@ -1,3 +1,4 @@
+import Foundation
 import GoalTracking
 import VaultFormat
 
@@ -7,7 +8,8 @@ extension VaultStore {
     public func settingGoalValue(on day: CalendarDate, key: String, value: GoalValue?) async throws -> RawDocument {
         guard key.contains(where: { !$0.isWhitespace }), value?.isValid != false else { throw EditError.invalidValue }
         return try await perform {
-            try self.edit(self.dayFilePath(for: day), date: day, createDay: value != nil) { document in
+            try self.validateMilestoneWrite(on: day, key: key, value: value)
+            return try self.edit(self.dayFilePath(for: day), date: day, createDay: value != nil) { document in
                 if document.isReadOnly { throw EditError.readOnlyDocument }
                 if case .parsed(let frontmatter) = document.frontmatter,
                     let field = frontmatter.field(named: "goals")
@@ -25,6 +27,37 @@ extension VaultStore {
                 case .number(let amount): literal = .number(goalNumberSpelling(amount))
                 }
                 return try document.settingFrontmatterEntry(literal, forKey: key, inMapping: "goals")
+            }
+        }
+    }
+    /// Check current disk bytes inside the write queue, including edits not yet indexed.
+    private nonisolated func validateMilestoneWrite(on day: CalendarDate, key: String, value: GoalValue?) throws {
+        guard let value else { return }
+        let paths = try markdownPaths()
+        var milestone = false
+        for path in paths {
+            let document = RawDocument(bytes: try Data(contentsOf: checkedURL(path)))
+            guard case .parsed(let fields) = document.frontmatter,
+                case .scalar(let type) = fields.field(named: "type")?.value, type.text == "goal",
+                case .scalar(let goalKey) = fields.field(named: "key")?.value, goalKey.text == key,
+                case .scalar(let kind) = fields.field(named: "kind")?.value, kind.text == "milestone"
+            else { continue }
+            milestone = true
+            break
+        }
+        guard milestone else { return }
+        guard value == .boolean(true) else { throw EditError.invalidValue }
+        for path in paths {
+            guard path.hasPrefix("journal/"), path.hasSuffix(".md"),
+                let other = CalendarDate(String(path.dropFirst(8).dropLast(3))),
+                other.year == day.year, other != day
+            else { continue }
+            let document = RawDocument(bytes: try Data(contentsOf: checkedURL(path)))
+            guard case .parsed(let fields) = document.frontmatter,
+                case .mapping(let entries) = fields.field(named: "goals")?.value
+            else { continue }
+            if entries.contains(where: { $0.key == key && $0.value.kind == .boolean(true) }) {
+                throw EditError.invalidValue
             }
         }
     }

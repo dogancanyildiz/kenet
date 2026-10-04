@@ -12,6 +12,7 @@ struct VaultReadModel: Sendable {
     var goalLogStart = LocalDay.today().addingDays(-399)!
     var goalStatuses: [String: GoalStatus] = [:]
     var tasks: [TaskRow] = []
+    var projects: [String] { VaultIndex.projectNames(tasks.compactMap(\.project)) }
     var days: [DaySummary] = []
     var entities: [EntitySummary] = []
     var entityTimeline: [String: [EntityTimelineDay]] = [:]

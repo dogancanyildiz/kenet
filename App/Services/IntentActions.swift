@@ -112,7 +112,7 @@ final class IntentActions {
             let goal = store.content.goals.first(where: { IntentGoal(definition: $0, root: root).id == id })
         else { throw IntentActionError.goalMissing }
         let value: GoalValue
-        if goal.kind == .boolean {
+        if goal.kind != .number {
             value = .boolean(true)
         } else {
             guard let amount, amount.isFinite, amount >= 0 else { throw IntentActionError.invalidAmount }

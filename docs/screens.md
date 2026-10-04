@@ -29,6 +29,7 @@ En altta sabit **hızlı giriş kutusu**.
 ### Hızlı giriş (1, 2)
 
 - Tek metin kutusu. Yanında **olay / görev** geçiş düğmesi; varsayılan olay.
+- Görev modunda `#project/` yazınca mevcut proje adları önerilir; seçim etiketi tamamlar, yeni ad serbesttir.
 - `@` yazınca kişi ve konum önerileri açılır. `@` kullanılmasa da bilinen adlar yazarken tanınır ve vurgulanır.
 - Birden fazla aday varsa en olası olan önerilir; uygulama emin değilse seçim ister.
 - Tanınmayan bir ad `@` ile yazıldıysa "kişi olarak ekle" ya da "konum olarak ekle" seçeneği çıkar. Aynı adda varlık varsa kısa bir ayırt edici sorulur.
@@ -51,6 +52,7 @@ Bölümler:
 - **Yaklaşan:** Tarihli görevler, güne göre gruplu ajanda listesi.
 - **Tarihsiz:** Bitiş tarihi olmayan açık görevler.
 - **Tamamlanan:** Son tamamlananlar.
+- **Projeler (5):** Etiketlerden türetilen liste ve açık görev sayısı. Proje sayfasında açık görevler bitiş gününe göre gruplu, tarihsizler ayrı; tamamlananlar, görevlerdeki kişi/konumlar ve son etkinlik (gün dosyası veya tamamlanma tarihinin en yenisi) bulunur. Planlanan başlangıç/bitiş tarihi etkinlik sayılmaz.
 - **Kanban ve zaman çizelgesi (5):** Telefonda sade sürüm; asıl kullanım Mac'te.
 
 Filtre: kişi, konum, proje.
@@ -73,6 +75,7 @@ Filtre: kişi, konum, proje.
 
 - Her hedef için kart: ad, dönem, güncel zincir ya da dönem ilerlemesi.
 - Karta girince: ısı haritası, en uzun seri, geçmiş kayıtlar. Geçmiş günlerin kaydı düzeltilebilir.
+- Kilometre taşı (5): yıllık, miktarsız kart; yapıldı/yapılmadı ve tarih. Dokununca bugün işaretlenir veya bugünkü kayıt kaldırılır; önceki gün tamamlanmış kart salt okunurdur. Zincir/ısı haritası bulunmaz. Yeni hedefte tür seçilir.
 - Haftalık hedefte "bu hafta 2/3", yıllık hedefte ilerleme çubuğu.
 
 ### Arama (1)
@@ -85,6 +88,7 @@ Telefonda okuma ve basit düzenleme. Aramadan ve bağlantılardan ulaşılır; a
 
 ## Mac
 
+- Görevler altında proje adları yer alır ve proje sayfasını açar.
 - **Kenar çubuğu:** Bugün, Günlük, Görevler, Kişiler, Konumlar, Hedefler, Notlar.
 - **Çok sütunlu düzen:** Solda liste, ortada seçili öğe. Örneğin kişi listesi ve seçili kişinin sayfası yan yana.
 - **Kanban ve zaman çizelgesi (5)** tam genişlikte; sürükle bırak ile durum ve tarih değişir.

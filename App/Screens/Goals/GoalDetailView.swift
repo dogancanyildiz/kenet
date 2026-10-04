@@ -22,13 +22,17 @@ struct GoalDetailView: View {
                 if let year = status.yearProgress {
                     ProgressView(value: year.fraction).accessibilityLabel("Yıllık ilerleme")
                 }
-                LabeledContent("Güncel zincir", value: status.streak.formatted())
-                LabeledContent("En uzun seri", value: status.longestStreak.formatted())
+                if goal.kind != .milestone {
+                    LabeledContent("Güncel zincir", value: status.streak.formatted())
+                    LabeledContent("En uzun seri", value: status.longestStreak.formatted())
+                }
             }
-            Section("Son 12 hafta") {
-                GoalHeatmap(goal: goal, logs: history.logs[goal.key] ?? [], today: history.day) { day in
-                    Task { await edit(day) }
-                }.disabled(!history.canEdit)
+            if goal.kind != .milestone {
+                Section("Son 12 hafta") {
+                    GoalHeatmap(goal: goal, logs: history.logs[goal.key] ?? [], today: history.day) { day in
+                        Task { await edit(day) }
+                    }.disabled(!history.canEdit)
+                }
             }
             Section("Tanım") {
                 definitionRow(.name, value: goal.name)
@@ -36,13 +40,13 @@ struct GoalDetailView: View {
                     field = .period
                 } label: {
                     LabeledContent("Dönem") { Text(goal.period.title) }
-                }
+                }.disabled(goal.kind == .milestone)
                 Button {
                     field = .kind
                 } label: {
                     LabeledContent("Tür") { Text(goal.kind.title) }
-                }
-                definitionRow(.target, value: goal.target.formatted())
+                }.disabled(goal.kind == .milestone)
+                if goal.kind != .milestone { definitionRow(.target, value: goal.target.formatted()) }
                 definitionRow(.unit, value: goal.unit ?? "")
                 LabeledContent("Anahtar", value: goal.key).foregroundStyle(.secondary)
             }.disabled(!store.canAddEvent)

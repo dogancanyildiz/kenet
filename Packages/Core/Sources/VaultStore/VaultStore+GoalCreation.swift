@@ -8,6 +8,7 @@ extension VaultStore {
     public func creatingGoal(
         name: String, period: GoalPeriod, kind: GoalKind, target: Double, unit: String? = nil
     ) async throws -> String {
+        guard kind != .milestone || period == .year else { throw EditError.invalidValue }
         guard target.isFinite, target > 0 else { throw EditError.invalidValue }
         return try await perform {
             let name = try self.displayName(name)
@@ -38,7 +39,9 @@ extension VaultStore {
             for (field, value) in [("name", name), ("key", key), ("period", period.rawValue), ("kind", kind.rawValue)] {
                 document = try document.settingFrontmatterValue(.text(value), forKey: field)
             }
-            document = try document.settingFrontmatterValue(.number(goalNumberSpelling(target)), forKey: "target")
+            if kind != .milestone {
+                document = try document.settingFrontmatterValue(.number(goalNumberSpelling(target)), forKey: "target")
+            }
             if let unit, !unit.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                 document = try document.settingFrontmatterValue(.text(self.displayName(unit)), forKey: "unit")
             }

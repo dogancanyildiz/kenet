@@ -62,6 +62,16 @@ struct QuickEntryBar: View {
             resolutionStrip
                 .disabled(model.isCreating || model.isSubmitting || !isEnabled)
             if !model.awaitingResolution {
+                ForEach(model.projectSuggestions(at: insertionOffset), id: \.self) { project in
+                    Button {
+                        model.selectProjectSuggestion(project, at: insertionOffset)
+                        selection = nil
+                        isFocused = true
+                    } label: {
+                        Text(verbatim: "#project/" + project)
+                    }
+                    .buttonStyle(.plain).disabled(!isEnabled || !model.canSubmit)
+                }
                 ForEach(model.suggestions(at: insertionOffset), id: \.file) { entity in
                     Button {
                         model.selectSuggestion(entity, at: insertionOffset)

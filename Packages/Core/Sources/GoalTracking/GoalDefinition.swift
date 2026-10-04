@@ -1,7 +1,7 @@
 import VaultFormat
 
 public enum GoalPeriod: String, Sendable { case day, week, year }
-public enum GoalKind: String, Sendable { case boolean, number }
+public enum GoalKind: String, Sendable { case boolean, number, milestone }
 
 public struct GoalDefinition: Sendable, Equatable {
     public let id: String
@@ -16,15 +16,16 @@ public struct GoalDefinition: Sendable, Equatable {
 
     public init?(
         id: String, key: String, name: String, period: GoalPeriod, kind: GoalKind,
-        target: Double, unit: String? = nil, place: String? = nil
+        target: Double = 1, unit: String? = nil, place: String? = nil
     ) {
         guard key.contains(where: { !$0.isWhitespace }), target.isFinite, target > 0 else { return nil }
+        guard kind != .milestone || period == .year else { return nil }
         self.id = id
         self.key = key
         self.name = name
         self.period = period
         self.kind = kind
-        self.target = target
+        self.target = kind == .milestone ? 1 : target
         self.unit = unit
         self.place = place
     }

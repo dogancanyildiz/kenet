@@ -1,4 +1,26 @@
 [
-  {"input":"input.md", "expected":"boolean-expected.md", "name":"Su İçme", "period":"day", "kind":"boolean", "target":1},
-  {"input":"input.md", "expected":"number-expected.md", "name":"Sayfa", "period":"year", "kind":"number", "target":240, "unit":"sayfa"}
+  {
+    "input": "input.md",
+    "expected": "boolean-expected.md",
+    "name": "Su İçme",
+    "period": "day",
+    "kind": "boolean",
+    "target": 1
+  },
+  {
+    "input": "input.md",
+    "expected": "number-expected.md",
+    "name": "Sayfa",
+    "period": "year",
+    "kind": "number",
+    "target": 240,
+    "unit": "sayfa"
+  },
+  {
+    "input": "input.md",
+    "expected": "milestone-expected.md",
+    "name": "Portfolio",
+    "period": "year",
+    "kind": "milestone"
+  }
 ]

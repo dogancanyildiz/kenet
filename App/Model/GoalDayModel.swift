@@ -33,7 +33,8 @@ final class GoalDayModel {
         GoalProgress.compute(definition: goal, logs: logs[goal.key] ?? [], today: day)
     }
     func isComplete(for goal: GoalDefinition) -> Bool {
-        switch (goal.kind, value(for: goal)) {
+        if goal.kind == .milestone { return status(for: goal).completionDate != nil }
+        return switch (goal.kind, value(for: goal)) {
         case (.boolean, .boolean(let done)): done
         case (.number, .number(let amount)): amount >= goal.target
         default: false
@@ -64,7 +65,8 @@ final class GoalDayModel {
 
     @discardableResult
     func toggle(_ goal: GoalDefinition) async -> Bool {
-        guard goal.kind == .boolean else { return false }
+        guard goal.kind != .number else { return false }
+        if goal.kind == .milestone, let completed = status(for: goal).completionDate, completed != day { return false }
         return await set(goal, value: value(for: goal) == .boolean(true) ? nil : .boolean(true))
     }
 
@@ -73,9 +75,16 @@ final class GoalDayModel {
         guard canEdit, goals.contains(goal), value?.isValid != false else { return false }
         if let value {
             switch (goal.kind, value) {
-            case (.boolean, .boolean), (.number, .number): break
+            case (.boolean, .boolean), (.milestone, .boolean), (.number, .number): break
             default: return false
             }
+        }
+        if goal.kind == .milestone, value == .boolean(true),
+            logs[goal.key, default: []].contains(where: {
+                $0.day.year == day.year && $0.day != day && $0.value == .boolean(true)
+            })
+        {
+            return false
         }
         isWriting = true
         defer { isWriting = false }

@@ -1424,5 +1424,109 @@
         "2026-10-04": "none"
       }
     }
+  },
+  {
+    "id": "milestone-pending",
+    "definition": {
+      "id": "goals/Portfolio.md",
+      "key": "portfolio",
+      "name": "Portfolio",
+      "kind": "milestone",
+      "period": "year"
+    },
+    "logs": [],
+    "today": "2026-10-04",
+    "heatmapFrom": "2026-10-01",
+    "heatmapTo": "2026-10-04",
+    "expected": {
+      "done": 0,
+      "target": 1,
+      "yearDone": 0,
+      "streak": 0,
+      "longestStreak": 0,
+      "isPendingToday": true,
+      "periodStart": "2026-01-01",
+      "periodEnd": "2026-12-31",
+      "completionDate": null,
+      "heatmap": {}
+    }
+  },
+  {
+    "id": "milestone-first-date",
+    "definition": {
+      "id": "goals/Portfolio.md",
+      "key": "portfolio",
+      "name": "Portfolio",
+      "kind": "milestone",
+      "period": "year"
+    },
+    "logs": [
+      {
+        "day": "2026-10-02",
+        "value": true
+      },
+      {
+        "day": "2026-10-03",
+        "value": true
+      },
+      {
+        "day": "2026-10-05",
+        "value": true
+      },
+      {
+        "day": "2025-10-01",
+        "value": true
+      }
+    ],
+    "today": "2026-10-04",
+    "heatmapFrom": "2026-10-01",
+    "heatmapTo": "2026-10-04",
+    "expected": {
+      "done": 1,
+      "target": 1,
+      "yearDone": 1,
+      "streak": 0,
+      "longestStreak": 0,
+      "isPendingToday": false,
+      "periodStart": "2026-01-01",
+      "periodEnd": "2026-12-31",
+      "completionDate": "2026-10-02",
+      "heatmap": {}
+    }
+  },
+  {
+    "id": "milestone-invalid-values",
+    "definition": {
+      "id": "goals/Portfolio.md",
+      "key": "portfolio",
+      "name": "Portfolio",
+      "kind": "milestone",
+      "period": "year"
+    },
+    "logs": [
+      {
+        "day": "2026-10-01",
+        "value": 2
+      },
+      {
+        "day": "2026-10-02",
+        "value": false
+      }
+    ],
+    "today": "2026-10-04",
+    "heatmapFrom": "2026-10-01",
+    "heatmapTo": "2026-10-04",
+    "expected": {
+      "done": 0,
+      "target": 1,
+      "yearDone": 0,
+      "streak": 0,
+      "longestStreak": 0,
+      "isPendingToday": true,
+      "periodStart": "2026-01-01",
+      "periodEnd": "2026-12-31",
+      "completionDate": null,
+      "heatmap": {}
+    }
   }
 ]

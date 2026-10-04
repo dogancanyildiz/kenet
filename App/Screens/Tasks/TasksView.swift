@@ -22,6 +22,7 @@ struct TasksView: View {
                     Text("Yaklaşan").tag(TasksModel.Section.upcoming)
                     Text("Tarihsiz").tag(TasksModel.Section.undated)
                     Text("Tamamlanan").tag(TasksModel.Section.completed)
+                    Text("Projeler").tag(TasksModel.Section.projects)
                 }.pickerStyle(.segmented).padding()
                 if model.hasFilters {
                     HStack {
@@ -39,6 +40,19 @@ struct TasksView: View {
                 List(selection: $selection) {
                     if let error = model.errorText { Text(verbatim: error).foregroundStyle(.red) }
                     switch model.section {
+                    case .projects:
+                        ForEach(model.projects, id: \.self) { project in
+                            NavigationLink {
+                                ProjectView(store: store, name: project)
+                            } label: {
+                                LabeledContent {
+                                    Text(ProjectModel(store: store, name: project).openCount.formatted())
+                                } label: {
+                                    Text(verbatim: project)
+                                }
+                            }
+                        }
+                        if model.projects.isEmpty { Text("Henüz proje yok").foregroundStyle(.secondary) }
                     case .upcoming:
                         ForEach(model.agenda) { group in
                             Section {

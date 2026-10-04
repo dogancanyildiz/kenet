@@ -10,19 +10,24 @@ struct GoalCreationView: View {
         Form {
             TextField("Ad", text: $model.name)
             LabeledContent("Anahtar", value: model.key)
-            Picker("Dönem", selection: $model.period) {
-                Text(GoalPeriod.day.title).tag(GoalPeriod.day)
-                Text(GoalPeriod.week.title).tag(GoalPeriod.week)
-                Text(GoalPeriod.year.title).tag(GoalPeriod.year)
+            if model.kind != .milestone {
+                Picker("Dönem", selection: $model.period) {
+                    Text(GoalPeriod.day.title).tag(GoalPeriod.day)
+                    Text(GoalPeriod.week.title).tag(GoalPeriod.week)
+                    Text(GoalPeriod.year.title).tag(GoalPeriod.year)
+                }
             }
             Picker("Tür", selection: $model.kind) {
                 Text(GoalKind.boolean.title).tag(GoalKind.boolean)
                 Text(GoalKind.number.title).tag(GoalKind.number)
+                Text(GoalKind.milestone.title).tag(GoalKind.milestone)
             }
-            TextField("Hedef miktar", text: $model.target)
-                #if os(iOS)
-                    .keyboardType(.decimalPad)
-                #endif
+            if model.kind != .milestone {
+                TextField("Hedef miktar", text: $model.target)
+                    #if os(iOS)
+                        .keyboardType(.decimalPad)
+                    #endif
+            }
             if model.kind == .number { TextField("Birim (isteğe bağlı)", text: $model.unit) }
             if let error = model.errorText { Text(verbatim: error).foregroundStyle(.secondary) }
         }

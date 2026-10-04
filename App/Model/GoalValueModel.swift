@@ -11,7 +11,7 @@ final class GoalValueModel: Identifiable {
     var done: Bool
     private(set) var isSaved = false
     var value: Double? { Self.number(amount) }
-    var canSave: Bool { !isSaved && dayModel.canEdit && (goal.kind == .boolean || value != nil) }
+    var canSave: Bool { !isSaved && dayModel.canEdit && (goal.kind != .number || value != nil) }
 
     init(dayModel: GoalDayModel, goal: GoalDefinition) {
         self.dayModel = dayModel
@@ -31,7 +31,7 @@ final class GoalValueModel: Identifiable {
     func step(_ delta: Double) { amount = String(max(0, (value ?? 0) + delta)) }
     func save(remove: Bool = false) async -> Bool {
         guard !isSaved, dayModel.canEdit, remove || canSave else { return false }
-        let value: GoalValue? = remove ? nil : (goal.kind == .boolean ? (done ? .boolean(true) : nil) : .number(value!))
+        let value: GoalValue? = remove ? nil : (goal.kind != .number ? (done ? .boolean(true) : nil) : .number(value!))
         isSaved = await dayModel.set(goal, value: value)
         return isSaved
     }

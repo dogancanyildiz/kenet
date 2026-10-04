@@ -5,6 +5,7 @@
 
     @MainActor @Observable
     final class MacQuickEntryController {
+        let location: LocationService
         let window: QuickEntryWindowModel
         let shortcut: HotKeySettingsModel
         @ObservationIgnored private let registration: HotKeyRegistration
@@ -14,7 +15,8 @@
         @ObservationIgnored private var termination: NSObjectProtocol?
         @ObservationIgnored private var started = false
 
-        init(store: IndexStore) {
+        init(store: IndexStore, location: LocationService) {
+            self.location = location
             window = QuickEntryWindowModel(store: store)
             let registration = HotKeyRegistration()
             self.registration = registration
@@ -76,7 +78,8 @@
                 rootView: QuickEntryPanelView(
                     model: window,
                     onHeightChange: { [weak self] height in self?.resize(height: height) },
-                    onClose: { [weak self] in self?.close() }))
+                    onClose: { [weak self] in self?.close() }
+                ).environment(location))
             self.panel = panel
         }
 

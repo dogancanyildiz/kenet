@@ -35,6 +35,7 @@ En altta sabit **hızlı giriş kutusu**.
 - Görev modunda tarih cümleden çıkarılır ("yarın Ahmet'i ara") ve kutunun üstünde onay için gösterilir; yanlışsa dokunup düzeltilir.
 - Olay varsayılan olarak şu anki saatle kaydedilir; saat kaldırılabilir ya da değiştirilebilir.
 - Gönderince kutu boşalır, klavye açık kalır; art arda giriş yapılabilir.
+- Konum izni Ayarlar → Konum düğmesiyle verilir. Odaklanma ve gönderim en çok dakikada bir tek seferlik GPS isteği başlatır. Kutunun üstündeki en yakın konum çipi dokunulunca sabit `@Konum` anması ekler; kapatma mevcut taslak oturumunda kalıcıdır, kayıt sonrası sıfırlanır. Olay ve görev için aynı davranış kullanılır. Konum önerisi anahtarı ve sistem ayarları bağlantısı kasa ayarlarında bulunur.
 
 ### Günlük (1)
 

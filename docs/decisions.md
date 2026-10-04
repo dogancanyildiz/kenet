@@ -6,6 +6,7 @@ Verilen her karar tek satır olarak eklenir. Açık sorular kapandığında altt
 
 | Tarih | Karar | Gerekçe |
 |---|---|---|
+| 2026-10-04 | GPS önerisi yalnız ön planda tek seferlik, dakikada en fazla bir istek; koordinatlar kasa dosyalarından okunur, çip dokunulunca sabit anma eklenir | İzin kullanıcı düğmesiyle istenir; GPS gönderimi bekletmez, arka plan izleme ve indeks şema değişimi gerekmez |
 | 2026-10-02 | Öncelik kişisel günlük; şirket paketi sonraya | Önce çekirdek kullanım kanıtlanmalı |
 | 2026-10-02 | Mobil en önemli platform | Günlük gün içinde telefondan yazılır |
 | 2026-10-02 | Markdown gerçek kaynak, SQLite yalnızca indeks | Veri sahipliği, taşınabilirlik, Obsidian uyumu |

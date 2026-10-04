@@ -33,6 +33,7 @@ final class IndexStore {
     private(set) var vaultURL: URL?
     private(set) var content = VaultReadModel.empty
     private(set) var knownEntities: [KnownEntity] = []
+    private(set) var nearbyPlaces: [NearbyPlace] = []
     private(set) var entityUsage: [EntityUsage] = []
     private(set) var counts = IndexCounts()
     private(set) var skippedPaths: [SkippedPath] = []
@@ -245,6 +246,17 @@ final class IndexStore {
         let values = try await Task.detached { (try index.knownEntities(), try index.entityUsage()) }.value
         knownEntities = values.0
         entityUsage = values.1
+        var places: [NearbyPlace] = []
+        if let writer {
+            for entity in values.0 where entity.kind == .place {
+                if let document = try? await writer.document(at: entity.file),
+                    let place = NearbyPlace(entity: entity, document: document)
+                {
+                    places.append(place)
+                }
+            }
+        }
+        nearbyPlaces = places
     }
 
     func createEntity(kind: VaultEntityKind, name: String, qualifier: String?) async throws -> KnownEntity {
@@ -317,6 +329,7 @@ final class IndexStore {
         entryErrorText = nil
         content = .empty
         knownEntities = []
+        nearbyPlaces = []
         entityUsage = []
         counts = IndexCounts()
         skippedPaths = []

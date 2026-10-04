@@ -1,6 +1,22 @@
 {
   "sourceLanguage" : "tr",
   "strings" : {
+  "NSLocationWhenInUseUsageDescription" : {
+    "localizations" : {
+      "tr" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Yakındaki konumları hızlı girişte önermek için konumuna erişilir."
+        }
+      },
+      "en" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Your location is used to suggest nearby places in quick entry."
+        }
+      }
+    }
+  },
     "NSCalendarsFullAccessUsageDescription" : {
       "localizations" : {
         "tr" : {

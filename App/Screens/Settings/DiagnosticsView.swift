@@ -9,6 +9,7 @@ struct DiagnosticsView: View {
     var body: some View {
         Form {
             CalendarSettingsView()
+            LocationSettingsView()
             #if os(iOS)
                 Section("Bildirimler") {
                     NavigationLink("Bildirimler", destination: NotificationSettingsView())

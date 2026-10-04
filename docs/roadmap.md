@@ -1,6 +1,6 @@
 # Yol haritası
 
-**Aktif aşama:** 5
+**Aktif aşama:** 6
 
 Devreden maddeler (bundle, iCloud kapsayıcısı ve App Group kimliği kararını bekliyor): iCloud kasa konumu (aşama 0); aşama 3'teki widget maddeleri (WidgetKit uzantısı kasaya App Group ile erişir). Aşama 1'in teknik maddeleri tamamlandı; çıkış ölçütü (iki hafta günlük kullanım) kullanıcının gerçek kullanımıyla sağlanır.
 
@@ -78,7 +78,7 @@ Kullanıcıya görünen bir şey yok; her şey bunun üstüne kurulur.
 ## Aşama 5: Proje görünümleri
 
 - [x] Kanban: duruma, projeye ya da kişiye göre
-- [ ] Zaman çizelgesi: başlangıç ve bitiş tarihli görevler (ağırlıklı Mac)
+- [x] Zaman çizelgesi: başlangıç ve bitiş tarihli görevler (ağırlıklı Mac)
 - [x] Proje etiketi ve proje sayfaları; sayılamayan yıllık hedefler
 - [x] Tekrarlayan görevler, öncelikler
 

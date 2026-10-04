@@ -12,7 +12,7 @@ struct TaskAgendaGroup: Identifiable {
 
 @MainActor @Observable
 final class TasksModel {
-    enum Section: String, CaseIterable { case upcoming, undated, completed, projects, kanban }
+    enum Section: String, CaseIterable { case upcoming, undated, completed, projects, kanban, timeline }
     let store: IndexStore
     var section = Section.upcoming
     var entityFilter: String?

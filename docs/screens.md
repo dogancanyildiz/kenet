@@ -91,6 +91,15 @@ Telefonda okuma ve basit düzenleme. Aramadan ve bağlantılardan ulaşılır; a
 - **Notlar:** Serbest notlar için düzenleme alanı.
 - Klavye kısayolları: arama ve hızlı geçiş, yeni olay, yeni görev, bugüne git.
 
+## Ayarlar — Bildirimler (4)
+
+- İzin yalnız kullanıcının izin düğmesiyle istenir; açılışta sistem diyaloğu gösterilmez. Görev, günlük hedef ve günlük yazısı hatırlatmaları ayrı açılıp kapanır; varsayılan saatleri 09:00, 20:00 ve 21:00'dır. Saatler cihazda saklanır.
+- Bugün dahil yedi gün, yerel takvim saatleriyle planlanır. Sabah tek görev özeti gelir: o gün biten açık görevler, tek görevde metni; aynı özette önceki günlerden açık görev sayısı da yer alır (yalnız bunlar varsa da tek sabah özeti, ayrı gecikme bildirimi yok). Tarihsiz, tamamlanan ve iptal edilen görevler bildirilmez.
+- Akşam hedef bildirimi yalnız o gün tamamlanmamış günlük hedefler içindir; haftalık/yıllık hedefler dahil edilmez. Günlük yazısı hatırlatması olay ve günlük yazısı olmayan güne gelir; görev/hedef kaydı tek başına hatırlatmayı kapatmaz.
+- Açılış, ön plana dönüş, indeks yenilemesi (2 saniye birleştirme) ve tercih değişimi planı yeniler; arka plana geçiş bekleyen planlamayı tamamlar, bugünün geçmiş saatleri atlanır. Uygulama kapalıyken planlı içerik yeniden hesaplanmaz; yeni değişiklikler sonraki açılış/yenilemede yansır. Yedi günlük pencere de ancak uygulama çalışırken ileri taşınır.
+- Görev bildiriminden Görevler'in Bugün grubuna (yoksa önceki günlerden açık gruba), hedef bildiriminden Bugün'e, günlük hatırlatmasından hızlı giriş odaklı Bugün'e gidilir; ön planda da banner gösterilir.
+- “Planlananlar” listesinde kimlik, tarih ve başlık; “Şimdi yeniden planla” ile teşhis ve yeniden deneme bulunur. Mac'te Bildirimler ayar sekmesi, iPhone'da Ayarlar içinden açılır.
+
 ## Widget'lar (3)
 
 | Widget | Yer | İçerik |

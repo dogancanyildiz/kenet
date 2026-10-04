@@ -6,6 +6,7 @@ struct DayView: View {
     let store: IndexStore
     let date: CalendarDate
     var isToday = false
+    @Environment(NotificationService.self) private var notifications
     @Environment(CalendarService.self) private var calendar
     @State private var showsJournal = false
 
@@ -61,8 +62,12 @@ struct DayView: View {
             .padding().frame(maxWidth: 700, alignment: .leading).frame(maxWidth: .infinity)
         }
         .safeAreaInset(edge: .bottom) {
-            QuickEntryBar(store: store, isEnabled: true, day: isToday ? nil : date)
-                .id(isToday ? "today" : date.description)
+            QuickEntryBar(
+                store: store, isEnabled: true, day: isToday ? nil : date,
+                focusRequest: isToday && notifications.navigationRequest?.destination == .journal
+                    ? notifications.navigationRequest?.id : nil
+            )
+            .id(isToday ? "today" : date.description)
         }
         .navigationTitle(
             isToday ? Text("Bugün") : Text(LocalDay.instant(for: date), format: .dateTime.day().month().year())

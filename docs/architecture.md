@@ -41,6 +41,8 @@ Yazma yönü her zaman dosyadan indekse doğrudur.
 
 Aşama 0'da kasa varsayılan olarak uygulamanın yerel `Documents/Vault/` klasöründe oluşturulur; seçilen başka bir klasör güvenlik kapsamlı yer imiyle cihazda saklanır, bayat yer imi erişim başladıktan sonra yenilenir, geçici erişim hatasında yer imi korunarak yerel kasaya dönülür ve kullanıcı bilgilendirilir, yalnız bozuk yer imi silinir (iCloud konumu kullanıcı kararından sonra eklenecek). Dosya izleyici kök ve taranan alt dizinlerde Dispatch dizin kaynaklarını kullanır; ön plandaki 5 saniyelik zamanlayıcı ve ön plana dönüş tetiğiyle birlikte bildirimleri 300 ms birleştirip arka planda `refresh(vaultRoot:)` çağırır. Dizin kaynakları dosya içeriğinin yerinde düzenlenmesini güvenilir biçimde görmez; bunlar ön plandaki zamanlayıcı ve ön plana dönüş yenilemesiyle yakalanır, arka planda ise dizin olayları yenilemeyi tetiklemeye devam eder. En fazla 256 dizin kaynağı açılır; kalan dizinler ve kaynak açılamayan dizinler yalnız ön plan zamanlayıcısıyla denetlenir ve sayıları arayüzde bildirilir. İndeks kasa yolunun SHA-256 özetiyle adlandırılmış ayrı bir Application Support veritabanında tutulur; arayüz sayıları tutarlı bir `snapshot()` sorgusundan alınır.
 
+Bildirimler yalnız App katmanında `NotificationPlanner` ile snapshot/cihaz tercihleri/yerel saatten üretilir, `NotificationService` seri yeniden planlama ve izin durumunu protokolle ayrılmış `UserNotifications` merkezine uygular; indeks yayınları iki saniye birleştirilir, uygulama kapalıyken yedi günlük planın içeriği yeniden hesaplanmaz.
+
 ## Core paketi
 
 Sorumlulukları:

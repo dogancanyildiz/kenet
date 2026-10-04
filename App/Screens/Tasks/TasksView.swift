@@ -3,64 +3,94 @@ import VaultFormat
 
 struct TasksView: View {
     let store: IndexStore
+    let notificationRequest: UUID?
     @Binding var selection: String?
+    @State private var pendingNotificationScroll: UUID?
     @State private var model: TasksModel
 
-    init(store: IndexStore, selection: Binding<String?> = .constant(nil)) {
+    init(store: IndexStore, selection: Binding<String?> = .constant(nil), notificationRequest: UUID? = nil) {
         self.store = store
+        self.notificationRequest = notificationRequest
         _selection = selection
         _model = State(initialValue: TasksModel(store: store))
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            Picker("Görev bölümü", selection: $model.section) {
-                Text("Yaklaşan").tag(TasksModel.Section.upcoming)
-                Text("Tarihsiz").tag(TasksModel.Section.undated)
-                Text("Tamamlanan").tag(TasksModel.Section.completed)
-            }.pickerStyle(.segmented).padding()
-            if model.hasFilters {
-                HStack {
-                    if let path = model.entityFilter,
-                        let entity = store.content.entities.first(where: { $0.id == path })
-                    {
-                        Text(verbatim: entity.name)
-                        if let qualifier = entity.qualifier { Text(verbatim: qualifier) }
-                    }
-                    if let project = model.projectFilter { Text(verbatim: project) }
-                    Button("Filtreleri temizle", systemImage: "xmark.circle") { model.clearFilters() }
-                        .labelStyle(.iconOnly)
-                }.font(.caption).padding(8).background(.quaternary, in: Capsule()).padding(.horizontal)
-            }
-            List(selection: $selection) {
-                if let error = model.errorText { Text(verbatim: error).foregroundStyle(.red) }
-                switch model.section {
-                case .upcoming:
-                    ForEach(model.agenda) { group in
-                        Section {
-                            rows(group.rows)
-                        } header: {
-                            heading(group.date)
+        ScrollViewReader { proxy in
+            VStack(spacing: 0) {
+                Picker("Görev bölümü", selection: $model.section) {
+                    Text("Yaklaşan").tag(TasksModel.Section.upcoming)
+                    Text("Tarihsiz").tag(TasksModel.Section.undated)
+                    Text("Tamamlanan").tag(TasksModel.Section.completed)
+                }.pickerStyle(.segmented).padding()
+                if model.hasFilters {
+                    HStack {
+                        if let path = model.entityFilter,
+                            let entity = store.content.entities.first(where: { $0.id == path })
+                        {
+                            Text(verbatim: entity.name)
+                            if let qualifier = entity.qualifier { Text(verbatim: qualifier) }
                         }
+                        if let project = model.projectFilter { Text(verbatim: project) }
+                        Button("Filtreleri temizle", systemImage: "xmark.circle") { model.clearFilters() }
+                            .labelStyle(.iconOnly)
+                    }.font(.caption).padding(8).background(.quaternary, in: Capsule()).padding(.horizontal)
+                }
+                List(selection: $selection) {
+                    if let error = model.errorText { Text(verbatim: error).foregroundStyle(.red) }
+                    switch model.section {
+                    case .upcoming:
+                        ForEach(model.agenda) { group in
+                            Section {
+                                rows(group.rows)
+                            } header: {
+                                heading(group.date)
+                            }.id(group.id)
+                        }
+                        if model.agenda.isEmpty { Text("Görev yok.").foregroundStyle(.secondary) }
+                    case .undated:
+                        rows(model.undated)
+                        if model.undated.isEmpty { Text("Görev yok.").foregroundStyle(.secondary) }
+                    case .completed:
+                        rows(model.completed)
+                        if model.completed.isEmpty { Text("Görev yok.").foregroundStyle(.secondary) }
                     }
-                    if model.agenda.isEmpty { Text("Görev yok.").foregroundStyle(.secondary) }
-                case .undated:
-                    rows(model.undated)
-                    if model.undated.isEmpty { Text("Görev yok.").foregroundStyle(.secondary) }
-                case .completed:
-                    rows(model.completed)
-                    if model.completed.isEmpty { Text("Görev yok.").foregroundStyle(.secondary) }
                 }
             }
+            .navigationTitle("Görevler")
+            .toolbar {
+                TaskFiltersMenu(model: model)
+                SearchButton()
+            }
+            .onChange(of: notificationRequest, initial: true) { _, request in
+                guard request != nil else { return }
+                model.section = .upcoming
+                model.clearFilters()
+                selection = nil
+                pendingNotificationScroll = request
+                scrollNotification(using: proxy)
+            }
+            .onChange(of: store.lastUpdated) { _, _ in scrollNotification(using: proxy) }
+            .onChange(of: store.vaultURL) { _, _ in
+                model.clearFilters()
+                selection = nil
+            }
         }
-        .navigationTitle("Görevler")
-        .toolbar {
-            TaskFiltersMenu(model: model)
-            SearchButton()
+    }
+
+    /// A cold notification launch can arrive before the first index publication.
+    private func scrollNotification(using proxy: ScrollViewProxy) {
+        guard let request = pendingNotificationScroll, store.lastUpdated != nil else { return }
+        guard !model.agenda.isEmpty else {
+            pendingNotificationScroll = nil
+            return
         }
-        .onChange(of: store.vaultURL) { _, _ in
-            model.clearFilters()
-            selection = nil
+        Task { @MainActor in
+            await Task.yield()
+            guard pendingNotificationScroll == request else { return }
+            let target = model.agenda.contains { $0.date == model.day } ? model.day.description : "overdue"
+            proxy.scrollTo(target, anchor: .top)
+            pendingNotificationScroll = nil
         }
     }
 

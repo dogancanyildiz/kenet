@@ -68,7 +68,7 @@ Kullanıcıya görünen bir şey yok; her şey bunun üstüne kurulur.
 
 ## Aşama 4: Otomasyon
 
-- [ ] Görev ve hedef bildirimleri, akşam günlük hatırlatması; bildirimlerin güvenilirlik testi
+- [x] Görev ve hedef bildirimleri, akşam günlük hatırlatması; bildirimlerin güvenilirlik testi
 - [ ] Olay yazarken GPS ile konum önerisi
 - [ ] Konuma girince hedefi otomatik işaretleme ya da tek dokunuşluk bildirim
 - [ ] Kısayollar ve Siri ile giriş (App Intents)

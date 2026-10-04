@@ -30,7 +30,9 @@ struct VaultReadModel: Sendable {
         let allLogs = Dictionary(grouping: snapshot.goalLogs, by: \.key).mapValues {
             $0.compactMap(GoalLog.init(indexed:))
         }
-        goalLogs = allLogs.mapValues { $0.filter { $0.day >= goalLogStart && $0.day <= today } }
+        // Near-future corrections must also suppress the upcoming notification window.
+        let goalLogEnd = today.addingDays(6) ?? today
+        goalLogs = allLogs.mapValues { $0.filter { $0.day >= goalLogStart && $0.day <= goalLogEnd } }
         for goal in goals {
             goalStatuses[goal.key] = GoalProgress.compute(definition: goal, logs: allLogs[goal.key] ?? [], today: today)
         }

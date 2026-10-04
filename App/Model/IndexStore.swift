@@ -36,7 +36,10 @@ final class IndexStore {
     private(set) var entityUsage: [EntityUsage] = []
     private(set) var counts = IndexCounts()
     private(set) var skippedPaths: [SkippedPath] = []
-    private(set) var lastUpdated: Date?
+    private(set) var lastUpdated: Date? {
+        didSet { onSnapshotChange?(lastUpdated == nil ? nil : content, vaultURL) }
+    }
+    @ObservationIgnored var onSnapshotChange: ((VaultReadModel?, URL?) -> Void)?
     private(set) var isProcessing = false
     private(set) var errorText: String?
     private(set) var entryErrorText: String?

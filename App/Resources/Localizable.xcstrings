@@ -3842,6 +3842,486 @@
           }
         }
       }
+    },
+    "Bildirimler" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bildirimler"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notifications"
+          }
+        }
+      }
+    },
+    "Günlük hedefler" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Günlük hedefler"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Daily goals"
+          }
+        }
+      }
+    },
+    "Bugün bekleyen hedefler: %@" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bugün bekleyen hedefler: %@"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Goals remaining today: %@"
+          }
+        }
+      }
+    },
+    "Gününden bir an" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gününden bir an"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A moment from your day"
+          }
+        }
+      }
+    },
+    "Bugünden bir an yazmak ister misin?" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bugünden bir an yazmak ister misin?"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Would you like to write a moment from today?"
+          }
+        }
+      }
+    },
+    "Bugünkü görevler" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bugünkü görevler"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Today's tasks"
+          }
+        }
+      }
+    },
+    "%lld görev bugün" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld görev bugün"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld tasks today"
+          }
+        }
+      }
+    },
+    "Önceki günlerden %lld açık görev." : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Önceki günlerden %lld açık görev."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld open tasks from previous days."
+          }
+        }
+      }
+    },
+    "Bildirim izni alınamadı. Yeniden deneyebilirsin." : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bildirim izni alınamadı. Yeniden deneyebilirsin."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notification permission could not be requested. You can try again."
+          }
+        }
+      }
+    },
+    "Bazı bildirimler planlanamadı. Yeniden planlayabilirsin." : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bazı bildirimler planlanamadı. Yeniden planlayabilirsin."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Some notifications could not be scheduled. You can reschedule them."
+          }
+        }
+      }
+    },
+    "İzin" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "İzin"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permission"
+          }
+        }
+      }
+    },
+    "Bildirimlere izin ver" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bildirimlere izin ver"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allow notifications"
+          }
+        }
+      }
+    },
+    "Hatırlatmalar" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hatırlatmalar"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reminders"
+          }
+        }
+      }
+    },
+    "Görev hatırlatmaları" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Görev hatırlatmaları"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Task reminders"
+          }
+        }
+      }
+    },
+    "Görev saati" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Görev saati"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Task time"
+          }
+        }
+      }
+    },
+    "Günlük hedef hatırlatmaları" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Günlük hedef hatırlatmaları"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Daily goal reminders"
+          }
+        }
+      }
+    },
+    "Hedef saati" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hedef saati"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Goal time"
+          }
+        }
+      }
+    },
+    "Akşam günlük hatırlatması" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Akşam günlük hatırlatması"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Evening journal reminder"
+          }
+        }
+      }
+    },
+    "Günlük saati" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Günlük saati"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Journal time"
+          }
+        }
+      }
+    },
+    "Uygulama kapalıyken planlanan hatırlatmalar değişmez." : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uygulama kapalıyken planlanan hatırlatmalar değişmez."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scheduled reminders stay unchanged while the app is closed."
+          }
+        }
+      }
+    },
+    "Planlananlar" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Planlananlar"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scheduled"
+          }
+        }
+      }
+    },
+    "Şimdi yeniden planla" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Şimdi yeniden planla"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reschedule now"
+          }
+        }
+      }
+    },
+    "Bildirimler planlanıyor…" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bildirimler planlanıyor…"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scheduling notifications…"
+          }
+        }
+      }
+    },
+    "Planlanan bildirim yok." : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Planlanan bildirim yok."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No scheduled notifications."
+          }
+        }
+      }
+    },
+    "Bildirim izni henüz istenmedi." : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bildirim izni henüz istenmedi."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notification permission has not been requested yet."
+          }
+        }
+      }
+    },
+    "Bildirim izni kapalı. Sistem ayarlarından açabilirsin." : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bildirim izni kapalı. Sistem ayarlarından açabilirsin."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notifications are disabled. You can enable them in system settings."
+          }
+        }
+      }
+    },
+    "Bildirimlere izin verildi." : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bildirimlere izin verildi."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notifications are allowed."
+          }
+        }
+      }
+    },
+    "Bildirimler sessiz olarak teslim edilir." : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bildirimler sessiz olarak teslim edilir."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notifications are delivered quietly."
+          }
+        }
+      }
+    },
+    "Bildirim izni geçici olarak verildi." : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bildirim izni geçici olarak verildi."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notification permission is temporarily granted."
+          }
+        }
+      }
+    },
+    "Bildirim izin durumu okunamadı." : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bildirim izin durumu okunamadı."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notification permission status could not be read."
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

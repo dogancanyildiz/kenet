@@ -1,0 +1,502 @@
+[
+  {
+    "id": "week-14-20",
+    "vault": "sample",
+    "period": "week",
+    "containing": "2026-09-20",
+    "expected": {
+      "start": "2026-09-14",
+      "end": "2026-09-20",
+      "previousStart": "2026-09-07",
+      "previousEnd": "2026-09-13",
+      "counts": {
+        "events": 19,
+        "writtenDays": 7,
+        "peopleMentions": 12,
+        "placeMentions": 13,
+        "firstPeople": 5,
+        "firstPlaces": 4,
+        "createdTasks": 12,
+        "completedTasks": 5,
+        "overdueTasks": 4,
+        "undatedTasks": 1
+      },
+      "previous": {
+        "events": 0,
+        "writtenDays": 0,
+        "peopleMentions": 0,
+        "placeMentions": 0,
+        "firstPeople": 0,
+        "firstPlaces": 0,
+        "createdTasks": 0,
+        "completedTasks": 0,
+        "overdueTasks": 0,
+        "undatedTasks": 0
+      },
+      "change": {
+        "events": 19,
+        "writtenDays": 7,
+        "peopleMentions": 12,
+        "placeMentions": 13,
+        "firstPeople": 5,
+        "firstPlaces": 4,
+        "createdTasks": 12,
+        "completedTasks": 5,
+        "overdueTasks": 4,
+        "undatedTasks": 1
+      },
+      "people": [
+        {
+          "id": "people/Baran Tunç.md",
+          "name": "Baran Tunç",
+          "count": 3,
+          "change": 3
+        },
+        {
+          "id": "people/Deniz Arıkan.md",
+          "name": "Deniz Arıkan",
+          "count": 3,
+          "change": 3
+        },
+        {
+          "id": "people/Ece Yalın.md",
+          "name": "Ece Yalın",
+          "count": 3,
+          "change": 3
+        },
+        {
+          "id": "people/Mert Aksu (iş).md",
+          "name": "Mert Aksu (iş)",
+          "count": 2,
+          "change": 2
+        },
+        {
+          "id": "people/Selin Korkmaz.md",
+          "name": "Selin Korkmaz",
+          "count": 1,
+          "change": 1
+        }
+      ],
+      "places": [
+        {
+          "id": "places/Tepe Spor Salonu.md",
+          "name": "Tepe Spor Salonu",
+          "count": 5,
+          "change": 5
+        },
+        {
+          "id": "places/Çınaraltı Kafe.md",
+          "name": "Çınaraltı Kafe",
+          "count": 4,
+          "change": 4
+        },
+        {
+          "id": "places/Liman Ofis.md",
+          "name": "Liman Ofis",
+          "count": 3,
+          "change": 3
+        },
+        {
+          "id": "places/Ev.md",
+          "name": "Ev",
+          "count": 1,
+          "change": 1
+        }
+      ],
+      "goals": [
+        {
+          "id": "goals/Kitap.md",
+          "done": 150,
+          "target": 140,
+          "contribution": 150,
+          "streak": 2,
+          "change": 150,
+          "streakChange": 2,
+          "completionDate": null
+        },
+        {
+          "id": "goals/Spor.md",
+          "done": 3,
+          "target": 3,
+          "contribution": 3,
+          "streak": 1,
+          "change": 3,
+          "streakChange": 1,
+          "completionDate": null
+        },
+        {
+          "id": "goals/Su.md",
+          "done": 54,
+          "target": 56,
+          "contribution": 54,
+          "streak": 1,
+          "change": 54,
+          "streakChange": 1,
+          "completionDate": null
+        }
+      ],
+      "isEmpty": false
+    }
+  },
+  {
+    "id": "monday-21-27",
+    "vault": "sample",
+    "period": "week",
+    "containing": "2026-09-21",
+    "expected": {
+      "start": "2026-09-21",
+      "end": "2026-09-27",
+      "previousStart": "2026-09-14",
+      "previousEnd": "2026-09-20",
+      "counts": {
+        "events": 21,
+        "writtenDays": 7,
+        "peopleMentions": 14,
+        "placeMentions": 13,
+        "firstPeople": 1,
+        "firstPlaces": 0,
+        "createdTasks": 10,
+        "completedTasks": 4,
+        "overdueTasks": 10,
+        "undatedTasks": 1
+      },
+      "previous": {
+        "events": 19,
+        "writtenDays": 7,
+        "peopleMentions": 12,
+        "placeMentions": 13,
+        "firstPeople": 5,
+        "firstPlaces": 4,
+        "createdTasks": 12,
+        "completedTasks": 5,
+        "overdueTasks": 4,
+        "undatedTasks": 1
+      },
+      "change": {
+        "events": 2,
+        "writtenDays": 0,
+        "peopleMentions": 2,
+        "placeMentions": 0,
+        "firstPeople": -4,
+        "firstPlaces": -4,
+        "createdTasks": -2,
+        "completedTasks": -1,
+        "overdueTasks": 6,
+        "undatedTasks": 0
+      },
+      "people": [
+        {
+          "id": "people/Baran Tunç.md",
+          "name": "Baran Tunç",
+          "count": 3,
+          "change": 0
+        },
+        {
+          "id": "people/Deniz Arıkan.md",
+          "name": "Deniz Arıkan",
+          "count": 3,
+          "change": 0
+        },
+        {
+          "id": "people/Ece Yalın.md",
+          "name": "Ece Yalın",
+          "count": 2,
+          "change": -1
+        },
+        {
+          "id": "people/Mert Aksu.md",
+          "name": "Mert Aksu",
+          "count": 2,
+          "change": 2
+        },
+        {
+          "id": "people/Mert Aksu (iş).md",
+          "name": "Mert Aksu (iş)",
+          "count": 2,
+          "change": 0
+        }
+      ],
+      "places": [
+        {
+          "id": "places/Liman Ofis.md",
+          "name": "Liman Ofis",
+          "count": 4,
+          "change": 1
+        },
+        {
+          "id": "places/Tepe Spor Salonu.md",
+          "name": "Tepe Spor Salonu",
+          "count": 4,
+          "change": -1
+        },
+        {
+          "id": "places/Çınaraltı Kafe.md",
+          "name": "Çınaraltı Kafe",
+          "count": 3,
+          "change": -1
+        },
+        {
+          "id": "places/Ev.md",
+          "name": "Ev",
+          "count": 2,
+          "change": 1
+        }
+      ],
+      "goals": [
+        {
+          "id": "goals/Kitap.md",
+          "done": 170,
+          "target": 140,
+          "contribution": 170,
+          "streak": 8,
+          "change": 20,
+          "streakChange": 6,
+          "completionDate": null
+        },
+        {
+          "id": "goals/Spor.md",
+          "done": 3,
+          "target": 3,
+          "contribution": 3,
+          "streak": 2,
+          "change": 0,
+          "streakChange": 1,
+          "completionDate": null
+        },
+        {
+          "id": "goals/Su.md",
+          "done": 50,
+          "target": 56,
+          "contribution": 50,
+          "streak": 2,
+          "change": -4,
+          "streakChange": 1,
+          "completionDate": null
+        }
+      ],
+      "isEmpty": false
+    }
+  },
+  {
+    "id": "september",
+    "vault": "sample",
+    "period": "month",
+    "containing": "2026-09-30",
+    "expected": {
+      "start": "2026-09-01",
+      "end": "2026-09-30",
+      "previousStart": "2026-08-01",
+      "previousEnd": "2026-08-31",
+      "counts": {
+        "events": 40,
+        "writtenDays": 14,
+        "peopleMentions": 26,
+        "placeMentions": 26,
+        "firstPeople": 6,
+        "firstPlaces": 4,
+        "createdTasks": 22,
+        "completedTasks": 9,
+        "overdueTasks": 11,
+        "undatedTasks": 1
+      },
+      "previous": {
+        "events": 0,
+        "writtenDays": 0,
+        "peopleMentions": 0,
+        "placeMentions": 0,
+        "firstPeople": 0,
+        "firstPlaces": 0,
+        "createdTasks": 0,
+        "completedTasks": 0,
+        "overdueTasks": 0,
+        "undatedTasks": 0
+      },
+      "change": {
+        "events": 40,
+        "writtenDays": 14,
+        "peopleMentions": 26,
+        "placeMentions": 26,
+        "firstPeople": 6,
+        "firstPlaces": 4,
+        "createdTasks": 22,
+        "completedTasks": 9,
+        "overdueTasks": 11,
+        "undatedTasks": 1
+      },
+      "people": [
+        {
+          "id": "people/Baran Tunç.md",
+          "name": "Baran Tunç",
+          "count": 6,
+          "change": 6
+        },
+        {
+          "id": "people/Deniz Arıkan.md",
+          "name": "Deniz Arıkan",
+          "count": 6,
+          "change": 6
+        },
+        {
+          "id": "people/Ece Yalın.md",
+          "name": "Ece Yalın",
+          "count": 5,
+          "change": 5
+        },
+        {
+          "id": "people/Mert Aksu (iş).md",
+          "name": "Mert Aksu (iş)",
+          "count": 4,
+          "change": 4
+        },
+        {
+          "id": "people/Selin Korkmaz.md",
+          "name": "Selin Korkmaz",
+          "count": 3,
+          "change": 3
+        }
+      ],
+      "places": [
+        {
+          "id": "places/Tepe Spor Salonu.md",
+          "name": "Tepe Spor Salonu",
+          "count": 9,
+          "change": 9
+        },
+        {
+          "id": "places/Liman Ofis.md",
+          "name": "Liman Ofis",
+          "count": 7,
+          "change": 7
+        },
+        {
+          "id": "places/Çınaraltı Kafe.md",
+          "name": "Çınaraltı Kafe",
+          "count": 7,
+          "change": 7
+        },
+        {
+          "id": "places/Ev.md",
+          "name": "Ev",
+          "count": 3,
+          "change": 3
+        }
+      ],
+      "goals": [
+        {
+          "id": "goals/Kitap.md",
+          "done": 320,
+          "target": 600,
+          "contribution": 320,
+          "streak": 0,
+          "change": 320,
+          "streakChange": 0,
+          "completionDate": null
+        },
+        {
+          "id": "goals/Spor.md",
+          "done": 6,
+          "target": 15,
+          "contribution": 6,
+          "streak": 2,
+          "change": 6,
+          "streakChange": 2,
+          "completionDate": null
+        },
+        {
+          "id": "goals/Su.md",
+          "done": 104,
+          "target": 240,
+          "contribution": 104,
+          "streak": 0,
+          "change": 104,
+          "streakChange": 0,
+          "completionDate": null
+        }
+      ],
+      "isEmpty": false
+    }
+  },
+  {
+    "id": "october-transition-empty",
+    "vault": "sample",
+    "period": "month",
+    "containing": "2026-10-01",
+    "expected": {
+      "start": "2026-10-01",
+      "end": "2026-10-31",
+      "previousStart": "2026-09-01",
+      "previousEnd": "2026-09-30",
+      "counts": {
+        "events": 0,
+        "writtenDays": 0,
+        "peopleMentions": 0,
+        "placeMentions": 0,
+        "firstPeople": 0,
+        "firstPlaces": 0,
+        "createdTasks": 0,
+        "completedTasks": 0,
+        "overdueTasks": 11,
+        "undatedTasks": 1
+      },
+      "previous": {
+        "events": 40,
+        "writtenDays": 14,
+        "peopleMentions": 26,
+        "placeMentions": 26,
+        "firstPeople": 6,
+        "firstPlaces": 4,
+        "createdTasks": 22,
+        "completedTasks": 9,
+        "overdueTasks": 11,
+        "undatedTasks": 1
+      },
+      "change": {
+        "events": -40,
+        "writtenDays": -14,
+        "peopleMentions": -26,
+        "placeMentions": -26,
+        "firstPeople": -6,
+        "firstPlaces": -4,
+        "createdTasks": -22,
+        "completedTasks": -9,
+        "overdueTasks": 0,
+        "undatedTasks": 0
+      },
+      "people": [],
+      "places": [],
+      "goals": [
+        {
+          "id": "goals/Kitap.md",
+          "done": 0,
+          "target": 620,
+          "contribution": 0,
+          "streak": 0,
+          "change": -320,
+          "streakChange": 0,
+          "completionDate": null
+        },
+        {
+          "id": "goals/Spor.md",
+          "done": 0,
+          "target": 15,
+          "contribution": 0,
+          "streak": 0,
+          "change": -6,
+          "streakChange": -2,
+          "completionDate": null
+        },
+        {
+          "id": "goals/Su.md",
+          "done": 0,
+          "target": 248,
+          "contribution": 0,
+          "streak": 0,
+          "change": -104,
+          "streakChange": 0,
+          "completionDate": null
+        }
+      ],
+      "isEmpty": true
+    }
+  }
+]

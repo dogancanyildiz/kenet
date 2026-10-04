@@ -86,7 +86,7 @@ Kullanıcıya görünen bir şey yok; her şey bunun üstüne kurulur.
 
 ## Aşama 6: Geri bildirim
 
-- [ ] Haftalık ve aylık özetler (sayılara dayalı, yapay zekasız): kimlerle, nerelerde, hedef ve görev durumu
+- [x] Haftalık ve aylık özetler (sayılara dayalı, yapay zekasız): kimlerle, nerelerde, hedef ve görev durumu
 - [ ] Kişi sayfasında son görüşme özeti; uzun süredir görüşülmeyenler
 - [ ] Graph ve harita görünümleri
 - [ ] İsteğe bağlı yapay zeka (karar açık):

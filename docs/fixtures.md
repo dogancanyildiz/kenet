@@ -209,3 +209,11 @@ Her klasör `input/` altında küçük girdi kasasını, `expected/` altında ta
 ## Testlerin klasörü bulması
 
 Swift testleri `Fixtures/` klasörünü test kaynak dosyasından yukarı doğru çıkarak bulur. Paket deponun dışında derleniyorsa `FIXTURES_DIR` ortam değişkeni klasörün yolunu verir.
+
+### `summaries/`
+
+`cases.json`, `sample/` kasasından elle sayılmış dört dönem beklentisidir: 14–20 Eylül ve 21–27 Eylül 2026 pazartesi haftaları, Eylül ayı ve boş Ekim ayı. Olay sayıları sırasıyla 19, 21, 40 ve 0; yazılan gün sayıları 7, 7, 14 ve 0'dır. Ekim'de kayıt bulunmasa da dönem sonu taşınan geciken görev sayısı 11, tarihsiz açık 1'dir.
+
+Her durum `period`, `containing` ve `expected` taşır. Beklenti dahil `range`/`previousRange`, `counts`/`previous`/`change`, ilk beş `people`/`places` (yol kimliği, görünen ad, `count`, `change`), `goals` ve `empty` alanlarını içerir. Hedefler `done`, `target`, `contribution`, `streak`, `change`, `streakChange`, `completionDate` ile sınanır; olmayan tarih JSON null'dır. Sayı tanımları `screens.md` Özetler bölümündedir. Eylül'de haftalık Spor hedefi beş pazartesi haftasına değdiği için hedef 15; günlük Kitap hedefi 600, Su hedefi 240'tır.
+
+Core testleri bu JSON'u indeks girdisinden hesaplanan sonuçla karşılaştırır; ayrıca pazartesi/yıl ve artık ay sınırlarını, geçmiş görev envanterini, yıllık/kilometre taşı katkısını, hedef zinciri için dönem öncesi geçmişi, ilk beşin kararlı sırasını ve çözülemeyen bağlantıları sınar. Sentetik geçici kasa testi frontmatter bağlantısının dışlanmasını, eski ilk geçiş tarihini, artımlı indeks ile yeniden üretim eşitliğini kanıtlar; örnek dosyalar değiştirilmez.

@@ -51,6 +51,8 @@ targets:
         product: DateParsing
       - package: Core
         product: GoalTracking
+      - package: Core
+        product: Summaries
     settings:
       base:
         PRODUCT_NAME: Journal

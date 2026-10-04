@@ -105,6 +105,6 @@ Aşama 6'nın sayılara dayalı teknik maddeleri tamamlandı; kullanıcı talima
   - [x] Obsidian kasasından içe aktarma
   - [x] Uygulama kilidi
 - [ ] CD: TestFlight'a otomatik gönderim (Xcode Cloud ya da fastlane, o aşamada seçilecek)
-- [ ] Özel varlık tipleri (kitap, proje, vb.)
+- [x] Özel varlık tipleri (kitap, proje, vb.)
 - [ ] Şirket şema paketi
 - [ ] Talep olursa Android ve Windows

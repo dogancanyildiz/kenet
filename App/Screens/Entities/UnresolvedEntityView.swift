@@ -2,6 +2,7 @@ import SwiftUI
 
 struct UnresolvedEntityView: View {
     let store: IndexStore
+    @Environment(\.locale) private var locale
     @State private var model: UnresolvedEntityModel
 
     init(store: IndexStore, target: String) {
@@ -20,7 +21,7 @@ struct UnresolvedEntityView: View {
             EntityView(store: store, entity: entity).id(entity.id)
         } else {
             Form {
-                Text("Bu ad için kişi veya konum oluştur.")
+                Text("Bu ad için bir varlık oluştur.")
                 TextField("Ad", text: $model.name)
                 if model.needsQualifier {
                     TextField("Ayırt edici (ör. iş)", text: $model.qualifier)
@@ -29,6 +30,17 @@ struct UnresolvedEntityView: View {
                 } else {
                     Button("Kişi olarak ekle") { Task { await model.create(.person) } }
                     Button("Konum olarak ekle") { Task { await model.create(.place) } }
+                    ForEach(
+                        EntityTypeChoices.choices(
+                            store.entityTypes, language: locale.language.languageCode?.identifier ?? "en"
+                        ).filter { $0.id != "person" && $0.id != "place" }
+                    ) { type in
+                        Button {
+                            Task { await model.create(type.kind) }
+                        } label: {
+                            Text("\(type.name) olarak ekle")
+                        }
+                    }
                 }
                 if let error = model.errorText { Text(verbatim: error).foregroundStyle(.red) }
             }

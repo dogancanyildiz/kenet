@@ -4,15 +4,17 @@ import VaultFormat
 
 extension VaultIndex {
     /// Reads every person and place with its ordered aliases in a single query.
-    public func knownEntities() throws -> [KnownEntity] {
-        try database.read { db in
+    public func knownEntities(kinds: Set<String> = ["person", "place"]) throws -> [KnownEntity] {
+        let kinds = Set(kinds.filter { KnownEntity.Kind(rawValue: $0) != nil })
+        guard !kinds.isEmpty else { return [] }
+        return try database.read { db in
             let rows = try Row.fetchAll(
                 db,
                 sql: """
                     SELECT e.file, e.kind, e.name, e.qualifier, a.name AS alias
                     FROM entities e LEFT JOIN aliases a ON a.file=e.file
-                    WHERE e.kind IN ('person','place') ORDER BY e.file,a.ordinal
-                    """)
+                    WHERE e.kind IN (\(kinds.sorted().map { _ in "?" }.joined(separator: ","))) ORDER BY e.file,a.ordinal
+                    """, arguments: StatementArguments(kinds.sorted()))
             var result: [KnownEntity] = []
             var current: (file: String, kind: KnownEntity.Kind, name: String, qualifier: String?, aliases: [String])?
             func appendCurrent() {
@@ -28,7 +30,9 @@ extension VaultIndex {
                 if current?.file != file {
                     appendCurrent()
                     let kind: String = row["kind"]
-                    current = (file, KnownEntity.Kind(rawValue: kind)!, row["name"], row["qualifier"], [])
+                    current = (
+                        file, KnownEntity.Kind(rawValue: kind) ?? .custom(kind), row["name"], row["qualifier"], []
+                    )
                 }
                 if let alias: String = row["alias"] { current?.aliases.append(alias) }
             }
@@ -46,7 +50,7 @@ extension VaultIndex {
                     SELECT e.file, COUNT(l.ordinal) AS total, MAX(f.date) AS lastDate
                     FROM entities e LEFT JOIN links l ON l.resolvedFile=e.file
                     LEFT JOIN files f ON f.path=l.file
-                    WHERE e.kind IN ('person','place') GROUP BY e.file ORDER BY e.file
+                    WHERE e.kind != 'goal' GROUP BY e.file ORDER BY e.file
                     """)
             let pairs = try Row.fetchAll(
                 db,
@@ -55,7 +59,7 @@ extension VaultIndex {
                         SELECT DISTINCT f.date, l.resolvedFile AS entity
                         FROM links l JOIN files f ON f.path=l.file
                         JOIN entities e ON e.file=l.resolvedFile
-                        WHERE f.kind='day' AND f.date IS NOT NULL AND e.kind IN ('person','place')
+                        WHERE f.kind='day' AND f.date IS NOT NULL AND e.kind != 'goal'
                     )
                     SELECT a.entity AS first, b.entity AS second, COUNT(*) AS count
                     FROM days a JOIN days b ON a.date=b.date AND a.entity<b.entity

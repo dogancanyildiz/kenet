@@ -458,6 +458,32 @@ Zincir, en uzun seri ve ilerleme dosyada tutulmaz; gün dosyalarındaki kayıtla
 - Sürüm, eski bir istemcinin veriyi bozabileceği format değişikliklerinde artırılır.
 - Desteklediğinden büyük bir sürüm gören istemci kasaya yazmaz; salt okunur açar ve güncelleme gerektiğini bildirir.
 
+## Varlık tipleri
+
+`.app/types.json` isteğe bağlıdır; yoksa yalnız yerleşik kişi/konum tipleri sunulur. Bu ek dosya kasa sürümünü değiştirmez; eski istemciler özel tip dosyalarını düz not olarak okuyabilir. Örnek:
+
+```json
+{
+  "formatVersion": 1,
+  "types": [{
+    "id": "book", "folder": "books",
+    "name": { "tr": "Kitap", "en": "Book" },
+    "plural": { "tr": "Kitaplar", "en": "Books" },
+    "icon": "book",
+    "fields": [{ "key": "yazar", "kind": "text" }, { "key": "bitirme", "kind": "date" }],
+    "template": "templates/book.md"
+  }]
+}
+```
+
+- `id` `[a-z][a-z0-9_-]*` biçiminde ve benzersizdir; `person`, `place`, `goal`, `journal`, indeksin iç türleri `day`/`note` ayrılmıştır. Düzenlemede id değişmez; yeni id yeni tiptir.
+- `folder` kasa köküne göre göreli, boş olmayan dizin yoludur. Boş bileşen, `.`/`..`, noktayla başlayan bileşen, ters bölü ve kontrol karakterleri kabul edilmez; kökte `templates`, `conflicts`, `journal` hedef klasör olamaz. Sembolik bağlantılar izlenmez. Yeni dosya bu klasöre yazılır; mevcut dosyalar taşınmaz. Tür frontmatter `type: <id>` ile belirlenir.
+- `name`/`plural` Türkçe ve İngilizce boş olmayan görünen adlardır. `icon` boş olmayan SF Symbol adıdır; tanınmayan simge arayüzde genel simgeyle gösterilebilir.
+- `fields` sıralı, benzersiz anahtarlı arayüz tanımlarıdır; `kind` text/date/number/boolean/link olabilir. `type`, `name`, `qualifier`, `aliases` ve boş/geçersiz frontmatter anahtarları ayrılmıştır. Alan tanımı dosyada değer yaratmaz; boş/missing alan için uygun düzenleyici sunulur. Var olan değerin türü tanımla uyuşmazsa ham/mevcut alan düzenleyicisi kullanılır; kendiliğinden dönüşüm yapılmaz. Bilinmeyen alanlar korunur. `link` tek wikilink metnidir; kullanıcıya görünen hedef kayıtta `[[hedef]]` olarak yazılır.
+- `template` isteğe bağlı, kasa köküne göre göreli `.md` yoludur; gizli bileşen, `.`/`..`, ters bölü, kontrol karakteri ve sembolik bağlantı kabul edilmez. Yeni dosyada şablonun gövdesi/diğer alanları korunur; `type` hedef id, `name` kullanıcının adı olur. Eksik şablonda asgari frontmatter üretilir. Okunamayan/çözülemeyen şablonla oluşturma reddedilir, şablon değiştirilmez.
+- Bozuk/okunamayan, desteklenmeyen sürümlü veya çakışan tanımlı dosyada tüm özel tipler devre dışı kalır; yalnız yerleşik tipler ve kullanıcıya uyarı gösterilir. Özgün JSON üzerine sessizce yazılmaz. Tanımı silinen/eksik dosyalar düz not olarak kalır; dosyalar ve bağlantılar silinmez. `types.json` değişince indeks dosyalardan yeniden sınıflandırılır.
+- Yeni tip oluşturma/düzenleme/silme yalnız hedef tip tanımını değiştirir. Diğer tipler ve bilinmeyen JSON anahtar/değerleri bayt düzeyinde korunur. Yazma atomiktir ve ortak kasa yazma kuyruğunda yapılır; tip silme varlık Markdown dosyalarına dokunmaz.
+
 ## Senkronizasyon çakışması
 
 Aynı içeriğin iki sürümü iki yoldan oluşur:

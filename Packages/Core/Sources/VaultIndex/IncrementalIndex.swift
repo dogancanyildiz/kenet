@@ -17,11 +17,17 @@ extension VaultIndex {
 
     private func incrementallyUpdate(vaultRoot: URL, paths: Set<String>?) throws -> RebuildResult {
         try validate(vaultRoot: vaultRoot)
+        let customKinds = Set(EntityTypeReader.read(vaultRoot: vaultRoot).types.map(\.id))
+        let signature = customKinds.sorted().joined(separator: "\n")
+        let typeChanged = try database.read { db in
+            (try String.fetchOne(db, sql: "SELECT signature FROM entity_type_state") ?? "") != signature
+        }
         let resolvedRoot = vaultRoot.resolvingSymlinksInPath()
         let requested = paths.map { notified in
             Set(notified.compactMap { notificationPath($0, root: resolvedRoot) })
         }
         func includes(_ path: String) -> Bool {
+            if typeChanged { return true }
             let key = comparisonKey(path)
             return requested.map { prefixes in
                 prefixes.contains { $0.isEmpty || key == $0 || key.hasPrefix($0 + "/") }
@@ -43,11 +49,13 @@ extension VaultIndex {
             for file in scan.files where includes(file.path) {
                 let metadata = try file.url.resourceValues(forKeys: [.contentModificationDateKey, .fileSizeKey])
                 let modified = metadata.contentModificationDate?.timeIntervalSince1970 ?? 0
-                if let before = previous[file.path], before.modified == modified, before.size == metadata.fileSize {
+                if !typeChanged, let before = previous[file.path], before.modified == modified,
+                    before.size == metadata.fileSize
+                {
                     continue
                 }
                 let data = try Data(contentsOf: file.url)
-                if let before = previous[file.path], before.digest == ByteDigest.hex(data) {
+                if !typeChanged, let before = previous[file.path], before.digest == ByteDigest.hex(data) {
                     // Cache the observed metadata without rewriting any source-derived rows.
                     try db.execute(
                         sql: "UPDATE files SET modified=?,size=? WHERE path=?",
@@ -67,13 +75,16 @@ extension VaultIndex {
                 identifiers.formUnion(owners)
                 // Ownership is assigned after all removals and inserts, in global source order.
                 try IndexBuilder.insert(
-                    file: file.path, data: data, document: document, modified: modified, db: db, owners: &owners)
+                    file: file.path, data: data, document: document, modified: modified, db: db, owners: &owners,
+                    customKinds: customKinds)
                 if document.isValidUTF8 {
                     try IndexBuilder.insertLinks(document: document, file: file.path, db: db)
                 }
             }
             try repairOwnership(identifiers, db: db)
             try repairLinks(keys: keys, sources: added + updated, db: db)
+            try db.execute(sql: "DELETE FROM entity_type_state")
+            try db.execute(sql: "INSERT INTO entity_type_state VALUES (?)", arguments: [signature])
             return RebuildResult(
                 addedPaths: added, updatedPaths: updated, deletedPaths: deleted,
                 skippedPaths: scan.result.skippedPaths.filter {

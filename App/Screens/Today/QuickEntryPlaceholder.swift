@@ -4,6 +4,7 @@ import VaultFormat
 import VaultStore
 
 struct QuickEntryBar: View {
+    @Environment(\.locale) private var locale
     @Environment(LocationService.self) private var location
     @Environment(IntentNavigation.self) private var navigation: IntentNavigation?
     private let acceptsPeopleMentions: Bool
@@ -91,6 +92,21 @@ struct QuickEntryBar: View {
                 HStack {
                     Button("Yeni kişi oluştur") { beginCreation(.person) }
                     Button("Yeni konum oluştur") { beginCreation(.place) }
+                    Menu("Özel tip olarak ekle") {
+                        ForEach(
+                            EntityTypeChoices.choices(
+                                store.entityTypes, language: locale.language.languageCode?.identifier ?? "en"
+                            ).filter {
+                                $0.id != "person" && $0.id != "place"
+                            }
+                        ) { type in
+                            Button {
+                                beginCreation(type.kind)
+                            } label: {
+                                Text("\(type.name) olarak ekle")
+                            }
+                        }
+                    }.disabled(store.entityTypes.types.isEmpty)
                 }
                 .disabled(!isEnabled || !model.canSubmit)
             }
@@ -251,6 +267,21 @@ struct QuickEntryBar: View {
                 HStack {
                     Button("Kişi olarak ekle") { create(.person) }
                     Button("Konum olarak ekle") { create(.place) }
+                    Menu("Özel tip olarak ekle") {
+                        ForEach(
+                            EntityTypeChoices.choices(
+                                store.entityTypes, language: locale.language.languageCode?.identifier ?? "en"
+                            ).filter {
+                                $0.id != "person" && $0.id != "place"
+                            }
+                        ) { type in
+                            Button {
+                                create(type.kind)
+                            } label: {
+                                Text("\(type.name) olarak ekle")
+                            }
+                        }
+                    }.disabled(store.entityTypes.types.isEmpty)
                 }
             }
             Button("Vazgeç") {

@@ -21,6 +21,7 @@
         @State private var entityRouteID = UUID()
         @State private var entityOrder = EntityOrdering.name
         @State private var entitySearch = ""
+        @State private var selectedEntityKind = "person"
 
         init(store: IndexStore) {
             self.store = store
@@ -89,6 +90,7 @@
                 selectedGoal = nil
             }
             .onChange(of: section) { _, value in
+                if value == .people || value == .places { selectedEntityKind = value == .places ? "place" : "person" }
                 if value != .tasks {
                     selectedProject = nil
                     showingKanban = false
@@ -196,6 +198,13 @@
                     GoalsView(store: store, selection: $selectedGoal)
                 case .people, .places:
                     VStack(spacing: 0) {
+                        if store.entityTypes.issue != nil {
+                            Text(
+                                "Varlık tipleri okunamıyor. Yalnız yerleşik tipler kullanılıyor. Kasadaki .app/types.json dosyasını kontrol et."
+                            )
+                            .font(.caption).foregroundStyle(.orange).padding()
+                        }
+                        EntityTypePicker(store: store, selection: $selectedEntityKind).padding()
                         EntityListControls(order: $entityOrder, search: $entitySearch)
                         let entities = EntityListQuery.entities(
                             in: store.content, usage: store.entityUsage, kind: entityKind,
@@ -279,7 +288,7 @@
                 })
         }
 
-        private var entityKind: String { section == .places ? "place" : "person" }
+        private var entityKind: String { selectedEntityKind }
     }
 
     struct TodayNavigationKey: FocusedValueKey {

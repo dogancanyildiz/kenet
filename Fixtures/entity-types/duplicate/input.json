@@ -1,0 +1,77 @@
+{
+  "formatVersion": 1,
+  "types": [
+    {
+      "id": "book",
+      "folder": "books",
+      "name": {
+        "tr": "Kitap",
+        "en": "Book"
+      },
+      "plural": {
+        "tr": "Kitaplar",
+        "en": "Books"
+      },
+      "icon": "book",
+      "fields": [
+        {
+          "key": "yazar",
+          "kind": "text"
+        },
+        {
+          "key": "bitirme",
+          "kind": "date"
+        },
+        {
+          "key": "sayfa",
+          "kind": "number"
+        },
+        {
+          "key": "okundu",
+          "kind": "boolean"
+        },
+        {
+          "key": "ilgili",
+          "kind": "link"
+        }
+      ],
+      "template": "templates/book.md"
+    },
+    {
+      "id": "book",
+      "folder": "books",
+      "name": {
+        "tr": "Kitap",
+        "en": "Book"
+      },
+      "plural": {
+        "tr": "Kitaplar",
+        "en": "Books"
+      },
+      "icon": "book",
+      "fields": [
+        {
+          "key": "yazar",
+          "kind": "text"
+        },
+        {
+          "key": "bitirme",
+          "kind": "date"
+        },
+        {
+          "key": "sayfa",
+          "kind": "number"
+        },
+        {
+          "key": "okundu",
+          "kind": "boolean"
+        },
+        {
+          "key": "ilgili",
+          "kind": "link"
+        }
+      ],
+      "template": "templates/book.md"
+    }
+  ]
+}

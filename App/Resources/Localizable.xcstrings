@@ -7574,6 +7574,566 @@
           }
         }
       }
+    },
+    "Bu tipteki varlıklar burada görünecek.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bu tipteki varlıklar burada görünecek."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entities of this type will appear here."
+          }
+        }
+      }
+    },
+    "Özel tip olarak ekle": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Özel tip olarak ekle"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add as a custom type"
+          }
+        }
+      }
+    },
+    "%@ olarak ekle": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ olarak ekle"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add as %@"
+          }
+        }
+      }
+    },
+    "Bu ad için bir varlık oluştur.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bu ad için bir varlık oluştur."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create an entity for this name."
+          }
+        }
+      }
+    },
+    "Alan için geçerli bir değer gir.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alan için geçerli bir değer gir."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a valid value for this field."
+          }
+        }
+      }
+    },
+    "Tip kaydedildi, indeks güncellenemedi. Yeniden indeksle.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tip kaydedildi, indeks güncellenemedi. Yeniden indeksle."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Type saved, but the index could not be updated. Rebuild the index."
+          }
+        }
+      }
+    },
+    "Tip kaydedilemedi. Tanımları kontrol edip yeniden dene.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tip kaydedilemedi. Tanımları kontrol edip yeniden dene."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The type could not be saved. Check the definitions and try again."
+          }
+        }
+      }
+    },
+    "Tip silindi, indeks güncellenemedi. Yeniden indeksle.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tip silindi, indeks güncellenemedi. Yeniden indeksle."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Type removed, but the index could not be updated. Rebuild the index."
+          }
+        }
+      }
+    },
+    "Tip silinemedi. Tanımları kontrol edip yeniden dene.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tip silinemedi. Tanımları kontrol edip yeniden dene."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The type could not be removed. Check the definitions and try again."
+          }
+        }
+      }
+    },
+    "Tip tanımı": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tip tanımı"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Type definition"
+          }
+        }
+      }
+    },
+    "Tip kimliği (ör. book)": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tip kimliği (ör. book)"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Type ID (e.g. book)"
+          }
+        }
+      }
+    },
+    "Klasör (ör. books)": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klasör (ör. books)"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Folder (e.g. books)"
+          }
+        }
+      }
+    },
+    "Ad — Türkçe": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ad — Türkçe"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Name — Turkish"
+          }
+        }
+      }
+    },
+    "Ad — İngilizce": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ad — İngilizce"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Name — English"
+          }
+        }
+      }
+    },
+    "Çoğul ad — Türkçe": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Çoğul ad — Türkçe"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plural name — Turkish"
+          }
+        }
+      }
+    },
+    "Çoğul ad — İngilizce": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Çoğul ad — İngilizce"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plural name — English"
+          }
+        }
+      }
+    },
+    "SF Symbol adı": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SF Symbol adı"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SF Symbol name"
+          }
+        }
+      }
+    },
+    "Şablon yolu (isteğe bağlı)": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Şablon yolu (isteğe bağlı)"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Template path (optional)"
+          }
+        }
+      }
+    },
+    "Kimlik değişmez. Klasör değişikliği mevcut varlıkları taşımaz.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kimlik değişmez. Klasör değişikliği mevcut varlıkları taşımaz."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The ID is fixed. Changing the folder does not move existing entities."
+          }
+        }
+      }
+    },
+    "Alan türü": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alan türü"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Field type"
+          }
+        }
+      }
+    },
+    "Tarih": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tarih"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Date"
+          }
+        }
+      }
+    },
+    "Evet/hayır": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Evet/hayır"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Boolean"
+          }
+        }
+      }
+    },
+    "Bağlantı": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bağlantı"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Link"
+          }
+        }
+      }
+    },
+    "Kimlik küçük ASCII harfle başlamalı; alan adları benzersiz olmalıdır. Tüm adları doldur.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kimlik küçük ASCII harfle başlamalı; alan adları benzersiz olmalıdır. Tüm adları doldur."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The ID must start with a lowercase ASCII letter; field names must be unique. Fill in every name."
+          }
+        }
+      }
+    },
+    "Yeni varlık tipi": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yeni varlık tipi"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New entity type"
+          }
+        }
+      }
+    },
+    "Varlık tipini düzenle": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Varlık tipini düzenle"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit entity type"
+          }
+        }
+      }
+    },
+    "Yerleşik tipler": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yerleşik tipler"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Built-in types"
+          }
+        }
+      }
+    },
+    "Özel varlık tipleri": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Özel varlık tipleri"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Custom entity types"
+          }
+        }
+      }
+    },
+    "Henüz özel tip yok.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Henüz özel tip yok."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No custom types yet."
+          }
+        }
+      }
+    },
+    "Tipi sil": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tipi sil"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete type"
+          }
+        }
+      }
+    },
+    "Varlık tipleri": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Varlık tipleri"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entity types"
+          }
+        }
+      }
+    },
+    "Varlık tipleri okunamıyor. Yalnız yerleşik tipler kullanılıyor. Kasadaki .app/types.json dosyasını kontrol et.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Varlık tipleri okunamıyor. Yalnız yerleşik tipler kullanılıyor. Kasadaki .app/types.json dosyasını kontrol et."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entity types could not be read. Only built-in types are available. Check .app/types.json in your vault."
+          }
+        }
+      }
+    },
+    "Tipi silmek varlık dosyalarını silmez. Tanımı olmayan dosyalar düz not olarak kalır.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tipi silmek varlık dosyalarını silmez. Tanımı olmayan dosyalar düz not olarak kalır."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deleting a type keeps its entity files. Files without a type definition remain plain notes."
+          }
+        }
+      }
+    },
+    "Tip tanımını sil?": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tip tanımını sil?"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete this type definition?"
+          }
+        }
+      }
+    },
+    "Varlık dosyaları korunur.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Varlık dosyaları korunur."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entity files will be kept."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

@@ -24,16 +24,17 @@ final class GoalCreationModel {
     var canSave: Bool {
         root != nil && root == store.vaultURL && !isWriting && !isSaved && store.canAddEvent
             && !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-            && (GoalValueModel.number(target) ?? 0) > 0
+            && (kind == .milestone || (GoalValueModel.number(target) ?? 0) > 0)
     }
     func save() async -> Bool {
-        guard canSave, let target = GoalValueModel.number(target) else { return false }
+        guard canSave, let target = kind == .milestone ? 1 : GoalValueModel.number(target) else { return false }
         isWriting = true
         defer { isWriting = false }
         errorText = nil
         do {
             try await store.createGoal(
-                name: name, period: period, kind: kind, target: target, unit: kind == .number ? unit : nil)
+                name: name, period: kind == .milestone ? .year : period, kind: kind, target: target,
+                unit: kind == .number ? unit : nil)
             isSaved = true
         } catch VaultStoreError.nameTaken {
             errorText = String(localized: "Bu ad zaten kullanılıyor. Başka bir ad seç.")

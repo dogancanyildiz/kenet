@@ -18,7 +18,13 @@ extension GoalPeriod {
     }
 }
 extension GoalKind {
-    var title: LocalizedStringKey { self == .boolean ? "Evet / hayır" : "Sayı" }
+    var title: LocalizedStringKey {
+        switch self {
+        case .boolean: "Evet / hayır"
+        case .number: "Sayı"
+        case .milestone: "Kilometre taşı"
+        }
+    }
 }
 extension GoalDayMark {
     var title: LocalizedStringKey {
@@ -41,9 +47,16 @@ struct GoalProgressLabel: View {
     let status: GoalStatus
     var body: some View {
         HStack {
-            Text(goal.period.progressTitle)
-            Text(verbatim: status.progress.done.formatted() + "/" + goal.target.formatted())
-            if let unit = goal.unit { Text(verbatim: unit) }
+            if goal.kind == .milestone {
+                Text(status.completionDate == nil ? "Yapılmadı" : "Yapıldı")
+                if let day = status.completionDate {
+                    Text(LocalDay.instant(for: day), format: .dateTime.day().month().year())
+                }
+            } else {
+                Text(goal.period.progressTitle)
+                Text(verbatim: status.progress.done.formatted() + "/" + goal.target.formatted())
+                if let unit = goal.unit { Text(verbatim: unit) }
+            }
         }
         .font(.caption).foregroundStyle(.secondary)
     }

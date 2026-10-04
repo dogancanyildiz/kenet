@@ -84,6 +84,17 @@ struct TaskQueryTests {
         }
     }
 
+    @Test func projectsCompareCaseAndCanonicalUnicode() throws {
+        try withVault { root in
+            try write(
+                root, "notes/Projects.md",
+                "- [ ] A #project/Café\n- [x] B #project/café\n- [ ] C #project/CAFÉ\n- [ ] D #project/Café/mobile")
+            let index = try VaultIndex()
+            try index.rebuild(vaultRoot: root)
+            #expect(try index.projects() == ["CAFÉ", "Café/mobile"])
+        }
+    }
+
     @Test func sampleTasksExposeFieldsAndOpenEntityLinks() throws {
         let index = try VaultIndex()
         try index.rebuild(vaultRoot: Fixtures.root().appendingPathComponent("vaults/sample"))

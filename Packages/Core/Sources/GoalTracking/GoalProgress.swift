@@ -2,6 +2,14 @@ import VaultFormat
 
 public enum GoalProgress {
     public static func compute(definition: GoalDefinition, logs: [GoalLog], today: CalendarDate) -> GoalStatus {
+        if definition.kind == .milestone {
+            let daily = amounts(definition: definition, logs: logs)
+            let date = daily.keys.filter { $0.year == today.year && $0 <= today && daily[$0] == 1 }.min()
+            return GoalStatus(
+                periodStart: today.startOfYear, periodEnd: today.endOfYear,
+                progress: GoalAmount(done: date == nil ? 0 : 1, target: 1), streak: 0, longestStreak: 0,
+                isPendingToday: date == nil, yearDone: date == nil ? 0 : 1, yearProgress: nil, completionDate: date)
+        }
         let daily = amounts(definition: definition, logs: logs.filter { $0.day <= today })
         var totals: [CalendarDate: Double] = [:]
         var yearDone = 0.0
@@ -37,7 +45,7 @@ public enum GoalProgress {
     public static func heatmap(definition: GoalDefinition, logs: [GoalLog], from: CalendarDate, to: CalendarDate)
         -> [CalendarDate: GoalDayMark]
     {
-        guard from <= to else { return [:] }
+        guard definition.kind != .milestone, from <= to else { return [:] }
         let daily = amounts(definition: definition, logs: logs)
         var marks: [CalendarDate: GoalDayMark] = [:]
         var cursor: CalendarDate? = from
@@ -56,7 +64,7 @@ public enum GoalProgress {
         for log in logs {
             let amount: Double
             switch (definition.kind, log.value) {
-            case (.boolean, .boolean(let done)): amount = done ? 1 : 0
+            case (.boolean, .boolean(let done)), (.milestone, .boolean(let done)): amount = done ? 1 : 0
             case (.number, .number(let value)) where log.value.isValid: amount = value
             default: amount = 0
             }

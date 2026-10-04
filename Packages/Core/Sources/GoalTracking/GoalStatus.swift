@@ -21,6 +21,7 @@ public struct GoalStatus: Sendable, Equatable {
     public let isPendingToday: Bool
     public let yearDone: Double
     public let yearProgress: GoalAmount?
+    public var completionDate: CalendarDate? = nil
 }
 
 public enum GoalDayMark: String, Sendable { case none, partial, full }

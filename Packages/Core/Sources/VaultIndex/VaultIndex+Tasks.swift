@@ -1,3 +1,4 @@
+import Foundation
 import GRDB
 import VaultFormat
 
@@ -52,11 +53,21 @@ extension VaultIndex {
 
     /// Source project spellings across all tasks, unique and ordered by Unicode code point.
     public func projects() throws -> [String] {
-        try database.read {
+        let names = try database.read {
             try String.fetchAll(
                 $0,
                 sql: "SELECT DISTINCT project FROM blocks WHERE kind='task' AND project IS NOT NULL ORDER BY project")
         }
+        return Self.projectNames(names)
+    }
+
+    public static func projectKey(_ name: String) -> String {
+        name.precomposedStringWithCanonicalMapping.lowercased()
+    }
+
+    public static func projectNames(_ names: [String]) -> [String] {
+        var seen: Set<String> = []
+        return names.sorted().filter { seen.insert(projectKey($0)).inserted }
     }
 
     private func taskQuery(

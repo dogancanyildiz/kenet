@@ -6,7 +6,7 @@ import VaultFormat
 struct GoalFixture: Decodable, Sendable {
     struct Definition: Decodable, Sendable {
         let id: String, key: String, name: String, period: String, kind: String
-        let target: Double
+        let target: Double?
     }
     struct Log: Decodable, Sendable {
         let day: String
@@ -36,6 +36,7 @@ struct GoalFixture: Decodable, Sendable {
         let isPendingToday: Bool
         let periodStart: String, periodEnd: String
         let heatmap: [String: String]
+        let completionDate: String?
     }
     let id: String
     let definition: Definition
@@ -65,7 +66,7 @@ func goalFixtures(_ fixture: GoalFixture) throws {
         GoalDefinition(
             id: source.id, key: source.key, name: source.name,
             period: period,
-            kind: kind, target: source.target))
+            kind: kind, target: source.target ?? 1))
     let logs = try fixture.logs.map { GoalLog(day: try #require(CalendarDate($0.day)), value: $0.value.value) }
     let result = GoalProgress.compute(
         definition: definition, logs: logs, today: try #require(CalendarDate(fixture.today)))
@@ -77,11 +78,12 @@ func goalFixtures(_ fixture: GoalFixture) throws {
     #expect(result.yearDone == fixture.expected.yearDone)
     #expect(result.periodStart.description == fixture.expected.periodStart)
     #expect(result.periodEnd.description == fixture.expected.periodEnd)
-    if definition.period == .year {
+    if definition.period == .year && kind != .milestone {
         #expect(result.yearProgress?.done == fixture.expected.yearDone)
     } else {
         #expect(result.yearProgress == nil)
     }
+    #expect(result.completionDate?.description == fixture.expected.completionDate)
     let marks = GoalProgress.heatmap(
         definition: definition, logs: logs,
         from: try #require(CalendarDate(fixture.heatmapFrom)), to: try #require(CalendarDate(fixture.heatmapTo)))

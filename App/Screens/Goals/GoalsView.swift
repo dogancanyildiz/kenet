@@ -35,7 +35,15 @@ private struct GoalListContent: View {
                 let status =
                     model.hasLoaded
                     ? model.status(for: goal) : (store.content.goalStatuses[goal.key] ?? model.status(for: goal))
-                if let selection {
+                if goal.kind == .milestone {
+                    Button {
+                        Task { await model.toggle(goal) }
+                    } label: {
+                        GoalCard(goal: goal, status: status)
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(!model.canEdit || (status.completionDate != nil && status.completionDate != model.day))
+                } else if let selection {
                     Button {
                         selection.wrappedValue = goal.id
                     } label: {

@@ -46,12 +46,15 @@ final class GoalDefinitionModel {
             }
             literal = .text(clean)
         case "period":
+            guard goal.kind != .milestone || clean == "year" else { return invalid() }
             guard GoalPeriod(rawValue: clean) != nil else { return invalid() }
             literal = .text(clean)
         case "kind":
+            guard clean != "milestone", goal.kind != .milestone else { return invalid() }
             guard GoalKind(rawValue: clean) != nil else { return invalid() }
             literal = .text(clean)
         case "target":
+            guard goal.kind != .milestone else { return invalid() }
             guard let number = GoalValueModel.number(clean), number > 0 else { return invalid() }
             // Keep numeric spelling in the supported YAML decimal subset.
             guard !clean.lowercased().contains("e") else { return invalid() }

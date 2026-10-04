@@ -107,5 +107,21 @@
     "input": "remove-scalar-goals-input.md",
     "expected": "remove-scalar-goals-expected.md",
     "error": "notAMapping"
+  },
+  {
+    "id": "milestone-complete",
+    "day": "2026-09-27",
+    "key": "portfolio",
+    "value": true,
+    "input": "milestone-input.md",
+    "expected": "milestone-complete.md"
+  },
+  {
+    "id": "milestone-undo",
+    "day": "2026-09-27",
+    "key": "portfolio",
+    "value": null,
+    "input": "milestone-complete.md",
+    "expected": "milestone-input.md"
   }
 ]

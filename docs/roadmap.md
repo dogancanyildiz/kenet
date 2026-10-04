@@ -103,7 +103,7 @@ Aşama 6'nın sayılara dayalı teknik maddeleri tamamlandı; kullanıcı talima
 - [ ] App Store hazırlığı
   - [x] İlk kullanım akışı
   - [x] Obsidian kasasından içe aktarma
-  - [ ] Uygulama kilidi
+  - [x] Uygulama kilidi
 - [ ] CD: TestFlight'a otomatik gönderim (Xcode Cloud ya da fastlane, o aşamada seçilecek)
 - [ ] Özel varlık tipleri (kitap, proje, vb.)
 - [ ] Şirket şema paketi

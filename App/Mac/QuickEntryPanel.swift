@@ -16,23 +16,37 @@
 
     struct QuickEntryPanelView: View {
         let model: QuickEntryWindowModel
+        var appLock: AppLockService? = nil
         let onHeightChange: (CGFloat) -> Void
         let onClose: () -> Void
+        var onUnlock: () -> Void = {}
 
         var body: some View {
-            VStack(spacing: 0) {
-                if let status = model.statusText {
-                    Text(verbatim: status).font(.caption).foregroundStyle(.secondary).padding()
+            ZStack {
+                VStack(spacing: 0) {
+                    if let status = model.statusText {
+                        Text(verbatim: status).font(.caption).foregroundStyle(.secondary).padding()
+                    }
+                    QuickEntryBar(
+                        store: model.entry.store, isEnabled: model.entry.store.canAddEvent,
+                        model: model.entry, focusRequest: model.focusRequest)
                 }
-                QuickEntryBar(
-                    store: model.entry.store, isEnabled: model.entry.store.canAddEvent,
-                    model: model.entry, focusRequest: model.focusRequest)
+                .opacity(appLock?.isLocked == true ? 0 : 1)
+                .disabled(appLock?.isLocked == true)
+                .accessibilityHidden(appLock?.isLocked == true)
+                if let appLock, appLock.isLocked {
+                    AppLockCover(lock: appLock, allowsBackgroundAuthentication: true)
+                        .frame(height: 240)
+                }
             }
             .frame(width: 480)
             .fixedSize(horizontal: false, vertical: true)
             .background(.regularMaterial)
             .clipShape(RoundedRectangle(cornerRadius: 12))
             .onGeometryChange(for: CGFloat.self, of: { $0.size.height }, action: onHeightChange)
+            .onChange(of: appLock?.isLocked) { _, locked in
+                if locked == false { onUnlock() }
+            }
             .onExitCommand(perform: onClose)
         }
     }

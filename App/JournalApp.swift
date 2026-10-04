@@ -12,6 +12,7 @@ struct JournalApp: App {
     @State private var calendar = CalendarService()
     @State private var notifications: NotificationService
     @State private var store: IndexStore
+    @State private var appLock: AppLockService
     @Environment(\.scenePhase) private var scenePhase
 
     #if os(macOS)
@@ -22,6 +23,8 @@ struct JournalApp: App {
     #endif
 
     init() {
+        let appLock = AppLockService()
+        _appLock = State(initialValue: appLock)
         let location = LocationService()
         _location = State(initialValue: location)
         let store = IntentActions.shared.store
@@ -37,7 +40,7 @@ struct JournalApp: App {
         IntentNavigation.shared.onOpenToday = { [weak notifications] in notifications?.clearNavigationRequest() }
         geofences.activateAutomatically()
         #if os(macOS)
-            _desktop = State(initialValue: MacQuickEntryController(store: store, location: location))
+            _desktop = State(initialValue: MacQuickEntryController(store: store, location: location, appLock: appLock))
         #endif
     }
 
@@ -47,15 +50,15 @@ struct JournalApp: App {
                 CommandGroup(after: .textEditing) {
                     Button("Ara") { openSearch?() }
                         .keyboardShortcut("f", modifiers: .command)
-                        .disabled(openSearch == nil)
+                        .disabled(openSearch == nil || appLock.shouldCover)
                     Button("Hızlı geçiş") { openSearch?() }
                         .keyboardShortcut("k", modifiers: .command)
-                        .disabled(openSearch == nil)
+                        .disabled(openSearch == nil || appLock.shouldCover)
                 }
                 CommandMenu("Git") {
                     Button("Bugüne git") { goToToday?() }
                         .keyboardShortcut("t", modifiers: .command)
-                        .disabled(goToToday == nil)
+                        .disabled(goToToday == nil || appLock.shouldCover)
                 }
             }
             MenuBarExtra {
@@ -91,6 +94,8 @@ struct JournalApp: App {
                 .environment(geofences)
                 .environment(notifications)
                 .environment(intentNavigation)
+                .environment(appLock)
+                .appLockShield(appLock)
             }
         #else
             mainWindow
@@ -105,12 +110,24 @@ struct JournalApp: App {
                 .environment(geofences)
                 .environment(notifications)
                 .environment(intentNavigation)
+                .environment(appLock)
+                .appLockShield(appLock)
                 #if os(macOS)
                     .background(MainWindowMarker())
                     .task { await desktop.start() }
                 #endif
         }
         .onChange(of: scenePhase, initial: true) { _, phase in
+            #if os(iOS)
+                if AppLaunchPolicy.allowsAutomaticStart() {
+                    switch phase {
+                    case .active: appLock.activate()
+                    case .inactive: appLock.resignActive(startTimeout: false)
+                    case .background: appLock.resignActive(startTimeout: true)
+                    @unknown default: appLock.resignActive(startTimeout: true)
+                    }
+                }
+            #endif
             if phase == .active && AppLaunchPolicy.allowsAutomaticStart() {
                 Task {
                     location.refreshAuthorization()

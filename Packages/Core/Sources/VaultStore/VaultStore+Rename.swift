@@ -20,7 +20,7 @@ extension VaultStore {
         let original = RawDocument(bytes: try Data(contentsOf: sourceURL))
         guard case .parsed(let frontmatter) = original.frontmatter,
             case .scalar(let type) = frontmatter.field(named: "type")?.value,
-            ["person", "place"].contains(type.text)
+            ["person", "place"].contains(type.text) || customDefinition(type.text) != nil
         else { throw VaultStoreError.staleTarget }
         let files = try markdownPaths()
         let newFiles = Set(files).subtracting(try index.files().map(\.path))

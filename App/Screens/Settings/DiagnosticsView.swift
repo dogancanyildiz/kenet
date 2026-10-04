@@ -9,6 +9,15 @@ struct DiagnosticsView: View {
     var body: some View {
         Form {
             AppLockSettingsView()
+            Section("Varlık tipleri") {
+                NavigationLink("Varlık tipleri") { EntityTypesSettingsView(store: store) }
+                if store.entityTypes.issue != nil {
+                    Text(
+                        "Varlık tipleri okunamıyor. Yalnız yerleşik tipler kullanılıyor. Kasadaki .app/types.json dosyasını kontrol et."
+                    )
+                    .foregroundStyle(.orange)
+                }
+            }
             PeopleInsightsSettingsView()
             CalendarSettingsView()
             LocationSettingsView()

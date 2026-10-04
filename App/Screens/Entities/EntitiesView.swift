@@ -13,11 +13,13 @@ struct EntitiesView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Picker("Varlık türü", selection: $kind) {
-                Text("Kişiler").tag("person")
-                Text("Konumlar").tag("place")
+            if store.entityTypes.issue != nil {
+                Text(
+                    "Varlık tipleri okunamıyor. Yalnız yerleşik tipler kullanılıyor. Kasadaki .app/types.json dosyasını kontrol et."
+                )
+                .font(.caption).foregroundStyle(.orange).padding()
             }
-            .pickerStyle(.segmented).padding()
+            EntityTypePicker(store: store, selection: $kind).padding()
             EntityListControls(order: $order, search: $search)
             List {
                 if kind == "person" { UnseenPeopleSection(store: store, people: entities) }
@@ -29,7 +31,7 @@ struct EntitiesView: View {
                 if !store.content.entities.contains(where: { $0.kind == kind }) {
                     ContentUnavailableView(
                         "Henüz varlık yok", systemImage: "person.2",
-                        description: Text("Kişiler ve konumlar burada görünecek."))
+                        description: Text("Bu tipteki varlıklar burada görünecek."))
                 }
             }
         }

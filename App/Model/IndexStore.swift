@@ -39,6 +39,7 @@ final class IndexStore {
     private(set) var vaultURL: URL?
     private(set) var content = VaultReadModel.empty
     private(set) var knownEntities: [KnownEntity] = []
+    private(set) var entityTypes = EntityTypeCatalog()
     private(set) var nearbyPlaces: [NearbyPlace] = []
     private(set) var mapPlaces: [MapPlace] = []
     private(set) var entityUsage: [EntityUsage] = []
@@ -308,9 +309,19 @@ final class IndexStore {
         }
     }
 
+    func saveEntityType(_ type: EntityTypeDefinition, replacing expected: EntityTypeDefinition?) async throws {
+        try await performEdit(path: ".app/types.json") { try await $0.savingEntityType(type, replacing: expected) }
+    }
+
+    func deleteEntityType(_ type: EntityTypeDefinition) async throws {
+        try await performEdit(path: ".app/types.json") { try await $0.deletingEntityType(type) }
+    }
+
     private func reloadRecognition() async throws {
         guard let index else { return }
-        let values = try await Task.detached { (try index.knownEntities(), try index.entityUsage()) }.value
+        if let writer { entityTypes = await writer.entityTypes() }
+        let kinds = Set(entityTypes.allTypes.map(\.id))
+        let values = try await Task.detached { (try index.knownEntities(kinds: kinds), try index.entityUsage()) }.value
         knownEntities = values.0
         entityUsage = values.1
         var places: [NearbyPlace] = []
@@ -364,7 +375,7 @@ final class IndexStore {
             pendingRebuild = true
         }
         let entity = KnownEntity(
-            file: path, kind: kind == .person ? .person : .place, name: name, qualifier: qualifier)
+            file: path, kind: KnownEntity.Kind(rawValue: kind.rawValue)!, name: name, qualifier: qualifier)
         knownEntities.append(entity)
         do {
             try await reloadRecognition()
@@ -404,6 +415,7 @@ final class IndexStore {
             notice = String(localized: "Kasa sürümü okunamıyor veya desteklenmiyor. Kasa salt okunur açıldı.")
         }
         knownEntities = []
+        entityTypes = EntityTypeCatalog()
         nearbyPlaces = []
         mapPlaces = []
         entityUsage = []

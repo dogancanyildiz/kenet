@@ -17,6 +17,7 @@ public struct VaultIndex: Sendable {
     @discardableResult
     public func rebuild(vaultRoot: URL) throws -> RebuildResult {
         try validate(vaultRoot: vaultRoot)
+        let customKinds = Set(EntityTypeReader.read(vaultRoot: vaultRoot).types.map(\.id))
         return try database.write { db in
             for table in ["search", "links", "goal_logs", "aliases", "entities", "blocks", "files"] {
                 try db.execute(sql: "DELETE FROM " + table)
@@ -37,7 +38,7 @@ public struct VaultIndex: Sendable {
                 try IndexBuilder.insert(
                     file: file.path, data: data, document: document,
                     modified: metadata.contentModificationDate?.timeIntervalSince1970 ?? 0,
-                    db: db, owners: &owners)
+                    db: db, owners: &owners, customKinds: customKinds)
                 if document.isValidUTF8 {
                     try IndexBuilder.insertLinks(document: document, file: file.path, db: db)
                 }
@@ -54,6 +55,10 @@ public struct VaultIndex: Sendable {
                     sql: "UPDATE links SET resolvedFile=? WHERE file=? AND ordinal=?",
                     arguments: [resolved, file, ordinal])
             }
+            try db.execute(sql: "DELETE FROM entity_type_state")
+            try db.execute(
+                sql: "INSERT INTO entity_type_state VALUES (?)",
+                arguments: [customKinds.sorted().joined(separator: "\n")])
             return scan.result
         }
     }

@@ -82,6 +82,10 @@ Filtre: kişi, konum, proje. Aynı gündeki görevler yüksek, orta, normal, dü
 5. Serbest notlar
 6. Konumda ek olarak harita ve koordinat (4)
 
+Kişiler ve Konumlar ekranının üstteki tip seçicisi kişi/konuma ek olarak kasanın özel tiplerini gösterir. Sekme adı ve Mac kenar çubuğu değişmez. Özel varlık sayfası tanımın text/date/number/boolean/link alanlarına uygun düzenleyiciler, bilinmeyen alanlar, görevler, günlük zaman akışı ve serbest notları sunar; kişi/konum Graph ve görüşme kartı yalnız yerleşik tiplerde kalır. @ önerileri özel tipleri de içerir; bilinmeyen adın oluşturma menüsünde tanımlı tipler bulunur.
+
+Ayarlar → Varlık tipleri listesinde yerleşik tipler salt okunur, özel tipler oluşturulabilir/düzenlenebilir/silinebilir. Form id, tr/en tekil/çoğul ad, klasör, SF Symbol, alanlar ve isteğe bağlı şablon yolunu içerir. Tip id'si düzenlemede sabittir. Bozuk types.json uyarı verir ve üzerine yazılmaz; dışarıda onarılması gerekir. Silme onayı yalnız tanımı kaldırır, varlık dosyalarını korur.
+
 ### Kişi ve konum içgörüleri (6)
 
 Varlık sayfasının üstünde Son görüşme / Son ziyaret kartı bulunur. Hesap mevcut zaman akışıyla aynı kapsamı kullanır: gün dosyalarındaki olaylar ve Journal paragraflarının çözülen bağlantıları. Görev, frontmatter, serbest not ve gelecek tarihli geçişler görüşme sayılmaz. Kart, günlük kaydının görüşme kanıtı olmadığını nötr biçimde belirtir. Son ve ilk geçiş tarihleri, son günün varlığa bağlı metinleri (dokunulabilir bağlantıları korunarak), o gün bütün olay/Journal yazılarında geçen diğer kişi ve konumlar gösterilir; aynı olayda karşılaşma çıkarımı yapılmaz.

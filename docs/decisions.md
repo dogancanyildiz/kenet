@@ -6,6 +6,7 @@ Verilen her karar tek satır olarak eklenir. Açık sorular kapandığında altt
 
 | Tarih | Karar | Gerekçe |
 |---|---|---|
+| 2026-10-04 | Özel varlık tipleri isteğe bağlı .app/types.json sürüm 1 ile tanımlanır; kişi/konum sekmesi ve Mac kenar çubuğu değişmeden listelerde tip seçici genişler; şirket şema paketi eklenmez | Markdown/frontmatter türü kaynak kalır; JSON bozuksa yerleşik tipler ve uyarı gösterilir, tip silme dosyaları silmez; indeks şeması 5 tip id imzasını dosyadan yeniden üretir |
 | 2026-10-04 | Uygulama kilidi cihazda saklanan tercihle LocalAuthentication deviceOwnerAuthentication kullanır; arka planda pencereler ve sayfalar örtülür, süre dolunca ve ilk açılışta doğrulama gerekir; Mac hızlı giriş de kilidi denetler | Face ID/Touch ID yoksa cihaz parolası kullanılır; App Intents kilitten bağımsız yazabilir, bildirim içeriğinin gizliliği sistem ayarındadır; kasa şifrelenmez ve entitlements değişmez |
 | 2026-10-04 | Var olan kasa yerinde hazırlanır; kök/daily günleri taşınmaz, eksik kişi/konum type alanları ayrı onayla eklenir | Obsidian düzeni ve hedef dışındaki baytlar korunur; Atla yalnız indeksler, yeni yapı dosyaları mevcut dosyayı değiştirmeden oluşturulur |
 | 2026-10-04 | Zaman çizelgesi tarihleri gün ızgarasına kaydırır; çift tarih iki mevcut yazıcıyla, ilk yazımdan yeniden ayrıştırılan hedefle kaydedilir | Kasa formatı değişmez; başlangıçsız iş tek gün, bitişsiz iş açık uçludur; ters aralık reddi ve kısmi kayıt bildirimi dosya/indeks farkını gizlemez |

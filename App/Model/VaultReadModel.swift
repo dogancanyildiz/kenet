@@ -49,7 +49,7 @@ struct VaultReadModel: Sendable {
         }
         let aliases = Dictionary(grouping: snapshot.aliases, by: \.file)
         let incoming = Dictionary(grouping: snapshot.links.compactMap(\.resolvedFile), by: { $0 })
-        entities = snapshot.entities.filter { ["person", "place"].contains($0.kind) }.map { entity in
+        entities = snapshot.entities.filter { $0.kind != "goal" }.map { entity in
             EntitySummary(
                 id: entity.file, kind: entity.kind, name: entity.name, qualifier: entity.qualifier,
                 aliases: (aliases[entity.file] ?? []).sorted { $0.ordinal < $1.ordinal }.map(\.name),
@@ -60,7 +60,8 @@ struct VaultReadModel: Sendable {
             let qualifier = ($0.qualifier ?? "").localizedStandardCompare($1.qualifier ?? "")
             return qualifier == .orderedSame ? $0.id < $1.id : qualifier == .orderedAscending
         }
-        graphInput = GraphInput(snapshot: snapshot, entities: entities)
+        graphInput = GraphInput(
+            snapshot: snapshot, entities: entities.filter { ["person", "place"].contains($0.kind) })
         days = snapshot.files.compactMap { file in
             guard file.kind == "day", let value = file.date, let date = CalendarDate(value) else { return nil }
             let rows = (blocks[file.path] ?? []).sorted { $0.ordinal < $1.ordinal }

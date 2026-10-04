@@ -27,11 +27,19 @@ public enum VaultStoreError: Error, Sendable, Equatable {
 }
 
 /// The entity kinds supported by the store.
-public enum VaultEntityKind: String, Sendable {
+public enum VaultEntityKind: Hashable, Sendable {
     /// A person stored under people/.
     case person
     /// A place stored under places/.
     case place
 
-    var directory: String { self == .person ? "people" : "places" }
+    case custom(String)
+
+    public var rawValue: String {
+        switch self {
+        case .person: "person"
+        case .place: "place"
+        case .custom(let id): id
+        }
+    }
 }

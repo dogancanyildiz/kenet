@@ -26,10 +26,10 @@ struct EntityView: View {
 
     var body: some View {
         Form {
-            Section {
-                NavigationLink("Graph'ta göster") { GraphView(store: store, focus: model.path) }
+            if ["person", "place"].contains(current.kind) {
+                Section { NavigationLink("Graph'ta göster") { GraphView(store: store, focus: model.path) } }
+                EntityInsightsCard(store: store, entity: current)
             }
-            EntityInsightsCard(store: store, entity: current)
             Section("Varlık") {
                 LabeledContent("Ad") { Text(verbatim: current.name) }
                 if let qualifier = current.qualifier { LabeledContent("Ayırt edici") { Text(verbatim: qualifier) } }
@@ -56,7 +56,17 @@ struct EntityView: View {
                     }
                 }
                 Section("Alanlar") {
-                    ForEach(model.fields) { field in
+                    let definitions = store.entityTypes.types.first { $0.id == current.kind }?.fields ?? []
+                    ForEach(definitions, id: \.key) { definition in
+                        let value = model.fields.first { $0.key == definition.key }
+                        if EntityTypedField.supports(value?.value, kind: definition.kind) {
+                            EntityTypedFieldEditor(definition: definition, value: value?.value, model: model)
+                                .id(definition.key + String(describing: value?.value))
+                        } else if let value {
+                            EntityFieldEditor(field: value, model: model).id(value.value)
+                        }
+                    }
+                    ForEach(model.fields.filter { field in !definitions.contains { $0.key == field.key } }) { field in
                         EntityFieldEditor(field: field, model: model).id(field.value)
                     }
                     VStack(alignment: .leading) {

@@ -3,12 +3,13 @@ import VaultFormat
 import VaultIndex
 
 enum SearchGroup: String, CaseIterable, Identifiable {
-    case people, places, events, tasks, notes
+    case people, places, entities, events, tasks, notes
     var id: String { rawValue }
     var title: String {
         switch self {
         case .people: String(localized: "Kişiler")
         case .places: String(localized: "Konumlar")
+        case .entities: String(localized: "Varlıklar")
         case .events: String(localized: "Olaylar")
         case .tasks: String(localized: "Görevler")
         case .notes: String(localized: "Notlar")
@@ -48,14 +49,15 @@ enum SearchResults {
                 entity.aliases.first { comparisonKey($0).hasPrefix(key) }
                 ?? matches.first { $0.file == entity.id && $0.block == nil && $0.text != entity.name }?.text
             return SearchItem(
-                id: "entity:" + entity.id, group: entity.kind == "person" ? .people : .places,
+                id: "entity:" + entity.id,
+                group: entity.kind == "person" ? .people : entity.kind == "place" ? .places : .entities,
                 title: entity.name,
                 detail: [entity.qualifier, alias, entity.id].compactMap { $0 }.joined(separator: " · "),
                 destination: .entity(entity.id))
         }
         var seen = Set<String>()
         let blocks = matches.compactMap { match -> SearchItem? in
-            if match.block == nil && (match.fileKind == "person" || match.fileKind == "place") { return nil }
+            if match.block == nil && entities.contains(where: { $0.id == match.file }) { return nil }
             let id = match.file + ":" + (match.block.map(String.init) ?? "name")
             guard seen.insert(id).inserted else { return nil }
             let group: SearchGroup = match.blockKind == "event" ? .events : match.blockKind == "task" ? .tasks : .notes

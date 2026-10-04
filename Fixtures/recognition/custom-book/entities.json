@@ -1,0 +1,13 @@
+{
+  "entities": [
+    {
+      "file": "books/Cam Ormanı.md",
+      "kind": "book",
+      "name": "Cam Ormanı",
+      "qualifier": null,
+      "aliases": [
+        "Orman"
+      ]
+    }
+  ]
+}

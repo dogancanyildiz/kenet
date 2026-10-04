@@ -1,5 +1,6 @@
 import Foundation
 import VaultFormat
+import VaultIndex
 
 extension VaultStore {
     /// Creates a person or place from its compatible template, then indexes the new file.
@@ -16,8 +17,15 @@ extension VaultStore {
             let stem = cleanName + (cleanQualifier.map { " (" + $0 + ")" } ?? "")
             guard (stem + ".md").utf8.count <= 255 else { throw VaultStoreError.invalidName }
             guard try !self.filenameIsTaken(stem) else { throw VaultStoreError.nameTaken }
-            let path = kind.directory + "/" + stem + ".md"
-            var document = try self.template(for: kind)
+            let definition: EntityTypeDefinition
+            if case .custom(let id) = kind {
+                guard let value = self.customDefinition(id) else { throw EntityTypeError.unknownType }
+                definition = value
+            } else {
+                definition = EntityTypeDefinition.builtIns.first { $0.id == kind.rawValue }!
+            }
+            let path = definition.folder + "/" + stem + ".md"
+            var document = try self.template(for: kind, definition: definition)
             document = try document.settingFrontmatterValue(.text(name), forKey: "name")
             if let qualifier { document = try document.settingFrontmatterValue(.text(qualifier), forKey: "qualifier") }
             if let aliases {
@@ -30,13 +38,26 @@ extension VaultStore {
         }
     }
 
-    private nonisolated func template(for kind: VaultEntityKind) throws -> RawDocument {
-        let url = try checkedURL("templates/" + kind.rawValue + ".md")
+    nonisolated func customDefinition(_ id: String) -> EntityTypeDefinition? {
+        EntityTypeReader.read(vaultRoot: root).types.first { $0.id == id }
+    }
+
+    private nonisolated func template(for kind: VaultEntityKind, definition: EntityTypeDefinition) throws -> RawDocument
+    {
+        if case .custom = kind, definition.template == nil {
+            return try RawDocument(bytes: []).settingFrontmatterValue(.text(kind.rawValue), forKey: "type")
+        }
+        let path = definition.template ?? "templates/" + kind.rawValue + ".md"
+        let url = try checkedURL(path)
         let document: RawDocument
         do {
             document = RawDocument(bytes: try Data(contentsOf: url))
         } catch CocoaError.fileReadNoSuchFile {
             return try RawDocument(bytes: []).settingFrontmatterValue(.text(kind.rawValue), forKey: "type")
+        }
+        if case .custom = kind {
+            guard !document.isReadOnly, document.frontmatter != .unreadable else { throw EntityTypeError.invalidFile }
+            return try document.settingFrontmatterValue(.text(kind.rawValue), forKey: "type")
         }
         if case .parsed(let frontmatter) = document.frontmatter,
             case .scalar(let value) = frontmatter.field(named: "type")?.value,

@@ -5,17 +5,19 @@ struct TasksView: View {
     let store: IndexStore
     let notificationRequest: UUID?
     let onKanbanSelected: (() -> Void)?
+    let onTimelineSelected: (() -> Void)?
     @Binding var selection: String?
     @State private var pendingNotificationScroll: UUID?
     @State private var model: TasksModel
 
     init(
         store: IndexStore, selection: Binding<String?> = .constant(nil), notificationRequest: UUID? = nil,
-        tasks: TasksModel? = nil, onKanbanSelected: (() -> Void)? = nil
+        tasks: TasksModel? = nil, onKanbanSelected: (() -> Void)? = nil, onTimelineSelected: (() -> Void)? = nil
     ) {
         self.store = store
         self.notificationRequest = notificationRequest
         self.onKanbanSelected = onKanbanSelected
+        self.onTimelineSelected = onTimelineSelected
         _selection = selection
         _model = State(initialValue: tasks ?? TasksModel(store: store))
     }
@@ -29,6 +31,7 @@ struct TasksView: View {
                     Text("Tamamlanan").tag(TasksModel.Section.completed)
                     Text("Projeler").tag(TasksModel.Section.projects)
                     Text("Kanban").tag(TasksModel.Section.kanban)
+                    Text("Zaman çizelgesi").tag(TasksModel.Section.timeline)
                 }.pickerStyle(.menu).frame(maxWidth: .infinity, alignment: .leading).padding()
                 if model.hasFilters {
                     HStack {
@@ -45,11 +48,13 @@ struct TasksView: View {
                 }
                 if model.section == .kanban {
                     KanbanView(tasks: model)
+                } else if model.section == .timeline {
+                    TaskTimelineView(tasks: model)
                 } else {
                     List(selection: $selection) {
                         if let error = model.errorText { Text(verbatim: error).foregroundStyle(.red) }
                         switch model.section {
-                        case .kanban: EmptyView()
+                        case .kanban, .timeline: EmptyView()
                         case .projects:
                             ForEach(model.projects, id: \.self) { project in
                                 NavigationLink {
@@ -89,6 +94,7 @@ struct TasksView: View {
             }
             .onChange(of: model.section) { _, section in
                 if section == .kanban { onKanbanSelected?() }
+                if section == .timeline { onTimelineSelected?() }
             }
             .onChange(of: notificationRequest, initial: true) { _, request in
                 guard request != nil else { return }

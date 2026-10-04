@@ -8,6 +8,11 @@ struct TaskDetailView: View {
     var body: some View {
         Form {
             Section("Görev") { LinkedTextView(text: row.text, store: store) }
+            if let date = row.start {
+                LabeledContent("Başlangıç tarihi") {
+                    Text(LocalDay.instant(for: date), format: .dateTime.day().month().year())
+                }
+            }
             if let date = row.due {
                 LabeledContent("Bitiş tarihi") {
                     Text(LocalDay.instant(for: date), format: .dateTime.day().month().year())

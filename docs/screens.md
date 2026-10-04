@@ -55,7 +55,7 @@ Bölümler:
 - **Tamamlanan:** Son tamamlananlar.
 - **Projeler (5):** Etiketlerden türetilen liste ve açık görev sayısı. Proje sayfasında açık görevler bitiş gününe göre gruplu, tarihsizler ayrı; tamamlananlar, görevlerdeki kişi/konumlar ve son etkinlik (gün dosyası veya tamamlanma tarihinin en yenisi) bulunur. Planlanan başlangıç/bitiş tarihi etkinlik sayılmaz.
 - **Kanban (5):** Durum, proje veya kişi sütunları. İptal edilenler seçenekle açılır; tamamlanan görevler son 30 takvim günüyle sınırlıdır (bugün dahil, tarihsiz/future tamamlanmalar dışarıda). Kişi/konum/proje filtreleri ortak kullanılır. Birden çok çözülen kişiye bağlı görev her kişi sütununda görünür; kişisiz ve projesiz sütunlar vardır. Kartlar bitiş tarihi (tarihsiz en son), öncelik, metin ve eşitlerde kimlik sırasındadır; dosya sırası değişmez. Bilinmeyen açık durumlar Yapılacak sütununda korunur. Telefonda yatay kaydırmalı sütunlar, kart menüsünden taşıma ve ayrıntı sheet'i; Mac'te sürükle bırak ve sağ ayrıntı paneli. Durum/proje taşıması mevcut dosya yazıcılarını kullanır; kişi sütunları bağlantı metnini değiştirmez ve taşıma kabul etmez. Tarih kart menüsündeki seçiciden değişir.
-- **Zaman çizelgesi (5):** Telefonda sade sürüm; asıl kullanım Mac'te.
+- **Zaman çizelgesi (5):** Ortak kişi/konum/proje filtreleriyle tarihli görevler; Mac'te proje (varsayılan), kişi veya gruplamasız satırlar, açılır/kapanır gruplar ve hafta/ay/çeyrek ölçeği. Çok kişili görev kişi gruplarında tekrarlanır. Başlangıç-bitiş çubuk, yalnız bitiş tek günlük elmas, yalnız başlangıç bugüne kadar açık uçlu (gelecekteki başlangıç tek noktadan başlar); tarihsizler ayrı listededir. Tamamlananlar soluk, iptaller gizli, geciken bitişler vurguludur. Dışarıda yazılmış ters aralık kaynakta korunur, uyarıyla gösterilir; yeni değişiklikler ters aralık üretmez. Varsayılan aralık bugün -4 hafta / +12 hafta; eksen ±365 gün, Bugün düğmesi ve hafta sonu gölgesi vardır. Telefonda hafta/ay başlıkları ve küçük çubuklu dikey liste, dönem düğmeleri ve tarih menüsü bulunur; sürükleme yoktur.
 
 Filtre: kişi, konum, proje. Aynı gündeki görevler yüksek, orta, normal, düşük öncelik sırasındadır; eşitlerde dosya/satır sırası korunur. Görev satırında öncelik ve tekrar rozeti vardır; düzenleme menüsünden Tekrar ve Öncelik seçilir. Tekrar seçicisinde aralık, haftanın günü ve tamamlanma gününden hesaplama bulunur.
 
@@ -90,10 +90,10 @@ Telefonda okuma ve basit düzenleme. Aramadan ve bağlantılardan ulaşılır; a
 
 ## Mac
 
-- Görevler altında Kanban ve proje adları yer alır. Kanban liste sütununu kullanmadan kenar çubuğunun yanına açılır; seçili kart sağ ayrıntı panelinde gösterilir.
+- Görevler altında Kanban, Zaman çizelgesi ve proje adları yer alır. Kanban liste sütununu kullanmadan kenar çubuğunun yanına açılır; seçili kart sağ ayrıntı panelinde gösterilir.
 - **Kenar çubuğu:** Bugün, Günlük, Görevler, Kişiler, Konumlar, Hedefler, Notlar.
 - **Çok sütunlu düzen:** Solda liste, ortada seçili öğe. Örneğin kişi listesi ve seçili kişinin sayfası yan yana.
-- **Kanban (5)** tam genişlikte; sürükle bırak ile durum ve proje değişir, tarih kart menüsünden değiştirilir. **Zaman çizelgesi (5)** için tarih sürükle bırak ayrı aşama maddesidir.
+- **Kanban (5)** tam genişlikte; sürükle bırak ile durum ve proje değişir, tarih kart menüsünden değiştirilir. **Zaman çizelgesi (5)** aynı geniş alanda tarih taşımayı ve uç sürükleyerek uzatma/kısaltmayı destekler. Gün ızgarasına yapışır; çubukta tarih alanları aynı farkla kayar, uç yalnız ilgili alanı değiştirir. Sürükleme başlangıcındaki görev ve kasa doğrulanır. İki tarih mevcut yazıcıyla iki kez yazılır; ikinci yazma ilkinden dönen görev hedefini kullanır. Yazma sırasında geçici çubuk konumu, hata/başarı sonrası dosya yenilemesi vardır; kısmi yazma bildirimi otomatik tekrar göndermez. Ayrıntı sağ panelde açılır.
 - **Hızlı giriş penceresi (1):** Sistem genelinde klavye kısayoluyla açılan küçük pencere; telefondaki hızlı giriş kutusuyla aynı davranış. Uygulama öne gelmeden kayıt yapılır.
 - **Notlar:** Serbest notlar için düzenleme alanı.
 - Klavye kısayolları: arama ve hızlı geçiş, yeni olay, yeni görev, bugüne git.

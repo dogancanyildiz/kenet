@@ -2,7 +2,7 @@
 
 Kişiler, konumlar ve olaylar etrafında dönen; görevleri, hedefleri ve alışkanlık zincirlerini tek yerde toplayan kişisel günlük uygulaması. iPhone ve Mac için SwiftUI ile yazılır. Veriler Obsidian uyumlu düz Markdown dosyalarında durur.
 
-**Durum:** Aşama 0–4 tamamlandı (widget'lar ve iCloud kimlik kararını bekliyor); Aşama 5 (proje görünümleri) sürüyor. iCloud senkronu kimlik kararını bekliyor.
+**Durum:** Aşama 0–5 tamamlandı (widget'lar ve iCloud kimlik kararını bekliyor); Aşama 6 (geri bildirim) sürüyor. iCloud senkronu kimlik kararını bekliyor.
 
 ## Kurulum
 

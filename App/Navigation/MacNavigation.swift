@@ -8,6 +8,7 @@
         @Environment(IntentNavigation.self) private var intentNavigation
         @Environment(NotificationService.self) private var notifications
         @State private var showingKanban = false
+        @State private var showingTimeline = false
         @State private var kanbanTasks: TasksModel
         @State private var detailPath = NavigationPath()
         @State private var section: DesktopSection? = .today
@@ -28,13 +29,16 @@
 
         var body: some View {
             Group {
-                if section == .tasks && showingKanban {
+                if section == .tasks && (showingKanban || showingTimeline) {
                     NavigationSplitView {
                         sidebar
                     } detail: {
-                        KanbanView(tasks: kanbanTasks, showsFilters: true) { path in
-                            selectedDay = path
-                            section = .days
+                        Group {
+                            if showingTimeline {
+                                TaskTimelineView(tasks: kanbanTasks, showsFilters: true, openDay: openTaskDay)
+                            } else {
+                                KanbanView(tasks: kanbanTasks, showsFilters: true, openDay: openTaskDay)
+                            }
                         }.toolbar { SearchButton() }
                     }
                 } else {
@@ -48,6 +52,7 @@
                 selectedTask = nil
                 selectedProject = nil
                 showingKanban = false
+                showingTimeline = false
                 selectedGoal = nil
                 section = .today
             }
@@ -56,6 +61,7 @@
                 detailPath = NavigationPath()
                 selectedProject = nil
                 showingKanban = false
+                showingTimeline = false
                 selectedTask = nil
                 selectedDay = nil
                 section = request.destination == .tasks ? .tasks : .today
@@ -64,6 +70,7 @@
                 selectedTask = nil
                 selectedProject = nil
                 showingKanban = false
+                showingTimeline = false
                 kanbanTasks.clearFilters()
                 selectedGoal = nil
             }
@@ -71,6 +78,7 @@
                 if value != .tasks {
                     selectedProject = nil
                     showingKanban = false
+                    showingTimeline = false
                 }
             }
             .onChange(of: selectedDay) { _, value in
@@ -93,6 +101,7 @@
                                 if item == .tasks {
                                     selectedProject = nil
                                     showingKanban = false
+                                    showingTimeline = false
                                     kanbanTasks.section = .upcoming
                                 }
                             })
@@ -102,13 +111,24 @@
                             selectedProject = nil
                             selectedTask = nil
                             showingKanban = true
+                            showingTimeline = false
                         } label: {
                             Label("Kanban", systemImage: "rectangle.split.3x1")
                         }
                         .buttonStyle(.plain).padding(.leading)
+                        Button {
+                            section = .tasks
+                            selectedProject = nil
+                            selectedTask = nil
+                            showingKanban = false
+                            showingTimeline = true
+                        } label: {
+                            Label("Zaman çizelgesi", systemImage: "chart.bar.xaxis")
+                        }.buttonStyle(.plain).padding(.leading)
                         ForEach(store.content.projects, id: \.self) { project in
                             Button {
                                 showingKanban = false
+                                showingTimeline = false
                                 section = .tasks
                                 selectedTask = nil
                                 selectedProject = project
@@ -146,7 +166,15 @@
                             store: store, selection: $selectedTask,
                             notificationRequest: notifications.navigationRequest?.destination == .tasks
                                 ? notifications.navigationRequest?.id : nil,
-                            tasks: kanbanTasks, onKanbanSelected: { showingKanban = true })
+                            tasks: kanbanTasks,
+                            onKanbanSelected: {
+                                showingKanban = true
+                                showingTimeline = false
+                            },
+                            onTimelineSelected: {
+                                showingTimeline = true
+                                showingKanban = false
+                            })
                     }
                 case .goals:
                     GoalsView(store: store, selection: $selectedGoal)
@@ -213,6 +241,11 @@
                 }
                 .id(section)
             }
+        }
+
+        private func openTaskDay(_ path: String) {
+            selectedDay = path
+            section = .days
         }
 
         private var entitySelection: Binding<String?> {

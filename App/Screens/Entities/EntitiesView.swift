@@ -34,7 +34,19 @@ struct EntitiesView: View {
             }
         }
         .navigationTitle("Kişiler ve Konumlar")
-        .toolbar { SearchButton() }
+        .toolbar {
+            SearchButton()
+            NavigationLink {
+                GraphView(store: store)
+            } label: {
+                Label("Graph", systemImage: "point.3.connected.trianglepath.dotted")
+            }
+            NavigationLink {
+                PlacesMapView(store: store)
+            } label: {
+                Label("Harita", systemImage: "map")
+            }
+        }
         .navigationDestination(for: EntitySummary.self) { entity in
             EntityView(store: store, entity: entity)
         }

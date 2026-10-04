@@ -29,11 +29,19 @@
 
         var body: some View {
             Group {
-                if section == .summaries {
+                if section == .summaries || section == .graph || section == .map {
                     NavigationSplitView {
                         sidebar
                     } detail: {
-                        NavigationStack { SummariesView(store: store) }
+                        NavigationStack {
+                            if section == .graph {
+                                GraphView(store: store)
+                            } else if section == .map {
+                                PlacesMapView(store: store)
+                            } else {
+                                SummariesView(store: store)
+                            }
+                        }
                     }
                 } else if section == .tasks && (showingKanban || showingTimeline) {
                     NavigationSplitView {
@@ -183,7 +191,7 @@
                                 showingKanban = false
                             })
                     }
-                case .summaries: EmptyView()
+                case .summaries, .graph, .map: EmptyView()
                 case .goals:
                     GoalsView(store: store, selection: $selectedGoal)
                 case .people, .places:
@@ -230,7 +238,7 @@
                             ContentUnavailableView("Bir görev seç", systemImage: "checklist")
                                 .toolbar { SearchButton() }
                         }
-                    case .summaries: EmptyView()
+                    case .summaries, .graph, .map: EmptyView()
                     case .goals:
                         if let goal = store.content.goals.first(where: { $0.id == selectedGoal }) {
                             GoalDetailView(store: store, goal: goal).id(goal.id + (store.vaultURL?.path ?? ""))
@@ -286,7 +294,7 @@
     }
 
     private enum DesktopSection: String, CaseIterable, Identifiable {
-        case today, days, tasks, people, places, goals, summaries, notes
+        case today, days, tasks, people, places, goals, summaries, graph, map, notes
         var id: Self { self }
 
         var title: LocalizedStringKey {
@@ -298,6 +306,8 @@
             case .places: "Konumlar"
             case .goals: "Hedefler"
             case .summaries: "Özetler"
+            case .graph: "Graph"
+            case .map: "Harita"
             case .notes: "Notlar"
             }
         }
@@ -311,6 +321,8 @@
             case .places: "mappin.and.ellipse"
             case .goals: "target"
             case .summaries: "chart.bar"
+            case .graph: "point.3.connected.trianglepath.dotted"
+            case .map: "map"
             case .notes: "note.text"
             }
         }

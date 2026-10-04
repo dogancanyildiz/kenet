@@ -15,6 +15,7 @@ struct VaultReadModel: Sendable {
     var projects: [String] { VaultIndex.projectNames(tasks.compactMap(\.project)) }
     var days: [DaySummary] = []
     var entities: [EntitySummary] = []
+    var graphInput = GraphInput()
     var entityTimeline: [String: [EntityTimelineDay]] = [:]
 
     static let empty = VaultReadModel()
@@ -59,6 +60,7 @@ struct VaultReadModel: Sendable {
             let qualifier = ($0.qualifier ?? "").localizedStandardCompare($1.qualifier ?? "")
             return qualifier == .orderedSame ? $0.id < $1.id : qualifier == .orderedAscending
         }
+        graphInput = GraphInput(snapshot: snapshot, entities: entities)
         days = snapshot.files.compactMap { file in
             guard file.kind == "day", let value = file.date, let date = CalendarDate(value) else { return nil }
             let rows = (blocks[file.path] ?? []).sorted { $0.ordinal < $1.ordinal }

@@ -63,7 +63,8 @@ final class IndexStore {
     private(set) var unwatchedDirectoryCount = 0
     @ObservationIgnored private let location: VaultLocation
     @ObservationIgnored private let supportURL: URL
-    @ObservationIgnored private let update: @Sendable (VaultIndex, URL, Bool) async throws -> IndexUpdate
+    @ObservationIgnored private let update:
+        @Sendable (VaultIndex, URL, Bool, EntityTypeCatalog, Bool) async throws -> IndexUpdate
     @ObservationIgnored private let watcherDirectoryLimit: Int
     @ObservationIgnored private var index: VaultIndex?
     @ObservationIgnored private var writer: VaultStore?
@@ -71,12 +72,15 @@ final class IndexStore {
     @ObservationIgnored private var foreground = false
     @ObservationIgnored private var pendingRefresh = false
     @ObservationIgnored private var pendingRebuild = false
+    @ObservationIgnored private var refreshInFlight = false
     @ObservationIgnored private var generation = UUID()
 
     init(
         location: VaultLocation = VaultLocation(), supportURL: URL? = nil,
         watcherDirectoryLimit: Int = 256,
-        update: @escaping @Sendable (VaultIndex, URL, Bool) async throws -> IndexUpdate = IndexUpdate.read
+        update:
+            @escaping @Sendable (VaultIndex, URL, Bool, EntityTypeCatalog, Bool) async throws -> IndexUpdate =
+            IndexUpdate.read
     ) {
         self.location = location
         requiresOnboarding = location.needsFirstLaunch
@@ -148,7 +152,7 @@ final class IndexStore {
     }
 
     func select(_ url: URL) async {
-        if isProcessing {
+        if isProcessing || refreshInFlight {
             pendingSelection = url
             return
         }
@@ -403,6 +407,7 @@ final class IndexStore {
         let current = generation
         pendingRefresh = false
         pendingRebuild = false
+        refreshInFlight = false
         unwatchedDirectoryCount = 0
         vaultURL = url
         index = nil
@@ -471,20 +476,34 @@ final class IndexStore {
 
     func refresh(rebuild: Bool = false) async {
         guard let index, let root = vaultURL else { return }
-        if isProcessing {
+        if isProcessing || refreshInFlight {
             pendingRefresh = true
             pendingRebuild = pendingRebuild || rebuild
             return
         }
         let current = generation
-        isProcessing = true
+        refreshInFlight = true
         var full = rebuild
+        var published = false
+        // First load keeps the busy indicator up for the whole update.
+        if lastUpdated == nil {
+            isProcessing = true
+            published = true
+        }
         repeat {
             pendingRefresh = false
             pendingRebuild = false
             do {
-                let result = try await update(index, root, full)
-                guard generation == current else { break }
+                let result = try await update(index, root, full, entityTypes, lastUpdated != nil)
+                guard generation == current else { return }
+                if !result.hasChanges {
+                    full = pendingRebuild
+                    continue
+                }
+                if !published {
+                    isProcessing = true
+                    published = true
+                }
                 content = result.content
                 counts = result.counts
                 skippedPaths = result.skippedPaths
@@ -492,12 +511,17 @@ final class IndexStore {
                 lastUpdated = Date()
                 errorText = nil
             } catch {
+                if !published {
+                    isProcessing = true
+                    published = true
+                }
                 if generation == current { report(error) }
             }
             full = pendingRebuild
         } while pendingRefresh && pendingSelection == nil && generation == current
         guard generation == current else { return }
-        isProcessing = false
+        refreshInFlight = false
+        if published { isProcessing = false }
         await applyPendingSelection()
     }
 }

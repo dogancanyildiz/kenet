@@ -196,6 +196,51 @@ Her klasör `input/` altında küçük girdi kasasını, `expected/` altında ta
 
 Örnekler hedef çevresindeki boşluk, çapa, görünen metin, tablo `\|`, `.md` ve yol önekleri, gömme, kod koruması, BOM/CRLF ve sonlandırılmamış satır; scalar/liste/eşlem frontmatter bağlantıları ve YAML kaçışı; ham alan bildirimi; ayırt edici değişimi; aynı dosya adında yalnız metadata yazımı; indeks sonrası geçersiz UTF-8 kaynakta kısmi başarı davranışını kapsar. `list-2/3-grows/shrinks` örnekleri aynı satırda iç içe tırnak yazımlı iki/üç bağlantının uzayan ve kısalan adla doğru güncellenmesini; tırnaksız ve tırnaklı blok öğelerinin ve komşu değerlerin korunmasını sınar. `unrelated-fields`, BOM değerini, kaçışlı tırnağı, yorumları ve ham/eşlem/liste alanlarının hedef taşımadığında bayt bayt korunmasını doğrular.
 
+### `import/`
+
+Kasa hazırlama (var olan klasörü açma) örnekleri. Her klasör `before/` altında girdi kasasını, `expected/` altında hazırlama sonrası beklenen dosya ağacını ve `case.json` dosyasını taşır. Testi `Tests/JournalTests/VaultImportFixtureTests.swift` çalıştırır: `before/` geçici köke kopyalanır, tarama ve (isteğe bağlı) yazma uygulanır, rapor/sonuç `case.json` ile, dosya baytları `expected/` ile karşılaştırılır. Boş girdi `emptyBefore: true` ile işaretlenir (`before/` git'te boş kalamayacağı için).
+
+```json
+{
+  "options": { "folders": true, "settings": true, "types": true },
+  "apply": true,
+  "emptyBefore": false,
+  "report": {
+    "missingFolders": ["notes"],
+    "caseVariantFolders": ["Journal"],
+    "missingTemplates": ["templates/person.md"],
+    "needsSettings": true,
+    "canPrepare": true,
+    "markdownCount": 2,
+    "journalDays": [],
+    "externalDays": [],
+    "typed": { "person": 1 },
+    "candidates": [{ "path": "people/Deniz Arıkan.md", "kind": "person" }],
+    "skipped": ["people/Broken.md"]
+  },
+  "result": {
+    "created": ["notes/", "templates/person.md", ".app/vault.json"],
+    "typed": ["people/Deniz Arıkan.md"],
+    "skipped": ["people/Broken.md"],
+    "failures": []
+  },
+  "expectedDirectories": [".app", "Journal", "notes", "people", "templates"],
+  "generatedTemplates": { "templates/person.md": "person" }
+}
+```
+
+| Alan | Anlam |
+|---|---|
+| `options` | Yazıcıya verilen onay seçenekleri (`folders`, `settings`, `types`) |
+| `apply` | `false` ise yalnız tarama karşılaştırılır; yazılmaz |
+| `emptyBefore` | Girdi kasası boştur; `before/` kopyalanmaz |
+| `report` | `VaultImportScanner.inspect` özeti (klasörler, şablonlar, adaylar, atlananlar, gün yolları) |
+| `result` | `VaultImportWriter.apply` özeti (`created` sonunda `/` ile klasör) |
+| `expectedDirectories` | Hazırlama sonrası var olması gereken klasör adları (git boş klasör tutmadığı için) |
+| `generatedTemplates` | Yol → `person`/`place`; şablon baytları süreç diline bağlı olduğu için beklenen içerik `VaultImportBootstrap.template` ile üretilir (`expected/` ağaç eşitliği için yer tutucu dosya taşır) |
+
+Örnekler: boş klasör; yalnız gün dosyası olan Obsidian kasası (`.obsidian/` korunur, kök/`daily/` günleri taşınmaz); CRLF ve yorumlu `type` ekleme; zaten hazır kasa (bayt değişmez); harf farkı `Journal/` (eksik sayılmaz, `journal/` oluşturulmaz); okunamayan frontmatter (atlanır, dokunulmaz); desteklenmeyen `vault.json` sürümü (hazırlama yazılmaz).
+
 ### `dates/`
 
 `regression-inputs.md`, Aşama 8 tarih/miktar ve gelecek hafta günü düzeltmelerinin kurgusal ham girdilerini taşır; beklenen sonuçları `cases.json` içindedir.

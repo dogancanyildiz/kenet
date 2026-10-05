@@ -74,6 +74,8 @@ jobs:
         run: |
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
           sh .github/scripts/check-doc-locations.sh
+      - name: Sürüm akışı kuru koşusu
+        run: sh .github/scripts/test-release.sh
 
   # Dal korumasının zorunlu tuttuğu tek denetim. Yol filtresi yoktur; her PR'da koşar.
   ci:

@@ -42,5 +42,10 @@ struct DayRow: View {
                 Text(verbatim: preview).font(.subheadline).foregroundStyle(.secondary).lineLimit(1)
             }
         }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(
+            Text(
+                verbatim: VoiceOverCopy.dayRowLabel(
+                    date: day.date, eventCount: day.events.count, preview: day.preview)))
     }
 }

@@ -39,9 +39,16 @@
                     .offset(x: offset + (span.isMilestone ? max(0, (dayWidth - 12) / 2) : 2))
                     .contextMenu { TimelineTaskMenu(edit: edit) }
                     .help(dates.isValid ? Text(verbatim: row.text.plainText) : Text("Geçersiz tarih aralığı"))
-                    .accessibilityLabel(Text(verbatim: row.text.plainText))
-                    .overdueAccessibilityValue(presentation.showsOverdueCue)
+                    .accessibilityLabel(
+                        Text(
+                            verbatim: VoiceOverCopy.timelineBarLabel(
+                                text: row.text.plainText, start: dates.start, due: dates.due,
+                                isOverdue: presentation.showsOverdueCue))
+                    )
                     .accessibilityAction(named: Text("Ayrıntıları göster"), select)
+                    .accessibilityAction(named: Text(verbatim: VoiceOverCopy.changeDateActionName())) {
+                        edit(.due)
+                    }
                 }
             }.frame(width: width, height: 52).clipped()
                 .onDisappear { if !model.busy.contains(row.id) { model.preview(nil, for: row) } }

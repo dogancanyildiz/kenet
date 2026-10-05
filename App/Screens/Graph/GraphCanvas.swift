@@ -68,6 +68,17 @@ struct GraphCanvas: View {
                         return hypot(a.x - location.x, a.y - location.y) < hypot(b.x - location.x, b.y - location.y)
                     }?.id
             }
+            .accessibilityElement(children: .contain)
+            .accessibilityLabel("Graph")
+            .accessibilityChildren {
+                ForEach(GraphAccessibleNode.list(from: graph)) { node in
+                    Button {
+                        selected = node.id
+                    } label: {
+                        Text(verbatim: node.accessibilityLabel())
+                    }
+                }
+            }
             .gesture(
                 DragGesture().updating($drag) { value, state, _ in state = value.translation }
                     .onEnded {

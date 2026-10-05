@@ -25,7 +25,7 @@ struct KanbanColumnView: View {
     private var content: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                column.title.font(.headline)
+                column.title.font(.headline).accessibilityAddTraits(.isHeader)
                 Spacer()
                 Text(column.rows.count.formatted()).font(.caption).foregroundStyle(.secondary)
             }.padding(.horizontal, 12).padding(.top, 12)

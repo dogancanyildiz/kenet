@@ -107,7 +107,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Biçim ve lint
-        run: swift format lint --strict --recursive Packages App
+        run: swift format lint --strict --recursive Packages App Tests
       - name: Core içinde yasak import
         run: sh .github/scripts/check-core-imports.sh
       - name: Belgelerin yeri
@@ -115,6 +115,8 @@ jobs:
         run: |
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
           sh .github/scripts/check-doc-locations.sh
+      - name: Belge biçim denetimi
+        run: sh .github/scripts/check-docs.sh
       - name: Sürüm akışı kuru koşusu
         run: sh .github/scripts/test-release.sh
 

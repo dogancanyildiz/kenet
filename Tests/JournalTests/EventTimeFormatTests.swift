@@ -37,8 +37,9 @@ struct EventTimeFormatTests {
         let time = sampleTime
         let turkish = Locale(identifier: "tr_TR")
         let english = Locale(identifier: "en_US")
-        #expect(normalized(EventTimeFormat.string(for: time, locale: turkish)).hasPrefix("08:15")
-            || normalized(EventTimeFormat.string(for: time, locale: turkish)).hasPrefix("8:15"))
+        #expect(
+            normalized(EventTimeFormat.string(for: time, locale: turkish)).hasPrefix("08:15")
+                || normalized(EventTimeFormat.string(for: time, locale: turkish)).hasPrefix("8:15"))
         #expect(normalized(EventTimeFormat.string(for: time, locale: english)) == "8:15 AM")
     }
 

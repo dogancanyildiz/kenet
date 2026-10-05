@@ -51,6 +51,7 @@ Bunlar zevk değil, ürünün temel vaatleridir (veri kullanıcınındır, hiçb
 - Ayrıştırıcı ve yazıcı için her davranış `Fixtures/` altında bir örnek Markdown dosyası ve beklenen çıktı ile test edilir. Bu dosyalar dilden bağımsızdır ve ileride başka platformlarda yeniden kullanılır.
 - Gidiş dönüş testi zorunludur: bir dosya okunup hiçbir değişiklik yapılmadan yazıldığında birebir aynı kalmalıdır.
 - İndeks şeması değiştiğinde şema sürümü artırılır; eski indeks silinip dosyalardan yeniden kurulur, göç yazılmaz.
+- Belge biçim denetimleri (karar tablosu, README belge tablosu, String Catalog) CI'da koşar.
 
 ## Git kuralları
 

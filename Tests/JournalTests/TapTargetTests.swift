@@ -44,7 +44,8 @@ struct TapTargetTests {
         #expect(
             !Self.matches(
                 source,
-                #"Button\("[^"]+"(?:,\s*systemImage:\s*"[^"]+")?\)\s*\{[^}]*\}\s*\n(?:\s*\.[^\n]+\n)*\s*\.tapTarget\(\)"#),
+                #"Button\("[^"]+"(?:,\s*systemImage:\s*"[^"]+")?\)\s*\{[^}]*\}\s*\n(?:\s*\.[^\n]+\n)*\s*\.tapTarget\(\)"#
+            ),
             "\(path): .tapTarget() must sit on the label, not after Button(\"…\") { }")
         #expect(
             Self.tapTargetIsInsideLabel(source),

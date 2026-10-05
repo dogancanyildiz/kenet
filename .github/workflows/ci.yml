@@ -116,7 +116,10 @@ jobs:
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
           sh .github/scripts/check-doc-locations.sh
       - name: Belge biçim denetimi
-        run: sh .github/scripts/check-docs.sh
+        # swift:6.4 kabında python3 yoktur; denetim betiği onu kullanır.
+        run: |
+          apt-get update -q && apt-get install -y -q python3 >/dev/null
+          sh .github/scripts/check-docs.sh
       - name: Sürüm akışı kuru koşusu
         run: sh .github/scripts/test-release.sh
 

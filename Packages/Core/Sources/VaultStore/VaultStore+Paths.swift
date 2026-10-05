@@ -1,4 +1,5 @@
 import Foundation
+import VaultFormat
 
 extension VaultStore {
     nonisolated func checkedURL(_ path: String, writing: Bool = false) throws -> URL {
@@ -6,8 +7,14 @@ extension VaultStore {
         guard !parts.isEmpty, path.hasSuffix(".md"),
             parts.allSatisfy({ !$0.isEmpty && !$0.hasPrefix(".") })
         else { throw VaultStoreError.invalidPath }
-        if writing, ["templates", "conflicts"].contains(String(parts[0])) {
-            throw VaultStoreError.invalidPath
+        let folder = String(parts[0])
+        if writing {
+            if VaultLayout.standardFolders.contains(folder) {
+                try ensureReservedFolderCase(forCanonicalFolder: folder)
+            }
+            if ["templates", "conflicts"].contains(folder) {
+                throw VaultStoreError.invalidPath
+            }
         }
         var url = root
         for part in parts {

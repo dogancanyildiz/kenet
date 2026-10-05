@@ -36,9 +36,16 @@ enum RenameListTokens {
                 let bytes = document.lines[line].content
                 var cursor = 0
                 skipSpace(bytes, cursor: &cursor)
-                guard cursor + 1 < bytes.count, bytes[cursor] == 45, bytes[cursor + 1] == 32 else { continue }
-                cursor += 2
-                skipSpace(bytes, cursor: &cursor)
+                // A list item is a dash at end of line (empty value) or a dash followed by a space.
+                guard cursor < bytes.count, bytes[cursor] == 45 else { continue }
+                if cursor + 1 == bytes.count {
+                    cursor += 1
+                } else if bytes[cursor + 1] == 32 {
+                    cursor += 2
+                    skipSpace(bytes, cursor: &cursor)
+                } else {
+                    continue
+                }
                 guard result.count < items.count else { throw EditError.invalidValue }
                 let raw = items[result.count].raw.utf8
                 let range = cursor..<(cursor + raw.count)

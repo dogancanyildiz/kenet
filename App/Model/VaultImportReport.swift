@@ -9,6 +9,8 @@ struct VaultImportReport: Sendable {
     let root: URL
     var foundFolders: [String] = []
     var missingFolders: [String] = []
+    /// Reserved folders present under a different spelling (`Journal/` instead of `journal/`).
+    var caseVariantFolders: [String] = []
     var missingTemplates: [String] = []
     var markdownCount = 0
     var journalDays: [String] = []
@@ -19,7 +21,8 @@ struct VaultImportReport: Sendable {
     var needsSettings = false
     var canPrepare = true
     var needsPreparation: Bool {
-        !canPrepare || !missingFolders.isEmpty || !missingTemplates.isEmpty || needsSettings || !candidates.isEmpty
+        !canPrepare || !missingFolders.isEmpty || !missingTemplates.isEmpty || needsSettings
+            || !candidates.isEmpty || !caseVariantFolders.isEmpty
     }
 }
 struct VaultImportOptions: Sendable {

@@ -77,6 +77,11 @@ extension VaultStore {
                     updated.insert(destination)
                 }
                 failures += rewrite.rawFields.map { RenameFailure(path: destination, reason: .rawField($0)) }
+                failures += rewrite.listFailures.map {
+                    RenameFailure(
+                        path: destination,
+                        reason: .file("frontmatter list '\($0.key)': \($0.reason)"))
+                }
             } catch {
                 if candidates.contains(source) {
                     failures.append(RenameFailure(path: destination, reason: .file(String(describing: error))))

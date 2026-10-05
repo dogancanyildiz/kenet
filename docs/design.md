@@ -1,6 +1,6 @@
 # Tasarım dili
 
-**Durum:** heyet önerisi (2026-10-05, iki tur); kullanıcı onayı bekliyor. Onaylanınca karar `decisions.md` tablosuna yazılır. Uygulama `roadmap.md` Aşama 9'dadır. Bu belge yönü, kuralları ve belirteçleri tutar; ekranların içeriği `screens.md` belgesindedir.
+**Durum:** yön seçildi (2026-10-05): Mürekkep, proje sahibinin iki değişikliğiyle. Karar `decisions.md` tablosundadır; uygulama `roadmap.md` Aşama 9'dadır. Bu belge yönü, kuralları ve belirteçleri tutar; ekranların içeriği `screens.md` belgesindedir.
 
 ## Kısıtlar
 
@@ -42,11 +42,22 @@ Tablonun söyledikleri:
 - **Aile.** Üyeler adayları kendi gözleriyle ailelere ayırdı; beşi de ürüne uygun aile olarak kartsız, serif içerikli sayfayı gösterdi (platform bakışı sisteme en yakın, yalnız belirteçle kurulan aileyi de aynı derecede uygun buldu). Bento, pano ve cihaz paneli aileleri ürünü planlayıcı ya da takipçi kategorisine taşıdığı ve olayları ilk ekranın dışına ittiği için sonda kaldı.
 - **İki lider aynı iskelet.** Üç üye, birbirinden bağımsız, Derkenar'ı "Mürekkep ve üstüne iki imza" diye tarif etti. Derkenar bire bir karşılaştırmada her adayı yeniyor (Mürekkep'i 3–2); Mürekkep toplam puanda önde ve hiçbir üyenin sıralamasında dördüncüden aşağı düşmüyor. Derkenar'ı marka, günlük kullanım ve ürün ruhu bakışları birinci, erişilebilirlik ve platform bakışları sekizinci koydu.
 - **İlk turun adayları.** Günün Sayfası 6., A6 Matbaa 12., A5 Kor 14., Takvim Yaprağı 15. sırada. İtirazlar ortaktı: ters renkli büyük yüzey altından geçen sistem camını açık ile koyu arasında çeviriyor ve bir sheet'e benziyor; sistem dışı yazı ailesi Kalın Metin ayarına uymuyor; küçük, büyük harfli etiketler okunmuyor; bento ve hafta şeridi ilk ekranın üst yarısını alıyor. Günün Sayfası bu grubun en ölçülü üyesi sayıldı ve veto almadı.
-- **Model yakınlığı.** Jüri üyeleri üç modeldendi; aynı üç model kör turun on iki yönünden sekizini tasarlamıştı. Beş üyenin dördü, kökenini bilmeden, kendi modelinin tasarımını birinci koydu. Her üyenin kendi modelinden gelen adaylar sayımdan çıkarılınca Mürekkep'in sıraları 2, 4, 2; Derkenar'ın 8, 8, 1 oluyor. Öneri bu yüzden bire bir karşılaştırmanın galibi değil, bu düzeltmeden etkilenmeyen adaydır.
+- **Model yakınlığı.** Jüri üyeleri üç modeldendi; aynı üç model kör turun on iki yönünden sekizini tasarlamıştı. Beş üyenin dördü, kökenini bilmeden, kendi modelinin tasarımını birinci koydu. Her üyenin kendi modelinden gelen adaylar sayımdan çıkarılınca Mürekkep'in sıraları 2, 4, 2; Derkenar'ın 8, 8, 1 oluyor. Heyet bu yüzden bire bir karşılaştırmanın galibini değil, bu düzeltmeden etkilenmeyen adayı önerdi.
 
-## Öneri: Mürekkep
+## Seçilen yön: Mürekkep
 
 Tek cümle: kasadan gelen her söz serifle (New York), uygulamanın her sözü sans ile (SF Pro) yazılır; gün, kenar boşluğunda saatleri ve işaretleri duran tek bir sayfadır.
+
+### Sahibin değişiklikleri
+
+Sahip, heyetin önerdiği Mürekkep'i iki değişiklikle seçti; ikisi de makete çizildi.
+
+1. **Görev işareti köşeli kutudur, öncelik kutunun içindedir** (Derkenar'dan). Kutu 22 pt kare, köşe 5 pt. Boş kutu 1,5 pt kontrol çizgisi taşır; orta öncelikte içinde "!" durur; yüksek öncelikte çerçeve 2 pt ve metin rengindedir, içinde "!!" durur. Tamamlanan görevde kutu ikincil metin rengiyle dolar, içinde zemin renginde onay işareti durur. Kenar sütununda ayrı öncelik işareti kalmaz. Hedef işareti halka olarak kalır; böylece görev ile hedef biçimle de ayrışır.
+2. **Hızlı girişte kip iki sözcüktür** (Defter'den). "Olay" ve "Görev" yan yana durur; seçili olan yarı kalındır ve altında 2 pt vurgu çizgisi taşır. Ardından "Gününden bir an…" yer tutucusu ve gönder düğmesi gelir. Kapsül Mürekkep'teki gibi kalır.
+
+Derkenar'ın imzası (kenar çizgisi ve fosfor izi) eklenmedi; aşağıda ayrı başlıkta durur.
+
+Jürinin notu: üç üye (platform, günlük kullanım, marka) önceliğin onay kutusunun içine yazılmasına itiraz etmişti: tek denetime iki durum yüklenir ve kutu uyarı rozeti gibi okunabilir. Sahibin kararı geçerlidir; prototipte dokunma davranışıyla birlikte sınanır. Açık ayrıntı: devam eden görevde (kutu yarı dolu) öncelik işaretinin yeri.
 
 Neden:
 
@@ -66,12 +77,12 @@ Jürinin şartları:
 
 1. Bugün tek liste ve tek satır bileşenidir. Kenar sütununun genişliği yazı boyutuyla ölçeklenir; erişilebilirlik boyutlarında saat ve öncelik metnin üstüne iner.
 2. Bağlantı yalnız standart metin öznitelikleriyle çizilir ve okuma metninde, hızlı girişte yazarken ve Mac'te aynı görünür. Kontrastı Artır'da alt çizgi kalınlaşır. Kişi ve konum renkleri Graph ve Harita ile aynı belirteçten gelir.
-3. Hızlı girişte olay ve görev kipi görünür olur (makette yalnız bir simge var); artı ve gönder düğmelerinin dokunma alanı 44 pt'dir.
+3. Hızlı girişte olay ve görev kipi görünür olur (sahibin ikinci değişikliğiyle karşılandı); artı ve gönder düğmelerinin ve kip sözcüklerinin dokunma alanı 44 pt'dir.
 4. Manşet bloğu daraltılır; hedef, ilk olayın da kaydırmadan görünmesidir.
-5. Onay dairesinin çizgisi koyulaştırılır: makette 3,48:1; erişilebilirlik bakışı denetim çizgilerinde 4,5:1 arıyor.
+5. Görev kutusunun çizgisi koyulaştırılır: makette 3,48:1; erişilebilirlik bakışı denetim çizgilerinde 4,5:1 arıyor.
 6. Mac kanbanı için çerçeveli, gölgesiz kâğıt kart; tablo ve zaman çizelgesi için tabular saat sütunu ve "şimdi" çizgisi tanımlanır.
 
-### Açık soru: imza
+### İmza (eklenmedi)
 
 Derkenar, Mürekkep'in iskeletine iki şey ekler: kenar sütunu ile metin sütunu arasında 1 pt'lik gül kurusu bir kenar çizgisi ve uygulamanın tanıdığı kişi ve konum adlarının üstünde fosforlu kalem izi. Başlığı da araç çubuğu satırına alır; böylece 17 pt metinle görevler, takvim ve ilk olay kaydırmadan görünür.
 
@@ -79,17 +90,17 @@ Derkenar, Mürekkep'in iskeletine iki şey ekler: kenar sütunu ile metin sütun
 - **İtiraz edenler (erişilebilirlik, platform).** Fosfor zeminin kâğıda kontrastı 1,11:1'dir; ayrımı gerçekte yarı kalın yazı taşır ve Kalın Metin açılınca fark daralır. Sarı zemin, sistemin bul ve ara eşleşme vurgusuyla aynı görünür. Önceliğin onay kutusunun içine yazılması tek denetime iki durum yükler. Yoğun günlük yazısında her adın sarı blok olması gürültü yapar.
 - **Benimsenirse şartlar.** İz hiçbir zaman tek ipucu olmaz; altında Mürekkep'in tipli alt çizgisi durur. Sarı yalnız "uygulama bunu tanıdı" anlamına gelir; arama eşleşmesi, seçim ve uyarı başka biçim alır. İz yalnız akan metindeki adlarda kullanılır; varlığın kendi sayfasında kendi adında kullanılmaz. Kenar çizgisinin rengi hata ya da gecikme için kullanılmaz ve çizgi yalnız sayfa görünümlerinde durur (kanban ve zaman çizelgesine taşınmaz). Kâğıt dokusu, satır çizgisi ve el yazısı eklenmez.
 
-İmza, Mürekkep'in üstüne eklenen ve geri alınabilen ince bir katmandır. Karar bu yüzden makette değil, Aşama 9'un ilk maddesi olan prototipte, gerçek cihazda verilir.
+Sahip imzayı istemedi; tanınan adlar alt çizgili kalır. İmza, Mürekkep'in üstüne eklenen ve geri alınabilen ince bir katmandır; istenirse Aşama 9'un prototipinde açılıp kapatılarak denenir.
 
-Sahibin karar vereceği diğer ayrıntılar:
+Mürekkep'le birlikte kabul edilen ayrıntılar (istenirse değişir):
 
-- **Vurgu rengi.** Mürekkep'te mürdüm; yalnız eylemde (artı, gönder, seçili sekme) görünür. Sayfa ailesinin öteki üyeleri koyu yeşil, çivit ve çini mavisi kullandı; renk yapıyı değiştirmeden değişir.
+- **Vurgu rengi.** Mürdüm; yalnız eylemde (artı, gönder, seçili sekme, kip çizgisi) görünür. Sayfa ailesinin öteki üyeleri koyu yeşil, çivit ve çini mavisi kullandı; renk yapıyı değiştirmeden değişir.
 - **Kişi ile konumun ayrımı.** Mürekkep'te kişi düz, konum noktalı alt çizgi taşır. Ürün ruhu bakışı noktalı ve kesik biçimin tipe değil "emin değilim, soruyorum" durumuna ayrılmasını, tipin yalnız renkle ayrılmasını önerdi.
-- **"Geciken" yerine "devreden".** Kör turun iki tasarımcısı bu sözü kullandı; jüri cezalandırmama ilkesine uygun buldu.
+- **Geciken görevin dili.** "Geciken" sözü ve kırmızı yoktur; görevin altında uyarı rengiyle "30 Eyl'den" yazar, üçten fazlası "N devreden daha" satırında toplanır.
 
 ## Sıradaki seçenekler
 
-Öneri beğenilmezse, oy sırası ve nedenleriyle:
+Seçim değişirse, oy sırası ve nedenleriyle:
 
 1. **Derkenar.** Aynı iskelet, imza açık. Bire bir karşılaştırmanın galibi; "Mürekkep fazla sessiz" denirse ilk seçenek.
 2. **Defter ya da Seyir Defteri (çivit).** Sayfa ailesinin iki başka üyesi. Defter erişilebilirlik bakışının birincisi: görev sans, düzyazı serif, koyu yeşil vurgu; hedefleri üç sütuna dizdiği için büyük yazıda ikinci bir yerleşim ister. Seyir Defteri (çivit) uygulamanın sözünü eş aralıklı yazıyla verir ve ilerlemeyi çeteleyle gösterir; "dosyalar senin" vaadini en görünür kılan aday, ama küçük, eş aralıklı etiketleri okumayı zorlaştırıyor.
@@ -121,7 +132,7 @@ Geri dönüş maliyeti: sayfa ailesinin üyeleri aynı belirteç rollerini, ayn�
 
 1. Yazı tipini veri türü seçer: kasadan gelen metin (olay, görev, günlük yazısı, not, alan değeri) ve sayfa adları New York, geri kalan her şey SF Pro. Yazı tipi ekranda elle seçilmez.
 2. İçerikte kart yoktur. Bölüm, 1 piksellik süs çizgisi, başlık ve sağdaki sayaçtan oluşur.
-3. Her satırın işareti (onay dairesi, hedef halkası, saat, öncelik) kenar sütununda durur; metin tek sütunda akar.
+3. Her satırın işareti (görev kutusu, hedef halkası, saat) kenar sütununda durur; öncelik görev kutusunun içindedir; metin tek sütunda akar.
 4. Bağlantı metni metin rengindedir; anlamı alt çizgi taşır: kişi düz mavi, konum noktalı yeşil, çözülmemiş bağlantı kesik ve ikincil. Türkçe ek çizginin dışında kalır.
 5. Eylem tek renktir (vurgu). Dikkat yalnız uyarı rengiyle ve yalnız devreden tarihinde gösterilir.
 6. Yapılan soluklaşır (ikincil metin, dolu işaret) ve listenin sonuna iner; üstü çizilmez.
@@ -141,7 +152,7 @@ Renkler (parantez içinde zemin üstündeki kontrast; KA: Kontrastı Artır):
 | Vurgu: metin ve simge | `#7A2C6E` (8,20) | `#E3A3D6` (9,00) | `#5E1F55` (10,97) | `#EDC3E5` (12,05) | Metin düğmesi, artı, seçili sekme |
 | Vurgu dolgusunun üstündeki metin | `#FFFFFF` (8,70) | `#1A1022` (9,18) | `#FFFFFF` (11,65) | `#12091A` (12,54) | Gönder, birincil düğme |
 | Uyarı | `#7A4E00` (6,78) | `#E2B865` (9,69) | `#5C3B00` (9,51) | `#F0CF8E` (12,48) | Yalnız devreden tarihi ve işareti |
-| Kontrol çizgisi | `#8C8478` (3,48) | `#7E776C` (4,08) | `#655E54` (6,03) | `#A39B8F` (6,80) | Onay dairesi, halka izi, artı konturu |
+| Kontrol çizgisi | `#8C8478` (3,48) | `#7E776C` (4,08) | `#655E54` (6,03) | `#A39B8F` (6,80) | Görev kutusu, halka izi, artı konturu |
 | Kişi | `#2D5BA6` (6,26) | `#8FB3F0` (8,49) | `#1D4689` (8,64) | `#B3CDF8` (11,57) | Düz alt çizgi, simge |
 | Konum | `#386E43` (5,69) | `#8FCB9C` (9,62) | `#24562E` (8,09) | `#AEDDB8` (12,31) | Noktalı alt çizgi, simge |
 
@@ -162,27 +173,28 @@ Yazı:
 | Değer ve saat | SF Pro, tabular rakam | 17 ve 15 | 13 |
 | Büyük rakam (hedef detayı, özet) | SF Pro Light, tabular rakam | 48 | 34 |
 
-Biçim: denetimler daire ya da kapsüldür (onay dairesi ve hedef halkası 22 pt, artı 30 pt, gönder 36 pt). Kenar boşluğu 16 pt, kenar sütunu 44 pt'dir. Mac'te sayfa en çok 680 pt genişliğinde ortalanır. İçerik opaktır; gölge, doku ve gradyan yoktur.
+Biçim: görev kutusu 22 pt kare (köşe 5 pt), hedef halkası 22 pt daire, artı 30 pt ve gönder 36 pt daire, hızlı giriş kapsüldür. Kenar boşluğu 16 pt, kenar sütunu 44 pt'dir. Mac'te sayfa en çok 680 pt genişliğinde ortalanır. İçerik opaktır; gölge, doku ve gradyan yoktur.
 
 ## Bugün ekranı
 
-Yukarıdan aşağı: manşet (tarih) ve künye satırı (olayla başlayıp "kaldı" ile biten özet: "3 olay · 4 görev ve 2 hedef kaldı"); hedefler (halka, ad, sağda değer ve tek dokunuşluk artı); görevler (onay dairesi, kenarda öncelik işareti, devreden görevde tarih); takvim (kasa dışı kaynak olduğu için sans); olaylar (kenarda saat); günlük yazısı (dört satır ve "Devamını yaz"). Altta hızlı giriş kapsülü ve sistem sekme çubuğu.
+Yukarıdan aşağı: manşet (tarih) ve künye satırı (olayla başlayıp "kaldı" ile biten özet: "3 olay · 4 görev ve 2 hedef kaldı"); hedefler (halka, ad, sağda değer ve tek dokunuşluk artı); görevler (köşeli kutu ve içinde öncelik, devreden görevde tarih); takvim (kasa dışı kaynak olduğu için sans); olaylar (kenarda saat); günlük yazısı (dört satır ve "Devamını yaz"). Altta hızlı giriş kapsülü ("Olay" ve "Görev" sözcükleri, yer tutucu, gönder) ve sistem sekme çubuğu.
 
 `screens.md` taslağına ekler (sahibin onayına bağlı): manşet ve künye satırı; bölüm sayaçları; devreden görevlerin üç satır ve "N devreden daha" ile sınırlanması; birden çok tamamlanan görevin tek satıra katlanması. On geciken görevin nasıl görüneceğini adayların hiçbiri çizmedi; kural prototipte sınanır.
 
 ## Bileşenler
 
-Manşet, bölüm başlığı, kenar sütunlu satır (görev, hedef, olay ve takvim için tek bileşen), hedef halkası, bağlantılı metin, hızlı giriş kapsülü; bunlara ek olarak etiket çipi, boş durum, ısı haritası hücresi, bilgi ve hata bandı, Mac kanban kartı. Bütün ekranlar bu parçalardan kurulur; görev satırı, kart ve tarih biçiminin bugünkü farklı varyantları tek parçaya iner.
+Manşet, bölüm başlığı, kenar sütunlu satır (görev, hedef, olay ve takvim için tek bileşen), görev kutusu, hedef halkası, bağlantılı metin, hızlı giriş kapsülü; bunlara ek olarak etiket çipi, boş durum, ısı haritası hücresi, bilgi ve hata bandı, Mac kanban kartı. Bütün ekranlar bu parçalardan kurulur; görev satırı, kart ve tarih biçiminin bugünkü farklı varyantları tek parçaya iner.
 
 ## Doğrulama
 
-- Karar öncesi prototip: Bugün ve kişi sayfası; Mürekkep, imzasız ve Derkenar'ın imzasıyla; açık ve koyu mod, büyük yazı (AX3 ve AX5), Kontrastı Artır, Mac'te üç sütun.
+- Prototip: Bugün ve kişi sayfası; seçilen yön (istenirse Derkenar'ın imzası açılıp kapatılarak); açık ve koyu mod, büyük yazı (AX3 ve AX5), Kontrastı Artır, Mac'te üç sütun. Ünlemli görev kutusunun dokunma davranışı ve devam eden görevdeki hali burada sınanır.
 - İlk teknik doğrulama: renkli ve desenli alt çizginin bağlantı parçasında, okuma metninde ve hızlı giriş alanında çizildiği. Çizilmezse yedek yol, bağlantı metnini kişi ya da konum renginde yazmaktır (kontrastlar yeterli).
 - CI'da palet kontrast testi (her belirteç çifti için), erişilebilirlik denetimi ve ekran görüntüsü testleri. Ajanlar ekranı göremediği için ekran görüntüsü testleri bu projede zorunludur.
 
 ## Bilinen sınırlar
 
 - Maketler HTML ile çizildi: cam ve simgeler yaklaşıktır; yalnız iPhone'da Bugün ekranı çizildi. Mac, Dynamic Type ve Kontrastı Artır görünümleri ve öteki ekranlar çizilmedi.
+- Sahibin iki değişikliği oylamadan sonra eklendi; değişiklikli hali çizildi ama jüri oylamadı.
 - Tasarımcıların ve jüri üyelerinin hepsi yapay zeka modeliydi; jüri tek model ailesindendi ve üyelerin çoğu kendi modelinin tasarımını seçti. Dört ayrı model ailesinin kâğıt ve serifte birleşmesi bağımsız bir doğrulama olabileceği gibi, bu modellerin ortak bir alışkanlığı da olabilir. Son söz sahibin gözündedir.
 - Serif görev listesinin sans listeye göre daha yavaş tarandığına dair ölçüm yok; risk prototipte gözlenir.
 - Sıcak özel zemin, HIG'in sistem zemin renklerini tercih etme önerisinden bilinçli bir sapmadır.

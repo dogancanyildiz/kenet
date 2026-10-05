@@ -28,7 +28,6 @@ Gerçek kullanım, gerçek cihazda kalıcı kurulum ister; bu da aşağıdaki il
 | Karar | Neyi açar | Not |
 |---|---|---|
 | Apple Developer Program üyeliği; kalıcı bundle kimliği, iCloud kapsayıcısı, App Group ve alan adı | Gerçek cihazda kalıcı kurulum, iCloud kasası, widget'lar, kilit ekranı ve Denetim Merkezi girişleri, paylaşım uzantısı, TestFlight | Tek pakette verilmesi önerilir. Kimlik değişince uygulamanın kapsayıcısı da değişir; o zamana kadar gerçek veri, klasör seçiciyle seçilen ve kapsayıcının dışında duran bir klasörde tutulmalıdır. |
-| Tasarım dili | Aşama 9 | Heyetin önerisi ve sıradaki seçenekler `design.md` belgesindedir. |
 | Erişilemeyen kasada davranış | Aşama 8'deki madde | Bugün uygulama sessizce yerel kasaya geçiyor; durup sorması önerilir. |
 | Zincirde esneklik | Aşama 10'daki zincir affı | Sektör taraması affeden zinciri destekliyor (`decisions.md`, açık sorular). |
 | iPad desteği | Mağaza hazırlığı | Hedef cihaz listesinde var, düzeni ve belgesi yok: ya kapatılır ya tamamlanır. |
@@ -89,9 +88,9 @@ Kapılar:
 
 ## Aşama 9: Tasarım dili
 
-Kullanıcı onayından sonra başlar. Yön, belirteçler ve kurallar `design.md` belgesindedir.
+Yön seçildi: Mürekkep, sahibin iki değişikliğiyle. Yön, belirteçler ve kurallar `design.md` belgesindedir.
 
-- [ ] İlk iki adayın Bugün ekranı için SwiftUI prototipi (karar gerçek cihazda gözle doğrulanır)
+- [ ] Seçilen yönün Bugün ekranı için SwiftUI prototipi (gerçek cihazda gözle doğrulanır: ünlemli görev kutusu, büyük yazı, Kontrastı Artır; istenirse Derkenar'ın imzası)
 - [ ] Tasarım belirteçleri (renk, tipografi, biçim, boşluk) ve asset catalog; uygulama simgesi
 - [ ] Bileşen kitaplığı: tarih başlığı, hedef çipi, görev satırı, olay satırı, bölüm başlığı, hızlı giriş çubuğu, yüzey, çip, boş durum, ilerleme göstergesi, ısı haritası hücresi, bilgi bandı
 - [ ] Bugün ve hızlı giriş: tarih başlığı, olayların ilk ekranda görünmesi, geciken görevlerin sınırlanması (taslak değişikliği önce `screens.md`'de)

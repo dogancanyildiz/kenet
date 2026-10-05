@@ -2,7 +2,7 @@
 
 Kişiler, konumlar ve olaylar etrafında dönen; görevleri, hedefleri ve alışkanlık zincirlerini tek yerde toplayan kişisel günlük uygulaması. iPhone ve Mac için SwiftUI ile yazılır. Veriler Obsidian uyumlu düz Markdown dosyalarında durur.
 
-**Durum (2026-10-05):** Aşama 0–7'nin kullanıcı kararı gerektirmeyen teknik maddeleri tamam; aşamaların gerçek kullanım ölçütleri henüz ölçülmedi. Ekim 2026 heyet incelemesinin ardından sıradaki iş sağlamlaştırma (Aşama 8) ve tasarım dilidir (Aşama 9). iCloud eşitlemesi, widget'lar ve TestFlight kimlik kararını bekliyor. Sürüm kesilmedi.
+**Durum (2026-10-05):** Aşama 0–7'nin kullanıcı kararı gerektirmeyen teknik maddeleri tamam; aşamaların gerçek kullanım ölçütleri henüz ölçülmedi. Ekim 2026 heyet incelemesinin ardından sıradaki iş sağlamlaştırma (Aşama 8) ve seçilen tasarım dilinin (Mürekkep) uygulanmasıdır (Aşama 9). iCloud eşitlemesi, widget'lar ve TestFlight kimlik kararını bekliyor. Sürüm kesilmedi.
 
 ## Kurulum
 

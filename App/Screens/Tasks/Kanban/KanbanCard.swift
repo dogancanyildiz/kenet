@@ -35,12 +35,12 @@ struct KanbanCard: View {
     @ViewBuilder private var card: some View {
         #if os(macOS)
             if model.grouping != .person && model.store.canAddEvent && !model.busy.contains(row.id) {
-                content.onDrag { NSItemProvider(object: model.beginDrag(row) as NSString) }
+                buttonContent.onDrag { NSItemProvider(object: model.beginDrag(row) as NSString) }
             } else {
-                content
+                buttonContent
             }
         #else
-            content
+            buttonContent
         #endif
     }
 
@@ -48,27 +48,53 @@ struct KanbanCard: View {
         .make(due: row.due, asOf: model.tasks.day, isCompleted: row.isClosed)
     }
 
-    private var content: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            LinkedTextView(text: row.text, store: model.store)
-            HStack {
-                if let date = row.due {
-                    TaskDueDateLabel(date: date, presentation: presentation, includeCalendarIcon: true)
+    private var buttonContent: some View {
+        Button(action: select) {
+            VStack(alignment: .leading, spacing: 8) {
+                LinkedTextView(text: row.text, store: model.store)
+                HStack {
+                    if let date = row.due {
+                        TaskDueDateLabel(date: date, presentation: presentation, includeCalendarIcon: true)
+                    }
+                    if let priority = row.priority { TaskPriorityMark(priority: priority) }
+                    if model.busy.contains(row.id) { ProgressView().controlSize(.small) }
+                }.font(.caption)
+                if let recurrence = row.recurrence {
+                    TaskRecurrenceLabel(recurrence: recurrence).font(.caption).foregroundStyle(.secondary)
+                } else if row.recurrenceSource != nil {
+                    Label("Tanınmayan tekrar", systemImage: "repeat").font(.caption).foregroundStyle(.secondary)
                 }
-                if let priority = row.priority { Text(verbatim: priority.token).accessibilityLabel("Öncelik") }
-                if model.busy.contains(row.id) { ProgressView().controlSize(.small) }
-            }.font(.caption)
-            if let recurrence = row.recurrence {
-                TaskRecurrenceLabel(recurrence: recurrence).font(.caption).foregroundStyle(.secondary)
-            } else if row.recurrenceSource != nil {
-                Label("Tanınmayan tekrar", systemImage: "repeat").font(.caption).foregroundStyle(.secondary)
             }
+            .padding(12).frame(maxWidth: .infinity, alignment: .leading)
+            .background(.background, in: RoundedRectangle(cornerRadius: 10))
+            .overlay { RoundedRectangle(cornerRadius: 10).stroke(.quaternary) }
+            .contentShape(Rectangle())
         }
-        .padding(12).frame(maxWidth: .infinity, alignment: .leading)
-        .background(.background, in: RoundedRectangle(cornerRadius: 10))
-        .overlay { RoundedRectangle(cornerRadius: 10).stroke(.quaternary) }
-        .contentShape(Rectangle()).onTapGesture(perform: select)
+        .buttonStyle(.plain)
         .accessibilityElement(children: .contain)
         .accessibilityAction(named: Text("Ayrıntıları göster"), select)
+        .accessibilityAction(named: Text(verbatim: VoiceOverCopy.changeDateActionName())) {
+            guard model.store.canAddEvent, !model.busy.contains(row.id) else { return }
+            dateEditor = TaskEditorModel(store: model.store, row: row)
+        }
+        .modifier(KanbanMoveAccessibilityActions(model: model, row: row))
+    }
+}
+
+/// Chains one VoiceOver action per movable destination column.
+private struct KanbanMoveAccessibilityActions: ViewModifier {
+    let model: KanbanModel
+    let row: TaskRow
+
+    func body(content: Content) -> some View {
+        let destinations = model.columns.filter { model.canMove(row, to: $0) }
+        return destinations.reduce(AnyView(content)) { view, column in
+            AnyView(
+                view.accessibilityAction(
+                    named: Text(verbatim: VoiceOverCopy.moveActionName(columnTitle: column.localizedTitle))
+                ) {
+                    Task { await model.move(row, to: column) }
+                })
+        }
     }
 }

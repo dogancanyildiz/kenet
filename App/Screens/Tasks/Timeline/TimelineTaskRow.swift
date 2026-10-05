@@ -26,7 +26,7 @@ struct TimelineTaskRow: View {
                     } else if row.start != nil {
                         Text("Açık uçlu")
                     }
-                    if let priority = row.priority { Text(verbatim: priority.token).accessibilityLabel("Öncelik") }
+                    if let priority = row.priority { TaskPriorityMark(priority: priority) }
                     if model.busy.contains(row.id) { ProgressView().controlSize(.small) }
                 }.font(.caption).foregroundStyle(.secondary)
                 if let span = model.dates(for: row).span(on: model.today) {
@@ -54,6 +54,9 @@ struct TimelineTaskRow: View {
         .contentShape(Rectangle()).onTapGesture(perform: select)
         .contextMenu { TimelineTaskMenu(edit: edit) }
         .accessibilityAction(named: Text("Ayrıntıları göster"), select)
+        .accessibilityAction(named: Text(verbatim: VoiceOverCopy.changeDateActionName())) {
+            edit(.due)
+        }
     }
 
     @ViewBuilder private func completedTextStyle<Content: View>(@ViewBuilder content: () -> Content) -> some View {

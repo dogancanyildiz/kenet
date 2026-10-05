@@ -19,16 +19,24 @@ struct DayTaskView: View {
         .make(isPastDue: isOverdue, isCompleted: completed || row.isClosed)
     }
 
+    private var isCompletedCue: Bool { completed || row.isClosed }
+
+    private var canToggleCompletion: Bool {
+        !((row.isClosed && !allowsReopening) || completed || isBusy || !store.canAddEvent)
+    }
+
     var body: some View {
         HStack(alignment: .top, spacing: 10) {
             Button(action: complete) {
-                Image(systemName: completed || row.isClosed ? "checkmark.square.fill" : "square")
+                Image(systemName: isCompletedCue ? "checkmark.square.fill" : "square")
                     .tapTarget()
             }
             .accessibilityLabel(
                 LocalizedStringKey(row.isClosed && allowsReopening ? "Görevi yeniden aç" : "Görevi tamamla")
             )
-            .disabled((row.isClosed && !allowsReopening) || completed || isBusy || !store.canAddEvent)
+            .accessibilityAddTraits(.isToggle)
+            .accessibilityValue(Text(verbatim: VoiceOverCopy.taskCompletionValue(isCompleted: isCompletedCue)))
+            .disabled(!canToggleCompletion)
             completedTextStyle {
                 VStack(alignment: .leading, spacing: 4) {
                     LinkedTextView(text: row.text, store: store)
@@ -36,7 +44,7 @@ struct DayTaskView: View {
                         if let date = row.due {
                             TaskDueDateLabel(date: date, presentation: presentation)
                         }
-                        if let priority = row.priority { Text(verbatim: priority.token).accessibilityLabel("Öncelik") }
+                        if let priority = row.priority { TaskPriorityMark(priority: priority) }
                         if let recurrence = row.recurrence {
                             TaskRecurrenceLabel(recurrence: recurrence)
                         } else if row.recurrenceSource != nil {
@@ -54,6 +62,11 @@ struct DayTaskView: View {
         .animation(.easeOut(duration: 0.2), value: completed)
         .onTapGesture {
             if !row.text.spans.contains(where: { $0.target != nil }) { complete() }
+        }
+        .accessibilityAction(named: Text(completionActionName)) {
+            if canToggleCompletion, !row.text.spans.contains(where: { $0.target != nil }) {
+                complete()
+            }
         }
         .contextMenu {
             if isToday {
@@ -83,6 +96,10 @@ struct DayTaskView: View {
             NavigationStack { TaskDateEditor(model: model) }.frame(minWidth: 320, minHeight: 200)
                 .presentationDetents([.medium, .large])
         }
+    }
+
+    private var completionActionName: LocalizedStringKey {
+        LocalizedStringKey(row.isClosed && allowsReopening ? "Görevi yeniden aç" : "Görevi tamamla")
     }
 
     @ViewBuilder private func completedTextStyle<Content: View>(@ViewBuilder content: () -> Content) -> some View {

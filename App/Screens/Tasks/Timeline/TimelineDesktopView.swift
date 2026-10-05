@@ -82,6 +82,7 @@ import VaultFormat
             VStack(spacing: 0) {
                 Text("Görevler").font(.headline).frame(height: 44)
                 ForEach(groups) { group in
+                    let isExpanded = !model.collapsed.contains(group.id)
                     Button {
                         if model.collapsed.contains(group.id) {
                             model.collapsed.remove(group.id)
@@ -90,13 +91,16 @@ import VaultFormat
                         }
                     } label: {
                         HStack {
-                            Image(systemName: model.collapsed.contains(group.id) ? "chevron.right" : "chevron.down")
+                            Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
                             TimelineGroupTitle(group: group, grouping: model.grouping).lineLimit(1)
                             Spacer()
                             Text(group.rows.count.formatted()).foregroundStyle(.secondary)
                         }.font(.caption).padding(.horizontal, 10)
-                    }.buttonStyle(.plain).frame(height: 32)
-                    if !model.collapsed.contains(group.id) {
+                    }
+                    .buttonStyle(.plain).frame(height: 32)
+                    .accessibilityValue(
+                        Text(verbatim: VoiceOverCopy.disclosureValue(isExpanded: isExpanded)))
+                    if isExpanded {
                         ForEach(group.rows) { row in
                             let presentation = TaskStatusPresentation.make(
                                 due: row.due, asOf: model.today, isCompleted: row.isClosed)

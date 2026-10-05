@@ -3347,6 +3347,22 @@
         }
       }
     },
+    "Devreden": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Devreden"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Past due"
+          }
+        }
+      }
+    },
     "Geciken": {
       "localizations": {
         "tr": {

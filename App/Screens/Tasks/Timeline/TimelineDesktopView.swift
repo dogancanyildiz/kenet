@@ -98,12 +98,21 @@ import VaultFormat
                     }.buttonStyle(.plain).frame(height: 32)
                     if !model.collapsed.contains(group.id) {
                         ForEach(group.rows) { row in
-                            LinkedTextView(text: row.text, store: model.store).lineLimit(2)
-                                .frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal, 10).frame(
-                                    height: 52
-                                )
-                                .opacity(row.isClosed ? 0.45 : 1).contentShape(Rectangle()).onTapGesture { select(row) }
-                                .contextMenu { TimelineTaskMenu { edit(row, $0) } }
+                            let presentation = TaskStatusPresentation.make(
+                                due: row.due, asOf: model.today, isCompleted: row.isClosed)
+                            Group {
+                                if presentation.usesSecondaryText {
+                                    LinkedTextView(text: row.text, store: model.store).lineLimit(2)
+                                        .foregroundStyle(.secondary)
+                                } else {
+                                    LinkedTextView(text: row.text, store: model.store).lineLimit(2)
+                                }
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal, 10).frame(
+                                height: 52
+                            )
+                            .opacity(presentation.opacity).contentShape(Rectangle()).onTapGesture { select(row) }
+                            .contextMenu { TimelineTaskMenu { edit(row, $0) } }
                         }
                     }
                 }
@@ -114,7 +123,7 @@ import VaultFormat
                 ForEach(model.days, id: \.self) { day in
                     ZStack {
                         if day.weekday >= 5 { Color.secondary.opacity(0.08) }
-                        if day == model.today { Color.red.opacity(0.15) }
+                        if day == model.today { Color.primary.opacity(0.08) }
                         if model.scale == .week || (model.scale == .month && day.weekday == 0) || day.day == 1 {
                             Text(LocalDay.instant(for: day), format: .dateTime.day().month(.abbreviated))
                                 .font(.caption2).fixedSize().zIndex(1)

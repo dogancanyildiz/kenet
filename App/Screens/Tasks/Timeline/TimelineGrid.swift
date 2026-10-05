@@ -25,7 +25,7 @@ struct TimelineGrid: View {
                     var path = Path()
                     path.move(to: CGPoint(x: center, y: 0))
                     path.addLine(to: CGPoint(x: center, y: size.height))
-                    context.stroke(path, with: .color(.red.opacity(0.7)), lineWidth: 1)
+                    context.stroke(path, with: .color(Color.primary.opacity(0.55)), lineWidth: 1)
                 }
             }
         }.accessibilityHidden(true)

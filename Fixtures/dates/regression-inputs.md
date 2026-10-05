@@ -39,3 +39,26 @@ next week friday
 2.5.2027 ara
 2/3/2027 ara
 2.5 kg un al yarın
+25.10'da toplantı
+31.12'de
+25.10’da toplantı
+24.10'da toplantı
+15.3 toplantı
+13.3 toplantı
+31.3 toplantı
+24.3'te toplantı
+23.10'da ara
+1.10'da ara
+23.3'te ara
+saat 15.10 ara
+saat 25.10'da ara
+%15.10 artış
+%15.3 artış
+15.3% artış
+15.3 kg un al
+15.3 oran
+version 15.3 hazır
+12.3
+5.3
+5/3
+%15.10 artış yarın

@@ -12,11 +12,8 @@ struct DayEventView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             if let time = event.time {
-                Text(
-                    LocalDay.instant(for: day, time: time, timeZone: .gmt),
-                    format: Date.FormatStyle(date: .omitted, time: .shortened, locale: locale, timeZone: .gmt)
-                )
-                .font(.subheadline).foregroundStyle(.secondary)
+                Text(verbatim: DayEventView.formattedEventTime(time, locale: locale))
+                    .font(.subheadline).foregroundStyle(.secondary)
             }
             LinkedTextView(text: event.text, store: store)
             if let error = errorText { Text(verbatim: error).font(.caption).foregroundStyle(.red) }
@@ -41,5 +38,9 @@ struct DayEventView: View {
                 .presentationDetents([.medium, .large])
                 .frame(minWidth: 320, minHeight: 200)
         }
+    }
+
+    static func formattedEventTime(_ time: EventTime, locale: Locale) -> String {
+        EventTimeFormat.string(for: time, locale: locale)
     }
 }

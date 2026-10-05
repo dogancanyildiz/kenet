@@ -55,9 +55,15 @@ struct QuickEntryBar: View {
                                 Text(verbatim: qualifier).font(.caption).foregroundStyle(.secondary)
                             }
                         }
+                        .tapTarget()
                     }
-                    Button("Konum önerisini kapat", systemImage: "xmark") { model.dismissLocation() }
-                        .labelStyle(.iconOnly)
+                    Button {
+                        model.dismissLocation()
+                    } label: {
+                        Label("Konum önerisini kapat", systemImage: "xmark")
+                            .labelStyle(.iconOnly)
+                            .tapTarget()
+                    }
                 }
                 .disabled(model.isCreating || model.isSubmitting)
             }
@@ -73,8 +79,10 @@ struct QuickEntryBar: View {
                         isFocused = true
                     } label: {
                         Text(verbatim: "#project/" + project)
+                            .tapTarget()
                     }
-                    .buttonStyle(.plain).disabled(!isEnabled || !model.canSubmit)
+                    .buttonStyle(.plain)
+                    .disabled(!isEnabled || !model.canSubmit)
                 }
                 ForEach(model.suggestions(at: insertionOffset), id: \.file) { entity in
                     Button {
@@ -83,6 +91,7 @@ struct QuickEntryBar: View {
                         isFocused = true
                     } label: {
                         entityLabel(entity)
+                            .tapTarget()
                     }
                     .buttonStyle(.plain)
                     .disabled(!isEnabled || !model.canSubmit)
@@ -90,8 +99,18 @@ struct QuickEntryBar: View {
             }
             if !model.awaitingResolution, let range = model.suggestionRange(at: insertionOffset), range.count > 1 {
                 HStack {
-                    Button("Yeni kişi oluştur") { beginCreation(.person) }
-                    Button("Yeni konum oluştur") { beginCreation(.place) }
+                    Button {
+                        beginCreation(.person)
+                    } label: {
+                        Text("Yeni kişi oluştur")
+                            .tapTarget()
+                    }
+                    Button {
+                        beginCreation(.place)
+                    } label: {
+                        Text("Yeni konum oluştur")
+                            .tapTarget()
+                    }
                     Menu("Özel tip olarak ekle") {
                         ForEach(
                             EntityTypeChoices.choices(
@@ -113,58 +132,7 @@ struct QuickEntryBar: View {
             if let error = model.errorText {
                 Text(verbatim: error).font(.caption).foregroundStyle(.red)
             }
-            HStack {
-                modeButton
-                if model.mode == .event {
-                    TimelineView(.periodic(from: .now, by: 60)) { context in
-                        Button {
-                            if model.isHistorical {
-                                showsTimePicker = true
-                            } else {
-                                model.includesTime.toggle()
-                            }
-                        } label: {
-                            if model.includesTime {
-                                Text(
-                                    model.isHistorical ? model.selectedTime : context.date,
-                                    format: .dateTime.hour().minute()
-                                )
-                                .monospacedDigit()
-                            } else {
-                                Image(systemName: "clock.badge.xmark")
-                            }
-                        }
-                        .accessibilityLabel(model.includesTime ? Text("Saati kaldır") : Text("Şu anki saati ekle"))
-                        .disabled(!isEnabled || store.isWriting)
-                        .popover(isPresented: $showsTimePicker) {
-                            VStack {
-                                DatePicker("Saat", selection: $model.selectedTime, displayedComponents: .hourAndMinute)
-                                    .labelsHidden()
-                                    .onChange(of: model.selectedTime) { model.includesTime = true }
-                                Button("Saati ekle") {
-                                    model.includesTime = true
-                                    showsTimePicker = false
-                                }
-                                Button("Saati kaldır") {
-                                    model.includesTime = false
-                                    showsTimePicker = false
-                                }
-                            }
-                            .padding()
-                            .presentationCompactAdaptation(.popover)
-                        }
-                    }
-                }
-                TextField(placeholder, text: $model.text, selection: $selection)
-                    .textFieldStyle(.roundedBorder)
-                    .accessibilityLabel("Hızlı giriş")
-                    .focused($isFocused)
-                    .disabled(!isEnabled)
-                    .onSubmit { submit() }
-                Button("Gönder", systemImage: "arrow.up.circle.fill") { submit() }
-                    .labelStyle(.iconOnly)
-                    .disabled(!isEnabled || !model.canSubmit)
-            }
+            entryField
         }
         .padding()
         .background(.bar)
@@ -208,6 +176,99 @@ struct QuickEntryBar: View {
         model.mode == .task ? "Yapılacak bir şey…" : "Gününden bir an…"
     }
 
+    /// Single-line when it fits; stacks controls above the field at large Dynamic Type sizes.
+    private var entryField: some View {
+        ViewThatFits(in: .horizontal) {
+            HStack {
+                modeButton
+                timeButton
+                textField
+                sendButton
+            }
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    modeButton
+                    timeButton
+                    Spacer(minLength: 0)
+                    sendButton
+                }
+                textField
+            }
+        }
+    }
+
+    private var textField: some View {
+        @Bindable var model = model
+        return TextField(placeholder, text: $model.text, selection: $selection)
+            .textFieldStyle(.roundedBorder)
+            .accessibilityLabel("Hızlı giriş")
+            .focused($isFocused)
+            .disabled(!isEnabled)
+            .onSubmit { submit() }
+    }
+
+    private var sendButton: some View {
+        Button {
+            submit()
+        } label: {
+            Label("Gönder", systemImage: "arrow.up.circle.fill")
+                .labelStyle(.iconOnly)
+                .tapTarget()
+        }
+        .disabled(!isEnabled || !model.canSubmit)
+    }
+
+    @ViewBuilder private var timeButton: some View {
+        if model.mode == .event {
+            TimelineView(.periodic(from: .now, by: 60)) { context in
+                timeControl(now: context.date)
+            }
+        }
+    }
+
+    private func timeControl(now: Date) -> some View {
+        @Bindable var model = model
+        return Button {
+            if model.isHistorical {
+                showsTimePicker = true
+            } else {
+                model.includesTime.toggle()
+            }
+        } label: {
+            Group {
+                if model.includesTime {
+                    Text(
+                        model.isHistorical ? model.selectedTime : now,
+                        format: .dateTime.hour().minute()
+                    )
+                    .monospacedDigit()
+                } else {
+                    Image(systemName: "clock.badge.xmark")
+                }
+            }
+            .tapTarget()
+        }
+        .accessibilityLabel(model.includesTime ? Text("Saati kaldır") : Text("Şu anki saati ekle"))
+        .disabled(!isEnabled || store.isWriting)
+        .popover(isPresented: $showsTimePicker) {
+            VStack {
+                DatePicker("Saat", selection: $model.selectedTime, displayedComponents: .hourAndMinute)
+                    .labelsHidden()
+                    .onChange(of: model.selectedTime) { model.includesTime = true }
+                Button("Saati ekle") {
+                    model.includesTime = true
+                    showsTimePicker = false
+                }
+                Button("Saati kaldır") {
+                    model.includesTime = false
+                    showsTimePicker = false
+                }
+            }
+            .padding()
+            .presentationCompactAdaptation(.popover)
+        }
+    }
+
     private var modeButton: some View {
         Button {
             model.mode = model.mode == .event ? .task : .event
@@ -218,6 +279,7 @@ struct QuickEntryBar: View {
             } icon: {
                 Image(systemName: model.mode == .task ? "checkmark.square" : "text.bubble")
             }
+            .tapTarget()
         }
         .disabled(!isEnabled || model.isSubmitting || model.isCreating || store.isWriting)
         #if os(macOS)

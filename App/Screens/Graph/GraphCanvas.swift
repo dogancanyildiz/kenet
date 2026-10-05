@@ -55,7 +55,13 @@ struct GraphCanvas: View {
                     graph.nodes.filter { node in
                         guard let point = positions[node.id] else { return false }
                         let position = screen(point, size: geometry.size, origin: center, scale: scale)
-                        return hypot(position.x - location.x, position.y - location.y) <= max(14, node.radius * scale)
+                        let hitRadius: CGFloat
+                        #if os(iOS)
+                            hitRadius = max(TapTarget.minimumLength / 2, node.radius * scale)
+                        #else
+                            hitRadius = max(14, node.radius * scale)
+                        #endif
+                        return hypot(position.x - location.x, position.y - location.y) <= hitRadius
                     }.min { left, right in
                         let a = screen(positions[left.id]!, size: geometry.size, origin: center, scale: scale)
                         let b = screen(positions[right.id]!, size: geometry.size, origin: center, scale: scale)
@@ -76,11 +82,24 @@ struct GraphCanvas: View {
             )
             .overlay(alignment: .topTrailing) {
                 HStack {
-                    Button("Uzaklaştır", systemImage: "minus.magnifyingglass") { zoom = max(0.2, zoom / 1.25) }
-                    Button("Yakınlaştır", systemImage: "plus.magnifyingglass") { zoom = min(5, zoom * 1.25) }
-                    Button("Ortala", systemImage: "scope") {
+                    Button {
+                        zoom = max(0.2, zoom / 1.25)
+                    } label: {
+                        Label("Uzaklaştır", systemImage: "minus.magnifyingglass")
+                            .tapTarget()
+                    }
+                    Button {
+                        zoom = min(5, zoom * 1.25)
+                    } label: {
+                        Label("Yakınlaştır", systemImage: "plus.magnifyingglass")
+                            .tapTarget()
+                    }
+                    Button {
                         zoom = 1
                         pan = .zero
+                    } label: {
+                        Label("Ortala", systemImage: "scope")
+                            .tapTarget()
                     }
                 }.labelStyle(.iconOnly).padding()
             }

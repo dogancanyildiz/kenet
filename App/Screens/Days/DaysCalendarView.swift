@@ -16,13 +16,23 @@ struct DaysCalendarView: View {
     var body: some View {
         VStack(spacing: 8) {
             HStack {
-                Button("Önceki ay", systemImage: "chevron.left") { month = model.adjacentMonth(-1) }.labelStyle(
-                    .iconOnly)
+                Button {
+                    month = model.adjacentMonth(-1)
+                } label: {
+                    Label("Önceki ay", systemImage: "chevron.left")
+                        .labelStyle(.iconOnly)
+                        .tapTarget()
+                }
                 Spacer()
                 Text(LocalDay.instant(for: model.month), format: .dateTime.month(.wide).year()).font(.headline)
                 Spacer()
-                Button("Sonraki ay", systemImage: "chevron.right") { month = model.adjacentMonth(1) }.labelStyle(
-                    .iconOnly)
+                Button {
+                    month = model.adjacentMonth(1)
+                } label: {
+                    Label("Sonraki ay", systemImage: "chevron.right")
+                        .labelStyle(.iconOnly)
+                        .tapTarget()
+                }
             }
             // Inside a List row every bordered button fires on one tap; borderless keeps them separate.
             .buttonStyle(.borderless)
@@ -42,7 +52,10 @@ struct DaysCalendarView: View {
                                 Text(day.day, format: .number)
                                 Circle().fill(model.markedDays.contains(day) ? Color.accentColor : Color.clear)
                                     .frame(width: 4, height: 4)
-                            }.frame(maxWidth: .infinity, minHeight: 30)
+                            }
+                            // Visual row was 30 pt; tap floor raises the laid-out cell to 44 pt on iOS.
+                            .frame(maxWidth: .infinity, minHeight: 30)
+                            .tapTarget()
                         }
                         .buttonStyle(.plain)
                         .accessibilityLabel(Text(LocalDay.instant(for: day), format: .dateTime.day().month().year()))

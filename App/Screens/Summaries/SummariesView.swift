@@ -76,6 +76,7 @@ struct SummariesView: View {
                     model.previous()
                 } label: {
                     Image(systemName: "chevron.left")
+                        .tapTarget()
                 }
                 .accessibilityLabel("Önceki dönem").disabled(!model.canGoPrevious)
                 Spacer()
@@ -87,6 +88,7 @@ struct SummariesView: View {
                     model.next()
                 } label: {
                     Image(systemName: "chevron.right")
+                        .tapTarget()
                 }
                 .accessibilityLabel("Sonraki dönem").disabled(!model.canGoNext)
             }.font(.subheadline)

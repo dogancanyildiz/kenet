@@ -1,0 +1,47 @@
+{
+  "options": { "folders": true, "settings": true, "types": true },
+  "apply": true,
+  "report": {
+    "missingFolders": ["people", "places", "goals", "notes", "templates"],
+    "caseVariantFolders": [],
+    "missingTemplates": ["templates/person.md", "templates/place.md"],
+    "needsSettings": true,
+    "canPrepare": true,
+    "markdownCount": 3,
+    "journalDays": ["journal/2026-09-20.md"],
+    "externalDays": ["2026-09-22.md", "daily/2026-09-21.md"],
+    "typed": {},
+    "candidates": [],
+    "skipped": []
+  },
+  "result": {
+    "created": [
+      "people/",
+      "places/",
+      "goals/",
+      "notes/",
+      "templates/",
+      "templates/person.md",
+      "templates/place.md",
+      ".app/vault.json"
+    ],
+    "typed": [],
+    "skipped": [],
+    "failures": []
+  },
+  "expectedDirectories": [
+    ".app",
+    ".obsidian",
+    "daily",
+    "goals",
+    "journal",
+    "notes",
+    "people",
+    "places",
+    "templates"
+  ],
+  "generatedTemplates": {
+    "templates/person.md": "person",
+    "templates/place.md": "place"
+  }
+}

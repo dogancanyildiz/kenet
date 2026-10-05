@@ -1,0 +1,30 @@
+{
+  "options": { "folders": true, "settings": true, "types": true },
+  "apply": true,
+  "report": {
+    "missingFolders": ["journal", "places", "goals", "notes", "templates"],
+    "caseVariantFolders": [],
+    "missingTemplates": ["templates/person.md", "templates/place.md"],
+    "needsSettings": false,
+    "canPrepare": false,
+    "markdownCount": 1,
+    "journalDays": [],
+    "externalDays": [],
+    "typed": {},
+    "candidates": [
+      { "path": "people/Deniz Arıkan.md", "kind": "person" }
+    ],
+    "skipped": [".app/vault.json"]
+  },
+  "result": {
+    "created": [],
+    "typed": [],
+    "skipped": [".app/vault.json"],
+    "failures": [".app/vault.json"]
+  },
+  "expectedDirectories": [
+    ".app",
+    "people"
+  ],
+  "generatedTemplates": {}
+}

@@ -1,0 +1,4 @@
+---
+type: place
+---
+No frontmatter

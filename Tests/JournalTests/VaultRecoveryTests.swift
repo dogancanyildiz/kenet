@@ -110,9 +110,10 @@ struct IndexSchedulingTests {
         let location = VaultLocation(defaults: suite.defaults, documentsURL: temp, bookmarks: pathBookmarks())
         let store = IndexStore(
             location: location, supportURL: temp.appendingPathComponent("indexes"),
-            update: { index, root, rebuild, previous, skip in
+            update: { index, root, rebuild, previous, skip, skipped in
                 let result = try await IndexUpdate.read(
-                    index: index, root: root, rebuild: rebuild, previousTypes: previous, skipUnchanged: skip)
+                    index: index, root: root, rebuild: rebuild, previousTypes: previous,
+                    skipUnchanged: skip, previousSkipped: skipped)
                 await gate.hold()
                 return result
             })
@@ -144,9 +145,10 @@ struct IndexSchedulingTests {
         let store = IndexStore(
             location: VaultLocation(defaults: suite.defaults, documentsURL: temp),
             supportURL: temp.appendingPathComponent("indexes"),
-            update: { index, root, rebuild, previous, skip in
+            update: { index, root, rebuild, previous, skip, skipped in
                 let result = try await IndexUpdate.read(
-                    index: index, root: root, rebuild: rebuild, previousTypes: previous, skipUnchanged: skip)
+                    index: index, root: root, rebuild: rebuild, previousTypes: previous,
+                    skipUnchanged: skip, previousSkipped: skipped)
                 await gate.hold()
                 return result
             })
@@ -172,10 +174,11 @@ struct IndexSchedulingTests {
         let store = IndexStore(
             location: VaultLocation(defaults: suite.defaults, documentsURL: temp),
             supportURL: temp.appendingPathComponent("indexes"),
-            update: { index, root, rebuild, previous, skip in
+            update: { index, root, rebuild, previous, skip, skipped in
                 await gate.hold()
                 return try await IndexUpdate.read(
-                    index: index, root: root, rebuild: rebuild, previousTypes: previous, skipUnchanged: skip)
+                    index: index, root: root, rebuild: rebuild, previousTypes: previous,
+                    skipUnchanged: skip, previousSkipped: skipped)
             })
         store.setForeground(true)
         await store.start()

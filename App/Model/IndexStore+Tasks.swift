@@ -7,13 +7,16 @@ extension IndexStore {
         on day: CalendarDate, text: String, due: CalendarDate?, priority: TaskPriority? = nil,
         recurrence: TaskRecurrence? = nil
     ) async -> Bool {
-        guard !text.allSatisfy(\.isWhitespace), canAddEvent else { return false }
+        guard !text.allSatisfy(\.isWhitespace) else { return false }
+        // performEdit waits for an in-flight refresh; avoid rejecting before that wait.
         reportTaskEntryError(nil)
         do {
             try await performEdit(path: "journal/\(day).md") { writer in
                 try await writer.addingTask(on: day, text: text, due: due, priority: priority, recurrence: recurrence)
             }
             return true
+        } catch VaultStoreError.staleTarget {
+            return false
         } catch VaultStoreError.indexUpdateFailed {
             reportTaskEntryError(EntryWriteError.savedWithoutIndex)
             return true

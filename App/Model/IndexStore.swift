@@ -64,7 +64,7 @@ final class IndexStore {
     @ObservationIgnored private let location: VaultLocation
     @ObservationIgnored private let supportURL: URL
     @ObservationIgnored private let update:
-        @Sendable (VaultIndex, URL, Bool, EntityTypeCatalog, Bool) async throws -> IndexUpdate
+        @Sendable (VaultIndex, URL, Bool, EntityTypeCatalog, Bool, [SkippedPath]) async throws -> IndexUpdate
     @ObservationIgnored private let watcherDirectoryLimit: Int
     @ObservationIgnored private var index: VaultIndex?
     @ObservationIgnored private var writer: VaultStore?
@@ -73,14 +73,17 @@ final class IndexStore {
     @ObservationIgnored private var pendingRefresh = false
     @ObservationIgnored private var pendingRebuild = false
     @ObservationIgnored private var refreshInFlight = false
+    /// Bumped when a write publishes so an overlapping refresh can discard its stale snapshot.
+    @ObservationIgnored private var contentEpoch = 0
     @ObservationIgnored private var generation = UUID()
 
     init(
         location: VaultLocation = VaultLocation(), supportURL: URL? = nil,
         watcherDirectoryLimit: Int = 256,
         update:
-            @escaping @Sendable (VaultIndex, URL, Bool, EntityTypeCatalog, Bool) async throws -> IndexUpdate =
-            IndexUpdate.read
+            @escaping @Sendable (
+                VaultIndex, URL, Bool, EntityTypeCatalog, Bool, [SkippedPath]
+            ) async throws -> IndexUpdate = IndexUpdate.read
     ) {
         self.location = location
         requiresOnboarding = location.needsFirstLaunch
@@ -127,7 +130,7 @@ final class IndexStore {
             await open(root)
         }
         for _ in 0..<400 {
-            if !isProcessing { break }
+            if !isProcessing && !refreshInFlight { break }
             try await Task.sleep(for: .milliseconds(20))
         }
         guard canAddEvent, lastUpdated != nil else { throw VaultStoreError.staleTarget }
@@ -178,6 +181,7 @@ final class IndexStore {
     @discardableResult
     func addEvent(on day: CalendarDate = LocalDay.today(), text: String, time: LineClock?) async -> Bool {
         guard !text.allSatisfy(\.isWhitespace) else { return false }
+        await waitWhileRefreshInFlight()
         guard canAddEvent, let writer, let index else { return false }
         isProcessing = true
         isWriting = true
@@ -191,6 +195,7 @@ final class IndexStore {
             counts = IndexCounts(snapshot: snapshot)
             try await reloadRecognition()
             lastUpdated = Date()
+            contentEpoch += 1
         } catch {
             if case VaultStoreError.indexUpdateFailed = error { saved = true }
             entryErrorText =
@@ -262,6 +267,7 @@ final class IndexStore {
     func performEdit(
         path: String, operation: @Sendable (VaultStore) async throws -> Void
     ) async throws {
+        await waitWhileRefreshInFlight()
         guard canAddEvent, let writer, let index else { throw VaultStoreError.staleTarget }
         isProcessing = true
         isWriting = true
@@ -275,6 +281,7 @@ final class IndexStore {
             counts = IndexCounts(snapshot: snapshot)
             try await reloadRecognition()
             lastUpdated = Date()
+            contentEpoch += 1
         } catch {
             failure = saved ? VaultStoreError.indexUpdateFailed(path: path, underlying: error) : error
             if case VaultStoreError.staleTarget = error { pendingRefresh = true }
@@ -284,6 +291,7 @@ final class IndexStore {
     }
 
     func renameEntity(at path: String, to name: String, qualifier: String?) async throws -> RenameResult {
+        await waitWhileRefreshInFlight()
         guard canAddEvent, let writer, let index else { throw VaultStoreError.staleTarget }
         isProcessing = true
         isWriting = true
@@ -295,6 +303,7 @@ final class IndexStore {
                 counts = IndexCounts(snapshot: snapshot)
                 try await reloadRecognition()
                 lastUpdated = Date()
+                contentEpoch += 1
             } catch {
                 entryErrorText = String(localized: "Varlık kaydedildi, indeks güncellenemedi.")
                 pendingRefresh = true
@@ -345,6 +354,7 @@ final class IndexStore {
     }
 
     func createEntity(kind: VaultEntityKind, name: String, qualifier: String?) async throws -> KnownEntity {
+        await waitWhileRefreshInFlight()
         guard canAddEvent, let writer else { throw VaultStoreError.staleTarget }
         isProcessing = true
         isWriting = true
@@ -388,10 +398,17 @@ final class IndexStore {
                 content = VaultReadModel(snapshot: snapshot)
                 counts = IndexCounts(snapshot: snapshot)
                 lastUpdated = Date()
+                contentEpoch += 1
             }
             if !knownEntities.contains(where: { $0.file == path }) { knownEntities.append(entity) }
         } catch { entryErrorText = String(localized: "Varlık kaydedildi, indeks güncellenemedi.") }
         return entity
+    }
+
+    private func waitWhileRefreshInFlight() async {
+        while refreshInFlight {
+            try? await Task.sleep(for: .milliseconds(10))
+        }
     }
 
     private func applyPendingSelection() async {
@@ -408,6 +425,7 @@ final class IndexStore {
         pendingRefresh = false
         pendingRebuild = false
         refreshInFlight = false
+        contentEpoch = 0
         unwatchedDirectoryCount = 0
         vaultURL = url
         index = nil
@@ -484,44 +502,52 @@ final class IndexStore {
         let current = generation
         refreshInFlight = true
         var full = rebuild
-        var published = false
+        var holdsProcessing = false
+        // Skip only after a successful publish; rebuild never skips (see IndexUpdate).
+        var allowSkip = lastUpdated != nil && errorText == nil
         // First load keeps the busy indicator up for the whole update.
         if lastUpdated == nil {
             isProcessing = true
-            published = true
+            holdsProcessing = true
         }
         repeat {
             pendingRefresh = false
             pendingRebuild = false
+            let epochAtStart = contentEpoch
             do {
-                let result = try await update(index, root, full, entityTypes, lastUpdated != nil)
+                let result = try await update(
+                    index, root, full, entityTypes, allowSkip, skippedPaths)
                 guard generation == current else { return }
-                if !result.hasChanges {
-                    full = pendingRebuild
-                    continue
+                if contentEpoch != epochAtStart {
+                    // A write published while Core work was in flight; discard and rescan.
+                    allowSkip = false
+                    pendingRefresh = true
+                } else if result.hasChanges {
+                    if !holdsProcessing {
+                        isProcessing = true
+                        holdsProcessing = true
+                    }
+                    content = result.content
+                    counts = result.counts
+                    skippedPaths = result.skippedPaths
+                    try await reloadRecognition()
+                    lastUpdated = Date()
+                    errorText = nil
+                    allowSkip = true
                 }
-                if !published {
-                    isProcessing = true
-                    published = true
-                }
-                content = result.content
-                counts = result.counts
-                skippedPaths = result.skippedPaths
-                try await reloadRecognition()
-                lastUpdated = Date()
-                errorText = nil
             } catch {
-                if !published {
+                if !holdsProcessing {
                     isProcessing = true
-                    published = true
+                    holdsProcessing = true
                 }
                 if generation == current { report(error) }
+                allowSkip = false
             }
             full = pendingRebuild
         } while pendingRefresh && pendingSelection == nil && generation == current
         guard generation == current else { return }
         refreshInFlight = false
-        if published { isProcessing = false }
+        if holdsProcessing { isProcessing = false }
         await applyPendingSelection()
     }
 }

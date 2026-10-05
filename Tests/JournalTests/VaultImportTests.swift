@@ -132,10 +132,11 @@ import VaultFormat
         let store = IndexStore(
             location: VaultLocation(defaults: defaults.defaults, documentsURL: directory, bookmarks: pathBookmarks()),
             supportURL: directory.appendingPathComponent("indexes"),
-            update: { index, root, rebuild, previous, skip in
+            update: { index, root, rebuild, previous, skip, skipped in
                 await gate.hold()
                 return try await IndexUpdate.read(
-                    index: index, root: root, rebuild: rebuild, previousTypes: previous, skipUnchanged: skip)
+                    index: index, root: root, rebuild: rebuild, previousTypes: previous,
+                    skipUnchanged: skip, previousSkipped: skipped)
             })
         await gate.arm()
         let operation = Task { await store.select(root) }

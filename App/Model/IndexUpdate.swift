@@ -11,14 +11,16 @@ struct IndexUpdate: Sendable {
 
     static func read(
         index: VaultIndex, root: URL, rebuild: Bool, previousTypes: EntityTypeCatalog,
-        skipUnchanged: Bool
+        skipUnchanged: Bool, previousSkipped: [SkippedPath]
     ) async throws -> IndexUpdate {
         try await Task.detached {
             let result = try rebuild ? index.rebuild(vaultRoot: root) : index.refresh(vaultRoot: root)
             let types = EntityTypeReader.read(vaultRoot: root)
             let pathsChanged =
                 !result.addedPaths.isEmpty || !result.updatedPaths.isEmpty || !result.deletedPaths.isEmpty
-            if skipUnchanged && !pathsChanged && sameCatalog(types, previousTypes) {
+            let skippedChanged = result.skippedPaths != previousSkipped
+            // Rebuild must always publish: an emptied vault reports no path deltas.
+            if skipUnchanged && !rebuild && !pathsChanged && !skippedChanged && sameCatalog(types, previousTypes) {
                 return IndexUpdate(
                     content: .empty, counts: IndexCounts(), skippedPaths: result.skippedPaths, hasChanges: false)
             }

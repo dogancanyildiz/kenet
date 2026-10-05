@@ -405,8 +405,8 @@ final class IndexStore {
         return entity
     }
 
-    private func waitWhileRefreshInFlight() async {
-        while refreshInFlight {
+    func waitWhileRefreshInFlight() async {
+        while refreshInFlight, !Task.isCancelled {
             try? await Task.sleep(for: .milliseconds(10))
         }
     }

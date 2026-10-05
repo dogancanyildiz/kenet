@@ -8,15 +8,15 @@ extension IndexStore {
         recurrence: TaskRecurrence? = nil
     ) async -> Bool {
         guard !text.allSatisfy(\.isWhitespace) else { return false }
-        // performEdit waits for an in-flight refresh; avoid rejecting before that wait.
+        // Wait out an in-flight refresh before the gate, so a refresh alone never rejects the entry.
+        await waitWhileRefreshInFlight()
+        guard canAddEvent else { return false }
         reportTaskEntryError(nil)
         do {
             try await performEdit(path: "journal/\(day).md") { writer in
                 try await writer.addingTask(on: day, text: text, due: due, priority: priority, recurrence: recurrence)
             }
             return true
-        } catch VaultStoreError.staleTarget {
-            return false
         } catch VaultStoreError.indexUpdateFailed {
             reportTaskEntryError(EntryWriteError.savedWithoutIndex)
             return true

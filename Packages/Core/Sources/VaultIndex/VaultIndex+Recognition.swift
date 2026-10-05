@@ -26,10 +26,15 @@ extension VaultIndex {
             func appendCurrent() {
                 if let current {
                     let stem = KnownEntity.defaultLinkTarget(for: current.file)
-                    let linkTarget =
-                        owners[comparisonKey(stem)] == current.file
-                        ? stem
-                        : (current.file.hasSuffix(".md") ? String(current.file.dropLast(3)) : current.file)
+                    let linkTarget: String
+                    if owners[comparisonKey(stem)] == current.file {
+                        linkTarget = stem
+                    } else {
+                        var path =
+                            current.file.hasSuffix(".md") ? String(current.file.dropLast(3)) : current.file
+                        if !path.contains("/") { path = "/" + path }
+                        linkTarget = path
+                    }
                     result.append(
                         KnownEntity(
                             file: current.file, kind: current.kind, name: current.name,

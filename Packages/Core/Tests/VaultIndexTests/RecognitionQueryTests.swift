@@ -131,3 +131,90 @@ private final class RecognitionQueryLog: @unchecked Sendable {
         #expect(short == "[[Ece Yalın]]")
     }
 }
+
+@Test func rootDuplicateBasenameUsesLeadingSlashPathTarget() throws {
+    try withVault { root in
+        try write(root, "Archive/Baran.md", "eski not\n")
+        try write(root, "Baran.md", "---\ntype: person\nname: Baran\n---\n")
+        let index = try VaultIndex()
+        try index.rebuild(vaultRoot: root)
+        let entities = try index.knownEntities()
+        let baran = try #require(entities.first { $0.file == "Baran.md" })
+        #expect(baran.linkTarget == "/Baran")
+        let text = "Baran ile kahve"
+        let mentions = EntityRecognizer.recognize(text, entities: entities)
+        #expect(mentions.count == 1 && mentions[0].isCertain)
+        let linked = try EntityRecognizer.linking(text, mentions: mentions)
+        #expect(linked == "[[/Baran|Baran]] ile kahve")
+        try write(root, "journal/2026-09-14.md", linked + "\n")
+        try index.rebuild(vaultRoot: root)
+        #expect(try index.links(to: "Baran.md").count == 1)
+        #expect(try index.links(to: "Archive/Baran.md").isEmpty)
+    }
+}
+
+@Test func basenameOwnerKeepsShortLinkTargetDespiteLaterDuplicate() throws {
+    try withVault { root in
+        try write(root, "people/Baran.md", "---\ntype: person\nname: Baran\n---\n")
+        try write(root, "zz/Baran.md", "eski not\n")
+        let index = try VaultIndex()
+        try index.rebuild(vaultRoot: root)
+        let entities = try index.knownEntities()
+        let baran = try #require(entities.first { $0.file == "people/Baran.md" })
+        #expect(baran.linkTarget == "Baran")
+        let text = "Baran ile kahve"
+        let mentions = EntityRecognizer.recognize(text, entities: entities)
+        #expect(mentions.count == 1 && mentions[0].isCertain)
+        let linked = try EntityRecognizer.linking(text, mentions: mentions)
+        #expect(linked == "[[Baran]] ile kahve")
+        try write(root, "journal/2026-09-14.md", linked + "\n")
+        try index.rebuild(vaultRoot: root)
+        #expect(try index.links(to: "people/Baran.md").count == 1)
+        #expect(try index.links(to: "zz/Baran.md").isEmpty)
+    }
+}
+
+@Test func caseDifferingDuplicateBasenameUsesPathLinkTarget() throws {
+    try withVault { root in
+        try write(root, "Archive/baran.md", "eski not\n")
+        try write(root, "people/Baran.md", "---\ntype: person\nname: Baran\n---\n")
+        let index = try VaultIndex()
+        try index.rebuild(vaultRoot: root)
+        let entities = try index.knownEntities()
+        let baran = try #require(entities.first { $0.file == "people/Baran.md" })
+        #expect(baran.linkTarget == "people/Baran")
+        let text = "Baran ile kahve"
+        let mentions = EntityRecognizer.recognize(text, entities: entities)
+        #expect(mentions.count == 1 && mentions[0].isCertain)
+        let linked = try EntityRecognizer.linking(text, mentions: mentions)
+        #expect(linked == "[[people/Baran|Baran]] ile kahve")
+        try write(root, "journal/2026-09-14.md", linked + "\n")
+        try index.rebuild(vaultRoot: root)
+        #expect(try index.links(to: "people/Baran.md").count == 1)
+        #expect(try index.links(to: "Archive/baran.md").isEmpty)
+    }
+}
+
+@Test func unrepresentableFolderPathLeavesMentionPlain() throws {
+    try withVault { root in
+        try write(root, "Archive/Baran.md", "eski not\n")
+        try write(root, "C# Kişiler/Baran.md", "---\ntype: person\nname: Baran\n---\n")
+        try write(root, "people/Ece Yalın.md", "---\ntype: person\nname: Ece Yalın\n---\n")
+        let index = try VaultIndex()
+        try index.rebuild(vaultRoot: root)
+        let entities = try index.knownEntities()
+        let baran = try #require(entities.first { $0.file == "C# Kişiler/Baran.md" })
+        let ece = try #require(entities.first { $0.file == "people/Ece Yalın.md" })
+        #expect(baran.linkTarget == "C# Kişiler/Baran")
+        #expect(ece.linkTarget == "Ece Yalın")
+        let text = "Baran ile kahve. Ece Yalın geldi."
+        let mentions = EntityRecognizer.recognize(text, entities: entities)
+        #expect(mentions.count == 2)
+        let linked = try EntityRecognizer.linking(text, mentions: mentions)
+        #expect(linked == "Baran ile kahve. [[Ece Yalın]] geldi.")
+        try write(root, "journal/2026-09-14.md", linked + "\n")
+        try index.rebuild(vaultRoot: root)
+        #expect(try index.links(to: "C# Kişiler/Baran.md").isEmpty)
+        #expect(try index.links(to: "people/Ece Yalın.md").count == 1)
+    }
+}

@@ -67,7 +67,8 @@ func fixtureRoot() throws -> URL {
     "empty", "nfd", "overlap", "escaped-code", "unclosed-fence", "unknown-four-words", "bom-mixed-line-endings",
     "alias-name-collision", "protected-addresses", "protected-tokens", "markdown-links", "syntax-affixes",
     "case-suggestions", "frontmatter", "table-crlf", "unicode-line-separators", "overlap-tie-first",
-    "overlap-name-priority", "alias-filename", "path-link-target",
+    "overlap-name-priority", "alias-filename", "path-link-target", "root-path-link-target",
+    "unrepresentable-path-target",
 ])
 func recognitionFixtures(_ name: String) throws {
     let root = try fixtureRoot().appendingPathComponent("recognition/" + name)
@@ -101,8 +102,11 @@ func recognitionFixtures(_ name: String) throws {
     }
     let linked = try EntityRecognizer.linking(input, mentions: mentions)
     #expect(Array(linked.utf8) == Array(try Data(contentsOf: root.appendingPathComponent("linked.md"))))
-    #expect(EntityRecognizer.recognize(linked, entities: entities).allSatisfy { !$0.isCertain })
+    let remaining = EntityRecognizer.recognize(linked, entities: entities)
     #expect(
-        try EntityRecognizer.linking(linked, mentions: EntityRecognizer.recognize(linked, entities: entities)) == linked
-    )
+        remaining.filter(\.isCertain).allSatisfy { mention in
+            let target = mention.candidates[0].linkTarget
+            return target.isEmpty || target.contains(where: { "\\:*?\"<>|#^[]\n\r".contains($0) })
+        })
+    #expect(try EntityRecognizer.linking(linked, mentions: remaining) == linked)
 }

@@ -1,0 +1,17 @@
+{
+  "entities": [
+    {
+      "file": "C# Kişiler/Baran.md",
+      "kind": "person",
+      "name": "Baran",
+      "aliases": [],
+      "linkTarget": "C# Kişiler/Baran"
+    },
+    {
+      "file": "people/Ece Yalın.md",
+      "kind": "person",
+      "name": "Ece Yalın",
+      "aliases": []
+    }
+  ]
+}

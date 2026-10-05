@@ -44,9 +44,12 @@ extension EntityRecognizer {
                 line[range].elementsEqual(mention.spelling.utf8)
             else { throw EntityLinkError.staleMention }
             let target = selected.linkTarget
-            guard !target.isEmpty, !target.contains(where: { "\\:*?\"<>|#^[]\n\r".contains($0) }),
-                !mention.spelling.contains(where: { "[]\n\r".contains($0) })
-            else { throw EntityLinkError.unrepresentableMention }
+            guard !mention.spelling.contains(where: { "[]\n\r".contains($0) }) else {
+                throw EntityLinkError.unrepresentableMention
+            }
+            guard !target.isEmpty, !target.contains(where: { "\\:*?\"<>|#^[]\n\r".contains($0) }) else {
+                continue
+            }
             let exactTarget = mention.spelling.utf8.elementsEqual(target.utf8)
             let display = !exactTarget || selected.qualifier != nil
             let table = line.drop(while: { $0 == 32 || $0 == 9 }).first == 124

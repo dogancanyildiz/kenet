@@ -8,6 +8,7 @@ struct DayEventView: View {
     @Environment(\.locale) private var locale
     @State private var editor: EventEditorModel?
     @State private var errorText: String?
+    @State private var deleteConfirmation = DestructiveConfirmation<DestructiveConfirmationToken>()
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -25,12 +26,15 @@ struct DayEventView: View {
                 editor = EventEditorModel(store: store, day: day, row: event)
             }
             Button("Sil", systemImage: "trash", role: .destructive) {
-                let model = EventEditorModel(store: store, day: day, row: event)
-                Task {
-                    await model.load()
-                    if model.target != nil { await model.delete() }
-                    errorText = model.errorText
-                }
+                deleteConfirmation.request(.pending)
+            }
+        }
+        .destructiveConfirmationDialog("Olayı sil?", confirmation: $deleteConfirmation) { _ in
+            let model = EventEditorModel(store: store, day: day, row: event)
+            Task {
+                await model.load()
+                if model.target != nil { await model.delete() }
+                errorText = model.errorText
             }
         }
         .sheet(item: $editor) { model in

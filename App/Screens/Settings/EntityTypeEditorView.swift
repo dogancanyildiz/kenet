@@ -4,6 +4,7 @@ import VaultFormat
 struct EntityTypeEditorView: View {
     @State var model: EntityTypeEditorModel
     @Environment(\.dismiss) private var dismiss
+    @State private var deleteConfirmation = DestructiveConfirmation<UUID>()
 
     var body: some View {
         @Bindable var model = model
@@ -30,7 +31,7 @@ struct EntityTypeEditorView: View {
                             Text("Evet/hayır").tag(EntityTypeField.Kind.boolean)
                             Text("Bağlantı").tag(EntityTypeField.Kind.link)
                         }
-                        Button("Alanı kaldır", role: .destructive) { model.fields.removeAll { $0.id == field.id } }
+                        Button("Alanı kaldır", role: .destructive) { deleteConfirmation.request(field.id) }
                     }
                 }
                 Button("Alan ekle") { model.fields.append(EntityTypeFieldDraft()) }
@@ -43,5 +44,10 @@ struct EntityTypeEditorView: View {
         .disabled(model.isSaving)
         .formStyle(.grouped)
         .navigationTitle(model.original == nil ? Text("Yeni varlık tipi") : Text("Varlık tipini düzenle"))
+        .destructiveConfirmationDialog(
+            "Alanı kaldır?", confirmation: $deleteConfirmation, confirmTitle: "Alanı kaldır"
+        ) { fieldID in
+            model.fields.removeAll { $0.id == fieldID }
+        }
     }
 }

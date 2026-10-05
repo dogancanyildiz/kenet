@@ -15,6 +15,10 @@ struct DayTaskView: View {
     @State private var dateEditor: TaskEditorModel?
     @State private var errorText: String?
 
+    private var presentation: TaskStatusPresentation {
+        .make(isPastDue: isOverdue, isCompleted: completed || row.isClosed)
+    }
+
     var body: some View {
         HStack(alignment: .top, spacing: 10) {
             Button(action: complete) {
@@ -24,27 +28,28 @@ struct DayTaskView: View {
                 LocalizedStringKey(row.isClosed && allowsReopening ? "Görevi yeniden aç" : "Görevi tamamla")
             )
             .disabled((row.isClosed && !allowsReopening) || completed || isBusy || !store.canAddEvent)
-            VStack(alignment: .leading, spacing: 4) {
-                LinkedTextView(text: row.text, store: store)
-                HStack(spacing: 8) {
-                    if let date = row.due {
-                        Text(LocalDay.instant(for: date), format: .dateTime.day().month(.abbreviated))
-                            .foregroundStyle(isOverdue ? Color.red.opacity(0.8) : Color.secondary)
+            completedTextStyle {
+                VStack(alignment: .leading, spacing: 4) {
+                    LinkedTextView(text: row.text, store: store)
+                    HStack(spacing: 8) {
+                        if let date = row.due {
+                            TaskDueDateLabel(date: date, presentation: presentation)
+                        }
+                        if let priority = row.priority { Text(verbatim: priority.token).accessibilityLabel("Öncelik") }
+                        if let recurrence = row.recurrence {
+                            TaskRecurrenceLabel(recurrence: recurrence)
+                        } else if row.recurrenceSource != nil {
+                            Label("Tanınmayan tekrar", systemImage: "repeat")
+                        }
                     }
-                    if let priority = row.priority { Text(verbatim: priority.token).accessibilityLabel("Öncelik") }
-                    if let recurrence = row.recurrence {
-                        TaskRecurrenceLabel(recurrence: recurrence)
-                    } else if row.recurrenceSource != nil {
-                        Label("Tanınmayan tekrar", systemImage: "repeat")
-                    }
+                    .font(.caption)
+                    if let error = errorText { Text(verbatim: error).font(.caption).foregroundStyle(.red) }
                 }
-                .font(.caption)
-                if let error = errorText { Text(verbatim: error).font(.caption).foregroundStyle(.red) }
             }
         }
         .buttonStyle(.plain)
         .frame(maxWidth: .infinity, alignment: .leading).contentShape(Rectangle())
-        .opacity(completed || row.isClosed ? 0.45 : 1)
+        .opacity(presentation.opacity)
         .animation(.easeOut(duration: 0.2), value: completed)
         .onTapGesture {
             if !row.text.spans.contains(where: { $0.target != nil }) { complete() }
@@ -76,6 +81,14 @@ struct DayTaskView: View {
         .sheet(item: $dateEditor) { model in
             NavigationStack { TaskDateEditor(model: model) }.frame(minWidth: 320, minHeight: 200)
                 .presentationDetents([.medium, .large])
+        }
+    }
+
+    @ViewBuilder private func completedTextStyle<Content: View>(@ViewBuilder content: () -> Content) -> some View {
+        if presentation.usesSecondaryText {
+            content().foregroundStyle(.secondary)
+        } else {
+            content()
         }
     }
 

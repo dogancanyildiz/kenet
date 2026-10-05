@@ -44,17 +44,16 @@ struct KanbanCard: View {
         #endif
     }
 
+    private var presentation: TaskStatusPresentation {
+        .make(due: row.due, asOf: model.tasks.day, isCompleted: row.isClosed)
+    }
+
     private var content: some View {
         VStack(alignment: .leading, spacing: 8) {
             LinkedTextView(text: row.text, store: model.store)
             HStack {
                 if let date = row.due {
-                    Label {
-                        Text(LocalDay.instant(for: date), format: .dateTime.day().month(.abbreviated))
-                    } icon: {
-                        Image(systemName: "calendar")
-                    }
-                    .foregroundStyle(date < model.tasks.day && !row.isClosed ? Color.red : Color.secondary)
+                    TaskDueDateLabel(date: date, presentation: presentation, includeCalendarIcon: true)
                 }
                 if let priority = row.priority { Text(verbatim: priority.token).accessibilityLabel("Öncelik") }
                 if model.busy.contains(row.id) { ProgressView().controlSize(.small) }

@@ -21,6 +21,9 @@
                     HStack(spacing: 0) {
                         if !span.isMilestone && dates.start.map(model.bounds.contains) == true { handle(.start) }
                         Spacer(minLength: 0)
+                        if presentation.showsOverdueCue {
+                            Image(systemName: "arrow.forward.circle").font(.caption2).padding(.trailing, 4)
+                        }
                         if span.isOpenEnded { Image(systemName: "arrow.right").font(.caption2).padding(.trailing, 4) }
                         if !span.isMilestone && dates.due.map(model.bounds.contains) == true { handle(.due) }
                     }
@@ -30,21 +33,26 @@
                     )
                     .background(color, in: RoundedRectangle(cornerRadius: span.isMilestone ? 0 : 5))
                     .rotationEffect(.degrees(span.isMilestone ? 45 : 0))
-                    .opacity(row.isClosed ? 0.4 : 0.85)
+                    .opacity(presentation.opacity)
                     .contentShape(Rectangle()).onTapGesture(perform: select)
                     .gesture(gesture(edge: nil))
                     .offset(x: offset + (span.isMilestone ? max(0, (dayWidth - 12) / 2) : 2))
                     .contextMenu { TimelineTaskMenu(edit: edit) }
                     .help(dates.isValid ? Text(verbatim: row.text.plainText) : Text("Geçersiz tarih aralığı"))
                     .accessibilityLabel(Text(verbatim: row.text.plainText))
+                    .overdueAccessibilityValue(presentation.showsOverdueCue)
                     .accessibilityAction(named: Text("Ayrıntıları göster"), select)
                 }
             }.frame(width: width, height: 52).clipped()
                 .onDisappear { if !model.busy.contains(row.id) { model.preview(nil, for: row) } }
         }
+        private var presentation: TaskStatusPresentation {
+            .make(due: dates.due, asOf: model.today, isCompleted: row.isClosed)
+        }
         private var color: Color {
             if !dates.isValid { return .orange }
-            return dates.due.map { $0 < model.today } == true && !row.isClosed ? .red : .accentColor
+            if presentation.usesSecondaryText { return .secondary }
+            return presentation.showsOverdueCue ? .inkWarning : .accentColor
         }
         private func handle(_ edge: TimelineDates.Edge) -> some View {
             Capsule().fill(.white.opacity(0.8)).frame(width: 3, height: 12).padding(.horizontal, 5)

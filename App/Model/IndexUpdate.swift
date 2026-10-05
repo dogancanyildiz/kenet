@@ -24,9 +24,9 @@ struct IndexUpdate: Sendable {
                 return IndexUpdate(
                     content: .empty, counts: IndexCounts(), skippedPaths: result.skippedPaths, hasChanges: false)
             }
-            let snapshot = try index.snapshot()
+            let published = try VaultPublishedContent.load(from: index)
             return IndexUpdate(
-                content: VaultReadModel(snapshot: snapshot), counts: IndexCounts(snapshot: snapshot),
+                content: published.content, counts: published.counts,
                 skippedPaths: result.skippedPaths, hasChanges: true)
         }.value
     }

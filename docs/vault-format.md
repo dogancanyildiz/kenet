@@ -12,7 +12,7 @@ Bu belge platformlar arası sözleşmedir. Uygulamanın her sürümü ve ileride
 - Baştaki BOM dosyanın özelliğidir ve her zaman en başta kalır; dosyanın başına içerik (örneğin yeni frontmatter) eklendiğinde de. Baş dışındaki BOM baytları sıradan içeriktir.
 - UTF-8 olarak çözülemeyen dosya salt okunurdur: uygulama içine yazmaz. Çözülemeyen, Unicode'a göre iyi biçimli olmayan bayt dizisi demektir (aşırı uzun kodlama, vekil kod noktası, yarım dizi); NUL ve U+FFFD geçerlidir. Gösterirken geçerli satırlar olduğu gibi, geçersiz bayt dizileri U+FFFD olarak gösterilir.
 - Sözdizimi Obsidian uyumludur: YAML frontmatter, `[[wikilink]]`, `#etiket`, blok kimliği, Obsidian Tasks görev biçimi.
-- Kasa uygulamanın kendi iCloud klasöründe durur. Mac'te Obsidian ile kasa olarak açılabilir.
+- Kasa bugün uygulamanın yerel klasöründe ya da kullanıcının seçtiği klasörde durur; uygulamanın kendi iCloud klasörü planlanmıştır (henüz yok). Mac'te Obsidian ile kasa olarak açılabilir.
 
 ## Dil
 
@@ -397,7 +397,7 @@ Yol: `places/Kadıköy Ofis.md`
 type: place
 name: Kadıköy Ofis
 aliases: [ofis]
-coordinates: [40.9903, 29.0290]
+coordinates: [10.5000, 20.0290]
 radius: 100
 ---
 ```

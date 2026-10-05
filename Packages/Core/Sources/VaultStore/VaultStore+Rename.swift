@@ -17,7 +17,7 @@ extension VaultStore {
         let newPath = ((path as NSString).deletingLastPathComponent as NSString).appendingPathComponent(stem + ".md")
         let targetURL = try checkedURL(newPath, writing: true)
         guard try !filenameIsTaken(stem, excluding: path) else { throw VaultStoreError.nameTaken }
-        let original = RawDocument(bytes: try Data(contentsOf: sourceURL))
+        let original = RawDocument(bytes: try readFile(sourceURL))
         guard case .parsed(let frontmatter) = original.frontmatter,
             case .scalar(let type) = frontmatter.field(named: "type")?.value,
             ["person", "place"].contains(type.text) || customDefinition(type.text) != nil
@@ -68,7 +68,7 @@ extension VaultStore {
             let destination = source == path ? newPath : source
             do {
                 let url = try checkedURL(destination, writing: true)
-                let document = RawDocument(bytes: try Data(contentsOf: url))
+                let document = RawDocument(bytes: try readFile(url))
                 if document.isReadOnly && !candidates.contains(source) { continue }
                 let rewrite = try RenameDocument.rewrite(
                     document, targets: targets, eligible: candidates.contains(source))

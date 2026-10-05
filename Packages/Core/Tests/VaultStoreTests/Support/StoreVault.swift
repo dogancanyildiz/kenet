@@ -15,7 +15,8 @@ struct StoreVault: Sendable {
 
     init(
         sample: Bool = false, random: @escaping @Sendable () -> UInt64 = { 0 },
-        linkFile: (@Sendable (URL, URL) throws -> Void)? = nil
+        linkFile: (@Sendable (URL, URL) throws -> Void)? = nil,
+        readFile: (@Sendable (URL) throws -> Data)? = nil
     ) throws {
         root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         if sample {
@@ -24,8 +25,14 @@ struct StoreVault: Sendable {
             try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
         }
         index = try VaultIndex()
+        let reader = readFile ?? { try Data(contentsOf: $0) }
         if let linkFile {
-            store = VaultStore(vaultRoot: root, index: index, randomValue: random, linkFile: linkFile)
+            store = VaultStore(
+                vaultRoot: root, index: index, randomValue: random, linkFile: linkFile, readFile: reader)
+        } else if readFile != nil {
+            store = VaultStore(
+                vaultRoot: root, index: index, randomValue: random,
+                linkFile: { try FileManager.default.linkItem(at: $0, to: $1) }, readFile: reader)
         } else {
             store = VaultStore(vaultRoot: root, index: index, randomValue: random)
         }
@@ -55,6 +62,32 @@ final class CountingRandom: @unchecked Sendable {
         lock.withLock {
             defer { count += 1 }
             return count / 6
+        }
+    }
+}
+
+/// Counts Markdown reads through VaultStore's injectable file reader.
+final class CountingReader: @unchecked Sendable {
+    private let lock = NSLock()
+    private var urls: [URL] = []
+
+    func read(_ url: URL) throws -> Data {
+        lock.withLock { urls.append(url) }
+        return try Data(contentsOf: url)
+    }
+
+    func reset() {
+        lock.withLock { urls = [] }
+    }
+
+    func markdownPaths(under root: URL) -> [String] {
+        let rootPath = root.resolvingSymlinksInPath().standardizedFileURL.path
+        return lock.withLock {
+            urls.compactMap { url in
+                let path = url.resolvingSymlinksInPath().standardizedFileURL.path
+                guard path.hasPrefix(rootPath + "/"), path.hasSuffix(".md") else { return nil }
+                return String(path.dropFirst(rootPath.count + 1))
+            }
         }
     }
 }

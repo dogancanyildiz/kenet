@@ -51,7 +51,7 @@ extension VaultStore {
         let url = try checkedURL(path)
         let document: RawDocument
         do {
-            document = RawDocument(bytes: try Data(contentsOf: url))
+            document = RawDocument(bytes: try readFile(url))
         } catch CocoaError.fileReadNoSuchFile {
             return try RawDocument(bytes: []).settingFrontmatterValue(.text(kind.rawValue), forKey: "type")
         }

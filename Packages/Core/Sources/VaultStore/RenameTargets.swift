@@ -5,7 +5,30 @@ import VaultFormat
 struct RenameTargets {
     let oldPath: String
     let newPath: String
-    let files: [String]
+    private let comparisonKey: (String) -> String
+    private let nameOwners: [[UInt8]: String]
+    private let pathOwners: [[UInt8]: String]
+
+    init(
+        oldPath: String, newPath: String, files: [String],
+        comparisonKey: @escaping (String) -> String = storeComparisonKey
+    ) {
+        self.oldPath = oldPath
+        self.newPath = newPath
+        self.comparisonKey = comparisonKey
+        var names: [[UInt8]: String] = [:]
+        var paths: [[UInt8]: String] = [:]
+        for file in files {
+            let stem = String(file.dropLast(3))
+            let nameKey = Array(comparisonKey((stem as NSString).lastPathComponent).utf8)
+            let pathKey = Array(comparisonKey(stem).utf8)
+            // Retain the first owner in the supplied pre-move order, including collisions.
+            if names[nameKey] == nil { names[nameKey] = file }
+            if paths[pathKey] == nil { paths[pathKey] = file }
+        }
+        nameOwners = names
+        pathOwners = paths
+    }
 
     func matches(_ target: String) -> Bool {
         guard !target.isEmpty else { return false }
@@ -13,12 +36,8 @@ struct RenameTargets {
         while normalized.hasPrefix("/") || normalized.hasPrefix("./") {
             normalized.removeFirst(normalized.hasPrefix("./") ? 2 : 1)
         }
-        let key = storeComparisonKey(normalized)
-        let owner = files.first {
-            let stem = String($0.dropLast(3))
-            let candidate = target.contains("/") ? stem : (stem as NSString).lastPathComponent
-            return storeComparisonKey(candidate).utf8.elementsEqual(key.utf8)
-        }
+        let key = Array(comparisonKey(normalized).utf8)
+        let owner = target.contains("/") ? pathOwners[key] : nameOwners[key]
         return owner == oldPath
     }
 

@@ -253,19 +253,52 @@ import Testing
         defer { fixture.clean() }
         fixture.context.paused = true
         let lock = fixture.lock()
-        let foreground = Task { await lock.becomeActive() }
+        #expect(lock.delay == .immediately)
+        // Production uses activate(); Face ID makes the scene inactive mid-prompt.
+        lock.activate()
         while fixture.context.pending == nil { await Task.yield() }
         lock.resignActive(startTimeout: false)
         #expect(lock.shouldCover && lock.isAuthenticating)
         #expect(fixture.context.invalidations == 0)
         fixture.context.pending?.resume(returning: true)
-        await foreground.value
+        while lock.isAuthenticating { await Task.yield() }
         #expect(!lock.isLocked && lock.shouldCover)
-        // The system prompt dismissed; the next active event removes the cover.
+        // Prompt dismissed; returning active must not re-lock with the default (immediate) delay.
         fixture.context.paused = false
-        lock.delay = .oneMinute
-        await lock.becomeActive()
-        #expect(!lock.shouldCover && fixture.context.calls == 1)
+        lock.activate()
+        for _ in 0..<50 where lock.isAuthenticating || fixture.context.calls > 1 {
+            await Task.yield()
+        }
+        #expect(!lock.shouldCover && !lock.isLocked && fixture.context.calls == 1)
+    }
+
+    @Test func immediateDelayDoesNotRelockAfterSuccessfulUnlockDuringInactive() async {
+        let fixture = LockFixture(enabled: true)
+        defer { fixture.clean() }
+        let lock = fixture.lock()
+        #expect(lock.delay == .immediately)
+        fixture.context.paused = true
+        lock.activate()
+        while fixture.context.pending == nil { await Task.yield() }
+        // .inactive while the system prompt is up, then success, then .active.
+        lock.resignActive(startTimeout: false)
+        fixture.context.pending?.resume(returning: true)
+        while lock.isAuthenticating { await Task.yield() }
+        #expect(!lock.isLocked && lock.shouldCover)
+        fixture.context.paused = false
+        lock.activate()
+        for _ in 0..<50 where lock.isAuthenticating {
+            await Task.yield()
+        }
+        #expect(!lock.isLocked && !lock.shouldCover && fixture.context.calls == 1)
+        // Replaying activate must not prompt again (production scenePhase path).
+        let callsAfterUnlock = fixture.context.calls
+        lock.activate()
+        for _ in 0..<50 where lock.isAuthenticating {
+            await Task.yield()
+        }
+        #expect(fixture.context.calls == callsAfterUnlock)
+        #expect(!lock.isLocked && !lock.shouldCover)
     }
 
     @Test func immediateQuickEntryLocksAgainWhenPanelCloses() async {

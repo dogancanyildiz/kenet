@@ -1,0 +1,17 @@
+{
+  "entities": [
+    {
+      "file": "people/Baran.md",
+      "kind": "person",
+      "name": "Baran",
+      "aliases": [],
+      "linkTarget": "people/Baran"
+    },
+    {
+      "file": "people/Ece Yalın.md",
+      "kind": "person",
+      "name": "Ece Yalın",
+      "aliases": []
+    }
+  ]
+}

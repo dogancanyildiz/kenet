@@ -3,11 +3,17 @@ import GRDB
 import VaultFormat
 
 extension VaultIndex {
-    /// Reads every person and place with its ordered aliases in a single query.
+    /// Reads every requested entity with ordered aliases, and the link target that resolves to each file.
     public func knownEntities(kinds: Set<String> = ["person", "place"]) throws -> [KnownEntity] {
         let kinds = Set(kinds.filter { KnownEntity.Kind(rawValue: $0) != nil })
         guard !kinds.isEmpty else { return [] }
         return try database.read { db in
+            var owners: [String: String] = [:]
+            for path in try String.fetchAll(db, sql: "SELECT path FROM files ORDER BY path") {
+                let stem = path.hasSuffix(".md") ? String(path.dropLast(3)) : path
+                let basename = String(stem.split(separator: "/").last ?? Substring(stem))
+                if owners[comparisonKey(basename)] == nil { owners[comparisonKey(basename)] = path }
+            }
             let rows = try Row.fetchAll(
                 db,
                 sql: """
@@ -19,10 +25,20 @@ extension VaultIndex {
             var current: (file: String, kind: KnownEntity.Kind, name: String, qualifier: String?, aliases: [String])?
             func appendCurrent() {
                 if let current {
+                    let stem = KnownEntity.defaultLinkTarget(for: current.file)
+                    let linkTarget: String
+                    if owners[comparisonKey(stem)] == current.file {
+                        linkTarget = stem
+                    } else {
+                        var path =
+                            current.file.hasSuffix(".md") ? String(current.file.dropLast(3)) : current.file
+                        if !path.contains("/") { path = "/" + path }
+                        linkTarget = path
+                    }
                     result.append(
                         KnownEntity(
                             file: current.file, kind: current.kind, name: current.name,
-                            qualifier: current.qualifier, aliases: current.aliases))
+                            qualifier: current.qualifier, aliases: current.aliases, linkTarget: linkTarget))
                 }
             }
             for row in rows {

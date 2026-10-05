@@ -1,0 +1,23 @@
+{
+  "mentions": [
+    {
+      "line": 0,
+      "byteRange": [0, 5],
+      "spelling": "Baran",
+      "candidates": ["people/Baran.md"],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 0,
+      "byteRange": [17, 27],
+      "spelling": "Ece Yalın",
+      "candidates": ["people/Ece Yalın.md"],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    }
+  ],
+  "unknownMentions": []
+}

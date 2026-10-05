@@ -43,15 +43,18 @@ extension EntityRecognizer {
             guard range.lowerBound >= 0, range.upperBound <= line.count, !range.isEmpty,
                 line[range].elementsEqual(mention.spelling.utf8)
             else { throw EntityLinkError.staleMention }
-            let stem = selected.fileStem
-            guard !stem.isEmpty, !stem.contains(where: { "/\\:*?\"<>|#^[]\n\r".contains($0) }),
-                !mention.spelling.contains(where: { "[]\n\r".contains($0) })
-            else { throw EntityLinkError.unrepresentableMention }
-            let exactStem = mention.spelling.utf8.elementsEqual(stem.utf8)
-            let display = !exactStem || selected.qualifier != nil
+            let target = selected.linkTarget
+            guard !mention.spelling.contains(where: { "[]\n\r".contains($0) }) else {
+                throw EntityLinkError.unrepresentableMention
+            }
+            guard !target.isEmpty, !target.contains(where: { "\\:*?\"<>|#^[]\n\r".contains($0) }) else {
+                continue
+            }
+            let exactTarget = mention.spelling.utf8.elementsEqual(target.utf8)
+            let display = !exactTarget || selected.qualifier != nil
             let table = line.drop(while: { $0 == 32 || $0 == 9 }).first == 124
             let separator = table ? "\\|" : "|"
-            let link = "[[" + stem + (display ? separator + mention.spelling : "") + "]]"
+            let link = "[[" + target + (display ? separator + mention.spelling : "") + "]]"
             var start = range.lowerBound
             if mention.isExplicit {
                 guard start > 0, line[start - 1] == 64 else { throw EntityLinkError.staleMention }

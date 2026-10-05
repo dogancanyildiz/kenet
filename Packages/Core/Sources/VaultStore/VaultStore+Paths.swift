@@ -25,6 +25,8 @@ extension VaultStore {
     }
 
     /// Markdown files under one vault-relative directory, or the whole vault when `directory` is nil.
+    /// A missing path, symbolic link, or non-directory start yields an empty list (same as a full vault
+    /// scan skipping that name), rather than failing `contentsOfDirectory`.
     nonisolated func markdownPaths(under directory: String?) throws -> [String] {
         var paths: [String] = []
         let start: URL
@@ -32,6 +34,8 @@ extension VaultStore {
         if let directory {
             start = root.appendingPathComponent(directory)
             guard FileManager.default.fileExists(atPath: start.path) else { return [] }
+            let values = try start.resourceValues(forKeys: [.isDirectoryKey, .isSymbolicLinkKey])
+            guard values.isSymbolicLink != true, values.isDirectory == true else { return [] }
             prefix = directory + "/"
         } else {
             start = root

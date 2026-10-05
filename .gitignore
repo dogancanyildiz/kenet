@@ -57,6 +57,8 @@ fastlane/test_output/
 Vault/
 vault/
 .obsidian/
+# Fixture kasalarındaki .obsidian klasörü sınanan girdidir.
+!Fixtures/**/.obsidian/
 
 
 # ----------------------------------------

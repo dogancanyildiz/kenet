@@ -11,24 +11,29 @@ struct TaskRecurrenceEditor: View {
     @State private var whenDone = false
     var body: some View {
         Form {
-            Picker("Tekrar", selection: $choice) {
-                Text("Yok").tag(Choice.none)
-                Text("Her gün").tag(Choice.day)
-                Text("Her hafta").tag(Choice.week)
-                Text("Her ay").tag(Choice.month)
-                Text("Her yıl").tag(Choice.year)
-                Text("Her N gün").tag(Choice.days)
-                Text("Haftanın günü").tag(Choice.weekday)
-            }
-            if choice == .weekday {
-                Picker("Gün", selection: $weekday) {
-                    ForEach(0..<7, id: \.self) { day in Text(TaskRecurrence.weekdayTitle(day)).tag(day) }
+            if model.canEditRecurrence {
+                Picker("Tekrar", selection: $choice) {
+                    Text("Yok").tag(Choice.none)
+                    Text("Her gün").tag(Choice.day)
+                    Text("Her hafta").tag(Choice.week)
+                    Text("Her ay").tag(Choice.month)
+                    Text("Her yıl").tag(Choice.year)
+                    Text("Her N gün").tag(Choice.days)
+                    Text("Haftanın günü").tag(Choice.weekday)
                 }
-            } else if choice != .none {
-                Stepper("Aralık: \(count)", value: $count, in: 1...9999)
+                if choice == .weekday {
+                    Picker("Gün", selection: $weekday) {
+                        ForEach(0..<7, id: \.self) { day in Text(TaskRecurrence.weekdayTitle(day)).tag(day) }
+                    }
+                } else if choice != .none {
+                    Stepper("Aralık: \(count)", value: $count, in: 1...9999)
+                }
+                if choice != .none { Toggle("Tamamlanınca hesapla", isOn: $whenDone) }
+            } else {
+                Text("Tanınmayan tekrar")
+                Text("Bu tekrar kuralı uygulamada tanınmıyor. Değiştirmek için dosyada düzenle.")
+                    .foregroundStyle(.secondary)
             }
-            if choice != .none { Toggle("Tamamlanınca hesapla", isOn: $whenDone) }
-            if model.row.recurrenceSource != nil && model.row.recurrence == nil { Text("Tanınmayan tekrar") }
             if let error = model.errorText { Text(verbatim: error).foregroundStyle(.red) }
         }
         .navigationTitle("Tekrar").formStyle(.grouped)
@@ -57,7 +62,7 @@ struct TaskRecurrenceEditor: View {
                 Button("Kaydet") {
                     Task { if await model.setRecurrence(recurrence), model.errorText == nil { dismiss() } }
                 }
-                .disabled(!model.canSave)
+                .disabled(!model.canSave || !model.canEditRecurrence)
             }
         }
         .frame(minWidth: 320, minHeight: 280)

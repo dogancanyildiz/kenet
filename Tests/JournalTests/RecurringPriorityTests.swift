@@ -126,4 +126,32 @@ import VaultFormat
         await editor.load()
         #expect(editor.target == nil && editor.errorText != nil)
     }
+
+    @Test func unrecognizedRecurrenceIsNotEditableWhileKnownRuleIs() async throws {
+        let context = try TaskTestContext()
+        defer { context.clean() }
+        await context.start()
+        try Data(
+            """
+            ## Tasks
+            - [ ] Su ver 🔁 every week bahçedeki çiçeklere 📅 2026-10-10 ^unknown
+            - [ ] Plan 🔁 every week 📅 2026-10-03 ^known
+
+            """.utf8
+        ).write(to: context.file)
+        await context.store.refresh()
+        let unknown = try #require(context.store.content.tasks.first { $0.sourceIdentifier == "unknown" })
+        let known = try #require(context.store.content.tasks.first { $0.sourceIdentifier == "known" })
+        #expect(unknown.recurrenceSource != nil && unknown.recurrence == nil)
+        #expect(known.recurrence?.rule == "every week")
+        let blocked = TaskEditorModel(store: context.store, row: unknown)
+        let allowed = TaskEditorModel(store: context.store, row: known)
+        #expect(!blocked.canEditRecurrence)
+        #expect(allowed.canEditRecurrence)
+        await blocked.load()
+        #expect(await !blocked.setRecurrence(TaskRecurrence("every week")))
+        #expect(
+            String(decoding: try Data(contentsOf: context.file), as: UTF8.self)
+                .contains("every week bahçedeki"))
+    }
 }

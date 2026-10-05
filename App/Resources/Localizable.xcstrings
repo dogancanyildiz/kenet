@@ -5123,6 +5123,22 @@
         }
       }
     },
+    "Bu tekrar kuralı uygulamada tanınmıyor. Değiştirmek için dosyada düzenle.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bu tekrar kuralı uygulamada tanınmıyor. Değiştirmek için dosyada düzenle."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This recurrence rule is not recognized by the app. Edit it in the file to change it."
+          }
+        }
+      }
+    },
     "Yok": {
       "localizations": {
         "tr": {

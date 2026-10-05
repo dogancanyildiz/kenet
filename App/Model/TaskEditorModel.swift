@@ -25,6 +25,8 @@ final class TaskEditorModel: Identifiable {
             && !text.allSatisfy(\.isWhitespace) && !text.contains(where: { $0.isNewline })
     }
 
+    var canEditRecurrence: Bool { row.recurrenceSource == nil || row.recurrence != nil }
+
     func load() async {
         guard target == nil else { return }
         let selected = store.vaultURL
@@ -57,7 +59,7 @@ final class TaskEditorModel: Identifiable {
     }
 
     func setRecurrence(_ recurrence: TaskRecurrence?) async -> Bool {
-        guard let target else { return false }
+        guard canEditRecurrence, let target else { return false }
         return await write { try await $0.settingTaskRecurrence(of: target, at: self.row.file, to: recurrence) }
     }
 

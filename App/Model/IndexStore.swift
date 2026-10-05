@@ -436,10 +436,13 @@ final class IndexStore {
 
     /// FIFO write gate. A cancelled waiter is removed so it cannot hold the queue.
     private func withWriteSlot<T>(_ body: () async throws -> T) async throws -> T {
+        let requested = generation
         try await acquireWriteSlot()
         do {
             // Cancellation after handoff still owns the slot; release before rethrowing.
             try Task.checkCancellation()
+            // A waiter handed the slot across a vault switch must not write into the new vault.
+            guard generation == requested else { throw CancellationError() }
             let value = try await body()
             releaseWriteSlot()
             return value
@@ -513,9 +516,9 @@ final class IndexStore {
         refreshInFlight = false
         contentEpoch = 0
         // Vault identity changed: queued writes must not run against the previous root.
+        // `writeBusy` is left alone: `open` can run inside a write body (pending selection),
+        // and clearing it there would let two writes run at once.
         failQueuedWriters()
-        // Safety net for an orphaned busy flag (e.g. handed-off waiter cancelled before release).
-        writeBusy = false
         isOpening = true
         defer { if generation == current { isOpening = false } }
         unwatchedDirectoryCount = 0

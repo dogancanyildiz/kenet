@@ -233,6 +233,35 @@ struct WriteQueueTests {
         #expect(await firstSubmit.value == false)
         #expect(model.text.contains("Queued before switch"))
         #expect(model.errorText != nil || context.store.entryErrorText != nil)
+        context.store.testingReleaseWriteSlot()
+    }
+
+    @Test func writeHandedSlotAcrossVaultSwitchDoesNotWriteIntoNewVault() async throws {
+        let context = try WriteQueueContext()
+        defer { context.clean() }
+        await context.store.start()
+        let day = LocalDay.today()
+        let otherRoot = context.directory.appendingPathComponent("OtherVault")
+        try FileManager.default.createDirectory(
+            at: otherRoot.appendingPathComponent(".app"), withIntermediateDirectories: true)
+        try Data("{ \"formatVersion\": 1 }\n".utf8).write(
+            to: otherRoot.appendingPathComponent(".app/vault.json"))
+        for name in ["journal", "people", "places", "goals", "notes", "templates"] {
+            try FileManager.default.createDirectory(
+                at: otherRoot.appendingPathComponent(name), withIntermediateDirectories: true)
+        }
+
+        context.store.testingOccupyWriteSlot()
+        let queued = Task { await context.store.addEvent(on: day, text: "Old vault text", time: nil) }
+        try await Task.sleep(for: .milliseconds(20))
+        // Hand the slot over, then switch vault before the waiter's body runs.
+        context.store.testingReleaseWriteSlot()
+        await context.store.select(otherRoot)
+        #expect(await queued.value == false)
+        let newDay = otherRoot.appendingPathComponent("journal/\(day).md")
+        #expect(!FileManager.default.fileExists(atPath: newDay.path))
+        _ = await context.store.addEvent(on: day, text: "New vault text", time: nil)
+        #expect(FileManager.default.fileExists(atPath: newDay.path))
     }
 
     @Test func completeTaskAfterQueuedEventInsertApplies() async throws {

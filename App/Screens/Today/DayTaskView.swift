@@ -23,6 +23,7 @@ struct DayTaskView: View {
         HStack(alignment: .top, spacing: 10) {
             Button(action: complete) {
                 Image(systemName: completed || row.isClosed ? "checkmark.square.fill" : "square")
+                    .tapTarget()
             }
             .accessibilityLabel(
                 LocalizedStringKey(row.isClosed && allowsReopening ? "Görevi yeniden aç" : "Görevi tamamla")

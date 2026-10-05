@@ -28,6 +28,7 @@ struct QuickEntryTaskControls: View {
                 .foregroundStyle(model.dateIsAssumed ? Color.orange : Color.accentColor)
                 .padding(.horizontal, 8).padding(.vertical, 4)
                 .background(.quaternary, in: Capsule())
+                .tapTarget()
             }
             .accessibilityLabel(
                 model.dateIsAssumed ? Text("Varsayılan tarih, değiştirmek için dokun") : Text("Görev tarihini değiştir")

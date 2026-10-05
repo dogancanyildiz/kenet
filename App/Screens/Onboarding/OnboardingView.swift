@@ -5,20 +5,23 @@ struct OnboardingView: View {
     let store: IndexStore
     @State private var choosesFolder = false
     var body: some View {
-        VStack(spacing: 20) {
-            Image(systemName: "book.closed").font(.largeTitle)
-            Text("Günlüğün, senin dosyaların").font(.title2)
-            Text(
-                "Verilerin Markdown dosyalarında kalır. Yeni bir kasa oluşturabilir veya var olan Obsidian klasörünü seçebilirsin."
-            )
-            .multilineTextAlignment(.center)
-            Button("Yeni kasa oluştur") { Task { await store.start() } }.buttonStyle(.borderedProminent)
-            Button("Var olan klasörü seç") { choosesFolder = true }.buttonStyle(.bordered)
-            if let error = store.errorText { Text(verbatim: error).foregroundStyle(.red) }
-            if store.isInspectingImport { ProgressView("Klasör inceleniyor…") }
-            if store.isProcessing { VaultIndexingProgress(store: store) }
+        ScrollView {
+            VStack(spacing: 20) {
+                Image(systemName: "book.closed").font(.largeTitle)
+                Text("Günlüğün, senin dosyaların").font(.title2)
+                Text(
+                    "Verilerin Markdown dosyalarında kalır. Yeni bir kasa oluşturabilir veya var olan Obsidian klasörünü seçebilirsin."
+                )
+                .multilineTextAlignment(.center)
+                Button("Yeni kasa oluştur") { Task { await store.start() } }.buttonStyle(.borderedProminent)
+                Button("Var olan klasörü seç") { choosesFolder = true }.buttonStyle(.bordered)
+                if let error = store.errorText { Text(verbatim: error).foregroundStyle(.red) }
+                if store.isInspectingImport { ProgressView("Klasör inceleniyor…") }
+                if store.isProcessing { VaultIndexingProgress(store: store) }
+            }
+            .padding().frame(maxWidth: 520).frame(maxWidth: .infinity)
         }
-        .padding().frame(maxWidth: 520).frame(maxWidth: .infinity, maxHeight: .infinity)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .disabled(store.isProcessing || store.isInspectingImport)
         .fileImporter(isPresented: $choosesFolder, allowedContentTypes: [.folder]) { result in
             switch result {

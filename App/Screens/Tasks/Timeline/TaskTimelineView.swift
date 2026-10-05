@@ -85,12 +85,14 @@ struct TaskTimelineView: View {
                     model.shiftWindow(by: -model.scale.daysAcross)
                 } label: {
                     Image(systemName: "chevron.left")
+                        .tapTarget()
                 }
                 .accessibilityLabel("Önceki dönem")
                 Button {
                     model.shiftWindow(by: model.scale.daysAcross)
                 } label: {
                     Image(systemName: "chevron.right")
+                        .tapTarget()
                 }
                 .accessibilityLabel("Sonraki dönem")
             #endif

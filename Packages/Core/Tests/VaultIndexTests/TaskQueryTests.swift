@@ -115,7 +115,7 @@ struct TaskQueryTests {
             try old.write { try $0.execute(sql: "CREATE TABLE old_data (value TEXT); PRAGMA user_version=3") }
             let index = try VaultIndex(databaseURL: url)
             #expect(try index.files().isEmpty)
-            #expect(try index.database.read { try Int.fetchOne($0, sql: "PRAGMA user_version") } == 5)
+            #expect(try index.database.read { try Int.fetchOne($0, sql: "PRAGMA user_version") } == 6)
             #expect(try index.database.read { try $0.tableExists("old_data") } == false)
             #expect(
                 try index.database.read {

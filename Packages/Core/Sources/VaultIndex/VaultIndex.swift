@@ -19,48 +19,53 @@ public struct VaultIndex: Sendable {
         try validate(vaultRoot: vaultRoot)
         let customKinds = Set(EntityTypeReader.read(vaultRoot: vaultRoot).types.map(\.id))
         return try database.write { db in
-            for table in ["search", "links", "goal_logs", "aliases", "entities", "blocks", "files"] {
-                try db.execute(sql: "DELETE FROM " + table)
-            }
-            let scan = try VaultScanner.scan(vaultRoot)
-            let files = scan.files
-            var owners: Set<String> = []
-            var names: [String: String] = [:]
-            var paths: [String: String] = [:]
-            for file in files {
-                let stem = String(file.path.dropLast(3))
-                let basename = (stem as NSString).lastPathComponent
-                if names[comparisonKey(basename)] == nil { names[comparisonKey(basename)] = file.path }
-                if paths[comparisonKey(stem)] == nil { paths[comparisonKey(stem)] = file.path }
-                let data = try Data(contentsOf: file.url)
-                let document = RawDocument(bytes: data)
-                let metadata = try file.url.resourceValues(forKeys: [.contentModificationDateKey])
-                try IndexBuilder.insert(
-                    file: file.path, data: data, document: document,
-                    modified: metadata.contentModificationDate?.timeIntervalSince1970 ?? 0,
-                    db: db, owners: &owners, customKinds: customKinds)
-                if document.isValidUTF8 {
-                    try IndexBuilder.insertLinks(document: document, file: file.path, db: db)
-                }
-            }
-            let links = try Row.fetchCursor(
-                db, sql: "SELECT file,ordinal,target,targetKey FROM links ORDER BY file,ordinal")
-            while let link = try links.next() {
-                let file: String = link["file"]
-                let ordinal: Int = link["ordinal"]
-                let target: String = link["target"]
-                let targetKey: String = link["targetKey"]
-                let resolved = target.isEmpty ? file : (target.contains("/") ? paths : names)[targetKey]
-                try db.execute(
-                    sql: "UPDATE links SET resolvedFile=? WHERE file=? AND ordinal=?",
-                    arguments: [resolved, file, ordinal])
-            }
-            try db.execute(sql: "DELETE FROM entity_type_state")
-            try db.execute(
-                sql: "INSERT INTO entity_type_state VALUES (?)",
-                arguments: [customKinds.sorted().joined(separator: "\n")])
-            return scan.result
+            try rebuild(vaultRoot: vaultRoot, customKinds: customKinds, db: db)
         }
+    }
+
+    // Shared full-build path; callers decide inside the same transaction whether it is needed.
+    func rebuild(vaultRoot: URL, customKinds: Set<String>, db: Database) throws -> RebuildResult {
+        for table in ["search", "links", "goal_logs", "aliases", "entities", "blocks", "files"] {
+            try db.execute(sql: "DELETE FROM " + table)
+        }
+        let scan = try VaultScanner.scan(vaultRoot)
+        let files = scan.files
+        var owners: Set<String> = []
+        var names: [String: String] = [:]
+        var paths: [String: String] = [:]
+        for file in files {
+            let stem = String(file.path.dropLast(3))
+            let basename = (stem as NSString).lastPathComponent
+            if names[comparisonKey(basename)] == nil { names[comparisonKey(basename)] = file.path }
+            if paths[comparisonKey(stem)] == nil { paths[comparisonKey(stem)] = file.path }
+            let data = try Data(contentsOf: file.url)
+            let document = RawDocument(bytes: data)
+            let metadata = try file.url.resourceValues(forKeys: [.contentModificationDateKey])
+            try IndexBuilder.insert(
+                file: file.path, data: data, document: document,
+                modified: metadata.contentModificationDate?.timeIntervalSince1970 ?? 0,
+                db: db, owners: &owners, customKinds: customKinds)
+            if document.isValidUTF8 {
+                try IndexBuilder.insertLinks(document: document, file: file.path, db: db)
+            }
+        }
+        let links = try Row.fetchCursor(
+            db, sql: "SELECT file,ordinal,target,targetKey FROM links ORDER BY file,ordinal")
+        while let link = try links.next() {
+            let file: String = link["file"]
+            let ordinal: Int = link["ordinal"]
+            let target: String = link["target"]
+            let targetKey: String = link["targetKey"]
+            let resolved = target.isEmpty ? file : (target.contains("/") ? paths : names)[targetKey]
+            try db.execute(
+                sql: "UPDATE links SET resolvedFile=? WHERE file=? AND ordinal=?",
+                arguments: [resolved, file, ordinal])
+        }
+        try db.execute(sql: "DELETE FROM entity_type_state")
+        try db.execute(
+            sql: "INSERT INTO entity_type_state VALUES (?)",
+            arguments: [customKinds.sorted().joined(separator: "\n")])
+        return scan.result
     }
 
     func validate(vaultRoot: URL) throws {

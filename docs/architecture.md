@@ -150,3 +150,5 @@ Android ve Windows şu an kapsam dışı. İleride mümkün kalması için:
 - İndeks: örnek kasadan üretilen indeks beklenen sorgu sonuçlarını vermeli.
 - Birleştirme: sonuç sürümlerin sırasından bağımsız olmalı, tekrarlandığında değişmemeli, hiçbir satırı kaybetmemeli.
 - Dayanıklılık: bozuk frontmatter, tanınmayan sözdizimi, boş dosya hata üretmemeli.
+- Uygulama testleri (`JournalTests`) `Journal_macOS` ve `Journal_iOS` şemalarında koşar; iOS için `xcodebuild test -scheme Journal_iOS -destination 'platform=iOS Simulator,name=<simctl available iPhone>'`.
+- CI macOS uygulama testlerini en az iki saat diliminde (`TZ=UTC`, `TZ=Pacific/Auckland`) koşturur; olay saati ve gün/tarih iddiaları cihaz diliminden bağımsız kalmalıdır.

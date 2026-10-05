@@ -153,36 +153,93 @@ final class QuickEntryModel {
         guard pendingAmbiguity == nil, pendingUnknown == nil else { return false }
         isSubmitting = true
         errorText = nil
-        defer { isSubmitting = false }
         let draft = text
+        let draftPins = pins
+        let draftSkipped = skipped
+        let draftRecurrence = taskRecurrence
+        let draftPriority = taskPriority
+        let draftOverridesDate = overridesDate
+        let draftManualDueDate = manualDueDate
+        let draftManualDateIsAssumed = manualDateIsAssumed
+        let draftDismissedLocation = dismissedLocation
+        let submitMode = mode
+        let submitDue = dueDate
+        let submitPriority = taskPriority
+        let submitRecurrence = taskRecurrence
         do {
             let linked = try EntityRecognizer.linking(text, mentions: mentions, choices: choices)
+            let payload = removingUnboundPrefixes(from: linked)
+            // Clear immediately so a second Enter can queue while this write runs.
+            dismissedLocation = false
+            text = ""
+            taskRecurrence = nil
+            taskPriority = nil
+            overridesDate = false
+            manualDueDate = nil
+            manualDateIsAssumed = false
+            pins = []
+            skipped = []
+            awaitingResolution = false
+            isSubmitting = false
             let saved: Bool
-            if mode == .task {
+            if submitMode == .task {
                 saved = await store.addTask(
-                    on: today(), text: removingUnboundPrefixes(from: linked), due: dueDate, priority: taskPriority,
-                    recurrence: taskRecurrence)
+                    on: today(), text: payload, due: submitDue, priority: submitPriority,
+                    recurrence: submitRecurrence)
             } else {
-                saved = await store.addEvent(
-                    on: day ?? LocalDay.today(), text: removingUnboundPrefixes(from: linked), time: time)
+                saved = await store.addEvent(on: day ?? LocalDay.today(), text: payload, time: time)
             }
-            if saved && text == draft {
-                dismissedLocation = false
-                text = ""
-                taskRecurrence = nil
-                taskPriority = nil
-                overridesDate = false
-                manualDueDate = nil
-                manualDateIsAssumed = false
-                pins = []
-                skipped = []
-                awaitingResolution = false
+            if !saved {
+                restoreFailedDraft(
+                    draft, pins: draftPins, skipped: draftSkipped, recurrence: draftRecurrence,
+                    priority: draftPriority, overridesDate: draftOverridesDate,
+                    manualDueDate: draftManualDueDate, manualDateIsAssumed: draftManualDateIsAssumed,
+                    dismissedLocation: draftDismissedLocation)
+                errorText =
+                    store.entryErrorText
+                    ?? String(localized: "Olay kaydedilemedi. Kasayı kontrol edip yeniden dene.")
             }
             return saved
         } catch {
+            isSubmitting = false
+            restoreFailedDraft(
+                draft, pins: draftPins, skipped: draftSkipped, recurrence: draftRecurrence,
+                priority: draftPriority, overridesDate: draftOverridesDate,
+                manualDueDate: draftManualDueDate, manualDateIsAssumed: draftManualDateIsAssumed,
+                dismissedLocation: draftDismissedLocation)
             errorText = String(localized: "Anmalar bağlanamadı. Metni kontrol edip yeniden dene.")
             return false
         }
+    }
+
+    private func restoreFailedDraft(
+        _ draft: String, pins draftPins: [Pin], skipped draftSkipped: Set<MentionPosition>,
+        recurrence: TaskRecurrence?, priority: TaskPriority?, overridesDate: Bool,
+        manualDueDate: CalendarDate?, manualDateIsAssumed: Bool, dismissedLocation: Bool
+    ) {
+        if text.isEmpty {
+            text = draft
+            pins = draftPins
+            skipped = draftSkipped
+            taskRecurrence = recurrence
+            taskPriority = priority
+            self.overridesDate = overridesDate
+            self.manualDueDate = manualDueDate
+            self.manualDateIsAssumed = manualDateIsAssumed
+            self.dismissedLocation = dismissedLocation
+            return
+        }
+        // Keep both the failed entry and whatever the user typed meanwhile.
+        let typed = text
+        pins = []
+        skipped = []
+        text = draft + "\n" + typed
+        taskRecurrence = recurrence
+        taskPriority = priority
+        self.overridesDate = overridesDate
+        self.manualDueDate = manualDueDate
+        self.manualDateIsAssumed = manualDateIsAssumed
+        self.dismissedLocation = dismissedLocation
     }
 
     private func removingUnboundPrefixes(from linked: String) -> String {

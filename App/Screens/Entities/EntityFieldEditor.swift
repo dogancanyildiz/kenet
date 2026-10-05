@@ -4,6 +4,7 @@ import VaultFormat
 struct EntityFieldEditor: View {
     let field: EntityField
     let model: EntityDetailModel
+    @State private var deleteConfirmation = DestructiveConfirmation<DestructiveConfirmationToken>()
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -36,11 +37,16 @@ struct EntityFieldEditor: View {
             } else {
                 HStack {
                     Button("Değeri boş bırak") { Task { await model.set(field.key, to: .text("")) } }
-                    Button("Alanı kaldır", role: .destructive) { Task { await model.remove(field.key) } }
+                    Button("Alanı kaldır", role: .destructive) { deleteConfirmation.request(.pending) }
                 }.font(.caption).buttonStyle(.borderless)
             }
         }
         .disabled(!model.canEdit)
+        .destructiveConfirmationDialog(
+            "Alanı kaldır?", confirmation: $deleteConfirmation, confirmTitle: "Alanı kaldır"
+        ) { _ in
+            Task { await model.remove(field.key) }
+        }
     }
 
     private static func literal(_ scalar: FrontmatterScalar) -> FrontmatterLiteral {

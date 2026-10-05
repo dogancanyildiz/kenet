@@ -8,6 +8,7 @@ struct EntityTypedFieldEditor: View {
     @State private var date: Date
     @State private var flag: Bool
     @State private var invalid = false
+    @State private var deleteConfirmation = DestructiveConfirmation<DestructiveConfirmationToken>()
 
     init(definition: EntityTypeField, value: FrontmatterValue?, model: EntityDetailModel) {
         self.definition = definition
@@ -37,10 +38,16 @@ struct EntityTypedFieldEditor: View {
             }
             HStack {
                 Button("Kaydet") { save() }
-                Button("Alanı kaldır", role: .destructive) { Task { await model.remove(definition.key) } }
+                Button("Alanı kaldır", role: .destructive) { deleteConfirmation.request(.pending) }
             }
             if invalid { Text("Alan için geçerli bir değer gir.").font(.caption).foregroundStyle(.red) }
-        }.disabled(!model.canEdit)
+        }
+        .disabled(!model.canEdit)
+        .destructiveConfirmationDialog(
+            "Alanı kaldır?", confirmation: $deleteConfirmation, confirmTitle: "Alanı kaldır"
+        ) { _ in
+            Task { await model.remove(definition.key) }
+        }
     }
 
     private func save() {

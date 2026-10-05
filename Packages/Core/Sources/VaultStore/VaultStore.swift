@@ -12,6 +12,8 @@ public actor VaultStore {
     let restoreRenameFile: (@Sendable (Data, URL) throws -> Void)?
     let readFile: @Sendable (URL) throws -> Data
     let randomValue: @Sendable () -> UInt64
+    /// Serialised with `writeQueue`; caches `.app/vault.json` mtime so writes do not re-parse every time.
+    let writeGate: WriteGate
 
     /// Uses the caller's index and an existing vault root; random injection supports deterministic tests.
     public init(
@@ -26,6 +28,7 @@ public actor VaultStore {
         moveFile = { try FileManager.default.moveItem(at: $0, to: $1) }
         restoreRenameFile = nil
         readFile = { try Data(contentsOf: $0) }
+        writeGate = WriteGate()
     }
 
     /// Internal filesystem seam for deterministic failure and creation-race tests.
@@ -44,6 +47,7 @@ public actor VaultStore {
         self.moveFile = moveFile
         self.restoreRenameFile = restoreRenameFile
         self.readFile = readFile
+        writeGate = WriteGate()
     }
 
     /// Returns the canonical vault-relative path of a day.
@@ -152,9 +156,71 @@ public actor VaultStore {
     nonisolated func perform<T: Sendable>(_ action: @escaping @Sendable () throws -> T) async throws -> T {
         try await withCheckedThrowingContinuation { continuation in
             writeQueue.addOperation {
-                do { continuation.resume(returning: try action()) } catch { continuation.resume(throwing: error) }
+                do {
+                    try self.ensureWritable()
+                    continuation.resume(returning: try action())
+                } catch { continuation.resume(throwing: error) }
             }
         }
+    }
+
+    /// Refuses writes when format version is unsupported.
+    nonisolated func ensureWritable() throws {
+        try ensureFormatVersionWritable()
+    }
+
+    /// Refuses a write whose path starts with a canonical reserved folder when a case variant exists on disk.
+    ///
+    /// Editing an existing file under the physical variant path (for example `People/Baran.md`) is allowed;
+    /// creating or writing under the canonical spelling (`people/…`) is not.
+    nonisolated func ensureReservedFolderCase(forCanonicalFolder folder: String) throws {
+        let children: [URL]
+        do {
+            children = try FileManager.default.contentsOfDirectory(
+                at: root, includingPropertiesForKeys: [.isDirectoryKey, .isSymbolicLinkKey])
+        } catch {
+            return
+        }
+        for url in children {
+            let name = url.lastPathComponent
+            guard name.lowercased() == folder, name != folder else { continue }
+            let values = try? url.resourceValues(forKeys: [.isDirectoryKey, .isSymbolicLinkKey])
+            guard values?.isSymbolicLink != true, values?.isDirectory == true else { continue }
+            throw VaultStoreError.reservedFolderCaseMismatch(found: name, expected: folder)
+        }
+    }
+
+    private nonisolated func ensureFormatVersionWritable() throws {
+        let url = root.appendingPathComponent(".app/vault.json")
+        let exists = FileManager.default.fileExists(atPath: url.path)
+        if !exists {
+            if writeGate.checked, writeGate.missing { return }
+            writeGate.checked = true
+            writeGate.missing = true
+            writeGate.mtime = nil
+            writeGate.allowsWrite = true
+            return
+        }
+        let mtime = try? url.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate
+        if writeGate.checked, !writeGate.missing, writeGate.mtime == mtime {
+            if !writeGate.allowsWrite { throw VaultStoreError.readOnlyVault }
+            return
+        }
+        // A failed read (dataless iCloud file, transient coordination error) is not cached:
+        // the next write reads again instead of staying read-only until the store is recreated.
+        let bytes: Data
+        do {
+            bytes = try readFile(url)
+        } catch {
+            throw VaultStoreError.readOnlyVault
+        }
+        let allows =
+            VaultFormatVersion.formatVersion(in: bytes).map(VaultFormatVersion.canWrite(vaultVersion:)) ?? false
+        writeGate.checked = true
+        writeGate.missing = false
+        writeGate.mtime = mtime
+        writeGate.allowsWrite = allows
+        if !allows { throw VaultStoreError.readOnlyVault }
     }
 
     nonisolated func editDay(_ date: CalendarDate, transform: (RawDocument) throws -> RawDocument) throws -> RawDocument

@@ -29,7 +29,7 @@ struct RenameTests {
     @Test(arguments: [
         "body-mixed-line-endings-bom-no-final-newline", "frontmatter", "qualifier", "same-filename",
         "read-only-invalid-utf8", "list-2-grows", "list-2-shrinks", "list-3-grows", "list-3-shrinks",
-        "unrelated-fields",
+        "unrelated-fields", "empty-list-item",
     ])
     func portableFixtures(_ name: String) async throws {
         let folder = try Fixtures.root().appendingPathComponent("rename/" + name)

@@ -87,15 +87,21 @@ targets:
           - $(SRCROOT)/VERSION
         basedOnDependencyAnalysis: false
 
+  # Aynı kaynaklar iOS ve macOS'ta koşar. Mac-only testler `#if os(macOS)` ile
+  # derlenmez (MacQuickEntryTests). Ayrı JournalTests_iOS hedefi yerine platform
+  # dizisi: uygulama hedefiyle aynı kalıp, tek kaynak yolu, `${platform}` bağımlılığı.
+  # XCUITest / erişilebilirlik denetimi sonra JournalUITests (bundle.ui-testing)
+  # olarak Journal_iOS şemasına eklenir; birim test altyapısı bunu engellemez.
   JournalTests:
     type: bundle.unit-test
-    platform: macOS
+    platform: [iOS, macOS]
     sources:
       - path: Tests/JournalTests
     dependencies:
-      - target: Journal_macOS
+      - target: Journal_${platform}
     settings:
       base:
+        PRODUCT_NAME: JournalTests
         PRODUCT_BUNDLE_IDENTIFIER: com.dravcore.journal.dev.tests
 
 schemes:
@@ -107,4 +113,13 @@ schemes:
       commandLineArguments:
         JOURNAL_NO_AUTOSTART: true
       targets:
-        - JournalTests
+        - JournalTests_macOS
+  Journal_iOS:
+    build:
+      targets:
+        Journal_iOS: all
+    test:
+      commandLineArguments:
+        JOURNAL_NO_AUTOSTART: true
+      targets:
+        - JournalTests_iOS

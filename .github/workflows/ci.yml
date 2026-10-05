@@ -40,8 +40,10 @@ jobs:
       - name: Derle ve test et
         run: swift test --package-path Packages/Core -Xswiftc -warnings-as-errors
 
-  # Uygulama hedefleri: proje project.yml dosyasından üretilir, iki platformda derlenir.
+  # Uygulama hedefleri: proje project.yml dosyasından üretilir, iki platformda derlenir ve test edilir.
   # İmza yok (CODE_SIGNING_ALLOWED=NO); runner'da sertifika bulunmaz.
+  # macOS testleri iki saat diliminde koşar (olay saati / gün kayması).
+  # iOS birim testleri simülatörde koşar; XCUITest dumanı ayrı işte eklenecek.
   app:
     name: Uygulama (iOS ve macOS)
     runs-on: macos-26
@@ -53,10 +55,49 @@ jobs:
         run: xcodegen generate
       - name: macOS derlemesi
         run: xcodebuild build -project Journal.xcodeproj -scheme Journal_macOS -destination 'platform=macOS' CODE_SIGNING_ALLOWED=NO -quiet
-      - name: macOS testleri
+      - name: macOS testleri (UTC)
+        env:
+          TZ: UTC
         run: xcodebuild test -project Journal.xcodeproj -scheme Journal_macOS -destination 'platform=macOS' CODE_SIGNING_ALLOWED=NO -quiet
-      - name: iOS derlemesi
-        run: xcodebuild build -project Journal.xcodeproj -scheme Journal_iOS -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO -quiet
+      - name: macOS testleri (Pacific/Auckland)
+        env:
+          TZ: Pacific/Auckland
+        run: xcodebuild test -project Journal.xcodeproj -scheme Journal_macOS -destination 'platform=macOS' CODE_SIGNING_ALLOWED=NO -quiet
+      - name: iOS simülatör seç
+        id: ios_sim
+        run: |
+          NAME=$(xcrun simctl list devices available -j | python3 -c '
+          import json, sys
+          data = json.load(sys.stdin)
+          preferred = ["iPhone 17", "iPhone 16", "iPhone 15", "iPhone 14"]
+          names = []
+          for runtime, devices in data.get("devices", {}).items():
+              if "iOS" not in runtime:
+                  continue
+              for device in devices:
+                  if device.get("isAvailable") and device.get("name", "").startswith("iPhone"):
+                      names.append(device["name"])
+          for name in preferred:
+              if name in names:
+                  print(name)
+                  sys.exit(0)
+          if names:
+              print(names[0])
+              sys.exit(0)
+          print("Uygun iPhone simülatörü yok. simctl available:", file=sys.stderr)
+          print("\n".join(sorted({n for n in names})) or "(boş)", file=sys.stderr)
+          sys.exit(1)
+          ')
+          echo "name=$NAME" >> "$GITHUB_OUTPUT"
+          echo "Seçilen simülatör: $NAME"
+      - name: iOS testleri
+        run: |
+          xcodebuild test \
+            -project Journal.xcodeproj \
+            -scheme Journal_iOS \
+            -destination "platform=iOS Simulator,name=${{ steps.ios_sim.outputs.name }}" \
+            CODE_SIGNING_ALLOWED=NO \
+            -quiet
 
   # Biçim denetimi yereldeki ile aynı swift-format sürümünde koşar (Swift 6.4).
   lint:

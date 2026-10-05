@@ -10,6 +10,10 @@ public enum VaultStoreError: Error, Sendable, Equatable {
     case invalidName
     /// The requested path is outside the vault, hidden, reserved or a symbolic link.
     case invalidPath
+    /// `.app/vault.json` is missing a readable supported formatVersion, or the version is newer than this build.
+    case readOnlyVault
+    /// A write targets a reserved folder that exists under a different spelling (for example `Journal/` instead of `journal/`).
+    case reservedFolderCaseMismatch(found: String, expected: String)
     /// The file was written successfully; only index updating failed. Do not repeat the write.
     case indexUpdateFailed(path: String, underlying: any Error)
 
@@ -17,8 +21,13 @@ public enum VaultStoreError: Error, Sendable, Equatable {
     public static func == (lhs: Self, rhs: Self) -> Bool {
         switch (lhs, rhs) {
         case (.staleTarget, .staleTarget), (.nameTaken, .nameTaken), (.invalidName, .invalidName),
-            (.invalidPath, .invalidPath):
+            (.invalidPath, .invalidPath), (.readOnlyVault, .readOnlyVault):
             return true
+        case (
+            .reservedFolderCaseMismatch(let leftFound, let leftExpected),
+            .reservedFolderCaseMismatch(let rightFound, let rightExpected)
+        ):
+            return leftFound == rightFound && leftExpected == rightExpected
         case (.indexUpdateFailed(let leftPath, let leftError), .indexUpdateFailed(let rightPath, let rightError)):
             return leftPath == rightPath && (leftError as NSError) == (rightError as NSError)
         default: return false

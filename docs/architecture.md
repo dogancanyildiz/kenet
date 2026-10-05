@@ -8,15 +8,17 @@
 | Çekirdek | `Core` Swift paketi, Apple arayüz ve sistem çerçevelerine bağımsız |
 | Veri | Markdown dosyaları (gerçek kaynak) |
 | İndeks | SQLite, GRDB, FTS5 |
-| Senkronizasyon | iCloud Drive (uygulamanın kendi kapsayıcısı) |
-| Widget | WidgetKit, App Intents |
+| Senkronizasyon | iCloud Drive (uygulamanın kendi kapsayıcısı); planlandı, kimlik kararını bekliyor |
+| Widget | WidgetKit; planlandı, kimlik kararını bekliyor |
+| Sistem girişleri | App Intents (Kısayollar ve Siri) |
 | Takvim | EventKit (salt okunur) |
-| Konum | CoreLocation |
+| Konum | CoreLocation; harita MapKit |
+| Bildirim ve kilit | UserNotifications, LocalAuthentication |
 | Yerelleştirme | String Catalog (tr, en) |
 
 ## Proje yapısı
 
-Ekranlar `App/Screens/Today`, `Days`, `Entities` ve `Settings` altında; ortak görünüm parçaları `App/Screens/Shared`, platform gezinmesi `App/Navigation` altında tutulur.
+Ekranlar `App/Screens` altında konuya göre durur (`Today`, `Days`, `Summaries`, `Tasks`, `Entities`, `Goals`, `Graph`, `Map`, `Onboarding`, `Settings`); ortak görünüm parçaları `App/Screens/Shared`, platform gezinmesi `App/Navigation`, ekran modelleri `App/Model`, sistem servisleri `App/Services`, Kısayollar `App/Intents`, Mac'e özgü parçalar `App/Mac` altında tutulur.
 
 - Xcode projesi `project.yml` ile tanımlanır ve XcodeGen üretir; `Journal.xcodeproj` takip edilmez. Tek `Journal` hedefi iOS ve macOS için iki şema üretir; kaynaklar `App/` klasörüyle eşlenir, `Core` paketi yerel yoldan bağlanır.
 - Bundle kimliği şimdilik geçici (`com.dravcore.journal.dev`, yalnızca simülatör ve yerel çalıştırma). Kalıcı kimlik, iCloud kapsayıcısı ve App Group kullanıcı kararıyla gelir.
@@ -105,6 +107,8 @@ Varlık tiplerinin importsuz değer modeli `VaultFormat` içindedir. Yerleşik k
 
 ## Senkronizasyon
 
+**Durum: tasarım, henüz uygulanmadı** (kimlik kararını bekliyor). Bugün kasa uygulamanın yerel `Documents/Vault` klasöründe ya da kullanıcının seçtiği klasördedir. Yazmalarda dosya koordinasyonu yoktur ve çakışma birleştirme işlevi (`VaultFormat` içinde hazır ve sınanmış) uygulamaya bağlanmamıştır; bu yüzden iCloud Drive gibi eşitlenen bir klasörü kasa olarak seçmek şimdilik korumasızdır. Aşağıdaki maddeler hedeflenen davranıştır.
+
 - Kasa, uygulamanın iCloud kapsayıcısındadır ve Dosyalar ile Finder'da görünür.
 - Sunucu, hesap ya da özel senkronizasyon servisi yoktur.
 - iCloud kapalıysa kasa yerelde durur.
@@ -114,10 +118,12 @@ Varlık tiplerinin importsuz değer modeli `VaultFormat` içindedir. Yerleşik k
 
 ## Widget'lar
 
+**Durum: tasarım, henüz uygulanmadı** (App Group kimliği kararını bekliyor).
+
 - Widget hedefi `Core` paketini kullanır.
 - Uygulama ve widget ortak bir App Group üzerinden veri paylaşır.
 - Widget'tan yapılan işaretleme App Intent ile `Core` yazıcısını çağırır; mantık tek yerdedir.
-- Widget'ların iCloud'daki kasaya doğrudan mı yoksa App Group'taki bir anlık görüntü üzerinden mi erişeceği aşama 3 başında denenerek kararlaştırılır.
+- Widget'ların iCloud'daki kasaya doğrudan mı yoksa App Group'taki bir anlık görüntü üzerinden mi erişeceği kimlik kararından sonra denenerek kararlaştırılır.
 
 ## Platform düzeni
 

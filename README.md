@@ -2,7 +2,7 @@
 
 Kişiler, konumlar ve olaylar etrafında dönen; görevleri, hedefleri ve alışkanlık zincirlerini tek yerde toplayan kişisel günlük uygulaması. iPhone ve Mac için SwiftUI ile yazılır. Veriler Obsidian uyumlu düz Markdown dosyalarında durur.
 
-**Durum:** Aşama 0–6 tamamlandı (widget'lar, iCloud ve yapay zeka maddeleri kullanıcı kararını bekliyor); Aşama 7 (genişleme) sürüyor. iCloud senkronu kimlik kararını bekliyor.
+**Durum (2026-10-05):** Aşama 0–7'nin kullanıcı kararı gerektirmeyen teknik maddeleri tamam; aşamaların gerçek kullanım ölçütleri henüz ölçülmedi. Ekim 2026 heyet incelemesinin ardından sıradaki iş sağlamlaştırma (Aşama 8) ve tasarım dilidir (Aşama 9). iCloud eşitlemesi, widget'lar ve TestFlight kimlik kararını bekliyor. Sürüm kesilmedi.
 
 ## Kurulum
 
@@ -24,6 +24,7 @@ open Journal.xcodeproj
 | [docs/roadmap.md](docs/roadmap.md) | Aşamalar, içerikleri ve çıkış ölçütleri |
 | [docs/vault-format.md](docs/vault-format.md) | Kasa ve dosya formatı (platformlar arası sözleşme) |
 | [docs/screens.md](docs/screens.md) | Ekranlar, içerikleri ve geçişler |
+| [docs/design.md](docs/design.md) | Tasarım dili: yön, belirteçler, kurallar ve sıradaki seçenekler |
 | [docs/architecture.md](docs/architecture.md) | Teknik mimari ve stack |
 | [docs/decisions.md](docs/decisions.md) | Karar günlüğü ve açık sorular |
 | [docs/fixtures.md](docs/fixtures.md) | Test verisi klasörü: kurallar, kategoriler, kurgusal adlar |

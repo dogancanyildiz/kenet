@@ -124,12 +124,12 @@ Telefonda okuma ve basit düzenleme. Aramadan ve bağlantılardan ulaşılır; a
 ## Mac
 
 - Görevler altında Kanban, Zaman çizelgesi ve proje adları yer alır. Kanban liste sütununu kullanmadan kenar çubuğunun yanına açılır; seçili kart sağ ayrıntı panelinde gösterilir.
-- **Kenar çubuğu:** Bugün, Günlük, Özetler, Görevler, Kişiler, Konumlar, Hedefler, Graph, Harita, Notlar.
+- **Kenar çubuğu:** Bugün, Günlük, Görevler, Kişiler, Konumlar, Hedefler, Özetler, Graph, Harita, Notlar.
 - **Çok sütunlu düzen:** Solda liste, ortada seçili öğe. Örneğin kişi listesi ve seçili kişinin sayfası yan yana.
 - **Kanban (5)** tam genişlikte; sürükle bırak ile durum ve proje değişir, tarih kart menüsünden değiştirilir. **Zaman çizelgesi (5)** aynı geniş alanda tarih taşımayı ve uç sürükleyerek uzatma/kısaltmayı destekler. Gün ızgarasına yapışır; çubukta tarih alanları aynı farkla kayar, uç yalnız ilgili alanı değiştirir. Sürükleme başlangıcındaki görev ve kasa doğrulanır. İki tarih mevcut yazıcıyla iki kez yazılır; ikinci yazma ilkinden dönen görev hedefini kullanır. Yazma sırasında geçici çubuk konumu, hata/başarı sonrası dosya yenilemesi vardır; kısmi yazma bildirimi otomatik tekrar göndermez. Ayrıntı sağ panelde açılır.
 - **Hızlı giriş penceresi (1):** Sistem genelinde klavye kısayoluyla açılan küçük pencere; telefondaki hızlı giriş kutusuyla aynı davranış. Uygulama öne gelmeden kayıt yapılır.
-- **Notlar:** Serbest notlar için düzenleme alanı.
-- Klavye kısayolları: arama ve hızlı geçiş, yeni olay, yeni görev, bugüne git.
+- **Notlar:** Serbest notlar için düzenleme alanı. (Henüz yok; kenar çubuğu öğesi yer tutucudur.)
+- Klavye kısayolları: arama (⌘F) ve hızlı geçiş (⌘K), bugüne git (⌘T). Yeni olay ve yeni görev kısayolları henüz yok.
 
 ## Ayarlar — Bildirimler (4)
 
@@ -149,6 +149,8 @@ Kilit açıkken uygulama etkinliğini kaybettiğinde içerik opak bir örtüyle 
 Siri ve Kısayollar kilitliyken kayıt yazabilir. Bildirim önizlemelerinin gizliliğini sistem ayarları belirler; uygulama kilidi kasayı şifrelemez.
 
 ## Widget'lar (3)
+
+Durum: henüz uygulanmadı (App Group kimliği kararını bekliyor). Tablo hedeflenen kapsamdır.
 
 | Widget | Yer | İçerik |
 |---|---|---|
@@ -171,7 +173,7 @@ Uygulamaya yazmanın tüm yolları aynı hızlı giriş davranışına çıkar:
 
 - **İlk açılış:** Yer imi ve varsayılan kasa yoksa Markdown veri sahipliğini anlatan tek ekran, “Yeni kasa oluştur” ve “Var olan klasörü seç” düğmelerini sunar. Çok adımlı kurulum sihirbazı yoktur. Kasa açılınca boş Bugün ekranında “Gününden bir an yaz; @ ile kişi ekle” ipucu görünür; ilk kişi ve konum yazarken oluşturulur.
 - **Boş gün:** Suçlayıcı olmayan kısa bir metin; giriş kutusu hazır.
-- **Kasa eşitlenirken:** Eldeki içerik gösterilir, eşitleme durumu küçük bir göstergeyle belirtilir.
+- **Kasa eşitlenirken:** Eldeki içerik gösterilir, eşitleme durumu küçük bir göstergeyle belirtilir. (iCloud eşitlemesiyle birlikte gelecek; henüz yok.)
 
 ## Ayarlar — Konuma girince (4, iOS)
 

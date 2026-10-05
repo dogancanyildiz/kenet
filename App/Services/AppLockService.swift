@@ -116,7 +116,8 @@ enum AppLockDelay: Int, CaseIterable {
         guard isLocked else { return true }
         guard await authenticate() else { return false }
         isLocked = false
-        suspendedAt = isForeground ? nil : now()
+        // System auth prompts deactivate the scene; do not treat that as suspension.
+        suspendedAt = nil
         refreshCovers()
         return true
     }
@@ -125,7 +126,12 @@ enum AppLockDelay: Int, CaseIterable {
     func authorizeQuickEntry() async -> Bool {
         updateLockForElapsedTime()
         refreshCovers()
-        return await unlock()
+        let wasLocked = isLocked
+        let success = await unlock()
+        if success && wasLocked && !isForeground {
+            suspendedAt = now()
+        }
+        return success
     }
 
     func quickEntryClosed() {

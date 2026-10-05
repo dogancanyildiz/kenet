@@ -37,7 +37,7 @@ struct EntityFieldEditor: View {
                 HStack {
                     Button("Değeri boş bırak") { Task { await model.set(field.key, to: .text("")) } }
                     Button("Alanı kaldır", role: .destructive) { Task { await model.remove(field.key) } }
-                }.font(.caption)
+                }.font(.caption).buttonStyle(.borderless)
             }
         }
         .disabled(!model.canEdit)

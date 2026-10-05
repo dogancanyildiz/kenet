@@ -29,6 +29,9 @@ struct EntityAliasesEditor: View {
                     Task { await model.saveAliases(aliases) }
                 }
             }
-        }.disabled(!model.canEdit || !model.aliasesEditable)
+        }
+        // Inside a List row every bordered button fires on one tap; borderless keeps them separate.
+        .buttonStyle(.borderless)
+        .disabled(!model.canEdit || !model.aliasesEditable)
     }
 }

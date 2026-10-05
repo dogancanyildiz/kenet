@@ -24,6 +24,8 @@ struct DaysCalendarView: View {
                 Button("Sonraki ay", systemImage: "chevron.right") { month = model.adjacentMonth(1) }.labelStyle(
                     .iconOnly)
             }
+            // Inside a List row every bordered button fires on one tap; borderless keeps them separate.
+            .buttonStyle(.borderless)
             let symbols = calendar.veryShortStandaloneWeekdaySymbols
             let weekday = calendar.firstWeekday
             let cells = model.cells(firstWeekday: weekday)

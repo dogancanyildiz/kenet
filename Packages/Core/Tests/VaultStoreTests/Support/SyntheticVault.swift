@@ -124,10 +124,11 @@ enum SyntheticVault {
 
         for index in 0..<configuration.notesCount {
             let body = (0..<4).map { _ in
-                let words = (0..<8).map { _ in words[Int(random.next() % UInt64(words.count))] }.joined(
+                // Named apart from `words`: the older CI compiler resolves the shadowed name to the new binding.
+                let sentence = (0..<8).map { _ in words[Int(random.next() % UInt64(words.count))] }.joined(
                     separator: " ")
                 return
-                    "\(words) [[\(people[Int(random.next() % UInt64(people.count))])]] \(acts[Int(random.next() % UInt64(acts.count))])."
+                    "\(sentence) [[\(people[Int(random.next() % UInt64(people.count))])]] \(acts[Int(random.next() % UInt64(acts.count))])."
             }.joined(separator: "\n")
             let tasks = (0..<2).map { j in
                 "- [ ] Not görevi \(index)-\(j) #project/\(projects[Int(random.next() % UInt64(projects.count))]) ^\(nextID())"

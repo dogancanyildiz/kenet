@@ -202,12 +202,7 @@ final class IndexStore {
                 do {
                     try await writer.addingEvent(on: day, text: text, time: time)
                     saved = true
-                    let snapshot = try await Task.detached { try index.snapshot() }.value
-                    content = VaultReadModel(snapshot: snapshot)
-                    counts = IndexCounts(snapshot: snapshot)
-                    try await reloadRecognition()
-                    lastUpdated = Date()
-                    contentEpoch += 1
+                    try await publishAfterWrite(from: index)
                 } catch {
                     if case VaultStoreError.indexUpdateFailed = error { saved = true }
                     entryErrorText =
@@ -294,12 +289,7 @@ final class IndexStore {
             do {
                 try await operation(writer)
                 saved = true
-                let snapshot = try await Task.detached { try index.snapshot() }.value
-                content = VaultReadModel(snapshot: snapshot)
-                counts = IndexCounts(snapshot: snapshot)
-                try await reloadRecognition()
-                lastUpdated = Date()
-                contentEpoch += 1
+                try await publishAfterWrite(from: index)
             } catch {
                 failure = saved ? VaultStoreError.indexUpdateFailed(path: path, underlying: error) : error
                 if case VaultStoreError.staleTarget = error { pendingRefresh = true }
@@ -318,12 +308,7 @@ final class IndexStore {
             do {
                 let result = try await writer.renamingEntity(at: path, to: name, qualifier: qualifier)
                 do {
-                    let snapshot = try await Task.detached { try index.snapshot() }.value
-                    content = VaultReadModel(snapshot: snapshot)
-                    counts = IndexCounts(snapshot: snapshot)
-                    try await reloadRecognition()
-                    lastUpdated = Date()
-                    contentEpoch += 1
+                    try await publishAfterWrite(from: index)
                 } catch {
                     entryErrorText = String(localized: "Varlık kaydedildi, indeks güncellenemedi.")
                     pendingRefresh = true
@@ -417,15 +402,31 @@ final class IndexStore {
         do {
             try await reloadRecognition()
             if let index {
-                let snapshot = try await Task.detached { try index.snapshot() }.value
-                content = VaultReadModel(snapshot: snapshot)
-                counts = IndexCounts(snapshot: snapshot)
+                let published = try await loadPublishedContent(from: index)
+                content = published.content
+                counts = published.counts
                 lastUpdated = Date()
                 contentEpoch += 1
             }
             if !knownEntities.contains(where: { $0.file == path }) { knownEntities.append(entity) }
         } catch { entryErrorText = String(localized: "Varlık kaydedildi, indeks güncellenemedi.") }
         return entity
+    }
+
+    /// Snapshot + read model off the main actor; only assignment happens on IndexStore.
+    private func loadPublishedContent(from index: VaultIndex) async throws -> VaultPublishedContent {
+        try await Task.detached {
+            try VaultPublishedContent.load(from: index)
+        }.value
+    }
+
+    private func publishAfterWrite(from index: VaultIndex) async throws {
+        let published = try await loadPublishedContent(from: index)
+        content = published.content
+        counts = published.counts
+        try await reloadRecognition()
+        lastUpdated = Date()
+        contentEpoch += 1
     }
 
     func waitWhileRefreshInFlight() async {

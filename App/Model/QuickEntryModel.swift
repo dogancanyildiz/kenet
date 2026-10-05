@@ -153,33 +153,68 @@ final class QuickEntryModel {
         guard pendingAmbiguity == nil, pendingUnknown == nil else { return false }
         isSubmitting = true
         errorText = nil
-        defer { isSubmitting = false }
         let draft = text
+        let draftPins = pins
+        let draftSkipped = skipped
+        let draftRecurrence = taskRecurrence
+        let draftPriority = taskPriority
+        let draftOverridesDate = overridesDate
+        let draftManualDueDate = manualDueDate
+        let draftManualDateIsAssumed = manualDateIsAssumed
+        let draftDismissedLocation = dismissedLocation
+        let root = store.vaultURL
+        let submitMode = mode
+        let submitDue = dueDate
+        let submitPriority = taskPriority
+        let submitRecurrence = taskRecurrence
         do {
             let linked = try EntityRecognizer.linking(text, mentions: mentions, choices: choices)
+            let payload = removingUnboundPrefixes(from: linked)
+            // Clear immediately so a second Enter can queue while this write runs.
+            dismissedLocation = false
+            text = ""
+            taskRecurrence = nil
+            taskPriority = nil
+            overridesDate = false
+            manualDueDate = nil
+            manualDateIsAssumed = false
+            pins = []
+            skipped = []
+            awaitingResolution = false
+            isSubmitting = false
             let saved: Bool
-            if mode == .task {
+            if submitMode == .task {
                 saved = await store.addTask(
-                    on: today(), text: removingUnboundPrefixes(from: linked), due: dueDate, priority: taskPriority,
-                    recurrence: taskRecurrence)
+                    on: today(), text: payload, due: submitDue, priority: submitPriority,
+                    recurrence: submitRecurrence)
             } else {
-                saved = await store.addEvent(
-                    on: day ?? LocalDay.today(), text: removingUnboundPrefixes(from: linked), time: time)
+                saved = await store.addEvent(on: day ?? LocalDay.today(), text: payload, time: time)
             }
-            if saved && text == draft {
-                dismissedLocation = false
-                text = ""
-                taskRecurrence = nil
-                taskPriority = nil
-                overridesDate = false
-                manualDueDate = nil
-                manualDateIsAssumed = false
-                pins = []
-                skipped = []
-                awaitingResolution = false
+            if !saved, text.isEmpty, store.vaultURL == root {
+                text = draft
+                pins = draftPins
+                skipped = draftSkipped
+                taskRecurrence = draftRecurrence
+                taskPriority = draftPriority
+                overridesDate = draftOverridesDate
+                manualDueDate = draftManualDueDate
+                manualDateIsAssumed = draftManualDateIsAssumed
+                dismissedLocation = draftDismissedLocation
             }
             return saved
         } catch {
+            isSubmitting = false
+            if text.isEmpty, store.vaultURL == root {
+                text = draft
+                pins = draftPins
+                skipped = draftSkipped
+                taskRecurrence = draftRecurrence
+                taskPriority = draftPriority
+                overridesDate = draftOverridesDate
+                manualDueDate = draftManualDueDate
+                manualDateIsAssumed = draftManualDateIsAssumed
+                dismissedLocation = draftDismissedLocation
+            }
             errorText = String(localized: "Anmalar bağlanamadı. Metni kontrol edip yeniden dene.")
             return false
         }

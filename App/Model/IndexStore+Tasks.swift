@@ -8,8 +8,7 @@ extension IndexStore {
         recurrence: TaskRecurrence? = nil
     ) async -> Bool {
         guard !text.allSatisfy(\.isWhitespace) else { return false }
-        // Wait out an in-flight refresh before the gate, so a refresh alone never rejects the entry.
-        await waitWhileRefreshInFlight()
+        // performEdit waits for the write queue and any in-flight refresh.
         guard canAddEvent else { return false }
         reportTaskEntryError(nil)
         do {

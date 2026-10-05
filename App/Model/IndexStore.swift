@@ -57,7 +57,9 @@ final class IndexStore {
     private(set) var errorText: String?
     private(set) var entryErrorText: String?
     private(set) var isWriting = false
-    var canAddEvent: Bool { writer != nil && !isProcessing && !isVaultReadOnly }
+    /// Vault is open and writable. Background refresh or an in-flight write does not clear this;
+    /// those callers wait on the write queue instead of being rejected.
+    var canAddEvent: Bool { writer != nil && !isVaultReadOnly }
     private(set) var notice: String?
     private(set) var pendingSelection: URL?
     private(set) var unwatchedDirectoryCount = 0
@@ -76,6 +78,9 @@ final class IndexStore {
     /// Bumped when a write publishes so an overlapping refresh can discard its stale snapshot.
     @ObservationIgnored private var contentEpoch = 0
     @ObservationIgnored private var generation = UUID()
+    /// Serializes user writes so a busy vault queues instead of dropping Enter.
+    @ObservationIgnored private var writeBusy = false
+    @ObservationIgnored private var writeWaiters: [(id: UUID, continuation: CheckedContinuation<Void, any Error>)] = []
 
     init(
         location: VaultLocation = VaultLocation(), supportURL: URL? = nil,
@@ -129,11 +134,14 @@ final class IndexStore {
             let root = try location.resolveForBackground()
             await open(root)
         }
+        // Drain in-flight and queued writes before the intent write; do not abandon them mid-file.
         for _ in 0..<400 {
-            if !isProcessing && !refreshInFlight { break }
+            if !isProcessing && !refreshInFlight && !writeBusy && writeWaiters.isEmpty { break }
             try await Task.sleep(for: .milliseconds(20))
         }
-        guard canAddEvent, lastUpdated != nil else { throw VaultStoreError.staleTarget }
+        guard canAddEvent, lastUpdated != nil, !writeBusy, writeWaiters.isEmpty else {
+            throw VaultStoreError.staleTarget
+        }
         await refresh()
         guard canAddEvent, errorText == nil else { throw VaultStoreError.staleTarget }
     }
@@ -181,32 +189,40 @@ final class IndexStore {
     @discardableResult
     func addEvent(on day: CalendarDate = LocalDay.today(), text: String, time: LineClock?) async -> Bool {
         guard !text.allSatisfy(\.isWhitespace) else { return false }
-        await waitWhileRefreshInFlight()
-        guard canAddEvent, let writer, let index else { return false }
-        isProcessing = true
-        isWriting = true
-        entryErrorText = nil
-        var saved = false
         do {
-            try await writer.addingEvent(on: day, text: text, time: time)
-            saved = true
-            let snapshot = try await Task.detached { try index.snapshot() }.value
-            content = VaultReadModel(snapshot: snapshot)
-            counts = IndexCounts(snapshot: snapshot)
-            try await reloadRecognition()
-            lastUpdated = Date()
-            contentEpoch += 1
+            return try await withWriteSlot {
+                await waitWhileRefreshInFlight()
+                guard canAddEvent, let writer, let index else { return false }
+                isProcessing = true
+                isWriting = true
+                entryErrorText = nil
+                var saved = false
+                do {
+                    try await writer.addingEvent(on: day, text: text, time: time)
+                    saved = true
+                    let snapshot = try await Task.detached { try index.snapshot() }.value
+                    content = VaultReadModel(snapshot: snapshot)
+                    counts = IndexCounts(snapshot: snapshot)
+                    try await reloadRecognition()
+                    lastUpdated = Date()
+                    contentEpoch += 1
+                } catch {
+                    if case VaultStoreError.indexUpdateFailed = error { saved = true }
+                    entryErrorText =
+                        saved
+                        ? EntryWriteError.savedWithoutIndex : EntryWriteError.message(for: error)
+                }
+                isWriting = false
+                isProcessing = false
+                if pendingRefresh && pendingSelection == nil { await refresh(rebuild: pendingRebuild) }
+                await applyPendingSelection()
+                return saved
+            }
+        } catch is CancellationError {
+            return false
         } catch {
-            if case VaultStoreError.indexUpdateFailed = error { saved = true }
-            entryErrorText =
-                saved
-                ? EntryWriteError.savedWithoutIndex : EntryWriteError.message(for: error)
+            return false
         }
-        isWriting = false
-        isProcessing = false
-        if pendingRefresh && pendingSelection == nil { await refresh(rebuild: pendingRebuild) }
-        await applyPendingSelection()
-        return saved
     }
 
     /// Disk reads belong to the selected vault, never to the index's paragraph projection.
@@ -267,37 +283,16 @@ final class IndexStore {
     func performEdit(
         path: String, operation: @Sendable (VaultStore) async throws -> Void
     ) async throws {
-        await waitWhileRefreshInFlight()
-        guard canAddEvent, let writer, let index else { throw VaultStoreError.staleTarget }
-        isProcessing = true
-        isWriting = true
-        var saved = false
-        var failure: (any Error)?
-        do {
-            try await operation(writer)
-            saved = true
-            let snapshot = try await Task.detached { try index.snapshot() }.value
-            content = VaultReadModel(snapshot: snapshot)
-            counts = IndexCounts(snapshot: snapshot)
-            try await reloadRecognition()
-            lastUpdated = Date()
-            contentEpoch += 1
-        } catch {
-            failure = saved ? VaultStoreError.indexUpdateFailed(path: path, underlying: error) : error
-            if case VaultStoreError.staleTarget = error { pendingRefresh = true }
-        }
-        await finishEntityWrite()
-        if let failure { throw failure }
-    }
-
-    func renameEntity(at path: String, to name: String, qualifier: String?) async throws -> RenameResult {
-        await waitWhileRefreshInFlight()
-        guard canAddEvent, let writer, let index else { throw VaultStoreError.staleTarget }
-        isProcessing = true
-        isWriting = true
-        do {
-            let result = try await writer.renamingEntity(at: path, to: name, qualifier: qualifier)
+        try await withWriteSlot {
+            await waitWhileRefreshInFlight()
+            guard canAddEvent, let writer, let index else { throw VaultStoreError.staleTarget }
+            isProcessing = true
+            isWriting = true
+            var saved = false
+            var failure: (any Error)?
             do {
+                try await operation(writer)
+                saved = true
                 let snapshot = try await Task.detached { try index.snapshot() }.value
                 content = VaultReadModel(snapshot: snapshot)
                 counts = IndexCounts(snapshot: snapshot)
@@ -305,20 +300,45 @@ final class IndexStore {
                 lastUpdated = Date()
                 contentEpoch += 1
             } catch {
-                entryErrorText = String(localized: "Varlık kaydedildi, indeks güncellenemedi.")
-                pendingRefresh = true
-                pendingRebuild = true
-            }
-            if result.failures.contains(where: { if case .index = $0.reason { true } else { false } }) {
-                pendingRefresh = true
-                pendingRebuild = true
+                failure = saved ? VaultStoreError.indexUpdateFailed(path: path, underlying: error) : error
+                if case VaultStoreError.staleTarget = error { pendingRefresh = true }
             }
             await finishEntityWrite()
-            return result
-        } catch {
-            pendingRefresh = true
-            await finishEntityWrite()
-            throw error
+            if let failure { throw failure }
+        }
+    }
+
+    func renameEntity(at path: String, to name: String, qualifier: String?) async throws -> RenameResult {
+        try await withWriteSlot {
+            await waitWhileRefreshInFlight()
+            guard canAddEvent, let writer, let index else { throw VaultStoreError.staleTarget }
+            isProcessing = true
+            isWriting = true
+            do {
+                let result = try await writer.renamingEntity(at: path, to: name, qualifier: qualifier)
+                do {
+                    let snapshot = try await Task.detached { try index.snapshot() }.value
+                    content = VaultReadModel(snapshot: snapshot)
+                    counts = IndexCounts(snapshot: snapshot)
+                    try await reloadRecognition()
+                    lastUpdated = Date()
+                    contentEpoch += 1
+                } catch {
+                    entryErrorText = String(localized: "Varlık kaydedildi, indeks güncellenemedi.")
+                    pendingRefresh = true
+                    pendingRebuild = true
+                }
+                if result.failures.contains(where: { if case .index = $0.reason { true } else { false } }) {
+                    pendingRefresh = true
+                    pendingRebuild = true
+                }
+                await finishEntityWrite()
+                return result
+            } catch {
+                pendingRefresh = true
+                await finishEntityWrite()
+                throw error
+            }
         }
     }
 
@@ -354,17 +374,19 @@ final class IndexStore {
     }
 
     func createEntity(kind: VaultEntityKind, name: String, qualifier: String?) async throws -> KnownEntity {
-        await waitWhileRefreshInFlight()
-        guard canAddEvent, let writer else { throw VaultStoreError.staleTarget }
-        isProcessing = true
-        isWriting = true
-        do {
-            let entity = try await persistEntity(writer: writer, kind: kind, name: name, qualifier: qualifier)
-            await finishEntityWrite()
-            return entity
-        } catch {
-            await finishEntityWrite()
-            throw error
+        try await withWriteSlot {
+            await waitWhileRefreshInFlight()
+            guard canAddEvent, let writer else { throw VaultStoreError.staleTarget }
+            isProcessing = true
+            isWriting = true
+            do {
+                let entity = try await persistEntity(writer: writer, kind: kind, name: name, qualifier: qualifier)
+                await finishEntityWrite()
+                return entity
+            } catch {
+                await finishEntityWrite()
+                throw error
+            }
         }
     }
 
@@ -411,6 +433,56 @@ final class IndexStore {
         }
     }
 
+    /// FIFO write gate. A cancelled waiter is removed so it cannot hold the queue.
+    private func withWriteSlot<T>(_ body: () async throws -> T) async throws -> T {
+        try await acquireWriteSlot()
+        do {
+            let value = try await body()
+            releaseWriteSlot()
+            return value
+        } catch {
+            releaseWriteSlot()
+            throw error
+        }
+    }
+
+    private func acquireWriteSlot() async throws {
+        try Task.checkCancellation()
+        if !writeBusy {
+            writeBusy = true
+            return
+        }
+        let id = UUID()
+        try await withTaskCancellationHandler {
+            try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, any Error>) in
+                writeWaiters.append((id: id, continuation: continuation))
+            }
+        } onCancel: {
+            Task { @MainActor in
+                if let index = writeWaiters.firstIndex(where: { $0.id == id }) {
+                    let waiter = writeWaiters.remove(at: index)
+                    waiter.continuation.resume(throwing: CancellationError())
+                }
+            }
+        }
+        try Task.checkCancellation()
+    }
+
+    private func releaseWriteSlot() {
+        if writeWaiters.isEmpty {
+            writeBusy = false
+        } else {
+            let next = writeWaiters.removeFirst()
+            next.continuation.resume()
+        }
+    }
+
+    private func failQueuedWriters() {
+        let waiters = writeWaiters
+        writeWaiters = []
+        for waiter in waiters { waiter.continuation.resume(throwing: CancellationError()) }
+    }
+
     private func applyPendingSelection() async {
         guard let selected = pendingSelection else { return }
         pendingSelection = nil
@@ -426,6 +498,8 @@ final class IndexStore {
         pendingRebuild = false
         refreshInFlight = false
         contentEpoch = 0
+        // Vault identity changed: queued writes must not run against the previous root.
+        failQueuedWriters()
         unwatchedDirectoryCount = 0
         vaultURL = url
         index = nil

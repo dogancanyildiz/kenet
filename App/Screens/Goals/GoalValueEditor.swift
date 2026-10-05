@@ -4,6 +4,8 @@ import SwiftUI
 struct GoalValueEditor: View {
     @Bindable var model: GoalValueModel
     @Environment(\.dismiss) private var dismiss
+    @State private var deleteConfirmation = DestructiveConfirmation<DestructiveConfirmationToken>()
+
     var body: some View {
         Form {
             Section {
@@ -23,7 +25,7 @@ struct GoalValueEditor: View {
                     if model.value == nil { Text("Sıfır veya pozitif bir sayı gir.").foregroundStyle(.secondary) }
                 }
                 if let error = model.dayModel.errorText { Text(verbatim: error).foregroundStyle(.secondary) }
-                Button("Kaydı kaldır", role: .destructive) { Task { await save(remove: true) } }
+                Button("Kaydı kaldır", role: .destructive) { deleteConfirmation.request(.pending) }
                     .disabled(!model.dayModel.canEdit || model.isSaved)
             }.disabled(model.isSaved)
         }
@@ -33,6 +35,11 @@ struct GoalValueEditor: View {
             ToolbarItem(placement: .confirmationAction) {
                 Button("Kaydet") { Task { await save() } }.disabled(!model.canSave)
             }
+        }
+        .destructiveConfirmationDialog(
+            "Kaydı kaldır?", confirmation: $deleteConfirmation, confirmTitle: "Kaydı kaldır"
+        ) { _ in
+            Task { await save(remove: true) }
         }
         .frame(minWidth: 300, minHeight: 250)
     }

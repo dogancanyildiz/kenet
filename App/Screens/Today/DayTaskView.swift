@@ -14,6 +14,7 @@ struct DayTaskView: View {
     @State private var recurrenceEditor: TaskEditorModel?
     @State private var dateEditor: TaskEditorModel?
     @State private var errorText: String?
+    @State private var deleteConfirmation = DestructiveConfirmation<DestructiveConfirmationToken>()
 
     private var presentation: TaskStatusPresentation {
         .make(isPastDue: isOverdue, isCompleted: completed || row.isClosed)
@@ -69,8 +70,13 @@ struct DayTaskView: View {
                     Button("Düşük") { edit { await $0.setPriority(.low) } }
                     Button("Yok") { edit { await $0.setPriority(nil) } }
                 }
-                Button("Sil", systemImage: "trash", role: .destructive) { edit { await $0.delete() } }
+                Button("Sil", systemImage: "trash", role: .destructive) {
+                    deleteConfirmation.request(.pending)
+                }
             }
+        }
+        .destructiveConfirmationDialog("Görevi sil?", confirmation: $deleteConfirmation) { _ in
+            edit { await $0.delete() }
         }
         .sheet(item: $textEditor) { model in
             NavigationStack { TaskTextEditor(model: model) }.frame(minWidth: 320, minHeight: 200)

@@ -7,8 +7,9 @@ struct VaultPublishedContent: Sendable {
     let content: VaultReadModel
     let counts: IndexCounts
 
-    /// Test seam: wraps `VaultReadModel` construction. The probe must run `body` exactly once.
-    nonisolated(unsafe) static var buildProbe: (@Sendable (_ body: () -> Void) -> Void)?
+    /// Test seam: wraps `VaultReadModel` construction. The probe must run `body` exactly once;
+    /// it receives the snapshot so a test can ignore builds that belong to other suites.
+    nonisolated(unsafe) static var buildProbe: (@Sendable (_ snapshot: IndexSnapshot, _ body: () -> Void) -> Void)?
 
     static func from(snapshot: IndexSnapshot, today: CalendarDate = LocalDay.today()) -> VaultPublishedContent {
         var published: VaultPublishedContent!
@@ -18,7 +19,7 @@ struct VaultPublishedContent: Sendable {
                 counts: IndexCounts(snapshot: snapshot))
         }
         if let buildProbe {
-            buildProbe(build)
+            buildProbe(snapshot, build)
         } else {
             build()
         }

@@ -4,7 +4,6 @@ import Testing
 @testable import Journal
 
 @MainActor
-@Suite(.serialized)
 struct ReadModelBackgroundTests {
     @Test func addEventBuildsReadModelOffMainThread() async throws {
         final class Probe: @unchecked Sendable {
@@ -13,7 +12,10 @@ struct ReadModelBackgroundTests {
             var offMain = 0
         }
         let probe = Probe()
-        VaultPublishedContent.buildProbe = { body in
+        // Only builds that carry this test's event count; other suites run in parallel.
+        let marker = "Off-main model"
+        VaultPublishedContent.buildProbe = { snapshot, body in
+            guard snapshot.blocks.contains(where: { $0.text.contains(marker) }) else { return body() }
             probe.builds += 1
             if Thread.isMainThread {
                 probe.onMain += 1
@@ -38,13 +40,13 @@ struct ReadModelBackgroundTests {
         probe.builds = 0
         probe.onMain = 0
         probe.offMain = 0
-        #expect(await store.addEvent(on: LocalDay.today(), text: "Off-main model", time: nil))
+        #expect(await store.addEvent(on: LocalDay.today(), text: marker, time: nil))
         #expect(probe.builds >= 1)
         #expect(probe.offMain >= 1)
         #expect(probe.onMain == 0)
         #expect(
             store.content.days.contains { day in
-                day.events.contains { $0.text.plainText == "Off-main model" }
+                day.events.contains { $0.text.plainText == marker }
             })
     }
 }

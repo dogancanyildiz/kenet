@@ -1,1 +1,1 @@
-- [ ] Task 🔁 every week 📅 2026-10-04 ^old
+- [ ] Task 🔁 every weekday 📅 2026-10-04 ^old

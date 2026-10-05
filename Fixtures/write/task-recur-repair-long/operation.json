@@ -1,0 +1,8 @@
+{
+  "lines": {
+    "operation": "recurrence",
+    "line": 1,
+    "rule": "every day",
+    "id": "new-long-block-id"
+  }
+}

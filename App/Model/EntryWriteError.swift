@@ -12,6 +12,13 @@ enum EntryWriteError {
             savedWithoutIndex
         case VaultStoreError.staleTarget:
             String(localized: "Dosya değişti. Yeniden dene.")
+        case VaultStoreError.readOnlyVault:
+            String(localized: "Bu kasa uygulamanın daha yeni bir sürümüyle yazılmış. Yazmak için uygulamayı güncelle.")
+        case VaultStoreError.reservedFolderCaseMismatch(let found, let expected):
+            String(
+                localized:
+                    "'\(found)' klasörünün adı '\(expected)' olmalı. Obsidian'da ya da Dosyalar'da yeniden adlandır."
+            )
         default:
             String(localized: "Olay kaydedilemedi. Kasayı kontrol edip yeniden dene.")
         }

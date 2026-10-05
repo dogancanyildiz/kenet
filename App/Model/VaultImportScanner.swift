@@ -1,4 +1,3 @@
-import CoreFoundation
 import Foundation
 import VaultFormat
 
@@ -48,9 +47,8 @@ enum VaultImportScanner {
         do { url = try VaultImportBootstrap.checked(".app/vault.json", root: root) } catch { return false }
         if !FileManager.default.fileExists(atPath: url.path) { return true }
         guard let data = try? Data(contentsOf: url),
-            let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-            let value = json["formatVersion"] as? NSNumber, CFGetTypeID(value) != CFBooleanGetTypeID(),
-            value.doubleValue == 1
+            let version = VaultFormatVersion.formatVersion(in: data),
+            version == 1
         else { return false }
         return true
     }
@@ -63,7 +61,11 @@ enum VaultImportScanner {
             let values = try $0.resourceValues(forKeys: [.isDirectoryKey, .isSymbolicLinkKey])
             return values.isDirectory == true && values.isSymbolicLink != true
         }.map(\.lastPathComponent).sorted()
-        report.missingFolders = VaultImportReport.folders.filter { !report.foundFolders.contains($0) }
+        report.caseVariantFolders = VaultLayout.caseVariantFolders(among: report.foundFolders)
+        let variantKeys = Set(report.caseVariantFolders.map { $0.lowercased() })
+        report.missingFolders = VaultImportReport.folders.filter {
+            !report.foundFolders.contains($0) && !variantKeys.contains($0)
+        }
         for path in ["templates/person.md", "templates/place.md"] {
             if !FileManager.default.fileExists(atPath: root.appendingPathComponent(path).path) {
                 report.missingTemplates.append(path)

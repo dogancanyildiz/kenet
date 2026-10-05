@@ -16,6 +16,14 @@ struct VaultImportView: View {
                 DisclosureGroup("Bulunan klasörler") {
                     ForEach(model.report.foundFolders, id: \.self) { Text(verbatim: $0) }
                 }
+                if !model.report.caseVariantFolders.isEmpty {
+                    DisclosureGroup("Harf farkı olan klasörler") {
+                        ForEach(model.report.caseVariantFolders, id: \.self) { Text(verbatim: $0 + "/") }
+                    }
+                    Text(
+                        "Bu klasör adları tam olarak journal, people, places, goals, notes veya templates olmalı. Obsidian'da yeniden adlandır; aksi halde o klasöre yazma reddedilir."
+                    ).font(.caption)
+                }
                 if !model.report.externalDays.isEmpty {
                     DisclosureGroup("Taşınmayacak günlükler") {
                         ForEach(model.report.externalDays, id: \.self) { Text(verbatim: $0) }

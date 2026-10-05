@@ -33,7 +33,7 @@ Bu belge platformlar arası sözleşmedir. Uygulamanın her sürümü ve ileride
 
 İçe aktarma kaynak klasörde çalışır; dosyaları kopyalamaz veya taşımaz. Eksik yapı için rapor ve ayrı onay seçenekleri gösterilir: standart klasörler/eksik person-place şablonları, yalnız eksik `.app/vault.json`, `people/` ve `places/` altındaki `type` alanı bulunmayan okunabilir Markdown dosyalarına ilgili `type` eklenmesi. Mevcut `type` değeri, şablon, ayar, bilinmeyen alanlar ve gövde korunur. Çözülemeyen frontmatter/UTF-8 ve sembolik bağlantılar değiştirilmez, raporlanır. Kullanıcı Atla derse yalnız indekslenir; `.obsidian/` ve diğer dosyalar korunur.
 
-`journal/YYYY-MM-DD.md` tanınan gün yoludur. Kökte veya `daily/` altında aynı tarih adlı dosyalar raporda yalnız bilgi olarak gösterilir; kullanıcı isterse Obsidian'da kendisi düzenler. Uygulama bu dosyaları taşımaz, farklı yol için gün kimliği kuralını değiştirmez. Hazırlama format sürümünü yükseltmez ve var olan vault.json'u yeniden yazmaz; desteklenmeyen/okunamayan sürüm dosyası için hazırlama yazıları sunulmaz.
+`journal/YYYY-MM-DD.md` tanınan gün yoludur. Kökte veya `daily/` altında aynı tarih adlı dosyalar raporda yalnız bilgi olarak gösterilir; kullanıcı isterse Obsidian'da kendisi düzenler. Uygulama bu dosyaları taşımaz, farklı yol için gün kimliği kuralını değiştirmez. Standart klasör adları (`journal`, `people`, `places`, `goals`, `notes`, `templates`) bayt düzeyinde tam yazım ister; yalnız harf farkı olan bir klasör (`Journal/`, `People/` vb.) hazırlama raporunda bildirilir, eksik klasör olarak oluşturulmaz. Uygulama klasörü yeniden adlandırmaz; yalnız o klasörü hedefleyen yazmayı reddeder (örneğin `Journal/` varken `journal/…` yazılmaz, `People/` varken gün olayı yazılır ama `people/` altına yeni kişi yaratılmaz). Var olan dosya kendi gerçek yolunda düzenlenebilir. Kullanıcı klasörü doğru ada çevirir. Hazırlama format sürümünü yükseltmez ve var olan vault.json'u yeniden yazmaz; desteklenmeyen/okunamayan sürüm dosyası için hazırlama yazıları sunulmaz.
 
 ## Klasör yapısı
 
@@ -50,6 +50,7 @@ Vault/
 ```
 
 - Bir dosyanın türünü klasör değil frontmatter'daki `type` belirler. Klasörler, uygulamanın yeni dosyayı nereye koyacağını söyler. Tek istisna gün dosyalarıdır: kimlikleri yollarıdır (bkz. Gün dosyası).
+- Standart klasör adları yukarıdaki yazımla birebirdir (`journal/`, `Journal/` değil). Harf farkı olan adlar gün dosyası sayılmaz; hazırlamada bildirilir ve yalnız o klasörü hedefleyen yazma reddedilir (bkz. Var olan kasayı açma ve hazırlama).
 - `type` alanı olmayan ya da tanınmayan bir `type` taşıyan dosya düz nottur.
 - Yalnızca `.md` uzantılı dosyalar okunur. Diğer dosyalar (görsel, PDF) yok sayılır ve korunur.
 - Şunlar taranmaz; içlerindeki dosyalar varlık sayılmaz ve indekslenmez: adı nokta ile başlayan klasörler (`.app/`, `.obsidian/`, `.trash/`), (kökteki) `templates/` ve `conflicts/`.
@@ -193,6 +194,7 @@ Diğer türler: evet/hayır `true` ya da `false`; tam sayı ondalık rakamlarla;
 - Bir varlığın adı değiştiğinde uygulama aynı kasa yazma kuyruğu altında önce varlık dosyasının `name` ve `qualifier` alanlarını yazar (ayırt edici kaldırılmışsa anahtar silinir), dosyayı yeni ada taşır, ardından indekste eski dosyaya çözülen bağlantıların kaynak dosyalarını diskten yeniden okuyup düzenler. Eski/yeni yol ve değişen kaynaklar en son indekslenir. Yeni dosya adı mevcut ad üretme ve kasa genelinde benzersizlik kurallarına uyar; başka dosyanın üzerine yazılmaz.
 - Yeniden adlandırmada yalnız hedef yazımı değişir. Çapa, gömme işareti, hedef çevresindeki boşluklar, `.md` soneki, yol hedefinin yol biçimi ve tablo ayırıcı kaçışı korunur. Açık görünen metin kullanıcınındır: `[[Eski|Eski]]` → `[[Yeni|Eski]]`; görünen metinsiz `[[Eski]]` → `[[Yeni]]`. Kullanıcı görünen metni ayrıca düzeltir.
 - Gövdede hedef bayt aralığı değiştirilir; frontmatter'da çözülmüş metin değeri ilgili alan/liste/eşlem girdisi yazıcısıyla YAML kaçışları doğru kodlanarak yazılır. Ham alanlar değiştirilmez; eski hedefe benzeyen bağlantı içeren ham alanlar sonuçta bildirilir. İndeks yalnız kaynakları ve çözülmüş hedefi seçmek içindir; eski satır veya bayt aralığı yazmak için kullanılmaz. Yeniden okunan bağlantı hedefi ve dosya sahipliği doğrulanır; aynı yazımlı başka dosya bağlantısı korunur.
+- Çok satırlı listedeki çıplak `-` (boş öğe) sayılır; listedeki diğer bağlantılar güncellenir. Bir frontmatter listesi yeniden yazılamazsa gövde ve diğer alanlar yine güncellenir; o liste sonucu `frontmatter list '<anahtar>': …` nedeniyle bildirilir.
 - Kaynak dosyası okunamaz veya yazılamazsa diğer kaynaklar devam eder; sonuç yeni varlık yolunu, güncellenen dosyaları ve güncellenemeyen dosya/neden listesini taşır. Çok dosyalı işlem kasa genelinde atomik değildir: kesinti sonrası varlık taşınmış, bazı bağlantılar eski kalmış olabilir. Sonraki yeniden adlandırma hâlâ çözülen bağlantıları günceller; artık çözülmeyen eski hedefler elle düzeltilir. İşlem geçmişi veya gizli yönlendirme bilgisi tutulmaz.
 - Metadata yazımından sonra dosya taşıma başarısız olursa bağlantı kaynaklarına geçilmez; okunan özgün varlık belgesi atomik olarak geri yazılır. Hedef sonradan oluşmuşsa, başarılı geri yazmadan sonra ad çakışması bildirilir. Geri yazma da başarısız olursa sonuç eski yolu ve açık bir kısmi değişiklik bildirimi taşır; arayüz işlemi tamamlanmış gibi göstermez. İndeks mevcut disk durumundan yenilenir.
 
@@ -457,6 +459,7 @@ Zincir, en uzun seri ve ilerleme dosyada tutulmaz; gün dosyalarındaki kayıtla
 - Uygulama kasayı oluştururken yazar. Dosya yoksa sürüm 1 kabul edilir.
 - Sürüm, eski bir istemcinin veriyi bozabileceği format değişikliklerinde artırılır.
 - Desteklediğinden büyük bir sürüm gören istemci kasaya yazmaz; salt okunur açar ve güncelleme gerektiğini bildirir.
+- Her yazma, `.app/vault.json` sürümünü denetler. Dosyanın değişiklik zamanı (mtime) önbelleğe alınır; mtime değişmedikçe dosya yeniden okunmaz. Bütün kasa taranmaz. Okunamayan ya da desteklenmeyen sürüm `readOnlyVault` hatası verir.
 
 ## Varlık tipleri
 

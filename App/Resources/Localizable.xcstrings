@@ -8166,6 +8166,70 @@
           }
         }
       }
+    },
+    "Harf farkı olan klasörler": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Harf farkı olan klasörler"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Folders with different capitalization"
+          }
+        }
+      }
+    },
+    "Bu klasör adları tam olarak journal, people, places, goals, notes veya templates olmalı. Obsidian'da yeniden adlandır; aksi halde o klasöre yazma reddedilir.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bu klasör adları tam olarak journal, people, places, goals, notes veya templates olmalı. Obsidian'da yeniden adlandır; aksi halde o klasöre yazma reddedilir."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "These folder names must be exactly journal, people, places, goals, notes, or templates. Rename them in Obsidian; otherwise writes to that folder are refused."
+          }
+        }
+      }
+    },
+    "Bu kasa uygulamanın daha yeni bir sürümüyle yazılmış. Yazmak için uygulamayı güncelle.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bu kasa uygulamanın daha yeni bir sürümüyle yazılmış. Yazmak için uygulamayı güncelle."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This vault was written with a newer version of the app. Update the app to write."
+          }
+        }
+      }
+    },
+    "'%@' klasörünün adı '%@' olmalı. Obsidian'da ya da Dosyalar'da yeniden adlandır.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "'%@' klasörünün adı '%@' olmalı. Obsidian'da ya da Dosyalar'da yeniden adlandır."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "'%@' must be named '%@'. Rename it in Obsidian or Files."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

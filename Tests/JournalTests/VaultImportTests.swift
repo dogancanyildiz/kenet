@@ -17,6 +17,19 @@ import VaultFormat
         #expect(report.skipped == ["people/Broken.md"])
         #expect(report.missingFolders == ["notes", "templates"] && report.needsSettings)
         #expect(report.foundFolders.contains(".obsidian") && report.needsPreparation)
+        #expect(report.caseVariantFolders.isEmpty)
+    }
+
+    @Test func reportsJournalCaseVariantAndDoesNotTreatItAsMissing() throws {
+        let root = try testDirectory()
+        defer { try? FileManager.default.removeItem(at: root) }
+        try write("## Events\n- Eski\n", "Journal/2026-10-04.md", root)
+        try write("---\ntype: person\nname: Selin Korkmaz\n---\n", "people/Selin.md", root)
+        let report = try VaultImportScanner.inspect(root)
+        #expect(report.caseVariantFolders == ["Journal"])
+        #expect(!report.missingFolders.contains("journal"))
+        #expect(report.journalDays.isEmpty)
+        #expect(report.needsPreparation)
     }
     @Test func approvedTypeInsertionPreservesCommentsCRLFBodiesAndOtherFiles() async throws {
         let root = try sample()

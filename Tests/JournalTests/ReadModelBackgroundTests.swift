@@ -4,6 +4,7 @@ import Testing
 @testable import Journal
 
 @MainActor
+@Suite(.serialized)
 struct ReadModelBackgroundTests {
     @Test func addEventBuildsReadModelOffMainThread() async throws {
         final class Probe: @unchecked Sendable {

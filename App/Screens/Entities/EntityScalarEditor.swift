@@ -36,7 +36,7 @@ struct EntityScalarEditor: View {
                     .onChange(of: date) { Task { await save(.date(LocalDay.today(at: date))) } }
             case .text, .empty, .number:
                 TextField("Değer", text: $text).onSubmit { submit() }
-                Button("Kaydet") { submit() }
+                Button("Kaydet") { submit() }.buttonStyle(.borderless)
             }
         }
         if invalid { Text("Geçerli bir sayı gir.").font(.caption).foregroundStyle(.red) }

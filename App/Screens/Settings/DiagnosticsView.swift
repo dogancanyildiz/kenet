@@ -35,7 +35,7 @@ struct DiagnosticsView: View {
                         store.isInspectingImport || store.importModel != nil)
                     Button("Yeniden üret") { Task { await store.refresh(rebuild: true) } }
                         .disabled(store.isProcessing)
-                }
+                }.buttonStyle(.borderless)
 
                 if let selection = store.pendingSelection {
                     LabeledContent("Klasör seçimi bekliyor…") { Text(verbatim: selection.path) }

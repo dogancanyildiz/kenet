@@ -10,6 +10,7 @@ public actor VaultStore {
     let linkFile: @Sendable (URL, URL) throws -> Void
     let moveFile: @Sendable (URL, URL) throws -> Void
     let restoreRenameFile: (@Sendable (Data, URL) throws -> Void)?
+    let readFile: @Sendable (URL) throws -> Data
     let randomValue: @Sendable () -> UInt64
 
     /// Uses the caller's index and an existing vault root; random injection supports deterministic tests.
@@ -24,6 +25,7 @@ public actor VaultStore {
         linkFile = { try FileManager.default.linkItem(at: $0, to: $1) }
         moveFile = { try FileManager.default.moveItem(at: $0, to: $1) }
         restoreRenameFile = nil
+        readFile = { try Data(contentsOf: $0) }
     }
 
     /// Internal filesystem seam for deterministic failure and creation-race tests.
@@ -31,7 +33,8 @@ public actor VaultStore {
         vaultRoot: URL, index: VaultIndex, randomValue: @escaping @Sendable () -> UInt64 = { 0 },
         linkFile: @escaping @Sendable (URL, URL) throws -> Void,
         moveFile: @escaping @Sendable (URL, URL) throws -> Void = { try FileManager.default.moveItem(at: $0, to: $1) },
-        restoreRenameFile: (@Sendable (Data, URL) throws -> Void)? = nil
+        restoreRenameFile: (@Sendable (Data, URL) throws -> Void)? = nil,
+        readFile: @escaping @Sendable (URL) throws -> Data = { try Data(contentsOf: $0) }
     ) {
         root = vaultRoot.resolvingSymlinksInPath().standardizedFileURL
         self.index = index
@@ -40,6 +43,7 @@ public actor VaultStore {
         self.linkFile = linkFile
         self.moveFile = moveFile
         self.restoreRenameFile = restoreRenameFile
+        self.readFile = readFile
     }
 
     /// Returns the canonical vault-relative path of a day.
@@ -49,7 +53,7 @@ public actor VaultStore {
 
     /// Reads the current disk bytes without querying the index.
     public func document(at relativePath: String) throws -> RawDocument {
-        RawDocument(bytes: try Data(contentsOf: checkedURL(relativePath)))
+        RawDocument(bytes: try readFile(checkedURL(relativePath)))
     }
 
     /// Reads an existing day from disk, throwing if it does not exist.
@@ -180,7 +184,7 @@ public actor VaultStore {
         let original: RawDocument
         let wasMissing: Bool
         do {
-            original = RawDocument(bytes: try Data(contentsOf: url))
+            original = RawDocument(bytes: try readFile(url))
             wasMissing = false
         } catch CocoaError.fileReadNoSuchFile where date != nil {
             guard createDay else { return RawDocument(bytes: []) }

@@ -12,6 +12,13 @@ extension VaultIndex {
             return entities.compactMap { GoalDefinition(entity: $0, place: places[$0.file]?.first?.target) }
         }
     }
+
+    /// Source paths of indexed goal entities, including definitions the UI may not yet accept.
+    public func goalFiles() throws -> [String] {
+        try database.read { db in
+            try String.fetchAll(db, sql: "SELECT file FROM entities WHERE kind='goal' ORDER BY file")
+        }
+    }
 }
 
 extension GoalDefinition {

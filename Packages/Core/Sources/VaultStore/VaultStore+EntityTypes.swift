@@ -22,7 +22,7 @@ extension VaultStore {
             }
             let data: Data
             do {
-                data = try EntityTypeJSONEdit(Data(contentsOf: url)).upserting(definition, replacing: expected?.id)
+                data = try EntityTypeJSONEdit(try self.readFile(url)).upserting(definition, replacing: expected?.id)
             } catch CocoaError.fileReadNoSuchFile {
                 guard expected == nil else { throw EntityTypeError.staleDefinition }
                 let encoder = JSONEncoder()
@@ -41,7 +41,7 @@ extension VaultStore {
             guard catalog.types.first(where: { $0.id == expected.id }) == expected else {
                 throw EntityTypeError.staleDefinition
             }
-            let data = try EntityTypeJSONEdit(Data(contentsOf: url)).deleting(expected.id)
+            let data = try EntityTypeJSONEdit(try self.readFile(url)).deleting(expected.id)
             try self.persistEntityTypes(data, at: url)
         }
     }

@@ -21,7 +21,26 @@ extension VaultStore {
 
     /// Current disk identities, using the same hidden/reserved/symlink exclusions as indexing.
     nonisolated func markdownPaths() throws -> [String] {
+        try markdownPaths(under: nil)
+    }
+
+    /// Markdown files under one vault-relative directory, or the whole vault when `directory` is nil.
+    /// A missing path, symbolic link, or non-directory start yields an empty list (same as a full vault
+    /// scan skipping that name), rather than failing `contentsOfDirectory`.
+    nonisolated func markdownPaths(under directory: String?) throws -> [String] {
         var paths: [String] = []
+        let start: URL
+        let prefix: String
+        if let directory {
+            start = root.appendingPathComponent(directory)
+            guard FileManager.default.fileExists(atPath: start.path) else { return [] }
+            let values = try start.resourceValues(forKeys: [.isDirectoryKey, .isSymbolicLinkKey])
+            guard values.isSymbolicLink != true, values.isDirectory == true else { return [] }
+            prefix = directory + "/"
+        } else {
+            start = root
+            prefix = ""
+        }
         func visit(_ directory: URL, prefix: String) throws {
             for url in try FileManager.default.contentsOfDirectory(
                 at: directory, includingPropertiesForKeys: [.isDirectoryKey, .isSymbolicLinkKey])
@@ -39,7 +58,7 @@ extension VaultStore {
                 }
             }
         }
-        try visit(root, prefix: "")
+        try visit(start, prefix: prefix)
         return paths.sorted { $0.unicodeScalars.lexicographicallyPrecedes($1.unicodeScalars) { $0.value < $1.value } }
     }
 

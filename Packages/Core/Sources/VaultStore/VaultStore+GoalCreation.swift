@@ -21,7 +21,7 @@ extension VaultStore {
             keys.formUnion(try self.index.goalLogs().map(\.key))
             // External edits can precede the watcher. Reserve current disk keys and display names too.
             for path in try self.markdownPaths() {
-                let document = RawDocument(bytes: try Data(contentsOf: self.checkedURL(path)))
+                let document = RawDocument(bytes: try self.readFile(self.checkedURL(path)))
                 guard case .parsed(let fields) = document.frontmatter else { continue }
                 if case .mapping(let entries) = fields.field(named: "goals")?.value {
                     keys.formUnion(entries.map(\.key))

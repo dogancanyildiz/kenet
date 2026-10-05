@@ -33,26 +33,14 @@ extension VaultStore {
     /// Check current disk bytes inside the write queue, including edits not yet indexed.
     private nonisolated func validateMilestoneWrite(on day: CalendarDate, key: String, value: GoalValue?) throws {
         guard let value else { return }
-        let paths = try markdownPaths()
-        var milestone = false
-        for path in paths {
-            let document = RawDocument(bytes: try Data(contentsOf: checkedURL(path)))
-            guard case .parsed(let fields) = document.frontmatter,
-                case .scalar(let type) = fields.field(named: "type")?.value, type.text == "goal",
-                case .scalar(let goalKey) = fields.field(named: "key")?.value, goalKey.text == key,
-                case .scalar(let kind) = fields.field(named: "kind")?.value, kind.text == "milestone"
-            else { continue }
-            milestone = true
-            break
-        }
-        guard milestone else { return }
+        guard try isMilestoneGoal(key: key) else { return }
         guard value == .boolean(true) else { throw EditError.invalidValue }
-        for path in paths {
-            guard path.hasPrefix("journal/"), path.hasSuffix(".md"),
-                let other = CalendarDate(String(path.dropFirst(8).dropLast(3))),
+        for path in try markdownPaths(under: "journal") {
+            guard path.hasSuffix(".md"),
+                let other = CalendarDate(String(path.dropFirst("journal/".count).dropLast(3))),
                 other.year == day.year, other != day
             else { continue }
-            let document = RawDocument(bytes: try Data(contentsOf: checkedURL(path)))
+            let document = RawDocument(bytes: try readFile(checkedURL(path)))
             guard case .parsed(let fields) = document.frontmatter,
                 case .mapping(let entries) = fields.field(named: "goals")?.value
             else { continue }
@@ -60,6 +48,59 @@ extension VaultStore {
                 throw EditError.invalidValue
             }
         }
+    }
+
+    /// Goal definitions only: indexed `kind=goal` files plus anything currently under `goals/`.
+    /// Falls back to a full vault scan when the index is unreadable, an indexed candidate is missing
+    /// on disk, or no candidate matches `key` — correctness does not depend on a fresh index.
+    private nonisolated func isMilestoneGoal(key: String) throws -> Bool {
+        let indexed: [String]
+        do {
+            indexed = try index.goalFiles()
+        } catch {
+            return try isMilestoneGoal(key: key, in: markdownPaths())
+        }
+
+        var paths = Set(indexed)
+        paths.formUnion(try markdownPaths(under: "goals"))
+        var missingIndexed = false
+        var matchedKey = false
+        for path in paths.sorted(by: {
+            $0.unicodeScalars.lexicographicallyPrecedes($1.unicodeScalars) { $0.value < $1.value }
+        }) {
+            let document: RawDocument
+            do {
+                document = RawDocument(bytes: try readFile(checkedURL(path)))
+            } catch CocoaError.fileReadNoSuchFile {
+                if indexed.contains(path) { missingIndexed = true }
+                continue
+            }
+            guard case .parsed(let fields) = document.frontmatter,
+                case .scalar(let type) = fields.field(named: "type")?.value, type.text == "goal",
+                case .scalar(let goalKey) = fields.field(named: "key")?.value, goalKey.text == key
+            else { continue }
+            matchedKey = true
+            if case .scalar(let kind) = fields.field(named: "kind")?.value, kind.text == "milestone" {
+                return true
+            }
+        }
+        if missingIndexed || !matchedKey {
+            return try isMilestoneGoal(key: key, in: markdownPaths())
+        }
+        return false
+    }
+
+    private nonisolated func isMilestoneGoal(key: String, in paths: [String]) throws -> Bool {
+        for path in paths {
+            let document = RawDocument(bytes: try readFile(checkedURL(path)))
+            guard case .parsed(let fields) = document.frontmatter,
+                case .scalar(let type) = fields.field(named: "type")?.value, type.text == "goal",
+                case .scalar(let goalKey) = fields.field(named: "key")?.value, goalKey.text == key,
+                case .scalar(let kind) = fields.field(named: "kind")?.value, kind.text == "milestone"
+            else { continue }
+            return true
+        }
+        return false
     }
 }
 

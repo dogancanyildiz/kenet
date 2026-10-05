@@ -162,7 +162,6 @@ final class QuickEntryModel {
         let draftManualDueDate = manualDueDate
         let draftManualDateIsAssumed = manualDateIsAssumed
         let draftDismissedLocation = dismissedLocation
-        let root = store.vaultURL
         let submitMode = mode
         let submitDue = dueDate
         let submitPriority = taskPriority
@@ -190,34 +189,57 @@ final class QuickEntryModel {
             } else {
                 saved = await store.addEvent(on: day ?? LocalDay.today(), text: payload, time: time)
             }
-            if !saved, text.isEmpty, store.vaultURL == root {
-                text = draft
-                pins = draftPins
-                skipped = draftSkipped
-                taskRecurrence = draftRecurrence
-                taskPriority = draftPriority
-                overridesDate = draftOverridesDate
-                manualDueDate = draftManualDueDate
-                manualDateIsAssumed = draftManualDateIsAssumed
-                dismissedLocation = draftDismissedLocation
+            if !saved {
+                restoreFailedDraft(
+                    draft, pins: draftPins, skipped: draftSkipped, recurrence: draftRecurrence,
+                    priority: draftPriority, overridesDate: draftOverridesDate,
+                    manualDueDate: draftManualDueDate, manualDateIsAssumed: draftManualDateIsAssumed,
+                    dismissedLocation: draftDismissedLocation)
+                errorText =
+                    store.entryErrorText
+                    ?? String(localized: "Olay kaydedilemedi. Kasayı kontrol edip yeniden dene.")
             }
             return saved
         } catch {
             isSubmitting = false
-            if text.isEmpty, store.vaultURL == root {
-                text = draft
-                pins = draftPins
-                skipped = draftSkipped
-                taskRecurrence = draftRecurrence
-                taskPriority = draftPriority
-                overridesDate = draftOverridesDate
-                manualDueDate = draftManualDueDate
-                manualDateIsAssumed = draftManualDateIsAssumed
-                dismissedLocation = draftDismissedLocation
-            }
+            restoreFailedDraft(
+                draft, pins: draftPins, skipped: draftSkipped, recurrence: draftRecurrence,
+                priority: draftPriority, overridesDate: draftOverridesDate,
+                manualDueDate: draftManualDueDate, manualDateIsAssumed: draftManualDateIsAssumed,
+                dismissedLocation: draftDismissedLocation)
             errorText = String(localized: "Anmalar bağlanamadı. Metni kontrol edip yeniden dene.")
             return false
         }
+    }
+
+    private func restoreFailedDraft(
+        _ draft: String, pins draftPins: [Pin], skipped draftSkipped: Set<MentionPosition>,
+        recurrence: TaskRecurrence?, priority: TaskPriority?, overridesDate: Bool,
+        manualDueDate: CalendarDate?, manualDateIsAssumed: Bool, dismissedLocation: Bool
+    ) {
+        if text.isEmpty {
+            text = draft
+            pins = draftPins
+            skipped = draftSkipped
+            taskRecurrence = recurrence
+            taskPriority = priority
+            self.overridesDate = overridesDate
+            self.manualDueDate = manualDueDate
+            self.manualDateIsAssumed = manualDateIsAssumed
+            self.dismissedLocation = dismissedLocation
+            return
+        }
+        // Keep both the failed entry and whatever the user typed meanwhile.
+        let typed = text
+        pins = []
+        skipped = []
+        text = draft + "\n" + typed
+        taskRecurrence = recurrence
+        taskPriority = priority
+        self.overridesDate = overridesDate
+        self.manualDueDate = manualDueDate
+        self.manualDateIsAssumed = manualDateIsAssumed
+        self.dismissedLocation = dismissedLocation
     }
 
     private func removingUnboundPrefixes(from linked: String) -> String {

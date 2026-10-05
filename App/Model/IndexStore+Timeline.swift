@@ -8,14 +8,13 @@ extension IndexStore {
     func setTimelineDates(_ row: TaskRow, to dates: TimelineDates) async throws {
         guard dates.isValid else { throw EditError.invalidValue }
         let root = vaultURL
-        let target = try await taskTarget(row)
-        guard root == vaultURL else { throw VaultStoreError.staleTarget }
         let writesStart = row.start != dates.start
         let writesDue = row.due != dates.due
         guard writesStart || writesDue else { return }
         do {
             try await performEdit(path: row.file) { writer in
-                var current = target
+                guard root == self.vaultURL else { throw VaultStoreError.staleTarget }
+                var current = try await self.taskTarget(row)
                 var savedFirst = false
                 // Extending the right edge first avoids a temporarily reversed range when moving right.
                 let dueFirst =

@@ -81,6 +81,8 @@ final class IndexStore {
     /// Serializes user writes so a busy vault queues instead of dropping Enter.
     @ObservationIgnored private var writeBusy = false
     @ObservationIgnored private var writeWaiters: [(id: UUID, continuation: CheckedContinuation<Void, any Error>)] = []
+    /// True from vault identity reset until the opening refresh finishes (or open aborts).
+    @ObservationIgnored private var isOpening = false
 
     init(
         location: VaultLocation = VaultLocation(), supportURL: URL? = nil,
@@ -218,9 +220,8 @@ final class IndexStore {
                 await applyPendingSelection()
                 return saved
             }
-        } catch is CancellationError {
-            return false
         } catch {
+            entryErrorText = EntryWriteError.message(for: error)
             return false
         }
     }
@@ -281,7 +282,7 @@ final class IndexStore {
 
     /// Shared file-first edit lifecycle. A saved-but-unindexed edit must never be retried.
     func performEdit(
-        path: String, operation: @Sendable (VaultStore) async throws -> Void
+        path: String, operation: (VaultStore) async throws -> Void
     ) async throws {
         try await withWriteSlot {
             await waitWhileRefreshInFlight()
@@ -428,7 +429,7 @@ final class IndexStore {
     }
 
     func waitWhileRefreshInFlight() async {
-        while refreshInFlight, !Task.isCancelled {
+        while (refreshInFlight || isOpening) && !Task.isCancelled {
             try? await Task.sleep(for: .milliseconds(10))
         }
     }
@@ -437,6 +438,8 @@ final class IndexStore {
     private func withWriteSlot<T>(_ body: () async throws -> T) async throws -> T {
         try await acquireWriteSlot()
         do {
+            // Cancellation after handoff still owns the slot; release before rethrowing.
+            try Task.checkCancellation()
             let value = try await body()
             releaseWriteSlot()
             return value
@@ -465,7 +468,18 @@ final class IndexStore {
                 }
             }
         }
-        try Task.checkCancellation()
+        // Continuations that resume normally already own the slot; do not check cancellation here.
+    }
+
+    /// Test seam: occupy the write slot without running a body.
+    func testingOccupyWriteSlot() {
+        precondition(!writeBusy && writeWaiters.isEmpty)
+        writeBusy = true
+    }
+
+    /// Test seam: hand the slot to the next waiter (or clear busy).
+    func testingReleaseWriteSlot() {
+        releaseWriteSlot()
     }
 
     private func releaseWriteSlot() {
@@ -500,6 +514,10 @@ final class IndexStore {
         contentEpoch = 0
         // Vault identity changed: queued writes must not run against the previous root.
         failQueuedWriters()
+        // Safety net for an orphaned busy flag (e.g. handed-off waiter cancelled before release).
+        writeBusy = false
+        isOpening = true
+        defer { if generation == current { isOpening = false } }
         unwatchedDirectoryCount = 0
         vaultURL = url
         index = nil

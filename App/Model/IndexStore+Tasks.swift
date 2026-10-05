@@ -27,29 +27,62 @@ extension IndexStore {
 
     func taskTarget(_ row: TaskRow) async throws -> TaskLine {
         let document = try await document(at: row.file)
-        guard let task = document.bodyLines.tasks.first(where: { $0.block.line == row.sourceLine }),
-            task.block.lineRange.upperBound == row.sourceEnd,
-            task.text.utf8.elementsEqual(row.sourceText.utf8), task.block.id == row.sourceIdentifier,
-            task.rawStatus == row.rawStatus, task.dueDate == row.due, task.startDate == row.start,
-            task.doneDate == row.done, task.priority == row.priority, task.project == row.project,
-            task.recurrenceSource == row.recurrenceSource
-        else {
-            await refresh()
-            throw VaultStoreError.staleTarget
+        if let task = resolvedTask(row, in: document) { return task }
+        await refresh()
+        throw VaultStoreError.staleTarget
+    }
+
+    /// Resolve after the write slot is held so queued inserts that shift lines are already applied.
+    func resolvedTask(_ row: TaskRow, in document: RawDocument) -> TaskLine? {
+        let tasks = document.bodyLines.tasks
+        if let task = tasks.first(where: { $0.block.line == row.sourceLine }),
+            taskMatchesExact(task, row: row)
+        {
+            return task
         }
-        return task
+        if let id = row.sourceIdentifier {
+            let matches = tasks.filter { $0.block.id == id && taskMatchesIdentity($0, row: row) }
+            return matches.count == 1 ? matches[0] : nil
+        }
+        let byContent = tasks.filter { taskMatchesIdentity($0, row: row) }
+        return byContent.count == 1 ? byContent[0] : nil
+    }
+
+    private func taskMatchesExact(_ task: TaskLine, row: TaskRow) -> Bool {
+        task.block.lineRange.upperBound == row.sourceEnd && taskMatchesIdentity(task, row: row)
+    }
+
+    private func taskMatchesIdentity(_ task: TaskLine, row: TaskRow) -> Bool {
+        task.text.utf8.elementsEqual(row.sourceText.utf8) && task.block.id == row.sourceIdentifier
+            && task.rawStatus == row.rawStatus && task.dueDate == row.due && task.startDate == row.start
+            && task.doneDate == row.done && task.priority == row.priority && task.project == row.project
+            && task.recurrenceSource == row.recurrenceSource
     }
 
     func completeTask(_ row: TaskRow, on today: CalendarDate) async throws {
-        let target = try await taskTarget(row)
         try await performEdit(path: row.file) { writer in
-            try await writer.changingStatus(of: target, at: row.file, to: .done, completionDate: today)
+            try await self.applyStatusChange(of: row, writer: writer, to: .done, completionDate: today)
         }
     }
+
     func reopenTask(_ row: TaskRow) async throws {
-        let target = try await taskTarget(row)
         try await performEdit(path: row.file) { writer in
-            try await writer.changingStatus(of: target, at: row.file, to: .todo)
+            try await self.applyStatusChange(of: row, writer: writer, to: .todo, completionDate: nil)
+        }
+    }
+
+    func applyStatusChange(
+        of row: TaskRow, writer: VaultStore, to status: TaskStatus, completionDate: CalendarDate?
+    ) async throws {
+        var target = try await taskTarget(row)
+        do {
+            try await writer.changingStatus(
+                of: target, at: row.file, to: status, completionDate: completionDate)
+        } catch VaultStoreError.staleTarget {
+            // One retry by current document identity after a line-shifting write.
+            target = try await taskTarget(row)
+            try await writer.changingStatus(
+                of: target, at: row.file, to: status, completionDate: completionDate)
         }
     }
 

@@ -21,7 +21,7 @@ private final class RecognitionQueryLog: @unchecked Sendable {
     try index.database.read { db in db.trace { log.append($0.description) } }
     let entities = try index.knownEntities()
     try index.database.read { $0.trace(nil) }
-    #expect(log.selects.count == 1)
+    #expect(log.selects.count == 2)
     #expect(entities.count == 10)
     #expect(entities.filter { $0.kind == .person }.count == 6)
     #expect(entities.filter { $0.kind == .place }.count == 4)
@@ -101,5 +101,33 @@ private final class RecognitionQueryLog: @unchecked Sendable {
         let index = try VaultIndex()
         try index.rebuild(vaultRoot: root)
         #expect(try index.entityUsage() == [.init(file: "people/Ece Yalın.md")])
+    }
+}
+
+@Test func duplicateBasenameLinkTargetResolvesToSelectedPerson() throws {
+    try withVault { root in
+        try write(root, "Archive/Baran.md", "eski not\n")
+        try write(root, "people/Baran.md", "---\ntype: person\nname: Baran\n---\n")
+        try write(root, "people/Ece Yalın.md", "---\ntype: person\nname: Ece Yalın\n---\n")
+        let index = try VaultIndex()
+        try index.rebuild(vaultRoot: root)
+        let entities = try index.knownEntities()
+        let baran = try #require(entities.first { $0.file == "people/Baran.md" })
+        let ece = try #require(entities.first { $0.file == "people/Ece Yalın.md" })
+        #expect(baran.linkTarget == "people/Baran")
+        #expect(ece.linkTarget == "Ece Yalın")
+        let text = "Baran ile kahve"
+        let mentions = EntityRecognizer.recognize(text, entities: entities)
+        #expect(mentions.count == 1 && mentions[0].isCertain)
+        let linked = try EntityRecognizer.linking(text, mentions: mentions)
+        #expect(linked == "[[people/Baran|Baran]] ile kahve")
+        try write(root, "journal/2026-09-14.md", linked + "\n")
+        try index.rebuild(vaultRoot: root)
+        #expect(try index.links(to: "people/Baran.md").count == 1)
+        #expect(try index.links(to: "Archive/Baran.md").isEmpty)
+        #expect(try index.entityUsage().first { $0.file == "people/Baran.md" }?.totalCount == 1)
+        let short = try EntityRecognizer.linking(
+            "Ece Yalın", mentions: EntityRecognizer.recognize("Ece Yalın", entities: entities))
+        #expect(short == "[[Ece Yalın]]")
     }
 }

@@ -47,20 +47,32 @@ public struct KnownEntity: Hashable, Sendable {
     public let qualifier: String?
     /// The aliases in source order.
     public let aliases: [String]
+    /// The wikilink target that resolves to this file (basename when unique, otherwise a path target).
+    public let linkTarget: String
     /// Locale-independent lowercase keys, compared with Swift's canonical Unicode equality.
     public var comparisonKeys: [String] { ([name] + aliases).map { $0.lowercased() } }
 
     /// Creates an immutable recognition input.
-    public init(file: String, kind: Kind, name: String, qualifier: String? = nil, aliases: [String] = []) {
+    public init(
+        file: String, kind: Kind, name: String, qualifier: String? = nil, aliases: [String] = [],
+        linkTarget: String? = nil
+    ) {
         self.file = file
         self.kind = kind
         self.name = name
         self.qualifier = qualifier
         self.aliases = aliases
+        self.linkTarget = linkTarget ?? Self.defaultLinkTarget(for: file)
     }
 
     /// The filename without its directory or Markdown extension.
     public var fileStem: String {
+        let filename = String(file.split(separator: "/").last ?? "")
+        return filename.hasSuffix(".md") ? String(filename.dropLast(3)) : filename
+    }
+
+    /// Defaults to the basename so callers without index ownership keep the short form.
+    public static func defaultLinkTarget(for file: String) -> String {
         let filename = String(file.split(separator: "/").last ?? "")
         return filename.hasSuffix(".md") ? String(filename.dropLast(3)) : filename
     }

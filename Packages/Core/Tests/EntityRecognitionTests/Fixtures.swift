@@ -10,7 +10,10 @@ struct RecognitionFixture: Decodable {
         let name: String
         let qualifier: String?
         let aliases: [String]
-        var value: KnownEntity { .init(file: file, kind: kind, name: name, qualifier: qualifier, aliases: aliases) }
+        let linkTarget: String?
+        var value: KnownEntity {
+            .init(file: file, kind: kind, name: name, qualifier: qualifier, aliases: aliases, linkTarget: linkTarget)
+        }
     }
     struct Usage: Decodable {
         let file: String
@@ -64,7 +67,7 @@ func fixtureRoot() throws -> URL {
     "empty", "nfd", "overlap", "escaped-code", "unclosed-fence", "unknown-four-words", "bom-mixed-line-endings",
     "alias-name-collision", "protected-addresses", "protected-tokens", "markdown-links", "syntax-affixes",
     "case-suggestions", "frontmatter", "table-crlf", "unicode-line-separators", "overlap-tie-first",
-    "overlap-name-priority", "alias-filename",
+    "overlap-name-priority", "alias-filename", "path-link-target",
 ])
 func recognitionFixtures(_ name: String) throws {
     let root = try fixtureRoot().appendingPathComponent("recognition/" + name)

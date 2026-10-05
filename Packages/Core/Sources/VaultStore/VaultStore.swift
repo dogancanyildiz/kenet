@@ -206,13 +206,16 @@ public actor VaultStore {
             if !writeGate.allowsWrite { throw VaultStoreError.readOnlyVault }
             return
         }
-        let version: Int?
+        // A failed read (dataless iCloud file, transient coordination error) is not cached:
+        // the next write reads again instead of staying read-only until the store is recreated.
+        let bytes: Data
         do {
-            version = VaultFormatVersion.formatVersion(in: try readFile(url))
+            bytes = try readFile(url)
         } catch {
-            version = nil
+            throw VaultStoreError.readOnlyVault
         }
-        let allows = version.map(VaultFormatVersion.canWrite(vaultVersion:)) ?? false
+        let allows =
+            VaultFormatVersion.formatVersion(in: bytes).map(VaultFormatVersion.canWrite(vaultVersion:)) ?? false
         writeGate.checked = true
         writeGate.missing = false
         writeGate.mtime = mtime

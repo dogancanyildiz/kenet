@@ -31,6 +31,16 @@ import VaultFormat
         #expect(report.journalDays.isEmpty)
         #expect(report.needsPreparation)
     }
+
+    @Test func templatesCaseVariantDoesNotScaffoldTemplates() throws {
+        let root = try testDirectory()
+        defer { try? FileManager.default.removeItem(at: root) }
+        try write("# Kişi\n", "Templates/person.md", root)
+        let report = try VaultImportScanner.inspect(root)
+        #expect(report.caseVariantFolders == ["Templates"])
+        #expect(report.missingTemplates.isEmpty)
+    }
+
     @Test func approvedTypeInsertionPreservesCommentsCRLFBodiesAndOtherFiles() async throws {
         let root = try sample()
         defer { try? FileManager.default.removeItem(at: root) }

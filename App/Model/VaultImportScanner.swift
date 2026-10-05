@@ -66,9 +66,12 @@ enum VaultImportScanner {
         report.missingFolders = VaultImportReport.folders.filter {
             !report.foundFolders.contains($0) && !variantKeys.contains($0)
         }
-        for path in ["templates/person.md", "templates/place.md"] {
-            if !FileManager.default.fileExists(atPath: root.appendingPathComponent(path).path) {
-                report.missingTemplates.append(path)
+        // With a `Templates/` variant present, scaffolding would land in the wrong folder.
+        if !variantKeys.contains("templates") {
+            for path in ["templates/person.md", "templates/place.md"] {
+                if !FileManager.default.fileExists(atPath: root.appendingPathComponent(path).path) {
+                    report.missingTemplates.append(path)
+                }
             }
         }
         let settings = root.appendingPathComponent(".app/vault.json")

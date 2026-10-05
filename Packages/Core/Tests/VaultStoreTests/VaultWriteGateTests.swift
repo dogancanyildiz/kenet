@@ -40,6 +40,33 @@ struct VaultWriteGateTests {
         #expect(reads.value == 2)
     }
 
+    @Test func transientReadFailureIsNotCachedAsReadOnly() async throws {
+        let vault = try StoreVault()
+        defer { vault.remove() }
+        let date = CalendarDate("2026-10-04")!
+        let settings = vault.root.appendingPathComponent(".app/vault.json")
+        try FileManager.default.createDirectory(
+            at: settings.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try Data("{ \"formatVersion\": 1 }\n".utf8).write(to: settings)
+
+        let reads = LockedCounter()
+        let store = VaultStore(
+            vaultRoot: vault.root, index: vault.index,
+            linkFile: { try FileManager.default.linkItem(at: $0, to: $1) },
+            readFile: { url in
+                guard url.lastPathComponent == "vault.json" else { return try Data(contentsOf: url) }
+                reads.increment()
+                if reads.value == 1 { throw CocoaError(.fileReadNoSuchFile) }
+                return try Data(contentsOf: url)
+            })
+        await #expect(throws: VaultStoreError.readOnlyVault) {
+            try await store.addingEvent(on: date, text: "Su")
+        }
+        _ = try await store.addingEvent(on: date, text: "Kitap")
+        #expect(reads.value == 2)
+        #expect(try vault.bytes("journal/2026-10-04.md").count > 0)
+    }
+
     @Test func missingVaultJSONAllowsWriteAsVersionOne() async throws {
         let vault = try StoreVault()
         defer { vault.remove() }

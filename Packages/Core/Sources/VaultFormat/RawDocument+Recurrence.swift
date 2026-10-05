@@ -1,28 +1,34 @@
 extension RawDocument {
-    /// Explicitly replace/remove recurrence, including an unsupported source rule.
+    /// Replace/remove supported recurrence; refuse unknown rules to preserve user text.
     public func settingTaskRecurrence(of task: TaskLine, to recurrence: TaskRecurrence?, newID: String? = nil)
         throws(EditError) -> RawDocument
     {
         _ = try requireTarget(task.block)
         guard bodyLines.tasks.contains(task) else { throw .targetNotFound }
-        let fields = TaskRecurrenceField.fields(in: task.block.firstLineContent)
+        let bytes = task.block.firstLineContent
+        let textRange = LineParts(bytes).text
+        let fields = TaskRecurrenceField.fields(in: Array(bytes[textRange]))
+        // Unknown rules remain part of the reader's text. Replacing them could erase a user note.
+        guard fields.allSatisfy({ $0.recurrence != nil }) else { throw .contentNotRepresentable }
         let edits: [TaskFieldWriter.Edit]
         if fields.isEmpty {
             edits = TaskFieldWriter.setting(.recurrence, token: recurrence.map { "🔁 " + $0.rule }, task: task)
         } else {
             edits = fields.enumerated().map { index, field in
-                let lower = field.range.lowerBound
+                let lower = textRange.lowerBound + field.range.lowerBound
                 let replacement = index == 0 ? recurrence.map { "🔁 " + $0.rule } : nil
                 let start =
                     replacement == nil && lower > 0 && Syntax.isBlank(task.block.firstLineContent[lower - 1])
                     ? lower - 1 : lower
-                return TaskFieldWriter.Edit(range: start..<field.range.upperBound, value: replacement ?? "")
+                return TaskFieldWriter.Edit(
+                    range: start..<(textRange.lowerBound + field.range.upperBound), value: replacement ?? "")
             }
         }
         let content = TaskFieldWriter.applying(edits, to: task, newID: newID)
-        let parsed = RawDocument(bytes: content.utf8).bodyLines.tasks.first
-        guard let parsed else { throw .contentNotRepresentable }
-        return try rewritingTask(task, content: content, values: parsed.fields.values, newID: newID)
+        var values = task.fields.values
+        values.recurrence = recurrence
+        values.recurrenceSource = recurrence?.rule
+        return try rewritingTask(task, content: content, values: values, newID: newID)
     }
 
     /// Complete in place and insert a fresh, one-line occurrence immediately above it.

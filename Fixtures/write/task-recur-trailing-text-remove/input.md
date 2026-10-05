@@ -1,0 +1,1 @@
+- [ ] Su ver 🔁 every week bahçedeki çiçeklere 📅 2026-10-10

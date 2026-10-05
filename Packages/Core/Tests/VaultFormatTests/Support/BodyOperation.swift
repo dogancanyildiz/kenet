@@ -88,8 +88,12 @@ struct BodyOperation {
             ]))
         let operation = Self(json: json)
         if let error = description["expectedError"] {
-            #expect(try Fixtures.fileNames(in: "write/\(name)") == ["input.md", "operation.json"])
+            let files = try Fixtures.fileNames(in: "write/\(name)")
+            #expect(files == ["input.md", "operation.json"] || files == ["expected.md", "input.md", "operation.json"])
             #expect { try operation.apply(to: before) } throws: { ($0 as? EditError)?.fixtureName == error.stringValue }
+            if files.contains("expected.md") {
+                #expect(before.serialized() == (try Fixtures.bytes(at: "write/\(name)/expected.md")))
+            }
         } else {
             #expect(try Fixtures.fileNames(in: "write/\(name)") == ["expected.md", "input.md", "operation.json"])
             let expected = try Fixtures.bytes(at: "write/\(name)/expected.md")

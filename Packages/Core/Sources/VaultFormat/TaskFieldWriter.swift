@@ -44,14 +44,12 @@ enum TaskFieldWriter {
     }
 
     static func applying(_ edits: [Edit], to task: TaskLine, newID: String?) -> String {
-        var bytes = Array(
-            LineParts(task.block.firstLineContent).changing(
-                task.block.firstLineContent, range: nil, value: nil, newID: newID
-            ).utf8)
+        var bytes = task.block.firstLineContent
         for edit in edits.sorted(by: { $0.range.lowerBound > $1.range.lowerBound }) {
             bytes.replaceSubrange(edit.range, with: edit.value.utf8)
         }
-        return Syntax.string(bytes)
+        // Field offsets belong to the original line; repair the identifier only after those edits.
+        return LineParts(bytes).changing(bytes, range: nil, value: nil, newID: newID)
     }
 
     static func payload(

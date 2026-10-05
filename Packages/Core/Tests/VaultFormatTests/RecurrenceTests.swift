@@ -2,15 +2,27 @@ import Testing
 import VaultFormat
 
 struct RecurrenceTests {
-    @Test func duplicateRulesFirstValidWinsAndExplicitRemovalClearsBoth() throws {
+    @Test func trailingUserTextIsRefused() throws {
+        let input = try Fixtures.bytes(at: "write/task-recur-trailing-text/input.md")
+        let document = RawDocument(bytes: input)
+        let task = try #require(document.bodyLines.tasks.first)
+        #expect(throws: EditError.contentNotRepresentable) {
+            try document.settingTaskRecurrence(of: task, to: TaskRecurrence("every week"))
+        }
+        #expect(document.serialized() == input)
+    }
+
+    @Test func duplicateRulesFirstValidWinsAndUnknownRemovalIsRefused() throws {
         let source = "- [ ] Task 🔁 every weekday 🔁 every week 🔁 every day 📅 2026-10-04 ^id\n"
         let document = RawDocument(bytes: source.utf8)
         let task = try #require(document.bodyLines.tasks.first)
         #expect(task.recurrence?.rule == "every week")
         #expect(task.recurrenceSource == "every week")
         #expect(task.text == "Task 🔁 every weekday")
-        let removed = try document.settingTaskRecurrence(of: task, to: nil)
-        #expect(String(decoding: removed.serialized(), as: UTF8.self) == "- [ ] Task 📅 2026-10-04 ^id\n")
+        #expect(throws: EditError.contentNotRepresentable) {
+            try document.settingTaskRecurrence(of: task, to: nil)
+        }
+        #expect(document.serialized() == Array(source.utf8))
     }
     @Test func unsupportedRuleCompletesOrdinarilyAndRoundTrips() throws {
         let source = "- [ ] Task 🔁 every weekday 📅 2026-10-04 ^id\n"

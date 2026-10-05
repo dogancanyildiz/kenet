@@ -2,7 +2,7 @@
   "lines": {
     "operation": "recurrence",
     "line": 1,
-    "rule": "every week"
+    "rule": null
   },
   "expectedError": "content-not-representable"
 }

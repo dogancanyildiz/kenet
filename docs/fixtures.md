@@ -198,6 +198,8 @@ Her klasör `input/` altında küçük girdi kasasını, `expected/` altında ta
 
 ### `dates/`
 
+`regression-inputs.md`, Aşama 8 tarih/miktar ve gelecek hafta günü düzeltmelerinin kurgusal ham girdilerini taşır; beklenen sonuçları `cases.json` içindedir.
+
 `cases.json` doğal tarih ayrıştırmanın dilden bağımsız sözleşmesidir. Her kayıt `today` (ISO gün), `language` (sıralı `tr`/`en` listesi), `input`, `expectedDate` (ISO gün veya `null`), `remainder` (ham kalan metin), `confidence` (`exact`/`assumed` veya `null`), isteğe bağlı `expression` (beklenen özgün ifade) ve `weekStartsOnMonday` (varsayılan true) taşır. Tarih bulunmadığında metin aynen kalır. İfade aralığı özgün ifadenin UTF-8 baytlarıyla bağımsız karşılaştırılır. Örnekler göreli/haftalık/mutlak tarih, geçersiz günler, yıl ve artık yıl sınırları, dil sırası, Türkçe harfler, sözcük sınırı, anma/kod/bağlantı koruması, saatlerin korunması ve silmede boşluk baytlarını kapsar.
 
 ### `goals/`

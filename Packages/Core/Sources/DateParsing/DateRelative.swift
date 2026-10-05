@@ -38,6 +38,22 @@ extension DateTokens {
                 let end = phrase(expression.split(separator: " ").map(String.init), at: start, language: language)
             {
                 matches.append(DateMatch(end: end, date: date, confidence: confidence))
+                let weekPrefixes = language == .turkish ? ["haftaya", "gelecek hafta"] : ["next week"]
+                if weekPrefixes.contains(expression) {
+                    for (day, names) in DateWords.weekdays[language]!.enumerated() {
+                        for name in names {
+                            var words = expression.split(separator: " ").map(String.init) + [name]
+                            if language == .turkish, phrase(words + ["günü"], at: start, language: language) != nil {
+                                words.append("günü")
+                            }
+                            if let end = phrase(words, at: start, language: language),
+                                let weekday = DateCalendar.adding((day - weekStart + 7) % 7, to: date)
+                            {
+                                matches.append(DateMatch(end: end, date: weekday, confidence: .exact))
+                            }
+                        }
+                    }
+                }
             }
         }
         let numberIndex = language == .turkish ? start : start + 1

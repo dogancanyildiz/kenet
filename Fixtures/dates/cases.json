@@ -1708,5 +1708,538 @@
     "input": "Task 📅 2026-10-05",
     "expectedDate": null,
     "remainder": "Task 📅 2026-10-05"
+  },
+  {
+    "today": "2026-10-05",
+    "language": [
+      "tr",
+      "en"
+    ],
+    "input": "2.5 kg un al",
+    "expectedDate": null,
+    "remainder": "2.5 kg un al",
+    "confidence": null,
+    "expression": null,
+    "weekStartsOnMonday": true
+  },
+  {
+    "today": "2026-10-05",
+    "language": [
+      "tr",
+      "en"
+    ],
+    "input": "3.5 km koştum",
+    "expectedDate": null,
+    "remainder": "3.5 km koştum",
+    "confidence": null,
+    "expression": null,
+    "weekStartsOnMonday": true
+  },
+  {
+    "today": "2026-10-05",
+    "language": [
+      "tr",
+      "en"
+    ],
+    "input": "Buy 2/3 cup sugar",
+    "expectedDate": null,
+    "remainder": "Buy 2/3 cup sugar",
+    "confidence": null,
+    "expression": null,
+    "weekStartsOnMonday": true
+  },
+  {
+    "today": "2026-10-05",
+    "language": [
+      "tr",
+      "en"
+    ],
+    "input": "1/2 su bardağı",
+    "expectedDate": null,
+    "remainder": "1/2 su bardağı",
+    "confidence": null,
+    "expression": null,
+    "weekStartsOnMonday": true
+  },
+  {
+    "today": "2026-10-05",
+    "language": [
+      "tr",
+      "en"
+    ],
+    "input": "3.14",
+    "expectedDate": null,
+    "remainder": "3.14",
+    "confidence": null,
+    "expression": null,
+    "weekStartsOnMonday": true
+  },
+  {
+    "today": "2026-10-05",
+    "language": [
+      "tr",
+      "en"
+    ],
+    "input": "2.5",
+    "expectedDate": null,
+    "remainder": "2.5",
+    "confidence": null,
+    "expression": null,
+    "weekStartsOnMonday": true
+  },
+  {
+    "today": "2026-10-05",
+    "language": [
+      "tr",
+      "en"
+    ],
+    "input": "2/3",
+    "expectedDate": null,
+    "remainder": "2/3",
+    "confidence": null,
+    "expression": null,
+    "weekStartsOnMonday": true
+  },
+  {
+    "today": "2026-10-05",
+    "language": [
+      "tr",
+      "en"
+    ],
+    "input": "1.10'da ara",
+    "expectedDate": null,
+    "remainder": "1.10'da ara",
+    "confidence": null,
+    "expression": null,
+    "weekStartsOnMonday": true
+  },
+  {
+    "today": "2026-10-05",
+    "language": [
+      "tr",
+      "en"
+    ],
+    "input": "Sürüm 1.10 hazır",
+    "expectedDate": null,
+    "remainder": "Sürüm 1.10 hazır",
+    "confidence": null,
+    "expression": null,
+    "weekStartsOnMonday": true
+  },
+  {
+    "today": "2026-10-05",
+    "language": [
+      "tr",
+      "en"
+    ],
+    "input": "Install version 1.10",
+    "expectedDate": null,
+    "remainder": "Install version 1.10",
+    "confidence": null,
+    "expression": null,
+    "weekStartsOnMonday": true
+  },
+  {
+    "today": "2026-10-05",
+    "language": [
+      "tr",
+      "en"
+    ],
+    "input": "1.10 sürümü",
+    "expectedDate": null,
+    "remainder": "1.10 sürümü",
+    "confidence": null,
+    "expression": null,
+    "weekStartsOnMonday": true
+  },
+  {
+    "today": "2026-10-05",
+    "language": [
+      "tr",
+      "en"
+    ],
+    "input": "1.10 release",
+    "expectedDate": null,
+    "remainder": "1.10 release",
+    "confidence": null,
+    "expression": null,
+    "weekStartsOnMonday": true
+  },
+  {
+    "today": "2026-10-05",
+    "language": [
+      "tr",
+      "en"
+    ],
+    "input": "v1.10",
+    "expectedDate": null,
+    "remainder": "v1.10",
+    "confidence": null,
+    "expression": null,
+    "weekStartsOnMonday": true
+  },
+  {
+    "today": "2026-10-05",
+    "language": [
+      "tr",
+      "en"
+    ],
+    "input": "1.2.3",
+    "expectedDate": null,
+    "remainder": "1.2.3",
+    "confidence": null,
+    "expression": null,
+    "weekStartsOnMonday": true
+  },
+  {
+    "today": "2026-10-05",
+    "language": [
+      "tr",
+      "en"
+    ],
+    "input": "5.10 kg un al",
+    "expectedDate": null,
+    "remainder": "5.10 kg un al",
+    "confidence": null,
+    "expression": null,
+    "weekStartsOnMonday": true
+  },
+  {
+    "today": "2026-10-05",
+    "language": [
+      "tr",
+      "en"
+    ],
+    "input": "5/10 cup sugar",
+    "expectedDate": null,
+    "remainder": "5/10 cup sugar",
+    "confidence": null,
+    "expression": null,
+    "weekStartsOnMonday": true
+  },
+  {
+    "today": "2026-10-05",
+    "language": [
+      "tr",
+      "en"
+    ],
+    "input": "5.10 litre su",
+    "expectedDate": null,
+    "remainder": "5.10 litre su",
+    "confidence": null,
+    "expression": null,
+    "weekStartsOnMonday": true
+  },
+  {
+    "today": "2026-10-05",
+    "language": [
+      "tr",
+      "en"
+    ],
+    "input": "5/10 oran",
+    "expectedDate": null,
+    "remainder": "5/10 oran",
+    "confidence": null,
+    "expression": null,
+    "weekStartsOnMonday": true
+  },
+  {
+    "today": "2026-10-05",
+    "language": [
+      "tr",
+      "en"
+    ],
+    "input": "5/10 ratio",
+    "expectedDate": null,
+    "remainder": "5/10 ratio",
+    "confidence": null,
+    "expression": null,
+    "weekStartsOnMonday": true
+  },
+  {
+    "today": "2026-10-05",
+    "language": [
+      "tr",
+      "en"
+    ],
+    "input": "5.10% artış",
+    "expectedDate": null,
+    "remainder": "5.10% artış",
+    "confidence": null,
+    "expression": null,
+    "weekStartsOnMonday": true
+  },
+  {
+    "today": "2026-10-05",
+    "language": [
+      "tr",
+      "en"
+    ],
+    "input": "5/10 su bardağı",
+    "expectedDate": null,
+    "remainder": "5/10 su bardağı",
+    "confidence": null,
+    "expression": null,
+    "weekStartsOnMonday": true
+  },
+  {
+    "today": "2026-10-05",
+    "language": [
+      "tr",
+      "en"
+    ],
+    "input": "5.10\tKG un al",
+    "expectedDate": null,
+    "remainder": "5.10\tKG un al",
+    "confidence": null,
+    "expression": null,
+    "weekStartsOnMonday": true
+  },
+  {
+    "today": "2026-10-05",
+    "language": [
+      "tr",
+      "en"
+    ],
+    "input": "5.10 kilogram un al",
+    "expectedDate": null,
+    "remainder": "5.10 kilogram un al",
+    "confidence": null,
+    "expression": null,
+    "weekStartsOnMonday": true
+  },
+  {
+    "today": "2026-10-05",
+    "language": [
+      "tr",
+      "en"
+    ],
+    "input": "Toplantı haftaya salı",
+    "expectedDate": "2026-10-13",
+    "remainder": "Toplantı",
+    "confidence": "exact",
+    "expression": "haftaya salı",
+    "weekStartsOnMonday": true
+  },
+  {
+    "today": "2026-10-05",
+    "language": [
+      "tr",
+      "en"
+    ],
+    "input": "haftaya cuma ara",
+    "expectedDate": "2026-10-16",
+    "remainder": "ara",
+    "confidence": "exact",
+    "expression": "haftaya cuma",
+    "weekStartsOnMonday": true
+  },
+  {
+    "today": "2026-10-05",
+    "language": [
+      "tr",
+      "en"
+    ],
+    "input": "Toplantı gelecek hafta salı",
+    "expectedDate": "2026-10-13",
+    "remainder": "Toplantı",
+    "confidence": "exact",
+    "expression": "gelecek hafta salı",
+    "weekStartsOnMonday": true
+  },
+  {
+    "today": "2026-10-05",
+    "language": [
+      "tr",
+      "en"
+    ],
+    "input": "Meet next week tuesday",
+    "expectedDate": "2026-10-13",
+    "remainder": "Meet",
+    "confidence": "exact",
+    "expression": "next week tuesday",
+    "weekStartsOnMonday": true
+  },
+  {
+    "today": "2026-10-05",
+    "language": [
+      "tr",
+      "en"
+    ],
+    "input": "haftaya salı günü ara",
+    "expectedDate": "2026-10-13",
+    "remainder": "ara",
+    "confidence": "exact",
+    "expression": "haftaya salı günü",
+    "weekStartsOnMonday": true
+  },
+  {
+    "today": "2026-10-05",
+    "language": [
+      "tr",
+      "en"
+    ],
+    "input": "next week monday meeting",
+    "expectedDate": "2026-10-12",
+    "remainder": "meeting",
+    "confidence": "exact",
+    "expression": "next week monday",
+    "weekStartsOnMonday": true
+  },
+  {
+    "today": "2026-10-05",
+    "language": [
+      "tr",
+      "en"
+    ],
+    "input": "haftaya pazar ara",
+    "expectedDate": "2026-10-18",
+    "remainder": "ara",
+    "confidence": "exact",
+    "expression": "haftaya pazar",
+    "weekStartsOnMonday": true
+  },
+  {
+    "today": "2026-10-05",
+    "language": [
+      "tr",
+      "en"
+    ],
+    "input": "next week sunday meeting",
+    "expectedDate": "2026-10-11",
+    "remainder": "meeting",
+    "confidence": "exact",
+    "expression": "next week sunday",
+    "weekStartsOnMonday": false
+  },
+  {
+    "today": "2026-10-11",
+    "language": [
+      "tr",
+      "en"
+    ],
+    "input": "haftaya salı ara",
+    "expectedDate": "2026-10-20",
+    "remainder": "ara",
+    "confidence": "exact",
+    "expression": "haftaya salı",
+    "weekStartsOnMonday": false
+  },
+  {
+    "today": "2026-12-31",
+    "language": [
+      "tr",
+      "en"
+    ],
+    "input": "next week friday",
+    "expectedDate": "2027-01-08",
+    "remainder": "",
+    "confidence": "exact",
+    "expression": "next week friday",
+    "weekStartsOnMonday": true
+  },
+  {
+    "today": "2026-10-05",
+    "language": [
+      "tr",
+      "en"
+    ],
+    "input": "5.10 ara",
+    "expectedDate": "2026-10-05",
+    "remainder": "ara",
+    "confidence": "assumed",
+    "expression": "5.10",
+    "weekStartsOnMonday": true
+  },
+  {
+    "today": "2026-10-05",
+    "language": [
+      "tr",
+      "en"
+    ],
+    "input": "5/10 ara",
+    "expectedDate": "2026-10-05",
+    "remainder": "ara",
+    "confidence": "assumed",
+    "expression": "5/10",
+    "weekStartsOnMonday": true
+  },
+  {
+    "today": "2026-10-05",
+    "language": [
+      "tr",
+      "en"
+    ],
+    "input": "5.10.2026 ara",
+    "expectedDate": "2026-10-05",
+    "remainder": "ara",
+    "confidence": "exact",
+    "expression": "5.10.2026",
+    "weekStartsOnMonday": true
+  },
+  {
+    "today": "2026-10-05",
+    "language": [
+      "tr",
+      "en"
+    ],
+    "input": "2.05 ara",
+    "expectedDate": "2027-05-02",
+    "remainder": "ara",
+    "confidence": "assumed",
+    "expression": "2.05",
+    "weekStartsOnMonday": true
+  },
+  {
+    "today": "2026-10-05",
+    "language": [
+      "tr",
+      "en"
+    ],
+    "input": "2/03 ara",
+    "expectedDate": "2027-03-02",
+    "remainder": "ara",
+    "confidence": "assumed",
+    "expression": "2/03",
+    "weekStartsOnMonday": true
+  },
+  {
+    "today": "2026-10-05",
+    "language": [
+      "tr",
+      "en"
+    ],
+    "input": "2.5.2027 ara",
+    "expectedDate": "2027-05-02",
+    "remainder": "ara",
+    "confidence": "exact",
+    "expression": "2.5.2027",
+    "weekStartsOnMonday": true
+  },
+  {
+    "today": "2026-10-05",
+    "language": [
+      "tr",
+      "en"
+    ],
+    "input": "2/3/2027 ara",
+    "expectedDate": "2027-03-02",
+    "remainder": "ara",
+    "confidence": "assumed",
+    "expression": "2/3/2027",
+    "weekStartsOnMonday": true
+  },
+  {
+    "today": "2026-10-05",
+    "language": [
+      "tr",
+      "en"
+    ],
+    "input": "2.5 kg un al yarın",
+    "expectedDate": "2026-10-06",
+    "remainder": "2.5 kg un al",
+    "confidence": "exact",
+    "expression": "yarın",
+    "weekStartsOnMonday": true
   }
 ]

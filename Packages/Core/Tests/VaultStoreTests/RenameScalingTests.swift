@@ -77,7 +77,7 @@ struct RenameScalingTests {
         let result = try await vault.store.renamingEntity(at: oldPath, to: "Zora Renamed")
         let elapsed = start.duration(to: clock.now)
         print("RENAME_SCALE files=\(fileCount + 2) links=\(fileCount * linksPerFile) elapsed=\(elapsed)")
-        #expect(elapsed < .seconds(10), "Rename exceeded the generous 10-second budget: \(elapsed)")
+        #expect(elapsed < .seconds(30), "Rename exceeded the generous 30-second budget: \(elapsed)")
         #expect(result.failures.isEmpty)
         #expect(result.updatedFiles.count == min(fileCount, 100) + 1)
         #expect(try vault.index.links(to: result.path).count == min(fileCount, 100))

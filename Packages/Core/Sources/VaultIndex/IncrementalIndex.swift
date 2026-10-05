@@ -19,21 +19,23 @@ extension VaultIndex {
         try validate(vaultRoot: vaultRoot)
         let customKinds = Set(EntityTypeReader.read(vaultRoot: vaultRoot).types.map(\.id))
         let signature = customKinds.sorted().joined(separator: "\n")
-        let typeChanged = try database.read { db in
-            (try String.fetchOne(db, sql: "SELECT signature FROM entity_type_state") ?? "") != signature
-        }
         let resolvedRoot = vaultRoot.resolvingSymlinksInPath()
         let requested = paths.map { notified in
             Set(notified.compactMap { notificationPath($0, root: resolvedRoot) })
         }
         func includes(_ path: String) -> Bool {
-            if typeChanged { return true }
             let key = comparisonKey(path)
             return requested.map { prefixes in
                 prefixes.contains { $0.isEmpty || key == $0 || key.hasPrefix($0 + "/") }
             } ?? true
         }
         return try database.write { db in
+            let typeChanged =
+                (try String.fetchOne(db, sql: "SELECT signature FROM entity_type_state") ?? "") != signature
+            let isEmpty = try Bool.fetchOne(db, sql: "SELECT EXISTS(SELECT 1 FROM files)") == false
+            if typeChanged || (paths == nil && isEmpty) {
+                return try rebuild(vaultRoot: vaultRoot, customKinds: customKinds, db: db)
+            }
             let scan = try VaultScanner.scan(vaultRoot)
             let old = try IndexedFile.fetchAll(db, sql: "SELECT * FROM files ORDER BY path")
             let previous = Dictionary(uniqueKeysWithValues: old.map { ($0.path, $0) })
@@ -49,13 +51,13 @@ extension VaultIndex {
             for file in scan.files where includes(file.path) {
                 let metadata = try file.url.resourceValues(forKeys: [.contentModificationDateKey, .fileSizeKey])
                 let modified = metadata.contentModificationDate?.timeIntervalSince1970 ?? 0
-                if !typeChanged, let before = previous[file.path], before.modified == modified,
+                if let before = previous[file.path], before.modified == modified,
                     before.size == metadata.fileSize
                 {
                     continue
                 }
                 let data = try Data(contentsOf: file.url)
-                if !typeChanged, let before = previous[file.path], before.digest == ByteDigest.hex(data) {
+                if let before = previous[file.path], before.digest == ByteDigest.hex(data) {
                     // Cache the observed metadata without rewriting any source-derived rows.
                     try db.execute(
                         sql: "UPDATE files SET modified=?,size=? WHERE path=?",

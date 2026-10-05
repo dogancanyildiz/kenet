@@ -4,8 +4,8 @@ import Testing
 /// Touch targets on iPhone must be at least 44×44 pt (HIG). These tests lock the shared
 /// modifier and the views that were found below that size in the Stage 8 audit.
 ///
-/// JournalTests is a macOS-only host (`project.yml`), so a `UIHostingController` hit-frame
-/// measurement cannot run here. The checks below instead require the modifier to sit on the
+/// Hit-frame measurement via `UIHostingController` belongs with the upcoming XCUITest /
+/// accessibility audit job. Until then these checks require the modifier to sit on the
 /// **button label** (the placement that actually expands the control's hit area on iOS).
 struct TapTargetTests {
     @Test func tapTargetModifierEnforcesFixedFortyFourPointMinimum() throws {

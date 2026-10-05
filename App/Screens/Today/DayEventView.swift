@@ -40,7 +40,7 @@ struct DayEventView: View {
         }
     }
 
-    static func formattedEventTime(_ time: EventTime, locale: Locale) -> String {
+    nonisolated static func formattedEventTime(_ time: EventTime, locale: Locale) -> String {
         EventTimeFormat.string(for: time, locale: locale)
     }
 }

@@ -136,3 +136,23 @@ jobs:
               exit 1
             fi
           done
+
+  # 5 yıllık sentetik kasada süre bütçeleri. Paylaşılan runner'larda kırılgan olduğu için
+  # ci toplu işine girmez; başarısızlık PR'ı engellemez.
+  scale-budget:
+    name: Ölçek bütçesi (macOS, isteğe bağlı)
+    # Yalnız dev'e birleşince koşar: her PR'da bir macOS makinesi daha tutmasın.
+    if: github.event_name == 'push'
+    runs-on: macos-26
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v7
+      - name: Araç zinciri
+        run: swift --version
+      - name: 5 yıllık süre bütçeleri
+        env:
+          SCALE_BUDGET_SECONDS: "1"
+        run: >
+          swift test --package-path Packages/Core
+          --filter ScaleBudgetTests.fiveYearVaultStaysWithinOptInBudgets
+          -Xswiftc -warnings-as-errors

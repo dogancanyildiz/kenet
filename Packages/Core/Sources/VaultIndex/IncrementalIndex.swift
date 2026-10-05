@@ -56,7 +56,7 @@ extension VaultIndex {
                 {
                     continue
                 }
-                let data = try Data(contentsOf: file.url)
+                let data = try readFile(file.url)
                 if let before = previous[file.path], before.digest == ByteDigest.hex(data) {
                     // Cache the observed metadata without rewriting any source-derived rows.
                     try db.execute(

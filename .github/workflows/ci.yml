@@ -19,6 +19,12 @@ jobs:
     runs-on: macos-26
     steps:
       - uses: actions/checkout@v7
+      - name: SwiftPM önbelleği
+        uses: actions/cache@v4
+        with:
+          path: Packages/Core/.build
+          key: spm-${{ runner.os }}-${{ hashFiles('Packages/Core/Package.swift', 'Packages/Core/Package.resolved') }}
+          restore-keys: spm-${{ runner.os }}-
       - name: Araç zinciri
         run: swift --version
       - name: Derle ve test et
@@ -32,6 +38,12 @@ jobs:
     container: swift:6.4
     steps:
       - uses: actions/checkout@v7
+      - name: SwiftPM önbelleği
+        uses: actions/cache@v4
+        with:
+          path: Packages/Core/.build
+          key: spm-${{ runner.os }}-${{ hashFiles('Packages/Core/Package.swift', 'Packages/Core/Package.resolved') }}
+          restore-keys: spm-${{ runner.os }}-
       - name: Araç zinciri
         # GRDB sistem SQLite'ına bağlanır; kapta başlık dosyaları yoktur.
         run: |
@@ -40,29 +52,51 @@ jobs:
       - name: Derle ve test et
         run: swift test --package-path Packages/Core -Xswiftc -warnings-as-errors
 
-  # Uygulama hedefleri: proje project.yml dosyasından üretilir, iki platformda derlenir ve test edilir.
+  # Uygulama hedefleri: proje project.yml dosyasından üretilir. macOS ve iOS ayrı makinelerde
+  # paralel koşar; DerivedData önbelleği derlemeyi kısaltır. macOS testleri iki saat diliminde
+  # koşar (olay saati / gün kayması); ikinci saat dilimi yalnız dev'e birleşince.
   # İmza yok (CODE_SIGNING_ALLOWED=NO); runner'da sertifika bulunmaz.
-  # macOS testleri iki saat diliminde koşar (olay saati / gün kayması).
-  # iOS birim testleri ve XCUITest dumanı aynı işte; duman `-only-testing:JournalUITests`.
-  app:
-    name: Uygulama (iOS ve macOS)
+  app-macos:
+    name: Uygulama (macOS)
     runs-on: macos-26
     steps:
       - uses: actions/checkout@v7
+      - name: DerivedData önbelleği
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Developer/Xcode/DerivedData
+          key: dd-macos-${{ hashFiles('project.yml', 'Packages/Core/Package.resolved') }}-${{ github.sha }}
+          restore-keys: dd-macos-${{ hashFiles('project.yml', 'Packages/Core/Package.resolved') }}-
       - name: XcodeGen
         run: brew install xcodegen
       - name: Projeyi üret
         run: xcodegen generate
-      - name: macOS derlemesi
-        run: xcodebuild build -project Journal.xcodeproj -scheme Journal_macOS -destination 'platform=macOS' CODE_SIGNING_ALLOWED=NO -quiet
       - name: macOS testleri (UTC)
         env:
           TZ: UTC
         run: xcodebuild test -project Journal.xcodeproj -scheme Journal_macOS -destination 'platform=macOS' CODE_SIGNING_ALLOWED=NO -quiet
       - name: macOS testleri (Pacific/Auckland)
+        if: github.event_name == 'push'
         env:
           TZ: Pacific/Auckland
-        run: xcodebuild test -project Journal.xcodeproj -scheme Journal_macOS -destination 'platform=macOS' CODE_SIGNING_ALLOWED=NO -quiet
+        run: xcodebuild test-without-building -project Journal.xcodeproj -scheme Journal_macOS -destination 'platform=macOS' CODE_SIGNING_ALLOWED=NO -quiet
+
+  # iOS: bir kez derlenir, birim ve arayüz testleri derlemesiz koşar.
+  app-ios:
+    name: Uygulama (iOS)
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v7
+      - name: DerivedData önbelleği
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Developer/Xcode/DerivedData
+          key: dd-ios-${{ hashFiles('project.yml', 'Packages/Core/Package.resolved') }}-${{ github.sha }}
+          restore-keys: dd-ios-${{ hashFiles('project.yml', 'Packages/Core/Package.resolved') }}-
+      - name: XcodeGen
+        run: brew install xcodegen
+      - name: Projeyi üret
+        run: xcodegen generate
       - name: iOS simülatör seç
         id: ios_sim
         run: |
@@ -90,9 +124,17 @@ jobs:
           ')
           echo "name=$NAME" >> "$GITHUB_OUTPUT"
           echo "Seçilen simülatör: $NAME"
-      - name: iOS testleri
+      - name: iOS derlemesi (test için)
         run: |
-          xcodebuild test \
+          xcodebuild build-for-testing \
+            -project Journal.xcodeproj \
+            -scheme Journal_iOS \
+            -destination "platform=iOS Simulator,name=${{ steps.ios_sim.outputs.name }}" \
+            CODE_SIGNING_ALLOWED=NO \
+            -quiet
+      - name: iOS birim testleri
+        run: |
+          xcodebuild test-without-building \
             -project Journal.xcodeproj \
             -scheme Journal_iOS \
             -destination "platform=iOS Simulator,name=${{ steps.ios_sim.outputs.name }}" \
@@ -101,7 +143,7 @@ jobs:
             -quiet
       - name: iOS arayüz dumanı
         run: |
-          xcodebuild test \
+          xcodebuild test-without-building \
             -project Journal.xcodeproj \
             -scheme Journal_iOS \
             -destination "platform=iOS Simulator,name=${{ steps.ios_sim.outputs.name }}" \
@@ -145,7 +187,7 @@ jobs:
   ci:
     name: ci
     if: always()
-    needs: [core-macos, core-linux, app, lint]
+    needs: [core-macos, core-linux, app-macos, app-ios, lint]
     runs-on: ubuntu-latest
     steps:
       - name: Tüm işler başarılı mı

@@ -333,7 +333,7 @@ struct TodayPresentationTests {
     @Test(arguments: ["tr_TR", "en_US"])
     func boxStatePriorityAndSpokenValue(_ language: String) throws {
         let locale = Locale(identifier: language)
-        let cases: [(String, String?, PresentationTaskBoxState, String, String)] = [
+        let cases: [(String, String?, TaskBoxMarkState, String, String)] = [
             (" ", nil, .open, "", language == "tr_TR" ? "Açık" : "Open"),
             ("/", "🔼", .inProgress, "!", language == "tr_TR" ? "Devam, Orta öncelik" : "In progress, Medium priority"),
             ("x", "⏫", .done, "!!", language == "tr_TR" ? "Tamamlandı, Yüksek öncelik" : "Completed, High priority"),

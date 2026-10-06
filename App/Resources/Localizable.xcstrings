@@ -1377,22 +1377,6 @@
         }
       }
     },
-    "Kayıtlı klasöre erişilemedi. Yerel kasa açıldı.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The saved folder could not be accessed. The local vault was opened."
-          }
-        },
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kayıtlı klasöre erişilemedi. Yerel kasa açıldı."
-          }
-        }
-      }
-    },
     "Kişi olarak ekle": {
       "localizations": {
         "en": {
@@ -8625,6 +8609,54 @@
           "stringUnit": {
             "state": "translated",
             "value": "Arama geçmişini temizle"
+          }
+        }
+      }
+    },
+    "Kayıtlı klasöre erişilemiyor.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The saved folder is unavailable."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kayıtlı klasöre erişilemiyor."
+          }
+        }
+      }
+    },
+    "Kayıtlı klasör bulunamadı veya açılamıyor. Diski bağlayıp yeniden dene ya da başka bir klasör seç.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The saved folder could not be found or opened. Reconnect the disk and try again, or choose another folder."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kayıtlı klasör bulunamadı veya açılamıyor. Diski bağlayıp yeniden dene ya da başka bir klasör seç."
+          }
+        }
+      }
+    },
+    "Başka klasör seç": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose another folder"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Başka klasör seç"
           }
         }
       }

@@ -11,6 +11,8 @@ struct ContentView: View {
         Group {
             if store.requiresOnboarding {
                 OnboardingView(store: store)
+            } else if store.isVaultInaccessible {
+                VaultInaccessibleView(store: store)
             } else {
                 #if os(macOS)
                     MacNavigation(store: store)
@@ -32,7 +34,9 @@ struct ContentView: View {
                 .frame(minWidth: 320, minHeight: 440)
         }
         .overlay(alignment: .top) {
-            if !store.requiresOnboarding && store.indexingFileCount != nil && store.isProcessing {
+            if !store.requiresOnboarding && !store.isVaultInaccessible && store.indexingFileCount != nil
+                && store.isProcessing
+            {
                 VaultIndexingProgress(store: store).padding().background(.regularMaterial)
             }
         }

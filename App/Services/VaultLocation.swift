@@ -1,5 +1,12 @@
 import Foundation
 
+/// Result of opening the user's registered vault (or the legacy Documents/Vault).
+enum VaultResolution: Equatable {
+    case available(url: URL, notice: String?)
+    /// Bookmark present but unusable, or bookmark was malformed and cleared — no vault opened.
+    case inaccessible
+}
+
 /// Owns the selected folder's security scope for the lifetime of the app session.
 @MainActor
 final class VaultLocation {
@@ -24,34 +31,52 @@ final class VaultLocation {
             && !FileManager.default.fileExists(atPath: documentsURL.appendingPathComponent("Vault").path)
     }
 
-    func resolve() throws -> (url: URL, notice: String?) {
-        guard let data = defaults.data(forKey: Self.bookmarkKey) else {
-            return (try createDefaultVault(), nil)
+    func resolve() throws -> VaultResolution {
+        if defaults.data(forKey: Self.bookmarkKey) != nil {
+            return try resolveSavedBookmark()
         }
+        return .available(url: try createDefaultVault(), notice: nil)
+    }
+
+    /// Retries only the saved bookmark (or legacy Documents/Vault). Never creates a new local vault.
+    func resolveSavedVault() throws -> VaultResolution {
+        if defaults.data(forKey: Self.bookmarkKey) != nil {
+            return try resolveSavedBookmark()
+        }
+        let root = documentsURL.appendingPathComponent("Vault", isDirectory: true)
+        guard FileManager.default.fileExists(atPath: root.path) else { return .inaccessible }
+        try beginAccess(to: root)
+        return .available(url: root, notice: nil)
+    }
+
+    private func resolveSavedBookmark() throws -> VaultResolution {
+        guard let data = defaults.data(forKey: Self.bookmarkKey) else { return .inaccessible }
         let resolved: (url: URL, isStale: Bool)
         do {
             resolved = try bookmarks.resolve(data)
         } catch {
             // A missing disk or temporary resolver failure must not erase the user's choice.
             if bookmarks.isMalformed(data) { defaults.removeObject(forKey: Self.bookmarkKey) }
-            return try fallback()
+            return .inaccessible
         }
         do {
             try beginAccess(to: resolved.url)
         } catch {
-            return try fallback()
+            return .inaccessible
         }
         if resolved.isStale {
             do {
                 defaults.set(try bookmarks.create(resolved.url), forKey: Self.bookmarkKey)
             } catch {
-                return (
-                    resolved.url,
-                    String(localized: "Klasör açıldı ancak yer imi yenilenemedi. Sonraki açılışta yeniden denenecek.")
+                return .available(
+                    url: resolved.url,
+                    notice: String(
+                        localized:
+                            "Klasör açıldı ancak yer imi yenilenemedi. Sonraki açılışta yeniden denenecek.")
                 )
             }
         }
-        return (resolved.url, nil)
+        return .available(url: resolved.url, notice: nil)
     }
 
     /// No fallback vault is substituted for an inaccessible bookmark during automation.
@@ -96,10 +121,6 @@ final class VaultLocation {
             if accessed { url.stopAccessingSecurityScopedResource() }
             throw error
         }
-    }
-
-    private func fallback() throws -> (url: URL, notice: String?) {
-        (try createDefaultVault(), String(localized: "Kayıtlı klasöre erişilemedi. Yerel kasa açıldı."))
     }
 
     func createDefaultVault() throws -> URL {

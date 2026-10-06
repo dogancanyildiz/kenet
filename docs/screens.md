@@ -172,6 +172,7 @@ Uygulamaya yazmanın tüm yolları aynı hızlı giriş davranışına çıkar:
 ## Boş durumlar
 
 - **İlk açılış:** Yer imi ve varsayılan kasa yoksa Markdown veri sahipliğini anlatan tek ekran, “Yeni kasa oluştur” ve “Var olan klasörü seç” düğmelerini sunar. Çok adımlı kurulum sihirbazı yoktur. Kasa açılınca boş Bugün ekranında “Gününden bir an yaz; @ ile kişi ekle” ipucu görünür; ilk kişi ve konum yazarken oluşturulur.
+- **Kayıtlı kasaya erişilemiyor:** Yer imi var ama klasör açılamıyorsa (veya yer imi bozuksa) sekmelerin yerine durum ekranı; Yeniden dene ve Başka klasör seç. Yerel kasaya sessiz geçiş yok.
 - **Boş gün:** Suçlayıcı olmayan kısa bir metin; giriş kutusu hazır.
 - **Kasa eşitlenirken:** Eldeki içerik gösterilir, eşitleme durumu küçük bir göstergeyle belirtilir. (iCloud eşitlemesiyle birlikte gelecek; henüz yok.)
 

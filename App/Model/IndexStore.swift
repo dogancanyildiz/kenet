@@ -36,6 +36,8 @@ final class IndexStore {
     private(set) var isInspectingImport = false
     private(set) var indexingFileCount: Int?
     private(set) var isVaultReadOnly = false
+    /// Registered vault could not be opened; no writer is active and writes must not go elsewhere.
+    private(set) var isVaultInaccessible = false
     private(set) var vaultURL: URL?
     private(set) var content = VaultReadModel.empty
     private(set) var knownEntities: [KnownEntity] = []
@@ -123,19 +125,43 @@ final class IndexStore {
             return
         }
         do {
-            let resolved = try location.resolve()
-            notice = resolved.notice
-            await open(resolved.url)
+            switch try location.resolve() {
+            case .available(let url, let resolvedNotice):
+                notice = resolvedNotice
+                isVaultInaccessible = false
+                await open(url)
+            case .inaccessible:
+                enterInaccessibleState()
+            }
         } catch { report(error) }
+    }
+
+    /// Re-resolves the saved bookmark (or legacy Documents/Vault) without creating a new local vault.
+    func retryVaultAccess() async {
+        do {
+            switch try location.resolveSavedVault() {
+            case .available(let url, let resolvedNotice):
+                notice = resolvedNotice
+                isVaultInaccessible = false
+                await open(url)
+            case .inaccessible:
+                enterInaccessibleState()
+            }
+        } catch {
+            enterInaccessibleState()
+            report(error)
+        }
     }
 
     /// Background callbacks must reopen security scope and finish indexing before any write.
     func prepareForIntent() async throws {
+        guard !isVaultInaccessible else { throw VaultStoreError.staleTarget }
         if vaultURL == nil { await open(try location.existingVaultForIntent()) }
         try await prepareForBackground()
     }
 
     func prepareForBackground() async throws {
+        guard !isVaultInaccessible else { throw VaultStoreError.staleTarget }
         if let vaultURL {
             try location.resumeBackgroundAccess(to: vaultURL)
         } else {
@@ -178,6 +204,7 @@ final class IndexStore {
         do {
             let selected = try location.select(url)
             notice = nil
+            isVaultInaccessible = false
             await open(selected)
         } catch { report(error) }
     }
@@ -547,6 +574,39 @@ final class IndexStore {
         await select(selected)
     }
 
+    private func enterInaccessibleState() {
+        watcher?.stop()
+        watcher = nil
+        generation = UUID()
+        pendingRefresh = false
+        pendingRebuild = false
+        refreshInFlight = false
+        contentEpoch = 0
+        failQueuedWriters()
+        isOpening = false
+        isVaultInaccessible = true
+        unwatchedDirectoryCount = 0
+        vaultURL = nil
+        index = nil
+        writer = nil
+        entryErrorText = nil
+        content = .empty
+        indexingFileCount = nil
+        isVaultReadOnly = false
+        knownEntities = []
+        entityTypes = EntityTypeCatalog()
+        nearbyPlaces = []
+        mapPlaces = []
+        entityUsage = []
+        counts = IndexCounts()
+        skippedPaths = []
+        lastUpdated = nil
+        errorText = nil
+        notice = nil
+        isProcessing = false
+        isWriting = false
+    }
+
     private func open(_ url: URL) async {
         watcher?.stop()
         watcher = nil
@@ -562,6 +622,7 @@ final class IndexStore {
         failQueuedWriters()
         isOpening = true
         defer { if generation == current { isOpening = false } }
+        isVaultInaccessible = false
         unwatchedDirectoryCount = 0
         vaultURL = url
         index = nil

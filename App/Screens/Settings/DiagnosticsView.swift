@@ -1,75 +1,21 @@
 import SwiftUI
-import UniformTypeIdentifiers
 
-#if os(macOS)
-    import AppKit
-#endif
-
-/// Settings for the file-backed vault and its disposable index.
+/// Index counts, skipped paths, rebuild, and search-history clear.
 struct DiagnosticsView: View {
     @Bindable var store: IndexStore
-    @State private var choosingFolder = false
 
     var body: some View {
         Form {
-            AppLockSettingsView()
-            Section("Varlık tipleri") {
-                NavigationLink("Varlık tipleri") { EntityTypesSettingsView(store: store) }
-                if store.entityTypes.issue != nil {
-                    Text(
-                        "Varlık tipleri okunamıyor. Yalnız yerleşik tipler kullanılıyor. Kasadaki .app/types.json dosyasını kontrol et."
-                    )
-                    .foregroundStyle(.orange)
-                }
-            }
-            PeopleInsightsSettingsView()
-            CalendarSettingsView()
-            LocationSettingsView()
-            #if os(iOS)
-                Section("Bildirimler") {
-                    NavigationLink("Bildirimler", destination: NotificationSettingsView())
-                }
-            #endif
-            Section("Kasa") {
-                if let url = store.vaultURL {
-                    Text(verbatim: url.path).textSelection(.enabled)
-                    #if os(macOS)
-                        Button("Finder'da göster") {
-                            NSWorkspace.shared.activateFileViewerSelecting([url])
-                        }
-                        .buttonStyle(.borderless)
-                    #endif
-                }
+            Section("İndeks") {
                 HStack {
-                    Button("Klasör seç") { choosingFolder = true }.disabled(
-                        store.isInspectingImport || store.importModel != nil)
                     Button("Yeniden üret") { Task { await store.refresh(rebuild: true) } }
                         .disabled(store.isProcessing)
+                    Button("Arama geçmişini temizle") {
+                        SearchModel.clearStoredHistory(for: store.vaultURL)
+                    }
+                    .disabled(store.vaultURL == nil)
                 }.buttonStyle(.borderless)
-                Button("Arama geçmişini temizle") {
-                    SearchModel.clearStoredHistory(for: store.vaultURL)
-                }
-                .buttonStyle(.borderless)
-                .disabled(store.vaultURL == nil)
-
-                if let selection = store.pendingSelection {
-                    LabeledContent("Klasör seçimi bekliyor…") { Text(verbatim: selection.path) }
-                }
-                if store.unwatchedDirectoryCount > 0 {
-                    Text(
-                        "İzlenmeyen dizinler: \(store.unwatchedDirectoryCount). Değişiklikler ön planda zamanlayıcıyla denetlenir."
-                    )
-                    .foregroundStyle(.secondary)
-                }
-                if store.isInspectingImport { ProgressView("Klasör inceleniyor…") }
-                if let model = store.importModel {
-                    NavigationLink("Kasa hazırlığı") { VaultImportView(store: store, model: model) }
-                }
                 if store.isProcessing { VaultIndexingProgress(store: store) }
-                if let notice = store.notice { Text(verbatim: notice).foregroundStyle(.secondary) }
-                if let error = store.errorText { Text(verbatim: error).foregroundStyle(.red) }
-            }
-            Section("İndeks") {
                 count("Dosyalar", store.counts.files)
                 count("Günler", store.counts.filesByKind["day", default: 0])
                 count("Kişiler", store.counts.filesByKind["person", default: 0])
@@ -82,33 +28,49 @@ struct DiagnosticsView: View {
                 count("Bağlantılar", store.counts.links)
                 count("Çözülmemiş bağlantılar", store.counts.unresolvedLinks)
                 if let date = store.lastUpdated {
-                    LabeledContent("Son güncelleme") { Text(date, format: .dateTime) }
+                    LabeledContent("Son güncelleme") {
+                        Text(date, format: .dateTime)
+                            .font(.ink.value)
+                    }
                 }
             }
             Section("Atlanan yollar") {
-                if store.skippedPaths.isEmpty { Text("Atlanan yol yok.") }
+                if store.skippedPaths.isEmpty {
+                    Text("Atlanan yol yok.")
+                        .font(.ink.meta)
+                        .foregroundStyle(Color.ink.secondaryText)
+                }
                 ForEach(store.skippedPaths, id: \.path) { skipped in
-                    VStack(alignment: .leading) {
+                    VStack(alignment: .leading, spacing: 2) {
                         Text(verbatim: skipped.path)
+                            .font(.ink.meta)
+                            .foregroundStyle(Color.ink.text)
+                            .lineLimit(2)
+                            .truncationMode(.middle)
+                            .textSelection(.enabled)
                         if skipped.reason == .symbolicLink {
                             Text("Sembolik bağlantı")
+                                .font(.ink.meta)
+                                .foregroundStyle(Color.ink.secondaryText)
                         } else {
                             Text("Yinelenen normalleştirilmiş yol")
+                                .font(.ink.meta)
+                                .foregroundStyle(Color.ink.secondaryText)
                         }
                     }
                 }
             }
         }
         .formStyle(.grouped)
-        .fileImporter(isPresented: $choosingFolder, allowedContentTypes: [.folder]) { result in
-            switch result {
-            case .success(let url): Task { await store.inspectSelection(url) }
-            case .failure(let error): store.report(error)
-            }
-        }
+        .inkPage()
+        .inkPageColumn()
     }
 
     private func count(_ label: LocalizedStringKey, _ value: Int) -> some View {
-        LabeledContent(label) { Text(value, format: .number) }
+        LabeledContent(label) {
+            Text(value, format: .number)
+                .font(.ink.value)
+                .monospacedDigit()
+        }
     }
 }

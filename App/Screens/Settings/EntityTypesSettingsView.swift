@@ -38,11 +38,17 @@ struct EntityTypesSettingsView: View {
                 Text(
                     "Varlık tipleri okunamıyor. Yalnız yerleşik tipler kullanılıyor. Kasadaki .app/types.json dosyasını kontrol et."
                 )
-                .foregroundStyle(.orange)
+                .font(.ink.meta)
+                .foregroundStyle(Color.ink.warning)
             }
-            if let errorText { Text(verbatim: errorText).foregroundStyle(.red) }
+            if let errorText {
+                Text(verbatim: errorText)
+                    .font(.ink.meta)
+                    .foregroundStyle(Color.ink.danger)
+            }
             Text("Tipi silmek varlık dosyalarını silmez. Tanımı olmayan dosyalar düz not olarak kalır.")
-                .font(.caption).foregroundStyle(.secondary)
+                .font(.ink.meta)
+                .foregroundStyle(Color.ink.secondaryText)
         }
         .onChange(of: store.vaultURL) { _, _ in
             deleting = nil
@@ -50,6 +56,8 @@ struct EntityTypesSettingsView: View {
         }
         .formStyle(.grouped)
         .navigationTitle("Varlık tipleri")
+        .inkPage()
+        .inkPageColumn()
         .confirmationDialog(
             "Tip tanımını sil?", isPresented: Binding(get: { deleting != nil }, set: { if !$0 { deleting = nil } })
         ) {

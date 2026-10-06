@@ -11,7 +11,8 @@ struct CalendarSettingsView: View {
     var body: some View {
         Section("Takvim") {
             Text("Takvim etkinlikleri yalnızca gösterilir; takvimine ve günlük dosyalarına yazılmaz.")
-                .font(.caption).foregroundStyle(.secondary)
+                .font(.ink.meta)
+                .foregroundStyle(Color.ink.secondaryText)
             switch calendar.authorization {
             case .notDetermined, .writeOnly:
                 Button("Takvim etkinliklerini göstermek için izin ver") {
@@ -19,13 +20,23 @@ struct CalendarSettingsView: View {
                 }.disabled(calendar.isRequesting)
             case .fullAccess:
                 Text("Takvim erişimine izin verildi.")
+                    .font(.ink.meta)
+                    .foregroundStyle(Color.ink.text)
             case .denied:
                 Text("Takvim erişimi reddedildi. Etkinlikleri göstermek için sistem ayarlarından izin verebilirsin.")
+                    .font(.ink.meta)
+                    .foregroundStyle(Color.ink.secondaryText)
             case .restricted:
                 Text("Takvim erişimi bu cihazda kısıtlanmış.")
+                    .font(.ink.meta)
+                    .foregroundStyle(Color.ink.secondaryText)
             }
             Button("Sistem ayarlarını aç") { openSystemSettings() }
-            if let error = calendar.errorText { Text(verbatim: error).font(.caption).foregroundStyle(.secondary) }
+            if let error = calendar.errorText {
+                Text(verbatim: error)
+                    .font(.ink.meta)
+                    .foregroundStyle(Color.ink.secondaryText)
+            }
         }
     }
 

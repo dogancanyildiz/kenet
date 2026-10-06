@@ -161,7 +161,7 @@ struct TodayPresentation: Sendable {
 
 /// State and priority remain independent, including while the box is half filled.
 struct TaskBoxPresentation: Sendable {
-    let state: TaskBoxState
+    let state: PresentationTaskBoxState
     let priority: TaskPriority?
 
     init(row: TaskRow, isCompleted: Bool = false) {
@@ -191,7 +191,8 @@ struct TaskBoxPresentation: Sendable {
     }
 }
 
-enum TaskBoxState: Sendable { case open, inProgress, done, cancelled }
+/// Presentation cue distinct from Design ``TaskBoxState`` (status + priority struct).
+enum PresentationTaskBoxState: Sendable { case open, inProgress, done, cancelled }
 
 /// The given locale selects both catalog language and formatting when its language is supported.
 /// Prefer `@Environment(\.locale)` from the view; do not hand-build a `Locale` for presentation.

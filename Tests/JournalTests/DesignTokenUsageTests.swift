@@ -6,21 +6,12 @@ import Testing
 struct DesignTokenUsageTests {
     /// Paths under `App/` that still use `.red` or `.orange` (Stage 9 screen jobs clear these).
     private static let systemColorAllowlist: Set<String> = [
-        "App/Mac/HotKeySettingsView.swift",
-        "App/Navigation/MacNavigation.swift",
         "App/Screens/Entities/EntitiesView.swift",
         "App/Screens/Entities/EntityRenameView.swift",
         "App/Screens/Entities/EntityScalarEditor.swift",
         "App/Screens/Entities/EntityTypedFieldEditor.swift",
         "App/Screens/Entities/EntityView.swift",
         "App/Screens/Entities/UnresolvedEntityView.swift",
-        "App/Screens/Onboarding/OnboardingView.swift",
-        "App/Screens/Onboarding/VaultImportView.swift",
-        "App/Screens/Onboarding/VaultInaccessibleView.swift",
-        "App/Screens/Settings/DiagnosticsView.swift",
-        "App/Screens/Settings/EntityTypeEditorView.swift",
-        "App/Screens/Settings/EntityTypesSettingsView.swift",
-        "App/Screens/Settings/GeofenceSettingsView.swift",
         "App/Screens/Shared/SearchNoteView.swift",
         "App/Screens/Shared/SearchView.swift",
         "App/Screens/Shared/SingleLineTextEditor.swift",

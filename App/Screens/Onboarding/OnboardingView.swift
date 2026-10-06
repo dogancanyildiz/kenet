@@ -6,36 +6,45 @@ struct OnboardingView: View {
     @State private var choosesFolder = false
     var body: some View {
         ScrollView {
-            VStack(spacing: 20) {
-                Image(systemName: "book.closed").font(.largeTitle)
-                Text("Günlüğün, senin dosyaların").font(.title2)
+            VStack(alignment: .leading, spacing: 20) {
+                PageHeadline(title: String(localized: "Günlüğün, senin dosyaların"))
                 Text(
                     "Verilerin Markdown dosyalarında kalır. Yeni bir kasa oluşturabilir veya var olan Obsidian klasörünü seçebilirsin."
                 )
-                .multilineTextAlignment(.center)
-                // Matches `VaultLocation.createDefaultVault` (`Documents/Vault`).
+                .font(.ink.content)
+                .foregroundStyle(Color.ink.text)
+                .frame(maxWidth: .infinity, alignment: .leading)
                 #if os(iOS)
                     Text("Yeni kasa, Dosyalar’da iPhone’umda → Journal → Vault klasöründe oluşturulur.")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
+                        .font(.ink.meta)
+                        .foregroundStyle(Color.ink.secondaryText)
                 #else
                     Text(
                         "Yeni kasa, uygulamanın Belgeler klasöründeki Vault içinde oluşturulur. Ayarlar’dan Finder’da gösterebilirsin."
                     )
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
+                    .font(.ink.meta)
+                    .foregroundStyle(Color.ink.secondaryText)
                 #endif
-                Button("Yeni kasa oluştur") { Task { await store.start() } }.buttonStyle(.borderedProminent)
-                Button("Var olan klasörü seç") { choosesFolder = true }.buttonStyle(.bordered)
-                if let error = store.errorText { Text(verbatim: error).foregroundStyle(.red) }
-                if store.isInspectingImport { ProgressView("Klasör inceleniyor…") }
+                Button("Yeni kasa oluştur") { Task { await store.start() } }
+                    .buttonStyle(InkPrimaryButtonStyle())
+                Button("Var olan klasörü seç") { choosesFolder = true }
+                    .buttonStyle(InkTextButtonStyle())
+                if let error = store.errorText {
+                    Text(verbatim: error)
+                        .font(.ink.meta)
+                        .foregroundStyle(Color.ink.danger)
+                }
+                if store.isInspectingImport {
+                    InkProgress(kind: .indeterminate(label: "Klasör inceleniyor…"))
+                }
                 if store.isProcessing { VaultIndexingProgress(store: store) }
             }
-            .padding().frame(maxWidth: 520).frame(maxWidth: .infinity)
+            .padding(InkSpacing.margin)
+            .inkPageColumn()
+            .frame(maxWidth: .infinity)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .inkPage()
         .accessibilityIdentifier("screen.onboarding")
         .disabled(store.isProcessing || store.isInspectingImport)
         .fileImporter(isPresented: $choosesFolder, allowedContentTypes: [.folder]) { result in
@@ -46,12 +55,18 @@ struct OnboardingView: View {
         }
     }
 }
+
 struct VaultIndexingProgress: View {
     let store: IndexStore
     var body: some View {
-        VStack {
-            ProgressView("İndeks güncelleniyor…")
-            if let count = store.indexingFileCount { Text("İndekslenecek dosya: \(count)").font(.caption) }
+        VStack(alignment: .leading, spacing: 6) {
+            InkProgress(kind: .indeterminate(label: "İndeks güncelleniyor…"))
+            if let count = store.indexingFileCount {
+                Text("İndekslenecek dosya: \(count)")
+                    .font(.ink.meta)
+                    .foregroundStyle(Color.ink.secondaryText)
+                    .monospacedDigit()
+            }
         }
     }
 }

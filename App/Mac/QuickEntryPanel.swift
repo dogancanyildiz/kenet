@@ -25,8 +25,16 @@
             ZStack {
                 VStack(spacing: 0) {
                     if let status = model.statusText {
-                        Text(verbatim: status).font(.caption).foregroundStyle(.secondary).padding()
+                        Text(verbatim: status)
+                            .font(.ink.meta)
+                            .foregroundStyle(Color.ink.secondaryText)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal, InkSpacing.margin)
+                            .padding(.top, 12)
                     }
+                    // QuickEntryBar owns suggestion / resolution / submit. Capsule chrome for the
+                    // mode+field+send row lives in App/Design; Today will adopt it on the shared bar.
+                    // Panel shell uses ink.surface so the floating window matches Mürekkep.
                     QuickEntryBar(
                         store: model.entry.store, isEnabled: model.entry.store.canAddEvent,
                         model: model.entry, focusRequest: model.focusRequest)
@@ -41,8 +49,12 @@
             }
             .frame(width: 480)
             .fixedSize(horizontal: false, vertical: true)
-            .background(.regularMaterial)
-            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .background(Color.ink.surface)
+            .clipShape(RoundedRectangle(cornerRadius: InkSize.kanbanCorner))
+            .overlay {
+                RoundedRectangle(cornerRadius: InkSize.kanbanCorner)
+                    .stroke(Color.ink.rule, lineWidth: InkStroke.rule)
+            }
             .onGeometryChange(for: CGFloat.self, of: { $0.size.height }, action: onHeightChange)
             .onChange(of: appLock?.isLocked) { _, locked in
                 if locked == false { onUnlock() }

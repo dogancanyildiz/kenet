@@ -6,7 +6,7 @@ struct AppLockSettingsView: View {
 
     var body: some View {
         @Bindable var lock = lock
-        Section("Gizlilik") {
+        Section {
             Toggle(
                 "Uygulama kilidi",
                 isOn: Binding(
@@ -29,7 +29,9 @@ struct AppLockSettingsView: View {
                 }
             }
             if lock.authenticationFailed {
-                Text("Kimlik doğrulanamadı. Tekrar dene.").foregroundStyle(.secondary)
+                Text("Kimlik doğrulanamadı. Tekrar dene.")
+                    .font(.ink.meta)
+                    .foregroundStyle(Color.ink.secondaryText)
                 if !lock.isEnabled {
                     Button("Tekrar dene") {
                         Task {
@@ -42,7 +44,8 @@ struct AppLockSettingsView: View {
             Text(
                 "Kilitliyken Siri hedef adlarını listelemez; Kısayollar ve bildirimdeki İşaretle eylemi yazmaz."
             )
-            .font(.caption).foregroundStyle(.secondary)
+            .font(.ink.meta)
+            .foregroundStyle(Color.ink.secondaryText)
         }
     }
 }

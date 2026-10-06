@@ -40,7 +40,7 @@ En altta sabit **hızlı giriş kutusu**.
 - Görev modunda tarih cümleden çıkarılır ("yarın Ahmet'i ara") ve kutunun üstünde onay için gösterilir; yanlışsa dokunup düzeltilir.
 - Olay varsayılan olarak şu anki saatle kaydedilir; saat kaldırılabilir ya da değiştirilebilir.
 - Gönderince kutu boşalır, klavye açık kalır; art arda giriş yapılabilir.
-- Konum izni Ayarlar → Konum düğmesiyle verilir. Odaklanma ve gönderim en çok dakikada bir tek seferlik GPS isteği başlatır. Kutunun üstündeki en yakın konum çipi dokunulunca sabit `@Konum` anması ekler; kapatma mevcut taslak oturumunda kalıcıdır, kayıt sonrası sıfırlanır. Olay ve görev için aynı davranış kullanılır. Konum önerisi anahtarı ve sistem ayarları bağlantısı kasa ayarlarında bulunur.
+- Konum izni Ayarlar → Takvim ve Konum düğmesiyle verilir. Odaklanma ve gönderim en çok dakikada bir tek seferlik GPS isteği başlatır. Kutunun üstündeki en yakın konum çipi dokunulunca sabit `@Konum` anması ekler; kapatma mevcut taslak oturumunda kalıcıdır, kayıt sonrası sıfırlanır. Olay ve görev için aynı davranış kullanılır. Konum önerisi anahtarı ve sistem ayarları bağlantısı Ayarlar → Takvim ve Konum’dadır.
 
 ### Günlük (1)
 
@@ -127,29 +127,53 @@ Telefonda okuma ve basit düzenleme. Aramadan ve bağlantılardan ulaşılır; a
 ## Mac
 
 - Görevler altında Kanban, Zaman çizelgesi ve proje adları yer alır. Kanban liste sütununu kullanmadan kenar çubuğunun yanına açılır; seçili kart sağ ayrıntı panelinde gösterilir.
-- **Kenar çubuğu:** Bugün, Günlük, Görevler, Kişiler, Konumlar, Hedefler, Özetler, Graph, Harita, Notlar.
-- **Çok sütunlu düzen:** Solda liste, ortada seçili öğe. Örneğin kişi listesi ve seçili kişinin sayfası yan yana.
+- **Kenar çubuğu:** Bugün, Günlük, Görevler, Kişiler, Konumlar, Hedefler, Özetler, Graph, Harita, Notlar. Kenar çubuğu simgeleri sistem vurgu rengini izler; marka vurgu rengi içerikte kalır.
+- **Çok sütunlu düzen:** Solda liste, ortada seçili öğe (üç sütun: kenar çubuğu + liste + ayrıntı). Örneğin kişi listesi ve seçili kişinin sayfası yan yana. Sayfa görünümleri en çok 680 pt genişlikte ortalanır. Ana pencerenin en küçük boyutu belirteçlerle sabitlenir.
 - **Kanban (5)** tam genişlikte; sürükle bırak ile durum ve proje değişir, tarih kart menüsünden değiştirilir. **Zaman çizelgesi (5)** aynı geniş alanda tarih taşımayı ve uç sürükleyerek uzatma/kısaltmayı destekler. Gün ızgarasına yapışır; çubukta tarih alanları aynı farkla kayar, uç yalnız ilgili alanı değiştirir. Sürükleme başlangıcındaki görev ve kasa doğrulanır. İki tarih mevcut yazıcıyla iki kez yazılır; ikinci yazma ilkinden dönen görev hedefini kullanır. Yazma sırasında geçici çubuk konumu, hata/başarı sonrası dosya yenilemesi vardır; kısmi yazma bildirimi otomatik tekrar göndermez. Ayrıntı sağ panelde açılır.
-- **Hızlı giriş penceresi (1):** Sistem genelinde klavye kısayoluyla açılan küçük pencere; telefondaki hızlı giriş kutusuyla aynı davranış. Uygulama öne gelmeden kayıt yapılır.
+- **Hızlı giriş penceresi (1):** Sistem genelinde klavye kısayoluyla açılan küçük pencere; telefondaki hızlı giriş kutusuyla aynı davranış. Uygulama öne gelmeden kayıt yapılır. Kısayol Settings → Hızlı giriş sekmesinde ayarlanır.
 - **Notlar:** Serbest notlar için düzenleme alanı. (Henüz yok; kenar çubuğu öğesi yer tutucudur.)
 - Klavye kısayolları: arama (⌘F) ve hızlı geçiş (⌘K), bugüne git (⌘T). Yeni olay ve yeni görev kısayolları henüz yok.
+- **Ayarlar:** Mac'te sistem Settings sahnesinde sekmeler: Gizlilik, Bildirimler, Takvim ve Konum, Kasa, Tanılama; ayrıca Hızlı giriş kısayolu.
 
-## Ayarlar — Bildirimler (4)
+## Ayarlar
+
+iPhone'da Bugün araç çubuğundan açılan Ayarlar listesi beş bölüme ayrılır. Mac'te aynı beş bölüm Settings sekmeleridir (üstte). Hiçbir ayar kaybolmaz; yeni ayar eklenmez.
+
+### Ayarlar — Gizlilik (7)
+
+- **Uygulama kilidi** anahtarı. Açılması bir kez Face ID, Touch ID veya cihaz parolasıyla doğrulanır; iptal edilirse anahtar kapalı kalır. **Şu kadar sonra kilitle** seçimi hemen, 1 dk, 5 dk veya 15 dk olabilir; tercihler cihazda saklanır.
+- **Bildirimlerde içeriği gizle** için Bildirimler ayarına bağlantı (anahtar Bildirimler'dedir).
+- **Kişi hatırlatmaları:** görüşülmeyenler eşiği (1–365 gün, varsayılan 30); cihaz tercihi.
+
+Kilit açıkken uygulama etkinliğini kaybettiğinde içerik opak bir örtüyle gizlenir; açık sayfalar ve taslaklar korunur. iOS'ta süre arka plana geçişten, Mac'te uygulamanın etkinliğini kaybetmesinden başlar. Süre dolmadan dönüşte örtü kalkar; süre dolduysa veya uygulama yeni açıldıysa doğrulama gerekir. İptal/hata durumunda kilit ekranındaki **Tekrar dene** düğmesi kullanılır. Mac menü çubuğu ve klavye kısayoluyla açılan hızlı giriş paneli de aynı kilidi denetler.
+
+Kilitliyken (kilit etkin ve doğrulanmamış) Siri hedef adlarını listelemez; Kısayollar ve bildirimdeki İşaretle eylemi yazmaz. Uygulama kilidi kasayı şifrelemez.
+
+### Ayarlar — Bildirimler (4)
 
 - İzin yalnız kullanıcının izin düğmesiyle istenir; açılışta sistem diyaloğu gösterilmez. Görev, günlük hedef ve günlük yazısı hatırlatmaları ayrı açılıp kapanır; varsayılan saatleri 09:00, 20:00 ve 21:00'dır. Saatler cihazda saklanır. **Bildirimlerde içeriği gizle** (varsayılan kapalı) açıkken afiş, bildirim merkezi ve kilit ekranında görev metni ve hedef adları gösterilmez.
 - Bugün dahil yedi gün, yerel takvim saatleriyle planlanır. Sabah tek görev özeti gelir: o gün biten açık görevler, tek görevde metni; aynı özette önceki günlerden açık görev sayısı da yer alır (yalnız bunlar varsa da tek sabah özeti, ayrı gecikme bildirimi yok). Tarihsiz, tamamlanan ve iptal edilen görevler bildirilmez.
 - Akşam hedef bildirimi yalnız o gün tamamlanmamış günlük hedefler içindir; haftalık/yıllık hedefler dahil edilmez. Günlük yazısı hatırlatması olay ve günlük yazısı olmayan güne gelir; görev/hedef kaydı tek başına hatırlatmayı kapatmaz.
 - Açılış, ön plana dönüş, indeks yenilemesi (2 saniye birleştirme) ve tercih değişimi planı yeniler; arka plana geçiş bekleyen planlamayı tamamlar, bugünün geçmiş saatleri atlanır. Uygulama kapalıyken planlı içerik yeniden hesaplanmaz; yeni değişiklikler sonraki açılış/yenilemede yansır. Yedi günlük pencere de ancak uygulama çalışırken ileri taşınır.
 - Görev bildiriminden Görevler'in Bugün grubuna (yoksa önceki günlerden açık gruba), hedef bildiriminden Bugün'e, günlük hatırlatmasından hızlı giriş odaklı Bugün'e gidilir; ön planda da banner gösterilir.
-- “Planlananlar” listesinde kimlik, tarih ve başlık; “Şimdi yeniden planla” ile teşhis ve yeniden deneme bulunur. Mac'te Bildirimler ayar sekmesi, iPhone'da Ayarlar içinden açılır.
+- “Planlananlar” listesinde kimlik, tarih ve başlık; “Şimdi yeniden planla” ile teşhis ve yeniden deneme bulunur. Mac'te Bildirimler ayar sekmesi, iPhone'da Ayarlar listesinden açılır.
 
-## Ayarlar — Gizlilik (7)
+### Ayarlar — Takvim ve Konum
 
-Kasa ayarlarında **Uygulama kilidi** anahtarı bulunur. Açılması bir kez Face ID, Touch ID veya cihaz parolasıyla doğrulanır; iptal edilirse anahtar kapalı kalır. **Şu kadar sonra kilitle** seçimi hemen, 1 dk, 5 dk veya 15 dk olabilir; tercihler cihazda saklanır.
+- Takvim izni (etkinlikler yalnız gösterilir; takvime ve günlük dosyalarına yazılmaz) ve sistem ayarları bağlantısı.
+- Konum önerisi anahtarı, konum izni ve sistem ayarları bağlantısı.
+- iOS'ta Konuma girince (bölge izleme) bu bölümün altındadır; macOS'ta gizlidir.
 
-Kilit açıkken uygulama etkinliğini kaybettiğinde içerik opak bir örtüyle gizlenir; açık sayfalar ve taslaklar korunur. iOS'ta süre arka plana geçişten, Mac'te uygulamanın etkinliğini kaybetmesinden başlar. Süre dolmadan dönüşte örtü kalkar; süre dolduysa veya uygulama yeni açıldıysa doğrulama gerekir. İptal/hata durumunda kilit ekranındaki **Tekrar dene** düğmesi kullanılır. Mac menü çubuğu ve klavye kısayoluyla açılan hızlı giriş paneli de aynı kilidi denetler.
+### Ayarlar — Kasa
 
-Kilitliyken (kilit etkin ve doğrulanmamış) Siri hedef adlarını listelemez; Kısayollar ve bildirimdeki İşaretle eylemi yazmaz. Bildirim içeriği gizleme seçeneği Bildirimler ayarındadır; uygulama kilidi kasayı şifrelemez.
+- Kasa yolu (uzun yollar ortadan kırpılır, seçilip kopyalanabilir), Mac'te Finder'da göster, klasör seç / değiştir, içe aktarma (kasa hazırlığı), izlenmeyen dizin uyarısı, indeksleme ilerlemesi.
+- Varlık tipleri listesine bağlantı (yerleşik salt okunur, özel oluşturulabilir/düzenlenebilir/silinebilir).
+
+### Ayarlar — Tanılama
+
+- İndeksi yeniden üret, arama geçmişini temizle.
+- İndeks sayıları (dosya, gün, kişi, konum, hedef, not, olay, görev, varlık, bağlantı, çözülmemiş) ve son güncelleme; sayılar tabular.
+- Atlanan yollar (sembolik bağlantı / yinelenen yol); uzun yollar kırpılır ve kopyalanabilir.
 
 ## Widget'lar (3)
 
@@ -181,7 +205,7 @@ Uygulamaya yazmanın tüm yolları aynı hızlı giriş davranışına çıkar:
 
 ## Ayarlar — Konuma girince (4, iOS)
 
-Konum bölümünde açık düğmeyle Her zaman izni istenir; izin olmadan bölge izlenmez. Konum bağlantısı çözülmüş, koordinat ve açık yarıçap alanı olan boolean hedefler için kapalı / bildir / otomatik işaretle seçilir (varsayılan bildir). Bildirim izni ayrıca Bildirimler ayarından verilir. İzlenen bölgeler hedef, konum ve yarıçapla listelenir; 20 sınırını aşan hedef sayısı gösterilir. Hedef dosya yolu sırasındaki ilk 20 açık hedef izlenir.
+Ayarlar → Takvim ve Konum içinde, Konum bölümünün altında. Açık düğmeyle Her zaman izni istenir; izin olmadan bölge izlenmez. Konum bağlantısı çözülmüş, koordinat ve açık yarıçap alanı olan boolean hedefler için kapalı / bildir / otomatik işaretle seçilir (varsayılan bildir). Bildirim izni ayrıca Bildirimler ayarından verilir. İzlenen bölgeler hedef, konum ve yarıçapla listelenir; 20 sınırını aşan hedef sayısı gösterilir. Hedef dosya yolu sırasındaki ilk 20 açık hedef izlenir.
 
 Giriş bugünün hedef kaydı için günde bir kez işlenir; zaten true olan kayda dokunulmaz. Bildirimde İşaretle / Şimdi değil eylemleri bulunur; İşaretle uygulamayı öne getirmeden dosyaya yazar. Otomatik mod doğrudan işaretleyip kısa bildirim gönderir; uygulama kilitliyken de işaretler. Uygulama kilidi etkinken bildirimde eylem bulunmaz, bildirim yalnız uygulamayı açar. Eski güne ait eylemler, farklı kasa, kapanmış veya değişmiş bölge işlenmez. Yer imi erişimi başarısızsa başka kasaya düşülmez; sonraki girişte yeniden denenir. macOS'ta bu bölüm ve bölge izleme gizlidir.
 
@@ -195,4 +219,4 @@ Yazma işlemleri uygulamayı öne getirmez, kısa onay metni döndürür. Kesin 
 
 İlk açılışta ve Ayarlar’da aynı klasör seçici kullanılır. Kasa yapısı eksikse bulunan klasörler, Markdown dosya sayısı, gün dosyaları, kişi/konum/hedef sayıları, eksik `type` alanları ve atlanan dosyalar raporlanır. Kökteki ve `daily/` altındaki gün dosyaları bilgi olarak listelenir; taşınmaz. Standart klasör adının yalnız harf farkı olan biçimi (`Journal/` vb.) ayrıca bildirilir; kullanıcı Obsidian’da doğru ada çevirir, uygulama taşımaz veya yeniden adlandırmaz. Eksik klasör ve şablonları oluşturma, eksik kasa ayarını yazma ve kişi/konum türlerini ekleme teklifleri ayrı, varsayılan açık onay kutularıdır. Uygula sonrası oluşturulan/değiştirilen dosya sayıları ve atlanan/hatalı yollar gösterilir; Kasayı aç indeksi hazırlar. Atla dosyalara yazmadan indeksi açar. Desteklenmeyen veya okunamayan kasa sürümünde hazırlama kapalıdır, kasa salt okunur açılır.
 
-İlk indeksleme boyunca toplam dosya sayısıyla ilerleme göstergesi gösterilir. Mevcut indeks API’si dosya başına bildirim üretmediğinden gösterge belirsizdir; bitince gerçek indeks sayıları Ayarlar’da görünür.
+İlk indeksleme boyunca toplam dosya sayısıyla ilerleme göstergesi gösterilir. Mevcut indeks API’si dosya başına bildirim üretmediğinden gösterge belirsizdir; bitince gerçek indeks sayıları Ayarlar → Tanılama’da görünür.

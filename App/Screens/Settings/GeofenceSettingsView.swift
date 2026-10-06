@@ -6,15 +6,23 @@
         var body: some View {
             Section("Konuma girince") {
                 Text("Konum hedefleri için Her zaman izni gerekir. Bölgeye girişte bugünün kaydı işaretlenir.")
-                    .font(.caption).foregroundStyle(.secondary)
+                    .font(.ink.meta)
+                    .foregroundStyle(Color.ink.secondaryText)
                 if geofences.location.authorization == .always {
                     Text("Her zaman konum izni verildi.")
+                        .font(.ink.meta)
+                        .foregroundStyle(Color.ink.text)
                 } else {
                     Button("Her zaman konum izni ver") { geofences.requestAlwaysAccess() }
                 }
                 Text("Bildir seçeneği için Bildirimler ayarından bildirim izni ver.")
-                    .font(.caption).foregroundStyle(.secondary)
-                if geofences.targets.isEmpty { Text("Konum bağlantısı olan uygun hedef yok.") }
+                    .font(.ink.meta)
+                    .foregroundStyle(Color.ink.secondaryText)
+                if geofences.targets.isEmpty {
+                    Text("Konum bağlantısı olan uygun hedef yok.")
+                        .font(.ink.meta)
+                        .foregroundStyle(Color.ink.secondaryText)
+                }
                 ForEach(geofences.targets) { target in
                     Picker(
                         selection: Binding(
@@ -27,22 +35,39 @@
                         Text(verbatim: target.goal.name)
                     }
                 }
-                if let error = geofences.errorText { Text(verbatim: error).foregroundStyle(.red) }
+                if let error = geofences.errorText {
+                    Text(verbatim: error)
+                        .font(.ink.meta)
+                        .foregroundStyle(Color.ink.danger)
+                }
             }
             Section("İzlenen bölgeler") {
-                if geofences.regions.isEmpty { Text("İzlenen bölge yok.") }
+                if geofences.regions.isEmpty {
+                    Text("İzlenen bölge yok.")
+                        .font(.ink.meta)
+                        .foregroundStyle(Color.ink.secondaryText)
+                }
                 ForEach(geofences.regions) { target in
                     VStack(alignment: .leading) {
                         Text(verbatim: target.goal.name)
+                            .font(.ink.content)
+                            .foregroundStyle(Color.ink.text)
                         Text(
                             "\(target.place.entity.name) · \(target.region.radius.formatted(.number.precision(.fractionLength(0)))) m"
-                        ).font(.caption)
-                        if let qualifier = target.place.entity.qualifier { Text(verbatim: qualifier).font(.caption) }
+                        )
+                        .font(.ink.meta)
+                        .foregroundStyle(Color.ink.secondaryText)
+                        if let qualifier = target.place.entity.qualifier {
+                            Text(verbatim: qualifier)
+                                .font(.ink.meta)
+                                .foregroundStyle(Color.ink.secondaryText)
+                        }
                     }
                 }
                 if geofences.overflowCount > 0 {
                     Text("20 bölge sınırı: \(geofences.overflowCount) hedef izlenmiyor.")
-                        .foregroundStyle(.secondary)
+                        .font(.ink.meta)
+                        .foregroundStyle(Color.ink.secondaryText)
                 }
             }
         }

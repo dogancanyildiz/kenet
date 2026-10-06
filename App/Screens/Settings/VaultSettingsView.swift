@@ -8,24 +8,29 @@ import UniformTypeIdentifiers
 /// Vault location, folder change, import, and entity types.
 struct VaultSettingsView: View {
     @Bindable var store: IndexStore
+    @Environment(\.vaultPathDisplayOverride) private var pathDisplayOverride
     @State private var choosingFolder = false
 
     var body: some View {
         Form {
             Section("Kasa") {
-                if let url = store.vaultURL {
-                    Text(verbatim: url.path)
+                if let path = VaultPathDisplay.text(
+                    for: store.vaultURL, override: pathDisplayOverride)
+                {
+                    Text(verbatim: path)
                         .font(.ink.meta)
                         .foregroundStyle(Color.ink.text)
                         .lineLimit(1)
                         .truncationMode(.middle)
                         .textSelection(.enabled)
-                        .accessibilityLabel(Text(verbatim: url.path))
+                        .accessibilityLabel(Text(verbatim: path))
                     #if os(macOS)
-                        Button("Finder'da göster") {
-                            NSWorkspace.shared.activateFileViewerSelecting([url])
+                        if let url = store.vaultURL {
+                            Button("Finder'da göster") {
+                                NSWorkspace.shared.activateFileViewerSelecting([url])
+                            }
+                            .buttonStyle(.borderless)
                         }
-                        .buttonStyle(.borderless)
                     #endif
                 }
                 HStack {

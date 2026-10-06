@@ -69,10 +69,8 @@
             }
         }
 
-        /// Sample vault with a host-stable path (temp UUID paths break PNG refs).
-        var needsStableVault: Bool { screen == .vault }
-        /// Settings hub only needs any opened vault; temp path is fine (path not on screen).
-        var needsTempVault: Bool { screen == .settings }
+        /// Opened sample vault (path on screen is overridden to a fictional constant).
+        var needsOpenVault: Bool { screen == .settings || screen == .vault }
 
         /// Light/dark only — smaller bitmaps; run before AX batches to limit host pressure.
         static var lightDarkCases: [ShellSettingsSnapshotCase] {
@@ -151,6 +149,9 @@
                 .environment(\.timeZone, snapshotTimeZone)
                 .environment(\.clockNow, { snapshotNow })
                 .environment(\.openSearch, {})
+                .environment(
+                    \.vaultPathDisplayOverride,
+                    screen == .vault ? VaultPathDisplay.snapshotExample : nil)
         }
 
         static func assert(
@@ -158,72 +159,90 @@
             lock: AppLockService,
             file: StaticString = #filePath, line: UInt = #line
         ) async {
-            let view = hostedView(
-                screen: snapshotCase.screen, store: store, defaults: defaults, lock: lock
-            )
-            .environment(\.colorScheme, snapshotCase.colorScheme.colorScheme)
-            .environment(\.dynamicTypeSize, snapshotCase.dynamicType.size)
-            .environment(\.clockNow, { snapshotNow })
-            .transaction { $0.animation = nil }
-            .frame(width: snapshotCanvasSize.width, height: snapshotCanvasSize.height)
+            await SnapshotHostGate.exclusive {
+                let view = hostedView(
+                    screen: snapshotCase.screen, store: store, defaults: defaults, lock: lock
+                )
+                .environment(\.colorScheme, snapshotCase.colorScheme.colorScheme)
+                .environment(\.dynamicTypeSize, snapshotCase.dynamicType.size)
+                .environment(\.clockNow, { snapshotNow })
+                .transaction { $0.animation = nil }
+                .frame(width: snapshotCanvasSize.width, height: snapshotCanvasSize.height)
 
-            let traits = UITraitCollection { mutable in
-                mutable.userInterfaceStyle = snapshotCase.colorScheme.userInterfaceStyle
-                mutable.preferredContentSizeCategory = snapshotCase.dynamicType.contentSize
-                mutable.accessibilityContrast = snapshotCase.increaseContrast ? .high : .normal
-                mutable.displayScale = 2
-            }
+                let traits = UITraitCollection { mutable in
+                    mutable.userInterfaceStyle = snapshotCase.colorScheme.userInterfaceStyle
+                    mutable.preferredContentSizeCategory = snapshotCase.dynamicType.contentSize
+                    mutable.accessibilityContrast = snapshotCase.increaseContrast ? .high : .normal
+                    mutable.displayScale = 2
+                }
 
-            let previousAnimations = UIView.areAnimationsEnabled
-            UIView.setAnimationsEnabled(false)
-            defer { UIView.setAnimationsEnabled(previousAnimations) }
+                let previousAnimations = UIView.areAnimationsEnabled
+                UIView.setAnimationsEnabled(false)
+                defer { UIView.setAnimationsEnabled(previousAnimations) }
 
-            let host = UIHostingController(rootView: view)
-            host.overrideUserInterfaceStyle = snapshotCase.colorScheme.userInterfaceStyle
-            host.view.frame = CGRect(origin: .zero, size: snapshotCanvasSize)
+                let host = UIHostingController(rootView: view)
+                host.overrideUserInterfaceStyle = snapshotCase.colorScheme.userInterfaceStyle
+                host.traitOverrides.preferredContentSizeCategory =
+                    snapshotCase.dynamicType.contentSize
+                host.traitOverrides.accessibilityContrast =
+                    snapshotCase.increaseContrast ? .high : .normal
+                host.view.frame = CGRect(origin: .zero, size: snapshotCanvasSize)
 
-            let scene =
-                UIApplication.shared.connectedScenes
-                .compactMap { $0 as? UIWindowScene }
-                .first { $0.activationState == .foregroundActive }
-                ?? UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
-            guard let scene else {
-                Issue.record("Snapshot host needs a UIWindowScene (run under the Journal test host).")
-                return
-            }
-            let window = UIWindow(windowScene: scene)
-            window.frame = CGRect(origin: .zero, size: snapshotCanvasSize)
-            window.overrideUserInterfaceStyle = snapshotCase.colorScheme.userInterfaceStyle
-            window.rootViewController = host
-            window.makeKeyAndVisible()
-            host.view.setNeedsLayout()
-            host.view.layoutIfNeeded()
-            for _ in 0..<20 {
-                await Task.yield()
-                try? await Task.sleep(for: .milliseconds(40))
+                let scene =
+                    UIApplication.shared.connectedScenes
+                    .compactMap { $0 as? UIWindowScene }
+                    .first { $0.activationState == .foregroundActive }
+                    ?? UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
+                    .first
+                guard let scene else {
+                    Issue.record(
+                        "Snapshot host needs a UIWindowScene (run under the Journal test host).")
+                    return
+                }
+                let window = UIWindow(windowScene: scene)
+                window.frame = CGRect(origin: .zero, size: snapshotCanvasSize)
+                window.overrideUserInterfaceStyle = snapshotCase.colorScheme.userInterfaceStyle
+                window.rootViewController = host
+                window.makeKeyAndVisible()
+                defer {
+                    window.isHidden = true
+                    window.rootViewController = nil
+                    window.windowScene = nil
+                }
                 host.view.setNeedsLayout()
                 host.view.layoutIfNeeded()
-            }
+                for _ in 0..<40 {
+                    await Task.yield()
+                    host.view.setNeedsLayout()
+                    host.view.layoutIfNeeded()
+                    if !store.isProcessing, host.view.bounds.width > 0 { break }
+                    try? await Task.sleep(for: .milliseconds(25))
+                }
+                for _ in 0..<4 {
+                    await Task.yield()
+                    try? await Task.sleep(for: .milliseconds(25))
+                    host.view.setNeedsLayout()
+                    host.view.layoutIfNeeded()
+                }
 
-            let record = ProcessInfo.processInfo.environment["SNAPSHOT_TESTING_RECORD"]
-                .flatMap(SnapshotTestingConfiguration.Record.init(rawValue:))
-            assertSnapshot(
-                of: host,
-                as: .image(
-                    on: ViewImageConfig.iPhone13,
-                    precision: snapshotPrecision,
-                    perceptualPrecision: snapshotPerceptualPrecision,
-                    size: snapshotCanvasSize,
-                    traits: traits
-                ),
-                named: snapshotCase.rawValue,
-                record: record,
-                file: file,
-                testName: "shellSettings",
-                line: line
-            )
-            window.isHidden = true
-            window.rootViewController = nil
+                let record = ProcessInfo.processInfo.environment["SNAPSHOT_TESTING_RECORD"]
+                    .flatMap(SnapshotTestingConfiguration.Record.init(rawValue:))
+                assertSnapshot(
+                    of: host,
+                    as: .image(
+                        on: ViewImageConfig.iPhone13,
+                        precision: snapshotPrecision,
+                        perceptualPrecision: snapshotPerceptualPrecision,
+                        size: snapshotCanvasSize,
+                        traits: traits
+                    ),
+                    named: snapshotCase.rawValue,
+                    record: record,
+                    file: file,
+                    testName: "shellSettings",
+                    line: line
+                )
+            }
         }
     }
 
@@ -235,38 +254,6 @@
         func events(from start: Date, to end: Date) async throws -> [CalendarEvent] { [] }
     }
 
-    /// Documents folder whose `Vault/` path is stable across simulator app containers.
-    /// Indexes live in a per-run temp directory so cleaning never unlinks an open SQLite file.
-    @MainActor
-    private enum StableSnapshotVault {
-        static func prepare() throws -> (
-            defaults: TestDefaults, store: IndexStore, indexes: URL
-        ) {
-            let snapshotsDir = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
-            let documents = snapshotsDir.appendingPathComponent(".stable-host", isDirectory: true)
-            let vault = documents.appendingPathComponent("Vault", isDirectory: true)
-            // Snapshots → JournalTests → Tests → repo root
-            let fixtures =
-                snapshotsDir
-                .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
-                .appendingPathComponent("Fixtures/vaults/sample", isDirectory: true)
-            let manager = FileManager.default
-            if !manager.fileExists(atPath: vault.path) {
-                try manager.createDirectory(at: documents, withIntermediateDirectories: true)
-                try manager.copyItem(at: fixtures, to: vault)
-            }
-            let defaults = try TestDefaults()
-            let indexes = manager.temporaryDirectory
-                .appendingPathComponent("JournalShellSnapIndexes-\(UUID().uuidString)", isDirectory: true)
-            try manager.createDirectory(at: indexes, withIntermediateDirectories: true)
-            let store = IndexStore(
-                location: VaultLocation(
-                    defaults: defaults.defaults, documentsURL: documents, bookmarks: pathBookmarks()),
-                supportURL: indexes)
-            return (defaults, store, indexes)
-        }
-    }
-
     @MainActor
     private enum ShellSettingsSnapshotRunner {
         static func run(_ snapshotCase: ShellSettingsSnapshotCase) async throws {
@@ -275,21 +262,9 @@
             lockFixture.context.result = false
             let lock = lockFixture.lock()
 
-            if snapshotCase.needsStableVault {
-                let prepared = try StableSnapshotVault.prepare()
-                defer {
-                    prepared.defaults.clean()
-                    try? FileManager.default.removeItem(at: prepared.indexes)
-                }
-                await prepared.store.start()
-                await ShellSettingsSnapshotHost.assert(
-                    snapshotCase, store: prepared.store, defaults: prepared.defaults.defaults, lock: lock)
-                return
-            }
-
-            let context = try TaskTestContext(sample: snapshotCase.needsTempVault)
+            let context = try TaskTestContext(sample: snapshotCase.needsOpenVault)
             defer { context.clean() }
-            if snapshotCase.needsTempVault { await context.start() }
+            if snapshotCase.needsOpenVault { await context.start() }
             await ShellSettingsSnapshotHost.assert(
                 snapshotCase, store: context.store, defaults: context.defaults.defaults, lock: lock)
         }

@@ -77,5 +77,3 @@ vault/
 *.tmp
 *.swp
 
-# Snapshot test host vault (stable path copy; not fixtures)
-Tests/JournalTests/Snapshots/.stable-host/

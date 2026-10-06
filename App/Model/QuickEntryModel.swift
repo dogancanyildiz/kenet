@@ -37,12 +37,13 @@ final class QuickEntryModel {
     var manualDueDate: CalendarDate?
     var manualDateIsAssumed = false
     let today: () -> CalendarDate
+    let now: () -> Date
 
     var locationService: LocationService?
     var dismissedLocation = false
     let store: IndexStore
     let day: CalendarDate?
-    var selectedTime = Date()
+    var selectedTime: Date
     var text = "" {
         didSet { reconcile(oldText: oldValue) }
     }
@@ -58,17 +59,23 @@ final class QuickEntryModel {
     var pins: [Pin] = []
     var skipped: Set<MentionPosition> = []
 
-    init(store: IndexStore, day: CalendarDate? = nil, today: @escaping () -> CalendarDate = { LocalDay.today() }) {
+    init(
+        store: IndexStore, day: CalendarDate? = nil,
+        today: @escaping () -> CalendarDate = { LocalDay.today() },
+        now: @escaping () -> Date = { Date() }
+    ) {
         self.today = today
+        self.now = now
         self.store = store
         self.day = day
-        includesTime = day == nil || day == LocalDay.today()
+        self.selectedTime = now()
+        includesTime = day == nil || day == today()
     }
 
-    var isHistorical: Bool { day.map { $0 != LocalDay.today() } ?? false }
+    var isHistorical: Bool { day.map { $0 != today() } ?? false }
     var entryTime: LineClock? {
         guard mode == .event, includesTime else { return nil }
-        return isHistorical ? LocalDay.clock(at: selectedTime) : LocalDay.clock()
+        return isHistorical ? LocalDay.clock(at: selectedTime) : LocalDay.clock(at: now())
     }
 
     var canSubmit: Bool {

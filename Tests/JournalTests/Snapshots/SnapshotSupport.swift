@@ -7,7 +7,7 @@
 
     @testable import Journal
 
-    /// Fixed wall clock for screens that group by "today". Sample vault days end 2026-09-27.
+    /// Fixed calendar day for screens that group by "today". Sample vault days end 2026-09-27.
     let snapshotDay = CalendarDate("2026-09-20")!
 
     /// Phone-sized canvas shared by every case so references stay comparable across machines.
@@ -17,10 +17,18 @@
     let snapshotLocale = Locale(identifier: "tr_TR")
     let snapshotTimeZone = TimeZone(secondsFromGMT: 3 * 3600)!
 
-    /// Cross-machine render noise (antialiasing, font hinting). Exact pixel `precision` is 0.99
-    /// (allows ~1% subpixel churn). Perceptual floor 0.98 rejects intentional layout edits: a 1 pt
-    /// canvas height change fails all eight cases; identical consecutive runs score above both.
-    let snapshotPerceptualPrecision: Float = 0.98
+    /// Frozen wall clock (2026-09-20 09:41 in snapshotTimeZone). Injected via `\.clockNow`.
+    let snapshotNow: Date = {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = snapshotTimeZone
+        return calendar.date(
+            from: DateComponents(year: 2026, month: 9, day: 20, hour: 9, minute: 41))!
+    }()
+
+    /// Cross-machine render noise (antialiasing, font hinting). Tuned after sensitivity probes
+    /// (color / spacing / glyph); see report for the measurement table.
+    let snapshotPrecision: Float = 0.999
+    let snapshotPerceptualPrecision: Float = 0.995
 
     enum SnapshotColorScheme: String, CaseIterable, Sendable {
         case light, dark
@@ -94,11 +102,12 @@
             try TaskTestContext(sample: true)
         }
 
-        static func hostedView(screen: SnapshotScreen, store: IndexStore, defaults: UserDefaults) -> some View {
-            let fixedNow = LocalDay.instant(for: snapshotDay, timeZone: snapshotTimeZone)
+        static func hostedView(screen: SnapshotScreen, store: IndexStore, defaults: UserDefaults)
+            -> some View
+        {
             let notifications = NotificationService(
                 center: FakeNotificationCenter(), defaults: defaults,
-                now: { fixedNow },
+                now: { snapshotNow },
                 timeZone: { snapshotTimeZone })
             let calendar = CalendarService(source: SnapshotCalendarSource())
             let location = LocationService(source: FakeLocationSource(), defaults: defaults)
@@ -119,6 +128,7 @@
                 .environment(\.locale, snapshotLocale)
                 .environment(\.calendar, makeSnapshotCalendar())
                 .environment(\.timeZone, snapshotTimeZone)
+                .environment(\.clockNow, { snapshotNow })
                 .environment(\.openSearch, {})
         }
 
@@ -131,6 +141,7 @@
                 .environment(\.colorScheme, snapshotCase.colorScheme.colorScheme)
                 .environment(\.dynamicTypeSize, snapshotCase.dynamicType.size)
                 .environment(\.calendar, makeSnapshotCalendar())
+                .environment(\.clockNow, { snapshotNow })
                 .transaction { $0.animation = nil }
                 .frame(width: snapshotCanvasSize.width, height: snapshotCanvasSize.height)
 
@@ -190,10 +201,14 @@
             let record = ProcessInfo.processInfo.environment["SNAPSHOT_TESTING_RECORD"]
                 .flatMap(SnapshotTestingConfiguration.Record.init(rawValue:))
 
+            // Non-zero safeArea keeps SnapshotTesting from parking the view at (10000,10000),
+            // which otherwise skips realistic inset layout for `safeAreaInset` chrome.
+            let config = ViewImageConfig.iPhone13
             assertSnapshot(
                 of: host,
                 as: .image(
-                    precision: 0.99,
+                    on: config,
+                    precision: snapshotPrecision,
                     perceptualPrecision: snapshotPerceptualPrecision,
                     size: snapshotCanvasSize,
                     traits: traits

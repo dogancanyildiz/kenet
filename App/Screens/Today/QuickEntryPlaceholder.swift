@@ -5,6 +5,7 @@ import VaultStore
 
 struct QuickEntryBar: View {
     @Environment(\.locale) private var locale
+    @Environment(\.clockNow) private var clockNow
     @Environment(LocationService.self) private var location
     @Environment(IntentNavigation.self) private var navigation: IntentNavigation?
     private let acceptsPeopleMentions: Bool
@@ -231,8 +232,10 @@ struct QuickEntryBar: View {
 
     @ViewBuilder private var timeButton: some View {
         if model.mode == .event {
-            TimelineView(.periodic(from: .now, by: 60)) { context in
-                timeControl(now: context.date)
+            // TimelineView still ticks so production refreshes each minute; the displayed
+            // instant comes from `clockNow` so snapshot tests can freeze the wall clock.
+            TimelineView(.periodic(from: .now, by: 60)) { _ in
+                timeControl(now: clockNow())
             }
         }
     }

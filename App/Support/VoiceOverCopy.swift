@@ -16,6 +16,27 @@ enum VoiceOverCopy {
         }
     }
 
+    /// Task box cue for the Today presentation; the catalog language follows `locale`
+    /// (unlike the two lookups above, which follow the process language).
+    static func taskBoxValue(state: TaskBoxState, priority: TaskPriority?, locale: Locale) -> String {
+        let bundle = PresentationLocalization.bundle(locale)
+        let status: String =
+            switch state {
+            case .inProgress: String(localized: "Devam", bundle: bundle, locale: locale)
+            case .done: String(localized: "Tamamlandı", bundle: bundle, locale: locale)
+            case .open: String(localized: "Açık", bundle: bundle, locale: locale)
+            }
+        guard let priority else { return status }
+        let level: String =
+            switch priority {
+            case .high: String(localized: "Yüksek öncelik", bundle: bundle, locale: locale)
+            case .medium: String(localized: "Orta öncelik", bundle: bundle, locale: locale)
+            case .low: String(localized: "Düşük öncelik", bundle: bundle, locale: locale)
+            case .other(let token): String(localized: "Öncelik \(token)", bundle: bundle, locale: locale)
+            }
+        return "\(status), \(level)"
+    }
+
     static func dayRowLabel(
         date: CalendarDate, eventCount: Int, preview: String?, locale: Locale = .current
     ) -> String {

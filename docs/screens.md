@@ -18,17 +18,20 @@ Alt sekmeler: **Bugün, Günlük, Görevler, Kişiler ve Konumlar, Hedefler.** A
 
 Uygulama bu ekranda açılır. Yukarıdan aşağıya:
 
-1. **Hedefler şeridi (3):** Günün hedefleri, tek dokunuşla işaretlenir. Sayısal hedefte dokununca miktar girilir. Yapılmamışlar belirgin, yapılmışlar soluk.
-2. **Görevler (2):** Geciken görevler, bugünün görevleri ve bugün oluşturulan tarihsiz görevler. Dokununca tamamlanır, basılı tutunca düzenlenir.
-3. **Takvim (2):** Cihaz takvimindeki bugünkü etkinlikler, salt okunur.
-4. **Olaylar (1):** Bugün yazılan olaylar, dosyadaki sırayla (uygulama saatli olayı saat sırasındaki yerine yazar). Kişi ve konum adları dokunulabilir bağlantıdır.
-5. **Günlük yazısı (1):** Varsa serbest yazının ilk satırları; dokununca tam ekran yazma alanı açılır.
+1. **Manşet ve künye (9):** Günün tarihi sayfa adıdır. Altında tek satırlık özet durur: olayla başlar, kalanla biter ("3 olay · 4 görev ve 2 hedef kaldı"); sıfır olan parça yazılmaz, hiçbir şey yoksa satır yoktur.
+2. **Hedefler (3):** Günün hedefleri, tek dokunuşla işaretlenir. Sayısal hedefte dokununca miktar girilir. Yapılmamışlar belirgin, yapılmışlar soluk.
+3. **Görevler (2):** Devreden görevler, bugünün görevleri ve bugün oluşturulan tarihsiz görevler. Dokununca tamamlanır, basılı tutunca düzenlenir. Devreden görevin altında geldiği tarih yazar ("30 Eyl'den"); en çok üçü gösterilir, kalanı "N devreden daha" satırında toplanır ve dokununca açılır. Tamamlanan görev listenin sonuna iner; birden çok tamamlanan tek satıra katlanır ("N görev tamamlandı") ve dokununca açılır.
+4. **Takvim (2):** Cihaz takvimindeki bugünkü etkinlikler, salt okunur.
+5. **Olaylar (1):** Bugün yazılan olaylar, dosyadaki sırayla (uygulama saatli olayı saat sırasındaki yerine yazar). Kişi ve konum adları dokunulabilir bağlantıdır.
+6. **Günlük yazısı (1):** Varsa serbest yazının ilk satırları; dokununca tam ekran yazma alanı açılır.
+
+Bölüm başlıklarının sağında sayaç durur: hedeflerde yapılan ve toplam, görevlerde kalan, olaylarda sayı. Manşet bloğu, varsayılan yazı boyutunda ilk olay kaydırmadan görünecek kadar dardır. Geçmiş bir günün sayfası aynı düzeni kullanır.
 
 En altta sabit **hızlı giriş kutusu**.
 
 ### Hızlı giriş (1, 2)
 
-- Tek metin kutusu. Yanında **olay / görev** geçiş düğmesi; varsayılan olay.
+- Tek metin kutusu. Başında kip iki sözcükle durur: **Olay** ve **Görev**; seçili olan vurguludur, varsayılan olay.
 - Görev modunda `#project/` yazınca mevcut proje adları önerilir; seçim etiketi tamamlar, yeni ad serbesttir.
 - `@` yazınca kişi ve konum önerileri açılır. `@` kullanılmasa da bilinen adlar yazarken tanınır ve vurgulanır.
 - Birden fazla aday varsa en olası olan önerilir; uygulama emin değilse seçim ister.
@@ -133,7 +136,7 @@ Telefonda okuma ve basit düzenleme. Aramadan ve bağlantılardan ulaşılır; a
 
 ## Ayarlar — Bildirimler (4)
 
-- İzin yalnız kullanıcının izin düğmesiyle istenir; açılışta sistem diyaloğu gösterilmez. Görev, günlük hedef ve günlük yazısı hatırlatmaları ayrı açılıp kapanır; varsayılan saatleri 09:00, 20:00 ve 21:00'dır. Saatler cihazda saklanır. **Bildirimlerde içeriği gizle** (varsayılan kapalı) açıkken kilit ekranında görev metni ve hedef adları gösterilmez.
+- İzin yalnız kullanıcının izin düğmesiyle istenir; açılışta sistem diyaloğu gösterilmez. Görev, günlük hedef ve günlük yazısı hatırlatmaları ayrı açılıp kapanır; varsayılan saatleri 09:00, 20:00 ve 21:00'dır. Saatler cihazda saklanır. **Bildirimlerde içeriği gizle** (varsayılan kapalı) açıkken afiş, bildirim merkezi ve kilit ekranında görev metni ve hedef adları gösterilmez.
 - Bugün dahil yedi gün, yerel takvim saatleriyle planlanır. Sabah tek görev özeti gelir: o gün biten açık görevler, tek görevde metni; aynı özette önceki günlerden açık görev sayısı da yer alır (yalnız bunlar varsa da tek sabah özeti, ayrı gecikme bildirimi yok). Tarihsiz, tamamlanan ve iptal edilen görevler bildirilmez.
 - Akşam hedef bildirimi yalnız o gün tamamlanmamış günlük hedefler içindir; haftalık/yıllık hedefler dahil edilmez. Günlük yazısı hatırlatması olay ve günlük yazısı olmayan güne gelir; görev/hedef kaydı tek başına hatırlatmayı kapatmaz.
 - Açılış, ön plana dönüş, indeks yenilemesi (2 saniye birleştirme) ve tercih değişimi planı yeniler; arka plana geçiş bekleyen planlamayı tamamlar, bugünün geçmiş saatleri atlanır. Uygulama kapalıyken planlı içerik yeniden hesaplanmaz; yeni değişiklikler sonraki açılış/yenilemede yansır. Yedi günlük pencere de ancak uygulama çalışırken ileri taşınır.
@@ -180,7 +183,7 @@ Uygulamaya yazmanın tüm yolları aynı hızlı giriş davranışına çıkar:
 
 Konum bölümünde açık düğmeyle Her zaman izni istenir; izin olmadan bölge izlenmez. Konum bağlantısı çözülmüş, koordinat ve açık yarıçap alanı olan boolean hedefler için kapalı / bildir / otomatik işaretle seçilir (varsayılan bildir). Bildirim izni ayrıca Bildirimler ayarından verilir. İzlenen bölgeler hedef, konum ve yarıçapla listelenir; 20 sınırını aşan hedef sayısı gösterilir. Hedef dosya yolu sırasındaki ilk 20 açık hedef izlenir.
 
-Giriş bugünün hedef kaydı için günde bir kez işlenir; zaten true olan kayda dokunulmaz. Bildirimde İşaretle / Şimdi değil eylemleri bulunur; İşaretle uygulamayı öne getirmeden dosyaya yazar. Otomatik mod doğrudan işaretleyip kısa bildirim gönderir. Eski güne ait eylemler, farklı kasa, kapanmış veya değişmiş bölge işlenmez. Yer imi erişimi başarısızsa başka kasaya düşülmez; sonraki girişte yeniden denenir. macOS'ta bu bölüm ve bölge izleme gizlidir.
+Giriş bugünün hedef kaydı için günde bir kez işlenir; zaten true olan kayda dokunulmaz. Bildirimde İşaretle / Şimdi değil eylemleri bulunur; İşaretle uygulamayı öne getirmeden dosyaya yazar. Otomatik mod doğrudan işaretleyip kısa bildirim gönderir; uygulama kilitliyken de işaretler. Uygulama kilidi etkinken bildirimde eylem bulunmaz, bildirim yalnız uygulamayı açar. Eski güne ait eylemler, farklı kasa, kapanmış veya değişmiş bölge işlenmez. Yer imi erişimi başarısızsa başka kasaya düşülmez; sonraki girişte yeniden denenir. macOS'ta bu bölüm ve bölge izleme gizlidir.
 
 ## Kısayollar ve Siri (4)
 

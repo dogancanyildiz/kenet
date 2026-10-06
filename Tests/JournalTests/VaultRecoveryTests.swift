@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+import VaultStore
 
 @testable import Journal
 
@@ -49,13 +50,17 @@ struct VaultRecoveryTests {
         let location = VaultLocation(
             defaults: suite.defaults, documentsURL: temp.appendingPathComponent("documents"), bookmarks: bookmarks)
         let result = try location.resolve()
-        #expect(result.url == temp)
-        #expect(result.notice == nil)
+        guard case .available(let url, let notice) = result else {
+            Issue.record("Expected available vault")
+            return
+        }
+        #expect(url == temp)
+        #expect(notice == nil)
         #expect(created == 1)
         #expect(suite.defaults.data(forKey: "vaultBookmark") == Data("renewed".utf8))
     }
 
-    @Test func unavailableFolderPreservesBookmarkAndRetries() throws {
+    @Test func unavailableFolderIsInaccessibleWithoutCreatingLocalVault() throws {
         let temp = try testDirectory()
         defer { try? FileManager.default.removeItem(at: temp) }
         let selected = temp.appendingPathComponent("selected")
@@ -66,12 +71,15 @@ struct VaultRecoveryTests {
         _ = try location.select(selected)
         let saved = suite.defaults.data(forKey: "vaultBookmark")
         try FileManager.default.removeItem(at: selected)
-        let result = try location.resolve()
-        #expect(result.url == temp.appendingPathComponent("Vault", isDirectory: true))
-        #expect(result.notice != nil)
+        #expect(try location.resolve() == .inaccessible)
         #expect(suite.defaults.data(forKey: "vaultBookmark") == saved)
+        #expect(!FileManager.default.fileExists(atPath: temp.appendingPathComponent("Vault").path))
         try FileManager.default.createDirectory(at: selected, withIntermediateDirectories: true)
-        #expect(try location.resolve().url.path == selected.path)
+        guard case .available(let url, _) = try location.resolve() else {
+            Issue.record("Expected available vault after folder returns")
+            return
+        }
+        #expect(url.path == selected.path)
     }
 
     @Test func validSerializedBookmarkSurvivesResolverFailure() throws {
@@ -87,8 +95,9 @@ struct VaultRecoveryTests {
         bookmarks.resolve = { _ in throw CocoaError(.fileReadNoPermission) }
         suite.defaults.set(data, forKey: "vaultBookmark")
         let location = VaultLocation(defaults: suite.defaults, documentsURL: temp, bookmarks: bookmarks)
-        #expect(try location.resolve().notice != nil)
+        #expect(try location.resolve() == .inaccessible)
         #expect(suite.defaults.data(forKey: "vaultBookmark") == data)
+        #expect(!FileManager.default.fileExists(atPath: temp.appendingPathComponent("Vault").path))
     }
 
     @Test func temporaryResolverAndRenewalFailuresPreserveChoice() throws {
@@ -101,15 +110,264 @@ struct VaultRecoveryTests {
         var bookmarks = pathBookmarks()
         bookmarks.resolve = { _ in throw CocoaError(.fileReadNoPermission) }
         let failed = VaultLocation(defaults: suite.defaults, documentsURL: temp, bookmarks: bookmarks)
-        #expect(try failed.resolve().notice != nil)
+        #expect(try failed.resolve() == .inaccessible)
         #expect(suite.defaults.data(forKey: "vaultBookmark") == saved)
         bookmarks = pathBookmarks(stale: true)
         bookmarks.create = { _ in throw CocoaError(.fileWriteNoPermission) }
         let stale = VaultLocation(defaults: suite.defaults, documentsURL: temp, bookmarks: bookmarks)
         let resolved = try stale.resolve()
-        #expect(resolved.url == temp)
-        #expect(resolved.notice != nil)
+        guard case .available(let url, let notice) = resolved else {
+            Issue.record("Expected available vault when folder exists")
+            return
+        }
+        #expect(url == temp)
+        #expect(notice != nil)
         #expect(suite.defaults.data(forKey: "vaultBookmark") == saved)
+    }
+
+    @Test func legacyDocumentsVaultOpensWithoutBookmark() throws {
+        let temp = try testDirectory()
+        defer { try? FileManager.default.removeItem(at: temp) }
+        let suite = try TestDefaults()
+        defer { suite.clean() }
+        let vault = temp.appendingPathComponent("Vault", isDirectory: true)
+        try FileManager.default.createDirectory(at: vault, withIntermediateDirectories: true)
+        let location = VaultLocation(defaults: suite.defaults, documentsURL: temp, bookmarks: pathBookmarks())
+        guard case .available(let url, let notice) = try location.resolve() else {
+            Issue.record("Expected legacy Documents/Vault to open")
+            return
+        }
+        #expect(url.path == vault.path)
+        #expect(notice == nil)
+    }
+}
+
+@MainActor
+struct VaultInaccessibleStoreTests {
+    @Test func startMarksInaccessibleWithoutOpeningWriter() async throws {
+        let temp = try testDirectory()
+        defer { try? FileManager.default.removeItem(at: temp) }
+        let selected = temp.appendingPathComponent("selected")
+        try FileManager.default.createDirectory(at: selected, withIntermediateDirectories: true)
+        let suite = try TestDefaults()
+        defer { suite.clean() }
+        let location = VaultLocation(defaults: suite.defaults, documentsURL: temp, bookmarks: pathBookmarks())
+        _ = try location.select(selected)
+        try FileManager.default.removeItem(at: selected)
+        let store = IndexStore(location: location, supportURL: temp.appendingPathComponent("indexes"))
+        await store.start()
+        #expect(store.isVaultInaccessible)
+        #expect(store.vaultURL == nil)
+        #expect(!store.canAddEvent)
+        #expect(!FileManager.default.fileExists(atPath: temp.appendingPathComponent("Vault").path))
+        await #expect(throws: VaultStoreError.staleTarget) {
+            try await store.performEdit(path: "notes/x.md") { _ in }
+        }
+    }
+
+    @Test func retryOpensVaultWhenBookmarkBecomesAvailable() async throws {
+        let temp = try testDirectory()
+        defer { try? FileManager.default.removeItem(at: temp) }
+        let selected = temp.appendingPathComponent("selected")
+        try FileManager.default.createDirectory(at: selected, withIntermediateDirectories: true)
+        let suite = try TestDefaults()
+        defer { suite.clean() }
+        let location = VaultLocation(defaults: suite.defaults, documentsURL: temp, bookmarks: pathBookmarks())
+        _ = try location.select(selected)
+        try FileManager.default.removeItem(at: selected)
+        let store = IndexStore(location: location, supportURL: temp.appendingPathComponent("indexes"))
+        await store.start()
+        #expect(store.isVaultInaccessible)
+        try FileManager.default.createDirectory(at: selected, withIntermediateDirectories: true)
+        await store.retryVaultAccess()
+        #expect(!store.isVaultInaccessible)
+        #expect(store.vaultURL?.path == selected.path)
+        #expect(store.canAddEvent)
+    }
+
+    @Test func selectClearsInaccessibleState() async throws {
+        let temp = try testDirectory()
+        defer { try? FileManager.default.removeItem(at: temp) }
+        let selected = temp.appendingPathComponent("selected")
+        try FileManager.default.createDirectory(at: selected, withIntermediateDirectories: true)
+        let suite = try TestDefaults()
+        defer { suite.clean() }
+        let location = VaultLocation(defaults: suite.defaults, documentsURL: temp, bookmarks: pathBookmarks())
+        _ = try location.select(selected)
+        try FileManager.default.removeItem(at: selected)
+        let store = IndexStore(location: location, supportURL: temp.appendingPathComponent("indexes"))
+        await store.start()
+        #expect(store.isVaultInaccessible)
+        let next = temp.appendingPathComponent("next")
+        try FileManager.default.createDirectory(at: next, withIntermediateDirectories: true)
+        await store.select(next)
+        #expect(!store.isVaultInaccessible)
+        #expect(store.vaultURL?.path == next.path)
+        #expect(store.canAddEvent)
+    }
+
+    /// Path A: two automatic starts must not open Documents/Vault after a malformed bookmark.
+    @Test func doubleAutomaticStartWithMalformedBookmarkStaysInaccessible() async throws {
+        let temp = try testDirectory()
+        defer { try? FileManager.default.removeItem(at: temp) }
+        let suite = try TestDefaults()
+        defer { suite.clean() }
+        var bookmarks = pathBookmarks()
+        bookmarks.resolve = { _ in throw CocoaError(.fileReadCorruptFile) }
+        bookmarks.isMalformed = { _ in true }
+        suite.defaults.set(Data("broken".utf8), forKey: "vaultBookmark")
+        let location = VaultLocation(defaults: suite.defaults, documentsURL: temp, bookmarks: bookmarks)
+        let store = IndexStore(location: location, supportURL: temp.appendingPathComponent("indexes"))
+        await store.startAutomatically(environment: [:], arguments: [])
+        await store.startAutomatically(environment: [:], arguments: [])
+        #expect(store.vaultURL == nil)
+        #expect(store.isVaultInaccessible)
+        #expect(!FileManager.default.fileExists(atPath: temp.appendingPathComponent("Vault").path))
+        #expect(!store.requiresOnboarding)
+        #expect(suite.defaults.bool(forKey: "savedVaultLost"))
+    }
+
+    /// Path B: a later launch with Documents/Vault present still stays inaccessible when the lost flag is set.
+    @Test func freshStoreWithLostFlagAndLocalVaultStaysInaccessible() async throws {
+        let temp = try testDirectory()
+        defer { try? FileManager.default.removeItem(at: temp) }
+        let suite = try TestDefaults()
+        defer { suite.clean() }
+        var bookmarks = pathBookmarks()
+        bookmarks.resolve = { _ in throw CocoaError(.fileReadCorruptFile) }
+        bookmarks.isMalformed = { _ in true }
+        suite.defaults.set(Data("broken".utf8), forKey: "vaultBookmark")
+        let location = VaultLocation(defaults: suite.defaults, documentsURL: temp, bookmarks: bookmarks)
+        let first = IndexStore(location: location, supportURL: temp.appendingPathComponent("indexes-a"))
+        await first.start()
+        #expect(first.isVaultInaccessible)
+        #expect(suite.defaults.bool(forKey: "savedVaultLost"))
+        let vault = temp.appendingPathComponent("Vault", isDirectory: true)
+        try FileManager.default.createDirectory(at: vault, withIntermediateDirectories: true)
+        let second = IndexStore(
+            location: VaultLocation(defaults: suite.defaults, documentsURL: temp, bookmarks: pathBookmarks()),
+            supportURL: temp.appendingPathComponent("indexes-b"))
+        await second.start()
+        #expect(second.isVaultInaccessible)
+        #expect(second.vaultURL == nil)
+        #expect(!second.requiresOnboarding)
+        #expect(!second.canAddEvent)
+    }
+
+    /// Path C: retry must not open an existing Documents/Vault after a lost saved vault.
+    @Test func retryWithLocalVaultPresentDoesNotOpenItWhenSavedVaultLost() async throws {
+        let temp = try testDirectory()
+        defer { try? FileManager.default.removeItem(at: temp) }
+        let suite = try TestDefaults()
+        defer { suite.clean() }
+        var bookmarks = pathBookmarks()
+        bookmarks.resolve = { _ in throw CocoaError(.fileReadCorruptFile) }
+        bookmarks.isMalformed = { _ in true }
+        suite.defaults.set(Data("broken".utf8), forKey: "vaultBookmark")
+        let vault = temp.appendingPathComponent("Vault", isDirectory: true)
+        try FileManager.default.createDirectory(at: vault, withIntermediateDirectories: true)
+        let location = VaultLocation(defaults: suite.defaults, documentsURL: temp, bookmarks: bookmarks)
+        let store = IndexStore(location: location, supportURL: temp.appendingPathComponent("indexes"))
+        await store.start()
+        #expect(store.isVaultInaccessible)
+        await store.retryVaultAccess()
+        #expect(store.isVaultInaccessible)
+        #expect(store.vaultURL == nil)
+        #expect(store.errorText != nil)
+    }
+
+    /// Path B (background): lost flag alone must block resolveForBackground scaffolding even before start().
+    @Test func prepareForBackgroundWithLostFlagDoesNotCreateLocalVault() async throws {
+        let temp = try testDirectory()
+        defer { try? FileManager.default.removeItem(at: temp) }
+        let suite = try TestDefaults()
+        defer { suite.clean() }
+        suite.defaults.set(true, forKey: "savedVaultLost")
+        let location = VaultLocation(defaults: suite.defaults, documentsURL: temp, bookmarks: pathBookmarks())
+        #expect(throws: CocoaError.self) { try location.resolveForBackground() }
+        let store = IndexStore(location: location, supportURL: temp.appendingPathComponent("indexes"))
+        await #expect(throws: CocoaError.self) {
+            try await store.prepareForBackground()
+        }
+        #expect(
+            !FileManager.default.fileExists(atPath: temp.appendingPathComponent("Vault/.app/vault.json").path))
+        #expect(!FileManager.default.fileExists(atPath: temp.appendingPathComponent("Vault").path))
+    }
+
+    /// After choosing another folder, the lost flag clears and a later launch opens that vault.
+    @Test func selectClearsLostFlagAndNextLaunchOpensSelection() async throws {
+        let temp = try testDirectory()
+        defer { try? FileManager.default.removeItem(at: temp) }
+        let suite = try TestDefaults()
+        defer { suite.clean() }
+        var bookmarks = pathBookmarks()
+        bookmarks.resolve = { _ in throw CocoaError(.fileReadCorruptFile) }
+        bookmarks.isMalformed = { _ in true }
+        suite.defaults.set(Data("broken".utf8), forKey: "vaultBookmark")
+        let location = VaultLocation(defaults: suite.defaults, documentsURL: temp, bookmarks: bookmarks)
+        let first = IndexStore(location: location, supportURL: temp.appendingPathComponent("indexes-a"))
+        await first.start()
+        #expect(suite.defaults.bool(forKey: "savedVaultLost"))
+        let next = temp.appendingPathComponent("chosen")
+        try FileManager.default.createDirectory(at: next, withIntermediateDirectories: true)
+        await first.select(next)
+        #expect(!suite.defaults.bool(forKey: "savedVaultLost"))
+        #expect(first.vaultURL?.path == next.path)
+        let second = IndexStore(
+            location: VaultLocation(defaults: suite.defaults, documentsURL: temp, bookmarks: pathBookmarks()),
+            supportURL: temp.appendingPathComponent("indexes-b"))
+        await second.start()
+        #expect(!second.isVaultInaccessible)
+        #expect(second.vaultURL?.path == next.path)
+    }
+
+    /// Renamed from malformedBookmarkClearsBookmarkWithoutLocalVault; also covers Documents/Vault present.
+    @Test func malformedBookmarkMarksLostWithoutOpeningLocalVaultEvenWhenPresent() async throws {
+        let temp = try testDirectory()
+        defer { try? FileManager.default.removeItem(at: temp) }
+        let suite = try TestDefaults()
+        defer { suite.clean() }
+        var bookmarks = pathBookmarks()
+        bookmarks.resolve = { _ in throw CocoaError(.fileReadCorruptFile) }
+        bookmarks.isMalformed = { _ in true }
+        suite.defaults.set(Data("broken".utf8), forKey: "vaultBookmark")
+        let vault = temp.appendingPathComponent("Vault", isDirectory: true)
+        try FileManager.default.createDirectory(at: vault, withIntermediateDirectories: true)
+        let location = VaultLocation(defaults: suite.defaults, documentsURL: temp, bookmarks: bookmarks)
+        let store = IndexStore(location: location, supportURL: temp.appendingPathComponent("indexes"))
+        await store.start()
+        #expect(store.isVaultInaccessible)
+        #expect(store.vaultURL == nil)
+        #expect(suite.defaults.data(forKey: "vaultBookmark") == nil)
+        #expect(suite.defaults.bool(forKey: "savedVaultLost"))
+        #expect(!store.requiresOnboarding)
+        await store.retryVaultAccess()
+        #expect(store.isVaultInaccessible)
+        #expect(store.vaultURL == nil)
+        #expect(store.errorText != nil)
+    }
+
+    @Test func legacyDocumentsVaultStillOpensFromStore() async throws {
+        let temp = try testDirectory()
+        defer { try? FileManager.default.removeItem(at: temp) }
+        let suite = try TestDefaults()
+        defer { suite.clean() }
+        let vault = temp.appendingPathComponent("Vault", isDirectory: true)
+        try FileManager.default.createDirectory(at: vault, withIntermediateDirectories: true)
+        let store = IndexStore(
+            location: VaultLocation(defaults: suite.defaults, documentsURL: temp, bookmarks: pathBookmarks()),
+            supportURL: temp.appendingPathComponent("indexes"))
+        await store.start()
+        #expect(!store.isVaultInaccessible)
+        #expect(store.vaultURL?.path == vault.path)
+        #expect(store.canAddEvent)
+    }
+
+    @Test func appRootScreenPrefersInaccessibleOverMain() {
+        #expect(AppRootScreen.resolve(requiresOnboarding: true, isVaultInaccessible: false) == .onboarding)
+        #expect(AppRootScreen.resolve(requiresOnboarding: true, isVaultInaccessible: true) == .onboarding)
+        #expect(AppRootScreen.resolve(requiresOnboarding: false, isVaultInaccessible: true) == .vaultInaccessible)
+        #expect(AppRootScreen.resolve(requiresOnboarding: false, isVaultInaccessible: false) == .main)
     }
 }
 

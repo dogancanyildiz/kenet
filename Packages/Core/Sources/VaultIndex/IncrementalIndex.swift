@@ -20,9 +20,10 @@ extension VaultIndex {
         let customKinds = Set(EntityTypeReader.read(vaultRoot: vaultRoot).types.map(\.id))
         let signature = customKinds.sorted().joined(separator: "\n")
         let resolvedRoot = vaultRoot.resolvingSymlinksInPath()
-        let requested = paths.map { notified in
-            Set(notified.compactMap { notificationPath($0, root: resolvedRoot) })
+        let notifications = paths.map { notified in
+            notified.compactMap { notification(for: $0, root: resolvedRoot) }
         }
+        let requested = notifications.map { notes in Set(notes.map(\.includeKey)) }
         func includes(_ path: String) -> Bool {
             let key = comparisonKey(path)
             return requested.map { prefixes in
@@ -36,8 +37,20 @@ extension VaultIndex {
             if typeChanged || (paths == nil && isEmpty) {
                 return try rebuild(vaultRoot: vaultRoot, customKinds: customKinds, db: db)
             }
-            let scan = try VaultScanner.scan(vaultRoot)
             let old = try IndexedFile.fetchAll(db, sql: "SELECT * FROM files ORDER BY path")
+            let scopes: Set<ScanScope> = {
+                guard let notes = notifications else { return [.full] }
+                // Case-/normalization-insensitive includes can match indexed paths whose
+                // on-disk parents were not opened by the notification spelling. Add those
+                // parents (and any sibling spellings that share the comparison key) so
+                // deleted ⊆ actually scanned.
+                return scopesCoveringIndexedPaths(
+                    base: Set(notes.map(\.scope)),
+                    indexedPaths: old.map(\.path),
+                    includes: includes,
+                    directorySpellings: { physicalDirectorySpellings(of: $0, root: resolvedRoot) })
+            }()
+            let scan = try VaultScanner.scan(vaultRoot, scopes: scopes)
             let previous = Dictionary(uniqueKeysWithValues: old.map { ($0.path, $0) })
             let present = Set(scan.files.map(\.path))
             let deleted = old.map(\.path).filter { includes($0) && !present.contains($0) }
@@ -166,7 +179,13 @@ private func repairLinks(keys: Set<String>, sources: [String], db: Database) thr
     try db.execute(sql: "DROP TABLE temp.affected_link_keys; DROP TABLE temp.affected_link_sources")
 }
 
-private func notificationPath(_ path: String, root: URL) -> String? {
+private struct Notification {
+    /// Comparison key used by `includes` (may widen to a missing ancestor directory).
+    let includeKey: String
+    let scope: ScanScope
+}
+
+private func notification(for path: String, root: URL) -> Notification? {
     let base = root.path.precomposedStringWithCanonicalMapping
     let url = path.hasPrefix("/") ? URL(fileURLWithPath: path) : root.appendingPathComponent(path)
     let absolute = resolvedNotificationPath(url).precomposedStringWithCanonicalMapping
@@ -174,13 +193,135 @@ private func notificationPath(_ path: String, root: URL) -> String? {
         comparisonKey(absolute) == comparisonKey(base)
             || comparisonKey(absolute).hasPrefix(comparisonKey(base) + "/")
     else { return nil }
-    let relative = comparisonKey(absolute) == comparisonKey(base) ? "" : String(absolute.dropFirst(base.count + 1))
+    let relative =
+        comparisonKey(absolute) == comparisonKey(base) ? "" : String(absolute.dropFirst(base.count + 1))
     let components = relative.split(separator: "/").map(String.init)
     guard !components.dropLast().contains(where: { $0.hasPrefix(".") }),
         components.first != "templates", components.first != "conflicts",
         !(components.last?.hasPrefix(".") == true && !relative.hasSuffix(".md"))
     else { return nil }
-    return comparisonKey(relative)
+    let nfc = relative.precomposedStringWithCanonicalMapping
+    // Hidden directories are skipped by the scanner even when the name ends in `.md`.
+    if let last = components.last, last.hasPrefix(".") {
+        var isDirectory: ObjCBool = false
+        if FileManager.default.fileExists(
+            atPath: root.appendingPathComponent(nfc).path, isDirectory: &isDirectory),
+            isDirectory.boolValue
+        {
+            return nil
+        }
+    }
+    return Notification(includeKey: includeKey(for: nfc, root: root), scope: scanScope(for: nfc, root: root))
+}
+
+/// Adds shallow scopes for exact-cased (and comparison-key sibling) parents of matching
+/// indexed paths so a case-/NFC-insensitive include cannot delete files that were never scanned.
+func scopesCoveringIndexedPaths(
+    base: Set<ScanScope>,
+    indexedPaths: [String],
+    includes: (String) -> Bool,
+    directorySpellings: (String) -> [String]
+) -> Set<ScanScope> {
+    var scopes = base
+    var parents: Set<String> = []
+    for path in indexedPaths where includes(path) {
+        let parent = (path as NSString).deletingLastPathComponent
+        parents.insert(parent == "." ? "" : parent)
+    }
+    for parent in parents {
+        for spelling in directorySpellings(parent) {
+            scopes.insert(.shallow(spelling))
+        }
+    }
+    return scopes
+}
+
+/// Every on-disk directory spelling whose components match `relative` by comparison key.
+func physicalDirectorySpellings(of relative: String, root: URL) -> [String] {
+    if relative.isEmpty { return [""] }
+    var candidates = [""]
+    for component in relative.split(separator: "/").map(String.init) {
+        let key = comparisonKey(component)
+        var next: [String] = []
+        for parent in candidates {
+            next.append(contentsOf: matchingDirectoryChildren(parentRelative: parent, nameKey: key, root: root))
+        }
+        if next.isEmpty { return [] }
+        candidates = next
+    }
+    return candidates
+}
+
+private func matchingDirectoryChildren(parentRelative: String, nameKey: String, root: URL) -> [String] {
+    let parentURL = parentRelative.isEmpty ? root : root.appendingPathComponent(parentRelative)
+    var isDirectory: ObjCBool = false
+    guard FileManager.default.fileExists(atPath: parentURL.path, isDirectory: &isDirectory),
+        isDirectory.boolValue
+    else { return [] }
+    guard
+        let urls = try? FileManager.default.contentsOfDirectory(
+            at: parentURL, includingPropertiesForKeys: [.isDirectoryKey, .isSymbolicLinkKey])
+    else { return [] }
+    var matches: [String] = []
+    for url in urls {
+        guard comparisonKey(url.lastPathComponent) == nameKey else { continue }
+        let values = try? url.resourceValues(forKeys: [.isDirectoryKey, .isSymbolicLinkKey])
+        var directory = values?.isDirectory == true
+        if values?.isSymbolicLink == true {
+            var linkedDirectory: ObjCBool = false
+            _ = FileManager.default.fileExists(atPath: url.path, isDirectory: &linkedDirectory)
+            directory = linkedDirectory.boolValue
+        }
+        guard directory, values?.isSymbolicLink != true else { continue }
+        let relative =
+            parentRelative.isEmpty ? url.lastPathComponent : parentRelative + "/" + url.lastPathComponent
+        matches.append(relative)
+    }
+    return matches
+}
+
+/// Widens a missing intermediate directory so its indexed subtree can be dropped.
+private func includeKey(for relative: String, root: URL) -> String {
+    let key = comparisonKey(relative)
+    if relative.isEmpty { return key }
+    var prefix = ""
+    for component in relative.split(separator: "/").map(String.init) {
+        let next = prefix.isEmpty ? component : prefix + "/" + component
+        var isDirectory: ObjCBool = false
+        if !FileManager.default.fileExists(atPath: root.appendingPathComponent(next).path, isDirectory: &isDirectory) {
+            // Intermediate directory gone: drop the whole missing prefix from the index.
+            if next != relative { return comparisonKey(next) }
+            return key
+        }
+        prefix = next
+    }
+    return key
+}
+
+private func scanScope(for relative: String, root: URL) -> ScanScope {
+    if relative.isEmpty { return .full }
+    let url = root.appendingPathComponent(relative)
+    var isDirectory: ObjCBool = false
+    if FileManager.default.fileExists(atPath: url.path, isDirectory: &isDirectory) {
+        if isDirectory.boolValue { return .subtree(relative) }
+        let parent = (relative as NSString).deletingLastPathComponent
+        return .shallow(parent == "." ? "" : parent)
+    }
+    // Missing path: scan the nearest existing ancestor one level so siblings remain visible.
+    var prefix = ""
+    for component in relative.split(separator: "/").map(String.init) {
+        let next = prefix.isEmpty ? component : prefix + "/" + component
+        var isDirectory: ObjCBool = false
+        if !FileManager.default.fileExists(atPath: root.appendingPathComponent(next).path, isDirectory: &isDirectory) {
+            return .shallow(prefix)
+        }
+        if !isDirectory.boolValue {
+            return .shallow(prefix)
+        }
+        prefix = next
+    }
+    let parent = (relative as NSString).deletingLastPathComponent
+    return .shallow(parent == "." ? "" : parent)
 }
 
 // Resolve only an existing directory: Foundation standardization treats missing /private paths differently.

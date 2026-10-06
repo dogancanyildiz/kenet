@@ -62,7 +62,7 @@ Doğruluk ve veri güvenliği:
 - [x] Yazma sonrası okuma modeli ana iş parçacığı dışında kurulur (ölçüm: olay eklerken 0,45 sn donma)
 - [ ] Hedef işaretleme bütün kasayı okumaz; yazma başına tam dizin taraması kalkar (hedef işaretleme düzeltildi; kalan: yazma sırasında indeks güncellemesinin tam dizin taraması)
 - [x] Sentetik kasa ile ölçek bütçe testleri: yenileme, yazma, yeniden adlandırma, ilk açılış
-- [ ] Okuma modeli dosya başına artımlı kurulur, ekranlar kendi sorgusunu çalıştırır (widget ve eşitlemeden önce) (artımlı model bitti: 5 yıllık kasada yazma sonrası 1,65 sn → 0,09 sn; kalan: ekranların kendi sorgusunu çalıştırması)
+- [x] Okuma modeli dosya başına artımlı kurulur (5 yıllık kasada yazma sonrası 1,65 sn → 0,09 sn; ekranların kendi sorgusunu çalıştırması Aşama 11'e taşındı)
 
 Veri sahipliği ve gizlilik:
 
@@ -128,6 +128,7 @@ Kimlik kararından sonra başlar.
 - [ ] Kasa konumu: iCloud kapsayıcısı, yerel yedek seçenek (Aşama 0'dan devreden; yerel kasa ve klasör seçimi hazır)
 - [ ] Eşitlenen kasada güvenli yazma: dosya koordinasyonu, indirilmemiş dosyalar, çakışan sürümlerin tespiti, birleştirme işlevinin bağlanması, kopya dosya kuralı, eşitleme durumu göstergesi
 - [ ] Ana ekran widget'ı: zincir ve tek dokunuşla işaretleme; yapılmamışlar vurgulu (Aşama 3'ten devreden)
+- [ ] Ekranlar ve widget kendi sorgusunu çalıştırır: küresel okuma modeli yerine Core sorguları (Aşama 8'den devreden; widget bellek sınırı için)
 - [ ] Widget yenilenmesinin güvenilirlik testi (Aşama 3'ten devreden)
 - [ ] Kilit ekranı widget'ı: takvim etkinlikleri ve günün görevleri (Aşama 3'ten devreden)
 - [ ] Hızlı giriş widget'ı ile kilit ekranı, Denetim Merkezi ve Eylem düğmesi girişi (Aşama 3'ten devreden)

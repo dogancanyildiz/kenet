@@ -9,9 +9,15 @@ struct ContentView: View {
 
     var body: some View {
         Group {
-            if store.requiresOnboarding {
+            switch AppRootScreen.resolve(
+                requiresOnboarding: store.requiresOnboarding,
+                isVaultInaccessible: store.isVaultInaccessible
+            ) {
+            case .onboarding:
                 OnboardingView(store: store)
-            } else {
+            case .vaultInaccessible:
+                VaultInaccessibleView(store: store)
+            case .main:
                 #if os(macOS)
                     MacNavigation(store: store)
                 #else
@@ -32,7 +38,9 @@ struct ContentView: View {
                 .frame(minWidth: 320, minHeight: 440)
         }
         .overlay(alignment: .top) {
-            if !store.requiresOnboarding && store.indexingFileCount != nil && store.isProcessing {
+            if !store.requiresOnboarding && !store.isVaultInaccessible && store.indexingFileCount != nil
+                && store.isProcessing
+            {
                 VaultIndexingProgress(store: store).padding().background(.regularMaterial)
             }
         }

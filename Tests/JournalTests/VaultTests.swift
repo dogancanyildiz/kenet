@@ -28,17 +28,24 @@ struct VaultLocationTests {
         )
     }
 
-    @Test func invalidBookmarkFallsBackWithNotice() throws {
+    @Test func invalidBookmarkIsInaccessibleWithoutCreatingLocalVault() throws {
         let temp = try temporaryDirectory()
         defer { try? FileManager.default.removeItem(at: temp) }
         let suite = try TestDefaults()
         defer { suite.clean() }
         let defaults = suite.defaults
         defaults.set(Data("invalid".utf8), forKey: "vaultBookmark")
-        let resolved = try VaultLocation(defaults: defaults, documentsURL: temp).resolve()
-        #expect(resolved.url == temp.appendingPathComponent("Vault", isDirectory: true))
-        #expect(resolved.notice != nil)
+        let location = VaultLocation(defaults: defaults, documentsURL: temp)
+        let resolved = try location.resolve()
+        #expect(resolved == .inaccessible)
         #expect(defaults.data(forKey: "vaultBookmark") == nil)
+        #expect(defaults.bool(forKey: "savedVaultLost"))
+        #expect(!location.needsFirstLaunch)
+        #expect(!FileManager.default.fileExists(atPath: temp.appendingPathComponent("Vault").path))
+        #expect(try location.resolve() == .inaccessible)
+        #expect(try location.resolveSavedVault() == .inaccessible)
+        #expect(throws: CocoaError.self) { try location.resolveForBackground() }
+        #expect(!FileManager.default.fileExists(atPath: temp.appendingPathComponent("Vault").path))
     }
 }
 

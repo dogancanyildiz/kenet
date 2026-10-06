@@ -42,14 +42,17 @@ enum UITestSupport {
                 "İzin Ver", "Uygulamayı Kullanırken İzin Ver", "Bir Kez İzin Ver", "Tamam",
                 "İzin Verme", "Şimdi Değil",
             ]
-            for label in labels {
-                let button = alert.buttons[label]
-                if button.exists {
-                    button.tap()
-                    return true
+            // The monitor runs on the main thread; the CI SDK marks XCUIElement as main-actor only.
+            return MainActor.assumeIsolated {
+                for label in labels {
+                    let button = alert.buttons[label]
+                    if button.exists {
+                        button.tap()
+                        return true
+                    }
                 }
+                return false
             }
-            return false
         }
     }
 

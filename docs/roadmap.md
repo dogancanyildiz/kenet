@@ -47,11 +47,11 @@ Doğruluk ve veri güvenliği:
 - [x] Tekrarlayan görev düzenleme: uygulamanın kendi yazdığı görevde tekrar değiştirilemiyor, kimlik onarımıyla birlikte çöküyor, kuraldan sonraki kullanıcı metni siliniyor
 - [x] Aynı dosya adı başka klasörde de varsa otomatik bağlantı yanlış dosyaya gidiyor; yazılacak hedefi indeks belirler (önce `vault-format.md`)
 - [ ] Doğal dil tarih: ondalık ve kesirli sayılar tarih sanılıp metinden siliniyor ("2.5 kg un al"), "haftaya salı" yanlış güne çözülüyor, Kısayollar yolu varsayımlı tarihi sormadan uyguluyor (ayrıştırma düzeltildi; kalan: Kısayollar yolunun varsayımlı tarihi sorması)
-- [ ] Silmede onay ya da geri alma (olay, görev, alan, hedef kaydı); günlük yazısında kaydedilmemiş metin sormadan atılmaz
+- [x] Silmede onay ya da geri alma (olay, görev, alan, hedef kaydı); günlük yazısında kaydedilmemiş metin sormadan atılmaz
 - [ ] Kayıtlı kasaya erişilemeyince durum ana ekranda görünür; yazılar sessizce başka kasaya gitmez (davranış kullanıcı kararı)
-- [ ] Uygulama meşgulken gelen yazma sıraya alınır; yutulan Enter ve yanlış "dosya dışarıdan değişti" hatası biter
+- [x] Uygulama meşgulken gelen yazma sıraya alınır; yutulan Enter ve yanlış "dosya dışarıdan değişti" hatası biter
 - [ ] Uygulama kilidi "Hemen" ayarında başarılı doğrulamadan sonra yeniden kilitlenmez (gerçek cihazda doğrulanır) (kod ve test birleşti; kalan: gerçek cihazda doğrulama)
-- [ ] Kasa format sürümü her yazmada denetlenir; harf farkı olan klasör adı (`Journal/`) kasa hazırlamada bildirilir; ön bilgideki boş liste öğesi yeniden adlandırmayı durdurmaz
+- [x] Kasa format sürümü her yazmada denetlenir; harf farkı olan klasör adı (`Journal/`) kasa hazırlamada bildirilir; ön bilgideki boş liste öğesi yeniden adlandırmayı durdurmaz
 - [ ] iCloud Drive gibi eşitlenen bir klasör kasa seçildiğinde uyarı gösterilir (koordinasyon ve çakışma yönetimi Aşama 11'e kadar yok)
 
 Ölçek:
@@ -59,23 +59,23 @@ Doğruluk ve veri güvenliği:
 - [x] Varlık yeniden adlandırma bağlantı sayısıyla karesel büyüyor (ölçüm: 139 sn ve yaklaşık 5 GB bellek); doğrusal hale getirilir
 - [x] İlk indeksleme ve tip ekleme: boş indekste tam kurulum yolu kullanılır, kimlik sahipliği sorgusu indekslenir (şema sürümü artar)
 - [x] Dosya değişmemişse yenileme hiçbir şey yayınlamaz; bildirimler her turda silinip kurulmaz
-- [ ] Yazma sonrası okuma modeli ana iş parçacığı dışında kurulur (ölçüm: olay eklerken 0,45 sn donma)
+- [x] Yazma sonrası okuma modeli ana iş parçacığı dışında kurulur (ölçüm: olay eklerken 0,45 sn donma)
 - [ ] Hedef işaretleme bütün kasayı okumaz; yazma başına tam dizin taraması kalkar (hedef işaretleme düzeltildi; kalan: yazma sırasında indeks güncellemesinin tam dizin taraması)
-- [ ] Sentetik kasa ile ölçek bütçe testleri: yenileme, yazma, yeniden adlandırma, ilk açılış
+- [x] Sentetik kasa ile ölçek bütçe testleri: yenileme, yazma, yeniden adlandırma, ilk açılış
 - [ ] Okuma modeli dosya başına artımlı kurulur, ekranlar kendi sorgusunu çalıştırır (widget ve eşitlemeden önce)
 
 Veri sahipliği ve gizlilik:
 
-- [ ] Varsayılan kasa iPhone'da Dosyalar'da, Mac'te Finder'da görünür; ilk açılış ekranı kasanın nerede durduğunu söyler
+- [x] Varsayılan kasa iPhone'da Dosyalar'da, Mac'te Finder'da görünür; ilk açılış ekranı kasanın nerede durduğunu söyler
 - [ ] Bildirimlerde içeriği gizleme seçeneği; kilitliyken Siri'nin hedef adlarını listelemesi ve bildirim eylemiyle yazma için karar
-- [ ] İndeks yedekten hariç tutulur, veri koruma sınıfı kararı yazılır; arama geçmişi temizlenebilir ve kasaya bağlıdır
+- [x] İndeks yedekten hariç tutulur, veri koruma sınıfı kararı yazılır; arama geçmişi temizlenebilir ve kasaya bağlıdır
 
 Erişilebilirlik ve dil:
 
-- [ ] Dokunma hedefleri en az 44 pt; hızlı giriş çubuğu büyük yazıda kırılmaz
+- [x] Dokunma hedefleri en az 44 pt; hızlı giriş çubuğu büyük yazıda kırılmaz
 - [x] Geciken tarih kırmızı ile, tamamlanan görev opaklıkla gösterilmez (kontrast ve "cezalandırma yok")
-- [ ] VoiceOver: graph tuvalinin erişilebilir karşılığı, öncelik değeri, günlük önizlemesi, kanban ve zaman çizelgesi eylemleri
-- [ ] Yerelleştirme: katalogda olmayan anahtarlar, ölü anahtarlar, "Her 1 hafta", Türkçe ek uyumu (`Ev'te`)
+- [x] VoiceOver: graph tuvalinin erişilebilir karşılığı, öncelik değeri, günlük önizlemesi, kanban ve zaman çizelgesi eylemleri
+- [x] Yerelleştirme: katalogda olmayan anahtarlar, ölü anahtarlar, "Her 1 hafta", Türkçe ek uyumu (`Ev'te`)
 
 Kapılar:
 

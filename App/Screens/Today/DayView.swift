@@ -72,6 +72,7 @@ struct DayView: View {
         .navigationTitle(
             isToday ? Text("Bugün") : Text(LocalDay.instant(for: date), format: .dateTime.day().month().year())
         )
+        .accessibilityIdentifier(isToday ? "screen.today" : "screen.day")
         .toolbar { SearchButton() }
         .task(id: date) {
             if AppLaunchPolicy.allowsAutomaticStart() { await calendar.load(date) }

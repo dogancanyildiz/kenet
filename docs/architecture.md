@@ -152,5 +152,6 @@ Android ve Windows şu an kapsam dışı. İleride mümkün kalması için:
 - Dayanıklılık: bozuk frontmatter, tanınmayan sözdizimi, boş dosya hata üretmemeli.
 - Biçim: `swift format lint --strict --recursive Packages App Tests`.
 - Belge biçimi: `sh .github/scripts/check-docs.sh` (karar tablosu, README belge tablosu, String Catalog).
-- Uygulama testleri (`JournalTests`) `Journal_macOS` ve `Journal_iOS` şemalarında koşar; iOS için `xcodebuild test -scheme Journal_iOS -destination 'platform=iOS Simulator,name=<simctl available iPhone>'`.
+- Uygulama testleri (`JournalTests`) `Journal_macOS` ve `Journal_iOS` şemalarında koşar; iOS için `xcodebuild test -scheme Journal_iOS -destination 'platform=iOS Simulator,name=<simctl available iPhone>' -only-testing:JournalTests_iOS`.
+- XCUITest dumanı ve erişilebilirlik denetimi (`JournalUITests`, `bundle.ui-testing`) aynı `Journal_iOS` şemasında; CI `-only-testing:JournalUITests` ile koşturur. DEBUG derlemede `JOURNAL_UITEST_VAULT` verilen klasörü kasa olarak açar; otomatik gerçek kasa / bildirim / kilit başlamaz.
 - CI macOS uygulama testlerini en az iki saat diliminde (`TZ=UTC`, `TZ=Pacific/Auckland`) koşturur; olay saati ve gün/tarih iddiaları cihaz diliminden bağımsız kalmalıdır.

@@ -18,12 +18,15 @@ struct PhoneNavigation: View {
                         .toolbar {
                             Button("Ayarlar", systemImage: "gearshape") { showingSettings = true }
                                 .labelStyle(.iconOnly)
+                                .accessibilityIdentifier("button.settings")
                         }
                 }
             }
+            .accessibilityIdentifier("tab.today")
             Tab("Günlük", systemImage: "book.closed", value: PhoneTab.days) {
                 NavigationStack { DaysView(store: store) }
             }
+            .accessibilityIdentifier("tab.days")
             Tab("Görevler", systemImage: "checklist", value: PhoneTab.tasks) {
                 NavigationStack(path: $taskPath) {
                     TasksView(
@@ -32,12 +35,15 @@ struct PhoneNavigation: View {
                             ? notifications.navigationRequest?.id : nil)
                 }
             }
+            .accessibilityIdentifier("tab.tasks")
             Tab("Kişiler ve Konumlar", systemImage: "person.2", value: PhoneTab.entities) {
                 NavigationStack { EntitiesView(store: store) }
             }
+            .accessibilityIdentifier("tab.entities")
             Tab("Hedefler", systemImage: "target", value: PhoneTab.goals) {
                 NavigationStack { GoalsView(store: store) }
             }
+            .accessibilityIdentifier("tab.goals")
         }
         .onChange(of: intentNavigation.todayRequest, initial: true) { _, request in
             guard request != nil else { return }
@@ -60,7 +66,11 @@ struct PhoneNavigation: View {
             NavigationStack {
                 DiagnosticsView(store: store)
                     .navigationTitle("Ayarlar")
-                    .toolbar { Button("Kapat") { showingSettings = false } }
+                    .accessibilityIdentifier("screen.settings")
+                    .toolbar {
+                        Button("Kapat") { showingSettings = false }
+                            .accessibilityIdentifier("button.settings.close")
+                    }
             }
         }
     }

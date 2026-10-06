@@ -38,6 +38,33 @@ struct ContentView: View {
         }
         .onChange(of: intentNavigation.todayRequest) { searchPresented = false }
         .onChange(of: notifications.navigationRequest?.id) { _, _ in searchPresented = false }
-        .task { await store.startAutomatically() }
+        .task {
+            #if DEBUG
+                if let path = AppLaunchPolicy.uiTestVaultPath() {
+                    await openUITestVault(at: path, store: store)
+                    return
+                }
+            #endif
+            await store.startAutomatically()
+        }
     }
 }
+
+#if DEBUG
+    /// Copies the UI-test vault into the app sandbox so writes are permitted, then opens it.
+    @MainActor
+    private func openUITestVault(at path: String, store: IndexStore) async {
+        let source = URL(fileURLWithPath: path, isDirectory: true)
+        let destination = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent("UITestVault", isDirectory: true)
+        let manager = FileManager.default
+        try? manager.removeItem(at: destination)
+        do {
+            try manager.copyItem(at: source, to: destination)
+            await store.select(destination)
+        } catch {
+            // Fall back to the given path (may be readable but not writable outside the container).
+            await store.select(source)
+        }
+    }
+#endif

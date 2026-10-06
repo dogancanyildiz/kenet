@@ -18,6 +18,20 @@ struct VaultRecoveryTests {
         #expect(AppLaunchPolicy.allowsAutomaticStart(environment: [:], arguments: []))
     }
 
+    @Test func uiTestVaultDisablesAutomaticStartWithoutOpeningRealHome() async throws {
+        let before = try homeVaultState()
+        let path = "/tmp/journal-uitest-vault-does-not-exist"
+        #expect(AppLaunchPolicy.uiTestVaultPath(environment: ["JOURNAL_UITEST_VAULT": path], arguments: []) == path)
+        #expect(
+            AppLaunchPolicy.uiTestVaultPath(environment: [:], arguments: ["JOURNAL_UITEST_VAULT=" + path]) == path)
+        #expect(!AppLaunchPolicy.allowsAutomaticStart(environment: ["JOURNAL_UITEST_VAULT": path], arguments: []))
+        let store = IndexStore()
+        await store.startAutomatically(environment: ["JOURNAL_UITEST_VAULT": path], arguments: [])
+        try await Task.sleep(for: .milliseconds(200))
+        #expect(store.vaultURL == nil)
+        #expect(try homeVaultState() == before)
+    }
+
     @Test func staleBookmarkIsUsedAndRenewed() throws {
         let temp = try testDirectory()
         defer { try? FileManager.default.removeItem(at: temp) }

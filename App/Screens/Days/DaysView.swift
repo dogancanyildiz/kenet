@@ -27,6 +27,7 @@ struct DaysView: View {
         }
         .navigationDestination(item: $selectedDay) { day in DayView(store: store, date: day) }
         .navigationTitle("Günlük")
+        .accessibilityIdentifier("screen.days")
         .toolbar { SearchButton() }
     }
 }

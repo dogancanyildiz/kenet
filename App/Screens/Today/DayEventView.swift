@@ -21,6 +21,9 @@ struct DayEventView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .contentShape(Rectangle())
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("event.row")
+        .accessibilityLabel(Text(verbatim: event.text.plainText))
         .contextMenu {
             Button("Metni düzenle", systemImage: "pencil") {
                 editor = EventEditorModel(store: store, day: day, row: event)

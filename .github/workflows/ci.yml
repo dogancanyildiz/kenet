@@ -17,6 +17,7 @@ jobs:
   core-macos:
     name: Core (macOS)
     runs-on: macos-26
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
       - name: SwiftPM önbelleği
@@ -35,6 +36,7 @@ jobs:
   core-linux:
     name: Core (Linux)
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     container: swift:6.4
     steps:
       - uses: actions/checkout@v7
@@ -59,14 +61,16 @@ jobs:
   app-macos:
     name: Uygulama (macOS)
     runs-on: macos-26
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
-      - name: DerivedData önbelleği
+      - name: Paket önbelleği
         uses: actions/cache@v4
         with:
-          path: ~/Library/Developer/Xcode/DerivedData
-          key: dd-macos-${{ hashFiles('project.yml', 'Packages/Core/Package.resolved') }}-${{ github.sha }}
-          restore-keys: dd-macos-${{ hashFiles('project.yml', 'Packages/Core/Package.resolved') }}-
+          # Yalnız paket indirmeleri; derleme ürünleri önbelleklenmez (bayat test paketi riski).
+          path: ~/Library/Developer/Xcode/DerivedData/**/SourcePackages
+          key: spm-xcode-macos-${{ hashFiles('Packages/Core/Package.resolved') }}
+          restore-keys: spm-xcode-macos-
       - name: XcodeGen
         run: brew install xcodegen
       - name: Projeyi üret
@@ -85,14 +89,16 @@ jobs:
   app-ios:
     name: Uygulama (iOS)
     runs-on: macos-26
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v7
-      - name: DerivedData önbelleği
+      - name: Paket önbelleği
         uses: actions/cache@v4
         with:
-          path: ~/Library/Developer/Xcode/DerivedData
-          key: dd-ios-${{ hashFiles('project.yml', 'Packages/Core/Package.resolved') }}-${{ github.sha }}
-          restore-keys: dd-ios-${{ hashFiles('project.yml', 'Packages/Core/Package.resolved') }}-
+          # Yalnız paket indirmeleri; derleme ürünleri önbelleklenmez (bayat test paketi riski).
+          path: ~/Library/Developer/Xcode/DerivedData/**/SourcePackages
+          key: spm-xcode-ios-${{ hashFiles('Packages/Core/Package.resolved') }}
+          restore-keys: spm-xcode-ios-
       - name: XcodeGen
         run: brew install xcodegen
       - name: Projeyi üret
@@ -163,6 +169,7 @@ jobs:
   lint:
     name: Biçim ve kurallar
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     container: swift:6.4
     steps:
       - uses: actions/checkout@v7
@@ -189,6 +196,7 @@ jobs:
     if: always()
     needs: [core-macos, core-linux, app-macos, app-ios, lint]
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - name: Tüm işler başarılı mı
         env:
@@ -209,6 +217,7 @@ jobs:
     # Yalnız dev'e birleşince koşar: her PR'da bir macOS makinesi daha tutmasın.
     if: github.event_name == 'push'
     runs-on: macos-26
+    timeout-minutes: 40
     continue-on-error: true
     steps:
       - uses: actions/checkout@v7

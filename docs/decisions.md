@@ -119,6 +119,9 @@ Verilen her karar tek satır olarak eklenir. Açık sorular kapandığında altt
 | 2026-10-05 | Tasarım dili Mürekkep'tir: kartsız kâğıt sayfa, kullanıcının sözü New York, uygulamanın sözü SF Pro, işaretler kenar sütununda, bağlantı alt çizgiyle. Sahibin iki değişikliği: görev işareti köşeli kutu ve öncelik kutunun içinde; hızlı girişte "Olay" ve "Görev" sözcükleri. Derkenar'ın imzası (kenar çizgisi, fosfor izi) eklenmedi | İki turlu heyet incelemesinde, kökenleri gizli on altı aday içinde hiçbir bakış açısının dördüncüden aşağı koymadığı tek aday; standart SwiftUI bileşenleri ve sistem yazı tipleriyle kurulur. Ayrıntı ve sıradaki seçenekler `design.md` belgesinde |
 | 2026-10-05 | Tanınmayan tekrar kuralı uygulamadan değiştirilmez ve kaldırılmaz; işlem reddedilir, dosya bayt bayt korunur | Kural satır sonuna kadar uzanıp kullanıcının metnini içerebilir; eski davranış bu metni sessizce siliyordu |
 | 2026-10-06 | İndeks dizini (`Application Support/Journal/Indexes`) yedekten hariç; iOS'ta dizin koruma sınıfı `completeUntilFirstUserAuthentication`; kasa dosyalarının sınıfına dokunulmaz | İndeks dosyalardan yeniden üretilir; kilitliyken bölge, bildirim ve Siri yazması `complete` sınıfını kırar |
+| 2026-10-06 | Kayıtlı kasaya erişilemeyince (yer imi çözülmüyor, erişim açılmıyor ya da yer imi bozuk) uygulama hiçbir kasa açmaz; durum ana ekranda görünür, yazma kapalıdır, kullanıcı yeniden dener ya da başka klasör seçer. Yerel kasaya sessiz ya da uyarılı geçiş yok | Yazılar iki kasaya bölünmesin; kullanıcı neyin nerede olduğunu her zaman bilsin |
+| 2026-10-06 | Bildirimlerde içeriği gizleme seçeneği (varsayılan kapalı): açıkken görev metni ve hedef adları bildirime girmez. Uygulama kilitliyken (kilit etkin ve doğrulanmamış) Siri hedef adlarını listelemez, Kısayollar ve bildirim eylemi yazmaz | Kilit ekranı ve Siri uygulama kilidini dolanmasın; varsayılan davranış değişmesin |
+| 2026-10-06 | Ekranların küresel okuma modeli yerine kendi Core sorgusunu çalıştırması Aşama 11'e taşındı | Yazma sonrası model 0,09 sn; asıl kazanç widget bellek sınırında, o da Aşama 11'de |
 
 ## Açık sorular
 
@@ -131,6 +134,4 @@ Verilen her karar tek satır olarak eklenir. Açık sorular kapandığında altt
 10. **Türkçe ad tanıma ve arama.** Kesme işaretsiz ekler ("ofiste"), İ/ı eşlemesi, sık geçen sözcüklerin takma ad olması.
 11. **Varlık dosyası kopyaları.** iCloud'un ayırdığı `Elif 2.md` gibi kopyalar ne zaman aynı varlık sayılıp birleştirilir (Aşama 11)?
 12. **Kimlik ve geliştirici hesabı.** Apple Developer Program üyeliği, kalıcı bundle kimliği, iCloud kapsayıcısı, App Group ve alan adı. Gerçek cihazda kalıcı kurulum, iCloud kasası, widget'lar, paylaşım uzantısı ve TestFlight buna bağlı. Kimlik değişince uygulamanın kapsayıcısı ve içindeki varsayılan kasa da değişir.
-13. **Erişilemeyen kasa.** Kayıtlı klasöre erişilemediğinde uygulama bugün sessizce yerel kasayı açıyor; yazılar iki kasaya bölünebiliyor. Durup sormak mı, yerel kasaya görünür bir uyarıyla geçmek mi?
-14. **Kilitliyken görünenler.** Bildirimler görev metnini ve hedef adlarını kilit ekranına taşıyor; Siri kilitliyken hedef adlarını listeleyebiliyor. Varsayılan gizlilik düzeyi ne olsun?
 15. **iPad.** Hedef cihaz listesinde var ama düzeni tasarlanmadı ve belgelerde yok. Kapatılsın mı, tamamlansın mı?

@@ -33,6 +33,11 @@
 #endif
 
 #if os(macOS)
+    // Record / verify Mac references (no simulator; local only — CI skips Mac image suites):
+    // SNAPSHOT_TESTING_RECORD=all xcodebuild test -project Journal.xcodeproj -scheme Journal_macOS \
+    //   -destination 'platform=macOS' -only-testing:JournalTests_macOS/TasksMacSnapshotTests \
+    //   CODE_SIGNING_ALLOWED=NO
+    // Then the same command with SNAPSHOT_TESTING_RECORD=never three times.
     import AppKit
     import SnapshotTesting
     import SwiftUI
@@ -44,6 +49,10 @@
     /// Mac kanban and timeline: weekend wells, today marker, completed outline bar, low priority.
     @MainActor @Suite("Tasks screen snapshots (macOS)", .serialized)
     struct TasksMacSnapshotTests {
+        private static let snapshotPrecision: Float = 0.999
+        private static let snapshotPerceptualPrecision: Float = 0.995
+        private static let bitmapScale: CGFloat = 2
+
         @Test func kanbanMacLight() async throws {
             let context = try TaskTestContext(sample: true)
             defer { context.clean() }
@@ -74,8 +83,18 @@
             let weekEnd = day.addingDays(3) ?? day
             timeline.setVisibleRange(weekStart...weekEnd)
             #expect(!timeline.groups.flatMap(\.rows).isEmpty)
+            let weekDays = (0..<7).compactMap { weekStart.addingDays($0) }
             try await assertMacView(
-                TimelineMacSnapshotChrome(model: timeline),
+                TimelineDesktopContent(
+                    model: timeline,
+                    days: weekDays,
+                    dayWidth: 96,
+                    select: { _ in },
+                    edit: { _, _ in },
+                    maxRowsPerGroup: 8
+                )
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                .background(Color.ink.paper),
                 named: "timelineMacLight",
                 store: context.store,
                 defaults: context.defaults.defaults,
@@ -88,7 +107,8 @@
             named name: String,
             store: IndexStore,
             defaults: UserDefaults,
-            size: CGSize
+            size: CGSize,
+            appearance: NSAppearance.Name = .aqua
         ) async throws {
             var calendar = Calendar(identifier: .gregorian)
             calendar.locale = Locale(identifier: "tr_TR")
@@ -112,12 +132,17 @@
                 .environment(\.timeZone, calendar.timeZone)
                 .environment(\.clockNow, { now })
                 .environment(\.openSearch, {})
-                .environment(\.colorScheme, .light)
+                .environment(\.colorScheme, appearance == .darkAqua ? .dark : .light)
+                .tint(Color.ink.accent)
                 .frame(width: size.width, height: size.height)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(Color.ink.paper)
 
             let host = NSHostingView(rootView: root)
+            host.appearance = NSAppearance(named: appearance)
             host.frame = NSRect(x: 0, y: 0, width: size.width, height: size.height)
+            host.wantsLayer = true
+            host.layer?.backgroundColor = NSColor(Color.ink.paper).cgColor
             for _ in 0..<40 {
                 await Task.yield()
                 try? await Task.sleep(for: .milliseconds(50))
@@ -127,15 +152,45 @@
             host.layoutSubtreeIfNeeded()
             try? await Task.sleep(for: .milliseconds(200))
 
+            let image = Self.renderFixedScaleImage(from: host, scale: Self.bitmapScale)
             let record = ProcessInfo.processInfo.environment["SNAPSHOT_TESTING_RECORD"]
                 .flatMap(SnapshotTestingConfiguration.Record.init(rawValue:))
             assertSnapshot(
-                of: host,
-                as: .image(precision: 0.98, perceptualPrecision: 0.97),
+                of: image,
+                as: .image(
+                    precision: Self.snapshotPrecision,
+                    perceptualPrecision: Self.snapshotPerceptualPrecision),
                 named: name,
                 record: record,
                 testName: "tasksMac"
             )
+        }
+
+        /// Screen-independent bitmap: point size × fixed scale (not the display backing scale).
+        private static func renderFixedScaleImage(from view: NSView, scale: CGFloat) -> NSImage {
+            let size = view.bounds.size
+            let pixelsWide = Int((size.width * scale).rounded())
+            let pixelsHigh = Int((size.height * scale).rounded())
+            guard
+                let rep = NSBitmapImageRep(
+                    bitmapDataPlanes: nil,
+                    pixelsWide: pixelsWide,
+                    pixelsHigh: pixelsHigh,
+                    bitsPerSample: 8,
+                    samplesPerPixel: 4,
+                    hasAlpha: true,
+                    isPlanar: false,
+                    colorSpaceName: .deviceRGB,
+                    bytesPerRow: 0,
+                    bitsPerPixel: 0)
+            else {
+                fatalError("Mac snapshot bitmap could not be created")
+            }
+            rep.size = size
+            view.cacheDisplay(in: view.bounds, to: rep)
+            let image = NSImage(size: size)
+            image.addRepresentation(rep)
+            return image
         }
 
         /// Open range 18–22 Sep completed on snapshot day → outline bar + filled end in week view.
@@ -150,75 +205,6 @@
                 text += line
             }
             try text.write(to: file, atomically: true, encoding: .utf8)
-        }
-    }
-
-    /// Fixed week strip for Mac timeline references (avoids ScrollView geometry wiping `visibleRange`).
-    private struct TimelineMacSnapshotChrome: View {
-        let model: TimelineModel
-        private var weekDays: [CalendarDate] {
-            let start = model.visibleRange.lowerBound
-            return (0..<7).compactMap { start.addingDays($0) }
-        }
-
-        var body: some View {
-            let dayWidth: CGFloat = 96
-            VStack(alignment: .leading, spacing: 0) {
-                HStack(spacing: 0) {
-                    Text("Görevler")
-                        .font(.ink.section)
-                        .frame(width: 220, height: 44, alignment: .leading)
-                        .padding(.horizontal, 10)
-                    HStack(spacing: 0) {
-                        ForEach(weekDays, id: \.self) { day in
-                            ZStack {
-                                if day.weekday >= 5 { Color.ink.well }
-                                if day == model.today { Color.ink.accent.opacity(0.12) }
-                                if day == model.today {
-                                    Text("Bugün")
-                                        .font(.ink.meta)
-                                        .foregroundStyle(.ink.accent)
-                                        .fixedSize()
-                                        .offset(y: -8)
-                                }
-                                Text(
-                                    LocalDay.instant(for: day),
-                                    format: .dateTime.day().month(.abbreviated)
-                                )
-                                .font(.ink.time)
-                                .foregroundStyle(.ink.secondaryText)
-                                .monospacedDigit()
-                                .fixedSize()
-                                .offset(y: day == model.today ? 8 : 0)
-                            }
-                            .frame(width: dayWidth, height: 44)
-                        }
-                    }
-                }
-                ForEach(model.groups) { group in
-                    ForEach(group.rows.prefix(8)) { row in
-                        let shift =
-                            CGFloat(
-                                model.visibleRange.lowerBound.ordinal
-                                    - model.bounds.lowerBound.ordinal) * dayWidth
-                        HStack(spacing: 0) {
-                            LinkedTextView(text: row.text, store: model.store)
-                                .font(.ink.content)
-                                .lineLimit(2)
-                                .frame(width: 220, height: 52, alignment: .leading)
-                                .padding(.horizontal, 10)
-                            TimelineBarView(model: model, row: row, dayWidth: dayWidth) {
-                            } edit: { _ in
-                            }
-                            .frame(width: CGFloat(model.days.count) * dayWidth, height: 52)
-                            .offset(x: -shift)
-                            .frame(width: dayWidth * 7, height: 52, alignment: .leading)
-                            .clipped()
-                        }
-                    }
-                }
-            }
-            .background(Color.ink.paper)
         }
     }
 

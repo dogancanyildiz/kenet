@@ -196,7 +196,7 @@ struct TasksView: View {
                 TasksListRow(
                     store: store, row: row, day: model.day,
                     isOverdue: row.due.map { $0 < model.day } ?? false,
-                    completed: false, isBusy: model.busy.contains(row.id), allowsReopening: true,
+                    isBusy: model.busy.contains(row.id), allowsReopening: true,
                     footnote: footnote(for: row)
                 ) { Task { await model.toggle(row) } }
                 #if os(macOS)

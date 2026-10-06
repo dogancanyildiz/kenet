@@ -1,10 +1,15 @@
 import SwiftUI
 
+#if os(macOS)
+    import ObjectiveC
+#endif
+
 struct KanbanCard: View {
     let model: KanbanModel
     let row: TaskRow
     let select: () -> Void
     @State private var dateEditor: TaskEditorModel?
+    @Environment(\.locale) private var locale
 
     var body: some View {
         card
@@ -35,11 +40,7 @@ struct KanbanCard: View {
     @ViewBuilder private var card: some View {
         #if os(macOS)
             if model.grouping != .person && model.store.canAddEvent && !model.busy.contains(row.id) {
-                // Highlight lives only for the system drag preview; local `@State` was never
-                // cleared on cancel / same-column drop (see ``KanbanCardDragHighlight``).
-                buttonContent.onDrag {
-                    NSItemProvider(object: model.beginDrag(row) as NSString)
-                }
+                buttonContent.onDrag { makeDragProvider() }
             } else {
                 buttonContent
             }
@@ -62,14 +63,14 @@ struct KanbanCard: View {
             parts.append(VoiceOverCopy.priorityValue(priority))
         }
         if presentation.showsOverdueCue {
-            parts.append(String(localized: "Devreden"))
+            parts.append(String(localized: "Devreden", locale: locale))
         }
         return parts.joined(separator: ", ")
     }
 
     private var buttonContent: some View {
         Button(action: select) {
-            InkKanbanCard(isDragging: false) {
+            InkKanbanCard(isDragging: model.draggingRowID == row.id) {
                 VStack(alignment: .leading, spacing: 8) {
                     HStack(alignment: .top, spacing: 10) {
                         TaskBox(state: boxState, isDecorative: true)
@@ -108,7 +109,7 @@ struct KanbanCard: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .accessibilityElement(children: .combine)
+        .accessibilityElement(children: .contain)
         .accessibilityValue(Text(verbatim: spokenValue))
         .accessibilityAction(named: Text("Ayrıntıları göster"), select)
         .accessibilityAction(named: Text(verbatim: VoiceOverCopy.changeDateActionName())) {
@@ -117,19 +118,46 @@ struct KanbanCard: View {
         }
         .modifier(KanbanMoveAccessibilityActions(model: model, row: row))
     }
+
+    #if os(macOS)
+        private func makeDragProvider() -> NSItemProvider {
+            let token = model.beginDrag(row)
+            let provider = NSItemProvider(object: token as NSString)
+            let endBox = KanbanDragSessionEndBox { [model] in
+                Task { @MainActor in model.abandonDrag(token) }
+            }
+            objc_setAssociatedObject(
+                provider, &KanbanDragSessionEndBox.associatedKey, endBox,
+                .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+            return provider
+        }
+    #endif
 }
+
+#if os(macOS)
+    /// Retained on the ``NSItemProvider``; `deinit` runs when the drag session ends (drop or cancel).
+    private final class KanbanDragSessionEndBox: @unchecked Sendable {
+        nonisolated(unsafe) static var associatedKey: UInt8 = 0
+        private let onEnd: () -> Void
+        init(onEnd: @escaping () -> Void) { self.onEnd = onEnd }
+        deinit { onEnd() }
+    }
+#endif
 
 /// Chains one VoiceOver action per movable destination column.
 private struct KanbanMoveAccessibilityActions: ViewModifier {
     let model: KanbanModel
     let row: TaskRow
+    @Environment(\.locale) private var locale
 
     func body(content: Content) -> some View {
         let destinations = model.columns.filter { model.canMove(row, to: $0) }
         return destinations.reduce(AnyView(content)) { view, column in
             AnyView(
                 view.accessibilityAction(
-                    named: Text(verbatim: VoiceOverCopy.moveActionName(columnTitle: column.localizedTitle))
+                    named: Text(
+                        verbatim: VoiceOverCopy.moveActionName(
+                            columnTitle: column.localizedTitle(locale: locale)))
                 ) {
                     Task { await model.move(row, to: column) }
                 })

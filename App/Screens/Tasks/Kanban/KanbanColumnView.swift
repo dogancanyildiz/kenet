@@ -24,7 +24,7 @@ struct KanbanColumnView: View {
 
     private var content: some View {
         VStack(alignment: .leading, spacing: 12) {
-            SectionHeader(title: column.localizedTitle, count: column.rows.count)
+            columnHeader
                 .padding(.horizontal, 12)
                 .padding(.top, 12)
             ScrollView {
@@ -49,6 +49,27 @@ struct KanbanColumnView: View {
                 .stroke(
                     targeted ? Color.ink.accent : Color.ink.rule,
                     lineWidth: targeted ? InkStroke.highPriority : InkStroke.control)
+        }
+    }
+
+    @ViewBuilder private var columnHeader: some View {
+        if let name = column.name {
+            SectionHeader(title: name, count: column.rows.count)
+        } else {
+            switch column.destination {
+            case .status(.todo), .status(.unknown):
+                SectionHeader("Yapılacak", count: column.rows.count)
+            case .status(.inProgress):
+                SectionHeader("Devam", count: column.rows.count)
+            case .status(.done):
+                SectionHeader("Bitti", count: column.rows.count)
+            case .status(.cancelled):
+                SectionHeader("İptal", count: column.rows.count)
+            case .project:
+                SectionHeader("Projesiz", count: column.rows.count)
+            case .person:
+                SectionHeader("Kişisiz", count: column.rows.count)
+            }
         }
     }
 }

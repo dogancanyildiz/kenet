@@ -21,25 +21,13 @@ import VaultFormat
                         labels(groups).frame(width: 230)
                         ScrollViewReader { proxy in
                             ScrollView(.horizontal) {
-                                VStack(spacing: 0) {
-                                    axis(dayWidth: dayWidth)
-                                    ForEach(groups) { group in
-                                        Color.clear.frame(height: 32)
-                                        if !model.collapsed.contains(group.id) {
-                                            ForEach(group.rows) { row in
-                                                TimelineBarView(model: model, row: row, dayWidth: dayWidth) {
-                                                    select(row)
-                                                } edit: {
-                                                    edit(row, $0)
-                                                }
-                                            }
-                                        }
-                                    }
-                                }.frame(width: CGFloat(model.days.count) * dayWidth)
-                                    .background {
-                                        TimelineGrid(days: model.days, today: model.today, dayWidth: dayWidth)
-                                    }
-                                    .coordinateSpace(name: "timeline-axis")
+                                TimelineDesktopContent(
+                                    model: model,
+                                    days: model.days,
+                                    dayWidth: dayWidth,
+                                    select: select,
+                                    edit: edit
+                                )
                             }
                             .onScrollGeometryChange(for: ClosedRange<Int>.self) { value in
                                 let first = min(
@@ -137,40 +125,6 @@ import VaultFormat
                     }
                 }
             }
-        }
-        private func axis(dayWidth: CGFloat) -> some View {
-            HStack(spacing: 0) {
-                ForEach(model.days, id: \.self) { day in
-                    ZStack {
-                        if day.weekday >= 5 { Color.ink.well }
-                        if day == model.today {
-                            Color.ink.accent.opacity(0.12)
-                        }
-                        if showsAxisDateLabel(day) {
-                            Text(LocalDay.instant(for: day), format: .dateTime.day().month(.abbreviated))
-                                .font(.ink.time)
-                                .foregroundStyle(.ink.secondaryText)
-                                .monospacedDigit()
-                                .fixedSize()
-                                .zIndex(1)
-                                .offset(y: day == model.today ? 8 : 0)
-                        }
-                        if day == model.today {
-                            Text("Bugün")
-                                .font(.ink.meta)
-                                .foregroundStyle(.ink.accent)
-                                .fixedSize()
-                                .zIndex(2)
-                                .offset(y: showsAxisDateLabel(day) ? -8 : 0)
-                                .accessibilityAddTraits(.isHeader)
-                        }
-                    }.frame(width: dayWidth, height: 44).id(day.description)
-                }
-            }
-        }
-
-        private func showsAxisDateLabel(_ day: CalendarDate) -> Bool {
-            model.scale == .week || (model.scale == .month && day.weekday == 0) || day.day == 1
         }
         private func scrollToday(_ proxy: ScrollViewProxy) {
             let date = model.today.addingDays(-min(28, model.scale.daysAcross / 4)) ?? model.today

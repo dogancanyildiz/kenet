@@ -8,7 +8,6 @@ struct TasksListRow: View {
     let row: TaskRow
     let day: CalendarDate
     let isOverdue: Bool
-    let completed: Bool
     let isBusy: Bool
     var allowsReopening = false
     var footnote: Text? = nil
@@ -21,21 +20,18 @@ struct TasksListRow: View {
     @State private var deleteConfirmation = DestructiveConfirmation<DestructiveConfirmationToken>()
 
     private var presentation: TaskStatusPresentation {
-        .make(isPastDue: isOverdue, isCompleted: completed || row.isClosed)
+        .make(isPastDue: isOverdue, isCompleted: row.isClosed)
     }
-
-    private var isCompletedCue: Bool { completed || row.isClosed }
 
     private var boxState: TaskBoxState {
         TaskBoxState(
-            status: isCompletedCue ? .done : KanbanModel.status(of: row),
+            status: row.isClosed ? .done : KanbanModel.status(of: row),
             priority: row.priority)
     }
 
     private var completion: TasksListRowCompletion {
-        .resolve(
-            isClosed: row.isClosed,
-            completed: completed,
+        .make(
+            from: row,
             allowsReopening: allowsReopening,
             isBusy: isBusy,
             canAddEvent: store.canAddEvent)

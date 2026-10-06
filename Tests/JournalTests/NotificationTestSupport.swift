@@ -84,6 +84,11 @@ final class FakeNotificationCenter: NotificationScheduling {
         removals.append(identifiers)
         for identifier in identifiers { values.removeValue(forKey: identifier) }
     }
+    var deliveredRemovals = 0
+    func removeAllDeliveredNotifications() async {
+        operations.append("removeDelivered")
+        deliveredRemovals += 1
+    }
     func activate(response: @escaping @MainActor @Sendable (NotificationDestination) -> Void) {
         activationCount += 1
         self.response = response

@@ -30,6 +30,9 @@ struct NotificationSettingsView: View {
                 Toggle("Akşam günlük hatırlatması", isOn: $service.preferences.journalEnabled)
                 DatePicker("Günlük saati", selection: time(\.journalTime), displayedComponents: .hourAndMinute)
                     .disabled(!service.preferences.journalEnabled)
+                Toggle("Bildirimlerde içeriği gizle", isOn: $service.preferences.hideContent)
+                Text("Afiş, bildirim merkezi ve kilit ekranında görev metni ve hedef adları gösterilmez.")
+                    .font(.caption).foregroundStyle(.secondary)
                 Text("Uygulama kapalıyken planlanan hatırlatmalar değişmez.").font(.caption).foregroundStyle(.secondary)
             }
             Section("Planlananlar") {

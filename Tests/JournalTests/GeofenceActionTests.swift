@@ -212,4 +212,87 @@ struct GeofenceActionTests {
             !FileManager.default.fileExists(
                 atPath: context.vault.root.appendingPathComponent("journal/2026-10-04.md").path))
     }
+
+    @Test func lockedMarkActionDoesNotWriteAndSurfacesNotice() async throws {
+        let context = try GeofenceTestContext()
+        defer { context.clean() }
+        let locked = GeofenceService(
+            location: context.location, center: context.center,
+            defaults: context.vault.defaults.defaults, today: { CalendarDate("2026-10-04")! },
+            allowsBackground: { true }, isLocked: { true }, isLockEnabled: { true })
+        locked.attach(to: context.vault.store)
+        var openedGoals = false
+        locked.onLockedMarkBlocked = { openedGoals = true }
+        locked.activate()
+        await context.vault.store.select(context.vault.root)
+        let target = try #require(locked.targets.first { $0.goal.key == "spor" })
+        await locked.enter(target.id)
+        #expect(context.center.notices.count == 1)
+        let action = try #require(context.center.notices.first?.action)
+        let file = context.vault.root.appendingPathComponent("journal/2026-10-04.md")
+        #expect(!FileManager.default.fileExists(atPath: file.path))
+        await locked.respond(to: action)
+        #expect(!FileManager.default.fileExists(atPath: file.path))
+        #expect(openedGoals)
+        #expect(
+            locked.lockedMarkNotice
+                == String(localized: "Günlük kilitliydi. Kilidi açtıktan sonra hedefi kendin işaretle."))
+        #expect(locked.errorText == nil)
+    }
+
+    @Test func unlockClearsLockedMarkNotice() async throws {
+        let context = try GeofenceTestContext()
+        defer { context.clean() }
+        let fixture = LockFixture(enabled: true)
+        defer { fixture.clean() }
+        let lock = fixture.lock()
+        let service = GeofenceService(
+            location: context.location, center: context.center,
+            defaults: context.vault.defaults.defaults, today: { CalendarDate("2026-10-04")! },
+            allowsBackground: { true })
+        service.attach(to: context.vault.store)
+        service.attach(lock: lock)
+        service.activate()
+        await context.vault.store.select(context.vault.root)
+        let target = try #require(service.targets.first { $0.goal.key == "spor" })
+        await service.enter(target.id)
+        let action = try #require(context.center.notices.first?.action)
+        await service.respond(to: action)
+        #expect(service.lockedMarkNotice != nil)
+        await lock.becomeActive()
+        #expect(service.lockedMarkNotice == nil)
+    }
+
+    @Test func unlockedMarkActionStillWrites() async throws {
+        let context = try GeofenceTestContext()
+        defer { context.clean() }
+        let unlocked = GeofenceService(
+            location: context.location, center: context.center,
+            defaults: context.vault.defaults.defaults, today: { CalendarDate("2026-10-04")! },
+            allowsBackground: { true }, isLocked: { false }, isLockEnabled: { false })
+        unlocked.attach(to: context.vault.store)
+        unlocked.activate()
+        await context.vault.store.select(context.vault.root)
+        let target = try #require(unlocked.targets.first { $0.goal.key == "spor" })
+        await unlocked.enter(target.id)
+        let action = try #require(context.center.notices.first?.action)
+        await unlocked.respond(to: action)
+        #expect(String(decoding: try context.bytes(), as: UTF8.self).contains("  spor: true"))
+    }
+
+    @Test func hideContentPropagatesOnGeofenceNotice() async throws {
+        let context = try GeofenceTestContext()
+        defer { context.clean() }
+        var prefs = NotificationPreferences()
+        prefs.hideContent = true
+        prefs.persist(in: context.vault.defaults.defaults)
+        await context.start()
+        await context.service.enter(try context.target.id)
+        let notice = try #require(context.center.notices.first)
+        #expect(notice.hideContent)
+        #expect(
+            LocationCopy.geofenceTitle(
+                place: notice.placeName, goal: notice.goalName, automatic: false, hideContent: true
+            ).contains(notice.goalName) == false)
+    }
 }

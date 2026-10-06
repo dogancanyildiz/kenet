@@ -59,5 +59,17 @@ struct TurkishSuffixTests {
         #expect(englishPrompt.contains("Home"))
         #expect(englishPrompt.contains("Walk"))
         #expect(!englishPrompt.contains("'ndasın"))
+        let hidden = LocationCopy.geofenceTitle(
+            place: "Ev", goal: "Yürüyüş", automatic: false, hideContent: true, locale: turkish)
+        #expect(hidden == String(localized: "Bir hedefin yakınındasın", locale: turkish))
+        #expect(!hidden.contains("Ev"))
+        #expect(!hidden.contains("Yürüyüş"))
+        let hiddenAutomatic = LocationCopy.geofenceTitle(
+            place: "Ev", goal: "Yürüyüş", automatic: true, hideContent: true, locale: turkish)
+        #expect(hiddenAutomatic == String(localized: "Hedef işaretlendi", locale: turkish))
+        #expect(!hiddenAutomatic.contains("Yürüyüş"))
+        let visible = LocationCopy.geofenceTitle(
+            place: "Ev", goal: "Yürüyüş", automatic: false, hideContent: false, locale: turkish)
+        #expect(visible == prompt)
     }
 }

@@ -41,5 +41,6 @@ protocol NotificationScheduling {
     func pendingRequests() async -> [NotificationRequest]
     func add(_ request: NotificationRequest) async throws
     func remove(identifiers: [String]) async
+    func removeAllDeliveredNotifications() async
     func activate(response: @escaping @MainActor @Sendable (NotificationDestination) -> Void)
 }

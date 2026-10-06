@@ -21,7 +21,7 @@ struct IntentActionResult: Sendable {
 }
 
 enum IntentActionError: LocalizedError {
-    case vaultUnavailable, emptyText, writeFailed, goalMissing, invalidAmount
+    case vaultUnavailable, emptyText, writeFailed, goalMissing, invalidAmount, appLocked
     var errorDescription: String? {
         switch self {
         case .vaultUnavailable: String(localized: "Kasaya erişilemiyor. Journal'da kasanı açıp yeniden dene.")
@@ -29,6 +29,7 @@ enum IntentActionError: LocalizedError {
         case .writeFailed: String(localized: "Kayıt yazılamadı. Kasa erişimini ve metni kontrol et.")
         case .goalMissing: String(localized: "Hedef bulunamadı. Kısayolda hedefi yeniden seç.")
         case .invalidAmount: String(localized: "Sayısal hedef için sıfır veya daha büyük, sonlu bir miktar gir.")
+        case .appLocked: String(localized: "Günlük kilitli. Uygulamayı açıp kilidi aç.")
         }
     }
 }
@@ -36,21 +37,47 @@ enum IntentActionError: LocalizedError {
 /// Shared by foreground UI and App Intents; no real vault is opened by construction.
 @MainActor
 final class IntentActions {
-    static let shared = IntentActions()
+    static let shared: IntentActions = {
+        IntentActions(isLocked: { IntentActions.coldStartIsLocked() })
+    }()
     let store: IndexStore
     private let now: () -> Date
     private let permitsStart: () -> Bool
+    /// Locked means app lock is enabled and not yet authenticated (`isEnabled && isLocked`).
+    var isLocked: () -> Bool
     private var isPerforming = false
     var languages: [DateParsing.Language] = [.turkish, .english]
 
     init(
         store: IndexStore = IndexStore(), now: @escaping () -> Date = { Date() },
-        permitsStart: @escaping () -> Bool = { AppLaunchPolicy.allowsAutomaticStart() }
+        permitsStart: @escaping () -> Bool = { AppLaunchPolicy.allowsAutomaticStart() },
+        isLocked: @escaping () -> Bool = { false }
     ) {
         self.store = store
         self.now = now
         self.permitsStart = permitsStart
+        self.isLocked = isLocked
     }
+
+    /// Cold intent launch before JournalApp attaches the live service: enabled ⇒ unauthenticated.
+    static func coldStartIsLocked(defaults: UserDefaults = .standard) -> Bool {
+        defaults.bool(forKey: AppLockService.enabledKey)
+    }
+
+    /// Bind the live lock service so foreground unlock state is visible to intents.
+    func attach(lock: AppLockService) {
+        isLocked = { [weak lock] in
+            guard let lock else { return Self.coldStartIsLocked() }
+            return lock.isLockedNow()
+        }
+    }
+
+    private func requireUnlocked() throws {
+        if isLocked() { throw IntentActionError.appLocked }
+    }
+
+    /// App Intent entity resolution needs the locked reason, not an empty list.
+    func throwIfLocked() throws { try requireUnlocked() }
 
     private func prepare() async throws {
         guard permitsStart() else { throw IntentActionError.vaultUnavailable }
@@ -69,6 +96,7 @@ final class IntentActions {
         }
     }
     func goals() async throws -> [IntentGoal] {
+        if isLocked() { return [] }
         try await begin()
         defer { isPerforming = false }
         guard let root = store.vaultURL else { throw IntentActionError.vaultUnavailable }
@@ -76,6 +104,7 @@ final class IntentActions {
     }
     func addEvent(text: String, time: LineClock? = nil) async throws -> IntentActionResult {
         guard !text.allSatisfy(\.isWhitespace) else { throw IntentActionError.emptyText }
+        try requireUnlocked()
         try await begin()
         defer { isPerforming = false }
         let instant = now()
@@ -94,6 +123,7 @@ final class IntentActions {
         text: String, due: CalendarDate? = nil,
         confirmAssumedDate: ((CalendarDate) async -> Bool)? = nil
     ) async throws -> IntentActionResult {
+        try requireUnlocked()
         let day = LocalDay.today(at: now())
         let recurrence = RecurrenceExpressionParser.parse(text, language: languages)
         let priority = PriorityExpressionParser.parse(recurrence?.remainder ?? text)
@@ -138,6 +168,7 @@ final class IntentActions {
         }
     }
     func markGoal(id: String, amount: Double? = nil) async throws -> IntentActionResult {
+        try requireUnlocked()
         try await begin()
         defer { isPerforming = false }
         guard let root = store.vaultURL,

@@ -177,4 +177,23 @@ struct NotificationServiceTests {
         #expect(NotificationDestination.from(identifier: "task-2026-13-01") == nil)
         #expect(NotificationDestination.from(identifier: "task-other") == nil)
     }
+
+    @Test func enablingHideContentRemovesDeliveredNotifications() async throws {
+        let defaults = try TestDefaults()
+        defer { defaults.clean() }
+        let center = FakeNotificationCenter()
+        let service = service(center, defaults: defaults, debounce: .zero)
+        #expect(center.deliveredRemovals == 0)
+        service.preferences.hideContent = true
+        for _ in 0..<50 where center.deliveredRemovals == 0 { await Task.yield() }
+        #expect(center.deliveredRemovals == 1)
+        #expect(center.operations.contains("removeDelivered"))
+        service.preferences.hideContent = true
+        await Task.yield()
+        #expect(center.deliveredRemovals == 1)
+        service.preferences.hideContent = false
+        service.preferences.hideContent = true
+        for _ in 0..<50 where center.deliveredRemovals < 2 { await Task.yield() }
+        #expect(center.deliveredRemovals == 2)
+    }
 }

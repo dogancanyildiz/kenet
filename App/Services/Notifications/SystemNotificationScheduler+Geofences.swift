@@ -6,29 +6,44 @@ extension SystemNotificationScheduler: GeofenceNotificationDelivering {
     func activateGeofences(response: @escaping @MainActor @Sendable (GeofenceAction) async -> Void) {
         geofenceResponse = response
         UNUserNotificationCenter.current().delegate = self
+        refreshGeofenceCategory()
+    }
+
+    /// When app lock is enabled, omit Mark so the only path is opening the app (default action).
+    func refreshGeofenceCategory(lockEnabled: Bool? = nil) {
+        let enabled = lockEnabled ?? UserDefaults.standard.bool(forKey: AppLockService.enabledKey)
+        let previous = geofenceRegistration
         geofenceRegistration = Task {
+            await previous?.value
+            guard !Task.isCancelled else { return }
             let center = UNUserNotificationCenter.current()
             let existing = await center.notificationCategories()
-            let category = UNNotificationCategory(
-                identifier: "geofence.goal",
-                actions: [
+            let actions: [UNNotificationAction]
+            if enabled {
+                actions = []
+            } else {
+                actions = [
                     UNNotificationAction(
                         identifier: "geofence.mark", title: String(localized: "İşaretle"), options: []),
                     UNNotificationAction(
                         identifier: "geofence.skip", title: String(localized: "Şimdi değil"), options: []),
-                ], intentIdentifiers: [], options: [])
+                ]
+            }
+            let category = UNNotificationCategory(
+                identifier: "geofence.goal", actions: actions, intentIdentifiers: [], options: [])
             center.setNotificationCategories(
                 Set(existing.filter { $0.identifier != "geofence.goal" }).union([category]))
         }
     }
+
     func sendGeofence(_ notice: GeofenceNotice) async throws -> Bool {
+        refreshGeofenceCategory()
         await geofenceRegistration?.value
         guard await authorization().canSchedule else { return false }
         let content = UNMutableNotificationContent()
-        content.title =
-            notice.automatic
-            ? String(localized: "\(notice.goalName) işaretlendi")
-            : LocationCopy.geofencePrompt(place: notice.placeName, goal: notice.goalName)
+        content.title = LocationCopy.geofenceTitle(
+            place: notice.placeName, goal: notice.goalName, automatic: notice.automatic,
+            hideContent: notice.hideContent)
         content.sound = .default
         content.categoryIdentifier = notice.automatic ? "" : "geofence.goal"
         content.userInfo = [

@@ -56,8 +56,13 @@ struct TapTargetTests {
         let source = try Self.read("App/Screens/Goals/GoalHeatmap.swift")
         #expect(
             !source.contains(".tapTarget()"),
-            "18 pt heatmap cells must stay a dense grid; Stage 9 redesign owns the hit area")
-        #expect(source.contains("frame(height: 18)"))
+            "Heatmap cells must stay a dense grid; hit area is the cell itself")
+        #expect(
+            source.contains("HeatmapCell("),
+            "Heatmap must use HeatmapCell (shape + color density cues)")
+        #expect(
+            source.contains("cellSize"),
+            "Cell size stays compact (ScaledMetric ~14 pt), not the 44 pt tap floor")
     }
 
     @Test func quickEntryReflowsForLargeDynamicType() throws {

@@ -46,23 +46,38 @@ struct GoalFieldEditor: View {
                     Text(GoalKind.boolean.title).tag("boolean")
                     Text(GoalKind.number.title).tag("number")
                 }
-                Text("Tür değişikliği geçmiş kayıtları dönüştürmez.").font(.caption).foregroundStyle(.secondary)
+                Text("Tür değişikliği geçmiş kayıtları dönüştürmez.")
+                    .font(.ink.meta)
+                    .foregroundStyle(Color.ink.secondaryText)
             } else {
                 TextField(field.title, text: $text)
+                    .font(field == .name || field == .unit ? .ink.content : .ink.value)
             }
-            if let error = model.errorText { Text(verbatim: error).foregroundStyle(.secondary) }
-        }.formStyle(.grouped).disabled(model.isWriting || isSaved)
-            .navigationTitle(field.title)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button("Kapat") { dismiss() } }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Kaydet") {
-                        Task {
-                            isSaved = await model.set(field.rawValue, text: text)
-                            if isSaved && model.errorText == nil { dismiss() }
-                        }
-                    }.disabled(!model.canEdit || isSaved)
+            if let error = model.errorText {
+                InfoBand(kind: .error, verbatim: error)
+            }
+        }
+        .formStyle(.grouped)
+        .scrollContentBackground(.hidden)
+        .background(Color.ink.surface)
+        .disabled(model.isWriting || isSaved)
+        .navigationTitle(field.title)
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button("Kapat") { dismiss() }
+                    .buttonStyle(InkTextButtonStyle())
+            }
+            ToolbarItem(placement: .confirmationAction) {
+                Button("Kaydet") {
+                    Task {
+                        isSaved = await model.set(field.rawValue, text: text)
+                        if isSaved && model.errorText == nil { dismiss() }
+                    }
                 }
-            }.frame(minWidth: 300, minHeight: 200)
+                .buttonStyle(InkPrimaryButtonStyle())
+                .disabled(!model.canEdit || isSaved)
+            }
+        }
+        .frame(minWidth: 300, minHeight: 200)
     }
 }

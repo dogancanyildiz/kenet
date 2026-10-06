@@ -93,7 +93,7 @@
     }
 
     enum SnapshotScreen: String, Sendable {
-        case today, tasks
+        case today, tasks, goals, summaries, graph, map
     }
 
     @MainActor
@@ -120,6 +120,14 @@
                         TasksView(
                             store: store,
                             tasks: TasksModel(store: store, today: { snapshotDay })))
+                case .goals:
+                    AnyView(GoalsView(store: store))
+                case .summaries:
+                    AnyView(SummariesView(store: store, today: { snapshotDay }))
+                case .graph:
+                    AnyView(GraphView(store: store))
+                case .map:
+                    AnyView(PlacesMapView(store: store))
                 }
             return NavigationStack { root }
                 .environment(notifications)

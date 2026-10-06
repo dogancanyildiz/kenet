@@ -6249,18 +6249,18 @@
         }
       }
     },
-    "Dönem sonunda geciken": {
+    "Dönem sonunda devreden": {
       "localizations": {
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dönem sonunda geciken"
+            "value": "Dönem sonunda devreden"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Overdue at period end"
+            "value": "Carried over at period end"
           }
         }
       }

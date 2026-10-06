@@ -9,7 +9,12 @@ struct GoalCreationView: View {
         @Bindable var model = model
         Form {
             TextField("Ad", text: $model.name)
-            LabeledContent("Anahtar", value: model.key)
+                .font(.ink.content)
+            LabeledContent("Anahtar") {
+                Text(verbatim: model.key)
+                    .font(.ink.meta)
+                    .foregroundStyle(Color.ink.secondaryText)
+            }
             if model.kind != .milestone {
                 Picker("Dönem", selection: $model.period) {
                     Text(GoalPeriod.day.title).tag(GoalPeriod.day)
@@ -24,20 +29,35 @@ struct GoalCreationView: View {
             }
             if model.kind != .milestone {
                 TextField("Hedef miktar", text: $model.target)
+                    .font(.ink.value)
                     #if os(iOS)
                         .keyboardType(.decimalPad)
                     #endif
             }
-            if model.kind == .number { TextField("Birim (isteğe bağlı)", text: $model.unit) }
-            if let error = model.errorText { Text(verbatim: error).foregroundStyle(.secondary) }
+            if model.kind == .number {
+                TextField("Birim (isteğe bağlı)", text: $model.unit)
+                    .font(.ink.content)
+            }
+            if let error = model.errorText {
+                InfoBand(kind: .error, verbatim: error)
+            }
         }
-        .formStyle(.grouped).disabled(model.isWriting || model.isSaved)
+        .formStyle(.grouped)
+        .scrollContentBackground(.hidden)
+        .background(Color.ink.surface)
+        .disabled(model.isWriting || model.isSaved)
         .navigationTitle("Yeni hedef")
         .toolbar {
-            ToolbarItem(placement: .cancellationAction) { Button("Kapat") { dismiss() } }
+            ToolbarItem(placement: .cancellationAction) {
+                Button("Kapat") { dismiss() }
+                    .buttonStyle(InkTextButtonStyle())
+            }
             ToolbarItem(placement: .confirmationAction) {
-                Button("Oluştur") { Task { if await model.save(), model.errorText == nil { dismiss() } } }.disabled(
-                    !model.canSave)
+                Button("Oluştur") {
+                    Task { if await model.save(), model.errorText == nil { dismiss() } }
+                }
+                .buttonStyle(InkPrimaryButtonStyle())
+                .disabled(!model.canSave)
             }
         }
         .frame(minWidth: 320, minHeight: 350)

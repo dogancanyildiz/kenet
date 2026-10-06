@@ -24,7 +24,6 @@ struct DesignTokenUsageTests {
         "App/Screens/Shared/SearchNoteView.swift",
         "App/Screens/Shared/SearchView.swift",
         "App/Screens/Shared/SingleLineTextEditor.swift",
-        "App/Screens/Summaries/SummariesView.swift",
         "App/Screens/Tasks/EntityOpenTasksView.swift",
         "App/Screens/Tasks/Kanban/KanbanView.swift",
         "App/Screens/Tasks/ProjectView.swift",

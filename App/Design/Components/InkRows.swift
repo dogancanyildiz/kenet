@@ -37,11 +37,13 @@ struct InkTaskRow: View {
     }
 }
 
-/// Goal row: ring, name, trailing value + one-tap plus.
+/// Goal row: ring, name, optional streak/series meta, trailing value + one-tap plus.
 struct InkGoalRow: View {
     let name: String
     var progress: Double
     var isBoolean: Bool = false
+    /// Streak / series / period line under the name (app meta, sans).
+    var meta: String? = nil
     var valueText: String? = nil
     var onIncrement: (() -> Void)? = nil
 
@@ -51,6 +53,12 @@ struct InkGoalRow: View {
         } primary: {
             Text(verbatim: name)
                 .foregroundStyle(progress >= 1 ? Color.ink.secondaryText : Color.ink.text)
+        } secondary: {
+            if let meta, !meta.isEmpty {
+                Text(verbatim: meta)
+                    .font(.ink.meta)
+                    .foregroundStyle(.ink.secondaryText)
+            }
         } trailing: {
             HStack(spacing: 8) {
                 if let valueText {

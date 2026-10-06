@@ -4,7 +4,7 @@ struct GraphControls: View {
     let maximumWeight: Int
     @Binding var filter: GraphFilter
     var body: some View {
-        VStack {
+        VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Toggle("Kişiler", isOn: $filter.people)
                 Toggle("Konumlar", isOn: $filter.places)
@@ -20,7 +20,10 @@ struct GraphControls: View {
                 Stepper(value: $filter.minimumWeight, in: 1...max(maximumWeight, filter.minimumWeight)) {
                     Text("En az \(filter.minimumWeight) ortak gün")
                 }
-            }.font(.caption)
-        }.padding()
+            }
+            .font(.ink.meta)
+            .foregroundStyle(Color.ink.secondaryText)
+        }
+        .padding(InkSpacing.margin)
     }
 }

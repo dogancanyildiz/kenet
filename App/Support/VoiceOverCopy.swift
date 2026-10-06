@@ -13,7 +13,7 @@ enum VoiceOverCopy {
 
     /// Task box cue for the Today presentation; the catalog language follows `locale`
     /// (unlike the two lookups above, which follow the process language).
-    static func taskBoxValue(state: TaskBoxState, priority: TaskPriority?, locale: Locale) -> String {
+    static func taskBoxValue(state: TaskBoxMarkState, priority: TaskPriority?, locale: Locale) -> String {
         let status = boxStatusValue(state, locale: locale, presentation: true)
         guard let priority else { return status }
         return "\(status), \(boxPriorityValue(priority, locale: locale, presentation: true))"
@@ -83,7 +83,7 @@ enum VoiceOverCopy {
 
     /// Shared status switch for process-language helpers and presentation-locale lookups.
     private static func boxStatusValue(
-        _ state: TaskBoxState, locale: Locale, presentation: Bool
+        _ state: TaskBoxMarkState, locale: Locale, presentation: Bool
     ) -> String {
         let key: String.LocalizationValue =
             switch state {

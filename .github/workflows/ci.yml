@@ -145,8 +145,32 @@ jobs:
             -scheme Journal_iOS \
             -destination "platform=iOS Simulator,name=${{ steps.ios_sim.outputs.name }}" \
             -only-testing:JournalTests_iOS \
+            -skip-testing:JournalTests_iOS/ScreenSnapshotTests \
             CODE_SIGNING_ALLOWED=NO \
             -quiet
+      # Ekran görüntüsü: birim katmanında SwiftUI çizimi (uygulama açılmaz). Ayrı adım = süre ölçümü
+      # ve düşünce fark görüntüleri artifact'ı. Algısal tolerans 0.98 (Tests/JournalTests/Snapshots).
+      - name: iOS ekran görüntüsü
+        id: screen_snapshots
+        run: |
+          xcodebuild test-without-building \
+            -project Journal.xcodeproj \
+            -scheme Journal_iOS \
+            -destination "platform=iOS Simulator,name=${{ steps.ios_sim.outputs.name }}" \
+            -only-testing:JournalTests_iOS/ScreenSnapshotTests \
+            -resultBundlePath ScreenSnapshots.xcresult \
+            CODE_SIGNING_ALLOWED=NO \
+            -quiet
+      - name: Ekran görüntüsü farkları (yalnız düşünce)
+        if: failure() && steps.screen_snapshots.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: screen-snapshot-diffs
+          path: |
+            ScreenSnapshots.xcresult
+            Tests/JournalTests/Snapshots/__Snapshots__
+          if-no-files-found: warn
+          retention-days: 7
       - name: iOS arayüz dumanı
         run: |
           xcodebuild test-without-building \

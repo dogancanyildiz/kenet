@@ -1,6 +1,6 @@
 # Yol haritası
 
-**Aktif aşama:** 8
+**Aktif aşama:** 9 (Aşama 8'in açık kalan iki maddesi sahibin elindedir: kilidin gerçek cihazda doğrulanması ve eşitlenen klasör uyarısının metni)
 
 **Durum (2026-10-05).** Aşama 0–7'nin kullanıcı kararı gerektirmeyen teknik maddeleri `dev` dalındadır. Bu belgede `[x]`, "kodda var, testlerden ve CI'dan geçti" demektir. Aşamaların gerçek kullanım ölçütleri henüz ölçülmedi ve aşağıda ayrıca izlenir.
 
@@ -48,7 +48,7 @@ Doğruluk ve veri güvenliği:
 - [x] Aynı dosya adı başka klasörde de varsa otomatik bağlantı yanlış dosyaya gidiyor; yazılacak hedefi indeks belirler (önce `vault-format.md`)
 - [x] Doğal dil tarih: ondalık ve kesirli sayılar tarih sanılıp metinden siliniyor ("2.5 kg un al"), "haftaya salı" yanlış güne çözülüyor, Kısayollar yolu varsayımlı tarihi sormadan uyguluyor
 - [x] Silmede onay ya da geri alma (olay, görev, alan, hedef kaydı); günlük yazısında kaydedilmemiş metin sormadan atılmaz
-- [ ] Kayıtlı kasaya erişilemeyince durum ana ekranda görünür; yazılar sessizce başka kasaya gitmez (davranış kullanıcı kararı)
+- [x] Kayıtlı kasaya erişilemeyince durum ana ekranda görünür; yazılar sessizce başka kasaya gitmez
 - [x] Uygulama meşgulken gelen yazma sıraya alınır; yutulan Enter ve yanlış "dosya dışarıdan değişti" hatası biter
 - [ ] Uygulama kilidi "Hemen" ayarında başarılı doğrulamadan sonra yeniden kilitlenmez (gerçek cihazda doğrulanır) (kod ve test birleşti; kalan: gerçek cihazda doğrulama)
 - [x] Kasa format sürümü her yazmada denetlenir; harf farkı olan klasör adı (`Journal/`) kasa hazırlamada bildirilir; ön bilgideki boş liste öğesi yeniden adlandırmayı durdurmaz
@@ -60,14 +60,14 @@ Doğruluk ve veri güvenliği:
 - [x] İlk indeksleme ve tip ekleme: boş indekste tam kurulum yolu kullanılır, kimlik sahipliği sorgusu indekslenir (şema sürümü artar)
 - [x] Dosya değişmemişse yenileme hiçbir şey yayınlamaz; bildirimler her turda silinip kurulmaz
 - [x] Yazma sonrası okuma modeli ana iş parçacığı dışında kurulur (ölçüm: olay eklerken 0,45 sn donma)
-- [ ] Hedef işaretleme bütün kasayı okumaz; yazma başına tam dizin taraması kalkar (hedef işaretleme düzeltildi; kalan: yazma sırasında indeks güncellemesinin tam dizin taraması)
+- [x] Hedef işaretleme bütün kasayı okumaz; yazma başına tam dizin taraması kalkar (indeks güncellemesi yalnız bildirilen dizinleri tarar)
 - [x] Sentetik kasa ile ölçek bütçe testleri: yenileme, yazma, yeniden adlandırma, ilk açılış
 - [x] Okuma modeli dosya başına artımlı kurulur (5 yıllık kasada yazma sonrası 1,65 sn → 0,09 sn; ekranların kendi sorgusunu çalıştırması Aşama 11'e taşındı)
 
 Veri sahipliği ve gizlilik:
 
 - [x] Varsayılan kasa iPhone'da Dosyalar'da, Mac'te Finder'da görünür; ilk açılış ekranı kasanın nerede durduğunu söyler
-- [ ] Bildirimlerde içeriği gizleme seçeneği; kilitliyken Siri'nin hedef adlarını listelemesi ve bildirim eylemiyle yazma için karar
+- [x] Bildirimlerde içeriği gizleme seçeneği; kilitliyken Siri hedef adlarını listelemez, Kısayollar ve bildirim eylemi yazmaz
 - [x] İndeks yedekten hariç tutulur, veri koruma sınıfı kararı yazılır; arama geçmişi temizlenebilir ve kasaya bağlıdır
 
 Erişilebilirlik ve dil:

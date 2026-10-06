@@ -181,7 +181,7 @@ Biçim: görev kutusu 22 pt kare (köşe 5 pt), hedef halkası 22 pt daire, art�
 
 Yukarıdan aşağı: manşet (tarih) ve künye satırı (olayla başlayıp "kaldı" ile biten özet: "3 olay · 4 görev ve 2 hedef kaldı"); hedefler (halka, ad, sağda değer ve tek dokunuşluk artı); görevler (köşeli kutu ve içinde öncelik, devreden görevde tarih); takvim (kasa dışı kaynak olduğu için sans); olaylar (kenarda saat); günlük yazısı (dört satır ve "Devamını yaz"). Altta hızlı giriş kapsülü ("Olay" ve "Görev" sözcükleri, yer tutucu, gönder) ve sistem sekme çubuğu.
 
-`screens.md` taslağına ekler (sahibin onayına bağlı): manşet ve künye satırı; bölüm sayaçları; devreden görevlerin üç satır ve "N devreden daha" ile sınırlanması; birden çok tamamlanan görevin tek satıra katlanması. On geciken görevin nasıl görüneceğini adayların hiçbiri çizmedi; kural prototipte sınanır.
+`screens.md` taslağına işlenen ekler: manşet ve künye satırı; bölüm sayaçları; devreden görevlerin üç satır ve "N devreden daha" ile sınırlanması; birden çok tamamlanan görevin tek satıra katlanması. On geciken görevin nasıl görüneceğini adayların hiçbiri çizmedi; kural prototipte sınanır.
 
 ## Bileşenler
 

@@ -10,7 +10,7 @@ struct TaskDueDateLabel: View {
 
     var body: some View {
         dateLabel.overdueAccessibilityValue(presentation.showsOverdueCue)
-            .foregroundStyle(presentation.showsOverdueCue ? Color.inkWarning : Color.secondary)
+            .foregroundStyle(presentation.showsOverdueCue ? Color.ink.warning : Color.secondary)
     }
 
     @ViewBuilder private var dateLabel: some View {

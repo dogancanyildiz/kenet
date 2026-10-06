@@ -53,7 +53,14 @@ struct TodayPresentation: Sendable {
         var seen: Set<String> = []
         var cancelledRows: [TaskRow] = []
         var completedRows: [TaskRow] = []
-        for row in all + completedTasks {
+        // Rows from the groups are always represented. Separately supplied closed rows are a
+        // superset (Today's groups drop closed rows): keep only what was completed on this day.
+        let groupIDs = Set(all.map(\.id))
+        let completedHere = completedTasks.filter {
+            groupIDs.contains($0.id) || completedTaskIDs.contains($0.id)
+                || (isDone($0) && $0.done == day.date)
+        }
+        for row in all + completedHere {
             guard seen.insert(row.id).inserted else { continue }
             if isCancelled(row) {
                 cancelledRows.append(row)
@@ -186,16 +193,16 @@ struct TaskBoxPresentation: Sendable {
 
 enum TaskBoxState: Sendable { case open, inProgress, done, cancelled }
 
-/// Locale selects both catalog language and formatting; process language is irrelevant.
+/// The given locale selects both catalog language and formatting when its language is supported.
 /// Prefer `@Environment(\.locale)` from the view; do not hand-build a `Locale` for presentation.
 enum PresentationLocalization {
+    /// A locale whose language the catalog supports is used as is (region formatting kept).
+    /// Otherwise text and dates both fall back to the app's current localization.
     static func resolvedLocale(_ locale: Locale) -> Locale {
-        var preferences = [locale.identifier]
-        if let code = locale.language.languageCode?.identifier { preferences.append(code) }
         let available = Bundle.main.localizations.filter { $0 != "Base" }
-        let fallback = available.isEmpty ? ["en", "tr"] : available
-        let preferred = Bundle.preferredLocalizations(from: fallback, forPreferences: preferences)
-        guard let chosen = preferred.first else { return Locale(identifier: "en") }
+        let supported = available.isEmpty ? ["tr", "en"] : available
+        if let code = locale.language.languageCode?.identifier, supported.contains(code) { return locale }
+        let chosen = Bundle.preferredLocalizations(from: supported).first ?? "en"
         return Locale(identifier: chosen)
     }
 

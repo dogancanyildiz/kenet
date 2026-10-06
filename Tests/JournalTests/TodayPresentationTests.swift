@@ -292,20 +292,42 @@ struct TodayPresentationTests {
         #expect(matched.countedGoalIDs == [daily.id])
     }
 
-    @Test func unsupportedLocaleFallsBackConsistently() throws {
-        let locale = Locale(identifier: "de_DE")
-        let value = try make(events: 1, locale: "de_DE")
-        let resolved = PresentationLocalization.resolvedLocale(locale)
-        #expect(resolved.language.languageCode?.identifier != "de")
-        #expect(value.locale.language.languageCode == resolved.language.languageCode)
-        // Headline and byline share the resolved catalog language (not German).
-        #expect(!value.headline.contains("Oktober") && !value.headline.lowercased().contains("dienstag"))
-        #expect(value.byline != nil)
+    @Test func unsupportedLocaleFallsBackToAppLocalization() throws {
+        let app = try #require(Bundle.preferredLocalizations(from: ["tr", "en"]).first)
+        let resolved = PresentationLocalization.resolvedLocale(Locale(identifier: "de_DE"))
+        #expect(resolved.identifier == app)
+        let german = try make(events: 1, locale: "de_DE")
+        let fallback = try make(events: 1, locale: app)
+        #expect(german.headline == fallback.headline)
+        #expect(german.byline == fallback.byline)
         let carried = TodayPresentation.carriedOverDate(
-            CalendarDate("2026-09-30")!, today: day, locale: locale, calendar: calendar)
-        let carriedResolved = TodayPresentation.carriedOverDate(
-            CalendarDate("2026-09-30")!, today: day, locale: resolved, calendar: calendar)
-        #expect(carried == carriedResolved)
+            CalendarDate("2026-09-30")!, today: day, locale: Locale(identifier: "de_DE"), calendar: calendar)
+        let expected = TodayPresentation.carriedOverDate(
+            CalendarDate("2026-09-30")!, today: day, locale: Locale(identifier: app), calendar: calendar)
+        #expect(carried == expected)
+    }
+
+    @Test func supportedLanguageKeepsRegionFormatting() throws {
+        #expect(PresentationLocalization.resolvedLocale(Locale(identifier: "en_GB")).identifier == "en_GB")
+        let british = try make(events: 1, locale: "en_GB")
+        #expect(british.headline == "Tuesday 6 October")
+        #expect(british.byline == "1 event")
+        let carried = TodayPresentation.carriedOverDate(
+            CalendarDate("2026-09-30")!, today: day, locale: Locale(identifier: "en_GB"), calendar: calendar)
+        #expect(carried == "from 30 Sep")
+    }
+
+    @Test func todayIgnoresClosedRowsFromOtherDays() throws {
+        let groups = TaskGroups(rows: [], on: day, isToday: true)
+        let closed = [
+            try row(1, status: "x", due: "2026-09-01", done: "2026-09-02"),
+            try row(2, status: "x", due: "2026-10-05", done: "2026-10-05"),
+            try row(3, status: "x", due: day.description, done: day.description),
+            try row(4, status: "-", due: "2026-09-01"),
+        ]
+        let value = try make(locale: "en_US", groups: groups, completed: closed)
+        #expect(value.completedTaskCount == 1)
+        #expect(value.representedTaskIDs == [closed[2].id])
     }
 
     @Test(arguments: ["tr_TR", "en_US"])

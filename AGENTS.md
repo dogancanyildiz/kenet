@@ -106,10 +106,13 @@ Aşağıdakileri yapmadan önce dur ve kullanıcıya sor:
 ## Planlanan dizin yapısı
 
 ```
-App/            iOS ve macOS SwiftUI uygulaması
-Widgets/        WidgetKit hedefi
-Packages/Core/  Ayrıştırıcı, modeller, indeksleyici (Apple'a bağımsız)
-Fixtures/       Örnek kasa ve test dosyaları
-Tests/          Uygulama katmanı testleri (JournalTests)
-docs/           Belgeler
+App/                 iOS ve macOS SwiftUI uygulaması (App/Support: entitlements, plist ekleri)
+Widgets/             WidgetKit hedefi (henüz yok)
+Packages/Core/       Ayrıştırıcı, modeller, indeksleyici (Apple'a bağımsız)
+Fixtures/            Örnek kasa ve test dosyaları
+Tests/JournalTests/  Uygulama katmanı birim testleri (macOS ve iOS simülatörü)
+Tests/JournalUITests/ XCUITest duman testi ve erişilebilirlik denetimi (iOS)
+docs/                Belgeler
+.github/             CI iş akışları ve denetim betikleri (.github/scripts)
+project.yml, VERSION  XcodeGen tanımı ve sürüm numarası; Journal.xcodeproj üretilir, repoya girmez
 ```

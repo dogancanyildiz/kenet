@@ -16,6 +16,14 @@ open Journal.xcodeproj
 
 Şemalar: `Journal_iOS`, `Journal_macOS`, `VaultFormat` (Core testleri).
 
+## Geliştirme
+
+- Gerekenler: Xcode 26 ya da üstü (CI: macOS 26 / Xcode 26.6, Linux: Swift 6.4). Komut satırından `xcodebuild` ve `swift` için `DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer` gerekebilir.
+- Core testleri: `swift test --package-path Packages/Core -Xswiftc -warnings-as-errors`
+- Uygulama testleri: `xcodebuild test -project Journal.xcodeproj -scheme Journal_macOS -destination 'platform=macOS' CODE_SIGNING_ALLOWED=NO` (iOS için `Journal_iOS` şeması ve bir iPhone simülatörü; arayüz testleri `-only-testing:JournalUITests`).
+- Biçim ve belge denetimi: `swift format lint --strict --recursive Packages App Tests` ve `sh .github/scripts/check-docs.sh`.
+- İmzasız çalıştırma: CI ve yerel testler `CODE_SIGNING_ALLOWED=NO` ile koşar; cihaza kurulum için Xcode'da kendi takımını seç.
+
 ## Belgeler
 
 | Belge | İçerik |

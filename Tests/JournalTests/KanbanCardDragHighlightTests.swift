@@ -29,5 +29,8 @@ struct KanbanCardDragHighlightTests {
         model.abandonDrag(token)
         #expect(model.dragHighlight == .idle)
         #expect(model.draggingRowID == nil)
+        // The provider can be released before the drop is handled; the token must survive.
+        let target = try #require(model.columns.first { model.canMove(row, to: $0) })
+        #expect(model.acceptsDrop(token, into: target))
     }
 }

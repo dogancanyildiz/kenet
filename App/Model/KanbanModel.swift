@@ -162,9 +162,11 @@ final class KanbanModel {
         return await move(row, to: column)
     }
 
-    /// Removes a drag token when the system session ends (cancel, or after drop already cleared it).
+    /// Ends the drag highlight when the system session ends (cancel, or after a drop).
+    /// The token stays registered: the item provider can be released before the drop is
+    /// handled, and removing the token here would make that drop be rejected silently.
+    /// Stale tokens are bounded by the existing limit on `drags`.
     func abandonDrag(_ token: String) {
-        drags.removeValue(forKey: token)
         endDragHighlight()
     }
 

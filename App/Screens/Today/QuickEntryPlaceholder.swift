@@ -50,7 +50,7 @@ struct QuickEntryBar: View {
                         isFocused = true
                     } label: {
                         VStack(alignment: .leading) {
-                            Text("📍 \(place.entity.name)'te misin?")
+                            Text(verbatim: LocationCopy.areYouAt(place.entity.name, locale: locale))
                             if let qualifier = place.entity.qualifier {
                                 Text(verbatim: qualifier).font(.caption).foregroundStyle(.secondary)
                             }

@@ -6,10 +6,16 @@ import VaultFormat
 public struct VaultIndex: Sendable {
     let database: DatabaseQueue
     private let databaseURL: URL?
+    /// Test seam for counting Markdown reads during rebuild and refresh. Production uses the default.
+    let readFile: @Sendable (URL) throws -> Data
 
     /// Opens an in-memory index, or a caller-supplied database outside the vault.
-    public init(databaseURL: URL? = nil) throws {
+    public init(
+        databaseURL: URL? = nil,
+        readFile: @escaping @Sendable (URL) throws -> Data = { try Data(contentsOf: $0) }
+    ) throws {
         self.databaseURL = databaseURL
+        self.readFile = readFile
         database = try IndexDatabase.open(databaseURL)
     }
 
@@ -38,7 +44,7 @@ public struct VaultIndex: Sendable {
             let basename = (stem as NSString).lastPathComponent
             if names[comparisonKey(basename)] == nil { names[comparisonKey(basename)] = file.path }
             if paths[comparisonKey(stem)] == nil { paths[comparisonKey(stem)] = file.path }
-            let data = try Data(contentsOf: file.url)
+            let data = try readFile(file.url)
             let document = RawDocument(bytes: data)
             let metadata = try file.url.resourceValues(forKeys: [.contentModificationDateKey])
             try IndexBuilder.insert(

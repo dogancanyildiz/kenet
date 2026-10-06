@@ -305,22 +305,6 @@
         }
       }
     },
-    "%@'ndasın. %@ işaretlensin mi?": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@'ndasın. %@ işaretlensin mi?"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "You are at %@. Mark %@ complete?"
-          }
-        }
-      }
-    },
     "Konuma girince": {
       "localizations": {
         "tr": {
@@ -577,38 +561,6 @@
         }
       }
     },
-    "📍 %@'te misin?": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "📍 %@'te misin?"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "📍 Are you at %@?"
-          }
-        }
-      }
-    },
-    "Konum yalnız hızlı girişte tek seferlik alınır; günlüğe otomatik eklenmez.": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Konum yalnız hızlı girişte tek seferlik alınır; günlüğe otomatik eklenmez."
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Location is requested once in quick entry; it is never added to your journal automatically."
-          }
-        }
-      }
-    },
     "Konum izni henüz verilmedi.": {
       "localizations": {
         "tr": {
@@ -749,22 +701,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ara"
-          }
-        }
-      }
-    },
-    "Arama sonraki sürümde": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Search is coming in a future version"
-          }
-        },
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Arama sonraki sürümde"
           }
         }
       }
@@ -977,22 +913,6 @@
         }
       }
     },
-    "Bugün henüz bir şey yazılmadı.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nothing has been written today yet."
-          }
-        },
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bugün henüz bir şey yazılmadı."
-          }
-        }
-      }
-    },
     "Bugüne git": {
       "localizations": {
         "en": {
@@ -1185,22 +1105,6 @@
         }
       }
     },
-    "Günlerin burada görünecek.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Your days will appear here."
-          }
-        },
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Günlerin burada görünecek."
-          }
-        }
-      }
-    },
     "Günlük": {
       "localizations": {
         "en": {
@@ -1281,23 +1185,6 @@
         }
       }
     },
-    "Günlük yazısını oku": {
-      "extractionState": "stale",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Read journal entry"
-          }
-        },
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Günlük yazısını oku"
-          }
-        }
-      }
-    },
     "Gününden bir an…": {
       "localizations": {
         "en": {
@@ -1374,23 +1261,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Hızlı giriş"
-          }
-        }
-      }
-    },
-    "Hızlı giriş sonraki sürümde": {
-      "extractionState": "stale",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Quick entry is coming in a future version"
-          }
-        },
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hızlı giriş sonraki sürümde"
           }
         }
       }
@@ -1567,22 +1437,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Kişiler ve Konumlar"
-          }
-        }
-      }
-    },
-    "Kişiler ve konumlar burada görünecek.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "People and places will appear here."
-          }
-        },
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kişiler ve konumlar burada görünecek."
           }
         }
       }
@@ -1923,22 +1777,6 @@
         }
       }
     },
-    "Takma ad yok": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No aliases"
-          }
-        },
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Takma ad yok"
-          }
-        }
-      }
-    },
     "Takma adlar": {
       "localizations": {
         "en": {
@@ -1999,22 +1837,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Varlık oluşturulamadı. Kasayı kontrol edip yeniden dene."
-          }
-        }
-      }
-    },
-    "Varlık sayfası henüz yok": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No entity page yet"
-          }
-        },
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Varlık sayfası henüz yok"
           }
         }
       }
@@ -2143,22 +1965,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Yinelenen normalleştirilmiş yol"
-          }
-        }
-      }
-    },
-    "Zaman akışı sonraki sürümde": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The timeline is coming in a future version"
-          }
-        },
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Zaman akışı sonraki sürümde"
           }
         }
       }
@@ -2511,22 +2317,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Search people or places"
-          }
-        }
-      }
-    },
-    "Bu ad için kişi veya konum oluştur.": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bu ad için kişi veya konum oluştur."
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Create a person or place for this name."
           }
         }
       }
@@ -3327,22 +3117,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Low"
-          }
-        }
-      }
-    },
-    "Önceliği kaldır": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Önceliği kaldır"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Remove priority"
           }
         }
       }
@@ -5446,15 +5220,39 @@
     "Her %lld gün": {
       "localizations": {
         "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Her %lld gün"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Her gün"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Her %lld gün"
+                }
+              }
+            }
           }
         },
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Every %lld days"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Every day"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Every %lld days"
+                }
+              }
+            }
           }
         }
       }
@@ -5462,15 +5260,39 @@
     "Her %lld hafta": {
       "localizations": {
         "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Her %lld hafta"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Her hafta"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Her %lld hafta"
+                }
+              }
+            }
           }
         },
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Every %lld weeks"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Every week"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Every %lld weeks"
+                }
+              }
+            }
           }
         }
       }
@@ -5478,15 +5300,39 @@
     "Her %lld ay": {
       "localizations": {
         "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Her %lld ay"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Her ay"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Her %lld ay"
+                }
+              }
+            }
           }
         },
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Every %lld months"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Every month"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Every %lld months"
+                }
+              }
+            }
           }
         }
       }
@@ -5494,15 +5340,39 @@
     "Her %lld yıl": {
       "localizations": {
         "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Her %lld yıl"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Her yıl"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Her %lld yıl"
+                }
+              }
+            }
           }
         },
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Every %lld years"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Every year"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Every %lld years"
+                }
+              }
+            }
           }
         }
       }
@@ -8531,6 +8401,118 @@
           "stringUnit": {
             "state": "translated",
             "value": "%lld neighbors"
+          }
+        }
+      }
+    },
+    "📍 %@ misin?": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "📍 %@ misin?"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "📍 Are you at %@?"
+          }
+        }
+      }
+    },
+    "%@. %@ işaretlensin mi?": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@. %@ işaretlensin mi?"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You are at %@. Mark %@ complete?"
+          }
+        }
+      }
+    },
+    "Hafta": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hafta"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Week"
+          }
+        }
+      }
+    },
+    "Ay": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ay"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Month"
+          }
+        }
+      }
+    },
+    "Tümü": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tümü"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All"
+          }
+        }
+      }
+    },
+    "Uygula": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uygula"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apply"
+          }
+        }
+      }
+    },
+    "Atla": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atla"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skip"
           }
         }
       }

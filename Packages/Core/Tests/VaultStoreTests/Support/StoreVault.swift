@@ -80,6 +80,10 @@ final class CountingReader: @unchecked Sendable {
         lock.withLock { urls = [] }
     }
 
+    var count: Int {
+        lock.withLock { urls.count }
+    }
+
     func markdownPaths(under root: URL) -> [String] {
         let rootPath = root.resolvingSymlinksInPath().standardizedFileURL.path
         return lock.withLock {
@@ -88,6 +92,41 @@ final class CountingReader: @unchecked Sendable {
                 guard path.hasPrefix(rootPath + "/"), path.hasSuffix(".md") else { return nil }
                 return String(path.dropFirst(rootPath.count + 1))
             }
+        }
+    }
+
+    func markdownCount(under root: URL) -> Int {
+        markdownPaths(under: root).count
+    }
+}
+
+/// Collects SQL statements observed through GRDB's connection trace.
+final class StatementLog: @unchecked Sendable {
+    private let lock = NSLock()
+    private var statements: [String] = []
+
+    func append(_ text: String) {
+        lock.withLock { statements.append(text) }
+    }
+
+    func reset() {
+        lock.withLock { statements = [] }
+    }
+
+    var all: [String] {
+        lock.withLock { statements }
+    }
+
+    /// INSERT / UPDATE / DELETE that touch source-derived index tables (not type-state bookkeeping).
+    var contentMutations: [String] {
+        all.filter { statement in
+            let upper = statement.uppercased()
+            let isMutation =
+                upper.contains("INSERT") || upper.contains("UPDATE") || upper.contains("DELETE")
+            guard isMutation else { return false }
+            if upper.contains("ENTITY_TYPE_STATE") { return false }
+            if upper.contains("TEMP.") || upper.contains("TEMP ") { return false }
+            return true
         }
     }
 }

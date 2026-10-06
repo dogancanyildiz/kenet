@@ -1,6 +1,6 @@
 # Yol haritası
 
-**Aktif aşama:** 8
+**Aktif aşama:** 9 (Aşama 8'in açık kalan iki maddesi sahibin elindedir: kilidin gerçek cihazda doğrulanması ve eşitlenen klasör uyarısının metni)
 
 **Durum (2026-10-05).** Aşama 0–7'nin kullanıcı kararı gerektirmeyen teknik maddeleri `dev` dalındadır. Bu belgede `[x]`, "kodda var, testlerden ve CI'dan geçti" demektir. Aşamaların gerçek kullanım ölçütleri henüz ölçülmedi ve aşağıda ayrıca izlenir.
 

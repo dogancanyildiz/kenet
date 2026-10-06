@@ -18,17 +18,20 @@ Alt sekmeler: **Bugün, Günlük, Görevler, Kişiler ve Konumlar, Hedefler.** A
 
 Uygulama bu ekranda açılır. Yukarıdan aşağıya:
 
-1. **Hedefler şeridi (3):** Günün hedefleri, tek dokunuşla işaretlenir. Sayısal hedefte dokununca miktar girilir. Yapılmamışlar belirgin, yapılmışlar soluk.
-2. **Görevler (2):** Geciken görevler, bugünün görevleri ve bugün oluşturulan tarihsiz görevler. Dokununca tamamlanır, basılı tutunca düzenlenir.
-3. **Takvim (2):** Cihaz takvimindeki bugünkü etkinlikler, salt okunur.
-4. **Olaylar (1):** Bugün yazılan olaylar, dosyadaki sırayla (uygulama saatli olayı saat sırasındaki yerine yazar). Kişi ve konum adları dokunulabilir bağlantıdır.
-5. **Günlük yazısı (1):** Varsa serbest yazının ilk satırları; dokununca tam ekran yazma alanı açılır.
+1. **Manşet ve künye (9):** Günün tarihi sayfa adıdır. Altında tek satırlık özet durur: olayla başlar, kalanla biter ("3 olay · 4 görev ve 2 hedef kaldı"); sıfır olan parça yazılmaz, hiçbir şey yoksa satır yoktur.
+2. **Hedefler (3):** Günün hedefleri, tek dokunuşla işaretlenir. Sayısal hedefte dokununca miktar girilir. Yapılmamışlar belirgin, yapılmışlar soluk.
+3. **Görevler (2):** Devreden görevler, bugünün görevleri ve bugün oluşturulan tarihsiz görevler. Dokununca tamamlanır, basılı tutunca düzenlenir. Devreden görevin altında geldiği tarih yazar ("30 Eyl'den"); en çok üçü gösterilir, kalanı "N devreden daha" satırında toplanır ve dokununca açılır. Tamamlanan görev listenin sonuna iner; birden çok tamamlanan tek satıra katlanır ("N görev tamamlandı") ve dokununca açılır.
+4. **Takvim (2):** Cihaz takvimindeki bugünkü etkinlikler, salt okunur.
+5. **Olaylar (1):** Bugün yazılan olaylar, dosyadaki sırayla (uygulama saatli olayı saat sırasındaki yerine yazar). Kişi ve konum adları dokunulabilir bağlantıdır.
+6. **Günlük yazısı (1):** Varsa serbest yazının ilk satırları; dokununca tam ekran yazma alanı açılır.
+
+Bölüm başlıklarının sağında sayaç durur: hedeflerde yapılan ve toplam, görevlerde kalan, olaylarda sayı. Manşet bloğu, varsayılan yazı boyutunda ilk olay kaydırmadan görünecek kadar dardır. Geçmiş bir günün sayfası aynı düzeni kullanır.
 
 En altta sabit **hızlı giriş kutusu**.
 
 ### Hızlı giriş (1, 2)
 
-- Tek metin kutusu. Yanında **olay / görev** geçiş düğmesi; varsayılan olay.
+- Tek metin kutusu. Başında kip iki sözcükle durur: **Olay** ve **Görev**; seçili olan vurguludur, varsayılan olay.
 - Görev modunda `#project/` yazınca mevcut proje adları önerilir; seçim etiketi tamamlar, yeni ad serbesttir.
 - `@` yazınca kişi ve konum önerileri açılır. `@` kullanılmasa da bilinen adlar yazarken tanınır ve vurgulanır.
 - Birden fazla aday varsa en olası olan önerilir; uygulama emin değilse seçim ister.

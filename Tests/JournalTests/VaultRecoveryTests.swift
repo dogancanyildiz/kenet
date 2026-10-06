@@ -124,10 +124,10 @@ struct IndexSchedulingTests {
         let location = VaultLocation(defaults: suite.defaults, documentsURL: temp, bookmarks: pathBookmarks())
         let store = IndexStore(
             location: location, supportURL: temp.appendingPathComponent("indexes"),
-            update: { index, root, rebuild, previous, skip, skipped in
+            update: { index, root, rebuild, previous, skip, skipped, previousContent in
                 let result = try await IndexUpdate.read(
                     index: index, root: root, rebuild: rebuild, previousTypes: previous,
-                    skipUnchanged: skip, previousSkipped: skipped)
+                    skipUnchanged: skip, previousSkipped: skipped, previousContent: previousContent)
                 await gate.hold()
                 return result
             })
@@ -159,10 +159,10 @@ struct IndexSchedulingTests {
         let store = IndexStore(
             location: VaultLocation(defaults: suite.defaults, documentsURL: temp),
             supportURL: temp.appendingPathComponent("indexes"),
-            update: { index, root, rebuild, previous, skip, skipped in
+            update: { index, root, rebuild, previous, skip, skipped, previousContent in
                 let result = try await IndexUpdate.read(
                     index: index, root: root, rebuild: rebuild, previousTypes: previous,
-                    skipUnchanged: skip, previousSkipped: skipped)
+                    skipUnchanged: skip, previousSkipped: skipped, previousContent: previousContent)
                 await gate.hold()
                 return result
             })
@@ -188,11 +188,11 @@ struct IndexSchedulingTests {
         let store = IndexStore(
             location: VaultLocation(defaults: suite.defaults, documentsURL: temp),
             supportURL: temp.appendingPathComponent("indexes"),
-            update: { index, root, rebuild, previous, skip, skipped in
+            update: { index, root, rebuild, previous, skip, skipped, previousContent in
                 await gate.hold()
                 return try await IndexUpdate.read(
                     index: index, root: root, rebuild: rebuild, previousTypes: previous,
-                    skipUnchanged: skip, previousSkipped: skipped)
+                    skipUnchanged: skip, previousSkipped: skipped, previousContent: previousContent)
             })
         store.setForeground(true)
         await store.start()

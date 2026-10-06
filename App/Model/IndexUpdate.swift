@@ -11,7 +11,8 @@ struct IndexUpdate: Sendable {
 
     static func read(
         index: VaultIndex, root: URL, rebuild: Bool, previousTypes: EntityTypeCatalog,
-        skipUnchanged: Bool, previousSkipped: [SkippedPath]
+        skipUnchanged: Bool, previousSkipped: [SkippedPath],
+        previousContent: VaultReadModel = .empty
     ) async throws -> IndexUpdate {
         try await Task.detached {
             let result = try rebuild ? index.rebuild(vaultRoot: root) : index.refresh(vaultRoot: root)
@@ -24,7 +25,13 @@ struct IndexUpdate: Sendable {
                 return IndexUpdate(
                     content: .empty, counts: IndexCounts(), skippedPaths: result.skippedPaths, hasChanges: false)
             }
-            let published = try VaultPublishedContent.load(from: index)
+            // Type catalog changes rebuild every file classification; always take the full path.
+            let typeChanged = !sameCatalog(types, previousTypes)
+            // Empty path deltas still publish for skipped-path or post-error retries. The index may
+            // already include files the previous model never loaded — reconcile with a full build.
+            let published = try VaultPublishedContent.applying(
+                previous: previousContent, index: index, result: result,
+                forceFull: rebuild || typeChanged || !previousContent.isBuilt || !pathsChanged)
             return IndexUpdate(
                 content: published.content, counts: published.counts,
                 skippedPaths: result.skippedPaths, hasChanges: true)

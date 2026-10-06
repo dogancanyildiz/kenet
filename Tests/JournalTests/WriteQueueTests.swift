@@ -321,10 +321,10 @@ struct WriteQueueTests {
         let store = IndexStore(
             location: VaultLocation(defaults: defaults.defaults, documentsURL: directory),
             supportURL: directory.appendingPathComponent("indexes"),
-            update: { index, root, rebuild, previous, skip, skipped in
+            update: { index, root, rebuild, previous, skip, skipped, previousContent in
                 let result = try await IndexUpdate.read(
                     index: index, root: root, rebuild: rebuild, previousTypes: previous,
-                    skipUnchanged: skip, previousSkipped: skipped)
+                    skipUnchanged: skip, previousSkipped: skipped, previousContent: previousContent)
                 await gate.hold()
                 return result
             })

@@ -12,10 +12,10 @@ struct ReadModelBackgroundTests {
             var offMain = 0
         }
         let probe = Probe()
-        // Only builds that carry this test's event count; other suites run in parallel.
         let marker = "Off-main model"
-        VaultPublishedContent.buildProbe = { snapshot, body in
-            guard snapshot.blocks.contains(where: { $0.text.contains(marker) }) else { return body() }
+        VaultPublishedContent.buildProbe = { kind, body in
+            // Count only the incremental publish after this suite's event is written.
+            guard kind == "incremental" else { return body() }
             probe.builds += 1
             if Thread.isMainThread {
                 probe.onMain += 1

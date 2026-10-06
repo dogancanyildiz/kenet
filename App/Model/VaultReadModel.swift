@@ -13,6 +13,11 @@ struct VaultReadModel: Sendable {
     private(set) var fragments: [String: VaultFileFragment] = [:]
     /// False only for the never-published `.empty` sentinel (and skipped refresh placeholders).
     private(set) var isBuilt = false
+    /// Set when an incremental publish could not load a reported path, or when a write published
+    /// incompletely. The next `VaultPublishedContent.applying` takes the full path.
+    private(set) var needsFullReconcile = false
+    /// Calendar day used for the last `rederive` / goal-status patch. Day rollover forces rederive.
+    private(set) var derivedForDay: CalendarDate?
 
     var goals: [GoalDefinition] = []
     var goalPlaceFiles: [String: String] = [:]
@@ -44,11 +49,15 @@ struct VaultReadModel: Sendable {
         self.init(snapshot: try index.snapshot(), today: today)
     }
 
+    mutating func markNeedsFullReconcile() {
+        needsFullReconcile = true
+    }
+
     /// Replaces fragments for changed paths, drops deleted paths, then rederives screen fields.
     /// Link-resolution and identifier-ownership side effects reload additional paths as needed.
     mutating func apply(
         changedPaths: Set<String>, deletedPaths: Set<String>, index: VaultIndex,
-        today: CalendarDate = LocalDay.today()
+        estimatedPaths: Set<String> = [], today: CalendarDate = LocalDay.today()
     ) throws {
         var reload = changedPaths
         reload.subtract(deletedPaths)
@@ -74,7 +83,14 @@ struct VaultReadModel: Sendable {
         }
         isBuilt = true
 
-        try reloadFragments(reload, index: index, identifiers: &identifiers)
+        if try reloadFragments(reload, index: index, identifiers: &identifiers) {
+            needsFullReconcile = true
+        }
+        // Estimated paths that never appear in the index under that spelling need a full rebuild.
+        for path in estimatedPaths where !deletedPaths.contains(path) && fragments[path] == nil {
+            needsFullReconcile = true
+        }
+        if needsFullReconcile { return }
 
         // Newly resolvable incoming links and ownership flips on other files.
         var collateral = Set<String>()
@@ -94,11 +110,16 @@ struct VaultReadModel: Sendable {
             if let fragment = fragments[path] { before[path] = fragment }
         }
         if !collateral.isEmpty {
-            try reloadFragments(collateral, index: index, identifiers: &identifiers)
+            if try reloadFragments(collateral, index: index, identifiers: &identifiers) {
+                needsFullReconcile = true
+                return
+            }
         }
 
         let touched = reload.union(collateral)
-        if requiresFullRederive(before: before, touched: touched, removed: deletedPaths) {
+        if derivedForDay != today
+            || requiresFullRederive(before: before, touched: touched, removed: deletedPaths)
+        {
             rederive(today: today)
         } else {
             patchDerived(before: before, touched: touched, removed: deletedPaths, today: today)
@@ -107,18 +128,24 @@ struct VaultReadModel: Sendable {
 
     private mutating func reloadFragments(
         _ paths: Set<String>, index: VaultIndex, identifiers: inout Set<String>
-    ) throws {
+    ) throws -> Bool {
+        var missed = false
         for path in paths {
             if let fragment = try index.loadFragment(path: path) {
                 fragments[path] = fragment
                 identifiers.formUnion(fragment.blocks.compactMap(\.identifier))
             } else {
                 fragments.removeValue(forKey: path)
+                // Reported as changed but absent from the index under that path — guessed/wrong path.
+                missed = true
             }
         }
+        return missed
     }
 
     mutating func rederive(today: CalendarDate) {
+        derivedForDay = today
+        needsFullReconcile = false
         goalLogStart = today.addingDays(-399) ?? today
         let snapshot = asSnapshot()
         let goalPlaces = Dictionary(grouping: snapshot.links.filter { $0.key == "place" }, by: \.file)
@@ -184,7 +211,13 @@ struct VaultReadModel: Sendable {
             return DaySummary(
                 id: file.path, date: date, events: events, journal: journal,
                 hasGoalRecords: goalFiles.contains(file.path))
-        }.sorted { $0.date > $1.date }
+        }.sorted(by: Self.daySort)
+    }
+
+    /// Same ordering as a full snapshot derive: newest date first, path ascending on ties.
+    static func daySort(_ left: DaySummary, _ right: DaySummary) -> Bool {
+        if left.date != right.date { return left.date > right.date }
+        return left.id < right.id
     }
 
     func day(on date: CalendarDate) -> DaySummary {

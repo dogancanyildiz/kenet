@@ -282,8 +282,22 @@ final class IndexStore {
     }
 
     /// Shared file-first edit lifecycle. A saved-but-unindexed edit must never be retried.
+    /// Caller-supplied `path` is treated as an estimate: if that path cannot be loaded after the
+    /// write, the read model marks itself for a full reconcile on the next publish.
     func performEdit(
         path: String, operation: (VaultStore) async throws -> Void
+    ) async throws {
+        try await performEdit(estimatedPaths: [path]) {
+            try await operation($0)
+            return [path]
+        }
+    }
+
+    /// Like `performEdit(path:)` but the operation reports the paths it actually changed
+    /// (for example after filename sanitization in `creatingGoal`).
+    func performEdit(
+        estimatedPaths: Set<String> = [],
+        operation: (VaultStore) async throws -> Set<String>
     ) async throws {
         try await withWriteSlot {
             await waitWhileRefreshInFlight()
@@ -291,15 +305,18 @@ final class IndexStore {
             isProcessing = true
             isWriting = true
             var saved = false
+            var changedPaths: Set<String> = []
             var failure: (any Error)?
             do {
-                try await operation(writer)
+                changedPaths = try await operation(writer)
                 saved = true
+                let forceFull = changedPaths.contains { $0 == ".app/types.json" || $0.hasPrefix(".app/") }
                 try await publishAfterWrite(
-                    from: index, changedPaths: [path],
-                    forceFull: path == ".app/types.json" || path.hasPrefix(".app/"))
+                    from: index, changedPaths: changedPaths, forceFull: forceFull,
+                    estimatedPaths: estimatedPaths)
             } catch {
-                failure = saved ? VaultStoreError.indexUpdateFailed(path: path, underlying: error) : error
+                let reportPath = changedPaths.sorted().first ?? estimatedPaths.sorted().first ?? ""
+                failure = saved ? VaultStoreError.indexUpdateFailed(path: reportPath, underlying: error) : error
                 if case VaultStoreError.staleTarget = error { pendingRefresh = true }
             }
             await finishEntityWrite()
@@ -427,19 +444,29 @@ final class IndexStore {
     /// Read model off the main actor; only assignment happens on IndexStore.
     private func publishAfterWrite(
         from index: VaultIndex, changedPaths: Set<String>, deletedPaths: Set<String> = [],
-        forceFull: Bool = false
+        forceFull: Bool = false, estimatedPaths: Set<String> = []
     ) async throws {
         let previous = content
-        let published = try await Task.detached {
-            try VaultPublishedContent.applying(
-                previous: previous, index: index, changedPaths: changedPaths,
-                deletedPaths: deletedPaths, forceFull: forceFull)
-        }.value
-        content = published.content
-        counts = published.counts
-        try await reloadRecognition()
-        lastUpdated = Date()
-        contentEpoch += 1
+        do {
+            let published = try await Task.detached {
+                try VaultPublishedContent.applying(
+                    previous: previous, index: index, changedPaths: changedPaths,
+                    deletedPaths: deletedPaths, forceFull: forceFull,
+                    estimatedPaths: estimatedPaths)
+            }.value
+            content = published.content
+            counts = published.counts
+            try await reloadRecognition()
+            lastUpdated = Date()
+            contentEpoch += 1
+        } catch {
+            // Index may already include the write; keep a reconcile flag so the next publish
+            // cannot skip or patch on top of a drifted model.
+            var marked = content
+            marked.markNeedsFullReconcile()
+            content = marked
+            throw error
+        }
     }
 
     func waitWhileRefreshInFlight() async {

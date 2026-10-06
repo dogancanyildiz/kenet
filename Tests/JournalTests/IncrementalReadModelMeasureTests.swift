@@ -36,7 +36,7 @@ struct IncrementalReadModelMeasureTests {
             previous: baseline, index: index, changedPaths: [day], today: today
         ).content
         let incMs = Double(DispatchTime.now().uptimeNanoseconds - incStart.uptimeNanoseconds) / 1_000_000
-        let peakMB = Int(mach_task_basic_info_resident() / 1_024 / 1_024)
+        let peakMB = Int(residentMemoryBytes() / 1_024 / 1_024)
 
         print(
             """
@@ -51,7 +51,7 @@ struct IncrementalReadModelMeasureTests {
     }
 }
 
-private func mach_task_basic_info_resident() -> UInt64 {
+private func residentMemoryBytes() -> UInt64 {
     var info = mach_task_basic_info()
     var count = mach_msg_type_number_t(MemoryLayout<mach_task_basic_info>.size) / 4
     let result = withUnsafeMutablePointer(to: &info) {

@@ -46,7 +46,7 @@ extension VaultReadModel {
             if left.file != right.file { return left.file < right.file }
             return left.sourceLine < right.sourceLine
         }
-        days.sort { $0.date > $1.date }
+        days.sort(by: VaultReadModel.daySort)
         graphInput.days.sort { $0.date < $1.date }
         graphInput.entities = entities.filter { knownGraph.contains($0.id) }
 
@@ -57,7 +57,9 @@ extension VaultReadModel {
         if goalTouched {
             // Sparse; rebuild in path order so arrays match a full snapshot derive.
             let indexedLogs = fragments.keys.sorted().flatMap { fragments[$0]!.goalLogs }
-            reservedGoalKeys = Set(goals.map(\.key) + indexedLogs.map(\.key))
+            // Same source as `rederive`: entity goal keys (including invalid definitions).
+            reservedGoalKeys = Set(
+                fragments.values.compactMap(\.entity?.goalKey) + indexedLogs.map(\.key))
             let allLogs = Dictionary(grouping: indexedLogs, by: \.key).mapValues {
                 $0.compactMap(GoalLog.init(indexed:))
             }

@@ -21,7 +21,10 @@ struct IndexUpdate: Sendable {
                 !result.addedPaths.isEmpty || !result.updatedPaths.isEmpty || !result.deletedPaths.isEmpty
             let skippedChanged = result.skippedPaths != previousSkipped
             // Rebuild must always publish: an emptied vault reports no path deltas.
-            if skipUnchanged && !rebuild && !pathsChanged && !skippedChanged && sameCatalog(types, previousTypes) {
+            // A reconcile flag also forces a publish even when Core reports no path deltas.
+            if skipUnchanged && !rebuild && !pathsChanged && !skippedChanged && sameCatalog(types, previousTypes)
+                && !previousContent.needsFullReconcile
+            {
                 return IndexUpdate(
                     content: .empty, counts: IndexCounts(), skippedPaths: result.skippedPaths, hasChanges: false)
             }
@@ -31,7 +34,8 @@ struct IndexUpdate: Sendable {
             // already include files the previous model never loaded — reconcile with a full build.
             let published = try VaultPublishedContent.applying(
                 previous: previousContent, index: index, result: result,
-                forceFull: rebuild || typeChanged || !previousContent.isBuilt || !pathsChanged)
+                forceFull: rebuild || typeChanged || !previousContent.isBuilt || !pathsChanged
+                    || previousContent.needsFullReconcile)
             return IndexUpdate(
                 content: published.content, counts: published.counts,
                 skippedPaths: result.skippedPaths, hasChanges: true)

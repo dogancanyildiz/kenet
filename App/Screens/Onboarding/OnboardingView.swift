@@ -7,7 +7,7 @@ struct OnboardingView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                PageHeadline(title: String(localized: "Günlüğün, senin dosyaların"))
+                PageHeadline("Günlüğün, senin dosyaların")
                 Text(
                     "Verilerin Markdown dosyalarında kalır. Yeni bir kasa oluşturabilir veya var olan Obsidian klasörünü seçebilirsin."
                 )

@@ -2,12 +2,27 @@ import SwiftUI
 
 /// Page manşet: display title with an optional byline. Kept compact (jury condition 4).
 struct PageHeadline: View {
-    let title: String
+    private enum Title {
+        case verbatim(String)
+        case key(LocalizedStringKey)
+    }
+
+    private let title: Title
     var byline: String? = nil
+
+    init(title: String, byline: String? = nil) {
+        self.title = .verbatim(title)
+        self.byline = byline
+    }
+
+    init(_ title: LocalizedStringKey, byline: String? = nil) {
+        self.title = .key(title)
+        self.byline = byline
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text(verbatim: title)
+            titleText
                 .font(.ink.display)
                 .foregroundStyle(.ink.text)
                 .accessibilityAddTraits(.isHeader)
@@ -19,5 +34,14 @@ struct PageHeadline: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)
+    }
+
+    @ViewBuilder private var titleText: some View {
+        switch title {
+        case .verbatim(let text):
+            Text(verbatim: text)
+        case .key(let key):
+            Text(key)
+        }
     }
 }

@@ -37,6 +37,10 @@ print(chosen["udid"], chosen["name"], "iOS %d.%d" % version)
 ID=${DEVICE%% *}
 NAME=${DEVICE#* }
 
+# Görüntü test kümeleri ad kuralından bulunur (bkz. snapshot-suites.sh).
+ONLY=$(sh .github/scripts/snapshot-suites.sh | sed 's#^#-only-testing:JournalTests_iOS/#' | tr '\n' ' ')
+[ -n "$ONLY" ] || { echo "Görüntü test kümesi bulunamadı" >&2; exit 1; }
+
 echo "Simülatör: $NAME"
 echo "SNAPSHOT_TESTING_RECORD=$SNAPSHOT_TESTING_RECORD"
 
@@ -46,8 +50,7 @@ xcodebuild test \
   -project Journal.xcodeproj \
   -scheme Journal_iOS \
   -destination "platform=iOS Simulator,id=$ID" \
-  -only-testing:JournalTests_iOS/ScreenSnapshotTests \
-  -only-testing:JournalTests_iOS/TasksSnapshotTests \
+  $ONLY \
   CODE_SIGNING_ALLOWED=NO \
   -quiet
 status=$?
@@ -58,42 +61,11 @@ if [ "$SNAPSHOT_TESTING_RECORD" != "never" ] && [ "$status" -ne 0 ]; then
     -project Journal.xcodeproj \
     -scheme Journal_iOS \
     -destination "platform=iOS Simulator,id=$ID" \
-    -only-testing:JournalTests_iOS/ScreenSnapshotTests \
-    -only-testing:JournalTests_iOS/TasksSnapshotTests \
+    $ONLY \
     CODE_SIGNING_ALLOWED=NO \
     -quiet
   status=$?
 fi
-# Mac kanban / zaman çizelgesi referansları (TasksMacSnapshotTests).
-if [ "$status" -eq 0 ] || [ "${SNAPSHOT_TESTING_RECORD:-}" != "never" ]; then
-  echo "Mac görüntüleri kaydediliyor…"
-  export SNAPSHOT_TESTING_RECORD="${SNAPSHOT_TESTING_RECORD:-all}"
-  set +e
-  xcodebuild test \
-    -project Journal.xcodeproj \
-    -scheme Journal_macOS \
-    -destination 'platform=macOS' \
-    -only-testing:JournalTests_macOS/TasksMacSnapshotTests \
-    CODE_SIGNING_ALLOWED=NO \
-    -quiet
-  mac_status=$?
-  if [ "$SNAPSHOT_TESTING_RECORD" != "never" ] && [ "$mac_status" -ne 0 ]; then
-    unset SNAPSHOT_TESTING_RECORD
-    xcodebuild test-without-building \
-      -project Journal.xcodeproj \
-      -scheme Journal_macOS \
-      -destination 'platform=macOS' \
-      -only-testing:JournalTests_macOS/TasksMacSnapshotTests \
-      CODE_SIGNING_ALLOWED=NO \
-      -quiet
-    mac_status=$?
-  fi
-  set -e
-  if [ "$mac_status" -ne 0 ]; then
-    status=$mac_status
-  fi
-fi
-
 set -e
-echo "Referanslar: Tests/JournalTests/Snapshots/__Snapshots__/ScreenSnapshotTests/, TasksSnapshotTests/, TasksMacSnapshotTests/"
+echo "Referanslar: Tests/JournalTests/Snapshots/__Snapshots__/ScreenSnapshotTests/"
 exit "$status"

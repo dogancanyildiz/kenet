@@ -91,9 +91,10 @@ struct ProjectView: View {
             TasksListRow(
                 store: store, row: row, day: actions.day,
                 isOverdue: row.due.map { $0 < actions.day } ?? false,
-                completed: row.isClosed, isBusy: actions.busy.contains(row.id), allowsReopening: true
+                completed: false, isBusy: actions.busy.contains(row.id), allowsReopening: true
             ) { Task { await actions.toggle(row) } }
-            .listRowBackground(Color.clear)
+            .listRowBackground(Color.ink.paper)
+            .alignmentGuide(.listRowSeparatorLeading) { _ in 0 }
         }
     }
 }

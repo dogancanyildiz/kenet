@@ -23,13 +23,13 @@
                         Spacer(minLength: 0)
                         if presentation.showsOverdueCue {
                             Image(systemName: "arrow.forward.circle")
-                                .font(.caption2)
+                                .font(.ink.meta)
                                 .foregroundStyle(.ink.warning)
                                 .padding(.trailing, 4)
                         }
                         if span.isOpenEnded {
                             Image(systemName: "arrow.right")
-                                .font(.caption2)
+                                .font(.ink.meta)
                                 .foregroundStyle(.ink.secondaryText)
                                 .padding(.trailing, 4)
                         }
@@ -46,7 +46,7 @@
                         width: max(span.isMilestone ? 12 : 8, span.isMilestone ? 12 : length - 4),
                         height: span.isMilestone ? 12 : 22
                     )
-                    .background(barColor, in: RoundedRectangle(cornerRadius: span.isMilestone ? 0 : 5))
+                    .background { barChrome(isMilestone: span.isMilestone) }
                     .rotationEffect(.degrees(span.isMilestone ? 45 : 0))
                     .contentShape(Rectangle()).onTapGesture(perform: select)
                     .gesture(gesture(edge: nil))
@@ -75,9 +75,20 @@
             if presentation.usesSecondaryText { return Color.ink.secondaryText }
             return presentation.showsOverdueCue ? Color.ink.warning : Color.ink.accent
         }
+
+        @ViewBuilder private func barChrome(isMilestone: Bool) -> some View {
+            let shape = RoundedRectangle(cornerRadius: isMilestone ? 0 : 5)
+            if row.isClosed && !isMilestone {
+                // Completed: outline bar + filled end cap (not color alone).
+                shape.strokeBorder(Color.ink.secondaryText, lineWidth: InkStroke.control)
+            } else {
+                shape.fill(barColor)
+            }
+        }
+
         private func handle(_ edge: TimelineDates.Edge) -> some View {
             Capsule()
-                .fill(Color.ink.surface.opacity(0.9))
+                .fill(Color.ink.surface)
                 .frame(width: 3, height: 12)
                 .padding(.horizontal, 5)
                 .contentShape(Rectangle()).highPriorityGesture(gesture(edge: edge))

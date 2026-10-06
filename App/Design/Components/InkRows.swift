@@ -8,6 +8,10 @@ struct InkTaskRow: View {
     var overdueDate: Date? = nil
     var action: (() -> Void)? = nil
 
+    @Environment(\.locale) private var locale
+    @Environment(\.calendar) private var calendar
+    @Environment(\.clockNow) private var clockNow
+
     var body: some View {
         MarginRow(kind: .vault) {
             TaskBox(state: state, action: action)
@@ -23,17 +27,18 @@ struct InkTaskRow: View {
     }
 
     private func overdueLabel(_ date: Date) -> some View {
-        Label {
-            Text(date, format: .dateTime.day().month(.abbreviated))
-        } icon: {
+        let due = LocalDay.today(at: date, timeZone: calendar.timeZone)
+        let today = LocalDay.today(at: clockNow(), timeZone: calendar.timeZone)
+        let text = TodayPresentation.carriedOverDate(
+            due, today: today, locale: locale, calendar: calendar)
+        return HStack(spacing: 4) {
             Image(systemName: "arrow.forward.circle")
+            Text(verbatim: text)
         }
         .font(.ink.meta)
         .foregroundStyle(.ink.warning)
         .accessibilityLabel(Text("Devreden"))
-        .accessibilityValue(
-            Text(date, format: .dateTime.day().month(.abbreviated).year())
-        )
+        .accessibilityValue(Text(verbatim: text))
     }
 }
 

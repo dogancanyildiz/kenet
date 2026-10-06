@@ -9,7 +9,9 @@ struct TasksView: View {
     @Binding var selection: String?
     @State private var pendingNotificationScroll: UUID?
     @State private var model: TasksModel
-    @AppStorage(TasksModel.Section.storageKey) private var storedSection = "upcoming"
+    #if os(iOS)
+        @AppStorage(TasksModel.Section.storageKey) private var storedSection = "upcoming"
+    #endif
 
     init(
         store: IndexStore, selection: Binding<String?> = .constant(nil), notificationRequest: UUID? = nil,
@@ -21,12 +23,14 @@ struct TasksView: View {
         self.onTimelineSelected = onTimelineSelected
         _selection = selection
         let model = tasks ?? TasksModel(store: store)
-        if tasks == nil,
-            let restored = TasksModel.Section(
-                rawValue: UserDefaults.standard.string(forKey: TasksModel.Section.storageKey) ?? "")
-        {
-            model.section = restored
-        }
+        #if os(iOS)
+            if tasks == nil,
+                let restored = TasksModel.Section(
+                    rawValue: UserDefaults.standard.string(forKey: TasksModel.Section.storageKey) ?? "")
+            {
+                model.section = restored
+            }
+        #endif
         _model = State(initialValue: model)
     }
 
@@ -54,14 +58,16 @@ struct TasksView: View {
                 SearchButton()
             }
             .onChange(of: model.section) { _, section in
-                storedSection = section.rawValue
+                #if os(iOS)
+                    storedSection = section.rawValue
+                #endif
                 if section == .kanban { onKanbanSelected?() }
                 if section == .timeline { onTimelineSelected?() }
             }
             .onChange(of: notificationRequest, initial: true) { _, request in
                 guard request != nil else { return }
+                // Temporary jump for the notification; do not persist over the user's section.
                 model.section = .upcoming
-                storedSection = TasksModel.Section.upcoming.rawValue
                 model.clearFilters()
                 selection = nil
                 pendingNotificationScroll = request
@@ -190,7 +196,7 @@ struct TasksView: View {
                 TasksListRow(
                     store: store, row: row, day: model.day,
                     isOverdue: row.due.map { $0 < model.day } ?? false,
-                    completed: row.isClosed, isBusy: model.busy.contains(row.id), allowsReopening: true,
+                    completed: false, isBusy: model.busy.contains(row.id), allowsReopening: true,
                     footnote: footnote(for: row)
                 ) { Task { await model.toggle(row) } }
                 #if os(macOS)
@@ -200,7 +206,8 @@ struct TasksView: View {
                 #endif
             }
             .tag(row.id)
-            .listRowBackground(Color.clear)
+            .listRowBackground(Color.ink.paper)
+            .alignmentGuide(.listRowSeparatorLeading) { _ in 0 }
         }
     }
 

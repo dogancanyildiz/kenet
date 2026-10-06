@@ -60,7 +60,7 @@ Günlük içinden ve Mac kenar çubuğundan açılır. Hafta (pazartesi–pazar)
 
 ### Görevler (2, 5)
 
-Bölümler (tek görünüm seçici: iPhone ve Mac içerik alanında araç çubuğunda; sıra Yaklaşan → Tarihsiz → Tamamlanan → Projeler → Kanban → Zaman çizelgesi; son seçim cihazda hatırlanır). Mac kenar çubuğundaki Kanban, Zaman çizelgesi ve proje girişleri gezinme düzenidir ve değişmez.
+Bölümler (tek görünüm seçici: iPhone ve Mac içerik alanında araç çubuğunda; sıra Yaklaşan → Tarihsiz → Tamamlanan → Projeler → Kanban → Zaman çizelgesi; son seçim iPhone'da hatırlanır). Mac kenar çubuğundaki Kanban, Zaman çizelgesi ve proje girişleri gezinme düzenidir ve değişmez.
 
 - **Yaklaşan:** Tarihli görevler, güne göre gruplu ajanda listesi. Grup başlığı bölüm başlığı + sayaçtır; "Devreden" (eski "Geciken") grubu vardır.
 - **Tarihsiz:** Bitiş tarihi olmayan açık görevler.

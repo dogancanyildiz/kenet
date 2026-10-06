@@ -36,11 +36,14 @@ struct TaskDetailView: View {
                         HStack(spacing: 8) {
                             TaskBox(
                                 state: TaskBoxState(
-                                    status: KanbanModel.status(of: row), priority: priority))
+                                    status: KanbanModel.status(of: row), priority: priority),
+                                isDecorative: true)
                             Text(verbatim: VoiceOverCopy.priorityValue(priority))
                                 .font(.ink.value)
                         }
                     }
+                    .accessibilityElement(children: .combine)
+                    .accessibilityValue(Text(verbatim: VoiceOverCopy.priorityValue(priority)))
                 }
                 if let project = row.project {
                     field("Proje") { Text(verbatim: project).font(.ink.content) }

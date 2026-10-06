@@ -7,6 +7,7 @@ struct TaskTimelineView: View {
     @State private var editor: TimelineDateSelection?
     @State private var sourceDay: CalendarDate?
     @State private var todayRequest = UUID()
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     let showsFilters: Bool
     let openDay: (String) -> Void
 
@@ -77,21 +78,81 @@ struct TaskTimelineView: View {
     }
     private var selectedTask: TaskRow? { model.store.content.tasks.first { $0.id == selected?.id } }
     private var controls: some View {
-        HStack {
-            #if os(macOS)
-                Picker("Gruplama", selection: $model.grouping) {
-                    Text("Proje").tag(TimelineModel.Grouping.project)
-                    Text("Kişi").tag(TimelineModel.Grouping.person)
-                    Text("Yok").tag(TimelineModel.Grouping.none)
-                }.pickerStyle(.menu)
-            #endif
-            Picker("Ölçek", selection: $model.scale) {
-                Text("Hafta").tag(TimelineModel.Scale.week)
-                Text("Ay").tag(TimelineModel.Scale.month)
-                Text("Çeyrek").tag(TimelineModel.Scale.quarter)
-            }.pickerStyle(.menu)
-            Spacer()
-            #if os(iOS)
+        Group {
+            if dynamicTypeSize.isAccessibilitySize {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(spacing: 8) {
+                        #if os(macOS)
+                            groupingPicker
+                        #endif
+                        scalePicker
+                    }
+                    HStack(spacing: 8) {
+                        #if os(iOS)
+                            periodButtons
+                        #endif
+                        todayButton
+                        if showsFilters { TaskFiltersMenu(model: model.tasks) }
+                        Spacer(minLength: 0)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            } else {
+                HStack {
+                    #if os(macOS)
+                        groupingPicker
+                    #endif
+                    scalePicker
+                    Spacer(minLength: 8)
+                    #if os(iOS)
+                        periodButtons
+                    #endif
+                    todayButton
+                    if showsFilters { TaskFiltersMenu(model: model.tasks) }
+                }
+            }
+        }
+        .padding(.horizontal, InkSpacing.margin)
+        .padding(.vertical, 10)
+    }
+
+    private var scalePicker: some View {
+        Picker("Ölçek", selection: $model.scale) {
+            Text("Hafta").tag(TimelineModel.Scale.week)
+            Text("Ay").tag(TimelineModel.Scale.month)
+            Text("Çeyrek").tag(TimelineModel.Scale.quarter)
+        }
+        .pickerStyle(.menu)
+        .fixedSize(horizontal: true, vertical: false)
+        .lineLimit(1)
+    }
+
+    #if os(macOS)
+        private var groupingPicker: some View {
+            Picker("Gruplama", selection: $model.grouping) {
+                Text("Proje").tag(TimelineModel.Grouping.project)
+                Text("Kişi").tag(TimelineModel.Grouping.person)
+                Text("Yok").tag(TimelineModel.Grouping.none)
+            }
+            .pickerStyle(.menu)
+            .fixedSize(horizontal: true, vertical: false)
+            .lineLimit(1)
+        }
+    #endif
+
+    private var todayButton: some View {
+        Button("Bugün") {
+            model.showToday()
+            todayRequest = UUID()
+        }
+        .buttonStyle(InkTextButtonStyle())
+        .fixedSize(horizontal: true, vertical: false)
+        .lineLimit(1)
+    }
+
+    #if os(iOS)
+        private var periodButtons: some View {
+            HStack(spacing: 4) {
                 Button {
                     model.shiftWindow(by: -model.scale.daysAcross)
                 } label: {
@@ -108,17 +169,10 @@ struct TaskTimelineView: View {
                 }
                 .accessibilityLabel("Sonraki dönem")
                 .buttonStyle(InkTextButtonStyle())
-            #endif
-            Button("Bugün") {
-                model.showToday()
-                todayRequest = UUID()
             }
-            .buttonStyle(InkTextButtonStyle())
-            if showsFilters { TaskFiltersMenu(model: model.tasks) }
         }
-        .padding(.horizontal, InkSpacing.margin)
-        .padding(.vertical, 10)
-    }
+    #endif
+
     private var mobileList: some View {
         List {
             ForEach(model.mobileGroups) { group in
@@ -154,6 +208,7 @@ struct TaskTimelineView: View {
         } edit: {
             editor = TimelineDateSelection(row: row, edge: $0, root: model.store.vaultURL)
         }
-        .listRowBackground(Color.clear)
+        .listRowBackground(Color.ink.paper)
+        .alignmentGuide(.listRowSeparatorLeading) { _ in 0 }
     }
 }

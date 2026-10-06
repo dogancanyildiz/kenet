@@ -32,13 +32,21 @@ struct TasksListRow: View {
             priority: row.priority)
     }
 
-    private var canToggleCompletion: Bool {
-        !((row.isClosed && !allowsReopening) || completed || isBusy || !store.canAddEvent)
+    private var completion: TasksListRowCompletion {
+        .resolve(
+            isClosed: row.isClosed,
+            completed: completed,
+            allowsReopening: allowsReopening,
+            isBusy: isBusy,
+            canAddEvent: store.canAddEvent)
     }
 
     var body: some View {
         MarginRow(kind: .vault) {
-            TaskBox(state: boxState, action: canToggleCompletion ? complete : nil)
+            TaskBox(
+                state: boxState,
+                action: completion.canToggleCompletion ? complete : nil,
+                accessibilityLabel: LocalizedStringKey(completion.boxAccessibilityLabelKey))
         } primary: {
             LinkedTextView(text: row.text, store: store)
                 .foregroundStyle(
@@ -53,12 +61,12 @@ struct TasksListRow: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .contentShape(Rectangle())
         .onTapGesture {
-            if canToggleCompletion, !row.text.spans.contains(where: { $0.target != nil }) {
+            if completion.canToggleCompletion, !row.text.spans.contains(where: { $0.target != nil }) {
                 complete()
             }
         }
-        .accessibilityAction(named: Text(completionActionName)) {
-            if canToggleCompletion, !row.text.spans.contains(where: { $0.target != nil }) {
+        .accessibilityAction(named: Text(LocalizedStringKey(completion.boxAccessibilityLabelKey))) {
+            if completion.canToggleCompletion, !row.text.spans.contains(where: { $0.target != nil }) {
                 complete()
             }
         }
@@ -83,16 +91,22 @@ struct TasksListRow: View {
         VStack(alignment: .leading, spacing: 4) {
             HStack(spacing: 8) {
                 if let date = row.due {
-                    TaskDueDateLabel(date: date, presentation: presentation)
+                    TaskDueDateLabel(date: date, presentation: presentation, asOf: day)
+                }
+                if row.priority == .low {
+                    TaskPriorityMark(priority: .low)
                 }
                 if let recurrence = row.recurrence {
                     TaskRecurrenceLabel(recurrence: recurrence)
                         .font(.ink.meta)
                         .foregroundStyle(.ink.secondaryText)
                 } else if row.recurrenceSource != nil {
-                    Label("Tanınmayan tekrar", systemImage: "repeat")
-                        .font(.ink.meta)
-                        .foregroundStyle(.ink.secondaryText)
+                    HStack(spacing: 4) {
+                        Image(systemName: "repeat")
+                        Text("Tanınmayan tekrar")
+                    }
+                    .font(.ink.meta)
+                    .foregroundStyle(.ink.secondaryText)
                 }
                 if isBusy { ProgressView().controlSize(.small) }
             }
@@ -125,10 +139,6 @@ struct TasksListRow: View {
         Button("Sil", systemImage: "trash", role: .destructive) {
             deleteConfirmation.request(.pending)
         }
-    }
-
-    private var completionActionName: LocalizedStringKey {
-        LocalizedStringKey(row.isClosed && allowsReopening ? "Görevi yeniden aç" : "Görevi tamamla")
     }
 
     private func edit(_ operation: @escaping (TaskEditorModel) async -> Bool) {

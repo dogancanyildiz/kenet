@@ -5,7 +5,6 @@ struct KanbanCard: View {
     let row: TaskRow
     let select: () -> Void
     @State private var dateEditor: TaskEditorModel?
-    @State private var isDragging = false
 
     var body: some View {
         card
@@ -36,9 +35,10 @@ struct KanbanCard: View {
     @ViewBuilder private var card: some View {
         #if os(macOS)
             if model.grouping != .person && model.store.canAddEvent && !model.busy.contains(row.id) {
+                // Highlight lives only for the system drag preview; local `@State` was never
+                // cleared on cancel / same-column drop (see ``KanbanCardDragHighlight``).
                 buttonContent.onDrag {
-                    isDragging = true
-                    return NSItemProvider(object: model.beginDrag(row) as NSString)
+                    NSItemProvider(object: model.beginDrag(row) as NSString)
                 }
             } else {
                 buttonContent
@@ -56,13 +56,25 @@ struct KanbanCard: View {
         TaskBoxState(status: KanbanModel.status(of: row), priority: row.priority)
     }
 
+    private var spokenValue: String {
+        var parts: [String] = []
+        if let priority = row.priority {
+            parts.append(VoiceOverCopy.priorityValue(priority))
+        }
+        if presentation.showsOverdueCue {
+            parts.append(String(localized: "Devreden"))
+        }
+        return parts.joined(separator: ", ")
+    }
+
     private var buttonContent: some View {
         Button(action: select) {
-            InkKanbanCard(isDragging: isDragging) {
+            InkKanbanCard(isDragging: false) {
                 VStack(alignment: .leading, spacing: 8) {
                     HStack(alignment: .top, spacing: 10) {
-                        TaskBox(state: boxState)
+                        TaskBox(state: boxState, isDecorative: true)
                         LinkedTextView(text: row.text, store: model.store)
+                            .font(.ink.content)
                             .foregroundStyle(
                                 presentation.usesSecondaryText
                                     ? Color.ink.secondaryText : Color.ink.text)
@@ -70,7 +82,11 @@ struct KanbanCard: View {
                     HStack(spacing: 8) {
                         if let date = row.due {
                             TaskDueDateLabel(
-                                date: date, presentation: presentation, includeCalendarIcon: true)
+                                date: date, presentation: presentation, asOf: model.tasks.day,
+                                includeCalendarIcon: true)
+                        }
+                        if row.priority == .low {
+                            TaskPriorityMark(priority: .low)
                         }
                         if model.busy.contains(row.id) { ProgressView().controlSize(.small) }
                     }
@@ -80,16 +96,20 @@ struct KanbanCard: View {
                             .font(.ink.meta)
                             .foregroundStyle(.ink.secondaryText)
                     } else if row.recurrenceSource != nil {
-                        Label("Tanınmayan tekrar", systemImage: "repeat")
-                            .font(.ink.meta)
-                            .foregroundStyle(.ink.secondaryText)
+                        HStack(spacing: 4) {
+                            Image(systemName: "repeat")
+                            Text("Tanınmayan tekrar")
+                        }
+                        .font(.ink.meta)
+                        .foregroundStyle(.ink.secondaryText)
                     }
                 }
             }
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .accessibilityElement(children: .contain)
+        .accessibilityElement(children: .combine)
+        .accessibilityValue(Text(verbatim: spokenValue))
         .accessibilityAction(named: Text("Ayrıntıları göster"), select)
         .accessibilityAction(named: Text(verbatim: VoiceOverCopy.changeDateActionName())) {
             guard model.store.canAddEvent, !model.busy.contains(row.id) else { return }

@@ -42,13 +42,13 @@ struct KanbanColumnView: View {
         .frame(maxHeight: .infinity)
         .background {
             RoundedRectangle(cornerRadius: InkSize.kanbanCorner, style: .continuous)
-                .fill(targeted ? Color.ink.well.opacity(0.85) : Color.ink.well.opacity(0.35))
+                .fill(targeted ? Color.ink.well : Color.ink.paper)
         }
         .overlay {
-            if targeted {
-                RoundedRectangle(cornerRadius: InkSize.kanbanCorner, style: .continuous)
-                    .stroke(Color.ink.accent, lineWidth: InkStroke.highPriority)
-            }
+            RoundedRectangle(cornerRadius: InkSize.kanbanCorner, style: .continuous)
+                .stroke(
+                    targeted ? Color.ink.accent : Color.ink.rule,
+                    lineWidth: targeted ? InkStroke.highPriority : InkStroke.control)
         }
     }
 }

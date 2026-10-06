@@ -144,6 +144,17 @@ import VaultFormat
         await context.store.finishImport(session)
         #expect(context.store.isVaultReadOnly && !context.store.canAddEvent)
     }
+
+    @Test(arguments: [0, 1, 2])
+    func supportsSettingsMatchesCoreCanWrite(version: Int) throws {
+        let root = try testDirectory()
+        defer { try? FileManager.default.removeItem(at: root) }
+        try FileManager.default.createDirectory(
+            at: root.appendingPathComponent(".app"), withIntermediateDirectories: true)
+        try write("{ \"formatVersion\": \(version) }\n", ".app/vault.json", root)
+        let expected = VaultFormatVersion.canWrite(vaultVersion: version)
+        #expect(VaultImportScanner.supportsSettings(at: root) == expected)
+    }
     @Test func initialIndexShowsTotalWhileBusyThenPublishesActualCounts() async throws {
         let directory = try testDirectory()
         defer { try? FileManager.default.removeItem(at: directory) }

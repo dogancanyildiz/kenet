@@ -11,6 +11,9 @@ public enum EntityLinkError: Error, Sendable, Equatable {
 }
 
 extension EntityRecognizer {
+    /// Characters that cannot appear in a wikilink target path.
+    public static let unrepresentableLinkTargetCharacters = Set("\\:*?\"<>|#^[]\n\r")
+
     /// Links certain mentions and explicit candidate choices, preserving every other byte.
     public static func linking(
         _ text: String, mentions: [Mention], choices: [MentionPosition: String] = [:]
@@ -47,7 +50,9 @@ extension EntityRecognizer {
             guard !mention.spelling.contains(where: { "[]\n\r".contains($0) }) else {
                 throw EntityLinkError.unrepresentableMention
             }
-            guard !target.isEmpty, !target.contains(where: { "\\:*?\"<>|#^[]\n\r".contains($0) }) else {
+            guard !target.isEmpty,
+                !target.contains(where: { unrepresentableLinkTargetCharacters.contains($0) })
+            else {
                 continue
             }
             let exactTarget = mention.spelling.utf8.elementsEqual(target.utf8)

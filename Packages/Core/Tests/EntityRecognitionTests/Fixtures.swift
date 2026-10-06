@@ -106,7 +106,8 @@ func recognitionFixtures(_ name: String) throws {
     #expect(
         remaining.filter(\.isCertain).allSatisfy { mention in
             let target = mention.candidates[0].linkTarget
-            return target.isEmpty || target.contains(where: { "\\:*?\"<>|#^[]\n\r".contains($0) })
+            return target.isEmpty
+                || target.contains(where: { EntityRecognizer.unrepresentableLinkTargetCharacters.contains($0) })
         })
     #expect(try EntityRecognizer.linking(linked, mentions: remaining) == linked)
 }

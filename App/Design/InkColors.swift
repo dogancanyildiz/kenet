@@ -14,6 +14,7 @@ extension Color {
         static let accent = Color("InkAccent")
         static let onAccent = Color("InkOnAccent")
         static let warning = Color("InkWarning")
+        static let danger = Color("InkDanger")
         static let control = Color("InkControl")
         static let person = Color("InkPerson")
         static let place = Color("InkPlace")

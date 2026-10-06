@@ -29,7 +29,8 @@ extension Font {
         /// Time: SF Pro tabular ≈ subheadline (15).
         static var time: Font { .subheadline.monospacedDigit() }
 
-        /// Large number: SF Pro Light tabular ≈ largeTitle (34; design table lists 48).
+        /// Large number fallback when ``LargeNumberText`` is unavailable: SF Pro Light tabular ≈ largeTitle.
+        /// Prefer ``LargeNumberText`` so the design target (48 pt) scales with Dynamic Type.
         static var largeNumber: Font { .system(.largeTitle, design: .default, weight: .light).monospacedDigit() }
     }
 }

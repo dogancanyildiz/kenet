@@ -4,37 +4,19 @@ import VaultFormat
 /// Spoken VoiceOver strings for cues that are otherwise icon- or canvas-only.
 enum VoiceOverCopy {
     static func taskCompletionValue(isCompleted: Bool, locale: Locale = .current) -> String {
-        String(localized: isCompleted ? "Tamamlandı" : "Açık", locale: locale)
+        boxStatusValue(isCompleted ? .done : .open, locale: locale, presentation: false)
     }
 
     static func priorityValue(_ priority: TaskPriority, locale: Locale = .current) -> String {
-        switch priority {
-        case .high: String(localized: "Yüksek öncelik", locale: locale)
-        case .medium: String(localized: "Orta öncelik", locale: locale)
-        case .low: String(localized: "Düşük öncelik", locale: locale)
-        case .other(let token): String(localized: "Öncelik \(token)", locale: locale)
-        }
+        boxPriorityValue(priority, locale: locale, presentation: false)
     }
 
     /// Task box cue for the Today presentation; the catalog language follows `locale`
     /// (unlike the two lookups above, which follow the process language).
     static func taskBoxValue(state: TaskBoxState, priority: TaskPriority?, locale: Locale) -> String {
-        let bundle = PresentationLocalization.bundle(locale)
-        let status: String =
-            switch state {
-            case .inProgress: String(localized: "Devam", bundle: bundle, locale: locale)
-            case .done: String(localized: "Tamamlandı", bundle: bundle, locale: locale)
-            case .open: String(localized: "Açık", bundle: bundle, locale: locale)
-            }
+        let status = boxStatusValue(state, locale: locale, presentation: true)
         guard let priority else { return status }
-        let level: String =
-            switch priority {
-            case .high: String(localized: "Yüksek öncelik", bundle: bundle, locale: locale)
-            case .medium: String(localized: "Orta öncelik", bundle: bundle, locale: locale)
-            case .low: String(localized: "Düşük öncelik", bundle: bundle, locale: locale)
-            case .other(let token): String(localized: "Öncelik \(token)", bundle: bundle, locale: locale)
-            }
-        return "\(status), \(level)"
+        return "\(status), \(boxPriorityValue(priority, locale: locale, presentation: true))"
     }
 
     static func dayRowLabel(
@@ -97,6 +79,44 @@ enum VoiceOverCopy {
         let kindText = graphNodeKind(kind, locale: locale)
         let neighbors = String(localized: "\(neighborCount) komşu", locale: locale)
         return "\(name), \(kindText), \(neighbors)"
+    }
+
+    /// Shared status switch for process-language helpers and presentation-locale lookups.
+    private static func boxStatusValue(
+        _ state: TaskBoxState, locale: Locale, presentation: Bool
+    ) -> String {
+        let key: String.LocalizationValue =
+            switch state {
+            case .inProgress: "Devam"
+            case .done: "Tamamlandı"
+            case .cancelled: "İptal"
+            case .open: "Açık"
+            }
+        return localize(key, locale: locale, presentation: presentation)
+    }
+
+    /// Shared priority switch for process-language helpers and presentation-locale lookups.
+    private static func boxPriorityValue(
+        _ priority: TaskPriority, locale: Locale, presentation: Bool
+    ) -> String {
+        let key: String.LocalizationValue =
+            switch priority {
+            case .high: "Yüksek öncelik"
+            case .medium: "Orta öncelik"
+            case .low: "Düşük öncelik"
+            case .other(let token): "Öncelik \(token)"
+            }
+        return localize(key, locale: locale, presentation: presentation)
+    }
+
+    private static func localize(
+        _ key: String.LocalizationValue, locale: Locale, presentation: Bool
+    ) -> String {
+        if presentation {
+            return String(
+                localized: key, bundle: PresentationLocalization.bundle(locale), locale: locale)
+        }
+        return String(localized: key, locale: locale)
     }
 }
 

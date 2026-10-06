@@ -249,12 +249,12 @@
         }
       }
     },
-    "%@'den": {
+    "from %@": {
       "localizations": {
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@'den"
+            "value": "from %@"
           }
         },
         "en": {
@@ -3412,7 +3412,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Past due"
+            "value": "Carried over"
           }
         }
       }

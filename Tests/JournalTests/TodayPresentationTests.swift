@@ -14,15 +14,23 @@ struct TodayPresentationTests {
         return value
     }
 
-    private func row(_ id: Int, status: String = " ", due: String? = nil, priority: String? = nil) throws -> TaskRow {
+    private func row(
+        _ id: Int, status: String = " ", due: String? = nil, priority: String? = nil,
+        done: String? = nil, includeDoneDate: Bool? = nil, file: String? = nil, on date: CalendarDate? = nil
+    ) throws -> TaskRow {
+        let on = date ?? day
         var fields: [String: Any] = [
-            "file": "journal/2026-10-06.md", "ordinal": id, "kind": "task", "firstLine": id + 1,
+            "file": file ?? "journal/\(on).md", "ordinal": id, "kind": "task", "firstLine": id + 1,
             "lastLine": id + 1, "text": "Sample", "section": "Tasks", "rawStatus": status,
             "ownsIdentifier": false,
         ]
         fields["dueDate"] = due
         fields["priority"] = priority
-        if status == "x" { fields["doneDate"] = day.description }
+        if let done {
+            fields["doneDate"] = done
+        } else if status == "x" || status == "X", includeDoneDate != false {
+            fields["doneDate"] = on.description
+        }
         let block = try JSONDecoder().decode(IndexedBlock.self, from: JSONSerialization.data(withJSONObject: fields))
         return TaskRow(row: block, links: [])
     }
@@ -40,18 +48,25 @@ struct TodayPresentationTests {
 
     private func make(
         events: Int = 0, tasks: Int = 0, goals: Int = 0, locale: String,
-        groups: TaskGroups? = nil, completed: [TaskRow] = []
+        groups: TaskGroups? = nil, completed: [TaskRow] = [], goalStatusesDay: CalendarDate? = nil,
+        goalsDefinitions: [GoalDefinition]? = nil, goalStatuses: [String: GoalStatus] = [:]
     ) throws -> TodayPresentation {
-        let definitions = (0..<goals).map {
-            GoalDefinition(id: "goal\($0)", key: "goal\($0)", name: "Sample", period: .day, kind: .boolean)!
+        let definitions: [GoalDefinition]
+        if let goalsDefinitions {
+            definitions = goalsDefinitions
+        } else {
+            definitions = (0..<goals).map { index in
+                GoalDefinition(
+                    id: "goal\(index)", key: "goal\(index)", name: "Sample", period: .day, kind: .boolean)!
+            }
         }
         return try TodayPresentation(
             day: summary(events: events),
             groups: groups
                 ?? TaskGroups(
                     rows: (0..<tasks).map { try row($0) }, on: day, isToday: true),
-            goals: definitions, goalStatuses: [:], today: day, locale: Locale(identifier: locale),
-            calendar: calendar, completedTasks: completed)
+            goals: definitions, goalStatuses: goalStatuses, goalStatusesDay: goalStatusesDay ?? day,
+            today: day, locale: Locale(identifier: locale), calendar: calendar, completedTasks: completed)
     }
 
     @Test(arguments: ["tr_TR", "en_US"])
@@ -123,11 +138,60 @@ struct TodayPresentationTests {
         let now = CalendarDate("2026-01-02")!
         let past = try TodayPresentation(
             day: summary(date: previous), groups: TaskGroups(rows: [], on: previous, isToday: false),
-            goals: [], goalStatuses: [:], today: now, locale: locale, calendar: calendar)
+            goals: [], goalStatuses: [:], goalStatusesDay: previous, today: now, locale: locale,
+            calendar: calendar)
         #expect(past.headline == (language == "tr_TR" ? "31 Aralık 2025 Çarşamba" : "Wednesday, December 31, 2025"))
         #expect(
             TodayPresentation.carriedOverDate(previous, today: now, locale: locale, calendar: calendar)
-                == (language == "tr_TR" ? "31 Ara 2025'den" : "from Dec 31, 2025"))
+                == (language == "tr_TR" ? "31 Ara 2025'ten" : "from Dec 31, 2025"))
+    }
+
+    @Test func turkishCarriedOverDateUsesMonthAndYearAblative() throws {
+        let locale = Locale(identifier: "tr_TR")
+        let english = Locale(identifier: "en_US")
+        let yearless: [(String, String, String)] = [
+            ("2026-01-05", "5 Oca'tan", "from Jan 5"),
+            ("2026-02-05", "5 Şub'tan", "from Feb 5"),
+            ("2026-03-03", "3 Mar'tan", "from Mar 3"),
+            ("2026-04-05", "5 Nis'dan", "from Apr 5"),
+            ("2026-05-05", "5 May'tan", "from May 5"),
+            ("2026-06-05", "5 Haz'dan", "from Jun 5"),
+            ("2026-07-05", "5 Tem'dan", "from Jul 5"),
+            ("2026-08-05", "5 Ağu'tan", "from Aug 5"),
+            ("2026-09-30", "30 Eyl'den", "from Sep 30"),
+            ("2026-10-05", "5 Eki'den", "from Oct 5"),
+            ("2026-11-05", "5 Kas'dan", "from Nov 5"),
+            ("2026-12-31", "31 Ara'tan", "from Dec 31"),
+        ]
+        for (date, turkish, englishText) in yearless {
+            let value = CalendarDate(date)!
+            #expect(
+                TodayPresentation.carriedOverDate(value, today: day, locale: locale, calendar: calendar)
+                    == turkish)
+            #expect(
+                TodayPresentation.carriedOverDate(value, today: day, locale: english, calendar: calendar)
+                    == englishText)
+        }
+        let withYear: [(String, String, String, String)] = [
+            ("2000-06-01", "2001-01-01", "1 Haz 2000'den", "from Jun 1, 2000"),
+            ("2019-04-05", "2020-01-01", "5 Nis 2019'dan", "from Apr 5, 2019"),
+            ("2023-03-03", "2024-01-01", "3 Mar 2023'ten", "from Mar 3, 2023"),
+            ("2024-02-29", "2025-01-01", "29 Şub 2024'ten", "from Feb 29, 2024"),
+            ("2025-12-31", "2026-01-02", "31 Ara 2025'ten", "from Dec 31, 2025"),
+            ("2026-06-05", "2027-01-01", "5 Haz 2026'dan", "from Jun 5, 2026"),
+            ("2030-01-05", "2031-01-01", "5 Oca 2030'dan", "from Jan 5, 2030"),
+            ("2040-08-05", "2041-01-01", "5 Ağu 2040'tan", "from Aug 5, 2040"),
+        ]
+        for (date, today, turkish, englishText) in withYear {
+            let value = CalendarDate(date)!
+            let asOf = CalendarDate(today)!
+            #expect(
+                TodayPresentation.carriedOverDate(value, today: asOf, locale: locale, calendar: calendar)
+                    == turkish)
+            #expect(
+                TodayPresentation.carriedOverDate(value, today: asOf, locale: english, calendar: calendar)
+                    == englishText)
+        }
     }
 
     @Test(arguments: ["tr_TR", "en_US"])
@@ -144,15 +208,17 @@ struct TodayPresentationTests {
         ]
         let value = try TodayPresentation(
             day: summary(events: 3), groups: TaskGroups(rows: rows, on: day, isToday: true),
-            goals: daily + [weekly], goalStatuses: [daily[0].key: status], today: day,
+            goals: daily + [weekly], goalStatuses: [daily[0].key: status], goalStatusesDay: day, today: day,
             locale: Locale(identifier: language), calendar: calendar)
         #expect(value.counter(for: .goals) == "1/3")
+        #expect(value.countedGoalIDs == daily.map(\.id))
         #expect(value.counter(for: .tasks) == "4")
         #expect(value.counter(for: .events) == "3")
         #expect(value.counter(for: .calendar) == nil)
         #expect(value.counter(for: .journal) == nil)
         #expect(value.remainingGoalCount == 2)
         #expect(try make(locale: language).counter(for: .goals) == "0/0")
+        #expect(try make(locale: language).countedGoalIDs.isEmpty)
     }
 
     @Test func completedOverlayAndHistoricalClosedRowsAreCountedOnce() throws {
@@ -162,14 +228,84 @@ struct TodayPresentationTests {
         var groups = TaskGroups(rows: [closed, cancelled], on: day, isToday: false)
         groups.overdue = [retained]
         let value = try TodayPresentation(
-            day: summary(), groups: groups, goals: [], goalStatuses: [:], today: day,
+            day: summary(), groups: groups, goals: [], goalStatuses: [:], goalStatusesDay: day, today: day,
             locale: Locale(identifier: "en_US"), calendar: calendar, completedTasks: [closed],
             completedTaskIDs: [retained.id], isCompletedExpanded: true)
         #expect(value.remainingTaskCount == 0)
         #expect(value.carriedOverTasks.isEmpty)
         #expect(value.datedTasks.isEmpty)
         #expect(value.completedTaskRows.map(\.id) == [retained.id, closed.id])
+        #expect(value.taskRows.map(\.id) == [cancelled.id, retained.id, closed.id])
+        #expect(value.representedTaskIDs == [retained.id, closed.id, cancelled.id])
         #expect(value.byline == nil)
+    }
+
+    @Test func pastDayKeepsEveryClosedRowIncludingFoldedCompleted() throws {
+        let past = CalendarDate("2026-10-01")!
+        let open = try row(1, due: past.description, on: past)
+        let doneLater = try row(2, status: "x", due: past.description, done: "2026-10-03", on: past)
+        let cancelled = try row(3, status: "-", due: past.description, on: past)
+        let doneSame = try row(4, status: "x", due: past.description, done: past.description, on: past)
+        let undatedDone = try row(
+            5, status: "x", due: nil, done: "2026-10-04", file: "journal/\(past).md", on: past)
+        let doneWithoutDate = try row(
+            6, status: "x", due: past.description, includeDoneDate: false, on: past)
+        let rows = [open, doneLater, cancelled, doneSame, undatedDone, doneWithoutDate]
+        let groups = TaskGroups(rows: rows, on: past, isToday: false)
+        #expect(groups.dated.count + groups.created.count == 6)
+        var value = try TodayPresentation(
+            day: summary(date: past), groups: groups, goals: [], goalStatuses: [:], goalStatusesDay: past,
+            today: day, locale: Locale(identifier: "en_US"), calendar: calendar)
+        #expect(value.representedTaskIDs == Set(rows.map(\.id)))
+        #expect(value.taskRows.map(\.id) == [open.id, cancelled.id])
+        #expect(value.completedTaskCount == 4)
+        #expect(value.completedDisclosure == "4 tasks completed")
+        #expect(value.remainingTaskCount == 1)
+        value.isCompletedExpanded = true
+        #expect(Set(value.taskRows.map(\.id)) == Set(rows.map(\.id)))
+        #expect(value.taskRows.first?.id == open.id)
+        #expect(value.taskRows.contains { $0.id == cancelled.id && $0.rawStatus == "-" })
+    }
+
+    @Test func goalStatusesForAnotherDayOmitGoalCounts() throws {
+        let daily = GoalDefinition(id: "g0", key: "g0", name: "Sample", period: .day, kind: .boolean)!
+        let other = CalendarDate("2026-10-05")!
+        let status = GoalProgress.compute(
+            definition: daily, logs: [GoalLog(day: other, value: .boolean(true))], today: other)
+        let mismatched = try TodayPresentation(
+            day: summary(), groups: TaskGroups(rows: [], on: day, isToday: true), goals: [daily],
+            goalStatuses: [daily.key: status], goalStatusesDay: other, today: day,
+            locale: Locale(identifier: "en_US"), calendar: calendar)
+        #expect(mismatched.goalCount == 0)
+        #expect(mismatched.completedGoalCount == 0)
+        #expect(mismatched.remainingGoalCount == 0)
+        #expect(mismatched.countedGoalIDs.isEmpty)
+        #expect(mismatched.counter(for: .goals) == "0/0")
+        let matched = try TodayPresentation(
+            day: summary(), groups: TaskGroups(rows: [], on: day, isToday: true), goals: [daily],
+            goalStatuses: [
+                daily.key: GoalProgress.compute(
+                    definition: daily, logs: [GoalLog(day: day, value: .boolean(true))], today: day)
+            ], goalStatusesDay: day, today: day, locale: Locale(identifier: "en_US"), calendar: calendar)
+        #expect(matched.goalCount == 1)
+        #expect(matched.completedGoalCount == 1)
+        #expect(matched.countedGoalIDs == [daily.id])
+    }
+
+    @Test func unsupportedLocaleFallsBackConsistently() throws {
+        let locale = Locale(identifier: "de_DE")
+        let value = try make(events: 1, locale: "de_DE")
+        let resolved = PresentationLocalization.resolvedLocale(locale)
+        #expect(resolved.language.languageCode?.identifier != "de")
+        #expect(value.locale.language.languageCode == resolved.language.languageCode)
+        // Headline and byline share the resolved catalog language (not German).
+        #expect(!value.headline.contains("Oktober") && !value.headline.lowercased().contains("dienstag"))
+        #expect(value.byline != nil)
+        let carried = TodayPresentation.carriedOverDate(
+            CalendarDate("2026-09-30")!, today: day, locale: locale, calendar: calendar)
+        let carriedResolved = TodayPresentation.carriedOverDate(
+            CalendarDate("2026-09-30")!, today: day, locale: resolved, calendar: calendar)
+        #expect(carried == carriedResolved)
     }
 
     @Test(arguments: ["tr_TR", "en_US"])
@@ -179,6 +315,7 @@ struct TodayPresentationTests {
             (" ", nil, .open, "", language == "tr_TR" ? "Açık" : "Open"),
             ("/", "🔼", .inProgress, "!", language == "tr_TR" ? "Devam, Orta öncelik" : "In progress, Medium priority"),
             ("x", "⏫", .done, "!!", language == "tr_TR" ? "Tamamlandı, Yüksek öncelik" : "Completed, High priority"),
+            ("-", nil, .cancelled, "", language == "tr_TR" ? "İptal" : "Cancelled"),
             (" ", "🔽", .open, "", language == "tr_TR" ? "Açık, Düşük öncelik" : "Open, Low priority"),
         ]
         for (status, priority, state, mark, spoken) in cases {
@@ -188,5 +325,6 @@ struct TodayPresentationTests {
             #expect(box.accessibilityValue(locale: locale) == spoken)
         }
         #expect(try TaskBoxPresentation(row: row(1), isCompleted: true).state == .done)
+        #expect(try TaskBoxPresentation(row: row(1, status: "-"), isCompleted: true).state == .done)
     }
 }

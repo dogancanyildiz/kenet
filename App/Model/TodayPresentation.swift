@@ -3,6 +3,8 @@ import GoalTracking
 import VaultFormat
 
 /// A snapshot for Today and historical day pages. Group order is owned by TaskGroups.
+///
+/// Pass `@Environment(\.locale)` from the view; do not hand-build a `Locale` for presentation.
 struct TodayPresentation: Sendable {
     enum Section: Sendable { case goals, tasks, events, calendar, journal }
 
@@ -12,10 +14,14 @@ struct TodayPresentation: Sendable {
     let remainingGoalCount: Int
     let completedGoalCount: Int
     let goalCount: Int
+    /// Daily goals only (`period == .day`). Counter, byline, and this ID list share one set;
+    /// the view should draw the same IDs so a fraction like `1/3` matches visible goal rows.
+    let countedGoalIDs: [String]
     let eventCount: Int
     private let carriedOver: [TaskRow]
     let datedTasks: [TaskRow]
     let createdTasks: [TaskRow]
+    private let cancelled: [TaskRow]
     private let completed: [TaskRow]
     let locale: Locale
     var isCarriedOverExpanded: Bool
@@ -23,40 +29,56 @@ struct TodayPresentation: Sendable {
 
     /// Supply closed source rows separately: Today's TaskGroups intentionally excludes them.
     /// completedTaskIDs also accepts DayTasksModel's temporarily retained pre-write rows.
+    /// `goalStatusesDay` must be the day the statuses were computed for; on mismatch, goals are omitted.
     init(
         day: DaySummary, groups: TaskGroups, goals: [GoalDefinition], goalStatuses: [String: GoalStatus],
-        today: CalendarDate, locale: Locale, calendar: Calendar,
+        goalStatusesDay: CalendarDate, today: CalendarDate, locale: Locale, calendar: Calendar,
         completedTasks: [TaskRow] = [], completedTaskIDs: Set<String> = [],
         isCarriedOverExpanded: Bool = false, isCompletedExpanded: Bool = false
     ) {
-        self.locale = locale
+        let resolved = PresentationLocalization.resolvedLocale(locale)
+        self.locale = resolved
         self.isCarriedOverExpanded = isCarriedOverExpanded
         self.isCompletedExpanded = isCompletedExpanded
-        headline = Self.dateText(day.date, today: today, locale: locale, calendar: calendar, headline: true)
+        headline = Self.dateText(day.date, today: today, locale: resolved, calendar: calendar, headline: true)
         let all = groups.overdue + groups.dated + groups.created
         let isDone: (TaskRow) -> Bool = {
             completedTaskIDs.contains($0.id) || $0.rawStatus == "x" || $0.rawStatus == "X"
         }
-        let isOpen: (TaskRow) -> Bool = { !$0.isClosed && !isDone($0) }
+        let isCancelled: (TaskRow) -> Bool = { $0.rawStatus == "-" }
+        let isOpen: (TaskRow) -> Bool = { !isCancelled($0) && !isDone($0) && !$0.isClosed }
         carriedOver = groups.overdue.filter(isOpen)
         datedTasks = groups.dated.filter(isOpen)
         createdTasks = groups.created.filter(isOpen)
-        let groupedIDs = Set(all.map(\.id))
         var seen: Set<String> = []
-        completed = (all + completedTasks).filter {
-            isDone($0)
-                && ($0.done == day.date || completedTaskIDs.contains($0.id)
-                    || ($0.done == nil && groupedIDs.contains($0.id)))
-                && seen.insert($0.id).inserted
+        var cancelledRows: [TaskRow] = []
+        var completedRows: [TaskRow] = []
+        for row in all + completedTasks {
+            guard seen.insert(row.id).inserted else { continue }
+            if isCancelled(row) {
+                cancelledRows.append(row)
+            } else if isDone(row) {
+                completedRows.append(row)
+            }
         }
+        cancelled = cancelledRows
+        completed = completedRows
         remainingTaskCount = carriedOver.count + datedTasks.count + createdTasks.count
-        let daily = goals.filter { $0.period == .day }
-        goalCount = daily.count
-        completedGoalCount = daily.filter { goalStatuses[$0.key]?.progress.isComplete == true }.count
-        remainingGoalCount = goalCount - completedGoalCount
+        if goalStatusesDay == day.date {
+            let daily = goals.filter { $0.period == .day }
+            countedGoalIDs = daily.map(\.id)
+            goalCount = daily.count
+            completedGoalCount = daily.filter { goalStatuses[$0.key]?.progress.isComplete == true }.count
+            remainingGoalCount = goalCount - completedGoalCount
+        } else {
+            countedGoalIDs = []
+            goalCount = 0
+            completedGoalCount = 0
+            remainingGoalCount = 0
+        }
         eventCount = day.events.count
         byline = TodayCopy.byline(
-            events: eventCount, tasks: remainingTaskCount, goals: remainingGoalCount, locale: locale)
+            events: eventCount, tasks: remainingTaskCount, goals: remainingGoalCount, locale: resolved)
     }
 
     var carriedOverTasks: [TaskRow] { isCarriedOverExpanded ? carriedOver : Array(carriedOver.prefix(3)) }
@@ -66,7 +88,15 @@ struct TodayPresentation: Sendable {
         return TodayCopy.carriedOver(hiddenCarriedOverCount, locale: locale)
     }
     /// Visible task rows in display order; disclosure rows are exposed separately.
-    var taskRows: [TaskRow] { carriedOverTasks + datedTasks + createdTasks + completedTaskRows }
+    /// Past-day closed rows (cancelled, completed any day) follow open rows; folding applies only to `x`.
+    var taskRows: [TaskRow] {
+        carriedOverTasks + datedTasks + createdTasks + cancelled + completedTaskRows
+    }
+    /// Every task identity represented by this snapshot, including folded completed rows.
+    var representedTaskIDs: Set<String> {
+        Set(
+            (carriedOver + datedTasks + createdTasks + cancelled + completed).map(\.id))
+    }
     var completedTaskCount: Int { completed.count }
     var completedTaskRows: [TaskRow] { isCompletedExpanded || completed.count <= 1 ? completed : [] }
     var completedDisclosure: String? {
@@ -86,8 +116,27 @@ struct TodayPresentation: Sendable {
     static func carriedOverDate(
         _ date: CalendarDate, today: CalendarDate, locale: Locale, calendar: Calendar
     ) -> String {
-        let text = dateText(date, today: today, locale: locale, calendar: calendar, headline: false)
-        return String(localized: "\(text)'den", bundle: PresentationLocalization.bundle(locale), locale: locale)
+        let resolved = PresentationLocalization.resolvedLocale(locale)
+        let text = dateText(date, today: today, locale: resolved, calendar: calendar, headline: false)
+        if TurkishSuffix.isTurkish(resolved) {
+            let ending =
+                date.year == today.year
+                ? TurkishSuffix.ablativeEnding(turkishMonthName(date.month))
+                : TurkishSuffix.ablativeEnding(forNumber: date.year)
+            return "\(text)'\(ending)"
+        }
+        return String(
+            localized: "from \(text)", bundle: PresentationLocalization.bundle(resolved), locale: resolved)
+    }
+
+    private static let turkishMonthNames = [
+        "", "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran",
+        "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık",
+    ]
+
+    private static func turkishMonthName(_ month: Int) -> String {
+        guard (1...12).contains(month) else { return "" }
+        return turkishMonthNames[month]
     }
 
     private static func dateText(
@@ -109,7 +158,16 @@ struct TaskBoxPresentation: Sendable {
     let priority: TaskPriority?
 
     init(row: TaskRow, isCompleted: Bool = false) {
-        state = isCompleted || row.isClosed ? .done : row.rawStatus == "/" ? .inProgress : .open
+        if isCompleted {
+            state = .done
+        } else {
+            switch row.rawStatus {
+            case "-": state = .cancelled
+            case "x", "X": state = .done
+            case "/": state = .inProgress
+            default: state = .open
+            }
+        }
         priority = row.priority
     }
 
@@ -126,12 +184,24 @@ struct TaskBoxPresentation: Sendable {
     }
 }
 
-enum TaskBoxState: Sendable { case open, inProgress, done }
+enum TaskBoxState: Sendable { case open, inProgress, done, cancelled }
 
 /// Locale selects both catalog language and formatting; process language is irrelevant.
+/// Prefer `@Environment(\.locale)` from the view; do not hand-build a `Locale` for presentation.
 enum PresentationLocalization {
+    static func resolvedLocale(_ locale: Locale) -> Locale {
+        var preferences = [locale.identifier]
+        if let code = locale.language.languageCode?.identifier { preferences.append(code) }
+        let available = Bundle.main.localizations.filter { $0 != "Base" }
+        let fallback = available.isEmpty ? ["en", "tr"] : available
+        let preferred = Bundle.preferredLocalizations(from: fallback, forPreferences: preferences)
+        guard let chosen = preferred.first else { return Locale(identifier: "en") }
+        return Locale(identifier: chosen)
+    }
+
     static func bundle(_ locale: Locale) -> Bundle {
-        let language = locale.language.languageCode?.identifier ?? "en"
+        let resolved = resolvedLocale(locale)
+        let language = resolved.language.languageCode?.identifier ?? resolved.identifier
         guard let path = Bundle.main.path(forResource: language, ofType: "lproj"),
             let bundle = Bundle(path: path)
         else { return .main }

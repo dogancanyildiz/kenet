@@ -9,11 +9,26 @@ enum TurkishSuffix {
         "p", "ç", "t", "k", "f", "h", "s", "ş",
         "P", "Ç", "T", "K", "F", "H", "S", "Ş",
     ]
+    private static let ones = ["", "bir", "iki", "üç", "dört", "beş", "altı", "yedi", "sekiz", "dokuz"]
+    private static let tens = [
+        "", "on", "yirmi", "otuz", "kırk", "elli", "altmış", "yetmiş", "seksen", "doksan",
+    ]
 
     /// Locative: Ev'de, Okul'da, Starbucks'ta.
     static func withLocative(_ name: String) -> String {
         guard let base = prepared(name) else { return name }
         return "\(base)'\(locativeEnding(base))"
+    }
+
+    /// Ablative: Ocak'tan, Eylül'den, 2025'ten.
+    static func withAblative(_ name: String) -> String {
+        guard let base = prepared(name) else { return name }
+        return "\(base)'\(ablativeEnding(base))"
+    }
+
+    /// Ablative for a cardinal whose spoken form drives vowel harmony (2025'ten, 2026'dan).
+    static func withAblativeNumber(_ number: Int) -> String {
+        "\(number)'\(ablativeEnding(forNumber: number))"
     }
 
     /// Comitative / instrumental: Ahmet'le, Ayşe'yle.
@@ -47,19 +62,52 @@ enum TurkishSuffix {
         return String([consonant, vowel])
     }
 
+    /// Ablative ending (-den/-dan/-ten/-tan) for a spoken word stem.
+    static func ablativeEnding(_ name: String) -> String {
+        locativeEnding(name) + "n"
+    }
+
+    /// Ablative ending driven by the last spoken word of a cardinal number.
+    static func ablativeEnding(forNumber number: Int) -> String {
+        ablativeEnding(lastSpokenWord(of: number))
+    }
+
     static func comitativeEnding(_ name: String) -> String {
         let buffer = endsWithVowel(name) ? "y" : ""
         let vowel: Character = isFront(name) ? "e" : "a"
         return "\(buffer)l\(vowel)"
     }
 
+    static func isTurkish(_ locale: Locale) -> Bool {
+        locale.language.languageCode?.identifier == "tr"
+    }
+
+    /// Last word in the Turkish reading of a non-negative cardinal (for suffix harmony).
+    static func lastSpokenWord(of number: Int) -> String {
+        let value = abs(number)
+        if value == 0 { return "sıfır" }
+        let lower = value % 1000
+        if lower != 0 { return lastSpokenWordBelow1000(lower) }
+        if (value / 1000) % 1000 != 0 { return "bin" }
+        return "milyon"
+    }
+
+    private static func lastSpokenWordBelow1000(_ value: Int) -> String {
+        let rem100 = value % 100
+        if rem100 != 0 { return lastSpokenWordBelow100(rem100) }
+        return "yüz"
+    }
+
+    private static func lastSpokenWordBelow100(_ value: Int) -> String {
+        if value < 10 { return ones[value] }
+        if value < 20 { return value == 10 ? "on" : ones[value - 10] }
+        if value % 10 == 0 { return tens[value / 10] }
+        return ones[value % 10]
+    }
+
     private static func prepared(_ name: String) -> String? {
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
         return trimmed.isEmpty ? nil : trimmed
-    }
-
-    private static func isTurkish(_ locale: Locale) -> Bool {
-        locale.language.languageCode?.identifier == "tr"
     }
 
     private static func endsWithVoiceless(_ name: String) -> Bool {

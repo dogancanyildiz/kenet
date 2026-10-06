@@ -7525,6 +7525,22 @@
         }
       }
     },
+    "%@ olarak mı?": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ olarak mı?"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use %@?"
+          }
+        }
+      }
+    },
     "Bu ad için bir varlık oluştur.": {
       "localizations": {
         "tr": {

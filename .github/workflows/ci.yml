@@ -106,8 +106,16 @@ jobs:
             -scheme Journal_iOS \
             -destination "platform=iOS Simulator,name=${{ steps.ios_sim.outputs.name }}" \
             -only-testing:JournalUITests \
+            -resultBundlePath UITests.xcresult \
             CODE_SIGNING_ALLOWED=NO \
             -quiet
+      - name: Arayüz testi sonuç paketi (yalnız düşünce)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-test-results
+          path: UITests.xcresult
+          retention-days: 7
 
   # Biçim denetimi yereldeki ile aynı swift-format sürümünde koşar (Swift 6.4).
   lint:

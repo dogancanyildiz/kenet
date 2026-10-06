@@ -61,6 +61,10 @@ final class AccessibilityAuditUITests: XCTestCase {
                 print("A11Y deferred (\(screen)): \(issue.auditType) — \(element)")
                 return true
             }
+            // Not deferred: record which element failed, since the audit's own message omits it.
+            let element = issue.element?.description ?? "(no element)"
+            XCTContext.runActivity(named: "A11Y issue (\(screen)): \(issue.auditType) — \(element)") { _ in }
+            print("A11Y issue (\(screen)): \(issue.auditType) — \(issue.compactDescription) — \(element)")
             return false
         }
     }

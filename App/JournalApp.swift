@@ -28,15 +28,20 @@ struct JournalApp: App {
         let location = LocationService()
         _location = State(initialValue: location)
         let store = IntentActions.shared.store
+        IntentActions.shared.attach(lock: appLock)
         _store = State(initialValue: store)
         let center = SystemNotificationScheduler()
         let geofences = GeofenceService(location: location, center: center)
         geofences.attach(to: store)
+        geofences.attach(lock: appLock)
         _geofences = State(initialValue: geofences)
         let notifications = NotificationService(center: center)
         notifications.attach(to: store)
         notifications.activateAutomatically()
         _notifications = State(initialValue: notifications)
+        geofences.onLockedMarkBlocked = { [weak notifications] in
+            notifications?.open(.goals)
+        }
         IntentNavigation.shared.onOpenToday = { [weak notifications] in notifications?.clearNavigationRequest() }
         geofences.activateAutomatically()
         #if os(macOS)

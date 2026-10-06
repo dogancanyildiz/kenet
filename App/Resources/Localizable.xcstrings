@@ -7493,22 +7493,6 @@
         }
       }
     },
-    "Siri ve Kısayollar kilitliyken de kayıt yazabilir. Bildirim önizlemelerini sistem ayarları belirler.": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Siri ve Kısayollar kilitliyken de kayıt yazabilir. Bildirim önizlemelerini sistem ayarları belirler."
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Siri and Shortcuts can write entries while locked. System settings control notification previews."
-          }
-        }
-      }
-    },
     "Bu tipteki varlıklar burada görünecek.": {
       "localizations": {
         "tr": {
@@ -8625,6 +8609,134 @@
           "stringUnit": {
             "state": "translated",
             "value": "Arama geçmişini temizle"
+          }
+        }
+      }
+    },
+    "Bugün bekleyen hedefler var": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bugün bekleyen hedefler var"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "There are goals remaining today"
+          }
+        }
+      }
+    },
+    "Bildirimlerde içeriği gizle": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bildirimlerde içeriği gizle"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hide notification content"
+          }
+        }
+      }
+    },
+    "Kilit ekranında görev metni ve hedef adları gösterilmez.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kilit ekranında görev metni ve hedef adları gösterilmez."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Task text and goal names are hidden on the lock screen."
+          }
+        }
+      }
+    },
+    "Günlük kilitli. Uygulamayı açıp kilidi aç.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Günlük kilitli. Uygulamayı açıp kilidi aç."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Journal is locked. Open the app and unlock it."
+          }
+        }
+      }
+    },
+    "Günlük kilitliydi. Kilidi açtıktan sonra hedefi kendin işaretle.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Günlük kilitliydi. Kilidi açtıktan sonra hedefi kendin işaretle."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Journal was locked. Unlock it, then mark the goal yourself."
+          }
+        }
+      }
+    },
+    "Bir hedefin yakınındasın": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bir hedefin yakınındasın"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You're near a goal"
+          }
+        }
+      }
+    },
+    "Hedef işaretlendi": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hedef işaretlendi"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Goal marked"
+          }
+        }
+      }
+    },
+    "Kilitliyken Siri hedef adlarını listelemez; Kısayollar ve bildirimdeki İşaretle eylemi yazmaz.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kilitliyken Siri hedef adlarını listelemez; Kısayollar ve bildirimdeki İşaretle eylemi yazmaz."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "While locked, Siri does not list goal names; Shortcuts and the notification Mark action cannot write."
           }
         }
       }

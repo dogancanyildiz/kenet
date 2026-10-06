@@ -25,7 +25,7 @@ enum AppLockDelay: Int, CaseIterable {
     case fifteenMinutes = 900
 }
 
-/// Device-local UI protection. Vault writers and App Intents deliberately do not depend on this service.
+/// Device-local UI protection. Vault writers attach a lock check for App Intents and geofence mark actions.
 @MainActor @Observable final class AppLockService {
     static let enabledKey = "appLock.enabled"
     static let delayKey = "appLock.delay"

@@ -69,6 +69,9 @@ final class NotificationService {
         queueReplan(after: changedVault ? .zero : debounce)
     }
     func clearNavigationRequest() { navigationRequest = nil }
+    func open(_ destination: NotificationDestination) {
+        navigationRequest = NotificationNavigationRequest(destination: destination)
+    }
 
     func foreground() async { await replanNow() }
     func requestAccess() async {

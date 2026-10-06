@@ -97,4 +97,17 @@ enum LocationCopy {
             localized: "\(TurkishSuffix.youAreAtArgument(place, locale: locale)). \(goal) işaretlensin mi?",
             locale: locale)
     }
+
+    static func geofenceTitle(
+        place: String, goal: String, automatic: Bool, hideContent: Bool, locale: Locale = .current
+    ) -> String {
+        if hideContent {
+            return automatic
+                ? String(localized: "Hedef işaretlendi", locale: locale)
+                : String(localized: "Bir hedefin yakınındasın", locale: locale)
+        }
+        return automatic
+            ? String(localized: "\(goal) işaretlendi", locale: locale)
+            : geofencePrompt(place: place, goal: goal, locale: locale)
+    }
 }

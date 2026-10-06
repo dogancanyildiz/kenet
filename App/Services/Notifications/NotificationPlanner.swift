@@ -14,7 +14,7 @@ enum NotificationPlanner {
             guard let day = today.addingDays(offset) else { continue }
             if preferences.tasksEnabled, let date = fireDate(day, time: preferences.taskTime, timeZone: timeZone),
                 date > now,
-                let message = taskMessage(snapshot.tasks, on: day)
+                let message = taskMessage(snapshot.tasks, on: day, hideContent: preferences.hideContent)
             {
                 result.append(
                     NotificationRequest(
@@ -29,11 +29,14 @@ enum NotificationPlanner {
                             .progress.isComplete
                 }.sorted { $0.id < $1.id }.map(\.name)
                 if !remaining.isEmpty {
+                    let body =
+                        preferences.hideContent
+                        ? String(localized: "Bugün bekleyen hedefler var")
+                        : String(localized: "Bugün bekleyen hedefler: \(remaining.joined(separator: ", "))")
                     result.append(
                         NotificationRequest(
                             id: "goals-\(day)", date: date, title: String(localized: "Günlük hedefler"),
-                            body: String(localized: "Bugün bekleyen hedefler: \(remaining.joined(separator: ", "))"),
-                            destination: .goals))
+                            body: body, destination: .goals))
                 }
             }
             if preferences.journalEnabled, let date = fireDate(day, time: preferences.journalTime, timeZone: timeZone),
@@ -70,18 +73,20 @@ enum NotificationPlanner {
         return date
     }
 
-    private static func taskMessage(_ tasks: [TaskRow], on day: CalendarDate) -> (title: String, body: String)? {
+    private static func taskMessage(
+        _ tasks: [TaskRow], on day: CalendarDate, hideContent: Bool
+    ) -> (title: String, body: String)? {
         let open = tasks.filter { !$0.isClosed }
         let due = open.filter { $0.due == day }.sorted { $0.id < $1.id }
         let overdue = open.filter { $0.due.map { $0 < day } ?? false }.count
         guard !due.isEmpty || overdue > 0 else { return nil }
         let title: String
-        if due.count == 1 {
-            title = due[0].text.plainText
-        } else if due.isEmpty {
+        if due.isEmpty {
             title = String(localized: "Bugünkü görevler")
-        } else {
+        } else if hideContent || due.count > 1 {
             title = String(localized: "\(due.count) görev bugün")
+        } else {
+            title = due[0].text.plainText
         }
         let body = overdue > 0 ? String(localized: "Önceki günlerden \(overdue) açık görev.") : ""
         return (title, body)

@@ -3,6 +3,7 @@ import SwiftUI
 import VaultFormat
 
 struct GoalStripView: View {
+    @Environment(GeofenceService.self) private var geofences: GeofenceService?
     @State private var model: GoalDayModel
     @State private var editing: GoalValueModel?
     init(store: IndexStore, day: CalendarDate) { _model = State(initialValue: GoalDayModel(store: store, day: day)) }
@@ -56,6 +57,9 @@ struct GoalStripView: View {
                 }
                 if model.isLoading { ProgressView() }
                 if let error = model.errorText { Text(verbatim: error).font(.caption).foregroundStyle(.secondary) }
+                if let notice = geofences?.errorText {
+                    Text(verbatim: notice).font(.caption).foregroundStyle(.secondary)
+                }
             }
             .task(id: model.store.lastUpdated) { await model.load() }
             .sheet(item: $editing) { editor in NavigationStack { GoalValueEditor(model: editor) } }

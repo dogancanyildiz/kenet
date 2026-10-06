@@ -191,6 +191,38 @@ struct IntentActionsTests {
         #expect(context.store.vaultURL == nil)
     }
 
+    @Test func lockedAppBlocksWritesAndGoalListing() async throws {
+        let context = try TaskTestContext(sample: true)
+        defer { context.clean() }
+        let file = context.root.appendingPathComponent("journal/\(LocalDay.today(at: instant)).md")
+        let original =
+            "---\ntype: journal\ndate: \(LocalDay.today(at: instant))\ncustom: retain\ngoals:\n  untouched: 4 # keep\n---\n\n## Journal\nKeep this paragraph.\n"
+        try Data(original.utf8).write(to: file)
+        let locked = IntentActions(
+            store: context.store, now: { instant }, permitsStart: { true }, isLocked: { true })
+        #expect(try await locked.goals().isEmpty)
+        await #expect(throws: IntentActionError.appLocked) { try await locked.addEvent(text: "Secret entry") }
+        await #expect(throws: IntentActionError.appLocked) { try await locked.addTask(text: "Secret task") }
+        await #expect(throws: IntentActionError.appLocked) { try await locked.markGoal(id: "any") }
+        #expect(try Data(contentsOf: file) == Data(original.utf8))
+        let unlocked = IntentActions(
+            store: context.store, now: { instant }, permitsStart: { true }, isLocked: { false })
+        let goals = try await unlocked.goals()
+        let sport = try #require(goals.first { $0.definition.key == "spor" })
+        _ = try await unlocked.markGoal(id: sport.id)
+        #expect(String(decoding: try document(context).serialized(), as: UTF8.self).contains("  spor: true"))
+    }
+
+    @Test func lockedGoalEntityQueryReturnsEmpty() async throws {
+        let previous = IntentActions.shared.isLocked
+        IntentActions.shared.isLocked = { true }
+        defer { IntentActions.shared.isLocked = previous }
+        let query = GoalEntityQuery()
+        #expect(try await query.suggestedEntities().isEmpty)
+        #expect(try await query.entities(matching: "Spor").isEmpty)
+        #expect(try await query.entities(for: ["any-id"]).isEmpty)
+    }
+
     @Test func brokenBookmarkDoesNotFallBackAndLaunchPolicyIsRespected() async throws {
         let context = try TaskTestContext(sample: true)
         defer { context.clean() }

@@ -18,19 +18,27 @@ final class GeofenceService {
     @ObservationIgnored private let allowsBackground: () -> Bool
     @ObservationIgnored private weak var store: IndexStore?
     @ObservationIgnored private var handling: Set<String> = []
+    @ObservationIgnored private var isLocked: () -> Bool = { false }
+    @ObservationIgnored private var isLockEnabled: () -> Bool = { false }
+    /// Called when a mark action is blocked by app lock so the UI can open goals with an explanation.
+    @ObservationIgnored var onLockedMarkBlocked: (() -> Void)?
     private static let modesKey = "journal.geofence.modes"
     private static let handledKey = "journal.geofence.handled"
 
     init(
         location: LocationService, center: any GeofenceNotificationDelivering,
         defaults: UserDefaults = .standard, today: @escaping () -> CalendarDate = { LocalDay.today() },
-        allowsBackground: @escaping () -> Bool = { AppLaunchPolicy.allowsAutomaticStart() }
+        allowsBackground: @escaping () -> Bool = { AppLaunchPolicy.allowsAutomaticStart() },
+        isLocked: @escaping () -> Bool = { false },
+        isLockEnabled: @escaping () -> Bool = { false }
     ) {
         self.location = location
         self.center = center
         self.defaults = defaults
         self.today = today
         self.allowsBackground = allowsBackground
+        self.isLocked = isLocked
+        self.isLockEnabled = isLockEnabled
         modes = defaults.dictionary(forKey: Self.modesKey) as? [String: String] ?? [:]
     }
 
@@ -38,6 +46,25 @@ final class GeofenceService {
         self.store = store
         store.onGeofenceSnapshotChange = { [weak self] in self?.rebuild() }
         location.onAuthorizationRefresh = { [weak self] in self?.rebuild() }
+    }
+
+    func attach(lock: AppLockService) {
+        isLocked = { [weak lock] in
+            guard let lock else {
+                return UserDefaults.standard.bool(forKey: AppLockService.enabledKey)
+            }
+            return lock.isEnabled && lock.isLocked
+        }
+        isLockEnabled = { [weak lock] in
+            lock?.isEnabled ?? UserDefaults.standard.bool(forKey: AppLockService.enabledKey)
+        }
+        refreshMarkActionAvailability()
+    }
+
+    func refreshMarkActionAvailability() {
+        if let scheduler = center as? SystemNotificationScheduler {
+            scheduler.refreshGeofenceCategory(lockEnabled: isLockEnabled())
+        }
     }
 
     func activateAutomatically() {
@@ -119,18 +146,19 @@ final class GeofenceService {
             errorText = nil
             let automatic = mode(for: target) == .automatic
             let action = GeofenceAction(regionID: identifier, vaultID: vaultID, day: day, mark: true)
+            let hideContent = NotificationPreferences.read(from: defaults).hideContent
             if automatic {
                 try await mark(target, on: day, vaultID: vaultID)
                 remember(token, on: day)
                 _ = try await center.sendGeofence(
                     GeofenceNotice(
                         action: action, goalName: target.goal.name,
-                        placeName: target.place.entity.name, automatic: true))
+                        placeName: target.place.entity.name, automatic: true, hideContent: hideContent))
             } else {
                 let sent = try await center.sendGeofence(
                     GeofenceNotice(
                         action: action, goalName: target.goal.name,
-                        placeName: target.place.entity.name, automatic: false))
+                        placeName: target.place.entity.name, automatic: false, hideContent: hideContent))
                 if sent { remember(token, on: day) }
             }
         } catch {
@@ -140,6 +168,12 @@ final class GeofenceService {
 
     func respond(to action: GeofenceAction) async {
         guard action.mark, isActive, allowsBackground(), action.day == today(), let store else { return }
+        if isLocked() {
+            errorText = String(
+                localized: "Günlük kilitliydi. Kilidi açtıktan sonra hedefi kendin işaretle.")
+            onLockedMarkBlocked?()
+            return
+        }
         #if os(iOS)
             let execution = GeofenceBackgroundExecution()
             defer { execution.end() }

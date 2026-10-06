@@ -50,7 +50,7 @@ struct PlacesMapView: View {
                 }
             }
         }
-        .navigationTitle("Harita")
+        .inkPageTitle("Harita")
         .toolbar {
             Button("Beni göster", systemImage: "location") {
                 showsUser = true
@@ -80,7 +80,7 @@ struct PlacesMapView: View {
         let side = pin.radius * 2
         return ZStack {
             GraphNodeShape(kind: .place)
-                .fill(Color.ink.place.opacity(0.45 + pin.intensity * 0.55))
+                .fill(Color.ink.place)
                 .frame(width: side, height: side)
             if isSelected {
                 GraphNodeShape(kind: .place)

@@ -8,22 +8,23 @@ struct GoalDetailView: View {
     @State private var history: GoalDayModel
     @State private var editing: GoalValueModel?
     @State private var field: GoalEditableField?
-    init(store: IndexStore, goal: GoalDefinition) {
+    @Environment(\.clockNow) private var clockNow
+    init(store: IndexStore, goal: GoalDefinition, day: CalendarDate = LocalDay.today()) {
         self.store = store
         original = goal
-        _history = State(initialValue: GoalDayModel(store: store, day: LocalDay.today()))
+        _history = State(initialValue: GoalDayModel(store: store, day: day))
     }
     private var goal: GoalDefinition { store.content.goals.first { $0.id == original.id } ?? original }
     var body: some View {
         let status = history.status(for: goal)
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                PageHeadline(title: goal.name, byline: GoalLabelsCopy.periodTitle(goal.period))
+                PageHeadline(title: goal.name, byline: goal.period.title)
 
                 progressBlock(status: status)
 
                 if goal.kind != .milestone {
-                    section(title: String(localized: "Son 12 hafta")) {
+                    section(title: String(localized: "Isı haritası")) {
                         GoalHeatmap(goal: goal, logs: history.logs[goal.key] ?? [], today: history.day) {
                             day in
                             Task { await edit(day) }
@@ -55,9 +56,20 @@ struct GoalDetailView: View {
             .inkPageColumn()
         }
         .inkPage()
-        .goalDetailInlineTitle()
+        .navigationTitle(goal.name)
+        #if os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+        #endif
         .toolbar { SearchButton() }
-        .task(id: store.lastUpdated) { await history.load() }
+        .task(
+            id: String(describing: store.lastUpdated) + LocalDay.today(at: clockNow()).description
+        ) {
+            let day = LocalDay.today(at: clockNow())
+            if history.day != day {
+                history = GoalDayModel(store: store, day: day)
+            }
+            await history.load()
+        }
         .sheet(item: $editing, onDismiss: { Task { await history.load() } }) { model in
             NavigationStack { GoalValueEditor(model: model) }
         }
@@ -70,8 +82,6 @@ struct GoalDetailView: View {
     private func progressBlock(status: GoalStatus) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             if goal.kind == .milestone {
-                LargeNumberText(
-                    verbatim: status.completionDate == nil ? "—" : "1")
                 GoalProgressLabel(goal: goal, status: status)
             } else {
                 HStack(alignment: .firstTextBaseline, spacing: 8) {
@@ -88,9 +98,8 @@ struct GoalDetailView: View {
                 GoalProgressLabel(goal: goal, status: status)
                 if let year = status.yearProgress {
                     InkProgress(
-                        kind: .determinate(
-                            completed: Int(year.done.rounded()),
-                            total: max(1, Int(year.target.rounded())),
+                        kind: .fraction(
+                            InkProgressMath.ratio(done: year.done, target: year.target),
                             label: "Yıllık ilerleme"))
                 }
                 HStack(spacing: 16) {
@@ -107,16 +116,14 @@ struct GoalDetailView: View {
             Button {
                 field = .period
             } label: {
-                definitionLabel(
-                    GoalLabelsCopy.fieldTitle(.period), value: GoalLabelsCopy.periodTitle(goal.period))
+                definitionLabel(GoalEditableField.period.title, value: goal.period.title)
             }
             .buttonStyle(.plain)
             .disabled(goal.kind == .milestone)
             Button {
                 field = .kind
             } label: {
-                definitionLabel(
-                    GoalLabelsCopy.fieldTitle(.kind), value: GoalLabelsCopy.kindTitle(goal.kind))
+                definitionLabel(GoalEditableField.kind.title, value: goal.kind.title)
             }
             .buttonStyle(.plain)
             .disabled(goal.kind == .milestone)
@@ -180,7 +187,7 @@ struct GoalDetailView: View {
         Button {
             self.field = field
         } label: {
-            definitionLabel(GoalLabelsCopy.fieldTitle(field), value: value)
+            definitionLabel(field.title, value: value)
         }
         .buttonStyle(.plain)
     }
@@ -216,44 +223,5 @@ struct GoalDetailView: View {
         let model = GoalDayModel(store: store, day: day)
         await model.load()
         if model.canEdit { editing = GoalValueModel(dayModel: model, goal: goal) }
-    }
-}
-
-enum GoalLabelsCopy {
-    static func periodTitle(_ period: GoalPeriod) -> String {
-        switch period {
-        case .day: String(localized: "Günlük hedef")
-        case .week: String(localized: "Haftalık")
-        case .year: String(localized: "Yıllık")
-        }
-    }
-
-    static func kindTitle(_ kind: GoalKind) -> String {
-        switch kind {
-        case .boolean: String(localized: "Evet / hayır")
-        case .number: String(localized: "Sayı")
-        case .milestone: String(localized: "Kilometre taşı")
-        }
-    }
-
-    static func fieldTitle(_ field: GoalEditableField) -> String {
-        switch field {
-        case .name: String(localized: "Ad")
-        case .period: String(localized: "Dönem")
-        case .kind: String(localized: "Tür")
-        case .target: String(localized: "Hedef miktar")
-        case .unit: String(localized: "Birim (isteğe bağlı)")
-        }
-    }
-}
-
-extension View {
-    @ViewBuilder
-    fileprivate func goalDetailInlineTitle() -> some View {
-        #if os(iOS)
-            self.navigationBarTitleDisplayMode(.inline)
-        #else
-            self
-        #endif
     }
 }

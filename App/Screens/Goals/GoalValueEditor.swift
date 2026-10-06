@@ -63,14 +63,15 @@ struct GoalValueEditor: View {
         .scrollContentBackground(.hidden)
         .background(Color.ink.surface)
         .navigationTitle(Text(verbatim: model.goal.name))
+        #if os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+        #endif
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
                 Button("Kapat") { dismiss() }
-                    .buttonStyle(InkTextButtonStyle())
             }
             ToolbarItem(placement: .confirmationAction) {
                 Button("Kaydet") { Task { await save() } }
-                    .buttonStyle(InkPrimaryButtonStyle())
                     .disabled(!model.canSave)
             }
         }

@@ -4,9 +4,9 @@ struct GraphCanvas: View {
     let graph: GraphModel
     let positions: [String: GraphPoint]
     @Binding var selected: String?
-    @State private var pan = CGSize.zero
+    @Binding var zoom: Double
+    @Binding var pan: CGSize
     @GestureState private var drag = CGSize.zero
-    @State private var zoom = 1.0
     @GestureState private var magnification = 1.0
 
     var body: some View {
@@ -55,7 +55,10 @@ struct GraphCanvas: View {
                 }
             }
             #if os(macOS)
-                .background(GraphScrollZoom { delta in zoom = min(5, max(0.2, zoom * exp(delta * 0.01))) })
+                .background(
+                    GraphScrollZoom { delta in
+                        zoom = min(5, max(0.2, zoom * exp(delta * 0.01)))
+                    })
             #endif
             .contentShape(Rectangle())
             .onTapGesture { location in
@@ -92,8 +95,9 @@ struct GraphCanvas: View {
             .gesture(
                 DragGesture().updating($drag) { value, state, _ in state = value.translation }
                     .onEnded {
-                        pan.width += $0.translation.width
-                        pan.height += $0.translation.height
+                        pan = CGSize(
+                            width: pan.width + $0.translation.width,
+                            height: pan.height + $0.translation.height)
                     }
             )
             .simultaneousGesture(
@@ -101,33 +105,7 @@ struct GraphCanvas: View {
                     state = min(5 / zoom, max(0.2 / zoom, value.magnification))
                 }.onEnded { zoom = min(5, max(0.2, zoom * $0.magnification)) }
             )
-            .overlay(alignment: .topTrailing) {
-                HStack {
-                    Button {
-                        zoom = max(0.2, zoom / 1.25)
-                    } label: {
-                        Label("Uzaklaştır", systemImage: "minus.magnifyingglass")
-                            .foregroundStyle(Color.ink.accent)
-                            .tapTarget()
-                    }
-                    Button {
-                        zoom = min(5, zoom * 1.25)
-                    } label: {
-                        Label("Yakınlaştır", systemImage: "plus.magnifyingglass")
-                            .foregroundStyle(Color.ink.accent)
-                            .tapTarget()
-                    }
-                    Button {
-                        zoom = 1
-                        pan = .zero
-                    } label: {
-                        Label("Ortala", systemImage: "scope")
-                            .foregroundStyle(Color.ink.accent)
-                            .tapTarget()
-                    }
-                }.labelStyle(.iconOnly).padding()
-            }
-        }.onChange(of: selected) { pan = .zero }
+        }
     }
     private var origin: GraphPoint {
         if let selected, let point = positions[selected] { return point }

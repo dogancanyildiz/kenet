@@ -24,6 +24,20 @@ struct ComponentControlsTests {
         #expect(InkProgressMath.fraction(completed: -1, total: 10) == 0)
         #expect(InkProgressMath.fraction(completed: 1, total: 0) == 1)
         #expect(InkProgressMath.counterText(completed: 3, total: 10) == "3/10")
+        #expect(InkProgressMath.ratio(done: 1.25, target: 2.5) == 0.5)
+        #expect(InkProgressMath.ratio(done: 30, target: 20) == 1)
+        #expect(InkProgressMath.fraction(0.5) == 0.5)
+        #expect(InkProgressMath.percentText(0.5) == "50%")
+    }
+
+    @Test func heatmapCellSizeFitsPhoneWidth() {
+        let phone = GoalHeatmapMetrics.cellSize(availableWidth: 390, weekCount: 12)
+        #expect(phone >= 24, "12 weeks on 390 pt width need cell ≥ 24 pt, got \(phone)")
+        let axWeeks = GoalHeatmapMetrics.weekCount(isAccessibilitySize: true)
+        #expect(axWeeks == 6)
+        let ax = GoalHeatmapMetrics.cellSize(availableWidth: 390, weekCount: axWeeks)
+        #expect(ax >= phone)
+        #expect(GoalHeatmapMetrics.tapHeight == 44)
     }
 
     @Test func buttonChromeUsesTokensNotOpacityStates() {

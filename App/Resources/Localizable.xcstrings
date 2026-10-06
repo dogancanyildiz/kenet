@@ -4425,22 +4425,6 @@
         }
       }
     },
-    "Yeni hedef ekleyerek başla.": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Yeni hedef ekleyerek başla."
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Start by adding a new goal."
-          }
-        }
-      }
-    },
     "İlerleme": {
       "localizations": {
         "tr": {
@@ -4457,18 +4441,18 @@
         }
       }
     },
-    "Son 12 hafta": {
+    "Isı haritası": {
       "localizations": {
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Son 12 hafta"
+            "value": "Isı haritası"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Last 12 weeks"
+            "value": "Heatmap"
           }
         }
       }

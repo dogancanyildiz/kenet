@@ -17,15 +17,15 @@ struct GoalCreationView: View {
             }
             if model.kind != .milestone {
                 Picker("Dönem", selection: $model.period) {
-                    Text(GoalPeriod.day.title).tag(GoalPeriod.day)
-                    Text(GoalPeriod.week.title).tag(GoalPeriod.week)
-                    Text(GoalPeriod.year.title).tag(GoalPeriod.year)
+                    Text(verbatim: GoalPeriod.day.title).tag(GoalPeriod.day)
+                    Text(verbatim: GoalPeriod.week.title).tag(GoalPeriod.week)
+                    Text(verbatim: GoalPeriod.year.title).tag(GoalPeriod.year)
                 }
             }
             Picker("Tür", selection: $model.kind) {
-                Text(GoalKind.boolean.title).tag(GoalKind.boolean)
-                Text(GoalKind.number.title).tag(GoalKind.number)
-                Text(GoalKind.milestone.title).tag(GoalKind.milestone)
+                Text(verbatim: GoalKind.boolean.title).tag(GoalKind.boolean)
+                Text(verbatim: GoalKind.number.title).tag(GoalKind.number)
+                Text(verbatim: GoalKind.milestone.title).tag(GoalKind.milestone)
             }
             if model.kind != .milestone {
                 TextField("Hedef miktar", text: $model.target)
@@ -41,22 +41,30 @@ struct GoalCreationView: View {
             if let error = model.errorText {
                 InfoBand(kind: .error, verbatim: error)
             }
+            // Content action stays reachable at AX sizes when the trailing toolbar item is clipped.
+            Button("Oluştur") {
+                Task { if await model.save(), model.errorText == nil { dismiss() } }
+            }
+            .buttonStyle(InkPrimaryButtonStyle())
+            .disabled(!model.canSave || model.isWriting || model.isSaved)
+            .listRowBackground(Color.clear)
         }
         .formStyle(.grouped)
         .scrollContentBackground(.hidden)
         .background(Color.ink.surface)
         .disabled(model.isWriting || model.isSaved)
         .navigationTitle("Yeni hedef")
+        #if os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+        #endif
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
                 Button("Kapat") { dismiss() }
-                    .buttonStyle(InkTextButtonStyle())
             }
             ToolbarItem(placement: .confirmationAction) {
                 Button("Oluştur") {
                     Task { if await model.save(), model.errorText == nil { dismiss() } }
                 }
-                .buttonStyle(InkPrimaryButtonStyle())
                 .disabled(!model.canSave)
             }
         }

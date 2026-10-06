@@ -16,7 +16,7 @@ struct GoalsView: View {
             )
             .id(day.description + (store.vaultURL?.path ?? ""))
         }
-        .navigationTitle("Hedefler")
+        .inkPageNavigationTitle("Hedefler")
         .toolbar {
             Button("Yeni hedef", systemImage: "plus") { showsCreation = true }.disabled(!store.canAddEvent)
             SearchButton()
@@ -43,6 +43,7 @@ private struct GoalListContent: View {
     }
     var body: some View {
         List {
+            InkPageTitleRow("Hedefler")
             ForEach(store.content.goals, id: \.id) { goal in
                 let status =
                     model.hasLoaded
@@ -53,7 +54,7 @@ private struct GoalListContent: View {
                 InfoBand(kind: .error, verbatim: error)
                     .listRowInsets(EdgeInsets())
                     .listRowSeparator(.hidden)
-                    .listRowBackground(Color.clear)
+                    .listRowBackground(Color.ink.paper)
             }
         }
         .listStyle(.plain)
@@ -75,40 +76,47 @@ private struct GoalListContent: View {
         let row = InkGoalRow(
             name: goal.name,
             progress: GoalRowPresentation.progress(goal: goal, status: status),
-            isBoolean: goal.kind == .boolean || goal.kind == .milestone,
+            // Daily boolean / milestone: empty-or-full mark. Weekly boolean uses a fraction arc.
+            isBoolean: goal.kind == .milestone
+                || (goal.kind == .boolean && goal.target <= 1),
             meta: GoalRowPresentation.meta(goal: goal, status: status),
+            barFraction: GoalRowPresentation.barFraction(goal: goal, status: status),
             valueText: GoalRowPresentation.valueText(goal: goal, status: status)
         )
-        if goal.kind == .milestone {
-            Button {
-                Task { await model.toggle(goal) }
-            } label: {
-                row
+        Group {
+            if goal.kind == .milestone {
+                Button {
+                    Task { await model.toggle(goal) }
+                } label: {
+                    row
+                }
+                .buttonStyle(.plain)
+                .disabled(
+                    !model.canEdit
+                        || (status.completionDate != nil && status.completionDate != model.day))
+            } else if let selection {
+                Button {
+                    selection.wrappedValue = goal.id
+                } label: {
+                    row
+                }
+                .buttonStyle(.plain)
+            } else {
+                NavigationLink {
+                    GoalDetailView(store: store, goal: goal, day: model.day)
+                } label: {
+                    row
+                }
             }
-            .buttonStyle(.plain)
-            .disabled(!model.canEdit || (status.completionDate != nil && status.completionDate != model.day))
-            .listRowBackground(Color.clear)
-            .listRowSeparator(.hidden)
-        } else if let selection {
-            Button {
-                selection.wrappedValue = goal.id
-            } label: {
-                row
-            }
-            .buttonStyle(.plain)
-            .listRowBackground(
-                selection.wrappedValue == goal.id
-                    ? Color.ink.accent.opacity(0.12) : Color.clear
-            )
-            .listRowSeparator(.hidden)
-        } else {
-            NavigationLink {
-                GoalDetailView(store: store, goal: goal)
-            } label: {
-                row
-            }
-            .listRowBackground(Color.clear)
-            .listRowSeparator(.hidden)
         }
+        .listRowInsets(
+            EdgeInsets(
+                top: 8, leading: InkSpacing.margin, bottom: 8, trailing: InkSpacing.margin)
+        )
+        .listRowSeparator(.hidden)
+        .listRowBackground(
+            selection?.wrappedValue == goal.id
+                ? Color.ink.accent.opacity(0.12) : Color.ink.paper
+        )
     }
 }

@@ -4,13 +4,13 @@ import SwiftUI
 enum GoalEditableField: String, Identifiable {
     case name, period, kind, target, unit
     var id: Self { self }
-    var title: LocalizedStringKey {
+    var title: String {
         switch self {
-        case .name: "Ad"
-        case .period: "Dönem"
-        case .kind: "Tür"
-        case .target: "Hedef miktar"
-        case .unit: "Birim (isteğe bağlı)"
+        case .name: String(localized: "Ad")
+        case .period: String(localized: "Dönem")
+        case .kind: String(localized: "Tür")
+        case .target: String(localized: "Hedef miktar")
+        case .unit: String(localized: "Birim (isteğe bağlı)")
         }
     }
 }
@@ -37,14 +37,14 @@ struct GoalFieldEditor: View {
         Form {
             if field == .period {
                 Picker(field.title, selection: $text) {
-                    Text(GoalPeriod.day.title).tag("day")
-                    Text(GoalPeriod.week.title).tag("week")
-                    Text(GoalPeriod.year.title).tag("year")
+                    Text(verbatim: GoalPeriod.day.title).tag("day")
+                    Text(verbatim: GoalPeriod.week.title).tag("week")
+                    Text(verbatim: GoalPeriod.year.title).tag("year")
                 }
             } else if field == .kind {
                 Picker(field.title, selection: $text) {
-                    Text(GoalKind.boolean.title).tag("boolean")
-                    Text(GoalKind.number.title).tag("number")
+                    Text(verbatim: GoalKind.boolean.title).tag("boolean")
+                    Text(verbatim: GoalKind.number.title).tag("number")
                 }
                 Text("Tür değişikliği geçmiş kayıtları dönüştürmez.")
                     .font(.ink.meta)
@@ -62,10 +62,12 @@ struct GoalFieldEditor: View {
         .background(Color.ink.surface)
         .disabled(model.isWriting || isSaved)
         .navigationTitle(field.title)
+        #if os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+        #endif
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
                 Button("Kapat") { dismiss() }
-                    .buttonStyle(InkTextButtonStyle())
             }
             ToolbarItem(placement: .confirmationAction) {
                 Button("Kaydet") {
@@ -74,7 +76,6 @@ struct GoalFieldEditor: View {
                         if isSaved && model.errorText == nil { dismiss() }
                     }
                 }
-                .buttonStyle(InkPrimaryButtonStyle())
                 .disabled(!model.canEdit || isSaved)
             }
         }

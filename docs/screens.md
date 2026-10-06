@@ -107,12 +107,12 @@ Graph varsayılan olarak bütün kişi/konumları gösterir; bağlanmamış varl
 
 Canvas üzerinde sürükleyerek kaydırma, pinch (Mac'te tekerlek/trackpad kaydırması) ve yakınlaştırma düğmeleri bulunur. Seçili düğümün adı ve komşuları vurgulanır; Sayfayı aç varlık/gün sayfasına gider. Düğüm seç menüsü klavye ve erişilebilirlik için aynı seçimi sunar. Kişi ve konum renkleri Bugün bağlantı alt çizgileriyle aynı belirteçten gelir; tip ayrıca biçimle ayrılır (kişi daire, konum elmas, gün köşeli kare). Açıklama birlikte geçmeyi gerçek karşılaşma diye yorumlamaz. Yerleşim sabit tohumlu, sınırlı adımlı kuvvet hesabıdır; arka planda çalışır, son aşamada daireler arası en az 8 nokta boşluk bırakılır. Kasa/filtre değişiminde eski sonuç uygulanmaz.
 
-Harita geçerli koordinatı olan konumları pin olarak gösterir. Pin boyutu ve yoğunluk bütün kasadaki çözülen geçiş sayısına bağlıdır; işaretçi konum rengi ve elmas biçimindedir, seçili olan vurgu çerçevesi taşır; sayı pin içinde görünür, pin dokununca konum sayfası açılır. Konum önerisi yarıçapı pin için gerekli değildir. Koordinat yoksa nötr boş görünüm vardır. Beni göster yalnız mevcut konum izni ve etkin konum tercihiyle tek konum ölçümü ister; yeni izin istemez, son geçerli konumu gösterip merkezler. GPS verisi kasaya yazılmaz. Harita döşemeleri ve üst denetimler MapKit / sistem kromudur; günlük metni MapKit'e aktarılmaz.
+Harita geçerli koordinatı olan konumları pin olarak gösterir. Pin boyutu bütün kasadaki çözülen geçiş sayısına bağlıdır; işaretçi tam opak konum rengi ve elmas biçimindedir, seçili olan vurgu çerçevesi taşır; sayı pin içinde görünür, pin dokununca konum sayfası açılır. Konum önerisi yarıçapı pin için gerekli değildir. Koordinat yoksa nötr boş görünüm vardır. Beni göster yalnız mevcut konum izni ve etkin konum tercihiyle tek konum ölçümü ister; yeni izin istemez, son geçerli konumu gösterip merkezler. GPS verisi kasaya yazılmaz. Harita döşemeleri ve üst denetimler MapKit / sistem kromudur; günlük metni MapKit'e aktarılmaz.
 
 ### Hedefler (3)
 
 - Her hedef için satır: halka, ad, sağda değer, altında zincir veya dönem ilerlemesi.
-- Satıra girince: manşet, büyük rakam, ısı haritası (yoğunluk renge ek biçimle; bugün çerçeveli; gelecek çizilmez), en uzun seri, geçmiş kayıtlar. Geçmiş günlerin kaydı düzeltilebilir. Tanım alanları yüzey üzerinde düzenlenir.
+- Satıra girince: manşet, büyük rakam, ısı haritası (başlık döneme göre hafta sayısı söylemez; yoğunluk renge ek biçimle; bugün çerçeveli; gelecek çizilmez), en uzun seri, geçmiş kayıtlar. Geçmiş günlerin kaydı düzeltilebilir. Tanım alanları yüzey üzerinde düzenlenir.
 - Kilometre taşı (5): yıllık, miktarsız satır; yapıldı/yapılmadı ve tarih. Dokununca bugün işaretlenir veya bugünkü kayıt kaldırılır; önceki gün tamamlanmış satır salt okunurdur. Zincir/ısı haritası bulunmaz. Yeni hedefte tür seçilir.
 - Haftalık hedefte "bu hafta 2/3", yıllık hedefte ilerleme çubuğu.
 

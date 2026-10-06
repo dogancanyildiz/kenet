@@ -32,10 +32,9 @@ struct SummaryGoalCard: View {
                         SummaryChangeBadge(value: goal.change)
                     }
                     InkProgress(
-                        kind: .determinate(
-                            completed: Int(goal.progress.done.rounded()),
-                            total: max(1, Int(goal.progress.target.rounded())),
-                            label: nil))
+                        kind: .fraction(
+                            InkProgressMath.ratio(
+                                done: goal.progress.done, target: goal.progress.target)))
                     if goal.definition.kind != .milestone {
                         SummaryMetric(
                             title: "Dönem sonu zincir", value: goal.streak, change: goal.streakChange)

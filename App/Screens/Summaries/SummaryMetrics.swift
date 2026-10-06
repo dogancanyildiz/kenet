@@ -6,7 +6,7 @@ struct SummaryChangeBadge: View {
     var body: some View {
         HStack(spacing: 4) {
             Image(systemName: change.symbol)
-                .font(.caption.weight(.semibold))
+                .font(.ink.section)
                 .accessibilityHidden(true)
             Text(verbatim: signedMagnitude)
                 .font(.ink.meta)

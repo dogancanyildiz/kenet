@@ -2,27 +2,27 @@ import GoalTracking
 import SwiftUI
 
 extension GoalPeriod {
-    var title: LocalizedStringKey {
+    var title: String {
         switch self {
-        case .day: "Günlük hedef"
-        case .week: "Haftalık"
-        case .year: "Yıllık"
+        case .day: String(localized: "Günlük hedef")
+        case .week: String(localized: "Haftalık")
+        case .year: String(localized: "Yıllık")
         }
     }
-    var progressTitle: LocalizedStringKey {
+    var progressTitle: String {
         switch self {
-        case .day: "Bu gün"
-        case .week: "Bu hafta"
-        case .year: "Bu yıl"
+        case .day: String(localized: "Bu gün")
+        case .week: String(localized: "Bu hafta")
+        case .year: String(localized: "Bu yıl")
         }
     }
 }
 extension GoalKind {
-    var title: LocalizedStringKey {
+    var title: String {
         switch self {
-        case .boolean: "Evet / hayır"
-        case .number: "Sayı"
-        case .milestone: "Kilometre taşı"
+        case .boolean: String(localized: "Evet / hayır")
+        case .number: String(localized: "Sayı")
+        case .milestone: String(localized: "Kilometre taşı")
         }
     }
 }
@@ -47,7 +47,7 @@ struct GoalProgressLabel: View {
                     Text(LocalDay.instant(for: day), format: .dateTime.day().month().year())
                 }
             } else {
-                Text(goal.period.progressTitle)
+                Text(verbatim: goal.period.progressTitle)
                 Text(verbatim: status.progress.done.formatted() + "/" + goal.target.formatted())
                     .font(.ink.value)
                     .monospacedDigit()
@@ -76,6 +76,7 @@ enum GoalRowPresentation {
         return text
     }
 
+    /// Meta under the name: streak for daily goals, period label for week/year (value is trailing).
     static func meta(goal: GoalDefinition, status: GoalStatus) -> String? {
         if goal.kind == .milestone {
             if let day = status.completionDate {
@@ -86,12 +87,12 @@ enum GoalRowPresentation {
         if goal.period == .day {
             return String(localized: "Güncel zincir: \(status.streak)")
         }
-        let periodLabel: String =
-            switch goal.period {
-            case .day: String(localized: "Bu gün")
-            case .week: String(localized: "Bu hafta")
-            case .year: String(localized: "Bu yıl")
-            }
-        return periodLabel + " · " + status.progress.done.formatted() + "/" + goal.target.formatted()
+        return goal.period.progressTitle
+    }
+
+    /// Thin determinate bar for yearly goals only.
+    static func barFraction(goal: GoalDefinition, status: GoalStatus) -> Double? {
+        guard goal.kind != .milestone, goal.period == .year else { return nil }
+        return InkProgressMath.ratio(done: status.progress.done, target: goal.target)
     }
 }

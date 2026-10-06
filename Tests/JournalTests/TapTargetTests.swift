@@ -30,7 +30,7 @@ struct TapTargetTests {
         "App/Screens/Days/DaysCalendarView.swift",
         "App/Screens/Summaries/SummariesView.swift",
         "App/Screens/Tasks/Timeline/TaskTimelineView.swift",
-        "App/Screens/Graph/GraphCanvas.swift",
+        "App/Screens/Graph/GraphControls.swift",
     ])
     func listedControlsApplyTapTargetInsideButton(_ path: String) throws {
         let source = try Self.read(path)
@@ -61,8 +61,14 @@ struct TapTargetTests {
             source.contains("HeatmapCell("),
             "Heatmap must use HeatmapCell (shape + color density cues)")
         #expect(
-            source.contains("cellSize"),
-            "Cell size stays compact (ScaledMetric ~14 pt), not the 44 pt tap floor")
+            source.contains("GoalHeatmapMetrics.cellSize"),
+            "Cell size comes from GoalHeatmapMetrics.cellSize, not the 44 pt tap-target modifier")
+        #expect(
+            source.contains("static let tapHeight: CGFloat = 44"),
+            "Heatmap tap row height must approach the 44 pt floor")
+        #expect(
+            source.contains("contentShape(Rectangle())"),
+            "Cell hit area must include spacing via contentShape")
     }
 
     @Test func quickEntryReflowsForLargeDynamicType() throws {

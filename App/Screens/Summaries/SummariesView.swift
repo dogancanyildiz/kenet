@@ -48,7 +48,8 @@ struct SummariesView: View {
             }
         }
         .inkPage()
-        .navigationTitle("Özetler").toolbar { SearchButton() }
+        .inkPageTitle("Özetler")
+        .toolbar { SearchButton() }
         .task(id: requestID) { await model.load() }
         .onChange(of: store.vaultURL) { _, _ in model.reset() }
     }

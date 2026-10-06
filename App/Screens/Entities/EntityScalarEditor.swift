@@ -8,11 +8,13 @@ struct EntityScalarEditor: View {
     @State private var flag: Bool
     @State private var date: Date
     @State private var invalid = false
+    @State private var savedText: String
 
     init(scalar: FrontmatterScalar, save: @escaping (FrontmatterLiteral) async -> Void) {
         self.scalar = scalar
         self.save = save
         _text = State(initialValue: scalar.text)
+        _savedText = State(initialValue: scalar.text)
         if case .boolean(let value) = scalar.kind {
             _flag = State(initialValue: value)
         } else {
@@ -22,6 +24,13 @@ struct EntityScalarEditor: View {
             _date = State(initialValue: LocalDay.instant(for: day))
         } else {
             _date = State(initialValue: Date())
+        }
+    }
+
+    private var isDirty: Bool {
+        switch scalar.kind {
+        case .text, .empty, .number: text != savedText
+        case .boolean, .date: false
         }
     }
 
@@ -39,6 +48,7 @@ struct EntityScalarEditor: View {
                 Button("Kaydet") { submit() }.buttonStyle(.borderless)
             }
         }
+        .preference(key: EntityEditorDirtyKey.self, value: isDirty)
         if invalid { Text("Geçerli bir sayı gir.").font(.ink.meta).foregroundStyle(.ink.danger) }
     }
 
@@ -58,6 +68,10 @@ struct EntityScalarEditor: View {
             value = .text(text)
         }
         invalid = false
-        Task { await save(value) }
+        let committed = text
+        Task {
+            await save(value)
+            savedText = committed
+        }
     }
 }

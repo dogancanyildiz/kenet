@@ -11,13 +11,13 @@
     @MainActor @Suite("Journal entity snapshots", .serialized)
     struct JournalEntitySnapshotTests {
         enum Case: String, CaseIterable, Sendable {
-            case daysLight, daysDark, daysAX3, daysContrast
+            case daysLight, daysDark, daysAX3, daysContrast, daysSelected
             case entityLight, entityDark, entityAX3, entityContrast
             case searchLight, searchDark, searchAX3, searchContrast
 
             var screen: Screen {
                 switch self {
-                case .daysLight, .daysDark, .daysAX3, .daysContrast: .days
+                case .daysLight, .daysDark, .daysAX3, .daysContrast, .daysSelected: .days
                 case .entityLight, .entityDark, .entityAX3, .entityContrast: .entity
                 case .searchLight, .searchDark, .searchAX3, .searchContrast: .search
                 }
@@ -43,6 +43,13 @@
                 default: false
                 }
             }
+
+            var selectedDay: CalendarDate? {
+                switch self {
+                case .daysSelected: CalendarDate("2026-09-20")
+                default: nil
+                }
+            }
         }
 
         enum Screen: String, Sendable {
@@ -54,12 +61,17 @@
             defer { context.clean() }
             await context.start()
             #expect(context.store.lastUpdated != nil)
+            let filter = ProcessInfo.processInfo.environment["SNAPSHOT_ONLY"]
+                .map { Set($0.split(separator: ",").map(String.init)) }
             for snapshotCase in Case.allCases {
+                if let filter, !filter.contains(snapshotCase.rawValue) { continue }
                 await assert(snapshotCase, store: context.store, defaults: context.defaults.defaults)
             }
         }
 
-        private func hostedView(screen: Screen, store: IndexStore, defaults: UserDefaults) -> some View {
+        private func hostedView(
+            screen: Screen, store: IndexStore, defaults: UserDefaults, selectedDay: CalendarDate?
+        ) -> some View {
             let notifications = NotificationService(
                 center: FakeNotificationCenter(), defaults: defaults,
                 now: { snapshotNow },
@@ -70,7 +82,7 @@
             let root: AnyView =
                 switch screen {
                 case .days:
-                    AnyView(DaysView(store: store))
+                    AnyView(DaysView(store: store, previewSelectedDay: selectedDay))
                 case .entity:
                     AnyView(
                         EntityView(
@@ -96,7 +108,11 @@
             _ snapshotCase: Case, store: IndexStore, defaults: UserDefaults,
             file: StaticString = #filePath, line: UInt = #line
         ) async {
-            let view = hostedView(screen: snapshotCase.screen, store: store, defaults: defaults)
+            let view =
+                hostedView(
+                    screen: snapshotCase.screen, store: store, defaults: defaults,
+                    selectedDay: snapshotCase.selectedDay
+                )
                 .environment(\.colorScheme, snapshotCase.colorScheme.colorScheme)
                 .environment(\.dynamicTypeSize, snapshotCase.dynamicType.size)
                 .environment(\.calendar, makeCalendar())

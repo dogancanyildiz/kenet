@@ -89,6 +89,7 @@ struct SearchView: View {
                 if model.isEmpty {
                     Section {
                         SectionHeader(title: String(localized: "Son aramalar"))
+                            .inkListRow()
                         ForEach(model.recentQueries, id: \.self) { query in
                             Button {
                                 model.query = query
@@ -100,16 +101,19 @@ struct SearchView: View {
                                 }
                             }
                             .buttonStyle(.plain)
+                            .inkListRow()
                         }
                     }
                 } else if model.results.isEmpty && !model.isSearching && model.errorText == nil {
                     EmptyState("Sonuç bulunamadı")
+                        .inkListRow()
                 } else {
                     ForEach(SearchGroup.allCases) { group in
                         let items = model.results.filter { $0.group == group }
                         if !items.isEmpty {
                             Section {
                                 SectionHeader(title: group.title)
+                                    .inkListRow()
                                 ForEach(items) { item in resultRow(item) }
                             }
                         }
@@ -144,9 +148,7 @@ struct SearchView: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .listRowBackground(
-            item.id == model.selectedID ? Color.ink.accent.opacity(0.12) : Color.clear
-        )
+        .inkListRow(isSelected: item.id == model.selectedID)
         .id(item.id)
     }
 

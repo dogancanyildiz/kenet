@@ -8,6 +8,9 @@ struct EntityTypedFieldEditor: View {
     @State private var date: Date
     @State private var flag: Bool
     @State private var invalid = false
+    @State private var savedText: String
+    @State private var savedDate: Date
+    @State private var savedFlag: Bool
     @State private var deleteConfirmation = DestructiveConfirmation<DestructiveConfirmationToken>()
 
     init(definition: EntityTypeField, value: FrontmatterValue?, model: EntityDetailModel) {
@@ -15,16 +18,32 @@ struct EntityTypedFieldEditor: View {
         self.model = model
         let scalar: FrontmatterScalar?
         if case .scalar(let value) = value { scalar = value } else { scalar = nil }
-        _text = State(initialValue: scalar?.text ?? "")
+        let initialText = scalar?.text ?? ""
+        _text = State(initialValue: initialText)
+        _savedText = State(initialValue: initialText)
+        let initialDate: Date
         if case .date(let day) = scalar?.kind {
-            _date = State(initialValue: LocalDay.instant(for: day))
+            initialDate = LocalDay.instant(for: day)
         } else {
-            _date = State(initialValue: Date())
+            initialDate = Date()
         }
+        _date = State(initialValue: initialDate)
+        _savedDate = State(initialValue: initialDate)
+        let initialFlag: Bool
         if case .boolean(let value) = scalar?.kind {
-            _flag = State(initialValue: value)
+            initialFlag = value
         } else {
-            _flag = State(initialValue: false)
+            initialFlag = false
+        }
+        _flag = State(initialValue: initialFlag)
+        _savedFlag = State(initialValue: initialFlag)
+    }
+
+    private var isDirty: Bool {
+        switch definition.kind {
+        case .text, .number, .link: text != savedText
+        case .date: LocalDay.today(at: date) != LocalDay.today(at: savedDate)
+        case .boolean: flag != savedFlag
         }
     }
 
@@ -42,6 +61,7 @@ struct EntityTypedFieldEditor: View {
             }
             if invalid { Text("Alan için geçerli bir değer gir.").font(.ink.meta).foregroundStyle(.ink.danger) }
         }
+        .preference(key: EntityEditorDirtyKey.self, value: isDirty)
         .disabled(!model.canEdit)
         .destructiveConfirmationDialog(
             "Alanı kaldır?", confirmation: $deleteConfirmation, confirmTitle: "Alanı kaldır"
@@ -63,6 +83,14 @@ struct EntityTypedFieldEditor: View {
             return
         }
         invalid = false
-        Task { await model.set(definition.key, to: value) }
+        let committedText = text
+        let committedDate = date
+        let committedFlag = flag
+        Task {
+            await model.set(definition.key, to: value)
+            savedText = committedText
+            savedDate = committedDate
+            savedFlag = committedFlag
+        }
     }
 }

@@ -92,28 +92,23 @@ struct DaysCalendarDayMark: View {
     let isToday: Bool
     let isMarked: Bool
     let isSelected: Bool
+    @ScaledMetric(relativeTo: .body) private var markDiameter = 32.0
 
     var body: some View {
         VStack(spacing: 2) {
-            ZStack {
-                if isSelected {
-                    Circle()
-                        .fill(Color.ink.accent)
-                        .frame(width: 32, height: 32)
-                } else if isToday {
-                    Circle()
-                        .strokeBorder(Color.ink.accent, lineWidth: InkStroke.control)
-                        .frame(width: 32, height: 32)
+            Text(day, format: .number)
+                .font(.ink.value)
+                .foregroundStyle(isSelected ? Color.ink.onAccent : Color.ink.text)
+                .minimumScaleFactor(0.35)
+                .lineLimit(1)
+                .frame(width: markDiameter, height: markDiameter)
+                .background {
+                    if isSelected {
+                        Circle().fill(Color.ink.accent)
+                    } else if isToday {
+                        Circle().strokeBorder(Color.ink.accent, lineWidth: InkStroke.control)
+                    }
                 }
-                Text(day, format: .number)
-                    .font(.ink.value)
-                    .foregroundStyle(isSelected ? Color.ink.onAccent : Color.ink.text)
-                    .minimumScaleFactor(0.35)
-                    .lineLimit(1)
-                    .frame(maxWidth: .infinity)
-            }
-            .frame(minWidth: 28, minHeight: 28)
-            .frame(maxWidth: .infinity)
             Group {
                 if isMarked {
                     if isSelected {

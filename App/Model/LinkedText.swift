@@ -13,6 +13,10 @@ struct LinkedText: Sendable {
     let spans: [Span]
     var plainText: String { spans.map(\.text).joined() }
 
+    init(spans: [Span]) {
+        self.spans = spans
+    }
+
     init(row: IndexedBlock, links: [IndexedLink]) {
         let document = RawDocument(bytes: Array(("text\n" + row.text).utf8))
         let linksByLine = Dictionary(grouping: document.links, by: \.line)

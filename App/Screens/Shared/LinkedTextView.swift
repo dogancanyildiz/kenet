@@ -6,6 +6,13 @@ struct LinkedTextView: View {
     let store: IndexStore
     private var entities: [EntitySummary] { store.content.entities }
     @State private var destination: LinkDestination?
+    /// Built once per identity so duplicate entity paths cannot crash `Dictionary` on every draw.
+    @State private var segments: [InkLinkSegment] = []
+
+    private var segmentIdentity: String {
+        text.plainText + "\u{1e}" + entities.map(\.id).joined(separator: "\u{1f}")
+            + "\u{1e}" + String(describing: store.lastUpdated?.timeIntervalSince1970 ?? 0)
+    }
 
     var body: some View {
         InkLinkedText(segments: segments) { url in
@@ -15,6 +22,9 @@ struct LinkedTextView: View {
             else { return }
             let path = components.queryItems?.first(where: { $0.name == "path" })?.value
             destination = LinkDestination(name: name, path: path, entity: entities.first { $0.id == path })
+        }
+        .task(id: segmentIdentity) {
+            segments = LinkedTextInk.segments(text, entities: entities)
         }
         .sheet(item: $destination) { link in
             NavigationStack {
@@ -35,10 +45,6 @@ struct LinkedTextView: View {
         }
     }
 
-    private var segments: [InkLinkSegment] {
-        LinkedTextInk.segments(text, entities: entities)
-    }
-
     private struct LinkDestination: Identifiable {
         let name: String
         let path: String?
@@ -50,7 +56,7 @@ struct LinkedTextView: View {
 /// Maps parsed ``LinkedText`` spans onto ``InkLinkSegment`` kinds for drawing.
 enum LinkedTextInk {
     static func segments(_ text: LinkedText, entities: [EntitySummary]) -> [InkLinkSegment] {
-        let byPath = Dictionary(uniqueKeysWithValues: entities.map { ($0.id, $0) })
+        let byPath = Dictionary(entities.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
         return text.spans.enumerated().map { index, span in
             let id = "\(index)-\(span.text)"
             guard let target = span.target else {
@@ -58,11 +64,15 @@ enum LinkedTextInk {
             }
             let kind: InkLinkSegment.Kind
             if let path = span.destination, let entity = byPath[path] {
-                kind = entity.kind == "place" ? .place : .person
+                switch entity.kind {
+                case "place": kind = .place
+                case "person": kind = .person
+                default: kind = .entity
+                }
             } else if span.destination == nil {
                 kind = .unresolved
             } else {
-                kind = .person
+                kind = .entity
             }
             return InkLinkSegment(
                 id: id, text: span.text, kind: kind, target: target, path: span.destination)

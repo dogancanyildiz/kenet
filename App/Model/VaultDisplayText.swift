@@ -3,35 +3,100 @@ import VaultFormat
 
 /// Display-only transforms for vault text. Never used on write paths.
 enum VaultDisplayText {
-    /// Replaces wikilink markup with the visible label and strips trailing block ids.
+    /// Replaces wikilink markup with the visible label and strips trailing app block ids.
+    /// Multiline input is handled line-by-line (fences left intact).
     static func line(_ text: String) -> String {
-        stripBlockIdentifiers(stripWikilinks(text))
+        transform(text, stripBlockIDs: true)
     }
 
-    /// Applies ``line(_:)`` to each LF-separated line (empty lines preserved).
+    /// Same as ``line(_:)`` but keeps trailing block identifiers (frontmatter values).
+    static func wikilinksOnly(_ text: String) -> String {
+        transform(text, stripBlockIDs: false)
+    }
+
+    /// Applies ``line(_:)`` to each line (empty lines preserved; CRLF normalized for display).
     static func multiline(_ text: String) -> String {
-        text.split(separator: "\n", omittingEmptySubsequences: false)
-            .map { line(String($0)) }
-            .joined(separator: "\n")
+        transform(text, stripBlockIDs: true)
     }
 
-    private static func stripWikilinks(_ text: String) -> String {
+    private static func transform(_ text: String, stripBlockIDs: Bool) -> String {
+        let normalized =
+            text
+            .replacingOccurrences(of: "\r\n", with: "\n")
+            .replacingOccurrences(of: "\r", with: "\n")
+        var fenceOpen = false
+        var fenceMarker: UInt8?
+        var fenceCount = 0
+        let lines = normalized.split(separator: "\n", omittingEmptySubsequences: false)
+        let mapped = lines.map { substring -> String in
+            let line = String(substring)
+            let bytes = Array(line.utf8)
+            if updateFence(
+                bytes: bytes, fenceOpen: &fenceOpen, fenceMarker: &fenceMarker, fenceCount: &fenceCount)
+            {
+                return line
+            }
+            if fenceOpen { return line }
+            let stripped = stripWikilinksOnLine(line)
+            return stripBlockIDs ? stripBlockIdentifiers(stripped) : stripped
+        }
+        return mapped.joined(separator: "\n")
+    }
+
+    /// Returns true when the line is a fence delimiter (open or close).
+    private static func updateFence(
+        bytes: [UInt8], fenceOpen: inout Bool, fenceMarker: inout UInt8?, fenceCount: inout Int
+    ) -> Bool {
+        let indent = bytes.prefix(while: { $0 == 0x20 || $0 == 0x09 }).count
+        let text = bytes.dropFirst(indent)
+        if fenceOpen, let marker = fenceMarker {
+            let run = text.prefix(while: { $0 == marker }).count
+            if indent <= 3, run >= fenceCount, text.dropFirst(run).allSatisfy({ $0 == 0x20 || $0 == 0x09 }) {
+                fenceOpen = false
+                fenceMarker = nil
+                fenceCount = 0
+            }
+            return true
+        }
+        guard let marker = text.first, marker == 0x60 || marker == 0x7E else { return false }
+        let count = text.prefix(while: { $0 == marker }).count
+        guard count >= 3 else { return false }
+        if marker == 0x60, text.dropFirst(count).contains(0x60) { return false }
+        guard indent <= 3 else { return false }
+        fenceOpen = true
+        fenceMarker = marker
+        fenceCount = count
+        return true
+    }
+
+    private static func stripWikilinksOnLine(_ text: String) -> String {
         let document = RawDocument(bytes: text.utf8)
         var bytes = Array(text.utf8)
         for link in document.links.reversed() {
+            // `[[Ad^blok]]` (caret in target, no `#` anchor) stays raw per display rules.
+            if link.anchor == nil, link.rawTarget.contains("^") { continue }
             let offset = document.lines.prefix(link.line).reduce(document.hasByteOrderMark ? 3 : 0) {
                 $0 + $1.bytes.count
             }
+            var lower = offset + link.byteRange.lowerBound
+            if link.isEmbedded, lower > 0, bytes[lower - 1] == 0x21 {
+                lower -= 1
+            }
             let label = Array(visibleLabel(for: link).utf8)
-            bytes.replaceSubrange(
-                (offset + link.byteRange.lowerBound)..<(offset + link.byteRange.upperBound),
-                with: label)
+            bytes.replaceSubrange(lower..<(offset + link.byteRange.upperBound), with: label)
         }
         return String(decoding: bytes, as: UTF8.self)
     }
 
     private static func visibleLabel(for link: WikiLink) -> String {
         if let display = link.displayText, !display.isEmpty { return display }
+        if link.target.isEmpty {
+            switch link.anchor {
+            case .heading(let heading): return heading
+            case .block(let block): return block
+            case nil: return ""
+            }
+        }
         let target = link.target
         if target.contains("/") {
             let name = (target as NSString).lastPathComponent
@@ -43,12 +108,61 @@ enum VaultDisplayText {
         return target
     }
 
-    /// Trailing ` ^block-id` on a line (Obsidian / vault-format identifiers).
+    /// Trailing app-produced block id: space + `^` + 6 `[a-z0-9]` at end of line.
     private static func stripBlockIdentifiers(_ text: String) -> String {
-        guard let regex = try? NSRegularExpression(pattern: #"\s+\^[A-Za-z0-9_-]+\s*$"#) else {
+        guard let regex = try? NSRegularExpression(pattern: #"\s+\^[a-z0-9]{6}\s*$"#) else {
             return text
         }
         let range = NSRange(text.startIndex..., in: text)
         return regex.stringByReplacingMatches(in: text, options: [], range: range, withTemplate: "")
+    }
+}
+
+/// Search-result preview only: vault display rules plus fence delimiter lines and ATX `#` markers dropped.
+/// Unlike ``VaultDisplayText``, fence *interior* is also display-transformed so search never shows raw markup.
+enum SearchPreviewText {
+    static func display(_ text: String) -> String {
+        let normalized =
+            text
+            .replacingOccurrences(of: "\r\n", with: "\n")
+            .replacingOccurrences(of: "\r", with: "\n")
+        let lines = normalized.split(separator: "\n", omittingEmptySubsequences: false)
+        let result = lines.compactMap { substring -> String? in
+            let line = String(substring)
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+            if isFenceDelimiter(trimmed) { return nil }
+            // Always apply display rules (even for lines that were inside a fence in the source).
+            return stripHeadingMarkers(VaultDisplayText.line(line))
+        }
+        return result.joined(separator: "\n")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private static func isFenceDelimiter(_ trimmed: String) -> Bool {
+        guard let first = trimmed.first, first == "`" || first == "~" else { return false }
+        let count = trimmed.prefix(while: { $0 == first }).count
+        guard count >= 3 else { return false }
+        let rest = trimmed.dropFirst(count)
+        if first == "`", rest.contains("`") { return false }
+        // Opening may have a language tag; closing is blank after the run.
+        return true
+    }
+
+    private static func stripHeadingMarkers(_ line: String) -> String {
+        var index = line.startIndex
+        while index < line.endIndex, line[index] == " " || line[index] == "\t" {
+            index = line.index(after: index)
+        }
+        var hashes = 0
+        var cursor = index
+        while cursor < line.endIndex, line[cursor] == "#", hashes < 6 {
+            hashes += 1
+            cursor = line.index(after: cursor)
+        }
+        guard hashes > 0, cursor < line.endIndex, line[cursor] == " " || line[cursor] == "\t" else {
+            return line
+        }
+        let afterSpace = line.index(after: cursor)
+        return String(line[afterSpace...])
     }
 }

@@ -4,6 +4,7 @@ import VaultFormat
 /// Reverse chronological summaries lead into the shared day layout.
 struct DaysView: View {
     let store: IndexStore
+    var previewSelectedDay: CalendarDate? = nil
     @State private var selectedDay: CalendarDate?
 
     var body: some View {
@@ -17,8 +18,12 @@ struct DaysView: View {
                         .foregroundStyle(.ink.text)
                 }
             }
+            .inkListRow()
             Section {
-                DaysCalendarView(store: store, selected: selectedDay) { selectedDay = $0 }
+                DaysCalendarView(
+                    store: store, selected: selectedDay ?? previewSelectedDay
+                ) { selectedDay = $0 }
+                .inkListRow()
             }
             ForEach(store.content.days) { day in
                 NavigationLink {
@@ -26,9 +31,11 @@ struct DaysView: View {
                 } label: {
                     DayRow(day: day)
                 }
+                .inkListRow()
             }
             if store.content.days.isEmpty {
                 EmptyState("Henüz gün yok")
+                    .inkListRow()
             }
         }
         .listStyle(.plain)
@@ -54,7 +61,7 @@ struct DayRow: View {
                     .foregroundStyle(.ink.secondaryText)
                 if let preview = day.preview {
                     Text(verbatim: VaultDisplayText.line(preview))
-                        .font(.ink.meta)
+                        .font(.ink.contentSmall)
                         .foregroundStyle(.ink.secondaryText)
                         .lineLimit(1)
                 }

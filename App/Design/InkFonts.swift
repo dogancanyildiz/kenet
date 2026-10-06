@@ -11,6 +11,9 @@ extension Font {
         /// Vault content: New York Regular ≈ body (17).
         static var content: Font { .system(.body, design: .serif) }
 
+        /// Smaller vault content (day preview, compact quotes): New York Regular ≈ footnote (13).
+        static var contentSmall: Font { .system(.footnote, design: .serif) }
+
         /// Placeholder: New York Italic ≈ body (17).
         static var placeholder: Font { .system(.body, design: .serif).italic() }
 

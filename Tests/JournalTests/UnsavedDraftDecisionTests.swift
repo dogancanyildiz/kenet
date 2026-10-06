@@ -31,4 +31,13 @@ struct UnsavedDraftDecisionTests {
         #expect(UnsavedDraftLeaveChoice.discard != .stay)
         #expect(UnsavedDraftLeaveChoice.stay != .save)
     }
+
+    @Test func entityEditDraftCombinesChildDirtyFlags() {
+        #expect(!EntityEditorDraft.combine(current: false, next: false))
+        #expect(EntityEditorDraft.combine(current: false, next: true))
+        #expect(EntityEditorDraft.combine(current: true, next: false))
+        #expect(
+            UnsavedDraftDecision.requiresPrompt(
+                isDirty: EntityEditorDraft.combine(current: false, next: true), isSaving: false))
+    }
 }

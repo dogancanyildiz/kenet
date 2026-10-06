@@ -52,10 +52,35 @@ struct RowComponentTests {
         InkLinkStyle.apply(.unresolved, to: &unresolved, highContrast: false)
         #expect(unresolved.underlineStyle != nil)
 
+        var entity = AttributedString("Cam")
+        InkLinkStyle.apply(.entity, to: &entity, highContrast: false)
+        #expect(entity.underlineStyle != nil)
+
         var colored = AttributedString("Ece")
         InkLinkStyle.apply(.person, to: &colored, highContrast: false, using: .coloredText)
         #expect(colored.underlineStyle == nil)
         #expect(colored.foregroundColor != nil)
+    }
+
+    @Test func linkedTextInkDedupesPathsAndStylesCustomTypes() {
+        let entities = [
+            EntitySummary(
+                id: "books/Cam.md", kind: "book", name: "Cam", qualifier: nil, aliases: [],
+                incomingLinks: 1),
+            EntitySummary(
+                id: "books/Cam.md", kind: "book", name: "Cam kopya", qualifier: nil, aliases: [],
+                incomingLinks: 0),
+            EntitySummary(
+                id: "people/Ada.md", kind: "person", name: "Ada", qualifier: nil, aliases: [],
+                incomingLinks: 1),
+        ]
+        let text = LinkedText(spans: [
+            .init(text: "Cam", destination: "books/Cam.md", target: "Cam"),
+            .init(text: " ve ", destination: nil),
+            .init(text: "Ada", destination: "people/Ada.md", target: "Ada"),
+        ])
+        let segments = LinkedTextInk.segments(text, entities: entities)
+        #expect(segments.map(\.kind) == [.entity, .plain, .person])
     }
 
     @Test func inkLinkedTextKeepsSuffixPlainAndLinksEntity() {

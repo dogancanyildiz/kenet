@@ -19,17 +19,26 @@ struct UnseenPeopleSection: View {
                     Text("Bu süreyi aşan kayıt yok.")
                         .font(.ink.meta)
                         .foregroundStyle(.ink.secondaryText)
+                        .inkListRow()
                 }
-                ForEach(groups.overdue) { person in personRow(person) }
+                ForEach(groups.overdue) { person in
+                    personRow(person)
+                        .inkListRow()
+                }
                 if !groups.never.isEmpty {
                     Text("Henüz hiç")
                         .font(.ink.meta)
                         .foregroundStyle(.ink.secondaryText)
-                    ForEach(groups.never) { person in personRow(person) }
+                        .inkListRow()
+                    ForEach(groups.never) { person in
+                        personRow(person)
+                            .inkListRow()
+                    }
                 }
             } label: {
                 SectionHeader(title: String(localized: "Bir süredir görüşmediklerin"))
             }
+            .inkListRow()
         }
     }
 

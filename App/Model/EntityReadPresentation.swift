@@ -9,7 +9,8 @@ enum EntityReadPresentation {
         let value: String
         /// When true, shown under "Diğer alanlar" with secondary styling.
         let isOther: Bool
-        var id: String { key }
+        /// Byte identity so NFC/NFD-equivalent keys stay distinct in `ForEach`.
+        var id: [UInt8] { Array(key.utf8) }
     }
 
     /// Byline parts: type name, aliases, optional last-seen date text.
@@ -22,7 +23,7 @@ enum EntityReadPresentation {
         if !aliasText.isEmpty { parts.append(aliasText) }
         if let lastSeen {
             let date = LocalDay.instant(for: lastSeen).formatted(
-                .dateTime.day().month().year().locale(locale))
+                .dateTime.day().month(.abbreviated).year().locale(locale))
             parts.append(String(localized: "Son görülme: \(date)", locale: locale))
         }
         return parts.joined(separator: " · ")
@@ -30,12 +31,12 @@ enum EntityReadPresentation {
 
     /// Groups schema fields first; unknown keys become secondary "other" rows.
     static func fieldRows(
-        fields: [EntityField], schemaKeys: Set<String>
+        fields: [EntityField], schemaKeys: Set<String>, locale: Locale = .autoupdatingCurrent
     ) -> (known: [FieldRow], other: [FieldRow]) {
         var known: [FieldRow] = []
         var other: [FieldRow] = []
         for field in fields {
-            let value = FrontmatterValueDisplay.text(field.value)
+            let value = FrontmatterValueDisplay.text(field.value, locale: locale)
             let row = FieldRow(
                 key: field.key,
                 label: FrontmatterKeyLabel.display(field.key),

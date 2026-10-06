@@ -1513,22 +1513,6 @@
         }
       }
     },
-    "Henüz varlık yok": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No entities yet"
-          }
-        },
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Henüz varlık yok"
-          }
-        }
-      }
-    },
     "Hızlı giriş": {
       "localizations": {
         "en": {
@@ -8665,6 +8649,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Kaydedilmemiş günlük metni var."
+          }
+        }
+      }
+    },
+    "Kaydedilmemiş alan metni var.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You have unsaved field text."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kaydedilmemiş alan metni var."
           }
         }
       }

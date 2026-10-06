@@ -22,18 +22,18 @@ struct EntitiesView: View {
             EntityTypePicker(store: store, selection: $kind).padding()
             EntityListControls(order: $order, search: $search)
             List {
-                if kind == "person" { UnseenPeopleSection(store: store, people: entities) }
+                if kind == "person" {
+                    UnseenPeopleSection(store: store, people: entities)
+                }
                 ForEach(entities) { entity in
                     NavigationLink(value: entity) { EntityRow(entity: entity) }
+                        .inkListRow()
                 }
             }
             .inkPage()
             .overlay {
                 if !store.content.entities.contains(where: { $0.kind == kind }) {
-                    EmptyState(
-                        "Henüz varlık yok",
-                        actionTitle: nil,
-                        action: nil)
+                    EmptyState("Bu tipteki varlıklar burada görünecek.")
                 }
             }
         }

@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Single source of truth for how person / place / unresolved links are drawn.
+/// Single source of truth for how person / place / unresolved / entity links are drawn.
 /// Reading (`Text`) and editable (`TextEditor` with `AttributedString`) share this path so
 /// quick entry can adopt the same attributes later without forking styles.
 enum InkLinkStyle {
@@ -21,6 +21,8 @@ enum InkLinkStyle {
         case person
         case place
         case unresolved
+        /// Custom entity types: text color, solid control underline (not person blue).
+        case entity
     }
 
     /// Applies the active mode's attributes to a link span (not the Turkish suffix).
@@ -59,6 +61,9 @@ enum InkLinkStyle {
         case .place:
             pattern = .dot
             color = .ink.place
+        case .entity:
+            pattern = .solid
+            color = .ink.control
         case .unresolved:
             pattern = .dash
             color = .ink.secondaryText
@@ -78,6 +83,7 @@ enum InkLinkStyle {
         switch kind {
         case .person: string.foregroundColor = Color.ink.person
         case .place: string.foregroundColor = Color.ink.place
+        case .entity: string.foregroundColor = Color.ink.text
         case .unresolved: string.foregroundColor = Color.ink.secondaryText
         }
     }

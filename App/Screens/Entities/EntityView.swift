@@ -7,7 +7,6 @@ struct EntityView: View {
     let onRenamed: (String) -> Void
     @Environment(\.locale) private var locale
     @State private var model: EntityDetailModel
-    @State private var renamePresented = false
     @State private var isEditing = false
 
     init(store: IndexStore, entity: EntitySummary, onRenamed: @escaping (String) -> Void = { _ in }) {
@@ -44,15 +43,18 @@ struct EntityView: View {
             if !model.isLoaded {
                 if model.errorText == nil {
                     ProgressView("Yükleniyor…")
+                        .inkListRow()
                 } else {
                     Button("Yeniden dene") { Task { await model.load() } }
                         .buttonStyle(InkTextButtonStyle())
+                        .inkListRow()
                 }
             } else {
                 readingContent
             }
             if let error = model.errorText {
                 Text(verbatim: error).font(.ink.meta).foregroundStyle(.ink.danger)
+                    .inkListRow()
             }
         }
         .listStyle(.plain)
@@ -70,12 +72,7 @@ struct EntityView: View {
             }
         }
         .sheet(isPresented: $isEditing) {
-            EntityEditSheet(store: store, model: model, entity: current) {
-                renamePresented = true
-            }
-        }
-        .sheet(isPresented: $renamePresented) {
-            EntityRenameView(model: EntityRenameModel(detail: model, name: current.name, qualifier: current.qualifier))
+            EntityEditSheet(store: store, model: model, entity: current)
         }
         .onChange(of: model.path) { _, path in onRenamed(path) }
         .task(id: store.lastUpdated) { await model.load() }
@@ -86,14 +83,30 @@ struct EntityView: View {
             PageHeadline(
                 title: current.name,
                 byline: EntityReadPresentation.byline(
-                    kindLabel: kindLabel, aliases: model.aliases, lastSeen: lastSeen, locale: locale))
+                    kindLabel: kindLabel, aliases: model.aliases, lastSeen: lastSeen, locale: locale)
+            )
+            .inkListRow()
+            if !model.aliasesEditable, !model.aliasesSource.isEmpty {
+                Text(verbatim: model.aliasesSource)
+                    .font(.ink.meta)
+                    .foregroundStyle(.ink.secondaryText)
+                    .textSelection(.enabled)
+                    .inkListRow()
+            }
             if let qualifier = current.qualifier {
-                labeledRow(String(localized: "Ayırt edici"), qualifier)
+                labeledRow(String(localized: "Ayırt edici"), qualifier, valueFont: .ink.content)
+                    .inkListRow()
             }
             labeledRow(
                 String(localized: "Gelen bağlantılar"),
-                current.incomingLinks.formatted(.number))
-            if let result = model.renameResult { EntityRenameSummary(result: result) }
+                current.incomingLinks.formatted(.number),
+                valueFont: .ink.value
+            )
+            .inkListRow()
+            if let result = model.renameResult {
+                EntityRenameSummary(result: result)
+                    .inkListRow()
+            }
         }
         if ["person", "place"].contains(current.kind) {
             Section {
@@ -104,6 +117,7 @@ struct EntityView: View {
                         .font(.body)
                         .foregroundStyle(.ink.accent)
                 }
+                .inkListRow()
             }
             EntityInsightsCard(store: store, entity: current)
         }
@@ -112,6 +126,7 @@ struct EntityView: View {
                 Text("Frontmatter okunamıyor.")
                     .font(.ink.meta)
                     .foregroundStyle(.ink.secondaryText)
+                    .inkListRow()
             }
         } else {
             fieldSections
@@ -122,18 +137,22 @@ struct EntityView: View {
     }
 
     @ViewBuilder private var fieldSections: some View {
-        let grouped = EntityReadPresentation.fieldRows(fields: model.fields, schemaKeys: schemaKeys)
+        let grouped = EntityReadPresentation.fieldRows(
+            fields: model.fields, schemaKeys: schemaKeys, locale: locale)
         if !grouped.known.isEmpty {
             Section {
                 SectionHeader(title: String(localized: "Alanlar"))
+                    .inkListRow()
                 ForEach(grouped.known) { row in
-                    labeledRow(row.label, row.value.isEmpty ? "\u{2014}" : row.value)
+                    labeledRow(row.label, row.value.isEmpty ? "\u{2014}" : row.value, valueFont: .ink.content)
+                        .inkListRow()
                 }
             }
         }
         if !grouped.other.isEmpty {
             Section {
                 SectionHeader(title: String(localized: "Diğer alanlar"))
+                    .inkListRow()
                 ForEach(grouped.other) { row in
                     VStack(alignment: .leading, spacing: 2) {
                         Text(verbatim: row.key)
@@ -145,6 +164,7 @@ struct EntityView: View {
                             .textSelection(.enabled)
                     }
                     .padding(.vertical, 2)
+                    .inkListRow()
                 }
             }
         }
@@ -154,21 +174,25 @@ struct EntityView: View {
         let timeline = store.content.entityTimeline[model.path] ?? []
         Section {
             SectionHeader(title: String(localized: "Zaman akışı"), count: timeline.count)
+                .inkListRow()
             if timeline.isEmpty {
                 Text("Henüz günlük kaydı yok.")
                     .font(.ink.meta)
                     .foregroundStyle(.ink.secondaryText)
+                    .inkListRow()
             }
             ForEach(timeline) { day in
                 Text(LocalDay.instant(for: day.date), format: .dateTime.day().month().year())
                     .font(.ink.section)
                     .foregroundStyle(.ink.text)
+                    .inkListRow()
                 ForEach(day.rows) { row in
                     NavigationLink {
                         DayView(store: store, date: day.date)
                     } label: {
                         LinkedTextView(text: row.text, store: store)
                     }
+                    .inkListRow()
                 }
             }
         }
@@ -177,29 +201,32 @@ struct EntityView: View {
     @ViewBuilder private var notesSection: some View {
         Section {
             SectionHeader(title: String(localized: "Serbest notlar"))
+                .inkListRow()
             let display = VaultDisplayText.multiline(model.body)
             if display.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                 Text(verbatim: "\u{2014}")
                     .font(.ink.meta)
                     .foregroundStyle(.ink.secondaryText)
+                    .inkListRow()
             } else {
                 Text(verbatim: display)
                     .font(.ink.content)
                     .inkJournalParagraph()
                     .foregroundStyle(.ink.text)
                     .textSelection(.enabled)
+                    .inkListRow()
             }
         }
     }
 
-    private func labeledRow(_ label: String, _ value: String) -> some View {
+    private func labeledRow(_ label: String, _ value: String, valueFont: Font) -> some View {
         HStack(alignment: .firstTextBaseline) {
             Text(verbatim: label)
                 .font(.ink.meta)
                 .foregroundStyle(.ink.secondaryText)
             Spacer(minLength: 12)
             Text(verbatim: value)
-                .font(.ink.content)
+                .font(valueFont)
                 .foregroundStyle(.ink.text)
                 .multilineTextAlignment(.trailing)
                 .textSelection(.enabled)
@@ -208,24 +235,42 @@ struct EntityView: View {
 }
 
 /// Edit mode: reuses existing field / alias / rename editors inside a sheet.
-private struct EntityEditSheet: View {
+struct EntityEditSheet: View {
     let store: IndexStore
     let model: EntityDetailModel
     let entity: EntitySummary
-    let onRename: () -> Void
     @Environment(\.dismiss) private var dismiss
     @State private var newKey = ""
     @State private var newValue = ""
+    @State private var renamePresented = false
+    @State private var editorsDirty = false
+    @State private var leavePrompt = false
+
+    private var addFieldDirty: Bool {
+        !newKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            || !newValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    private var isDirty: Bool { editorsDirty || addFieldDirty }
+
+    private var blocksLeave: Bool {
+        UnsavedDraftDecision.requiresPrompt(isDirty: isDirty, isSaving: model.isWriting)
+    }
 
     var body: some View {
         NavigationStack {
             Form {
+                if let error = model.errorText {
+                    Section {
+                        InfoBand(kind: .error, verbatim: error)
+                    }
+                }
                 Section("Varlık") {
                     LabeledContent("Ad") { Text(verbatim: entity.name) }
                     if let qualifier = entity.qualifier {
                         LabeledContent("Ayırt edici") { Text(verbatim: qualifier) }
                     }
-                    Button("Adı değiştir") { onRename() }.disabled(!model.canEdit)
+                    Button("Adı değiştir") { renamePresented = true }.disabled(!model.canEdit)
                 }
                 if model.unreadableFrontmatter {
                     Text("Frontmatter okunamıyor.").foregroundStyle(.ink.secondaryText)
@@ -272,12 +317,33 @@ private struct EntityEditSheet: View {
             }
             .formStyle(.grouped)
             .navigationTitle("Düzenle")
+            .navigationBarBackButtonHidden(blocksLeave)
+            .interactiveDismissDisabled(blocksLeave || model.isWriting)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Bitti") { dismiss() }
+                    Button("Bitti") { requestLeave() }
                 }
             }
+            .confirmationDialog("Kaydedilmemiş değişiklikler", isPresented: $leavePrompt) {
+                Button("At", role: .destructive) { dismiss() }
+                Button("Vazgeç", role: .cancel) {}
+            } message: {
+                Text("Kaydedilmemiş alan metni var.")
+            }
+            .sheet(isPresented: $renamePresented) {
+                EntityRenameView(
+                    model: EntityRenameModel(detail: model, name: entity.name, qualifier: entity.qualifier))
+            }
+            .onPreferenceChange(EntityEditorDirtyKey.self) { editorsDirty = $0 }
         }
         .inkPage()
+    }
+
+    private func requestLeave() {
+        if UnsavedDraftDecision.canLeaveImmediately(isDirty: isDirty, isSaving: model.isWriting) {
+            dismiss()
+        } else {
+            leavePrompt = true
+        }
     }
 }

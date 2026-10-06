@@ -84,7 +84,7 @@ Filtre: kişi, konum, proje. Aynı gündeki görevler yüksek, orta, normal, dü
 4. Zaman akışı: bu varlığın geçtiği olaylar ve günlük paragrafları, yeniden eskiye; her satır ait olduğu güne götürür
 5. Serbest notlar (okumada ham wikilink ve blok kimliği gizlenir)
 6. Konumda ek olarak harita ve koordinat (4)
-7. Düzenleme, "Düzenle" ile açılan ayrı kiptir (sheet); alan, takma ad ve yeniden adlandırma düzenleyicileri orada kalır. Kaydedilmemiş değişiklik onayı mevcut davranışını korur.
+7. Düzenleme, "Düzenle" ile açılan ayrı kiptir (sheet); alan ve takma ad düzenleyicileri orada kalır. Ad değiştirme, düzenleme sheet'inin içinden ikinci bir sheet olarak açılır. Kaydedilmemiş alan metni varken sheet kapatılamaz; JournalView ile aynı UnsavedDraftDecision kalıbı "At" / "Vazgeç" sorar (alanlar Kaydet ile yazılır, Bitti kaydetmez).
 
 Kişiler ve Konumlar ekranının üstteki tip seçicisi kişi/konuma ek olarak kasanın özel tiplerini gösterir. Sekme adı ve Mac kenar çubuğu değişmez. Özel varlık sayfası tanımın text/date/number/boolean/link alanlarına uygun düzenleyiciler, bilinmeyen alanlar, görevler, günlük zaman akışı ve serbest notları sunar; kişi/konum Graph ve görüşme kartı yalnız yerleşik tiplerde kalır. @ önerileri özel tipleri de içerir; bilinmeyen adın oluşturma menüsünde tanımlı tipler bulunur.
 

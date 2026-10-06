@@ -3,33 +3,35 @@ import VaultFormat
 
 /// Formats frontmatter values for reading UI (no raw wikilink markup).
 enum FrontmatterValueDisplay {
-    static func text(_ value: FrontmatterValue) -> String {
+    static func text(_ value: FrontmatterValue, locale: Locale = .autoupdatingCurrent) -> String {
         switch value {
         case .scalar(let scalar):
-            scalarText(scalar)
+            scalarText(scalar, locale: locale)
         case .list(let items, _):
-            items.map(scalarText).filter { !$0.isEmpty }.joined(separator: ", ")
+            items.map { scalarText($0, locale: locale) }.filter { !$0.isEmpty }.joined(separator: ", ")
         case .mapping(let entries):
             entries.map { entry in
                 let label = FrontmatterKeyLabel.display(entry.key)
-                let body = scalarText(entry.value)
+                let body = scalarText(entry.value, locale: locale)
                 return body.isEmpty ? label : "\(label): \(body)"
             }.joined(separator: "\n")
         case .raw(let text):
-            VaultDisplayText.multiline(text)
+            VaultDisplayText.wikilinksOnly(text)
         }
     }
 
-    private static func scalarText(_ scalar: FrontmatterScalar) -> String {
+    private static func scalarText(_ scalar: FrontmatterScalar, locale: Locale) -> String {
         switch scalar.kind {
         case .empty:
             return ""
         case .boolean(let value):
-            return String(localized: value ? "Evet" : "Hayır")
+            return String(localized: value ? "Evet" : "Hayır", locale: locale)
         case .date(let day):
-            return day.description
+            return LocalDay.instant(for: day).formatted(
+                .dateTime.day().month(.abbreviated).year().locale(locale))
         case .number, .text:
-            return VaultDisplayText.line(scalar.text)
+            // Frontmatter: strip wikilinks only — never block ids (`x ^2` stays).
+            return VaultDisplayText.wikilinksOnly(scalar.text)
         }
     }
 }

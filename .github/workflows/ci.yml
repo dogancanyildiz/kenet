@@ -43,7 +43,7 @@ jobs:
   # Uygulama hedefleri: proje project.yml dosyasından üretilir, iki platformda derlenir ve test edilir.
   # İmza yok (CODE_SIGNING_ALLOWED=NO); runner'da sertifika bulunmaz.
   # macOS testleri iki saat diliminde koşar (olay saati / gün kayması).
-  # iOS birim testleri simülatörde koşar; XCUITest dumanı ayrı işte eklenecek.
+  # iOS birim testleri ve XCUITest dumanı aynı işte; duman `-only-testing:JournalUITests`.
   app:
     name: Uygulama (iOS ve macOS)
     runs-on: macos-26
@@ -96,6 +96,16 @@ jobs:
             -project Journal.xcodeproj \
             -scheme Journal_iOS \
             -destination "platform=iOS Simulator,name=${{ steps.ios_sim.outputs.name }}" \
+            -only-testing:JournalTests_iOS \
+            CODE_SIGNING_ALLOWED=NO \
+            -quiet
+      - name: iOS arayüz dumanı
+        run: |
+          xcodebuild test \
+            -project Journal.xcodeproj \
+            -scheme Journal_iOS \
+            -destination "platform=iOS Simulator,name=${{ steps.ios_sim.outputs.name }}" \
+            -only-testing:JournalUITests \
             CODE_SIGNING_ALLOWED=NO \
             -quiet
 

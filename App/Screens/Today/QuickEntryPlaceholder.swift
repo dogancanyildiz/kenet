@@ -30,6 +30,10 @@ struct QuickEntryBar: View {
 
     private var insertionOffset: Int? {
         if let selection, case .selection(let range) = selection.indices {
+            // XCUITest and other programmatic edits can leave a stale selection whose bounds
+            // no longer lie inside `model.text`; subscripting then traps in String validation.
+            guard range.lowerBound >= model.text.startIndex, range.lowerBound <= model.text.endIndex
+            else { return nil }
             return model.text[..<range.lowerBound].utf8.count
         }
         return nil
@@ -136,6 +140,8 @@ struct QuickEntryBar: View {
         }
         .padding()
         .background(.bar)
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("bar.quickEntry")
         .onAppear { model.locationService = location }
         .onChange(of: navigation?.mentionRequest?.id, initial: true) { _, id in
             if id != nil { applyMention() }
@@ -201,10 +207,12 @@ struct QuickEntryBar: View {
         @Bindable var model = model
         return TextField(placeholder, text: $model.text, selection: $selection)
             .textFieldStyle(.roundedBorder)
-            .accessibilityLabel("Hızlı giriş")
             .focused($isFocused)
             .disabled(!isEnabled)
             .onSubmit { submit() }
+            // Identifier on the accessibility element VoiceOver/XCTest see for the field.
+            .accessibilityLabel("Hızlı giriş")
+            .accessibilityIdentifier("field.quickEntry")
     }
 
     private var sendButton: some View {
@@ -215,6 +223,7 @@ struct QuickEntryBar: View {
                 .labelStyle(.iconOnly)
                 .tapTarget()
         }
+        .accessibilityIdentifier("button.quickEntrySend")
         .disabled(!isEnabled || !model.canSubmit)
     }
 

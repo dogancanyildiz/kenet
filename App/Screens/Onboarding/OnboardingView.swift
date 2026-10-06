@@ -36,6 +36,7 @@ struct OnboardingView: View {
             .padding().frame(maxWidth: 520).frame(maxWidth: .infinity)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .accessibilityIdentifier("screen.onboarding")
         .disabled(store.isProcessing || store.isInspectingImport)
         .fileImporter(isPresented: $choosesFolder, allowedContentTypes: [.folder]) { result in
             switch result {

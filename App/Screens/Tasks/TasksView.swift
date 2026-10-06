@@ -88,6 +88,7 @@ struct TasksView: View {
                 }
             }
             .navigationTitle("Görevler")
+            .accessibilityIdentifier("screen.tasks")
             .toolbar {
                 TaskFiltersMenu(model: model)
                 SearchButton()

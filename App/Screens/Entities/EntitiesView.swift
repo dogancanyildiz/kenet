@@ -36,6 +36,7 @@ struct EntitiesView: View {
             }
         }
         .navigationTitle("Kişiler ve Konumlar")
+        .accessibilityIdentifier("screen.entities")
         .toolbar {
             SearchButton()
             NavigationLink {

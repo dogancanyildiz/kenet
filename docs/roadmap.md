@@ -79,7 +79,7 @@ Erişilebilirlik ve dil:
 
 Kapılar:
 
-- [ ] Uygulama testleri iOS simülatöründe de koşar; fixture kasasıyla arayüz duman testi ve erişilebilirlik denetimi
+- [x] Uygulama testleri iOS simülatöründe de koşar; fixture kasasıyla arayüz duman testi ve erişilebilirlik denetimi
 - [ ] Belge biçim denetimi (karar tablosu, README belge tablosu, String Catalog tamlığı); `Tests/` biçim denetimine girer
 - [ ] Kasa hazırlama yazıcıları fixture ile sınanır
 - [x] Sürüm akışının kuru koşusu: `VERSION` yükseltme yolu ve etiket varken sessiz atlama

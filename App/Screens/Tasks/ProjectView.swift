@@ -13,27 +13,35 @@ struct ProjectView: View {
     private var model: ProjectModel { ProjectModel(store: store, name: name) }
     var body: some View {
         List {
-            Section("Proje") {
-                LabeledContent("Açık görevler", value: model.openCount.formatted())
+            Section {
+                labeled("Açık görevler") {
+                    Text(model.openCount.formatted())
+                        .font(.ink.value)
+                        .foregroundStyle(.ink.text)
+                }
                 if let day = model.lastActivity {
-                    LabeledContent("Son etkinlik") {
+                    labeled("Son etkinlik") {
                         Text(LocalDay.instant(for: day), format: .dateTime.day().month().year())
+                            .font(.ink.value)
+                            .foregroundStyle(.ink.text)
                     }
                 }
+            } header: {
+                SectionHeader(title: String(localized: "Proje"))
             }
             ForEach(model.openGroups) { group in
                 Section {
                     rows(group.rows)
                 } header: {
-                    if let day = group.date {
-                        Text(LocalDay.instant(for: day), format: .dateTime.day().month().year())
-                    } else {
-                        Text("Tarihsiz")
-                    }
+                    SectionHeader(title: groupHeading(group.date), count: group.rows.count)
                 }
             }
-            Section("Tamamlanan") { rows(model.completed) }
-            Section("Kişiler ve Konumlar") {
+            Section {
+                rows(model.completed)
+            } header: {
+                SectionHeader(title: String(localized: "Tamamlanan"), count: model.completed.count)
+            }
+            Section {
                 ForEach(model.entities) { entity in
                     NavigationLink {
                         EntityView(store: store, entity: entity)
@@ -41,17 +49,51 @@ struct ProjectView: View {
                         EntityRow(entity: entity)
                     }
                 }
+            } header: {
+                SectionHeader(title: String(localized: "Kişiler ve Konumlar"))
             }
-            if let error = actions.errorText { Text(verbatim: error).foregroundStyle(.red) }
+            if let error = actions.errorText {
+                InfoBand(kind: .error, verbatim: error)
+                    .listRowBackground(Color.clear)
+                    .listRowInsets(EdgeInsets())
+            }
         }
-        .navigationTitle(Text(verbatim: name)).toolbar { SearchButton() }
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
+        .inkPage()
+        .inkPageColumn()
+        .navigationTitle(Text(verbatim: name))
+        .toolbar { SearchButton() }
     }
+
+    private func groupHeading(_ day: CalendarDate?) -> String {
+        if let day {
+            return LocalDay.instant(for: day).formatted(.dateTime.day().month().year())
+        }
+        return String(localized: "Tarihsiz")
+    }
+
+    private func labeled<Value: View>(_ title: LocalizedStringKey, @ViewBuilder value: () -> Value)
+        -> some View
+    {
+        HStack(alignment: .firstTextBaseline) {
+            Text(title)
+                .font(.ink.meta)
+                .foregroundStyle(.ink.secondaryText)
+            Spacer(minLength: 8)
+            value()
+        }
+        .listRowBackground(Color.clear)
+    }
+
     private func rows(_ rows: [TaskRow]) -> some View {
         ForEach(rows) { row in
-            DayTaskView(
-                store: store, row: row, isToday: true, isOverdue: row.due.map { $0 < actions.day } ?? false,
+            TasksListRow(
+                store: store, row: row, day: actions.day,
+                isOverdue: row.due.map { $0 < actions.day } ?? false,
                 completed: row.isClosed, isBusy: actions.busy.contains(row.id), allowsReopening: true
             ) { Task { await actions.toggle(row) } }
+            .listRowBackground(Color.clear)
         }
     }
 }

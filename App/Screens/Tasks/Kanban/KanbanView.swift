@@ -17,16 +17,26 @@ struct KanbanView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             controls
-            if let error = model.errorText { Text(verbatim: error).foregroundStyle(.red).padding(.horizontal) }
+            if let error = model.errorText {
+                InfoBand(kind: .error, verbatim: error)
+                    .padding(.horizontal, InkSpacing.margin)
+            }
             #if os(macOS)
                 HStack(spacing: 0) {
                     board
                     if let row = selectedTask {
-                        Divider()
+                        Divider().overlay(Color.ink.rule)
                         VStack(spacing: 0) {
                             HStack {
                                 Spacer()
-                                Button("Kapat", systemImage: "xmark") { selectedRow = nil }.labelStyle(.iconOnly)
+                                Button {
+                                    selectedRow = nil
+                                } label: {
+                                    Label("Kapat", systemImage: "xmark")
+                                        .labelStyle(.iconOnly)
+                                        .tapTarget()
+                                }
+                                .buttonStyle(InkTextButtonStyle())
                             }.padding()
                             NavigationStack { TaskDetailView(store: model.store, row: row, openDay: openDay) }
                         }.frame(width: 340)
@@ -48,7 +58,8 @@ struct KanbanView: View {
                 }
             #endif
         }
-        .navigationTitle("Kanban")
+        .background(Color.ink.paper)
+        .modifier(OptionalNavigationTitle(showsFilters ? "Kanban" : nil))
         .onChange(of: model.store.vaultURL) { _, _ in
             model.tasks.clearFilters()
             selectedRow = nil
@@ -77,7 +88,9 @@ struct KanbanView: View {
                 Label("Pano seçenekleri", systemImage: "ellipsis.circle")
             }
             if showsFilters { TaskFiltersMenu(model: model.tasks) }
-        }.padding()
+        }
+        .padding(.horizontal, InkSpacing.margin)
+        .padding(.vertical, 10)
     }
 
     private var board: some View {

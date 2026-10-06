@@ -18,7 +18,10 @@ struct TaskTimelineView: View {
     var body: some View {
         VStack(spacing: 0) {
             controls
-            if let error = model.errorText { Text(verbatim: error).foregroundStyle(.red).padding(.horizontal) }
+            if let error = model.errorText {
+                InfoBand(kind: .error, verbatim: error)
+                    .padding(.horizontal, InkSpacing.margin)
+            }
             #if os(macOS)
                 HStack(spacing: 0) {
                     TimelineDesktopView(model: model, todayRequest: todayRequest) {
@@ -27,11 +30,18 @@ struct TaskTimelineView: View {
                         editor = TimelineDateSelection(row: $0, edge: $1, root: model.store.vaultURL)
                     }
                     if let row = selectedTask {
-                        Divider()
+                        Divider().overlay(Color.ink.rule)
                         VStack {
                             HStack {
                                 Spacer()
-                                Button("Kapat", systemImage: "xmark") { selected = nil }.labelStyle(.iconOnly)
+                                Button {
+                                    selected = nil
+                                } label: {
+                                    Label("Kapat", systemImage: "xmark")
+                                        .labelStyle(.iconOnly)
+                                        .tapTarget()
+                                }
+                                .buttonStyle(InkTextButtonStyle())
                             }.padding()
                             NavigationStack { TaskDetailView(store: model.store, row: row, openDay: openDay) }
                         }.frame(width: 340)
@@ -51,7 +61,8 @@ struct TaskTimelineView: View {
                 }
             #endif
         }
-        .navigationTitle("Zaman çizelgesi")
+        .background(Color.ink.paper)
+        .modifier(OptionalNavigationTitle(showsFilters ? "Zaman çizelgesi" : nil))
         .sheet(item: $editor) { selection in
             NavigationStack { TimelineDateEditor(model: model, selection: selection) }
                 .frame(minWidth: 320, minHeight: 200).presentationDetents([.medium, .large])
@@ -88,6 +99,7 @@ struct TaskTimelineView: View {
                         .tapTarget()
                 }
                 .accessibilityLabel("Önceki dönem")
+                .buttonStyle(InkTextButtonStyle())
                 Button {
                     model.shiftWindow(by: model.scale.daysAcross)
                 } label: {
@@ -95,13 +107,17 @@ struct TaskTimelineView: View {
                         .tapTarget()
                 }
                 .accessibilityLabel("Sonraki dönem")
+                .buttonStyle(InkTextButtonStyle())
             #endif
             Button("Bugün") {
                 model.showToday()
                 todayRequest = UUID()
             }
+            .buttonStyle(InkTextButtonStyle())
             if showsFilters { TaskFiltersMenu(model: model.tasks) }
-        }.padding()
+        }
+        .padding(.horizontal, InkSpacing.margin)
+        .padding(.vertical, 10)
     }
     private var mobileList: some View {
         List {
@@ -110,15 +126,27 @@ struct TaskTimelineView: View {
                     ForEach(group.rows) { row in taskRow(row) }
                 } header: {
                     if let date = CalendarDate(group.id) {
-                        Text(LocalDay.instant(for: date), format: .dateTime.month(.wide).year().day())
+                        SectionHeader(
+                            title: LocalDay.instant(for: date).formatted(
+                                .dateTime.month(.wide).year().day()),
+                            count: group.rows.count)
                     }
                 }
             }
             if !model.undated.isEmpty {
-                Section("Tarihsiz") { ForEach(model.undated) { row in taskRow(row) } }
+                Section {
+                    ForEach(model.undated) { row in taskRow(row) }
+                } header: {
+                    SectionHeader(title: String(localized: "Tarihsiz"), count: model.undated.count)
+                }
             }
-            if model.mobileGroups.isEmpty && model.undated.isEmpty { Text("Görev yok.").foregroundStyle(.secondary) }
+            if model.mobileGroups.isEmpty && model.undated.isEmpty {
+                EmptyState("Görev yok.")
+                    .listRowBackground(Color.clear)
+            }
         }
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
     }
     private func taskRow(_ row: TaskRow) -> some View {
         TimelineTaskRow(model: model, row: row) {
@@ -126,5 +154,6 @@ struct TaskTimelineView: View {
         } edit: {
             editor = TimelineDateSelection(row: row, edge: $0, root: model.store.vaultURL)
         }
+        .listRowBackground(Color.clear)
     }
 }

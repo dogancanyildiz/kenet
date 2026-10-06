@@ -24,22 +24,31 @@ struct KanbanColumnView: View {
 
     private var content: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                column.title.font(.headline).accessibilityAddTraits(.isHeader)
-                Spacer()
-                Text(column.rows.count.formatted()).font(.caption).foregroundStyle(.secondary)
-            }.padding(.horizontal, 12).padding(.top, 12)
+            SectionHeader(title: column.localizedTitle, count: column.rows.count)
+                .padding(.horizontal, 12)
+                .padding(.top, 12)
             ScrollView {
                 LazyVStack(spacing: 10) {
                     ForEach(column.rows) { row in
                         KanbanCard(model: model, row: row) { select(row) }
                     }
-                    if column.rows.isEmpty { Text("Görev yok.").foregroundStyle(.secondary).padding() }
+                    if column.rows.isEmpty {
+                        EmptyState("Görev yok.")
+                            .padding()
+                    }
                 }.padding(10)
             }
         }
         .frame(maxHeight: .infinity)
-        .background(.quaternary.opacity(targeted ? 0.5 : 0.2), in: RoundedRectangle(cornerRadius: 14))
-        .overlay { if targeted { RoundedRectangle(cornerRadius: 14).stroke(.tint, lineWidth: 2) } }
+        .background {
+            RoundedRectangle(cornerRadius: InkSize.kanbanCorner, style: .continuous)
+                .fill(targeted ? Color.ink.well.opacity(0.85) : Color.ink.well.opacity(0.35))
+        }
+        .overlay {
+            if targeted {
+                RoundedRectangle(cornerRadius: InkSize.kanbanCorner, style: .continuous)
+                    .stroke(Color.ink.accent, lineWidth: InkStroke.highPriority)
+            }
+        }
     }
 }

@@ -5,6 +5,7 @@ struct KanbanCard: View {
     let row: TaskRow
     let select: () -> Void
     @State private var dateEditor: TaskEditorModel?
+    @State private var isDragging = false
 
     var body: some View {
         card
@@ -35,7 +36,10 @@ struct KanbanCard: View {
     @ViewBuilder private var card: some View {
         #if os(macOS)
             if model.grouping != .person && model.store.canAddEvent && !model.busy.contains(row.id) {
-                buttonContent.onDrag { NSItemProvider(object: model.beginDrag(row) as NSString) }
+                buttonContent.onDrag {
+                    isDragging = true
+                    return NSItemProvider(object: model.beginDrag(row) as NSString)
+                }
             } else {
                 buttonContent
             }
@@ -48,26 +52,40 @@ struct KanbanCard: View {
         .make(due: row.due, asOf: model.tasks.day, isCompleted: row.isClosed)
     }
 
+    private var boxState: TaskBoxState {
+        TaskBoxState(status: KanbanModel.status(of: row), priority: row.priority)
+    }
+
     private var buttonContent: some View {
         Button(action: select) {
-            VStack(alignment: .leading, spacing: 8) {
-                LinkedTextView(text: row.text, store: model.store)
-                HStack {
-                    if let date = row.due {
-                        TaskDueDateLabel(date: date, presentation: presentation, includeCalendarIcon: true)
+            InkKanbanCard(isDragging: isDragging) {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(alignment: .top, spacing: 10) {
+                        TaskBox(state: boxState)
+                        LinkedTextView(text: row.text, store: model.store)
+                            .foregroundStyle(
+                                presentation.usesSecondaryText
+                                    ? Color.ink.secondaryText : Color.ink.text)
                     }
-                    if let priority = row.priority { TaskPriorityMark(priority: priority) }
-                    if model.busy.contains(row.id) { ProgressView().controlSize(.small) }
-                }.font(.caption)
-                if let recurrence = row.recurrence {
-                    TaskRecurrenceLabel(recurrence: recurrence).font(.caption).foregroundStyle(.secondary)
-                } else if row.recurrenceSource != nil {
-                    Label("Tanınmayan tekrar", systemImage: "repeat").font(.caption).foregroundStyle(.secondary)
+                    HStack(spacing: 8) {
+                        if let date = row.due {
+                            TaskDueDateLabel(
+                                date: date, presentation: presentation, includeCalendarIcon: true)
+                        }
+                        if model.busy.contains(row.id) { ProgressView().controlSize(.small) }
+                    }
+                    .font(.ink.meta)
+                    if let recurrence = row.recurrence {
+                        TaskRecurrenceLabel(recurrence: recurrence)
+                            .font(.ink.meta)
+                            .foregroundStyle(.ink.secondaryText)
+                    } else if row.recurrenceSource != nil {
+                        Label("Tanınmayan tekrar", systemImage: "repeat")
+                            .font(.ink.meta)
+                            .foregroundStyle(.ink.secondaryText)
+                    }
                 }
             }
-            .padding(12).frame(maxWidth: .infinity, alignment: .leading)
-            .background(.background, in: RoundedRectangle(cornerRadius: 10))
-            .overlay { RoundedRectangle(cornerRadius: 10).stroke(.quaternary) }
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)

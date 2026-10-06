@@ -9,6 +9,7 @@ struct TasksView: View {
     @Binding var selection: String?
     @State private var pendingNotificationScroll: UUID?
     @State private var model: TasksModel
+    @AppStorage(TasksModel.Section.storageKey) private var storedSection = "upcoming"
 
     init(
         store: IndexStore, selection: Binding<String?> = .constant(nil), notificationRequest: UUID? = nil,
@@ -19,87 +20,48 @@ struct TasksView: View {
         self.onKanbanSelected = onKanbanSelected
         self.onTimelineSelected = onTimelineSelected
         _selection = selection
-        _model = State(initialValue: tasks ?? TasksModel(store: store))
+        let model = tasks ?? TasksModel(store: store)
+        if tasks == nil,
+            let restored = TasksModel.Section(
+                rawValue: UserDefaults.standard.string(forKey: TasksModel.Section.storageKey) ?? "")
+        {
+            model.section = restored
+        }
+        _model = State(initialValue: model)
     }
 
     var body: some View {
         ScrollViewReader { proxy in
             VStack(spacing: 0) {
-                Picker("Görev bölümü", selection: $model.section) {
-                    Text("Yaklaşan").tag(TasksModel.Section.upcoming)
-                    Text("Tarihsiz").tag(TasksModel.Section.undated)
-                    Text("Tamamlanan").tag(TasksModel.Section.completed)
-                    Text("Projeler").tag(TasksModel.Section.projects)
-                    Text("Kanban").tag(TasksModel.Section.kanban)
-                    Text("Zaman çizelgesi").tag(TasksModel.Section.timeline)
-                }.pickerStyle(.menu).frame(maxWidth: .infinity, alignment: .leading).padding()
                 if model.hasFilters {
-                    HStack {
-                        if let path = model.entityFilter,
-                            let entity = store.content.entities.first(where: { $0.id == path })
-                        {
-                            Text(verbatim: entity.name)
-                            if let qualifier = entity.qualifier { Text(verbatim: qualifier) }
-                        }
-                        if let project = model.projectFilter { Text(verbatim: project) }
-                        Button("Filtreleri temizle", systemImage: "xmark.circle") { model.clearFilters() }
-                            .labelStyle(.iconOnly)
-                    }.font(.caption).padding(8).background(.quaternary, in: Capsule()).padding(.horizontal)
+                    filterBand
                 }
                 if model.section == .kanban {
                     KanbanView(tasks: model)
                 } else if model.section == .timeline {
                     TaskTimelineView(tasks: model)
                 } else {
-                    List(selection: $selection) {
-                        if let error = model.errorText { Text(verbatim: error).foregroundStyle(.red) }
-                        switch model.section {
-                        case .kanban, .timeline: EmptyView()
-                        case .projects:
-                            ForEach(model.projects, id: \.self) { project in
-                                NavigationLink {
-                                    ProjectView(store: store, name: project)
-                                } label: {
-                                    LabeledContent {
-                                        Text(ProjectModel(store: store, name: project).openCount.formatted())
-                                    } label: {
-                                        Text(verbatim: project)
-                                    }
-                                }
-                            }
-                            if model.projects.isEmpty { Text("Henüz proje yok").foregroundStyle(.secondary) }
-                        case .upcoming:
-                            ForEach(model.agenda) { group in
-                                Section {
-                                    rows(group.rows)
-                                } header: {
-                                    heading(group.date)
-                                }.id(group.id)
-                            }
-                            if model.agenda.isEmpty { Text("Görev yok.").foregroundStyle(.secondary) }
-                        case .undated:
-                            rows(model.undated)
-                            if model.undated.isEmpty { Text("Görev yok.").foregroundStyle(.secondary) }
-                        case .completed:
-                            rows(model.completed)
-                            if model.completed.isEmpty { Text("Görev yok.").foregroundStyle(.secondary) }
-                        }
-                    }
+                    listContent
                 }
             }
+            .inkPage()
+            .inkPageColumn()
             .navigationTitle("Görevler")
             .accessibilityIdentifier("screen.tasks")
             .toolbar {
+                TasksSectionPicker(section: $model.section)
                 TaskFiltersMenu(model: model)
                 SearchButton()
             }
             .onChange(of: model.section) { _, section in
+                storedSection = section.rawValue
                 if section == .kanban { onKanbanSelected?() }
                 if section == .timeline { onTimelineSelected?() }
             }
             .onChange(of: notificationRequest, initial: true) { _, request in
                 guard request != nil else { return }
                 model.section = .upcoming
+                storedSection = TasksModel.Section.upcoming.rawValue
                 model.clearFilters()
                 selection = nil
                 pendingNotificationScroll = request
@@ -111,6 +73,99 @@ struct TasksView: View {
                 selection = nil
             }
         }
+    }
+
+    private var filterBand: some View {
+        HStack(spacing: 8) {
+            if let path = model.entityFilter,
+                let entity = store.content.entities.first(where: { $0.id == path })
+            {
+                TagChip(
+                    title: entity.name,
+                    systemImage: entity.kind == "place" ? "mappin" : "person")
+            }
+            if let project = model.projectFilter {
+                TagChip(title: project, systemImage: "folder")
+            }
+            Spacer(minLength: 0)
+            Button {
+                model.clearFilters()
+            } label: {
+                Label("Filtreleri temizle", systemImage: "xmark.circle")
+                    .labelStyle(.iconOnly)
+                    .tapTarget()
+            }
+            .buttonStyle(InkTextButtonStyle())
+        }
+        .padding(.horizontal, InkSpacing.margin)
+        .padding(.vertical, 8)
+    }
+
+    @ViewBuilder private var listContent: some View {
+        List(selection: $selection) {
+            if let error = model.errorText {
+                InfoBand(kind: .error, verbatim: error)
+                    .listRowBackground(Color.clear)
+                    .listRowInsets(EdgeInsets())
+            }
+            switch model.section {
+            case .kanban, .timeline: EmptyView()
+            case .projects:
+                ForEach(model.projects, id: \.self) { project in
+                    NavigationLink {
+                        ProjectView(store: store, name: project)
+                    } label: {
+                        LabeledContent {
+                            Text(ProjectModel(store: store, name: project).openCount.formatted())
+                                .font(.ink.value)
+                                .foregroundStyle(.ink.secondaryText)
+                        } label: {
+                            Text(verbatim: project)
+                                .font(.ink.content)
+                                .foregroundStyle(.ink.text)
+                        }
+                    }
+                }
+                if model.projects.isEmpty {
+                    EmptyState("Henüz proje yok")
+                        .listRowBackground(Color.clear)
+                }
+            case .upcoming:
+                ForEach(model.agenda) { group in
+                    Section {
+                        rows(group.rows)
+                    } header: {
+                        SectionHeader(title: headingTitle(group.date), count: group.rows.count)
+                    }.id(group.id)
+                }
+                if model.agenda.isEmpty {
+                    EmptyState("Görev yok.")
+                        .listRowBackground(Color.clear)
+                }
+            case .undated:
+                Section {
+                    rows(model.undated)
+                } header: {
+                    SectionHeader(title: String(localized: "Tarihsiz"), count: model.undated.count)
+                }
+                if model.undated.isEmpty {
+                    EmptyState("Görev yok.")
+                        .listRowBackground(Color.clear)
+                }
+            case .completed:
+                Section {
+                    rows(model.completed)
+                } header: {
+                    SectionHeader(title: String(localized: "Tamamlanan"), count: model.completed.count)
+                }
+                if model.completed.isEmpty {
+                    EmptyState("Görev yok.")
+                        .listRowBackground(Color.clear)
+                }
+            }
+        }
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
     }
 
     /// A cold notification launch can arrive before the first index publication.
@@ -132,39 +187,44 @@ struct TasksView: View {
     private func rows(_ rows: [TaskRow]) -> some View {
         ForEach(rows) { row in
             VStack(alignment: .leading, spacing: 4) {
-                DayTaskView(
-                    store: store, row: row, isToday: true,
+                TasksListRow(
+                    store: store, row: row, day: model.day,
                     isOverdue: row.due.map { $0 < model.day } ?? false,
-                    completed: false, isBusy: model.busy.contains(row.id), allowsReopening: true
+                    completed: row.isClosed, isBusy: model.busy.contains(row.id), allowsReopening: true,
+                    footnote: footnote(for: row)
                 ) { Task { await model.toggle(row) } }
-                if model.section == .undated, let date = row.createdDate {
-                    Text(LocalDay.instant(for: date), format: .dateTime.day().month().year())
-                        .font(.caption).foregroundStyle(.secondary)
-                }
-                if model.section == .completed, let date = row.done {
-                    Text(LocalDay.instant(for: date), format: .dateTime.day().month().year())
-                        .font(.caption).foregroundStyle(.secondary)
-                }
                 #if os(macOS)
                     Button("Ayrıntıları göster", systemImage: "info.circle") { selection = row.id }
-                        .font(.caption).buttonStyle(.borderless)
+                        .font(.ink.meta)
+                        .buttonStyle(InkTextButtonStyle())
                 #endif
-            }.tag(row.id)
+            }
+            .tag(row.id)
+            .listRowBackground(Color.clear)
         }
     }
 
-    @ViewBuilder private func heading(_ date: CalendarDate?) -> some View {
+    private func footnote(for row: TaskRow) -> Text? {
+        if model.section == .undated, let date = row.createdDate {
+            return Text(LocalDay.instant(for: date), format: .dateTime.day().month().year())
+        }
+        if model.section == .completed, let date = row.done {
+            return Text(LocalDay.instant(for: date), format: .dateTime.day().month().year())
+        }
+        return nil
+    }
+
+    private func headingTitle(_ date: CalendarDate?) -> String {
         if let date {
             if date == model.day {
-                Text("Bugün")
-            } else if date == tomorrow {
-                Text("Yarın")
-            } else {
-                Text(LocalDay.instant(for: date), format: .dateTime.day().month().year())
+                return String(localized: "Bugün")
             }
-        } else {
-            Text("Geciken")
+            if date == tomorrow {
+                return String(localized: "Yarın")
+            }
+            return LocalDay.instant(for: date).formatted(.dateTime.day().month().year())
         }
+        return String(localized: "Devreden")
     }
 
     private var tomorrow: CalendarDate {

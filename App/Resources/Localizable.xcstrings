@@ -3753,6 +3753,22 @@
         }
       }
     },
+    "Dosya": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dosya"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "File"
+          }
+        }
+      }
+    },
     "Kaynak güne git": {
       "localizations": {
         "tr": {

@@ -333,20 +333,20 @@ struct TodayPresentationTests {
     @Test(arguments: ["tr_TR", "en_US"])
     func boxStatePriorityAndSpokenValue(_ language: String) throws {
         let locale = Locale(identifier: language)
-        let cases: [(String, String?, TaskBoxState, String, String)] = [
-            (" ", nil, .open, "", language == "tr_TR" ? "Açık" : "Open"),
+        let cases: [(String, String?, TaskStatus, String, String)] = [
+            (" ", nil, .todo, "", language == "tr_TR" ? "Açık" : "Open"),
             ("/", "🔼", .inProgress, "!", language == "tr_TR" ? "Devam, Orta öncelik" : "In progress, Medium priority"),
             ("x", "⏫", .done, "!!", language == "tr_TR" ? "Tamamlandı, Yüksek öncelik" : "Completed, High priority"),
             ("-", nil, .cancelled, "", language == "tr_TR" ? "İptal" : "Cancelled"),
-            (" ", "🔽", .open, "", language == "tr_TR" ? "Açık, Düşük öncelik" : "Open, Low priority"),
+            (" ", "🔽", .todo, "", language == "tr_TR" ? "Açık, Düşük öncelik" : "Open, Low priority"),
         ]
-        for (status, priority, state, mark, spoken) in cases {
+        for (status, priority, expected, mark, spoken) in cases {
             let box = try TaskBoxPresentation(row: row(1, status: status, priority: priority))
-            #expect(box.state == state)
+            #expect(box.state.status == expected)
             #expect(box.priorityMark == mark)
             #expect(box.accessibilityValue(locale: locale) == spoken)
         }
-        #expect(try TaskBoxPresentation(row: row(1), isCompleted: true).state == .done)
-        #expect(try TaskBoxPresentation(row: row(1, status: "-"), isCompleted: true).state == .done)
+        #expect(try TaskBoxPresentation(row: row(1), isCompleted: true).state.status == .done)
+        #expect(try TaskBoxPresentation(row: row(1, status: "-"), isCompleted: true).state.status == .done)
     }
 }

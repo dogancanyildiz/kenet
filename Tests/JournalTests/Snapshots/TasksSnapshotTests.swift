@@ -4,11 +4,11 @@
 
     @testable import Journal
 
-    /// Bugün: açık, koyu, AX3, Kontrastı Artır. Görevler vakaları ``TasksSnapshotTests``.
-    @MainActor @Suite("Screen snapshots")
-    struct ScreenSnapshotTests {
-        @Test(arguments: ScreenSnapshotCase.allCases)
-        func screen(_ snapshotCase: ScreenSnapshotCase) async throws {
+    /// Görevler listesi, kanban ve zaman çizelgesi: açık, koyu, AX3, Kontrastı Artır.
+    @MainActor @Suite("Tasks screen snapshots")
+    struct TasksSnapshotTests {
+        @Test(arguments: TasksSnapshotCase.allCases)
+        func tasksScreen(_ snapshotCase: TasksSnapshotCase) async throws {
             let context = try SnapshotHost.makeContext()
             defer { context.clean() }
             await context.start()

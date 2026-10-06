@@ -1,13 +1,27 @@
 import SwiftUI
 import VaultFormat
 
-/// Priority emoji with a spoken VoiceOver value (icon alone is silent).
+/// Spoken priority cue when a separate mark is still needed outside ``TaskBox``.
+/// Prefer putting priority inside ``TaskBox``; this mark is text-only (no emoji).
 struct TaskPriorityMark: View {
     let priority: TaskPriority
 
     var body: some View {
-        Text(verbatim: priority.token)
-            .accessibilityLabel("Öncelik")
-            .accessibilityValue(Text(verbatim: VoiceOverCopy.priorityValue(priority)))
+        Group {
+            switch priority {
+            case .high:
+                Text(verbatim: "!!")
+            case .medium:
+                Text(verbatim: "!")
+            case .low:
+                Image(systemName: "arrow.down")
+            case .other:
+                Text(verbatim: priority.token)
+            }
+        }
+        .font(.ink.meta.weight(.bold))
+        .foregroundStyle(.ink.text)
+        .accessibilityLabel("Öncelik")
+        .accessibilityValue(Text(verbatim: VoiceOverCopy.priorityValue(priority)))
     }
 }

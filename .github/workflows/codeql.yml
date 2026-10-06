@@ -1,0 +1,37 @@
+name: CodeQL
+
+# Güvenlik taraması yalnız sürüme çıkarken koşar: main'e açılan PR'da ve main'e birleşince.
+# dev'e açılan PR'larda macOS makinesi tutmaz (Swift analizi 10-15 dakika sürer).
+# Haftalık koşu, uzun süre sürüm kesilmezse bulguların birikmemesi içindir.
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  schedule:
+    - cron: "17 4 * * 1"
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ${{ matrix.language == 'swift' && 'macos-26' || 'ubuntu-latest' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [actions, swift]
+    steps:
+      - uses: actions/checkout@v7
+      - name: CodeQL başlat
+        uses: github/codeql-action/init@v4
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.language == 'swift' && 'autobuild' || 'none' }}
+      - name: Çözümle
+        uses: github/codeql-action/analyze@v4
+        with:
+          category: "/language:${{ matrix.language }}"

@@ -22,7 +22,9 @@ struct TaskDateEditor: View {
                 Task { if await model.setDue(date), model.errorText == nil { dismiss() } }
             }
             .disabled(model.target == nil || model.isSaving || model.isSaved)
-            if let error = model.errorText { Text(verbatim: error).font(.caption).foregroundStyle(.red).padding() }
+            if let error = model.errorText {
+                InfoBand(kind: .error, verbatim: error).padding()
+            }
         }
         .navigationTitle("Görev tarihi")
         .toolbar { Button("Kapat") { dismiss() }.disabled(model.isSaving) }

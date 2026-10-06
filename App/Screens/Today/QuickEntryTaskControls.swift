@@ -8,7 +8,9 @@ struct QuickEntryTaskControls: View {
     var body: some View {
         if model.mode == .task {
             if let recurrence = model.recurrenceExpression?.recurrence ?? model.taskRecurrence {
-                TaskRecurrenceLabel(recurrence: recurrence).font(.caption).foregroundStyle(.secondary)
+                TaskRecurrenceLabel(recurrence: recurrence)
+                    .font(.ink.meta)
+                    .foregroundStyle(Color.ink.secondaryText)
             }
             Button {
                 showsPicker = true
@@ -24,12 +26,18 @@ struct QuickEntryTaskControls: View {
                     }
                     if model.dateIsAssumed { Image(systemName: "questionmark.circle") }
                 }
-                .font(.caption)
-                .foregroundStyle(model.dateIsAssumed ? Color.orange : Color.accentColor)
+                .font(.ink.meta)
+                .foregroundStyle(model.dateIsAssumed ? Color.ink.warning : Color.ink.accent)
                 .padding(.horizontal, 8).padding(.vertical, 4)
-                .background(.quaternary, in: Capsule())
+                .background(Color.ink.well, in: Capsule())
+                .overlay {
+                    Capsule().strokeBorder(
+                        model.dateIsAssumed ? Color.ink.warning : Color.ink.control,
+                        lineWidth: InkStroke.control)
+                }
                 .tapTarget()
             }
+            .buttonStyle(.plain)
             .accessibilityLabel(
                 model.dateIsAssumed ? Text("Varsayılan tarih, değiştirmek için dokun") : Text("Görev tarihini değiştir")
             )

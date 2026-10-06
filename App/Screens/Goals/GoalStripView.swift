@@ -4,63 +4,42 @@ import VaultFormat
 
 struct GoalStripView: View {
     @Environment(GeofenceService.self) private var geofences: GeofenceService?
+    @Environment(\.locale) private var locale
     @State private var model: GoalDayModel
     @State private var editing: GoalValueModel?
-    init(store: IndexStore, day: CalendarDate) { _model = State(initialValue: GoalDayModel(store: store, day: day)) }
+    private let countedGoalIDs: [String]
+    private let counter: String?
+
+    init(
+        store: IndexStore, day: CalendarDate, countedGoalIDs: [String] = [],
+        counter: String? = nil
+    ) {
+        _model = State(initialValue: GoalDayModel(store: store, day: day))
+        self.countedGoalIDs = countedGoalIDs
+        self.counter = counter
+    }
 
     var body: some View {
-        if !model.goals.isEmpty {
+        // Today lists only daily goals so the section counter matches ``countedGoalIDs``.
+        let daily = dailyGoals
+        if !daily.isEmpty {
             VStack(alignment: .leading, spacing: 8) {
-                Text("Hedefler").font(.headline).accessibilityAddTraits(.isHeader)
-                ScrollView(.horizontal) {
-                    HStack(spacing: 12) {
-                        ForEach(orderedGoals, id: \.id) { goal in
-                            Button {
-                                if goal.kind == .boolean {
-                                    Task {
-                                        if await model.toggle(goal) { geofences?.clearLockedMarkNotice() }
-                                    }
-                                } else {
-                                    editing = GoalValueModel(dayModel: model, goal: goal)
-                                }
-                            } label: {
-                                VStack(alignment: .leading, spacing: 6) {
-                                    HStack {
-                                        Image(
-                                            systemName: model.isComplete(for: goal) ? "checkmark.circle.fill" : "circle"
-                                        )
-                                        Text(verbatim: goal.name).font(.headline)
-                                    }
-                                    if goal.kind == .number {
-                                        let value = model.value(for: goal)
-                                        let amount: Double = if case .number(let number) = value { number } else { 0 }
-                                        Text(
-                                            verbatim: amount.formatted() + " / " + goal.target.formatted() + " "
-                                                + (goal.unit ?? "")
-                                        )
-                                        .font(.subheadline)
-                                    } else {
-                                        Text(model.isComplete(for: goal) ? "Yapıldı" : "İşaretle").font(.subheadline)
-                                    }
-                                    if goal.period != .day {
-                                        GoalProgressLabel(goal: goal, status: model.status(for: goal))
-                                    }
-                                }
-                                .padding(12).frame(minWidth: 130, alignment: .leading)
-                                .background(
-                                    model.isComplete(for: goal)
-                                        ? Color.secondary.opacity(0.08) : Color.accentColor.opacity(0.12),
-                                    in: RoundedRectangle(cornerRadius: 12)
-                                )
-                                .foregroundStyle(model.isComplete(for: goal) ? Color.secondary : Color.primary)
-                            }.buttonStyle(.plain).disabled(!model.canEdit)
-                        }
-                    }
+                SectionHeader(
+                    title: String(localized: "Hedefler"),
+                    counter: counter
+                        ?? "\(daily.filter { model.isComplete(for: $0) }.count)/\(daily.count)"
+                )
+                ForEach(daily, id: \.id) { goal in
+                    goalRow(goal)
                 }
-                if model.isLoading { ProgressView() }
-                if let error = model.errorText { Text(verbatim: error).font(.caption).foregroundStyle(.secondary) }
+                if model.isLoading {
+                    InkProgress(kind: .indeterminate(label: "İndeks güncelleniyor…"))
+                }
+                if let error = model.errorText {
+                    InfoBand(kind: .error, verbatim: error)
+                }
                 if let notice = geofences?.lockedMarkNotice {
-                    Text(verbatim: notice).font(.caption).foregroundStyle(.secondary)
+                    InfoBand(kind: .info, verbatim: notice)
                 }
             }
             .task(id: model.store.lastUpdated) { await model.load() }
@@ -72,10 +51,69 @@ struct GoalStripView: View {
             }
         }
     }
-    private var orderedGoals: [GoalDefinition] {
-        model.goals.sorted {
+
+    private var dailyGoals: [GoalDefinition] {
+        let counted = Set(countedGoalIDs)
+        let source =
+            counted.isEmpty
+            ? model.goals.filter { $0.period == .day }
+            : model.goals.filter { counted.contains($0.id) }
+        return ordered(source)
+    }
+
+    private func ordered(_ goals: [GoalDefinition]) -> [GoalDefinition] {
+        goals.sorted {
             if model.isComplete(for: $0) != model.isComplete(for: $1) { return !model.isComplete(for: $0) }
             return $0.name.localizedStandardCompare($1.name) == .orderedAscending
+        }
+    }
+
+    @ViewBuilder private func goalRow(_ goal: GoalDefinition) -> some View {
+        let status = model.status(for: goal)
+        let progress = progressValue(for: goal, status: status)
+        InkGoalRow(
+            name: goal.name,
+            progress: progress,
+            isBoolean: goal.kind != .number,
+            valueText: valueText(for: goal),
+            onIncrement: model.canEdit
+                ? {
+                    if goal.kind == .boolean || goal.kind == .milestone {
+                        Task {
+                            if await model.toggle(goal) { geofences?.clearLockedMarkNotice() }
+                        }
+                    } else {
+                        Task { await increment(goal) }
+                    }
+                } : nil
+        )
+        .opacity(model.isComplete(for: goal) ? 0.7 : 1)
+        .onLongPressGesture {
+            if goal.kind == .number {
+                editing = GoalValueModel(dayModel: model, goal: goal)
+            }
+        }
+        .disabled(!model.canEdit)
+    }
+
+    private func progressValue(for goal: GoalDefinition, status: GoalStatus) -> Double {
+        if goal.kind == .number { return status.progress.fraction }
+        return model.isComplete(for: goal) ? 1 : 0
+    }
+
+    private func valueText(for goal: GoalDefinition) -> String? {
+        guard goal.kind == .number else { return nil }
+        let amount: Double = if case .number(let number) = model.value(for: goal) { number } else { 0 }
+        let unit = goal.unit.map { " \($0)" } ?? ""
+        let done = amount.formatted(.number.locale(locale))
+        let target = goal.target.formatted(.number.locale(locale))
+        return "\(done) / \(target)\(unit)"
+    }
+
+    private func increment(_ goal: GoalDefinition) async {
+        let current: Double = if case .number(let number) = model.value(for: goal) { number } else { 0 }
+        if await model.set(goal, value: .number(current + 1)) {
+            geofences?.clearLockedMarkNotice()
         }
     }
 }

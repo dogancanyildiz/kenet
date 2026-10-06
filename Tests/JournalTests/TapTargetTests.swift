@@ -26,7 +26,8 @@ struct TapTargetTests {
     @Test(arguments: [
         "App/Screens/Today/QuickEntryPlaceholder.swift",
         "App/Screens/Today/QuickEntryTaskControls.swift",
-        "App/Screens/Today/DayTaskView.swift",
+        // Task checkbox hit target lives on ``TaskBox`` (used by DayTaskView / InkTaskRow).
+        "App/Design/Components/TaskBox.swift",
         "App/Screens/Days/DaysCalendarView.swift",
         "App/Screens/Summaries/SummariesView.swift",
         "App/Screens/Tasks/Timeline/TaskTimelineView.swift",
@@ -61,7 +62,8 @@ struct TapTargetTests {
     }
 
     @Test func quickEntryReflowsForLargeDynamicType() throws {
-        let source = try Self.read("App/Screens/Today/QuickEntryPlaceholder.swift")
+        // Capsule owns ViewThatFits; the bar hosts the capsule (Mürekkep Stage 9).
+        let source = try Self.read("App/Design/Components/QuickEntryCapsule.swift")
         #expect(source.contains("ViewThatFits"), "large Dynamic Type must stack the entry row")
     }
 

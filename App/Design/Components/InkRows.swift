@@ -5,21 +5,49 @@ import VaultFormat
 struct InkTaskRow: View {
     let title: String
     var state: TaskBoxState
+    /// Preformatted carried-over cue from ``TodayPresentation`` (e.g. `"30 Eyl'den"`).
+    var carriedOverLabel: String? = nil
     var overdueDate: Date? = nil
+    /// When set, drawn instead of plain ``title`` (vault links / Turkish suffixes).
+    var segments: [InkLinkSegment]? = nil
+    var openURL: ((URL) -> Void)? = nil
     var action: (() -> Void)? = nil
 
     var body: some View {
         MarginRow(kind: .vault) {
             TaskBox(state: state, action: action)
         } primary: {
-            Text(verbatim: title)
-                .foregroundStyle(state.isCompleted ? Color.ink.secondaryText : Color.ink.text)
-                .strikethrough(false)
+            Group {
+                if let segments {
+                    InkLinkedText(segments: segments, openURL: openURL)
+                } else {
+                    Text(verbatim: title)
+                        .foregroundStyle(state.isCompleted ? Color.ink.secondaryText : Color.ink.text)
+                        .strikethrough(false)
+                }
+            }
+            .opacity(state.isCompleted && segments != nil ? 0.7 : 1)
         } secondary: {
-            if let overdueDate, !state.isCompleted {
-                overdueLabel(overdueDate)
+            if !state.isCompleted {
+                if let carriedOverLabel, !carriedOverLabel.isEmpty {
+                    carriedLabel(carriedOverLabel)
+                } else if let overdueDate {
+                    overdueLabel(overdueDate)
+                }
             }
         }
+    }
+
+    private func carriedLabel(_ text: String) -> some View {
+        Label {
+            Text(verbatim: text)
+        } icon: {
+            Image(systemName: "arrow.forward.circle")
+        }
+        .font(.ink.meta)
+        .foregroundStyle(.ink.warning)
+        .accessibilityLabel(Text("Devreden"))
+        .accessibilityValue(Text(verbatim: text))
     }
 
     private func overdueLabel(_ date: Date) -> some View {

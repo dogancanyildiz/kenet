@@ -30,7 +30,17 @@ struct QuickEntryCapsule<Field: View>: View {
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
-        .background(.bar, in: Capsule())
+        // Double opaque fill: paper then well — scroll content must not read through.
+        .background {
+            Capsule().fill(Color.ink.paper)
+        }
+        .background {
+            Capsule().fill(Color.ink.well)
+        }
+        .overlay {
+            Capsule().strokeBorder(Color.ink.control, lineWidth: InkStroke.control)
+        }
+        .compositingGroup()
     }
 
     private var modePicker: some View {
@@ -87,5 +97,6 @@ struct QuickEntryCapsule<Field: View>: View {
         .buttonStyle(.plain)
         .disabled(!canSubmit)
         .accessibilityLabel(Text("Gönder"))
+        .accessibilityIdentifier("button.quickEntrySend")
     }
 }

@@ -33,15 +33,6 @@ struct DesignTokenUsageTests {
         "App/Screens/Tasks/Timeline/TaskTimelineView.swift",
         "App/Screens/Tasks/Timeline/TimelineBarView.swift",
         "App/Screens/Tasks/Timeline/TimelineDateEditor.swift",
-        "App/Screens/Today/DayCalendarView.swift",
-        "App/Screens/Today/DayEventView.swift",
-        "App/Screens/Today/DayTaskView.swift",
-        "App/Screens/Today/DayTasksView.swift",
-        "App/Screens/Today/DayView.swift",
-        "App/Screens/Today/JournalView.swift",
-        "App/Screens/Today/QuickEntryPlaceholder.swift",
-        "App/Screens/Today/QuickEntryTaskControls.swift",
-        "App/Screens/Today/TaskTextEditor.swift",
     ]
 
     @Test func noHexColorLiteralsOutsideDesign() throws {

@@ -42,11 +42,21 @@ struct QuickEntryBar: View {
         return nil
     }
 
+    private var capsuleMode: Binding<QuickEntryMode> {
+        Binding(
+            get: { model.mode == .task ? .task : .event },
+            set: {
+                model.mode = $0 == .task ? .task : .event
+                isFocused = true
+            }
+        )
+    }
+
     var body: some View {
         @Bindable var model = model
         VStack(alignment: .leading, spacing: 8) {
             if isEnabled, let error = store.entryErrorText {
-                Text(verbatim: error).font(.caption).foregroundStyle(.red)
+                InfoBand(kind: .error, verbatim: error)
                     .accessibilityAddTraits(.updatesFrequently)
             }
             if isEnabled, let place = model.suggestedPlace {
@@ -58,19 +68,25 @@ struct QuickEntryBar: View {
                     } label: {
                         VStack(alignment: .leading) {
                             Text(verbatim: LocationCopy.areYouAt(place.entity.name, locale: locale))
+                                .foregroundStyle(Color.ink.text)
                             if let qualifier = place.entity.qualifier {
-                                Text(verbatim: qualifier).font(.caption).foregroundStyle(.secondary)
+                                Text(verbatim: qualifier)
+                                    .font(.ink.meta)
+                                    .foregroundStyle(Color.ink.secondaryText)
                             }
                         }
                         .tapTarget()
                     }
+                    .buttonStyle(.plain)
                     Button {
                         model.dismissLocation()
                     } label: {
                         Label("Konum önerisini kapat", systemImage: "xmark")
                             .labelStyle(.iconOnly)
+                            .foregroundStyle(Color.ink.secondaryText)
                             .tapTarget()
                     }
+                    .buttonStyle(.plain)
                 }
                 .disabled(model.isCreating || model.isSubmitting)
             }
@@ -86,6 +102,8 @@ struct QuickEntryBar: View {
                         isFocused = true
                     } label: {
                         Text(verbatim: "#project/" + project)
+                            .font(.ink.meta)
+                            .foregroundStyle(Color.ink.text)
                             .tapTarget()
                     }
                     .buttonStyle(.plain)
@@ -112,12 +130,14 @@ struct QuickEntryBar: View {
                         Text("Yeni kişi oluştur")
                             .tapTarget()
                     }
+                    .buttonStyle(InkTextButtonStyle())
                     Button {
                         beginCreation(.place)
                     } label: {
                         Text("Yeni konum oluştur")
                             .tapTarget()
                     }
+                    .buttonStyle(InkTextButtonStyle())
                     Menu("Özel tip olarak ekle") {
                         ForEach(
                             EntityTypeChoices.choices(
@@ -137,12 +157,39 @@ struct QuickEntryBar: View {
                 .disabled(!isEnabled || !model.canSubmit)
             }
             if let error = model.errorText {
-                Text(verbatim: error).font(.caption).foregroundStyle(.red)
+                InfoBand(kind: .error, verbatim: error)
             }
-            entryField
+            // Time sits above the capsule so mode + field + send stay on one row at phone width.
+            if model.mode == .event { timeButton }
+            QuickEntryCapsule(
+                mode: capsuleMode,
+                canSubmit: isEnabled && model.canSubmit,
+                onSubmit: submit
+            ) {
+                textField
+            }
+            #if os(macOS)
+                Button("Kip değiştir") {
+                    model.mode = model.mode == .task ? .event : .task
+                    isFocused = true
+                }
+                .keyboardShortcut("t", modifiers: [.command, .shift])
+                .opacity(0)
+                .frame(width: 0, height: 0)
+                .accessibilityHidden(true)
+                .disabled(!isEnabled || model.isSubmitting || model.isCreating || store.isWriting)
+            #endif
         }
-        .padding()
-        .background(.bar)
+        .padding(.horizontal, InkSpacing.margin)
+        .padding(.top, 10)
+        .padding(.bottom, 8)
+        .frame(maxWidth: .infinity)
+        // Opaque paper shelf under the capsule (safeAreaInset content draws over the list).
+        .background {
+            Color.ink.paper
+                .ignoresSafeArea(edges: .bottom)
+        }
+        .compositingGroup()
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("bar.quickEntry")
         .onAppear { model.locationService = location }
@@ -185,49 +232,18 @@ struct QuickEntryBar: View {
         model.mode == .task ? "Yapılacak bir şey…" : "Gününden bir an…"
     }
 
-    /// Single-line when it fits; stacks controls above the field at large Dynamic Type sizes.
-    private var entryField: some View {
-        ViewThatFits(in: .horizontal) {
-            HStack {
-                modeButton
-                timeButton
-                textField
-                sendButton
-            }
-            VStack(alignment: .leading, spacing: 8) {
-                HStack {
-                    modeButton
-                    timeButton
-                    Spacer(minLength: 0)
-                    sendButton
-                }
-                textField
-            }
-        }
-    }
-
     private var textField: some View {
         @Bindable var model = model
         return TextField(placeholder, text: $model.text, selection: $selection)
-            .textFieldStyle(.roundedBorder)
+            .textFieldStyle(.plain)
+            .font(.ink.content)
+            .foregroundStyle(Color.ink.text)
             .focused($isFocused)
             .disabled(!isEnabled)
             .onSubmit { submit() }
             // Identifier on the accessibility element VoiceOver/XCTest see for the field.
             .accessibilityLabel("Hızlı giriş")
             .accessibilityIdentifier("field.quickEntry")
-    }
-
-    private var sendButton: some View {
-        Button {
-            submit()
-        } label: {
-            Label("Gönder", systemImage: "arrow.up.circle.fill")
-                .labelStyle(.iconOnly)
-                .tapTarget()
-        }
-        .accessibilityIdentifier("button.quickEntrySend")
-        .disabled(!isEnabled || !model.canSubmit)
     }
 
     @ViewBuilder private var timeButton: some View {
@@ -255,13 +271,17 @@ struct QuickEntryBar: View {
                         model.isHistorical ? model.selectedTime : now,
                         format: .dateTime.hour().minute()
                     )
+                    .font(.ink.time)
+                    .foregroundStyle(Color.ink.secondaryText)
                     .monospacedDigit()
                 } else {
                     Image(systemName: "clock.badge.xmark")
+                        .foregroundStyle(Color.ink.secondaryText)
                 }
             }
             .tapTarget()
         }
+        .buttonStyle(.plain)
         .accessibilityLabel(model.includesTime ? Text("Saati kaldır") : Text("Şu anki saati ekle"))
         .disabled(!isEnabled || store.isWriting)
         .popover(isPresented: $showsTimePicker) {
@@ -283,37 +303,34 @@ struct QuickEntryBar: View {
         }
     }
 
-    private var modeButton: some View {
-        Button {
-            model.mode = model.mode == .event ? .task : .event
-            isFocused = true
-        } label: {
-            Label {
-                if model.mode == .task { Text("Görev") } else { Text("Olay") }
-            } icon: {
-                Image(systemName: model.mode == .task ? "checkmark.square" : "text.bubble")
-            }
-            .tapTarget()
-        }
-        .disabled(!isEnabled || model.isSubmitting || model.isCreating || store.isWriting)
-        #if os(macOS)
-            .keyboardShortcut("t", modifiers: [.command, .shift])
-        #endif
-    }
-
     private func entityLabel(_ entity: KnownEntity) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(verbatim: entity.name)
+                .font(.ink.meta)
+                .foregroundStyle(entityColor(entity))
             if let qualifier = entity.qualifier {
-                Text(verbatim: qualifier).font(.caption).foregroundStyle(.secondary)
+                Text(verbatim: qualifier)
+                    .font(.ink.meta)
+                    .foregroundStyle(Color.ink.secondaryText)
             }
+        }
+    }
+
+    /// TextField cannot draw underlines; suggestion chips use InkLinkStyle color tokens.
+    private func entityColor(_ entity: KnownEntity) -> Color {
+        switch entity.kind {
+        case .person: Color.ink.person
+        case .place: Color.ink.place
+        default: Color.ink.text
         }
     }
 
     @ViewBuilder private var resolutionStrip: some View {
         @Bindable var model = model
         if let mention = model.pendingAmbiguity {
-            Text("\(mention.spelling): hangisi?").font(.caption)
+            Text("\(mention.spelling): hangisi?")
+                .font(.ink.meta)
+                .foregroundStyle(Color.ink.text)
             ScrollView(.horizontal) {
                 HStack {
                     ForEach(mention.candidates, id: \.file) { entity in
@@ -323,26 +340,34 @@ struct QuickEntryBar: View {
                         } label: {
                             entityLabel(entity)
                         }
+                        .buttonStyle(.plain)
                     }
                     Button("Bağlamadan devam et") {
                         model.skip(mention)
                         submit()
                     }
+                    .buttonStyle(InkTextButtonStyle())
                 }
             }
         } else if let mention = model.pendingUnknown {
-            Text(verbatim: mention.spelling).font(.caption)
+            Text(verbatim: mention.spelling)
+                .font(.ink.meta)
+                .foregroundStyle(Color.ink.text)
             if model.needsQualifier {
                 TextField("Ayırt edici (ör. iş)", text: $model.qualifier)
-                    .textFieldStyle(.roundedBorder)
+                    .textFieldStyle(.plain)
+                    .font(.ink.content)
                 Button("Oluştur") {
                     if let kind = model.creationKind { create(kind) }
                 }
+                .buttonStyle(InkTextButtonStyle())
                 .disabled(model.qualifier.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             } else {
                 HStack {
                     Button("Kişi olarak ekle") { create(.person) }
+                        .buttonStyle(InkTextButtonStyle())
                     Button("Konum olarak ekle") { create(.place) }
+                        .buttonStyle(InkTextButtonStyle())
                     Menu("Özel tip olarak ekle") {
                         ForEach(
                             EntityTypeChoices.choices(
@@ -364,6 +389,7 @@ struct QuickEntryBar: View {
                 model.dismissUnknown(mention)
                 submit()
             }
+            .buttonStyle(InkTextButtonStyle())
         }
     }
 

@@ -37,56 +37,49 @@
     }
 
     enum SnapshotDynamicType: String, CaseIterable, Sendable {
-        case medium, accessibility3
+        case medium, accessibility3, accessibility5
         var size: DynamicTypeSize {
             switch self {
             case .medium: .medium
             case .accessibility3: .accessibility3
+            case .accessibility5: .accessibility5
             }
         }
         var contentSize: UIContentSizeCategory {
             switch self {
             case .medium: .medium
             case .accessibility3: .accessibilityLarge
+            case .accessibility5: .accessibilityExtraExtraExtraLarge
             }
         }
     }
 
-    /// One screen × one environment. Adding a case is a single enum line.
+    /// Shared non-Today screens. Today cases live in ``TodaySnapshotCase``.
     enum ScreenSnapshotCase: String, CaseIterable, Sendable {
-        case todayLight
-        case todayDark
-        case todayAX3
-        case todayContrast
         case tasksLight
         case tasksDark
         case tasksAX3
         case tasksContrast
 
-        var screen: SnapshotScreen {
-            switch self {
-            case .todayLight, .todayDark, .todayAX3, .todayContrast: .today
-            case .tasksLight, .tasksDark, .tasksAX3, .tasksContrast: .tasks
-            }
-        }
+        var screen: SnapshotScreen { .tasks }
 
         var colorScheme: SnapshotColorScheme {
             switch self {
-            case .todayDark, .tasksDark: .dark
+            case .tasksDark: .dark
             default: .light
             }
         }
 
         var dynamicType: SnapshotDynamicType {
             switch self {
-            case .todayAX3, .tasksAX3: .accessibility3
+            case .tasksAX3: .accessibility3
             default: .medium
             }
         }
 
         var increaseContrast: Bool {
             switch self {
-            case .todayContrast, .tasksContrast: true
+            case .tasksContrast: true
             default: false
             }
         }
@@ -136,31 +129,54 @@
             _ snapshotCase: ScreenSnapshotCase, store: IndexStore, defaults: UserDefaults,
             file: StaticString = #filePath, line: UInt = #line
         ) async {
-            // colorSchemeContrast is set only via UITraitCollection (not a writable EnvironmentValues key).
-            let view = hostedView(screen: snapshotCase.screen, store: store, defaults: defaults)
-                .environment(\.colorScheme, snapshotCase.colorScheme.colorScheme)
-                .environment(\.dynamicTypeSize, snapshotCase.dynamicType.size)
+            await assertView(
+                hostedView(screen: snapshotCase.screen, store: store, defaults: defaults),
+                colorScheme: snapshotCase.colorScheme,
+                dynamicType: snapshotCase.dynamicType,
+                increaseContrast: snapshotCase.increaseContrast,
+                named: snapshotCase.rawValue,
+                store: store,
+                testName: "screen",
+                file: file,
+                line: line
+            )
+        }
+
+        static func assertView(
+            _ root: some View,
+            colorScheme: SnapshotColorScheme,
+            dynamicType: SnapshotDynamicType,
+            increaseContrast: Bool,
+            named: String,
+            store: IndexStore,
+            size: CGSize = snapshotCanvasSize,
+            testName: String,
+            file: StaticString = #filePath,
+            line: UInt = #line
+        ) async {
+            let view =
+                root
+                .environment(\.colorScheme, colorScheme.colorScheme)
+                .environment(\.dynamicTypeSize, dynamicType.size)
                 .environment(\.calendar, makeSnapshotCalendar())
                 .environment(\.clockNow, { snapshotNow })
                 .transaction { $0.animation = nil }
-                .frame(width: snapshotCanvasSize.width, height: snapshotCanvasSize.height)
+                .frame(width: size.width, height: size.height)
 
             let traits = UITraitCollection { mutable in
-                mutable.userInterfaceStyle = snapshotCase.colorScheme.userInterfaceStyle
-                mutable.preferredContentSizeCategory = snapshotCase.dynamicType.contentSize
-                mutable.accessibilityContrast = snapshotCase.increaseContrast ? .high : .normal
+                mutable.userInterfaceStyle = colorScheme.userInterfaceStyle
+                mutable.preferredContentSizeCategory = dynamicType.contentSize
+                mutable.accessibilityContrast = increaseContrast ? .high : .normal
                 mutable.displayScale = 2
             }
 
-            // Host in a window first so `.task` (goal strip load) runs before the pixel capture.
-            // Sleeping before assertSnapshot is useless: SnapshotTesting creates the host itself.
             let previousAnimations = UIView.areAnimationsEnabled
             UIView.setAnimationsEnabled(false)
             defer { UIView.setAnimationsEnabled(previousAnimations) }
 
             let host = UIHostingController(rootView: view)
-            host.overrideUserInterfaceStyle = snapshotCase.colorScheme.userInterfaceStyle
-            host.view.frame = CGRect(origin: .zero, size: snapshotCanvasSize)
+            host.overrideUserInterfaceStyle = colorScheme.userInterfaceStyle
+            host.view.frame = CGRect(origin: .zero, size: size)
 
             let scene =
                 UIApplication.shared.connectedScenes
@@ -170,14 +186,12 @@
             let window: UIWindow
             if let scene {
                 window = UIWindow(windowScene: scene)
-                window.frame = CGRect(origin: .zero, size: snapshotCanvasSize)
+                window.frame = CGRect(origin: .zero, size: size)
             } else {
-                // Fallback for hosts without a scene yet: size-only window via deprecated path is
-                // unavailable under warnings-as-errors; fail clearly instead of silent blank frames.
                 Issue.record("Snapshot host needs a UIWindowScene (run under the Journal test host).")
                 return
             }
-            window.overrideUserInterfaceStyle = snapshotCase.colorScheme.userInterfaceStyle
+            window.overrideUserInterfaceStyle = colorScheme.userInterfaceStyle
             window.rootViewController = host
             window.makeKeyAndVisible()
             host.view.setNeedsLayout()
@@ -189,11 +203,9 @@
                 host.view.layoutIfNeeded()
                 if !store.isProcessing { break }
             }
-            // Goal strip's `.task` fetch finishes after the first index publish.
             try? await Task.sleep(for: .milliseconds(800))
             host.view.setNeedsLayout()
             host.view.layoutIfNeeded()
-            // Second frame after load: ProgressView must be gone before capture.
             try? await Task.sleep(for: .milliseconds(200))
             host.view.setNeedsLayout()
             host.view.layoutIfNeeded()
@@ -210,13 +222,13 @@
                     on: config,
                     precision: snapshotPrecision,
                     perceptualPrecision: snapshotPerceptualPrecision,
-                    size: snapshotCanvasSize,
+                    size: size,
                     traits: traits
                 ),
-                named: snapshotCase.rawValue,
+                named: named,
                 record: record,
                 file: file,
-                testName: "screen",
+                testName: testName,
                 line: line
             )
             window.isHidden = true
@@ -224,7 +236,7 @@
         }
     }
 
-    private func makeSnapshotCalendar() -> Calendar {
+    func makeSnapshotCalendar() -> Calendar {
         var calendar = Calendar(identifier: .gregorian)
         calendar.locale = snapshotLocale
         calendar.timeZone = snapshotTimeZone
@@ -232,7 +244,7 @@
     }
 
     /// Denied calendar keeps EventKit chrome out of references.
-    @MainActor private final class SnapshotCalendarSource: CalendarEventSource {
+    @MainActor final class SnapshotCalendarSource: CalendarEventSource {
         var authorization = CalendarAuthorization.denied
         var onChange: (@MainActor @Sendable () -> Void)?
         func requestFullAccess() async throws -> Bool { false }

@@ -4,7 +4,7 @@
 
     @testable import Journal
 
-    /// Bugün ve Görevler: açık, koyu, AX3, Kontrastı Artır. Yeni vaka = `ScreenSnapshotCase` satırı.
+    /// Görevler ve diğer ortak ekranlar. Bugün vakaları ``TodaySnapshotTests``.
     @MainActor @Suite("Screen snapshots")
     struct ScreenSnapshotTests {
         @Test(arguments: ScreenSnapshotCase.allCases)

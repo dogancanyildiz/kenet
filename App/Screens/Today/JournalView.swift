@@ -21,17 +21,21 @@ struct JournalView: View {
         @Bindable var model = model
         VStack(alignment: .leading) {
             if let error = model.errorText {
-                Text(verbatim: error).font(.caption).foregroundStyle(.red)
+                InfoBand(kind: .error, verbatim: error)
                     .accessibilityAddTraits(.updatesFrequently)
             }
             if !model.isLoaded {
                 if model.errorText == nil {
-                    ProgressView("Günlük yazısı yükleniyor…")
+                    InkProgress(kind: .indeterminate(label: "Günlük yazısı yükleniyor…"))
                 } else {
                     Button("Yeniden dene") { Task { await model.load() } }
+                        .buttonStyle(InkTextButtonStyle())
                 }
             }
             TextEditor(text: $model.text)
+                .font(.ink.content)
+                .foregroundStyle(Color.ink.text)
+                .scrollContentBackground(.hidden)
                 .accessibilityLabel("Günlük yazısı")
                 .focused($isFocused)
                 .disabled(!model.isLoaded || model.isSaving)
@@ -44,7 +48,8 @@ struct JournalView: View {
                     }
                 }
         }
-        .padding()
+        .padding(InkSpacing.margin)
+        .inkPage()
         .navigationTitle("Günlük yazısı")
         .navigationBarBackButtonHidden(blocksLeave)
         .interactiveDismissDisabled(blocksLeave || model.isSaving)

@@ -3401,6 +3401,22 @@
         }
       }
     },
+    "Devamını yaz": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Devamını yaz"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continue writing"
+          }
+        }
+      }
+    },
     "Devreden": {
       "localizations": {
         "tr": {

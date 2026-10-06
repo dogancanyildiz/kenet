@@ -1,3 +1,4 @@
+import GoalTracking
 import SwiftUI
 import VaultFormat
 
@@ -8,59 +9,102 @@ struct DayView: View {
     var isToday = false
     @Environment(NotificationService.self) private var notifications
     @Environment(CalendarService.self) private var calendar
+    @Environment(\.locale) private var locale
+    @Environment(\.calendar) private var calendarValue
+    @Environment(\.clockNow) private var clockNow
     @State private var showsJournal = false
+    @State private var tasksModel: DayTasksModel
+    @State private var isCarriedOverExpanded = false
+    @State private var isCompletedExpanded = false
 
-    private var taskGroups: TaskGroups { TaskGroups(rows: store.content.tasks, on: date, isToday: isToday) }
+    init(store: IndexStore, date: CalendarDate, isToday: Bool = false) {
+        self.store = store
+        self.date = date
+        self.isToday = isToday
+        _tasksModel = State(initialValue: DayTasksModel(store: store, day: date, isToday: isToday))
+    }
+
     private var day: DaySummary { store.content.day(on: date) }
 
+    private var presentation: TodayPresentation {
+        let today = isToday ? date : LocalDay.today(at: clockNow())
+        // TodayPresentation looks up statuses by goal.key (not id).
+        let statuses = Dictionary(
+            uniqueKeysWithValues: store.content.goals.map { goal in
+                (
+                    goal.key,
+                    GoalProgress.compute(
+                        definition: goal, logs: store.content.goalLogs[goal.key] ?? [], today: date)
+                )
+            })
+        return TodayPresentation(
+            day: day, groups: tasksModel.groups, goals: store.content.goals, goalStatuses: statuses,
+            goalStatusesDay: date, today: today, locale: locale, calendar: calendarValue,
+            completedTasks: tasksModel.completedTasksForPresentation,
+            completedTaskIDs: tasksModel.completed,
+            isCarriedOverExpanded: isCarriedOverExpanded, isCompletedExpanded: isCompletedExpanded)
+    }
+
+    private var isEmptyDay: Bool {
+        day.events.isEmpty && day.journal.isEmpty && tasksModel.groups.isEmpty && !day.hasGoalRecords
+            && presentation.completedTaskCount == 0
+    }
+
     var body: some View {
+        let presented = presentation
         ScrollView {
-            VStack(alignment: .leading, spacing: 24) {
-                GoalStripView(store: store, day: date).id(date.description + (store.vaultURL?.path ?? ""))
-                if store.isProcessing && !store.isWriting { ProgressView("İndeks güncelleniyor…") }
-                if let error = store.errorText { Text(verbatim: error).foregroundStyle(.red) }
-                if day.events.isEmpty && day.journal.isEmpty && taskGroups.isEmpty && !day.hasGoalRecords {
-                    Group {
-                        if isToday {
-                            Text("Gününden bir an yaz; @ ile kişi ekle")
-                        } else {
-                            Text("Bu gün henüz bir şey yazılmadı.")
-                        }
-                    }
-                    .foregroundStyle(.secondary)
+            VStack(alignment: .leading, spacing: 10) {
+                // Compact manşet: date lives in the navigation title; byline only here (jury 4).
+                if let byline = presented.byline {
+                    Text(verbatim: byline)
+                        .font(.ink.byline)
+                        .foregroundStyle(Color.ink.secondaryText)
+                        .accessibilityAddTraits(.isHeader)
                 }
-                DayTasksView(store: store, date: date, isToday: isToday)
-                    .id(date.description + (isToday ? "today-tasks" : "day-tasks"))
+
+                if store.isProcessing && !store.isWriting {
+                    InkProgress(kind: .indeterminate(label: "İndeks güncelleniyor…"))
+                }
+                if let error = store.errorText {
+                    InfoBand(kind: .error, verbatim: error)
+                }
+                if isEmptyDay {
+                    EmptyState(
+                        isToday
+                            ? "Gününden bir an yaz; @ ile kişi ekle"
+                            : "Bu gün henüz bir şey yazılmadı.")
+                }
+
+                GoalStripView(
+                    store: store, day: date, countedGoalIDs: presented.countedGoalIDs,
+                    counter: presented.counter(for: .goals))
+
+                DayTasksView(
+                    store: store, date: date, isToday: isToday, model: tasksModel,
+                    presentation: presented,
+                    onExpandCarriedOver: { isCarriedOverExpanded = true },
+                    onExpandCompleted: { isCompletedExpanded = true })
+
                 DayCalendarView(date: date)
+
                 if !day.events.isEmpty {
-                    VStack(alignment: .leading, spacing: 16) {
-                        Text("Olaylar").font(.headline).accessibilityAddTraits(.isHeader)
+                    VStack(alignment: .leading, spacing: 10) {
+                        SectionHeader(
+                            title: String(localized: "Olaylar"),
+                            counter: presented.counter(for: .events))
                         ForEach(day.events) { event in
                             DayEventView(store: store, day: date, event: event)
                         }
                     }
                 }
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Günlük yazısı").font(.headline).accessibilityAddTraits(.isHeader)
-                    #if os(iOS)
-                        Button {
-                            showsJournal = true
-                        } label: {
-                            journalPreview
-                        }
-                        .accessibilityLabel("Günlük yazısını düzenle")
-                    #else
-                        NavigationLink {
-                            JournalView(store: store, date: date)
-                        } label: {
-                            journalPreview
-                        }
-                        .accessibilityLabel("Günlük yazısını düzenle")
-                    #endif
-                }
+
+                journalSection
             }
-            .padding().frame(maxWidth: 700, alignment: .leading).frame(maxWidth: .infinity)
+            .padding(.horizontal, InkSpacing.margin)
+            .padding(.vertical, 12)
+            .inkPageColumn()
         }
+        .inkPage()
         .safeAreaInset(edge: .bottom) {
             QuickEntryBar(
                 store: store, isEnabled: true, day: isToday ? nil : date,
@@ -69,27 +113,67 @@ struct DayView: View {
             )
             .id(isToday ? "today" : date.description)
         }
-        .navigationTitle(
-            isToday ? Text("Bugün") : Text(LocalDay.instant(for: date), format: .dateTime.day().month().year())
-        )
+        .navigationTitle(Text(verbatim: presented.headline))
+        #if os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+        #endif
         .accessibilityIdentifier(isToday ? "screen.today" : "screen.day")
         .toolbar { SearchButton() }
         .task(id: date) {
             if AppLaunchPolicy.allowsAutomaticStart() { await calendar.load(date) }
+        }
+        .onChange(of: date) { _, newDate in
+            tasksModel = DayTasksModel(store: store, day: newDate, isToday: isToday)
+            isCarriedOverExpanded = false
+            isCompletedExpanded = false
         }
         .sheet(isPresented: $showsJournal) {
             NavigationStack { JournalView(store: store, date: date) }
         }
     }
 
-    @ViewBuilder private var journalPreview: some View {
-        if let preview = day.preview {
-            Text(verbatim: preview).lineLimit(4).frame(maxWidth: .infinity, alignment: .leading)
-        } else {
-            Text("Günlük yazısı ekle…").frame(maxWidth: .infinity, alignment: .leading)
+    @ViewBuilder private var journalSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            SectionHeader(title: String(localized: "Günlük yazısı"))
+            #if os(iOS)
+                Button {
+                    showsJournal = true
+                } label: {
+                    journalPreview
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Günlük yazısını düzenle")
+            #else
+                NavigationLink {
+                    JournalView(store: store, date: date)
+                } label: {
+                    journalPreview
+                }
+                .accessibilityLabel("Günlük yazısını düzenle")
+            #endif
         }
     }
 
+    @ViewBuilder private var journalPreview: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            if let preview = day.preview {
+                Text(verbatim: preview)
+                    .font(.ink.content)
+                    .foregroundStyle(Color.ink.text)
+                    .lineLimit(4)
+                    .inkJournalParagraph()
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                Text("Devamını yaz")
+                    .font(.ink.byline)
+                    .foregroundStyle(Color.ink.accent)
+            } else {
+                Text("Günlük yazısı ekle…")
+                    .font(.ink.placeholder)
+                    .foregroundStyle(Color.ink.secondaryText)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        }
+    }
 }
 
 /// Recomputes the local day across midnight without reopening the app.

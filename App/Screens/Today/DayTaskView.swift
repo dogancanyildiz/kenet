@@ -8,6 +8,7 @@ struct DayTaskView: View {
     let isOverdue: Bool
     let completed: Bool
     let isBusy: Bool
+    var carriedOverLabel: String? = nil
     var allowsReopening = false
     let complete: () -> Void
     @State private var textEditor: TaskEditorModel?
@@ -15,54 +16,28 @@ struct DayTaskView: View {
     @State private var dateEditor: TaskEditorModel?
     @State private var errorText: String?
     @State private var deleteConfirmation = DestructiveConfirmation<DestructiveConfirmationToken>()
+    @State private var linkDestination: LinkDestination?
 
-    private var presentation: TaskStatusPresentation {
-        .make(isPastDue: isOverdue, isCompleted: completed || row.isClosed)
-    }
-
-    private var isCompletedCue: Bool { completed || row.isClosed }
+    private var box: TaskBoxPresentation { TaskBoxPresentation(row: row, isCompleted: completed) }
 
     private var canToggleCompletion: Bool {
         !((row.isClosed && !allowsReopening) || completed || isBusy || !store.canAddEvent)
     }
 
     var body: some View {
-        HStack(alignment: .top, spacing: 10) {
-            Button(action: complete) {
-                Image(systemName: isCompletedCue ? "checkmark.square.fill" : "square")
-                    .tapTarget()
-            }
-            .accessibilityLabel(
-                LocalizedStringKey(row.isClosed && allowsReopening ? "Görevi yeniden aç" : "Görevi tamamla")
-            )
-            .accessibilityAddTraits(.isToggle)
-            .accessibilityValue(Text(verbatim: VoiceOverCopy.taskCompletionValue(isCompleted: isCompletedCue)))
-            .disabled(!canToggleCompletion)
-            completedTextStyle {
-                VStack(alignment: .leading, spacing: 4) {
-                    LinkedTextView(text: row.text, store: store)
-                    HStack(spacing: 8) {
-                        if let date = row.due {
-                            TaskDueDateLabel(date: date, presentation: presentation)
-                        }
-                        if let priority = row.priority { TaskPriorityMark(priority: priority) }
-                        if let recurrence = row.recurrence {
-                            TaskRecurrenceLabel(recurrence: recurrence)
-                        } else if row.recurrenceSource != nil {
-                            Label("Tanınmayan tekrar", systemImage: "repeat")
-                        }
-                    }
-                    .font(.caption)
-                    if let error = errorText { Text(verbatim: error).font(.caption).foregroundStyle(.red) }
-                }
-            }
-        }
-        .buttonStyle(.plain)
-        .frame(maxWidth: .infinity, alignment: .leading).contentShape(Rectangle())
-        .opacity(presentation.opacity)
-        .animation(.easeOut(duration: 0.2), value: completed)
+        InkTaskRow(
+            title: row.text.plainText,
+            state: box.state,
+            carriedOverLabel: carriedOverLabel,
+            segments: InkLinkMapping.segments(from: row.text, entities: store.content.entities),
+            openURL: { openLink($0) },
+            action: canToggleCompletion ? complete : nil
+        )
+        .contentShape(Rectangle())
         .onTapGesture {
-            if !row.text.spans.contains(where: { $0.target != nil }) { complete() }
+            if canToggleCompletion, !row.text.spans.contains(where: { $0.target != nil }) {
+                complete()
+            }
         }
         .accessibilityAction(named: Text(completionActionName)) {
             if canToggleCompletion, !row.text.spans.contains(where: { $0.target != nil }) {
@@ -102,18 +77,42 @@ struct DayTaskView: View {
             NavigationStack { TaskDateEditor(model: model) }.frame(minWidth: 320, minHeight: 200)
                 .presentationDetents([.medium, .large])
         }
+        .sheet(item: $linkDestination) { link in
+            NavigationStack {
+                Group {
+                    if let entity = link.entity {
+                        EntityView(store: store, entity: entity)
+                    } else if link.path == nil {
+                        UnresolvedEntityView(store: store, target: link.name)
+                    } else {
+                        ContentUnavailableView(
+                            "Bu bağlantı kişi veya konum değil", systemImage: "doc.text",
+                            description: Text(verbatim: link.name))
+                    }
+                }
+                .toolbar { Button("Kapat") { linkDestination = nil } }
+            }
+            .frame(minWidth: 300, minHeight: 300)
+        }
+        .overlay(alignment: .bottomLeading) {
+            if let error = errorText {
+                InfoBand(kind: .error, verbatim: error)
+            }
+        }
     }
 
     private var completionActionName: LocalizedStringKey {
         LocalizedStringKey(row.isClosed && allowsReopening ? "Görevi yeniden aç" : "Görevi tamamla")
     }
 
-    @ViewBuilder private func completedTextStyle<Content: View>(@ViewBuilder content: () -> Content) -> some View {
-        if presentation.usesSecondaryText {
-            content().foregroundStyle(.secondary)
-        } else {
-            content()
-        }
+    private func openLink(_ url: URL) {
+        guard url.scheme == "journal-entity",
+            let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
+            let name = components.queryItems?.first(where: { $0.name == "name" })?.value
+        else { return }
+        let path = components.queryItems?.first(where: { $0.name == "path" })?.value
+        linkDestination = LinkDestination(
+            name: name, path: path, entity: store.content.entities.first { $0.id == path })
     }
 
     private func edit(_ operation: @escaping (TaskEditorModel) async -> Bool) {
@@ -123,5 +122,12 @@ struct DayTaskView: View {
             if model.target != nil { _ = await operation(model) }
             errorText = model.errorText
         }
+    }
+
+    private struct LinkDestination: Identifiable {
+        let name: String
+        let path: String?
+        let entity: EntitySummary?
+        var id: String { path ?? name }
     }
 }

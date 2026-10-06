@@ -51,7 +51,7 @@ Doğruluk ve veri güvenliği:
 - [ ] Kayıtlı kasaya erişilemeyince durum ana ekranda görünür; yazılar sessizce başka kasaya gitmez (davranış kullanıcı kararı)
 - [x] Uygulama meşgulken gelen yazma sıraya alınır; yutulan Enter ve yanlış "dosya dışarıdan değişti" hatası biter
 - [ ] Uygulama kilidi "Hemen" ayarında başarılı doğrulamadan sonra yeniden kilitlenmez (gerçek cihazda doğrulanır) (kod ve test birleşti; kalan: gerçek cihazda doğrulama)
-- [ ] Kasa format sürümü her yazmada denetlenir; harf farkı olan klasör adı (`Journal/`) kasa hazırlamada bildirilir; ön bilgideki boş liste öğesi yeniden adlandırmayı durdurmaz
+- [x] Kasa format sürümü her yazmada denetlenir; harf farkı olan klasör adı (`Journal/`) kasa hazırlamada bildirilir; ön bilgideki boş liste öğesi yeniden adlandırmayı durdurmaz
 - [ ] iCloud Drive gibi eşitlenen bir klasör kasa seçildiğinde uyarı gösterilir (koordinasyon ve çakışma yönetimi Aşama 11'e kadar yok)
 
 Ölçek:

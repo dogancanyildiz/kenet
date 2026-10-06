@@ -42,7 +42,7 @@ struct UnresolvedEntityView: View {
                         }
                     }
                 }
-                if let error = model.errorText { Text(verbatim: error).foregroundStyle(.red) }
+                if let error = model.errorText { Text(verbatim: error).foregroundStyle(.ink.danger) }
             }
             .disabled(model.isCreating || !store.canAddEvent)
             .navigationTitle("Bağlantı bulunamadı")

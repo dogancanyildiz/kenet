@@ -11,10 +11,14 @@ struct DaysView: View {
             NavigationLink {
                 SummariesView(store: store)
             } label: {
-                Label("Özetler", systemImage: "chart.bar")
+                MarginRow(kind: .external, time: nil) {
+                    Label("Özetler", systemImage: "chart.bar")
+                        .font(.body)
+                        .foregroundStyle(.ink.text)
+                }
             }
             Section {
-                DaysCalendarView(store: store) { selectedDay = $0 }
+                DaysCalendarView(store: store, selected: selectedDay) { selectedDay = $0 }
             }
             ForEach(store.content.days) { day in
                 NavigationLink {
@@ -23,8 +27,12 @@ struct DaysView: View {
                     DayRow(day: day)
                 }
             }
-            if store.content.days.isEmpty { Text("Henüz gün yok").foregroundStyle(.secondary) }
+            if store.content.days.isEmpty {
+                EmptyState("Henüz gün yok")
+            }
         }
+        .listStyle(.plain)
+        .inkPage()
         .navigationDestination(item: $selectedDay) { day in DayView(store: store, date: day) }
         .navigationTitle("Günlük")
         .accessibilityIdentifier("screen.days")
@@ -36,11 +44,20 @@ struct DayRow: View {
     let day: DaySummary
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        MarginRow(kind: .vault, time: nil) {
             Text(LocalDay.instant(for: day.date), format: .dateTime.day().month().year())
-            Text("Olaylar: \(day.events.count)").font(.caption).foregroundStyle(.secondary)
-            if let preview = day.preview {
-                Text(verbatim: preview).font(.subheadline).foregroundStyle(.secondary).lineLimit(1)
+                .foregroundStyle(.ink.text)
+        } secondary: {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Olaylar: \(day.events.count)")
+                    .font(.ink.meta)
+                    .foregroundStyle(.ink.secondaryText)
+                if let preview = day.preview {
+                    Text(verbatim: VaultDisplayText.line(preview))
+                        .font(.ink.meta)
+                        .foregroundStyle(.ink.secondaryText)
+                        .lineLimit(1)
+                }
             }
         }
         .accessibilityElement(children: .ignore)

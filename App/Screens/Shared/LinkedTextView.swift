@@ -8,53 +8,35 @@ struct LinkedTextView: View {
     @State private var destination: LinkDestination?
 
     var body: some View {
-        Text(attributedText)
-            .environment(
-                \.openURL,
-                OpenURLAction { url in
-                    guard url.scheme == "journal-entity",
-                        let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
-                        let name = components.queryItems?.first(where: { $0.name == "name" })?.value
-                    else { return .systemAction }
-                    let path = components.queryItems?.first(where: { $0.name == "path" })?.value
-                    destination = LinkDestination(name: name, path: path, entity: entities.first { $0.id == path })
-                    return .handled
-                }
-            )
-            .sheet(item: $destination) { link in
-                NavigationStack {
-                    Group {
-                        if let entity = link.entity {
-                            EntityView(store: store, entity: entity)
-                        } else if link.path == nil {
-                            UnresolvedEntityView(store: store, target: link.name)
-                        } else {
-                            ContentUnavailableView(
-                                "Bu bağlantı kişi veya konum değil", systemImage: "doc.text",
-                                description: Text(verbatim: link.name))
-                        }
+        InkLinkedText(segments: segments) { url in
+            guard url.scheme == "journal-entity",
+                let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
+                let name = components.queryItems?.first(where: { $0.name == "name" })?.value
+            else { return }
+            let path = components.queryItems?.first(where: { $0.name == "path" })?.value
+            destination = LinkDestination(name: name, path: path, entity: entities.first { $0.id == path })
+        }
+        .sheet(item: $destination) { link in
+            NavigationStack {
+                Group {
+                    if let entity = link.entity {
+                        EntityView(store: store, entity: entity)
+                    } else if link.path == nil {
+                        UnresolvedEntityView(store: store, target: link.name)
+                    } else {
+                        ContentUnavailableView(
+                            "Bu bağlantı kişi veya konum değil", systemImage: "doc.text",
+                            description: Text(verbatim: link.name))
                     }
-                    .toolbar { Button("Kapat") { destination = nil } }
                 }
-                .frame(minWidth: 300, minHeight: 300)
+                .toolbar { Button("Kapat") { destination = nil } }
             }
+            .frame(minWidth: 300, minHeight: 300)
+        }
     }
 
-    private var attributedText: AttributedString {
-        var result = AttributedString()
-        for span in text.spans {
-            var value = AttributedString(span.text)
-            if let target = span.target {
-                var url = URLComponents()
-                url.scheme = "journal-entity"
-                url.host = "open"
-                url.queryItems = [URLQueryItem(name: "name", value: target)]
-                if let path = span.destination { url.queryItems?.append(URLQueryItem(name: "path", value: path)) }
-                value.link = url.url
-            }
-            result.append(value)
-        }
-        return result
+    private var segments: [InkLinkSegment] {
+        LinkedTextInk.segments(text, entities: entities)
     }
 
     private struct LinkDestination: Identifiable {
@@ -62,5 +44,28 @@ struct LinkedTextView: View {
         let path: String?
         let entity: EntitySummary?
         var id: String { path ?? name }
+    }
+}
+
+/// Maps parsed ``LinkedText`` spans onto ``InkLinkSegment`` kinds for drawing.
+enum LinkedTextInk {
+    static func segments(_ text: LinkedText, entities: [EntitySummary]) -> [InkLinkSegment] {
+        let byPath = Dictionary(uniqueKeysWithValues: entities.map { ($0.id, $0) })
+        return text.spans.enumerated().map { index, span in
+            let id = "\(index)-\(span.text)"
+            guard let target = span.target else {
+                return InkLinkSegment(id: id, text: span.text, kind: .plain)
+            }
+            let kind: InkLinkSegment.Kind
+            if let path = span.destination, let entity = byPath[path] {
+                kind = entity.kind == "place" ? .place : .person
+            } else if span.destination == nil {
+                kind = .unresolved
+            } else {
+                kind = .person
+            }
+            return InkLinkSegment(
+                id: id, text: span.text, kind: kind, target: target, path: span.destination)
+        }
     }
 }

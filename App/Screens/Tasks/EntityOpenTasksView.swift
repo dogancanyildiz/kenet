@@ -14,8 +14,11 @@ struct EntityOpenTasksView: View {
     var body: some View {
         let rows = TasksModel.openTasks(in: store, linkedTo: path)
         if !rows.isEmpty || model.errorText != nil {
-            Section("Açık işler") {
-                if let error = model.errorText { Text(verbatim: error).foregroundStyle(.red) }
+            Section {
+                SectionHeader(title: String(localized: "Açık işler"), count: rows.count)
+                if let error = model.errorText {
+                    Text(verbatim: error).foregroundStyle(.ink.danger)
+                }
                 ForEach(rows) { row in
                     DayTaskView(
                         store: store, row: row, isToday: true,

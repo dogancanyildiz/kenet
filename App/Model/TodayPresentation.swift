@@ -165,20 +165,23 @@ struct TaskBoxPresentation: Sendable {
     let priority: TaskPriority?
 
     init(row: TaskRow, isCompleted: Bool = false) {
+        let status: TaskStatus
         if isCompleted {
-            state = .done
+            status = .done
         } else {
             switch row.rawStatus {
-            case "-": state = .cancelled
-            case "x", "X": state = .done
-            case "/": state = .inProgress
-            default: state = .open
+            case "-": status = .cancelled
+            case "x", "X": status = .done
+            case "/": status = .inProgress
+            default: status = .todo
             }
         }
         priority = row.priority
+        state = TaskBoxState(status: status, priority: row.priority)
     }
 
     var priorityMark: String {
+        // Independent of box fill: spoken/mark helpers still expose priority on closed rows.
         switch priority {
         case .medium: "!"
         case .high: "!!"
@@ -190,8 +193,6 @@ struct TaskBoxPresentation: Sendable {
         VoiceOverCopy.taskBoxValue(state: state, priority: priority, locale: locale)
     }
 }
-
-enum TaskBoxState: Sendable { case open, inProgress, done, cancelled }
 
 /// The given locale selects both catalog language and formatting when its language is supported.
 /// Prefer `@Environment(\.locale)` from the view; do not hand-build a `Locale` for presentation.

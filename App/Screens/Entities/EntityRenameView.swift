@@ -13,7 +13,7 @@ struct EntityRenameView: View {
                 if model.needsQualifier {
                     Text("Bu ad kullanılıyor. Farklı bir ad veya ayırt edici yazın.").foregroundStyle(.secondary)
                 }
-                if let error = model.errorText { Text(verbatim: error).foregroundStyle(.red) }
+                if let error = model.errorText { Text(verbatim: error).foregroundStyle(.ink.danger) }
             }
             .disabled(model.isRenaming)
             .navigationTitle("Adı değiştir")

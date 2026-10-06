@@ -52,7 +52,7 @@ enum SearchResults {
                 id: "entity:" + entity.id,
                 group: entity.kind == "person" ? .people : entity.kind == "place" ? .places : .entities,
                 title: entity.name,
-                detail: [entity.qualifier, alias, entity.id].compactMap { $0 }.joined(separator: " · "),
+                detail: [entity.qualifier, alias].compactMap { $0 }.joined(separator: " · "),
                 destination: .entity(entity.id))
         }
         var seen = Set<String>()
@@ -62,8 +62,12 @@ enum SearchResults {
             guard seen.insert(id).inserted else { return nil }
             let group: SearchGroup = match.blockKind == "event" ? .events : match.blockKind == "task" ? .tasks : .notes
             let day = match.fileKind == "day" ? match.date.flatMap { CalendarDate($0) } : nil
+            let detail: String = {
+                if let date = match.date { return date }
+                return (match.file as NSString).lastPathComponent
+            }()
             return SearchItem(
-                id: id, group: group, title: match.text, detail: match.date ?? match.file,
+                id: id, group: group, title: VaultDisplayText.line(match.text), detail: detail,
                 destination: day.map { .day($0) } ?? .note(match.file))
         }
         // Stable partition preserves prefix/name ordering for entities and FTS rank for blocks.

@@ -39,7 +39,7 @@ struct EntityScalarEditor: View {
                 Button("Kaydet") { submit() }.buttonStyle(.borderless)
             }
         }
-        if invalid { Text("Geçerli bir sayı gir.").font(.caption).foregroundStyle(.red) }
+        if invalid { Text("Geçerli bir sayı gir.").font(.ink.meta).foregroundStyle(.ink.danger) }
     }
 
     private func submit() {

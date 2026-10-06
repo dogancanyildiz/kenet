@@ -30,7 +30,7 @@ struct EntityTypedFieldEditor: View {
 
     var body: some View {
         VStack(alignment: .leading) {
-            Text(verbatim: definition.key).font(.headline)
+            Text(verbatim: definition.key).font(.ink.section).foregroundStyle(.ink.text)
             switch definition.kind {
             case .date: DatePicker("Değer", selection: $date, displayedComponents: .date)
             case .boolean: Toggle("Değer", isOn: $flag)
@@ -40,7 +40,7 @@ struct EntityTypedFieldEditor: View {
                 Button("Kaydet") { save() }
                 Button("Alanı kaldır", role: .destructive) { deleteConfirmation.request(.pending) }
             }
-            if invalid { Text("Alan için geçerli bir değer gir.").font(.caption).foregroundStyle(.red) }
+            if invalid { Text("Alan için geçerli bir değer gir.").font(.ink.meta).foregroundStyle(.ink.danger) }
         }
         .disabled(!model.canEdit)
         .destructiveConfirmationDialog(

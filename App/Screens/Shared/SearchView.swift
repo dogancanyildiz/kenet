@@ -8,9 +8,11 @@ struct SearchView: View {
     @FocusState private var searchFocused: Bool
     @Environment(\.dismiss) private var dismiss
 
-    init(store: IndexStore) {
+    init(store: IndexStore, initialQuery: String = "") {
         self.store = store
-        _model = State(initialValue: SearchModel(store: store))
+        let model = SearchModel(store: store)
+        model.query = initialQuery
+        _model = State(initialValue: model)
     }
 
     var body: some View {
@@ -19,10 +21,11 @@ struct SearchView: View {
                 searchField.padding()
                 if model.isSearching { ProgressView().padding(.bottom, 8) }
                 if let error = model.errorText {
-                    Text(verbatim: error).foregroundStyle(.red).padding()
+                    Text(verbatim: error).foregroundStyle(.ink.danger).padding()
                 }
                 resultList
             }
+            .inkPage()
             .navigationTitle("Ara")
             .toolbar { Button("Kapat") { dismiss() } }
             .navigationDestination(for: SearchDestination.self) { destination in
@@ -84,31 +87,37 @@ struct SearchView: View {
         ScrollViewReader { proxy in
             List {
                 if model.isEmpty {
-                    Section("Son aramalar") {
+                    Section {
+                        SectionHeader(title: String(localized: "Son aramalar"))
                         ForEach(model.recentQueries, id: \.self) { query in
                             Button {
                                 model.query = query
                                 searchFocused = true
                             } label: {
-                                Text(verbatim: query)
+                                MarginRow(kind: .external, time: nil) {
+                                    Text(verbatim: query)
+                                        .foregroundStyle(.ink.text)
+                                }
                             }
+                            .buttonStyle(.plain)
                         }
                     }
                 } else if model.results.isEmpty && !model.isSearching && model.errorText == nil {
-                    Text("Sonuç bulunamadı").foregroundStyle(.secondary)
+                    EmptyState("Sonuç bulunamadı")
                 } else {
                     ForEach(SearchGroup.allCases) { group in
                         let items = model.results.filter { $0.group == group }
                         if !items.isEmpty {
                             Section {
+                                SectionHeader(title: group.title)
                                 ForEach(items) { item in resultRow(item) }
-                            } header: {
-                                Text(group.title)
                             }
                         }
                     }
                 }
             }
+            .listStyle(.plain)
+            .inkPage()
             .onChange(of: model.selectedID) { _, id in
                 if let id { proxy.scrollTo(id) }
             }
@@ -119,17 +128,25 @@ struct SearchView: View {
         Button {
             open(item)
         } label: {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(SearchHighlight.text(item.title, query: model.query)).lineLimit(3)
-                Text(SearchHighlight.text(item.detail, query: model.query))
-                    .font(.caption).foregroundStyle(.secondary).lineLimit(2)
+            MarginRow(kind: .vault, time: nil) {
+                Text(SearchHighlight.text(item.title, query: model.query))
+                    .foregroundStyle(.ink.text)
+                    .lineLimit(3)
+            } secondary: {
+                if !item.detail.isEmpty {
+                    Text(SearchHighlight.text(item.detail, query: model.query))
+                        .font(.ink.meta)
+                        .foregroundStyle(.ink.secondaryText)
+                        .lineLimit(2)
+                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.vertical, 4)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .listRowBackground(item.id == model.selectedID ? Color.accentColor.opacity(0.15) : Color.clear)
+        .listRowBackground(
+            item.id == model.selectedID ? Color.ink.accent.opacity(0.12) : Color.clear
+        )
         .id(item.id)
     }
 

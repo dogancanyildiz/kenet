@@ -25,7 +25,9 @@ struct QuickEntryBar: View {
         self.isEnabled = isEnabled
         self.focusRequest = focusRequest
         self.acceptsPeopleMentions = acceptsPeopleMentions
-        _model = State(initialValue: model ?? QuickEntryModel(store: store, day: day))
+        let initial = model ?? QuickEntryModel(store: store, day: day)
+        if model == nil, let prefill = AppLaunchPolicy.uiTestQuickEntryText() { initial.text = prefill }
+        _model = State(initialValue: initial)
     }
 
     private var insertionOffset: Int? {

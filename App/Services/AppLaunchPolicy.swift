@@ -7,6 +7,23 @@ enum AppLaunchPolicy {
     /// opens this folder via `IndexStore.select` instead.
     static let uiTestVaultEnvironmentKey = "JOURNAL_UITEST_VAULT"
 
+    /// DEBUG-only text placed in quick entry at launch, so UI tests do not depend on the
+    /// simulator's keyboard or paste menu (both vary between iOS versions).
+    static let uiTestQuickEntryTextKey = "JOURNAL_UITEST_QUICK_ENTRY_TEXT"
+
+    static func uiTestQuickEntryText(
+        environment: [String: String] = ProcessInfo.processInfo.environment
+    ) -> String? {
+        #if DEBUG
+            if uiTestVaultPath(environment: environment) != nil,
+                let value = environment[uiTestQuickEntryTextKey], !value.isEmpty
+            {
+                return value
+            }
+        #endif
+        return nil
+    }
+
     static func uiTestVaultPath(
         environment: [String: String] = ProcessInfo.processInfo.environment,
         arguments: [String] = ProcessInfo.processInfo.arguments

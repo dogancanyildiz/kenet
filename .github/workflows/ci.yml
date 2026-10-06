@@ -100,9 +100,6 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             -quiet
       - name: iOS arayüz dumanı
-        # Geçici: CI'daki iOS 26.5 simülatöründe sekme geçişi ve bir erişilebilirlik bulgusu
-        # yerelde (iOS 27) yeniden üretilemiyor; kararlılaşınca bu satır kalkar ve kapı olur.
-        continue-on-error: true
         run: |
           xcodebuild test \
             -project Journal.xcodeproj \

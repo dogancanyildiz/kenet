@@ -54,6 +54,13 @@ struct PaletteContrastTests {
             documentedOnPaper: InkPalette.DocumentedContrast.warningOnPaper)
     }
 
+    @Test func dangerMeetsBodyContrastOnPaper() {
+        Self.assertBodyContrast(
+            foreground: .danger,
+            backgrounds: [.paper],
+            documentedOnPaper: InkPalette.DocumentedContrast.dangerOnPaper)
+    }
+
     @Test func personMeetsBodyContrastOnPaper() {
         Self.assertBodyContrast(
             foreground: .person,

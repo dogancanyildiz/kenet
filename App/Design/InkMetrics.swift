@@ -20,6 +20,13 @@ enum InkSize {
     static let goalRing: CGFloat = 22
     static let plus: CGFloat = 30
     static let send: CGFloat = 36
+    /// Design table large number at default Dynamic Type (scales via ``LargeNumberText``).
+    static let largeNumber: CGFloat = 48
+    /// Selected mode underline under quick-entry kip words.
+    static let modeUnderline: CGFloat = 2
+    /// Heatmap / chip corner radius.
+    static let chipCorner: CGFloat = 4
+    static let kanbanCorner: CGFloat = 8
 }
 
 enum InkStroke {

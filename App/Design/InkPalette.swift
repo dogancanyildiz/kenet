@@ -36,6 +36,7 @@ enum InkPalette {
         case accent
         case onAccent
         case warning
+        case danger
         case control
         case person
         case place
@@ -51,6 +52,7 @@ enum InkPalette {
             case .accent: "InkAccent"
             case .onAccent: "InkOnAccent"
             case .warning: "InkWarning"
+            case .danger: "InkDanger"
             case .control: "InkControl"
             case .person: "InkPerson"
             case .place: "InkPlace"
@@ -95,6 +97,10 @@ enum InkPalette {
                 Variant(
                     light: 0x7A_4E_00, dark: 0xE2_B8_65,
                     highContrastLight: 0x5C_3B_00, highContrastDark: 0xF0_CF_8E)
+            case .danger:
+                Variant(
+                    light: 0xA1_1E_1E, dark: 0xF0_71_78,
+                    highContrastLight: 0x7A_10_10, highContrastDark: 0xFF_B4_B4)
             case .control:
                 Variant(
                     light: 0x8C_84_78, dark: 0x7E_77_6C,
@@ -119,6 +125,8 @@ enum InkPalette {
         static let accentOnPaper: [Double] = [8.20, 9.00, 10.97, 12.05]
         static let onAccentOnAccent: [Double] = [8.70, 9.18, 11.65, 12.54]
         static let warningOnPaper: [Double] = [6.78, 9.69, 9.51, 12.48]
+        /// Measured for `danger` (error / destructive); not listed in `docs/design.md` yet.
+        static let dangerOnPaper: [Double] = [7.27, 6.31, 10.36, 11.07]
         static let controlOnPaper: [Double] = [3.48, 4.08, 6.03, 6.80]
         static let personOnPaper: [Double] = [6.26, 8.49, 8.64, 11.57]
         static let placeOnPaper: [Double] = [5.69, 9.62, 8.09, 12.31]

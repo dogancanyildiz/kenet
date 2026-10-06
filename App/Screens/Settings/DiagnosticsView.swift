@@ -1,6 +1,10 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
+#if os(macOS)
+    import AppKit
+#endif
+
 /// Settings for the file-backed vault and its disposable index.
 struct DiagnosticsView: View {
     @Bindable var store: IndexStore
@@ -29,6 +33,12 @@ struct DiagnosticsView: View {
             Section("Kasa") {
                 if let url = store.vaultURL {
                     Text(verbatim: url.path).textSelection(.enabled)
+                    #if os(macOS)
+                        Button("Finder'da göster") {
+                            NSWorkspace.shared.activateFileViewerSelecting([url])
+                        }
+                        .buttonStyle(.borderless)
+                    #endif
                 }
                 HStack {
                     Button("Klasör seç") { choosingFolder = true }.disabled(
@@ -36,6 +46,11 @@ struct DiagnosticsView: View {
                     Button("Yeniden üret") { Task { await store.refresh(rebuild: true) } }
                         .disabled(store.isProcessing)
                 }.buttonStyle(.borderless)
+                Button("Arama geçmişini temizle") {
+                    SearchModel.clearStoredHistory(for: store.vaultURL)
+                }
+                .buttonStyle(.borderless)
+                .disabled(store.vaultURL == nil)
 
                 if let selection = store.pendingSelection {
                     LabeledContent("Klasör seçimi bekliyor…") { Text(verbatim: selection.path) }

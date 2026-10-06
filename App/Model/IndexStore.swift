@@ -546,7 +546,7 @@ final class IndexStore {
         let support = supportURL
         do {
             let opened = try await Task.detached {
-                try FileManager.default.createDirectory(at: support, withIntermediateDirectories: true)
+                try IndexSupportDirectory.prepare(at: support)
                 let identity = url.resolvingSymlinksInPath().standardizedFileURL.path
                 let digest = SHA256.hash(data: Data(identity.utf8)).map { String(format: "%02x", $0) }.joined()
                 return try VaultIndex(databaseURL: support.appendingPathComponent(digest + ".sqlite"))

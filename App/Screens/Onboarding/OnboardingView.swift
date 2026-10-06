@@ -13,6 +13,20 @@ struct OnboardingView: View {
                     "Verilerin Markdown dosyalarında kalır. Yeni bir kasa oluşturabilir veya var olan Obsidian klasörünü seçebilirsin."
                 )
                 .multilineTextAlignment(.center)
+                // Matches `VaultLocation.createDefaultVault` (`Documents/Vault`).
+                #if os(iOS)
+                    Text("Yeni kasa, Dosyalar’da iPhone’umda → Journal → Vault klasöründe oluşturulur.")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                #else
+                    Text(
+                        "Yeni kasa, uygulamanın Belgeler klasöründeki Vault içinde oluşturulur. Ayarlar’dan Finder’da gösterebilirsin."
+                    )
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                #endif
                 Button("Yeni kasa oluştur") { Task { await store.start() } }.buttonStyle(.borderedProminent)
                 Button("Var olan klasörü seç") { choosesFolder = true }.buttonStyle(.bordered)
                 if let error = store.errorText { Text(verbatim: error).foregroundStyle(.red) }

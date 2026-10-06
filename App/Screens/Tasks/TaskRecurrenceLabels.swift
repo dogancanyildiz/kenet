@@ -13,9 +13,22 @@ extension TaskRecurrence {
         default: "Pazar"
         }
     }
+
+    /// Interval label; singular/plural forms come from String Catalog variations.
+    static func intervalLabel(
+        count: Int, unit: TaskRecurrence.Unit, locale: Locale = .current
+    ) -> String {
+        switch unit {
+        case .day: String(localized: "Her \(count) gün", locale: locale)
+        case .week: String(localized: "Her \(count) hafta", locale: locale)
+        case .month: String(localized: "Her \(count) ay", locale: locale)
+        case .year: String(localized: "Her \(count) yıl", locale: locale)
+        }
+    }
 }
 
 struct TaskRecurrenceLabel: View {
+    @Environment(\.locale) private var locale
     let recurrence: TaskRecurrence
     var body: some View {
         HStack(spacing: 3) {
@@ -23,12 +36,7 @@ struct TaskRecurrenceLabel: View {
             switch recurrence.frequency {
             case .weekday(let day): Text(TaskRecurrence.weekdayTitle(day))
             case .interval(let count, let unit):
-                switch unit {
-                case .day: Text("Her \(count) gün")
-                case .week: Text("Her \(count) hafta")
-                case .month: Text("Her \(count) ay")
-                case .year: Text("Her \(count) yıl")
-                }
+                Text(verbatim: TaskRecurrence.intervalLabel(count: count, unit: unit, locale: locale))
             }
             if recurrence.whenDone { Text("Tamamlanınca") }
         }

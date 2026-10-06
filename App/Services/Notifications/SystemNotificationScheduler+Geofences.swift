@@ -28,7 +28,7 @@ extension SystemNotificationScheduler: GeofenceNotificationDelivering {
         content.title =
             notice.automatic
             ? String(localized: "\(notice.goalName) işaretlendi")
-            : String(localized: "\(notice.placeName)'ndasın. \(notice.goalName) işaretlensin mi?")
+            : LocationCopy.geofencePrompt(place: notice.placeName, goal: notice.goalName)
         content.sound = .default
         content.categoryIdentifier = notice.automatic ? "" : "geofence.goal"
         content.userInfo = [

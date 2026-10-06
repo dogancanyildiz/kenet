@@ -4,7 +4,7 @@ import VaultFormat
 /// Spoken VoiceOver strings for cues that are otherwise icon- or canvas-only.
 enum VoiceOverCopy {
     static func taskCompletionValue(isCompleted: Bool, locale: Locale = .current) -> String {
-        boxStatusValue(isCompleted ? .done : .todo, locale: locale, presentation: false)
+        boxStatusValue(isCompleted ? .done : .open, locale: locale, presentation: false)
     }
 
     static func priorityValue(_ priority: TaskPriority, locale: Locale = .current) -> String {
@@ -13,9 +13,9 @@ enum VoiceOverCopy {
 
     /// Task box cue for the Today presentation; the catalog language follows `locale`
     /// (unlike the two lookups above, which follow the process language).
-    static func taskBoxValue(state: TaskBoxState, locale: Locale) -> String {
-        let status = boxStatusValue(state.status, locale: locale, presentation: true)
-        guard let priority = state.priority else { return status }
+    static func taskBoxValue(state: TaskBoxMarkState, priority: TaskPriority?, locale: Locale) -> String {
+        let status = boxStatusValue(state, locale: locale, presentation: true)
+        guard let priority else { return status }
         return "\(status), \(boxPriorityValue(priority, locale: locale, presentation: true))"
     }
 
@@ -83,14 +83,14 @@ enum VoiceOverCopy {
 
     /// Shared status switch for process-language helpers and presentation-locale lookups.
     private static func boxStatusValue(
-        _ status: TaskStatus, locale: Locale, presentation: Bool
+        _ state: TaskBoxMarkState, locale: Locale, presentation: Bool
     ) -> String {
         let key: String.LocalizationValue =
-            switch status {
+            switch state {
             case .inProgress: "Devam"
             case .done: "Tamamlandı"
             case .cancelled: "İptal"
-            case .todo, .unknown: "Açık"
+            case .open: "Açık"
             }
         return localize(key, locale: locale, presentation: presentation)
     }

@@ -160,30 +160,26 @@ struct TodayPresentation: Sendable {
 }
 
 /// State and priority remain independent, including while the box is half filled.
-/// Uses the Mürekkep ``TaskBoxState`` (status + priority inside one box).
 struct TaskBoxPresentation: Sendable {
-    let state: TaskBoxState
+    let state: TaskBoxMarkState
+    let priority: TaskPriority?
 
     init(row: TaskRow, isCompleted: Bool = false) {
-        let status: TaskStatus
         if isCompleted {
-            status = .done
+            state = .done
         } else {
             switch row.rawStatus {
-            case "-": status = .cancelled
-            case "x", "X": status = .done
-            case "/": status = .inProgress
-            default: status = .todo
+            case "-": state = .cancelled
+            case "x", "X": state = .done
+            case "/": state = .inProgress
+            default: state = .open
             }
         }
-        state = TaskBoxState(status: status, priority: row.priority)
+        priority = row.priority
     }
 
-    var priority: TaskPriority? { state.priority }
-
-    /// Spoken / test cue for priority; independent of whether the box currently draws the glyph.
     var priorityMark: String {
-        switch state.priority {
+        switch priority {
         case .medium: "!"
         case .high: "!!"
         default: ""
@@ -191,9 +187,12 @@ struct TaskBoxPresentation: Sendable {
     }
 
     func accessibilityValue(locale: Locale) -> String {
-        VoiceOverCopy.taskBoxValue(state: state, locale: locale)
+        VoiceOverCopy.taskBoxValue(state: state, priority: priority, locale: locale)
     }
 }
+
+/// Spoken/mark state for Today task rows (distinct from ``TaskBoxState`` the ink control uses).
+enum TaskBoxMarkState: Sendable { case open, inProgress, done, cancelled }
 
 /// The given locale selects both catalog language and formatting when its language is supported.
 /// Prefer `@Environment(\.locale)` from the view; do not hand-build a `Locale` for presentation.

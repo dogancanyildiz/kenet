@@ -62,7 +62,7 @@ Doğruluk ve veri güvenliği:
 - [x] Yazma sonrası okuma modeli ana iş parçacığı dışında kurulur (ölçüm: olay eklerken 0,45 sn donma)
 - [ ] Hedef işaretleme bütün kasayı okumaz; yazma başına tam dizin taraması kalkar (hedef işaretleme düzeltildi; kalan: yazma sırasında indeks güncellemesinin tam dizin taraması)
 - [x] Sentetik kasa ile ölçek bütçe testleri: yenileme, yazma, yeniden adlandırma, ilk açılış
-- [ ] Okuma modeli dosya başına artımlı kurulur, ekranlar kendi sorgusunu çalıştırır (widget ve eşitlemeden önce)
+- [ ] Okuma modeli dosya başına artımlı kurulur, ekranlar kendi sorgusunu çalıştırır (widget ve eşitlemeden önce) (artımlı model bitti: 5 yıllık kasada yazma sonrası 1,65 sn → 0,09 sn; kalan: ekranların kendi sorgusunu çalıştırması)
 
 Veri sahipliği ve gizlilik:
 

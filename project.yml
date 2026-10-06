@@ -29,7 +29,9 @@ settings:
     ENABLE_USER_SCRIPT_SANDBOXING: NO
     CODE_SIGN_STYLE: Automatic
     DEVELOPMENT_LANGUAGE: tr
-    SWIFT_EMIT_LOC_STRINGS: YES
+    # Xcode derlemede String Catalog'u yeniden yazmasın: anahtarlar elle eklenir,
+    # eksikleri .github/scripts/check-docs.sh yakalar.
+    SWIFT_EMIT_LOC_STRINGS: NO
 
 targets:
   Journal:

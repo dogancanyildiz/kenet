@@ -16,6 +16,10 @@ options:
 packages:
   Core:
     path: Packages/Core
+  # Ekran görüntüsü testleri (birim katmanı). CI ile yerel Xcode farkı için algısal tolerans kullanılır.
+  SnapshotTesting:
+    url: https://github.com/pointfreeco/swift-snapshot-testing
+    from: 1.18.0
 
 settings:
   base:
@@ -106,8 +110,13 @@ targets:
     platform: [iOS, macOS]
     sources:
       - path: Tests/JournalTests
+        excludes:
+          # Referans PNG'ler depoda durur ama derlemeye girmez (silince Xcode kırılmasın).
+          - "**/__Snapshots__/**"
     dependencies:
       - target: Journal_${platform}
+      - package: SnapshotTesting
+        product: SnapshotTesting
     settings:
       base:
         PRODUCT_NAME: JournalTests
@@ -146,6 +155,9 @@ schemes:
     test:
       commandLineArguments:
         JOURNAL_NO_AUTOSTART: true
+      # Forwarded so `SNAPSHOT_TESTING_RECORD=all xcodebuild test …` reaches the host.
+      environmentVariables:
+        SNAPSHOT_TESTING_RECORD: $(SNAPSHOT_TESTING_RECORD)
       targets:
         - JournalTests_iOS
         - JournalUITests

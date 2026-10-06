@@ -1,2 +1,5 @@
 # Fixtures bayt düzeyinde korunur: git satır sonu dönüşümü yapmaz.
 Fixtures/** -text
+
+# Ekran görüntüsü referansları ikili dosyadır; satır sonu dönüşümü uygulanmaz.
+Tests/JournalTests/Snapshots/**/*.png binary

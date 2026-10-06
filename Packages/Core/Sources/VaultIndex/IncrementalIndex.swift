@@ -20,9 +20,10 @@ extension VaultIndex {
         let customKinds = Set(EntityTypeReader.read(vaultRoot: vaultRoot).types.map(\.id))
         let signature = customKinds.sorted().joined(separator: "\n")
         let resolvedRoot = vaultRoot.resolvingSymlinksInPath()
-        let requested = paths.map { notified in
-            Set(notified.compactMap { notificationPath($0, root: resolvedRoot) })
+        let notifications = paths.map { notified in
+            notified.compactMap { notification(for: $0, root: resolvedRoot) }
         }
+        let requested = notifications.map { notes in Set(notes.map(\.includeKey)) }
         func includes(_ path: String) -> Bool {
             let key = comparisonKey(path)
             return requested.map { prefixes in
@@ -36,7 +37,11 @@ extension VaultIndex {
             if typeChanged || (paths == nil && isEmpty) {
                 return try rebuild(vaultRoot: vaultRoot, customKinds: customKinds, db: db)
             }
-            let scan = try VaultScanner.scan(vaultRoot)
+            let scopes: Set<ScanScope> = {
+                guard let notes = notifications else { return [.full] }
+                return Set(notes.map(\.scope))
+            }()
+            let scan = try VaultScanner.scan(vaultRoot, scopes: scopes)
             let old = try IndexedFile.fetchAll(db, sql: "SELECT * FROM files ORDER BY path")
             let previous = Dictionary(uniqueKeysWithValues: old.map { ($0.path, $0) })
             let present = Set(scan.files.map(\.path))
@@ -166,7 +171,13 @@ private func repairLinks(keys: Set<String>, sources: [String], db: Database) thr
     try db.execute(sql: "DROP TABLE temp.affected_link_keys; DROP TABLE temp.affected_link_sources")
 }
 
-private func notificationPath(_ path: String, root: URL) -> String? {
+private struct Notification {
+    /// Comparison key used by `includes` (may widen to a missing ancestor directory).
+    let includeKey: String
+    let scope: ScanScope
+}
+
+private func notification(for path: String, root: URL) -> Notification? {
     let base = root.path.precomposedStringWithCanonicalMapping
     let url = path.hasPrefix("/") ? URL(fileURLWithPath: path) : root.appendingPathComponent(path)
     let absolute = resolvedNotificationPath(url).precomposedStringWithCanonicalMapping
@@ -174,13 +185,59 @@ private func notificationPath(_ path: String, root: URL) -> String? {
         comparisonKey(absolute) == comparisonKey(base)
             || comparisonKey(absolute).hasPrefix(comparisonKey(base) + "/")
     else { return nil }
-    let relative = comparisonKey(absolute) == comparisonKey(base) ? "" : String(absolute.dropFirst(base.count + 1))
+    let relative =
+        comparisonKey(absolute) == comparisonKey(base) ? "" : String(absolute.dropFirst(base.count + 1))
     let components = relative.split(separator: "/").map(String.init)
     guard !components.dropLast().contains(where: { $0.hasPrefix(".") }),
         components.first != "templates", components.first != "conflicts",
         !(components.last?.hasPrefix(".") == true && !relative.hasSuffix(".md"))
     else { return nil }
-    return comparisonKey(relative)
+    let nfc = relative.precomposedStringWithCanonicalMapping
+    return Notification(includeKey: includeKey(for: nfc, root: root), scope: scanScope(for: nfc, root: root))
+}
+
+/// Widens a missing intermediate directory so its indexed subtree can be dropped.
+private func includeKey(for relative: String, root: URL) -> String {
+    let key = comparisonKey(relative)
+    if relative.isEmpty { return key }
+    var prefix = ""
+    for component in relative.split(separator: "/").map(String.init) {
+        let next = prefix.isEmpty ? component : prefix + "/" + component
+        var isDirectory: ObjCBool = false
+        if !FileManager.default.fileExists(atPath: root.appendingPathComponent(next).path, isDirectory: &isDirectory) {
+            // Intermediate directory gone: drop the whole missing prefix from the index.
+            if next != relative { return comparisonKey(next) }
+            return key
+        }
+        prefix = next
+    }
+    return key
+}
+
+private func scanScope(for relative: String, root: URL) -> ScanScope {
+    if relative.isEmpty { return .full }
+    let url = root.appendingPathComponent(relative)
+    var isDirectory: ObjCBool = false
+    if FileManager.default.fileExists(atPath: url.path, isDirectory: &isDirectory) {
+        if isDirectory.boolValue { return .subtree(relative) }
+        let parent = (relative as NSString).deletingLastPathComponent
+        return .shallow(parent == "." ? "" : parent)
+    }
+    // Missing path: scan the nearest existing ancestor one level so siblings remain visible.
+    var prefix = ""
+    for component in relative.split(separator: "/").map(String.init) {
+        let next = prefix.isEmpty ? component : prefix + "/" + component
+        var isDirectory: ObjCBool = false
+        if !FileManager.default.fileExists(atPath: root.appendingPathComponent(next).path, isDirectory: &isDirectory) {
+            return .shallow(prefix)
+        }
+        if !isDirectory.boolValue {
+            return .shallow(prefix)
+        }
+        prefix = next
+    }
+    let parent = (relative as NSString).deletingLastPathComponent
+    return .shallow(parent == "." ? "" : parent)
 }
 
 // Resolve only an existing directory: Foundation standardization treats missing /private paths differently.

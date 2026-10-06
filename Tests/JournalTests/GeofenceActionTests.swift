@@ -235,8 +235,32 @@ struct GeofenceActionTests {
         #expect(!FileManager.default.fileExists(atPath: file.path))
         #expect(openedGoals)
         #expect(
-            locked.errorText
+            locked.lockedMarkNotice
                 == String(localized: "Günlük kilitliydi. Kilidi açtıktan sonra hedefi kendin işaretle."))
+        #expect(locked.errorText == nil)
+    }
+
+    @Test func unlockClearsLockedMarkNotice() async throws {
+        let context = try GeofenceTestContext()
+        defer { context.clean() }
+        let fixture = LockFixture(enabled: true)
+        defer { fixture.clean() }
+        let lock = fixture.lock()
+        let service = GeofenceService(
+            location: context.location, center: context.center,
+            defaults: context.vault.defaults.defaults, today: { CalendarDate("2026-10-04")! },
+            allowsBackground: { true })
+        service.attach(to: context.vault.store)
+        service.attach(lock: lock)
+        service.activate()
+        await context.vault.store.select(context.vault.root)
+        let target = try #require(service.targets.first { $0.goal.key == "spor" })
+        await service.enter(target.id)
+        let action = try #require(context.center.notices.first?.action)
+        await service.respond(to: action)
+        #expect(service.lockedMarkNotice != nil)
+        await lock.becomeActive()
+        #expect(service.lockedMarkNotice == nil)
     }
 
     @Test func unlockedMarkActionStillWrites() async throws {

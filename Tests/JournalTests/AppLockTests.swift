@@ -326,9 +326,25 @@ import Testing
         await lock.becomeActive()
         #expect(covered)
     }
+
+    @Test func isLockedNowAppliesElapsedTimeWhileBackgrounded() async {
+        let fixture = LockFixture(enabled: true)
+        defer { fixture.clean() }
+        let lock = fixture.lock()
+        lock.delay = .fiveMinutes
+        await lock.becomeActive()
+        #expect(!lock.isLockedNow())
+        lock.resignActive(startTimeout: true)
+        fixture.time = fixture.time.addingTimeInterval(120)
+        #expect(!lock.isLockedNow())
+        #expect(lock.shouldCover)
+        fixture.time = fixture.time.addingTimeInterval(3600)
+        #expect(lock.isLockedNow())
+        #expect(lock.shouldCover)
+    }
 }
 
-@MainActor private final class LockFixture {
+@MainActor final class LockFixture {
     let suite = "AppLockTests.\(UUID().uuidString)"
     let defaults: UserDefaults
     let context = FakeAppLockContext()
@@ -346,7 +362,7 @@ import Testing
     func clean() { defaults.removePersistentDomain(forName: suite) }
 }
 
-@MainActor private final class FakeAppLockContext: AppLockAuthenticating {
+@MainActor final class FakeAppLockContext: AppLockAuthenticating {
     enum Failure: Error { case cancelled }
     var result = true
     var throwsError = false

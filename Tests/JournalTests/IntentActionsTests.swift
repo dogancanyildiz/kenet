@@ -213,14 +213,34 @@ struct IntentActionsTests {
         #expect(String(decoding: try document(context).serialized(), as: UTF8.self).contains("  spor: true"))
     }
 
-    @Test func lockedGoalEntityQueryReturnsEmpty() async throws {
+    @Test func attachLockServiceReflectsAuthenticationAndElapsedDelay() async throws {
+        let context = try TaskTestContext(sample: true)
+        defer { context.clean() }
+        let fixture = LockFixture(enabled: true)
+        defer { fixture.clean() }
+        let lock = fixture.lock()
+        lock.delay = .fiveMinutes
+        let actions = IntentActions(store: context.store, now: { instant }, permitsStart: { true })
+        actions.attach(lock: lock)
+        #expect(actions.isLocked())
+        await lock.becomeActive()
+        #expect(!actions.isLocked())
+        lock.resignActive(startTimeout: true)
+        fixture.time = fixture.time.addingTimeInterval(120)
+        #expect(!actions.isLocked())
+        fixture.time = fixture.time.addingTimeInterval(3600)
+        #expect(actions.isLocked())
+        await #expect(throws: IntentActionError.appLocked) { try await actions.addEvent(text: "Late write") }
+    }
+
+    @Test func lockedGoalEntityQueryReturnsEmptySuggestionsAndThrowsForIdentifiers() async throws {
         let previous = IntentActions.shared.isLocked
         IntentActions.shared.isLocked = { true }
         defer { IntentActions.shared.isLocked = previous }
         let query = GoalEntityQuery()
         #expect(try await query.suggestedEntities().isEmpty)
         #expect(try await query.entities(matching: "Spor").isEmpty)
-        #expect(try await query.entities(for: ["any-id"]).isEmpty)
+        await #expect(throws: IntentActionError.appLocked) { try await query.entities(for: ["any-id"]) }
     }
 
     @Test func brokenBookmarkDoesNotFallBackAndLaunchPolicyIsRespected() async throws {
@@ -278,5 +298,21 @@ struct IntentActionsTests {
         #expect(
             !FileManager.default.fileExists(
                 atPath: other.appendingPathComponent("journal/\(LocalDay.today(at: instant)).md").path))
+    }
+}
+
+@MainActor @Suite("IntentActions UserDefaults lock default")
+struct IntentActionsUserDefaultsLockTests {
+    @Test func coldStartTreatsEnabledPreferenceAsLocked() {
+        let suite = "IntentActions.UserDefaultsLock.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        defaults.set(true, forKey: AppLockService.enabledKey)
+        #expect(IntentActions.coldStartIsLocked(defaults: defaults))
+        let locked = IntentActions(isLocked: { IntentActions.coldStartIsLocked(defaults: defaults) })
+        #expect(locked.isLocked())
+        defaults.set(false, forKey: AppLockService.enabledKey)
+        #expect(!IntentActions.coldStartIsLocked(defaults: defaults))
+        #expect(!locked.isLocked())
     }
 }

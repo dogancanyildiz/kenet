@@ -17,7 +17,9 @@ struct GoalStripView: View {
                         ForEach(orderedGoals, id: \.id) { goal in
                             Button {
                                 if goal.kind == .boolean {
-                                    Task { await model.toggle(goal) }
+                                    Task {
+                                        if await model.toggle(goal) { geofences?.clearLockedMarkNotice() }
+                                    }
                                 } else {
                                     editing = GoalValueModel(dayModel: model, goal: goal)
                                 }
@@ -57,12 +59,17 @@ struct GoalStripView: View {
                 }
                 if model.isLoading { ProgressView() }
                 if let error = model.errorText { Text(verbatim: error).font(.caption).foregroundStyle(.secondary) }
-                if let notice = geofences?.errorText {
+                if let notice = geofences?.lockedMarkNotice {
                     Text(verbatim: notice).font(.caption).foregroundStyle(.secondary)
                 }
             }
             .task(id: model.store.lastUpdated) { await model.load() }
-            .sheet(item: $editing) { editor in NavigationStack { GoalValueEditor(model: editor) } }
+            .sheet(item: $editing) { editor in
+                NavigationStack { GoalValueEditor(model: editor) }
+                    .onChange(of: editor.isSaved) { _, saved in
+                        if saved { geofences?.clearLockedMarkNotice() }
+                    }
+            }
         }
     }
     private var orderedGoals: [GoalDefinition] {

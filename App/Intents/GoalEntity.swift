@@ -14,6 +14,7 @@ struct GoalEntity: AppEntity {
 }
 struct GoalEntityQuery: EntityStringQuery {
     func entities(for identifiers: [GoalEntity.ID]) async throws -> [GoalEntity] {
+        try await IntentActions.shared.throwIfLocked()
         let goals = try await IntentActions.shared.goals()
         return identifiers.compactMap { id in goals.first { $0.id == id }.map(GoalEntity.init) }
     }

@@ -12,7 +12,10 @@ extension SystemNotificationScheduler: GeofenceNotificationDelivering {
     /// When app lock is enabled, omit Mark so the only path is opening the app (default action).
     func refreshGeofenceCategory(lockEnabled: Bool? = nil) {
         let enabled = lockEnabled ?? UserDefaults.standard.bool(forKey: AppLockService.enabledKey)
+        let previous = geofenceRegistration
         geofenceRegistration = Task {
+            await previous?.value
+            guard !Task.isCancelled else { return }
             let center = UNUserNotificationCenter.current()
             let existing = await center.notificationCategories()
             let actions: [UNNotificationAction]

@@ -8645,18 +8645,18 @@
         }
       }
     },
-    "Kilit ekranında görev metni ve hedef adları gösterilmez.": {
+    "Afiş, bildirim merkezi ve kilit ekranında görev metni ve hedef adları gösterilmez.": {
       "localizations": {
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kilit ekranında görev metni ve hedef adları gösterilmez."
+            "value": "Afiş, bildirim merkezi ve kilit ekranında görev metni ve hedef adları gösterilmez."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Task text and goal names are hidden on the lock screen."
+            "value": "Task text and goal names are hidden on banners, Notification Center, and the lock screen."
           }
         }
       }

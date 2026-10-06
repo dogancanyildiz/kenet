@@ -56,6 +56,9 @@ final class SystemNotificationScheduler: NSObject, NotificationScheduling, UNUse
     func remove(identifiers: [String]) async {
         UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: identifiers)
     }
+    func removeAllDeliveredNotifications() async {
+        UNUserNotificationCenter.current().removeAllDeliveredNotifications()
+    }
     nonisolated func userNotificationCenter(
         _ center: UNUserNotificationCenter, willPresent notification: UNNotification,
         withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void

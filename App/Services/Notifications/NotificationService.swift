@@ -14,6 +14,9 @@ final class NotificationService {
         didSet {
             guard preferences != oldValue else { return }
             preferences.persist(in: defaults)
+            if preferences.hideContent && !oldValue.hideContent {
+                Task { await center.removeAllDeliveredNotifications() }
+            }
             queueReplan(after: .zero)
         }
     }

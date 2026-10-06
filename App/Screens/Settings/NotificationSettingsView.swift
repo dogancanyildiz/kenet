@@ -31,7 +31,7 @@ struct NotificationSettingsView: View {
                 DatePicker("Günlük saati", selection: time(\.journalTime), displayedComponents: .hourAndMinute)
                     .disabled(!service.preferences.journalEnabled)
                 Toggle("Bildirimlerde içeriği gizle", isOn: $service.preferences.hideContent)
-                Text("Kilit ekranında görev metni ve hedef adları gösterilmez.")
+                Text("Afiş, bildirim merkezi ve kilit ekranında görev metni ve hedef adları gösterilmez.")
                     .font(.caption).foregroundStyle(.secondary)
                 Text("Uygulama kapalıyken planlanan hatırlatmalar değişmez.").font(.caption).foregroundStyle(.secondary)
             }

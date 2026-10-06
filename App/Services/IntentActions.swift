@@ -38,10 +38,7 @@ enum IntentActionError: LocalizedError {
 @MainActor
 final class IntentActions {
     static let shared: IntentActions = {
-        IntentActions(isLocked: {
-            // Cold intent launch before JournalApp attaches the live service: enabled ⇒ unauthenticated.
-            UserDefaults.standard.bool(forKey: AppLockService.enabledKey)
-        })
+        IntentActions(isLocked: { IntentActions.coldStartIsLocked() })
     }()
     let store: IndexStore
     private let now: () -> Date
@@ -62,19 +59,25 @@ final class IntentActions {
         self.isLocked = isLocked
     }
 
+    /// Cold intent launch before JournalApp attaches the live service: enabled ⇒ unauthenticated.
+    static func coldStartIsLocked(defaults: UserDefaults = .standard) -> Bool {
+        defaults.bool(forKey: AppLockService.enabledKey)
+    }
+
     /// Bind the live lock service so foreground unlock state is visible to intents.
     func attach(lock: AppLockService) {
         isLocked = { [weak lock] in
-            guard let lock else {
-                return UserDefaults.standard.bool(forKey: AppLockService.enabledKey)
-            }
-            return lock.isEnabled && lock.isLocked
+            guard let lock else { return Self.coldStartIsLocked() }
+            return lock.isLockedNow()
         }
     }
 
     private func requireUnlocked() throws {
         if isLocked() { throw IntentActionError.appLocked }
     }
+
+    /// App Intent entity resolution needs the locked reason, not an empty list.
+    func throwIfLocked() throws { try requireUnlocked() }
 
     private func prepare() async throws {
         guard permitsStart() else { throw IntentActionError.vaultUnavailable }

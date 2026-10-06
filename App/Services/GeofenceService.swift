@@ -9,6 +9,8 @@ final class GeofenceService {
     private(set) var regions: [GeofenceTarget] = []
     private(set) var overflowCount = 0
     private(set) var errorText: String?
+    /// Shown on Today's goal strip only; other region errors stay in Settings via `errorText`.
+    private(set) var lockedMarkNotice: String?
     private(set) var modes: [String: String]
     private(set) var isActive = false
     let location: LocationService
@@ -20,6 +22,7 @@ final class GeofenceService {
     @ObservationIgnored private var handling: Set<String> = []
     @ObservationIgnored private var isLocked: () -> Bool = { false }
     @ObservationIgnored private var isLockEnabled: () -> Bool = { false }
+    @ObservationIgnored private var lockCoverID: UUID?
     /// Called when a mark action is blocked by app lock so the UI can open goals with an explanation.
     @ObservationIgnored var onLockedMarkBlocked: (() -> Void)?
     private static let modesKey = "journal.geofence.modes"
@@ -53,13 +56,20 @@ final class GeofenceService {
             guard let lock else {
                 return UserDefaults.standard.bool(forKey: AppLockService.enabledKey)
             }
-            return lock.isEnabled && lock.isLocked
+            return lock.isLockedNow()
         }
         isLockEnabled = { [weak lock] in
             lock?.isEnabled ?? UserDefaults.standard.bool(forKey: AppLockService.enabledKey)
         }
+        if let lockCoverID { lock.unregisterCover(lockCoverID) }
+        lockCoverID = lock.registerCover { [weak self, weak lock] in
+            guard let self, let lock, !lock.isLockedNow() else { return }
+            self.clearLockedMarkNotice()
+        }
         refreshMarkActionAvailability()
     }
+
+    func clearLockedMarkNotice() { lockedMarkNotice = nil }
 
     func refreshMarkActionAvailability() {
         if let scheduler = center as? SystemNotificationScheduler {
@@ -169,7 +179,7 @@ final class GeofenceService {
     func respond(to action: GeofenceAction) async {
         guard action.mark, isActive, allowsBackground(), action.day == today(), let store else { return }
         if isLocked() {
-            errorText = String(
+            lockedMarkNotice = String(
                 localized: "Günlük kilitliydi. Kilidi açtıktan sonra hedefi kendin işaretle.")
             onLockedMarkBlocked?()
             return

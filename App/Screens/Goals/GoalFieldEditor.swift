@@ -10,7 +10,7 @@ enum GoalEditableField: String, Identifiable {
         case .period: String(localized: "Dönem")
         case .kind: String(localized: "Tür")
         case .target: String(localized: "Hedef miktar")
-        case .unit: String(localized: "Birim (isteğe bağlı)")
+        case .unit: String(localized: "Birim")
         }
     }
 }
@@ -49,9 +49,12 @@ struct GoalFieldEditor: View {
                 Text("Tür değişikliği geçmiş kayıtları dönüştürmez.")
                     .font(.ink.meta)
                     .foregroundStyle(Color.ink.secondaryText)
+            } else if field == .unit {
+                TextField("Birim (isteğe bağlı)", text: $text)
+                    .font(.ink.content)
             } else {
                 TextField(field.title, text: $text)
-                    .font(field == .name || field == .unit ? .ink.content : .ink.value)
+                    .font(field == .name ? .ink.content : .ink.value)
             }
             if let error = model.errorText {
                 InfoBand(kind: .error, verbatim: error)

@@ -41,13 +41,6 @@ struct GoalCreationView: View {
             if let error = model.errorText {
                 InfoBand(kind: .error, verbatim: error)
             }
-            // Content action stays reachable at AX sizes when the trailing toolbar item is clipped.
-            Button("Oluştur") {
-                Task { if await model.save(), model.errorText == nil { dismiss() } }
-            }
-            .buttonStyle(InkPrimaryButtonStyle())
-            .disabled(!model.canSave || model.isWriting || model.isSaved)
-            .listRowBackground(Color.clear)
         }
         .formStyle(.grouped)
         .scrollContentBackground(.hidden)

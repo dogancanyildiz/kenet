@@ -112,7 +112,7 @@ Harita geçerli koordinatı olan konumları pin olarak gösterir. Pin boyutu bü
 ### Hedefler (3)
 
 - Her hedef için satır: halka, ad, sağda değer, altında zincir veya dönem ilerlemesi.
-- Satıra girince: manşet, büyük rakam, ısı haritası (başlık döneme göre hafta sayısı söylemez; yoğunluk renge ek biçimle; bugün çerçeveli; gelecek çizilmez), en uzun seri, geçmiş kayıtlar. Geçmiş günlerin kaydı düzeltilebilir. Tanım alanları yüzey üzerinde düzenlenir.
+- Satıra girince: kaydırılan manşet, büyük rakam, ısı haritası (başlık döneme göre hafta sayısı söylemez; yoğunluk renge ek biçimle; bugün çerçeveli; gelecek çizilmez; sığmazsa en yeni hafta açık gelir), en uzun seri, geçmiş kayıtlar. Geçmiş günlerin kaydı düzeltilebilir. Tanım alanları yüzey üzerinde düzenlenir.
 - Kilometre taşı (5): yıllık, miktarsız satır; yapıldı/yapılmadı ve tarih. Dokununca bugün işaretlenir veya bugünkü kayıt kaldırılır; önceki gün tamamlanmış satır salt okunurdur. Zincir/ısı haritası bulunmaz. Yeni hedefte tür seçilir.
 - Haftalık hedefte "bu hafta 2/3", yıllık hedefte ilerleme çubuğu.
 

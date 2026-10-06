@@ -23,17 +23,19 @@ struct GraphControls: View {
                 if stacksFilters {
                     VStack(alignment: .leading, spacing: 8) {
                         periodPicker
-                        weightStepper
+                        weightRow
                     }
                 } else {
                     ViewThatFits(in: .horizontal) {
                         HStack(alignment: .firstTextBaseline, spacing: 12) {
                             periodPicker
+                            weightLabel
+                            Spacer(minLength: 8)
                             weightStepper
                         }
                         VStack(alignment: .leading, spacing: 8) {
                             periodPicker
-                            weightStepper
+                            weightRow
                         }
                     }
                 }
@@ -43,7 +45,10 @@ struct GraphControls: View {
 
             zoomBar
         }
-        .padding(InkSpacing.margin)
+        // Half control stroke: TagChip borders are centered on the frame, so plain
+        // `InkSpacing.margin` places the visible chip edge ~1–2 pt outside the manşet.
+        .padding(.horizontal, InkSpacing.margin + InkStroke.control / 2)
+        .padding(.vertical, InkSpacing.margin)
     }
 
     @ViewBuilder private var filterChips: some View {
@@ -73,10 +78,28 @@ struct GraphControls: View {
         }
     }
 
+    private var weightLabel: some View {
+        Text("En az \(filter.minimumWeight) ortak gün")
+            .font(.ink.meta)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+
     private var weightStepper: some View {
-        Stepper(value: $filter.minimumWeight, in: 1...max(maximumWeight, filter.minimumWeight)) {
-            Text("En az \(filter.minimumWeight) ortak gün")
-                .fixedSize(horizontal: false, vertical: true)
+        Stepper(
+            value: $filter.minimumWeight,
+            in: 1...max(maximumWeight, filter.minimumWeight)
+        ) {
+            EmptyView()
+        }
+        .labelsHidden()
+        .accessibilityLabel(
+            Text("En az \(filter.minimumWeight) ortak gün"))
+    }
+
+    private var weightRow: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            weightLabel
+            weightStepper
         }
     }
 

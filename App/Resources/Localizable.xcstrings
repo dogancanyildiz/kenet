@@ -4057,6 +4057,22 @@
         }
       }
     },
+    "Birim": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Birim"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unit"
+          }
+        }
+      }
+    },
     "Birim (isteğe bağlı)": {
       "localizations": {
         "tr": {

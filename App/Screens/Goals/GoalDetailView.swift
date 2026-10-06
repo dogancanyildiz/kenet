@@ -8,7 +8,6 @@ struct GoalDetailView: View {
     @State private var history: GoalDayModel
     @State private var editing: GoalValueModel?
     @State private var field: GoalEditableField?
-    @Environment(\.clockNow) private var clockNow
     init(store: IndexStore, goal: GoalDefinition, day: CalendarDate = LocalDay.today()) {
         self.store = store
         original = goal
@@ -19,9 +18,10 @@ struct GoalDetailView: View {
         let status = history.status(for: goal)
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                PageHeadline(title: goal.name, byline: goal.period.title)
+                InkPageTitle(verbatim: goal.name, byline: goal.period.title)
 
                 progressBlock(status: status)
+                    .padding(.horizontal, InkSpacing.margin)
 
                 if goal.kind != .milestone {
                     section(title: String(localized: "Isı haritası")) {
@@ -31,6 +31,7 @@ struct GoalDetailView: View {
                         }
                         .disabled(!history.canEdit)
                     }
+                    .padding(.horizontal, InkSpacing.margin)
                 }
 
                 section(title: String(localized: "Tanım")) {
@@ -38,36 +39,30 @@ struct GoalDetailView: View {
                         .padding(12)
                         .inkSurface()
                 }
+                .padding(.horizontal, InkSpacing.margin)
                 .disabled(!store.canAddEvent)
 
                 section(title: String(localized: "Geçmiş kayıtlar")) {
                     historyBlock
                 }
+                .padding(.horizontal, InkSpacing.margin)
 
                 if let error = history.errorText {
                     InfoBand(kind: .error, verbatim: error)
+                        .padding(.horizontal, InkSpacing.margin)
                 }
                 if history.isLoading {
                     InkProgress(kind: .indeterminate(label: "Yükleniyor…"))
+                        .padding(.horizontal, InkSpacing.margin)
                 }
             }
-            .padding(.horizontal, InkSpacing.margin)
             .padding(.vertical, 12)
             .inkPageColumn()
         }
         .inkPage()
-        .navigationTitle(goal.name)
-        #if os(iOS)
-            .navigationBarTitleDisplayMode(.inline)
-        #endif
+        .inkPageNavigationTitle(verbatim: goal.name)
         .toolbar { SearchButton() }
-        .task(
-            id: String(describing: store.lastUpdated) + LocalDay.today(at: clockNow()).description
-        ) {
-            let day = LocalDay.today(at: clockNow())
-            if history.day != day {
-                history = GoalDayModel(store: store, day: day)
-            }
+        .task(id: store.lastUpdated) {
             await history.load()
         }
         .sheet(item: $editing, onDismiss: { Task { await history.load() } }) { model in
@@ -112,26 +107,28 @@ struct GoalDetailView: View {
 
     private var definitionBlock: some View {
         VStack(alignment: .leading, spacing: 0) {
-            definitionRow(.name, value: goal.name)
+            definitionRow(.name, value: goal.name, valueFont: .ink.content)
             Button {
                 field = .period
             } label: {
-                definitionLabel(GoalEditableField.period.title, value: goal.period.title)
+                definitionLabel(
+                    GoalEditableField.period.title, value: goal.period.title, valueFont: .ink.byline)
             }
             .buttonStyle(.plain)
             .disabled(goal.kind == .milestone)
             Button {
                 field = .kind
             } label: {
-                definitionLabel(GoalEditableField.kind.title, value: goal.kind.title)
+                definitionLabel(
+                    GoalEditableField.kind.title, value: goal.kind.title, valueFont: .ink.byline)
             }
             .buttonStyle(.plain)
             .disabled(goal.kind == .milestone)
             if goal.kind != .milestone {
-                definitionRow(.target, value: goal.target.formatted())
+                definitionRow(.target, value: goal.target.formatted(), valueFont: .ink.value)
             }
-            definitionRow(.unit, value: goal.unit ?? "")
-            definitionLabel(String(localized: "Anahtar"), value: goal.key)
+            definitionRow(.unit, value: goal.unit ?? "", valueFont: .ink.content)
+            definitionLabel(String(localized: "Anahtar"), value: goal.key, valueFont: .ink.content)
                 .foregroundStyle(Color.ink.secondaryText)
         }
     }
@@ -183,23 +180,25 @@ struct GoalDetailView: View {
         }
     }
 
-    private func definitionRow(_ field: GoalEditableField, value: String) -> some View {
+    private func definitionRow(
+        _ field: GoalEditableField, value: String, valueFont: Font
+    ) -> some View {
         Button {
             self.field = field
         } label: {
-            definitionLabel(field.title, value: value)
+            definitionLabel(field.title, value: value, valueFont: valueFont)
         }
         .buttonStyle(.plain)
     }
 
-    private func definitionLabel(_ title: String, value: String) -> some View {
+    private func definitionLabel(_ title: String, value: String, valueFont: Font) -> some View {
         HStack {
             Text(verbatim: title)
                 .font(.ink.meta)
                 .foregroundStyle(Color.ink.secondaryText)
             Spacer()
             Text(verbatim: value)
-                .font(.ink.content)
+                .font(valueFont)
                 .foregroundStyle(Color.ink.text)
                 .multilineTextAlignment(.trailing)
         }

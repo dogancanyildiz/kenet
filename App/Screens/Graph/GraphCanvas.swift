@@ -16,7 +16,8 @@ struct GraphCanvas: View {
             Canvas { context, size in
                 let neighbors = selected.map { graph.neighbors(of: $0) } ?? []
                 for edge in graph.edges {
-                    guard let first = positions[edge.first], let second = positions[edge.second] else {
+                    guard let first = positions[edge.first], let second = positions[edge.second]
+                    else {
                         continue
                     }
                     var path = Path()
@@ -46,11 +47,9 @@ struct GraphCanvas: View {
                             GraphNodeShape(kind: node.kind).path(in: ring),
                             with: .color(Color.ink.accent),
                             lineWidth: InkStroke.highPriority)
-                        context.draw(
-                            Text(verbatim: node.name)
-                                .font(.ink.content)
-                                .foregroundStyle(Color.ink.text),
-                            at: CGPoint(x: position.x, y: position.y + radius + 14))
+                        Self.drawSelectedLabel(
+                            node.name, at: position, radius: radius, canvasSize: size,
+                            in: &context)
                     }
                 }
             }
@@ -92,7 +91,7 @@ struct GraphCanvas: View {
                     }
                 }
             }
-            .gesture(
+            .highPriorityGesture(
                 DragGesture().updating($drag) { value, state, _ in state = value.translation }
                     .onEnded {
                         pan = CGSize(
@@ -124,5 +123,29 @@ struct GraphCanvas: View {
         CGPoint(
             x: size.width / 2 + (point.x - origin.x) * scale + pan.width + drag.width,
             y: size.height / 2 + (point.y - origin.y) * scale + pan.height + drag.height)
+    }
+
+    private static func drawSelectedLabel(
+        _ name: String, at position: CGPoint, radius: CGFloat, canvasSize: CGSize,
+        in context: inout GraphicsContext
+    ) {
+        let label = Text(verbatim: name).font(.ink.content).foregroundStyle(Color.ink.text)
+        let resolved = context.resolve(label)
+        let textSize = resolved.measure(in: CGSize(width: 240, height: 40))
+        let padX: CGFloat = 4
+        let padY: CGFloat = 2
+        let width = max(textSize.width, CGFloat(name.count) * 8) + padX * 2
+        let height = max(textSize.height, 18) + padY * 2
+        // Prefer below the node (clear of the accent ring); flip above if clipped.
+        var originY = position.y + radius + 10
+        if originY + height > canvasSize.height - 2 {
+            originY = position.y - radius - height - 10
+        }
+        originY = min(max(2, originY), max(2, canvasSize.height - height - 2))
+        var originX = position.x - width / 2
+        originX = min(max(2, originX), max(2, canvasSize.width - width - 2))
+        let labelRect = CGRect(x: originX, y: originY, width: width, height: height)
+        context.fill(Path(roundedRect: labelRect, cornerRadius: 2), with: .color(Color.ink.paper))
+        context.draw(resolved, at: CGPoint(x: labelRect.midX, y: labelRect.midY))
     }
 }

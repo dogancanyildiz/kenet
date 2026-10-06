@@ -37,7 +37,22 @@ struct ComponentControlsTests {
         #expect(axWeeks == 6)
         let ax = GoalHeatmapMetrics.cellSize(availableWidth: 390, weekCount: axWeeks)
         #expect(ax >= phone)
+        #expect(ax <= GoalHeatmapMetrics.tapHeight)
         #expect(GoalHeatmapMetrics.tapHeight == 44)
+    }
+
+    @Test func heatmapContentWidthFitsAvailableWidths() {
+        for width: CGFloat in [390, 320] {
+            for accessibility in [false, true] {
+                let weeks = GoalHeatmapMetrics.weekCount(isAccessibilitySize: accessibility)
+                let size = GoalHeatmapMetrics.cellSize(availableWidth: width, weekCount: weeks)
+                let content = GoalHeatmapMetrics.contentWidth(weekCount: weeks, cellSize: size)
+                #expect(
+                    content <= width,
+                    "content \(content) > \(width) (ax=\(accessibility), weeks=\(weeks), cell=\(size))")
+                #expect(GoalHeatmapMetrics.contentFits(availableWidth: width, weekCount: weeks))
+            }
+        }
     }
 
     @Test func buttonChromeUsesTokensNotOpacityStates() {

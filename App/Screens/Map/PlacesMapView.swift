@@ -50,7 +50,7 @@ struct PlacesMapView: View {
                 }
             }
         }
-        .inkPageTitle("Harita")
+        .inkPinnedPageTitle("Harita")
         .toolbar {
             Button("Beni göster", systemImage: "location") {
                 showsUser = true

@@ -11,10 +11,11 @@ struct SummariesView: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            controls
-            ScrollView {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
+                InkPageTitle("Özetler")
                 VStack(alignment: .leading, spacing: 20) {
+                    controls
                     if model.isLoading {
                         InkProgress(kind: .indeterminate(label: "Yükleniyor…"))
                     }
@@ -43,12 +44,13 @@ struct SummariesView: View {
                         tasksSection(summary)
                     }
                 }
-                .padding(InkSpacing.margin)
-                .inkPageColumn()
+                .padding(.horizontal, InkSpacing.margin)
             }
+            .padding(.bottom, InkSpacing.margin)
+            .inkPageColumn()
         }
         .inkPage()
-        .inkPageTitle("Özetler")
+        .inkPageNavigationTitle("Özetler")
         .toolbar { SearchButton() }
         .task(id: requestID) { await model.load() }
         .onChange(of: store.vaultURL) { _, _ in model.reset() }
@@ -123,6 +125,5 @@ struct SummariesView: View {
             }
             .buttonStyle(InkTextButtonStyle())
         }
-        .padding(InkSpacing.margin)
     }
 }

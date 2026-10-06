@@ -5,24 +5,47 @@ import VaultFormat
 /// Pure heatmap layout math (unit-tested; kept off MainActor).
 enum GoalHeatmapMetrics {
     static let spacing: CGFloat = 3
-    static let weekdayColumnMin: CGFloat = 18
+    /// Weekday gutter — same constant in width math and drawing (never `max(cell, gutter)`).
+    static let weekdayColumnWidth: CGFloat = 18
     static let minimumCellSize: CGFloat = 14
-    /// Tap target height approaches the 44 pt floor while staying dense enough for a week column.
+    /// Minimum hit-target height; visual squares may be smaller and rows may pull together.
     static let tapHeight: CGFloat = 44
 
     static func weekCount(isAccessibilitySize: Bool) -> Int {
         isAccessibilitySize ? 6 : 12
     }
 
+    /// Square side that fits `weekCount` week columns plus the weekday gutter and gaps.
     static func cellSize(availableWidth: CGFloat, weekCount: Int) -> CGFloat {
         guard weekCount > 0, availableWidth > 0 else { return minimumCellSize }
+        // Gaps: weekday|week × weekCount (one after the gutter, then between weeks).
         let gaps = CGFloat(weekCount) * spacing
-        let usable = availableWidth - weekdayColumnMin - gaps
-        return max(minimumCellSize, floor(usable / CGFloat(weekCount)))
+        let usable = availableWidth - weekdayColumnWidth - gaps
+        let raw = floor(usable / CGFloat(weekCount))
+        // Cap at tap height so AX cells stay square and never taller than the hit row.
+        return max(minimumCellSize, min(tapHeight, raw))
     }
 
-    static func columnWidth(cellSize: CGFloat) -> CGFloat {
-        cellSize + spacing
+    /// Total width of gutter + week columns + inter-column gaps.
+    static func contentWidth(weekCount: Int, cellSize: CGFloat) -> CGFloat {
+        weekdayColumnWidth + CGFloat(weekCount) * (cellSize + spacing)
+    }
+
+    static func contentFits(availableWidth: CGFloat, weekCount: Int) -> Bool {
+        let size = cellSize(availableWidth: availableWidth, weekCount: weekCount)
+        return contentWidth(weekCount: weekCount, cellSize: size) <= availableWidth
+    }
+
+    /// Visual square side (never taller than the tap row).
+    static func displaySize(cellSize: CGFloat) -> CGFloat {
+        min(cellSize, tapHeight)
+    }
+
+    /// Vertical spacing between tap-tall rows so visual squares keep a `spacing` pitch.
+    /// Negative when the tap row is taller than the square (dense grid, overlapping hit areas).
+    static func rowSpacing(cellSize: CGFloat) -> CGFloat {
+        let visual = displaySize(cellSize: cellSize)
+        return spacing - (tapHeight - visual)
     }
 }
 
@@ -40,6 +63,7 @@ struct GoalHeatmap: View {
     let select: (CalendarDate) -> Void
 
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @ScaledMetric(relativeTo: .footnote) private var legendMarkSize = 10
     @State private var availableWidth: CGFloat = 358
 
     private var weekCount: Int {
@@ -48,6 +72,10 @@ struct GoalHeatmap: View {
 
     private var cellSize: CGFloat {
         GoalHeatmapMetrics.cellSize(availableWidth: availableWidth, weekCount: weekCount)
+    }
+
+    private var contentFits: Bool {
+        GoalHeatmapMetrics.contentFits(availableWidth: availableWidth, weekCount: weekCount)
     }
 
     var body: some View {
@@ -59,12 +87,10 @@ struct GoalHeatmap: View {
                 monthLabels(weeks: weeks, cellSize: cellSize)
                 HStack(alignment: .top, spacing: GoalHeatmapMetrics.spacing) {
                     weekdayColumn(cellSize: cellSize)
-                    HStack(alignment: .top, spacing: GoalHeatmapMetrics.spacing) {
-                        ForEach(Array(weeks.enumerated()), id: \.offset) { _, week in
-                            VStack(spacing: 0) {
-                                ForEach(week, id: \.self) { day in
-                                    cell(day: day, marks: marks, cellSize: cellSize)
-                                }
+                    ForEach(Array(weeks.enumerated()), id: \.offset) { _, week in
+                        VStack(spacing: GoalHeatmapMetrics.rowSpacing(cellSize: cellSize)) {
+                            ForEach(week, id: \.self) { day in
+                                cell(day: day, marks: marks, cellSize: cellSize)
                             }
                         }
                     }
@@ -73,6 +99,8 @@ struct GoalHeatmap: View {
             }
             .frame(minWidth: max(availableWidth, 1), alignment: .leading)
         }
+        // Overflow: open on the current week. Fits: no scroll range, anchor unused.
+        .defaultScrollAnchor(contentFits ? .leading : .trailing)
         .background(
             GeometryReader { geo in
                 Color.clear.preference(key: HeatmapWidthKey.self, value: geo.size.width)
@@ -96,15 +124,21 @@ struct GoalHeatmap: View {
 
     private func weekdayColumn(cellSize: CGFloat) -> some View {
         let symbols = weekdaySymbols
-        let width = max(cellSize, GoalHeatmapMetrics.weekdayColumnMin)
-        return VStack(spacing: 0) {
+        let visual = GoalHeatmapMetrics.displaySize(cellSize: cellSize)
+        return VStack(spacing: GoalHeatmapMetrics.rowSpacing(cellSize: cellSize)) {
             ForEach(0..<7, id: \.self) { index in
                 Text(verbatim: symbols[index])
                     .font(.ink.meta)
                     .foregroundStyle(Color.ink.secondaryText)
                     .frame(
-                        width: width, height: GoalHeatmapMetrics.tapHeight,
+                        width: GoalHeatmapMetrics.weekdayColumnWidth,
+                        height: visual,
                         alignment: .trailing
+                    )
+                    .frame(
+                        width: GoalHeatmapMetrics.weekdayColumnWidth,
+                        height: GoalHeatmapMetrics.tapHeight,
+                        alignment: .center
                     )
                     .accessibilityHidden(true)
             }
@@ -112,17 +146,15 @@ struct GoalHeatmap: View {
     }
 
     private func monthLabels(weeks: [[CalendarDate]], cellSize: CGFloat) -> some View {
-        let column = GoalHeatmapMetrics.columnWidth(cellSize: cellSize)
-        let weekdayWidth = max(cellSize, GoalHeatmapMetrics.weekdayColumnMin)
         return HStack(alignment: .bottom, spacing: GoalHeatmapMetrics.spacing) {
-            Color.clear.frame(width: weekdayWidth, height: 14)
+            Color.clear.frame(width: GoalHeatmapMetrics.weekdayColumnWidth, height: 14)
             ForEach(Array(weeks.enumerated()), id: \.offset) { index, week in
                 let label = monthLabel(for: week, previous: index > 0 ? weeks[index - 1] : nil)
                 Text(verbatim: label)
                     .font(.ink.meta)
                     .foregroundStyle(Color.ink.secondaryText)
                     .fixedSize()
-                    .frame(width: column, alignment: .leading)
+                    .frame(width: cellSize, alignment: .leading)
                     .accessibilityHidden(label.isEmpty)
             }
         }
@@ -142,20 +174,21 @@ struct GoalHeatmap: View {
         let isFuture = day > today
         let mark = marks[day] ?? .none
         let kind: HeatmapCellKind = isFuture ? .future : mark.heatmapKind
-        let column = GoalHeatmapMetrics.columnWidth(cellSize: cellSize)
+        let visual = GoalHeatmapMetrics.displaySize(cellSize: cellSize)
         return Button {
             if !isFuture { select(day) }
         } label: {
             HeatmapCell(
                 kind: kind,
-                size: cellSize,
+                size: visual,
                 isToday: day == today,
                 accessibilityValue: Text(mark.title),
                 accessibilityLabel: isFuture
                     ? nil
                     : Text(LocalDay.instant(for: day), format: .dateTime.day().month().year())
             )
-            .frame(width: column, height: GoalHeatmapMetrics.tapHeight)
+            .frame(width: cellSize, height: visual)
+            .frame(width: cellSize, height: GoalHeatmapMetrics.tapHeight, alignment: .center)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -189,7 +222,7 @@ struct GoalHeatmap: View {
     private func legendItem(_ mark: GoalDayMark) -> some View {
         HStack(spacing: 4) {
             HeatmapCell(
-                kind: mark.heatmapKind, size: 10, accessibilityValue: Text(mark.title),
+                kind: mark.heatmapKind, size: legendMarkSize, accessibilityValue: Text(mark.title),
                 accessibilityLabel: Text(mark.title))
             Text(mark.title)
                 .font(.ink.meta)

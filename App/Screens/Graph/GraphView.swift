@@ -17,25 +17,33 @@ struct GraphView: View {
         @Bindable var model = model
         TimelineView(.periodic(from: .now, by: 60)) { _ in
             let today = LocalDay.today(at: clockNow())
-            let stack = VStack(spacing: 0) {
-                GraphControls(
-                    maximumWeight: max(365, model.graph.edges.map(\.weight).max() ?? 1),
-                    filter: $model.filter,
-                    zoom: $zoom,
-                    pan: $pan
-                )
-                if model.isLoading {
-                    InkProgress(kind: .indeterminate(label: "Yükleniyor…"))
-                        .padding(.horizontal, InkSpacing.margin)
+            let canvasHeight: CGFloat = dynamicTypeSize.isAccessibilitySize ? 280 : 360
+            VStack(spacing: 0) {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 0) {
+                        InkPageTitle("Graph")
+                        GraphControls(
+                            maximumWeight: max(365, model.graph.edges.map(\.weight).max() ?? 1),
+                            filter: $model.filter,
+                            zoom: $zoom,
+                            pan: $pan
+                        )
+                        if model.isLoading {
+                            InkProgress(kind: .indeterminate(label: "Yükleniyor…"))
+                                .padding(.horizontal, InkSpacing.margin)
+                        }
+                        if model.graph.nodes.isEmpty && !model.isLoading {
+                            EmptyState("Gösterilecek düğüm yok")
+                        }
+                    }
                 }
-                if model.graph.nodes.isEmpty && !model.isLoading {
-                    EmptyState("Gösterilecek düğüm yok")
-                } else {
+                if !(model.graph.nodes.isEmpty && !model.isLoading) {
                     GraphCanvas(
                         graph: model.graph, positions: model.positions, selected: $model.selected,
                         zoom: $zoom, pan: $pan
                     )
-                    .frame(minHeight: dynamicTypeSize.isAccessibilitySize ? 280 : 200)
+                    .frame(height: canvasHeight)
+                    .frame(maxWidth: .infinity)
                 }
                 legendRow
                 if let node = model.graph.nodes.first(where: { $0.id == model.selected }) {
@@ -61,13 +69,6 @@ struct GraphView: View {
                     .padding(.horizontal, InkSpacing.margin)
                     .padding(.bottom, 8)
             }
-            Group {
-                if dynamicTypeSize.isAccessibilitySize {
-                    ScrollView { stack }
-                } else {
-                    stack
-                }
-            }
             .inkPage()
             .task(
                 id: String(describing: model.filter) + today.description
@@ -76,7 +77,7 @@ struct GraphView: View {
                 await model.load(today: today)
             }
         }
-        .inkPageTitle("Graph")
+        .inkPageNavigationTitle("Graph")
         .toolbar { SearchButton() }
         .onChange(of: store.vaultURL) { model.reset() }
         .onChange(of: model.selected) { pan = .zero }

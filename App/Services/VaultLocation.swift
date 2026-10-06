@@ -3,7 +3,7 @@ import Foundation
 /// Result of opening the user's registered vault (or the legacy Documents/Vault).
 enum VaultResolution: Equatable {
     case available(url: URL, notice: String?)
-    /// Bookmark present but unusable, or bookmark was malformed and cleared — no vault opened.
+    /// Saved vault cannot be opened — no substitute vault is created.
     case inaccessible
 }
 
@@ -15,6 +15,8 @@ final class VaultLocation {
     private let bookmarks: VaultBookmarks
     private var scopedURL: URL?
     private static let bookmarkKey = "vaultBookmark"
+    /// Set when a malformed bookmark is cleared so later launches do not open Documents/Vault.
+    static let savedVaultLostKey = "savedVaultLost"
 
     init(defaults: UserDefaults = .standard, documentsURL: URL? = nil, bookmarks: VaultBookmarks = VaultBookmarks()) {
         self.defaults = defaults
@@ -26,12 +28,16 @@ final class VaultLocation {
         scopedURL?.stopAccessingSecurityScopedResource()
     }
 
+    private var hasLostSavedVault: Bool { defaults.bool(forKey: Self.savedVaultLostKey) }
+
     var needsFirstLaunch: Bool {
-        defaults.data(forKey: Self.bookmarkKey) == nil
+        !hasLostSavedVault
+            && defaults.data(forKey: Self.bookmarkKey) == nil
             && !FileManager.default.fileExists(atPath: documentsURL.appendingPathComponent("Vault").path)
     }
 
     func resolve() throws -> VaultResolution {
+        if hasLostSavedVault { return .inaccessible }
         if defaults.data(forKey: Self.bookmarkKey) != nil {
             return try resolveSavedBookmark()
         }
@@ -40,6 +46,12 @@ final class VaultLocation {
 
     /// Retries only the saved bookmark (or legacy Documents/Vault). Never creates a new local vault.
     func resolveSavedVault() throws -> VaultResolution {
+        if hasLostSavedVault {
+            if defaults.data(forKey: Self.bookmarkKey) != nil {
+                return try resolveSavedBookmark()
+            }
+            return .inaccessible
+        }
         if defaults.data(forKey: Self.bookmarkKey) != nil {
             return try resolveSavedBookmark()
         }
@@ -56,7 +68,11 @@ final class VaultLocation {
             resolved = try bookmarks.resolve(data)
         } catch {
             // A missing disk or temporary resolver failure must not erase the user's choice.
-            if bookmarks.isMalformed(data) { defaults.removeObject(forKey: Self.bookmarkKey) }
+            // Malformed bytes cannot be retried: clear them and remember the loss.
+            if bookmarks.isMalformed(data) {
+                defaults.removeObject(forKey: Self.bookmarkKey)
+                defaults.set(true, forKey: Self.savedVaultLostKey)
+            }
             return .inaccessible
         }
         do {
@@ -81,6 +97,7 @@ final class VaultLocation {
 
     /// No fallback vault is substituted for an inaccessible bookmark during automation.
     func existingVaultForIntent() throws -> URL {
+        if hasLostSavedVault { throw CocoaError(.fileReadNoPermission) }
         if defaults.data(forKey: Self.bookmarkKey) != nil { return try resolveForBackground() }
         let root = documentsURL.appendingPathComponent("Vault", isDirectory: true)
         try validateDirectory(root)
@@ -88,6 +105,7 @@ final class VaultLocation {
     }
 
     func resolveForBackground() throws -> URL {
+        if hasLostSavedVault { throw CocoaError(.fileReadNoPermission) }
         guard let data = defaults.data(forKey: Self.bookmarkKey) else { return try createDefaultVault() }
         let resolved = try bookmarks.resolve(data)
         try beginAccess(to: resolved.url)
@@ -114,6 +132,7 @@ final class VaultLocation {
             try validateDirectory(url)
             let data = try bookmarks.create(url)
             defaults.set(data, forKey: Self.bookmarkKey)
+            defaults.removeObject(forKey: Self.savedVaultLostKey)
             scopedURL?.stopAccessingSecurityScopedResource()
             scopedURL = accessed ? url : nil
             return url

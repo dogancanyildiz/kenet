@@ -8629,6 +8629,22 @@
         }
       }
     },
+    "Klasöre hâlâ erişilemiyor.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The folder is still unavailable."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klasöre hâlâ erişilemiyor."
+          }
+        }
+      }
+    },
     "Kayıtlı klasör bulunamadı veya açılamıyor. Diski bağlayıp yeniden dene ya da başka bir klasör seç.": {
       "localizations": {
         "en": {

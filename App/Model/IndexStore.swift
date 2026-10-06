@@ -120,6 +120,8 @@ final class IndexStore {
     }
 
     func start() async {
+        // A second automatic start in the same session must not re-resolve into Documents/Vault.
+        if isVaultInaccessible { return }
         if let vaultURL {
             if requiresOnboarding { await open(vaultURL) }
             return
@@ -142,14 +144,16 @@ final class IndexStore {
             switch try location.resolveSavedVault() {
             case .available(let url, let resolvedNotice):
                 notice = resolvedNotice
+                errorText = nil
                 isVaultInaccessible = false
                 await open(url)
             case .inaccessible:
                 enterInaccessibleState()
+                errorText = String(localized: "Klasöre hâlâ erişilemiyor.")
             }
         } catch {
             enterInaccessibleState()
-            report(error)
+            errorText = String(localized: "Klasöre hâlâ erişilemiyor.")
         }
     }
 

@@ -9,11 +9,15 @@ struct ContentView: View {
 
     var body: some View {
         Group {
-            if store.requiresOnboarding {
+            switch AppRootScreen.resolve(
+                requiresOnboarding: store.requiresOnboarding,
+                isVaultInaccessible: store.isVaultInaccessible
+            ) {
+            case .onboarding:
                 OnboardingView(store: store)
-            } else if store.isVaultInaccessible {
+            case .vaultInaccessible:
                 VaultInaccessibleView(store: store)
-            } else {
+            case .main:
                 #if os(macOS)
                     MacNavigation(store: store)
                 #else

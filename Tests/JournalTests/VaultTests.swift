@@ -39,6 +39,12 @@ struct VaultLocationTests {
         let resolved = try location.resolve()
         #expect(resolved == .inaccessible)
         #expect(defaults.data(forKey: "vaultBookmark") == nil)
+        #expect(defaults.bool(forKey: "savedVaultLost"))
+        #expect(!location.needsFirstLaunch)
+        #expect(!FileManager.default.fileExists(atPath: temp.appendingPathComponent("Vault").path))
+        #expect(try location.resolve() == .inaccessible)
+        #expect(try location.resolveSavedVault() == .inaccessible)
+        #expect(throws: CocoaError.self) { try location.resolveForBackground() }
         #expect(!FileManager.default.fileExists(atPath: temp.appendingPathComponent("Vault").path))
     }
 }

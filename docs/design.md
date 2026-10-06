@@ -158,6 +158,8 @@ Renkler (parantez içinde zemin üstündeki kontrast; KA: Kontrastı Artır):
 
 Değerler tasarımcının hesabıdır; belirteç PR'ında palet denetimiyle yeniden doğrulanır. Vurgu, renk körlüğü benzetiminde kişi mavisinden ayrışsın diye mor yerine mürdüm seçildi. Veri görselleştirme (ısı haritası, graph, zaman çizelgesi) renge ek olarak biçim ipucu taşır.
 
+Kod adları (`App/Design/`, asset catalog): Zemin → `Color.ink.paper` / `InkPaper`; Yüzey → `Color.ink.surface` / `InkSurface`; Çukur → `Color.ink.well` / `InkWell`; Süs çizgisi → `Color.ink.rule` / `InkRule`; Metin → `Color.ink.text` / `InkText`; İkincil metin → `Color.ink.secondaryText` / `InkSecondaryText`; Vurgu → `Color.ink.accent` / `InkAccent` (`AccentColor`); Vurgu dolgusunun üstündeki metin → `Color.ink.onAccent` / `InkOnAccent`; Uyarı → `Color.ink.warning` / `InkWarning`; Kontrol çizgisi → `Color.ink.control` / `InkControl`; Kişi → `Color.ink.person` / `InkPerson`; Konum → `Color.ink.place` / `InkPlace`. Yazı: manşet → `Font.ink.display`; içerik → `Font.ink.content`; yer tutucu → `Font.ink.placeholder`; künye → `Font.ink.byline`; bölüm başlığı → `Font.ink.section`; meta → `Font.ink.meta`; değer → `Font.ink.value`; saat → `Font.ink.time`; büyük rakam → `Font.ink.largeNumber`. Biçim/boşluk: `InkSpacing`, `InkSize`, `InkStroke`; sayfa zemini → `.inkPage()`.
+
 İmza benimsenirse eklenecek belirteçler (Derkenar'ın kendi zemininde ölçüldü; Mürekkep zemininde yeniden hesaplanır): fosfor izi `#FFEE99` (açık) ve `#4F4410` (koyu); kenar çizgisi `#D9796B` (açık) ve `#A85A50` (koyu).
 
 Yazı:
@@ -179,7 +181,7 @@ Biçim: görev kutusu 22 pt kare (köşe 5 pt), hedef halkası 22 pt daire, art�
 
 Yukarıdan aşağı: manşet (tarih) ve künye satırı (olayla başlayıp "kaldı" ile biten özet: "3 olay · 4 görev ve 2 hedef kaldı"); hedefler (halka, ad, sağda değer ve tek dokunuşluk artı); görevler (köşeli kutu ve içinde öncelik, devreden görevde tarih); takvim (kasa dışı kaynak olduğu için sans); olaylar (kenarda saat); günlük yazısı (dört satır ve "Devamını yaz"). Altta hızlı giriş kapsülü ("Olay" ve "Görev" sözcükleri, yer tutucu, gönder) ve sistem sekme çubuğu.
 
-`screens.md` taslağına ekler (sahibin onayına bağlı): manşet ve künye satırı; bölüm sayaçları; devreden görevlerin üç satır ve "N devreden daha" ile sınırlanması; birden çok tamamlanan görevin tek satıra katlanması. On geciken görevin nasıl görüneceğini adayların hiçbiri çizmedi; kural prototipte sınanır.
+`screens.md` taslağına işlenen ekler: manşet ve künye satırı; bölüm sayaçları; devreden görevlerin üç satır ve "N devreden daha" ile sınırlanması; birden çok tamamlanan görevin tek satıra katlanması. On geciken görevin nasıl görüneceğini adayların hiçbiri çizmedi; kural prototipte sınanır.
 
 ## Bileşenler
 

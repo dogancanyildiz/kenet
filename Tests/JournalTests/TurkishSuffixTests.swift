@@ -39,6 +39,25 @@ struct TurkishSuffixTests {
         }
     }
 
+    @Test func ablativeTableForWordsAndNumbers() {
+        let months: [(String, String)] = [
+            ("Ocak", "Ocak'tan"), ("Şubat", "Şubat'tan"), ("Mart", "Mart'tan"), ("Nisan", "Nisan'dan"),
+            ("Mayıs", "Mayıs'tan"), ("Haziran", "Haziran'dan"), ("Temmuz", "Temmuz'dan"),
+            ("Ağustos", "Ağustos'tan"), ("Eylül", "Eylül'den"), ("Ekim", "Ekim'den"), ("Kasım", "Kasım'dan"),
+            ("Aralık", "Aralık'tan"),
+        ]
+        for (name, expected) in months {
+            #expect(TurkishSuffix.withAblative(name) == expected, "ablative for \(name)")
+        }
+        let years: [(Int, String)] = [
+            (2000, "2000'den"), (2019, "2019'dan"), (2023, "2023'ten"), (2024, "2024'ten"),
+            (2025, "2025'ten"), (2026, "2026'dan"), (2030, "2030'dan"), (2040, "2040'tan"),
+        ]
+        for (year, expected) in years {
+            #expect(TurkishSuffix.withAblativeNumber(year) == expected, "ablative for \(year)")
+        }
+    }
+
     @Test func youAreAtUsesLocativeAndCopula() {
         #expect(TurkishSuffix.youAreAt("Ev") == "Ev'desin")
         #expect(TurkishSuffix.youAreAt("Okul") == "Okul'dasın")

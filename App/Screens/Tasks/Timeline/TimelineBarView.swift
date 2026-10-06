@@ -59,7 +59,7 @@
         private var color: Color {
             if !dates.isValid { return .orange }
             if presentation.usesSecondaryText { return .secondary }
-            return presentation.showsOverdueCue ? .inkWarning : .accentColor
+            return presentation.showsOverdueCue ? .ink.warning : .accentColor
         }
         private func handle(_ edge: TimelineDates.Edge) -> some View {
             Capsule().fill(.white.opacity(0.8)).frame(width: 3, height: 12).padding(.horizontal, 5)

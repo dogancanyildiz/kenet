@@ -28,6 +28,7 @@ enum UITestSupport {
     static func launchApp(vaultURL: URL) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchEnvironment["JOURNAL_UITEST_VAULT"] = vaultURL.path
+        app.launchEnvironment["JOURNAL_UITEST_QUICK_ENTRY_TEXT"] = smokeEventText
         app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryL"]
         app.launch()
         return app
@@ -88,9 +89,17 @@ enum UITestSupport {
         let tab = tab(in: app, identifier: identifier)
         waitForExistence(tab)
         tab.tap()
+        // iOS 26 tab bars sometimes swallow the first element tap; retry at the button's centre.
+        if !waitUntilSelected(tab, timeout: 3) {
+            dismissKeyboard(in: app)
+            tab.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+            _ = waitUntilSelected(tab, timeout: 5)
+        }
         let marker = element(in: app, identifier: screen)
         if marker.waitForExistence(timeout: 15) { return }
-        XCTAssertTrue(tab.isSelected, "Tab \(identifier) did not become selected")
+        XCTAssertTrue(
+            tab.isSelected,
+            "Tab \(identifier) did not become selected (keyboard covers screen: \(keyboardCoversScreen(in: app)))")
         XCTAssertTrue(
             app.collectionViews.firstMatch.waitForExistence(timeout: 10)
                 || app.tables.firstMatch.waitForExistence(timeout: 5)
@@ -98,16 +107,54 @@ enum UITestSupport {
             "Screen \(screen) showed no content after switching tabs")
     }
 
+    @MainActor
+    static func waitUntilSelected(_ element: XCUIElement, timeout: TimeInterval) -> Bool {
+        let deadline = Date().addingTimeInterval(timeout)
+        while Date() < deadline {
+            if element.isSelected { return true }
+            RunLoop.current.run(until: Date().addingTimeInterval(0.2))
+        }
+        return element.isSelected
+    }
+
     /// The software keyboard covers the tab bar on CI simulators (no hardware keyboard).
     @MainActor
     static func dismissKeyboard(in app: XCUIApplication) {
-        guard app.keyboards.firstMatch.exists else { return }
+        for _ in 0..<3 {
+            guard keyboardCoversScreen(in: app) else { return }
+            dismissKeyboardOnce(in: app)
+        }
+    }
+
+    /// With a hardware keyboard attached (local simulators) the software keyboard exists off screen.
+    @MainActor
+    static func keyboardCoversScreen(in app: XCUIApplication) -> Bool {
+        let keyboard = app.keyboards.firstMatch
+        guard keyboard.exists else { return false }
+        return keyboard.frame.minY < app.frame.maxY
+    }
+
+    @MainActor
+    private static func dismissKeyboardOnce(in app: XCUIApplication) {
         let hide = app.keyboards.buttons["Hide keyboard"]
         if hide.exists {
             hide.tap()
-        } else {
-            app.swipeDown()
+            if app.keyboards.firstMatch.waitForNonExistence(timeout: 2) { return }
         }
+        // iPhone keyboards have no hide key: the return key resigns focus (an empty quick entry
+        // ignores the submit), then an interactive drag on the content as a last resort.
+        let returnKey = app.keyboards.buttons.matching(
+            NSPredicate(
+                format: "identifier == %@ OR label IN %@", "Return",
+                ["Return", "return", "Done", "done", "Go", "Git", "Geç", "Bitti", "Gönder"])
+        ).firstMatch
+        if returnKey.exists, returnKey.isHittable {
+            returnKey.tap()
+            if app.keyboards.firstMatch.waitForNonExistence(timeout: 2) { return }
+        }
+        let content = element(in: app, identifier: "screen.today")
+        let start = (content.exists ? content : app).coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.3))
+        start.press(forDuration: 0.1, thenDragTo: start.withOffset(CGVector(dx: 0, dy: 300)))
         _ = app.keyboards.firstMatch.waitForNonExistence(timeout: 3)
     }
 

@@ -28,14 +28,10 @@ final class SmokeUITests: XCTestCase {
 
         let field = UITestSupport.quickEntryField(in: app)
         UITestSupport.waitForExistence(field, timeout: 30)
-        field.tap()
-        // Prefer paste: SwiftUI TextField(selection:) often drops XCUITest keystrokes.
-        UIPasteboard.general.string = UITestSupport.smokeEventText
-        field.press(forDuration: 1.0)
-        let paste = app.menuItems["Paste"].exists ? app.menuItems["Paste"] : app.menuItems["Yapıştır"]
-        if paste.waitForExistence(timeout: 3) {
-            paste.tap()
-        } else {
+        // The text arrives through the DEBUG launch environment: the keyboard and the paste menu
+        // behave differently across simulator versions. Typing is only a fallback.
+        if !(field.value as? String ?? "").contains(UITestSupport.smokeEventText) {
+            field.tap()
             app.typeText(UITestSupport.smokeEventText)
         }
 

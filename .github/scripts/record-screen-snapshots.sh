@@ -7,8 +7,7 @@ cd "$(dirname "$0")/../.."
 
 DEVELOPER_DIR="${DEVELOPER_DIR:-/Applications/Xcode.app/Contents/Developer}"
 export DEVELOPER_DIR
-RECORD_MODE="${SNAPSHOT_TESTING_RECORD:-all}"
-export SNAPSHOT_TESTING_RECORD="$RECORD_MODE"
+export SNAPSHOT_TESTING_RECORD="${SNAPSHOT_TESTING_RECORD:-all}"
 
 command -v xcodegen >/dev/null || { echo "xcodegen gerekli: brew install xcodegen" >&2; exit 1; }
 xcodegen generate
@@ -38,38 +37,35 @@ print(chosen["udid"], chosen["name"], "iOS %d.%d" % version)
 ID=${DEVICE%% *}
 NAME=${DEVICE#* }
 
+# Görüntü test kümeleri ad kuralından bulunur (bkz. snapshot-suites.sh).
+ONLY=$(sh .github/scripts/snapshot-suites.sh | sed 's#^#-only-testing:JournalTests_iOS/#' | tr '\n' ' ')
+[ -n "$ONLY" ] || { echo "Görüntü test kümesi bulunamadı" >&2; exit 1; }
+
 echo "Simülatör: $NAME"
 echo "SNAPSHOT_TESTING_RECORD=$SNAPSHOT_TESTING_RECORD"
 
 # Kayıt modunda ilk koşu referansı yazar; eksik referansta kütüphane bir kez düşer — ikinci koşu doğrular.
 set +e
-status=0
-for suite in ScreenSnapshotTests GoalsSummarySnapshotTests; do
-  export SNAPSHOT_TESTING_RECORD="$RECORD_MODE"
-  xcodebuild test \
+xcodebuild test \
+  -project Journal.xcodeproj \
+  -scheme Journal_iOS \
+  -destination "platform=iOS Simulator,id=$ID" \
+  $ONLY \
+  CODE_SIGNING_ALLOWED=NO \
+  -quiet
+status=$?
+if [ "$SNAPSHOT_TESTING_RECORD" != "never" ] && [ "$status" -ne 0 ]; then
+  echo "İlk kayıt koşusu düştü (beklenen); doğrulama koşusu…"
+  unset SNAPSHOT_TESTING_RECORD
+  xcodebuild test-without-building \
     -project Journal.xcodeproj \
     -scheme Journal_iOS \
     -destination "platform=iOS Simulator,id=$ID" \
-    -only-testing:"JournalTests_iOS/${suite}" \
+    $ONLY \
     CODE_SIGNING_ALLOWED=NO \
     -quiet
-  suite_status=$?
-  if [ "$RECORD_MODE" != "never" ] && [ "$suite_status" -ne 0 ]; then
-    echo "İlk kayıt koşusu düştü ($suite, beklenen); doğrulama koşusu…"
-    unset SNAPSHOT_TESTING_RECORD
-    xcodebuild test-without-building \
-      -project Journal.xcodeproj \
-      -scheme Journal_iOS \
-      -destination "platform=iOS Simulator,id=$ID" \
-      -only-testing:"JournalTests_iOS/${suite}" \
-      CODE_SIGNING_ALLOWED=NO \
-      -quiet
-    suite_status=$?
-  fi
-  if [ "$suite_status" -ne 0 ]; then
-    status=$suite_status
-  fi
-done
+  status=$?
+fi
 set -e
-echo "Referanslar: Tests/JournalTests/Snapshots/__Snapshots__/"
+echo "Referanslar: Tests/JournalTests/Snapshots/__Snapshots__/ScreenSnapshotTests/"
 exit "$status"

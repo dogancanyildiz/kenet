@@ -145,11 +145,11 @@ jobs:
             -scheme Journal_iOS \
             -destination "platform=iOS Simulator,name=${{ steps.ios_sim.outputs.name }}" \
             -only-testing:JournalTests_iOS \
-            -skip-testing:JournalTests_iOS/ScreenSnapshotTests \
+            $(sh .github/scripts/snapshot-suites.sh | sed 's#^#-skip-testing:JournalTests_iOS/#' | tr '\n' ' ') \
             CODE_SIGNING_ALLOWED=NO \
             -quiet
       # Ekran görüntüsü: birim katmanında SwiftUI çizimi (uygulama açılmaz). Ayrı adım = süre ölçümü
-      # ve düşünce fark görüntüleri artifact'ı. Algısal tolerans 0.98 (Tests/JournalTests/Snapshots).
+      # ve düşünce fark görüntüleri artifact'ı. Kümeler ad kuralından bulunur (.github/scripts/snapshot-suites.sh).
       - name: iOS ekran görüntüsü
         id: screen_snapshots
         run: |
@@ -157,7 +157,7 @@ jobs:
             -project Journal.xcodeproj \
             -scheme Journal_iOS \
             -destination "platform=iOS Simulator,name=${{ steps.ios_sim.outputs.name }}" \
-            -only-testing:JournalTests_iOS/ScreenSnapshotTests \
+            $(sh .github/scripts/snapshot-suites.sh | sed 's#^#-only-testing:JournalTests_iOS/#' | tr '\n' ' ') \
             -resultBundlePath ScreenSnapshots.xcresult \
             CODE_SIGNING_ALLOWED=NO \
             -quiet

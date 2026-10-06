@@ -90,9 +90,10 @@ struct SearchTests {
         #expect(model.results.allSatisfy { $0.detail == "2026-10-01" })
     }
 
-    @Test func recentQueriesPersistDeduplicateAndKeepFive() throws {
+    @Test func recentQueriesPersistDeduplicateAndKeepFive() async throws {
         let context = try EntityPageTestContext()
         defer { context.clean() }
+        await context.start()
         let model = SearchModel(store: context.store, defaults: context.defaults.defaults)
         for query in ["one", "two", "three", "four", "five", "six", " TWO ", " "] {
             model.query = query
@@ -101,6 +102,40 @@ struct SearchTests {
         #expect(model.recentQueries == ["TWO", "six", "five", "four", "three"])
         let reopened = SearchModel(store: context.store, defaults: context.defaults.defaults)
         #expect(reopened.recentQueries == model.recentQueries)
+    }
+
+    @Test func recentQueriesAreScopedToVaultAndClearable() async throws {
+        let context = try EntityPageTestContext()
+        defer { context.clean() }
+        await context.start()
+        let model = SearchModel(store: context.store, defaults: context.defaults.defaults)
+        model.query = "Deniz"
+        model.rememberQuery()
+        #expect(model.recentQueries == ["Deniz"])
+        let firstKey = try #require(SearchModel.historyKey(for: context.store.vaultURL))
+        #expect(context.defaults.defaults.stringArray(forKey: firstKey) == ["Deniz"])
+        #expect(context.defaults.defaults.stringArray(forKey: "search.recentQueries") == nil)
+
+        let other = context.directory.appendingPathComponent("other")
+        try FileManager.default.createDirectory(at: other, withIntermediateDirectories: true)
+        await context.store.select(other)
+        model.reloadHistory()
+        #expect(model.recentQueries.isEmpty)
+
+        model.query = "other-query"
+        model.rememberQuery()
+        #expect(model.recentQueries == ["other-query"])
+        let secondKey = try #require(SearchModel.historyKey(for: context.store.vaultURL))
+        #expect(firstKey != secondKey)
+        #expect(context.defaults.defaults.stringArray(forKey: firstKey) == ["Deniz"])
+
+        model.clearHistory()
+        #expect(model.recentQueries.isEmpty)
+        #expect(context.defaults.defaults.stringArray(forKey: secondKey) == nil)
+
+        await context.store.select(context.root)
+        model.reloadHistory()
+        #expect(model.recentQueries == ["Deniz"])
     }
 
     @Test func keyboardSelectionAndActivationRememberTheSearch() async throws {

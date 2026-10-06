@@ -55,7 +55,9 @@ struct SearchView: View {
             }
         )
         .onChange(of: path) { _, path in if path.isEmpty { searchFocused = true } }
+        .onChange(of: store.vaultURL) { _, _ in model.reloadHistory() }
         .task { searchFocused = true }
+        .task(id: store.vaultURL) { model.reloadHistory() }
         .task(id: SearchRequest(query: model.query, root: store.vaultURL, updated: store.lastUpdated)) {
             await model.search(debounce: true)
         }

@@ -1,3 +1,4 @@
+import CryptoKit
 import Foundation
 import Observation
 
@@ -15,19 +16,19 @@ final class SearchModel {
         }
     }
     private(set) var results: [SearchItem] = []
-    private(set) var recentQueries: [String]
+    private(set) var recentQueries: [String] = []
     private(set) var selectedID: String?
     private(set) var isSearching = false
     private(set) var errorText: String?
     @ObservationIgnored private let defaults: UserDefaults
     @ObservationIgnored private var request = UUID()
+    @ObservationIgnored private var historyRoot: URL?
     private var resultRoot: URL?
-    private static let historyKey = "search.recentQueries"
 
     init(store: IndexStore, defaults: UserDefaults = .standard) {
         self.store = store
         self.defaults = defaults
-        recentQueries = Array((defaults.stringArray(forKey: Self.historyKey) ?? []).prefix(5))
+        reloadHistory()
     }
 
     var isEmpty: Bool { query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
@@ -73,11 +74,44 @@ final class SearchModel {
     }
 
     func rememberQuery() {
+        reloadHistory()
         let text = query.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !text.isEmpty else { return }
+        guard !text.isEmpty, let key = Self.historyKey(for: store.vaultURL) else { return }
         recentQueries.removeAll { SearchResults.comparisonKey($0) == SearchResults.comparisonKey(text) }
         recentQueries.insert(text, at: 0)
         recentQueries = Array(recentQueries.prefix(5))
-        defaults.set(recentQueries, forKey: Self.historyKey)
+        defaults.set(recentQueries, forKey: key)
+    }
+
+    func clearHistory() {
+        if let key = Self.historyKey(for: store.vaultURL) {
+            defaults.removeObject(forKey: key)
+        }
+        recentQueries = []
+        historyRoot = store.vaultURL
+    }
+
+    /// Reloads recent queries for the current vault (call after vault switch or Settings clear).
+    func reloadHistory() {
+        let root = store.vaultURL
+        historyRoot = root
+        guard let key = Self.historyKey(for: root) else {
+            recentQueries = []
+            return
+        }
+        recentQueries = Array((defaults.stringArray(forKey: key) ?? []).prefix(5))
+    }
+
+    /// UserDefaults key for one vault's recent queries. `nil` when no vault is open.
+    static func historyKey(for vaultURL: URL?) -> String? {
+        guard let vaultURL else { return nil }
+        let identity = vaultURL.resolvingSymlinksInPath().standardizedFileURL.path
+        let digest = SHA256.hash(data: Data(identity.utf8)).map { String(format: "%02x", $0) }.joined()
+        return "search.recentQueries." + digest
+    }
+
+    static func clearStoredHistory(for vaultURL: URL?, defaults: UserDefaults = .standard) {
+        guard let key = historyKey(for: vaultURL) else { return }
+        defaults.removeObject(forKey: key)
     }
 }

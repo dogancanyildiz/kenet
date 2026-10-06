@@ -68,6 +68,12 @@ targets:
         INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
         INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: YES
         INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.productivity
+        # Documents/Vault appears in Files (On My iPhone → Journal) and can open in place.
+        # INFOPLIST_KEY_UIFileSharingEnabled is ignored by current Xcode GENERATE_INFOPLIST_FILE
+        # on some SDKs; merge an explicit plist instead (keys kept for documentation/tests).
+        INFOPLIST_KEY_UIFileSharingEnabled: YES
+        INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace: YES
+        INFOPLIST_FILE: App/Support/FileSharing.plist
       configs:
         Debug:
           CODE_SIGN_IDENTITY: "-"

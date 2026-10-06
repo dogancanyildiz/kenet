@@ -2513,6 +2513,38 @@
         }
       }
     },
+    "Ön bilgi listesi güncellenemedi (%@): öğeler eşleştirilemedi.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ön bilgi listesi güncellenemedi (%@): öğeler eşleştirilemedi."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frontmatter list could not be updated (%@): items could not be matched."
+          }
+        }
+      }
+    },
+    "Ön bilgi listesi güncellenemedi (%@).": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ön bilgi listesi güncellenemedi (%@)."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frontmatter list could not be updated (%@)."
+          }
+        }
+      }
+    },
     "Ad değiştirme tamamlanamadı; dosyada kısmi değişiklik kaldı.": {
       "localizations": {
         "tr": {

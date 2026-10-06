@@ -5,7 +5,7 @@ struct RenameDocument {
     let document: RawDocument
     let rawFields: [String]
     /// Frontmatter list keys that could not be rewritten; body updates are still applied.
-    let listFailures: [(key: String, reason: String)]
+    let listFailures: [(key: String, reason: RenameListFailureReason)]
 
     static func rewrite(_ original: RawDocument, targets: RenameTargets, eligible: Bool) throws -> Self {
         guard !original.isReadOnly else { throw EditError.readOnlyDocument }
@@ -26,7 +26,7 @@ struct RenameDocument {
             }
         }
         var raw: [String] = []
-        var listFailures: [(key: String, reason: String)] = []
+        var listFailures: [(key: String, reason: RenameListFailureReason)] = []
         if case .parsed(let frontmatter) = document.frontmatter {
             for field in frontmatter.fields {
                 switch field.value {
@@ -64,21 +64,18 @@ struct RenameDocument {
         rewrite: (RawDocument, String, [FrontmatterScalar], RenameTargets) throws -> RawDocument = {
             try RenameList.rewrite($0, key: $1, items: $2, targets: $3)
         }
-    ) -> (document: RawDocument, failure: String?) {
+    ) -> (document: RawDocument, failure: RenameListFailureReason?) {
         do {
             return (try rewrite(document, key, items, targets), nil)
         } catch {
-            return (document, describeListFailure(error))
+            return (document, listFailureReason(error))
         }
     }
 
-    private static func describeListFailure(_ error: any Error) -> String {
-        if let edit = error as? EditError {
-            switch edit {
-            case .invalidValue: return "list tokens could not be matched"
-            default: return String(describing: edit)
-            }
+    private static func listFailureReason(_ error: any Error) -> RenameListFailureReason {
+        if let edit = error as? EditError, case .invalidValue = edit {
+            return .unmatchedTokens
         }
-        return String(describing: error)
+        return .unexpected
     }
 }

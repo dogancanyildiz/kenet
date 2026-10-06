@@ -51,6 +51,8 @@ struct RenameTests {
             switch failure.reason {
             case .rawField(let key): #expect(expected.kind == "rawField" && key == expected.detail)
             case .file(let reason): #expect(expected.kind == "file" && reason.contains(expected.detail))
+            case .frontmatterList(let key, _):
+                #expect(expected.kind == "frontmatterList" && key == expected.detail)
             default: Issue.record("Unexpected failure reason: \(failure.reason)")
             }
         }

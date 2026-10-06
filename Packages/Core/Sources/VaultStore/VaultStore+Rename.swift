@@ -80,7 +80,7 @@ extension VaultStore {
                 failures += rewrite.listFailures.map {
                     RenameFailure(
                         path: destination,
-                        reason: .file("frontmatter list '\($0.key)': \($0.reason)"))
+                        reason: .frontmatterList(key: $0.key, reason: $0.reason))
                 }
             } catch {
                 if candidates.contains(source) {

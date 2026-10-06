@@ -142,4 +142,51 @@ struct GoalMarkingFallbackTests {
             try await vault.store.settingGoalValue(on: storeDate, key: "proje", value: .boolean(true))
         }
     }
+
+    @Test func dualDefinitionOutsideGoalsFallsBackWhenSecondIsUnindexedMilestone() async throws {
+        let vault = try StoreVault()
+        defer { vault.remove() }
+        try vault.write(
+            "Archive/Proje.md",
+            """
+            ---
+            type: goal
+            name: Proje
+            key: proje
+            period: year
+            kind: boolean
+            target: 1
+            ---
+
+            """)
+        try vault.write(
+            "journal/2026-03-01.md",
+            """
+            ---
+            type: journal
+            date: 2026-03-01
+            goals:
+              proje: true
+            ---
+
+            """)
+        try vault.index.rebuild(vaultRoot: vault.root)
+        try vault.write(
+            "Extra/Proje.md",
+            """
+            ---
+            type: goal
+            name: Proje Kopya
+            key: proje
+            period: year
+            kind: milestone
+            ---
+
+            """)
+
+        await #expect(throws: EditError.invalidValue) {
+            try await vault.store.settingGoalValue(on: storeDate, key: "proje", value: .boolean(true))
+        }
+        #expect(!FileManager.default.fileExists(atPath: vault.root.appendingPathComponent(storePath).path))
+    }
 }

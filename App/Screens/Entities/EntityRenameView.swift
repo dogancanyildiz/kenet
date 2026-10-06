@@ -52,6 +52,8 @@ struct EntityRenameSummary: View {
                 case .file(let reason):
                     Text("Dosya güncellenemedi.")
                     Text(verbatim: reason).font(.caption)
+                case .frontmatterList(let key, let reason):
+                    Text(verbatim: RenameFailureCopy.frontmatterList(key: key, reason: reason))
                 case .partialChange(let reason):
                     Text("Özgün dosya geri yazılamadı.")
                     Text(verbatim: reason).font(.caption)

@@ -47,10 +47,9 @@ enum VaultImportScanner {
         do { url = try VaultImportBootstrap.checked(".app/vault.json", root: root) } catch { return false }
         if !FileManager.default.fileExists(atPath: url.path) { return true }
         guard let data = try? Data(contentsOf: url),
-            let version = VaultFormatVersion.formatVersion(in: data),
-            version == 1
+            let version = VaultFormatVersion.formatVersion(in: data)
         else { return false }
-        return true
+        return VaultFormatVersion.canWrite(vaultVersion: version)
     }
     static func inspect(_ root: URL) throws -> VaultImportReport {
         var report = VaultImportReport(root: root)

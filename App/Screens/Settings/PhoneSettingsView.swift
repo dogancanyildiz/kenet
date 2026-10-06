@@ -16,6 +16,7 @@ struct PhoneSettingsView: View {
         .navigationDestination(for: SettingsSection.self) { section in
             settingsDestination(section)
         }
+        .listRowBackground(Color.ink.surface)
         .inkPage()
         .accessibilityIdentifier("screen.settings")
     }

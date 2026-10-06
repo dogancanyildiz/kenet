@@ -17,10 +17,10 @@ struct VaultSettingsView: View {
                     Text(verbatim: url.path)
                         .font(.ink.meta)
                         .foregroundStyle(Color.ink.text)
-                        .lineLimit(2)
+                        .lineLimit(1)
                         .truncationMode(.middle)
                         .textSelection(.enabled)
-                        .accessibilityHint(Text(verbatim: url.path))
+                        .accessibilityLabel(Text(verbatim: url.path))
                     #if os(macOS)
                         Button("Finder'da göster") {
                             NSWorkspace.shared.activateFileViewerSelecting([url])
@@ -40,6 +40,7 @@ struct VaultSettingsView: View {
                             .lineLimit(1)
                             .truncationMode(.middle)
                             .textSelection(.enabled)
+                            .accessibilityLabel(Text(verbatim: selection.path))
                     }
                 }
                 if store.unwatchedDirectoryCount > 0 {
@@ -57,14 +58,10 @@ struct VaultSettingsView: View {
                 }
                 if store.isProcessing { VaultIndexingProgress(store: store) }
                 if let notice = store.notice {
-                    Text(verbatim: notice)
-                        .font(.ink.meta)
-                        .foregroundStyle(Color.ink.secondaryText)
+                    InfoBand(kind: .info, verbatim: notice)
                 }
                 if let error = store.errorText {
-                    Text(verbatim: error)
-                        .font(.ink.meta)
-                        .foregroundStyle(Color.ink.danger)
+                    InfoBand(kind: .error, verbatim: error)
                 }
             }
             Section("Varlık tipleri") {
@@ -79,8 +76,9 @@ struct VaultSettingsView: View {
             }
         }
         .formStyle(.grouped)
-        .inkPage()
+        .listRowBackground(Color.ink.surface)
         .inkPageColumn()
+        .inkPage()
         .fileImporter(isPresented: $choosingFolder, allowedContentTypes: [.folder]) { result in
             switch result {
             case .success(let url): Task { await store.inspectSelection(url) }

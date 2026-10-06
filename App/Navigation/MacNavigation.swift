@@ -43,8 +43,8 @@
                                 SummariesView(store: store)
                             }
                         }
+                        // Full-width paper; graph / map / summaries are not reading columns.
                         .inkPage()
-                        .inkPageColumn()
                     }
                 } else if section == .tasks && (showingKanban || showingTimeline) {
                     NavigationSplitView {
@@ -167,8 +167,6 @@
                     }
                 }
             }
-            // System accent for sidebar icons (design rule 12); brand accent stays in content.
-            .tint(Color(nsColor: .controlAccentColor))
             .navigationTitle("Journal")
         }
 
@@ -290,8 +288,8 @@
                     }
                 }
                 .id(section)
+                // Shell paints paper full-width; each page view applies `.inkPageColumn()` itself.
                 .inkPage()
-                .inkPageColumn()
             }
         }
 

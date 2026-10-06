@@ -15,7 +15,7 @@ struct VaultInaccessibleView: View {
                 Text(
                     "Kayıtlı klasör bulunamadı veya açılamıyor. Diski bağlayıp yeniden dene ya da başka bir klasör seç."
                 )
-                .font(.ink.content)
+                .font(.ink.byline)
                 .foregroundStyle(Color.ink.text)
                 Button("Yeniden dene") { Task { await store.retryVaultAccess() } }
                     .buttonStyle(InkPrimaryButtonStyle())

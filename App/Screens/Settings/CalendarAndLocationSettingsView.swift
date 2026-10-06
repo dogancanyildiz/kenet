@@ -8,7 +8,8 @@ struct CalendarAndLocationSettingsView: View {
             LocationSettingsView()
         }
         .formStyle(.grouped)
-        .inkPage()
+        .listRowBackground(Color.ink.surface)
         .inkPageColumn()
+        .inkPage()
     }
 }

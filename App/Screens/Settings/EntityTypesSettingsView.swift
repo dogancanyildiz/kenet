@@ -55,9 +55,10 @@ struct EntityTypesSettingsView: View {
             errorText = nil
         }
         .formStyle(.grouped)
+        .listRowBackground(Color.ink.surface)
         .navigationTitle("Varlık tipleri")
-        .inkPage()
         .inkPageColumn()
+        .inkPage()
         .confirmationDialog(
             "Tip tanımını sil?", isPresented: Binding(get: { deleting != nil }, set: { if !$0 { deleting = nil } })
         ) {

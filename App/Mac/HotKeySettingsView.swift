@@ -29,9 +29,10 @@
                 }
             }
             .formStyle(.grouped)
+            .listRowBackground(Color.ink.surface)
             .padding()
-            .inkPage()
             .inkPageColumn()
+            .inkPage()
             .onDisappear { model.endRecording() }
         }
     }

@@ -7,23 +7,41 @@
     @testable import Journal
 
     /// Shell / Settings / onboarding / lock — own case list (not ScreenSnapshotCase).
-    /// Light + dark only: full AX3/contrast matrix crashed the iOS test host under parallel simulator load.
+    /// Mac cases omitted: SnapshotTesting host here is UIKit / iOS Simulator only.
     enum ShellSettingsSnapshotCase: String, CaseIterable, Sendable {
         case onboardingLight
         case onboardingDark
+        case onboardingAX3
+        case onboardingContrast
         case settingsLight
         case settingsDark
+        case settingsAX3
+        case settingsContrast
         case lockLight
         case lockDark
+        case lockAX3
+        case lockContrast
         case inaccessibleLight
         case inaccessibleDark
+        case inaccessibleAX3
+        case inaccessibleContrast
+        case privacyLight
+        case privacyAX3
+        case vaultLight
+        case vaultAX3
+        case diagnosticsLight
+        case diagnosticsAX3
 
         var screen: ShellSettingsScreen {
             switch self {
-            case .onboardingLight, .onboardingDark: .onboarding
-            case .settingsLight, .settingsDark: .settings
-            case .lockLight, .lockDark: .lock
-            case .inaccessibleLight, .inaccessibleDark: .inaccessible
+            case .onboardingLight, .onboardingDark, .onboardingAX3, .onboardingContrast: .onboarding
+            case .settingsLight, .settingsDark, .settingsAX3, .settingsContrast: .settings
+            case .lockLight, .lockDark, .lockAX3, .lockContrast: .lock
+            case .inaccessibleLight, .inaccessibleDark, .inaccessibleAX3, .inaccessibleContrast:
+                .inaccessible
+            case .privacyLight, .privacyAX3: .privacy
+            case .vaultLight, .vaultAX3: .vault
+            case .diagnosticsLight, .diagnosticsAX3: .diagnostics
             }
         }
 
@@ -34,12 +52,53 @@
             }
         }
 
-        var dynamicType: SnapshotDynamicType { .medium }
-        var increaseContrast: Bool { false }
+        var dynamicType: SnapshotDynamicType {
+            switch self {
+            case .onboardingAX3, .settingsAX3, .lockAX3, .inaccessibleAX3, .privacyAX3, .vaultAX3,
+                .diagnosticsAX3:
+                .accessibility3
+            default: .medium
+            }
+        }
+
+        var increaseContrast: Bool {
+            switch self {
+            case .onboardingContrast, .settingsContrast, .lockContrast, .inaccessibleContrast:
+                true
+            default: false
+            }
+        }
+
+        /// Sample vault with a host-stable path (temp UUID paths break PNG refs).
+        var needsStableVault: Bool { screen == .vault }
+        /// Settings hub only needs any opened vault; temp path is fine (path not on screen).
+        var needsTempVault: Bool { screen == .settings }
+
+        /// Light/dark only — smaller bitmaps; run before AX batches to limit host pressure.
+        static var lightDarkCases: [ShellSettingsSnapshotCase] {
+            [
+                .onboardingLight, .onboardingDark, .settingsLight, .settingsDark,
+                .lockLight, .lockDark, .inaccessibleLight, .inaccessibleDark,
+            ]
+        }
+
+        static var accessibilityCases: [ShellSettingsSnapshotCase] {
+            [
+                .onboardingAX3, .onboardingContrast, .settingsAX3, .settingsContrast,
+                .lockAX3, .lockContrast, .inaccessibleAX3, .inaccessibleContrast,
+            ]
+        }
+
+        static var sectionCases: [ShellSettingsSnapshotCase] {
+            [
+                .privacyLight, .privacyAX3, .vaultLight, .vaultAX3,
+                .diagnosticsLight, .diagnosticsAX3,
+            ]
+        }
     }
 
     enum ShellSettingsScreen: String, Sendable {
-        case onboarding, settings, lock, inaccessible
+        case onboarding, settings, lock, inaccessible, privacy, vault, diagnostics
     }
 
     @MainActor
@@ -66,6 +125,12 @@
                     AnyView(AppLockCover(lock: lock, allowsBackgroundAuthentication: true))
                 case .inaccessible:
                     AnyView(VaultInaccessibleView(store: store))
+                case .privacy:
+                    AnyView(PrivacySettingsView().navigationTitle("Gizlilik"))
+                case .vault:
+                    AnyView(VaultSettingsView(store: store).navigationTitle("Kasa"))
+                case .diagnostics:
+                    AnyView(DiagnosticsView(store: store).navigationTitle("Tanılama"))
                 }
             return NavigationStack { root }
                 .environment(notifications)
@@ -170,20 +235,88 @@
         func events(from start: Date, to end: Date) async throws -> [CalendarEvent] { [] }
     }
 
-    @MainActor @Suite("Shell settings snapshots", .serialized)
-    struct ShellSettingsSnapshotTests {
-        @Test(arguments: ShellSettingsSnapshotCase.allCases)
-        func shellSettings(_ snapshotCase: ShellSettingsSnapshotCase) async throws {
-            let needsVault = snapshotCase.screen == .settings
-            let context = try TaskTestContext(sample: needsVault)
-            defer { context.clean() }
-            if needsVault { await context.start() }
+    /// Documents folder whose `Vault/` path is stable across simulator app containers.
+    /// Indexes live in a per-run temp directory so cleaning never unlinks an open SQLite file.
+    @MainActor
+    private enum StableSnapshotVault {
+        static func prepare() throws -> (
+            defaults: TestDefaults, store: IndexStore, indexes: URL
+        ) {
+            let snapshotsDir = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
+            let documents = snapshotsDir.appendingPathComponent(".stable-host", isDirectory: true)
+            let vault = documents.appendingPathComponent("Vault", isDirectory: true)
+            // Snapshots → JournalTests → Tests → repo root
+            let fixtures =
+                snapshotsDir
+                .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+                .appendingPathComponent("Fixtures/vaults/sample", isDirectory: true)
+            let manager = FileManager.default
+            if !manager.fileExists(atPath: vault.path) {
+                try manager.createDirectory(at: documents, withIntermediateDirectories: true)
+                try manager.copyItem(at: fixtures, to: vault)
+            }
+            let defaults = try TestDefaults()
+            let indexes = manager.temporaryDirectory
+                .appendingPathComponent("JournalShellSnapIndexes-\(UUID().uuidString)", isDirectory: true)
+            try manager.createDirectory(at: indexes, withIntermediateDirectories: true)
+            let store = IndexStore(
+                location: VaultLocation(
+                    defaults: defaults.defaults, documentsURL: documents, bookmarks: pathBookmarks()),
+                supportURL: indexes)
+            return (defaults, store, indexes)
+        }
+    }
+
+    @MainActor
+    private enum ShellSettingsSnapshotRunner {
+        static func run(_ snapshotCase: ShellSettingsSnapshotCase) async throws {
             let lockFixture = LockFixture(enabled: true)
             defer { lockFixture.clean() }
             lockFixture.context.result = false
             let lock = lockFixture.lock()
+
+            if snapshotCase.needsStableVault {
+                let prepared = try StableSnapshotVault.prepare()
+                defer {
+                    prepared.defaults.clean()
+                    try? FileManager.default.removeItem(at: prepared.indexes)
+                }
+                await prepared.store.start()
+                await ShellSettingsSnapshotHost.assert(
+                    snapshotCase, store: prepared.store, defaults: prepared.defaults.defaults, lock: lock)
+                return
+            }
+
+            let context = try TaskTestContext(sample: snapshotCase.needsTempVault)
+            defer { context.clean() }
+            if snapshotCase.needsTempVault { await context.start() }
             await ShellSettingsSnapshotHost.assert(
                 snapshotCase, store: context.store, defaults: context.defaults.defaults, lock: lock)
+        }
+    }
+
+    /// Separate suites so each `xcodebuild` run can reclaim memory after AX-sized bitmaps.
+    @MainActor @Suite("Shell settings snapshots", .serialized)
+    struct ShellSettingsSnapshotTests {
+        @Test(arguments: ShellSettingsSnapshotCase.lightDarkCases)
+        func shellSettings(_ snapshotCase: ShellSettingsSnapshotCase) async throws {
+            try await ShellSettingsSnapshotRunner.run(snapshotCase)
+        }
+    }
+
+    @MainActor @Suite("Shell settings snapshots AX", .serialized)
+    struct ShellSettingsAXSnapshotTests {
+        @Test(arguments: ShellSettingsSnapshotCase.accessibilityCases)
+        func shellSettings(_ snapshotCase: ShellSettingsSnapshotCase) async throws {
+            try await ShellSettingsSnapshotRunner.run(snapshotCase)
+        }
+    }
+
+    @MainActor @Suite("Shell settings snapshots sections", .serialized)
+    struct ShellSettingsSectionsSnapshotTests {
+        @Test(arguments: ShellSettingsSnapshotCase.sectionCases)
+        func shellSettings(_ snapshotCase: ShellSettingsSnapshotCase) async throws {
+            try await ShellSettingsSnapshotRunner.run(snapshotCase)
         }
     }
 #endif

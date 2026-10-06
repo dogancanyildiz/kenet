@@ -133,16 +133,16 @@ Telefonda okuma ve basit düzenleme. Aramadan ve bağlantılardan ulaşılır; a
 - **Hızlı giriş penceresi (1):** Sistem genelinde klavye kısayoluyla açılan küçük pencere; telefondaki hızlı giriş kutusuyla aynı davranış. Uygulama öne gelmeden kayıt yapılır. Kısayol Settings → Hızlı giriş sekmesinde ayarlanır.
 - **Notlar:** Serbest notlar için düzenleme alanı. (Henüz yok; kenar çubuğu öğesi yer tutucudur.)
 - Klavye kısayolları: arama (⌘F) ve hızlı geçiş (⌘K), bugüne git (⌘T). Yeni olay ve yeni görev kısayolları henüz yok.
-- **Ayarlar:** Mac'te sistem Settings sahnesinde sekmeler: Gizlilik, Bildirimler, Takvim ve Konum, Kasa, Tanılama; ayrıca Hızlı giriş kısayolu.
+- **Ayarlar:** Mac'te sistem Settings sahnesinde sekmeler (sıra): Hızlı giriş, Gizlilik, Bildirimler, Takvim ve Konum, Kasa, Tanılama.
 
 ## Ayarlar
 
-iPhone'da Bugün araç çubuğundan açılan Ayarlar listesi beş bölüme ayrılır. Mac'te aynı beş bölüm Settings sekmeleridir (üstte). Hiçbir ayar kaybolmaz; yeni ayar eklenmez.
+iPhone'da Bugün araç çubuğundan açılan Ayarlar listesi beş bölüme ayrılır. Mac'te aynı beş bölüm Settings sekmeleridir; Hızlı giriş kısayolu ilk sekmedir. Hiçbir ayar kaybolmaz; yeni ayar eklenmez.
 
 ### Ayarlar — Gizlilik (7)
 
 - **Uygulama kilidi** anahtarı. Açılması bir kez Face ID, Touch ID veya cihaz parolasıyla doğrulanır; iptal edilirse anahtar kapalı kalır. **Şu kadar sonra kilitle** seçimi hemen, 1 dk, 5 dk veya 15 dk olabilir; tercihler cihazda saklanır.
-- **Bildirimlerde içeriği gizle** için Bildirimler ayarına bağlantı (anahtar Bildirimler'dedir).
+- **Bildirimlerde içeriği gizle** için Bildirimler ayarına bağlantı (yalnız iPhone; Mac'te Bildirimler sekmesi kullanılır). Anahtar ve açıklama Bildirimler'dedir.
 - **Kişi hatırlatmaları:** görüşülmeyenler eşiği (1–365 gün, varsayılan 30); cihaz tercihi.
 
 Kilit açıkken uygulama etkinliğini kaybettiğinde içerik opak bir örtüyle gizlenir; açık sayfalar ve taslaklar korunur. iOS'ta süre arka plana geçişten, Mac'te uygulamanın etkinliğini kaybetmesinden başlar. Süre dolmadan dönüşte örtü kalkar; süre dolduysa veya uygulama yeni açıldıysa doğrulama gerekir. İptal/hata durumunda kilit ekranındaki **Tekrar dene** düğmesi kullanılır. Mac menü çubuğu ve klavye kısayoluyla açılan hızlı giriş paneli de aynı kilidi denetler.

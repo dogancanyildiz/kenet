@@ -44,7 +44,7 @@
                 .accessibilityHidden(appLock?.isLocked == true)
                 if let appLock, appLock.isLocked {
                     AppLockCover(lock: appLock, allowsBackgroundAuthentication: true)
-                        .frame(height: 240)
+                        .frame(minHeight: 240)
                 }
             }
             .frame(width: 480)

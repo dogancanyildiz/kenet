@@ -76,9 +76,10 @@ struct NotificationSettingsView: View {
             }
         }
         .formStyle(.grouped)
+        .listRowBackground(Color.ink.surface)
         .navigationTitle("Bildirimler")
-        .inkPage()
         .inkPageColumn()
+        .inkPage()
         .task { if AppLaunchPolicy.allowsAutomaticStart() { await service.replanNow() } }
     }
     private func time(_ key: WritableKeyPath<NotificationPreferences, NotificationTime>) -> Binding<Date> {

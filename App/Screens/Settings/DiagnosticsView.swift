@@ -7,15 +7,24 @@ struct DiagnosticsView: View {
     var body: some View {
         Form {
             Section("İndeks") {
-                HStack {
-                    Button("Yeniden üret") { Task { await store.refresh(rebuild: true) } }
-                        .disabled(store.isProcessing)
-                    Button("Arama geçmişini temizle") {
-                        SearchModel.clearStoredHistory(for: store.vaultURL)
+                ViewThatFits(in: .horizontal) {
+                    HStack {
+                        rebuildButton
+                        clearHistoryButton
                     }
-                    .disabled(store.vaultURL == nil)
-                }.buttonStyle(.borderless)
+                    VStack(alignment: .leading, spacing: 8) {
+                        rebuildButton
+                        clearHistoryButton
+                    }
+                }
+                .buttonStyle(.borderless)
                 if store.isProcessing { VaultIndexingProgress(store: store) }
+                if let notice = store.notice {
+                    InfoBand(kind: .info, verbatim: notice)
+                }
+                if let error = store.errorText {
+                    InfoBand(kind: .error, verbatim: error)
+                }
                 count("Dosyalar", store.counts.files)
                 count("Günler", store.counts.filesByKind["day", default: 0])
                 count("Kişiler", store.counts.filesByKind["person", default: 0])
@@ -62,8 +71,21 @@ struct DiagnosticsView: View {
             }
         }
         .formStyle(.grouped)
-        .inkPage()
+        .listRowBackground(Color.ink.surface)
         .inkPageColumn()
+        .inkPage()
+    }
+
+    private var rebuildButton: some View {
+        Button("Yeniden üret") { Task { await store.refresh(rebuild: true) } }
+            .disabled(store.isProcessing)
+    }
+
+    private var clearHistoryButton: some View {
+        Button("Arama geçmişini temizle") {
+            SearchModel.clearStoredHistory(for: store.vaultURL)
+        }
+        .disabled(store.vaultURL == nil)
     }
 
     private func count(_ label: LocalizedStringKey, _ value: Int) -> some View {

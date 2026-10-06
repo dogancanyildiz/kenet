@@ -11,7 +11,7 @@ struct OnboardingView: View {
                 Text(
                     "Verilerin Markdown dosyalarında kalır. Yeni bir kasa oluşturabilir veya var olan Obsidian klasörünü seçebilirsin."
                 )
-                .font(.ink.content)
+                .font(.ink.byline)
                 .foregroundStyle(Color.ink.text)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 #if os(iOS)

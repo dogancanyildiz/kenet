@@ -7,25 +7,28 @@ struct AppLockCover: View {
     var body: some View {
         ZStack {
             Color.ink.paper.ignoresSafeArea()
-            VStack(spacing: 20) {
-                Text("Günlük kilitli")
-                    .font(.ink.byline)
-                    .foregroundStyle(Color.ink.secondaryText)
-                if lock.isForeground || allowsBackgroundAuthentication {
-                    if lock.isAuthenticating {
-                        InkProgress(kind: .indeterminate(label: "Kimlik doğrulanıyor…"))
-                    } else {
-                        if lock.authenticationFailed {
-                            Text("Kimlik doğrulanamadı. Tekrar dene.")
-                                .font(.ink.meta)
-                                .foregroundStyle(Color.ink.secondaryText)
+            ScrollView {
+                VStack(spacing: 20) {
+                    Text("Günlük kilitli")
+                        .font(.ink.byline)
+                        .foregroundStyle(Color.ink.secondaryText)
+                    if lock.isForeground || allowsBackgroundAuthentication {
+                        if lock.isAuthenticating {
+                            InkProgress(kind: .indeterminate(label: "Kimlik doğrulanıyor…"))
+                        } else {
+                            if lock.authenticationFailed {
+                                Text("Kimlik doğrulanamadı. Tekrar dene.")
+                                    .font(.ink.meta)
+                                    .foregroundStyle(Color.ink.secondaryText)
+                            }
+                            Button("Tekrar dene") { Task { await lock.unlock() } }
+                                .buttonStyle(InkPrimaryButtonStyle())
                         }
-                        Button("Tekrar dene") { Task { await lock.unlock() } }
-                            .buttonStyle(InkPrimaryButtonStyle())
                     }
                 }
+                .padding(InkSpacing.margin)
+                .frame(maxWidth: .infinity)
             }
-            .padding(InkSpacing.margin)
         }
         .accessibilityElement(children: .contain)
     }

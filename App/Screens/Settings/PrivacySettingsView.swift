@@ -5,18 +5,19 @@ struct PrivacySettingsView: View {
     var body: some View {
         Form {
             AppLockSettingsView()
-            Section {
-                NavigationLink("Bildirimlerde içeriği gizle") {
-                    NotificationSettingsView()
+            #if os(iOS)
+                // Mac uses the adjacent Bildirimler Settings tab instead of a push.
+                Section {
+                    NavigationLink("Bildirimlerde içeriği gizle") {
+                        NotificationSettingsView()
+                    }
                 }
-                Text("Afiş, bildirim merkezi ve kilit ekranında görev metni ve hedef adları gösterilmez.")
-                    .font(.ink.meta)
-                    .foregroundStyle(Color.ink.secondaryText)
-            }
+            #endif
             PeopleInsightsSettingsView()
         }
         .formStyle(.grouped)
-        .inkPage()
+        .listRowBackground(Color.ink.surface)
         .inkPageColumn()
+        .inkPage()
     }
 }

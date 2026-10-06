@@ -48,6 +48,8 @@ xcodebuild test \
   -destination "platform=iOS Simulator,id=$ID" \
   -only-testing:JournalTests_iOS/ScreenSnapshotTests \
   -only-testing:JournalTests_iOS/ShellSettingsSnapshotTests \
+  -only-testing:JournalTests_iOS/ShellSettingsSnapshotTestsAX \
+  -only-testing:JournalTests_iOS/ShellSettingsSnapshotTestsSections \
   CODE_SIGNING_ALLOWED=NO \
   -quiet
 status=$?
@@ -60,6 +62,8 @@ if [ "$SNAPSHOT_TESTING_RECORD" != "never" ] && [ "$status" -ne 0 ]; then
     -destination "platform=iOS Simulator,id=$ID" \
     -only-testing:JournalTests_iOS/ScreenSnapshotTests \
     -only-testing:JournalTests_iOS/ShellSettingsSnapshotTests \
+    -only-testing:JournalTests_iOS/ShellSettingsSnapshotTestsAX \
+    -only-testing:JournalTests_iOS/ShellSettingsSnapshotTestsSections \
     CODE_SIGNING_ALLOWED=NO \
     -quiet
   status=$?

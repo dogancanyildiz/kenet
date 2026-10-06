@@ -14,15 +14,19 @@ struct ReadModelBackgroundTests {
         let probe = Probe()
         // Only builds that carry this test's event count; other suites run in parallel.
         let marker = "Off-main model"
-        VaultPublishedContent.buildProbe = { snapshot, body in
-            guard snapshot.blocks.contains(where: { $0.text.contains(marker) }) else { return body() }
+        VaultPublishedContent.buildProbe = { _, body in
+            let published = try body()
+            let hasMarker = published.content.days.contains { day in
+                day.events.contains { $0.text.plainText.contains(marker) }
+            }
+            guard hasMarker else { return published }
             probe.builds += 1
             if Thread.isMainThread {
                 probe.onMain += 1
             } else {
                 probe.offMain += 1
             }
-            body()
+            return published
         }
         defer { VaultPublishedContent.buildProbe = nil }
 

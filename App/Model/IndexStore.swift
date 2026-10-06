@@ -66,7 +66,8 @@ final class IndexStore {
     @ObservationIgnored private let location: VaultLocation
     @ObservationIgnored private let supportURL: URL
     @ObservationIgnored private let update:
-        @Sendable (VaultIndex, URL, Bool, EntityTypeCatalog, Bool, [SkippedPath]) async throws -> IndexUpdate
+        @Sendable (VaultIndex, URL, Bool, EntityTypeCatalog, Bool, [SkippedPath], VaultReadModel) async throws ->
+            IndexUpdate
     @ObservationIgnored private let watcherDirectoryLimit: Int
     @ObservationIgnored private var index: VaultIndex?
     @ObservationIgnored private var writer: VaultStore?
@@ -89,8 +90,13 @@ final class IndexStore {
         watcherDirectoryLimit: Int = 256,
         update:
             @escaping @Sendable (
-                VaultIndex, URL, Bool, EntityTypeCatalog, Bool, [SkippedPath]
-            ) async throws -> IndexUpdate = IndexUpdate.read
+                VaultIndex, URL, Bool, EntityTypeCatalog, Bool, [SkippedPath], VaultReadModel
+            ) async throws -> IndexUpdate = {
+                index, root, rebuild, previous, skip, skipped, previousContent in
+                try await IndexUpdate.read(
+                    index: index, root: root, rebuild: rebuild, previousTypes: previous,
+                    skipUnchanged: skip, previousSkipped: skipped, previousContent: previousContent)
+            }
     ) {
         self.location = location
         requiresOnboarding = location.needsFirstLaunch
@@ -202,7 +208,7 @@ final class IndexStore {
                 do {
                     try await writer.addingEvent(on: day, text: text, time: time)
                     saved = true
-                    try await publishAfterWrite(from: index)
+                    try await publishAfterWrite(from: index, changedPaths: ["journal/\(day).md"])
                 } catch {
                     if case VaultStoreError.indexUpdateFailed = error { saved = true }
                     entryErrorText =
@@ -276,8 +282,22 @@ final class IndexStore {
     }
 
     /// Shared file-first edit lifecycle. A saved-but-unindexed edit must never be retried.
+    /// Caller-supplied `path` is treated as an estimate: if that path cannot be loaded after the
+    /// write, the read model marks itself for a full reconcile on the next publish.
     func performEdit(
         path: String, operation: (VaultStore) async throws -> Void
+    ) async throws {
+        try await performEdit(estimatedPaths: [path]) {
+            try await operation($0)
+            return [path]
+        }
+    }
+
+    /// Like `performEdit(path:)` but the operation reports the paths it actually changed
+    /// (for example after filename sanitization in `creatingGoal`).
+    func performEdit(
+        estimatedPaths: Set<String> = [],
+        operation: (VaultStore) async throws -> Set<String>
     ) async throws {
         try await withWriteSlot {
             await waitWhileRefreshInFlight()
@@ -285,13 +305,18 @@ final class IndexStore {
             isProcessing = true
             isWriting = true
             var saved = false
+            var changedPaths: Set<String> = []
             var failure: (any Error)?
             do {
-                try await operation(writer)
+                changedPaths = try await operation(writer)
                 saved = true
-                try await publishAfterWrite(from: index)
+                let forceFull = changedPaths.contains { $0 == ".app/types.json" || $0.hasPrefix(".app/") }
+                try await publishAfterWrite(
+                    from: index, changedPaths: changedPaths, forceFull: forceFull,
+                    estimatedPaths: estimatedPaths)
             } catch {
-                failure = saved ? VaultStoreError.indexUpdateFailed(path: path, underlying: error) : error
+                let reportPath = changedPaths.sorted().first ?? estimatedPaths.sorted().first ?? ""
+                failure = saved ? VaultStoreError.indexUpdateFailed(path: reportPath, underlying: error) : error
                 if case VaultStoreError.staleTarget = error { pendingRefresh = true }
             }
             await finishEntityWrite()
@@ -308,7 +333,13 @@ final class IndexStore {
             do {
                 let result = try await writer.renamingEntity(at: path, to: name, qualifier: qualifier)
                 do {
-                    try await publishAfterWrite(from: index)
+                    var changed = Set(result.updatedFiles)
+                    changed.insert(result.path)
+                    changed.insert(path)
+                    var deleted: Set<String> = []
+                    if path != result.path { deleted.insert(path) }
+                    try await publishAfterWrite(
+                        from: index, changedPaths: changed, deletedPaths: deleted)
                 } catch {
                     entryErrorText = String(localized: "Varlık kaydedildi, indeks güncellenemedi.")
                     pendingRefresh = true
@@ -400,33 +431,42 @@ final class IndexStore {
             file: path, kind: KnownEntity.Kind(rawValue: kind.rawValue)!, name: name, qualifier: qualifier)
         knownEntities.append(entity)
         do {
-            try await reloadRecognition()
             if let index {
-                let published = try await loadPublishedContent(from: index)
-                content = published.content
-                counts = published.counts
-                lastUpdated = Date()
-                contentEpoch += 1
+                try await publishAfterWrite(from: index, changedPaths: [path])
+            } else {
+                try await reloadRecognition()
             }
             if !knownEntities.contains(where: { $0.file == path }) { knownEntities.append(entity) }
         } catch { entryErrorText = String(localized: "Varlık kaydedildi, indeks güncellenemedi.") }
         return entity
     }
 
-    /// Snapshot + read model off the main actor; only assignment happens on IndexStore.
-    private func loadPublishedContent(from index: VaultIndex) async throws -> VaultPublishedContent {
-        try await Task.detached {
-            try VaultPublishedContent.load(from: index)
-        }.value
-    }
-
-    private func publishAfterWrite(from index: VaultIndex) async throws {
-        let published = try await loadPublishedContent(from: index)
-        content = published.content
-        counts = published.counts
-        try await reloadRecognition()
-        lastUpdated = Date()
-        contentEpoch += 1
+    /// Read model off the main actor; only assignment happens on IndexStore.
+    private func publishAfterWrite(
+        from index: VaultIndex, changedPaths: Set<String>, deletedPaths: Set<String> = [],
+        forceFull: Bool = false, estimatedPaths: Set<String> = []
+    ) async throws {
+        let previous = content
+        do {
+            let published = try await Task.detached {
+                try VaultPublishedContent.applying(
+                    previous: previous, index: index, changedPaths: changedPaths,
+                    deletedPaths: deletedPaths, forceFull: forceFull,
+                    estimatedPaths: estimatedPaths)
+            }.value
+            content = published.content
+            counts = published.counts
+            try await reloadRecognition()
+            lastUpdated = Date()
+            contentEpoch += 1
+        } catch {
+            // Index may already include the write; keep a reconcile flag so the next publish
+            // cannot skip or patch on top of a drifted model.
+            var marked = content
+            marked.markNeedsFullReconcile()
+            content = marked
+            throw error
+        }
     }
 
     func waitWhileRefreshInFlight() async {
@@ -612,7 +652,7 @@ final class IndexStore {
             let epochAtStart = contentEpoch
             do {
                 let result = try await update(
-                    index, root, full, entityTypes, allowSkip, skippedPaths)
+                    index, root, full, entityTypes, allowSkip, skippedPaths, content)
                 guard generation == current else { return }
                 if contentEpoch != epochAtStart {
                     // A write published while Core work was in flight; discard and rescan.

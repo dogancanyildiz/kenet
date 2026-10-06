@@ -73,10 +73,10 @@ struct IdleRefreshTests {
         let store = IndexStore(
             location: VaultLocation(defaults: suite.defaults, documentsURL: temp),
             supportURL: temp.appendingPathComponent("indexes"),
-            update: { index, root, rebuild, previous, skip, skipped in
+            update: { index, root, rebuild, previous, skip, skipped, previousContent in
                 let result = try await IndexUpdate.read(
                     index: index, root: root, rebuild: rebuild, previousTypes: previous,
-                    skipUnchanged: skip, previousSkipped: skipped)
+                    skipUnchanged: skip, previousSkipped: skipped, previousContent: previousContent)
                 await gate.hold()
                 return result
             })
@@ -117,7 +117,7 @@ struct IdleRefreshTests {
         let store = IndexStore(
             location: VaultLocation(defaults: suite.defaults, documentsURL: temp),
             supportURL: temp.appendingPathComponent("indexes"),
-            update: { index, root, rebuild, previous, skip, skipped in
+            update: { index, root, rebuild, previous, skip, skipped, previousContent in
                 if flag.failNext {
                     flag.failNext = false
                     _ = try rebuild ? index.rebuild(vaultRoot: root) : index.refresh(vaultRoot: root)
@@ -125,7 +125,7 @@ struct IdleRefreshTests {
                 }
                 return try await IndexUpdate.read(
                     index: index, root: root, rebuild: rebuild, previousTypes: previous,
-                    skipUnchanged: skip, previousSkipped: skipped)
+                    skipUnchanged: skip, previousSkipped: skipped, previousContent: previousContent)
             })
         await store.start()
         let root = try #require(store.vaultURL)

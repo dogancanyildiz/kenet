@@ -100,6 +100,13 @@ public struct IndexSnapshot: Codable, Sendable, Equatable {
         public let kind: String
         public let date: String?
         public let readable: Bool
+
+        public init(path: String, kind: String, date: String?, readable: Bool) {
+            self.path = path
+            self.kind = kind
+            self.date = date
+            self.readable = readable
+        }
     }
     public let files: [File]
     public let entities: [IndexedEntity]
@@ -107,4 +114,16 @@ public struct IndexSnapshot: Codable, Sendable, Equatable {
     public let blocks: [IndexedBlock]
     public let links: [IndexedLink]
     public let goalLogs: [IndexedGoalLog]
+
+    public init(
+        files: [File], entities: [IndexedEntity], aliases: [IndexedAlias], blocks: [IndexedBlock],
+        links: [IndexedLink], goalLogs: [IndexedGoalLog]
+    ) {
+        self.files = files
+        self.entities = entities
+        self.aliases = aliases
+        self.blocks = blocks
+        self.links = links
+        self.goalLogs = goalLogs
+    }
 }

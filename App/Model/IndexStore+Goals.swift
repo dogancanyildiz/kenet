@@ -9,8 +9,8 @@ extension IndexStore {
     }
 
     func createGoal(name: String, period: GoalPeriod, kind: GoalKind, target: Double, unit: String?) async throws {
-        try await performEdit(path: "goals/" + name + ".md") {
-            try await $0.creatingGoal(name: name, period: period, kind: kind, target: target, unit: unit)
+        try await performEdit {
+            [try await $0.creatingGoal(name: name, period: period, kind: kind, target: target, unit: unit)]
         }
     }
 }

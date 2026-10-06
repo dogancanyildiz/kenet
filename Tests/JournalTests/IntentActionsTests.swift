@@ -53,6 +53,60 @@ struct IntentActionsTests {
         #expect(result.text == String(localized: "Görev eklendi: \("Deniz'i ara")"))
     }
 
+    @Test func assumedDateIsNotAppliedWithoutConfirmation() async throws {
+        let context = try TaskTestContext(sample: true)
+        defer { context.clean() }
+        var asked = 0
+        let result = try await actions(context).addTask(text: "oct 5 buy milk") { _ in
+            asked += 1
+            return false
+        }
+        let task = try #require(document(context).bodyLines.tasks.first)
+        #expect(asked == 1)
+        #expect(task.dueDate == nil)
+        #expect(task.text == "oct 5 buy milk")
+        #expect(result.text == String(localized: "Görev eklendi: \("oct 5 buy milk")"))
+        #expect(!String(decoding: try document(context).serialized(), as: UTF8.self).contains("📅"))
+    }
+
+    @Test func assumedDateWithoutConfirmChannelKeepsExpression() async throws {
+        let context = try TaskTestContext(sample: true)
+        defer { context.clean() }
+        _ = try await actions(context).addTask(text: "oct 5 buy milk")
+        let task = try #require(document(context).bodyLines.tasks.first)
+        #expect(task.dueDate == nil)
+        #expect(task.text == "oct 5 buy milk")
+    }
+
+    @Test func assumedDateAppliesOnlyAfterConfirmation() async throws {
+        let context = try TaskTestContext(sample: true)
+        defer { context.clean() }
+        var asked = 0
+        _ = try await actions(context).addTask(text: "oct 5 buy milk") { date in
+            asked += 1
+            #expect(date == CalendarDate("2026-10-05"))
+            return true
+        }
+        let task = try #require(document(context).bodyLines.tasks.first)
+        #expect(asked == 1)
+        #expect(task.dueDate == CalendarDate("2026-10-05"))
+        #expect(task.text == "buy milk")
+    }
+
+    @Test func exactDateAppliesWithoutAskingConfirmation() async throws {
+        let context = try TaskTestContext(sample: true)
+        defer { context.clean() }
+        var asked = 0
+        _ = try await actions(context).addTask(text: "tomorrow buy milk") { _ in
+            asked += 1
+            return true
+        }
+        let task = try #require(document(context).bodyLines.tasks.first)
+        #expect(asked == 0)
+        #expect(task.dueDate == LocalDay.today(at: instant).addingDays(1))
+        #expect(task.text == "buy milk")
+    }
+
     @Test func explicitTaskDateOverridesExpression() async throws {
         let context = try TaskTestContext(sample: true)
         defer { context.clean() }

@@ -191,6 +191,7 @@ Manşet, bölüm başlığı, kenar sütunlu satır (görev, hedef, olay ve takv
 
 - Prototip: Bugün ve kişi sayfası; seçilen yön (istenirse Derkenar'ın imzası açılıp kapatılarak); açık ve koyu mod, büyük yazı (AX3 ve AX5), Kontrastı Artır, Mac'te üç sütun. Ünlemli görev kutusunun dokunma davranışı ve devam eden görevdeki hali burada sınanır.
 - İlk teknik doğrulama: renkli ve desenli alt çizginin bağlantı parçasında, okuma metninde ve hızlı giriş alanında çizildiği. Çizilmezse yedek yol, bağlantı metnini kişi ya da konum renginde yazmaktır (kontrastlar yeterli).
+- **Doğrulama (2026-10-06):** `Text` ve `TextEditor` (`AttributedString`) içinde renkli desenli alt çizgi çiziliyor (`InkLinkStyle.mode == .underline`); `TextField` hâlâ `String` bağlar — yedek yol `InkLinkStyle` içinde durur.
 - CI'da palet kontrast testi (her belirteç çifti için), erişilebilirlik denetimi ve ekran görüntüsü testleri. Ajanlar ekranı göremediği için ekran görüntüsü testleri bu projede zorunludur.
 
 ## Bilinen sınırlar

@@ -25,6 +25,9 @@ struct InkPrimaryButtonStyle: ButtonStyle {
             .font(.ink.byline)
             .foregroundStyle(InkButtonChrome.color(for: role.foreground))
             .padding(.horizontal, 16)
+            // Padding keeps the label off the capsule edge at accessibility sizes; the frame
+            // guarantees the 44 pt touch target at the default size.
+            .padding(.vertical, 10)
             .frame(minHeight: InkButtonChrome.minimumHeight)
             .background {
                 if let background = role.background {

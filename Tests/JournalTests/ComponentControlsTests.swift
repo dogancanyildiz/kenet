@@ -37,8 +37,8 @@ struct ComponentControlsTests {
         #expect(axWeeks == 6)
         let ax = GoalHeatmapMetrics.cellSize(availableWidth: 390, weekCount: axWeeks)
         #expect(ax >= phone)
-        #expect(ax <= GoalHeatmapMetrics.tapHeight)
-        #expect(GoalHeatmapMetrics.tapHeight == 44)
+        // Above the old 18 pt LazyVGrid row height on `dev`.
+        #expect(phone >= 18)
     }
 
     @Test func heatmapContentWidthFitsAvailableWidths() {
@@ -51,6 +51,25 @@ struct ComponentControlsTests {
                     content <= width,
                     "content \(content) > \(width) (ax=\(accessibility), weeks=\(weeks), cell=\(size))")
                 #expect(GoalHeatmapMetrics.contentFits(availableWidth: width, weekCount: weeks))
+            }
+        }
+    }
+
+    @Test func heatmapTapTargetsFitRowAndColumnPitch() {
+        for width: CGFloat in [390, 320] {
+            for accessibility in [false, true] {
+                let weeks = GoalHeatmapMetrics.weekCount(isAccessibilitySize: accessibility)
+                let size = GoalHeatmapMetrics.cellSize(availableWidth: width, weekCount: weeks)
+                let tap = GoalHeatmapMetrics.tapSize(cellSize: size)
+                let step = GoalHeatmapMetrics.step(cellSize: size)
+                let rowSpacing = GoalHeatmapMetrics.rowSpacing(cellSize: size)
+                #expect(rowSpacing >= 0, "rowSpacing must not pull rows over each other")
+                #expect(
+                    tap <= step + rowSpacing,
+                    "tap height \(tap) > row pitch \(step + rowSpacing) (w=\(width), ax=\(accessibility))")
+                #expect(
+                    tap <= step,
+                    "tap width \(tap) > column step \(step) (w=\(width), ax=\(accessibility))")
             }
         }
     }

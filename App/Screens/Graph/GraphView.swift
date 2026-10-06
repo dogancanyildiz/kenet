@@ -18,56 +18,53 @@ struct GraphView: View {
         TimelineView(.periodic(from: .now, by: 60)) { _ in
             let today = LocalDay.today(at: clockNow())
             let canvasHeight: CGFloat = dynamicTypeSize.isAccessibilitySize ? 280 : 360
-            VStack(spacing: 0) {
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 0) {
-                        InkPageTitle("Graph")
-                        GraphControls(
-                            maximumWeight: max(365, model.graph.edges.map(\.weight).max() ?? 1),
-                            filter: $model.filter,
-                            zoom: $zoom,
-                            pan: $pan
-                        )
-                        if model.isLoading {
-                            InkProgress(kind: .indeterminate(label: "Yükleniyor…"))
-                                .padding(.horizontal, InkSpacing.margin)
-                        }
-                        if model.graph.nodes.isEmpty && !model.isLoading {
-                            EmptyState("Gösterilecek düğüm yok")
-                        }
-                    }
-                }
-                if !(model.graph.nodes.isEmpty && !model.isLoading) {
-                    GraphCanvas(
-                        graph: model.graph, positions: model.positions, selected: $model.selected,
-                        zoom: $zoom, pan: $pan
+            ScrollView {
+                VStack(alignment: .leading, spacing: 0) {
+                    InkPageTitle("Graph")
+                    GraphControls(
+                        maximumWeight: max(365, model.graph.edges.map(\.weight).max() ?? 1),
+                        filter: $model.filter,
+                        zoom: $zoom,
+                        pan: $pan
                     )
-                    .frame(height: canvasHeight)
-                    .frame(maxWidth: .infinity)
-                }
-                legendRow
-                if let node = model.graph.nodes.first(where: { $0.id == model.selected }) {
-                    HStack {
-                        Text(verbatim: node.name)
-                            .font(.ink.content)
-                            .foregroundStyle(Color.ink.text)
-                        Spacer()
-                        if let date = node.date {
-                            NavigationLink("Sayfayı aç") { DayView(store: store, date: date) }
-                        } else if let entity = store.content.entities.first(where: {
-                            $0.id == node.id
-                        }) {
-                            NavigationLink("Sayfayı aç") { EntityView(store: store, entity: entity) }
-                        }
+                    if model.isLoading {
+                        InkProgress(kind: .indeterminate(label: "Yükleniyor…"))
+                            .padding(.horizontal, InkSpacing.margin)
                     }
-                    .padding(InkSpacing.margin)
+                    if model.graph.nodes.isEmpty && !model.isLoading {
+                        EmptyState("Gösterilecek düğüm yok")
+                    } else {
+                        GraphCanvas(
+                            graph: model.graph, positions: model.positions, selected: $model.selected,
+                            zoom: $zoom, pan: $pan
+                        )
+                        .frame(height: canvasHeight)
+                        .frame(maxWidth: .infinity)
+                    }
+                    legendRow
+                    if let node = model.graph.nodes.first(where: { $0.id == model.selected }) {
+                        HStack {
+                            Text(verbatim: node.name)
+                                .font(.ink.content)
+                                .foregroundStyle(Color.ink.text)
+                            Spacer()
+                            if let date = node.date {
+                                NavigationLink("Sayfayı aç") { DayView(store: store, date: date) }
+                            } else if let entity = store.content.entities.first(where: {
+                                $0.id == node.id
+                            }) {
+                                NavigationLink("Sayfayı aç") { EntityView(store: store, entity: entity) }
+                            }
+                        }
+                        .padding(InkSpacing.margin)
+                    }
+                    Text("Çizgiler aynı gün geçen kayıtları bağlar.")
+                        .font(.ink.meta)
+                        .foregroundStyle(Color.ink.secondaryText)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .padding(.horizontal, InkSpacing.margin)
+                        .padding(.bottom, 8)
                 }
-                Text("Çizgiler aynı gün geçen kayıtları bağlar.")
-                    .font(.ink.meta)
-                    .foregroundStyle(Color.ink.secondaryText)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .padding(.horizontal, InkSpacing.margin)
-                    .padding(.bottom, 8)
             }
             .inkPage()
             .task(
@@ -98,6 +95,7 @@ struct GraphView: View {
                 }
             }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .font(.ink.meta)
         .padding(.horizontal, InkSpacing.margin)
         .padding(.vertical, 8)

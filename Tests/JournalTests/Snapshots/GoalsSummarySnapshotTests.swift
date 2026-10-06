@@ -57,13 +57,12 @@
         @Test(arguments: GoalsSummarySnapshotCase.allCases)
         func screen(_ snapshotCase: GoalsSummarySnapshotCase) async throws {
             let context = try SnapshotHost.makeContext()
+            defer { context.clean() }
             await context.start()
             #expect(context.store.lastUpdated != nil)
+            // `SnapshotHost.assert` hides and detaches the host window before returning.
             await SnapshotHost.assert(
                 snapshotCase, store: context.store, defaults: context.defaults.defaults)
-            // Drop the hosting window before unlinking the temp index (avoids sqlite vnode races).
-            try? await Task.sleep(for: .milliseconds(150))
-            context.clean()
         }
     }
 #endif

@@ -134,8 +134,8 @@ struct GraphCanvas: View {
         let textSize = resolved.measure(in: CGSize(width: 240, height: 40))
         let padX: CGFloat = 4
         let padY: CGFloat = 2
-        let width = max(textSize.width, CGFloat(name.count) * 8) + padX * 2
-        let height = max(textSize.height, 18) + padY * 2
+        let width = textSize.width + padX * 2
+        let height = textSize.height + padY * 2
         // Prefer below the node (clear of the accent ring); flip above if clipped.
         var originY = position.y + radius + 10
         if originY + height > canvasSize.height - 2 {

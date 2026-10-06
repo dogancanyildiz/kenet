@@ -63,12 +63,17 @@ struct TapTargetTests {
         #expect(
             source.contains("GoalHeatmapMetrics.cellSize"),
             "Cell size comes from GoalHeatmapMetrics.cellSize, not the 44 pt tap-target modifier")
+        // 44 pt cannot fit without spilling into the next day: cells form a contiguous grid
+        // and each hit target is exactly one row/column step (cell + spacing).
         #expect(
-            source.contains("static let tapHeight: CGFloat = 44"),
-            "Heatmap tap row height must approach the 44 pt floor")
+            !source.contains("static let tapHeight: CGFloat = 44"),
+            "Fixed 44 pt tap rows overlap neighbors on dense heatmaps")
+        #expect(
+            source.contains("tapSize(cellSize"),
+            "Hit target must match the grid step (cell + spacing)")
         #expect(
             source.contains("contentShape(Rectangle())"),
-            "Cell hit area must include spacing via contentShape")
+            "Cell hit area must fill the tap frame via contentShape")
     }
 
     @Test func quickEntryReflowsForLargeDynamicType() throws {

@@ -89,13 +89,4 @@ struct RowComponentTests {
         #expect(!GoalRingProgress.isComplete(0.99))
     }
 
-    @Test func inkPageTitlePlacementChoosesAttachment() {
-        #expect(
-            InkPageTitleAttachment.resolve(.listRow) == .listRowAndNavigationTitle)
-        #expect(
-            InkPageTitleAttachment.resolve(.scrollContent)
-                == .scrollLeadingAndNavigationTitle)
-        #expect(
-            InkPageTitleAttachment.resolve(.pinned) == .pinnedStripAndNavigationTitle)
-    }
 }

@@ -26,12 +26,11 @@ struct GraphControls: View {
                         weightRow
                     }
                 } else {
+                    // Keep label + stepper as one unit; reflow both together when narrow.
                     ViewThatFits(in: .horizontal) {
                         HStack(alignment: .firstTextBaseline, spacing: 12) {
                             periodPicker
-                            weightLabel
-                            Spacer(minLength: 8)
-                            weightStepper
+                            weightRow
                         }
                         VStack(alignment: .leading, spacing: 8) {
                             periodPicker

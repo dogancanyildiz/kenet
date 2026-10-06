@@ -46,7 +46,7 @@ Doğruluk ve veri güvenliği:
 - [x] Liste satırındaki birden çok düğme tek dokunuşta birlikte tetikleniyor (takma ad satırında "Kaydet" takma adı siliyor, günlük takviminde ay okları çalışmıyor); satır içi düğmeler ayrılır
 - [x] Tekrarlayan görev düzenleme: uygulamanın kendi yazdığı görevde tekrar değiştirilemiyor, kimlik onarımıyla birlikte çöküyor, kuraldan sonraki kullanıcı metni siliniyor
 - [x] Aynı dosya adı başka klasörde de varsa otomatik bağlantı yanlış dosyaya gidiyor; yazılacak hedefi indeks belirler (önce `vault-format.md`)
-- [ ] Doğal dil tarih: ondalık ve kesirli sayılar tarih sanılıp metinden siliniyor ("2.5 kg un al"), "haftaya salı" yanlış güne çözülüyor, Kısayollar yolu varsayımlı tarihi sormadan uyguluyor (ayrıştırma düzeltildi; kalan: Kısayollar yolunun varsayımlı tarihi sorması)
+- [x] Doğal dil tarih: ondalık ve kesirli sayılar tarih sanılıp metinden siliniyor ("2.5 kg un al"), "haftaya salı" yanlış güne çözülüyor, Kısayollar yolu varsayımlı tarihi sormadan uyguluyor
 - [x] Silmede onay ya da geri alma (olay, görev, alan, hedef kaydı); günlük yazısında kaydedilmemiş metin sormadan atılmaz
 - [ ] Kayıtlı kasaya erişilemeyince durum ana ekranda görünür; yazılar sessizce başka kasaya gitmez (davranış kullanıcı kararı)
 - [x] Uygulama meşgulken gelen yazma sıraya alınır; yutulan Enter ve yanlış "dosya dışarıdan değişti" hatası biter

@@ -89,29 +89,53 @@ final class IntentActions {
         else { throw IntentActionError.writeFailed }
         return IntentActionResult(dialog: "Olay eklendi: \(IntentText.display(linked))")
     }
-    func addTask(text: String, due: CalendarDate? = nil) async throws -> IntentActionResult {
+    /// Confirms an assumed natural-language date before it is applied. Default (nil) declines.
+    func addTask(
+        text: String, due: CalendarDate? = nil,
+        confirmAssumedDate: ((CalendarDate) async -> Bool)? = nil
+    ) async throws -> IntentActionResult {
         let day = LocalDay.today(at: now())
         let recurrence = RecurrenceExpressionParser.parse(text, language: languages)
         let priority = PriorityExpressionParser.parse(recurrence?.remainder ?? text)
         let input = priority?.remainder ?? recurrence?.remainder ?? text
         let explicit = RawDocument(bytes: ("- [ ] " + text).utf8).bodyLines.tasks.first?.priority
         let expression = DateExpressionParser.parse(input, today: day, language: languages)
-        let remainder = expression?.remainder ?? input
-        guard !remainder.allSatisfy(\.isWhitespace) else { throw IntentActionError.emptyText }
+        let resolved = await Self.resolveTaskDate(
+            due: due, expression: expression, input: input, confirmAssumedDate: confirmAssumedDate)
+        guard !resolved.text.allSatisfy(\.isWhitespace) else { throw IntentActionError.emptyText }
         try await begin()
         defer { isPerforming = false }
         let linked: String
-        do { linked = try IntentText.linking(remainder, entities: store.knownEntities) } catch {
+        do { linked = try IntentText.linking(resolved.text, entities: store.knownEntities) } catch {
             throw IntentActionError.writeFailed
         }
         guard
             await store.addTask(
-                on: day, text: linked, due: due ?? expression?.date, priority: explicit ?? priority?.priority,
+                on: day, text: linked, due: resolved.due, priority: explicit ?? priority?.priority,
                 recurrence: recurrence?.recurrence)
         else {
             throw IntentActionError.writeFailed
         }
         return IntentActionResult(dialog: "Görev eklendi: \(IntentText.display(linked))")
+    }
+
+    /// Chooses due date and body text for an intent task from an explicit due and/or parse result.
+    static func resolveTaskDate(
+        due: CalendarDate?, expression: DateParse?, input: String,
+        confirmAssumedDate: ((CalendarDate) async -> Bool)?
+    ) async -> (text: String, due: CalendarDate?) {
+        if let due {
+            return (expression?.remainder ?? input, due)
+        }
+        guard let expression else { return (input, nil) }
+        switch expression.confidence {
+        case .exact:
+            return (expression.remainder, expression.date)
+        case .assumed:
+            let confirmed = await confirmAssumedDate?(expression.date) ?? false
+            if confirmed { return (expression.remainder, expression.date) }
+            return (input, nil)
+        }
     }
     func markGoal(id: String, amount: Double? = nil) async throws -> IntentActionResult {
         try await begin()

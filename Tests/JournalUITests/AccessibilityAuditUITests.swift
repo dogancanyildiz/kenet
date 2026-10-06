@@ -55,7 +55,17 @@ final class AccessibilityAuditUITests: XCTestCase {
         // - contrast: secondary/warning ink tokens “nearly passed”; Stage 9 design tokens
         // - textClipped: priority/chip labels under review with Stage 9 density tokens
         let deferred: XCUIAccessibilityAuditType = [.hitRegion, .contrast, .dynamicType, .textClipped]
-        try app.performAccessibilityAudit(for: XCUIAccessibilityAuditType.all.subtracting(deferred)) { issue in
+        // CI simulators occasionally report "Audit failed to complete in time" (code -56); retry once.
+        do {
+            try runAudit(app, screen: screen, types: XCUIAccessibilityAuditType.all.subtracting(deferred))
+        } catch let error as NSError where error.code == -56 {
+            try runAudit(app, screen: screen, types: XCUIAccessibilityAuditType.all.subtracting(deferred))
+        }
+    }
+
+    @MainActor
+    private func runAudit(_ app: XCUIApplication, screen: String, types: XCUIAccessibilityAuditType) throws {
+        try app.performAccessibilityAudit(for: types) { issue in
             if self.shouldDefer(issue) {
                 let element = issue.element?.description ?? "(no element)"
                 print("A11Y deferred (\(screen)): \(issue.auditType) — \(element)")

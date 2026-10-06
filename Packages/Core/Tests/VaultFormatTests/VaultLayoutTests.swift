@@ -24,6 +24,7 @@ struct VaultFormatVersionParseTests {
     }
 
     @Test func canWriteUsesParsedVersions() {
+        #expect(VaultFormatVersion.canWrite(vaultVersion: 0))
         #expect(VaultFormatVersion.canWrite(vaultVersion: 1))
         #expect(!VaultFormatVersion.canWrite(vaultVersion: 2))
     }

@@ -52,7 +52,8 @@ extension VaultStore {
 
     /// Goal definitions only: indexed `kind=goal` files plus anything currently under `goals/`.
     /// Falls back to a full vault scan when the index is unreadable, an indexed candidate is missing
-    /// on disk, or no candidate matches `key` — correctness does not depend on a fresh index.
+    /// on disk, no candidate matches `key`, a match lives outside `goals/`, or the same key is
+    /// defined in more than one candidate file — correctness does not depend on a fresh index.
     private nonisolated func isMilestoneGoal(key: String) throws -> Bool {
         let indexed: [String]
         do {
@@ -64,7 +65,8 @@ extension VaultStore {
         var paths = Set(indexed)
         paths.formUnion(try markdownPaths(under: "goals"))
         var missingIndexed = false
-        var matchedKey = false
+        var matchPaths: [String] = []
+        var foundMilestone = false
         for path in paths.sorted(by: {
             $0.unicodeScalars.lexicographicallyPrecedes($1.unicodeScalars) { $0.value < $1.value }
         }) {
@@ -79,15 +81,16 @@ extension VaultStore {
                 case .scalar(let type) = fields.field(named: "type")?.value, type.text == "goal",
                 case .scalar(let goalKey) = fields.field(named: "key")?.value, goalKey.text == key
             else { continue }
-            matchedKey = true
+            matchPaths.append(path)
             if case .scalar(let kind) = fields.field(named: "kind")?.value, kind.text == "milestone" {
-                return true
+                foundMilestone = true
             }
         }
-        if missingIndexed || !matchedKey {
+        let outsideGoals = matchPaths.contains { !$0.hasPrefix("goals/") }
+        if missingIndexed || matchPaths.isEmpty || matchPaths.count > 1 || outsideGoals {
             return try isMilestoneGoal(key: key, in: markdownPaths())
         }
-        return false
+        return foundMilestone
     }
 
     private nonisolated func isMilestoneGoal(key: String, in paths: [String]) throws -> Bool {

@@ -44,7 +44,7 @@ struct RenameListIsolationTests {
             document, key: "rel", items: items, targets: targets,
             rewrite: { _, _, _, _ in throw EditError.invalidValue })
         #expect(outcome.document == document)
-        #expect(outcome.failure == "list tokens could not be matched")
+        #expect(outcome.failure == .unmatchedTokens)
     }
 
     @Test func bodyUpdatesEvenWhenListRewriteFails() throws {
@@ -78,6 +78,6 @@ struct RenameListIsolationTests {
         let text = String(decoding: list.document.serialized(), as: UTF8.self)
         #expect(text.contains("Body [[Deniz Arıkan Yılmaz]] here"))
         #expect(text.contains("\"[[Deniz Arıkan]]\""))
-        #expect(list.failure == "list tokens could not be matched")
+        #expect(list.failure == .unmatchedTokens)
     }
 }

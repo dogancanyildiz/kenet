@@ -21,7 +21,17 @@ struct AddTaskIntent: AppIntent {
     @Parameter(title: "Tarih", kind: .date) var date: Date?
     @MainActor
     func perform() async throws -> some IntentResult & ReturnsValue<String> & ProvidesDialog {
-        let result = try await IntentActions.shared.addTask(text: text, due: date.map { LocalDay.today(at: $0) })
+        let result = try await IntentActions.shared.addTask(
+            text: text, due: date.map { LocalDay.today(at: $0) },
+            confirmAssumedDate: { assumed in
+                let formatted = LocalDay.instant(for: assumed).formatted(.dateTime.day().month(.wide))
+                do {
+                    try await requestConfirmation(dialog: IntentDialog("\(formatted) olarak mı?"))
+                    return true
+                } catch {
+                    return false
+                }
+            })
         return .result(value: result.text, dialog: IntentDialog(result.dialog))
     }
 }

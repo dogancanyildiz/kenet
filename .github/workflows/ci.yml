@@ -107,7 +107,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Biçim ve lint
-        run: swift format lint --strict --recursive Packages App
+        run: swift format lint --strict --recursive Packages App Tests
       - name: Core içinde yasak import
         run: sh .github/scripts/check-core-imports.sh
       - name: Belgelerin yeri
@@ -115,6 +115,11 @@ jobs:
         run: |
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
           sh .github/scripts/check-doc-locations.sh
+      - name: Belge biçim denetimi
+        # swift:6.4 kabında python3 yoktur; denetim betiği onu kullanır.
+        run: |
+          apt-get update -q && apt-get install -y -q python3 >/dev/null
+          sh .github/scripts/check-docs.sh
       - name: Sürüm akışı kuru koşusu
         run: sh .github/scripts/test-release.sh
 

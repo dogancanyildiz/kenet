@@ -12,27 +12,30 @@ export SNAPSHOT_TESTING_RECORD="${SNAPSHOT_TESTING_RECORD:-all}"
 command -v xcodegen >/dev/null || { echo "xcodegen gerekli: brew install xcodegen" >&2; exit 1; }
 xcodegen generate
 
-NAME=$(xcrun simctl list devices available -j | python3 -c '
-import json, sys
+# CI tek bir iOS runtime'ı taşır; yerelde birden çok olabilir. Referanslar CI ile aynı çizilsin diye
+# en eski kurulu iOS runtime'ındaki iPhone seçilir (kimlikle, ad belirsiz kalmasın).
+DEVICE=$(xcrun simctl list devices available -j | python3 -c '
+import json, re, sys
 data = json.load(sys.stdin)
 preferred = ["iPhone 17", "iPhone 16", "iPhone 15", "iPhone 14"]
-names = []
+runtimes = []
 for runtime, devices in data.get("devices", {}).items():
-    if "iOS" not in runtime:
+    match = re.search(r"iOS-(\d+)-(\d+)", runtime)
+    if not match:
         continue
-    for device in devices:
-        if device.get("isAvailable") and device.get("name", "").startswith("iPhone"):
-            names.append(device["name"])
-for name in preferred:
-    if name in names:
-        print(name)
-        raise SystemExit(0)
-if names:
-    print(names[0])
-    raise SystemExit(0)
-print("Uygun iPhone simülatörü yok", file=sys.stderr)
-raise SystemExit(1)
+    phones = [d for d in devices if d.get("isAvailable") and d.get("name", "").startswith("iPhone")]
+    if phones:
+        runtimes.append(((int(match.group(1)), int(match.group(2))), phones))
+if not runtimes:
+    print("Uygun iPhone simülatörü yok", file=sys.stderr)
+    raise SystemExit(1)
+version, phones = sorted(runtimes, key=lambda item: item[0])[0]
+by_name = {d["name"]: d for d in phones}
+chosen = next((by_name[n] for n in preferred if n in by_name), phones[0])
+print(chosen["udid"], chosen["name"], "iOS %d.%d" % version)
 ')
+ID=${DEVICE%% *}
+NAME=${DEVICE#* }
 
 echo "Simülatör: $NAME"
 echo "SNAPSHOT_TESTING_RECORD=$SNAPSHOT_TESTING_RECORD"
@@ -42,7 +45,7 @@ set +e
 xcodebuild test \
   -project Journal.xcodeproj \
   -scheme Journal_iOS \
-  -destination "platform=iOS Simulator,name=$NAME" \
+  -destination "platform=iOS Simulator,id=$ID" \
   -only-testing:JournalTests_iOS/ScreenSnapshotTests \
   CODE_SIGNING_ALLOWED=NO \
   -quiet
@@ -53,7 +56,7 @@ if [ "$SNAPSHOT_TESTING_RECORD" != "never" ] && [ "$status" -ne 0 ]; then
   xcodebuild test-without-building \
     -project Journal.xcodeproj \
     -scheme Journal_iOS \
-    -destination "platform=iOS Simulator,name=$NAME" \
+    -destination "platform=iOS Simulator,id=$ID" \
     -only-testing:JournalTests_iOS/ScreenSnapshotTests \
     CODE_SIGNING_ALLOWED=NO \
     -quiet

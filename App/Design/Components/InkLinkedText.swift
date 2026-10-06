@@ -7,6 +7,7 @@ struct InkLinkSegment: Equatable, Sendable, Identifiable {
         case plain
         case person
         case place
+        case other
         case unresolved
     }
 
@@ -82,6 +83,9 @@ enum InkLinkTextBuilder {
                 attachLink(&value, target: segment.target ?? segment.text, path: segment.path)
             case .place:
                 InkLinkStyle.apply(.place, to: &value, highContrast: highContrast)
+                attachLink(&value, target: segment.target ?? segment.text, path: segment.path)
+            case .other:
+                InkLinkStyle.apply(.other, to: &value, highContrast: highContrast)
                 attachLink(&value, target: segment.target ?? segment.text, path: segment.path)
             case .unresolved:
                 InkLinkStyle.apply(.unresolved, to: &value, highContrast: highContrast)

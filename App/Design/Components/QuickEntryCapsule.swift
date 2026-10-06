@@ -10,7 +10,12 @@ struct QuickEntryCapsule<Field: View>: View {
     @Binding var mode: QuickEntryMode
     var canSubmit: Bool
     var onSubmit: () -> Void
+    /// When false, mode words stay visible but do not change the mode (busy / writing).
+    var isModeEnabled: Bool = true
     @ViewBuilder var field: () -> Field
+
+    @ScaledMetric(relativeTo: .body) private var sendSide = InkSize.send
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
         ViewThatFits(in: .horizontal) {
@@ -30,17 +35,12 @@ struct QuickEntryCapsule<Field: View>: View {
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
-        // Double opaque fill: paper then well — scroll content must not read through.
-        .background {
-            Capsule().fill(Color.ink.paper)
-        }
-        .background {
-            Capsule().fill(Color.ink.well)
-        }
-        .overlay {
-            Capsule().strokeBorder(Color.ink.control, lineWidth: InkStroke.control)
-        }
-        .compositingGroup()
+        // Padding sandwich (no strokeBorder): avoids the 1.5 pt end-cap "bracket" on snapshots.
+        .background(Capsule().fill(Color.ink.paper))
+        .padding(InkStroke.control)
+        .background(Capsule().fill(Color.ink.control))
+        // Chrome (mode words, send) caps at AX2; the field text still scales via the caller.
+        .dynamicTypeSize(...DynamicTypeSize.accessibility2)
     }
 
     private var modePicker: some View {
@@ -57,18 +57,21 @@ struct QuickEntryCapsule<Field: View>: View {
         return Button {
             mode = option
         } label: {
-            VStack(spacing: 2) {
-                Text(option.titleKey)
-                    .font(selected ? Font.ink.section : Font.ink.meta)
-                    .fontWeight(selected ? .semibold : .regular)
-                    .foregroundStyle(selected ? Color.ink.text : Color.ink.secondaryText)
-                Capsule()
-                    .fill(selected ? Color.ink.accent : Color.clear)
-                    .frame(height: InkSize.modeUnderline)
-            }
-            .tapTarget()
+            Text(option.titleKey)
+                .font(selected ? Font.ink.section : Font.ink.meta)
+                .fontWeight(selected ? .semibold : .regular)
+                .foregroundStyle(selected ? Color.ink.text : Color.ink.secondaryText)
+                .fixedSize()
+                .overlay(alignment: .bottom) {
+                    Capsule()
+                        .fill(selected ? Color.ink.accent : Color.clear)
+                        .frame(height: InkSize.modeUnderline)
+                        .offset(y: 4)
+                }
+                .tapTarget()
         }
         .buttonStyle(.plain)
+        .disabled(!isModeEnabled)
         .accessibilityAddTraits(selected ? [.isSelected] : [])
         .accessibilityAddTraits(.isButton)
     }
@@ -76,6 +79,8 @@ struct QuickEntryCapsule<Field: View>: View {
     private var fieldSlot: some View {
         field()
             .frame(maxWidth: .infinity, alignment: .leading)
+            // Field content escapes the chrome Dynamic Type ceiling.
+            .dynamicTypeSize(dynamicTypeSize)
     }
 
     private var sendButton: some View {
@@ -83,16 +88,22 @@ struct QuickEntryCapsule<Field: View>: View {
             Image(systemName: "arrow.up")
                 .font(.body.weight(.semibold))
                 .foregroundStyle(canSubmit ? Color.ink.onAccent : Color.ink.secondaryText)
-                .frame(width: InkSize.send, height: InkSize.send)
+                .frame(width: sendSide, height: sendSide)
                 .background {
-                    Circle().fill(canSubmit ? Color.ink.accent : Color.ink.well)
-                }
-                .overlay {
-                    if !canSubmit {
-                        Circle().stroke(Color.ink.control, lineWidth: InkStroke.control)
+                    if canSubmit {
+                        Circle().fill(Color.ink.accent)
+                    } else {
+                        ZStack {
+                            Circle().fill(Color.ink.control)
+                            Circle().inset(by: InkStroke.control).fill(Color.ink.well)
+                        }
                     }
                 }
-                .tapTarget()
+                .frame(
+                    minWidth: TapTarget.minimumLength, minHeight: TapTarget.minimumLength,
+                    alignment: .center
+                )
+                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .disabled(!canSubmit)

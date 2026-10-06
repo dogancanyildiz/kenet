@@ -1,16 +1,14 @@
 import SwiftUI
 
-/// Page manşet: display title with an optional byline. Kept compact (jury condition 4).
+/// Page manşet: New York Semibold display title with an optional byline (jury condition 4).
 struct PageHeadline: View {
     let title: String
     var byline: String? = nil
-    /// Today uses a title-sized manşet so the first event stays on the first screen.
-    var compact: Bool = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: compact ? 1 : 2) {
+        VStack(alignment: .leading, spacing: 2) {
             Text(verbatim: title)
-                .font(compact ? Font.system(.title, design: .serif, weight: .semibold) : Font.ink.display)
+                .font(.ink.display)
                 .foregroundStyle(.ink.text)
                 .accessibilityAddTraits(.isHeader)
             if let byline, !byline.isEmpty {

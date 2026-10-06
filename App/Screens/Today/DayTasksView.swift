@@ -7,16 +7,15 @@ struct DayTasksView: View {
     let isToday: Bool
     @Bindable var model: DayTasksModel
     let presentation: TodayPresentation
+    var entityIndex: [String: EntitySummary] = [:]
     var onExpandCarriedOver: () -> Void
     var onExpandCompleted: () -> Void
     @Environment(\.calendar) private var calendar
 
     var body: some View {
-        let rows = presentation.taskRows
+        let rows = presentation.rows
         let carriedIDs = Set(presentation.carriedOverTasks.map(\.id))
-        if !rows.isEmpty || presentation.carriedOverDisclosure != nil
-            || presentation.completedDisclosure != nil
-        {
+        if !rows.isEmpty {
             VStack(alignment: .leading, spacing: 10) {
                 SectionHeader(
                     title: String(localized: "Görevler"),
@@ -24,34 +23,36 @@ struct DayTasksView: View {
                 if let error = model.errorText {
                     InfoBand(kind: .error, verbatim: error)
                 }
-                ForEach(rows) { row in
-                    let isCarried = carriedIDs.contains(row.id)
-                    DayTaskView(
-                        store: store, row: row, isToday: isToday, isOverdue: isCarried,
-                        completed: model.completed.contains(row.id) || row.isClosed,
-                        isBusy: model.completing.contains(row.id),
-                        carriedOverLabel: isCarried ? carriedOverText(for: row) : nil
-                    ) { Task { await model.complete(row) } }
-                }
-                if let disclosure = presentation.carriedOverDisclosure {
-                    Button(action: onExpandCarriedOver) {
-                        Text(verbatim: disclosure)
-                            .font(.ink.meta)
-                            .foregroundStyle(Color.ink.warning)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .tapTarget()
+                ForEach(rows) { entry in
+                    switch entry {
+                    case .task(let row):
+                        let isCarried = carriedIDs.contains(row.id)
+                        DayTaskView(
+                            store: store, row: row, isToday: isToday, isOverdue: isCarried,
+                            completed: model.completed.contains(row.id) || row.isClosed,
+                            isBusy: model.completing.contains(row.id), day: date,
+                            carriedOverLabel: isCarried ? carriedOverText(for: row) : nil,
+                            entityIndex: entityIndex
+                        ) { Task { await model.complete(row) } }
+                    case .carriedOverDisclosure(let text):
+                        Button(action: onExpandCarriedOver) {
+                            Text(verbatim: text)
+                                .font(.ink.meta)
+                                .foregroundStyle(Color.ink.warning)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .tapTarget()
+                        }
+                        .buttonStyle(.plain)
+                    case .completedDisclosure(let text):
+                        Button(action: onExpandCompleted) {
+                            Text(verbatim: text)
+                                .font(.ink.meta)
+                                .foregroundStyle(Color.ink.secondaryText)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .tapTarget()
+                        }
+                        .buttonStyle(.plain)
                     }
-                    .buttonStyle(.plain)
-                }
-                if let disclosure = presentation.completedDisclosure {
-                    Button(action: onExpandCompleted) {
-                        Text(verbatim: disclosure)
-                            .font(.ink.meta)
-                            .foregroundStyle(Color.ink.secondaryText)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .tapTarget()
-                    }
-                    .buttonStyle(.plain)
                 }
             }
         }

@@ -62,9 +62,19 @@ struct TapTargetTests {
     }
 
     @Test func quickEntryReflowsForLargeDynamicType() throws {
-        // Capsule owns ViewThatFits; the bar hosts the capsule (Mürekkep Stage 9).
-        let source = try Self.read("App/Design/Components/QuickEntryCapsule.swift")
-        #expect(source.contains("ViewThatFits"), "large Dynamic Type must stack the entry row")
+        let capsule = try Self.read("App/Design/Components/QuickEntryCapsule.swift")
+        let bar = try Self.read("App/Screens/Today/QuickEntryPlaceholder.swift")
+        #expect(capsule.contains("ViewThatFits"), "wide layouts stack mode/send above the field")
+        #expect(capsule.contains("@ScaledMetric"), "send circle must scale with Dynamic Type")
+        #expect(
+            capsule.contains("dynamicTypeSize(...DynamicTypeSize.accessibility2)"),
+            "capsule chrome caps at accessibility2 so mode words and send stay usable")
+        #expect(
+            bar.contains("isModeEnabled"),
+            "mode picker must disable while submitting/creating/writing")
+        #expect(
+            !bar.contains("if model.mode == .event { timeButton }\n            QuickEntryCapsule"),
+            "time control moved inside the capsule to free first-screen height")
     }
 
     @Test func onboardingScrollsForLargeDynamicType() throws {

@@ -7,9 +7,10 @@ struct TaskBoxState: Equatable, Sendable {
     var priority: TaskPriority?
 
     var isCompleted: Bool { status.isClosed }
+    var isCancelled: Bool { status == .cancelled }
     var isInProgress: Bool { status == .inProgress }
 
-    /// Glyph drawn inside an open / in-progress box (`nil` when empty or completed).
+    /// Glyph drawn inside an open / in-progress box (`nil` when empty, completed, or cancelled).
     var priorityGlyph: String? {
         guard !isCompleted else { return nil }
         switch priority {
@@ -28,6 +29,8 @@ struct TaskBoxState: Equatable, Sendable {
 struct TaskBox: View {
     let state: TaskBoxState
     var action: (() -> Void)? = nil
+    /// Spoken label; reopen flow passes "Görevi yeniden aç".
+    var accessibilityLabelKey: LocalizedStringKey = "Görevi tamamla"
 
     @ScaledMetric(relativeTo: .body) private var boxSide = InkSize.taskBox
     @Environment(\.legibilityWeight) private var legibilityWeight
@@ -40,13 +43,13 @@ struct TaskBox: View {
                         .tapTarget()
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel(Text("Görevi tamamla"))
+                .accessibilityLabel(Text(accessibilityLabelKey))
                 .accessibilityAddTraits(.isToggle)
                 .accessibilityValue(Text(verbatim: accessibilityValueText))
             } else {
                 box
                     .accessibilityElement()
-                    .accessibilityLabel(Text("Görevi tamamla"))
+                    .accessibilityLabel(Text(accessibilityLabelKey))
                     .accessibilityValue(Text(verbatim: accessibilityValueText))
             }
         }
@@ -71,7 +74,12 @@ struct TaskBox: View {
             }
             RoundedRectangle(cornerRadius: corner, style: .continuous)
                 .strokeBorder(strokeColor, lineWidth: strokeWidth)
-            if state.isCompleted {
+            if state.isCancelled {
+                Capsule()
+                    .fill(Color.ink.paper)
+                    .frame(height: max(2, boxSide * 0.12))
+                    .padding(.horizontal, boxSide * 0.12)
+            } else if state.isCompleted {
                 Image(systemName: "checkmark")
                     .font(.system(size: boxSide * 0.45, weight: .semibold))
                     .foregroundStyle(Color.ink.paper)
@@ -79,6 +87,7 @@ struct TaskBox: View {
                 Text(verbatim: glyph)
                     .font(.system(size: glyphSize, weight: .bold, design: .rounded))
                     .foregroundStyle(Color.ink.text)
+                    .tracking(glyph == "!!" ? -0.8 : 0)
                     .offset(y: state.isInProgress ? -boxSide * 0.18 : 0)
             }
         }
@@ -102,16 +111,14 @@ struct TaskBox: View {
         state.isCompleted ? Color.ink.secondaryText : Color.clear
     }
 
+    /// Rule 9: never below 12 pt on iOS; "!!" may tighten tracking to fit the 22 pt box.
     private var glyphSize: CGFloat {
         let base = state.priorityGlyph == "!!" ? boxSide * 0.38 : boxSide * 0.48
-        return legibilityWeight == .bold ? base * 1.05 : base
+        let scaled = legibilityWeight == .bold ? base * 1.05 : base
+        return max(12, scaled)
     }
 
     private var accessibilityValueText: String {
-        var parts = [VoiceOverCopy.taskCompletionValue(isCompleted: state.isCompleted)]
-        if let priority = state.priority {
-            parts.append(VoiceOverCopy.priorityValue(priority))
-        }
-        return parts.joined(separator: ", ")
+        VoiceOverCopy.taskBoxValue(state: state, locale: .current)
     }
 }

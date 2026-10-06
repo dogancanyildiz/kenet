@@ -150,6 +150,8 @@
             named: String,
             store: IndexStore,
             size: CGSize = snapshotCanvasSize,
+            /// Extra bottom safe area (e.g. tab bar) without an on-screen spacer that steals viewport.
+            bottomSafeArea: CGFloat = 0,
             testName: String,
             file: StaticString = #filePath,
             line: UInt = #line
@@ -176,6 +178,7 @@
 
             let host = UIHostingController(rootView: view)
             host.overrideUserInterfaceStyle = colorScheme.userInterfaceStyle
+            host.additionalSafeAreaInsets.bottom = bottomSafeArea
             host.view.frame = CGRect(origin: .zero, size: size)
 
             let scene =

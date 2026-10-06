@@ -347,6 +347,84 @@ struct TodayPresentationTests {
             #expect(box.accessibilityValue(locale: locale) == spoken)
         }
         #expect(try TaskBoxPresentation(row: row(1), isCompleted: true).state.status == .done)
-        #expect(try TaskBoxPresentation(row: row(1, status: "-"), isCompleted: true).state.status == .done)
+        #expect(try TaskBoxPresentation(row: row(1, status: "-"), isCompleted: true).state.status == .cancelled)
+    }
+
+    @Test func displayRowsPlaceCarriedDisclosureBetweenGroups() throws {
+        var groups = TaskGroups(rows: [], on: day, isToday: true)
+        groups.overdue = try (0..<5).map { try row($0, due: "2026-09-\(String(format: "%02d", $0 + 1))") }
+        groups.dated = [try row(10, due: day.description)]
+        groups.created = [try row(11)]
+        let done = try (0..<3).map { try row($0 + 100, status: "x") }
+        var value = try make(locale: "tr_TR", groups: groups, completed: done)
+        let kinds = value.rows.map { row -> String in
+            switch row {
+            case .task(let task): "t:\(task.id)"
+            case .carriedOverDisclosure: "carried"
+            case .completedDisclosure: "completed"
+            }
+        }
+        #expect(kinds.prefix(3).allSatisfy { $0.hasPrefix("t:") })
+        #expect(kinds[3] == "carried")
+        #expect(kinds[4] == "t:\(groups.dated[0].id)")
+        #expect(kinds[5] == "t:\(groups.created[0].id)")
+        #expect(kinds.last == "completed")
+        value.isCarriedOverExpanded = true
+        value.isCompletedExpanded = true
+        #expect(
+            value.rows.allSatisfy {
+                if case .carriedOverDisclosure = $0 { return false }
+                if case .completedDisclosure = $0 { return false }
+                return true
+            })
+    }
+
+    @Test func duplicateGoalKeysDoNotTrapWhenBuildingStatuses() throws {
+        let first = GoalDefinition(
+            id: "goals/A.md", key: "dup", name: "One", period: .day, kind: .boolean)!
+        let second = GoalDefinition(
+            id: "goals/B.md", key: "dup", name: "Two", period: .day, kind: .boolean)!
+        let statuses = TodayPresentation.goalStatuses(
+            goals: [first, second], logs: [:], day: day)
+        #expect(statuses["dup"] != nil)
+        let value = try make(
+            locale: "tr_TR", goalsDefinitions: [first, second], goalStatuses: statuses)
+        #expect(value.goalCount == 2)
+    }
+
+    @Test func dayTaskSecondaryExposesDateRecurrencePriorityAndCarried() throws {
+        let locale = Locale(identifier: "tr_TR")
+        var fields: [String: Any] = [
+            "file": "journal/\(day).md", "ordinal": 1, "kind": "task", "firstLine": 2,
+            "lastLine": 2, "text": "Sample", "section": "Tasks", "rawStatus": " ",
+            "ownsIdentifier": false, "dueDate": "2026-10-06", "priority": "🔽",
+            "recurrence": "every week",
+        ]
+        let block = try JSONDecoder().decode(
+            IndexedBlock.self, from: JSONSerialization.data(withJSONObject: fields))
+        let dated = TaskRow(row: block, links: [])
+        let secondary = DayTaskSecondaryPresentation(
+            row: dated, isCarriedOver: false, carriedOverLabel: nil,
+            today: day, locale: locale, calendar: calendar)
+        #expect(secondary.dueLabel != nil)
+        #expect(secondary.showsLowPriority)
+        #expect(secondary.recurrenceLabel != nil)
+        #expect(!secondary.isCarriedOver)
+
+        fields["dueDate"] = "2026-09-14"
+        fields["priority"] = "🔼"
+        fields["recurrence"] = "not a real recurrence"
+        let carriedBlock = try JSONDecoder().decode(
+            IndexedBlock.self, from: JSONSerialization.data(withJSONObject: fields))
+        let carried = TaskRow(row: carriedBlock, links: [])
+        let carriedLabel = TodayPresentation.carriedOverDate(
+            CalendarDate("2026-09-14")!, today: day, locale: locale, calendar: calendar)
+        let carriedFacts = DayTaskSecondaryPresentation(
+            row: carried, isCarriedOver: true, carriedOverLabel: carriedLabel,
+            today: day, locale: locale, calendar: calendar)
+        #expect(carriedFacts.dueLabel == nil)
+        #expect(carriedFacts.carriedOverLabel == carriedLabel)
+        #expect(carriedFacts.showsUnknownRecurrence)
+        #expect(!carriedFacts.showsLowPriority)
     }
 }

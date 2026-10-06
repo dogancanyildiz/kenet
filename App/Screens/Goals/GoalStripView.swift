@@ -20,20 +20,27 @@ struct GoalStripView: View {
     }
 
     var body: some View {
-        // Today lists only daily goals so the section counter matches ``countedGoalIDs``.
         let daily = dailyGoals
-        if !daily.isEmpty {
+        let period = periodGoals
+        if !daily.isEmpty || !period.isEmpty {
             VStack(alignment: .leading, spacing: 8) {
-                SectionHeader(
-                    title: String(localized: "Hedefler"),
-                    counter: counter
-                        ?? "\(daily.filter { model.isComplete(for: $0) }.count)/\(daily.count)"
-                )
-                ForEach(daily, id: \.id) { goal in
-                    goalRow(goal)
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    SectionHeader(
+                        title: String(localized: "Hedefler"),
+                        counter: counter
+                            ?? "\(daily.filter { model.isComplete(for: $0) }.count)/\(daily.count)"
+                    )
+                    if model.isLoading {
+                        ProgressView()
+                            .controlSize(.mini)
+                            .accessibilityLabel(Text("Hedefler yükleniyor"))
+                    }
                 }
-                if model.isLoading {
-                    InkProgress(kind: .indeterminate(label: "İndeks güncelleniyor…"))
+                ForEach(daily, id: \.id) { goal in
+                    goalRow(goal, metaText: nil)
+                }
+                ForEach(period, id: \.id) { goal in
+                    goalRow(goal, metaText: periodMeta(for: goal))
                 }
                 if let error = model.errorText {
                     InfoBand(kind: .error, verbatim: error)
@@ -61,36 +68,78 @@ struct GoalStripView: View {
         return ordered(source)
     }
 
+    private var periodGoals: [GoalDefinition] {
+        ordered(model.goals.filter { $0.period != .day })
+    }
+
     private func ordered(_ goals: [GoalDefinition]) -> [GoalDefinition] {
         goals.sorted {
-            if model.isComplete(for: $0) != model.isComplete(for: $1) { return !model.isComplete(for: $0) }
+            if model.isComplete(for: $0) != model.isComplete(for: $1) {
+                return !model.isComplete(for: $0)
+            }
             return $0.name.localizedStandardCompare($1.name) == .orderedAscending
         }
     }
 
-    @ViewBuilder private func goalRow(_ goal: GoalDefinition) -> some View {
+    private func periodMeta(for goal: GoalDefinition) -> String {
+        let status = model.status(for: goal)
+        let periodKey: String.LocalizationValue =
+            switch goal.period {
+            case .day: "Bu gün"
+            case .week: "Bu hafta"
+            case .year: "Bu yıl"
+            }
+        let period = String(localized: periodKey)
+        let amount =
+            status.progress.done.formatted(.number.locale(locale)) + "/"
+            + goal.target.formatted(.number.locale(locale))
+        if let unit = goal.unit { return "\(period) \(amount) \(unit)" }
+        return "\(period) \(amount)"
+    }
+
+    @ViewBuilder private func goalRow(_ goal: GoalDefinition, metaText: String?) -> some View {
         let status = model.status(for: goal)
         let progress = progressValue(for: goal, status: status)
+        let complete = model.isComplete(for: goal)
+        let isBooleanMark = goal.kind == .boolean || goal.kind == .milestone
         InkGoalRow(
             name: goal.name,
             progress: progress,
             isBoolean: goal.kind != .number,
             valueText: valueText(for: goal),
-            onIncrement: model.canEdit
+            metaText: metaText,
+            onIncrement: model.canEdit && !(isBooleanMark && complete)
                 ? {
-                    if goal.kind == .boolean || goal.kind == .milestone {
+                    if isBooleanMark {
                         Task {
                             if await model.toggle(goal) { geofences?.clearLockedMarkNotice() }
                         }
                     } else {
                         Task { await increment(goal) }
                     }
-                } : nil
+                } : nil,
+            onValueTap: model.canEdit && goal.kind == .number
+                ? { editing = GoalValueModel(dayModel: model, goal: goal) } : nil,
+            onMarkTap: model.canEdit && isBooleanMark && complete
+                ? {
+                    Task {
+                        if await model.toggle(goal) { geofences?.clearLockedMarkNotice() }
+                    }
+                } : nil,
+            showsPlus: !(isBooleanMark && complete),
+            incrementLabel: LocalizedStringKey(
+                isBooleanMark && complete ? "İşareti kaldır" : "Artır")
         )
-        .opacity(model.isComplete(for: goal) ? 0.7 : 1)
-        .onLongPressGesture {
-            if goal.kind == .number {
-                editing = GoalValueModel(dayModel: model, goal: goal)
+        .contextMenu {
+            if model.canEdit, goal.kind == .number {
+                Button("Miktar gir") { editing = GoalValueModel(dayModel: model, goal: goal) }
+            }
+            if model.canEdit, isBooleanMark, complete {
+                Button("İşareti kaldır") {
+                    Task {
+                        if await model.toggle(goal) { geofences?.clearLockedMarkNotice() }
+                    }
+                }
             }
         }
         .disabled(!model.canEdit)
@@ -103,7 +152,8 @@ struct GoalStripView: View {
 
     private func valueText(for goal: GoalDefinition) -> String? {
         guard goal.kind == .number else { return nil }
-        let amount: Double = if case .number(let number) = model.value(for: goal) { number } else { 0 }
+        let amount: Double =
+            if case .number(let number) = model.value(for: goal) { number } else { 0 }
         let unit = goal.unit.map { " \($0)" } ?? ""
         let done = amount.formatted(.number.locale(locale))
         let target = goal.target.formatted(.number.locale(locale))
@@ -111,7 +161,8 @@ struct GoalStripView: View {
     }
 
     private func increment(_ goal: GoalDefinition) async {
-        let current: Double = if case .number(let number) = model.value(for: goal) { number } else { 0 }
+        let current: Double =
+            if case .number(let number) = model.value(for: goal) { number } else { 0 }
         if await model.set(goal, value: .number(current + 1)) {
             geofences?.clearLockedMarkNotice()
         }

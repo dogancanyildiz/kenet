@@ -159,14 +159,17 @@ struct QuickEntryBar: View {
             if let error = model.errorText {
                 InfoBand(kind: .error, verbatim: error)
             }
-            // Time sits above the capsule so mode + field + send stay on one row at phone width.
-            if model.mode == .event { timeButton }
             QuickEntryCapsule(
                 mode: capsuleMode,
                 canSubmit: isEnabled && model.canSubmit,
-                onSubmit: submit
+                onSubmit: submit,
+                isModeEnabled: isEnabled && !model.isSubmitting && !model.isCreating
+                    && !store.isWriting
             ) {
-                textField
+                HStack(alignment: .center, spacing: 8) {
+                    if model.mode == .event { timeButton }
+                    textField
+                }
             }
             #if os(macOS)
                 Button("Kip değiştir") {
@@ -184,6 +187,7 @@ struct QuickEntryBar: View {
         .padding(.top, 10)
         .padding(.bottom, 8)
         .frame(maxWidth: .infinity)
+        .inkPageColumn()
         // Opaque paper shelf under the capsule (safeAreaInset content draws over the list).
         .background {
             Color.ink.paper
@@ -234,16 +238,23 @@ struct QuickEntryBar: View {
 
     private var textField: some View {
         @Bindable var model = model
-        return TextField(placeholder, text: $model.text, selection: $selection)
-            .textFieldStyle(.plain)
-            .font(.ink.content)
-            .foregroundStyle(Color.ink.text)
-            .focused($isFocused)
-            .disabled(!isEnabled)
-            .onSubmit { submit() }
-            // Identifier on the accessibility element VoiceOver/XCTest see for the field.
-            .accessibilityLabel("Hızlı giriş")
-            .accessibilityIdentifier("field.quickEntry")
+        return TextField(
+            "",
+            text: $model.text,
+            selection: $selection,
+            prompt: Text(placeholder)
+                .font(.ink.placeholder)
+                .foregroundStyle(Color.ink.secondaryText)
+        )
+        .textFieldStyle(.plain)
+        .font(.ink.content)
+        .foregroundStyle(Color.ink.text)
+        .focused($isFocused)
+        .disabled(!isEnabled)
+        .onSubmit { submit() }
+        // Identifier on the accessibility element VoiceOver/XCTest see for the field.
+        .accessibilityLabel("Hızlı giriş")
+        .accessibilityIdentifier("field.quickEntry")
     }
 
     @ViewBuilder private var timeButton: some View {
@@ -339,6 +350,7 @@ struct QuickEntryBar: View {
                             submit()
                         } label: {
                             entityLabel(entity)
+                                .tapTarget()
                         }
                         .buttonStyle(.plain)
                     }
@@ -355,7 +367,7 @@ struct QuickEntryBar: View {
                 .foregroundStyle(Color.ink.text)
             if model.needsQualifier {
                 TextField("Ayırt edici (ör. iş)", text: $model.qualifier)
-                    .textFieldStyle(.plain)
+                    .textFieldStyle(.roundedBorder)
                     .font(.ink.content)
                 Button("Oluştur") {
                     if let kind = model.creationKind { create(kind) }

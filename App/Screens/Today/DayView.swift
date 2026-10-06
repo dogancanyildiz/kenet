@@ -12,6 +12,7 @@ struct DayView: View {
     @Environment(\.locale) private var locale
     @Environment(\.calendar) private var calendarValue
     @Environment(\.clockNow) private var clockNow
+    @Environment(\.openSearch) private var openSearch
     @State private var showsJournal = false
     @State private var tasksModel: DayTasksModel
     @State private var isCarriedOverExpanded = false
@@ -26,17 +27,10 @@ struct DayView: View {
 
     private var day: DaySummary { store.content.day(on: date) }
 
-    private var presentation: TodayPresentation {
+    private func makePresentation() -> TodayPresentation {
         let today = isToday ? date : LocalDay.today(at: clockNow())
-        // TodayPresentation looks up statuses by goal.key (not id).
-        let statuses = Dictionary(
-            uniqueKeysWithValues: store.content.goals.map { goal in
-                (
-                    goal.key,
-                    GoalProgress.compute(
-                        definition: goal, logs: store.content.goalLogs[goal.key] ?? [], today: date)
-                )
-            })
+        let statuses = TodayPresentation.goalStatuses(
+            goals: store.content.goals, logs: store.content.goalLogs, day: date)
         return TodayPresentation(
             day: day, groups: tasksModel.groups, goals: store.content.goals, goalStatuses: statuses,
             goalStatusesDay: date, today: today, locale: locale, calendar: calendarValue,
@@ -45,22 +39,15 @@ struct DayView: View {
             isCarriedOverExpanded: isCarriedOverExpanded, isCompletedExpanded: isCompletedExpanded)
     }
 
-    private var isEmptyDay: Bool {
-        day.events.isEmpty && day.journal.isEmpty && tasksModel.groups.isEmpty && !day.hasGoalRecords
-            && presentation.completedTaskCount == 0
-    }
-
     var body: some View {
-        let presented = presentation
+        let presented = makePresentation()
+        let entitiesByID = InkLinkMapping.entityIndex(store.content.entities)
+        let isEmptyDay =
+            day.events.isEmpty && day.journal.isEmpty && tasksModel.groups.isEmpty
+            && !day.hasGoalRecords && presented.completedTaskCount == 0
         ScrollView {
             VStack(alignment: .leading, spacing: 10) {
-                // Compact manşet: date lives in the navigation title; byline only here (jury 4).
-                if let byline = presented.byline {
-                    Text(verbatim: byline)
-                        .font(.ink.byline)
-                        .foregroundStyle(Color.ink.secondaryText)
-                        .accessibilityAddTraits(.isHeader)
-                }
+                headlineBlock(presented)
 
                 if store.isProcessing && !store.isWriting {
                     InkProgress(kind: .indeterminate(label: "İndeks güncelleniyor…"))
@@ -77,11 +64,13 @@ struct DayView: View {
 
                 GoalStripView(
                     store: store, day: date, countedGoalIDs: presented.countedGoalIDs,
-                    counter: presented.counter(for: .goals))
+                    counter: presented.counter(for: .goals)
+                )
+                .id(date.description + (store.vaultURL?.path ?? ""))
 
                 DayTasksView(
                     store: store, date: date, isToday: isToday, model: tasksModel,
-                    presentation: presented,
+                    presentation: presented, entityIndex: entitiesByID,
                     onExpandCarriedOver: { isCarriedOverExpanded = true },
                     onExpandCompleted: { isCompletedExpanded = true })
 
@@ -93,7 +82,8 @@ struct DayView: View {
                             title: String(localized: "Olaylar"),
                             counter: presented.counter(for: .events))
                         ForEach(day.events) { event in
-                            DayEventView(store: store, day: date, event: event)
+                            DayEventView(
+                                store: store, day: date, event: event, entityIndex: entitiesByID)
                         }
                     }
                 }
@@ -116,9 +106,12 @@ struct DayView: View {
         .navigationTitle(Text(verbatim: presented.headline))
         #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
+            .toolbar(isToday ? .hidden : .automatic, for: .navigationBar)
         #endif
         .accessibilityIdentifier(isToday ? "screen.today" : "screen.day")
-        .toolbar { SearchButton() }
+        .toolbar {
+            if !isToday { SearchButton() }
+        }
         .task(id: date) {
             if AppLaunchPolicy.allowsAutomaticStart() { await calendar.load(date) }
         }
@@ -129,6 +122,20 @@ struct DayView: View {
         }
         .sheet(isPresented: $showsJournal) {
             NavigationStack { JournalView(store: store, date: date) }
+        }
+    }
+
+    @ViewBuilder private func headlineBlock(_ presented: TodayPresentation) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            PageHeadline(title: presented.headline, byline: presented.byline)
+            if isToday {
+                Button("Ara", systemImage: "magnifyingglass", action: openSearch)
+                    .labelStyle(.iconOnly)
+                    .buttonStyle(.plain)
+                    .foregroundStyle(Color.ink.secondaryText)
+                    .tapTarget()
+                    .accessibilityLabel("Ara")
+            }
         }
     }
 
@@ -149,6 +156,7 @@ struct DayView: View {
                 } label: {
                     journalPreview
                 }
+                .buttonStyle(.plain)
                 .accessibilityLabel("Günlük yazısını düzenle")
             #endif
         }

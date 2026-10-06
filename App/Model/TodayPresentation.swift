@@ -8,6 +8,21 @@ import VaultFormat
 struct TodayPresentation: Sendable {
     enum Section: Sendable { case goals, tasks, events, calendar, journal }
 
+    /// Single ordered list for the tasks section (disclosures sit between groups).
+    enum Row: Identifiable, Sendable {
+        case task(TaskRow)
+        case carriedOverDisclosure(String)
+        case completedDisclosure(String)
+
+        var id: String {
+            switch self {
+            case .task(let row): row.id
+            case .carriedOverDisclosure(let text): "carried:\(text)"
+            case .completedDisclosure(let text): "completed:\(text)"
+            }
+        }
+    }
+
     let headline: String
     let byline: String?
     let remainingTaskCount: Int
@@ -99,6 +114,37 @@ struct TodayPresentation: Sendable {
     var taskRows: [TaskRow] {
         carriedOverTasks + datedTasks + createdTasks + cancelled + completedTaskRows
     }
+
+    /// Carried-over tasks → disclosure → today's / undated → cancelled / completed (or fold).
+    var rows: [Row] {
+        var result: [Row] = carriedOverTasks.map(Row.task)
+        if let disclosure = carriedOverDisclosure {
+            result.append(.carriedOverDisclosure(disclosure))
+        }
+        result.append(contentsOf: (datedTasks + createdTasks).map(Row.task))
+        result.append(contentsOf: cancelled.map(Row.task))
+        if let disclosure = completedDisclosure {
+            result.append(.completedDisclosure(disclosure))
+        } else {
+            result.append(contentsOf: completedTaskRows.map(Row.task))
+        }
+        return result
+    }
+
+    /// Builds goal statuses without trapping on duplicate keys (copied Obsidian goal files).
+    static func goalStatuses(
+        goals: [GoalDefinition], logs: [String: [GoalLog]], day: CalendarDate
+    ) -> [String: GoalStatus] {
+        Dictionary(
+            goals.map { goal in
+                (
+                    goal.key,
+                    GoalProgress.compute(
+                        definition: goal, logs: logs[goal.key] ?? [], today: day)
+                )
+            },
+            uniquingKeysWith: { first, _ in first })
+    }
     /// Every task identity represented by this snapshot, including folded completed rows.
     var representedTaskIDs: Set<String> {
         Set(
@@ -166,11 +212,13 @@ struct TaskBoxPresentation: Sendable {
 
     init(row: TaskRow, isCompleted: Bool = false) {
         let status: TaskStatus
-        if isCompleted {
+        // Preserve cancelled when the caller only mirrors a closed checkbox.
+        if row.rawStatus == "-" {
+            status = .cancelled
+        } else if isCompleted {
             status = .done
         } else {
             switch row.rawStatus {
-            case "-": status = .cancelled
             case "x", "X": status = .done
             case "/": status = .inProgress
             default: status = .todo
@@ -180,6 +228,7 @@ struct TaskBoxPresentation: Sendable {
     }
 
     var priority: TaskPriority? { state.priority }
+    var isCancelled: Bool { state.isCancelled }
 
     /// Priority mark is independent of checkbox fill (including completed / in-progress).
     var priorityMark: String {
@@ -192,6 +241,91 @@ struct TaskBoxPresentation: Sendable {
 
     func accessibilityValue(locale: Locale) -> String {
         VoiceOverCopy.taskBoxValue(state: state, locale: locale)
+    }
+}
+
+/// Pure secondary-line facts for a Today / day task row (date, recurrence, priority, carried-over).
+struct DayTaskSecondaryPresentation: Equatable, Sendable {
+    var dueLabel: String?
+    var isCarriedOver: Bool
+    var carriedOverLabel: String?
+    var recurrenceLabel: String?
+    var showsUnknownRecurrence: Bool
+    var showsLowPriority: Bool
+
+    init(
+        row: TaskRow, isCarriedOver: Bool, carriedOverLabel: String?,
+        today: CalendarDate, locale: Locale, calendar: Calendar
+    ) {
+        self.isCarriedOver = isCarriedOver
+        self.carriedOverLabel = isCarriedOver ? carriedOverLabel : nil
+        if isCarriedOver {
+            dueLabel = nil
+        } else if let due = row.due {
+            dueLabel = Self.dueDateText(due, today: today, locale: locale, calendar: calendar)
+        } else {
+            dueLabel = nil
+        }
+        if let recurrence = row.recurrence {
+            recurrenceLabel = TaskRecurrence.intervalOrWeekdayLabel(recurrence, locale: locale)
+            showsUnknownRecurrence = false
+        } else {
+            recurrenceLabel = nil
+            showsUnknownRecurrence = row.recurrenceSource != nil
+        }
+        showsLowPriority = row.priority == .low
+    }
+
+    private static func dueDateText(
+        _ date: CalendarDate, today: CalendarDate, locale: Locale, calendar: Calendar
+    ) -> String {
+        let resolved = PresentationLocalization.resolvedLocale(locale)
+        let formatter = DateFormatter()
+        formatter.locale = resolved
+        formatter.calendar = calendar
+        formatter.timeZone = calendar.timeZone
+        formatter.setLocalizedDateFormatFromTemplate(
+            "dMMM" + (date.year == today.year ? "" : "y"))
+        return formatter.string(from: LocalDay.instant(for: date, timeZone: calendar.timeZone))
+    }
+}
+
+extension TaskRecurrence {
+    /// Compact label for secondary task chrome (weekday or interval).
+    static func intervalOrWeekdayLabel(_ recurrence: TaskRecurrence, locale: Locale) -> String {
+        switch recurrence.frequency {
+        case .weekday(let day):
+            let key: String.LocalizationValue =
+                switch day {
+                case 0: "Pazartesi"
+                case 1: "Salı"
+                case 2: "Çarşamba"
+                case 3: "Perşembe"
+                case 4: "Cuma"
+                case 5: "Cumartesi"
+                default: "Pazar"
+                }
+            var text = String(
+                localized: key, bundle: PresentationLocalization.bundle(locale), locale: locale)
+            if recurrence.whenDone {
+                text +=
+                    " "
+                    + String(
+                        localized: "Tamamlanınca",
+                        bundle: PresentationLocalization.bundle(locale), locale: locale)
+            }
+            return text
+        case .interval(let count, let unit):
+            var text = intervalLabel(count: count, unit: unit, locale: locale)
+            if recurrence.whenDone {
+                text +=
+                    " "
+                    + String(
+                        localized: "Tamamlanınca",
+                        bundle: PresentationLocalization.bundle(locale), locale: locale)
+            }
+            return text
+        }
     }
 }
 

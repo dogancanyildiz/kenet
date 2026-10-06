@@ -8,31 +8,68 @@ struct InkTaskRow: View {
     /// Preformatted carried-over cue from ``TodayPresentation`` (e.g. `"30 Eyl'den"`).
     var carriedOverLabel: String? = nil
     var overdueDate: Date? = nil
+    /// Non-carried due date shown in secondary text color.
+    var dueLabel: String? = nil
+    var recurrenceLabel: String? = nil
+    var showsUnknownRecurrence = false
+    var showsLowPriority = false
     /// When set, drawn instead of plain ``title`` (vault links / Turkish suffixes).
     var segments: [InkLinkSegment]? = nil
     var openURL: ((URL) -> Void)? = nil
     var action: (() -> Void)? = nil
+    var accessibilityLabelKey: LocalizedStringKey = "Görevi tamamla"
 
     var body: some View {
         MarginRow(kind: .vault) {
-            TaskBox(state: state, action: action)
+            TaskBox(state: state, action: action, accessibilityLabelKey: accessibilityLabelKey)
         } primary: {
             Group {
-                if let segments {
+                if let segments, !state.isCompleted {
                     InkLinkedText(segments: segments, openURL: openURL)
                 } else {
                     Text(verbatim: title)
                         .foregroundStyle(state.isCompleted ? Color.ink.secondaryText : Color.ink.text)
-                        .strikethrough(false)
                 }
             }
-            .opacity(state.isCompleted && segments != nil ? 0.7 : 1)
         } secondary: {
             if !state.isCompleted {
+                secondaryLine
+            }
+        }
+    }
+
+    @ViewBuilder private var secondaryLine: some View {
+        let hasCarried = carriedOverLabel.map { !$0.isEmpty } == true
+        let hasDue = dueLabel.map { !$0.isEmpty } == true && !hasCarried
+        let hasRecurrence = recurrenceLabel.map { !$0.isEmpty } == true || showsUnknownRecurrence
+        if hasCarried || hasDue || hasRecurrence || showsLowPriority || overdueDate != nil {
+            HStack(spacing: 8) {
                 if let carriedOverLabel, !carriedOverLabel.isEmpty {
                     carriedLabel(carriedOverLabel)
                 } else if let overdueDate {
                     overdueLabel(overdueDate)
+                } else if let dueLabel, !dueLabel.isEmpty {
+                    Text(verbatim: dueLabel)
+                        .font(.ink.meta)
+                        .foregroundStyle(Color.ink.secondaryText)
+                }
+                if let recurrenceLabel, !recurrenceLabel.isEmpty {
+                    Label {
+                        Text(verbatim: recurrenceLabel)
+                    } icon: {
+                        Image(systemName: "repeat")
+                    }
+                    .font(.ink.meta)
+                    .foregroundStyle(Color.ink.secondaryText)
+                } else if showsUnknownRecurrence {
+                    Label("Tanınmayan tekrar", systemImage: "repeat")
+                        .font(.ink.meta)
+                        .foregroundStyle(Color.ink.secondaryText)
+                }
+                if showsLowPriority {
+                    TaskPriorityMark(priority: .low)
+                        .font(.ink.meta)
+                        .foregroundStyle(Color.ink.secondaryText)
                 }
             }
         }
@@ -71,36 +108,88 @@ struct InkGoalRow: View {
     var progress: Double
     var isBoolean: Bool = false
     var valueText: String? = nil
+    var metaText: String? = nil
     var onIncrement: (() -> Void)? = nil
+    var onValueTap: (() -> Void)? = nil
+    var onMarkTap: (() -> Void)? = nil
+    var showsPlus: Bool = true
+    var incrementLabel: LocalizedStringKey = "Artır"
+    var enterAmountLabel: LocalizedStringKey = "Miktar gir"
+
+    @ScaledMetric(relativeTo: .body) private var plusSide = InkSize.plus
 
     var body: some View {
         MarginRow(kind: .vault) {
-            GoalRing(progress: progress, isBoolean: isBoolean)
+            if let onMarkTap {
+                Button(action: onMarkTap) {
+                    GoalRing(progress: progress, isBoolean: isBoolean)
+                        .tapTarget()
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(Text(incrementLabel))
+            } else {
+                GoalRing(progress: progress, isBoolean: isBoolean)
+            }
         } primary: {
-            Text(verbatim: name)
-                .foregroundStyle(progress >= 1 ? Color.ink.secondaryText : Color.ink.text)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(verbatim: name)
+                    .foregroundStyle(progress >= 1 ? Color.ink.secondaryText : Color.ink.text)
+                if let metaText, !metaText.isEmpty {
+                    Text(verbatim: metaText)
+                        .font(.ink.meta)
+                        .foregroundStyle(Color.ink.secondaryText)
+                }
+            }
         } trailing: {
             HStack(spacing: 8) {
                 if let valueText {
-                    Text(verbatim: valueText)
-                        .font(.ink.value)
-                        .foregroundStyle(.ink.secondaryText)
+                    if let onValueTap {
+                        Button(action: onValueTap) {
+                            Text(verbatim: valueText)
+                                .font(.ink.value)
+                                .foregroundStyle(.ink.secondaryText)
+                                // Hit area grows down/out; text stays on the first-line baseline.
+                                .frame(
+                                    minWidth: TapTarget.minimumLength,
+                                    minHeight: TapTarget.minimumLength, alignment: .topTrailing
+                                )
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel(Text(enterAmountLabel))
+                    } else {
+                        Text(verbatim: valueText)
+                            .font(.ink.value)
+                            .foregroundStyle(.ink.secondaryText)
+                    }
                 }
-                if let onIncrement {
+                if showsPlus, let onIncrement {
                     Button(action: onIncrement) {
                         Image(systemName: "plus")
                             .font(.body.weight(.semibold))
-                            .foregroundStyle(.ink.accent)
-                            .frame(width: InkSize.plus, height: InkSize.plus)
-                            .overlay {
-                                Circle().strokeBorder(Color.ink.control, lineWidth: InkStroke.control)
+                            .foregroundStyle(
+                                progress >= 1 ? Color.ink.secondaryText : Color.ink.accent
+                            )
+                            .frame(width: plusSide, height: plusSide)
+                            .background {
+                                ZStack {
+                                    Circle().fill(Color.ink.control)
+                                    Circle().inset(by: InkStroke.control).fill(Color.ink.paper)
+                                }
                             }
-                            .tapTarget()
+                            .frame(
+                                minWidth: TapTarget.minimumLength,
+                                minHeight: TapTarget.minimumLength, alignment: .top
+                            )
+                            .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
-                    .accessibilityLabel(Text("Artır"))
+                    .accessibilityLabel(Text(incrementLabel))
                 }
             }
+        }
+        .accessibilityAction(named: Text(enterAmountLabel)) {
+            onValueTap?()
         }
     }
 }

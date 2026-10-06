@@ -20,6 +20,8 @@ enum InkLinkStyle {
     enum Kind: Sendable {
         case person
         case place
+        /// Resolved vault link that is neither person nor place (project note, etc.).
+        case other
         case unresolved
     }
 
@@ -59,6 +61,9 @@ enum InkLinkStyle {
         case .place:
             pattern = .dot
             color = .ink.place
+        case .other:
+            pattern = .solid
+            color = .ink.secondaryText
         case .unresolved:
             pattern = .dash
             color = .ink.secondaryText
@@ -78,6 +83,7 @@ enum InkLinkStyle {
         switch kind {
         case .person: string.foregroundColor = Color.ink.person
         case .place: string.foregroundColor = Color.ink.place
+        case .other: string.foregroundColor = Color.ink.text
         case .unresolved: string.foregroundColor = Color.ink.secondaryText
         }
     }

@@ -64,10 +64,10 @@ final class SmokeUITests: XCTestCase {
         UITestSupport.waitForExistence(event, timeout: 30)
         XCTAssertTrue(event.exists)
 
-        openTab(app, identifier: "tab.days", screen: "screen.days")
-        openTab(app, identifier: "tab.tasks", screen: "screen.tasks")
-        openTab(app, identifier: "tab.entities", screen: "screen.entities")
-        openTab(app, identifier: "tab.today", screen: "screen.today")
+        UITestSupport.openTab(app, identifier: "tab.days", screen: "screen.days")
+        UITestSupport.openTab(app, identifier: "tab.tasks", screen: "screen.tasks")
+        UITestSupport.openTab(app, identifier: "tab.entities", screen: "screen.entities")
+        UITestSupport.openTab(app, identifier: "tab.today", screen: "screen.today")
 
         let settings = UITestSupport.element(in: app, identifier: "button.settings")
         UITestSupport.waitForExistence(settings)
@@ -82,13 +82,4 @@ final class SmokeUITests: XCTestCase {
         UITestSupport.waitForExistence(today)
     }
 
-    @MainActor
-    private func openTab(_ app: XCUIApplication, identifier: String, screen: String) {
-        let tab = UITestSupport.element(in: app, identifier: identifier)
-        UITestSupport.waitForExistence(tab)
-        tab.tap()
-        let screenElement = UITestSupport.element(in: app, identifier: screen)
-        UITestSupport.waitForExistence(screenElement)
-        XCTAssertTrue(screenElement.exists)
-    }
 }

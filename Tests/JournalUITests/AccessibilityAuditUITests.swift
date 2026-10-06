@@ -31,29 +31,21 @@ final class AccessibilityAuditUITests: XCTestCase {
         UITestSupport.waitForExistence(UITestSupport.element(in: app, identifier: "screen.today"))
         try audit(app, screen: "today")
 
-        openTab(app, identifier: "tab.days", screen: "screen.days")
+        UITestSupport.openTab(app, identifier: "tab.days", screen: "screen.days")
         try audit(app, screen: "days")
 
-        openTab(app, identifier: "tab.tasks", screen: "screen.tasks")
+        UITestSupport.openTab(app, identifier: "tab.tasks", screen: "screen.tasks")
         try audit(app, screen: "tasks")
 
-        openTab(app, identifier: "tab.entities", screen: "screen.entities")
+        UITestSupport.openTab(app, identifier: "tab.entities", screen: "screen.entities")
         try audit(app, screen: "entities")
 
-        openTab(app, identifier: "tab.today", screen: "screen.today")
+        UITestSupport.openTab(app, identifier: "tab.today", screen: "screen.today")
         let settings = UITestSupport.element(in: app, identifier: "button.settings")
         UITestSupport.waitForExistence(settings)
         settings.tap()
         UITestSupport.waitForExistence(UITestSupport.element(in: app, identifier: "screen.settings"))
         try audit(app, screen: "settings")
-    }
-
-    @MainActor
-    private func openTab(_ app: XCUIApplication, identifier: String, screen: String) {
-        let tab = UITestSupport.element(in: app, identifier: identifier)
-        UITestSupport.waitForExistence(tab)
-        tab.tap()
-        UITestSupport.waitForExistence(UITestSupport.element(in: app, identifier: screen))
     }
 
     @MainActor

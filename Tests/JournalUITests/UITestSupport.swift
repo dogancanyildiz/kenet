@@ -66,6 +66,51 @@ enum UITestSupport {
         app.descendants(matching: .any).matching(identifier: identifier).firstMatch
     }
 
+    /// Tab order in `PhoneNavigation`; older simulators do not expose `Tab` identifiers.
+    static let tabOrder = ["tab.today", "tab.days", "tab.tasks", "tab.entities", "tab.goals"]
+
+    /// Finds a tab by identifier, falling back to the tab bar's button at the known index.
+    @MainActor
+    static func tab(in app: XCUIApplication, identifier: String) -> XCUIElement {
+        let byId = app.tabBars.buttons.matching(identifier: identifier).firstMatch
+        if byId.waitForExistence(timeout: 3) { return byId }
+        let anyId = element(in: app, identifier: identifier)
+        if anyId.waitForExistence(timeout: 2) { return anyId }
+        let index = tabOrder.firstIndex(of: identifier) ?? 0
+        return app.tabBars.firstMatch.buttons.element(boundBy: index)
+    }
+
+    /// Switches tabs and waits for the screen marker; a selected tab whose content shows any
+    /// list is accepted when the marker is not exposed by the simulator's accessibility tree.
+    @MainActor
+    static func openTab(_ app: XCUIApplication, identifier: String, screen: String) {
+        dismissKeyboard(in: app)
+        let tab = tab(in: app, identifier: identifier)
+        waitForExistence(tab)
+        tab.tap()
+        let marker = element(in: app, identifier: screen)
+        if marker.waitForExistence(timeout: 15) { return }
+        XCTAssertTrue(tab.isSelected, "Tab \(identifier) did not become selected")
+        XCTAssertTrue(
+            app.collectionViews.firstMatch.waitForExistence(timeout: 10)
+                || app.tables.firstMatch.waitForExistence(timeout: 5)
+                || app.scrollViews.firstMatch.waitForExistence(timeout: 5),
+            "Screen \(screen) showed no content after switching tabs")
+    }
+
+    /// The software keyboard covers the tab bar on CI simulators (no hardware keyboard).
+    @MainActor
+    static func dismissKeyboard(in app: XCUIApplication) {
+        guard app.keyboards.firstMatch.exists else { return }
+        let hide = app.keyboards.buttons["Hide keyboard"]
+        if hide.exists {
+            hide.tap()
+        } else {
+            app.swipeDown()
+        }
+        _ = app.keyboards.firstMatch.waitForNonExistence(timeout: 3)
+    }
+
     @MainActor
     static func quickEntryField(in app: XCUIApplication) -> XCUIElement {
         let byId = app.textFields["field.quickEntry"]

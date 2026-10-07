@@ -4,6 +4,7 @@ import SwiftUI
 struct PrivacySettingsView: View {
     var body: some View {
         Form {
+            InkPageTitleRow("Gizlilik")
             AppLockSettingsView()
             #if os(iOS)
                 // Mac uses the adjacent Bildirimler Settings tab instead of a push.
@@ -16,7 +17,8 @@ struct PrivacySettingsView: View {
             PeopleInsightsSettingsView()
         }
         .formStyle(.grouped)
-        .listRowBackground(Color.ink.surface)
+        .listRowBackground(Color.ink.paper)
+        .inkPageNavigationTitle("Gizlilik")
         .inkPageColumn()
         .inkPage()
     }

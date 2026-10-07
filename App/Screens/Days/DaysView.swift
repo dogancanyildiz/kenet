@@ -9,6 +9,7 @@ struct DaysView: View {
 
     var body: some View {
         List {
+            InkPageTitleRow("Günlük")
             NavigationLink {
                 SummariesView(store: store)
             } label: {
@@ -40,8 +41,9 @@ struct DaysView: View {
         }
         .listStyle(.plain)
         .inkPage()
+        .inkPageColumn()
         .navigationDestination(item: $selectedDay) { day in DayView(store: store, date: day) }
-        .navigationTitle("Günlük")
+        .inkPageNavigationTitle("Günlük")
         .accessibilityIdentifier("screen.days")
         .toolbar { SearchButton() }
     }

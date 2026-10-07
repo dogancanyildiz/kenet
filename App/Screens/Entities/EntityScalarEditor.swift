@@ -96,7 +96,9 @@ struct EntityScalarEditor: View {
         Task {
             let success = await save(value)
             saveFailed = !success
-            if success { savedText = committed }
+            var next = savedText
+            EntityEditorSaveMark.commitIfSaved(committed, success: success, into: &next)
+            savedText = next
             draft?.report(id: draftID, dirty: text != savedText)
         }
     }

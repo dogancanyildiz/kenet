@@ -184,6 +184,28 @@ struct VaultDisplayTextTests {
         #expect(SearchPreviewText.title("```\n```", file: "notes/Proje Fikirleri.md") == "Proje Fikirleri")
     }
 
+    @Test func searchPreviewStripsListMarkersAndKeepsHeadingText() {
+        let raw = """
+            ## Events
+            - 10:00 Ada ile kahve
+            * liste
+            1. numaralı
+            - [ ] Ada ile konuş ^b2c3d4
+            """
+        let preview = SearchPreviewText.display(raw)
+        #expect(!preview.contains("##"))
+        #expect(preview.contains("Events"))
+        #expect(preview.contains("10:00 Ada ile kahve"))
+        #expect(!preview.contains("- 10:00"))
+        #expect(preview.contains("liste"))
+        #expect(!preview.hasPrefix("*"))
+        #expect(preview.contains("numaralı"))
+        #expect(!preview.contains("1. "))
+        #expect(preview.contains("Ada ile konuş"))
+        #expect(!preview.contains("[ ]"))
+        #expect(!preview.contains("^b2c3d4"))
+    }
+
     @Test func searchResultsHideMarkupAndPaths() throws {
         let locale = Locale(identifier: "en_US_POSIX")
         let entities = [

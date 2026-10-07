@@ -140,7 +140,7 @@ struct VaultImportView: View {
         }
         .navigationTitle("Kasa hazırlığı")
         .formStyle(.grouped)
-        .listRowBackground(Color.ink.surface)
+        .listRowBackground(Color.ink.paper)
         .inkPageColumn()
         .inkPage()
         .interactiveDismissDisabled(model.isApplying || model.result != nil || store.isProcessing)

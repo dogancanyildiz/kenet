@@ -18,7 +18,10 @@ struct SearchView: View {
     var body: some View {
         NavigationStack(path: $path) {
             VStack(spacing: 0) {
-                searchField.padding()
+                InkPageTitle("Ara")
+                searchField
+                    .padding(.horizontal, InkSpacing.margin)
+                    .padding(.bottom, 8)
                 if model.isSearching { ProgressView().padding(.bottom, 8) }
                 if let error = model.errorText {
                     Text(verbatim: error).foregroundStyle(.ink.danger).padding()
@@ -26,7 +29,8 @@ struct SearchView: View {
                 resultList
             }
             .inkPage()
-            .navigationTitle("Ara")
+            .inkPageColumn()
+            .inkPageNavigationTitle("Ara")
             .toolbar { Button("Kapat") { dismiss() } }
             .navigationDestination(for: SearchDestination.self) { destination in
                 switch destination {
@@ -68,9 +72,24 @@ struct SearchView: View {
 
     private var searchField: some View {
         TextField("Kişi, konum veya metin ara", text: $model.query)
-            .textFieldStyle(.roundedBorder)
+            .textFieldStyle(.plain)
+            .font(.ink.content)
+            .foregroundStyle(.ink.text)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+            .background(
+                Color.ink.well,
+                in: RoundedRectangle(
+                    cornerRadius: InkSize.kanbanCorner, style: .continuous)
+            )
             .focused($searchFocused)
-            .onSubmit { if let selected = model.selected { open(selected) } else { model.rememberQuery() } }
+            .onSubmit {
+                if let selected = model.selected {
+                    open(selected)
+                } else {
+                    model.rememberQuery()
+                }
+            }
             #if os(macOS)
                 .onKeyPress(.downArrow) {
                     model.moveSelection(by: 1)

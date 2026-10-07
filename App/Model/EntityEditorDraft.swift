@@ -14,6 +14,16 @@ final class EntityEditorDraft {
         dirtyByID[id] = dirty
     }
 
+    /// Drops a field id after it is removed from the vault so "Done" does not prompt.
+    func clear(id: String) {
+        dirtyByID.removeValue(forKey: id)
+    }
+
+    /// Drops `prefix` and any `prefix.` child ids (list indices / mapping keys).
+    func clear(prefix: String) {
+        dirtyByID = dirtyByID.filter { $0.key != prefix && !$0.key.hasPrefix(prefix + ".") }
+    }
+
     /// Pure OR helper (not actor-bound) for combine-style tests.
     nonisolated static func combine(current: Bool, next: Bool) -> Bool { current || next }
 }

@@ -149,7 +149,8 @@ enum SearchPreviewText {
             let trimmed = line.trimmingCharacters(in: .whitespaces)
             if isFenceDelimiter(trimmed) { return nil }
             // Always apply display rules (even for lines that were inside a fence in the source).
-            return stripHeadingMarkers(VaultDisplayText.line(line))
+            let plain = stripListMarker(stripHeadingMarkers(VaultDisplayText.line(line)))
+            return plain
         }
         return result.joined(separator: "\n")
             .trimmingCharacters(in: .whitespacesAndNewlines)
@@ -196,5 +197,63 @@ enum SearchPreviewText {
         }
         let afterSpace = line.index(after: cursor)
         return String(line[afterSpace...])
+    }
+
+    /// Drops unordered / ordered list markers and Obsidian task boxes for search preview only.
+    private static func stripListMarker(_ line: String) -> String {
+        var index = line.startIndex
+        while index < line.endIndex, line[index] == " " || line[index] == "\t" {
+            index = line.index(after: index)
+        }
+        let body = line[index...]
+        guard let first = body.first else { return line }
+
+        if "-*+".contains(first) {
+            var cursor = body.index(after: body.startIndex)
+            guard cursor < body.endIndex, body[cursor] == " " || body[cursor] == "\t" else {
+                return line
+            }
+            cursor = body.index(after: cursor)
+            while cursor < body.endIndex, body[cursor] == " " || body[cursor] == "\t" {
+                cursor = body.index(after: cursor)
+            }
+            if cursor < body.endIndex, body[cursor] == "[" {
+                var box = body.index(after: cursor)
+                if box < body.endIndex {
+                    box = body.index(after: box)
+                    if box < body.endIndex, body[box] == "]" {
+                        box = body.index(after: box)
+                        if box == body.endIndex { return "" }
+                        if body[box] == " " || body[box] == "\t" {
+                            box = body.index(after: box)
+                            while box < body.endIndex, body[box] == " " || body[box] == "\t" {
+                                box = body.index(after: box)
+                            }
+                            return String(body[box...])
+                        }
+                    }
+                }
+            }
+            return String(body[cursor...])
+        }
+
+        var cursor = body.startIndex
+        var digits = 0
+        while cursor < body.endIndex, body[cursor].isNumber, digits < 9 {
+            digits += 1
+            cursor = body.index(after: cursor)
+        }
+        guard digits > 0, cursor < body.endIndex, body[cursor] == "." || body[cursor] == ")" else {
+            return line
+        }
+        cursor = body.index(after: cursor)
+        guard cursor < body.endIndex, body[cursor] == " " || body[cursor] == "\t" else {
+            return line
+        }
+        cursor = body.index(after: cursor)
+        while cursor < body.endIndex, body[cursor] == " " || body[cursor] == "\t" {
+            cursor = body.index(after: cursor)
+        }
+        return String(body[cursor...])
     }
 }

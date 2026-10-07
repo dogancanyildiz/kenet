@@ -10,6 +10,7 @@ struct EntityTypesSettingsView: View {
 
     var body: some View {
         Form {
+            InkPageTitleRow("Varlık tipleri")
             Section("Yerleşik tipler") {
                 ForEach(EntityTypeChoices.choices(store.entityTypes).filter { $0.id == "person" || $0.id == "place" }) {
                     type in
@@ -55,8 +56,8 @@ struct EntityTypesSettingsView: View {
             errorText = nil
         }
         .formStyle(.grouped)
-        .listRowBackground(Color.ink.surface)
-        .navigationTitle("Varlık tipleri")
+        .listRowBackground(Color.ink.paper)
+        .inkPageNavigationTitle("Varlık tipleri")
         .inkPageColumn()
         .inkPage()
         .confirmationDialog(

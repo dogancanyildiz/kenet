@@ -4,11 +4,13 @@ import SwiftUI
 struct CalendarAndLocationSettingsView: View {
     var body: some View {
         Form {
+            InkPageTitleRow("Takvim ve Konum")
             CalendarSettingsView()
             LocationSettingsView()
         }
         .formStyle(.grouped)
-        .listRowBackground(Color.ink.surface)
+        .listRowBackground(Color.ink.paper)
+        .inkPageNavigationTitle("Takvim ve Konum")
         .inkPageColumn()
         .inkPage()
     }

@@ -50,7 +50,7 @@ struct EntityTypeEditorView: View {
         }
         .disabled(model.isSaving)
         .formStyle(.grouped)
-        .listRowBackground(Color.ink.surface)
+        .listRowBackground(Color.ink.paper)
         .navigationTitle(model.original == nil ? Text("Yeni varlık tipi") : Text("Varlık tipini düzenle"))
         .inkPageColumn()
         .inkPage()

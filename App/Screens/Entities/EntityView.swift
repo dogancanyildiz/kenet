@@ -61,11 +61,7 @@ struct EntityView: View {
         .inkPage()
         .inkPageColumn()
         .environment(\.entityLookup, LinkedTextInk.lookup(entities: store.content.entities))
-        // Manşet carries the name; keep the bar chrome compact (jury condition 4).
-        .navigationTitle(current.name)
-        #if os(iOS)
-            .navigationBarTitleDisplayMode(.inline)
-        #endif
+        .inkPageNavigationTitle(verbatim: current.name)
         .toolbar {
             SearchButton()
             if model.isLoaded && model.canEdit {
@@ -81,12 +77,11 @@ struct EntityView: View {
 
     @ViewBuilder private var readingContent: some View {
         Section {
-            PageHeadline(
-                title: current.name,
+            InkPageTitleRow(
+                verbatim: current.name,
                 byline: EntityReadPresentation.byline(
                     kindLabel: kindLabel, aliases: model.aliases, lastSeen: lastSeen, locale: locale)
             )
-            .inkListRow()
             if !model.aliasesEditable, !model.aliasesSource.isEmpty {
                 Text(verbatim: model.aliasesSource)
                     .font(.ink.meta)

@@ -4,6 +4,7 @@ import VaultFormat
 struct EntityFieldEditor: View {
     let field: EntityField
     let model: EntityDetailModel
+    @Environment(\.entityEditorDraft) private var draft
     @State private var deleteConfirmation = DestructiveConfirmation<DestructiveConfirmationToken>()
 
     var body: some View {
@@ -51,7 +52,11 @@ struct EntityFieldEditor: View {
         .destructiveConfirmationDialog(
             "Alanı kaldır?", confirmation: $deleteConfirmation, confirmTitle: "Alanı kaldır"
         ) { _ in
-            Task { await model.remove(field.key) }
+            Task {
+                if await model.remove(field.key) {
+                    draft?.clear(prefix: "field:" + field.key)
+                }
+            }
         }
     }
 

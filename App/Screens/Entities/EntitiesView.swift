@@ -22,6 +22,7 @@ struct EntitiesView: View {
             EntityTypePicker(store: store, selection: $kind).padding()
             EntityListControls(order: $order, search: $search)
             List {
+                InkPageTitleRow("Kişiler ve Konumlar")
                 if kind == "person" {
                     UnseenPeopleSection(store: store, people: entities)
                 }
@@ -30,6 +31,7 @@ struct EntitiesView: View {
                         .inkListRow()
                 }
             }
+            .listStyle(.plain)
             .inkPage()
             .overlay {
                 if !store.content.entities.contains(where: { $0.kind == kind }) {
@@ -38,7 +40,8 @@ struct EntitiesView: View {
             }
         }
         .inkPage()
-        .navigationTitle("Kişiler ve Konumlar")
+        .inkPageColumn()
+        .inkPageNavigationTitle("Kişiler ve Konumlar")
         .accessibilityIdentifier("screen.entities")
         .toolbar {
             SearchButton()

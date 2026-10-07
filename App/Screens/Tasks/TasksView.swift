@@ -46,11 +46,11 @@ struct TasksView: View {
                     TaskTimelineView(tasks: model)
                 } else {
                     listContent
+                        .inkPageColumn()
                 }
             }
             .inkPage()
-            .inkPageColumn()
-            .navigationTitle("Görevler")
+            .inkPageNavigationTitle("Görevler")
             .accessibilityIdentifier("screen.tasks")
             .toolbar {
                 TasksSectionPicker(section: $model.section)
@@ -109,10 +109,12 @@ struct TasksView: View {
 
     @ViewBuilder private var listContent: some View {
         List(selection: $selection) {
+            InkPageTitleRow("Görevler")
             if let error = model.errorText {
                 InfoBand(kind: .error, verbatim: error)
-                    .listRowBackground(Color.clear)
                     .listRowInsets(EdgeInsets())
+                    .listRowSeparator(.hidden)
+                    .listRowBackground(Color.ink.paper)
             }
             switch model.section {
             case .kanban, .timeline: EmptyView()
@@ -131,47 +133,48 @@ struct TasksView: View {
                                 .foregroundStyle(.ink.text)
                         }
                     }
+                    .inkListRow()
                 }
                 if model.projects.isEmpty {
                     EmptyState("Henüz proje yok")
-                        .listRowBackground(Color.clear)
+                        .inkListRow()
                 }
             case .upcoming:
                 ForEach(model.agenda) { group in
                     Section {
-                        rows(group.rows)
-                    } header: {
                         SectionHeader(title: headingTitle(group.date), count: group.rows.count)
+                            .inkListRow()
+                        rows(group.rows)
                     }.id(group.id)
                 }
                 if model.agenda.isEmpty {
                     EmptyState("Görev yok.")
-                        .listRowBackground(Color.clear)
+                        .inkListRow()
                 }
             case .undated:
                 Section {
-                    rows(model.undated)
-                } header: {
                     SectionHeader(title: String(localized: "Tarihsiz"), count: model.undated.count)
+                        .inkListRow()
+                    rows(model.undated)
                 }
                 if model.undated.isEmpty {
                     EmptyState("Görev yok.")
-                        .listRowBackground(Color.clear)
+                        .inkListRow()
                 }
             case .completed:
                 Section {
-                    rows(model.completed)
-                } header: {
                     SectionHeader(title: String(localized: "Tamamlanan"), count: model.completed.count)
+                        .inkListRow()
+                    rows(model.completed)
                 }
                 if model.completed.isEmpty {
                     EmptyState("Görev yok.")
-                        .listRowBackground(Color.clear)
+                        .inkListRow()
                 }
             }
         }
         .listStyle(.plain)
-        .scrollContentBackground(.hidden)
+        .inkPage()
     }
 
     /// A cold notification launch can arrive before the first index publication.
@@ -206,7 +209,7 @@ struct TasksView: View {
                 #endif
             }
             .tag(row.id)
-            .listRowBackground(Color.ink.paper)
+            .inkListRow()
             .alignmentGuide(.listRowSeparatorLeading) { _ in 0 }
         }
     }

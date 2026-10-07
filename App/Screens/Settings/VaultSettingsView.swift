@@ -13,6 +13,7 @@ struct VaultSettingsView: View {
 
     var body: some View {
         Form {
+            InkPageTitleRow("Kasa")
             Section("Kasa") {
                 if let path = VaultPathDisplay.text(
                     for: store.vaultURL, override: pathDisplayOverride)
@@ -81,7 +82,8 @@ struct VaultSettingsView: View {
             }
         }
         .formStyle(.grouped)
-        .listRowBackground(Color.ink.surface)
+        .listRowBackground(Color.ink.paper)
+        .inkPageNavigationTitle("Kasa")
         .inkPageColumn()
         .inkPage()
         .fileImporter(isPresented: $choosingFolder, allowedContentTypes: [.folder]) { result in

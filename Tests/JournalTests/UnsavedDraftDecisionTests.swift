@@ -52,6 +52,21 @@ struct UnsavedDraftDecisionTests {
         #expect(!draft.isDirty)
     }
 
+    @MainActor
+    @Test func removingFieldClearsDraftIds() {
+        let draft = EntityEditorDraft()
+        draft.report(id: "field:notes", dirty: true)
+        draft.report(id: "field:notes.0", dirty: true)
+        draft.report(id: "field:other", dirty: true)
+        draft.report(id: "typed:birthday", dirty: true)
+        #expect(draft.isDirty)
+        draft.clear(prefix: "field:notes")
+        #expect(draft.isDirty)
+        draft.clear(id: "typed:birthday")
+        draft.clear(id: "field:other")
+        #expect(!draft.isDirty)
+    }
+
     @Test func failedSaveDoesNotClearCommittedText() {
         var saved = "eski"
         let committed = "yeni"

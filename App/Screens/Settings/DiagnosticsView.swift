@@ -6,6 +6,7 @@ struct DiagnosticsView: View {
 
     var body: some View {
         Form {
+            InkPageTitleRow("Tanılama")
             Section("İndeks") {
                 ViewThatFits(in: .horizontal) {
                     HStack {
@@ -71,7 +72,8 @@ struct DiagnosticsView: View {
             }
         }
         .formStyle(.grouped)
-        .listRowBackground(Color.ink.surface)
+        .listRowBackground(Color.ink.paper)
+        .inkPageNavigationTitle("Tanılama")
         .inkPageColumn()
         .inkPage()
     }

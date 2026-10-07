@@ -12,6 +12,7 @@ struct NotificationSettingsView: View {
     var body: some View {
         @Bindable var service = service
         Form {
+            InkPageTitleRow("Bildirimler")
             Section("İzin") {
                 Text(service.authorization.title)
                     .font(.ink.meta)
@@ -76,8 +77,8 @@ struct NotificationSettingsView: View {
             }
         }
         .formStyle(.grouped)
-        .listRowBackground(Color.ink.surface)
-        .navigationTitle("Bildirimler")
+        .listRowBackground(Color.ink.paper)
+        .inkPageNavigationTitle("Bildirimler")
         .inkPageColumn()
         .inkPage()
         .task { if AppLaunchPolicy.allowsAutomaticStart() { await service.replanNow() } }

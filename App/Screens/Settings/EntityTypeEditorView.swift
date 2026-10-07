@@ -1,17 +1,64 @@
 import SwiftUI
 import VaultFormat
 
+/// Everything the editor can change, as a value: the draft is dirty when it differs from the
+/// one the sheet opened with.
+struct EntityTypeDraftSnapshot: Equatable {
+    struct Field: Equatable {
+        var key: String
+        var kind: EntityTypeField.Kind
+    }
+
+    var id: String
+    var folder: String
+    var nameTR: String
+    var nameEN: String
+    var pluralTR: String
+    var pluralEN: String
+    var icon: String
+    var template: String
+    var fields: [Field]
+
+    @MainActor init(_ model: EntityTypeEditorModel) {
+        id = model.id
+        folder = model.folder
+        nameTR = model.nameTR
+        nameEN = model.nameEN
+        pluralTR = model.pluralTR
+        pluralEN = model.pluralEN
+        icon = model.icon
+        template = model.template
+        fields = model.fields.map { Field(key: $0.key, kind: $0.kind) }
+    }
+
+    /// Dirty: any text, the field list, a field's name or kind differs from `opened`.
+    func isDirty(since opened: EntityTypeDraftSnapshot) -> Bool { self != opened }
+}
+
 /// Editing sheet for one entity type: every field is collected in the model and written by the
 /// single confirm ("Oluştur" for a new type, "Kaydet" for an existing one). Hosted inside the
-/// presenter's `NavigationStack`.
+/// presenter's `NavigationStack`. A changed draft cannot be swiped away, and "Vazgeç" asks
+/// before discarding it.
 struct EntityTypeEditorView: View {
-    @State var model: EntityTypeEditorModel
+    @State private var model: EntityTypeEditorModel
+    @State private var opened: EntityTypeDraftSnapshot
     @Environment(\.dismiss) private var dismiss
     @State private var deleteConfirmation = DestructiveConfirmation<UUID>()
+    @State private var discardPrompt = false
+
+    init(model: EntityTypeEditorModel) {
+        _model = State(initialValue: model)
+        _opened = State(initialValue: EntityTypeDraftSnapshot(model))
+    }
 
     private var title: LocalizedStringKey {
         model.original == nil ? "Yeni varlık tipi" : "Varlık tipini düzenle"
     }
+
+    /// "Oluştur" opens a new type, "Kaydet" changes an existing one.
+    static func confirmation(isNew: Bool) -> InkSheetConfirmation { isNew ? .create : .save }
+
+    private var isDirty: Bool { EntityTypeDraftSnapshot(model).isDirty(since: opened) }
 
     var body: some View {
         @Bindable var model = model
@@ -20,22 +67,16 @@ struct EntityTypeEditorView: View {
             Section {
                 SectionHeader("Tip tanımı")
                     .inkListRow()
-                InkFilterField("Tip kimliği (ör. book)", text: $model.id).disabled(model.original != nil)
-                    .inkListRow()
-                InkFilterField("Klasör (ör. books)", text: $model.folder)
-                    .inkListRow()
-                InkFilterField("Ad — Türkçe", text: $model.nameTR)
-                    .inkListRow()
-                InkFilterField("Ad — İngilizce", text: $model.nameEN)
-                    .inkListRow()
-                InkFilterField("Çoğul ad — Türkçe", text: $model.pluralTR)
-                    .inkListRow()
-                InkFilterField("Çoğul ad — İngilizce", text: $model.pluralEN)
-                    .inkListRow()
-                InkFilterField("SF Symbol adı", text: $model.icon)
-                    .inkListRow()
-                InkFilterField("Şablon yolu (isteğe bağlı)", text: $model.template)
-                    .inkListRow()
+                labeledField("Tip kimliği", example: "book", text: $model.id)
+                    .disabled(model.original != nil)
+                labeledField("Klasör", example: "books", text: $model.folder)
+                labeledField("Ad — Türkçe", example: "Kitap", text: $model.nameTR)
+                labeledField("Ad — İngilizce", example: "Book", text: $model.nameEN)
+                labeledField("Çoğul ad — Türkçe", example: "Kitaplar", text: $model.pluralTR)
+                labeledField("Çoğul ad — İngilizce", example: "Books", text: $model.pluralEN)
+                labeledField("SF Symbol adı", example: "book", text: $model.icon)
+                labeledField(
+                    "Şablon yolu (isteğe bağlı)", example: "templates/book.md", text: $model.template)
                 Text("Kimlik değişmez. Klasör değişikliği mevcut varlıkları taşımaz.")
                     .font(.ink.meta)
                     .foregroundStyle(Color.ink.secondaryText)
@@ -46,7 +87,8 @@ struct EntityTypeEditorView: View {
                     .inkListRow()
                 ForEach($model.fields) { $field in
                     VStack(alignment: .leading, spacing: 4) {
-                        InkFilterField("Alan adı", text: $field.key)
+                        fieldLabel("Alan adı")
+                        formField("Alan adı", example: "yazar", text: $field.key)
                         ViewThatFits(in: .horizontal) {
                             HStack {
                                 fieldKindMenu($field.kind)
@@ -80,18 +122,48 @@ struct EntityTypeEditorView: View {
         .listStyle(.plain)
         .inkPageColumn()
         .inkSheet(
-            title, confirm: model.original == nil ? .create : .save,
-            isConfirmEnabled: model.canSave, isBusy: model.isSaving,
+            title, confirm: Self.confirmation(isNew: model.original == nil),
+            isConfirmEnabled: model.canSave, isBusy: model.isSaving, isCancelEnabled: !model.isSaving,
             cancelIdentifier: "button.entityType.cancel", confirmIdentifier: "button.entityType.save",
-            onCancel: { if !model.isSaving { dismiss() } },
+            onCancel: { if isDirty { discardPrompt = true } else { dismiss() } },
             onConfirm: { Task { if await model.save() { dismiss() } } }
         )
-        .interactiveDismissDisabled(model.isSaving)
+        .interactiveDismissDisabled(model.isSaving || isDirty)
         .destructiveConfirmationDialog(
             "Alanı kaldır?", confirmation: $deleteConfirmation, confirmTitle: "Alanı kaldır"
         ) { fieldID in
             model.fields.removeAll { $0.id == fieldID }
         }
+        .confirmationDialog("Kaydedilmemiş değişiklikler", isPresented: $discardPrompt) {
+            Button("Değişiklikleri at", role: .destructive) { dismiss() }
+            Button("Düzenlemeye devam et", role: .cancel) {}
+        }
+    }
+
+    /// A form field: visible label above, an example value as the placeholder, no clear button.
+    private func labeledField(
+        _ label: LocalizedStringKey, example: String, text: Binding<String>
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            fieldLabel(label)
+            formField(label, example: example, text: text)
+        }
+        .inkListRow()
+    }
+
+    /// The visible label; VoiceOver reads it as the field's own label instead.
+    private func fieldLabel(_ label: LocalizedStringKey) -> some View {
+        Text(label)
+            .font(.ink.meta)
+            .foregroundStyle(Color.ink.secondaryText)
+            .accessibilityHidden(true)
+    }
+
+    private func formField(
+        _ label: LocalizedStringKey, example: String, text: Binding<String>
+    ) -> some View {
+        InkFilterField("ör. \(example)", text: text, showsClearButton: false)
+            .accessibilityLabel(Text(label))
     }
 
     private func fieldKindMenu(_ kind: Binding<EntityTypeField.Kind>) -> some View {
@@ -107,11 +179,7 @@ struct EntityTypeEditorView: View {
     }
 
     private func removeFieldButton(_ id: UUID) -> some View {
-        Button(role: .destructive) {
-            deleteConfirmation.request(id)
-        } label: {
-            Text("Alanı kaldır").tapTarget()
-        }
-        .buttonStyle(.borderless)
+        Button("Alanı kaldır", role: .destructive) { deleteConfirmation.request(id) }
+            .buttonStyle(InkDestructiveButtonStyle())
     }
 }

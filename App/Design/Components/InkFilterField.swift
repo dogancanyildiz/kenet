@@ -24,6 +24,7 @@ struct InkFilterField: View {
     private let externalFocus: FocusState<Bool>.Binding?
     private let identifier: String?
     private let clearIdentifier: String?
+    private let showsClearButton: Bool
     @FocusState private var internalFocus: Bool
 
     /// - Parameters:
@@ -31,20 +32,25 @@ struct InkFilterField: View {
     ///   - isFocused: bind a caller-owned `@FocusState` to read or move focus; omit otherwise.
     ///   - identifier: accessibility identifier of the text field (e.g. `field.search`).
     ///   - clearIdentifier: accessibility identifier of the clear button.
+    ///   - showsClearButton: `false` for a form field (a labeled value, not a search): the
+    ///     clear button never appears and the text keeps the full width.
     init(
         _ prompt: LocalizedStringKey, text: Binding<String>,
         isFocused: FocusState<Bool>.Binding? = nil, identifier: String? = nil,
-        clearIdentifier: String? = nil
+        clearIdentifier: String? = nil, showsClearButton: Bool = true
     ) {
         self.prompt = prompt
         _text = text
         externalFocus = isFocused
         self.identifier = identifier
         self.clearIdentifier = clearIdentifier
+        self.showsClearButton = showsClearButton
     }
 
     private var focus: FocusState<Bool>.Binding { externalFocus ?? $internalFocus }
-    private var showsClear: Bool { InkFilterFieldChrome.showsClear(text: text) }
+    private var showsClear: Bool {
+        showsClearButton && InkFilterFieldChrome.showsClear(text: text)
+    }
 
     var body: some View {
         TextField(prompt, text: $text, prompt: Text(prompt).font(.ink.placeholder))

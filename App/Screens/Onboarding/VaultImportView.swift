@@ -1,38 +1,77 @@
 import SwiftUI
 
+/// Pure decisions of the vault preparation page (unit-tested; ``VaultImportView`` calls these).
+enum VaultImportChrome {
+    /// A write is in flight: the preparation itself, or opening and indexing the vault.
+    static func isWriting(isApplying: Bool, isProcessing: Bool) -> Bool { isApplying || isProcessing }
+
+    /// The sheet is cancel-only. "Vazgeç" stays until the result is in; after that the bar is
+    /// empty and "Kasayı aç" in the page is the only way out.
+    static func showsCancel(hasResult: Bool) -> Bool { !hasResult }
+
+    /// "Uygula" writes folders, templates and settings into the vault.
+    static func canApply(canPrepare: Bool, isWriting: Bool) -> Bool { canPrepare && !isWriting }
+
+    /// Swiping the sheet away would lose the report of what was written.
+    static func blocksInteractiveDismiss(hasResult: Bool, isWriting: Bool) -> Bool {
+        hasResult || isWriting
+    }
+}
+
 /// Folder report and preparation options for a chosen vault folder.
 ///
-/// As a sheet (the default) it is an editing sheet: the three options are collected and written
-/// by the single confirm; once the result is in, it is a read-only report whose "Kapat" opens
-/// the vault. Pushed inside Settings (`isSheet: false`) it is a subpage: the bar keeps only the
-/// back button and the same actions stay in the page.
+/// "Uygula" does not save a draft: it creates folders, templates and a settings file in the
+/// vault. So the sheet (the default) is cancel-only: the bar holds "Vazgeç" alone, the actions
+/// ("Uygula", "Atla") are buttons in the page and nothing is bound to Return. Once the result
+/// is in, its section appears directly under the manşet, the bar is empty and "Kasayı aç" is the
+/// only way out. Pushed inside Settings (`isSheet: false`) it is a subpage: the bar keeps only
+/// the back button and the page is the same.
+///
+/// The page is one `List` in one branch: the result must not rebuild the list (that would
+/// reset the scroll position and leave the result below the fold).
 struct VaultImportView: View {
     let store: IndexStore
     @Bindable var model: VaultImportModel
     var isSheet = true
-    @Environment(\.dismiss) private var dismiss
     @Environment(\.vaultPathDisplayOverride) private var pathDisplayOverride
+    /// Open by default: a failure must be seen without an extra tap.
+    @State private var showsFailures = true
+
+    private var isWriting: Bool {
+        VaultImportChrome.isWriting(isApplying: model.isApplying, isProcessing: store.isProcessing)
+    }
 
     var body: some View {
-        if !isSheet {
-            content.inkPageNavigationTitle("Kasa hazırlığı")
-        } else if model.result != nil {
-            content.inkSheet(
-                "Kasa hazırlığı", closeIdentifier: "button.vaultImport.close",
-                onClose: { if !store.isProcessing { Task { await store.finishImport(model) } } })
+        // `isSheet` never changes for one presentation, so this branch is not a state change.
+        if isSheet {
+            page.inkSheet(
+                "Kasa hazırlığı", cancelIdentifier: "button.vaultImport.cancel",
+                showsCancel: VaultImportChrome.showsCancel(hasResult: model.result != nil),
+                isCancelEnabled: !isWriting)
         } else {
-            content.inkSheet(
-                "Kasa hazırlığı", isConfirmEnabled: model.report.canPrepare && !store.isProcessing,
-                isBusy: model.isApplying, cancelIdentifier: "button.vaultImport.cancel",
-                confirmIdentifier: "button.vaultImport.save",
-                onCancel: { if !model.isApplying && !store.isProcessing { dismiss() } },
-                onConfirm: { Task { await model.apply() } })
+            page.inkPageNavigationTitle("Kasa hazırlığı")
         }
     }
+
+    private var page: some View {
+        ScrollViewReader { proxy in
+            content
+                .onChange(of: model.result != nil) { _, hasResult in
+                    guard hasResult else { return }
+                    withAnimation { proxy.scrollTo(Self.topAnchor, anchor: .top) }
+                }
+        }
+    }
+
+    private static let topAnchor = "vaultImport.top"
 
     private var content: some View {
         List {
             InkPageTitleRow("Kasa hazırlığı")
+                .id(Self.topAnchor)
+            if let result = model.result {
+                resultSection(result)
+            }
             Section {
                 SectionHeader(title: String(localized: "Klasör raporu"))
                     .inkListRow()
@@ -112,38 +151,7 @@ struct VaultImportView: View {
                     .inkListRow()
                 }
             }
-            if let result = model.result {
-                Section {
-                    SectionHeader(title: String(localized: "Hazırlama sonucu"))
-                        .inkListRow()
-                    labeled("Oluşturulan öğeler", result.created.count)
-                    labeled("Tür eklenen dosyalar", result.typed.count)
-                    DisclosureGroup("Atlananlar") {
-                        ForEach(result.skipped, id: \.self) { path in
-                            Text(verbatim: path)
-                                .font(.ink.meta)
-                                .lineLimit(1)
-                                .truncationMode(.middle)
-                                .textSelection(.enabled)
-                        }
-                    }
-                    .inkListRow()
-                    DisclosureGroup("Tamamlanamayanlar") {
-                        ForEach(result.failures, id: \.self) { path in
-                            Text(verbatim: path)
-                                .font(.ink.meta)
-                                .lineLimit(1)
-                                .truncationMode(.middle)
-                                .textSelection(.enabled)
-                        }
-                    }
-                    .inkListRow()
-                    Button("Kasayı aç") { Task { await store.finishImport(model) } }
-                        .buttonStyle(InkPrimaryButtonStyle())
-                        .disabled(store.isProcessing)
-                        .inkListRow()
-                }
-            } else {
+            if model.result == nil {
                 Section {
                     SectionHeader(title: String(localized: "Hazırlama seçenekleri"))
                         .inkListRow()
@@ -169,16 +177,21 @@ struct VaultImportView: View {
                             .foregroundStyle(Color.ink.secondaryText)
                             .inkListRow()
                     }
-                    if !isSheet {
-                        Button("Uygula") { Task { await model.apply() } }
-                            .buttonStyle(InkPrimaryButtonStyle())
-                            .disabled(!model.report.canPrepare)
-                            .inkListRow()
-                    }
+                    // The primary action lives in the page, not in the bar: it is not a save.
+                    Button("Uygula") { Task { await model.apply() } }
+                        .buttonStyle(InkPrimaryButtonStyle())
+                        .disabled(
+                            !VaultImportChrome.canApply(
+                                canPrepare: model.report.canPrepare, isWriting: isWriting)
+                        )
+                        .accessibilityIdentifier("button.vaultImport.apply")
+                        .inkListRow()
                     Button("Atla") { Task { await store.finishImport(model) } }
                         .buttonStyle(InkTextButtonStyle())
+                        .accessibilityIdentifier("button.vaultImport.skip")
                         .inkListRow()
-                }.disabled(model.isApplying || store.isProcessing)
+                }
+                .disabled(isWriting)
             }
             if model.isApplying {
                 InkProgress(kind: .indeterminate(label: "Kasa hazırlanıyor…"))
@@ -199,7 +212,44 @@ struct VaultImportView: View {
         .inkToggle()
         .inkPageColumn()
         .inkPage()
-        .interactiveDismissDisabled(model.isApplying || model.result != nil || store.isProcessing)
+        .interactiveDismissDisabled(
+            VaultImportChrome.blocksInteractiveDismiss(
+                hasResult: model.result != nil, isWriting: isWriting))
+    }
+
+    /// What the preparation wrote, and what it could not: directly under the manşet.
+    private func resultSection(_ result: VaultImportResult) -> some View {
+        Section {
+            SectionHeader(title: String(localized: "Hazırlama sonucu"))
+                .inkListRow()
+            labeled("Oluşturulan öğeler", result.created.count)
+            labeled("Tür eklenen dosyalar", result.typed.count)
+            DisclosureGroup("Atlananlar") {
+                ForEach(result.skipped, id: \.self) { path in
+                    Text(verbatim: path)
+                        .font(.ink.meta)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                        .textSelection(.enabled)
+                }
+            }
+            .inkListRow()
+            DisclosureGroup("Tamamlanamayanlar", isExpanded: $showsFailures) {
+                ForEach(result.failures, id: \.self) { path in
+                    Text(verbatim: path)
+                        .font(.ink.meta)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                        .textSelection(.enabled)
+                }
+            }
+            .inkListRow()
+            Button("Kasayı aç") { Task { await store.finishImport(model) } }
+                .buttonStyle(InkPrimaryButtonStyle())
+                .disabled(store.isProcessing)
+                .accessibilityIdentifier("button.vaultImport.open")
+                .inkListRow()
+        }
     }
 
     private func labeled(_ title: LocalizedStringKey, _ value: Int) -> some View {

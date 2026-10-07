@@ -9,21 +9,27 @@
 
     /// Sheet kinds of the shell area in the control patterns: Settings (read-only, "Kapat"),
     /// the one-line text editor and the entity type editor (editing, "Vazgeç" / "Kaydet" or
-    /// "Oluştur"), and vault preparation (editing, three accent toggles).
+    /// "Oluştur"), and vault preparation (cancel-only: "Uygula" is the page's primary button;
+    /// with the result in, its section sits directly under the manşet and the bar is empty).
+    /// The word in the bar is too small to fail a picture: `ShellSheetKindTests` measures the kind.
     enum ShellSheetSnapshotCase: String, CaseIterable, Sendable {
         case settingsSheetLight, settingsSheetDark, settingsSheetAX3
         case textEditorLight, textEditorDark, textEditorAX3
         case entityTypeEditorLight, entityTypeEditorDark, entityTypeEditorAX3
         case vaultImportLight, vaultImportDark, vaultImportAX3
+        case vaultImportResultLight, vaultImportResultAX3
+        /// The whole page once, so the page actions ("Uygula", "Atla") are in a picture.
+        case vaultImportFullLight
 
-        enum Subject: Sendable { case settings, textEditor, entityTypeEditor, vaultImport }
+        enum Subject: Sendable { case settings, textEditor, entityTypeEditor, vaultImport, vaultImportResult }
 
         var subject: Subject {
             switch self {
             case .settingsSheetLight, .settingsSheetDark, .settingsSheetAX3: .settings
             case .textEditorLight, .textEditorDark, .textEditorAX3: .textEditor
             case .entityTypeEditorLight, .entityTypeEditorDark, .entityTypeEditorAX3: .entityTypeEditor
-            case .vaultImportLight, .vaultImportDark, .vaultImportAX3: .vaultImport
+            case .vaultImportLight, .vaultImportDark, .vaultImportAX3, .vaultImportFullLight: .vaultImport
+            case .vaultImportResultLight, .vaultImportResultAX3: .vaultImportResult
             }
         }
 
@@ -36,19 +42,23 @@
 
         var dynamicType: SnapshotDynamicType {
             switch self {
-            case .settingsSheetAX3, .textEditorAX3, .entityTypeEditorAX3, .vaultImportAX3: .accessibility3
+            case .settingsSheetAX3, .textEditorAX3, .entityTypeEditorAX3, .vaultImportAX3,
+                .vaultImportResultAX3:
+                .accessibility3
             default: .medium
             }
         }
 
-        /// Long forms get a tall canvas so every row is in the picture.
+        /// The editor and vault cases use the standard phone canvas at every text size: the
+        /// bar, the manşet and the top of the form are in the picture, and the bar words are
+        /// not diluted by a tall canvas.
         var canvas: CGSize {
             let large = dynamicType == .accessibility3
+            if self == .vaultImportFullLight { return CGSize(width: 390, height: 1500) }
             switch subject {
             case .settings: return CGSize(width: 390, height: large ? 1100 : 844)
             case .textEditor: return CGSize(width: 390, height: large ? 700 : 420)
-            case .entityTypeEditor: return CGSize(width: 390, height: large ? 2600 : 1300)
-            case .vaultImport: return CGSize(width: 390, height: large ? 2800 : 1300)
+            case .entityTypeEditor, .vaultImport, .vaultImportResult: return snapshotCanvasSize
             }
         }
     }
@@ -60,8 +70,15 @@
             let context = try SnapshotHost.makeContext()
             defer { context.clean() }
             await context.start()
-            let importModel: VaultImportModel? =
-                snapshotCase.subject == .vaultImport ? try await VaultImportModel(root: context.root) : nil
+            var importModel: VaultImportModel?
+            if snapshotCase.subject == .vaultImport || snapshotCase.subject == .vaultImportResult {
+                importModel = try await VaultImportModel(root: context.root)
+            }
+            if snapshotCase.subject == .vaultImportResult {
+                // The real write, into the test's own copy of the fictional vault.
+                await importModel?.apply()
+                #expect(importModel?.result != nil)
+            }
             let typeModel = Self.bookTypeModel(store: context.store)
             await SnapshotHost.assertView(
                 colorScheme: snapshotCase.colorScheme,
@@ -84,7 +101,7 @@
                             load: {}, save: { false })
                     case .entityTypeEditor:
                         EntityTypeEditorView(model: typeModel)
-                    case .vaultImport:
+                    case .vaultImport, .vaultImportResult:
                         if let importModel {
                             VaultImportView(store: context.store, model: importModel)
                         }

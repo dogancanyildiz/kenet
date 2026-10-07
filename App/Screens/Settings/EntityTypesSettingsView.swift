@@ -45,6 +45,7 @@ struct EntityTypesSettingsView: View {
                         }
                         .accessibilityHint(Text("Varlık tipini düzenle"))
                         Button("Tipi sil", role: .destructive) { deleting = type }
+                            .buttonStyle(InkDestructiveButtonStyle())
                     }
                     .buttonStyle(.borderless)
                     .inkListRow()

@@ -83,13 +83,13 @@ Filtre: kişi, konum, proje. Aynı gündeki görevler yüksek, orta, normal, dü
 **Varlık sayfası:**
 
 1. Varsayılan görünüm okuma sayfasıdır: manşet (ad) sayfa içinde, künye (tip, takma adlar, son görülme), ayırt edici ve gelen bağlantı sayısı; gezinme çubuğunda büyük başlık yoktur
-2. Düzenleme sheet'i ortak sheet kalıbını kullanır (serif manşet, kâğıt zemin, Vazgeç ve Kaydet); kaydedilmemiş alan "Alanı kaldır" ile silinince taslak kirli sayılmaz
+2. Düzenleme sheet'i ortak sheet kalıbını kullanır (serif manşet, kâğıt zemin, tek "Kapat": her alan kendi "Kaydet" düğmesiyle yazar, "Kapat" kaydetmez); kaydedilmemiş alan "Alanı kaldır" ile silinince taslak kirli sayılmaz
 3. Şablon alanları etiket-değer satırları olarak; tanınmayan ön bilgi anahtarları "Diğer alanlar" altında ham adıyla, ikincil
 4. Açık görevler (2): bu varlığa bağlı tamamlanmamış işler
 5. Zaman akışı: bu varlığın geçtiği olaylar ve günlük paragrafları, yeniden eskiye; her satır ait olduğu güne götürür
 6. Serbest notlar (okumada ham wikilink ve blok kimliği gizlenir)
 7. Konumda ek olarak harita ve koordinat (4)
-8. Düzenleme, "Düzenle" ile açılan ayrı kiptir (sheet); alan ve takma ad düzenleyicileri orada kalır. Ad değiştirme, düzenleme sheet'inin içinden ikinci bir sheet olarak açılır. Kaydedilmemiş alan metni varken sheet kapatılamaz; JournalView ile aynı UnsavedDraftDecision kalıbı "At" / "Vazgeç" sorar (alanlar Kaydet ile yazılır, Bitti kaydetmez).
+8. Düzenleme, "Düzenle" ile açılan ayrı kiptir (sheet); alan ve takma ad düzenleyicileri orada kalır. Ad değiştirme, düzenleme sheet'inin içinden ikinci bir sheet olarak açılır. Kaydedilmemiş alan metni varken sheet kapatılamaz; JournalView ile aynı UnsavedDraftDecision kalıbı "At" / "Vazgeç" sorar (alanlar Kaydet ile yazılır, "Kapat" kaydetmez).
 
 Kişiler ve Konumlar ekranının üstteki tip seçicisi kişi/konuma ek olarak kasanın özel tiplerini gösterir. Sekme adı ve Mac kenar çubuğu değişmez. Özel varlık sayfası tanımın text/date/number/boolean/link alanlarına uygun düzenleyiciler, bilinmeyen alanlar, görevler, günlük zaman akışı ve serbest notları sunar; kişi/konum Graph ve görüşme kartı yalnız yerleşik tiplerde kalır. @ önerileri özel tipleri de içerir; bilinmeyen adın oluşturma menüsünde tanımlı tipler bulunur.
 

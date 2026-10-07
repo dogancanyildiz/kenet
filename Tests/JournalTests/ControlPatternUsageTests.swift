@@ -30,27 +30,22 @@ struct ControlPatternUsageTests {
     static let allowlist: [Rule: Set<String>] = [
         .segmentedPicker: ["App/Screens/Summaries/SummariesView.swift"],
         .menuPicker: [
-            "App/Screens/Entities/EntityTypePicker.swift",
             "App/Screens/Tasks/Kanban/KanbanView.swift",
             "App/Screens/Tasks/TasksSectionPicker.swift",
             "App/Screens/Tasks/Timeline/TaskTimelineView.swift",
         ],
         .unstyledPicker: [
-            "App/Screens/Entities/EntityListControls.swift",
             "App/Screens/Goals/GoalCreationView.swift",
             "App/Screens/Goals/GoalFieldEditor.swift",
             "App/Screens/Graph/GraphControls.swift",
             "App/Screens/Tasks/TaskRecurrenceEditor.swift",
         ],
         .roundedBorderField: [
-            "App/Screens/Entities/EntityListControls.swift",
-            "App/Screens/Goals/GoalValueEditor.swift",
+            "App/Screens/Goals/GoalValueEditor.swift"
         ],
         .toolbarSearch: [
             "App/Navigation/MacNavigation.swift",
             "App/Screens/Days/DaysView.swift",
-            "App/Screens/Entities/EntitiesView.swift",
-            "App/Screens/Entities/EntityView.swift",
             "App/Screens/Goals/GoalDetailView.swift",
             "App/Screens/Goals/GoalsView.swift",
             "App/Screens/Graph/GraphView.swift",
@@ -61,12 +56,9 @@ struct ControlPatternUsageTests {
             "App/Screens/Today/DayView.swift",
         ],
         .doneButton: [
-            "App/Screens/Entities/EntityView.swift",
-            "App/Screens/Today/JournalView.swift",
+            "App/Screens/Today/JournalView.swift"
         ],
         .sheetToolbar: [
-            "App/Screens/Entities/EntityRenameView.swift",
-            "App/Screens/Entities/EntityView.swift",
             "App/Screens/Goals/GoalCreationView.swift",
             "App/Screens/Goals/GoalFieldEditor.swift",
             "App/Screens/Goals/GoalValueEditor.swift",

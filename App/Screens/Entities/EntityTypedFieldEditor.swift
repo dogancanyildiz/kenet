@@ -52,16 +52,22 @@ struct EntityTypedFieldEditor: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading) {
+        VStack(alignment: .leading, spacing: InkSpacing.section) {
             Text(verbatim: definition.key).font(.ink.section).foregroundStyle(.ink.text)
-            switch definition.kind {
-            case .date: DatePicker("Değer", selection: $date, displayedComponents: .date)
-            case .boolean: Toggle("Değer", isOn: $flag)
-            case .text, .number, .link: TextField("Değer", text: $text).onSubmit { save() }
+            Group {
+                switch definition.kind {
+                case .date: DatePicker("Değer", selection: $date, displayedComponents: .date)
+                case .boolean: Toggle("Değer", isOn: $flag)
+                case .text, .number, .link: InkFilterField("Değer", text: $text).onSubmit { save() }
+                }
             }
-            HStack {
+            .font(.ink.content)
+            .foregroundStyle(.ink.text)
+            HStack(spacing: InkSpacing.margin) {
                 Button("Kaydet") { save() }
+                    .buttonStyle(InkTextButtonStyle())
                 Button("Alanı kaldır", role: .destructive) { deleteConfirmation.request(.pending) }
+                    .buttonStyle(InkDestructiveButtonStyle())
             }
             if invalid {
                 Text("Alan için geçerli bir değer gir.").font(.ink.meta).foregroundStyle(.ink.danger)

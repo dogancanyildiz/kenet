@@ -5,37 +5,41 @@ struct EntityRenameView: View {
     @State var model: EntityRenameModel
     @Environment(\.dismiss) private var dismiss
 
+    private var canSave: Bool {
+        model.detail.canEdit && !model.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
     var body: some View {
         NavigationStack {
-            Form {
-                TextField("Ad", text: $model.name)
-                TextField("Ayırt edici", text: $model.qualifier)
+            List {
+                InkPageTitleRow("Adı değiştir")
+                InkFilterField("Ad", text: $model.name, identifier: "field.entity.rename.name")
+                    .inkListRow()
+                InkFilterField("Ayırt edici", text: $model.qualifier, identifier: "field.entity.rename.qualifier")
+                    .inkListRow()
                 if model.needsQualifier {
                     Text("Bu ad kullanılıyor. Farklı bir ad veya ayırt edici yazın.")
                         .font(.ink.meta)
                         .foregroundStyle(.ink.secondaryText)
+                        .inkListRow()
                 }
                 if let error = model.errorText {
                     Text(verbatim: error).font(.ink.meta).foregroundStyle(.ink.danger)
+                        .inkListRow()
                 }
             }
+            .listStyle(.plain)
             .disabled(model.isRenaming)
-            .navigationTitle("Adı değiştir")
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Vazgeç") { dismiss() }.disabled(model.isRenaming)
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Kaydet") {
-                        Task {
-                            await model.save()
-                            if model.result != nil { dismiss() }
-                        }
-                    }.disabled(
-                        model.isRenaming || !model.detail.canEdit
-                            || model.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                }
-            }
+            .inkSheet(
+                "Adı değiştir", isConfirmEnabled: canSave, isBusy: model.isRenaming,
+                // "Vazgeç" stays inert while the rename is being written.
+                onCancel: { if !model.isRenaming { dismiss() } },
+                onConfirm: {
+                    Task {
+                        await model.save()
+                        if model.result != nil { dismiss() }
+                    }
+                })
         }
     }
 }

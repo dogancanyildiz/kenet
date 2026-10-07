@@ -46,4 +46,14 @@ struct GoalDayIdentityTests {
             GoalStripIdentity.key(day: day, vaultPath: nil) == day.description,
             "nil vault path must not invent a suffix")
     }
+
+    /// The pure key is tested above; this guards that `DayView` actually applies it. Without the
+    /// identity the goal strip keeps yesterday's model after midnight and writes to the wrong day.
+    @Test func dayViewAppliesGoalStripIdentity() throws {
+        let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
+            .deletingLastPathComponent()
+        let source = try String(
+            contentsOf: root.appendingPathComponent("App/Screens/Today/DayView.swift"), encoding: .utf8)
+        #expect(source.contains(".id(GoalStripIdentity.key("))
+    }
 }

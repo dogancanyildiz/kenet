@@ -3854,13 +3854,13 @@
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ kadar"
+            "value": "Bitiş %@"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Until %@"
+            "value": "Ends %@"
           }
         }
       }

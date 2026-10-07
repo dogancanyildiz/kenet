@@ -5,37 +5,71 @@ struct DayTasksView: View {
     let store: IndexStore
     let date: CalendarDate
     let isToday: Bool
-    @State private var model: DayTasksModel
-
-    init(store: IndexStore, date: CalendarDate, isToday: Bool) {
-        self.store = store
-        self.date = date
-        self.isToday = isToday
-        _model = State(initialValue: DayTasksModel(store: store, day: date, isToday: isToday))
-    }
+    @Bindable var model: DayTasksModel
+    let presentation: TodayPresentation
+    var entityIndex: [String: EntitySummary] = [:]
+    var onExpandCarriedOver: () -> Void
+    var onExpandCompleted: () -> Void
+    @Environment(\.calendar) private var calendar
+    @Environment(\.locale) private var locale
 
     var body: some View {
-        let groups = model.groups
-        if !groups.isEmpty {
-            VStack(alignment: .leading, spacing: 12) {
-                Text("Görevler").font(.headline).accessibilityAddTraits(.isHeader)
-                if let error = model.errorText { Text(verbatim: error).font(.caption).foregroundStyle(.red) }
-                group(groups.overdue, title: "Geciken", overdue: true)
-                group(groups.dated, title: isToday ? "Bugünün görevleri" : "Bu günün görevleri")
-                group(groups.created, title: "Bu gün oluşturulan tarihsiz görevler")
+        let rows = presentation.rows
+        let carriedIDs = Set(presentation.carriedOverTasks.map(\.id))
+        if !rows.isEmpty {
+            VStack(alignment: .leading, spacing: InkSpacing.row) {
+                SectionHeader(
+                    title: String(
+                        localized: "Görevler",
+                        bundle: PresentationLocalization.bundle(locale), locale: locale),
+                    counter: presentation.counter(for: .tasks))
+                if let error = model.errorText {
+                    InfoBand(kind: .error, verbatim: error)
+                }
+                ForEach(rows) { entry in
+                    switch entry {
+                    case .task(let row):
+                        let isCarried = carriedIDs.contains(row.id)
+                        DayTaskView(
+                            store: store, row: row, isToday: isToday, isOverdue: isCarried,
+                            completed: model.completed.contains(row.id) || row.isClosed,
+                            isBusy: model.completing.contains(row.id), day: date,
+                            carriedOverLabel: isCarried ? carriedOverText(for: row) : nil,
+                            entityIndex: entityIndex
+                        ) { Task { await model.complete(row) } }
+                    case .carriedOverDisclosure(let text):
+                        Button(action: onExpandCarriedOver) {
+                            Text(verbatim: text)
+                                .font(.ink.meta)
+                                .foregroundStyle(Color.ink.warning)
+                                .frame(
+                                    maxWidth: .infinity, minHeight: TapTarget.minimumLength,
+                                    alignment: .leading
+                                )
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                    case .completedDisclosure(let text):
+                        Button(action: onExpandCompleted) {
+                            Text(verbatim: text)
+                                .font(.ink.meta)
+                                .foregroundStyle(Color.ink.secondaryText)
+                                .frame(
+                                    maxWidth: .infinity, minHeight: TapTarget.minimumLength,
+                                    alignment: .leading
+                                )
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
             }
         }
     }
 
-    @ViewBuilder private func group(_ rows: [TaskRow], title: LocalizedStringKey, overdue: Bool = false) -> some View {
-        if !rows.isEmpty {
-            Text(title).font(.subheadline).foregroundStyle(.secondary).accessibilityAddTraits(.isHeader)
-            ForEach(rows) { row in
-                DayTaskView(
-                    store: store, row: row, isToday: isToday, isOverdue: overdue,
-                    completed: model.completed.contains(row.id), isBusy: model.completing.contains(row.id)
-                ) { Task { await model.complete(row) } }
-            }
-        }
+    private func carriedOverText(for row: TaskRow) -> String? {
+        guard let due = row.due else { return nil }
+        return TodayPresentation.carriedOverDate(
+            due, today: date, locale: presentation.locale, calendar: calendar)
     }
 }

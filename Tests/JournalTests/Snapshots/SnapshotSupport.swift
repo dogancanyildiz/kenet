@@ -69,17 +69,19 @@
     }
 
     enum SnapshotDynamicType: String, CaseIterable, Sendable {
-        case medium, accessibility3
+        case medium, accessibility3, accessibility5
         var size: DynamicTypeSize {
             switch self {
             case .medium: .medium
             case .accessibility3: .accessibility3
+            case .accessibility5: .accessibility5
             }
         }
         var contentSize: UIContentSizeCategory {
             switch self {
             case .medium: .medium
             case .accessibility3: .accessibilityLarge
+            case .accessibility5: .accessibilityExtraExtraExtraLarge
             }
         }
     }
@@ -90,37 +92,6 @@
         var colorScheme: SnapshotColorScheme { get }
         var dynamicType: SnapshotDynamicType { get }
         var increaseContrast: Bool { get }
-    }
-
-    /// Today screen × environment. Tasks cases live in ``TasksSnapshotCase``.
-    enum ScreenSnapshotCase: String, CaseIterable, Sendable, SnapshotCaseConfiguring {
-        case todayLight
-        case todayDark
-        case todayAX3
-        case todayContrast
-
-        var screen: SnapshotScreen { .today }
-
-        var colorScheme: SnapshotColorScheme {
-            switch self {
-            case .todayDark: .dark
-            default: .light
-            }
-        }
-
-        var dynamicType: SnapshotDynamicType {
-            switch self {
-            case .todayAX3: .accessibility3
-            default: .medium
-            }
-        }
-
-        var increaseContrast: Bool {
-            switch self {
-            case .todayContrast: true
-            default: false
-            }
-        }
     }
 
     /// Görevler listesi / kanban / zaman çizelgesi × ortam.
@@ -168,8 +139,10 @@
         }
     }
 
+    /// Screens hosted by ``SnapshotHost/hostedView``. Today builds its own root in
+    /// ``TodaySnapshotTests`` (calendar source, tab-bar inset, goal-strip readiness).
     enum SnapshotScreen: String, Sendable {
-        case today, tasks, kanban, timeline
+        case tasks, kanban, timeline
         case goals, summaries, graph, graphSelected, map, goalDetail, goalCreation
         case days, daysSelected, entity, search
     }
@@ -212,8 +185,6 @@
             let clock = clock(for: screen)
             let root: AnyView =
                 switch screen {
-                case .today:
-                    AnyView(DayView(store: store, date: snapshotDay, isToday: true))
                 case .tasks, .kanban, .timeline:
                     AnyView(TasksView(store: store, tasks: tasks))
                 case .goals:
@@ -253,6 +224,7 @@
                 .environment(\.timeZone, snapshotTimeZone)
                 .environment(\.clockNow, { clock })
                 .environment(\.openSearch, {})
+                .environment(\.openSettings, {})
         }
 
         private static func goalDetailView(store: IndexStore, day: CalendarDate) -> some View {
@@ -307,7 +279,7 @@
             }
         }
 
-        /// The single capture path: every case-based `assert` funnels here, under the host gate.
+        /// Case-based entry: builds the shared ``hostedView`` and funnels into ``assertView``.
         static func assert(
             named name: String,
             screen: SnapshotScreen,
@@ -320,14 +292,48 @@
             line: UInt = #line,
             testName: String = "screen"
         ) async {
-            let canvas = canvasSize(for: screen)
+            await assertView(
+                colorScheme: colorScheme,
+                dynamicType: dynamicType,
+                increaseContrast: increaseContrast,
+                named: name,
+                store: store,
+                size: canvasSize(for: screen),
+                clock: clock(for: screen),
+                testName: testName,
+                file: file,
+                line: line
+            ) {
+                hostedView(screen: screen, store: store, defaults: defaults)
+            }
+        }
+
+        /// The single capture path: every `assert` funnels here, under the host gate.
+        /// `content` is built inside the gate; `isReady` adds a screen-specific load condition
+        /// (e.g. the Today goal strip) on top of the index going idle.
+        static func assertView<Content: View>(
+            colorScheme: SnapshotColorScheme,
+            dynamicType: SnapshotDynamicType,
+            increaseContrast: Bool,
+            named name: String,
+            store: IndexStore,
+            size canvas: CGSize = snapshotCanvasSize,
+            /// Extra bottom safe area (e.g. tab bar) without an on-screen spacer that steals viewport.
+            bottomSafeArea: CGFloat = 0,
+            clock: Date = snapshotNow,
+            isReady: @MainActor () -> Bool = { true },
+            testName: String,
+            file: StaticString = #filePath,
+            line: UInt = #line,
+            @ViewBuilder content: @MainActor () -> Content
+        ) async {
             await SnapshotHostGate.exclusive {
                 // colorSchemeContrast is set only via UITraitCollection (not a writable EnvironmentValues key).
-                let view = hostedView(screen: screen, store: store, defaults: defaults)
+                let view = content()
                     .environment(\.colorScheme, colorScheme.colorScheme)
                     .environment(\.dynamicTypeSize, dynamicType.size)
                     .environment(\.calendar, makeSnapshotCalendar())
-                    .environment(\.clockNow, { Self.clock(for: screen) })
+                    .environment(\.clockNow, { clock })
                     .transaction { $0.animation = nil }
                     .frame(width: canvas.width, height: canvas.height)
 
@@ -347,6 +353,7 @@
                 host.overrideUserInterfaceStyle = colorScheme.userInterfaceStyle
                 host.traitOverrides.preferredContentSizeCategory = dynamicType.contentSize
                 host.traitOverrides.accessibilityContrast = increaseContrast ? .high : .normal
+                host.additionalSafeAreaInsets.bottom = bottomSafeArea
                 host.view.frame = CGRect(origin: .zero, size: canvas)
 
                 let scene =
@@ -378,12 +385,15 @@
                     try? await Task.sleep(for: .milliseconds(50))
                     host.view.setNeedsLayout()
                     host.view.layoutIfNeeded()
-                    if store.isProcessing {
+                    if store.isProcessing || !isReady() {
                         idlePasses = 0
                         continue
                     }
                     idlePasses += 1
                     if idlePasses >= 8 { break }
+                }
+                if !isReady() {
+                    Issue.record("Snapshot \(name): screen never reported ready before capture.")
                 }
 
                 let record = ProcessInfo.processInfo.environment["SNAPSHOT_TESTING_RECORD"]
@@ -411,7 +421,7 @@
         }
     }
 
-    private func makeSnapshotCalendar() -> Calendar {
+    func makeSnapshotCalendar() -> Calendar {
         var calendar = Calendar(identifier: .gregorian)
         calendar.locale = snapshotLocale
         calendar.timeZone = snapshotTimeZone
@@ -419,7 +429,7 @@
     }
 
     /// Denied calendar keeps EventKit chrome out of references.
-    @MainActor private final class SnapshotCalendarSource: CalendarEventSource {
+    @MainActor final class SnapshotCalendarSource: CalendarEventSource {
         var authorization = CalendarAuthorization.denied
         var onChange: (@MainActor @Sendable () -> Void)?
         func requestFullAccess() async throws -> Bool { false }

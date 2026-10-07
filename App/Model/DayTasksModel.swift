@@ -21,6 +21,17 @@ final class DayTasksModel {
     }
 
     var groups: TaskGroups {
+        TaskGroups(rows: mergedRows, on: day, isToday: isToday)
+    }
+
+    /// Closed rows for ``TodayPresentation`` (Today's groups drop them; past days keep them).
+    var completedTasksForPresentation: [TaskRow] {
+        mergedRows.filter {
+            completed.contains($0.id) || $0.rawStatus == "x" || $0.rawStatus == "X" || $0.rawStatus == "-"
+        }
+    }
+
+    private var mergedRows: [TaskRow] {
         var rows = store.content.tasks
         if retainedRoot == store.vaultURL {
             let ids = Set(rows.map(\.id))
@@ -30,7 +41,7 @@ final class DayTasksModel {
                 if let index = rows.firstIndex(where: { $0.id == row.id }) { rows[index] = row }
             }
         }
-        return TaskGroups(rows: rows, on: day, isToday: isToday)
+        return rows
     }
 
     @discardableResult

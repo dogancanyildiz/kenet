@@ -7,9 +7,10 @@ struct TaskBoxState: Equatable, Sendable {
     var priority: TaskPriority?
 
     var isCompleted: Bool { status.isClosed }
+    var isCancelled: Bool { status == .cancelled }
     var isInProgress: Bool { status == .inProgress }
 
-    /// Glyph drawn inside an open / in-progress box (`nil` when empty or completed).
+    /// Glyph drawn inside an open / in-progress box (`nil` when empty, completed, or cancelled).
     var priorityGlyph: String? {
         guard !isCompleted else { return nil }
         switch priority {
@@ -77,7 +78,12 @@ struct TaskBox: View {
             }
             RoundedRectangle(cornerRadius: corner, style: .continuous)
                 .strokeBorder(strokeColor, lineWidth: strokeWidth)
-            if state.isCompleted {
+            if state.isCancelled {
+                Capsule()
+                    .fill(Color.ink.paper)
+                    .frame(height: max(2, boxSide * 0.12))
+                    .padding(.horizontal, boxSide * 0.12)
+            } else if state.isCompleted {
                 Image(systemName: "checkmark")
                     .font(.system(size: boxSide * 0.45, weight: .semibold))
                     .foregroundStyle(Color.ink.paper)
@@ -85,7 +91,13 @@ struct TaskBox: View {
                 Text(verbatim: glyph)
                     .font(.system(size: glyphSize, weight: .bold, design: .rounded))
                     .foregroundStyle(Color.ink.text)
-                    .offset(y: state.isInProgress ? -boxSide * 0.18 : 0)
+                    .tracking(glyph == "!!" ? -0.8 : 0)
+                    // Center the mark in the open (top) half so "!" does not kiss the fill edge.
+                    .frame(
+                        width: boxSide,
+                        height: state.isInProgress ? boxSide / 2 : boxSide
+                    )
+                    .offset(y: state.isInProgress ? -(boxSide / 4) : 0)
             }
         }
         .frame(width: boxSide, height: boxSide)
@@ -108,16 +120,14 @@ struct TaskBox: View {
         state.isCompleted ? Color.ink.secondaryText : Color.clear
     }
 
+    /// Rule 9: never below 12 pt on iOS; "!!" may tighten tracking to fit the 22 pt box.
     private var glyphSize: CGFloat {
         let base = state.priorityGlyph == "!!" ? boxSide * 0.38 : boxSide * 0.48
-        return legibilityWeight == .bold ? base * 1.05 : base
+        let scaled = legibilityWeight == .bold ? base * 1.05 : base
+        return max(12, scaled)
     }
 
     private var accessibilityValueText: String {
-        var parts = [VoiceOverCopy.taskCompletionValue(isCompleted: state.isCompleted)]
-        if let priority = state.priority {
-            parts.append(VoiceOverCopy.priorityValue(priority))
-        }
-        return parts.joined(separator: ", ")
+        VoiceOverCopy.taskBoxValue(state: state, locale: .current)
     }
 }

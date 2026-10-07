@@ -7,6 +7,18 @@ struct TaskPriorityMark: View {
     let priority: TaskPriority
 
     var body: some View {
+        if case .low = priority {
+            // One low-priority cue app-wide: plain down arrow in secondary ink.
+            Image(systemName: "arrow.down")
+                .font(.ink.meta)
+                .foregroundStyle(.ink.secondaryText)
+                .accessibilityLabel(Text(verbatim: VoiceOverCopy.priorityValue(.low)))
+        } else {
+            emphasizedMark
+        }
+    }
+
+    private var emphasizedMark: some View {
         Group {
             switch priority {
             case .high:

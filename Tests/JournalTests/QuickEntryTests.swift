@@ -102,6 +102,38 @@ struct QuickEntryTests {
         #expect(LocalDay.today(at: instant, timeZone: zone).description == "2026-10-04")
         #expect(LocalDay.clock(at: instant, timeZone: zone) == (try LineClock(hour: 1, minute: 5)))
     }
+
+    @Test func modeChangeResetsTaskDraftState() async throws {
+        let context = try EntryTestContext()
+        defer { context.clean() }
+        await context.store.start()
+        let model = QuickEntryModel(store: context.store)
+        model.mode = .task
+        model.taskPriority = .high
+        model.taskRecurrence = TaskRecurrence("every week")
+        model.overridesDate = true
+        model.manualDueDate = LocalDay.today()
+        model.mode = .event
+        #expect(model.taskPriority == nil)
+        #expect(model.taskRecurrence == nil)
+        #expect(!model.overridesDate)
+        #expect(model.manualDueDate == nil)
+        #expect(
+            QuickEntryModeLock.isModeEnabled(
+                isEnabled: true, isSubmitting: false, isCreating: false, isWriting: false))
+        #expect(
+            !QuickEntryModeLock.isModeEnabled(
+                isEnabled: true, isSubmitting: true, isCreating: false, isWriting: false))
+        #expect(
+            !QuickEntryModeLock.isModeEnabled(
+                isEnabled: true, isSubmitting: false, isCreating: true, isWriting: false))
+        #expect(
+            !QuickEntryModeLock.isModeEnabled(
+                isEnabled: true, isSubmitting: false, isCreating: false, isWriting: true))
+        #expect(
+            !QuickEntryModeLock.isModeEnabled(
+                isEnabled: false, isSubmitting: false, isCreating: false, isWriting: false))
+    }
 }
 
 @MainActor

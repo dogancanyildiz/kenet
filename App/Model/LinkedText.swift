@@ -13,6 +13,7 @@ struct LinkedText: Sendable {
     let spans: [Span]
     var plainText: String { spans.map(\.text).joined() }
 
+    /// Test and presentation helpers that already hold display spans.
     init(spans: [Span]) {
         self.spans = spans
     }

@@ -4,51 +4,65 @@ import VaultFormat
 struct DayCalendarView: View {
     let date: CalendarDate
     @Environment(CalendarService.self) private var calendar
+    @Environment(\.locale) private var locale
 
     var body: some View {
         if calendar.showsSection(on: date) {
-            VStack(alignment: .leading, spacing: 12) {
-                Text("Takvim").font(.headline).accessibilityAddTraits(.isHeader)
+            VStack(alignment: .leading, spacing: InkSpacing.row) {
+                SectionHeader(
+                    title: String(
+                        localized: "Takvim",
+                        bundle: PresentationLocalization.bundle(locale), locale: locale))
                 if calendar.authorization.canRequest {
                     Button("Takvim etkinliklerini göstermek için izin ver") {
                         Task { await calendar.requestAccess() }
-                    }.disabled(calendar.isRequesting)
+                    }
+                    .buttonStyle(InkTextButtonStyle())
+                    .disabled(calendar.isRequesting)
                 }
                 if let error = calendar.errorText {
-                    Text(verbatim: error).font(.caption).foregroundStyle(.secondary)
-                    if calendar.authorization.canRead {
-                        Button("Yeniden dene") { Task { await calendar.load(date) } }
-                    }
+                    InfoBand(
+                        kind: .warning, verbatim: error,
+                        actionTitle: calendar.authorization.canRead ? "Yeniden dene" : nil,
+                        action: calendar.authorization.canRead
+                            ? { Task { await calendar.load(date) } } : nil)
                 }
                 ForEach(calendar.events(on: date)) { event in
-                    HStack(alignment: .top, spacing: 10) {
-                        RoundedRectangle(cornerRadius: 2)
-                            .fill(
-                                Color(
-                                    .sRGB, red: event.color.red, green: event.color.green,
-                                    blue: event.color.blue, opacity: event.color.alpha)
-                            )
-                            .frame(width: 4, height: 32).accessibilityHidden(true)
-                        VStack(alignment: .leading, spacing: 4) {
-                            if event.title.isEmpty { Text("Başlıksız etkinlik") } else { Text(verbatim: event.title) }
-                            if event.isAllDay {
-                                Text("Tüm gün").font(.caption).padding(.horizontal, 6)
-                                    .background(.quaternary, in: Capsule())
-                            } else {
-                                HStack(spacing: 4) {
-                                    Text(event.start, format: .dateTime.hour().minute())
-                                    Text(verbatim: "–")
-                                    if LocalDay.today(at: event.start) != LocalDay.today(at: event.end) {
-                                        Text(event.end, format: .dateTime.day().month(.abbreviated).hour().minute())
-                                    } else {
-                                        Text(event.end, format: .dateTime.hour().minute())
-                                    }
-                                }.font(.caption).foregroundStyle(.secondary)
-                            }
-                        }
-                    }.accessibilityElement(children: .combine)
+                    InkCalendarRow(
+                        time: startLabel(for: event),
+                        title: event.title.isEmpty
+                            ? String(
+                                localized: "Başlıksız etkinlik",
+                                bundle: PresentationLocalization.bundle(locale), locale: locale)
+                            : event.title,
+                        endLabel: endLabel(for: event)
+                    )
+                    .accessibilityElement(children: .combine)
                 }
             }
         }
+    }
+
+    private func startLabel(for event: CalendarEvent) -> String? {
+        if event.isAllDay {
+            return String(
+                localized: "Tüm gün", bundle: PresentationLocalization.bundle(locale),
+                locale: locale)
+        }
+        return event.start.formatted(.dateTime.hour().minute().locale(locale))
+    }
+
+    private func endLabel(for event: CalendarEvent) -> String? {
+        if event.isAllDay { return nil }
+        let end: String
+        if LocalDay.today(at: event.start) != LocalDay.today(at: event.end) {
+            end = event.end.formatted(
+                .dateTime.day().month(.abbreviated).hour().minute().locale(locale))
+        } else {
+            end = event.end.formatted(.dateTime.hour().minute().locale(locale))
+        }
+        return String(
+            localized: "Until \(end)", bundle: PresentationLocalization.bundle(locale),
+            locale: locale)
     }
 }

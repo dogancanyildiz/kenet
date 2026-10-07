@@ -15,11 +15,7 @@ struct PhoneNavigation: View {
             Tab("Bugün", systemImage: "sun.max", value: PhoneTab.today) {
                 NavigationStack(path: $todayPath) {
                     TodayView(store: store)
-                        .toolbar {
-                            Button("Ayarlar", systemImage: "gearshape") { showingSettings = true }
-                                .labelStyle(.iconOnly)
-                                .accessibilityIdentifier("button.settings")
-                        }
+                        .environment(\.openSettings, { showingSettings = true })
                 }
             }
             .accessibilityIdentifier("tab.today")

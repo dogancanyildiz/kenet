@@ -8,7 +8,7 @@ struct InkLinkSegment: Equatable, Sendable, Identifiable {
         case person
         case place
         case unresolved
-        /// Custom vault entity type (not person/place).
+        /// Resolved vault link that is neither person nor place (custom entity type, note).
         case other
     }
 

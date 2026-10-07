@@ -5,19 +5,26 @@ struct DayEventView: View {
     let store: IndexStore
     let day: CalendarDate
     let event: EventRow
+    var entityIndex: [String: EntitySummary] = [:]
     @Environment(\.locale) private var locale
     @State private var editor: EventEditorModel?
     @State private var errorText: String?
     @State private var deleteConfirmation = DestructiveConfirmation<DestructiveConfirmationToken>()
+    @State private var linkDestination: EntityLinkDestination?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            if let time = event.time {
-                Text(verbatim: DayEventView.formattedEventTime(time, locale: locale))
-                    .font(.subheadline).foregroundStyle(.secondary)
+            InkEventRow(
+                time: event.time.map { DayEventView.formattedEventTime($0, locale: locale) },
+                segments: InkLinkMapping.segments(
+                    from: event.text,
+                    entitiesByID: entityIndex.isEmpty
+                        ? InkLinkMapping.entityIndex(store.content.entities) : entityIndex),
+                openURL: { openLink($0) }
+            )
+            if let error = errorText {
+                InfoBand(kind: .error, verbatim: error)
             }
-            LinkedTextView(text: event.text, store: store)
-            if let error = errorText { Text(verbatim: error).font(.caption).foregroundStyle(.red) }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .contentShape(Rectangle())
@@ -45,9 +52,14 @@ struct DayEventView: View {
                 .presentationDetents([.medium, .large])
                 .frame(minWidth: 320, minHeight: 200)
         }
+        .entityLinkSheet($linkDestination, store: store)
     }
 
     nonisolated static func formattedEventTime(_ time: EventTime, locale: Locale) -> String {
         EventTimeFormat.string(for: time, locale: locale)
+    }
+
+    private func openLink(_ url: URL) {
+        linkDestination = EntityLinkDestination.from(url: url, entities: store.content.entities)
     }
 }

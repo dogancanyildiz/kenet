@@ -5,16 +5,7 @@ import Testing
 /// `.red` / `.orange` scan is allowlisted until screen work lands; the list only shrinks.
 struct DesignTokenUsageTests {
     /// Paths under `App/` that still use `.red` or `.orange` (Stage 9 screen jobs clear these).
-    private static let systemColorAllowlist: Set<String> = [
-        "App/Screens/Today/DayCalendarView.swift",
-        "App/Screens/Today/DayEventView.swift",
-        "App/Screens/Today/DayTaskView.swift",
-        "App/Screens/Today/DayTasksView.swift",
-        "App/Screens/Today/DayView.swift",
-        "App/Screens/Today/QuickEntryPlaceholder.swift",
-        "App/Screens/Today/QuickEntryTaskControls.swift",
-        "App/Screens/Today/TaskTextEditor.swift",
-    ]
+    private static let systemColorAllowlist: Set<String> = []
 
     @Test func noHexColorLiteralsOutsideDesign() throws {
         let offenders = try Self.appSwiftFiles().filter { path in

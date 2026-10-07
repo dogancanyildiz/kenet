@@ -69,5 +69,5 @@ if [ "$SNAPSHOT_TESTING_RECORD" != "never" ] && [ "$status" -ne 0 ]; then
   status=$?
 fi
 set -e
-echo "Referanslar: Tests/JournalTests/Snapshots/__Snapshots__/ScreenSnapshotTests/"
+echo "Referanslar: Tests/JournalTests/Snapshots/__Snapshots__/"
 exit "$status"

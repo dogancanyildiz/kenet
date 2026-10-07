@@ -21,7 +21,8 @@ enum InkLinkStyle {
         case person
         case place
         case unresolved
-        /// Custom entity types: text color, solid control underline (not person blue).
+        /// Resolved vault link that is neither person nor place (project note, custom entity
+        /// type): text color, solid control underline (not person blue).
         case other
     }
 

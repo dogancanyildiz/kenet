@@ -6,7 +6,7 @@
 
     @testable import Journal
 
-    /// Shell / Settings / onboarding / lock — own case list (not ScreenSnapshotCase).
+    /// Shell / Settings / onboarding / lock — own case list and host view.
     /// Mac cases omitted: SnapshotTesting host here is UIKit / iOS Simulator only.
     enum ShellSettingsSnapshotCase: String, CaseIterable, Sendable {
         case onboardingLight
@@ -244,14 +244,6 @@
                 )
             }
         }
-    }
-
-    /// Denied calendar keeps EventKit chrome out of references.
-    @MainActor private final class SnapshotCalendarSource: CalendarEventSource {
-        var authorization = CalendarAuthorization.denied
-        var onChange: (@MainActor @Sendable () -> Void)?
-        func requestFullAccess() async throws -> Bool { false }
-        func events(from start: Date, to end: Date) async throws -> [CalendarEvent] { [] }
     }
 
     @MainActor

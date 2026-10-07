@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Page manşet: display title with an optional byline. Kept compact (jury condition 4).
+/// Page manşet: New York Semibold display title with an optional byline (jury condition 4).
 struct PageHeadline: View {
     private enum Title {
         case verbatim(String)

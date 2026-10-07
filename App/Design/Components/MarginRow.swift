@@ -41,6 +41,7 @@ struct MarginRow<Mark: View, Primary: View, Secondary: View, Trailing: View>: Vi
     }
 
     private var standardLayout: some View {
+        // Mark stays top-aligned with the block; trailing value aligns to the first line baseline.
         HStack(alignment: .top, spacing: 10) {
             edgeColumn {
                 if hasMark {
@@ -49,13 +50,15 @@ struct MarginRow<Mark: View, Primary: View, Secondary: View, Trailing: View>: Vi
                     timeLabel(time)
                 }
             }
-            VStack(alignment: .leading, spacing: 4) {
-                primary()
-                    .font(kind.contentFont)
-                secondary()
+            HStack(alignment: .firstTextBaseline, spacing: 10) {
+                VStack(alignment: .leading, spacing: 4) {
+                    primary()
+                        .font(kind.contentFont)
+                    secondary()
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                trailing()
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            trailing()
         }
     }
 

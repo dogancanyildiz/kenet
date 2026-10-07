@@ -1,5 +1,8 @@
 import Foundation
+import SwiftUI
 import Testing
+
+@testable import Journal
 
 /// Touch targets on iPhone must be at least 44×44 pt (HIG). These tests lock the shared
 /// modifier and the views that were found below that size in the Stage 8 audit.
@@ -24,9 +27,11 @@ struct TapTargetTests {
     }
 
     @Test(arguments: [
+        "App/Screens/Today/DayView.swift",
         "App/Screens/Today/QuickEntryPlaceholder.swift",
         "App/Screens/Today/QuickEntryTaskControls.swift",
-        "App/Screens/Today/DayTaskView.swift",
+        // Task checkbox hit target lives on ``TaskBox`` (used by DayTaskView / InkTaskRow).
+        "App/Design/Components/TaskBox.swift",
         "App/Screens/Days/DaysCalendarView.swift",
         "App/Screens/Summaries/SummariesView.swift",
         "App/Screens/Tasks/Timeline/TaskTimelineView.swift",
@@ -76,9 +81,18 @@ struct TapTargetTests {
             "Cell hit area must fill the tap frame via contentShape")
     }
 
-    @Test func quickEntryReflowsForLargeDynamicType() throws {
-        let source = try Self.read("App/Screens/Today/QuickEntryPlaceholder.swift")
-        #expect(source.contains("ViewThatFits"), "large Dynamic Type must stack the entry row")
+    @Test func quickEntryReflowsForLargeDynamicType() {
+        #expect(QuickEntryCapsuleLayout.resolve(dynamicTypeSize: .large) == .singleRow)
+        #expect(QuickEntryCapsuleLayout.resolve(dynamicTypeSize: .xxxLarge) == .singleRow)
+        #expect(QuickEntryCapsuleLayout.resolve(dynamicTypeSize: .accessibility1) == .stacked)
+        #expect(QuickEntryCapsuleLayout.resolve(dynamicTypeSize: .accessibility3) == .stacked)
+        #expect(QuickEntryCapsuleLayout.resolve(dynamicTypeSize: .accessibility5) == .stacked)
+        #expect(
+            QuickEntryModeLock.isModeEnabled(
+                isEnabled: true, isSubmitting: false, isCreating: false, isWriting: false))
+        #expect(
+            !QuickEntryModeLock.isModeEnabled(
+                isEnabled: true, isSubmitting: true, isCreating: false, isWriting: false))
     }
 
     @Test func onboardingScrollsForLargeDynamicType() throws {

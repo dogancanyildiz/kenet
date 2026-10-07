@@ -22,6 +22,16 @@
                         .tint(Color.ink.accent)
                     }
 
+                    // Manşet row, tabs, labeled menu, filter field, accent switch.
+                    ComponentGalleryPatterns()
+
+                    section("Sheet: .inkSheet / InkSheetScaffold") {
+                        ForEach(ComponentGallerySheet.Kind.allCases, id: \.self) { kind in
+                            NavigationStack { ComponentGallerySheet(kind: kind) }
+                                .frame(height: 260)
+                        }
+                    }
+
                     section("TagChip") {
                         HStack {
                             TagChip(title: "project/alpha", systemImage: "number")

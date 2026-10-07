@@ -87,17 +87,9 @@ struct QuickEntryCapsule<Field: View>: View {
         return Button {
             mode = option
         } label: {
+            // Same word drawing as ``InkTabs`` (one tab family).
             Text(verbatim: title)
-                .font(selected ? Font.ink.section : Font.ink.meta)
-                .fontWeight(selected ? .semibold : .regular)
-                .foregroundStyle(selected ? Color.ink.text : Color.ink.secondaryText)
-                .fixedSize()
-                .overlay(alignment: .bottom) {
-                    Capsule()
-                        .fill(selected ? Color.ink.accent : Color.clear)
-                        .frame(height: InkSize.modeUnderline)
-                        .offset(y: 4)
-                }
+                .inkTabWord(isSelected: selected, size: .compact)
                 .tapTarget()
         }
         .buttonStyle(.plain)

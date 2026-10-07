@@ -4,33 +4,56 @@ import VaultFormat
 struct EntityTypedFieldEditor: View {
     let definition: EntityTypeField
     let model: EntityDetailModel
+    @Environment(\.entityEditorDraft) private var draft
     @State private var text: String
     @State private var date: Date
     @State private var flag: Bool
     @State private var invalid = false
+    @State private var saveFailed = false
+    @State private var savedText: String
+    @State private var savedDate: Date
+    @State private var savedFlag: Bool
     @State private var deleteConfirmation = DestructiveConfirmation<DestructiveConfirmationToken>()
+
+    private var draftID: String { "typed:" + definition.key }
 
     init(definition: EntityTypeField, value: FrontmatterValue?, model: EntityDetailModel) {
         self.definition = definition
         self.model = model
         let scalar: FrontmatterScalar?
         if case .scalar(let value) = value { scalar = value } else { scalar = nil }
-        _text = State(initialValue: scalar?.text ?? "")
+        let initialText = scalar?.text ?? ""
+        _text = State(initialValue: initialText)
+        _savedText = State(initialValue: initialText)
+        let initialDate: Date
         if case .date(let day) = scalar?.kind {
-            _date = State(initialValue: LocalDay.instant(for: day))
+            initialDate = LocalDay.instant(for: day)
         } else {
-            _date = State(initialValue: Date())
+            initialDate = Date()
         }
+        _date = State(initialValue: initialDate)
+        _savedDate = State(initialValue: initialDate)
+        let initialFlag: Bool
         if case .boolean(let value) = scalar?.kind {
-            _flag = State(initialValue: value)
+            initialFlag = value
         } else {
-            _flag = State(initialValue: false)
+            initialFlag = false
+        }
+        _flag = State(initialValue: initialFlag)
+        _savedFlag = State(initialValue: initialFlag)
+    }
+
+    private var isDirty: Bool {
+        switch definition.kind {
+        case .text, .number, .link: text != savedText
+        case .date: LocalDay.today(at: date) != LocalDay.today(at: savedDate)
+        case .boolean: flag != savedFlag
         }
     }
 
     var body: some View {
         VStack(alignment: .leading) {
-            Text(verbatim: definition.key).font(.headline)
+            Text(verbatim: definition.key).font(.ink.section).foregroundStyle(.ink.text)
             switch definition.kind {
             case .date: DatePicker("Değer", selection: $date, displayedComponents: .date)
             case .boolean: Toggle("Değer", isOn: $flag)
@@ -40,9 +63,24 @@ struct EntityTypedFieldEditor: View {
                 Button("Kaydet") { save() }
                 Button("Alanı kaldır", role: .destructive) { deleteConfirmation.request(.pending) }
             }
-            if invalid { Text("Alan için geçerli bir değer gir.").font(.caption).foregroundStyle(.red) }
+            if invalid {
+                Text("Alan için geçerli bir değer gir.").font(.ink.meta).foregroundStyle(.ink.danger)
+            } else if saveFailed {
+                Text(
+                    verbatim: model.errorText
+                        ?? String(localized: "Değişiklik kaydedilemedi. Kasayı kontrol edip yeniden dene.")
+                )
+                .font(.ink.meta).foregroundStyle(.ink.danger)
+            }
         }
         .disabled(!model.canEdit)
+        .onAppear { draft?.report(id: draftID, dirty: isDirty) }
+        .onChange(of: text) { draft?.report(id: draftID, dirty: isDirty) }
+        .onChange(of: date) { draft?.report(id: draftID, dirty: isDirty) }
+        .onChange(of: flag) { draft?.report(id: draftID, dirty: isDirty) }
+        .onChange(of: savedText) { draft?.report(id: draftID, dirty: isDirty) }
+        .onChange(of: savedDate) { draft?.report(id: draftID, dirty: isDirty) }
+        .onChange(of: savedFlag) { draft?.report(id: draftID, dirty: isDirty) }
         .destructiveConfirmationDialog(
             "Alanı kaldır?", confirmation: $deleteConfirmation, confirmTitle: "Alanı kaldır"
         ) { _ in
@@ -63,6 +101,18 @@ struct EntityTypedFieldEditor: View {
             return
         }
         invalid = false
-        Task { await model.set(definition.key, to: value) }
+        let committedText = text
+        let committedDate = date
+        let committedFlag = flag
+        Task {
+            let success = await model.set(definition.key, to: value)
+            saveFailed = !success
+            if success {
+                savedText = committedText
+                savedDate = committedDate
+                savedFlag = committedFlag
+            }
+            draft?.report(id: draftID, dirty: isDirty)
+        }
     }
 }

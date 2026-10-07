@@ -14,27 +14,30 @@ struct EntitiesView: View {
     var body: some View {
         VStack(spacing: 0) {
             if store.entityTypes.issue != nil {
-                Text(
+                InfoBand(
+                    kind: .warning,
                     "Varlık tipleri okunamıyor. Yalnız yerleşik tipler kullanılıyor. Kasadaki .app/types.json dosyasını kontrol et."
                 )
-                .font(.caption).foregroundStyle(.orange).padding()
             }
             EntityTypePicker(store: store, selection: $kind).padding()
             EntityListControls(order: $order, search: $search)
             List {
-                if kind == "person" { UnseenPeopleSection(store: store, people: entities) }
+                if kind == "person" {
+                    UnseenPeopleSection(store: store, people: entities)
+                }
                 ForEach(entities) { entity in
                     NavigationLink(value: entity) { EntityRow(entity: entity) }
+                        .inkListRow()
                 }
             }
+            .inkPage()
             .overlay {
                 if !store.content.entities.contains(where: { $0.kind == kind }) {
-                    ContentUnavailableView(
-                        "Henüz varlık yok", systemImage: "person.2",
-                        description: Text("Bu tipteki varlıklar burada görünecek."))
+                    EmptyState("Bu tipteki varlıklar burada görünecek.")
                 }
             }
         }
+        .inkPage()
         .navigationTitle("Kişiler ve Konumlar")
         .accessibilityIdentifier("screen.entities")
         .toolbar {
@@ -60,10 +63,14 @@ struct EntityRow: View {
     let entity: EntitySummary
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        MarginRow(kind: .vault, time: nil) {
             Text(verbatim: entity.name)
+                .foregroundStyle(.ink.text)
+        } secondary: {
             if let qualifier = entity.qualifier {
-                Text(verbatim: qualifier).font(.subheadline).foregroundStyle(.secondary)
+                Text(verbatim: qualifier)
+                    .font(.ink.meta)
+                    .foregroundStyle(.ink.secondaryText)
             }
         }
     }

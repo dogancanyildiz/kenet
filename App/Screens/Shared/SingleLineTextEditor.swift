@@ -18,7 +18,7 @@ struct SingleLineTextEditor: View {
             TextField(placeholder, text: $text)
                 .textFieldStyle(.roundedBorder).focused($isFocused).disabled(isDisabled)
                 .onSubmit { submit() }
-            if let error = errorText { Text(verbatim: error).foregroundStyle(.red).font(.caption) }
+            if let error = errorText { Text(verbatim: error).foregroundStyle(.ink.danger).font(.ink.meta) }
         }
         .padding().navigationTitle("Metni düzenle")
         .interactiveDismissDisabled(isSaving)

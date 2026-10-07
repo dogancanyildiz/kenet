@@ -87,7 +87,10 @@ struct SearchTests {
         await model.search()
         #expect(model.results.map(\.group) == [.tasks, .notes])
         #expect(model.results.allSatisfy { $0.destination == .day(CalendarDate("2026-10-01")!) })
-        #expect(model.results.allSatisfy { $0.detail == "2026-10-01" })
+        let expectedDetail = LocalDay.instant(for: CalendarDate("2026-10-01")!).formatted(
+            .dateTime.day().month(.abbreviated).year())
+        #expect(model.results.allSatisfy { $0.detail == expectedDetail })
+        #expect(model.results.allSatisfy { !$0.detail.contains("2026-10-01") })
     }
 
     @Test func recentQueriesPersistDeduplicateAndKeepFive() async throws {

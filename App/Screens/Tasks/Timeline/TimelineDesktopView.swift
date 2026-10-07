@@ -108,19 +108,22 @@ import VaultFormat
                         ForEach(group.rows) { row in
                             let presentation = TaskStatusPresentation.make(
                                 due: row.due, asOf: model.today, isCompleted: row.isClosed)
-                            LinkedTextView(text: row.text, store: model.store)
-                                .font(.ink.content)
-                                .lineLimit(2)
-                                .foregroundStyle(
-                                    presentation.usesSecondaryText
-                                        ? Color.ink.secondaryText
-                                        : Color.ink.text
-                                )
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding(.horizontal, 10)
-                                .frame(height: 52)
-                                .contentShape(Rectangle()).onTapGesture { select(row) }
-                                .contextMenu { TimelineTaskMenu { edit(row, $0) } }
+                            LinkedTextView(
+                                text: row.text, store: model.store,
+                                isMuted: presentation.usesSecondaryText
+                            )
+                            .font(.ink.content)
+                            .lineLimit(2)
+                            .foregroundStyle(
+                                presentation.usesSecondaryText
+                                    ? Color.ink.secondaryText
+                                    : Color.ink.text
+                            )
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal, 10)
+                            .frame(height: 52)
+                            .contentShape(Rectangle()).onTapGesture { select(row) }
+                            .contextMenu { TimelineTaskMenu { edit(row, $0) } }
                         }
                     }
                 }

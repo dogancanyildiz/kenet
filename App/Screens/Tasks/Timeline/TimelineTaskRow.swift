@@ -27,10 +27,12 @@ struct TimelineTaskRow: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            LinkedTextView(text: row.text, store: model.store)
-                .font(.ink.content)
-                .foregroundStyle(
-                    presentation.usesSecondaryText ? Color.ink.secondaryText : Color.ink.text)
+            LinkedTextView(
+                text: row.text, store: model.store, isMuted: presentation.usesSecondaryText
+            )
+            .font(.ink.content)
+            .foregroundStyle(
+                presentation.usesSecondaryText ? Color.ink.secondaryText : Color.ink.text)
             HStack(spacing: 6) {
                 if let start = row.start {
                     Text(LocalDay.instant(for: start), format: .dateTime.day().month().year())

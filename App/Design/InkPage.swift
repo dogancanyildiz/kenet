@@ -146,3 +146,27 @@ struct InkPageTitleRow: View {
         .listRowBackground(Color.ink.paper)
     }
 }
+
+extension View {
+    /// List row on paper: matching background, page margin insets, system separators hidden
+    /// (section rules come from ``SectionHeader``).
+    func inkListRow(isSelected: Bool = false) -> some View {
+        modifier(InkListRowModifier(isSelected: isSelected))
+    }
+}
+
+private struct InkListRowModifier: ViewModifier {
+    var isSelected: Bool = false
+
+    func body(content: Content) -> some View {
+        content
+            .listRowBackground(
+                isSelected ? Color.ink.accent.opacity(0.12) : Color.ink.paper
+            )
+            .listRowInsets(
+                EdgeInsets(
+                    top: 6, leading: InkSpacing.margin, bottom: 6, trailing: InkSpacing.margin)
+            )
+            .listRowSeparator(.hidden)
+    }
+}

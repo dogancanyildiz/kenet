@@ -74,11 +74,14 @@ struct KanbanCard: View {
                 VStack(alignment: .leading, spacing: 8) {
                     HStack(alignment: .top, spacing: 10) {
                         TaskBox(state: boxState, isDecorative: true)
-                        LinkedTextView(text: row.text, store: model.store)
-                            .font(.ink.content)
-                            .foregroundStyle(
-                                presentation.usesSecondaryText
-                                    ? Color.ink.secondaryText : Color.ink.text)
+                        LinkedTextView(
+                            text: row.text, store: model.store,
+                            isMuted: presentation.usesSecondaryText
+                        )
+                        .font(.ink.content)
+                        .foregroundStyle(
+                            presentation.usesSecondaryText
+                                ? Color.ink.secondaryText : Color.ink.text)
                     }
                     HStack(spacing: 8) {
                         if let date = row.due {

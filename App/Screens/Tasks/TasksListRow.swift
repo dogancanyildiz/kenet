@@ -44,13 +44,15 @@ struct TasksListRow: View {
                 action: completion.canToggleCompletion ? complete : nil,
                 accessibilityLabel: LocalizedStringKey(completion.boxAccessibilityLabelKey))
         } primary: {
-            LinkedTextView(text: row.text, store: store)
-                .foregroundStyle(
-                    presentation.usesSecondaryText
-                        ? Color.ink.secondaryText
-                        : Color.ink.text
-                )
-                .strikethrough(false)
+            LinkedTextView(
+                text: row.text, store: store, isMuted: presentation.usesSecondaryText
+            )
+            .foregroundStyle(
+                presentation.usesSecondaryText
+                    ? Color.ink.secondaryText
+                    : Color.ink.text
+            )
+            .strikethrough(false)
         } secondary: {
             metaRow
         }

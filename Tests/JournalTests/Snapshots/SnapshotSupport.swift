@@ -171,6 +171,7 @@
     enum SnapshotScreen: String, Sendable {
         case today, tasks, kanban, timeline
         case goals, summaries, graph, graphSelected, map, goalDetail, goalCreation
+        case days, daysSelected, entity, search
     }
 
     @MainActor
@@ -207,6 +208,7 @@
             default:
                 break
             }
+            let intent = IntentNavigation()
             let clock = clock(for: screen)
             let root: AnyView =
                 switch screen {
@@ -228,11 +230,24 @@
                     AnyView(goalDetailView(store: store, day: goalsSnapshotDay))
                 case .goalCreation:
                     AnyView(GoalCreationView(store: store))
+                case .days:
+                    AnyView(DaysView(store: store))
+                case .daysSelected:
+                    AnyView(DaysView(store: store, previewSelectedDay: snapshotDay))
+                case .entity:
+                    AnyView(
+                        EntityView(
+                            store: store,
+                            entity: store.content.entities.first { $0.name == "Deniz Arıkan" }
+                                ?? store.content.entities[0]))
+                case .search:
+                    AnyView(SearchView(store: store, initialQuery: "Deniz"))
                 }
             return NavigationStack { root }
                 .environment(notifications)
                 .environment(calendar)
                 .environment(location)
+                .environment(intent)
                 .environment(\.locale, snapshotLocale)
                 .environment(\.calendar, makeSnapshotCalendar())
                 .environment(\.timeZone, snapshotTimeZone)
@@ -249,7 +264,7 @@
 
         static func assert(
             _ snapshotCase: some SnapshotCaseConfiguring, store: IndexStore, defaults: UserDefaults,
-            file: StaticString = #filePath, line: UInt = #line
+            file: StaticString = #filePath, line: UInt = #line, testName: String = "screen"
         ) async {
             await assert(
                 named: snapshotCase.rawValue,
@@ -260,7 +275,8 @@
                 store: store,
                 defaults: defaults,
                 file: file,
-                line: line
+                line: line,
+                testName: testName
             )
         }
 

@@ -1129,6 +1129,22 @@
         }
       }
     },
+    "Boylam": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Longitude"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Boylam"
+          }
+        }
+      }
+    },
     "Bu gün henüz bir şey yazılmadı.": {
       "localizations": {
         "en": {
@@ -1493,22 +1509,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Henüz gün yok"
-          }
-        }
-      }
-    },
-    "Henüz varlık yok": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No entities yet"
-          }
-        },
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Henüz varlık yok"
           }
         }
       }
@@ -2537,6 +2537,22 @@
         }
       }
     },
+    "Seçili": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selected"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seçili"
+          }
+        }
+      }
+    },
     "Son geçişe göre": {
       "localizations": {
         "tr": {
@@ -2549,6 +2565,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "By last mention"
+          }
+        }
+      }
+    },
+    "Son görülme": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last seen"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Son görülme"
+          }
+        }
+      }
+    },
+    "Son görülme: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last seen: %@"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Son görülme: %@"
           }
         }
       }
@@ -4217,6 +4265,22 @@
         }
       }
     },
+    "Evet": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yes"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Evet"
+          }
+        }
+      }
+    },
     "Sayı": {
       "localizations": {
         "tr": {
@@ -4325,6 +4389,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Longest streak"
+          }
+        }
+      }
+    },
+    "Enlem": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Latitude"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enlem"
           }
         }
       }
@@ -6249,6 +6329,22 @@
         }
       }
     },
+    "Düzenle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Düzenle"
+          }
+        }
+      }
+    },
     "Dönem sonu zincir": {
       "localizations": {
         "tr": {
@@ -6357,6 +6453,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "No change"
+          }
+        }
+      }
+    },
+    "Diğer alanlar": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Other fields"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diğer alanlar"
           }
         }
       }
@@ -6777,6 +6889,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Map"
+          }
+        }
+      }
+    },
+    "Hayır": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hayır"
           }
         }
       }
@@ -7357,6 +7485,22 @@
         }
       }
     },
+    "Oluşturulma": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Created"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oluşturulma"
+          }
+        }
+      }
+    },
     "Tür eklenen dosyalar": {
       "localizations": {
         "tr": {
@@ -7753,6 +7897,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Try again"
+          }
+        }
+      }
+    },
+    "Tip": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Type"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tip"
           }
         }
       }
@@ -8537,6 +8697,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Kaydedilmemiş günlük metni var."
+          }
+        }
+      }
+    },
+    "Kaydedilmemiş alan metni var.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You have unsaved field text."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kaydedilmemiş alan metni var."
           }
         }
       }

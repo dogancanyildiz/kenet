@@ -6,22 +6,11 @@ import Testing
 struct DesignTokenUsageTests {
     /// Paths under `App/` that still use `.red` or `.orange` (Stage 9 screen jobs clear these).
     private static let systemColorAllowlist: Set<String> = [
-        "App/Screens/Entities/EntitiesView.swift",
-        "App/Screens/Entities/EntityRenameView.swift",
-        "App/Screens/Entities/EntityScalarEditor.swift",
-        "App/Screens/Entities/EntityTypedFieldEditor.swift",
-        "App/Screens/Entities/EntityView.swift",
-        "App/Screens/Entities/UnresolvedEntityView.swift",
-        "App/Screens/Shared/SearchNoteView.swift",
-        "App/Screens/Shared/SearchView.swift",
-        "App/Screens/Shared/SingleLineTextEditor.swift",
-        "App/Screens/Tasks/EntityOpenTasksView.swift",
         "App/Screens/Today/DayCalendarView.swift",
         "App/Screens/Today/DayEventView.swift",
         "App/Screens/Today/DayTaskView.swift",
         "App/Screens/Today/DayTasksView.swift",
         "App/Screens/Today/DayView.swift",
-        "App/Screens/Today/JournalView.swift",
         "App/Screens/Today/QuickEntryPlaceholder.swift",
         "App/Screens/Today/QuickEntryTaskControls.swift",
         "App/Screens/Today/TaskTextEditor.swift",

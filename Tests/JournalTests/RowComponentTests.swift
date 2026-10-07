@@ -52,10 +52,62 @@ struct RowComponentTests {
         InkLinkStyle.apply(.unresolved, to: &unresolved, highContrast: false)
         #expect(unresolved.underlineStyle != nil)
 
+        var entity = AttributedString("Cam")
+        InkLinkStyle.apply(.other, to: &entity, highContrast: false)
+        #expect(entity.underlineStyle != nil)
+
         var colored = AttributedString("Ece")
         InkLinkStyle.apply(.person, to: &colored, highContrast: false, using: .coloredText)
         #expect(colored.underlineStyle == nil)
         #expect(colored.foregroundColor != nil)
+    }
+
+    @Test func linkedTextInkDedupesPathsAndStylesCustomTypes() {
+        let entities = [
+            EntitySummary(
+                id: "books/Cam.md", kind: "book", name: "Cam", qualifier: nil, aliases: [],
+                incomingLinks: 1),
+            EntitySummary(
+                id: "books/Cam.md", kind: "book", name: "Cam kopya", qualifier: nil, aliases: [],
+                incomingLinks: 0),
+            EntitySummary(
+                id: "people/Ada.md", kind: "person", name: "Ada", qualifier: nil, aliases: [],
+                incomingLinks: 1),
+        ]
+        let text = LinkedText(spans: [
+            .init(text: "Cam", destination: "books/Cam.md", target: "Cam"),
+            .init(text: " ve ", destination: nil),
+            .init(text: "Ada", destination: "people/Ada.md", target: "Ada"),
+        ])
+        let segments = LinkedTextInk.segments(text, entities: entities)
+        #expect(segments.map(\.kind) == [.other, .plain, .person])
+    }
+
+    @Test func daysCalendarMarkDiameterCapsToCellWidth() {
+        // AX3 scales the 32 pt base above a ~45 pt grid cell; the mark must shrink.
+        let preferred: CGFloat = 32 * 1.8
+        #expect(preferred > 45)
+        #expect(DaysCalendarMarkLayout.markDiameter(preferred: preferred, cellWidth: 45) == 45)
+        #expect(DaysCalendarMarkLayout.markDiameter(preferred: 32, cellWidth: 45) == 32)
+        #expect(DaysCalendarMarkLayout.markDiameter(preferred: 40, cellWidth: 0) == 0)
+    }
+
+    @Test func mutedLinkedTextFadesPlainRunsAndKeepsLinkUnderline() {
+        let segments: [InkLinkSegment] = [
+            .init(id: "1", text: "Ara: ", kind: .plain),
+            .init(id: "2", text: "Deniz", kind: .person, target: "Deniz", path: "people/Deniz.md"),
+        ]
+        let normal = InkLinkTextBuilder.attributed(segments: segments, highContrast: false)
+        let muted = InkLinkTextBuilder.attributed(
+            segments: segments, highContrast: false, isMuted: true)
+        func plainColor(_ value: AttributedString) -> Color? {
+            value.runs.first { $0.link == nil }?.foregroundColor
+        }
+        #expect(plainColor(normal) == Color.ink.text)
+        #expect(plainColor(muted) == Color.ink.secondaryText)
+        let link = muted.runs.first { $0.link != nil }
+        #expect(link?.underlineStyle == Text.LineStyle(pattern: .solid, color: .ink.person))
+        #expect(String(muted.characters) == String(normal.characters))
     }
 
     @Test func inkLinkedTextKeepsSuffixPlainAndLinksEntity() {

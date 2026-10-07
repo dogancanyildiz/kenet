@@ -3,8 +3,10 @@ import SwiftUI
 /// Privacy: app lock, link to hide notification content, people insights.
 struct PrivacySettingsView: View {
     var body: some View {
-        Form {
-            InkPageTitleRow("Gizlilik")
+        List {
+            #if os(iOS)
+                InkPageTitleRow("Gizlilik")
+            #endif
             AppLockSettingsView()
             #if os(iOS)
                 // Mac uses the adjacent Bildirimler Settings tab instead of a push.
@@ -12,12 +14,12 @@ struct PrivacySettingsView: View {
                     NavigationLink("Bildirimlerde içeriği gizle") {
                         NotificationSettingsView()
                     }
+                    .inkListRow()
                 }
             #endif
             PeopleInsightsSettingsView()
         }
-        .formStyle(.grouped)
-        .listRowBackground(Color.ink.paper)
+        .listStyle(.plain)
         .inkPageNavigationTitle("Gizlilik")
         .inkPageColumn()
         .inkPage()

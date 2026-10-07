@@ -5,9 +5,13 @@ struct DiagnosticsView: View {
     @Bindable var store: IndexStore
 
     var body: some View {
-        Form {
-            InkPageTitleRow("Tanılama")
-            Section("İndeks") {
+        List {
+            #if os(iOS)
+                InkPageTitleRow("Tanılama")
+            #endif
+            Section {
+                SectionHeader("İndeks")
+                    .inkListRow()
                 ViewThatFits(in: .horizontal) {
                     HStack {
                         rebuildButton
@@ -19,12 +23,18 @@ struct DiagnosticsView: View {
                     }
                 }
                 .buttonStyle(.borderless)
-                if store.isProcessing { VaultIndexingProgress(store: store) }
+                .inkListRow()
+                if store.isProcessing {
+                    VaultIndexingProgress(store: store)
+                        .inkListRow()
+                }
                 if let notice = store.notice {
                     InfoBand(kind: .info, verbatim: notice)
+                        .inkListRow()
                 }
                 if let error = store.errorText {
                     InfoBand(kind: .error, verbatim: error)
+                        .inkListRow()
                 }
                 count("Dosyalar", store.counts.files)
                 count("Günler", store.counts.filesByKind["day", default: 0])
@@ -42,13 +52,17 @@ struct DiagnosticsView: View {
                         Text(date, format: .dateTime)
                             .font(.ink.value)
                     }
+                    .inkListRow()
                 }
             }
-            Section("Atlanan yollar") {
+            Section {
+                SectionHeader("Atlanan yollar")
+                    .inkListRow()
                 if store.skippedPaths.isEmpty {
                     Text("Atlanan yol yok.")
                         .font(.ink.meta)
                         .foregroundStyle(Color.ink.secondaryText)
+                        .inkListRow()
                 }
                 ForEach(store.skippedPaths, id: \.path) { skipped in
                     VStack(alignment: .leading, spacing: 2) {
@@ -68,11 +82,11 @@ struct DiagnosticsView: View {
                                 .foregroundStyle(Color.ink.secondaryText)
                         }
                     }
+                    .inkListRow()
                 }
             }
         }
-        .formStyle(.grouped)
-        .listRowBackground(Color.ink.paper)
+        .listStyle(.plain)
         .inkPageNavigationTitle("Tanılama")
         .inkPageColumn()
         .inkPage()
@@ -96,5 +110,6 @@ struct DiagnosticsView: View {
                 .font(.ink.value)
                 .monospacedDigit()
         }
+        .inkListRow()
     }
 }

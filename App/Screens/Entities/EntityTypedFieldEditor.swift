@@ -87,6 +87,16 @@ struct EntityTypedFieldEditor: View {
             Task {
                 if await model.remove(definition.key) {
                     draft?.clear(id: draftID)
+                    // Schema-defined fields stay on screen with a nil value; reset local state
+                    // so typed text does not linger after a successful remove.
+                    text = ""
+                    savedText = ""
+                    date = Date()
+                    savedDate = date
+                    flag = false
+                    savedFlag = false
+                    invalid = false
+                    saveFailed = false
                 }
             }
         }

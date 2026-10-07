@@ -168,6 +168,8 @@ struct VaultDisplayTextTests {
             ## Events
             ```markdown
             [[Ada|A]] ^a1b2c3
+            - x
+            # y
             ```
             outside [[Ada|A]] ^a1b2c3
             """
@@ -175,11 +177,12 @@ struct VaultDisplayTextTests {
         #expect(!preview.contains("```"))
         #expect(!preview.contains("##"))
         #expect(preview.contains("Events"))
-        // Search preview humanizes fence interior too (unlike VaultDisplayText.multiline).
-        #expect(!preview.contains("[["))
-        #expect(preview.contains("A"))
+        // Fence interior is kept verbatim (no list / heading / wikilink transforms).
+        #expect(preview.contains("[[Ada|A]] ^a1b2c3"))
+        #expect(preview.contains("- x"))
+        #expect(preview.contains("# y"))
         #expect(preview.contains("outside A"))
-        #expect(!preview.contains("^a1b2c3"))
+        #expect(!preview.contains("outside [[Ada|A]]"))
         #expect(SearchPreviewText.display("```\n```").isEmpty)
         #expect(SearchPreviewText.title("```\n```", file: "notes/Proje Fikirleri.md") == "Proje Fikirleri")
     }
@@ -199,11 +202,38 @@ struct VaultDisplayTextTests {
         #expect(!preview.contains("- 10:00"))
         #expect(preview.contains("liste"))
         #expect(!preview.hasPrefix("*"))
-        #expect(preview.contains("numaralı"))
-        #expect(!preview.contains("1. "))
+        // Ordered markers are content (Turkish ordinal "1."), not stripped.
+        #expect(preview.contains("1. numaralı"))
         #expect(preview.contains("Ada ile konuş"))
         #expect(!preview.contains("[ ]"))
         #expect(!preview.contains("^b2c3d4"))
+    }
+
+    @Test func searchPreviewKeepsProseThatLooksLikeListMarkers() {
+        #expect(SearchPreviewText.display("3. kez gittik") == "3. kez gittik")
+        #expect(SearchPreviewText.display("2026. yıl güzeldi") == "2026. yıl güzeldi")
+        #expect(SearchPreviewText.display("15) seçenek") == "15) seçenek")
+        #expect(SearchPreviewText.display("+ 5 puan") == "+ 5 puan")
+        #expect(SearchPreviewText.display("+90 555") == "+90 555")
+        #expect(SearchPreviewText.display("1.5 km") == "1.5 km")
+        #expect(SearchPreviewText.display("-5 derece") == "-5 derece")
+        #expect(SearchPreviewText.display("#etiket") == "#etiket")
+        #expect(SearchPreviewText.display("10:00 - 11:00 toplantı") == "10:00 - 11:00 toplantı")
+        #expect(SearchPreviewText.display("- [a] dipnot") == "[a] dipnot")
+        #expect(SearchPreviewText.display("- [x] bitti") == "bitti")
+        #expect(SearchPreviewText.display("- [/] devam") == "devam")
+        #expect(SearchPreviewText.display("- [-] iptal") == "iptal")
+        #expect(SearchPreviewText.display("---").isEmpty)
+        #expect(SearchPreviewText.display("***").isEmpty)
+        #expect(SearchPreviewText.display("* * *").isEmpty)
+        #expect(SearchPreviewText.display("- - -").isEmpty)
+        let fenced = """
+            ```
+            - x
+            # y
+            ```
+            """
+        #expect(SearchPreviewText.display(fenced) == "- x\n# y")
     }
 
     @Test func searchResultsHideMarkupAndPaths() throws {

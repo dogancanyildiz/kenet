@@ -92,8 +92,18 @@ enum DaysCalendarMarkLayout {
         min(preferred, max(0, cellWidth))
     }
 
-    /// Gap between the day numeral and today's ring / selected disc.
+    /// Minimum gap between the day numeral and today's ring / selected disc.
     static let numeralInset: CGFloat = 2
+
+    /// Square padding so the numeral's layout box fits inside the circle with ``numeralInset``
+    /// clearance to the inner edge of the stroke (not merely to the square frame).
+    static func numeralInset(diameter: CGFloat, strokeWidth: CGFloat = InkStroke.control) -> CGFloat {
+        let gap = numeralInset
+        let innerRadius = max(0, diameter / 2 - strokeWidth / 2)
+        let maxHalfDiagonal = max(0, innerRadius - gap)
+        let contentSide = maxHalfDiagonal * CGFloat(2).squareRoot()
+        return max(gap, (diameter - contentSide) / 2)
+    }
 }
 
 /// Day cell: today = ring, marked = filled marker, selected = filled disc (form beyond color).
@@ -114,7 +124,7 @@ struct DaysCalendarDayMark: View {
                     .foregroundStyle(isSelected ? Color.ink.onAccent : Color.ink.text)
                     .minimumScaleFactor(0.35)
                     .lineLimit(1)
-                    .padding(DaysCalendarMarkLayout.numeralInset)
+                    .padding(DaysCalendarMarkLayout.numeralInset(diameter: diameter))
                     .frame(width: diameter, height: diameter)
                     .background {
                         if isSelected {

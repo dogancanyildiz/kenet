@@ -19,9 +19,11 @@ final class EntityEditorDraft {
         dirtyByID.removeValue(forKey: id)
     }
 
-    /// Drops `prefix` and any `prefix.` child ids (list indices / mapping keys).
-    func clear(prefix: String) {
-        dirtyByID = dirtyByID.filter { $0.key != prefix && !$0.key.hasPrefix(prefix + ".") }
+    /// Drops exact draft ids (callers enumerate list indices / mapping keys; no prefix match).
+    func clear(ids: [String]) {
+        for id in ids {
+            dirtyByID.removeValue(forKey: id)
+        }
     }
 
     /// Pure OR helper (not actor-bound) for combine-style tests.

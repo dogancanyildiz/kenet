@@ -13,6 +13,7 @@ struct EntitiesView: View {
 
     var body: some View {
         VStack(spacing: 0) {
+            InkPageTitle("Kişiler ve Konumlar")
             if store.entityTypes.issue != nil {
                 InfoBand(
                     kind: .warning,
@@ -22,7 +23,6 @@ struct EntitiesView: View {
             EntityTypePicker(store: store, selection: $kind).padding()
             EntityListControls(order: $order, search: $search)
             List {
-                InkPageTitleRow("Kişiler ve Konumlar")
                 if kind == "person" {
                     UnseenPeopleSection(store: store, people: entities)
                 }

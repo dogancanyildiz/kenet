@@ -71,35 +71,44 @@ struct SearchView: View {
     }
 
     private var searchField: some View {
-        TextField("Kişi, konum veya metin ara", text: $model.query)
-            .textFieldStyle(.plain)
-            .font(.ink.content)
-            .foregroundStyle(.ink.text)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 10)
-            .background(
-                Color.ink.well,
-                in: RoundedRectangle(
-                    cornerRadius: InkSize.kanbanCorner, style: .continuous)
-            )
-            .focused($searchFocused)
-            .onSubmit {
-                if let selected = model.selected {
-                    open(selected)
-                } else {
-                    model.rememberQuery()
-                }
+        TextField(
+            "Kişi, konum veya metin ara", text: $model.query,
+            prompt: Text("Kişi, konum veya metin ara").font(.ink.placeholder)
+        )
+        .textFieldStyle(.plain)
+        .font(.ink.content)
+        .foregroundStyle(.ink.text)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .background(
+            Color.ink.well,
+            in: RoundedRectangle(
+                cornerRadius: InkSize.kanbanCorner, style: .continuous)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: InkSize.kanbanCorner, style: .continuous)
+                .strokeBorder(
+                    searchFocused ? Color.ink.accent : Color.ink.control,
+                    lineWidth: InkStroke.control)
+        )
+        .focused($searchFocused)
+        .onSubmit {
+            if let selected = model.selected {
+                open(selected)
+            } else {
+                model.rememberQuery()
             }
-            #if os(macOS)
-                .onKeyPress(.downArrow) {
-                    model.moveSelection(by: 1)
-                    return .handled
-                }
-                .onKeyPress(.upArrow) {
-                    model.moveSelection(by: -1)
-                    return .handled
-                }
-            #endif
+        }
+        #if os(macOS)
+            .onKeyPress(.downArrow) {
+                model.moveSelection(by: 1)
+                return .handled
+            }
+            .onKeyPress(.upArrow) {
+                model.moveSelection(by: -1)
+                return .handled
+            }
+        #endif
     }
 
     private var resultList: some View {

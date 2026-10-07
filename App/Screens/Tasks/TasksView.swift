@@ -41,8 +41,10 @@ struct TasksView: View {
                     filterBand
                 }
                 if model.section == .kanban {
+                    InkPageTitle("Görevler")
                     KanbanView(tasks: model)
                 } else if model.section == .timeline {
+                    InkPageTitle("Görevler")
                     TaskTimelineView(tasks: model)
                 } else {
                     listContent

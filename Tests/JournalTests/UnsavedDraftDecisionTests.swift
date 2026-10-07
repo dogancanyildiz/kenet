@@ -59,11 +59,19 @@ struct UnsavedDraftDecisionTests {
         draft.report(id: "field:notes.0", dirty: true)
         draft.report(id: "field:other", dirty: true)
         draft.report(id: "typed:birthday", dirty: true)
+        draft.report(id: "field:a", dirty: true)
+        draft.report(id: "field:a.b", dirty: true)
         #expect(draft.isDirty)
-        draft.clear(prefix: "field:notes")
+        // Exact ids only: removing "notes" clears its list child, not an unrelated key.
+        draft.clear(ids: ["field:notes", "field:notes.0"])
+        #expect(draft.isDirty)
+        // Removing "a" must not clear dotted YAML key "a.b".
+        draft.clear(ids: ["field:a"])
         #expect(draft.isDirty)
         draft.clear(id: "typed:birthday")
         draft.clear(id: "field:other")
+        #expect(draft.isDirty)
+        draft.clear(id: "field:a.b")
         #expect(!draft.isDirty)
     }
 

@@ -102,6 +102,24 @@
             )
         }
 
+        /// Page top of the full-width timeline: manşet row with its three icons (group, filter,
+        /// search), the tabs and the single "Ölçek" menu row. Framed to the top of the window.
+        @Test func timelineTopMacLight() async throws {
+            let context = try TaskTestContext(sample: true)
+            defer { context.clean() }
+            await context.start()
+            let day = CalendarDate("2026-09-20")!
+            let tasks = TasksModel(store: context.store, today: { day })
+            try await assertMacView(
+                TaskTimelineView(tasks: tasks, showsFilters: true)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading),
+                named: "timelineTopMacLight",
+                store: context.store,
+                defaults: context.defaults.defaults,
+                size: CGSize(width: 1100, height: 720)
+            )
+        }
+
         private func assertMacView<Content: View>(
             _ content: Content,
             named name: String,

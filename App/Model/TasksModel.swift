@@ -12,9 +12,16 @@ struct TaskAgendaGroup: Identifiable {
 
 @MainActor @Observable
 final class TasksModel {
+    /// Six-way value from before the two-layer selector; kept for callers that jump to one
+    /// view (sidebar, notification) and for reading the old device preference.
     enum Section: String, CaseIterable { case upcoming, undated, completed, projects, kanban, timeline }
     let store: IndexStore
-    var section = Section.upcoming
+    /// Tab, list section and each board's last menu choice (``TasksViewState``).
+    var viewState = TasksViewState()
+    var section: Section {
+        get { viewState.legacySection }
+        set { viewState.apply(newValue) }
+    }
     var entityFilter: String?
     var projectFilter: String?
     private(set) var busy: Set<String> = []

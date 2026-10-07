@@ -14,15 +14,27 @@ struct LocationSettingsView: View {
             Section("Konum") {
                 Toggle("Konum önerisi", isOn: $location.isEnabled)
                 Text("Hızlı girişteki konum önerisi tek seferlik konumla çalışır; olayına kendiliğinden eklenmez.")
-                    .font(.caption).foregroundStyle(.secondary)
+                    .font(.ink.meta)
+                    .foregroundStyle(Color.ink.secondaryText)
                 switch location.authorization {
                 case .notDetermined:
                     Text("Konum izni henüz verilmedi.")
+                        .font(.ink.meta)
+                        .foregroundStyle(Color.ink.secondaryText)
                     Button("Konum önerileri için izin ver") { location.requestAccess() }
                         .disabled(location.isRequesting)
-                case .authorized, .always: Text("Konum erişimine izin verildi.")
-                case .denied: Text("Konum erişimi reddedildi.")
-                case .restricted: Text("Konum erişimi bu cihazda kısıtlanmış.")
+                case .authorized, .always:
+                    Text("Konum erişimine izin verildi.")
+                        .font(.ink.meta)
+                        .foregroundStyle(Color.ink.text)
+                case .denied:
+                    Text("Konum erişimi reddedildi.")
+                        .font(.ink.meta)
+                        .foregroundStyle(Color.ink.secondaryText)
+                case .restricted:
+                    Text("Konum erişimi bu cihazda kısıtlanmış.")
+                        .font(.ink.meta)
+                        .foregroundStyle(Color.ink.secondaryText)
                 }
                 Button("Sistem ayarlarını aç") {
                     #if os(iOS)

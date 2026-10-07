@@ -85,22 +85,14 @@ struct JournalApp: App {
                     }
             }
             Settings {
-                TabView {
-                    HotKeySettingsView(model: desktop.shortcut)
-                        .tabItem { Label("Hızlı giriş", systemImage: "square.and.pencil") }
-                    NavigationStack { NotificationSettingsView() }
-                        .tabItem { Label("Bildirimler", systemImage: "bell") }
-                    DiagnosticsView(store: store)
-                        .tabItem { Label("Kasa", systemImage: "folder") }
-                }
-                .frame(minWidth: 450, minHeight: 500)
-                .environment(calendar)
-                .environment(location)
-                .environment(geofences)
-                .environment(notifications)
-                .environment(intentNavigation)
-                .environment(appLock)
-                .appLockShield(appLock)
+                MacSettingsView(store: store, shortcut: desktop.shortcut)
+                    .environment(calendar)
+                    .environment(location)
+                    .environment(geofences)
+                    .environment(notifications)
+                    .environment(intentNavigation)
+                    .environment(appLock)
+                    .appLockShield(appLock)
             }
         #else
             mainWindow

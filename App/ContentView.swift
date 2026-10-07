@@ -41,7 +41,15 @@ struct ContentView: View {
             if !store.requiresOnboarding && !store.isVaultInaccessible && store.indexingFileCount != nil
                 && store.isProcessing
             {
-                VaultIndexingProgress(store: store).padding().background(.regularMaterial)
+                VaultIndexingProgress(store: store)
+                    .padding(InkSpacing.margin)
+                    .frame(maxWidth: .infinity)
+                    .background(Color.ink.surface)
+                    .overlay(alignment: .bottom) {
+                        Rectangle()
+                            .fill(Color.ink.rule)
+                            .frame(height: 1)
+                    }
             }
         }
         .onChange(of: intentNavigation.todayRequest) { searchPresented = false }

@@ -6,6 +6,9 @@ enum InkButtonChrome: Equatable, Sendable {
     case text
     case destructive
 
+    /// Minimum control height (Apple HIG). Styles apply this as layout and hit target.
+    static let minimumHeight: CGFloat = 44
+
     enum Token: String, Equatable, Sendable {
         case secondaryText
         case paper

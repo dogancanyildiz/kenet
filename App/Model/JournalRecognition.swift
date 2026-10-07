@@ -3,18 +3,25 @@ import VaultFormat
 
 /// Compare physical line content, retaining Markdown context across unchanged lines.
 enum JournalRecognition {
+    /// 0-based body line indices whose content is new relative to `original` (inserts / edits).
+    static func changedLineIndices(in text: String, from original: String) -> Set<Int> {
+        let oldLines = RawDocument(bytes: original.utf8).lines.map(\.content)
+        let newLines = RawDocument(bytes: text.utf8).lines.map(\.content)
+        return Set(
+            newLines.difference(from: oldLines).compactMap { change -> Int? in
+                if case .insert(let offset, _, let associated) = change, associated == nil {
+                    return offset
+                }
+                return nil
+            })
+    }
+
     static func linkingChanges(
         in text: String, from original: String, entities: [KnownEntity],
         context: [KnownEntity] = [], choices: [MentionPosition: String] = [:]
     ) throws -> String {
-        let oldLines = RawDocument(bytes: original.utf8).lines.map(\.content)
-        let newLines = RawDocument(bytes: text.utf8).lines.map(\.content)
-        let difference = newLines.difference(from: oldLines)
-        let changed = Set(
-            difference.compactMap { change -> Int? in
-                if case .insert(let offset, _, let associated) = change, associated == nil { return offset + 1 }
-                return nil
-            })
+        // Prefixed document line numbers are body index + 1 (synthetic `## Journal` heading).
+        let changed = Set(changedLineIndices(in: text, from: original).map { $0 + 1 })
         // A body-leading horizontal rule must not be interpreted as frontmatter.
         let prefix = "## Journal\n"
         let source = prefix + text

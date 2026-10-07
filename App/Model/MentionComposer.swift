@@ -1,6 +1,7 @@
 import EntityRecognition
 import Foundation
 import Observation
+import SwiftUI
 import VaultFormat
 import VaultStore
 
@@ -19,8 +20,14 @@ final class MentionComposer {
 
     let store: IndexStore
     var text = "" {
-        didSet { reconcile(oldText: oldValue) }
+        didSet {
+            guard oldValue != text else { return }
+            reconcile(oldText: oldValue)
+            onTextChange?(oldValue)
+        }
     }
+    /// Called with the previous text after every change, typed or made by the composer itself.
+    @ObservationIgnored var onTextChange: ((_ oldText: String) -> Void)?
     var qualifier = ""
     var needsQualifier = false
     var creationKind: VaultEntityKind?
@@ -30,6 +37,10 @@ final class MentionComposer {
     var requestedCreation: CreationRequest?
     var pins: [Pin] = []
     var skipped: Set<MentionPosition> = []
+    /// Journal: only explicit (`@`) ambiguous mentions participate in save-time resolution.
+    var resolvesExplicitAmbiguityOnly = false
+    /// When set, pending checks and unbound-`@` removal consider only these 0-based line indices.
+    var resolutionLines: Set<Int>?
 
     init(store: IndexStore, text: String = "") {
         self.store = store
@@ -56,15 +67,19 @@ final class MentionComposer {
 
     var pendingAmbiguity: Mention? {
         guard awaitingResolution, requestedCreation == nil else { return nil }
-        return mentions.first { $0.isAmbiguous && choices[$0.position] == nil && !skipped.contains($0.position) }
+        return mentions.first {
+            $0.isAmbiguous && choices[$0.position] == nil && !skipped.contains($0.position)
+                && isInResolutionScope($0.line)
+                && (!resolvesExplicitAmbiguityOnly || $0.isExplicit)
+        }
     }
 
     var pendingUnknown: CreationRequest? {
         guard awaitingResolution, pendingAmbiguity == nil else { return nil }
         if let requestedCreation { return requestedCreation }
-        return EntityRecognizer.unknownMentions(text, entities: store.knownEntities).first.map {
-            CreationRequest(position: $0.position, spelling: $0.spelling)
-        }
+        return EntityRecognizer.unknownMentions(text, entities: store.knownEntities).first {
+            isInResolutionScope($0.position.line)
+        }.map { CreationRequest(position: $0.position, spelling: $0.spelling) }
     }
 
     /// Arms resolution and returns whether commit can proceed without a strip choice.
@@ -80,7 +95,7 @@ final class MentionComposer {
 
     /// Strips leftover explicit `@` markers after linking (file bytes never keep `@`).
     func removingUnbound(from linked: String) -> String {
-        removingUnboundPrefixes(from: linked)
+        removingUnboundPrefixes(from: linked, lines: resolutionLines)
     }
 
     func choose(_ entity: KnownEntity, for mention: Mention) {
@@ -183,10 +198,28 @@ final class MentionComposer {
         await create(kind)
     }
 
-    func selectSuggestion(_ entity: KnownEntity, at byteOffset: Int? = nil) {
-        guard let range = suggestionRange(at: byteOffset) else { return }
+    /// Replaces the active `@` fragment and returns the caret UTF-8 offset after the inserted name.
+    @discardableResult
+    func selectSuggestion(_ entity: KnownEntity, at byteOffset: Int? = nil) -> Int? {
+        guard let range = suggestionRange(at: byteOffset) else { return nil }
+        let caret = Self.caretOffset(afterReplacing: range, with: entity.name)
         replace(range, with: entity.name)
-        pins.append(Pin(range: range.lowerBound..<(range.lowerBound + entity.name.utf8.count), entity: entity))
+        pins.append(Pin(range: range.lowerBound..<caret, entity: entity))
+        return caret
+    }
+
+    /// UTF-8 byte offset of the caret after replacing `range` with `replacement`.
+    static func caretOffset(afterReplacing range: Range<Int>, with replacement: String) -> Int {
+        range.lowerBound + replacement.utf8.count
+    }
+
+    /// Insertion-point selection at a UTF-8 byte offset, or `nil` when the offset is invalid.
+    static func textSelection(atByteOffset offset: Int, in text: String) -> TextSelection? {
+        let utf8 = text.utf8
+        guard let utf8Index = utf8.index(utf8.startIndex, offsetBy: offset, limitedBy: utf8.endIndex),
+            let index = String.Index(utf8Index, within: text)
+        else { return nil }
+        return TextSelection(insertionPoint: index)
     }
 
     func pin(_ entity: KnownEntity, nameRange: Range<Int>) {
@@ -222,11 +255,16 @@ final class MentionComposer {
         text = String(decoding: bytes, as: UTF8.self)
     }
 
-    private func removingUnboundPrefixes(from linked: String) -> String {
+    private func isInResolutionScope(_ line: Int) -> Bool {
+        resolutionLines?.contains(line) ?? true
+    }
+
+    private func removingUnboundPrefixes(from linked: String, lines: Set<Int>?) -> String {
         let document = RawDocument(bytes: linked.utf8)
         var bytes = Array(linked.utf8)
         let remaining = EntityRecognizer.recognize(linked, entities: store.knownEntities)
         for mention in remaining.reversed() where mention.isExplicit {
+            guard lines?.contains(mention.line) ?? true else { continue }
             let offset = document.lines.prefix(mention.line).reduce(document.hasByteOrderMark ? 3 : 0) {
                 $0 + $1.bytes.count
             }
@@ -236,7 +274,6 @@ final class MentionComposer {
     }
 
     private func reconcile(oldText: String) {
-        guard oldText != text else { return }
         let old = Array(oldText.utf8)
         let new = Array(text.utf8)
         let prefix = zip(old, new).prefix(while: { $0 == $1 }).count

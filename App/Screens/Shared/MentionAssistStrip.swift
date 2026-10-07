@@ -9,68 +9,99 @@ struct MentionAssistStrip: View {
     let store: IndexStore
     var insertionOffset: Int? = nil
     var isEnabled: Bool = true
-    var onDidChangeText: (() -> Void)? = nil
+    /// Invoked after a suggestion or creation edits text; argument is the caret UTF-8 offset when known.
+    var onDidChangeText: ((Int?) -> Void)? = nil
     var onResolved: (() -> Void)? = nil
 
     @Environment(\.locale) private var locale
 
+    /// Whether the strip should appear in a parent stack (empty strip must not consume spacing).
+    var hasContent: Bool {
+        composer.pendingAmbiguity != nil
+            || composer.pendingUnknown != nil
+            || composer.errorText != nil
+            || (!composer.awaitingResolution && !composer.suggestions(at: insertionOffset).isEmpty)
+            || (!composer.awaitingResolution && (composer.suggestionRange(at: insertionOffset)?.count ?? 0) > 1)
+    }
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            resolutionStrip
-            if !composer.awaitingResolution {
-                ForEach(composer.suggestions(at: insertionOffset), id: \.file) { entity in
-                    Button {
-                        composer.selectSuggestion(entity, at: insertionOffset)
-                        onDidChangeText?()
-                    } label: {
-                        entityLabel(entity)
-                            .tapTarget()
-                    }
-                    .buttonStyle(.plain)
-                    .disabled(!isEnabled)
+        if hasContent {
+            VStack(alignment: .leading, spacing: 8) {
+                interactiveContent
+                    .disabled(composer.isCreating || !isEnabled)
+                if let error = composer.errorText {
+                    InfoBand(kind: .error, verbatim: error)
                 }
             }
-            if !composer.awaitingResolution, let range = composer.suggestionRange(at: insertionOffset),
-                range.count > 1
-            {
-                HStack {
-                    Button {
-                        beginCreation(.person)
-                    } label: {
-                        Text("Yeni kişi oluştur")
-                            .tapTarget()
-                    }
-                    .buttonStyle(InkTextButtonStyle())
-                    Button {
-                        beginCreation(.place)
-                    } label: {
-                        Text("Yeni konum oluştur")
-                            .tapTarget()
-                    }
-                    .buttonStyle(InkTextButtonStyle())
-                    Menu("Özel tip olarak ekle") {
-                        ForEach(
-                            EntityTypeChoices.choices(
-                                store.entityTypes, language: locale.language.languageCode?.identifier ?? "en"
-                            ).filter {
-                                $0.id != "person" && $0.id != "place"
-                            }
-                        ) { type in
-                            Button {
-                                beginCreation(type.kind)
-                            } label: {
-                                Text("\(type.name) olarak ekle")
-                            }
-                        }
-                    }.disabled(store.entityTypes.types.isEmpty)
+            .onAppear { announceResolutionIfNeeded() }
+            .onChange(of: announcementKey) { _, _ in announceResolutionIfNeeded() }
+        }
+    }
+
+    private func announceResolutionIfNeeded() {
+        guard let announcementKey else { return }
+        AccessibilityNotification.Announcement(announcementKey).post()
+    }
+
+    @ViewBuilder private var interactiveContent: some View {
+        resolutionStrip
+        if !composer.awaitingResolution {
+            ForEach(composer.suggestions(at: insertionOffset), id: \.file) { entity in
+                Button {
+                    let caret = composer.selectSuggestion(entity, at: insertionOffset)
+                    onDidChangeText?(caret)
+                } label: {
+                    entityLabel(entity)
+                        .tapTarget()
                 }
-                .disabled(!isEnabled)
-            }
-            if let error = composer.errorText {
-                InfoBand(kind: .error, verbatim: error)
+                .buttonStyle(.plain)
             }
         }
-        .disabled(composer.isCreating || !isEnabled)
+        if !composer.awaitingResolution, let range = composer.suggestionRange(at: insertionOffset),
+            range.count > 1
+        {
+            HStack {
+                Button {
+                    beginCreation(.person)
+                } label: {
+                    Text("Yeni kişi oluştur")
+                        .tapTarget()
+                }
+                .buttonStyle(InkTextButtonStyle())
+                Button {
+                    beginCreation(.place)
+                } label: {
+                    Text("Yeni konum oluştur")
+                        .tapTarget()
+                }
+                .buttonStyle(InkTextButtonStyle())
+                Menu("Özel tip olarak ekle") {
+                    ForEach(
+                        EntityTypeChoices.choices(
+                            store.entityTypes, language: locale.language.languageCode?.identifier ?? "en"
+                        ).filter {
+                            $0.id != "person" && $0.id != "place"
+                        }
+                    ) { type in
+                        Button {
+                            beginCreation(type.kind)
+                        } label: {
+                            Text("\(type.name) olarak ekle")
+                        }
+                    }
+                }.disabled(store.entityTypes.types.isEmpty)
+            }
+        }
+    }
+
+    private var announcementKey: String? {
+        if let mention = composer.pendingAmbiguity {
+            return String(localized: "\(mention.spelling): hangisi?")
+        }
+        if let mention = composer.pendingUnknown {
+            return String(localized: "Bilinmeyen anma: \(mention.spelling)")
+        }
+        return nil
     }
 
     @ViewBuilder private var resolutionStrip: some View {
@@ -142,6 +173,7 @@ struct MentionAssistStrip: View {
             }
             Button("Vazgeç") {
                 composer.dismissUnknown(mention)
+                onDidChangeText?(nil)
                 onResolved?()
             }
             .buttonStyle(InkTextButtonStyle())
@@ -173,7 +205,7 @@ struct MentionAssistStrip: View {
         let offset = insertionOffset
         Task { @MainActor in
             await composer.beginCreation(kind, at: offset)
-            onDidChangeText?()
+            onDidChangeText?(nil)
             if !composer.needsQualifier && composer.errorText == nil { onResolved?() }
         }
     }
@@ -181,7 +213,7 @@ struct MentionAssistStrip: View {
     private func create(_ kind: VaultEntityKind) {
         Task { @MainActor in
             await composer.create(kind)
-            onDidChangeText?()
+            onDidChangeText?(nil)
             if !composer.needsQualifier && composer.errorText == nil { onResolved?() }
         }
     }

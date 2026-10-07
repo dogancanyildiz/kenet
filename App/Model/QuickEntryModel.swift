@@ -43,11 +43,7 @@ final class QuickEntryModel {
 
     var text: String {
         get { composer.text }
-        set {
-            let old = composer.text
-            composer.text = newValue
-            reconcileTaskDate(oldText: old)
-        }
+        set { composer.text = newValue }
     }
     var qualifier: String {
         get { composer.qualifier }
@@ -95,6 +91,8 @@ final class QuickEntryModel {
         self.composer = MentionComposer(store: store)
         self.selectedTime = now()
         includesTime = day == nil || day == today()
+        // Suggestions and "Vazgeç" edit the text through the composer, not through `text`.
+        composer.onTextChange = { [weak self] old in self?.reconcileTaskDate(oldText: old) }
     }
 
     var isHistorical: Bool { day.map { $0 != today() } ?? false }
@@ -125,7 +123,8 @@ final class QuickEntryModel {
     func beginCreation(_ kind: VaultEntityKind, at byteOffset: Int? = nil) async {
         await composer.beginCreation(kind, at: byteOffset)
     }
-    func selectSuggestion(_ entity: KnownEntity, at byteOffset: Int? = nil) {
+    @discardableResult
+    func selectSuggestion(_ entity: KnownEntity, at byteOffset: Int? = nil) -> Int? {
         composer.selectSuggestion(entity, at: byteOffset)
     }
     func globalRange(_ position: MentionPosition) -> Range<Int> { composer.globalRange(position) }

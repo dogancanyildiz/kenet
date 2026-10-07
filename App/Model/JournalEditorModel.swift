@@ -23,6 +23,7 @@ final class JournalEditorModel {
         self.store = store
         self.day = day
         self.composer = MentionComposer(store: store)
+        self.composer.resolvesExplicitAmbiguityOnly = true
     }
 
     var isDirty: Bool { !text.utf8.elementsEqual(originalText.utf8) }
@@ -53,10 +54,9 @@ final class JournalEditorModel {
             composer.awaitingResolution = false
             return true
         }
-        // Explicit @ ambiguity/unknown uses the shared strip; bare ambiguous names stay plain.
-        composer.awaitingResolution = true
-        if composer.pendingUnknown != nil { return false }
-        if let mention = composer.pendingAmbiguity, mention.isExplicit { return false }
+        // Explicit @ ambiguity/unknown on changed lines only; bare names stay plain.
+        composer.resolutionLines = JournalRecognition.changedLineIndices(in: text, from: originalText)
+        guard composer.beginResolution() else { return false }
         composer.awaitingResolution = false
         let draft = text
         isSaving = true

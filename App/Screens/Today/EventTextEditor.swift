@@ -3,7 +3,6 @@ import SwiftUI
 struct EventTextEditor: View {
     @Bindable var model: EventEditorModel
     @Environment(\.dismiss) private var dismiss
-    @FocusState private var isFocused: Bool
     @State private var selection: TextSelection?
 
     private var insertionOffset: Int? {
@@ -16,53 +15,35 @@ struct EventTextEditor: View {
     }
 
     var body: some View {
-        InkSheetScaffold(
-            "Metni düzenle", confirm: .save, isConfirmEnabled: model.canSave, isBusy: model.isSaving,
-            isCancelEnabled: !model.isSaving, cancelIdentifier: "button.textEditor.cancel",
-            confirmIdentifier: "button.textEditor.save", onCancel: nil, onConfirm: submit,
-            content: {
-                VStack(alignment: .leading, spacing: 12) {
-                    MentionAssistStrip(
-                        composer: model.composer, store: model.store, insertionOffset: insertionOffset,
-                        isEnabled: model.target != nil && !model.isSaving && !model.isSaved,
-                        onDidChangeText: {
-                            selection = nil
-                            isFocused = true
-                        },
-                        onResolved: submit
-                    )
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Olay metni")
-                            .font(.ink.meta)
-                            .foregroundStyle(Color.ink.secondaryText)
-                            .accessibilityHidden(true)
-                        InkFilterField(
-                            "Olay metni", text: $model.text, selection: $selection, isFocused: $isFocused,
-                            identifier: "field.textEditor", showsClearButton: false
-                        )
-                        .disabled(model.target == nil || model.isSaving || model.isSaved)
-                        .onSubmit { submit() }
+        SingleLineTextEditor(
+            text: $model.text, placeholder: "Olay metni", canSave: model.canSave,
+            isDisabled: model.target == nil || model.isSaving || model.isSaved,
+            isSaving: model.isSaving, errorText: model.errorText, selection: $selection,
+            load: {
+                await model.load()
+            },
+            save: {
+                let saved = await model.save()
+                return saved && model.errorText == nil
+            },
+            assist: {
+                MentionAssistStrip(
+                    composer: model.composer, store: model.store, insertionOffset: insertionOffset,
+                    isEnabled: model.target != nil && !model.isSaving && !model.isSaved,
+                    onDidChangeText: { caret in
+                        if let caret,
+                            let next = MentionComposer.textSelection(atByteOffset: caret, in: model.text)
+                        {
+                            selection = next
+                        }
+                    },
+                    onResolved: {
+                        Task {
+                            if await model.save(), model.errorText == nil { dismiss() }
+                        }
                     }
-                    if let error = model.errorText {
-                        Text(verbatim: error).foregroundStyle(.ink.danger).font(.ink.meta)
-                    }
-                }
+                )
             }
         )
-        .interactiveDismissDisabled(model.isSaving)
-        .task {
-            await model.load()
-            isFocused = model.target != nil && !model.isSaving && !model.isSaved
-        }
-    }
-
-    private func submit() {
-        Task {
-            if await model.save() {
-                if model.errorText == nil { dismiss() }
-            } else {
-                isFocused = true
-            }
-        }
     }
 }

@@ -84,17 +84,6 @@ struct JournalView: View {
                         .buttonStyle(InkTextButtonStyle())
                 }
             }
-            MentionAssistStrip(
-                composer: model.composer, store: model.store, insertionOffset: insertionOffset,
-                isEnabled: model.isLoaded && !model.isSaving,
-                onDidChangeText: {
-                    selection = nil
-                    isFocused = true
-                },
-                onResolved: {
-                    Task { await model.save() }
-                }
-            )
             TextEditor(text: text, selection: $selection)
                 .font(.ink.content)
                 .inkJournalParagraph()
@@ -111,6 +100,22 @@ struct JournalView: View {
                         }
                     }
                 }
+            // Assist below the field so chips do not push the caret off-screen.
+            MentionAssistStrip(
+                composer: model.composer, store: model.store, insertionOffset: insertionOffset,
+                isEnabled: model.isLoaded && !model.isSaving,
+                onDidChangeText: { caret in
+                    if let caret,
+                        let next = MentionComposer.textSelection(atByteOffset: caret, in: model.text)
+                    {
+                        selection = next
+                    }
+                    isFocused = true
+                },
+                onResolved: {
+                    Task { await model.save() }
+                }
+            )
         }
     }
 

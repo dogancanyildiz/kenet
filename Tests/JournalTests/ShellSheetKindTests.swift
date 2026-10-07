@@ -38,6 +38,19 @@ import VaultFormat
         // "Vazgeç" is drawn disabled while saving instead of being ignored.
         #expect(call.contains("isCancelEnabled: !isSaving"))
         #expect(!source.contains("if !isSaving { dismiss() }"))
+        // Assist sits below the field so chips do not cover the typed line.
+        let field = try #require(source.range(of: "InkFilterField("))
+        let assist = try #require(source.range(of: "assist()"))
+        #expect(field.lowerBound < assist.lowerBound)
+    }
+
+    @Test func eventTextEditorUsesSharedSingleLineSkeleton() throws {
+        let source = try Self.read("App/Screens/Today/EventTextEditor.swift")
+        #expect(source.contains("SingleLineTextEditor("))
+        #expect(source.contains("MentionAssistStrip("))
+        // The clear button is back, as in the sibling task editor.
+        #expect(!source.contains("showsClearButton"))
+        #expect(!source.contains("InkSheetScaffold("))
     }
 
     @Test func entityTypeEditorCreatesANewTypeAndSavesAnExistingOne() throws {
@@ -155,6 +168,7 @@ import VaultFormat
         let text = try Self.read("App/Screens/Shared/SingleLineTextEditor.swift")
         #expect(text.contains("Text(placeholder)"))
         #expect(text.contains(".accessibilityHidden(true)"))
+        #expect(!text.contains("showsClearButton"))
     }
 
     @Test func geofenceTabsCarryTheGoalName() throws {

@@ -108,14 +108,17 @@ struct QuickEntryBar: View {
             }
             MentionAssistStrip(
                 composer: model.composer, store: store, insertionOffset: insertionOffset,
-                isEnabled: isEnabled && model.canSubmit,
-                onDidChangeText: {
-                    selection = nil
+                isEnabled: isEnabled && model.canSubmit && !model.isCreating && !model.isSubmitting,
+                onDidChangeText: { caret in
+                    if let caret,
+                        let next = MentionComposer.textSelection(atByteOffset: caret, in: model.text)
+                    {
+                        selection = next
+                    }
                     isFocused = true
                 },
                 onResolved: submit
             )
-            .disabled(model.isCreating || model.isSubmitting || !isEnabled)
             QuickEntryCapsule(
                 mode: capsuleMode,
                 canSubmit: isEnabled && model.canSubmit,

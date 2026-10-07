@@ -52,6 +52,12 @@ final class EventEditorModel: Identifiable {
             errorText = nil
             return true
         }
+        // Unchanged text: do not ask about bare ambiguity and do not rewrite the line.
+        if text.utf8.elementsEqual(target.text.utf8) {
+            errorText = nil
+            composer.awaitingResolution = false
+            return true
+        }
         guard composer.beginResolution() else { return false }
         let linked: String
         do {

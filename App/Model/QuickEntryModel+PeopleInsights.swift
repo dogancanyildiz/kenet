@@ -7,6 +7,6 @@ extension QuickEntryModel {
         if !text.isEmpty && text.last?.isWhitespace != true { text += " " }
         let start = text.utf8.count + 1
         text += "@" + known.name + " "
-        pins.append(Pin(range: start..<(start + known.name.utf8.count), entity: known))
+        composer.pin(known, nameRange: start..<(start + known.name.utf8.count))
     }
 }

@@ -9,21 +9,27 @@ final class EventEditorModel: Identifiable {
     let store: IndexStore
     let day: CalendarDate
     let row: EventRow
-    var text = ""
+    let composer: MentionComposer
     private(set) var target: LineBlock?
     private(set) var errorText: String?
     private(set) var isSaving = false
     private(set) var isSaved = false
     private var root: URL?
 
+    var text: String {
+        get { composer.text }
+        set { composer.text = newValue }
+    }
+
     init(store: IndexStore, day: CalendarDate, row: EventRow) {
         self.store = store
         self.day = day
         self.row = row
+        self.composer = MentionComposer(store: store)
     }
 
     var canSave: Bool {
-        target != nil && !isSaving && store.canAddEvent && root == store.vaultURL
+        target != nil && !isSaving && !composer.isCreating && store.canAddEvent && root == store.vaultURL
             && !text.allSatisfy(\.isWhitespace) && !text.contains(where: { $0.isNewline })
     }
 
@@ -46,8 +52,21 @@ final class EventEditorModel: Identifiable {
             errorText = nil
             return true
         }
-        if text.utf8.elementsEqual(target.text.utf8) { return true }
-        return await write { try await self.store.changeEvent(on: self.day, target: target, to: self.text) }
+        guard composer.beginResolution() else { return false }
+        let linked: String
+        do {
+            linked = try composer.linkedText()
+        } catch {
+            errorText = String(localized: "Anmalar bağlanamadı. Metni kontrol edip yeniden dene.")
+            return false
+        }
+        if linked.utf8.elementsEqual(target.text.utf8) {
+            composer.awaitingResolution = false
+            return true
+        }
+        let saved = await write { try await self.store.changeEvent(on: self.day, target: target, to: linked) }
+        if saved { text = linked }
+        return saved
     }
 
     @discardableResult
@@ -64,9 +83,11 @@ final class EventEditorModel: Identifiable {
         do {
             try await operation()
             isSaved = true
+            composer.awaitingResolution = false
             return true
         } catch VaultStoreError.indexUpdateFailed {
             isSaved = true
+            composer.awaitingResolution = false
             errorText = String(localized: "Değişiklik kaydedildi, indeks güncellenemedi.")
             return true
         } catch {

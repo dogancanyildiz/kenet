@@ -6,6 +6,7 @@ struct JournalView: View {
     @State private var isClosing = false
     @State private var leavePrompt = false
     @State private var model: JournalEditorModel
+    @State private var selection: TextSelection?
     @FocusState private var isFocused: Bool
     @Environment(\.dismiss) private var dismiss
 
@@ -19,6 +20,15 @@ struct JournalView: View {
 
     private var blocksLeave: Bool {
         UnsavedDraftDecision.requiresPrompt(isDirty: model.isDirty, isSaving: model.isSaving)
+    }
+
+    private var insertionOffset: Int? {
+        if let selection, case .selection(let range) = selection.indices {
+            guard range.lowerBound >= model.text.startIndex, range.lowerBound <= model.text.endIndex
+            else { return nil }
+            return model.text[..<range.lowerBound].utf8.count
+        }
+        return nil
     }
 
     var body: some View {
@@ -74,7 +84,18 @@ struct JournalView: View {
                         .buttonStyle(InkTextButtonStyle())
                 }
             }
-            TextEditor(text: text)
+            MentionAssistStrip(
+                composer: model.composer, store: model.store, insertionOffset: insertionOffset,
+                isEnabled: model.isLoaded && !model.isSaving,
+                onDidChangeText: {
+                    selection = nil
+                    isFocused = true
+                },
+                onResolved: {
+                    Task { await model.save() }
+                }
+            )
+            TextEditor(text: text, selection: $selection)
                 .font(.ink.content)
                 .inkJournalParagraph()
                 .foregroundStyle(.ink.text)

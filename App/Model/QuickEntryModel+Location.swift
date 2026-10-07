@@ -16,7 +16,7 @@ extension QuickEntryModel {
         let separator = text.isEmpty || text.last?.isWhitespace == true ? "" : " "
         let start = text.utf8.count + separator.utf8.count + 1
         text += separator + "@" + place.entity.name
-        pins.append(Pin(range: start..<(start + place.entity.name.utf8.count), entity: place.entity))
+        composer.pin(place.entity, nameRange: start..<(start + place.entity.name.utf8.count))
         dismissedLocation = true
     }
 }

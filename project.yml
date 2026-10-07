@@ -179,7 +179,35 @@ targets:
         # complete concurrency for the app while relaxing only this target.
         SWIFT_STRICT_CONCURRENCY: minimal
 
+  # Mac ekran turu (.github/scripts/screen-tour.sh --mac). Ayrı hedef: JournalUITests'i platform
+  # dizisine çevirmek hedefin adını (JournalUITests_iOS) ve CI'daki -only-testing yolunu değiştirirdi.
+  # Sürücü ve kasa hazırlığı iPhone turuyla ortak dosyalardır.
+  JournalMacUITests:
+    type: bundle.ui-testing
+    platform: macOS
+    sources:
+      - path: Tests/JournalMacUITests
+      - path: Tests/JournalUITests/ScreenTourDriver.swift
+      - path: Tests/JournalUITests/UITestSupport.swift
+    dependencies:
+      - target: Journal_macOS
+    settings:
+      base:
+        PRODUCT_NAME: JournalMacUITests
+        PRODUCT_BUNDLE_IDENTIFIER: $(APP_BUNDLE_IDENTIFIER).uitests
+        SWIFT_STRICT_CONCURRENCY: minimal
+
 schemes:
+  # Yalnız ekran turu betiği kullanır; CI bu şemayı koşmaz (Journal_macOS şemasına eklenirse CI'daki
+  # imzasız macOS koşusu arayüz testi koşucusunu da başlatmak zorunda kalır).
+  Journal_macOS_ScreenTour:
+    build:
+      targets:
+        Journal_macOS: all
+        JournalMacUITests: [test]
+    test:
+      targets:
+        - JournalMacUITests
   Journal_macOS:
     build:
       targets:

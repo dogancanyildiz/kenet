@@ -34,6 +34,11 @@ struct GraphModel: Sendable {
     func neighbors(of id: String) -> Set<String> {
         Set(edges.compactMap { $0.first == id ? $0.second : $0.second == id ? $0.first : nil })
     }
+    /// Same nodes (and sizes) and same links: the layout does not need to change.
+    func hasSameShape(as other: Self) -> Bool {
+        edges == other.edges && nodes.count == other.nodes.count
+            && zip(nodes, other.nodes).allSatisfy { $0.id == $1.id && $0.radius == $1.radius }
+    }
     static func compute(input: GraphInput, filter: GraphFilter, today: CalendarDate) -> Self {
         let days = input.days.filter {
             filter.period == .all || ($0.date <= today && today.ordinal - $0.date.ordinal < filter.period.rawValue)

@@ -86,6 +86,8 @@ targets:
         product: GoalTracking
       - package: Core
         product: Summaries
+      - package: Core
+        product: ForceLayout
     settings:
       groups:
         - Journal_${platform}

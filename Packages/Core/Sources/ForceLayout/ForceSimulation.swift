@@ -72,6 +72,10 @@ public struct ForceSimulation: Sendable {
     /// Steps taken since creation.
     public private(set) var stepCount = 0
 
+    /// Pairwise pushes evaluated in the latest step (body-body plus body-cell). Tests use it to
+    /// check that the cost grows like n log n, without depending on how busy the machine is.
+    public private(set) var repulsionInteractions = 0
+
     private var pins: [ForcePoint?]
     private var pinnedCount = 0
     private let linkStrength: [Double]
@@ -101,11 +105,11 @@ public struct ForceSimulation: Sendable {
         let count = radii.count
         self.parameters = parameters
         self.alpha = alpha.isFinite ? min(1, max(parameters.restAlpha, alpha)) : 1
-        self.radii = radii.map { $0.isFinite ? max(0, $0) : 0 }
+        self.radii = radii.map { $0.isFinite ? min(Self.coordinateLimit, max(0, $0)) : 0 }
         let valid = links.filter {
             $0.source != $0.target && $0.source >= 0 && $0.target >= 0 && $0.source < count && $0.target < count
                 && $0.length.isFinite
-        }
+        }.map { ForceLink(source: $0.source, target: $0.target, length: Self.clamped($0.length)) }
         self.links = valid
         var degree = Array(repeating: 0, count: count)
         for link in valid {
@@ -168,6 +172,7 @@ public struct ForceSimulation: Sendable {
     /// Call again with a new point as the pointer moves.
     public mutating func pin(_ index: Int, at point: ForcePoint) {
         guard positions.indices.contains(index), point.x.isFinite, point.y.isFinite else { return }
+        let point = Self.clamped(point)
         if pins[index] == nil { pinnedCount += 1 }
         pins[index] = point
         positions[index] = point
@@ -185,6 +190,24 @@ public struct ForceSimulation: Sendable {
 
     public func isPinned(_ index: Int) -> Bool { pins.indices.contains(index) && pins[index] != nil }
 
+    /// Largest coordinate, radius or length accepted. Input beyond it is clamped: the grid and
+    /// the tree turn positions into integers, which overflows long before `Double` does.
+    public static let coordinateLimit = 1e9
+
+    /// A tiny fixed offset for bodies that sit exactly on one point. The direction turns by the
+    /// golden angle with `key`, so different bodies (or pairs) part in different directions; a
+    /// negative key gives the opposite direction.
+    static func nudge(_ key: Int) -> (Double, Double) {
+        let angle = Double(abs(key) % 1_000_003) * 2.399963229728653
+        let sign = key < 0 ? -1e-3 : 1e-3
+        return (cos(angle) * sign, sin(angle) * sign)
+    }
+
+    private static func clamped(_ value: Double) -> Double { min(coordinateLimit, max(-coordinateLimit, value)) }
+    private static func clamped(_ point: ForcePoint) -> ForcePoint {
+        ForcePoint(x: clamped(point.x), y: clamped(point.y))
+    }
+
     // MARK: - Forces
 
     private mutating func rest() {
@@ -198,10 +221,7 @@ public struct ForceSimulation: Sendable {
             let target = link.target
             var dx = positions[target].x + velocities[target].x - positions[source].x - velocities[source].x
             var dy = positions[target].y + velocities[target].y - positions[source].y - velocities[source].y
-            if dx == 0 && dy == 0 {
-                dx = 1e-3
-                dy = source < target ? 1e-3 : -1e-3
-            }
+            if dx == 0 && dy == 0 { (dx, dy) = Self.nudge(source &+ target) }
             let distance = (dx * dx + dy * dy).squareRoot()
             let pull = (distance - link.length) / distance * alpha * linkStrength[index]
             dx *= pull
@@ -218,7 +238,7 @@ public struct ForceSimulation: Sendable {
         guard count > 1 else { return }
         let tree = QuadTree(positions: positions)
         let strength = parameters.repulsion * alpha
-        tree.addRepulsion(
+        repulsionInteractions = tree.addRepulsion(
             to: &velocities, positions: positions, strength: strength, theta: parameters.theta)
     }
 
@@ -299,8 +319,9 @@ public struct ForceSimulation: Sendable {
         var squared = dx * dx + dy * dy
         guard squared < reach * reach else { return }
         if squared == 0 {
-            dx = 1e-3
-            dy = first < second ? 1e-3 : -1e-3
+            // Each stacked pair parts along its own direction, so a pile opens into a disc
+            // instead of stretching along one line.
+            (dx, dy) = Self.nudge(first < second ? first &* 31 &+ second : -(second &* 31 &+ first))
             squared = dx * dx + dy * dy
         }
         let distance = squared.squareRoot()
@@ -342,8 +363,8 @@ public struct ForceSimulation: Sendable {
                 speed = limit
             }
             velocities[index] = ForcePoint(x: vx, y: vy)
-            positions[index].x += vx
-            positions[index].y += vy
+            positions[index].x = Self.clamped(positions[index].x + vx)
+            positions[index].y = Self.clamped(positions[index].y + vy)
             fastest = max(fastest, speed)
         }
         return fastest
@@ -368,7 +389,7 @@ public struct ForceSimulation: Sendable {
             guard index < initial.count, let point = initial[index], point.x.isFinite, point.y.isFinite else {
                 return nil
             }
-            return point
+            return clamped(point)
         }
         guard placed.contains(where: { $0 != nil }) else { return (0..<count).map(spiral) }
         // Newcomers appear beside a neighbor that already has a place, otherwise near the middle.

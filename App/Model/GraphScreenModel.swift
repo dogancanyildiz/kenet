@@ -30,37 +30,71 @@ final class GraphScreenModel {
         let root = store.vaultURL
         let input = store.content.graphInput
         let filter = filter
-        // A live layout rearranges from where it is; a settled one is always the same picture.
-        let carried = live ? motion.positions : [:]
+        // A live layout that is already on screen rearranges from where it is; anything else
+        // starts from the seed and is always the same picture.
+        let rearranges = live && motion.isLive && !motion.nodes.isEmpty
         isLoading = true
         defer { if request == id { isLoading = false } }
-        let worker = Task.detached { () -> (GraphModel, GraphScene, [GraphPoint])? in
+        let worker = Task.detached { () -> (GraphModel, GraphScene, [GraphPoint]?)? in
             let graph = GraphModel.compute(input: input, filter: filter, today: today)
-            var scene = GraphScene(graph, carrying: carried)
+            var scene = GraphScene(graph)
+            // Rearranging starts from the positions at install time, which are not known yet.
+            guard !rearranges else { return Task.isCancelled ? nil : (graph, scene, nil) }
             var settled = scene.simulation
             settled.settle(shouldCancel: { Task.isCancelled })
             if Task.isCancelled { return nil }
             if !live { scene.simulation = settled }
             return (graph, scene, settled.positions)
         }
-        let result = await withTaskCancellationHandler {
-            await worker.value
-        } onCancel: {
-            worker.cancel()
-        }
+        let result = await Self.value(of: worker)
         guard request == id, root == store.vaultURL, self.filter == filter, !Task.isCancelled, let result else {
             return
         }
         // An index refresh that leaves the graph as it was must not restart a layout the user
-        // may have arranged by hand.
+        // may have arranged by hand; only names and kinds are taken over.
         let unchanged = motion.isLive == live && !motion.nodes.isEmpty && result.0.hasSameShape(as: graph)
         graph = result.0
         if !graph.nodes.contains(where: { $0.id == selected }) { selected = nil }
-        guard !unchanged else { return }
+        guard !unchanged else {
+            motion.refresh(nodes: graph.nodes)
+            return
+        }
+        guard let settled = result.2 else {
+            await rearrange(to: graph, request: id)
+            return
+        }
         motion.install(result.1, live: live)
-        // The view is framed for the settled layout, so a live layout grows into its frame.
-        let focus = selected.flatMap { motion.index(of: $0) }.map { result.2[$0] }
-        camera = GraphCamera.fitting(result.2, focus: focus)
+        frame(settled)
+    }
+
+    /// Moves the layout on screen to a changed graph, starting from where the nodes are now
+    /// (not where they were when loading began), then frames the view for where it will settle.
+    private func rearrange(to graph: GraphModel, request id: UUID) async {
+        let scene = GraphScene(graph, carrying: motion.positions)
+        motion.install(scene, live: true)
+        let worker = Task.detached { () -> [GraphPoint]? in
+            var settled = scene.simulation
+            settled.settle(shouldCancel: { Task.isCancelled })
+            return Task.isCancelled ? nil : settled.positions
+        }
+        guard let settled = await Self.value(of: worker), request == id, !Task.isCancelled,
+            settled.count == motion.nodes.count
+        else { return }
+        frame(settled)
+    }
+
+    /// The view is framed for the settled layout, so a live layout grows into its frame.
+    private func frame(_ settled: [GraphPoint]) {
+        let focus = selected.flatMap { motion.index(of: $0) }.map { settled[$0] }
+        camera = GraphCamera.fitting(settled, focus: focus)
+    }
+
+    private static func value<Value: Sendable>(of worker: Task<Value, Never>) async -> Value {
+        await withTaskCancellationHandler {
+            await worker.value
+        } onCancel: {
+            worker.cancel()
+        }
     }
 
     /// - Parameter recenter: `true` when the node may be off screen (menu, VoiceOver); a tap on

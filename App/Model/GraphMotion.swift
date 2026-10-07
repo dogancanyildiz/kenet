@@ -44,7 +44,14 @@ final class GraphMotion {
 
     /// Shows a new scene. With `live` the simulation animates from the scene's state; otherwise
     /// the scene is expected to be settled already and is shown as it is.
+    ///
+    /// A node that is being dragged stays in the hand if the new scene still has it: a graph
+    /// that changes under the finger (index refresh, filter) must not drop the drag.
     func install(_ scene: GraphScene, live: Bool) {
+        let held = draggedIndex.flatMap { index -> (id: String, point: GraphPoint)? in
+            guard nodes.indices.contains(index), points.indices.contains(index) else { return nil }
+            return (nodes[index].id, points[index])
+        }
         generation += 1
         settling?.cancel()
         settling = nil
@@ -52,12 +59,22 @@ final class GraphMotion {
         links = scene.links
         indices = Dictionary(scene.nodes.enumerated().map { ($0.element.id, $0.offset) }) { first, _ in first }
         simulation = scene.simulation
-        points = simulation.positions
         isLive = live
         draggedIndex = nil
+        if let held, let index = indices[held.id] {
+            simulation.pin(index, at: held.point)
+            draggedIndex = index
+        }
+        points = simulation.positions
         lastFrame = nil
         backlog = 0
         isRunning = live && !simulation.isAtRest
+    }
+
+    /// Takes over names and kinds from a graph with the same shape, without touching the layout.
+    func refresh(nodes fresh: [GraphNode]) {
+        let byID = Dictionary(fresh.map { ($0.id, $0) }) { first, _ in first }
+        nodes = nodes.map { byID[$0.id] ?? $0 }
     }
 
     // MARK: - Frames

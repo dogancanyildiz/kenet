@@ -120,9 +120,12 @@ struct QuadTree {
     ///
     /// Runs on raw buffers with a fixed stack: this is the hot loop of every frame, and checked
     /// array access makes unoptimized builds an order of magnitude slower.
+    /// Returns the number of pushes evaluated (body-body plus body-cell).
+    @discardableResult
     func addRepulsion(
         to velocities: inout [ForcePoint], positions: [ForcePoint], strength: Double, theta: Double
-    ) {
+    ) -> Int {
+        var interactions = 0
         // A pop pushes at most four entries, one level deeper each time.
         let capacity = (Self.maximumDepth + 2) * 4
         withUnsafeTemporaryAllocation(of: Int32.self, capacity: capacity) { stack in
@@ -137,6 +140,7 @@ struct QuadTree {
                                         sizes: sizes, extent: extent, strength: strength, thetaSquared: theta * theta)
                                     velocities[index].x += push.x
                                     velocities[index].y += push.y
+                                    interactions += push.count
                                 }
                             }
                         }
@@ -144,13 +148,15 @@ struct QuadTree {
                 }
             }
         }
+        return interactions
     }
 
     private static func push(
         on index: Int, positions: UnsafeBufferPointer<ForcePoint>, cells: UnsafeBufferPointer<Cell>,
         next: UnsafeBufferPointer<Int32>, stack: UnsafeMutableBufferPointer<Int32>,
         sizes: UnsafeMutableBufferPointer<Double>, extent: Double, strength: Double, thetaSquared: Double
-    ) -> ForcePoint {
+    ) -> (x: Double, y: Double, count: Int) {
+        var count = 0
         let pointX = positions[index].x
         let pointY = positions[index].y
         let softening = minimumDistanceSquared
@@ -173,6 +179,7 @@ struct QuadTree {
                     let factor = strength * cell.mass / max(squared, softening)
                     pushX -= dx * factor
                     pushY -= dy * factor
+                    count += 1
                     continue
                 }
                 for child in 0..<4 {
@@ -190,15 +197,15 @@ struct QuadTree {
                 var dx = positions[other].x - pointX
                 var dy = positions[other].y - pointY
                 if dx == 0 && dy == 0 {
-                    // Coincident bodies get a fixed, opposite nudge so they separate.
-                    dx = index < other ? -1e-3 : 1e-3
-                    dy = dx
+                    // Coincident bodies: each is pushed along its own fixed direction.
+                    (dx, dy) = ForceSimulation.nudge(-index - 1)
                 }
                 let factor = strength / max(dx * dx + dy * dy, softening)
                 pushX -= dx * factor
                 pushY -= dy * factor
+                count += 1
             }
         }
-        return ForcePoint(x: pushX, y: pushY)
+        return (pushX, pushY, count)
     }
 }

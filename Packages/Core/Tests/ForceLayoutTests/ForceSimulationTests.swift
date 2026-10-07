@@ -66,13 +66,41 @@ struct ForceSimulationTests {
         var hot = ForceSimulation(radii: graph.radii, links: graph.links, initial: small.positions)
         var warm = ForceSimulation(radii: graph.radii, links: graph.links, initial: small.positions, alpha: 0.3)
         #expect(hot.alpha == 1 && warm.alpha == 0.3 && !warm.isAtRest)
-        let hotSteps = hot.settle()
-        let warmSteps = warm.settle()
-        #expect(warmSteps < hotSteps && warm.isAtRest)
-        func drift(_ simulation: ForceSimulation) -> Double {
-            zip(simulation.positions, small.positions).map { $0.distance(to: $1) }.max() ?? 0
+        hot.step()
+        warm.step()
+        #expect(warm.alpha < 0.3 && hot.alpha > 0.9, "each cools from where it started")
+        // Cooling alone takes a fixed number of steps from a given start: 0.3 reaches the floor
+        // in about 248 steps, 1 in about 300. The warm start can never outlast its own bound.
+        let parameters = warm.parameters
+        let bound = Int((log(parameters.restAlpha / 0.3) / log(1 - parameters.cooling)).rounded(.up))
+        let warmSteps = warm.settle() + 1
+        #expect(warm.isAtRest && warmSteps <= bound && bound < 260, "\(warmSteps) steps, bound \(bound)")
+
+        // Out-of-range temperatures are clamped instead of trusted.
+        #expect(ForceSimulation(radii: [1], links: [], alpha: 7).alpha == 1)
+        #expect(ForceSimulation(radii: [1], links: [], alpha: .nan).alpha == 1)
+        #expect(ForceSimulation(radii: [1], links: [], alpha: -1).alpha == parameters.restAlpha)
+    }
+
+    @Test func speedIsCappedEvenInAViolentStart() {
+        // Fifty large bodies crammed into a few points: collisions want to throw them far.
+        var parameters = ForceParameters()
+        parameters.maximumSpeed = 5
+        let start = (0..<50).map { Optional(ForcePoint(x: Double($0 % 5), y: Double($0 % 3))) }
+        var capped = ForceSimulation(
+            radii: Array(repeating: 24, count: 50), links: [], initial: start, parameters: parameters)
+        var free = ForceSimulation(radii: Array(repeating: 24, count: 50), links: [], initial: start)
+        var fastestFree = 0.0
+        for _ in 0..<10 {
+            let before = capped.positions
+            capped.step()
+            free.step()
+            for (old, new) in zip(before, capped.positions) { #expect(old.distance(to: new) <= 5 + 1e-9) }
+            #expect(capped.velocities.allSatisfy { $0.distance(to: .zero) <= 5 + 1e-9 })
+            fastestFree = max(fastestFree, free.velocities.map { $0.distance(to: .zero) }.max() ?? 0)
         }
-        #expect(drift(warm) < drift(hot), "warm \(drift(warm)) vs hot \(drift(hot))")
+        #expect(fastestFree > 10, "the same start is faster than the cap without it: \(fastestFree)")
+        #expect(fastestFree <= ForceParameters().maximumSpeed + 1e-9)
     }
 
     @Test func settledBodiesAreFiniteCenteredAndDoNotOverlap() {
@@ -197,16 +225,66 @@ struct ForceSimulationTests {
             ])
         #expect(dropped.links == [ForceLink(source: 1, target: 0, length: 40)])
 
-        // Bodies stacked on one point still separate.
-        let stacked = Array(repeating: Optional(ForcePoint(x: 3, y: 3)), count: 20)
-        var pile = ForceSimulation(radii: Array(repeating: 10, count: 20), links: [], initial: stacked)
+    }
+
+    @Test func aThousandBodiesStackedOnOnePointSpreadIntoADisc() {
+        let count = 1_000
+        let stacked = Array(repeating: Optional(ForcePoint(x: 3, y: 3)), count: count)
+        var pile = ForceSimulation(radii: Array(repeating: 10, count: count), links: [], initial: stacked)
         pile.settle()
-        #expect(pile.positions.allSatisfy { $0.x.isFinite && $0.y.isFinite })
-        for first in 0..<20 {
-            for second in (first + 1)..<20 {
-                #expect(pile.positions[first].distance(to: pile.positions[second]) >= 20)
+        let points = pile.positions
+        #expect(pile.isAtRest && points.allSatisfy { $0.x.isFinite && $0.y.isFinite })
+        var tightest = Double.infinity
+        for first in 0..<count {
+            for second in (first + 1)..<count {
+                tightest = min(tightest, points[first].distance(to: points[second]))
             }
         }
+        #expect(tightest >= 20, "no two circles overlap, closest centers \(tightest)")
+        // A disc, not a line (in any direction, a diagonal included): the spread along the
+        // narrowest axis of the cloud is comparable to the spread along its widest.
+        let meanX = points.map(\.x).reduce(0, +) / Double(count)
+        let meanY = points.map(\.y).reduce(0, +) / Double(count)
+        var xx = 0.0
+        var yy = 0.0
+        var xy = 0.0
+        for point in points {
+            xx += (point.x - meanX) * (point.x - meanX)
+            yy += (point.y - meanY) * (point.y - meanY)
+            xy += (point.x - meanX) * (point.y - meanY)
+        }
+        let spread = ((xx - yy) * (xx - yy) / 4 + xy * xy).squareRoot()
+        let widest = (xx + yy) / 2 + spread
+        let narrowest = (xx + yy) / 2 - spread
+        #expect(narrowest > widest * 0.5, "variance along the axes of the cloud: \(narrowest) and \(widest)")
+
+        // Two bodies on one point joined by a spring part as well.
+        var pair = ForceSimulation(
+            radii: [10, 10], links: [ForceLink(source: 0, target: 1, length: 50)],
+            initial: [ForcePoint(x: 1, y: 1), ForcePoint(x: 1, y: 1)])
+        pair.settle()
+        #expect(pair.positions[0].distance(to: pair.positions[1]) > 25)
+    }
+
+    @Test func absurdCoordinatesAreClampedInsteadOfCrashing() {
+        let limit = ForceSimulation.coordinateLimit
+        let far: [ForcePoint?] = [
+            ForcePoint(x: 1e200, y: -1e300), ForcePoint(x: -1e154, y: 1e155), ForcePoint(x: 0, y: 0),
+            ForcePoint(x: .infinity, y: 0),
+        ]
+        var simulation = ForceSimulation(
+            radii: [10, 1e300, 10, 10], links: [ForceLink(source: 0, target: 2, length: 1e250)], initial: far)
+        #expect(simulation.positions[0] == ForcePoint(x: limit, y: -limit))
+        #expect(simulation.positions[1] == ForcePoint(x: -limit, y: limit))
+        #expect(simulation.radii[1] == limit && simulation.links[0].length == limit)
+        #expect(simulation.positions[3].distance(to: .zero) < 100, "a non-finite start is placed afresh")
+        for _ in 0..<30 { simulation.step() }
+        simulation.pin(2, at: ForcePoint(x: 1e300, y: -1e300))
+        #expect(simulation.positions[2] == ForcePoint(x: limit, y: -limit))
+        for _ in 0..<30 { simulation.step() }
+        simulation.unpin(2)
+        simulation.settle()
+        #expect(simulation.positions.allSatisfy { abs($0.x) <= limit && abs($0.y) <= limit })
     }
 
     @Test func treeMatchesExactPairwiseSumWhenNothingIsApproximated() {
@@ -236,13 +314,31 @@ struct ForceSimulationTests {
         }
     }
 
+    /// The pairwise push must grow like n log n, not n²: four times the bodies may cost a
+    /// little more per body, never four times more. Counted, not timed, so a busy machine
+    /// cannot change the result.
+    @Test func repulsionCostGrowsFarSlowerThanAllPairs() {
+        func interactions(bodies: Int) -> Int {
+            var simulation = ForceSimulation(radii: Array(repeating: 12, count: bodies), links: [])
+            // Spread the layout first: the tree is measured on a realistic picture, not the start.
+            for _ in 0..<60 { simulation.step() }
+            return simulation.repulsionInteractions
+        }
+        let small = interactions(bodies: 300)
+        let large = interactions(bodies: 1_200)
+        print("Repulsion interactions per step: 300 bodies \(small), 1200 bodies \(large)")
+        #expect(small > 300 && small < 300 * 299 / 3, "300 bodies: \(small) of \(300 * 299) pairs")
+        #expect(large < 1_200 * 1_199 / 8, "1200 bodies: \(large) of \(1_200 * 1_199) pairs")
+        #expect(Double(large) / 1_200 < Double(small) / 300 * 2, "per body \(large / 1_200) vs \(small / 300)")
+    }
+
     /// Measures one step for 300 bodies and 600 links and prints it. The fastest of several
     /// batches is taken, because other tests run in parallel and add noise.
     ///
-    /// This is an unoptimized test build on a shared machine, so the always-on ceiling is loose
-    /// (two 60 Hz frames); it catches a step that became many times slower. A release build is
-    /// roughly thirty times faster. Set `FORCE_STEP_BUDGET_MS` to enforce a tighter budget on a
-    /// quiet machine.
+    /// Time is only reported and loosely bounded here: an unoptimized build on a shared machine
+    /// varies fourfold. The algorithmic guard is ``repulsionCostGrowsFarSlowerThanAllPairs``.
+    /// A release build is roughly thirty times faster. Set `FORCE_STEP_BUDGET_MS` to enforce a
+    /// tighter budget on a quiet machine.
     @Test func stepStaysWithinFrameBudgetForThreeHundredBodies() {
         let graph = Self.sample(bodies: 300, links: 600)
         var simulation = ForceSimulation(radii: graph.radii, links: graph.links)

@@ -1,0 +1,4 @@
+// Bu dosyayı Config/Local.xcconfig adıyla kopyala (kopya .gitignore'dadır, repoya girmez) ve
+// yer tutucunun yerine Apple Developer takım kimliğini yaz (10 karakter; developer.apple.com >
+// Account > Membership details > Team ID).
+DEVELOPMENT_TEAM = XXXXXXXXXX

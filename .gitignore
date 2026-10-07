@@ -43,6 +43,8 @@ DerivedData/
 *.p12
 *.mobileprovision
 *.pem
+# Takım kimliği gibi makineye özgü imzalama ayarları (örnek: Config/Local.xcconfig.example)
+Config/Local.xcconfig
 
 # fastlane çıktıları (ileride CD için)
 fastlane/report.xml

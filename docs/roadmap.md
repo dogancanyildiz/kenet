@@ -143,7 +143,7 @@ Kimlik kararından sonra başlar.
 
 ## Aşama 12: Yayın
 
-- [ ] Mağaza teknik hazırlığı: gizlilik bildirimi dosyası, ihracat bildirimi, uygulama simgesi, gizlilik politikası, üçüncü taraf lisans bildirimi, derleme numarası, platforma göre ayrılmış yetki dosyaları, iPad kararı, yer tutucu bölümlerin kaldırılması
+- [ ] Mağaza teknik hazırlığı: gizlilik bildirimi dosyası, ihracat bildirimi, uygulama simgesi, gizlilik politikası, üçüncü taraf lisans bildirimi, derleme numarası, platforma göre ayrılmış yetki dosyaları, iPad kararı, yer tutucu bölümlerin kaldırılması (kalanlar: gizlilik politikası, lisans bildirimi, yer tutucu bölümler; ötekiler ilk TestFlight yüklemesi için tamamlandı)
 - [ ] CD: TestFlight'a otomatik gönderim (Xcode Cloud ya da fastlane; Aşama 7'den devreden)
 - [ ] Lisans, isim, gelir modeli; yazılı "veri kilidi yok" taahhüdü
 - [ ] Mağaza sayfası: metinler, ekran görüntüleri, yaş derecelendirmesi

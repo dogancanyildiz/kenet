@@ -43,8 +43,11 @@ ONLY=$(sh .github/scripts/snapshot-suites.sh | sed 's#^#-only-testing:JournalTes
 
 # Simülatörde kurulu kalan uygulamanın kayıtlı durumu (arayüz testleri ya da elle açılış sonrası)
 # görüntüleri kaydırır; CI temiz simülatörde koşar. Yerelde de temiz durumdan başlanır.
-xcrun simctl uninstall "$ID" com.dravcore.journal.dev >/dev/null 2>&1 || true
-xcrun simctl uninstall "$ID" com.dravcore.journal.dev.uitests.xctrunner >/dev/null 2>&1 || true
+# Kimlik tek yerde durur: project.yml içindeki APP_BUNDLE_IDENTIFIER.
+APP=$(sed -n 's/^ *APP_BUNDLE_IDENTIFIER: *//p' project.yml)
+[ -n "$APP" ] || { echo "project.yml içinde APP_BUNDLE_IDENTIFIER bulunamadı" >&2; exit 1; }
+xcrun simctl uninstall "$ID" "$APP" >/dev/null 2>&1 || true
+xcrun simctl uninstall "$ID" "$APP.uitests.xctrunner" >/dev/null 2>&1 || true
 
 echo "Simülatör: $NAME"
 echo "SNAPSHOT_TESTING_RECORD=$SNAPSHOT_TESTING_RECORD"

@@ -1,0 +1,5 @@
+// İmzalama ayarları. Takım kimliği repoya girmez: izlenmeyen Config/Local.xcconfig dosyasından okunur.
+// Kurulum: Config/Local.xcconfig.example dosyasını Config/Local.xcconfig adıyla kopyala ve takım
+// kimliğini yaz, sonra `xcodegen generate`. Dosya yoksa (CI, başka geliştirici) satır atlanır ve
+// proje CODE_SIGNING_ALLOWED=NO ile imzasız derlenir.
+#include? "Local.xcconfig"

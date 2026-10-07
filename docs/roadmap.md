@@ -2,7 +2,7 @@
 
 **Aktif aşama:** 9 (Aşama 8'in açık kalan iki maddesi sahibin elindedir: kilidin gerçek cihazda doğrulanması ve eşitlenen klasör uyarısının metni)
 
-**Durum (2026-10-05).** Aşama 0–7'nin kullanıcı kararı gerektirmeyen teknik maddeleri `dev` dalındadır. Bu belgede `[x]`, "kodda var, testlerden ve CI'dan geçti" demektir. Aşamaların gerçek kullanım ölçütleri henüz ölçülmedi ve aşağıda ayrıca izlenir.
+**Durum (2026-10-07).** Aşama 0–9'un kullanıcı kararı gerektirmeyen teknik maddeleri `dev` dalındadır; ilk sürüm `v0.9.0` `main`'de, TestFlight'ta dahili test başladı. Bu belgede `[x]`, "kodda var, testlerden ve CI'dan geçti" demektir. Aşamaların gerçek kullanım ölçütleri henüz ölçülmedi ve aşağıda ayrıca izlenir.
 
 Ekim 2026'da proje çok modelli bir heyete inceletildi (kod ve mimari denetimi, ekran görüntülü kullanım gezisi, sektör taraması, tasarım dili araştırması). İnceleme gerçek hatalar, ölçek sorunları ve vaatle uyuşmayan yerler buldu. Bu yüzden sıradaki iş yeni özellik değil, sağlamlaştırmadır. Aşama 8 ve sonrası heyetin önerdiği sıradır; kapsam ve sıra kullanıcı onayıyla kesinleşir.
 
@@ -21,20 +21,17 @@ Kural: Her modül gerçek kullanımda sınanır. Aşama 0–7 çıkış ölçüt
 | 6 Geri bildirim | Sayılara dayalı kısım tamam | Haftalık özet dört hafta üst üste okunuyor | Başlamadı |
 | 7 Genişleme | İlk kullanım, kasa hazırlama, kilit ve özel tipler tamam | Yok | - |
 
-Gerçek kullanım, gerçek cihazda kalıcı kurulum ister; bu da aşağıdaki ilk karara bağlıdır.
+Gerçek kullanım, gerçek cihazda kalıcı kurulum ister; TestFlight yapısı bunu sağlıyor.
 
 ## Kullanıcı kararı bekleyenler
 
 | Karar | Neyi açar | Not |
 |---|---|---|
 | iCloud kapsayıcısı, App Group ve alan adı (üyelik alındı; ad "Kenet" ve bundle kimliği `com.dogancanyildiz.kenet` kararlaştırıldı, 2026-10-07) | iCloud kasası, widget'lar, kilit ekranı ve Denetim Merkezi girişleri, paylaşım uzantısı; alan adı mağaza sayfası için | TestFlight bunları beklemez; kalıcı kimliğin koda işlenmesi ve ilk yükleme ayrı iştir. Kimlik değişince uygulamanın kapsayıcısı da değişir; o zamana kadar gerçek veri, klasör seçiciyle seçilen ve kapsayıcının dışında duran bir klasörde tutulmalıdır. |
-| Erişilemeyen kasada davranış | Aşama 8'deki madde | Bugün uygulama sessizce yerel kasaya geçiyor; durup sorması önerilir. |
 | Zincirde esneklik | Aşama 10'daki zincir affı | Sektör taraması affeden zinciri destekliyor (`decisions.md`, açık sorular). |
-| iPad desteği | Mağaza hazırlığı | Hedef cihaz listesinde var, düzeni ve belgesi yok: ya kapatılır ya tamamlanır. |
-| Kilitliyken görünenler | Aşama 8'deki gizlilik maddeleri | Bildirim içeriği ve Siri'nin hedef adlarını listelemesi için varsayılan. |
-| Gelir modeli ve lisans | Aşama 12 | Sektör taraması bu kategoride reklamı önermiyor. |
+| iPad düzeni | iPad'in mağaza kaydına eklenmesi | İlk sürüm yalnız iPhone (karar, 2026-10-07). Düzen tasarlanmadı; yayımlanan iPad desteği geri alınamaz, eklemek serbesttir. Mac oturduktan sonra ele alınması önerilir. |
+| Gelir modeli | Aşama 12 | Lisans karara bağlandı (tüm hakları saklıdır). Sektör taraması bu kategoride reklamı önermiyor. |
 | Yapay zeka | Sonraki fikirler | Cihaz üstü model maliyetsiz bir seçenek; varsayılan kapalı önerilir. |
-| İsim | Mağaza adı | Kimlikten bağımsız verilebilir. |
 
 ## Aşama 8: Sağlamlaştırma
 
@@ -101,7 +98,8 @@ Yön seçildi: Mürekkep, sahibin iki değişikliğiyle. Yön, belirteçler ve k
 - [x] Hedefler, ısı haritası ve özetler; graph ve harita renkleri (renge ek olarak biçim)
 - [x] Mac geçişi; Ayarlar'ın bölünmesi (Gizlilik, Bildirimler, Takvim ve Konum, Kasa, Tanılama); ilk kullanım ve kilit ekranı
 - [x] Ekran görüntüsü testleri: açık ve koyu mod, büyük yazı, Kontrastı Artır
-- [ ] Denetim kalıpları (`design.md`): ortak bileşenler (manşet satırı eylemleri, sekme, etiketli menü, süzgeç alanı, sheet iskeleti); bütün ekranların ve sheet'lerin bu bileşenlere bağlanması; kalıbı koruyan kaynak denetimi; Kişiler ve Konumlar ile sheet'ler için ekran görüntüsü testleri
+- [x] Denetim kalıpları (`design.md`): ortak bileşenler (manşet satırı eylemleri, sekme, etiketli menü, süzgeç alanı, sheet iskeleti); bütün ekranların ve sheet'lerin bu bileşenlere bağlanması; kalıbı koruyan kaynak denetimi; Kişiler ve Konumlar ile sheet'ler için ekran görüntüsü testleri
+  - iPhone'da tamam: koruma listesinde tek kayıt kaldı (`MacNavigation.swift`, Mac'te pencere araç çubuğundaki arama). Mac'in aynı kalıplara taşınması ve gözle doğrulanması açık; arama yeri ve kenar çubuğu vurgusu kararı bekliyor.
 
 **Çıkış ölçütü:** Bütün ekranlar aynı bileşen kitaplığından kuruluyor; erişilebilirlik denetimi ve ekran görüntüsü testleri CI'da geçiyor.
 
@@ -145,7 +143,9 @@ Kimlik kararından sonra başlar.
 
 - [ ] Mağaza teknik hazırlığı: gizlilik bildirimi dosyası, ihracat bildirimi, uygulama simgesi, gizlilik politikası, üçüncü taraf lisans bildirimi, derleme numarası, platforma göre ayrılmış yetki dosyaları, iPad kararı, yer tutucu bölümlerin kaldırılması (kalanlar: gizlilik politikası, lisans bildirimi, yer tutucu bölümler; ötekiler ilk TestFlight yüklemesi için tamamlandı)
 - [ ] CD: TestFlight'a otomatik gönderim (Xcode Cloud ya da fastlane; Aşama 7'den devreden)
+  - Elle yol hazır: `.github/scripts/testflight.sh` temiz kopyadan arşivleyip yükler; ilk yapı (0.9.0) yüklendi. CI'dan otomatik gönderim açık (App Store Connect anahtarı gerekir).
 - [ ] Lisans, isim, gelir modeli; yazılı "veri kilidi yok" taahhüdü
+  - İsim (Kenet) ve lisans (tüm hakları saklıdır) karara bağlandı; gelir modeli ve yazılı taahhüt açık.
 - [ ] Mağaza sayfası: metinler, ekran görüntüleri, yaş derecelendirmesi
 
 **Çıkış ölçütü:** İlk dış kullanıcı TestFlight'tan kurup kendi kasasını açabiliyor.

@@ -19,13 +19,13 @@ struct DayView: View {
     @Environment(\.locale) private var locale
     @Environment(\.calendar) private var calendarValue
     @Environment(\.clockNow) private var clockNow
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.openSearch) private var openSearch
     @Environment(\.openSettings) private var openSettings
     @State private var showsJournal = false
     @State private var tasksModel: DayTasksModel
     @State private var isCarriedOverExpanded = false
     @State private var isCompletedExpanded = false
-    @State private var quickEntryHeight: CGFloat = InkSize.send + 28
 
     init(store: IndexStore, date: CalendarDate, isToday: Bool = false) {
         self.store = store
@@ -103,8 +103,8 @@ struct DayView: View {
             }
             .padding(.horizontal, InkSpacing.margin)
             .padding(.top, 8)
-            // Extra scroll room so the last row can clear the floating capsule fully.
-            .padding(.bottom, max(8, quickEntryHeight))
+            // `safeAreaInset` already reserves the capsule; only a small page pad here.
+            .padding(.bottom, 8)
             .inkPageColumn()
         }
         .inkPage()
@@ -115,19 +115,9 @@ struct DayView: View {
                     ? notifications.navigationRequest?.id : nil, acceptsPeopleMentions: isToday
             )
             .id(isToday ? "today" : date.description)
-            .background {
-                GeometryReader { geo in
-                    Color.clear.preference(
-                        key: QuickEntryHeightKey.self, value: geo.size.height)
-                }
-            }
         }
-        .onPreferenceChange(QuickEntryHeightKey.self) { height in
-            if height > 0 { quickEntryHeight = height }
-        }
-        .navigationTitle(Text(verbatim: presented.headline))
+        .inkPageNavigationTitle(verbatim: presented.headline)
         #if os(iOS)
-            .navigationBarTitleDisplayMode(.inline)
             .toolbar(isToday ? .hidden : .automatic, for: .navigationBar)
         #endif
         .accessibilityIdentifier(isToday ? "screen.today" : "screen.day")
@@ -148,33 +138,49 @@ struct DayView: View {
     }
 
     @ViewBuilder private func headlineBlock(_ presented: TodayPresentation) -> some View {
-        HStack(alignment: .firstTextBaseline, spacing: 4) {
-            PageHeadline(title: presented.headline, byline: presented.byline)
-            if isToday {
-                Button {
-                    openSearch()
-                } label: {
-                    Label("Ara", systemImage: "magnifyingglass")
-                        .labelStyle(.iconOnly)
-                        .foregroundStyle(Color.ink.secondaryText)
-                        .tapTarget()
+        let headline = PageHeadline(
+            title: presented.headline, shortTitle: presented.shortHeadline,
+            byline: presented.byline, fitsOneLine: isToday)
+        if isToday, dynamicTypeSize.isAccessibilitySize {
+            // Keep 44 pt buttons clear of the large manşet (todayAX5).
+            VStack(alignment: .leading, spacing: InkSpacing.row) {
+                HStack(spacing: 4) {
+                    Spacer(minLength: 0)
+                    todayChromeButtons
                 }
-                .buttonStyle(.plain)
-                .accessibilityLabel("Ara")
-                if let openSettings {
-                    Button {
-                        openSettings()
-                    } label: {
-                        Label("Ayarlar", systemImage: "gearshape")
-                            .labelStyle(.iconOnly)
-                            .foregroundStyle(Color.ink.secondaryText)
-                            .tapTarget()
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel("Ayarlar")
-                    .accessibilityIdentifier("button.settings")
-                }
+                headline
             }
+        } else {
+            HStack(alignment: .firstTextBaseline, spacing: 4) {
+                headline
+                if isToday { todayChromeButtons }
+            }
+        }
+    }
+
+    @ViewBuilder private var todayChromeButtons: some View {
+        Button {
+            openSearch()
+        } label: {
+            Label("Ara", systemImage: "magnifyingglass")
+                .labelStyle(.iconOnly)
+                .foregroundStyle(Color.ink.secondaryText)
+                .tapTarget()
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Ara")
+        if let openSettings {
+            Button {
+                openSettings()
+            } label: {
+                Label("Ayarlar", systemImage: "gearshape")
+                    .labelStyle(.iconOnly)
+                    .foregroundStyle(Color.ink.secondaryText)
+                    .tapTarget()
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Ayarlar")
+            .accessibilityIdentifier("button.settings")
         }
     }
 
@@ -231,13 +237,6 @@ struct DayView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
-    }
-}
-
-private struct QuickEntryHeightKey: PreferenceKey {
-    static let defaultValue: CGFloat = 0
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
-        value = max(value, nextValue())
     }
 }
 

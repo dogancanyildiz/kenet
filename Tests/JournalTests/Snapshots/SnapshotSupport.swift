@@ -271,10 +271,15 @@
             )
         }
 
-        /// Goal detail at AX3 needs a taller canvas so heatmap + definition + history fit one frame.
-        static func canvasSize(for screen: SnapshotScreen) -> CGSize {
+        /// Goal detail needs a tall canvas (heatmap + definition + history); AX3 taller still.
+        static func canvasSize(
+            for screen: SnapshotScreen, dynamicType: SnapshotDynamicType = .medium
+        ) -> CGSize {
             switch screen {
-            case .goalDetail: CGSize(width: 390, height: 1800)
+            case .goalDetail:
+                dynamicType == .accessibility3
+                    ? CGSize(width: 390, height: 2600)
+                    : CGSize(width: 390, height: 1800)
             default: snapshotCanvasSize
             }
         }
@@ -298,7 +303,7 @@
                 increaseContrast: increaseContrast,
                 named: name,
                 store: store,
-                size: canvasSize(for: screen),
+                size: canvasSize(for: screen, dynamicType: dynamicType),
                 clock: clock(for: screen),
                 testName: testName,
                 file: file,

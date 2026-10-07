@@ -42,6 +42,8 @@ struct DayTasksView: View {
                             Text(verbatim: text)
                                 .font(.ink.meta)
                                 .foregroundStyle(Color.ink.warning)
+                                // Vertically center in the 44 pt floor; outer rhythm is
+                                // ``InkSpacing.row`` from the parent stack.
                                 .frame(
                                     maxWidth: .infinity, minHeight: TapTarget.minimumLength,
                                     alignment: .leading

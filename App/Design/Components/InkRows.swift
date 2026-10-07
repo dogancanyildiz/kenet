@@ -173,6 +173,16 @@ struct InkGoalRow: View {
                             .font(.ink.value)
                             .foregroundStyle(.ink.secondaryText)
                     }
+                } else if InkGoalRowTrailing.needsValueBaselinePlaceholder(
+                    showsPlus: showsPlus && onIncrement != nil)
+                {
+                    // Same `.ink.value` baseline as valued rows so the name does not drop ~5 pt.
+                    Text(verbatim: " ")
+                        .font(.ink.value)
+                        // Same top-aligned box as a tappable value, or the row centers it
+                        // beside the 44 pt plus button and the baseline drops.
+                        .frame(minHeight: TapTarget.minimumLength, alignment: .top)
+                        .accessibilityHidden(true)
                 }
                 if showsPlus, let onIncrement {
                     Button(action: onIncrement) {
@@ -212,6 +222,15 @@ struct InkGoalRow: View {
         } else {
             ring
         }
+    }
+}
+
+/// Trailing-slot layout for ``InkGoalRow`` (unit-tested).
+enum InkGoalRowTrailing {
+    /// When there is no value text, a hidden `.ink.value` placeholder keeps the name on the same
+    /// baseline as valued rows (MarginRow aligns trailing on ``firstTextBaseline``).
+    static func needsValueBaselinePlaceholder(showsPlus: Bool) -> Bool {
+        showsPlus
     }
 }
 

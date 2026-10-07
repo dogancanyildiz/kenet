@@ -70,11 +70,9 @@ struct GoalStripView: View {
                     InfoBand(kind: .info, verbatim: notice)
                 }
             }
-            .accessibilityIdentifier(
-                model.hasLoaded && !model.isLoading ? "goals.strip.ready" : "goals.strip.loading"
-            )
             .preference(
-                key: GoalsStripReadyKey.self, value: model.hasLoaded && !model.isLoading
+                key: GoalsStripReadyKey.self,
+                value: model.hasLoaded && !model.isLoading
             )
             .task(id: model.store.lastUpdated) { await model.load() }
             .sheet(item: $editing) { editor in

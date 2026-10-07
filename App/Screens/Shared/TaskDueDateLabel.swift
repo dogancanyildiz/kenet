@@ -25,6 +25,7 @@ struct TaskDueDateLabel: View {
         if presentation.showsOverdueCue {
             HStack(spacing: 4) {
                 Image(systemName: "arrow.forward.circle")
+                    .accessibilityHidden(true)
                 Text(verbatim: carriedOverText)
             }
         } else if includeCalendarIcon {

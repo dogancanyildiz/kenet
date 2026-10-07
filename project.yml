@@ -44,8 +44,11 @@ settings:
     CODE_SIGN_STYLE: Automatic
     DEVELOPMENT_LANGUAGE: tr
     # Xcode derlemede String Catalog'u yeniden yazmasın: anahtarlar elle eklenir,
-    # eksikleri .github/scripts/check-docs.sh yakalar.
+    # eksikleri .github/scripts/check-docs.sh yakalar. İki ayrı çıkarım yolu vardır: Swift
+    # derleyicisinin yaydığı dizgeler ve SwiftUI metinlerinin taranması (ikincisi tür bilgisi
+    # olmadan "%@ gündür" gibi sahte anahtarlar ekler); ikisi de kapalıdır.
     SWIFT_EMIT_LOC_STRINGS: NO
+    LOCALIZED_STRING_SWIFTUI_SUPPORT: NO
 
 # Platforma özgü ayarlar: hedef `Journal_${platform}` grubunu alır.
 settingGroups:
@@ -105,9 +108,10 @@ targets:
         INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: YES
         INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.productivity
         # Documents/Vault appears in Files (On My iPhone → Kenet) and can open in place.
-        # INFOPLIST_KEY_UIFileSharingEnabled is ignored by current Xcode GENERATE_INFOPLIST_FILE
-        # on some SDKs; merge an explicit plist instead (keys kept for documentation/tests).
-        INFOPLIST_KEY_UIFileSharingEnabled: YES
+        # Each key lives in exactly one place. Xcode knows LSSupportsOpeningDocumentsInPlace as a
+        # build setting and deletes a duplicate from the plist file whenever the project is open,
+        # so it stays here only. It does not know UIFileSharingEnabled as a build setting
+        # (GENERATE_INFOPLIST_FILE ignores it), so that one stays in the merged plist only.
         INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace: YES
         INFOPLIST_FILE: App/Support/FileSharing.plist
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor

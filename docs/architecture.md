@@ -21,7 +21,7 @@
 Ekranlar `App/Screens` altında konuya göre durur (`Today`, `Days`, `Summaries`, `Tasks`, `Entities`, `Goals`, `Graph`, `Map`, `Onboarding`, `Settings`); ortak görünüm parçaları `App/Screens/Shared`, platform gezinmesi `App/Navigation`, ekran modelleri `App/Model`, sistem servisleri `App/Services`, Kısayollar `App/Intents`, Mac'e özgü parçalar `App/Mac` altında tutulur.
 
 - Xcode projesi `project.yml` ile tanımlanır ve XcodeGen üretir; `Journal.xcodeproj` takip edilmez. Tek `Journal` hedefi iOS ve macOS için iki şema üretir; kaynaklar `App/` klasörüyle eşlenir, `Core` paketi yerel yoldan bağlanır.
-- Bundle kimliği şimdilik geçici (`com.dravcore.journal.dev`, yalnızca simülatör ve yerel çalıştırma). Kalıcı kimlik, iCloud kapsayıcısı ve App Group kullanıcı kararıyla gelir.
+- Bundle kimliği kodda şimdilik geçici (`com.dravcore.journal.dev`, yalnızca simülatör ve yerel çalıştırma). Kalıcı kimlik `com.dogancanyildiz.kenet` olarak kararlaştırıldı ve ilk TestFlight yüklemesinden önce koda işlenir; iCloud kapsayıcısı ve App Group kullanıcı kararıyla gelir.
 - Sürüm numarası kök dizindeki `VERSION` dosyasından derleme sırasında Info.plist'e yazılır.
 - Uygulama metinleri `App/Resources/Localizable.xcstrings` içinde (kaynak dil Türkçe, çeviri İngilizce).
 

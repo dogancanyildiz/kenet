@@ -4,6 +4,8 @@ import SwiftUI
 struct HeatmapCell: View {
     var kind: HeatmapCellKind
     var size: CGFloat
+    /// Draws the accent “today” ring on top of any density kind (empty / partial / full).
+    var isToday: Bool = false
     /// VoiceOver value supplied by the caller (e.g. "partial", "full").
     var accessibilityValue: Text
     var accessibilityLabel: Text? = nil
@@ -22,7 +24,7 @@ struct HeatmapCell: View {
                 }
                 .frame(width: size, height: size)
                 .overlay {
-                    if kind.showsOutline {
+                    if showsOutline {
                         RoundedRectangle(cornerRadius: 2, style: .continuous)
                             .stroke(outlineColor, lineWidth: outlineWidth)
                     }
@@ -44,11 +46,15 @@ struct HeatmapCell: View {
         }
     }
 
+    private var showsOutline: Bool {
+        kind.showsOutline || isToday
+    }
+
     private var outlineColor: Color {
-        kind == .today ? Color.ink.accent : Color.ink.control
+        (isToday || kind == .today) ? Color.ink.accent : Color.ink.control
     }
 
     private var outlineWidth: CGFloat {
-        kind == .today ? InkStroke.highPriority : InkStroke.control
+        (isToday || kind == .today) ? InkStroke.highPriority : InkStroke.control
     }
 }

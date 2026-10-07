@@ -18,7 +18,9 @@ struct EntityTypeEditorView: View {
                 TextField("Çoğul ad — İngilizce", text: $model.pluralEN)
                 TextField("SF Symbol adı", text: $model.icon)
                 TextField("Şablon yolu (isteğe bağlı)", text: $model.template)
-                Text("Kimlik değişmez. Klasör değişikliği mevcut varlıkları taşımaz.").font(.caption)
+                Text("Kimlik değişmez. Klasör değişikliği mevcut varlıkları taşımaz.")
+                    .font(.ink.meta)
+                    .foregroundStyle(Color.ink.secondaryText)
             }
             Section("Alanlar") {
                 ForEach($model.fields) { $field in
@@ -36,14 +38,22 @@ struct EntityTypeEditorView: View {
                 }
                 Button("Alan ekle") { model.fields.append(EntityTypeFieldDraft()) }
             }
-            if let error = model.errorText { Text(verbatim: error).foregroundStyle(.red) }
+            if let error = model.errorText {
+                Text(verbatim: error)
+                    .font(.ink.meta)
+                    .foregroundStyle(Color.ink.danger)
+            }
             Button("Kaydet") { Task { if await model.save() { dismiss() } } }.disabled(!model.canSave)
             Text("Kimlik küçük ASCII harfle başlamalı; alan adları benzersiz olmalıdır. Tüm adları doldur.")
-                .font(.caption).foregroundStyle(.secondary)
+                .font(.ink.meta)
+                .foregroundStyle(Color.ink.secondaryText)
         }
         .disabled(model.isSaving)
         .formStyle(.grouped)
+        .listRowBackground(Color.ink.surface)
         .navigationTitle(model.original == nil ? Text("Yeni varlık tipi") : Text("Varlık tipini düzenle"))
+        .inkPageColumn()
+        .inkPage()
         .destructiveConfirmationDialog(
             "Alanı kaldır?", confirmation: $deleteConfirmation, confirmTitle: "Alanı kaldır"
         ) { fieldID in

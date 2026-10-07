@@ -5,30 +5,51 @@ import SwiftUI
 struct SummaryGoalCard: View {
     let goals: [SummaryGoal]
     var body: some View {
-        GroupBox("Hedefler") {
-            VStack(alignment: .leading, spacing: 16) {
-                ForEach(goals, id: \.definition.id) { goal in
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text(verbatim: goal.definition.name).font(.headline)
-                        HStack {
-                            Text(LocalizedStringKey(goal.definition.period == .year ? "Yıl başından" : "Dönemde")).font(
-                                .caption)
-                            Spacer()
-                            Text(verbatim: goal.progress.done.formatted() + " / " + goal.progress.target.formatted())
-                            if let unit = goal.definition.unit { Text(verbatim: unit).font(.caption) }
-                            SummaryChangeBadge(value: goal.change)
-                        }
-                        ProgressView(value: goal.progress.fraction)
-                        if goal.definition.kind != .milestone {
-                            SummaryMetric(title: "Dönem sonu zincir", value: goal.streak, change: goal.streakChange)
-                                .font(.caption)
-                        } else if let date = goal.completionDate {
-                            Text(LocalDay.instant(for: date), format: .dateTime.day().month().year()).font(.caption)
-                        }
+        VStack(alignment: .leading, spacing: 16) {
+            SectionHeader(title: String(localized: "Hedefler"))
+            ForEach(goals, id: \.definition.id) { goal in
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(verbatim: goal.definition.name)
+                        .font(.ink.content)
+                        .foregroundStyle(Color.ink.text)
+                    HStack(alignment: .firstTextBaseline) {
+                        Text(
+                            LocalizedStringKey(
+                                goal.definition.period == .year ? "Yıl başından" : "Dönemde")
+                        )
+                        .font(.ink.meta)
+                        .foregroundStyle(Color.ink.secondaryText)
+                        Spacer()
+                        Text(verbatim: goal.progress.done.formatted())
+                            .font(.ink.largeNumber)
+                            .foregroundStyle(Color.ink.text)
+                        Text(
+                            verbatim: "/ " + goal.progress.target.formatted()
+                                + (goal.definition.unit.map { " " + $0 } ?? "")
+                        )
+                        .font(.ink.value)
+                        .foregroundStyle(Color.ink.secondaryText)
+                        SummaryChangeBadge(value: goal.change)
+                    }
+                    InkProgress(
+                        kind: .fraction(
+                            InkProgressMath.ratio(
+                                done: goal.progress.done, target: goal.progress.target)))
+                    if goal.definition.kind != .milestone {
+                        SummaryMetric(
+                            title: "Dönem sonu zincir", value: goal.streak, change: goal.streakChange)
+                    } else if let date = goal.completionDate {
+                        Text(LocalDay.instant(for: date), format: .dateTime.day().month().year())
+                            .font(.ink.meta)
+                            .foregroundStyle(Color.ink.secondaryText)
                     }
                 }
-                if goals.isEmpty { Text("Henüz hedef yok").foregroundStyle(.secondary) }
-            }.padding(.top, 8)
+            }
+            if goals.isEmpty {
+                Text("Henüz hedef yok")
+                    .font(.ink.meta)
+                    .foregroundStyle(Color.ink.secondaryText)
+            }
         }
     }
 }

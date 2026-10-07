@@ -37,7 +37,7 @@ struct VaultVisibilityTests {
     }
 
     @Test func settingsCanRevealVaultInFinder() throws {
-        let source = try Self.read("App/Screens/Settings/DiagnosticsView.swift")
+        let source = try Self.read("App/Screens/Settings/VaultSettingsView.swift")
         #expect(source.contains("Finder'da göster") || source.contains("Finder’da göster"))
         #expect(source.contains("activateFileViewerSelecting") || source.contains("NSWorkspace"))
     }

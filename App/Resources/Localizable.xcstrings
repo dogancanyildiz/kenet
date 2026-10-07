@@ -3817,6 +3817,22 @@
         }
       }
     },
+    "Takvim ve Konum": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Takvim ve Konum"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Calendar and Location"
+          }
+        }
+      }
+    },
     "Takvim etkinliklerini göstermek için izin ver": {
       "localizations": {
         "tr": {
@@ -4069,6 +4085,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Target amount"
+          }
+        }
+      }
+    },
+    "Birim": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Birim"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unit"
           }
         }
       }
@@ -4441,22 +4473,6 @@
         }
       }
     },
-    "Yeni hedef ekleyerek başla.": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Yeni hedef ekleyerek başla."
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Start by adding a new goal."
-          }
-        }
-      }
-    },
     "İlerleme": {
       "localizations": {
         "tr": {
@@ -4473,18 +4489,18 @@
         }
       }
     },
-    "Son 12 hafta": {
+    "Isı haritası": {
       "localizations": {
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Son 12 hafta"
+            "value": "Isı haritası"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Last 12 weeks"
+            "value": "Heatmap"
           }
         }
       }
@@ -6265,18 +6281,18 @@
         }
       }
     },
-    "Dönem sonunda geciken": {
+    "Dönem sonunda devreden": {
       "localizations": {
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dönem sonunda geciken"
+            "value": "Dönem sonunda devreden"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Overdue at period end"
+            "value": "Carried over at period end"
           }
         }
       }
@@ -7577,6 +7593,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Privacy"
+          }
+        }
+      }
+    },
+    "Tanılama": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tanılama"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diagnostics"
           }
         }
       }

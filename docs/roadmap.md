@@ -92,8 +92,8 @@ Yön seçildi: Mürekkep, sahibin iki değişikliğiyle. Yön, belirteçler ve k
 
 - [ ] Seçilen yönün Bugün ekranı için SwiftUI prototipi (gerçek cihazda gözle doğrulanır: ünlemli görev kutusu, büyük yazı, Kontrastı Artır; istenirse Derkenar'ın imzası)
   - Ekran yazıldı ve görüntü testlerinde doğrulandı; gerçek cihazda gözle doğrulama bekliyor.
-- [ ] Tasarım belirteçleri (renk, tipografi, biçim, boşluk) ve asset catalog; uygulama simgesi
-  - Belirteçler ve asset catalog bitti; uygulama simgesi seçim bekliyor.
+- [x] Tasarım belirteçleri (renk, tipografi, biçim, boşluk) ve asset catalog; uygulama simgesi
+  - Simge seçildi ve eklendi: "Geçme", mürdüm ve mürekkep (iPhone'da üç görünüm, Mac'te on boy). Gerçek cihazda küçük boyların gözle doğrulanması bekliyor.
 - [x] Bileşen kitaplığı: tarih başlığı, hedef çipi, görev satırı, olay satırı, bölüm başlığı, hızlı giriş çubuğu, yüzey, çip, boş durum, ilerleme göstergesi, ısı haritası hücresi, bilgi bandı
 - [x] Bugün ve hızlı giriş: tarih başlığı, olayların ilk ekranda görünmesi, geciken görevlerin sınırlanması (taslak değişikliği önce `screens.md`'de)
 - [x] Günlük ve gün sayfası; varlık sayfalarında okuma ve düzenlemenin ayrılması; ham bağlantı sözdizimi ve teknik anahtarların gizlenmesi

@@ -195,6 +195,21 @@ Yazı:
 
 Biçim: görev kutusu 22 pt kare (köşe 5 pt), hedef halkası 22 pt daire, artı 30 pt ve gönder 36 pt daire, hızlı giriş kapsüldür. Kenar boşluğu 16 pt, kenar sütunu 44 pt'dir. Mac'te sayfa en çok 680 pt genişliğinde ortalanır. İçerik opaktır; gölge, doku ve gradyan yoktur.
 
+## Uygulama simgesi
+
+Simgenin adı "Geçme"dir: iki şerit dik açıyla birbirinin içinden geçer. Mürekkep şerit yazıdır, mürdüm şerit bağdır (metnin kişi ve konumla kurduğu bağ). Renkler belirteç tablosundandır; gölge ve gradyan yoktur.
+
+| Görünüm | Zemin | Mürekkep şerit | Mürdüm şerit | Dosya biçimi |
+|---|---|---|---|---|
+| Açık (varsayılan) | Kâğıt `#FAF8F3` | `#1E1B17` | `#7A2C6E` | Opak, alfa kanalı yok (mağaza şartı) |
+| Koyu | Yok: sistemin koyu zemini görünür | `#EEE9DF` | `#E3A3D6` | Saydam zeminli |
+| Tonlu | Siyah | Gri 0,52 | Gri 0,95 | Opak, gri tonlamalı; rengi sistem verir |
+| Mac | Kâğıt renkli gövde | `#1E1B17` | `#7A2C6E` | Saydam kenar paylı |
+
+- **Biçim.** 1024 birimlik tuvalde şerit kalınlığı 86, geçiş boşluğu 30 birimdir. Alttan geçen şerit, üstten geçenin iki yanından gerçekten kesilmiştir: boşluk zemin rengiyle boyanmaz, bu yüzden zemin değişince (koyu, tonlu, saydam) doğru kalır.
+- **Mac gövdesi.** Mac simgesi yuvarlak köşeli kare gövdesini ve kenar payını kendi içinde taşır (1024 tuvalde 824 gövde, köşe yarıçapı gövdenin 0,225'i). Gövdenin altında sistem simge şablonundaki hafif gölge vardır: Dock ve Finder'da açık renkli gövdeyi açık zeminden ayırır. Bu gölge işaretin değil gövdenin parçasıdır; arayüzdeki "gölge yok" kuralı sürer. 16 ve 32 piksellik dosyalar ayrı çizimdir: şerit ve boşluk daha kalın, gölge yok.
+- **Kaynak.** Vektör kaynak `App/Support/AppIcon/app-icon.svg` dosyasıdır (katmanlar: zemin, mürekkep şerit, mürdüm şerit); aynı klasörde koyu, tonlu ve Mac çizimleri durur. SVG ve PNG dosyaları elle düzenlenmez: hepsini `.github/scripts/render-app-icon.swift` aynı geometriden üretir. Yeniden üretme: `swift .github/scripts/render-app-icon.swift`. Betik belirlenimcidir; değişiklik yoksa dosyalar bayt düzeyinde aynı kalır.
+
 ## Bugün ekranı
 
 Yukarıdan aşağı: manşet (tarih) ve künye satırı (olayla başlayıp "kaldı" ile biten özet: "3 olay · 4 görev ve 2 hedef kaldı"); hedefler (halka, ad, sağda değer ve tek dokunuşluk artı); görevler (köşeli kutu ve içinde öncelik, devreden görevde tarih); takvim (kasa dışı kaynak olduğu için sans); olaylar (kenarda saat); günlük yazısı (dört satır ve "Devamını yaz"). Altta hızlı giriş kapsülü ("Olay" ve "Görev" sözcükleri, yer tutucu, gönder) ve sistem sekme çubuğu.

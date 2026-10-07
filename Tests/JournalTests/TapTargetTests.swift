@@ -27,7 +27,7 @@ struct TapTargetTests {
     }
 
     @Test(arguments: [
-        "App/Screens/Today/DayView.swift",
+        // DayView draws its manşet icons with InkHeaderAction / InkHeaderButtonStyle (listed below).
         "App/Screens/Today/QuickEntryPlaceholder.swift",
         "App/Screens/Today/QuickEntryTaskControls.swift",
         // Task checkbox hit target lives on ``TaskBox`` (used by DayTaskView / InkTaskRow).

@@ -9,55 +9,20 @@ struct PlacesMapView: View {
     @State private var showsUser = false
     private var pins: [PlacePin] { PlacesMapModel.pins(places: store.mapPlaces, usage: store.entityUsage) }
     var body: some View {
-        Group {
-            if pins.isEmpty {
-                VStack(spacing: 8) {
-                    EmptyState("Koordinatlı konum yok")
-                    Text("Koordinat eklenen konumlar burada görünür.")
-                        .font(.ink.meta)
-                        .foregroundStyle(Color.ink.secondaryText)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, InkSpacing.margin)
+        // Pinned manşet above the full-bleed map; its row carries the page's icons.
+        VStack(alignment: .leading, spacing: 0) {
+            InkPageTitle("Harita") {
+                InkHeaderAction("Beni göster", systemImage: "location") {
+                    showsUser = true
+                    location.requestLocationIfNeeded()
+                    centerUser()
                 }
-                .inkPage()
-            } else {
-                Map(position: $camera) {
-                    ForEach(pins) { pin in
-                        Annotation(pin.entity.name, coordinate: coordinate(pin.coordinate)) {
-                            Button {
-                                selected = store.content.entities.first { $0.id == pin.id }
-                            } label: {
-                                placeMarker(pin: pin, isSelected: selected?.id == pin.id)
-                            }
-                            .buttonStyle(.plain)
-                            .accessibilityLabel(Text(verbatim: pin.entity.name))
-                        }
-                    }
-                    if showsUser, let point = location.currentCoordinate {
-                        Annotation("Ben", coordinate: coordinate(point)) {
-                            Circle()
-                                .fill(Color.ink.accent)
-                                .frame(width: 14, height: 14)
-                                .overlay {
-                                    Circle().stroke(Color.ink.paper, lineWidth: 2)
-                                }
-                        }
-                    }
-                }
-                .mapControls {
-                    MapCompass()
-                    MapScaleView()
-                }
+                .disabled(!location.authorization.canLocate || !location.isEnabled)
+                SearchButton()
             }
+            content
         }
-        .inkPinnedPageTitle("Harita")
-        .toolbar {
-            Button("Beni göster", systemImage: "location") {
-                showsUser = true
-                location.requestLocationIfNeeded()
-                centerUser()
-            }.disabled(!location.authorization.canLocate || !location.isEnabled)
-        }
+        .inkPageNavigationTitle("Harita")
         .task { location.refreshAuthorization() }
         .onChange(of: location.coordinate) { if showsUser { centerUser() } }
         .onChange(of: store.vaultURL) {
@@ -68,10 +33,49 @@ struct PlacesMapView: View {
         .sheet(item: $selected) { entity in
             NavigationStack {
                 EntityView(store: store, entity: entity)
-                    .toolbar {
-                        Button("Kapat") { selected = nil }
-                            .buttonStyle(InkTextButtonStyle())
+                    .inkSheet(verbatim: entity.name, onClose: { selected = nil })
+            }
+        }
+    }
+
+    @ViewBuilder private var content: some View {
+        if pins.isEmpty {
+            VStack(spacing: 8) {
+                EmptyState("Koordinatlı konum yok")
+                Text("Koordinat eklenen konumlar burada görünür.")
+                    .font(.ink.meta)
+                    .foregroundStyle(Color.ink.secondaryText)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, InkSpacing.margin)
+            }
+            .inkPage()
+        } else {
+            Map(position: $camera) {
+                ForEach(pins) { pin in
+                    Annotation(pin.entity.name, coordinate: coordinate(pin.coordinate)) {
+                        Button {
+                            selected = store.content.entities.first { $0.id == pin.id }
+                        } label: {
+                            placeMarker(pin: pin, isSelected: selected?.id == pin.id)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel(Text(verbatim: pin.entity.name))
                     }
+                }
+                if showsUser, let point = location.currentCoordinate {
+                    Annotation("Ben", coordinate: coordinate(point)) {
+                        Circle()
+                            .fill(Color.ink.accent)
+                            .frame(width: 14, height: 14)
+                            .overlay {
+                                Circle().stroke(Color.ink.paper, lineWidth: 2)
+                            }
+                    }
+                }
+            }
+            .mapControls {
+                MapCompass()
+                MapScaleView()
             }
         }
     }

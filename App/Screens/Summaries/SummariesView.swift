@@ -13,7 +13,9 @@ struct SummariesView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                InkPageTitle("Özetler")
+                InkPageTitle("Özetler") {
+                    SearchButton()
+                }
                 VStack(alignment: .leading, spacing: 20) {
                     controls
                     if model.isLoading {
@@ -51,7 +53,6 @@ struct SummariesView: View {
         }
         .inkPage()
         .inkPageNavigationTitle("Özetler")
-        .toolbar { SearchButton() }
         .task(id: requestID) { await model.load() }
         .onChange(of: store.vaultURL) { _, _ in model.reset() }
     }
@@ -91,10 +92,12 @@ struct SummariesView: View {
     }
     private var controls: some View {
         VStack(spacing: 10) {
-            Picker("Özet dönemi", selection: $model.period) {
-                Text("Hafta").tag(SummaryPeriod.week)
-                Text("Ay").tag(SummaryPeriod.month)
-            }.pickerStyle(.segmented)
+            InkTabs(
+                selection: $model.period,
+                items: [
+                    InkTabItem("Hafta", value: SummaryPeriod.week, identifier: "tab.summaries.week"),
+                    InkTabItem("Ay", value: SummaryPeriod.month, identifier: "tab.summaries.month"),
+                ], identifier: "tabs.summaries.period")
             HStack {
                 Button {
                     model.previous()

@@ -34,54 +34,55 @@ struct GoalFieldEditor: View {
         _text = State(initialValue: value)
     }
     var body: some View {
-        Form {
+        List {
+            InkPageTitleRow(verbatim: field.title)
             if field == .period {
-                Picker(field.title, selection: $text) {
-                    Text(verbatim: GoalPeriod.day.title).tag("day")
-                    Text(verbatim: GoalPeriod.week.title).tag("week")
-                    Text(verbatim: GoalPeriod.year.title).tag("year")
-                }
+                // Three choices right under the manşet: tabs, not a menu.
+                InkTabs(
+                    selection: $text,
+                    items: [GoalPeriod.day, .week, .year].map {
+                        InkTabItem(verbatim: $0.title, value: $0.rawValue)
+                    }
+                )
+                .inkListRow()
             } else if field == .kind {
-                Picker(field.title, selection: $text) {
-                    Text(verbatim: GoalKind.boolean.title).tag("boolean")
-                    Text(verbatim: GoalKind.number.title).tag("number")
-                }
+                InkTabs(
+                    selection: $text,
+                    items: [GoalKind.boolean, .number].map {
+                        InkTabItem(verbatim: $0.title, value: $0.rawValue)
+                    }
+                )
+                .inkListRow()
                 Text("Tür değişikliği geçmiş kayıtları dönüştürmez.")
                     .font(.ink.meta)
                     .foregroundStyle(Color.ink.secondaryText)
+                    .inkListRow()
             } else if field == .unit {
                 TextField("Birim (isteğe bağlı)", text: $text)
                     .font(.ink.content)
+                    .inkListRow()
             } else {
                 TextField(field.title, text: $text)
                     .font(field == .name ? .ink.content : .ink.value)
+                    .inkListRow()
             }
             if let error = model.errorText {
                 InfoBand(kind: .error, verbatim: error)
+                    .inkListRow()
             }
         }
-        .formStyle(.grouped)
-        .scrollContentBackground(.hidden)
-        .background(Color.ink.surface)
+        .listStyle(.plain)
         .disabled(model.isWriting || isSaved)
-        .navigationTitle(field.title)
-        #if os(iOS)
-            .navigationBarTitleDisplayMode(.inline)
-        #endif
-        .toolbar {
-            ToolbarItem(placement: .cancellationAction) {
-                Button("Kapat") { dismiss() }
-            }
-            ToolbarItem(placement: .confirmationAction) {
-                Button("Kaydet") {
-                    Task {
-                        isSaved = await model.set(field.rawValue, text: text)
-                        if isSaved && model.errorText == nil { dismiss() }
-                    }
+        .inkSheet(
+            verbatim: field.title, isConfirmEnabled: model.canEdit && !isSaved,
+            isBusy: model.isWriting,
+            onConfirm: {
+                Task {
+                    isSaved = await model.set(field.rawValue, text: text)
+                    if isSaved && model.errorText == nil { dismiss() }
                 }
-                .disabled(!model.canEdit || isSaved)
             }
-        }
+        )
         .frame(minWidth: 300, minHeight: 200)
     }
 }

@@ -16,11 +16,7 @@ struct GoalsView: View {
             )
             .id(day.description + (store.vaultURL?.path ?? ""))
         }
-        .inkPageNavigationTitle("Hedefler")
-        .toolbar {
-            Button("Yeni hedef", systemImage: "plus") { showsCreation = true }.disabled(!store.canAddEvent)
-            SearchButton()
-        }
+        .inkRootPageNavigationTitle("Hedefler")
         .sheet(isPresented: $showsCreation) {
             NavigationStack { GoalCreationView(store: store) }
         }
@@ -43,7 +39,13 @@ private struct GoalListContent: View {
     }
     var body: some View {
         List {
-            InkPageTitleRow("Hedefler")
+            InkPageTitleRow("Hedefler") {
+                InkHeaderAction("Yeni hedef", systemImage: "plus", role: .primary) {
+                    showsCreation = true
+                }
+                .disabled(!store.canAddEvent)
+                SearchButton()
+            }
             ForEach(store.content.goals, id: \.id) { goal in
                 let status =
                     model.hasLoaded

@@ -25,6 +25,9 @@ final class KanbanModel {
     var showsCancelled = false
     private(set) var busy: Set<String> = []
     private(set) var errorText: String?
+    /// Card drag chrome; cleared on drop, cancel (`abandonDrag`), or `clearDrags`.
+    private(set) var dragHighlight = KanbanCardDragHighlight.idle
+    private(set) var draggingRowID: String?
     @ObservationIgnored private var drags: [String: (TaskRow, URL?)] = [:]
     var store: IndexStore { tasks.store }
 
@@ -139,6 +142,8 @@ final class KanbanModel {
         if drags.count >= 64 { drags.removeAll() }
         let token = UUID().uuidString
         drags[token] = (row, store.vaultURL)
+        draggingRowID = row.id
+        dragHighlight = .dragging
         return token
     }
 
@@ -149,9 +154,29 @@ final class KanbanModel {
 
     @discardableResult
     func drop(_ token: String, into column: KanbanColumn) async -> Bool {
-        guard let (row, root) = drags.removeValue(forKey: token), root == store.vaultURL else { return false }
+        guard let (row, root) = drags.removeValue(forKey: token), root == store.vaultURL else {
+            endDragHighlight()
+            return false
+        }
+        endDragHighlight()
         return await move(row, to: column)
     }
 
-    func clearDrags() { drags.removeAll() }
+    /// Ends the drag highlight when the system session ends (cancel, or after a drop).
+    /// The token stays registered: the item provider can be released before the drop is
+    /// handled, and removing the token here would make that drop be rejected silently.
+    /// Stale tokens are bounded by the existing limit on `drags`.
+    func abandonDrag(_ token: String) {
+        endDragHighlight()
+    }
+
+    func clearDrags() {
+        drags.removeAll()
+        endDragHighlight()
+    }
+
+    private func endDragHighlight() {
+        dragHighlight.endSession()
+        draggingRowID = nil
+    }
 }

@@ -31,12 +31,19 @@ struct TaskRecurrenceEditor: View {
                 if choice != .none { Toggle("Tamamlanınca hesapla", isOn: $whenDone) }
             } else {
                 Text("Tanınmayan tekrar")
+                    .font(.ink.content)
+                    .foregroundStyle(.ink.text)
                 Text("Bu tekrar kuralı uygulamada tanınmıyor. Değiştirmek için dosyada düzenle.")
-                    .foregroundStyle(.secondary)
+                    .font(.ink.meta)
+                    .foregroundStyle(.ink.secondaryText)
             }
-            if let error = model.errorText { Text(verbatim: error).foregroundStyle(.red) }
+            if let error = model.errorText {
+                InfoBand(kind: .error, verbatim: error)
+            }
         }
         .navigationTitle("Tekrar").formStyle(.grouped)
+        .scrollContentBackground(.hidden)
+        .inkSurface(bordered: false, cornerRadius: 0)
         .task {
             await model.load()
             if let recurrence = model.target?.recurrence {
@@ -57,11 +64,15 @@ struct TaskRecurrenceEditor: View {
             }
         }
         .toolbar {
-            ToolbarItem(placement: .cancellationAction) { Button("Kapat") { dismiss() } }
+            ToolbarItem(placement: .cancellationAction) {
+                Button("Kapat") { dismiss() }
+                    .buttonStyle(InkTextButtonStyle())
+            }
             ToolbarItem(placement: .confirmationAction) {
                 Button("Kaydet") {
                     Task { if await model.setRecurrence(recurrence), model.errorText == nil { dismiss() } }
                 }
+                .buttonStyle(InkPrimaryButtonStyle())
                 .disabled(!model.canSave || !model.canEditRecurrence)
             }
         }

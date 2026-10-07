@@ -29,9 +29,20 @@ struct TimelineDateEditor: View {
                     if saved { dismiss() }
                 }
             }.disabled(isSaving || !model.store.canAddEvent)
-            if let error = model.errorText { Text(verbatim: error).foregroundStyle(.red).padding() }
+            if let error = model.errorText {
+                InfoBand(kind: .error, verbatim: error)
+                    .padding()
+            }
         }
-        .navigationTitle(title).toolbar { Button("Kapat") { dismiss() }.disabled(isSaving) }
+        .padding()
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .inkSurface(bordered: false, cornerRadius: 0)
+        .navigationTitle(title)
+        .toolbar {
+            Button("Kapat") { dismiss() }
+                .disabled(isSaving)
+                .buttonStyle(InkTextButtonStyle())
+        }
     }
 }
 

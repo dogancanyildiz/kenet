@@ -21,25 +21,13 @@ import VaultFormat
                         labels(groups).frame(width: 230)
                         ScrollViewReader { proxy in
                             ScrollView(.horizontal) {
-                                VStack(spacing: 0) {
-                                    axis(dayWidth: dayWidth)
-                                    ForEach(groups) { group in
-                                        Color.clear.frame(height: 32)
-                                        if !model.collapsed.contains(group.id) {
-                                            ForEach(group.rows) { row in
-                                                TimelineBarView(model: model, row: row, dayWidth: dayWidth) {
-                                                    select(row)
-                                                } edit: {
-                                                    edit(row, $0)
-                                                }
-                                            }
-                                        }
-                                    }
-                                }.frame(width: CGFloat(model.days.count) * dayWidth)
-                                    .background {
-                                        TimelineGrid(days: model.days, today: model.today, dayWidth: dayWidth)
-                                    }
-                                    .coordinateSpace(name: "timeline-axis")
+                                TimelineDesktopContent(
+                                    model: model,
+                                    days: model.days,
+                                    dayWidth: dayWidth,
+                                    select: select,
+                                    edit: edit
+                                )
                             }
                             .onScrollGeometryChange(for: ClosedRange<Int>.self) { value in
                                 let first = min(
@@ -62,10 +50,13 @@ import VaultFormat
                             .onChange(of: model.scale) { _, _ in scrollToday(proxy) }
                         }.frame(height: height)
                     }.frame(height: height)
-                    if groups.isEmpty { Text("Görev yok.").foregroundStyle(.secondary).padding() }
+                    if groups.isEmpty {
+                        EmptyState("Görev yok.")
+                            .padding()
+                    }
                     if !model.undated.isEmpty {
-                        VStack(alignment: .leading) {
-                            Text("Tarihsiz").font(.headline)
+                        VStack(alignment: .leading, spacing: 8) {
+                            SectionHeader(title: String(localized: "Tarihsiz"), count: model.undated.count)
                             ForEach(model.undated) { row in
                                 TimelineTaskRow(model: model, row: row) {
                                     select(row)
@@ -77,10 +68,16 @@ import VaultFormat
                     }
                 }
             }
+            .background(Color.ink.paper)
         }
         private func labels(_ groups: [TimelineGroup]) -> some View {
             VStack(spacing: 0) {
-                Text("Görevler").font(.headline).frame(height: 44)
+                Text("Görevler")
+                    .font(.ink.section)
+                    .foregroundStyle(.ink.text)
+                    .frame(height: 44)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 10)
                 ForEach(groups) { group in
                     let isExpanded = !model.collapsed.contains(group.id)
                     Button {
@@ -92,10 +89,17 @@ import VaultFormat
                     } label: {
                         HStack {
                             Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
-                            TimelineGroupTitle(group: group, grouping: model.grouping).lineLimit(1)
+                                .foregroundStyle(.ink.secondaryText)
+                            TimelineGroupTitle(group: group, grouping: model.grouping)
+                                .font(.ink.meta)
+                                .foregroundStyle(.ink.text)
+                                .lineLimit(1)
                             Spacer()
-                            Text(group.rows.count.formatted()).foregroundStyle(.secondary)
-                        }.font(.caption).padding(.horizontal, 10)
+                            Text(group.rows.count.formatted())
+                                .font(.ink.value)
+                                .foregroundStyle(.ink.secondaryText)
+                        }
+                        .padding(.horizontal, 10)
                     }
                     .buttonStyle(.plain).frame(height: 32)
                     .accessibilityValue(
@@ -104,35 +108,21 @@ import VaultFormat
                         ForEach(group.rows) { row in
                             let presentation = TaskStatusPresentation.make(
                                 due: row.due, asOf: model.today, isCompleted: row.isClosed)
-                            Group {
-                                if presentation.usesSecondaryText {
-                                    LinkedTextView(text: row.text, store: model.store).lineLimit(2)
-                                        .foregroundStyle(.secondary)
-                                } else {
-                                    LinkedTextView(text: row.text, store: model.store).lineLimit(2)
-                                }
-                            }
-                            .frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal, 10).frame(
-                                height: 52
-                            )
-                            .opacity(presentation.opacity).contentShape(Rectangle()).onTapGesture { select(row) }
-                            .contextMenu { TimelineTaskMenu { edit(row, $0) } }
+                            LinkedTextView(text: row.text, store: model.store)
+                                .font(.ink.content)
+                                .lineLimit(2)
+                                .foregroundStyle(
+                                    presentation.usesSecondaryText
+                                        ? Color.ink.secondaryText
+                                        : Color.ink.text
+                                )
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.horizontal, 10)
+                                .frame(height: 52)
+                                .contentShape(Rectangle()).onTapGesture { select(row) }
+                                .contextMenu { TimelineTaskMenu { edit(row, $0) } }
                         }
                     }
-                }
-            }
-        }
-        private func axis(dayWidth: CGFloat) -> some View {
-            HStack(spacing: 0) {
-                ForEach(model.days, id: \.self) { day in
-                    ZStack {
-                        if day.weekday >= 5 { Color.secondary.opacity(0.08) }
-                        if day == model.today { Color.primary.opacity(0.08) }
-                        if model.scale == .week || (model.scale == .month && day.weekday == 0) || day.day == 1 {
-                            Text(LocalDay.instant(for: day), format: .dateTime.day().month(.abbreviated))
-                                .font(.caption2).fixedSize().zIndex(1)
-                        }
-                    }.frame(width: dayWidth, height: 44).id(day.description)
                 }
             }
         }

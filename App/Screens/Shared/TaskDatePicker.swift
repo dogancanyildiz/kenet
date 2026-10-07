@@ -17,12 +17,16 @@ struct TaskDatePicker: View {
             DatePicker("Görev tarihi", selection: $selected, displayedComponents: .date)
                 .environment(\.calendar, Calendar(identifier: .gregorian))
             HStack {
-                Button("Tarihi kaldır") { commit(nil) }.disabled(current == nil)
+                Button("Tarihi kaldır") { commit(nil) }
+                    .disabled(current == nil)
+                    .buttonStyle(InkTextButtonStyle())
                 Spacer()
                 Button("Tarihi seç") { commit(LocalDay.today(at: selected)) }
+                    .buttonStyle(InkPrimaryButtonStyle())
             }
         }
         .padding()
         .frame(minWidth: 280)
+        .inkSurface()
     }
 }

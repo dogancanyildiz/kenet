@@ -92,48 +92,85 @@
         var increaseContrast: Bool { get }
     }
 
-    /// One screen × one environment. Adding a case is a single enum line.
+    /// Today screen × environment. Tasks cases live in ``TasksSnapshotCase``.
     enum ScreenSnapshotCase: String, CaseIterable, Sendable, SnapshotCaseConfiguring {
         case todayLight
         case todayDark
         case todayAX3
         case todayContrast
-        case tasksLight
-        case tasksDark
-        case tasksAX3
-        case tasksContrast
 
-        var screen: SnapshotScreen {
-            switch self {
-            case .todayLight, .todayDark, .todayAX3, .todayContrast: .today
-            case .tasksLight, .tasksDark, .tasksAX3, .tasksContrast: .tasks
-            }
-        }
+        var screen: SnapshotScreen { .today }
 
         var colorScheme: SnapshotColorScheme {
             switch self {
-            case .todayDark, .tasksDark: .dark
+            case .todayDark: .dark
             default: .light
             }
         }
 
         var dynamicType: SnapshotDynamicType {
             switch self {
-            case .todayAX3, .tasksAX3: .accessibility3
+            case .todayAX3: .accessibility3
             default: .medium
             }
         }
 
         var increaseContrast: Bool {
             switch self {
-            case .todayContrast, .tasksContrast: true
+            case .todayContrast: true
+            default: false
+            }
+        }
+    }
+
+    /// Görevler listesi / kanban / zaman çizelgesi × ortam.
+    enum TasksSnapshotCase: String, CaseIterable, Sendable, SnapshotCaseConfiguring {
+        case tasksLight
+        case tasksDark
+        case tasksAX3
+        case tasksContrast
+        case kanbanLight
+        case kanbanDark
+        case kanbanAX3
+        case kanbanContrast
+        case timelineLight
+        case timelineDark
+        case timelineAX3
+        case timelineContrast
+
+        var screen: SnapshotScreen {
+            switch self {
+            case .tasksLight, .tasksDark, .tasksAX3, .tasksContrast: .tasks
+            case .kanbanLight, .kanbanDark, .kanbanAX3, .kanbanContrast: .kanban
+            case .timelineLight, .timelineDark, .timelineAX3, .timelineContrast: .timeline
+            }
+        }
+
+        var colorScheme: SnapshotColorScheme {
+            switch self {
+            case .tasksDark, .kanbanDark, .timelineDark: .dark
+            default: .light
+            }
+        }
+
+        var dynamicType: SnapshotDynamicType {
+            switch self {
+            case .tasksAX3, .kanbanAX3, .timelineAX3: .accessibility3
+            default: .medium
+            }
+        }
+
+        var increaseContrast: Bool {
+            switch self {
+            case .tasksContrast, .kanbanContrast, .timelineContrast: true
             default: false
             }
         }
     }
 
     enum SnapshotScreen: String, Sendable {
-        case today, tasks, goals, summaries, graph, graphSelected, map, goalDetail, goalCreation
+        case today, tasks, kanban, timeline
+        case goals, summaries, graph, graphSelected, map, goalDetail, goalCreation
     }
 
     @MainActor
@@ -152,22 +189,31 @@
         static func hostedView(screen: SnapshotScreen, store: IndexStore, defaults: UserDefaults)
             -> some View
         {
+            defaults.set(TasksModel.Section.upcoming.rawValue, forKey: TasksModel.Section.storageKey)
             let notifications = NotificationService(
                 center: FakeNotificationCenter(), defaults: defaults,
                 now: { Self.clock(for: screen) },
                 timeZone: { snapshotTimeZone })
             let calendar = CalendarService(source: SnapshotCalendarSource())
             let location = LocationService(source: FakeLocationSource(), defaults: defaults)
+            let tasks = TasksModel(store: store, today: { snapshotDay })
+            switch screen {
+            case .kanban:
+                tasks.section = .kanban
+                defaults.set(TasksModel.Section.kanban.rawValue, forKey: TasksModel.Section.storageKey)
+            case .timeline:
+                tasks.section = .timeline
+                defaults.set(TasksModel.Section.timeline.rawValue, forKey: TasksModel.Section.storageKey)
+            default:
+                break
+            }
             let clock = clock(for: screen)
             let root: AnyView =
                 switch screen {
                 case .today:
                     AnyView(DayView(store: store, date: snapshotDay, isToday: true))
-                case .tasks:
-                    AnyView(
-                        TasksView(
-                            store: store,
-                            tasks: TasksModel(store: store, today: { snapshotDay })))
+                case .tasks, .kanban, .timeline:
+                    AnyView(TasksView(store: store, tasks: tasks))
                 case .goals:
                     AnyView(GoalsView(store: store))
                 case .summaries:
@@ -218,6 +264,25 @@
             )
         }
 
+        /// Tasks references keep their own `tasksScreen.<case>.png` prefix.
+        static func assert(
+            _ snapshotCase: TasksSnapshotCase, store: IndexStore, defaults: UserDefaults,
+            file: StaticString = #filePath, line: UInt = #line
+        ) async {
+            await assert(
+                named: snapshotCase.rawValue,
+                screen: snapshotCase.screen,
+                colorScheme: snapshotCase.colorScheme,
+                dynamicType: snapshotCase.dynamicType,
+                increaseContrast: snapshotCase.increaseContrast,
+                store: store,
+                defaults: defaults,
+                file: file,
+                line: line,
+                testName: "tasksScreen"
+            )
+        }
+
         /// Goal detail at AX3 needs a taller canvas so heatmap + definition + history fit one frame.
         static func canvasSize(for screen: SnapshotScreen) -> CGSize {
             switch screen {
@@ -236,7 +301,8 @@
             store: IndexStore,
             defaults: UserDefaults,
             file: StaticString = #filePath,
-            line: UInt = #line
+            line: UInt = #line,
+            testName: String = "screen"
         ) async {
             let canvas = canvasSize(for: screen)
             await SnapshotHostGate.exclusive {
@@ -322,7 +388,7 @@
                     named: name,
                     record: record,
                     file: file,
-                    testName: "screen",
+                    testName: testName,
                     line: line
                 )
             }

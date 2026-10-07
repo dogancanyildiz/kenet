@@ -20,6 +20,7 @@ struct PrivacySettingsView: View {
             PeopleInsightsSettingsView()
         }
         .listStyle(.plain)
+        .inkToggle()
         .inkPageNavigationTitle("Gizlilik")
         .inkPageColumn()
         .inkPage()

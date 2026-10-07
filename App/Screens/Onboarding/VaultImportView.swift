@@ -1,14 +1,42 @@
 import SwiftUI
 
+/// Folder report and preparation options for a chosen vault folder.
+///
+/// As a sheet (the default) it is an editing sheet: the three options are collected and written
+/// by the single confirm; once the result is in, it is a read-only report whose "Kapat" opens
+/// the vault. Pushed inside Settings (`isSheet: false`) it is a subpage: the bar keeps only the
+/// back button and the same actions stay in the page.
 struct VaultImportView: View {
     let store: IndexStore
     @Bindable var model: VaultImportModel
+    var isSheet = true
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.vaultPathDisplayOverride) private var pathDisplayOverride
+
     var body: some View {
+        if !isSheet {
+            content.inkPageNavigationTitle("Kasa hazırlığı")
+        } else if model.result != nil {
+            content.inkSheet(
+                "Kasa hazırlığı", closeIdentifier: "button.vaultImport.close",
+                onClose: { if !store.isProcessing { Task { await store.finishImport(model) } } })
+        } else {
+            content.inkSheet(
+                "Kasa hazırlığı", isConfirmEnabled: model.report.canPrepare && !store.isProcessing,
+                isBusy: model.isApplying, cancelIdentifier: "button.vaultImport.cancel",
+                confirmIdentifier: "button.vaultImport.save",
+                onCancel: { if !model.isApplying && !store.isProcessing { dismiss() } },
+                onConfirm: { Task { await model.apply() } })
+        }
+    }
+
+    private var content: some View {
         List {
+            InkPageTitleRow("Kasa hazırlığı")
             Section {
                 SectionHeader(title: String(localized: "Klasör raporu"))
                     .inkListRow()
-                Text(verbatim: model.report.root.path)
+                Text(verbatim: VaultPathDisplay.text(for: model.report.root, override: pathDisplayOverride) ?? "")
                     .font(.ink.meta)
                     .foregroundStyle(Color.ink.text)
                     .lineLimit(2)
@@ -141,10 +169,12 @@ struct VaultImportView: View {
                             .foregroundStyle(Color.ink.secondaryText)
                             .inkListRow()
                     }
-                    Button("Uygula") { Task { await model.apply() } }
-                        .buttonStyle(InkPrimaryButtonStyle())
-                        .disabled(!model.report.canPrepare)
-                        .inkListRow()
+                    if !isSheet {
+                        Button("Uygula") { Task { await model.apply() } }
+                            .buttonStyle(InkPrimaryButtonStyle())
+                            .disabled(!model.report.canPrepare)
+                            .inkListRow()
+                    }
                     Button("Atla") { Task { await store.finishImport(model) } }
                         .buttonStyle(InkTextButtonStyle())
                         .inkListRow()
@@ -165,8 +195,8 @@ struct VaultImportView: View {
                     .inkListRow()
             }
         }
-        .navigationTitle("Kasa hazırlığı")
         .listStyle(.plain)
+        .inkToggle()
         .inkPageColumn()
         .inkPage()
         .interactiveDismissDisabled(model.isApplying || model.result != nil || store.isProcessing)

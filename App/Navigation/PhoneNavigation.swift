@@ -41,7 +41,6 @@ struct PhoneNavigation: View {
             }
             .accessibilityIdentifier("tab.goals")
         }
-        .tint(Color.ink.accent)
         .onChange(of: intentNavigation.todayRequest, initial: true) { _, request in
             guard request != nil else { return }
             showingSettings = false
@@ -62,12 +61,15 @@ struct PhoneNavigation: View {
         .sheet(isPresented: $showingSettings) {
             NavigationStack {
                 PhoneSettingsView(store: store)
-                    .toolbar {
-                        Button("Kapat") { showingSettings = false }
-                            .accessibilityIdentifier("button.settings.close")
-                    }
+                    .inkSheet(
+                        "Ayarlar", closeIdentifier: "button.settings.close",
+                        onClose: { showingSettings = false })
             }
+            // Pushed settings pages take the accent from the stack, not from the root page.
+            .inkToggle()
         }
+        // After `.sheet` so the accent also reaches what the tab view presents.
+        .tint(Color.ink.accent)
     }
 }
 

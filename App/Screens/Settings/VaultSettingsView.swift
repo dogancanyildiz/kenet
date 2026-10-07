@@ -71,8 +71,10 @@ struct VaultSettingsView: View {
                         .inkListRow()
                 }
                 if let model = store.importModel {
-                    NavigationLink("Kasa hazırlığı") { VaultImportView(store: store, model: model) }
-                        .inkListRow()
+                    NavigationLink("Kasa hazırlığı") {
+                        VaultImportView(store: store, model: model, isSheet: false)
+                    }
+                    .inkListRow()
                 }
                 if store.isProcessing {
                     VaultIndexingProgress(store: store)

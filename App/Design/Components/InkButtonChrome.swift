@@ -17,6 +17,7 @@ enum InkButtonChrome: Equatable, Sendable {
         case onAccent
         case accent
         case danger
+        case control
     }
 
     struct Role: Equatable, Sendable {

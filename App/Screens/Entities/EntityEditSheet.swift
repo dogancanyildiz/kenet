@@ -46,6 +46,7 @@ struct EntityEditSheet: View {
                             .inkListRow()
                     } else {
                         aliasRows
+                        if entity.kind == "place" { coordinateRows }
                         fieldRows
                     }
                 }
@@ -108,8 +109,23 @@ struct EntityEditSheet: View {
         }
     }
 
+    @ViewBuilder private var coordinateRows: some View {
+        SectionHeader("Koordinat")
+            .inkListRow()
+        PlaceCoordinateEditor(model: model)
+            .id(model.coordinate.map { [$0.latitude, $0.longitude] })
+            .inkListRow()
+    }
+
+    /// A place's `coordinates` has its own editor; only a raw value stays in the generic rows.
+    private func hasOwnEditor(_ field: EntityField) -> Bool {
+        guard entity.kind == "place", field.key == "coordinates" else { return false }
+        if case .raw = field.value { return false }
+        return true
+    }
+
     @ViewBuilder private var fieldRows: some View {
-        let definitions = definitions
+        let definitions = definitions.filter { entity.kind != "place" || $0.key != "coordinates" }
         SectionHeader("Alanlar")
             .inkListRow()
         ForEach(definitions, id: \.key) { definition in
@@ -126,7 +142,9 @@ struct EntityEditSheet: View {
             }
         }
         ForEach(
-            model.fields.filter { field in !definitions.contains { $0.key == field.key } }
+            model.fields.filter { field in
+                !definitions.contains { $0.key == field.key } && !hasOwnEditor(field)
+            }
         ) { field in
             EntityFieldEditor(field: field, model: model).id(field.value)
                 .inkListRow()

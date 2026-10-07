@@ -16,11 +16,12 @@
         case filteredLight, filteredDark
         case customTypesLight, customTypesDark, customTypesAX3
         case editSheetLight, editSheetDark, editSheetAX3
+        case placeEditSheetLight
         case renameSheetLight, renameSheetDark, renameSheetAX3
         case unresolvedLight, unresolvedDark, unresolvedAX3
 
         enum Subject: Sendable {
-            case people, places, filtered, customTypes, editSheet, renameSheet, unresolved
+            case people, places, filtered, customTypes, editSheet, placeEditSheet, renameSheet, unresolved
         }
 
         var subject: Subject {
@@ -30,6 +31,7 @@
             case .filteredLight, .filteredDark: .filtered
             case .customTypesLight, .customTypesDark, .customTypesAX3: .customTypes
             case .editSheetLight, .editSheetDark, .editSheetAX3: .editSheet
+            case .placeEditSheetLight: .placeEditSheet
             case .renameSheetLight, .renameSheetDark, .renameSheetAX3: .renameSheet
             case .unresolvedLight, .unresolvedDark, .unresolvedAX3: .unresolved
             }
@@ -58,7 +60,7 @@
         var canvas: CGSize {
             switch subject {
             case .people, .places, .filtered, .customTypes: snapshotCanvasSize
-            case .editSheet:
+            case .editSheet, .placeEditSheet:
                 dynamicType == .accessibility3
                     ? CGSize(width: 390, height: 1400) : CGSize(width: 390, height: 1000)
             case .renameSheet, .unresolved:
@@ -71,6 +73,7 @@
     @MainActor @Suite("Entities snapshots")
     struct EntitiesSnapshotTests {
         private static let personPath = "people/Deniz Arıkan.md"
+        private static let placePath = "places/Liman Ofis.md"
 
         @Test(arguments: EntitiesSnapshotCase.allCases)
         func entities(_ snapshotCase: EntitiesSnapshotCase) async throws {
@@ -82,12 +85,13 @@
             await context.start()
             #expect(context.store.lastUpdated != nil)
             let store = context.store
-            let detail = EntityDetailModel(store: store, path: Self.personPath)
-            if snapshotCase.subject == .editSheet || snapshotCase.subject == .renameSheet {
+            let isPlace = snapshotCase.subject == .placeEditSheet
+            let detail = EntityDetailModel(store: store, path: isPlace ? Self.placePath : Self.personPath)
+            if isPlace || snapshotCase.subject == .editSheet || snapshotCase.subject == .renameSheet {
                 await detail.load()
                 #expect(detail.isLoaded)
             }
-            let person = try #require(store.content.entities.first { $0.id == Self.personPath })
+            let person = try #require(store.content.entities.first { $0.id == detail.path })
             await SnapshotHost.assertView(
                 colorScheme: snapshotCase.colorScheme,
                 dynamicType: snapshotCase.dynamicType,
@@ -116,8 +120,9 @@
                 NavigationStack { EntitiesView(store: store, initialKind: "place", initialOrder: .recent) }
             case .filtered:
                 NavigationStack { EntitiesView(store: store, initialSearch: "Mert") }
-            case .editSheet:
-                // The sheets own their `NavigationStack`.
+            case .editSheet, .placeEditSheet:
+                // The sheets own their `NavigationStack`. A place adds the coordinate editor;
+                // without a location service its "current location" button is off.
                 EntityEditSheet(store: store, model: detail, entity: person)
             case .renameSheet:
                 EntityRenameView(

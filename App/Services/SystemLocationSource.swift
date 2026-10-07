@@ -83,7 +83,12 @@ final class SystemLocationSource: NSObject, LocationSource, CLLocationManagerDel
     nonisolated func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let location = locations.last, location.horizontalAccuracy >= 0,
             abs(location.timestamp.timeIntervalSinceNow) < 60
-        else { return }
+        else {
+            // A stale or invalid answer is still the answer to the single request: report it
+            // as "no fix" instead of leaving the caller waiting.
+            Task { @MainActor [weak self] in self?.onLocation?(nil) }
+            return
+        }
         let coordinate = PlaceCoordinate(
             latitude: location.coordinate.latitude, longitude: location.coordinate.longitude)
         Task { @MainActor [weak self] in self?.onLocation?(coordinate) }

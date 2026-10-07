@@ -23,6 +23,35 @@ struct PlaceCoordinate: Equatable, Sendable {
     }
 }
 
+/// Text the user types for a place's `coordinates` field, and the spelling written to the file.
+enum PlaceCoordinateInput {
+    /// A valid pair, or nil. Accepts a decimal comma and a typographic minus.
+    static func coordinate(latitude: String, longitude: String) -> PlaceCoordinate? {
+        guard let latitude = number(latitude), let longitude = number(longitude) else { return nil }
+        let coordinate = PlaceCoordinate(latitude: latitude, longitude: longitude)
+        return coordinate.isValid ? coordinate : nil
+    }
+
+    /// Plain decimal spelling with at most six fraction digits (about 0.1 m), never an exponent.
+    static func text(_ value: Double) -> String {
+        var text = String(format: "%.6f", locale: Locale(identifier: "en_US_POSIX"), value)
+        while text.hasSuffix("0") { text.removeLast() }
+        if text.hasSuffix(".") { text.removeLast() }
+        return text == "-0" ? "0" : text
+    }
+
+    static func literals(_ coordinate: PlaceCoordinate) -> [FrontmatterLiteral] {
+        [.number(text(coordinate.latitude)), .number(text(coordinate.longitude))]
+    }
+
+    private static func number(_ text: String) -> Double? {
+        let text = text.trimmingCharacters(in: .whitespacesAndNewlines)
+            .replacingOccurrences(of: ",", with: ".").replacingOccurrences(of: "\u{2212}", with: "-")
+        guard text.wholeMatch(of: /[+-]?[0-9]+(\.[0-9]+)?/) != nil else { return nil }
+        return Double(text)
+    }
+}
+
 struct NearbyPlace: Equatable, Sendable {
     let entity: KnownEntity
     let coordinate: PlaceCoordinate

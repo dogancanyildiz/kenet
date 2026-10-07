@@ -22,6 +22,10 @@ final class EntityDetailModel {
     private(set) var aliasesEditable = false
     private(set) var aliasesSource = ""
     private(set) var unreadableFrontmatter = false
+    /// The place's valid `coordinates`, the value the map shows.
+    private(set) var coordinate: PlaceCoordinate?
+    /// The file has a `coordinates` field, usable or not.
+    private(set) var hasCoordinatesField = false
     private(set) var body = ""
     private(set) var isLoaded = false
     private(set) var isWriting = false
@@ -47,7 +51,9 @@ final class EntityDetailModel {
             errorText = nil
             isReadOnly = document.isReadOnly
             unreadableFrontmatter = document.frontmatter == .unreadable
+            coordinate = PlaceCoordinate(document: document)
             if case .parsed(let frontmatter) = document.frontmatter {
+                hasCoordinatesField = frontmatter.field(named: "coordinates") != nil
                 allKeys = frontmatter.fields.map(\.key)
                 fields = frontmatter.fields.filter { !Self.reservedKeys.contains($0.key) }.map {
                     EntityField(key: $0.key, value: $0.value)
@@ -61,6 +67,7 @@ final class EntityDetailModel {
                         document.lines[field.lineRange].map(\.displayText).joined(separator: "\n")
                     } ?? ""
             } else {
+                hasCoordinatesField = false
                 allKeys = []
                 fields = []
                 aliases = []
@@ -115,6 +122,13 @@ final class EntityDetailModel {
                 at: self.path, key: "aliases",
                 values: values.filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }.map { .text($0) })
         }
+    }
+
+    /// Writes the pair as the `coordinates` list of vault-format.md; a text value typed
+    /// there earlier is replaced.
+    @discardableResult
+    func saveCoordinate(_ value: PlaceCoordinate) async -> Bool {
+        await setList("coordinates", values: PlaceCoordinateInput.literals(value))
     }
 
     @discardableResult

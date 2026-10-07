@@ -6,31 +6,60 @@ import VaultStore
 
 @MainActor
 struct VaultRecoveryTests {
-    @Test func automaticStartupLeavesRealHomeUntouched() async throws {
-        let before = try homeVaultState()
-        let store = IndexStore()
-        await store.startAutomatically(environment: ["XCTestConfigurationFilePath": "test"], arguments: [])
-        await store.startAutomatically(environment: [:], arguments: ["JOURNAL_NO_AUTOSTART"])
-        await store.startAutomatically(environment: ["JOURNAL_NO_AUTOSTART": "1"], arguments: [])
-        try await Task.sleep(for: .milliseconds(500))
-        #expect(store.vaultURL == nil)
-        #expect(!store.isProcessing)
-        #expect(try homeVaultState() == before)
+    @Test func automaticStartupLeavesVaultUntouched() async throws {
+        try await expectAutomaticStartBlocked(environment: ["XCTestConfigurationFilePath": "test"], arguments: [])
+        try await expectAutomaticStartBlocked(environment: [:], arguments: ["JOURNAL_NO_AUTOSTART"])
+        try await expectAutomaticStartBlocked(environment: ["JOURNAL_NO_AUTOSTART": "1"], arguments: [])
         #expect(AppLaunchPolicy.allowsAutomaticStart(environment: [:], arguments: []))
     }
 
-    @Test func uiTestVaultDisablesAutomaticStartWithoutOpeningRealHome() async throws {
-        let before = try homeVaultState()
-        let path = "/tmp/journal-uitest-vault-does-not-exist"
+    @Test func uiTestVaultDisablesAutomaticStartWithoutOpeningDefaultVault() async throws {
+        let temp = try testDirectory()
+        defer { try? FileManager.default.removeItem(at: temp) }
+        let path = temp.appendingPathComponent("ui-test-vault").path
         #expect(AppLaunchPolicy.uiTestVaultPath(environment: ["JOURNAL_UITEST_VAULT": path], arguments: []) == path)
         #expect(
             AppLaunchPolicy.uiTestVaultPath(environment: [:], arguments: ["JOURNAL_UITEST_VAULT=" + path]) == path)
         #expect(!AppLaunchPolicy.allowsAutomaticStart(environment: ["JOURNAL_UITEST_VAULT": path], arguments: []))
-        let store = IndexStore()
-        await store.startAutomatically(environment: ["JOURNAL_UITEST_VAULT": path], arguments: [])
-        try await Task.sleep(for: .milliseconds(200))
+        try await expectAutomaticStartBlocked(environment: ["JOURNAL_UITEST_VAULT": path], arguments: [])
+        try await expectAutomaticStartBlocked(environment: [:], arguments: ["JOURNAL_UITEST_VAULT=" + path])
+    }
+
+    private func expectAutomaticStartBlocked(environment: [String: String], arguments: [String]) async throws {
+        let temp = try testDirectory()
+        defer { try? FileManager.default.removeItem(at: temp) }
+        let suite = try TestDefaults()
+        defer { suite.clean() }
+        let documents = temp.appendingPathComponent("documents", isDirectory: true)
+        let indexes = temp.appendingPathComponent("indexes", isDirectory: true)
+        let saved = Data(temp.path.utf8)
+        suite.defaults.set(saved, forKey: "vaultBookmark")
+        let before = try #require(suite.defaults.persistentDomain(forName: suite.name))
+        var resolutionAttempts = 0
+        var bookmarks = pathBookmarks()
+        bookmarks.resolve = { _ in
+            resolutionAttempts += 1
+            // Fail closed even if the launch guard regresses; no vault is opened by this test.
+            throw CocoaError(.fileReadNoPermission)
+        }
+        let location = VaultLocation(defaults: suite.defaults, documentsURL: documents, bookmarks: bookmarks)
+        let store = IndexStore(location: location, supportURL: indexes)
+        // A saved bookmark bypasses onboarding, so only the launch policy blocks startup.
+        #expect(!store.requiresOnboarding)
+        // startAutomatically awaits start(); its return is the synchronization boundary.
+        await store.startAutomatically(environment: environment, arguments: arguments)
+        #expect(resolutionAttempts == 0)
         #expect(store.vaultURL == nil)
-        #expect(try homeVaultState() == before)
+        #expect(!store.isProcessing)
+        #expect(!store.isVaultInaccessible)
+        #expect(store.errorText == nil)
+        let after = try #require(suite.defaults.persistentDomain(forName: suite.name))
+        #expect(NSDictionary(dictionary: after) == NSDictionary(dictionary: before))
+        #expect(try FileManager.default.contentsOfDirectory(atPath: temp.path).isEmpty)
+        // Positive control: this exact store attempts resolution when startup is allowed.
+        await store.startAutomatically(environment: [:], arguments: [])
+        #expect(resolutionAttempts == 1)
+        #expect(store.isVaultInaccessible)
     }
 
     @Test func staleBookmarkIsUsedAndRenewed() throws {

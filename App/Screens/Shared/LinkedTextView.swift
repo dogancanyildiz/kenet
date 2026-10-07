@@ -4,14 +4,14 @@ import SwiftUI
 struct LinkedTextView: View {
     let text: LinkedText
     let store: IndexStore
-    private var entities: [EntitySummary] { store.content.entities }
+    @Environment(\.entityLookup) private var entityLookup
     @State private var destination: LinkDestination?
-    /// Built once per identity so duplicate entity paths cannot crash `Dictionary` on every draw.
-    @State private var segments: [InkLinkSegment] = []
 
-    private var segmentIdentity: String {
-        text.plainText + "\u{1e}" + entities.map(\.id).joined(separator: "\u{1f}")
-            + "\u{1e}" + String(describing: store.lastUpdated?.timeIntervalSince1970 ?? 0)
+    private var segments: [InkLinkSegment] {
+        let lookup =
+            entityLookup.isEmpty
+            ? LinkedTextInk.lookup(entities: store.content.entities) : entityLookup
+        return LinkedTextInk.segments(text, byPath: lookup)
     }
 
     var body: some View {
@@ -21,10 +21,9 @@ struct LinkedTextView: View {
                 let name = components.queryItems?.first(where: { $0.name == "name" })?.value
             else { return }
             let path = components.queryItems?.first(where: { $0.name == "path" })?.value
-            destination = LinkDestination(name: name, path: path, entity: entities.first { $0.id == path })
-        }
-        .task(id: segmentIdentity) {
-            segments = LinkedTextInk.segments(text, entities: entities)
+            let entities = store.content.entities
+            destination = LinkDestination(
+                name: name, path: path, entity: entities.first { $0.id == path })
         }
         .sheet(item: $destination) { link in
             NavigationStack {
@@ -53,11 +52,30 @@ struct LinkedTextView: View {
     }
 }
 
+private struct EntityLookupKey: EnvironmentKey {
+    static let defaultValue: [String: EntitySummary] = [:]
+}
+
+extension EnvironmentValues {
+    /// Path → entity map built once per screen for ``LinkedTextView``.
+    var entityLookup: [String: EntitySummary] {
+        get { self[EntityLookupKey.self] }
+        set { self[EntityLookupKey.self] = newValue }
+    }
+}
+
 /// Maps parsed ``LinkedText`` spans onto ``InkLinkSegment`` kinds for drawing.
 enum LinkedTextInk {
+    static func lookup(entities: [EntitySummary]) -> [String: EntitySummary] {
+        Dictionary(entities.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+    }
+
     static func segments(_ text: LinkedText, entities: [EntitySummary]) -> [InkLinkSegment] {
-        let byPath = Dictionary(entities.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
-        return text.spans.enumerated().map { index, span in
+        segments(text, byPath: lookup(entities: entities))
+    }
+
+    static func segments(_ text: LinkedText, byPath: [String: EntitySummary]) -> [InkLinkSegment] {
+        text.spans.enumerated().map { index, span in
             let id = "\(index)-\(span.text)"
             guard let target = span.target else {
                 return InkLinkSegment(id: id, text: span.text, kind: .plain)
@@ -67,12 +85,12 @@ enum LinkedTextInk {
                 switch entity.kind {
                 case "place": kind = .place
                 case "person": kind = .person
-                default: kind = .entity
+                default: kind = .other
                 }
             } else if span.destination == nil {
                 kind = .unresolved
             } else {
-                kind = .entity
+                kind = .other
             }
             return InkLinkSegment(
                 id: id, text: span.text, kind: kind, target: target, path: span.destination)

@@ -4,14 +4,18 @@ import VaultFormat
 struct EntityTypedFieldEditor: View {
     let definition: EntityTypeField
     let model: EntityDetailModel
+    @Environment(\.entityEditorDraft) private var draft
     @State private var text: String
     @State private var date: Date
     @State private var flag: Bool
     @State private var invalid = false
+    @State private var saveFailed = false
     @State private var savedText: String
     @State private var savedDate: Date
     @State private var savedFlag: Bool
     @State private var deleteConfirmation = DestructiveConfirmation<DestructiveConfirmationToken>()
+
+    private var draftID: String { "typed:" + definition.key }
 
     init(definition: EntityTypeField, value: FrontmatterValue?, model: EntityDetailModel) {
         self.definition = definition
@@ -59,10 +63,24 @@ struct EntityTypedFieldEditor: View {
                 Button("Kaydet") { save() }
                 Button("Alanı kaldır", role: .destructive) { deleteConfirmation.request(.pending) }
             }
-            if invalid { Text("Alan için geçerli bir değer gir.").font(.ink.meta).foregroundStyle(.ink.danger) }
+            if invalid {
+                Text("Alan için geçerli bir değer gir.").font(.ink.meta).foregroundStyle(.ink.danger)
+            } else if saveFailed {
+                Text(
+                    verbatim: model.errorText
+                        ?? String(localized: "Değişiklik kaydedilemedi. Kasayı kontrol edip yeniden dene.")
+                )
+                .font(.ink.meta).foregroundStyle(.ink.danger)
+            }
         }
-        .preference(key: EntityEditorDirtyKey.self, value: isDirty)
         .disabled(!model.canEdit)
+        .onAppear { draft?.report(id: draftID, dirty: isDirty) }
+        .onChange(of: text) { draft?.report(id: draftID, dirty: isDirty) }
+        .onChange(of: date) { draft?.report(id: draftID, dirty: isDirty) }
+        .onChange(of: flag) { draft?.report(id: draftID, dirty: isDirty) }
+        .onChange(of: savedText) { draft?.report(id: draftID, dirty: isDirty) }
+        .onChange(of: savedDate) { draft?.report(id: draftID, dirty: isDirty) }
+        .onChange(of: savedFlag) { draft?.report(id: draftID, dirty: isDirty) }
         .destructiveConfirmationDialog(
             "Alanı kaldır?", confirmation: $deleteConfirmation, confirmTitle: "Alanı kaldır"
         ) { _ in
@@ -87,10 +105,14 @@ struct EntityTypedFieldEditor: View {
         let committedDate = date
         let committedFlag = flag
         Task {
-            await model.set(definition.key, to: value)
-            savedText = committedText
-            savedDate = committedDate
-            savedFlag = committedFlag
+            let success = await model.set(definition.key, to: value)
+            saveFailed = !success
+            if success {
+                savedText = committedText
+                savedDate = committedDate
+                savedFlag = committedFlag
+            }
+            draft?.report(id: draftID, dirty: isDirty)
         }
     }
 }

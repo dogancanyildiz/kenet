@@ -36,14 +36,13 @@ enum VaultDisplayText {
             {
                 return line
             }
-            if fenceOpen { return line }
             let stripped = stripWikilinksOnLine(line)
             return stripBlockIDs ? stripBlockIdentifiers(stripped) : stripped
         }
         return mapped.joined(separator: "\n")
     }
 
-    /// Returns true when the line is a fence delimiter (open or close).
+    /// Returns true when the line is inside a fence or is a fence delimiter (open or close).
     private static func updateFence(
         bytes: [UInt8], fenceOpen: inout Bool, fenceMarker: inout UInt8?, fenceCount: inout Int
     ) -> Bool {
@@ -73,8 +72,6 @@ enum VaultDisplayText {
         let document = RawDocument(bytes: text.utf8)
         var bytes = Array(text.utf8)
         for link in document.links.reversed() {
-            // `[[Ad^blok]]` (caret in target, no `#` anchor) stays raw per display rules.
-            if link.anchor == nil, link.rawTarget.contains("^") { continue }
             let offset = document.lines.prefix(link.line).reduce(document.hasByteOrderMark ? 3 : 0) {
                 $0 + $1.bytes.count
             }
@@ -82,8 +79,20 @@ enum VaultDisplayText {
             if link.isEmbedded, lower > 0, bytes[lower - 1] == 0x21 {
                 lower -= 1
             }
+            let upper = offset + link.byteRange.upperBound
             let label = Array(visibleLabel(for: link).utf8)
-            bytes.replaceSubrange(lower..<(offset + link.byteRange.upperBound), with: label)
+            if label.isEmpty {
+                var removeLower = lower
+                var removeUpper = upper
+                if removeLower > 0, bytes[removeLower - 1] == 0x20 {
+                    removeLower -= 1
+                } else if removeUpper < bytes.count, bytes[removeUpper] == 0x20 {
+                    removeUpper += 1
+                }
+                bytes.replaceSubrange(removeLower..<removeUpper, with: [])
+            } else {
+                bytes.replaceSubrange(lower..<upper, with: label)
+            }
         }
         return String(decoding: bytes, as: UTF8.self)
     }
@@ -93,11 +102,12 @@ enum VaultDisplayText {
         if link.target.isEmpty {
             switch link.anchor {
             case .heading(let heading): return heading
-            case .block(let block): return block
+            case .block: return ""
             case nil: return ""
             }
         }
-        let target = link.target
+        let target = caretStrippedTarget(link.target)
+        if target.isEmpty { return "" }
         if target.contains("/") {
             let name = (target as NSString).lastPathComponent
             if name.lowercased().hasSuffix(".md") {
@@ -108,7 +118,14 @@ enum VaultDisplayText {
         return target
     }
 
+    /// `Ad^blok` (caret in target, no `#` anchor) shows as `Ad`.
+    private static func caretStrippedTarget(_ target: String) -> String {
+        guard let caret = target.firstIndex(of: "^") else { return target }
+        return String(target[..<caret])
+    }
+
     /// Trailing app-produced block id: space + `^` + 6 `[a-z0-9]` at end of line.
+    /// Only the app's format is stripped; longer hand-named Obsidian ids stay visible.
     private static func stripBlockIdentifiers(_ text: String) -> String {
         guard let regex = try? NSRegularExpression(pattern: #"\s+\^[a-z0-9]{6}\s*$"#) else {
             return text
@@ -136,6 +153,21 @@ enum SearchPreviewText {
         }
         return result.joined(separator: "\n")
             .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    /// Preview title; when the match is only fence markers, fall back to the note name.
+    static func title(_ text: String, file: String) -> String {
+        let preview = display(text)
+        return preview.isEmpty ? noteDisplayName(file) : preview
+    }
+
+    /// Vault-relative path → note name without `.md` (never a folder path).
+    static func noteDisplayName(_ file: String) -> String {
+        let name = (file as NSString).lastPathComponent
+        if name.lowercased().hasSuffix(".md") {
+            return String(name.dropLast(3))
+        }
+        return name
     }
 
     private static func isFenceDelimiter(_ trimmed: String) -> Bool {

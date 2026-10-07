@@ -9,7 +9,7 @@ struct InkLinkSegment: Equatable, Sendable, Identifiable {
         case place
         case unresolved
         /// Custom vault entity type (not person/place).
-        case entity
+        case other
     }
 
     let id: String
@@ -85,8 +85,8 @@ enum InkLinkTextBuilder {
             case .place:
                 InkLinkStyle.apply(.place, to: &value, highContrast: highContrast)
                 attachLink(&value, target: segment.target ?? segment.text, path: segment.path)
-            case .entity:
-                InkLinkStyle.apply(.entity, to: &value, highContrast: highContrast)
+            case .other:
+                InkLinkStyle.apply(.other, to: &value, highContrast: highContrast)
                 attachLink(&value, target: segment.target ?? segment.text, path: segment.path)
             case .unresolved:
                 InkLinkStyle.apply(.unresolved, to: &value, highContrast: highContrast)

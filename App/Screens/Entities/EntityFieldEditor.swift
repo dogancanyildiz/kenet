@@ -11,20 +11,26 @@ struct EntityFieldEditor: View {
             Text(verbatim: field.key).font(.ink.section).foregroundStyle(.ink.text)
             switch field.value {
             case .scalar(let value):
-                EntityScalarEditor(scalar: value) { await model.set(field.key, to: $0) }
+                EntityScalarEditor(draftID: "field:" + field.key, scalar: value) {
+                    await model.set(field.key, to: $0)
+                }
             case .list(let values, _):
                 ForEach(values.indices, id: \.self) { index in
-                    EntityScalarEditor(scalar: values[index]) { newValue in
+                    EntityScalarEditor(
+                        draftID: "field:" + field.key + "." + String(index), scalar: values[index]
+                    ) { newValue in
                         var literals = values.map(Self.literal)
                         literals[index] = newValue
-                        await model.setList(field.key, values: literals)
+                        return await model.setList(field.key, values: literals)
                     }.id(values[index])
                 }
             case .mapping(let entries):
                 ForEach(entries.indices, id: \.self) { index in
                     let entry = entries[index]
                     Text(verbatim: entry.key).font(.ink.meta).foregroundStyle(.ink.secondaryText)
-                    EntityScalarEditor(scalar: entry.value) {
+                    EntityScalarEditor(
+                        draftID: "field:" + field.key + "." + entry.key, scalar: entry.value
+                    ) {
                         await model.setEntry(field.key, entry: entry.key, value: $0)
                     }
                     .id(entry.value)

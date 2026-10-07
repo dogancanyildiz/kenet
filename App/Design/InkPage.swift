@@ -27,7 +27,6 @@ extension View {
 
 private struct InkListRowModifier: ViewModifier {
     var isSelected: Bool = false
-    @ScaledMetric(relativeTo: .body) private var margin = InkSpacing.margin
 
     func body(content: Content) -> some View {
         content
@@ -35,7 +34,8 @@ private struct InkListRowModifier: ViewModifier {
                 isSelected ? Color.ink.accent.opacity(0.12) : Color.ink.paper
             )
             .listRowInsets(
-                EdgeInsets(top: 6, leading: margin, bottom: 6, trailing: margin)
+                EdgeInsets(
+                    top: 6, leading: InkSpacing.margin, bottom: 6, trailing: InkSpacing.margin)
             )
             .listRowSeparator(.hidden)
     }

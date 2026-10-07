@@ -22,7 +22,7 @@ enum InkLinkStyle {
         case place
         case unresolved
         /// Custom entity types: text color, solid control underline (not person blue).
-        case entity
+        case other
     }
 
     /// Applies the active mode's attributes to a link span (not the Turkish suffix).
@@ -61,7 +61,7 @@ enum InkLinkStyle {
         case .place:
             pattern = .dot
             color = .ink.place
-        case .entity:
+        case .other:
             pattern = .solid
             color = .ink.control
         case .unresolved:
@@ -83,7 +83,7 @@ enum InkLinkStyle {
         switch kind {
         case .person: string.foregroundColor = Color.ink.person
         case .place: string.foregroundColor = Color.ink.place
-        case .entity: string.foregroundColor = Color.ink.text
+        case .other: string.foregroundColor = Color.ink.text
         case .unresolved: string.foregroundColor = Color.ink.secondaryText
         }
     }

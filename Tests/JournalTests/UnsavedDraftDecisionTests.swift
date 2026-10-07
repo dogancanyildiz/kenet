@@ -32,6 +32,7 @@ struct UnsavedDraftDecisionTests {
         #expect(UnsavedDraftLeaveChoice.stay != .save)
     }
 
+    @MainActor
     @Test func entityEditDraftCombinesChildDirtyFlags() {
         #expect(!EntityEditorDraft.combine(current: false, next: false))
         #expect(EntityEditorDraft.combine(current: false, next: true))
@@ -39,5 +40,25 @@ struct UnsavedDraftDecisionTests {
         #expect(
             UnsavedDraftDecision.requiresPrompt(
                 isDirty: EntityEditorDraft.combine(current: false, next: true), isSaving: false))
+    }
+
+    @MainActor
+    @Test func entityEditDraftKeepsOffscreenFieldDirty() {
+        let draft = EntityEditorDraft()
+        draft.report(id: "field-a", dirty: true)
+        draft.report(id: "field-b", dirty: false)
+        #expect(draft.isDirty)
+        draft.report(id: "field-a", dirty: false)
+        #expect(!draft.isDirty)
+    }
+
+    @Test func failedSaveDoesNotClearCommittedText() {
+        var saved = "eski"
+        let committed = "yeni"
+        EntityEditorSaveMark.commitIfSaved(committed, success: false, into: &saved)
+        #expect(saved == "eski")
+        #expect(committed != saved)
+        EntityEditorSaveMark.commitIfSaved(committed, success: true, into: &saved)
+        #expect(saved == "yeni")
     }
 }

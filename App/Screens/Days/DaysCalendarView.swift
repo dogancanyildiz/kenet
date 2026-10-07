@@ -86,6 +86,13 @@ struct DaysCalendarView: View {
     }
 }
 
+/// Caps the preferred (Dynamic Type–scaled) mark so it never exceeds the grid cell.
+enum DaysCalendarMarkLayout {
+    static func markDiameter(preferred: CGFloat, cellWidth: CGFloat) -> CGFloat {
+        min(preferred, max(0, cellWidth))
+    }
+}
+
 /// Day cell: today = ring, marked = filled marker, selected = filled disc (form beyond color).
 struct DaysCalendarDayMark: View {
     let day: Int
@@ -101,7 +108,10 @@ struct DaysCalendarDayMark: View {
                 .foregroundStyle(isSelected ? Color.ink.onAccent : Color.ink.text)
                 .minimumScaleFactor(0.35)
                 .lineLimit(1)
-                .frame(width: markDiameter, height: markDiameter)
+                // Upper bound = preferred diameter; cell width can shrink further so AX3
+                // stays inside the grid (see ``DaysCalendarMarkLayout/markDiameter(preferred:cellWidth:)``).
+                .frame(maxWidth: markDiameter)
+                .aspectRatio(1, contentMode: .fit)
                 .background {
                     if isSelected {
                         Circle().fill(Color.ink.accent)

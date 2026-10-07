@@ -53,7 +53,7 @@ struct RowComponentTests {
         #expect(unresolved.underlineStyle != nil)
 
         var entity = AttributedString("Cam")
-        InkLinkStyle.apply(.entity, to: &entity, highContrast: false)
+        InkLinkStyle.apply(.other, to: &entity, highContrast: false)
         #expect(entity.underlineStyle != nil)
 
         var colored = AttributedString("Ece")
@@ -80,7 +80,16 @@ struct RowComponentTests {
             .init(text: "Ada", destination: "people/Ada.md", target: "Ada"),
         ])
         let segments = LinkedTextInk.segments(text, entities: entities)
-        #expect(segments.map(\.kind) == [.entity, .plain, .person])
+        #expect(segments.map(\.kind) == [.other, .plain, .person])
+    }
+
+    @Test func daysCalendarMarkDiameterCapsToCellWidth() {
+        // AX3 scales the 32 pt base above a ~45 pt grid cell; the mark must shrink.
+        let preferred: CGFloat = 32 * 1.8
+        #expect(preferred > 45)
+        #expect(DaysCalendarMarkLayout.markDiameter(preferred: preferred, cellWidth: 45) == 45)
+        #expect(DaysCalendarMarkLayout.markDiameter(preferred: 32, cellWidth: 45) == 32)
+        #expect(DaysCalendarMarkLayout.markDiameter(preferred: 40, cellWidth: 0) == 0)
     }
 
     @Test func inkLinkedTextKeepsSuffixPlainAndLinksEntity() {

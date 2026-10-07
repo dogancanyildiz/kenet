@@ -60,6 +60,7 @@ struct EntityView: View {
         .listStyle(.plain)
         .inkPage()
         .inkPageColumn()
+        .environment(\.entityLookup, LinkedTextInk.lookup(entities: store.content.entities))
         // Manşet carries the name; keep the bar chrome compact (jury condition 4).
         .navigationTitle(current.name)
         #if os(iOS)
@@ -243,7 +244,7 @@ struct EntityEditSheet: View {
     @State private var newKey = ""
     @State private var newValue = ""
     @State private var renamePresented = false
-    @State private var editorsDirty = false
+    @State private var draft = EntityEditorDraft()
     @State private var leavePrompt = false
 
     private var addFieldDirty: Bool {
@@ -251,7 +252,7 @@ struct EntityEditSheet: View {
             || !newValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
-    private var isDirty: Bool { editorsDirty || addFieldDirty }
+    private var isDirty: Bool { draft.isDirty || addFieldDirty }
 
     private var blocksLeave: Bool {
         UnsavedDraftDecision.requiresPrompt(isDirty: isDirty, isSaving: model.isWriting)
@@ -259,63 +260,75 @@ struct EntityEditSheet: View {
 
     var body: some View {
         NavigationStack {
-            Form {
-                if let error = model.errorText {
-                    Section {
-                        InfoBand(kind: .error, verbatim: error)
-                    }
-                }
-                Section("Varlık") {
-                    LabeledContent("Ad") { Text(verbatim: entity.name) }
-                    if let qualifier = entity.qualifier {
-                        LabeledContent("Ayırt edici") { Text(verbatim: qualifier) }
-                    }
-                    Button("Adı değiştir") { renamePresented = true }.disabled(!model.canEdit)
-                }
-                if model.unreadableFrontmatter {
-                    Text("Frontmatter okunamıyor.").foregroundStyle(.ink.secondaryText)
-                } else {
-                    Section("Takma adlar") {
-                        if model.aliasesEditable {
-                            EntityAliasesEditor(model: model).id(model.aliases)
-                        } else {
-                            Text(verbatim: model.aliasesSource).textSelection(.enabled)
-                            Text("Takma ad alanı salt okunur.").font(.ink.meta)
+            ScrollViewReader { proxy in
+                Form {
+                    if let error = model.errorText {
+                        Section {
+                            InfoBand(kind: .error, verbatim: error)
+                                .id("entity-edit-error")
                         }
                     }
-                    Section("Alanlar") {
-                        let definitions = store.entityTypes.allTypes.first { $0.id == entity.kind }?.fields ?? []
-                        ForEach(definitions, id: \.key) { definition in
-                            let value = model.fields.first { $0.key == definition.key }
-                            if EntityTypedField.supports(value?.value, kind: definition.kind) {
-                                EntityTypedFieldEditor(definition: definition, value: value?.value, model: model)
-                                    .id(definition.key + String(describing: value?.value))
-                            } else if let value {
-                                EntityFieldEditor(field: value, model: model).id(value.value)
+                    Section("Varlık") {
+                        LabeledContent("Ad") { Text(verbatim: entity.name) }
+                        if let qualifier = entity.qualifier {
+                            LabeledContent("Ayırt edici") { Text(verbatim: qualifier) }
+                        }
+                        Button("Adı değiştir") { renamePresented = true }.disabled(!model.canEdit)
+                    }
+                    if model.unreadableFrontmatter {
+                        Text("Frontmatter okunamıyor.").foregroundStyle(.ink.secondaryText)
+                    } else {
+                        Section("Takma adlar") {
+                            if model.aliasesEditable {
+                                EntityAliasesEditor(model: model).id(model.aliases)
+                            } else {
+                                Text(verbatim: model.aliasesSource).textSelection(.enabled)
+                                Text("Takma ad alanı salt okunur.").font(.ink.meta)
                             }
                         }
-                        ForEach(model.fields.filter { field in !definitions.contains { $0.key == field.key } }) {
-                            field in
-                            EntityFieldEditor(field: field, model: model).id(field.value)
-                        }
-                        VStack(alignment: .leading) {
-                            TextField("Alan adı", text: $newKey)
-                            TextField("Değer", text: $newValue)
-                            Button("Alan ekle") {
-                                let key = newKey
-                                let value = newValue
-                                Task {
-                                    if await model.addField(key: key, text: value), newKey == key && newValue == value {
-                                        newKey = ""
-                                        newValue = ""
-                                    }
+                        Section("Alanlar") {
+                            let definitions = store.entityTypes.allTypes.first { $0.id == entity.kind }?.fields ?? []
+                            ForEach(definitions, id: \.key) { definition in
+                                let value = model.fields.first { $0.key == definition.key }
+                                if EntityTypedField.supports(value?.value, kind: definition.kind) {
+                                    EntityTypedFieldEditor(
+                                        definition: definition, value: value?.value, model: model
+                                    )
+                                    .id(definition.key + String(describing: value?.value))
+                                } else if let value {
+                                    EntityFieldEditor(field: value, model: model).id(value.value)
                                 }
                             }
-                        }.disabled(!model.canEdit)
+                            ForEach(
+                                model.fields.filter { field in !definitions.contains { $0.key == field.key } }
+                            ) { field in
+                                EntityFieldEditor(field: field, model: model).id(field.value)
+                            }
+                            VStack(alignment: .leading) {
+                                TextField("Alan adı", text: $newKey)
+                                TextField("Değer", text: $newValue)
+                                Button("Alan ekle") {
+                                    let key = newKey
+                                    let value = newValue
+                                    Task {
+                                        if await model.addField(key: key, text: value), newKey == key,
+                                            newValue == value
+                                        {
+                                            newKey = ""
+                                            newValue = ""
+                                        }
+                                    }
+                                }
+                            }.disabled(!model.canEdit)
+                        }
                     }
                 }
+                .formStyle(.grouped)
+                .onChange(of: model.errorText) { _, error in
+                    guard error != nil else { return }
+                    withAnimation { proxy.scrollTo("entity-edit-error", anchor: .top) }
+                }
             }
-            .formStyle(.grouped)
             .navigationTitle("Düzenle")
             .navigationBarBackButtonHidden(blocksLeave)
             .interactiveDismissDisabled(blocksLeave || model.isWriting)
@@ -334,8 +347,8 @@ struct EntityEditSheet: View {
                 EntityRenameView(
                     model: EntityRenameModel(detail: model, name: entity.name, qualifier: entity.qualifier))
             }
-            .onPreferenceChange(EntityEditorDirtyKey.self) { editorsDirty = $0 }
         }
+        .environment(\.entityEditorDraft, draft)
         .inkPage()
     }
 

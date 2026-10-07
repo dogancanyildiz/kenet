@@ -66,20 +66,23 @@ enum SearchResults {
             let group: SearchGroup =
                 match.blockKind == "event" ? .events : match.blockKind == "task" ? .tasks : .notes
             let day = match.fileKind == "day" ? match.date.flatMap { CalendarDate($0) } : nil
-            let detail = formattedDetail(date: match.date, locale: locale)
+            let detail = formattedDetail(date: match.date, file: match.file, locale: locale)
             return SearchItem(
-                id: id, group: group, title: SearchPreviewText.display(match.text), detail: detail,
+                id: id, group: group, title: SearchPreviewText.title(match.text, file: match.file),
+                detail: detail,
                 destination: day.map { .day($0) } ?? .note(match.file))
         }
         // Stable partition preserves prefix/name ordering for entities and FTS rank for blocks.
         return SearchGroup.allCases.flatMap { group in (named + blocks).filter { $0.group == group } }
     }
 
-    /// Localized day when present; never a vault path (entity/note paths stay out of detail).
-    private static func formattedDetail(date: String?, locale: Locale) -> String {
-        guard let date, let day = CalendarDate(date) else { return "" }
-        return LocalDay.instant(for: day).formatted(
-            .dateTime.day().month(.abbreviated).year().locale(locale))
+    /// Localized day when present; otherwise the note name (never a vault path).
+    private static func formattedDetail(date: String?, file: String, locale: Locale) -> String {
+        if let date, let day = CalendarDate(date) {
+            return LocalDay.instant(for: day).formatted(
+                .dateTime.day().month(.abbreviated).year().locale(locale))
+        }
+        return SearchPreviewText.noteDisplayName(file)
     }
 
     static func comparisonKey(_ text: String) -> String {

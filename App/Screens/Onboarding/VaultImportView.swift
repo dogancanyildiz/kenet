@@ -6,15 +6,19 @@ enum VaultImportChrome {
     static func isWriting(isApplying: Bool, isProcessing: Bool) -> Bool { isApplying || isProcessing }
 
     /// The sheet is cancel-only. "Vazgeç" stays until the result is in; after that the bar is
-    /// empty and "Kasayı aç" in the page is the only way out.
-    static func showsCancel(hasResult: Bool) -> Bool { !hasResult }
+    /// empty and "Kasayı aç" in the page is the way out. If opening the vault fails, "Vazgeç"
+    /// comes back: the sheet must never be a dead end.
+    static func showsCancel(hasResult: Bool, openFailed: Bool) -> Bool { !hasResult || openFailed }
+
+    /// Opening the prepared vault reported an error.
+    static func openFailed(hasResult: Bool, hasError: Bool) -> Bool { hasResult && hasError }
 
     /// "Uygula" writes folders, templates and settings into the vault.
     static func canApply(canPrepare: Bool, isWriting: Bool) -> Bool { canPrepare && !isWriting }
 
     /// Swiping the sheet away would lose the report of what was written.
-    static func blocksInteractiveDismiss(hasResult: Bool, isWriting: Bool) -> Bool {
-        hasResult || isWriting
+    static func blocksInteractiveDismiss(hasResult: Bool, isWriting: Bool, openFailed: Bool) -> Bool {
+        isWriting || (hasResult && !openFailed)
     }
 }
 
@@ -37,6 +41,10 @@ struct VaultImportView: View {
     /// Open by default: a failure must be seen without an extra tap.
     @State private var showsFailures = true
 
+    private var openFailed: Bool {
+        VaultImportChrome.openFailed(hasResult: model.result != nil, hasError: store.errorText != nil)
+    }
+
     private var isWriting: Bool {
         VaultImportChrome.isWriting(isApplying: model.isApplying, isProcessing: store.isProcessing)
     }
@@ -46,7 +54,8 @@ struct VaultImportView: View {
         if isSheet {
             page.inkSheet(
                 "Kasa hazırlığı", cancelIdentifier: "button.vaultImport.cancel",
-                showsCancel: VaultImportChrome.showsCancel(hasResult: model.result != nil),
+                showsCancel: VaultImportChrome.showsCancel(
+                    hasResult: model.result != nil, openFailed: openFailed),
                 isCancelEnabled: !isWriting)
         } else {
             page.inkPageNavigationTitle("Kasa hazırlığı")
@@ -197,15 +206,9 @@ struct VaultImportView: View {
                 InkProgress(kind: .indeterminate(label: "Kasa hazırlanıyor…"))
                     .inkListRow()
             }
-            if store.isProcessing {
-                VaultIndexingProgress(store: store)
-                    .inkListRow()
-            }
-            if let error = store.errorText {
-                Text(verbatim: error)
-                    .font(.ink.meta)
-                    .foregroundStyle(Color.ink.danger)
-                    .inkListRow()
+            // With a result these rows sit under "Kasayı aç" instead (see `resultSection`).
+            if model.result == nil {
+                statusRows
             }
         }
         .listStyle(.plain)
@@ -214,7 +217,21 @@ struct VaultImportView: View {
         .inkPage()
         .interactiveDismissDisabled(
             VaultImportChrome.blocksInteractiveDismiss(
-                hasResult: model.result != nil, isWriting: isWriting))
+                hasResult: model.result != nil, isWriting: isWriting, openFailed: openFailed))
+    }
+
+    /// Indexing progress and the store's error, next to the button that caused them.
+    @ViewBuilder private var statusRows: some View {
+        if store.isProcessing {
+            VaultIndexingProgress(store: store)
+                .inkListRow()
+        }
+        if let error = store.errorText {
+            Text(verbatim: error)
+                .font(.ink.meta)
+                .foregroundStyle(Color.ink.danger)
+                .inkListRow()
+        }
     }
 
     /// What the preparation wrote, and what it could not: directly under the manşet.
@@ -249,6 +266,7 @@ struct VaultImportView: View {
                 .disabled(store.isProcessing)
                 .accessibilityIdentifier("button.vaultImport.open")
                 .inkListRow()
+            statusRows
         }
     }
 

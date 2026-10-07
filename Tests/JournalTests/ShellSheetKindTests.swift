@@ -56,7 +56,7 @@ import VaultFormat
         let source = try Self.read("App/Screens/Onboarding/VaultImportView.swift")
         let call = try Self.call(in: source, startingAt: "page.inkSheet(")
         #expect(Self.kind(ofCall: call) == .cancelOnly)
-        #expect(call.contains("showsCancel: VaultImportChrome.showsCancel(hasResult: model.result != nil)"))
+        #expect(call.contains("showsCancel: VaultImportChrome.showsCancel("))
         #expect(call.contains("isCancelEnabled: !isWriting"))
         // One sheet call, so one kind: no "Kaydet", no "Kapat", in any state.
         #expect(source.components(separatedBy: ".inkSheet(").count - 1 == 1)
@@ -69,8 +69,15 @@ import VaultFormat
 
     @Test func vaultPreparationBarAndButtonsFollowTheWrite() {
         // "Vazgeç" until the result is in; then the bar is empty and "Kasayı aç" is the way out.
-        #expect(VaultImportChrome.showsCancel(hasResult: false))
-        #expect(!VaultImportChrome.showsCancel(hasResult: true))
+        #expect(VaultImportChrome.showsCancel(hasResult: false, openFailed: false))
+        #expect(!VaultImportChrome.showsCancel(hasResult: true, openFailed: false))
+        // Opening the prepared vault failed: "Vazgeç" returns and the sheet can be swiped away.
+        #expect(VaultImportChrome.openFailed(hasResult: true, hasError: true))
+        #expect(!VaultImportChrome.openFailed(hasResult: false, hasError: true))
+        #expect(VaultImportChrome.showsCancel(hasResult: true, openFailed: true))
+        #expect(!VaultImportChrome.blocksInteractiveDismiss(hasResult: true, isWriting: false, openFailed: true))
+        #expect(VaultImportChrome.blocksInteractiveDismiss(hasResult: true, isWriting: false, openFailed: false))
+        #expect(VaultImportChrome.blocksInteractiveDismiss(hasResult: true, isWriting: true, openFailed: true))
         #expect(InkSheetChrome.cancelOnlyButtons(showsCancel: true) == [.cancel])
         #expect(InkSheetChrome.cancelOnlyButtons(showsCancel: false).isEmpty)
 
@@ -82,9 +89,9 @@ import VaultFormat
         #expect(!VaultImportChrome.canApply(canPrepare: false, isWriting: false))
         #expect(!VaultImportChrome.canApply(canPrepare: true, isWriting: true))
 
-        #expect(!VaultImportChrome.blocksInteractiveDismiss(hasResult: false, isWriting: false))
-        #expect(VaultImportChrome.blocksInteractiveDismiss(hasResult: true, isWriting: false))
-        #expect(VaultImportChrome.blocksInteractiveDismiss(hasResult: false, isWriting: true))
+        #expect(!VaultImportChrome.blocksInteractiveDismiss(hasResult: false, isWriting: false, openFailed: false))
+        #expect(VaultImportChrome.blocksInteractiveDismiss(hasResult: true, isWriting: false, openFailed: false))
+        #expect(VaultImportChrome.blocksInteractiveDismiss(hasResult: false, isWriting: true, openFailed: false))
     }
 
     @Test func vaultPreparationIsOneListAndShowsTheResultUnderTheHeadline() throws {

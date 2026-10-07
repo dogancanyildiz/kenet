@@ -31,6 +31,9 @@
     /// Fixed calendar day for screens that group by "today". Sample vault days end 2026-09-27.
     let snapshotDay = CalendarDate("2026-09-20")!
 
+    /// Goals list/detail: a day with incomplete (Spor 2/3) and partial (Kitap 15/20, Su 7/8) rings.
+    let goalsSnapshotDay = CalendarDate("2026-09-17")!
+
     /// Phone-sized canvas shared by every case so references stay comparable across machines.
     let snapshotCanvasSize = CGSize(width: 390, height: 844)
 
@@ -44,6 +47,14 @@
         calendar.timeZone = snapshotTimeZone
         return calendar.date(
             from: DateComponents(year: 2026, month: 9, day: 20, hour: 9, minute: 41))!
+    }()
+
+    /// Frozen wall clock for goals screens (2026-09-17 09:41).
+    let goalsSnapshotNow: Date = {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = snapshotTimeZone
+        return calendar.date(
+            from: DateComponents(year: 2026, month: 9, day: 17, hour: 9, minute: 41))!
     }()
 
     /// Cross-machine render noise (antialiasing, font hinting). Tuned after sensitivity probes
@@ -73,8 +84,16 @@
         }
     }
 
+    /// Shared fields every screen-snapshot case exposes so hosts can share one assert path.
+    protocol SnapshotCaseConfiguring: RawRepresentable where RawValue == String {
+        var screen: SnapshotScreen { get }
+        var colorScheme: SnapshotColorScheme { get }
+        var dynamicType: SnapshotDynamicType { get }
+        var increaseContrast: Bool { get }
+    }
+
     /// One screen × one environment. Adding a case is a single enum line.
-    enum ScreenSnapshotCase: String, CaseIterable, Sendable {
+    enum ScreenSnapshotCase: String, CaseIterable, Sendable, SnapshotCaseConfiguring {
         case todayLight
         case todayDark
         case todayAX3
@@ -114,7 +133,7 @@
     }
 
     enum SnapshotScreen: String, Sendable {
-        case today, tasks
+        case today, tasks, goals, summaries, graph, graphSelected, map, goalDetail, goalCreation
     }
 
     @MainActor
@@ -123,15 +142,23 @@
             try TaskTestContext(sample: true)
         }
 
+        static func clock(for screen: SnapshotScreen) -> Date {
+            switch screen {
+            case .goals, .goalDetail, .goalCreation: goalsSnapshotNow
+            default: snapshotNow
+            }
+        }
+
         static func hostedView(screen: SnapshotScreen, store: IndexStore, defaults: UserDefaults)
             -> some View
         {
             let notifications = NotificationService(
                 center: FakeNotificationCenter(), defaults: defaults,
-                now: { snapshotNow },
+                now: { Self.clock(for: screen) },
                 timeZone: { snapshotTimeZone })
             let calendar = CalendarService(source: SnapshotCalendarSource())
             let location = LocationService(source: FakeLocationSource(), defaults: defaults)
+            let clock = clock(for: screen)
             let root: AnyView =
                 switch screen {
                 case .today:
@@ -141,6 +168,20 @@
                         TasksView(
                             store: store,
                             tasks: TasksModel(store: store, today: { snapshotDay })))
+                case .goals:
+                    AnyView(GoalsView(store: store))
+                case .summaries:
+                    AnyView(SummariesView(store: store, today: { snapshotDay }))
+                case .graph:
+                    AnyView(GraphView(store: store))
+                case .graphSelected:
+                    AnyView(GraphView(store: store, focus: "people/Ece Yalın.md"))
+                case .map:
+                    AnyView(PlacesMapView(store: store))
+                case .goalDetail:
+                    AnyView(goalDetailView(store: store, day: goalsSnapshotDay))
+                case .goalCreation:
+                    AnyView(GoalCreationView(store: store))
                 }
             return NavigationStack { root }
                 .environment(notifications)
@@ -149,28 +190,69 @@
                 .environment(\.locale, snapshotLocale)
                 .environment(\.calendar, makeSnapshotCalendar())
                 .environment(\.timeZone, snapshotTimeZone)
-                .environment(\.clockNow, { snapshotNow })
+                .environment(\.clockNow, { clock })
                 .environment(\.openSearch, {})
         }
 
+        private static func goalDetailView(store: IndexStore, day: CalendarDate) -> some View {
+            let goal =
+                store.content.goals.first { $0.key == "kitap" }
+                ?? store.content.goals[0]
+            return GoalDetailView(store: store, goal: goal, day: day)
+        }
+
         static func assert(
-            _ snapshotCase: ScreenSnapshotCase, store: IndexStore, defaults: UserDefaults,
+            _ snapshotCase: some SnapshotCaseConfiguring, store: IndexStore, defaults: UserDefaults,
             file: StaticString = #filePath, line: UInt = #line
         ) async {
+            await assert(
+                named: snapshotCase.rawValue,
+                screen: snapshotCase.screen,
+                colorScheme: snapshotCase.colorScheme,
+                dynamicType: snapshotCase.dynamicType,
+                increaseContrast: snapshotCase.increaseContrast,
+                store: store,
+                defaults: defaults,
+                file: file,
+                line: line
+            )
+        }
+
+        /// Goal detail at AX3 needs a taller canvas so heatmap + definition + history fit one frame.
+        static func canvasSize(for screen: SnapshotScreen) -> CGSize {
+            switch screen {
+            case .goalDetail: CGSize(width: 390, height: 1800)
+            default: snapshotCanvasSize
+            }
+        }
+
+        /// The single capture path: every case-based `assert` funnels here, under the host gate.
+        static func assert(
+            named name: String,
+            screen: SnapshotScreen,
+            colorScheme: SnapshotColorScheme,
+            dynamicType: SnapshotDynamicType,
+            increaseContrast: Bool,
+            store: IndexStore,
+            defaults: UserDefaults,
+            file: StaticString = #filePath,
+            line: UInt = #line
+        ) async {
+            let canvas = canvasSize(for: screen)
             await SnapshotHostGate.exclusive {
                 // colorSchemeContrast is set only via UITraitCollection (not a writable EnvironmentValues key).
-                let view = hostedView(screen: snapshotCase.screen, store: store, defaults: defaults)
-                    .environment(\.colorScheme, snapshotCase.colorScheme.colorScheme)
-                    .environment(\.dynamicTypeSize, snapshotCase.dynamicType.size)
+                let view = hostedView(screen: screen, store: store, defaults: defaults)
+                    .environment(\.colorScheme, colorScheme.colorScheme)
+                    .environment(\.dynamicTypeSize, dynamicType.size)
                     .environment(\.calendar, makeSnapshotCalendar())
-                    .environment(\.clockNow, { snapshotNow })
+                    .environment(\.clockNow, { Self.clock(for: screen) })
                     .transaction { $0.animation = nil }
-                    .frame(width: snapshotCanvasSize.width, height: snapshotCanvasSize.height)
+                    .frame(width: canvas.width, height: canvas.height)
 
                 let traits = UITraitCollection { mutable in
-                    mutable.userInterfaceStyle = snapshotCase.colorScheme.userInterfaceStyle
-                    mutable.preferredContentSizeCategory = snapshotCase.dynamicType.contentSize
-                    mutable.accessibilityContrast = snapshotCase.increaseContrast ? .high : .normal
+                    mutable.userInterfaceStyle = colorScheme.userInterfaceStyle
+                    mutable.preferredContentSizeCategory = dynamicType.contentSize
+                    mutable.accessibilityContrast = increaseContrast ? .high : .normal
                     mutable.displayScale = 2
                 }
 
@@ -180,11 +262,10 @@
                 defer { UIView.setAnimationsEnabled(previousAnimations) }
 
                 let host = UIHostingController(rootView: view)
-                host.overrideUserInterfaceStyle = snapshotCase.colorScheme.userInterfaceStyle
-                host.traitOverrides.preferredContentSizeCategory = snapshotCase.dynamicType.contentSize
-                host.traitOverrides.accessibilityContrast =
-                    snapshotCase.increaseContrast ? .high : .normal
-                host.view.frame = CGRect(origin: .zero, size: snapshotCanvasSize)
+                host.overrideUserInterfaceStyle = colorScheme.userInterfaceStyle
+                host.traitOverrides.preferredContentSizeCategory = dynamicType.contentSize
+                host.traitOverrides.accessibilityContrast = increaseContrast ? .high : .normal
+                host.view.frame = CGRect(origin: .zero, size: canvas)
 
                 let scene =
                     UIApplication.shared.connectedScenes
@@ -197,8 +278,8 @@
                     return
                 }
                 let window = UIWindow(windowScene: scene)
-                window.frame = CGRect(origin: .zero, size: snapshotCanvasSize)
-                window.overrideUserInterfaceStyle = snapshotCase.colorScheme.userInterfaceStyle
+                window.frame = CGRect(origin: .zero, size: canvas)
+                window.overrideUserInterfaceStyle = colorScheme.userInterfaceStyle
                 window.rootViewController = host
                 window.makeKeyAndVisible()
                 defer {
@@ -235,10 +316,10 @@
                         on: config,
                         precision: snapshotPrecision,
                         perceptualPrecision: snapshotPerceptualPrecision,
-                        size: snapshotCanvasSize,
+                        size: canvas,
                         traits: traits
                     ),
-                    named: snapshotCase.rawValue,
+                    named: name,
                     record: record,
                     file: file,
                     testName: "screen",

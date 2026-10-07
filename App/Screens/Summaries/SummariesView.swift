@@ -1,66 +1,90 @@
 import Summaries
 import SwiftUI
+import VaultFormat
 
 struct SummariesView: View {
     let store: IndexStore
     @State private var model: SummariesModel
-    init(store: IndexStore) {
+    init(store: IndexStore, today: @escaping () -> CalendarDate = { LocalDay.today() }) {
         self.store = store
-        _model = State(initialValue: SummariesModel(store: store))
+        _model = State(initialValue: SummariesModel(store: store, today: today))
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            controls
-            ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
-                    if model.isLoading { ProgressView() }
-                    if let error = model.errorText { Text(verbatim: error).foregroundStyle(.red) }
-                    if let summary = model.summary {
-                        if summary.isEmpty { Text("Bu dönemde kayıt yok.").foregroundStyle(.secondary) }
-                        Text("Önceki dönemle fark").font(.caption).foregroundStyle(.secondary)
-                        GroupBox("Günlük") {
-                            VStack(spacing: 10) {
-                                SummaryMetric(
-                                    title: "Olay sayısı", value: summary.counts.events, change: summary.change.events)
-                                SummaryMetric(
-                                    title: "Yazılan gün", value: summary.counts.writtenDays,
-                                    change: summary.change.writtenDays)
-                            }.padding(.top, 8)
-                        }
-                        SummaryEntityCard(
-                            store: store, title: "Kişiler", entities: summary.people,
-                            mentions: summary.counts.peopleMentions, first: summary.counts.firstPeople,
-                            mentionChange: summary.change.peopleMentions, firstChange: summary.change.firstPeople)
-                        SummaryEntityCard(
-                            store: store, title: "Konumlar", entities: summary.places,
-                            mentions: summary.counts.placeMentions, first: summary.counts.firstPlaces,
-                            mentionChange: summary.change.placeMentions, firstChange: summary.change.firstPlaces)
-                        SummaryGoalCard(goals: summary.goals)
-                        GroupBox("Görevler") {
-                            VStack(spacing: 10) {
-                                SummaryMetric(
-                                    title: "Oluşturulan", value: summary.counts.createdTasks,
-                                    change: summary.change.createdTasks)
-                                SummaryMetric(
-                                    title: "Tamamlanan", value: summary.counts.completedTasks,
-                                    change: summary.change.completedTasks)
-                                SummaryMetric(
-                                    title: "Dönem sonunda geciken", value: summary.counts.overdueTasks,
-                                    change: summary.change.overdueTasks)
-                                SummaryMetric(
-                                    title: "Tarihsiz açık", value: summary.counts.undatedTasks,
-                                    change: summary.change.undatedTasks)
-                            }.padding(.top, 8)
-                        }
+        ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
+                InkPageTitle("Özetler")
+                VStack(alignment: .leading, spacing: 20) {
+                    controls
+                    if model.isLoading {
+                        InkProgress(kind: .indeterminate(label: "Yükleniyor…"))
                     }
-                }.padding().frame(maxWidth: 760, alignment: .leading).frame(maxWidth: .infinity)
+                    if let error = model.errorText {
+                        InfoBand(kind: .error, verbatim: error)
+                    }
+                    if let summary = model.summary {
+                        if summary.isEmpty {
+                            EmptyState("Bu dönemde kayıt yok.")
+                        }
+                        Text("Önceki dönemle fark")
+                            .font(.ink.meta)
+                            .foregroundStyle(Color.ink.secondaryText)
+                        dailySection(summary)
+                        SummaryEntityCard(
+                            store: store, title: String(localized: "Kişiler"), entities: summary.people,
+                            mentions: summary.counts.peopleMentions, first: summary.counts.firstPeople,
+                            mentionChange: summary.change.peopleMentions,
+                            firstChange: summary.change.firstPeople)
+                        SummaryEntityCard(
+                            store: store, title: String(localized: "Konumlar"), entities: summary.places,
+                            mentions: summary.counts.placeMentions, first: summary.counts.firstPlaces,
+                            mentionChange: summary.change.placeMentions,
+                            firstChange: summary.change.firstPlaces)
+                        SummaryGoalCard(goals: summary.goals)
+                        tasksSection(summary)
+                    }
+                }
+                .padding(.horizontal, InkSpacing.margin)
             }
+            .padding(.bottom, InkSpacing.margin)
+            .inkPageColumn()
         }
-        .navigationTitle("Özetler").toolbar { SearchButton() }
+        .inkPage()
+        .inkPageNavigationTitle("Özetler")
+        .toolbar { SearchButton() }
         .task(id: requestID) { await model.load() }
         .onChange(of: store.vaultURL) { _, _ in model.reset() }
     }
+
+    private func dailySection(_ summary: PeriodSummary) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            SectionHeader(title: String(localized: "Günlük"))
+            SummaryMetric(
+                title: "Olay sayısı", value: summary.counts.events, change: summary.change.events)
+            SummaryMetric(
+                title: "Yazılan gün", value: summary.counts.writtenDays,
+                change: summary.change.writtenDays)
+        }
+    }
+
+    private func tasksSection(_ summary: PeriodSummary) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            SectionHeader(title: String(localized: "Görevler"))
+            SummaryMetric(
+                title: "Oluşturulan", value: summary.counts.createdTasks,
+                change: summary.change.createdTasks)
+            SummaryMetric(
+                title: "Tamamlanan", value: summary.counts.completedTasks,
+                change: summary.change.completedTasks)
+            SummaryMetric(
+                title: "Dönem sonunda devreden", value: summary.counts.overdueTasks,
+                change: summary.change.overdueTasks)
+            SummaryMetric(
+                title: "Tarihsiz açık", value: summary.counts.undatedTasks,
+                change: summary.change.undatedTasks)
+        }
+    }
+
     private var requestID: String {
         model.period.rawValue + "|" + model.day.description + "|" + (store.vaultURL?.path ?? "") + "|"
             + String(store.lastUpdated?.timeIntervalSince1970 ?? 0)
@@ -76,6 +100,7 @@ struct SummariesView: View {
                     model.previous()
                 } label: {
                     Image(systemName: "chevron.left")
+                        .foregroundStyle(Color.ink.accent)
                         .tapTarget()
                 }
                 .accessibilityLabel("Önceki dönem").disabled(!model.canGoPrevious)
@@ -88,11 +113,17 @@ struct SummariesView: View {
                     model.next()
                 } label: {
                     Image(systemName: "chevron.right")
+                        .foregroundStyle(Color.ink.accent)
                         .tapTarget()
                 }
                 .accessibilityLabel("Sonraki dönem").disabled(!model.canGoNext)
-            }.font(.subheadline)
-            Button(LocalizedStringKey(model.period == .week ? "Bu hafta" : "Bu ay")) { model.current() }
-        }.padding()
+            }
+            .font(.ink.byline)
+            .foregroundStyle(Color.ink.text)
+            Button(LocalizedStringKey(model.period == .week ? "Bu hafta" : "Bu ay")) {
+                model.current()
+            }
+            .buttonStyle(InkTextButtonStyle())
+        }
     }
 }

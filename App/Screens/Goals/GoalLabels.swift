@@ -2,27 +2,27 @@ import GoalTracking
 import SwiftUI
 
 extension GoalPeriod {
-    var title: LocalizedStringKey {
+    var title: String {
         switch self {
-        case .day: "Günlük hedef"
-        case .week: "Haftalık"
-        case .year: "Yıllık"
+        case .day: String(localized: "Günlük hedef")
+        case .week: String(localized: "Haftalık")
+        case .year: String(localized: "Yıllık")
         }
     }
-    var progressTitle: LocalizedStringKey {
+    var progressTitle: String {
         switch self {
-        case .day: "Bu gün"
-        case .week: "Bu hafta"
-        case .year: "Bu yıl"
+        case .day: String(localized: "Bu gün")
+        case .week: String(localized: "Bu hafta")
+        case .year: String(localized: "Bu yıl")
         }
     }
 }
 extension GoalKind {
-    var title: LocalizedStringKey {
+    var title: String {
         switch self {
-        case .boolean: "Evet / hayır"
-        case .number: "Sayı"
-        case .milestone: "Kilometre taşı"
+        case .boolean: String(localized: "Evet / hayır")
+        case .number: String(localized: "Sayı")
+        case .milestone: String(localized: "Kilometre taşı")
         }
     }
 }
@@ -34,48 +34,65 @@ extension GoalDayMark {
         case .full: "Tam katkı"
         }
     }
-    var color: Color {
-        switch self {
-        case .none: .secondary.opacity(0.12)
-        case .partial: .green.opacity(0.35)
-        case .full: .green.opacity(0.9)
-        }
-    }
 }
+
 struct GoalProgressLabel: View {
     let goal: GoalDefinition
     let status: GoalStatus
     var body: some View {
-        HStack {
+        HStack(spacing: 6) {
             if goal.kind == .milestone {
                 Text(status.completionDate == nil ? "Yapılmadı" : "Yapıldı")
                 if let day = status.completionDate {
                     Text(LocalDay.instant(for: day), format: .dateTime.day().month().year())
                 }
             } else {
-                Text(goal.period.progressTitle)
+                Text(verbatim: goal.period.progressTitle)
                 Text(verbatim: status.progress.done.formatted() + "/" + goal.target.formatted())
+                    .font(.ink.value)
+                    .monospacedDigit()
                 if let unit = goal.unit { Text(verbatim: unit) }
             }
         }
-        .font(.caption).foregroundStyle(.secondary)
+        .font(.ink.meta)
+        .foregroundStyle(Color.ink.secondaryText)
     }
 }
-struct GoalCard: View {
-    let goal: GoalDefinition
-    let status: GoalStatus
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(verbatim: goal.name).font(.headline)
-            Text(goal.period.title).font(.caption).foregroundStyle(.secondary)
-            if goal.period == .day {
-                Text("Güncel zincir: \(status.streak)").font(.subheadline)
-            } else {
-                GoalProgressLabel(goal: goal, status: status)
+
+enum GoalRowPresentation {
+    static func progress(goal: GoalDefinition, status: GoalStatus) -> Double {
+        if goal.kind == .milestone {
+            return status.completionDate == nil ? 0 : 1
+        }
+        return status.progress.fraction
+    }
+
+    static func valueText(goal: GoalDefinition, status: GoalStatus) -> String? {
+        if goal.kind == .milestone {
+            return nil
+        }
+        var text = status.progress.done.formatted() + "/" + goal.target.formatted()
+        if let unit = goal.unit, !unit.isEmpty { text += " " + unit }
+        return text
+    }
+
+    /// Meta under the name: streak for daily goals, period label for week/year (value is trailing).
+    static func meta(goal: GoalDefinition, status: GoalStatus) -> String? {
+        if goal.kind == .milestone {
+            if let day = status.completionDate {
+                return LocalDay.instant(for: day).formatted(.dateTime.day().month().year())
             }
-            if let year = status.yearProgress {
-                ProgressView(value: year.fraction).accessibilityLabel("Yıllık ilerleme")
-            }
-        }.padding(.vertical, 6)
+            return String(localized: "Yapılmadı")
+        }
+        if goal.period == .day {
+            return String(localized: "Güncel zincir: \(status.streak)")
+        }
+        return goal.period.progressTitle
+    }
+
+    /// Thin determinate bar for yearly goals only.
+    static func barFraction(goal: GoalDefinition, status: GoalStatus) -> Double? {
+        guard goal.kind != .milestone, goal.period == .year else { return nil }
+        return InkProgressMath.ratio(done: status.progress.done, target: goal.target)
     }
 }

@@ -88,4 +88,5 @@ struct RowComponentTests {
         #expect(GoalRingProgress.isComplete(1))
         #expect(!GoalRingProgress.isComplete(0.99))
     }
+
 }

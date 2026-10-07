@@ -1,12 +1,14 @@
 import SwiftUI
 
-/// Progress chrome: indeterminate (inline) or determinate (line + tabular counter).
+/// Progress chrome: indeterminate (inline), determinate (line + tabular counter), or fraction (line only).
 struct InkProgress: View {
     enum Kind {
         /// Small inline status while work runs without a known total (e.g. index refresh).
         case indeterminate(label: LocalizedStringKey)
         /// Line progress with `completed` of `total` (e.g. vault import).
         case determinate(completed: Int, total: Int, label: LocalizedStringKey?)
+        /// Line progress from a 0...1 (or over-1) ratio; no "n/total" counter.
+        case fraction(Double, label: LocalizedStringKey? = nil)
     }
 
     var kind: Kind
@@ -18,6 +20,8 @@ struct InkProgress: View {
             indeterminate(label: label)
         case .determinate(let completed, let total, let label):
             determinate(completed: completed, total: total, label: label)
+        case .fraction(let value, let label):
+            fractionBar(value: value, label: label)
         }
     }
 
@@ -49,15 +53,7 @@ struct InkProgress: View {
                     .font(.ink.meta)
                     .foregroundStyle(Color.ink.secondaryText)
             }
-            GeometryReader { geo in
-                ZStack(alignment: .leading) {
-                    Capsule().fill(Color.ink.well)
-                    Capsule()
-                        .fill(Color.ink.accent)
-                        .frame(width: max(0, geo.size.width * fraction))
-                }
-            }
-            .frame(height: 4)
+            bar(fraction: fraction)
             Text(InkProgressMath.counterText(completed: clamped, total: safeTotal))
                 .font(.ink.value)
                 .foregroundStyle(Color.ink.secondaryText)
@@ -66,6 +62,32 @@ struct InkProgress: View {
         }
         .accessibilityElement(children: .combine)
         .accessibilityValue(Text(InkProgressMath.counterText(completed: clamped, total: safeTotal)))
+    }
+
+    private func fractionBar(value: Double, label: LocalizedStringKey?) -> some View {
+        let fraction = InkProgressMath.fraction(value)
+        return VStack(alignment: .leading, spacing: 6) {
+            if let label {
+                Text(label)
+                    .font(.ink.meta)
+                    .foregroundStyle(Color.ink.secondaryText)
+            }
+            bar(fraction: fraction)
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityValue(Text(verbatim: InkProgressMath.percentText(fraction)))
+    }
+
+    private func bar(fraction: Double) -> some View {
+        GeometryReader { geo in
+            ZStack(alignment: .leading) {
+                Capsule().fill(Color.ink.well)
+                Capsule()
+                    .fill(Color.ink.accent)
+                    .frame(width: max(0, geo.size.width * fraction))
+            }
+        }
+        .frame(height: 4)
     }
 }
 

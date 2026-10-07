@@ -110,9 +110,11 @@ import VaultFormat
         private var goalRowsSection: some View {
             galleryBlock(title: "InkGoalRow") {
                 InkGoalRow(
-                    name: "Su", progress: 0.5, valueText: "1 / 2 L",
+                    name: "Su", progress: 0.5, meta: "Güncel zincir: 3", valueText: "1 / 2 L",
                     onIncrement: {})
-                InkGoalRow(name: "Meditasyon", progress: 0, isBoolean: true, onIncrement: {})
+                InkGoalRow(
+                    name: "Meditasyon", progress: 0, isBoolean: true, meta: "Bu hafta · 0/3",
+                    onIncrement: {})
                 InkGoalRow(name: "Kitap", progress: 1, valueText: "30 / 30", onIncrement: {})
             }
         }

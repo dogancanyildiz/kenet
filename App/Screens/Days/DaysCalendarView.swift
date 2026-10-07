@@ -124,7 +124,11 @@ struct DaysCalendarDayMark: View {
                     .foregroundStyle(isSelected ? Color.ink.onAccent : Color.ink.text)
                     .minimumScaleFactor(0.35)
                     .lineLimit(1)
-                    .padding(DaysCalendarMarkLayout.numeralInset(diameter: diameter))
+                    // Only cells that draw a ring or disc need clearance; plain days keep full size.
+                    .padding(
+                        isToday || isSelected
+                            ? DaysCalendarMarkLayout.numeralInset(diameter: diameter) : 0
+                    )
                     .frame(width: diameter, height: diameter)
                     .background {
                         if isSelected {

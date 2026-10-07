@@ -124,7 +124,7 @@ Harita geçerli koordinatı olan konumları pin olarak gösterir. Pin boyutu bü
 
 ### Arama (1)
 
-Her ekranın üstündeki simgeden açılır. Sayfa adı serif manşet olarak sayfanın içinde durur. Tek kutu (`ink.well` zemin); sonuçlar türe göre gruplu: kişiler, konumlar, olaylar, görevler, notlar. Not önizlemesi düz metindir (başlık işaretleri ve liste tireleri yok). Aynı zamanda hızlı geçiş işlevi görür.
+Her ekranın üstündeki simgeden açılır. Sayfa adı serif manşet olarak sayfanın içinde durur. Tek kutu (`ink.well` zemin); sonuçlar türe göre gruplu: kişiler, konumlar, olaylar, görevler, notlar. Not önizlemesi düz metindir (başlık işaretleri ve liste tireleri yok; sıra sayısı gibi içerik korunur). Kod çitinin içi olduğu gibi gösterilir. Aynı zamanda hızlı geçiş işlevi görür.
 
 ### Serbest notlar
 

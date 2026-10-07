@@ -21,7 +21,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: SwiftPM önbelleği
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: Packages/Core/.build
           key: spm-${{ runner.os }}-${{ hashFiles('Packages/Core/Package.swift', 'Packages/Core/Package.resolved') }}
@@ -41,7 +41,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: SwiftPM önbelleği
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: Packages/Core/.build
           key: spm-${{ runner.os }}-${{ hashFiles('Packages/Core/Package.swift', 'Packages/Core/Package.resolved') }}
@@ -65,7 +65,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Paket önbelleği
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           # Yalnız paket indirmeleri; derleme ürünleri önbelleklenmez (bayat test paketi riski).
           path: ~/Library/Developer/Xcode/DerivedData/**/SourcePackages
@@ -94,7 +94,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Paket önbelleği
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           # Yalnız paket indirmeleri; derleme ürünleri önbelleklenmez (bayat test paketi riski).
           path: ~/Library/Developer/Xcode/DerivedData/**/SourcePackages
@@ -166,7 +166,7 @@ jobs:
             -quiet
       - name: Ekran görüntüsü farkları (yalnız düşünce)
         if: failure() && steps.screen_snapshots.outcome == 'failure'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: screen-snapshot-diffs
           path: |
@@ -186,7 +186,7 @@ jobs:
             -quiet
       - name: Arayüz testi sonuç paketi (yalnız düşünce)
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: ui-test-results
           path: UITests.xcresult

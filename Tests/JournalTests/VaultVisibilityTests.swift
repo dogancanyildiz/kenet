@@ -6,17 +6,18 @@ import Testing
 struct VaultVisibilityTests {
     @Test func projectYmlEnablesFileSharingKeys() throws {
         let source = try Self.read("project.yml")
+        // Each key lives in exactly one place (see project.yml): Xcode deletes a plist entry
+        // that duplicates a build setting it knows, which kept dirtying the working tree.
         #expect(
-            source.contains("INFOPLIST_KEY_UIFileSharingEnabled")
-                || source.contains("App/Support/FileSharing.plist"),
+            source.contains("INFOPLIST_FILE: App/Support/FileSharing.plist"),
             "iOS Documents/Vault must appear in the Files app")
         #expect(
-            source.contains("INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace")
-                || source.contains("App/Support/FileSharing.plist"),
+            source.contains("INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace: YES"),
             "Documents must open in place for Files / Obsidian")
+        #expect(!source.contains("INFOPLIST_KEY_UIFileSharingEnabled"))
         let plist = try Self.read("App/Support/FileSharing.plist")
         #expect(plist.contains("UIFileSharingEnabled"))
-        #expect(plist.contains("LSSupportsOpeningDocumentsInPlace"))
+        #expect(!plist.contains("LSSupportsOpeningDocumentsInPlace"))
         #expect(plist.contains("<true/>"))
     }
 

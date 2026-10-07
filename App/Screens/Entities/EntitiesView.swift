@@ -24,7 +24,7 @@ struct EntitiesView: View {
 
     var body: some View {
         List {
-            InkPageTitleRow("Kişiler ve Konumlar") {
+            InkPageTitleRow(verbatim: String(localized: "Kişiler ve Konumlar"), fitsOneLine: true) {
                 EntitySortMenu(order: $order)
                 SearchButton()
             }

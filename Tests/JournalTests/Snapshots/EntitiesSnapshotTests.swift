@@ -60,7 +60,7 @@
             case .people, .places, .filtered, .customTypes: snapshotCanvasSize
             case .editSheet:
                 dynamicType == .accessibility3
-                    ? CGSize(width: 390, height: 2400) : CGSize(width: 390, height: 1300)
+                    ? CGSize(width: 390, height: 1400) : CGSize(width: 390, height: 1000)
             case .renameSheet, .unresolved:
                 dynamicType == .accessibility3
                     ? CGSize(width: 390, height: 800) : CGSize(width: 390, height: 480)

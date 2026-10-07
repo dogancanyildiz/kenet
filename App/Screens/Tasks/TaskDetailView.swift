@@ -7,7 +7,7 @@ struct TaskDetailView: View {
 
     var body: some View {
         List {
-            InkPageTitleRow("Görev")
+            InkPageTitleRow("Görev") { SearchButton() }
             Section {
                 SectionHeader(title: String(localized: "Görev"))
                     .inkListRow()
@@ -90,7 +90,6 @@ struct TaskDetailView: View {
         .inkPage()
         .inkPageColumn()
         .inkPageNavigationTitle("Görev")
-        .toolbar { SearchButton() }
     }
 
     private func field<Value: View>(_ title: LocalizedStringKey, @ViewBuilder value: () -> Value)

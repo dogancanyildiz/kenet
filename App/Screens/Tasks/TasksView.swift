@@ -4,71 +4,45 @@ import VaultFormat
 struct TasksView: View {
     let store: IndexStore
     let notificationRequest: UUID?
-    let onKanbanSelected: (() -> Void)?
-    let onTimelineSelected: (() -> Void)?
     @Binding var selection: String?
     @State private var pendingNotificationScroll: UUID?
     @State private var model: TasksModel
-    #if os(iOS)
-        @AppStorage(TasksModel.Section.storageKey) private var storedSection = "upcoming"
-    #endif
-
     init(
         store: IndexStore, selection: Binding<String?> = .constant(nil), notificationRequest: UUID? = nil,
-        tasks: TasksModel? = nil, onKanbanSelected: (() -> Void)? = nil, onTimelineSelected: (() -> Void)? = nil
+        tasks: TasksModel? = nil
     ) {
         self.store = store
         self.notificationRequest = notificationRequest
-        self.onKanbanSelected = onKanbanSelected
-        self.onTimelineSelected = onTimelineSelected
         _selection = selection
         let model = tasks ?? TasksModel(store: store)
         #if os(iOS)
-            if tasks == nil,
-                let restored = TasksModel.Section(
-                    rawValue: UserDefaults.standard.string(forKey: TasksModel.Section.storageKey) ?? "")
-            {
-                model.section = restored
-            }
+            if tasks == nil { model.viewState = TasksViewState.restore(from: .standard) }
         #endif
         _model = State(initialValue: model)
     }
 
     var body: some View {
         ScrollViewReader { proxy in
-            VStack(spacing: 0) {
-                if model.hasFilters {
-                    filterBand
-                }
-                if model.section == .kanban {
-                    InkPageTitle("Görevler")
-                    KanbanView(tasks: model)
-                } else if model.section == .timeline {
-                    InkPageTitle("Görevler")
-                    TaskTimelineView(tasks: model)
-                } else {
+            Group {
+                switch model.viewState.mode {
+                case .kanban: KanbanView(tasks: model)
+                case .timeline: TaskTimelineView(tasks: model)
+                case .list:
                     listContent
                         .inkPageColumn()
                 }
             }
             .inkPage()
-            .inkPageNavigationTitle("Görevler")
+            .inkRootPageNavigationTitle("Görevler")
             .accessibilityIdentifier("screen.tasks")
-            .toolbar {
-                TasksSectionPicker(section: $model.section)
-                TaskFiltersMenu(model: model)
-                SearchButton()
-            }
-            .onChange(of: model.section) { _, section in
+            .onChange(of: model.viewState) { _, state in
                 #if os(iOS)
-                    storedSection = section.rawValue
+                    state.save(to: .standard)
                 #endif
-                if section == .kanban { onKanbanSelected?() }
-                if section == .timeline { onTimelineSelected?() }
             }
             .onChange(of: notificationRequest, initial: true) { _, request in
                 guard request != nil else { return }
-                // Temporary jump for the notification; do not persist over the user's section.
+                // Jump to the agenda for the notification.
                 model.section = .upcoming
                 model.clearFilters()
                 selection = nil
@@ -83,43 +57,19 @@ struct TasksView: View {
         }
     }
 
-    private var filterBand: some View {
-        HStack(spacing: 8) {
-            if let path = model.entityFilter,
-                let entity = store.content.entities.first(where: { $0.id == path })
-            {
-                TagChip(
-                    title: entity.name,
-                    systemImage: entity.kind == "place" ? "mappin" : "person")
-            }
-            if let project = model.projectFilter {
-                TagChip(title: project, systemImage: "folder")
-            }
-            Spacer(minLength: 0)
-            Button {
-                model.clearFilters()
-            } label: {
-                Label("Filtreleri temizle", systemImage: "xmark.circle")
-                    .labelStyle(.iconOnly)
-                    .tapTarget()
-            }
-            .buttonStyle(InkTextButtonStyle())
-        }
-        .padding(.horizontal, InkSpacing.margin)
-        .padding(.vertical, 8)
-    }
-
     @ViewBuilder private var listContent: some View {
         List(selection: $selection) {
-            InkPageTitleRow("Görevler")
+            TasksPageTop(tasks: model, current: .list) {
+                TasksSectionMenu(tasks: model)
+            }
+            .tasksPageTopRow()
             if let error = model.errorText {
                 InfoBand(kind: .error, verbatim: error)
                     .listRowInsets(EdgeInsets())
                     .listRowSeparator(.hidden)
                     .listRowBackground(Color.ink.paper)
             }
-            switch model.section {
-            case .kanban, .timeline: EmptyView()
+            switch model.viewState.listSection {
             case .projects:
                 ForEach(model.projects, id: \.self) { project in
                     NavigationLink {
@@ -217,10 +167,10 @@ struct TasksView: View {
     }
 
     private func footnote(for row: TaskRow) -> Text? {
-        if model.section == .undated, let date = row.createdDate {
+        if model.viewState.listSection == .undated, let date = row.createdDate {
             return Text(LocalDay.instant(for: date), format: .dateTime.day().month().year())
         }
-        if model.section == .completed, let date = row.done {
+        if model.viewState.listSection == .completed, let date = row.done {
             return Text(LocalDay.instant(for: date), format: .dateTime.day().month().year())
         }
         return nil
@@ -243,42 +193,5 @@ struct TasksView: View {
         let calendar = Calendar(identifier: .gregorian)
         let instant = calendar.date(byAdding: .day, value: 1, to: LocalDay.instant(for: model.day))!
         return LocalDay.today(at: instant)
-    }
-}
-
-struct TaskFiltersMenu: View {
-    @Bindable var model: TasksModel
-    var body: some View {
-        Menu {
-            ForEach(["person", "place"], id: \.self) { kind in
-                Menu(LocalizedStringKey(kind == "person" ? "Kişiler" : "Konumlar")) {
-                    ForEach(model.store.content.entities.filter { $0.kind == kind }) { entity in
-                        Button {
-                            model.entityFilter = entity.id
-                        } label: {
-                            Text(verbatim: entity.name)
-                            if let qualifier = entity.qualifier { Text(verbatim: qualifier) }
-                            if model.entityFilter == entity.id { Image(systemName: "checkmark") }
-                        }
-                    }
-                }
-            }
-            Menu("Projeler") {
-                ForEach(model.projects, id: \.self) { project in
-                    Button {
-                        model.projectFilter = project
-                    } label: {
-                        Text(verbatim: project)
-                        if model.projectFilter == project { Image(systemName: "checkmark") }
-                    }
-                }
-            }
-            if model.hasFilters { Button("Filtreleri temizle") { model.clearFilters() } }
-        } label: {
-            Label(
-                "Filtre",
-                systemImage: model.hasFilters
-                    ? "line.3.horizontal.decrease.circle.fill" : "line.3.horizontal.decrease.circle")
-        }
     }
 }

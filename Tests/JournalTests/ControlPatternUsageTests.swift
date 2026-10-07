@@ -29,28 +29,14 @@ struct ControlPatternUsageTests {
     /// Files that still break each rule. Screen work removes entries; nothing is added.
     static let allowlist: [Rule: Set<String>] = [
         .segmentedPicker: [],
-        .menuPicker: [
-            "App/Screens/Tasks/Kanban/KanbanView.swift",
-            "App/Screens/Tasks/TasksSectionPicker.swift",
-            "App/Screens/Tasks/Timeline/TaskTimelineView.swift",
-        ],
-        .unstyledPicker: [
-            "App/Screens/Tasks/TaskRecurrenceEditor.swift"
-        ],
+        .menuPicker: [],
+        .unstyledPicker: [],
         .roundedBorderField: [],
         .toolbarSearch: [
-            "App/Navigation/MacNavigation.swift",
-            "App/Screens/Tasks/ProjectView.swift",
-            "App/Screens/Tasks/TaskDetailView.swift",
-            "App/Screens/Tasks/TasksView.swift",
+            "App/Navigation/MacNavigation.swift"
         ],
         .doneButton: [],
-        .sheetToolbar: [
-            "App/Screens/Tasks/Kanban/KanbanView.swift",
-            "App/Screens/Tasks/TaskRecurrenceEditor.swift",
-            "App/Screens/Tasks/Timeline/TaskTimelineView.swift",
-            "App/Screens/Tasks/Timeline/TimelineDateEditor.swift",
-        ],
+        .sheetToolbar: [],
     ]
 
     @Test(arguments: Rule.allCases)

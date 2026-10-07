@@ -8,22 +8,27 @@ struct TaskTimelineView: View {
     @State private var sourceDay: CalendarDate?
     @State private var todayRequest = UUID()
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    /// `true` when the Mac shell hosts the timeline full-width (outside ``TasksView``).
     let showsFilters: Bool
     let openDay: (String) -> Void
 
     init(tasks: TasksModel, showsFilters: Bool = false, openDay: @escaping (String) -> Void = { _ in }) {
-        _model = State(initialValue: TimelineModel(tasks: tasks))
+        _model = State(initialValue: TimelineModel.board(for: tasks))
         self.showsFilters = showsFilters
         self.openDay = openDay
     }
     var body: some View {
         VStack(spacing: 0) {
-            controls
-            if let error = model.errorText {
-                InfoBand(kind: .error, verbatim: error)
-                    .padding(.horizontal, InkSpacing.margin)
-            }
             #if os(macOS)
+                TasksPageTop(tasks: model.tasks, current: .timeline) {
+                    groupingMenu
+                } menu: {
+                    controls
+                }
+                if let error = model.errorText {
+                    InfoBand(kind: .error, verbatim: error)
+                        .padding(.horizontal, InkSpacing.margin)
+                }
                 HStack(spacing: 0) {
                     TimelineDesktopView(model: model, todayRequest: todayRequest) {
                         selected = $0
@@ -56,7 +61,7 @@ struct TaskTimelineView: View {
                                 sourceDay = CalendarDate(String(path.dropFirst("journal/".count).dropLast(3)))
                             }
                             .navigationDestination(item: $sourceDay) { DayView(store: model.store, date: $0) }
-                            .toolbar { Button("Kapat") { selected = nil } }
+                            .inkSheet("Görev", onClose: { selected = nil })
                         }
                     }.presentationDetents([.medium, .large])
                 }
@@ -77,66 +82,66 @@ struct TaskTimelineView: View {
         .onChange(of: selected?.id) { _, _ in sourceDay = nil }
     }
     private var selectedTask: TaskRow? { model.store.content.tasks.first { $0.id == selected?.id } }
+    /// Second layer of the view selector ("Ölçek") with the period controls on the same row;
+    /// they stack at accessibility sizes.
     private var controls: some View {
         Group {
             if dynamicTypeSize.isAccessibilitySize {
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack(spacing: 8) {
-                        #if os(macOS)
-                            groupingPicker
-                        #endif
-                        scalePicker
-                    }
+                VStack(alignment: .leading, spacing: 0) {
+                    scaleMenu(expands: true)
                     HStack(spacing: 8) {
                         #if os(iOS)
                             periodButtons
                         #endif
                         todayButton
-                        if showsFilters { TaskFiltersMenu(model: model.tasks) }
                         Spacer(minLength: 0)
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
             } else {
-                HStack {
-                    #if os(macOS)
-                        groupingPicker
-                    #endif
-                    scalePicker
-                    Spacer(minLength: 8)
-                    #if os(iOS)
+                #if os(macOS)
+                    // The menu alone sets the row height (the text button is taller on Mac), so
+                    // the row sits where the other views' menu rows sit.
+                    scaleMenu(expands: false)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .overlay(alignment: .trailing) { todayButton }
+                #else
+                    HStack(spacing: 16) {
+                        scaleMenu(expands: true)
                         periodButtons
-                    #endif
-                    todayButton
-                    if showsFilters { TaskFiltersMenu(model: model.tasks) }
-                }
+                        todayButton
+                    }
+                #endif
             }
         }
-        .padding(.horizontal, InkSpacing.margin)
-        .padding(.vertical, 10)
     }
 
-    private var scalePicker: some View {
-        Picker("Ölçek", selection: $model.scale) {
-            Text("Hafta").tag(TimelineModel.Scale.week)
-            Text("Ay").tag(TimelineModel.Scale.month)
-            Text("Çeyrek").tag(TimelineModel.Scale.quarter)
-        }
-        .pickerStyle(.menu)
-        .fixedSize(horizontal: true, vertical: false)
-        .lineLimit(1)
+    private func scaleMenu(expands: Bool) -> some View {
+        InkLabeledMenu(
+            "Ölçek", selection: Binding(get: { model.scale }, set: { model.choose($0) }),
+            options: [
+                InkMenuOption("Hafta", value: TimelineModel.Scale.week),
+                InkMenuOption("Ay", value: TimelineModel.Scale.month),
+                InkMenuOption("Çeyrek", value: TimelineModel.Scale.quarter),
+            ], expands: expands, identifier: TasksViewSelector.menuIdentifier)
     }
 
     #if os(macOS)
-        private var groupingPicker: some View {
-            Picker("Gruplama", selection: $model.grouping) {
-                Text("Proje").tag(TimelineModel.Grouping.project)
-                Text("Kişi").tag(TimelineModel.Grouping.person)
-                Text("Yok").tag(TimelineModel.Grouping.none)
+        /// How the rows are grouped: a manşet-row icon, so the menu row holds "Ölçek" alone.
+        /// Accent while the grouping is not the default.
+        private var groupingMenu: some View {
+            InkHeaderMenu(
+                "Grupla", systemImage: "rectangle.3.group",
+                isActive: model.grouping != TimelineModel.defaultGrouping,
+                identifier: "tasks.timeline.grouping"
+            ) {
+                Picker("Grupla", selection: $model.grouping) {
+                    Text("Proje").tag(TimelineModel.Grouping.project)
+                    Text("Kişi").tag(TimelineModel.Grouping.person)
+                    Text("Yok").tag(TimelineModel.Grouping.none)
+                }
+                .pickerStyle(.inline)
             }
-            .pickerStyle(.menu)
-            .fixedSize(horizontal: true, vertical: false)
-            .lineLimit(1)
         }
     #endif
 
@@ -173,25 +178,35 @@ struct TaskTimelineView: View {
         }
     #endif
 
+    /// The page top is part of the list, so the manşet scrolls away with the rows.
     private var mobileList: some View {
         List {
+            TasksPageTop(tasks: model.tasks, current: .timeline) {
+                controls
+            }
+            .tasksPageTopRow()
+            if let error = model.errorText {
+                InfoBand(kind: .error, verbatim: error)
+                    .inkListRow()
+            }
             ForEach(model.mobileGroups) { group in
                 Section {
-                    ForEach(group.rows) { row in taskRow(row) }
-                } header: {
                     if let date = CalendarDate(group.id) {
                         SectionHeader(
                             title: LocalDay.instant(for: date).formatted(
                                 .dateTime.month(.wide).year().day()),
-                            count: group.rows.count)
+                            count: group.rows.count
+                        )
+                        .inkListRow()
                     }
+                    ForEach(group.rows) { row in taskRow(row) }
                 }
             }
             if !model.undated.isEmpty {
                 Section {
-                    ForEach(model.undated) { row in taskRow(row) }
-                } header: {
                     SectionHeader(title: String(localized: "Tarihsiz"), count: model.undated.count)
+                        .inkListRow()
+                    ForEach(model.undated) { row in taskRow(row) }
                 }
             }
             if model.mobileGroups.isEmpty && model.undated.isEmpty {

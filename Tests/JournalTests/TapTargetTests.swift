@@ -36,6 +36,11 @@ struct TapTargetTests {
         "App/Screens/Summaries/SummariesView.swift",
         "App/Screens/Tasks/Timeline/TaskTimelineView.swift",
         "App/Screens/Graph/GraphControls.swift",
+        // Control-pattern components (manşet-row icon, tabs, labeled menu, filter clear button).
+        "App/Design/Components/InkHeaderAction.swift",
+        "App/Design/Components/InkTabs.swift",
+        "App/Design/Components/InkLabeledMenu.swift",
+        "App/Design/Components/InkFilterField.swift",
     ])
     func listedControlsApplyTapTargetInsideButton(_ path: String) throws {
         let source = try Self.read(path)

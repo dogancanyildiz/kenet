@@ -11,6 +11,7 @@ extension InkButtonChrome {
         case .onAccent: Color.ink.onAccent
         case .accent: Color.ink.accent
         case .danger: Color.ink.danger
+        case .control: Color.ink.control
         }
     }
 }

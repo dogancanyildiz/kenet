@@ -12,7 +12,7 @@ Hangi ekranlar var, her birinde ne görünür ve aralarında nasıl geçilir. He
 
 ## iPhone
 
-Alt sekmeler: **Bugün, Günlük, Görevler, Kişiler ve Konumlar, Hedefler.** Arama sekme değildir; her ekranın üstünde simge olarak durur.
+Alt sekmeler: **Bugün, Günlük, Görevler, Kişiler ve Konumlar, Hedefler.** Arama sekme değildir; her kök ekranda manşet satırının en sağında simge olarak durur. Sayfa üstü, seçiciler, sıralama ve sheet'ler için ortak kalıp `design.md` içindeki "Denetim kalıpları" bölümündedir; aşağıdaki ekran tarifleri o kalıbı kullanır.
 
 ### Bugün (1, 2, 3)
 
@@ -52,7 +52,7 @@ En altta sabit **hızlı giriş kapsülü** (opak; içeriğin üstüne binmez).
 
 ### Özetler (6)
 
-Günlük içinden ve Mac kenar çubuğundan açılır. Hafta (pazartesi–pazar) / takvim ayı seçicisi, önceki/sonraki dönem ve Bu hafta / Bu ay düğmesi vardır. Günlük, Kişiler, Konumlar, Hedefler ve Görevler bölümleri sayıları ve önceki eş dönem farklarını nötr ok ve işaretli metinle gösterir (kart yok). Kişi/konumların ilk beşi kendi sayfasına bağlanır; sıralama geçiş sayısı azalan, eşitlerde ad ve yol sırasıdır. Boş dönemde “Bu dönemde kayıt yok.” gösterilir; taşınan açık işler yine görülebilir.
+Günlük içinden ve Mac kenar çubuğundan açılır. Hafta | Ay sekmesi (pazartesi–pazar haftası ya da takvim ayı), önceki/sonraki dönem ve Bu hafta / Bu ay düğmesi vardır. Günlük, Kişiler, Konumlar, Hedefler ve Görevler bölümleri sayıları ve önceki eş dönem farklarını nötr ok ve işaretli metinle gösterir (kart yok). Kişi/konumların ilk beşi kendi sayfasına bağlanır; sıralama geçiş sayısı azalan, eşitlerde ad ve yol sırasıdır. Boş dönemde “Bu dönemde kayıt yok.” gösterilir; taşınan açık işler yine görülebilir.
 
 - Olay sayısı olay bloklarını; yazılan gün sayısı en az bir olay veya boş olmayan Journal paragrafı/başlığı bulunan farklı gün tarihlerini sayar. Yalnız görev veya hedef kaydı yazılan gün sayılmaz.
 - Kişi/konum geçişi, gün dosyalarının gövdesindeki çözülen her bağlantıdır; tekrarlar ayrı sayılır, frontmatter bağlantıları sayılmaz. Bölüm toplamı ilk beş dışındakileri de içerir. Oluşturulma tarihi kasada bulunmadığından **İlk kez geçenler**, bütün günlük geçmişinde ilk gövde bağlantısı bu döneme düşen varlıkları sayar; dosya oluşturulma sayısı değildir.
@@ -63,7 +63,7 @@ Günlük içinden ve Mac kenar çubuğundan açılır. Hafta (pazartesi–pazar)
 
 Sayfa adı serif manşet olarak listenin içinde durur; gezinme çubuğunda büyük başlık yoktur. Proje ve görev ayrıntısı sayfaları aynı kalıbı kullanır. Kanban ve zaman çizelgesi geniş yüzeydir (680 pt sütun sınırına girmez).
 
-Bölümler (tek görünüm seçici: iPhone ve Mac içerik alanında araç çubuğunda; sıra Yaklaşan → Tarihsiz → Tamamlanan → Projeler → Kanban → Zaman çizelgesi; son seçim iPhone'da hatırlanır). Mac kenar çubuğundaki Kanban, Zaman çizelgesi ve proje girişleri gezinme düzenidir ve değişmez.
+Görünüm iki katmanda seçilir. Manşetin altında sekme: Liste | Kanban | Zaman çizelgesi. Sekmenin altında görünüme göre değişen tek menü: Liste'de "Bölüm" (Yaklaşan, Tarihsiz, Tamamlanan, Projeler), Kanban'da "Grupla" (durum, proje, kişi), Zaman çizelgesi'nde "Ölçek". Filtre ve arama manşet satırında simgedir. Son sekme ve her sekmenin son menü seçimi iPhone'da hatırlanır. Mac kenar çubuğundaki Kanban, Zaman çizelgesi ve proje girişleri gezinme düzenidir ve değişmez.
 
 - **Yaklaşan:** Tarihli görevler, güne göre gruplu ajanda listesi. Grup başlığı bölüm başlığı + sayaçtır; "Devreden" (eski "Geciken") grubu vardır.
 - **Tarihsiz:** Bitiş tarihi olmayan açık görevler.
@@ -77,13 +77,13 @@ Filtre: kişi, konum, proje. Aynı gündeki görevler yüksek, orta, normal, dü
 ### Kişiler ve Konumlar (1)
 
 - Sayfa adı serif manşet olarak listenin içinde durur; gezinme çubuğunda büyük başlık yoktur.
-- Üstte kişi / konum geçişi. Liste ada göre ya da son geçtiği tarihe göre sıralanır.
+- Manşetin altında tür seçici: yalnız Kişiler ve Konumlar varken sekme; kasada özel tip tanımlıysa (seçenek sayısı dördü bulunca) "Tür" menüsü. Sıralama (ada göre ya da son geçtiği tarihe göre) manşet satırında simgedir. Sayfa içi süzgeç alanı Ara sayfasındaki alanla aynı bileşendir. Graph ve Harita listenin en üstünde iki satırdır.
 - Aynı adlı varlıklarda adın altında ayırt edici görünür.
 
 **Varlık sayfası:**
 
 1. Varsayılan görünüm okuma sayfasıdır: manşet (ad) sayfa içinde, künye (tip, takma adlar, son görülme), ayırt edici ve gelen bağlantı sayısı; gezinme çubuğunda büyük başlık yoktur
-2. Düzenleme sheet'inde sistem başlığı kalır; kaydedilmemiş alan "Alanı kaldır" ile silinince taslak kirli sayılmaz
+2. Düzenleme sheet'i ortak sheet kalıbını kullanır (serif manşet, kâğıt zemin, Vazgeç ve Kaydet); kaydedilmemiş alan "Alanı kaldır" ile silinince taslak kirli sayılmaz
 3. Şablon alanları etiket-değer satırları olarak; tanınmayan ön bilgi anahtarları "Diğer alanlar" altında ham adıyla, ikincil
 4. Açık görevler (2): bu varlığa bağlı tamamlanmamış işler
 5. Zaman akışı: bu varlığın geçtiği olaylar ve günlük paragrafları, yeniden eskiye; her satır ait olduğu güne götürür
@@ -107,7 +107,7 @@ Ayarlar'da Kişi hatırlatmaları bölümünden eşik 1–365 gün arasında se�
 
 ### Graph ve harita (6)
 
-Mac kenar çubuğunda Graph ve Harita; telefonda Kişiler ve Konumlar araç çubuğunda iki giriş bulunur. Telefonda aynı gezinme yığınında tam sayfa açılır, yeni sekme eklenmez. Varlık sayfasındaki Graph'ta göster o düğümü seçip merkezler.
+Mac kenar çubuğunda Graph ve Harita; telefonda Kişiler ve Konumlar listesinin en üstünde iki satır bulunur. Telefonda aynı gezinme yığınında tam sayfa açılır, yeni sekme eklenmez. Varlık sayfasındaki Graph'ta göster o düğümü seçip merkezler.
 
 Graph varsayılan olarak bütün kişi/konumları gösterir; bağlanmamış varlıklar da düğümdür. Gün düğümleri isteğe bağlıdır, bağlantı içeren günler için bir düğüm oluşturulur. Kenar ağırlığı aynı takvim gününün dosyalarında birlikte geçen farklı gün sayısıdır; yinelenen bağlantılar ve aynı tarihli dosyalar ortak günü artırmaz. Gövde/frontmatter ayrımı yapılmaz; çözülen kişi/konum bağlantıları kullanılır, bilinmeyen hedefler dışlanır. Gün–varlık kenarı bir gündür. Filtreler kişi/konum/gün, son 30/90/365 gün veya tümü ve en az ortak gün ağırlığıdır. Son N gün bugün dahil `bugün -(N-1)` … bugün aralığıdır; tümü gelecek günleri ve tarihsiz kaynak bağlantılarını da içerir. Düğüm boyutu tümü seçiliyken bütün kasadaki geçiş sayısına, tarih filtresinde seçilen günlerin geçiş sayısına bağlıdır. Eşik kenarları kaldırır, izole düğümleri silmez.
 

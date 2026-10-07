@@ -130,6 +130,11 @@ Verilen her karar tek satır olarak eklenir. Açık sorular kapandığında altt
 | 2026-10-07 | Takvim etkinliğinin bitişi "Bitiş 11:00" olarak yazılır | "11:00'e kadar" saate göre değişen ek gerektirir; 12 saatlik biçimde ve ertesi güne taşan etkinlikte bozulur |
 | 2026-10-07 | Ekran görüntüsü referansları yalnız `record-screen-snapshots.sh` ile tek standart simülatörde ve Türkçe süreç diliyle kaydedilir; Mac görüntü kümeleri CI'da atlanır, yerelde doğrulanır | Cihaz, işletim sistemi sürümü ve dil çizimi değiştirir; farklı ortamda kaydedilen referans CI'da düşer |
 | 2026-10-07 | `.red` ve `.orange` izin listesi boşaldı: uygulama kodunda renk yalnız `Color.ink.*` belirteçlerinden gelir, test bunu korur | Tek palet; koyu mod ve Kontrastı Artır her ekranda aynı davranır |
+| 2026-10-07 | Denetim kalıpları tek tanımdır (`design.md`): sayfa adı ve eylem simgeleri aynı satırda, kök ekranda sistem gezinme çubuğu ve cam kapsül yok; arama her kök ekranda manşet satırının en sağında | Denetimde arama iki, sheet başlığı üç, sheet zemini dört biçimde çıktı; ekranlar ayrı uygulama gibi görünüyordu |
+| 2026-10-07 | "Birini seç" için iki biçim vardır ve seçenek sayısı belirler: iki ya da üç seçenekte sekme, dört ve üstünde etiketli menü. Sistem segmenti, kutucuk dizisi ve gezinme çubuğundaki seçici kullanılmaz | Aynı iş beş ayrı denetimle yapılıyordu; sekme üç kısa sözcükten fazlasını telefon genişliğinde taşımıyor |
+| 2026-10-07 | Görevler'de görünüm iki katmanda seçilir: sekme (Liste, Kanban, Zaman çizelgesi) ve altında görünüme göre değişen menü (Bölüm, Grupla, Ölçek). Alt sekmeler değişmez | Altı seçenekli tek menüde kanban ve zaman çizelgesi saklı kalıyordu; üç görünüm tek dokunuşla erişilir olmalı |
+| 2026-10-07 | Sheet'lerde zemin kâğıt, başlık serif manşet; düzenleyen sheet'te solda "Vazgeç", sağda "Kaydet" (yeni kayıtta "Oluştur"); yalnız okunan sheet'te sağda "Kapat". "Bitti" kullanılmaz | İptal ve onay sözcükleri sheet'ten sheet'e değişiyordu; kullanıcı düğmenin kaydedip kaydetmediğini sözcükten anlamalı |
+| 2026-10-07 | Manşet satırındaki yardımcı simgeler (ara, sırala, filtrele, Ayarlar) ikincil metin rengindedir; vurgu rengi kayıt açan ve içeriği değiştiren eylemlere ayrılır. Açma kapama anahtarı vurgu rengindedir | Her simge vurgu renginde olunca vurgu ayırt edici olmaktan çıkıyor; sistem yeşili palet dışıydı |
 
 ## Açık sorular
 

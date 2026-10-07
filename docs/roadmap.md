@@ -101,6 +101,7 @@ Yön seçildi: Mürekkep, sahibin iki değişikliğiyle. Yön, belirteçler ve k
 - [x] Hedefler, ısı haritası ve özetler; graph ve harita renkleri (renge ek olarak biçim)
 - [x] Mac geçişi; Ayarlar'ın bölünmesi (Gizlilik, Bildirimler, Takvim ve Konum, Kasa, Tanılama); ilk kullanım ve kilit ekranı
 - [x] Ekran görüntüsü testleri: açık ve koyu mod, büyük yazı, Kontrastı Artır
+- [ ] Denetim kalıpları (`design.md`): ortak bileşenler (manşet satırı eylemleri, sekme, etiketli menü, süzgeç alanı, sheet iskeleti); bütün ekranların ve sheet'lerin bu bileşenlere bağlanması; kalıbı koruyan kaynak denetimi; Kişiler ve Konumlar ile sheet'ler için ekran görüntüsü testleri
 
 **Çıkış ölçütü:** Bütün ekranlar aynı bileşen kitaplığından kuruluyor; erişilebilirlik denetimi ve ekran görüntüsü testleri CI'da geçiyor.
 

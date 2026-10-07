@@ -7,6 +7,7 @@ struct TaskTimelineView: View {
     @State private var editor: TimelineDateSelection?
     @State private var sourceDay: CalendarDate?
     @State private var todayRequest = UUID()
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     let showsFilters: Bool
     let openDay: (String) -> Void
 
@@ -18,7 +19,10 @@ struct TaskTimelineView: View {
     var body: some View {
         VStack(spacing: 0) {
             controls
-            if let error = model.errorText { Text(verbatim: error).foregroundStyle(.red).padding(.horizontal) }
+            if let error = model.errorText {
+                InfoBand(kind: .error, verbatim: error)
+                    .padding(.horizontal, InkSpacing.margin)
+            }
             #if os(macOS)
                 HStack(spacing: 0) {
                     TimelineDesktopView(model: model, todayRequest: todayRequest) {
@@ -27,11 +31,18 @@ struct TaskTimelineView: View {
                         editor = TimelineDateSelection(row: $0, edge: $1, root: model.store.vaultURL)
                     }
                     if let row = selectedTask {
-                        Divider()
+                        Divider().overlay(Color.ink.rule)
                         VStack {
                             HStack {
                                 Spacer()
-                                Button("Kapat", systemImage: "xmark") { selected = nil }.labelStyle(.iconOnly)
+                                Button {
+                                    selected = nil
+                                } label: {
+                                    Label("Kapat", systemImage: "xmark")
+                                        .labelStyle(.iconOnly)
+                                        .tapTarget()
+                                }
+                                .buttonStyle(InkTextButtonStyle())
                             }.padding()
                             NavigationStack { TaskDetailView(store: model.store, row: row, openDay: openDay) }
                         }.frame(width: 340)
@@ -51,7 +62,8 @@ struct TaskTimelineView: View {
                 }
             #endif
         }
-        .navigationTitle("Zaman çizelgesi")
+        .background(Color.ink.paper)
+        .modifier(OptionalNavigationTitle(showsFilters ? "Zaman çizelgesi" : nil))
         .sheet(item: $editor) { selection in
             NavigationStack { TimelineDateEditor(model: model, selection: selection) }
                 .frame(minWidth: 320, minHeight: 200).presentationDetents([.medium, .large])
@@ -66,21 +78,81 @@ struct TaskTimelineView: View {
     }
     private var selectedTask: TaskRow? { model.store.content.tasks.first { $0.id == selected?.id } }
     private var controls: some View {
-        HStack {
-            #if os(macOS)
-                Picker("Gruplama", selection: $model.grouping) {
-                    Text("Proje").tag(TimelineModel.Grouping.project)
-                    Text("Kişi").tag(TimelineModel.Grouping.person)
-                    Text("Yok").tag(TimelineModel.Grouping.none)
-                }.pickerStyle(.menu)
-            #endif
-            Picker("Ölçek", selection: $model.scale) {
-                Text("Hafta").tag(TimelineModel.Scale.week)
-                Text("Ay").tag(TimelineModel.Scale.month)
-                Text("Çeyrek").tag(TimelineModel.Scale.quarter)
-            }.pickerStyle(.menu)
-            Spacer()
-            #if os(iOS)
+        Group {
+            if dynamicTypeSize.isAccessibilitySize {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(spacing: 8) {
+                        #if os(macOS)
+                            groupingPicker
+                        #endif
+                        scalePicker
+                    }
+                    HStack(spacing: 8) {
+                        #if os(iOS)
+                            periodButtons
+                        #endif
+                        todayButton
+                        if showsFilters { TaskFiltersMenu(model: model.tasks) }
+                        Spacer(minLength: 0)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            } else {
+                HStack {
+                    #if os(macOS)
+                        groupingPicker
+                    #endif
+                    scalePicker
+                    Spacer(minLength: 8)
+                    #if os(iOS)
+                        periodButtons
+                    #endif
+                    todayButton
+                    if showsFilters { TaskFiltersMenu(model: model.tasks) }
+                }
+            }
+        }
+        .padding(.horizontal, InkSpacing.margin)
+        .padding(.vertical, 10)
+    }
+
+    private var scalePicker: some View {
+        Picker("Ölçek", selection: $model.scale) {
+            Text("Hafta").tag(TimelineModel.Scale.week)
+            Text("Ay").tag(TimelineModel.Scale.month)
+            Text("Çeyrek").tag(TimelineModel.Scale.quarter)
+        }
+        .pickerStyle(.menu)
+        .fixedSize(horizontal: true, vertical: false)
+        .lineLimit(1)
+    }
+
+    #if os(macOS)
+        private var groupingPicker: some View {
+            Picker("Gruplama", selection: $model.grouping) {
+                Text("Proje").tag(TimelineModel.Grouping.project)
+                Text("Kişi").tag(TimelineModel.Grouping.person)
+                Text("Yok").tag(TimelineModel.Grouping.none)
+            }
+            .pickerStyle(.menu)
+            .fixedSize(horizontal: true, vertical: false)
+            .lineLimit(1)
+        }
+    #endif
+
+    private var todayButton: some View {
+        Button("Bugün") {
+            model.showToday()
+            todayRequest = UUID()
+        }
+        .buttonStyle(InkTextButtonStyle())
+        .fixedSize(horizontal: true, vertical: false)
+        .lineLimit(1)
+    }
+
+    #if os(iOS)
+        private var periodButtons: some View {
+            HStack(spacing: 4) {
                 Button {
                     model.shiftWindow(by: -model.scale.daysAcross)
                 } label: {
@@ -88,6 +160,7 @@ struct TaskTimelineView: View {
                         .tapTarget()
                 }
                 .accessibilityLabel("Önceki dönem")
+                .buttonStyle(InkTextButtonStyle())
                 Button {
                     model.shiftWindow(by: model.scale.daysAcross)
                 } label: {
@@ -95,14 +168,11 @@ struct TaskTimelineView: View {
                         .tapTarget()
                 }
                 .accessibilityLabel("Sonraki dönem")
-            #endif
-            Button("Bugün") {
-                model.showToday()
-                todayRequest = UUID()
+                .buttonStyle(InkTextButtonStyle())
             }
-            if showsFilters { TaskFiltersMenu(model: model.tasks) }
-        }.padding()
-    }
+        }
+    #endif
+
     private var mobileList: some View {
         List {
             ForEach(model.mobileGroups) { group in
@@ -110,15 +180,27 @@ struct TaskTimelineView: View {
                     ForEach(group.rows) { row in taskRow(row) }
                 } header: {
                     if let date = CalendarDate(group.id) {
-                        Text(LocalDay.instant(for: date), format: .dateTime.month(.wide).year().day())
+                        SectionHeader(
+                            title: LocalDay.instant(for: date).formatted(
+                                .dateTime.month(.wide).year().day()),
+                            count: group.rows.count)
                     }
                 }
             }
             if !model.undated.isEmpty {
-                Section("Tarihsiz") { ForEach(model.undated) { row in taskRow(row) } }
+                Section {
+                    ForEach(model.undated) { row in taskRow(row) }
+                } header: {
+                    SectionHeader(title: String(localized: "Tarihsiz"), count: model.undated.count)
+                }
             }
-            if model.mobileGroups.isEmpty && model.undated.isEmpty { Text("Görev yok.").foregroundStyle(.secondary) }
+            if model.mobileGroups.isEmpty && model.undated.isEmpty {
+                EmptyState("Görev yok.")
+                    .listRowBackground(Color.clear)
+            }
         }
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
     }
     private func taskRow(_ row: TaskRow) -> some View {
         TimelineTaskRow(model: model, row: row) {
@@ -126,5 +208,7 @@ struct TaskTimelineView: View {
         } edit: {
             editor = TimelineDateSelection(row: row, edge: $0, root: model.store.vaultURL)
         }
+        .listRowBackground(Color.ink.paper)
+        .alignmentGuide(.listRowSeparatorLeading) { _ in 0 }
     }
 }

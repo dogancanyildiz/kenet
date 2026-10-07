@@ -24,22 +24,52 @@ struct KanbanColumnView: View {
 
     private var content: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                column.title.font(.headline).accessibilityAddTraits(.isHeader)
-                Spacer()
-                Text(column.rows.count.formatted()).font(.caption).foregroundStyle(.secondary)
-            }.padding(.horizontal, 12).padding(.top, 12)
+            columnHeader
+                .padding(.horizontal, 12)
+                .padding(.top, 12)
             ScrollView {
                 LazyVStack(spacing: 10) {
                     ForEach(column.rows) { row in
                         KanbanCard(model: model, row: row) { select(row) }
                     }
-                    if column.rows.isEmpty { Text("Görev yok.").foregroundStyle(.secondary).padding() }
+                    if column.rows.isEmpty {
+                        EmptyState("Görev yok.")
+                            .padding()
+                    }
                 }.padding(10)
             }
         }
         .frame(maxHeight: .infinity)
-        .background(.quaternary.opacity(targeted ? 0.5 : 0.2), in: RoundedRectangle(cornerRadius: 14))
-        .overlay { if targeted { RoundedRectangle(cornerRadius: 14).stroke(.tint, lineWidth: 2) } }
+        .background {
+            RoundedRectangle(cornerRadius: InkSize.kanbanCorner, style: .continuous)
+                .fill(targeted ? Color.ink.well : Color.ink.paper)
+        }
+        .overlay {
+            RoundedRectangle(cornerRadius: InkSize.kanbanCorner, style: .continuous)
+                .stroke(
+                    targeted ? Color.ink.accent : Color.ink.rule,
+                    lineWidth: targeted ? InkStroke.highPriority : InkStroke.control)
+        }
+    }
+
+    @ViewBuilder private var columnHeader: some View {
+        if let name = column.name {
+            SectionHeader(title: name, count: column.rows.count)
+        } else {
+            switch column.destination {
+            case .status(.todo), .status(.unknown):
+                SectionHeader("Yapılacak", count: column.rows.count)
+            case .status(.inProgress):
+                SectionHeader("Devam", count: column.rows.count)
+            case .status(.done):
+                SectionHeader("Bitti", count: column.rows.count)
+            case .status(.cancelled):
+                SectionHeader("İptal", count: column.rows.count)
+            case .project:
+                SectionHeader("Projesiz", count: column.rows.count)
+            case .person:
+                SectionHeader("Kişisiz", count: column.rows.count)
+            }
+        }
     }
 }

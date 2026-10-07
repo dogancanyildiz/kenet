@@ -6,24 +6,34 @@ struct AppLockCover: View {
 
     var body: some View {
         ZStack {
-            Rectangle().fill(.background).ignoresSafeArea()
-            VStack(spacing: 20) {
-                Image(systemName: "lock.fill").font(.largeTitle).accessibilityHidden(true)
-                Text("Günlük kilitli").font(.title2)
-                if lock.isForeground || allowsBackgroundAuthentication {
-                    if lock.isAuthenticating {
-                        ProgressView("Kimlik doğrulanıyor…")
-                    } else {
-                        if lock.authenticationFailed {
-                            Text("Kimlik doğrulanamadı. Tekrar dene.")
+            Color.ink.paper.ignoresSafeArea()
+            GeometryReader { geo in
+                ScrollView {
+                    VStack(spacing: 20) {
+                        Text("Günlük kilitli")
+                            .font(.ink.byline)
+                            .foregroundStyle(Color.ink.secondaryText)
+                        if lock.isForeground || allowsBackgroundAuthentication {
+                            if lock.isAuthenticating {
+                                InkProgress(kind: .indeterminate(label: "Kimlik doğrulanıyor…"))
+                            } else {
+                                if lock.authenticationFailed {
+                                    Text("Kimlik doğrulanamadı. Tekrar dene.")
+                                        .font(.ink.meta)
+                                        .foregroundStyle(Color.ink.secondaryText)
+                                }
+                                Button("Tekrar dene") { Task { await lock.unlock() } }
+                                    .buttonStyle(InkPrimaryButtonStyle())
+                            }
                         }
-                        Button("Tekrar dene") { Task { await lock.unlock() } }
-                            .buttonStyle(.borderedProminent)
                     }
+                    .padding(InkSpacing.margin)
+                    .frame(
+                        maxWidth: .infinity, minHeight: geo.size.height, alignment: .center)
                 }
             }
-            .padding()
         }
+        .accessibilityElement(children: .contain)
     }
 }
 

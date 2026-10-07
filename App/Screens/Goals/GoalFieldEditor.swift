@@ -4,13 +4,13 @@ import SwiftUI
 enum GoalEditableField: String, Identifiable {
     case name, period, kind, target, unit
     var id: Self { self }
-    var title: LocalizedStringKey {
+    var title: String {
         switch self {
-        case .name: "Ad"
-        case .period: "Dönem"
-        case .kind: "Tür"
-        case .target: "Hedef miktar"
-        case .unit: "Birim (isteğe bağlı)"
+        case .name: String(localized: "Ad")
+        case .period: String(localized: "Dönem")
+        case .kind: String(localized: "Tür")
+        case .target: String(localized: "Hedef miktar")
+        case .unit: String(localized: "Birim")
         }
     }
 }
@@ -37,32 +37,51 @@ struct GoalFieldEditor: View {
         Form {
             if field == .period {
                 Picker(field.title, selection: $text) {
-                    Text(GoalPeriod.day.title).tag("day")
-                    Text(GoalPeriod.week.title).tag("week")
-                    Text(GoalPeriod.year.title).tag("year")
+                    Text(verbatim: GoalPeriod.day.title).tag("day")
+                    Text(verbatim: GoalPeriod.week.title).tag("week")
+                    Text(verbatim: GoalPeriod.year.title).tag("year")
                 }
             } else if field == .kind {
                 Picker(field.title, selection: $text) {
-                    Text(GoalKind.boolean.title).tag("boolean")
-                    Text(GoalKind.number.title).tag("number")
+                    Text(verbatim: GoalKind.boolean.title).tag("boolean")
+                    Text(verbatim: GoalKind.number.title).tag("number")
                 }
-                Text("Tür değişikliği geçmiş kayıtları dönüştürmez.").font(.caption).foregroundStyle(.secondary)
+                Text("Tür değişikliği geçmiş kayıtları dönüştürmez.")
+                    .font(.ink.meta)
+                    .foregroundStyle(Color.ink.secondaryText)
+            } else if field == .unit {
+                TextField("Birim (isteğe bağlı)", text: $text)
+                    .font(.ink.content)
             } else {
                 TextField(field.title, text: $text)
+                    .font(field == .name ? .ink.content : .ink.value)
             }
-            if let error = model.errorText { Text(verbatim: error).foregroundStyle(.secondary) }
-        }.formStyle(.grouped).disabled(model.isWriting || isSaved)
-            .navigationTitle(field.title)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button("Kapat") { dismiss() } }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Kaydet") {
-                        Task {
-                            isSaved = await model.set(field.rawValue, text: text)
-                            if isSaved && model.errorText == nil { dismiss() }
-                        }
-                    }.disabled(!model.canEdit || isSaved)
+            if let error = model.errorText {
+                InfoBand(kind: .error, verbatim: error)
+            }
+        }
+        .formStyle(.grouped)
+        .scrollContentBackground(.hidden)
+        .background(Color.ink.surface)
+        .disabled(model.isWriting || isSaved)
+        .navigationTitle(field.title)
+        #if os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+        #endif
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button("Kapat") { dismiss() }
+            }
+            ToolbarItem(placement: .confirmationAction) {
+                Button("Kaydet") {
+                    Task {
+                        isSaved = await model.set(field.rawValue, text: text)
+                        if isSaved && model.errorText == nil { dismiss() }
+                    }
                 }
-            }.frame(minWidth: 300, minHeight: 200)
+                .disabled(!model.canEdit || isSaved)
+            }
+        }
+        .frame(minWidth: 300, minHeight: 200)
     }
 }

@@ -38,6 +38,8 @@ struct InkLinkedText: View {
     let segments: [InkLinkSegment]
     /// Linked text is vault content, so it is serif unless the caller says otherwise.
     var font: Font = .ink.content
+    /// Completed-task rows: plain runs drop to secondary ink; link underlines stay.
+    var isMuted: Bool = false
     var openURL: ((URL) -> Void)? = nil
 
     @Environment(\.accessibilityDifferentiateWithoutColor) private var differentiateWithoutColor
@@ -64,21 +66,23 @@ struct InkLinkedText: View {
     }
 
     var attributed: AttributedString {
-        InkLinkTextBuilder.attributed(segments: segments, highContrast: highContrast)
+        InkLinkTextBuilder.attributed(
+            segments: segments, highContrast: highContrast, isMuted: isMuted)
     }
 }
 
 /// Pure attributed-string builder (not MainActor) so unit tests can call it freely.
 enum InkLinkTextBuilder {
     static func attributed(
-        segments: [InkLinkSegment], highContrast: Bool
+        segments: [InkLinkSegment], highContrast: Bool, isMuted: Bool = false
     ) -> AttributedString {
         var result = AttributedString()
         for segment in segments {
             var value = AttributedString(segment.text)
             switch segment.kind {
             case .plain:
-                value.foregroundColor = Color.ink.text
+                // Explicit color wins over the caller's `foregroundStyle`, so muting happens here.
+                value.foregroundColor = isMuted ? Color.ink.secondaryText : Color.ink.text
             case .person:
                 InkLinkStyle.apply(.person, to: &value, highContrast: highContrast)
                 attachLink(&value, target: segment.target ?? segment.text, path: segment.path)

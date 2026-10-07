@@ -22,18 +22,32 @@
                         if !span.isMilestone && dates.start.map(model.bounds.contains) == true { handle(.start) }
                         Spacer(minLength: 0)
                         if presentation.showsOverdueCue {
-                            Image(systemName: "arrow.forward.circle").font(.caption2).padding(.trailing, 4)
+                            Image(systemName: "arrow.forward.circle")
+                                .font(.ink.meta)
+                                .foregroundStyle(.ink.warning)
+                                .padding(.trailing, 4)
                         }
-                        if span.isOpenEnded { Image(systemName: "arrow.right").font(.caption2).padding(.trailing, 4) }
+                        if span.isOpenEnded {
+                            Image(systemName: "arrow.right")
+                                .font(.ink.meta)
+                                .foregroundStyle(.ink.secondaryText)
+                                .padding(.trailing, 4)
+                        }
+                        if row.isClosed && !span.isMilestone {
+                            Circle()
+                                .fill(Color.ink.secondaryText)
+                                .frame(width: 7, height: 7)
+                                .padding(.trailing, 4)
+                                .accessibilityHidden(true)
+                        }
                         if !span.isMilestone && dates.due.map(model.bounds.contains) == true { handle(.due) }
                     }
                     .frame(
                         width: max(span.isMilestone ? 12 : 8, span.isMilestone ? 12 : length - 4),
                         height: span.isMilestone ? 12 : 22
                     )
-                    .background(color, in: RoundedRectangle(cornerRadius: span.isMilestone ? 0 : 5))
+                    .background { barChrome(isMilestone: span.isMilestone) }
                     .rotationEffect(.degrees(span.isMilestone ? 45 : 0))
-                    .opacity(presentation.opacity)
                     .contentShape(Rectangle()).onTapGesture(perform: select)
                     .gesture(gesture(edge: nil))
                     .offset(x: offset + (span.isMilestone ? max(0, (dayWidth - 12) / 2) : 2))
@@ -56,13 +70,27 @@
         private var presentation: TaskStatusPresentation {
             .make(due: dates.due, asOf: model.today, isCompleted: row.isClosed)
         }
-        private var color: Color {
-            if !dates.isValid { return .orange }
-            if presentation.usesSecondaryText { return .secondary }
-            return presentation.showsOverdueCue ? .ink.warning : .accentColor
+        private var barColor: Color {
+            if !dates.isValid { return Color.ink.warning }
+            if presentation.usesSecondaryText { return Color.ink.secondaryText }
+            return presentation.showsOverdueCue ? Color.ink.warning : Color.ink.accent
         }
+
+        @ViewBuilder private func barChrome(isMilestone: Bool) -> some View {
+            let shape = RoundedRectangle(cornerRadius: isMilestone ? 0 : 5)
+            if row.isClosed && !isMilestone {
+                // Completed: outline bar + filled end cap (not color alone).
+                shape.strokeBorder(Color.ink.secondaryText, lineWidth: InkStroke.control)
+            } else {
+                shape.fill(barColor)
+            }
+        }
+
         private func handle(_ edge: TimelineDates.Edge) -> some View {
-            Capsule().fill(.white.opacity(0.8)).frame(width: 3, height: 12).padding(.horizontal, 5)
+            Capsule()
+                .fill(Color.ink.surface)
+                .frame(width: 3, height: 12)
+                .padding(.horizontal, 5)
                 .contentShape(Rectangle()).highPriorityGesture(gesture(edge: edge))
                 .accessibilityLabel(edge == .start ? Text("Başlangıç tarihi") : Text("Bitiş tarihi"))
         }

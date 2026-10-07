@@ -43,6 +43,8 @@
                                 SummariesView(store: store)
                             }
                         }
+                        // Full-width paper; graph / map / summaries are not reading columns.
+                        .inkPage()
                     }
                 } else if section == .tasks && (showingKanban || showingTimeline) {
                     NavigationSplitView {
@@ -54,12 +56,18 @@
                             } else {
                                 KanbanView(tasks: kanbanTasks, showsFilters: true, openDay: openTaskDay)
                             }
-                        }.toolbar { SearchButton() }
+                        }
+                        .toolbar { SearchButton() }
+                        .inkPage()
                     }
                 } else {
                     standardLayout
                 }
             }
+            .frame(
+                minWidth: InkSpacing.macWindowMinWidth,
+                minHeight: InkSpacing.macWindowMinHeight
+            )
             .onChange(of: intentNavigation.todayRequest, initial: true) { _, request in
                 guard request != nil else { return }
                 detailPath = NavigationPath()
@@ -166,63 +174,73 @@
             NavigationSplitView {
                 sidebar
             } content: {
-                switch section ?? .today {
-                case .today, .days:
-                    VStack(spacing: 0) {
-                        Button("Özetler", systemImage: "chart.bar") { section = .summaries }.padding()
-                        DaysCalendarView(store: store) { selectedDay = "journal/\($0).md" }
-                        List(store.content.days, selection: $selectedDay) { day in
-                            DayRow(day: day).tag(day.id)
-                        }
-                    }.navigationTitle("Günlük")
-                case .tasks:
-                    if let project = selectedProject {
-                        NavigationStack { ProjectView(store: store, name: project).id(project) }
-                    } else {
-                        TasksView(
-                            store: store, selection: $selectedTask,
-                            notificationRequest: notifications.navigationRequest?.destination == .tasks
-                                ? notifications.navigationRequest?.id : nil,
-                            tasks: kanbanTasks,
-                            onKanbanSelected: {
-                                showingKanban = true
-                                showingTimeline = false
-                            },
-                            onTimelineSelected: {
-                                showingTimeline = true
-                                showingKanban = false
-                            })
-                    }
-                case .summaries, .graph, .map: EmptyView()
-                case .goals:
-                    GoalsView(store: store, selection: $selectedGoal)
-                case .people, .places:
-                    VStack(spacing: 0) {
-                        if store.entityTypes.issue != nil {
-                            Text(
-                                "Varlık tipleri okunamıyor. Yalnız yerleşik tipler kullanılıyor. Kasadaki .app/types.json dosyasını kontrol et."
-                            )
-                            .font(.caption).foregroundStyle(.orange).padding()
-                        }
-                        EntityTypePicker(store: store, selection: $selectedEntityKind).padding()
-                        EntityListControls(order: $entityOrder, search: $entitySearch)
-                        let entities = EntityListQuery.entities(
-                            in: store.content, usage: store.entityUsage, kind: entityKind,
-                            search: entitySearch, order: entityOrder)
-                        List(selection: entitySelection) {
-                            if entityKind == "person" {
-                                UnseenPeopleSection(store: store, people: entities) { entity in
-                                    entitySelection.wrappedValue = entity.id
-                                }
+                Group {
+                    switch section ?? .today {
+                    case .today, .days:
+                        VStack(spacing: 0) {
+                            Button("Özetler", systemImage: "chart.bar") { section = .summaries }.padding()
+                            DaysCalendarView(store: store) { selectedDay = "journal/\($0).md" }
+                            List(store.content.days, selection: $selectedDay) { day in
+                                DayRow(day: day).tag(day.id)
                             }
-                            ForEach(entities) { entity in EntityRow(entity: entity).tag(entity.id) }
+                        }.navigationTitle("Günlük")
+                    case .tasks:
+                        if let project = selectedProject {
+                            NavigationStack { ProjectView(store: store, name: project).id(project) }
+                        } else {
+                            TasksView(
+                                store: store, selection: $selectedTask,
+                                notificationRequest: notifications.navigationRequest?.destination == .tasks
+                                    ? notifications.navigationRequest?.id : nil,
+                                tasks: kanbanTasks,
+                                onKanbanSelected: {
+                                    showingKanban = true
+                                    showingTimeline = false
+                                },
+                                onTimelineSelected: {
+                                    showingTimeline = true
+                                    showingKanban = false
+                                })
                         }
-                    }.navigationTitle((section ?? .people).title)
-                case .notes:
-                    List { EmptyView() }
-                        .overlay { Text("Notlar sonraki sürümde").foregroundStyle(.secondary) }
-                        .navigationTitle("Notlar")
+                    case .summaries, .graph, .map: EmptyView()
+                    case .goals:
+                        GoalsView(store: store, selection: $selectedGoal)
+                    case .people, .places:
+                        VStack(spacing: 0) {
+                            if store.entityTypes.issue != nil {
+                                Text(
+                                    "Varlık tipleri okunamıyor. Yalnız yerleşik tipler kullanılıyor. Kasadaki .app/types.json dosyasını kontrol et."
+                                )
+                                .font(.ink.meta)
+                                .foregroundStyle(Color.ink.warning)
+                                .padding()
+                            }
+                            EntityTypePicker(store: store, selection: $selectedEntityKind).padding()
+                            EntityListControls(order: $entityOrder, search: $entitySearch)
+                            let entities = EntityListQuery.entities(
+                                in: store.content, usage: store.entityUsage, kind: entityKind,
+                                search: entitySearch, order: entityOrder)
+                            List(selection: entitySelection) {
+                                if entityKind == "person" {
+                                    UnseenPeopleSection(store: store, people: entities) { entity in
+                                        entitySelection.wrappedValue = entity.id
+                                    }
+                                }
+                                ForEach(entities) { entity in EntityRow(entity: entity).tag(entity.id) }
+                            }
+                        }
+                        .navigationTitle((section ?? .people).title)
+                    case .notes:
+                        List { EmptyView() }
+                            .overlay {
+                                Text("Notlar sonraki sürümde")
+                                    .font(.ink.meta)
+                                    .foregroundStyle(Color.ink.secondaryText)
+                            }
+                            .navigationTitle("Notlar")
+                    }
                 }
+                .inkPage()
             } detail: {
                 NavigationStack(path: $detailPath) {
                     switch section ?? .today {
@@ -270,6 +288,8 @@
                     }
                 }
                 .id(section)
+                // Shell paints paper full-width; each page view applies `.inkPageColumn()` itself.
+                .inkPage()
             }
         }
 

@@ -40,7 +40,8 @@ struct DayTaskView: View {
             .disabled(!canToggleCompletion)
             completedTextStyle {
                 VStack(alignment: .leading, spacing: 4) {
-                    LinkedTextView(text: row.text, store: store)
+                    LinkedTextView(
+                        text: row.text, store: store, isMuted: presentation.usesSecondaryText)
                     HStack(spacing: 8) {
                         if let date = row.due {
                             TaskDueDateLabel(date: date, presentation: presentation)

@@ -4,9 +4,9 @@ struct GraphCanvas: View {
     let graph: GraphModel
     let positions: [String: GraphPoint]
     @Binding var selected: String?
-    @State private var pan = CGSize.zero
+    @Binding var zoom: Double
+    @Binding var pan: CGSize
     @GestureState private var drag = CGSize.zero
-    @State private var zoom = 1.0
     @GestureState private var magnification = 1.0
 
     var body: some View {
@@ -16,13 +16,17 @@ struct GraphCanvas: View {
             Canvas { context, size in
                 let neighbors = selected.map { graph.neighbors(of: $0) } ?? []
                 for edge in graph.edges {
-                    guard let first = positions[edge.first], let second = positions[edge.second] else { continue }
+                    guard let first = positions[edge.first], let second = positions[edge.second]
+                    else {
+                        continue
+                    }
                     var path = Path()
                     path.move(to: screen(first, size: size, origin: center, scale: scale))
                     path.addLine(to: screen(second, size: size, origin: center, scale: scale))
                     let highlighted = edge.first == selected || edge.second == selected
                     context.stroke(
-                        path, with: .color(highlighted ? .accentColor : .secondary.opacity(0.3)),
+                        path,
+                        with: .color(highlighted ? Color.ink.control : Color.ink.rule),
                         lineWidth: highlighted ? 2 : min(3, 0.5 + Double(edge.weight) * 0.3))
                 }
                 for node in graph.nodes {
@@ -30,24 +34,30 @@ struct GraphCanvas: View {
                     let position = screen(point, size: size, origin: center, scale: scale)
                     let radius = max(5, node.radius * scale)
                     let rect = CGRect(
-                        x: position.x - radius, y: position.y - radius, width: radius * 2, height: radius * 2)
-                    let color: Color = node.kind == .person ? .blue : node.kind == .place ? .green : .secondary
-                    context.fill(
-                        Path(ellipseIn: rect),
-                        with: .color(
-                            color.opacity(
-                                selected == nil || neighbors.contains(node.id) || node.id == selected ? 1 : 0.25)))
+                        x: position.x - radius, y: position.y - radius, width: radius * 2,
+                        height: radius * 2)
+                    let dimmed =
+                        selected != nil && !neighbors.contains(node.id) && node.id != selected
+                    let fill = GraphNodeStyle.fill(node.kind).opacity(dimmed ? 0.25 : 1)
+                    let shape = GraphNodeShape(kind: node.kind).path(in: rect)
+                    context.fill(shape, with: .color(fill))
                     if node.id == selected {
+                        let ring = rect.insetBy(dx: -3, dy: -3)
                         context.stroke(
-                            Path(ellipseIn: rect.insetBy(dx: -3, dy: -3)), with: .color(.accentColor), lineWidth: 2)
-                        context.draw(
-                            Text(verbatim: node.name).font(.caption),
-                            at: CGPoint(x: position.x, y: position.y + radius + 14))
+                            GraphNodeShape(kind: node.kind).path(in: ring),
+                            with: .color(Color.ink.accent),
+                            lineWidth: InkStroke.highPriority)
+                        Self.drawSelectedLabel(
+                            node.name, at: position, radius: radius, canvasSize: size,
+                            in: &context)
                     }
                 }
             }
             #if os(macOS)
-                .background(GraphScrollZoom { delta in zoom = min(5, max(0.2, zoom * exp(delta * 0.01))) })
+                .background(
+                    GraphScrollZoom { delta in
+                        zoom = min(5, max(0.2, zoom * exp(delta * 0.01)))
+                    })
             #endif
             .contentShape(Rectangle())
             .onTapGesture { location in
@@ -64,8 +74,10 @@ struct GraphCanvas: View {
                         return hypot(position.x - location.x, position.y - location.y) <= hitRadius
                     }.min { left, right in
                         let a = screen(positions[left.id]!, size: geometry.size, origin: center, scale: scale)
-                        let b = screen(positions[right.id]!, size: geometry.size, origin: center, scale: scale)
-                        return hypot(a.x - location.x, a.y - location.y) < hypot(b.x - location.x, b.y - location.y)
+                        let b = screen(
+                            positions[right.id]!, size: geometry.size, origin: center, scale: scale)
+                        return hypot(a.x - location.x, a.y - location.y)
+                            < hypot(b.x - location.x, b.y - location.y)
                     }?.id
             }
             .accessibilityElement(children: .contain)
@@ -79,11 +91,12 @@ struct GraphCanvas: View {
                     }
                 }
             }
-            .gesture(
+            .highPriorityGesture(
                 DragGesture().updating($drag) { value, state, _ in state = value.translation }
                     .onEnded {
-                        pan.width += $0.translation.width
-                        pan.height += $0.translation.height
+                        pan = CGSize(
+                            width: pan.width + $0.translation.width,
+                            height: pan.height + $0.translation.height)
                     }
             )
             .simultaneousGesture(
@@ -91,30 +104,7 @@ struct GraphCanvas: View {
                     state = min(5 / zoom, max(0.2 / zoom, value.magnification))
                 }.onEnded { zoom = min(5, max(0.2, zoom * $0.magnification)) }
             )
-            .overlay(alignment: .topTrailing) {
-                HStack {
-                    Button {
-                        zoom = max(0.2, zoom / 1.25)
-                    } label: {
-                        Label("Uzaklaştır", systemImage: "minus.magnifyingglass")
-                            .tapTarget()
-                    }
-                    Button {
-                        zoom = min(5, zoom * 1.25)
-                    } label: {
-                        Label("Yakınlaştır", systemImage: "plus.magnifyingglass")
-                            .tapTarget()
-                    }
-                    Button {
-                        zoom = 1
-                        pan = .zero
-                    } label: {
-                        Label("Ortala", systemImage: "scope")
-                            .tapTarget()
-                    }
-                }.labelStyle(.iconOnly).padding()
-            }
-        }.onChange(of: selected) { pan = .zero }
+        }
     }
     private var origin: GraphPoint {
         if let selected, let point = positions[selected] { return point }
@@ -133,5 +123,29 @@ struct GraphCanvas: View {
         CGPoint(
             x: size.width / 2 + (point.x - origin.x) * scale + pan.width + drag.width,
             y: size.height / 2 + (point.y - origin.y) * scale + pan.height + drag.height)
+    }
+
+    private static func drawSelectedLabel(
+        _ name: String, at position: CGPoint, radius: CGFloat, canvasSize: CGSize,
+        in context: inout GraphicsContext
+    ) {
+        let label = Text(verbatim: name).font(.ink.content).foregroundStyle(Color.ink.text)
+        let resolved = context.resolve(label)
+        let textSize = resolved.measure(in: CGSize(width: 240, height: 40))
+        let padX: CGFloat = 4
+        let padY: CGFloat = 2
+        let width = textSize.width + padX * 2
+        let height = textSize.height + padY * 2
+        // Prefer below the node (clear of the accent ring); flip above if clipped.
+        var originY = position.y + radius + 10
+        if originY + height > canvasSize.height - 2 {
+            originY = position.y - radius - height - 10
+        }
+        originY = min(max(2, originY), max(2, canvasSize.height - height - 2))
+        var originX = position.x - width / 2
+        originX = min(max(2, originX), max(2, canvasSize.width - width - 2))
+        let labelRect = CGRect(x: originX, y: originY, width: width, height: height)
+        context.fill(Path(roundedRect: labelRect, cornerRadius: 2), with: .color(Color.ink.paper))
+        context.draw(resolved, at: CGPoint(x: labelRect.midX, y: labelRect.midY))
     }
 }

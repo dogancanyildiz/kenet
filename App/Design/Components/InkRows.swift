@@ -8,6 +8,10 @@ struct InkTaskRow: View {
     var overdueDate: Date? = nil
     var action: (() -> Void)? = nil
 
+    @Environment(\.locale) private var locale
+    @Environment(\.calendar) private var calendar
+    @Environment(\.clockNow) private var clockNow
+
     var body: some View {
         MarginRow(kind: .vault) {
             TaskBox(state: state, action: action)
@@ -23,55 +27,73 @@ struct InkTaskRow: View {
     }
 
     private func overdueLabel(_ date: Date) -> some View {
-        Label {
-            Text(date, format: .dateTime.day().month(.abbreviated))
-        } icon: {
+        let due = LocalDay.today(at: date, timeZone: calendar.timeZone)
+        let today = LocalDay.today(at: clockNow(), timeZone: calendar.timeZone)
+        let text = TodayPresentation.carriedOverDate(
+            due, today: today, locale: locale, calendar: calendar)
+        return HStack(spacing: 4) {
             Image(systemName: "arrow.forward.circle")
+            Text(verbatim: text)
         }
         .font(.ink.meta)
         .foregroundStyle(.ink.warning)
         .accessibilityLabel(Text("Devreden"))
-        .accessibilityValue(
-            Text(date, format: .dateTime.day().month(.abbreviated).year())
-        )
+        .accessibilityValue(Text(verbatim: text))
     }
 }
 
-/// Goal row: ring, name, trailing value + one-tap plus.
+/// Goal row: ring, name, optional streak/series meta, trailing value + one-tap plus.
 struct InkGoalRow: View {
     let name: String
     var progress: Double
     var isBoolean: Bool = false
+    /// Streak / series / period line under the name (app meta, sans).
+    var meta: String? = nil
+    /// Optional thin ratio bar (yearly goals); counter-less ``InkProgress/Kind/fraction``.
+    var barFraction: Double? = nil
     var valueText: String? = nil
     var onIncrement: (() -> Void)? = nil
 
     var body: some View {
-        MarginRow(kind: .vault) {
-            GoalRing(progress: progress, isBoolean: isBoolean)
-        } primary: {
-            Text(verbatim: name)
-                .foregroundStyle(progress >= 1 ? Color.ink.secondaryText : Color.ink.text)
-        } trailing: {
-            HStack(spacing: 8) {
-                if let valueText {
-                    Text(verbatim: valueText)
-                        .font(.ink.value)
+        VStack(alignment: .leading, spacing: 6) {
+            MarginRow(kind: .vault) {
+                GoalRing(progress: progress, isBoolean: isBoolean)
+            } primary: {
+                Text(verbatim: name)
+                    .foregroundStyle(progress >= 1 ? Color.ink.secondaryText : Color.ink.text)
+            } secondary: {
+                if let meta, !meta.isEmpty {
+                    Text(verbatim: meta)
+                        .font(.ink.meta)
                         .foregroundStyle(.ink.secondaryText)
                 }
-                if let onIncrement {
-                    Button(action: onIncrement) {
-                        Image(systemName: "plus")
-                            .font(.body.weight(.semibold))
-                            .foregroundStyle(.ink.accent)
-                            .frame(width: InkSize.plus, height: InkSize.plus)
-                            .overlay {
-                                Circle().strokeBorder(Color.ink.control, lineWidth: InkStroke.control)
-                            }
-                            .tapTarget()
+            } trailing: {
+                HStack(spacing: 8) {
+                    if let valueText {
+                        Text(verbatim: valueText)
+                            .font(.ink.value)
+                            .foregroundStyle(.ink.secondaryText)
                     }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel(Text("Artır"))
+                    if let onIncrement {
+                        Button(action: onIncrement) {
+                            Image(systemName: "plus")
+                                .font(.body.weight(.semibold))
+                                .foregroundStyle(.ink.accent)
+                                .frame(width: InkSize.plus, height: InkSize.plus)
+                                .overlay {
+                                    Circle().strokeBorder(
+                                        Color.ink.control, lineWidth: InkStroke.control)
+                                }
+                                .tapTarget()
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel(Text("Artır"))
+                    }
                 }
+            }
+            if let barFraction {
+                InkProgress(kind: .fraction(barFraction))
+                    .padding(.leading, InkSpacing.gutter + 10)
             }
         }
     }

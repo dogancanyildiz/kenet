@@ -92,6 +92,24 @@ struct RowComponentTests {
         #expect(DaysCalendarMarkLayout.markDiameter(preferred: 40, cellWidth: 0) == 0)
     }
 
+    @Test func mutedLinkedTextFadesPlainRunsAndKeepsLinkUnderline() {
+        let segments: [InkLinkSegment] = [
+            .init(id: "1", text: "Ara: ", kind: .plain),
+            .init(id: "2", text: "Deniz", kind: .person, target: "Deniz", path: "people/Deniz.md"),
+        ]
+        let normal = InkLinkTextBuilder.attributed(segments: segments, highContrast: false)
+        let muted = InkLinkTextBuilder.attributed(
+            segments: segments, highContrast: false, isMuted: true)
+        func plainColor(_ value: AttributedString) -> Color? {
+            value.runs.first { $0.link == nil }?.foregroundColor
+        }
+        #expect(plainColor(normal) == Color.ink.text)
+        #expect(plainColor(muted) == Color.ink.secondaryText)
+        let link = muted.runs.first { $0.link != nil }
+        #expect(link?.underlineStyle == Text.LineStyle(pattern: .solid, color: .ink.person))
+        #expect(String(muted.characters) == String(normal.characters))
+    }
+
     @Test func inkLinkedTextKeepsSuffixPlainAndLinksEntity() {
         let segments: [InkLinkSegment] = [
             .init(id: "1", text: "Ev", kind: .place, target: "Ev", path: "places/Ev.md"),
@@ -122,4 +140,5 @@ struct RowComponentTests {
         #expect(GoalRingProgress.isComplete(1))
         #expect(!GoalRingProgress.isComplete(0.99))
     }
+
 }

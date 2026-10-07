@@ -4,6 +4,8 @@ import SwiftUI
 struct LinkedTextView: View {
     let text: LinkedText
     let store: IndexStore
+    /// Completed task text: plain runs in secondary ink (links keep their underline style).
+    var isMuted: Bool = false
     @Environment(\.entityLookup) private var entityLookup
     @State private var destination: LinkDestination?
 
@@ -15,7 +17,7 @@ struct LinkedTextView: View {
     }
 
     var body: some View {
-        InkLinkedText(segments: segments) { url in
+        InkLinkedText(segments: segments, isMuted: isMuted) { url in
             guard url.scheme == "journal-entity",
                 let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
                 let name = components.queryItems?.first(where: { $0.name == "name" })?.value

@@ -2,9 +2,24 @@ import SwiftUI
 
 /// Section rule + title + optional tabular count (Mürekkep rule 2).
 struct SectionHeader: View {
-    let title: String
+    private let titleText: Text
+    private let spokenTitle: String?
     var count: Int? = nil
     @Environment(\.displayScale) private var displayScale
+
+    /// Already-localized or verbatim title (callers that used `String(localized:)`).
+    init(title: String, count: Int? = nil) {
+        self.titleText = Text(verbatim: title)
+        self.spokenTitle = title
+        self.count = count
+    }
+
+    /// Catalog key resolved with the SwiftUI environment locale (snapshot-safe).
+    init(_ titleKey: LocalizedStringKey, count: Int? = nil) {
+        self.titleText = Text(titleKey)
+        self.spokenTitle = nil
+        self.count = count
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -13,7 +28,7 @@ struct SectionHeader: View {
                 .frame(height: InkStroke.hairline(scale: displayScale))
                 .accessibilityHidden(true)
             HStack(alignment: .firstTextBaseline, spacing: 8) {
-                Text(verbatim: title)
+                titleText
                     .font(.ink.section)
                     .foregroundStyle(.ink.text)
                     .accessibilityAddTraits(.isHeader)
@@ -31,10 +46,15 @@ struct SectionHeader: View {
     }
 
     private var accessibilitySpokenLabel: Text {
-        if let count {
-            Text(verbatim: "\(title), \(count)")
-        } else {
-            Text(verbatim: title)
+        if let spokenTitle {
+            if let count {
+                return Text(verbatim: "\(spokenTitle), \(count)")
+            }
+            return Text(verbatim: spokenTitle)
         }
+        if let count {
+            return Text("\(titleText), \(count)")
+        }
+        return titleText
     }
 }

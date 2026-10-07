@@ -5,6 +5,7 @@ struct KanbanView: View {
     @State private var model: KanbanModel
     @State private var selectedRow: TaskRow?
     @State private var sourceDay: CalendarDate?
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     let showsFilters: Bool
     let openDay: (String) -> Void
 
@@ -17,16 +18,26 @@ struct KanbanView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             controls
-            if let error = model.errorText { Text(verbatim: error).foregroundStyle(.red).padding(.horizontal) }
+            if let error = model.errorText {
+                InfoBand(kind: .error, verbatim: error)
+                    .padding(.horizontal, InkSpacing.margin)
+            }
             #if os(macOS)
                 HStack(spacing: 0) {
                     board
                     if let row = selectedTask {
-                        Divider()
+                        Divider().overlay(Color.ink.rule)
                         VStack(spacing: 0) {
                             HStack {
                                 Spacer()
-                                Button("Kapat", systemImage: "xmark") { selectedRow = nil }.labelStyle(.iconOnly)
+                                Button {
+                                    selectedRow = nil
+                                } label: {
+                                    Label("Kapat", systemImage: "xmark")
+                                        .labelStyle(.iconOnly)
+                                        .tapTarget()
+                                }
+                                .buttonStyle(InkTextButtonStyle())
                             }.padding()
                             NavigationStack { TaskDetailView(store: model.store, row: row, openDay: openDay) }
                         }.frame(width: 340)
@@ -48,7 +59,8 @@ struct KanbanView: View {
                 }
             #endif
         }
-        .navigationTitle("Kanban")
+        .background(Color.ink.paper)
+        .modifier(OptionalNavigationTitle(showsFilters ? "Kanban" : nil))
         .onChange(of: model.store.vaultURL) { _, _ in
             model.tasks.clearFilters()
             selectedRow = nil
@@ -64,20 +76,50 @@ struct KanbanView: View {
     }
 
     private var controls: some View {
-        HStack {
-            Picker("Gruplama", selection: $model.grouping) {
-                Text("Durum").tag(KanbanModel.Grouping.status)
-                Text("Proje").tag(KanbanModel.Grouping.project)
-                Text("Kişi").tag(KanbanModel.Grouping.person)
-            }.pickerStyle(.menu)
-            Spacer()
-            Menu {
-                Toggle("İptal edilenleri göster", isOn: $model.showsCancelled)
-            } label: {
-                Label("Pano seçenekleri", systemImage: "ellipsis.circle")
+        Group {
+            if dynamicTypeSize.isAccessibilitySize {
+                VStack(alignment: .leading, spacing: 8) {
+                    groupingPicker
+                    HStack {
+                        optionsMenu
+                        if showsFilters { TaskFiltersMenu(model: model.tasks) }
+                        Spacer(minLength: 0)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            } else {
+                HStack {
+                    groupingPicker
+                    Spacer(minLength: 8)
+                    optionsMenu
+                    if showsFilters { TaskFiltersMenu(model: model.tasks) }
+                }
             }
-            if showsFilters { TaskFiltersMenu(model: model.tasks) }
-        }.padding()
+        }
+        .padding(.horizontal, InkSpacing.margin)
+        .padding(.vertical, 10)
+    }
+
+    private var groupingPicker: some View {
+        Picker("Gruplama", selection: $model.grouping) {
+            Text("Durum").tag(KanbanModel.Grouping.status)
+            Text("Proje").tag(KanbanModel.Grouping.project)
+            Text("Kişi").tag(KanbanModel.Grouping.person)
+        }
+        .pickerStyle(.menu)
+        .fixedSize(horizontal: true, vertical: false)
+        .lineLimit(1)
+    }
+
+    private var optionsMenu: some View {
+        Menu {
+            Toggle("İptal edilenleri göster", isOn: $model.showsCancelled)
+        } label: {
+            Label("Pano seçenekleri", systemImage: "ellipsis.circle")
+                .labelStyle(.titleAndIcon)
+                .lineLimit(1)
+                .fixedSize(horizontal: true, vertical: false)
+        }
     }
 
     private var board: some View {
@@ -89,9 +131,9 @@ struct KanbanView: View {
                             #if os(macOS)
                                 .frame(width: 300)
                             #else
-                                .frame(width: max(240, min(360, geometry.size.width - 32)))
+                                .frame(width: max(240, min(360, max(0, geometry.size.width - 32))))
                             #endif
-                            .frame(height: geometry.size.height - 24)
+                            .frame(height: max(0, geometry.size.height - 24))
                     }
                 }
                 .scrollTargetLayout().padding(12)

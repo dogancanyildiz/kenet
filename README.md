@@ -1,6 +1,6 @@
 # Kenet
 
-Depo ve kod adı `journal` çalışma adıdır; uygulamanın adı Kenet'tir (karar günlüğü, 2026-10-07).
+Depo: `github.com/dogancanyildiz/kenet`. Şema, hedef ve modül adı `Journal` kod adıdır; uygulamanın adı Kenet'tir (karar günlüğü, 2026-10-07).
 
 Kişiler, konumlar ve olaylar etrafında dönen; görevleri, hedefleri ve alışkanlık zincirlerini tek yerde toplayan kişisel günlük uygulaması. iPhone ve Mac için SwiftUI ile yazılır. Veriler Obsidian uyumlu düz Markdown dosyalarında durur.
 
@@ -57,3 +57,7 @@ Ajanlar (Claude Code ve diğerleri) için kurallar: [AGENTS.md](AGENTS.md)
 ## Belge kuralı
 
 Yeni bilgi önce mevcut belgelerden uygun olana eklenir. Gerçekten ayrı bir konu varsa `docs/` altında yeni belge açılır ve yukarıdaki tabloya eklenir.
+
+## Lisans
+
+Tüm hakları saklıdır; ayrıntı `LICENSE` dosyasında. Depo incelenmek üzere herkese açıktır, açık kaynak lisansı verilmemiştir.

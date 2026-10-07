@@ -171,6 +171,22 @@ data = json.loads(catalog_path.read_text(encoding="utf-8"))
 strings = data.get("strings") or {}
 required = ("tr", "en")
 
+# Kataloglar Xcode'un yazdığı biçimde durmalı (iki boşluk girinti, " : " ayırıcı). Başka biçimde
+# yazılırsa Xcode ilk derlemede bütün dosyayı yeniden yazar ve çalışma klasörü kirlenir.
+misformatted = []
+for path in sorted((root / "App/Resources").glob("*.xcstrings")):
+    raw = path.read_text(encoding="utf-8")
+    canonical = json.dumps(json.loads(raw), indent=2, ensure_ascii=False, separators=(",", " : "))
+    if raw.rstrip("\n") != canonical:
+        misformatted.append(path.name)
+if misformatted:
+    print("String Catalog Xcode biçiminde değil: " + ", ".join(misformatted), file=sys.stderr)
+    print(
+        'Düzeltme: json.dumps(veri, indent=2, ensure_ascii=False, separators=(",", " : ")) ile yaz.',
+        file=sys.stderr,
+    )
+    sys.exit(1)
+
 
 def localization_has_value(loc: dict) -> bool:
     if not loc:

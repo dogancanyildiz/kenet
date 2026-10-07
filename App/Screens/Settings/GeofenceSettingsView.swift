@@ -31,15 +31,21 @@
                         .inkListRow()
                 }
                 ForEach(geofences.targets) { target in
-                    Picker(
-                        selection: Binding(
-                            get: { geofences.mode(for: target) }, set: { geofences.setMode($0, for: target) })
-                    ) {
-                        Text("Kapalı").tag(GeofenceMode.off)
-                        Text("Bildir").tag(GeofenceMode.notify)
-                        Text("Otomatik işaretle").tag(GeofenceMode.automatic)
-                    } label: {
+                    // Three choices: tabs, under the goal they belong to. The same three words
+                    // repeat per goal, so each tab is read as "goal name, mode".
+                    VStack(alignment: .leading, spacing: 4) {
                         Text(verbatim: target.goal.name)
+                            .font(.ink.content)
+                            .foregroundStyle(Color.ink.text)
+                        InkTabs(
+                            selection: Binding(
+                                get: { geofences.mode(for: target) },
+                                set: { geofences.setMode($0, for: target) }),
+                            items: [
+                                InkTabItem("Kapalı", value: GeofenceMode.off),
+                                InkTabItem("Bildir", value: GeofenceMode.notify),
+                                InkTabItem("Otomatik işaretle", value: GeofenceMode.automatic),
+                            ], accessibilityLabelPrefix: target.goal.name)
                     }
                     .inkListRow()
                 }

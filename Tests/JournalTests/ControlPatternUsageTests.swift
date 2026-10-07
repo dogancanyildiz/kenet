@@ -28,54 +28,15 @@ struct ControlPatternUsageTests {
 
     /// Files that still break each rule. Screen work removes entries; nothing is added.
     static let allowlist: [Rule: Set<String>] = [
-        .segmentedPicker: ["App/Screens/Summaries/SummariesView.swift"],
-        .menuPicker: ["App/Screens/Entities/EntityTypePicker.swift"],
-        .unstyledPicker: [
-            "App/Screens/Entities/EntityListControls.swift",
-            "App/Screens/Goals/GoalCreationView.swift",
-            "App/Screens/Goals/GoalFieldEditor.swift",
-            "App/Screens/Graph/GraphControls.swift",
-            "App/Screens/Settings/AppLockSettingsView.swift",
-            "App/Screens/Settings/EntityTypeEditorView.swift",
-            "App/Screens/Settings/GeofenceSettingsView.swift",
-        ],
-        .roundedBorderField: [
-            "App/Screens/Entities/EntityListControls.swift",
-            "App/Screens/Goals/GoalValueEditor.swift",
-            "App/Screens/Shared/SingleLineTextEditor.swift",
-        ],
+        .segmentedPicker: [],
+        .menuPicker: [],
+        .unstyledPicker: [],
+        .roundedBorderField: [],
         .toolbarSearch: [
-            "App/Navigation/MacNavigation.swift",
-            "App/Screens/Days/DaysView.swift",
-            "App/Screens/Entities/EntitiesView.swift",
-            "App/Screens/Entities/EntityView.swift",
-            "App/Screens/Goals/GoalDetailView.swift",
-            "App/Screens/Goals/GoalsView.swift",
-            "App/Screens/Graph/GraphView.swift",
-            "App/Screens/Shared/SearchNoteView.swift",
-            "App/Screens/Summaries/SummariesView.swift",
-            "App/Screens/Today/DayView.swift",
+            "App/Navigation/MacNavigation.swift"
         ],
-        .doneButton: [
-            "App/Screens/Entities/EntityView.swift",
-            "App/Screens/Shared/SingleLineTextEditor.swift",
-            "App/Screens/Today/JournalView.swift",
-        ],
-        .sheetToolbar: [
-            "App/Navigation/PhoneNavigation.swift",
-            "App/Screens/Entities/EntityRenameView.swift",
-            "App/Screens/Entities/EntityView.swift",
-            "App/Screens/Goals/GoalCreationView.swift",
-            "App/Screens/Goals/GoalFieldEditor.swift",
-            "App/Screens/Goals/GoalValueEditor.swift",
-            "App/Screens/Map/PlacesMapView.swift",
-            "App/Screens/Shared/LinkedTextView.swift",
-            "App/Screens/Shared/SearchView.swift",
-            "App/Screens/Shared/SingleLineTextEditor.swift",
-            "App/Screens/Today/EntityLinkSheet.swift",
-            "App/Screens/Today/JournalView.swift",
-            "App/Screens/Today/TaskTextEditor.swift",
-        ],
+        .doneButton: [],
+        .sheetToolbar: [],
     ]
 
     @Test(arguments: Rule.allCases)

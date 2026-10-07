@@ -13,7 +13,7 @@ struct SearchNoteView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
-                InkPageTitle(verbatim: noteTitle)
+                InkPageTitle(verbatim: noteTitle) { SearchButton() }
                 Group {
                     if let errorText {
                         Text(verbatim: errorText).foregroundStyle(.ink.danger)
@@ -33,7 +33,6 @@ struct SearchNoteView: View {
         .inkPage()
         .inkPageColumn()
         .inkPageNavigationTitle(verbatim: noteTitle)
-        .toolbar { SearchButton() }
         .task(id: store.lastUpdated) {
             isLoaded = false
             errorText = nil

@@ -24,16 +24,23 @@ struct EntityAliasesEditor: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading) {
+        VStack(alignment: .leading, spacing: InkSpacing.section) {
             ForEach($values) { $alias in
-                HStack {
-                    TextField("Takma ad", text: $alias.text)
-                    Button("Kaldır", systemImage: "minus.circle") { values.removeAll { $0.id == alias.id } }
-                        .labelStyle(.iconOnly)
+                HStack(spacing: InkSpacing.section) {
+                    InkFilterField("Takma ad", text: $alias.text)
+                    Button {
+                        values.removeAll { $0.id == alias.id }
+                    } label: {
+                        Label("Kaldır", systemImage: "minus.circle")
+                            .labelStyle(.iconOnly)
+                            .foregroundStyle(.ink.secondaryText)
+                            .tapTarget()
+                    }
                 }
             }
-            HStack {
+            HStack(spacing: InkSpacing.margin) {
                 Button("Takma ad ekle") { values.append(Alias(text: "")) }
+                    .buttonStyle(InkTextButtonStyle())
                 Button("Kaydet") {
                     let aliases = values.map(\.text)
                     Task {
@@ -45,6 +52,7 @@ struct EntityAliasesEditor: View {
                         draft?.report(id: draftID, dirty: isDirty)
                     }
                 }
+                .buttonStyle(InkTextButtonStyle())
             }
             if saveFailed {
                 Text(
@@ -54,7 +62,8 @@ struct EntityAliasesEditor: View {
                 .font(.ink.meta).foregroundStyle(.ink.danger)
             }
         }
-        // Inside a List row every bordered button fires on one tap; borderless keeps them separate.
+        // Inside a List row every bordered button fires on one tap. Borderless is the row
+        // default (the remove icon); the word buttons carry their own ink style.
         .buttonStyle(.borderless)
         .disabled(!model.canEdit || !model.aliasesEditable)
         .onAppear { draft?.report(id: draftID, dirty: isDirty) }

@@ -6,6 +6,7 @@ struct EntityTypesSettingsView: View {
     let store: IndexStore
     @Environment(\.locale) private var locale
     @State private var deleting: EntityTypeDefinition?
+    @State private var editing: EditorTarget?
     @State private var errorText: String?
 
     var body: some View {
@@ -31,22 +32,28 @@ struct EntityTypesSettingsView: View {
                 }
                 ForEach(store.entityTypes.types, id: \.id) { type in
                     HStack {
-                        NavigationLink {
-                            EntityTypeEditorView(model: EntityTypeEditorModel(store: store, original: type))
+                        Button {
+                            editing = EditorTarget(original: type)
                         } label: {
                             Label(
                                 type.name.localized(language: locale.language.languageCode?.identifier ?? "en"),
-                                systemImage: type.icon)
+                                systemImage: type.icon
+                            )
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .tapTarget()
+                            .contentShape(Rectangle())
                         }
+                        .accessibilityHint(Text("Varlık tipini düzenle"))
                         Button("Tipi sil", role: .destructive) { deleting = type }
+                            .buttonStyle(InkDestructiveButtonStyle())
                     }
+                    .buttonStyle(.borderless)
                     .inkListRow()
                 }
-                NavigationLink("Yeni varlık tipi") {
-                    EntityTypeEditorView(model: EntityTypeEditorModel(store: store))
-                }
-                .disabled(!store.canAddEvent || store.entityTypes.issue != nil)
-                .inkListRow()
+                Button("Yeni varlık tipi") { editing = EditorTarget(original: nil) }
+                    .buttonStyle(.borderless)
+                    .disabled(!store.canAddEvent || store.entityTypes.issue != nil)
+                    .inkListRow()
             }
             if store.entityTypes.issue != nil {
                 Text(
@@ -69,7 +76,16 @@ struct EntityTypesSettingsView: View {
         }
         .onChange(of: store.vaultURL) { _, _ in
             deleting = nil
+            editing = nil
             errorText = nil
+        }
+        .sheet(item: $editing) { target in
+            NavigationStack {
+                EntityTypeEditorView(model: EntityTypeEditorModel(store: store, original: target.original))
+            }
+            #if os(macOS)
+                .frame(minWidth: InkSpacing.macSettingsMinWidth, minHeight: InkSpacing.macSettingsMinHeight)
+            #endif
         }
         .listStyle(.plain)
         .inkPageNavigationTitle("Varlık tipleri")
@@ -94,4 +110,10 @@ struct EntityTypesSettingsView: View {
             Text("Varlık dosyaları korunur.")
         }
     }
+}
+
+/// One presentation of the type editor; a fresh identity per tap gives the sheet a fresh model.
+private struct EditorTarget: Identifiable {
+    let id = UUID()
+    let original: EntityTypeDefinition?
 }

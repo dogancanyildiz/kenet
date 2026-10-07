@@ -9,8 +9,12 @@ struct JournalView: View {
     @FocusState private var isFocused: Bool
     @Environment(\.dismiss) private var dismiss
 
-    init(store: IndexStore, date: CalendarDate) {
+    private let focusesOnLoad: Bool
+
+    /// - Parameter focusesOnLoad: `false` keeps the caret out of snapshot references.
+    init(store: IndexStore, date: CalendarDate, focusesOnLoad: Bool = true) {
         _model = State(initialValue: JournalEditorModel(store: store, day: date))
+        self.focusesOnLoad = focusesOnLoad
     }
 
     private var blocksLeave: Bool {
@@ -19,6 +23,44 @@ struct JournalView: View {
 
     var body: some View {
         @Bindable var model = model
+        VStack(alignment: .leading, spacing: 0) {
+            InkPageTitle("Günlük yazısı")
+            editor(text: $model.text)
+                .padding(.horizontal, InkSpacing.margin)
+                .padding(.bottom, InkSpacing.margin)
+        }
+        .inkPageColumn()
+        .navigationBarBackButtonHidden(blocksLeave)
+        .interactiveDismissDisabled(blocksLeave || model.isSaving)
+        .inkSheet(
+            "Günlük yazısı", isConfirmEnabled: model.canSave, isBusy: model.isSaving,
+            // "Vazgeç" stays inert while a write is in flight, as before.
+            onCancel: { if !model.isSaving { requestLeave() } },
+            onConfirm: saveAndClose
+        )
+        .confirmationDialog("Kaydedilmemiş değişiklikler", isPresented: $leavePrompt) {
+            Button("Kaydet", action: saveAndClose)
+                .disabled(!model.canSave)
+            Button("At", role: .destructive) {
+                isClosing = true
+                dismiss()
+            }
+            Button("Vazgeç", role: .cancel) {}
+        } message: {
+            Text("Kaydedilmemiş günlük metni var.")
+        }
+        .onChange(of: model.store.vaultURL) { _, _ in
+            if UnsavedDraftDecision.requiresPrompt(isDirty: model.isDirty, isSaving: model.isSaving) {
+                leavePrompt = true
+            }
+        }
+        .task {
+            await model.load()
+            isFocused = focusesOnLoad && model.isLoaded
+        }
+    }
+
+    private func editor(text: Binding<String>) -> some View {
         VStack(alignment: .leading) {
             if let error = model.errorText {
                 Text(verbatim: error).font(.ink.meta).foregroundStyle(.ink.danger)
@@ -32,7 +74,7 @@ struct JournalView: View {
                         .buttonStyle(InkTextButtonStyle())
                 }
             }
-            TextEditor(text: $model.text)
+            TextEditor(text: text)
                 .font(.ink.content)
                 .inkJournalParagraph()
                 .foregroundStyle(.ink.text)
@@ -49,60 +91,16 @@ struct JournalView: View {
                     }
                 }
         }
-        .padding()
-        .inkPage()
-        .inkPageColumn()
-        .navigationTitle("Günlük yazısı")
-        .navigationBarBackButtonHidden(blocksLeave)
-        .interactiveDismissDisabled(blocksLeave || model.isSaving)
-        .toolbar {
-            ToolbarItem(placement: .confirmationAction) {
-                Button("Bitti") {
-                    isClosing = true
-                    Task {
-                        if await model.save(), !model.isDirty && model.errorText == nil {
-                            dismiss()
-                        } else {
-                            isClosing = false
-                        }
-                    }
-                }
-                .disabled(!model.canSave)
-            }
-            ToolbarItem(placement: .cancellationAction) {
-                Button("Vazgeç") {
-                    requestLeave()
-                }.disabled(model.isSaving)
-            }
-        }
-        .confirmationDialog("Kaydedilmemiş değişiklikler", isPresented: $leavePrompt) {
-            Button("Kaydet") {
-                isClosing = true
-                Task {
-                    if await model.save(), !model.isDirty && model.errorText == nil {
-                        dismiss()
-                    } else {
-                        isClosing = false
-                    }
-                }
-            }
-            .disabled(!model.canSave)
-            Button("At", role: .destructive) {
-                isClosing = true
+    }
+
+    private func saveAndClose() {
+        isClosing = true
+        Task {
+            if await model.save(), !model.isDirty && model.errorText == nil {
                 dismiss()
+            } else {
+                isClosing = false
             }
-            Button("Vazgeç", role: .cancel) {}
-        } message: {
-            Text("Kaydedilmemiş günlük metni var.")
-        }
-        .onChange(of: model.store.vaultURL) { _, _ in
-            if UnsavedDraftDecision.requiresPrompt(isDirty: model.isDirty, isSaving: model.isSaving) {
-                leavePrompt = true
-            }
-        }
-        .task {
-            await model.load()
-            isFocused = model.isLoaded
         }
     }
 

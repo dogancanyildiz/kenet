@@ -76,13 +76,21 @@ struct InkTabs<Value: Hashable>: View {
     @Binding private var selection: Value
     private let items: [InkTabItem<Value>]
     private let identifier: String?
+    private let accessibilityLabelPrefix: String?
     @Environment(\.displayScale) private var displayScale
 
-    /// - Parameter identifier: accessibility identifier of the tab container.
-    init(selection: Binding<Value>, items: [InkTabItem<Value>], identifier: String? = nil) {
+    /// - Parameters:
+    ///   - identifier: accessibility identifier of the tab container.
+    ///   - accessibilityLabelPrefix: what the tabs belong to when the same words repeat on a
+    ///     page (one tab row per goal); each tab is then read as "prefix, word".
+    init(
+        selection: Binding<Value>, items: [InkTabItem<Value>], identifier: String? = nil,
+        accessibilityLabelPrefix: String? = nil
+    ) {
         _selection = selection
         self.items = items
         self.identifier = identifier
+        self.accessibilityLabelPrefix = accessibilityLabelPrefix
     }
 
     var body: some View {
@@ -130,6 +138,7 @@ struct InkTabs<Value: Hashable>: View {
             .buttonStyle(.plain)
             .accessibilityAddTraits(selected ? [.isSelected] : [])
             .inkAccessibilityIdentifier(item.identifier)
+            .modifier(InkTabLabelPrefix(prefix: accessibilityLabelPrefix))
         }
     }
 
@@ -137,6 +146,22 @@ struct InkTabs<Value: Hashable>: View {
         switch item.title {
         case .key(let key): Text(key)
         case .verbatim(let text): Text(verbatim: text)
+        }
+    }
+}
+
+/// Reads a tab as "prefix, word": the prefix is put in front of the button's own label.
+private struct InkTabLabelPrefix: ViewModifier {
+    var prefix: String?
+
+    func body(content: Content) -> some View {
+        if let prefix {
+            content.accessibilityLabel { word in
+                Text(verbatim: prefix)
+                word
+            }
+        } else {
+            content
         }
     }
 }

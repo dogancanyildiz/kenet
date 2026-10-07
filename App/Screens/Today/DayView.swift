@@ -19,8 +19,6 @@ struct DayView: View {
     @Environment(\.locale) private var locale
     @Environment(\.calendar) private var calendarValue
     @Environment(\.clockNow) private var clockNow
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-    @Environment(\.openSearch) private var openSearch
     @Environment(\.openSettings) private var openSettings
     @State private var showsJournal = false
     @State private var tasksModel: DayTasksModel
@@ -116,14 +114,13 @@ struct DayView: View {
             )
             .id(isToday ? "today" : date.description)
         }
+        // Today is a root screen: same modifiers as `inkRootPageNavigationTitle`, kept
+        // conditional because a past day is a pushed page that needs the bar's back button.
         .inkPageNavigationTitle(verbatim: presented.headline)
         #if os(iOS)
             .toolbar(isToday ? .hidden : .automatic, for: .navigationBar)
         #endif
         .accessibilityIdentifier(isToday ? "screen.today" : "screen.day")
-        .toolbar {
-            if !isToday { SearchButton() }
-        }
         .task(id: date) {
             if AppLaunchPolicy.allowsAutomaticStart() { await calendar.load(date) }
         }
@@ -137,50 +134,19 @@ struct DayView: View {
         }
     }
 
-    @ViewBuilder private func headlineBlock(_ presented: TodayPresentation) -> some View {
-        let headline = PageHeadline(
-            title: presented.headline, shortTitle: presented.shortHeadline,
-            byline: presented.byline, fitsOneLine: isToday)
-        if isToday, dynamicTypeSize.isAccessibilitySize {
-            // Keep 44 pt buttons clear of the large manşet (todayAX5).
-            VStack(alignment: .leading, spacing: InkSpacing.row) {
-                HStack(spacing: 4) {
-                    Spacer(minLength: 0)
-                    todayChromeButtons
+    /// Manşet row: Settings (Today, phone only) then search, rightmost. A past day keeps only
+    /// search; its bar holds nothing but the back button.
+    private func headlineBlock(_ presented: TodayPresentation) -> some View {
+        InkPageHeader(
+            verbatim: presented.headline, shortTitle: presented.shortHeadline,
+            byline: presented.byline, fitsOneLine: isToday
+        ) {
+            if isToday, let openSettings {
+                InkHeaderAction("Ayarlar", systemImage: "gearshape", identifier: "button.settings") {
+                    openSettings()
                 }
-                headline
             }
-        } else {
-            HStack(alignment: .firstTextBaseline, spacing: 4) {
-                headline
-                if isToday { todayChromeButtons }
-            }
-        }
-    }
-
-    @ViewBuilder private var todayChromeButtons: some View {
-        Button {
-            openSearch()
-        } label: {
-            Label("Ara", systemImage: "magnifyingglass")
-                .labelStyle(.iconOnly)
-                .foregroundStyle(Color.ink.secondaryText)
-                .tapTarget()
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel("Ara")
-        if let openSettings {
-            Button {
-                openSettings()
-            } label: {
-                Label("Ayarlar", systemImage: "gearshape")
-                    .labelStyle(.iconOnly)
-                    .foregroundStyle(Color.ink.secondaryText)
-                    .tapTarget()
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Ayarlar")
-            .accessibilityIdentifier("button.settings")
+            SearchButton()
         }
     }
 

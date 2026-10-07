@@ -138,6 +138,14 @@ import VaultFormat
         #expect(source.accessRequests == 0 && source.locationRequests == 1)
         #expect(location.currentCoordinate == source.fix)
     }
+    /// Manşet-row filter icon turns accent only when the node kinds differ from the default.
+    @Test func filterMenuIsActiveOnlyForNonDefaultNodeKinds() {
+        #expect(!GraphFilterMenu.isActive(GraphFilter()))
+        #expect(GraphFilterMenu.isActive(GraphFilter(people: false)))
+        #expect(GraphFilterMenu.isActive(GraphFilter(places: false)))
+        #expect(GraphFilterMenu.isActive(GraphFilter(days: true)))
+        #expect(!GraphFilterMenu.isActive(GraphFilter(period: .month, minimumWeight: 3)))
+    }
     private func entity(_ id: String) -> EntitySummary {
         EntitySummary(id: id, kind: "person", name: id, qualifier: nil, aliases: [], incomingLinks: 0)
     }

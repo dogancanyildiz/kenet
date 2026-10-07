@@ -7,74 +7,28 @@ struct GraphControls: View {
     @Binding var pan: CGSize
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
-    private var stacksFilters: Bool { dynamicTypeSize.isAccessibilitySize }
-
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            if stacksFilters {
-                VStack(alignment: .leading, spacing: 8) { filterChips }
-            } else {
-                ViewThatFits(in: .horizontal) {
-                    HStack(spacing: 8) { filterChips }
-                    VStack(alignment: .leading, spacing: 8) { filterChips }
-                }
-            }
-            Group {
-                if stacksFilters {
-                    VStack(alignment: .leading, spacing: 8) {
-                        periodPicker
-                        weightRow
-                    }
-                } else {
-                    // Keep label + stepper as one unit; reflow both together when narrow.
-                    ViewThatFits(in: .horizontal) {
-                        HStack(alignment: .center, spacing: 12) {
-                            periodPicker
-                            weightRow
-                        }
-                        VStack(alignment: .leading, spacing: 8) {
-                            periodPicker
-                            weightRow
-                        }
-                    }
-                }
-            }
-            .font(.ink.meta)
-            .foregroundStyle(Color.ink.secondaryText)
-
+            periodMenu
+            weightRow
+                .font(.ink.meta)
+                .foregroundStyle(Color.ink.secondaryText)
             zoomBar
         }
-        // Half control stroke: TagChip borders are centered on the frame, so plain
-        // `InkSpacing.margin` places the visible chip edge ~1–2 pt outside the manşet.
-        .padding(.horizontal, InkSpacing.margin + InkStroke.control / 2)
+        .padding(.horizontal, InkSpacing.margin)
         .padding(.vertical, InkSpacing.margin)
     }
 
-    @ViewBuilder private var filterChips: some View {
-        TagChip(
-            title: String(localized: "Kişiler"),
-            isSelected: filter.people,
-            onTap: { filter.people.toggle() }
-        )
-        TagChip(
-            title: String(localized: "Konumlar"),
-            isSelected: filter.places,
-            onTap: { filter.places.toggle() }
-        )
-        TagChip(
-            title: String(localized: "Günler"),
-            isSelected: filter.days,
-            onTap: { filter.days.toggle() }
-        )
-    }
-
-    private var periodPicker: some View {
-        Picker("Tarih aralığı", selection: $filter.period) {
-            Text("Son 30 gün").tag(GraphPeriod.month)
-            Text("Son 90 gün").tag(GraphPeriod.quarter)
-            Text("Son 365 gün").tag(GraphPeriod.year)
-            Text("Tümü").tag(GraphPeriod.all)
-        }
+    /// Four choices: labeled menu, left-aligned under the manşet.
+    private var periodMenu: some View {
+        InkLabeledMenu(
+            "Dönem", selection: $filter.period,
+            options: [
+                InkMenuOption("Son 30 gün", value: GraphPeriod.month),
+                InkMenuOption("Son 90 gün", value: GraphPeriod.quarter),
+                InkMenuOption("Son 365 gün", value: GraphPeriod.year),
+                InkMenuOption("Tümü", value: GraphPeriod.all),
+            ], identifier: "menu.graph.period")
     }
 
     private var weightLabel: some View {
@@ -96,7 +50,7 @@ struct GraphControls: View {
     }
 
     @ViewBuilder private var weightRow: some View {
-        if stacksFilters {
+        if dynamicTypeSize.isAccessibilitySize {
             VStack(alignment: .leading, spacing: 8) {
                 weightLabel
                 weightStepper
@@ -138,5 +92,35 @@ struct GraphControls: View {
         }
         .labelStyle(.iconOnly)
         .buttonStyle(.borderless)
+    }
+}
+
+/// Node-kind filter on the manşet row: a menu of three switches (people, places, days).
+/// The icon turns accent while the choice differs from the default filter.
+struct GraphFilterMenu: View {
+    @Binding var filter: GraphFilter
+
+    /// Pure rule (unit-tested): only the node kinds count, not period or weight.
+    static func isActive(_ filter: GraphFilter) -> Bool {
+        let standard = GraphFilter()
+        return filter.people != standard.people || filter.places != standard.places
+            || filter.days != standard.days
+    }
+
+    var body: some View {
+        InkHeaderMenu(
+            "Filtre", systemImage: "line.3.horizontal.decrease", isActive: Self.isActive(filter),
+            identifier: "menu.graph.filter"
+        ) {
+            Group {
+                Toggle("Kişiler", isOn: $filter.people)
+                Toggle("Konumlar", isOn: $filter.places)
+                Toggle("Günler", isOn: $filter.days)
+            }
+            // Several kinds are usually switched in one go: keep the menu open (iOS only API).
+            #if os(iOS)
+                .menuActionDismissBehavior(.disabled)
+            #endif
+        }
     }
 }

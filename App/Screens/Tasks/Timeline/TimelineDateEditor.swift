@@ -20,7 +20,9 @@ struct TimelineDateEditor: View {
         InkSheetScaffold(
             title, onClose: { if !isSaving { dismiss() } },
             content: {
-                TaskDatePicker(current: selection.edge == .start ? selection.row.start : selection.row.due) { date in
+                TaskDatePicker(
+                    current: selection.edge == .start ? selection.row.start : selection.row.due, isOnPage: true
+                ) { date in
                     guard let dates = TimelineDates(selection.row).setting(selection.edge, to: date) else {
                         model.rejectRange()
                         return

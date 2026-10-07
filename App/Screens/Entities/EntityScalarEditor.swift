@@ -43,7 +43,7 @@ struct EntityScalarEditor: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            HStack {
+            HStack(spacing: InkSpacing.margin) {
                 switch scalar.kind {
                 case .boolean:
                     Toggle("Değer", isOn: $flag).labelsHidden()
@@ -60,8 +60,8 @@ struct EntityScalarEditor: View {
                             }
                         }
                 case .text, .empty, .number:
-                    TextField("Değer", text: $text).onSubmit { submit() }
-                    Button("Kaydet") { submit() }.buttonStyle(.borderless)
+                    InkFilterField("Değer", text: $text).onSubmit { submit() }
+                    Button("Kaydet") { submit() }.buttonStyle(InkTextButtonStyle())
                 }
             }
             if invalid {
@@ -71,6 +71,8 @@ struct EntityScalarEditor: View {
                     .font(.ink.meta).foregroundStyle(.ink.danger)
             }
         }
+        // Row default for a List row that sits beside other buttons; "Kaydet" carries its ink style.
+        .buttonStyle(.borderless)
         .onAppear { draft?.report(id: draftID, dirty: isDirty) }
         .onChange(of: text) { draft?.report(id: draftID, dirty: isDirty) }
         .onChange(of: savedText) { draft?.report(id: draftID, dirty: isDirty) }

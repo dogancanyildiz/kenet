@@ -98,7 +98,8 @@ struct SummariesView: View {
                 items: [
                     InkTabItem("Hafta", value: SummaryPeriod.week, identifier: "tab.summaries.week"),
                     InkTabItem("Ay", value: SummaryPeriod.month, identifier: "tab.summaries.month"),
-                ], identifier: "tabs.summaries.period")
+                ], identifier: "tabs.summaries.period",
+                accessibilityLabelPrefix: String(localized: "Dönem"))
             HStack {
                 Button {
                     model.previous()

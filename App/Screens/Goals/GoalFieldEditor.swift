@@ -33,6 +33,23 @@ struct GoalFieldEditor: View {
         }
         _text = State(initialValue: value)
     }
+    private var isValid: Bool {
+        let clean = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        switch field {
+        case .name:
+            return !clean.isEmpty && !clean.unicodeScalars.contains(where: CharacterSet.controlCharacters.contains)
+        case .period:
+            return GoalPeriod(rawValue: clean) != nil
+        case .kind:
+            return GoalKind(rawValue: clean) != nil
+        case .target:
+            guard let number = GoalValueModel.number(clean), number > 0 else { return false }
+            return !clean.lowercased().contains("e")
+        case .unit:
+            return !clean.unicodeScalars.contains(where: CharacterSet.controlCharacters.contains)
+        }
+    }
+
     var body: some View {
         List {
             InkPageTitleRow(verbatim: field.title)
@@ -42,7 +59,8 @@ struct GoalFieldEditor: View {
                     selection: $text,
                     items: [GoalPeriod.day, .week, .year].map {
                         InkTabItem(verbatim: $0.title, value: $0.rawValue)
-                    }
+                    },
+                    accessibilityLabelPrefix: field.title
                 )
                 .inkListRow()
             } else if field == .kind {
@@ -50,7 +68,8 @@ struct GoalFieldEditor: View {
                     selection: $text,
                     items: [GoalKind.boolean, .number].map {
                         InkTabItem(verbatim: $0.title, value: $0.rawValue)
-                    }
+                    },
+                    accessibilityLabelPrefix: field.title
                 )
                 .inkListRow()
                 Text("Tür değişikliği geçmiş kayıtları dönüştürmez.")
@@ -74,7 +93,7 @@ struct GoalFieldEditor: View {
         .listStyle(.plain)
         .disabled(model.isWriting || isSaved)
         .inkSheet(
-            verbatim: field.title, isConfirmEnabled: model.canEdit && !isSaved,
+            verbatim: field.title, isConfirmEnabled: model.canEdit && !isSaved && isValid,
             isBusy: model.isWriting,
             onConfirm: {
                 Task {

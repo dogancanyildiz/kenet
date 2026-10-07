@@ -40,8 +40,25 @@ struct EntityView: View {
 
     var body: some View {
         List {
-            if !model.isLoaded {
-                if model.errorText == nil {
+            Section {
+                // The manşet row carries the page actions, so it is there before the file loads.
+                InkPageTitleRow(
+                    verbatim: current.name,
+                    byline: model.isLoaded
+                        ? EntityReadPresentation.byline(
+                            kindLabel: kindLabel, aliases: model.aliases, lastSeen: lastSeen, locale: locale)
+                        : nil
+                ) {
+                    if model.isLoaded && model.canEdit {
+                        InkHeaderAction(
+                            "Düzenle", systemImage: "pencil", role: .primary, identifier: "button.entity.edit"
+                        ) { isEditing = true }
+                    }
+                    SearchButton()
+                }
+                if model.isLoaded {
+                    headRows
+                } else if model.errorText == nil {
                     ProgressView("Yükleniyor…")
                         .inkListRow()
                 } else {
@@ -49,7 +66,8 @@ struct EntityView: View {
                         .buttonStyle(InkTextButtonStyle())
                         .inkListRow()
                 }
-            } else {
+            }
+            if model.isLoaded {
                 readingContent
             }
             if let error = model.errorText {
@@ -62,12 +80,6 @@ struct EntityView: View {
         .inkPageColumn()
         .environment(\.entityLookup, LinkedTextInk.lookup(entities: store.content.entities))
         .inkPageNavigationTitle(verbatim: current.name)
-        .toolbar {
-            SearchButton()
-            if model.isLoaded && model.canEdit {
-                Button("Düzenle") { isEditing = true }
-            }
-        }
         .sheet(isPresented: $isEditing) {
             EntityEditSheet(store: store, model: model, entity: current)
         }
@@ -75,35 +87,31 @@ struct EntityView: View {
         .task(id: store.lastUpdated) { await model.load() }
     }
 
-    @ViewBuilder private var readingContent: some View {
-        Section {
-            InkPageTitleRow(
-                verbatim: current.name,
-                byline: EntityReadPresentation.byline(
-                    kindLabel: kindLabel, aliases: model.aliases, lastSeen: lastSeen, locale: locale)
-            )
-            if !model.aliasesEditable, !model.aliasesSource.isEmpty {
-                Text(verbatim: model.aliasesSource)
-                    .font(.ink.meta)
-                    .foregroundStyle(.ink.secondaryText)
-                    .textSelection(.enabled)
-                    .inkListRow()
-            }
-            if let qualifier = current.qualifier {
-                labeledRow(String(localized: "Ayırt edici"), qualifier, valueFont: .ink.content)
-                    .inkListRow()
-            }
-            labeledRow(
-                String(localized: "Gelen bağlantılar"),
-                current.incomingLinks.formatted(.number),
-                valueFont: .ink.value
-            )
-            .inkListRow()
-            if let result = model.renameResult {
-                EntityRenameSummary(result: result)
-                    .inkListRow()
-            }
+    @ViewBuilder private var headRows: some View {
+        if !model.aliasesEditable, !model.aliasesSource.isEmpty {
+            Text(verbatim: model.aliasesSource)
+                .font(.ink.meta)
+                .foregroundStyle(.ink.secondaryText)
+                .textSelection(.enabled)
+                .inkListRow()
         }
+        if let qualifier = current.qualifier {
+            labeledRow(String(localized: "Ayırt edici"), qualifier, valueFont: .ink.content)
+                .inkListRow()
+        }
+        labeledRow(
+            String(localized: "Gelen bağlantılar"),
+            current.incomingLinks.formatted(.number),
+            valueFont: .ink.value
+        )
+        .inkListRow()
+        if let result = model.renameResult {
+            EntityRenameSummary(result: result)
+                .inkListRow()
+        }
+    }
+
+    @ViewBuilder private var readingContent: some View {
         if ["person", "place"].contains(current.kind) {
             Section {
                 NavigationLink {
@@ -226,132 +234,6 @@ struct EntityView: View {
                 .foregroundStyle(.ink.text)
                 .multilineTextAlignment(.trailing)
                 .textSelection(.enabled)
-        }
-    }
-}
-
-/// Edit mode: reuses existing field / alias / rename editors inside a sheet.
-struct EntityEditSheet: View {
-    let store: IndexStore
-    let model: EntityDetailModel
-    let entity: EntitySummary
-    @Environment(\.dismiss) private var dismiss
-    @State private var newKey = ""
-    @State private var newValue = ""
-    @State private var renamePresented = false
-    @State private var draft = EntityEditorDraft()
-    @State private var leavePrompt = false
-
-    private var addFieldDirty: Bool {
-        !newKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-            || !newValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-    }
-
-    private var isDirty: Bool { draft.isDirty || addFieldDirty }
-
-    private var blocksLeave: Bool {
-        UnsavedDraftDecision.requiresPrompt(isDirty: isDirty, isSaving: model.isWriting)
-    }
-
-    var body: some View {
-        NavigationStack {
-            ScrollViewReader { proxy in
-                Form {
-                    if let error = model.errorText {
-                        Section {
-                            InfoBand(kind: .error, verbatim: error)
-                                .id("entity-edit-error")
-                        }
-                    }
-                    Section("Varlık") {
-                        LabeledContent("Ad") { Text(verbatim: entity.name) }
-                        if let qualifier = entity.qualifier {
-                            LabeledContent("Ayırt edici") { Text(verbatim: qualifier) }
-                        }
-                        Button("Adı değiştir") { renamePresented = true }.disabled(!model.canEdit)
-                    }
-                    if model.unreadableFrontmatter {
-                        Text("Frontmatter okunamıyor.").foregroundStyle(.ink.secondaryText)
-                    } else {
-                        Section("Takma adlar") {
-                            if model.aliasesEditable {
-                                EntityAliasesEditor(model: model).id(model.aliases)
-                            } else {
-                                Text(verbatim: model.aliasesSource).textSelection(.enabled)
-                                Text("Takma ad alanı salt okunur.").font(.ink.meta)
-                            }
-                        }
-                        Section("Alanlar") {
-                            let definitions = store.entityTypes.allTypes.first { $0.id == entity.kind }?.fields ?? []
-                            ForEach(definitions, id: \.key) { definition in
-                                let value = model.fields.first { $0.key == definition.key }
-                                if EntityTypedField.supports(value?.value, kind: definition.kind) {
-                                    EntityTypedFieldEditor(
-                                        definition: definition, value: value?.value, model: model
-                                    )
-                                    .id(definition.key + String(describing: value?.value))
-                                } else if let value {
-                                    EntityFieldEditor(field: value, model: model).id(value.value)
-                                }
-                            }
-                            ForEach(
-                                model.fields.filter { field in !definitions.contains { $0.key == field.key } }
-                            ) { field in
-                                EntityFieldEditor(field: field, model: model).id(field.value)
-                            }
-                            VStack(alignment: .leading) {
-                                TextField("Alan adı", text: $newKey)
-                                TextField("Değer", text: $newValue)
-                                Button("Alan ekle") {
-                                    let key = newKey
-                                    let value = newValue
-                                    Task {
-                                        if await model.addField(key: key, text: value), newKey == key,
-                                            newValue == value
-                                        {
-                                            newKey = ""
-                                            newValue = ""
-                                        }
-                                    }
-                                }
-                            }.disabled(!model.canEdit)
-                        }
-                    }
-                }
-                .formStyle(.grouped)
-                .onChange(of: model.errorText) { _, error in
-                    guard error != nil else { return }
-                    withAnimation { proxy.scrollTo("entity-edit-error", anchor: .top) }
-                }
-            }
-            .navigationTitle("Düzenle")
-            .navigationBarBackButtonHidden(blocksLeave)
-            .interactiveDismissDisabled(blocksLeave || model.isWriting)
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Bitti") { requestLeave() }
-                }
-            }
-            .confirmationDialog("Kaydedilmemiş değişiklikler", isPresented: $leavePrompt) {
-                Button("At", role: .destructive) { dismiss() }
-                Button("Vazgeç", role: .cancel) {}
-            } message: {
-                Text("Kaydedilmemiş alan metni var.")
-            }
-            .sheet(isPresented: $renamePresented) {
-                EntityRenameView(
-                    model: EntityRenameModel(detail: model, name: entity.name, qualifier: entity.qualifier))
-            }
-        }
-        .environment(\.entityEditorDraft, draft)
-        .inkPage()
-    }
-
-    private func requestLeave() {
-        if UnsavedDraftDecision.canLeaveImmediately(isDirty: isDirty, isSaving: model.isWriting) {
-            dismiss()
-        } else {
-            leavePrompt = true
         }
     }
 }

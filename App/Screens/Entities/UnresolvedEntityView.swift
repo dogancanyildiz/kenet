@@ -20,16 +20,24 @@ struct UnresolvedEntityView: View {
                     aliases: [], incomingLinks: 0)
             EntityView(store: store, entity: entity).id(entity.id)
         } else {
-            Form {
-                Text("Bu ad için bir varlık oluştur.")
-                TextField("Ad", text: $model.name)
+            List {
+                InkPageTitleRow("Bağlantı bulunamadı", byline: String(localized: "Bu ad için bir varlık oluştur."))
+                InkFilterField("Ad", text: $model.name)
+                    .inkListRow()
                 if model.needsQualifier {
-                    TextField("Ayırt edici (ör. iş)", text: $model.qualifier)
+                    InkFilterField("Ayırt edici (ör. iş)", text: $model.qualifier)
+                        .inkListRow()
                     Button("Oluştur") { if let kind = model.kind { Task { await model.create(kind) } } }
+                        .buttonStyle(InkTextButtonStyle())
                         .disabled(model.qualifier.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                        .inkListRow()
                 } else {
                     Button("Kişi olarak ekle") { Task { await model.create(.person) } }
+                        .buttonStyle(InkTextButtonStyle())
+                        .inkListRow()
                     Button("Konum olarak ekle") { Task { await model.create(.place) } }
+                        .buttonStyle(InkTextButtonStyle())
+                        .inkListRow()
                     ForEach(
                         EntityTypeChoices.choices(
                             store.entityTypes, language: locale.language.languageCode?.identifier ?? "en"
@@ -40,12 +48,19 @@ struct UnresolvedEntityView: View {
                         } label: {
                             Text("\(type.name) olarak ekle")
                         }
+                        .buttonStyle(InkTextButtonStyle())
+                        .inkListRow()
                     }
                 }
-                if let error = model.errorText { Text(verbatim: error).foregroundStyle(.ink.danger) }
+                if let error = model.errorText {
+                    Text(verbatim: error).font(.ink.meta).foregroundStyle(.ink.danger)
+                        .inkListRow()
+                }
             }
+            .listStyle(.plain)
+            .inkPage()
             .disabled(model.isCreating || !store.canAddEvent)
-            .navigationTitle("Bağlantı bulunamadı")
+            .inkPageNavigationTitle("Bağlantı bulunamadı")
         }
     }
 }

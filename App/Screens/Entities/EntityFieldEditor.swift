@@ -37,17 +37,21 @@ struct EntityFieldEditor: View {
                     .id(entry.value)
                 }
             case .raw(let text):
-                Text(verbatim: text).textSelection(.enabled)
+                Text(verbatim: text).font(.ink.content).foregroundStyle(.ink.text).textSelection(.enabled)
                 Text("Ham alan — salt okunur").font(.ink.meta).foregroundStyle(.ink.secondaryText)
             }
             if case .raw = field.value {
             } else {
-                HStack {
+                HStack(spacing: InkSpacing.margin) {
                     Button("Değeri boş bırak") { Task { await model.set(field.key, to: .text("")) } }
+                        .buttonStyle(InkTextButtonStyle())
                     Button("Alanı kaldır", role: .destructive) { deleteConfirmation.request(.pending) }
-                }.font(.ink.meta).buttonStyle(.borderless)
+                        .buttonStyle(InkDestructiveButtonStyle())
+                }
             }
         }
+        // Row default for a List row with several buttons; the word buttons carry ink styles.
+        .buttonStyle(.borderless)
         .disabled(!model.canEdit)
         .destructiveConfirmationDialog(
             "Alanı kaldır?", confirmation: $deleteConfirmation, confirmTitle: "Alanı kaldır"

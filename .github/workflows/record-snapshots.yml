@@ -16,7 +16,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Paket önbelleği
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/Library/Developer/Xcode/DerivedData/**/SourcePackages
           key: spm-xcode-ios-${{ hashFiles('Packages/Core/Package.resolved') }}
@@ -28,7 +28,7 @@ jobs:
           SNAPSHOT_TESTING_RECORD: all
         run: sh .github/scripts/record-screen-snapshots.sh
       - name: Referans artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: screen-snapshot-references
           path: Tests/JournalTests/Snapshots/__Snapshots__

@@ -78,12 +78,13 @@ jobs:
       - name: macOS testleri (UTC)
         env:
           TZ: UTC
-        run: xcodebuild test -project Journal.xcodeproj -scheme Journal_macOS -destination 'platform=macOS' CODE_SIGNING_ALLOWED=NO -quiet
+        # Mac görüntü kümeleri yalnız yerelde koşar (bkz. snapshot-suites.sh).
+        run: xcodebuild test -project Journal.xcodeproj -scheme Journal_macOS -destination 'platform=macOS' $(sh .github/scripts/snapshot-suites.sh --mac | sed 's#^#-skip-testing:JournalTests_macOS/#' | tr '\n' ' ') CODE_SIGNING_ALLOWED=NO -quiet
       - name: macOS testleri (Pacific/Auckland)
         if: github.event_name == 'push'
         env:
           TZ: Pacific/Auckland
-        run: xcodebuild test-without-building -project Journal.xcodeproj -scheme Journal_macOS -destination 'platform=macOS' CODE_SIGNING_ALLOWED=NO -quiet
+        run: xcodebuild test-without-building -project Journal.xcodeproj -scheme Journal_macOS -destination 'platform=macOS' $(sh .github/scripts/snapshot-suites.sh --mac | sed 's#^#-skip-testing:JournalTests_macOS/#' | tr '\n' ' ') CODE_SIGNING_ALLOWED=NO -quiet
 
   # iOS: bir kez derlenir, birim ve arayüz testleri derlemesiz koşar.
   app-ios:
@@ -150,6 +151,7 @@ jobs:
             -quiet
       # Ekran görüntüsü: birim katmanında SwiftUI çizimi (uygulama açılmaz). Ayrı adım = süre ölçümü
       # ve düşünce fark görüntüleri artifact'ı. Kümeler ad kuralından bulunur (.github/scripts/snapshot-suites.sh).
+      # Süreç dili Türkçe: görüntüler tr yerel ayarıyla çizilir; String(localized:) ile aynı dil.
       - name: iOS ekran görüntüsü
         id: screen_snapshots
         run: |
@@ -158,6 +160,7 @@ jobs:
             -scheme Journal_iOS \
             -destination "platform=iOS Simulator,name=${{ steps.ios_sim.outputs.name }}" \
             $(sh .github/scripts/snapshot-suites.sh | sed 's#^#-only-testing:JournalTests_iOS/#' | tr '\n' ' ') \
+            -testLanguage tr -testRegion TR \
             -resultBundlePath ScreenSnapshots.xcresult \
             CODE_SIGNING_ALLOWED=NO \
             -quiet

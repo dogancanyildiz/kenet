@@ -5,35 +5,7 @@ import Testing
 /// `.red` / `.orange` scan is allowlisted until screen work lands; the list only shrinks.
 struct DesignTokenUsageTests {
     /// Paths under `App/` that still use `.red` or `.orange` (Stage 9 screen jobs clear these).
-    private static let systemColorAllowlist: Set<String> = [
-        "App/Mac/HotKeySettingsView.swift",
-        "App/Navigation/MacNavigation.swift",
-        "App/Screens/Entities/EntitiesView.swift",
-        "App/Screens/Entities/EntityRenameView.swift",
-        "App/Screens/Entities/EntityScalarEditor.swift",
-        "App/Screens/Entities/EntityTypedFieldEditor.swift",
-        "App/Screens/Entities/EntityView.swift",
-        "App/Screens/Entities/UnresolvedEntityView.swift",
-        "App/Screens/Onboarding/OnboardingView.swift",
-        "App/Screens/Onboarding/VaultImportView.swift",
-        "App/Screens/Onboarding/VaultInaccessibleView.swift",
-        "App/Screens/Settings/DiagnosticsView.swift",
-        "App/Screens/Settings/EntityTypeEditorView.swift",
-        "App/Screens/Settings/EntityTypesSettingsView.swift",
-        "App/Screens/Settings/GeofenceSettingsView.swift",
-        "App/Screens/Shared/SearchNoteView.swift",
-        "App/Screens/Shared/SearchView.swift",
-        "App/Screens/Shared/SingleLineTextEditor.swift",
-        "App/Screens/Summaries/SummariesView.swift",
-        "App/Screens/Tasks/EntityOpenTasksView.swift",
-        "App/Screens/Tasks/Kanban/KanbanView.swift",
-        "App/Screens/Tasks/ProjectView.swift",
-        "App/Screens/Tasks/TaskRecurrenceEditor.swift",
-        "App/Screens/Tasks/TasksView.swift",
-        "App/Screens/Tasks/Timeline/TaskTimelineView.swift",
-        "App/Screens/Tasks/Timeline/TimelineBarView.swift",
-        "App/Screens/Tasks/Timeline/TimelineDateEditor.swift",
-    ]
+    private static let systemColorAllowlist: Set<String> = []
 
     @Test func noHexColorLiteralsOutsideDesign() throws {
         let offenders = try Self.appSwiftFiles().filter { path in

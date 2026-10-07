@@ -76,8 +76,18 @@
                 timeZone: { snapshotTimeZone })
             let calendar = CalendarService(source: calendarSource)
             let location = LocationService(source: FakeLocationSource(), defaults: defaults)
+            if snapshotCase.usesCalendar {
+                await calendar.load(snapshotDay, timeZone: snapshotTimeZone)
+            }
+
+            // The goal strip loads in a `.task`; without this the reference can catch its spinner.
+            let goalsReady = GoalsReadyBox()
+            let store = context.store
+            let size =
+                snapshotCase.usesTallCanvas
+                ? CGSize(width: 390, height: 1600) : snapshotCanvasSize
             let root = NavigationStack {
-                DayView(store: context.store, date: snapshotDay, isToday: true)
+                DayView(store: store, date: snapshotDay, isToday: true)
             }
             .environment(notifications)
             .environment(calendar)
@@ -87,27 +97,22 @@
             .environment(\.timeZone, snapshotTimeZone)
             .environment(\.clockNow, { snapshotNow })
             .environment(\.openSearch, {})
+            // Without an action the masthead hides its Settings button.
             .environment(\.openSettings, {})
-
-            if snapshotCase.usesCalendar {
-                await calendar.load(snapshotDay, timeZone: snapshotTimeZone)
-            }
-
-            let size =
-                snapshotCase.usesTallCanvas
-                ? CGSize(width: 390, height: 1600) : snapshotCanvasSize
+            .onPreferenceChange(GoalsStripReadyKey.self) { goalsReady.isReady = $0 }
             await SnapshotHost.assertView(
-                root,
                 colorScheme: snapshotCase.colorScheme,
                 dynamicType: snapshotCase.dynamicType,
                 increaseContrast: snapshotCase.increaseContrast,
                 named: snapshotCase.rawValue,
-                store: context.store,
+                store: store,
                 size: size,
                 bottomSafeArea: Self.tabBarHeight,
+                isReady: { store.content.goals.isEmpty || goalsReady.isReady },
                 testName: "today",
                 file: #filePath,
-                line: #line
+                line: #line,
+                content: { root }
             )
         }
 
@@ -214,6 +219,10 @@
                     color: tint),
             ]
         }
+    }
+
+    @MainActor private final class GoalsReadyBox {
+        var isReady = false
     }
 
     @MainActor private final class TodaySnapshotCalendarSource: CalendarEventSource {

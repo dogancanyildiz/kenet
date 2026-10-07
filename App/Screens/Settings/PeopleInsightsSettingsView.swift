@@ -5,10 +5,15 @@ struct PeopleInsightsSettingsView: View {
     var body: some View {
         Section("Kişi hatırlatmaları") {
             Stepper(value: threshold, in: 1...365) {
-                LabeledContent("Görüşülmeyenler eşiği") { Text("\(threshold.wrappedValue) gün") }
+                LabeledContent("Görüşülmeyenler eşiği") {
+                    Text("\(threshold.wrappedValue) gün")
+                        .font(.ink.value)
+                        .monospacedDigit()
+                }
             }
-            Text("Bu süre, kişiler listesindeki hatırlatma bölümünü belirler.").font(.caption).foregroundStyle(
-                .secondary)
+            Text("Bu süre, kişiler listesindeki hatırlatma bölümünü belirler.")
+                .font(.ink.meta)
+                .foregroundStyle(Color.ink.secondaryText)
         }
     }
     private var threshold: Binding<Int> {

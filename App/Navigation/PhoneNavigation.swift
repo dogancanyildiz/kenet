@@ -41,6 +41,7 @@ struct PhoneNavigation: View {
             }
             .accessibilityIdentifier("tab.goals")
         }
+        .tint(Color.ink.accent)
         .onChange(of: intentNavigation.todayRequest, initial: true) { _, request in
             guard request != nil else { return }
             showingSettings = false
@@ -60,9 +61,7 @@ struct PhoneNavigation: View {
         }
         .sheet(isPresented: $showingSettings) {
             NavigationStack {
-                DiagnosticsView(store: store)
-                    .navigationTitle("Ayarlar")
-                    .accessibilityIdentifier("screen.settings")
+                PhoneSettingsView(store: store)
                     .toolbar {
                         Button("Kapat") { showingSettings = false }
                             .accessibilityIdentifier("button.settings.close")

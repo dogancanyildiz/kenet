@@ -14,14 +14,20 @@ struct EntityOpenTasksView: View {
     var body: some View {
         let rows = TasksModel.openTasks(in: store, linkedTo: path)
         if !rows.isEmpty || model.errorText != nil {
-            Section("Açık işler") {
-                if let error = model.errorText { Text(verbatim: error).foregroundStyle(.red) }
+            Section {
+                SectionHeader(title: String(localized: "Açık işler"), count: rows.count)
+                    .inkListRow()
+                if let error = model.errorText {
+                    Text(verbatim: error).foregroundStyle(.ink.danger)
+                        .inkListRow()
+                }
                 ForEach(rows) { row in
                     DayTaskView(
                         store: store, row: row, isToday: true,
                         isOverdue: row.due.map { $0 < model.day } ?? false,
                         completed: false, isBusy: model.busy.contains(row.id)
                     ) { Task { await model.toggle(row) } }
+                    .inkListRow()
                 }
             }
         }

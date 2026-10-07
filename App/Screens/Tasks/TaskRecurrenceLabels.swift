@@ -40,5 +40,7 @@ struct TaskRecurrenceLabel: View {
             }
             if recurrence.whenDone { Text("Tamamlanınca") }
         }
+        .font(.ink.meta)
+        .foregroundStyle(.ink.secondaryText)
     }
 }

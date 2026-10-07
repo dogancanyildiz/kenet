@@ -9,35 +9,56 @@ struct GoalCreationView: View {
         @Bindable var model = model
         Form {
             TextField("Ad", text: $model.name)
-            LabeledContent("Anahtar", value: model.key)
+                .font(.ink.content)
+            LabeledContent("Anahtar") {
+                Text(verbatim: model.key)
+                    .font(.ink.meta)
+                    .foregroundStyle(Color.ink.secondaryText)
+            }
             if model.kind != .milestone {
                 Picker("Dönem", selection: $model.period) {
-                    Text(GoalPeriod.day.title).tag(GoalPeriod.day)
-                    Text(GoalPeriod.week.title).tag(GoalPeriod.week)
-                    Text(GoalPeriod.year.title).tag(GoalPeriod.year)
+                    Text(verbatim: GoalPeriod.day.title).tag(GoalPeriod.day)
+                    Text(verbatim: GoalPeriod.week.title).tag(GoalPeriod.week)
+                    Text(verbatim: GoalPeriod.year.title).tag(GoalPeriod.year)
                 }
             }
             Picker("Tür", selection: $model.kind) {
-                Text(GoalKind.boolean.title).tag(GoalKind.boolean)
-                Text(GoalKind.number.title).tag(GoalKind.number)
-                Text(GoalKind.milestone.title).tag(GoalKind.milestone)
+                Text(verbatim: GoalKind.boolean.title).tag(GoalKind.boolean)
+                Text(verbatim: GoalKind.number.title).tag(GoalKind.number)
+                Text(verbatim: GoalKind.milestone.title).tag(GoalKind.milestone)
             }
             if model.kind != .milestone {
                 TextField("Hedef miktar", text: $model.target)
+                    .font(.ink.value)
                     #if os(iOS)
                         .keyboardType(.decimalPad)
                     #endif
             }
-            if model.kind == .number { TextField("Birim (isteğe bağlı)", text: $model.unit) }
-            if let error = model.errorText { Text(verbatim: error).foregroundStyle(.secondary) }
+            if model.kind == .number {
+                TextField("Birim (isteğe bağlı)", text: $model.unit)
+                    .font(.ink.content)
+            }
+            if let error = model.errorText {
+                InfoBand(kind: .error, verbatim: error)
+            }
         }
-        .formStyle(.grouped).disabled(model.isWriting || model.isSaved)
+        .formStyle(.grouped)
+        .scrollContentBackground(.hidden)
+        .background(Color.ink.surface)
+        .disabled(model.isWriting || model.isSaved)
         .navigationTitle("Yeni hedef")
+        #if os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+        #endif
         .toolbar {
-            ToolbarItem(placement: .cancellationAction) { Button("Kapat") { dismiss() } }
+            ToolbarItem(placement: .cancellationAction) {
+                Button("Kapat") { dismiss() }
+            }
             ToolbarItem(placement: .confirmationAction) {
-                Button("Oluştur") { Task { if await model.save(), model.errorText == nil { dismiss() } } }.disabled(
-                    !model.canSave)
+                Button("Oluştur") {
+                    Task { if await model.save(), model.errorText == nil { dismiss() } }
+                }
+                .disabled(!model.canSave)
             }
         }
         .frame(minWidth: 320, minHeight: 350)

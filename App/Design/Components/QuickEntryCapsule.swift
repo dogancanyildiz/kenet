@@ -70,7 +70,8 @@ struct QuickEntryCapsule<Field: View>: View {
     }
 
     private var modePicker: some View {
-        HStack(spacing: 2) {
+        // At accessibility sizes the words outgrow the 44 pt tap target that normally spaces them.
+        HStack(spacing: layout == .stacked ? 12 : 2) {
             ForEach(QuickEntryMode.allCases, id: \.self) { option in
                 modeWord(option)
             }

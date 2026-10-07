@@ -18,6 +18,18 @@ enum InkSpacing {
 
     /// Mac reading column max width (pt).
     static let macPageWidth: CGFloat = 680
+
+    /// Main window minimum width (pt): sidebar + list + reading column.
+    static let macWindowMinWidth: CGFloat = 920
+
+    /// Main window minimum height (pt).
+    static let macWindowMinHeight: CGFloat = 560
+
+    /// Settings scene minimum width (pt).
+    static let macSettingsMinWidth: CGFloat = 480
+
+    /// Settings scene minimum height (pt).
+    static let macSettingsMinHeight: CGFloat = 520
 }
 
 enum InkSize {

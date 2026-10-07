@@ -19,13 +19,18 @@ struct InkTaskRow: View {
     var action: (() -> Void)? = nil
     var accessibilityLabelKey: LocalizedStringKey = "Görevi tamamla"
 
+    @Environment(\.locale) private var locale
+    @Environment(\.calendar) private var calendar
+    @Environment(\.clockNow) private var clockNow
+
     var body: some View {
         MarginRow(kind: .vault) {
-            TaskBox(state: state, action: action, accessibilityLabelKey: accessibilityLabelKey)
+            TaskBox(state: state, action: action, accessibilityLabel: accessibilityLabelKey)
         } primary: {
             Group {
-                if let segments, !state.isCompleted {
-                    InkLinkedText(segments: segments, openURL: openURL)
+                if let segments {
+                    // Completed rows keep their links; only the plain runs fade.
+                    InkLinkedText(segments: segments, isMuted: state.isCompleted, openURL: openURL)
                 } else {
                     Text(verbatim: title)
                         .foregroundStyle(state.isCompleted ? Color.ink.secondaryText : Color.ink.text)
@@ -67,10 +72,7 @@ struct InkTaskRow: View {
                         .foregroundStyle(Color.ink.secondaryText)
                 }
                 if showsLowPriority {
-                    Image(systemName: "arrow.down")
-                        .font(.ink.meta)
-                        .foregroundStyle(Color.ink.secondaryText)
-                        .accessibilityLabel(Text(verbatim: VoiceOverCopy.priorityValue(.low)))
+                    TaskPriorityMark(priority: .low)
                 }
             }
         }
@@ -89,27 +91,31 @@ struct InkTaskRow: View {
     }
 
     private func overdueLabel(_ date: Date) -> some View {
-        Label {
-            Text(date, format: .dateTime.day().month(.abbreviated))
-        } icon: {
+        let due = LocalDay.today(at: date, timeZone: calendar.timeZone)
+        let today = LocalDay.today(at: clockNow(), timeZone: calendar.timeZone)
+        let text = TodayPresentation.carriedOverDate(
+            due, today: today, locale: locale, calendar: calendar)
+        return HStack(spacing: 4) {
             Image(systemName: "arrow.forward.circle")
+            Text(verbatim: text)
         }
         .font(.ink.meta)
         .foregroundStyle(.ink.warning)
         .accessibilityLabel(Text("Devreden"))
-        .accessibilityValue(
-            Text(date, format: .dateTime.day().month(.abbreviated).year())
-        )
+        .accessibilityValue(Text(verbatim: text))
     }
 }
 
-/// Goal row: ring, name, trailing value + one-tap plus.
+/// Goal row: ring, name, optional streak/series meta, trailing value + one-tap plus.
 struct InkGoalRow: View {
     let name: String
     var progress: Double
     var isBoolean: Bool = false
+    /// Streak / series / period line under the name (app meta, sans).
+    var meta: String? = nil
+    /// Optional thin ratio bar (yearly goals); counter-less ``InkProgress/Kind/fraction``.
+    var barFraction: Double? = nil
     var valueText: String? = nil
-    var metaText: String? = nil
     var onIncrement: (() -> Void)? = nil
     var onValueTap: (() -> Void)? = nil
     var onMarkTap: (() -> Void)? = nil
@@ -120,22 +126,27 @@ struct InkGoalRow: View {
     @ScaledMetric(relativeTo: .body) private var plusSide = InkSize.plus
 
     var body: some View {
-        goalRow
-            .modifier(GoalValueAccessibilityAction(action: onValueTap, label: enterAmountLabel))
+        VStack(alignment: .leading, spacing: 6) {
+            goalRow
+            if let barFraction {
+                InkProgress(kind: .fraction(barFraction))
+                    .padding(.leading, InkSpacing.gutter + 10)
+            }
+        }
+        .modifier(GoalValueAccessibilityAction(action: onValueTap, label: enterAmountLabel))
     }
 
     private var goalRow: some View {
         MarginRow(kind: .vault) {
             mark
         } primary: {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(verbatim: name)
-                    .foregroundStyle(progress >= 1 ? Color.ink.secondaryText : Color.ink.text)
-                if let metaText, !metaText.isEmpty {
-                    Text(verbatim: metaText)
-                        .font(.ink.meta)
-                        .foregroundStyle(Color.ink.secondaryText)
-                }
+            Text(verbatim: name)
+                .foregroundStyle(progress >= 1 ? Color.ink.secondaryText : Color.ink.text)
+        } secondary: {
+            if let meta, !meta.isEmpty {
+                Text(verbatim: meta)
+                    .font(.ink.meta)
+                    .foregroundStyle(.ink.secondaryText)
             }
         } trailing: {
             HStack(spacing: 8) {

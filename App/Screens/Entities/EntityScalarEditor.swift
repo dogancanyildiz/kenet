@@ -2,17 +2,26 @@ import SwiftUI
 import VaultFormat
 
 struct EntityScalarEditor: View {
+    let draftID: String
     let scalar: FrontmatterScalar
-    let save: (FrontmatterLiteral) async -> Void
+    let save: (FrontmatterLiteral) async -> Bool
+    @Environment(\.entityEditorDraft) private var draft
     @State private var text: String
     @State private var flag: Bool
     @State private var date: Date
     @State private var invalid = false
+    @State private var saveFailed = false
+    @State private var savedText: String
 
-    init(scalar: FrontmatterScalar, save: @escaping (FrontmatterLiteral) async -> Void) {
+    init(
+        draftID: String = "scalar", scalar: FrontmatterScalar,
+        save: @escaping (FrontmatterLiteral) async -> Bool
+    ) {
+        self.draftID = draftID
         self.scalar = scalar
         self.save = save
         _text = State(initialValue: scalar.text)
+        _savedText = State(initialValue: scalar.text)
         if case .boolean(let value) = scalar.kind {
             _flag = State(initialValue: value)
         } else {
@@ -25,21 +34,46 @@ struct EntityScalarEditor: View {
         }
     }
 
+    private var isDirty: Bool {
+        switch scalar.kind {
+        case .text, .empty, .number: text != savedText
+        case .boolean, .date: false
+        }
+    }
+
     var body: some View {
-        HStack {
-            switch scalar.kind {
-            case .boolean:
-                Toggle("Değer", isOn: $flag).labelsHidden()
-                    .onChange(of: flag) { Task { await save(.boolean(flag)) } }
-            case .date:
-                DatePicker("Değer", selection: $date, displayedComponents: .date).labelsHidden()
-                    .onChange(of: date) { Task { await save(.date(LocalDay.today(at: date))) } }
-            case .text, .empty, .number:
-                TextField("Değer", text: $text).onSubmit { submit() }
-                Button("Kaydet") { submit() }.buttonStyle(.borderless)
+        VStack(alignment: .leading, spacing: 4) {
+            HStack {
+                switch scalar.kind {
+                case .boolean:
+                    Toggle("Değer", isOn: $flag).labelsHidden()
+                        .onChange(of: flag) {
+                            Task {
+                                saveFailed = !(await save(.boolean(flag)))
+                            }
+                        }
+                case .date:
+                    DatePicker("Değer", selection: $date, displayedComponents: .date).labelsHidden()
+                        .onChange(of: date) {
+                            Task {
+                                saveFailed = !(await save(.date(LocalDay.today(at: date))))
+                            }
+                        }
+                case .text, .empty, .number:
+                    TextField("Değer", text: $text).onSubmit { submit() }
+                    Button("Kaydet") { submit() }.buttonStyle(.borderless)
+                }
+            }
+            if invalid {
+                Text("Geçerli bir sayı gir.").font(.ink.meta).foregroundStyle(.ink.danger)
+            } else if saveFailed {
+                Text("Değişiklik kaydedilemedi. Kasayı kontrol edip yeniden dene.")
+                    .font(.ink.meta).foregroundStyle(.ink.danger)
             }
         }
-        if invalid { Text("Geçerli bir sayı gir.").font(.caption).foregroundStyle(.red) }
+        .onAppear { draft?.report(id: draftID, dirty: isDirty) }
+        .onChange(of: text) { draft?.report(id: draftID, dirty: isDirty) }
+        .onChange(of: savedText) { draft?.report(id: draftID, dirty: isDirty) }
     }
 
     private func submit() {
@@ -58,6 +92,12 @@ struct EntityScalarEditor: View {
             value = .text(text)
         }
         invalid = false
-        Task { await save(value) }
+        let committed = text
+        Task {
+            let success = await save(value)
+            saveFailed = !success
+            if success { savedText = committed }
+            draft?.report(id: draftID, dirty: text != savedText)
+        }
     }
 }

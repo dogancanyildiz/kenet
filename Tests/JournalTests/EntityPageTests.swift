@@ -127,6 +127,28 @@ struct EntityPageTests {
                 == Data(original.replacingOccurrences(of: "decomposed", with: "Changed").utf8))
     }
 
+    @Test func editSheetOpensOnRawScalarTextAndNoOpPreservesBytes() async throws {
+        let context = try EntityPageTestContext(extendedFields: true)
+        defer { context.clean() }
+        await context.start()
+        let model = EntityDetailModel(store: context.store, path: context.path)
+        await model.load()
+        #expect(await model.set("tanışma", to: .text("[[Liman Ofis|Liman]]")))
+        await model.load()
+        let field = try #require(model.fields.first { $0.key == "tanışma" })
+        #expect(field.key == "tanışma")
+        if case .scalar(let scalar) = field.value {
+            // Editor binds the raw scalar text; reading UI would show the display label.
+            #expect(scalar.text == "[[Liman Ofis|Liman]]")
+            #expect(FrontmatterValueDisplay.text(field.value) == "Liman")
+            let bytes = try Data(contentsOf: context.file)
+            #expect(await model.set(field.key, to: .text(scalar.text)))
+            #expect(try Data(contentsOf: context.file) == bytes)
+        } else {
+            Issue.record("Expected scalar tanışma")
+        }
+    }
+
     @Test func unreadableFrontmatterIsReadOnlyAndStillShowsBody() async throws {
         let context = try EntityPageTestContext()
         defer { context.clean() }

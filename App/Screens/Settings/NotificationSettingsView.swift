@@ -14,6 +14,8 @@ struct NotificationSettingsView: View {
         Form {
             Section("İzin") {
                 Text(service.authorization.title)
+                    .font(.ink.meta)
+                    .foregroundStyle(Color.ink.text)
                 if service.authorization.canRequest {
                     Button("Bildirimlere izin ver") { Task { await service.requestAccess() } }.disabled(
                         service.isRequesting)
@@ -32,25 +34,53 @@ struct NotificationSettingsView: View {
                     .disabled(!service.preferences.journalEnabled)
                 Toggle("Bildirimlerde içeriği gizle", isOn: $service.preferences.hideContent)
                 Text("Afiş, bildirim merkezi ve kilit ekranında görev metni ve hedef adları gösterilmez.")
-                    .font(.caption).foregroundStyle(.secondary)
-                Text("Uygulama kapalıyken planlanan hatırlatmalar değişmez.").font(.caption).foregroundStyle(.secondary)
+                    .font(.ink.meta)
+                    .foregroundStyle(Color.ink.secondaryText)
+                Text("Uygulama kapalıyken planlanan hatırlatmalar değişmez.")
+                    .font(.ink.meta)
+                    .foregroundStyle(Color.ink.secondaryText)
             }
             Section("Planlananlar") {
                 Button("Şimdi yeniden planla") { Task { await service.replanNow() } }.disabled(
                     service.isPlanning || service.isRequesting)
-                if service.isPlanning { ProgressView("Bildirimler planlanıyor…") }
-                if let error = service.errorText { Text(verbatim: error).foregroundStyle(.secondary) }
-                if service.pending.isEmpty { Text("Planlanan bildirim yok.").foregroundStyle(.secondary) }
+                if service.isPlanning {
+                    InkProgress(kind: .indeterminate(label: "Bildirimler planlanıyor…"))
+                }
+                if let error = service.errorText {
+                    Text(verbatim: error)
+                        .font(.ink.meta)
+                        .foregroundStyle(Color.ink.secondaryText)
+                }
+                if service.pending.isEmpty {
+                    Text("Planlanan bildirim yok.")
+                        .font(.ink.meta)
+                        .foregroundStyle(Color.ink.secondaryText)
+                }
                 ForEach(service.pending) { request in
                     VStack(alignment: .leading, spacing: 4) {
                         Text(verbatim: request.title)
+                            .font(.ink.content)
+                            .foregroundStyle(Color.ink.text)
                         Text(request.date, format: .dateTime.day().month().year().hour().minute())
-                        Text(verbatim: request.id).font(.caption.monospaced()).foregroundStyle(.secondary)
+                            .font(.ink.meta)
+                            .foregroundStyle(Color.ink.secondaryText)
+                            .monospacedDigit()
+                        Text(verbatim: request.id)
+                            .font(.ink.meta)
+                            .foregroundStyle(Color.ink.secondaryText)
+                            .lineLimit(1)
+                            .truncationMode(.middle)
+                            .textSelection(.enabled)
                     }
                 }
             }
-        }.formStyle(.grouped).navigationTitle("Bildirimler")
-            .task { if AppLaunchPolicy.allowsAutomaticStart() { await service.replanNow() } }
+        }
+        .formStyle(.grouped)
+        .listRowBackground(Color.ink.surface)
+        .navigationTitle("Bildirimler")
+        .inkPageColumn()
+        .inkPage()
+        .task { if AppLaunchPolicy.allowsAutomaticStart() { await service.replanNow() } }
     }
     private func time(_ key: WritableKeyPath<NotificationPreferences, NotificationTime>) -> Binding<Date> {
         Binding(

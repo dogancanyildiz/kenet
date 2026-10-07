@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Reads the original body, including unknown syntax, without offering edits.
+/// Reads the original body for display; wikilink markup and block ids are hidden in the UI only.
 struct SearchNoteView: View {
     let store: IndexStore
     let file: String
@@ -11,15 +11,20 @@ struct SearchNoteView: View {
     var body: some View {
         ScrollView {
             if let errorText {
-                Text(verbatim: errorText).foregroundStyle(.red)
+                Text(verbatim: errorText).foregroundStyle(.ink.danger)
             } else if isLoaded {
                 Text(verbatim: bodyText).textSelection(.enabled)
+                    .font(.ink.content)
+                    .inkJournalParagraph()
+                    .foregroundStyle(.ink.text)
                     .frame(maxWidth: .infinity, alignment: .leading)
             } else {
                 ProgressView("Yükleniyor…")
             }
         }
         .padding()
+        .inkPage()
+        .inkPageColumn()
         .navigationTitle((file as NSString).lastPathComponent)
         .toolbar { SearchButton() }
         .task(id: store.lastUpdated) {
@@ -29,8 +34,9 @@ struct SearchNoteView: View {
             do {
                 let document = try await store.document(at: file)
                 try Task.checkCancellation()
-                bodyText = document.lines.dropFirst(document.frontmatterLineRange?.upperBound ?? 0)
+                let raw = document.lines.dropFirst(document.frontmatterLineRange?.upperBound ?? 0)
                     .map(\.displayText).joined(separator: "\n")
+                bodyText = VaultDisplayText.multiline(raw)
                 isLoaded = true
             } catch is CancellationError {
             } catch {

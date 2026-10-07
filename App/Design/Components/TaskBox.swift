@@ -29,27 +29,31 @@ struct TaskBoxState: Equatable, Sendable {
 struct TaskBox: View {
     let state: TaskBoxState
     var action: (() -> Void)? = nil
-    /// Spoken label; reopen flow passes "Görevi yeniden aç".
-    var accessibilityLabelKey: LocalizedStringKey = "Görevi tamamla"
+    /// VoiceOver name; reopenable closed rows pass ``Görevi yeniden aç``.
+    var accessibilityLabel: LocalizedStringKey = "Görevi tamamla"
+    /// When true, the mark is chrome only — caller exposes priority / status on the parent.
+    var isDecorative: Bool = false
 
     @ScaledMetric(relativeTo: .body) private var boxSide = InkSize.taskBox
     @Environment(\.legibilityWeight) private var legibilityWeight
 
     var body: some View {
         Group {
-            if let action {
+            if isDecorative {
+                box.accessibilityHidden(true)
+            } else if let action {
                 Button(action: action) {
                     box
                         .tapTarget()
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel(Text(accessibilityLabelKey))
+                .accessibilityLabel(Text(accessibilityLabel))
                 .accessibilityAddTraits(.isToggle)
                 .accessibilityValue(Text(verbatim: accessibilityValueText))
             } else {
                 box
                     .accessibilityElement()
-                    .accessibilityLabel(Text(accessibilityLabelKey))
+                    .accessibilityLabel(Text(accessibilityLabel))
                     .accessibilityValue(Text(verbatim: accessibilityValueText))
             }
         }

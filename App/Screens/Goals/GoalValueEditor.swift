@@ -10,30 +10,69 @@ struct GoalValueEditor: View {
         Form {
             Section {
                 Text(LocalDay.instant(for: model.dayModel.day), format: .dateTime.day().month().year())
+                    .font(.ink.meta)
+                    .foregroundStyle(Color.ink.secondaryText)
                 if model.goal.kind != .number {
                     Toggle("Yapıldı", isOn: $model.done)
                 } else {
                     HStack {
-                        Button("Azalt", systemImage: "minus") { model.step(-1) }.labelStyle(.iconOnly)
-                        TextField("Miktar", text: $model.amount).textFieldStyle(.roundedBorder)
+                        Button {
+                            model.step(-1)
+                        } label: {
+                            Label("Azalt", systemImage: "minus")
+                                .labelStyle(.iconOnly)
+                                .foregroundStyle(Color.ink.accent)
+                                .tapTarget()
+                        }
+                        TextField("Miktar", text: $model.amount)
+                            .font(.ink.value)
+                            .textFieldStyle(.roundedBorder)
                             #if os(iOS)
                                 .keyboardType(.decimalPad)
                             #endif
-                        Button("Artır", systemImage: "plus") { model.step(1) }.labelStyle(.iconOnly)
+                        Button {
+                            model.step(1)
+                        } label: {
+                            Label("Artır", systemImage: "plus")
+                                .labelStyle(.iconOnly)
+                                .foregroundStyle(Color.ink.accent)
+                                .tapTarget()
+                        }
                     }.buttonStyle(.borderless)
-                    LabeledContent("Hedef", value: model.goal.target.formatted() + " " + (model.goal.unit ?? ""))
-                    if model.value == nil { Text("Sıfır veya pozitif bir sayı gir.").foregroundStyle(.secondary) }
+                    LabeledContent("Hedef") {
+                        Text(
+                            verbatim: model.goal.target.formatted() + " " + (model.goal.unit ?? "")
+                        )
+                        .font(.ink.value)
+                    }
+                    if model.value == nil {
+                        Text("Sıfır veya pozitif bir sayı gir.")
+                            .font(.ink.meta)
+                            .foregroundStyle(Color.ink.secondaryText)
+                    }
                 }
-                if let error = model.dayModel.errorText { Text(verbatim: error).foregroundStyle(.secondary) }
+                if let error = model.dayModel.errorText {
+                    InfoBand(kind: .error, verbatim: error)
+                }
                 Button("Kaydı kaldır", role: .destructive) { deleteConfirmation.request(.pending) }
+                    .buttonStyle(InkDestructiveButtonStyle())
                     .disabled(!model.dayModel.canEdit || model.isSaved)
             }.disabled(model.isSaved)
         }
-        .formStyle(.grouped).navigationTitle(Text(verbatim: model.goal.name))
+        .formStyle(.grouped)
+        .scrollContentBackground(.hidden)
+        .background(Color.ink.surface)
+        .navigationTitle(Text(verbatim: model.goal.name))
+        #if os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+        #endif
         .toolbar {
-            ToolbarItem(placement: .cancellationAction) { Button("Kapat") { dismiss() } }
+            ToolbarItem(placement: .cancellationAction) {
+                Button("Kapat") { dismiss() }
+            }
             ToolbarItem(placement: .confirmationAction) {
-                Button("Kaydet") { Task { await save() } }.disabled(!model.canSave)
+                Button("Kaydet") { Task { await save() } }
+                    .disabled(!model.canSave)
             }
         }
         .destructiveConfirmationDialog(

@@ -12,20 +12,20 @@ struct TimelineGrid: View {
                 if day.weekday >= 5 {
                     context.fill(
                         Path(CGRect(x: x, y: 0, width: dayWidth, height: size.height)),
-                        with: .color(.secondary.opacity(0.08)))
+                        with: .color(Color.ink.well))
                 }
                 if day.weekday == 0 {
                     var path = Path()
                     path.move(to: CGPoint(x: x, y: 0))
                     path.addLine(to: CGPoint(x: x, y: size.height))
-                    context.stroke(path, with: .color(.secondary.opacity(0.12)), lineWidth: 1)
+                    context.stroke(path, with: .color(Color.ink.rule), lineWidth: 1)
                 }
                 if day == today {
                     let center = x + dayWidth / 2
                     var path = Path()
                     path.move(to: CGPoint(x: center, y: 0))
                     path.addLine(to: CGPoint(x: center, y: size.height))
-                    context.stroke(path, with: .color(Color.primary.opacity(0.55)), lineWidth: 1)
+                    context.stroke(path, with: .color(Color.ink.accent), lineWidth: InkStroke.highPriority)
                 }
             }
         }.accessibilityHidden(true)

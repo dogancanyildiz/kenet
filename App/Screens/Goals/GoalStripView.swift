@@ -134,8 +134,8 @@ struct GoalStripView: View {
             name: goal.name,
             progress: progress,
             isBoolean: GoalStripPresentation.isBooleanRing(goal: goal),
+            meta: metaText,
             valueText: valueText(for: goal),
-            metaText: metaText,
             onIncrement: model.canEdit && !(isBooleanMark && todayMarked)
                 ? {
                     if isBooleanMark {

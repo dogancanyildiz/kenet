@@ -14,7 +14,9 @@ struct LinkedText: Sendable {
     var plainText: String { spans.map(\.text).joined() }
 
     /// Test and presentation helpers that already hold display spans.
-    init(spans: [Span]) { self.spans = spans }
+    init(spans: [Span]) {
+        self.spans = spans
+    }
 
     init(row: IndexedBlock, links: [IndexedLink]) {
         let document = RawDocument(bytes: Array(("text\n" + row.text).utf8))

@@ -2,7 +2,8 @@ import SwiftUI
 
 /// Section rule + title + optional tabular count (Mürekkep rule 2).
 struct SectionHeader: View {
-    let title: String
+    private let titleText: Text
+    private let spokenTitle: String?
     /// Integer count formatted with the environment locale (grouping off).
     var count: Int? = nil
     /// Preformatted counter (e.g. Today goals `"1/3"`). Wins over ``count`` when set.
@@ -12,6 +13,27 @@ struct SectionHeader: View {
     @Environment(\.displayScale) private var displayScale
     @Environment(\.locale) private var locale
 
+    /// Already-localized or verbatim title (callers that used `String(localized:)`).
+    init(title: String, count: Int? = nil, counter: String? = nil, isLoading: Bool = false) {
+        self.titleText = Text(verbatim: title)
+        self.spokenTitle = title
+        self.count = count
+        self.counter = counter
+        self.isLoading = isLoading
+    }
+
+    /// Catalog key resolved with the SwiftUI environment locale (snapshot-safe).
+    init(
+        _ titleKey: LocalizedStringKey, count: Int? = nil, counter: String? = nil,
+        isLoading: Bool = false
+    ) {
+        self.titleText = Text(titleKey)
+        self.spokenTitle = nil
+        self.count = count
+        self.counter = counter
+        self.isLoading = isLoading
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             Rectangle()
@@ -19,7 +41,7 @@ struct SectionHeader: View {
                 .frame(height: InkStroke.hairline(scale: displayScale))
                 .accessibilityHidden(true)
             HStack(alignment: .firstTextBaseline, spacing: 8) {
-                Text(verbatim: title)
+                titleText
                     .font(.ink.section)
                     .foregroundStyle(.ink.text)
                     .accessibilityAddTraits(.isHeader)
@@ -28,7 +50,6 @@ struct SectionHeader: View {
                     Text(verbatim: counterText)
                         .font(.ink.value)
                         .foregroundStyle(.ink.secondaryText)
-                        .monospacedDigit()
                         .accessibilityHidden(true)
                 }
                 if isLoading {
@@ -49,15 +70,20 @@ struct SectionHeader: View {
 
     private var counterText: String? {
         if let counter, !counter.isEmpty { return counter }
-        if let count { return count.formatted(.number.grouping(.never)) }
+        if let count { return count.formatted(.number.grouping(.never).locale(locale)) }
         return nil
     }
 
     private var accessibilitySpokenLabel: Text {
-        if let counterText {
-            Text(verbatim: "\(title), \(counterText)")
-        } else {
-            Text(verbatim: title)
+        if let spokenTitle {
+            if let counterText {
+                return Text(verbatim: "\(spokenTitle), \(counterText)")
+            }
+            return Text(verbatim: spokenTitle)
         }
+        if let counterText {
+            return Text("\(titleText), \(counterText)")
+        }
+        return titleText
     }
 }

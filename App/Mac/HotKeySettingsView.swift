@@ -7,7 +7,9 @@
         var body: some View {
             Form {
                 Section("Hızlı giriş kısayolu") {
-                    Text("Alana tıkla, tuş birleşimine bas ve kaydet.").foregroundStyle(.secondary)
+                    Text("Alana tıkla, tuş birleşimine bas ve kaydet.")
+                        .font(.ink.meta)
+                        .foregroundStyle(Color.ink.secondaryText)
                     HotKeyRecorder(
                         candidate: $model.candidate, onBegin: model.beginRecording, onEnd: model.endRecording
                     ).frame(height: 40)
@@ -15,12 +17,22 @@
                         Button("Varsayılan kısayol") { model.candidate = .defaultShortcut }
                         Button("Kaydet") { model.save() }
                     }
-                    Text("Geçerli kısayol: \(model.shortcut.display)").font(.caption)
-                    if let error = model.errorText { Text(verbatim: error).foregroundStyle(.red) }
+                    .buttonStyle(.borderless)
+                    Text("Geçerli kısayol: \(model.shortcut.display)")
+                        .font(.ink.meta)
+                        .foregroundStyle(Color.ink.secondaryText)
+                    if let error = model.errorText {
+                        Text(verbatim: error)
+                            .font(.ink.meta)
+                            .foregroundStyle(Color.ink.danger)
+                    }
                 }
             }
             .formStyle(.grouped)
+            .listRowBackground(Color.ink.surface)
             .padding()
+            .inkPageColumn()
+            .inkPage()
             .onDisappear { model.endRecording() }
         }
     }

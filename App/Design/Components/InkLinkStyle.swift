@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Single source of truth for how person / place / unresolved links are drawn.
+/// Single source of truth for how person / place / unresolved / entity links are drawn.
 /// Reading (`Text`) and editable (`TextEditor` with `AttributedString`) share this path so
 /// quick entry can adopt the same attributes later without forking styles.
 enum InkLinkStyle {
@@ -20,9 +20,10 @@ enum InkLinkStyle {
     enum Kind: Sendable {
         case person
         case place
-        /// Resolved vault link that is neither person nor place (project note, etc.).
-        case other
         case unresolved
+        /// Resolved vault link that is neither person nor place (project note, custom entity
+        /// type): text color, solid control underline (not person blue).
+        case other
     }
 
     /// Applies the active mode's attributes to a link span (not the Turkish suffix).
@@ -63,7 +64,7 @@ enum InkLinkStyle {
             color = .ink.place
         case .other:
             pattern = .solid
-            color = .ink.secondaryText
+            color = .ink.control
         case .unresolved:
             pattern = .dash
             color = .ink.secondaryText

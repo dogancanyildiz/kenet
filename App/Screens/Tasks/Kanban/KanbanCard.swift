@@ -1,10 +1,15 @@
 import SwiftUI
 
+#if os(macOS)
+    import ObjectiveC
+#endif
+
 struct KanbanCard: View {
     let model: KanbanModel
     let row: TaskRow
     let select: () -> Void
     @State private var dateEditor: TaskEditorModel?
+    @Environment(\.locale) private var locale
 
     var body: some View {
         card
@@ -35,7 +40,7 @@ struct KanbanCard: View {
     @ViewBuilder private var card: some View {
         #if os(macOS)
             if model.grouping != .person && model.store.canAddEvent && !model.busy.contains(row.id) {
-                buttonContent.onDrag { NSItemProvider(object: model.beginDrag(row) as NSString) }
+                buttonContent.onDrag { makeDragProvider() }
             } else {
                 buttonContent
             }
@@ -48,30 +53,67 @@ struct KanbanCard: View {
         .make(due: row.due, asOf: model.tasks.day, isCompleted: row.isClosed)
     }
 
+    private var boxState: TaskBoxState {
+        TaskBoxState(status: KanbanModel.status(of: row), priority: row.priority)
+    }
+
+    private var spokenValue: String {
+        var parts: [String] = []
+        if let priority = row.priority {
+            parts.append(VoiceOverCopy.priorityValue(priority))
+        }
+        if presentation.showsOverdueCue {
+            parts.append(String(localized: "Devreden", locale: locale))
+        }
+        return parts.joined(separator: ", ")
+    }
+
     private var buttonContent: some View {
         Button(action: select) {
-            VStack(alignment: .leading, spacing: 8) {
-                LinkedTextView(text: row.text, store: model.store)
-                HStack {
-                    if let date = row.due {
-                        TaskDueDateLabel(date: date, presentation: presentation, includeCalendarIcon: true)
+            InkKanbanCard(isDragging: model.draggingRowID == row.id) {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(alignment: .top, spacing: 10) {
+                        TaskBox(state: boxState, isDecorative: true)
+                        LinkedTextView(
+                            text: row.text, store: model.store,
+                            isMuted: presentation.usesSecondaryText
+                        )
+                        .font(.ink.content)
+                        .foregroundStyle(
+                            presentation.usesSecondaryText
+                                ? Color.ink.secondaryText : Color.ink.text)
                     }
-                    if let priority = row.priority { TaskPriorityMark(priority: priority) }
-                    if model.busy.contains(row.id) { ProgressView().controlSize(.small) }
-                }.font(.caption)
-                if let recurrence = row.recurrence {
-                    TaskRecurrenceLabel(recurrence: recurrence).font(.caption).foregroundStyle(.secondary)
-                } else if row.recurrenceSource != nil {
-                    Label("Tanınmayan tekrar", systemImage: "repeat").font(.caption).foregroundStyle(.secondary)
+                    HStack(spacing: 8) {
+                        if let date = row.due {
+                            TaskDueDateLabel(
+                                date: date, presentation: presentation, asOf: model.tasks.day,
+                                includeCalendarIcon: true)
+                        }
+                        if row.priority == .low {
+                            TaskPriorityMark(priority: .low)
+                        }
+                        if model.busy.contains(row.id) { ProgressView().controlSize(.small) }
+                    }
+                    .font(.ink.meta)
+                    if let recurrence = row.recurrence {
+                        TaskRecurrenceLabel(recurrence: recurrence)
+                            .font(.ink.meta)
+                            .foregroundStyle(.ink.secondaryText)
+                    } else if row.recurrenceSource != nil {
+                        HStack(spacing: 4) {
+                            Image(systemName: "repeat")
+                            Text("Tanınmayan tekrar")
+                        }
+                        .font(.ink.meta)
+                        .foregroundStyle(.ink.secondaryText)
+                    }
                 }
             }
-            .padding(12).frame(maxWidth: .infinity, alignment: .leading)
-            .background(.background, in: RoundedRectangle(cornerRadius: 10))
-            .overlay { RoundedRectangle(cornerRadius: 10).stroke(.quaternary) }
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityElement(children: .contain)
+        .accessibilityValue(Text(verbatim: spokenValue))
         .accessibilityAction(named: Text("Ayrıntıları göster"), select)
         .accessibilityAction(named: Text(verbatim: VoiceOverCopy.changeDateActionName())) {
             guard model.store.canAddEvent, !model.busy.contains(row.id) else { return }
@@ -79,19 +121,46 @@ struct KanbanCard: View {
         }
         .modifier(KanbanMoveAccessibilityActions(model: model, row: row))
     }
+
+    #if os(macOS)
+        private func makeDragProvider() -> NSItemProvider {
+            let token = model.beginDrag(row)
+            let provider = NSItemProvider(object: token as NSString)
+            let endBox = KanbanDragSessionEndBox { [model] in
+                Task { @MainActor in model.abandonDrag(token) }
+            }
+            objc_setAssociatedObject(
+                provider, &KanbanDragSessionEndBox.associatedKey, endBox,
+                .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+            return provider
+        }
+    #endif
 }
+
+#if os(macOS)
+    /// Retained on the ``NSItemProvider``; `deinit` runs when the drag session ends (drop or cancel).
+    private final class KanbanDragSessionEndBox: @unchecked Sendable {
+        nonisolated(unsafe) static var associatedKey: UInt8 = 0
+        private let onEnd: () -> Void
+        init(onEnd: @escaping () -> Void) { self.onEnd = onEnd }
+        deinit { onEnd() }
+    }
+#endif
 
 /// Chains one VoiceOver action per movable destination column.
 private struct KanbanMoveAccessibilityActions: ViewModifier {
     let model: KanbanModel
     let row: TaskRow
+    @Environment(\.locale) private var locale
 
     func body(content: Content) -> some View {
         let destinations = model.columns.filter { model.canMove(row, to: $0) }
         return destinations.reduce(AnyView(content)) { view, column in
             AnyView(
                 view.accessibilityAction(
-                    named: Text(verbatim: VoiceOverCopy.moveActionName(columnTitle: column.localizedTitle))
+                    named: Text(
+                        verbatim: VoiceOverCopy.moveActionName(
+                            columnTitle: column.localizedTitle(locale: locale)))
                 ) {
                     Task { await model.move(row, to: column) }
                 })

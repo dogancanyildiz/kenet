@@ -51,6 +51,7 @@ xcodebuild test \
   -scheme Journal_iOS \
   -destination "platform=iOS Simulator,id=$ID" \
   $ONLY \
+  -testLanguage tr -testRegion TR \
   CODE_SIGNING_ALLOWED=NO \
   -quiet
 status=$?
@@ -62,10 +63,11 @@ if [ "$SNAPSHOT_TESTING_RECORD" != "never" ] && [ "$status" -ne 0 ]; then
     -scheme Journal_iOS \
     -destination "platform=iOS Simulator,id=$ID" \
     $ONLY \
-    CODE_SIGNING_ALLOWED=NO \
+    -testLanguage tr -testRegion TR \
+  CODE_SIGNING_ALLOWED=NO \
     -quiet
   status=$?
 fi
 set -e
-echo "Referanslar: Tests/JournalTests/Snapshots/__Snapshots__/ScreenSnapshotTests/"
+echo "Referanslar: Tests/JournalTests/Snapshots/__Snapshots__/"
 exit "$status"

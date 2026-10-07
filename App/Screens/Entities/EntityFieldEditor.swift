@@ -8,37 +8,43 @@ struct EntityFieldEditor: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(verbatim: field.key).font(.headline)
+            Text(verbatim: field.key).font(.ink.section).foregroundStyle(.ink.text)
             switch field.value {
             case .scalar(let value):
-                EntityScalarEditor(scalar: value) { await model.set(field.key, to: $0) }
+                EntityScalarEditor(draftID: "field:" + field.key, scalar: value) {
+                    await model.set(field.key, to: $0)
+                }
             case .list(let values, _):
                 ForEach(values.indices, id: \.self) { index in
-                    EntityScalarEditor(scalar: values[index]) { newValue in
+                    EntityScalarEditor(
+                        draftID: "field:" + field.key + "." + String(index), scalar: values[index]
+                    ) { newValue in
                         var literals = values.map(Self.literal)
                         literals[index] = newValue
-                        await model.setList(field.key, values: literals)
+                        return await model.setList(field.key, values: literals)
                     }.id(values[index])
                 }
             case .mapping(let entries):
                 ForEach(entries.indices, id: \.self) { index in
                     let entry = entries[index]
-                    Text(verbatim: entry.key).font(.caption)
-                    EntityScalarEditor(scalar: entry.value) {
+                    Text(verbatim: entry.key).font(.ink.meta).foregroundStyle(.ink.secondaryText)
+                    EntityScalarEditor(
+                        draftID: "field:" + field.key + "." + entry.key, scalar: entry.value
+                    ) {
                         await model.setEntry(field.key, entry: entry.key, value: $0)
                     }
                     .id(entry.value)
                 }
             case .raw(let text):
                 Text(verbatim: text).textSelection(.enabled)
-                Text("Ham alan — salt okunur").font(.caption).foregroundStyle(.secondary)
+                Text("Ham alan — salt okunur").font(.ink.meta).foregroundStyle(.ink.secondaryText)
             }
             if case .raw = field.value {
             } else {
                 HStack {
                     Button("Değeri boş bırak") { Task { await model.set(field.key, to: .text("")) } }
                     Button("Alanı kaldır", role: .destructive) { deleteConfirmation.request(.pending) }
-                }.font(.caption).buttonStyle(.borderless)
+                }.font(.ink.meta).buttonStyle(.borderless)
             }
         }
         .disabled(!model.canEdit)

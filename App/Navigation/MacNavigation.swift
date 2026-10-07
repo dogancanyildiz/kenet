@@ -97,6 +97,11 @@
                 kanbanTasks.clearFilters()
                 selectedGoal = nil
             }
+            // The tabs inside the full-width board switch views; keep the sidebar flags in step.
+            .onChange(of: kanbanTasks.viewState.mode) { _, mode in
+                showingKanban = mode == .kanban
+                showingTimeline = mode == .timeline
+            }
             .onChange(of: section) { _, value in
                 if value == .people || value == .places { selectedEntityKind = value == .places ? "place" : "person" }
                 if value != .tasks {

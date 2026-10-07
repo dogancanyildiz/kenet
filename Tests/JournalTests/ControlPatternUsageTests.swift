@@ -29,12 +29,7 @@ struct ControlPatternUsageTests {
     /// Files that still break each rule. Screen work removes entries; nothing is added.
     static let allowlist: [Rule: Set<String>] = [
         .segmentedPicker: ["App/Screens/Summaries/SummariesView.swift"],
-        .menuPicker: [
-            "App/Screens/Entities/EntityTypePicker.swift",
-            "App/Screens/Tasks/Kanban/KanbanView.swift",
-            "App/Screens/Tasks/TasksSectionPicker.swift",
-            "App/Screens/Tasks/Timeline/TaskTimelineView.swift",
-        ],
+        .menuPicker: ["App/Screens/Entities/EntityTypePicker.swift"],
         .unstyledPicker: [
             "App/Screens/Entities/EntityListControls.swift",
             "App/Screens/Goals/GoalCreationView.swift",
@@ -43,7 +38,6 @@ struct ControlPatternUsageTests {
             "App/Screens/Settings/AppLockSettingsView.swift",
             "App/Screens/Settings/EntityTypeEditorView.swift",
             "App/Screens/Settings/GeofenceSettingsView.swift",
-            "App/Screens/Tasks/TaskRecurrenceEditor.swift",
         ],
         .roundedBorderField: [
             "App/Screens/Entities/EntityListControls.swift",
@@ -60,9 +54,6 @@ struct ControlPatternUsageTests {
             "App/Screens/Graph/GraphView.swift",
             "App/Screens/Shared/SearchNoteView.swift",
             "App/Screens/Summaries/SummariesView.swift",
-            "App/Screens/Tasks/ProjectView.swift",
-            "App/Screens/Tasks/TaskDetailView.swift",
-            "App/Screens/Tasks/TasksView.swift",
             "App/Screens/Today/DayView.swift",
         ],
         .doneButton: [
@@ -81,10 +72,6 @@ struct ControlPatternUsageTests {
             "App/Screens/Shared/LinkedTextView.swift",
             "App/Screens/Shared/SearchView.swift",
             "App/Screens/Shared/SingleLineTextEditor.swift",
-            "App/Screens/Tasks/Kanban/KanbanView.swift",
-            "App/Screens/Tasks/TaskRecurrenceEditor.swift",
-            "App/Screens/Tasks/Timeline/TaskTimelineView.swift",
-            "App/Screens/Tasks/Timeline/TimelineDateEditor.swift",
             "App/Screens/Today/EntityLinkSheet.swift",
             "App/Screens/Today/JournalView.swift",
             "App/Screens/Today/TaskTextEditor.swift",

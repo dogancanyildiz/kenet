@@ -14,35 +14,29 @@ struct TimelineDateEditor: View {
     @State private var isSaving = false
     private var title: LocalizedStringKey { selection.edge == .start ? "Başlangıç tarihi" : "Bitiş tarihi" }
 
+    /// Closing sheet: the picker's own buttons write the date and dismiss, so the toolbar
+    /// only offers "Kapat".
     var body: some View {
-        VStack {
-            TaskDatePicker(current: selection.edge == .start ? selection.row.start : selection.row.due) { date in
-                guard let dates = TimelineDates(selection.row).setting(selection.edge, to: date) else {
-                    model.rejectRange()
-                    return
+        InkSheetScaffold(
+            title, onClose: { if !isSaving { dismiss() } },
+            content: {
+                TaskDatePicker(current: selection.edge == .start ? selection.row.start : selection.row.due) { date in
+                    guard let dates = TimelineDates(selection.row).setting(selection.edge, to: date) else {
+                        model.rejectRange()
+                        return
+                    }
+                    let root = selection.root
+                    isSaving = true
+                    Task {
+                        let saved = await model.save(selection.row, dates: dates, root: root)
+                        isSaving = false
+                        if saved { dismiss() }
+                    }
+                }.disabled(isSaving || !model.store.canAddEvent)
+                if let error = model.errorText {
+                    InfoBand(kind: .error, verbatim: error)
                 }
-                let root = selection.root
-                isSaving = true
-                Task {
-                    let saved = await model.save(selection.row, dates: dates, root: root)
-                    isSaving = false
-                    if saved { dismiss() }
-                }
-            }.disabled(isSaving || !model.store.canAddEvent)
-            if let error = model.errorText {
-                InfoBand(kind: .error, verbatim: error)
-                    .padding()
-            }
-        }
-        .padding()
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .inkSurface(bordered: false, cornerRadius: 0)
-        .navigationTitle(title)
-        .toolbar {
-            Button("Kapat") { dismiss() }
-                .disabled(isSaving)
-                .buttonStyle(InkTextButtonStyle())
-        }
+            })
     }
 }
 

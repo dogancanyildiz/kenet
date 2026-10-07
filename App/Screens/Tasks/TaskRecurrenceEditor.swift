@@ -9,41 +9,65 @@ struct TaskRecurrenceEditor: View {
     @State private var count = 1
     @State private var weekday = 0
     @State private var whenDone = false
+    /// Editing sheet: nothing is written until "Kaydet".
     var body: some View {
-        Form {
+        List {
+            InkPageTitleRow("Tekrar")
             if model.canEditRecurrence {
-                Picker("Tekrar", selection: $choice) {
-                    Text("Yok").tag(Choice.none)
-                    Text("Her gün").tag(Choice.day)
-                    Text("Her hafta").tag(Choice.week)
-                    Text("Her ay").tag(Choice.month)
-                    Text("Her yıl").tag(Choice.year)
-                    Text("Her N gün").tag(Choice.days)
-                    Text("Haftanın günü").tag(Choice.weekday)
-                }
+                InkLabeledMenu(
+                    "Tekrar", selection: $choice,
+                    options: [
+                        InkMenuOption("Yok", value: Choice.none),
+                        InkMenuOption("Her gün", value: Choice.day),
+                        InkMenuOption("Her hafta", value: Choice.week),
+                        InkMenuOption("Her ay", value: Choice.month),
+                        InkMenuOption("Her yıl", value: Choice.year),
+                        InkMenuOption("Her N gün", value: Choice.days),
+                        InkMenuOption("Haftanın günü", value: Choice.weekday),
+                    ], identifier: "tasks.recurrence.choice"
+                )
+                .inkListRow()
                 if choice == .weekday {
-                    Picker("Gün", selection: $weekday) {
-                        ForEach(0..<7, id: \.self) { day in Text(TaskRecurrence.weekdayTitle(day)).tag(day) }
-                    }
+                    InkLabeledMenu(
+                        "Gün", selection: $weekday,
+                        options: (0..<7).map { InkMenuOption(TaskRecurrence.weekdayTitle($0), value: $0) },
+                        identifier: "tasks.recurrence.weekday"
+                    )
+                    .inkListRow()
                 } else if choice != .none {
                     Stepper("Aralık: \(count)", value: $count, in: 1...9999)
+                        .font(.ink.content)
+                        .foregroundStyle(.ink.text)
+                        .inkListRow()
                 }
-                if choice != .none { Toggle("Tamamlanınca hesapla", isOn: $whenDone) }
+                if choice != .none {
+                    Toggle("Tamamlanınca hesapla", isOn: $whenDone)
+                        .font(.ink.content)
+                        .foregroundStyle(.ink.text)
+                        .inkListRow()
+                }
             } else {
                 Text("Tanınmayan tekrar")
                     .font(.ink.content)
                     .foregroundStyle(.ink.text)
+                    .inkListRow()
                 Text("Bu tekrar kuralı uygulamada tanınmıyor. Değiştirmek için dosyada düzenle.")
                     .font(.ink.meta)
                     .foregroundStyle(.ink.secondaryText)
+                    .inkListRow()
             }
             if let error = model.errorText {
                 InfoBand(kind: .error, verbatim: error)
+                    .inkListRow()
             }
         }
-        .navigationTitle("Tekrar").formStyle(.grouped)
-        .scrollContentBackground(.hidden)
-        .inkSurface(bordered: false, cornerRadius: 0)
+        .listStyle(.plain)
+        .inkSheet(
+            "Tekrar", isConfirmEnabled: model.canSave && model.canEditRecurrence, isBusy: model.isSaving,
+            onConfirm: {
+                Task { if await model.setRecurrence(recurrence), model.errorText == nil { dismiss() } }
+            }
+        )
         .task {
             await model.load()
             if let recurrence = model.target?.recurrence {
@@ -61,19 +85,6 @@ struct TaskRecurrenceEditor: View {
                     case .year: choice = .year
                     }
                 }
-            }
-        }
-        .toolbar {
-            ToolbarItem(placement: .cancellationAction) {
-                Button("Kapat") { dismiss() }
-                    .buttonStyle(InkTextButtonStyle())
-            }
-            ToolbarItem(placement: .confirmationAction) {
-                Button("Kaydet") {
-                    Task { if await model.setRecurrence(recurrence), model.errorText == nil { dismiss() } }
-                }
-                .buttonStyle(InkPrimaryButtonStyle())
-                .disabled(!model.canSave || !model.canEditRecurrence)
             }
         }
         .frame(minWidth: 320, minHeight: 280)

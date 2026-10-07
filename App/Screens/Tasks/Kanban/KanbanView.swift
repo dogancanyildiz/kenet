@@ -5,19 +5,33 @@ struct KanbanView: View {
     @State private var model: KanbanModel
     @State private var selectedRow: TaskRow?
     @State private var sourceDay: CalendarDate?
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    /// `true` when the Mac shell hosts the board full-width (outside ``TasksView``).
     let showsFilters: Bool
     let openDay: (String) -> Void
 
     init(tasks: TasksModel, showsFilters: Bool = false, openDay: @escaping (String) -> Void = { _ in }) {
-        _model = State(initialValue: KanbanModel(tasks: tasks))
+        let model = KanbanModel(tasks: tasks)
+        model.grouping = tasks.viewState.kanbanGrouping
+        _model = State(initialValue: model)
         self.showsFilters = showsFilters
         self.openDay = openDay
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            controls
+            TasksBoardHeader(tasks: model.tasks, current: .kanban) {
+                InkHeaderMenu(
+                    "Pano seçenekleri", systemImage: "slider.horizontal.3", isActive: model.showsCancelled,
+                    identifier: "tasks.kanban.options"
+                ) {
+                    Toggle("İptal edilenleri göster", isOn: $model.showsCancelled)
+                }
+            }
+            groupingMenu
+            if model.tasks.hasFilters {
+                TaskFilterBand(model: model.tasks)
+                    .padding(.horizontal, InkSpacing.margin)
+            }
             if let error = model.errorText {
                 InfoBand(kind: .error, verbatim: error)
                     .padding(.horizontal, InkSpacing.margin)
@@ -53,7 +67,7 @@ struct KanbanView: View {
                             .navigationDestination(item: $sourceDay) { day in
                                 DayView(store: model.store, date: day)
                             }
-                            .toolbar { Button("Kapat") { selectedRow = nil } }
+                            .inkSheet("Görev", onClose: { selectedRow = nil })
                         }
                     }.presentationDetents([.medium, .large])
                 }
@@ -68,58 +82,32 @@ struct KanbanView: View {
             model.clearDrags()
         }
         .onChange(of: selectedRow?.id) { _, _ in sourceDay = nil }
-        .onChange(of: model.grouping) { _, _ in model.clearDrags() }
+        .onChange(of: model.grouping) { _, grouping in
+            model.tasks.viewState.kanbanGrouping = grouping
+            model.clearDrags()
+        }
+        .onAppear {
+            // Hosted by the Mac shell: the shared model learns which board is on screen, so a
+            // tab choice here is a change the shell can follow.
+            if showsFilters { model.tasks.viewState.mode = .kanban }
+        }
     }
 
     private var selectedTask: TaskRow? {
         model.store.content.tasks.first { $0.id == selectedRow?.id }
     }
 
-    private var controls: some View {
-        Group {
-            if dynamicTypeSize.isAccessibilitySize {
-                VStack(alignment: .leading, spacing: 8) {
-                    groupingPicker
-                    HStack {
-                        optionsMenu
-                        if showsFilters { TaskFiltersMenu(model: model.tasks) }
-                        Spacer(minLength: 0)
-                    }
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-            } else {
-                HStack {
-                    groupingPicker
-                    Spacer(minLength: 8)
-                    optionsMenu
-                    if showsFilters { TaskFiltersMenu(model: model.tasks) }
-                }
-            }
-        }
+    /// Second layer of the view selector: how the board is split into columns.
+    private var groupingMenu: some View {
+        InkLabeledMenu(
+            "Grupla", selection: $model.grouping,
+            options: [
+                InkMenuOption("Durum", value: KanbanModel.Grouping.status),
+                InkMenuOption("Proje", value: KanbanModel.Grouping.project),
+                InkMenuOption("Kişi", value: KanbanModel.Grouping.person),
+            ], identifier: TasksViewSelector.menuIdentifier
+        )
         .padding(.horizontal, InkSpacing.margin)
-        .padding(.vertical, 10)
-    }
-
-    private var groupingPicker: some View {
-        Picker("Gruplama", selection: $model.grouping) {
-            Text("Durum").tag(KanbanModel.Grouping.status)
-            Text("Proje").tag(KanbanModel.Grouping.project)
-            Text("Kişi").tag(KanbanModel.Grouping.person)
-        }
-        .pickerStyle(.menu)
-        .fixedSize(horizontal: true, vertical: false)
-        .lineLimit(1)
-    }
-
-    private var optionsMenu: some View {
-        Menu {
-            Toggle("İptal edilenleri göster", isOn: $model.showsCancelled)
-        } label: {
-            Label("Pano seçenekleri", systemImage: "ellipsis.circle")
-                .labelStyle(.titleAndIcon)
-                .lineLimit(1)
-                .fixedSize(horizontal: true, vertical: false)
-        }
     }
 
     private var board: some View {

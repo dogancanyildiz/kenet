@@ -13,7 +13,7 @@ struct ProjectView: View {
     private var model: ProjectModel { ProjectModel(store: store, name: name) }
     var body: some View {
         List {
-            InkPageTitleRow(verbatim: name)
+            InkPageTitleRow(verbatim: name) { SearchButton() }
             Section {
                 SectionHeader(title: String(localized: "Proje"))
                     .inkListRow()
@@ -67,7 +67,6 @@ struct ProjectView: View {
         .inkPage()
         .inkPageColumn()
         .inkPageNavigationTitle(verbatim: name)
-        .toolbar { SearchButton() }
     }
 
     private func groupHeading(_ day: CalendarDate?) -> String {

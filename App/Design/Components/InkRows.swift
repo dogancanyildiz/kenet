@@ -33,6 +33,7 @@ struct InkTaskRow: View {
             due, today: today, locale: locale, calendar: calendar)
         return HStack(spacing: 4) {
             Image(systemName: "arrow.forward.circle")
+                .accessibilityHidden(true)
             Text(verbatim: text)
         }
         .font(.ink.meta)

@@ -52,6 +52,29 @@ struct UnsavedDraftDecisionTests {
         #expect(!draft.isDirty)
     }
 
+    @MainActor
+    @Test func removingFieldClearsDraftIds() {
+        let draft = EntityEditorDraft()
+        draft.report(id: "field:notes", dirty: true)
+        draft.report(id: "field:notes.0", dirty: true)
+        draft.report(id: "field:other", dirty: true)
+        draft.report(id: "typed:birthday", dirty: true)
+        draft.report(id: "field:a", dirty: true)
+        draft.report(id: "field:a.b", dirty: true)
+        #expect(draft.isDirty)
+        // Exact ids only: removing "notes" clears its list child, not an unrelated key.
+        draft.clear(ids: ["field:notes", "field:notes.0"])
+        #expect(draft.isDirty)
+        // Removing "a" must not clear dotted YAML key "a.b".
+        draft.clear(ids: ["field:a"])
+        #expect(draft.isDirty)
+        draft.clear(id: "typed:birthday")
+        draft.clear(id: "field:other")
+        #expect(draft.isDirty)
+        draft.clear(id: "field:a.b")
+        #expect(!draft.isDirty)
+    }
+
     @Test func failedSaveDoesNotClearCommittedText() {
         var saved = "eski"
         let committed = "yeni"

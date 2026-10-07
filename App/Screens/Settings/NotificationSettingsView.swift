@@ -11,50 +11,77 @@ struct NotificationSettingsView: View {
     @Environment(\.openURL) private var openURL
     var body: some View {
         @Bindable var service = service
-        Form {
-            Section("İzin") {
+        List {
+            #if os(iOS)
+                InkPageTitleRow("Bildirimler")
+            #endif
+            Section {
+                SectionHeader("İzin")
+                    .inkListRow()
                 Text(service.authorization.title)
                     .font(.ink.meta)
                     .foregroundStyle(Color.ink.text)
+                    .inkListRow()
                 if service.authorization.canRequest {
                     Button("Bildirimlere izin ver") { Task { await service.requestAccess() } }.disabled(
-                        service.isRequesting)
+                        service.isRequesting
+                    )
+                    .inkListRow()
                 }
                 Button("Sistem ayarlarını aç") { openSettings() }
+                    .inkListRow()
             }
-            Section("Hatırlatmalar") {
+            Section {
+                SectionHeader("Hatırlatmalar")
+                    .inkListRow()
                 Toggle("Görev hatırlatmaları", isOn: $service.preferences.tasksEnabled)
+                    .inkListRow()
                 DatePicker("Görev saati", selection: time(\.taskTime), displayedComponents: .hourAndMinute)
                     .disabled(!service.preferences.tasksEnabled)
+                    .inkListRow()
                 Toggle("Günlük hedef hatırlatmaları", isOn: $service.preferences.goalsEnabled)
+                    .inkListRow()
                 DatePicker("Hedef saati", selection: time(\.goalTime), displayedComponents: .hourAndMinute)
                     .disabled(!service.preferences.goalsEnabled)
+                    .inkListRow()
                 Toggle("Akşam günlük hatırlatması", isOn: $service.preferences.journalEnabled)
+                    .inkListRow()
                 DatePicker("Günlük saati", selection: time(\.journalTime), displayedComponents: .hourAndMinute)
                     .disabled(!service.preferences.journalEnabled)
+                    .inkListRow()
                 Toggle("Bildirimlerde içeriği gizle", isOn: $service.preferences.hideContent)
+                    .inkListRow()
                 Text("Afiş, bildirim merkezi ve kilit ekranında görev metni ve hedef adları gösterilmez.")
                     .font(.ink.meta)
                     .foregroundStyle(Color.ink.secondaryText)
+                    .inkListRow()
                 Text("Uygulama kapalıyken planlanan hatırlatmalar değişmez.")
                     .font(.ink.meta)
                     .foregroundStyle(Color.ink.secondaryText)
+                    .inkListRow()
             }
-            Section("Planlananlar") {
+            Section {
+                SectionHeader("Planlananlar")
+                    .inkListRow()
                 Button("Şimdi yeniden planla") { Task { await service.replanNow() } }.disabled(
-                    service.isPlanning || service.isRequesting)
+                    service.isPlanning || service.isRequesting
+                )
+                .inkListRow()
                 if service.isPlanning {
                     InkProgress(kind: .indeterminate(label: "Bildirimler planlanıyor…"))
+                        .inkListRow()
                 }
                 if let error = service.errorText {
                     Text(verbatim: error)
                         .font(.ink.meta)
                         .foregroundStyle(Color.ink.secondaryText)
+                        .inkListRow()
                 }
                 if service.pending.isEmpty {
                     Text("Planlanan bildirim yok.")
                         .font(.ink.meta)
                         .foregroundStyle(Color.ink.secondaryText)
+                        .inkListRow()
                 }
                 ForEach(service.pending) { request in
                     VStack(alignment: .leading, spacing: 4) {
@@ -72,12 +99,12 @@ struct NotificationSettingsView: View {
                             .truncationMode(.middle)
                             .textSelection(.enabled)
                     }
+                    .inkListRow()
                 }
             }
         }
-        .formStyle(.grouped)
-        .listRowBackground(Color.ink.surface)
-        .navigationTitle("Bildirimler")
+        .listStyle(.plain)
+        .inkPageNavigationTitle("Bildirimler")
         .inkPageColumn()
         .inkPage()
         .task { if AppLaunchPolicy.allowsAutomaticStart() { await service.replanNow() } }

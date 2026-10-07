@@ -196,11 +196,11 @@ struct TaskTimelineView: View {
             }
             if model.mobileGroups.isEmpty && model.undated.isEmpty {
                 EmptyState("Görev yok.")
-                    .listRowBackground(Color.clear)
+                    .inkListRow()
             }
         }
         .listStyle(.plain)
-        .scrollContentBackground(.hidden)
+        .inkPage()
     }
     private func taskRow(_ row: TaskRow) -> some View {
         TimelineTaskRow(model: model, row: row) {
@@ -208,7 +208,7 @@ struct TaskTimelineView: View {
         } edit: {
             editor = TimelineDateSelection(row: row, edge: $0, root: model.store.vaultURL)
         }
-        .listRowBackground(Color.ink.paper)
+        .inkListRow()
         .alignmentGuide(.listRowSeparatorLeading) { _ in 0 }
     }
 }

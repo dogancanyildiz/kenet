@@ -4,6 +4,7 @@ import VaultFormat
 struct EntityFieldEditor: View {
     let field: EntityField
     let model: EntityDetailModel
+    @Environment(\.entityEditorDraft) private var draft
     @State private var deleteConfirmation = DestructiveConfirmation<DestructiveConfirmationToken>()
 
     var body: some View {
@@ -51,7 +52,24 @@ struct EntityFieldEditor: View {
         .destructiveConfirmationDialog(
             "Alanı kaldır?", confirmation: $deleteConfirmation, confirmTitle: "Alanı kaldır"
         ) { _ in
-            Task { await model.remove(field.key) }
+            Task {
+                if await model.remove(field.key) {
+                    draft?.clear(ids: Self.draftIDs(for: field))
+                }
+            }
+        }
+    }
+
+    /// Exact draft ids owned by this field (scalar, list indices, or mapping keys).
+    private static func draftIDs(for field: EntityField) -> [String] {
+        let base = "field:" + field.key
+        switch field.value {
+        case .list(let values, _):
+            return [base] + values.indices.map { base + "." + String($0) }
+        case .mapping(let entries):
+            return [base] + entries.map { base + "." + $0.key }
+        case .scalar, .raw:
+            return [base]
         }
     }
 

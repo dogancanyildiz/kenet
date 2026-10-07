@@ -84,7 +84,21 @@ struct EntityTypedFieldEditor: View {
         .destructiveConfirmationDialog(
             "Alanı kaldır?", confirmation: $deleteConfirmation, confirmTitle: "Alanı kaldır"
         ) { _ in
-            Task { await model.remove(definition.key) }
+            Task {
+                if await model.remove(definition.key) {
+                    draft?.clear(id: draftID)
+                    // Schema-defined fields stay on screen with a nil value; reset local state
+                    // so typed text does not linger after a successful remove.
+                    text = ""
+                    savedText = ""
+                    date = Date()
+                    savedDate = date
+                    flag = false
+                    savedFlag = false
+                    invalid = false
+                    saveFailed = false
+                }
+            }
         }
     }
 
@@ -107,11 +121,15 @@ struct EntityTypedFieldEditor: View {
         Task {
             let success = await model.set(definition.key, to: value)
             saveFailed = !success
-            if success {
-                savedText = committedText
-                savedDate = committedDate
-                savedFlag = committedFlag
-            }
+            var nextText = savedText
+            var nextDate = savedDate
+            var nextFlag = savedFlag
+            EntityEditorSaveMark.commitIfSaved(committedText, success: success, into: &nextText)
+            EntityEditorSaveMark.commitIfSaved(committedDate, success: success, into: &nextDate)
+            EntityEditorSaveMark.commitIfSaved(committedFlag, success: success, into: &nextFlag)
+            savedText = nextText
+            savedDate = nextDate
+            savedFlag = nextFlag
             draft?.report(id: draftID, dirty: isDirty)
         }
     }

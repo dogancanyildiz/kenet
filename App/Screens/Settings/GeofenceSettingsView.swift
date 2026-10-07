@@ -4,24 +4,31 @@
     struct GeofenceSettingsView: View {
         @Environment(GeofenceService.self) private var geofences
         var body: some View {
-            Section("Konuma girince") {
+            Section {
+                SectionHeader("Konuma girince")
+                    .inkListRow()
                 Text("Konum hedefleri için Her zaman izni gerekir. Bölgeye girişte bugünün kaydı işaretlenir.")
                     .font(.ink.meta)
                     .foregroundStyle(Color.ink.secondaryText)
+                    .inkListRow()
                 if geofences.location.authorization == .always {
                     Text("Her zaman konum izni verildi.")
                         .font(.ink.meta)
                         .foregroundStyle(Color.ink.text)
+                        .inkListRow()
                 } else {
                     Button("Her zaman konum izni ver") { geofences.requestAlwaysAccess() }
+                        .inkListRow()
                 }
                 Text("Bildir seçeneği için Bildirimler ayarından bildirim izni ver.")
                     .font(.ink.meta)
                     .foregroundStyle(Color.ink.secondaryText)
+                    .inkListRow()
                 if geofences.targets.isEmpty {
                     Text("Konum bağlantısı olan uygun hedef yok.")
                         .font(.ink.meta)
                         .foregroundStyle(Color.ink.secondaryText)
+                        .inkListRow()
                 }
                 ForEach(geofences.targets) { target in
                     Picker(
@@ -34,18 +41,23 @@
                     } label: {
                         Text(verbatim: target.goal.name)
                     }
+                    .inkListRow()
                 }
                 if let error = geofences.errorText {
                     Text(verbatim: error)
                         .font(.ink.meta)
                         .foregroundStyle(Color.ink.danger)
+                        .inkListRow()
                 }
             }
-            Section("İzlenen bölgeler") {
+            Section {
+                SectionHeader("İzlenen bölgeler")
+                    .inkListRow()
                 if geofences.regions.isEmpty {
                     Text("İzlenen bölge yok.")
                         .font(.ink.meta)
                         .foregroundStyle(Color.ink.secondaryText)
+                        .inkListRow()
                 }
                 ForEach(geofences.regions) { target in
                     VStack(alignment: .leading) {
@@ -63,11 +75,13 @@
                                 .foregroundStyle(Color.ink.secondaryText)
                         }
                     }
+                    .inkListRow()
                 }
                 if geofences.overflowCount > 0 {
                     Text("20 bölge sınırı: \(geofences.overflowCount) hedef izlenmiyor.")
                         .font(.ink.meta)
                         .foregroundStyle(Color.ink.secondaryText)
+                        .inkListRow()
                 }
             }
         }

@@ -39,7 +39,9 @@ struct EntityAliasesEditor: View {
                     Task {
                         let success = await model.saveAliases(aliases)
                         saveFailed = !success
-                        if success { saved = aliases }
+                        var next = saved
+                        EntityEditorSaveMark.commitIfSaved(aliases, success: success, into: &next)
+                        saved = next
                         draft?.report(id: draftID, dirty: isDirty)
                     }
                 }

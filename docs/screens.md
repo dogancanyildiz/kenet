@@ -44,8 +44,9 @@ En altta sabit **hızlı giriş kapsülü** (opak; içeriğin üstüne binmez).
 
 ### Günlük (1)
 
+- Sayfa adı serif manşet olarak listenin içinde durur; gezinme çubuğunda büyük başlık yoktur.
 - Günlerin ters kronolojik listesi; her günde olay sayısı ve günlük yazısının ilk satırı.
-- Üstte Özetler girişi ve takvim ile güne atlama.
+- Üstte Özetler girişi ve takvim ile güne atlama; bugünün günü halkayla işaretlenir (rakam ile halka arasında boşluk kalır).
 - Bir güne girince: o günün olayları, görevleri, hedef kayıtları ve serbest yazısı. Bugün ekranıyla aynı düzen, herhangi bir gün için.
 - Geçmiş bir güne olay eklenebilir ve o günün hedef kayıtları düzeltilebilir.
 
@@ -60,6 +61,8 @@ Günlük içinden ve Mac kenar çubuğundan açılır. Hafta (pazartesi–pazar)
 
 ### Görevler (2, 5)
 
+Sayfa adı serif manşet olarak listenin içinde durur; gezinme çubuğunda büyük başlık yoktur. Proje ve görev ayrıntısı sayfaları aynı kalıbı kullanır. Kanban ve zaman çizelgesi geniş yüzeydir (680 pt sütun sınırına girmez).
+
 Bölümler (tek görünüm seçici: iPhone ve Mac içerik alanında araç çubuğunda; sıra Yaklaşan → Tarihsiz → Tamamlanan → Projeler → Kanban → Zaman çizelgesi; son seçim iPhone'da hatırlanır). Mac kenar çubuğundaki Kanban, Zaman çizelgesi ve proje girişleri gezinme düzenidir ve değişmez.
 
 - **Yaklaşan:** Tarihli görevler, güne göre gruplu ajanda listesi. Grup başlığı bölüm başlığı + sayaçtır; "Devreden" (eski "Geciken") grubu vardır.
@@ -73,18 +76,20 @@ Filtre: kişi, konum, proje. Aynı gündeki görevler yüksek, orta, normal, dü
 
 ### Kişiler ve Konumlar (1)
 
+- Sayfa adı serif manşet olarak listenin içinde durur; gezinme çubuğunda büyük başlık yoktur.
 - Üstte kişi / konum geçişi. Liste ada göre ya da son geçtiği tarihe göre sıralanır.
 - Aynı adlı varlıklarda adın altında ayırt edici görünür.
 
 **Varlık sayfası:**
 
-1. Varsayılan görünüm okuma sayfasıdır: manşet (ad), künye (tip, takma adlar, son görülme), ayırt edici ve gelen bağlantı sayısı
-2. Şablon alanları etiket-değer satırları olarak; tanınmayan ön bilgi anahtarları "Diğer alanlar" altında ham adıyla, ikincil
-3. Açık görevler (2): bu varlığa bağlı tamamlanmamış işler
-4. Zaman akışı: bu varlığın geçtiği olaylar ve günlük paragrafları, yeniden eskiye; her satır ait olduğu güne götürür
-5. Serbest notlar (okumada ham wikilink ve blok kimliği gizlenir)
-6. Konumda ek olarak harita ve koordinat (4)
-7. Düzenleme, "Düzenle" ile açılan ayrı kiptir (sheet); alan ve takma ad düzenleyicileri orada kalır. Ad değiştirme, düzenleme sheet'inin içinden ikinci bir sheet olarak açılır. Kaydedilmemiş alan metni varken sheet kapatılamaz; JournalView ile aynı UnsavedDraftDecision kalıbı "At" / "Vazgeç" sorar (alanlar Kaydet ile yazılır, Bitti kaydetmez).
+1. Varsayılan görünüm okuma sayfasıdır: manşet (ad) sayfa içinde, künye (tip, takma adlar, son görülme), ayırt edici ve gelen bağlantı sayısı; gezinme çubuğunda büyük başlık yoktur
+2. Düzenleme sheet'inde sistem başlığı kalır; kaydedilmemiş alan "Alanı kaldır" ile silinince taslak kirli sayılmaz
+3. Şablon alanları etiket-değer satırları olarak; tanınmayan ön bilgi anahtarları "Diğer alanlar" altında ham adıyla, ikincil
+4. Açık görevler (2): bu varlığa bağlı tamamlanmamış işler
+5. Zaman akışı: bu varlığın geçtiği olaylar ve günlük paragrafları, yeniden eskiye; her satır ait olduğu güne götürür
+6. Serbest notlar (okumada ham wikilink ve blok kimliği gizlenir)
+7. Konumda ek olarak harita ve koordinat (4)
+8. Düzenleme, "Düzenle" ile açılan ayrı kiptir (sheet); alan ve takma ad düzenleyicileri orada kalır. Ad değiştirme, düzenleme sheet'inin içinden ikinci bir sheet olarak açılır. Kaydedilmemiş alan metni varken sheet kapatılamaz; JournalView ile aynı UnsavedDraftDecision kalıbı "At" / "Vazgeç" sorar (alanlar Kaydet ile yazılır, Bitti kaydetmez).
 
 Kişiler ve Konumlar ekranının üstteki tip seçicisi kişi/konuma ek olarak kasanın özel tiplerini gösterir. Sekme adı ve Mac kenar çubuğu değişmez. Özel varlık sayfası tanımın text/date/number/boolean/link alanlarına uygun düzenleyiciler, bilinmeyen alanlar, görevler, günlük zaman akışı ve serbest notları sunar; kişi/konum Graph ve görüşme kartı yalnız yerleşik tiplerde kalır. @ önerileri özel tipleri de içerir; bilinmeyen adın oluşturma menüsünde tanımlı tipler bulunur.
 
@@ -120,7 +125,7 @@ Harita geçerli koordinatı olan konumları pin olarak gösterir. Pin boyutu bü
 
 ### Arama (1)
 
-Her ekranın üstündeki simgeden açılır. Tek kutu; sonuçlar türe göre gruplu: kişiler, konumlar, olaylar, görevler, notlar. Aynı zamanda hızlı geçiş işlevi görür.
+Her ekranın üstündeki simgeden açılır. Sayfa adı serif manşet olarak sayfanın içinde durur. Tek kutu (`ink.well` zemin); sonuçlar türe göre gruplu: kişiler, konumlar, olaylar, görevler, notlar. Not önizlemesi düz metindir (başlık işaretleri ve liste tireleri yok; sıra sayısı gibi içerik korunur). Kod çitinin içi olduğu gibi gösterilir. Aynı zamanda hızlı geçiş işlevi görür.
 
 ### Serbest notlar
 
@@ -139,7 +144,7 @@ Telefonda okuma ve basit düzenleme. Aramadan ve bağlantılardan ulaşılır; a
 
 ## Ayarlar
 
-iPhone'da Bugün manşet satırındaki düğmeden açılan Ayarlar listesi beş bölüme ayrılır. Mac'te aynı beş bölüm Settings sekmeleridir; Hızlı giriş kısayolu ilk sekmedir. Hiçbir ayar kaybolmaz; yeni ayar eklenmez.
+iPhone'da Bugün manşet satırındaki düğmeden açılan Ayarlar listesi beş bölüme ayrılır; sayfa adı ve alt sayfa adları serif manşet olarak listenin içindedir, satır zemini kâğıttır. Mac'te aynı beş bölüm Settings sekmeleridir; Hızlı giriş kısayolu ilk sekmedir. Hiçbir ayar kaybolmaz; yeni ayar eklenmez.
 
 ### Ayarlar — Gizlilik (7)
 

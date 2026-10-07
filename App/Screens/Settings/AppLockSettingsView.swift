@@ -20,6 +20,7 @@ struct AppLockSettingsView: View {
                 )
             )
             .disabled(lock.isAuthenticating)
+            .inkListRow()
             if lock.isEnabled {
                 Picker("Şu kadar sonra kilitle", selection: $lock.delay) {
                     Text("Hemen").tag(AppLockDelay.immediately)
@@ -27,11 +28,13 @@ struct AppLockSettingsView: View {
                     Text("5 dk").tag(AppLockDelay.fiveMinutes)
                     Text("15 dk").tag(AppLockDelay.fifteenMinutes)
                 }
+                .inkListRow()
             }
             if lock.authenticationFailed {
                 Text("Kimlik doğrulanamadı. Tekrar dene.")
                     .font(.ink.meta)
                     .foregroundStyle(Color.ink.secondaryText)
+                    .inkListRow()
                 if !lock.isEnabled {
                     Button("Tekrar dene") {
                         Task {
@@ -39,6 +42,7 @@ struct AppLockSettingsView: View {
                             geofences?.refreshMarkActionAvailability()
                         }
                     }
+                    .inkListRow()
                 }
             }
             Text(
@@ -46,6 +50,7 @@ struct AppLockSettingsView: View {
             )
             .font(.ink.meta)
             .foregroundStyle(Color.ink.secondaryText)
+            .inkListRow()
         }
     }
 }

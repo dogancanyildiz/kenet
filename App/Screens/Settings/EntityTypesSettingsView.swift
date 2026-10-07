@@ -9,15 +9,26 @@ struct EntityTypesSettingsView: View {
     @State private var errorText: String?
 
     var body: some View {
-        Form {
-            Section("Yerleşik tipler") {
+        List {
+            #if os(iOS)
+                InkPageTitleRow("Varlık tipleri")
+            #endif
+            Section {
+                SectionHeader("Yerleşik tipler")
+                    .inkListRow()
                 ForEach(EntityTypeChoices.choices(store.entityTypes).filter { $0.id == "person" || $0.id == "place" }) {
                     type in
                     Label(type.plural, systemImage: type.definition.icon)
+                        .inkListRow()
                 }
             }
-            Section("Özel varlık tipleri") {
-                if store.entityTypes.types.isEmpty { Text("Henüz özel tip yok.") }
+            Section {
+                SectionHeader("Özel varlık tipleri")
+                    .inkListRow()
+                if store.entityTypes.types.isEmpty {
+                    Text("Henüz özel tip yok.")
+                        .inkListRow()
+                }
                 ForEach(store.entityTypes.types, id: \.id) { type in
                     HStack {
                         NavigationLink {
@@ -29,10 +40,13 @@ struct EntityTypesSettingsView: View {
                         }
                         Button("Tipi sil", role: .destructive) { deleting = type }
                     }
+                    .inkListRow()
                 }
                 NavigationLink("Yeni varlık tipi") {
                     EntityTypeEditorView(model: EntityTypeEditorModel(store: store))
-                }.disabled(!store.canAddEvent || store.entityTypes.issue != nil)
+                }
+                .disabled(!store.canAddEvent || store.entityTypes.issue != nil)
+                .inkListRow()
             }
             if store.entityTypes.issue != nil {
                 Text(
@@ -40,23 +54,25 @@ struct EntityTypesSettingsView: View {
                 )
                 .font(.ink.meta)
                 .foregroundStyle(Color.ink.warning)
+                .inkListRow()
             }
             if let errorText {
                 Text(verbatim: errorText)
                     .font(.ink.meta)
                     .foregroundStyle(Color.ink.danger)
+                    .inkListRow()
             }
             Text("Tipi silmek varlık dosyalarını silmez. Tanımı olmayan dosyalar düz not olarak kalır.")
                 .font(.ink.meta)
                 .foregroundStyle(Color.ink.secondaryText)
+                .inkListRow()
         }
         .onChange(of: store.vaultURL) { _, _ in
             deleting = nil
             errorText = nil
         }
-        .formStyle(.grouped)
-        .listRowBackground(Color.ink.surface)
-        .navigationTitle("Varlık tipleri")
+        .listStyle(.plain)
+        .inkPageNavigationTitle("Varlık tipleri")
         .inkPageColumn()
         .inkPage()
         .confirmationDialog(

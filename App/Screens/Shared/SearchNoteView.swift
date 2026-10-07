@@ -8,24 +8,31 @@ struct SearchNoteView: View {
     @State private var errorText: String?
     @State private var isLoaded = false
 
+    private var noteTitle: String { SearchPreviewText.noteDisplayName(file) }
+
     var body: some View {
         ScrollView {
-            if let errorText {
-                Text(verbatim: errorText).foregroundStyle(.ink.danger)
-            } else if isLoaded {
-                Text(verbatim: bodyText).textSelection(.enabled)
-                    .font(.ink.content)
-                    .inkJournalParagraph()
-                    .foregroundStyle(.ink.text)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            } else {
-                ProgressView("Yükleniyor…")
+            VStack(alignment: .leading, spacing: 12) {
+                InkPageTitle(verbatim: noteTitle)
+                Group {
+                    if let errorText {
+                        Text(verbatim: errorText).foregroundStyle(.ink.danger)
+                    } else if isLoaded {
+                        Text(verbatim: bodyText).textSelection(.enabled)
+                            .font(.ink.content)
+                            .inkJournalParagraph()
+                            .foregroundStyle(.ink.text)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    } else {
+                        ProgressView("Yükleniyor…")
+                    }
+                }
+                .padding(.horizontal, InkSpacing.margin)
             }
         }
-        .padding()
         .inkPage()
         .inkPageColumn()
-        .navigationTitle((file as NSString).lastPathComponent)
+        .inkPageNavigationTitle(verbatim: noteTitle)
         .toolbar { SearchButton() }
         .task(id: store.lastUpdated) {
             isLoaded = false

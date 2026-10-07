@@ -133,6 +133,7 @@ struct RowComponentTests {
         #expect(DaysCalendarMarkLayout.markDiameter(preferred: preferred, cellWidth: 45) == 45)
         #expect(DaysCalendarMarkLayout.markDiameter(preferred: 32, cellWidth: 45) == 32)
         #expect(DaysCalendarMarkLayout.markDiameter(preferred: 40, cellWidth: 0) == 0)
+        #expect(DaysCalendarMarkLayout.numeralInset >= 2)
     }
 
     @Test func mutedLinkedTextFadesPlainRunsAndKeepsLinkUnderline() {

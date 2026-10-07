@@ -12,8 +12,13 @@ struct VaultSettingsView: View {
     @State private var choosingFolder = false
 
     var body: some View {
-        Form {
-            Section("Kasa") {
+        List {
+            #if os(iOS)
+                InkPageTitleRow("Kasa")
+            #endif
+            Section {
+                SectionHeader("Konum")
+                    .inkListRow()
                 if let path = VaultPathDisplay.text(
                     for: store.vaultURL, override: pathDisplayOverride)
                 {
@@ -24,12 +29,14 @@ struct VaultSettingsView: View {
                         .truncationMode(.middle)
                         .textSelection(.enabled)
                         .accessibilityLabel(Text(verbatim: path))
+                        .inkListRow()
                     #if os(macOS)
                         if let url = store.vaultURL {
                             Button("Finder'da göster") {
                                 NSWorkspace.shared.activateFileViewerSelecting([url])
                             }
                             .buttonStyle(.borderless)
+                            .inkListRow()
                         }
                     #endif
                 }
@@ -37,7 +44,9 @@ struct VaultSettingsView: View {
                     Button("Klasör seç") { choosingFolder = true }.disabled(
                         store.isInspectingImport || store.importModel != nil)
                     Spacer(minLength: 0)
-                }.buttonStyle(.borderless)
+                }
+                .buttonStyle(.borderless)
+                .inkListRow()
                 if let selection = store.pendingSelection {
                     LabeledContent("Klasör seçimi bekliyor…") {
                         Text(verbatim: selection.path)
@@ -47,6 +56,7 @@ struct VaultSettingsView: View {
                             .textSelection(.enabled)
                             .accessibilityLabel(Text(verbatim: selection.path))
                     }
+                    .inkListRow()
                 }
                 if store.unwatchedDirectoryCount > 0 {
                     Text(
@@ -54,34 +64,46 @@ struct VaultSettingsView: View {
                     )
                     .font(.ink.meta)
                     .foregroundStyle(Color.ink.secondaryText)
+                    .inkListRow()
                 }
                 if store.isInspectingImport {
                     InkProgress(kind: .indeterminate(label: "Klasör inceleniyor…"))
+                        .inkListRow()
                 }
                 if let model = store.importModel {
                     NavigationLink("Kasa hazırlığı") { VaultImportView(store: store, model: model) }
+                        .inkListRow()
                 }
-                if store.isProcessing { VaultIndexingProgress(store: store) }
+                if store.isProcessing {
+                    VaultIndexingProgress(store: store)
+                        .inkListRow()
+                }
                 if let notice = store.notice {
                     InfoBand(kind: .info, verbatim: notice)
+                        .inkListRow()
                 }
                 if let error = store.errorText {
                     InfoBand(kind: .error, verbatim: error)
+                        .inkListRow()
                 }
             }
-            Section("Varlık tipleri") {
+            Section {
+                SectionHeader("Varlık tipleri")
+                    .inkListRow()
                 NavigationLink("Varlık tipleri") { EntityTypesSettingsView(store: store) }
+                    .inkListRow()
                 if store.entityTypes.issue != nil {
                     Text(
                         "Varlık tipleri okunamıyor. Yalnız yerleşik tipler kullanılıyor. Kasadaki .app/types.json dosyasını kontrol et."
                     )
                     .font(.ink.meta)
                     .foregroundStyle(Color.ink.warning)
+                    .inkListRow()
                 }
             }
         }
-        .formStyle(.grouped)
-        .listRowBackground(Color.ink.surface)
+        .listStyle(.plain)
+        .inkPageNavigationTitle("Kasa")
         .inkPageColumn()
         .inkPage()
         .fileImporter(isPresented: $choosingFolder, allowedContentTypes: [.folder]) { result in

@@ -91,6 +91,19 @@ enum DaysCalendarMarkLayout {
     static func markDiameter(preferred: CGFloat, cellWidth: CGFloat) -> CGFloat {
         min(preferred, max(0, cellWidth))
     }
+
+    /// Minimum gap between the day numeral and today's ring / selected disc.
+    static let numeralInset: CGFloat = 2
+
+    /// Square padding so the numeral's layout box fits inside the circle with ``numeralInset``
+    /// clearance to the inner edge of the stroke (not merely to the square frame).
+    static func numeralInset(diameter: CGFloat, strokeWidth: CGFloat = InkStroke.control) -> CGFloat {
+        let gap = numeralInset
+        let innerRadius = max(0, diameter / 2 - strokeWidth / 2)
+        let maxHalfDiagonal = max(0, innerRadius - gap)
+        let contentSide = maxHalfDiagonal * CGFloat(2).squareRoot()
+        return max(gap, (diameter - contentSide) / 2)
+    }
 }
 
 /// Day cell: today = ring, marked = filled marker, selected = filled disc (form beyond color).
@@ -99,43 +112,50 @@ struct DaysCalendarDayMark: View {
     let isToday: Bool
     let isMarked: Bool
     let isSelected: Bool
-    @ScaledMetric(relativeTo: .body) private var markDiameter = 32.0
+    @ScaledMetric(relativeTo: .body) private var preferredDiameter = 32.0
 
     var body: some View {
-        VStack(spacing: 2) {
-            Text(day, format: .number)
-                .font(.ink.value)
-                .foregroundStyle(isSelected ? Color.ink.onAccent : Color.ink.text)
-                .minimumScaleFactor(0.35)
-                .lineLimit(1)
-                // Upper bound = preferred diameter; cell width can shrink further so AX3
-                // stays inside the grid (see ``DaysCalendarMarkLayout/markDiameter(preferred:cellWidth:)``).
-                .frame(maxWidth: markDiameter)
-                .aspectRatio(1, contentMode: .fit)
-                .background {
-                    if isSelected {
-                        Circle().fill(Color.ink.accent)
-                    } else if isToday {
-                        Circle().strokeBorder(Color.ink.accent, lineWidth: InkStroke.control)
+        GeometryReader { geo in
+            let diameter = DaysCalendarMarkLayout.markDiameter(
+                preferred: preferredDiameter, cellWidth: geo.size.width)
+            VStack(spacing: 2) {
+                Text(day, format: .number)
+                    .font(.ink.value)
+                    .foregroundStyle(isSelected ? Color.ink.onAccent : Color.ink.text)
+                    .minimumScaleFactor(0.35)
+                    .lineLimit(1)
+                    // Only cells that draw a ring or disc need clearance; plain days keep full size.
+                    .padding(
+                        isToday || isSelected
+                            ? DaysCalendarMarkLayout.numeralInset(diameter: diameter) : 0
+                    )
+                    .frame(width: diameter, height: diameter)
+                    .background {
+                        if isSelected {
+                            Circle().fill(Color.ink.accent)
+                        } else if isToday {
+                            Circle().strokeBorder(Color.ink.accent, lineWidth: InkStroke.control)
+                        }
                     }
-                }
-            Group {
-                if isMarked {
-                    if isSelected {
-                        // Selected already fills; mark with a square so form differs from the disc.
-                        RoundedRectangle(cornerRadius: 1, style: .continuous)
-                            .fill(Color.ink.accent)
-                            .frame(width: 4, height: 4)
+                Group {
+                    if isMarked {
+                        if isSelected {
+                            // Selected already fills; mark with a square so form differs from the disc.
+                            RoundedRectangle(cornerRadius: 1, style: .continuous)
+                                .fill(Color.ink.accent)
+                                .frame(width: 4, height: 4)
+                        } else {
+                            Circle()
+                                .fill(Color.ink.accent)
+                                .frame(width: 4, height: 4)
+                        }
                     } else {
-                        Circle()
-                            .fill(Color.ink.accent)
-                            .frame(width: 4, height: 4)
+                        Color.clear.frame(width: 4, height: 4)
                     }
-                } else {
-                    Color.clear.frame(width: 4, height: 4)
                 }
+                .accessibilityHidden(true)
             }
-            .accessibilityHidden(true)
+            .frame(width: geo.size.width, height: geo.size.height)
         }
         .frame(maxWidth: .infinity, minHeight: 44)
         .accessibilityValue(

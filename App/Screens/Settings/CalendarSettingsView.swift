@@ -9,33 +9,43 @@ struct CalendarSettingsView: View {
     @Environment(\.openURL) private var openURL
 
     var body: some View {
-        Section("Takvim") {
+        Section {
+            SectionHeader("Takvim")
+                .inkListRow()
             Text("Takvim etkinlikleri yalnızca gösterilir; takvimine ve günlük dosyalarına yazılmaz.")
                 .font(.ink.meta)
                 .foregroundStyle(Color.ink.secondaryText)
+                .inkListRow()
             switch calendar.authorization {
             case .notDetermined, .writeOnly:
                 Button("Takvim etkinliklerini göstermek için izin ver") {
                     Task { await calendar.requestAccess() }
-                }.disabled(calendar.isRequesting)
+                }
+                .disabled(calendar.isRequesting)
+                .inkListRow()
             case .fullAccess:
                 Text("Takvim erişimine izin verildi.")
                     .font(.ink.meta)
                     .foregroundStyle(Color.ink.text)
+                    .inkListRow()
             case .denied:
                 Text("Takvim erişimi reddedildi. Etkinlikleri göstermek için sistem ayarlarından izin verebilirsin.")
                     .font(.ink.meta)
                     .foregroundStyle(Color.ink.secondaryText)
+                    .inkListRow()
             case .restricted:
                 Text("Takvim erişimi bu cihazda kısıtlanmış.")
                     .font(.ink.meta)
                     .foregroundStyle(Color.ink.secondaryText)
+                    .inkListRow()
             }
             Button("Sistem ayarlarını aç") { openSystemSettings() }
+                .inkListRow()
             if let error = calendar.errorText {
                 Text(verbatim: error)
                     .font(.ink.meta)
                     .foregroundStyle(Color.ink.secondaryText)
+                    .inkListRow()
             }
         }
     }

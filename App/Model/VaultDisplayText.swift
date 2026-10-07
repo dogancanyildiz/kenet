@@ -135,21 +135,36 @@ enum VaultDisplayText {
     }
 }
 
-/// Search-result preview only: vault display rules plus fence delimiter lines and ATX `#` markers dropped.
-/// Unlike ``VaultDisplayText``, fence *interior* is also display-transformed so search never shows raw markup.
+/// Search-result preview only: vault display rules plus fence delimiter / horizontal-rule lines
+/// and ATX `#` markers dropped. Fence *interior* is kept verbatim (no list or heading transforms).
 enum SearchPreviewText {
     static func display(_ text: String) -> String {
         let normalized =
             text
             .replacingOccurrences(of: "\r\n", with: "\n")
             .replacingOccurrences(of: "\r", with: "\n")
+        var fenceOpen = false
+        var fenceMarker: Character?
+        var fenceCount = 0
         let lines = normalized.split(separator: "\n", omittingEmptySubsequences: false)
         let result = lines.compactMap { substring -> String? in
             let line = String(substring)
             let trimmed = line.trimmingCharacters(in: .whitespaces)
-            if isFenceDelimiter(trimmed) { return nil }
-            // Always apply display rules (even for lines that were inside a fence in the source).
-            return stripHeadingMarkers(VaultDisplayText.line(line))
+            if let fence = fenceDelimiterRun(trimmed) {
+                if fenceOpen, fence.marker == fenceMarker, fence.count >= fenceCount {
+                    fenceOpen = false
+                    fenceMarker = nil
+                    fenceCount = 0
+                } else if !fenceOpen {
+                    fenceOpen = true
+                    fenceMarker = fence.marker
+                    fenceCount = fence.count
+                }
+                return nil
+            }
+            if fenceOpen { return line }
+            if isHorizontalRule(trimmed) { return nil }
+            return stripListMarker(stripHeadingMarkers(VaultDisplayText.line(line)))
         }
         return result.joined(separator: "\n")
             .trimmingCharacters(in: .whitespacesAndNewlines)
@@ -170,14 +185,20 @@ enum SearchPreviewText {
         return name
     }
 
-    private static func isFenceDelimiter(_ trimmed: String) -> Bool {
-        guard let first = trimmed.first, first == "`" || first == "~" else { return false }
+    private static func fenceDelimiterRun(_ trimmed: String) -> (marker: Character, count: Int)? {
+        guard let first = trimmed.first, first == "`" || first == "~" else { return nil }
         let count = trimmed.prefix(while: { $0 == first }).count
-        guard count >= 3 else { return false }
+        guard count >= 3 else { return nil }
         let rest = trimmed.dropFirst(count)
-        if first == "`", rest.contains("`") { return false }
-        // Opening may have a language tag; closing is blank after the run.
-        return true
+        if first == "`", rest.contains("`") { return nil }
+        return (first, count)
+    }
+
+    /// CommonMark-style thematic break: three or more `-`, `*`, or `_`, spaces allowed between.
+    private static func isHorizontalRule(_ trimmed: String) -> Bool {
+        let marks = trimmed.filter { !$0.isWhitespace }
+        guard marks.count >= 3, let first = marks.first, "-*_".contains(first) else { return false }
+        return marks.allSatisfy { $0 == first }
     }
 
     private static func stripHeadingMarkers(_ line: String) -> String {
@@ -196,5 +217,47 @@ enum SearchPreviewText {
         }
         let afterSpace = line.index(after: cursor)
         return String(line[afterSpace...])
+    }
+
+    /// Vault-format task status characters inside `- [.] ` (space, x/X, /, -).
+    private static let taskBoxStatuses: Set<Character> = [" ", "x", "X", "/", "-"]
+
+    /// Drops `- ` / `* ` list markers and known task boxes for search preview only.
+    /// Ordered markers (`1.` / `1)`) and `+` stay — they are content in Turkish prose.
+    private static func stripListMarker(_ line: String) -> String {
+        var index = line.startIndex
+        while index < line.endIndex, line[index] == " " || line[index] == "\t" {
+            index = line.index(after: index)
+        }
+        let body = line[index...]
+        guard let first = body.first, first == "-" || first == "*" else { return line }
+
+        var cursor = body.index(after: body.startIndex)
+        guard cursor < body.endIndex, body[cursor] == " " || body[cursor] == "\t" else {
+            return line
+        }
+        cursor = body.index(after: cursor)
+        while cursor < body.endIndex, body[cursor] == " " || body[cursor] == "\t" {
+            cursor = body.index(after: cursor)
+        }
+        if cursor < body.endIndex, body[cursor] == "[" {
+            var box = body.index(after: cursor)
+            if box < body.endIndex {
+                let status = body[box]
+                box = body.index(after: box)
+                if box < body.endIndex, body[box] == "]", taskBoxStatuses.contains(status) {
+                    box = body.index(after: box)
+                    if box == body.endIndex { return "" }
+                    if body[box] == " " || body[box] == "\t" {
+                        box = body.index(after: box)
+                        while box < body.endIndex, body[box] == " " || body[box] == "\t" {
+                            box = body.index(after: box)
+                        }
+                        return String(body[box...])
+                    }
+                }
+            }
+        }
+        return String(body[cursor...])
     }
 }

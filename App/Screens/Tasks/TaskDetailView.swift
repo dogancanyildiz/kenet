@@ -7,29 +7,33 @@ struct TaskDetailView: View {
 
     var body: some View {
         List {
+            InkPageTitleRow("Görev")
             Section {
+                SectionHeader(title: String(localized: "Görev"))
+                    .inkListRow()
                 LinkedTextView(text: row.text, store: store)
                     .font(.ink.content)
                     .foregroundStyle(.ink.text)
-                    .listRowBackground(Color.clear)
-            } header: {
-                SectionHeader(title: String(localized: "Görev"))
+                    .inkListRow()
             }
             Section {
                 if let date = row.start {
                     field("Başlangıç tarihi") {
                         Text(LocalDay.instant(for: date), format: .dateTime.day().month().year())
                     }
+                    .inkListRow()
                 }
                 if let date = row.due {
                     field("Bitiş tarihi") {
                         Text(LocalDay.instant(for: date), format: .dateTime.day().month().year())
                     }
+                    .inkListRow()
                 }
                 if let date = row.done {
                     field("Tamamlanma tarihi") {
                         Text(LocalDay.instant(for: date), format: .dateTime.day().month().year())
                     }
+                    .inkListRow()
                 }
                 if let priority = row.priority {
                     field("Öncelik") {
@@ -44,46 +48,48 @@ struct TaskDetailView: View {
                     }
                     .accessibilityElement(children: .combine)
                     .accessibilityValue(Text(verbatim: VoiceOverCopy.priorityValue(priority)))
+                    .inkListRow()
                 }
                 if let project = row.project {
                     field("Proje") { Text(verbatim: project).font(.ink.content) }
+                        .inkListRow()
                 }
             }
             let entities = store.content.entities.filter { row.linkedFiles.contains($0.id) }
             if !entities.isEmpty {
                 Section {
+                    SectionHeader(title: String(localized: "Bağlantılı varlıklar"))
+                        .inkListRow()
                     ForEach(entities) { entity in
                         NavigationLink {
                             EntityView(store: store, entity: entity)
                         } label: {
                             EntityRow(entity: entity)
                         }
-                        .listRowBackground(Color.clear)
+                        .inkListRow()
                     }
-                } header: {
-                    SectionHeader(title: String(localized: "Bağlantılı varlıklar"))
                 }
             }
             Section {
+                SectionHeader(title: String(localized: "Kaynak"))
+                    .inkListRow()
                 field("Dosya") {
                     Text(verbatim: row.file)
                         .font(.ink.meta)
                         .foregroundStyle(.ink.secondaryText)
                 }
+                .inkListRow()
                 if row.createdDate != nil {
                     Button("Kaynak güne git") { openDay(row.file) }
                         .buttonStyle(InkTextButtonStyle())
-                        .listRowBackground(Color.clear)
+                        .inkListRow()
                 }
-            } header: {
-                SectionHeader(title: String(localized: "Kaynak"))
             }
         }
         .listStyle(.plain)
-        .scrollContentBackground(.hidden)
         .inkPage()
         .inkPageColumn()
-        .navigationTitle("Görev")
+        .inkPageNavigationTitle("Görev")
         .toolbar { SearchButton() }
     }
 
@@ -99,6 +105,5 @@ struct TaskDetailView: View {
                 .foregroundStyle(.ink.text)
                 .multilineTextAlignment(.trailing)
         }
-        .listRowBackground(Color.clear)
     }
 }

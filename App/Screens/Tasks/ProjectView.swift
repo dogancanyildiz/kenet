@@ -13,56 +13,60 @@ struct ProjectView: View {
     private var model: ProjectModel { ProjectModel(store: store, name: name) }
     var body: some View {
         List {
+            InkPageTitleRow(verbatim: name)
             Section {
+                SectionHeader(title: String(localized: "Proje"))
+                    .inkListRow()
                 labeled("Açık görevler") {
                     Text(model.openCount.formatted())
                         .font(.ink.value)
                         .foregroundStyle(.ink.text)
                 }
+                .inkListRow()
                 if let day = model.lastActivity {
                     labeled("Son etkinlik") {
                         Text(LocalDay.instant(for: day), format: .dateTime.day().month().year())
                             .font(.ink.value)
                             .foregroundStyle(.ink.text)
                     }
+                    .inkListRow()
                 }
-            } header: {
-                SectionHeader(title: String(localized: "Proje"))
             }
             ForEach(model.openGroups) { group in
                 Section {
-                    rows(group.rows)
-                } header: {
                     SectionHeader(title: groupHeading(group.date), count: group.rows.count)
+                        .inkListRow()
+                    rows(group.rows)
                 }
             }
             Section {
-                rows(model.completed)
-            } header: {
                 SectionHeader(title: String(localized: "Tamamlanan"), count: model.completed.count)
+                    .inkListRow()
+                rows(model.completed)
             }
             Section {
+                SectionHeader(title: String(localized: "Kişiler ve Konumlar"))
+                    .inkListRow()
                 ForEach(model.entities) { entity in
                     NavigationLink {
                         EntityView(store: store, entity: entity)
                     } label: {
                         EntityRow(entity: entity)
                     }
+                    .inkListRow()
                 }
-            } header: {
-                SectionHeader(title: String(localized: "Kişiler ve Konumlar"))
             }
             if let error = actions.errorText {
                 InfoBand(kind: .error, verbatim: error)
-                    .listRowBackground(Color.clear)
                     .listRowInsets(EdgeInsets())
+                    .listRowSeparator(.hidden)
+                    .listRowBackground(Color.ink.paper)
             }
         }
         .listStyle(.plain)
-        .scrollContentBackground(.hidden)
         .inkPage()
         .inkPageColumn()
-        .navigationTitle(Text(verbatim: name))
+        .inkPageNavigationTitle(verbatim: name)
         .toolbar { SearchButton() }
     }
 
@@ -83,7 +87,6 @@ struct ProjectView: View {
             Spacer(minLength: 8)
             value()
         }
-        .listRowBackground(Color.clear)
     }
 
     private func rows(_ rows: [TaskRow]) -> some View {
@@ -93,7 +96,7 @@ struct ProjectView: View {
                 isOverdue: row.due.map { $0 < actions.day } ?? false,
                 isBusy: actions.busy.contains(row.id), allowsReopening: true
             ) { Task { await actions.toggle(row) } }
-            .listRowBackground(Color.ink.paper)
+            .inkListRow()
             .alignmentGuide(.listRowSeparatorLeading) { _ in 0 }
         }
     }

@@ -11,30 +11,39 @@ struct LocationSettingsView: View {
     var body: some View {
         @Bindable var location = location
         Group {
-            Section("Konum") {
+            Section {
+                SectionHeader("Konum")
+                    .inkListRow()
                 Toggle("Konum önerisi", isOn: $location.isEnabled)
+                    .inkListRow()
                 Text("Hızlı girişteki konum önerisi tek seferlik konumla çalışır; olayına kendiliğinden eklenmez.")
                     .font(.ink.meta)
                     .foregroundStyle(Color.ink.secondaryText)
+                    .inkListRow()
                 switch location.authorization {
                 case .notDetermined:
                     Text("Konum izni henüz verilmedi.")
                         .font(.ink.meta)
                         .foregroundStyle(Color.ink.secondaryText)
+                        .inkListRow()
                     Button("Konum önerileri için izin ver") { location.requestAccess() }
                         .disabled(location.isRequesting)
+                        .inkListRow()
                 case .authorized, .always:
                     Text("Konum erişimine izin verildi.")
                         .font(.ink.meta)
                         .foregroundStyle(Color.ink.text)
+                        .inkListRow()
                 case .denied:
                     Text("Konum erişimi reddedildi.")
                         .font(.ink.meta)
                         .foregroundStyle(Color.ink.secondaryText)
+                        .inkListRow()
                 case .restricted:
                     Text("Konum erişimi bu cihazda kısıtlanmış.")
                         .font(.ink.meta)
                         .foregroundStyle(Color.ink.secondaryText)
+                        .inkListRow()
                 }
                 Button("Sistem ayarlarını aç") {
                     #if os(iOS)
@@ -47,6 +56,7 @@ struct LocationSettingsView: View {
                         }
                     #endif
                 }
+                .inkListRow()
             }
             #if os(iOS)
                 GeofenceSettingsView()

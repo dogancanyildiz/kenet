@@ -138,7 +138,7 @@ Telefonda okuma ve basit düzenleme. Aramadan ve bağlantılardan ulaşılır; a
 
 ## Ayarlar
 
-iPhone'da Bugün araç çubuğundan açılan Ayarlar listesi beş bölüme ayrılır. Mac'te aynı beş bölüm Settings sekmeleridir; Hızlı giriş kısayolu ilk sekmedir. Hiçbir ayar kaybolmaz; yeni ayar eklenmez.
+iPhone'da Bugün manşet satırındaki düğmeden açılan Ayarlar listesi beş bölüme ayrılır. Mac'te aynı beş bölüm Settings sekmeleridir; Hızlı giriş kısayolu ilk sekmedir. Hiçbir ayar kaybolmaz; yeni ayar eklenmez.
 
 ### Ayarlar — Gizlilik (7)
 

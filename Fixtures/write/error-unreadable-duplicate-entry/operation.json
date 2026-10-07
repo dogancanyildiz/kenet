@@ -1,0 +1,4 @@
+{
+  "frontmatter": { "operation": "remove-entry", "key": "goals", "entry": "spor" },
+  "expectedError": "unreadable-frontmatter"
+}

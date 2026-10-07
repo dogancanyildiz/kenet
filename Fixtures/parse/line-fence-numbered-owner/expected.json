@@ -1,0 +1,46 @@
+{
+  "sections": {
+    "preamble": {
+      "firstLine": 1,
+      "lastLine": 4
+    },
+    "items": [
+      {
+        "kind": "Events",
+        "headingLine": 5,
+        "level": 2,
+        "firstLine": 5,
+        "lastLine": 6
+      }
+    ]
+  },
+  "tasks": [
+    {
+      "line": 1,
+      "firstLine": 1,
+      "lastLine": 4,
+      "id": null,
+      "text": "dış",
+      "rawStatus": " ",
+      "status": "todo",
+      "isClosed": false,
+      "isOpen": true,
+      "dueDate": null,
+      "startDate": null,
+      "doneDate": null,
+      "priority": null,
+      "project": null,
+      "fieldRanges": []
+    }
+  ],
+  "events": [
+    {
+      "line": 6,
+      "firstLine": 6,
+      "lastLine": 6,
+      "id": null,
+      "text": "olay",
+      "time": null
+    }
+  ]
+}

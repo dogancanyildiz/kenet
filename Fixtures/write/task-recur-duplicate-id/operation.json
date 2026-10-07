@@ -1,0 +1,9 @@
+{
+  "lines": {
+    "operation": "complete-recurring",
+    "line": 1,
+    "id": "old",
+    "completionDate": "2026-10-04"
+  },
+  "expectedError": "invalid-value"
+}

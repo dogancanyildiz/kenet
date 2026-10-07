@@ -1,0 +1,28 @@
+name: Release
+
+# main'e her birleştirme bir sürümdür: VERSION dosyasındaki numara etiketlenir ve
+# GitHub Release oluşturulur. Etiket zaten varsa iş hata vermez, atlar; etiket başka bir
+# commit'teyse (VERSION yükseltilmemiş) uyarı yazar. Karar .github/scripts/release.sh içindedir.
+# Elle başlatılan koşu her zaman kuru koşudur: kararı yazar, hiçbir şey oluşturmaz.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Etiket ve Release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Etiketi ve Release'i oluştur
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DRY_RUN: ${{ github.event_name == 'push' && '0' || '1' }}
+        run: sh .github/scripts/release.sh

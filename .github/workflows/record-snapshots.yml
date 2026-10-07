@@ -1,0 +1,35 @@
+name: Ekran görüntüsü referansları
+
+# Elle tetiklenir: yeni referans PNG'leri üretir ve artifact olarak yükler.
+# İndirip Tests/JournalTests/Snapshots/__Snapshots__/ altına koy; PR'da commit et.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  record:
+    name: Referans üret (iOS)
+    runs-on: macos-26
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v7
+      - name: Paket önbelleği
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Developer/Xcode/DerivedData/**/SourcePackages
+          key: spm-xcode-ios-${{ hashFiles('Packages/Core/Package.resolved') }}
+          restore-keys: spm-xcode-ios-
+      - name: XcodeGen
+        run: brew install xcodegen
+      - name: Referansları kaydet
+        env:
+          SNAPSHOT_TESTING_RECORD: all
+        run: sh .github/scripts/record-screen-snapshots.sh
+      - name: Referans artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: screen-snapshot-references
+          path: Tests/JournalTests/Snapshots/__Snapshots__
+          retention-days: 14

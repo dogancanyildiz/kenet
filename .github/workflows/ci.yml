@@ -1,0 +1,259 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [dev, main]
+  push:
+    branches: [dev]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  core-macos:
+    name: Core (macOS)
+    runs-on: macos-26
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - name: SwiftPM önbelleği
+        uses: actions/cache@v4
+        with:
+          path: Packages/Core/.build
+          key: spm-${{ runner.os }}-${{ hashFiles('Packages/Core/Package.swift', 'Packages/Core/Package.resolved') }}
+          restore-keys: spm-${{ runner.os }}-
+      - name: Araç zinciri
+        run: swift --version
+      - name: Derle ve test et
+        run: swift test --package-path Packages/Core -Xswiftc -warnings-as-errors
+
+  # Linux'ta derleme, Core'un Apple çerçevelerinden bağımsız kalmasını zorlar:
+  # SwiftUI, UIKit gibi modüller orada yoktur, import edilirse derleme düşer.
+  core-linux:
+    name: Core (Linux)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    container: swift:6.4
+    steps:
+      - uses: actions/checkout@v7
+      - name: SwiftPM önbelleği
+        uses: actions/cache@v4
+        with:
+          path: Packages/Core/.build
+          key: spm-${{ runner.os }}-${{ hashFiles('Packages/Core/Package.swift', 'Packages/Core/Package.resolved') }}
+          restore-keys: spm-${{ runner.os }}-
+      - name: Araç zinciri
+        # GRDB sistem SQLite'ına bağlanır; kapta başlık dosyaları yoktur.
+        run: |
+          apt-get update -q && apt-get install -y -q libsqlite3-dev
+          swift --version
+      - name: Derle ve test et
+        run: swift test --package-path Packages/Core -Xswiftc -warnings-as-errors
+
+  # Uygulama hedefleri: proje project.yml dosyasından üretilir. macOS ve iOS ayrı makinelerde
+  # paralel koşar; DerivedData önbelleği derlemeyi kısaltır. macOS testleri iki saat diliminde
+  # koşar (olay saati / gün kayması); ikinci saat dilimi yalnız dev'e birleşince.
+  # İmza yok (CODE_SIGNING_ALLOWED=NO); runner'da sertifika bulunmaz.
+  app-macos:
+    name: Uygulama (macOS)
+    runs-on: macos-26
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - name: Paket önbelleği
+        uses: actions/cache@v4
+        with:
+          # Yalnız paket indirmeleri; derleme ürünleri önbelleklenmez (bayat test paketi riski).
+          path: ~/Library/Developer/Xcode/DerivedData/**/SourcePackages
+          key: spm-xcode-macos-${{ hashFiles('Packages/Core/Package.resolved') }}
+          restore-keys: spm-xcode-macos-
+      - name: XcodeGen
+        run: brew install xcodegen
+      - name: Projeyi üret
+        run: xcodegen generate
+      - name: macOS testleri (UTC)
+        env:
+          TZ: UTC
+        # Mac görüntü kümeleri yalnız yerelde koşar (bkz. snapshot-suites.sh).
+        run: xcodebuild test -project Journal.xcodeproj -scheme Journal_macOS -destination 'platform=macOS' $(sh .github/scripts/snapshot-suites.sh --mac | sed 's#^#-skip-testing:JournalTests_macOS/#' | tr '\n' ' ') CODE_SIGNING_ALLOWED=NO -quiet
+      - name: macOS testleri (Pacific/Auckland)
+        if: github.event_name == 'push'
+        env:
+          TZ: Pacific/Auckland
+        run: xcodebuild test-without-building -project Journal.xcodeproj -scheme Journal_macOS -destination 'platform=macOS' $(sh .github/scripts/snapshot-suites.sh --mac | sed 's#^#-skip-testing:JournalTests_macOS/#' | tr '\n' ' ') CODE_SIGNING_ALLOWED=NO -quiet
+
+  # iOS: bir kez derlenir, birim ve arayüz testleri derlemesiz koşar.
+  app-ios:
+    name: Uygulama (iOS)
+    runs-on: macos-26
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v7
+      - name: Paket önbelleği
+        uses: actions/cache@v4
+        with:
+          # Yalnız paket indirmeleri; derleme ürünleri önbelleklenmez (bayat test paketi riski).
+          path: ~/Library/Developer/Xcode/DerivedData/**/SourcePackages
+          key: spm-xcode-ios-${{ hashFiles('Packages/Core/Package.resolved') }}
+          restore-keys: spm-xcode-ios-
+      - name: XcodeGen
+        run: brew install xcodegen
+      - name: Projeyi üret
+        run: xcodegen generate
+      - name: iOS simülatör seç
+        id: ios_sim
+        run: |
+          NAME=$(xcrun simctl list devices available -j | python3 -c '
+          import json, sys
+          data = json.load(sys.stdin)
+          preferred = ["iPhone 17", "iPhone 16", "iPhone 15", "iPhone 14"]
+          names = []
+          for runtime, devices in data.get("devices", {}).items():
+              if "iOS" not in runtime:
+                  continue
+              for device in devices:
+                  if device.get("isAvailable") and device.get("name", "").startswith("iPhone"):
+                      names.append(device["name"])
+          for name in preferred:
+              if name in names:
+                  print(name)
+                  sys.exit(0)
+          if names:
+              print(names[0])
+              sys.exit(0)
+          print("Uygun iPhone simülatörü yok. simctl available:", file=sys.stderr)
+          print("\n".join(sorted({n for n in names})) or "(boş)", file=sys.stderr)
+          sys.exit(1)
+          ')
+          echo "name=$NAME" >> "$GITHUB_OUTPUT"
+          echo "Seçilen simülatör: $NAME"
+      - name: iOS derlemesi (test için)
+        run: |
+          xcodebuild build-for-testing \
+            -project Journal.xcodeproj \
+            -scheme Journal_iOS \
+            -destination "platform=iOS Simulator,name=${{ steps.ios_sim.outputs.name }}" \
+            CODE_SIGNING_ALLOWED=NO \
+            -quiet
+      - name: iOS birim testleri
+        run: |
+          xcodebuild test-without-building \
+            -project Journal.xcodeproj \
+            -scheme Journal_iOS \
+            -destination "platform=iOS Simulator,name=${{ steps.ios_sim.outputs.name }}" \
+            -only-testing:JournalTests_iOS \
+            $(sh .github/scripts/snapshot-suites.sh | sed 's#^#-skip-testing:JournalTests_iOS/#' | tr '\n' ' ') \
+            CODE_SIGNING_ALLOWED=NO \
+            -quiet
+      # Ekran görüntüsü: birim katmanında SwiftUI çizimi (uygulama açılmaz). Ayrı adım = süre ölçümü
+      # ve düşünce fark görüntüleri artifact'ı. Kümeler ad kuralından bulunur (.github/scripts/snapshot-suites.sh).
+      # Süreç dili Türkçe: görüntüler tr yerel ayarıyla çizilir; String(localized:) ile aynı dil.
+      - name: iOS ekran görüntüsü
+        id: screen_snapshots
+        run: |
+          xcodebuild test-without-building \
+            -project Journal.xcodeproj \
+            -scheme Journal_iOS \
+            -destination "platform=iOS Simulator,name=${{ steps.ios_sim.outputs.name }}" \
+            $(sh .github/scripts/snapshot-suites.sh | sed 's#^#-only-testing:JournalTests_iOS/#' | tr '\n' ' ') \
+            -testLanguage tr -testRegion TR \
+            -resultBundlePath ScreenSnapshots.xcresult \
+            CODE_SIGNING_ALLOWED=NO \
+            -quiet
+      - name: Ekran görüntüsü farkları (yalnız düşünce)
+        if: failure() && steps.screen_snapshots.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: screen-snapshot-diffs
+          path: |
+            ScreenSnapshots.xcresult
+            Tests/JournalTests/Snapshots/__Snapshots__
+          if-no-files-found: warn
+          retention-days: 7
+      - name: iOS arayüz dumanı
+        run: |
+          xcodebuild test-without-building \
+            -project Journal.xcodeproj \
+            -scheme Journal_iOS \
+            -destination "platform=iOS Simulator,name=${{ steps.ios_sim.outputs.name }}" \
+            -only-testing:JournalUITests \
+            -resultBundlePath UITests.xcresult \
+            CODE_SIGNING_ALLOWED=NO \
+            -quiet
+      - name: Arayüz testi sonuç paketi (yalnız düşünce)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-test-results
+          path: UITests.xcresult
+          retention-days: 7
+
+  # Biçim denetimi yereldeki ile aynı swift-format sürümünde koşar (Swift 6.4).
+  lint:
+    name: Biçim ve kurallar
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    container: swift:6.4
+    steps:
+      - uses: actions/checkout@v7
+      - name: Biçim ve lint
+        run: swift format lint --strict --recursive Packages App Tests
+      - name: Core içinde yasak import
+        run: sh .github/scripts/check-core-imports.sh
+      - name: Belgelerin yeri
+        # Kap içinde depo başka bir kullanıcıya aittir; git onu güvenli saymadan çalışmaz.
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          sh .github/scripts/check-doc-locations.sh
+      - name: Belge biçim denetimi
+        # swift:6.4 kabında python3 yoktur; denetim betiği onu kullanır.
+        run: |
+          apt-get update -q && apt-get install -y -q python3 >/dev/null
+          sh .github/scripts/check-docs.sh
+      - name: Sürüm akışı kuru koşusu
+        run: sh .github/scripts/test-release.sh
+
+  # Dal korumasının zorunlu tuttuğu tek denetim. Yol filtresi yoktur; her PR'da koşar.
+  ci:
+    name: ci
+    if: always()
+    needs: [core-macos, core-linux, app-macos, app-ios, lint]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Tüm işler başarılı mı
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "Sonuçlar: $RESULTS"
+          for result in $RESULTS; do
+            if [ "$result" != "success" ]; then
+              echo "Başarısız ya da atlanmış iş var."
+              exit 1
+            fi
+          done
+
+  # 5 yıllık sentetik kasada süre bütçeleri. Paylaşılan runner'larda kırılgan olduğu için
+  # ci toplu işine girmez; başarısızlık PR'ı engellemez.
+  scale-budget:
+    name: Ölçek bütçesi (macOS, isteğe bağlı)
+    # Yalnız dev'e birleşince koşar: her PR'da bir macOS makinesi daha tutmasın.
+    if: github.event_name == 'push'
+    runs-on: macos-26
+    timeout-minutes: 40
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v7
+      - name: Araç zinciri
+        run: swift --version
+      - name: 5 yıllık süre bütçeleri
+        env:
+          SCALE_BUDGET_SECONDS: "1"
+        run: >
+          swift test --package-path Packages/Core
+          --filter ScaleBudgetTests.fiveYearVaultStaysWithinOptInBudgets
+          -Xswiftc -warnings-as-errors

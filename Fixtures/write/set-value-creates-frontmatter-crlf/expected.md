@@ -1,0 +1,5 @@
+---
+type: person
+---
+Not.
+İkinci satır.

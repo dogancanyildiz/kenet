@@ -1,0 +1,9 @@
+{
+  "lines": {
+    "operation": "stale-text",
+    "line": 2,
+    "text": "Kitap",
+    "replacement": "## Events\n- Su\n"
+  },
+  "expectedError": "target-not-found"
+}

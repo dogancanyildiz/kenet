@@ -1,0 +1,23 @@
+{
+  "frontmatter": {
+    "state": "parsed",
+    "firstLine": 1,
+    "lastLine": 4,
+    "fields": [
+      {
+        "key": "type",
+        "firstLine": 2,
+        "lastLine": 2,
+        "scalar": { "type": "text", "text": "place", "raw": "place" },
+        "listItems": ["place"]
+      },
+      {
+        "key": "name",
+        "firstLine": 3,
+        "lastLine": 3,
+        "scalar": { "type": "text", "text": "Çınaraltı Kafe", "raw": "Çınaraltı Kafe" },
+        "listItems": ["Çınaraltı Kafe"]
+      }
+    ]
+  }
+}

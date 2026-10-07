@@ -1,0 +1,12 @@
+{
+  "lines": {
+    "operation": "add-event",
+    "text": "Kitap",
+    "id": "new123",
+    "time": {
+      "hour": 24,
+      "minute": 0
+    }
+  },
+  "expectedError": "invalid-value"
+}

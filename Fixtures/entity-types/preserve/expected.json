@@ -1,0 +1,6 @@
+{ "formatVersion" : 1, "future" : {"raw":20.0290},
+  "types" : [
+    {"id":"book", "folder":"books", "name":{"tr":"Eser", "en":"Book", "future":"KEEP"}, "plural":{"tr":"Kitaplar","en":"Books"}, "icon":"book", "fields":[], "unknown" : [1,  2]},
+    {"id":"album", "folder":"albums", "name":{"tr":"Albüm","en":"Album"}, "plural":{"tr":"Albümler","en":"Albums"}, "icon":"opticaldisc", "fields":[]}
+  ]
+}

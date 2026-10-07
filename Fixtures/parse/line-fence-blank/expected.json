@@ -1,0 +1,46 @@
+{
+  "sections": {
+    "preamble": {
+      "firstLine": 1,
+      "lastLine": 2
+    },
+    "items": [
+      {
+        "kind": "Events",
+        "headingLine": 3,
+        "level": 2,
+        "firstLine": 3,
+        "lastLine": 5
+      }
+    ]
+  },
+  "tasks": [
+    {
+      "line": 5,
+      "firstLine": 5,
+      "lastLine": 5,
+      "id": null,
+      "text": "görev",
+      "rawStatus": " ",
+      "status": "todo",
+      "isClosed": false,
+      "isOpen": true,
+      "dueDate": null,
+      "startDate": null,
+      "doneDate": null,
+      "priority": null,
+      "project": null,
+      "fieldRanges": []
+    }
+  ],
+  "events": [
+    {
+      "line": 4,
+      "firstLine": 4,
+      "lastLine": 4,
+      "id": null,
+      "text": "olay",
+      "time": null
+    }
+  ]
+}

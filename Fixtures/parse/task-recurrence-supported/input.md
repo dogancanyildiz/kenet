@@ -1,0 +1,11 @@
+- [ ] Task 0 🔁 every day 📅 2026-10-04 #project/demo ^r0
+- [ ] Task 1 🔁 every 3 days 📅 2026-10-04 #project/demo ^r1
+- [ ] Task 2 🔁 every week 📅 2026-10-04 #project/demo ^r2
+- [ ] Task 3 🔁 every 2 weeks when done 📅 2026-10-04 #project/demo ^r3
+- [ ] Task 4 🔁 every month 📅 2026-10-04 #project/demo ^r4
+- [ ] Task 5 🔁 every 2 months 📅 2026-10-04 #project/demo ^r5
+- [ ] Task 6 🔁 every year 📅 2026-10-04 #project/demo ^r6
+- [ ] Task 7 🔁 every 2 years 📅 2026-10-04 #project/demo ^r7
+- [ ] Task 8 🔁 every monday 📅 2026-10-04 #project/demo ^r8
+- [ ] Task 9 🔁 every week on sunday 📅 2026-10-04 #project/demo ^r9
+- [ ] Task 10 🔁 Every Friday When Done 📅 2026-10-04 #project/demo ^r10

@@ -1,0 +1,203 @@
+# Xcode projesi bu dosyadan üretilir: `xcodegen generate` (Journal.xcodeproj takip edilmez).
+# Kaynaklar klasör eşlemeli (syncedFolder) eklendiği için yeni dosya için yeniden üretim gerekmez.
+name: Journal
+
+options:
+  # Kalıcı kimlik (docs/decisions.md). Hedefler kimliği aşağıdaki APP_BUNDLE_IDENTIFIER ayarından
+  # türetir; bu önek yalnız kimliği açıkça verilmemiş bir hedef eklenirse kullanılır.
+  bundleIdPrefix: com.dogancanyildiz.kenet
+  deploymentTarget:
+    iOS: "26.0"
+    macOS: "26.0"
+  xcodeVersion: "26.0"
+  createIntermediateGroups: true
+  generateEmptyDirectories: true
+
+packages:
+  Core:
+    path: Packages/Core
+  # Ekran görüntüsü testleri (birim katmanı). CI ile yerel Xcode farkı için algısal tolerans kullanılır.
+  SnapshotTesting:
+    url: https://github.com/pointfreeco/swift-snapshot-testing
+    from: 1.18.0
+
+# Takım kimliği repoya girmez: Config/Signing.xcconfig, varsa izlenmeyen Config/Local.xcconfig
+# dosyasını içerir (örnek: Config/Local.xcconfig.example). Dosya yoksa proje imzasız derlenir.
+configFiles:
+  Debug: Config/Signing.xcconfig
+  Release: Config/Signing.xcconfig
+
+settings:
+  base:
+    # Uygulamanın bundle kimliği tek yerde durur: iOS ve Mac ortak (tek mağaza kaydı), test hedefleri
+    # sonek ekler, betikler (.github/scripts) bu satırı okur. İlk yüklemeden sonra değiştirilemez.
+    APP_BUNDLE_IDENTIFIER: com.dogancanyildiz.kenet
+    SWIFT_VERSION: "6.0"
+    SWIFT_STRICT_CONCURRENCY: complete
+    SWIFT_TREAT_WARNINGS_AS_ERRORS: YES
+    # Yapı numarası derlemede git geçmişinden yazılır (bkz. "Sürümü yaz" betiği); bu değer yedektir.
+    CURRENT_PROJECT_VERSION: 1
+    GENERATE_INFOPLIST_FILE: YES
+    # Sürüm numarası kök dizindeki VERSION dosyasından okunur (bkz. "Sürümü yaz" betiği).
+    MARKETING_VERSION: 0.0.0
+    ENABLE_USER_SCRIPT_SANDBOXING: NO
+    CODE_SIGN_STYLE: Automatic
+    DEVELOPMENT_LANGUAGE: tr
+    # Xcode derlemede String Catalog'u yeniden yazmasın: anahtarlar elle eklenir,
+    # eksikleri .github/scripts/check-docs.sh yakalar.
+    SWIFT_EMIT_LOC_STRINGS: NO
+
+# Platforma özgü ayarlar: hedef `Journal_${platform}` grubunu alır.
+settingGroups:
+  Journal_iOS:
+    # İlk sürüm yalnız iPhone (docs/decisions.md). iPad desteği yayımlandıktan sonra kaldırılamaz;
+    # eklemek serbesttir.
+    TARGETED_DEVICE_FAMILY: 1
+    # iOS'a özgü yetenek yok; dosya boş sözlüktür. macOS sandbox anahtarları iOS imzasına girmez.
+    CODE_SIGN_ENTITLEMENTS: App/Support/Journal-iOS.entitlements
+  Journal_macOS:
+    CODE_SIGN_ENTITLEMENTS: App/Support/Journal-macOS.entitlements
+
+targets:
+  Journal:
+    type: application
+    platform: [iOS, macOS]
+    sources:
+      - path: App
+        type: syncedFolder
+        excludes:
+          # Simgenin vektör kaynağı depoda durur ama uygulama paketine girmez.
+          - "Support/AppIcon/**"
+    dependencies:
+      - package: Core
+        product: VaultFormat
+      - package: Core
+        product: VaultIndex
+      - package: Core
+        product: VaultStore
+      - package: Core
+        product: EntityRecognition
+      - package: Core
+        product: DateParsing
+      - package: Core
+        product: GoalTracking
+      - package: Core
+        product: Summaries
+    settings:
+      groups:
+        - Journal_${platform}
+      base:
+        # Kod adı (hedef, modül, .app dosyası) Journal kalır; kullanıcıya görünen ad Kenet.
+        PRODUCT_NAME: Journal
+        PRODUCT_BUNDLE_IDENTIFIER: $(APP_BUNDLE_IDENTIFIER)
+        INFOPLIST_KEY_CFBundleDisplayName: Kenet
+        # CFBundleName (Mac menü çubuğu, "Kenet Hakkında") üretilen plist'te PRODUCT_NAME olur ve
+        # INFOPLIST_KEY_ ile verilemez; "Sürümü yaz" betiği görünen adı oraya da yazar.
+        # Yalnız özetleme (SHA-256) kullanılır, şifreleme yok: yüklemede ihracat sorusu sorulmaz.
+        INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: NO
+        INFOPLIST_KEY_NSFaceIDUsageDescription: Günlüğünün kilidini açmak için Face ID kullanılır.
+        INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription: Bugünün takvim etkinliklerini göstermek için takvim erişimi gerekir. Etkinlikler değiştirilmez.
+        INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription: Kenet, seçtiğin bir konuma vardığında, örneğin spor salonuna girdiğinde, o konuma bağlı hedefi işaretlemek ya da sana hatırlatmak için uygulama kapalıyken de konumunu kullanır. Konum bilgin kaydedilmez ve hiçbir yere gönderilmez.
+        INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: Kenet konumunu, yazarken yakınındaki kayıtlı konumlarını önermek ve haritada yerini göstermek için kullanır. Konum bilgin kaydedilmez ve hiçbir yere gönderilmez.
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
+        INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
+        INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: YES
+        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.productivity
+        # Documents/Vault appears in Files (On My iPhone → Kenet) and can open in place.
+        # INFOPLIST_KEY_UIFileSharingEnabled is ignored by current Xcode GENERATE_INFOPLIST_FILE
+        # on some SDKs; merge an explicit plist instead (keys kept for documentation/tests).
+        INFOPLIST_KEY_UIFileSharingEnabled: YES
+        INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace: YES
+        INFOPLIST_FILE: App/Support/FileSharing.plist
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        # App icon set; PNGs are generated by .github/scripts/render-app-icon.swift.
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+      configs:
+        Debug:
+          # Mac yerelde takımsız (ad hoc) imzalanır. iOS'a uygulanmaz: cihaza kurulum otomatik
+          # imzalamayla geliştirme sertifikası ister.
+          "CODE_SIGN_IDENTITY[sdk=macosx*]": "-"
+    postBuildScripts:
+      - name: Sürümü yaz
+        script: |
+          version=$(tr -d '[:space:]' < "$SRCROOT/VERSION")
+          /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $version" "$TARGET_BUILD_DIR/$INFOPLIST_PATH"
+          /usr/libexec/PlistBuddy -c "Set :CFBundleName $INFOPLIST_KEY_CFBundleDisplayName" "$TARGET_BUILD_DIR/$INFOPLIST_PATH"
+          # Yapı numarası: HEAD'e kadar olan commit sayısı (iOS ve Mac aynı). Her commit'te artar,
+          # elle düzenleme gerekmez. Git yoksa ya da kopya sığsa (sayı eksik çıkar) yedek değer kalır.
+          build=$(sh "$SRCROOT/.github/scripts/build-number.sh" "$SRCROOT" || true)
+          if [ -n "$build" ]; then
+            /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $build" "$TARGET_BUILD_DIR/$INFOPLIST_PATH"
+          else
+            echo "warning: yapı numarası git geçmişinden okunamadı; CFBundleVersion yedek değerde ($CURRENT_PROJECT_VERSION) kaldı. Bu yapıyı yükleme."
+          fi
+        # Info.plist girdi sayılır ki betik her derlemede plist üretildikten sonra koşsun; yoksa
+        # artımlı derlemede sıra tersine dönebilir ve yazılan değerler silinir.
+        inputFiles:
+          - $(SRCROOT)/VERSION
+          - $(TARGET_BUILD_DIR)/$(INFOPLIST_PATH)
+        basedOnDependencyAnalysis: false
+
+  # Aynı kaynaklar iOS ve macOS'ta koşar. Mac-only testler `#if os(macOS)` ile
+  # derlenmez (MacQuickEntryTests). Ayrı JournalTests_iOS hedefi yerine platform
+  # dizisi: uygulama hedefiyle aynı kalıp, tek kaynak yolu, `${platform}` bağımlılığı.
+  JournalTests:
+    type: bundle.unit-test
+    platform: [iOS, macOS]
+    sources:
+      - path: Tests/JournalTests
+        excludes:
+          # Referans PNG'ler depoda durur ama derlemeye girmez (silince Xcode kırılmasın).
+          - "**/__Snapshots__/**"
+    dependencies:
+      - target: Journal_${platform}
+      - package: SnapshotTesting
+        product: SnapshotTesting
+    settings:
+      base:
+        PRODUCT_NAME: JournalTests
+        PRODUCT_BUNDLE_IDENTIFIER: $(APP_BUNDLE_IDENTIFIER).tests
+
+  # Fixture kasasıyla XCUITest dumanı ve erişilebilirlik denetimi (iOS simülatör).
+  JournalUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: Tests/JournalUITests
+    dependencies:
+      - target: Journal_iOS
+    settings:
+      base:
+        PRODUCT_NAME: JournalUITests
+        PRODUCT_BUNDLE_IDENTIFIER: $(APP_BUNDLE_IDENTIFIER).uitests
+        # XCUIElement / interruption monitors are not Sendable; keep UI tests compiling under
+        # complete concurrency for the app while relaxing only this target.
+        SWIFT_STRICT_CONCURRENCY: minimal
+
+schemes:
+  Journal_macOS:
+    build:
+      targets:
+        Journal_macOS: all
+    test:
+      commandLineArguments:
+        JOURNAL_NO_AUTOSTART: true
+      # Forwarded so `SNAPSHOT_TESTING_RECORD=all xcodebuild test …` reaches the host (Mac suites).
+      environmentVariables:
+        SNAPSHOT_TESTING_RECORD: $(SNAPSHOT_TESTING_RECORD)
+      targets:
+        - JournalTests_macOS
+  Journal_iOS:
+    build:
+      targets:
+        Journal_iOS: all
+    test:
+      commandLineArguments:
+        JOURNAL_NO_AUTOSTART: true
+      # Forwarded so `SNAPSHOT_TESTING_RECORD=all xcodebuild test …` reaches the host.
+      environmentVariables:
+        SNAPSHOT_TESTING_RECORD: $(SNAPSHOT_TESTING_RECORD)
+      targets:
+        - JournalTests_iOS
+        - JournalUITests

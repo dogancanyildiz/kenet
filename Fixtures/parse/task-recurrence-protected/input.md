@@ -1,0 +1,4 @@
+- [ ] `🔁 every day`
+- [ ] [[🔁 every week]]
+- [ ] [🔁 every month](https://example.test)
+- [ ] [🔁 every year][rule]

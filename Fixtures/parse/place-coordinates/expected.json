@@ -1,0 +1,55 @@
+{
+  "frontmatter": {
+    "state": "parsed",
+    "firstLine": 1,
+    "lastLine": 7,
+    "fields": [
+      {
+        "key": "type",
+        "firstLine": 2,
+        "lastLine": 2,
+        "scalar": { "type": "text", "text": "place", "raw": "place" },
+        "listItems": ["place"]
+      },
+      {
+        "key": "name",
+        "firstLine": 3,
+        "lastLine": 3,
+        "scalar": { "type": "text", "text": "Liman Ofis", "raw": "Liman Ofis" },
+        "listItems": ["Liman Ofis"]
+      },
+      {
+        "key": "aliases",
+        "firstLine": 4,
+        "lastLine": 4,
+        "list": {
+          "style": "inline",
+          "items": [
+            { "type": "text", "text": "ofis", "raw": "ofis" }
+          ]
+        },
+        "listItems": ["ofis"]
+      },
+      {
+        "key": "coordinates",
+        "firstLine": 5,
+        "lastLine": 5,
+        "list": {
+          "style": "inline",
+          "items": [
+            { "type": "number", "text": "10.5000", "raw": "10.5000" },
+            { "type": "number", "text": "20.0290", "raw": "20.0290" }
+          ]
+        },
+        "listItems": ["10.5000", "20.0290"]
+      },
+      {
+        "key": "radius",
+        "firstLine": 6,
+        "lastLine": 6,
+        "scalar": { "type": "number", "text": "100", "raw": "100" },
+        "listItems": ["100"]
+      }
+    ]
+  }
+}

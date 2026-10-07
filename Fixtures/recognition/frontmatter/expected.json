@@ -1,0 +1,19 @@
+{
+  "mentions": [
+    {
+      "line": 5,
+      "byteRange": [
+        0,
+        5
+      ],
+      "spelling": "Deniz",
+      "candidates": [
+        "people/Deniz Arıkan.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    }
+  ],
+  "unknownMentions": []
+}

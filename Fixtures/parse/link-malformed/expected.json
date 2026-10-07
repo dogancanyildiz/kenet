@@ -1,0 +1,109 @@
+{
+  "links": [
+    {
+      "line": 1,
+      "byteRange": [
+        8,
+        25
+      ],
+      "targetRange": [
+        10,
+        23
+      ],
+      "target": "Deniz Arıkan",
+      "rawTarget": "Deniz Arıkan",
+      "anchor": null,
+      "displayText": null,
+      "isEmbedded": false,
+      "isSameFile": false,
+      "isPath": false,
+      "source": {
+        "kind": "body"
+      }
+    },
+    {
+      "line": 3,
+      "byteRange": [
+        10,
+        27
+      ],
+      "targetRange": [
+        12,
+        25
+      ],
+      "target": "Selin Korkmaz",
+      "rawTarget": "Selin Korkmaz",
+      "anchor": null,
+      "displayText": null,
+      "isEmbedded": false,
+      "isSameFile": false,
+      "isPath": false,
+      "source": {
+        "kind": "body"
+      }
+    },
+    {
+      "line": 4,
+      "byteRange": [
+        15,
+        21
+      ],
+      "targetRange": [
+        17,
+        19
+      ],
+      "target": "Ev",
+      "rawTarget": "Ev",
+      "anchor": null,
+      "displayText": null,
+      "isEmbedded": false,
+      "isSameFile": false,
+      "isPath": false,
+      "source": {
+        "kind": "body"
+      }
+    },
+    {
+      "line": 7,
+      "byteRange": [
+        9,
+        15
+      ],
+      "targetRange": [
+        11,
+        13
+      ],
+      "target": "Ev",
+      "rawTarget": "Ev",
+      "anchor": null,
+      "displayText": null,
+      "isEmbedded": true,
+      "isSameFile": false,
+      "isPath": false,
+      "source": {
+        "kind": "body"
+      }
+    },
+    {
+      "line": 8,
+      "byteRange": [
+        1,
+        7
+      ],
+      "targetRange": [
+        3,
+        5
+      ],
+      "target": "Ev",
+      "rawTarget": "Ev",
+      "anchor": null,
+      "displayText": null,
+      "isEmbedded": false,
+      "isSameFile": false,
+      "isPath": false,
+      "source": {
+        "kind": "body"
+      }
+    }
+  ]
+}

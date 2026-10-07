@@ -1,0 +1,34 @@
+{
+  "mentions": [
+    {
+      "line": 0,
+      "byteRange": [
+        0,
+        9
+      ],
+      "spelling": "Mert Aksu",
+      "candidates": [
+        "people/Mert Aksu (iş).md",
+        "people/Mert Aksu.md"
+      ],
+      "isAmbiguous": true,
+      "isCaseMismatch": false,
+      "isCertain": false
+    },
+    {
+      "line": 0,
+      "byteRange": [
+        10,
+        14
+      ],
+      "spelling": "ofis",
+      "candidates": [
+        "places/Liman Ofis.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    }
+  ],
+  "unknownMentions": []
+}

@@ -1,0 +1,4 @@
+---
+goals:
+  spor: true # akşam
+---

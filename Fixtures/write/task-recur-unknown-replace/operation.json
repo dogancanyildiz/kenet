@@ -1,0 +1,8 @@
+{
+  "lines": {
+    "operation": "recurrence",
+    "line": 1,
+    "rule": "every week"
+  },
+  "expectedError": "content-not-representable"
+}

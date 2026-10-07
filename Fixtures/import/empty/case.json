@@ -1,0 +1,61 @@
+{
+  "options": {
+    "folders": true,
+    "settings": true,
+    "types": true
+  },
+  "apply": true,
+  "report": {
+    "missingFolders": [
+      "journal",
+      "people",
+      "places",
+      "goals",
+      "notes",
+      "templates"
+    ],
+    "caseVariantFolders": [],
+    "missingTemplates": [
+      "templates/person.md",
+      "templates/place.md"
+    ],
+    "needsSettings": true,
+    "canPrepare": true,
+    "markdownCount": 0,
+    "journalDays": [],
+    "externalDays": [],
+    "typed": {},
+    "candidates": [],
+    "skipped": []
+  },
+  "result": {
+    "created": [
+      "journal/",
+      "people/",
+      "places/",
+      "goals/",
+      "notes/",
+      "templates/",
+      "templates/person.md",
+      "templates/place.md",
+      ".app/vault.json"
+    ],
+    "typed": [],
+    "skipped": [],
+    "failures": []
+  },
+  "expectedDirectories": [
+    ".app",
+    "goals",
+    "journal",
+    "notes",
+    "people",
+    "places",
+    "templates"
+  ],
+  "generatedTemplates": {
+    "templates/person.md": "person",
+    "templates/place.md": "place"
+  },
+  "emptyBefore": true
+}

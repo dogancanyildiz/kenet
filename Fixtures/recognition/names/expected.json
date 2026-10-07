@@ -1,0 +1,47 @@
+{
+  "mentions": [
+    {
+      "line": 0,
+      "byteRange": [
+        0,
+        13
+      ],
+      "spelling": "Deniz Arıkan",
+      "candidates": [
+        "people/Deniz Arıkan.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 0,
+      "byteRange": [
+        17,
+        26
+      ],
+      "spelling": "Deniz abi",
+      "candidates": [
+        "people/Deniz Arıkan.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 0,
+      "byteRange": [
+        28,
+        32
+      ],
+      "spelling": "ofis",
+      "candidates": [
+        "places/Liman Ofis.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    }
+  ],
+  "unknownMentions": []
+}

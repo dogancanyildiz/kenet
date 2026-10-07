@@ -1,0 +1,43 @@
+{
+  "options": {
+    "folders": true,
+    "settings": true,
+    "types": true
+  },
+  "apply": true,
+  "report": {
+    "missingFolders": [],
+    "caseVariantFolders": [],
+    "missingTemplates": [],
+    "needsSettings": false,
+    "canPrepare": true,
+    "markdownCount": 5,
+    "journalDays": [
+      "journal/2026-09-20.md"
+    ],
+    "externalDays": [],
+    "typed": {
+      "person": 1,
+      "place": 1,
+      "goal": 1
+    },
+    "candidates": [],
+    "skipped": []
+  },
+  "result": {
+    "created": [],
+    "typed": [],
+    "skipped": [],
+    "failures": []
+  },
+  "expectedDirectories": [
+    ".app",
+    "goals",
+    "journal",
+    "notes",
+    "people",
+    "places",
+    "templates"
+  ],
+  "generatedTemplates": {}
+}

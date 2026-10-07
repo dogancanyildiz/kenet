@@ -1,0 +1,8 @@
+{
+  "lines": {
+    "operation": "recurrence",
+    "line": 1,
+    "rule": null
+  },
+  "expectedError": "content-not-representable"
+}

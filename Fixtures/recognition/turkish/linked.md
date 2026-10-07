@@ -1,0 +1,1 @@
+[[Deniz Arıkan|Işık]] işık ışık İŞIK

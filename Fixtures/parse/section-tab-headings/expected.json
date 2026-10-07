@@ -1,0 +1,42 @@
+{
+  "sections": {
+    "preamble": null,
+    "items": [
+      {
+        "kind": "Tasks",
+        "headingLine": 1,
+        "level": 2,
+        "firstLine": 1,
+        "lastLine": 2
+      },
+      {
+        "kind": null,
+        "headingLine": 3,
+        "level": 2,
+        "firstLine": 3,
+        "lastLine": 4
+      },
+      {
+        "kind": null,
+        "headingLine": 5,
+        "level": 2,
+        "firstLine": 5,
+        "lastLine": 6
+      },
+      {
+        "kind": null,
+        "headingLine": 7,
+        "level": 2,
+        "firstLine": 7,
+        "lastLine": 8
+      },
+      {
+        "kind": "Events",
+        "headingLine": 9,
+        "level": 2,
+        "firstLine": 9,
+        "lastLine": 10
+      }
+    ]
+  }
+}

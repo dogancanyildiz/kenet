@@ -1,0 +1,33 @@
+{
+  "mentions": [
+    {
+      "line": 0,
+      "byteRange": [
+        0,
+        6
+      ],
+      "spelling": "Işık",
+      "candidates": [
+        "people/Deniz Arıkan.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 0,
+      "byteRange": [
+        7,
+        13
+      ],
+      "spelling": "işık",
+      "candidates": [
+        "people/Deniz Arıkan.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": true,
+      "isCertain": false
+    }
+  ],
+  "unknownMentions": []
+}

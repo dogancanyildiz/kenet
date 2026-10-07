@@ -1,0 +1,5 @@
+Düz not.
+
+---
+type: person
+---

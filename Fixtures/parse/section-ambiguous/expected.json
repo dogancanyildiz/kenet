@@ -1,0 +1,14 @@
+{
+  "sections": {
+    "preamble": null,
+    "items": [
+      {
+        "kind": "Journal",
+        "headingLine": 4,
+        "level": 2,
+        "firstLine": 4,
+        "lastLine": 5
+      }
+    ]
+  }
+}

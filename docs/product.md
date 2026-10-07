@@ -32,7 +32,7 @@ Gün içinde yazdığın kısa notları kişilere, konumlara ve zamana kendiliğ
 - **Kişiler ve konumlar:** Düzenlenebilir şablonlu varlık sayfaları, serbest ek alanlar, o varlığın geçtiği her şeyin zaman akışı.
 - **Görevler:** Bugüne ya da ileri tarihe atanan, kişi ve konumlara bağlanabilen görevler.
 - **Hedefler:** Günlük, haftalık ve yıllık hedefler; zincir ve ilerleme takibi. Alışkanlıklar bunun günlük halidir.
-- **Widget'lar:** Zincir, günün görevleri, takvim etkinlikleri, hızlı giriş.
+- **Widget'lar:** Zincir, günün görevleri, takvim etkinlikleri, hızlı giriş. (Henüz yok; kimlik kararını bekliyor.)
 - **Proje görünümleri:** Kanban ve zaman çizelgesi.
 - **Özetler:** Haftalık ve aylık örüntüler. İleride isteğe bağlı olarak yapay zekanın dönemi inceleyip yazılı geri bildirim vermesi.
 
@@ -40,18 +40,26 @@ Gün içinde yazdığın kısa notları kişilere, konumlara ve zamana kendiliğ
 
 Görev ya da alışkanlık uygulamalarıyla tek tek yarışmaz. Farkı bağlamdır: bir kişinin sayfasında onunla yaşananlar ve onunla ilgili açık işler birlikte görünür; bir konuma girmek bir hedefi işaretleyebilir; her şey tek veri üzerinde olduğu için örüntüler görünür olur.
 
+## Konumlanma
+
+Ekim 2026 sektör taramasının sonucu. Tarama benzer ürünlerin bugünkü halini karşılaştırdı; aşağıdakiler karar değil, yön bilgisidir.
+
+- **Ayırt eden:** yazarken kişi ve konumu kendiliğinden tanıyıp emin değilse soran bir ticari ürün bulunmadı; benzer ürünlerde bağlantı elle kurulur ya da buluttaki bir yapay zekaya bırakılır. İkinci ayırt eden, dosyanın gerçek kaynak olmasıdır: dışa aktarmaya gerek yoktur, kasa Obsidian ile aynıdır. Markdown dışa aktarması tek başına fark değildir.
+- **Vaat cümlesi (öneri):** "Yaz; kim, nerede ve ne zaman kendiliğinden bağlansın. Dosyalar hep senin."
+- **Geride kalınan yerler:** fotoğraf, "bu gün geçmişte", widget ve kilit ekranı girişleri, paylaşım uzantısı, sesle giriş, cihazlar arası eşitleme, başka günlük uygulamalarından içe aktarma, görsel kimlik.
+- **Kaçınılacaklar:** veriyi ya da var olan özelliği sonradan kilitlemek, zorunlu hesap ve sunucu denetimi, suçlayan zincirler, sormadan kişi oluşturmak, kullanıcının yazdığını sessizce yeniden yorumlamak, uygulamaya özgü sözdizimi, kasayı uygulama düzeyinde şifrelemek (Obsidian uyumunu bozar).
+
 ## Kapsam dışı
 
 - Genel amaçlı veritabanı oluşturucu (Notion benzeri)
 - Tam özellikli Markdown editörü (ilk aşamalarda)
-- Kullanıcının mevcut Obsidian kasasının içinde çalışmak
+- Kullanıcının mevcut Obsidian kasasını yeniden düzenlemek ya da dosyalarını taşımak (var olan kasa yerinde açılıp hazırlanabilir; bkz. `vault-format.md`)
 - Ekip kullanımı, hesap sistemi, kendi senkronizasyon sunucusu
 - Android ve Windows (proje tutarsa ayrıca ele alınır)
 
 ## Ertelenenler
 
-- Yapay zeka özellikleri (maliyet nedeniyle kararsız; uygulama onsuz tam çalışır)
-- Uygulama kilidi (iOS'un kendi Face ID kilidi yeterli)
+- Yapay zeka özellikleri (karar açık; uygulama onsuz tam çalışır)
 - Şirket şema paketi (şirket yapısı, çalışanlar, sorumluluklar)
 - İsim
 

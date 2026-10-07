@@ -1,0 +1,31 @@
+{
+  "sections": {
+    "preamble": {
+      "firstLine": 4,
+      "lastLine": 4
+    },
+    "items": [
+      {
+        "kind": "Tasks",
+        "headingLine": 5,
+        "level": 2,
+        "firstLine": 5,
+        "lastLine": 7
+      },
+      {
+        "kind": "Events",
+        "headingLine": 8,
+        "level": 2,
+        "firstLine": 8,
+        "lastLine": 10
+      },
+      {
+        "kind": "Journal",
+        "headingLine": 11,
+        "level": 2,
+        "firstLine": 11,
+        "lastLine": 12
+      }
+    ]
+  }
+}

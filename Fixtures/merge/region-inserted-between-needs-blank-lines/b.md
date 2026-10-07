@@ -1,0 +1,4 @@
+## Journal
+Gün.
+## Sonra
+Son.

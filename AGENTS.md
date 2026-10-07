@@ -30,7 +30,7 @@ Bunlar zevk değil, ürünün temel vaatleridir (veri kullanıcınındır, hiçb
 
 - **Markdown gerçek kaynaktır.** SQLite yalnızca indekstir; silinince dosyalardan eksiksiz yeniden üretilebilmelidir. Dosyada olmayan bilgi indekste tutulmaz.
 - **Önce dosyaya yaz, sonra indeksi güncelle.** Tersi yapılmaz.
-- **Tanımadığına dokunma.** Uygulama bir dosyada yalnızca kendi ürettiği satırları değiştirir; geri kalan içerik bayt düzeyinde korunur.
+- **Tanımadığına dokunma.** Uygulama bir dosyada yalnızca kullanıcının işleminin hedeflediği satırı ya da alanı değiştirir; geri kalan içerik bayt düzeyinde korunur.
 - **Core paketi Apple'a bağımsızdır.** `Core` içinde SwiftUI, UIKit, AppKit, EventKit, CoreLocation, WidgetKit ya da iCloud API'si kullanılmaz. Yalnızca Foundation ve SQLite katmanı.
 - **Format değişikliği önce belgede yapılır.** `docs/vault-format.md` güncellenmeden ayrıştırıcı ya da yazıcı davranışı değiştirilmez.
 - **Sonraki aşamaların özelliklerini erken yazma.** Aktif aşamayı bitirmeden ileriki özellikler eklenmez. Onları kolaylaştıracak tasarım tercihleri ise serbesttir ve teşvik edilir.
@@ -50,6 +50,8 @@ Bunlar zevk değil, ürünün temel vaatleridir (veri kullanıcınındır, hiçb
 - Dil: Swift (güncel kararlı sürüm), SwiftUI. Kod, tip ve dosya adları İngilizce; kullanıcıya görünen metinler yerelleştirilmiş.
 - Ayrıştırıcı ve yazıcı için her davranış `Fixtures/` altında bir örnek Markdown dosyası ve beklenen çıktı ile test edilir. Bu dosyalar dilden bağımsızdır ve ileride başka platformlarda yeniden kullanılır.
 - Gidiş dönüş testi zorunludur: bir dosya okunup hiçbir değişiklik yapılmadan yazıldığında birebir aynı kalmalıdır.
+- İndeks şeması değiştiğinde şema sürümü artırılır; eski indeks silinip dosyalardan yeniden kurulur, göç yazılmaz.
+- Belge biçim denetimleri (karar tablosu, README belge tablosu, String Catalog) CI'da koşar.
 
 ## Git kuralları
 
@@ -58,7 +60,7 @@ Bunlar zevk değil, ürünün temel vaatleridir (veri kullanıcınındır, hiçb
 - `main`: Yalnızca yayınlanmış sürümler. Her birleştirme bir sürümdür.
 - `dev`: Geliştirme dalı ve reponun varsayılan dalı. Her zaman derlenir ve testleri geçer.
 - İş dalları `dev` üzerinden açılır: `feat/...`, `fix/...`, `docs/...`, `test/...`, `chore/...`
-- Acil düzeltme: `hotfix/...` dalı `main` üzerinden açılır, `main`'e PR ile girer, ardından `main` `dev`'e geri birleştirilir.
+- Acil düzeltme: `hotfix/...` dalı `main` üzerinden açılır, `main`'e PR ile girer, ardından `main` `dev`'e geri birleştirilir. Bu geri birleştirme squash ile değil merge commit ile yapılır; squash iki dalın ortak geçmişini koparır.
 
 ### Akış
 
@@ -69,8 +71,10 @@ Bunlar zevk değil, ürünün temel vaatleridir (veri kullanıcınındır, hiçb
 
 ### Sürüm
 
-- Sürüm, `dev`'den `main`'e açılan PR ile kesilir. Bu PR sürüm numarasını yükseltir ve merge commit ile birleştirilir (squash değil).
-- `main`'e birleşince `vX.Y.Z` etiketi ve GitHub Release otomatik oluşur.
+- Sürüm numarası kök dizindeki `VERSION` dosyasında durur (tek satır, `X.Y.Z`); Xcode projesi ve iş akışları numarayı oradan okur.
+- Yapı numarası (`CFBundleVersion`) elle yazılmaz: derlemede git geçmişinden (`git rev-list --count HEAD`) üretilir, bu yüzden mağazaya yüklenen yapı commit'lenmiş bir `dev` ya da `main` durumundan arşivlenir.
+- Sürüm, `dev`'den `main`'e açılan PR ile kesilir. Bu PR `VERSION` dosyasını yükseltir ve merge commit ile birleştirilir (squash değil).
+- `main`'e birleşince `.github/workflows/release.yml` `VERSION` içindeki numarayla `vX.Y.Z` etiketini ve GitHub Release'i oluşturur; etiket zaten varsa atlar.
 - Numaralandırma (SemVer): 1.0 öncesinde `0.<aşama>.<yama>`. Aşama 1 tamamlanınca `v0.1.0`, o aşamadaki düzeltmeler `v0.1.1`. İlk mağaza yayını `v1.0.0`.
 - Sürüm kesme kararı kullanıcınındır. Ajan `main`'e PR açmaz ve birleştirmez; yalnızca istendiğinde sürüm PR'ını hazırlar.
 
@@ -79,6 +83,7 @@ Bunlar zevk değil, ürünün temel vaatleridir (veri kullanıcınındır, hiçb
 - Conventional Commits: `feat:`, `fix:`, `docs:`, `test:`, `refactor:`, `chore:`
 - Önek İngilizce, açıklama Türkçe: `feat: olay satırı ayrıştırıcısı`
 - Küçük ve tek amaçlı commit'ler.
+- Commit mesajına ve PR açıklamasına yapay zeka imzası eklenmez: `Co-Authored-By`, "Generated with" ve benzeri satırlar yazılmaz. Hangi ajan çalışırsa çalışsın geçerlidir.
 
 ### Yasaklar
 
@@ -96,15 +101,19 @@ Aşağıdakileri yapmadan önce dur ve kullanıcıya sor:
 
 - Kendi oluşturmadığın dosya ya da klasörleri silme, toplu yeniden adlandırma
 - Sekme yapısı gibi uygulamanın ana gezinme düzenini değiştirme
-- Kasa formatını ya da indeks şemasını geriye uyumsuz değiştirme
+- Kasa formatını geriye uyumsuz değiştirme
 - Bundle kimliği, iCloud kapsayıcı kimliği, App Group kimliği gibi sonradan değiştirmesi zor değerleri belirleme
 
 ## Planlanan dizin yapısı
 
 ```
-App/            iOS ve macOS SwiftUI uygulaması
-Widgets/        WidgetKit hedefi
-Packages/Core/  Ayrıştırıcı, modeller, indeksleyici (Apple'a bağımsız)
-Fixtures/       Örnek kasa ve test dosyaları
-docs/           Belgeler
+App/                 iOS ve macOS SwiftUI uygulaması (App/Support: entitlements, plist ekleri)
+Widgets/             WidgetKit hedefi (henüz yok)
+Packages/Core/       Ayrıştırıcı, modeller, indeksleyici (Apple'a bağımsız)
+Fixtures/            Örnek kasa ve test dosyaları
+Tests/JournalTests/  Uygulama katmanı birim testleri (macOS ve iOS simülatörü)
+Tests/JournalUITests/ XCUITest duman testi ve erişilebilirlik denetimi (iOS)
+docs/                Belgeler
+.github/             CI iş akışları ve denetim betikleri (.github/scripts)
+project.yml, VERSION  XcodeGen tanımı ve sürüm numarası; Journal.xcodeproj üretilir, repoya girmez
 ```

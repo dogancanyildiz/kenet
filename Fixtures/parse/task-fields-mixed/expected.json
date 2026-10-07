@@ -1,0 +1,51 @@
+{
+  "tasks": [
+    {
+      "line": 1,
+      "firstLine": 1,
+      "lastLine": 1,
+      "id": "task1",
+      "text": "Deniz ile buluş",
+      "rawStatus": "/",
+      "status": "inProgress",
+      "isClosed": false,
+      "isOpen": true,
+      "dueDate": "2026-10-05",
+      "startDate": "2026-10-01",
+      "doneDate": null,
+      "priority": "medium",
+      "project": "iş",
+      "fieldRanges": [
+        {
+          "kind": "startDate",
+          "byteRange": [
+            12,
+            27
+          ]
+        },
+        {
+          "kind": "dueDate",
+          "byteRange": [
+            32,
+            47
+          ]
+        },
+        {
+          "kind": "priority",
+          "byteRange": [
+            55,
+            59
+          ]
+        },
+        {
+          "kind": "project",
+          "byteRange": [
+            60,
+            72
+          ]
+        }
+      ]
+    }
+  ],
+  "events": []
+}

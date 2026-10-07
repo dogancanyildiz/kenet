@@ -1,0 +1,8 @@
+{
+  "lines": {
+    "operation": "text",
+    "line": 2,
+    "text": "Su\nKitap"
+  },
+  "expectedError": "line-break-in-content"
+}

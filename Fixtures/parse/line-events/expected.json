@@ -1,0 +1,203 @@
+{
+  "tasks": [
+    {
+      "line": 13,
+      "firstLine": 13,
+      "lastLine": 13,
+      "id": "task",
+      "text": "görev",
+      "rawStatus": " ",
+      "status": "todo",
+      "isClosed": false,
+      "isOpen": true,
+      "dueDate": null,
+      "startDate": null,
+      "doneDate": null,
+      "priority": null,
+      "project": null,
+      "fieldRanges": []
+    }
+  ],
+  "events": [
+    {
+      "line": 5,
+      "firstLine": 5,
+      "lastLine": 5,
+      "id": "abcDEF-123456789",
+      "text": "[[Selin Korkmaz]] ile [[Çınaraltı Kafe]]",
+      "time": {
+        "hour": 14,
+        "minute": 30,
+        "raw": "14:30"
+      }
+    },
+    {
+      "line": 6,
+      "firstLine": 6,
+      "lastLine": 6,
+      "id": null,
+      "text": "çay",
+      "time": {
+        "hour": 9,
+        "minute": 5,
+        "raw": "9:05"
+      }
+    },
+    {
+      "line": 7,
+      "firstLine": 7,
+      "lastLine": 7,
+      "id": null,
+      "text": "saatsiz",
+      "time": null
+    },
+    {
+      "line": 8,
+      "firstLine": 8,
+      "lastLine": 8,
+      "id": null,
+      "text": "24:00 geçersiz",
+      "time": null
+    },
+    {
+      "line": 9,
+      "firstLine": 9,
+      "lastLine": 9,
+      "id": null,
+      "text": "14:60 geçersiz",
+      "time": null
+    },
+    {
+      "line": 10,
+      "firstLine": 10,
+      "lastLine": 10,
+      "id": null,
+      "text": "14:5 geçersiz",
+      "time": null
+    },
+    {
+      "line": 11,
+      "firstLine": 11,
+      "lastLine": 11,
+      "id": null,
+      "text": "",
+      "time": {
+        "hour": 23,
+        "minute": 59,
+        "raw": "23:59"
+      }
+    },
+    {
+      "line": 12,
+      "firstLine": 12,
+      "lastLine": 12,
+      "id": "abc",
+      "text": "",
+      "time": {
+        "hour": 0,
+        "minute": 0,
+        "raw": "0:00"
+      }
+    },
+    {
+      "line": 14,
+      "firstLine": 14,
+      "lastLine": 14,
+      "id": null,
+      "text": "ortada ^abc metin",
+      "time": null
+    },
+    {
+      "line": 15,
+      "firstLine": 15,
+      "lastLine": 15,
+      "id": null,
+      "text": "metin^abc",
+      "time": null
+    },
+    {
+      "line": 16,
+      "firstLine": 16,
+      "lastLine": 16,
+      "id": null,
+      "text": "metin ^",
+      "time": null
+    },
+    {
+      "line": 17,
+      "firstLine": 17,
+      "lastLine": 17,
+      "id": null,
+      "text": "metin ^bad_id",
+      "time": null
+    },
+    {
+      "line": 18,
+      "firstLine": 18,
+      "lastLine": 18,
+      "id": null,
+      "text": "metin ^abc!",
+      "time": null
+    },
+    {
+      "line": 19,
+      "firstLine": 19,
+      "lastLine": 19,
+      "id": "abc",
+      "text": "aynı",
+      "time": null
+    },
+    {
+      "line": 20,
+      "firstLine": 20,
+      "lastLine": 20,
+      "id": null,
+      "text": " ek boşluk  ",
+      "time": {
+        "hour": 0,
+        "minute": 0,
+        "raw": "00:00"
+      }
+    },
+    {
+      "line": 21,
+      "firstLine": 21,
+      "lastLine": 21,
+      "id": null,
+      "text": "1:00x metin",
+      "time": null
+    },
+    {
+      "line": 22,
+      "firstLine": 22,
+      "lastLine": 22,
+      "id": null,
+      "text": "001:00 metin",
+      "time": null
+    },
+    {
+      "line": 23,
+      "firstLine": 23,
+      "lastLine": 23,
+      "id": null,
+      "text": "12:34\tmetin",
+      "time": null
+    },
+    {
+      "line": 24,
+      "firstLine": 24,
+      "lastLine": 25,
+      "id": null,
+      "text": "[x]bitişik",
+      "time": null
+    },
+    {
+      "line": 26,
+      "firstLine": 26,
+      "lastLine": 26,
+      "id": "ID",
+      "text": "",
+      "time": null
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "sections": {
+    "preamble": null,
+    "items": [
+      {
+        "kind": null,
+        "headingLine": 1,
+        "level": 2,
+        "firstLine": 1,
+        "lastLine": 2
+      },
+      {
+        "kind": null,
+        "headingLine": 3,
+        "level": 1,
+        "firstLine": 3,
+        "lastLine": 3
+      },
+      {
+        "kind": "Tasks",
+        "headingLine": 4,
+        "level": 2,
+        "firstLine": 4,
+        "lastLine": 5
+      },
+      {
+        "kind": null,
+        "headingLine": 6,
+        "level": 2,
+        "firstLine": 6,
+        "lastLine": 7
+      }
+    ]
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "lines": {
+    "operation": "add-task-fields",
+    "text": "x",
+    "id": "task1",
+    "due": "2026-10-05",
+    "start": "2026-10-01",
+    "priority": "high",
+    "project": "iş"
+  }
+}

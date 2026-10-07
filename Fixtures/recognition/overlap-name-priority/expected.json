@@ -1,0 +1,19 @@
+{
+  "mentions": [
+    {
+      "line": 0,
+      "byteRange": [
+        6,
+        15
+      ],
+      "spelling": "Ece Selin",
+      "candidates": [
+        "people/Ece Yalın.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    }
+  ],
+  "unknownMentions": []
+}

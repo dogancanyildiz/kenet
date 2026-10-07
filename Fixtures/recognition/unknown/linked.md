@@ -1,0 +1,1 @@
+[[Deniz Arıkan|Deniz]] @Baran Tunç’a geldi @Ece Yalın Selin Korkmaz [[Deniz Arıkan|Deniz]], @selin

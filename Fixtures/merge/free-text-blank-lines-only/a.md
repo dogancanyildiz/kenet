@@ -1,0 +1,4 @@
+## Journal
+Metin.
+
+Devam.

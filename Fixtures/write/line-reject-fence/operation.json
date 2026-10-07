@@ -1,0 +1,8 @@
+{
+  "lines": {
+    "operation": "add-event",
+    "text": "Kitap",
+    "id": "new123"
+  },
+  "expectedError": "content-not-representable"
+}

@@ -1,0 +1,50 @@
+{
+  "frontmatter": {
+    "state": "parsed",
+    "firstLine": 1,
+    "lastLine": 7,
+    "fields": [
+      {
+        "key": "type",
+        "firstLine": 2,
+        "lastLine": 2,
+        "scalar": { "type": "text", "text": "person", "raw": "person" },
+        "listItems": ["person"]
+      },
+      {
+        "key": "name",
+        "firstLine": 3,
+        "lastLine": 3,
+        "scalar": { "type": "text", "text": "Deniz Arıkan", "raw": "Deniz Arıkan" },
+        "listItems": ["Deniz Arıkan"]
+      },
+      {
+        "key": "aliases",
+        "firstLine": 4,
+        "lastLine": 4,
+        "list": {
+          "style": "inline",
+          "items": [
+            { "type": "text", "text": "Deniz", "raw": "Deniz" },
+            { "type": "text", "text": "Deniz abi", "raw": "Deniz abi" }
+          ]
+        },
+        "listItems": ["Deniz", "Deniz abi"]
+      },
+      {
+        "key": "tanışma",
+        "firstLine": 5,
+        "lastLine": 5,
+        "scalar": { "type": "text", "text": "Üniversite", "raw": "Üniversite" },
+        "listItems": ["Üniversite"]
+      },
+      {
+        "key": "doğum günü",
+        "firstLine": 6,
+        "lastLine": 6,
+        "scalar": { "type": "date", "text": "1990-01-15", "raw": "1990-01-15" },
+        "listItems": ["1990-01-15"]
+      }
+    ]
+  }
+}

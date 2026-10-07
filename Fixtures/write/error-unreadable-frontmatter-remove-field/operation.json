@@ -1,0 +1,4 @@
+{
+  "frontmatter": { "operation": "remove-field", "key": "type" },
+  "expectedError": "unreadable-frontmatter"
+}

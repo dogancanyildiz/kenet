@@ -1,0 +1,4 @@
+---
+type: goal
+key: spor
+---

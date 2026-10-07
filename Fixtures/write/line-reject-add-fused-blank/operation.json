@@ -1,0 +1,12 @@
+{
+  "lines": {
+    "operation": "add-event",
+    "text": "Kitap",
+    "id": "new123",
+    "time": {
+      "hour": 9,
+      "minute": 0
+    }
+  },
+  "expectedError": "content-not-representable"
+}

@@ -1,0 +1,8 @@
+{
+  "lines": {
+    "operation": "text",
+    "line": 2,
+    "text": "Su ^abc123"
+  },
+  "expectedError": "content-not-representable"
+}

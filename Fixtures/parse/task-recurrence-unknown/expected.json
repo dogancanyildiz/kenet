@@ -1,0 +1,208 @@
+{
+  "tasks": [
+    {
+      "line": 1,
+      "firstLine": 1,
+      "lastLine": 1,
+      "id": "r0",
+      "text": "Task 0 🔁 every weekday",
+      "dueDate": "2026-10-04",
+      "startDate": null,
+      "doneDate": null,
+      "priority": null,
+      "project": "demo",
+      "recurrenceSource": "every weekday",
+      "recurrence": null,
+      "fieldRanges": [
+        {
+          "kind": "dueDate",
+          "byteRange": [
+            32,
+            47
+          ]
+        },
+        {
+          "kind": "project",
+          "byteRange": [
+            48,
+            61
+          ]
+        }
+      ],
+      "rawStatus": " ",
+      "status": "todo",
+      "isClosed": false,
+      "isOpen": true
+    },
+    {
+      "line": 2,
+      "firstLine": 2,
+      "lastLine": 2,
+      "id": "r1",
+      "text": "Task 1 🔁 every 0 days",
+      "dueDate": "2026-10-04",
+      "startDate": null,
+      "doneDate": null,
+      "priority": null,
+      "project": "demo",
+      "recurrenceSource": "every 0 days",
+      "recurrence": null,
+      "fieldRanges": [
+        {
+          "kind": "dueDate",
+          "byteRange": [
+            31,
+            46
+          ]
+        },
+        {
+          "kind": "project",
+          "byteRange": [
+            47,
+            60
+          ]
+        }
+      ],
+      "rawStatus": " ",
+      "status": "todo",
+      "isClosed": false,
+      "isOpen": true
+    },
+    {
+      "line": 3,
+      "firstLine": 3,
+      "lastLine": 3,
+      "id": "r2",
+      "text": "Task 2 🔁 every 1.5 months",
+      "dueDate": "2026-10-04",
+      "startDate": null,
+      "doneDate": null,
+      "priority": null,
+      "project": "demo",
+      "recurrenceSource": "every 1.5 months",
+      "recurrence": null,
+      "fieldRanges": [
+        {
+          "kind": "dueDate",
+          "byteRange": [
+            35,
+            50
+          ]
+        },
+        {
+          "kind": "project",
+          "byteRange": [
+            51,
+            64
+          ]
+        }
+      ],
+      "rawStatus": " ",
+      "status": "todo",
+      "isClosed": false,
+      "isOpen": true
+    },
+    {
+      "line": 4,
+      "firstLine": 4,
+      "lastLine": 4,
+      "id": "r3",
+      "text": "Task 3 🔁 every week on monday,tuesday",
+      "dueDate": "2026-10-04",
+      "startDate": null,
+      "doneDate": null,
+      "priority": null,
+      "project": "demo",
+      "recurrenceSource": "every week on monday,tuesday",
+      "recurrence": null,
+      "fieldRanges": [
+        {
+          "kind": "dueDate",
+          "byteRange": [
+            47,
+            62
+          ]
+        },
+        {
+          "kind": "project",
+          "byteRange": [
+            63,
+            76
+          ]
+        }
+      ],
+      "rawStatus": " ",
+      "status": "todo",
+      "isClosed": false,
+      "isOpen": true
+    },
+    {
+      "line": 5,
+      "firstLine": 5,
+      "lastLine": 5,
+      "id": "r4",
+      "text": "Task 4 🔁 every month on the last",
+      "dueDate": "2026-10-04",
+      "startDate": null,
+      "doneDate": null,
+      "priority": null,
+      "project": "demo",
+      "recurrenceSource": "every month on the last",
+      "recurrence": null,
+      "fieldRanges": [
+        {
+          "kind": "dueDate",
+          "byteRange": [
+            42,
+            57
+          ]
+        },
+        {
+          "kind": "project",
+          "byteRange": [
+            58,
+            71
+          ]
+        }
+      ],
+      "rawStatus": " ",
+      "status": "todo",
+      "isClosed": false,
+      "isOpen": true
+    },
+    {
+      "line": 6,
+      "firstLine": 6,
+      "lastLine": 6,
+      "id": "r5",
+      "text": "Task 5 🔁 every 9999999999999999999999999 days",
+      "dueDate": "2026-10-04",
+      "startDate": null,
+      "doneDate": null,
+      "priority": null,
+      "project": "demo",
+      "recurrenceSource": "every 9999999999999999999999999 days",
+      "recurrence": null,
+      "fieldRanges": [
+        {
+          "kind": "dueDate",
+          "byteRange": [
+            55,
+            70
+          ]
+        },
+        {
+          "kind": "project",
+          "byteRange": [
+            71,
+            84
+          ]
+        }
+      ],
+      "rawStatus": " ",
+      "status": "todo",
+      "isClosed": false,
+      "isOpen": true
+    }
+  ]
+}

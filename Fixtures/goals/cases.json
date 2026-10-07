@@ -1,0 +1,1532 @@
+[
+  {
+    "id": "daily-empty",
+    "definition": {
+      "id": "goals/Spor.md",
+      "key": "spor",
+      "name": "Spor",
+      "period": "day",
+      "kind": "boolean",
+      "target": 1
+    },
+    "logs": [],
+    "today": "2026-10-04",
+    "heatmapFrom": "2026-10-02",
+    "heatmapTo": "2026-10-04",
+    "expected": {
+      "done": 0,
+      "target": 1,
+      "streak": 0,
+      "longestStreak": 0,
+      "isPendingToday": true,
+      "yearDone": 0,
+      "periodStart": "2026-10-04",
+      "periodEnd": "2026-10-04",
+      "heatmap": {
+        "2026-10-02": "none",
+        "2026-10-03": "none",
+        "2026-10-04": "none"
+      }
+    }
+  },
+  {
+    "id": "daily-today",
+    "definition": {
+      "id": "goals/Spor.md",
+      "key": "spor",
+      "name": "Spor",
+      "period": "day",
+      "kind": "boolean",
+      "target": 1
+    },
+    "logs": [
+      {
+        "day": "2026-10-04",
+        "value": true
+      }
+    ],
+    "today": "2026-10-04",
+    "heatmapFrom": "2026-10-04",
+    "heatmapTo": "2026-10-04",
+    "expected": {
+      "done": 1,
+      "target": 1,
+      "streak": 1,
+      "longestStreak": 1,
+      "isPendingToday": false,
+      "yearDone": 1,
+      "periodStart": "2026-10-04",
+      "periodEnd": "2026-10-04",
+      "heatmap": {
+        "2026-10-04": "full"
+      }
+    }
+  },
+  {
+    "id": "daily-waiting-yesterday",
+    "definition": {
+      "id": "goals/Spor.md",
+      "key": "spor",
+      "name": "Spor",
+      "period": "day",
+      "kind": "boolean",
+      "target": 1
+    },
+    "logs": [
+      {
+        "day": "2026-10-03",
+        "value": true
+      }
+    ],
+    "today": "2026-10-04",
+    "heatmapFrom": "2026-10-04",
+    "heatmapTo": "2026-10-04",
+    "expected": {
+      "done": 0,
+      "target": 1,
+      "streak": 1,
+      "longestStreak": 1,
+      "isPendingToday": true,
+      "yearDone": 1,
+      "periodStart": "2026-10-04",
+      "periodEnd": "2026-10-04",
+      "heatmap": {
+        "2026-10-04": "none"
+      }
+    }
+  },
+  {
+    "id": "daily-two",
+    "definition": {
+      "id": "goals/Spor.md",
+      "key": "spor",
+      "name": "Spor",
+      "period": "day",
+      "kind": "boolean",
+      "target": 1
+    },
+    "logs": [
+      {
+        "day": "2026-10-03",
+        "value": true
+      },
+      {
+        "day": "2026-10-04",
+        "value": true
+      }
+    ],
+    "today": "2026-10-04",
+    "heatmapFrom": "2026-10-04",
+    "heatmapTo": "2026-10-04",
+    "expected": {
+      "done": 1,
+      "target": 1,
+      "streak": 2,
+      "longestStreak": 2,
+      "isPendingToday": false,
+      "yearDone": 2,
+      "periodStart": "2026-10-04",
+      "periodEnd": "2026-10-04",
+      "heatmap": {
+        "2026-10-04": "full"
+      }
+    }
+  },
+  {
+    "id": "daily-gap",
+    "definition": {
+      "id": "goals/Spor.md",
+      "key": "spor",
+      "name": "Spor",
+      "period": "day",
+      "kind": "boolean",
+      "target": 1
+    },
+    "logs": [
+      {
+        "day": "2026-10-01",
+        "value": true
+      },
+      {
+        "day": "2026-10-03",
+        "value": true
+      }
+    ],
+    "today": "2026-10-04",
+    "heatmapFrom": "2026-10-04",
+    "heatmapTo": "2026-10-04",
+    "expected": {
+      "done": 0,
+      "target": 1,
+      "streak": 1,
+      "longestStreak": 1,
+      "isPendingToday": true,
+      "yearDone": 2,
+      "periodStart": "2026-10-04",
+      "periodEnd": "2026-10-04",
+      "heatmap": {
+        "2026-10-04": "none"
+      }
+    }
+  },
+  {
+    "id": "daily-false-break",
+    "definition": {
+      "id": "goals/Spor.md",
+      "key": "spor",
+      "name": "Spor",
+      "period": "day",
+      "kind": "boolean",
+      "target": 1
+    },
+    "logs": [
+      {
+        "day": "2026-10-02",
+        "value": true
+      },
+      {
+        "day": "2026-10-03",
+        "value": false
+      }
+    ],
+    "today": "2026-10-04",
+    "heatmapFrom": "2026-10-04",
+    "heatmapTo": "2026-10-04",
+    "expected": {
+      "done": 0,
+      "target": 1,
+      "streak": 0,
+      "longestStreak": 1,
+      "isPendingToday": true,
+      "yearDone": 1,
+      "periodStart": "2026-10-04",
+      "periodEnd": "2026-10-04",
+      "heatmap": {
+        "2026-10-04": "none"
+      }
+    }
+  },
+  {
+    "id": "daily-old-longest",
+    "definition": {
+      "id": "goals/Spor.md",
+      "key": "spor",
+      "name": "Spor",
+      "period": "day",
+      "kind": "boolean",
+      "target": 1
+    },
+    "logs": [
+      {
+        "day": "2026-10-01",
+        "value": true
+      },
+      {
+        "day": "2026-10-02",
+        "value": true
+      },
+      {
+        "day": "2026-10-03",
+        "value": true
+      }
+    ],
+    "today": "2026-10-06",
+    "heatmapFrom": "2026-10-06",
+    "heatmapTo": "2026-10-06",
+    "expected": {
+      "done": 0,
+      "target": 1,
+      "streak": 0,
+      "longestStreak": 3,
+      "isPendingToday": true,
+      "yearDone": 3,
+      "periodStart": "2026-10-06",
+      "periodEnd": "2026-10-06",
+      "heatmap": {
+        "2026-10-06": "none"
+      }
+    }
+  },
+  {
+    "id": "daily-today-false",
+    "definition": {
+      "id": "goals/Spor.md",
+      "key": "spor",
+      "name": "Spor",
+      "period": "day",
+      "kind": "boolean",
+      "target": 1
+    },
+    "logs": [
+      {
+        "day": "2026-10-03",
+        "value": true
+      },
+      {
+        "day": "2026-10-04",
+        "value": false
+      }
+    ],
+    "today": "2026-10-04",
+    "heatmapFrom": "2026-10-04",
+    "heatmapTo": "2026-10-04",
+    "expected": {
+      "done": 0,
+      "target": 1,
+      "streak": 1,
+      "longestStreak": 1,
+      "isPendingToday": true,
+      "yearDone": 1,
+      "periodStart": "2026-10-04",
+      "periodEnd": "2026-10-04",
+      "heatmap": {
+        "2026-10-04": "none"
+      }
+    }
+  },
+  {
+    "id": "daily-year-pending",
+    "definition": {
+      "id": "goals/Spor.md",
+      "key": "spor",
+      "name": "Spor",
+      "period": "day",
+      "kind": "boolean",
+      "target": 1
+    },
+    "logs": [
+      {
+        "day": "2025-12-30",
+        "value": true
+      },
+      {
+        "day": "2025-12-31",
+        "value": true
+      }
+    ],
+    "today": "2026-01-01",
+    "heatmapFrom": "2026-01-01",
+    "heatmapTo": "2026-01-01",
+    "expected": {
+      "done": 0,
+      "target": 1,
+      "streak": 2,
+      "longestStreak": 2,
+      "isPendingToday": true,
+      "yearDone": 0,
+      "periodStart": "2026-01-01",
+      "periodEnd": "2026-01-01",
+      "heatmap": {
+        "2026-01-01": "none"
+      }
+    }
+  },
+  {
+    "id": "daily-year-complete",
+    "definition": {
+      "id": "goals/Spor.md",
+      "key": "spor",
+      "name": "Spor",
+      "period": "day",
+      "kind": "boolean",
+      "target": 1
+    },
+    "logs": [
+      {
+        "day": "2025-12-31",
+        "value": true
+      },
+      {
+        "day": "2026-01-01",
+        "value": true
+      }
+    ],
+    "today": "2026-01-01",
+    "heatmapFrom": "2026-01-01",
+    "heatmapTo": "2026-01-01",
+    "expected": {
+      "done": 1,
+      "target": 1,
+      "streak": 2,
+      "longestStreak": 2,
+      "isPendingToday": false,
+      "yearDone": 1,
+      "periodStart": "2026-01-01",
+      "periodEnd": "2026-01-01",
+      "heatmap": {
+        "2026-01-01": "full"
+      }
+    }
+  },
+  {
+    "id": "daily-leap-pending",
+    "definition": {
+      "id": "goals/Spor.md",
+      "key": "spor",
+      "name": "Spor",
+      "period": "day",
+      "kind": "boolean",
+      "target": 1
+    },
+    "logs": [
+      {
+        "day": "2024-02-28",
+        "value": true
+      },
+      {
+        "day": "2024-02-29",
+        "value": true
+      }
+    ],
+    "today": "2024-03-01",
+    "heatmapFrom": "2024-03-01",
+    "heatmapTo": "2024-03-01",
+    "expected": {
+      "done": 0,
+      "target": 1,
+      "streak": 2,
+      "longestStreak": 2,
+      "isPendingToday": true,
+      "yearDone": 2,
+      "periodStart": "2024-03-01",
+      "periodEnd": "2024-03-01",
+      "heatmap": {
+        "2024-03-01": "none"
+      }
+    }
+  },
+  {
+    "id": "daily-false",
+    "definition": {
+      "id": "goals/Spor.md",
+      "key": "spor",
+      "name": "Spor",
+      "period": "day",
+      "kind": "boolean",
+      "target": 1
+    },
+    "logs": [
+      {
+        "day": "2026-10-04",
+        "value": false
+      }
+    ],
+    "today": "2026-10-04",
+    "heatmapFrom": "2026-10-04",
+    "heatmapTo": "2026-10-04",
+    "expected": {
+      "done": 0,
+      "target": 1,
+      "streak": 0,
+      "longestStreak": 0,
+      "isPendingToday": true,
+      "yearDone": 0,
+      "periodStart": "2026-10-04",
+      "periodEnd": "2026-10-04",
+      "heatmap": {
+        "2026-10-04": "none"
+      }
+    }
+  },
+  {
+    "id": "number-exact",
+    "definition": {
+      "id": "goals/Spor.md",
+      "key": "spor",
+      "name": "Spor",
+      "period": "day",
+      "kind": "number",
+      "target": 20
+    },
+    "logs": [
+      {
+        "day": "2026-10-04",
+        "value": 20
+      }
+    ],
+    "today": "2026-10-04",
+    "heatmapFrom": "2026-10-04",
+    "heatmapTo": "2026-10-04",
+    "expected": {
+      "done": 20,
+      "target": 20,
+      "streak": 1,
+      "longestStreak": 1,
+      "isPendingToday": false,
+      "yearDone": 20,
+      "periodStart": "2026-10-04",
+      "periodEnd": "2026-10-04",
+      "heatmap": {
+        "2026-10-04": "full"
+      }
+    }
+  },
+  {
+    "id": "number-partial",
+    "definition": {
+      "id": "goals/Spor.md",
+      "key": "spor",
+      "name": "Spor",
+      "period": "day",
+      "kind": "number",
+      "target": 20
+    },
+    "logs": [
+      {
+        "day": "2026-10-04",
+        "value": 19
+      }
+    ],
+    "today": "2026-10-04",
+    "heatmapFrom": "2026-10-04",
+    "heatmapTo": "2026-10-04",
+    "expected": {
+      "done": 19,
+      "target": 20,
+      "streak": 0,
+      "longestStreak": 0,
+      "isPendingToday": true,
+      "yearDone": 19,
+      "periodStart": "2026-10-04",
+      "periodEnd": "2026-10-04",
+      "heatmap": {
+        "2026-10-04": "partial"
+      }
+    }
+  },
+  {
+    "id": "number-over",
+    "definition": {
+      "id": "goals/Spor.md",
+      "key": "spor",
+      "name": "Spor",
+      "period": "day",
+      "kind": "number",
+      "target": 20
+    },
+    "logs": [
+      {
+        "day": "2026-10-04",
+        "value": 25
+      }
+    ],
+    "today": "2026-10-04",
+    "heatmapFrom": "2026-10-04",
+    "heatmapTo": "2026-10-04",
+    "expected": {
+      "done": 25,
+      "target": 20,
+      "streak": 1,
+      "longestStreak": 1,
+      "isPendingToday": false,
+      "yearDone": 25,
+      "periodStart": "2026-10-04",
+      "periodEnd": "2026-10-04",
+      "heatmap": {
+        "2026-10-04": "full"
+      }
+    }
+  },
+  {
+    "id": "number-pending",
+    "definition": {
+      "id": "goals/Spor.md",
+      "key": "spor",
+      "name": "Spor",
+      "period": "day",
+      "kind": "number",
+      "target": 20
+    },
+    "logs": [
+      {
+        "day": "2026-10-03",
+        "value": 20
+      },
+      {
+        "day": "2026-10-04",
+        "value": 5
+      }
+    ],
+    "today": "2026-10-04",
+    "heatmapFrom": "2026-10-03",
+    "heatmapTo": "2026-10-04",
+    "expected": {
+      "done": 5,
+      "target": 20,
+      "streak": 1,
+      "longestStreak": 1,
+      "isPendingToday": true,
+      "yearDone": 25,
+      "periodStart": "2026-10-04",
+      "periodEnd": "2026-10-04",
+      "heatmap": {
+        "2026-10-03": "full",
+        "2026-10-04": "partial"
+      }
+    }
+  },
+  {
+    "id": "number-zero-break",
+    "definition": {
+      "id": "goals/Spor.md",
+      "key": "spor",
+      "name": "Spor",
+      "period": "day",
+      "kind": "number",
+      "target": 20
+    },
+    "logs": [
+      {
+        "day": "2026-10-02",
+        "value": 20
+      },
+      {
+        "day": "2026-10-03",
+        "value": 0
+      },
+      {
+        "day": "2026-10-04",
+        "value": 20
+      }
+    ],
+    "today": "2026-10-04",
+    "heatmapFrom": "2026-10-04",
+    "heatmapTo": "2026-10-04",
+    "expected": {
+      "done": 20,
+      "target": 20,
+      "streak": 1,
+      "longestStreak": 1,
+      "isPendingToday": false,
+      "yearDone": 40,
+      "periodStart": "2026-10-04",
+      "periodEnd": "2026-10-04",
+      "heatmap": {
+        "2026-10-04": "full"
+      }
+    }
+  },
+  {
+    "id": "number-fraction",
+    "definition": {
+      "id": "goals/Spor.md",
+      "key": "spor",
+      "name": "Spor",
+      "period": "day",
+      "kind": "number",
+      "target": 0.5
+    },
+    "logs": [
+      {
+        "day": "2026-10-04",
+        "value": 0.5
+      }
+    ],
+    "today": "2026-10-04",
+    "heatmapFrom": "2026-10-04",
+    "heatmapTo": "2026-10-04",
+    "expected": {
+      "done": 0.5,
+      "target": 0.5,
+      "streak": 1,
+      "longestStreak": 1,
+      "isPendingToday": false,
+      "yearDone": 0.5,
+      "periodStart": "2026-10-04",
+      "periodEnd": "2026-10-04",
+      "heatmap": {
+        "2026-10-04": "full"
+      }
+    }
+  },
+  {
+    "id": "number-zero",
+    "definition": {
+      "id": "goals/Spor.md",
+      "key": "spor",
+      "name": "Spor",
+      "period": "day",
+      "kind": "number",
+      "target": 20
+    },
+    "logs": [
+      {
+        "day": "2026-10-04",
+        "value": 0
+      }
+    ],
+    "today": "2026-10-04",
+    "heatmapFrom": "2026-10-04",
+    "heatmapTo": "2026-10-04",
+    "expected": {
+      "done": 0,
+      "target": 20,
+      "streak": 0,
+      "longestStreak": 0,
+      "isPendingToday": true,
+      "yearDone": 0,
+      "periodStart": "2026-10-04",
+      "periodEnd": "2026-10-04",
+      "heatmap": {
+        "2026-10-04": "none"
+      }
+    }
+  },
+  {
+    "id": "number-future",
+    "definition": {
+      "id": "goals/Spor.md",
+      "key": "spor",
+      "name": "Spor",
+      "period": "day",
+      "kind": "number",
+      "target": 20
+    },
+    "logs": [
+      {
+        "day": "2026-10-05",
+        "value": 30
+      }
+    ],
+    "today": "2026-10-04",
+    "heatmapFrom": "2026-10-04",
+    "heatmapTo": "2026-10-05",
+    "expected": {
+      "done": 0,
+      "target": 20,
+      "streak": 0,
+      "longestStreak": 0,
+      "isPendingToday": true,
+      "yearDone": 0,
+      "periodStart": "2026-10-04",
+      "periodEnd": "2026-10-04",
+      "heatmap": {
+        "2026-10-04": "none",
+        "2026-10-05": "full"
+      }
+    }
+  },
+  {
+    "id": "number-duplicate-last",
+    "definition": {
+      "id": "goals/Spor.md",
+      "key": "spor",
+      "name": "Spor",
+      "period": "day",
+      "kind": "number",
+      "target": 20
+    },
+    "logs": [
+      {
+        "day": "2026-10-04",
+        "value": 20
+      },
+      {
+        "day": "2026-10-04",
+        "value": 5
+      }
+    ],
+    "today": "2026-10-04",
+    "heatmapFrom": "2026-10-04",
+    "heatmapTo": "2026-10-04",
+    "expected": {
+      "done": 5,
+      "target": 20,
+      "streak": 0,
+      "longestStreak": 0,
+      "isPendingToday": true,
+      "yearDone": 5,
+      "periodStart": "2026-10-04",
+      "periodEnd": "2026-10-04",
+      "heatmap": {
+        "2026-10-04": "partial"
+      }
+    }
+  },
+  {
+    "id": "number-wrong-kind",
+    "definition": {
+      "id": "goals/Spor.md",
+      "key": "spor",
+      "name": "Spor",
+      "period": "day",
+      "kind": "number",
+      "target": 20
+    },
+    "logs": [
+      {
+        "day": "2026-10-04",
+        "value": true
+      }
+    ],
+    "today": "2026-10-04",
+    "heatmapFrom": "2026-10-04",
+    "heatmapTo": "2026-10-04",
+    "expected": {
+      "done": 0,
+      "target": 20,
+      "streak": 0,
+      "longestStreak": 0,
+      "isPendingToday": true,
+      "yearDone": 0,
+      "periodStart": "2026-10-04",
+      "periodEnd": "2026-10-04",
+      "heatmap": {
+        "2026-10-04": "none"
+      }
+    }
+  },
+  {
+    "id": "boolean-wrong-kind",
+    "definition": {
+      "id": "goals/Spor.md",
+      "key": "spor",
+      "name": "Spor",
+      "period": "day",
+      "kind": "boolean",
+      "target": 1
+    },
+    "logs": [
+      {
+        "day": "2026-10-04",
+        "value": 20
+      }
+    ],
+    "today": "2026-10-04",
+    "heatmapFrom": "2026-10-04",
+    "heatmapTo": "2026-10-04",
+    "expected": {
+      "done": 0,
+      "target": 1,
+      "streak": 0,
+      "longestStreak": 0,
+      "isPendingToday": true,
+      "yearDone": 0,
+      "periodStart": "2026-10-04",
+      "periodEnd": "2026-10-04",
+      "heatmap": {
+        "2026-10-04": "none"
+      }
+    }
+  },
+  {
+    "id": "weekly-three",
+    "definition": {
+      "id": "goals/Spor.md",
+      "key": "spor",
+      "name": "Spor",
+      "period": "week",
+      "kind": "boolean",
+      "target": 3
+    },
+    "logs": [
+      {
+        "day": "2026-10-05",
+        "value": true
+      },
+      {
+        "day": "2026-10-07",
+        "value": true
+      },
+      {
+        "day": "2026-10-11",
+        "value": true
+      }
+    ],
+    "today": "2026-10-11",
+    "heatmapFrom": "2026-10-11",
+    "heatmapTo": "2026-10-11",
+    "expected": {
+      "done": 3,
+      "target": 3,
+      "streak": 1,
+      "longestStreak": 1,
+      "isPendingToday": false,
+      "yearDone": 3,
+      "periodStart": "2026-10-05",
+      "periodEnd": "2026-10-11",
+      "heatmap": {
+        "2026-10-11": "full"
+      }
+    }
+  },
+  {
+    "id": "weekly-current-pending",
+    "definition": {
+      "id": "goals/Spor.md",
+      "key": "spor",
+      "name": "Spor",
+      "period": "week",
+      "kind": "boolean",
+      "target": 3
+    },
+    "logs": [
+      {
+        "day": "2026-10-05",
+        "value": true
+      },
+      {
+        "day": "2026-10-07",
+        "value": true
+      },
+      {
+        "day": "2026-10-11",
+        "value": true
+      }
+    ],
+    "today": "2026-10-12",
+    "heatmapFrom": "2026-10-12",
+    "heatmapTo": "2026-10-12",
+    "expected": {
+      "done": 0,
+      "target": 3,
+      "streak": 1,
+      "longestStreak": 1,
+      "isPendingToday": true,
+      "yearDone": 3,
+      "periodStart": "2026-10-12",
+      "periodEnd": "2026-10-18",
+      "heatmap": {
+        "2026-10-12": "none"
+      }
+    }
+  },
+  {
+    "id": "weekly-two",
+    "definition": {
+      "id": "goals/Spor.md",
+      "key": "spor",
+      "name": "Spor",
+      "period": "week",
+      "kind": "boolean",
+      "target": 3
+    },
+    "logs": [
+      {
+        "day": "2026-09-28",
+        "value": true
+      },
+      {
+        "day": "2026-09-30",
+        "value": true
+      },
+      {
+        "day": "2026-10-04",
+        "value": true
+      },
+      {
+        "day": "2026-10-05",
+        "value": true
+      },
+      {
+        "day": "2026-10-07",
+        "value": true
+      },
+      {
+        "day": "2026-10-11",
+        "value": true
+      }
+    ],
+    "today": "2026-10-11",
+    "heatmapFrom": "2026-10-11",
+    "heatmapTo": "2026-10-11",
+    "expected": {
+      "done": 3,
+      "target": 3,
+      "streak": 2,
+      "longestStreak": 2,
+      "isPendingToday": false,
+      "yearDone": 6,
+      "periodStart": "2026-10-05",
+      "periodEnd": "2026-10-11",
+      "heatmap": {
+        "2026-10-11": "full"
+      }
+    }
+  },
+  {
+    "id": "weekly-failure",
+    "definition": {
+      "id": "goals/Spor.md",
+      "key": "spor",
+      "name": "Spor",
+      "period": "week",
+      "kind": "boolean",
+      "target": 3
+    },
+    "logs": [
+      {
+        "day": "2026-09-28",
+        "value": true
+      },
+      {
+        "day": "2026-09-30",
+        "value": true
+      },
+      {
+        "day": "2026-10-05",
+        "value": true
+      },
+      {
+        "day": "2026-10-07",
+        "value": true
+      },
+      {
+        "day": "2026-10-11",
+        "value": true
+      }
+    ],
+    "today": "2026-10-11",
+    "heatmapFrom": "2026-10-11",
+    "heatmapTo": "2026-10-11",
+    "expected": {
+      "done": 3,
+      "target": 3,
+      "streak": 1,
+      "longestStreak": 1,
+      "isPendingToday": false,
+      "yearDone": 5,
+      "periodStart": "2026-10-05",
+      "periodEnd": "2026-10-11",
+      "heatmap": {
+        "2026-10-11": "full"
+      }
+    }
+  },
+  {
+    "id": "weekly-gap",
+    "definition": {
+      "id": "goals/Spor.md",
+      "key": "spor",
+      "name": "Spor",
+      "period": "week",
+      "kind": "boolean",
+      "target": 3
+    },
+    "logs": [
+      {
+        "day": "2026-09-21",
+        "value": true
+      },
+      {
+        "day": "2026-09-23",
+        "value": true
+      },
+      {
+        "day": "2026-09-25",
+        "value": true
+      },
+      {
+        "day": "2026-10-05",
+        "value": true
+      },
+      {
+        "day": "2026-10-07",
+        "value": true
+      },
+      {
+        "day": "2026-10-11",
+        "value": true
+      }
+    ],
+    "today": "2026-10-11",
+    "heatmapFrom": "2026-10-11",
+    "heatmapTo": "2026-10-11",
+    "expected": {
+      "done": 3,
+      "target": 3,
+      "streak": 1,
+      "longestStreak": 1,
+      "isPendingToday": false,
+      "yearDone": 6,
+      "periodStart": "2026-10-05",
+      "periodEnd": "2026-10-11",
+      "heatmap": {
+        "2026-10-11": "full"
+      }
+    }
+  },
+  {
+    "id": "weekly-sunday-boundary",
+    "definition": {
+      "id": "goals/Spor.md",
+      "key": "spor",
+      "name": "Spor",
+      "period": "week",
+      "kind": "boolean",
+      "target": 2
+    },
+    "logs": [
+      {
+        "day": "2026-10-04",
+        "value": true
+      },
+      {
+        "day": "2026-10-05",
+        "value": true
+      }
+    ],
+    "today": "2026-10-05",
+    "heatmapFrom": "2026-10-04",
+    "heatmapTo": "2026-10-05",
+    "expected": {
+      "done": 1,
+      "target": 2,
+      "streak": 0,
+      "longestStreak": 0,
+      "isPendingToday": true,
+      "yearDone": 2,
+      "periodStart": "2026-10-05",
+      "periodEnd": "2026-10-11",
+      "heatmap": {
+        "2026-10-04": "full",
+        "2026-10-05": "full"
+      }
+    }
+  },
+  {
+    "id": "weekly-year-boundary",
+    "definition": {
+      "id": "goals/Spor.md",
+      "key": "spor",
+      "name": "Spor",
+      "period": "week",
+      "kind": "boolean",
+      "target": 3
+    },
+    "logs": [
+      {
+        "day": "2026-12-28",
+        "value": true
+      },
+      {
+        "day": "2026-12-30",
+        "value": true
+      },
+      {
+        "day": "2027-01-01",
+        "value": true
+      }
+    ],
+    "today": "2027-01-03",
+    "heatmapFrom": "2027-01-03",
+    "heatmapTo": "2027-01-03",
+    "expected": {
+      "done": 3,
+      "target": 3,
+      "streak": 1,
+      "longestStreak": 1,
+      "isPendingToday": false,
+      "yearDone": 1,
+      "periodStart": "2026-12-28",
+      "periodEnd": "2027-01-03",
+      "heatmap": {
+        "2027-01-03": "none"
+      }
+    }
+  },
+  {
+    "id": "weekly-number",
+    "definition": {
+      "id": "goals/Spor.md",
+      "key": "spor",
+      "name": "Spor",
+      "period": "week",
+      "kind": "number",
+      "target": 10
+    },
+    "logs": [
+      {
+        "day": "2026-10-05",
+        "value": 4
+      },
+      {
+        "day": "2026-10-07",
+        "value": 6
+      }
+    ],
+    "today": "2026-10-07",
+    "heatmapFrom": "2026-10-07",
+    "heatmapTo": "2026-10-07",
+    "expected": {
+      "done": 10,
+      "target": 10,
+      "streak": 1,
+      "longestStreak": 1,
+      "isPendingToday": false,
+      "yearDone": 10,
+      "periodStart": "2026-10-05",
+      "periodEnd": "2026-10-11",
+      "heatmap": {
+        "2026-10-07": "partial"
+      }
+    }
+  },
+  {
+    "id": "year-number",
+    "definition": {
+      "id": "goals/Spor.md",
+      "key": "spor",
+      "name": "Spor",
+      "period": "year",
+      "kind": "number",
+      "target": 24
+    },
+    "logs": [
+      {
+        "day": "2026-01-05",
+        "value": 10
+      },
+      {
+        "day": "2026-09-02",
+        "value": 14
+      }
+    ],
+    "today": "2026-10-04",
+    "heatmapFrom": "2026-01-05",
+    "heatmapTo": "2026-01-05",
+    "expected": {
+      "done": 24,
+      "target": 24,
+      "streak": 1,
+      "longestStreak": 1,
+      "isPendingToday": false,
+      "yearDone": 24,
+      "periodStart": "2026-01-01",
+      "periodEnd": "2026-12-31",
+      "heatmap": {
+        "2026-01-05": "partial"
+      }
+    }
+  },
+  {
+    "id": "year-pending-two",
+    "definition": {
+      "id": "goals/Spor.md",
+      "key": "spor",
+      "name": "Spor",
+      "period": "year",
+      "kind": "number",
+      "target": 24
+    },
+    "logs": [
+      {
+        "day": "2025-12-31",
+        "value": 24
+      },
+      {
+        "day": "2026-12-31",
+        "value": 24
+      }
+    ],
+    "today": "2027-01-01",
+    "heatmapFrom": "2027-01-01",
+    "heatmapTo": "2027-01-01",
+    "expected": {
+      "done": 0,
+      "target": 24,
+      "streak": 2,
+      "longestStreak": 2,
+      "isPendingToday": true,
+      "yearDone": 0,
+      "periodStart": "2027-01-01",
+      "periodEnd": "2027-12-31",
+      "heatmap": {
+        "2027-01-01": "none"
+      }
+    }
+  },
+  {
+    "id": "year-gap",
+    "definition": {
+      "id": "goals/Spor.md",
+      "key": "spor",
+      "name": "Spor",
+      "period": "year",
+      "kind": "number",
+      "target": 24
+    },
+    "logs": [
+      {
+        "day": "2024-12-31",
+        "value": 24
+      },
+      {
+        "day": "2026-12-31",
+        "value": 24
+      }
+    ],
+    "today": "2027-01-01",
+    "heatmapFrom": "2027-01-01",
+    "heatmapTo": "2027-01-01",
+    "expected": {
+      "done": 0,
+      "target": 24,
+      "streak": 1,
+      "longestStreak": 1,
+      "isPendingToday": true,
+      "yearDone": 0,
+      "periodStart": "2027-01-01",
+      "periodEnd": "2027-12-31",
+      "heatmap": {
+        "2027-01-01": "none"
+      }
+    }
+  },
+  {
+    "id": "year-exclusive-boundary",
+    "definition": {
+      "id": "goals/Spor.md",
+      "key": "spor",
+      "name": "Spor",
+      "period": "year",
+      "kind": "number",
+      "target": 24
+    },
+    "logs": [
+      {
+        "day": "2025-12-31",
+        "value": 23
+      },
+      {
+        "day": "2026-01-01",
+        "value": 1
+      }
+    ],
+    "today": "2026-01-01",
+    "heatmapFrom": "2026-01-01",
+    "heatmapTo": "2026-01-01",
+    "expected": {
+      "done": 1,
+      "target": 24,
+      "streak": 0,
+      "longestStreak": 0,
+      "isPendingToday": true,
+      "yearDone": 1,
+      "periodStart": "2026-01-01",
+      "periodEnd": "2026-12-31",
+      "heatmap": {
+        "2026-01-01": "partial"
+      }
+    }
+  },
+  {
+    "id": "number-leap",
+    "definition": {
+      "id": "goals/Spor.md",
+      "key": "spor",
+      "name": "Spor",
+      "period": "day",
+      "kind": "number",
+      "target": 20
+    },
+    "logs": [
+      {
+        "day": "2024-02-28",
+        "value": 20
+      },
+      {
+        "day": "2024-02-29",
+        "value": 20
+      },
+      {
+        "day": "2024-03-01",
+        "value": 20
+      }
+    ],
+    "today": "2024-03-01",
+    "heatmapFrom": "2024-03-01",
+    "heatmapTo": "2024-03-01",
+    "expected": {
+      "done": 20,
+      "target": 20,
+      "streak": 3,
+      "longestStreak": 3,
+      "isPendingToday": false,
+      "yearDone": 60,
+      "periodStart": "2024-03-01",
+      "periodEnd": "2024-03-01",
+      "heatmap": {
+        "2024-03-01": "full"
+      }
+    }
+  },
+  {
+    "id": "year-boolean",
+    "definition": {
+      "id": "goals/Spor.md",
+      "key": "spor",
+      "name": "Spor",
+      "period": "year",
+      "kind": "boolean",
+      "target": 2
+    },
+    "logs": [
+      {
+        "day": "2026-01-01",
+        "value": true
+      },
+      {
+        "day": "2026-02-01",
+        "value": true
+      }
+    ],
+    "today": "2026-10-04",
+    "heatmapFrom": "2026-10-04",
+    "heatmapTo": "2026-10-04",
+    "expected": {
+      "done": 2,
+      "target": 2,
+      "streak": 1,
+      "longestStreak": 1,
+      "isPendingToday": false,
+      "yearDone": 2,
+      "periodStart": "2026-01-01",
+      "periodEnd": "2026-12-31",
+      "heatmap": {
+        "2026-10-04": "none"
+      }
+    }
+  },
+  {
+    "id": "daily-future-longest",
+    "definition": {
+      "id": "goals/Spor.md",
+      "key": "spor",
+      "name": "Spor",
+      "period": "day",
+      "kind": "boolean",
+      "target": 1
+    },
+    "logs": [
+      {
+        "day": "2026-10-05",
+        "value": true
+      },
+      {
+        "day": "2026-10-06",
+        "value": true
+      }
+    ],
+    "today": "2026-10-04",
+    "heatmapFrom": "2026-10-04",
+    "heatmapTo": "2026-10-04",
+    "expected": {
+      "done": 0,
+      "target": 1,
+      "streak": 0,
+      "longestStreak": 0,
+      "isPendingToday": true,
+      "yearDone": 0,
+      "periodStart": "2026-10-04",
+      "periodEnd": "2026-10-04",
+      "heatmap": {
+        "2026-10-04": "none"
+      }
+    }
+  },
+  {
+    "id": "milestone-pending",
+    "definition": {
+      "id": "goals/Portfolio.md",
+      "key": "portfolio",
+      "name": "Portfolio",
+      "kind": "milestone",
+      "period": "year"
+    },
+    "logs": [],
+    "today": "2026-10-04",
+    "heatmapFrom": "2026-10-01",
+    "heatmapTo": "2026-10-04",
+    "expected": {
+      "done": 0,
+      "target": 1,
+      "yearDone": 0,
+      "streak": 0,
+      "longestStreak": 0,
+      "isPendingToday": true,
+      "periodStart": "2026-01-01",
+      "periodEnd": "2026-12-31",
+      "completionDate": null,
+      "heatmap": {}
+    }
+  },
+  {
+    "id": "milestone-first-date",
+    "definition": {
+      "id": "goals/Portfolio.md",
+      "key": "portfolio",
+      "name": "Portfolio",
+      "kind": "milestone",
+      "period": "year"
+    },
+    "logs": [
+      {
+        "day": "2026-10-02",
+        "value": true
+      },
+      {
+        "day": "2026-10-03",
+        "value": true
+      },
+      {
+        "day": "2026-10-05",
+        "value": true
+      },
+      {
+        "day": "2025-10-01",
+        "value": true
+      }
+    ],
+    "today": "2026-10-04",
+    "heatmapFrom": "2026-10-01",
+    "heatmapTo": "2026-10-04",
+    "expected": {
+      "done": 1,
+      "target": 1,
+      "yearDone": 1,
+      "streak": 0,
+      "longestStreak": 0,
+      "isPendingToday": false,
+      "periodStart": "2026-01-01",
+      "periodEnd": "2026-12-31",
+      "completionDate": "2026-10-02",
+      "heatmap": {}
+    }
+  },
+  {
+    "id": "milestone-invalid-values",
+    "definition": {
+      "id": "goals/Portfolio.md",
+      "key": "portfolio",
+      "name": "Portfolio",
+      "kind": "milestone",
+      "period": "year"
+    },
+    "logs": [
+      {
+        "day": "2026-10-01",
+        "value": 2
+      },
+      {
+        "day": "2026-10-02",
+        "value": false
+      }
+    ],
+    "today": "2026-10-04",
+    "heatmapFrom": "2026-10-01",
+    "heatmapTo": "2026-10-04",
+    "expected": {
+      "done": 0,
+      "target": 1,
+      "yearDone": 0,
+      "streak": 0,
+      "longestStreak": 0,
+      "isPendingToday": true,
+      "periodStart": "2026-01-01",
+      "periodEnd": "2026-12-31",
+      "completionDate": null,
+      "heatmap": {}
+    }
+  }
+]

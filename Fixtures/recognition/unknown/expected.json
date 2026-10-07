@@ -1,0 +1,50 @@
+{
+  "mentions": [
+    {
+      "line": 0,
+      "byteRange": [
+        1,
+        6
+      ],
+      "spelling": "Deniz",
+      "candidates": [
+        "people/Deniz Arıkan.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 0,
+      "byteRange": [
+        56,
+        61
+      ],
+      "spelling": "Deniz",
+      "candidates": [
+        "people/Deniz Arıkan.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    }
+  ],
+  "unknownMentions": [
+    {
+      "line": 0,
+      "byteRange": [
+        8,
+        19
+      ],
+      "spelling": "Baran Tunç"
+    },
+    {
+      "line": 0,
+      "byteRange": [
+        31,
+        55
+      ],
+      "spelling": "Ece Yalın Selin Korkmaz"
+    }
+  ]
+}

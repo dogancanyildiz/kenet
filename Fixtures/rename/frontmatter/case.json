@@ -1,0 +1,22 @@
+{
+  "path": "places/Tepe Spor Salonu.md",
+  "name": "Liman Ofis",
+  "newPath": "places/Liman Ofis.md",
+  "failures": 2,
+  "updatedFiles": [
+    "goals/Spor.md",
+    "places/Liman Ofis.md"
+  ],
+  "failureDetails": [
+    {
+      "path": "goals/Spor.md",
+      "kind": "rawField",
+      "detail": "raw"
+    },
+    {
+      "path": "notes/Kitap.md",
+      "kind": "rawField",
+      "detail": "raw"
+    }
+  ]
+}

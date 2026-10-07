@@ -1,0 +1,161 @@
+import Foundation
+import SwiftUI
+import Testing
+
+@testable import Journal
+
+/// Touch targets on iPhone must be at least 44×44 pt (HIG). These tests lock the shared
+/// modifier and the views that were found below that size in the Stage 8 audit.
+///
+/// Hit-frame measurement via `UIHostingController` belongs with `JournalUITests`
+/// (accessibility audit). Until then these checks require the modifier to sit on the
+/// **button label** (the placement that actually expands the control's hit area on iOS).
+struct TapTargetTests {
+    @Test func tapTargetModifierEnforcesFixedFortyFourPointMinimum() throws {
+        let source = try Self.read("App/Support/TapTarget.swift")
+        #expect(source.contains("static let minimumLength: CGFloat = 44"))
+        #expect(source.contains("frame(minWidth:"))
+        #expect(source.contains("minHeight:"))
+        #expect(source.contains("contentShape(Rectangle())"))
+        #expect(source.contains("os(iOS)"), "Mac pointer targets must stay a no-op")
+        #expect(
+            !source.contains("@ScaledMetric"),
+            "44 pt floor must stay fixed; ScaledMetric grows past 100 pt at AX5")
+        #expect(
+            source.contains("Button label") || source.contains("button label"),
+            "docs must say the modifier belongs on the label, not outside the Button")
+    }
+
+    @Test(arguments: [
+        // DayView draws its manşet icons with InkHeaderAction / InkHeaderButtonStyle (listed below).
+        "App/Screens/Today/QuickEntryPlaceholder.swift",
+        "App/Screens/Today/QuickEntryTaskControls.swift",
+        // Task checkbox hit target lives on ``TaskBox`` (used by DayTaskView / InkTaskRow).
+        "App/Design/Components/TaskBox.swift",
+        "App/Screens/Days/DaysCalendarView.swift",
+        "App/Screens/Summaries/SummariesView.swift",
+        "App/Screens/Tasks/Timeline/TaskTimelineView.swift",
+        "App/Screens/Graph/GraphControls.swift",
+        // Control-pattern components (manşet-row icon, tabs, labeled menu, filter clear button).
+        "App/Design/Components/InkHeaderAction.swift",
+        "App/Design/Components/InkTabs.swift",
+        "App/Design/Components/InkLabeledMenu.swift",
+        "App/Design/Components/InkFilterField.swift",
+    ])
+    func listedControlsApplyTapTargetInsideButton(_ path: String) throws {
+        let source = try Self.read(path)
+        #expect(source.contains(".tapTarget()"), "\(path) must expand iOS touch targets to 44 pt")
+        // frame + contentShape outside a Button only pads layout; the button hit area stays
+        // the label's bounds. `.buttonStyle` is always applied to the Button, so tapTarget
+        // after it is outside.
+        #expect(
+            !Self.matches(source, #"\.buttonStyle\([^\n]+\)\s*\n\s*\.tapTarget\(\)"#),
+            "\(path): .tapTarget() after .buttonStyle is outside the button")
+        #expect(
+            !Self.matches(
+                source,
+                #"Button\("[^"]+"(?:,\s*systemImage:\s*"[^"]+")?\)\s*\{[^}]*\}\s*\n(?:\s*\.[^\n]+\n)*\s*\.tapTarget\(\)"#
+            ),
+            "\(path): .tapTarget() must sit on the label, not after Button(\"…\") { }")
+        #expect(
+            Self.tapTargetIsInsideLabel(source),
+            "\(path): every .tapTarget() must appear inside a label: { … } (or Label / Image label content)")
+    }
+
+    @Test func heatmapKeepsDenseGridWithoutTapFloor() throws {
+        let source = try Self.read("App/Screens/Goals/GoalHeatmap.swift")
+        #expect(
+            !source.contains(".tapTarget()"),
+            "Heatmap cells must stay a dense grid; hit area is the cell itself")
+        #expect(
+            source.contains("HeatmapCell("),
+            "Heatmap must use HeatmapCell (shape + color density cues)")
+        #expect(
+            source.contains("GoalHeatmapMetrics.cellSize"),
+            "Cell size comes from GoalHeatmapMetrics.cellSize, not the 44 pt tap-target modifier")
+        // 44 pt cannot fit without spilling into the next day: cells form a contiguous grid
+        // and each hit target is exactly one row/column step (cell + spacing).
+        #expect(
+            !source.contains("static let tapHeight: CGFloat = 44"),
+            "Fixed 44 pt tap rows overlap neighbors on dense heatmaps")
+        #expect(
+            source.contains("tapSize(cellSize"),
+            "Hit target must match the grid step (cell + spacing)")
+        #expect(
+            source.contains("contentShape(Rectangle())"),
+            "Cell hit area must fill the tap frame via contentShape")
+    }
+
+    @Test func quickEntryReflowsForLargeDynamicType() {
+        #expect(QuickEntryCapsuleLayout.resolve(dynamicTypeSize: .large) == .singleRow)
+        #expect(QuickEntryCapsuleLayout.resolve(dynamicTypeSize: .xxxLarge) == .singleRow)
+        #expect(QuickEntryCapsuleLayout.resolve(dynamicTypeSize: .accessibility1) == .stacked)
+        #expect(QuickEntryCapsuleLayout.resolve(dynamicTypeSize: .accessibility3) == .stacked)
+        #expect(QuickEntryCapsuleLayout.resolve(dynamicTypeSize: .accessibility5) == .stacked)
+        #expect(
+            QuickEntryModeLock.isModeEnabled(
+                isEnabled: true, isSubmitting: false, isCreating: false, isWriting: false))
+        #expect(
+            !QuickEntryModeLock.isModeEnabled(
+                isEnabled: true, isSubmitting: true, isCreating: false, isWriting: false))
+    }
+
+    @Test func onboardingScrollsForLargeDynamicType() throws {
+        let source = try Self.read("App/Screens/Onboarding/OnboardingView.swift")
+        #expect(source.contains("ScrollView"), "onboarding must remain reachable at large text sizes")
+    }
+
+    @Test func graphNodeHitRadiusMeetsTapTargetDiameter() throws {
+        let source = try Self.read("App/Screens/Graph/GraphCanvas.swift")
+        #expect(
+            source.contains("TapTarget.minimumLength / 2"),
+            "node hit radius must be at least half of the 44 pt minimum")
+    }
+
+    @Test func dayTaskRowGestureComesAfterHitShape() throws {
+        let source = try Self.read("App/Screens/Today/DayTaskView.swift")
+        let shape = try #require(source.range(of: "contentShape(Rectangle())"))
+        let gesture = try #require(source.range(of: ".onTapGesture"))
+        #expect(
+            shape.lowerBound < gesture.lowerBound,
+            "contentShape / tapTarget must precede onTapGesture or the row won't receive taps")
+    }
+
+    /// Each `.tapTarget()` must fall between a `label:` / `Button(action:` label closure and
+    /// its matching close, or ride on inline label content (`Label` / `Image` / `Text` /
+    /// `Group` / `HStack` / `VStack`) that itself sits in that closure.
+    private static func tapTargetIsInsideLabel(_ source: String) -> Bool {
+        let needle = ".tapTarget()"
+        var searchStart = source.startIndex
+        while let range = source.range(of: needle, range: searchStart..<source.endIndex) {
+            let before = source[source.startIndex..<range.lowerBound]
+            // Nearest enclosing `label:` or `Button(action:` … `{` wins over a bare outer Button.
+            let labelIdx = before.range(of: "label:", options: .backwards)?.lowerBound
+            let actionIdx = before.range(of: "Button(action:", options: .backwards)?.lowerBound
+            let opener: String.Index?
+            if let labelIdx, let actionIdx {
+                opener = max(labelIdx, actionIdx)
+            } else {
+                opener = labelIdx ?? actionIdx
+            }
+            guard let opener else { return false }
+            let between = source[opener..<range.lowerBound]
+            // The tapTarget must still be inside that label closure: more `{` than `}` since opener.
+            let opens = between.filter { $0 == "{" }.count
+            let closes = between.filter { $0 == "}" }.count
+            if opens <= closes { return false }
+            searchStart = range.upperBound
+        }
+        return source.contains(needle)
+    }
+
+    private static func matches(_ source: String, _ pattern: String) -> Bool {
+        source.range(of: pattern, options: .regularExpression) != nil
+    }
+
+    private static func read(_ path: String) throws -> String {
+        let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
+            .deletingLastPathComponent()
+        return try String(contentsOf: root.appendingPathComponent(path), encoding: .utf8)
+    }
+}

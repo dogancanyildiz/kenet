@@ -1,0 +1,6 @@
+- [ ] Task 0 🔁 every weekday 📅 2026-10-04 #project/demo ^r0
+- [ ] Task 1 🔁 every 0 days 📅 2026-10-04 #project/demo ^r1
+- [ ] Task 2 🔁 every 1.5 months 📅 2026-10-04 #project/demo ^r2
+- [ ] Task 3 🔁 every week on monday,tuesday 📅 2026-10-04 #project/demo ^r3
+- [ ] Task 4 🔁 every month on the last 📅 2026-10-04 #project/demo ^r4
+- [ ] Task 5 🔁 every 9999999999999999999999999 days 📅 2026-10-04 #project/demo ^r5

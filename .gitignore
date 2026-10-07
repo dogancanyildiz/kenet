@@ -15,6 +15,9 @@ xcuserdata/
 *.xcscmblueprint
 *.xccheckout
 
+# XcodeGen ile üretilir: `xcodegen generate` (tanım project.yml içinde)
+Journal.xcodeproj/
+
 # Derleme çıktıları
 build/
 DerivedData/
@@ -40,6 +43,8 @@ DerivedData/
 *.p12
 *.mobileprovision
 *.pem
+# Takım kimliği gibi makineye özgü imzalama ayarları (örnek: Config/Local.xcconfig.example)
+Config/Local.xcconfig
 
 # fastlane çıktıları (ileride CD için)
 fastlane/report.xml
@@ -54,6 +59,8 @@ fastlane/test_output/
 Vault/
 vault/
 .obsidian/
+# Fixture kasalarındaki .obsidian klasörü sınanan girdidir.
+!Fixtures/**/.obsidian/
 
 
 # ----------------------------------------
@@ -71,3 +78,4 @@ vault/
 *.log
 *.tmp
 *.swp
+

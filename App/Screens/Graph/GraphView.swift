@@ -65,6 +65,7 @@ struct GraphView: View {
                         .padding(.horizontal, InkSpacing.margin)
                         .padding(.bottom, 8)
                 }
+                .inkPageColumn()
             }
             .inkPage()
             .task(

@@ -95,10 +95,18 @@ struct GraphControls: View {
             Text("En az \(filter.minimumWeight) ortak gün"))
     }
 
-    private var weightRow: some View {
-        HStack(alignment: .firstTextBaseline, spacing: 8) {
-            weightLabel
-            weightStepper
+    @ViewBuilder private var weightRow: some View {
+        if stacksFilters {
+            VStack(alignment: .leading, spacing: 8) {
+                weightLabel
+                weightStepper
+            }
+        } else {
+            HStack(alignment: .center, spacing: 8) {
+                weightLabel
+                Spacer(minLength: 8)
+                weightStepper
+            }
         }
     }
 

@@ -9,10 +9,15 @@ struct PageHeadline: View {
 
     private let title: Title
     var byline: String? = nil
+    /// Keeps the title on one line by shrinking it (down to 75%) when it shares its row with
+    /// buttons. Accessibility sizes still wrap: shrinking there would defeat the larger text.
+    var fitsOneLine = false
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
-    init(title: String, byline: String? = nil) {
+    init(title: String, byline: String? = nil, fitsOneLine: Bool = false) {
         self.title = .verbatim(title)
         self.byline = byline
+        self.fitsOneLine = fitsOneLine
     }
 
     init(_ title: LocalizedStringKey, byline: String? = nil) {
@@ -24,6 +29,8 @@ struct PageHeadline: View {
         VStack(alignment: .leading, spacing: 2) {
             titleText
                 .font(.ink.display)
+                .lineLimit(shrinksToFit ? 1 : nil)
+                .minimumScaleFactor(shrinksToFit ? 0.75 : 1)
                 .foregroundStyle(.ink.text)
                 .accessibilityAddTraits(.isHeader)
             if let byline, !byline.isEmpty {
@@ -35,6 +42,8 @@ struct PageHeadline: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)
     }
+
+    private var shrinksToFit: Bool { fitsOneLine && !dynamicTypeSize.isAccessibilitySize }
 
     @ViewBuilder private var titleText: some View {
         switch title {

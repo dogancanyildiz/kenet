@@ -116,6 +116,7 @@ Harita geçerli koordinatı olan konumları pin olarak gösterir. Pin boyutu bü
 - Satıra girince: kaydırılan manşet, büyük rakam, ısı haritası (başlık döneme göre hafta sayısı söylemez; yoğunluk renge ek biçimle; bugün çerçeveli; gelecek çizilmez; sığmazsa en yeni hafta açık gelir), en uzun seri, geçmiş kayıtlar. Geçmiş günlerin kaydı düzeltilebilir. Tanım alanları yüzey üzerinde düzenlenir.
 - Kilometre taşı (5): yıllık, miktarsız satır; yapıldı/yapılmadı ve tarih. Dokununca bugün işaretlenir veya bugünkü kayıt kaldırılır; önceki gün tamamlanmış satır salt okunurdur. Zincir/ısı haritası bulunmaz. Yeni hedefte tür seçilir.
 - Haftalık hedefte "bu hafta 2/3", yıllık hedefte ilerleme çubuğu.
+- Yeni hedef sheet'i kâğıt zeminde; hedef miktar etiketli alandır. Orta yazı boyutunda Oluştur araç çubuğunda, erişilebilirlik yazı boyutunda sayfa altındadır.
 
 ### Arama (1)
 

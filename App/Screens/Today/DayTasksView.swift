@@ -42,9 +42,11 @@ struct DayTasksView: View {
                             Text(verbatim: text)
                                 .font(.ink.meta)
                                 .foregroundStyle(Color.ink.warning)
+                                // Top-align like task titles; `.leading` centers in the 44 pt
+                                // floor and reads as extra gap above/below the line.
                                 .frame(
                                     maxWidth: .infinity, minHeight: TapTarget.minimumLength,
-                                    alignment: .leading
+                                    alignment: .topLeading
                                 )
                                 .contentShape(Rectangle())
                         }
@@ -56,7 +58,7 @@ struct DayTasksView: View {
                                 .foregroundStyle(Color.ink.secondaryText)
                                 .frame(
                                     maxWidth: .infinity, minHeight: TapTarget.minimumLength,
-                                    alignment: .leading
+                                    alignment: .topLeading
                                 )
                                 .contentShape(Rectangle())
                         }

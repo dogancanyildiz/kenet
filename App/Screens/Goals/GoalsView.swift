@@ -52,9 +52,7 @@ private struct GoalListContent: View {
             }
             if let error = model.errorText {
                 InfoBand(kind: .error, verbatim: error)
-                    .listRowInsets(EdgeInsets())
-                    .listRowSeparator(.hidden)
-                    .listRowBackground(Color.ink.paper)
+                    .inkListRow()
             }
         }
         .listStyle(.plain)
@@ -109,14 +107,6 @@ private struct GoalListContent: View {
                 }
             }
         }
-        .listRowInsets(
-            EdgeInsets(
-                top: 8, leading: InkSpacing.margin, bottom: 8, trailing: InkSpacing.margin)
-        )
-        .listRowSeparator(.hidden)
-        .listRowBackground(
-            selection?.wrappedValue == goal.id
-                ? Color.ink.accent.opacity(0.12) : Color.ink.paper
-        )
+        .inkListRow(isSelected: selection?.wrappedValue == goal.id)
     }
 }

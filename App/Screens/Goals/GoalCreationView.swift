@@ -4,7 +4,12 @@ import SwiftUI
 struct GoalCreationView: View {
     @State private var model: GoalCreationModel
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
     init(store: IndexStore) { _model = State(initialValue: GoalCreationModel(store: store)) }
+
+    private var stacksChrome: Bool { dynamicTypeSize.isAccessibilitySize }
+
     var body: some View {
         @Bindable var model = model
         Form {
@@ -28,11 +33,15 @@ struct GoalCreationView: View {
                 Text(verbatim: GoalKind.milestone.title).tag(GoalKind.milestone)
             }
             if model.kind != .milestone {
-                TextField("Hedef miktar", text: $model.target)
-                    .font(.ink.value)
-                    #if os(iOS)
-                        .keyboardType(.decimalPad)
-                    #endif
+                LabeledContent("Hedef miktar") {
+                    TextField("Hedef miktar", text: $model.target)
+                        .font(.ink.value)
+                        .labelsHidden()
+                        .multilineTextAlignment(.trailing)
+                        #if os(iOS)
+                            .keyboardType(.decimalPad)
+                        #endif
+                }
             }
             if model.kind == .number {
                 TextField("Birim (isteğe bağlı)", text: $model.unit)
@@ -44,7 +53,7 @@ struct GoalCreationView: View {
         }
         .formStyle(.grouped)
         .scrollContentBackground(.hidden)
-        .background(Color.ink.surface)
+        .background(Color.ink.paper)
         .disabled(model.isWriting || model.isSaved)
         .navigationTitle("Yeni hedef")
         #if os(iOS)
@@ -54,13 +63,30 @@ struct GoalCreationView: View {
             ToolbarItem(placement: .cancellationAction) {
                 Button("Kapat") { dismiss() }
             }
-            ToolbarItem(placement: .confirmationAction) {
-                Button("Oluştur") {
-                    Task { if await model.save(), model.errorText == nil { dismiss() } }
+            // AX sizes often fold confirmation into the overflow menu; keep it for medium type.
+            if !stacksChrome {
+                ToolbarItem(placement: .confirmationAction) {
+                    createButton
                 }
-                .disabled(!model.canSave)
+            }
+        }
+        .safeAreaInset(edge: .bottom) {
+            if stacksChrome {
+                createButton
+                    .buttonStyle(InkPrimaryButtonStyle())
+                    .padding(.horizontal, InkSpacing.margin)
+                    .padding(.vertical, 10)
+                    .frame(maxWidth: .infinity)
+                    .background(Color.ink.paper)
             }
         }
         .frame(minWidth: 320, minHeight: 350)
+    }
+
+    private var createButton: some View {
+        Button("Oluştur") {
+            Task { if await model.save(), model.errorText == nil { dismiss() } }
+        }
+        .disabled(!model.canSave)
     }
 }

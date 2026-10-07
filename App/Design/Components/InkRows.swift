@@ -150,6 +150,7 @@ struct InkGoalRow: View {
                     .foregroundStyle(.ink.secondaryText)
             }
         } trailing: {
+            let plusBaselineFromTop = plusSide * 0.72
             HStack(spacing: 8) {
                 if let valueText {
                     if let onValueTap {
@@ -196,6 +197,11 @@ struct InkGoalRow: View {
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel(Text(incrementLabel))
+                    // Image baseline sits at the glyph bottom; without a value `Text`, that pulls
+                    // the name ~5 pt down via MarginRow's firstTextBaseline trailing alignment.
+                    .alignmentGuide(.firstTextBaseline) { dimensions in
+                        dimensions[VerticalAlignment.top] + plusBaselineFromTop
+                    }
                 }
             }
         }

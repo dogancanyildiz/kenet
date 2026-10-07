@@ -91,14 +91,16 @@ Kapılar:
 Yön seçildi: Mürekkep, sahibin iki değişikliğiyle. Yön, belirteçler ve kurallar `design.md` belgesindedir.
 
 - [ ] Seçilen yönün Bugün ekranı için SwiftUI prototipi (gerçek cihazda gözle doğrulanır: ünlemli görev kutusu, büyük yazı, Kontrastı Artır; istenirse Derkenar'ın imzası)
+  - Ekran yazıldı ve görüntü testlerinde doğrulandı; gerçek cihazda gözle doğrulama bekliyor.
 - [ ] Tasarım belirteçleri (renk, tipografi, biçim, boşluk) ve asset catalog; uygulama simgesi
-- [ ] Bileşen kitaplığı: tarih başlığı, hedef çipi, görev satırı, olay satırı, bölüm başlığı, hızlı giriş çubuğu, yüzey, çip, boş durum, ilerleme göstergesi, ısı haritası hücresi, bilgi bandı
-- [ ] Bugün ve hızlı giriş: tarih başlığı, olayların ilk ekranda görünmesi, geciken görevlerin sınırlanması (taslak değişikliği önce `screens.md`'de)
-- [ ] Günlük ve gün sayfası; varlık sayfalarında okuma ve düzenlemenin ayrılması; ham bağlantı sözdizimi ve teknik anahtarların gizlenmesi
-- [ ] Görevler, kanban ve zaman çizelgesi; görünüm değiştirmenin tek kalıba bağlanması
-- [ ] Hedefler, ısı haritası ve özetler; graph ve harita renkleri (renge ek olarak biçim)
-- [ ] Mac geçişi; Ayarlar'ın bölünmesi (Gizlilik, Bildirimler, Takvim ve Konum, Kasa, Tanılama); ilk kullanım ve kilit ekranı
-- [ ] Ekran görüntüsü testleri: açık ve koyu mod, büyük yazı, Kontrastı Artır
+  - Belirteçler ve asset catalog bitti; uygulama simgesi seçim bekliyor.
+- [x] Bileşen kitaplığı: tarih başlığı, hedef çipi, görev satırı, olay satırı, bölüm başlığı, hızlı giriş çubuğu, yüzey, çip, boş durum, ilerleme göstergesi, ısı haritası hücresi, bilgi bandı
+- [x] Bugün ve hızlı giriş: tarih başlığı, olayların ilk ekranda görünmesi, geciken görevlerin sınırlanması (taslak değişikliği önce `screens.md`'de)
+- [x] Günlük ve gün sayfası; varlık sayfalarında okuma ve düzenlemenin ayrılması; ham bağlantı sözdizimi ve teknik anahtarların gizlenmesi
+- [x] Görevler, kanban ve zaman çizelgesi; görünüm değiştirmenin tek kalıba bağlanması
+- [x] Hedefler, ısı haritası ve özetler; graph ve harita renkleri (renge ek olarak biçim)
+- [x] Mac geçişi; Ayarlar'ın bölünmesi (Gizlilik, Bildirimler, Takvim ve Konum, Kasa, Tanılama); ilk kullanım ve kilit ekranı
+- [x] Ekran görüntüsü testleri: açık ve koyu mod, büyük yazı, Kontrastı Artır
 
 **Çıkış ölçütü:** Bütün ekranlar aynı bileşen kitaplığından kuruluyor; erişilebilirlik denetimi ve ekran görüntüsü testleri CI'da geçiyor.
 

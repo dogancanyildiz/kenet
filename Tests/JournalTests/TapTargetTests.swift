@@ -1,5 +1,8 @@
 import Foundation
+import SwiftUI
 import Testing
+
+@testable import Journal
 
 /// Touch targets on iPhone must be at least 44×44 pt (HIG). These tests lock the shared
 /// modifier and the views that were found below that size in the Stage 8 audit.
@@ -24,6 +27,7 @@ struct TapTargetTests {
     }
 
     @Test(arguments: [
+        "App/Screens/Today/DayView.swift",
         "App/Screens/Today/QuickEntryPlaceholder.swift",
         "App/Screens/Today/QuickEntryTaskControls.swift",
         // Task checkbox hit target lives on ``TaskBox`` (used by DayTaskView / InkTaskRow).
@@ -61,20 +65,18 @@ struct TapTargetTests {
         #expect(source.contains("frame(height: 18)"))
     }
 
-    @Test func quickEntryReflowsForLargeDynamicType() throws {
-        let capsule = try Self.read("App/Design/Components/QuickEntryCapsule.swift")
-        let bar = try Self.read("App/Screens/Today/QuickEntryPlaceholder.swift")
-        #expect(capsule.contains("ViewThatFits"), "wide layouts stack mode/send above the field")
-        #expect(capsule.contains("@ScaledMetric"), "send circle must scale with Dynamic Type")
+    @Test func quickEntryReflowsForLargeDynamicType() {
+        #expect(QuickEntryCapsuleLayout.resolve(dynamicTypeSize: .large) == .singleRow)
+        #expect(QuickEntryCapsuleLayout.resolve(dynamicTypeSize: .xxxLarge) == .singleRow)
+        #expect(QuickEntryCapsuleLayout.resolve(dynamicTypeSize: .accessibility1) == .stacked)
+        #expect(QuickEntryCapsuleLayout.resolve(dynamicTypeSize: .accessibility3) == .stacked)
+        #expect(QuickEntryCapsuleLayout.resolve(dynamicTypeSize: .accessibility5) == .stacked)
         #expect(
-            capsule.contains("dynamicTypeSize(...DynamicTypeSize.accessibility2)"),
-            "capsule chrome caps at accessibility2 so mode words and send stay usable")
+            QuickEntryModeLock.isModeEnabled(
+                isEnabled: true, isSubmitting: false, isCreating: false, isWriting: false))
         #expect(
-            bar.contains("isModeEnabled"),
-            "mode picker must disable while submitting/creating/writing")
-        #expect(
-            !bar.contains("if model.mode == .event { timeButton }\n            QuickEntryCapsule"),
-            "time control moved inside the capsule to free first-screen height")
+            !QuickEntryModeLock.isModeEnabled(
+                isEnabled: true, isSubmitting: true, isCreating: false, isWriting: false))
     }
 
     @Test func onboardingScrollsForLargeDynamicType() throws {

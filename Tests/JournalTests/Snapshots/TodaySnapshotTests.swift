@@ -45,8 +45,8 @@
 
     @MainActor @Suite("Today snapshots")
     struct TodaySnapshotTests {
-        /// Approximate tab-bar height so the quick-entry shelf is not flush with the canvas bottom.
-        private static let tabBarHeight: CGFloat = 49
+        /// Tab bar + home indicator so the quick-entry shelf matches a real phone bottom inset.
+        private static let tabBarHeight: CGFloat = 84
 
         @Test(arguments: TodaySnapshotCase.allCases)
         func today(_ snapshotCase: TodaySnapshotCase) async throws {
@@ -87,6 +87,7 @@
             .environment(\.timeZone, snapshotTimeZone)
             .environment(\.clockNow, { snapshotNow })
             .environment(\.openSearch, {})
+            .environment(\.openSettings, {})
 
             if snapshotCase.usesCalendar {
                 await calendar.load(snapshotDay, timeZone: snapshotTimeZone)
@@ -236,14 +237,13 @@
 
     @testable import Journal
 
+    // Local record (macOS; does not use the iOS simulator):
+    // SNAPSHOT_TESTING_RECORD=all xcodebuild test -project Journal.xcodeproj -scheme Journal_macOS -destination 'platform=macOS' -only-testing:JournalTests_macOS/TodayMacSnapshotTests CODE_SIGNING_ALLOWED=NO
+
     @MainActor @Suite("Today snapshots (macOS)")
     struct TodayMacSnapshotTests {
         @Test(arguments: ["todayMacLight", "todayMacDark"])
         func todayMac(_ name: String) async throws {
-            // References are drawn with Turkish catalog + tr_TR formatting. `-testLanguage en`
-            // still nudges system chrome enough to miss the 0.999 pixel floor.
-            guard Locale.current.language.languageCode?.identifier == "tr" else { return }
-
             let context = try TaskTestContext(sample: true)
             defer { context.clean() }
             await context.start()
@@ -264,6 +264,7 @@
                 source: FakeLocationSource(), defaults: context.defaults.defaults)
             let scheme: ColorScheme = name == "todayMacDark" ? .dark : .light
 
+            let ready = MacGoalsReadyBox()
             let root = NavigationStack {
                 DayView(store: context.store, date: day, isToday: true)
             }
@@ -276,28 +277,65 @@
             .environment(\.clockNow, { now })
             .environment(\.openSearch, {})
             .environment(\.colorScheme, scheme)
+            .onPreferenceChange(GoalsStripReadyKey.self) { ready.isReady = $0 }
             .frame(width: 720, height: 900)
 
             let host = NSHostingView(rootView: root)
             host.frame = NSRect(x: 0, y: 0, width: 720, height: 900)
-            for _ in 0..<80 {
+            let window = NSWindow(
+                contentRect: NSRect(x: 0, y: 0, width: 720, height: 900),
+                styleMask: [.titled, .closable],
+                backing: .buffered,
+                defer: false
+            )
+            window.contentView = host
+            window.isReleasedWhenClosed = false
+            window.makeKeyAndOrderFront(nil)
+
+            for _ in 0..<100 {
                 await Task.yield()
                 try? await Task.sleep(for: .milliseconds(50))
-                if !context.store.isProcessing { break }
+                if !context.store.isProcessing, ready.isReady { break }
             }
-            // Wait until goal strip finished loading so plus controls are present.
-            try? await Task.sleep(for: .milliseconds(1200))
+            #expect(ready.isReady, "goal strip must finish loading before the Mac reference is drawn")
 
             let record = ProcessInfo.processInfo.environment["SNAPSHOT_TESTING_RECORD"]
                 .flatMap(SnapshotTestingConfiguration.Record.init(rawValue:))
+            // Fixed 2× bitmap so references do not depend on the host display scale.
             assertSnapshot(
-                of: host,
+                of: Self.render(host, scale: 2),
                 as: .image(precision: 0.999, perceptualPrecision: 0.995),
                 named: name,
                 record: record,
-                testName: "today"
+                file: #filePath,
+                testName: "today",
+                line: #line
             )
+            window.orderOut(nil)
         }
+
+        private static func render(_ view: NSView, scale: CGFloat) -> NSImage {
+            let size = view.bounds.size
+            let pixelsWide = max(1, Int((size.width * scale).rounded()))
+            let pixelsHigh = max(1, Int((size.height * scale).rounded()))
+            guard
+                let rep = NSBitmapImageRep(
+                    bitmapDataPlanes: nil, pixelsWide: pixelsWide, pixelsHigh: pixelsHigh,
+                    bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false,
+                    colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0)
+            else {
+                return NSImage(size: size)
+            }
+            rep.size = size
+            view.cacheDisplay(in: view.bounds, to: rep)
+            let image = NSImage(size: size)
+            image.addRepresentation(rep)
+            return image
+        }
+    }
+
+    @MainActor private final class MacGoalsReadyBox {
+        var isReady = false
     }
 
     @MainActor private final class MacSnapshotCalendarSource: CalendarEventSource {

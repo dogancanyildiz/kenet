@@ -10,6 +10,12 @@ enum InkSpacing {
     /// Edge column for marks (pt). Pair with `@ScaledMetric(relativeTo: .body)`.
     static let gutter: CGFloat = 44
 
+    /// Vertical gap between rows inside a section (tasks, goals, events).
+    static let row: CGFloat = 6
+
+    /// Vertical gap between major page sections on Today.
+    static let section: CGFloat = 8
+
     /// Mac reading column max width (pt).
     static let macPageWidth: CGFloat = 680
 }
@@ -27,6 +33,8 @@ enum InkSize {
     /// Heatmap / chip corner radius.
     static let chipCorner: CGFloat = 4
     static let kanbanCorner: CGFloat = 8
+    /// Stacked (accessibility) quick-entry chrome; not a full capsule radius.
+    static let quickEntryCorner: CGFloat = 20
 }
 
 enum InkStroke {

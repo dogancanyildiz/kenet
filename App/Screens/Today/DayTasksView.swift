@@ -11,14 +11,17 @@ struct DayTasksView: View {
     var onExpandCarriedOver: () -> Void
     var onExpandCompleted: () -> Void
     @Environment(\.calendar) private var calendar
+    @Environment(\.locale) private var locale
 
     var body: some View {
         let rows = presentation.rows
         let carriedIDs = Set(presentation.carriedOverTasks.map(\.id))
         if !rows.isEmpty {
-            VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: InkSpacing.row) {
                 SectionHeader(
-                    title: String(localized: "Görevler"),
+                    title: String(
+                        localized: "Görevler",
+                        bundle: PresentationLocalization.bundle(locale), locale: locale),
                     counter: presentation.counter(for: .tasks))
                 if let error = model.errorText {
                     InfoBand(kind: .error, verbatim: error)
@@ -39,8 +42,11 @@ struct DayTasksView: View {
                             Text(verbatim: text)
                                 .font(.ink.meta)
                                 .foregroundStyle(Color.ink.warning)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .tapTarget()
+                                .frame(
+                                    maxWidth: .infinity, minHeight: TapTarget.minimumLength,
+                                    alignment: .leading
+                                )
+                                .contentShape(Rectangle())
                         }
                         .buttonStyle(.plain)
                     case .completedDisclosure(let text):
@@ -48,8 +54,11 @@ struct DayTasksView: View {
                             Text(verbatim: text)
                                 .font(.ink.meta)
                                 .foregroundStyle(Color.ink.secondaryText)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .tapTarget()
+                                .frame(
+                                    maxWidth: .infinity, minHeight: TapTarget.minimumLength,
+                                    alignment: .leading
+                                )
+                                .contentShape(Rectangle())
                         }
                         .buttonStyle(.plain)
                     }

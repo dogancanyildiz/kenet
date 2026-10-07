@@ -67,9 +67,10 @@ struct InkTaskRow: View {
                         .foregroundStyle(Color.ink.secondaryText)
                 }
                 if showsLowPriority {
-                    TaskPriorityMark(priority: .low)
+                    Image(systemName: "arrow.down")
                         .font(.ink.meta)
                         .foregroundStyle(Color.ink.secondaryText)
+                        .accessibilityLabel(Text(verbatim: VoiceOverCopy.priorityValue(.low)))
                 }
             }
         }
@@ -119,17 +120,13 @@ struct InkGoalRow: View {
     @ScaledMetric(relativeTo: .body) private var plusSide = InkSize.plus
 
     var body: some View {
+        goalRow
+            .modifier(GoalValueAccessibilityAction(action: onValueTap, label: enterAmountLabel))
+    }
+
+    private var goalRow: some View {
         MarginRow(kind: .vault) {
-            if let onMarkTap {
-                Button(action: onMarkTap) {
-                    GoalRing(progress: progress, isBoolean: isBoolean)
-                        .tapTarget()
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel(Text(incrementLabel))
-            } else {
-                GoalRing(progress: progress, isBoolean: isBoolean)
-            }
+            mark
         } primary: {
             VStack(alignment: .leading, spacing: 4) {
                 Text(verbatim: name)
@@ -156,7 +153,9 @@ struct InkGoalRow: View {
                                 .contentShape(Rectangle())
                         }
                         .buttonStyle(.plain)
-                        .accessibilityLabel(Text(enterAmountLabel))
+                        .accessibilityLabel(Text(verbatim: name))
+                        .accessibilityValue(Text(verbatim: valueText))
+                        .accessibilityHint(Text(enterAmountLabel))
                     } else {
                         Text(verbatim: valueText)
                             .font(.ink.value)
@@ -188,8 +187,32 @@ struct InkGoalRow: View {
                 }
             }
         }
-        .accessibilityAction(named: Text(enterAmountLabel)) {
-            onValueTap?()
+    }
+
+    @ViewBuilder private var mark: some View {
+        let ring = GoalRing(progress: progress, isBoolean: isBoolean)
+        if let onMarkTap {
+            Button(action: onMarkTap) {
+                ring.tapTarget()
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(Text(incrementLabel))
+        } else {
+            ring
+        }
+    }
+}
+
+/// Adds a VoiceOver action only when a value editor is available (boolean rows stay clean).
+private struct GoalValueAccessibilityAction: ViewModifier {
+    var action: (() -> Void)?
+    var label: LocalizedStringKey
+
+    @ViewBuilder func body(content: Content) -> some View {
+        if let action {
+            content.accessibilityAction(named: Text(label), action)
+        } else {
+            content
         }
     }
 }
@@ -207,15 +230,22 @@ struct InkEventRow: View {
     }
 }
 
-/// Calendar row: tabular time, sans body (external source).
+/// Calendar row: start time in the gutter; end cue on the secondary line.
 struct InkCalendarRow: View {
     var time: String?
     let title: String
+    var endLabel: String? = nil
 
     var body: some View {
         MarginRow(kind: .external, time: time) {
             Text(verbatim: title)
                 .foregroundStyle(.ink.text)
+        } secondary: {
+            if let endLabel, !endLabel.isEmpty {
+                Text(verbatim: endLabel)
+                    .font(.ink.meta)
+                    .foregroundStyle(.ink.secondaryText)
+            }
         }
     }
 }

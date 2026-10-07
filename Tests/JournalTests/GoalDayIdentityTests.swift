@@ -34,14 +34,16 @@ struct GoalDayIdentityTests {
         }
     }
 
-    @Test func dayViewRecreatesGoalStripIdentityPerDay() throws {
-        let root = URL(fileURLWithPath: #filePath)
-            .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
-        let source = try String(
-            contentsOf: root.appendingPathComponent("App/Screens/Today/DayView.swift"),
-            encoding: .utf8)
+    @Test func goalStripIdentityChangesWithDayAndVault() {
+        let day = CalendarDate("2026-09-20")!
+        let a = GoalStripIdentity.key(day: day, vaultPath: "/tmp/vault-a")
+        let b = GoalStripIdentity.key(day: day, vaultPath: "/tmp/vault-b")
+        let next = GoalStripIdentity.key(day: CalendarDate("2026-09-21")!, vaultPath: "/tmp/vault-a")
+        #expect(a != b)
+        #expect(a != next)
+        #expect(a == day.description + "/tmp/vault-a")
         #expect(
-            source.contains(".id(date.description + (store.vaultURL?.path ?? \"\"))"),
-            "GoalStripView must reset GoalDayModel when day or vault changes")
+            GoalStripIdentity.key(day: day, vaultPath: nil) == day.description,
+            "nil vault path must not invent a suffix")
     }
 }

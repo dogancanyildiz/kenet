@@ -1,7 +1,15 @@
 import SwiftUI
 
-extension QuickEntryMode {
-    var titleKey: LocalizedStringKey { LocalizedStringKey(catalogKey) }
+/// Pure layout choice for the quick-entry capsule (unit-tested).
+enum QuickEntryCapsuleLayout: Equatable, Sendable {
+    /// Mode words | time/field | send on one row.
+    case singleRow
+    /// Mode + send on the first row; field below (accessibility sizes only).
+    case stacked
+
+    static func resolve(dynamicTypeSize: DynamicTypeSize) -> Self {
+        dynamicTypeSize.isAccessibilitySize ? .stacked : .singleRow
+    }
 }
 
 /// Capsule chrome for the quick-entry bar: mode words, field slot, send.
@@ -14,37 +22,55 @@ struct QuickEntryCapsule<Field: View>: View {
     var isModeEnabled: Bool = true
     @ViewBuilder var field: () -> Field
 
-    @ScaledMetric(relativeTo: .body) private var sendSide = InkSize.send
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.locale) private var locale
+
+    private var layout: QuickEntryCapsuleLayout {
+        QuickEntryCapsuleLayout.resolve(dynamicTypeSize: dynamicTypeSize)
+    }
 
     var body: some View {
-        ViewThatFits(in: .horizontal) {
-            HStack(alignment: .center, spacing: 8) {
-                modePicker
-                fieldSlot
-                sendButton
-            }
-            VStack(alignment: .leading, spacing: 8) {
-                HStack(alignment: .center, spacing: 8) {
+        Group {
+            switch layout {
+            case .singleRow:
+                HStack(alignment: .center, spacing: 6) {
                     modePicker
-                    Spacer(minLength: 0)
+                    fieldSlot
                     sendButton
                 }
-                fieldSlot
+            case .stacked:
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(alignment: .center, spacing: 6) {
+                        modePicker
+                        Spacer(minLength: 0)
+                        sendButton
+                    }
+                    fieldSlot
+                }
             }
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 4)
         // Padding sandwich (no strokeBorder): avoids the 1.5 pt end-cap "bracket" on snapshots.
-        .background(Capsule().fill(Color.ink.paper))
+        .background { chromeFill(Color.ink.paper) }
         .padding(InkStroke.control)
-        .background(Capsule().fill(Color.ink.control))
+        .background { chromeFill(Color.ink.control) }
         // Chrome (mode words, send) caps at AX2; the field text still scales via the caller.
         .dynamicTypeSize(...DynamicTypeSize.accessibility2)
     }
 
+    @ViewBuilder private func chromeFill(_ color: Color) -> some View {
+        switch layout {
+        case .singleRow:
+            Capsule().fill(color)
+        case .stacked:
+            RoundedRectangle(cornerRadius: InkSize.quickEntryCorner, style: .continuous)
+                .fill(color)
+        }
+    }
+
     private var modePicker: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: 2) {
             ForEach(QuickEntryMode.allCases, id: \.self) { option in
                 modeWord(option)
             }
@@ -54,10 +80,13 @@ struct QuickEntryCapsule<Field: View>: View {
 
     private func modeWord(_ option: QuickEntryMode) -> some View {
         let selected = mode == option
+        let title = String(
+            localized: String.LocalizationValue(option.catalogKey),
+            bundle: PresentationLocalization.bundle(locale), locale: locale)
         return Button {
             mode = option
         } label: {
-            Text(option.titleKey)
+            Text(verbatim: title)
                 .font(selected ? Font.ink.section : Font.ink.meta)
                 .fontWeight(selected ? .semibold : .regular)
                 .foregroundStyle(selected ? Color.ink.text : Color.ink.secondaryText)
@@ -84,6 +113,19 @@ struct QuickEntryCapsule<Field: View>: View {
     }
 
     private var sendButton: some View {
+        // ScaledMetric must live under the AX2 ceiling (separate subview).
+        QuickEntrySendButton(canSubmit: canSubmit, onSubmit: onSubmit)
+    }
+}
+
+/// Send control sized from the capped Dynamic Type environment.
+private struct QuickEntrySendButton: View {
+    var canSubmit: Bool
+    var onSubmit: () -> Void
+    @ScaledMetric(relativeTo: .body) private var sendSide = InkSize.send
+    @Environment(\.locale) private var locale
+
+    var body: some View {
         Button(action: onSubmit) {
             Image(systemName: "arrow.up")
                 .font(.body.weight(.semibold))
@@ -107,7 +149,21 @@ struct QuickEntryCapsule<Field: View>: View {
         }
         .buttonStyle(.plain)
         .disabled(!canSubmit)
-        .accessibilityLabel(Text("Gönder"))
+        .accessibilityLabel(
+            Text(
+                verbatim: String(
+                    localized: "Gönder", bundle: PresentationLocalization.bundle(locale),
+                    locale: locale))
+        )
         .accessibilityIdentifier("button.quickEntrySend")
+    }
+}
+
+/// Whether mode words accept taps (busy / writing locks the picker).
+enum QuickEntryModeLock {
+    static func isModeEnabled(
+        isEnabled: Bool, isSubmitting: Bool, isCreating: Bool, isWriting: Bool
+    ) -> Bool {
+        isEnabled && !isSubmitting && !isCreating && !isWriting
     }
 }

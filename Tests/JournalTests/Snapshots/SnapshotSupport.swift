@@ -123,6 +123,7 @@
                 .environment(\.timeZone, snapshotTimeZone)
                 .environment(\.clockNow, { snapshotNow })
                 .environment(\.openSearch, {})
+                .environment(\.openSettings, {})
         }
 
         static func assert(

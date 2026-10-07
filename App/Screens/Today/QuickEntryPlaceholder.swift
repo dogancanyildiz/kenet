@@ -163,11 +163,15 @@ struct QuickEntryBar: View {
                 mode: capsuleMode,
                 canSubmit: isEnabled && model.canSubmit,
                 onSubmit: submit,
-                isModeEnabled: isEnabled && !model.isSubmitting && !model.isCreating
-                    && !store.isWriting
+                isModeEnabled: QuickEntryModeLock.isModeEnabled(
+                    isEnabled: isEnabled, isSubmitting: model.isSubmitting,
+                    isCreating: model.isCreating, isWriting: store.isWriting)
             ) {
-                HStack(alignment: .center, spacing: 8) {
-                    if model.mode == .event { timeButton }
+                HStack(alignment: .center, spacing: 4) {
+                    if model.mode == .event {
+                        timeButton
+                            .dynamicTypeSize(...DynamicTypeSize.accessibility2)
+                    }
                     textField
                 }
             }
@@ -184,8 +188,8 @@ struct QuickEntryBar: View {
             #endif
         }
         .padding(.horizontal, InkSpacing.margin)
-        .padding(.top, 10)
-        .padding(.bottom, 8)
+        .padding(.top, 6)
+        .padding(.bottom, 4)
         .frame(maxWidth: .infinity)
         .inkPageColumn()
         // Opaque paper shelf under the capsule (safeAreaInset content draws over the list).
@@ -232,8 +236,11 @@ struct QuickEntryBar: View {
         isFocused = true
     }
 
-    private var placeholder: LocalizedStringKey {
-        model.mode == .task ? "Yapılacak bir şey…" : "Gününden bir an…"
+    private var placeholder: String {
+        let key: String.LocalizationValue =
+            model.mode == .task ? "Yapılacak bir şey…" : "Gününden bir an…"
+        return String(
+            localized: key, bundle: PresentationLocalization.bundle(locale), locale: locale)
     }
 
     private var textField: some View {
@@ -242,7 +249,7 @@ struct QuickEntryBar: View {
             "",
             text: $model.text,
             selection: $selection,
-            prompt: Text(placeholder)
+            prompt: Text(verbatim: placeholder)
                 .font(.ink.placeholder)
                 .foregroundStyle(Color.ink.secondaryText)
         )
@@ -367,8 +374,15 @@ struct QuickEntryBar: View {
                 .foregroundStyle(Color.ink.text)
             if model.needsQualifier {
                 TextField("Ayırt edici (ör. iş)", text: $model.qualifier)
-                    .textFieldStyle(.roundedBorder)
+                    .textFieldStyle(.plain)
                     .font(.ink.content)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 6)
+                    .background(Color.ink.surface)
+                    .overlay {
+                        RoundedRectangle(cornerRadius: InkSize.chipCorner, style: .continuous)
+                            .strokeBorder(Color.ink.control, lineWidth: InkStroke.control)
+                    }
                 Button("Oluştur") {
                     if let kind = model.creationKind { create(kind) }
                 }

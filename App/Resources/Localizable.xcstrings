@@ -3849,6 +3849,22 @@
         }
       }
     },
+    "Until %@": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ kadar"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Until %@"
+          }
+        }
+      }
+    },
     "Başlıksız etkinlik": {
       "localizations": {
         "tr": {

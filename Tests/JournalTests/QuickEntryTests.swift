@@ -118,17 +118,21 @@ struct QuickEntryTests {
         #expect(model.taskRecurrence == nil)
         #expect(!model.overridesDate)
         #expect(model.manualDueDate == nil)
-        let root = URL(fileURLWithPath: #filePath)
-            .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
-        let capsule = try String(
-            contentsOf: root.appendingPathComponent("App/Design/Components/QuickEntryCapsule.swift"),
-            encoding: .utf8)
-        #expect(capsule.contains("isModeEnabled"))
-        let bar = try String(
-            contentsOf: root.appendingPathComponent(
-                "App/Screens/Today/QuickEntryPlaceholder.swift"),
-            encoding: .utf8)
-        #expect(bar.contains("isModeEnabled: isEnabled && !model.isSubmitting"))
+        #expect(
+            QuickEntryModeLock.isModeEnabled(
+                isEnabled: true, isSubmitting: false, isCreating: false, isWriting: false))
+        #expect(
+            !QuickEntryModeLock.isModeEnabled(
+                isEnabled: true, isSubmitting: true, isCreating: false, isWriting: false))
+        #expect(
+            !QuickEntryModeLock.isModeEnabled(
+                isEnabled: true, isSubmitting: false, isCreating: true, isWriting: false))
+        #expect(
+            !QuickEntryModeLock.isModeEnabled(
+                isEnabled: true, isSubmitting: false, isCreating: false, isWriting: true))
+        #expect(
+            !QuickEntryModeLock.isModeEnabled(
+                isEnabled: false, isSubmitting: false, isCreating: false, isWriting: false))
     }
 }
 

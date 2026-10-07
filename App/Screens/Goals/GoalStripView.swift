@@ -2,6 +2,31 @@ import GoalTracking
 import SwiftUI
 import VaultFormat
 
+/// Preference for snapshot hosts waiting until the strip finished loading.
+struct GoalsStripReadyKey: PreferenceKey {
+    static let defaultValue = false
+    static func reduce(value: inout Bool, nextValue: () -> Bool) {
+        value = value || nextValue()
+    }
+}
+
+/// Presentation helpers for the Today goal strip (unit-tested).
+enum GoalStripPresentation {
+    /// Ring fill from period progress (2/3 → partial arc, 3/3 → full).
+    static func progressValue(status: GoalStatus) -> Double {
+        status.progress.fraction
+    }
+
+    /// Daily boolean/milestone marks stay binary; multi-target periods draw an arc.
+    static func isBooleanRing(goal: GoalDefinition) -> Bool {
+        goal.kind != .number && goal.target <= 1
+    }
+
+    static func isPeriodComplete(status: GoalStatus) -> Bool {
+        status.progress.isComplete
+    }
+}
+
 struct GoalStripView: View {
     @Environment(GeofenceService.self) private var geofences: GeofenceService?
     @Environment(\.locale) private var locale
@@ -23,19 +48,15 @@ struct GoalStripView: View {
         let daily = dailyGoals
         let period = periodGoals
         if !daily.isEmpty || !period.isEmpty {
-            VStack(alignment: .leading, spacing: 8) {
-                HStack(alignment: .firstTextBaseline, spacing: 8) {
-                    SectionHeader(
-                        title: String(localized: "Hedefler"),
-                        counter: counter
-                            ?? "\(daily.filter { model.isComplete(for: $0) }.count)/\(daily.count)"
-                    )
-                    if model.isLoading {
-                        ProgressView()
-                            .controlSize(.mini)
-                            .accessibilityLabel(Text("Hedefler yükleniyor"))
-                    }
-                }
+            VStack(alignment: .leading, spacing: InkSpacing.row) {
+                SectionHeader(
+                    title: String(
+                        localized: "Hedefler",
+                        bundle: PresentationLocalization.bundle(locale), locale: locale),
+                    counter: counter
+                        ?? "\(daily.filter { model.isComplete(for: $0) }.count)/\(daily.count)",
+                    isLoading: model.isLoading
+                )
                 ForEach(daily, id: \.id) { goal in
                     goalRow(goal, metaText: nil)
                 }
@@ -49,6 +70,12 @@ struct GoalStripView: View {
                     InfoBand(kind: .info, verbatim: notice)
                 }
             }
+            .accessibilityIdentifier(
+                model.hasLoaded && !model.isLoading ? "goals.strip.ready" : "goals.strip.loading"
+            )
+            .preference(
+                key: GoalsStripReadyKey.self, value: model.hasLoaded && !model.isLoading
+            )
             .task(id: model.store.lastUpdated) { await model.load() }
             .sheet(item: $editing) { editor in
                 NavigationStack { GoalValueEditor(model: editor) }
@@ -74,9 +101,9 @@ struct GoalStripView: View {
 
     private func ordered(_ goals: [GoalDefinition]) -> [GoalDefinition] {
         goals.sorted {
-            if model.isComplete(for: $0) != model.isComplete(for: $1) {
-                return !model.isComplete(for: $0)
-            }
+            let leftDone = GoalStripPresentation.isPeriodComplete(status: model.status(for: $0))
+            let rightDone = GoalStripPresentation.isPeriodComplete(status: model.status(for: $1))
+            if leftDone != rightDone { return !leftDone }
             return $0.name.localizedStandardCompare($1.name) == .orderedAscending
         }
     }
@@ -89,7 +116,8 @@ struct GoalStripView: View {
             case .week: "Bu hafta"
             case .year: "Bu yıl"
             }
-        let period = String(localized: periodKey)
+        let period = String(
+            localized: periodKey, bundle: PresentationLocalization.bundle(locale), locale: locale)
         let amount =
             status.progress.done.formatted(.number.locale(locale)) + "/"
             + goal.target.formatted(.number.locale(locale))
@@ -99,16 +127,16 @@ struct GoalStripView: View {
 
     @ViewBuilder private func goalRow(_ goal: GoalDefinition, metaText: String?) -> some View {
         let status = model.status(for: goal)
-        let progress = progressValue(for: goal, status: status)
-        let complete = model.isComplete(for: goal)
+        let progress = GoalStripPresentation.progressValue(status: status)
+        let todayMarked = model.isComplete(for: goal)
         let isBooleanMark = goal.kind == .boolean || goal.kind == .milestone
         InkGoalRow(
             name: goal.name,
             progress: progress,
-            isBoolean: goal.kind != .number,
+            isBoolean: GoalStripPresentation.isBooleanRing(goal: goal),
             valueText: valueText(for: goal),
             metaText: metaText,
-            onIncrement: model.canEdit && !(isBooleanMark && complete)
+            onIncrement: model.canEdit && !(isBooleanMark && todayMarked)
                 ? {
                     if isBooleanMark {
                         Task {
@@ -120,21 +148,21 @@ struct GoalStripView: View {
                 } : nil,
             onValueTap: model.canEdit && goal.kind == .number
                 ? { editing = GoalValueModel(dayModel: model, goal: goal) } : nil,
-            onMarkTap: model.canEdit && isBooleanMark && complete
+            onMarkTap: model.canEdit && isBooleanMark && todayMarked
                 ? {
                     Task {
                         if await model.toggle(goal) { geofences?.clearLockedMarkNotice() }
                     }
                 } : nil,
-            showsPlus: !(isBooleanMark && complete),
+            showsPlus: !(isBooleanMark && todayMarked),
             incrementLabel: LocalizedStringKey(
-                isBooleanMark && complete ? "İşareti kaldır" : "Artır")
+                isBooleanMark && todayMarked ? "İşareti kaldır" : "Artır")
         )
         .contextMenu {
             if model.canEdit, goal.kind == .number {
                 Button("Miktar gir") { editing = GoalValueModel(dayModel: model, goal: goal) }
             }
-            if model.canEdit, isBooleanMark, complete {
+            if model.canEdit, isBooleanMark, todayMarked {
                 Button("İşareti kaldır") {
                     Task {
                         if await model.toggle(goal) { geofences?.clearLockedMarkNotice() }
@@ -143,11 +171,6 @@ struct GoalStripView: View {
             }
         }
         .disabled(!model.canEdit)
-    }
-
-    private func progressValue(for goal: GoalDefinition, status: GoalStatus) -> Double {
-        if goal.kind == .number { return status.progress.fraction }
-        return model.isComplete(for: goal) ? 1 : 0
     }
 
     private func valueText(for goal: GoalDefinition) -> String? {

@@ -2,6 +2,13 @@ import GoalTracking
 import SwiftUI
 import VaultFormat
 
+/// Stable identity for ``GoalStripView`` so ``GoalDayModel`` rebuilds per day/vault.
+enum GoalStripIdentity {
+    static func key(day: CalendarDate, vaultPath: String?) -> String {
+        day.description + (vaultPath ?? "")
+    }
+}
+
 /// The same editable layout serves today and a selected historical day.
 struct DayView: View {
     let store: IndexStore
@@ -13,10 +20,12 @@ struct DayView: View {
     @Environment(\.calendar) private var calendarValue
     @Environment(\.clockNow) private var clockNow
     @Environment(\.openSearch) private var openSearch
+    @Environment(\.openSettings) private var openSettings
     @State private var showsJournal = false
     @State private var tasksModel: DayTasksModel
     @State private var isCarriedOverExpanded = false
     @State private var isCompletedExpanded = false
+    @State private var quickEntryHeight: CGFloat = InkSize.send + 28
 
     init(store: IndexStore, date: CalendarDate, isToday: Bool = false) {
         self.store = store
@@ -46,7 +55,7 @@ struct DayView: View {
             day.events.isEmpty && day.journal.isEmpty && tasksModel.groups.isEmpty
             && !day.hasGoalRecords && presented.completedTaskCount == 0
         ScrollView {
-            VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: InkSpacing.section) {
                 headlineBlock(presented)
 
                 if store.isProcessing && !store.isWriting {
@@ -66,7 +75,7 @@ struct DayView: View {
                     store: store, day: date, countedGoalIDs: presented.countedGoalIDs,
                     counter: presented.counter(for: .goals)
                 )
-                .id(date.description + (store.vaultURL?.path ?? ""))
+                .id(GoalStripIdentity.key(day: date, vaultPath: store.vaultURL?.path))
 
                 DayTasksView(
                     store: store, date: date, isToday: isToday, model: tasksModel,
@@ -77,9 +86,11 @@ struct DayView: View {
                 DayCalendarView(date: date)
 
                 if !day.events.isEmpty {
-                    VStack(alignment: .leading, spacing: 10) {
+                    VStack(alignment: .leading, spacing: InkSpacing.row) {
                         SectionHeader(
-                            title: String(localized: "Olaylar"),
+                            title: String(
+                                localized: "Olaylar",
+                                bundle: PresentationLocalization.bundle(locale), locale: locale),
                             counter: presented.counter(for: .events))
                         ForEach(day.events) { event in
                             DayEventView(
@@ -91,7 +102,9 @@ struct DayView: View {
                 journalSection
             }
             .padding(.horizontal, InkSpacing.margin)
-            .padding(.vertical, 12)
+            .padding(.top, 8)
+            // Extra scroll room so the last row can clear the floating capsule fully.
+            .padding(.bottom, max(8, quickEntryHeight))
             .inkPageColumn()
         }
         .inkPage()
@@ -102,6 +115,15 @@ struct DayView: View {
                     ? notifications.navigationRequest?.id : nil, acceptsPeopleMentions: isToday
             )
             .id(isToday ? "today" : date.description)
+            .background {
+                GeometryReader { geo in
+                    Color.clear.preference(
+                        key: QuickEntryHeightKey.self, value: geo.size.height)
+                }
+            }
+        }
+        .onPreferenceChange(QuickEntryHeightKey.self) { height in
+            if height > 0 { quickEntryHeight = height }
         }
         .navigationTitle(Text(verbatim: presented.headline))
         #if os(iOS)
@@ -126,22 +148,42 @@ struct DayView: View {
     }
 
     @ViewBuilder private func headlineBlock(_ presented: TodayPresentation) -> some View {
-        HStack(alignment: .firstTextBaseline, spacing: 8) {
+        HStack(alignment: .firstTextBaseline, spacing: 4) {
             PageHeadline(title: presented.headline, byline: presented.byline)
             if isToday {
-                Button("Ara", systemImage: "magnifyingglass", action: openSearch)
-                    .labelStyle(.iconOnly)
+                Button {
+                    openSearch()
+                } label: {
+                    Label("Ara", systemImage: "magnifyingglass")
+                        .labelStyle(.iconOnly)
+                        .foregroundStyle(Color.ink.secondaryText)
+                        .tapTarget()
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Ara")
+                if let openSettings {
+                    Button {
+                        openSettings()
+                    } label: {
+                        Label("Ayarlar", systemImage: "gearshape")
+                            .labelStyle(.iconOnly)
+                            .foregroundStyle(Color.ink.secondaryText)
+                            .tapTarget()
+                    }
                     .buttonStyle(.plain)
-                    .foregroundStyle(Color.ink.secondaryText)
-                    .tapTarget()
-                    .accessibilityLabel("Ara")
+                    .accessibilityLabel("Ayarlar")
+                    .accessibilityIdentifier("button.settings")
+                }
             }
         }
     }
 
     @ViewBuilder private var journalSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            SectionHeader(title: String(localized: "Günlük yazısı"))
+            SectionHeader(
+                title: String(
+                    localized: "Günlük yazısı",
+                    bundle: PresentationLocalization.bundle(locale), locale: locale))
             #if os(iOS)
                 Button {
                     showsJournal = true
@@ -171,16 +213,31 @@ struct DayView: View {
                     .lineLimit(4)
                     .inkJournalParagraph()
                     .frame(maxWidth: .infinity, alignment: .leading)
-                Text("Devamını yaz")
-                    .font(.ink.byline)
-                    .foregroundStyle(Color.ink.accent)
+                Text(
+                    verbatim: String(
+                        localized: "Devamını yaz",
+                        bundle: PresentationLocalization.bundle(locale), locale: locale)
+                )
+                .font(.ink.byline)
+                .foregroundStyle(Color.ink.accent)
             } else {
-                Text("Günlük yazısı ekle…")
-                    .font(.ink.placeholder)
-                    .foregroundStyle(Color.ink.secondaryText)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                Text(
+                    verbatim: String(
+                        localized: "Günlük yazısı ekle…",
+                        bundle: PresentationLocalization.bundle(locale), locale: locale)
+                )
+                .font(.ink.placeholder)
+                .foregroundStyle(Color.ink.secondaryText)
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
+    }
+}
+
+private struct QuickEntryHeightKey: PreferenceKey {
+    static let defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = max(value, nextValue())
     }
 }
 

@@ -1,4 +1,5 @@
 import Foundation
+import GoalTracking
 import SwiftUI
 import Testing
 import VaultFormat
@@ -129,5 +130,41 @@ struct RowComponentTests {
         #expect(GoalRingProgress.clamped(1.5) == 1)
         #expect(GoalRingProgress.isComplete(1))
         #expect(!GoalRingProgress.isComplete(0.99))
+    }
+
+    @Test func goalStripPresentationUsesPeriodFraction() throws {
+        let sport = try #require(
+            GoalDefinition(
+                id: "b", key: "spor", name: "Spor", period: .week, kind: .boolean, target: 3))
+        let day = CalendarDate("2026-09-20")!
+        let partialLogs = [
+            GoalLog(day: CalendarDate("2026-09-15")!, value: .boolean(true)),
+            GoalLog(day: CalendarDate("2026-09-16")!, value: .boolean(true)),
+        ]
+        let fullLogs =
+            partialLogs + [GoalLog(day: CalendarDate("2026-09-17")!, value: .boolean(true))]
+        let partial = GoalProgress.compute(definition: sport, logs: partialLogs, today: day)
+        let full = GoalProgress.compute(definition: sport, logs: fullLogs, today: day)
+        #expect(abs(GoalStripPresentation.progressValue(status: partial) - (2.0 / 3.0)) < 0.001)
+        #expect(GoalStripPresentation.progressValue(status: full) == 1)
+        #expect(!GoalStripPresentation.isPeriodComplete(status: partial))
+        #expect(GoalStripPresentation.isPeriodComplete(status: full))
+    }
+
+    @Test func goalStripBooleanRingOnlyForUnitTarget() throws {
+        let daily = try #require(
+            GoalDefinition(
+                id: "a", key: "meditasyon", name: "Meditasyon", period: .day, kind: .boolean,
+                target: 1))
+        let weekly = try #require(
+            GoalDefinition(
+                id: "b", key: "spor", name: "Spor", period: .week, kind: .boolean, target: 3))
+        let number = try #require(
+            GoalDefinition(
+                id: "c", key: "su", name: "Su", period: .day, kind: .number, target: 8,
+                unit: "bardak"))
+        #expect(GoalStripPresentation.isBooleanRing(goal: daily))
+        #expect(!GoalStripPresentation.isBooleanRing(goal: weekly))
+        #expect(!GoalStripPresentation.isBooleanRing(goal: number))
     }
 }

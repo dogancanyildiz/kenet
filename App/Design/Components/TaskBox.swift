@@ -88,7 +88,12 @@ struct TaskBox: View {
                     .font(.system(size: glyphSize, weight: .bold, design: .rounded))
                     .foregroundStyle(Color.ink.text)
                     .tracking(glyph == "!!" ? -0.8 : 0)
-                    .offset(y: state.isInProgress ? -boxSide * 0.18 : 0)
+                    // Center the mark in the open (top) half so "!" does not kiss the fill edge.
+                    .frame(
+                        width: boxSide,
+                        height: state.isInProgress ? boxSide / 2 : boxSide
+                    )
+                    .offset(y: state.isInProgress ? -(boxSide / 4) : 0)
             }
         }
         .frame(width: boxSide, height: boxSide)

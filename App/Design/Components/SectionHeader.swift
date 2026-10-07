@@ -7,7 +7,10 @@ struct SectionHeader: View {
     var count: Int? = nil
     /// Preformatted counter (e.g. Today goals `"1/3"`). Wins over ``count`` when set.
     var counter: String? = nil
+    /// Shows a spinner that does not shrink the hairline rule (overlay / trailing slot).
+    var isLoading: Bool = false
     @Environment(\.displayScale) private var displayScale
+    @Environment(\.locale) private var locale
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -27,6 +30,16 @@ struct SectionHeader: View {
                         .foregroundStyle(.ink.secondaryText)
                         .monospacedDigit()
                         .accessibilityHidden(true)
+                }
+                if isLoading {
+                    ProgressView()
+                        .controlSize(.mini)
+                        .accessibilityLabel(
+                            Text(
+                                verbatim: String(
+                                    localized: "Hedefler yükleniyor",
+                                    bundle: PresentationLocalization.bundle(locale), locale: locale))
+                        )
                 }
             }
         }

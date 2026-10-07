@@ -41,6 +41,11 @@ NAME=${DEVICE#* }
 ONLY=$(sh .github/scripts/snapshot-suites.sh | sed 's#^#-only-testing:JournalTests_iOS/#' | tr '\n' ' ')
 [ -n "$ONLY" ] || { echo "Görüntü test kümesi bulunamadı" >&2; exit 1; }
 
+# Simülatörde kurulu kalan uygulamanın kayıtlı durumu (arayüz testleri ya da elle açılış sonrası)
+# görüntüleri kaydırır; CI temiz simülatörde koşar. Yerelde de temiz durumdan başlanır.
+xcrun simctl uninstall "$ID" com.dravcore.journal.dev >/dev/null 2>&1 || true
+xcrun simctl uninstall "$ID" com.dravcore.journal.dev.uitests.xctrunner >/dev/null 2>&1 || true
+
 echo "Simülatör: $NAME"
 echo "SNAPSHOT_TESTING_RECORD=$SNAPSHOT_TESTING_RECORD"
 

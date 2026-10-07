@@ -146,6 +146,9 @@ schemes:
     test:
       commandLineArguments:
         JOURNAL_NO_AUTOSTART: true
+      # Forwarded so `SNAPSHOT_TESTING_RECORD=all xcodebuild test …` reaches the host (Mac suites).
+      environmentVariables:
+        SNAPSHOT_TESTING_RECORD: $(SNAPSHOT_TESTING_RECORD)
       targets:
         - JournalTests_macOS
   Journal_iOS:

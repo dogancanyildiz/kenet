@@ -27,9 +27,21 @@ struct PlaceCoordinate: Equatable, Sendable {
 enum PlaceCoordinateInput {
     /// A valid pair, or nil. Accepts a decimal comma and a typographic minus.
     static func coordinate(latitude: String, longitude: String) -> PlaceCoordinate? {
-        guard let latitude = number(latitude), let longitude = number(longitude) else { return nil }
+        guard let latitude = spelling(latitude).flatMap(Double.init),
+            let longitude = spelling(longitude).flatMap(Double.init)
+        else { return nil }
         let coordinate = PlaceCoordinate(latitude: latitude, longitude: longitude)
         return coordinate.isValid ? coordinate : nil
+    }
+
+    /// The typed number in the spelling the file accepts (`[-+]?(0|[1-9][0-9]*)(\.[0-9]+)?`),
+    /// with every digit the user gave; nil when it is not such a number.
+    static func spelling(_ text: String) -> String? {
+        var text = text.trimmingCharacters(in: .whitespacesAndNewlines)
+            .replacingOccurrences(of: ",", with: ".").replacingOccurrences(of: "\u{2212}", with: "-")
+        guard let match = text.wholeMatch(of: /([+-]?)0*([0-9]+(\.[0-9]+)?)/) else { return nil }
+        text = String(match.1) + String(match.2)
+        return text
     }
 
     /// Plain decimal spelling with at most six fraction digits (about 0.1 m), never an exponent.
@@ -42,13 +54,6 @@ enum PlaceCoordinateInput {
 
     static func literals(_ coordinate: PlaceCoordinate) -> [FrontmatterLiteral] {
         [.number(text(coordinate.latitude)), .number(text(coordinate.longitude))]
-    }
-
-    private static func number(_ text: String) -> Double? {
-        let text = text.trimmingCharacters(in: .whitespacesAndNewlines)
-            .replacingOccurrences(of: ",", with: ".").replacingOccurrences(of: "\u{2212}", with: "-")
-        guard text.wholeMatch(of: /[+-]?[0-9]+(\.[0-9]+)?/) != nil else { return nil }
-        return Double(text)
     }
 }
 

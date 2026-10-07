@@ -1,3 +1,4 @@
+import CoreLocation
 import EntityRecognition
 import Foundation
 import Testing
@@ -169,6 +170,208 @@ struct ExplicitLocationRequestTests {
         #expect(!service.isLocating)
         service.requestLocationIfNeeded(userInitiated: true)
         #expect(source.locationRequests == 1)
+    }
+}
+
+/// The editor's rules, apart from the view.
+@MainActor @Suite("Place coordinate draft")
+struct PlaceCoordinateDraftTests {
+    private func context(coordinates: String) async throws -> (TaskTestContext, URL, EntityDetailModel) {
+        let context = try TaskTestContext(sample: true)
+        let file = context.root.appendingPathComponent("places/Liman Ofis.md")
+        let original = try String(contentsOf: file, encoding: .utf8)
+        try original.replacingOccurrences(of: "coordinates: [10.5000, 20.0290]", with: coordinates)
+            .write(to: file, atomically: true, encoding: .utf8)
+        await context.start()
+        let model = EntityDetailModel(store: context.store, path: "places/Liman Ofis.md")
+        await model.load()
+        return (context, file, model)
+    }
+
+    @Test func untouchedSaveWritesNothingAndOneEditedFieldKeepsTheOthersDigits() async throws {
+        let (context, file, model) = try await context(coordinates: "coordinates: [41.00820012345, 28.9]")
+        defer { context.clean() }
+        let bytes = try Data(contentsOf: file)
+        #expect(model.coordinateSpellings == ["41.00820012345", "28.9"])
+        var draft = PlaceCoordinateDraft(spellings: model.coordinateSpellings)
+        #expect(draft.latitude == "41.00820012345" && draft.longitude == "28.9" && !draft.isDirty)
+        #expect(draft.submit() == .unchanged)
+        #expect(try Data(contentsOf: file) == bytes)
+
+        draft.longitude = "29,25"
+        #expect(draft.isDirty)
+        let submission = draft.submit()
+        #expect(submission == .write(latitude: "41.00820012345", longitude: "29.25"))
+        guard case .write(let latitude, let longitude) = submission else { return }
+        #expect(await model.saveCoordinate(latitude: latitude, longitude: longitude))
+        draft.finishSave(latitude: draft.latitude, longitude: draft.longitude, success: true)
+        #expect(!draft.isDirty)
+        let expected = String(decoding: bytes, as: UTF8.self).replacingOccurrences(
+            of: "[41.00820012345, 28.9]", with: "[41.00820012345, 29.25]")
+        #expect(try String(contentsOf: file, encoding: .utf8) == expected)
+        #expect(model.coordinateSpellings == ["41.00820012345", "29.25"])
+    }
+
+    @Test(arguments: [
+        "coordinates: \"10.5, 20.029\"", "coordinates: [10.5, 20.029, 3]", "coordinates: [91, 20]",
+    ])
+    func unusableValueIsShownAndReplacedBySave(_ line: String) async throws {
+        let (context, file, model) = try await context(coordinates: line)
+        defer { context.clean() }
+        #expect(model.hasCoordinatesField && model.coordinate == nil && model.coordinateSpellings == nil)
+        #expect(model.coordinatesWritable && model.coordinatesSource == line)
+        var draft = PlaceCoordinateDraft(spellings: model.coordinateSpellings)
+        #expect(draft.latitude.isEmpty && draft.submit() == .invalid)
+        draft.latitude = "10.5"
+        draft.longitude = "20.029"
+        #expect(draft.submit() == .write(latitude: "10.5", longitude: "20.029"))
+        #expect(await model.saveCoordinate(latitude: "10.5", longitude: "20.029"))
+        #expect(try String(contentsOf: file, encoding: .utf8).contains("\ncoordinates: [10.5, 20.029]\n"))
+        #expect(model.coordinate == PlaceCoordinate(latitude: 10.5, longitude: 20.029))
+        #expect(model.coordinatesSource == "coordinates: [10.5, 20.029]")
+    }
+
+    @Test func rawValueIsShownAsNotWritableAndStaysUntouched() async throws {
+        let (context, file, model) = try await context(coordinates: "coordinates: [1, [2]]")
+        defer { context.clean() }
+        let bytes = try Data(contentsOf: file)
+        #expect(model.hasCoordinatesField && model.coordinate == nil)
+        #expect(!model.coordinatesWritable && model.coordinatesSource == "coordinates: [1, [2]]")
+        #expect(await !model.saveCoordinate(latitude: "10.5", longitude: "20.029"))
+        #expect(try Data(contentsOf: file) == bytes)
+    }
+
+    @Test func currentLocationFillsOnlyWhileTheUserWaits() {
+        let point = PlaceCoordinate(latitude: 10.5, longitude: -20.029)
+        var draft = PlaceCoordinateDraft()
+        draft.fill(point)
+        #expect(draft.latitude.isEmpty && !draft.isDirty)
+
+        draft.requestFix()
+        #expect(draft.status(canLocate: true, fixFailed: false) == .locating)
+        draft.fill(nil)
+        #expect(draft.awaitingFix)
+        draft.fill(point)
+        #expect(draft.latitude == "10.5" && draft.longitude == "-20.029" && draft.isDirty && !draft.awaitingFix)
+        #expect(draft.status(canLocate: true, fixFailed: false) == .none)
+
+        // Typing takes over: the failure hint goes and a late fix does not overwrite the text.
+        draft.requestFix()
+        #expect(draft.status(canLocate: true, fixFailed: true) == .fixFailed)
+        draft.latitude = "11"
+        #expect(!draft.awaitingFix && draft.status(canLocate: true, fixFailed: true) == .none)
+        draft.fill(PlaceCoordinate(latitude: 1, longitude: 2))
+        #expect(draft.latitude == "11" && draft.longitude == "-20.029")
+
+        // Setting the same text (a view refresh) is not an edit.
+        draft.requestFix()
+        draft.longitude = "-20.029"
+        #expect(draft.awaitingFix)
+    }
+
+    @Test func statusShowsWhatBlocksTheSaveFirst() {
+        var draft = PlaceCoordinateDraft()
+        #expect(draft.status(canLocate: true, fixFailed: true) == .none)
+        #expect(draft.status(canLocate: false, fixFailed: false) == .cannotLocate)
+        draft.requestFix()
+        #expect(draft.status(canLocate: false, fixFailed: true) == .cannotLocate)
+        draft.latitude = "10.5"
+        draft.longitude = "20"
+        #expect(draft.submit() == .write(latitude: "10.5", longitude: "20"))
+        draft.finishSave(latitude: "10.5", longitude: "20", success: false)
+        #expect(draft.isDirty && draft.saveFailed)
+        #expect(draft.status(canLocate: false, fixFailed: true) == .saveFailed)
+        draft.longitude = "200"
+        #expect(draft.submit() == .invalid)
+        #expect(draft.status(canLocate: false, fixFailed: true) == .invalid)
+        draft.longitude = "20"
+        #expect(draft.submit() == .write(latitude: "10.5", longitude: "20"))
+        draft.finishSave(latitude: "10.5", longitude: "20", success: true)
+        #expect(!draft.isDirty && draft.status(canLocate: true, fixFailed: false) == .none)
+        #expect(draft.submit() == .unchanged)
+
+        draft.latitude = "1"
+        draft.removed()
+        #expect(draft == PlaceCoordinateDraft())
+        #expect(draft.latitude.isEmpty && !draft.isDirty && draft.submit() == .invalid)
+    }
+
+    @Test func spellingKeepsTypedDigitsAndNegativeZeroIsWrittenAsZero() {
+        #expect(PlaceCoordinateInput.spelling(" 41,00820012345 ") == "41.00820012345")
+        #expect(PlaceCoordinateInput.spelling("\u{2212}0.50") == "-0.50")
+        #expect(PlaceCoordinateInput.spelling("041.5") == "41.5")
+        #expect(PlaceCoordinateInput.spelling("00") == "0")
+        #expect(PlaceCoordinateInput.spelling("1e5") == nil && PlaceCoordinateInput.spelling(".5") == nil)
+        #expect(PlaceCoordinateInput.text(-0.0) == "0")
+        #expect(PlaceCoordinateInput.text(-0.0000001) == "0")
+        let zero = PlaceCoordinate(latitude: -0.0, longitude: 0)
+        #expect(PlaceCoordinateInput.literals(zero) == [.number("0"), .number("0")])
+    }
+}
+
+@MainActor @Suite("Location request state")
+struct LocationRequestStateTests {
+    @Test func unansweredRequestStopsBlockingAfterTheTimeout() throws {
+        let defaults = try TestDefaults()
+        defer { defaults.clean() }
+        let source = SlowLocationSource()
+        var date = Date(timeIntervalSince1970: 1000)
+        let service = LocationService(source: source, defaults: defaults.defaults, now: { date })
+        service.requestLocationIfNeeded(userInitiated: true)
+        date.addTimeInterval(LocationService.answerTimeout - 1)
+        service.requestLocationIfNeeded(userInitiated: true)
+        #expect(source.locationRequests == 1 && service.isLocating)
+        date.addTimeInterval(1)
+        service.requestLocationIfNeeded(userInitiated: true)
+        #expect(source.locationRequests == 2 && service.isLocating)
+    }
+
+    @Test func answerWhileDisabledOrUnauthorizedEndsThePendingRequest() throws {
+        let defaults = try TestDefaults()
+        defer { defaults.clean() }
+        let source = SlowLocationSource()
+        let service = LocationService(source: source, defaults: defaults.defaults)
+        let point = PlaceCoordinate(latitude: 10.5, longitude: 20.029)
+        service.requestLocationIfNeeded(userInitiated: true)
+        service.isEnabled = false
+        source.onLocation?(point)
+        #expect(!service.isLocating && service.coordinate == nil && !service.lastRequestFailed)
+
+        service.isEnabled = true
+        service.requestLocationIfNeeded(userInitiated: true)
+        #expect(service.isLocating)
+        // The permission went away without the change callback; the answer still ends the wait.
+        source.authorization = .denied
+        source.onLocation?(point)
+        #expect(!service.isLocating)
+    }
+
+    @Test func newRequestClearsTheEarlierFailure() throws {
+        let defaults = try TestDefaults()
+        defer { defaults.clean() }
+        let source = SlowLocationSource()
+        let service = LocationService(source: source, defaults: defaults.defaults)
+        service.requestLocationIfNeeded(userInitiated: true)
+        source.onLocation?(nil)
+        #expect(service.lastRequestFailed && !service.isLocating)
+        service.requestLocationIfNeeded(userInitiated: true)
+        #expect(!service.lastRequestFailed && service.isLocating && source.locationRequests == 2)
+    }
+
+    @Test func systemAnswerIsAFixOnlyWhenMeasuredWithinTheLastMinute() {
+        let now = Date(timeIntervalSince1970: 10_000)
+        func location(age: TimeInterval, accuracy: Double = 50) -> CLLocation {
+            CLLocation(
+                coordinate: CLLocationCoordinate2D(latitude: 10.5, longitude: 20.029), altitude: 0,
+                horizontalAccuracy: accuracy, verticalAccuracy: 0, timestamp: now.addingTimeInterval(-age))
+        }
+        let point = PlaceCoordinate(latitude: 10.5, longitude: 20.029)
+        #expect(SystemLocationSource.fix(from: location(age: 0), now: now) == point)
+        #expect(SystemLocationSource.fix(from: location(age: 59), now: now) == point)
+        #expect(SystemLocationSource.fix(from: location(age: 60), now: now) == nil)
+        #expect(SystemLocationSource.fix(from: location(age: 3600), now: now) == nil)
+        #expect(SystemLocationSource.fix(from: location(age: 0, accuracy: -1), now: now) == nil)
+        #expect(SystemLocationSource.fix(from: nil, now: now) == nil)
     }
 }
 

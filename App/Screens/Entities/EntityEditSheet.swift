@@ -113,15 +113,13 @@ struct EntityEditSheet: View {
         SectionHeader("Koordinat")
             .inkListRow()
         PlaceCoordinateEditor(model: model)
-            .id(model.coordinate.map { [$0.latitude, $0.longitude] })
+            .id(model.coordinatesSource)
             .inkListRow()
     }
 
-    /// A place's `coordinates` has its own editor; only a raw value stays in the generic rows.
+    /// A place's `coordinates` has its own editor, which also shows a value it cannot use.
     private func hasOwnEditor(_ field: EntityField) -> Bool {
-        guard entity.kind == "place", field.key == "coordinates" else { return false }
-        if case .raw = field.value { return false }
-        return true
+        entity.kind == "place" && field.key == "coordinates"
     }
 
     @ViewBuilder private var fieldRows: some View {

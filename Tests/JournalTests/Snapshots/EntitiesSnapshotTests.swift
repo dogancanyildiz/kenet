@@ -16,7 +16,7 @@
         case filteredLight, filteredDark
         case customTypesLight, customTypesDark, customTypesAX3
         case editSheetLight, editSheetDark, editSheetAX3
-        case placeEditSheetLight
+        case placeEditSheetLight, placeEditSheetDark, placeEditSheetAX3
         case renameSheetLight, renameSheetDark, renameSheetAX3
         case unresolvedLight, unresolvedDark, unresolvedAX3
 
@@ -31,7 +31,7 @@
             case .filteredLight, .filteredDark: .filtered
             case .customTypesLight, .customTypesDark, .customTypesAX3: .customTypes
             case .editSheetLight, .editSheetDark, .editSheetAX3: .editSheet
-            case .placeEditSheetLight: .placeEditSheet
+            case .placeEditSheetLight, .placeEditSheetDark, .placeEditSheetAX3: .placeEditSheet
             case .renameSheetLight, .renameSheetDark, .renameSheetAX3: .renameSheet
             case .unresolvedLight, .unresolvedDark, .unresolvedAX3: .unresolved
             }
@@ -40,7 +40,7 @@
         var colorScheme: SnapshotColorScheme {
             switch self {
             case .peopleDark, .placesDark, .filteredDark, .customTypesDark, .editSheetDark,
-                .renameSheetDark, .unresolvedDark:
+                .placeEditSheetDark, .renameSheetDark, .unresolvedDark:
                 .dark
             default: .light
             }
@@ -48,7 +48,8 @@
 
         var dynamicType: SnapshotDynamicType {
             switch self {
-            case .peopleAX3, .customTypesAX3, .editSheetAX3, .renameSheetAX3, .unresolvedAX3:
+            case .peopleAX3, .customTypesAX3, .editSheetAX3, .placeEditSheetAX3, .renameSheetAX3,
+                .unresolvedAX3:
                 .accessibility3
             default: .medium
             }
@@ -60,9 +61,13 @@
         var canvas: CGSize {
             switch subject {
             case .people, .places, .filtered, .customTypes: snapshotCanvasSize
-            case .editSheet, .placeEditSheet:
+            case .editSheet:
                 dynamicType == .accessibility3
                     ? CGSize(width: 390, height: 1400) : CGSize(width: 390, height: 1000)
+            case .placeEditSheet:
+                // Tall enough for the whole coordinate section under the aliases.
+                dynamicType == .accessibility3
+                    ? CGSize(width: 390, height: 2200) : CGSize(width: 390, height: 1200)
             case .renameSheet, .unresolved:
                 dynamicType == .accessibility3
                     ? CGSize(width: 390, height: 800) : CGSize(width: 390, height: 480)

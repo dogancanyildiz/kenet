@@ -57,6 +57,8 @@ final class LocationService {
     @ObservationIgnored private let defaults: UserDefaults
     @ObservationIgnored private let now: () -> Date
     @ObservationIgnored private var lastAttempt: Date?
+    /// A source that never answers must not block the button for good.
+    static let answerTimeout: TimeInterval = 30
     /// Changes with every fix, also when the measured coordinate is the same as before.
     private(set) var lastFix: Date?
 
@@ -110,13 +112,15 @@ final class LocationService {
     /// The automatic request (quick entry focus) is limited to one a minute. A button the user
     /// taps (`userInitiated`) is not: it asks again unless a request is pending or a fresh fix
     /// is already there, so a failed or slow first answer does not leave the button dead.
+    /// A request unanswered for `answerTimeout` no longer counts as pending.
     func requestLocationIfNeeded(userInitiated: Bool = false) {
         guard isEnabled else { return }
         refreshAuthorization()
         guard authorization.canLocate else { return }
         let date = now()
         if userInitiated {
-            guard !isLocating, currentCoordinate == nil else { return }
+            let pending = isLocating && date.timeIntervalSince(lastAttempt ?? date) < Self.answerTimeout
+            guard !pending, currentCoordinate == nil else { return }
         } else if let lastAttempt, date.timeIntervalSince(lastAttempt) < 60 {
             return
         }

@@ -27,7 +27,7 @@ Gerçek kullanım, gerçek cihazda kalıcı kurulum ister; bu da aşağıdaki il
 
 | Karar | Neyi açar | Not |
 |---|---|---|
-| Apple Developer Program üyeliği; kalıcı bundle kimliği, iCloud kapsayıcısı, App Group ve alan adı | Gerçek cihazda kalıcı kurulum, iCloud kasası, widget'lar, kilit ekranı ve Denetim Merkezi girişleri, paylaşım uzantısı, TestFlight | Tek pakette verilmesi önerilir. Kimlik değişince uygulamanın kapsayıcısı da değişir; o zamana kadar gerçek veri, klasör seçiciyle seçilen ve kapsayıcının dışında duran bir klasörde tutulmalıdır. |
+| iCloud kapsayıcısı, App Group ve alan adı (üyelik alındı; ad "Kenet" ve bundle kimliği `com.dogancanyildiz.kenet` kararlaştırıldı, 2026-10-07) | iCloud kasası, widget'lar, kilit ekranı ve Denetim Merkezi girişleri, paylaşım uzantısı; alan adı mağaza sayfası için | TestFlight bunları beklemez; kalıcı kimliğin koda işlenmesi ve ilk yükleme ayrı iştir. Kimlik değişince uygulamanın kapsayıcısı da değişir; o zamana kadar gerçek veri, klasör seçiciyle seçilen ve kapsayıcının dışında duran bir klasörde tutulmalıdır. |
 | Erişilemeyen kasada davranış | Aşama 8'deki madde | Bugün uygulama sessizce yerel kasaya geçiyor; durup sorması önerilir. |
 | Zincirde esneklik | Aşama 10'daki zincir affı | Sektör taraması affeden zinciri destekliyor (`decisions.md`, açık sorular). |
 | iPad desteği | Mağaza hazırlığı | Hedef cihaz listesinde var, düzeni ve belgesi yok: ya kapatılır ya tamamlanır. |

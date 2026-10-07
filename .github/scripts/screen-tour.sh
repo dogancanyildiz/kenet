@@ -4,6 +4,15 @@
 # karşılaştırması içindir; CI'da koşmaz.
 #
 #   sh .github/scripts/screen-tour.sh <çıktı klasörü> [simülatör kimliği]
+#   sh .github/scripts/screen-tour.sh --mac <çıktı klasörü>
+#
+# --mac (ya da SCREEN_TOUR_PLATFORM=mac) Mac uygulamasını gezer ve her ekranın pencere görüntüsünü
+# yazar (Tests/JournalMacUITests/ScreenTourMacUITests.swift). Tur sürerken fare ve klavye testin
+# elindedir; bitene kadar bilgisayara dokunma. Gerçek kasaya ve ayarlara dokunulmaz: uygulama ayrı
+# bir bundle kimliğiyle (….screentour) derlenir, ev klasörü olarak geçici bir klasör görür ve
+# koşu bitince o kimliğin ayarları silinir. Sistem görünümü değiştirilmez. Pencere ana ekranda
+# 1280x800 açılır. SCREEN_TOUR_ONLY=ayarlar,koyu turun yalnız adı verilen bölümlerini koşar
+# (bölüm adları test dosyasında).
 #
 # Çıktı klasörü depo dışında olmalıdır: görüntüler depoya ve PR'a girmez (Kasa ayar sayfası
 # makine yolunu gösterir). Simülatör kimliği ikinci argümanla ya da SCREEN_TOUR_SIMULATOR ile
@@ -11,7 +20,12 @@
 # görüntünün yanına erişilebilirlik ağacını da yazar (<çıktı>/agac/): atlanan adımı ayıklamak için.
 set -eu
 
-[ $# -ge 1 ] || { echo "Kullanım: sh .github/scripts/screen-tour.sh <çıktı klasörü> [simülatör kimliği]" >&2; exit 2; }
+PLATFORM="${SCREEN_TOUR_PLATFORM:-ios}"
+if [ "${1:-}" = "--mac" ]; then
+  PLATFORM=mac
+  shift
+fi
+[ $# -ge 1 ] || { echo "Kullanım: sh .github/scripts/screen-tour.sh [--mac] <çıktı klasörü> [simülatör kimliği]" >&2; exit 2; }
 mkdir -p "$1"
 OUT=$(cd "$1" && pwd -P)
 ID="${2:-${SCREEN_TOUR_SIMULATOR:-}}"
@@ -27,6 +41,64 @@ export DEVELOPER_DIR
 
 command -v xcodegen >/dev/null || { echo "xcodegen gerekli: brew install xcodegen" >&2; exit 1; }
 xcodegen generate
+
+# Kimlik tek yerde durur: project.yml içindeki APP_BUNDLE_IDENTIFIER.
+APP=$(sed -n 's/^ *APP_BUNDLE_IDENTIFIER: *//p' project.yml)
+[ -n "$APP" ] || { echo "project.yml içinde APP_BUNDLE_IDENTIFIER bulunamadı" >&2; exit 1; }
+WORK=$(mktemp -d)
+RESULT="$WORK/tour.xcresult"
+trap 'rm -rf "$WORK"' EXIT
+echo "Çıktı: $OUT"
+
+# Önceki koşunun görüntüleri yeni koşunun atladığı adımı gizlemesin.
+clear_output() {
+  find "$OUT" -maxdepth 1 -type f \( -name '[0-9][0-9]-*.png' -o -name 'atlananlar.txt' \) -delete
+  rm -rf "$OUT/agac"
+}
+
+if [ "$PLATFORM" = "mac" ]; then
+  # Ayrı kimlik: UserDefaults (pencere konumu, kısayol, kasa yer imi) gerçek uygulamanınkine karışmaz.
+  TOUR_APP="$APP.screentour"
+  # Ayrı derleme klasörü: olağan derlemenin ürünü tur kimliğiyle ezilmez.
+  DERIVED="$HOME/Library/Developer/Xcode/DerivedData/Journal-mac-screen-tour"
+  WATCH=""
+  cleanup() {
+    if [ -n "$WATCH" ]; then
+      kill "$WATCH" >/dev/null 2>&1 || true
+      wait "$WATCH" 2>/dev/null || true
+    fi
+    defaults delete "$TOUR_APP" >/dev/null 2>&1 || true
+    rm -f "$HOME/Library/Preferences/$TOUR_APP.plist"
+    # Test koşucusunun kum havuzu (geçici ev klasörü ve kasa kopyası burada durur).
+    rm -rf "$HOME/Library/Containers/$TOUR_APP.uitests.xctrunner" >/dev/null 2>&1 || true
+    rm -rf "$WORK"
+  }
+  trap cleanup EXIT
+  # Pencere boyutu başlatma argümanıyla verilir (1280x800), ama uygulama kendi kaydettiği pencere
+  # durumunu bulursa onu kullanır ve en küçük boyutta açılır. Tur sürerken tur kimliğinin ayarları
+  # sürekli silinir: her açılış ilk açılış gibi olur.
+  ( while :; do defaults delete "$TOUR_APP" >/dev/null 2>&1 || true; sleep 0.3; done ) &
+  WATCH=$!
+  clear_output
+  # İmza: takımsız (ad hoc) ve yetkisiz. İmzasız koşucu açılmaz; kum havuzlu uygulama ise koşucunun
+  # hazırladığı kasa kopyasını okuyamaz. Koşucu kum havuzludur ve çıktı klasörüne yazamaz;
+  # görüntüler sonuç paketinden çıkarılır (aşağıda).
+  set +e
+  TEST_RUNNER_JOURNAL_SCREEN_TOUR_DIR="$OUT" \
+  TEST_RUNNER_JOURNAL_SCREEN_TOUR_TREE="${SCREEN_TOUR_TREE:-}" \
+  TEST_RUNNER_JOURNAL_SCREEN_TOUR_ONLY="${SCREEN_TOUR_ONLY:-}" \
+  xcodebuild test \
+    -project Journal.xcodeproj \
+    -scheme Journal_macOS_ScreenTour \
+    -destination "platform=macOS,arch=$(uname -m)" \
+    -derivedDataPath "$DERIVED" \
+    -resultBundlePath "$RESULT" \
+    APP_BUNDLE_IDENTIFIER="$TOUR_APP" \
+    CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY=- CODE_SIGN_ENTITLEMENTS= \
+    -quiet
+  status=$?
+  set -e
+else
 
 # Cihaz seçimi record-screen-snapshots.sh ile aynıdır: en eski kurulu iOS runtime'ındaki iPhone 17.
 if [ -z "$ID" ]; then
@@ -51,13 +123,6 @@ print(next((by_name[n] for n in preferred if n in by_name), phones[0])["udid"])
 ')
 fi
 echo "Simülatör: $ID"
-echo "Çıktı: $OUT"
-
-# Kimlik tek yerde durur: project.yml içindeki APP_BUNDLE_IDENTIFIER.
-APP=$(sed -n 's/^ *APP_BUNDLE_IDENTIFIER: *//p' project.yml)
-[ -n "$APP" ] || { echo "project.yml içinde APP_BUNDLE_IDENTIFIER bulunamadı" >&2; exit 1; }
-WORK=$(mktemp -d)
-RESULT="$WORK/tour.xcresult"
 
 uninstall() {
   xcrun simctl uninstall "$ID" "$APP" >/dev/null 2>&1 || true
@@ -80,9 +145,7 @@ xcrun simctl ui "$ID" appearance light
 xcrun simctl status_bar "$ID" override --time "9:41" --batteryState charged --batteryLevel 100 \
   --wifiBars 3 --cellularBars 4 >/dev/null 2>&1 || true
 
-# Önceki koşunun görüntüleri yeni koşunun atladığı adımı gizlemesin.
-find "$OUT" -maxdepth 1 -type f \( -name '[0-9][0-9]-*.png' -o -name 'atlananlar.txt' \) -delete
-rm -rf "$OUT/agac"
+clear_output
 
 # TEST_RUNNER_ önekli değişkenler test koşucusuna öneksiz iletilir; şemaya eklemek gerekmez.
 set +e
@@ -98,6 +161,9 @@ xcodebuild test \
   -quiet
 status=$?
 set -e
+
+fi
+
 # Tur bir ekrana ulaşamayınca düşmez; düştüyse neden (uygulama açılmadı, simülatör yanıt vermedi) buradadır.
 if [ "$status" -ne 0 ] && [ -d "$RESULT" ]; then
   xcrun xcresulttool get test-results summary --path "$RESULT" 2>/dev/null | python3 -c '
@@ -121,6 +187,9 @@ for test in manifest:
         name = re.sub(r"_\d+_[0-9A-Fa-f-]{36}(\.\w+)$", r"\1", item.get("suggestedHumanReadableName", ""))
         if re.match(r"\d\d-.*\.png$", name) or name == "atlananlar.txt":
             shutil.copyfile(os.path.join(source, item["exportedFileName"]), os.path.join(target, name))
+        elif name.startswith("agac-") and name.endswith(".txt"):
+            os.makedirs(os.path.join(target, "agac"), exist_ok=True)
+            shutil.copyfile(os.path.join(source, item["exportedFileName"]), os.path.join(target, "agac", name[5:]))
 PY
   fi
 fi

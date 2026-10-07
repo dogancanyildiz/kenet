@@ -6,7 +6,7 @@ import Testing
 
 /// Pure decisions behind the control-pattern components, plus source checks that the views
 /// really route through those decisions (a helper nobody calls protects nothing).
-struct ControlPatternComponentTests {
+@MainActor struct ControlPatternComponentTests {
     // MARK: - Manşet row icons
 
     @Test func headerActionColorFollowsRoleAndActiveState() {

@@ -38,14 +38,10 @@ struct ControlPatternUsageTests {
             "App/Screens/Goals/GoalCreationView.swift",
             "App/Screens/Goals/GoalFieldEditor.swift",
             "App/Screens/Graph/GraphControls.swift",
-            "App/Screens/Settings/AppLockSettingsView.swift",
-            "App/Screens/Settings/EntityTypeEditorView.swift",
-            "App/Screens/Settings/GeofenceSettingsView.swift",
             "App/Screens/Tasks/TaskRecurrenceEditor.swift",
         ],
         .roundedBorderField: [
-            "App/Screens/Goals/GoalValueEditor.swift",
-            "App/Screens/Shared/SingleLineTextEditor.swift",
+            "App/Screens/Goals/GoalValueEditor.swift"
         ],
         .toolbarSearch: [
             "App/Navigation/MacNavigation.swift",
@@ -53,7 +49,6 @@ struct ControlPatternUsageTests {
             "App/Screens/Goals/GoalDetailView.swift",
             "App/Screens/Goals/GoalsView.swift",
             "App/Screens/Graph/GraphView.swift",
-            "App/Screens/Shared/SearchNoteView.swift",
             "App/Screens/Summaries/SummariesView.swift",
             "App/Screens/Tasks/ProjectView.swift",
             "App/Screens/Tasks/TaskDetailView.swift",
@@ -61,18 +56,13 @@ struct ControlPatternUsageTests {
             "App/Screens/Today/DayView.swift",
         ],
         .doneButton: [
-            "App/Screens/Shared/SingleLineTextEditor.swift",
-            "App/Screens/Today/JournalView.swift",
+            "App/Screens/Today/JournalView.swift"
         ],
         .sheetToolbar: [
-            "App/Navigation/PhoneNavigation.swift",
             "App/Screens/Goals/GoalCreationView.swift",
             "App/Screens/Goals/GoalFieldEditor.swift",
             "App/Screens/Goals/GoalValueEditor.swift",
             "App/Screens/Map/PlacesMapView.swift",
-            "App/Screens/Shared/LinkedTextView.swift",
-            "App/Screens/Shared/SearchView.swift",
-            "App/Screens/Shared/SingleLineTextEditor.swift",
             "App/Screens/Tasks/Kanban/KanbanView.swift",
             "App/Screens/Tasks/TaskRecurrenceEditor.swift",
             "App/Screens/Tasks/Timeline/TaskTimelineView.swift",

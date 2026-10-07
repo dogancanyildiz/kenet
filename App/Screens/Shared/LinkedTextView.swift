@@ -40,7 +40,7 @@ struct LinkedTextView: View {
                             description: Text(verbatim: link.name))
                     }
                 }
-                .toolbar { Button("Kapat") { destination = nil } }
+                .inkSheet(verbatim: link.name, onClose: { destination = nil })
             }
             .frame(minWidth: 300, minHeight: 300)
         }

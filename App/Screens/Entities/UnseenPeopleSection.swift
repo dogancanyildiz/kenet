@@ -9,36 +9,59 @@ struct UnseenPeopleSection: View {
     @Environment(\.clockNow) private var clockNow
     @State private var expanded = false
 
+    /// Bumped once a minute so the day boundary moves the list without a vault change.
+    @State private var minute = 0
+
+    // The rows are direct `List` children: a wrapping container (`TimelineView`,
+    // `DisclosureGroup`) keeps the row modifiers from reaching the list and leaves a white row.
     var body: some View {
-        TimelineView(.periodic(from: .now, by: 60)) { _ in
-            let groups = UnseenPeople.compute(
-                people: people, content: store.content,
-                today: LocalDay.today(at: clockNow()), threshold: threshold)
-            DisclosureGroup(isExpanded: $expanded) {
-                if groups.overdue.isEmpty {
-                    Text("Bu süreyi aşan kayıt yok.")
+        let _ = minute
+        let groups = UnseenPeople.compute(
+            people: people, content: store.content,
+            today: LocalDay.today(at: clockNow()), threshold: threshold)
+        Button {
+            expanded.toggle()
+        } label: {
+            SectionHeader(title: String(localized: "Bir süredir görüşmediklerin"))
+                .overlay(alignment: .bottomTrailing) {
+                    Image(systemName: expanded ? "chevron.down" : "chevron.right")
                         .font(.ink.meta)
                         .foregroundStyle(.ink.secondaryText)
-                        .inkListRow()
+                        .accessibilityHidden(true)
                 }
-                ForEach(groups.overdue) { person in
+                .frame(minHeight: TapTarget.minimumLength, alignment: .top)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityValue(expanded ? Text("Genişletilmiş") : Text("Daraltılmış"))
+        .inkListRow()
+        .task {
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(60))
+                minute &+= 1
+            }
+        }
+        if expanded {
+            if groups.overdue.isEmpty {
+                Text("Bu süreyi aşan kayıt yok.")
+                    .font(.ink.meta)
+                    .foregroundStyle(.ink.secondaryText)
+                    .inkListRow()
+            }
+            ForEach(groups.overdue) { person in
+                personRow(person)
+                    .inkListRow()
+            }
+            if !groups.never.isEmpty {
+                Text("Henüz hiç")
+                    .font(.ink.meta)
+                    .foregroundStyle(.ink.secondaryText)
+                    .inkListRow()
+                ForEach(groups.never) { person in
                     personRow(person)
                         .inkListRow()
                 }
-                if !groups.never.isEmpty {
-                    Text("Henüz hiç")
-                        .font(.ink.meta)
-                        .foregroundStyle(.ink.secondaryText)
-                        .inkListRow()
-                    ForEach(groups.never) { person in
-                        personRow(person)
-                            .inkListRow()
-                    }
-                }
-            } label: {
-                SectionHeader(title: String(localized: "Bir süredir görüşmediklerin"))
             }
-            .inkListRow()
         }
     }
 

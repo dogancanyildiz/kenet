@@ -34,6 +34,7 @@
                 }
                 .tabItem { Label("Tanılama", systemImage: "wrench.and.screwdriver") }
             }
+            .inkToggle()
             .frame(
                 minWidth: InkSpacing.macSettingsMinWidth,
                 minHeight: InkSpacing.macSettingsMinHeight)

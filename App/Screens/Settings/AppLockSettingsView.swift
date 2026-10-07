@@ -22,12 +22,15 @@ struct AppLockSettingsView: View {
             .disabled(lock.isAuthenticating)
             .inkListRow()
             if lock.isEnabled {
-                Picker("Şu kadar sonra kilitle", selection: $lock.delay) {
-                    Text("Hemen").tag(AppLockDelay.immediately)
-                    Text("1 dk").tag(AppLockDelay.oneMinute)
-                    Text("5 dk").tag(AppLockDelay.fiveMinutes)
-                    Text("15 dk").tag(AppLockDelay.fifteenMinutes)
-                }
+                InkLabeledMenu(
+                    "Şu kadar sonra kilitle", selection: $lock.delay,
+                    options: [
+                        InkMenuOption("Hemen", value: AppLockDelay.immediately),
+                        InkMenuOption("1 dk", value: AppLockDelay.oneMinute),
+                        InkMenuOption("5 dk", value: AppLockDelay.fiveMinutes),
+                        InkMenuOption("15 dk", value: AppLockDelay.fifteenMinutes),
+                    ], identifier: "menu.settings.lockDelay"
+                )
                 .inkListRow()
             }
             if lock.authenticationFailed {

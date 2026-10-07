@@ -32,7 +32,9 @@ enum InkSheetChrome {
     static let closeKey = "Kapat"
 
     static func token(for button: Button, isEnabled: Bool = true) -> InkButtonChrome.Token {
-        guard isEnabled else { return .secondaryText }
+        // "Vazgeç" is secondary text while enabled, so its disabled state steps down to the
+        // control line color; the accent words fall back to secondary text.
+        guard isEnabled else { return button == .cancel ? .control : .secondaryText }
         switch button {
         case .cancel: return .secondaryText
         case .confirm, .close: return .accent
@@ -47,6 +49,10 @@ enum InkSheetChrome {
 
     /// While busy the confirm word is replaced by a progress indicator.
     static func showsProgress(isBusy: Bool) -> Bool { isBusy }
+
+    /// Buttons of a cancel-only sheet: "Vazgeç" alone, or nothing once the page holds the only
+    /// way out (`showsCancel == false`). There is never a confirm word.
+    static func cancelOnlyButtons(showsCancel: Bool) -> [Button] { showsCancel ? [.cancel] : [] }
 }
 
 extension View {
@@ -63,22 +69,24 @@ extension View {
     ///   - confirm: `.save` ("Kaydet") or `.create` ("Oluştur").
     ///   - isConfirmEnabled: `false` while the form is invalid or unchanged.
     ///   - isBusy: `true` while writing; confirm is disabled and shows progress.
+    ///   - isCancelEnabled: `false` while "Vazgeç" must not be used (a write in flight); the
+    ///     word is drawn disabled instead of being silently ignored.
     ///   - cancelIdentifier / confirmIdentifier: accessibility identifiers of the two buttons.
     ///   - onCancel: "Vazgeç" (also Esc). `nil` dismisses. A screen with an unsaved-changes
     ///     dialog passes its own closure and keeps the `confirmationDialog` itself.
     ///   - onConfirm: the confirm action (also Return on Mac). It does not dismiss by itself.
     func inkSheet(
         _ title: LocalizedStringKey, confirm: InkSheetConfirmation = .save,
-        isConfirmEnabled: Bool = true, isBusy: Bool = false, cancelIdentifier: String? = nil,
-        confirmIdentifier: String? = nil, onCancel: (() -> Void)? = nil,
-        onConfirm: @escaping () -> Void
+        isConfirmEnabled: Bool = true, isBusy: Bool = false, isCancelEnabled: Bool = true,
+        cancelIdentifier: String? = nil, confirmIdentifier: String? = nil,
+        onCancel: (() -> Void)? = nil, onConfirm: @escaping () -> Void
     ) -> some View {
         modifier(
             InkSheetModifier(
                 kind: .editing(
                     confirm: confirm, isConfirmEnabled: isConfirmEnabled, isBusy: isBusy,
-                    cancelIdentifier: cancelIdentifier, confirmIdentifier: confirmIdentifier,
-                    onCancel: onCancel, onConfirm: onConfirm))
+                    isCancelEnabled: isCancelEnabled, cancelIdentifier: cancelIdentifier,
+                    confirmIdentifier: confirmIdentifier, onCancel: onCancel, onConfirm: onConfirm))
         )
         .inkPageNavigationTitle(title)
     }
@@ -86,16 +94,16 @@ extension View {
     /// Editing sheet chrome with a non-localized title (e.g. an entity name).
     func inkSheet(
         verbatim title: String, confirm: InkSheetConfirmation = .save,
-        isConfirmEnabled: Bool = true, isBusy: Bool = false, cancelIdentifier: String? = nil,
-        confirmIdentifier: String? = nil, onCancel: (() -> Void)? = nil,
-        onConfirm: @escaping () -> Void
+        isConfirmEnabled: Bool = true, isBusy: Bool = false, isCancelEnabled: Bool = true,
+        cancelIdentifier: String? = nil, confirmIdentifier: String? = nil,
+        onCancel: (() -> Void)? = nil, onConfirm: @escaping () -> Void
     ) -> some View {
         modifier(
             InkSheetModifier(
                 kind: .editing(
                     confirm: confirm, isConfirmEnabled: isConfirmEnabled, isBusy: isBusy,
-                    cancelIdentifier: cancelIdentifier, confirmIdentifier: confirmIdentifier,
-                    onCancel: onCancel, onConfirm: onConfirm))
+                    isCancelEnabled: isCancelEnabled, cancelIdentifier: cancelIdentifier,
+                    confirmIdentifier: confirmIdentifier, onCancel: onCancel, onConfirm: onConfirm))
         )
         .inkPageNavigationTitle(verbatim: title)
     }
@@ -115,6 +123,44 @@ extension View {
     ) -> some View {
         modifier(InkSheetModifier(kind: .reading(closeIdentifier: closeIdentifier, onClose: onClose)))
             .inkPageNavigationTitle(verbatim: title)
+    }
+
+    /// Cancel-only sheet chrome: same background and title rules, one button: "Vazgeç" on the
+    /// left (also Esc). For a sheet whose action is not a save and therefore lives in the page
+    /// as a button (vault preparation: "Uygula"); nothing is bound to Return.
+    ///
+    /// - Parameters:
+    ///   - cancelIdentifier: accessibility identifier of "Vazgeç" (required label: it tells this
+    ///     overload from the read-only one).
+    ///   - showsCancel: `false` leaves the bar empty (the page holds the only way out) without
+    ///     changing the identity of the content.
+    ///   - isCancelEnabled: `false` draws "Vazgeç" disabled (a write in flight).
+    ///   - onCancel: "Vazgeç". `nil` dismisses.
+    func inkSheet(
+        _ title: LocalizedStringKey, cancelIdentifier: String?, showsCancel: Bool = true,
+        isCancelEnabled: Bool = true, onCancel: (() -> Void)? = nil
+    ) -> some View {
+        modifier(
+            InkSheetModifier(
+                kind: .cancelOnly(
+                    cancelIdentifier: cancelIdentifier, showsCancel: showsCancel,
+                    isCancelEnabled: isCancelEnabled, onCancel: onCancel))
+        )
+        .inkPageNavigationTitle(title)
+    }
+
+    /// Cancel-only sheet chrome with a non-localized title.
+    func inkSheet(
+        verbatim title: String, cancelIdentifier: String?, showsCancel: Bool = true,
+        isCancelEnabled: Bool = true, onCancel: (() -> Void)? = nil
+    ) -> some View {
+        modifier(
+            InkSheetModifier(
+                kind: .cancelOnly(
+                    cancelIdentifier: cancelIdentifier, showsCancel: showsCancel,
+                    isCancelEnabled: isCancelEnabled, onCancel: onCancel))
+        )
+        .inkPageNavigationTitle(verbatim: title)
     }
 
     /// Accent tint for system controls (`Toggle`, `Stepper`, `DatePicker`, `ProgressView`).
@@ -139,16 +185,16 @@ struct InkSheetScaffold<Content: View>: View {
     init(
         _ title: LocalizedStringKey, byline: String? = nil,
         confirm: InkSheetConfirmation = .save, isConfirmEnabled: Bool = true,
-        isBusy: Bool = false, cancelIdentifier: String? = nil, confirmIdentifier: String? = nil,
-        onCancel: (() -> Void)? = nil, onConfirm: @escaping () -> Void,
-        @ViewBuilder content: () -> Content
+        isBusy: Bool = false, isCancelEnabled: Bool = true, cancelIdentifier: String? = nil,
+        confirmIdentifier: String? = nil, onCancel: (() -> Void)? = nil,
+        onConfirm: @escaping () -> Void, @ViewBuilder content: () -> Content
     ) {
         self.title = title
         self.byline = byline
         kind = .editing(
             confirm: confirm, isConfirmEnabled: isConfirmEnabled, isBusy: isBusy,
-            cancelIdentifier: cancelIdentifier, confirmIdentifier: confirmIdentifier,
-            onCancel: onCancel, onConfirm: onConfirm)
+            isCancelEnabled: isCancelEnabled, cancelIdentifier: cancelIdentifier,
+            confirmIdentifier: confirmIdentifier, onCancel: onCancel, onConfirm: onConfirm)
         self.content = content()
     }
 
@@ -182,9 +228,12 @@ struct InkSheetModifier: ViewModifier {
     enum Kind {
         case editing(
             confirm: InkSheetConfirmation, isConfirmEnabled: Bool, isBusy: Bool,
-            cancelIdentifier: String?, confirmIdentifier: String?, onCancel: (() -> Void)?,
-            onConfirm: () -> Void)
+            isCancelEnabled: Bool = true, cancelIdentifier: String?, confirmIdentifier: String?,
+            onCancel: (() -> Void)?, onConfirm: () -> Void)
         case reading(closeIdentifier: String?, onClose: (() -> Void)?)
+        case cancelOnly(
+            cancelIdentifier: String?, showsCancel: Bool, isCancelEnabled: Bool,
+            onCancel: (() -> Void)?)
     }
 
     let kind: Kind
@@ -200,8 +249,8 @@ struct InkSheetModifier: ViewModifier {
                 // background leaves the plain word while keeping the system placements.
                 switch kind {
                 case .editing(
-                    let confirm, let isConfirmEnabled, let isBusy, let cancelIdentifier,
-                    let confirmIdentifier, let onCancel, let onConfirm):
+                    let confirm, let isConfirmEnabled, let isBusy, let isCancelEnabled,
+                    let cancelIdentifier, let confirmIdentifier, let onCancel, let onConfirm):
                     ToolbarItem(placement: .cancellationAction) {
                         Button {
                             if let onCancel { onCancel() } else { dismiss() }
@@ -209,6 +258,7 @@ struct InkSheetModifier: ViewModifier {
                             Text(LocalizedStringKey(InkSheetChrome.cancelKey))
                         }
                         .buttonStyle(InkSheetButtonStyle(button: .cancel))
+                        .disabled(!isCancelEnabled)
                         .inkSheetShortcut(.cancelAction)
                         .inkAccessibilityIdentifier(cancelIdentifier)
                     }
@@ -244,8 +294,36 @@ struct InkSheetModifier: ViewModifier {
                         .inkAccessibilityIdentifier(closeIdentifier)
                     }
                     .sharedBackgroundVisibility(.hidden)
+                case .cancelOnly(
+                    let cancelIdentifier, let showsCancel, let isCancelEnabled, let onCancel):
+                    if InkSheetChrome.cancelOnlyButtons(showsCancel: showsCancel).contains(.cancel) {
+                        InkSheetCancelItem(
+                            identifier: cancelIdentifier, isEnabled: isCancelEnabled,
+                            action: { if let onCancel { onCancel() } else { dismiss() } })
+                    }
                 }
             }
+    }
+}
+
+/// "Vazgeç" of a cancel-only sheet: the same word, placement, Esc shortcut and capsule-free
+/// drawing as the editing sheet's cancel button.
+private struct InkSheetCancelItem: ToolbarContent {
+    var identifier: String?
+    var isEnabled: Bool
+    var action: () -> Void
+
+    var body: some ToolbarContent {
+        ToolbarItem(placement: .cancellationAction) {
+            Button(action: action) {
+                Text(LocalizedStringKey(InkSheetChrome.cancelKey))
+            }
+            .buttonStyle(InkSheetButtonStyle(button: .cancel))
+            .disabled(!isEnabled)
+            .inkSheetShortcut(.cancelAction)
+            .inkAccessibilityIdentifier(identifier)
+        }
+        .sharedBackgroundVisibility(.hidden)
     }
 }
 

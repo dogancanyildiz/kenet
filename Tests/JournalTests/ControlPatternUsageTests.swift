@@ -30,42 +30,22 @@ struct ControlPatternUsageTests {
     static let allowlist: [Rule: Set<String>] = [
         .segmentedPicker: [],
         .menuPicker: [
-            "App/Screens/Entities/EntityTypePicker.swift",
             "App/Screens/Tasks/Kanban/KanbanView.swift",
             "App/Screens/Tasks/TasksSectionPicker.swift",
             "App/Screens/Tasks/Timeline/TaskTimelineView.swift",
         ],
         .unstyledPicker: [
-            "App/Screens/Entities/EntityListControls.swift",
-            "App/Screens/Settings/AppLockSettingsView.swift",
-            "App/Screens/Settings/EntityTypeEditorView.swift",
-            "App/Screens/Settings/GeofenceSettingsView.swift",
-            "App/Screens/Tasks/TaskRecurrenceEditor.swift",
+            "App/Screens/Tasks/TaskRecurrenceEditor.swift"
         ],
-        .roundedBorderField: [
-            "App/Screens/Entities/EntityListControls.swift",
-            "App/Screens/Shared/SingleLineTextEditor.swift",
-        ],
+        .roundedBorderField: [],
         .toolbarSearch: [
             "App/Navigation/MacNavigation.swift",
-            "App/Screens/Entities/EntitiesView.swift",
-            "App/Screens/Entities/EntityView.swift",
-            "App/Screens/Shared/SearchNoteView.swift",
             "App/Screens/Tasks/ProjectView.swift",
             "App/Screens/Tasks/TaskDetailView.swift",
             "App/Screens/Tasks/TasksView.swift",
         ],
-        .doneButton: [
-            "App/Screens/Entities/EntityView.swift",
-            "App/Screens/Shared/SingleLineTextEditor.swift",
-        ],
+        .doneButton: [],
         .sheetToolbar: [
-            "App/Navigation/PhoneNavigation.swift",
-            "App/Screens/Entities/EntityRenameView.swift",
-            "App/Screens/Entities/EntityView.swift",
-            "App/Screens/Shared/LinkedTextView.swift",
-            "App/Screens/Shared/SearchView.swift",
-            "App/Screens/Shared/SingleLineTextEditor.swift",
             "App/Screens/Tasks/Kanban/KanbanView.swift",
             "App/Screens/Tasks/TaskRecurrenceEditor.swift",
             "App/Screens/Tasks/Timeline/TaskTimelineView.swift",

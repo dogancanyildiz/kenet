@@ -104,6 +104,7 @@ struct NotificationSettingsView: View {
             }
         }
         .listStyle(.plain)
+        .inkToggle()
         .inkPageNavigationTitle("Bildirimler")
         .inkPageColumn()
         .inkPage()

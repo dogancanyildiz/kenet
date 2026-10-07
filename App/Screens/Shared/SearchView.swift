@@ -6,7 +6,6 @@ struct SearchView: View {
     @State private var model: SearchModel
     @State private var path: [SearchDestination] = []
     @FocusState private var searchFocused: Bool
-    @Environment(\.dismiss) private var dismiss
 
     init(store: IndexStore, initialQuery: String = "") {
         self.store = store
@@ -28,10 +27,8 @@ struct SearchView: View {
                 }
                 resultList
             }
-            .inkPage()
             .inkPageColumn()
-            .inkPageNavigationTitle("Ara")
-            .toolbar { Button("Kapat") { dismiss() } }
+            .inkSheet("Ara", closeIdentifier: "button.search.close")
             .navigationDestination(for: SearchDestination.self) { destination in
                 switch destination {
                 case .entity(let file):
@@ -71,27 +68,10 @@ struct SearchView: View {
     }
 
     private var searchField: some View {
-        TextField(
-            "Kişi, konum veya metin ara", text: $model.query,
-            prompt: Text("Kişi, konum veya metin ara").font(.ink.placeholder)
+        InkFilterField(
+            "Kişi, konum veya metin ara", text: $model.query, isFocused: $searchFocused,
+            identifier: "field.search", clearIdentifier: "button.search.clear"
         )
-        .textFieldStyle(.plain)
-        .font(.ink.content)
-        .foregroundStyle(.ink.text)
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
-        .background(
-            Color.ink.well,
-            in: RoundedRectangle(
-                cornerRadius: InkSize.kanbanCorner, style: .continuous)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: InkSize.kanbanCorner, style: .continuous)
-                .strokeBorder(
-                    searchFocused ? Color.ink.accent : Color.ink.control,
-                    lineWidth: InkStroke.control)
-        )
-        .focused($searchFocused)
         .onSubmit {
             if let selected = model.selected {
                 open(selected)

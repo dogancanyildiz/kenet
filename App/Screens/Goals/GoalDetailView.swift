@@ -18,7 +18,9 @@ struct GoalDetailView: View {
         let status = history.status(for: goal)
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                InkPageTitle(verbatim: goal.name, byline: goal.period.title)
+                InkPageTitle(verbatim: goal.name, byline: goal.period.title) {
+                    SearchButton()
+                }
 
                 progressBlock(status: status)
                     .padding(.horizontal, InkSpacing.margin)
@@ -36,8 +38,6 @@ struct GoalDetailView: View {
 
                 section(title: String(localized: "Tanım")) {
                     definitionBlock
-                        .padding(12)
-                        .inkSurface()
                 }
                 .padding(.horizontal, InkSpacing.margin)
                 .disabled(!store.canAddEvent)
@@ -61,7 +61,6 @@ struct GoalDetailView: View {
         }
         .inkPage()
         .inkPageNavigationTitle(verbatim: goal.name)
-        .toolbar { SearchButton() }
         .task(id: store.lastUpdated) {
             await history.load()
         }

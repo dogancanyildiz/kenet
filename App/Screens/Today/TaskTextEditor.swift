@@ -17,17 +17,20 @@ struct TaskDateEditor: View {
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        VStack {
-            TaskDatePicker(current: model.row.due) { date in
-                Task { if await model.setDue(date), model.errorText == nil { dismiss() } }
+        // Each choice writes at once and closes the sheet, so this is a closing sheet: "Kapat" only
+        // (inert while a write is in flight, as before).
+        InkSheetScaffold(
+            "Görev tarihi", onClose: { if !model.isSaving { dismiss() } },
+            content: {
+                TaskDatePicker(current: model.row.due, isOnPage: true) { date in
+                    Task { if await model.setDue(date), model.errorText == nil { dismiss() } }
+                }
+                .disabled(model.target == nil || model.isSaving || model.isSaved)
+                if let error = model.errorText {
+                    InfoBand(kind: .error, verbatim: error)
+                }
             }
-            .disabled(model.target == nil || model.isSaving || model.isSaved)
-            if let error = model.errorText {
-                InfoBand(kind: .error, verbatim: error).padding()
-            }
-        }
-        .navigationTitle("Görev tarihi")
-        .toolbar { Button("Kapat") { dismiss() }.disabled(model.isSaving) }
+        )
         .interactiveDismissDisabled(model.isSaving)
         .task { await model.load() }
     }

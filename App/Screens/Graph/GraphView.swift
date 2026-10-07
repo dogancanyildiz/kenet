@@ -21,7 +21,10 @@ struct GraphView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
                     VStack(alignment: .leading, spacing: 0) {
-                        InkPageTitle("Graph")
+                        InkPageTitle("Graph") {
+                            GraphFilterMenu(filter: $model.filter)
+                            SearchButton()
+                        }
                         GraphControls(
                             maximumWeight: max(365, model.graph.edges.map(\.weight).max() ?? 1),
                             filter: $model.filter,
@@ -86,7 +89,6 @@ struct GraphView: View {
             }
         }
         .inkPageNavigationTitle("Graph")
-        .toolbar { SearchButton() }
         .onChange(of: store.vaultURL) { model.reset() }
         .onChange(of: model.selected) { pan = .zero }
     }

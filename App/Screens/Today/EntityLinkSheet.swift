@@ -32,12 +32,15 @@ extension View {
                     } else if link.path == nil {
                         UnresolvedEntityView(store: store, target: link.name)
                     } else {
-                        ContentUnavailableView(
-                            "Bu bağlantı kişi veya konum değil", systemImage: "doc.text",
-                            description: Text(verbatim: link.name))
+                        VStack(alignment: .leading, spacing: 0) {
+                            InkPageTitle(verbatim: link.name)
+                            EmptyState("Bu bağlantı kişi veya konum değil")
+                                .padding(.horizontal, InkSpacing.margin)
+                            Spacer(minLength: 0)
+                        }
                     }
                 }
-                .toolbar { Button("Kapat") { destination.wrappedValue = nil } }
+                .inkSheet(verbatim: link.name, onClose: { destination.wrappedValue = nil })
             }
             .frame(minWidth: 300, minHeight: 300)
         }

@@ -4,15 +4,13 @@ import SwiftUI
 struct GoalCreationView: View {
     @State private var model: GoalCreationModel
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     init(store: IndexStore) { _model = State(initialValue: GoalCreationModel(store: store)) }
-
-    private var stacksChrome: Bool { dynamicTypeSize.isAccessibilitySize }
 
     var body: some View {
         @Bindable var model = model
         List {
+            InkPageTitleRow("Yeni hedef")
             Section {
                 SectionHeader("Hedef")
                     .inkListRow()
@@ -30,18 +28,20 @@ struct GoalCreationView: View {
                 SectionHeader("Ayarlar")
                     .inkListRow()
                 if model.kind != .milestone {
-                    Picker("Dönem", selection: $model.period) {
-                        Text(verbatim: GoalPeriod.day.title).tag(GoalPeriod.day)
-                        Text(verbatim: GoalPeriod.week.title).tag(GoalPeriod.week)
-                        Text(verbatim: GoalPeriod.year.title).tag(GoalPeriod.year)
-                    }
+                    InkLabeledMenu(
+                        "Dönem", selection: $model.period,
+                        options: [GoalPeriod.day, .week, .year].map {
+                            InkMenuOption(verbatim: $0.title, value: $0)
+                        }
+                    )
                     .inkListRow()
                 }
-                Picker("Tür", selection: $model.kind) {
-                    Text(verbatim: GoalKind.boolean.title).tag(GoalKind.boolean)
-                    Text(verbatim: GoalKind.number.title).tag(GoalKind.number)
-                    Text(verbatim: GoalKind.milestone.title).tag(GoalKind.milestone)
-                }
+                InkLabeledMenu(
+                    "Tür", selection: $model.kind,
+                    options: [GoalKind.boolean, .number, .milestone].map {
+                        InkMenuOption(verbatim: $0.title, value: $0)
+                    }
+                )
                 .inkListRow()
                 if model.kind != .milestone {
                     LabeledContent("Hedef miktar") {
@@ -69,41 +69,12 @@ struct GoalCreationView: View {
             }
         }
         .listStyle(.plain)
-        .inkPage()
         .inkPageColumn()
         .disabled(model.isWriting || model.isSaved)
-        .navigationTitle("Yeni hedef")
-        #if os(iOS)
-            .navigationBarTitleDisplayMode(.inline)
-        #endif
-        .toolbar {
-            ToolbarItem(placement: .cancellationAction) {
-                Button("Kapat") { dismiss() }
-            }
-            // AX sizes often fold confirmation into the overflow menu; keep it for medium type.
-            if !stacksChrome {
-                ToolbarItem(placement: .confirmationAction) {
-                    createButton
-                }
-            }
-        }
-        .safeAreaInset(edge: .bottom) {
-            if stacksChrome {
-                createButton
-                    .buttonStyle(InkPrimaryButtonStyle())
-                    .padding(.horizontal, InkSpacing.margin)
-                    .padding(.vertical, 10)
-                    .frame(maxWidth: .infinity)
-                    .background(Color.ink.paper)
-            }
-        }
+        .inkSheet(
+            "Yeni hedef", confirm: .create, isConfirmEnabled: model.canSave, isBusy: model.isWriting,
+            onConfirm: { Task { if await model.save(), model.errorText == nil { dismiss() } } }
+        )
         .frame(minWidth: 320, minHeight: 350)
-    }
-
-    private var createButton: some View {
-        Button("Oluştur") {
-            Task { if await model.save(), model.errorText == nil { dismiss() } }
-        }
-        .disabled(!model.canSave)
     }
 }

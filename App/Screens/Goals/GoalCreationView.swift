@@ -12,48 +12,65 @@ struct GoalCreationView: View {
 
     var body: some View {
         @Bindable var model = model
-        Form {
-            TextField("Ad", text: $model.name)
-                .font(.ink.content)
-            LabeledContent("Anahtar") {
-                Text(verbatim: model.key)
-                    .font(.ink.meta)
-                    .foregroundStyle(Color.ink.secondaryText)
-            }
-            if model.kind != .milestone {
-                Picker("Dönem", selection: $model.period) {
-                    Text(verbatim: GoalPeriod.day.title).tag(GoalPeriod.day)
-                    Text(verbatim: GoalPeriod.week.title).tag(GoalPeriod.week)
-                    Text(verbatim: GoalPeriod.year.title).tag(GoalPeriod.year)
-                }
-            }
-            Picker("Tür", selection: $model.kind) {
-                Text(verbatim: GoalKind.boolean.title).tag(GoalKind.boolean)
-                Text(verbatim: GoalKind.number.title).tag(GoalKind.number)
-                Text(verbatim: GoalKind.milestone.title).tag(GoalKind.milestone)
-            }
-            if model.kind != .milestone {
-                LabeledContent("Hedef miktar") {
-                    TextField("Hedef miktar", text: $model.target)
-                        .font(.ink.value)
-                        .labelsHidden()
-                        .multilineTextAlignment(.trailing)
-                        #if os(iOS)
-                            .keyboardType(.decimalPad)
-                        #endif
-                }
-            }
-            if model.kind == .number {
-                TextField("Birim (isteğe bağlı)", text: $model.unit)
+        List {
+            Section {
+                SectionHeader("Hedef")
+                    .inkListRow()
+                TextField("Ad", text: $model.name)
                     .font(.ink.content)
+                    .inkListRow()
+                LabeledContent("Anahtar") {
+                    Text(verbatim: model.key)
+                        .font(.ink.meta)
+                        .foregroundStyle(Color.ink.secondaryText)
+                }
+                .inkListRow()
+            }
+            Section {
+                SectionHeader("Ayarlar")
+                    .inkListRow()
+                if model.kind != .milestone {
+                    Picker("Dönem", selection: $model.period) {
+                        Text(verbatim: GoalPeriod.day.title).tag(GoalPeriod.day)
+                        Text(verbatim: GoalPeriod.week.title).tag(GoalPeriod.week)
+                        Text(verbatim: GoalPeriod.year.title).tag(GoalPeriod.year)
+                    }
+                    .inkListRow()
+                }
+                Picker("Tür", selection: $model.kind) {
+                    Text(verbatim: GoalKind.boolean.title).tag(GoalKind.boolean)
+                    Text(verbatim: GoalKind.number.title).tag(GoalKind.number)
+                    Text(verbatim: GoalKind.milestone.title).tag(GoalKind.milestone)
+                }
+                .inkListRow()
+                if model.kind != .milestone {
+                    LabeledContent("Hedef miktar") {
+                        TextField("Hedef miktar", text: $model.target)
+                            .font(.ink.value)
+                            .labelsHidden()
+                            .multilineTextAlignment(.trailing)
+                            #if os(iOS)
+                                .keyboardType(.decimalPad)
+                            #endif
+                    }
+                    .inkListRow()
+                }
+                if model.kind == .number {
+                    TextField("Birim (isteğe bağlı)", text: $model.unit)
+                        .font(.ink.content)
+                        .inkListRow()
+                }
             }
             if let error = model.errorText {
-                InfoBand(kind: .error, verbatim: error)
+                Section {
+                    InfoBand(kind: .error, verbatim: error)
+                        .inkListRow()
+                }
             }
         }
-        .formStyle(.grouped)
-        .scrollContentBackground(.hidden)
-        .background(Color.ink.paper)
+        .listStyle(.plain)
+        .inkPage()
+        .inkPageColumn()
         .disabled(model.isWriting || model.isSaved)
         .navigationTitle("Yeni hedef")
         #if os(iOS)

@@ -219,4 +219,20 @@ struct RowComponentTests {
         #expect(!GoalStripPresentation.isBooleanRing(goal: weekly))
         #expect(!GoalStripPresentation.isBooleanRing(goal: number))
     }
+
+    @Test func inkGoalRowUsesValueBaselinePlaceholderWithoutValue() {
+        #expect(InkGoalRowTrailing.needsValueBaselinePlaceholder(showsPlus: true))
+        #expect(!InkGoalRowTrailing.needsValueBaselinePlaceholder(showsPlus: false))
+    }
+
+    @Test func pageHeadlineFittingPrefersFullThenShort() {
+        #expect(PageHeadlineFitting.pick(fullWidth: 200, shortWidth: 140, available: 220) == .full)
+        #expect(
+            PageHeadlineFitting.pick(fullWidth: 200, shortWidth: 140, available: 180) == .fullScaled)
+        #expect(PageHeadlineFitting.pick(fullWidth: 200, shortWidth: 140, available: 150) == .short)
+        #expect(
+            PageHeadlineFitting.pick(fullWidth: 200, shortWidth: 140, available: 100) == .shortScaled)
+        #expect(PageHeadlineFitting.fullScaleFloor == 0.85)
+        #expect(PageHeadlineFitting.shortScaleFloor == 0.75)
+    }
 }

@@ -24,6 +24,8 @@ struct TodayPresentation: Sendable {
     }
 
     let headline: String
+    /// Abbreviated-month headline for one-line fitting ("30 Eyl Çarşamba" / "Wed, Sep 30").
+    let shortHeadline: String
     let byline: String?
     let remainingTaskCount: Int
     let remainingGoalCount: Int
@@ -56,6 +58,7 @@ struct TodayPresentation: Sendable {
         self.isCarriedOverExpanded = isCarriedOverExpanded
         self.isCompletedExpanded = isCompletedExpanded
         headline = Self.dateText(day.date, today: today, locale: resolved, calendar: calendar, headline: true)
+        shortHeadline = Self.shortHeadline(day.date, today: today, locale: resolved, calendar: calendar)
         let all = groups.overdue + groups.dated + groups.created
         let isDone: (TaskRow) -> Bool = {
             completedTaskIDs.contains($0.id) || $0.rawStatus == "x" || $0.rawStatus == "X"
@@ -202,6 +205,27 @@ struct TodayPresentation: Sendable {
         formatter.setLocalizedDateFormatFromTemplate(
             (headline ? "dMMMMEEEE" : "dMMM") + (date.year == today.year ? "" : "y"))
         return formatter.string(from: LocalDay.instant(for: date, timeZone: calendar.timeZone))
+    }
+
+    /// Short one-line headline: abbreviated month via ``Date.FormatStyle`` (no hand-built strings).
+    static func shortHeadline(
+        _ date: CalendarDate, today: CalendarDate, locale: Locale, calendar: Calendar
+    ) -> String {
+        let resolved = PresentationLocalization.resolvedLocale(locale)
+        let instant = LocalDay.instant(for: date, timeZone: calendar.timeZone)
+        let includeYear = date.year != today.year
+        // FormatStyle exposes `calendar` as a property; pass calendar via the initializer.
+        let base = Date.FormatStyle(
+            locale: resolved, calendar: calendar, timeZone: calendar.timeZone)
+        if TurkishSuffix.isTurkish(resolved) {
+            var style = base.day().month(.abbreviated).weekday(.wide)
+            if includeYear { style = style.year() }
+            return instant.formatted(style)
+        } else {
+            var style = base.weekday(.abbreviated).month(.abbreviated).day()
+            if includeYear { style = style.year() }
+            return instant.formatted(style)
+        }
     }
 }
 

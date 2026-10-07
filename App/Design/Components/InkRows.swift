@@ -150,7 +150,6 @@ struct InkGoalRow: View {
                     .foregroundStyle(.ink.secondaryText)
             }
         } trailing: {
-            let plusBaselineFromTop = plusSide * 0.72
             HStack(spacing: 8) {
                 if let valueText {
                     if let onValueTap {
@@ -174,6 +173,13 @@ struct InkGoalRow: View {
                             .font(.ink.value)
                             .foregroundStyle(.ink.secondaryText)
                     }
+                } else if InkGoalRowTrailing.needsValueBaselinePlaceholder(
+                    showsPlus: showsPlus && onIncrement != nil)
+                {
+                    // Same `.ink.value` baseline as valued rows so the name does not drop ~5 pt.
+                    Text(verbatim: " ")
+                        .font(.ink.value)
+                        .accessibilityHidden(true)
                 }
                 if showsPlus, let onIncrement {
                     Button(action: onIncrement) {
@@ -197,11 +203,6 @@ struct InkGoalRow: View {
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel(Text(incrementLabel))
-                    // Image baseline sits at the glyph bottom; without a value `Text`, that pulls
-                    // the name ~5 pt down via MarginRow's firstTextBaseline trailing alignment.
-                    .alignmentGuide(.firstTextBaseline) { dimensions in
-                        dimensions[VerticalAlignment.top] + plusBaselineFromTop
-                    }
                 }
             }
         }
@@ -218,6 +219,15 @@ struct InkGoalRow: View {
         } else {
             ring
         }
+    }
+}
+
+/// Trailing-slot layout for ``InkGoalRow`` (unit-tested).
+enum InkGoalRowTrailing {
+    /// When there is no value text, a hidden `.ink.value` placeholder keeps the name on the same
+    /// baseline as valued rows (MarginRow aligns trailing on ``firstTextBaseline``).
+    static func needsValueBaselinePlaceholder(showsPlus: Bool) -> Bool {
+        showsPlus
     }
 }
 

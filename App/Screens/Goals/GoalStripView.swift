@@ -70,20 +70,10 @@ struct GoalStripView: View {
                     InfoBand(kind: .info, verbatim: notice)
                 }
             }
-            // Probe only: keep ready/loading off the strip's accessibility tree.
-            .background(alignment: .topLeading) {
-                Color.clear
-                    .frame(width: 0, height: 0)
-                    .accessibilityIdentifier(
-                        model.hasLoaded && !model.isLoading
-                            ? "goals.strip.ready" : "goals.strip.loading"
-                    )
-                    .preference(
-                        key: GoalsStripReadyKey.self,
-                        value: model.hasLoaded && !model.isLoading
-                    )
-                    .accessibilityHidden(true)
-            }
+            .preference(
+                key: GoalsStripReadyKey.self,
+                value: model.hasLoaded && !model.isLoading
+            )
             .task(id: model.store.lastUpdated) { await model.load() }
             .sheet(item: $editing) { editor in
                 NavigationStack { GoalValueEditor(model: editor) }

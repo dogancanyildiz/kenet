@@ -131,9 +131,15 @@ struct TodayPresentationTests {
         let locale = Locale(identifier: language)
         let value = try make(locale: language)
         #expect(value.headline == (language == "tr_TR" ? "6 Ekim Salı" : "Tuesday, October 6"))
+        #expect(
+            value.shortHeadline == (language == "tr_TR" ? "6 Eki Salı" : "Tue, Oct 6"))
         let september = TodayPresentation.carriedOverDate(
             CalendarDate("2026-09-30")!, today: day, locale: locale, calendar: calendar)
         #expect(september == (language == "tr_TR" ? "30 Eyl'den" : "from Sep 30"))
+        let longDay = CalendarDate("2026-09-30")!
+        #expect(
+            TodayPresentation.shortHeadline(longDay, today: day, locale: locale, calendar: calendar)
+                == (language == "tr_TR" ? "30 Eyl Çarşamba" : "Wed, Sep 30"))
         let previous = CalendarDate("2025-12-31")!
         let now = CalendarDate("2026-01-02")!
         let past = try TodayPresentation(
@@ -141,6 +147,9 @@ struct TodayPresentationTests {
             goals: [], goalStatuses: [:], goalStatusesDay: previous, today: now, locale: locale,
             calendar: calendar)
         #expect(past.headline == (language == "tr_TR" ? "31 Aralık 2025 Çarşamba" : "Wednesday, December 31, 2025"))
+        #expect(
+            past.shortHeadline
+                == (language == "tr_TR" ? "31 Ara 2025 Çarşamba" : "Wed, Dec 31, 2025"))
         #expect(
             TodayPresentation.carriedOverDate(previous, today: now, locale: locale, calendar: calendar)
                 == (language == "tr_TR" ? "31 Ara 2025'ten" : "from Dec 31, 2025"))

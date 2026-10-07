@@ -19,6 +19,7 @@ struct DayView: View {
     @Environment(\.locale) private var locale
     @Environment(\.calendar) private var calendarValue
     @Environment(\.clockNow) private var clockNow
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.openSearch) private var openSearch
     @Environment(\.openSettings) private var openSettings
     @State private var showsJournal = false
@@ -137,33 +138,49 @@ struct DayView: View {
     }
 
     @ViewBuilder private func headlineBlock(_ presented: TodayPresentation) -> some View {
-        HStack(alignment: .firstTextBaseline, spacing: 4) {
-            PageHeadline(title: presented.headline, byline: presented.byline, fitsOneLine: isToday)
-            if isToday {
-                Button {
-                    openSearch()
-                } label: {
-                    Label("Ara", systemImage: "magnifyingglass")
-                        .labelStyle(.iconOnly)
-                        .foregroundStyle(Color.ink.secondaryText)
-                        .tapTarget()
+        let headline = PageHeadline(
+            title: presented.headline, shortTitle: presented.shortHeadline,
+            byline: presented.byline, fitsOneLine: isToday)
+        if isToday, dynamicTypeSize.isAccessibilitySize {
+            // Keep 44 pt buttons clear of the large manşet (todayAX5).
+            VStack(alignment: .leading, spacing: InkSpacing.row) {
+                HStack(spacing: 4) {
+                    Spacer(minLength: 0)
+                    todayChromeButtons
                 }
-                .buttonStyle(.plain)
-                .accessibilityLabel("Ara")
-                if let openSettings {
-                    Button {
-                        openSettings()
-                    } label: {
-                        Label("Ayarlar", systemImage: "gearshape")
-                            .labelStyle(.iconOnly)
-                            .foregroundStyle(Color.ink.secondaryText)
-                            .tapTarget()
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel("Ayarlar")
-                    .accessibilityIdentifier("button.settings")
-                }
+                headline
             }
+        } else {
+            HStack(alignment: .firstTextBaseline, spacing: 4) {
+                headline
+                if isToday { todayChromeButtons }
+            }
+        }
+    }
+
+    @ViewBuilder private var todayChromeButtons: some View {
+        Button {
+            openSearch()
+        } label: {
+            Label("Ara", systemImage: "magnifyingglass")
+                .labelStyle(.iconOnly)
+                .foregroundStyle(Color.ink.secondaryText)
+                .tapTarget()
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Ara")
+        if let openSettings {
+            Button {
+                openSettings()
+            } label: {
+                Label("Ayarlar", systemImage: "gearshape")
+                    .labelStyle(.iconOnly)
+                    .foregroundStyle(Color.ink.secondaryText)
+                    .tapTarget()
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Ayarlar")
+            .accessibilityIdentifier("button.settings")
         }
     }
 

@@ -18,7 +18,7 @@ Alt sekmeler: **Bugün, Günlük, Görevler, Kişiler ve Konumlar, Hedefler.** A
 
 Uygulama bu ekranda açılır. Yukarıdan aşağıya:
 
-1. **Manşet ve künye (9):** Günün tarihi sayfada New York Semibold manşettir; altında tek satırlık künye durur: olayla başlar, kalanla biter ("3 olay · 4 görev ve 2 hedef kaldı"); sıfır olan parça yazılmaz, hiçbir şey yoksa satır yoktur. Bugün sekmesinde gezinme çubuğu gizlenir; arama ve Ayarlar manşet satırının sağındadır (Ayarlar yalnız telefonda, `button.settings`). Geçmiş gün sayfasında geri düğmesi için gezinme çubuğu kalır. VoiceOver ve geçmiş için `navigationTitle` yine tarih metnidir.
+1. **Manşet ve künye (9):** Günün tarihi sayfada New York Semibold manşettir; altında tek satırlık künye durur: olayla başlar, kalanla biter ("3 olay · 4 görev ve 2 hedef kaldı"); sıfır olan parça yazılmaz, hiçbir şey yoksa satır yoktur. Bugün sekmesinde gezinme çubuğu gizlenir; arama ve Ayarlar manşet satırının sağındadır (Ayarlar yalnız telefonda, `button.settings`); erişilebilirlik yazı boyutlarında düğmeler manşetin üstünde sağa yaslı ayrı bir satırdadır. Dar genişlikte manşet önce tam biçimi, gerekirse kısaltılmış ay biçimini ve en çok %75 ölçeği dener; VoiceOver her zaman tam biçimi okur. Geçmiş gün sayfasında geri düğmesi için gezinme çubuğu kalır. VoiceOver ve geçmiş için `navigationTitle` yine tarih metnidir.
 2. **Hedefler (3):** Günün (günlük dönemli) hedefleri; bölüm sayacı yalnız bunları sayar (`countedGoalIDs` ile aynı küme). Altında haftalık/yıllık hedefler aynı satır bileşeniyle listelenir; meta satırında dönem ilerleme metni vardır (sayaç dışı). Tek dokunuşluk artı ile işaretlenir veya sayısal değerde bir artar; sayısal hedefte değer metnine dokununca (veya basılı tutunca / menüden) miktar girilir. Yapılmamışlar belirgin, yapılmışlar soluk.
 3. **Görevler (2):** Devreden görevler, bugünün görevleri ve bugün oluşturulan tarihsiz görevler. Kutuya (veya bağlantısız satıra) dokununca tamamlanır, basılı tutunca düzenlenir. Devreden görevin altında geldiği tarih yazar ("30 Eyl'den"); en çok üçü gösterilir, kalanı "N devreden daha" satırında toplanır ve dokununca açılır. Tamamlanan görev listenin sonuna iner; birden çok tamamlanan tek satıra katlanır ("N görev tamamlandı") ve dokununca açılır.
 4. **Takvim (2):** Cihaz takvimindeki bugünkü etkinlikler, salt okunur (sans satır).
@@ -116,7 +116,7 @@ Harita geçerli koordinatı olan konumları pin olarak gösterir. Pin boyutu bü
 - Satıra girince: kaydırılan manşet, büyük rakam, ısı haritası (başlık döneme göre hafta sayısı söylemez; yoğunluk renge ek biçimle; bugün çerçeveli; gelecek çizilmez; sığmazsa en yeni hafta açık gelir), en uzun seri, geçmiş kayıtlar. Geçmiş günlerin kaydı düzeltilebilir. Tanım alanları yüzey üzerinde düzenlenir.
 - Kilometre taşı (5): yıllık, miktarsız satır; yapıldı/yapılmadı ve tarih. Dokununca bugün işaretlenir veya bugünkü kayıt kaldırılır; önceki gün tamamlanmış satır salt okunurdur. Zincir/ısı haritası bulunmaz. Yeni hedefte tür seçilir.
 - Haftalık hedefte "bu hafta 2/3", yıllık hedefte ilerleme çubuğu.
-- Yeni hedef sheet'i kâğıt zeminde; hedef miktar etiketli alandır. Orta yazı boyutunda Oluştur araç çubuğunda, erişilebilirlik yazı boyutunda sayfa altındadır.
+- Yeni hedef sheet'i Ayarlar ana sayfası gibi düz listede kâğıt zeminde (`SectionHeader`, `.inkListRow()`); kart yok. Hedef miktar etiketli alandır. Orta yazı boyutunda Oluştur araç çubuğunda, erişilebilirlik yazı boyutunda sayfa altındadır.
 
 ### Arama (1)
 

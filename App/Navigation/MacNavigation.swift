@@ -7,8 +7,6 @@
         let store: IndexStore
         @Environment(IntentNavigation.self) private var intentNavigation
         @Environment(NotificationService.self) private var notifications
-        @State private var showingKanban = false
-        @State private var showingTimeline = false
         @State private var kanbanTasks: TasksModel
         @State private var detailPath = NavigationPath()
         @State private var section: DesktopSection? = .today
@@ -46,12 +44,12 @@
                         // Full-width paper; graph / map / summaries are not reading columns.
                         .inkPage()
                     }
-                } else if section == .tasks && (showingKanban || showingTimeline) {
+                } else if section == .tasks && (tasksShell.layout == .kanban || tasksShell.layout == .timeline) {
                     NavigationSplitView {
                         sidebar
                     } detail: {
                         Group {
-                            if showingTimeline {
+                            if tasksShell.layout == .timeline {
                                 TaskTimelineView(tasks: kanbanTasks, showsFilters: true, openDay: openTaskDay)
                             } else {
                                 KanbanView(tasks: kanbanTasks, showsFilters: true, openDay: openTaskDay)
@@ -73,42 +71,27 @@
                 detailPath = NavigationPath()
                 selectedDay = nil
                 selectedTask = nil
-                selectedProject = nil
-                showingKanban = false
-                showingTimeline = false
+                tasksEvent(.navigationReset)
                 selectedGoal = nil
                 section = .today
             }
             .onChange(of: notifications.navigationRequest?.id, initial: true) { _, id in
                 guard id != nil, let request = notifications.navigationRequest else { return }
                 detailPath = NavigationPath()
-                selectedProject = nil
-                showingKanban = false
-                showingTimeline = false
+                tasksEvent(.navigationReset)
                 selectedTask = nil
                 selectedDay = nil
                 section = request.destination == .tasks ? .tasks : .today
             }
             .onChange(of: store.vaultURL) { _, _ in
                 selectedTask = nil
-                selectedProject = nil
-                showingKanban = false
-                showingTimeline = false
+                tasksEvent(.vaultChanged)
                 kanbanTasks.clearFilters()
                 selectedGoal = nil
             }
-            // The tabs inside the full-width board switch views; keep the sidebar flags in step.
-            .onChange(of: kanbanTasks.viewState.mode) { _, mode in
-                showingKanban = mode == .kanban
-                showingTimeline = mode == .timeline
-            }
             .onChange(of: section) { _, value in
                 if value == .people || value == .places { selectedEntityKind = value == .places ? "place" : "person" }
-                if value != .tasks {
-                    selectedProject = nil
-                    showingKanban = false
-                    showingTimeline = false
-                }
+                if value != .tasks { tasksEvent(.sectionLeft) }
             }
             .onChange(of: selectedDay) { _, value in
                 if value != nil { section = .days }
@@ -127,40 +110,29 @@
                     Label(item.title, systemImage: item.symbol).tag(item)
                         .simultaneousGesture(
                             TapGesture().onEnded {
-                                if item == .tasks {
-                                    selectedProject = nil
-                                    showingKanban = false
-                                    showingTimeline = false
-                                    kanbanTasks.section = .upcoming
-                                }
+                                if item == .tasks { tasksEvent(.sidebarTasks) }
                             })
                     if item == .tasks {
                         Button {
                             section = .tasks
-                            selectedProject = nil
                             selectedTask = nil
-                            showingKanban = true
-                            showingTimeline = false
+                            tasksEvent(.sidebarBoard(.kanban))
                         } label: {
                             Label("Kanban", systemImage: "rectangle.split.3x1")
                         }
                         .buttonStyle(.plain).padding(.leading)
                         Button {
                             section = .tasks
-                            selectedProject = nil
                             selectedTask = nil
-                            showingKanban = false
-                            showingTimeline = true
+                            tasksEvent(.sidebarBoard(.timeline))
                         } label: {
                             Label("Zaman çizelgesi", systemImage: "chart.bar.xaxis")
                         }.buttonStyle(.plain).padding(.leading)
                         ForEach(store.content.projects, id: \.self) { project in
                             Button {
-                                showingKanban = false
-                                showingTimeline = false
                                 section = .tasks
                                 selectedTask = nil
-                                selectedProject = project
+                                tasksEvent(.sidebarProject(project))
                             } label: {
                                 Label {
                                     Text(verbatim: project)
@@ -197,15 +169,7 @@
                                 store: store, selection: $selectedTask,
                                 notificationRequest: notifications.navigationRequest?.destination == .tasks
                                     ? notifications.navigationRequest?.id : nil,
-                                tasks: kanbanTasks,
-                                onKanbanSelected: {
-                                    showingKanban = true
-                                    showingTimeline = false
-                                },
-                                onTimelineSelected: {
-                                    showingTimeline = true
-                                    showingKanban = false
-                                })
+                                tasks: kanbanTasks)
                         }
                     case .summaries, .graph, .map: EmptyView()
                     case .goals:
@@ -296,6 +260,19 @@
                 // Shell paints paper full-width; each page view applies `.inkPageColumn()` itself.
                 .inkPage()
             }
+        }
+
+        /// Tasks layout (list column, full-width board, project) comes from the shared view
+        /// state alone; the sidebar and the tabs in the content area write the same value.
+        private var tasksShell: TasksShellState {
+            TasksShellState(view: kanbanTasks.viewState, project: selectedProject)
+        }
+
+        private func tasksEvent(_ event: TasksShellState.Event) {
+            var shell = tasksShell
+            shell.handle(event)
+            if kanbanTasks.viewState != shell.view { kanbanTasks.viewState = shell.view }
+            if selectedProject != shell.project { selectedProject = shell.project }
         }
 
         private func openTaskDay(_ path: String) {

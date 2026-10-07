@@ -10,27 +10,22 @@ struct KanbanView: View {
     let openDay: (String) -> Void
 
     init(tasks: TasksModel, showsFilters: Bool = false, openDay: @escaping (String) -> Void = { _ in }) {
-        let model = KanbanModel(tasks: tasks)
-        model.grouping = tasks.viewState.kanbanGrouping
-        _model = State(initialValue: model)
+        _model = State(initialValue: KanbanModel.board(for: tasks))
         self.showsFilters = showsFilters
         self.openDay = openDay
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            TasksBoardHeader(tasks: model.tasks, current: .kanban) {
+            TasksPageTop(tasks: model.tasks, current: .kanban) {
                 InkHeaderMenu(
                     "Pano seçenekleri", systemImage: "slider.horizontal.3", isActive: model.showsCancelled,
                     identifier: "tasks.kanban.options"
                 ) {
                     Toggle("İptal edilenleri göster", isOn: $model.showsCancelled)
                 }
-            }
-            groupingMenu
-            if model.tasks.hasFilters {
-                TaskFilterBand(model: model.tasks)
-                    .padding(.horizontal, InkSpacing.margin)
+            } menu: {
+                groupingMenu
             }
             if let error = model.errorText {
                 InfoBand(kind: .error, verbatim: error)
@@ -82,15 +77,7 @@ struct KanbanView: View {
             model.clearDrags()
         }
         .onChange(of: selectedRow?.id) { _, _ in sourceDay = nil }
-        .onChange(of: model.grouping) { _, grouping in
-            model.tasks.viewState.kanbanGrouping = grouping
-            model.clearDrags()
-        }
-        .onAppear {
-            // Hosted by the Mac shell: the shared model learns which board is on screen, so a
-            // tab choice here is a change the shell can follow.
-            if showsFilters { model.tasks.viewState.mode = .kanban }
-        }
+        .onChange(of: model.grouping) { _, _ in model.clearDrags() }
     }
 
     private var selectedTask: TaskRow? {
@@ -100,14 +87,13 @@ struct KanbanView: View {
     /// Second layer of the view selector: how the board is split into columns.
     private var groupingMenu: some View {
         InkLabeledMenu(
-            "Grupla", selection: $model.grouping,
+            "Grupla", selection: Binding(get: { model.grouping }, set: { model.choose($0) }),
             options: [
                 InkMenuOption("Durum", value: KanbanModel.Grouping.status),
                 InkMenuOption("Proje", value: KanbanModel.Grouping.project),
                 InkMenuOption("Kişi", value: KanbanModel.Grouping.person),
             ], identifier: TasksViewSelector.menuIdentifier
         )
-        .padding(.horizontal, InkSpacing.margin)
     }
 
     private var board: some View {

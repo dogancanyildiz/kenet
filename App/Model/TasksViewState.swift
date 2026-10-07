@@ -42,6 +42,10 @@ struct TasksViewState: Equatable {
         }
     }
 
+    /// What a tab of the view selector does; the list keeps its last section and each board
+    /// its last menu choice.
+    mutating func selectTab(_ mode: Mode) { self.mode = mode }
+
     private mutating func select(_ section: ListSection) {
         mode = .list
         listSection = section
@@ -104,4 +108,72 @@ extension TasksViewState {
 extension TasksModel.Section {
     /// Legacy device preference key (see ``TasksViewState/restore(from:)``).
     static let storageKey = TasksViewState.StorageKey.legacySection
+}
+
+// MARK: - Mac shell
+
+/// The Tasks part of the Mac shell as pure transitions (unit-tested).
+///
+/// The tab in ``TasksViewState`` is the only thing that opens a board: the sidebar entries and
+/// the tabs in the content area write the same value and the shell only reads ``layout``.
+/// Nothing is mirrored into a second flag, so there is nothing to keep in step and no loop.
+/// iPhone does not use this; there the last tab is remembered.
+struct TasksShellState: Equatable {
+    enum Event: Equatable {
+        /// "Görevler" clicked in the sidebar: the list, on its first section.
+        case sidebarTasks
+        /// "Kanban" / "Zaman çizelgesi" clicked in the sidebar.
+        case sidebarBoard(TasksViewState.Mode)
+        /// A project clicked in the sidebar.
+        case sidebarProject(String)
+        /// A tab chosen in the content area (list column or full-width board).
+        case tab(TasksViewState.Mode)
+        /// Another sidebar section took over (click or arrow key).
+        case sectionLeft
+        /// The shell jumped somewhere on its own (notification, "go to today").
+        case navigationReset
+        case vaultChanged
+    }
+
+    enum Layout: Equatable {
+        /// Three columns: sidebar, task list, task detail.
+        case list
+        /// Full-width boards.
+        case kanban, timeline
+        /// Project page in the list column.
+        case project(String)
+    }
+
+    var view = TasksViewState()
+    var project: String?
+
+    var layout: Layout {
+        if let project { return .project(project) }
+        switch view.mode {
+        case .list: return .list
+        case .kanban: return .kanban
+        case .timeline: return .timeline
+        }
+    }
+
+    mutating func handle(_ event: Event) {
+        switch event {
+        case .sidebarTasks:
+            project = nil
+            view.apply(.upcoming)
+        case .sidebarBoard(let mode):
+            project = nil
+            view.selectTab(mode)
+        case .tab(let mode):
+            view.selectTab(mode)
+        case .sidebarProject(let name):
+            project = name
+            view.mode = .list
+        case .sectionLeft, .navigationReset, .vaultChanged:
+            // Coming back to "Görevler" (also with the arrow keys) or to a new vault lands on
+            // the list; a board opens only from its own sidebar entry or tab.
+            project = nil
+            view.mode = .list
+        }
+    }
 }

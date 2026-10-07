@@ -3593,22 +3593,6 @@
         }
       }
     },
-    "Görev bölümü": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Görev bölümü"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Task section"
-          }
-        }
-      }
-    },
     "Yaklaşan": {
       "localizations": {
         "tr": {
@@ -5845,22 +5829,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Kanban"
-          }
-        }
-      }
-    },
-    "Gruplama": {
-      "localizations": {
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Gruplama"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Group by"
           }
         }
       }

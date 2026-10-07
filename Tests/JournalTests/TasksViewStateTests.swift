@@ -106,20 +106,134 @@ struct TasksViewStateTests {
         #expect(model.viewState.listSection == .upcoming)
     }
 
-    /// The boards own their models; the views seed them from, and report back to, the shared state.
+    /// The boards own their models: each starts from the shared state's last menu choice and
+    /// reports a new choice back, so a rebuilt board (tab switch) keeps it.
     @Test func boardsStartFromAndReportTheirMenuChoice() throws {
-        let source = try String(
-            contentsOf: URL(fileURLWithPath: #filePath).deletingLastPathComponent()
-                .deletingLastPathComponent().deletingLastPathComponent()
-                .appendingPathComponent("App/Screens/Tasks/Kanban/KanbanView.swift"), encoding: .utf8)
-        #expect(source.contains("model.grouping = tasks.viewState.kanbanGrouping"))
-        #expect(source.contains("model.tasks.viewState.kanbanGrouping = grouping"))
-        let timeline = try String(
-            contentsOf: URL(fileURLWithPath: #filePath).deletingLastPathComponent()
-                .deletingLastPathComponent().deletingLastPathComponent()
-                .appendingPathComponent("App/Screens/Tasks/Timeline/TaskTimelineView.swift"),
-            encoding: .utf8)
-        #expect(timeline.contains("model.scale = tasks.viewState.timelineScale"))
-        #expect(timeline.contains("model.tasks.viewState.timelineScale = scale"))
+        let context = try TaskTestContext()
+        defer { context.clean() }
+        let tasks = TasksModel(store: context.store)
+        #expect(KanbanModel.board(for: tasks).grouping == .status)
+        #expect(TimelineModel.board(for: tasks).scale == .quarter)
+
+        let kanban = KanbanModel.board(for: tasks)
+        kanban.choose(.person)
+        #expect(kanban.grouping == .person)
+        #expect(tasks.viewState.kanbanGrouping == .person)
+        let timeline = TimelineModel.board(for: tasks)
+        timeline.choose(.week)
+        #expect(timeline.scale == .week)
+        #expect(tasks.viewState.timelineScale == .week)
+
+        // Leaving the tab and coming back builds new boards.
+        tasks.viewState.selectTab(.list)
+        tasks.viewState.selectTab(.kanban)
+        #expect(KanbanModel.board(for: tasks).grouping == .person)
+        #expect(TimelineModel.board(for: tasks).scale == .week)
+        #expect(tasks.viewState.mode == .kanban)
+    }
+}
+
+/// Mac shell: which Tasks layout each sidebar / tab / vault event ends in.
+@MainActor
+struct TasksShellStateTests {
+    typealias Event = TasksShellState.Event
+
+    private func state(after events: [Event], from start: TasksShellState = TasksShellState()) -> TasksShellState {
+        events.reduce(into: start) { $0.handle($1) }
+    }
+
+    @Test func startsOnTheList() {
+        #expect(TasksShellState().layout == .list)
+    }
+
+    @Test func sidebarEntriesOpenTheirOwnLayout() {
+        #expect(state(after: [.sidebarBoard(.kanban)]).layout == .kanban)
+        #expect(state(after: [.sidebarBoard(.timeline)]).layout == .timeline)
+        #expect(state(after: [.sidebarProject("Atlas")]).layout == .project("Atlas"))
+        #expect(state(after: [.sidebarBoard(.kanban), .sidebarTasks]).layout == .list)
+        #expect(state(after: [.sidebarProject("Atlas"), .sidebarTasks]).layout == .list)
+    }
+
+    /// Sidebar Kanban → Günlük → back to Görevler (arrow key: no sidebar click) is the list.
+    @Test(arguments: [TasksViewState.Mode.kanban, .timeline])
+    func aBoardIsNotStickyAcrossSections(_ board: TasksViewState.Mode) {
+        // Returning with the arrow keys sends no event of its own: leaving already reset it.
+        #expect(state(after: [.sidebarBoard(board), .sectionLeft]).layout == .list)
+        #expect(state(after: [.tab(board), .sectionLeft]).layout == .list)
+        #expect(state(after: [.sidebarBoard(board), .navigationReset]).layout == .list)
+    }
+
+    @Test(arguments: [TasksViewState.Mode.kanban, .timeline])
+    func aVaultChangeLandsOnTheList(_ board: TasksViewState.Mode) {
+        #expect(state(after: [.sidebarBoard(board), .vaultChanged]).layout == .list)
+        #expect(state(after: [.tab(board), .vaultChanged]).layout == .list)
+        #expect(state(after: [.sidebarProject("Atlas"), .vaultChanged]).layout == .list)
+    }
+
+    /// "Liste" tab inside a full-width board: back to the three-column list. The event does
+    /// not touch the sidebar section, so "Görevler" stays highlighted.
+    @Test func theListTabLeavesTheBoard() {
+        #expect(state(after: [.sidebarBoard(.kanban), .tab(.list)]).layout == .list)
+        #expect(state(after: [.sidebarBoard(.timeline), .tab(.list)]).layout == .list)
+    }
+
+    /// A board tab in the list column opens the full-width board, same as its sidebar entry.
+    @Test func aBoardTabInTheListColumnOpensTheFullWidthBoard() {
+        #expect(state(after: [.tab(.kanban)]).layout == .kanban)
+        #expect(state(after: [.tab(.timeline)]).layout == .timeline)
+        #expect(state(after: [.tab(.kanban)]) == state(after: [.sidebarBoard(.kanban)]))
+        #expect(state(after: [.sidebarBoard(.kanban), .tab(.timeline)]).layout == .timeline)
+    }
+
+    /// The tab is the single source: repeating an event changes nothing, and the layout is a
+    /// function of the state, so there is no second flag to bounce a change back.
+    @Test func eventsAreIdempotent() {
+        let events: [Event] = [
+            .sidebarTasks, .sidebarBoard(.kanban), .sidebarBoard(.timeline), .sidebarProject("Atlas"),
+            .tab(.list), .tab(.kanban), .tab(.timeline), .sectionLeft, .navigationReset, .vaultChanged,
+        ]
+        for first in events {
+            for event in events {
+                let once = state(after: [first, event])
+                #expect(state(after: [event], from: once) == once, "\(first) then \(event) twice")
+            }
+        }
+    }
+
+    @Test func boardsAndProjectsExcludeEachOther() {
+        let project = state(after: [.sidebarBoard(.kanban), .sidebarProject("Atlas")])
+        #expect(project.layout == .project("Atlas"))
+        #expect(project.view.mode == .list)
+        let board = state(after: [.sidebarProject("Atlas"), .sidebarBoard(.timeline)])
+        #expect(board.layout == .timeline)
+        #expect(board.project == nil)
+    }
+
+    /// Only "Görevler" itself goes back to the first list section; the other ways of landing
+    /// on the list keep the section, and the boards keep their menu choices throughout.
+    @Test func menuChoicesSurviveTheShellEvents() {
+        var start = TasksShellState()
+        start.view.listSection = .completed
+        start.view.kanbanGrouping = .person
+        start.view.timelineScale = .week
+        let left = state(after: [.sidebarBoard(.kanban), .sectionLeft], from: start)
+        #expect(left.view.listSection == .completed)
+        #expect(left.view.kanbanGrouping == .person)
+        #expect(left.view.timelineScale == .week)
+        let clicked = state(after: [.sidebarBoard(.kanban), .sidebarTasks], from: start)
+        #expect(clicked.view.listSection == .upcoming)
+        #expect(clicked.view.kanbanGrouping == .person)
+    }
+
+    /// The tabs write through the same function the shell's `.tab` event uses.
+    @Test func theTabsAndTheShellShareOneWritePath() throws {
+        let context = try TaskTestContext()
+        defer { context.clean() }
+        let model = TasksModel(store: context.store)
+        model.viewState.selectTab(.kanban)
+        var shell = TasksShellState()
+        shell.handle(.tab(.kanban))
+        #expect(shell.view == model.viewState)
+        #expect(TasksShellState(view: model.viewState, project: nil).layout == .kanban)
     }
 }

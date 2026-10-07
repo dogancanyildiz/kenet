@@ -13,21 +13,17 @@ struct TaskTimelineView: View {
     let openDay: (String) -> Void
 
     init(tasks: TasksModel, showsFilters: Bool = false, openDay: @escaping (String) -> Void = { _ in }) {
-        let model = TimelineModel(tasks: tasks)
-        model.scale = tasks.viewState.timelineScale
-        _model = State(initialValue: model)
+        _model = State(initialValue: TimelineModel.board(for: tasks))
         self.showsFilters = showsFilters
         self.openDay = openDay
     }
     var body: some View {
         VStack(spacing: 0) {
             #if os(macOS)
-                TasksBoardHeader(tasks: model.tasks, current: .timeline)
-                controls
-                    .padding(.horizontal, InkSpacing.margin)
-                if model.tasks.hasFilters {
-                    TaskFilterBand(model: model.tasks)
-                        .padding(.horizontal, InkSpacing.margin)
+                TasksPageTop(tasks: model.tasks, current: .timeline) {
+                    groupingMenu
+                } menu: {
+                    controls
                 }
                 if let error = model.errorText {
                     InfoBand(kind: .error, verbatim: error)
@@ -84,23 +80,15 @@ struct TaskTimelineView: View {
             sourceDay = nil
         }
         .onChange(of: selected?.id) { _, _ in sourceDay = nil }
-        .onChange(of: model.scale) { _, scale in model.tasks.viewState.timelineScale = scale }
-        .onAppear {
-            // Hosted by the Mac shell: see ``KanbanView``.
-            if showsFilters { model.tasks.viewState.mode = .timeline }
-        }
     }
     private var selectedTask: TaskRow? { model.store.content.tasks.first { $0.id == selected?.id } }
     /// Second layer of the view selector ("Ölçek") with the period controls on the same row;
-    /// they stack at accessibility sizes. Mac also groups the rows.
+    /// they stack at accessibility sizes.
     private var controls: some View {
         Group {
             if dynamicTypeSize.isAccessibilitySize {
                 VStack(alignment: .leading, spacing: 0) {
                     scaleMenu(expands: true)
-                    #if os(macOS)
-                        groupingMenu
-                    #endif
                     HStack(spacing: 8) {
                         #if os(iOS)
                             periodButtons
@@ -111,24 +99,26 @@ struct TaskTimelineView: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
             } else {
-                HStack(spacing: 16) {
-                    #if os(macOS)
-                        scaleMenu(expands: false)
-                        groupingMenu
-                        Spacer(minLength: 8)
-                    #else
+                #if os(macOS)
+                    // The menu alone sets the row height (the text button is taller on Mac), so
+                    // the row sits where the other views' menu rows sit.
+                    scaleMenu(expands: false)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .overlay(alignment: .trailing) { todayButton }
+                #else
+                    HStack(spacing: 16) {
                         scaleMenu(expands: true)
                         periodButtons
-                    #endif
-                    todayButton
-                }
+                        todayButton
+                    }
+                #endif
             }
         }
     }
 
     private func scaleMenu(expands: Bool) -> some View {
         InkLabeledMenu(
-            "Ölçek", selection: $model.scale,
+            "Ölçek", selection: Binding(get: { model.scale }, set: { model.choose($0) }),
             options: [
                 InkMenuOption("Hafta", value: TimelineModel.Scale.week),
                 InkMenuOption("Ay", value: TimelineModel.Scale.month),
@@ -137,14 +127,21 @@ struct TaskTimelineView: View {
     }
 
     #if os(macOS)
+        /// How the rows are grouped: a manşet-row icon, so the menu row holds "Ölçek" alone.
+        /// Accent while the grouping is not the default.
         private var groupingMenu: some View {
-            InkLabeledMenu(
-                "Grupla", selection: $model.grouping,
-                options: [
-                    InkMenuOption("Proje", value: TimelineModel.Grouping.project),
-                    InkMenuOption("Kişi", value: TimelineModel.Grouping.person),
-                    InkMenuOption("Yok", value: TimelineModel.Grouping.none),
-                ], expands: false, identifier: "tasks.timeline.grouping")
+            InkHeaderMenu(
+                "Grupla", systemImage: "rectangle.3.group",
+                isActive: model.grouping != TimelineModel.defaultGrouping,
+                identifier: "tasks.timeline.grouping"
+            ) {
+                Picker("Grupla", selection: $model.grouping) {
+                    Text("Proje").tag(TimelineModel.Grouping.project)
+                    Text("Kişi").tag(TimelineModel.Grouping.person)
+                    Text("Yok").tag(TimelineModel.Grouping.none)
+                }
+                .pickerStyle(.inline)
+            }
         }
     #endif
 
@@ -184,18 +181,10 @@ struct TaskTimelineView: View {
     /// The page top is part of the list, so the manşet scrolls away with the rows.
     private var mobileList: some View {
         List {
-            InkPageTitleRow("Görevler") {
-                TaskFiltersMenu(model: model.tasks)
-                SearchButton()
+            TasksPageTop(tasks: model.tasks, current: .timeline) {
+                controls
             }
-            TasksViewTabs(tasks: model.tasks, current: .timeline)
-                .inkListRow()
-            controls
-                .inkListRow()
-            if model.tasks.hasFilters {
-                TaskFilterBand(model: model.tasks)
-                    .inkListRow()
-            }
+            .tasksPageTopRow()
             if let error = model.errorText {
                 InfoBand(kind: .error, verbatim: error)
                     .inkListRow()

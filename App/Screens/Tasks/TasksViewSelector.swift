@@ -11,7 +11,7 @@ struct TasksViewTabs: View {
 
     var body: some View {
         InkTabs(
-            selection: Binding(get: { current }, set: { tasks.viewState.mode = $0 }),
+            selection: Binding(get: { current }, set: { tasks.viewState.selectTab($0) }),
             items: [
                 InkTabItem("Liste", value: TasksViewState.Mode.list, identifier: "tasks.tab.list"),
                 InkTabItem("Kanban", value: TasksViewState.Mode.kanban, identifier: "tasks.tab.kanban"),
@@ -43,28 +43,94 @@ enum TasksViewSelector {
     static let menuIdentifier = "tasks.menu"
 }
 
-/// Pinned page top of a board (kanban, Mac timeline): manşet row with the shared icons and
-/// the view tabs. `actions` are board icons placed left of filter; search stays rightmost.
-struct TasksBoardHeader<Actions: View>: View {
+/// Page top shared by the three Tasks views on both platforms: manşet row, view tabs, the
+/// tab's menu row and the active-filter band, with one set of vertical measures. Switching
+/// tabs therefore leaves the manşet, the tabs and the menu exactly where they were.
+///
+/// Lists show it as their first row (``View/tasksPageTopRow()``), boards pin it above the
+/// board. `actions` are view icons placed left of filter; search stays rightmost. `menu` is
+/// the second layer of the selector and whatever shares its row.
+struct TasksPageTop<Actions: View, MenuRow: View>: View {
     let tasks: TasksModel
     let current: TasksViewState.Mode
     @ViewBuilder var actions: Actions
+    @ViewBuilder var menu: MenuRow
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            InkPageTitle("Görevler") {
+            InkPageHeader("Görevler") {
                 actions
                 TaskFiltersMenu(model: tasks)
                 SearchButton()
             }
+            // Same insets as ``InkPageTitleRow``.
+            .padding(.top, 8)
+            .padding(.bottom, 4)
             TasksViewTabs(tasks: tasks, current: current)
-                .padding(.horizontal, InkSpacing.margin)
+                .padding(.vertical, Self.gap)
+            menu
+                .padding(.vertical, Self.gap)
+            if tasks.hasFilters {
+                TaskFilterBand(model: tasks)
+                    .padding(.vertical, Self.gap)
+            }
         }
+        .padding(.horizontal, InkSpacing.margin)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.ink.paper)
+    }
+
+    /// Space above and below each row of the page top (same as a list row's inset).
+    private static var gap: CGFloat { InkSpacing.row }
+}
+
+extension TasksPageTop where Actions == EmptyView {
+    init(tasks: TasksModel, current: TasksViewState.Mode, @ViewBuilder menu: () -> MenuRow) {
+        self.init(tasks: tasks, current: current, actions: { EmptyView() }, menu: menu)
     }
 }
 
-extension TasksBoardHeader where Actions == EmptyView {
-    init(tasks: TasksModel, current: TasksViewState.Mode) {
-        self.init(tasks: tasks, current: current) { EmptyView() }
+extension View {
+    /// ``TasksPageTop`` as the first row of a list: it brings its own margins and spacing.
+    func tasksPageTopRow() -> some View {
+        listRowInsets(EdgeInsets())
+            .listRowSeparator(.hidden)
+            .listRowBackground(Color.ink.paper)
+    }
+}
+
+// MARK: - Board menu choices
+
+extension KanbanModel {
+    /// A board that starts from the grouping last chosen in the shared view state, so
+    /// switching tabs (the view is rebuilt) does not reset the menu.
+    static func board(for tasks: TasksModel) -> KanbanModel {
+        let model = KanbanModel(tasks: tasks)
+        model.grouping = tasks.viewState.kanbanGrouping
+        return model
+    }
+
+    /// The "Grupla" menu: applies the choice and reports it to the shared view state.
+    func choose(_ grouping: Grouping) {
+        self.grouping = grouping
+        tasks.viewState.kanbanGrouping = grouping
+    }
+}
+
+extension TimelineModel {
+    /// Grouping of a fresh timeline; the Mac header icon is accented for any other value.
+    static var defaultGrouping: Grouping { .project }
+
+    /// A timeline that starts from the scale last chosen in the shared view state.
+    static func board(for tasks: TasksModel) -> TimelineModel {
+        let model = TimelineModel(tasks: tasks)
+        model.scale = tasks.viewState.timelineScale
+        return model
+    }
+
+    /// The "Ölçek" menu: applies the choice and reports it to the shared view state.
+    func choose(_ scale: Scale) {
+        self.scale = scale
+        tasks.viewState.timelineScale = scale
     }
 }

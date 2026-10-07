@@ -4,19 +4,15 @@ import VaultFormat
 struct TasksView: View {
     let store: IndexStore
     let notificationRequest: UUID?
-    let onKanbanSelected: (() -> Void)?
-    let onTimelineSelected: (() -> Void)?
     @Binding var selection: String?
     @State private var pendingNotificationScroll: UUID?
     @State private var model: TasksModel
     init(
         store: IndexStore, selection: Binding<String?> = .constant(nil), notificationRequest: UUID? = nil,
-        tasks: TasksModel? = nil, onKanbanSelected: (() -> Void)? = nil, onTimelineSelected: (() -> Void)? = nil
+        tasks: TasksModel? = nil
     ) {
         self.store = store
         self.notificationRequest = notificationRequest
-        self.onKanbanSelected = onKanbanSelected
-        self.onTimelineSelected = onTimelineSelected
         _selection = selection
         let model = tasks ?? TasksModel(store: store)
         #if os(iOS)
@@ -44,12 +40,6 @@ struct TasksView: View {
                     state.save(to: .standard)
                 #endif
             }
-            .onChange(of: model.viewState.mode) { _, mode in reportBoard(mode) }
-            .onAppear {
-                // Mac shell: a board left selected in the shared model (e.g. after a vault
-                // switch) goes back to its full-width layout instead of the list column.
-                if notificationRequest == nil { reportBoard(model.viewState.mode) }
-            }
             .onChange(of: notificationRequest, initial: true) { _, request in
                 guard request != nil else { return }
                 // Jump to the agenda for the notification.
@@ -67,25 +57,12 @@ struct TasksView: View {
         }
     }
 
-    private func reportBoard(_ mode: TasksViewState.Mode) {
-        if mode == .kanban { onKanbanSelected?() }
-        if mode == .timeline { onTimelineSelected?() }
-    }
-
     @ViewBuilder private var listContent: some View {
         List(selection: $selection) {
-            InkPageTitleRow("Görevler") {
-                TaskFiltersMenu(model: model)
-                SearchButton()
+            TasksPageTop(tasks: model, current: .list) {
+                TasksSectionMenu(tasks: model)
             }
-            TasksViewTabs(tasks: model, current: .list)
-                .inkListRow()
-            TasksSectionMenu(tasks: model)
-                .inkListRow()
-            if model.hasFilters {
-                TaskFilterBand(model: model)
-                    .inkListRow()
-            }
+            .tasksPageTopRow()
             if let error = model.errorText {
                 InfoBand(kind: .error, verbatim: error)
                     .listRowInsets(EdgeInsets())

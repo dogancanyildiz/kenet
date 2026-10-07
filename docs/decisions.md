@@ -135,6 +135,7 @@ Verilen her karar tek satır olarak eklenir. Açık sorular kapandığında altt
 | 2026-10-07 | Görevler'de görünüm iki katmanda seçilir: sekme (Liste, Kanban, Zaman çizelgesi) ve altında görünüme göre değişen menü (Bölüm, Grupla, Ölçek). Alt sekmeler değişmez | Altı seçenekli tek menüde kanban ve zaman çizelgesi saklı kalıyordu; üç görünüm tek dokunuşla erişilir olmalı |
 | 2026-10-07 | Sheet'lerde zemin kâğıt, başlık serif manşet; düzenleyen sheet'te solda "Vazgeç", sağda "Kaydet" (yeni kayıtta "Oluştur"); yalnız okunan sheet'te sağda "Kapat". "Bitti" kullanılmaz | İptal ve onay sözcükleri sheet'ten sheet'e değişiyordu; kullanıcı düğmenin kaydedip kaydetmediğini sözcükten anlamalı |
 | 2026-10-07 | Manşet satırındaki yardımcı simgeler (ara, sırala, filtrele, Ayarlar) ikincil metin rengindedir; vurgu rengi kayıt açan ve içeriği değiştiren eylemlere ayrılır. Açma kapama anahtarı vurgu rengindedir | Her simge vurgu renginde olunca vurgu ayırt edici olmaktan çıkıyor; sistem yeşili palet dışıydı |
+| 2026-10-07 | Uygulama simgesi "Geçme": birbirinin içinden geçen iki şerit, mürdüm ve mürekkep. Tek kaynak koddan üretilen SVG'dir (`design.md`) | Kullanıcının seçimi; dört turda 34 fikir içinden. Uygulamanın kendi paleti; kurumsal mavi-yeşil havası yok |
 
 ## Açık sorular
 

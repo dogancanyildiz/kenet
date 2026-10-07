@@ -12,7 +12,8 @@ struct SummariesView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
+            // No gap after the manşet row: the tabs sit right under it (pattern 4).
+            VStack(alignment: .leading, spacing: 0) {
                 InkPageTitle("Özetler") {
                     SearchButton()
                 }

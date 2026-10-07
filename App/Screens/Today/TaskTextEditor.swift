@@ -22,7 +22,7 @@ struct TaskDateEditor: View {
         InkSheetScaffold(
             "Görev tarihi", onClose: { if !model.isSaving { dismiss() } },
             content: {
-                TaskDatePicker(current: model.row.due) { date in
+                TaskDatePicker(current: model.row.due, isOnPage: true) { date in
                     Task { if await model.setDue(date), model.errorText == nil { dismiss() } }
                 }
                 .disabled(model.target == nil || model.isSaving || model.isSaved)

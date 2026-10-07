@@ -3801,6 +3801,22 @@
         }
       }
     },
+    "Takvim ve Konum": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Takvim ve Konum"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Calendar and Location"
+          }
+        }
+      }
+    },
     "Takvim etkinliklerini göstermek için izin ver": {
       "localizations": {
         "tr": {
@@ -7561,6 +7577,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Privacy"
+          }
+        }
+      }
+    },
+    "Tanılama": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tanılama"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diagnostics"
           }
         }
       }

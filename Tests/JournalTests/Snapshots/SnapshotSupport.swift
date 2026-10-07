@@ -7,6 +7,27 @@
 
     @testable import Journal
 
+    /// Serializes UIWindow hosting across snapshot suites (they otherwise race on one scene).
+    @MainActor
+    enum SnapshotHostGate {
+        private static var busy = false
+        private static var waiters: [CheckedContinuation<Void, Never>] = []
+
+        static func exclusive(_ work: () async -> Void) async {
+            while busy {
+                await withCheckedContinuation { waiters.append($0) }
+            }
+            busy = true
+            defer {
+                busy = false
+                if !waiters.isEmpty {
+                    waiters.removeFirst().resume()
+                }
+            }
+            await work()
+        }
+    }
+
     /// Fixed calendar day for screens that group by "today". Sample vault days end 2026-09-27.
     let snapshotDay = CalendarDate("2026-09-20")!
 
@@ -205,6 +226,7 @@
             }
         }
 
+        /// The single capture path: every case-based `assert` funnels here, under the host gate.
         static func assert(
             named name: String,
             screen: SnapshotScreen,
@@ -217,91 +239,93 @@
             line: UInt = #line
         ) async {
             let canvas = canvasSize(for: screen)
-            // colorSchemeContrast is set only via UITraitCollection (not a writable EnvironmentValues key).
-            let view = hostedView(screen: screen, store: store, defaults: defaults)
-                .environment(\.colorScheme, colorScheme.colorScheme)
-                .environment(\.dynamicTypeSize, dynamicType.size)
-                .environment(\.calendar, makeSnapshotCalendar())
-                .environment(\.clockNow, { Self.clock(for: screen) })
-                .transaction { $0.animation = nil }
-                .frame(width: canvas.width, height: canvas.height)
+            await SnapshotHostGate.exclusive {
+                // colorSchemeContrast is set only via UITraitCollection (not a writable EnvironmentValues key).
+                let view = hostedView(screen: screen, store: store, defaults: defaults)
+                    .environment(\.colorScheme, colorScheme.colorScheme)
+                    .environment(\.dynamicTypeSize, dynamicType.size)
+                    .environment(\.calendar, makeSnapshotCalendar())
+                    .environment(\.clockNow, { Self.clock(for: screen) })
+                    .transaction { $0.animation = nil }
+                    .frame(width: canvas.width, height: canvas.height)
 
-            let traits = UITraitCollection { mutable in
-                mutable.userInterfaceStyle = colorScheme.userInterfaceStyle
-                mutable.preferredContentSizeCategory = dynamicType.contentSize
-                mutable.accessibilityContrast = increaseContrast ? .high : .normal
-                mutable.displayScale = 2
-            }
+                let traits = UITraitCollection { mutable in
+                    mutable.userInterfaceStyle = colorScheme.userInterfaceStyle
+                    mutable.preferredContentSizeCategory = dynamicType.contentSize
+                    mutable.accessibilityContrast = increaseContrast ? .high : .normal
+                    mutable.displayScale = 2
+                }
 
-            // Host in a window first so `.task` (goal strip load) runs before the pixel capture.
-            // Sleeping before assertSnapshot is useless: SnapshotTesting creates the host itself.
-            let previousAnimations = UIView.areAnimationsEnabled
-            UIView.setAnimationsEnabled(false)
-            defer { UIView.setAnimationsEnabled(previousAnimations) }
+                // Host in a window first so `.task` (goal strip load) runs before the pixel capture.
+                let previousAnimations = UIView.areAnimationsEnabled
+                UIView.setAnimationsEnabled(false)
+                defer { UIView.setAnimationsEnabled(previousAnimations) }
 
-            let host = UIHostingController(rootView: view)
-            host.overrideUserInterfaceStyle = colorScheme.userInterfaceStyle
-            host.view.frame = CGRect(origin: .zero, size: canvas)
+                let host = UIHostingController(rootView: view)
+                host.overrideUserInterfaceStyle = colorScheme.userInterfaceStyle
+                host.traitOverrides.preferredContentSizeCategory = dynamicType.contentSize
+                host.traitOverrides.accessibilityContrast = increaseContrast ? .high : .normal
+                host.view.frame = CGRect(origin: .zero, size: canvas)
 
-            let scene =
-                UIApplication.shared.connectedScenes
-                .compactMap { $0 as? UIWindowScene }
-                .first { $0.activationState == .foregroundActive }
-                ?? UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
-            let window: UIWindow
-            if let scene {
-                window = UIWindow(windowScene: scene)
+                let scene =
+                    UIApplication.shared.connectedScenes
+                    .compactMap { $0 as? UIWindowScene }
+                    .first { $0.activationState == .foregroundActive }
+                    ?? UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
+                guard let scene else {
+                    Issue.record(
+                        "Snapshot host needs a UIWindowScene (run under the Journal test host).")
+                    return
+                }
+                let window = UIWindow(windowScene: scene)
                 window.frame = CGRect(origin: .zero, size: canvas)
-            } else {
-                // Fallback for hosts without a scene yet: size-only window via deprecated path is
-                // unavailable under warnings-as-errors; fail clearly instead of silent blank frames.
-                Issue.record("Snapshot host needs a UIWindowScene (run under the Journal test host).")
-                return
-            }
-            window.overrideUserInterfaceStyle = colorScheme.userInterfaceStyle
-            window.rootViewController = host
-            window.makeKeyAndVisible()
-            host.view.setNeedsLayout()
-            host.view.layoutIfNeeded()
-            for _ in 0..<40 {
-                await Task.yield()
-                try? await Task.sleep(for: .milliseconds(50))
+                window.overrideUserInterfaceStyle = colorScheme.userInterfaceStyle
+                window.rootViewController = host
+                window.makeKeyAndVisible()
+                defer {
+                    window.isHidden = true
+                    window.rootViewController = nil
+                    window.windowScene = nil
+                }
                 host.view.setNeedsLayout()
                 host.view.layoutIfNeeded()
-                if !store.isProcessing { break }
+                // Index + goal-strip `.task`: wait until processing stays idle across several frames.
+                var idlePasses = 0
+                for _ in 0..<80 {
+                    await Task.yield()
+                    try? await Task.sleep(for: .milliseconds(50))
+                    host.view.setNeedsLayout()
+                    host.view.layoutIfNeeded()
+                    if store.isProcessing {
+                        idlePasses = 0
+                        continue
+                    }
+                    idlePasses += 1
+                    if idlePasses >= 8 { break }
+                }
+
+                let record = ProcessInfo.processInfo.environment["SNAPSHOT_TESTING_RECORD"]
+                    .flatMap(SnapshotTestingConfiguration.Record.init(rawValue:))
+
+                // Non-zero safeArea keeps SnapshotTesting from parking the view at (10000,10000),
+                // which otherwise skips realistic inset layout for `safeAreaInset` chrome.
+                let config = ViewImageConfig.iPhone13
+                assertSnapshot(
+                    of: host,
+                    as: .image(
+                        on: config,
+                        precision: snapshotPrecision,
+                        perceptualPrecision: snapshotPerceptualPrecision,
+                        size: canvas,
+                        traits: traits
+                    ),
+                    named: name,
+                    record: record,
+                    file: file,
+                    testName: "screen",
+                    line: line
+                )
             }
-            // Goal strip's `.task` fetch finishes after the first index publish.
-            try? await Task.sleep(for: .milliseconds(800))
-            host.view.setNeedsLayout()
-            host.view.layoutIfNeeded()
-            // Second frame after load: ProgressView must be gone before capture.
-            try? await Task.sleep(for: .milliseconds(200))
-            host.view.setNeedsLayout()
-            host.view.layoutIfNeeded()
-
-            let record = ProcessInfo.processInfo.environment["SNAPSHOT_TESTING_RECORD"]
-                .flatMap(SnapshotTestingConfiguration.Record.init(rawValue:))
-
-            // Non-zero safeArea keeps SnapshotTesting from parking the view at (10000,10000),
-            // which otherwise skips realistic inset layout for `safeAreaInset` chrome.
-            let config = ViewImageConfig.iPhone13
-            assertSnapshot(
-                of: host,
-                as: .image(
-                    on: config,
-                    precision: snapshotPrecision,
-                    perceptualPrecision: snapshotPerceptualPrecision,
-                    size: canvas,
-                    traits: traits
-                ),
-                named: name,
-                record: record,
-                file: file,
-                testName: "screen",
-                line: line
-            )
-            window.isHidden = true
-            window.rootViewController = nil
         }
     }
 

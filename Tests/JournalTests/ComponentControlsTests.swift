@@ -92,6 +92,25 @@ struct ComponentControlsTests {
         #expect(destructive.role(isPressed: false, isEnabled: false).foreground == .secondaryText)
     }
 
+    @Test func buttonStylesEnforceMinimumHeightConstant() throws {
+        #expect(InkButtonChrome.minimumHeight == 44)
+        #expect(InkButtonChrome.minimumHeight == TapTarget.minimumLength)
+        let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
+            .deletingLastPathComponent()
+        let source = try String(
+            contentsOf: root.appendingPathComponent("App/Design/Components/InkButtonStyles.swift"),
+            encoding: .utf8)
+        for style in ["InkPrimaryButtonStyle", "InkTextButtonStyle", "InkDestructiveButtonStyle"] {
+            let parts = source.components(separatedBy: "struct \(style)")
+            #expect(parts.count > 1, "\(style) missing")
+            let body = parts[1].components(separatedBy: "struct ").first ?? parts[1]
+            #expect(
+                body.contains("InkButtonChrome.minimumHeight"),
+                "\(style) must use InkButtonChrome.minimumHeight")
+            #expect(body.contains(".contentShape("), "\(style) must set contentShape for hit testing")
+        }
+    }
+
     @Test func infoBandKindsCarryNonColorMarks() {
         #expect(InfoBandKind.info.markSystemImage == nil)
         #expect(InfoBandKind.warning.markSystemImage != nil)

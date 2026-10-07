@@ -151,6 +151,7 @@ jobs:
             -quiet
       # Ekran görüntüsü: birim katmanında SwiftUI çizimi (uygulama açılmaz). Ayrı adım = süre ölçümü
       # ve düşünce fark görüntüleri artifact'ı. Kümeler ad kuralından bulunur (.github/scripts/snapshot-suites.sh).
+      # Süreç dili Türkçe: görüntüler tr yerel ayarıyla çizilir; String(localized:) ile aynı dil.
       - name: iOS ekran görüntüsü
         id: screen_snapshots
         run: |
@@ -159,6 +160,7 @@ jobs:
             -scheme Journal_iOS \
             -destination "platform=iOS Simulator,name=${{ steps.ios_sim.outputs.name }}" \
             $(sh .github/scripts/snapshot-suites.sh | sed 's#^#-only-testing:JournalTests_iOS/#' | tr '\n' ' ') \
+            -testLanguage tr -testRegion TR \
             -resultBundlePath ScreenSnapshots.xcresult \
             CODE_SIGNING_ALLOWED=NO \
             -quiet

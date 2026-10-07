@@ -17,6 +17,7 @@ struct ReleaseConfigurationTests {
         #expect(
             Self.values(of: "PRODUCT_BUNDLE_IDENTIFIER", in: project) == [
                 "$(APP_BUNDLE_IDENTIFIER)", "$(APP_BUNDLE_IDENTIFIER).tests", "$(APP_BUNDLE_IDENTIFIER).uitests",
+                "$(APP_BUNDLE_IDENTIFIER).uitests",
             ])
         // Scripts read the identifier from project.yml instead of repeating it.
         for path in [".github/scripts/record-screen-snapshots.sh", ".github/scripts/screen-tour.sh"] {

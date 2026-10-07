@@ -26,7 +26,8 @@ enum UITestSupport {
 
     @MainActor
     static func launchApp(
-        vaultURL: URL, quickEntryText: String? = smokeEventText, extraArguments: [String] = []
+        vaultURL: URL, quickEntryText: String? = smokeEventText, extraArguments: [String] = [],
+        extraEnvironment: [String: String] = [:]
     ) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchEnvironment["JOURNAL_UITEST_VAULT"] = vaultURL.path
@@ -35,6 +36,7 @@ enum UITestSupport {
         }
         app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryL"]
         app.launchArguments += extraArguments
+        app.launchEnvironment.merge(extraEnvironment) { _, new in new }
         app.launch()
         return app
     }
@@ -53,7 +55,7 @@ enum UITestSupport {
                 for label in labels {
                     let button = alert.buttons[label]
                     if button.exists {
-                        button.tap()
+                        button.tourTap()
                         return true
                     }
                 }
@@ -93,11 +95,11 @@ enum UITestSupport {
         dismissKeyboard(in: app)
         let tab = tab(in: app, identifier: identifier)
         waitForExistence(tab)
-        tab.tap()
+        tab.tourTap()
         // iOS 26 tab bars sometimes swallow the first element tap; retry at the button's centre.
         if !waitUntilSelected(tab, timeout: 3) {
             dismissKeyboard(in: app)
-            tab.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+            tab.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tourTap()
             _ = waitUntilSelected(tab, timeout: 5)
         }
         let marker = element(in: app, identifier: screen)
@@ -143,7 +145,7 @@ enum UITestSupport {
     private static func dismissKeyboardOnce(in app: XCUIApplication) {
         let hide = app.keyboards.buttons["Hide keyboard"]
         if hide.exists {
-            hide.tap()
+            hide.tourTap()
             if app.keyboards.firstMatch.waitForNonExistence(timeout: 2) { return }
         }
         // iPhone keyboards have no hide key: the return key resigns focus (an empty quick entry
@@ -154,7 +156,7 @@ enum UITestSupport {
                 ["Return", "return", "Done", "done", "Go", "Git", "Geç", "Bitti", "Gönder"])
         ).firstMatch
         if returnKey.exists, returnKey.isHittable {
-            returnKey.tap()
+            returnKey.tourTap()
             if app.keyboards.firstMatch.waitForNonExistence(timeout: 2) { return }
         }
         let content = element(in: app, identifier: "screen.today")

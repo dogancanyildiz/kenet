@@ -179,6 +179,9 @@ struct InkGoalRow: View {
                     // Same `.ink.value` baseline as valued rows so the name does not drop ~5 pt.
                     Text(verbatim: " ")
                         .font(.ink.value)
+                        // Same top-aligned box as a tappable value, or the row centers it
+                        // beside the 44 pt plus button and the baseline drops.
+                        .frame(minHeight: TapTarget.minimumLength, alignment: .top)
                         .accessibilityHidden(true)
                 }
                 if showsPlus, let onIncrement {

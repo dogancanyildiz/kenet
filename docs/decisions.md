@@ -122,6 +122,14 @@ Verilen her karar tek satır olarak eklenir. Açık sorular kapandığında altt
 | 2026-10-06 | Kayıtlı kasaya erişilemeyince (yer imi çözülmüyor, erişim açılmıyor ya da yer imi bozuk) uygulama hiçbir kasa açmaz; durum ana ekranda görünür, yazma kapalıdır, kullanıcı yeniden dener ya da başka klasör seçer. Yerel kasaya sessiz ya da uyarılı geçiş yok | Yazılar iki kasaya bölünmesin; kullanıcı neyin nerede olduğunu her zaman bilsin |
 | 2026-10-06 | Bildirimlerde içeriği gizleme seçeneği (varsayılan kapalı): açıkken görev metni ve hedef adları bildirime girmez. Uygulama kilitliyken (kilit etkin ve doğrulanmamış) Siri hedef adlarını listelemez, Kısayollar ve bildirim eylemi yazmaz. Otomatik bölge işaretleme kilitliyken de yazar: önceden kurulmuş otomasyondur, kilit ekranında etkileşim gerektirmez | Kilit ekranı ve Siri uygulama kilidini dolanmasın; varsayılan davranış değişmesin |
 | 2026-10-06 | Ekranların küresel okuma modeli yerine kendi Core sorgusunu çalıştırması Aşama 11'e taşındı | Yazma sonrası model 0,09 sn; asıl kazanç widget bellek sınırında, o da Aşama 11'de |
+| 2026-10-07 | Sayfa adı her ekranda sayfanın içinde serif manşettir; sistem çubuğunda görünür büyük başlık kullanılmaz. Bugün'de gezinme çubuğu gizlidir, arama ve Ayarlar düğmeleri manşet satırında durur | Kasa metniyle aynı yazı ailesi; ilk ekranda olaylara yer açılır |
+| 2026-10-07 | Devreden görevin tarihi her ekranda "14 Eyl'den" biçiminde ve uyarı renginde yazılır; Türkçe ek ayın okunuşuna göre üretilir | Tek kalıp; "3 gün gecikti" suçlayıcı okunuyordu |
+| 2026-10-07 | Düşük öncelik görev kutusuna yazılmaz; meta satırında aşağı ok olarak gösterilir. Kutuda yalnız yüksek (`!!`) ve orta (`!`) durur | Kutu dikkat çekmesi gerekeni taşır |
+| 2026-10-07 | Haftalık hedefler Bugün'de günlük hedeflerin altında görünür, bölüm sayacına (`m/n`) girmez; halka dönemin ilerlemesini gösterir | Sayaç günün işini söyler; haftalık hedef her gün yapılmak zorunda değildir |
+| 2026-10-07 | Gösterimde yalnız uygulamanın ürettiği biçimdeki blok kimliği (`^` ve altı küçük harf ya da rakam, satır sonunda) gizlenir; başka `^` ifadeleri ve kod çiti içi aynen gösterilir. Dosya değişmez | "E = mc ^2" gibi kullanıcı metni silinmemeli |
+| 2026-10-07 | Takvim etkinliğinin bitişi "Bitiş 11:00" olarak yazılır | "11:00'e kadar" saate göre değişen ek gerektirir; 12 saatlik biçimde ve ertesi güne taşan etkinlikte bozulur |
+| 2026-10-07 | Ekran görüntüsü referansları yalnız `record-screen-snapshots.sh` ile tek standart simülatörde ve Türkçe süreç diliyle kaydedilir; Mac görüntü kümeleri CI'da atlanır, yerelde doğrulanır | Cihaz, işletim sistemi sürümü ve dil çizimi değiştirir; farklı ortamda kaydedilen referans CI'da düşer |
+| 2026-10-07 | `.red` ve `.orange` izin listesi boşaldı: uygulama kodunda renk yalnız `Color.ink.*` belirteçlerinden gelir, test bunu korur | Tek palet; koyu mod ve Kontrastı Artır her ekranda aynı davranır |
 
 ## Açık sorular
 

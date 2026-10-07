@@ -25,11 +25,16 @@ enum UITestSupport {
     }
 
     @MainActor
-    static func launchApp(vaultURL: URL) -> XCUIApplication {
+    static func launchApp(
+        vaultURL: URL, quickEntryText: String? = smokeEventText, extraArguments: [String] = []
+    ) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchEnvironment["JOURNAL_UITEST_VAULT"] = vaultURL.path
-        app.launchEnvironment["JOURNAL_UITEST_QUICK_ENTRY_TEXT"] = smokeEventText
+        if let quickEntryText {
+            app.launchEnvironment["JOURNAL_UITEST_QUICK_ENTRY_TEXT"] = quickEntryText
+        }
         app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryL"]
+        app.launchArguments += extraArguments
         app.launch()
         return app
     }

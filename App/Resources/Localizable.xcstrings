@@ -414,13 +414,13 @@
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kasaya erişilemiyor. Journal'da kasanı açıp yeniden dene."
+            "value": "Kasaya erişilemiyor. Kenet'te kasanı açıp yeniden dene."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The vault is unavailable. Open your vault in Journal and try again."
+            "value": "The vault is unavailable. Open your vault in Kenet and try again."
           }
         }
       }
@@ -1598,13 +1598,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Journal"
+            "value": "Kenet"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Journal"
+            "value": "Kenet"
           }
         }
       }
@@ -7928,7 +7928,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Journal is locked"
+            "value": "Kenet is locked"
           }
         }
       }
@@ -9090,13 +9090,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "A new vault is created in Files under On My iPhone → Journal → Vault."
+            "value": "A new vault is created in Files under On My iPhone → Kenet → Vault."
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Yeni kasa, Dosyalar’da iPhone’umda → Journal → Vault klasöründe oluşturulur."
+            "value": "Yeni kasa, Dosyalar’da iPhone’umda → Kenet → Vault klasöründe oluşturulur."
           }
         }
       }
@@ -9208,7 +9208,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Journal is locked. Open the app and unlock it."
+            "value": "Kenet is locked. Open the app and unlock it."
           }
         }
       }
@@ -9224,7 +9224,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Journal was locked. Unlock it, then mark the goal yourself."
+            "value": "Kenet was locked. Unlock it, then mark the goal yourself."
           }
         }
       }

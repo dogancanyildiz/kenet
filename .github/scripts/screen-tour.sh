@@ -53,7 +53,9 @@ fi
 echo "Simülatör: $ID"
 echo "Çıktı: $OUT"
 
-APP=com.dravcore.journal.dev
+# Kimlik tek yerde durur: project.yml içindeki APP_BUNDLE_IDENTIFIER.
+APP=$(sed -n 's/^ *APP_BUNDLE_IDENTIFIER: *//p' project.yml)
+[ -n "$APP" ] || { echo "project.yml içinde APP_BUNDLE_IDENTIFIER bulunamadı" >&2; exit 1; }
 WORK=$(mktemp -d)
 RESULT="$WORK/tour.xcresult"
 

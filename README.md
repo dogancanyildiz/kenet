@@ -24,7 +24,18 @@ open Journal.xcodeproj
 - Ekran görüntüsü testleri: doğrulamak için `SNAPSHOT_TESTING_RECORD=never sh .github/scripts/record-screen-snapshots.sh`, referansları yenilemek için `sh .github/scripts/record-screen-snapshots.sh`. Betik kümeleri ad kuralından bulur (`…SnapshotTests`) ve en eski kurulu iOS runtime'ındaki iPhone 17'yi seçer; referanslar CI ile aynı cihaz ve runtime'da (iPhone 17, iOS 26.5) üretilmelidir, başka cihazda kaydedilen referans CI'da düşer. Betik koşmadan önce uygulamayı simülatörden kaldırır: kurulu kalan uygulamanın kayıtlı durumu görüntüleri kaydırır. Mac görüntü kümeleri (`…MacSnapshotTests`) CI'da koşmaz, yalnız yerelde doğrulanır: `SNAPSHOT_TESTING_RECORD=all xcodebuild test -project Journal.xcodeproj -scheme Journal_macOS -destination 'platform=macOS' -only-testing:JournalTests_macOS/<Küme> CODE_SIGNING_ALLOWED=NO` kaydeder.
 - Ekran turu (tasarım işinde önce / sonra karşılaştırması): `sh .github/scripts/screen-tour.sh <çıktı klasörü> [simülatör kimliği]` uygulamayı örnek kasayla simülatörde gezer ve her ekranın görüntüsünü `NN-ekran-durum.png` adıyla klasöre yazar; ulaşılamayan adımlar `atlananlar.txt` dosyasına düşer, test düşmez. Tur (`ScreenTourUITests`) yalnız bu betikle koşar, olağan arayüz testi koşusunda ve CI'da atlanır. Çıktı depo dışında bir klasöre verilir; Kasa ayar sayfası görüntüsü makine yolunu gösterebilir, görüntüler depoya ve PR'a eklenmez.
 - Biçim ve belge denetimi: `swift format lint --strict --recursive Packages App Tests` ve `sh .github/scripts/check-docs.sh`.
-- İmzasız çalıştırma: CI ve yerel testler `CODE_SIGNING_ALLOWED=NO` ile koşar; cihaza kurulum için Xcode'da kendi takımını seç.
+- İmzasız çalıştırma: CI ve yerel testler `CODE_SIGNING_ALLOWED=NO` ile koşar; takım kimliği gerekmez.
+
+### Cihaza kurulum ve TestFlight
+
+Bundle kimliği `com.dogancanyildiz.kenet` (`project.yml` içinde `APP_BUNDLE_IDENTIFIER`); uygulamanın görünen adı Kenet, kod adı `Journal`. İlk sürüm yalnız iPhone'dur.
+
+1. Takım kimliği repoya girmez. `cp Config/Local.xcconfig.example Config/Local.xcconfig` ile yerel dosyayı oluştur ve `XXXXXXXXXX` yerine kendi takım kimliğini yaz (dosya `.gitignore`'dadır).
+2. `xcodegen generate`. Takım yerel dosyadan okunduğu için proje yeniden üretilince seçim kaybolmaz; Xcode'da takımı elle seçme (seçim üretilen projeye yazılır ve silinir).
+3. Cihaza kurulum: `Journal_iOS` şeması, hedef olarak iPhone, Çalıştır. İmzalama otomatiktir.
+4. TestFlight: değişiklikleri commit'le, `Journal_iOS` şemasında hedef olarak "Any iOS Device" seç, Product → Archive, sonra Organizer'da Distribute App → TestFlight Internal Only.
+
+Yapı numarası (`CFBundleVersion`) elle yazılmaz: derlemede `git rev-list --count HEAD` değeri Info.plist'e yazılır, iOS ve Mac aynı numarayı alır. App Store Connect aynı sürümde aynı yapı numarasını ikinci kez kabul etmez; yeni yükleme için en az bir yeni commit gerekir ve arşiv `dev` ya da `main` üzerinden alınır (iş dalındaki sayı squash sonrası `dev`'dekinden büyük olabilir). Git geçmişi yoksa ya da kopya sığsa (`fetch-depth: 1`) numara `1` kalır ve derleme uyarı verir; o yapı yüklenmez. Sürüm numarası `VERSION` dosyasından gelir.
 
 ## Belgeler
 

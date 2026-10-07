@@ -21,8 +21,12 @@
 Ekranlar `App/Screens` altında konuya göre durur (`Today`, `Days`, `Summaries`, `Tasks`, `Entities`, `Goals`, `Graph`, `Map`, `Onboarding`, `Settings`); ortak görünüm parçaları `App/Screens/Shared`, platform gezinmesi `App/Navigation`, ekran modelleri `App/Model`, sistem servisleri `App/Services`, Kısayollar `App/Intents`, Mac'e özgü parçalar `App/Mac` altında tutulur.
 
 - Xcode projesi `project.yml` ile tanımlanır ve XcodeGen üretir; `Journal.xcodeproj` takip edilmez. Tek `Journal` hedefi iOS ve macOS için iki şema üretir; kaynaklar `App/` klasörüyle eşlenir, `Core` paketi yerel yoldan bağlanır.
-- Bundle kimliği şimdilik geçici (`com.dravcore.journal.dev`, yalnızca simülatör ve yerel çalıştırma). Kalıcı kimlik, iCloud kapsayıcısı ve App Group kullanıcı kararıyla gelir.
-- Sürüm numarası kök dizindeki `VERSION` dosyasından derleme sırasında Info.plist'e yazılır.
+- Bundle kimliği kalıcıdır: `com.dogancanyildiz.kenet` (iOS ve Mac ortak). `project.yml` içinde tek yerde durur (`APP_BUNDLE_IDENTIFIER`); test hedefleri sonek ekler (`.tests`, `.uitests`), betikler aynı satırı okur. Kullanıcıya görünen ad Kenet'tir (`CFBundleDisplayName`, `CFBundleName`); hedef, modül ve `.app` dosyası kod adıyla `Journal` kalır. iCloud kapsayıcısı ve App Group henüz yok.
+- İlk sürüm yalnız iPhone'dur (`TARGETED_DEVICE_FAMILY: 1`, yalnız dikey yön); Mac hedefi ayrıdır.
+- Takım kimliği repoya girmez: `Config/Signing.xcconfig`, varsa izlenmeyen `Config/Local.xcconfig` dosyasını içerir (örnek: `Config/Local.xcconfig.example`). Dosya yokken proje `CODE_SIGNING_ALLOWED=NO` ile imzasız derlenir.
+- Yetki dosyaları platforma göre ayrıdır: `App/Support/Journal-macOS.entitlements` (sandbox, kullanıcının seçtiği dosyalar, takvim, konum) ve `App/Support/Journal-iOS.entitlements` (boş; iOS'a özgü yetenek yok).
+- Sürüm numarası kök dizindeki `VERSION` dosyasından, yapı numarası (`CFBundleVersion`) git geçmişinden (`git rev-list --count HEAD`, `.github/scripts/build-number.sh`) derleme sırasında Info.plist'e yazılır; iOS ve Mac aynı numarayı alır. Git yoksa ya da kopya sığsa yedek değer `1` kalır ve derleme uyarı verir.
+- Gizlilik bildirimi `App/Resources/PrivacyInfo.xcprivacy` iki platformun paketine girer: izleme ve toplanan veri yok; neden bildirimi isteyen API'ler UserDefaults (`CA92.1`) ve dosya zaman damgası (`C617.1` kapsayıcıdaki kasa, `3B52.1` kullanıcının seçtiği klasör). Yeni bir API kümesi kullanılırsa bildirim aynı PR'da güncellenir (`ReleaseConfigurationTests` iki yönü de denetler). Şifreleme yoktur (yalnız SHA-256 özeti); `ITSAppUsesNonExemptEncryption` `NO`.
 - Uygulama metinleri `App/Resources/Localizable.xcstrings` içinde (kaynak dil Türkçe, çeviri İngilizce).
 
 ## Veri akışı

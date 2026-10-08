@@ -23,12 +23,13 @@ struct NotificationSettingsView: View {
                     .foregroundStyle(Color.ink.text)
                     .inkListRow()
                 if service.authorization.canRequest {
-                    Button("Bildirimlere izin ver") { Task { await service.requestAccess() } }.disabled(
-                        service.isRequesting
-                    )
-                    .inkListRow()
+                    Button("Bildirimlere izin ver") { Task { await service.requestAccess() } }
+                        .buttonStyle(InkTextButtonStyle())
+                        .disabled(service.isRequesting)
+                        .inkListRow()
                 }
                 Button("Sistem ayarlarını aç") { openSettings() }
+                    .buttonStyle(InkTextButtonStyle())
                     .inkListRow()
             }
             Section {
@@ -36,17 +37,17 @@ struct NotificationSettingsView: View {
                     .inkListRow()
                 Toggle("Görev hatırlatmaları", isOn: $service.preferences.tasksEnabled)
                     .inkListRow()
-                DatePicker("Görev saati", selection: time(\.taskTime), displayedComponents: .hourAndMinute)
+                InkTimePicker(title: "Görev saati", selection: time(\.taskTime))
                     .disabled(!service.preferences.tasksEnabled)
                     .inkListRow()
                 Toggle("Günlük hedef hatırlatmaları", isOn: $service.preferences.goalsEnabled)
                     .inkListRow()
-                DatePicker("Hedef saati", selection: time(\.goalTime), displayedComponents: .hourAndMinute)
+                InkTimePicker(title: "Hedef saati", selection: time(\.goalTime))
                     .disabled(!service.preferences.goalsEnabled)
                     .inkListRow()
                 Toggle("Akşam günlük hatırlatması", isOn: $service.preferences.journalEnabled)
                     .inkListRow()
-                DatePicker("Günlük saati", selection: time(\.journalTime), displayedComponents: .hourAndMinute)
+                InkTimePicker(title: "Günlük saati", selection: time(\.journalTime))
                     .disabled(!service.preferences.journalEnabled)
                     .inkListRow()
                 Toggle("Bildirimlerde içeriği gizle", isOn: $service.preferences.hideContent)
@@ -63,10 +64,10 @@ struct NotificationSettingsView: View {
             Section {
                 SectionHeader("Planlananlar")
                     .inkListRow()
-                Button("Şimdi yeniden planla") { Task { await service.replanNow() } }.disabled(
-                    service.isPlanning || service.isRequesting
-                )
-                .inkListRow()
+                Button("Şimdi yeniden planla") { Task { await service.replanNow() } }
+                    .buttonStyle(InkTextButtonStyle())
+                    .disabled(service.isPlanning || service.isRequesting)
+                    .inkListRow()
                 if service.isPlanning {
                     InkProgress(kind: .indeterminate(label: "Bildirimler planlanıyor…"))
                         .inkListRow()
@@ -112,14 +113,8 @@ struct NotificationSettingsView: View {
     }
     private func time(_ key: WritableKeyPath<NotificationPreferences, NotificationTime>) -> Binding<Date> {
         Binding(
-            get: {
-                let time = service.preferences[keyPath: key]
-                return NotificationPlanner.fireDate(LocalDay.today(), time: time, timeZone: .current) ?? Date()
-            },
-            set: { date in
-                let parts = Calendar.current.dateComponents([.hour, .minute], from: date)
-                service.preferences[keyPath: key] = NotificationTime(hour: parts.hour ?? 0, minute: parts.minute ?? 0)
-            })
+            get: { service.preferences.fieldDate(key, on: LocalDay.today(), timeZone: .current) },
+            set: { service.preferences.setTime(key, from: $0, timeZone: .current) })
     }
     private func openSettings() {
         #if os(iOS)

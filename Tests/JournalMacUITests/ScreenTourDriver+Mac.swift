@@ -145,7 +145,7 @@ extension ScreenTourDriver {
         for attempt in 0...scrolls {
             let deadline = Date().addingTimeInterval(attempt == 0 ? 4 : 1)
             repeat {
-                for query in [root.staticTexts, root.buttons, root.cells] {
+                for query in [root.buttons, root.cells, root.staticTexts] {
                     if let match = firstHittable(query.matching(predicate), limit: 4) { return match }
                 }
                 let labelled = NSPredicate(format: "label CONTAINS[c] %@", text)

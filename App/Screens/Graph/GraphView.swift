@@ -126,17 +126,40 @@ struct GraphView: View {
     }
 
     private var nodeMenu: some View {
-        Menu("Düğüm seç") {
-            ForEach(model.graph.nodes) { node in
-                Button {
-                    model.select(node.id, recenter: true)
-                } label: {
-                    Text(verbatim: node.name)
+        #if os(macOS)
+            Menu {
+                ForEach(model.graph.nodes) { node in
+                    Button {
+                        model.select(node.id, recenter: true)
+                    } label: {
+                        Text(verbatim: node.name)
+                    }
+                }
+            } label: {
+                HStack(spacing: 4) {
+                    Text("Düğüm seç")
+                    Image(systemName: "chevron.down")
+                        .font(.caption2)
                 }
             }
-        }
-        .font(.ink.meta)
-        .foregroundStyle(Color.ink.accent)
+            .menuStyle(.button)
+            .buttonStyle(.plain)
+            .menuIndicator(.hidden)
+            .font(.ink.meta)
+            .foregroundStyle(Color.ink.accent)
+        #else
+            Menu("Düğüm seç") {
+                ForEach(model.graph.nodes) { node in
+                    Button {
+                        model.select(node.id, recenter: true)
+                    } label: {
+                        Text(verbatim: node.name)
+                    }
+                }
+            }
+            .font(.ink.meta)
+            .foregroundStyle(Color.ink.accent)
+        #endif
     }
 
     private func legendMark(kind: GraphNode.Kind, title: LocalizedStringKey) -> some View {

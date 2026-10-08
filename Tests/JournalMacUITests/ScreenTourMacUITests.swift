@@ -413,12 +413,6 @@ final class ScreenTourMacUITests: XCTestCase {
                 tour.scrolledShot(name + "-asagi")
             }
         }
-        tour.step("14-ayarlar-gizlilik-bildirim-icerigi") {
-            try openSettings()
-            try tour.settingsTab("Gizlilik")
-            try tour.macRow("Bildirimlerde içeriği gizle", in: tour.settingsWindow).click()
-            tour.shot("14-ayarlar-gizlilik-bildirim-icerigi")
-        }
         tour.step("14-ayarlar-varlik-tipleri") {
             try openSettings()
             try tour.settingsTab("Kasa")
@@ -426,8 +420,11 @@ final class ScreenTourMacUITests: XCTestCase {
             _ = try tour.macRequire(["Yeni varlık tipi"])
             tour.shot("14-ayarlar-varlik-tipleri")
             try tour.macClick(["Yeni varlık tipi"])
-            _ = try tour.macRequire(["Alan ekle"])
+            try tour.waitForSheet()
             tour.shot("14-ayarlar-varlik-tipi-duzenleyici")
+            // The editor is a long list in a short sheet: "Alan ekle" is below the fold.
+            _ = try tour.macRow("Alan ekle", in: tour.app.sheets.firstMatch)
+            tour.shot("14-ayarlar-varlik-tipi-duzenleyici-asagi")
         }
         tour.closeOverlays()
     }

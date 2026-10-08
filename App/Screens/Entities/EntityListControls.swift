@@ -27,18 +27,3 @@ struct EntityFilterField: View {
             .autocorrectionDisabled()
     }
 }
-
-/// Filter and sort on one row for the Mac list column, which has no manşet row of its own.
-struct EntityListControls: View {
-    @Binding var order: EntityOrdering
-    @Binding var search: String
-
-    var body: some View {
-        HStack(spacing: InkSpacing.section) {
-            EntityFilterField(search: $search)
-            EntitySortMenu(order: $order)
-        }
-        .padding(.horizontal, InkSpacing.margin)
-        .padding(.bottom, InkSpacing.section)
-    }
-}

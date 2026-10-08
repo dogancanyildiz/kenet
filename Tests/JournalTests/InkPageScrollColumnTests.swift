@@ -5,15 +5,24 @@
 
     @testable import Journal
 
-    /// A page that is its own scroll container fills the Mac column (scroll bar on the column's
-    /// edge) and holds only its content to the 680 pt reading width. Measured on the hosted
-    /// layout: the AppKit scroll view SwiftUI builds and the frame a row really gets.
+    /// A Mac page fills its column and holds only its content to the 680 pt reading width: a
+    /// `List` page through `inkPageScrollColumn()`, a `ScrollView` page through
+    /// `inkPageColumn()` on the stack inside it. Measured on the hosted layout: the AppKit
+    /// scroll view SwiftUI builds and the frame a row really gets.
+    ///
+    /// Widths are compared with the scroll view's visible area, not with the host: where scroll
+    /// bars are always shown (a machine without a trackpad, as in CI) the bar takes its width
+    /// from the content.
     @MainActor
     struct InkPageScrollColumnTests {
         private static let wide = CGSize(width: 1100, height: 700)
+        private static let narrow = CGSize(width: 420, height: 600)
 
         private struct Measured {
+            /// The scroll view, in window coordinates.
             var scroll: CGRect
+            /// What the scroll view shows: its frame less an always-shown scroll bar.
+            var visible: CGRect
             var row: CGRect
             /// The vertical scroll bar, nil when the page does not overflow.
             var scroller: CGRect?
@@ -29,13 +38,13 @@
                 "the page has no scroll view")
             let scroller = scroll.verticalScroller.map { $0.convert($0.bounds, to: nil) }
             return Measured(
-                scroll: scroll.convert(scroll.bounds, to: nil), row: probe.frame,
+                scroll: scroll.convert(scroll.bounds, to: nil),
+                visible: scroll.contentView.convert(scroll.contentView.bounds, to: nil), row: probe.frame,
                 scroller: scroller.flatMap { $0.height > 0 ? $0 : nil })
         }
 
-        @Test func listFillsTheColumnAndCentersItsRows() async throws {
-            let probe = ProbeSink()
-            let page = List {
+        private static func list(_ probe: ProbeSink) -> some View {
+            List {
                 ProbeRow(sink: probe)
                     .listRowInsets(EdgeInsets())
                     .listRowSeparator(.hidden)
@@ -43,49 +52,79 @@
             .listStyle(.plain)
             .inkPage()
             .inkPageScrollColumn()
-            let measured = try await Self.measure(page, probe: probe, size: Self.wide)
+        }
+
+        /// A page that overflows, so its scroll bar exists.
+        private static func scrollPage(_ probe: ProbeSink) -> some View {
+            ScrollView {
+                VStack(spacing: 0) {
+                    ProbeRow(sink: probe)
+                    Color.clear.frame(height: 2000)
+                }
+                .inkPageColumn()
+            }
+            .inkPage()
+        }
+
+        @Test func listFillsTheColumnAndCentersItsRows() async throws {
+            let probe = ProbeSink()
+            let measured = try await Self.measure(Self.list(probe), probe: probe, size: Self.wide)
             #expect(abs(measured.scroll.minX) < 0.5, "scroll view starts at \(measured.scroll.minX)")
             #expect(
                 abs(measured.scroll.width - Self.wide.width) < 0.5, "scroll view is \(measured.scroll.width) pt wide")
+            // The rows sit inside the centered reading column.
+            let side = (Self.wide.width - InkSpacing.macPageWidth) / 2
+            #expect(measured.row.minX >= side - 0.5, "row starts at \(measured.row.minX)")
+            #expect(measured.row.maxX <= Self.wide.width - side + 0.5, "row ends at \(measured.row.maxX)")
             // A plain Mac list insets its rows itself, a point more on the trailing side.
-            #expect(abs(measured.row.midX - Self.wide.width / 2) <= 1, "row is centered on \(measured.row.midX)")
-            #expect(measured.row.width <= InkSpacing.macPageWidth + 0.5, "row is \(measured.row.width) pt wide")
-            // A plain Mac list insets its rows a few points on its own; the rest is the page.
-            #expect(measured.row.width >= InkSpacing.macPageWidth - 40, "row is \(measured.row.width) pt wide")
-        }
-
-        @Test func scrollViewFillsTheColumnAndCentersItsContent() async throws {
-            let probe = ProbeSink()
-            let page = ScrollView {
-                ProbeRow(sink: probe)
-                Color.clear.frame(height: 2000)
-            }
-            .inkPage()
-            .inkPageScrollColumn()
-            let measured = try await Self.measure(page, probe: probe, size: Self.wide)
             #expect(
-                abs(measured.scroll.width - Self.wide.width) < 0.5, "scroll view is \(measured.scroll.width) pt wide")
-            #expect(abs(measured.row.midX - Self.wide.width / 2) < 0.5, "content is centered on \(measured.row.midX)")
+                abs(measured.row.midX - measured.visible.midX) <= 1,
+                "row is centered on \(measured.row.midX), the visible area on \(measured.visible.midX)")
+            // Those insets and an always-shown scroll bar are all the column gives up.
+            let bar = measured.scroll.width - measured.visible.width
             #expect(
-                abs(measured.row.width - InkSpacing.macPageWidth) < 0.5, "content is \(measured.row.width) pt wide")
-            // The scroll bar stays on the column's edge, not beside the page.
-            let scroller = try #require(measured.scroller, "the page does not overflow")
-            #expect(abs(scroller.maxX - Self.wide.width) < 0.5, "scroll bar ends at \(scroller.maxX)")
+                measured.row.width >= InkSpacing.macPageWidth - 20 - bar,
+                "row is \(measured.row.width) pt wide, scroll bar \(bar) pt")
         }
 
         /// Narrower than the reading width (list column, sheet): nothing is taken from the sides.
-        @Test func narrowColumnKeepsItsFullWidth() async throws {
+        @Test func narrowListKeepsItsFullWidth() async throws {
             let probe = ProbeSink()
-            let page = ScrollView {
-                ProbeRow(sink: probe)
-                Color.clear.frame(height: 2000)
-            }
-            .inkPage()
-            .inkPageScrollColumn()
-            let size = CGSize(width: 420, height: 600)
-            let measured = try await Self.measure(page, probe: probe, size: size)
-            #expect(abs(measured.scroll.width - size.width) < 0.5)
-            #expect(abs(measured.row.width - size.width) < 0.5, "content is \(measured.row.width) pt wide")
+            let measured = try await Self.measure(Self.list(probe), probe: probe, size: Self.narrow)
+            #expect(
+                abs(measured.scroll.width - Self.narrow.width) < 0.5,
+                "scroll view is \(measured.scroll.width) pt wide")
+            #expect(
+                measured.row.width >= measured.visible.width - 20,
+                "row is \(measured.row.width) pt wide in \(measured.visible.width) pt")
+        }
+
+        @Test func scrollViewPageFillsTheColumnAndCentersItsContent() async throws {
+            let probe = ProbeSink()
+            let measured = try await Self.measure(Self.scrollPage(probe), probe: probe, size: Self.wide)
+            #expect(
+                abs(measured.scroll.width - Self.wide.width) < 0.5, "scroll view is \(measured.scroll.width) pt wide")
+            #expect(
+                abs(measured.row.width - InkSpacing.macPageWidth) < 0.5, "content is \(measured.row.width) pt wide")
+            #expect(
+                abs(measured.row.midX - measured.visible.midX) < 0.5,
+                "content is centered on \(measured.row.midX), the visible area on \(measured.visible.midX)")
+            // The scroll bar is on the column's edge, not beside the page.
+            let scroller = try #require(measured.scroller, "the page does not overflow")
+            #expect(
+                abs(scroller.maxX - measured.scroll.maxX) < 0.5,
+                "scroll bar ends at \(scroller.maxX), the column at \(measured.scroll.maxX)")
+        }
+
+        @Test func narrowScrollViewPageKeepsItsFullWidth() async throws {
+            let probe = ProbeSink()
+            let measured = try await Self.measure(Self.scrollPage(probe), probe: probe, size: Self.narrow)
+            #expect(
+                abs(measured.scroll.width - Self.narrow.width) < 0.5,
+                "scroll view is \(measured.scroll.width) pt wide")
+            #expect(
+                abs(measured.row.width - measured.visible.width) < 0.5,
+                "content is \(measured.row.width) pt wide in \(measured.visible.width) pt")
         }
 
         /// The real detail pages, in a column wider than the page: task and entity.

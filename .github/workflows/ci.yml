@@ -79,12 +79,20 @@ jobs:
         env:
           TZ: UTC
         # Mac görüntü kümeleri yalnız yerelde koşar (bkz. snapshot-suites.sh).
-        run: xcodebuild test -project Journal.xcodeproj -scheme Journal_macOS -destination 'platform=macOS' $(sh .github/scripts/snapshot-suites.sh --mac | sed 's#^#-skip-testing:JournalTests_macOS/#' | tr '\n' ' ') CODE_SIGNING_ALLOWED=NO -quiet
+        run: xcodebuild test -project Journal.xcodeproj -scheme Journal_macOS -destination 'platform=macOS' $(sh .github/scripts/snapshot-suites.sh --mac | sed 's#^#-skip-testing:JournalTests_macOS/#' | tr '\n' ' ') -resultBundlePath MacTests.xcresult CODE_SIGNING_ALLOWED=NO -quiet
       - name: macOS testleri (Pacific/Auckland)
         if: github.event_name == 'push'
         env:
           TZ: Pacific/Auckland
         run: xcodebuild test-without-building -project Journal.xcodeproj -scheme Journal_macOS -destination 'platform=macOS' $(sh .github/scripts/snapshot-suites.sh --mac | sed 's#^#-skip-testing:JournalTests_macOS/#' | tr '\n' ' ') CODE_SIGNING_ALLOWED=NO -quiet
+      # Paket UTC koşusundandır: düşen beklentinin ölçülen değerleri -quiet günlüğünde görünmez.
+      - name: macOS test sonuç paketi (yalnız düşünce)
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: mac-test-results
+          path: MacTests.xcresult
+          retention-days: 7
 
   # iOS: bir kez derlenir, birim ve arayüz testleri derlemesiz koşar.
   app-ios:

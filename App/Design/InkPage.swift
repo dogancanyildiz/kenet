@@ -33,11 +33,10 @@ extension View {
             .frame(maxWidth: .infinity, alignment: .center)
     }
 
-    /// Reading column for a page that is itself the scroll container (`List`, `ScrollView`).
-    /// On Mac the container fills its column, so the strip under the toolbar spans the column;
-    /// only the scrolled content is held to ``InkSpacing/macPageWidth`` and centered. A
-    /// `ScrollView` keeps its scroll bar on the column's edge; a Mac `List` still draws it
-    /// beside the page. Content inside a scroll view keeps ``inkPageColumn()``. On a phone
+    /// Reading column for a `List` page (a `List` cannot hold the limit inside itself).
+    /// On Mac the list fills its column and only its rows are held to
+    /// ``InkSpacing/macPageWidth`` and centered; its scroll bar stays beside the rows. A
+    /// `ScrollView` page puts ``inkPageColumn()`` on the stack inside it instead. On a phone
     /// this is ``inkPageColumn()``.
     func inkPageScrollColumn() -> some View {
         #if os(macOS)
@@ -130,11 +129,8 @@ extension View {
         func body(content: Content) -> some View {
             let side = max(0, (width - InkSpacing.macPageWidth) / 2)
             // Safe-area padding, not content margins: a Mac `List` ignores content margins.
-            // The padding would take the scroll bar in with it; the indicator margin puts it
-            // back on the column's edge (a `ScrollView` follows it, a Mac `List` does not).
             content
                 .safeAreaPadding(.horizontal, side)
-                .contentMargins(.horizontal, -side, for: .scrollIndicators)
                 .frame(maxWidth: .infinity)
                 .onGeometryChange(for: CGFloat.self) {
                     $0.size.width

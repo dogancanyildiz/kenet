@@ -79,20 +79,14 @@ struct KanbanView: View {
         model.store.content.tasks.first { $0.id == selectedRow?.id }
     }
 
-    /// Show-cancelled toggle. On Mac the shared header menu's button-style popup is as wide as
-    /// the width offered to the control and, pinned to the trailing icon, runs off the window.
-    /// ``KanbanMacOptionsMenu`` opens a content-sized menu that stays inside the window.
-    @ViewBuilder private var boardOptions: some View {
-        #if os(macOS)
-            KanbanMacOptionsMenu(showsCancelled: $model.showsCancelled)
-        #else
-            InkHeaderMenu(
-                "Pano seçenekleri", systemImage: "slider.horizontal.3", isActive: model.showsCancelled,
-                identifier: "tasks.kanban.options"
-            ) {
-                Toggle("İptal edilenleri göster", isOn: $model.showsCancelled)
-            }
-        #endif
+    /// Show-cancelled toggle. Same header menu as the other pages; the menu sizes to its content.
+    private var boardOptions: some View {
+        InkHeaderMenu(
+            "Pano seçenekleri", systemImage: "slider.horizontal.3", isActive: model.showsCancelled,
+            identifier: "tasks.kanban.options"
+        ) {
+            Toggle("İptal edilenleri göster", isOn: $model.showsCancelled)
+        }
     }
 
     /// Second layer of the view selector: how the board is split into columns.
@@ -118,7 +112,14 @@ struct KanbanView: View {
                             #if os(macOS)
                                 .frame(
                                     width: KanbanBoardLayout.columnWidth(
-                                        fitting: geometry.size.width, columns: model.columns.count))
+                                        fitting: geometry.size.width, columns: model.columns.count)
+                                )
+                                .background {
+                                    GeometryReader { proxy in
+                                        Color.clear.preference(
+                                            key: KanbanColumnWidthPreference.self, value: [proxy.size.width])
+                                    }
+                                }
                             #else
                                 .frame(width: max(240, min(360, max(0, geometry.size.width - 32))))
                             #endif

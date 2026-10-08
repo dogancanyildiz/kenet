@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 import Testing
 import VaultFormat
 
@@ -18,16 +19,6 @@ struct KanbanBoardLayoutTests {
             KanbanBoardLayout.columnWidth(fitting: 1100, columns: 12) == KanbanBoardLayout.minimumColumnWidth)
         #expect(KanbanBoardLayout.columnWidth(fitting: 0, columns: 4) == KanbanBoardLayout.minimumColumnWidth)
         #expect(KanbanBoardLayout.columnWidth(fitting: .nan, columns: 2) == KanbanBoardLayout.minimumColumnWidth)
-    }
-
-    @Test func optionsMenuOpensBackIntoTheWindow() {
-        let origin = KanbanOptionsMenuLayout.menuOriginX(
-            menuWidth: 200, anchorMaxX: 1260, limitX: 1272, minimumX: 0)
-        #expect(origin == 1060)
-        #expect(origin + 200 <= 1272)
-        let clamped = KanbanOptionsMenuLayout.menuOriginX(
-            menuWidth: 200, anchorMaxX: 50, limitX: 1280, minimumX: 8)
-        #expect(clamped == 8)
     }
 
     @Test func oneColumnFillsTheBoard() {
@@ -234,22 +225,40 @@ struct KanbanBoardLayoutTests {
         #expect(try Data(contentsOf: context.file) == Data(source.utf8))
     }
 
-    @Test func macMenusHugContentAndStayInTheWindow() throws {
+    @Test func groupingMenuHugsItsLabelOnMac() throws {
         let view = try Self.read("App/Screens/Tasks/Kanban/KanbanView.swift")
         #expect(view.contains("expands: KanbanMenuLayout.groupingMenuExpands"))
-        #expect(view.contains("KanbanMacOptionsMenu(showsCancelled:"))
-        let menu = try Self.read("App/Screens/Tasks/Kanban/KanbanMacOptionsMenu.swift")
-        #expect(menu.contains("menu.popUp"))
-        #expect(menu.contains("KanbanOptionsMenuLayout.menuOriginX"))
-        #expect(menu.contains("tasks.kanban.options"))
-        #expect(!menu.contains("maxWidth: .infinity"))
-        #expect(KanbanOptionsMenuLayout.reservedLabelWidth >= 180)
+        #expect(view.contains("InkHeaderMenu("))
+        #expect(!view.contains("KanbanMacOptionsMenu"))
         #if os(macOS)
             #expect(KanbanMenuLayout.groupingMenuExpands == false)
         #else
             #expect(KanbanMenuLayout.groupingMenuExpands == true)
         #endif
     }
+
+    #if os(macOS)
+        /// The hosted board's columns are the shared width, so a hardcoded `.frame(width: 300)` fails.
+        @Test func macColumnsUseTheSharedBoardWidth() async throws {
+            let context = try TaskTestContext()
+            defer { context.clean() }
+            await context.start()
+            try "## Tasks\n- [ ] Plan ^task\n".write(to: context.file, atomically: true, encoding: .utf8)
+            await context.store.refresh()
+            let tasks = TasksModel(store: context.store, today: { context.today })
+            for hostWidth in [CGFloat(900), CGFloat(1400)] {
+                let sink = HostedLayout.Sink()
+                let board = KanbanView(tasks: tasks)
+                    .onPreferenceChange(KanbanColumnWidthPreference.self) { sink.values = $0 }
+                await HostedLayout.settle(board, size: CGSize(width: hostWidth, height: 640))
+                let expected = KanbanBoardLayout.columnWidth(fitting: hostWidth, columns: 3)
+                #expect(sink.values.count == 3, "host \(hostWidth) reported \(sink.values)")
+                #expect(
+                    sink.values.allSatisfy { abs($0 - expected) < 1 },
+                    "host \(hostWidth): \(sink.values) vs \(expected)")
+            }
+        }
+    #endif
 
     private static func read(_ relative: String) throws -> String {
         let root = URL(fileURLWithPath: #filePath)

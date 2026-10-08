@@ -20,25 +20,20 @@ enum KanbanBoardLayout {
     }
 }
 
+/// Laid-out width of each Mac column. A host reads this to confirm the board uses
+/// ``KanbanBoardLayout/columnWidth(fitting:columns:)`` rather than a fixed width.
+struct KanbanColumnWidthPreference: PreferenceKey {
+    static let defaultValue: [CGFloat] = []
+    static func reduce(value: inout [CGFloat], nextValue: () -> [CGFloat]) {
+        value.append(contentsOf: nextValue())
+    }
+}
+
 /// Whether the "Grupla" menu stretches across the page.
 ///
 /// On Mac a ``Menu`` with button style opens as wide as its label. A label stretched to the
 /// page (`expands: true`) therefore opens a window-width menu. The phone row stays full width;
 /// its system menu is not sized from the label.
-/// Placement of the Mac "Pano seçenekleri" menu. The control sits at the trailing edge, so the
-/// menu's right edge is kept on the icon (`anchorMaxX`) and it grows to the left.
-enum KanbanOptionsMenuLayout {
-    static let reservedLabelWidth: CGFloat = 220
-
-    static func menuOriginX(
-        menuWidth: CGFloat, anchorMaxX: CGFloat, limitX: CGFloat, minimumX: CGFloat
-    ) -> CGFloat {
-        let width = max(menuWidth, 1)
-        let preferred = anchorMaxX - width
-        return max(min(preferred, limitX - width), minimumX)
-    }
-}
-
 enum KanbanMenuLayout {
     static var groupingMenuExpands: Bool {
         #if os(macOS)

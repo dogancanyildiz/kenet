@@ -424,6 +424,18 @@ final class ScreenTourMacUITests: XCTestCase {
         tour.pause(1.5)
     }
 
+    /// A mouse click on Kanban, then Down. The next row (Zaman çizelgesi) must open: the click
+    /// left the sidebar focused, so the arrow still walks it.
+    @MainActor private func clickKanbanThenDownArrow(shot name: String) throws {
+        try tour.sidebar("Kanban")
+        tour.app.typeKey(.downArrow, modifierFlags: [])
+        tour.pause(0.8)
+        guard tour.mainWindow.title == "Zaman çizelgesi" else {
+            throw ScreenTourError("fareden sonra ok gezmedi: \(tour.mainWindow.title)")
+        }
+        tour.shot(name)
+    }
+
     @MainActor private func openSettings() throws {
         tour.closeOverlays()
         try tour.menuBar("Kenet", item: "Ayarlar…")
@@ -460,6 +472,28 @@ final class ScreenTourMacUITests: XCTestCase {
             _ = try tour.macRow("Alan ekle", in: tour.app.sheets.firstMatch)
             tour.shot("14-ayarlar-varlik-tipi-duzenleyici-asagi")
         }
+        tour.step("14-ayarlar-kasa-geri") {
+            try openSettings()
+            // Closing Settings does not always drop the Kasa subpage: the window can come back
+            // titled "Varlık tipleri". Then the Kasa tab is already selected and its title
+            // does not change.
+            if tour.settingsWindow?.title != "Varlık tipleri" {
+                try tour.settingsTab("Kasa")
+                try tour.macRow("Varlık tipleri", in: tour.settingsWindow).click()
+            }
+            let back = try tour.macRequire(
+                ["Kasa'ya dön"], ids: ["button.settings.vault.back"], in: tour.settingsWindow)
+            guard back.label == "Kasa'ya dön" else {
+                throw ScreenTourError("Kasa geri etiketi: \(back.label)")
+            }
+            tour.shot("14-ayarlar-kasa-geri")
+            back.click()
+            tour.pause(0.8)
+            if tour.macFind([], ids: ["button.settings.vault.back"], in: tour.settingsWindow, timeout: 1) != nil {
+                throw ScreenTourError("geri düğmesi Kasa alt sayfasını kapatmadı")
+            }
+            _ = try tour.macRow("Varlık tipleri", in: tour.settingsWindow)
+        }
         tour.closeOverlays()
     }
 
@@ -491,8 +525,14 @@ final class ScreenTourMacUITests: XCTestCase {
 
     @MainActor private func macOnly() {
         tour.step("32-mac-bos-ayrinti") {
+            try tour.sidebar("Günlük")
+            tour.shot("32-mac-gunluk-secim-yok")
             try tour.sidebar("Görevler")
             tour.shot("32-mac-gorevler-secim-yok")
+            try tour.sidebar("Kişiler")
+            tour.shot("32-mac-kisiler-secim-yok")
+            try tour.sidebar("Konumlar")
+            tour.shot("32-mac-konumlar-secim-yok")
             try tour.sidebar("Hedefler")
             tour.shot("32-mac-hedefler-secim-yok")
         }
@@ -513,6 +553,9 @@ final class ScreenTourMacUITests: XCTestCase {
                 tour.pause(0.8)
             }
             tour.shot("35-mac-kenar-cubugu-ok-kanban")
+        }
+        tour.step("35-mac-kenar-cubugu-fare-ok") {
+            try clickKanbanThenDownArrow(shot: "35-mac-kenar-cubugu-fare-sonra-ok")
         }
         tour.step("36-mac-etkin-olmayan-pencere") {
             // With Settings in front the journal window is not key: its sidebar selection fades.
@@ -557,6 +600,21 @@ final class ScreenTourMacUITests: XCTestCase {
         tour.step("20-koyu-bugun") {
             try tour.sidebar("Bugün")
             tour.shot("20-koyu-bugun")
+        }
+        tour.step("20-koyu-bos-ayrinti") {
+            try tour.sidebar("Günlük")
+            tour.shot("20-koyu-gunluk-secim-yok")
+            try tour.sidebar("Görevler")
+            tour.shot("20-koyu-gorevler-secim-yok")
+            try tour.sidebar("Kişiler")
+            tour.shot("20-koyu-kisiler-secim-yok")
+            try tour.sidebar("Konumlar")
+            tour.shot("20-koyu-konumlar-secim-yok")
+            try tour.sidebar("Hedefler")
+            tour.shot("20-koyu-hedefler-secim-yok")
+        }
+        tour.step("20-koyu-kenar-cubugu-fare-ok") {
+            try clickKanbanThenDownArrow(shot: "20-koyu-kenar-cubugu-fare-sonra-ok")
         }
         tour.step("20-koyu-gunluk") {
             try tour.sidebar("Günlük")

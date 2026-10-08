@@ -5453,6 +5453,22 @@
         }
       }
     },
+    "Kasa'ya dön" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Back to Vault"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kasa'ya dön"
+          }
+        }
+      }
+    },
     "Kasaya erişilemiyor. Journal'da kasanı açıp yeniden dene." : {
       "localizations" : {
         "en" : {

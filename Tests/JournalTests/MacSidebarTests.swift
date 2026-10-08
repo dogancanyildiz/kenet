@@ -94,17 +94,17 @@
     struct MacShellSelectionTests {
         @Test func boardRowsOpenTheirBoardAndProjectRowsTheirProject() {
             var shell = MacShellSelection(section: .today)
-            shell.select(.kanban, byKeyboard: false)
+            shell.select(.kanban)
             #expect(shell.section == .tasks)
             #expect(shell.tasks.layout == .kanban)
             #expect(shell.layout == .board)
             #expect(shell.sidebarEntry == .kanban)
 
-            shell.select(.timeline, byKeyboard: false)
+            shell.select(.timeline)
             #expect(shell.tasks.layout == .timeline)
             #expect(shell.sidebarEntry == .timeline)
 
-            shell.select(.project("mobil"), byKeyboard: false)
+            shell.select(.project("mobil"))
             #expect(shell.tasks.layout == .project("mobil"))
             #expect(shell.layout == .columns)
             #expect(shell.sidebarEntry == .project("mobil"))
@@ -112,44 +112,37 @@
 
         @Test func tasksRowReturnsToTheListAndOtherSectionsLeaveTheBoard() {
             var shell = MacShellSelection(section: .today)
-            shell.select(.kanban, byKeyboard: false)
-            shell.select(.section(.tasks), byKeyboard: false)
+            shell.select(.kanban)
+            shell.select(.section(.tasks))
             #expect(shell.tasks.layout == .list)
             #expect(shell.tasks.view.listSection == .upcoming)
             #expect(shell.sidebarEntry == .section(.tasks))
 
-            shell.select(.timeline, byKeyboard: false)
-            shell.select(.section(.goals), byKeyboard: false)
+            shell.select(.timeline)
+            shell.select(.section(.goals))
             #expect(shell.section == .goals)
             #expect(shell.tasks.layout == .list, "coming back to Görevler lands on the list")
             #expect(shell.sidebarEntry == .section(.goals))
         }
 
-        /// Focus goes back to the rebuilt sidebar only for an arrow key that swapped the layout.
-        @Test func onlyAKeyboardChoiceThatSwapsTheLayoutAsksForFocus() {
+        /// Focus goes back to the rebuilt sidebar whenever the choice swapped the layout.
+        /// A click and an arrow key ask the same way; the list drops the request if focus is busy.
+        @Test func aChoiceThatSwapsTheLayoutAsksForFocus() {
             var shell = MacShellSelection(section: .tasks)
             let asked = [
-                shell.select(.kanban, byKeyboard: true),  // columns to board
-                shell.select(.timeline, byKeyboard: true),  // board to board: same sidebar
-                shell.select(.project("mobil"), byKeyboard: true),  // board to columns
-                shell.select(.section(.people), byKeyboard: true),  // columns to columns
-                shell.select(.section(.graph), byKeyboard: true),  // columns to page
+                shell.select(.kanban),  // columns to board
+                shell.select(.timeline),  // board to board: same sidebar
+                shell.select(.project("mobil")),  // board to columns
+                shell.select(.section(.people)),  // columns to columns
+                shell.select(.section(.graph)),  // columns to page
             ]
             #expect(asked == [true, false, true, false, true])
-
-            // A click leaves focus to the pointer, whatever it swaps.
-            var clicked = MacShellSelection(section: .tasks)
-            let afterClicks = [
-                clicked.select(.kanban, byKeyboard: false),
-                clicked.select(.section(.summaries), byKeyboard: false),
-            ]
-            #expect(afterClicks == [false, false])
         }
 
         /// A project deleted from the vault left no row selected and its name on the window.
         @Test func aProjectThatLeftTheVaultFallsBackToTasks() {
             var shell = MacShellSelection(section: .tasks)
-            shell.select(.project("mobil"), byKeyboard: false)
+            shell.select(.project("mobil"))
             shell.projectsChanged(["altyapi", "mobil"])
             #expect(shell.sidebarEntry == .project("mobil"), "still listed: nothing changes")
 
@@ -165,17 +158,18 @@
     }
 
     /// The real list, mounted offscreen: the system selection walks our rows with the arrow keys.
-    @MainActor @Suite(.timeLimit(.minutes(1)))
+    @MainActor @Suite(.serialized, .timeLimit(.minutes(1)))
     struct MacSidebarKeyboardTests {
         private let watchdog = HostedTestWatchdog()
         @Observable final class Model {
             var shell = MacShellSelection(section: .days)
             var restoresFocus = false
-            /// What `NSApp.currentEvent` tells the shell in the app.
-            var byKeyboard = true
             var note = ""
-            /// `nil`: ask the mounted window, as the app asks its key window.
+            /// `nil`: ask the mounted window.
             var focusIsFree: Bool?
+            /// The list is built without a check of the test's: the app's own decides, and a
+            /// text field outside the split view survives the layout swap.
+            var judgesItsOwnWindow = false
             let projects = ["altyapi", "mobil"]
             @ObservationIgnored weak var window: NSWindow?
 
@@ -183,7 +177,7 @@
                 get { shell.sidebarEntry }
                 set {
                     guard let newValue else { return }
-                    if shell.select(newValue, byKeyboard: byKeyboard) { restoresFocus = true }
+                    if shell.select(newValue) { restoresFocus = true }
                 }
             }
         }
@@ -194,6 +188,16 @@
             @Bindable var model: Model
 
             var body: some View {
+                VStack(spacing: 0) {
+                    panes
+                    // Outside the split view: the layout swap does not take it away.
+                    if model.judgesItsOwnWindow {
+                        TextField(String("focus-anchor"), text: $model.note)
+                    }
+                }
+            }
+
+            @ViewBuilder private var panes: some View {
                 switch model.shell.layout {
                 case .columns:
                     NavigationSplitView {
@@ -212,11 +216,16 @@
                 }
             }
 
-            private var sidebar: some View {
-                MacSidebarList(
-                    entries: MacSidebar.entries(projects: model.projects), selection: $model.selection,
-                    restoresFocus: $model.restoresFocus,
-                    focusIsFree: { [model] in model.focusIsFree ?? MacSidebarFocus.isUnowned(in: model.window) })
+            @ViewBuilder private var sidebar: some View {
+                let entries = MacSidebar.entries(projects: model.projects)
+                if model.judgesItsOwnWindow {
+                    MacSidebarList(
+                        entries: entries, selection: $model.selection, restoresFocus: $model.restoresFocus)
+                } else {
+                    MacSidebarList(
+                        entries: entries, selection: $model.selection, restoresFocus: $model.restoresFocus,
+                        focusIsFree: { [model] in model.focusIsFree ?? MacSidebarFocus.isUnowned(in: model.window) })
+                }
             }
         }
 
@@ -278,19 +287,96 @@
             #expect(model.restoresFocus == false, "the request is spent once")
         }
 
-        /// The pointer is on its way to the page: a click on a sidebar row never pulls focus back.
-        @Test func aClickedChoiceLeavesFocusAlone() async throws {
+        /// A choice that swaps the layout while nothing holds the focus (the row that was clicked
+        /// went away with the old list): the new sidebar takes it. The request does not ask how
+        /// the choice was made; the real click is a step of the Mac screen tour.
+        @Test func aChoiceMadeWhileFocusIsFreeGivesItToTheSidebar() async throws {
             let model = Model()
             model.shell = MacShellSelection(section: .tasks)
-            model.byKeyboard = false
             let mount = await mount(model)
             defer { mount.close() }
+            let first = try #require(sidebarTable(in: mount))
+            guard HostedFocus.isAvailable(for: first, in: mount.window) else { return }
+            mount.window.makeFirstResponder(nil)
 
             model.selection = .kanban
             await mount.settle(rounds: 16)
             let table = try #require(sidebarTable(in: mount))
-            #expect(!Self.holdsFocus(table, in: mount.window))
-            #expect(model.restoresFocus == false)
+            #expect(
+                Self.holdsFocus(table, in: mount.window),
+                "focus: \(String(describing: mount.window.firstResponder))")
+            #expect(model.restoresFocus == false, "the request is spent once")
+        }
+
+        /// The app's own check (no closure handed in). A field of the journal window holds the
+        /// keyboard while that window is not the key one; judged by the key window the focus
+        /// looked free and the sidebar took it from the field.
+        @Test func focusIsJudgedInTheSidebarsWindowNotTheKeyWindow() async throws {
+            let model = Model()
+            model.shell = MacShellSelection(section: .tasks)
+            model.judgesItsOwnWindow = true
+            let mount = await mount(model)
+            let release = await HostedJournalWindow.claim(mount.window)
+            defer {
+                release()
+                mount.close()
+            }
+            let field = try #require(Self.anchor(in: mount), "no field outside the split view")
+            guard HostedFocus.isAvailable(for: field, in: mount.window) else { return }
+            // The hosted window is never ordered on screen, so it is never the key window.
+            #expect(NSApp.keyWindow !== mount.window)
+
+            model.selection = .kanban
+            await mount.settle(rounds: 16)
+            let table = try #require(sidebarTable(in: mount))
+            #expect(model.shell.layout == .board)
+            #expect(model.restoresFocus == false, "the request was seen")
+            #expect(!Self.holdsFocus(table, in: mount.window), "the sidebar took the field's focus")
+            #expect(
+                Self.isEditing(field, in: mount.window),
+                "focus: \(String(describing: mount.window.firstResponder))")
+        }
+
+        /// The other half: a field that holds the focus of another window (Settings, a panel)
+        /// does not keep the sidebar from taking the free focus of its own window.
+        @Test func focusHeldInAnotherWindowDoesNotBlockTheSidebar() async throws {
+            let model = Model()
+            model.shell = MacShellSelection(section: .tasks)
+            model.judgesItsOwnWindow = true
+            let mount = await mount(model)
+            let release = await HostedJournalWindow.claim(mount.window)
+            defer {
+                release()
+                mount.close()
+            }
+            let first = try #require(sidebarTable(in: mount))
+            guard HostedFocus.isAvailable(for: first, in: mount.window) else { return }
+            mount.window.makeFirstResponder(nil)
+
+            let other = Self.window(marked: nil)
+            let busy = NSTextField(frame: NSRect(x: 8, y: 8, width: 200, height: 24))
+            other.contentView?.addSubview(busy)
+            defer { other.contentView = nil }
+            guard HostedFocus.isAvailable(for: busy, in: other) else { return }
+
+            model.selection = .kanban
+            await mount.settle(rounds: 16)
+            let table = try #require(sidebarTable(in: mount))
+            #expect(
+                Self.holdsFocus(table, in: mount.window),
+                "focus: \(String(describing: mount.window.firstResponder))")
+        }
+
+        /// Which window the sidebar's focus is judged in: a journal window, the key one of them.
+        @Test func sidebarWindowIsAJournalWindowAndTheKeyOneWhenSeveralAreOpen() {
+            let settings = Self.window(marked: nil)
+            let journal = Self.window(marked: MainWindowMarker.identifier)
+            let second = Self.window(marked: MainWindowMarker.identifier)
+            let all = [settings, journal, second]
+            #expect(MacSidebarFocus.sidebarWindow(among: all, key: settings) === journal)
+            #expect(MacSidebarFocus.sidebarWindow(among: all, key: nil) === journal)
+            #expect(MacSidebarFocus.sidebarWindow(among: all, key: second) === second)
+            #expect(MacSidebarFocus.sidebarWindow(among: [settings], key: settings) == nil)
         }
 
         /// Review finding: the sidebar took focus back from a field the user had moved to.
@@ -372,6 +458,27 @@
                     charactersIgnoringModifiers: characters, isARepeat: false, keyCode: code))
             responder.keyDown(with: event)
             await mount.settle(rounds: 10)
+        }
+
+        /// The field that lives outside the split view, so a layout swap does not destroy it.
+        private static func anchor(in mount: HostedLayout.Mount) -> NSTextField? {
+            mount.views(NSTextField.self).first { field in
+                field.isEditable && !Self.insideSplit(field)
+            }
+        }
+
+        private static func insideSplit(_ view: NSView) -> Bool {
+            sequence(first: view, next: { $0.superview }).contains { $0 is NSSplitView }
+        }
+
+        /// An offscreen window that is never shown, with or without the journal mark.
+        private static func window(marked identifier: NSUserInterfaceItemIdentifier?) -> NSWindow {
+            let window = NSWindow(
+                contentRect: NSRect(x: -20_000, y: -21_000, width: 240, height: 80),
+                styleMask: [.titled], backing: .buffered, defer: false)
+            window.isReleasedWhenClosed = false
+            window.identifier = identifier
+            return window
         }
 
         /// The sidebar is the first table of the split view.

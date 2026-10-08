@@ -262,6 +262,39 @@
             #expect(MacVaultSettingsPage.shown(.vaultImport, hasImport: false) == nil)
         }
 
+        /// Finishing or cancelling preparation leaves the import page. Entity types stays.
+        @Test func importSubpageResetsWhenTheImportGoesAway() {
+            #expect(MacVaultSettingsPage.subpage(.vaultImport, whenImportEnds: true) == nil)
+            #expect(MacVaultSettingsPage.subpage(.entityTypes, whenImportEnds: true) == .entityTypes)
+            #expect(MacVaultSettingsPage.subpage(.vaultImport, whenImportEnds: false) == .vaultImport)
+            #expect(MacVaultSettingsPage.subpage(nil, whenImportEnds: true) == nil)
+        }
+
+        /// The mounted Kasa tab on its import page (each page names the window). The import ends,
+        /// and a later import starts on the tab's root, not on the page the first one left open.
+        @Test func vaultTabForgetsTheImportPageOnceThatImportEnded() async throws {
+            let fixture = try SettingsFixture()
+            defer { fixture.clean() }
+            await fixture.context.start()
+            let store = fixture.context.store
+            store.importModel = try await VaultImportModel(root: fixture.context.root)
+            let page = MacVaultSettingsPage(store: store, subpage: .vaultImport)
+            let mount = HostedLayout.Mount(fixture.hosted(page), size: CGSize(width: 600, height: 700))
+            defer { mount.close() }
+            await mount.settle()
+            let root = String(localized: "Kasa")
+            let importPage = String(localized: "Kasa hazırlığı")
+            #expect(mount.window.title == importPage, "the import page is open")
+
+            store.importModel = nil
+            await mount.settle()
+            #expect(mount.window.title == root)
+
+            store.importModel = try await VaultImportModel(root: fixture.context.root)
+            await mount.settle()
+            #expect(mount.window.title == root, "the new import opened on the page the old one left")
+        }
+
         // MARK: - Notification times
 
         @Test func reminderTimeHelpersReadAndWriteOneReminderInTheGivenZone() throws {

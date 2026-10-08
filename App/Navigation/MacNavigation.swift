@@ -22,16 +22,8 @@
         @State private var selectedEntityKind = "person"
         @State private var sidebarRestoresFocus = false
 
-        /// Whether the sidebar selection just changed because of a key press; the app asks the
-        /// current event, a hosted test supplies the answer.
-        private let selectionCameFromKeyboard: @MainActor () -> Bool
-
-        init(
-            store: IndexStore,
-            selectionCameFromKeyboard: @escaping @MainActor () -> Bool = { MacSidebarFocus.selectionCameFromKeyboard }
-        ) {
+        init(store: IndexStore) {
             self.store = store
-            self.selectionCameFromKeyboard = selectionCameFromKeyboard
             _kanbanTasks = State(initialValue: TasksModel(store: store))
         }
 
@@ -173,7 +165,7 @@
                         {
                             DayView(store: store, date: day).id(day)
                         } else {
-                            ContentUnavailableView("Bir gün seç", systemImage: "book.closed")
+                            MacEmptyDetail("Bir gün seç")
                         }
                     case .tasks:
                         if let row = store.content.tasks.first(where: { $0.id == selectedTask }) {
@@ -182,14 +174,14 @@
                                 section = .days
                             }
                         } else {
-                            ContentUnavailableView("Bir görev seç", systemImage: "checklist")
+                            MacEmptyDetail("Bir görev seç")
                         }
                     case .summaries, .graph, .map: EmptyView()
                     case .goals:
                         if let goal = store.content.goals.first(where: { $0.id == selectedGoal }) {
                             GoalDetailView(store: store, goal: goal).id(goal.id + (store.vaultURL?.path ?? ""))
                         } else {
-                            ContentUnavailableView("Bir hedef seç", systemImage: "target")
+                            MacEmptyDetail("Bir hedef seç")
                         }
                     case .people, .places:
                         if let entity = selectedSummary, entity.kind == entityKind {
@@ -198,12 +190,15 @@
                                 selectedSummary = store.content.entities.first { $0.id == path } ?? selectedSummary
                             }.id(entityRouteID)
                         } else {
-                            ContentUnavailableView("Bir varlık seç", systemImage: "person.2")
+                            MacEmptyDetail("Bir varlık seç")
                         }
                     }
                 }
                 .id(section)
                 // Shell paints paper full-width; each page view applies `.inkPageColumn()` itself.
+                // An empty branch stretches over the column (`MacEmptyDetail`); otherwise this
+                // paper is only as large as the prompt and the stack's system white (dark: gray)
+                // shows around it.
                 .inkPage()
                 .macSearchToolbar()
             }
@@ -225,10 +220,10 @@
             if section != selection.section { section = selection.section }
         }
 
-        /// Called for a choice made in the sidebar (click or arrow key).
+        /// Called for a choice made in the sidebar (click, arrow key or VoiceOver).
         private func selectSidebarEntry(_ entry: MacSidebarEntry) {
             var selection = shellSelection
-            let restoresFocus = selection.select(entry, byKeyboard: selectionCameFromKeyboard())
+            let restoresFocus = selection.select(entry)
             if entry.isNested { selectedTask = nil }
             apply(selection)
             if restoresFocus { sidebarRestoresFocus = true }
@@ -263,6 +258,22 @@
         }
 
         private var entityKind: String { selectedEntityKind }
+    }
+
+    /// Detail column with nothing selected: the shared empty state (one italic line, no box),
+    /// stretched over the column so the shell's `.inkPage()` paper reaches every edge. Günlük,
+    /// Görevler (projects included), Hedefler and Kişiler / Konumlar use this.
+    struct MacEmptyDetail: View {
+        let message: LocalizedStringKey
+
+        init(_ message: LocalizedStringKey) {
+            self.message = message
+        }
+
+        var body: some View {
+            EmptyState(message)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
     }
 
     struct TodayNavigationKey: FocusedValueKey {

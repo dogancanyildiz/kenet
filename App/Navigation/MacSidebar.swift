@@ -99,9 +99,13 @@
             return responder === window
         }
 
-        /// The selection changed because of a key press (an arrow key), not a click. After a
-        /// click the pointer is on its way to the page, so focus is not pulled back.
-        static var selectionCameFromKeyboard: Bool { NSApp.currentEvent?.type == .keyDown }
+        /// The journal window the sidebar lives in (`MainWindowMarker`); the key one when several
+        /// are open. A key window elsewhere (Settings, the quick-entry panel) is not it, so it
+        /// does not decide whether the sidebar's focus is free.
+        static func sidebarWindow(among windows: [NSWindow], key: NSWindow?) -> NSWindow? {
+            let journals = windows.filter { $0.identifier == MainWindowMarker.identifier }
+            return journals.first { $0 === key } ?? journals.first
+        }
     }
 
     /// Colors of a sidebar row (`docs/design.md`, rule 12): the selected row is filled with the
@@ -133,12 +137,16 @@
         @Binding var selection: MacSidebarEntry?
         /// Runs on every click on a row, also when it is already selected.
         var onClick: (MacSidebarEntry) -> Void = { _ in }
-        /// Set by the shell when an arrow key in the sidebar swaps the split view: the new list
-        /// takes the keyboard focus the old one had, so the arrow keys keep walking the rows.
+        /// Set by the shell when a choice in the sidebar swaps the split view: the new list takes
+        /// the keyboard focus the old one had, so the arrow keys keep walking the rows.
         var restoresFocus: Binding<Bool> = .constant(false)
-        /// False once focus has gone somewhere else (the user clicked into the page): then the
-        /// sidebar leaves it there.
-        var focusIsFree: @MainActor () -> Bool = { MacSidebarFocus.isUnowned(in: NSApp.keyWindow) }
+        /// False once focus has gone somewhere else in this sidebar's window (the user clicked
+        /// into the page): then the sidebar leaves it there. Focus in another window (Settings,
+        /// a panel) does not count.
+        var focusIsFree: @MainActor () -> Bool = {
+            MacSidebarFocus.isUnowned(
+                in: MacSidebarFocus.sidebarWindow(among: NSApp.windows, key: NSApp.keyWindow))
+        }
         @Environment(\.appearsActive) private var appearsActive
         @FocusState private var isFocused: Bool
 

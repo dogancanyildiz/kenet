@@ -16,6 +16,8 @@ final class SearchModel {
         }
     }
     private(set) var results: [SearchItem] = []
+    /// Pages opened from the results inside the search sheet; empty while the results show.
+    var path: [SearchDestination] = []
     private(set) var recentQueries: [String] = []
     private(set) var selectedID: String?
     private(set) var isSearching = false
@@ -66,6 +68,9 @@ final class SearchModel {
         let index = results.firstIndex { $0.id == selectedID } ?? 0
         selectedID = results[min(max(index + offset, 0), results.count - 1)].id
     }
+
+    /// Back from an opened page to the result list.
+    func showResults() { path = [] }
 
     func activate(_ item: SearchItem) -> SearchDestination? {
         guard resultRoot == store.vaultURL, results.contains(item) else { return nil }

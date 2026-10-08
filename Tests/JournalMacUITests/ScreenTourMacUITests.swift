@@ -26,6 +26,8 @@ final class ScreenTourMacUITests: XCTestCase {
     // Typed text avoids "i": with a Turkish keyboard layout XCUITest drops it.
     private let typedName = "Baran"
     private let typedPlace = "Kaf"
+    // An event of the sample vault ("Ev'de kahvaltı"); its result opens the day page.
+    private let typedEvent = "kahv"
     private let pastDay = "27 Eyl"
     private let person = "Deniz Arıkan"
     private let place = "Liman Ofis"
@@ -387,7 +389,39 @@ final class ScreenTourMacUITests: XCTestCase {
             tour.type("Okuma", into: field)
             try tour.macRow(note, in: tour.app.sheets.firstMatch, scrolls: 0).click()
             tour.shot(prefix + "-not", settle: 1.5)
+            guard prefix == "13-arama" else { return }
+            // Inside the sheet the page's manşet magnifier leads back to the results.
+            try backToResults(expecting: note, shot: prefix + "-not-sonuclara-donus")
+            try replaceQuery(with: typedName)
+            try tour.macRow(typedName, in: tour.app.sheets.firstMatch, scrolls: 0).click()
+            _ = try tour.macRequire(["Düzenle"], ids: ["button.entity.edit"], in: tour.app.sheets.firstMatch)
+            tour.shot(prefix + "-varlik", settle: 1.5)
+            try backToResults(expecting: typedName, shot: prefix + "-varlik-sonuclara-donus")
+            try replaceQuery(with: typedEvent)
+            try tour.macRow(typedEvent, in: tour.app.sheets.firstMatch, scrolls: 0).click()
+            try tour.waitFor(ids: ["screen.day"])
+            tour.shot(prefix + "-gun", settle: 1.5)
+            try backToResults(expecting: typedEvent, shot: prefix + "-gun-sonuclara-donus")
         }
+    }
+
+    @MainActor private func backToResults(expecting row: String, shot name: String) throws {
+        let sheet = tour.app.sheets.firstMatch
+        try tour.macClick(["Ara"], ids: ["button.search"], in: sheet)
+        _ = try tour.field(ids: ["field.search"], placeholders: ["Kişi, konum veya metin ara"])
+        _ = try tour.macRow(row, in: sheet, scrolls: 0)
+        tour.shot(name, settle: 1.0)
+    }
+
+    /// Selects the whole query and types over it.
+    @MainActor private func replaceQuery(with text: String) throws {
+        let field = try tour.field(ids: ["field.search"], placeholders: ["Kişi, konum veya metin ara"])
+        field.click()
+        tour.pause(0.4)
+        tour.app.typeKey("a", modifierFlags: .command)
+        tour.erase(1)
+        tour.app.typeText(text)
+        tour.pause(1.5)
     }
 
     @MainActor private func openSettings() throws {
@@ -456,19 +490,41 @@ final class ScreenTourMacUITests: XCTestCase {
     // MARK: Screens only the Mac has (numbered from 30)
 
     @MainActor private func macOnly() {
-        tour.step("31-mac-notlar") {
-            try tour.sidebar("Notlar")
-            tour.shot("31-mac-notlar")
-        }
         tour.step("32-mac-bos-ayrinti") {
             try tour.sidebar("Görevler")
             tour.shot("32-mac-gorevler-secim-yok")
             try tour.sidebar("Hedefler")
             tour.shot("32-mac-hedefler-secim-yok")
         }
+        tour.step("35-mac-kenar-cubugu-klavye") {
+            // The arrow keys walk the sidebar rows, sub-entries included, across the layout swap
+            // between the columns and the full-width board.
+            try tour.sidebar("Günlük")
+            for _ in 0..<3 {
+                tour.app.typeKey(.downArrow, modifierFlags: [])
+                tour.pause(0.8)
+            }
+            tour.shot("35-mac-kenar-cubugu-ok-zaman-cizelgesi")
+            tour.app.typeKey(.downArrow, modifierFlags: [])
+            tour.pause(0.8)
+            tour.shot("35-mac-kenar-cubugu-ok-ilk-proje")
+            for _ in 0..<2 {
+                tour.app.typeKey(.upArrow, modifierFlags: [])
+                tour.pause(0.8)
+            }
+            tour.shot("35-mac-kenar-cubugu-ok-kanban")
+        }
+        tour.step("36-mac-etkin-olmayan-pencere") {
+            // With Settings in front the journal window is not key: its sidebar selection fades.
+            try tour.sidebar("Görevler")
+            try openSettings()
+            tour.captureMainWindow()
+            tour.shot("36-mac-etkin-olmayan-pencere")
+            tour.closeOverlays()
+        }
         tour.step("33-mac-menu-cubugu") {
             // The journal window shows no quick entry here, so the panel's field is the only one.
-            try tour.sidebar("Notlar")
+            try tour.sidebar("Özetler")
             let item = tour.app.menuBars.statusItems.firstMatch
             guard item.waitForExistence(timeout: 5) else { throw ScreenTourError("menü çubuğu simgesi yok") }
             item.click()

@@ -29,8 +29,9 @@ struct QuickEntryWordSpacingTests {
     import AppKit
 
     /// Hosted frames for the two Mac findings: kip-word gap, and manşet icon size / hit target.
-    @MainActor
+    @MainActor @Suite(.timeLimit(.minutes(1)))
     struct MacComponentMetricsTests {
+        private let watchdog = HostedTestWatchdog()
         @Test func quickEntryModeWordsSitAVisualGapApart() async throws {
             let mount = HostedLayout.Mount(
                 QuickEntryMetricsProbe(dynamicTypeSize: .large),
@@ -56,7 +57,7 @@ struct QuickEntryWordSpacingTests {
             #expect(abs(gap - QuickEntryCapsuleLayout.visualWordGap) <= 2, "stacked gap \(gap) pt")
         }
 
-        /// The three icon kinds on one manşet (button, menu, search) share one hit size.
+        /// The three icon kinds on one manşet (button, menu, plain system button) share one hit size.
         @Test func headerIconsShareAPointerTargetAndAReadableSymbol() async throws {
             let mount = HostedLayout.Mount(
                 HeaderMetricsProbe(), size: CGSize(width: 640, height: 80))
@@ -89,11 +90,11 @@ struct QuickEntryWordSpacingTests {
             #expect(heights.max()! - heights.min()! <= 1, "icon targets differ: \(heights)")
         }
 
-        /// The list column is still 200 pt (a pending width decision). Two manşet icons, the
-        /// count on Görevler and Hedefler, must not paint over the title.
+        /// The list column at its narrowest (280 pt). Two manşet icons, one more than Görevler
+        /// and Hedefler show there, must not paint over the title.
         @Test func headerIconsLeaveTheTitleClearInTheListColumn() async {
             let mount = HostedLayout.Mount(
-                NarrowHeaderProbe(), size: CGSize(width: 200, height: 120))
+                NarrowHeaderProbe(), size: CGSize(width: InkSpacing.macListMinWidth, height: 120))
             defer { mount.close() }
             await mount.settle()
             let root = mount.window.contentView ?? NSView()
@@ -103,6 +104,22 @@ struct QuickEntryWordSpacingTests {
             #expect(
                 title.maxX <= firstIcon.minX + 0.5,
                 "title ends at \(title.maxX) pt, first icon starts at \(firstIcon.minX) pt")
+        }
+
+        /// Mac search lives in the window toolbar: the manşet row shows no magnifier, and the
+        /// same button outside a manşet row (the toolbar) is still drawn.
+        @Test func headerRowDrawsNoSearchButTheBareButtonStillDraws() async {
+            let header = HostedLayout.Mount(SearchSlotProbe(inHeader: true), size: CGSize(width: 640, height: 80))
+            defer { header.close() }
+            await header.settle()
+            let inHeader = Self.pointerTargets(in: header.window.contentView ?? NSView())
+            #expect(inHeader.count == 1, "manşet targets \(inHeader): only the screen's own icon")
+
+            let bare = HostedLayout.Mount(SearchSlotProbe(inHeader: false), size: CGSize(width: 640, height: 80))
+            defer { bare.close() }
+            await bare.settle()
+            let outside = Self.pointerTargets(in: bare.window.contentView ?? NSView())
+            #expect(outside.count == 2, "targets outside a manşet \(outside): the icon and search")
         }
 
         private static func modeWordGap(in mount: HostedLayout.Mount) throws -> CGFloat {
@@ -201,25 +218,51 @@ struct QuickEntryWordSpacingTests {
                 InkHeaderMenu("Filtre", systemImage: "line.3.horizontal.decrease") {
                     Button("Hiçbiri") {}
                 }
-                SearchButton()
+                // A bare system button, styled by the slot alone (what search is on iPhone).
+                Button("Yenile", systemImage: "arrow.clockwise") {}
+                    .labelStyle(.iconOnly)
             }
             .environment(\.locale, Locale(identifier: "tr_TR"))
             .frame(width: 640, alignment: .leading)
         }
     }
 
-    /// Görevler / Hedefler in the 200 pt list column: page margin, then two icons.
+    /// Görevler / Hedefler in the narrowest list column: page margin, then two icons.
     private struct NarrowHeaderProbe: View {
         var body: some View {
             InkPageHeader(verbatim: "Görevler") {
+                InkHeaderAction("Yeni hedef", systemImage: "plus", role: .primary) {}
                 InkHeaderMenu("Filtre", systemImage: "line.3.horizontal.decrease") {
                     Button("Hiçbiri") {}
                 }
-                SearchButton()
             }
             .padding(.horizontal, InkSpacing.margin)
             .environment(\.locale, Locale(identifier: "tr_TR"))
-            .frame(width: 200, alignment: .leading)
+            .frame(width: InkSpacing.macListMinWidth, alignment: .leading)
+        }
+    }
+
+    /// One screen icon and search, inside a manşet row or loose (as a toolbar holds it).
+    private struct SearchSlotProbe: View {
+        var inHeader: Bool
+
+        var body: some View {
+            Group {
+                if inHeader {
+                    InkPageHeader(verbatim: "Görevler") {
+                        InkHeaderAction("Pano seçenekleri", systemImage: "slider.horizontal.3") {}
+                        SearchButton()
+                    }
+                } else {
+                    HStack {
+                        InkHeaderAction("Pano seçenekleri", systemImage: "slider.horizontal.3") {}
+                        SearchButton()
+                    }
+                }
+            }
+            .environment(\.openSearch, {})
+            .environment(\.locale, Locale(identifier: "tr_TR"))
+            .frame(width: 640, alignment: .leading)
         }
     }
 #endif

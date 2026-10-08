@@ -3597,6 +3597,22 @@
         }
       }
     },
+    "Görünüm" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "View"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Görünüm"
+          }
+        }
+      }
+    },
     "Görüşülmeyenler eşiği" : {
       "localizations" : {
         "en" : {

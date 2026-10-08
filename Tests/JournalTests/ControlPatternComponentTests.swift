@@ -266,6 +266,44 @@ import Testing
         #expect(modifier.contains(".inkToggle()"), "sheet content inherits the accent tint")
     }
 
+    @Test func tabPrefixesAreUsedAcrossScreens() throws {
+        let tasks = try Self.read("App/Screens/Tasks/TasksViewSelector.swift")
+        #expect(tasks.contains("accessibilityLabelPrefix: String(localized: \"Görünüm\")"))
+
+        let goals = try Self.read("App/Screens/Goals/GoalFieldEditor.swift")
+        #expect(goals.contains("accessibilityLabelPrefix: field.title"))
+
+        let summaries = try Self.read("App/Screens/Summaries/SummariesView.swift")
+        #expect(summaries.contains("accessibilityLabelPrefix: String(localized: \"Dönem\")"))
+
+        let entities = try Self.read("App/Screens/Entities/EntityTypePicker.swift")
+        #expect(entities.contains("accessibilityLabelPrefix: String(localized: \"Tür\")"))
+    }
+
+    @Test func todayCarriedOverDisclosureUsesMarginRow() throws {
+        let source = try Self.read("App/Screens/Today/DayTasksView.swift")
+        let section = try Self.section(
+            of: source, startingAt: "case .carriedOverDisclosure(let text):",
+            until: "case .completedDisclosure(")
+        #expect(section.contains("MarginRow(kind: .vault)"))
+        #expect(!section.contains("countPart"), "localized string must not be split")
+        #expect(section.contains("minHeight: TapTarget.minimumLength"), "44 pt floor")
+        #expect(section.contains(".contentShape(Rectangle())"))
+        #expect(section.contains(".accessibilityLabel(text)"))
+    }
+
+    @Test func sectionHeaderSupportsDisclosureIndicator() throws {
+        let header = try Self.read("App/Design/Components/SectionHeader.swift")
+        #expect(header.contains("var isExpanded: Bool? = nil"))
+        #expect(header.contains("chevron.down"))
+        #expect(header.contains("chevron.right"))
+
+        let unseen = try Self.read("App/Screens/Entities/UnseenPeopleSection.swift")
+        #expect(unseen.contains("isExpanded: expanded"))
+        #expect(unseen.contains("Rectangle()"))
+        #expect(unseen.contains("Color.ink.rule"))
+    }
+
     // MARK: - Support
 
     /// Text from `marker` to the next top-level declaration (or `until`).

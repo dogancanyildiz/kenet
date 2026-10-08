@@ -23,9 +23,9 @@ struct EntityTypePicker: View {
                     items: choices.map {
                         InkTabItem(verbatim: $0.plural, value: $0.id, identifier: "tab.entities." + $0.id)
                     },
-                    identifier: "tabs.entities.kind"
+                    identifier: "tabs.entities.kind",
+                    accessibilityLabelPrefix: String(localized: "Tür")
                 )
-                .accessibilityLabel("Varlık türü")
             } else {
                 InkLabeledMenu(
                     "Tür", selection: $selection,

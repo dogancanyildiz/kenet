@@ -14,7 +14,7 @@
         @Test func columnsLayoutUsesTheColumnWidthsAndHidesTheToolbarTitle() async throws {
             let shell = try await Shell()
             defer { shell.close() }
-            #expect(shell.window.title == "Bugün", "the window is named after the selected row")
+            #expect(shell.window.title == String(localized: "Bugün"), "the window is named after the selected row")
             #expect(shell.window.titleVisibility == .hidden, "the toolbar repeats no title")
             let widths = try MacSplitMeasure.columns(in: shell.mount)
             try await MacSplitMeasure.expectSidebar(widths[0], isIdeal: 200, window: 1280)
@@ -48,12 +48,15 @@
                 seen[shell.window.title] = (shell.paneCounts.max() ?? 0, shell.searchItems)
             }
             #expect(
-                Array(titles.prefix(4)) == ["Günlük", "Görevler", "Kanban", "Zaman çizelgesi"],
+                Array(titles.prefix(4)) == [
+                    String(localized: "Günlük"), String(localized: "Görevler"), "Kanban",
+                    String(localized: "Zaman çizelgesi"),
+                ],
                 "walked: \(titles)")
             #expect(titles.contains("Özetler") && titles.contains("Graph"), "walked: \(titles)")
-            #expect(seen["Görevler"]?.panes == 3)
+            #expect(seen[String(localized: "Görevler")]?.panes == 3)
             #expect(seen["Kanban"]?.panes == 2, "the board takes the full width")
-            #expect(seen["Zaman çizelgesi"]?.panes == 2)
+            #expect(seen[String(localized: "Zaman çizelgesi")]?.panes == 2)
             #expect(seen["Özetler"]?.panes == 2)
             for (title, state) in seen {
                 #expect(state.search == 1, "\(title): \(state.search) toolbar search items")
@@ -78,7 +81,7 @@
             await shell.context.store.refresh()
             await shell.mount.settle(rounds: 16)
             #expect(!shell.context.store.content.projects.contains("altyapi"))
-            #expect(shell.window.title == "Görevler", "window: \(shell.window.title)")
+            #expect(shell.window.title == String(localized: "Görevler"), "window: \(shell.window.title)")
         }
 
         @MainActor

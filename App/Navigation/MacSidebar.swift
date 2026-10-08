@@ -161,6 +161,10 @@
                 }
             }
             .listStyle(.sidebar)
+            // A legacy scroller (a mouse, with scroll bars set to automatic) reserves its
+            // width, so the row background stops short of the trailing edge. The indicator
+            // is not drawn; the list still scrolls with the wheel, the trackpad and the arrow keys.
+            .scrollIndicators(.never, axes: .vertical)
             .focused($isFocused)
             .macSidebarColumn()
             .task {

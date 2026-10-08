@@ -498,4 +498,141 @@
             return editor.delegate === field
         }
     }
+
+    /// The selected row's fill stays 10 pt from both edges when a legacy scroller would reserve
+    /// a gutter. The test forces that scroller on the hosted list; the process itself keeps the
+    /// overlay style (`-AppleShowScrollBars WhenScrolling`).
+    @MainActor @Suite(.timeLimit(.minutes(1)))
+    struct MacSidebarLegacyScrollerTests {
+        private let watchdog = HostedTestWatchdog()
+
+        private struct Sidebar: View {
+            @State private var selection: MacSidebarEntry? = .section(.tasks)
+
+            var body: some View {
+                MacSidebarList(
+                    entries: MacSidebar.entries(projects: ["altyapi", "mobil"]),
+                    selection: $selection
+                )
+                .environment(\.appearsActive, true)
+            }
+        }
+
+        @Test func selectedFillStaysInsetEquallyWhenContentOverflowsUnderALegacyScroller() async throws {
+            let width: CGFloat = 208
+            let height: CGFloat = 220
+            let mount = HostedLayout.Mount(Sidebar(), size: CGSize(width: width, height: height))
+            defer { mount.close() }
+            mount.window.appearance = NSAppearance(named: .aqua)
+            mount.window.contentView?.appearance = NSAppearance(named: .aqua)
+            await mount.settle(rounds: 12)
+
+            let scroll = try #require(
+                mount.views(NSScrollView.self).first { view in
+                    let document = view.documentView?.frame.height ?? 0
+                    return document > view.contentView.bounds.height + 8
+                }, "the sidebar does not overflow, so a legacy scroller would not take space")
+            scroll.scrollerStyle = .legacy
+            scroll.layoutSubtreeIfNeeded()
+            #expect(scroll.scrollerStyle == .legacy, "the measurement is not the legacy scroller")
+
+            let rep = try Self.bitmap(of: scroll)
+            let gaps = try #require(
+                Self.fillGaps(in: rep, accent: Self.accent),
+                "no selection fill in \(rep.pixelsWide)x\(rep.pixelsHigh)")
+            let inset = Int(MacSidebarChrome.fillInset.rounded())
+            #expect(
+                abs(gaps.left - gaps.right) <= 1,
+                "legacy scroller insets \(gaps.left) pt leading and \(gaps.right) pt trailing")
+            #expect(abs(gaps.left - inset) <= 1, "leading inset \(gaps.left) pt")
+            #expect(abs(gaps.right - inset) <= 1, "trailing inset \(gaps.right) pt")
+
+            let origin = scroll.contentView.bounds.origin.y
+            let event = try #require(Self.scrollWheel(down: true))
+            scroll.scrollWheel(with: event)
+            let moved = abs(scroll.contentView.bounds.origin.y - origin)
+            #expect(moved > 1, "wheel scroll moved the sidebar \(moved) pt")
+            #expect(
+                (scroll.documentView?.frame.height ?? 0) > scroll.contentView.bounds.height + 8,
+                "scrolling hid rows instead of moving them")
+        }
+
+        private struct Sample {
+            var r: CGFloat
+            var g: CGFloat
+            var b: CGFloat
+
+            func near(_ other: Sample, tolerance: CGFloat = 0.22) -> Bool {
+                abs(r - other.r) <= tolerance && abs(g - other.g) <= tolerance && abs(b - other.b) <= tolerance
+            }
+        }
+
+        /// Light accent (`#7A2C6E`); the hosted window is pinned to aqua.
+        private static var accent: Sample {
+            let hex = InkPalette.Token.accent.variant.hex(for: .light)
+            return Sample(
+                r: CGFloat((hex >> 16) & 0xFF) / 255,
+                g: CGFloat((hex >> 8) & 0xFF) / 255,
+                b: CGFloat(hex & 0xFF) / 255)
+        }
+
+        private struct Gaps {
+            var left: Int
+            var right: Int
+        }
+
+        /// Widest horizontal run of the fill. Icons are accent-coloured too, and much narrower
+        /// than the selected row.
+        private static func fillGaps(in rep: NSBitmapImageRep, accent: Sample) -> Gaps? {
+            let width = rep.pixelsWide
+            var bestLeft = 0
+            var bestRight = 0
+            var bestSpan = 0
+            for y in 0..<rep.pixelsHigh {
+                var minX = width
+                var maxX = -1
+                for x in 0..<width {
+                    guard let color = sample(rep, x: x, y: y), color.near(accent) else { continue }
+                    minX = min(minX, x)
+                    maxX = max(maxX, x)
+                }
+                let span = maxX - minX
+                if span > bestSpan {
+                    bestSpan = span
+                    bestLeft = minX
+                    bestRight = width - 1 - maxX
+                }
+            }
+            guard bestSpan > width / 2 else { return nil }
+            return Gaps(left: bestLeft, right: bestRight)
+        }
+
+        private static func bitmap(of view: NSView) throws -> NSBitmapImageRep {
+            let width = max(1, Int(view.bounds.width.rounded()))
+            let height = max(1, Int(view.bounds.height.rounded()))
+            let rep = try #require(
+                NSBitmapImageRep(
+                    bitmapDataPlanes: nil, pixelsWide: width, pixelsHigh: height, bitsPerSample: 8,
+                    samplesPerPixel: 4, hasAlpha: true, isPlanar: false, colorSpaceName: .deviceRGB,
+                    bytesPerRow: 0, bitsPerPixel: 0))
+            rep.size = NSSize(width: width, height: height)
+            view.cacheDisplay(in: view.bounds, to: rep)
+            return rep
+        }
+
+        private static func sample(_ rep: NSBitmapImageRep, x: Int, y: Int) -> Sample? {
+            guard let color = rep.colorAt(x: x, y: y)?.usingColorSpace(.sRGB) else { return nil }
+            return Sample(r: color.redComponent, g: color.greenComponent, b: color.blueComponent)
+        }
+
+        private static func scrollWheel(down: Bool) -> NSEvent? {
+            let delta: Int32 = down ? -80 : 80
+            guard
+                let cg = CGEvent(
+                    scrollWheelEvent2Source: nil, units: .pixel, wheelCount: 1, wheel1: delta, wheel2: 0,
+                    wheel3: 0)
+            else { return nil }
+            return NSEvent(cgEvent: cg)
+        }
+    }
 #endif

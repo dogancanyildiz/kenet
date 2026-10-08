@@ -48,12 +48,11 @@ struct GraphControls: View {
                     Image(systemName: "minus")
                         .font(.ink.meta)
                         .foregroundStyle(filter.minimumWeight > 1 ? Color.ink.accent : Color.ink.control)
-                        .frame(width: 20, height: 20)
+                        .frame(width: 28, height: 28)
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
                 .disabled(filter.minimumWeight <= 1)
-                .accessibilityLabel("Azalt")
 
                 Button {
                     if filter.minimumWeight < max(maximumWeight, filter.minimumWeight) {
@@ -66,15 +65,29 @@ struct GraphControls: View {
                             filter.minimumWeight < max(maximumWeight, filter.minimumWeight)
                                 ? Color.ink.accent : Color.ink.control
                         )
-                        .frame(width: 20, height: 20)
+                        .frame(width: 28, height: 28)
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
                 .disabled(filter.minimumWeight >= max(maximumWeight, filter.minimumWeight))
-                .accessibilityLabel("Artır")
             }
-            .accessibilityElement(children: .contain)
+            .accessibilityElement(children: .ignore)
             .accessibilityLabel(Text("En az \(filter.minimumWeight) ortak gün"))
+            .accessibilityValue(Text("\(filter.minimumWeight)"))
+            .accessibilityAdjustableAction { direction in
+                switch direction {
+                case .increment:
+                    if filter.minimumWeight < max(maximumWeight, filter.minimumWeight) {
+                        filter.minimumWeight += 1
+                    }
+                case .decrement:
+                    if filter.minimumWeight > 1 {
+                        filter.minimumWeight -= 1
+                    }
+                @unknown default:
+                    break
+                }
+            }
         #else
             Stepper(
                 value: $filter.minimumWeight,

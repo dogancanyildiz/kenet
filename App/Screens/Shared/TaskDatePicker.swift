@@ -30,11 +30,15 @@ struct TaskDatePicker: View {
 
     private var content: some View {
         VStack(alignment: .leading, spacing: 12) {
-            if isOnPage {
-                picker.labelsHidden()
-            } else {
+            #if os(macOS)
                 picker
-            }
+            #else
+                if isOnPage {
+                    picker.labelsHidden()
+                } else {
+                    picker
+                }
+            #endif
             HStack {
                 Button("Tarihi kaldır") { commit(nil) }
                     .disabled(current == nil)
@@ -52,9 +56,10 @@ struct TaskDatePicker: View {
         }
     }
 
+    @ViewBuilder
     private var picker: some View {
         #if os(macOS)
-            TaskDateMacPicker(selected: $selected)
+            let macPicker = TaskDateMacPicker(selected: $selected)
                 .frame(width: 140, height: 24)
                 .padding(.horizontal, 10)
                 .padding(.vertical, 6)
@@ -66,6 +71,17 @@ struct TaskDatePicker: View {
                     RoundedRectangle(cornerRadius: InkSize.kanbanCorner, style: .continuous)
                         .strokeBorder(Color.ink.control, lineWidth: InkStroke.control)
                 )
+            if isOnPage {
+                macPicker
+            } else {
+                HStack {
+                    Text("Görev tarihi")
+                        .font(.ink.byline)
+                        .foregroundStyle(Color.ink.text)
+                    Spacer()
+                    macPicker
+                }
+            }
         #else
             DatePicker("Görev tarihi", selection: $selected, displayedComponents: .date)
                 .environment(\.calendar, Calendar(identifier: .gregorian))
@@ -76,7 +92,7 @@ struct TaskDatePicker: View {
 #if os(macOS)
     import AppKit
 
-    private struct TaskDateMacPicker: NSViewRepresentable {
+    struct TaskDateMacPicker: NSViewRepresentable {
         @Binding var selected: Date
 
         func makeCoordinator() -> Coordinator {
@@ -100,6 +116,7 @@ struct TaskDatePicker: View {
         }
 
         func updateNSView(_ nsView: NSDatePicker, context: Context) {
+            context.coordinator.parent = self
             nsView.dateValue = selected
             nsView.textColor = NSColor(Color.ink.text)
         }

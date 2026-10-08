@@ -1,13 +1,13 @@
 #if os(macOS)
     import SwiftUI
 
-    enum MacSettingsTab: String, Hashable, CaseIterable {
-        case quickEntry = "Hızlı giriş"
-        case privacy = "Gizlilik"
-        case notifications = "Bildirimler"
-        case calendarAndLocation = "Takvim ve Konum"
-        case vault = "Kasa"
-        case diagnostics = "Tanılama"
+    enum MacSettingsTab: Hashable {
+        case quickEntry
+        case privacy
+        case notifications
+        case calendarAndLocation
+        case vault
+        case diagnostics
     }
 
     /// Mac Settings scene: five Settings tabs plus quick-entry shortcut.
@@ -40,11 +40,32 @@
                     .tabItem { Label("Tanılama", systemImage: "wrench.and.screwdriver") }
                     .tag(MacSettingsTab.diagnostics)
             }
+            .toolbarBackground(Color.ink.paper, for: .windowToolbar)
+            .toolbarBackground(.visible, for: .windowToolbar)
+            .background(SettingsWindowConfigurator())
             .inkToggle()
             .inkPage()
             .frame(
                 minWidth: InkSpacing.macSettingsMinWidth,
                 minHeight: InkSpacing.macSettingsMinHeight)
+        }
+    }
+
+    private struct SettingsWindowConfigurator: NSViewRepresentable {
+        func makeNSView(context: Context) -> ConfigView { ConfigView() }
+        func updateNSView(_ view: ConfigView, context: Context) { view.apply() }
+
+        final class ConfigView: NSView {
+            override func viewDidMoveToWindow() {
+                super.viewDidMoveToWindow()
+                apply()
+            }
+
+            func apply() {
+                guard let window else { return }
+                window.backgroundColor = NSColor(Color.ink.paper)
+                window.titlebarAppearsTransparent = true
+            }
         }
     }
 #endif

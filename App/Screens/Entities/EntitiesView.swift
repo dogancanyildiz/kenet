@@ -7,15 +7,18 @@ struct EntitiesView: View {
     @State private var order: EntityOrdering
     @State private var search: String
 
+    private let initialUnseenExpanded: Bool
+
     /// The initial values exist for previews and snapshots; the app starts on people, by name.
     init(
         store: IndexStore, initialKind: String = "person", initialOrder: EntityOrdering = .name,
-        initialSearch: String = ""
+        initialSearch: String = "", initialUnseenExpanded: Bool = false
     ) {
         self.store = store
         _kind = State(initialValue: initialKind)
         _order = State(initialValue: initialOrder)
         _search = State(initialValue: initialSearch)
+        self.initialUnseenExpanded = initialUnseenExpanded
     }
 
     private var entities: [EntitySummary] {
@@ -46,7 +49,8 @@ struct EntitiesView: View {
             EntityFilterField(search: $search)
                 .inkListRow()
             if kind == "person" {
-                UnseenPeopleSection(store: store, people: entities)
+                UnseenPeopleSection(
+                    store: store, people: entities, initiallyExpanded: initialUnseenExpanded)
             }
             ForEach(entities) { entity in
                 NavigationLink(value: entity) { EntityRow(entity: entity) }

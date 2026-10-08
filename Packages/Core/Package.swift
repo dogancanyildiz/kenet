@@ -16,11 +16,14 @@ let package = Package(
         .library(name: "DateParsing", targets: ["DateParsing"]),
         .library(name: "GoalTracking", targets: ["GoalTracking"]),
         .library(name: "Summaries", targets: ["Summaries"]),
+        .library(name: "ForceLayout", targets: ["ForceLayout"]),
     ],
     dependencies: [
         .package(url: "https://github.com/groue/GRDB.swift.git", from: "7.0.0")
     ],
     targets: [
+        .target(name: "ForceLayout"),
+        .testTarget(name: "ForceLayoutTests", dependencies: ["ForceLayout"]),
         .target(name: "VaultStore", dependencies: ["VaultFormat", "VaultIndex", "GoalTracking"]),
         .testTarget(
             name: "VaultStoreTests",

@@ -13,6 +13,8 @@
     enum JournalSheetSnapshotSubject: String, CaseIterable, Sendable {
         /// Toplu kaydeden: "Vazgeç / Kaydet".
         case journalEditor
+        /// Olay metni düzenleme (paylaşılan tek satır iskelet + anma şeridi).
+        case eventEditor
         /// Her seçim anında yazar: yalnız "Kapat".
         case taskDate
         /// Sayı hedefi: çukur zeminli miktar alanı, "Vazgeç / Kaydet".
@@ -118,7 +120,7 @@
         private static func clock(for subject: JournalSheetSnapshotSubject) -> Date {
             switch subject {
             case .goalValue, .goalField: goalsSnapshotNow
-            case .journalEditor, .taskDate: snapshotNow
+            case .journalEditor, .eventEditor, .taskDate: snapshotNow
             }
         }
 
@@ -128,6 +130,11 @@
             switch subject {
             case .journalEditor:
                 return AnyView(JournalView(store: store, date: snapshotDay, focusesOnLoad: false))
+            case .eventEditor:
+                let row = try #require(store.content.day(on: snapshotDay).events.first)
+                let model = EventEditorModel(store: store, day: snapshotDay, row: row)
+                await model.load()
+                return AnyView(EventTextEditor(model: model))
             case .taskDate:
                 // A dated task: the picker otherwise starts from the wall clock.
                 let row = try #require(

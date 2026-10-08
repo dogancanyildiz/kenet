@@ -192,9 +192,9 @@
                 case .summaries:
                     AnyView(SummariesView(store: store, today: { snapshotDay }))
                 case .graph:
-                    AnyView(GraphView(store: store))
+                    AnyView(GraphView(store: store, liveMotion: false))
                 case .graphSelected:
-                    AnyView(GraphView(store: store, focus: "people/Ece Yalın.md"))
+                    AnyView(GraphView(store: store, focus: "people/Ece Yalın.md", liveMotion: false))
                 case .map:
                     AnyView(PlacesMapView(store: store))
                 case .goalDetail:

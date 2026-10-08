@@ -15,11 +15,10 @@
             defer { shell.close() }
             #expect(shell.window.title == "Bugün", "the window is named after the selected row")
             #expect(shell.window.titleVisibility == .hidden, "the toolbar repeats no title")
-            let panes = try #require(shell.panes(count: 3), "three columns: \(shell.paneCounts)")
-            // The sidebar floats over the leading edge of the list pane.
-            #expect(abs(panes[0].width - 200) <= 2, "sidebar \(panes[0].width) pt")
-            #expect(abs((panes[1].maxX - panes[0].maxX) - 320) <= 2, "list \(panes[1].maxX - panes[0].maxX) pt")
-            #expect(panes[2].width >= InkSpacing.macPageWidth, "detail \(panes[2].width) pt")
+            let widths = try MacSplitMeasure.columns(in: shell.mount)
+            try await MacSplitMeasure.expectSidebar(widths[0], isIdeal: 200, window: 1280)
+            #expect(abs(widths[1] - 320) <= 2, "list \(widths[1]) pt")
+            #expect(widths[2] >= InkSpacing.macPageWidth, "detail \(widths[2]) pt")
             #expect(shell.searchItems == 1, "toolbar: \(shell.toolbarLabels)")
         }
 
@@ -114,11 +113,6 @@
                 mount.views(NSTableView.self).first {
                     $0.convert($0.bounds, to: nil).width <= InkSpacing.macSidebarMaxWidth + 1
                 }
-            }
-
-            func panes(count: Int) -> [CGRect]? {
-                mount.views(NSSplitView.self).first { $0.arrangedSubviews.count == count }?
-                    .arrangedSubviews.map(\.frame)
             }
 
             func pressDown() async throws {

@@ -90,6 +90,7 @@
         }
     }
 
+    @MainActor
     enum MacSidebarFocus {
         /// Nothing holds the keyboard focus: no first responder, or the window itself. Reading
         /// the first responder is a query; SwiftUI has no way to ask "is focus anywhere else".
@@ -100,7 +101,7 @@
 
         /// The selection changed because of a key press (an arrow key), not a click. After a
         /// click the pointer is on its way to the page, so focus is not pulled back.
-        @MainActor static var selectionCameFromKeyboard: Bool { NSApp.currentEvent?.type == .keyDown }
+        static var selectionCameFromKeyboard: Bool { NSApp.currentEvent?.type == .keyDown }
     }
 
     /// Colors of a sidebar row (`docs/design.md`, rule 12): the selected row is filled with the
@@ -137,7 +138,7 @@
         var restoresFocus: Binding<Bool> = .constant(false)
         /// False once focus has gone somewhere else (the user clicked into the page): then the
         /// sidebar leaves it there.
-        var focusIsFree: () -> Bool = { MacSidebarFocus.isUnowned(in: NSApp.keyWindow) }
+        var focusIsFree: @MainActor () -> Bool = { MacSidebarFocus.isUnowned(in: NSApp.keyWindow) }
         @Environment(\.appearsActive) private var appearsActive
         @FocusState private var isFocused: Bool
 

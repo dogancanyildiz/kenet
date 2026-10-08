@@ -26,6 +26,8 @@ final class ScreenTourMacUITests: XCTestCase {
     // Typed text avoids "i": with a Turkish keyboard layout XCUITest drops it.
     private let typedName = "Baran"
     private let typedPlace = "Kaf"
+    // An event of the sample vault ("Ev'de kahvaltı"); its result opens the day page.
+    private let typedEvent = "kahv"
     private let pastDay = "27 Eyl"
     private let person = "Deniz Arıkan"
     private let place = "Liman Ofis"
@@ -387,7 +389,30 @@ final class ScreenTourMacUITests: XCTestCase {
             tour.type("Okuma", into: field)
             try tour.macRow(note, in: tour.app.sheets.firstMatch, scrolls: 0).click()
             tour.shot(prefix + "-not", settle: 1.5)
+            guard prefix == "13-arama" else { return }
+            // Inside the sheet the page's manşet magnifier leads back to the results.
+            try backToResults(expecting: note, shot: prefix + "-not-sonuclara-donus")
+            tour.erase("Okuma".count)
+            tour.type(typedName, into: field)
+            try tour.macRow(typedName, in: tour.app.sheets.firstMatch, scrolls: 0).click()
+            _ = try tour.macRequire(["Düzenle"], ids: ["button.entity.edit"], in: tour.app.sheets.firstMatch)
+            tour.shot(prefix + "-varlik", settle: 1.5)
+            try backToResults(expecting: typedName, shot: prefix + "-varlik-sonuclara-donus")
+            tour.erase(typedName.count)
+            tour.type(typedEvent, into: field)
+            try tour.macRow(typedEvent, in: tour.app.sheets.firstMatch, scrolls: 0).click()
+            try tour.waitFor(ids: ["screen.day"])
+            tour.shot(prefix + "-gun", settle: 1.5)
+            try backToResults(expecting: typedEvent, shot: prefix + "-gun-sonuclara-donus")
         }
+    }
+
+    @MainActor private func backToResults(expecting row: String, shot name: String) throws {
+        let sheet = tour.app.sheets.firstMatch
+        try tour.macClick(["Ara"], ids: ["button.search"], in: sheet)
+        _ = try tour.field(ids: ["field.search"], placeholders: ["Kişi, konum veya metin ara"])
+        _ = try tour.macRow(row, in: sheet, scrolls: 0)
+        tour.shot(name, settle: 1.0)
     }
 
     @MainActor private func openSettings() throws {

@@ -1661,6 +1661,22 @@
         }
       }
     },
+    "Bilinmeyen anma: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unknown mention: %@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bilinmeyen anma: %@"
+          }
+        }
+      }
+    },
     "Bir görev seç" : {
       "localizations" : {
         "en" : {
@@ -3373,6 +3389,22 @@
         }
       }
     },
+    "Geri" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Back"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geri"
+          }
+        }
+      }
+    },
     "Git" : {
       "localizations" : {
         "en" : {
@@ -3625,6 +3657,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Görevler"
+          }
+        }
+      }
+    },
+    "Görünüm" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "View"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Görünüm"
           }
         }
       }

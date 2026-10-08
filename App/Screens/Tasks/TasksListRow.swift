@@ -3,6 +3,8 @@ import VaultFormat
 
 /// Interactive task row built from Mürekkep primitives (``TaskBox`` + ``MarginRow`` + linked text).
 /// Keeps DayTaskView menus and editors; visual language matches ``InkTaskRow``.
+/// iPhone: a touch on the row completes a task without links. Mac: the row belongs to the
+/// list selection, so only the box completes.
 struct TasksListRow: View {
     let store: IndexStore
     let row: TaskRow
@@ -57,18 +59,24 @@ struct TasksListRow: View {
             metaRow
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .contentShape(Rectangle())
-        .onTapGesture {
-            if completion.canToggleCompletion, !row.text.spans.contains(where: { $0.target != nil }) {
-                complete()
+        #if !os(macOS)
+            .contentShape(Rectangle())
+            .onTapGesture {
+                if completion.canToggleCompletion, !row.text.spans.contains(where: { $0.target != nil }) {
+                    complete()
+                }
             }
-        }
+        #endif
         .accessibilityAction(named: Text(LocalizedStringKey(completion.boxAccessibilityLabelKey))) {
             if completion.canToggleCompletion, !row.text.spans.contains(where: { $0.target != nil }) {
                 complete()
             }
         }
         .contextMenu { editMenu }
+        #if os(macOS)
+            // The list column draws the selection; the system focus ring would double it.
+            .focusEffectDisabled()
+        #endif
         .destructiveConfirmationDialog("Görevi sil?", confirmation: $deleteConfirmation) { _ in
             edit { await $0.delete() }
         }

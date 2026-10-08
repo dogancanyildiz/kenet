@@ -12,6 +12,7 @@
     /// "Tür" menüsü) ve varlık sheet'leri (düzenleme, ad değiştirme, çözülmemiş bağlantı).
     enum EntitiesSnapshotCase: String, CaseIterable, Sendable {
         case peopleLight, peopleDark, peopleAX3, peopleContrast
+        case peopleUnseenExpanded
         case placesLight, placesDark
         case filteredLight, filteredDark
         case customTypesLight, customTypesDark, customTypesAX3
@@ -21,12 +22,14 @@
         case unresolvedLight, unresolvedDark, unresolvedAX3
 
         enum Subject: Sendable {
-            case people, places, filtered, customTypes, editSheet, placeEditSheet, renameSheet, unresolved
+            case people, peopleUnseenExpanded, places, filtered, customTypes, editSheet, placeEditSheet,
+                renameSheet, unresolved
         }
 
         var subject: Subject {
             switch self {
             case .peopleLight, .peopleDark, .peopleAX3, .peopleContrast: .people
+            case .peopleUnseenExpanded: .peopleUnseenExpanded
             case .placesLight, .placesDark: .places
             case .filteredLight, .filteredDark: .filtered
             case .customTypesLight, .customTypesDark, .customTypesAX3: .customTypes
@@ -60,7 +63,7 @@
         /// The edit sheet is taller than a phone; the two short sheets keep a short canvas.
         var canvas: CGSize {
             switch subject {
-            case .people, .places, .filtered, .customTypes: snapshotCanvasSize
+            case .people, .peopleUnseenExpanded, .places, .filtered, .customTypes: snapshotCanvasSize
             case .editSheet:
                 dynamicType == .accessibility3
                     ? CGSize(width: 390, height: 1400) : CGSize(width: 390, height: 1000)
@@ -121,6 +124,8 @@
             switch subject {
             case .people, .customTypes:
                 NavigationStack { EntitiesView(store: store) }
+            case .peopleUnseenExpanded:
+                NavigationStack { EntitiesView(store: store, initialUnseenExpanded: true) }
             case .places:
                 NavigationStack { EntitiesView(store: store, initialKind: "place", initialOrder: .recent) }
             case .filtered:

@@ -7,20 +7,29 @@ import VaultStore
 final class JournalEditorModel {
     let store: IndexStore
     let day: CalendarDate
-    var text = ""
+    let composer: MentionComposer
     private(set) var originalText = ""
     private(set) var isLoaded = false
     private(set) var isSaving = false
     private(set) var errorText: String?
     private var root: URL?
 
+    var text: String {
+        get { composer.text }
+        set { composer.text = newValue }
+    }
+
     init(store: IndexStore, day: CalendarDate) {
         self.store = store
         self.day = day
+        self.composer = MentionComposer(store: store)
+        self.composer.resolvesExplicitAmbiguityOnly = true
     }
 
     var isDirty: Bool { !text.utf8.elementsEqual(originalText.utf8) }
-    var canSave: Bool { isLoaded && !isSaving && store.canAddEvent && store.vaultURL == root }
+    var canSave: Bool {
+        isLoaded && !isSaving && !composer.isCreating && store.canAddEvent && store.vaultURL == root
+    }
 
     func load() async {
         guard !isLoaded else { return }
@@ -42,8 +51,13 @@ final class JournalEditorModel {
         guard canSave else { return false }
         guard isDirty else {
             errorText = nil
+            composer.awaitingResolution = false
             return true
         }
+        // Explicit @ ambiguity/unknown on changed lines only; bare names stay plain.
+        composer.resolutionLines = JournalRecognition.changedLineIndices(in: text, from: originalText)
+        guard composer.beginResolution() else { return false }
+        composer.awaitingResolution = false
         let draft = text
         isSaving = true
         errorText = nil
@@ -57,7 +71,10 @@ final class JournalEditorModel {
                 await store.refresh()
                 throw VaultStoreError.staleTarget
             }
-            linked = try JournalRecognition.linkingChanges(in: draft, from: originalText, entities: store.knownEntities)
+            linked = try JournalRecognition.linkingChanges(
+                in: draft, from: originalText, entities: store.knownEntities,
+                context: composer.pins.map(\.entity), choices: composer.choices)
+            linked = composer.removingUnbound(from: linked)
             try await store.changeJournal(on: day, to: linked)
             await acceptSaved(draft: draft, linked: linked)
             return true

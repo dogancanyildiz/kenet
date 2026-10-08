@@ -2,19 +2,23 @@ import SwiftUI
 
 struct GraphView: View {
     let store: IndexStore
+    /// `false` shows the settled layout without animating it (image tests need a fixed picture).
+    let liveMotion: Bool
     @State private var model: GraphScreenModel
-    @State private var zoom = 1.0
-    @State private var pan = CGSize.zero
     @Environment(\.clockNow) private var clockNow
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    init(store: IndexStore, focus: String? = nil) {
+    init(store: IndexStore, focus: String? = nil, liveMotion: Bool = true) {
         self.store = store
+        self.liveMotion = liveMotion
         _model = State(initialValue: GraphScreenModel(store: store, focus: focus))
     }
 
     var body: some View {
         @Bindable var model = model
+        // Reduce Motion: the layout settles out of sight and appears in one go.
+        let live = liveMotion && !reduceMotion
         TimelineView(.periodic(from: .now, by: 60)) { _ in
             let today = LocalDay.today(at: clockNow())
             let canvasHeight: CGFloat = dynamicTypeSize.isAccessibilitySize ? 280 : 360
@@ -28,8 +32,11 @@ struct GraphView: View {
                         GraphControls(
                             maximumWeight: max(365, model.graph.edges.map(\.weight).max() ?? 1),
                             filter: $model.filter,
-                            zoom: $zoom,
-                            pan: $pan
+                            zoom: $model.zoom,
+                            // The center control writes a zero pan: frame the layout as it is now.
+                            pan: Binding(
+                                get: { model.pan },
+                                set: { if $0 == .zero { model.recenter() } else { model.pan = $0 } })
                         )
                         if model.isLoading {
                             InkProgress(kind: .indeterminate(label: "Yükleniyor…"))
@@ -42,12 +49,9 @@ struct GraphView: View {
                     .inkPageColumn()
 
                     if !(model.graph.nodes.isEmpty && !model.isLoading) {
-                        GraphCanvas(
-                            graph: model.graph, positions: model.positions, selected: $model.selected,
-                            zoom: $zoom, pan: $pan
-                        )
-                        .frame(height: canvasHeight)
-                        .frame(maxWidth: .infinity)
+                        GraphCanvas(model: model)
+                            .frame(height: canvasHeight)
+                            .frame(maxWidth: .infinity)
                     }
 
                     VStack(alignment: .leading, spacing: 0) {
@@ -83,14 +87,13 @@ struct GraphView: View {
             .inkPage()
             .task(
                 id: String(describing: model.filter) + today.description
-                    + String(describing: store.lastUpdated) + (store.vaultURL?.path ?? "")
+                    + String(describing: store.lastUpdated) + (store.vaultURL?.path ?? "") + String(live)
             ) {
-                await model.load(today: today)
+                await model.load(today: today, live: live)
             }
         }
         .inkPageNavigationTitle("Graph")
         .onChange(of: store.vaultURL) { model.reset() }
-        .onChange(of: model.selected) { pan = .zero }
     }
 
     private var legendRow: some View {
@@ -123,17 +126,40 @@ struct GraphView: View {
     }
 
     private var nodeMenu: some View {
-        Menu("Düğüm seç") {
-            ForEach(model.graph.nodes) { node in
-                Button {
-                    model.selected = node.id
-                } label: {
-                    Text(verbatim: node.name)
+        #if os(macOS)
+            Menu {
+                ForEach(model.graph.nodes) { node in
+                    Button {
+                        model.select(node.id, recenter: true)
+                    } label: {
+                        Text(verbatim: node.name)
+                    }
+                }
+            } label: {
+                HStack(spacing: 4) {
+                    Text("Düğüm seç")
+                    Image(systemName: "chevron.down")
+                        .font(.caption2)
                 }
             }
-        }
-        .font(.ink.meta)
-        .foregroundStyle(Color.ink.accent)
+            .menuStyle(.button)
+            .buttonStyle(.plain)
+            .menuIndicator(.hidden)
+            .font(.ink.meta)
+            .foregroundStyle(Color.ink.accent)
+        #else
+            Menu("Düğüm seç") {
+                ForEach(model.graph.nodes) { node in
+                    Button {
+                        model.select(node.id, recenter: true)
+                    } label: {
+                        Text(verbatim: node.name)
+                    }
+                }
+            }
+            .font(.ink.meta)
+            .foregroundStyle(Color.ink.accent)
+        #endif
     }
 
     private func legendMark(kind: GraphNode.Kind, title: LocalizedStringKey) -> some View {

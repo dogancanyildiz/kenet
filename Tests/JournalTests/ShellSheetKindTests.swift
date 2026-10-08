@@ -22,6 +22,13 @@ import VaultFormat
         let searchCall = try Self.call(in: search, startingAt: ".inkSheet(\"Ara\"")
         #expect(searchCall.contains("closeIdentifier: \"button.search.close\""))
         #expect(Self.kind(ofCall: searchCall) == .reading)
+        #expect(search.contains("inkSheetDismissAction"))
+
+        let note = try Self.read("App/Screens/Shared/SearchNoteView.swift")
+        let noteCall = try Self.call(in: note, startingAt: ".inkSheet(\n                verbatim:")
+        #expect(noteCall.contains("closeIdentifier: \"button.search.note.close\""))
+        #expect(Self.kind(ofCall: noteCall) == .reading)
+        #expect(note.contains("#if os(macOS)"), "Kapat on the note is Mac-only so iPhone stays unchanged")
 
         let linked = try Self.read("App/Screens/Shared/LinkedTextView.swift")
         #expect(Self.kind(ofCall: try Self.call(in: linked, startingAt: ".inkSheet(verbatim:")) == .reading)
@@ -38,6 +45,19 @@ import VaultFormat
         // "Vazgeç" is drawn disabled while saving instead of being ignored.
         #expect(call.contains("isCancelEnabled: !isSaving"))
         #expect(!source.contains("if !isSaving { dismiss() }"))
+        // Assist sits below the field so chips do not cover the typed line.
+        let field = try #require(source.range(of: "InkFilterField("))
+        let assist = try #require(source.range(of: "assist()"))
+        #expect(field.lowerBound < assist.lowerBound)
+    }
+
+    @Test func eventTextEditorUsesSharedSingleLineSkeleton() throws {
+        let source = try Self.read("App/Screens/Today/EventTextEditor.swift")
+        #expect(source.contains("SingleLineTextEditor("))
+        #expect(source.contains("MentionAssistStrip("))
+        // The clear button is back, as in the sibling task editor.
+        #expect(!source.contains("showsClearButton"))
+        #expect(!source.contains("InkSheetScaffold("))
     }
 
     @Test func entityTypeEditorCreatesANewTypeAndSavesAnExistingOne() throws {
@@ -155,6 +175,7 @@ import VaultFormat
         let text = try Self.read("App/Screens/Shared/SingleLineTextEditor.swift")
         #expect(text.contains("Text(placeholder)"))
         #expect(text.contains(".accessibilityHidden(true)"))
+        #expect(!text.contains("showsClearButton"))
     }
 
     @Test func geofenceTabsCarryTheGoalName() throws {

@@ -102,6 +102,85 @@
             )
         }
 
+        @Test func tasksListSelectedMacLight() async throws {
+            try await assertSelectedTaskList(named: "tasksListSelectedMacLight", appearance: .aqua)
+        }
+
+        @Test func tasksListSelectedMacDark() async throws {
+            try await assertSelectedTaskList(named: "tasksListSelectedMacDark", appearance: .darkAqua)
+        }
+
+        @Test func daysListSelectedMacLight() async throws {
+            let context = try TaskTestContext(sample: true)
+            defer { context.clean() }
+            await context.start()
+            let days = context.store.content.days
+            let id = try #require(days.first?.id)
+            try await assertMacView(
+                MacDayList(days: days, selection: .constant(id)),
+                named: "daysListSelectedMacLight",
+                store: context.store,
+                defaults: context.defaults.defaults,
+                size: CGSize(width: 360, height: 480),
+                inWindow: true
+            )
+        }
+
+        @Test func peopleListSelectedMacLight() async throws {
+            let context = try TaskTestContext(sample: true)
+            defer { context.clean() }
+            await context.start()
+            let entities = EntityListQuery.entities(
+                in: context.store.content, usage: context.store.entityUsage, kind: "person",
+                search: "", order: .name)
+            let id = try #require(entities.first?.id)
+            try await assertMacView(
+                MacEntityList(
+                    store: context.store, entities: entities, showsUnseen: true,
+                    selection: .constant(id)
+                )
+                .environment(IntentNavigation()),
+                named: "peopleListSelectedMacLight",
+                store: context.store,
+                defaults: context.defaults.defaults,
+                size: CGSize(width: 360, height: 640),
+                inWindow: true
+            )
+        }
+
+        @Test func goalsListSelectedMacLight() async throws {
+            let context = try TaskTestContext(sample: true)
+            defer { context.clean() }
+            await context.start()
+            let id = try #require(context.store.content.goals.first?.id)
+            try await assertMacView(
+                GoalsView(store: context.store, selection: .constant(id)),
+                named: "goalsListSelectedMacLight",
+                store: context.store,
+                defaults: context.defaults.defaults,
+                size: CGSize(width: 420, height: 640),
+                inWindow: true
+            )
+        }
+
+        private func assertSelectedTaskList(named name: String, appearance: NSAppearance.Name) async throws {
+            let context = try TaskTestContext(sample: true)
+            defer { context.clean() }
+            await context.start()
+            let day = CalendarDate("2026-09-20")!
+            let tasks = TasksModel(store: context.store, today: { day })
+            let id = try #require(tasks.agenda.flatMap(\.rows).first?.id)
+            try await assertMacView(
+                TasksView(store: context.store, selection: .constant(id), tasks: tasks),
+                named: name,
+                store: context.store,
+                defaults: context.defaults.defaults,
+                size: CGSize(width: 420, height: 640),
+                appearance: appearance,
+                inWindow: true
+            )
+        }
+
         /// Page top of the full-width timeline: manşet row with its three icons (group, filter,
         /// search), the tabs and the single "Ölçek" menu row. Framed to the top of the window.
         @Test func timelineTopMacLight() async throws {
@@ -126,7 +205,8 @@
             store: IndexStore,
             defaults: UserDefaults,
             size: CGSize,
-            appearance: NSAppearance.Name = .aqua
+            appearance: NSAppearance.Name = .aqua,
+            inWindow: Bool = false
         ) async throws {
             var calendar = Calendar(identifier: .gregorian)
             calendar.locale = Locale(identifier: "tr_TR")
@@ -161,6 +241,16 @@
             host.frame = NSRect(x: 0, y: 0, width: size.width, height: size.height)
             host.wantsLayer = true
             host.layer?.backgroundColor = NSColor(Color.ink.paper).cgColor
+            // Lists draw nothing until the hosting view is in a window. Kanban and the
+            // timeline already match references drawn without one, so only list snapshots opt in.
+            let window: NSWindow? =
+                inWindow
+                ? NSWindow(
+                    contentRect: NSRect(x: -20_000, y: -20_000, width: size.width, height: size.height),
+                    styleMask: [.borderless], backing: .buffered, defer: false)
+                : nil
+            window?.contentView = host
+            defer { window?.contentView = nil }
             for _ in 0..<40 {
                 await Task.yield()
                 try? await Task.sleep(for: .milliseconds(50))

@@ -126,7 +126,7 @@ Geri dönüş maliyeti: sayfa ailesinin üyeleri aynı belirteç rollerini, ayn�
 10. Dokunma hedefleri en az 44 pt'dir.
 11. İçerikte büyük ters renkli yüzey bulunmaz: altından geçtiği sistem camını açık ile koyu arasında çevirir.
 12. Mac'te kenar çubuğu simgeleri kullanıcının sistem vurgu rengini izler; marka rengi içerikte yaşar.
-13. Hareket sistem varsayılanlarıyla sınırlıdır ve Hareketi Azalt ayarına uyar.
+13. Hareket sistem varsayılanlarıyla sınırlıdır ve Hareketi Azalt ayarına uyar. Tek istisna Graph'tır: düğümler kuvvet benzetimiyle hareket eder (içerik hareketin kendisidir); Hareketi Azalt açıkken o da canlı oynamaz, düzen oturmuş hâliyle tek seferde gösterilir.
 
 ## Mürekkep'in kuralları
 
@@ -149,7 +149,7 @@ Ekim 2026 denetimi (84 gerçek ekran görüntüsü ve kod envanteri) aynı işin
    - Dört ve üstü seçenek: **menü.** Sola yaslı; solda ikincil renkte etiket ("Dönem", "Bölüm", "Grupla", "Ölçek"), sağında vurgu renginde seçili değer ve ok. Dokununca sistem menüsü açılır.
    - Sistem segmenti, onay kutucuğu dizisi, etiketsiz ya da ortalı menü ve gezinme çubuğuna konan seçici kullanılmaz.
 5. **Sırala ve filtrele.** Manşet satırında simgedir; dokununca menü açılır. Sayfada ayrı satır tutmaz. Varsayılan dışında bir seçim etkinse simge vurgu rengine döner.
-6. **Sheet.** Zemin kâğıttır; başlık serif manşettir; içerik sayfalarla aynı kalıptadır (bölüm başlığı, kâğıt zeminli satır, kart yok). Düzenleyen sheet'te solda "Vazgeç" (ikincil renk, düz yazı), sağda tek onay vardır: "Kaydet", yeni kayıt açan sheet'te "Oluştur" (vurgu rengi, yarı kalın düz yazı). Yalnız okunan sheet'te tek düğme vardır: sağda "Kapat". "Bitti" kullanılmaz. Eylemi taslak kaydetmek olmayan sheet'te (kasa hazırlığı gibi kasaya toplu yazan akışlar) çubukta yalnız "Vazgeç" durur; eylem kendi adıyla sayfada birincil düğmedir ve Return tuşuna bağlanmaz. Yazma sürerken "Vazgeç" devre dışı çizilir. Düğmeler düz yazıdır; dolu kapsül kullanılmaz.
+6. **Sheet.** Zemin kâğıttır; başlık serif manşettir; içerik sayfalarla aynı kalıptadır (bölüm başlığı, kâğıt zeminli satır, kart yok). Düzenleyen sheet'te solda "Vazgeç" (ikincil renk, düz yazı), sağda tek onay vardır: "Kaydet", yeni kayıt açan sheet'te "Oluştur" (vurgu rengi, yarı kalın düz yazı). Yalnız okunan sheet'te tek düğme vardır: sağda "Kapat". "Bitti" kullanılmaz. Eylemi taslak kaydetmek olmayan sheet'te (kasa hazırlığı gibi kasaya toplu yazan akışlar) çubukta yalnız "Vazgeç" durur; eylem kendi adıyla sayfada birincil düğmedir ve Return tuşuna bağlanmaz. Yazma sürerken "Vazgeç" devre dışı çizilir. Düğmeler düz yazıdır; dolu kapsül kullanılmaz. Mac'te sistem pencere başlığı çizilmez (tek serif manşet); araç çubuğu ve alt eylem çubuğu kâğıt zemindedir; "Vazgeç" solda, onay/"Kapat" sağda alt çubuktadır. Sheet gövdesi sıfır yükseklikte açılmaz (ortak ideal boyut).
 7. **Sistem denetimleri.** Açma kapama anahtarı vurgu rengindedir. Kâğıt üstünde beyaz ya da gri kutu bulunmaz: alan zemini çukur, liste satırı kâğıttır. Yüzey rengi yalnız belirteç tablosunda sayılan yerlerde kullanılır.
 
 Koruma: uygulama ekranlarında stil verilmemiş `Picker`, `.pickerStyle(.segmented)`, `.textFieldStyle(.roundedBorder)`, kök ekranda gezinme çubuğu araması ve ortak bileşen dışında kurulan sheet araç çubuğu kaynak denetimiyle yasaklanır. Her kök ekranın ve her sheet türünün ekran görüntüsü testi vardır.
@@ -162,7 +162,7 @@ Renkler (parantez içinde zemin üstündeki kontrast; KA: Kontrastı Artır):
 |---|---|---|---|---|---|
 | Zemin (kâğıt) | `#FAF8F3` | `#181614` | `#FAF8F3` | `#141210` | Sayfa, kaydırma alanı |
 | Yüzey | `#FFFFFF` | `#23201C` | `#FFFFFF` | `#1E1B18` | Sheet içi, popover, Mac kanban kartı |
-| Çukur | `#F1EDE4` | `#110F0E` | `#ECE7DC` | `#0C0B0A` | Isı haritasının boş hücresi, Mac'te hafta sonu |
+| Çukur | `#F1EDE4` | `#110F0E` | `#ECE7DC` | `#0C0B0A` | Isı haritasının boş hücresi, Mac'te hafta sonu, Mac liste sütununda seçili satır |
 | Süs çizgisi | `#E2DCCF` | `#302C27` | `#C4BBAB` | `#4C463E` | Bölüm çizgisi; bilgi taşımaz |
 | Metin | `#1E1B17` (16,16) | `#EEE9DF` (14,91) | `#0E0C0A` (18,39) | `#FFFDF8` (18,38) | İçerik, başlık |
 | İkincil metin | `#57514A` (7,38) | `#B5AD9F` (8,11) | `#403B35` (10,44) | `#D6CFC2` (12,07) | Meta, saat, yapılmış |
@@ -193,7 +193,7 @@ Yazı:
 | Değer ve saat | SF Pro, tabular rakam | 17 ve 15 | 13 |
 | Büyük rakam (hedef detayı, özet) | SF Pro Light, tabular rakam | 48 | 34 |
 
-Biçim: görev kutusu 22 pt kare (köşe 5 pt), hedef halkası 22 pt daire, artı 30 pt ve gönder 36 pt daire, hızlı giriş kapsüldür. Kenar boşluğu 16 pt, kenar sütunu 44 pt'dir. Mac'te sayfa en çok 680 pt genişliğinde ortalanır. İçerik opaktır; gölge, doku ve gradyan yoktur.
+Biçim: görev kutusu 22 pt kare (köşe 5 pt), hedef halkası 22 pt daire, artı 30 pt ve gönder 36 pt daire, hızlı giriş kapsüldür. Kenar boşluğu 16 pt, kenar sütunu 44 pt'dir. Mac liste seçiminin köşesi 6 pt; dolgu satırın kenarından yatay 4 pt, dikey 2 pt içeridedir. Mac'te sayfa en çok 680 pt genişliğinde ortalanır. İçerik opaktır; gölge, doku ve gradyan yoktur.
 
 ## Uygulama simgesi
 
@@ -218,7 +218,9 @@ Yukarıdan aşağı: manşet (tarih) ve künye satırı (olayla başlayıp "kald
 
 ## Bileşenler
 
-Manşet, bölüm başlığı, kenar sütunlu satır (görev, hedef, olay ve takvim için tek bileşen), görev kutusu, hedef halkası, bağlantılı metin, hızlı giriş kapsülü; bunlara ek olarak manşet satırı ve eylem simgeleri, sekme, etiketli menü, süzgeç alanı, sheet iskeleti (başlık ve iki düğme), etiket çipi, boş durum, ısı haritası hücresi, bilgi ve hata bandı, Mac kanban kartı. Bütün ekranlar bu parçalardan kurulur; görev satırı, kart ve tarih biçiminin bugünkü farklı varyantları tek parçaya iner.
+Manşet, bölüm başlığı, kenar sütunlu satır (görev, hedef, olay ve takvim için tek bileşen), görev kutusu, hedef halkası, bağlantılı metin, hızlı giriş kapsülü; bunlara ek olarak manşet satırı ve eylem simgeleri, sekme, etiketli menü, süzgeç alanı, sheet iskeleti (başlık ve iki düğme), etiket çipi, boş durum, ısı haritası hücresi, bilgi ve hata bandı, Mac kanban kartı, Mac liste sütunu seçimi. Bütün ekranlar bu parçalardan kurulur; görev satırı, kart ve tarih biçiminin bugünkü farklı varyantları tek parçaya iner.
+
+Mac liste sütunu seçimi (`InkListSelection`) bugün kodda şöyle çizilir; görünüm henüz onaylanmış bir kural değildir. Görevler, Günlük, Kişiler ve Hedefler sütunlarında ve Mac'teki arama sonuçlarında seçili satır çukur zeminle, satırın içinde yuvarlatılmış köşeyle ve solda 2 pt vurgu çizgisiyle görünür; iPhone satırı kâğıt kalır. Görev sütununda kutu tamamlar, metindeki bağlantı kendi sayfasını açar, satıra tıklamak ayrıntıyı seçer; bağlam menüsündeki silme onay diyaloğuna gider.
 
 ## Doğrulama
 

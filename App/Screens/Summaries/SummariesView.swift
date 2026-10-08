@@ -98,7 +98,8 @@ struct SummariesView: View {
                 items: [
                     InkTabItem("Hafta", value: SummaryPeriod.week, identifier: "tab.summaries.week"),
                     InkTabItem("Ay", value: SummaryPeriod.month, identifier: "tab.summaries.month"),
-                ], identifier: "tabs.summaries.period")
+                ], identifier: "tabs.summaries.period",
+                accessibilityLabelPrefix: String(localized: "Dönem"))
             HStack {
                 Button {
                     model.previous()
@@ -108,6 +109,9 @@ struct SummariesView: View {
                         .tapTarget()
                 }
                 .accessibilityLabel("Önceki dönem").disabled(!model.canGoPrevious)
+                #if os(macOS)
+                    .buttonStyle(.plain)
+                #endif
                 Spacer()
                 Text(LocalDay.instant(for: model.range.lowerBound), format: .dateTime.day().month().year())
                 Text(verbatim: "–")
@@ -121,6 +125,9 @@ struct SummariesView: View {
                         .tapTarget()
                 }
                 .accessibilityLabel("Sonraki dönem").disabled(!model.canGoNext)
+                #if os(macOS)
+                    .buttonStyle(.plain)
+                #endif
             }
             .font(.ink.byline)
             .foregroundStyle(Color.ink.text)

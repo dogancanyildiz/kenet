@@ -51,31 +51,3 @@ func waitForGate(_ gate: UpdateGate) async throws {
     }
     Issue.record("Expected index operation to suspend")
 }
-
-struct HomeEntry: Equatable {
-    let modified: Date?
-    let size: Int?
-}
-
-/// Reads metadata only; never creates, removes, or rewrites anything in the real home.
-func homeVaultState() throws -> [String: HomeEntry] {
-    let manager = FileManager.default
-    let roots = [
-        manager.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("Vault"),
-        manager.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0].appendingPathComponent(
-            "Journal/Indexes"),
-    ]
-    var state: [String: HomeEntry] = [:]
-    func visit(_ url: URL) throws {
-        guard manager.fileExists(atPath: url.path) else { return }
-        let values = try url.resourceValues(forKeys: [
-            .isDirectoryKey, .isSymbolicLinkKey, .contentModificationDateKey, .fileSizeKey,
-        ])
-        state[url.path] = HomeEntry(modified: values.contentModificationDate, size: values.fileSize)
-        if values.isDirectory == true && values.isSymbolicLink != true {
-            for child in try manager.contentsOfDirectory(at: url, includingPropertiesForKeys: nil) { try visit(child) }
-        }
-    }
-    for root in roots { try visit(root) }
-    return state
-}

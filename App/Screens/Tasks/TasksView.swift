@@ -54,8 +54,40 @@ struct TasksView: View {
                 model.clearFilters()
                 selection = nil
             }
+            #if os(macOS)
+                // Only the Mac detail column follows the selection; iPhone never sets one.
+                .onChange(of: model.viewState.listSection) { _, _ in
+                    selection = nil
+                }
+                .onChange(of: model.entityFilter) { _, _ in
+                    selection = nil
+                }
+                .onChange(of: model.projectFilter) { _, _ in
+                    selection = nil
+                }
+                .onChange(of: listedTaskIDs) { _, ids in
+                    selection = TaskListSelection.keeping(selection, listedIDs: ids)
+                }
+            #endif
         }
     }
+
+    #if os(macOS)
+        /// Rows on screen for the current section. The detail column clears when the selection
+        /// is no longer one of them (a completed task leaves Yaklaşan, a filter drops it).
+        private var listedTaskIDs: [String] {
+            switch model.viewState.listSection {
+            case .projects:
+                []
+            case .upcoming:
+                model.agenda.flatMap(\.rows).map(\.id)
+            case .undated:
+                model.undated.map(\.id)
+            case .completed:
+                model.completed.map(\.id)
+            }
+        }
+    #endif
 
     @ViewBuilder private var listContent: some View {
         List(selection: $selection) {
@@ -147,21 +179,14 @@ struct TasksView: View {
 
     private func rows(_ rows: [TaskRow]) -> some View {
         ForEach(rows) { row in
-            VStack(alignment: .leading, spacing: 4) {
-                TasksListRow(
-                    store: store, row: row, day: model.day,
-                    isOverdue: row.due.map { $0 < model.day } ?? false,
-                    isBusy: model.busy.contains(row.id), allowsReopening: true,
-                    footnote: footnote(for: row)
-                ) { Task { await model.toggle(row) } }
-                #if os(macOS)
-                    Button("Ayrıntıları göster", systemImage: "info.circle") { selection = row.id }
-                        .font(.ink.meta)
-                        .buttonStyle(InkTextButtonStyle())
-                #endif
-            }
+            TasksListRow(
+                store: store, row: row, day: model.day,
+                isOverdue: row.due.map { $0 < model.day } ?? false,
+                isBusy: model.busy.contains(row.id), allowsReopening: true,
+                footnote: footnote(for: row)
+            ) { Task { await model.toggle(row) } }
+            .inkListRow(columnSelected: selection == row.id)
             .tag(row.id)
-            .inkListRow()
             .alignmentGuide(.listRowSeparatorLeading) { _ in 0 }
         }
     }
@@ -193,5 +218,14 @@ struct TasksView: View {
         let calendar = Calendar(identifier: .gregorian)
         let instant = calendar.date(byAdding: .day, value: 1, to: LocalDay.instant(for: model.day))!
         return LocalDay.today(at: instant)
+    }
+}
+
+/// Detail-column selection. A section or filter change clears it outright; a list refresh
+/// keeps it only while the id is still on screen.
+enum TaskListSelection {
+    static func keeping(_ selection: String?, listedIDs: [String]) -> String? {
+        guard let selection, listedIDs.contains(selection) else { return nil }
+        return selection
     }
 }

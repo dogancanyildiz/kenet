@@ -10,28 +10,35 @@ struct SectionHeader: View {
     var counter: String? = nil
     /// Shows a spinner that does not shrink the hairline rule (overlay / trailing slot).
     var isLoading: Bool = false
+    /// Shows a disclosure chevron (pointing down when expanded, right when collapsed) aligned with the title.
+    var isExpanded: Bool? = nil
     @Environment(\.displayScale) private var displayScale
     @Environment(\.locale) private var locale
 
     /// Already-localized or verbatim title (callers that used `String(localized:)`).
-    init(title: String, count: Int? = nil, counter: String? = nil, isLoading: Bool = false) {
+    init(
+        title: String, count: Int? = nil, counter: String? = nil, isLoading: Bool = false,
+        isExpanded: Bool? = nil
+    ) {
         self.titleText = Text(verbatim: title)
         self.spokenTitle = title
         self.count = count
         self.counter = counter
         self.isLoading = isLoading
+        self.isExpanded = isExpanded
     }
 
     /// Catalog key resolved with the SwiftUI environment locale (snapshot-safe).
     init(
         _ titleKey: LocalizedStringKey, count: Int? = nil, counter: String? = nil,
-        isLoading: Bool = false
+        isLoading: Bool = false, isExpanded: Bool? = nil
     ) {
         self.titleText = Text(titleKey)
         self.spokenTitle = nil
         self.count = count
         self.counter = counter
         self.isLoading = isLoading
+        self.isExpanded = isExpanded
     }
 
     var body: some View {
@@ -50,6 +57,12 @@ struct SectionHeader: View {
                     Text(verbatim: counterText)
                         .font(.ink.value)
                         .foregroundStyle(.ink.secondaryText)
+                        .accessibilityHidden(true)
+                }
+                if let isExpanded {
+                    Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
+                        .font(.ink.meta)
+                        .foregroundStyle(Color.ink.secondaryText)
                         .accessibilityHidden(true)
                 }
                 if isLoading {

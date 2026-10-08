@@ -6,6 +6,7 @@ struct SearchView: View {
     @State private var model: SearchModel
     @State private var path: [SearchDestination] = []
     @FocusState private var searchFocused: Bool
+    @Environment(\.dismiss) private var dismiss
 
     init(store: IndexStore, initialQuery: String = "") {
         self.store = store
@@ -42,6 +43,8 @@ struct SearchView: View {
                 }
             }
         }
+        // Nested destinations (notes) use this so "Kapat" closes the sheet, not only the push.
+        .inkSheetDismissAction { dismiss() }
         #if os(macOS)
             .frame(minWidth: 520, idealWidth: 650, minHeight: 460, idealHeight: 650)
             .focusedSceneValue(
@@ -156,7 +159,7 @@ struct SearchView: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .inkListRow(isSelected: item.id == model.selectedID)
+        .inkListRow(columnSelected: item.id == model.selectedID)
         .id(item.id)
     }
 

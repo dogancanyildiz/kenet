@@ -22,16 +22,6 @@ struct InkListSelectionTests {
         #expect(TaskListSelection.keeping("a", listedIDs: ["b"]) == nil)
         #expect(TaskListSelection.keeping(nil, listedIDs: ["a"]) == nil)
     }
-
-    @Test func boxLinkAndRowStayApart() {
-        #expect(TasksListRowInteraction.action(for: .box, hasLink: true, isMac: true) == .toggleCompletion)
-        #expect(TasksListRowInteraction.action(for: .link, hasLink: true, isMac: true) == .openLink)
-        #expect(TasksListRowInteraction.action(for: .row, hasLink: true, isMac: true) == .selectRow)
-        #expect(TasksListRowInteraction.action(for: .row, hasLink: false, isMac: true) == .selectRow)
-        #expect(TasksListRowInteraction.action(for: .row, hasLink: false, isMac: false) == .toggleCompletion)
-        #expect(TasksListRowInteraction.action(for: .row, hasLink: true, isMac: false) == nil)
-        #expect(TasksListRowInteraction.action(for: .box, hasLink: false, isMac: false) == .toggleCompletion)
-    }
 }
 
 #if os(macOS)
@@ -81,14 +71,7 @@ struct InkListSelectionTests {
             await context.start()
             let days = context.store.content.days
             let id = try #require(days.first?.id)
-            let sink = HostedLayout.Sink()
             let size = CGSize(width: 320, height: 360)
-            let view = MacDayList(days: days, selection: .constant(id))
-                .frame(width: size.width, height: size.height)
-                .onPreferenceChange(InkColumnChromeCountKey.self) { sink.values = [CGFloat($0)] }
-            await HostedLayout.settle(view, size: size)
-            #expect(sink.values.first == 1, "day list chrome count \(sink.values)")
-
             let bitmap = try await SelectionBitmap.render(
                 MacDayList(days: days, selection: .constant(id))
                     .frame(width: size.width, height: size.height),
@@ -98,19 +81,44 @@ struct InkListSelectionTests {
             #expect(wells > 200, "journal row fill pixels \(wells)")
         }
 
-        @Test func macTaskRowHasNoDetailButton() async throws {
+        /// CI runs this one (the Mac snapshot suites are skipped there). A control stacked under
+        /// the task row inside `TasksView` makes the list row taller than the row itself.
+        @Test func macTaskListRowHoldsOnlyTheTaskRow() async throws {
             let context = try TaskTestContext(sample: true)
             defer { context.clean() }
             await context.start()
-            let row = try #require(
-                context.store.content.tasks.first {
-                    $0.sourceText.contains("Hafta sonu dinlenme planı yap")
-                })
+            let day = CalendarDate("2026-09-20")!
+            let model = TasksModel(store: context.store, today: { day })
+            let tasks = model.agenda.flatMap(\.rows)
+            let size = CGSize(width: 420, height: 900)
+            let host = MacHost(
+                TasksView(store: context.store, selection: .constant(nil), tasks: model),
+                size: size)
+            await host.settle()
+            let table = try #require(host.descendant(NSTableView.self), "the task list is not table backed")
+            var listed = (0..<table.numberOfRows).map { table.rect(ofRow: $0).height }
+            host.close()
+            #expect(!tasks.isEmpty)
+            // `inkListRow` insets the content 6 pt above and below.
+            let insets: CGFloat = 12
+            let contentWidth = size.width - InkSpacing.margin * 2
+            for task in tasks {
+                let alone = await Self.rowHeight(task, context: context, day: day, width: contentWidth)
+                let match = listed.firstIndex { abs($0 - (alone + insets)) < 1.5 }
+                #expect(
+                    match != nil,
+                    "no \(alone + insets) pt list row for \(task.sourceText); list rows are \(listed)")
+                if let match { listed.remove(at: match) }
+            }
+        }
+
+        private static func rowHeight(
+            _ row: TaskRow, context: TaskTestContext, day: CalendarDate, width: CGFloat
+        ) async -> CGFloat {
             let sink = HostedLayout.Sink()
-            let width: CGFloat = 360
             let view = TasksListRow(
-                store: context.store, row: row, day: context.today, isOverdue: false, isBusy: false,
-                allowsReopening: true
+                store: context.store, row: row, day: day, isOverdue: row.due.map { $0 < day } ?? false,
+                isBusy: false, allowsReopening: true
             ) {}
             .background {
                 GeometryReader { proxy in
@@ -121,9 +129,7 @@ struct InkListSelectionTests {
             .fixedSize(horizontal: false, vertical: true)
             .onPreferenceChange(RowHeightKey.self) { sink.values = [$0] }
             await HostedLayout.settle(view, size: CGSize(width: width, height: 400))
-            let height = try #require(sink.values.first)
-            // This row is a single line (33 pt). A control under it adds another line.
-            #expect(height < 48, "task row is \(height) pt; a control under it would be taller")
+            return sink.values.first ?? 0
         }
 
         @Test func macRowClickDoesNotComplete() async throws {
@@ -283,7 +289,6 @@ struct InkListSelectionTests {
             }
             .listStyle(.plain)
             .scrollContentBackground(.hidden)
-            .environment(\.inkColumnRowSelected, true)
             .frame(width: 280, height: 160)
             .background(Color.ink.paper)
         }
@@ -505,6 +510,17 @@ struct InkListSelectionTests {
             RunLoop.current.run(until: Date().addingTimeInterval(0.02))
             NSApp.sendEvent(make(.leftMouseUp))
             RunLoop.current.run(until: Date().addingTimeInterval(0.05))
+        }
+
+        /// First AppKit view of the given type under the hosted SwiftUI content.
+        func descendant<T: NSView>(_ type: T.Type) -> T? {
+            var queue: [NSView] = [host]
+            while !queue.isEmpty {
+                let view = queue.removeFirst()
+                if let match = view as? T { return match }
+                queue.append(contentsOf: view.subviews)
+            }
+            return nil
         }
 
         func close() {

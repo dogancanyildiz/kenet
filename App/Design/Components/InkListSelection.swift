@@ -22,27 +22,6 @@ enum InkListSelectionChrome {
     ]
 }
 
-private struct InkColumnRowSelectedKey: EnvironmentKey {
-    static let defaultValue: Bool? = nil
-}
-
-extension EnvironmentValues {
-    /// Kept so a parent cannot style nested rows. ``inkListRow(columnSelected:)`` does not
-    /// read this; it clears the value for its content (sheets, editors).
-    var inkColumnRowSelected: Bool? {
-        get { self[InkColumnRowSelectedKey.self] }
-        set { self[InkColumnRowSelectedKey.self] = newValue }
-    }
-}
-
-/// How many Mac rows in this subtree opted into the selected-column chrome.
-struct InkColumnChromeCountKey: PreferenceKey {
-    static let defaultValue = 0
-    static func reduce(value: inout Int, nextValue: () -> Int) {
-        value += nextValue()
-    }
-}
-
 /// Paper when idle; recessed fill and a leading accent rule when selected.
 struct InkListSelectionBackground: View {
     var isSelected: Bool

@@ -3,6 +3,8 @@ import VaultFormat
 
 /// Interactive task row built from Mürekkep primitives (``TaskBox`` + ``MarginRow`` + linked text).
 /// Keeps DayTaskView menus and editors; visual language matches ``InkTaskRow``.
+/// iPhone: a touch on the row completes a task without links. Mac: the row belongs to the
+/// list selection, so only the box completes.
 struct TasksListRow: View {
     let store: IndexStore
     let row: TaskRow
@@ -41,13 +43,11 @@ struct TasksListRow: View {
         MarginRow(kind: .vault) {
             TaskBox(
                 state: boxState,
-                action: boxCompletes ? complete : nil,
+                action: completion.canToggleCompletion ? complete : nil,
                 accessibilityLabel: LocalizedStringKey(completion.boxAccessibilityLabelKey))
         } primary: {
             LinkedTextView(
-                text: row.text, store: store, isMuted: presentation.usesSecondaryText,
-                opensLinks: TasksListRowInteraction.action(
-                    for: .link, hasLink: hasLink, isMac: runsOnMac) == .openLink
+                text: row.text, store: store, isMuted: presentation.usesSecondaryText
             )
             .foregroundStyle(
                 presentation.usesSecondaryText
@@ -59,14 +59,22 @@ struct TasksListRow: View {
             metaRow
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .modifier(
-            TasksListRowTap(hasLink: hasLink, isMac: runsOnMac, complete: { completeIfAllowed() })
-        )
+        #if !os(macOS)
+            .contentShape(Rectangle())
+            .onTapGesture {
+                if completion.canToggleCompletion, !row.text.spans.contains(where: { $0.target != nil }) {
+                    complete()
+                }
+            }
+        #endif
         .accessibilityAction(named: Text(LocalizedStringKey(completion.boxAccessibilityLabelKey))) {
-            completeIfAllowed()
+            if completion.canToggleCompletion, !row.text.spans.contains(where: { $0.target != nil }) {
+                complete()
+            }
         }
         .contextMenu { editMenu }
         #if os(macOS)
+            // The list column draws the selection; the system focus ring would double it.
             .focusEffectDisabled()
         #endif
         .destructiveConfirmationDialog("Görevi sil?", confirmation: $deleteConfirmation) { _ in
@@ -139,52 +147,12 @@ struct TasksListRow: View {
         }
     }
 
-    private var hasLink: Bool { row.text.spans.contains { $0.target != nil } }
-
-    private var runsOnMac: Bool {
-        #if os(macOS)
-            true
-        #else
-            false
-        #endif
-    }
-
-    /// Box hit completes only when the interaction table and the completion rules agree.
-    private var boxCompletes: Bool {
-        TasksListRowInteraction.action(for: .box, hasLink: hasLink, isMac: runsOnMac) == .toggleCompletion
-            && completion.canToggleCompletion
-    }
-
-    /// VoiceOver's named action. The row tap is separate and does not complete on Mac.
-    private func completeIfAllowed() {
-        guard completion.canToggleCompletion else { return }
-        complete()
-    }
-
     private func edit(_ operation: @escaping (TaskEditorModel) async -> Bool) {
         Task {
             let model = TaskEditorModel(store: store, row: row)
             await model.load()
             if model.target != nil { _ = await operation(model) }
             errorText = model.errorText
-        }
-    }
-}
-
-/// Installs a completing control only when ``TasksListRowInteraction`` says the row completes.
-/// On Mac the table returns ``selectRow``, so the list selection and text links keep the click.
-/// A plain button (not ``onTapGesture``) is what the hosted click test can press.
-private struct TasksListRowTap: ViewModifier {
-    var hasLink: Bool
-    var isMac: Bool
-    var complete: () -> Void
-
-    @ViewBuilder func body(content: Content) -> some View {
-        if TasksListRowInteraction.action(for: .row, hasLink: hasLink, isMac: isMac) == .toggleCompletion {
-            Button(action: complete) { content }
-                .buttonStyle(.plain)
-        } else {
-            content
         }
     }
 }

@@ -54,35 +54,40 @@ struct TasksView: View {
                 model.clearFilters()
                 selection = nil
             }
-            .onChange(of: model.viewState.listSection) { _, _ in
-                selection = nil
-            }
-            .onChange(of: model.entityFilter) { _, _ in
-                selection = nil
-            }
-            .onChange(of: model.projectFilter) { _, _ in
-                selection = nil
-            }
-            .onChange(of: listedTaskIDs) { _, ids in
-                selection = TaskListSelection.keeping(selection, listedIDs: ids)
-            }
+            #if os(macOS)
+                // Only the Mac detail column follows the selection; iPhone never sets one.
+                .onChange(of: model.viewState.listSection) { _, _ in
+                    selection = nil
+                }
+                .onChange(of: model.entityFilter) { _, _ in
+                    selection = nil
+                }
+                .onChange(of: model.projectFilter) { _, _ in
+                    selection = nil
+                }
+                .onChange(of: listedTaskIDs) { _, ids in
+                    selection = TaskListSelection.keeping(selection, listedIDs: ids)
+                }
+            #endif
         }
     }
 
-    /// Rows on screen for the current section. The detail column clears when the selection
-    /// is no longer one of them (a completed task leaves Yaklaşan, a filter drops it).
-    private var listedTaskIDs: [String] {
-        switch model.viewState.listSection {
-        case .projects:
-            []
-        case .upcoming:
-            model.agenda.flatMap(\.rows).map(\.id)
-        case .undated:
-            model.undated.map(\.id)
-        case .completed:
-            model.completed.map(\.id)
+    #if os(macOS)
+        /// Rows on screen for the current section. The detail column clears when the selection
+        /// is no longer one of them (a completed task leaves Yaklaşan, a filter drops it).
+        private var listedTaskIDs: [String] {
+            switch model.viewState.listSection {
+            case .projects:
+                []
+            case .upcoming:
+                model.agenda.flatMap(\.rows).map(\.id)
+            case .undated:
+                model.undated.map(\.id)
+            case .completed:
+                model.completed.map(\.id)
+            }
         }
-    }
+    #endif
 
     @ViewBuilder private var listContent: some View {
         List(selection: $selection) {

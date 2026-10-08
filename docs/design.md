@@ -151,7 +151,6 @@ Ekim 2026 denetimi (84 gerçek ekran görüntüsü ve kod envanteri) aynı işin
 5. **Sırala ve filtrele.** Manşet satırında simgedir; dokununca menü açılır. Sayfada ayrı satır tutmaz. Varsayılan dışında bir seçim etkinse simge vurgu rengine döner.
 6. **Sheet.** Zemin kâğıttır; başlık serif manşettir; içerik sayfalarla aynı kalıptadır (bölüm başlığı, kâğıt zeminli satır, kart yok). Düzenleyen sheet'te solda "Vazgeç" (ikincil renk, düz yazı), sağda tek onay vardır: "Kaydet", yeni kayıt açan sheet'te "Oluştur" (vurgu rengi, yarı kalın düz yazı). Yalnız okunan sheet'te tek düğme vardır: sağda "Kapat". "Bitti" kullanılmaz. Eylemi taslak kaydetmek olmayan sheet'te (kasa hazırlığı gibi kasaya toplu yazan akışlar) çubukta yalnız "Vazgeç" durur; eylem kendi adıyla sayfada birincil düğmedir ve Return tuşuna bağlanmaz. Yazma sürerken "Vazgeç" devre dışı çizilir. Düğmeler düz yazıdır; dolu kapsül kullanılmaz. Mac'te sistem pencere başlığı çizilmez (tek serif manşet); araç çubuğu ve alt eylem çubuğu kâğıt zemindedir; "Vazgeç" solda, onay/"Kapat" sağda alt çubuktadır. Sheet gövdesi sıfır yükseklikte açılmaz (ortak ideal boyut).
 7. **Sistem denetimleri.** Açma kapama anahtarı vurgu rengindedir. Kâğıt üstünde beyaz ya da gri kutu bulunmaz: alan zemini çukur, liste satırı kâğıttır. Yüzey rengi yalnız belirteç tablosunda sayılan yerlerde kullanılır.
-8. **Mac liste sütunu seçimi.** Görevler, Günlük, Kişiler ve Hedefler seçili satırı `InkListSelection` ile çizer: çukur zemin, satırın içinde yuvarlatılmış köşe, solda 2 pt vurgu çizgisi. Metin belirteçleri çukur üstünde gövde kontrastını (en az 4,5:1) tutar. iPhone satırı kâğıt kalır. Mac'te arama sonuçlarının seçili satırı aynı bileşenle çizilir. Görev kutusuna basmak tamamlar, metindeki bağlantı kendi sayfasını açar, satıra basmak ayrıntıyı seçer. Satırın bağlam menüsü metin, tarih, tekrar, öncelik ve silmeyi sunar; silme onay diyaloğuna gider.
 
 Koruma: uygulama ekranlarında stil verilmemiş `Picker`, `.pickerStyle(.segmented)`, `.textFieldStyle(.roundedBorder)`, kök ekranda gezinme çubuğu araması ve ortak bileşen dışında kurulan sheet araç çubuğu kaynak denetimiyle yasaklanır. Her kök ekranın ve her sheet türünün ekran görüntüsü testi vardır.
 
@@ -220,6 +219,8 @@ Yukarıdan aşağı: manşet (tarih) ve künye satırı (olayla başlayıp "kald
 ## Bileşenler
 
 Manşet, bölüm başlığı, kenar sütunlu satır (görev, hedef, olay ve takvim için tek bileşen), görev kutusu, hedef halkası, bağlantılı metin, hızlı giriş kapsülü; bunlara ek olarak manşet satırı ve eylem simgeleri, sekme, etiketli menü, süzgeç alanı, sheet iskeleti (başlık ve iki düğme), etiket çipi, boş durum, ısı haritası hücresi, bilgi ve hata bandı, Mac kanban kartı, Mac liste sütunu seçimi. Bütün ekranlar bu parçalardan kurulur; görev satırı, kart ve tarih biçiminin bugünkü farklı varyantları tek parçaya iner.
+
+Mac liste sütunu seçimi (`InkListSelection`) bugün kodda şöyle çizilir; görünüm henüz onaylanmış bir kural değildir. Görevler, Günlük, Kişiler ve Hedefler sütunlarında ve Mac'teki arama sonuçlarında seçili satır çukur zeminle, satırın içinde yuvarlatılmış köşeyle ve solda 2 pt vurgu çizgisiyle görünür; iPhone satırı kâğıt kalır. Görev sütununda kutu tamamlar, metindeki bağlantı kendi sayfasını açar, satıra tıklamak ayrıntıyı seçer; bağlam menüsündeki silme onay diyaloğuna gider.
 
 ## Doğrulama
 

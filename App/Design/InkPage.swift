@@ -216,29 +216,16 @@ private struct InkListRowModifier: ViewModifier {
             .listRowSeparator(.hidden)
     }
 
-    /// Clears column selection for descendants so a sheet presented from a selected row
-    /// does not paint its own rows as selected.
+    /// A column row draws its own selection, so the system focus ring is turned off there.
     @ViewBuilder private func row(_ content: Content) -> some View {
-        let base =
-            content
-            .environment(\.inkColumnRowSelected, nil)
-            .preference(key: InkColumnChromeCountKey.self, value: chromeCount)
         #if os(macOS)
             if columnSelected != nil {
-                base.focusEffectDisabled()
+                content.focusEffectDisabled()
             } else {
-                base
+                content
             }
         #else
-            base
-        #endif
-    }
-
-    private var chromeCount: Int {
-        #if os(macOS)
-            columnSelected == true ? 1 : 0
-        #else
-            0
+            content
         #endif
     }
 

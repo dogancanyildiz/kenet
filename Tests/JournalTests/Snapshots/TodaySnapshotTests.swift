@@ -289,9 +289,11 @@
             .onPreferenceChange(GoalsStripReadyKey.self) { ready.isReady = $0 }
             .frame(width: 720, height: 900)
 
+            MacSnapshotEnvironment.requireOverlayScrollers()
             let host = NSHostingView(rootView: root)
             host.frame = NSRect(x: 0, y: 0, width: 720, height: 900)
-            let window = NSWindow(
+            // On screen, so its scale would otherwise follow the display it opens on.
+            let window = MacSnapshotWindow(
                 contentRect: NSRect(x: 0, y: 0, width: 720, height: 900),
                 styleMask: [.titled, .closable],
                 backing: .buffered,
@@ -310,9 +312,10 @@
 
             let record = ProcessInfo.processInfo.environment["SNAPSHOT_TESTING_RECORD"]
                 .flatMap(SnapshotTestingConfiguration.Record.init(rawValue:))
-            // Fixed 2× bitmap so references do not depend on the host display scale.
+            // Fixed 2× bitmap (and window, see MacSnapshotWindow) so references do not depend on
+            // the host display scale.
             assertSnapshot(
-                of: Self.render(host, scale: 2),
+                of: Self.render(host, scale: MacSnapshotWindow.scale),
                 as: .image(precision: 0.9999, perceptualPrecision: 0.995),
                 named: name,
                 record: record,

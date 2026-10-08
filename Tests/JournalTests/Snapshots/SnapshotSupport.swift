@@ -441,3 +441,46 @@
         func events(from start: Date, to end: Date) async throws -> [CalendarEvent] { [] }
     }
 #endif
+
+#if os(macOS)
+    import AppKit
+    import Testing
+
+    /// Window for Mac references. A hosted SwiftUI view takes two things from its window, and a
+    /// plain `NSWindow` takes both from the main display, so docking the Mac to an external
+    /// monitor changed the bitmap of an unchanged view:
+    /// - backing scale: on a 1× monitor the view drew at 1× (blurred text, 1 pt hairlines,
+    ///   whole-point layout) into the 2× bitmap;
+    /// - colour space: text SwiftUI rasterises itself (mention links) came out one level off on
+    ///   its antialiased edges under the monitor's profile.
+    /// Both are pinned to what the references were recorded with (built-in Retina display).
+    final class MacSnapshotWindow: NSWindow {
+        static let scale: CGFloat = 2
+
+        override init(
+            contentRect: NSRect, styleMask style: NSWindow.StyleMask,
+            backing backingStoreType: NSWindow.BackingStoreType, defer flag: Bool
+        ) {
+            super.init(
+                contentRect: contentRect, styleMask: style, backing: backingStoreType, defer: flag)
+            colorSpace = .displayP3
+        }
+
+        override var backingScaleFactor: CGFloat { Self.scale }
+    }
+
+    @MainActor
+    enum MacSnapshotEnvironment {
+        /// Scroll bars follow the pointing device unless told otherwise: with a mouse connected
+        /// AppKit switches to legacy scrollers, which take width from every overflowing list and
+        /// move its content. The `Journal_macOS` test action pins the overlay style with a launch
+        /// argument (project.yml); this turns a run without it into a readable failure instead
+        /// of a pixel diff.
+        static func requireOverlayScrollers(sourceLocation: SourceLocation = #_sourceLocation) {
+            #expect(
+                NSScroller.preferredScrollerStyle == .overlay,
+                "Mac references are drawn with overlay scroll bars; run through the Journal_macOS scheme (-AppleShowScrollBars WhenScrolling).",
+                sourceLocation: sourceLocation)
+        }
+    }
+#endif

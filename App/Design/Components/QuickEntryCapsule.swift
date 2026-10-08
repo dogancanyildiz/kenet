@@ -7,8 +7,27 @@ enum QuickEntryCapsuleLayout: Equatable, Sendable {
     /// Mode + send on the first row; field below (accessibility sizes only).
     case stacked
 
+    /// Gap between kip words when 44 pt tap frames are not what separates them.
+    /// iPhone uses this at accessibility sizes; Mac always does, because ``tapTarget()``
+    /// does not grow the word there. At default iPhone type the 44 pt frames produce
+    /// the same visual gap (about 12 pt between "Olay" and "Görev").
+    static let visualWordGap: CGFloat = 12
+
+    /// Extra space between the 44 pt frames on the single-row iPhone layout.
+    /// The frames, not this number, are the visual gap.
+    static let tapFrameGap: CGFloat = 2
+
     static func resolve(dynamicTypeSize: DynamicTypeSize) -> Self {
         dynamicTypeSize.isAccessibilitySize ? .stacked : .singleRow
+    }
+
+    /// Stack spacing between the two kip words.
+    static func stackSpacing(for layout: Self) -> CGFloat {
+        #if os(macOS)
+            return visualWordGap
+        #else
+            return layout == .stacked ? visualWordGap : tapFrameGap
+        #endif
     }
 }
 
@@ -70,8 +89,9 @@ struct QuickEntryCapsule<Field: View>: View {
     }
 
     private var modePicker: some View {
-        // At accessibility sizes the words outgrow the 44 pt tap target that normally spaces them.
-        HStack(spacing: layout == .stacked ? 12 : 2) {
+        // iPhone: the 44 pt tap frames space the words, until accessibility sizes outgrow them.
+        // Mac: the tap target does not grow the word, so the stack spacing is the visual gap.
+        HStack(spacing: QuickEntryCapsuleLayout.stackSpacing(for: layout)) {
             ForEach(QuickEntryMode.allCases, id: \.self) { option in
                 modeWord(option)
             }

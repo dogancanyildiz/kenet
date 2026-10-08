@@ -105,42 +105,13 @@
         }
 
         private var sidebar: some View {
-            List(selection: $section) {
-                ForEach(DesktopSection.allCases) { item in
-                    Label(item.title, systemImage: item.symbol).tag(item)
-                        .simultaneousGesture(
-                            TapGesture().onEnded {
-                                if item == .tasks { tasksEvent(.sidebarTasks) }
-                            })
-                    if item == .tasks {
-                        Button {
-                            section = .tasks
-                            selectedTask = nil
-                            tasksEvent(.sidebarBoard(.kanban))
-                        } label: {
-                            Label("Kanban", systemImage: "rectangle.split.3x1")
-                        }
-                        .buttonStyle(.plain).padding(.leading)
-                        Button {
-                            section = .tasks
-                            selectedTask = nil
-                            tasksEvent(.sidebarBoard(.timeline))
-                        } label: {
-                            Label("Zaman çizelgesi", systemImage: "chart.bar.xaxis")
-                        }.buttonStyle(.plain).padding(.leading)
-                        ForEach(store.content.projects, id: \.self) { project in
-                            Button {
-                                section = .tasks
-                                selectedTask = nil
-                                tasksEvent(.sidebarProject(project))
-                            } label: {
-                                Label {
-                                    Text(verbatim: project)
-                                } icon: {
-                                    Image(systemName: "folder")
-                                }
-                            }.buttonStyle(.plain).padding(.leading)
-                        }
+            // One row per entry: a board or a project is selected on its own, not as part of the
+            // "Görevler" row. The row draws its own selection (accent fill, on-accent ink), so
+            // the selected entry reads the same in both appearances.
+            List {
+                ForEach(sidebarEntries, id: \.self) { entry in
+                    SidebarRow(entry: entry, isSelected: selectedSidebarEntry == entry) {
+                        selectSidebarEntry(entry)
                     }
                 }
             }
@@ -267,6 +238,43 @@
             }
         }
 
+        private var sidebarEntries: [SidebarEntry] {
+            DesktopSection.allCases.flatMap { item -> [SidebarEntry] in
+                guard item == .tasks else { return [.section(item)] }
+                return [.section(.tasks), .board(.kanban), .board(.timeline)]
+                    + store.content.projects.map(SidebarEntry.project)
+            }
+        }
+
+        /// The sidebar selection is derived: the section, and inside "Görevler" the shell layout.
+        private var selectedSidebarEntry: SidebarEntry? {
+            guard let section else { return nil }
+            guard section == .tasks else { return .section(section) }
+            switch tasksShell.layout {
+            case .list: return .section(.tasks)
+            case .kanban: return .board(.kanban)
+            case .timeline: return .board(.timeline)
+            case .project(let name): return .project(name)
+            }
+        }
+
+        private func selectSidebarEntry(_ entry: SidebarEntry) {
+            switch entry {
+            case .section(let value):
+                // A click on the selected "Görevler" row still returns the list to its first section.
+                if value == .tasks { tasksEvent(.sidebarTasks) }
+                section = value
+            case .board(let mode):
+                section = .tasks
+                selectedTask = nil
+                tasksEvent(.sidebarBoard(mode))
+            case .project(let name):
+                section = .tasks
+                selectedTask = nil
+                tasksEvent(.sidebarProject(name))
+            }
+        }
+
         /// Tasks layout (list column, full-width board, project) comes from the shared view
         /// state alone; the sidebar and the tabs in the content area write the same value.
         private var tasksShell: TasksShellState {
@@ -315,6 +323,66 @@
         var goToToday: (() -> Void)? {
             get { self[TodayNavigationKey.self] }
             set { self[TodayNavigationKey.self] = newValue }
+        }
+    }
+
+    /// A selectable sidebar row: a section, a Tasks board or a project.
+    private enum SidebarEntry: Hashable {
+        case section(DesktopSection)
+        case board(TasksViewState.Mode)
+        case project(String)
+    }
+
+    /// Sidebar row with its own selection: accent fill and on-accent ink, which is dark in the
+    /// dark appearance (the system fill there is light pink under white text).
+    private struct SidebarRow: View {
+        let entry: SidebarEntry
+        let isSelected: Bool
+        let action: () -> Void
+
+        var body: some View {
+            Button(action: action) {
+                Label {
+                    title
+                        .fontWeight(isSelected ? .semibold : .regular)
+                        .foregroundStyle(isSelected ? Color.ink.onAccent : Color.ink.text)
+                } icon: {
+                    Image(systemName: symbol)
+                        .foregroundStyle(isSelected ? Color.ink.onAccent : Color.ink.accent)
+                }
+                .padding(.leading, isNested ? InkSpacing.margin : 0)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityAddTraits(isSelected ? .isSelected : [])
+            .listRowBackground(
+                RoundedRectangle(cornerRadius: InkSize.kanbanCorner, style: .continuous)
+                    .fill(isSelected ? Color.ink.accent : Color.clear)
+                    // Inset like the system sidebar selection.
+                    .padding(.horizontal, 10))
+        }
+
+        private var isNested: Bool {
+            if case .section = entry { false } else { true }
+        }
+
+        private var title: Text {
+            switch entry {
+            case .section(let section): Text(section.title)
+            case .board(.timeline): Text("Zaman çizelgesi")
+            case .board: Text("Kanban")
+            case .project(let name): Text(verbatim: name)
+            }
+        }
+
+        private var symbol: String {
+            switch entry {
+            case .section(let section): section.symbol
+            case .board(.timeline): "chart.bar.xaxis"
+            case .board: "rectangle.split.3x1"
+            case .project: "folder"
+            }
         }
     }
 

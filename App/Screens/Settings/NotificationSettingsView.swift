@@ -113,14 +113,8 @@ struct NotificationSettingsView: View {
     }
     private func time(_ key: WritableKeyPath<NotificationPreferences, NotificationTime>) -> Binding<Date> {
         Binding(
-            get: {
-                let time = service.preferences[keyPath: key]
-                return NotificationPlanner.fireDate(LocalDay.today(), time: time, timeZone: .current) ?? Date()
-            },
-            set: { date in
-                let parts = Calendar.current.dateComponents([.hour, .minute], from: date)
-                service.preferences[keyPath: key] = NotificationTime(hour: parts.hour ?? 0, minute: parts.minute ?? 0)
-            })
+            get: { service.preferences.fieldDate(key, on: LocalDay.today(), timeZone: .current) },
+            set: { service.preferences.setTime(key, from: $0, timeZone: .current) })
     }
     private func openSettings() {
         #if os(iOS)

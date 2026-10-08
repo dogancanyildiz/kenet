@@ -177,6 +177,7 @@ Kilitliyken (kilit etkin ve doğrulanmamış) Siri hedef adlarını listelemez; 
 
 - Kasa yolu (uzun yollar ortadan kırpılır, seçilip kopyalanabilir), Mac'te Finder'da göster, klasör seç / değiştir, içe aktarma (kasa hazırlığı), izlenmeyen dizin uyarısı, indeksleme ilerlemesi.
 - Varlık tipleri listesine bağlantı (yerleşik salt okunur, özel oluşturulabilir/düzenlenebilir/silinebilir).
+- Alt sayfalar (Varlık tipleri, Kasa hazırlığı) iPhone'da itilir. Mac'te Kasa sekmesinin içeriğinin yerine açılır ve en üstteki "Kasa" düğmesiyle geri dönülür; sekme şeridi değişmez.
 
 ### Ayarlar — Tanılama
 

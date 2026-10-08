@@ -94,6 +94,9 @@ struct TaskDatePicker: View {
 
     struct TaskDateMacPicker: NSViewRepresentable {
         @Binding var selected: Date
+        /// The zone the field reads its day in: the same one `LocalDay` turns the instant back
+        /// into a day with, or the day would drift.
+        var timeZone: TimeZone = .current
 
         func makeCoordinator() -> Coordinator {
             Coordinator(self)
@@ -117,6 +120,8 @@ struct TaskDatePicker: View {
 
         func updateNSView(_ nsView: NSDatePicker, context: Context) {
             context.coordinator.parent = self
+            nsView.locale = context.environment.locale
+            nsView.timeZone = timeZone
             nsView.dateValue = selected
             nsView.textColor = NSColor(Color.ink.text)
         }

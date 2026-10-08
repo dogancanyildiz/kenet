@@ -37,61 +37,28 @@ struct GraphControls: View {
             .fixedSize(horizontal: false, vertical: true)
     }
 
+    private var weightStep: GraphWeightStep { GraphWeightStep(maximumWeight: maximumWeight) }
+
     private var weightStepper: some View {
         #if os(macOS)
             HStack(spacing: 4) {
-                Button {
-                    if filter.minimumWeight > 1 {
-                        filter.minimumWeight -= 1
-                    }
-                } label: {
-                    Image(systemName: "minus")
-                        .font(.ink.meta)
-                        .foregroundStyle(filter.minimumWeight > 1 ? Color.ink.accent : Color.ink.control)
-                        .frame(width: 28, height: 28)
-                        .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .disabled(filter.minimumWeight <= 1)
-
-                Button {
-                    if filter.minimumWeight < max(maximumWeight, filter.minimumWeight) {
-                        filter.minimumWeight += 1
-                    }
-                } label: {
-                    Image(systemName: "plus")
-                        .font(.ink.meta)
-                        .foregroundStyle(
-                            filter.minimumWeight < max(maximumWeight, filter.minimumWeight)
-                                ? Color.ink.accent : Color.ink.control
-                        )
-                        .frame(width: 28, height: 28)
-                        .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .disabled(filter.minimumWeight >= max(maximumWeight, filter.minimumWeight))
+                weightButton(
+                    "minus", isEnabled: weightStep.canDecrement(filter.minimumWeight),
+                    next: weightStep.decremented)
+                weightButton(
+                    "plus", isEnabled: weightStep.canIncrement(filter.minimumWeight),
+                    next: weightStep.incremented)
             }
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(Text("En az \(filter.minimumWeight) ortak gün"))
             .accessibilityValue(Text("\(filter.minimumWeight)"))
             .accessibilityAdjustableAction { direction in
-                switch direction {
-                case .increment:
-                    if filter.minimumWeight < max(maximumWeight, filter.minimumWeight) {
-                        filter.minimumWeight += 1
-                    }
-                case .decrement:
-                    if filter.minimumWeight > 1 {
-                        filter.minimumWeight -= 1
-                    }
-                @unknown default:
-                    break
-                }
+                filter.minimumWeight = weightStep.adjusted(filter.minimumWeight, direction)
             }
         #else
             Stepper(
                 value: $filter.minimumWeight,
-                in: 1...max(maximumWeight, filter.minimumWeight)
+                in: weightStep.range(for: filter.minimumWeight)
             ) {
                 EmptyView()
             }
@@ -100,6 +67,24 @@ struct GraphControls: View {
                 Text("En az \(filter.minimumWeight) ortak gün"))
         #endif
     }
+
+    #if os(macOS)
+        private func weightButton(
+            _ systemImage: String, isEnabled: Bool, next: @escaping (Int) -> Int
+        ) -> some View {
+            Button {
+                filter.minimumWeight = next(filter.minimumWeight)
+            } label: {
+                Image(systemName: systemImage)
+                    .font(.ink.meta)
+                    .foregroundStyle(isEnabled ? Color.ink.accent : Color.ink.control)
+                    .frame(width: 28, height: 28)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .disabled(!isEnabled)
+        }
+    #endif
 
     @ViewBuilder private var weightRow: some View {
         if dynamicTypeSize.isAccessibilitySize {
@@ -144,6 +129,31 @@ struct GraphControls: View {
         }
         .labelStyle(.iconOnly)
         .buttonStyle(.borderless)
+    }
+}
+
+/// Bounds and step of the "en az N ortak gün" filter: one rule for the Mac buttons, the VoiceOver
+/// adjust action and the iOS stepper.
+struct GraphWeightStep: Equatable {
+    static let minimum = 1
+    let maximumWeight: Int
+
+    /// A filter already above the graph's heaviest edge keeps its value reachable.
+    func range(for value: Int) -> ClosedRange<Int> {
+        Self.minimum...max(maximumWeight, value, Self.minimum)
+    }
+
+    func canDecrement(_ value: Int) -> Bool { value > Self.minimum }
+    func canIncrement(_ value: Int) -> Bool { value < range(for: value).upperBound }
+    func decremented(_ value: Int) -> Int { canDecrement(value) ? value - 1 : value }
+    func incremented(_ value: Int) -> Int { canIncrement(value) ? value + 1 : value }
+
+    func adjusted(_ value: Int, _ direction: AccessibilityAdjustmentDirection) -> Int {
+        switch direction {
+        case .increment: incremented(value)
+        case .decrement: decremented(value)
+        @unknown default: value
+        }
     }
 }
 

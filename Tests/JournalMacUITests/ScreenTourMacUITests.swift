@@ -368,7 +368,10 @@ final class ScreenTourMacUITests: XCTestCase {
 
     @MainActor private func openGoal() throws {
         try tour.sidebar("Hedefler")
-        try tour.macRow(numberGoal, in: tour.mainWindow, scrolls: 0).click()
+        // The row is one plain button; its middle is empty in the wider list column, so the
+        // click goes to the name at the row's leading side.
+        try tour.macRow(numberGoal, in: tour.mainWindow, scrolls: 0)
+            .coordinate(withNormalizedOffset: CGVector(dx: 0.22, dy: 0.3)).click()
         _ = try tour.macRequire(["Isı haritası"])
     }
 

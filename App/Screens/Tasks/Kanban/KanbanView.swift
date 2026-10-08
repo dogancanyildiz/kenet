@@ -18,12 +18,7 @@ struct KanbanView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             TasksPageTop(tasks: model.tasks, current: .kanban) {
-                InkHeaderMenu(
-                    "Pano seçenekleri", systemImage: "slider.horizontal.3", isActive: model.showsCancelled,
-                    identifier: "tasks.kanban.options"
-                ) {
-                    Toggle("İptal edilenleri göster", isOn: $model.showsCancelled)
-                }
+                boardOptions
             } menu: {
                 groupingMenu
             }
@@ -84,7 +79,25 @@ struct KanbanView: View {
         model.store.content.tasks.first { $0.id == selectedRow?.id }
     }
 
+    /// Show-cancelled toggle. On Mac the shared header menu's button-style popup is as wide as
+    /// the width offered to the control and, pinned to the trailing icon, runs off the window.
+    /// ``KanbanMacOptionsMenu`` opens a content-sized menu that stays inside the window.
+    @ViewBuilder private var boardOptions: some View {
+        #if os(macOS)
+            KanbanMacOptionsMenu(showsCancelled: $model.showsCancelled)
+        #else
+            InkHeaderMenu(
+                "Pano seçenekleri", systemImage: "slider.horizontal.3", isActive: model.showsCancelled,
+                identifier: "tasks.kanban.options"
+            ) {
+                Toggle("İptal edilenleri göster", isOn: $model.showsCancelled)
+            }
+        #endif
+    }
+
     /// Second layer of the view selector: how the board is split into columns.
+    /// Mac hugs the label (``KanbanMenuLayout/groupingMenuExpands``): a stretched label makes
+    /// the system menu open at the window width.
     private var groupingMenu: some View {
         InkLabeledMenu(
             "Grupla", selection: Binding(get: { model.grouping }, set: { model.choose($0) }),
@@ -92,25 +105,27 @@ struct KanbanView: View {
                 InkMenuOption("Durum", value: KanbanModel.Grouping.status),
                 InkMenuOption("Proje", value: KanbanModel.Grouping.project),
                 InkMenuOption("Kişi", value: KanbanModel.Grouping.person),
-            ], identifier: TasksViewSelector.menuIdentifier
+            ], expands: KanbanMenuLayout.groupingMenuExpands, identifier: TasksViewSelector.menuIdentifier
         )
     }
 
     private var board: some View {
         GeometryReader { geometry in
             ScrollView(.horizontal) {
-                HStack(alignment: .top, spacing: 16) {
+                HStack(alignment: .top, spacing: KanbanBoardLayout.columnSpacing) {
                     ForEach(model.columns) { column in
                         KanbanColumnView(model: model, column: column) { selectedRow = $0 }
                             #if os(macOS)
-                                .frame(width: 300)
+                                .frame(
+                                    width: KanbanBoardLayout.columnWidth(
+                                        fitting: geometry.size.width, columns: model.columns.count))
                             #else
                                 .frame(width: max(240, min(360, max(0, geometry.size.width - 32))))
                             #endif
                             .frame(height: max(0, geometry.size.height - 24))
                     }
                 }
-                .scrollTargetLayout().padding(12)
+                .scrollTargetLayout().padding(KanbanBoardLayout.boardPadding)
             }
             #if os(iOS)
                 .scrollTargetBehavior(.viewAligned)

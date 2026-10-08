@@ -4,6 +4,39 @@ import VaultFormat
 
 @testable import Journal
 
+struct KanbanBoardLayoutTests {
+    @Test func threeColumnsShareTheBoard() {
+        let width = KanbanBoardLayout.columnWidth(fitting: 1100, columns: 3)
+        #expect(width > 300)
+        let used =
+            width * 3 + KanbanBoardLayout.columnSpacing * 2 + KanbanBoardLayout.boardPadding * 2
+        #expect(abs(used - 1100) < 0.01)
+    }
+
+    @Test func crowdedBoardKeepsTheFloorAndScrolls() {
+        #expect(
+            KanbanBoardLayout.columnWidth(fitting: 1100, columns: 12) == KanbanBoardLayout.minimumColumnWidth)
+        #expect(KanbanBoardLayout.columnWidth(fitting: 0, columns: 4) == KanbanBoardLayout.minimumColumnWidth)
+        #expect(KanbanBoardLayout.columnWidth(fitting: .nan, columns: 2) == KanbanBoardLayout.minimumColumnWidth)
+    }
+
+    @Test func optionsMenuOpensBackIntoTheWindow() {
+        let origin = KanbanOptionsMenuLayout.menuOriginX(
+            menuWidth: 200, anchorMaxX: 1260, limitX: 1272, minimumX: 0)
+        #expect(origin == 1060)
+        #expect(origin + 200 <= 1272)
+        let clamped = KanbanOptionsMenuLayout.menuOriginX(
+            menuWidth: 200, anchorMaxX: 50, limitX: 1280, minimumX: 8)
+        #expect(clamped == 8)
+    }
+
+    @Test func oneColumnFillsTheBoard() {
+        let width = KanbanBoardLayout.columnWidth(fitting: 500, columns: 1)
+        #expect(width == 500 - KanbanBoardLayout.boardPadding * 2)
+        #expect(KanbanBoardLayout.columnWidth(fitting: 500, columns: 0) == width)
+    }
+}
+
 @MainActor struct KanbanTests {
     @Test func statusColumnsHideCancelledAndLimitDoneToThirtyDays() async throws {
         let context = try TaskTestContext()
@@ -199,6 +232,31 @@ import VaultFormat
         let token = model.beginDrag(row)
         #expect(!model.acceptsDrop(token, into: try #require(model.columns.first)))
         #expect(try Data(contentsOf: context.file) == Data(source.utf8))
+    }
+
+    @Test func macMenusHugContentAndStayInTheWindow() throws {
+        let view = try Self.read("App/Screens/Tasks/Kanban/KanbanView.swift")
+        #expect(view.contains("expands: KanbanMenuLayout.groupingMenuExpands"))
+        #expect(view.contains("KanbanMacOptionsMenu(showsCancelled:"))
+        let menu = try Self.read("App/Screens/Tasks/Kanban/KanbanMacOptionsMenu.swift")
+        #expect(menu.contains("menu.popUp"))
+        #expect(menu.contains("KanbanOptionsMenuLayout.menuOriginX"))
+        #expect(menu.contains("tasks.kanban.options"))
+        #expect(!menu.contains("maxWidth: .infinity"))
+        #expect(KanbanOptionsMenuLayout.reservedLabelWidth >= 180)
+        #if os(macOS)
+            #expect(KanbanMenuLayout.groupingMenuExpands == false)
+        #else
+            #expect(KanbanMenuLayout.groupingMenuExpands == true)
+        #endif
+    }
+
+    private static func read(_ relative: String) throws -> String {
+        let root = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+        return try String(contentsOf: root.appendingPathComponent(relative), encoding: .utf8)
     }
 
     private func board(_ context: TaskTestContext) -> KanbanModel {

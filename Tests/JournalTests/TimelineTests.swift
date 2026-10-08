@@ -288,6 +288,37 @@ import VaultFormat
         #expect(try Data(contentsOf: context.file) == Data(source.utf8))
     }
 
+    #if os(macOS)
+        @Test func todayLabelSitsOnTheDayInsteadOfInsideTheCell() {
+            let dayWidth: CGFloat = 8
+            let center = TimelineAxisLayout.todayLabelCenterX(dayIndex: 10, dayWidth: dayWidth)
+            #expect(center == 84)
+            let cellMaxX = CGFloat(10) * dayWidth + dayWidth
+            #expect(center + 24 > cellMaxX)
+            #expect(TimelineAxisLayout.todayLabelCenterY(showsDate: true) < TimelineDesktopMetrics.axisHeight / 2)
+            #expect(TimelineAxisLayout.todayLabelCenterY(showsDate: false) == TimelineDesktopMetrics.axisHeight / 2)
+        }
+
+        @Test func macRowUsesTheSharedDateLine() throws {
+            let labels = try String(
+                contentsOf: URL(fileURLWithPath: #filePath)
+                    .deletingLastPathComponent()
+                    .deletingLastPathComponent()
+                    .deletingLastPathComponent()
+                    .appendingPathComponent("App/Screens/Tasks/Timeline/TimelineDesktopView.swift"),
+                encoding: .utf8)
+            #expect(labels.contains("TimelineTaskFacts"))
+            let axis = try String(
+                contentsOf: URL(fileURLWithPath: #filePath)
+                    .deletingLastPathComponent()
+                    .deletingLastPathComponent()
+                    .deletingLastPathComponent()
+                    .appendingPathComponent("App/Screens/Tasks/Timeline/TimelineDesktopContent.swift"),
+                encoding: .utf8)
+            #expect(axis.contains("TimelineAxisLayout.todayLabelCenterX"))
+        }
+    #endif
+
     private func timeline(_ context: TaskTestContext) -> TimelineModel {
         TimelineModel(tasks: TasksModel(store: context.store, today: { context.today }))
     }

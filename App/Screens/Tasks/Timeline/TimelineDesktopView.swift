@@ -11,14 +11,19 @@ import VaultFormat
 
         var body: some View {
             GeometryReader { geometry in
-                let chartWidth = max(200, geometry.size.width - 230)
+                let chartWidth = max(200, geometry.size.width - TimelineDesktopMetrics.labelColumnWidth)
                 let dayWidth = chartWidth / CGFloat(model.scale.daysAcross)
                 let groups = model.groups
-                let height = CGFloat(
-                    44 + groups.reduce(0) { $0 + 32 + (model.collapsed.contains($1.id) ? 0 : $1.rows.count * 52) })
+                let height =
+                    TimelineDesktopMetrics.axisHeight
+                    + groups.reduce(CGFloat(0)) { partial, group in
+                        let rows = model.collapsed.contains(group.id) ? 0 : group.rows.count
+                        return partial + TimelineDesktopMetrics.groupHeaderHeight
+                            + CGFloat(rows) * TimelineDesktopMetrics.rowHeight
+                    }
                 ScrollView(.vertical) {
                     HStack(alignment: .top, spacing: 0) {
-                        labels(groups).frame(width: 230)
+                        labels(groups).frame(width: TimelineDesktopMetrics.labelColumnWidth)
                         ScrollViewReader { proxy in
                             ScrollView(.horizontal) {
                                 TimelineDesktopContent(
@@ -75,7 +80,7 @@ import VaultFormat
                 Text("Görevler")
                     .font(.ink.section)
                     .foregroundStyle(.ink.text)
-                    .frame(height: 44)
+                    .frame(height: TimelineDesktopMetrics.axisHeight)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, 10)
                 ForEach(groups) { group in
@@ -101,27 +106,31 @@ import VaultFormat
                         }
                         .padding(.horizontal, 10)
                     }
-                    .buttonStyle(.plain).frame(height: 32)
+                    .buttonStyle(.plain).frame(height: TimelineDesktopMetrics.groupHeaderHeight)
                     .accessibilityValue(
                         Text(verbatim: VoiceOverCopy.disclosureValue(isExpanded: isExpanded)))
                     if isExpanded {
                         ForEach(group.rows) { row in
                             let presentation = TaskStatusPresentation.make(
                                 due: row.due, asOf: model.today, isCompleted: row.isClosed)
-                            LinkedTextView(
-                                text: row.text, store: model.store,
-                                isMuted: presentation.usesSecondaryText
-                            )
-                            .font(.ink.content)
-                            .lineLimit(2)
-                            .foregroundStyle(
-                                presentation.usesSecondaryText
-                                    ? Color.ink.secondaryText
-                                    : Color.ink.text
-                            )
+                            VStack(alignment: .leading, spacing: 2) {
+                                LinkedTextView(
+                                    text: row.text, store: model.store,
+                                    isMuted: presentation.usesSecondaryText
+                                )
+                                .font(.ink.content)
+                                .lineLimit(2)
+                                .foregroundStyle(
+                                    presentation.usesSecondaryText
+                                        ? Color.ink.secondaryText
+                                        : Color.ink.text
+                                )
+                                TimelineTaskFacts(model: model, row: row, presentation: presentation)
+                                    .lineLimit(1)
+                            }
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(.horizontal, 10)
-                            .frame(height: 52)
+                            .frame(height: TimelineDesktopMetrics.rowHeight, alignment: .center)
                             .contentShape(Rectangle()).onTapGesture { select(row) }
                             .contextMenu { TimelineTaskMenu { edit(row, $0) } }
                         }

@@ -3,6 +3,28 @@ import VaultFormat
 
 #if os(macOS)
 
+    /// Shared measures for the Mac chart and its label column so a row and its bar stay aligned.
+    enum TimelineDesktopMetrics {
+        static let labelColumnWidth: CGFloat = 260
+        /// Title (up to two lines) plus the tabular date line.
+        static let rowHeight: CGFloat = 68
+        static let groupHeaderHeight: CGFloat = 32
+        static let axisHeight: CGFloat = 44
+    }
+
+    /// Where the "Bugün" label sits. It is drawn on its own layer, centered on the day, because a
+    /// quarter-scale cell is narrower than the word and the next day's fill covers the overflow.
+    enum TimelineAxisLayout {
+        static func todayLabelCenterX(dayIndex: Int, dayWidth: CGFloat) -> CGFloat {
+            (CGFloat(dayIndex) + 0.5) * dayWidth
+        }
+
+        /// Above the date when that day also prints a date; otherwise on the axis midline.
+        static func todayLabelCenterY(showsDate: Bool) -> CGFloat {
+            showsDate ? 12 : TimelineDesktopMetrics.axisHeight / 2
+        }
+    }
+
     /// Non-scrolling timeline chart shared by ``TimelineDesktopView`` and Mac snapshots:
     /// axis (weekend wells, today label, date labels), grid (today vertical line), and bars.
     struct TimelineDesktopContent: View {
@@ -25,7 +47,7 @@ import VaultFormat
             VStack(spacing: 0) {
                 axis
                 ForEach(model.groups) { group in
-                    Color.clear.frame(height: 32)
+                    Color.clear.frame(height: TimelineDesktopMetrics.groupHeaderHeight)
                     if !model.collapsed.contains(group.id) {
                         let rows = maxRowsPerGroup.map { Array(group.rows.prefix($0)) } ?? group.rows
                         ForEach(rows) { row in
@@ -54,7 +76,7 @@ import VaultFormat
             if clipsToWindow {
                 bar
                     .offset(x: -shift)
-                    .frame(width: chartWidth, height: 52, alignment: .leading)
+                    .frame(width: chartWidth, height: TimelineDesktopMetrics.rowHeight, alignment: .leading)
                     .clipped()
             } else {
                 bar
@@ -78,16 +100,21 @@ import VaultFormat
                                 .zIndex(1)
                                 .offset(y: day == model.today ? 8 : 0)
                         }
-                        if day == model.today {
-                            Text("Bugün")
-                                .font(.ink.meta)
-                                .foregroundStyle(.ink.accent)
-                                .fixedSize()
-                                .zIndex(2)
-                                .offset(y: showsAxisDateLabel(day) ? -8 : 0)
-                                .accessibilityAddTraits(.isHeader)
-                        }
-                    }.frame(width: dayWidth, height: 44).id(day.description)
+                    }.frame(width: dayWidth, height: TimelineDesktopMetrics.axisHeight).id(day.description)
+                }
+            }
+            .overlay {
+                if let index = days.firstIndex(of: model.today) {
+                    Text("Bugün")
+                        .font(.ink.meta)
+                        .foregroundStyle(.ink.accent)
+                        .fixedSize()
+                        .position(
+                            x: TimelineAxisLayout.todayLabelCenterX(dayIndex: index, dayWidth: dayWidth),
+                            y: TimelineAxisLayout.todayLabelCenterY(
+                                showsDate: showsAxisDateLabel(model.today))
+                        )
+                        .accessibilityAddTraits(.isHeader)
                 }
             }
         }

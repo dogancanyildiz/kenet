@@ -23,6 +23,19 @@ extension EnvironmentValues {
     }
 }
 
+private struct SearchSheetKey: EnvironmentKey {
+    static let defaultValue = false
+}
+
+extension EnvironmentValues {
+    /// True inside the search sheet (set by ``SearchView``), where ``SearchButton`` returns
+    /// from an opened page to the results.
+    var isSearchSheet: Bool {
+        get { self[SearchSheetKey.self] }
+        set { self[SearchSheetKey.self] = newValue }
+    }
+}
+
 /// Opens global search through `\.openSearch`.
 ///
 /// iPhone: belongs in the `actions` slot of a manşet row (``InkPageTitle`` /
@@ -33,6 +46,8 @@ extension EnvironmentValues {
 ///
 /// Mac: search has one place, the window toolbar of the shell (`MacNavigation`). The same
 /// screens are shared, so inside a manşet row's `actions` slot this view draws nothing on Mac.
+/// The exception is the search sheet: a page opened from the results keeps the manşet
+/// magnifier, which leads back to the results (the window toolbar is behind the sheet).
 ///
 /// The body stays a bare system button on purpose: the Mac toolbar draws it as its own glass
 /// control and the manşet slot supplies the iPhone look (`ControlPatternUsageTests`).
@@ -41,12 +56,14 @@ struct SearchButton: View {
 
     #if os(macOS)
         @Environment(\.isInkHeaderActionSlot) private var isHeaderSlot
+        @Environment(\.isSearchSheet) private var isSearchSheet
     #endif
 
     var body: some View {
         #if os(macOS)
-            // Mac: search lives in the window toolbar only; the manşet rows show no magnifier.
-            if !isHeaderSlot { button }
+            // Mac: search lives in the window toolbar only; the manşet rows show no magnifier,
+            // except inside the search sheet, where it is the way back to the results.
+            if !isHeaderSlot || isSearchSheet { button }
         #else
             button
         #endif

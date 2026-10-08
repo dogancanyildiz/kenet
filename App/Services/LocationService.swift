@@ -40,6 +40,10 @@ extension LocationSource {
 final class LocationService {
     private(set) var authorization = LocationAuthorization.notDetermined
     private(set) var isRequesting = false
+    /// A fix was asked for and the system has not answered yet.
+    private(set) var isLocating = false
+    /// The last answer carried no usable fix.
+    private(set) var lastRequestFailed = false
     @ObservationIgnored var onAuthorizationRefresh: (() -> Void)?
     private(set) var coordinate: PlaceCoordinate?
     var isEnabled: Bool {
@@ -53,7 +57,10 @@ final class LocationService {
     @ObservationIgnored private let defaults: UserDefaults
     @ObservationIgnored private let now: () -> Date
     @ObservationIgnored private var lastAttempt: Date?
-    private var lastFix: Date?
+    /// A source that never answers must not block the button for good.
+    static let answerTimeout: TimeInterval = 30
+    /// Changes with every fix, also when the measured coordinate is the same as before.
+    private(set) var lastFix: Date?
 
     init(
         source: any LocationSource = SystemLocationSource(), defaults: UserDefaults = .standard,
@@ -65,9 +72,12 @@ final class LocationService {
         isEnabled = defaults.object(forKey: Self.preferenceKey) as? Bool ?? true
         source.onAuthorizationChange = { [weak self] in self?.refreshAuthorization() }
         source.onLocation = { [weak self] value in
-            guard let self, self.isEnabled, self.authorization.canLocate else { return }
+            guard let self else { return }
+            self.isLocating = false
+            guard self.isEnabled, self.authorization.canLocate else { return }
             self.coordinate = value?.isValid == true ? value : nil
             self.lastFix = self.coordinate == nil ? nil : self.now()
+            self.lastRequestFailed = self.coordinate == nil
         }
     }
 
@@ -81,7 +91,10 @@ final class LocationService {
     func refreshAuthorization() {
         authorization = source.authorization
         if authorization != .notDetermined { isRequesting = false }
-        if !authorization.canLocate { coordinate = nil }
+        if !authorization.canLocate {
+            coordinate = nil
+            isLocating = false
+        }
         onAuthorizationRefresh?()
     }
 
@@ -95,13 +108,27 @@ final class LocationService {
     }
 
     /// Starts a single fix without delaying entry submission or asking for permission.
-    func requestLocationIfNeeded() {
+    ///
+    /// The automatic request (quick entry focus) is limited to one a minute. A button the user
+    /// taps (`userInitiated`) is not: it asks again unless a request is pending or a fresh fix
+    /// is already there, so a failed or slow first answer does not leave the button dead.
+    /// A request unanswered for `answerTimeout` no longer counts as pending.
+    func requestLocationIfNeeded(userInitiated: Bool = false) {
         guard isEnabled else { return }
         refreshAuthorization()
         guard authorization.canLocate else { return }
         let date = now()
-        if let lastAttempt, date.timeIntervalSince(lastAttempt) < 60 { return }
+        if userInitiated {
+            // A clock set back must not keep the request pending: the distance counts, not the sign.
+            let waited = abs(date.timeIntervalSince(lastAttempt ?? date))
+            let pending = isLocating && waited < Self.answerTimeout
+            guard !pending, currentCoordinate == nil else { return }
+        } else if let lastAttempt, date.timeIntervalSince(lastAttempt) < 60 {
+            return
+        }
         lastAttempt = date
+        isLocating = true
+        lastRequestFailed = false
         source.requestLocation()
     }
 }

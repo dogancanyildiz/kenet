@@ -23,6 +23,48 @@ struct PlaceCoordinate: Equatable, Sendable {
     }
 }
 
+/// Text the user types for a place's `coordinates` field, and the spelling written to the file.
+enum PlaceCoordinateInput {
+    /// A valid pair, or nil. Accepts a decimal comma and a typographic minus.
+    static func coordinate(latitude: String, longitude: String) -> PlaceCoordinate? {
+        guard let latitude = spelling(latitude).flatMap(Double.init),
+            let longitude = spelling(longitude).flatMap(Double.init)
+        else { return nil }
+        let coordinate = PlaceCoordinate(latitude: latitude, longitude: longitude)
+        return coordinate.isValid ? coordinate : nil
+    }
+
+    /// More fraction digits than a `Double` can hold are refused, not written.
+    static let maximumFractionDigits = 15
+
+    /// The typed number in the spelling the file accepts (`-?(0|[1-9][0-9]*)(\.[0-9]+)?`), with
+    /// the digits the user gave; nil when it is not such a number or has too many fraction
+    /// digits. A plus sign and leading zeros are dropped and a signed zero is `0`, the same
+    /// spellings a measured position gets.
+    static func spelling(_ text: String) -> String? {
+        let text = text.trimmingCharacters(in: .whitespacesAndNewlines)
+            .replacingOccurrences(of: ",", with: ".").replacingOccurrences(of: "\u{2212}", with: "-")
+        guard let match = text.wholeMatch(of: /([+-]?)0*([0-9]+)(\.([0-9]+))?/),
+            (match.4?.count ?? 0) <= maximumFractionDigits
+        else { return nil }
+        let digits = String(match.2) + (match.3.map(String.init) ?? "")
+        guard digits.contains(where: { $0 != "0" && $0 != "." }) else { return "0" }
+        return (match.1 == "-" ? "-" : "") + digits
+    }
+
+    /// Plain decimal spelling with at most six fraction digits (about 0.1 m), never an exponent.
+    static func text(_ value: Double) -> String {
+        var text = String(format: "%.6f", locale: Locale(identifier: "en_US_POSIX"), value)
+        while text.hasSuffix("0") { text.removeLast() }
+        if text.hasSuffix(".") { text.removeLast() }
+        return text == "-0" ? "0" : text
+    }
+
+    static func literals(_ coordinate: PlaceCoordinate) -> [FrontmatterLiteral] {
+        [.number(text(coordinate.latitude)), .number(text(coordinate.longitude))]
+    }
+}
+
 struct NearbyPlace: Equatable, Sendable {
     let entity: KnownEntity
     let coordinate: PlaceCoordinate

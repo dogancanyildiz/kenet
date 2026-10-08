@@ -1741,6 +1741,22 @@
         }
       }
     },
+    "Bir konumu açıp Düzenle'den koordinatını gir." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open a place and enter its coordinates under Edit."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bir konumu açıp Düzenle'den koordinatını gir."
+          }
+        }
+      }
+    },
     "Bir süredir görüşmediklerin" : {
       "localizations" : {
         "en" : {
@@ -2989,6 +3005,22 @@
         }
       }
     },
+    "Eklediğin konumlar, koordinatı girilince haritada görünür." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Places you add appear on the map once they have coordinates."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eklediğin konumlar, koordinatı girilince haritada görünür."
+          }
+        }
+      }
+    },
     "Eklenecek metin boş olamaz." : {
       "localizations" : {
         "en" : {
@@ -3097,6 +3129,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Enlem"
+          }
+        }
+      }
+    },
+    "Enlem -90 ile 90, boylam -180 ile 180 arasında, en çok 15 ondalık basamaklı bir sayı olmalı." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Latitude must be a number from -90 to 90, longitude from -180 to 180, with at most 15 decimal places."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enlem -90 ile 90, boylam -180 ile 180 arasında, en çok 15 ondalık basamaklı bir sayı olmalı."
           }
         }
       }
@@ -4557,6 +4605,22 @@
         }
       }
     },
+    "Henüz konum yok" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No places yet"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Henüz konum yok"
+          }
+        }
+      }
+    },
     "Henüz özel tip yok." : {
       "localizations" : {
         "en" : {
@@ -5581,6 +5645,38 @@
         }
       }
     },
+    "Kayıtlı koordinat okunamıyor. Kaydet, aşağıdaki değerin yerine yenisini yazar." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The saved coordinates cannot be read. Save replaces the value below with the new one."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kayıtlı koordinat okunamıyor. Kaydet, aşağıdaki değerin yerine yenisini yazar."
+          }
+        }
+      }
+    },
+    "Kayıtlı koordinat uygulamanın değiştiremediği bir biçimde. Dosyada elle düzelt." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The saved coordinates are in a form the app cannot change. Fix them in the file by hand."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kayıtlı koordinat uygulamanın değiştiremediği bir biçimde. Dosyada elle düzelt."
+          }
+        }
+      }
+    },
     "Kaynak" : {
       "localizations" : {
         "en" : {
@@ -6029,6 +6125,38 @@
         }
       }
     },
+    "Konum alınamadı. Yeniden dene ya da enlem ve boylamı elle yaz." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could not get your location. Try again or type the latitude and longitude."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Konum alınamadı. Yeniden dene ya da enlem ve boylamı elle yaz."
+          }
+        }
+      }
+    },
+    "Konum alınıyor…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Getting your location…"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Konum alınıyor…"
+          }
+        }
+      }
+    },
     "Konum bağlantısı olan uygun hedef yok." : {
       "localizations" : {
         "en" : {
@@ -6157,6 +6285,38 @@
         }
       }
     },
+    "Konum izni ya da konum önerileri kapalı. Enlem ve boylamı elle yazabilirsin." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Location permission or location suggestions are off. You can type the latitude and longitude."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Konum izni ya da konum önerileri kapalı. Enlem ve boylamı elle yazabilirsin."
+          }
+        }
+      }
+    },
+    "Konum izni yalnız seni haritada gösterir; konumlara koordinat eklemez." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Location permission only shows you on the map; it does not add coordinates to places."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Konum izni yalnız seni haritada gösterir; konumlara koordinat eklemez."
+          }
+        }
+      }
+    },
     "Konum olarak ekle" : {
       "localizations" : {
         "en" : {
@@ -6253,34 +6413,66 @@
         }
       }
     },
-    "Koordinat eklenen konumlar burada görünür." : {
+    "Konumlarında koordinat yok" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Places with coordinates appear here."
+            "value" : "Your places have no coordinates"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Koordinat eklenen konumlar burada görünür."
+            "value" : "Konumlarında koordinat yok"
           }
         }
       }
     },
-    "Koordinatlı konum yok" : {
+    "Koordinat" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No places with coordinates"
+            "value" : "Coordinates"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Koordinatlı konum yok"
+            "value" : "Koordinat"
+          }
+        }
+      }
+    },
+    "Koordinatı kaldır" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove coordinates"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Koordinatı kaldır"
+          }
+        }
+      }
+    },
+    "Koordinatı kaldır?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove coordinates?"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Koordinatı kaldır?"
           }
         }
       }
@@ -7673,6 +7865,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sonuç bulunamadı"
+          }
+        }
+      }
+    },
+    "Şu anki konumumu kullan" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Use my current location"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Şu anki konumumu kullan"
           }
         }
       }

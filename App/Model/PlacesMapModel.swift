@@ -25,4 +25,13 @@ enum PlacesMapModel {
                 intensity: Double(count) / Double(maximum))
         }.sorted { $0.id < $1.id }
     }
+
+    /// Places the map cannot show yet, by name: the empty map offers them for editing.
+    static func withoutCoordinates(entities: [KnownEntity], places: [MapPlace]) -> [KnownEntity] {
+        let shown = Set(places.filter { $0.coordinate.isValid }.map(\.entity.file))
+        return entities.filter { $0.kind == .place && !shown.contains($0.file) }.sorted {
+            let order = $0.name.localizedStandardCompare($1.name)
+            return order == .orderedSame ? $0.file < $1.file : order == .orderedAscending
+        }
+    }
 }

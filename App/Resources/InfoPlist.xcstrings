@@ -65,13 +65,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Kenet uses your location even when the app is closed so that arriving at a place you chose, such as your gym, can mark the goal linked to it or remind you. Your location is not saved and is not sent anywhere."
+            "value" : "Kenet uses your location even when the app is closed so that arriving at a place you chose, such as your gym, can mark the goal linked to it or remind you. Your location is written to a place's file only when you tap Save to store it as that place's coordinates; it is never sent anywhere."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Kenet, seçtiğin bir konuma vardığında, örneğin spor salonuna girdiğinde, o konuma bağlı hedefi işaretlemek ya da sana hatırlatmak için uygulama kapalıyken de konumunu kullanır. Konum bilgin kaydedilmez ve hiçbir yere gönderilmez."
+            "value" : "Kenet, seçtiğin bir konuma vardığında, örneğin spor salonuna girdiğinde, o konuma bağlı hedefi işaretlemek ya da sana hatırlatmak için uygulama kapalıyken de konumunu kullanır. Konumun yalnız sen bir konumun koordinatı olarak Kaydet dediğinde o konumun dosyasına yazılır; hiçbir yere gönderilmez."
           }
         }
       }
@@ -82,13 +82,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Kenet uses your location to suggest your saved places nearby while you write and to show where you are on the map. Your location is not saved and is not sent anywhere."
+            "value" : "Kenet uses your location to suggest your saved places nearby as you write, to show where you are on the map, and to fill in a place's coordinates when you ask. Your location is written to that place's file only when you tap Save; it is never sent anywhere."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Kenet konumunu, yazarken yakınındaki kayıtlı konumlarını önermek ve haritada yerini göstermek için kullanır. Konum bilgin kaydedilmez ve hiçbir yere gönderilmez."
+            "value" : "Kenet konumunu, yazarken yakınındaki kayıtlı konumlarını önermek, haritada yerini göstermek ve sen istediğinde bir konumun koordinatını doldurmak için kullanır. Konumun yalnız sen Kaydet dediğinde o konumun dosyasına yazılır; hiçbir yere gönderilmez."
           }
         }
       }

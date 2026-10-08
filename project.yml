@@ -102,8 +102,8 @@ targets:
         INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: NO
         INFOPLIST_KEY_NSFaceIDUsageDescription: Günlüğünün kilidini açmak için Face ID kullanılır.
         INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription: Bugünün takvim etkinliklerini göstermek için takvim erişimi gerekir. Etkinlikler değiştirilmez.
-        INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription: Kenet, seçtiğin bir konuma vardığında, örneğin spor salonuna girdiğinde, o konuma bağlı hedefi işaretlemek ya da sana hatırlatmak için uygulama kapalıyken de konumunu kullanır. Konum bilgin kaydedilmez ve hiçbir yere gönderilmez.
-        INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: Kenet konumunu, yazarken yakınındaki kayıtlı konumlarını önermek ve haritada yerini göstermek için kullanır. Konum bilgin kaydedilmez ve hiçbir yere gönderilmez.
+        INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription: Kenet, seçtiğin bir konuma vardığında, örneğin spor salonuna girdiğinde, o konuma bağlı hedefi işaretlemek ya da sana hatırlatmak için uygulama kapalıyken de konumunu kullanır. Konumun yalnız sen bir konumun koordinatı olarak Kaydet dediğinde o konumun dosyasına yazılır; hiçbir yere gönderilmez.
+        INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: Kenet konumunu, yazarken yakınındaki kayıtlı konumlarını önermek, haritada yerini göstermek ve sen istediğinde bir konumun koordinatını doldurmak için kullanır. Konumun yalnız sen Kaydet dediğinde o konumun dosyasına yazılır; hiçbir yere gönderilmez.
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
         INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES

@@ -4,10 +4,25 @@ struct UnseenPeopleSection: View {
     let store: IndexStore
     let people: [EntitySummary]
     var select: ((EntitySummary) -> Void)? = nil
+    var initiallyExpanded: Bool = false
     @AppStorage(PeopleInsightsPreference.key) private var threshold = PeopleInsightsPreference.defaultDays
     @Environment(IntentNavigation.self) private var navigation
     @Environment(\.clockNow) private var clockNow
-    @State private var expanded = false
+    @Environment(\.displayScale) private var displayScale
+    @State private var expanded: Bool
+
+    init(
+        store: IndexStore,
+        people: [EntitySummary],
+        select: ((EntitySummary) -> Void)? = nil,
+        initiallyExpanded: Bool = false
+    ) {
+        self.store = store
+        self.people = people
+        self.select = select
+        self.initiallyExpanded = initiallyExpanded
+        _expanded = State(initialValue: initiallyExpanded)
+    }
 
     /// Bumped once a minute so the day boundary moves the list without a vault change.
     @State private var minute = 0
@@ -22,15 +37,12 @@ struct UnseenPeopleSection: View {
         Button {
             expanded.toggle()
         } label: {
-            SectionHeader(title: String(localized: "Bir süredir görüşmediklerin"))
-                .overlay(alignment: .bottomTrailing) {
-                    Image(systemName: expanded ? "chevron.down" : "chevron.right")
-                        .font(.ink.meta)
-                        .foregroundStyle(.ink.secondaryText)
-                        .accessibilityHidden(true)
-                }
-                .frame(minHeight: TapTarget.minimumLength, alignment: .top)
-                .contentShape(Rectangle())
+            SectionHeader(
+                title: String(localized: "Bir süredir görüşmediklerin"),
+                isExpanded: expanded
+            )
+            .frame(minHeight: TapTarget.minimumLength, alignment: .top)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityValue(expanded ? Text("Genişletilmiş") : Text("Daraltılmış"))
@@ -62,6 +74,11 @@ struct UnseenPeopleSection: View {
                         .inkListRow()
                 }
             }
+            Rectangle()
+                .fill(Color.ink.rule)
+                .frame(height: InkStroke.hairline(scale: displayScale))
+                .accessibilityHidden(true)
+                .inkListRow()
         }
     }
 

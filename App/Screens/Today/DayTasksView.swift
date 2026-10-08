@@ -39,18 +39,21 @@ struct DayTasksView: View {
                         ) { Task { await model.complete(row) } }
                     case .carriedOverDisclosure(let text):
                         Button(action: onExpandCarriedOver) {
-                            Text(verbatim: text)
-                                .font(.ink.meta)
-                                .foregroundStyle(Color.ink.warning)
-                                // Vertically center in the 44 pt floor; outer rhythm is
-                                // ``InkSpacing.row`` from the parent stack.
-                                .frame(
-                                    maxWidth: .infinity, minHeight: TapTarget.minimumLength,
-                                    alignment: .leading
-                                )
-                                .contentShape(Rectangle())
+                            MarginRow(kind: .vault) {
+                                Color.clear.frame(width: 0, height: 0)
+                            } primary: {
+                                Text(verbatim: text)
+                                    .font(.ink.meta)
+                                    .foregroundStyle(Color.ink.warning)
+                            }
+                            .frame(
+                                maxWidth: .infinity, minHeight: TapTarget.minimumLength,
+                                alignment: .leading
+                            )
+                            .contentShape(Rectangle())
                         }
                         .buttonStyle(.plain)
+                        .accessibilityLabel(text)
                     case .completedDisclosure(let text):
                         Button(action: onExpandCompleted) {
                             Text(verbatim: text)

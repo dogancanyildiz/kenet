@@ -57,7 +57,8 @@
     /// the left. So a subpage replaces the tab's content instead, under a "Kasa" back button.
     struct MacVaultSettingsPage: View {
         let store: IndexStore
-        @State private var subpage: VaultSettingsSubpage?
+        /// The subpage the tab opens on; `nil` is the tab's root.
+        @State var subpage: VaultSettingsSubpage?
 
         /// The import page exists only while an import is being prepared; without one the tab
         /// falls back to its root.
@@ -65,16 +66,28 @@
             subpage == .vaultImport && !hasImport ? nil : subpage
         }
 
+        /// Preparation finished or was cancelled. Entity types stays open; it is not tied to the import.
+        static func subpage(_ current: VaultSettingsSubpage?, whenImportEnds ended: Bool) -> VaultSettingsSubpage? {
+            ended && current == .vaultImport ? nil : current
+        }
+
         var body: some View {
-            switch Self.shown(subpage, hasImport: store.importModel != nil) {
-            case nil:
-                VaultSettingsView(store: store, openSubpage: { subpage = $0 })
-            case .entityTypes:
-                under { EntityTypesSettingsView(store: store) }
-            case .vaultImport:
-                if let model = store.importModel {
-                    under { VaultImportView(store: store, model: model, isSheet: false) }
+            Group {
+                switch Self.shown(subpage, hasImport: store.importModel != nil) {
+                case nil:
+                    VaultSettingsView(store: store, openSubpage: { subpage = $0 })
+                case .entityTypes:
+                    under { EntityTypesSettingsView(store: store) }
+                case .vaultImport:
+                    if let model = store.importModel {
+                        under { VaultImportView(store: store, model: model, isSheet: false) }
+                    }
                 }
+            }
+            .onChange(of: store.importModel?.id) { _, id in
+                // Preparation finished or was cancelled: leave the import page. Entity types
+                // stays; only the import subpage was tied to that model.
+                subpage = Self.subpage(subpage, whenImportEnds: id == nil)
             }
         }
 
@@ -86,6 +99,7 @@
                     Label("Kasa", systemImage: "chevron.left")
                 }
                 .buttonStyle(InkTextButtonStyle())
+                .accessibilityLabel("Kasa'ya dön")
                 .accessibilityIdentifier("button.settings.vault.back")
                 // In line with the rows below: a plain Mac list insets its rows by 8 pt.
                 .padding(.horizontal, InkSpacing.margin + 8)

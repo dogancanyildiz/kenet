@@ -29,10 +29,11 @@
         var layout: MacShellLayout { MacShellLayout.resolve(section: section, tasks: tasks.layout) }
         var sidebarEntry: MacSidebarEntry? { MacSidebar.selection(section: section, tasks: tasks.layout) }
 
-        /// A choice made in the sidebar. Returns whether the rebuilt sidebar should take the
-        /// keyboard focus back: only when an arrow key made the choice and it swapped the layout.
+        /// A choice made in the sidebar (click, arrow key or VoiceOver). Returns whether the
+        /// rebuilt sidebar should take the keyboard focus back: when the choice swapped the
+        /// layout. The list drops that request if its own window already focuses another control.
         @discardableResult
-        mutating func select(_ entry: MacSidebarEntry, byKeyboard: Bool) -> Bool {
+        mutating func select(_ entry: MacSidebarEntry) -> Bool {
             let before = layout
             switch entry {
             case .section(let value):
@@ -49,7 +50,7 @@
                 section = .tasks
                 tasks.handle(.sidebarProject(name))
             }
-            return byKeyboard && layout != before
+            return layout != before
         }
 
         /// A project that left the vault is no longer a sidebar row: fall back to "Görevler".

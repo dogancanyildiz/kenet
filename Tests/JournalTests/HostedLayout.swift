@@ -3,6 +3,8 @@
     import SwiftUI
     import Testing
 
+    @testable import Journal
+
     /// Ends the test process when one hosted test keeps the main thread for too long, naming the
     /// test on standard error. A hosted test can block inside AppKit (a tracking loop, a modal
     /// session) where Swift Testing's time limit cannot cancel it; on a headless CI machine that
@@ -42,6 +44,35 @@
             let line = "ATLANDI (ortam odak vermiyor): \(test)\n"
             FileHandle.standardError.write(Data(line.utf8))
             return false
+        }
+    }
+
+    /// The app finds the journal window by `MainWindowMarker.identifier`, and the test process
+    /// already owns one (the host app's). A hosted shell takes the mark for the length of a test,
+    /// so the app's own lookup (`MacSidebarFocus.sidebarWindow`) lands on the hosted window.
+    /// The mark is process-wide and suites run side by side: one holder at a time, others wait.
+    @MainActor
+    enum HostedJournalWindow {
+        private static var isHeld = false
+        private static var waiting: [CheckedContinuation<Void, Never>] = []
+
+        /// Returns the closure that gives the mark back; call it before the window closes.
+        static func claim(_ window: NSWindow) async -> @MainActor () -> Void {
+            if isHeld {
+                await withCheckedContinuation { waiting.append($0) }
+            }
+            isHeld = true
+            let mark = MainWindowMarker.identifier
+            let others = NSApp.windows.filter { $0 !== window && $0.identifier == mark }
+            for other in others { other.identifier = NSUserInterfaceItemIdentifier("journal-main-held") }
+            let previous = window.identifier
+            window.identifier = mark
+            return {
+                window.identifier = previous
+                for other in others { other.identifier = mark }
+                // Handed straight to the next holder: `isHeld` stays true in between.
+                if waiting.isEmpty { isHeld = false } else { waiting.removeFirst().resume() }
+            }
         }
     }
 

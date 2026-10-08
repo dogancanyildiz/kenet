@@ -296,12 +296,21 @@ struct PlaceCoordinateDraftTests {
         #expect(draft.latitude.isEmpty && !draft.isDirty && draft.submit() == .invalid)
     }
 
-    @Test func spellingKeepsTypedDigitsAndNegativeZeroIsWrittenAsZero() {
+    @Test func typedAndMeasuredSpellingsKeepDigitsDropPlusAndWriteSignedZeroAsZero() {
         #expect(PlaceCoordinateInput.spelling(" 41,00820012345 ") == "41.00820012345")
         #expect(PlaceCoordinateInput.spelling("\u{2212}0.50") == "-0.50")
         #expect(PlaceCoordinateInput.spelling("041.5") == "41.5")
         #expect(PlaceCoordinateInput.spelling("00") == "0")
         #expect(PlaceCoordinateInput.spelling("1e5") == nil && PlaceCoordinateInput.spelling(".5") == nil)
+        #expect(PlaceCoordinateInput.spelling("+41.5") == "41.5")
+        for zero in ["-0", "-0.0", "+0", "+0.000", "\u{2212}00,0"] {
+            #expect(PlaceCoordinateInput.spelling(zero) == "0")
+        }
+        #expect(PlaceCoordinateInput.spelling("-0.001") == "-0.001")
+        var draft = PlaceCoordinateDraft()
+        draft.latitude = "-0.0"
+        draft.longitude = "+28.9"
+        #expect(draft.submit() == .write(latitude: "0", longitude: "28.9"))
         #expect(PlaceCoordinateInput.text(-0.0) == "0")
         #expect(PlaceCoordinateInput.text(-0.0000001) == "0")
         let zero = PlaceCoordinate(latitude: -0.0, longitude: 0)
@@ -324,6 +333,22 @@ struct LocationRequestStateTests {
         date.addTimeInterval(1)
         service.requestLocationIfNeeded(userInitiated: true)
         #expect(source.locationRequests == 2 && service.isLocating)
+    }
+
+    @Test func clockSetBackDoesNotKeepTheRequestPending() throws {
+        let defaults = try TestDefaults()
+        defer { defaults.clean() }
+        let source = SlowLocationSource()
+        var date = Date(timeIntervalSince1970: 100_000)
+        let service = LocationService(source: source, defaults: defaults.defaults, now: { date })
+        service.requestLocationIfNeeded(userInitiated: true)
+        date.addTimeInterval(-3600)
+        service.requestLocationIfNeeded(userInitiated: true)
+        #expect(source.locationRequests == 2 && service.isLocating)
+        // From the new start the usual wait applies again.
+        date.addTimeInterval(-1)
+        service.requestLocationIfNeeded(userInitiated: true)
+        #expect(source.locationRequests == 2)
     }
 
     @Test func answerWhileDisabledOrUnauthorizedEndsThePendingRequest() throws {
@@ -372,6 +397,31 @@ struct LocationRequestStateTests {
         #expect(SystemLocationSource.fix(from: location(age: 3600), now: now) == nil)
         #expect(SystemLocationSource.fix(from: location(age: 0, accuracy: -1), now: now) == nil)
         #expect(SystemLocationSource.fix(from: nil, now: now) == nil)
+    }
+}
+
+@Suite("Place coordinate length")
+struct PlaceCoordinateLengthTests {
+    @Test func tooManyFractionDigitsAreRefusedButAnUntouchedFileValueIsKept() {
+        let limit = String(repeating: "1", count: PlaceCoordinateInput.maximumFractionDigits)
+        #expect(PlaceCoordinateInput.spelling("41." + limit) == "41." + limit)
+        #expect(PlaceCoordinateInput.spelling("41." + limit + "1") == nil)
+        #expect(PlaceCoordinateInput.spelling("41." + String(repeating: "7", count: 5000)) == nil)
+        #expect(PlaceCoordinateInput.coordinate(latitude: "41." + limit + "1", longitude: "28") == nil)
+        #expect(PlaceCoordinateInput.coordinate(latitude: String(repeating: "9", count: 5000), longitude: "28") == nil)
+
+        var typed = PlaceCoordinateDraft()
+        typed.latitude = "41." + limit + "1"
+        typed.longitude = "28.9"
+        #expect(typed.submit() == .invalid && typed.invalid)
+
+        // A long value already in the file is not the user's input: editing the other field
+        // keeps it byte for byte.
+        let long = "41." + String(repeating: "3", count: 40)
+        var stored = PlaceCoordinateDraft(spellings: [long, "28.9"])
+        #expect(stored.submit() == .unchanged)
+        stored.longitude = "29"
+        #expect(stored.submit() == .write(latitude: long, longitude: "29"))
     }
 }
 

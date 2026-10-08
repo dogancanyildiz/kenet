@@ -3133,18 +3133,18 @@
         }
       }
     },
-    "Enlem -90 ile 90, boylam -180 ile 180 arasında bir sayı olmalı." : {
+    "Enlem -90 ile 90, boylam -180 ile 180 arasında, en çok 15 ondalık basamaklı bir sayı olmalı." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Latitude must be a number from -90 to 90, longitude from -180 to 180."
+            "value" : "Latitude must be a number from -90 to 90, longitude from -180 to 180, with at most 15 decimal places."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enlem -90 ile 90, boylam -180 ile 180 arasında bir sayı olmalı."
+            "value" : "Enlem -90 ile 90, boylam -180 ile 180 arasında, en çok 15 ondalık basamaklı bir sayı olmalı."
           }
         }
       }

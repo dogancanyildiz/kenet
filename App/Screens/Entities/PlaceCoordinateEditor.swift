@@ -79,7 +79,7 @@ struct PlaceCoordinateEditor: View {
         switch draft.status(canLocate: canLocate, fixFailed: location?.lastRequestFailed == true) {
         case .none: EmptyView()
         case .invalid:
-            Text("Enlem -90 ile 90, boylam -180 ile 180 arasında bir sayı olmalı.")
+            Text("Enlem -90 ile 90, boylam -180 ile 180 arasında, en çok 15 ondalık basamaklı bir sayı olmalı.")
                 .font(.ink.meta).foregroundStyle(.ink.danger)
         case .saveFailed:
             Text(
@@ -101,7 +101,7 @@ struct PlaceCoordinateEditor: View {
 
     /// The label stays above the field: once filled, the two numbers are told apart by it.
     private func coordinateField(_ label: LocalizedStringKey, text: Binding<String>, identifier: String) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: InkSpacing.section) {
             Text(label).font(.ink.section).foregroundStyle(.ink.text)
             InkFilterField(label, text: text, identifier: identifier, showsClearButton: false)
                 .onSubmit { save() }

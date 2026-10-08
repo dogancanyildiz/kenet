@@ -34,14 +34,22 @@ enum PlaceCoordinateInput {
         return coordinate.isValid ? coordinate : nil
     }
 
-    /// The typed number in the spelling the file accepts (`[-+]?(0|[1-9][0-9]*)(\.[0-9]+)?`),
-    /// with every digit the user gave; nil when it is not such a number.
+    /// More fraction digits than a `Double` can hold are refused, not written.
+    static let maximumFractionDigits = 15
+
+    /// The typed number in the spelling the file accepts (`-?(0|[1-9][0-9]*)(\.[0-9]+)?`), with
+    /// the digits the user gave; nil when it is not such a number or has too many fraction
+    /// digits. A plus sign and leading zeros are dropped and a signed zero is `0`, the same
+    /// spellings a measured position gets.
     static func spelling(_ text: String) -> String? {
-        var text = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        let text = text.trimmingCharacters(in: .whitespacesAndNewlines)
             .replacingOccurrences(of: ",", with: ".").replacingOccurrences(of: "\u{2212}", with: "-")
-        guard let match = text.wholeMatch(of: /([+-]?)0*([0-9]+(\.[0-9]+)?)/) else { return nil }
-        text = String(match.1) + String(match.2)
-        return text
+        guard let match = text.wholeMatch(of: /([+-]?)0*([0-9]+)(\.([0-9]+))?/),
+            (match.4?.count ?? 0) <= maximumFractionDigits
+        else { return nil }
+        let digits = String(match.2) + (match.3.map(String.init) ?? "")
+        guard digits.contains(where: { $0 != "0" && $0 != "." }) else { return "0" }
+        return (match.1 == "-" ? "-" : "") + digits
     }
 
     /// Plain decimal spelling with at most six fraction digits (about 0.1 m), never an exponent.

@@ -68,9 +68,11 @@ struct PlaceCoordinateDraft: Equatable {
     }
 
     mutating func submit() -> Submission {
-        guard PlaceCoordinateInput.coordinate(latitude: latitudeText, longitude: longitudeText) != nil,
-            let latitude = PlaceCoordinateInput.spelling(latitudeText),
-            let longitude = PlaceCoordinateInput.spelling(longitudeText)
+        // An untouched field keeps the file's own spelling, whatever its length.
+        guard let latitude = spelling(latitudeText, saved: savedLatitude),
+            let longitude = spelling(longitudeText, saved: savedLongitude),
+            let north = Double(latitude), let east = Double(longitude),
+            PlaceCoordinate(latitude: north, longitude: east).isValid
         else {
             invalid = true
             return .invalid
@@ -80,9 +82,11 @@ struct PlaceCoordinateDraft: Equatable {
             saveFailed = false
             return .unchanged
         }
-        return .write(
-            latitude: hasStoredCoordinate && latitudeText == savedLatitude ? savedLatitude : latitude,
-            longitude: hasStoredCoordinate && longitudeText == savedLongitude ? savedLongitude : longitude)
+        return .write(latitude: latitude, longitude: longitude)
+    }
+
+    private func spelling(_ text: String, saved: String) -> String? {
+        hasStoredCoordinate && text == saved ? saved : PlaceCoordinateInput.spelling(text)
     }
 
     /// Marks the texts that were sent as saved, only when the write succeeded.

@@ -119,7 +119,9 @@ final class LocationService {
         guard authorization.canLocate else { return }
         let date = now()
         if userInitiated {
-            let pending = isLocating && date.timeIntervalSince(lastAttempt ?? date) < Self.answerTimeout
+            // A clock set back must not keep the request pending: the distance counts, not the sign.
+            let waited = abs(date.timeIntervalSince(lastAttempt ?? date))
+            let pending = isLocating && waited < Self.answerTimeout
             guard !pending, currentCoordinate == nil else { return }
         } else if let lastAttempt, date.timeIntervalSince(lastAttempt) < 60 {
             return

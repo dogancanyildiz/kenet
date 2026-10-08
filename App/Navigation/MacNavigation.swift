@@ -155,7 +155,14 @@
                     switch section ?? .today {
                     case .today, .days:
                         VStack(spacing: 0) {
-                            Button("Özetler", systemImage: "chart.bar") { section = .summaries }.padding()
+                            Button {
+                                section = .summaries
+                            } label: {
+                                Label("Özetler", systemImage: "chart.bar")
+                            }
+                            .buttonStyle(InkTextButtonStyle())
+                            .padding(.horizontal, InkSpacing.margin)
+                            .padding(.vertical, 8)
                             DaysCalendarView(store: store) { selectedDay = "journal/\($0).md" }
                             List(store.content.days, selection: $selectedDay) { day in
                                 DayRow(day: day).tag(day.id)

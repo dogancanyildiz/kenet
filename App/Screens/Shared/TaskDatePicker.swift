@@ -30,11 +30,15 @@ struct TaskDatePicker: View {
 
     private var content: some View {
         VStack(alignment: .leading, spacing: 12) {
-            if isOnPage {
-                picker.labelsHidden()
-            } else {
+            #if os(macOS)
                 picker
-            }
+            #else
+                if isOnPage {
+                    picker.labelsHidden()
+                } else {
+                    picker
+                }
+            #endif
             HStack {
                 Button("Tarihi kaldır") { commit(nil) }
                     .disabled(current == nil)
@@ -52,8 +56,86 @@ struct TaskDatePicker: View {
         }
     }
 
+    @ViewBuilder
     private var picker: some View {
-        DatePicker("Görev tarihi", selection: $selected, displayedComponents: .date)
-            .environment(\.calendar, Calendar(identifier: .gregorian))
+        #if os(macOS)
+            let macPicker = TaskDateMacPicker(selected: $selected)
+                .frame(width: 140, height: 24)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .background(
+                    Color.ink.well,
+                    in: RoundedRectangle(cornerRadius: InkSize.kanbanCorner, style: .continuous)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: InkSize.kanbanCorner, style: .continuous)
+                        .strokeBorder(Color.ink.control, lineWidth: InkStroke.control)
+                )
+            if isOnPage {
+                macPicker
+            } else {
+                HStack {
+                    Text("Görev tarihi")
+                        .font(.ink.byline)
+                        .foregroundStyle(Color.ink.text)
+                    Spacer()
+                    macPicker
+                }
+            }
+        #else
+            DatePicker("Görev tarihi", selection: $selected, displayedComponents: .date)
+                .environment(\.calendar, Calendar(identifier: .gregorian))
+        #endif
     }
 }
+
+#if os(macOS)
+    import AppKit
+
+    struct TaskDateMacPicker: NSViewRepresentable {
+        @Binding var selected: Date
+        /// The zone the field reads its day in: the same one `LocalDay` turns the instant back
+        /// into a day with, or the day would drift.
+        var timeZone: TimeZone = .current
+
+        func makeCoordinator() -> Coordinator {
+            Coordinator(self)
+        }
+
+        func makeNSView(context: Context) -> NSDatePicker {
+            let picker = NSDatePicker()
+            picker.datePickerStyle = .textFieldAndStepper
+            picker.datePickerElements = .yearMonthDay
+            picker.isBordered = false
+            picker.isBezeled = false
+            picker.drawsBackground = false
+            picker.calendar = Calendar(identifier: .gregorian)
+            picker.font = NSFont.monospacedDigitSystemFont(ofSize: 13, weight: .regular)
+            picker.textColor = NSColor(Color.ink.text)
+            picker.target = context.coordinator
+            picker.action = #selector(Coordinator.dateChanged(_:))
+            picker.setAccessibilityLabel(String(localized: "Görev tarihi"))
+            return picker
+        }
+
+        func updateNSView(_ nsView: NSDatePicker, context: Context) {
+            context.coordinator.parent = self
+            nsView.locale = context.environment.locale
+            nsView.timeZone = timeZone
+            nsView.dateValue = selected
+            nsView.textColor = NSColor(Color.ink.text)
+        }
+
+        @MainActor
+        final class Coordinator: NSObject {
+            var parent: TaskDateMacPicker
+            init(_ parent: TaskDateMacPicker) {
+                self.parent = parent
+            }
+
+            @objc func dateChanged(_ sender: NSDatePicker) {
+                parent.selected = sender.dateValue
+            }
+        }
+    }
+#endif

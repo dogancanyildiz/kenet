@@ -1,4 +1,5 @@
 import Foundation
+import VaultFormat
 
 struct NotificationTime: Codable, Equatable, Sendable {
     var hour: Int
@@ -46,5 +47,26 @@ struct NotificationPreferences: Codable, Equatable, Sendable {
         journalTime =
             try container.decodeIfPresent(NotificationTime.self, forKey: .journalTime) ?? NotificationTime(hour: 21)
         hideContent = try container.decodeIfPresent(Bool.self, forKey: .hideContent) ?? false
+    }
+}
+
+/// What a time field of the settings page shows and writes: one reminder time, as an instant of
+/// the given day.
+extension NotificationPreferences {
+    func fieldDate(
+        _ key: KeyPath<NotificationPreferences, NotificationTime>, on day: CalendarDate, timeZone: TimeZone
+    ) -> Date {
+        NotificationPlanner.fireDate(day, time: self[keyPath: key], timeZone: timeZone)
+            ?? LocalDay.instant(for: day, timeZone: timeZone)
+    }
+
+    /// Only the hour and the minute of `date` are kept, and only this reminder changes.
+    mutating func setTime(
+        _ key: WritableKeyPath<NotificationPreferences, NotificationTime>, from date: Date, timeZone: TimeZone
+    ) {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = timeZone
+        let parts = calendar.dateComponents([.hour, .minute], from: date)
+        self[keyPath: key] = NotificationTime(hour: parts.hour ?? 0, minute: parts.minute ?? 0)
     }
 }

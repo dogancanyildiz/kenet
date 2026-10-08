@@ -5,9 +5,20 @@ import UniformTypeIdentifiers
     import AppKit
 #endif
 
+/// A page reached from the vault settings: pushed on iPhone, shown in place of the Kasa tab's
+/// content on Mac (`MacVaultSettingsPage`).
+enum VaultSettingsSubpage: Hashable {
+    case vaultImport
+    case entityTypes
+}
+
 /// Vault location, folder change, import, and entity types.
 struct VaultSettingsView: View {
     @Bindable var store: IndexStore
+    #if os(macOS)
+        /// The Settings tab swaps its content; a push would shift the tab strip's highlight.
+        var openSubpage: (VaultSettingsSubpage) -> Void = { _ in }
+    #endif
     @Environment(\.vaultPathDisplayOverride) private var pathDisplayOverride
     @State private var choosingFolder = false
 
@@ -71,10 +82,16 @@ struct VaultSettingsView: View {
                         .inkListRow()
                 }
                 if let model = store.importModel {
-                    NavigationLink("Kasa hazırlığı") {
-                        VaultImportView(store: store, model: model, isSheet: false)
-                    }
-                    .inkListRow()
+                    #if os(macOS)
+                        Button("Kasa hazırlığı") { openSubpage(.vaultImport) }
+                            .buttonStyle(.borderless)
+                            .inkListRow()
+                    #else
+                        NavigationLink("Kasa hazırlığı") {
+                            VaultImportView(store: store, model: model, isSheet: false)
+                        }
+                        .inkListRow()
+                    #endif
                 }
                 if store.isProcessing {
                     VaultIndexingProgress(store: store)
@@ -92,8 +109,14 @@ struct VaultSettingsView: View {
             Section {
                 SectionHeader("Varlık tipleri")
                     .inkListRow()
-                NavigationLink("Varlık tipleri") { EntityTypesSettingsView(store: store) }
-                    .inkListRow()
+                #if os(macOS)
+                    Button("Varlık tipleri") { openSubpage(.entityTypes) }
+                        .buttonStyle(.borderless)
+                        .inkListRow()
+                #else
+                    NavigationLink("Varlık tipleri") { EntityTypesSettingsView(store: store) }
+                        .inkListRow()
+                #endif
                 if store.entityTypes.issue != nil {
                     Text(
                         "Varlık tipleri okunamıyor. Yalnız yerleşik tipler kullanılıyor. Kasadaki .app/types.json dosyasını kontrol et."

@@ -65,15 +65,26 @@
             }
 
             override func draw(_ dirtyRect: NSRect) {
-                let border = NSBezierPath(roundedRect: bounds.insetBy(dx: 1, dy: 1), xRadius: 6, yRadius: 6)
-                (recording ? NSColor.controlAccentColor : NSColor.separatorColor).setStroke()
-                border.lineWidth = recording ? 2 : 1
+                let cornerRadius = InkSize.kanbanCorner
+                let border = NSBezierPath(
+                    roundedRect: bounds.insetBy(dx: 1, dy: 1),
+                    xRadius: cornerRadius,
+                    yRadius: cornerRadius)
+                NSColor(Color.ink.well).setFill()
+                border.fill()
+
+                let strokeColor = recording ? NSColor(Color.ink.accent) : NSColor(Color.ink.control)
+                strokeColor.setStroke()
+                border.lineWidth = recording ? 2 : InkStroke.control
                 border.stroke()
+
                 let title = recording ? String(localized: "Bir tuş birleşimine bas…") : shortcut.display
+                let textColor = recording ? NSColor(Color.ink.secondaryText) : NSColor(Color.ink.text)
                 (title as NSString).draw(
                     at: NSPoint(x: 12, y: 12),
                     withAttributes: [
-                        .font: NSFont.systemFont(ofSize: 13), .foregroundColor: NSColor.labelColor,
+                        .font: NSFont.systemFont(ofSize: 13),
+                        .foregroundColor: textColor,
                     ])
                 setAccessibilityLabel(String(localized: "Hızlı giriş kısayolu"))
                 setAccessibilityValue(title)

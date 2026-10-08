@@ -30,6 +30,12 @@ enum InkSpacing {
 
     /// Settings scene minimum height (pt).
     static let macSettingsMinHeight: CGFloat = 520
+
+    /// Mac list-selection fill, inset from the row's leading and trailing edges.
+    static let listSelectionHorizontal: CGFloat = 4
+
+    /// Mac list-selection fill, inset from the row's top and bottom edges.
+    static let listSelectionVertical: CGFloat = 2
 }
 
 enum InkSize {
@@ -42,6 +48,8 @@ enum InkSize {
     static let largeNumber: CGFloat = 48
     /// Selected mode underline under quick-entry kip words.
     static let modeUnderline: CGFloat = 2
+    /// Corner of the Mac list-selection fill.
+    static let listSelectionCorner: CGFloat = 6
     /// Heatmap / chip corner radius.
     static let chipCorner: CGFloat = 4
     static let kanbanCorner: CGFloat = 8

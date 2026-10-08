@@ -162,7 +162,7 @@ Renkler (parantez içinde zemin üstündeki kontrast; KA: Kontrastı Artır):
 |---|---|---|---|---|---|
 | Zemin (kâğıt) | `#FAF8F3` | `#181614` | `#FAF8F3` | `#141210` | Sayfa, kaydırma alanı |
 | Yüzey | `#FFFFFF` | `#23201C` | `#FFFFFF` | `#1E1B18` | Sheet içi, popover, Mac kanban kartı |
-| Çukur | `#F1EDE4` | `#110F0E` | `#ECE7DC` | `#0C0B0A` | Isı haritasının boş hücresi, Mac'te hafta sonu |
+| Çukur | `#F1EDE4` | `#110F0E` | `#ECE7DC` | `#0C0B0A` | Isı haritasının boş hücresi, Mac'te hafta sonu, Mac liste sütununda seçili satır |
 | Süs çizgisi | `#E2DCCF` | `#302C27` | `#C4BBAB` | `#4C463E` | Bölüm çizgisi; bilgi taşımaz |
 | Metin | `#1E1B17` (16,16) | `#EEE9DF` (14,91) | `#0E0C0A` (18,39) | `#FFFDF8` (18,38) | İçerik, başlık |
 | İkincil metin | `#57514A` (7,38) | `#B5AD9F` (8,11) | `#403B35` (10,44) | `#D6CFC2` (12,07) | Meta, saat, yapılmış |
@@ -193,7 +193,7 @@ Yazı:
 | Değer ve saat | SF Pro, tabular rakam | 17 ve 15 | 13 |
 | Büyük rakam (hedef detayı, özet) | SF Pro Light, tabular rakam | 48 | 34 |
 
-Biçim: görev kutusu 22 pt kare (köşe 5 pt), hedef halkası 22 pt daire, artı 30 pt ve gönder 36 pt daire, hızlı giriş kapsüldür. Kenar boşluğu 16 pt, kenar sütunu 44 pt'dir. Mac'te sayfa en çok 680 pt genişliğinde ortalanır. İçerik opaktır; gölge, doku ve gradyan yoktur.
+Biçim: görev kutusu 22 pt kare (köşe 5 pt), hedef halkası 22 pt daire, artı 30 pt ve gönder 36 pt daire, hızlı giriş kapsüldür. Kenar boşluğu 16 pt, kenar sütunu 44 pt'dir. Mac liste seçiminin köşesi 6 pt; dolgu satırın kenarından yatay 4 pt, dikey 2 pt içeridedir. Mac'te sayfa en çok 680 pt genişliğinde ortalanır. İçerik opaktır; gölge, doku ve gradyan yoktur.
 
 ## Uygulama simgesi
 
@@ -218,7 +218,9 @@ Yukarıdan aşağı: manşet (tarih) ve künye satırı (olayla başlayıp "kald
 
 ## Bileşenler
 
-Manşet, bölüm başlığı, kenar sütunlu satır (görev, hedef, olay ve takvim için tek bileşen), görev kutusu, hedef halkası, bağlantılı metin, hızlı giriş kapsülü; bunlara ek olarak manşet satırı ve eylem simgeleri, sekme, etiketli menü, süzgeç alanı, sheet iskeleti (başlık ve iki düğme), etiket çipi, boş durum, ısı haritası hücresi, bilgi ve hata bandı, Mac kanban kartı. Bütün ekranlar bu parçalardan kurulur; görev satırı, kart ve tarih biçiminin bugünkü farklı varyantları tek parçaya iner.
+Manşet, bölüm başlığı, kenar sütunlu satır (görev, hedef, olay ve takvim için tek bileşen), görev kutusu, hedef halkası, bağlantılı metin, hızlı giriş kapsülü; bunlara ek olarak manşet satırı ve eylem simgeleri, sekme, etiketli menü, süzgeç alanı, sheet iskeleti (başlık ve iki düğme), etiket çipi, boş durum, ısı haritası hücresi, bilgi ve hata bandı, Mac kanban kartı, Mac liste sütunu seçimi. Bütün ekranlar bu parçalardan kurulur; görev satırı, kart ve tarih biçiminin bugünkü farklı varyantları tek parçaya iner.
+
+Mac liste sütunu seçimi (`InkListSelection`) bugün kodda şöyle çizilir; görünüm henüz onaylanmış bir kural değildir. Görevler, Günlük, Kişiler ve Hedefler sütunlarında ve Mac'teki arama sonuçlarında seçili satır çukur zeminle, satırın içinde yuvarlatılmış köşeyle ve solda 2 pt vurgu çizgisiyle görünür; iPhone satırı kâğıt kalır. Görev sütununda kutu tamamlar, metindeki bağlantı kendi sayfasını açar, satıra tıklamak ayrıntıyı seçer; bağlam menüsündeki silme onay diyaloğuna gider.
 
 ## Doğrulama
 

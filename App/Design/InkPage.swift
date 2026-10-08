@@ -194,23 +194,55 @@ extension InkPageTitleRow where Actions == EmptyView {
 extension View {
     /// List row on paper: matching background, page margin insets, system separators hidden
     /// (section rules come from ``SectionHeader``).
-    func inkListRow(isSelected: Bool = false) -> some View {
-        modifier(InkListRowModifier(isSelected: isSelected))
+    ///
+    /// `columnSelected` is the Mac list-column and search-result selection. `nil` stays paper
+    /// (sheets, headers). Pass `true` / `false` on a column row; the value does not inherit
+    /// into sheets. On iPhone, `true` keeps the search result's accent wash.
+    func inkListRow(columnSelected: Bool? = nil) -> some View {
+        modifier(InkListRowModifier(columnSelected: columnSelected))
     }
 }
 
 private struct InkListRowModifier: ViewModifier {
-    var isSelected: Bool = false
+    var columnSelected: Bool? = nil
 
     func body(content: Content) -> some View {
-        content
-            .listRowBackground(
-                isSelected ? Color.ink.accent.opacity(0.12) : Color.ink.paper
-            )
+        row(content)
+            .listRowBackground(background)
             .listRowInsets(
                 EdgeInsets(
                     top: 6, leading: InkSpacing.margin, bottom: 6, trailing: InkSpacing.margin)
             )
             .listRowSeparator(.hidden)
+    }
+
+    /// A column row draws its own selection, so the system focus ring is turned off there.
+    @ViewBuilder private func row(_ content: Content) -> some View {
+        #if os(macOS)
+            if columnSelected != nil {
+                content.focusEffectDisabled()
+            } else {
+                content
+            }
+        #else
+            content
+        #endif
+    }
+
+    @ViewBuilder private var background: some View {
+        #if os(macOS)
+            if let columnSelected {
+                InkListSelectionBackground(isSelected: columnSelected)
+            } else {
+                Color.ink.paper
+            }
+        #else
+            // Search marks the keyboard selection. Phone list columns pass false or nil.
+            if columnSelected == true {
+                Color.ink.accent.opacity(0.12)
+            } else {
+                Color.ink.paper
+            }
+        #endif
     }
 }

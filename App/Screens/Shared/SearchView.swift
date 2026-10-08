@@ -159,7 +159,7 @@ struct SearchView: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .inkListRow(isSelected: item.id == model.selectedID)
+        .inkListRow(columnSelected: item.id == model.selectedID)
         .id(item.id)
     }
 

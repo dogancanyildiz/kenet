@@ -23,7 +23,7 @@ Uygulama bu ekranda açılır. Yukarıdan aşağıya:
 3. **Görevler (2):** Devreden görevler, bugünün görevleri ve bugün oluşturulan tarihsiz görevler. Kutuya (veya bağlantısız satıra) dokununca tamamlanır, basılı tutunca düzenlenir. Devreden görevin altında geldiği tarih yazar ("30 Eyl'den"); en çok üçü gösterilir, kalanı "N devreden daha" satırında toplanır ve dokununca açılır. Tamamlanan görev listenin sonuna iner; birden çok tamamlanan tek satıra katlanır ("N görev tamamlandı") ve dokununca açılır.
 4. **Takvim (2):** Cihaz takvimindeki bugünkü etkinlikler, salt okunur (sans satır).
 5. **Olaylar (1):** Bugün yazılan olaylar, dosyadaki sırayla (uygulama saatli olayı saat sırasındaki yerine yazar). Kenarda saat; kişi ve konum adları dokunulabilir bağlantıdır.
-6. **Günlük yazısı (1):** Varsa serbest yazının ilk dört satırı ve "Devamını yaz"; dokununca tam ekran yazma alanı açılır.
+6. **Günlük yazısı (1):** Varsa serbest yazının ilk dört satırı ve "Devamını yaz"; dokununca tam ekran yazma alanı açılır. Yazarken `@` önerileri ve belirsiz/bilinmeyen açık anma çözümü hızlı girişteki ortak şerittir; kesin bağlantı yalnız değişen satırlara uygulanır.
 
 Bölüm başlıklarının sağında sayaç durur: hedeflerde yapılan ve toplam (`m/n`), görevlerde kalan, olaylarda sayı. Varsayılan yazı boyutunda (390×844, alt güvenli alan ≈84 pt) hızlı giriş tek satırlı kapsüldür; manşet, hedefler, görevler ve ilk olay satırı kaydırmadan görünür. Geçmiş bir günün sayfası aynı düzeni kullanır.
 
@@ -33,7 +33,7 @@ En altta sabit **hızlı giriş kapsülü** (opak; içeriğin üstüne binmez).
 
 - Tek metin kutusu. Başında kip iki sözcükle durur: **Olay** ve **Görev**; seçili olan yarı kalındır ve altında vurgu çizgisi taşır, varsayılan olay.
 - Görev modunda `#project/` yazınca mevcut proje adları önerilir; seçim etiketi tamamlar, yeni ad serbesttir.
-- `@` yazınca kişi ve konum önerileri açılır. `@` kullanılmasa da bilinen adlar yazarken tanınır ve vurgulanır.
+- `@` yazınca kişi ve konum önerileri açılır. `@` kullanılmasa da bilinen adlar yazarken tanınır ve vurgulanır. Aynı `@` şeridi olay metni düzenleme sheet'inde ve günlük yazısı editöründe de kullanılır.
 - Birden fazla aday varsa en olası olan önerilir; uygulama emin değilse seçim ister.
 - Tanınmayan bir ad `@` ile yazıldıysa "kişi olarak ekle" ya da "konum olarak ekle" seçeneği çıkar. Aynı adda varlık varsa kısa bir ayırt edici sorulur.
 - Görev modunda baş/son bağımsız `!` orta, `!!` yüksek önceliktir; `her hafta`/`every week` gibi tekrar ifadesi önceden gösterilir ve gönderimde alanlara çevrilir.

@@ -21,6 +21,7 @@ enum InkFilterFieldChrome {
 struct InkFilterField: View {
     private let prompt: LocalizedStringKey
     @Binding private var text: String
+    private var selection: Binding<TextSelection?>?
     private let externalFocus: FocusState<Bool>.Binding?
     private let identifier: String?
     private let clearIdentifier: String?
@@ -29,6 +30,7 @@ struct InkFilterField: View {
 
     /// - Parameters:
     ///   - prompt: placeholder; also the field's accessibility label.
+    ///   - selection: optional caret binding for @ mention assist.
     ///   - isFocused: bind a caller-owned `@FocusState` to read or move focus; omit otherwise.
     ///   - identifier: accessibility identifier of the text field (e.g. `field.search`).
     ///   - clearIdentifier: accessibility identifier of the clear button.
@@ -36,11 +38,13 @@ struct InkFilterField: View {
     ///     clear button never appears and the text keeps the full width.
     init(
         _ prompt: LocalizedStringKey, text: Binding<String>,
+        selection: Binding<TextSelection?>? = nil,
         isFocused: FocusState<Bool>.Binding? = nil, identifier: String? = nil,
         clearIdentifier: String? = nil, showsClearButton: Bool = true
     ) {
         self.prompt = prompt
         _text = text
+        self.selection = selection
         externalFocus = isFocused
         self.identifier = identifier
         self.clearIdentifier = clearIdentifier
@@ -53,7 +57,7 @@ struct InkFilterField: View {
     }
 
     var body: some View {
-        TextField(prompt, text: $text, prompt: Text(prompt).font(.ink.placeholder))
+        field
             .textFieldStyle(.plain)
             .font(.ink.content)
             .foregroundStyle(.ink.text)
@@ -92,6 +96,14 @@ struct InkFilterField: View {
                     .inkAccessibilityIdentifier(clearIdentifier)
                 }
             }
+    }
+
+    @ViewBuilder private var field: some View {
+        if let selection {
+            TextField(prompt, text: $text, selection: selection, prompt: Text(prompt).font(.ink.placeholder))
+        } else {
+            TextField(prompt, text: $text, prompt: Text(prompt).font(.ink.placeholder))
+        }
     }
 }
 

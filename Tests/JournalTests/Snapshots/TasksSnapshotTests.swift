@@ -49,7 +49,7 @@
     /// Mac kanban and timeline: weekend wells, today marker, completed outline bar, low priority.
     @MainActor @Suite("Tasks screen snapshots (macOS)", .serialized)
     struct TasksMacSnapshotTests {
-        private static let snapshotPrecision: Float = 0.999
+        private static let snapshotPrecision: Float = 0.9999
         private static let snapshotPerceptualPrecision: Float = 0.995
         private static let bitmapScale: CGFloat = 2
 

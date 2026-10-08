@@ -1,8 +1,13 @@
 import Foundation
+import SwiftUI
 import Testing
 import VaultFormat
 
 @testable import Journal
+
+#if os(macOS)
+    import AppKit
+#endif
 
 @MainActor struct TimelineTests {
     @Test func intervalsSingleDayAndOpenEndsUseSourceDates() async throws {
@@ -287,6 +292,134 @@ import VaultFormat
         #expect(try Data(contentsOf: nextFile) == Data(source.utf8))
         #expect(try Data(contentsOf: context.file) == Data(source.utf8))
     }
+
+    #if os(macOS)
+        @Test func todayLabelMovesAboveANeighboringDate() {
+            // Quarter scale: the 1st prints a date; the 3rd (and the 30th, two days before the
+            // next 1st) is close enough that a centered word would cover it.
+            let third = Self.placement(
+                dayIndex: 2, dayCount: 31, dayWidth: 8, labelWidth: 42, dateLabelWidth: 52, dates: [0])
+            #expect(third.centerY == TimelineAxisLayout.upperCenterY)
+            Self.expectClear(third, dayCount: 31, dayWidth: 8, labelWidth: 42, dateLabelWidth: 52, dates: [0])
+
+            let beforeNextMonth = Self.placement(
+                dayIndex: 28, dayCount: 40, dayWidth: 8, labelWidth: 42, dateLabelWidth: 52, dates: [30])
+            #expect(beforeNextMonth.centerY == TimelineAxisLayout.upperCenterY)
+            Self.expectClear(
+                beforeNextMonth, dayCount: 40, dayWidth: 8, labelWidth: 42, dateLabelWidth: 52, dates: [30])
+
+            // Month scale: Tuesday sits next to Monday's date label.
+            let tuesday = Self.placement(
+                dayIndex: 8, dayCount: 30, dayWidth: 28, labelWidth: 40, dateLabelWidth: 56, dates: [7])
+            Self.expectClear(tuesday, dayCount: 30, dayWidth: 28, labelWidth: 40, dateLabelWidth: 56, dates: [7])
+        }
+
+        @Test func todayLabelStaysInsideWhenTodayIsTheFirstOrLastDay() {
+            let first = Self.placement(
+                dayIndex: 0, dayCount: 40, dayWidth: 8, labelWidth: 42, dateLabelWidth: 52, dates: [])
+            Self.expectInside(first, dayCount: 40, dayWidth: 8, labelWidth: 42)
+            let last = Self.placement(
+                dayIndex: 39, dayCount: 40, dayWidth: 8, labelWidth: 42, dateLabelWidth: 52, dates: [])
+            Self.expectInside(last, dayCount: 40, dayWidth: 8, labelWidth: 42)
+            // Today is also the day that prints the date (the 1st, at the start of the range).
+            let firstWithDate = Self.placement(
+                dayIndex: 0, dayCount: 40, dayWidth: 8, labelWidth: 42, dateLabelWidth: 52, dates: [0])
+            Self.expectInside(firstWithDate, dayCount: 40, dayWidth: 8, labelWidth: 42)
+            Self.expectClear(firstWithDate, dayCount: 40, dayWidth: 8, labelWidth: 42, dateLabelWidth: 52, dates: [0])
+        }
+
+        @Test func todayLineStaysBesideTheWord() {
+            let open = Self.placement(
+                dayIndex: 10, dayCount: 30, dayWidth: 28, labelWidth: 40, dateLabelWidth: 56, dates: [])
+            #expect(open.centerY == TimelineDesktopMetrics.axisHeight / 2)
+            Self.expectLineBeside(open, dayIndex: 10, dayWidth: 28, labelWidth: 40)
+            let third = Self.placement(
+                dayIndex: 2, dayCount: 31, dayWidth: 8, labelWidth: 42, dateLabelWidth: 52, dates: [0])
+            Self.expectLineBeside(third, dayIndex: 2, dayWidth: 8, labelWidth: 42)
+            let first = Self.placement(
+                dayIndex: 0, dayCount: 40, dayWidth: 8, labelWidth: 42, dateLabelWidth: 52, dates: [])
+            Self.expectLineBeside(first, dayIndex: 0, dayWidth: 8, labelWidth: 42)
+            let last = Self.placement(
+                dayIndex: 39, dayCount: 40, dayWidth: 8, labelWidth: 42, dateLabelWidth: 52, dates: [])
+            Self.expectLineBeside(last, dayIndex: 39, dayWidth: 8, labelWidth: 42)
+        }
+
+        @Test func barHeightFollowsTheSharedRowHeight() async throws {
+            let context = try TaskTestContext()
+            defer { context.clean() }
+            await context.start()
+            try "## Tasks\n- [ ] Plan 🛫 2026-10-01 📅 2026-10-06 ^task\n".write(
+                to: context.file, atomically: true, encoding: .utf8)
+            await context.store.refresh()
+            let model = timeline(context)
+            let row = try #require(context.store.content.tasks.first)
+            let bar = TimelineBarView(model: model, row: row, dayWidth: 1, select: {}, edit: { _ in })
+            let host = NSHostingView(rootView: bar)
+            host.layoutSubtreeIfNeeded()
+            #expect(abs(host.fittingSize.height - TimelineDesktopMetrics.rowHeight) < 0.5)
+        }
+
+        private static func placement(
+            dayIndex: Int, dayCount: Int, dayWidth: CGFloat, labelWidth: CGFloat, dateLabelWidth: CGFloat,
+            dates: Set<Int>
+        ) -> TimelineTodayLabelPlacement {
+            TimelineAxisLayout.todayLabelPlacement(
+                dayIndex: dayIndex, dayCount: dayCount, dayWidth: dayWidth, labelWidth: labelWidth,
+                dateLabelWidth: dateLabelWidth, dateLabelDayIndices: dates)
+        }
+
+        private static func expectClear(
+            _ placement: TimelineTodayLabelPlacement, dayCount: Int, dayWidth: CGFloat, labelWidth: CGFloat,
+            dateLabelWidth: CGFloat, dates: Set<Int>
+        ) {
+            expectInside(placement, dayCount: dayCount, dayWidth: dayWidth, labelWidth: labelWidth)
+            let word = wordFrame(placement, labelWidth: labelWidth)
+            let midline = TimelineDesktopMetrics.axisHeight / 2
+            for index in dates {
+                let dropped = placement.loweredDateIndices.contains(index)
+                let centerY = midline + (dropped ? TimelineAxisLayout.loweredDateOffset : 0)
+                let date = CGRect(
+                    x: (CGFloat(index) + 0.5) * dayWidth - dateLabelWidth / 2,
+                    y: centerY - TimelineAxisLayout.dateLabelHeight / 2,
+                    width: dateLabelWidth, height: TimelineAxisLayout.dateLabelHeight)
+                #expect(!word.intersects(date), "day \(index) overlaps Bugün")
+            }
+        }
+
+        private static func expectInside(
+            _ placement: TimelineTodayLabelPlacement, dayCount: Int, dayWidth: CGFloat, labelWidth: CGFloat
+        ) {
+            let word = wordFrame(placement, labelWidth: labelWidth)
+            #expect(word.minX >= -0.01)
+            #expect(word.maxX <= CGFloat(dayCount) * dayWidth + 0.01)
+        }
+
+        private static func expectLineBeside(
+            _ placement: TimelineTodayLabelPlacement, dayIndex: Int, dayWidth: CGFloat, labelWidth: CGFloat
+        ) {
+            let lineX = (CGFloat(dayIndex) + 0.5) * dayWidth
+            let word = wordFrame(placement, labelWidth: labelWidth)
+            #expect(lineX <= word.minX || lineX >= word.maxX)
+        }
+
+        private static func wordFrame(_ placement: TimelineTodayLabelPlacement, labelWidth: CGFloat) -> CGRect {
+            CGRect(
+                x: placement.centerX - labelWidth / 2,
+                y: placement.centerY - TimelineAxisLayout.todayLabelHeight / 2,
+                width: labelWidth, height: TimelineAxisLayout.todayLabelHeight)
+        }
+
+        @Test func macRowUsesTheSharedDateLine() throws {
+            let labels = try String(
+                contentsOf: URL(fileURLWithPath: #filePath)
+                    .deletingLastPathComponent()
+                    .deletingLastPathComponent()
+                    .deletingLastPathComponent()
+                    .appendingPathComponent("App/Screens/Tasks/Timeline/TimelineDesktopView.swift"),
+                encoding: .utf8)
+            #expect(labels.contains("TimelineTaskFacts"))
+        }
+    #endif
 
     private func timeline(_ context: TaskTestContext) -> TimelineModel {
         TimelineModel(tasks: TasksModel(store: context.store, today: { context.today }))

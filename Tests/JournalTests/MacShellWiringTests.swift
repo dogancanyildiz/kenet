@@ -53,11 +53,11 @@
                     String(localized: "Zaman çizelgesi"),
                 ],
                 "walked: \(titles)")
-            #expect(titles.contains("Özetler") && titles.contains("Graph"), "walked: \(titles)")
+            #expect(titles.contains(String(localized: "Özetler")) && titles.contains("Graph"), "walked: \(titles)")
             #expect(seen[String(localized: "Görevler")]?.panes == 3)
             #expect(seen["Kanban"]?.panes == 2, "the board takes the full width")
             #expect(seen[String(localized: "Zaman çizelgesi")]?.panes == 2)
-            #expect(seen["Özetler"]?.panes == 2)
+            #expect(seen[String(localized: "Özetler")]?.panes == 2)
             for (title, state) in seen {
                 #expect(state.search == 1, "\(title): \(state.search) toolbar search items")
             }

@@ -241,6 +241,10 @@ schemes:
       config: DebugTest
       commandLineArguments:
         JOURNAL_NO_AUTOSTART: true
+        # Kaydırma çubuğu biçimi sabit: ayar "otomatik"ken fare bağlanınca AppKit yer kaplayan
+        # (legacy) çubuğa geçer, taşan listelerin içeriği daralır ve Mac görüntü testleri düşer.
+        # Yalnız test sürecinin bağımsız değişken alanına yazılır; sistem ayarına dokunmaz.
+        "-AppleShowScrollBars WhenScrolling": true
       # Forwarded so `SNAPSHOT_TESTING_RECORD=all xcodebuild test …` reaches the host (Mac suites).
       environmentVariables:
         SNAPSHOT_TESTING_RECORD: $(SNAPSHOT_TESTING_RECORD)

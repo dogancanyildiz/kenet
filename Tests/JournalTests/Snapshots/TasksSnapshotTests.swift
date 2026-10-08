@@ -51,7 +51,7 @@
     struct TasksMacSnapshotTests {
         private static let snapshotPrecision: Float = 0.9999
         private static let snapshotPerceptualPrecision: Float = 0.995
-        private static let bitmapScale: CGFloat = 2
+        private static let bitmapScale = MacSnapshotWindow.scale
 
         @Test func kanbanMacLight() async throws {
             let context = try TaskTestContext(sample: true)
@@ -312,6 +312,7 @@
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(Color.ink.paper)
 
+            MacSnapshotEnvironment.requireOverlayScrollers()
             let host = NSHostingView(rootView: root)
             host.appearance = NSAppearance(named: appearance)
             host.frame = NSRect(x: 0, y: 0, width: size.width, height: size.height)
@@ -321,7 +322,7 @@
             // timeline already match references drawn without one, so only list snapshots opt in.
             let window: NSWindow? =
                 inWindow
-                ? NSWindow(
+                ? MacSnapshotWindow(
                     contentRect: NSRect(x: -20_000, y: -20_000, width: size.width, height: size.height),
                     styleMask: [.borderless], backing: .buffered, defer: false)
                 : nil

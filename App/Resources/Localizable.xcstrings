@@ -6605,22 +6605,6 @@
         }
       }
     },
-    "Notlar sonraki sürümde" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Notes are coming in a future version"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Notlar sonraki sürümde"
-          }
-        }
-      }
-    },
     "O gün geçen kişiler" : {
       "localizations" : {
         "en" : {

@@ -212,14 +212,6 @@
                                 selection: entitySelection)
                         }
                         .navigationTitle((section ?? .people).title)
-                    case .notes:
-                        List { EmptyView() }
-                            .overlay {
-                                Text("Notlar sonraki sürümde")
-                                    .font(.ink.meta)
-                                    .foregroundStyle(Color.ink.secondaryText)
-                            }
-                            .navigationTitle("Notlar")
                     }
                 }
                 .inkPage()
@@ -267,9 +259,6 @@
                             ContentUnavailableView("Bir varlık seç", systemImage: "person.2")
                                 .toolbar { SearchButton() }
                         }
-                    case .notes:
-                        ContentUnavailableView("Notlar sonraki sürümde", systemImage: "note.text")
-                            .toolbar { SearchButton() }
                     }
                 }
                 .id(section)
@@ -330,7 +319,7 @@
     }
 
     private enum DesktopSection: String, CaseIterable, Identifiable {
-        case today, days, tasks, people, places, goals, summaries, graph, map, notes
+        case today, days, tasks, people, places, goals, summaries, graph, map
         var id: Self { self }
 
         var title: LocalizedStringKey {
@@ -344,7 +333,6 @@
             case .summaries: "Özetler"
             case .graph: "Graph"
             case .map: "Harita"
-            case .notes: "Notlar"
             }
         }
 
@@ -359,7 +347,6 @@
             case .summaries: "chart.bar"
             case .graph: "point.3.connected.trianglepath.dotted"
             case .map: "map"
-            case .notes: "note.text"
             }
         }
     }

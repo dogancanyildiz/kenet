@@ -456,10 +456,6 @@ final class ScreenTourMacUITests: XCTestCase {
     // MARK: Screens only the Mac has (numbered from 30)
 
     @MainActor private func macOnly() {
-        tour.step("31-mac-notlar") {
-            try tour.sidebar("Notlar")
-            tour.shot("31-mac-notlar")
-        }
         tour.step("32-mac-bos-ayrinti") {
             try tour.sidebar("Görevler")
             tour.shot("32-mac-gorevler-secim-yok")
@@ -468,7 +464,7 @@ final class ScreenTourMacUITests: XCTestCase {
         }
         tour.step("33-mac-menu-cubugu") {
             // The journal window shows no quick entry here, so the panel's field is the only one.
-            try tour.sidebar("Notlar")
+            try tour.sidebar("Özetler")
             let item = tour.app.menuBars.statusItems.firstMatch
             guard item.waitForExistence(timeout: 5) else { throw ScreenTourError("menü çubuğu simgesi yok") }
             item.click()

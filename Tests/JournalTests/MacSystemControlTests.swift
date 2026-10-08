@@ -242,6 +242,18 @@
             }
         }
 
+        /// A Settings window wider than the reading width: each tab's list fills the window and
+        /// keeps its rows in the centered column.
+        @Test func settingsPagesFillAWideWindow() async throws {
+            let fixture = try SettingsFixture()
+            defer { fixture.clean() }
+            await fixture.context.start()
+            for tab in MacSettingsTab.allCases {
+                let page = MacSettingsPage(tab: tab, store: fixture.context.store, shortcut: fixture.shortcut)
+                try await InkPageScrollColumnTests.expectPage(fixture.hosted(page), minimumRows: 1)
+            }
+        }
+
         @Test func vaultTabFallsBackToItsRootWhenTheImportIsGone() {
             #expect(MacVaultSettingsPage.shown(nil, hasImport: true) == nil)
             #expect(MacVaultSettingsPage.shown(.entityTypes, hasImport: false) == .entityTypes)

@@ -77,7 +77,7 @@ struct EntityView: View {
         }
         .listStyle(.plain)
         .inkPage()
-        .inkPageColumn()
+        .inkPageScrollColumn()
         .environment(\.entityLookup, LinkedTextInk.lookup(entities: store.content.entities))
         .inkPageNavigationTitle(verbatim: current.name)
         .sheet(isPresented: $isEditing) {

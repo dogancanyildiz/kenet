@@ -42,7 +42,7 @@
             .listStyle(.plain)
             .scrollContentBackground(.hidden)
             .inkPageNavigationTitle("Hızlı giriş")
-            .inkPageColumn()
+            .inkPageScrollColumn()
             .inkPage()
             .onDisappear { model.endRecording() }
         }

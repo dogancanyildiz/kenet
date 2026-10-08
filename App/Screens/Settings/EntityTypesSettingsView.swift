@@ -89,7 +89,7 @@ struct EntityTypesSettingsView: View {
         }
         .listStyle(.plain)
         .inkPageNavigationTitle("Varlık tipleri")
-        .inkPageColumn()
+        .inkPageScrollColumn()
         .inkPage()
         .confirmationDialog(
             "Tip tanımını sil?", isPresented: Binding(get: { deleting != nil }, set: { if !$0 { deleting = nil } })

@@ -63,7 +63,7 @@ struct EntitiesView: View {
         }
         .listStyle(.plain)
         .inkPage()
-        .inkPageColumn()
+        .inkPageScrollColumn()
         .inkRootPageNavigationTitle("Kişiler ve Konumlar")
         .accessibilityIdentifier("screen.entities")
         .navigationDestination(for: EntitySummary.self) { entity in

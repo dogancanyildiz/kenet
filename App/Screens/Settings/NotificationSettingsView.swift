@@ -107,7 +107,7 @@ struct NotificationSettingsView: View {
         .listStyle(.plain)
         .inkToggle()
         .inkPageNavigationTitle("Bildirimler")
-        .inkPageColumn()
+        .inkPageScrollColumn()
         .inkPage()
         .task { if AppLaunchPolicy.allowsAutomaticStart() { await service.replanNow() } }
     }

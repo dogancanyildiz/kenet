@@ -59,7 +59,7 @@ private struct GoalListContent: View {
         }
         .listStyle(.plain)
         .inkPage()
-        .inkPageColumn()
+        .inkPageScrollColumn()
         .overlay {
             if store.content.goals.isEmpty {
                 EmptyState(

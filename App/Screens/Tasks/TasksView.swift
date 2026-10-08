@@ -29,7 +29,7 @@ struct TasksView: View {
                 case .timeline: TaskTimelineView(tasks: model)
                 case .list:
                     listContent
-                        .inkPageColumn()
+                        .inkPageScrollColumn()
                 }
             }
             .inkPage()

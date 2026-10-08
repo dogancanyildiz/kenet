@@ -7,6 +7,21 @@ extension View {
         self
             .background(Color.ink.paper.ignoresSafeArea())
             .scrollContentBackground(.hidden)
+            .inkPaperWindowToolbar()
+    }
+
+    /// Mac: the strip under the window toolbar is paper, like the page below it. Without this
+    /// the system draws its own white (dark: gray) backdrop there, only as wide as the
+    /// scrolled content.
+    @ViewBuilder
+    private func inkPaperWindowToolbar() -> some View {
+        #if os(macOS)
+            self
+                .toolbarBackground(Color.ink.paper, for: .windowToolbar)
+                .toolbarBackground(.visible, for: .windowToolbar)
+        #else
+            self
+        #endif
     }
 
     /// Reading column: content is centered and at most ``InkSpacing/macPageWidth`` wide.
@@ -16,6 +31,19 @@ extension View {
         self
             .frame(maxWidth: InkSpacing.macPageWidth, alignment: .leading)
             .frame(maxWidth: .infinity, alignment: .center)
+    }
+
+    /// Reading column for a `List` page (a `List` cannot hold the limit inside itself).
+    /// On Mac the list fills its column and only its rows are held to
+    /// ``InkSpacing/macPageWidth`` and centered; its scroll bar stays beside the rows. A
+    /// `ScrollView` page puts ``inkPageColumn()`` on the stack inside it instead. On a phone
+    /// this is ``inkPageColumn()``.
+    func inkPageScrollColumn() -> some View {
+        #if os(macOS)
+            modifier(InkPageScrollColumn())
+        #else
+            inkPageColumn()
+        #endif
     }
 
     /// System navigation title for back-history / Mac window title, without a visible bar title.
@@ -93,6 +121,25 @@ extension View {
         #endif
     }
 }
+
+#if os(macOS)
+    private struct InkPageScrollColumn: ViewModifier {
+        @State private var width: CGFloat = 0
+
+        func body(content: Content) -> some View {
+            let side = max(0, (width - InkSpacing.macPageWidth) / 2)
+            // Safe-area padding, not content margins: a Mac `List` ignores content margins.
+            content
+                .safeAreaPadding(.horizontal, side)
+                .frame(maxWidth: .infinity)
+                .onGeometryChange(for: CGFloat.self) {
+                    $0.size.width
+                } action: {
+                    width = $0
+                }
+        }
+    }
+#endif
 
 /// Serif page manşet for `ScrollView` / stack content. Place as the **first** scrolled child
 /// so it scrolls away with the page (not a sticky wrapper).

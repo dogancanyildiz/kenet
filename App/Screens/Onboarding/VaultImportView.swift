@@ -213,7 +213,7 @@ struct VaultImportView: View {
         }
         .listStyle(.plain)
         .inkToggle()
-        .inkPageColumn()
+        .inkPageScrollColumn()
         .inkPage()
         .interactiveDismissDisabled(
             VaultImportChrome.blocksInteractiveDismiss(

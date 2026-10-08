@@ -69,7 +69,7 @@ struct GoalCreationView: View {
             }
         }
         .listStyle(.plain)
-        .inkPageColumn()
+        .inkPageScrollColumn()
         .disabled(model.isWriting || model.isSaved)
         .inkSheet(
             "Yeni hedef", confirm: .create, isConfirmEnabled: model.canSave, isBusy: model.isWriting,

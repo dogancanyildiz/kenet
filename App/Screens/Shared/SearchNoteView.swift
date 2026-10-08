@@ -31,9 +31,9 @@ struct SearchNoteView: View {
                 }
                 .padding(.horizontal, InkSpacing.margin)
             }
+            .inkPageColumn()
         }
         .inkPage()
-        .inkPageColumn()
         // Mac: keep the sheet action bar ("Kapat") on nested search destinations. iPhone keeps
         // the pushed page chrome only (back to results); adding a second "Kapat" would change it.
         #if os(macOS)

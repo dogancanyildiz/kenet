@@ -22,6 +22,13 @@ import VaultFormat
         let searchCall = try Self.call(in: search, startingAt: ".inkSheet(\"Ara\"")
         #expect(searchCall.contains("closeIdentifier: \"button.search.close\""))
         #expect(Self.kind(ofCall: searchCall) == .reading)
+        #expect(search.contains("inkSheetDismissAction"))
+
+        let note = try Self.read("App/Screens/Shared/SearchNoteView.swift")
+        let noteCall = try Self.call(in: note, startingAt: ".inkSheet(\n                verbatim:")
+        #expect(noteCall.contains("closeIdentifier: \"button.search.note.close\""))
+        #expect(Self.kind(ofCall: noteCall) == .reading)
+        #expect(note.contains("#if os(macOS)"), "Kapat on the note is Mac-only so iPhone stays unchanged")
 
         let linked = try Self.read("App/Screens/Shared/LinkedTextView.swift")
         #expect(Self.kind(ofCall: try Self.call(in: linked, startingAt: ".inkSheet(verbatim:")) == .reading)

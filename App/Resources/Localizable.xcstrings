@@ -3341,6 +3341,22 @@
         }
       }
     },
+    "Geri" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Back"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geri"
+          }
+        }
+      }
+    },
     "Git" : {
       "localizations" : {
         "en" : {

@@ -7,6 +7,8 @@ struct SearchNoteView: View {
     @State private var bodyText = ""
     @State private var errorText: String?
     @State private var isLoaded = false
+    @Environment(\.inkSheetDismissAction) private var sheetDismiss
+    @Environment(\.dismiss) private var dismiss
 
     private var noteTitle: String { SearchPreviewText.noteDisplayName(file) }
 
@@ -32,7 +34,28 @@ struct SearchNoteView: View {
         }
         .inkPage()
         .inkPageColumn()
-        .inkPageNavigationTitle(verbatim: noteTitle)
+        // Mac: keep the sheet action bar ("Kapat") on nested search destinations. iPhone keeps
+        // the pushed page chrome only (back to results); adding a second "Kapat" would change it.
+        #if os(macOS)
+            .inkSheet(
+                verbatim: noteTitle, closeIdentifier: "button.search.note.close",
+                onClose: { if let sheetDismiss { sheetDismiss() } else { dismiss() } }
+            )
+            // System Back paints the note name beside the chevron; replace it with a title-free
+            // chevron that only pops to search results ("Kapat" still dismisses the sheet).
+            .navigationBarBackButtonHidden(true)
+            .toolbar {
+                ToolbarItem(placement: .navigation) {
+                    Button("Geri", systemImage: "chevron.backward") { dismiss() }
+                    .labelStyle(.iconOnly)
+                    .buttonStyle(.plain)
+                    .foregroundStyle(Color.ink.secondaryText)
+                    .inkAccessibilityIdentifier("button.search.note.back")
+                }
+            }
+        #else
+            .inkPageNavigationTitle(verbatim: noteTitle)
+        #endif
         .task(id: store.lastUpdated) {
             isLoaded = false
             errorText = nil

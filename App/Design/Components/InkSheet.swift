@@ -31,6 +31,16 @@ enum InkSheetChrome {
     static let cancelKey = "Vazgeç"
     static let closeKey = "Kapat"
 
+    /// Mac sheet minimum width (pt). Without an explicit size a `List` reports ~0 ideal height
+    /// and the sheet collapses to a title bar (entity edit).
+    static let macMinWidth: CGFloat = 480
+    /// Mac sheet ideal width (pt).
+    static let macIdealWidth: CGFloat = 520
+    /// Mac sheet minimum height (pt): enough for the serif manşet plus a short form.
+    static let macMinHeight: CGFloat = 360
+    /// Mac sheet ideal height (pt).
+    static let macIdealHeight: CGFloat = 480
+
     static func token(for button: Button, isEnabled: Bool = true) -> InkButtonChrome.Token {
         // "Vazgeç" is secondary text while enabled, so its disabled state steps down to the
         // control line color; the accent words fall back to secondary text.
@@ -53,12 +63,19 @@ enum InkSheetChrome {
     /// Buttons of a cancel-only sheet: "Vazgeç" alone, or nothing once the page holds the only
     /// way out (`showsCancel == false`). There is never a confirm word.
     static func cancelOnlyButtons(showsCancel: Bool) -> [Button] { showsCancel ? [.cancel] : [] }
+
+    /// Mac sheets need a non-zero proposed height so `List` / `ScrollView` content lays out.
+    static func macContentFits(minHeight: CGFloat) -> Bool { minHeight >= macMinHeight }
 }
 
 extension View {
     /// Editing sheet chrome: paper background (including the presentation background), hidden
     /// system title, accent tint for system controls, and a plain-text toolbar: "Vazgeç" on the
     /// left, one confirm word on the right. No glass capsule, no filled button.
+    ///
+    /// On Mac the system window title is removed (serif manşet only), the action words sit on a
+    /// bottom paper bar (leading cancel, trailing confirm), and a non-zero ideal size keeps
+    /// `List` bodies from collapsing. iPhone keeps the top toolbar placements.
     ///
     /// Apply to the sheet's content **inside** its `NavigationStack`. The serif manşet is the
     /// content's first scrolled child (`InkPageTitleRow(title)` in a `List`,
@@ -88,7 +105,7 @@ extension View {
                     isCancelEnabled: isCancelEnabled, cancelIdentifier: cancelIdentifier,
                     confirmIdentifier: confirmIdentifier, onCancel: onCancel, onConfirm: onConfirm))
         )
-        .inkPageNavigationTitle(title)
+        .inkSheetNavigationTitle(title)
     }
 
     /// Editing sheet chrome with a non-localized title (e.g. an entity name).
@@ -105,7 +122,7 @@ extension View {
                     isCancelEnabled: isCancelEnabled, cancelIdentifier: cancelIdentifier,
                     confirmIdentifier: confirmIdentifier, onCancel: onCancel, onConfirm: onConfirm))
         )
-        .inkPageNavigationTitle(verbatim: title)
+        .inkSheetNavigationTitle(verbatim: title)
     }
 
     /// Read-only sheet chrome: same background and title rules, one button: "Kapat" on the
@@ -114,7 +131,7 @@ extension View {
         _ title: LocalizedStringKey, closeIdentifier: String? = nil, onClose: (() -> Void)? = nil
     ) -> some View {
         modifier(InkSheetModifier(kind: .reading(closeIdentifier: closeIdentifier, onClose: onClose)))
-            .inkPageNavigationTitle(title)
+            .inkSheetNavigationTitle(title)
     }
 
     /// Read-only sheet chrome with a non-localized title.
@@ -122,7 +139,7 @@ extension View {
         verbatim title: String, closeIdentifier: String? = nil, onClose: (() -> Void)? = nil
     ) -> some View {
         modifier(InkSheetModifier(kind: .reading(closeIdentifier: closeIdentifier, onClose: onClose)))
-            .inkPageNavigationTitle(verbatim: title)
+            .inkSheetNavigationTitle(verbatim: title)
     }
 
     /// Cancel-only sheet chrome: same background and title rules, one button: "Vazgeç" on the
@@ -146,7 +163,7 @@ extension View {
                     cancelIdentifier: cancelIdentifier, showsCancel: showsCancel,
                     isCancelEnabled: isCancelEnabled, onCancel: onCancel))
         )
-        .inkPageNavigationTitle(title)
+        .inkSheetNavigationTitle(title)
     }
 
     /// Cancel-only sheet chrome with a non-localized title.
@@ -160,7 +177,7 @@ extension View {
                     cancelIdentifier: cancelIdentifier, showsCancel: showsCancel,
                     isCancelEnabled: isCancelEnabled, onCancel: onCancel))
         )
-        .inkPageNavigationTitle(verbatim: title)
+        .inkSheetNavigationTitle(verbatim: title)
     }
 
     /// Accent tint for system controls (`Toggle`, `Stepper`, `DatePicker`, `ProgressView`).
@@ -219,7 +236,7 @@ struct InkSheetScaffold<Content: View>: View {
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .modifier(InkSheetModifier(kind: kind))
-        .inkPageNavigationTitle(title)
+        .inkSheetNavigationTitle(title)
     }
 }
 
@@ -240,70 +257,152 @@ struct InkSheetModifier: ViewModifier {
     @Environment(\.dismiss) private var dismiss
 
     func body(content: Content) -> some View {
-        content
+        let page =
+            content
             .inkPage()
             .inkToggle()
             .presentationBackground(Color.ink.paper)
-            .toolbar {
-                // iOS 26 draws every toolbar item in a glass capsule; hiding the shared
-                // background leaves the plain word while keeping the system placements.
+        #if os(macOS)
+            // Mac: paper chrome, bottom action bar, non-zero ideal size so List content does
+            // not collapse. Sans title is omitted via ``inkSheetNavigationTitle``.
+            page
+                .toolbarBackground(Color.ink.paper, for: .windowToolbar)
+                .toolbarBackground(.visible, for: .windowToolbar)
+                .safeAreaInset(edge: .bottom, spacing: 0) { macActionBar }
+                .frame(
+                    minWidth: InkSheetChrome.macMinWidth, idealWidth: InkSheetChrome.macIdealWidth,
+                    minHeight: InkSheetChrome.macMinHeight, idealHeight: InkSheetChrome.macIdealHeight
+                )
+        #else
+            page
+                .toolbar {
+                    // iOS 26 draws every toolbar item in a glass capsule; hiding the shared
+                    // background leaves the plain word while keeping the system placements.
+                    switch kind {
+                    case .editing(
+                        let confirm, let isConfirmEnabled, let isBusy, let isCancelEnabled,
+                        let cancelIdentifier, let confirmIdentifier, let onCancel, let onConfirm):
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button {
+                                if let onCancel { onCancel() } else { dismiss() }
+                            } label: {
+                                Text(LocalizedStringKey(InkSheetChrome.cancelKey))
+                            }
+                            .buttonStyle(InkSheetButtonStyle(button: .cancel))
+                            .disabled(!isCancelEnabled)
+                            .inkSheetShortcut(.cancelAction)
+                            .inkAccessibilityIdentifier(cancelIdentifier)
+                        }
+                        .sharedBackgroundVisibility(.hidden)
+                        ToolbarItem(placement: .confirmationAction) {
+                            Button(action: onConfirm) {
+                                Text(LocalizedStringKey(confirm.catalogKey))
+                                    .opacity(InkSheetChrome.showsProgress(isBusy: isBusy) ? 0 : 1)
+                                    .overlay {
+                                        if InkSheetChrome.showsProgress(isBusy: isBusy) {
+                                            ProgressView().controlSize(.small)
+                                        }
+                                    }
+                            }
+                            .buttonStyle(InkSheetButtonStyle(button: .confirm))
+                            .disabled(
+                                !InkSheetChrome.isConfirmEnabled(
+                                    isEnabled: isConfirmEnabled, isBusy: isBusy)
+                            )
+                            .inkSheetShortcut(.defaultAction)
+                            .inkAccessibilityIdentifier(confirmIdentifier)
+                        }
+                        .sharedBackgroundVisibility(.hidden)
+                    case .reading(let closeIdentifier, let onClose):
+                        ToolbarItem(placement: .confirmationAction) {
+                            Button {
+                                if let onClose { onClose() } else { dismiss() }
+                            } label: {
+                                Text(LocalizedStringKey(InkSheetChrome.closeKey))
+                            }
+                            .buttonStyle(InkSheetButtonStyle(button: .close))
+                            .inkSheetShortcut(.cancelAction)
+                            .inkAccessibilityIdentifier(closeIdentifier)
+                        }
+                        .sharedBackgroundVisibility(.hidden)
+                    case .cancelOnly(
+                        let cancelIdentifier, let showsCancel, let isCancelEnabled, let onCancel):
+                        if InkSheetChrome.cancelOnlyButtons(showsCancel: showsCancel).contains(.cancel) {
+                            InkSheetCancelItem(
+                                identifier: cancelIdentifier, isEnabled: isCancelEnabled,
+                                action: { if let onCancel { onCancel() } else { dismiss() } })
+                        }
+                    }
+                }
+        #endif
+    }
+
+    #if os(macOS)
+        /// Bottom paper bar: cancel leading, confirm/close trailing (design pattern 6).
+        @ViewBuilder private var macActionBar: some View {
+            HStack(spacing: 0) {
                 switch kind {
                 case .editing(
                     let confirm, let isConfirmEnabled, let isBusy, let isCancelEnabled,
                     let cancelIdentifier, let confirmIdentifier, let onCancel, let onConfirm):
-                    ToolbarItem(placement: .cancellationAction) {
-                        Button {
-                            if let onCancel { onCancel() } else { dismiss() }
-                        } label: {
-                            Text(LocalizedStringKey(InkSheetChrome.cancelKey))
-                        }
-                        .buttonStyle(InkSheetButtonStyle(button: .cancel))
-                        .disabled(!isCancelEnabled)
-                        .inkSheetShortcut(.cancelAction)
-                        .inkAccessibilityIdentifier(cancelIdentifier)
+                    macBarButton(
+                        .cancel, key: InkSheetChrome.cancelKey, identifier: cancelIdentifier,
+                        isEnabled: isCancelEnabled, shortcut: .cancelAction
+                    ) {
+                        if let onCancel { onCancel() } else { dismiss() }
                     }
-                    .sharedBackgroundVisibility(.hidden)
-                    ToolbarItem(placement: .confirmationAction) {
-                        Button(action: onConfirm) {
-                            Text(LocalizedStringKey(confirm.catalogKey))
-                                .opacity(InkSheetChrome.showsProgress(isBusy: isBusy) ? 0 : 1)
-                                .overlay {
-                                    if InkSheetChrome.showsProgress(isBusy: isBusy) {
-                                        ProgressView().controlSize(.small)
-                                    }
-                                }
-                        }
-                        .buttonStyle(InkSheetButtonStyle(button: .confirm))
-                        .disabled(
-                            !InkSheetChrome.isConfirmEnabled(
-                                isEnabled: isConfirmEnabled, isBusy: isBusy)
-                        )
-                        .inkSheetShortcut(.defaultAction)
-                        .inkAccessibilityIdentifier(confirmIdentifier)
-                    }
-                    .sharedBackgroundVisibility(.hidden)
+                    Spacer(minLength: 12)
+                    macBarButton(
+                        .confirm, key: confirm.catalogKey, identifier: confirmIdentifier,
+                        isEnabled: InkSheetChrome.isConfirmEnabled(
+                            isEnabled: isConfirmEnabled, isBusy: isBusy),
+                        showsProgress: InkSheetChrome.showsProgress(isBusy: isBusy),
+                        shortcut: .defaultAction, action: onConfirm
+                    )
                 case .reading(let closeIdentifier, let onClose):
-                    ToolbarItem(placement: .confirmationAction) {
-                        Button {
-                            if let onClose { onClose() } else { dismiss() }
-                        } label: {
-                            Text(LocalizedStringKey(InkSheetChrome.closeKey))
-                        }
-                        .buttonStyle(InkSheetButtonStyle(button: .close))
-                        .inkSheetShortcut(.cancelAction)
-                        .inkAccessibilityIdentifier(closeIdentifier)
+                    Spacer(minLength: 0)
+                    macBarButton(
+                        .close, key: InkSheetChrome.closeKey, identifier: closeIdentifier,
+                        shortcut: .cancelAction
+                    ) {
+                        if let onClose { onClose() } else { dismiss() }
                     }
-                    .sharedBackgroundVisibility(.hidden)
-                case .cancelOnly(
-                    let cancelIdentifier, let showsCancel, let isCancelEnabled, let onCancel):
+                case .cancelOnly(let cancelIdentifier, let showsCancel, let isCancelEnabled, let onCancel):
                     if InkSheetChrome.cancelOnlyButtons(showsCancel: showsCancel).contains(.cancel) {
-                        InkSheetCancelItem(
-                            identifier: cancelIdentifier, isEnabled: isCancelEnabled,
-                            action: { if let onCancel { onCancel() } else { dismiss() } })
+                        macBarButton(
+                            .cancel, key: InkSheetChrome.cancelKey, identifier: cancelIdentifier,
+                            isEnabled: isCancelEnabled, shortcut: .cancelAction
+                        ) {
+                            if let onCancel { onCancel() } else { dismiss() }
+                        }
                     }
+                    Spacer(minLength: 0)
                 }
             }
-    }
+            .padding(.horizontal, InkSpacing.margin)
+            .padding(.vertical, 8)
+            .frame(maxWidth: .infinity)
+            .background(Color.ink.paper)
+        }
+
+        private func macBarButton(
+            _ button: InkSheetChrome.Button, key: String, identifier: String?,
+            isEnabled: Bool = true, showsProgress: Bool = false, shortcut: KeyboardShortcut,
+            action: @escaping () -> Void
+        ) -> some View {
+            Button(action: action) {
+                Text(LocalizedStringKey(key))
+                    .opacity(showsProgress ? 0 : 1)
+                    .overlay {
+                        if showsProgress { ProgressView().controlSize(.small) }
+                    }
+            }
+            .buttonStyle(InkSheetButtonStyle(button: button))
+            .disabled(!isEnabled)
+            .inkSheetShortcut(shortcut)
+            .inkAccessibilityIdentifier(identifier)
+        }
+    #endif
 }
 
 /// "Vazgeç" of a cancel-only sheet: the same word, placement, Esc shortcut and capsule-free
@@ -357,5 +456,44 @@ extension View {
         #else
             self
         #endif
+    }
+
+    /// Sheet navigation title: on iPhone the system bar title is set then hidden (back history).
+    /// On Mac the sans title must be an explicit blank: leaving it unset lets the stack infer the
+    /// manşet text into the toolbar; the default title item is also removed.
+    @ViewBuilder fileprivate func inkSheetNavigationTitle(_ title: LocalizedStringKey) -> some View {
+        #if os(macOS)
+            navigationTitle(" ")
+                .toolbar(removing: .title)
+        #else
+            inkPageNavigationTitle(title)
+        #endif
+    }
+
+    @ViewBuilder fileprivate func inkSheetNavigationTitle(verbatim title: String) -> some View {
+        #if os(macOS)
+            navigationTitle(" ")
+                .toolbar(removing: .title)
+        #else
+            inkPageNavigationTitle(verbatim: title)
+        #endif
+    }
+
+    /// Closures that dismiss the outermost sheet, not a pushed navigation destination.
+    /// Search sets this so a nested note can expose "Kapat" that closes the whole sheet.
+    func inkSheetDismissAction(_ action: @escaping @MainActor @Sendable () -> Void) -> some View {
+        environment(\.inkSheetDismissAction, action)
+    }
+}
+
+/// Dismisses the sheet presentation (not a `NavigationStack` push). Default is `nil`.
+private struct InkSheetDismissActionKey: EnvironmentKey {
+    static let defaultValue: (@MainActor @Sendable () -> Void)? = nil
+}
+
+extension EnvironmentValues {
+    var inkSheetDismissAction: (@MainActor @Sendable () -> Void)? {
+        get { self[InkSheetDismissActionKey.self] }
+        set { self[InkSheetDismissActionKey.self] = newValue }
     }
 }

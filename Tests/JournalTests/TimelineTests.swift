@@ -409,6 +409,79 @@ import VaultFormat
                 width: labelWidth, height: TimelineAxisLayout.todayLabelHeight)
         }
 
+        @Test func dateLabelVisibilityFollowsScale() throws {
+            let monday = try #require(CalendarDate("2026-10-05"))
+            #expect(monday.weekday == 0 && monday.day != 1)
+            let tuesday = try #require(CalendarDate("2026-10-06"))
+            #expect(tuesday.weekday == 1 && tuesday.day != 1)
+            let firstOfMonth = try #require(CalendarDate("2026-10-01"))
+            #expect(firstOfMonth.day == 1)
+
+            // Week scale: every day shows date label
+            #expect(TimelineAxisLayout.showsAxisDateLabel(monday, scale: .week))
+            #expect(TimelineAxisLayout.showsAxisDateLabel(tuesday, scale: .week))
+            #expect(TimelineAxisLayout.showsAxisDateLabel(firstOfMonth, scale: .week))
+
+            // Month scale: Mondays and 1st of month show date label
+            #expect(TimelineAxisLayout.showsAxisDateLabel(monday, scale: .month))
+            #expect(!TimelineAxisLayout.showsAxisDateLabel(tuesday, scale: .month))
+            #expect(TimelineAxisLayout.showsAxisDateLabel(firstOfMonth, scale: .month))
+
+            // Quarter scale: only 1st of month shows date label
+            #expect(!TimelineAxisLayout.showsAxisDateLabel(monday, scale: .quarter))
+            #expect(!TimelineAxisLayout.showsAxisDateLabel(tuesday, scale: .quarter))
+            #expect(TimelineAxisLayout.showsAxisDateLabel(firstOfMonth, scale: .quarter))
+        }
+
+        @Test func dateLabelPlacementComputesCentersAndHandlesCollisionDrop() {
+            let dayWidth: CGFloat = 16
+            let midline = TimelineDesktopMetrics.axisHeight / 2
+            let unlowered = TimelineAxisLayout.dateLabelPlacement(dayIndex: 3, dayWidth: dayWidth, isLowered: false)
+            #expect(unlowered.dayIndex == 3)
+            #expect(unlowered.centerX == 3.5 * dayWidth)
+            #expect(unlowered.centerY == midline)
+
+            let lowered = TimelineAxisLayout.dateLabelPlacement(dayIndex: 3, dayWidth: dayWidth, isLowered: true)
+            #expect(lowered.centerX == 3.5 * dayWidth)
+            #expect(lowered.centerY == midline + TimelineAxisLayout.loweredDateOffset)
+
+            let placements = TimelineAxisLayout.dateLabelPlacements(
+                dayIndices: [0, 5, 10],
+                dayWidth: dayWidth,
+                loweredDateIndices: [5]
+            )
+            #expect(placements.count == 3)
+            #expect(placements[0].centerY == midline)
+            #expect(placements[1].centerY == midline + TimelineAxisLayout.loweredDateOffset)
+            #expect(placements[2].centerY == midline)
+        }
+
+        @Test func todayCollisionDropsCollidingDateLabelInPlacements() {
+            let today = Self.placement(
+                dayIndex: 2, dayCount: 31, dayWidth: 8, labelWidth: 42, dateLabelWidth: 52, dates: [0]
+            )
+            #expect(today.centerY == TimelineAxisLayout.upperCenterY)
+            #expect(today.loweredDateIndices.contains(0))
+
+            let placements = TimelineAxisLayout.dateLabelPlacements(
+                dayIndices: [0],
+                dayWidth: 8,
+                loweredDateIndices: today.loweredDateIndices
+            )
+            let datePlacement = placements[0]
+            let midline = TimelineDesktopMetrics.axisHeight / 2
+            #expect(datePlacement.centerY == midline + TimelineAxisLayout.loweredDateOffset)
+
+            let todayWord = Self.wordFrame(today, labelWidth: 42)
+            let dateFrame = CGRect(
+                x: datePlacement.centerX - 26,
+                y: datePlacement.centerY - TimelineAxisLayout.dateLabelHeight / 2,
+                width: 52,
+                height: TimelineAxisLayout.dateLabelHeight
+            )
+            #expect(!todayWord.intersects(dateFrame))
+        }
+
         @Test func macRowUsesTheSharedDateLine() throws {
             let labels = try String(
                 contentsOf: URL(fileURLWithPath: #filePath)

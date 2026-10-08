@@ -19,6 +19,15 @@ import VaultFormat
         var loweredDateIndices: Set<Int>
     }
 
+    /// Placement of an axis date label in the timeline axis overlay coordinate space.
+    struct TimelineDateLabelPlacement: Equatable, Identifiable {
+        var dayIndex: Int
+        var centerX: CGFloat
+        var centerY: CGFloat
+
+        var id: Int { dayIndex }
+    }
+
     /// Where "Bugün" sits. The word is wider than a quarter-scale cell, so centering it on the
     /// day runs the today line through the word and covers a neighboring date. The word moves
     /// beside the line, shifts inward when today is the first or last day of the range, and
@@ -134,6 +143,44 @@ import VaultFormat
                 x: centerX - dateLabelWidth / 2, y: centerY - dateLabelHeight / 2,
                 width: dateLabelWidth, height: dateLabelHeight)
         }
+
+        static func dateLabelCenter(
+            dayIndex: Int,
+            dayWidth: CGFloat,
+            isLowered: Bool
+        ) -> CGPoint {
+            let midline = TimelineDesktopMetrics.axisHeight / 2
+            let centerY = midline + (isLowered ? loweredDateOffset : 0)
+            let centerX = (CGFloat(dayIndex) + 0.5) * max(dayWidth, 0)
+            return CGPoint(x: centerX, y: centerY)
+        }
+
+        static func dateLabelPlacement(
+            dayIndex: Int,
+            dayWidth: CGFloat,
+            isLowered: Bool
+        ) -> TimelineDateLabelPlacement {
+            let center = dateLabelCenter(dayIndex: dayIndex, dayWidth: dayWidth, isLowered: isLowered)
+            return TimelineDateLabelPlacement(dayIndex: dayIndex, centerX: center.x, centerY: center.y)
+        }
+
+        static func dateLabelPlacements(
+            dayIndices: [Int],
+            dayWidth: CGFloat,
+            loweredDateIndices: Set<Int>
+        ) -> [TimelineDateLabelPlacement] {
+            dayIndices.map { index in
+                dateLabelPlacement(
+                    dayIndex: index,
+                    dayWidth: dayWidth,
+                    isLowered: loweredDateIndices.contains(index)
+                )
+            }
+        }
+
+        static func showsAxisDateLabel(_ day: CalendarDate, scale: TimelineModel.Scale) -> Bool {
+            scale == .week || (scale == .month && day.weekday == 0) || day.day == 1
+        }
     }
 
     /// Non-scrolling timeline chart shared by ``TimelineDesktopView`` and Mac snapshots:
@@ -199,24 +246,17 @@ import VaultFormat
 
         private var axis: some View {
             let placement = todayPlacement
+            let datePlacements = TimelineAxisLayout.dateLabelPlacements(
+                dayIndices: dateLabelDayIndices,
+                dayWidth: dayWidth,
+                loweredDateIndices: placement?.loweredDateIndices ?? []
+            )
             return HStack(spacing: 0) {
-                ForEach(Array(days.enumerated()), id: \.element) { index, day in
+                ForEach(days, id: \.self) { day in
                     ZStack {
                         if day.weekday >= 5 { Color.ink.well }
                         if day == model.today {
                             Color.ink.accent.opacity(0.12)
-                        }
-                        if showsAxisDateLabel(day) {
-                            Text(LocalDay.instant(for: day), format: .dateTime.day().month(.abbreviated))
-                                .font(.ink.time)
-                                .foregroundStyle(.ink.secondaryText)
-                                .monospacedDigit()
-                                .fixedSize()
-                                .onGeometryChange(for: CGFloat.self, of: { $0.size.width }) { width in
-                                    if width > dateLabelWidth { dateLabelWidth = width }
-                                }
-                                .zIndex(1)
-                                .offset(y: dateLabelOffset(index: index, placement: placement))
                         }
                     }
                     .frame(width: dayWidth, height: TimelineDesktopMetrics.axisHeight)
@@ -224,18 +264,36 @@ import VaultFormat
                 }
             }
             .overlay {
-                if let placement {
-                    Text("Bugün")
-                        .font(.ink.meta)
-                        .foregroundStyle(.ink.accent)
-                        .fixedSize()
-                        .onGeometryChange(for: CGFloat.self, of: { $0.size.width }) { width in
-                            if width > todayLabelWidth { todayLabelWidth = width }
-                        }
-                        .position(x: placement.centerX, y: placement.centerY)
-                        .accessibilityAddTraits(.isHeader)
+                ZStack {
+                    ForEach(datePlacements) { item in
+                        let day = days[item.dayIndex]
+                        Text(LocalDay.instant(for: day), format: .dateTime.day().month(.abbreviated))
+                            .font(.ink.time)
+                            .foregroundStyle(.ink.secondaryText)
+                            .monospacedDigit()
+                            .fixedSize()
+                            .onGeometryChange(for: CGFloat.self, of: { $0.size.width }) { width in
+                                if width > dateLabelWidth { dateLabelWidth = width }
+                            }
+                            .position(x: item.centerX, y: item.centerY)
+                    }
+                    if let placement {
+                        Text("Bugün")
+                            .font(.ink.meta)
+                            .foregroundStyle(.ink.accent)
+                            .fixedSize()
+                            .onGeometryChange(for: CGFloat.self, of: { $0.size.width }) { width in
+                                if width > todayLabelWidth { todayLabelWidth = width }
+                            }
+                            .position(x: placement.centerX, y: placement.centerY)
+                            .accessibilityAddTraits(.isHeader)
+                    }
                 }
             }
+        }
+
+        private var dateLabelDayIndices: [Int] {
+            days.indices.filter { showsAxisDateLabel(days[$0]) }
         }
 
         private var todayPlacement: TimelineTodayLabelPlacement? {
@@ -246,15 +304,11 @@ import VaultFormat
                 dayWidth: dayWidth,
                 labelWidth: todayLabelWidth,
                 dateLabelWidth: dateLabelWidth,
-                dateLabelDayIndices: Set(days.indices.filter { showsAxisDateLabel(days[$0]) }))
-        }
-
-        private func dateLabelOffset(index: Int, placement: TimelineTodayLabelPlacement?) -> CGFloat {
-            placement?.loweredDateIndices.contains(index) == true ? TimelineAxisLayout.loweredDateOffset : 0
+                dateLabelDayIndices: Set(dateLabelDayIndices))
         }
 
         private func showsAxisDateLabel(_ day: CalendarDate) -> Bool {
-            model.scale == .week || (model.scale == .month && day.weekday == 0) || day.day == 1
+            TimelineAxisLayout.showsAxisDateLabel(day, scale: model.scale)
         }
     }
 

@@ -59,16 +59,10 @@ struct SearchView: View {
                     searchFocused = true
                 })
         #endif
-        // On a page opened inside the sheet, search means "back to the results". Mac draws the
-        // manşet magnifier only here: the window's toolbar search is behind the sheet.
-        .environment(\.isSearchSheet, true)
-        .environment(
-            \.openSearch,
-            {
-                model.showResults()
-                searchFocused = true
-            }
-        )
+        .searchSheetContext {
+            model.showResults()
+            searchFocused = true
+        }
         .onChange(of: model.path) { _, path in if path.isEmpty { searchFocused = true } }
         .onChange(of: store.vaultURL) { _, _ in model.reloadHistory() }
         .task { searchFocused = true }
@@ -176,6 +170,16 @@ struct SearchView: View {
             searchFocused = false
             model.path.append(destination)
         }
+    }
+}
+
+extension View {
+    /// What search means on a page opened inside the search sheet: back to the results. Mac draws
+    /// the manşet magnifier only in this context (``SearchButton``): the window's toolbar search
+    /// is behind the sheet.
+    func searchSheetContext(showResults: @escaping @MainActor @Sendable () -> Void) -> some View {
+        environment(\.isSearchSheet, true)
+            .environment(\.openSearch, showResults)
     }
 }
 

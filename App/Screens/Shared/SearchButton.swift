@@ -25,14 +25,17 @@ extension EnvironmentValues {
 
 /// Opens global search through `\.openSearch`.
 ///
-/// Belongs in the `actions` slot of a manşet row (``InkPageTitle`` / ``InkPageTitleRow`` /
-/// ``InkPageHeader``) as the **last** (rightmost) icon. The slot styles every plain button in
-/// it with ``InkHeaderButtonStyle`` (utility role), so there this draws exactly like an
-/// ``InkHeaderAction``: frameless, secondary text color, 44 pt target.
+/// iPhone: belongs in the `actions` slot of a manşet row (``InkPageTitle`` /
+/// ``InkPageTitleRow`` / ``InkPageHeader``) as the **last** (rightmost) icon. The slot styles
+/// every plain button in it with ``InkHeaderButtonStyle`` (utility role), so there this draws
+/// exactly like an ``InkHeaderAction``: frameless, secondary text color, 44 pt target. It must
+/// not go in `.toolbar` there.
 ///
-/// The body stays a bare system button on purpose: screens that still place it in `.toolbar`
-/// keep compiling and keep their exact rendering until they move. New code must not put it
-/// in `.toolbar` (`ControlPatternUsageTests`).
+/// Mac: search has one place, the window toolbar of the shell (`MacNavigation`). The same
+/// screens are shared, so inside a manşet row's `actions` slot this view draws nothing on Mac.
+///
+/// The body stays a bare system button on purpose: the Mac toolbar draws it as its own glass
+/// control and the manşet slot supplies the iPhone look (`ControlPatternUsageTests`).
 struct SearchButton: View {
     @Environment(\.openSearch) private var openSearch
 

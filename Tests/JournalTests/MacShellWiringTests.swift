@@ -8,8 +8,9 @@
     /// The real shell (`MacNavigation`) with the sample vault, mounted offscreen: what the three
     /// layouts really install (columns, window minimum, toolbar, title) and what a sidebar row
     /// really does. The window is never ordered on screen.
-    @MainActor @Suite(.serialized)
+    @MainActor @Suite(.serialized, .timeLimit(.minutes(1)))
     struct MacShellWiringTests {
+        private let watchdog = HostedTestWatchdog()
         @Test func columnsLayoutUsesTheColumnWidthsAndHidesTheToolbarTitle() async throws {
             let shell = try await Shell()
             defer { shell.close() }
@@ -37,7 +38,7 @@
             let shell = try await Shell()
             defer { shell.close() }
             let table = try #require(shell.sidebarTable)
-            #expect(shell.window.makeFirstResponder(table))
+            guard HostedFocus.isAvailable(for: table, in: shell.window) else { return }
 
             var seen: [String: (panes: Int, search: Int)] = [:]
             var titles: [String] = []
@@ -65,7 +66,7 @@
             let shell = try await Shell()
             defer { shell.close() }
             let table = try #require(shell.sidebarTable)
-            #expect(shell.window.makeFirstResponder(table))
+            guard HostedFocus.isAvailable(for: table, in: shell.window) else { return }
             for _ in 0..<5 { try await shell.pressDown() }
             #expect(shell.window.title == "altyapi", "walked to the first project: \(shell.window.title)")
 

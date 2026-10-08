@@ -6,8 +6,9 @@
     @testable import Journal
 
     /// Column widths and the smallest window, measured on a real split view (audit findings 2, 3).
-    @MainActor
+    @MainActor @Suite(.timeLimit(.minutes(1)))
     struct MacShellLayoutTests {
+        private let watchdog = HostedTestWatchdog()
         private struct Columns: View {
             var body: some View {
                 NavigationSplitView {

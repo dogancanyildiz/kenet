@@ -13,8 +13,9 @@
     /// Widths are compared with the scroll view's visible area, not with the host: where scroll
     /// bars are always shown (a machine without a trackpad, as in CI) the bar takes its width
     /// from the content.
-    @MainActor
+    @MainActor @Suite(.timeLimit(.minutes(1)))
     struct InkPageScrollColumnTests {
+        private let watchdog = HostedTestWatchdog()
         private static let wide = CGSize(width: 1100, height: 700)
         private static let narrow = CGSize(width: 420, height: 600)
 

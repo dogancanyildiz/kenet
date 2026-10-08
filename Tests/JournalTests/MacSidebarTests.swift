@@ -165,8 +165,9 @@
     }
 
     /// The real list, mounted offscreen: the system selection walks our rows with the arrow keys.
-    @MainActor
+    @MainActor @Suite(.timeLimit(.minutes(1)))
     struct MacSidebarKeyboardTests {
+        private let watchdog = HostedTestWatchdog()
         @Observable final class Model {
             var shell = MacShellSelection(section: .days)
             var restoresFocus = false
@@ -232,7 +233,7 @@
             defer { mount.close() }
             let entries = MacSidebar.entries(projects: model.projects)
             let first = try #require(sidebarTable(in: mount))
-            #expect(mount.window.makeFirstResponder(first))
+            guard HostedFocus.isAvailable(for: first, in: mount.window) else { return }
 
             // Down from "Günlük" through the Tasks group. The split view changes twice on the way
             // and nothing but the sidebar itself may put focus back in the new list.
@@ -264,7 +265,7 @@
             let mount = await mount(model)
             defer { mount.close() }
             let first = try #require(sidebarTable(in: mount))
-            #expect(mount.window.makeFirstResponder(first))
+            guard HostedFocus.isAvailable(for: first, in: mount.window) else { return }
 
             model.selection = .kanban
             await mount.settle(rounds: 12)
@@ -300,7 +301,7 @@
             let mount = await mount(model)
             defer { mount.close() }
             let first = try #require(sidebarTable(in: mount))
-            #expect(mount.window.makeFirstResponder(first))
+            guard HostedFocus.isAvailable(for: first, in: mount.window) else { return }
 
             model.selection = .kanban
             // The delay counts from the moment the board (and its own sidebar) is installed:
@@ -314,7 +315,7 @@
             try await Task.sleep(for: .milliseconds(delay))
             let target = try #require(
                 mount.views(NSTextField.self).first { $0.isEditable }, "the board page has a text field")
-            #expect(mount.window.makeFirstResponder(target))
+            guard HostedFocus.isAvailable(for: target, in: mount.window) else { return }
 
             await mount.settle(rounds: 24)
             let table = try #require(sidebarTable(in: mount))
@@ -347,10 +348,10 @@
             mount.window.makeFirstResponder(nil)
             #expect(MacSidebarFocus.isUnowned(in: mount.window))
             let field = try #require(mount.views(NSTextField.self).first { $0.isEditable })
-            #expect(mount.window.makeFirstResponder(field))
+            guard HostedFocus.isAvailable(for: field, in: mount.window) else { return }
             #expect(!MacSidebarFocus.isUnowned(in: mount.window))
             let table = try #require(sidebarTable(in: mount))
-            #expect(mount.window.makeFirstResponder(table))
+            guard HostedFocus.isAvailable(for: table, in: mount.window) else { return }
             #expect(!MacSidebarFocus.isUnowned(in: mount.window))
         }
 

@@ -29,8 +29,9 @@ struct QuickEntryWordSpacingTests {
     import AppKit
 
     /// Hosted frames for the two Mac findings: kip-word gap, and manşet icon size / hit target.
-    @MainActor
+    @MainActor @Suite(.timeLimit(.minutes(1)))
     struct MacComponentMetricsTests {
+        private let watchdog = HostedTestWatchdog()
         @Test func quickEntryModeWordsSitAVisualGapApart() async throws {
             let mount = HostedLayout.Mount(
                 QuickEntryMetricsProbe(dynamicTypeSize: .large),

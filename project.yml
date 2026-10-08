@@ -2,12 +2,14 @@
 # Kaynaklar klasör eşlemeli (syncedFolder) eklendiği için yeni dosya için yeniden üretim gerekmez.
 name: Journal
 
-# Test yapılandırması Debug ile aynı derleme türündedir; yalnız test eylemi onu kullanır.
+# DebugTest yapılandırması Debug ile aynı derleme türündedir; yalnız test eylemi onu kullanır.
+# Adında "Debug" geçmesi şart: Xcode, adını tanımadığı yapılandırmada Swift paketlerini
+# release kipinde ve iki mimaride derler.
 # Run Debug, arşiv Release kalır. Kimlik aşağıda APP_BUNDLE_IDENTIFIER'dan türetilir.
 configs:
   Debug: debug
   Release: release
-  Test: debug
+  DebugTest: debug
 
 options:
   # Kalıcı kimlik (docs/decisions.md). Hedefler kimliği aşağıdaki APP_BUNDLE_IDENTIFIER ayarından
@@ -33,7 +35,7 @@ packages:
 configFiles:
   Debug: Config/Signing.xcconfig
   Release: Config/Signing.xcconfig
-  Test: Config/Signing.xcconfig
+  DebugTest: Config/Signing.xcconfig
 
 settings:
   base:
@@ -132,7 +134,7 @@ targets:
           # Mac yerelde takımsız (ad hoc) imzalanır. iOS'a uygulanmaz: cihaza kurulum otomatik
           # imzalamayla geliştirme sertifikası ister.
           "CODE_SIGN_IDENTITY[sdk=macosx*]": "-"
-        Test:
+        DebugTest:
           # Test eylemi gerçek kimliğin alanına (tercih, pencere çerçevesi, çökme penceresi) yazmasın.
           # Sonek buradan türetilir; APP_BUNDLE_IDENTIFIER tek tanım olarak kalır.
           PRODUCT_BUNDLE_IDENTIFIER: $(APP_BUNDLE_IDENTIFIER).testhost
@@ -221,7 +223,7 @@ schemes:
       targets:
         Journal_macOS: all
         JournalMacUITests: [test]
-    # Tur kendi APP_BUNDLE_IDENTIFIER geçersiz kılmasıyla ….screentour olur. Test yapılandırması
+    # Tur kendi APP_BUNDLE_IDENTIFIER geçersiz kılmasıyla ….screentour olur. DebugTest yapılandırması
     # buna .testhost eklerdi; tur Debug'da kalır.
     test:
       config: Debug
@@ -236,7 +238,7 @@ schemes:
     archive:
       config: Release
     test:
-      config: Test
+      config: DebugTest
       commandLineArguments:
         JOURNAL_NO_AUTOSTART: true
       # Forwarded so `SNAPSHOT_TESTING_RECORD=all xcodebuild test …` reaches the host (Mac suites).
@@ -253,7 +255,7 @@ schemes:
     archive:
       config: Release
     test:
-      config: Test
+      config: DebugTest
       commandLineArguments:
         JOURNAL_NO_AUTOSTART: true
       # Forwarded so `SNAPSHOT_TESTING_RECORD=all xcodebuild test …` reaches the host.

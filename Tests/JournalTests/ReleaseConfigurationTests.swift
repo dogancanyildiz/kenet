@@ -40,7 +40,7 @@ struct ReleaseConfigurationTests {
         }
         for name in ["Journal_macOS", "Journal_iOS"] {
             let scheme = try Self.read("Journal.xcodeproj/xcshareddata/xcschemes/\(name).xcscheme")
-            #expect(Self.actionConfiguration("TestAction", in: scheme) == "Test")
+            #expect(Self.actionConfiguration("TestAction", in: scheme) == "DebugTest")
             #expect(Self.actionConfiguration("LaunchAction", in: scheme) == "Debug")
             #expect(Self.actionConfiguration("ArchiveAction", in: scheme) == "Release")
         }

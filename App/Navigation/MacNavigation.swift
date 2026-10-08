@@ -20,6 +20,7 @@
         @State private var entityOrder = EntityOrdering.name
         @State private var entitySearch = ""
         @State private var selectedEntityKind = "person"
+        @State private var sidebarRestoresFocus = false
 
         init(store: IndexStore) {
             self.store = store
@@ -28,7 +29,8 @@
 
         var body: some View {
             Group {
-                if section == .summaries || section == .graph || section == .map {
+                switch shellLayout {
+                case .page:
                     NavigationSplitView {
                         sidebar
                     } detail: {
@@ -43,8 +45,9 @@
                         }
                         // Full-width paper; graph / map / summaries are not reading columns.
                         .inkPage()
+                        .macSearchToolbar()
                     }
-                } else if section == .tasks && (tasksShell.layout == .kanban || tasksShell.layout == .timeline) {
+                case .board:
                     NavigationSplitView {
                         sidebar
                     } detail: {
@@ -56,20 +59,17 @@
                             }
                         }
                         .inkPage()
+                        .macSearchToolbar()
                     }
-                } else {
+                case .columns:
                     standardLayout
                 }
             }
-            // Search has one place on Mac: this window toolbar button, on every screen. The manşet
-            // rows drop their magnifier here (``SearchButton``).
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) { SearchButton() }
-            }
-            .frame(
-                minWidth: InkSpacing.macWindowMinWidth,
-                minHeight: InkSpacing.macWindowMinHeight
-            )
+            // The page name is the serif manşet inside the page; the toolbar repeats nothing.
+            // The window keeps a title (Window menu, Mission Control): the selected sidebar row.
+            .navigationTitle(windowTitle)
+            .toolbar(removing: .title)
+            .macMainWindowMinimumSize()
             .onChange(of: intentNavigation.todayRequest, initial: true) { _, request in
                 guard request != nil else { return }
                 detailPath = NavigationPath()
@@ -109,20 +109,15 @@
         }
 
         private var sidebar: some View {
-            // One row per entry: a board or a project is selected on its own, not as part of the
-            // "Görevler" row. The row draws its own selection (accent fill, on-accent ink), so
-            // the selected entry reads the same in both appearances.
-            List {
-                ForEach(sidebarEntries, id: \.self) { entry in
-                    SidebarRow(entry: entry, isSelected: selectedSidebarEntry == entry) {
-                        selectSidebarEntry(entry)
-                    }
-                }
-            }
-            .navigationTitle("Journal")
-            .navigationSplitViewColumnWidth(
-                min: InkSpacing.macSidebarMinWidth, ideal: InkSpacing.macSidebarIdealWidth,
-                max: InkSpacing.macSidebarMaxWidth)
+            MacSidebarList(
+                entries: MacSidebar.entries(projects: store.content.projects),
+                selection: Binding(
+                    get: { MacSidebar.selection(section: section, tasks: tasksShell.layout) },
+                    set: { entry in if let entry { selectSidebarEntry(entry) } }),
+                // A click on the selected "Görevler" row still returns the list to its first section.
+                onClick: { entry in if entry == .section(.tasks) { tasksEvent(.sidebarTasks) } },
+                restoresFocus: $sidebarRestoresFocus
+            )
         }
 
         private var standardLayout: some View {
@@ -132,20 +127,7 @@
                 Group {
                     switch section ?? .today {
                     case .today, .days:
-                        VStack(spacing: 0) {
-                            // List rows sit 8 pt inside the column; the manşet lines up with them.
-                            InkPageTitle("Günlük").padding(.leading, 8)
-                            Button {
-                                section = .summaries
-                            } label: {
-                                Label("Özetler", systemImage: "chart.bar")
-                            }
-                            .buttonStyle(InkTextButtonStyle())
-                            .padding(.horizontal, InkSpacing.margin)
-                            .padding(.vertical, 8)
-                            DaysCalendarView(store: store) { selectedDay = "journal/\($0).md" }
-                            MacDayList(days: store.content.days, selection: $selectedDay)
-                        }.navigationTitle("Günlük")
+                        MacDaysColumn(store: store, selection: $selectedDay) { section = .summaries }
                     case .tasks:
                         if let project = selectedProject {
                             NavigationStack { ProjectView(store: store, name: project).id(project) }
@@ -160,39 +142,13 @@
                     case .goals:
                         GoalsView(store: store, selection: $selectedGoal)
                     case .people, .places:
-                        VStack(spacing: 0) {
-                            if store.entityTypes.issue != nil {
-                                Text(
-                                    "Varlık tipleri okunamıyor. Yalnız yerleşik tipler kullanılıyor. Kasadaki .app/types.json dosyasını kontrol et."
-                                )
-                                .font(.ink.meta)
-                                .foregroundStyle(Color.ink.warning)
-                                .padding()
-                            }
-                            InkPageTitle(entityColumnTitle) {
-                                EntitySortMenu(order: $entityOrder)
-                            }
-                            .padding(.leading, 8)
-                            EntityTypePicker(store: store, selection: $selectedEntityKind)
-                                .padding(.horizontal, InkSpacing.margin)
-                                .padding(.bottom, InkSpacing.section)
-                            EntityFilterField(search: $entitySearch)
-                                .padding(.horizontal, InkSpacing.margin)
-                                .padding(.bottom, InkSpacing.section)
-                            let entities = EntityListQuery.entities(
-                                in: store.content, usage: store.entityUsage, kind: entityKind,
-                                search: entitySearch, order: entityOrder)
-                            MacEntityList(
-                                store: store, entities: entities, showsUnseen: entityKind == "person",
-                                selection: entitySelection)
-                        }
-                        .navigationTitle((section ?? .people).title)
+                        MacEntitiesColumn(
+                            store: store, sectionTitle: (section ?? .people).title, kind: $selectedEntityKind,
+                            order: $entityOrder, search: $entitySearch, selection: entitySelection)
                     }
                 }
                 .inkPage()
-                .navigationSplitViewColumnWidth(
-                    min: InkSpacing.macListMinWidth, ideal: InkSpacing.macListIdealWidth,
-                    max: InkSpacing.macListMaxWidth)
+                .macListColumn()
             } detail: {
                 NavigationStack(path: $detailPath) {
                     switch section ?? .today {
@@ -236,39 +192,30 @@
                 .id(section)
                 // Shell paints paper full-width; each page view applies `.inkPageColumn()` itself.
                 .inkPage()
+                .macSearchToolbar()
             }
         }
 
-        private var sidebarEntries: [SidebarEntry] {
-            DesktopSection.allCases.flatMap { item -> [SidebarEntry] in
-                guard item == .tasks else { return [.section(item)] }
-                return [.section(.tasks), .board(.kanban), .board(.timeline)]
-                    + store.content.projects.map(SidebarEntry.project)
-            }
+        private var windowTitle: Text {
+            MacSidebar.selection(section: section, tasks: tasksShell.layout)?.title ?? Text("Journal")
         }
 
-        /// The sidebar selection is derived: the section, and inside "Görevler" the shell layout.
-        private var selectedSidebarEntry: SidebarEntry? {
-            guard let section else { return nil }
-            guard section == .tasks else { return .section(section) }
-            switch tasksShell.layout {
-            case .list: return .section(.tasks)
-            case .kanban: return .board(.kanban)
-            case .timeline: return .board(.timeline)
-            case .project(let name): return .project(name)
-            }
+        private var shellLayout: MacShellLayout {
+            MacShellLayout.resolve(section: section, tasks: tasksShell.layout)
         }
 
-        private func selectSidebarEntry(_ entry: SidebarEntry) {
+        /// Called for a choice made in the sidebar (click or arrow key).
+        private func selectSidebarEntry(_ entry: MacSidebarEntry) {
+            let before = shellLayout
+            defer { if shellLayout != before { sidebarRestoresFocus = true } }
             switch entry {
             case .section(let value):
-                // A click on the selected "Görevler" row still returns the list to its first section.
                 if value == .tasks { tasksEvent(.sidebarTasks) }
                 section = value
-            case .board(let mode):
+            case .kanban, .timeline:
                 section = .tasks
                 selectedTask = nil
-                tasksEvent(.sidebarBoard(mode))
+                tasksEvent(.sidebarBoard(entry == .kanban ? .kanban : .timeline))
             case .project(let name):
                 section = .tasks
                 selectedTask = nil
@@ -305,15 +252,6 @@
         }
 
         private var entityKind: String { selectedEntityKind }
-
-        /// The column's manşet follows the kind tab, which can differ from the sidebar entry.
-        private var entityColumnTitle: LocalizedStringKey {
-            switch selectedEntityKind {
-            case "person": "Kişiler"
-            case "place": "Konumlar"
-            default: (section ?? .people).title
-            }
-        }
     }
 
     struct TodayNavigationKey: FocusedValueKey {
@@ -327,97 +265,80 @@
         }
     }
 
-    /// A selectable sidebar row: a section, a Tasks board or a project.
-    private enum SidebarEntry: Hashable {
-        case section(DesktopSection)
-        case board(TasksViewState.Mode)
-        case project(String)
-    }
-
-    /// Sidebar row with its own selection: accent fill and on-accent ink, which is dark in the
-    /// dark appearance (the system fill there is light pink under white text).
-    private struct SidebarRow: View {
-        let entry: SidebarEntry
-        let isSelected: Bool
-        let action: () -> Void
+    /// Günlük list column: manşet, the Özetler link under it, the month and the days.
+    struct MacDaysColumn: View {
+        let store: IndexStore
+        @Binding var selection: String?
+        let openSummaries: () -> Void
 
         var body: some View {
-            Button(action: action) {
-                Label {
-                    title
-                        .fontWeight(isSelected ? .semibold : .regular)
-                        .foregroundStyle(isSelected ? Color.ink.onAccent : Color.ink.text)
-                } icon: {
-                    Image(systemName: symbol)
-                        .foregroundStyle(isSelected ? Color.ink.onAccent : Color.ink.accent)
+            VStack(spacing: 0) {
+                InkPageTitle("Günlük").padding(.leading, MacListColumnChrome.rowInset)
+                Button(action: openSummaries) {
+                    Label("Özetler", systemImage: "chart.bar")
                 }
-                .padding(.leading, isNested ? InkSpacing.margin : 0)
+                .buttonStyle(InkTextButtonStyle())
+                // Starts where the manşet above it starts.
+                .padding(.leading, InkSpacing.margin + MacListColumnChrome.rowInset)
+                .padding(.vertical, 8)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .accessibilityAddTraits(isSelected ? .isSelected : [])
-            .listRowBackground(
-                RoundedRectangle(cornerRadius: InkSize.kanbanCorner, style: .continuous)
-                    .fill(isSelected ? Color.ink.accent : Color.clear)
-                    // Inset like the system sidebar selection.
-                    .padding(.horizontal, 10))
-        }
-
-        private var isNested: Bool {
-            if case .section = entry { false } else { true }
-        }
-
-        private var title: Text {
-            switch entry {
-            case .section(let section): Text(section.title)
-            case .board(.timeline): Text("Zaman çizelgesi")
-            case .board: Text("Kanban")
-            case .project(let name): Text(verbatim: name)
-            }
-        }
-
-        private var symbol: String {
-            switch entry {
-            case .section(let section): section.symbol
-            case .board(.timeline): "chart.bar.xaxis"
-            case .board: "rectangle.split.3x1"
-            case .project: "folder"
+                DaysCalendarView(store: store) { selection = "journal/\($0).md" }
+                MacDayList(days: store.content.days, selection: $selection)
             }
         }
     }
 
-    private enum DesktopSection: String, CaseIterable, Identifiable {
-        case today, days, tasks, people, places, goals, summaries, graph, map
-        var id: Self { self }
+    /// Kişiler / Konumlar list column: manşet with the sort icon, kind tabs, filter and the list.
+    struct MacEntitiesColumn: View {
+        let store: IndexStore
+        /// Manşet for a custom kind, which has no sidebar row of its own.
+        let sectionTitle: LocalizedStringKey
+        @Binding var kind: String
+        @Binding var order: EntityOrdering
+        @Binding var search: String
+        @Binding var selection: String?
 
-        var title: LocalizedStringKey {
-            switch self {
-            case .today: "Bugün"
-            case .days: "Günlük"
-            case .tasks: "Görevler"
-            case .people: "Kişiler"
-            case .places: "Konumlar"
-            case .goals: "Hedefler"
-            case .summaries: "Özetler"
-            case .graph: "Graph"
-            case .map: "Harita"
+        var body: some View {
+            VStack(spacing: 0) {
+                if store.entityTypes.issue != nil {
+                    Text(
+                        "Varlık tipleri okunamıyor. Yalnız yerleşik tipler kullanılıyor. Kasadaki .app/types.json dosyasını kontrol et."
+                    )
+                    .font(.ink.meta)
+                    .foregroundStyle(Color.ink.warning)
+                    .padding()
+                }
+                InkPageTitle(title) {
+                    EntitySortMenu(order: $order)
+                }
+                .padding(.leading, MacListColumnChrome.rowInset)
+                EntityTypePicker(store: store, selection: $kind)
+                    .padding(.horizontal, InkSpacing.margin)
+                    .padding(.bottom, InkSpacing.section)
+                EntityFilterField(search: $search)
+                    .padding(.horizontal, InkSpacing.margin)
+                    .padding(.bottom, InkSpacing.section)
+                MacEntityList(
+                    store: store,
+                    entities: EntityListQuery.entities(
+                        in: store.content, usage: store.entityUsage, kind: kind, search: search, order: order),
+                    showsUnseen: kind == "person", selection: $selection)
             }
         }
 
-        var symbol: String {
-            switch self {
-            case .today: "sun.max"
-            case .days: "book.closed"
-            case .tasks: "checklist"
-            case .people: "person.2"
-            case .places: "mappin.and.ellipse"
-            case .goals: "target"
-            case .summaries: "chart.bar"
-            case .graph: "point.3.connected.trianglepath.dotted"
-            case .map: "map"
+        /// The manşet follows the kind tab, which can differ from the sidebar row.
+        private var title: LocalizedStringKey {
+            switch kind {
+            case "person": "Kişiler"
+            case "place": "Konumlar"
+            default: sectionTitle
             }
         }
+    }
+
+    enum MacListColumnChrome {
+        /// A Mac list insets its rows by this much; a manşet above the list lines up with them.
+        static let rowInset: CGFloat = 8
     }
 
     /// Günlük column. Selection chrome lives here so the day row and its tests share one list.

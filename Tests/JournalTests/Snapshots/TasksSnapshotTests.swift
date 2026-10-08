@@ -163,6 +163,82 @@
             )
         }
 
+        // MARK: Sidebar and the list columns that gained a manşet
+
+        @Test(arguments: [
+            ("sidebarTasksMacLight", false, false), ("sidebarTasksMacDark", true, false),
+            ("sidebarKanbanMacLight", false, true), ("sidebarKanbanMacDark", true, true),
+        ])
+        func sidebarSelection(name: String, dark: Bool, board: Bool) async throws {
+            let context = try TaskTestContext(sample: true)
+            defer { context.clean() }
+            await context.start()
+            try await assertMacView(
+                MacSidebarList(
+                    entries: MacSidebar.entries(projects: context.store.content.projects),
+                    selection: .constant(board ? .kanban : .section(.tasks))
+                )
+                // The offscreen window is never key; draw the row as the key window does.
+                .environment(\.appearsActive, true),
+                named: name,
+                store: context.store,
+                defaults: context.defaults.defaults,
+                size: CGSize(width: InkSpacing.macSidebarIdealWidth, height: 560),
+                appearance: dark ? .darkAqua : .aqua,
+                inWindow: true
+            )
+        }
+
+        @Test func sidebarInactiveWindowMacLight() async throws {
+            let context = try TaskTestContext(sample: true)
+            defer { context.clean() }
+            await context.start()
+            try await assertMacView(
+                MacSidebarList(
+                    entries: MacSidebar.entries(projects: context.store.content.projects),
+                    selection: .constant(.section(.tasks))
+                )
+                .environment(\.appearsActive, false),
+                named: "sidebarInactiveWindowMacLight",
+                store: context.store,
+                defaults: context.defaults.defaults,
+                size: CGSize(width: InkSpacing.macSidebarIdealWidth, height: 560),
+                inWindow: true
+            )
+        }
+
+        @Test func daysColumnMacLight() async throws {
+            let context = try TaskTestContext(sample: true)
+            defer { context.clean() }
+            await context.start()
+            try await assertMacView(
+                MacDaysColumn(store: context.store, selection: .constant(nil)) {},
+                named: "daysColumnMacLight",
+                store: context.store,
+                defaults: context.defaults.defaults,
+                size: CGSize(width: InkSpacing.macListIdealWidth, height: 720),
+                inWindow: true
+            )
+        }
+
+        @Test func peopleColumnMacLight() async throws {
+            let context = try TaskTestContext(sample: true)
+            defer { context.clean() }
+            await context.start()
+            try await assertMacView(
+                MacEntitiesColumn(
+                    store: context.store, sectionTitle: "Kişiler", kind: .constant("person"),
+                    order: .constant(.name), search: .constant(""), selection: .constant(nil)
+                )
+                .environment(IntentNavigation()),
+                named: "peopleColumnMacLight",
+                store: context.store,
+                defaults: context.defaults.defaults,
+                size: CGSize(width: InkSpacing.macListIdealWidth, height: 720),
+                inWindow: true
+            )
+        }
+
         private func assertSelectedTaskList(named name: String, appearance: NSAppearance.Name) async throws {
             let context = try TaskTestContext(sample: true)
             defer { context.clean() }

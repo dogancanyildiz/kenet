@@ -98,7 +98,8 @@ private struct GoalListContent: View {
                 Button {
                     selection.wrappedValue = goal.id
                 } label: {
-                    row
+                    // The whole row selects, the empty stretch between name and value included.
+                    row.contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
             } else {

@@ -26,9 +26,11 @@ final class TaskRowTapUITests: XCTestCase {
     @MainActor
     func testTouchOnEmptyRowAreaCompletesTask() throws {
         // The list section is restored from the last run; pin it so the rows are on screen.
+        // The app runs in Turkish whatever the test language is: the date label is found by its text.
         let app = UITestSupport.launchApp(
             vaultURL: vaultURL, quickEntryText: nil,
-            extraArguments: ["-tasks.view.mode", "list", "-tasks.view.list.section", "upcoming"])
+            extraArguments: ["-tasks.view.mode", "list", "-tasks.view.list.section", "upcoming"]
+                + ScreenTourDriver.turkish)
         // No warm-up touch on the screen: on Bugün it would land on a task row and complete it.
         UITestSupport.waitForExistence(UITestSupport.element(in: app, identifier: "screen.today"), timeout: 30)
         UITestSupport.openTab(app, identifier: "tab.tasks", screen: "screen.tasks")

@@ -38,15 +38,54 @@ struct GraphControls: View {
     }
 
     private var weightStepper: some View {
-        Stepper(
-            value: $filter.minimumWeight,
-            in: 1...max(maximumWeight, filter.minimumWeight)
-        ) {
-            EmptyView()
-        }
-        .labelsHidden()
-        .accessibilityLabel(
-            Text("En az \(filter.minimumWeight) ortak gün"))
+        #if os(macOS)
+            HStack(spacing: 4) {
+                Button {
+                    if filter.minimumWeight > 1 {
+                        filter.minimumWeight -= 1
+                    }
+                } label: {
+                    Image(systemName: "minus")
+                        .font(.ink.meta)
+                        .foregroundStyle(filter.minimumWeight > 1 ? Color.ink.accent : Color.ink.control)
+                        .frame(width: 20, height: 20)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .disabled(filter.minimumWeight <= 1)
+                .accessibilityLabel("Azalt")
+
+                Button {
+                    if filter.minimumWeight < max(maximumWeight, filter.minimumWeight) {
+                        filter.minimumWeight += 1
+                    }
+                } label: {
+                    Image(systemName: "plus")
+                        .font(.ink.meta)
+                        .foregroundStyle(
+                            filter.minimumWeight < max(maximumWeight, filter.minimumWeight)
+                                ? Color.ink.accent : Color.ink.control
+                        )
+                        .frame(width: 20, height: 20)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .disabled(filter.minimumWeight >= max(maximumWeight, filter.minimumWeight))
+                .accessibilityLabel("Artır")
+            }
+            .accessibilityElement(children: .contain)
+            .accessibilityLabel(Text("En az \(filter.minimumWeight) ortak gün"))
+        #else
+            Stepper(
+                value: $filter.minimumWeight,
+                in: 1...max(maximumWeight, filter.minimumWeight)
+            ) {
+                EmptyView()
+            }
+            .labelsHidden()
+            .accessibilityLabel(
+                Text("En az \(filter.minimumWeight) ortak gün"))
+        #endif
     }
 
     @ViewBuilder private var weightRow: some View {

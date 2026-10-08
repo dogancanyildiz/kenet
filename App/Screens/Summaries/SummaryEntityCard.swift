@@ -24,6 +24,9 @@ struct SummaryEntityCard: View {
                                 .font(.ink.content)
                                 .foregroundStyle(Color.ink.text)
                         }
+                        #if os(macOS)
+                            .buttonStyle(.plain)
+                        #endif
                     } else {
                         Text(verbatim: item.name)
                             .font(.ink.content)

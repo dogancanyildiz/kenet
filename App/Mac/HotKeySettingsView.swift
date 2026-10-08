@@ -18,9 +18,12 @@
                     )
                     .frame(height: 40)
                     .inkListRow()
-                    HStack {
+                    HStack(spacing: 16) {
                         Button("Varsayılan kısayol") { model.candidate = .defaultShortcut }
+                            .buttonStyle(InkTextButtonStyle())
                         Button("Kaydet") { model.save() }
+                            .buttonStyle(InkTextButtonStyle())
+                            .fontWeight(.semibold)
                     }
                     .buttonStyle(.borderless)
                     .inkListRow()
@@ -37,6 +40,8 @@
                 }
             }
             .listStyle(.plain)
+            .scrollContentBackground(.hidden)
+            .inkPageNavigationTitle("Hızlı giriş")
             .inkPageColumn()
             .inkPage()
             .onDisappear { model.endRecording() }

@@ -108,6 +108,9 @@ struct SummariesView: View {
                         .tapTarget()
                 }
                 .accessibilityLabel("Önceki dönem").disabled(!model.canGoPrevious)
+                #if os(macOS)
+                    .buttonStyle(.plain)
+                #endif
                 Spacer()
                 Text(LocalDay.instant(for: model.range.lowerBound), format: .dateTime.day().month().year())
                 Text(verbatim: "–")
@@ -121,6 +124,9 @@ struct SummariesView: View {
                         .tapTarget()
                 }
                 .accessibilityLabel("Sonraki dönem").disabled(!model.canGoNext)
+                #if os(macOS)
+                    .buttonStyle(.plain)
+                #endif
             }
             .font(.ink.byline)
             .foregroundStyle(Color.ink.text)

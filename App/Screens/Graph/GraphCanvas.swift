@@ -1,128 +1,192 @@
 import SwiftUI
 
+/// The interactive graph: a drag that starts on a node moves that node (its neighbors follow
+/// on springs), a drag that starts on empty canvas pans, a tap selects, a pinch zooms.
 struct GraphCanvas: View {
-    let graph: GraphModel
-    let positions: [String: GraphPoint]
-    @Binding var selected: String?
-    @Binding var zoom: Double
-    @Binding var pan: CGSize
-    @GestureState private var drag = CGSize.zero
+    let model: GraphScreenModel
     @GestureState private var magnification = 1.0
+    @GestureState private var isTouching = false
+    @State private var grab: GraphGrab?
+    @State private var panDrag = CGSize.zero
+
+    /// A finger needs the full tap target around small nodes; a pointer is precise.
+    static var minimumHitRadius: Double {
+        #if os(iOS)
+            Double(TapTarget.minimumLength / 2)
+        #else
+            14
+        #endif
+    }
+
+    /// A drag takes hold of a node only close to what is drawn (nodes are never drawn smaller
+    /// than 5 points). The generous tap target would leave no empty canvas to pan by once a
+    /// graph is dense or zoomed in: measured on 300 nodes at 2x, 94% of the canvas with the tap
+    /// target against 32% with this radius.
+    static let minimumGrabRadius = 8.0
+
+    /// Movement below this stays a tap.
+    static var dragThreshold: CGFloat {
+        #if os(iOS)
+            10
+        #else
+            2
+        #endif
+    }
 
     var body: some View {
+        let motion = model.motion
         GeometryReader { geometry in
-            let scale = fittedScale(geometry.size) * zoom * magnification
-            let center = origin
-            Canvas { context, size in
-                let neighbors = selected.map { graph.neighbors(of: $0) } ?? []
-                for edge in graph.edges {
-                    guard let first = positions[edge.first], let second = positions[edge.second]
-                    else {
-                        continue
-                    }
-                    var path = Path()
-                    path.move(to: screen(first, size: size, origin: center, scale: scale))
-                    path.addLine(to: screen(second, size: size, origin: center, scale: scale))
-                    let highlighted = edge.first == selected || edge.second == selected
-                    context.stroke(
-                        path,
-                        with: .color(highlighted ? Color.ink.control : Color.ink.rule),
-                        lineWidth: highlighted ? 2 : min(3, 0.5 + Double(edge.weight) * 0.3))
+            let viewport = GraphViewport(
+                size: geometry.size, camera: model.camera, zoom: model.zoom * magnification,
+                pan: CGSize(width: model.pan.width + panDrag.width, height: model.pan.height + panDrag.height))
+            GraphDrawing(motion: motion, viewport: viewport, selected: model.selected)
+                #if os(macOS)
+                    .background(
+                        GraphScrollZoom { delta in
+                            model.zoom = min(5, max(0.2, model.zoom * exp(delta * 0.01)))
+                        })
+                #endif
+                .contentShape(Rectangle())
+                .onTapGesture { location in
+                    let index = viewport.nodeIndex(
+                        at: location, nodes: motion.nodes, points: motion.points,
+                        minimumRadius: Self.minimumHitRadius)
+                    model.select(index.map { motion.nodes[$0].id }, recenter: false)
                 }
-                for node in graph.nodes {
-                    guard let point = positions[node.id] else { continue }
-                    let position = screen(point, size: size, origin: center, scale: scale)
-                    let radius = max(5, node.radius * scale)
-                    let rect = CGRect(
-                        x: position.x - radius, y: position.y - radius, width: radius * 2,
-                        height: radius * 2)
-                    let dimmed =
-                        selected != nil && !neighbors.contains(node.id) && node.id != selected
-                    let fill = GraphNodeStyle.fill(node.kind).opacity(dimmed ? 0.25 : 1)
-                    let shape = GraphNodeShape(kind: node.kind).path(in: rect)
-                    context.fill(shape, with: .color(fill))
-                    if node.id == selected {
-                        let ring = rect.insetBy(dx: -3, dy: -3)
-                        context.stroke(
-                            GraphNodeShape(kind: node.kind).path(in: ring),
-                            with: .color(Color.ink.accent),
-                            lineWidth: InkStroke.highPriority)
-                        Self.drawSelectedLabel(
-                            node.name, at: position, radius: radius, canvasSize: size,
-                            in: &context)
+                .accessibilityElement(children: .contain)
+                .accessibilityLabel("Graph")
+                .accessibilityChildren {
+                    ForEach(GraphAccessibleNode.list(from: model.graph)) { node in
+                        Button {
+                            model.select(node.id, recenter: true)
+                        } label: {
+                            Text(verbatim: node.accessibilityLabel())
+                        }
                     }
                 }
-            }
-            #if os(macOS)
-                .background(
-                    GraphScrollZoom { delta in
-                        zoom = min(5, max(0.2, zoom * exp(delta * 0.01)))
-                    })
-            #endif
-            .contentShape(Rectangle())
-            .onTapGesture { location in
-                selected =
-                    graph.nodes.filter { node in
-                        guard let point = positions[node.id] else { return false }
-                        let position = screen(point, size: geometry.size, origin: center, scale: scale)
-                        let hitRadius: CGFloat
-                        #if os(iOS)
-                            hitRadius = max(TapTarget.minimumLength / 2, node.radius * scale)
-                        #else
-                            hitRadius = max(14, node.radius * scale)
-                        #endif
-                        return hypot(position.x - location.x, position.y - location.y) <= hitRadius
-                    }.min { left, right in
-                        let a = screen(positions[left.id]!, size: geometry.size, origin: center, scale: scale)
-                        let b = screen(
-                            positions[right.id]!, size: geometry.size, origin: center, scale: scale)
-                        return hypot(a.x - location.x, a.y - location.y)
-                            < hypot(b.x - location.x, b.y - location.y)
-                    }?.id
-            }
-            .accessibilityElement(children: .contain)
-            .accessibilityLabel("Graph")
-            .accessibilityChildren {
-                ForEach(GraphAccessibleNode.list(from: graph)) { node in
-                    Button {
-                        selected = node.id
-                    } label: {
-                        Text(verbatim: node.accessibilityLabel())
-                    }
-                }
-            }
-            .highPriorityGesture(
-                DragGesture().updating($drag) { value, state, _ in state = value.translation }
-                    .onEnded {
-                        pan = CGSize(
-                            width: pan.width + $0.translation.width,
-                            height: pan.height + $0.translation.height)
-                    }
-            )
-            .simultaneousGesture(
-                MagnifyGesture().updating($magnification) { value, state, _ in
-                    state = min(5 / zoom, max(0.2 / zoom, value.magnification))
-                }.onEnded { zoom = min(5, max(0.2, zoom * $0.magnification)) }
-            )
+                .highPriorityGesture(dragGesture(viewport))
+                .simultaneousGesture(
+                    MagnifyGesture().updating($magnification) { value, state, _ in
+                        state = min(5 / model.zoom, max(0.2 / model.zoom, Double(value.magnification)))
+                    }.onEnded { model.zoom = min(5, max(0.2, model.zoom * Double($0.magnification))) }
+                )
+        }
+        // A gesture the system cancels never reports its end: let go of the node anyway.
+        // Deferred one turn so a normal end is handled by `onEnded` first.
+        .onChange(of: isTouching) { _, touching in
+            guard !touching else { return }
+            Task { @MainActor in if grab != nil { release(translation: nil) } }
         }
     }
-    private var origin: GraphPoint {
-        if let selected, let point = positions[selected] { return point }
-        let points = Array(positions.values)
-        return GraphPoint(
-            x: ((points.map(\.x).min() ?? 0) + (points.map(\.x).max() ?? 0)) / 2,
-            y: ((points.map(\.y).min() ?? 0) + (points.map(\.y).max() ?? 0)) / 2)
+
+    private func dragGesture(_ viewport: GraphViewport) -> some Gesture {
+        DragGesture(minimumDistance: Self.dragThreshold)
+            .updating($isTouching) { _, state, _ in state = true }
+            .onChanged { value in
+                let motion = model.motion
+                let current =
+                    grab
+                    ?? GraphGrab.begin(
+                        at: value.startLocation, viewport: viewport, nodes: motion.nodes, points: motion.points,
+                        minimumRadius: Self.minimumGrabRadius)
+                switch current {
+                case .node(let index, _):
+                    guard let target = current.target(for: value.location, viewport: viewport) else { return }
+                    if grab == nil {
+                        // Holding a node shows what it is tied to.
+                        model.select(motion.nodes[index].id, recenter: false)
+                        motion.beginDrag(index, at: target)
+                    } else {
+                        motion.drag(to: target)
+                    }
+                case .canvas:
+                    panDrag = value.translation
+                }
+                grab = current
+            }
+            .onEnded { release(translation: $0.translation) }
     }
-    private func fittedScale(_ size: CGSize) -> Double {
-        let points = Array(positions.values)
-        let width = max(120, (points.map(\.x).max() ?? 0) - (points.map(\.x).min() ?? 0) + 80)
-        let height = max(120, (points.map(\.y).max() ?? 0) - (points.map(\.y).min() ?? 0) + 80)
-        return min(max(1, size.width - 40) / width, max(1, size.height - 40) / height)
+
+    private func release(translation: CGSize?) {
+        if case .canvas = grab, let translation {
+            model.pan = CGSize(
+                width: model.pan.width + translation.width, height: model.pan.height + translation.height)
+        }
+        model.motion.endDrag()
+        panDrag = .zero
+        grab = nil
     }
-    private func screen(_ point: GraphPoint, size: CGSize, origin: GraphPoint, scale: Double) -> CGPoint {
-        CGPoint(
-            x: size.width / 2 + (point.x - origin.x) * scale + pan.width + drag.width,
-            y: size.height / 2 + (point.y - origin.y) * scale + pan.height + drag.height)
+}
+
+/// Steps the simulation once per display frame while it moves; the timeline is paused at rest,
+/// so an idle graph costs nothing.
+private struct GraphDrawing: View {
+    let motion: GraphMotion
+    let viewport: GraphViewport
+    let selected: String?
+
+    var body: some View {
+        TimelineView(.animation(paused: !motion.isRunning)) { timeline in
+            GraphFrame(motion: motion, viewport: viewport, selected: selected)
+                .onChange(of: timeline.date) { _, date in motion.advance(to: date) }
+        }
+    }
+}
+
+/// One drawn frame. Reads the live positions, so it alone redraws while the layout moves.
+private struct GraphFrame: View {
+    let motion: GraphMotion
+    let viewport: GraphViewport
+    let selected: String?
+
+    var body: some View {
+        let nodes = motion.nodes
+        let links = motion.links
+        let points = motion.points
+        let chosen = selected.flatMap { motion.index(of: $0) }
+        Canvas { context, size in
+            guard points.count == nodes.count else { return }
+            var neighbors = Set<Int>()
+            for link in links {
+                let highlighted = link.first == chosen || link.second == chosen
+                if highlighted {
+                    neighbors.insert(link.first)
+                    neighbors.insert(link.second)
+                }
+                var path = Path()
+                path.move(to: viewport.screen(points[link.first]))
+                path.addLine(to: viewport.screen(points[link.second]))
+                context.stroke(
+                    path,
+                    with: .color(highlighted ? Color.ink.control : Color.ink.rule),
+                    lineWidth: highlighted ? 2 : CGFloat(min(3, 0.5 + Double(link.weight) * 0.3)))
+            }
+            for (index, node) in nodes.enumerated() {
+                let position = viewport.screen(points[index])
+                let radius = CGFloat(viewport.radius(of: node))
+                let rect = CGRect(
+                    x: position.x - radius, y: position.y - radius, width: radius * 2,
+                    height: radius * 2)
+                guard rect.insetBy(dx: -4, dy: -4).intersects(CGRect(origin: .zero, size: size)) else { continue }
+                let dimmed = chosen != nil && index != chosen && !neighbors.contains(index)
+                let fill = GraphNodeStyle.fill(node.kind).opacity(dimmed ? 0.25 : 1)
+                context.fill(GraphNodeShape(kind: node.kind).path(in: rect), with: .color(fill))
+            }
+            if let chosen {
+                let node = nodes[chosen]
+                let position = viewport.screen(points[chosen])
+                let radius = CGFloat(viewport.radius(of: node))
+                let ring = CGRect(
+                    x: position.x - radius - 3, y: position.y - radius - 3, width: radius * 2 + 6,
+                    height: radius * 2 + 6)
+                context.stroke(
+                    GraphNodeShape(kind: node.kind).path(in: ring),
+                    with: .color(Color.ink.accent),
+                    lineWidth: InkStroke.highPriority)
+                Self.drawSelectedLabel(
+                    node.name, at: position, radius: radius, canvasSize: size, in: &context)
+            }
+        }
     }
 
     private static func drawSelectedLabel(

@@ -126,7 +126,7 @@ Geri dönüş maliyeti: sayfa ailesinin üyeleri aynı belirteç rollerini, ayn�
 10. Dokunma hedefleri en az 44 pt'dir.
 11. İçerikte büyük ters renkli yüzey bulunmaz: altından geçtiği sistem camını açık ile koyu arasında çevirir.
 12. Mac'te kenar çubuğu simgeleri kullanıcının sistem vurgu rengini izler; marka rengi içerikte yaşar.
-13. Hareket sistem varsayılanlarıyla sınırlıdır ve Hareketi Azalt ayarına uyar.
+13. Hareket sistem varsayılanlarıyla sınırlıdır ve Hareketi Azalt ayarına uyar. Tek istisna Graph'tır: düğümler kuvvet benzetimiyle hareket eder (içerik hareketin kendisidir); Hareketi Azalt açıkken o da canlı oynamaz, düzen oturmuş hâliyle tek seferde gösterilir.
 
 ## Mürekkep'in kuralları
 

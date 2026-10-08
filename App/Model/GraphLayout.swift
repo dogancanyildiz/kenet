@@ -1,71 +1,78 @@
+import ForceLayout
 import Foundation
 
-struct GraphPoint: Sendable, Equatable {
-    var x: Double
-    var y: Double
-    static let zero = Self(x: 0, y: 0)
-    func distance(to other: Self) -> Double { hypot(x - other.x, y - other.y) }
+typealias GraphPoint = ForcePoint
+
+/// A link between two nodes of a ``GraphScene``, addressed by node index.
+struct GraphLink: Sendable, Equatable {
+    let first: Int
+    let second: Int
+    let weight: Int
 }
 
-/// Bounded Fruchterman-Reingold; stable ID order and seed make layouts reproducible.
+/// A graph prepared for the force simulation: nodes in stable ID order, links by index.
+struct GraphScene: Sendable {
+    let nodes: [GraphNode]
+    let links: [GraphLink]
+    var simulation: ForceSimulation
+
+    static let empty = Self(GraphModel(nodes: [], edges: []))
+
+    /// - Parameter carrying: positions kept from the layout on screen, so a changed graph
+    ///   rearranges from where it is instead of starting over.
+    init(_ graph: GraphModel, seed: UInt64 = 42, carrying: [String: GraphPoint] = [:]) {
+        let nodes = graph.nodes.sorted { $0.id < $1.id }
+        let indices = Dictionary(nodes.enumerated().map { ($0.element.id, $0.offset) }) { first, _ in first }
+        let links = graph.edges.sorted { ($0.first, $0.second, $0.weight) < ($1.first, $1.second, $1.weight) }
+            .compactMap { edge -> GraphLink? in
+                guard let first = indices[edge.first], let second = indices[edge.second], first != second else {
+                    return nil
+                }
+                return GraphLink(first: first, second: second, weight: edge.weight)
+            }
+        self.nodes = nodes
+        self.links = links
+        simulation = ForceSimulation(
+            radii: nodes.map(\.radius),
+            links: links.map {
+                // Heavier links sit closer: more shared days pull two nodes together.
+                let slack = GraphLayout.linkSlack / (1 + 0.4 * log(Double(max(1, $0.weight))))
+                return ForceLink(
+                    source: $0.first, target: $0.second,
+                    length: nodes[$0.first].radius + nodes[$0.second].radius + slack)
+            },
+            seed: seed, initial: carrying.isEmpty ? [] : nodes.map { carrying[$0.id] },
+            // Mostly in place already: rearrange gently instead of shaking everything loose.
+            alpha: nodes.filter { carrying[$0.id] != nil }.count * 2 > nodes.count ? 0.3 : 1,
+            parameters: GraphLayout.parameters)
+    }
+
+    var positions: [String: GraphPoint] {
+        Dictionary(zip(nodes.map(\.id), simulation.positions)) { first, _ in first }
+    }
+}
+
+/// Graph layout is a live force simulation (`ForceLayout` in Core). Stable ID order and a fixed
+/// seed make it reproducible: the same graph always settles into the same picture.
 enum GraphLayout {
+    /// Free length of a one-day link beyond the two radii.
+    static let linkSlack = 110.0
+
+    static var parameters: ForceParameters {
+        var parameters = ForceParameters()
+        // Roomy enough that links stay visible between nodes of radius 10...24.
+        parameters.repulsion = 260
+        // At rest every pair of circles keeps at least 8 points of clearance.
+        parameters.collisionPadding = 10
+        return parameters
+    }
+
+    /// The settled layout, computed in one go (no animation).
     static func compute(_ graph: GraphModel, seed: UInt64 = 42, shouldCancel: @Sendable () -> Bool = { false })
         -> [String: GraphPoint]
     {
-        let nodes = graph.nodes.sorted { $0.id < $1.id }
-        guard !nodes.isEmpty else { return [:] }
-        let extent = max(600, sqrt(Double(nodes.count)) * 75)
-        let ideal = extent / sqrt(Double(nodes.count))
-        var state = seed
-        func random() -> Double {
-            state = state &* 6_364_136_223_846_793_005 &+ 1
-            return Double(state >> 11) / Double(UInt64.max >> 11)
-        }
-        var points = nodes.indices.map { index in
-            let angle = Double(index) * 2.399963229728653
-            let radius = extent * 0.4 * sqrt(Double(index + 1) / Double(nodes.count))
-            return GraphPoint(x: cos(angle) * radius + random(), y: sin(angle) * radius + random())
-        }
-        let indices = Dictionary(uniqueKeysWithValues: nodes.enumerated().map { ($0.element.id, $0.offset) })
-        let edges = graph.edges.sorted { ($0.first, $0.second, $0.weight) < ($1.first, $1.second, $1.weight) }
-        let iterations = min(80, max(20, 8_000 / nodes.count))
-        for step in 0..<iterations {
-            if shouldCancel() { return [:] }
-            var forces = Array(repeating: GraphPoint.zero, count: nodes.count)
-            for first in nodes.indices {
-                for second in (first + 1)..<nodes.count {
-                    let dx = points[first].x - points[second].x
-                    let dy = points[first].y - points[second].y
-                    let distance = max(0.1, hypot(dx, dy))
-                    let force = ideal * ideal / (distance * distance)
-                    forces[first].x += dx * force
-                    forces[first].y += dy * force
-                    forces[second].x -= dx * force
-                    forces[second].y -= dy * force
-                }
-            }
-            for edge in edges {
-                guard let first = indices[edge.first], let second = indices[edge.second] else { continue }
-                let dx = points[first].x - points[second].x
-                let dy = points[first].y - points[second].y
-                let distance = max(0.1, hypot(dx, dy))
-                let force = distance / ideal * (1 + log(Double(max(1, edge.weight))))
-                forces[first].x -= dx * force
-                forces[first].y -= dy * force
-                forces[second].x += dx * force
-                forces[second].y += dy * force
-            }
-            let temperature = extent * 0.04 * (1 - Double(step) / Double(iterations))
-            for index in nodes.indices {
-                forces[index].x -= points[index].x * 0.05
-                forces[index].y -= points[index].y * 0.05
-                let magnitude = max(0.1, hypot(forces[index].x, forces[index].y))
-                points[index].x += forces[index].x / magnitude * min(magnitude, temperature)
-                points[index].y += forces[index].y / magnitude * min(magnitude, temperature)
-                points[index].x = min(extent, max(-extent, points[index].x))
-                points[index].y = min(extent, max(-extent, points[index].y))
-            }
-        }
-        return shouldCancel() ? [:] : separated(nodes: nodes, points: points)
+        var scene = GraphScene(graph, seed: seed)
+        scene.simulation.settle(shouldCancel: shouldCancel)
+        return shouldCancel() ? [:] : scene.positions
     }
 }

@@ -22,6 +22,16 @@ final class EntityDetailModel {
     private(set) var aliasesEditable = false
     private(set) var aliasesSource = ""
     private(set) var unreadableFrontmatter = false
+    /// The place's valid `coordinates`, the value the map shows.
+    private(set) var coordinate: PlaceCoordinate?
+    /// The file has a `coordinates` field, usable or not.
+    private(set) var hasCoordinatesField = false
+    /// The two numbers of a valid `coordinates` exactly as the file spells them.
+    private(set) var coordinateSpellings: [String]?
+    /// The `coordinates` lines as they stand in the file, for showing what a save replaces.
+    private(set) var coordinatesSource = ""
+    /// False for a value the writer refuses to touch (kept raw by the parser).
+    private(set) var coordinatesWritable = true
     private(set) var body = ""
     private(set) var isLoaded = false
     private(set) var isWriting = false
@@ -47,7 +57,16 @@ final class EntityDetailModel {
             errorText = nil
             isReadOnly = document.isReadOnly
             unreadableFrontmatter = document.frontmatter == .unreadable
+            coordinate = PlaceCoordinate(document: document)
             if case .parsed(let frontmatter) = document.frontmatter {
+                let coordinates = frontmatter.field(named: "coordinates")
+                hasCoordinatesField = coordinates != nil
+                coordinateSpellings = coordinate == nil ? nil : coordinates?.value.listItems?.map(\.raw)
+                coordinatesSource =
+                    coordinates.map { field in
+                        document.lines[field.lineRange].map(\.displayText).joined(separator: "\n")
+                    } ?? ""
+                if case .raw = coordinates?.value { coordinatesWritable = false } else { coordinatesWritable = true }
                 allKeys = frontmatter.fields.map(\.key)
                 fields = frontmatter.fields.filter { !Self.reservedKeys.contains($0.key) }.map {
                     EntityField(key: $0.key, value: $0.value)
@@ -61,6 +80,10 @@ final class EntityDetailModel {
                         document.lines[field.lineRange].map(\.displayText).joined(separator: "\n")
                     } ?? ""
             } else {
+                hasCoordinatesField = false
+                coordinateSpellings = nil
+                coordinatesSource = ""
+                coordinatesWritable = true
                 allKeys = []
                 fields = []
                 aliases = []
@@ -115,6 +138,19 @@ final class EntityDetailModel {
                 at: self.path, key: "aliases",
                 values: values.filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }.map { .text($0) })
         }
+    }
+
+    /// Writes the pair as the `coordinates` list of vault-format.md; a text value typed
+    /// there earlier is replaced.
+    @discardableResult
+    func saveCoordinate(_ value: PlaceCoordinate) async -> Bool {
+        await setList("coordinates", values: PlaceCoordinateInput.literals(value))
+    }
+
+    /// Writes the two number spellings as given, so digits the user did not touch stay.
+    @discardableResult
+    func saveCoordinate(latitude: String, longitude: String) async -> Bool {
+        await setList("coordinates", values: [.number(latitude), .number(longitude)])
     }
 
     @discardableResult

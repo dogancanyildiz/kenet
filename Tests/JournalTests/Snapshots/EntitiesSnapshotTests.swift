@@ -17,11 +17,13 @@
         case filteredLight, filteredDark
         case customTypesLight, customTypesDark, customTypesAX3
         case editSheetLight, editSheetDark, editSheetAX3
+        case placeEditSheetLight, placeEditSheetDark, placeEditSheetAX3
         case renameSheetLight, renameSheetDark, renameSheetAX3
         case unresolvedLight, unresolvedDark, unresolvedAX3
 
         enum Subject: Sendable {
-            case people, peopleUnseenExpanded, places, filtered, customTypes, editSheet, renameSheet, unresolved
+            case people, peopleUnseenExpanded, places, filtered, customTypes, editSheet, placeEditSheet,
+                renameSheet, unresolved
         }
 
         var subject: Subject {
@@ -32,6 +34,7 @@
             case .filteredLight, .filteredDark: .filtered
             case .customTypesLight, .customTypesDark, .customTypesAX3: .customTypes
             case .editSheetLight, .editSheetDark, .editSheetAX3: .editSheet
+            case .placeEditSheetLight, .placeEditSheetDark, .placeEditSheetAX3: .placeEditSheet
             case .renameSheetLight, .renameSheetDark, .renameSheetAX3: .renameSheet
             case .unresolvedLight, .unresolvedDark, .unresolvedAX3: .unresolved
             }
@@ -40,7 +43,7 @@
         var colorScheme: SnapshotColorScheme {
             switch self {
             case .peopleDark, .placesDark, .filteredDark, .customTypesDark, .editSheetDark,
-                .renameSheetDark, .unresolvedDark:
+                .placeEditSheetDark, .renameSheetDark, .unresolvedDark:
                 .dark
             default: .light
             }
@@ -48,7 +51,8 @@
 
         var dynamicType: SnapshotDynamicType {
             switch self {
-            case .peopleAX3, .customTypesAX3, .editSheetAX3, .renameSheetAX3, .unresolvedAX3:
+            case .peopleAX3, .customTypesAX3, .editSheetAX3, .placeEditSheetAX3, .renameSheetAX3,
+                .unresolvedAX3:
                 .accessibility3
             default: .medium
             }
@@ -63,6 +67,10 @@
             case .editSheet:
                 dynamicType == .accessibility3
                     ? CGSize(width: 390, height: 1400) : CGSize(width: 390, height: 1000)
+            case .placeEditSheet:
+                // Tall enough for the whole coordinate section under the aliases.
+                dynamicType == .accessibility3
+                    ? CGSize(width: 390, height: 2200) : CGSize(width: 390, height: 1200)
             case .renameSheet, .unresolved:
                 dynamicType == .accessibility3
                     ? CGSize(width: 390, height: 800) : CGSize(width: 390, height: 480)
@@ -73,6 +81,7 @@
     @MainActor @Suite("Entities snapshots")
     struct EntitiesSnapshotTests {
         private static let personPath = "people/Deniz Arıkan.md"
+        private static let placePath = "places/Liman Ofis.md"
 
         @Test(arguments: EntitiesSnapshotCase.allCases)
         func entities(_ snapshotCase: EntitiesSnapshotCase) async throws {
@@ -84,12 +93,13 @@
             await context.start()
             #expect(context.store.lastUpdated != nil)
             let store = context.store
-            let detail = EntityDetailModel(store: store, path: Self.personPath)
-            if snapshotCase.subject == .editSheet || snapshotCase.subject == .renameSheet {
+            let isPlace = snapshotCase.subject == .placeEditSheet
+            let detail = EntityDetailModel(store: store, path: isPlace ? Self.placePath : Self.personPath)
+            if isPlace || snapshotCase.subject == .editSheet || snapshotCase.subject == .renameSheet {
                 await detail.load()
                 #expect(detail.isLoaded)
             }
-            let person = try #require(store.content.entities.first { $0.id == Self.personPath })
+            let person = try #require(store.content.entities.first { $0.id == detail.path })
             await SnapshotHost.assertView(
                 colorScheme: snapshotCase.colorScheme,
                 dynamicType: snapshotCase.dynamicType,
@@ -120,8 +130,9 @@
                 NavigationStack { EntitiesView(store: store, initialKind: "place", initialOrder: .recent) }
             case .filtered:
                 NavigationStack { EntitiesView(store: store, initialSearch: "Mert") }
-            case .editSheet:
-                // The sheets own their `NavigationStack`.
+            case .editSheet, .placeEditSheet:
+                // The sheets own their `NavigationStack`. A place adds the coordinate editor;
+                // without a location service its "current location" button is off.
                 EntityEditSheet(store: store, model: detail, entity: person)
             case .renameSheet:
                 EntityRenameView(

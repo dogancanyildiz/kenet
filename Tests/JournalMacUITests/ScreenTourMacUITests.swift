@@ -492,6 +492,14 @@ final class ScreenTourMacUITests: XCTestCase {
             if tour.macFind([], ids: ["button.settings.vault.back"], in: tour.settingsWindow, timeout: 1) != nil {
                 throw ScreenTourError("geri düğmesi Kasa alt sayfasını kapatmadı")
             }
+            // Esc does the same, and leaves the Settings window open.
+            try tour.macRow("Varlık tipleri", in: tour.settingsWindow).click()
+            _ = try tour.macRequire([], ids: ["button.settings.vault.back"], in: tour.settingsWindow)
+            tour.app.typeKey(.escape, modifierFlags: [])
+            tour.pause(0.8)
+            if tour.macFind([], ids: ["button.settings.vault.back"], in: tour.settingsWindow, timeout: 1) != nil {
+                throw ScreenTourError("Esc Kasa alt sayfasını kapatmadı")
+            }
             _ = try tour.macRow("Varlık tipleri", in: tour.settingsWindow)
         }
         tour.closeOverlays()

@@ -99,6 +99,8 @@
                     Label("Kasa", systemImage: "chevron.left")
                 }
                 .buttonStyle(InkTextButtonStyle())
+                // Esc, not ⌘[: on a Turkish keyboard "[" is typed with ⌥8 and the chord never fires.
+                .keyboardShortcut(.cancelAction)
                 .accessibilityLabel("Kasa'ya dön")
                 .accessibilityIdentifier("button.settings.vault.back")
                 // In line with the rows below: a plain Mac list insets its rows by 8 pt.

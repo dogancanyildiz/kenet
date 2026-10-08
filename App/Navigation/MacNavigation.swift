@@ -55,12 +55,16 @@
                                 KanbanView(tasks: kanbanTasks, showsFilters: true, openDay: openTaskDay)
                             }
                         }
-                        .toolbar { SearchButton() }
                         .inkPage()
                     }
                 } else {
                     standardLayout
                 }
+            }
+            // Search has one place on Mac: this window toolbar button, on every screen. The manşet
+            // rows drop their magnifier here (``SearchButton``).
+            .toolbar {
+                ToolbarItem(placement: .primaryAction) { SearchButton() }
             }
             .frame(
                 minWidth: InkSpacing.macWindowMinWidth,
@@ -201,7 +205,6 @@
                             DayView(store: store, date: day).id(day)
                         } else {
                             ContentUnavailableView("Bir gün seç", systemImage: "book.closed")
-                                .toolbar { SearchButton() }
                         }
                     case .tasks:
                         if let row = store.content.tasks.first(where: { $0.id == selectedTask }) {
@@ -211,14 +214,13 @@
                             }
                         } else {
                             ContentUnavailableView("Bir görev seç", systemImage: "checklist")
-                                .toolbar { SearchButton() }
                         }
                     case .summaries, .graph, .map: EmptyView()
                     case .goals:
                         if let goal = store.content.goals.first(where: { $0.id == selectedGoal }) {
                             GoalDetailView(store: store, goal: goal).id(goal.id + (store.vaultURL?.path ?? ""))
                         } else {
-                            ContentUnavailableView("Bir hedef seç", systemImage: "target").toolbar { SearchButton() }
+                            ContentUnavailableView("Bir hedef seç", systemImage: "target")
                         }
                     case .people, .places:
                         if let entity = selectedSummary, entity.kind == entityKind {
@@ -228,7 +230,6 @@
                             }.id(entityRouteID)
                         } else {
                             ContentUnavailableView("Bir varlık seç", systemImage: "person.2")
-                                .toolbar { SearchButton() }
                         }
                     }
                 }

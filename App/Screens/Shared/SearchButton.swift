@@ -11,6 +11,18 @@ extension EnvironmentValues {
     }
 }
 
+private struct InkHeaderActionSlotKey: EnvironmentKey {
+    static let defaultValue = false
+}
+
+extension EnvironmentValues {
+    /// True inside the `actions` slot of a manşet row (set by ``InkPageHeader``).
+    var isInkHeaderActionSlot: Bool {
+        get { self[InkHeaderActionSlotKey.self] }
+        set { self[InkHeaderActionSlotKey.self] = newValue }
+    }
+}
+
 /// Opens global search through `\.openSearch`.
 ///
 /// Belongs in the `actions` slot of a manşet row (``InkPageTitle`` / ``InkPageTitleRow`` /
@@ -24,7 +36,20 @@ extension EnvironmentValues {
 struct SearchButton: View {
     @Environment(\.openSearch) private var openSearch
 
+    #if os(macOS)
+        @Environment(\.isInkHeaderActionSlot) private var isHeaderSlot
+    #endif
+
     var body: some View {
+        #if os(macOS)
+            // Mac: search lives in the window toolbar only; the manşet rows show no magnifier.
+            if !isHeaderSlot { button }
+        #else
+            button
+        #endif
+    }
+
+    private var button: some View {
         Button("Ara", systemImage: "magnifyingglass", action: openSearch)
             .labelStyle(.iconOnly)
     }

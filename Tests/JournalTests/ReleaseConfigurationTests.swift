@@ -16,8 +16,8 @@ struct ReleaseConfigurationTests {
         #expect(Self.values(of: "bundleIdPrefix", in: project) == [Self.bundleIdentifier])
         #expect(
             Self.values(of: "PRODUCT_BUNDLE_IDENTIFIER", in: project) == [
-                "$(APP_BUNDLE_IDENTIFIER)", "$(APP_BUNDLE_IDENTIFIER).tests", "$(APP_BUNDLE_IDENTIFIER).uitests",
-                "$(APP_BUNDLE_IDENTIFIER).uitests",
+                "$(APP_BUNDLE_IDENTIFIER)", "$(APP_BUNDLE_IDENTIFIER).testhost", "$(APP_BUNDLE_IDENTIFIER).tests",
+                "$(APP_BUNDLE_IDENTIFIER).uitests", "$(APP_BUNDLE_IDENTIFIER).uitests",
             ])
         // Scripts read the identifier from project.yml instead of repeating it.
         for path in [".github/scripts/record-screen-snapshots.sh", ".github/scripts/screen-tour.sh"] {
@@ -29,11 +29,30 @@ struct ReleaseConfigurationTests {
         #expect(!project.contains("com.dravcore"))
     }
 
-    @Test func hostAppCarriesIdentifierNameAndExportCompliance() throws {
+    /// Release and Debug stay on the store identity. The running host is the test bundle, so this
+    /// reads those configurations from the generated project instead of the host Info.plist.
+    @Test func releaseAndDebugCarryProductionIdentity() throws {
+        for configuration in ["Release", "Debug"] {
+            let settings = try Self.buildSettings(configuration: configuration)
+            #expect(settings["PRODUCT_BUNDLE_IDENTIFIER"] == Self.bundleIdentifier)
+            #expect(settings["INFOPLIST_KEY_CFBundleDisplayName"] == "Kenet")
+            #expect(settings["INFOPLIST_KEY_ITSAppUsesNonExemptEncryption"] == "NO")
+        }
+        for name in ["Journal_macOS", "Journal_iOS"] {
+            let scheme = try Self.read("Journal.xcodeproj/xcshareddata/xcschemes/\(name).xcscheme")
+            #expect(Self.actionConfiguration("TestAction", in: scheme) == "DebugTest")
+            #expect(Self.actionConfiguration("LaunchAction", in: scheme) == "Debug")
+            #expect(Self.actionConfiguration("ArchiveAction", in: scheme) == "Release")
+        }
+    }
+
+    /// The process actually under test, not the project file: a Debug scheme action would still
+    /// show the store identifier here.
+    @Test func testHostCarriesDerivedIdentityAndExportCompliance() throws {
         let info = try #require(Self.hostAppInfoDictionary())
-        #expect(info["CFBundleIdentifier"] as? String == Self.bundleIdentifier)
-        #expect(info["CFBundleDisplayName"] as? String == "Kenet")
-        #expect(info["CFBundleName"] as? String == "Kenet")
+        #expect(info["CFBundleIdentifier"] as? String == Self.bundleIdentifier + ".testhost")
+        #expect(info["CFBundleDisplayName"] as? String == "Kenet Test")
+        #expect(info["CFBundleName"] as? String == "Kenet Test")
         #expect(info["ITSAppUsesNonExemptEncryption"] as? Bool == false)
     }
 
@@ -218,6 +237,99 @@ struct ReleaseConfigurationTests {
 
     private static func read(_ path: String) throws -> String {
         try String(contentsOf: repositoryRoot().appendingPathComponent(path), encoding: .utf8)
+    }
+
+    /// `buildConfiguration` on the opening tag of a scheme action.
+    private static func actionConfiguration(_ action: String, in scheme: String) -> String? {
+        guard let start = scheme.range(of: "<\(action)") else { return nil }
+        let rest = scheme[start.lowerBound...]
+        guard let end = rest.range(of: ">") else { return nil }
+        let opening = String(rest[..<end.upperBound])
+        guard let match = opening.range(of: #"buildConfiguration = "([^"]+)""#, options: .regularExpression) else {
+            return nil
+        }
+        let value = opening[match]
+        guard let quote = value.range(of: "\"") else { return nil }
+        return String(value[quote.upperBound...].dropLast())
+    }
+
+    /// App-target settings from the generated project. `Process` is unavailable in the iOS
+    /// simulator, so this does not shell out to `xcodebuild`; both platforms read the same file
+    /// the build uses. `$(APP_BUNDLE_IDENTIFIER)` is resolved from that file.
+    private static func buildSettings(configuration: String) throws -> [String: String] {
+        let project = try read("Journal.xcodeproj/project.pbxproj")
+        let appIdentifier = try appBundleIdentifier(in: project)
+        let blocks = configurationBlocks(named: configuration, in: project).filter {
+            $0["PRODUCT_NAME"] == "Journal" && $0["INFOPLIST_KEY_CFBundleDisplayName"] != nil
+        }
+        guard blocks.count == 2 else {
+            throw BuildSettingsError(
+                message: "expected iOS and macOS app \(configuration) configurations, found \(blocks.count)")
+        }
+        let keys = [
+            "PRODUCT_BUNDLE_IDENTIFIER", "INFOPLIST_KEY_CFBundleDisplayName",
+            "INFOPLIST_KEY_ITSAppUsesNonExemptEncryption",
+        ]
+        var resolved: [[String: String]] = []
+        for block in blocks {
+            var settings: [String: String] = [:]
+            for key in keys {
+                guard var value = block[key] else {
+                    throw BuildSettingsError(message: "\(configuration) app configuration is missing \(key)")
+                }
+                value = value.replacingOccurrences(of: "$(APP_BUNDLE_IDENTIFIER)", with: appIdentifier)
+                settings[key] = value
+            }
+            resolved.append(settings)
+        }
+        guard resolved.allSatisfy({ $0 == resolved[0] }) else {
+            throw BuildSettingsError(message: "iOS and macOS \(configuration) app identities differ")
+        }
+        return resolved[0]
+    }
+
+    private static func appBundleIdentifier(in project: String) throws -> String {
+        let prefix = "APP_BUNDLE_IDENTIFIER = "
+        var values: [String] = []
+        for line in project.split(separator: "\n") {
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+            guard trimmed.hasPrefix(prefix), trimmed.hasSuffix(";") else { continue }
+            values.append(String(trimmed.dropFirst(prefix.count).dropLast()))
+        }
+        guard let identifier = values.first, values.allSatisfy({ $0 == identifier }) else {
+            throw BuildSettingsError(message: "APP_BUNDLE_IDENTIFIER missing or inconsistent in the generated project")
+        }
+        return identifier
+    }
+
+    private static func configurationBlocks(named name: String, in project: String) -> [[String: String]] {
+        var blocks: [[String: String]] = []
+        for part in project.components(separatedBy: "isa = XCBuildConfiguration;").dropFirst() {
+            guard let nameRange = part.range(of: "\n\t\t\tname = \(name);") else { continue }
+            let head = part[..<nameRange.lowerBound]
+            guard let settingsStart = head.range(of: "buildSettings = {") else { continue }
+            var settings: [String: String] = [:]
+            for line in head[settingsStart.upperBound...].split(separator: "\n") {
+                let trimmed = line.trimmingCharacters(in: .whitespaces)
+                guard let separator = trimmed.firstIndex(of: "=") else { continue }
+                let key = String(trimmed[..<separator].trimmingCharacters(in: .whitespaces))
+                guard key.allSatisfy({ $0.isASCII && ($0.isLetter || $0.isNumber || $0 == "_") }) else { continue }
+                var value = trimmed[trimmed.index(after: separator)...].trimmingCharacters(in: .whitespaces)
+                guard value.hasSuffix(";") else { continue }
+                value = String(value.dropLast()).trimmingCharacters(in: .whitespaces)
+                if value.hasPrefix("\""), value.hasSuffix("\""), value.count >= 2 {
+                    value = String(value.dropFirst().dropLast())
+                }
+                settings[key] = value
+            }
+            blocks.append(settings)
+        }
+        return blocks
+    }
+
+    private struct BuildSettingsError: Error, CustomStringConvertible {
+        let message: String
+        var description: String { message }
     }
 
     /// Unit tests run inside the `.xctest` plug-in; walk up to the host `.app`.

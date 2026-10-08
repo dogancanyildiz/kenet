@@ -128,6 +128,7 @@ echo "Simülatör: $ID"
 
 uninstall() {
   xcrun simctl uninstall "$ID" "$APP" >/dev/null 2>&1 || true
+  xcrun simctl uninstall "$ID" "$APP.testhost" >/dev/null 2>&1 || true
   xcrun simctl uninstall "$ID" "$APP.uitests.xctrunner" >/dev/null 2>&1 || true
 }
 # Ne olursa olsun simülatör bulunduğu gibi bırakılır: açık görünüm, gerçek saat, uygulama kaldırılmış.

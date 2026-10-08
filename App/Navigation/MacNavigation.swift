@@ -145,6 +145,9 @@
                 }
             }
             .navigationTitle("Journal")
+            .navigationSplitViewColumnWidth(
+                min: InkSpacing.macSidebarMinWidth, ideal: InkSpacing.macSidebarIdealWidth,
+                max: InkSpacing.macSidebarMaxWidth)
         }
 
         private var standardLayout: some View {
@@ -155,6 +158,8 @@
                     switch section ?? .today {
                     case .today, .days:
                         VStack(spacing: 0) {
+                            // List rows sit 8 pt inside the column; the manşet lines up with them.
+                            InkPageTitle("Günlük").padding(.leading, 8)
                             Button {
                                 section = .summaries
                             } label: {
@@ -189,8 +194,16 @@
                                 .foregroundStyle(Color.ink.warning)
                                 .padding()
                             }
-                            EntityTypePicker(store: store, selection: $selectedEntityKind).padding()
-                            EntityListControls(order: $entityOrder, search: $entitySearch)
+                            InkPageTitle(entityColumnTitle) {
+                                EntitySortMenu(order: $entityOrder)
+                            }
+                            .padding(.leading, 8)
+                            EntityTypePicker(store: store, selection: $selectedEntityKind)
+                                .padding(.horizontal, InkSpacing.margin)
+                                .padding(.bottom, InkSpacing.section)
+                            EntityFilterField(search: $entitySearch)
+                                .padding(.horizontal, InkSpacing.margin)
+                                .padding(.bottom, InkSpacing.section)
                             let entities = EntityListQuery.entities(
                                 in: store.content, usage: store.entityUsage, kind: entityKind,
                                 search: entitySearch, order: entityOrder)
@@ -210,6 +223,9 @@
                     }
                 }
                 .inkPage()
+                .navigationSplitViewColumnWidth(
+                    min: InkSpacing.macListMinWidth, ideal: InkSpacing.macListIdealWidth,
+                    max: InkSpacing.macListMaxWidth)
             } detail: {
                 NavigationStack(path: $detailPath) {
                     switch section ?? .today {
@@ -291,6 +307,15 @@
         }
 
         private var entityKind: String { selectedEntityKind }
+
+        /// The column's manşet follows the kind tab, which can differ from the sidebar entry.
+        private var entityColumnTitle: LocalizedStringKey {
+            switch selectedEntityKind {
+            case "person": "Kişiler"
+            case "place": "Konumlar"
+            default: (section ?? .people).title
+            }
+        }
     }
 
     struct TodayNavigationKey: FocusedValueKey {

@@ -20,7 +20,17 @@ enum InkSpacing {
     static let macPageWidth: CGFloat = 680
 
     /// Main window minimum width (pt): sidebar + list + reading column.
-    static let macWindowMinWidth: CGFloat = 920
+    static let macWindowMinWidth: CGFloat = 1000
+
+    /// Mac sidebar column (pt): wide enough for the longest built-in name.
+    static let macSidebarMinWidth: CGFloat = 180
+    static let macSidebarIdealWidth: CGFloat = 200
+    static let macSidebarMaxWidth: CGFloat = 240
+
+    /// Mac list column (pt): manşet, tabs and a row of text fit on one line.
+    static let macListMinWidth: CGFloat = 280
+    static let macListIdealWidth: CGFloat = 320
+    static let macListMaxWidth: CGFloat = 400
 
     /// Main window minimum height (pt).
     static let macWindowMinHeight: CGFloat = 560

@@ -109,6 +109,7 @@ private struct GoalListContent: View {
                 }
             }
         }
-        .inkListRow(isSelected: selection?.wrappedValue == goal.id)
+        .inkListRow()
+        .inkColumnSelection(isSelected: selection?.wrappedValue == goal.id)
     }
 }

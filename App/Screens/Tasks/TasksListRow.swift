@@ -57,18 +57,30 @@ struct TasksListRow: View {
             metaRow
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .contentShape(Rectangle())
-        .onTapGesture {
-            if completion.canToggleCompletion, !row.text.spans.contains(where: { $0.target != nil }) {
-                complete()
-            }
-        }
+        .modifier(
+            TasksListRowTap(
+                hasLink: row.text.spans.contains { $0.target != nil },
+                complete: { completeIfAllowed() }
+            )
+        )
         .accessibilityAction(named: Text(LocalizedStringKey(completion.boxAccessibilityLabelKey))) {
-            if completion.canToggleCompletion, !row.text.spans.contains(where: { $0.target != nil }) {
-                complete()
-            }
+            completeIfAllowed()
         }
-        .contextMenu { editMenu }
+        #if os(iOS)
+            .contextMenu { editMenu }
+        #else
+            .overlay {
+                TaskRowMacChrome(
+                    hasDue: row.due != nil,
+                    editText: { textEditor = TaskEditorModel(store: store, row: row) },
+                    editDate: { dateEditor = TaskEditorModel(store: store, row: row) },
+                    clearDate: { edit { await $0.setDue(nil) } },
+                    editRecurrence: { recurrenceEditor = TaskEditorModel(store: store, row: row) },
+                    setPriority: { priority in edit { await $0.setPriority(priority) } },
+                    delete: { deleteConfirmation.request(.pending) }
+                )
+            }
+        #endif
         .destructiveConfirmationDialog("Görevi sil?", confirmation: $deleteConfirmation) { _ in
             edit { await $0.delete() }
         }
@@ -139,6 +151,16 @@ struct TasksListRow: View {
         }
     }
 
+    /// iPhone row tap completes when the line has no link. Mac selection is the list's, not this gesture.
+    private func completeIfAllowed() {
+        let hasLink = row.text.spans.contains { $0.target != nil }
+        guard
+            TasksListRowInteraction.action(for: .row, hasLink: hasLink, isMac: false) == .toggleCompletion,
+            completion.canToggleCompletion
+        else { return }
+        complete()
+    }
+
     private func edit(_ operation: @escaping (TaskEditorModel) async -> Bool) {
         Task {
             let model = TaskEditorModel(store: store, row: row)
@@ -146,5 +168,28 @@ struct TasksListRow: View {
             if model.target != nil { _ = await operation(model) }
             errorText = model.errorText
         }
+    }
+}
+
+/// iPhone: a row tap completes when ``TasksListRowInteraction`` says so.
+/// Mac: no tap gesture, so the list selection and text links keep the click.
+private struct TasksListRowTap: ViewModifier {
+    var hasLink: Bool
+    var complete: () -> Void
+
+    @ViewBuilder func body(content: Content) -> some View {
+        #if os(iOS)
+            content
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    guard
+                        TasksListRowInteraction.action(for: .row, hasLink: hasLink, isMac: false)
+                            == .toggleCompletion
+                    else { return }
+                    complete()
+                }
+        #else
+            content
+        #endif
     }
 }

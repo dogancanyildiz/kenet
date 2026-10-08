@@ -213,11 +213,11 @@ final class ScreenTourMacUITests: XCTestCase {
         taskDetail(name: "08-gorev-ayrintisi")
     }
 
-    /// On Mac the detail is the third column; "Ayrıntıları göster" selects a row without toggling it.
+    /// On Mac the detail is the third column; clicking the row selects it without toggling the box.
     @MainActor private func taskDetail(name: String) {
         tour.step(name) {
             try openTaskList("Yaklaşan")
-            try tour.macClick(["Ayrıntıları göster"])
+            try tour.macRow(listTask, in: tour.mainWindow, scrolls: 0).click()
             _ = try tour.macRequire(["Kaynak güne git"])
             tour.shot(name)
         }
@@ -508,6 +508,9 @@ final class ScreenTourMacUITests: XCTestCase {
         tour.step("20-koyu-gunluk") {
             try tour.sidebar("Günlük")
             tour.shot("20-koyu-gunluk")
+            try tour.macRow(pastDay, in: tour.mainWindow, scrolls: 0).click()
+            try tour.waitFor(ids: ["screen.day"])
+            tour.shot("20-koyu-gun-gecmis")
         }
         tour.step("20-koyu-gorevler") {
             try openTaskList("Yaklaşan")

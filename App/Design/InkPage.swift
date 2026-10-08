@@ -201,16 +201,25 @@ extension View {
 
 private struct InkListRowModifier: ViewModifier {
     var isSelected: Bool = false
+    @Environment(\.inkColumnRowSelected) private var columnSelected
 
     func body(content: Content) -> some View {
         content
-            .listRowBackground(
-                isSelected ? Color.ink.accent.opacity(0.12) : Color.ink.paper
-            )
+            .listRowBackground(background)
             .listRowInsets(
                 EdgeInsets(
                     top: 6, leading: InkSpacing.margin, bottom: 6, trailing: InkSpacing.margin)
             )
             .listRowSeparator(.hidden)
+    }
+
+    @ViewBuilder private var background: some View {
+        if let columnSelected {
+            InkListSelectionBackground(isSelected: columnSelected)
+        } else if isSelected {
+            Color.ink.accent.opacity(0.12)
+        } else {
+            Color.ink.paper
+        }
     }
 }

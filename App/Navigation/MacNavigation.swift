@@ -158,8 +158,13 @@
                             Button("Özetler", systemImage: "chart.bar") { section = .summaries }.padding()
                             DaysCalendarView(store: store) { selectedDay = "journal/\($0).md" }
                             List(store.content.days, selection: $selectedDay) { day in
-                                DayRow(day: day).tag(day.id)
+                                DayRow(day: day)
+                                    .inkListRow()
+                                    .inkColumnSelection(isSelected: selectedDay == day.id)
+                                    .tag(day.id)
                             }
+                            .listStyle(.plain)
+                            .scrollContentBackground(.hidden)
                         }.navigationTitle("Günlük")
                     case .tasks:
                         if let project = selectedProject {
@@ -195,8 +200,15 @@
                                         entitySelection.wrappedValue = entity.id
                                     }
                                 }
-                                ForEach(entities) { entity in EntityRow(entity: entity).tag(entity.id) }
+                                ForEach(entities) { entity in
+                                    EntityRow(entity: entity)
+                                        .inkListRow()
+                                        .inkColumnSelection(isSelected: selectedEntity == entity.id)
+                                        .tag(entity.id)
+                                }
                             }
+                            .listStyle(.plain)
+                            .scrollContentBackground(.hidden)
                         }
                         .navigationTitle((section ?? .people).title)
                     case .notes:

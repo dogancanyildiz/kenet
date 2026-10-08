@@ -147,21 +147,15 @@ struct TasksView: View {
 
     private func rows(_ rows: [TaskRow]) -> some View {
         ForEach(rows) { row in
-            VStack(alignment: .leading, spacing: 4) {
-                TasksListRow(
-                    store: store, row: row, day: model.day,
-                    isOverdue: row.due.map { $0 < model.day } ?? false,
-                    isBusy: model.busy.contains(row.id), allowsReopening: true,
-                    footnote: footnote(for: row)
-                ) { Task { await model.toggle(row) } }
-                #if os(macOS)
-                    Button("Ayrıntıları göster", systemImage: "info.circle") { selection = row.id }
-                        .font(.ink.meta)
-                        .buttonStyle(InkTextButtonStyle())
-                #endif
-            }
-            .tag(row.id)
+            TasksListRow(
+                store: store, row: row, day: model.day,
+                isOverdue: row.due.map { $0 < model.day } ?? false,
+                isBusy: model.busy.contains(row.id), allowsReopening: true,
+                footnote: footnote(for: row)
+            ) { Task { await model.toggle(row) } }
             .inkListRow()
+            .inkColumnSelection(isSelected: selection == row.id)
+            .tag(row.id)
             .alignmentGuide(.listRowSeparatorLeading) { _ in 0 }
         }
     }

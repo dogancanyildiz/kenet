@@ -28,7 +28,7 @@ struct GraphCamera: Equatable, Sendable {
     }
 
     func scale(in size: CGSize) -> Double {
-        min(max(1, size.width - 40) / width, max(1, size.height - 40) / height)
+        min(max(1, Double(size.width) - 40) / width, max(1, Double(size.height) - 40) / height)
     }
 }
 
@@ -47,15 +47,15 @@ struct GraphViewport: Equatable {
     }
 
     func screen(_ point: GraphPoint) -> CGPoint {
-        CGPoint(
-            x: size.width / 2 + (point.x - center.x) * scale + offset.width,
-            y: size.height / 2 + (point.y - center.y) * scale + offset.height)
+        let x: Double = Double(size.width) / 2 + (point.x - center.x) * scale + Double(offset.width)
+        let y: Double = Double(size.height) / 2 + (point.y - center.y) * scale + Double(offset.height)
+        return CGPoint(x: CGFloat(x), y: CGFloat(y))
     }
 
     func layout(_ location: CGPoint) -> GraphPoint {
-        GraphPoint(
-            x: (location.x - size.width / 2 - offset.width) / scale + center.x,
-            y: (location.y - size.height / 2 - offset.height) / scale + center.y)
+        let x: Double = Double(location.x) - Double(size.width) / 2 - Double(offset.width)
+        let y: Double = Double(location.y) - Double(size.height) / 2 - Double(offset.height)
+        return GraphPoint(x: x / scale + center.x, y: y / scale + center.y)
     }
 
     func radius(of node: GraphNode) -> Double { max(5, node.radius * scale) }
@@ -66,7 +66,7 @@ struct GraphViewport: Equatable {
         var best: (index: Int, distance: Double)?
         for (index, node) in nodes.enumerated() where index < points.count {
             let position = screen(points[index])
-            let distance = hypot(position.x - location.x, position.y - location.y)
+            let distance: Double = hypot(Double(position.x - location.x), Double(position.y - location.y))
             guard distance <= max(minimumRadius, node.radius * scale) else { continue }
             if best.map({ distance < $0.distance }) ?? true { best = (index, distance) }
         }

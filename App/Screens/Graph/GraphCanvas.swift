@@ -12,7 +12,7 @@ struct GraphCanvas: View {
     /// A finger needs the full tap target around small nodes; a pointer is precise.
     static var minimumHitRadius: Double {
         #if os(iOS)
-            TapTarget.minimumLength / 2
+            Double(TapTarget.minimumLength / 2)
         #else
             14
         #endif
@@ -67,8 +67,8 @@ struct GraphCanvas: View {
                 .highPriorityGesture(dragGesture(viewport))
                 .simultaneousGesture(
                     MagnifyGesture().updating($magnification) { value, state, _ in
-                        state = min(5 / model.zoom, max(0.2 / model.zoom, value.magnification))
-                    }.onEnded { model.zoom = min(5, max(0.2, model.zoom * $0.magnification)) }
+                        state = min(5 / model.zoom, max(0.2 / model.zoom, Double(value.magnification)))
+                    }.onEnded { model.zoom = min(5, max(0.2, model.zoom * Double($0.magnification))) }
                 )
         }
         // A gesture the system cancels never reports its end: let go of the node anyway.
@@ -159,11 +159,11 @@ private struct GraphFrame: View {
                 context.stroke(
                     path,
                     with: .color(highlighted ? Color.ink.control : Color.ink.rule),
-                    lineWidth: highlighted ? 2 : min(3, 0.5 + Double(link.weight) * 0.3))
+                    lineWidth: highlighted ? 2 : CGFloat(min(3, 0.5 + Double(link.weight) * 0.3)))
             }
             for (index, node) in nodes.enumerated() {
                 let position = viewport.screen(points[index])
-                let radius = viewport.radius(of: node)
+                let radius = CGFloat(viewport.radius(of: node))
                 let rect = CGRect(
                     x: position.x - radius, y: position.y - radius, width: radius * 2,
                     height: radius * 2)
@@ -175,7 +175,7 @@ private struct GraphFrame: View {
             if let chosen {
                 let node = nodes[chosen]
                 let position = viewport.screen(points[chosen])
-                let radius = viewport.radius(of: node)
+                let radius = CGFloat(viewport.radius(of: node))
                 let ring = CGRect(
                     x: position.x - radius - 3, y: position.y - radius - 3, width: radius * 2 + 6,
                     height: radius * 2 + 6)

@@ -35,6 +35,8 @@ final class GraphMotion {
     var positions: [String: GraphPoint] { Dictionary(zip(nodes.map(\.id), points)) { first, _ in first } }
     var isAtRest: Bool { simulation.isAtRest }
     var stepCount: Int { simulation.stepCount }
+    /// The simulation as it is now; a copy can be settled elsewhere without touching the screen.
+    var simulationSnapshot: ForceSimulation { simulation }
 
     func index(of id: String) -> Int? { indices[id] }
     func point(of id: String?) -> GraphPoint? {

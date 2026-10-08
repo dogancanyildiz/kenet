@@ -76,6 +76,19 @@ struct ForceSimulationTests {
         let warmSteps = warm.settle() + 1
         #expect(warm.isAtRest && warmSteps <= bound && bound < 260, "\(warmSteps) steps, bound \(bound)")
 
+        // A warm start moves less than a hot one. Shown where it is exact: two far-apart linked
+        // bodies touch nothing (and stay under the speed cap), so every force scales with the temperature and the
+        // first step is shorter in the same proportion (0.3 against 1).
+        func firstStep(alpha: Double) -> Double {
+            let apart: [ForcePoint?] = [ForcePoint(x: -60, y: 0), ForcePoint(x: 60, y: 0)]
+            var pair = ForceSimulation(
+                radii: [10, 10], links: [ForceLink(source: 0, target: 1, length: 50)], initial: apart, alpha: alpha)
+            pair.step()
+            return pair.positions[0].distance(to: apart[0]!)
+        }
+        let ratio = firstStep(alpha: 0.3) / firstStep(alpha: 1)
+        #expect(firstStep(alpha: 1) > 10 && abs(ratio - 0.3) < 0.01, "warm/hot first step: \(ratio)")
+
         // Out-of-range temperatures are clamped instead of trusted.
         #expect(ForceSimulation(radii: [1], links: [], alpha: 7).alpha == 1)
         #expect(ForceSimulation(radii: [1], links: [], alpha: .nan).alpha == 1)

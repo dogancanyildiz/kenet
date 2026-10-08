@@ -1,4 +1,5 @@
 import CoreGraphics
+import ForceLayout
 import Foundation
 import Observation
 import VaultFormat
@@ -15,6 +16,8 @@ final class GraphScreenModel {
     private(set) var graph = GraphModel(nodes: [], edges: [])
     private(set) var isLoading = false
     @ObservationIgnored private var request = UUID()
+    /// A rearranged layout is on screen but the view is still framed for the previous graph.
+    @ObservationIgnored private var awaitsFraming = false
     init(store: IndexStore, focus: String? = nil) {
         self.store = store
         selected = focus
@@ -40,11 +43,11 @@ final class GraphScreenModel {
             var scene = GraphScene(graph)
             // Rearranging starts from the positions at install time, which are not known yet.
             guard !rearranges else { return Task.isCancelled ? nil : (graph, scene, nil) }
-            var settled = scene.simulation
-            settled.settle(shouldCancel: { Task.isCancelled })
+            var simulation = scene.simulation
+            simulation.settle(shouldCancel: { Task.isCancelled })
             if Task.isCancelled { return nil }
-            if !live { scene.simulation = settled }
-            return (graph, scene, settled.positions)
+            if !live { scene.simulation = simulation }
+            return (graph, scene, simulation.positions)
         }
         let result = await Self.value(of: worker)
         guard request == id, root == store.vaultURL, self.filter == filter, !Task.isCancelled, let result else {
@@ -57,30 +60,39 @@ final class GraphScreenModel {
         if !graph.nodes.contains(where: { $0.id == selected }) { selected = nil }
         guard !unchanged else {
             motion.refresh(nodes: graph.nodes)
+            // An earlier load put this graph on screen but was interrupted before it could
+            // frame the view: finish that now, or nodes stay off screen until "center".
+            if awaitsFraming { await frameWhenSettled(request: id) }
             return
         }
-        guard let settled = result.2 else {
-            await rearrange(to: graph, request: id)
+        guard let settledPoints = result.2 else {
+            // Rearranging starts from where the nodes are now, not where they were when
+            // loading began; the view is framed once it is known where they will settle.
+            motion.install(GraphScene(graph, carrying: motion.positions), live: true)
+            awaitsFraming = true
+            await frameWhenSettled(request: id)
             return
         }
         motion.install(result.1, live: live)
-        frame(settled)
+        awaitsFraming = false
+        frame(settledPoints)
     }
 
-    /// Moves the layout on screen to a changed graph, starting from where the nodes are now
-    /// (not where they were when loading began), then frames the view for where it will settle.
-    private func rearrange(to graph: GraphModel, request id: UUID) async {
-        let scene = GraphScene(graph, carrying: motion.positions)
-        motion.install(scene, live: true)
+    /// Settles a copy of the layout on screen in the background and frames the view for it.
+    /// If this load is superseded or cancelled meanwhile, ``awaitsFraming`` stays set and the
+    /// next load picks it up.
+    private func frameWhenSettled(request id: UUID) async {
+        let snapshot = motion.simulationSnapshot
         let worker = Task.detached { () -> [GraphPoint]? in
-            var settled = scene.simulation
-            settled.settle(shouldCancel: { Task.isCancelled })
-            return Task.isCancelled ? nil : settled.positions
+            var simulation = snapshot
+            simulation.settle(shouldCancel: { Task.isCancelled })
+            return Task.isCancelled ? nil : simulation.positions
         }
-        guard let settled = await Self.value(of: worker), request == id, !Task.isCancelled,
-            settled.count == motion.nodes.count
+        guard let settledPoints = await Self.value(of: worker), request == id, !Task.isCancelled,
+            settledPoints.count == motion.nodes.count
         else { return }
-        frame(settled)
+        awaitsFraming = false
+        frame(settledPoints)
     }
 
     /// The view is framed for the settled layout, so a live layout grows into its frame.
@@ -117,6 +129,7 @@ final class GraphScreenModel {
         selected = nil
         graph = GraphModel(nodes: [], edges: [])
         motion.install(.empty, live: motion.isLive)
+        awaitsFraming = false
         camera = GraphCamera()
     }
 }

@@ -553,4 +553,65 @@ import VaultFormat
         _ = rest(screen.motion)
         #expect(!screen.motion.isRunning)
     }
+
+    /// Where the layout on screen comes to rest, and the view that frames it.
+    private func settledFrame(_ screen: GraphScreenModel) -> GraphCamera {
+        _ = rest(screen.motion)
+        return GraphCamera.fitting(screen.motion.points, focus: screen.motion.point(of: screen.selected))
+    }
+
+    @Test func rearrangedLayoutIsFramedForWhereItSettles() async throws {
+        let context = try TaskTestContext(sample: true)
+        defer { context.clean() }
+        await context.start()
+        let screen = GraphScreenModel(store: context.store)
+        await screen.load(today: today)
+        _ = rest(screen.motion)
+        let small = screen.camera
+
+        // Days on: 10 -> 24 nodes, rearranged from where the ten are.
+        screen.filter.days = true
+        await screen.load(today: today)
+        #expect(screen.motion.nodes.count == 24 && screen.motion.isRunning)
+        let framed = screen.camera
+        #expect(framed != small)
+        let wanted = settledFrame(screen)
+        #expect(framed == wanted, "framed \(framed), settled layout wants \(wanted)")
+        #expect(
+            wanted.width > small.width + 50 || wanted.height > small.height + 50, "the larger graph needs more room")
+    }
+
+    @Test func framingInterruptedByANewLoadIsFinishedByThatLoad() async throws {
+        let context = try TaskTestContext(sample: true)
+        defer { context.clean() }
+        await context.start()
+        let screen = GraphScreenModel(store: context.store)
+        await screen.load(today: today)
+        _ = rest(screen.motion)
+        let small = screen.camera
+
+        // Days on; before the new layout has been framed the index refreshes and loads again.
+        screen.filter.days = true
+        let first = Task { await screen.load(today: today) }
+        var turns = 0
+        while screen.motion.nodes.count == 10 && turns < 100_000 {
+            await Task.yield()
+            turns += 1
+        }
+        #expect(screen.motion.nodes.count == 24, "the first load put the new graph on screen")
+        #expect(screen.camera == small, "and was still waiting to frame it")
+        // This load starts before the first one resumes, so the first one is superseded.
+        await screen.load(today: today)
+        await first.value
+        #expect(screen.motion.nodes.count == 24)
+        let framed = screen.camera
+        let wanted = settledFrame(screen)
+        #expect(framed != small && framed == wanted, "framed \(framed), settled layout wants \(wanted)")
+
+        // Once framed, a further refresh leaves the view alone (the user may have recentered).
+        screen.select(screen.motion.nodes[0].id, recenter: true)
+        let chosen = screen.camera
+        await screen.load(today: today)
+        #expect(screen.camera == chosen)
+    }
 }

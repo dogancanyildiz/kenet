@@ -38,10 +38,12 @@
             let window: NSWindow
             private let host: NSView
 
-            init<V: View>(_ view: V, size: CGSize) {
+            /// `bridgesToolbar`: the window also receives the SwiftUI toolbar, so a test can read
+            /// the toolbar items the view really installs.
+            init<V: View>(_ view: V, size: CGSize, bridgesToolbar: Bool = false) {
                 let hosting = NSHostingView(rootView: view)
                 hosting.sizingOptions = []
-                hosting.sceneBridgingOptions = [.title]
+                hosting.sceneBridgingOptions = bridgesToolbar ? [.title, .toolbars] : [.title]
                 hosting.frame = NSRect(origin: .zero, size: size)
                 window = NSWindow(
                     contentRect: NSRect(x: -20_000, y: -20_000, width: size.width, height: size.height),

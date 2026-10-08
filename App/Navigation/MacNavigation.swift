@@ -22,8 +22,16 @@
         @State private var selectedEntityKind = "person"
         @State private var sidebarRestoresFocus = false
 
-        init(store: IndexStore) {
+        /// Whether the sidebar selection just changed because of a key press; the app asks the
+        /// current event, a hosted test supplies the answer.
+        private let selectionCameFromKeyboard: @MainActor () -> Bool
+
+        init(
+            store: IndexStore,
+            selectionCameFromKeyboard: @escaping @MainActor () -> Bool = { MacSidebarFocus.selectionCameFromKeyboard }
+        ) {
             self.store = store
+            self.selectionCameFromKeyboard = selectionCameFromKeyboard
             _kanbanTasks = State(initialValue: TasksModel(store: store))
         }
 
@@ -97,6 +105,11 @@
                 if value == .people || value == .places { selectedEntityKind = value == .places ? "place" : "person" }
                 if value != .tasks { tasksEvent(.sectionLeft) }
             }
+            .onChange(of: store.content.projects) { _, projects in
+                var selection = shellSelection
+                selection.projectsChanged(projects)
+                apply(selection)
+            }
             .onChange(of: selectedDay) { _, value in
                 if value != nil { section = .days }
             }
@@ -112,7 +125,7 @@
             MacSidebarList(
                 entries: MacSidebar.entries(projects: store.content.projects),
                 selection: Binding(
-                    get: { MacSidebar.selection(section: section, tasks: tasksShell.layout) },
+                    get: { shellSelection.sidebarEntry },
                     set: { entry in if let entry { selectSidebarEntry(entry) } }),
                 // A click on the selected "Görevler" row still returns the list to its first section.
                 onClick: { entry in if entry == .section(.tasks) { tasksEvent(.sidebarTasks) } },
@@ -197,30 +210,28 @@
         }
 
         private var windowTitle: Text {
-            MacSidebar.selection(section: section, tasks: tasksShell.layout)?.title ?? Text("Journal")
+            shellSelection.sidebarEntry?.title ?? Text("Journal")
         }
 
-        private var shellLayout: MacShellLayout {
-            MacShellLayout.resolve(section: section, tasks: tasksShell.layout)
+        private var shellLayout: MacShellLayout { shellSelection.layout }
+
+        private var shellSelection: MacShellSelection {
+            MacShellSelection(section: section, tasks: tasksShell)
+        }
+
+        private func apply(_ selection: MacShellSelection) {
+            if kanbanTasks.viewState != selection.tasks.view { kanbanTasks.viewState = selection.tasks.view }
+            if selectedProject != selection.tasks.project { selectedProject = selection.tasks.project }
+            if section != selection.section { section = selection.section }
         }
 
         /// Called for a choice made in the sidebar (click or arrow key).
         private func selectSidebarEntry(_ entry: MacSidebarEntry) {
-            let before = shellLayout
-            defer { if shellLayout != before { sidebarRestoresFocus = true } }
-            switch entry {
-            case .section(let value):
-                if value == .tasks { tasksEvent(.sidebarTasks) }
-                section = value
-            case .kanban, .timeline:
-                section = .tasks
-                selectedTask = nil
-                tasksEvent(.sidebarBoard(entry == .kanban ? .kanban : .timeline))
-            case .project(let name):
-                section = .tasks
-                selectedTask = nil
-                tasksEvent(.sidebarProject(name))
-            }
+            var selection = shellSelection
+            let restoresFocus = selection.select(entry, byKeyboard: selectionCameFromKeyboard())
+            if entry.isNested { selectedTask = nil }
+            apply(selection)
+            if restoresFocus { sidebarRestoresFocus = true }
         }
 
         /// Tasks layout (list column, full-width board, project) comes from the shared view
@@ -273,7 +284,7 @@
 
         var body: some View {
             VStack(spacing: 0) {
-                InkPageTitle("Günlük").padding(.leading, MacListColumnChrome.rowInset)
+                InkPageTitle("Günlük").macListColumnTitle()
                 Button(action: openSummaries) {
                     Label("Özetler", systemImage: "chart.bar")
                 }
@@ -311,7 +322,7 @@
                 InkPageTitle(title) {
                     EntitySortMenu(order: $order)
                 }
-                .padding(.leading, MacListColumnChrome.rowInset)
+                .macListColumnTitle()
                 EntityTypePicker(store: store, selection: $kind)
                     .padding(.horizontal, InkSpacing.margin)
                     .padding(.bottom, InkSpacing.section)
@@ -339,6 +350,17 @@
     enum MacListColumnChrome {
         /// A Mac list insets its rows by this much; a manşet above the list lines up with them.
         static let rowInset: CGFloat = 8
+        /// ``InkPageTitle`` starts 4 pt above an ``InkPageTitleRow`` (the first row of a list);
+        /// a column whose manşet is not a list row adds the difference.
+        static let titleTopInset: CGFloat = 4
+    }
+
+    extension View {
+        /// Puts a stack manşet where the list columns (Görevler, Hedefler) draw theirs.
+        func macListColumnTitle() -> some View {
+            padding(.leading, MacListColumnChrome.rowInset)
+                .padding(.top, MacListColumnChrome.titleTopInset)
+        }
     }
 
     /// Günlük column. Selection chrome lives here so the day row and its tests share one list.

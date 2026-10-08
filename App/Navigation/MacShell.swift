@@ -20,6 +20,45 @@
         }
     }
 
+    /// What the sidebar selects: the section and, inside "Görevler", the Tasks shell. Pure
+    /// transitions (unit-tested); the shell view only stores the result.
+    struct MacShellSelection: Equatable {
+        var section: DesktopSection?
+        var tasks = TasksShellState()
+
+        var layout: MacShellLayout { MacShellLayout.resolve(section: section, tasks: tasks.layout) }
+        var sidebarEntry: MacSidebarEntry? { MacSidebar.selection(section: section, tasks: tasks.layout) }
+
+        /// A choice made in the sidebar. Returns whether the rebuilt sidebar should take the
+        /// keyboard focus back: only when an arrow key made the choice and it swapped the layout.
+        @discardableResult
+        mutating func select(_ entry: MacSidebarEntry, byKeyboard: Bool) -> Bool {
+            let before = layout
+            switch entry {
+            case .section(let value):
+                // "Görevler" opens the list on its first section; leaving it resets the board.
+                tasks.handle(value == .tasks ? .sidebarTasks : .sectionLeft)
+                section = value
+            case .kanban:
+                section = .tasks
+                tasks.handle(.sidebarBoard(.kanban))
+            case .timeline:
+                section = .tasks
+                tasks.handle(.sidebarBoard(.timeline))
+            case .project(let name):
+                section = .tasks
+                tasks.handle(.sidebarProject(name))
+            }
+            return byKeyboard && layout != before
+        }
+
+        /// A project that left the vault is no longer a sidebar row: fall back to "Görevler".
+        mutating func projectsChanged(_ projects: [String]) {
+            guard let project = tasks.project, !projects.contains(project) else { return }
+            tasks.handle(.sidebarTasks)
+        }
+    }
+
     extension View {
         /// Width of the sidebar column (`docs/design.md`, "Biçim").
         func macSidebarColumn() -> some View {

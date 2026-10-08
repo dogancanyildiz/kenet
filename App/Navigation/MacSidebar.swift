@@ -1,4 +1,5 @@
 #if os(macOS)
+    import AppKit
     import SwiftUI
 
     /// Root sections of the Mac sidebar, in sidebar order.
@@ -89,12 +90,23 @@
         }
     }
 
+    enum MacSidebarFocus {
+        /// Nothing holds the keyboard focus: no first responder, or the window itself. Reading
+        /// the first responder is a query; SwiftUI has no way to ask "is focus anywhere else".
+        static func isUnowned(in window: NSWindow?) -> Bool {
+            guard let window, let responder = window.firstResponder else { return true }
+            return responder === window
+        }
+
+        /// The selection changed because of a key press (an arrow key), not a click. After a
+        /// click the pointer is on its way to the page, so focus is not pulled back.
+        @MainActor static var selectionCameFromKeyboard: Bool { NSApp.currentEvent?.type == .keyDown }
+    }
+
     /// Colors of a sidebar row (`docs/design.md`, rule 12): the selected row is filled with the
     /// app accent and written in on-accent ink; in a window that is not key the fill is the rule
     /// tone and the row keeps its ordinary ink.
     enum MacSidebarChrome {
-        /// When a rebuilt sidebar asks for the keyboard focus back (see ``MacSidebarList``).
-        static let focusRestoreDelays: [Duration] = [.zero, .milliseconds(120), .milliseconds(300)]
         /// Fill inset from the sidebar edges, like the system selection.
         static let fillInset: CGFloat = 10
 
@@ -120,9 +132,12 @@
         @Binding var selection: MacSidebarEntry?
         /// Runs on every click on a row, also when it is already selected.
         var onClick: (MacSidebarEntry) -> Void = { _ in }
-        /// Set by the shell when a sidebar choice swaps the split view: the new list takes the
-        /// keyboard focus the old one had, so the arrow keys keep walking the rows.
+        /// Set by the shell when an arrow key in the sidebar swaps the split view: the new list
+        /// takes the keyboard focus the old one had, so the arrow keys keep walking the rows.
         var restoresFocus: Binding<Bool> = .constant(false)
+        /// False once focus has gone somewhere else (the user clicked into the page): then the
+        /// sidebar leaves it there.
+        var focusIsFree: () -> Bool = { MacSidebarFocus.isUnowned(in: NSApp.keyWindow) }
         @Environment(\.appearsActive) private var appearsActive
         @FocusState private var isFocused: Bool
 
@@ -142,15 +157,13 @@
             .task {
                 guard restoresFocus.wrappedValue else { return }
                 restoresFocus.wrappedValue = false
-                // A split view that has just been installed settles its own first responder a
-                // moment later; asking again after that keeps the focus in the sidebar.
-                for delay in MacSidebarChrome.focusRestoreDelays {
-                    try? await Task.sleep(for: delay)
-                    guard !Task.isCancelled else { return }
-                    isFocused = false
-                    await Task.yield()
-                    isFocused = true
-                }
+                // One request, one turn after the list is installed: asked any earlier it is
+                // dropped (measured in the app and in the hosted test). It never takes focus
+                // from another control.
+                isFocused = false
+                await Task.yield()
+                guard !Task.isCancelled, focusIsFree() else { return }
+                isFocused = true
             }
         }
     }

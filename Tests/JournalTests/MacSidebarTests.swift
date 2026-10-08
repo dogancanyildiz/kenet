@@ -90,60 +90,123 @@
         }
     }
 
+    /// The shell's selection as pure transitions: the same value the shell view stores.
+    struct MacShellSelectionTests {
+        @Test func boardRowsOpenTheirBoardAndProjectRowsTheirProject() {
+            var shell = MacShellSelection(section: .today)
+            shell.select(.kanban, byKeyboard: false)
+            #expect(shell.section == .tasks)
+            #expect(shell.tasks.layout == .kanban)
+            #expect(shell.layout == .board)
+            #expect(shell.sidebarEntry == .kanban)
+
+            shell.select(.timeline, byKeyboard: false)
+            #expect(shell.tasks.layout == .timeline)
+            #expect(shell.sidebarEntry == .timeline)
+
+            shell.select(.project("mobil"), byKeyboard: false)
+            #expect(shell.tasks.layout == .project("mobil"))
+            #expect(shell.layout == .columns)
+            #expect(shell.sidebarEntry == .project("mobil"))
+        }
+
+        @Test func tasksRowReturnsToTheListAndOtherSectionsLeaveTheBoard() {
+            var shell = MacShellSelection(section: .today)
+            shell.select(.kanban, byKeyboard: false)
+            shell.select(.section(.tasks), byKeyboard: false)
+            #expect(shell.tasks.layout == .list)
+            #expect(shell.tasks.view.listSection == .upcoming)
+            #expect(shell.sidebarEntry == .section(.tasks))
+
+            shell.select(.timeline, byKeyboard: false)
+            shell.select(.section(.goals), byKeyboard: false)
+            #expect(shell.section == .goals)
+            #expect(shell.tasks.layout == .list, "coming back to Görevler lands on the list")
+            #expect(shell.sidebarEntry == .section(.goals))
+        }
+
+        /// Focus goes back to the rebuilt sidebar only for an arrow key that swapped the layout.
+        @Test func onlyAKeyboardChoiceThatSwapsTheLayoutAsksForFocus() {
+            var shell = MacShellSelection(section: .tasks)
+            let asked = [
+                shell.select(.kanban, byKeyboard: true),  // columns to board
+                shell.select(.timeline, byKeyboard: true),  // board to board: same sidebar
+                shell.select(.project("mobil"), byKeyboard: true),  // board to columns
+                shell.select(.section(.people), byKeyboard: true),  // columns to columns
+                shell.select(.section(.graph), byKeyboard: true),  // columns to page
+            ]
+            #expect(asked == [true, false, true, false, true])
+
+            // A click leaves focus to the pointer, whatever it swaps.
+            var clicked = MacShellSelection(section: .tasks)
+            let afterClicks = [
+                clicked.select(.kanban, byKeyboard: false),
+                clicked.select(.section(.summaries), byKeyboard: false),
+            ]
+            #expect(afterClicks == [false, false])
+        }
+
+        /// A project deleted from the vault left no row selected and its name on the window.
+        @Test func aProjectThatLeftTheVaultFallsBackToTasks() {
+            var shell = MacShellSelection(section: .tasks)
+            shell.select(.project("mobil"), byKeyboard: false)
+            shell.projectsChanged(["altyapi", "mobil"])
+            #expect(shell.sidebarEntry == .project("mobil"), "still listed: nothing changes")
+
+            shell.projectsChanged(["altyapi"])
+            #expect(shell.sidebarEntry == .section(.tasks))
+            #expect(shell.tasks.layout == .list)
+            #expect(MacSidebar.entries(projects: ["altyapi"]).contains(shell.sidebarEntry!))
+
+            var other = MacShellSelection(section: .goals)
+            other.projectsChanged([])
+            #expect(other.sidebarEntry == .section(.goals))
+        }
+    }
+
     /// The real list, mounted offscreen: the system selection walks our rows with the arrow keys.
     @MainActor
     struct MacSidebarKeyboardTests {
         @Observable final class Model {
-            var section: DesktopSection? = .days
-            var tasks = TasksShellState()
+            var shell = MacShellSelection(section: .days)
             var restoresFocus = false
+            /// What `NSApp.currentEvent` tells the shell in the app.
+            var byKeyboard = true
+            var note = ""
+            /// `nil`: ask the mounted window, as the app asks its key window.
+            var focusIsFree: Bool?
             let projects = ["altyapi", "mobil"]
+            @ObservationIgnored weak var window: NSWindow?
 
             var selection: MacSidebarEntry? {
-                get { MacSidebar.selection(section: section, tasks: tasks.layout) }
+                get { shell.sidebarEntry }
                 set {
                     guard let newValue else { return }
-                    let before = layout
-                    switch newValue {
-                    case .section(let value):
-                        if value == .tasks { tasks.handle(.sidebarTasks) } else { tasks.handle(.sectionLeft) }
-                        section = value
-                    case .kanban:
-                        section = .tasks
-                        tasks.handle(.sidebarBoard(.kanban))
-                    case .timeline:
-                        section = .tasks
-                        tasks.handle(.sidebarBoard(.timeline))
-                    case .project(let name):
-                        section = .tasks
-                        tasks.handle(.sidebarProject(name))
-                    }
-                    if layout != before { restoresFocus = true }
+                    if shell.select(newValue, byKeyboard: byKeyboard) { restoresFocus = true }
                 }
             }
-
-            var layout: MacShellLayout { MacShellLayout.resolve(section: section, tasks: tasks.layout) }
         }
 
-        /// The shell's shape: a different split view per layout, each with its own sidebar list.
+        /// The shell's shape: a different split view per layout, each with its own sidebar list,
+        /// and a text field in the page for the user to move to.
         struct Shell: View {
             @Bindable var model: Model
 
             var body: some View {
-                switch model.layout {
+                switch model.shell.layout {
                 case .columns:
                     NavigationSplitView {
                         sidebar
                     } content: {
                         Text(verbatim: "liste")
                     } detail: {
-                        Text(verbatim: "ayrıntı")
+                        TextField(String("not"), text: $model.note)
                     }
                 case .board, .page:
                     NavigationSplitView {
                         sidebar
                     } detail: {
-                        Text(verbatim: "pano")
+                        TextField(String("not"), text: $model.note)
                     }
                 }
             }
@@ -151,18 +214,28 @@
             private var sidebar: some View {
                 MacSidebarList(
                     entries: MacSidebar.entries(projects: model.projects), selection: $model.selection,
-                    restoresFocus: $model.restoresFocus)
+                    restoresFocus: $model.restoresFocus,
+                    focusIsFree: { [model] in model.focusIsFree ?? MacSidebarFocus.isUnowned(in: model.window) })
             }
+        }
+
+        private func mount(_ model: Model) async -> HostedLayout.Mount {
+            let mount = HostedLayout.Mount(Shell(model: model), size: CGSize(width: 900, height: 700))
+            model.window = mount.window
+            await mount.settle()
+            return mount
         }
 
         @Test func arrowKeysWalkEveryRowIncludingSubEntriesAndStopAtTheEnds() async throws {
             let model = Model()
-            let mount = HostedLayout.Mount(Shell(model: model), size: CGSize(width: 900, height: 700))
+            let mount = await mount(model)
             defer { mount.close() }
-            await mount.settle()
             let entries = MacSidebar.entries(projects: model.projects)
+            let first = try #require(sidebarTable(in: mount))
+            #expect(mount.window.makeFirstResponder(first))
 
-            // Down from "Günlük" through the Tasks group; the split view changes twice on the way.
+            // Down from "Günlük" through the Tasks group. The split view changes twice on the way
+            // and nothing but the sidebar itself may put focus back in the new list.
             var walked: [MacSidebarEntry?] = []
             for _ in 0..<6 {
                 try await press(.down, in: mount)
@@ -175,9 +248,7 @@
                 ])
 
             // Up again, back across the board.
-            try await press(.up, in: mount)
-            try await press(.up, in: mount)
-            try await press(.up, in: mount)
+            for _ in 0..<3 { try await press(.up, in: mount) }
             #expect(model.selection == .timeline)
 
             // The ends hold.
@@ -187,36 +258,109 @@
             #expect(model.selection == entries.last)
         }
 
-        @Test func sidebarKeepsKeyboardFocusWhenItsChoiceSwapsTheSplitView() async throws {
+        @Test func aKeyboardChoiceThatSwapsTheSplitViewKeepsFocusInTheSidebar() async throws {
             let model = Model()
-            model.section = .tasks
-            let mount = HostedLayout.Mount(Shell(model: model), size: CGSize(width: 900, height: 700))
+            model.shell = MacShellSelection(section: .tasks)
+            let mount = await mount(model)
             defer { mount.close() }
-            await mount.settle()
             let first = try #require(sidebarTable(in: mount))
             #expect(mount.window.makeFirstResponder(first))
 
             model.selection = .kanban
-            await mount.settle(rounds: 24)
-            #expect(model.layout == .board)
+            await mount.settle(rounds: 12)
+            #expect(model.shell.layout == .board)
             let second = try #require(sidebarTable(in: mount))
             #expect(second !== first, "the board has its own sidebar list")
             #expect(
-                Self.holdsFocus(second, in: mount.window), "focus: \(String(describing: mount.window.firstResponder))")
+                Self.holdsFocus(second, in: mount.window),
+                "focus: \(String(describing: mount.window.firstResponder))")
             #expect(model.restoresFocus == false, "the request is spent once")
+        }
+
+        /// The pointer is on its way to the page: a click on a sidebar row never pulls focus back.
+        @Test func aClickedChoiceLeavesFocusAlone() async throws {
+            let model = Model()
+            model.shell = MacShellSelection(section: .tasks)
+            model.byKeyboard = false
+            let mount = await mount(model)
+            defer { mount.close() }
+
+            model.selection = .kanban
+            await mount.settle(rounds: 16)
+            let table = try #require(sidebarTable(in: mount))
+            #expect(!Self.holdsFocus(table, in: mount.window))
+            #expect(model.restoresFocus == false)
+        }
+
+        /// Review finding: the sidebar took focus back from a field the user had moved to.
+        @Test(arguments: [40, 200])
+        func focusTheUserMovedElsewhereStaysThere(afterMilliseconds delay: Int) async throws {
+            let model = Model()
+            model.shell = MacShellSelection(section: .tasks)
+            let mount = await mount(model)
+            defer { mount.close() }
+            let first = try #require(sidebarTable(in: mount))
+            #expect(mount.window.makeFirstResponder(first))
+
+            model.selection = .kanban
+            // The delay counts from the moment the board (and its own sidebar) is installed:
+            // a field of the page that is about to go away would prove nothing.
+            for _ in 0..<200 {
+                mount.window.contentView?.layoutSubtreeIfNeeded()
+                if let table = sidebarTable(in: mount), table !== first { break }
+                try await Task.sleep(for: .milliseconds(5))
+            }
+            #expect(sidebarTable(in: mount) !== first, "the board was installed")
+            try await Task.sleep(for: .milliseconds(delay))
+            let target = try #require(
+                mount.views(NSTextField.self).first { $0.isEditable }, "the board page has a text field")
+            #expect(mount.window.makeFirstResponder(target))
+
+            await mount.settle(rounds: 24)
+            let table = try #require(sidebarTable(in: mount))
+            #expect(!Self.holdsFocus(table, in: mount.window), "the sidebar took the focus back")
+            #expect(
+                Self.isEditing(target, in: mount.window),
+                "focus: \(String(describing: mount.window.firstResponder))")
+        }
+
+        /// The request is dropped when focus already belongs to something else at that moment.
+        @Test func sidebarDoesNotTakeFocusThatIsNotFree() async throws {
+            let model = Model()
+            model.shell = MacShellSelection(section: .tasks)
+            model.focusIsFree = false
+            let mount = await mount(model)
+            defer { mount.close() }
+
+            model.selection = .kanban
+            await mount.settle(rounds: 16)
+            let table = try #require(sidebarTable(in: mount))
+            #expect(model.restoresFocus == false, "the request was seen")
+            #expect(!Self.holdsFocus(table, in: mount.window))
+        }
+
+        @Test func focusIsFreeOnlyWhileNothingHoldsIt() async throws {
+            let model = Model()
+            let mount = await mount(model)
+            defer { mount.close() }
+            #expect(MacSidebarFocus.isUnowned(in: nil))
+            mount.window.makeFirstResponder(nil)
+            #expect(MacSidebarFocus.isUnowned(in: mount.window))
+            let field = try #require(mount.views(NSTextField.self).first { $0.isEditable })
+            #expect(mount.window.makeFirstResponder(field))
+            #expect(!MacSidebarFocus.isUnowned(in: mount.window))
+            let table = try #require(sidebarTable(in: mount))
+            #expect(mount.window.makeFirstResponder(table))
+            #expect(!MacSidebarFocus.isUnowned(in: mount.window))
         }
 
         private enum Arrow { case up, down }
 
+        /// Sends the key to whatever holds the keyboard focus, as the window would.
         private func press(_ arrow: Arrow, in mount: HostedLayout.Mount) async throws {
             let table = try #require(sidebarTable(in: mount))
-            // The first press puts focus in the list; later ones must find it there already,
-            // also in a list the layout change has just built.
-            if mount.window.firstResponder === mount.window || mount.window.firstResponder == nil {
-                mount.window.makeFirstResponder(table)
-            }
-            let responder = try #require(mount.window.firstResponder as? NSView)
             #expect(Self.holdsFocus(table, in: mount.window), "arrow key would miss the sidebar")
+            let responder = try #require(mount.window.firstResponder as? NSView)
             let code: UInt16 = arrow == .down ? 125 : 126
             let scalar = arrow == .down ? NSDownArrowFunctionKey : NSUpArrowFunctionKey
             let characters = String(UnicodeScalar(UInt16(scalar))!)
@@ -226,7 +370,7 @@
                     windowNumber: mount.window.windowNumber, context: nil, characters: characters,
                     charactersIgnoringModifiers: characters, isARepeat: false, keyCode: code))
             responder.keyDown(with: event)
-            await mount.settle(rounds: 8)
+            await mount.settle(rounds: 10)
         }
 
         /// The sidebar is the first table of the split view.
@@ -237,6 +381,13 @@
         private static func holdsFocus(_ table: NSTableView, in window: NSWindow) -> Bool {
             guard let responder = window.firstResponder as? NSView else { return false }
             return responder === table || responder.isDescendant(of: table)
+        }
+
+        /// A text field being edited hands the focus to the window's field editor.
+        private static func isEditing(_ field: NSTextField, in window: NSWindow) -> Bool {
+            if window.firstResponder === field { return true }
+            guard let editor = window.firstResponder as? NSText else { return false }
+            return editor.delegate === field
         }
     }
 #endif

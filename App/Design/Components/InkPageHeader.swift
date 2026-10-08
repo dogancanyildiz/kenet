@@ -85,6 +85,7 @@ struct InkPageHeader<Actions: View>: View {
         // Plain buttons in the slot (``SearchButton``) draw as utility icons; ``InkHeaderAction``
         // and ``InkHeaderMenu`` set their own style and are not affected.
         actions.buttonStyle(InkHeaderButtonStyle())
+            .environment(\.isInkHeaderActionSlot, true)
     }
 
     @ViewBuilder private var headline: some View {

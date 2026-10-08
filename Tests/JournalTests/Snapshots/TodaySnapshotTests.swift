@@ -313,7 +313,7 @@
             // Fixed 2× bitmap so references do not depend on the host display scale.
             assertSnapshot(
                 of: Self.render(host, scale: 2),
-                as: .image(precision: 0.999, perceptualPrecision: 0.995),
+                as: .image(precision: 0.9999, perceptualPrecision: 0.995),
                 named: name,
                 record: record,
                 file: #filePath,

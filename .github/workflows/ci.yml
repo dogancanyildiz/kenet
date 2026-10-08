@@ -86,8 +86,8 @@ jobs:
           TZ: Pacific/Auckland
         run: xcodebuild test-without-building -project Journal.xcodeproj -scheme Journal_macOS -destination 'platform=macOS' $(sh .github/scripts/snapshot-suites.sh --mac | sed 's#^#-skip-testing:JournalTests_macOS/#' | tr '\n' ' ') CODE_SIGNING_ALLOWED=NO -quiet
       # Paket UTC koşusundandır: düşen beklentinin ölçülen değerleri -quiet günlüğünde görünmez.
-      - name: macOS test sonuç paketi (yalnız düşünce)
-        if: failure()
+      - name: macOS test sonuç paketi (düşünce ya da iptalde)
+        if: failure() || cancelled()
         uses: actions/upload-artifact@v6
         with:
           name: mac-test-results

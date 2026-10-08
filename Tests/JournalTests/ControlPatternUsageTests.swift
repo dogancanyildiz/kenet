@@ -17,7 +17,9 @@ struct ControlPatternUsageTests {
         case unstyledPicker
         /// `.textFieldStyle(.roundedBorder)` → ``InkFilterField``.
         case roundedBorderField
-        /// `SearchButton()` inside `.toolbar` → the manşet row's `actions` slot.
+        /// `SearchButton()` inside `.toolbar` in code that iPhone compiles → the manşet row's
+        /// `actions` slot. Mac is the opposite: search lives in the window toolbar only
+        /// (``macShellOwnsTheOnlyToolbarSearch()``), so `#if os(macOS)` code is not scanned here.
         case toolbarSearch
         /// `Button("Bitti"` → the sheet words are "Vazgeç", "Kaydet", "Oluştur", "Kapat".
         case doneButton
@@ -32,9 +34,7 @@ struct ControlPatternUsageTests {
         .menuPicker: [],
         .unstyledPicker: [],
         .roundedBorderField: [],
-        .toolbarSearch: [
-            "App/Navigation/MacNavigation.swift"
-        ],
+        .toolbarSearch: [],
         .doneButton: [],
         .sheetToolbar: [],
     ]
@@ -54,6 +54,20 @@ struct ControlPatternUsageTests {
         #expect(
             cleared.isEmpty,
             "\(rule.rawValue): no longer offending — remove from the allowlist: \(cleared.sorted())")
+    }
+
+    /// Mac: one toolbar search for the whole window, in the shell (`docs/design.md`, kalıp 3).
+    @Test func macShellOwnsTheOnlyToolbarSearch() throws {
+        var counts: [String: Int] = [:]
+        for path in try Self.screenSwiftFiles() {
+            let mac = ControlPatternScanner.macOnlyCode(
+                in: ControlPatternScanner.strippingComments(try Self.read(path)))
+            // A `.toolbar { ToolbarItem { … } }` yields two nested blocks; the innermost one counts.
+            let count = ControlPatternScanner.toolbarBlocks(in: mac)
+                .filter { $0.contains("SearchButton(") && !$0.contains("ToolbarItem") }.count
+            if count > 0 { counts[path] = count }
+        }
+        #expect(counts == ["App/Navigation/MacShell.swift": 1], "Mac toolbar search: \(counts)")
     }
 
     @Test func everyRuleHasAnAllowlistEntry() {
@@ -141,6 +155,43 @@ struct ControlPatternUsageTests {
             .toolbar { EditButton() }
             """
         #expect(!ControlPatternScanner.violates(.toolbarSearch, source: header))
+    }
+
+    @Test func toolbarSearchIsAnIPhoneRuleAndMacCodeIsSetAside() {
+        let macShell = """
+            #if os(macOS)
+                struct Shell: View {
+                    var body: some View {
+                        Split().toolbar { ToolbarItem(placement: .primaryAction) { SearchButton() } }
+                    }
+                }
+            #endif
+            """
+        #expect(!ControlPatternScanner.violates(.toolbarSearch, source: macShell))
+        #expect(ControlPatternScanner.macOnlyCode(in: macShell).contains("SearchButton()"))
+        let shared = """
+            List {}
+                #if os(macOS)
+                    .frame(minWidth: 300)
+                #else
+                    .toolbar { SearchButton() }
+                #endif
+            """
+        #expect(ControlPatternScanner.violates(.toolbarSearch, source: shared))
+        #expect(!ControlPatternScanner.macOnlyCode(in: shared).contains("SearchButton()"))
+        let nested = """
+            #if os(macOS)
+                #if DEBUG
+                    .toolbar { SearchButton() }
+                #endif
+            #endif
+            .toolbar { EditButton() }
+            """
+        #expect(!ControlPatternScanner.violates(.toolbarSearch, source: nested))
+        #expect(ControlPatternScanner.iPhoneCode(in: nested).contains("EditButton()"))
+        let iosOnly = "#if os(iOS)\n.toolbar { SearchButton() }\n#endif"
+        #expect(ControlPatternScanner.violates(.toolbarSearch, source: iosOnly))
+        #expect(!ControlPatternScanner.macOnlyCode(in: iosOnly).contains("SearchButton()"))
     }
 
     @Test func detectsDoneButtonAndHandBuiltSheetToolbar() {
@@ -231,7 +282,7 @@ enum ControlPatternScanner {
         case .unstyledPicker:
             return pickerExpressions(in: source).contains { !$0.contains(".pickerStyle(") }
         case .toolbarSearch:
-            return toolbarBlocks(in: source).contains { $0.contains("SearchButton(") }
+            return toolbarBlocks(in: iPhoneCode(in: source)).contains { $0.contains("SearchButton(") }
         case .sheetToolbar:
             if matches(source, #"ToolbarItem\(\s*placement:\s*\.(cancellationAction|confirmationAction)\b"#) {
                 return true
@@ -241,6 +292,38 @@ enum ControlPatternScanner {
                 matches($0, #"\bButton\(\s*"(?:"# + words + #")""#)
             }
         }
+    }
+
+    /// The source without the branches only Mac compiles (`#if os(macOS)` … up to its `#else` /
+    /// `#endif`); everything else stays, shared code included.
+    static func iPhoneCode(in source: String) -> String { split(source).iPhone }
+
+    /// Only the branches Mac alone compiles.
+    static func macOnlyCode(in source: String) -> String { split(source).mac }
+
+    private static func split(_ source: String) -> (iPhone: String, mac: String) {
+        // One entry per open `#if`: whether its current branch is Mac-only.
+        var stack: [(isMacCondition: Bool, inMacBranch: Bool)] = []
+        var iPhone: [Substring] = []
+        var mac: [Substring] = []
+        for line in source.split(separator: "\n", omittingEmptySubsequences: false) {
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+            if trimmed.hasPrefix("#if") {
+                let isMac = trimmed.replacingOccurrences(of: " ", with: "") == "#ifos(macOS)"
+                stack.append((isMac, isMac))
+                continue
+            }
+            if trimmed.hasPrefix("#else") || trimmed.hasPrefix("#elseif") {
+                if !stack.isEmpty { stack[stack.count - 1].inMacBranch = false }
+                continue
+            }
+            if trimmed.hasPrefix("#endif") {
+                _ = stack.popLast()
+                continue
+            }
+            if stack.contains(where: \.inMacBranch) { mac.append(line) } else { iPhone.append(line) }
+        }
+        return (iPhone.joined(separator: "\n"), mac.joined(separator: "\n"))
     }
 
     /// Removes `//` and `/* */` comments, keeping string literals intact.

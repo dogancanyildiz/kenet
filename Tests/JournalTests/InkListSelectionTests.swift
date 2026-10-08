@@ -30,8 +30,9 @@ struct InkListSelectionTests {
     import SwiftUI
     import VaultFormat
 
-    @MainActor
+    @MainActor @Suite(.timeLimit(.minutes(1)))
     struct InkListSelectionMacTests {
+        private let watchdog = HostedTestWatchdog()
         @Test func drawnSelectionUsesFillAndMark() async throws {
             for appearance in [AppearanceCase.light, AppearanceCase.dark] {
                 let bitmap = try await SelectionBitmap.render(

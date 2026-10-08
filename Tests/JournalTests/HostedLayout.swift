@@ -1,6 +1,49 @@
 #if os(macOS)
     import AppKit
     import SwiftUI
+    import Testing
+
+    /// Ends the test process when one hosted test keeps the main thread for too long, naming the
+    /// test on standard error. A hosted test can block inside AppKit (a tracking loop, a modal
+    /// session) where Swift Testing's time limit cannot cancel it; on a headless CI machine that
+    /// was a job running into its 30 minute limit with no output. A crash is reported per test.
+    ///
+    /// A suite keeps one as a stored property: it starts with the suite instance (one per test)
+    /// and stops when the instance goes away.
+    final class HostedTestWatchdog: @unchecked Sendable {
+        private let timer: DispatchSourceTimer
+
+        init(seconds: Int = 120, test: String = Test.current?.name ?? "?") {
+            let timer = DispatchSource.makeTimerSource(queue: .global(qos: .utility))
+            timer.schedule(deadline: .now() + .seconds(seconds))
+            timer.setEventHandler {
+                let line = "ASILDI: \(test) \(seconds) saniyede bitmedi; test süreci sonlandırılıyor\n"
+                FileHandle.standardError.write(Data(line.utf8))
+                abort()
+            }
+            timer.resume()
+            self.timer = timer
+        }
+
+        deinit { timer.cancel() }
+    }
+
+    /// Focus tests need a window that hands out its first responder. A machine without a window
+    /// server session may refuse; then the test has nothing to measure and returns early with a
+    /// note instead of failing on the environment (the Mac screen tour covers the same ground).
+    @MainActor
+    enum HostedFocus {
+        static func isAvailable(for view: NSView, in window: NSWindow, test: String = #function) -> Bool {
+            if window.makeFirstResponder(view), let responder = window.firstResponder as? NSView,
+                responder === view || responder.isDescendant(of: view) || (responder as? NSText)?.delegate === view
+            {
+                return true
+            }
+            let line = "ATLANDI (ortam odak vermiyor): \(test)\n"
+            FileHandle.standardError.write(Data(line.utf8))
+            return false
+        }
+    }
 
     /// Lays a SwiftUI view out offscreen so a test can read a preference from the real frames.
     /// The window is never ordered on screen.
@@ -38,10 +81,12 @@
             let window: NSWindow
             private let host: NSView
 
-            init<V: View>(_ view: V, size: CGSize) {
+            /// `bridgesToolbar`: the window also receives the SwiftUI toolbar, so a test can read
+            /// the toolbar items the view really installs.
+            init<V: View>(_ view: V, size: CGSize, bridgesToolbar: Bool = false) {
                 let hosting = NSHostingView(rootView: view)
                 hosting.sizingOptions = []
-                hosting.sceneBridgingOptions = [.title]
+                hosting.sceneBridgingOptions = bridgesToolbar ? [.title, .toolbars] : [.title]
                 hosting.frame = NSRect(origin: .zero, size: size)
                 window = NSWindow(
                     contentRect: NSRect(x: -20_000, y: -20_000, width: size.width, height: size.height),

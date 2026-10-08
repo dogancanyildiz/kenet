@@ -5,7 +5,13 @@ import XCTest
 /// close with Escape, and a Settings window and a quick-entry panel of their own.
 extension ScreenTourDriver {
     /// Every image of the main window has this size (points), whatever the last run left behind.
-    nonisolated static let windowSize = CGSize(width: 1280, height: 800)
+    /// `JOURNAL_SCREEN_TOUR_WINDOW=1000x700` overrides it (narrow and wide window checks).
+    nonisolated static let windowSize: CGSize = {
+        let parts = (ProcessInfo.processInfo.environment["JOURNAL_SCREEN_TOUR_WINDOW"] ?? "")
+            .split(separator: "x").compactMap { Double(String($0)) }
+        guard parts.count == 2, parts[0] >= 400, parts[1] >= 300 else { return CGSize(width: 1280, height: 800) }
+        return CGSize(width: parts[0], height: parts[1])
+    }()
     /// Top-left corner on the main display; XCUITest cannot capture a window on a second display.
     nonisolated static let windowOrigin = CGPoint(x: 120, y: 60)
 
@@ -16,7 +22,8 @@ extension ScreenTourDriver {
     nonisolated static func windowFrameArguments() -> [String] {
         guard let screen = NSScreen.screens.first else { return [] }
         let visible = screen.visibleFrame
-        let x = Int(screen.frame.minX + windowOrigin.x)
+        // A wide window moves left so that all of it stays on the display.
+        let x = Int(screen.frame.minX + max(0, min(windowOrigin.x, visible.width - windowSize.width)))
         let y = Int(screen.frame.maxY - windowOrigin.y - windowSize.height)
         let frame =
             "\(x) \(y) \(Int(windowSize.width)) \(Int(windowSize.height)) "
@@ -71,7 +78,11 @@ extension ScreenTourDriver {
         if abs(size.width - ScreenTourDriver.windowSize.width) > 1
             || abs(size.height - ScreenTourDriver.windowSize.height) > 1
         {
-            skip("UYARI pencere boyutu", reason: "\(Int(size.width))x\(Int(size.height)), beklenen 1280x800")
+            let expected = ScreenTourDriver.windowSize
+            skip(
+                "UYARI pencere boyutu",
+                reason:
+                    "\(Int(size.width))x\(Int(size.height)), beklenen \(Int(expected.width))x\(Int(expected.height))")
         }
     }
 

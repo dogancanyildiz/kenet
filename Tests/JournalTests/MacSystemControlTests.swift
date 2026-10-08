@@ -9,8 +9,9 @@
 
     /// The Mac controls that replace system ones on paper, measured on the real AppKit views
     /// SwiftUI builds for them (hosted offscreen).
-    @MainActor
+    @MainActor @Suite(.timeLimit(.minutes(1)))
     struct MacSystemControlTests {
+        private let watchdog = HostedTestWatchdog()
         private static let turkish = Locale(identifier: "tr_TR")
 
         /// What the user does: the field's own stepper, which moves the first element (hour in a

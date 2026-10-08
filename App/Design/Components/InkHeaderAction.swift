@@ -17,6 +17,10 @@ enum InkHeaderActionChrome {
     /// Gap between neighboring icons, and between the manşet and the first icon.
     static let spacing: CGFloat = 4
 
+    /// Smallest pointer target for one manşet icon on Mac (pt). iPhone uses
+    /// ``TapTarget/minimumLength`` through ``tapTarget()``, which stays a no-op on Mac.
+    static let macMinimumSide: CGFloat = 28
+
     /// `isActive` marks a sort/filter that differs from its default: the icon turns accent.
     static func token(
         role: InkHeaderActionRole, isActive: Bool = false, isEnabled: Bool = true,
@@ -101,6 +105,7 @@ struct InkHeaderMenu<Content: View>: View {
         } label: {
             Label(label, systemImage: systemImage)
                 .labelStyle(.iconOnly)
+                .inkHeaderIconMetrics()
                 .foregroundStyle(
                     InkButtonChrome.color(
                         for: InkHeaderActionChrome.token(

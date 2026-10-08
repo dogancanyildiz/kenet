@@ -4,6 +4,8 @@
 # Neden temiz kopya: Xcode açıkken çalışma klasöründeki dosyaları (String Catalog, plist ekleri)
 # kendiliğinden yeniden yazabiliyor; arşiv o halleriyle alınırsa yüklenen yapı depodaki kodla
 # aynı olmaz. Betik HEAD'i geçici bir worktree'ye çıkarır ve yalnız oradan derler.
+# Arşiv ve DerivedData aynı geçici klasörde tutulur; --check dahil başarı ve hata çıkışlarında
+# mevcut temizlik tuzağı bunları kaldırır. Kullanıcının Xcode DerivedData klasörlerine dokunulmaz.
 #
 # Kullanım:
 #   sh .github/scripts/testflight.sh            arşivle, özeti göster, onay alınca yükle
@@ -84,7 +86,8 @@ else
   set -- -allowProvisioningUpdates
 fi
 if ! xcodebuild archive -project Journal.xcodeproj -scheme Journal_iOS \
-  -destination 'generic/platform=iOS' -archivePath "$ARCHIVE" "$@" >"$LOG" 2>&1; then
+  -destination 'generic/platform=iOS' -archivePath "$ARCHIVE" \
+  -derivedDataPath "$WORK/DerivedData" "$@" >"$LOG" 2>&1; then
   grep -E "error:|ARCHIVE FAILED" "$LOG" | head -20 >&2
   KEEP="${TMPDIR:-/tmp}/kenet-testflight-arsiv.log"
   cp "$LOG" "$KEEP"

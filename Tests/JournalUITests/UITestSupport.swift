@@ -65,6 +65,15 @@ enum UITestSupport {
     }
 
     @MainActor
+    static func activateSystemAlertMonitor(in app: XCUIApplication) {
+        // Interruption monitors need an interaction. Reselecting Today is harmless; tapping
+        // the application's centre can complete a task in the fixture vault instead.
+        let todayTab = tab(in: app, identifier: "tab.today")
+        waitForExistence(todayTab)
+        todayTab.tap()
+    }
+
+    @MainActor
     static func waitForExistence(_ element: XCUIElement, timeout: TimeInterval = 20) {
         XCTAssertTrue(element.waitForExistence(timeout: timeout), "Missing element: \(element)")
     }

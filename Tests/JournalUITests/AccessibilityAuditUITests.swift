@@ -25,8 +25,7 @@ final class AccessibilityAuditUITests: XCTestCase {
     @MainActor
     func testMainScreensPassAccessibilityAudit() throws {
         let app = UITestSupport.launchApp(vaultURL: vaultURL)
-        // Nudge the run loop so interruption monitors can fire if a sheet appeared.
-        app.tap()
+        UITestSupport.activateSystemAlertMonitor(in: app)
 
         UITestSupport.waitForExistence(UITestSupport.element(in: app, identifier: "screen.today"))
         try audit(app, screen: "today")

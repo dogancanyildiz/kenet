@@ -224,6 +224,8 @@ jobs:
           sh .github/scripts/check-docs.sh
       - name: Sürüm akışı kuru koşusu
         run: sh .github/scripts/test-release.sh
+      - name: TestFlight geçici derleme temizliği
+        run: python3 .github/scripts/test-testflight.py
 
   # Dal korumasının zorunlu tuttuğu tek denetim. Yol filtresi yoktur; her PR'da koşar.
   ci:

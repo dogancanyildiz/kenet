@@ -392,14 +392,12 @@ final class ScreenTourMacUITests: XCTestCase {
             guard prefix == "13-arama" else { return }
             // Inside the sheet the page's manşet magnifier leads back to the results.
             try backToResults(expecting: note, shot: prefix + "-not-sonuclara-donus")
-            tour.erase("Okuma".count)
-            tour.type(typedName, into: field)
+            try replaceQuery(with: typedName)
             try tour.macRow(typedName, in: tour.app.sheets.firstMatch, scrolls: 0).click()
             _ = try tour.macRequire(["Düzenle"], ids: ["button.entity.edit"], in: tour.app.sheets.firstMatch)
             tour.shot(prefix + "-varlik", settle: 1.5)
             try backToResults(expecting: typedName, shot: prefix + "-varlik-sonuclara-donus")
-            tour.erase(typedName.count)
-            tour.type(typedEvent, into: field)
+            try replaceQuery(with: typedEvent)
             try tour.macRow(typedEvent, in: tour.app.sheets.firstMatch, scrolls: 0).click()
             try tour.waitFor(ids: ["screen.day"])
             tour.shot(prefix + "-gun", settle: 1.5)
@@ -413,6 +411,17 @@ final class ScreenTourMacUITests: XCTestCase {
         _ = try tour.field(ids: ["field.search"], placeholders: ["Kişi, konum veya metin ara"])
         _ = try tour.macRow(row, in: sheet, scrolls: 0)
         tour.shot(name, settle: 1.0)
+    }
+
+    /// Selects the whole query and types over it.
+    @MainActor private func replaceQuery(with text: String) throws {
+        let field = try tour.field(ids: ["field.search"], placeholders: ["Kişi, konum veya metin ara"])
+        field.click()
+        tour.pause(0.4)
+        tour.app.typeKey("a", modifierFlags: .command)
+        tour.erase(1)
+        tour.app.typeText(text)
+        tour.pause(1.5)
     }
 
     @MainActor private func openSettings() throws {

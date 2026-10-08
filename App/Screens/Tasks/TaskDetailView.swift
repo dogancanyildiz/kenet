@@ -88,7 +88,7 @@ struct TaskDetailView: View {
         }
         .listStyle(.plain)
         .inkPage()
-        .inkPageColumn()
+        .inkPageScrollColumn()
         .inkPageNavigationTitle("Görev")
     }
 

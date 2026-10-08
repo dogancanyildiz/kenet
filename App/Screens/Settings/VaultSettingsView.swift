@@ -129,7 +129,7 @@ struct VaultSettingsView: View {
         }
         .listStyle(.plain)
         .inkPageNavigationTitle("Kasa")
-        .inkPageColumn()
+        .inkPageScrollColumn()
         .inkPage()
         .fileImporter(isPresented: $choosingFolder, allowedContentTypes: [.folder]) { result in
             switch result {

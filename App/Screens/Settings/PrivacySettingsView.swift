@@ -22,7 +22,7 @@ struct PrivacySettingsView: View {
         .listStyle(.plain)
         .inkToggle()
         .inkPageNavigationTitle("Gizlilik")
-        .inkPageColumn()
+        .inkPageScrollColumn()
         .inkPage()
     }
 }

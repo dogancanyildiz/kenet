@@ -13,7 +13,7 @@ struct CalendarAndLocationSettingsView: View {
         .listStyle(.plain)
         .inkToggle()
         .inkPageNavigationTitle("Takvim ve Konum")
-        .inkPageColumn()
+        .inkPageScrollColumn()
         .inkPage()
     }
 }

@@ -43,7 +43,7 @@ struct DaysView: View {
         }
         .listStyle(.plain)
         .inkPage()
-        .inkPageColumn()
+        .inkPageScrollColumn()
         .navigationDestination(item: $selectedDay) { day in DayView(store: store, date: day) }
         .inkRootPageNavigationTitle("Günlük")
         .accessibilityIdentifier("screen.days")

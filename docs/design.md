@@ -193,7 +193,7 @@ Yazı:
 | Değer ve saat | SF Pro, tabular rakam | 17 ve 15 | 13 |
 | Büyük rakam (hedef detayı, özet) | SF Pro Light, tabular rakam | 48 | 34 |
 
-Biçim: görev kutusu 22 pt kare (köşe 5 pt), hedef halkası 22 pt daire, artı 30 pt ve gönder 36 pt daire, hızlı giriş kapsüldür. Kenar boşluğu 16 pt, kenar sütunu 44 pt'dir. Mac liste seçiminin köşesi 6 pt; dolgu satırın kenarından yatay 4 pt, dikey 2 pt içeridedir. Mac'te sayfa en çok 680 pt genişliğinde ortalanır. İçerik opaktır; gölge, doku ve gradyan yoktur.
+Biçim: görev kutusu 22 pt kare (köşe 5 pt), hedef halkası 22 pt daire, artı 30 pt ve gönder 36 pt daire, hızlı giriş kapsüldür. Kenar boşluğu 16 pt, kenar sütunu 44 pt'dir. Mac liste seçiminin köşesi 6 pt; dolgu satırın kenarından yatay 4 pt, dikey 2 pt içeridedir. Mac'te sayfa en çok 680 pt genişliğinde ortalanır; kaydırma alanı sütunu doldurur, yalnız içerik daralır. İçerik opaktır; gölge, doku ve gradyan yoktur.
 
 ## Uygulama simgesi
 

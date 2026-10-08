@@ -120,7 +120,7 @@ struct EntityTypeEditorView: View {
         }
         .disabled(model.isSaving)
         .listStyle(.plain)
-        .inkPageColumn()
+        .inkPageScrollColumn()
         .inkSheet(
             title, confirm: Self.confirmation(isNew: model.original == nil),
             isConfirmEnabled: model.canSave, isBusy: model.isSaving, isCancelEnabled: !model.isSaving,

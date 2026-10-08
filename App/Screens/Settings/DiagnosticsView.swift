@@ -88,7 +88,7 @@ struct DiagnosticsView: View {
         }
         .listStyle(.plain)
         .inkPageNavigationTitle("Tanılama")
-        .inkPageColumn()
+        .inkPageScrollColumn()
         .inkPage()
     }
 

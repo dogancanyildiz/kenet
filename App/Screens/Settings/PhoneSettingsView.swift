@@ -20,7 +20,7 @@ struct PhoneSettingsView: View {
             settingsDestination(section)
         }
         .inkPage()
-        .inkPageColumn()
+        .inkPageScrollColumn()
         .accessibilityIdentifier("screen.settings")
     }
 

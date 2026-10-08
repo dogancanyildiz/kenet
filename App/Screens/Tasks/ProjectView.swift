@@ -65,7 +65,7 @@ struct ProjectView: View {
         }
         .listStyle(.plain)
         .inkPage()
-        .inkPageColumn()
+        .inkPageScrollColumn()
         .inkPageNavigationTitle(verbatim: name)
     }
 

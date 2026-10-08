@@ -11,7 +11,8 @@
 # elindedir; bitene kadar bilgisayara dokunma. Gerçek kasaya ve ayarlara dokunulmaz: uygulama ayrı
 # bir bundle kimliğiyle (….screentour) derlenir, ev klasörü olarak geçici bir klasör görür ve
 # koşu bitince o kimliğin ayarları silinir. Sistem görünümü değiştirilmez. Pencere ana ekranda
-# 1280x800 açılır. SCREEN_TOUR_ONLY=ayarlar,koyu turun yalnız adı verilen bölümlerini koşar
+# 1280x800 açılır; SCREEN_TOUR_WINDOW=1000x700 başka bir boyut verir (dar ve geniş pencere
+# denetimi). SCREEN_TOUR_ONLY=ayarlar,koyu turun yalnız adı verilen bölümlerini koşar
 # (bölüm adları test dosyasında).
 #
 # Çıktı klasörü depo dışında olmalıdır: görüntüler depoya ve PR'a girmez (Kasa ayar sayfası
@@ -87,6 +88,7 @@ if [ "$PLATFORM" = "mac" ]; then
   TEST_RUNNER_JOURNAL_SCREEN_TOUR_DIR="$OUT" \
   TEST_RUNNER_JOURNAL_SCREEN_TOUR_TREE="${SCREEN_TOUR_TREE:-}" \
   TEST_RUNNER_JOURNAL_SCREEN_TOUR_ONLY="${SCREEN_TOUR_ONLY:-}" \
+  TEST_RUNNER_JOURNAL_SCREEN_TOUR_WINDOW="${SCREEN_TOUR_WINDOW:-}" \
   xcodebuild test \
     -project Journal.xcodeproj \
     -scheme Journal_macOS_ScreenTour \

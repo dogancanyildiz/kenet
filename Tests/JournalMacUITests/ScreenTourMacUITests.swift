@@ -368,10 +368,7 @@ final class ScreenTourMacUITests: XCTestCase {
 
     @MainActor private func openGoal() throws {
         try tour.sidebar("Hedefler")
-        // The row is one plain button; its middle is empty in the wider list column, so the
-        // click goes to the name at the row's leading side.
-        try tour.macRow(numberGoal, in: tour.mainWindow, scrolls: 0)
-            .coordinate(withNormalizedOffset: CGVector(dx: 0.22, dy: 0.3)).click()
+        try tour.macRow(numberGoal, in: tour.mainWindow, scrolls: 0).click()
         _ = try tour.macRequire(["Isı haritası"])
     }
 
@@ -464,6 +461,32 @@ final class ScreenTourMacUITests: XCTestCase {
             tour.shot("32-mac-gorevler-secim-yok")
             try tour.sidebar("Hedefler")
             tour.shot("32-mac-hedefler-secim-yok")
+        }
+        tour.step("35-mac-kenar-cubugu-klavye") {
+            // The arrow keys walk the sidebar rows, sub-entries included, across the layout swap
+            // between the columns and the full-width board.
+            try tour.sidebar("Günlük")
+            for _ in 0..<3 {
+                tour.app.typeKey(.downArrow, modifierFlags: [])
+                tour.pause(0.8)
+            }
+            tour.shot("35-mac-kenar-cubugu-ok-zaman-cizelgesi")
+            tour.app.typeKey(.downArrow, modifierFlags: [])
+            tour.pause(0.8)
+            tour.shot("35-mac-kenar-cubugu-ok-ilk-proje")
+            for _ in 0..<2 {
+                tour.app.typeKey(.upArrow, modifierFlags: [])
+                tour.pause(0.8)
+            }
+            tour.shot("35-mac-kenar-cubugu-ok-kanban")
+        }
+        tour.step("36-mac-etkin-olmayan-pencere") {
+            // With Settings in front the journal window is not key: its sidebar selection fades.
+            try tour.sidebar("Görevler")
+            try openSettings()
+            tour.captureMainWindow()
+            tour.shot("36-mac-etkin-olmayan-pencere")
+            tour.closeOverlays()
         }
         tour.step("33-mac-menu-cubugu") {
             // The journal window shows no quick entry here, so the panel's field is the only one.

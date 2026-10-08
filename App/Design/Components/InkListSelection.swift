@@ -1,17 +1,20 @@
 import SwiftUI
 
 /// Mac list-column selection (`docs/design.md`).
-/// Görevler, Günlük, Kişiler and Hedefler share one shape: a recessed (`well`) fill
-/// with a leading accent rule, clipped to the row. Text tokens stay on `well`
-/// so body contrast holds. iPhone rows do not opt in.
+/// Görevler, Günlük, Kişiler, Hedefler and search results share one shape: a recessed
+/// (`well`) fill with a leading accent rule, clipped to the row. Text tokens stay on
+/// `well` so body contrast holds. iPhone rows do not opt in.
 enum InkListSelectionChrome {
     static let fill = InkPalette.Token.well
     static let mark = InkPalette.Token.accent
     /// Same width as the selected-mode underline, on the row's leading edge.
     static let markWidth: CGFloat = InkSize.modeUnderline
-    static let cornerRadius: CGFloat = 6
-    static let horizontalInset: CGFloat = 4
-    static let verticalInset: CGFloat = 2
+    static let cornerRadius: CGFloat = InkSize.listSelectionCorner
+    static let horizontalInset: CGFloat = InkSpacing.listSelectionHorizontal
+    static let verticalInset: CGFloat = InkSpacing.listSelectionVertical
+
+    static var fillColor: Color { Color(fill.assetName) }
+    static var markColor: Color { Color(mark.assetName) }
 
     /// Foreground tokens drawn on a selected row (body, meta, links, dates, errors).
     static let textTokens: [InkPalette.Token] = [
@@ -24,36 +27,19 @@ private struct InkColumnRowSelectedKey: EnvironmentKey {
 }
 
 extension EnvironmentValues {
-    /// `nil` when the row is not a Mac list-column row.
-    /// `true` / `false` opts ``inkListRow()`` into ``InkListSelectionBackground``.
+    /// Kept so a parent cannot style nested rows. ``inkListRow(columnSelected:)`` does not
+    /// read this; it clears the value for its content (sheets, editors).
     var inkColumnRowSelected: Bool? {
         get { self[InkColumnRowSelectedKey.self] }
         set { self[InkColumnRowSelectedKey.self] = newValue }
     }
 }
 
-extension View {
-    /// Shared Mac list-column selection. No visual change on iPhone.
-    ///
-    /// Apply **after** ``inkListRow()`` so that modifier reads this environment and paints
-    /// a single row background. Pair the list with `.listStyle(.plain)` so the system
-    /// capsule does not draw over it.
-    func inkColumnSelection(isSelected: Bool) -> some View {
-        modifier(InkColumnSelectionModifier(isSelected: isSelected))
-    }
-}
-
-private struct InkColumnSelectionModifier: ViewModifier {
-    var isSelected: Bool
-
-    @ViewBuilder func body(content: Content) -> some View {
-        #if os(macOS)
-            content
-                .environment(\.inkColumnRowSelected, isSelected)
-                .focusEffectDisabled()
-        #else
-            content
-        #endif
+/// How many Mac rows in this subtree opted into the selected-column chrome.
+struct InkColumnChromeCountKey: PreferenceKey {
+    static let defaultValue = 0
+    static func reduce(value: inout Int, nextValue: () -> Int) {
+        value += nextValue()
     }
 }
 
@@ -66,10 +52,10 @@ struct InkListSelectionBackground: View {
             Color.ink.paper
             if isSelected {
                 RoundedRectangle(cornerRadius: InkListSelectionChrome.cornerRadius, style: .continuous)
-                    .fill(Color.ink.well)
+                    .fill(InkListSelectionChrome.fillColor)
                     .overlay(alignment: .leading) {
                         Rectangle()
-                            .fill(Color.ink.accent)
+                            .fill(InkListSelectionChrome.markColor)
                             .frame(width: InkListSelectionChrome.markWidth)
                     }
                     .clipShape(

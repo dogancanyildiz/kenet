@@ -157,14 +157,7 @@
                         VStack(spacing: 0) {
                             Button("Özetler", systemImage: "chart.bar") { section = .summaries }.padding()
                             DaysCalendarView(store: store) { selectedDay = "journal/\($0).md" }
-                            List(store.content.days, selection: $selectedDay) { day in
-                                DayRow(day: day)
-                                    .inkListRow()
-                                    .inkColumnSelection(isSelected: selectedDay == day.id)
-                                    .tag(day.id)
-                            }
-                            .listStyle(.plain)
-                            .scrollContentBackground(.hidden)
+                            MacDayList(days: store.content.days, selection: $selectedDay)
                         }.navigationTitle("Günlük")
                     case .tasks:
                         if let project = selectedProject {
@@ -194,21 +187,9 @@
                             let entities = EntityListQuery.entities(
                                 in: store.content, usage: store.entityUsage, kind: entityKind,
                                 search: entitySearch, order: entityOrder)
-                            List(selection: entitySelection) {
-                                if entityKind == "person" {
-                                    UnseenPeopleSection(store: store, people: entities) { entity in
-                                        entitySelection.wrappedValue = entity.id
-                                    }
-                                }
-                                ForEach(entities) { entity in
-                                    EntityRow(entity: entity)
-                                        .inkListRow()
-                                        .inkColumnSelection(isSelected: selectedEntity == entity.id)
-                                        .tag(entity.id)
-                                }
-                            }
-                            .listStyle(.plain)
-                            .scrollContentBackground(.hidden)
+                            MacEntityList(
+                                store: store, entities: entities, showsUnseen: entityKind == "person",
+                                selection: entitySelection)
                         }
                         .navigationTitle((section ?? .people).title)
                     case .notes:
@@ -348,6 +329,47 @@
             case .map: "map"
             case .notes: "note.text"
             }
+        }
+    }
+
+    /// Günlük column. Selection chrome lives here so the day row and its tests share one list.
+    struct MacDayList: View {
+        let days: [DaySummary]
+        @Binding var selection: String?
+
+        var body: some View {
+            List(days, selection: $selection) { day in
+                DayRow(day: day)
+                    .inkListRow(columnSelected: selection == day.id)
+                    .tag(day.id)
+            }
+            .listStyle(.plain)
+            .scrollContentBackground(.hidden)
+        }
+    }
+
+    /// Kişiler / Konumlar column.
+    struct MacEntityList: View {
+        let store: IndexStore
+        let entities: [EntitySummary]
+        var showsUnseen: Bool
+        @Binding var selection: String?
+
+        var body: some View {
+            List(selection: $selection) {
+                if showsUnseen {
+                    UnseenPeopleSection(store: store, people: entities) { entity in
+                        selection = entity.id
+                    }
+                }
+                ForEach(entities) { entity in
+                    EntityRow(entity: entity)
+                        .inkListRow(columnSelected: selection == entity.id)
+                        .tag(entity.id)
+                }
+            }
+            .listStyle(.plain)
+            .scrollContentBackground(.hidden)
         }
     }
 #endif

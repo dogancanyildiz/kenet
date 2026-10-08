@@ -41,11 +41,13 @@ struct TasksListRow: View {
         MarginRow(kind: .vault) {
             TaskBox(
                 state: boxState,
-                action: completion.canToggleCompletion ? complete : nil,
+                action: boxCompletes ? complete : nil,
                 accessibilityLabel: LocalizedStringKey(completion.boxAccessibilityLabelKey))
         } primary: {
             LinkedTextView(
-                text: row.text, store: store, isMuted: presentation.usesSecondaryText
+                text: row.text, store: store, isMuted: presentation.usesSecondaryText,
+                opensLinks: TasksListRowInteraction.action(
+                    for: .link, hasLink: hasLink, isMac: runsOnMac) == .openLink
             )
             .foregroundStyle(
                 presentation.usesSecondaryText
@@ -58,28 +60,14 @@ struct TasksListRow: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .modifier(
-            TasksListRowTap(
-                hasLink: row.text.spans.contains { $0.target != nil },
-                complete: { completeIfAllowed() }
-            )
+            TasksListRowTap(hasLink: hasLink, isMac: runsOnMac, complete: { completeIfAllowed() })
         )
         .accessibilityAction(named: Text(LocalizedStringKey(completion.boxAccessibilityLabelKey))) {
             completeIfAllowed()
         }
-        #if os(iOS)
-            .contextMenu { editMenu }
-        #else
-            .overlay {
-                TaskRowMacChrome(
-                    hasDue: row.due != nil,
-                    editText: { textEditor = TaskEditorModel(store: store, row: row) },
-                    editDate: { dateEditor = TaskEditorModel(store: store, row: row) },
-                    clearDate: { edit { await $0.setDue(nil) } },
-                    editRecurrence: { recurrenceEditor = TaskEditorModel(store: store, row: row) },
-                    setPriority: { priority in edit { await $0.setPriority(priority) } },
-                    delete: { deleteConfirmation.request(.pending) }
-                )
-            }
+        .contextMenu { editMenu }
+        #if os(macOS)
+            .focusEffectDisabled()
         #endif
         .destructiveConfirmationDialog("Görevi sil?", confirmation: $deleteConfirmation) { _ in
             edit { await $0.delete() }
@@ -151,13 +139,25 @@ struct TasksListRow: View {
         }
     }
 
-    /// iPhone row tap completes when the line has no link. Mac selection is the list's, not this gesture.
+    private var hasLink: Bool { row.text.spans.contains { $0.target != nil } }
+
+    private var runsOnMac: Bool {
+        #if os(macOS)
+            true
+        #else
+            false
+        #endif
+    }
+
+    /// Box hit completes only when the interaction table and the completion rules agree.
+    private var boxCompletes: Bool {
+        TasksListRowInteraction.action(for: .box, hasLink: hasLink, isMac: runsOnMac) == .toggleCompletion
+            && completion.canToggleCompletion
+    }
+
+    /// VoiceOver's named action. The row tap is separate and does not complete on Mac.
     private func completeIfAllowed() {
-        let hasLink = row.text.spans.contains { $0.target != nil }
-        guard
-            TasksListRowInteraction.action(for: .row, hasLink: hasLink, isMac: false) == .toggleCompletion,
-            completion.canToggleCompletion
-        else { return }
+        guard completion.canToggleCompletion else { return }
         complete()
     }
 
@@ -171,25 +171,20 @@ struct TasksListRow: View {
     }
 }
 
-/// iPhone: a row tap completes when ``TasksListRowInteraction`` says so.
-/// Mac: no tap gesture, so the list selection and text links keep the click.
+/// Installs a completing control only when ``TasksListRowInteraction`` says the row completes.
+/// On Mac the table returns ``selectRow``, so the list selection and text links keep the click.
+/// A plain button (not ``onTapGesture``) is what the hosted click test can press.
 private struct TasksListRowTap: ViewModifier {
     var hasLink: Bool
+    var isMac: Bool
     var complete: () -> Void
 
     @ViewBuilder func body(content: Content) -> some View {
-        #if os(iOS)
+        if TasksListRowInteraction.action(for: .row, hasLink: hasLink, isMac: isMac) == .toggleCompletion {
+            Button(action: complete) { content }
+                .buttonStyle(.plain)
+        } else {
             content
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    guard
-                        TasksListRowInteraction.action(for: .row, hasLink: hasLink, isMac: false)
-                            == .toggleCompletion
-                    else { return }
-                    complete()
-                }
-        #else
-            content
-        #endif
+        }
     }
 }

@@ -6,6 +6,8 @@ struct LinkedTextView: View {
     let store: IndexStore
     /// Completed task text: plain runs in secondary ink (links keep their underline style).
     var isMuted: Bool = false
+    /// When false, a link tap does nothing. Task rows pass the row-interaction table.
+    var opensLinks: Bool = true
     @Environment(\.entityLookup) private var entityLookup
     @State private var destination: LinkDestination?
 
@@ -18,6 +20,7 @@ struct LinkedTextView: View {
 
     var body: some View {
         InkLinkedText(segments: segments, isMuted: isMuted) { url in
+            guard opensLinks else { return }
             guard url.scheme == "journal-entity",
                 let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
                 let name = components.queryItems?.first(where: { $0.name == "name" })?.value

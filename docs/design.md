@@ -222,7 +222,7 @@ Manşet, bölüm başlığı, kenar sütunlu satır (görev, hedef, olay ve takv
 
 Mac liste sütunu seçimi (`InkListSelection`) şöyle çizilir. Görevler, Günlük, Kişiler ve Hedefler sütunlarında ve Mac'teki arama sonuçlarında seçili satır çukur zeminle, satırın içinde yuvarlatılmış köşeyle ve solda 2 pt vurgu çizgisiyle görünür; iPhone satırı kâğıt kalır. Görev sütununda kutu tamamlar, metindeki bağlantı kendi sayfasını açar, satıra tıklamak ayrıntıyı seçer; bağlam menüsündeki silme onay diyaloğuna gider.
 
-Mac kenar çubuğu satırı (`MacSidebarRow`) kural 12'yi şöyle çizer. Dolgu sistem seçiminin yerinde, kenarlardan 10 pt içeride ve 8 pt köşelidir. Etkin olmayan pencerede dolgu çizgi rengine döner ve satır olağan mürekkebiyle yazılır. Yerleşimi değiştiren her seçim (tıklama, ok tuşu ya da VoiceOver) odak serbestse yeni kenar çubuğuna bir kez geri verilir. Serbestlik kenar çubuğunun kendi penceresine bakılır: odak o pencerede başka bir denetimdeyse istek bırakılır.
+Mac kenar çubuğu satırı (`MacSidebarRow`) kural 12'yi şöyle çizer. Dolgu sistem seçiminin yerinde, kenarlardan 10 pt içeride ve 8 pt köşelidir. Dikey kaydırma göstergesi çizilmez: fare bağlıyken yer kaplayan çubuk satırı sağdan daraltmaz, dolgu iki kenardan 10 pt içeride kalır; liste tekerlek, izleme dörtgeni ve ok tuşlarıyla kayar. Etkin olmayan pencerede dolgu çizgi rengine döner ve satır olağan mürekkebiyle yazılır. Yerleşimi değiştiren her seçim (tıklama, ok tuşu ya da VoiceOver) odak serbestse yeni kenar çubuğuna bir kez geri verilir. Serbestlik kenar çubuğunun kendi penceresine bakılır: odak o pencerede başka bir denetimdeyse istek bırakılır.
 
 ## Doğrulama
 

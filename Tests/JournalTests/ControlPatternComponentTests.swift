@@ -231,11 +231,31 @@ import Testing
         let hidden = modifier.components(separatedBy: ".sharedBackgroundVisibility(.hidden)").count - 1
         #expect(items == 3)
         #expect(hidden == items)
+        // Mac: single serif title, paper chrome, bottom bar, non-zero ideal size.
+        #expect(modifier.contains("toolbarBackground(Color.ink.paper, for: .windowToolbar)"))
+        #expect(modifier.contains("safeAreaInset(edge: .bottom"))
+        #expect(modifier.contains("InkSheetChrome.macMinHeight"))
+        #expect(modifier.contains("InkSheetChrome.macMinWidth"))
+        #expect(source.contains("func inkSheetNavigationTitle(_ title: LocalizedStringKey)"))
+        #expect(source.contains("toolbar(removing: .title)"))
+        // Mac never calls ``inkPageNavigationTitle`` from the sheet chrome (serif manşet only).
+        #expect(source.contains(".inkSheetNavigationTitle(title)"))
+        #expect(
+            !source.contains(".inkPageNavigationTitle(title)\n        .inkSheetMacHiddenTitle()"))
         let style = try Self.section(of: source, startingAt: "struct InkSheetButtonStyle:")
         #expect(style.contains("InkSheetChrome.token(for: button, isEnabled: isEnabled)"))
         #expect(style.contains("InkSheetChrome.isEmphasized(button)"))
         #expect(style.contains("InkButtonChrome.minimumHeight"))
         #expect(!style.contains("Capsule"))
+    }
+
+    @Test func macSheetIdealSizePreventsCollapsedBody() {
+        // Audit finding 1: empty entity edit sheet was ~133 pt tall with a ~0 pt scroll area.
+        #expect(InkSheetChrome.macMinHeight > 133)
+        #expect(InkSheetChrome.macContentFits(minHeight: InkSheetChrome.macMinHeight))
+        #expect(!InkSheetChrome.macContentFits(minHeight: 133))
+        #expect(InkSheetChrome.macMinWidth >= 480)
+        #expect(InkSheetChrome.macIdealHeight >= InkSheetChrome.macMinHeight)
     }
 
     @Test func inkToggleAppliesTheAccentTint() throws {
@@ -244,6 +264,44 @@ import Testing
         #expect(function.contains("tint(Color.ink.accent)"))
         let modifier = try Self.section(of: source, startingAt: "struct InkSheetModifier:")
         #expect(modifier.contains(".inkToggle()"), "sheet content inherits the accent tint")
+    }
+
+    @Test func tabPrefixesAreUsedAcrossScreens() throws {
+        let tasks = try Self.read("App/Screens/Tasks/TasksViewSelector.swift")
+        #expect(tasks.contains("accessibilityLabelPrefix: String(localized: \"Görünüm\")"))
+
+        let goals = try Self.read("App/Screens/Goals/GoalFieldEditor.swift")
+        #expect(goals.contains("accessibilityLabelPrefix: field.title"))
+
+        let summaries = try Self.read("App/Screens/Summaries/SummariesView.swift")
+        #expect(summaries.contains("accessibilityLabelPrefix: String(localized: \"Dönem\")"))
+
+        let entities = try Self.read("App/Screens/Entities/EntityTypePicker.swift")
+        #expect(entities.contains("accessibilityLabelPrefix: String(localized: \"Tür\")"))
+    }
+
+    @Test func todayCarriedOverDisclosureUsesMarginRow() throws {
+        let source = try Self.read("App/Screens/Today/DayTasksView.swift")
+        let section = try Self.section(
+            of: source, startingAt: "case .carriedOverDisclosure(let text):",
+            until: "case .completedDisclosure(")
+        #expect(section.contains("MarginRow(kind: .vault)"))
+        #expect(!section.contains("countPart"), "localized string must not be split")
+        #expect(section.contains("minHeight: TapTarget.minimumLength"), "44 pt floor")
+        #expect(section.contains(".contentShape(Rectangle())"))
+        #expect(section.contains(".accessibilityLabel(text)"))
+    }
+
+    @Test func sectionHeaderSupportsDisclosureIndicator() throws {
+        let header = try Self.read("App/Design/Components/SectionHeader.swift")
+        #expect(header.contains("var isExpanded: Bool? = nil"))
+        #expect(header.contains("chevron.down"))
+        #expect(header.contains("chevron.right"))
+
+        let unseen = try Self.read("App/Screens/Entities/UnseenPeopleSection.swift")
+        #expect(unseen.contains("isExpanded: expanded"))
+        #expect(unseen.contains("Rectangle()"))
+        #expect(unseen.contains("Color.ink.rule"))
     }
 
     // MARK: - Support

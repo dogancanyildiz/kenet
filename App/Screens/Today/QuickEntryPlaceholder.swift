@@ -1,7 +1,5 @@
-import EntityRecognition
 import SwiftUI
 import VaultFormat
-import VaultStore
 
 struct QuickEntryBar: View {
     @Environment(\.locale) private var locale
@@ -92,8 +90,6 @@ struct QuickEntryBar: View {
             }
             QuickEntryTaskControls(model: model, showsPicker: $showsDatePicker)
                 .disabled(!isEnabled || model.isSubmitting || model.isCreating || store.isWriting)
-            resolutionStrip
-                .disabled(model.isCreating || model.isSubmitting || !isEnabled)
             if !model.awaitingResolution {
                 ForEach(model.projectSuggestions(at: insertionOffset), id: \.self) { project in
                     Button {
@@ -109,56 +105,20 @@ struct QuickEntryBar: View {
                     .buttonStyle(.plain)
                     .disabled(!isEnabled || !model.canSubmit)
                 }
-                ForEach(model.suggestions(at: insertionOffset), id: \.file) { entity in
-                    Button {
-                        model.selectSuggestion(entity, at: insertionOffset)
-                        selection = nil
-                        isFocused = true
-                    } label: {
-                        entityLabel(entity)
-                            .tapTarget()
-                    }
-                    .buttonStyle(.plain)
-                    .disabled(!isEnabled || !model.canSubmit)
-                }
             }
-            if !model.awaitingResolution, let range = model.suggestionRange(at: insertionOffset), range.count > 1 {
-                HStack {
-                    Button {
-                        beginCreation(.person)
-                    } label: {
-                        Text("Yeni kişi oluştur")
-                            .tapTarget()
+            MentionAssistStrip(
+                composer: model.composer, store: store, insertionOffset: insertionOffset,
+                isEnabled: isEnabled && model.canSubmit && !model.isCreating && !model.isSubmitting,
+                onDidChangeText: { caret in
+                    if let caret,
+                        let next = MentionComposer.textSelection(atByteOffset: caret, in: model.text)
+                    {
+                        selection = next
                     }
-                    .buttonStyle(InkTextButtonStyle())
-                    Button {
-                        beginCreation(.place)
-                    } label: {
-                        Text("Yeni konum oluştur")
-                            .tapTarget()
-                    }
-                    .buttonStyle(InkTextButtonStyle())
-                    Menu("Özel tip olarak ekle") {
-                        ForEach(
-                            EntityTypeChoices.choices(
-                                store.entityTypes, language: locale.language.languageCode?.identifier ?? "en"
-                            ).filter {
-                                $0.id != "person" && $0.id != "place"
-                            }
-                        ) { type in
-                            Button {
-                                beginCreation(type.kind)
-                            } label: {
-                                Text("\(type.name) olarak ekle")
-                            }
-                        }
-                    }.disabled(store.entityTypes.types.isEmpty)
-                }
-                .disabled(!isEnabled || !model.canSubmit)
-            }
-            if let error = model.errorText {
-                InfoBand(kind: .error, verbatim: error)
-            }
+                    isFocused = true
+                },
+                onResolved: submit
+            )
             QuickEntryCapsule(
                 mode: capsuleMode,
                 canSubmit: isEnabled && model.canSubmit,
@@ -318,121 +278,6 @@ struct QuickEntryBar: View {
             }
             .padding()
             .presentationCompactAdaptation(.popover)
-        }
-    }
-
-    private func entityLabel(_ entity: KnownEntity) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text(verbatim: entity.name)
-                .font(.ink.meta)
-                .foregroundStyle(entityColor(entity))
-            if let qualifier = entity.qualifier {
-                Text(verbatim: qualifier)
-                    .font(.ink.meta)
-                    .foregroundStyle(Color.ink.secondaryText)
-            }
-        }
-    }
-
-    /// TextField cannot draw underlines; suggestion chips use InkLinkStyle color tokens.
-    private func entityColor(_ entity: KnownEntity) -> Color {
-        switch entity.kind {
-        case .person: Color.ink.person
-        case .place: Color.ink.place
-        default: Color.ink.text
-        }
-    }
-
-    @ViewBuilder private var resolutionStrip: some View {
-        @Bindable var model = model
-        if let mention = model.pendingAmbiguity {
-            Text("\(mention.spelling): hangisi?")
-                .font(.ink.meta)
-                .foregroundStyle(Color.ink.text)
-            ScrollView(.horizontal) {
-                HStack {
-                    ForEach(mention.candidates, id: \.file) { entity in
-                        Button {
-                            model.choose(entity, for: mention)
-                            submit()
-                        } label: {
-                            entityLabel(entity)
-                                .tapTarget()
-                        }
-                        .buttonStyle(.plain)
-                    }
-                    Button("Bağlamadan devam et") {
-                        model.skip(mention)
-                        submit()
-                    }
-                    .buttonStyle(InkTextButtonStyle())
-                }
-            }
-        } else if let mention = model.pendingUnknown {
-            Text(verbatim: mention.spelling)
-                .font(.ink.meta)
-                .foregroundStyle(Color.ink.text)
-            if model.needsQualifier {
-                TextField("Ayırt edici (ör. iş)", text: $model.qualifier)
-                    .textFieldStyle(.plain)
-                    .font(.ink.content)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 6)
-                    .background(Color.ink.surface)
-                    .overlay {
-                        RoundedRectangle(cornerRadius: InkSize.chipCorner, style: .continuous)
-                            .strokeBorder(Color.ink.control, lineWidth: InkStroke.control)
-                    }
-                Button("Oluştur") {
-                    if let kind = model.creationKind { create(kind) }
-                }
-                .buttonStyle(InkTextButtonStyle())
-                .disabled(model.qualifier.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-            } else {
-                HStack {
-                    Button("Kişi olarak ekle") { create(.person) }
-                        .buttonStyle(InkTextButtonStyle())
-                    Button("Konum olarak ekle") { create(.place) }
-                        .buttonStyle(InkTextButtonStyle())
-                    Menu("Özel tip olarak ekle") {
-                        ForEach(
-                            EntityTypeChoices.choices(
-                                store.entityTypes, language: locale.language.languageCode?.identifier ?? "en"
-                            ).filter {
-                                $0.id != "person" && $0.id != "place"
-                            }
-                        ) { type in
-                            Button {
-                                create(type.kind)
-                            } label: {
-                                Text("\(type.name) olarak ekle")
-                            }
-                        }
-                    }.disabled(store.entityTypes.types.isEmpty)
-                }
-            }
-            Button("Vazgeç") {
-                model.dismissUnknown(mention)
-                submit()
-            }
-            .buttonStyle(InkTextButtonStyle())
-        }
-    }
-
-    private func beginCreation(_ kind: VaultEntityKind) {
-        let offset = insertionOffset
-        Task { @MainActor in
-            await model.beginCreation(kind, at: offset)
-            isFocused = true
-            if !model.needsQualifier && model.errorText == nil { submit() }
-        }
-    }
-
-    private func create(_ kind: VaultEntityKind) {
-        Task { @MainActor in
-            await model.create(kind)
-            isFocused = true
-            if !model.needsQualifier && model.errorText == nil { submit() }
         }
     }
 

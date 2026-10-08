@@ -224,6 +224,39 @@ struct QuickEntryMentionTests {
         context.model.text = "Bugün Mert Aks ve Mert Aksu"
         #expect(context.model.choices.isEmpty)
     }
+
+    @Test func dismissUnknownResetsManualTaskDateOverride() async throws {
+        let context = try MentionTestContext()
+        defer { context.clean() }
+        await context.start()
+        context.model.mode = .task
+        context.model.text = "@Yarın toplantı"
+        context.model.overridesDate = true
+        context.model.manualDueDate = LocalDay.today()
+        #expect(await !context.model.submit(time: nil))
+        // The strip edits through the composer, as the "Vazgeç" button does.
+        context.model.composer.dismissUnknown(try #require(context.model.pendingUnknown))
+        #expect(!context.model.overridesDate)
+        #expect(context.model.manualDueDate == nil)
+        #expect(context.model.text == "Yarın toplantı")
+    }
+
+    @Test func suggestionThatChangesTheDateResetsManualTaskDateOverride() async throws {
+        let context = try MentionTestContext()
+        defer { context.clean() }
+        await context.start()
+        context.model.mode = .task
+        context.model.text = "yarın @De"
+        context.model.overridesDate = true
+        context.model.manualDueDate = LocalDay.today()
+        let entity = try #require(context.model.composer.suggestions().first)
+        // The date expression is unchanged by the suggestion: the manual date stays.
+        context.model.composer.selectSuggestion(entity)
+        #expect(context.model.overridesDate)
+        context.model.composer.replace(0..<"yarın".utf8.count, with: "bugün")
+        #expect(!context.model.overridesDate)
+        #expect(context.model.manualDueDate == nil)
+    }
 }
 
 @MainActor

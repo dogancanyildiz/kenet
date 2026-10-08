@@ -18,7 +18,8 @@ struct TasksViewTabs: View {
                 InkTabItem(
                     "Zaman çizelgesi", value: TasksViewState.Mode.timeline,
                     identifier: "tasks.tab.timeline"),
-            ], identifier: "tasks.tabs")
+            ], identifier: "tasks.tabs",
+            accessibilityLabelPrefix: String(localized: "Görünüm"))
     }
 }
 

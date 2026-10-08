@@ -33,41 +33,7 @@ struct TimelineTaskRow: View {
             .font(.ink.content)
             .foregroundStyle(
                 presentation.usesSecondaryText ? Color.ink.secondaryText : Color.ink.text)
-            HStack(spacing: 6) {
-                if let start = row.start {
-                    Text(LocalDay.instant(for: start), format: .dateTime.day().month().year())
-                        .font(.ink.time)
-                        .foregroundStyle(.ink.secondaryText)
-                        .monospacedDigit()
-                }
-                if row.start != nil && row.due != nil {
-                    Image(systemName: "arrow.right")
-                        .font(.ink.meta)
-                        .foregroundStyle(.ink.secondaryText)
-                }
-                if let due = row.due {
-                    TaskDueDateLabel(
-                        date: due, presentation: presentation, asOf: model.today,
-                        format: .dateTime.day().month().year(),
-                        font: .ink.time
-                    )
-                    .monospacedDigit()
-                } else if row.start != nil {
-                    Text("Açık uçlu")
-                        .font(.ink.meta)
-                        .foregroundStyle(.ink.secondaryText)
-                }
-                if let priority = row.priority {
-                    TaskPriorityMark(priority: priority)
-                }
-                if row.isClosed {
-                    Image(systemName: "checkmark.circle.fill")
-                        .font(.ink.meta)
-                        .foregroundStyle(.ink.secondaryText)
-                        .accessibilityHidden(true)
-                }
-                if model.busy.contains(row.id) { ProgressView().controlSize(.small) }
-            }
+            TimelineTaskFacts(model: model, row: row, presentation: presentation)
             if let span = model.dates(for: row).span(on: model.today), span.isReversed {
                 HStack(spacing: 4) {
                     Image(systemName: "exclamationmark.triangle")
@@ -85,6 +51,52 @@ struct TimelineTaskRow: View {
         .accessibilityAction(named: Text("Ayrıntıları göster"), select)
         .accessibilityAction(named: Text(verbatim: VoiceOverCopy.changeDateActionName())) {
             edit(.due)
+        }
+    }
+}
+
+/// Tabular start/due line shared by the phone row and the Mac label column: dates, the
+/// priority mark and the closed check. Digits stay tabular (``.ink.time``).
+struct TimelineTaskFacts: View {
+    let model: TimelineModel
+    let row: TaskRow
+    let presentation: TaskStatusPresentation
+
+    var body: some View {
+        HStack(spacing: 6) {
+            if let start = row.start {
+                Text(LocalDay.instant(for: start), format: .dateTime.day().month().year())
+                    .font(.ink.time)
+                    .foregroundStyle(.ink.secondaryText)
+                    .monospacedDigit()
+            }
+            if row.start != nil && row.due != nil {
+                Image(systemName: "arrow.right")
+                    .font(.ink.meta)
+                    .foregroundStyle(.ink.secondaryText)
+            }
+            if let due = row.due {
+                TaskDueDateLabel(
+                    date: due, presentation: presentation, asOf: model.today,
+                    format: .dateTime.day().month().year(),
+                    font: .ink.time
+                )
+                .monospacedDigit()
+            } else if row.start != nil {
+                Text("Açık uçlu")
+                    .font(.ink.meta)
+                    .foregroundStyle(.ink.secondaryText)
+            }
+            if let priority = row.priority {
+                TaskPriorityMark(priority: priority)
+            }
+            if row.isClosed {
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.ink.meta)
+                    .foregroundStyle(.ink.secondaryText)
+                    .accessibilityHidden(true)
+            }
+            if model.busy.contains(row.id) { ProgressView().controlSize(.small) }
         }
     }
 }

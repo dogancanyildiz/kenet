@@ -64,7 +64,7 @@
                         edit(.due)
                     }
                 }
-            }.frame(width: width, height: 52).clipped()
+            }.frame(width: width, height: TimelineDesktopMetrics.rowHeight).clipped()
                 .onDisappear { if !model.busy.contains(row.id) { model.preview(nil, for: row) } }
         }
         private var presentation: TaskStatusPresentation {

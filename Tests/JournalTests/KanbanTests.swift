@@ -1,8 +1,32 @@
 import Foundation
+import SwiftUI
 import Testing
 import VaultFormat
 
 @testable import Journal
+
+struct KanbanBoardLayoutTests {
+    @Test func threeColumnsShareTheBoard() {
+        let width = KanbanBoardLayout.columnWidth(fitting: 1100, columns: 3)
+        #expect(width > 300)
+        let used =
+            width * 3 + KanbanBoardLayout.columnSpacing * 2 + KanbanBoardLayout.boardPadding * 2
+        #expect(abs(used - 1100) < 0.01)
+    }
+
+    @Test func crowdedBoardKeepsTheFloorAndScrolls() {
+        #expect(
+            KanbanBoardLayout.columnWidth(fitting: 1100, columns: 12) == KanbanBoardLayout.minimumColumnWidth)
+        #expect(KanbanBoardLayout.columnWidth(fitting: 0, columns: 4) == KanbanBoardLayout.minimumColumnWidth)
+        #expect(KanbanBoardLayout.columnWidth(fitting: .nan, columns: 2) == KanbanBoardLayout.minimumColumnWidth)
+    }
+
+    @Test func oneColumnFillsTheBoard() {
+        let width = KanbanBoardLayout.columnWidth(fitting: 500, columns: 1)
+        #expect(width == 500 - KanbanBoardLayout.boardPadding * 2)
+        #expect(KanbanBoardLayout.columnWidth(fitting: 500, columns: 0) == width)
+    }
+}
 
 @MainActor struct KanbanTests {
     @Test func statusColumnsHideCancelledAndLimitDoneToThirtyDays() async throws {
@@ -199,6 +223,49 @@ import VaultFormat
         let token = model.beginDrag(row)
         #expect(!model.acceptsDrop(token, into: try #require(model.columns.first)))
         #expect(try Data(contentsOf: context.file) == Data(source.utf8))
+    }
+
+    @Test func groupingMenuHugsItsLabelOnMac() throws {
+        let view = try Self.read("App/Screens/Tasks/Kanban/KanbanView.swift")
+        #expect(view.contains("expands: KanbanMenuLayout.groupingMenuExpands"))
+        #expect(view.contains("InkHeaderMenu("))
+        #expect(!view.contains("KanbanMacOptionsMenu"))
+        #if os(macOS)
+            #expect(KanbanMenuLayout.groupingMenuExpands == false)
+        #else
+            #expect(KanbanMenuLayout.groupingMenuExpands == true)
+        #endif
+    }
+
+    #if os(macOS)
+        /// The hosted board's columns are the shared width, so a hardcoded `.frame(width: 300)` fails.
+        @Test func macColumnsUseTheSharedBoardWidth() async throws {
+            let context = try TaskTestContext()
+            defer { context.clean() }
+            await context.start()
+            try "## Tasks\n- [ ] Plan ^task\n".write(to: context.file, atomically: true, encoding: .utf8)
+            await context.store.refresh()
+            let tasks = TasksModel(store: context.store, today: { context.today })
+            for hostWidth in [CGFloat(900), CGFloat(1400)] {
+                let sink = HostedLayout.Sink()
+                let board = KanbanView(tasks: tasks)
+                    .onPreferenceChange(KanbanColumnWidthPreference.self) { sink.values = $0 }
+                await HostedLayout.settle(board, size: CGSize(width: hostWidth, height: 640))
+                let expected = KanbanBoardLayout.columnWidth(fitting: hostWidth, columns: 3)
+                #expect(sink.values.count == 3, "host \(hostWidth) reported \(sink.values)")
+                #expect(
+                    sink.values.allSatisfy { abs($0 - expected) < 1 },
+                    "host \(hostWidth): \(sink.values) vs \(expected)")
+            }
+        }
+    #endif
+
+    private static func read(_ relative: String) throws -> String {
+        let root = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+        return try String(contentsOf: root.appendingPathComponent(relative), encoding: .utf8)
     }
 
     private func board(_ context: TaskTestContext) -> KanbanModel {

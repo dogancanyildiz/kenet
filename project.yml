@@ -2,6 +2,13 @@
 # Kaynaklar klasör eşlemeli (syncedFolder) eklendiği için yeni dosya için yeniden üretim gerekmez.
 name: Journal
 
+# Test yapılandırması Debug ile aynı derleme türündedir; yalnız test eylemi onu kullanır.
+# Run Debug, arşiv Release kalır. Kimlik aşağıda APP_BUNDLE_IDENTIFIER'dan türetilir.
+configs:
+  Debug: debug
+  Release: release
+  Test: debug
+
 options:
   # Kalıcı kimlik (docs/decisions.md). Hedefler kimliği aşağıdaki APP_BUNDLE_IDENTIFIER ayarından
   # türetir; bu önek yalnız kimliği açıkça verilmemiş bir hedef eklenirse kullanılır.
@@ -26,6 +33,7 @@ packages:
 configFiles:
   Debug: Config/Signing.xcconfig
   Release: Config/Signing.xcconfig
+  Test: Config/Signing.xcconfig
 
 settings:
   base:
@@ -124,12 +132,18 @@ targets:
           # Mac yerelde takımsız (ad hoc) imzalanır. iOS'a uygulanmaz: cihaza kurulum otomatik
           # imzalamayla geliştirme sertifikası ister.
           "CODE_SIGN_IDENTITY[sdk=macosx*]": "-"
+        Test:
+          # Test eylemi gerçek kimliğin alanına (tercih, pencere çerçevesi, çökme penceresi) yazmasın.
+          # Sonek buradan türetilir; APP_BUNDLE_IDENTIFIER tek tanım olarak kalır.
+          PRODUCT_BUNDLE_IDENTIFIER: $(APP_BUNDLE_IDENTIFIER).testhost
+          INFOPLIST_KEY_CFBundleDisplayName: Kenet Test
+          "CODE_SIGN_IDENTITY[sdk=macosx*]": "-"
     postBuildScripts:
       - name: Sürümü yaz
         script: |
           version=$(tr -d '[:space:]' < "$SRCROOT/VERSION")
           /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $version" "$TARGET_BUILD_DIR/$INFOPLIST_PATH"
-          /usr/libexec/PlistBuddy -c "Set :CFBundleName $INFOPLIST_KEY_CFBundleDisplayName" "$TARGET_BUILD_DIR/$INFOPLIST_PATH"
+          /usr/libexec/PlistBuddy -c "Set :CFBundleName '$INFOPLIST_KEY_CFBundleDisplayName'" "$TARGET_BUILD_DIR/$INFOPLIST_PATH"
           # Yapı numarası: HEAD'e kadar olan commit sayısı (iOS ve Mac aynı). Her commit'te artar,
           # elle düzenleme gerekmez. Git yoksa ya da kopya sığsa (sayı eksik çıkar) yedek değer kalır.
           build=$(sh "$SRCROOT/.github/scripts/build-number.sh" "$SRCROOT" || true)
@@ -207,14 +221,22 @@ schemes:
       targets:
         Journal_macOS: all
         JournalMacUITests: [test]
+    # Tur kendi APP_BUNDLE_IDENTIFIER geçersiz kılmasıyla ….screentour olur. Test yapılandırması
+    # buna .testhost eklerdi; tur Debug'da kalır.
     test:
+      config: Debug
       targets:
         - JournalMacUITests
   Journal_macOS:
     build:
       targets:
         Journal_macOS: all
+    run:
+      config: Debug
+    archive:
+      config: Release
     test:
+      config: Test
       commandLineArguments:
         JOURNAL_NO_AUTOSTART: true
       # Forwarded so `SNAPSHOT_TESTING_RECORD=all xcodebuild test …` reaches the host (Mac suites).
@@ -226,7 +248,12 @@ schemes:
     build:
       targets:
         Journal_iOS: all
+    run:
+      config: Debug
+    archive:
+      config: Release
     test:
+      config: Test
       commandLineArguments:
         JOURNAL_NO_AUTOSTART: true
       # Forwarded so `SNAPSHOT_TESTING_RECORD=all xcodebuild test …` reaches the host.

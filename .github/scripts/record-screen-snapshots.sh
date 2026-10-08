@@ -47,6 +47,7 @@ ONLY=$(sh .github/scripts/snapshot-suites.sh | sed 's#^#-only-testing:JournalTes
 APP=$(sed -n 's/^ *APP_BUNDLE_IDENTIFIER: *//p' project.yml)
 [ -n "$APP" ] || { echo "project.yml içinde APP_BUNDLE_IDENTIFIER bulunamadı" >&2; exit 1; }
 xcrun simctl uninstall "$ID" "$APP" >/dev/null 2>&1 || true
+xcrun simctl uninstall "$ID" "$APP.testhost" >/dev/null 2>&1 || true
 xcrun simctl uninstall "$ID" "$APP.uitests.xctrunner" >/dev/null 2>&1 || true
 
 echo "Simülatör: $NAME"

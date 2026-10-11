@@ -9,6 +9,8 @@ import SwiftUI
 struct NotificationSettingsView: View {
     @Environment(NotificationService.self) private var service
     @Environment(\.openURL) private var openURL
+    @Environment(\.timeZone) private var timeZone
+    @Environment(\.clockNow) private var clockNow
     var body: some View {
         @Bindable var service = service
         List {
@@ -50,9 +52,14 @@ struct NotificationSettingsView: View {
                 InkTimePicker(title: "Günlük saati", selection: time(\.journalTime))
                     .disabled(!service.preferences.journalEnabled)
                     .inkListRow()
+                Toggle("Görüşme hatırlatmaları", isOn: $service.preferences.peopleEnabled)
+                    .inkListRow()
+                InkTimePicker(title: "Görüşme saati", selection: time(\.peopleTime))
+                    .disabled(!service.preferences.peopleEnabled)
+                    .inkListRow()
                 Toggle("Bildirimlerde içeriği gizle", isOn: $service.preferences.hideContent)
                     .inkListRow()
-                Text("Afiş, bildirim merkezi ve kilit ekranında görev metni ve hedef adları gösterilmez.")
+                Text("Afiş, bildirim merkezi ve kilit ekranında görev metni, hedef adları ve kişi adları gösterilmez.")
                     .font(.ink.meta)
                     .foregroundStyle(Color.ink.secondaryText)
                     .inkListRow()
@@ -113,8 +120,11 @@ struct NotificationSettingsView: View {
     }
     private func time(_ key: WritableKeyPath<NotificationPreferences, NotificationTime>) -> Binding<Date> {
         Binding(
-            get: { service.preferences.fieldDate(key, on: LocalDay.today(), timeZone: .current) },
-            set: { service.preferences.setTime(key, from: $0, timeZone: .current) })
+            get: {
+                service.preferences.fieldDate(
+                    key, on: LocalDay.today(at: clockNow(), timeZone: timeZone), timeZone: timeZone)
+            },
+            set: { service.preferences.setTime(key, from: $0, timeZone: timeZone) })
     }
     private func openSettings() {
         #if os(iOS)

@@ -1,0 +1,76 @@
+name: iOS derlemesi (test için)
+description: >-
+  Paket önbelleği, XcodeGen, proje üretimi, simülatör seçimi, simülatör açılışını başlatma ve
+  build-for-testing. iOS test işlerinin ortak başlangıcı; çağıran iş önce depoyu çeker
+  (actions/checkout) ve sonra simülatörün hazır olmasını bekler (simctl bootstatus).
+
+outputs:
+  name:
+    description: Seçilen simülatörün adı
+    value: ${{ steps.ios_sim.outputs.name }}
+  udid:
+    description: Seçilen simülatörün kimliği; sonraki adımlar aygıtı bununla hedefler
+    value: ${{ steps.ios_sim.outputs.udid }}
+
+runs:
+  using: composite
+  steps:
+    - name: Paket önbelleği
+      uses: actions/cache@v6
+      with:
+        # Yalnız paket indirmeleri; derleme ürünleri önbelleklenmez (bayat test paketi riski).
+        path: ~/Library/Developer/Xcode/DerivedData/**/SourcePackages
+        key: spm-xcode-ios-${{ hashFiles('Packages/Core/Package.resolved') }}
+        restore-keys: spm-xcode-ios-
+    - name: XcodeGen
+      shell: bash
+      run: brew install xcodegen
+    - name: Projeyi üret
+      shell: bash
+      run: xcodegen generate
+    - name: iOS simülatör seç
+      id: ios_sim
+      shell: bash
+      # Ad ve UDID birlikte seçilir: sonraki adımlar aynı aygıtı kimliğiyle kullanır (aynı adı
+      # taşıyan ikinci bir çalışma zamanı kurulursa hedef belirsizleşmez).
+      run: |
+        CHOSEN=$(xcrun simctl list devices available -j | python3 -c '
+        import json, re, sys
+        data = json.load(sys.stdin)
+        preferred = ["iPhone 17", "iPhone 16", "iPhone 15", "iPhone 14"]
+        devices = []
+        for runtime, entries in data.get("devices", {}).items():
+            if "iOS" not in runtime:
+                continue
+            version = tuple(int(part) for part in re.findall(r"[0-9]+", runtime.rsplit("iOS", 1)[-1]))
+            for device in entries:
+                if device.get("isAvailable") and device.get("name", "").startswith("iPhone"):
+                    devices.append((version, device["name"], device["udid"]))
+        # En yeni çalışma zamanı önce: xcodebuild de ada göre seçerken onu alır.
+        devices.sort(key=lambda entry: entry[0], reverse=True)
+        for name in preferred + [entry[1] for entry in devices]:
+            for version, candidate, udid in devices:
+                if candidate == name:
+                    print(candidate + "|" + udid)
+                    sys.exit(0)
+        print("Uygun iPhone simülatörü yok (simctl list devices available).", file=sys.stderr)
+        sys.exit(1)
+        ')
+        echo "name=${CHOSEN%%|*}" >> "$GITHUB_OUTPUT"
+        echo "udid=${CHOSEN##*|}" >> "$GITHUB_OUTPUT"
+        echo "Seçilen simülatör: ${CHOSEN%%|*} (${CHOSEN##*|})"
+    # Açılış derlemeyle aynı anda başlar: açılış (~2 dk) derleme süresine gizlenir ve simülatör testten
+    # önce yatışır (yeni açılmış simülatörde testler belirgin yavaş koşuyor). Hazır olmasını çağıran
+    # iş ayrı adımda bekler (simctl bootstatus); açılış burada düşerse orada yeniden denenir ve görünür.
+    - name: iOS simülatörünü başlat (derlemeyle paralel)
+      shell: bash
+      run: xcrun simctl boot "${{ steps.ios_sim.outputs.udid }}" || echo "::warning::simctl boot başarısız; açılış adımında yeniden denenecek."
+    - name: iOS derlemesi (test için)
+      shell: bash
+      run: |
+        xcodebuild build-for-testing \
+          -project Journal.xcodeproj \
+          -scheme Journal_iOS \
+          -destination "platform=iOS Simulator,id=${{ steps.ios_sim.outputs.udid }}" \
+          CODE_SIGNING_ALLOWED=NO \
+          -quiet

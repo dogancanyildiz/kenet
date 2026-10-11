@@ -369,6 +369,46 @@
         }
       }
     },
+    "%lld görev değişmiş olduğu için tamamlanmadı" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld task was not completed because it changed"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld tasks were not completed because they changed"
+                }
+              }
+            }
+          }
+        },
+        "tr" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld görev değişmiş olduğu için tamamlanmadı"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld görev değişmiş olduğu için tamamlanmadı"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "%lld görev değişmiş olduğu için taşınmadı" : {
       "localizations" : {
         "en" : {
@@ -402,6 +442,46 @@
                 "stringUnit" : {
                   "state" : "translated",
                   "value" : "%lld görev değişmiş olduğu için taşınmadı"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld görev tamamlanamadı" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld task could not be completed"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld tasks could not be completed"
+                }
+              }
+            }
+          }
+        },
+        "tr" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld görev tamamlanamadı"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld görev tamamlanamadı"
                 }
               }
             }
@@ -985,6 +1065,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Adı değiştir"
+          }
+        }
+      }
+    },
+    "Adım %lld/%lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Step %1$lld/%2$lld"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adım %1$lld/%2$lld"
           }
         }
       }
@@ -2697,6 +2793,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bugün bekleyen hedefler: %@"
+          }
+        }
+      }
+    },
+    "Bugün için açık görev yok." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No open tasks for today."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bugün için açık görev yok."
+          }
+        }
+      }
+    },
+    "Bugün için işaretlenmemiş hedef yok." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No unmarked goals for today."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bugün için işaretlenmemiş hedef yok."
           }
         }
       }
@@ -4509,6 +4637,22 @@
         }
       }
     },
+    "Günü kapat" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Close the day"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Günü kapat"
+          }
+        }
+      }
+    },
     "Gününden bir an" : {
       "localizations" : {
         "en" : {
@@ -5485,6 +5629,22 @@
         }
       }
     },
+    "İleri" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Next"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "İleri"
+          }
+        }
+      }
+    },
     "İlk geçiş" : {
       "localizations" : {
         "en" : {
@@ -5629,6 +5789,22 @@
         }
       }
     },
+    "İşaretlediğin hedef hemen kaydedilir." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A goal you mark is saved right away."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "İşaretlediğin hedef hemen kaydedilir."
+          }
+        }
+      }
+    },
     "Isı haritası" : {
       "localizations" : {
         "en" : {
@@ -5757,6 +5933,22 @@
         }
       }
     },
+    "Kalsın" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keep"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kalsın"
+          }
+        }
+      }
+    },
     "Kanban" : {
       "localizations" : {
         "en" : {
@@ -5801,6 +5993,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Kapat"
+          }
+        }
+      }
+    },
+    "Karar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choice"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Karar"
           }
         }
       }
@@ -8041,6 +8249,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Seçili"
+          }
+        }
+      }
+    },
+    "Seçim yapmadığın görev olduğu gibi kalır." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A task you make no choice for stays as it is."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seçim yapmadığın görev olduğu gibi kalır."
           }
         }
       }

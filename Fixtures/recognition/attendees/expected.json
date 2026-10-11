@@ -1,0 +1,37 @@
+{
+  "certain": [
+    {
+      "spelling": "Deniz Arıkan",
+      "file": "people/Deniz Arıkan.md"
+    },
+    {
+      "spelling": "Selin",
+      "file": "people/Selin Korkmaz.md"
+    },
+    {
+      "spelling": "Baran Tunç",
+      "file": "people/Baran Tunç.md"
+    },
+    {
+      "spelling": "Irmak İnce",
+      "file": "people/Irmak İnce.md"
+    },
+    {
+      "spelling": "Mert",
+      "file": "people/Mert Aksu (iş).md"
+    }
+  ],
+  "ambiguous": [
+    {
+      "spelling": "Mert Aksu",
+      "candidates": [
+        "people/Mert Aksu.md",
+        "people/Mert Aksu (iş).md"
+      ]
+    }
+  ],
+  "unknown": [
+    "Ada Soylu",
+    "ırmak ince"
+  ]
+}

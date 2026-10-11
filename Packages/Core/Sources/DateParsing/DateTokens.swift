@@ -85,6 +85,20 @@ struct DateTokens: Sendable {
         character.isLetter || character.isNumber || character == "_"
     }
 
+    /// A Turkish dative or ablative ending after a weekday or month name belongs to the
+    /// expression; other endings, other words and numeric dates keep their suffix as text.
+    func includingCaseSuffix(_ match: DateMatch) -> DateMatch {
+        guard match.end < tokens.count else { return match }
+        let name = tokens[match.end - 1]
+        let suffix = tokens[match.end]
+        let names = (DateWords.weekdays[.turkish]! + DateWords.months[.turkish]!).joined()
+        let apostrophe = bytes[name.range.upperBound..<suffix.range.lowerBound]
+        guard names.contains(name.key(.turkish)), DateWords.caseSuffixes.contains(suffix.key(.turkish)),
+            apostrophe.elementsEqual([39]) || apostrophe.elementsEqual([0xE2, 0x80, 0x99])
+        else { return match }
+        return DateMatch(end: match.end + 1, date: match.date, confidence: match.confidence)
+    }
+
     func phrase(_ words: [String], at start: Int, language: Language) -> Int? {
         guard start + words.count <= tokens.count else { return nil }
         for index in words.indices {

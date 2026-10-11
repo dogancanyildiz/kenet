@@ -794,4 +794,20 @@ final class IndexStore {
         if holdsProcessing { isProcessing = false }
         await applyPendingSelection()
     }
+
+    // MARK: - Meeting cadence
+
+    /// Cadence scalars keyed by file. Files without one of the three fields are absent.
+    func personCadences() async throws -> [String: PersonCadence] {
+        guard let index else { throw VaultStoreError.staleTarget }
+        let current = generation
+        let fields = try await Task.detached { try index.cadenceFields() }.value
+        guard generation == current else { throw VaultStoreError.staleTarget }
+        var grouped: [String: [PersonCadenceField]] = [:]
+        for field in fields {
+            grouped[field.file, default: []].append(
+                PersonCadenceField(key: field.key, kind: field.kind, value: field.value))
+        }
+        return grouped.mapValues(PersonCadence.parse)
+    }
 }

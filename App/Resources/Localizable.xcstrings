@@ -225,6 +225,22 @@
         }
       }
     },
+    "%@ tarihine kadar ertelendi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Snoozed until %@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ tarihine kadar ertelendi"
+          }
+        }
+      }
+    },
     "%@ ve %@ kaldı" : {
       "localizations" : {
         "en" : {
@@ -845,6 +861,22 @@
         }
       }
     },
+    "1 ay ertele" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Snooze for 1 month"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 ay ertele"
+          }
+        }
+      }
+    },
     "1 dk" : {
       "localizations" : {
         "en" : {
@@ -861,6 +893,22 @@
         }
       }
     },
+    "1 hafta ertele" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Snooze for 1 week"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 hafta ertele"
+          }
+        }
+      }
+    },
     "5 dk" : {
       "localizations" : {
         "en" : {
@@ -873,6 +921,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "5 dk"
+          }
+        }
+      }
+    },
+    "7 gün" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "7 days"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "7 gün"
+          }
+        }
+      }
+    },
+    "14 gün" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "14 days"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "14 gün"
           }
         }
       }
@@ -905,6 +985,54 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "20 bölge sınırı: %lld hedef izlenmiyor."
+          }
+        }
+      }
+    },
+    "30 gün" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "30 days"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "30 gün"
+          }
+        }
+      }
+    },
+    "60 gün" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "60 days"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "60 gün"
+          }
+        }
+      }
+    },
+    "90 gün" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "90 days"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "90 gün"
           }
         }
       }
@@ -3421,6 +3549,38 @@
         }
       }
     },
+    "Duraklat" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pause"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Duraklat"
+          }
+        }
+      }
+    },
+    "Duraklatıldı" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paused"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Duraklatıldı"
+          }
+        }
+      }
+    },
     "Durum" : {
       "localizations" : {
         "en" : {
@@ -4205,6 +4365,22 @@
         }
       }
     },
+    "Görüşme ritmi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Meeting cadence"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Görüşme ritmi"
+          }
+        }
+      }
+    },
     "Görüşülmeyenler eşiği" : {
       "localizations" : {
         "en" : {
@@ -4313,6 +4489,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Gün dosyaları"
+          }
+        }
+      }
+    },
+    "Gün sayısı" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Number of days"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gün sayısı"
           }
         }
       }
@@ -7869,6 +8061,22 @@
         }
       }
     },
+    "Özel" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Custom"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Özel"
+          }
+        }
+      }
+    },
     "Özel tip olarak ekle" : {
       "localizations" : {
         "en" : {
@@ -8089,6 +8297,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Rehberden aktar"
+          }
+        }
+      }
+    },
+    "Ritim: %lld günde bir" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Cadence: every day"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Cadence: every %lld days"
+                }
+              }
+            }
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ritim: %lld günde bir"
           }
         }
       }
@@ -8777,6 +9013,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Şu kadar sonra kilitle"
+          }
+        }
+      }
+    },
+    "Sürdür" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resume"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sürdür"
           }
         }
       }

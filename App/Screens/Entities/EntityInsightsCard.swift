@@ -1,9 +1,15 @@
+import Summaries
 import SwiftUI
 
 struct EntityInsightsCard: View {
     let store: IndexStore
     let entity: EntitySummary
     @Environment(\.clockNow) private var clockNow
+    @Environment(\.locale) private var locale
+    @Environment(\.timeZone) private var timeZone
+    @State private var cadence = PersonCadence.none
+    @State private var cadenceReady = false
+    @State private var cadenceError: String?
 
     var body: some View {
         let insight = EntityInsights.compute(
@@ -62,10 +68,54 @@ struct EntityInsightsCard: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .inkListRow()
             }
+            if entity.kind == "person" { cadenceRows }
             Text("Günlükteki geçişlere dayanır.")
                 .font(.ink.meta)
                 .foregroundStyle(.ink.secondaryText)
                 .frame(maxWidth: .infinity, alignment: .leading)
+                .inkListRow()
+        }
+        .task(id: store.lastUpdated) {
+            let map = (try? await store.personCadences()) ?? [:]
+            cadence = map[entity.id] ?? .none
+            cadenceReady = true
+        }
+        .preference(key: CadenceReadyKey.self, value: cadenceReady)
+    }
+
+    @ViewBuilder private var cadenceRows: some View {
+        let today = LocalDay.today(at: clockNow())
+        let status = CadenceStatusPresentation(
+            cadence: cadence, today: today, locale: locale, timeZone: timeZone)
+        if let rhythm = status.rhythm {
+            Text(verbatim: rhythm)
+                .font(.ink.meta)
+                .foregroundStyle(.ink.text)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .inkListRow()
+        }
+        if let snooze = status.snooze {
+            Text(verbatim: snooze)
+                .font(.ink.meta)
+                .foregroundStyle(.ink.secondaryText)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .inkListRow()
+        }
+        if status.showsResume {
+            HStack(alignment: .firstTextBaseline) {
+                Text(verbatim: status.paused ?? "")
+                    .font(.ink.meta)
+                    .foregroundStyle(.ink.secondaryText)
+                Spacer(minLength: 12)
+                Button("Sürdür") {
+                    Task { cadenceError = await UnseenCadenceCommand.resume(path: entity.id, store: store) }
+                }
+                .buttonStyle(InkTextButtonStyle())
+            }
+            .inkListRow()
+        }
+        if let cadenceError {
+            InfoBand(kind: .error, verbatim: cadenceError)
                 .inkListRow()
         }
     }

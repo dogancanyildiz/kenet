@@ -1,0 +1,26 @@
+[
+  {
+    "file": "books/Fable.md",
+    "key": "bitirme",
+    "kind": "date",
+    "value": "2015-10-13"
+  },
+  {
+    "file": "people/Ada Kaya.md",
+    "key": "doğum günü",
+    "kind": "date",
+    "value": "1990-10-12"
+  },
+  {
+    "file": "people/Yel Naz.md",
+    "key": "doğum günü",
+    "kind": "date",
+    "value": "1990-10-12"
+  },
+  {
+    "file": "people/Zeki Mor.md",
+    "key": "doğum günü",
+    "kind": "date",
+    "value": "1990-10-18"
+  }
+]

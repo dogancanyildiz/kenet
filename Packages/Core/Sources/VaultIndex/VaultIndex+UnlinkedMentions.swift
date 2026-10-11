@@ -23,6 +23,24 @@ public struct UnlinkedMention: Sendable, Equatable {
     public let isAmbiguous: Bool
     /// Whether the initial letter's case differs from every matching name and alias.
     public let isCaseMismatch: Bool
+    /// A digest of the day file's bytes as the query read them.
+    package let fileDigest: UInt64
+    /// Whether another event or task of that file had the same first line, byte for byte.
+    package let hasTwin: Bool
+
+    /// FNV-1a over a file's bytes: enough to tell whether it changed between the query and the write.
+    package static func digest(_ bytes: some Sequence<UInt8>) -> UInt64 {
+        bytes.reduce(0xCBF2_9CE4_8422_2325) { ($0 ^ UInt64($1)) &* 0x0000_0100_0000_01B3 }
+    }
+
+    /// The wikilink the app writes over a spelling: the entity's target, with the spelling as display
+    /// text unless it is the target itself. `nil` for a spelling that cannot stand inside a wikilink.
+    package static func link(to entity: KnownEntity, over spelling: some Collection<UInt8>) -> [UInt8]? {
+        guard !spelling.contains(where: { $0 == 91 || $0 == 93 }) else { return nil }
+        let target = Array(entity.linkTarget.utf8)
+        let display = !spelling.elementsEqual(target) || entity.qualifier != nil
+        return [91, 91] + target + (display ? [124] + spelling : []) + [93, 93]
+    }
 }
 
 extension VaultIndex {
@@ -36,7 +54,9 @@ extension VaultIndex {
     ///
     /// Full-text search narrows the day files; the recognizer then reads their current bytes with its
     /// usual name rules, so code, existing links, addresses and suffixes behave as in every app write.
-    /// Task continuation lines, Journal paragraphs, notes, an event's clock and task fields are not listed.
+    /// Task continuation lines, Journal paragraphs, notes, an event's clock and task fields are not listed,
+    /// and neither is a spelling whose link the writer would refuse: one that cannot stand inside a
+    /// wikilink, or one inside a recurrence rule the app cannot read.
     public func unlinkedMentions(of entity: KnownEntity, vaultRoot: URL) throws -> [UnlinkedMention] {
         let entities = try unlinkedMentionEntities()
         // An entity whose file name cannot be a wikilink target has no mention the writer could link.
@@ -97,11 +117,16 @@ extension VaultIndex {
         }
     }
 
+    /// Reads each day once and recognizes every event and task first line of all of them in one pass.
+    ///
+    /// The recognizer judges a line by its own bytes unless it lies in frontmatter or a fence, and the
+    /// body parser never takes a block from either, so a first line reads the same here as in its file.
     func unlinkedMentions(
         of entity: KnownEntity, entities: [KnownEntity], days: [(path: String, date: String)], vaultRoot: URL
     ) throws -> [UnlinkedMention] {
         let root = vaultRoot.resolvingSymlinksInPath().standardizedFileURL
-        var result: [UnlinkedMention] = []
+        var sources: [UnlinkedMentionSource] = []
+        var firstLines: [UInt8] = []
         for day in days {
             let url = root.appendingPathComponent(day.path).standardizedFileURL
             // An unreadable, vanished or symlinked file has nothing the user can act on.
@@ -111,23 +136,34 @@ extension VaultIndex {
             let document = RawDocument(bytes: data)
             guard !document.isReadOnly else { continue }
             let body = document.bodyLines
-            var scopes: [Int: UnlinkedMentionScope] = [:]
-            for event in body.events { scopes[event.block.line] = UnlinkedMentionScope(event.block) }
-            for task in body.tasks {
-                scopes[task.block.line] = UnlinkedMentionScope(task.block, fields: task.fieldRanges.map(\.byteRange))
+            let scopes = body.events.map { UnlinkedMentionScope($0.block) } + body.tasks.map(UnlinkedMentionScope.init)
+            var repeats: [[UInt8]: Int] = [:]
+            for scope in scopes { repeats[scope.block.firstLineContent, default: 0] += 1 }
+            let digest = UnlinkedMention.digest(data)
+            for scope in scopes {
+                sources.append(
+                    UnlinkedMentionSource(
+                        file: day.path, date: date, scope: scope, digest: digest,
+                        hasTwin: repeats[scope.block.firstLineContent, default: 0] > 1))
+                firstLines += scope.block.firstLineContent + [10]
             }
-            let text = String(decoding: document.serialized(), as: UTF8.self)
-            for mention in EntityRecognizer.recognize(text, entities: entities) {
-                guard mention.candidates.contains(where: { $0.file == entity.file }),
-                    let scope = scopes[mention.line], scope.contains(mention.byteRange)
-                else { continue }
-                result.append(
-                    UnlinkedMention(
-                        file: day.path, date: date, target: scope.block,
-                        lineText: String(decoding: scope.block.firstLineContent, as: UTF8.self),
-                        position: mention.position, spelling: mention.spelling, isExplicit: mention.isExplicit,
-                        isAmbiguous: mention.isAmbiguous, isCaseMismatch: mention.isCaseMismatch))
-            }
+        }
+        var result: [UnlinkedMention] = []
+        for mention in EntityRecognizer.recognize(String(decoding: firstLines, as: UTF8.self), entities: entities) {
+            guard mention.candidates.contains(where: { $0.file == entity.file }), sources.indices.contains(mention.line)
+            else { continue }
+            let source = sources[mention.line]
+            guard source.scope.contains(mention.byteRange),
+                source.scope.keepsFields(linking: mention.byteRange, isExplicit: mention.isExplicit, to: entity)
+            else { continue }
+            result.append(
+                UnlinkedMention(
+                    file: source.file, date: source.date, target: source.scope.block,
+                    lineText: String(decoding: source.scope.block.firstLineContent, as: UTF8.self),
+                    position: MentionPosition(line: source.scope.block.line, byteRange: mention.byteRange),
+                    spelling: mention.spelling, isExplicit: mention.isExplicit,
+                    isAmbiguous: mention.isAmbiguous, isCaseMismatch: mention.isCaseMismatch,
+                    fileDigest: source.digest, hasTwin: source.hasTwin))
         }
         return result.sorted {
             if $0.date != $1.date { return $0.date > $1.date }
@@ -138,15 +174,30 @@ extension VaultIndex {
     }
 }
 
+/// One event or task first line of a day file as the query read it.
+struct UnlinkedMentionSource {
+    let file: String
+    let date: CalendarDate
+    let scope: UnlinkedMentionScope
+    let digest: UInt64
+    let hasTwin: Bool
+}
+
 /// The user's text within an event or task first line: no list marker, clock, checkbox, field or identifier.
 struct UnlinkedMentionScope {
     let block: LineBlock
     let text: Range<Int>
     let fields: [Range<Int>]
+    let task: TaskLine?
 
-    init(_ block: LineBlock, fields: [Range<Int>] = []) {
+    init(_ task: TaskLine) {
+        self.init(task.block, fields: task.fieldRanges.map(\.byteRange), task: task)
+    }
+
+    init(_ block: LineBlock, fields: [Range<Int>] = [], task: TaskLine? = nil) {
         self.block = block
         self.fields = fields
+        self.task = task
         let content = block.firstLineContent
         var end = content.count
         if let id = block.id {
@@ -166,5 +217,21 @@ struct UnlinkedMentionScope {
     func contains(_ range: Range<Int>) -> Bool {
         text.lowerBound <= range.lowerBound && range.upperBound <= text.upperBound
             && !fields.contains(where: { $0.overlaps(range) })
+    }
+
+    /// Whether the entity's link can replace the range and the task still reads the same fields.
+    ///
+    /// A recurrence rule the app cannot read has no field range, yet it runs to the end of the line:
+    /// a link inside it would change the rule's source text, which the writer refuses.
+    func keepsFields(linking range: Range<Int>, isExplicit: Bool, to entity: KnownEntity) -> Bool {
+        let content = block.firstLineContent
+        let start = range.lowerBound - (isExplicit ? 1 : 0)
+        guard start >= 0, let link = UnlinkedMention.link(to: entity, over: content[range]) else { return false }
+        guard let task else { return true }
+        let linked = RawDocument(bytes: content[..<start] + link + content[range.upperBound...])
+        guard let after = linked.bodyLines.tasks.first else { return false }
+        return after.rawStatus == task.rawStatus && after.block.id == block.id && after.dueDate == task.dueDate
+            && after.startDate == task.startDate && after.doneDate == task.doneDate && after.priority == task.priority
+            && after.project == task.project && after.recurrenceSource == task.recurrenceSource
     }
 }

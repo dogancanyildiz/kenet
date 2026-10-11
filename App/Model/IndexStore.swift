@@ -311,6 +311,23 @@ final class IndexStore {
         return result
     }
 
+    /// Anniversary fields are queried on demand and belong to this vault generation.
+    /// A nil window is the entity page: the nearest date, with no day limit.
+    func computeImportantDates(_ today: CalendarDate, within windowDays: Int? = ImportantDates.windowDays) async throws
+        -> [ImportantDate]
+    {
+        guard let index else { throw VaultStoreError.staleTarget }
+        let current = generation
+        let result = try await Task.detached {
+            let fields = try index.anniversaryFields().map {
+                ImportantDateField(file: $0.file, key: $0.key, value: $0.value)
+            }
+            return ImportantDates.select(today: today, within: windowDays, fields: fields)
+        }.value
+        guard generation == current else { throw VaultStoreError.staleTarget }
+        return result
+    }
+
     /// Full history is read on demand for detail screens and dates outside the bounded snapshot.
     func goalHistory(key: String? = nil) async throws -> [String: [GoalLog]] {
         guard let index else { throw VaultStoreError.staleTarget }

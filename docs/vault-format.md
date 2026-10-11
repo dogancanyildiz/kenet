@@ -351,6 +351,7 @@ Serbest notlar...
 - Uygulama yeni varlık oluştururken `name` alanını her zaman yazar. `name` ve `qualifier` değerlerinin başındaki ve sonundaki boşluklar ve satır sonları kırpılır; içteki satır sonları ve kontrol karakterleri reddedilir. Boş takma adlar atılır. Üretilen dosya adı uzantısıyla birlikte en fazla 255 UTF-8 baytı olabilir; boş veya kontrol karakteri içeren adlar reddedilir.
 - `name` alanı yoksa, boşsa ya da yalnız boşluk içeriyorsa görünen ad dosya adıdır.
 - Diğer alanlar `templates/person.md` şablonundan gelir. Varsayılan şablon kasa oluşturulurken kullanıcının dilinde yazılır. Kullanıcı şablonu değiştirebilir ve kişi bazında istediği alanı ekleyebilir. Uygulama tanımadığı alanları korur ve kişi sayfasında gösterir.
+- Tarih türündeki her alan (değer `YYYY-MM-DD` yazımıyla tarih okunuyorsa) yıl dönümüdür. Etiket alanın kendi adıdır; uygulama doğum günü gibi bir anlam çıkarmaz ve anahtar adına göre dallanmaz. Aynı yorum kayıtlı özel tip dosyalarındaki tarih alanları için de geçerlidir. Konum dosyalarındaki tarih alanları yıl dönümü sayılmaz. Kaynak yılı bu yıldan büyükse, ilk yıl dönümü henüz gelmemişse ya da karşılaşılan gün kaynak tarihin kendisiyse (0. yıl) satır yoktur. 29 Şubat artık olmayan yılda 28 Şubat'ta anılır. Bu bir yorum kuralıdır; yeni alan ya da sözdizimi eklemez.
 
 ### Aynı adlı varlıklar
 

@@ -20,10 +20,11 @@
         case placeEditSheetLight, placeEditSheetDark, placeEditSheetAX3
         case renameSheetLight, renameSheetDark, renameSheetAX3
         case unresolvedLight, unresolvedDark, unresolvedAX3
+        case personDatesLight, personDatesDark, personDatesAX3
 
         enum Subject: Sendable {
             case people, peopleUnseenExpanded, places, filtered, customTypes, editSheet, placeEditSheet,
-                renameSheet, unresolved
+                renameSheet, unresolved, personDates
         }
 
         var subject: Subject {
@@ -37,13 +38,14 @@
             case .placeEditSheetLight, .placeEditSheetDark, .placeEditSheetAX3: .placeEditSheet
             case .renameSheetLight, .renameSheetDark, .renameSheetAX3: .renameSheet
             case .unresolvedLight, .unresolvedDark, .unresolvedAX3: .unresolved
+            case .personDatesLight, .personDatesDark, .personDatesAX3: .personDates
             }
         }
 
         var colorScheme: SnapshotColorScheme {
             switch self {
             case .peopleDark, .placesDark, .filteredDark, .customTypesDark, .editSheetDark,
-                .placeEditSheetDark, .renameSheetDark, .unresolvedDark:
+                .placeEditSheetDark, .renameSheetDark, .unresolvedDark, .personDatesDark:
                 .dark
             default: .light
             }
@@ -52,7 +54,7 @@
         var dynamicType: SnapshotDynamicType {
             switch self {
             case .peopleAX3, .customTypesAX3, .editSheetAX3, .placeEditSheetAX3, .renameSheetAX3,
-                .unresolvedAX3:
+                .unresolvedAX3, .personDatesAX3:
                 .accessibility3
             default: .medium
             }
@@ -74,6 +76,9 @@
             case .renameSheet, .unresolved:
                 dynamicType == .accessibility3
                     ? CGSize(width: 390, height: 800) : CGSize(width: 390, height: 480)
+            case .personDates:
+                dynamicType == .accessibility3
+                    ? CGSize(width: 390, height: 1200) : snapshotCanvasSize
             }
         }
     }
@@ -100,6 +105,7 @@
                 #expect(detail.isLoaded)
             }
             let person = try #require(store.content.entities.first { $0.id == detail.path })
+            let datesReady = DatesReadyBox()
             await SnapshotHost.assertView(
                 colorScheme: snapshotCase.colorScheme,
                 dynamicType: snapshotCase.dynamicType,
@@ -107,14 +113,17 @@
                 named: snapshotCase.rawValue,
                 store: store,
                 size: snapshotCase.canvas,
-                testName: "entities"
-            ) {
-                Self.hostedView(snapshotCase.subject, store: store, detail: detail, person: person)
-                    .environment(IntentNavigation())
-                    .environment(\.locale, snapshotLocale)
-                    .environment(\.timeZone, snapshotTimeZone)
-                    .environment(\.openSearch, {})
-            }
+                isReady: { snapshotCase.subject != .personDates || datesReady.isReady },
+                testName: "entities",
+                content: {
+                    Self.hostedView(snapshotCase.subject, store: store, detail: detail, person: person)
+                        .environment(IntentNavigation())
+                        .environment(\.locale, snapshotLocale)
+                        .environment(\.timeZone, snapshotTimeZone)
+                        .environment(\.openSearch, {})
+                        .onPreferenceChange(ImportantDatesReadyKey.self) { datesReady.isReady = $0 }
+                }
+            )
         }
 
         @ViewBuilder private static func hostedView(
@@ -139,6 +148,8 @@
                     model: EntityRenameModel(detail: detail, name: person.name, qualifier: person.qualifier))
             case .unresolved:
                 NavigationStack { UnresolvedEntityView(store: store, target: "Aras Demirkol") }
+            case .personDates:
+                NavigationStack { EntityView(store: store, entity: person) }
             }
         }
 
@@ -167,5 +178,9 @@
             try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
             try Data(json.utf8).write(to: folder.appendingPathComponent("types.json"))
         }
+    }
+
+    @MainActor private final class DatesReadyBox {
+        var isReady = false
     }
 #endif

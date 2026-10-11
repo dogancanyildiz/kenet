@@ -1,0 +1,238 @@
+[
+  {
+    "id": "today-through-day-seven",
+    "vault": "anniversaries",
+    "today": "2026-09-20",
+    "expected": [
+      {
+        "date": "2026-09-20",
+        "daysUntil": 0,
+        "year": 31,
+        "file": "people/Nila.md",
+        "key": "doğum günü"
+      },
+      {
+        "date": "2026-09-20",
+        "daysUntil": 0,
+        "year": 27,
+        "file": "people/Sera.md",
+        "key": "doğum günü"
+      },
+      {
+        "date": "2026-09-21",
+        "daysUntil": 1,
+        "year": 16,
+        "file": "people/Nila.md",
+        "key": "tanışma"
+      },
+      {
+        "date": "2026-09-22",
+        "daysUntil": 2,
+        "year": 11,
+        "file": "books/Fable.md",
+        "key": "bitirme"
+      },
+      {
+        "date": "2026-09-22",
+        "daysUntil": 2,
+        "year": 46,
+        "file": "people/Duru.md",
+        "key": "doğum günü"
+      },
+      {
+        "date": "2026-09-22",
+        "daysUntil": 2,
+        "year": 34,
+        "file": "people/Cenk.md",
+        "key": "yıldönümü"
+      },
+      {
+        "date": "2026-09-27",
+        "daysUntil": 7,
+        "year": 26,
+        "file": "people/Ada.md",
+        "key": "yıldönümü"
+      }
+    ]
+  },
+  {
+    "id": "first-anniversary-included-on-its-day",
+    "vault": "anniversaries",
+    "today": "2026-09-21",
+    "expected": [
+      {
+        "date": "2026-09-21",
+        "daysUntil": 0,
+        "year": 1,
+        "file": "people/Vera.md",
+        "key": "doğum günü"
+      },
+      {
+        "date": "2026-09-21",
+        "daysUntil": 0,
+        "year": 16,
+        "file": "people/Nila.md",
+        "key": "tanışma"
+      },
+      {
+        "date": "2026-09-22",
+        "daysUntil": 1,
+        "year": 11,
+        "file": "books/Fable.md",
+        "key": "bitirme"
+      },
+      {
+        "date": "2026-09-22",
+        "daysUntil": 1,
+        "year": 46,
+        "file": "people/Duru.md",
+        "key": "doğum günü"
+      },
+      {
+        "date": "2026-09-22",
+        "daysUntil": 1,
+        "year": 34,
+        "file": "people/Cenk.md",
+        "key": "yıldönümü"
+      },
+      {
+        "date": "2026-09-27",
+        "daysUntil": 6,
+        "year": 26,
+        "file": "people/Ada.md",
+        "key": "yıldönümü"
+      },
+      {
+        "date": "2026-09-28",
+        "daysUntil": 7,
+        "year": 38,
+        "file": "people/Bora.md",
+        "key": "doğum günü"
+      }
+    ]
+  },
+  {
+    "id": "year-boundary",
+    "vault": "anniversaries",
+    "today": "2026-12-28",
+    "expected": [
+      {
+        "date": "2027-01-02",
+        "daysUntil": 5,
+        "year": 37,
+        "file": "people/Eda.md",
+        "key": "doğum günü"
+      },
+      {
+        "date": "2027-01-04",
+        "daysUntil": 7,
+        "year": 37,
+        "file": "people/Fela.md",
+        "key": "doğum günü"
+      }
+    ]
+  },
+  {
+    "id": "leap-day",
+    "vault": "anniversaries",
+    "today": "2024-02-29",
+    "expected": [
+      {
+        "date": "2024-02-29",
+        "daysUntil": 0,
+        "year": 24,
+        "file": "people/Lina.md",
+        "key": "doğum günü"
+      }
+    ]
+  },
+  {
+    "id": "leap-day-seventh-day",
+    "vault": "anniversaries",
+    "today": "2024-02-22",
+    "expected": [
+      {
+        "date": "2024-02-29",
+        "daysUntil": 7,
+        "year": 24,
+        "file": "people/Lina.md",
+        "key": "doğum günü"
+      }
+    ]
+  },
+  {
+    "id": "leap-day-eighth-day-excluded",
+    "vault": "anniversaries",
+    "today": "2024-02-21",
+    "expected": []
+  },
+  {
+    "id": "common-year-observes-february-28",
+    "vault": "anniversaries",
+    "today": "2026-02-28",
+    "expected": [
+      {
+        "date": "2026-02-28",
+        "daysUntil": 0,
+        "year": 26,
+        "file": "people/Lina.md",
+        "key": "doğum günü"
+      },
+      {
+        "date": "2026-02-28",
+        "daysUntil": 0,
+        "year": 2,
+        "file": "people/Mina.md",
+        "key": "doğum günü"
+      }
+    ]
+  },
+  {
+    "id": "common-year-seventh-day",
+    "vault": "anniversaries",
+    "today": "2026-02-21",
+    "expected": [
+      {
+        "date": "2026-02-28",
+        "daysUntil": 7,
+        "year": 26,
+        "file": "people/Lina.md",
+        "key": "doğum günü"
+      },
+      {
+        "date": "2026-02-28",
+        "daysUntil": 7,
+        "year": 2,
+        "file": "people/Mina.md",
+        "key": "doğum günü"
+      }
+    ]
+  },
+  {
+    "id": "common-year-eighth-day-excluded",
+    "vault": "anniversaries",
+    "today": "2026-02-20",
+    "expected": []
+  },
+  {
+    "id": "first-leap-anniversary-on-february-28",
+    "vault": "anniversaries",
+    "today": "2025-02-28",
+    "expected": [
+      {
+        "date": "2025-02-28",
+        "daysUntil": 0,
+        "year": 25,
+        "file": "people/Lina.md",
+        "key": "doğum günü"
+      },
+      {
+        "date": "2025-02-28",
+        "daysUntil": 0,
+        "year": 1,
+        "file": "people/Mina.md",
+        "key": "doğum günü"
+      }
+    ]
+  }
+]

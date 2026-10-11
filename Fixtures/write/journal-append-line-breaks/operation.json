@@ -1,0 +1,10 @@
+{
+  "sections": {
+    "operation": "append-journal",
+    "lines": [
+      "Bir\nİki\r\n- [ ] Üç",
+      "",
+      "Dört\u2028Beş"
+    ]
+  }
+}

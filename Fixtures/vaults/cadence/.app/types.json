@@ -1,0 +1,13 @@
+{
+  "formatVersion": 1,
+  "types": [
+    {
+      "id": "book",
+      "folder": "books",
+      "name": { "tr": "Kitap", "en": "Book" },
+      "plural": { "tr": "Kitaplar", "en": "Books" },
+      "icon": "book",
+      "fields": [{ "key": "bitirme", "kind": "date" }]
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "frontmatter": {
+    "operation": "set-value",
+    "key": "cadence_paused",
+    "value": {
+      "boolean": true
+    }
+  }
+}

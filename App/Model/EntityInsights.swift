@@ -1,4 +1,7 @@
+import Foundation
+import Summaries
 import VaultFormat
+import VaultStore
 
 /// A journal mention is evidence of a recorded encounter, not proof of a meeting.
 struct EntityInsights {
@@ -37,30 +40,117 @@ struct UnseenPerson: Identifiable {
     let entity: EntitySummary
     let lastDay: CalendarDate?
     let elapsedDays: Int?
+    /// Days past the person's cadence, or past the fallback threshold. Nil when they were never met.
+    let overdueDays: Int?
     var id: String { entity.id }
 }
 
 struct UnseenPeople {
     let overdue: [UnseenPerson]
     let never: [UnseenPerson]
-    static func compute(people: [EntitySummary], content: VaultReadModel, today: CalendarDate, threshold: Int) -> Self {
-        var overdue: [UnseenPerson] = []
-        var never: [UnseenPerson] = []
-        for entity in people where entity.kind == "person" {
+
+    /// `cadences` defaults to empty, which keeps the fallback threshold for every person.
+    static func compute(
+        people: [EntitySummary], content: VaultReadModel, today: CalendarDate, threshold: Int,
+        cadences: [String: PersonCadence] = [:]
+    ) -> Self {
+        // A repeated id must not trap; the first entry wins.
+        let byID = Dictionary(people.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+        let inputs = people.filter { $0.kind == "person" }.map { entity in
             let last = content.entityTimeline[entity.id]?.map(\.date).filter { $0 <= today }.max()
-            let elapsed = last.map { today.ordinal - $0.ordinal }
-            let person = UnseenPerson(entity: entity, lastDay: last, elapsedDays: elapsed)
-            if let elapsed {
-                if elapsed >= PeopleInsightsPreference.normalized(threshold) { overdue.append(person) }
-            } else {
-                never.append(person)
+            return CadencePerson(
+                id: entity.id, name: entity.name, lastDay: last, cadence: cadences[entity.id] ?? .none)
+        }
+        let lastDays = Dictionary(inputs.map { ($0.id, $0.lastDay) }, uniquingKeysWith: { first, _ in first })
+        let listed = MeetingCadence.list(
+            people: inputs, today: today, fallbackThreshold: PeopleInsightsPreference.normalized(threshold))
+        func row(_ listed: CadenceList.Row) -> UnseenPerson? {
+            guard let entity = byID[listed.id] else { return nil }
+            return UnseenPerson(
+                entity: entity, lastDay: lastDays[listed.id] ?? nil, elapsedDays: listed.elapsedDays,
+                overdueDays: listed.overdueDays)
+        }
+        return Self(overdue: listed.overdue.compactMap(row), never: listed.never.compactMap(row))
+    }
+}
+
+/// List actions shared by the context menu and VoiceOver.
+enum UnseenCadenceCommand: CaseIterable, Identifiable {
+    case snoozeWeek
+    case snoozeMonth
+    case pause
+
+    var id: Self { self }
+
+    var titleKey: String {
+        switch self {
+        case .snoozeWeek: "1 hafta ertele"
+        case .snoozeMonth: "1 ay ertele"
+        case .pause: "Duraklat"
+        }
+    }
+
+    /// The inclusive snooze day, or nil for pause.
+    func until(from today: CalendarDate) -> CalendarDate? {
+        switch self {
+        case .snoozeWeek: today.addingDays(7)
+        case .snoozeMonth: today.addingMonths(1)
+        case .pause: nil
+        }
+    }
+
+    /// Writes the one field the command owns; nil on success, otherwise the message to show.
+    /// A failed index update after saved bytes is reported, not retried.
+    @MainActor
+    func apply(path: String, today: CalendarDate, store: IndexStore) async -> String? {
+        do {
+            switch self {
+            case .snoozeWeek, .snoozeMonth:
+                guard let day = until(from: today) else { throw VaultStoreError.staleTarget }
+                try await store.setField(at: path, key: PersonCadence.snoozeKey, value: .date(day))
+            case .pause:
+                try await store.setField(at: path, key: PersonCadence.pauseKey, value: .boolean(true))
             }
+            return nil
+        } catch {
+            return DayEditError.message(for: error)
         }
-        overdue.sort {
-            if $0.elapsedDays != $1.elapsedDays { return $0.elapsedDays! > $1.elapsedDays! }
-            return $0.id < $1.id
+    }
+
+    /// "Sürdür": removes `cadence_paused` and nothing else.
+    @MainActor
+    static func resume(path: String, store: IndexStore) async -> String? {
+        do {
+            try await store.removeField(at: path, key: PersonCadence.pauseKey)
+            return nil
+        } catch {
+            return DayEditError.message(for: error)
         }
-        never.sort { $0.entity.name == $1.entity.name ? $0.id < $1.id : $0.entity.name < $1.entity.name }
-        return Self(overdue: overdue, never: never)
+    }
+}
+
+/// Rhythm, snooze and pause lines for the person insight card.
+struct CadenceStatusPresentation: Equatable {
+    var rhythm: String?
+    var snooze: String?
+    var paused: String?
+    var showsResume: Bool
+
+    init(cadence: PersonCadence, today: CalendarDate, locale: Locale, timeZone: TimeZone) {
+        let resolved = PresentationLocalization.resolvedLocale(locale)
+        let bundle = PresentationLocalization.bundle(resolved)
+        if let days = cadence.days {
+            rhythm = String(localized: "Ritim: \(days) günde bir", bundle: bundle, locale: resolved)
+        }
+        if let until = cadence.snoozedUntil, today <= until {
+            let when = ImportantDatePresentation.shortDate(until, locale: resolved, timeZone: timeZone)
+            snooze = String(localized: "\(when) tarihine kadar ertelendi", bundle: bundle, locale: resolved)
+        }
+        if cadence.isPaused {
+            paused = String(localized: "Duraklatıldı", bundle: bundle, locale: resolved)
+            showsResume = true
+        } else {
+            showsResume = false
+        }
     }
 }

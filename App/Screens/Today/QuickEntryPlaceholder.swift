@@ -10,6 +10,8 @@ struct QuickEntryBar: View {
     let store: IndexStore
     let isEnabled: Bool
     private let focusRequest: UUID?
+    /// Only a day page's own bar takes a calendar draft; a bar handed its model sits elsewhere.
+    private let acceptsCalendarDrafts: Bool
     @State private var model: QuickEntryModel
     @State private var showsTimePicker = false
     @State private var showsDatePicker = false
@@ -24,6 +26,7 @@ struct QuickEntryBar: View {
         self.isEnabled = isEnabled
         self.focusRequest = focusRequest
         self.acceptsPeopleMentions = acceptsPeopleMentions
+        acceptsCalendarDrafts = model == nil
         let initial = model ?? QuickEntryModel(store: store, day: day)
         if model == nil, let prefill = AppLaunchPolicy.uiTestQuickEntryText() { initial.text = prefill }
         _model = State(initialValue: initial)
@@ -90,6 +93,11 @@ struct QuickEntryBar: View {
             }
             QuickEntryTaskControls(model: model, showsPicker: $showsDatePicker)
                 .disabled(!isEnabled || model.isSubmitting || model.isCreating || store.isWriting)
+            QuickEntryAttendeeChips(model: model) {
+                selection = nil
+                isFocused = true
+            }
+            .disabled(!isEnabled || model.isSubmitting || model.isCreating || store.isWriting)
             if !model.awaitingResolution {
                 ForEach(model.projectSuggestions(at: insertionOffset), id: \.self) { project in
                     Button {
@@ -180,7 +188,11 @@ struct QuickEntryBar: View {
         .onChange(of: showsDatePicker) { _, presented in
             if !presented { isFocused = true }
         }
-        .onChange(of: model.isSubmitting || model.isCreating || store.isWriting) { applyMention() }
+        .onChange(of: CalendarDraftInbox.shared.request?.id) { applyCalendarDraft() }
+        .onChange(of: model.isSubmitting || model.isCreating || store.isWriting) {
+            applyMention()
+            applyCalendarDraft()
+        }
         .onChange(of: isEnabled) { _, enabled in
             if enabled { applyMention() }
             if enabled && focusRequest != nil { isFocused = true }
@@ -192,6 +204,15 @@ struct QuickEntryBar: View {
             let entity = navigation?.takeMention(vault: store.vaultURL)
         else { return }
         model.prefillMention(entity)
+        selection = nil
+        isFocused = true
+    }
+
+    private func applyCalendarDraft() {
+        guard acceptsCalendarDrafts, isEnabled, !model.isSubmitting, !model.isCreating, !store.isWriting,
+            let event = CalendarDraftInbox.shared.take(on: model.day ?? model.today())
+        else { return }
+        model.applyCalendarDraft(event)
         selection = nil
         isFocused = true
     }
@@ -246,7 +267,7 @@ struct QuickEntryBar: View {
             Group {
                 if model.includesTime {
                     Text(
-                        model.isHistorical ? model.selectedTime : now,
+                        model.isHistorical ? model.selectedTime : model.calendarDraft?.time ?? now,
                         format: .dateTime.hour().minute()
                     )
                     .font(.ink.time)

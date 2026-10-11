@@ -35,12 +35,13 @@ struct TaskMoveDateTests {
         let monday = CalendarDate("2026-10-05")!
         let yearEnd = CalendarDate("2026-12-31")!
         #expect(monday.weekday == 0)
-        #expect(TaskMove.date(.nextWeek, today: saturday) == monday)
-        #expect(TaskMove.date(.nextWeek, today: sunday) == monday)
+        let week = WeekStartTests.calendar(firstWeekday: 2)
+        #expect(TaskMove.date(.nextWeek, today: saturday, calendar: week) == monday)
+        #expect(TaskMove.date(.nextWeek, today: sunday, calendar: week) == monday)
         // On the first day of the week the move is a full week, never the same day.
-        #expect(TaskMove.date(.nextWeek, today: monday) == CalendarDate("2026-10-12"))
-        #expect(TaskMove.date(.nextWeek, today: yearEnd) == CalendarDate("2027-01-04"))
-        #expect(TaskMove.date(.tomorrow, today: yearEnd) == CalendarDate("2027-01-01"))
+        #expect(TaskMove.date(.nextWeek, today: monday, calendar: week) == CalendarDate("2026-10-12"))
+        #expect(TaskMove.date(.nextWeek, today: yearEnd, calendar: week) == CalendarDate("2027-01-04"))
+        #expect(TaskMove.date(.tomorrow, today: yearEnd, calendar: week) == CalendarDate("2027-01-01"))
     }
 
     @Test func optionsSkipTheDayTheTaskIsAlreadyOnAndClosedTasks() async throws {
@@ -64,7 +65,8 @@ struct TaskMoveDateTests {
         #expect(try destinations("done", in: context).isEmpty)
         #expect(try destinations("upper", in: context).isEmpty)
         #expect(try destinations("dropped", in: context).isEmpty)
-        let dates = TaskMove.options(for: try context.row("past"), on: context.today).map(\.date)
+        let week = WeekStartTests.calendar(firstWeekday: 2)
+        let dates = TaskMove.options(for: try context.row("past"), on: context.today, calendar: week).map(\.date)
         #expect(dates == [context.today, CalendarDate("2026-10-04"), CalendarDate("2026-10-05")])
     }
 
@@ -99,11 +101,94 @@ struct TaskMoveDateTests {
     }
 
     private func destinations(_ text: String, in context: TaskTestContext) throws -> [TaskMoveDestination] {
-        TaskMove.options(for: try context.row(text), on: context.today).map(\.destination)
+        let week = WeekStartTests.calendar(firstWeekday: 2)
+        return TaskMove.options(for: try context.row(text), on: context.today, calendar: week).map(\.destination)
     }
 
     private func numbers(_ text: String?) -> [String] {
         (text ?? "").split(whereSeparator: { !$0.isNumber }).map(String.init)
+    }
+}
+
+/// Quick entry, the App Intent and the task menu read week expressions from the calendar they are
+/// given, never from the process: CI and a developer's machine start their weeks on different days.
+@MainActor
+struct WeekStartTests {
+    nonisolated static func calendar(firstWeekday: Int) -> Calendar {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.firstWeekday = firstWeekday
+        return calendar
+    }
+
+    /// `firstWeekday`, then next week's first day seen from Saturday 3, Sunday 4 and Monday 5 October 2026.
+    nonisolated static let weeks: [(Int, [String])] = [
+        (2, ["2026-10-05", "2026-10-05", "2026-10-12"]),
+        (1, ["2026-10-04", "2026-10-11", "2026-10-11"]),
+        // The parser knows two week starts; a Saturday week is read as a Sunday week.
+        (7, ["2026-10-04", "2026-10-11", "2026-10-11"]),
+    ]
+
+    @Test(arguments: weeks)
+    func menuAndQuickEntryGiveTheSameNextWeekOnEachCalendar(firstWeekday: Int, expected: [String]) throws {
+        let context = try TaskTestContext()
+        defer { context.clean() }
+        let calendar = Self.calendar(firstWeekday: firstWeekday)
+        let first = try #require(CalendarDate("2026-10-03"))
+        for (offset, day) in expected.enumerated() {
+            let today = try #require(first.addingDays(offset))
+            #expect(TaskMove.date(.nextWeek, today: today, calendar: calendar) == CalendarDate(day), "\(today)")
+        }
+        for offset in 0..<14 {
+            let today = try #require(first.addingDays(offset))
+            let menu = try #require(TaskMove.date(.nextWeek, today: today, calendar: calendar))
+            // The first day of the calendar's week, one to seven days ahead.
+            let weekday = firstWeekday == 2 ? 0 : 6
+            #expect(menu.weekday == weekday && menu > today && menu <= today.addingDays(7)!, "\(today)")
+            let typed = { (text: String, languages: [DateParsing.Language]) -> CalendarDate? in
+                let model = QuickEntryModel(store: context.store, today: { today })
+                model.languages = languages
+                model.calendar = calendar
+                model.mode = .task
+                model.text = text
+                return model.dueDate
+            }
+            #expect(typed("call haftaya", [.turkish]) == menu, "\(today)")
+            #expect(typed("call gelecek hafta", [.turkish]) == menu, "\(today)")
+            #expect(typed("call next week", [.english]) == menu, "\(today)")
+            // A weekday of next week is counted from the same first day.
+            #expect(typed("call haftaya salı", [.turkish]) == menu.addingDays(firstWeekday == 2 ? 1 : 2), "\(today)")
+            #expect(typed("her gün call haftaya", [.turkish]) == menu, "\(today)")
+            // The weekend and tomorrow do not depend on where the week starts.
+            #expect(typed("call bu hafta sonu", [.turkish])?.weekday == 5, "\(today)")
+            #expect(
+                TaskMove.date(.tomorrow, today: today, calendar: calendar) == typed("call yarın", [.turkish]),
+                "\(today)")
+        }
+    }
+
+    @Test(arguments: weeks)
+    func intentWritesTheDayTheMenuGives(firstWeekday: Int, expected: [String]) async throws {
+        let calendar = Self.calendar(firstWeekday: firstWeekday)
+        for (offset, day) in expected.enumerated() {
+            let context = try TaskTestContext()
+            defer { context.clean() }
+            await context.start()
+            let today = try #require(CalendarDate("2026-10-03")?.addingDays(offset))
+            let instant = LocalDay.instant(for: today)
+            let actions = IntentActions(store: context.store, now: { instant }, permitsStart: { true })
+            actions.calendar = calendar
+            _ = try await actions.addTask(text: "haftaya plan")
+            _ = try await actions.addTask(text: "every day review next week")
+            let file = context.root.appendingPathComponent("journal/\(today).md")
+            let tasks = RawDocument(bytes: try Data(contentsOf: file)).bodyLines.tasks
+            #expect(tasks.map(\.text) == ["plan", "review"])
+            #expect(tasks.map(\.dueDate) == [CalendarDate(day), CalendarDate(day)], "\(today)")
+            #expect(TaskMove.date(.nextWeek, today: today, calendar: calendar) == CalendarDate(day))
+            // The menu of the written task reads the same calendar: the day it is already on is not offered.
+            let row = try #require(context.store.content.tasks.first { $0.sourceText == "plan" })
+            let offered = TaskMove.options(for: row, on: today, calendar: calendar).map(\.date)
+            #expect(offered == [today, today.addingDays(1)].filter { $0 != row.due }, "\(today)")
+        }
     }
 }
 

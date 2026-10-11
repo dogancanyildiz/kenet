@@ -38,9 +38,22 @@ struct DayCalendarView: View {
                         endLabel: endLabel(for: event)
                     )
                     .accessibilityElement(children: .combine)
+                    .contextMenu {
+                        Button {
+                            draft(event)
+                        } label: {
+                            Label("Olay taslağı", systemImage: "square.and.pencil")
+                        }
+                    }
+                    .accessibilityAction(named: Text("Olay taslağı")) { draft(event) }
                 }
             }
         }
+    }
+
+    /// Rows exist only with read access; the day's quick entry bar picks the event up.
+    private func draft(_ event: CalendarEvent) {
+        CalendarDraftInbox.shared.post(event, on: date)
     }
 
     private func startLabel(for event: CalendarEvent) -> String? {

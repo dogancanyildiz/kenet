@@ -1,3 +1,4 @@
+import EntityRecognition
 import Foundation
 import Testing
 import VaultFormat
@@ -160,6 +161,21 @@ import VaultFormat
         #expect(service.errorText != nil)
         #expect(!service.isRequesting)
         #expect(service.authorization == .notDetermined)
+    }
+
+    @Test func attendeesReachTheDayAndLeaveWithReadAccess() async {
+        let source = FakeCalendarSource()
+        var meeting = event("meeting", hour: 10)
+        meeting.attendees = [Attendee(name: "Deniz Arıkan"), Attendee(name: "Ece Yalın", isCurrentUser: true)]
+        source.values = [meeting, event("solo", hour: 12)]
+        let service = CalendarService(source: source)
+        await service.load(day)
+        #expect(service.events(on: day).map(\.attendees) == [meeting.attendees, []])
+        // No row is left to draft from once reading is no longer allowed.
+        source.authorization = .denied
+        await service.refresh()
+        #expect(service.events(on: day).isEmpty)
+        #expect(!service.showsSection(on: day))
     }
 
     private func event(_ id: String, hour: Int, title: String = "Event", allDay: Bool = false) -> CalendarEvent {

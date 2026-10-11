@@ -1,0 +1,2186 @@
+{
+  "vault": "unlinked-mentions-hostile",
+  "queries": [
+    {
+      "entity": "people/Ada Nur Su.md",
+      "mentions": [
+        {
+          "file": "journal/2026-03-05.md",
+          "isAmbiguous": false,
+          "date": "2026-03-05",
+          "line": 6,
+          "byteRange": [
+            2,
+            15
+          ],
+          "spelling": "Ada Nur　Su",
+          "isExplicit": false,
+          "isCaseMismatch": false
+        }
+      ]
+    },
+    {
+      "mentions": [
+        {
+          "date": "2026-03-05",
+          "isExplicit": false,
+          "file": "journal/2026-03-05.md",
+          "byteRange": [
+            14,
+            19
+          ],
+          "spelling": "Deniz",
+          "isAmbiguous": true,
+          "line": 10,
+          "isCaseMismatch": false
+        }
+      ],
+      "entity": "people/Deniz (iş).md"
+    },
+    {
+      "mentions": [
+        {
+          "date": "2026-03-05",
+          "isCaseMismatch": false,
+          "file": "journal/2026-03-05.md",
+          "line": 12,
+          "spelling": "Ece Yalın",
+          "byteRange": [
+            9,
+            19
+          ],
+          "isExplicit": true,
+          "isAmbiguous": false
+        },
+        {
+          "isAmbiguous": false,
+          "isCaseMismatch": false,
+          "date": "2026-03-01",
+          "line": 2,
+          "file": "journal/2026-03-01.md",
+          "byteRange": [
+            2,
+            12
+          ],
+          "isExplicit": false,
+          "spelling": "Ece Yalın"
+        },
+        {
+          "date": "2026-03-01",
+          "isAmbiguous": false,
+          "isCaseMismatch": false,
+          "file": "journal/2026-03-01.md",
+          "line": 2,
+          "byteRange": [
+            27,
+            37
+          ],
+          "isExplicit": false,
+          "spelling": "Ece Yalın"
+        },
+        {
+          "isAmbiguous": false,
+          "isCaseMismatch": false,
+          "file": "journal/2026-03-01.md",
+          "date": "2026-03-01",
+          "line": 3,
+          "spelling": "Ece  Yalın",
+          "byteRange": [
+            2,
+            13
+          ],
+          "isExplicit": false
+        },
+        {
+          "byteRange": [
+            18,
+            28
+          ],
+          "spelling": "Ece\tYalın",
+          "isCaseMismatch": false,
+          "isExplicit": false,
+          "file": "journal/2026-03-01.md",
+          "date": "2026-03-01",
+          "line": 3,
+          "isAmbiguous": false
+        }
+      ],
+      "entity": "people/Ece Yalın.md"
+    },
+    {
+      "entity": "people/Ece.md",
+      "mentions": [
+        {
+          "spelling": "Ece",
+          "isCaseMismatch": false,
+          "isAmbiguous": false,
+          "isExplicit": false,
+          "line": 3,
+          "file": "journal/2026-03-06.md",
+          "byteRange": [
+            2,
+            5
+          ],
+          "date": "2026-03-06"
+        },
+        {
+          "isExplicit": false,
+          "date": "2026-03-06",
+          "spelling": "Ece",
+          "file": "journal/2026-03-06.md",
+          "line": 7,
+          "isAmbiguous": false,
+          "byteRange": [
+            7,
+            10
+          ],
+          "isCaseMismatch": false
+        },
+        {
+          "byteRange": [
+            6,
+            9
+          ],
+          "date": "2026-03-03",
+          "line": 48,
+          "file": "journal/2026-03-03.md",
+          "spelling": "Ece",
+          "isExplicit": false,
+          "isCaseMismatch": false,
+          "isAmbiguous": false
+        },
+        {
+          "isCaseMismatch": false,
+          "line": 9,
+          "spelling": "Ece",
+          "file": "journal/2026-03-02.md",
+          "isExplicit": false,
+          "isAmbiguous": false,
+          "date": "2026-03-02",
+          "byteRange": [
+            11,
+            14
+          ]
+        },
+        {
+          "isAmbiguous": false,
+          "date": "2026-03-01",
+          "line": 2,
+          "byteRange": [
+            16,
+            19
+          ],
+          "spelling": "Ece",
+          "isCaseMismatch": false,
+          "file": "journal/2026-03-01.md",
+          "isExplicit": false
+        },
+        {
+          "spelling": "Ece",
+          "isExplicit": false,
+          "date": "2026-03-01",
+          "line": 2,
+          "isCaseMismatch": false,
+          "isAmbiguous": false,
+          "byteRange": [
+            42,
+            45
+          ],
+          "file": "journal/2026-03-01.md"
+        },
+        {
+          "file": "journal/2026-03-01.md",
+          "line": 5,
+          "isExplicit": false,
+          "spelling": "Ece",
+          "date": "2026-03-01",
+          "byteRange": [
+            45,
+            48
+          ],
+          "isCaseMismatch": false,
+          "isAmbiguous": false
+        },
+        {
+          "isExplicit": false,
+          "line": 5,
+          "isAmbiguous": false,
+          "date": "2026-03-01",
+          "byteRange": [
+            54,
+            57
+          ],
+          "file": "journal/2026-03-01.md",
+          "isCaseMismatch": false,
+          "spelling": "Ece"
+        },
+        {
+          "isExplicit": false,
+          "line": 5,
+          "file": "journal/2026-03-01.md",
+          "spelling": "Ece",
+          "isCaseMismatch": false,
+          "byteRange": [
+            63,
+            66
+          ],
+          "date": "2026-03-01",
+          "isAmbiguous": false
+        },
+        {
+          "byteRange": [
+            74,
+            77
+          ],
+          "isExplicit": false,
+          "date": "2026-03-01",
+          "isAmbiguous": false,
+          "line": 5,
+          "file": "journal/2026-03-01.md",
+          "spelling": "Ece",
+          "isCaseMismatch": false
+        }
+      ]
+    },
+    {
+      "mentions": [
+        {
+          "isCaseMismatch": false,
+          "date": "2026-03-07",
+          "line": 6,
+          "byteRange": [
+            2,
+            6
+          ],
+          "spelling": "Elif",
+          "isExplicit": false,
+          "file": "journal/2026-03-07.md",
+          "isAmbiguous": false
+        },
+        {
+          "byteRange": [
+            2,
+            6
+          ],
+          "isAmbiguous": false,
+          "spelling": "Elif",
+          "file": "journal/2026-03-07.md",
+          "line": 10,
+          "isCaseMismatch": false,
+          "isExplicit": false,
+          "date": "2026-03-07"
+        },
+        {
+          "line": 14,
+          "file": "journal/2026-03-07.md",
+          "isCaseMismatch": false,
+          "isExplicit": false,
+          "byteRange": [
+            2,
+            6
+          ],
+          "date": "2026-03-07",
+          "isAmbiguous": false,
+          "spelling": "Elif"
+        },
+        {
+          "byteRange": [
+            2,
+            6
+          ],
+          "isCaseMismatch": false,
+          "date": "2026-03-07",
+          "spelling": "Elif",
+          "isExplicit": false,
+          "isAmbiguous": false,
+          "line": 18,
+          "file": "journal/2026-03-07.md"
+        },
+        {
+          "isAmbiguous": false,
+          "byteRange": [
+            6,
+            10
+          ],
+          "spelling": "Elif",
+          "line": 21,
+          "isExplicit": false,
+          "file": "journal/2026-03-07.md",
+          "date": "2026-03-07",
+          "isCaseMismatch": false
+        },
+        {
+          "spelling": "Elif",
+          "isCaseMismatch": false,
+          "isExplicit": false,
+          "line": 1,
+          "isAmbiguous": false,
+          "date": "2026-03-06",
+          "byteRange": [
+            2,
+            6
+          ],
+          "file": "journal/2026-03-06.md"
+        },
+        {
+          "byteRange": [
+            2,
+            6
+          ],
+          "isExplicit": false,
+          "spelling": "Elif",
+          "line": 2,
+          "isCaseMismatch": false,
+          "isAmbiguous": false,
+          "file": "journal/2026-03-06.md",
+          "date": "2026-03-06"
+        },
+        {
+          "date": "2026-03-06",
+          "spelling": "Elif",
+          "isExplicit": false,
+          "line": 6,
+          "file": "journal/2026-03-06.md",
+          "byteRange": [
+            6,
+            10
+          ],
+          "isCaseMismatch": false,
+          "isAmbiguous": false
+        },
+        {
+          "file": "journal/2026-03-05.md",
+          "isExplicit": false,
+          "spelling": "Elif",
+          "isAmbiguous": false,
+          "isCaseMismatch": false,
+          "date": "2026-03-05",
+          "line": 1,
+          "byteRange": [
+            58,
+            62
+          ]
+        },
+        {
+          "isCaseMismatch": false,
+          "file": "journal/2026-03-05.md",
+          "date": "2026-03-05",
+          "line": 1,
+          "isAmbiguous": false,
+          "byteRange": [
+            71,
+            75
+          ],
+          "spelling": "Elif",
+          "isExplicit": false
+        },
+        {
+          "file": "journal/2026-03-05.md",
+          "isExplicit": false,
+          "line": 3,
+          "spelling": "Elif",
+          "date": "2026-03-05",
+          "byteRange": [
+            17,
+            21
+          ],
+          "isCaseMismatch": false,
+          "isAmbiguous": false
+        },
+        {
+          "isAmbiguous": false,
+          "line": 5,
+          "isExplicit": false,
+          "byteRange": [
+            2,
+            6
+          ],
+          "spelling": "Elif",
+          "isCaseMismatch": false,
+          "file": "journal/2026-03-05.md",
+          "date": "2026-03-05"
+        },
+        {
+          "byteRange": [
+            9,
+            13
+          ],
+          "spelling": "Elif",
+          "line": 5,
+          "isExplicit": false,
+          "isAmbiguous": false,
+          "isCaseMismatch": false,
+          "date": "2026-03-05",
+          "file": "journal/2026-03-05.md"
+        },
+        {
+          "spelling": "Elif",
+          "byteRange": [
+            15,
+            19
+          ],
+          "file": "journal/2026-03-05.md",
+          "isAmbiguous": false,
+          "isCaseMismatch": false,
+          "line": 5,
+          "date": "2026-03-05",
+          "isExplicit": false
+        },
+        {
+          "file": "journal/2026-03-05.md",
+          "line": 5,
+          "byteRange": [
+            20,
+            24
+          ],
+          "spelling": "Elif",
+          "isCaseMismatch": false,
+          "isAmbiguous": false,
+          "isExplicit": false,
+          "date": "2026-03-05"
+        },
+        {
+          "isCaseMismatch": false,
+          "byteRange": [
+            25,
+            29
+          ],
+          "isAmbiguous": false,
+          "spelling": "Elif",
+          "date": "2026-03-05",
+          "isExplicit": false,
+          "file": "journal/2026-03-05.md",
+          "line": 5
+        },
+        {
+          "byteRange": [
+            3,
+            7
+          ],
+          "line": 12,
+          "spelling": "Elif",
+          "isExplicit": true,
+          "isAmbiguous": false,
+          "date": "2026-03-05",
+          "isCaseMismatch": false,
+          "file": "journal/2026-03-05.md"
+        },
+        {
+          "spelling": "Elif",
+          "isCaseMismatch": false,
+          "date": "2026-03-05",
+          "isExplicit": true,
+          "byteRange": [
+            38,
+            42
+          ],
+          "file": "journal/2026-03-05.md",
+          "isAmbiguous": false,
+          "line": 12
+        },
+        {
+          "isExplicit": false,
+          "file": "journal/2026-03-05.md",
+          "byteRange": [
+            46,
+            50
+          ],
+          "spelling": "Elif",
+          "line": 12,
+          "isCaseMismatch": false,
+          "date": "2026-03-05",
+          "isAmbiguous": false
+        },
+        {
+          "byteRange": [
+            5,
+            9
+          ],
+          "isExplicit": false,
+          "file": "journal/2026-03-04.md",
+          "line": 3,
+          "isAmbiguous": false,
+          "spelling": "Elif",
+          "isCaseMismatch": false,
+          "date": "2026-03-04"
+        },
+        {
+          "line": 4,
+          "file": "journal/2026-03-04.md",
+          "isCaseMismatch": false,
+          "isAmbiguous": false,
+          "date": "2026-03-04",
+          "isExplicit": false,
+          "byteRange": [
+            8,
+            12
+          ],
+          "spelling": "Elif"
+        },
+        {
+          "file": "journal/2026-03-04.md",
+          "isExplicit": false,
+          "isCaseMismatch": false,
+          "byteRange": [
+            14,
+            18
+          ],
+          "isAmbiguous": false,
+          "line": 5,
+          "spelling": "Elif",
+          "date": "2026-03-04"
+        },
+        {
+          "isCaseMismatch": false,
+          "line": 6,
+          "file": "journal/2026-03-04.md",
+          "spelling": "Elif",
+          "byteRange": [
+            7,
+            11
+          ],
+          "date": "2026-03-04",
+          "isExplicit": false,
+          "isAmbiguous": false
+        },
+        {
+          "isExplicit": false,
+          "isAmbiguous": false,
+          "spelling": "Elif",
+          "line": 7,
+          "date": "2026-03-04",
+          "isCaseMismatch": false,
+          "byteRange": [
+            13,
+            17
+          ],
+          "file": "journal/2026-03-04.md"
+        },
+        {
+          "byteRange": [
+            2,
+            6
+          ],
+          "file": "journal/2026-03-04.md",
+          "isAmbiguous": false,
+          "date": "2026-03-04",
+          "line": 11,
+          "spelling": "Elif",
+          "isCaseMismatch": false,
+          "isExplicit": false
+        },
+        {
+          "date": "2026-03-04",
+          "spelling": "Elif",
+          "isAmbiguous": false,
+          "isCaseMismatch": false,
+          "line": 14,
+          "file": "journal/2026-03-04.md",
+          "byteRange": [
+            2,
+            6
+          ],
+          "isExplicit": false
+        },
+        {
+          "byteRange": [
+            2,
+            6
+          ],
+          "isCaseMismatch": false,
+          "isExplicit": false,
+          "line": 15,
+          "file": "journal/2026-03-04.md",
+          "isAmbiguous": false,
+          "date": "2026-03-04",
+          "spelling": "Elif"
+        },
+        {
+          "isCaseMismatch": false,
+          "byteRange": [
+            2,
+            6
+          ],
+          "isAmbiguous": false,
+          "file": "journal/2026-03-04.md",
+          "line": 17,
+          "isExplicit": false,
+          "spelling": "Elif",
+          "date": "2026-03-04"
+        },
+        {
+          "file": "journal/2026-03-04.md",
+          "isCaseMismatch": false,
+          "isAmbiguous": false,
+          "byteRange": [
+            2,
+            6
+          ],
+          "isExplicit": false,
+          "spelling": "Elif",
+          "date": "2026-03-04",
+          "line": 18
+        },
+        {
+          "spelling": "Elif",
+          "isAmbiguous": false,
+          "line": 8,
+          "isExplicit": false,
+          "isCaseMismatch": false,
+          "date": "2026-03-03",
+          "file": "journal/2026-03-03.md",
+          "byteRange": [
+            4,
+            8
+          ]
+        },
+        {
+          "file": "journal/2026-03-03.md",
+          "date": "2026-03-03",
+          "line": 12,
+          "byteRange": [
+            2,
+            6
+          ],
+          "isExplicit": false,
+          "isCaseMismatch": false,
+          "spelling": "Elif",
+          "isAmbiguous": false
+        },
+        {
+          "isExplicit": false,
+          "date": "2026-03-03",
+          "file": "journal/2026-03-03.md",
+          "line": 13,
+          "spelling": "Elif",
+          "byteRange": [
+            2,
+            6
+          ],
+          "isCaseMismatch": false,
+          "isAmbiguous": false
+        },
+        {
+          "isAmbiguous": false,
+          "isCaseMismatch": false,
+          "isExplicit": false,
+          "byteRange": [
+            3,
+            7
+          ],
+          "line": 16,
+          "date": "2026-03-03",
+          "spelling": "Elif",
+          "file": "journal/2026-03-03.md"
+        },
+        {
+          "isAmbiguous": false,
+          "date": "2026-03-03",
+          "byteRange": [
+            3,
+            7
+          ],
+          "spelling": "Elif",
+          "isExplicit": false,
+          "isCaseMismatch": false,
+          "file": "journal/2026-03-03.md",
+          "line": 17
+        },
+        {
+          "date": "2026-03-03",
+          "isCaseMismatch": false,
+          "spelling": "Elif",
+          "isAmbiguous": false,
+          "line": 20,
+          "byteRange": [
+            2,
+            6
+          ],
+          "file": "journal/2026-03-03.md",
+          "isExplicit": false
+        },
+        {
+          "line": 23,
+          "isCaseMismatch": false,
+          "date": "2026-03-03",
+          "file": "journal/2026-03-03.md",
+          "spelling": "Elif",
+          "isAmbiguous": false,
+          "byteRange": [
+            6,
+            10
+          ],
+          "isExplicit": false
+        },
+        {
+          "date": "2026-03-03",
+          "line": 25,
+          "isAmbiguous": false,
+          "file": "journal/2026-03-03.md",
+          "byteRange": [
+            11,
+            15
+          ],
+          "isCaseMismatch": false,
+          "spelling": "Elif",
+          "isExplicit": false
+        },
+        {
+          "isExplicit": false,
+          "isCaseMismatch": false,
+          "date": "2026-03-03",
+          "spelling": "Elif",
+          "line": 26,
+          "byteRange": [
+            6,
+            10
+          ],
+          "isAmbiguous": false,
+          "file": "journal/2026-03-03.md"
+        },
+        {
+          "date": "2026-03-03",
+          "file": "journal/2026-03-03.md",
+          "isAmbiguous": false,
+          "isExplicit": false,
+          "byteRange": [
+            26,
+            30
+          ],
+          "isCaseMismatch": false,
+          "line": 27,
+          "spelling": "Elif"
+        },
+        {
+          "line": 29,
+          "date": "2026-03-03",
+          "isExplicit": false,
+          "isCaseMismatch": false,
+          "byteRange": [
+            6,
+            10
+          ],
+          "file": "journal/2026-03-03.md",
+          "spelling": "Elif",
+          "isAmbiguous": false
+        },
+        {
+          "isCaseMismatch": false,
+          "file": "journal/2026-03-03.md",
+          "line": 30,
+          "date": "2026-03-03",
+          "byteRange": [
+            6,
+            10
+          ],
+          "spelling": "Elif",
+          "isAmbiguous": false,
+          "isExplicit": false
+        },
+        {
+          "byteRange": [
+            6,
+            10
+          ],
+          "spelling": "Elif",
+          "isExplicit": false,
+          "isAmbiguous": false,
+          "date": "2026-03-03",
+          "isCaseMismatch": false,
+          "line": 31,
+          "file": "journal/2026-03-03.md"
+        },
+        {
+          "byteRange": [
+            6,
+            10
+          ],
+          "spelling": "Elif",
+          "isCaseMismatch": false,
+          "isExplicit": false,
+          "line": 34,
+          "isAmbiguous": false,
+          "date": "2026-03-03",
+          "file": "journal/2026-03-03.md"
+        },
+        {
+          "file": "journal/2026-03-03.md",
+          "date": "2026-03-03",
+          "isCaseMismatch": false,
+          "isAmbiguous": false,
+          "line": 37,
+          "spelling": "Elif",
+          "isExplicit": false,
+          "byteRange": [
+            8,
+            12
+          ]
+        },
+        {
+          "spelling": "Elif",
+          "isCaseMismatch": false,
+          "line": 39,
+          "isAmbiguous": false,
+          "byteRange": [
+            8,
+            12
+          ],
+          "file": "journal/2026-03-03.md",
+          "isExplicit": false,
+          "date": "2026-03-03"
+        },
+        {
+          "date": "2026-03-03",
+          "isCaseMismatch": false,
+          "line": 40,
+          "spelling": "Elif",
+          "isExplicit": false,
+          "byteRange": [
+            7,
+            11
+          ],
+          "isAmbiguous": false,
+          "file": "journal/2026-03-03.md"
+        },
+        {
+          "isCaseMismatch": false,
+          "file": "journal/2026-03-03.md",
+          "date": "2026-03-03",
+          "isExplicit": false,
+          "spelling": "Elif",
+          "byteRange": [
+            6,
+            10
+          ],
+          "isAmbiguous": false,
+          "line": 46
+        },
+        {
+          "spelling": "Elif",
+          "byteRange": [
+            6,
+            10
+          ],
+          "isCaseMismatch": false,
+          "file": "journal/2026-03-03.md",
+          "line": 47,
+          "isExplicit": false,
+          "isAmbiguous": false,
+          "date": "2026-03-03"
+        },
+        {
+          "isExplicit": false,
+          "file": "journal/2026-03-02.md",
+          "isCaseMismatch": false,
+          "date": "2026-03-02",
+          "spelling": "Elif",
+          "line": 1,
+          "isAmbiguous": false,
+          "byteRange": [
+            25,
+            29
+          ]
+        },
+        {
+          "date": "2026-03-02",
+          "spelling": "Elif",
+          "isExplicit": false,
+          "isCaseMismatch": false,
+          "line": 1,
+          "file": "journal/2026-03-02.md",
+          "byteRange": [
+            31,
+            35
+          ],
+          "isAmbiguous": false
+        },
+        {
+          "file": "journal/2026-03-02.md",
+          "byteRange": [
+            11,
+            15
+          ],
+          "isAmbiguous": false,
+          "isExplicit": false,
+          "line": 2,
+          "spelling": "Elif",
+          "isCaseMismatch": false,
+          "date": "2026-03-02"
+        },
+        {
+          "isCaseMismatch": false,
+          "spelling": "Elif",
+          "date": "2026-03-02",
+          "file": "journal/2026-03-02.md",
+          "byteRange": [
+            51,
+            55
+          ],
+          "isExplicit": false,
+          "isAmbiguous": false,
+          "line": 2
+        },
+        {
+          "file": "journal/2026-03-02.md",
+          "isExplicit": false,
+          "isAmbiguous": false,
+          "line": 3,
+          "byteRange": [
+            2,
+            6
+          ],
+          "spelling": "Elif",
+          "isCaseMismatch": false,
+          "date": "2026-03-02"
+        },
+        {
+          "byteRange": [
+            3,
+            7
+          ],
+          "date": "2026-03-02",
+          "spelling": "Elif",
+          "isExplicit": false,
+          "isAmbiguous": false,
+          "line": 7,
+          "file": "journal/2026-03-02.md",
+          "isCaseMismatch": false
+        },
+        {
+          "date": "2026-03-02",
+          "spelling": "Elif",
+          "isExplicit": false,
+          "isAmbiguous": false,
+          "isCaseMismatch": false,
+          "byteRange": [
+            14,
+            18
+          ],
+          "line": 7,
+          "file": "journal/2026-03-02.md"
+        },
+        {
+          "isCaseMismatch": false,
+          "spelling": "Elif",
+          "isExplicit": false,
+          "line": 7,
+          "file": "journal/2026-03-02.md",
+          "isAmbiguous": false,
+          "date": "2026-03-02",
+          "byteRange": [
+            23,
+            27
+          ]
+        },
+        {
+          "line": 7,
+          "byteRange": [
+            33,
+            37
+          ],
+          "spelling": "Elif",
+          "date": "2026-03-02",
+          "file": "journal/2026-03-02.md",
+          "isCaseMismatch": false,
+          "isExplicit": false,
+          "isAmbiguous": false
+        },
+        {
+          "isCaseMismatch": false,
+          "date": "2026-03-02",
+          "file": "journal/2026-03-02.md",
+          "byteRange": [
+            20,
+            24
+          ],
+          "spelling": "Elif",
+          "line": 8,
+          "isExplicit": false,
+          "isAmbiguous": false
+        },
+        {
+          "isCaseMismatch": false,
+          "isAmbiguous": false,
+          "spelling": "Elif",
+          "isExplicit": false,
+          "byteRange": [
+            27,
+            31
+          ],
+          "date": "2026-03-02",
+          "line": 8,
+          "file": "journal/2026-03-02.md"
+        },
+        {
+          "isExplicit": false,
+          "byteRange": [
+            4,
+            8
+          ],
+          "spelling": "Elif",
+          "isAmbiguous": false,
+          "file": "journal/2026-03-02.md",
+          "date": "2026-03-02",
+          "line": 9,
+          "isCaseMismatch": false
+        },
+        {
+          "isExplicit": false,
+          "date": "2026-03-02",
+          "isCaseMismatch": false,
+          "isAmbiguous": false,
+          "line": 10,
+          "spelling": "Elif",
+          "file": "journal/2026-03-02.md",
+          "byteRange": [
+            18,
+            22
+          ]
+        },
+        {
+          "date": "2026-03-02",
+          "line": 10,
+          "byteRange": [
+            26,
+            30
+          ],
+          "spelling": "Elif",
+          "isAmbiguous": false,
+          "isCaseMismatch": false,
+          "isExplicit": false,
+          "file": "journal/2026-03-02.md"
+        },
+        {
+          "file": "journal/2026-03-02.md",
+          "isAmbiguous": false,
+          "isCaseMismatch": false,
+          "line": 10,
+          "spelling": "Elif",
+          "byteRange": [
+            34,
+            38
+          ],
+          "isExplicit": false,
+          "date": "2026-03-02"
+        },
+        {
+          "date": "2026-03-02",
+          "line": 10,
+          "isAmbiguous": false,
+          "byteRange": [
+            42,
+            46
+          ],
+          "isCaseMismatch": false,
+          "isExplicit": false,
+          "file": "journal/2026-03-02.md",
+          "spelling": "Elif"
+        },
+        {
+          "isAmbiguous": false,
+          "spelling": "Elif",
+          "date": "2026-03-02",
+          "byteRange": [
+            51,
+            55
+          ],
+          "line": 10,
+          "isExplicit": false,
+          "file": "journal/2026-03-02.md",
+          "isCaseMismatch": false
+        },
+        {
+          "isExplicit": false,
+          "date": "2026-03-02",
+          "byteRange": [
+            59,
+            63
+          ],
+          "isCaseMismatch": false,
+          "spelling": "Elif",
+          "isAmbiguous": false,
+          "file": "journal/2026-03-02.md",
+          "line": 10
+        },
+        {
+          "isCaseMismatch": false,
+          "spelling": "Elif",
+          "isExplicit": false,
+          "date": "2026-03-02",
+          "isAmbiguous": false,
+          "file": "journal/2026-03-02.md",
+          "byteRange": [
+            2,
+            6
+          ],
+          "line": 12
+        },
+        {
+          "isAmbiguous": false,
+          "spelling": "Elif",
+          "isExplicit": false,
+          "isCaseMismatch": false,
+          "file": "journal/2026-03-02.md",
+          "line": 14,
+          "byteRange": [
+            2,
+            6
+          ],
+          "date": "2026-03-02"
+        },
+        {
+          "byteRange": [
+            2,
+            6
+          ],
+          "spelling": "Elif",
+          "file": "journal/2026-03-01.md",
+          "date": "2026-03-01",
+          "isExplicit": false,
+          "line": 1,
+          "isAmbiguous": false,
+          "isCaseMismatch": false
+        },
+        {
+          "spelling": "Elif",
+          "isCaseMismatch": false,
+          "date": "2026-03-01",
+          "line": 1,
+          "byteRange": [
+            8,
+            12
+          ],
+          "isExplicit": false,
+          "isAmbiguous": false,
+          "file": "journal/2026-03-01.md"
+        },
+        {
+          "byteRange": [
+            14,
+            18
+          ],
+          "isCaseMismatch": false,
+          "isAmbiguous": false,
+          "spelling": "Elif",
+          "line": 1,
+          "file": "journal/2026-03-01.md",
+          "isExplicit": false,
+          "date": "2026-03-01"
+        },
+        {
+          "file": "journal/2026-03-01.md",
+          "line": 1,
+          "byteRange": [
+            20,
+            24
+          ],
+          "date": "2026-03-01",
+          "spelling": "Elif",
+          "isCaseMismatch": false,
+          "isExplicit": false,
+          "isAmbiguous": false
+        },
+        {
+          "isExplicit": false,
+          "line": 4,
+          "byteRange": [
+            2,
+            6
+          ],
+          "isAmbiguous": false,
+          "isCaseMismatch": false,
+          "file": "journal/2026-03-01.md",
+          "date": "2026-03-01",
+          "spelling": "Elif"
+        },
+        {
+          "isExplicit": false,
+          "line": 4,
+          "isCaseMismatch": false,
+          "date": "2026-03-01",
+          "isAmbiguous": false,
+          "file": "journal/2026-03-01.md",
+          "byteRange": [
+            10,
+            14
+          ],
+          "spelling": "Elif"
+        },
+        {
+          "isAmbiguous": false,
+          "isCaseMismatch": false,
+          "spelling": "Elif",
+          "date": "2026-03-01",
+          "isExplicit": false,
+          "file": "journal/2026-03-01.md",
+          "line": 4,
+          "byteRange": [
+            28,
+            32
+          ]
+        },
+        {
+          "file": "journal/2026-03-01.md",
+          "line": 4,
+          "spelling": "Elif",
+          "isAmbiguous": false,
+          "byteRange": [
+            39,
+            43
+          ],
+          "isExplicit": false,
+          "isCaseMismatch": false,
+          "date": "2026-03-01"
+        },
+        {
+          "date": "2026-03-01",
+          "isExplicit": false,
+          "spelling": "Elif",
+          "isAmbiguous": false,
+          "file": "journal/2026-03-01.md",
+          "byteRange": [
+            3,
+            7
+          ],
+          "isCaseMismatch": false,
+          "line": 5
+        },
+        {
+          "isExplicit": false,
+          "line": 5,
+          "isAmbiguous": false,
+          "date": "2026-03-01",
+          "byteRange": [
+            10,
+            14
+          ],
+          "isCaseMismatch": false,
+          "file": "journal/2026-03-01.md",
+          "spelling": "Elif"
+        },
+        {
+          "isCaseMismatch": false,
+          "line": 5,
+          "spelling": "Elif",
+          "byteRange": [
+            18,
+            22
+          ],
+          "file": "journal/2026-03-01.md",
+          "date": "2026-03-01",
+          "isExplicit": false,
+          "isAmbiguous": false
+        },
+        {
+          "file": "journal/2026-03-01.md",
+          "isExplicit": false,
+          "isAmbiguous": false,
+          "spelling": "Elif",
+          "byteRange": [
+            25,
+            29
+          ],
+          "line": 5,
+          "isCaseMismatch": false,
+          "date": "2026-03-01"
+        },
+        {
+          "spelling": "Elif",
+          "isCaseMismatch": false,
+          "isExplicit": false,
+          "isAmbiguous": false,
+          "file": "journal/2026-03-01.md",
+          "byteRange": [
+            33,
+            37
+          ],
+          "date": "2026-03-01",
+          "line": 5
+        },
+        {
+          "isAmbiguous": false,
+          "byteRange": [
+            40,
+            44
+          ],
+          "spelling": "Elif",
+          "isCaseMismatch": false,
+          "file": "journal/2026-03-01.md",
+          "line": 5,
+          "isExplicit": false,
+          "date": "2026-03-01"
+        },
+        {
+          "byteRange": [
+            49,
+            53
+          ],
+          "spelling": "Elif",
+          "line": 5,
+          "date": "2026-03-01",
+          "isCaseMismatch": false,
+          "isAmbiguous": false,
+          "isExplicit": false,
+          "file": "journal/2026-03-01.md"
+        },
+        {
+          "isExplicit": false,
+          "isAmbiguous": false,
+          "byteRange": [
+            58,
+            62
+          ],
+          "date": "2026-03-01",
+          "isCaseMismatch": false,
+          "line": 5,
+          "spelling": "Elif",
+          "file": "journal/2026-03-01.md"
+        },
+        {
+          "isAmbiguous": false,
+          "isCaseMismatch": false,
+          "isExplicit": false,
+          "line": 5,
+          "file": "journal/2026-03-01.md",
+          "date": "2026-03-01",
+          "spelling": "Elif",
+          "byteRange": [
+            67,
+            71
+          ]
+        },
+        {
+          "spelling": "Elif",
+          "isCaseMismatch": false,
+          "isAmbiguous": false,
+          "file": "journal/2026-03-01.md",
+          "byteRange": [
+            78,
+            82
+          ],
+          "date": "2026-03-01",
+          "isExplicit": false,
+          "line": 5
+        },
+        {
+          "isCaseMismatch": false,
+          "byteRange": [
+            2,
+            6
+          ],
+          "file": "journal/2026-03-01.md",
+          "date": "2026-03-01",
+          "isAmbiguous": false,
+          "line": 6,
+          "spelling": "Elif",
+          "isExplicit": false
+        },
+        {
+          "file": "journal/2026-03-01.md",
+          "date": "2026-03-01",
+          "byteRange": [
+            2,
+            6
+          ],
+          "isExplicit": false,
+          "isAmbiguous": false,
+          "isCaseMismatch": false,
+          "spelling": "Elif",
+          "line": 7
+        },
+        {
+          "isAmbiguous": false,
+          "line": 8,
+          "spelling": "Elif",
+          "byteRange": [
+            2,
+            6
+          ],
+          "file": "journal/2026-03-01.md",
+          "isExplicit": false,
+          "isCaseMismatch": false,
+          "date": "2026-03-01"
+        }
+      ],
+      "entity": "people/Elif.md"
+    },
+    {
+      "entity": "people/Garip.md",
+      "mentions": [
+        {
+          "file": "journal/2026-03-05.md",
+          "line": 9,
+          "isCaseMismatch": false,
+          "byteRange": [
+            2,
+            4
+          ],
+          "date": "2026-03-05",
+          "spelling": "C#",
+          "isAmbiguous": false,
+          "isExplicit": false
+        },
+        {
+          "isAmbiguous": false,
+          "file": "journal/2026-03-05.md",
+          "spelling": "A|B",
+          "isExplicit": false,
+          "line": 9,
+          "byteRange": [
+            14,
+            17
+          ],
+          "date": "2026-03-05",
+          "isCaseMismatch": false
+        },
+        {
+          "file": "journal/2026-03-05.md",
+          "byteRange": [
+            25,
+            28
+          ],
+          "isExplicit": false,
+          "isAmbiguous": false,
+          "line": 9,
+          "isCaseMismatch": false,
+          "date": "2026-03-05",
+          "spelling": "x^y"
+        },
+        {
+          "isAmbiguous": false,
+          "isExplicit": false,
+          "isCaseMismatch": false,
+          "date": "2026-03-05",
+          "spelling": "AT&T",
+          "file": "journal/2026-03-05.md",
+          "byteRange": [
+            30,
+            34
+          ],
+          "line": 9
+        },
+        {
+          "spelling": "O'Neil",
+          "isCaseMismatch": false,
+          "line": 9,
+          "byteRange": [
+            36,
+            42
+          ],
+          "isExplicit": false,
+          "isAmbiguous": false,
+          "date": "2026-03-05",
+          "file": "journal/2026-03-05.md"
+        },
+        {
+          "isAmbiguous": false,
+          "date": "2026-03-05",
+          "file": "journal/2026-03-05.md",
+          "line": 9,
+          "byteRange": [
+            44,
+            51
+          ],
+          "spelling": "Ali-Can",
+          "isExplicit": false,
+          "isCaseMismatch": false
+        },
+        {
+          "file": "journal/2026-03-05.md",
+          "isAmbiguous": false,
+          "isExplicit": false,
+          "date": "2026-03-05",
+          "line": 9,
+          "spelling": "C\\",
+          "byteRange": [
+            53,
+            55
+          ],
+          "isCaseMismatch": false
+        },
+        {
+          "isCaseMismatch": false,
+          "line": 9,
+          "isExplicit": false,
+          "date": "2026-03-05",
+          "spelling": "100%",
+          "isAmbiguous": false,
+          "file": "journal/2026-03-05.md",
+          "byteRange": [
+            62,
+            66
+          ]
+        },
+        {
+          "isAmbiguous": false,
+          "spelling": "(X)",
+          "byteRange": [
+            73,
+            76
+          ],
+          "date": "2026-03-05",
+          "isExplicit": false,
+          "line": 9,
+          "isCaseMismatch": false,
+          "file": "journal/2026-03-05.md"
+        },
+        {
+          "isCaseMismatch": false,
+          "file": "journal/2026-03-05.md",
+          "isAmbiguous": false,
+          "isExplicit": false,
+          "spelling": "!bang",
+          "line": 9,
+          "date": "2026-03-05",
+          "byteRange": [
+            87,
+            92
+          ]
+        },
+        {
+          "date": "2026-03-05",
+          "isCaseMismatch": false,
+          "isAmbiguous": false,
+          "byteRange": [
+            94,
+            104
+          ],
+          "isExplicit": false,
+          "line": 9,
+          "spelling": "*yıldız*",
+          "file": "journal/2026-03-05.md"
+        },
+        {
+          "file": "journal/2026-03-05.md",
+          "line": 9,
+          "byteRange": [
+            106,
+            109
+          ],
+          "isExplicit": false,
+          "spelling": "<b>",
+          "isAmbiguous": false,
+          "date": "2026-03-05",
+          "isCaseMismatch": false
+        },
+        {
+          "spelling": "a`b",
+          "file": "journal/2026-03-05.md",
+          "line": 9,
+          "isExplicit": false,
+          "isAmbiguous": false,
+          "isCaseMismatch": false,
+          "date": "2026-03-05",
+          "byteRange": [
+            110,
+            113
+          ]
+        }
+      ]
+    },
+    {
+      "entity": "people/Kaya.md",
+      "mentions": [
+        {
+          "isAmbiguous": true,
+          "line": 10,
+          "date": "2026-03-05",
+          "spelling": "Kaya",
+          "isExplicit": false,
+          "isCaseMismatch": false,
+          "byteRange": [
+            2,
+            6
+          ],
+          "file": "journal/2026-03-05.md"
+        }
+      ]
+    },
+    {
+      "entity": "people/Sayı.md",
+      "mentions": [
+        {
+          "date": "2026-03-04",
+          "line": 1,
+          "file": "journal/2026-03-04.md",
+          "byteRange": [
+            8,
+            10
+          ],
+          "spelling": "12",
+          "isExplicit": false,
+          "isAmbiguous": false,
+          "isCaseMismatch": false
+        },
+        {
+          "isAmbiguous": false,
+          "file": "journal/2026-03-04.md",
+          "line": 1,
+          "byteRange": [
+            18,
+            20
+          ],
+          "spelling": "30",
+          "isCaseMismatch": false,
+          "isExplicit": false,
+          "date": "2026-03-04"
+        },
+        {
+          "spelling": "12",
+          "isAmbiguous": false,
+          "date": "2026-03-04",
+          "byteRange": [
+            29,
+            31
+          ],
+          "isExplicit": false,
+          "line": 1,
+          "file": "journal/2026-03-04.md",
+          "isCaseMismatch": false
+        },
+        {
+          "file": "journal/2026-03-04.md",
+          "isExplicit": false,
+          "line": 3,
+          "isAmbiguous": false,
+          "isCaseMismatch": false,
+          "spelling": "12",
+          "date": "2026-03-04",
+          "byteRange": [
+            2,
+            4
+          ]
+        },
+        {
+          "isExplicit": false,
+          "spelling": "12",
+          "isAmbiguous": false,
+          "line": 4,
+          "isCaseMismatch": false,
+          "file": "journal/2026-03-04.md",
+          "date": "2026-03-04",
+          "byteRange": [
+            2,
+            4
+          ]
+        },
+        {
+          "isCaseMismatch": false,
+          "byteRange": [
+            5,
+            7
+          ],
+          "isAmbiguous": false,
+          "line": 4,
+          "spelling": "30",
+          "date": "2026-03-04",
+          "file": "journal/2026-03-04.md",
+          "isExplicit": false
+        },
+        {
+          "spelling": "12",
+          "isAmbiguous": false,
+          "line": 5,
+          "isCaseMismatch": false,
+          "isExplicit": false,
+          "file": "journal/2026-03-04.md",
+          "date": "2026-03-04",
+          "byteRange": [
+            2,
+            4
+          ]
+        },
+        {
+          "file": "journal/2026-03-04.md",
+          "byteRange": [
+            5,
+            7
+          ],
+          "isAmbiguous": false,
+          "date": "2026-03-04",
+          "spelling": "30",
+          "isCaseMismatch": false,
+          "isExplicit": false,
+          "line": 5
+        },
+        {
+          "isCaseMismatch": false,
+          "spelling": "12",
+          "date": "2026-03-04",
+          "isExplicit": false,
+          "isAmbiguous": false,
+          "line": 6,
+          "file": "journal/2026-03-04.md",
+          "byteRange": [
+            2,
+            4
+          ]
+        },
+        {
+          "byteRange": [
+            2,
+            6
+          ],
+          "isExplicit": false,
+          "spelling": "2026",
+          "file": "journal/2026-03-04.md",
+          "date": "2026-03-04",
+          "line": 7,
+          "isCaseMismatch": false,
+          "isAmbiguous": false
+        },
+        {
+          "isExplicit": false,
+          "file": "journal/2026-03-04.md",
+          "isAmbiguous": false,
+          "spelling": "12",
+          "isCaseMismatch": false,
+          "date": "2026-03-04",
+          "line": 7,
+          "byteRange": [
+            10,
+            12
+          ]
+        },
+        {
+          "date": "2026-03-04",
+          "spelling": "09:05",
+          "byteRange": [
+            8,
+            13
+          ],
+          "line": 8,
+          "file": "journal/2026-03-04.md",
+          "isAmbiguous": false,
+          "isExplicit": false,
+          "isCaseMismatch": false
+        },
+        {
+          "spelling": "7",
+          "file": "journal/2026-03-04.md",
+          "date": "2026-03-04",
+          "line": 9,
+          "byteRange": [
+            7,
+            8
+          ],
+          "isExplicit": false,
+          "isAmbiguous": false,
+          "isCaseMismatch": false
+        },
+        {
+          "date": "2026-03-04",
+          "byteRange": [
+            8,
+            10
+          ],
+          "file": "journal/2026-03-04.md",
+          "spelling": "12",
+          "isExplicit": false,
+          "isAmbiguous": false,
+          "line": 10,
+          "isCaseMismatch": false
+        },
+        {
+          "isAmbiguous": false,
+          "byteRange": [
+            2,
+            4
+          ],
+          "isExplicit": false,
+          "file": "journal/2026-03-04.md",
+          "spelling": "12",
+          "isCaseMismatch": false,
+          "date": "2026-03-04",
+          "line": 12
+        },
+        {
+          "spelling": "2026",
+          "file": "journal/2026-03-04.md",
+          "date": "2026-03-04",
+          "isCaseMismatch": false,
+          "isExplicit": false,
+          "line": 13,
+          "isAmbiguous": false,
+          "byteRange": [
+            2,
+            6
+          ]
+        },
+        {
+          "file": "journal/2026-03-03.md",
+          "isCaseMismatch": false,
+          "isExplicit": false,
+          "byteRange": [
+            37,
+            41
+          ],
+          "date": "2026-03-03",
+          "spelling": "2026",
+          "isAmbiguous": false,
+          "line": 23
+        },
+        {
+          "isCaseMismatch": false,
+          "file": "journal/2026-03-03.md",
+          "isAmbiguous": false,
+          "line": 24,
+          "byteRange": [
+            6,
+            8
+          ],
+          "isExplicit": false,
+          "spelling": "12",
+          "date": "2026-03-03"
+        },
+        {
+          "isExplicit": false,
+          "byteRange": [
+            13,
+            17
+          ],
+          "isCaseMismatch": false,
+          "date": "2026-03-03",
+          "file": "journal/2026-03-03.md",
+          "line": 24,
+          "spelling": "2026",
+          "isAmbiguous": false
+        },
+        {
+          "byteRange": [
+            6,
+            7
+          ],
+          "isAmbiguous": false,
+          "file": "journal/2026-03-03.md",
+          "date": "2026-03-03",
+          "line": 28,
+          "isCaseMismatch": false,
+          "isExplicit": false,
+          "spelling": "7"
+        },
+        {
+          "file": "journal/2026-03-03.md",
+          "isCaseMismatch": false,
+          "isAmbiguous": false,
+          "date": "2026-03-03",
+          "spelling": "2026",
+          "isExplicit": false,
+          "line": 49,
+          "byteRange": [
+            42,
+            46
+          ]
+        }
+      ]
+    },
+    {
+      "mentions": [
+        {
+          "isCaseMismatch": false,
+          "line": 4,
+          "date": "2026-03-05",
+          "isExplicit": false,
+          "file": "journal/2026-03-05.md",
+          "spelling": "A",
+          "isAmbiguous": false,
+          "byteRange": [
+            2,
+            3
+          ]
+        },
+        {
+          "file": "journal/2026-03-05.md",
+          "isAmbiguous": false,
+          "isExplicit": false,
+          "date": "2026-03-05",
+          "spelling": "İ",
+          "line": 4,
+          "byteRange": [
+            7,
+            9
+          ],
+          "isCaseMismatch": false
+        },
+        {
+          "isAmbiguous": false,
+          "date": "2026-03-05",
+          "line": 4,
+          "file": "journal/2026-03-05.md",
+          "isCaseMismatch": false,
+          "spelling": "ı",
+          "isExplicit": false,
+          "byteRange": [
+            13,
+            15
+          ]
+        },
+        {
+          "byteRange": [
+            17,
+            18
+          ],
+          "isCaseMismatch": true,
+          "line": 4,
+          "spelling": "a",
+          "isExplicit": false,
+          "file": "journal/2026-03-05.md",
+          "isAmbiguous": false,
+          "date": "2026-03-05"
+        }
+      ],
+      "entity": "people/Tek.md"
+    },
+    {
+      "entity": "people/Umut.md",
+      "mentions": [
+        {
+          "date": "2026-03-05",
+          "isExplicit": false,
+          "spelling": "Umut",
+          "isCaseMismatch": false,
+          "file": "journal/2026-03-05.md",
+          "line": 13,
+          "isAmbiguous": false,
+          "byteRange": [
+            2,
+            6
+          ]
+        },
+        {
+          "spelling": "Umut",
+          "isAmbiguous": false,
+          "isCaseMismatch": false,
+          "line": 13,
+          "file": "journal/2026-03-05.md",
+          "date": "2026-03-05",
+          "isExplicit": true,
+          "byteRange": [
+            15,
+            19
+          ]
+        }
+      ]
+    },
+    {
+      "entity": "people/Çağrı.md",
+      "mentions": [
+        {
+          "isExplicit": false,
+          "byteRange": [
+            2,
+            12
+          ],
+          "date": "2026-03-05",
+          "isAmbiguous": false,
+          "spelling": "Çağrı",
+          "file": "journal/2026-03-05.md",
+          "isCaseMismatch": false,
+          "line": 2
+        }
+      ]
+    },
+    {
+      "mentions": [
+        {
+          "isExplicit": false,
+          "file": "journal/2026-03-05.md",
+          "date": "2026-03-05",
+          "byteRange": [
+            2,
+            6
+          ],
+          "isCaseMismatch": false,
+          "line": 1,
+          "isAmbiguous": false,
+          "spelling": "🎸"
+        },
+        {
+          "line": 1,
+          "isExplicit": false,
+          "isCaseMismatch": false,
+          "byteRange": [
+            15,
+            19
+          ],
+          "isAmbiguous": false,
+          "date": "2026-03-05",
+          "file": "journal/2026-03-05.md",
+          "spelling": "🎸"
+        },
+        {
+          "isCaseMismatch": false,
+          "file": "journal/2026-03-05.md",
+          "line": 1,
+          "date": "2026-03-05",
+          "spelling": "🎸",
+          "isAmbiguous": false,
+          "byteRange": [
+            19,
+            23
+          ],
+          "isExplicit": false
+        },
+        {
+          "isCaseMismatch": false,
+          "spelling": "👨‍👩‍👧",
+          "file": "journal/2026-03-05.md",
+          "date": "2026-03-05",
+          "line": 1,
+          "byteRange": [
+            24,
+            42
+          ],
+          "isExplicit": false,
+          "isAmbiguous": false
+        },
+        {
+          "date": "2026-03-03",
+          "file": "journal/2026-03-03.md",
+          "line": 25,
+          "isCaseMismatch": false,
+          "spelling": "📅",
+          "isExplicit": false,
+          "byteRange": [
+            6,
+            10
+          ],
+          "isAmbiguous": false
+        },
+        {
+          "byteRange": [
+            11,
+            15
+          ],
+          "file": "journal/2026-03-03.md",
+          "line": 26,
+          "date": "2026-03-03",
+          "isExplicit": false,
+          "isCaseMismatch": false,
+          "spelling": "📅",
+          "isAmbiguous": false
+        },
+        {
+          "byteRange": [
+            6,
+            7
+          ],
+          "isAmbiguous": false,
+          "file": "journal/2026-03-03.md",
+          "isExplicit": false,
+          "date": "2026-03-03",
+          "line": 35,
+          "spelling": "x",
+          "isCaseMismatch": false
+        },
+        {
+          "isCaseMismatch": false,
+          "isExplicit": false,
+          "spelling": "every",
+          "byteRange": [
+            8,
+            13
+          ],
+          "date": "2026-03-03",
+          "line": 35,
+          "file": "journal/2026-03-03.md",
+          "isAmbiguous": false
+        },
+        {
+          "date": "2026-03-03",
+          "line": 35,
+          "file": "journal/2026-03-03.md",
+          "byteRange": [
+            14,
+            18
+          ],
+          "spelling": "📅",
+          "isAmbiguous": false,
+          "isCaseMismatch": false,
+          "isExplicit": false
+        },
+        {
+          "isExplicit": false,
+          "byteRange": [
+            19,
+            22
+          ],
+          "line": 35,
+          "isCaseMismatch": false,
+          "file": "journal/2026-03-03.md",
+          "spelling": "✅",
+          "date": "2026-03-03",
+          "isAmbiguous": false
+        },
+        {
+          "byteRange": [
+            6,
+            7
+          ],
+          "date": "2026-03-03",
+          "spelling": "x",
+          "line": 36,
+          "isAmbiguous": false,
+          "isCaseMismatch": false,
+          "isExplicit": false,
+          "file": "journal/2026-03-03.md"
+        }
+      ],
+      "entity": "people/İşaret.md"
+    },
+    {
+      "mentions": [
+        {
+          "isAmbiguous": false,
+          "isCaseMismatch": false,
+          "byteRange": [
+            16,
+            21
+          ],
+          "file": "journal/2026-03-05.md",
+          "date": "2026-03-05",
+          "line": 2,
+          "spelling": "Şule",
+          "isExplicit": false
+        }
+      ],
+      "entity": "people/Şule.md"
+    },
+    {
+      "mentions": [
+        {
+          "byteRange": [
+            14,
+            19
+          ],
+          "date": "2026-03-05",
+          "spelling": "Deniz",
+          "isAmbiguous": true,
+          "file": "journal/2026-03-05.md",
+          "line": 10,
+          "isExplicit": false,
+          "isCaseMismatch": false
+        }
+      ],
+      "entity": "places/Deniz.md"
+    },
+    {
+      "entity": "places/Kaya.md",
+      "mentions": [
+        {
+          "isCaseMismatch": false,
+          "isExplicit": false,
+          "line": 10,
+          "spelling": "Kaya",
+          "byteRange": [
+            2,
+            6
+          ],
+          "file": "journal/2026-03-05.md",
+          "isAmbiguous": true,
+          "date": "2026-03-05"
+        }
+      ]
+    }
+  ]
+}

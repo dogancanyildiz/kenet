@@ -24,6 +24,8 @@ final class QuickEntryModel {
     var languages: [DateParsing.Language] =
         (Bundle.main.preferredLocalizations.first ?? Locale.preferredLanguages.first)?.hasPrefix("tr") == true
         ? [.turkish, .english] : [.english, .turkish]
+    /// Decides which day a week expression (`haftaya`, `next week`) means.
+    var calendar = Calendar.autoupdatingCurrent
     var taskRecurrence: TaskRecurrence?
     var taskPriority: TaskPriority?
     var overridesDate = false
@@ -42,6 +44,8 @@ final class QuickEntryModel {
     let composer: MentionComposer
     var includesTime = true
     private(set) var isSubmitting = false
+    /// Set while the field holds a draft made from a calendar event.
+    var calendarDraft: CalendarDraft?
 
     var text: String {
         get { composer.text }
@@ -106,6 +110,7 @@ final class QuickEntryModel {
     var isHistorical: Bool { day.map { $0 != today() } ?? false }
     var entryTime: LineClock? {
         guard mode == .event, includesTime else { return nil }
+        if !isHistorical, let time = calendarDraft?.time { return LocalDay.clock(at: time) }
         return isHistorical ? LocalDay.clock(at: selectedTime) : LocalDay.clock(at: now())
     }
 
@@ -148,6 +153,7 @@ final class QuickEntryModel {
         guard composer.beginResolution() else { return false }
         isSubmitting = true
         errorText = nil
+        let draftCalendar = calendarDraftSnapshot
         let draft = text
         let draftPins = pins
         let draftSkipped = skipped
@@ -194,6 +200,7 @@ final class QuickEntryModel {
                 composer.errorText =
                     store.entryErrorText
                     ?? String(localized: "Olay kaydedilemedi. Kasayı kontrol edip yeniden dene.")
+                restoreCalendarDraft(draftCalendar)
             }
             return saved
         } catch {
@@ -243,17 +250,13 @@ final class QuickEntryModel {
     }
 
     private func reconcileTaskExpressions(oldText: String) {
+        if text.isEmpty { clearCalendarDraft() }
         let suppressed = suppressedExpressions
         suppressedExpressions = Self.following(suppressed, from: oldText, to: text)
         guard mode == .task else { return }
-        // Without a suppression this stays the plain date parse it always was.
-        let previous =
-            suppressed.isEmpty
-            ? DateExpressionParser.parse(oldText, today: today(), language: languages)?.date
-            : QuickEntryAnalysis.analyze(
-                oldText, today: today(), language: languages, suppressedRanges: suppressed
-            ).date?.date
-        if previous != dateExpression?.date {
+        // Both sides go through the analysis: a plain date parse of the old text takes the weekday of
+        // `her salı` for a date and every keystroke would look like a changed date.
+        if analysis(of: oldText, suppressing: suppressed).date?.date != dateExpression?.date {
             overridesDate = false
             manualDueDate = nil
             manualDateIsAssumed = false

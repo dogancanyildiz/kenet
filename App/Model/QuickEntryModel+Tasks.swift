@@ -14,6 +14,33 @@ extension QuickEntryModel {
         var id: Int { byteRanges[0].lowerBound }
     }
 
+    /// Everything the user turned back into plain words, task expressions and names alike: edits,
+    /// submit preparation and a failed write move both kinds by the same rules.
+    struct Suppressions: Equatable {
+        var expressions: [Range<Int>] = []
+        var names: [Range<Int>] = []
+
+        func following(from oldText: String, to newText: String) -> Suppressions {
+            Suppressions(
+                expressions: QuickEntryModel.following(expressions, from: oldText, to: newText),
+                names: QuickEntryModel.following(names, from: oldText, to: newText))
+        }
+
+        func relocating(in text: String, removing removed: [Range<Int>], to remainder: String) -> Suppressions {
+            Suppressions(
+                expressions: QuickEntryModel.relocating(expressions, in: text, removing: removed, to: remainder),
+                names: QuickEntryModel.relocating(names, in: text, removing: removed, to: remainder))
+        }
+    }
+
+    var suppressions: Suppressions {
+        get { Suppressions(expressions: suppressedExpressions, names: suppressedNames) }
+        set {
+            suppressedExpressions = newValue.expressions
+            suppressedNames = newValue.names
+        }
+    }
+
     /// Every task expression is read from here, so a suppressed one stays literal everywhere.
     var taskAnalysis: QuickEntryAnalysis? {
         guard mode == .task else { return nil }
@@ -22,8 +49,24 @@ extension QuickEntryModel {
 
     /// The text before an edit is read the same way, or the two readings differ without the date changing.
     func analysis(of text: String, suppressing suppressed: [Range<Int>]) -> QuickEntryAnalysis {
-        WeekStart.analysis(
-            text, today: today(), language: languages, suppressedRanges: suppressed, calendar: calendar)
+        // One draw of the row reads the analysis several times; the same bytes need not be read again.
+        let key = AnalysisKey(
+            bytes: Array(text.utf8), suppressed: suppressed, today: today(), languages: languages,
+            weekStartsOnMonday: WeekStart.isMonday(in: calendar))
+        if let cached = analysisCache, cached.key == key { return cached.analysis }
+        let analysis = WeekStart.analysis(
+            text, today: key.today, language: languages, suppressedRanges: suppressed, calendar: calendar)
+        analysisCache = (key, analysis)
+        return analysis
+    }
+
+    /// Everything the analysis reads; equal keys give equal analyses.
+    struct AnalysisKey: Equatable {
+        let bytes: [UInt8]
+        let suppressed: [Range<Int>]
+        let today: CalendarDate
+        let languages: [DateParsing.Language]
+        let weekStartsOnMonday: Bool
     }
 
     var recurrenceExpression: RecurrenceExpression? {
@@ -75,10 +118,13 @@ extension QuickEntryModel {
             taskPriority = explicit ?? priority
         }
         // A mention can still stop this submit; the next one must find the same words suppressed.
-        let suppressed = Self.relocating(
-            suppressedExpressions, in: text, removing: analysis.tokens.map(\.byteRange), to: analysis.remainder)
+        let removed = analysis.tokens.map(\.byteRange)
+        let suppressed = suppressions.relocating(in: text, removing: removed, to: analysis.remainder)
+        let undoneNames = Self.relocating(
+            composer.effectiveSuppressions, in: text, removing: removed, to: analysis.remainder)
         text = analysis.remainder
-        suppressedExpressions = suppressed
+        suppressions = suppressed
+        composer.suppressNames(covering: undoneNames)
         selectDate(date)
         manualDateIsAssumed = assumed
     }
@@ -87,7 +133,9 @@ extension QuickEntryModel {
     /// Where the same bytes repeat an edit can be read at more than one place ("yarın yarın" losing
     /// one of the two); a range any reading touches is dropped, so the words are recognized again
     /// and show their chip instead of staying literal with nothing on screen saying so.
-    static func following(_ ranges: [Range<Int>], from oldText: String, to newText: String) -> [Range<Int>] {
+    nonisolated static func following(
+        _ ranges: [Range<Int>], from oldText: String, to newText: String
+    ) -> [Range<Int>] {
         guard !ranges.isEmpty else { return [] }
         let old = Array(oldText.utf8)
         let new = Array(newText.utf8)
@@ -107,7 +155,7 @@ extension QuickEntryModel {
 
     /// Removing expressions only deletes their bytes and adjusts blanks around them, so a kept
     /// word is found again by counting the non-blank bytes that stay in front of it.
-    static func relocating(
+    nonisolated static func relocating(
         _ ranges: [Range<Int>], in text: String, removing removed: [Range<Int>], to remainder: String
     ) -> [Range<Int>] {
         guard !ranges.isEmpty else { return [] }

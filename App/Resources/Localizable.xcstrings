@@ -4221,6 +4221,22 @@
         }
       }
     },
+    "Gönderince hangisi olduğu sorulur" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You'll be asked which one when you send"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gönderince hangisi olduğu sorulur"
+          }
+        }
+      }
+    },
     "Görev" : {
       "localizations" : {
         "en" : {

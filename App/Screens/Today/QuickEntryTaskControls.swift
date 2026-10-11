@@ -1,31 +1,96 @@
+import EntityRecognition
 import SwiftUI
 import VaultFormat
 
+/// The one row above the field: in task mode the date control and the recognized expressions,
+/// in both modes the recognized names, and a calendar draft's unknown attendees.
 struct QuickEntryTaskControls: View {
     @Bindable var model: QuickEntryModel
     @Binding var showsPicker: Bool
+    /// Called after an attendee chip put its name into the text.
+    var onAddAttendee: () -> Void = {}
 
     @Environment(\.locale) private var locale
 
     var body: some View {
-        if model.mode == .task {
-            // One row above the field; it scrolls sideways instead of wrapping or clipping.
+        let names = model.recognizedNames
+        let attendees = model.unknownAttendees
+        if model.mode == .task || !names.isEmpty || !attendees.isEmpty {
+            // It scrolls sideways instead of wrapping or clipping.
             ScrollView(.horizontal) {
                 HStack(spacing: 8) {
-                    dateButton
-                    // A recurrence recognized in the text is one of the chips instead.
-                    if model.recurrenceExpression == nil, let recurrence = model.taskRecurrence {
-                        TaskRecurrenceLabel(recurrence: recurrence)
-                            .font(.ink.meta)
-                            .foregroundStyle(Color.ink.secondaryText)
+                    if model.mode == .task {
+                        dateButton
+                        // A recurrence recognized in the text is one of the chips instead.
+                        if model.recurrenceExpression == nil, let recurrence = model.taskRecurrence {
+                            TaskRecurrenceLabel(recurrence: recurrence)
+                                .font(.ink.meta)
+                                .foregroundStyle(Color.ink.secondaryText)
+                        }
+                        ForEach(model.taskExpressions) { expression in
+                            chip(expression)
+                        }
                     }
-                    ForEach(model.taskExpressions) { expression in
-                        chip(expression)
+                    ForEach(names) { name in
+                        chip(name)
+                    }
+                    ForEach(attendees, id: \.self) { name in
+                        attendeeChip(name)
                     }
                 }
             }
             .scrollIndicators(.hidden)
         }
+    }
+
+    /// The whole chip is the button: the name stays in the text as plain words, without a link.
+    private func chip(_ name: QuickEntryModel.NameRecognition) -> some View {
+        let undo = { model.undoRecognition(name) }
+        return Button(action: undo) {
+            HStack(spacing: 4) {
+                switch name.kind {
+                case .person?: Image(systemName: "person")
+                case .place?: Image(systemName: "mappin")
+                default: EmptyView()
+                }
+                // An ambiguous name is asked about on sending; the mark says so before.
+                Text(verbatim: name.isAmbiguous ? name.spelling + "?" : name.spelling)
+                    .lineLimit(1)
+                Image(systemName: "xmark")
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(Color.ink.secondaryText)
+            }
+            .font(.ink.meta)
+            .foregroundStyle(name.isAmbiguous ? Color.ink.warning : Color.ink.text)
+            .modifier(QuickEntryPill(stroke: name.isAmbiguous ? Color.ink.warning : Color.ink.control))
+            .tapTarget()
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(Text("Tanındı: \(name.spelling)"))
+        .accessibilityValue(name.isAmbiguous ? Text("Gönderince hangisi olduğu sorulur") : Text(verbatim: ""))
+        .accessibilityHint(Text("Tanımayı geri al"))
+        .accessibilityAction(named: Text("Tanımayı geri al"), undo)
+    }
+
+    private func attendeeChip(_ name: String) -> some View {
+        Button {
+            model.addUnknownAttendee(name)
+            onAddAttendee()
+        } label: {
+            HStack(spacing: 4) {
+                Image(systemName: "plus")
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(Color.ink.secondaryText)
+                Text(verbatim: name)
+                    .lineLimit(1)
+            }
+            .font(.ink.meta)
+            .foregroundStyle(Color.ink.text)
+            .modifier(QuickEntryPill(stroke: Color.ink.control))
+            .tapTarget()
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(Text("Katılımcıyı ekle: \(name)"))
     }
 
     /// The whole chip is the button: it turns the expression back into plain words.
@@ -119,42 +184,6 @@ struct QuickEntryTaskControls: View {
                 showsPicker = false
             }
             .presentationCompactAdaptation(.popover)
-        }
-    }
-}
-
-/// Calendar attendees the vault does not know: a tap moves one into the text as `@Name`.
-struct QuickEntryAttendeeChips: View {
-    let model: QuickEntryModel
-    let onAdd: () -> Void
-
-    var body: some View {
-        if !model.unknownAttendees.isEmpty {
-            ScrollView(.horizontal) {
-                HStack(spacing: 8) {
-                    ForEach(model.unknownAttendees, id: \.self) { name in
-                        Button {
-                            model.addUnknownAttendee(name)
-                            onAdd()
-                        } label: {
-                            HStack(spacing: 4) {
-                                Image(systemName: "plus")
-                                    .font(.caption2.weight(.semibold))
-                                    .foregroundStyle(Color.ink.secondaryText)
-                                Text(verbatim: name)
-                                    .lineLimit(1)
-                            }
-                            .font(.ink.meta)
-                            .foregroundStyle(Color.ink.text)
-                            .modifier(QuickEntryPill(stroke: Color.ink.control))
-                            .tapTarget()
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityLabel(Text("Katılımcıyı ekle: \(name)"))
-                    }
-                }
-            }
-            .scrollIndicators(.hidden)
         }
     }
 }

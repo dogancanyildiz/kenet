@@ -31,7 +31,7 @@ public struct VaultIndex: Sendable {
 
     // Shared full-build path; callers decide inside the same transaction whether it is needed.
     func rebuild(vaultRoot: URL, customKinds: Set<String>, db: Database) throws -> RebuildResult {
-        for table in ["search", "links", "goal_logs", "aliases", "entities", "blocks", "files"] {
+        for table in ["search", "links", "goal_logs", "entity_fields", "aliases", "entities", "blocks", "files"] {
             try db.execute(sql: "DELETE FROM " + table)
         }
         let scan = try VaultScanner.scan(vaultRoot)
@@ -159,7 +159,9 @@ public struct VaultIndex: Sendable {
                 aliases: try IndexedAlias.fetchAll(db, sql: "SELECT * FROM aliases ORDER BY file,ordinal"),
                 blocks: try IndexedBlock.fetchAll(db, sql: "SELECT * FROM blocks ORDER BY file,ordinal"),
                 links: try IndexedLink.fetchAll(db, sql: "SELECT * FROM links ORDER BY file,ordinal"),
-                goalLogs: try IndexedGoalLog.fetchAll(db, sql: "SELECT * FROM goal_logs ORDER BY file,key"))
+                goalLogs: try IndexedGoalLog.fetchAll(db, sql: "SELECT * FROM goal_logs ORDER BY file,key"),
+                entityFields: try IndexedEntityField.fetchAll(
+                    db, sql: "SELECT * FROM entity_fields ORDER BY file,key"))
         }
     }
 }

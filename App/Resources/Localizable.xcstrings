@@ -8269,6 +8269,38 @@
         }
       }
     },
+    "Tanımayı geri al" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Undo recognition"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tanımayı geri al"
+          }
+        }
+      }
+    },
+    "Tanındı: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recognized: %@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tanındı: %@"
+          }
+        }
+      }
+    },
     "Tanınmayan tekrar" : {
       "localizations" : {
         "en" : {

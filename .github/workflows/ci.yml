@@ -114,49 +114,105 @@ jobs:
         run: xcodegen generate
       - name: iOS simülatör seç
         id: ios_sim
+        # Ad ve UDID birlikte seçilir: sonraki adımlar aynı aygıtı kimliğiyle kullanır (aynı adı
+        # taşıyan ikinci bir çalışma zamanı kurulursa hedef belirsizleşmez).
         run: |
-          NAME=$(xcrun simctl list devices available -j | python3 -c '
-          import json, sys
+          CHOSEN=$(xcrun simctl list devices available -j | python3 -c '
+          import json, re, sys
           data = json.load(sys.stdin)
           preferred = ["iPhone 17", "iPhone 16", "iPhone 15", "iPhone 14"]
-          names = []
-          for runtime, devices in data.get("devices", {}).items():
+          devices = []
+          for runtime, entries in data.get("devices", {}).items():
               if "iOS" not in runtime:
                   continue
-              for device in devices:
+              version = tuple(int(part) for part in re.findall(r"[0-9]+", runtime.rsplit("iOS", 1)[-1]))
+              for device in entries:
                   if device.get("isAvailable") and device.get("name", "").startswith("iPhone"):
-                      names.append(device["name"])
-          for name in preferred:
-              if name in names:
-                  print(name)
-                  sys.exit(0)
-          if names:
-              print(names[0])
-              sys.exit(0)
-          print("Uygun iPhone simülatörü yok. simctl available:", file=sys.stderr)
-          print("\n".join(sorted({n for n in names})) or "(boş)", file=sys.stderr)
+                      devices.append((version, device["name"], device["udid"]))
+          # En yeni çalışma zamanı önce: xcodebuild de ada göre seçerken onu alır.
+          devices.sort(key=lambda entry: entry[0], reverse=True)
+          for name in preferred + [entry[1] for entry in devices]:
+              for version, candidate, udid in devices:
+                  if candidate == name:
+                      print(candidate + "|" + udid)
+                      sys.exit(0)
+          print("Uygun iPhone simülatörü yok (simctl list devices available).", file=sys.stderr)
           sys.exit(1)
           ')
-          echo "name=$NAME" >> "$GITHUB_OUTPUT"
-          echo "Seçilen simülatör: $NAME"
+          echo "name=${CHOSEN%%|*}" >> "$GITHUB_OUTPUT"
+          echo "udid=${CHOSEN##*|}" >> "$GITHUB_OUTPUT"
+          echo "Seçilen simülatör: ${CHOSEN%%|*} (${CHOSEN##*|})"
       - name: iOS derlemesi (test için)
         run: |
           xcodebuild build-for-testing \
             -project Journal.xcodeproj \
             -scheme Journal_iOS \
-            -destination "platform=iOS Simulator,name=${{ steps.ios_sim.outputs.name }}" \
+            -destination "platform=iOS Simulator,id=${{ steps.ios_sim.outputs.udid }}" \
             CODE_SIGNING_ALLOWED=NO \
             -quiet
+      # Simülatör testlerden ayrı adımda açılır: bir asılmanın açılışta mı testte mi olduğu adım
+      # sürelerinden okunur (ilk test adımı eskiden açılışı da içeriyordu).
+      - name: iOS simülatörü aç
+        id: ios_boot
+        timeout-minutes: 10
+        run: xcrun simctl bootstatus "${{ steps.ios_sim.outputs.udid }}" -b
+      # Bu adım ara sıra hiçbir test düşmeden asılıyor (bkz. docs/architecture.md, "Test").
+      # Zaman aşımı ADIM düzeyindedir: iş düzeyindeki süre dolunca sonraki adımlar koşmaz, tanılama
+      # yüklenemez. Çıktı -quiet değildir ve dosyaya yazılır: başlayıp bitmeyen test oradan okunur.
+      # Normal süre 3-8 dk; 12. dakikada hâlâ koşuyorsa süreçler asılıyken yığın örneği alınır.
+      # Test başına 300 sn sınırı Xcode 27'de Swift Testing'e de ulaşır ("Time limit was exceeded",
+      # test adıyla; CI'daki Xcode sürümünde ölçülmedi, etkisizse zararsızdır). En yavaş test yerelde
+      # 10 sn sürer. Sınır görevi iptal eder, iptale bakmadan bekleyen testi durduramaz: o durumda adı
+      # günlüğe yazılır, adımı zaman aşımı bitirir.
       - name: iOS birim testleri
+        id: ios_unit
+        timeout-minutes: 20
         run: |
+          mkdir -p ios-test-diagnostics
+          sh .github/scripts/ios-test-diagnostics.sh ios-test-diagnostics "${{ steps.ios_sim.outputs.udid }}" 720 \
+            > ios-test-diagnostics/watch.log 2>&1 &
+          WATCH=$!
+          trap 'kill "$WATCH" 2>/dev/null || true' EXIT
           xcodebuild test-without-building \
             -project Journal.xcodeproj \
             -scheme Journal_iOS \
-            -destination "platform=iOS Simulator,name=${{ steps.ios_sim.outputs.name }}" \
+            -destination "platform=iOS Simulator,id=${{ steps.ios_sim.outputs.udid }}" \
             -only-testing:JournalTests_iOS \
             $(sh .github/scripts/snapshot-suites.sh | sed 's#^#-skip-testing:JournalTests_iOS/#' | tr '\n' ' ') \
+            -resultBundlePath IOSTests.xcresult \
+            -test-timeouts-enabled YES \
+            -default-test-execution-time-allowance 300 \
+            -maximum-test-execution-time-allowance 300 \
             CODE_SIGNING_ALLOWED=NO \
-            -quiet
+            > ios-test-diagnostics/xcodebuild.log 2>&1 || {
+              echo "iOS birim testleri düştü; tam çıktı ios-test-results paketinde (xcodebuild.log). Düşenler:"
+              grep -E "^✘|error:|ASILDI|Restarting after|\*\* TEST" ios-test-diagnostics/xcodebuild.log | tail -n 200
+              exit 1
+            }
+          tail -n 5 ios-test-diagnostics/xcodebuild.log
+      - name: iOS birim testi tanılaması (düşünce, iptalde ya da zaman aşımında)
+        if: >-
+          (failure() || cancelled()) &&
+          (steps.ios_boot.outcome == 'failure' || steps.ios_boot.outcome == 'cancelled' ||
+          steps.ios_unit.outcome == 'failure' || steps.ios_unit.outcome == 'cancelled')
+        timeout-minutes: 5
+        run: |
+          echo "Günlüğün sonu (başlayıp bitmeyen test burada görünür):"
+          tail -n 60 ios-test-diagnostics/xcodebuild.log || true
+          sh .github/scripts/ios-test-diagnostics.sh ios-test-diagnostics "${{ steps.ios_sim.outputs.udid }}"
+      - name: iOS test sonuç paketi (düşünce, iptalde ya da zaman aşımında)
+        if: >-
+          (failure() || cancelled()) &&
+          (steps.ios_boot.outcome == 'failure' || steps.ios_boot.outcome == 'cancelled' ||
+          steps.ios_unit.outcome == 'failure' || steps.ios_unit.outcome == 'cancelled')
+        uses: actions/upload-artifact@v6
+        with:
+          name: ios-test-results
+          path: |
+            IOSTests.xcresult
+            ios-test-diagnostics
+          if-no-files-found: warn
+          retention-days: 7
       # Ekran görüntüsü: birim katmanında SwiftUI çizimi (uygulama açılmaz). Ayrı adım = süre ölçümü
       # ve düşünce fark görüntüleri artifact'ı. Kümeler ad kuralından bulunur (.github/scripts/snapshot-suites.sh).
       # Süreç dili Türkçe: görüntüler tr yerel ayarıyla çizilir; String(localized:) ile aynı dil.
@@ -166,7 +222,7 @@ jobs:
           xcodebuild test-without-building \
             -project Journal.xcodeproj \
             -scheme Journal_iOS \
-            -destination "platform=iOS Simulator,name=${{ steps.ios_sim.outputs.name }}" \
+            -destination "platform=iOS Simulator,id=${{ steps.ios_sim.outputs.udid }}" \
             $(sh .github/scripts/snapshot-suites.sh | sed 's#^#-only-testing:JournalTests_iOS/#' | tr '\n' ' ') \
             -testLanguage tr -testRegion TR \
             -resultBundlePath ScreenSnapshots.xcresult \
@@ -187,7 +243,7 @@ jobs:
           xcodebuild test-without-building \
             -project Journal.xcodeproj \
             -scheme Journal_iOS \
-            -destination "platform=iOS Simulator,name=${{ steps.ios_sim.outputs.name }}" \
+            -destination "platform=iOS Simulator,id=${{ steps.ios_sim.outputs.udid }}" \
             -only-testing:JournalUITests \
             -resultBundlePath UITests.xcresult \
             CODE_SIGNING_ALLOWED=NO \

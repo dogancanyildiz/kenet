@@ -98,6 +98,7 @@ struct DayView: View {
                 }
 
                 journalSection
+                    .dayContext(store: store, today: isToday ? date : nil)
             }
             .padding(.horizontal, InkSpacing.margin)
             .padding(.top, 8)

@@ -1,0 +1,3 @@
+# Okuma Listesi
+
+- Temiz Mimari

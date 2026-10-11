@@ -8,7 +8,7 @@
     @testable import Journal
 
     /// Bugün prototipi: açık, koyu, AX3, AX5, Kontrastı Artır, on devreden, boş gün,
-    /// öncelik/devam, uzun tuval (takvim + günlük), boolean hedef.
+    /// öncelik/devam, uzun tuval (takvim + günlük), boolean hedef, bu gün geçmişte (açık, koyu, AX3).
     enum TodaySnapshotCase: String, CaseIterable, Sendable {
         case todayLight
         case todayDark
@@ -20,14 +20,17 @@
         case todayPriority
         case todayTall
         case todayGoals
+        case todayOnThisDayLight
+        case todayOnThisDayDark
+        case todayOnThisDayAX3
 
         var colorScheme: SnapshotColorScheme {
-            self == .todayDark ? .dark : .light
+            self == .todayDark || self == .todayOnThisDayDark ? .dark : .light
         }
 
         var dynamicType: SnapshotDynamicType {
             switch self {
-            case .todayAX3: .accessibility3
+            case .todayAX3, .todayOnThisDayAX3: .accessibility3
             case .todayAX5: .accessibility5
             default: .medium
             }
@@ -41,6 +44,10 @@
         var usesCalendar: Bool { self == .todayTall }
         /// Incomplete boolean lives in `todayGoals` so the main light reference keeps first-event room.
         var usesIncompleteBooleanGoal: Bool { self == .todayGoals }
+        /// Earlier years on the snapshot month-day; the other cases have none and draw no line.
+        var usesOnThisDay: Bool {
+            self == .todayOnThisDayLight || self == .todayOnThisDayDark || self == .todayOnThisDayAX3
+        }
     }
 
     @MainActor @Suite("Today snapshots")
@@ -62,6 +69,14 @@
             if snapshotCase.usesIncompleteBooleanGoal {
                 try Self.writeIncompleteBooleanGoal(in: context.root)
             }
+            if snapshotCase.usesOnThisDay {
+                try Self.writeEarlierYears(in: context.root)
+            }
+            if snapshotCase == .todayOnThisDayAX3 {
+                // At AX3 the full sample day pushes the line off even the tall canvas.
+                try Self.stripOpenTasksDueBeforeSnapshotDay(in: context.root)
+                try FileManager.default.removeItem(at: context.root.appendingPathComponent("goals"))
+            }
             await context.start()
             #expect(context.store.lastUpdated != nil)
 
@@ -82,9 +97,11 @@
 
             // The goal strip loads in a `.task`; without this the reference can catch its spinner.
             let goalsReady = GoalsReadyBox()
+            let contextReady = GoalsReadyBox()
             let store = context.store
+            // The line sits below the events; the tall canvas keeps it in view at every type size.
             let size =
-                snapshotCase.usesTallCanvas
+                snapshotCase.usesTallCanvas || snapshotCase.usesOnThisDay
                 ? CGSize(width: 390, height: 1600) : snapshotCanvasSize
             let root = NavigationStack {
                 DayView(store: store, date: snapshotDay, isToday: true)
@@ -100,6 +117,8 @@
             // Without an action the masthead hides its Settings button.
             .environment(\.openSettings, {})
             .onPreferenceChange(GoalsStripReadyKey.self) { goalsReady.isReady = $0 }
+            .onPreferenceChange(DayContextReadyKey.self) { contextReady.isReady = $0 }
+            let needsContext = snapshotCase.usesOnThisDay
             await SnapshotHost.assertView(
                 colorScheme: snapshotCase.colorScheme,
                 dynamicType: snapshotCase.dynamicType,
@@ -108,7 +127,10 @@
                 store: store,
                 size: size,
                 bottomSafeArea: Self.tabBarHeight,
-                isReady: { store.content.goals.isEmpty || goalsReady.isReady },
+                isReady: {
+                    (store.content.goals.isEmpty || goalsReady.isReady)
+                        && (!needsContext || contextReady.isReady)
+                },
                 testName: "today",
                 file: #filePath,
                 line: #line,
@@ -165,6 +187,27 @@
                 text += block
             }
             try text.write(to: file, atomically: true, encoding: .utf8)
+        }
+
+        /// Two linked earlier years (three people, two places in the nearest) and an unlinked one.
+        private static func writeEarlierYears(in root: URL) throws {
+            let days = [
+                "2025-09-20": [
+                    "- 10:00 [[Deniz Arıkan]] ile [[Çınaraltı Kafe]]'de kahve",
+                    "- 13:00 [[Selin Korkmaz]] ile öğle yemeği",
+                    "- 16:00 [[Baran Tunç]] ile [[Liman Ofis]]'te toplantı",
+                ],
+                "2024-09-20": ["- 20:00 [[Ece Yalın]] ile [[Ev]]'de akşam yemeği"],
+                "2023-09-20": ["- 09:00 [[Okuma Listesi]] gözden geçirildi"],
+            ]
+            for (date, events) in days {
+                let body =
+                    "---\ntype: journal\ndate: \(date)\n---\n\n## Tasks\n\n## Events\n"
+                    + events.joined(separator: "\n") + "\n\n## Journal\n"
+                try body.write(
+                    to: root.appendingPathComponent("journal/\(date).md"), atomically: true,
+                    encoding: .utf8)
+            }
         }
 
         private static func writeIncompleteBooleanGoal(in root: URL) throws {

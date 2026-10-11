@@ -34,6 +34,7 @@ func snapshot(_ summary: PeriodSummary) -> [String: Any] {
                 "id": $0.definition.id, "done": $0.progress.done, "target": $0.progress.target,
                 "contribution": $0.contribution,
                 "streak": $0.streak, "change": $0.change, "streakChange": $0.streakChange,
+                "score": $0.score.map { $0 as Any } ?? NSNull(),
                 "completionDate": $0.completionDate?.description as Any? ?? NSNull(),
             ] as [String: Any]
         }, "isEmpty": summary.isEmpty,

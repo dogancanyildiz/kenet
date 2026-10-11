@@ -2,6 +2,7 @@ import SwiftUI
 
 /// Top-level Settings destinations shared by iPhone (list) and Mac (tabs).
 enum SettingsSection: String, CaseIterable, Identifiable, Hashable {
+    case quickEntry
     case privacy
     case notifications
     case calendarAndLocation
@@ -10,8 +11,9 @@ enum SettingsSection: String, CaseIterable, Identifiable, Hashable {
 
     var id: Self { self }
 
-    var title: LocalizedStringKey {
+    var title: LocalizedStringResource {
         switch self {
+        case .quickEntry: "Hızlı giriş"
         case .privacy: "Gizlilik"
         case .notifications: "Bildirimler"
         case .calendarAndLocation: "Takvim ve Konum"
@@ -22,6 +24,7 @@ enum SettingsSection: String, CaseIterable, Identifiable, Hashable {
 
     var symbol: String {
         switch self {
+        case .quickEntry: "square.and.pencil"
         case .privacy: "lock"
         case .notifications: "bell"
         case .calendarAndLocation: "calendar"

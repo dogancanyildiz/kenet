@@ -214,6 +214,7 @@ Kilitliyken (kilit etkin ve doğrulanmamış) Siri hedef adlarını listelemez; 
 - İndeksi yeniden üret, arama geçmişini temizle.
 - İndeks sayıları (dosya, gün, kişi, konum, hedef, not, olay, görev, varlık, bağlantı, çözülmemiş) ve son güncelleme; sayılar tabular.
 - Atlanan yollar (sembolik bağlantı / yinelenen yol); uzun yollar kırpılır ve kopyalanabilir.
+- Üçüncü taraf lisansları satırı salt okunur alt sayfayı açar. Sayfada uygulamaya giren her paketin adı, lisans türü ve paketlenmiş lisans metni durur; metin çevrilmez. iPhone'da sayfa itilir. Mac'te Tanılama sekmesinin içeriğinin yerine açılır ve en üstteki "Tanılama" düğmesiyle geri dönülür; sekme şeridi değişmez.
 
 ## Widget'lar (3)
 

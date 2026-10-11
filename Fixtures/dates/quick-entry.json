@@ -1,0 +1,659 @@
+[
+  {
+    "id": "tr-chain",
+    "today": "2026-10-05",
+    "language": [
+      "tr",
+      "en"
+    ],
+    "input": "her hafta yarın !!",
+    "suppressed": [],
+    "remainder": "",
+    "tokens": [
+      {
+        "range": [
+          0,
+          9
+        ],
+        "expression": "her hafta",
+        "kind": "recurrence",
+        "value": "every week",
+        "confidence": "exact"
+      },
+      {
+        "range": [
+          10,
+          16
+        ],
+        "expression": "yarın",
+        "kind": "date",
+        "value": "2026-10-06",
+        "confidence": "exact"
+      },
+      {
+        "range": [
+          17,
+          19
+        ],
+        "expression": "!!",
+        "kind": "priority",
+        "value": "high",
+        "confidence": "exact"
+      }
+    ]
+  },
+  {
+    "id": "unicode-offset",
+    "today": "2026-10-05",
+    "language": [
+      "tr",
+      "en"
+    ],
+    "input": "Çığ ölç her gün yarın !!",
+    "suppressed": [],
+    "remainder": "Çığ ölç",
+    "tokens": [
+      {
+        "range": [
+          13,
+          21
+        ],
+        "expression": "her gün",
+        "kind": "recurrence",
+        "value": "every day",
+        "confidence": "exact"
+      },
+      {
+        "range": [
+          22,
+          28
+        ],
+        "expression": "yarın",
+        "kind": "date",
+        "value": "2026-10-06",
+        "confidence": "exact"
+      },
+      {
+        "range": [
+          29,
+          31
+        ],
+        "expression": "!!",
+        "kind": "priority",
+        "value": "high",
+        "confidence": "exact"
+      }
+    ]
+  },
+  {
+    "id": "en-chain",
+    "today": "2026-10-05",
+    "language": [
+      "en",
+      "tr"
+    ],
+    "input": "! Read every 2 weeks tomorrow !!",
+    "suppressed": [],
+    "remainder": "Read",
+    "tokens": [
+      {
+        "range": [
+          0,
+          1
+        ],
+        "expression": "!",
+        "kind": "priority",
+        "value": "medium",
+        "confidence": "exact"
+      },
+      {
+        "range": [
+          7,
+          20
+        ],
+        "expression": "every 2 weeks",
+        "kind": "recurrence",
+        "value": "every 2 weeks",
+        "confidence": "exact"
+      },
+      {
+        "range": [
+          21,
+          29
+        ],
+        "expression": "tomorrow",
+        "kind": "date",
+        "value": "2026-10-06",
+        "confidence": "exact"
+      },
+      {
+        "range": [
+          30,
+          32
+        ],
+        "expression": "!!",
+        "kind": "priority",
+        "value": "high",
+        "confidence": "exact"
+      }
+    ]
+  },
+  {
+    "id": "quantity",
+    "today": "2026-10-05",
+    "language": [
+      "tr",
+      "en"
+    ],
+    "input": "2.5 kg un al",
+    "suppressed": [],
+    "remainder": "2.5 kg un al",
+    "tokens": []
+  },
+  {
+    "id": "next-weekday",
+    "today": "2026-10-05",
+    "language": [
+      "tr",
+      "en"
+    ],
+    "input": "haftaya salı oku",
+    "suppressed": [],
+    "remainder": "oku",
+    "tokens": [
+      {
+        "range": [
+          0,
+          13
+        ],
+        "expression": "haftaya salı",
+        "kind": "date",
+        "value": "2026-10-13",
+        "confidence": "exact"
+      }
+    ]
+  },
+  {
+    "id": "leading-trailing",
+    "today": "2026-10-05",
+    "language": [
+      "tr",
+      "en"
+    ],
+    "input": "! Çığ oku !!",
+    "suppressed": [],
+    "remainder": "Çığ oku",
+    "tokens": [
+      {
+        "range": [
+          0,
+          1
+        ],
+        "expression": "!",
+        "kind": "priority",
+        "value": "medium",
+        "confidence": "exact"
+      },
+      {
+        "range": [
+          13,
+          15
+        ],
+        "expression": "!!",
+        "kind": "priority",
+        "value": "high",
+        "confidence": "exact"
+      }
+    ]
+  },
+  {
+    "id": "assumed",
+    "today": "2026-10-05",
+    "language": [
+      "tr",
+      "en"
+    ],
+    "input": "oku friday",
+    "suppressed": [],
+    "remainder": "oku",
+    "tokens": [
+      {
+        "range": [
+          4,
+          10
+        ],
+        "expression": "friday",
+        "kind": "date",
+        "value": "2026-10-09",
+        "confidence": "assumed"
+      }
+    ]
+  },
+  {
+    "id": "numeric-tr",
+    "today": "2026-10-05",
+    "language": [
+      "tr",
+      "en"
+    ],
+    "input": "oku 5/10",
+    "suppressed": [],
+    "remainder": "oku",
+    "tokens": [
+      {
+        "range": [
+          4,
+          8
+        ],
+        "expression": "5/10",
+        "kind": "date",
+        "value": "2026-10-05",
+        "confidence": "assumed"
+      }
+    ]
+  },
+  {
+    "id": "numeric-en",
+    "today": "2026-10-05",
+    "language": [
+      "en",
+      "tr"
+    ],
+    "input": "Read 5/10",
+    "suppressed": [],
+    "remainder": "Read",
+    "tokens": [
+      {
+        "range": [
+          5,
+          9
+        ],
+        "expression": "5/10",
+        "kind": "date",
+        "value": "2027-05-10",
+        "confidence": "assumed"
+      }
+    ]
+  },
+  {
+    "id": "inline-code",
+    "today": "2026-10-05",
+    "language": [
+      "tr",
+      "en"
+    ],
+    "input": "`her hafta yarın !!`",
+    "suppressed": [],
+    "remainder": "`her hafta yarın !!`",
+    "tokens": []
+  },
+  {
+    "id": "fenced-code",
+    "today": "2026-10-05",
+    "language": [
+      "tr",
+      "en"
+    ],
+    "input": "```\nher hafta yarın !!\n```",
+    "suppressed": [],
+    "remainder": "```\nher hafta yarın !!\n```",
+    "tokens": []
+  },
+  {
+    "id": "wiki",
+    "today": "2026-10-05",
+    "language": [
+      "tr",
+      "en"
+    ],
+    "input": "[[her hafta yarın !!]]",
+    "suppressed": [],
+    "remainder": "[[her hafta yarın !!]]",
+    "tokens": []
+  },
+  {
+    "id": "link",
+    "today": "2026-10-05",
+    "language": [
+      "tr",
+      "en"
+    ],
+    "input": "[her hafta yarın !!](https://example.test/tomorrow)",
+    "suppressed": [],
+    "remainder": "[her hafta yarın !!](https://example.test/tomorrow)",
+    "tokens": []
+  },
+  {
+    "id": "mention",
+    "today": "2026-10-05",
+    "language": [
+      "tr",
+      "en"
+    ],
+    "input": "@Her Gün @Yarın",
+    "suppressed": [],
+    "remainder": "@Her Gün @Yarın",
+    "tokens": []
+  },
+  {
+    "id": "priority-invalid",
+    "today": "2026-10-05",
+    "language": [
+      "tr",
+      "en"
+    ],
+    "input": "!!! oku!",
+    "suppressed": [],
+    "remainder": "!!! oku!",
+    "tokens": []
+  },
+  {
+    "id": "protected-and-outside",
+    "today": "2026-10-05",
+    "language": [
+      "tr",
+      "en"
+    ],
+    "input": "`yarın` [[her gün]] @Yarın tomorrow !!",
+    "suppressed": [],
+    "remainder": "`yarın` [[her gün]] @Yarın",
+    "tokens": [
+      {
+        "range": [
+          30,
+          38
+        ],
+        "expression": "tomorrow",
+        "kind": "date",
+        "value": "2026-10-06",
+        "confidence": "exact"
+      },
+      {
+        "range": [
+          39,
+          41
+        ],
+        "expression": "!!",
+        "kind": "priority",
+        "value": "high",
+        "confidence": "exact"
+      }
+    ]
+  },
+  {
+    "id": "suppress-recurrence",
+    "today": "2026-10-05",
+    "language": [
+      "tr",
+      "en"
+    ],
+    "input": "her hafta yarın !!",
+    "suppressed": [
+      [
+        0,
+        9
+      ]
+    ],
+    "remainder": "her hafta",
+    "tokens": [
+      {
+        "range": [
+          10,
+          16
+        ],
+        "expression": "yarın",
+        "kind": "date",
+        "value": "2026-10-06",
+        "confidence": "exact"
+      },
+      {
+        "range": [
+          17,
+          19
+        ],
+        "expression": "!!",
+        "kind": "priority",
+        "value": "high",
+        "confidence": "exact"
+      }
+    ]
+  },
+  {
+    "id": "suppress-date",
+    "today": "2026-10-05",
+    "language": [
+      "tr",
+      "en"
+    ],
+    "input": "Çığ ölç her gün yarın !!",
+    "suppressed": [
+      [
+        22,
+        28
+      ]
+    ],
+    "remainder": "Çığ ölç yarın",
+    "tokens": [
+      {
+        "range": [
+          13,
+          21
+        ],
+        "expression": "her gün",
+        "kind": "recurrence",
+        "value": "every day",
+        "confidence": "exact"
+      },
+      {
+        "range": [
+          29,
+          31
+        ],
+        "expression": "!!",
+        "kind": "priority",
+        "value": "high",
+        "confidence": "exact"
+      }
+    ]
+  },
+  {
+    "id": "suppress-priority",
+    "today": "2026-10-05",
+    "language": [
+      "tr",
+      "en"
+    ],
+    "input": "! oku yarın !!",
+    "suppressed": [
+      [
+        13,
+        15
+      ]
+    ],
+    "remainder": "oku !!",
+    "tokens": [
+      {
+        "range": [
+          0,
+          1
+        ],
+        "expression": "!",
+        "kind": "priority",
+        "value": "medium",
+        "confidence": "exact"
+      },
+      {
+        "range": [
+          6,
+          12
+        ],
+        "expression": "yarın",
+        "kind": "date",
+        "value": "2026-10-06",
+        "confidence": "exact"
+      }
+    ]
+  },
+  {
+    "id": "suppress-all",
+    "today": "2026-10-05",
+    "language": [
+      "tr",
+      "en"
+    ],
+    "input": "her hafta yarın !!",
+    "suppressed": [
+      [
+        0,
+        9
+      ],
+      [
+        10,
+        16
+      ],
+      [
+        17,
+        19
+      ]
+    ],
+    "remainder": "her hafta yarın !!",
+    "tokens": []
+  },
+  {
+    "id": "suppress-partial",
+    "today": "2026-10-05",
+    "language": [
+      "tr",
+      "en"
+    ],
+    "input": "oku yarın",
+    "suppressed": [
+      [
+        5,
+        6
+      ]
+    ],
+    "remainder": "oku yarın",
+    "tokens": []
+  },
+  {
+    "id": "suppressed-first-date",
+    "today": "2026-10-05",
+    "language": [
+      "tr",
+      "en"
+    ],
+    "input": "yarın tomorrow oku",
+    "suppressed": [
+      [
+        0,
+        6
+      ]
+    ],
+    "remainder": "yarın oku",
+    "tokens": [
+      {
+        "range": [
+          7,
+          15
+        ],
+        "expression": "tomorrow",
+        "kind": "date",
+        "value": "2026-10-06",
+        "confidence": "exact"
+      }
+    ]
+  },
+  {
+    "id": "joined-expression",
+    "today": "2026-10-05",
+    "language": [
+      "en"
+    ],
+    "input": "next every day week",
+    "suppressed": [],
+    "remainder": "",
+    "tokens": [
+      {
+        "range": [
+          0,
+          4
+        ],
+        "expression": "next",
+        "kind": "date",
+        "value": "2026-10-12",
+        "confidence": "exact"
+      },
+      {
+        "range": [
+          5,
+          14
+        ],
+        "expression": "every day",
+        "kind": "recurrence",
+        "value": "every day",
+        "confidence": "exact"
+      },
+      {
+        "range": [
+          15,
+          19
+        ],
+        "expression": "week",
+        "kind": "date",
+        "value": "2026-10-12",
+        "confidence": "exact"
+      }
+    ]
+  },
+  {
+    "id": "suppress-gap",
+    "today": "2026-10-05",
+    "language": [
+      "tr",
+      "en"
+    ],
+    "input": "oku her hafta",
+    "suppressed": [
+      [
+        7,
+        8
+      ]
+    ],
+    "remainder": "oku her hafta",
+    "tokens": []
+  },
+  {
+    "id": "tabs-and-lines",
+    "today": "2026-10-05",
+    "language": [
+      "tr",
+      "en"
+    ],
+    "input": "Çığ\t\ther gün\t\toku\r\nyarın\n",
+    "suppressed": [],
+    "remainder": "Çığ oku\r\n\n",
+    "tokens": [
+      {
+        "range": [
+          8,
+          16
+        ],
+        "expression": "her gün",
+        "kind": "recurrence",
+        "value": "every day",
+        "confidence": "exact"
+      },
+      {
+        "range": [
+          23,
+          29
+        ],
+        "expression": "yarın",
+        "kind": "date",
+        "value": "2026-10-06",
+        "confidence": "exact"
+      }
+    ]
+  }
+]

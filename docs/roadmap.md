@@ -1,6 +1,6 @@
 # Yol haritası
 
-**Aktif aşama:** 9 (Aşama 8'in açık kalan iki maddesi sahibin elindedir: kilidin gerçek cihazda doğrulanması ve eşitlenen klasör uyarısının metni)
+**Aktif aşama:** 10 (Aşama 8 ve 9'un açık kalan maddeleri sahibin elindedir: kilidin ve Bugün ekranının gerçek cihazda doğrulanması, eşitlenen klasör uyarısının metni)
 
 **Durum (2026-10-07).** Aşama 0–9'un kullanıcı kararı gerektirmeyen teknik maddeleri `dev` dalındadır; ilk sürüm `v0.9.0` `main`'de, TestFlight'ta dahili test başladı. Bu belgede `[x]`, "kodda var, testlerden ve CI'dan geçti" demektir. Aşamaların gerçek kullanım ölçütleri henüz ölçülmedi ve aşağıda ayrıca izlenir.
 

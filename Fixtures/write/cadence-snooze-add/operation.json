@@ -1,0 +1,9 @@
+{
+  "frontmatter": {
+    "operation": "set-value",
+    "key": "cadence_snoozed_until",
+    "value": {
+      "date": "2026-11-01"
+    }
+  }
+}

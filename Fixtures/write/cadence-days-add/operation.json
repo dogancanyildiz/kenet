@@ -1,0 +1,9 @@
+{
+  "frontmatter": {
+    "operation": "set-value",
+    "key": "cadence_days",
+    "value": {
+      "integer": 30
+    }
+  }
+}

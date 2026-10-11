@@ -1,0 +1,6 @@
+{
+  "frontmatter": {
+    "operation": "remove-field",
+    "key": "cadence_paused"
+  }
+}

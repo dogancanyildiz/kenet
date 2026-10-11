@@ -1,0 +1,140 @@
+[
+  {
+    "file": "people/Ada Kaya.md",
+    "key": "cadence_days",
+    "kind": "number",
+    "value": "7"
+  },
+  {
+    "file": "people/Bora Demir.md",
+    "key": "cadence_days",
+    "kind": "number",
+    "value": "14"
+  },
+  {
+    "file": "people/Eda Soylu.md",
+    "key": "cadence_days",
+    "kind": "number",
+    "value": "+30"
+  },
+  {
+    "file": "people/Fela Narin.md",
+    "key": "cadence_days",
+    "kind": "number",
+    "value": "7"
+  },
+  {
+    "file": "people/Fela Narin.md",
+    "key": "cadence_snoozed_until",
+    "kind": "date",
+    "value": "2026-10-11"
+  },
+  {
+    "file": "people/Gizem Tan.md",
+    "key": "cadence_days",
+    "kind": "number",
+    "value": "7"
+  },
+  {
+    "file": "people/Gizem Tan.md",
+    "key": "cadence_snoozed_until",
+    "kind": "date",
+    "value": "2026-10-10"
+  },
+  {
+    "file": "people/Hakan Eren.md",
+    "key": "cadence_paused",
+    "kind": "boolean",
+    "value": "TRUE"
+  },
+  {
+    "file": "people/Jale Kurt.md",
+    "key": "cadence_paused",
+    "kind": "boolean",
+    "value": "true"
+  },
+  {
+    "file": "people/Kaan Uslu.md",
+    "key": "cadence_days",
+    "kind": "number",
+    "value": "0"
+  },
+  {
+    "file": "people/Lina Baran.md",
+    "key": "cadence_days",
+    "kind": "number",
+    "value": "-4"
+  },
+  {
+    "file": "people/Nila Er.md",
+    "key": "cadence_days",
+    "kind": "number",
+    "value": "7.5"
+  },
+  {
+    "file": "people/Rüzgar Eli.md",
+    "key": "cadence_days",
+    "kind": "number",
+    "value": "7"
+  },
+  {
+    "file": "people/Rüzgar Eli.md",
+    "key": "cadence_paused",
+    "kind": "boolean",
+    "value": "false"
+  },
+  {
+    "file": "people/Sera Koç.md",
+    "key": "cadence_snoozed_until",
+    "kind": "date",
+    "value": "2026-10-11"
+  },
+  {
+    "file": "people/Tuna Mert.md",
+    "key": "cadence_days",
+    "kind": "number",
+    "value": "90"
+  },
+  {
+    "file": "people/Vera Lale.md",
+    "key": "cadence_days",
+    "kind": "number",
+    "value": "30"
+  },
+  {
+    "file": "people/Vera Lale.md",
+    "key": "cadence_paused",
+    "kind": "boolean",
+    "value": "true"
+  },
+  {
+    "file": "people/Vera Lale.md",
+    "key": "cadence_snoozed_until",
+    "kind": "date",
+    "value": "2026-11-01"
+  },
+  {
+    "file": "people/Yel Naz.md",
+    "key": "cadence_snoozed_until",
+    "kind": "date",
+    "value": "1990-10-11"
+  },
+  {
+    "file": "people/Zeki Mor.md",
+    "key": "cadence_days",
+    "kind": "date",
+    "value": "1991-10-11"
+  },
+  {
+    "file": "people/Zeki Mor.md",
+    "key": "cadence_paused",
+    "kind": "date",
+    "value": "1993-10-11"
+  },
+  {
+    "file": "people/Zeki Mor.md",
+    "key": "cadence_snoozed_until",
+    "kind": "date",
+    "value": "1992-10-11"
+  }
+]

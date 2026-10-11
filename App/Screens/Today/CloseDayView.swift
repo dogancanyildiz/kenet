@@ -2,7 +2,7 @@ import GoalTracking
 import SwiftUI
 import VaultFormat
 
-/// The short evening pass over what is still open today: tasks first, then daily goals.
+/// The short evening pass over what is still open today: tasks, then daily goals, then one sentence.
 ///
 /// Nothing here is a draft to save, and each step writes on its own (a marked goal at once,
 /// tasks on "Uygula"), so the bar holds "Kapat" alone: "Vazgeç" would promise to take those
@@ -12,6 +12,7 @@ import VaultFormat
 struct CloseDayView: View {
     @State private var model: CloseDayModel
     @State private var editing: GoalValueModel?
+    @FocusState private var sentenceFocused: Bool
     @Environment(GeofenceService.self) private var geofences: GeofenceService?
     @Environment(\.locale) private var locale
     @Environment(\.dismiss) private var dismiss
@@ -23,9 +24,8 @@ struct CloseDayView: View {
     private var bundle: Bundle { PresentationLocalization.bundle(locale) }
 
     private var stepText: String {
-        let number = model.step.rawValue + 1
-        let count = CloseDayStep.allCases.count
-        return String(localized: "Adım \(number)/\(count)", bundle: bundle, locale: locale)
+        String(
+            localized: "Adım \(model.stepNumber)/\(model.stepCount)", bundle: bundle, locale: locale)
     }
 
     var body: some View {
@@ -38,6 +38,7 @@ struct CloseDayView: View {
                 switch model.step {
                 case .tasks: tasksStep
                 case .goals: goalsStep
+                case .journal: journalStep
                 }
             }
         }
@@ -53,6 +54,10 @@ struct CloseDayView: View {
         }
         // The page changes under the same title: VoiceOver starts over and reads the new step.
         .onChange(of: model.step) { AccessibilityNotification.ScreenChanged().post() }
+        // "Yaz" keeps the focus and the field empties: the outcome is read out.
+        .onChange(of: model.journalNotice ?? model.journalError) { _, text in
+            if let text { AccessibilityNotification.Announcement(text).post() }
+        }
         .accessibilityIdentifier("screen.closeDay")
     }
 
@@ -128,6 +133,65 @@ struct CloseDayView: View {
         if let error = model.goals.errorText {
             InfoBand(kind: .error, verbatim: error)
         }
+        stepButtons
+    }
+
+    // MARK: - Journal
+
+    @ViewBuilder private var journalStep: some View {
+        @Bindable var model = model
+        SectionHeader(title: String(localized: "Günlük", bundle: bundle, locale: locale))
+        hint("Bugünden tek bir cümle yeter.")
+        TextField(
+            "Bugünden bir cümle", text: $model.sentence,
+            prompt: Text("Bugünden bir cümle").font(.ink.placeholder), axis: .vertical
+        )
+        .textFieldStyle(.plain)
+        .font(.ink.content)
+        .foregroundStyle(Color.ink.text)
+        .lineLimit(1...6)
+        .focused($sentenceFocused)
+        .accessibilityIdentifier("field.closeDay.sentence")
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .background(
+            Color.ink.well,
+            in: RoundedRectangle(cornerRadius: InkSize.kanbanCorner, style: .continuous)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: InkSize.kanbanCorner, style: .continuous)
+                .strokeBorder(
+                    InkButtonChrome.color(
+                        for: InkFilterFieldChrome.borderToken(isFocused: sentenceFocused)),
+                    lineWidth: InkStroke.control)
+        )
+        if let notice = model.journalNotice {
+            InfoBand(kind: .info, verbatim: notice)
+        }
+        if let error = model.journalError {
+            InfoBand(kind: .error, verbatim: error)
+        }
+        HStack(spacing: InkSpacing.section) {
+            if model.canGoBack { backButton }
+            Button("Yaz") { Task { await model.writeSentence() } }
+                .buttonStyle(InkPrimaryButtonStyle())
+                .disabled(!model.canWriteSentence)
+                .accessibilityIdentifier("button.closeDay.write")
+        }
+    }
+
+    @ViewBuilder private var stepButtons: some View {
+        HStack(spacing: InkSpacing.section) {
+            if model.canGoBack { backButton }
+            if model.canAdvance {
+                Button("İleri") { model.advance() }
+                    .buttonStyle(InkTextButtonStyle())
+                    .accessibilityIdentifier("button.closeDay.next")
+            }
+        }
+    }
+
+    private var backButton: some View {
         Button("Geri") { model.back() }
             .buttonStyle(InkTextButtonStyle())
             .accessibilityIdentifier("button.closeDay.back")

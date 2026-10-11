@@ -3285,6 +3285,38 @@
         }
       }
     },
+    "Bugünden bir cümle" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A sentence from today"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bugünden bir cümle"
+          }
+        }
+      }
+    },
+    "Bugünden tek bir cümle yeter." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "One sentence from today is enough."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bugünden tek bir cümle yeter."
+          }
+        }
+      }
+    },
     "Bugüne" : {
       "localizations" : {
         "en" : {
@@ -3569,6 +3601,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Cumartesi"
+          }
+        }
+      }
+    },
+    "Cümle günlüğe eklendi." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Added to the journal."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cümle günlüğe eklendi."
           }
         }
       }
@@ -11365,6 +11413,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Yarına"
+          }
+        }
+      }
+    },
+    "Yaz" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Write"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yaz"
           }
         }
       }

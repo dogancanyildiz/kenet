@@ -37,6 +37,12 @@ final class CloseDayUITests: XCTestCase {
         UITestSupport.waitForExistence(back)
         try audit(app)
 
+        UITestSupport.element(in: app, identifier: "button.closeDay.next").tap()
+        let write = UITestSupport.element(in: app, identifier: "button.closeDay.write")
+        UITestSupport.waitForExistence(write)
+        XCTAssertFalse(write.isEnabled)
+        try audit(app)
+
         UITestSupport.element(in: app, identifier: "button.closeDay.close").tap()
         XCTAssertTrue(back.waitForNonExistence(timeout: 15))
     }

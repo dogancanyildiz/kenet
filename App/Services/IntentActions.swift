@@ -47,6 +47,7 @@ final class IntentActions {
     var isLocked: () -> Bool
     private var isPerforming = false
     var languages: [DateParsing.Language] = [.turkish, .english]
+    var calendar = Calendar.autoupdatingCurrent
 
     init(
         store: IndexStore = IndexStore(), now: @escaping () -> Date = { Date() },
@@ -129,7 +130,7 @@ final class IntentActions {
         let priority = PriorityExpressionParser.parse(recurrence?.remainder ?? text)
         let input = priority?.remainder ?? recurrence?.remainder ?? text
         let explicit = RawDocument(bytes: ("- [ ] " + text).utf8).bodyLines.tasks.first?.priority
-        let expression = DateExpressionParser.parse(input, today: day, language: languages)
+        let expression = WeekStart.date(input, today: day, language: languages, calendar: calendar)
         let resolved = await Self.resolveTaskDate(
             due: due, expression: expression, input: input, confirmAssumedDate: confirmAssumedDate)
         guard !resolved.text.allSatisfy(\.isWhitespace) else { throw IntentActionError.emptyText }

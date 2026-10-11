@@ -1,13 +1,47 @@
 import Foundation
 import VaultFormat
 
-struct JournalCalendar {
+struct JournalCalendar: Sendable {
     let month: CalendarDate
     let markedDays: Set<CalendarDate>
+    let levels: [CalendarDate: Int]
 
     init(month: CalendarDate, days: [DaySummary]) {
-        self.month = CalendarDate(year: month.year, month: month.month, day: 1)!
-        markedDays = Set(days.map(\.date))
+        let firstOfMonth = CalendarDate(year: month.year, month: month.month, day: 1)!
+        self.month = firstOfMonth
+        var computedLevels: [CalendarDate: Int] = [:]
+        for day in days where day.date.year == firstOfMonth.year && day.date.month == firstOfMonth.month {
+            let level = Self.densityLevel(for: day)
+            if level > 0 {
+                computedLevels[day.date] = level
+            }
+        }
+        self.levels = computedLevels
+        self.markedDays = Set(computedLevels.keys)
+    }
+
+    static func score(for day: DaySummary) -> Int {
+        day.events.count + (!day.journal.isEmpty ? 1 : 0)
+    }
+
+    static func densityLevel(score: Int) -> Int {
+        if score >= 5 {
+            return 3
+        } else if score >= 2 {
+            return 2
+        } else if score == 1 {
+            return 1
+        } else {
+            return 0
+        }
+    }
+
+    static func densityLevel(for day: DaySummary) -> Int {
+        densityLevel(score: score(for: day))
+    }
+
+    func level(for date: CalendarDate) -> Int {
+        levels[date] ?? 0
     }
 
     func cells(firstWeekday: Int) -> [CalendarDate?] {

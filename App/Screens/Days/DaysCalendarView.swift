@@ -58,13 +58,13 @@ struct DaysCalendarView: View {
                 ForEach(cells.indices, id: \.self) { index in
                     if let day = cells[index] {
                         let isToday = day == today
-                        let isMarked = model.markedDays.contains(day)
+                        let level = model.level(for: day)
                         let isSelected = day == selected
                         Button {
                             select(day)
                         } label: {
                             DaysCalendarDayMark(
-                                day: day.day, isToday: isToday, isMarked: isMarked, isSelected: isSelected
+                                day: day.day, level: level, isToday: isToday, isSelected: isSelected
                             )
                             .tapTarget()
                         }
@@ -72,7 +72,7 @@ struct DaysCalendarView: View {
                         .accessibilityLabel(
                             Text(LocalDay.instant(for: day), format: .dateTime.day().month().year())
                         )
-                        .accessibilityHint(isMarked ? Text("Günlük kaydı var") : Text("Boş gün"))
+                        .accessibilityHint(level > 0 ? Text("Günlük kaydı var") : Text("Boş gün"))
                         .accessibilityAddTraits(isSelected ? .isSelected : [])
                     } else {
                         Color.clear.frame(height: 44)
@@ -95,6 +95,19 @@ enum DaysCalendarMarkLayout {
     /// Minimum gap between the day numeral and today's ring / selected disc.
     static let numeralInset: CGFloat = 2
 
+    /// Diameter of each density dot marker.
+    static let dotDiameter: CGFloat = 4
+
+    /// Spacing between density dots.
+    static let dotSpacing: CGFloat = 2
+
+    /// Width of the density dots for a given level (0–3).
+    static func dotsWidth(for level: Int) -> CGFloat {
+        let count = min(max(0, level), 3)
+        guard count > 0 else { return 0 }
+        return CGFloat(count) * dotDiameter + CGFloat(count - 1) * dotSpacing
+    }
+
     /// Square padding so the numeral's layout box fits inside the circle with ``numeralInset``
     /// clearance to the inner edge of the stroke (not merely to the square frame).
     static func numeralInset(diameter: CGFloat, strokeWidth: CGFloat = InkStroke.control) -> CGFloat {
@@ -106,13 +119,35 @@ enum DaysCalendarMarkLayout {
     }
 }
 
-/// Day cell: today = ring, marked = filled marker, selected = filled disc (form beyond color).
+/// Day cell: today = ring, marked = 1–3 density dots, selected = filled disc (form beyond color).
 struct DaysCalendarDayMark: View {
     let day: Int
+    let level: Int
     let isToday: Bool
-    let isMarked: Bool
     let isSelected: Bool
+    var isMarked: Bool { level > 0 }
     @ScaledMetric(relativeTo: .body) private var preferredDiameter = 32.0
+
+    init(day: Int, level: Int = 0, isToday: Bool = false, isSelected: Bool = false) {
+        self.day = day
+        self.level = level
+        self.isToday = isToday
+        self.isSelected = isSelected
+    }
+
+    init(day: Int, isToday: Bool, isMarked: Bool, isSelected: Bool) {
+        self.init(day: day, level: isMarked ? 1 : 0, isToday: isToday, isSelected: isSelected)
+    }
+
+    nonisolated static func accessibilityValueText(
+        level: Int, isToday: Bool, isSelected: Bool
+    ) -> String {
+        [
+            isToday ? String(localized: "Bugün") : nil,
+            level > 0 ? String(localized: "Yoğunluk \(level) / 3") : nil,
+            isSelected ? String(localized: "Seçili") : nil,
+        ].compactMap { $0 }.joined(separator: ", ")
+    }
 
     var body: some View {
         GeometryReader { geo in
@@ -138,19 +173,28 @@ struct DaysCalendarDayMark: View {
                         }
                     }
                 Group {
-                    if isMarked {
-                        if isSelected {
-                            // Selected already fills; mark with a square so form differs from the disc.
-                            RoundedRectangle(cornerRadius: 1, style: .continuous)
-                                .fill(Color.ink.accent)
-                                .frame(width: 4, height: 4)
-                        } else {
-                            Circle()
-                                .fill(Color.ink.accent)
-                                .frame(width: 4, height: 4)
+                    if level > 0 {
+                        HStack(spacing: DaysCalendarMarkLayout.dotSpacing) {
+                            ForEach(0..<min(level, 3), id: \.self) { _ in
+                                if isSelected {
+                                    // Selected already fills; mark with a square so form differs from the disc.
+                                    RoundedRectangle(cornerRadius: 1, style: .continuous)
+                                        .fill(Color.ink.accent)
+                                        .frame(
+                                            width: DaysCalendarMarkLayout.dotDiameter,
+                                            height: DaysCalendarMarkLayout.dotDiameter)
+                                } else {
+                                    Circle()
+                                        .fill(Color.ink.accent)
+                                        .frame(
+                                            width: DaysCalendarMarkLayout.dotDiameter,
+                                            height: DaysCalendarMarkLayout.dotDiameter)
+                                }
+                            }
                         }
+                        .frame(height: DaysCalendarMarkLayout.dotDiameter)
                     } else {
-                        Color.clear.frame(width: 4, height: 4)
+                        Color.clear.frame(height: DaysCalendarMarkLayout.dotDiameter)
                     }
                 }
                 .accessibilityHidden(true)
@@ -160,10 +204,7 @@ struct DaysCalendarDayMark: View {
         .frame(maxWidth: .infinity, minHeight: 44)
         .accessibilityValue(
             Text(
-                verbatim: [
-                    isToday ? String(localized: "Bugün") : nil,
-                    isMarked ? String(localized: "Günlük kaydı var") : nil,
-                    isSelected ? String(localized: "Seçili") : nil,
-                ].compactMap { $0 }.joined(separator: ", ")))
+                verbatim: Self.accessibilityValueText(
+                    level: level, isToday: isToday, isSelected: isSelected)))
     }
 }

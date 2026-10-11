@@ -1301,6 +1301,22 @@
         }
       }
     },
+    "Affedildi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Forgiven"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Affedildi"
+          }
+        }
+      }
+    },
     "Afiş, bildirim merkezi ve kilit ekranında görev metni, hedef adları ve kişi adları gösterilmez." : {
       "localizations" : {
         "en" : {
@@ -7165,6 +7181,22 @@
         }
       }
     },
+    "Kısmi katkı, affedildi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Partial contribution, forgiven"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kısmi katkı, affedildi"
+          }
+        }
+      }
+    },
     "Klasör" : {
       "localizations" : {
         "en" : {
@@ -8997,6 +9029,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Son 30 gün"
+          }
+        }
+      }
+    },
+    "Son 30 gün %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Last 30 days %lld%%"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Son 30 gün %%%lld"
           }
         }
       }

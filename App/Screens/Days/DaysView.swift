@@ -6,6 +6,8 @@ struct DaysView: View {
     let store: IndexStore
     var previewSelectedDay: CalendarDate? = nil
     @State private var selectedDay: CalendarDate?
+    @State private var showsWeeklyReview = false
+    @State private var weeklyReviewNotice: WeeklyReviewNotice?
 
     var body: some View {
         List {
@@ -22,6 +24,26 @@ struct DaysView: View {
                 }
             }
             .inkListRow()
+            // Opens a sheet, not a page: a button in the same row skeleton, without the chevron.
+            Button {
+                showsWeeklyReview = true
+            } label: {
+                MarginRow(kind: .external, time: nil) {
+                    Label("Haftalık inceleme", systemImage: "checklist")
+                        .font(.body)
+                        .foregroundStyle(.ink.text)
+                } secondary: {
+                    WeeklyReviewEntryStatus()
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityIdentifier("button.weeklyReview")
+            .inkListRow()
+            if let notice = weeklyReviewNotice {
+                InfoBand(kind: notice.kind, verbatim: notice.text, onDismiss: { weeklyReviewNotice = nil })
+                    .inkListRow()
+            }
             Section {
                 DaysCalendarView(
                     store: store, selected: selectedDay ?? previewSelectedDay
@@ -45,6 +67,7 @@ struct DaysView: View {
         .inkPage()
         .inkPageScrollColumn()
         .navigationDestination(item: $selectedDay) { day in DayView(store: store, date: day) }
+        .weeklyReviewSheet(isPresented: $showsWeeklyReview, store: store) { weeklyReviewNotice = $0 }
         .inkRootPageNavigationTitle("Günlük")
         .accessibilityIdentifier("screen.days")
     }

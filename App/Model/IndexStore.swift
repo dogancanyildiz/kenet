@@ -834,6 +834,20 @@ final class IndexStore {
         return grouped.mapValues(PersonCadence.parse)
     }
 
+    // MARK: - Cadence reminders
+
+    /// People as of `today`: latest encounter on or before that day, plus the indexed cadence.
+    func cadenceReminderPeople(today: CalendarDate) async throws -> [CadenceReminderPerson] {
+        let cadences = try await personCadences()
+        let content = self.content
+        return content.entities.filter { $0.kind == "person" }.map { entity in
+            let last = content.entityTimeline[entity.id]?.map(\.date).filter { $0 <= today }.max()
+            return CadenceReminderPerson(
+                id: entity.id, name: entity.name, lastDay: last, cadence: cadences[entity.id] ?? .none)
+        }
+    }
+}
+
     // MARK: - Weekly review
 
     /// Source data of the days in the range; counted by the review itself, whose week follows the

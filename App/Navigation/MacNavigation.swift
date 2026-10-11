@@ -20,6 +20,7 @@
         @State private var entityOrder = EntityOrdering.name
         @State private var entitySearch = ""
         @State private var selectedEntityKind = "person"
+        @State private var unseenReveal: UUID?
         @State private var sidebarRestoresFocus = false
 
         init(store: IndexStore) {
@@ -85,7 +86,19 @@
                 tasksEvent(.navigationReset)
                 selectedTask = nil
                 selectedDay = nil
-                section = request.destination == .tasks ? .tasks : .today
+                switch NotificationRoute(request.destination) {
+                case .tasks:
+                    section = .tasks
+                case .unseenPeople:
+                    section = .people
+                    selectedEntityKind = "person"
+                    entitySearch = ""
+                    selectedEntity = nil
+                    selectedSummary = nil
+                    unseenReveal = request.id
+                case .today:
+                    section = .today
+                }
             }
             .onChange(of: store.vaultURL) { _, _ in
                 selectedTask = nil
@@ -149,7 +162,8 @@
                     case .people, .places:
                         MacEntitiesColumn(
                             store: store, sectionTitle: (section ?? .people).title, kind: $selectedEntityKind,
-                            order: $entityOrder, search: $entitySearch, selection: entitySelection)
+                            order: $entityOrder, search: $entitySearch, selection: entitySelection,
+                            unseenReveal: unseenReveal)
                     }
                 }
                 .inkPage()
@@ -337,6 +351,7 @@
         @Binding var order: EntityOrdering
         @Binding var search: String
         @Binding var selection: String?
+        var unseenReveal: UUID? = nil
 
         var body: some View {
             VStack(spacing: 0) {
@@ -362,7 +377,7 @@
                     store: store,
                     entities: EntityListQuery.entities(
                         in: store.content, usage: store.entityUsage, kind: kind, search: search, order: order),
-                    showsUnseen: kind == "person", selection: $selection)
+                    showsUnseen: kind == "person", unseenReveal: unseenReveal, selection: $selection)
             }
         }
 
@@ -413,14 +428,17 @@
         let store: IndexStore
         let entities: [EntitySummary]
         var showsUnseen: Bool
+        var unseenReveal: UUID? = nil
         @Binding var selection: String?
 
         var body: some View {
             List(selection: $selection) {
                 if showsUnseen {
-                    UnseenPeopleSection(store: store, people: entities) { entity in
-                        selection = entity.id
-                    }
+                    UnseenPeopleSection(
+                        store: store, people: entities, select: { selection = $0.id },
+                        initiallyExpanded: unseenReveal != nil
+                    )
+                    .id(unseenReveal)
                 }
                 ForEach(entities) { entity in
                     EntityRow(entity: entity)

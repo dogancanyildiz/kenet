@@ -2,16 +2,31 @@ import Foundation
 import VaultFormat
 
 enum NotificationDestination: String, Codable, Sendable {
-    case tasks, goals, journal
+    case tasks, goals, journal, people
     var prefix: String { self == .tasks ? "task" : rawValue }
     static func from(identifier: String) -> Self? {
-        for destination in [Self.tasks, .goals, .journal] {
+        for destination in [Self.tasks, .goals, .journal, .people] {
             let prefix = destination.prefix + "-"
             if identifier.hasPrefix(prefix), CalendarDate(String(identifier.dropFirst(prefix.count))) != nil {
                 return destination
             }
         }
         return nil
+    }
+}
+
+/// Screen a tapped notification opens. Goals and the journal prompt both land on Today.
+enum NotificationRoute: Equatable, Sendable {
+    case today
+    case tasks
+    case unseenPeople
+
+    init(_ destination: NotificationDestination) {
+        switch destination {
+        case .tasks: self = .tasks
+        case .goals, .journal: self = .today
+        case .people: self = .unseenPeople
+        }
     }
 }
 

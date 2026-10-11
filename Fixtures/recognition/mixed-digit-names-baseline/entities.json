@@ -1,0 +1,39 @@
+{
+  "entities": [
+    {
+      "file": "places/Daire 12.md",
+      "kind": "place",
+      "name": "Daire 12",
+      "aliases": [
+        "D12"
+      ]
+    },
+    {
+      "file": "places/3. Kat.md",
+      "kind": "place",
+      "name": "3. Kat",
+      "aliases": [
+        "Kat 3"
+      ]
+    },
+    {
+      "file": "places/2. Dünya Savaşı.md",
+      "kind": "place",
+      "name": "2. Dünya Savaşı",
+      "aliases": [
+        "7/24",
+        "1.250",
+        "12:30 Vapuru"
+      ]
+    },
+    {
+      "file": "people/Deniz Arıkan.md",
+      "kind": "person",
+      "name": "Deniz Arıkan",
+      "aliases": [
+        "Deniz",
+        "R2-D2"
+      ]
+    }
+  ]
+}

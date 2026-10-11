@@ -315,9 +315,10 @@
             #expect(preferences.goalTime == NotificationTime(hour: 6, minute: 45))
             #expect(preferences.taskTime == NotificationTime(hour: 9))
             #expect(preferences.journalTime == NotificationTime(hour: 21))
+            #expect(preferences.peopleTime == NotificationTime(hour: 10))
         }
 
-        /// The three time fields of the page, driven as the user drives them: each writes its
+        /// The time fields of the page, driven as the user drives them: each writes its
         /// own reminder and no other.
         @Test func notificationTimeFieldsWriteTheirOwnReminder() async throws {
             let defaults = try TestDefaults()
@@ -332,7 +333,7 @@
             let fields = Dictionary(
                 mount.views(NSDatePicker.self).map { ($0.accessibilityLabel() ?? "", $0) },
                 uniquingKeysWith: { first, _ in first })
-            #expect(fields.keys.sorted() == ["Görev saati", "Günlük saati", "Hedef saati"])
+            #expect(fields.keys.sorted() == ["Görev saati", "Görüşme saati", "Günlük saati", "Hedef saati"])
 
             let goal = try #require(fields["Hedef saati"])
             #expect(Array(Self.clock(goal.dateValue).suffix(2)) == [20, 0])
@@ -354,11 +355,24 @@
             #expect(service.preferences.taskTime == NotificationTime(hour: 10))
             #expect(service.preferences.goalTime == NotificationTime(hour: 21))
 
+            let people = try #require(fields["Görüşme saati"])
+            #expect(!people.isEnabled)
+            service.preferences.peopleEnabled = true
+            await mount.settle()
+            #expect(people.isEnabled)
+            #expect(Array(Self.clock(people.dateValue).suffix(2)) == [10, 0])
+            Self.stepUp(people)
+            #expect(service.preferences.peopleTime == NotificationTime(hour: 11))
+            #expect(service.preferences.taskTime == NotificationTime(hour: 10))
+            #expect(service.preferences.goalTime == NotificationTime(hour: 21))
+            #expect(service.preferences.journalTime == NotificationTime(hour: 22))
+
             // A reminder that is switched off cannot be retimed.
             service.preferences.goalsEnabled = false
             await mount.settle()
             #expect(!goal.isEnabled)
             #expect(task.isEnabled)
+            #expect(people.isEnabled)
         }
     }
 

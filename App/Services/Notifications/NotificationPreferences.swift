@@ -12,12 +12,15 @@ struct NotificationPreferences: Codable, Equatable, Sendable {
     var tasksEnabled = true
     var goalsEnabled = true
     var journalEnabled = true
+    /// Optional meeting-cadence reminder. Off until the user turns it on; nothing is written to the vault.
+    var peopleEnabled = false
     var taskTime = NotificationTime(hour: 9)
     var goalTime = NotificationTime(hour: 20)
     var journalTime = NotificationTime(hour: 21)
-    /// When true, planned notifications omit task text and goal names.
+    var peopleTime = NotificationTime(hour: 10)
+    /// When true, planned notifications omit task text, goal names and people names.
     var hideContent = false
-    var isValid: Bool { taskTime.isValid && goalTime.isValid && journalTime.isValid }
+    var isValid: Bool { taskTime.isValid && goalTime.isValid && journalTime.isValid && peopleTime.isValid }
 
     static let storageKey = "journal.notifications.v1"
     static func read(from defaults: UserDefaults) -> Self {
@@ -32,7 +35,8 @@ struct NotificationPreferences: Codable, Equatable, Sendable {
     }
 
     enum CodingKeys: String, CodingKey {
-        case tasksEnabled, goalsEnabled, journalEnabled, taskTime, goalTime, journalTime, hideContent
+        case tasksEnabled, goalsEnabled, journalEnabled, peopleEnabled, taskTime, goalTime, journalTime, peopleTime,
+            hideContent
     }
 
     init() {}
@@ -42,10 +46,13 @@ struct NotificationPreferences: Codable, Equatable, Sendable {
         tasksEnabled = try container.decodeIfPresent(Bool.self, forKey: .tasksEnabled) ?? true
         goalsEnabled = try container.decodeIfPresent(Bool.self, forKey: .goalsEnabled) ?? true
         journalEnabled = try container.decodeIfPresent(Bool.self, forKey: .journalEnabled) ?? true
+        peopleEnabled = try container.decodeIfPresent(Bool.self, forKey: .peopleEnabled) ?? false
         taskTime = try container.decodeIfPresent(NotificationTime.self, forKey: .taskTime) ?? NotificationTime(hour: 9)
         goalTime = try container.decodeIfPresent(NotificationTime.self, forKey: .goalTime) ?? NotificationTime(hour: 20)
         journalTime =
             try container.decodeIfPresent(NotificationTime.self, forKey: .journalTime) ?? NotificationTime(hour: 21)
+        peopleTime =
+            try container.decodeIfPresent(NotificationTime.self, forKey: .peopleTime) ?? NotificationTime(hour: 10)
         hideContent = try container.decodeIfPresent(Bool.self, forKey: .hideContent) ?? false
     }
 }

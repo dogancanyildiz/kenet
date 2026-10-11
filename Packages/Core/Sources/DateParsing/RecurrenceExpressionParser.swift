@@ -9,7 +9,11 @@ public struct RecurrenceParse: Sendable, Equatable {
 /// Small explicit tr/en dictionary; shares date recognition's Markdown exclusions.
 public enum RecurrenceExpressionParser {
     public static func parse(_ text: String, language: [Language]) -> RecurrenceParse? {
-        let source = DateTokens(text)
+        parse(text, language: language, excluding: [])
+    }
+
+    static func parse(_ text: String, language: [Language], excluding excluded: [Range<Int>]) -> RecurrenceParse? {
+        let source = DateTokens(text, excluding: excluded)
         let task = RawDocument(bytes: ("- [ ] " + text).utf8).bodyLines.tasks.first
         guard task?.recurrenceSource == nil else { return nil }
         for start in source.tokens.indices {
@@ -56,6 +60,7 @@ public enum RecurrenceExpressionParser {
                     continue
                 }
                 let range = source.tokens[start].range.lowerBound..<source.tokens[end - 1].range.upperBound
+                guard !excluded.contains(where: { $0.overlaps(range) }) else { continue }
                 return RecurrenceParse(
                     byteRange: range, recurrence: recurrence,
                     remainder: DateExpressionParser.remainder(source.bytes, removing: range))

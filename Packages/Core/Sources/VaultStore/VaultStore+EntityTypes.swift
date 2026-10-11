@@ -25,6 +25,8 @@ extension VaultStore {
                 do {
                     data = try EntityTypeJSONEdit(try self.readFile(url)).upserting(definition, replacing: expected?.id)
                 } catch CocoaError.fileReadNoSuchFile {
+                    // A new file beside an undownloaded one would drop every other definition on sync.
+                    try self.rejectPendingDownload(at: url, path: ".app/types.json")
                     guard expected == nil else { throw EntityTypeError.staleDefinition }
                     let encoder = JSONEncoder()
                     encoder.outputFormatting = [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]

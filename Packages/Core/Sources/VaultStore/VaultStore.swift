@@ -262,6 +262,7 @@ public actor VaultStore {
                 original = RawDocument(bytes: try readFile(url))
                 wasMissing = false
             } catch CocoaError.fileReadNoSuchFile where date != nil {
+                try rejectPendingDownload(at: url, path: path)
                 guard createDay else { return RawDocument(bytes: []) }
                 wasMissing = true
                 original = try RawDocument(bytes: []).settingFrontmatterValue(.text("journal"), forKey: "type")

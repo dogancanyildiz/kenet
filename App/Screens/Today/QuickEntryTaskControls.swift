@@ -123,6 +123,42 @@ struct QuickEntryTaskControls: View {
     }
 }
 
+/// Calendar attendees the vault does not know: a tap moves one into the text as `@Name`.
+struct QuickEntryAttendeeChips: View {
+    let model: QuickEntryModel
+    let onAdd: () -> Void
+
+    var body: some View {
+        if !model.unknownAttendees.isEmpty {
+            ScrollView(.horizontal) {
+                HStack(spacing: 8) {
+                    ForEach(model.unknownAttendees, id: \.self) { name in
+                        Button {
+                            model.addUnknownAttendee(name)
+                            onAdd()
+                        } label: {
+                            HStack(spacing: 4) {
+                                Image(systemName: "plus")
+                                    .font(.caption2.weight(.semibold))
+                                    .foregroundStyle(Color.ink.secondaryText)
+                                Text(verbatim: name)
+                                    .lineLimit(1)
+                            }
+                            .font(.ink.meta)
+                            .foregroundStyle(Color.ink.text)
+                            .modifier(QuickEntryPill(stroke: Color.ink.control))
+                            .tapTarget()
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel(Text("Katılımcıyı ekle: \(name)"))
+                    }
+                }
+            }
+            .scrollIndicators(.hidden)
+        }
+    }
+}
+
 /// Shared outline of the date control and the chips beside it.
 private struct QuickEntryPill: ViewModifier {
     let stroke: Color

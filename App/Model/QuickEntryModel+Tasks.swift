@@ -17,8 +17,13 @@ extension QuickEntryModel {
     /// Every task expression is read from here, so a suppressed one stays literal everywhere.
     var taskAnalysis: QuickEntryAnalysis? {
         guard mode == .task else { return nil }
-        return QuickEntryAnalysis.analyze(
-            text, today: today(), language: languages, suppressedRanges: suppressedExpressions)
+        return analysis(of: text, suppressing: suppressedExpressions)
+    }
+
+    /// The text before an edit is read the same way, or the two readings differ without the date changing.
+    func analysis(of text: String, suppressing suppressed: [Range<Int>]) -> QuickEntryAnalysis {
+        WeekStart.analysis(
+            text, today: today(), language: languages, suppressedRanges: suppressed, calendar: calendar)
     }
 
     var recurrenceExpression: RecurrenceExpression? {

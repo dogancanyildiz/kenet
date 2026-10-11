@@ -1,0 +1,56 @@
+{
+  "attendees": [
+    {
+      "name": "Deniz Arıkan",
+      "isCurrentUser": false
+    },
+    {
+      "name": "Selin",
+      "isCurrentUser": false
+    },
+    {
+      "name": "Mert Aksu",
+      "isCurrentUser": false
+    },
+    {
+      "name": "Ada Soylu",
+      "isCurrentUser": false
+    },
+    {
+      "name": "ece@example.com",
+      "isCurrentUser": false
+    },
+    {
+      "name": "",
+      "isCurrentUser": false
+    },
+    {
+      "name": "   ",
+      "isCurrentUser": false
+    },
+    {
+      "name": "Ece Yalın",
+      "isCurrentUser": true
+    },
+    {
+      "name": "Baran Tunç",
+      "isCurrentUser": false
+    },
+    {
+      "name": "IRMAK İNCE",
+      "isCurrentUser": false
+    },
+    {
+      "name": "ırmak ince",
+      "isCurrentUser": false
+    },
+    {
+      "name": "  deniz arıkan ",
+      "isCurrentUser": false
+    },
+    {
+      "name": "Mert",
+      "isCurrentUser": false
+    }
+  ]
+}

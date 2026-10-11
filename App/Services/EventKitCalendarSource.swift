@@ -1,4 +1,5 @@
 import CoreGraphics
+import EntityRecognition
 import EventKit
 import Foundation
 
@@ -52,7 +53,11 @@ private actor CalendarEventReader {
                 title: event.title ?? "", start: event.startDate, end: event.endDate,
                 isAllDay: event.isAllDay,
                 color: CalendarEventColor(
-                    red: components[0], green: components[1], blue: components[2], alpha: components[3]))
+                    red: components[0], green: components[1], blue: components[2], alpha: components[3]),
+                // Rooms, resources and groups are not people to mention.
+                attendees: (event.attendees ?? [])
+                    .filter { $0.participantType == .person || $0.participantType == .unknown }
+                    .map { Attendee(name: $0.name ?? "", isCurrentUser: $0.isCurrentUser) })
         }
     }
 }

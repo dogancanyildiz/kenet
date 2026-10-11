@@ -1,4 +1,5 @@
 import Foundation
+import Summaries
 import VaultFormat
 import VaultIndex
 
@@ -93,4 +94,16 @@ final class FakeNotificationCenter: NotificationScheduling {
         activationCount += 1
         self.response = response
     }
+}
+
+func cadencePerson(
+    _ id: String, name: String, last: String?, days: Int?, snoozed: String? = nil, paused: Bool = false
+) -> CadenceReminderPerson {
+    CadenceReminderPerson(
+        id: id, name: name, lastDay: last.flatMap { CalendarDate($0) },
+        cadence: PersonCadence(days: days, snoozedUntil: snoozed.flatMap { CalendarDate($0) }, isPaused: paused))
+}
+
+func cadenceWindow(from today: CalendarDate, count: Int = 7) -> [CalendarDate] {
+    (0..<count).compactMap { today.addingDays($0) }
 }

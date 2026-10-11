@@ -47,7 +47,7 @@ En altta sabit **hızlı giriş kapsülü** (opak; içeriğin üstüne binmez).
 
 - Sayfa adı serif manşet olarak listenin içinde durur; gezinme çubuğunda büyük başlık yoktur.
 - Günlerin ters kronolojik listesi; her günde olay sayısı ve günlük yazısının ilk satırı.
-- Üstte Özetler girişi ve takvim ile güne atlama; bugünün günü halkayla işaretlenir (rakam ile halka arasında boşluk kalır).
+- Üstte Özetler girişi ve takvim ile güne atlama; her günün altında yoğunluk düzeyine göre noktalar (1–3 nokta; boş gün işaretsiz); bugünün günü halkayla işaretlenir (rakam ile halka arasında boşluk kalır).
 - Bir güne girince: o günün olayları, görevleri, hedef kayıtları ve serbest yazısı. Bugün ekranıyla aynı düzen, herhangi bir gün için.
 - Geçmiş bir güne olay eklenebilir ve o günün hedef kayıtları düzeltilebilir.
 

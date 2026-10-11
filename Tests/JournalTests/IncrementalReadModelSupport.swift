@@ -101,3 +101,25 @@ enum IncrementalReadModelVault {
         ).content
     }
 }
+
+extension GraphInput {
+    /// How the read model built the graph before it moved to a Core query: the oracle the query
+    /// is compared with. Links from every file count; day mentions only from day files.
+    init(snapshot: IndexSnapshot, entities: [EntitySummary]) {
+        self.init()
+        self.entities = entities.filter { Self.kinds.contains($0.kind) }
+        let known = Set(self.entities.map(\.id))
+        let dates = Dictionary(
+            uniqueKeysWithValues: snapshot.files.compactMap { file -> (String, CalendarDate)? in
+                guard file.kind == "day", let date = file.date.flatMap(CalendarDate.init) else { return nil }
+                return (file.path, date)
+            })
+        var days: [CalendarDate: [String: Int]] = [:]
+        for link in snapshot.links {
+            guard let target = link.resolvedFile, known.contains(target) else { continue }
+            totals[target, default: 0] += 1
+            if let date = dates[link.file] { days[date, default: [:]][target, default: 0] += 1 }
+        }
+        self.days = days.map { Day(date: $0.key, mentions: $0.value) }.sorted { $0.date < $1.date }
+    }
+}

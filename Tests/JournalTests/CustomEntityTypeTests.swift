@@ -19,7 +19,7 @@ import VaultFormat
         #expect(EntityTypeChoices.selection("book", in: context.store.entityTypes) == "book")
         #expect(EntityTypeChoices.selection("removed", in: context.store.entityTypes) == "person")
         #expect(context.store.content.entities.count == 2)
-        #expect(context.store.content.graphInput.entities.isEmpty)
+        #expect(try await context.store.computeGraphInput().entities.isEmpty)
         #expect(
             EntityListQuery.entities(in: context.store.content, usage: [], kind: "book", search: "orman", order: .name)
                 .count == 1)

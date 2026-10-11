@@ -11,7 +11,8 @@ import VaultFormat
         let context = try TaskTestContext(sample: true)
         defer { context.clean() }
         await context.start()
-        let graph = GraphModel.compute(input: context.store.content.graphInput, filter: GraphFilter(), today: today)
+        let input = try await context.store.computeGraphInput()
+        let graph = GraphModel.compute(input: input, filter: GraphFilter(), today: today)
         #expect(graph.nodes.count == 10)
         func weight(_ first: String, _ second: String) -> Int? {
             graph.edges.first { Set([$0.first, $0.second]) == Set([first, second]) }?.weight
@@ -29,7 +30,7 @@ import VaultFormat
         let context = try TaskTestContext(sample: true)
         defer { context.clean() }
         await context.start()
-        let input = context.store.content.graphInput
+        let input = try await context.store.computeGraphInput()
         var filter = GraphFilter()
         filter.people = false
         let places = GraphModel.compute(input: input, filter: filter, today: today)

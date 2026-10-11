@@ -268,4 +268,58 @@ struct IncrementalReadModelTests {
         #expect(incremental.matchesScreenFields(full))
         #expect(incremental.reservedGoalKeys.contains("broken-milestone"))
     }
+
+    /// The graph left the read model for a Core query: after each incremental publish, the query on
+    /// the maintained index with the patched entities equals the old construction from a rebuild.
+    @Test func graphAfterIncrementalEditsMatchesFullRebuild() async throws {
+        let root = try testDirectory()
+        defer { try? FileManager.default.removeItem(at: root) }
+        try IncrementalReadModelVault.seed(at: root)
+        let index = try VaultIndex()
+        try index.rebuild(vaultRoot: root)
+        let store = VaultStore(vaultRoot: root, index: index)
+        let today = IncrementalReadModelVault.today
+        let day = "journal/\(today).md"
+        func graphs(_ model: VaultReadModel) throws -> (published: GraphInput, rebuilt: GraphInput) {
+            let rebuilt = try VaultIndex()
+            try rebuilt.rebuild(vaultRoot: root)
+            let full = try IncrementalReadModelVault.fullModel(index: rebuilt)
+            return (
+                GraphInput(entities: model.entities, mentions: try index.graphMentions(kinds: GraphInput.kinds)),
+                GraphInput(snapshot: try rebuilt.snapshot(), entities: full.entities)
+            )
+        }
+
+        var model = try IncrementalReadModelVault.fullModel(index: index)
+        _ = try await store.addingEvent(on: today, text: "Lunch with [[Deniz Example]] at [[Harbor Cafe]]", time: nil)
+        model = try VaultPublishedContent.applying(
+            previous: model, index: index, changedPaths: [day], today: today
+        ).content
+        var pair = try graphs(model)
+        #expect(pair.published == pair.rebuilt)
+        #expect(pair.published.totals == ["people/Deniz Example.md": 3, "places/Harbor Cafe.md": 3])
+        #expect(
+            pair.published.days == [
+                .init(date: CalendarDate("2026-10-04")!, mentions: ["places/Harbor Cafe.md": 1]),
+                .init(date: today, mentions: ["people/Deniz Example.md": 3, "places/Harbor Cafe.md": 2]),
+            ])
+
+        let renamed = try await store.renamingEntity(at: "people/Deniz Example.md", to: "Deniz Renamed")
+        var changed = Set(renamed.updatedFiles)
+        changed.formUnion([renamed.path, "people/Deniz Example.md"])
+        model = try VaultPublishedContent.applying(
+            previous: model, index: index, changedPaths: changed, deletedPaths: ["people/Deniz Example.md"],
+            today: today
+        ).content
+        pair = try graphs(model)
+        #expect(pair.published == pair.rebuilt)
+        #expect(pair.published.entities.map(\.name) == ["Deniz Renamed", "Harbor Cafe"])
+
+        try FileManager.default.removeItem(at: root.appendingPathComponent("journal/2026-10-04.md"))
+        let result = try index.refresh(vaultRoot: root)
+        model = try IncrementalReadModelVault.apply(model, index: index, result: result)
+        pair = try graphs(model)
+        #expect(pair.published == pair.rebuilt)
+        #expect(pair.published.days.map(\.date) == [today])
+    }
 }

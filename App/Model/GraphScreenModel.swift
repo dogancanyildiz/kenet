@@ -31,13 +31,14 @@ final class GraphScreenModel {
         let id = UUID()
         request = id
         let root = store.vaultURL
-        let input = store.content.graphInput
         let filter = filter
         // A live layout that is already on screen rearranges from where it is; anything else
         // starts from the seed and is always the same picture.
         let rearranges = live && motion.isLive && !motion.nodes.isEmpty
         isLoading = true
         defer { if request == id { isLoading = false } }
+        // A query that outlived its vault is dropped; the reload for the new vault follows.
+        guard let input = try? await store.computeGraphInput() else { return }
         let worker = Task.detached { () -> (GraphModel, GraphScene, [GraphPoint]?)? in
             let graph = GraphModel.compute(input: input, filter: filter, today: today)
             var scene = GraphScene(graph)

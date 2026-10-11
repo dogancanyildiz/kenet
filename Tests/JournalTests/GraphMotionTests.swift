@@ -223,8 +223,8 @@ import VaultFormat
         let context = try TaskTestContext(sample: true)
         defer { context.clean() }
         await context.start()
-        let settled = GraphLayout.compute(
-            GraphModel.compute(input: context.store.content.graphInput, filter: GraphFilter(), today: today))
+        let input = try await context.store.computeGraphInput()
+        let settled = GraphLayout.compute(GraphModel.compute(input: input, filter: GraphFilter(), today: today))
 
         // Reduce Motion / image tests: the finished layout, nothing running.
         let still = GraphScreenModel(store: context.store, focus: "people/Deniz Arıkan.md")

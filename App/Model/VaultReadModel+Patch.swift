@@ -28,17 +28,15 @@ extension VaultReadModel {
     ) {
         goalLogStart = today.addingDays(-399) ?? today
         let goalLogEnd = today.addingDays(6) ?? today
-        let knownGraph = Set(
-            entities.filter { $0.kind == "person" || $0.kind == "place" }.map(\.id))
 
         for path in removed.union(touched) {
             if let old = before[path] {
-                subtractContributions(of: old, knownGraph: knownGraph)
+                subtractContributions(of: old)
             }
         }
         for path in touched {
             if let fragment = fragments[path] {
-                addContributions(of: fragment, knownGraph: knownGraph)
+                addContributions(of: fragment)
             }
         }
 
@@ -47,8 +45,6 @@ extension VaultReadModel {
             return left.sourceLine < right.sourceLine
         }
         days.sort(by: VaultReadModel.daySort)
-        graphInput.days.sort { $0.date < $1.date }
-        graphInput.entities = entities.filter { knownGraph.contains($0.id) }
 
         let goalTouched = removed.union(touched).contains { path in
             !(before[path]?.goalLogs.isEmpty ?? true)
@@ -75,22 +71,17 @@ extension VaultReadModel {
         }
     }
 
-    private mutating func subtractContributions(
-        of fragment: VaultFileFragment, knownGraph: Set<String>
-    ) {
+    private mutating func subtractContributions(of fragment: VaultFileFragment) {
         let path = fragment.file.path
         tasks.removeAll { $0.file == path }
         days.removeAll { $0.id == path }
         removeTimelineRows(
             from: path, targets: Set(fragment.links.compactMap(\.resolvedFile)))
         adjustIncoming(links: fragment.links, delta: -1)
-        adjustGraph(links: fragment.links, dates: dayDate(fragment), knownGraph: knownGraph, delta: -1)
         adjustCounts(of: fragment, delta: -1)
     }
 
-    private mutating func addContributions(
-        of fragment: VaultFileFragment, knownGraph: Set<String>
-    ) {
+    private mutating func addContributions(of fragment: VaultFileFragment) {
         let links = fragment.links
         tasks += fragment.blocks.filter { $0.kind == "task" }.map { TaskRow(row: $0, links: links) }
         if fragment.file.kind == "day", let value = fragment.file.date, let date = CalendarDate(value) {
@@ -98,7 +89,6 @@ extension VaultReadModel {
             addTimelineRows(fragment: fragment, date: date)
         }
         adjustIncoming(links: links, delta: 1)
-        adjustGraph(links: links, dates: dayDate(fragment), knownGraph: knownGraph, delta: 1)
         adjustCounts(of: fragment, delta: 1)
     }
 
@@ -127,11 +117,6 @@ extension VaultReadModel {
                 id: entity.id, kind: entity.kind, name: entity.name, qualifier: entity.qualifier,
                 aliases: entity.aliases, incomingLinks: max(0, entity.incomingLinks + change))
         }
-    }
-
-    private func dayDate(_ fragment: VaultFileFragment) -> CalendarDate? {
-        guard fragment.file.kind == "day", let value = fragment.file.date else { return nil }
-        return CalendarDate(value)
     }
 
     private func daySummary(
@@ -197,33 +182,6 @@ extension VaultReadModel {
                 days.sort { $0.date > $1.date }
             }
             entityTimeline[target] = days
-        }
-    }
-
-    private mutating func adjustGraph(
-        links: [IndexedLink], dates: CalendarDate?, knownGraph: Set<String>, delta: Int
-    ) {
-        var dayMentions = dates.map { date -> (CalendarDate, [String: Int]) in
-            if let existing = graphInput.days.first(where: { $0.date == date }) {
-                return (date, existing.mentions)
-            }
-            return (date, [:])
-        }
-        for link in links {
-            guard let target = link.resolvedFile, knownGraph.contains(target) else { continue }
-            graphInput.totals[target, default: 0] += delta
-            if graphInput.totals[target] == 0 { graphInput.totals[target] = nil }
-            if var pair = dayMentions {
-                pair.1[target, default: 0] += delta
-                if pair.1[target] == 0 { pair.1[target] = nil }
-                dayMentions = pair
-            }
-        }
-        if let pair = dayMentions {
-            graphInput.days.removeAll { $0.date == pair.0 }
-            if !pair.1.isEmpty {
-                graphInput.days.append(GraphInput.Day(date: pair.0, mentions: pair.1))
-            }
         }
     }
 }

@@ -21,6 +21,8 @@ Journal.xcodeproj/
 # Derleme çıktıları
 build/
 DerivedData/
+# Worktree içi -derivedDataPath (betikler .dd kullanır)
+.dd/
 *.ipa
 *.dSYM
 *.dSYM.zip

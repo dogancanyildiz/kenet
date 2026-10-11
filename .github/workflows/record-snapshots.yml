@@ -18,9 +18,10 @@ jobs:
       - name: Paket önbelleği
         uses: actions/cache@v6
         with:
-          path: ~/Library/Developer/Xcode/DerivedData/**/SourcePackages
-          key: spm-xcode-ios-${{ hashFiles('Packages/Core/Package.resolved') }}
-          restore-keys: spm-xcode-ios-
+          # Betik -derivedDataPath .dd/snapshots kullanır; paketler orada durur.
+          path: .dd/snapshots/SourcePackages
+          key: spm-xcode-ios-snapshots-${{ hashFiles('Packages/Core/Package.resolved') }}
+          restore-keys: spm-xcode-ios-snapshots-
       - name: XcodeGen
         run: brew install xcodegen
       - name: Referansları kaydet

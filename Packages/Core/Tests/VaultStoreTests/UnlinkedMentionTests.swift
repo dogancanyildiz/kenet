@@ -373,14 +373,14 @@ struct UnlinkedMentionTests {
         let mention = try #require(EntityRecognizer.recognize(text, entities: [entity]).first)
         let linked = RawDocument(bytes: try EntityRecognizer.linking(text, mentions: [mention]).utf8)
         #expect(linked != source)
-        #expect(VaultStore.isSingleLink(linked, replacing: mention, in: source) == (arguments[2] == "true"))
+        #expect(VaultStore.isSingleLink(linked, replacing: mention, in: source, to: entity) == (arguments[2] == "true"))
         if arguments[2] == "true" {
             // Any other difference, however small, is refused.
             let extra = RawDocument(bytes: linked.serialized() + Array(" ".utf8))
-            #expect(!VaultStore.isSingleLink(extra, replacing: mention, in: source))
+            #expect(!VaultStore.isSingleLink(extra, replacing: mention, in: source, to: entity))
             let heading = RawDocument(bytes: Array(linked.serialized().dropFirst(text.hasPrefix("\u{FEFF}") ? 4 : 1)))
-            #expect(!VaultStore.isSingleLink(heading, replacing: mention, in: source))
-            #expect(!VaultStore.isSingleLink(source, replacing: mention, in: source))
+            #expect(!VaultStore.isSingleLink(heading, replacing: mention, in: source, to: entity))
+            #expect(!VaultStore.isSingleLink(source, replacing: mention, in: source, to: entity))
         }
     }
 

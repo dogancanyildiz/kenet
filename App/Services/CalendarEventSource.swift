@@ -1,3 +1,4 @@
+import EntityRecognition
 import Foundation
 
 struct CalendarEvent: Identifiable, Sendable, Equatable {
@@ -7,6 +8,8 @@ struct CalendarEvent: Identifiable, Sendable, Equatable {
     let end: Date
     let isAllDay: Bool
     let color: CalendarEventColor
+    /// People invited to the event, as the calendar names them; read only to draft an entry.
+    var attendees: [Attendee] = []
 }
 
 struct CalendarEventColor: Sendable, Equatable {

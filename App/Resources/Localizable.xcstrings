@@ -6061,6 +6061,22 @@
         }
       }
     },
+    "Katılımcıyı ekle: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add attendee: %@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Katılımcıyı ekle: %@"
+          }
+        }
+      }
+    },
     "Katkı yok" : {
       "localizations" : {
         "en" : {
@@ -7069,6 +7085,22 @@
         }
       }
     },
+    "Kutuda yazılmış bir taslak var. Önce onu gönder ya da sil." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The field already holds a draft. Send or clear it first."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kutuda yazılmış bir taslak var. Önce onu gönder ya da sil."
+          }
+        }
+      }
+    },
     "Liste" : {
       "localizations" : {
         "en" : {
@@ -7321,6 +7353,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Olay sayısı"
+          }
+        }
+      }
+    },
+    "Olay taslağı" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Draft an event"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Olay taslağı"
           }
         }
       }
@@ -8745,18 +8793,18 @@
         }
       }
     },
-    "Takvim etkinlikleri yalnızca gösterilir; takvimine ve günlük dosyalarına yazılmaz." : {
+    "Takvim etkinlikleri yalnızca okunur; takvimine yazılmaz. Bir etkinlikten düşürdüğün olay taslağı, sen gönderince günlüğüne yazılır." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Calendar events are displayed only; your calendar and journal files are unchanged."
+            "value" : "Calendar events are only read; nothing is written to your calendar. An entry drafted from an event is saved to your journal when you send it."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Takvim etkinlikleri yalnızca gösterilir; takvimine ve günlük dosyalarına yazılmaz."
+            "value" : "Takvim etkinlikleri yalnızca okunur; takvimine yazılmaz. Bir etkinlikten düşürdüğün olay taslağı, sen gönderince günlüğüne yazılır."
           }
         }
       }

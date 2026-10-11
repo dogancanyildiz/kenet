@@ -1,5 +1,6 @@
 import Foundation
 import Observation
+import VaultFormat
 
 /// A single scheduling writer: canceled debounce tasks never cancel an in-flight center operation.
 @MainActor @Observable
@@ -25,6 +26,7 @@ final class NotificationService {
     @ObservationIgnored private let now: () -> Date
     @ObservationIgnored private let timeZone: () -> TimeZone
     @ObservationIgnored private let debounce: Duration
+    @ObservationIgnored private var cadencePeople: (CalendarDate) async -> [CadenceReminderPerson]? = { _ in [] }
     @ObservationIgnored private var debounceTask: Task<Void, Never>?
     @ObservationIgnored private var snapshot: VaultReadModel?
     @ObservationIgnored private var vaultID: String?
@@ -47,8 +49,17 @@ final class NotificationService {
 
     /// Attach before opening the vault, including menu-bar-only startup.
     func attach(to store: IndexStore) {
+        cadencePeople = { [weak store] today in
+            guard let store else { return nil }
+            return try? await store.cadenceReminderPeople(today: today)
+        }
         store.onSnapshotChange = { [weak self] content, root in self?.update(snapshot: content, vaultID: root?.path) }
         update(snapshot: store.lastUpdated == nil ? nil : store.content, vaultID: store.vaultURL?.path)
+    }
+
+    /// Tests inject people without an open vault; nil stands for a failed read. A later `attach` replaces this.
+    func useCadencePeople(_ people: [CadenceReminderPerson]?) {
+        cadencePeople = { _ in people }
     }
     func activateAutomatically(
         environment: [String: String] = ProcessInfo.processInfo.environment,
@@ -119,29 +130,48 @@ final class NotificationService {
             let zone = timeZone()
             authorization = await center.authorization()
             let existing = await center.pendingRequests()
-            let plan =
-                authorization.canSchedule
-                ? snapshot.map {
-                    NotificationPlanner.requests(snapshot: $0, preferences: preferences, now: instant, timeZone: zone)
-                } ?? [] : []
+            let anchor = LocalDay.today(at: instant, timeZone: zone)
+            let vault = vaultID
+            var history = CadenceReminderHistory(from: defaults)
+            history.settle(at: instant)
+            // Nil when the people could not be read: no reminder is planned and no record is dropped.
+            var people: [CadenceReminderPerson]?
+            var schedule = NotificationSchedule(requests: [], assignments: [])
+            if authorization.canSchedule, let snapshot {
+                if preferences.peopleEnabled { people = await cadencePeople(anchor) }
+                schedule = NotificationPlanner.schedule(
+                    snapshot: snapshot, preferences: preferences, now: instant, timeZone: zone, people: people ?? [],
+                    lastNotified: history.memory(vaultID: vault).fired)
+            }
+            let plan = schedule.requests
             let own = existing.filter { NotificationDestination.from(identifier: $0.id) != nil }
             let identifiers = Set(
-                own.map(\.id) + NotificationPlanner.identifiers(on: LocalDay.today(at: instant, timeZone: zone)))
+                own.map(\.id) + NotificationPlanner.identifiers(on: anchor)
+                    + NotificationPlanner.peopleIdentifiers(on: anchor))
             await center.remove(identifiers: identifiers.sorted())
+            history.persist(in: defaults)
             guard current == revision else {
                 needsReplan = true
                 continue
             }
             errorText = nil
+            var addedPeople = Set<String>()
             for request in plan {
                 guard current == revision else {
                     needsReplan = true
                     break
                 }
-                do { try await center.add(request) } catch {
+                do {
+                    try await center.add(request)
+                    if request.destination == .people { addedPeople.insert(request.id) }
+                } catch {
                     errorText = String(localized: "Bazı bildirimler planlanamadı. Yeniden planlayabilirsin.")
                 }
             }
+            history.record(
+                schedule.assignments.filter { addedPeople.contains("people-\($0.day)") },
+                known: people.map { Set($0.filter { $0.cadence.days != nil }.map(\.id)) }, vaultID: vault)
+            history.persist(in: defaults)
             pending = await center.pendingRequests().filter { NotificationDestination.from(identifier: $0.id) != nil }
                 .sorted { $0.date == $1.date ? $0.id < $1.id : $0.date < $1.date }
             if current != revision { needsReplan = true }

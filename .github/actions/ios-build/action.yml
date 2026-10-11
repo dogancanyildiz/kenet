@@ -1,7 +1,8 @@
 name: iOS derlemesi (test için)
 description: >-
-  Paket önbelleği, XcodeGen, proje üretimi, simülatör seçimi ve build-for-testing. iOS test
-  işlerinin ortak başlangıcı; çağıran iş önce depoyu çeker (actions/checkout).
+  Paket önbelleği, XcodeGen, proje üretimi, simülatör seçimi, simülatör açılışını başlatma ve
+  build-for-testing. iOS test işlerinin ortak başlangıcı; çağıran iş önce depoyu çeker
+  (actions/checkout) ve sonra simülatörün hazır olmasını bekler (simctl bootstatus).
 
 outputs:
   name:
@@ -58,6 +59,12 @@ runs:
         echo "name=${CHOSEN%%|*}" >> "$GITHUB_OUTPUT"
         echo "udid=${CHOSEN##*|}" >> "$GITHUB_OUTPUT"
         echo "Seçilen simülatör: ${CHOSEN%%|*} (${CHOSEN##*|})"
+    # Açılış derlemeyle aynı anda başlar: açılış (~2 dk) derleme süresine gizlenir ve simülatör testten
+    # önce yatışır (yeni açılmış simülatörde testler belirgin yavaş koşuyor). Hazır olmasını çağıran
+    # iş ayrı adımda bekler (simctl bootstatus); açılış burada düşerse orada yeniden denenir ve görünür.
+    - name: iOS simülatörünü başlat (derlemeyle paralel)
+      shell: bash
+      run: xcrun simctl boot "${{ steps.ios_sim.outputs.udid }}" || echo "::warning::simctl boot başarısız; açılış adımında yeniden denenecek."
     - name: iOS derlemesi (test için)
       shell: bash
       run: |

@@ -300,6 +300,17 @@ final class IndexStore {
         return result
     }
 
+    /// Same month-day history is queried on demand and belongs to this vault generation.
+    func computeOnThisDay(_ today: CalendarDate) async throws -> OnThisDay? {
+        guard let index else { throw VaultStoreError.staleTarget }
+        let current = generation
+        let result = try await Task.detached {
+            OnThisDay.select(today: today, data: try index.onThisDayInput(for: today))
+        }.value
+        guard generation == current else { throw VaultStoreError.staleTarget }
+        return result
+    }
+
     /// Full history is read on demand for detail screens and dates outside the bounded snapshot.
     func goalHistory(key: String? = nil) async throws -> [String: [GoalLog]] {
         guard let index else { throw VaultStoreError.staleTarget }

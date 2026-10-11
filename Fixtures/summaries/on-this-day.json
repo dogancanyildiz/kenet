@@ -1,0 +1,117 @@
+[
+  {
+    "id": "nearest-year-and-one-more",
+    "vault": "history",
+    "today": "2026-09-20",
+    "expected": {
+      "day": "2025-09-20",
+      "people": [
+        {
+          "id": "people/Deniz Arıkan.md",
+          "name": "Deniz Arıkan"
+        },
+        {
+          "id": "people/Selin Korkmaz.md",
+          "name": "Selin Korkmaz"
+        }
+      ],
+      "place": {
+        "id": "places/Çınaraltı Kafe.md",
+        "name": "Çınaraltı Kafe"
+      },
+      "otherYears": 1
+    }
+  },
+  {
+    "id": "unlinked-day-is-silent",
+    "vault": "history",
+    "today": "2026-09-21",
+    "expected": null
+  },
+  {
+    "id": "only-unlinked-year-before",
+    "vault": "history",
+    "today": "2024-09-20",
+    "expected": null
+  },
+  {
+    "id": "unlinked-year-is-not-counted",
+    "vault": "history",
+    "today": "2025-09-20",
+    "expected": {
+      "day": "2024-09-20",
+      "people": [
+        {
+          "id": "people/Ece Yalın.md",
+          "name": "Ece Yalın"
+        }
+      ],
+      "place": {
+        "id": "places/Ev.md",
+        "name": "Ev"
+      },
+      "otherYears": 0
+    }
+  },
+  {
+    "id": "place-only",
+    "vault": "history",
+    "today": "2026-09-22",
+    "expected": {
+      "day": "2025-09-22",
+      "people": [],
+      "place": {
+        "id": "places/Ev.md",
+        "name": "Ev"
+      },
+      "otherYears": 0
+    }
+  },
+  {
+    "id": "common-year-skips-leap-day",
+    "vault": "history",
+    "today": "2027-02-28",
+    "expected": {
+      "day": "2026-02-28",
+      "people": [
+        {
+          "id": "people/Selin Korkmaz.md",
+          "name": "Selin Korkmaz"
+        }
+      ],
+      "place": null,
+      "otherYears": 0
+    }
+  },
+  {
+    "id": "leap-day-meets-leap-day",
+    "vault": "history",
+    "today": "2028-02-29",
+    "expected": {
+      "day": "2024-02-29",
+      "people": [
+        {
+          "id": "people/Deniz Arıkan.md",
+          "name": "Deniz Arıkan"
+        }
+      ],
+      "place": {
+        "id": "places/Tepe Spor Salonu.md",
+        "name": "Tepe Spor Salonu"
+      },
+      "otherYears": 0
+    }
+  },
+  {
+    "id": "march-first-ignores-leap-day",
+    "vault": "history",
+    "today": "2027-03-01",
+    "expected": null
+  },
+  {
+    "id": "no-file-on-this-day",
+    "vault": "history",
+    "today": "2026-10-01",
+    "expected": null
+  }
+]

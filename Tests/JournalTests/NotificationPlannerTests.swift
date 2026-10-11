@@ -150,4 +150,113 @@ struct NotificationPlannerTests {
             })
         #expect(requests.first?.id == "journal-2026-03-07" && requests.last?.id == "journal-2026-03-13")
     }
+
+    @Test func disabledPeopleReminderMatchesThePlanWithoutPeople() throws {
+        let snapshot = try notificationSample()
+        let now = notificationDate()
+        let baseline = plan(snapshot, now: now)
+        var settings = NotificationPreferences()
+        settings.peopleEnabled = false
+        let people = [
+            cadencePerson("people/Lale Mor.md", name: "Lale", last: "2026-08-01", days: 7),
+            cadencePerson("people/Ada Kaya.md", name: "Ada", last: "2026-08-01", days: 14),
+        ]
+        let withPeople = NotificationPlanner.requests(
+            snapshot: snapshot, preferences: settings, now: now, timeZone: notificationUTC, people: people,
+            lastNotified: ["people/Lale Mor.md": CalendarDate("2026-09-01")!])
+        #expect(withPeople == baseline)
+        #expect(withPeople.allSatisfy { !$0.id.hasPrefix("people-") })
+        #expect(NotificationPlanner.identifiers(on: today).count == 21)
+    }
+
+    @Test func enabledPeopleReminderKeepsTheOtherRequestsAndCapsTheDay() throws {
+        let snapshot = try notificationSample()
+        let now = notificationDate()
+        let baseline = plan(snapshot, now: now)
+        var settings = NotificationPreferences()
+        settings.peopleEnabled = true
+        let people = [
+            cadencePerson("people/d.md", name: "Cem", last: "2026-09-19", days: 7),
+            cadencePerson("people/a.md", name: "Deniz", last: "2026-08-01", days: 7),
+            cadencePerson("people/b.md", name: "Ada", last: "2026-09-01", days: 7),
+            cadencePerson("people/c.md", name: "Bora", last: "2026-09-10", days: 7),
+        ]
+        let requests = NotificationPlanner.requests(
+            snapshot: snapshot, preferences: settings, now: now, timeZone: notificationUTC, people: people)
+        #expect(requests.filter { $0.destination != .people } == baseline)
+        let todayPeople = requests.filter { $0.id == "people-2026-09-27" }
+        #expect(todayPeople.count == 1)
+        let notice = try #require(todayPeople.first)
+        #expect(notice.destination == .people)
+        #expect(notice.title == String(localized: "Görüşme zamanı"))
+        #expect(notice.date == notificationDate(hour: 10))
+        #expect(
+            notice.body
+                == String(localized: "\("Deniz"), \("Ada"), \("Bora") ve \(1) kişi daha"))
+        #expect(!notice.body.contains("Cem"))
+        #expect(requests.contains { $0.id == "people-2026-09-30" })
+        #expect(requests.contains { $0.id == "people-2026-10-03" })
+        #expect(!requests.contains { $0.id == "people-2026-09-28" || $0.id == "people-2026-09-29" })
+        #expect(!requests.contains { $0.id == "people-2026-10-01" || $0.id == "people-2026-10-02" })
+        #expect(!requests.contains { $0.id == "people-2026-10-04" })
+    }
+
+    @Test func hiddenPeopleReminderOmitsNames() throws {
+        var settings = NotificationPreferences()
+        settings.peopleEnabled = true
+        settings.tasksEnabled = false
+        settings.goalsEnabled = false
+        settings.journalEnabled = false
+        settings.hideContent = true
+        let people = [
+            cadencePerson("people/a.md", name: "Deniz", last: "2026-08-01", days: 7),
+            cadencePerson("people/b.md", name: "Ada", last: "2026-09-01", days: 7),
+            cadencePerson("people/c.md", name: "Bora", last: "2026-09-10", days: 7),
+        ]
+        let notice = try #require(
+            NotificationPlanner.requests(
+                snapshot: .empty, preferences: settings, now: notificationDate(), timeZone: notificationUTC,
+                people: people
+            ).first { $0.id == "people-2026-09-27" })
+        #expect(notice.body == String(localized: "Görüşme zamanı gelen \(3) kişi var"))
+        #expect(notice.title == String(localized: "Görüşme zamanı"))
+        for name in ["Deniz", "Ada", "Bora"] {
+            #expect(!notice.title.contains(name))
+            #expect(!notice.body.contains(name))
+        }
+    }
+
+    @Test func peopleDayFollowsTheInjectedTimeZoneAndSkipsAPassedHour() throws {
+        var settings = NotificationPreferences()
+        settings.tasksEnabled = false
+        settings.goalsEnabled = false
+        settings.journalEnabled = false
+        settings.peopleEnabled = true
+        let person = cadencePerson("people/Lale Mor.md", name: "Lale", last: "2026-10-01", days: 10)
+        let now = notificationDate("2026-10-10", hour: 22)
+        let ahead = try #require(TimeZone(identifier: "Pacific/Kiritimati"))
+        let inKiritimati = NotificationPlanner.requests(
+            snapshot: .empty, preferences: settings, now: now, timeZone: ahead, people: [person])
+        let inUTC = NotificationPlanner.requests(
+            snapshot: .empty, preferences: settings, now: now, timeZone: notificationUTC, people: [person])
+        #expect(inKiritimati.first { $0.id.hasPrefix("people-") }?.id == "people-2026-10-12")
+        #expect(inUTC.first { $0.id.hasPrefix("people-") }?.id == "people-2026-10-11")
+        let onTheHour = notificationDate("2026-10-11", hour: 10)
+        let skipped = NotificationPlanner.requests(
+            snapshot: .empty, preferences: settings, now: onTheHour, timeZone: notificationUTC, people: [person])
+        #expect(!skipped.contains { $0.id == "people-2026-10-11" })
+        #expect(skipped.contains { $0.id == "people-2026-10-12" })
+    }
+
+    @Test func invalidPeopleTimeSchedulesNoPeopleReminder() throws {
+        var settings = NotificationPreferences()
+        settings.peopleEnabled = true
+        settings.peopleTime.hour = 24
+        let person = cadencePerson("people/Lale Mor.md", name: "Lale", last: "2026-08-01", days: 7)
+        let requests = NotificationPlanner.requests(
+            snapshot: try notificationSample(), preferences: settings, now: notificationDate(),
+            timeZone: notificationUTC, people: [person])
+        #expect(requests.allSatisfy { $0.destination != .people })
+        #expect(!requests.isEmpty)
+    }
 }

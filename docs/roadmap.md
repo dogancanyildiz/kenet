@@ -108,19 +108,19 @@ Yön seçildi: Mürekkep, sahibin iki değişikliğiyle. Yön, belirteçler ve k
 Sektör taramasından çıkan, kimlik kararı gerektirmeyen ve ürünün farkını büyüten ilk dalga. Biçime dokunan maddeler önce `vault-format.md`'de tanımlanır.
 
 - [x] Bu gün geçmişte: Bugün'de kişi ve konumlu tek satır; yalnız veri varsa görünür
-- [ ] Takvim etkinliğinden olay taslağı; katılımcı adları kişi adayı olur, emin değilse sorulur
-- [ ] Varlık sayfasında bağlanmamış anmalar; satır satır, kullanıcı onayıyla bağlama
-  - Core sorgusu ve yazıcı eklendi; varlık sayfasındaki bölüm açık.
+- [x] Takvim etkinliğinden olay taslağı; katılımcı adları kişi adayı olur, emin değilse sorulur
+- [x] Varlık sayfasında bağlanmamış anmalar; satır satır, kullanıcı onayıyla bağlama
 - [x] Önemli tarihler: kişi ve özel tip dosyalarındaki tarih alanlarından doğum günü ve yıl dönümü satırı
 - [ ] Kişi başına görüşme ritmi, erteleme ve duraklatma; isteğe bağlı, günlük tavanı olan hatırlatma
+  - Ritim, erteleme ve duraklatma kişi dosyasında; hatırlatma bildirimi açık.
 - [x] Var olan giriş yollarının ilk kullanımda ve Ayarlar'da gösterilmesi (Eylem düğmesi, Siri cümleleri)
 - [ ] Hızlı girişte tanınan tarih, öncelik, tekrar ve adların kutuda vurgulanması; dokununca ayrıştırma geri alınır
   - Tarih, öncelik ve tekrar için kutunun üstünde çip ve geri alma eklendi; kutu içi vurgu ve adlar için geri alma açık.
 - [ ] Zincir affı: tek başına kalan kaçırma zinciri kırmaz, dinlenme günü, yumuşak ilerleme skoru (kullanıcı kararı)
 - [ ] Suçlamasız taşıma (bugüne, yarına, haftaya) ve iki dakikalık "günü kapat"
-  - Taşıma eylemleri (Bugüne, Yarına, Haftaya; hepsini bugüne) eklendi; "günü kapat" akışı açık.
+  - Taşıma eylemleri ve "günü kapat" akışının görev ve hedef adımları eklendi; tek cümlelik günlük adımı ve bildirimden giriş açık (günlüğe ekleyen yazıcıyı bekliyor).
 - [ ] İsteğe bağlı ve atlanabilir haftalık inceleme; çıktısı günlük yazısına düşer
-- [ ] Rehberden seçilen kişilerin tek yönlü, bir kez içe aktarılması
+- [x] Rehberden seçilen kişilerin tek yönlü, bir kez içe aktarılması
 - [x] Gün sayfasında "bu güne bağlananlar"; günlük takviminde yoğunluk noktaları
 
 **Çıkış ölçütü:** Haftalık inceleme dört hafta üst üste tamamlanıyor; "bir süredir görüşmediklerin" listesinden ayda en az bir görüşme çıkıyor.

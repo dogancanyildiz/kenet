@@ -9485,6 +9485,22 @@
         }
       }
     },
+    "Yoğunluk %lld / 3" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Density %lld of 3"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yoğunluk %lld / 3"
+          }
+        }
+      }
+    },
     "Yok" : {
       "localizations" : {
         "en" : {

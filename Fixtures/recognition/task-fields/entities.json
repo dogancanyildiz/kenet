@@ -1,0 +1,45 @@
+{
+  "entities": [
+    {
+      "file": "people/Deniz Arıkan.md",
+      "kind": "person",
+      "name": "Deniz Arıkan",
+      "aliases": [
+        "Deniz"
+      ]
+    },
+    {
+      "file": "places/12.md",
+      "kind": "place",
+      "name": "12",
+      "aliases": []
+    },
+    {
+      "file": "places/2026.md",
+      "kind": "place",
+      "name": "2026",
+      "aliases": []
+    },
+    {
+      "file": "places/Takvim.md",
+      "kind": "place",
+      "name": "Takvim",
+      "aliases": [
+        "📅",
+        "⏳",
+        "every",
+        "week",
+        "1"
+      ]
+    },
+    {
+      "file": "places/2026-10-12.md",
+      "kind": "place",
+      "name": "2026-10-12",
+      "aliases": [
+        "12:30 Vapuru",
+        "⏫"
+      ]
+    }
+  ]
+}

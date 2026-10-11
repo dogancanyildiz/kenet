@@ -17,9 +17,10 @@ public enum EntityRecognizer {
         scan(text, entities: entities, context: context).unknown
     }
 
-    static func scan(_ text: String, entities: [KnownEntity], context: RecognitionContext)
-        -> (known: [Mention], unknown: [UnknownMention])
-    {
+    /// `numericRule` exists for the test that compares the recognizer with and without the numeric expression rule.
+    static func scan(
+        _ text: String, entities: [KnownEntity], context: RecognitionContext, numericRule: Bool = true
+    ) -> (known: [Mention], unknown: [UnknownMention]) {
         var patterns: [String: [NamePattern]] = [:]
         for entity in entities {
             for (index, spelling) in ([entity.name] + entity.aliases).enumerated() {
@@ -34,9 +35,12 @@ public enum EntityRecognizer {
         var unknown: [UnknownMention] = []
         let document = RawDocument(bytes: text.utf8)
         var scanner = RecognitionScanner(document: document)
+        // A task's marker, checkbox, fields and identifier and an event's clock are never the user's words.
+        let regions = LineTextRegion.regions(in: document)
         for (number, raw) in document.lines.enumerated() {
-            let line = RecognitionLine(
-                raw.content, excluded: scanner.excludedBytes(raw.content, insideFence: context.insideFence))
+            var excluded = scanner.excludedBytes(raw.content, insideFence: context.insideFence)
+            regions[number]?.exclude(from: &excluded)
+            let line = RecognitionLine(raw.content, excluded: excluded)
             var start = 0
             while start < line.characters.count {
                 let explicit = line.isExplicit(at: start)
@@ -48,7 +52,10 @@ public enum EntityRecognizer {
                 }
                 let options = patterns[String(line.characters[start]).lowercased()] ?? []
                 let matches = options.compactMap { pattern -> (NamePattern, Int)? in
-                    pattern.end(in: line, from: start).map { (pattern, $0) }
+                    guard let end = pattern.end(in: line, from: start) else { return nil }
+                    // A digit-only name inside a time, date, decimal or range is part of that number.
+                    if numericRule, pattern.isDigitOnly, !explicit, line.joinsNumber(start..<end) { return nil }
+                    return (pattern, end)
                 }
                 if !matches.isEmpty {
                     for end in Set(matches.map { $0.1 }) {

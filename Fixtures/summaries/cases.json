@@ -112,6 +112,7 @@
           "streak": 2,
           "change": 150,
           "streakChange": 2,
+          "score": 71,
           "completionDate": null
         },
         {
@@ -122,6 +123,7 @@
           "streak": 1,
           "change": 3,
           "streakChange": 1,
+          "score": null,
           "completionDate": null
         },
         {
@@ -129,9 +131,10 @@
           "done": 54,
           "target": 56,
           "contribution": 54,
-          "streak": 1,
+          "streak": 5,
           "change": 54,
-          "streakChange": 1,
+          "streakChange": 5,
+          "score": 71,
           "completionDate": null
         }
       ],
@@ -251,6 +254,7 @@
           "streak": 8,
           "change": 20,
           "streakChange": 6,
+          "score": 78,
           "completionDate": null
         },
         {
@@ -261,6 +265,7 @@
           "streak": 2,
           "change": 0,
           "streakChange": 1,
+          "score": null,
           "completionDate": null
         },
         {
@@ -268,9 +273,10 @@
           "done": 50,
           "target": 56,
           "contribution": 50,
-          "streak": 2,
+          "streak": 10,
           "change": -4,
-          "streakChange": 1,
+          "streakChange": 5,
+          "score": 71,
           "completionDate": null
         }
       ],
@@ -390,6 +396,7 @@
           "streak": 0,
           "change": 320,
           "streakChange": 0,
+          "score": 64,
           "completionDate": null
         },
         {
@@ -400,6 +407,7 @@
           "streak": 2,
           "change": 6,
           "streakChange": 2,
+          "score": null,
           "completionDate": null
         },
         {
@@ -410,6 +418,7 @@
           "streak": 0,
           "change": 104,
           "streakChange": 0,
+          "score": 58,
           "completionDate": null
         }
       ],
@@ -473,6 +482,7 @@
           "streak": 0,
           "change": -320,
           "streakChange": 0,
+          "score": 0,
           "completionDate": null
         },
         {
@@ -483,6 +493,7 @@
           "streak": 0,
           "change": -6,
           "streakChange": -2,
+          "score": null,
           "completionDate": null
         },
         {
@@ -493,6 +504,7 @@
           "streak": 0,
           "change": -104,
           "streakChange": 0,
+          "score": 0,
           "completionDate": null
         }
       ],

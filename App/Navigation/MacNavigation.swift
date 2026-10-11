@@ -20,6 +20,7 @@
         @State private var entityOrder = EntityOrdering.name
         @State private var entitySearch = ""
         @State private var selectedEntityKind = "person"
+        @State private var unseenReveal: UUID?
         @State private var sidebarRestoresFocus = false
 
         init(store: IndexStore) {
@@ -85,7 +86,19 @@
                 tasksEvent(.navigationReset)
                 selectedTask = nil
                 selectedDay = nil
-                section = request.destination == .tasks ? .tasks : .today
+                switch NotificationRoute(request.destination) {
+                case .tasks:
+                    section = .tasks
+                case .unseenPeople:
+                    section = .people
+                    selectedEntityKind = "person"
+                    entitySearch = ""
+                    selectedEntity = nil
+                    selectedSummary = nil
+                    unseenReveal = request.id
+                case .today:
+                    section = .today
+                }
             }
             .onChange(of: store.vaultURL) { _, _ in
                 selectedTask = nil
@@ -149,7 +162,8 @@
                     case .people, .places:
                         MacEntitiesColumn(
                             store: store, sectionTitle: (section ?? .people).title, kind: $selectedEntityKind,
-                            order: $entityOrder, search: $entitySearch, selection: entitySelection)
+                            order: $entityOrder, search: $entitySearch, selection: entitySelection,
+                            unseenReveal: unseenReveal)
                     }
                 }
                 .inkPage()
@@ -287,26 +301,44 @@
         }
     }
 
-    /// Günlük list column: manşet, the Özetler link under it, the month and the days.
+    /// Günlük list column: manşet, the Özetler and weekly review links under it, the month and the days.
     struct MacDaysColumn: View {
         let store: IndexStore
         @Binding var selection: String?
         let openSummaries: () -> Void
+        @State private var showsWeeklyReview = false
+        @State private var weeklyReviewNotice: WeeklyReviewNotice?
 
         var body: some View {
             VStack(spacing: 0) {
                 InkPageTitle("Günlük").macListColumnTitle()
-                Button(action: openSummaries) {
-                    Label("Özetler", systemImage: "chart.bar")
+                VStack(alignment: .leading, spacing: 0) {
+                    Button(action: openSummaries) {
+                        Label("Özetler", systemImage: "chart.bar")
+                    }
+                    // Like the iPhone row: once this week is reviewed, the link says so.
+                    HStack(alignment: .firstTextBaseline, spacing: InkSpacing.row) {
+                        Button {
+                            showsWeeklyReview = true
+                        } label: {
+                            Label("Haftalık inceleme", systemImage: "checklist")
+                        }
+                        .accessibilityIdentifier("button.weeklyReview")
+                        WeeklyReviewEntryStatus()
+                    }
                 }
                 .buttonStyle(InkTextButtonStyle())
                 // Starts where the manşet above it starts.
                 .padding(.leading, InkSpacing.margin + MacListColumnChrome.rowInset)
                 .padding(.vertical, 8)
                 .frame(maxWidth: .infinity, alignment: .leading)
+                if let notice = weeklyReviewNotice {
+                    InfoBand(kind: notice.kind, verbatim: notice.text, onDismiss: { weeklyReviewNotice = nil })
+                }
                 DaysCalendarView(store: store) { selection = "journal/\($0).md" }
                 MacDayList(days: store.content.days, selection: $selection)
             }
+            .weeklyReviewSheet(isPresented: $showsWeeklyReview, store: store) { weeklyReviewNotice = $0 }
         }
     }
 
@@ -319,6 +351,7 @@
         @Binding var order: EntityOrdering
         @Binding var search: String
         @Binding var selection: String?
+        var unseenReveal: UUID? = nil
 
         var body: some View {
             VStack(spacing: 0) {
@@ -344,7 +377,7 @@
                     store: store,
                     entities: EntityListQuery.entities(
                         in: store.content, usage: store.entityUsage, kind: kind, search: search, order: order),
-                    showsUnseen: kind == "person", selection: $selection)
+                    showsUnseen: kind == "person", unseenReveal: unseenReveal, selection: $selection)
             }
         }
 
@@ -395,14 +428,17 @@
         let store: IndexStore
         let entities: [EntitySummary]
         var showsUnseen: Bool
+        var unseenReveal: UUID? = nil
         @Binding var selection: String?
 
         var body: some View {
             List(selection: $selection) {
                 if showsUnseen {
-                    UnseenPeopleSection(store: store, people: entities) { entity in
-                        selection = entity.id
-                    }
+                    UnseenPeopleSection(
+                        store: store, people: entities, select: { selection = $0.id },
+                        initiallyExpanded: unseenReveal != nil
+                    )
+                    .id(unseenReveal)
                 }
                 ForEach(entities) { entity in
                     EntityRow(entity: entity)

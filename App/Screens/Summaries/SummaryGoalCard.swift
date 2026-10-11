@@ -38,6 +38,11 @@ struct SummaryGoalCard: View {
                     if goal.definition.kind != .milestone {
                         SummaryMetric(
                             title: "Dönem sonu zincir", value: goal.streak, change: goal.streakChange)
+                        if goal.definition.period == .day, let score = goal.score {
+                            Text(verbatim: GoalScoreCopy.sentence(score))
+                                .font(.ink.meta)
+                                .foregroundStyle(Color.ink.secondaryText)
+                        }
                     } else if let date = goal.completionDate {
                         Text(LocalDay.instant(for: date), format: .dateTime.day().month().year())
                             .font(.ink.meta)

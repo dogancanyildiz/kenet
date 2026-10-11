@@ -288,13 +288,14 @@ final class IndexStore {
     }
 
     /// Summary history is queried on demand and belongs to this vault generation.
-    func computeSummary(period: SummaryPeriod, day: CalendarDate, from: CalendarDate, to: CalendarDate) async throws
-        -> PeriodSummary
-    {
+    func computeSummary(
+        period: SummaryPeriod, day: CalendarDate, from: CalendarDate, to: CalendarDate, today: CalendarDate? = nil
+    ) async throws -> PeriodSummary {
         guard let index else { throw VaultStoreError.staleTarget }
         let current = generation
         let result = try await Task.detached {
-            PeriodSummary.compute(period: period, containing: day, data: try index.summaryInput(from: from, to: to))
+            PeriodSummary.compute(
+                period: period, containing: day, data: try index.summaryInput(from: from, to: to), today: today)
         }.value
         guard generation == current else { throw VaultStoreError.staleTarget }
         return result
@@ -844,6 +845,33 @@ final class IndexStore {
             let last = content.entityTimeline[entity.id]?.map(\.date).filter { $0 <= today }.max()
             return CadenceReminderPerson(
                 id: entity.id, name: entity.name, lastDay: last, cadence: cadences[entity.id] ?? .none)
+        }
+    }
+
+    // MARK: - Weekly review
+
+    /// Source data of the days in the range; counted by the review itself, whose week follows the
+    /// device calendar rather than the summary's fixed Monday week.
+    func weeklyReviewInput(from: CalendarDate, to: CalendarDate) async throws -> SummaryInput {
+        guard let index else { throw VaultStoreError.staleTarget }
+        let current = generation
+        let result = try await Task.detached { try index.summaryInput(from: from, to: to) }.value
+        guard generation == current else { throw VaultStoreError.staleTarget }
+        return result
+    }
+
+    // MARK: - Journal append
+
+    /// Adds text below the day's Journal; no existing byte changes. The lines are text, never
+    /// structure (see `VaultStore.appendingJournal`). Blank lines write nothing and create no file.
+    /// The text belongs to the vault selected when this is called: a vault selected while the
+    /// write waits its turn is not written (`staleTarget`, nothing written).
+    func appendToJournal(on day: CalendarDate, lines: [String]) async throws {
+        guard lines.contains(where: { !$0.allSatisfy(\.isWhitespace) }) else { return }
+        let root = vaultURL
+        try await performEdit(path: "journal/\(day).md") { writer in
+            guard let root, vaultURL == root else { throw VaultStoreError.staleTarget }
+            try await writer.appendingJournal(on: day, lines: lines)
         }
     }
 

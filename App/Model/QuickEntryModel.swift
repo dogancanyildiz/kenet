@@ -33,6 +33,12 @@ final class QuickEntryModel {
     var manualDateIsAssumed = false
     /// Task expressions the user turned back into plain words, as UTF-8 ranges of `text`.
     var suppressedExpressions: [Range<Int>] = []
+    /// Names the user turned back into plain words; the composer reads them, this model moves
+    /// them with the text exactly as it moves `suppressedExpressions`.
+    var suppressedNames: [Range<Int>] {
+        get { composer.suppressed }
+        set { composer.suppressed = newValue }
+    }
     let today: () -> CalendarDate
     let now: () -> Date
 
@@ -46,6 +52,7 @@ final class QuickEntryModel {
     private(set) var isSubmitting = false
     /// Set while the field holds a draft made from a calendar event.
     var calendarDraft: CalendarDraft?
+    @ObservationIgnored var analysisCache: (key: AnalysisKey, analysis: QuickEntryAnalysis)?
 
     var text: String {
         get { composer.text }
@@ -54,7 +61,7 @@ final class QuickEntryModel {
             composer.text = newValue
             // The composer reports only unequal strings, and two spellings of one accented letter
             // compare equal; the suppressed byte ranges still have to follow the new bytes.
-            if old == newValue, !old.utf8.elementsEqual(newValue.utf8) { reconcileTaskExpressions(oldText: old) }
+            if old == newValue, !old.utf8.elementsEqual(newValue.utf8) { reconcileRecognitions(oldText: old) }
         }
     }
     var qualifier: String {
@@ -104,7 +111,7 @@ final class QuickEntryModel {
         self.selectedTime = now()
         includesTime = day == nil || day == today()
         // Suggestions and "Vazgeç" edit the text through the composer, not through `text`.
-        composer.onTextChange = { [weak self] old in self?.reconcileTaskExpressions(oldText: old) }
+        composer.onTextChange = { [weak self] old in self?.reconcileRecognitions(oldText: old) }
     }
 
     var isHistorical: Bool { day.map { $0 != today() } ?? false }
@@ -119,6 +126,39 @@ final class QuickEntryModel {
     }
 
     var mentions: [Mention] { composer.mentions }
+
+    /// A name recognized in plain typing that the user can undo, with the UTF-8 range of `text` it covers.
+    struct NameRecognition: Identifiable, Equatable {
+        let byteRange: Range<Int>
+        let spelling: String
+        /// Sending asks which entity is meant.
+        let isAmbiguous: Bool
+        let kind: KnownEntity.Kind?
+        var id: Int { byteRange.lowerBound }
+    }
+
+    /// Names that will be linked or asked about. An `@` mention and a pinned choice (a suggestion,
+    /// a calendar attendee, a nearby place) were the user's own request and get no chip.
+    var recognizedNames: [NameRecognition] {
+        let pinned = Set(pins.map(\.range))
+        // A task's expression takes its words out on sending, a name among them too ("Cuma" the
+        // person in "Cuma'ya"): that name has no chip until the expression's chip is undone.
+        let consumed = taskAnalysis?.tokens.map(\.byteRange) ?? []
+        return mentions.compactMap { mention in
+            guard !mention.isExplicit, mention.isCertain || mention.isAmbiguous else { return nil }
+            let range = composer.globalRange(mention.position)
+            guard !pinned.contains(range), !consumed.contains(where: { $0.overlaps(range) }) else { return nil }
+            return NameRecognition(
+                byteRange: range, spelling: mention.spelling, isAmbiguous: mention.isAmbiguous,
+                kind: mention.isCertain ? mention.candidates[0].kind : nil)
+        }
+    }
+
+    /// Keeps this occurrence of the name as plain words: it is neither linked nor asked about.
+    func undoRecognition(_ name: NameRecognition) {
+        suppressedNames.append(name.byteRange)
+    }
+
     var choices: [MentionPosition: String] { composer.choices }
     var pendingAmbiguity: Mention? { composer.pendingAmbiguity }
     var pendingUnknown: CreationRequest? { composer.pendingUnknown }
@@ -162,7 +202,7 @@ final class QuickEntryModel {
         let draftOverridesDate = overridesDate
         let draftManualDueDate = manualDueDate
         let draftManualDateIsAssumed = manualDateIsAssumed
-        let draftSuppressed = suppressedExpressions
+        let draftSuppressed = suppressions
         let draftDismissedLocation = dismissedLocation
         let submitMode = mode
         let submitDue = dueDate
@@ -178,7 +218,7 @@ final class QuickEntryModel {
             overridesDate = false
             manualDueDate = nil
             manualDateIsAssumed = false
-            suppressedExpressions = []
+            suppressions = Suppressions()
             pins = []
             skipped = []
             awaitingResolution = false
@@ -218,12 +258,12 @@ final class QuickEntryModel {
     private func restoreFailedDraft(
         _ draft: String, pins draftPins: [Pin], skipped draftSkipped: Set<MentionPosition>,
         recurrence: TaskRecurrence?, priority: TaskPriority?, overridesDate: Bool,
-        manualDueDate: CalendarDate?, manualDateIsAssumed: Bool, suppressed: [Range<Int>],
+        manualDueDate: CalendarDate?, manualDateIsAssumed: Bool, suppressed: Suppressions,
         dismissedLocation: Bool
     ) {
         if text.isEmpty {
             text = draft
-            suppressedExpressions = suppressed
+            suppressions = suppressed
             pins = draftPins
             skipped = draftSkipped
             taskRecurrence = recurrence
@@ -240,7 +280,7 @@ final class QuickEntryModel {
         skipped = []
         text = draft + "\n" + typed
         // The failed entry is the prefix, so its ranges still point at the same bytes.
-        suppressedExpressions = suppressed
+        suppressions = suppressed
         taskRecurrence = recurrence
         taskPriority = priority
         self.overridesDate = overridesDate
@@ -249,10 +289,10 @@ final class QuickEntryModel {
         self.dismissedLocation = dismissedLocation
     }
 
-    private func reconcileTaskExpressions(oldText: String) {
+    private func reconcileRecognitions(oldText: String) {
         if text.isEmpty { clearCalendarDraft() }
         let suppressed = suppressedExpressions
-        suppressedExpressions = Self.following(suppressed, from: oldText, to: text)
+        suppressions = suppressions.following(from: oldText, to: text)
         guard mode == .task else { return }
         // Both sides go through the analysis: a plain date parse of the old text takes the weekday of
         // `her salı` for a date and every keystroke would look like a changed date.

@@ -91,9 +91,7 @@ struct QuickEntryBar: View {
                 }
                 .disabled(model.isCreating || model.isSubmitting)
             }
-            QuickEntryTaskControls(model: model, showsPicker: $showsDatePicker)
-                .disabled(!isEnabled || model.isSubmitting || model.isCreating || store.isWriting)
-            QuickEntryAttendeeChips(model: model) {
+            QuickEntryTaskControls(model: model, showsPicker: $showsDatePicker) {
                 selection = nil
                 isFocused = true
             }

@@ -301,26 +301,44 @@
         }
     }
 
-    /// Günlük list column: manşet, the Özetler link under it, the month and the days.
+    /// Günlük list column: manşet, the Özetler and weekly review links under it, the month and the days.
     struct MacDaysColumn: View {
         let store: IndexStore
         @Binding var selection: String?
         let openSummaries: () -> Void
+        @State private var showsWeeklyReview = false
+        @State private var weeklyReviewNotice: WeeklyReviewNotice?
 
         var body: some View {
             VStack(spacing: 0) {
                 InkPageTitle("Günlük").macListColumnTitle()
-                Button(action: openSummaries) {
-                    Label("Özetler", systemImage: "chart.bar")
+                VStack(alignment: .leading, spacing: 0) {
+                    Button(action: openSummaries) {
+                        Label("Özetler", systemImage: "chart.bar")
+                    }
+                    // Like the iPhone row: once this week is reviewed, the link says so.
+                    HStack(alignment: .firstTextBaseline, spacing: InkSpacing.row) {
+                        Button {
+                            showsWeeklyReview = true
+                        } label: {
+                            Label("Haftalık inceleme", systemImage: "checklist")
+                        }
+                        .accessibilityIdentifier("button.weeklyReview")
+                        WeeklyReviewEntryStatus()
+                    }
                 }
                 .buttonStyle(InkTextButtonStyle())
                 // Starts where the manşet above it starts.
                 .padding(.leading, InkSpacing.margin + MacListColumnChrome.rowInset)
                 .padding(.vertical, 8)
                 .frame(maxWidth: .infinity, alignment: .leading)
+                if let notice = weeklyReviewNotice {
+                    InfoBand(kind: notice.kind, verbatim: notice.text, onDismiss: { weeklyReviewNotice = nil })
+                }
                 DaysCalendarView(store: store) { selection = "journal/\($0).md" }
                 MacDayList(days: store.content.days, selection: $selection)
             }
+            .weeklyReviewSheet(isPresented: $showsWeeklyReview, store: store) { weeklyReviewNotice = $0 }
         }
     }
 

@@ -37,6 +37,9 @@ final class MentionComposer {
     var requestedCreation: CreationRequest?
     var pins: [Pin] = []
     var skipped: Set<MentionPosition> = []
+    /// Bare names the user turned back into plain words, as UTF-8 ranges of `text`: they are
+    /// neither linked nor asked about. Whoever sets them keeps them on their bytes as the text changes.
+    var suppressed: [Range<Int>] = []
     /// Journal: only explicit (`@`) ambiguous mentions participate in save-time resolution.
     var resolvesExplicitAmbiguityOnly = false
     /// When set, pending checks and unbound-`@` removal consider only these 0-based line indices.
@@ -47,10 +50,38 @@ final class MentionComposer {
         self.text = text
     }
 
+    /// Recognized names that take part in linking and questions; suppressed ones are left out.
     var mentions: [Mention] {
+        let recognized = recognizedMentions
+        guard !suppressed.isEmpty else { return recognized }
+        return recognized.filter { !isSuppressed($0) }
+    }
+
+    private var recognizedMentions: [Mention] {
         EntityRecognizer.recognize(
             text, entities: store.knownEntities, usage: store.entityUsage,
             context: RecognitionContext(entities: pins.map(\.entity)))
+    }
+
+    /// Only the very occurrence is suppressed; an `@` written on its bytes is a request to link it.
+    func isSuppressed(_ mention: Mention) -> Bool {
+        !mention.isExplicit && suppressed.contains(globalRange(mention.position))
+    }
+
+    /// The suppressed ranges that keep a recognized name plain right now; the others hide nothing.
+    var effectiveSuppressions: [Range<Int>] {
+        guard !suppressed.isEmpty else { return [] }
+        return recognizedMentions.filter(isSuppressed).map { globalRange($0.position) }
+    }
+
+    /// A longer name now covering one of `ranges` holds that undone occurrence and stays plain too:
+    /// taking a task's date out of "Mert yarın Aksu" joins the undone "Mert" into "Mert Aksu".
+    func suppressNames(covering ranges: [Range<Int>]) {
+        guard !ranges.isEmpty else { return }
+        for mention in recognizedMentions where !mention.isExplicit {
+            let range = globalRange(mention.position)
+            if ranges.contains(where: { $0 != range && $0.clamped(to: range) == $0 }) { suppressed.append(range) }
+        }
     }
 
     var choices: [MentionPosition: String] {

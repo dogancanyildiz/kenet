@@ -50,7 +50,7 @@ final class SummariesModel {
         summary = nil
         defer { if request == id { isLoading = false } }
         do {
-            let result = try await store.periodSummary(period, containing: day)
+            let result = try await store.periodSummary(period, containing: day, today: today())
             guard request == id, root == store.vaultURL, self.period == period, self.day == day, !Task.isCancelled
             else { return }
             summary = result

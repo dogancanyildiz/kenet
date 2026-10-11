@@ -288,13 +288,14 @@ final class IndexStore {
     }
 
     /// Summary history is queried on demand and belongs to this vault generation.
-    func computeSummary(period: SummaryPeriod, day: CalendarDate, from: CalendarDate, to: CalendarDate) async throws
-        -> PeriodSummary
-    {
+    func computeSummary(
+        period: SummaryPeriod, day: CalendarDate, from: CalendarDate, to: CalendarDate, today: CalendarDate? = nil
+    ) async throws -> PeriodSummary {
         guard let index else { throw VaultStoreError.staleTarget }
         let current = generation
         let result = try await Task.detached {
-            PeriodSummary.compute(period: period, containing: day, data: try index.summaryInput(from: from, to: to))
+            PeriodSummary.compute(
+                period: period, containing: day, data: try index.summaryInput(from: from, to: to), today: today)
         }.value
         guard generation == current else { throw VaultStoreError.staleTarget }
         return result
@@ -832,5 +833,18 @@ final class IndexStore {
                 PersonCadenceField(key: field.key, kind: field.kind, value: field.value))
         }
         return grouped.mapValues(PersonCadence.parse)
+    }
+
+    // MARK: - Cadence reminders
+
+    /// People as of `today`: latest encounter on or before that day, plus the indexed cadence.
+    func cadenceReminderPeople(today: CalendarDate) async throws -> [CadenceReminderPerson] {
+        let cadences = try await personCadences()
+        let content = self.content
+        return content.entities.filter { $0.kind == "person" }.map { entity in
+            let last = content.entityTimeline[entity.id]?.map(\.date).filter { $0 <= today }.max()
+            return CadenceReminderPerson(
+                id: entity.id, name: entity.name, lastDay: last, cadence: cadences[entity.id] ?? .none)
+        }
     }
 }

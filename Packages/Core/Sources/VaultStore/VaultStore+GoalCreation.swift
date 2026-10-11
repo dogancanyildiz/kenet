@@ -46,7 +46,10 @@ extension VaultStore {
                 document = try document.settingFrontmatterValue(.text(self.displayName(unit)), forKey: "unit")
             }
             let path = "goals/" + stem + ".md"
-            try self.persist(document, path: path, exclusive: true)
+            let url = try self.checkedURL(path, writing: true)
+            try self.fileCoordination.coordinate(.modify(url)) { _ in
+                try self.persist(document, path: path, exclusive: true)
+            }
             return path
         }
     }

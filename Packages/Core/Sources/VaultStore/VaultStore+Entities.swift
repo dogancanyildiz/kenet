@@ -33,7 +33,10 @@ extension VaultStore {
                     aliases.filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }.map { .text($0) },
                     forKey: "aliases")
             }
-            try self.persist(document, path: path, exclusive: true)
+            let url = try self.checkedURL(path, writing: true)
+            try self.fileCoordination.coordinate(.modify(url)) { _ in
+                try self.persist(document, path: path, exclusive: true)
+            }
             return path
         }
     }

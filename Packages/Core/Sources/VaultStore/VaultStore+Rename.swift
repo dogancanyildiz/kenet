@@ -14,73 +14,85 @@ extension VaultStore {
         let stem = try filenameComponent(name) + (try qualifier.map { " (" + (try filenameComponent($0)) + ")" } ?? "")
         guard (stem + ".md").utf8.count <= 255 else { throw VaultStoreError.invalidName }
         let sourceURL = try checkedURL(path, writing: true)
-        let newPath = ((path as NSString).deletingLastPathComponent as NSString).appendingPathComponent(stem + ".md")
+        let parent = path.split(separator: "/").dropLast().joined(separator: "/")
+        let newPath = (parent.isEmpty ? "" : parent + "/") + stem + ".md"
         let targetURL = try checkedURL(newPath, writing: true)
         guard try !filenameIsTaken(stem, excluding: path) else { throw VaultStoreError.nameTaken }
-        let original = RawDocument(bytes: try readFile(sourceURL))
-        guard case .parsed(let frontmatter) = original.frontmatter,
-            case .scalar(let type) = frontmatter.field(named: "type")?.value,
-            ["person", "place"].contains(type.text) || customDefinition(type.text) != nil
-        else { throw VaultStoreError.staleTarget }
         let files = try markdownPaths()
         let newFiles = Set(files).subtracting(try index.files().map(\.path))
         let candidates = Set(try index.links(to: path).map(\.file))
         let targets = RenameTargets(oldPath: path, newPath: newPath, files: files)
-        var changed = try original.settingFrontmatterValue(.text(name), forKey: "name")
-        if let qualifier {
-            changed = try changed.settingFrontmatterValue(.text(qualifier), forKey: "qualifier")
-        } else {
-            changed = try changed.removingFrontmatterField(forKey: "qualifier")
-        }
-        if changed != original { try atomicWrite(Data(changed.serialized()), to: sourceURL, exclusive: false) }
-        if !path.utf8.elementsEqual(newPath.utf8) {
-            do { try moveFile(sourceURL, targetURL) } catch {
-                let moveError = error
-                do {
-                    if changed != original {
-                        if let restoreRenameFile {
-                            try restoreRenameFile(Data(original.serialized()), sourceURL)
-                        } else {
-                            try atomicWrite(Data(original.serialized()), to: sourceURL, exclusive: false)
-                        }
-                    }
-                } catch {
-                    var failures = [
-                        RenameFailure(
-                            path: path,
-                            reason: .partialChange(
-                                "move: \(moveError); restore: \(error)"))
-                    ]
-                    do { try index.update(paths: [path, newPath], vaultRoot: root) } catch {
-                        failures.append(RenameFailure(path: path, reason: .index(String(describing: error))))
-                    }
-                    return RenameResult(path: path, updatedFiles: [path], failures: failures)
-                }
-                _ = try? index.update(paths: [path, newPath], vaultRoot: root)
-                if FileManager.default.fileExists(atPath: targetURL.path) { throw VaultStoreError.nameTaken }
-                throw moveError
+        let operation: FileCoordinationOperation =
+            path.utf8.elementsEqual(newPath.utf8)
+            ? .modify(sourceURL) : .move(source: sourceURL, destination: targetURL)
+        let primary: (changed: Bool, failure: RenameResult?) = try fileCoordination.coordinate(operation) { access in
+            let original = RawDocument(bytes: try readFile(sourceURL))
+            guard case .parsed(let frontmatter) = original.frontmatter,
+                case .scalar(let type) = frontmatter.field(named: "type")?.value,
+                ["person", "place"].contains(type.text) || customDefinition(type.text) != nil
+            else { throw VaultStoreError.staleTarget }
+            var changed = try original.settingFrontmatterValue(.text(name), forKey: "name")
+            if let qualifier {
+                changed = try changed.settingFrontmatterValue(.text(qualifier), forKey: "qualifier")
+            } else {
+                changed = try changed.removingFrontmatterField(forKey: "qualifier")
             }
+            if changed != original { try atomicWrite(Data(changed.serialized()), to: sourceURL, exclusive: false) }
+            if !path.utf8.elementsEqual(newPath.utf8) {
+                access.itemWillMove(from: sourceURL, to: targetURL)
+                do { try moveFile(sourceURL, targetURL) } catch {
+                    let moveError = error
+                    do {
+                        if changed != original {
+                            if let restoreRenameFile {
+                                try restoreRenameFile(Data(original.serialized()), sourceURL)
+                            } else {
+                                try atomicWrite(Data(original.serialized()), to: sourceURL, exclusive: false)
+                            }
+                        }
+                    } catch {
+                        var failures = [
+                            RenameFailure(
+                                path: path,
+                                reason: .partialChange(
+                                    "move: \(moveError); restore: \(error)"))
+                        ]
+                        do { try index.update(paths: [path, newPath], vaultRoot: root) } catch {
+                            failures.append(RenameFailure(path: path, reason: .index(String(describing: error))))
+                        }
+                        return (true, RenameResult(path: path, updatedFiles: [path], failures: failures))
+                    }
+                    _ = try? index.update(paths: [path, newPath], vaultRoot: root)
+                    if FileManager.default.fileExists(atPath: targetURL.path) { throw VaultStoreError.nameTaken }
+                    throw moveError
+                }
+                access.itemDidMove(from: sourceURL, to: targetURL)
+            }
+            return (changed != original, nil)
         }
-        var updated: Set<String> = changed != original || path != newPath ? [newPath] : []
+        if let failure = primary.failure { return failure }
+        var updated: Set<String> = primary.changed || path != newPath ? [newPath] : []
         var failures: [RenameFailure] = []
         // Also inspect indexed raw fields, which deliberately have no link rows.
         for source in (path.utf8.elementsEqual(newPath.utf8) ? [] : Set(files).union(candidates).sorted()) {
             let destination = source == path ? newPath : source
             do {
                 let url = try checkedURL(destination, writing: true)
-                let document = RawDocument(bytes: try readFile(url))
-                if document.isReadOnly && !candidates.contains(source) { continue }
-                let rewrite = try RenameDocument.rewrite(
-                    document, targets: targets, eligible: candidates.contains(source))
-                if rewrite.document != document {
-                    try atomicWrite(Data(rewrite.document.serialized()), to: url, exclusive: false)
-                    updated.insert(destination)
-                }
-                failures += rewrite.rawFields.map { RenameFailure(path: destination, reason: .rawField($0)) }
-                failures += rewrite.listFailures.map {
-                    RenameFailure(
-                        path: destination,
-                        reason: .frontmatterList(key: $0.key, reason: $0.reason))
+                try fileCoordination.coordinate(.modify(url)) { _ in
+                    let document = RawDocument(bytes: try readFile(url))
+                    if document.isReadOnly && !candidates.contains(source) { return }
+                    let rewrite = try RenameDocument.rewrite(
+                        document, targets: targets, eligible: candidates.contains(source))
+                    if rewrite.document != document {
+                        try atomicWrite(Data(rewrite.document.serialized()), to: url, exclusive: false)
+                        updated.insert(destination)
+                    }
+                    failures += rewrite.rawFields.map { RenameFailure(path: destination, reason: .rawField($0)) }
+                    failures += rewrite.listFailures.map {
+                        RenameFailure(
+                            path: destination,
+                            reason: .frontmatterList(key: $0.key, reason: $0.reason))
+                    }
                 }
             } catch {
                 if candidates.contains(source) {

@@ -21,7 +21,7 @@ import Testing
             case 0, 1:
                 try write(
                     root, path,
-                    "---\ntype: person\nname: Deniz Arıkan\naliases: [Selin]\n---\n- [\(step % 2 == 0 ? " " : "x")] Kitap \(step) ^id\(next(4))\n[[Su \(next(12))]] [[Deniz Arıkan]]"
+                    "---\ntype: \(step % 5 == 0 ? "note" : "person")\nname: Deniz Arıkan\naliases: [Selin]\npuan: \(step)\ndoğum günü: 1990-05-\(10 + step % 9)\n---\n- [\(step % 2 == 0 ? " " : "x")] Kitap \(step) ^id\(next(4))\n[[Su \(next(12))]] [[Deniz Arıkan]]"
                 )
                 paths.insert(path)
             case 2:

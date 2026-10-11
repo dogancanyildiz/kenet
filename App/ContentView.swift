@@ -5,24 +5,42 @@ struct ContentView: View {
     let store: IndexStore
     @Environment(IntentNavigation.self) private var intentNavigation
     @Environment(NotificationService.self) private var notifications
+    @AppStorage(EntryPointsTipPreference.key) private var entryPointsTipDismissed = false
     @State private var searchPresented = false
+
+    /// The hint is session chrome. `AppRootScreen` only chooses onboarding, the inaccessible
+    /// vault, or the main shell; it does not present views.
+    private var showsEntryPointsTip: Bool {
+        root == .main && EntryPointsTipPreference.shouldPresent(dismissed: entryPointsTipDismissed)
+    }
+
+    private var root: AppRootScreen {
+        AppRootScreen.resolve(
+            requiresOnboarding: store.requiresOnboarding,
+            isVaultInaccessible: store.isVaultInaccessible)
+    }
 
     var body: some View {
         Group {
-            switch AppRootScreen.resolve(
-                requiresOnboarding: store.requiresOnboarding,
-                isVaultInaccessible: store.isVaultInaccessible
-            ) {
+            switch root {
             case .onboarding:
                 OnboardingView(store: store)
             case .vaultInaccessible:
                 VaultInaccessibleView(store: store)
             case .main:
-                #if os(macOS)
-                    MacNavigation(store: store)
-                #else
-                    PhoneNavigation(store: store)
-                #endif
+                mainScreen
+                    .safeAreaInset(edge: .top, spacing: 0) {
+                        if showsEntryPointsTip {
+                            InfoBand(
+                                kind: .info, entryPointsTip,
+                                onDismiss: {
+                                    EntryPointsTipPreference.dismiss(in: .standard)
+                                }
+                            )
+                            .background(Color.ink.paper)
+                            .accessibilityIdentifier("banner.entryPoints")
+                        }
+                    }
             }
         }
         .environment(\.openSearch, { searchPresented = true })
@@ -63,6 +81,22 @@ struct ContentView: View {
             #endif
             await store.startAutomatically()
         }
+    }
+
+    @ViewBuilder private var mainScreen: some View {
+        #if os(macOS)
+            MacNavigation(store: store)
+        #else
+            PhoneNavigation(store: store)
+        #endif
+    }
+
+    private var entryPointsTip: LocalizedStringKey {
+        #if os(iOS)
+            "Siri, Kısayollar ve Eylem düğmesiyle de yazabilirsin."
+        #else
+            "Siri, Kısayollar ve klavye kısayoluyla da yazabilirsin."
+        #endif
     }
 }
 

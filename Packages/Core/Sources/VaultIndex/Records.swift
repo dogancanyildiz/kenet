@@ -26,6 +26,14 @@ public struct IndexedEntity: Codable, FetchableRecord, Sendable, Equatable {
     public let unit: String?
 }
 
+/// A top-level entity scalar, preserving the source key and value spelling.
+public struct IndexedEntityField: Codable, FetchableRecord, Sendable, Equatable {
+    public let file: String
+    public let key: String
+    public let kind: String
+    public let value: String
+}
+
 /// A source alias, in frontmatter order.
 public struct IndexedAlias: Codable, FetchableRecord, Sendable, Equatable {
     public let file: String
@@ -114,10 +122,12 @@ public struct IndexSnapshot: Codable, Sendable, Equatable {
     public let blocks: [IndexedBlock]
     public let links: [IndexedLink]
     public let goalLogs: [IndexedGoalLog]
+    public let entityFields: [IndexedEntityField]
 
+    /// `entityFields` defaults to empty for callers that rebuild a snapshot from other rows.
     public init(
         files: [File], entities: [IndexedEntity], aliases: [IndexedAlias], blocks: [IndexedBlock],
-        links: [IndexedLink], goalLogs: [IndexedGoalLog]
+        links: [IndexedLink], goalLogs: [IndexedGoalLog], entityFields: [IndexedEntityField] = []
     ) {
         self.files = files
         self.entities = entities
@@ -125,5 +135,6 @@ public struct IndexSnapshot: Codable, Sendable, Equatable {
         self.blocks = blocks
         self.links = links
         self.goalLogs = goalLogs
+        self.entityFields = entityFields
     }
 }

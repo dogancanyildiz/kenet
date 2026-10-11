@@ -1,0 +1,25 @@
+{
+  "formatVersion": 1,
+  "types": [
+    {
+      "id": "book",
+      "folder": "books",
+      "name": {
+        "tr": "Kitap",
+        "en": "Book"
+      },
+      "plural": {
+        "tr": "Kitaplar",
+        "en": "Books"
+      },
+      "icon": "book",
+      "fields": [
+        {
+          "key": "date",
+          "kind": "date"
+        }
+      ],
+      "template": "templates/book.md"
+    }
+  ]
+}

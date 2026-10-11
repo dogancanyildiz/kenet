@@ -38,6 +38,7 @@
                             .inkListRow()
                     }
                 }
+                EntryPointSections()
             }
             .listStyle(.plain)
             .scrollContentBackground(.hidden)

@@ -805,8 +805,11 @@ final class IndexStore {
     }
 
     /// Writes one approved spelling, then publishes the index. A stale line is not written.
-    func linkUnlinkedMention(_ mention: UnlinkedMention, to entity: KnownEntity) async throws {
+    /// `root` is the vault the row was read from: a vault selected since, even while this write
+    /// waited its turn, is never written from another vault's row.
+    func linkUnlinkedMention(_ mention: UnlinkedMention, to entity: KnownEntity, readFrom root: URL?) async throws {
         try await performEdit(path: mention.file) { writer in
+            guard let root, vaultURL == root else { throw VaultStoreError.staleTarget }
             _ = try await writer.linkingMention(mention, to: entity)
         }
     }

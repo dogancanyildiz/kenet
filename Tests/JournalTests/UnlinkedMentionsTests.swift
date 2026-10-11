@@ -83,7 +83,7 @@ struct UnlinkedMentionsTests {
 
         let outcome = await model.link(mention, to: entity)
         #expect(outcome == .linked)
-        #expect(model.showsStaleNotice == false)
+        #expect(model.notice == nil)
         #expect(!model.mentions.contains { $0.position == mention.position && $0.file == mention.file })
         #expect(model.mentions.count == beforeCount - 1)
 
@@ -150,7 +150,9 @@ struct UnlinkedMentionsTests {
 
         let outcome = await model.link(mention, to: entity)
         #expect(outcome == .stale)
-        #expect(model.showsStaleNotice)
+        #expect(model.notice == .stale)
+        model.dismissNotice()
+        #expect(model.notice == nil)
         #expect(try Data(contentsOf: url) == mutated)
         #expect(!model.mentions.contains { $0.file == mention.file && $0.position == mention.position })
     }
@@ -196,27 +198,249 @@ struct UnlinkedMentionsTests {
         #expect(try Data(contentsOf: context.root.appendingPathComponent(second.file)) == untouched)
     }
 
-    @Test func byteRangesStayOnCharacterBoundaries() {
-        let city = "İstanbul'da"
-        let initial = "İ".utf8.count
-        let cityRange = MentionByteRange.characterRange(in: city, utf8: 0..<("İstanbul".utf8.count))
-        #expect(cityRange.map { String(city[$0]) } == "İstanbul")
-        #expect(MentionByteRange.characterRange(in: city, utf8: 1..<initial) == nil)
-        #expect(Self.emphasized(MentionByteRange.styled(city, utf8: 0..<initial)) == "İ")
-        #expect(Self.emphasized(MentionByteRange.styled(city, utf8: 1..<initial)).isEmpty)
+    @Test func aReloadRacingTheLinkKeepsRowsLockedUntilTheListIsFresh() async throws {
+        let context = try UnlinkedMentionsTestContext()
+        defer { context.clean() }
+        await context.start()
+        let entity = try context.elif()
+        let model = context.model()
+        await model.load(entity)
+        let pair = model.mentions.filter { $0.file == "journal/2026-10-10.md" && $0.lineText.contains("sonra") }
+        #expect(pair.count == 2)
+        let store = context.store
+        let gate = QueryGate()
+        model.testingQuery = { entity in
+            await gate.enter()
+            return try await store.computeUnlinkedMentions(of: entity)
+        }
 
-        let line = "a🎸b"
-        let markStart = "a".utf8.count
-        let markEnd = markStart + "🎸".utf8.count
-        #expect(MentionByteRange.characterRange(in: line, utf8: markStart..<markEnd).map { String(line[$0]) } == "🎸")
-        #expect(MentionByteRange.characterRange(in: line, utf8: (markStart + 1)..<markEnd) == nil)
-        #expect(Self.emphasized(MentionByteRange.styled(line, utf8: markStart..<markEnd)) == "🎸")
-        #expect(Self.emphasized(MentionByteRange.styled(line, utf8: (markStart + 1)..<(markStart + 2))).isEmpty)
+        // The link's own re-read starts, then the page's reload for the published index overtakes it.
+        let running = Task { await model.link(pair[0], to: entity) }
+        await gate.waitForArrival(1)
+        let reload = Task { await model.load(entity) }
+        await gate.waitForArrival(2)
+        gate.release(1)
+        #expect(await running.value == .linked)
+        let written = try Data(contentsOf: context.root.appendingPathComponent(pair[0].file))
 
-        #expect(MentionByteRange.characterRange(in: line, utf8: 0..<0) == nil)
-        #expect(MentionByteRange.characterRange(in: line, utf8: -1..<1) == nil)
-        #expect(MentionByteRange.characterRange(in: line, utf8: line.utf8.count..<(line.utf8.count + 2)) == nil)
-        #expect(Self.emphasized(MentionByteRange.styled(line, utf8: 50..<60)).isEmpty)
+        // The rows on screen are still the old ones: a tap now must not reach the writer.
+        #expect(!model.canLink)
+        #expect(await model.link(pair[1], to: entity) == .busy)
+        #expect(model.notice == nil)
+        #expect(try Data(contentsOf: context.root.appendingPathComponent(pair[0].file)) == written)
+
+        gate.release(2)
+        await reload.value
+        #expect(model.canLink)
+        let remaining = model.mentions.filter { $0.file == pair[0].file && $0.lineText.contains("sonra") }
+        #expect(remaining.count == 1)
+        #expect(remaining.first?.position.byteRange != pair[1].position.byteRange)
+    }
+
+    @Test func aLinkThatEndsOnAnotherEntitysPageLeavesThatPageAlone() async throws {
+        let context = try UnlinkedMentionsTestContext()
+        defer { context.clean() }
+        await context.start()
+        let entity = try context.elif()
+        let ece = try #require(context.store.knownEntities.first { $0.file == "people/Ece.md" })
+        let model = context.model()
+        await model.load(ece)
+        let eceRows = model.mentions.map(\.rowIdentity)
+        #expect(!eceRows.isEmpty)
+        await model.load(entity)
+        let mention = try #require(model.mentions.first { $0.file == "journal/2026-10-09.md" })
+        let gate = ArrivalGate()
+        model.testingHoldBeforeWrite = { _ = await gate.holdIfFirst() }
+
+        let running = Task { await model.link(mention, to: entity) }
+        await gate.waitUntilFirst()
+        await model.load(ece)
+        await gate.open()
+        #expect(await running.value == .linked)
+        #expect(model.entity?.file == ece.file)
+        #expect(model.mentions.map(\.rowIdentity) == eceRows)
+        #expect(model.notice == nil && model.canLink)
+
+        // A refusal that arrives on the other page is not that page's news either.
+        await model.load(entity)
+        let older = try #require(model.mentions.first { $0.file == "journal/2026-10-08.md" })
+        try Data("## Events\n".utf8).write(to: context.root.appendingPathComponent(older.file))
+        let second = ArrivalGate()
+        model.testingHoldBeforeWrite = { _ = await second.holdIfFirst() }
+        let refused = Task { await model.link(older, to: entity) }
+        await second.waitUntilFirst()
+        await model.load(ece)
+        await second.open()
+        #expect(await refused.value == .stale)
+        #expect(model.entity?.file == ece.file)
+        #expect(model.notice == nil && model.canLink)
+    }
+
+    @Test func aVaultSelectedWhileTheWriteWaitsIsNotWritten() async throws {
+        let context = try UnlinkedMentionsTestContext()
+        defer { context.clean() }
+        await context.start()
+        let entity = try context.elif()
+        let model = context.model()
+        await model.load(entity)
+        let mention = try #require(model.mentions.first { $0.file == "journal/2026-10-09.md" })
+        // The other vault holds the very same line, so only the vault check can refuse the write.
+        let other = context.directory.appendingPathComponent("Other")
+        try FileManager.default.copyItem(at: context.root, to: other)
+        let before = try Self.vaultFiles(context.root)
+        let store = context.store
+        model.testingHoldBeforeWrite = { await store.select(other) }
+
+        #expect(await model.link(mention, to: entity) == .stale)
+        #expect(try Self.vaultFiles(other) == before)
+        #expect(try Self.vaultFiles(context.root) == before)
+        #expect(model.notice == nil)
+    }
+
+    @Test func anAmbiguousSpellingIsLinkedToThisPagesEntityOnly() async throws {
+        let context = try UnlinkedMentionsTestContext()
+        defer { context.clean() }
+        await context.start()
+        let entity = try context.elif()
+        let model = context.model()
+        await model.load(entity)
+        let mention = try #require(model.mentions.first { $0.isAmbiguous && $0.spelling == "Ortak" })
+        let url = context.root.appendingPathComponent(mention.file)
+        let before = [UInt8](try Data(contentsOf: url))
+
+        #expect(await model.link(mention, to: entity) == .linked)
+        let after = [UInt8](try Data(contentsOf: url))
+        try Self.expectOnlySpanChanged(before: before, after: after, mention: mention)
+        let origin = try Self.lineStart(in: before, line: mention.position.line)
+        let start = origin + mention.position.byteRange.lowerBound
+        let link = Array("[[Elif|Ortak]]".utf8)
+        #expect(Array(after[start..<(start + link.count)]) == link)
+    }
+
+    @Test func aSavedLinkTheIndexCouldNotFollowIsNotOfferedAgain() async throws {
+        let context = try UnlinkedMentionsTestContext()
+        defer { context.clean() }
+        await context.start()
+        let entity = try context.elif()
+        let model = context.model()
+        await model.load(entity)
+        let mention = try #require(model.mentions.first { $0.file == "journal/2026-10-09.md" })
+        let count = model.mentions.count
+        let store = context.store
+        model.testingWrite = { mention, entity in
+            try await store.linkUnlinkedMention(mention, to: entity, readFrom: store.vaultURL)
+            throw VaultStoreError.indexUpdateFailed(path: mention.file, underlying: CocoaError(.fileWriteUnknown))
+        }
+
+        #expect(await model.link(mention, to: entity) == .savedNotIndexed)
+        #expect(model.notice == .savedNotIndexed)
+        #expect(model.mentions.count == count - 1)
+        #expect(!model.mentions.contains { $0.file == mention.file })
+        #expect(model.canLink)
+    }
+
+    @Test func aRefusedLinkSaysSoAndKeepsTheRows() async throws {
+        let context = try UnlinkedMentionsTestContext()
+        defer { context.clean() }
+        await context.start()
+        let entity = try context.elif()
+        let model = context.model()
+        await model.load(entity)
+        let rows = model.mentions.map(\.rowIdentity)
+        let mention = try #require(model.mentions.first)
+        let before = try Self.vaultFiles(context.root)
+        model.testingWrite = { _, _ in throw EntityLinkError.unrepresentableMention }
+
+        #expect(await model.link(mention, to: entity) == .failed)
+        #expect(model.notice == .failed)
+        #expect(model.mentions.map(\.rowIdentity) == rows)
+        #expect(model.canLink)
+        #expect(try Self.vaultFiles(context.root) == before)
+    }
+
+    @Test func aRowKeepsItsIdentityWhenItsFileChangesElsewhere() async throws {
+        let context = try UnlinkedMentionsTestContext()
+        defer { context.clean() }
+        await context.start()
+        let entity = try context.elif()
+        let model = context.model()
+        await model.load(entity)
+        let explicit = try #require(model.mentions.first { $0.file == "journal/2026-10-10.md" && $0.isExplicit })
+        let earlier = try #require(
+            model.mentions.first { $0.file == explicit.file && $0.position.line < explicit.position.line })
+
+        #expect(await model.link(explicit, to: entity) == .linked)
+        let same = try #require(model.mentions.first { $0.rowIdentity == earlier.rowIdentity })
+        // The value itself is new (it carries the file's digest), so it cannot identify the row.
+        #expect(same != earlier)
+        #expect(same.lineText == earlier.lineText)
+    }
+
+    @Test func rowsShowTheUsersTextWithTheReplacedBytesMarked() async throws {
+        let context = try UnlinkedMentionsTestContext()
+        defer { context.clean() }
+        await context.start()
+        let model = context.model()
+        await model.load(try context.elif())
+        let clocked = try #require(model.mentions.first { $0.file == "journal/2026-10-08.md" && $0.spelling == "Elif" })
+        #expect(Self.shown(UnlinkedMentionLine.styled(clocked)) == "🎸 çaldı, Çağrı’yla şöyle: Elif geldi.")
+        #expect(Self.emphasized(UnlinkedMentionLine.styled(clocked)) == "Elif")
+        // Linking removes the at sign too, so the row marks it.
+        let explicit = try #require(model.mentions.first { $0.isExplicit })
+        #expect(Self.shown(UnlinkedMentionLine.styled(explicit)) == "@Elif'e yazdım.")
+        #expect(Self.emphasized(UnlinkedMentionLine.styled(explicit)) == "@Elif")
+        for mention in model.mentions {
+            let styled = UnlinkedMentionLine.styled(mention)
+            #expect(Self.emphasized(styled) == (mention.isExplicit ? "@" : "") + mention.spelling)
+            #expect(!Self.shown(styled).contains("^"))
+        }
+    }
+
+    @Test func aRangeThatDoesNotFitTheLineLeavesItPlain() {
+        func styled(_ line: String, _ text: String, _ bytes: Range<Int>, _ spelling: String, explicit: Bool = false)
+            -> AttributedString
+        {
+            UnlinkedMentionLine.styled(
+                line: Array(line.utf8), text: text, bytes: bytes, spelling: spelling, isExplicit: explicit)
+        }
+        let city = "- 09:05 İstanbul'da [[Ece|bizim Ece]] 🎸 çaldı. ^abc123"
+        let text = "İstanbul'da [[Ece|bizim Ece]] 🎸 çaldı."
+        let lower = "- 09:05 ".utf8.count
+        let upper = lower + "İstanbul".utf8.count
+        let good = styled(city, text, lower..<upper, "İstanbul")
+        #expect(Self.shown(good) == "İstanbul'da bizim Ece 🎸 çaldı.")
+        #expect(Self.emphasized(good) == "İstanbul")
+
+        let linkedFirst = styled(
+            "- [[Ece|bizim Ece]] ile Elif geldi.", "[[Ece|bizim Ece]] ile Elif geldi.", 24..<28, "Elif")
+        #expect(Self.shown(linkedFirst) == "bizim Ece ile Elif geldi.")
+        #expect(Self.emphasized(linkedFirst) == "Elif")
+
+        // Inside a two-byte letter, inside the emoji, off either end, empty, or not the spelling.
+        let emoji = lower + "İstanbul'da [[Ece|bizim Ece]] ".utf8.count
+        let unusable: [(Range<Int>, String)] = [
+            ((lower + 1)..<upper, "İstanbul"), (lower..<(upper - 3), "İstanbul"), ((emoji + 1)..<(emoji + 3), "🎸"),
+            (-1..<3, "- 0"), (city.utf8.count..<(city.utf8.count + 4), "İstanbul"), (5000..<5008, "İstanbul"),
+            (lower..<lower, ""), (lower..<upper, "Istanbul."), (0..<1, "-"),
+        ]
+        for (bytes, spelling) in unusable {
+            let plain = styled(city, text, bytes, spelling)
+            #expect(Self.shown(plain) == "İstanbul'da bizim Ece 🎸 çaldı.")
+            #expect(Self.emphasized(plain).isEmpty)
+        }
+        // A line that is not valid UTF-8 around the spelling, and a text the line does not hold.
+        let broken = Array("- ".utf8) + [0xFF] + Array("Elif geldi.".utf8)
+        let invalid = UnlinkedMentionLine.styled(
+            line: broken, text: "\u{FFFD}Elif geldi.", bytes: 3..<7, spelling: "Elif", isExplicit: false)
+        #expect(Self.emphasized(invalid).isEmpty)
+        #expect(Self.emphasized(styled("- Elif geldi.", "Lale geldi.", 2..<6, "Elif")).isEmpty)
+
+        // A combining mark right after the spelling, and an at sign that is only marked when explicit.
+        let combined = styled("- Elif\u{301} geldi.", "Elif\u{301} geldi.", 2..<6, "Elif")
+        #expect(String(Self.shown(combined).unicodeScalars.prefix(5)) == "Elif\u{301}")
+        #expect(Self.emphasized(styled("- @Elif geldi.", "@Elif geldi.", 3..<7, "Elif", explicit: true)) == "@Elif")
+        #expect(Self.emphasized(styled("- @Elif geldi.", "@Elif geldi.", 3..<7, "Elif")) == "Elif")
+        #expect(Self.emphasized(styled("- Elif geldi.", "Elif geldi.", 2..<6, "Elif", explicit: true)) == "Elif")
 
         #expect(UnlinkedMentionList.visibleCount(total: 12, expanded: false) == 5)
         #expect(UnlinkedMentionList.visibleCount(total: 12, expanded: true) == 12)
@@ -225,6 +449,8 @@ struct UnlinkedMentionsTests {
         #expect(!UnlinkedMentionList.showsAll(total: 5, expanded: false))
         #expect(!UnlinkedMentionList.showsAll(total: 6, expanded: true))
     }
+
+    private static func shown(_ text: AttributedString) -> String { String(text.characters) }
 
     private static func rows(on date: CalendarDate, path: String, store: IndexStore) -> Int {
         store.content.entityTimeline[path]?.first { $0.date == date }?.rows.count ?? 0
@@ -356,5 +582,30 @@ private actor ArrivalGate {
         released = true
         release?.resume()
         release = nil
+    }
+}
+
+/// Holds each query at its start until the test lets that one through.
+@MainActor private final class QueryGate {
+    private var calls = 0
+    private var arrived: Set<Int> = []
+    private var arrivals: [Int: CheckedContinuation<Void, Never>] = [:]
+    private var holds: [Int: CheckedContinuation<Void, Never>] = [:]
+
+    func enter() async {
+        calls += 1
+        let call = calls
+        arrived.insert(call)
+        arrivals.removeValue(forKey: call)?.resume()
+        await withCheckedContinuation { holds[call] = $0 }
+    }
+
+    func waitForArrival(_ call: Int) async {
+        if arrived.contains(call) { return }
+        await withCheckedContinuation { arrivals[call] = $0 }
+    }
+
+    func release(_ call: Int) {
+        holds.removeValue(forKey: call)?.resume()
     }
 }

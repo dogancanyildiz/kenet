@@ -43,45 +43,63 @@ struct UnlinkedMentionsLoadKey: Hashable {
 /// Unlinked event and task spellings for one entity. Hidden when there is nothing to show.
 struct UnlinkedMentionsSection: View {
     let model: UnlinkedMentionsModel
-    @State private var expanded = false
+    @State private var expanded: Bool
+    @Environment(\.locale) private var locale
+
+    init(model: UnlinkedMentionsModel, expanded: Bool = false) {
+        self.model = model
+        _expanded = State(initialValue: expanded)
+    }
 
     private var store: IndexStore { model.store }
 
     var body: some View {
-        if model.showsStaleNotice || !model.mentions.isEmpty {
+        if model.notice != nil || !model.mentions.isEmpty {
             Section {
-                if model.showsStaleNotice {
-                    InfoBand(kind: .warning, "Satır değişmiş, bağlanmadı.")
-                        .accessibilityIdentifier("entity.unlinkedMentions.stale")
+                // The header stays while a notice is up, so the band never stands alone on the page.
+                SectionHeader("Bağlanmamış anmalar", count: model.mentions.count)
+                    .accessibilityIdentifier("entity.unlinkedMentions")
+                    .inkListRow()
+                if let notice = model.notice {
+                    band(notice)
+                        .accessibilityIdentifier("entity.unlinkedMentions.notice")
                         .inkListRow()
                 }
-                if !model.mentions.isEmpty {
-                    SectionHeader("Bağlanmamış anmalar", count: model.mentions.count)
-                        .accessibilityIdentifier("entity.unlinkedMentions")
-                        .inkListRow()
-                    let total = model.mentions.count
-                    let limit = UnlinkedMentionList.visibleCount(total: total, expanded: expanded)
-                    ForEach(Array(model.mentions.prefix(limit)), id: \.rowIdentity) { mention in
-                        row(mention)
+                let total = model.mentions.count
+                let limit = UnlinkedMentionList.visibleCount(total: total, expanded: expanded)
+                ForEach(Array(model.mentions.prefix(limit)), id: \.rowIdentity) { mention in
+                    row(mention)
+                }
+                if UnlinkedMentionList.showsAll(total: total, expanded: expanded) {
+                    Button {
+                        expanded = true
+                    } label: {
+                        Text("Tümünü göster (\(total))")
+                            .tapTarget()
                     }
-                    if UnlinkedMentionList.showsAll(total: total, expanded: expanded) {
-                        Button {
-                            expanded = true
-                        } label: {
-                            Text("Tümünü göster (\(total))")
-                                .tapTarget()
-                        }
-                        .buttonStyle(InkTextButtonStyle())
-                        .accessibilityIdentifier("button.unlinkedMention.showAll")
-                        .inkListRow()
-                    }
+                    .buttonStyle(InkTextButtonStyle())
+                    .accessibilityIdentifier("button.unlinkedMention.showAll")
+                    .inkListRow()
                 }
             }
         }
     }
 
+    private func band(_ notice: UnlinkedMentionNotice) -> InfoBand {
+        switch notice {
+        case .stale:
+            InfoBand(kind: .warning, "Satır değişmiş, bağlanmadı.", onDismiss: model.dismissNotice)
+        case .savedNotIndexed:
+            InfoBand(kind: .warning, "Değişiklik kaydedildi, indeks güncellenemedi.", onDismiss: model.dismissNotice)
+        case .failed:
+            InfoBand(kind: .error, "Bağlanamadı.", onDismiss: model.dismissNotice)
+        }
+    }
+
     private func row(_ mention: UnlinkedMention) -> some View {
-        HStack(alignment: .firstTextBaseline, spacing: 8) {
+        let day = LocalDay.instant(for: mention.date).formatted(.dateTime.day().month().year().locale(locale))
+        let line = UnlinkedMentionLine.styled(mention)
+        return HStack(alignment: .firstTextBaseline, spacing: 8) {
             NavigationLink {
                 DayView(store: store, date: mention.date)
             } label: {
@@ -89,7 +107,7 @@ struct UnlinkedMentionsSection: View {
                     Text(LocalDay.instant(for: mention.date), format: .dateTime.day().month().year())
                         .font(.ink.meta)
                         .foregroundStyle(.ink.secondaryText)
-                    Text(MentionByteRange.styled(mention.lineText, utf8: mention.position.byteRange))
+                    Text(line)
                         .font(.ink.content)
                         .foregroundStyle(.ink.text)
                     if mention.isAmbiguous {
@@ -117,16 +135,11 @@ struct UnlinkedMentionsSection: View {
                         .accessibilityIdentifier("button.unlinkedMention.link")
                 }
                 .buttonStyle(InkTextButtonStyle())
-                .disabled(model.isLinking)
+                .disabled(!model.canLink)
+                // "Link" alone does not say which of the rows it writes.
+                .accessibilityLabel(Text("Bağla: \(day), \(String(line.characters))"))
             }
         }
         .inkListRow()
-    }
-}
-
-extension UnlinkedMention {
-    /// One spelling on one line. Two occurrences of the same name stay distinct.
-    fileprivate var rowIdentity: String {
-        "\(file)|\(position.line)|\(position.byteRange.lowerBound)|\(position.byteRange.upperBound)"
     }
 }

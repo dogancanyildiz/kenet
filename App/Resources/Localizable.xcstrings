@@ -1549,6 +1549,22 @@
         }
       }
     },
+    "Bağla: %@, %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Link: %1$@, %2$@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bağla: %1$@, %2$@"
+          }
+        }
+      }
+    },
     "Bağlamadan devam et" : {
       "localizations" : {
         "en" : {
@@ -1561,6 +1577,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bağlamadan devam et"
+          }
+        }
+      }
+    },
+    "Bağlanamadı." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could not link."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bağlanamadı."
           }
         }
       }

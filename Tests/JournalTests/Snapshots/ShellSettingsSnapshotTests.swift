@@ -1,10 +1,16 @@
+import Testing
+
+@testable import Journal
+
+#if os(macOS)
+    import AppKit
+    import SwiftUI
+#endif
+
 #if os(iOS)
     import SnapshotTesting
     import SwiftUI
-    import Testing
     import UIKit
-
-    @testable import Journal
 
     /// Shell / Settings / onboarding / lock — own case list and host view.
     /// Mac cases omitted: SnapshotTesting host here is UIKit / iOS Simulator only.
@@ -31,6 +37,9 @@
         case vaultAX3
         case diagnosticsLight
         case diagnosticsAX3
+        case entryPointsLight
+        case entryPointsDark
+        case entryPointsAX3
 
         var screen: ShellSettingsScreen {
             switch self {
@@ -42,12 +51,13 @@
             case .privacyLight, .privacyAX3: .privacy
             case .vaultLight, .vaultAX3: .vault
             case .diagnosticsLight, .diagnosticsAX3: .diagnostics
+            case .entryPointsLight, .entryPointsDark, .entryPointsAX3: .entryPoints
             }
         }
 
         var colorScheme: SnapshotColorScheme {
             switch self {
-            case .onboardingDark, .settingsDark, .lockDark, .inaccessibleDark: .dark
+            case .onboardingDark, .settingsDark, .lockDark, .inaccessibleDark, .entryPointsDark: .dark
             default: .light
             }
         }
@@ -55,7 +65,7 @@
         var dynamicType: SnapshotDynamicType {
             switch self {
             case .onboardingAX3, .settingsAX3, .lockAX3, .inaccessibleAX3, .privacyAX3, .vaultAX3,
-                .diagnosticsAX3:
+                .diagnosticsAX3, .entryPointsAX3:
                 .accessibility3
             default: .medium
             }
@@ -77,6 +87,7 @@
             [
                 .onboardingLight, .onboardingDark, .settingsLight, .settingsDark,
                 .lockLight, .lockDark, .inaccessibleLight, .inaccessibleDark,
+                .entryPointsLight, .entryPointsDark,
             ]
         }
 
@@ -84,6 +95,7 @@
             [
                 .onboardingAX3, .onboardingContrast, .settingsAX3, .settingsContrast,
                 .lockAX3, .lockContrast, .inaccessibleAX3, .inaccessibleContrast,
+                .entryPointsAX3,
             ]
         }
 
@@ -96,7 +108,7 @@
     }
 
     enum ShellSettingsScreen: String, Sendable {
-        case onboarding, settings, lock, inaccessible, privacy, vault, diagnostics
+        case onboarding, settings, lock, inaccessible, privacy, vault, diagnostics, entryPoints
     }
 
     @MainActor
@@ -129,6 +141,8 @@
                     AnyView(VaultSettingsView(store: store).navigationTitle("Kasa"))
                 case .diagnostics:
                     AnyView(DiagnosticsView(store: store).navigationTitle("Tanılama"))
+                case .entryPoints:
+                    AnyView(EntryPointsSettingsView())
                 }
             return NavigationStack { root }
                 .environment(notifications)
@@ -284,6 +298,144 @@
         @Test(arguments: ShellSettingsSnapshotCase.sectionCases)
         func shellSettings(_ snapshotCase: ShellSettingsSnapshotCase) async throws {
             try await ShellSettingsSnapshotRunner.run(snapshotCase)
+        }
+    }
+#endif
+
+/// Section order, Siri phrase equality, and the one-time hint. Shared by both platforms.
+@Suite("Entry points")
+struct EntryPointSettingsTests {
+    private static let sectionOrder = [
+        "Hızlı giriş|square.and.pencil",
+        "Gizlilik|lock",
+        "Bildirimler|bell",
+        "Takvim ve Konum|calendar",
+        "Kasa|folder",
+        "Tanılama|wrench.and.screwdriver",
+    ]
+
+    @Test func phoneSettingsHasSixSectionsInTheDocumentedOrder() {
+        let table = SettingsSection.allCases.map { "\($0.title.key)|\($0.symbol)" }
+        #expect(SettingsSection.allCases.count == 6)
+        #expect(table == Self.sectionOrder)
+    }
+
+    #if os(macOS)
+        @Test func macSettingsHasSixTabsInTheDocumentedOrder() {
+            let table = MacSettingsTab.allCases.map { "\($0.title.key)|\($0.systemImage)" }
+            #expect(MacSettingsTab.allCases.count == 6)
+            #expect(table == Self.sectionOrder)
+        }
+    #endif
+
+    @Test func actionButtonCopyFollowsThePlatform() {
+        #if os(iOS)
+            #expect(EntryPointPlatform.showsActionButton)
+        #else
+            #expect(!EntryPointPlatform.showsActionButton)
+        #endif
+    }
+
+    /// Displayed sentences come from the `AppShortcuts` catalog with the app name filled in.
+    /// Read from the Turkish table directly: the process language is English on CI. A catalog
+    /// translation that drifts from the templates fails this.
+    @Test func shownPhrasesMatchJournalShortcuts() throws {
+        let name = "Uygulama"
+        let path = try #require(Bundle.main.path(forResource: "tr", ofType: "lproj"))
+        let turkish = try #require(Bundle(path: path))
+        let shown = EntryPointPhrases.displayed(
+            applicationName: name, locale: Locale(identifier: "tr"), bundle: turkish)
+        let expected = EntryPointPhrases.templates.map {
+            $0.replacingOccurrences(of: EntryPointPhrases.applicationNameToken, with: name)
+        }
+        #expect(shown.count == JournalShortcuts.appShortcuts.count)
+        #expect(shown == expected)
+    }
+
+    /// The page's own list is the one `JournalShortcuts` registers. `AppShortcut` keeps its
+    /// phrases internal, so the test reads them by reflection; the app itself does not.
+    @Test func phraseTemplatesAreTheRegisteredOnes() throws {
+        let registered = JournalShortcuts.appShortcuts.flatMap { shortcut -> [String] in
+            for child in Mirror(reflecting: shortcut).children where child.label == "basePhraseTemplates" {
+                if let templates = child.value as? [String] { return templates }
+            }
+            return []
+        }
+        try #require(!registered.isEmpty, "AppShortcut no longer exposes basePhraseTemplates to reflection")
+        #expect(EntryPointPhrases.templates == registered)
+    }
+
+    @Test func dismissedTipStaysDismissedAndStaysHiddenWithoutAutomaticStart() throws {
+        let defaults = try TestDefaults()
+        defer { defaults.clean() }
+        #expect(!EntryPointsTipPreference.isDismissed(in: defaults.defaults))
+        #expect(
+            EntryPointsTipPreference.shouldPresent(
+                dismissed: false, environment: [:], arguments: []))
+        #expect(
+            !EntryPointsTipPreference.shouldPresent(
+                dismissed: false, environment: ["JOURNAL_UITEST_VAULT": "/tmp/vault"], arguments: []))
+        #expect(
+            !EntryPointsTipPreference.shouldPresent(
+                dismissed: false, environment: ["JOURNAL_NO_AUTOSTART": "1"], arguments: []))
+        #expect(
+            !EntryPointsTipPreference.shouldPresent(
+                dismissed: false, environment: ["XCTestConfigurationFilePath": "/tmp/xctest.xctestconfiguration"],
+                arguments: []))
+        #expect(
+            !EntryPointsTipPreference.shouldPresent(
+                dismissed: false, environment: [:], arguments: ["JOURNAL_NO_AUTOSTART"]))
+
+        EntryPointsTipPreference.dismiss(in: defaults.defaults)
+        let dismissed = EntryPointsTipPreference.isDismissed(in: defaults.defaults)
+        #expect(dismissed)
+        #expect(
+            !EntryPointsTipPreference.shouldPresent(
+                dismissed: dismissed, environment: [:], arguments: []))
+    }
+}
+
+#if os(macOS)
+    /// The shortcut tab renders the shared rows and leaves the Action Button unmentioned.
+    @MainActor @Suite("Entry points Mac", .timeLimit(.minutes(1)))
+    struct MacEntryPointSettingsTests {
+        private let watchdog = HostedTestWatchdog()
+
+        @Test func shortcutTabOmitsTheActionButton() async throws {
+            let defaults = try TestDefaults()
+            defer { defaults.clean() }
+            let model = HotKeySettingsModel(defaults: defaults.defaults, register: { _ in true })
+            let mount = HostedLayout.Mount(
+                HotKeySettingsView(model: model)
+                    .environment(\.locale, Locale(identifier: "tr_TR"))
+                    .frame(width: 560, height: 720),
+                size: CGSize(width: 560, height: 720))
+            defer { mount.close() }
+            await mount.settle()
+            let text = Self.renderedText(mount.window.contentView).joined(separator: "\n")
+            // The process language decides the sentence (English on CI), not the view's locale.
+            let phrase = try #require(
+                EntryPointPhrases.displayed(
+                    applicationName: EntryPointPhrases.applicationName(), locale: Locale(identifier: "tr_TR")
+                ).first)
+            #expect(text.contains(phrase))
+            #expect(!text.contains(String(localized: "Eylem düğmesi")))
+        }
+
+        private static func renderedText(_ view: NSView?) -> [String] {
+            guard let view else { return [] }
+            var found: [String] = []
+            func walk(_ view: NSView) {
+                let value = (view.accessibilityValue() as? String) ?? ""
+                let label = view.accessibilityLabel() ?? ""
+                let field = (view as? NSTextField)?.stringValue ?? ""
+                for piece in [field, label, value] where !piece.isEmpty {
+                    found.append(piece)
+                }
+                view.subviews.forEach(walk)
+            }
+            walk(view)
+            return found
         }
     }
 #endif

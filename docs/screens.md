@@ -141,14 +141,24 @@ Telefonda okuma ve basit düzenleme. Aramadan ve bağlantılardan ulaşılır; a
 - **Arama:** her ekranda pencere araç çubuğundaki tek düğmeden (ve ⌘F ile) açılır; manşet satırlarında arama simgesi yoktur. İstisna: arama penceresinin içinde açılan not, varlık ve gün sayfasında büyüteç durur ve sonuçlara döndürür. Araç çubuğunda başlık yazılmaz; pencerenin adı seçili kenar çubuğu girdisidir.
 - **Çok sütunlu düzen:** Solda liste, ortada seçili öğe (üç sütun: kenar çubuğu + liste + ayrıntı). Örneğin kişi listesi ve seçili kişinin sayfası yan yana. Liste sütunu en az 280, ideal 320, en çok 400 pt genişliğindedir ve her biri serif manşetle başlar (Günlük, Görevler, proje adı, Kişiler / Konumlar, Hedefler); Günlük sütununda manşetin altında sola yaslı Özetler bağlantısı, Kişiler / Konumlar sütununda manşet satırında sıralama simgesi durur. Sayfa görünümleri en çok 680 pt genişlikte ortalanır. Ana pencerenin en küçük boyutu belirteçlerle sabitlenir (1000 × 560 pt). Görev, gün, kişi ve hedef listelerinde seçili satır çukur zeminde, solda vurgu çizgisiyle çizilir. Görev ayrıntısı satır seçilince açılır; kutu tamamlar, metindeki bağlantı kendi sayfasını açar. Görev satırının bağlam menüsü metin, tarih, tekrar, öncelik ve silmeyi sunar; silme onay diyaloğuna gider. Bölüm, süzgeç değişince veya görev listeden çıkınca seçim kalkar.
 - **Kanban (5)** tam genişlikte; sürükle bırak ile durum ve proje değişir, tarih kart menüsünden değiştirilir. **Zaman çizelgesi (5)** aynı geniş alanda tarih taşımayı ve uç sürükleyerek uzatma/kısaltmayı destekler. Gün ızgarasına yapışır; çubukta tarih alanları aynı farkla kayar, uç yalnız ilgili alanı değiştirir. Sürükleme başlangıcındaki görev ve kasa doğrulanır. İki tarih mevcut yazıcıyla iki kez yazılır; ikinci yazma ilkinden dönen görev hedefini kullanır. Yazma sırasında geçici çubuk konumu, hata/başarı sonrası dosya yenilemesi vardır; kısmi yazma bildirimi otomatik tekrar göndermez. Ayrıntı sağ panelde açılır.
-- **Hızlı giriş penceresi (1):** Sistem genelinde klavye kısayoluyla açılan küçük pencere; telefondaki hızlı giriş kutusuyla aynı davranış. Uygulama öne gelmeden kayıt yapılır. Kısayol Settings → Hızlı giriş sekmesinde ayarlanır.
+- **Hızlı giriş penceresi (1):** Sistem genelinde klavye kısayoluyla açılan küçük pencere; telefondaki hızlı giriş kutusuyla aynı davranış. Uygulama öne gelmeden kayıt yapılır. Kısayol Settings → Hızlı giriş sekmesinde ayarlanır. Sekmede Siri cümleleri ve Kısayollar da listelenir; Eylem düğmesi metni Mac'te yoktur.
 - **Notlar:** Serbest notlar için düzenleme alanı. (Henüz yok; kenar çubuğunda girdisi de yoktur, düzenleme gelince döner. Notlar aramadan açılır.)
 - Klavye kısayolları: arama (⌘F) ve hızlı geçiş (⌘K), bugüne git (⌘T). Yeni olay ve yeni görev kısayolları henüz yok.
 - **Ayarlar:** Mac'te sistem Settings sahnesinde sekmeler (sıra): Hızlı giriş, Gizlilik, Bildirimler, Takvim ve Konum, Kasa, Tanılama.
 
 ## Ayarlar
 
-iPhone'da Bugün manşet satırındaki düğmeden açılan Ayarlar listesi beş bölüme ayrılır; sayfa adı ve alt sayfa adları serif manşet olarak listenin içindedir, satır zemini kâğıttır. Mac'te aynı beş bölüm Settings sekmeleridir; Hızlı giriş kısayolu ilk sekmedir. Hiçbir ayar kaybolmaz; yeni ayar eklenmez.
+iPhone'da Bugün manşet satırındaki düğmeden açılan Ayarlar listesi altı bölüme ayrılır; sıra Hızlı giriş, Gizlilik, Bildirimler, Takvim ve Konum, Kasa, Tanılama'dır. Sayfa adı ve alt sayfa adları serif manşet olarak listenin içindedir, satır zemini kâğıttır. Mac'te aynı altı bölüm Settings sekmeleridir; Hızlı giriş ilk sekmedir. Hiçbir ayar kaybolmaz.
+
+### Ayarlar — Hızlı giriş
+
+Var olan giriş yolları gösterilir; yeni yol eklenmez. iPhone'da bu bölüm bir sayfadır. Mac'te aynı satırlar Hızlı giriş sekmesindedir; klavye kısayolu kaydı sekmenin başında kalır.
+
+- **Siri cümleleri:** `JournalShortcuts` cümleleri, uygulama adıyla, kayıtlı sırada. Cümleler ekrana elle yazılmaz; metin kısayol kataloğundan gelir.
+- **Kısayollar:** aynı cümleler Kısayollar uygulamasında da çalışır.
+- **Eylem düğmesi** yalnız iPhone'da: bu kısayollardan biri sistem Ayarlar'ındaki Eylem düğmesine atanabilir. Mac'te bu başlık ve metin yoktur.
+
+Ana ekranda, kasa açıldıktan sonra, kapatılabilen bir ipucu durur. Tercih cihazda saklanır; kapatılınca bir daha görünmez. UI testinde ve `AppLaunchPolicy` otomatik başlatmaya izin vermediğinde görünmez. iPhone ipucu Siri, Kısayollar ve Eylem düğmesini; Mac ipucu Siri, Kısayollar ve klavye kısayolunu adlandırır.
 
 ### Ayarlar — Gizlilik (7)
 
@@ -207,6 +217,8 @@ Uygulamaya yazmanın tüm yolları aynı hızlı giriş davranışına çıkar:
 - Mac hızlı giriş penceresi (1)
 - Kısayollar ve Siri (4)
 - Akşam hatırlatma bildirimi (4)
+
+Bugün çalışan yollar (Siri cümleleri, Kısayollar, Eylem düğmesi, Mac klavye kısayolu) Ayarlar → Hızlı giriş'te ve ilk kullanım ipucunda gösterilir. Widget, kilit ekranı düğmesi, Denetim Merkezi ve paylaşım uzantısı bu gösterimde yoktur.
 
 ## Boş durumlar
 

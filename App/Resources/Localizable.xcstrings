@@ -7661,6 +7661,22 @@
         }
       }
     },
+    "Lisans" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "License"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lisans"
+          }
+        }
+      }
+    },
     "Liste" : {
       "localizations" : {
         "en" : {
@@ -9625,6 +9641,22 @@
         }
       }
     },
+    "Tanılama'ya dön" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Back to Diagnostics"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tanılama'ya dön"
+          }
+        }
+      }
+    },
     "Tanım" : {
       "localizations" : {
         "en" : {
@@ -10237,6 +10269,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Türü olmayan dosyalar"
+          }
+        }
+      }
+    },
+    "Üçüncü taraf lisansları" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Third-party licenses"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Üçüncü taraf lisansları"
           }
         }
       }

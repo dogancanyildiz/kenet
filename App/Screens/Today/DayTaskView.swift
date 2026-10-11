@@ -69,6 +69,8 @@ struct DayTaskView: View {
                     complete()
                 }
             }
+            // Same gate and same list as the menu below: a past day page offers no moves.
+            .accessibilityActions { if isToday { moveButtons } }
             .contextMenu {
                 if isToday {
                     Button("Metni düzenle", systemImage: "pencil") {
@@ -77,6 +79,7 @@ struct DayTaskView: View {
                     Button("Tarih ver / değiştir", systemImage: "calendar") {
                         dateEditor = TaskEditorModel(store: store, row: row)
                     }
+                    moveButtons
                     if row.due != nil { Button("Tarihi kaldır") { edit { await $0.setDue(nil) } } }
                     Button("Tekrar", systemImage: "repeat") {
                         recurrenceEditor = TaskEditorModel(store: store, row: row)
@@ -113,6 +116,10 @@ struct DayTaskView: View {
         .entityLinkSheet($linkDestination, store: store)
     }
 
+    private var moveButtons: TaskMoveButtons {
+        TaskMoveButtons(row: row, today: day) { date in edit { await $0.setDue(date) } }
+    }
+
     private func openLink(_ url: URL) {
         linkDestination = EntityLinkDestination.from(url: url, entities: store.content.entities)
     }
@@ -123,6 +130,20 @@ struct DayTaskView: View {
             await model.load()
             if model.target != nil { _ = await operation(model) }
             errorText = model.errorText
+        }
+    }
+}
+
+/// Today / tomorrow / next week for an open task. The context menu and the VoiceOver actions both
+/// build from this view, so they cannot offer different sets.
+struct TaskMoveButtons: View {
+    let row: TaskRow
+    let today: CalendarDate
+    let move: (CalendarDate) -> Void
+
+    var body: some View {
+        ForEach(TaskMove.options(for: row, on: today), id: \.self) { option in
+            Button(LocalizedStringKey(option.destination.titleKey)) { move(option.date) }
         }
     }
 }

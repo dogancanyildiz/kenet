@@ -72,6 +72,7 @@ struct TasksListRow: View {
                 complete()
             }
         }
+        .accessibilityActions { moveButtons }
         .contextMenu { editMenu }
         #if os(macOS)
             // The list column draws the selection; the system focus ring would double it.
@@ -134,6 +135,7 @@ struct TasksListRow: View {
         Button("Tarih ver / değiştir", systemImage: "calendar") {
             dateEditor = TaskEditorModel(store: store, row: row)
         }
+        moveButtons
         if row.due != nil { Button("Tarihi kaldır") { edit { await $0.setDue(nil) } } }
         Button("Tekrar", systemImage: "repeat") { recurrenceEditor = TaskEditorModel(store: store, row: row) }
         Menu("Öncelik") {
@@ -145,6 +147,10 @@ struct TasksListRow: View {
         Button("Sil", systemImage: "trash", role: .destructive) {
             deleteConfirmation.request(.pending)
         }
+    }
+
+    private var moveButtons: TaskMoveButtons {
+        TaskMoveButtons(row: row, today: day) { date in edit { await $0.setDue(date) } }
     }
 
     private func edit(_ operation: @escaping (TaskEditorModel) async -> Bool) {

@@ -12,6 +12,8 @@ struct DayTasksView: View {
     var onExpandCompleted: () -> Void
     @Environment(\.calendar) private var calendar
     @Environment(\.locale) private var locale
+    @State private var moveReport: TaskMoveReport?
+    @State private var isMovingCarriedOver = false
 
     var body: some View {
         let rows = presentation.rows
@@ -22,9 +24,17 @@ struct DayTasksView: View {
                     title: String(
                         localized: "Görevler",
                         bundle: PresentationLocalization.bundle(locale), locale: locale),
-                    counter: presentation.counter(for: .tasks))
+                    counter: presentation.counter(for: .tasks)
+                )
+                .modifier(carriedOverCommands)
                 if let error = model.errorText {
                     InfoBand(kind: .error, verbatim: error)
+                }
+                if let report = moveReport, let text = report.text(locale: locale) {
+                    InfoBand(kind: report.isPartial ? .warning : .info, verbatim: text)
+                }
+                if let failure = moveReport?.failureText {
+                    InfoBand(kind: .error, verbatim: failure)
                 }
                 ForEach(rows) { entry in
                     switch entry {
@@ -54,6 +64,7 @@ struct DayTasksView: View {
                         }
                         .buttonStyle(.plain)
                         .accessibilityLabel(text)
+                        .modifier(carriedOverCommands)
                     case .completedDisclosure(let text):
                         Button(action: onExpandCompleted) {
                             Text(verbatim: text)
@@ -69,6 +80,27 @@ struct DayTasksView: View {
                     }
                 }
             }
+            // The result belongs to the day it was produced on.
+            .onChange(of: date) { moveReport = nil }
+        }
+    }
+
+    /// Full carried-over list, including tasks folded behind the disclosure.
+    private var carriedOverCommands: MoveCarriedOverCommands {
+        MoveCarriedOverCommands(
+            enabled: isToday && !model.groups.overdue.isEmpty, isBusy: isMovingCarriedOver,
+            move: moveCarriedOver)
+    }
+
+    private func moveCarriedOver() {
+        guard isToday, !isMovingCarriedOver, store.canAddEvent else { return }
+        let rows = model.groups.overdue
+        guard !rows.isEmpty else { return }
+        isMovingCarriedOver = true
+        moveReport = nil
+        Task {
+            moveReport = await TaskMove.apply(rows, to: date, in: store)
+            isMovingCarriedOver = false
         }
     }
 
@@ -76,5 +108,27 @@ struct DayTasksView: View {
         guard let due = row.due else { return nil }
         return TodayPresentation.carriedOverDate(
             due, today: date, locale: presentation.locale, calendar: calendar)
+    }
+}
+
+/// Context menu and VoiceOver action for moving every carried-over task to today.
+private struct MoveCarriedOverCommands: ViewModifier {
+    let enabled: Bool
+    let isBusy: Bool
+    let move: () -> Void
+
+    @ViewBuilder func body(content: Content) -> some View {
+        if enabled {
+            content
+                .contextMenu {
+                    Button("Hepsini bugüne", action: move)
+                        .disabled(isBusy)
+                }
+                .accessibilityAction(named: Text("Hepsini bugüne")) {
+                    if !isBusy { move() }
+                }
+        } else {
+            content
+        }
     }
 }

@@ -53,7 +53,8 @@ extension VaultIndex {
     /// Plain spellings of the entity's name or aliases in day event and task first lines, newest day first.
     ///
     /// Full-text search narrows the day files; the recognizer then reads their current bytes with its
-    /// usual name rules, so code, existing links, addresses and suffixes behave as in every app write.
+    /// usual name rules, so code, existing links, addresses and suffixes behave as in every app write;
+    /// a digit-only name or alias is listed only where it follows an at sign, as it is linked only there.
     /// Task continuation lines, Journal paragraphs, notes, an event's clock and task fields are not listed,
     /// and neither is a spelling whose link the writer would refuse: one that cannot stand inside a
     /// wikilink, or one inside a recurrence rule the app cannot read.

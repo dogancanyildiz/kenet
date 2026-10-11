@@ -17,9 +17,14 @@ public enum EntityRecognizer {
         scan(text, entities: entities, context: context).unknown
     }
 
-    /// `numericRule` exists for the test that compares the recognizer with and without the numeric expression rule.
+    /// Whether a spelling is recognized only after an at sign: one made of decimal digits alone, such as
+    /// `12` or `2026`. Callers that write a picked name into text keep its at sign when this holds.
+    public static func needsExplicitMention(_ spelling: String) -> Bool {
+        !spelling.isEmpty && spelling.allSatisfy(RecognitionLine.digit)
+    }
+
     static func scan(
-        _ text: String, entities: [KnownEntity], context: RecognitionContext, numericRule: Bool = true
+        _ text: String, entities: [KnownEntity], context: RecognitionContext
     ) -> (known: [Mention], unknown: [UnknownMention]) {
         var patterns: [String: [NamePattern]] = [:]
         for entity in entities {
@@ -52,9 +57,10 @@ public enum EntityRecognizer {
                 }
                 let options = patterns[String(line.characters[start]).lowercased()] ?? []
                 let matches = options.compactMap { pattern -> (NamePattern, Int)? in
-                    guard let end = pattern.end(in: line, from: start) else { return nil }
-                    // A digit-only name inside a time, date, decimal or range is part of that number.
-                    if numericRule, pattern.isDigitOnly, !explicit, line.joinsNumber(start..<end) { return nil }
+                    // A digit-only spelling is a number wherever it is written plainly; only `@` makes it a name.
+                    guard explicit || !pattern.isDigitOnly, let end = pattern.end(in: line, from: start) else {
+                        return nil
+                    }
                     return (pattern, end)
                 }
                 if !matches.isEmpty {

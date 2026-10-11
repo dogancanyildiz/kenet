@@ -4,13 +4,13 @@ import VaultFormat
 
 @testable import Journal
 
-/// Journal writing hands every changed line to the recognizer; digit-only names must not eat numbers.
+/// Journal writing hands every changed line to the recognizer; a digit-only name is linked only after `@`.
 @MainActor
 struct JournalDigitNameTests {
     private func context() async throws -> DayEditingTestContext {
         let context = try DayEditingTestContext()
         // `2026-10-12` is not digit-only: only the task's structure keeps it out of the due date.
-        for name in ["12", "2026", "10", "30", "5", "2026-10-12"] {
+        for name in ["12", "2026", "10", "30", "5", "1", "2026-10-12"] {
             try Data("---\ntype: place\nname: \(name)\n---\n".utf8)
                 .write(to: context.root.appendingPathComponent("places/\(name).md"))
         }
@@ -22,16 +22,16 @@ struct JournalDigitNameTests {
         try JournalRecognition.body(of: RawDocument(bytes: try Data(contentsOf: context.file)))
     }
 
-    @Test func timesDatesAndDecimalsStayPlainWhileAStandaloneNumberIsLinked() async throws {
+    @Test func plainNumbersStayAsWrittenAndOnlyAnExplicitDigitNameIsLinked() async throws {
         let context = try await context()
         defer { context.clean() }
         let model = JournalEditorModel(store: context.store, day: context.day)
         await model.load()
-        let written = "saat 12:30'da buluştuk, 12.10.2026 günü 12,5 km yürüdük.\nBugün 12 kişi geldi.\n"
-        model.text = written + model.text
+        let plain =
+            "saat 12:30'da buluştuk, 12.10.2026 günü 12,5 km yürüdük.\n12 Ekim 2026: bugün 12 kişi geldi.\n1. Elma\n"
+        model.text = plain + "@12 de geldi.\n" + model.text
         #expect(await model.save())
-        let body = try body(context)
-        #expect(body.hasPrefix("saat 12:30'da buluştuk, 12.10.2026 günü 12,5 km yürüdük.\nBugün [[12]] kişi geldi.\n"))
+        #expect(try body(context).hasPrefix(plain + "[[12]] de geldi.\n"))
     }
 
     @Test func journalTaskKeepsItsDueDateThroughEveryEdit() async throws {
@@ -50,10 +50,10 @@ struct JournalDigitNameTests {
         // Every later edit of the same line is recognized again as a changed line.
         for (old, new, expected) in [
             ("- [ ] ara", "- [ ] Deniz'i ara", "- [ ] [[Deniz Arıkan|Deniz]]'i ara 📅 2026-10-12\n"),
-            ("'i ara 📅", "'i 12 kez ara 📅", "- [ ] [[Deniz Arıkan|Deniz]]'i [[12]] kez ara 📅 2026-10-12\n"),
+            ("'i ara 📅", "'i 12 kez @12 ara 📅", "- [ ] [[Deniz Arıkan|Deniz]]'i 12 kez [[12]] ara 📅 2026-10-12\n"),
             (
                 "2026-10-12\n", "2026-10-12 ⏳ 2026-10-11 ⏫\n",
-                "- [ ] [[Deniz Arıkan|Deniz]]'i [[12]] kez ara 📅 2026-10-12 ⏳ 2026-10-11 ⏫\n"
+                "- [ ] [[Deniz Arıkan|Deniz]]'i 12 kez [[12]] ara 📅 2026-10-12 ⏳ 2026-10-11 ⏫\n"
             ),
         ] {
             model = JournalEditorModel(store: context.store, day: context.day)

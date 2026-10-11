@@ -45,7 +45,7 @@ Boş adım tek cümleyle söylenir ("Bugün için açık görev yok."). Akış h
 
 - Tek metin kutusu. Başında kip iki sözcükle durur: **Olay** ve **Görev**; seçili olan yarı kalındır ve altında vurgu çizgisi taşır, varsayılan olay.
 - Görev modunda `#project/` yazınca mevcut proje adları önerilir; seçim etiketi tamamlar, yeni ad serbesttir.
-- `@` yazınca kişi ve konum önerileri açılır. `@` kullanılmasa da bilinen adlar yazarken tanınır ve vurgulanır. Aynı `@` şeridi olay metni düzenleme sheet'inde ve günlük yazısı editöründe de kullanılır.
+- `@` yazınca kişi ve konum önerileri açılır. `@` kullanılmasa da bilinen adlar yazarken tanınır ve vurgulanır; adı tamamen rakam olan varlık (`12`) yalnız `@` ile tanınır, bu yüzden öneriden seçilince metne `@12` olarak girer ve kayıtta bağlantıya çevrilir. Aynı `@` şeridi olay metni düzenleme sheet'inde ve günlük yazısı editöründe de kullanılır.
 - Birden fazla aday varsa en olası olan önerilir; uygulama emin değilse seçim ister.
 - Tanınmayan bir ad `@` ile yazıldıysa "kişi olarak ekle" ya da "konum olarak ekle" seçeneği çıkar. Aynı adda varlık varsa kısa bir ayırt edici sorulur.
 - Görev modunda baş/son bağımsız `!` orta, `!!` yüksek önceliktir; `her hafta`/`every week` gibi tekrar ifadesi önceden gösterilir ve gönderimde alanlara çevrilir.

@@ -237,7 +237,7 @@ struct UnlinkedMentionAdversarialTests {
     @Test func firstLinesReadAloneAgreeWithWholeFiles() throws {
         let vault = try setup()
         defer { vault.remove() }
-        #expect(try Self.agreesWithWholeFiles(vault) > 150)
+        #expect(try Self.agreesWithWholeFiles(vault) > 140)
     }
 
     /// The search stage must not hide a mention, whatever the name and the line look like.
@@ -513,11 +513,8 @@ struct UnlinkedMentionAdversarialTests {
         let entity = KnownEntity(file: "people/Sayı.md", kind: .person, name: "2026")
         let text = "## Tasks\n- [ ] 2026 ara 📅 2026-10-12 📅 2026-10-13 ⏫ ⏫\n"
         let source = RawDocument(bytes: text.utf8)
-        // The recognizer no longer reads a field, so the refused mentions come from the same line
-        // with the dates spelled apart: the gate must hold whatever hands it a mention.
-        #expect(EntityRecognizer.recognize(text, entities: [entity]).count == 1)
-        let mentions = EntityRecognizer.recognize(
-            text.replacingOccurrences(of: "-10-1", with: " 10 1"), entities: [entity])
+        // The recognizer hands over none of these, so the gate is tried with every spelling on the line.
+        let mentions = UnlinkedMentionTests.plainMentions(of: entity, onLine: 1, of: source)
         #expect(mentions.count == 3)
         for (mention, accepted) in zip(mentions, [true, false, false]) {
             let linked = RawDocument(bytes: try EntityRecognizer.linking(text, mentions: [mention]).utf8)

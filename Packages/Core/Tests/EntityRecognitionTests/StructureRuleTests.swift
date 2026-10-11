@@ -24,19 +24,6 @@ func longerNumericExpressionsStayPlain(_ text: String) throws {
     #expect(try linked(text, numbers) == text)
 }
 
-/// A number next to a symbol, a unit, a letter or a month name stands alone and is read as before.
-@Test(arguments: [
-    ("%12", "%[[12]]"), ("12%", "[[12]]%"), ("12°", "[[12]]°"), ("№12", "№[[12]]"), ("No:12", "No:[[12]]"),
-    ("12/A", "[[12]]/A"), ("A-12", "A-[[12]]"), ("12.madde", "[[12]].madde"),
-    ("Tel: 0212 555 12 12", "Tel: [[0212]] [[555]] [[12]] [[12]]"), ("12 Ekim 2026", "[[12]] Ekim [[2026]]"),
-    ("12 Ekim 2026'da", "[[12]] Ekim [[2026]]'da"), ("saat 12'yi 5 geçe", "saat [[12]]'yi [[5]] geçe"),
-    ("12+5", "[[12]]+[[5]]"), ("12 500", "[[12]] 500"),
-])
-func numberBesideASymbolOrAWordIsStillLinked(_ text: String, _ expected: String) throws {
-    #expect(try linked(text, numbers) == expected)
-    #expect(try linked(expected, numbers) == expected)
-}
-
 private let people = [
     KnownEntity(file: "people/Deniz Arıkan.md", kind: .person, name: "Deniz Arıkan", aliases: ["Deniz"]),
     KnownEntity(file: "people/Elif.md", kind: .person, name: "Elif"), place("Ev"),

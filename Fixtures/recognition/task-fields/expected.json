@@ -15,34 +15,6 @@
       "isCertain": true
     },
     {
-      "line": 3,
-      "byteRange": [
-        6,
-        8
-      ],
-      "spelling": "12",
-      "candidates": [
-        "places/12.md"
-      ],
-      "isAmbiguous": false,
-      "isCaseMismatch": false,
-      "isCertain": true
-    },
-    {
-      "line": 3,
-      "byteRange": [
-        13,
-        17
-      ],
-      "spelling": "2026",
-      "candidates": [
-        "places/2026.md"
-      ],
-      "isAmbiguous": false,
-      "isCaseMismatch": false,
-      "isCertain": true
-    },
-    {
       "line": 4,
       "byteRange": [
         6,
@@ -155,20 +127,6 @@
       "isCertain": true
     },
     {
-      "line": 8,
-      "byteRange": [
-        17,
-        18
-      ],
-      "spelling": "1",
-      "candidates": [
-        "places/Takvim.md"
-      ],
-      "isAmbiguous": false,
-      "isCaseMismatch": false,
-      "isCertain": true
-    },
-    {
       "line": 9,
       "byteRange": [
         17,
@@ -183,20 +141,6 @@
       "isCertain": true
     },
     {
-      "line": 10,
-      "byteRange": [
-        23,
-        27
-      ],
-      "spelling": "2026",
-      "candidates": [
-        "places/2026.md"
-      ],
-      "isAmbiguous": false,
-      "isCaseMismatch": false,
-      "isCertain": true
-    },
-    {
       "line": 11,
       "byteRange": [
         31,
@@ -205,20 +149,6 @@
       "spelling": "Deniz",
       "candidates": [
         "people/Deniz Arıkan.md"
-      ],
-      "isAmbiguous": false,
-      "isCaseMismatch": false,
-      "isCertain": true
-    },
-    {
-      "line": 14,
-      "byteRange": [
-        8,
-        10
-      ],
-      "spelling": "12",
-      "candidates": [
-        "places/12.md"
       ],
       "isAmbiguous": false,
       "isCaseMismatch": false,
@@ -253,34 +183,6 @@
       "isCertain": true
     },
     {
-      "line": 17,
-      "byteRange": [
-        8,
-        10
-      ],
-      "spelling": "12",
-      "candidates": [
-        "places/12.md"
-      ],
-      "isAmbiguous": false,
-      "isCaseMismatch": false,
-      "isCertain": true
-    },
-    {
-      "line": 18,
-      "byteRange": [
-        2,
-        4
-      ],
-      "spelling": "12",
-      "candidates": [
-        "places/12.md"
-      ],
-      "isAmbiguous": false,
-      "isCaseMismatch": false,
-      "isCertain": true
-    },
-    {
       "line": 22,
       "byteRange": [
         6,
@@ -289,20 +191,6 @@
       "spelling": "Deniz",
       "candidates": [
         "people/Deniz Arıkan.md"
-      ],
-      "isAmbiguous": false,
-      "isCaseMismatch": false,
-      "isCertain": true
-    },
-    {
-      "line": 22,
-      "byteRange": [
-        27,
-        31
-      ],
-      "spelling": "2026",
-      "candidates": [
-        "places/2026.md"
       ],
       "isAmbiguous": false,
       "isCaseMismatch": false,
@@ -331,20 +219,6 @@
       "spelling": "2026-10-12",
       "candidates": [
         "places/2026-10-12.md"
-      ],
-      "isAmbiguous": false,
-      "isCaseMismatch": false,
-      "isCertain": true
-    },
-    {
-      "line": 23,
-      "byteRange": [
-        33,
-        37
-      ],
-      "spelling": "2026",
-      "candidates": [
-        "places/2026.md"
       ],
       "isAmbiguous": false,
       "isCaseMismatch": false,
@@ -387,6 +261,34 @@
       "spelling": "Deniz",
       "candidates": [
         "people/Deniz Arıkan.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 28,
+      "byteRange": [
+        7,
+        9
+      ],
+      "spelling": "12",
+      "candidates": [
+        "places/12.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 28,
+      "byteRange": [
+        15,
+        19
+      ],
+      "spelling": "2026",
+      "candidates": [
+        "places/2026.md"
       ],
       "isAmbiguous": false,
       "isCaseMismatch": false,

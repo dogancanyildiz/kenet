@@ -26,3 +26,4 @@ Serbest yazı 📅 2026-10-12 ve 2026.
 - [ ] su iç 🔁 her hafta Deniz ile
 - [ ] su iç 🔁 her hafta ⏫ Deniz ile
 - [ ] su iç 🔁 her hafta 📅 2026-10-12 Deniz ile 12:30
+- [ ] @12 ile @2026 konuşuldu, 12 kişi 📅 2026-10-12 ^j2

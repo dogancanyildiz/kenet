@@ -20,7 +20,7 @@ struct DateTokens: Sendable {
     let bytes: [UInt8]
     let tokens: [DateToken]
 
-    init(_ text: String) {
+    init(_ text: String, excluding excluded: [Range<Int>] = []) {
         bytes = Array(text.utf8)
         let document = RawDocument(bytes: bytes)
         var scanner = RecognitionScanner(document: document)
@@ -66,11 +66,14 @@ struct DateTokens: Sendable {
                 let mention = explicit || continuation
                 mentionWords = mention && characters[start].isUppercase ? (explicit ? 1 : mentionWords + 1) : 0
                 mentionEnd = range.upperBound
-                if !mention, !range.contains(where: { mask[$0] }) {
+                let originalRange = (range.lowerBound + offset)..<(range.upperBound + offset)
+                if !mention, !range.contains(where: { mask[$0] }),
+                    !excluded.contains(where: { $0.overlaps(originalRange) })
+                {
                     result.append(
                         DateToken(
                             text: String(characters[start..<index]),
-                            range: (range.lowerBound + offset)..<(range.upperBound + offset)))
+                            range: originalRange))
                 }
             }
             offset += line.content.count + (line.ending?.bytes.count ?? 0)

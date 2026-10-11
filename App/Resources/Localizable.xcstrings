@@ -3053,6 +3053,38 @@
         }
       }
     },
+    "Bugünden bir cümle" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A sentence from today"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bugünden bir cümle"
+          }
+        }
+      }
+    },
+    "Bugünden tek bir cümle yeter." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "One sentence from today is enough."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bugünden tek bir cümle yeter."
+          }
+        }
+      }
+    },
     "Bugüne" : {
       "localizations" : {
         "en" : {
@@ -3113,6 +3145,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bugünü aç"
+          }
+        }
+      }
+    },
+    "Bugünün dosyası okunamadığı için yazılmadı. Dosyanın kodlamasını kontrol et." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Today’s file can’t be read, so nothing was written. Check the file’s encoding."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bugünün dosyası okunamadığı için yazılmadı. Dosyanın kodlamasını kontrol et."
+          }
+        }
+      }
+    },
+    "Bugünün dosyasındaki günlük bölümüne eklenemiyor. Kapanmamış kod bloğunu ya da dosyanın başındaki alanları kontrol et." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Can’t add to the journal section of today’s file. Check for an unclosed code block or the fields at the top of the file."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bugünün dosyasındaki günlük bölümüne eklenemiyor. Kapanmamış kod bloğunu ya da dosyanın başındaki alanları kontrol et."
           }
         }
       }
@@ -3273,6 +3337,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Cumartesi"
+          }
+        }
+      }
+    },
+    "Cümle günlüğe eklendi." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Added to the journal."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cümle günlüğe eklendi."
           }
         }
       }
@@ -10605,6 +10685,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Yarına"
+          }
+        }
+      }
+    },
+    "Yaz" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Write"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yaz"
           }
         }
       }

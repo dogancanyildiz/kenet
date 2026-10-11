@@ -833,4 +833,15 @@ final class IndexStore {
         }
         return grouped.mapValues(PersonCadence.parse)
     }
+
+    // MARK: - Journal append
+
+    /// Adds text below the day's Journal; no existing byte changes. The lines are text, never
+    /// structure (see `VaultStore.appendingJournal`). Blank lines write nothing and create no file.
+    func appendToJournal(on day: CalendarDate, lines: [String]) async throws {
+        guard lines.contains(where: { !$0.allSatisfy(\.isWhitespace) }) else { return }
+        try await performEdit(path: "journal/\(day).md") { writer in
+            try await writer.appendingJournal(on: day, lines: lines)
+        }
+    }
 }

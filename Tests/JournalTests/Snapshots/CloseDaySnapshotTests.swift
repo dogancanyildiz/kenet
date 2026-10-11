@@ -16,6 +16,9 @@
         @Test func goalsLight() async throws { try await run(.goals, "goalsLight") }
         @Test func goalsDark() async throws { try await run(.goals, "goalsDark", scheme: .dark) }
         @Test func goalsAX3() async throws { try await run(.goals, "goalsAX3", type: .accessibility3) }
+        @Test func journalLight() async throws { try await run(.journal, "journalLight") }
+        @Test func journalDark() async throws { try await run(.journal, "journalDark", scheme: .dark) }
+        @Test func journalAX3() async throws { try await run(.journal, "journalAX3", type: .accessibility3) }
 
         private func run(
             _ step: CloseDayStep, _ name: String, scheme: SnapshotColorScheme = .light,
@@ -26,14 +29,15 @@
             await context.start()
             let store = context.store
             // Goals: the sample day with two daily goals still short of their targets.
-            let day = step == .goals ? goalsSnapshotDay : snapshotDay
-            let probe = CloseDayModel(store: store, today: day)
-            #expect(step == .goals ? !probe.pendingGoals.isEmpty : !probe.tasks.isEmpty)
+            let day = step == .tasks ? snapshotDay : goalsSnapshotDay
+            let probe = CloseDayModel(store: store, today: day, step: step)
+            #expect(probe.step == step)
+            #expect(step == .journal ? probe.steps == [.tasks, .goals, .journal] : !probe.steps.isEmpty)
             // Goal rows are drawn disabled until the day's history is read.
             let ready = CloseDayReadyBox()
             await SnapshotHost.assertView(
                 colorScheme: scheme, dynamicType: type, increaseContrast: false, named: name, store: store,
-                clock: step == .goals ? goalsSnapshotNow : snapshotNow, isReady: ready.check,
+                clock: step == .tasks ? snapshotNow : goalsSnapshotNow, isReady: ready.check,
                 testName: "closeDay", file: #filePath, line: #line
             ) {
                 NavigationStack { CloseDayView(store: store, today: day, step: step) }
@@ -67,6 +71,8 @@
     struct CloseDayMacSnapshotTests {
         @Test func tasksMacLight() async throws { try await run(.tasks, "tasksMacLight", scheme: .light) }
         @Test func goalsMacDark() async throws { try await run(.goals, "goalsMacDark", scheme: .dark) }
+        @Test func journalMacLight() async throws { try await run(.journal, "journalMacLight", scheme: .light) }
+        @Test func journalMacDark() async throws { try await run(.journal, "journalMacDark", scheme: .dark) }
 
         private func run(_ step: CloseDayStep, _ name: String, scheme: ColorScheme) async throws {
             let context = try TaskTestContext(sample: true)
@@ -74,9 +80,9 @@
             await context.start()
             let store = context.store
             // The same sample days as the iPhone references.
-            let day = CalendarDate(step == .goals ? "2026-09-17" : "2026-09-20")!
-            let probe = CloseDayModel(store: store, today: day)
-            #expect(step == .goals ? !probe.pendingGoals.isEmpty : !probe.tasks.isEmpty)
+            let day = CalendarDate(step == .tasks ? "2026-09-20" : "2026-09-17")!
+            let probe = CloseDayModel(store: store, today: day, step: step)
+            #expect(probe.step == step)
             var calendar = Calendar(identifier: .gregorian)
             calendar.locale = Locale(identifier: "tr_TR")
             calendar.timeZone = TimeZone(secondsFromGMT: 3 * 3600)!

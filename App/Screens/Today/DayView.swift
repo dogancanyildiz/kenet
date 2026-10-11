@@ -22,7 +22,7 @@ struct DayView: View {
     @Environment(\.openSettings) private var openSettings
     @Environment(\.displayScale) private var displayScale
     @State private var showsJournal = false
-    @State private var showsCloseDay = false
+    @State private var closeDayRoute: CloseDayRoute?
     @State private var tasksModel: DayTasksModel
     @State private var isCarriedOverExpanded = false
     @State private var isCompletedExpanded = false
@@ -104,7 +104,9 @@ struct DayView: View {
                     .dayBacklinks(store: store, date: date)
 
                 // Last on the page: above the fold it would push the first event out of sight.
-                if CloseDayEntry.isOffered(isToday: isToday, presentation: presented) {
+                if CloseDayEntry.isOffered(
+                    isToday: isToday, presentation: presented, hasJournal: CloseDayEntry.hasJournal(day))
+                {
                     closeDayEntry
                 }
             }
@@ -117,9 +119,7 @@ struct DayView: View {
         .inkPage()
         .safeAreaInset(edge: .bottom) {
             QuickEntryBar(
-                store: store, isEnabled: true, day: isToday ? nil : date,
-                focusRequest: isToday && notifications.navigationRequest?.destination == .journal
-                    ? notifications.navigationRequest?.id : nil, acceptsPeopleMentions: isToday
+                store: store, isEnabled: true, day: isToday ? nil : date, acceptsPeopleMentions: isToday
             )
             .id(isToday ? "today" : date.description)
         }
@@ -141,9 +141,21 @@ struct DayView: View {
         .sheet(isPresented: $showsJournal) {
             NavigationStack { JournalView(store: store, date: date) }
         }
-        .sheet(isPresented: $showsCloseDay) {
-            NavigationStack { CloseDayView(store: store, today: date) }
+        .sheet(item: $closeDayRoute) { route in
+            NavigationStack { CloseDayView(store: store, today: date, step: route.step) }
         }
+        .onChange(of: notifications.navigationRequest?.id, initial: true) { openCloseDayFromReminder() }
+        .onChange(of: store.lastUpdated == nil) { openCloseDayFromReminder() }
+    }
+
+    /// The evening journal reminder opens the flow on its journal step. The reminder's own day is
+    /// not the flow's day: whatever day it names, Today's flow opens. A cold launch waits for the
+    /// vault, because the flow lists its task and goal steps once, when it opens.
+    private func openCloseDayFromReminder() {
+        guard isToday, store.lastUpdated != nil,
+            CloseDayReminder.claim(notifications.navigationRequest?.closeDayRequestID)
+        else { return }
+        closeDayRoute = CloseDayRoute(step: .journal)
     }
 
     /// Manşet row: Settings (Today, phone only) then search, rightmost. A past day keeps only
@@ -169,7 +181,7 @@ struct DayView: View {
                 .fill(Color.ink.rule)
                 .frame(height: InkStroke.hairline(scale: displayScale))
                 .accessibilityHidden(true)
-            Button("Günü kapat") { showsCloseDay = true }
+            Button("Günü kapat") { closeDayRoute = CloseDayRoute(step: .tasks) }
                 .buttonStyle(InkTextButtonStyle())
                 .accessibilityIdentifier("button.closeDay")
         }

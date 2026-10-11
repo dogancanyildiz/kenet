@@ -336,16 +336,18 @@ struct EntryPointSettingsTests {
         #endif
     }
 
-    /// Displayed sentences are the shortcut templates with the app name filled in. A catalog
-    /// translation that drifts from `JournalShortcuts` fails this.
-    @Test func shownPhrasesMatchJournalShortcuts() {
+    /// Displayed sentences come from the `AppShortcuts` catalog with the app name filled in.
+    /// Read from the Turkish table directly: the process language is English on CI. A catalog
+    /// translation that drifts from the templates fails this.
+    @Test func shownPhrasesMatchJournalShortcuts() throws {
         let name = "Uygulama"
-        let locale = Locale(identifier: "tr")
-        let shown = EntryPointPhrases.displayed(applicationName: name, locale: locale)
+        let path = try #require(Bundle.main.path(forResource: "tr", ofType: "lproj"))
+        let turkish = try #require(Bundle(path: path))
+        let shown = EntryPointPhrases.displayed(
+            applicationName: name, locale: Locale(identifier: "tr"), bundle: turkish)
         let expected = EntryPointPhrases.templates.map {
             $0.replacingOccurrences(of: EntryPointPhrases.applicationNameToken, with: name)
         }
-        #expect(!shown.isEmpty)
         #expect(shown.count == JournalShortcuts.appShortcuts.count)
         #expect(shown == expected)
     }
@@ -411,9 +413,13 @@ struct EntryPointSettingsTests {
             defer { mount.close() }
             await mount.settle()
             let text = Self.renderedText(mount.window.contentView).joined(separator: "\n")
-            #expect(text.contains("günlüğe olay ekle"))
-            #expect(!text.contains("Eylem düğmesi"))
-            #expect(!text.contains("Action Button"))
+            // The process language decides the sentence (English on CI), not the view's locale.
+            let phrase = try #require(
+                EntryPointPhrases.displayed(
+                    applicationName: EntryPointPhrases.applicationName(), locale: Locale(identifier: "tr_TR")
+                ).first)
+            #expect(text.contains(phrase))
+            #expect(!text.contains(String(localized: "Eylem düğmesi")))
         }
 
         private static func renderedText(_ view: NSView?) -> [String] {

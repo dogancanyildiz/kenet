@@ -36,5 +36,7 @@ struct NotificationPreferencesTests {
         #expect(settings.hideContent == false)
         #expect(settings.tasksEnabled == false)
         #expect(settings.taskTime == NotificationTime(hour: 10, minute: 15))
+        #expect(settings.peopleEnabled == false)
+        #expect(settings.peopleTime == NotificationTime(hour: 10))
     }
 }

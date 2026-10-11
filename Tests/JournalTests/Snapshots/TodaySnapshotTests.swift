@@ -8,7 +8,8 @@
     @testable import Journal
 
     /// Bugün prototipi: açık, koyu, AX3, AX5, Kontrastı Artır, on devreden, boş gün,
-    /// öncelik/devam, uzun tuval (takvim + günlük), boolean hedef, bu gün geçmişte (açık, koyu, AX3).
+    /// öncelik/devam, uzun tuval (takvim + günlük), boolean hedef, bu gün geçmişte (açık, koyu, AX3),
+    /// önemli tarihler (açık, koyu, AX3).
     enum TodaySnapshotCase: String, CaseIterable, Sendable {
         case todayLight
         case todayDark
@@ -23,17 +24,23 @@
         case todayOnThisDayLight
         case todayOnThisDayDark
         case todayOnThisDayAX3
+        case todayImportantDatesLight
+        case todayImportantDatesDark
+        case todayImportantDatesAX3
         case todayBacklinksLight
         case todayBacklinksDark
         case todayBacklinksAX3
 
         var colorScheme: SnapshotColorScheme {
-            self == .todayDark || self == .todayOnThisDayDark || self == .todayBacklinksDark ? .dark : .light
+            switch self {
+            case .todayDark, .todayOnThisDayDark, .todayImportantDatesDark, .todayBacklinksDark: .dark
+            default: .light
+            }
         }
 
         var dynamicType: SnapshotDynamicType {
             switch self {
-            case .todayAX3, .todayOnThisDayAX3, .todayBacklinksAX3: .accessibility3
+            case .todayAX3, .todayOnThisDayAX3, .todayImportantDatesAX3, .todayBacklinksAX3: .accessibility3
             case .todayAX5: .accessibility5
             default: .medium
             }
@@ -51,6 +58,12 @@
         var usesOnThisDay: Bool {
             self == .todayOnThisDayLight || self == .todayOnThisDayDark || self == .todayOnThisDayAX3
         }
+        /// Birthdays inside the snapshot week's window; the other cases have none and draw no line.
+        var usesImportantDates: Bool {
+            self == .todayImportantDatesLight || self == .todayImportantDatesDark
+                || self == .todayImportantDatesAX3
+        }
+
         var usesBacklinks: Bool {
             self == .todayBacklinksLight || self == .todayBacklinksDark || self == .todayBacklinksAX3
         }
@@ -89,10 +102,15 @@
             if snapshotCase.usesOnThisDay {
                 try Self.writeEarlierYears(in: context.root)
             }
+            if snapshotCase.usesImportantDates {
+                try Self.writeImportantDates(in: context.root)
+            }
             if snapshotCase.usesBacklinks {
                 try Self.writeBacklinks(in: context.root)
             }
-            if snapshotCase == .todayOnThisDayAX3 || snapshotCase == .todayBacklinksAX3 {
+            if snapshotCase == .todayOnThisDayAX3 || snapshotCase == .todayImportantDatesAX3
+                || snapshotCase == .todayBacklinksAX3
+            {
                 // At AX3 the full sample day pushes the line off even the tall canvas.
                 try Self.stripOpenTasksDueBeforeSnapshotDay(in: context.root)
                 try FileManager.default.removeItem(at: context.root.appendingPathComponent("goals"))
@@ -121,9 +139,17 @@
             let backlinksReady = GoalsReadyBox()
             let store = context.store
             // The line sits below the events; the tall canvas keeps it in view at every type size.
-            let size =
-                snapshotCase.usesTallCanvas || snapshotCase.usesOnThisDay || snapshotCase.usesBacklinks
-                ? CGSize(width: 390, height: 1600) : snapshotCanvasSize
+            // AX3 plus the overflow line needs more than the on-this-day canvas.
+            let size: CGSize =
+                if snapshotCase == .todayImportantDatesAX3 {
+                    CGSize(width: 390, height: 2200)
+                } else if snapshotCase.usesTallCanvas || snapshotCase.usesOnThisDay
+                    || snapshotCase.usesImportantDates || snapshotCase.usesBacklinks
+                {
+                    CGSize(width: 390, height: 1600)
+                } else {
+                    snapshotCanvasSize
+                }
             let root = NavigationStack {
                 DayView(store: store, date: snapshotDay, isToday: true)
             }
@@ -140,7 +166,7 @@
             .onPreferenceChange(GoalsStripReadyKey.self) { goalsReady.isReady = $0 }
             .onPreferenceChange(DayContextReadyKey.self) { contextReady.isReady = $0 }
             .onPreferenceChange(DayBacklinksReadyKey.self) { backlinksReady.isReady = $0 }
-            let needsContext = snapshotCase.usesOnThisDay
+            let needsContext = snapshotCase.usesOnThisDay || snapshotCase.usesImportantDates
             let needsBacklinks = snapshotCase.usesBacklinks
             await SnapshotHost.assertView(
                 colorScheme: snapshotCase.colorScheme,
@@ -251,6 +277,25 @@
                 text += block
             }
             try text.write(to: file, atomically: true, encoding: .utf8)
+        }
+
+        /// Four birthdays inside 20–27 September so Today shows three lines and one "more" line.
+        private static func writeImportantDates(in root: URL) throws {
+            let replacements = [
+                "people/Deniz Arıkan.md": ("doğum günü: 1990-05-14", "doğum günü: 1990-09-20"),
+                "people/Selin Korkmaz.md": ("doğum günü: 1992-11-23", "doğum günü: 1992-09-21"),
+                "people/Ece Yalın.md": ("doğum günü: 1994-03-30", "doğum günü: 1994-09-23"),
+                "people/Baran Tunç.md": ("doğum günü: 1988-08-04", "doğum günü: 1988-09-27"),
+            ]
+            for (path, pair) in replacements {
+                let file = root.appendingPathComponent(path)
+                var text = try String(contentsOf: file, encoding: .utf8)
+                guard let range = text.range(of: pair.0) else {
+                    throw CocoaError(.fileReadCorruptFile)
+                }
+                text.replaceSubrange(range, with: pair.1)
+                try text.write(to: file, atomically: true, encoding: .utf8)
+            }
         }
 
         /// Two linked earlier years (three people, two places in the nearest) and an unlinked one.

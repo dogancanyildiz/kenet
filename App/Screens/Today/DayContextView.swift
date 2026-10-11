@@ -29,33 +29,62 @@ struct DayContextView<Following: View>: View {
     let today: CalendarDate
     @ViewBuilder var following: () -> Following
     @State private var onThisDay: OnThisDayModel
+    @State private var importantDates: ImportantDatesModel
     @State private var destination: CalendarDate?
+    @State private var entityDestination: EntitySummary?
     @Environment(\.locale) private var locale
+    @Environment(\.timeZone) private var timeZone
 
     init(store: IndexStore, today: CalendarDate, @ViewBuilder following: @escaping () -> Following) {
         self.today = today
         self.following = following
         _onThisDay = State(initialValue: OnThisDayModel(store: store))
+        _importantDates = State(initialValue: ImportantDatesModel(store: store))
     }
 
     var body: some View {
         let entry = onThisDay.entry
+        let rows = dateRows
+        let shown = Array(rows.prefix(ImportantDateList.limit))
+        let extra = rows.count - shown.count
         VStack(alignment: .leading, spacing: InkSpacing.section) {
-            if let entry {
+            if entry != nil || !shown.isEmpty {
                 // One row per context line, in reading order.
                 VStack(alignment: .leading, spacing: InkSpacing.row) {
-                    onThisDayRow(
-                        OnThisDayPresentation(entry: entry, today: today, locale: locale), day: entry.day)
+                    if let entry {
+                        onThisDayRow(
+                            OnThisDayPresentation(entry: entry, today: today, locale: locale), day: entry.day)
+                    }
+                    ForEach(shown) { row in
+                        importantDateRow(row)
+                    }
+                    if extra > 0 {
+                        moreDatesRow(extra)
+                    }
                 }
             }
             following()
         }
-        .preference(key: DayContextReadyKey.self, value: onThisDay.hasLoaded)
+        .preference(key: DayContextReadyKey.self, value: onThisDay.hasLoaded && importantDates.hasLoaded)
         .task(
             id: DayContextLoadKey(
                 today: today, vault: onThisDay.store.vaultURL, revision: onThisDay.store.lastUpdated)
-        ) { await onThisDay.load(today: today) }
+        ) {
+            async let history: Void = onThisDay.load(today: today)
+            async let dates: Void = importantDates.load(today: today)
+            _ = await (history, dates)
+        }
         .navigationDestination(item: $destination) { DayView(store: onThisDay.store, date: $0) }
+        .navigationDestination(item: $entityDestination) { EntityView(store: importantDates.store, entity: $0) }
+    }
+
+    private var dateRows: [ImportantDateRow] {
+        importantDates.entries.compactMap { entry in
+            guard let name = importantDates.store.content.entities.first(where: { $0.id == entry.file })?.name else {
+                return nil
+            }
+            return ImportantDateRow(entry: entry, name: name)
+        }
     }
 
     private func onThisDayRow(_ text: OnThisDayPresentation, day: CalendarDate) -> some View {
@@ -76,6 +105,38 @@ struct DayContextView<Following: View>: View {
         .buttonStyle(.plain)
         .accessibilityLabel(Text(verbatim: text.spoken))
         .accessibilityIdentifier("today.onThisDay")
+    }
+
+    private func importantDateRow(_ row: ImportantDateRow) -> some View {
+        let text = ImportantDatePresentation(entry: row.entry, name: row.name, locale: locale, timeZone: timeZone)
+        return Button {
+            entityDestination = importantDates.store.content.entities.first { $0.id == row.entry.file }
+        } label: {
+            MarginRow(kind: .vault, time: text.when) {
+                Text(verbatim: text.name)
+                    .foregroundStyle(.ink.text)
+            } secondary: {
+                Text(verbatim: text.caption)
+                    .font(.ink.meta)
+                    .foregroundStyle(.ink.secondaryText)
+            }
+            .frame(maxWidth: .infinity, minHeight: TapTarget.minimumLength, alignment: .leading)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(Text(verbatim: text.spoken))
+        .accessibilityIdentifier("today.importantDate")
+    }
+
+    private func moreDatesRow(_ extra: Int) -> some View {
+        let text = ImportantDatePresentation.more(extra, locale: locale)
+        return MarginRow(kind: .vault, time: nil) {
+            Text(verbatim: text)
+                .font(.ink.meta)
+                .foregroundStyle(.ink.secondaryText)
+        }
+        .accessibilityLabel(Text(verbatim: text))
+        .accessibilityIdentifier("today.importantDatesMore")
     }
 }
 

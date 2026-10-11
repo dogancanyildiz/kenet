@@ -7,6 +7,7 @@ struct EntityView: View {
     let onRenamed: (String) -> Void
     @Environment(\.locale) private var locale
     @State private var model: EntityDetailModel
+    @State private var importantDates: ImportantDatesModel
     @State private var isEditing = false
 
     init(store: IndexStore, entity: EntitySummary, onRenamed: @escaping (String) -> Void = { _ in }) {
@@ -14,6 +15,7 @@ struct EntityView: View {
         self.entity = entity
         self.onRenamed = onRenamed
         _model = State(initialValue: EntityDetailModel(store: store, path: entity.id))
+        _importantDates = State(initialValue: ImportantDatesModel(store: store))
     }
 
     private var current: EntitySummary {
@@ -32,6 +34,11 @@ struct EntityView: View {
 
     private var lastSeen: CalendarDate? {
         store.entityUsage.first { $0.file == model.path }?.lastDate
+    }
+
+    /// People and custom types. Places and goals have no anniversary line.
+    private var showsImportantDates: Bool {
+        current.kind == "person" || store.entityTypes.types.contains { $0.id == current.kind }
     }
 
     private var schemaKeys: Set<String> {
@@ -85,6 +92,13 @@ struct EntityView: View {
         }
         .onChange(of: model.path) { _, path in onRenamed(path) }
         .task(id: store.lastUpdated) { await model.load() }
+        // A list row that draws nothing is never mounted, so the query cannot live on the row.
+        .background {
+            EntityImportantDatesLoader(model: importantDates, file: model.path, enabled: showsImportantDates)
+        }
+        .preference(
+            key: ImportantDatesReadyKey.self,
+            value: !showsImportantDates || (model.isLoaded && importantDates.hasLoaded))
     }
 
     @ViewBuilder private var headRows: some View {
@@ -105,6 +119,9 @@ struct EntityView: View {
             valueFont: .ink.value
         )
         .inkListRow()
+        if showsImportantDates {
+            EntityImportantDatesRow(file: model.path, model: importantDates)
+        }
         if let result = model.renameResult {
             EntityRenameSummary(result: result)
                 .inkListRow()

@@ -16,4 +16,18 @@ extension VaultIndex {
                 arguments: StatementArguments(sorted ?? []))
         }
     }
+
+    /// Date scalars on people and custom types, in file/key order. Place files are not anniversaries.
+    public func anniversaryFields() throws -> [IndexedEntityField] {
+        try database.read { db in
+            try IndexedEntityField.fetchAll(
+                db,
+                sql: """
+                    SELECT entity_fields.file, entity_fields.key, entity_fields.kind, entity_fields.value
+                    FROM entity_fields JOIN files ON files.path = entity_fields.file
+                    WHERE entity_fields.kind = 'date' AND files.kind <> 'place'
+                    ORDER BY entity_fields.file, entity_fields.key
+                    """)
+        }
+    }
 }

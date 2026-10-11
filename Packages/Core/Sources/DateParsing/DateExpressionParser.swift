@@ -5,7 +5,14 @@ public enum DateExpressionParser {
     public static func parse(
         _ text: String, today: CalendarDate, language: [Language], weekStartsOnMonday: Bool = true
     ) -> DateParse? {
-        let source = DateTokens(text)
+        parse(text, today: today, language: language, weekStartsOnMonday: weekStartsOnMonday, excluding: [])
+    }
+
+    static func parse(
+        _ text: String, today: CalendarDate, language: [Language], weekStartsOnMonday: Bool,
+        excluding excluded: [Range<Int>]
+    ) -> DateParse? {
+        let source = DateTokens(text, excluding: excluded)
         for start in source.tokens.indices {
             var best: DateMatch?
             for preference in language {
@@ -17,6 +24,7 @@ public enum DateExpressionParser {
             }
             if let best {
                 let range = source.tokens[start].range.lowerBound..<source.tokens[best.end - 1].range.upperBound
+                guard !excluded.contains(where: { $0.overlaps(range) }) else { continue }
                 return DateParse(
                     byteRange: range, date: best.date, remainder: remainder(source.bytes, removing: range),
                     confidence: best.confidence)

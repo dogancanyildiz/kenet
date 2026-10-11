@@ -119,6 +119,7 @@ Sektör taramasından çıkan, kimlik kararı gerektirmeyen ve ürünün farkın
 - [ ] İsteğe bağlı ve atlanabilir haftalık inceleme; çıktısı günlük yazısına düşer
 - [ ] Rehberden seçilen kişilerin tek yönlü, bir kez içe aktarılması
 - [ ] Gün sayfasında "bu güne bağlananlar"; günlük takviminde yoğunluk noktaları
+  - Takvimde yoğunluk noktaları eklendi (1–3 nokta); gün sayfasındaki "bu güne bağlananlar" bölümü açık.
 
 **Çıkış ölçütü:** Haftalık inceleme dört hafta üst üste tamamlanıyor; "bir süredir görüşmediklerin" listesinden ayda en az bir görüşme çıkıyor.
 

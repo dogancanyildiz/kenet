@@ -461,14 +461,17 @@ final class IndexStore {
         mapPlaces = coordinates
     }
 
-    func createEntity(kind: VaultEntityKind, name: String, qualifier: String?) async throws -> KnownEntity {
+    func createEntity(
+        kind: VaultEntityKind, name: String, qualifier: String?, aliases: [String]? = nil
+    ) async throws -> KnownEntity {
         try await withWriteSlot {
             await waitWhileRefreshInFlight()
             guard canAddEvent, let writer else { throw VaultStoreError.staleTarget }
             isProcessing = true
             isWriting = true
             do {
-                let entity = try await persistEntity(writer: writer, kind: kind, name: name, qualifier: qualifier)
+                let entity = try await persistEntity(
+                    writer: writer, kind: kind, name: name, qualifier: qualifier, aliases: aliases)
                 await finishEntityWrite()
                 return entity
             } catch {
@@ -486,11 +489,11 @@ final class IndexStore {
     }
 
     private func persistEntity(
-        writer: VaultStore, kind: VaultEntityKind, name: String, qualifier: String?
+        writer: VaultStore, kind: VaultEntityKind, name: String, qualifier: String?, aliases: [String]?
     ) async throws -> KnownEntity {
         let path: String
         do {
-            path = try await writer.creatingEntity(kind: kind, name: name, qualifier: qualifier)
+            path = try await writer.creatingEntity(kind: kind, name: name, qualifier: qualifier, aliases: aliases)
         } catch VaultStoreError.indexUpdateFailed(let savedPath, _) {
             // The entity already exists on disk. Never offer to create it again.
             path = savedPath
@@ -499,7 +502,8 @@ final class IndexStore {
             pendingRebuild = true
         }
         let entity = KnownEntity(
-            file: path, kind: KnownEntity.Kind(rawValue: kind.rawValue)!, name: name, qualifier: qualifier)
+            file: path, kind: KnownEntity.Kind(rawValue: kind.rawValue)!, name: name, qualifier: qualifier,
+            aliases: aliases ?? [])
         knownEntities.append(entity)
         do {
             if let index {
@@ -790,5 +794,44 @@ final class IndexStore {
         refreshInFlight = false
         if holdsProcessing { isProcessing = false }
         await applyPendingSelection()
+    }
+
+    // MARK: - Unlinked mentions
+
+    /// Plain spellings of one entity in day event and task lines. Reads the vault off the main actor.
+    func computeUnlinkedMentions(of entity: KnownEntity) async throws -> [UnlinkedMention] {
+        guard let index, let root = vaultURL else { throw VaultStoreError.staleTarget }
+        let current = generation
+        let result = try await Task.detached {
+            try index.unlinkedMentions(of: entity, vaultRoot: root)
+        }.value
+        guard generation == current else { throw VaultStoreError.staleTarget }
+        return result
+    }
+
+    /// Writes one approved spelling, then publishes the index. A stale line is not written.
+    /// `root` is the vault the row was read from: a vault selected since, even while this write
+    /// waited its turn, is never written from another vault's row.
+    func linkUnlinkedMention(_ mention: UnlinkedMention, to entity: KnownEntity, readFrom root: URL?) async throws {
+        try await performEdit(path: mention.file) { writer in
+            guard let root, vaultURL == root else { throw VaultStoreError.staleTarget }
+            _ = try await writer.linkingMention(mention, to: entity)
+        }
+    }
+
+    // MARK: - Meeting cadence
+
+    /// Cadence scalars keyed by file. Files without one of the three fields are absent.
+    func personCadences() async throws -> [String: PersonCadence] {
+        guard let index else { throw VaultStoreError.staleTarget }
+        let current = generation
+        let fields = try await Task.detached { try index.cadenceFields() }.value
+        guard generation == current else { throw VaultStoreError.staleTarget }
+        var grouped: [String: [PersonCadenceField]] = [:]
+        for field in fields {
+            grouped[field.file, default: []].append(
+                PersonCadenceField(key: field.key, kind: field.kind, value: field.value))
+        }
+        return grouped.mapValues(PersonCadence.parse)
     }
 }

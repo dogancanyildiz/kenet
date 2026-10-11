@@ -1,4 +1,13 @@
+import Summaries
 import SwiftUI
+
+/// Snapshot hosts wait on this until the unseen list has loaded cadence fields.
+struct CadenceReadyKey: PreferenceKey {
+    static let defaultValue = false
+    static func reduce(value: inout Bool, nextValue: () -> Bool) {
+        value = value || nextValue()
+    }
+}
 
 struct UnseenPeopleSection: View {
     let store: IndexStore
@@ -26,6 +35,9 @@ struct UnseenPeopleSection: View {
 
     /// Bumped once a minute so the day boundary moves the list without a vault change.
     @State private var minute = 0
+    @State private var cadences: [String: PersonCadence] = [:]
+    @State private var cadenceReady = false
+    @State private var actionError: String?
 
     // The rows are direct `List` children: a wrapping container (`TimelineView`,
     // `DisclosureGroup`) keeps the row modifiers from reaching the list and leaves a white row.
@@ -33,7 +45,7 @@ struct UnseenPeopleSection: View {
         let _ = minute
         let groups = UnseenPeople.compute(
             people: people, content: store.content,
-            today: LocalDay.today(at: clockNow()), threshold: threshold)
+            today: LocalDay.today(at: clockNow()), threshold: threshold, cadences: cadences)
         Button {
             expanded.toggle()
         } label: {
@@ -53,7 +65,16 @@ struct UnseenPeopleSection: View {
                 minute &+= 1
             }
         }
+        .task(id: store.lastUpdated) {
+            cadences = (try? await store.personCadences()) ?? [:]
+            cadenceReady = true
+        }
+        .preference(key: CadenceReadyKey.self, value: cadenceReady)
         if expanded {
+            if let actionError {
+                InfoBand(kind: .error, verbatim: actionError)
+                    .inkListRow()
+            }
             if groups.overdue.isEmpty {
                 Text("Bu süreyi aşan kayıt yok.")
                     .font(.ink.meta)
@@ -105,6 +126,17 @@ struct UnseenPeopleSection: View {
             }
             .buttonStyle(.borderless)
             .accessibilityLabel("Hızlı girişte an")
+        }
+        .contextMenu { cadenceActions(person) }
+        .accessibilityActions { cadenceActions(person) }
+    }
+
+    @ViewBuilder private func cadenceActions(_ person: UnseenPerson) -> some View {
+        ForEach(UnseenCadenceCommand.allCases) { command in
+            Button(LocalizedStringKey(command.titleKey)) {
+                let today = LocalDay.today(at: clockNow())
+                Task { actionError = await command.apply(path: person.entity.id, today: today, store: store) }
+            }
         }
     }
 

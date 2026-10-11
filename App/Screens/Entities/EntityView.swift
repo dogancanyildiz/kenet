@@ -8,6 +8,7 @@ struct EntityView: View {
     @Environment(\.locale) private var locale
     @State private var model: EntityDetailModel
     @State private var importantDates: ImportantDatesModel
+    @State private var unlinkedMentions: UnlinkedMentionsModel
     @State private var isEditing = false
 
     init(store: IndexStore, entity: EntitySummary, onRenamed: @escaping (String) -> Void = { _ in }) {
@@ -16,6 +17,7 @@ struct EntityView: View {
         self.onRenamed = onRenamed
         _model = State(initialValue: EntityDetailModel(store: store, path: entity.id))
         _importantDates = State(initialValue: ImportantDatesModel(store: store))
+        _unlinkedMentions = State(initialValue: UnlinkedMentionsModel(store: store))
     }
 
     private var current: EntitySummary {
@@ -92,13 +94,18 @@ struct EntityView: View {
         }
         .onChange(of: model.path) { _, path in onRenamed(path) }
         .task(id: store.lastUpdated) { await model.load() }
-        // A list row that draws nothing is never mounted, so the query cannot live on the row.
+        // A list row that draws nothing is never mounted, so these queries cannot live on the row.
         .background {
             EntityImportantDatesLoader(model: importantDates, file: model.path, enabled: showsImportantDates)
         }
+        .background {
+            UnlinkedMentionsLoader(model: unlinkedMentions, file: model.path)
+        }
         .preference(
             key: ImportantDatesReadyKey.self,
-            value: !showsImportantDates || (model.isLoaded && importantDates.hasLoaded))
+            value: !showsImportantDates || (model.isLoaded && importantDates.hasLoaded)
+        )
+        .preference(key: UnlinkedMentionsReadyKey.self, value: unlinkedMentions.hasLoaded)
     }
 
     @ViewBuilder private var headRows: some View {
@@ -153,6 +160,7 @@ struct EntityView: View {
             fieldSections
         }
         EntityOpenTasksView(store: store, path: model.path).id(model.path)
+        UnlinkedMentionsSection(model: unlinkedMentions).id(model.path)
         timelineSection
         notesSection
     }

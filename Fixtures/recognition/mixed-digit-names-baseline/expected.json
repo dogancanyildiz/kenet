@@ -1,0 +1,1754 @@
+{
+  "mentions": [
+    {
+      "line": 0,
+      "byteRange": [
+        0,
+        8
+      ],
+      "spelling": "Daire 12",
+      "candidates": [
+        "places/Daire 12.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 0,
+      "byteRange": [
+        16,
+        24
+      ],
+      "spelling": "Daire 12",
+      "candidates": [
+        "places/Daire 12.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 0,
+      "byteRange": [
+        34,
+        42
+      ],
+      "spelling": "Daire 12",
+      "candidates": [
+        "places/Daire 12.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 0,
+      "byteRange": [
+        49,
+        57
+      ],
+      "spelling": "Daire 12",
+      "candidates": [
+        "places/Daire 12.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 0,
+      "byteRange": [
+        65,
+        73
+      ],
+      "spelling": "Daire 12",
+      "candidates": [
+        "places/Daire 12.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 1,
+      "byteRange": [
+        0,
+        6
+      ],
+      "spelling": "3. Kat",
+      "candidates": [
+        "places/3. Kat.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 1,
+      "byteRange": [
+        15,
+        21
+      ],
+      "spelling": "3. Kat",
+      "candidates": [
+        "places/3. Kat.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 1,
+      "byteRange": [
+        28,
+        34
+      ],
+      "spelling": "3. Kat",
+      "candidates": [
+        "places/3. Kat.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 1,
+      "byteRange": [
+        36,
+        42
+      ],
+      "spelling": "3. Kat",
+      "candidates": [
+        "places/3. Kat.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 1,
+      "byteRange": [
+        47,
+        53
+      ],
+      "spelling": "3. Kat",
+      "candidates": [
+        "places/3. Kat.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 2,
+      "byteRange": [
+        0,
+        18
+      ],
+      "spelling": "2. Dünya Savaşı",
+      "candidates": [
+        "places/2. Dünya Savaşı.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 2,
+      "byteRange": [
+        27,
+        45
+      ],
+      "spelling": "2. Dünya Savaşı",
+      "candidates": [
+        "places/2. Dünya Savaşı.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 2,
+      "byteRange": [
+        47,
+        51
+      ],
+      "spelling": "7/24",
+      "candidates": [
+        "places/2. Dünya Savaşı.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 2,
+      "byteRange": [
+        58,
+        62
+      ],
+      "spelling": "7/24",
+      "candidates": [
+        "places/2. Dünya Savaşı.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 2,
+      "byteRange": [
+        66,
+        71
+      ],
+      "spelling": "1.250",
+      "candidates": [
+        "places/2. Dünya Savaşı.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 2,
+      "byteRange": [
+        79,
+        84
+      ],
+      "spelling": "1.250",
+      "candidates": [
+        "places/2. Dünya Savaşı.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 3,
+      "byteRange": [
+        0,
+        12
+      ],
+      "spelling": "12:30 Vapuru",
+      "candidates": [
+        "places/2. Dünya Savaşı.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 3,
+      "byteRange": [
+        28,
+        40
+      ],
+      "spelling": "12:30 Vapuru",
+      "candidates": [
+        "places/2. Dünya Savaşı.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 3,
+      "byteRange": [
+        42,
+        47
+      ],
+      "spelling": "R2-D2",
+      "candidates": [
+        "people/Deniz Arıkan.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 3,
+      "byteRange": [
+        53,
+        58
+      ],
+      "spelling": "R2-D2",
+      "candidates": [
+        "people/Deniz Arıkan.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 3,
+      "byteRange": [
+        64,
+        69
+      ],
+      "spelling": "R2-D2",
+      "candidates": [
+        "people/Deniz Arıkan.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 4,
+      "byteRange": [
+        6,
+        14
+      ],
+      "spelling": "Daire 12",
+      "candidates": [
+        "places/Daire 12.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 5,
+      "byteRange": [
+        6,
+        11
+      ],
+      "spelling": "Deniz",
+      "candidates": [
+        "people/Deniz Arıkan.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 6,
+      "byteRange": [
+        2,
+        10
+      ],
+      "spelling": "Daire 12",
+      "candidates": [
+        "places/Daire 12.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 6,
+      "byteRange": [
+        25,
+        31
+      ],
+      "spelling": "3. Kat",
+      "candidates": [
+        "places/3. Kat.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 7,
+      "byteRange": [
+        32,
+        40
+      ],
+      "spelling": "Daire 12",
+      "candidates": [
+        "places/Daire 12.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 10,
+      "byteRange": [
+        21,
+        26
+      ],
+      "spelling": "Deniz",
+      "candidates": [
+        "people/Deniz Arıkan.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 11,
+      "byteRange": [
+        33,
+        41
+      ],
+      "spelling": "daire 12",
+      "candidates": [
+        "places/Daire 12.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": true,
+      "isCertain": false
+    },
+    {
+      "line": 15,
+      "byteRange": [
+        3,
+        11
+      ],
+      "spelling": "Daire 12",
+      "candidates": [
+        "places/Daire 12.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 16,
+      "byteRange": [
+        17,
+        23
+      ],
+      "spelling": "3. Kat",
+      "candidates": [
+        "places/3. Kat.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 21,
+      "byteRange": [
+        0,
+        6
+      ],
+      "spelling": "3. Kat",
+      "candidates": [
+        "places/3. Kat.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 22,
+      "byteRange": [
+        0,
+        5
+      ],
+      "spelling": "1.250",
+      "candidates": [
+        "places/2. Dünya Savaşı.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 22,
+      "byteRange": [
+        10,
+        15
+      ],
+      "spelling": "1.250",
+      "candidates": [
+        "places/2. Dünya Savaşı.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 22,
+      "byteRange": [
+        16,
+        24
+      ],
+      "spelling": "daire 12",
+      "candidates": [
+        "places/Daire 12.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": true,
+      "isCertain": false
+    },
+    {
+      "line": 24,
+      "byteRange": [
+        20,
+        23
+      ],
+      "spelling": "D12",
+      "candidates": [
+        "places/Daire 12.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 24,
+      "byteRange": [
+        24,
+        32
+      ],
+      "spelling": "daire 12",
+      "candidates": [
+        "places/Daire 12.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": true,
+      "isCertain": false
+    },
+    {
+      "line": 25,
+      "byteRange": [
+        0,
+        3
+      ],
+      "spelling": "D12",
+      "candidates": [
+        "places/Daire 12.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 29,
+      "byteRange": [
+        1,
+        9
+      ],
+      "spelling": "Daire 12",
+      "candidates": [
+        "places/Daire 12.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 29,
+      "byteRange": [
+        28,
+        34
+      ],
+      "spelling": "3. Kat",
+      "candidates": [
+        "places/3. Kat.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 30,
+      "byteRange": [
+        27,
+        32
+      ],
+      "spelling": "Deniz",
+      "candidates": [
+        "people/Deniz Arıkan.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 31,
+      "byteRange": [
+        12,
+        18
+      ],
+      "spelling": "3. Kat",
+      "candidates": [
+        "places/3. Kat.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 31,
+      "byteRange": [
+        24,
+        30
+      ],
+      "spelling": "3. Kat",
+      "candidates": [
+        "places/3. Kat.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 32,
+      "byteRange": [
+        41,
+        45
+      ],
+      "spelling": "7/24",
+      "candidates": [
+        "places/2. Dünya Savaşı.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 33,
+      "byteRange": [
+        28,
+        36
+      ],
+      "spelling": "daire 12",
+      "candidates": [
+        "places/Daire 12.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": true,
+      "isCertain": false
+    },
+    {
+      "line": 36,
+      "byteRange": [
+        35,
+        41
+      ],
+      "spelling": "3. Kat",
+      "candidates": [
+        "places/3. Kat.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 38,
+      "byteRange": [
+        2,
+        15
+      ],
+      "spelling": "Deniz Arıkan",
+      "candidates": [
+        "people/Deniz Arıkan.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 38,
+      "byteRange": [
+        16,
+        21
+      ],
+      "spelling": "R2-D2",
+      "candidates": [
+        "people/Deniz Arıkan.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 39,
+      "byteRange": [
+        4,
+        9
+      ],
+      "spelling": "1.250",
+      "candidates": [
+        "places/2. Dünya Savaşı.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 40,
+      "byteRange": [
+        0,
+        8
+      ],
+      "spelling": "daire 12",
+      "candidates": [
+        "places/Daire 12.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": true,
+      "isCertain": false
+    },
+    {
+      "line": 43,
+      "byteRange": [
+        5,
+        10
+      ],
+      "spelling": "Deniz",
+      "candidates": [
+        "people/Deniz Arıkan.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 43,
+      "byteRange": [
+        12,
+        20
+      ],
+      "spelling": "Daire 12",
+      "candidates": [
+        "places/Daire 12.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 47,
+      "byteRange": [
+        0,
+        12
+      ],
+      "spelling": "12:30 Vapuru",
+      "candidates": [
+        "places/2. Dünya Savaşı.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 49,
+      "byteRange": [
+        0,
+        5
+      ],
+      "spelling": "Deniz",
+      "candidates": [
+        "people/Deniz Arıkan.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 52,
+      "byteRange": [
+        0,
+        12
+      ],
+      "spelling": "12:30 Vapuru",
+      "candidates": [
+        "places/2. Dünya Savaşı.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 55,
+      "byteRange": [
+        20,
+        25
+      ],
+      "spelling": "R2-D2",
+      "candidates": [
+        "people/Deniz Arıkan.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 56,
+      "byteRange": [
+        28,
+        41
+      ],
+      "spelling": "Deniz Arıkan",
+      "candidates": [
+        "people/Deniz Arıkan.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 57,
+      "byteRange": [
+        0,
+        6
+      ],
+      "spelling": "3. Kat",
+      "candidates": [
+        "places/3. Kat.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 59,
+      "byteRange": [
+        2,
+        8
+      ],
+      "spelling": "3. Kat",
+      "candidates": [
+        "places/3. Kat.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 61,
+      "byteRange": [
+        1,
+        6
+      ],
+      "spelling": "R2-D2",
+      "candidates": [
+        "people/Deniz Arıkan.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 62,
+      "byteRange": [
+        17,
+        22
+      ],
+      "spelling": "Deniz",
+      "candidates": [
+        "people/Deniz Arıkan.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 63,
+      "byteRange": [
+        0,
+        3
+      ],
+      "spelling": "D12",
+      "candidates": [
+        "places/Daire 12.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 67,
+      "byteRange": [
+        0,
+        13
+      ],
+      "spelling": "Deniz Arıkan",
+      "candidates": [
+        "people/Deniz Arıkan.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 67,
+      "byteRange": [
+        14,
+        26
+      ],
+      "spelling": "12:30 Vapuru",
+      "candidates": [
+        "places/2. Dünya Savaşı.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 68,
+      "byteRange": [
+        40,
+        48
+      ],
+      "spelling": "Daire 12",
+      "candidates": [
+        "places/Daire 12.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 69,
+      "byteRange": [
+        4,
+        9
+      ],
+      "spelling": "Deniz",
+      "candidates": [
+        "people/Deniz Arıkan.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 69,
+      "byteRange": [
+        15,
+        20
+      ],
+      "spelling": "Deniz",
+      "candidates": [
+        "people/Deniz Arıkan.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 69,
+      "byteRange": [
+        34,
+        42
+      ],
+      "spelling": "Daire 12",
+      "candidates": [
+        "places/Daire 12.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 71,
+      "byteRange": [
+        2,
+        5
+      ],
+      "spelling": "D12",
+      "candidates": [
+        "places/Daire 12.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 72,
+      "byteRange": [
+        7,
+        12
+      ],
+      "spelling": "R2-D2",
+      "candidates": [
+        "people/Deniz Arıkan.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 72,
+      "byteRange": [
+        13,
+        21
+      ],
+      "spelling": "Daire 12",
+      "candidates": [
+        "places/Daire 12.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 73,
+      "byteRange": [
+        17,
+        29
+      ],
+      "spelling": "12:30 Vapuru",
+      "candidates": [
+        "places/2. Dünya Savaşı.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 73,
+      "byteRange": [
+        33,
+        38
+      ],
+      "spelling": "1.250",
+      "candidates": [
+        "places/2. Dünya Savaşı.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 73,
+      "byteRange": [
+        39,
+        47
+      ],
+      "spelling": "daire 12",
+      "candidates": [
+        "places/Daire 12.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": true,
+      "isCertain": false
+    },
+    {
+      "line": 74,
+      "byteRange": [
+        15,
+        23
+      ],
+      "spelling": "Daire 12",
+      "candidates": [
+        "places/Daire 12.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 74,
+      "byteRange": [
+        24,
+        32
+      ],
+      "spelling": "daire 12",
+      "candidates": [
+        "places/Daire 12.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": true,
+      "isCertain": false
+    },
+    {
+      "line": 75,
+      "byteRange": [
+        2,
+        8
+      ],
+      "spelling": "3. Kat",
+      "candidates": [
+        "places/3. Kat.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 77,
+      "byteRange": [
+        18,
+        26
+      ],
+      "spelling": "Daire 12",
+      "candidates": [
+        "places/Daire 12.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 77,
+      "byteRange": [
+        27,
+        32
+      ],
+      "spelling": "R2-D2",
+      "candidates": [
+        "people/Deniz Arıkan.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 79,
+      "byteRange": [
+        5,
+        11
+      ],
+      "spelling": "3. Kat",
+      "candidates": [
+        "places/3. Kat.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 79,
+      "byteRange": [
+        28,
+        33
+      ],
+      "spelling": "Deniz",
+      "candidates": [
+        "people/Deniz Arıkan.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 80,
+      "byteRange": [
+        6,
+        19
+      ],
+      "spelling": "Deniz Arıkan",
+      "candidates": [
+        "people/Deniz Arıkan.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 81,
+      "byteRange": [
+        0,
+        5
+      ],
+      "spelling": "R2-D2",
+      "candidates": [
+        "people/Deniz Arıkan.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 84,
+      "byteRange": [
+        15,
+        20
+      ],
+      "spelling": "Deniz",
+      "candidates": [
+        "people/Deniz Arıkan.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 89,
+      "byteRange": [
+        0,
+        12
+      ],
+      "spelling": "12:30 Vapuru",
+      "candidates": [
+        "places/2. Dünya Savaşı.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 92,
+      "byteRange": [
+        0,
+        8
+      ],
+      "spelling": "Daire 12",
+      "candidates": [
+        "places/Daire 12.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 93,
+      "byteRange": [
+        0,
+        5
+      ],
+      "spelling": "Deniz",
+      "candidates": [
+        "people/Deniz Arıkan.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 93,
+      "byteRange": [
+        13,
+        18
+      ],
+      "spelling": "1.250",
+      "candidates": [
+        "places/2. Dünya Savaşı.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 95,
+      "byteRange": [
+        1,
+        7
+      ],
+      "spelling": "3. Kat",
+      "candidates": [
+        "places/3. Kat.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 95,
+      "byteRange": [
+        23,
+        28
+      ],
+      "spelling": "Deniz",
+      "candidates": [
+        "people/Deniz Arıkan.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 96,
+      "byteRange": [
+        9,
+        15
+      ],
+      "spelling": "3. Kat",
+      "candidates": [
+        "places/3. Kat.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 99,
+      "byteRange": [
+        0,
+        12
+      ],
+      "spelling": "12:30 Vapuru",
+      "candidates": [
+        "places/2. Dünya Savaşı.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 101,
+      "byteRange": [
+        1,
+        6
+      ],
+      "spelling": "Deniz",
+      "candidates": [
+        "people/Deniz Arıkan.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 102,
+      "byteRange": [
+        0,
+        5
+      ],
+      "spelling": "Kat 3",
+      "candidates": [
+        "places/3. Kat.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 102,
+      "byteRange": [
+        6,
+        14
+      ],
+      "spelling": "Daire 12",
+      "candidates": [
+        "places/Daire 12.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 102,
+      "byteRange": [
+        38,
+        44
+      ],
+      "spelling": "3. Kat",
+      "candidates": [
+        "places/3. Kat.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 104,
+      "byteRange": [
+        0,
+        6
+      ],
+      "spelling": "3. Kat",
+      "candidates": [
+        "places/3. Kat.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 104,
+      "byteRange": [
+        29,
+        35
+      ],
+      "spelling": "3. Kat",
+      "candidates": [
+        "places/3. Kat.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 108,
+      "byteRange": [
+        0,
+        6
+      ],
+      "spelling": "3. Kat",
+      "candidates": [
+        "places/3. Kat.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 109,
+      "byteRange": [
+        11,
+        29
+      ],
+      "spelling": "2. Dünya Savaşı",
+      "candidates": [
+        "places/2. Dünya Savaşı.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 111,
+      "byteRange": [
+        12,
+        17
+      ],
+      "spelling": "Kat 3",
+      "candidates": [
+        "places/3. Kat.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 112,
+      "byteRange": [
+        23,
+        28
+      ],
+      "spelling": "Deniz",
+      "candidates": [
+        "people/Deniz Arıkan.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 116,
+      "byteRange": [
+        0,
+        5
+      ],
+      "spelling": "Deniz",
+      "candidates": [
+        "people/Deniz Arıkan.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 117,
+      "byteRange": [
+        0,
+        6
+      ],
+      "spelling": "3. Kat",
+      "candidates": [
+        "places/3. Kat.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 117,
+      "byteRange": [
+        26,
+        34
+      ],
+      "spelling": "Daire 12",
+      "candidates": [
+        "places/Daire 12.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 120,
+      "byteRange": [
+        19,
+        27
+      ],
+      "spelling": "Daire 12",
+      "candidates": [
+        "places/Daire 12.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 125,
+      "byteRange": [
+        0,
+        5
+      ],
+      "spelling": "1.250",
+      "candidates": [
+        "places/2. Dünya Savaşı.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 133,
+      "byteRange": [
+        0,
+        5
+      ],
+      "spelling": "1.250",
+      "candidates": [
+        "places/2. Dünya Savaşı.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 133,
+      "byteRange": [
+        24,
+        30
+      ],
+      "spelling": "3. Kat",
+      "candidates": [
+        "places/3. Kat.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 135,
+      "byteRange": [
+        6,
+        14
+      ],
+      "spelling": "Daire 12",
+      "candidates": [
+        "places/Daire 12.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 137,
+      "byteRange": [
+        1,
+        9
+      ],
+      "spelling": "Daire 12",
+      "candidates": [
+        "places/Daire 12.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 137,
+      "byteRange": [
+        10,
+        18
+      ],
+      "spelling": "daire 12",
+      "candidates": [
+        "places/Daire 12.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": true,
+      "isCertain": false
+    },
+    {
+      "line": 138,
+      "byteRange": [
+        1,
+        9
+      ],
+      "spelling": "Daire 12",
+      "candidates": [
+        "places/Daire 12.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 139,
+      "byteRange": [
+        0,
+        5
+      ],
+      "spelling": "Kat 3",
+      "candidates": [
+        "places/3. Kat.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 140,
+      "byteRange": [
+        19,
+        25
+      ],
+      "spelling": "3. Kat",
+      "candidates": [
+        "places/3. Kat.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 142,
+      "byteRange": [
+        5,
+        10
+      ],
+      "spelling": "Deniz",
+      "candidates": [
+        "people/Deniz Arıkan.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 143,
+      "byteRange": [
+        0,
+        4
+      ],
+      "spelling": "7/24",
+      "candidates": [
+        "places/2. Dünya Savaşı.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 143,
+      "byteRange": [
+        6,
+        10
+      ],
+      "spelling": "7/24",
+      "candidates": [
+        "places/2. Dünya Savaşı.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 143,
+      "byteRange": [
+        11,
+        16
+      ],
+      "spelling": "Kat 3",
+      "candidates": [
+        "places/3. Kat.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 143,
+      "byteRange": [
+        18,
+        22
+      ],
+      "spelling": "7/24",
+      "candidates": [
+        "places/2. Dünya Savaşı.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 144,
+      "byteRange": [
+        0,
+        6
+      ],
+      "spelling": "3. Kat",
+      "candidates": [
+        "places/3. Kat.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 145,
+      "byteRange": [
+        22,
+        30
+      ],
+      "spelling": "Daire 12",
+      "candidates": [
+        "places/Daire 12.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 146,
+      "byteRange": [
+        26,
+        34
+      ],
+      "spelling": "daire 12",
+      "candidates": [
+        "places/Daire 12.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": true,
+      "isCertain": false
+    }
+  ],
+  "unknownMentions": [
+    {
+      "line": 26,
+      "byteRange": [
+        1,
+        6
+      ],
+      "spelling": "Daire"
+    },
+    {
+      "line": 32,
+      "byteRange": [
+        14,
+        24
+      ],
+      "spelling": "Denizdaire"
+    },
+    {
+      "line": 41,
+      "byteRange": [
+        5,
+        10
+      ],
+      "spelling": "Daire"
+    },
+    {
+      "line": 126,
+      "byteRange": [
+        2,
+        7
+      ],
+      "spelling": "Daire"
+    },
+    {
+      "line": 131,
+      "byteRange": [
+        19,
+        27
+      ],
+      "spelling": "DenizD12"
+    }
+  ]
+}

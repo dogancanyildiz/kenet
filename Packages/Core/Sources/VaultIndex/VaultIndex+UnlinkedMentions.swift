@@ -183,41 +183,27 @@ struct UnlinkedMentionSource {
     let hasTwin: Bool
 }
 
-/// The user's text within an event or task first line: no list marker, clock, checkbox, field or identifier.
+/// An event or task first line of the query, read through the text region recognition itself uses.
 struct UnlinkedMentionScope {
     let block: LineBlock
-    let text: Range<Int>
-    let fields: [Range<Int>]
+    let region: LineTextRegion
     let task: TaskLine?
+    var text: Range<Int> { region.text }
+    var fields: [Range<Int>] { region.fields }
 
     init(_ task: TaskLine) {
-        self.init(task.block, fields: task.fieldRanges.map(\.byteRange), task: task)
+        block = task.block
+        region = LineTextRegion(task)
+        self.task = task
     }
 
     init(_ block: LineBlock, fields: [Range<Int>] = [], task: TaskLine? = nil) {
         self.block = block
-        self.fields = fields
+        region = LineTextRegion(block, fields: fields)
         self.task = task
-        let content = block.firstLineContent
-        var end = content.count
-        if let id = block.id {
-            while end > 0, content[end - 1] == 32 || content[end - 1] == 9 { end -= 1 }
-            end -= id.utf8.count + 2
-        }
-        let start = end - block.text.utf8.count
-        // The parsed text is the slice that ends where the identifier begins. A line that does not
-        // fit that shape is not one this query understands, and its empty scope lists nothing.
-        if start >= 0, end <= content.count, content[start..<end].elementsEqual(block.text.utf8) {
-            text = start..<end
-        } else {
-            text = 0..<0
-        }
     }
 
-    func contains(_ range: Range<Int>) -> Bool {
-        text.lowerBound <= range.lowerBound && range.upperBound <= text.upperBound
-            && !fields.contains(where: { $0.overlaps(range) })
-    }
+    func contains(_ range: Range<Int>) -> Bool { region.contains(range) }
 
     /// Whether the entity's link can replace the range and the task still reads the same fields.
     ///

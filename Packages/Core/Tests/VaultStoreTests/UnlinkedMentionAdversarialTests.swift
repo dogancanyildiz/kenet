@@ -513,7 +513,11 @@ struct UnlinkedMentionAdversarialTests {
         let entity = KnownEntity(file: "people/Sayı.md", kind: .person, name: "2026")
         let text = "## Tasks\n- [ ] 2026 ara 📅 2026-10-12 📅 2026-10-13 ⏫ ⏫\n"
         let source = RawDocument(bytes: text.utf8)
-        let mentions = EntityRecognizer.recognize(text, entities: [entity])
+        // The recognizer no longer reads a field, so the refused mentions come from the same line
+        // with the dates spelled apart: the gate must hold whatever hands it a mention.
+        #expect(EntityRecognizer.recognize(text, entities: [entity]).count == 1)
+        let mentions = EntityRecognizer.recognize(
+            text.replacingOccurrences(of: "-10-1", with: " 10 1"), entities: [entity])
         #expect(mentions.count == 3)
         for (mention, accepted) in zip(mentions, [true, false, false]) {
             let linked = RawDocument(bytes: try EntityRecognizer.linking(text, mentions: [mention]).utf8)

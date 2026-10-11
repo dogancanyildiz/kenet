@@ -790,4 +790,24 @@ final class IndexStore {
         if holdsProcessing { isProcessing = false }
         await applyPendingSelection()
     }
+
+    // MARK: - Unlinked mentions
+
+    /// Plain spellings of one entity in day event and task lines. Reads the vault off the main actor.
+    func computeUnlinkedMentions(of entity: KnownEntity) async throws -> [UnlinkedMention] {
+        guard let index, let root = vaultURL else { throw VaultStoreError.staleTarget }
+        let current = generation
+        let result = try await Task.detached {
+            try index.unlinkedMentions(of: entity, vaultRoot: root)
+        }.value
+        guard generation == current else { throw VaultStoreError.staleTarget }
+        return result
+    }
+
+    /// Writes one approved spelling, then publishes the index. A stale line is not written.
+    func linkUnlinkedMention(_ mention: UnlinkedMention, to entity: KnownEntity) async throws {
+        try await performEdit(path: mention.file) { writer in
+            _ = try await writer.linkingMention(mention, to: entity)
+        }
+    }
 }

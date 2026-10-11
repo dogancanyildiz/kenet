@@ -1,0 +1,65 @@
+{
+  "entities": [
+    {
+      "file": "places/12.md",
+      "kind": "place",
+      "name": "12",
+      "aliases": []
+    },
+    {
+      "file": "places/2026.md",
+      "kind": "place",
+      "name": "2026",
+      "aliases": []
+    },
+    {
+      "file": "people/7.md",
+      "kind": "person",
+      "name": "7",
+      "aliases": []
+    },
+    {
+      "file": "places/34.md",
+      "kind": "place",
+      "name": "34",
+      "aliases": []
+    },
+    {
+      "file": "places/1907.md",
+      "kind": "place",
+      "name": "1907",
+      "aliases": []
+    },
+    {
+      "file": "places/Sayılar.md",
+      "kind": "place",
+      "name": "Sayılar",
+      "aliases": [
+        "10",
+        "30",
+        "5",
+        "14",
+        "1",
+        "250",
+        "75"
+      ]
+    },
+    {
+      "file": "places/Rakamlar.md",
+      "kind": "place",
+      "name": "Rakamlar",
+      "aliases": [
+        "١٢",
+        "٣٠",
+        "１２",
+        "３０"
+      ]
+    },
+    {
+      "file": "places/Daire 12.md",
+      "kind": "place",
+      "name": "Daire 12",
+      "aliases": []
+    }
+  ]
+}

@@ -1652,97 +1652,6 @@
           ]
         },
         {
-          "isExplicit": false,
-          "spelling": "12",
-          "isAmbiguous": false,
-          "line": 4,
-          "isCaseMismatch": false,
-          "file": "journal/2026-03-04.md",
-          "date": "2026-03-04",
-          "byteRange": [
-            2,
-            4
-          ]
-        },
-        {
-          "isCaseMismatch": false,
-          "byteRange": [
-            5,
-            7
-          ],
-          "isAmbiguous": false,
-          "line": 4,
-          "spelling": "30",
-          "date": "2026-03-04",
-          "file": "journal/2026-03-04.md",
-          "isExplicit": false
-        },
-        {
-          "spelling": "12",
-          "isAmbiguous": false,
-          "line": 5,
-          "isCaseMismatch": false,
-          "isExplicit": false,
-          "file": "journal/2026-03-04.md",
-          "date": "2026-03-04",
-          "byteRange": [
-            2,
-            4
-          ]
-        },
-        {
-          "file": "journal/2026-03-04.md",
-          "byteRange": [
-            5,
-            7
-          ],
-          "isAmbiguous": false,
-          "date": "2026-03-04",
-          "spelling": "30",
-          "isCaseMismatch": false,
-          "isExplicit": false,
-          "line": 5
-        },
-        {
-          "isCaseMismatch": false,
-          "spelling": "12",
-          "date": "2026-03-04",
-          "isExplicit": false,
-          "isAmbiguous": false,
-          "line": 6,
-          "file": "journal/2026-03-04.md",
-          "byteRange": [
-            2,
-            4
-          ]
-        },
-        {
-          "byteRange": [
-            2,
-            6
-          ],
-          "isExplicit": false,
-          "spelling": "2026",
-          "file": "journal/2026-03-04.md",
-          "date": "2026-03-04",
-          "line": 7,
-          "isCaseMismatch": false,
-          "isAmbiguous": false
-        },
-        {
-          "isExplicit": false,
-          "file": "journal/2026-03-04.md",
-          "isAmbiguous": false,
-          "spelling": "12",
-          "isCaseMismatch": false,
-          "date": "2026-03-04",
-          "line": 7,
-          "byteRange": [
-            10,
-            12
-          ]
-        },
-        {
           "date": "2026-03-04",
           "spelling": "09:05",
           "byteRange": [
@@ -1806,19 +1715,6 @@
             2,
             6
           ]
-        },
-        {
-          "file": "journal/2026-03-03.md",
-          "isCaseMismatch": false,
-          "isExplicit": false,
-          "byteRange": [
-            37,
-            41
-          ],
-          "date": "2026-03-03",
-          "spelling": "2026",
-          "isAmbiguous": false,
-          "line": 23
         },
         {
           "isCaseMismatch": false,

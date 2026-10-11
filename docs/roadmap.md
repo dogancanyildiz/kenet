@@ -107,7 +107,7 @@ Yön seçildi: Mürekkep, sahibin iki değişikliğiyle. Yön, belirteçler ve k
 
 Sektör taramasından çıkan, kimlik kararı gerektirmeyen ve ürünün farkını büyüten ilk dalga. Biçime dokunan maddeler önce `vault-format.md`'de tanımlanır.
 
-- [ ] Bu gün geçmişte: Bugün'de kişi ve konumlu tek satır; yalnız veri varsa görünür
+- [x] Bu gün geçmişte: Bugün'de kişi ve konumlu tek satır; yalnız veri varsa görünür
 - [ ] Takvim etkinliğinden olay taslağı; katılımcı adları kişi adayı olur, emin değilse sorulur
 - [ ] Varlık sayfasında bağlanmamış anmalar; satır satır, kullanıcı onayıyla bağlama
 - [ ] Önemli tarihler: kişi ve özel tip dosyalarındaki tarih alanlarından doğum günü ve yıl dönümü satırı

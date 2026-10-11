@@ -2197,6 +2197,22 @@
         }
       }
     },
+    "Bu güne bağlananlar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Linked to this day"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bu güne bağlananlar"
+          }
+        }
+      }
+    },
     "Bu günlükler taşınmaz. Gün görünümünde kullanmak için Obsidian'da journal klasörüne düzenleyebilirsin." : {
       "localizations" : {
         "en" : {

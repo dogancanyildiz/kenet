@@ -23,14 +23,17 @@
         case todayOnThisDayLight
         case todayOnThisDayDark
         case todayOnThisDayAX3
+        case todayBacklinksLight
+        case todayBacklinksDark
+        case todayBacklinksAX3
 
         var colorScheme: SnapshotColorScheme {
-            self == .todayDark || self == .todayOnThisDayDark ? .dark : .light
+            self == .todayDark || self == .todayOnThisDayDark || self == .todayBacklinksDark ? .dark : .light
         }
 
         var dynamicType: SnapshotDynamicType {
             switch self {
-            case .todayAX3, .todayOnThisDayAX3: .accessibility3
+            case .todayAX3, .todayOnThisDayAX3, .todayBacklinksAX3: .accessibility3
             case .todayAX5: .accessibility5
             default: .medium
             }
@@ -47,6 +50,9 @@
         /// Earlier years on the snapshot month-day; the other cases have none and draw no line.
         var usesOnThisDay: Bool {
             self == .todayOnThisDayLight || self == .todayOnThisDayDark || self == .todayOnThisDayAX3
+        }
+        var usesBacklinks: Bool {
+            self == .todayBacklinksLight || self == .todayBacklinksDark || self == .todayBacklinksAX3
         }
     }
 
@@ -83,7 +89,10 @@
             if snapshotCase.usesOnThisDay {
                 try Self.writeEarlierYears(in: context.root)
             }
-            if snapshotCase == .todayOnThisDayAX3 {
+            if snapshotCase.usesBacklinks {
+                try Self.writeBacklinks(in: context.root)
+            }
+            if snapshotCase == .todayOnThisDayAX3 || snapshotCase == .todayBacklinksAX3 {
                 // At AX3 the full sample day pushes the line off even the tall canvas.
                 try Self.stripOpenTasksDueBeforeSnapshotDay(in: context.root)
                 try FileManager.default.removeItem(at: context.root.appendingPathComponent("goals"))
@@ -109,10 +118,11 @@
             // The goal strip loads in a `.task`; without this the reference can catch its spinner.
             let goalsReady = GoalsReadyBox()
             let contextReady = GoalsReadyBox()
+            let backlinksReady = GoalsReadyBox()
             let store = context.store
             // The line sits below the events; the tall canvas keeps it in view at every type size.
             let size =
-                snapshotCase.usesTallCanvas || snapshotCase.usesOnThisDay
+                snapshotCase.usesTallCanvas || snapshotCase.usesOnThisDay || snapshotCase.usesBacklinks
                 ? CGSize(width: 390, height: 1600) : snapshotCanvasSize
             let root = NavigationStack {
                 DayView(store: store, date: snapshotDay, isToday: true)
@@ -129,7 +139,9 @@
             .environment(\.openSettings, {})
             .onPreferenceChange(GoalsStripReadyKey.self) { goalsReady.isReady = $0 }
             .onPreferenceChange(DayContextReadyKey.self) { contextReady.isReady = $0 }
+            .onPreferenceChange(DayBacklinksReadyKey.self) { backlinksReady.isReady = $0 }
             let needsContext = snapshotCase.usesOnThisDay
+            let needsBacklinks = snapshotCase.usesBacklinks
             await SnapshotHost.assertView(
                 colorScheme: snapshotCase.colorScheme,
                 dynamicType: snapshotCase.dynamicType,
@@ -141,6 +153,7 @@
                 isReady: {
                     (store.content.goals.isEmpty || goalsReady.isReady)
                         && (!needsContext || contextReady.isReady)
+                        && (!needsBacklinks || backlinksReady.isReady)
                 },
                 testName: "today",
                 file: #filePath,
@@ -259,6 +272,29 @@
                     to: root.appendingPathComponent("journal/\(date).md"), atomically: true,
                     encoding: .utf8)
             }
+        }
+
+        /// Adds backlinks to snapshotDay from a note, person, and another day.
+        private static func writeBacklinks(in root: URL) throws {
+            let note = root.appendingPathComponent("notes/Proje Fikirleri.md")
+            var noteText = try String(contentsOf: note, encoding: .utf8)
+            noteText += "\n[[2026-09-20]] için sunum taslağı hazırlandı.\n"
+            try noteText.write(to: note, atomically: true, encoding: .utf8)
+
+            let person = root.appendingPathComponent("people/Deniz Arıkan.md")
+            var personText = try String(contentsOf: person, encoding: .utf8)
+            personText += "\n[[2026-09-20]] görüşmesi yapıldı.\n"
+            try personText.write(to: person, atomically: true, encoding: .utf8)
+
+            let otherDay = root.appendingPathComponent("journal/2026-09-19.md")
+            var otherDayText = try String(contentsOf: otherDay, encoding: .utf8)
+            let event = "- 18:00 Yarın için [[2026-09-20]] notu bırakıldı\n"
+            if let range = otherDayText.range(of: "## Events\n") {
+                otherDayText.insert(contentsOf: event, at: range.upperBound)
+            } else {
+                otherDayText += "\n" + event
+            }
+            try otherDayText.write(to: otherDay, atomically: true, encoding: .utf8)
         }
 
         private static func writeIncompleteBooleanGoal(in root: URL) throws {

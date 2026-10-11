@@ -69,6 +69,8 @@ struct CloseDayReport: Equatable, Sendable {
 final class CloseDayModel {
     let store: IndexStore
     let today: CalendarDate
+    /// Decides where "Haftaya" lands, the same way the task menu does.
+    private let calendar: Calendar
     /// The Today strip's model: goals are marked through the same write path.
     let goals: GoalDayModel
     /// Daily goals that were unmarked when the flow opened. A goal marked here stays listed (and
@@ -79,9 +81,13 @@ final class CloseDayModel {
     private(set) var isApplying = false
     private var choices: [String: CloseDayChoice] = [:]
 
-    init(store: IndexStore, today: CalendarDate, step: CloseDayStep = .tasks) {
+    init(
+        store: IndexStore, today: CalendarDate, step: CloseDayStep = .tasks,
+        calendar: Calendar = .autoupdatingCurrent
+    ) {
         self.store = store
         self.today = today
+        self.calendar = calendar
         self.step = step
         goals = GoalDayModel(store: store, day: today)
         let statuses = TodayPresentation.goalStatuses(
@@ -153,7 +159,9 @@ final class CloseDayModel {
         let destinations: [(CloseDayChoice, TaskMoveDestination)] = [(.tomorrow, .tomorrow), (.nextWeek, .nextWeek)]
         for (choice, destination) in destinations {
             let rows = chosen.filter { $0.choice == choice }.map(\.row)
-            guard !rows.isEmpty, let date = TaskMove.date(destination, today: today) else { continue }
+            guard !rows.isEmpty, let date = TaskMove.date(destination, today: today, calendar: calendar) else {
+                continue
+            }
             let moved = await TaskMove.apply(rows, to: date, in: store)
             result.moves.moved += moved.moved
             result.moves.unchanged += moved.unchanged

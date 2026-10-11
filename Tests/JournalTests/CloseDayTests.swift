@@ -118,7 +118,10 @@ struct CloseDayTests {
             ["journal/2026-10-03.md": today, "journal/2026-10-01.md": older, "notes/Plan.md": note], in: context)
         let before = try vaultFiles(context)
 
-        let model = CloseDayModel(store: context.store, today: context.today)
+        // "Haftaya" follows the calendar's week start; the expected date below is a Monday week's.
+        var monday = Calendar(identifier: .gregorian)
+        monday.firstWeekday = 2
+        let model = CloseDayModel(store: context.store, today: context.today, calendar: monday)
         model.choose(.done, for: try context.row("done here"))
         model.choose(.tomorrow, for: try context.row("to tomorrow"))
         model.choose(.nextWeek, for: try context.row("to next week"))

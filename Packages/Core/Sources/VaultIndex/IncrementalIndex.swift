@@ -120,7 +120,7 @@ private func remove(_ path: String, db: Database, keys: inout Set<String>, ident
         try String.fetchAll(
             db, sql: "SELECT identifier FROM blocks WHERE file=? AND identifier IS NOT NULL", arguments: [path]))
     try db.execute(sql: "UPDATE links SET resolvedFile=NULL WHERE resolvedFile=?", arguments: [path])
-    for table in ["search", "links", "goal_logs", "aliases", "entities", "blocks"] {
+    for table in ["search", "links", "goal_logs", "entity_fields", "aliases", "entities", "blocks"] {
         try db.execute(sql: "DELETE FROM " + table + " WHERE file=?", arguments: [path])
     }
     try db.execute(sql: "DELETE FROM files WHERE path=?", arguments: [path])

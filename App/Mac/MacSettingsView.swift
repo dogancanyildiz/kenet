@@ -113,8 +113,8 @@
         }
     }
 
-    /// Mac Settings scene: five Settings tabs plus quick-entry shortcut.
-    /// Tab order matches historical `dev` (Hızlı giriş first).
+    /// Mac Settings scene: six tabs. Hızlı giriş is first: the keyboard shortcut, then the same
+    /// Siri and Shortcuts rows as the iPhone page. The Action Button is not on this tab.
     struct MacSettingsView: View {
         let store: IndexStore
         @Bindable var shortcut: HotKeySettingsModel

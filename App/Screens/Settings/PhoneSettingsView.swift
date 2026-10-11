@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// iPhone Settings hub: five sections as a list (Mac uses Settings tabs instead).
+/// iPhone Settings hub: six sections as a list (Mac uses Settings tabs instead).
 struct PhoneSettingsView: View {
     let store: IndexStore
 
@@ -9,7 +9,11 @@ struct PhoneSettingsView: View {
             InkPageTitleRow("Ayarlar")
             ForEach(SettingsSection.allCases) { section in
                 NavigationLink(value: section) {
-                    Label(section.title, systemImage: section.symbol)
+                    Label {
+                        Text(section.title)
+                    } icon: {
+                        Image(systemName: section.symbol)
+                    }
                 }
                 .inkListRow()
             }
@@ -27,6 +31,8 @@ struct PhoneSettingsView: View {
     @ViewBuilder
     private func settingsDestination(_ section: SettingsSection) -> some View {
         switch section {
+        case .quickEntry:
+            EntryPointsSettingsView()
         case .privacy:
             PrivacySettingsView()
         case .notifications:

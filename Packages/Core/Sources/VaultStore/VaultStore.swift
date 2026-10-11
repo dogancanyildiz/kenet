@@ -4,6 +4,7 @@ import VaultIndex
 
 /// The serialized, file-first write gateway for one Markdown vault.
 public actor VaultStore {
+    let fileCoordination: any FileCoordination
     let root: URL
     let index: VaultIndex
     let writeQueue: OperationQueue
@@ -18,10 +19,12 @@ public actor VaultStore {
     /// Uses the caller's index and an existing vault root; random injection supports deterministic tests.
     public init(
         vaultRoot: URL, index: VaultIndex,
-        randomValue: @escaping @Sendable () -> UInt64 = { UInt64.random(in: .min ... .max) }
+        randomValue: @escaping @Sendable () -> UInt64 = { UInt64.random(in: .min ... .max) },
+        fileCoordination: any FileCoordination = DirectFileCoordination()
     ) {
         root = vaultRoot.resolvingSymlinksInPath().standardizedFileURL
         self.index = index
+        self.fileCoordination = fileCoordination
         writeQueue = VaultWriteQueues.shared.queue(for: vaultRoot)
         self.randomValue = randomValue
         linkFile = { try FileManager.default.linkItem(at: $0, to: $1) }
@@ -37,10 +40,12 @@ public actor VaultStore {
         linkFile: @escaping @Sendable (URL, URL) throws -> Void,
         moveFile: @escaping @Sendable (URL, URL) throws -> Void = { try FileManager.default.moveItem(at: $0, to: $1) },
         restoreRenameFile: (@Sendable (Data, URL) throws -> Void)? = nil,
-        readFile: @escaping @Sendable (URL) throws -> Data = { try Data(contentsOf: $0) }
+        readFile: @escaping @Sendable (URL) throws -> Data = { try Data(contentsOf: $0) },
+        fileCoordination: any FileCoordination = DirectFileCoordination()
     ) {
         root = vaultRoot.resolvingSymlinksInPath().standardizedFileURL
         self.index = index
+        self.fileCoordination = fileCoordination
         writeQueue = VaultWriteQueues.shared.queue(for: vaultRoot)
         self.randomValue = randomValue
         self.linkFile = linkFile
@@ -57,7 +62,10 @@ public actor VaultStore {
 
     /// Reads the current disk bytes without querying the index.
     public func document(at relativePath: String) throws -> RawDocument {
-        RawDocument(bytes: try readFile(checkedURL(relativePath)))
+        let url = try checkedURL(relativePath)
+        return try fileCoordination.coordinate(.read(url)) { _ in
+            RawDocument(bytes: try readFile(url))
+        }
     }
 
     /// Reads an existing day from disk, throwing if it does not exist.
@@ -247,24 +255,26 @@ public actor VaultStore {
         transform: (RawDocument) throws -> RawDocument
     ) throws -> RawDocument {
         let url = try checkedURL(path, writing: true)
-        let original: RawDocument
-        let wasMissing: Bool
-        do {
-            original = RawDocument(bytes: try readFile(url))
-            wasMissing = false
-        } catch CocoaError.fileReadNoSuchFile where date != nil {
-            guard createDay else { return RawDocument(bytes: []) }
-            wasMissing = true
-            original = try RawDocument(bytes: []).settingFrontmatterValue(.text("journal"), forKey: "type")
-                .settingFrontmatterValue(.date(date!), forKey: "date")
+        return try fileCoordination.coordinate(.modify(url)) { _ in
+            let original: RawDocument
+            let wasMissing: Bool
+            do {
+                original = RawDocument(bytes: try readFile(url))
+                wasMissing = false
+            } catch CocoaError.fileReadNoSuchFile where date != nil {
+                guard createDay else { return RawDocument(bytes: []) }
+                wasMissing = true
+                original = try RawDocument(bytes: []).settingFrontmatterValue(.text("journal"), forKey: "type")
+                    .settingFrontmatterValue(.date(date!), forKey: "date")
+            }
+            let changed: RawDocument
+            do { changed = try transform(original) } catch EditError.targetNotFound {
+                throw VaultStoreError.staleTarget
+            }
+            guard changed != original else { return original }
+            try persist(changed, path: path, exclusive: wasMissing)
+            return changed
         }
-        let changed: RawDocument
-        do { changed = try transform(original) } catch EditError.targetNotFound {
-            throw VaultStoreError.staleTarget
-        }
-        guard changed != original else { return original }
-        try persist(changed, path: path, exclusive: wasMissing)
-        return changed
     }
 
     nonisolated func freshID(in document: RawDocument) throws -> String {

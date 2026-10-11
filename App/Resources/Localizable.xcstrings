@@ -17,6 +17,22 @@
         }
       }
     },
+    "(Boş ad)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "(Empty name)"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "(Boş ad)"
+          }
+        }
+      }
+    },
     "%@ · %@" : {
       "localizations" : {
         "en" : {
@@ -1021,6 +1037,22 @@
         }
       }
     },
+    "Aktarma sonucu" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Import result"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aktarma sonucu"
+          }
+        }
+      }
+    },
     "Alan adı" : {
       "localizations" : {
         "en" : {
@@ -1337,6 +1369,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Atlanacak dosyalar"
+          }
+        }
+      }
+    },
+    "Atlanan" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skipped"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Atlanan"
           }
         }
       }
@@ -3645,6 +3693,22 @@
         }
       }
     },
+    "Geçersiz adlar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Invalid names"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geçersiz adlar"
+          }
+        }
+      }
+    },
     "Geçersiz tarih aralığı" : {
       "localizations" : {
         "en" : {
@@ -4621,6 +4685,22 @@
         }
       }
     },
+    "Hata veren" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hata veren"
+          }
+        }
+      }
+    },
     "Hatırlatmalar" : {
       "localizations" : {
         "en" : {
@@ -5385,6 +5465,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Hızlı girişteki konum önerisi tek seferlik konumla çalışır; olayına kendiliğinden eklenmez."
+          }
+        }
+      }
+    },
+    "İçe aktar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Import"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "İçe aktar"
           }
         }
       }
@@ -6313,6 +6409,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Kişiler"
+          }
+        }
+      }
+    },
+    "Kişiler aktarılıyor…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Importing contacts…"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kişiler aktarılıyor…"
           }
         }
       }
@@ -7261,6 +7373,22 @@
         }
       }
     },
+    "Oluşturulacak kişiler" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "People to create"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Oluşturulacak kişiler"
+          }
+        }
+      }
+    },
     "Oluşturulan" : {
       "localizations" : {
         "en" : {
@@ -7741,6 +7869,22 @@
         }
       }
     },
+    "Rehberden aktar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Import from contacts"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rehberden aktar"
+          }
+        }
+      }
+    },
     "Saat" : {
       "localizations" : {
         "en" : {
@@ -7865,6 +8009,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sayısal hedef için sıfır veya daha büyük, sonlu bir miktar gir."
+          }
+        }
+      }
+    },
+    "Seçilen kişi bulunamadı." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No contacts selected."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seçilen kişi bulunamadı."
           }
         }
       }
@@ -10201,6 +10361,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Zaman çizelgesi"
+          }
+        }
+      }
+    },
+    "Zaten var olanlar (atlanacak)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Already exist (to skip)"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zaten var olanlar (atlanacak)"
           }
         }
       }

@@ -20,7 +20,9 @@ struct DayView: View {
     @Environment(\.calendar) private var calendarValue
     @Environment(\.clockNow) private var clockNow
     @Environment(\.openSettings) private var openSettings
+    @Environment(\.displayScale) private var displayScale
     @State private var showsJournal = false
+    @State private var showsCloseDay = false
     @State private var tasksModel: DayTasksModel
     @State private var isCarriedOverExpanded = false
     @State private var isCompletedExpanded = false
@@ -100,6 +102,11 @@ struct DayView: View {
                 journalSection
                     .dayContext(store: store, today: isToday ? date : nil)
                     .dayBacklinks(store: store, date: date)
+
+                // Last on the page: above the fold it would push the first event out of sight.
+                if CloseDayEntry.isOffered(isToday: isToday, presentation: presented) {
+                    closeDayEntry
+                }
             }
             .padding(.horizontal, InkSpacing.margin)
             .padding(.top, 8)
@@ -134,6 +141,9 @@ struct DayView: View {
         .sheet(isPresented: $showsJournal) {
             NavigationStack { JournalView(store: store, date: date) }
         }
+        .sheet(isPresented: $showsCloseDay) {
+            NavigationStack { CloseDayView(store: store, today: date) }
+        }
     }
 
     /// Manşet row: Settings (Today, phone only) then search, rightmost. A past day keeps only
@@ -149,6 +159,19 @@ struct DayView: View {
                 }
             }
             SearchButton()
+        }
+    }
+
+    /// A link row under a thin rule; no section title of its own.
+    private var closeDayEntry: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Rectangle()
+                .fill(Color.ink.rule)
+                .frame(height: InkStroke.hairline(scale: displayScale))
+                .accessibilityHidden(true)
+            Button("Günü kapat") { showsCloseDay = true }
+                .buttonStyle(InkTextButtonStyle())
+                .accessibilityIdentifier("button.closeDay")
         }
     }
 

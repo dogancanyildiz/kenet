@@ -112,7 +112,7 @@ Sektör taramasından çıkan, kimlik kararı gerektirmeyen ve ürünün farkın
 - [ ] Varlık sayfasında bağlanmamış anmalar; satır satır, kullanıcı onayıyla bağlama
 - [ ] Önemli tarihler: kişi ve özel tip dosyalarındaki tarih alanlarından doğum günü ve yıl dönümü satırı
 - [ ] Kişi başına görüşme ritmi, erteleme ve duraklatma; isteğe bağlı, günlük tavanı olan hatırlatma
-- [ ] Var olan giriş yollarının ilk kullanımda ve Ayarlar'da gösterilmesi (Eylem düğmesi, Siri cümleleri)
+- [x] Var olan giriş yollarının ilk kullanımda ve Ayarlar'da gösterilmesi (Eylem düğmesi, Siri cümleleri)
 - [ ] Hızlı girişte tanınan tarih, öncelik, tekrar ve adların kutuda vurgulanması; dokununca ayrıştırma geri alınır
 - [ ] Zincir affı: tek başına kalan kaçırma zinciri kırmaz, dinlenme günü, yumuşak ilerleme skoru (kullanıcı kararı)
 - [ ] Suçlamasız taşıma (bugüne, yarına, haftaya) ve iki dakikalık "günü kapat"

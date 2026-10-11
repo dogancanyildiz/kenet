@@ -795,6 +795,29 @@ final class IndexStore {
         await applyPendingSelection()
     }
 
+    // MARK: - Unlinked mentions
+
+    /// Plain spellings of one entity in day event and task lines. Reads the vault off the main actor.
+    func computeUnlinkedMentions(of entity: KnownEntity) async throws -> [UnlinkedMention] {
+        guard let index, let root = vaultURL else { throw VaultStoreError.staleTarget }
+        let current = generation
+        let result = try await Task.detached {
+            try index.unlinkedMentions(of: entity, vaultRoot: root)
+        }.value
+        guard generation == current else { throw VaultStoreError.staleTarget }
+        return result
+    }
+
+    /// Writes one approved spelling, then publishes the index. A stale line is not written.
+    /// `root` is the vault the row was read from: a vault selected since, even while this write
+    /// waited its turn, is never written from another vault's row.
+    func linkUnlinkedMention(_ mention: UnlinkedMention, to entity: KnownEntity, readFrom root: URL?) async throws {
+        try await performEdit(path: mention.file) { writer in
+            guard let root, vaultURL == root else { throw VaultStoreError.staleTarget }
+            _ = try await writer.linkingMention(mention, to: entity)
+        }
+    }
+
     // MARK: - Meeting cadence
 
     /// Cadence scalars keyed by file. Files without one of the three fields are absent.

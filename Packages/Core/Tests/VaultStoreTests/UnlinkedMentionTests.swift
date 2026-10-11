@@ -370,7 +370,11 @@ struct UnlinkedMentionTests {
         let text = "## Events\n" + arguments[0]
         let entity = KnownEntity(file: "people/\(arguments[1]).md", kind: .person, name: arguments[1])
         let source = RawDocument(bytes: text.utf8)
-        let mention = try #require(EntityRecognizer.recognize(text, entities: [entity]).first)
+        // The recognizer no longer reads a clock or a field, so the refused mentions come from the
+        // same line with the number spelled apart: the gate must hold whatever hands it a mention.
+        let spaced = text.replacingOccurrences(of: "12:30", with: "12 30")
+            .replacingOccurrences(of: "2026-10-12", with: "2026 10 12")
+        let mention = try #require(EntityRecognizer.recognize(spaced, entities: [entity]).first)
         let linked = RawDocument(bytes: try EntityRecognizer.linking(text, mentions: [mention]).utf8)
         #expect(linked != source)
         #expect(VaultStore.isSingleLink(linked, replacing: mention, in: source, to: entity) == (arguments[2] == "true"))

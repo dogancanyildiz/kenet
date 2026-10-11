@@ -1,0 +1,107 @@
+[
+  {
+    "id": "empty",
+    "title": "Haftalık inceleme",
+    "expected": []
+  },
+  {
+    "id": "note",
+    "title": "Haftalık inceleme",
+    "note": "  Kitap okudum.  \n\n Su içtim. ",
+    "expected": [
+      "### Haftalık inceleme",
+      "· Kitap okudum.",
+      "· Su içtim."
+    ]
+  },
+  {
+    "id": "dangerous",
+    "title": "Haftalık inceleme",
+    "note": "- [ ] Kitap 📅 2026-09-27\n- 09:30 Su\n## Tasks\n---\n```\n~~~\n\t- [x] Su\u2028## Events\u2029- 10:00 Kitap\u0085# Başlık\r\n+ [ ] Kitap",
+    "expected": [
+      "### Haftalık inceleme",
+      "· - [ ] Kitap 📅 2026-09-27",
+      "· - 09:30 Su",
+      "· ## Tasks",
+      "· ---",
+      "· ```",
+      "· ~~~",
+      "· - [x] Su",
+      "· ## Events",
+      "· - 10:00 Kitap",
+      "· # Başlık",
+      "· + [ ] Kitap"
+    ]
+  },
+  {
+    "id": "ordered",
+    "title": "  Review\n## Tasks  ",
+    "summaryLines": [
+      "  3 events.\n2 days. "
+    ],
+    "selectedLines": [
+      "- [ ] Read",
+      "\tChosen\rNext"
+    ],
+    "note": " Last ",
+    "expected": [
+      "### Review ## Tasks",
+      "· 3 events.",
+      "· 2 days.",
+      "· - [ ] Read",
+      "· Chosen",
+      "· Next",
+      "· Last"
+    ]
+  },
+  {
+    "id": "blank",
+    "title": "Review",
+    "summaryLines": [
+      "\t \n"
+    ],
+    "note": "\u2028\t",
+    "expected": []
+  },
+  {
+    "id": "no-title",
+    "title": "",
+    "note": "Kitap",
+    "expected": [
+      "· Kitap"
+    ]
+  },
+  {
+    "id": "more-dangerous",
+    "title": "Haftalık inceleme",
+    "note": "* [ ] Yıldız\n1. [ ] Sıra\n> - [ ] Alıntı\n| a | b |\n%%\n<!--\n***\n· Zaten\n+ [ ] Sıfır\u2028- [x] Satır\u2029# Paragraf\u0085## NEL\u000b- 10:00 VT\f~~~ FF",
+    "expected": [
+      "### Haftalık inceleme",
+      "· * [ ] Yıldız",
+      "· 1. [ ] Sıra",
+      "· > - [ ] Alıntı",
+      "· | a | b |",
+      "· %%",
+      "· <!--",
+      "· ***",
+      "· · Zaten",
+      "· + [ ] Sıfır",
+      "· - [x] Satır",
+      "· # Paragraf",
+      "· ## NEL",
+      "· - 10:00 VT",
+      "· ~~~ FF"
+    ]
+  },
+  {
+    "id": "title-structure",
+    "title": "# Başlık #\r\n- [ ] Görev\u2028## Tasks",
+    "selectedLines": [
+      "Kitap"
+    ],
+    "expected": [
+      "### # Başlık # - [ ] Görev ## Tasks",
+      "· Kitap"
+    ]
+  }
+]

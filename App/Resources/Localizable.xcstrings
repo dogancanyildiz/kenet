@@ -1877,6 +1877,38 @@
         }
       }
     },
+    "Bağla" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Link"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bağla"
+          }
+        }
+      }
+    },
+    "Bağla: %@, %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Link: %1$@, %2$@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bağla: %1$@, %2$@"
+          }
+        }
+      }
+    },
     "Bağlamadan devam et" : {
       "localizations" : {
         "en" : {
@@ -1889,6 +1921,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bağlamadan devam et"
+          }
+        }
+      }
+    },
+    "Bağlanamadı." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could not link."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bağlanamadı."
+          }
+        }
+      }
+    },
+    "Bağlanmamış anmalar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unlinked mentions"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bağlanmamış anmalar"
           }
         }
       }
@@ -1953,6 +2017,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bağlantılı varlıklar"
+          }
+        }
+      }
+    },
+    "Başka bir kayıtla da eşleşiyor" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Also matches another record"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Başka bir kayıtla da eşleşiyor"
           }
         }
       }
@@ -8569,6 +8649,22 @@
         }
       }
     },
+    "Satır değişmiş, bağlanmadı." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The line changed, so it was not linked."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Satır değişmiş, bağlanmadı."
+          }
+        }
+      }
+    },
     "Sayfayı aç" : {
       "localizations" : {
         "en" : {
@@ -10041,6 +10137,46 @@
         }
       }
     },
+    "Tümünü göster (%lld)" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Show all (%lld)"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Show all (%lld)"
+                }
+              }
+            }
+          }
+        },
+        "tr" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Tümünü göster (%lld)"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Tümünü göster (%lld)"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "Tür" : {
       "localizations" : {
         "en" : {
@@ -10645,6 +10781,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Yazılan gün"
+          }
+        }
+      }
+    },
+    "Yazımı farklı" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spelling differs"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yazımı farklı"
           }
         }
       }

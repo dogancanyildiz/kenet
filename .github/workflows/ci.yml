@@ -14,8 +14,42 @@ permissions:
   contents: read
 
 jobs:
+  # Yalnız belge değiştiren PR'da Core ve uygulama işleri atlanır; "Biçim ve kurallar" her zaman
+  # koşar. Karar .github/scripts/ci-changes.py betiğindedir: dar bir belge listesi dışındaki her
+  # yol koddur, emin olunamayan her durumda her şey koşar. dev'e itmede atlama yoktur: art arda
+  # birleştirmelerde önceki koşu iptal edilir (concurrency), son koşu ağacın tamamını sınamalıdır.
+  changes:
+    name: Değişen dosyalar
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      docs_only: ${{ steps.detect.outputs.docs_only }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # Fark ortak atadan alınır; sığ kopyada betik "kod değişti" der.
+          fetch-depth: 0
+      - name: Yalnız belge mi
+        id: detect
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          result="docs_only=false"
+          if [ "$EVENT" = "pull_request" ]; then
+            result=$(python3 .github/scripts/ci-changes.py "$BASE" "$HEAD") || result="docs_only=false"
+          else
+            echo "Olay $EVENT: atlama yok, her şey koşar."
+          fi
+          [ "$result" = "docs_only=true" ] || result="docs_only=false"
+          echo "$result"
+          echo "$result" >> "$GITHUB_OUTPUT"
+
   core-macos:
     name: Core (macOS)
+    needs: changes
+    if: needs.changes.outputs.docs_only != 'true'
     runs-on: macos-26
     timeout-minutes: 20
     steps:
@@ -35,6 +69,8 @@ jobs:
   # SwiftUI, UIKit gibi modüller orada yoktur, import edilirse derleme düşer.
   core-linux:
     name: Core (Linux)
+    needs: changes
+    if: needs.changes.outputs.docs_only != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     container: swift:6.4
@@ -55,11 +91,13 @@ jobs:
         run: swift test --package-path Packages/Core -Xswiftc -warnings-as-errors
 
   # Uygulama hedefleri: proje project.yml dosyasından üretilir. macOS ve iOS ayrı makinelerde
-  # paralel koşar; DerivedData önbelleği derlemeyi kısaltır. macOS testleri iki saat diliminde
+  # paralel koşar; paket indirmeleri önbelleklenir. macOS testleri iki saat diliminde
   # koşar (olay saati / gün kayması); ikinci saat dilimi yalnız dev'e birleşince.
   # İmza yok (CODE_SIGNING_ALLOWED=NO); runner'da sertifika bulunmaz.
   app-macos:
     name: Uygulama (macOS)
+    needs: changes
+    if: needs.changes.outputs.docs_only != 'true'
     runs-on: macos-26
     timeout-minutes: 30
     steps:
@@ -94,68 +132,26 @@ jobs:
           path: MacTests.xcresult
           retention-days: 7
 
-  # iOS: bir kez derlenir, birim ve arayüz testleri derlemesiz koşar.
-  app-ios:
-    name: Uygulama (iOS)
+  # iOS: üç test katmanı ayrı makinelerde paralel koşar (birim, ekran görüntüsü, arayüz dumanı).
+  # Her iş kendi derlemesini yapar ve kendi simülatörünü açar; ortak başlangıç
+  # .github/actions/ios-build içindedir. Derleme ürününü işler arasında taşımak denenmedi.
+  app-ios-unit:
+    name: Uygulama (iOS, birim)
+    needs: changes
+    if: needs.changes.outputs.docs_only != 'true'
     runs-on: macos-26
     timeout-minutes: 40
     steps:
       - uses: actions/checkout@v7
-      - name: Paket önbelleği
-        uses: actions/cache@v6
-        with:
-          # Yalnız paket indirmeleri; derleme ürünleri önbelleklenmez (bayat test paketi riski).
-          path: ~/Library/Developer/Xcode/DerivedData/**/SourcePackages
-          key: spm-xcode-ios-${{ hashFiles('Packages/Core/Package.resolved') }}
-          restore-keys: spm-xcode-ios-
-      - name: XcodeGen
-        run: brew install xcodegen
-      - name: Projeyi üret
-        run: xcodegen generate
-      - name: iOS simülatör seç
-        id: ios_sim
-        # Ad ve UDID birlikte seçilir: sonraki adımlar aynı aygıtı kimliğiyle kullanır (aynı adı
-        # taşıyan ikinci bir çalışma zamanı kurulursa hedef belirsizleşmez).
-        run: |
-          CHOSEN=$(xcrun simctl list devices available -j | python3 -c '
-          import json, re, sys
-          data = json.load(sys.stdin)
-          preferred = ["iPhone 17", "iPhone 16", "iPhone 15", "iPhone 14"]
-          devices = []
-          for runtime, entries in data.get("devices", {}).items():
-              if "iOS" not in runtime:
-                  continue
-              version = tuple(int(part) for part in re.findall(r"[0-9]+", runtime.rsplit("iOS", 1)[-1]))
-              for device in entries:
-                  if device.get("isAvailable") and device.get("name", "").startswith("iPhone"):
-                      devices.append((version, device["name"], device["udid"]))
-          # En yeni çalışma zamanı önce: xcodebuild de ada göre seçerken onu alır.
-          devices.sort(key=lambda entry: entry[0], reverse=True)
-          for name in preferred + [entry[1] for entry in devices]:
-              for version, candidate, udid in devices:
-                  if candidate == name:
-                      print(candidate + "|" + udid)
-                      sys.exit(0)
-          print("Uygun iPhone simülatörü yok (simctl list devices available).", file=sys.stderr)
-          sys.exit(1)
-          ')
-          echo "name=${CHOSEN%%|*}" >> "$GITHUB_OUTPUT"
-          echo "udid=${CHOSEN##*|}" >> "$GITHUB_OUTPUT"
-          echo "Seçilen simülatör: ${CHOSEN%%|*} (${CHOSEN##*|})"
-      - name: iOS derlemesi (test için)
-        run: |
-          xcodebuild build-for-testing \
-            -project Journal.xcodeproj \
-            -scheme Journal_iOS \
-            -destination "platform=iOS Simulator,id=${{ steps.ios_sim.outputs.udid }}" \
-            CODE_SIGNING_ALLOWED=NO \
-            -quiet
+      - name: Derle
+        id: build
+        uses: ./.github/actions/ios-build
       # Simülatör testlerden ayrı adımda açılır: bir asılmanın açılışta mı testte mi olduğu adım
       # sürelerinden okunur (ilk test adımı eskiden açılışı da içeriyordu).
       - name: iOS simülatörü aç
         id: ios_boot
         timeout-minutes: 10
-        run: xcrun simctl bootstatus "${{ steps.ios_sim.outputs.udid }}" -b
+        run: xcrun simctl bootstatus "${{ steps.build.outputs.udid }}" -b
       # Bu adım ara sıra hiçbir test düşmeden asılıyor (bkz. docs/architecture.md, "Test").
       # Zaman aşımı ADIM düzeyindedir: iş düzeyindeki süre dolunca sonraki adımlar koşmaz, tanılama
       # yüklenemez. Çıktı -quiet değildir ve dosyaya yazılır: başlayıp bitmeyen test oradan okunur.
@@ -169,14 +165,14 @@ jobs:
         timeout-minutes: 20
         run: |
           mkdir -p ios-test-diagnostics
-          sh .github/scripts/ios-test-diagnostics.sh ios-test-diagnostics "${{ steps.ios_sim.outputs.udid }}" 720 \
+          sh .github/scripts/ios-test-diagnostics.sh ios-test-diagnostics "${{ steps.build.outputs.udid }}" 720 \
             > ios-test-diagnostics/watch.log 2>&1 &
           WATCH=$!
           trap 'kill "$WATCH" 2>/dev/null || true' EXIT
           xcodebuild test-without-building \
             -project Journal.xcodeproj \
             -scheme Journal_iOS \
-            -destination "platform=iOS Simulator,id=${{ steps.ios_sim.outputs.udid }}" \
+            -destination "platform=iOS Simulator,id=${{ steps.build.outputs.udid }}" \
             -only-testing:JournalTests_iOS \
             $(sh .github/scripts/snapshot-suites.sh | sed 's#^#-skip-testing:JournalTests_iOS/#' | tr '\n' ' ') \
             -resultBundlePath IOSTests.xcresult \
@@ -199,7 +195,7 @@ jobs:
         run: |
           echo "Günlüğün sonu (başlayıp bitmeyen test burada görünür):"
           tail -n 60 ios-test-diagnostics/xcodebuild.log || true
-          sh .github/scripts/ios-test-diagnostics.sh ios-test-diagnostics "${{ steps.ios_sim.outputs.udid }}"
+          sh .github/scripts/ios-test-diagnostics.sh ios-test-diagnostics "${{ steps.build.outputs.udid }}"
       - name: iOS test sonuç paketi (düşünce, iptalde ya da zaman aşımında)
         if: >-
           (failure() || cancelled()) &&
@@ -213,16 +209,31 @@ jobs:
             ios-test-diagnostics
           if-no-files-found: warn
           retention-days: 7
-      # Ekran görüntüsü: birim katmanında SwiftUI çizimi (uygulama açılmaz). Ayrı adım = süre ölçümü
-      # ve düşünce fark görüntüleri artifact'ı. Kümeler ad kuralından bulunur (.github/scripts/snapshot-suites.sh).
-      # Süreç dili Türkçe: görüntüler tr yerel ayarıyla çizilir; String(localized:) ile aynı dil.
+
+  # Ekran görüntüsü: birim katmanında SwiftUI çizimi (uygulama açılmaz). Ayrı iş = süre ölçümü
+  # ve düşünce fark görüntüleri artifact'ı. Kümeler ad kuralından bulunur (.github/scripts/snapshot-suites.sh).
+  # Süreç dili Türkçe: görüntüler tr yerel ayarıyla çizilir; String(localized:) ile aynı dil.
+  app-ios-snapshots:
+    name: Uygulama (iOS, ekran görüntüsü)
+    needs: changes
+    if: needs.changes.outputs.docs_only != 'true'
+    runs-on: macos-26
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - name: Derle
+        id: build
+        uses: ./.github/actions/ios-build
+      - name: iOS simülatörü aç
+        timeout-minutes: 10
+        run: xcrun simctl bootstatus "${{ steps.build.outputs.udid }}" -b
       - name: iOS ekran görüntüsü
         id: screen_snapshots
         run: |
           xcodebuild test-without-building \
             -project Journal.xcodeproj \
             -scheme Journal_iOS \
-            -destination "platform=iOS Simulator,id=${{ steps.ios_sim.outputs.udid }}" \
+            -destination "platform=iOS Simulator,id=${{ steps.build.outputs.udid }}" \
             $(sh .github/scripts/snapshot-suites.sh | sed 's#^#-only-testing:JournalTests_iOS/#' | tr '\n' ' ') \
             -testLanguage tr -testRegion TR \
             -resultBundlePath ScreenSnapshots.xcresult \
@@ -238,18 +249,34 @@ jobs:
             Tests/JournalTests/Snapshots/__Snapshots__
           if-no-files-found: warn
           retention-days: 7
+
+  app-ios-ui:
+    name: Uygulama (iOS, arayüz)
+    needs: changes
+    if: needs.changes.outputs.docs_only != 'true'
+    runs-on: macos-26
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - name: Derle
+        id: build
+        uses: ./.github/actions/ios-build
+      - name: iOS simülatörü aç
+        timeout-minutes: 10
+        run: xcrun simctl bootstatus "${{ steps.build.outputs.udid }}" -b
       - name: iOS arayüz dumanı
+        id: ios_ui
         run: |
           xcodebuild test-without-building \
             -project Journal.xcodeproj \
             -scheme Journal_iOS \
-            -destination "platform=iOS Simulator,id=${{ steps.ios_sim.outputs.udid }}" \
+            -destination "platform=iOS Simulator,id=${{ steps.build.outputs.udid }}" \
             -only-testing:JournalUITests \
             -resultBundlePath UITests.xcresult \
             CODE_SIGNING_ALLOWED=NO \
             -quiet
       - name: Arayüz testi sonuç paketi (yalnız düşünce)
-        if: failure()
+        if: failure() && steps.ios_ui.outcome == 'failure'
         uses: actions/upload-artifact@v6
         with:
           name: ui-test-results
@@ -278,30 +305,34 @@ jobs:
         run: |
           apt-get update -q && apt-get install -y -q python3 >/dev/null
           sh .github/scripts/check-docs.sh
+      - name: Belgelerde takım kimliği
+        # Aynı kural uygulama testlerinde de var; belge PR'ında o işler atlandığı için burada da koşar.
+        run: sh .github/scripts/check-team-id.sh
       - name: Sürüm akışı kuru koşusu
         run: sh .github/scripts/test-release.sh
       - name: TestFlight geçici derleme temizliği
         run: python3 .github/scripts/test-testflight.py
+      - name: CI betikleri (değişen dosyalar, birleştirici karar)
+        run: |
+          python3 .github/scripts/test-ci-changes.py
+          python3 .github/scripts/test-ci-gate.py
 
   # Dal korumasının zorunlu tuttuğu tek denetim. Yol filtresi yoktur; her PR'da koşar.
+  # Karar .github/scripts/ci-gate.py betiğindedir: atlanan iş yalnız belge PR'ında başarı sayılır,
+  # düşen ya da iptal olan iş hiçbir zaman; argümandaki işlerin atlanmasına hiç izin yoktur.
   ci:
     name: ci
     if: always()
-    needs: [core-macos, core-linux, app-macos, app-ios, lint]
+    needs: [changes, core-macos, core-linux, app-macos, app-ios-unit, app-ios-snapshots, app-ios-ui, lint]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
+      - uses: actions/checkout@v7
       - name: Tüm işler başarılı mı
         env:
-          RESULTS: ${{ join(needs.*.result, ' ') }}
-        run: |
-          echo "Sonuçlar: $RESULTS"
-          for result in $RESULTS; do
-            if [ "$result" != "success" ]; then
-              echo "Başarısız ya da atlanmış iş var."
-              exit 1
-            fi
-          done
+          NEEDS: ${{ toJSON(needs) }}
+          DOCS_ONLY: ${{ needs.changes.outputs.docs_only }}
+        run: python3 .github/scripts/ci-gate.py changes lint
 
   # 5 yıllık sentetik kasada süre bütçeleri. Paylaşılan runner'larda kırılgan olduğu için
   # ci toplu işine girmez; başarısızlık PR'ı engellemez.

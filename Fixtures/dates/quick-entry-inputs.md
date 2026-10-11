@@ -53,3 +53,4 @@ oku her hafta
 Çığ		her gün		oku
 yarın
 
+Cuma’ya kadar bitir !!

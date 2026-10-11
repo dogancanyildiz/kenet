@@ -1,0 +1,45 @@
+name: TestFlight denetimi
+
+# dev'e itilince imzasız arşiv alıp paketi denetler; yükleme yok.
+# Ortak .github/actions/ios-build simülatör açıp test için derler. Bu iş arşivler:
+# testflight.sh temiz kopyada kendi xcodegen'ini çalıştırır, simülatör istemez.
+# Xcode, ci.yml iOS işi gibi macos-26 imajının varsayılanıdır (xcode-select yok);
+# XcodeGen kurulumu o işle aynı adımdır.
+
+on:
+  push:
+    branches: [dev]
+
+concurrency:
+  group: testflight-check-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: İmzasız arşiv denetimi
+    runs-on: macos-26
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # Yapı numarası git rev-list --count HEAD'dir. Sığ kopyada betik 1 yazar,
+          # denetim de 1 sayar; gerçek numara için tam geçmiş gerekir.
+          fetch-depth: 0
+      - name: XcodeGen
+        run: brew install xcodegen
+      - name: Denetle
+        env:
+          # Arşiv düşünce betik günlüğü $TMPDIR/kenet-testflight-arsiv.log dosyasına bırakır.
+          TMPDIR: ${{ runner.temp }}
+        run: sh .github/scripts/testflight.sh --check
+      - name: Arşiv günlüğü (düşünce)
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: testflight-archive-log
+          path: ${{ runner.temp }}/kenet-testflight-arsiv.log
+          if-no-files-found: warn
+          retention-days: 7

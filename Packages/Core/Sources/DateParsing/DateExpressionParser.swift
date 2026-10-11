@@ -20,7 +20,10 @@ public enum DateExpressionParser {
                     source.relative(at: start, today: today, language: preference, monday: weekStartsOnMonday)
                     + source.weekday(at: start, today: today, language: preference)
                     + source.absolute(at: start, today: today, language: preference)
-                for match in matches where best == nil || match.end > best!.end { best = match }
+                for match in matches.map({ source.includingCaseSuffix($0) })
+                where best == nil || match.end > best!.end {
+                    best = match
+                }
             }
             if let best {
                 let range = source.tokens[start].range.lowerBound..<source.tokens[best.end - 1].range.upperBound

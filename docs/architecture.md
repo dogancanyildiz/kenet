@@ -63,7 +63,7 @@ Sorumlulukları:
 - **Yeniden adlandırma:** Varlık dosyasını yeniden adlandırma ve kasadaki tüm bağlantıları güncelleme.
 - **Varlık tanıma:** Metinde bilinen adları ve takma adları bulma; birden fazla aday varsa bağlama göre (konum, yakınlık, sıklık) sıralama; emin olunamayan durumları arayüze bildirme.
 - **İndeksleyici:** Tam ve artımlı indeksleme.
-- **Sorgular:** Bugün, varlık zaman akışı, zincir hesabı, arama.
+- **Sorgular:** Bugün, varlık zaman akışı, zincir hesabı, arama. Bağlanmamış anmalar (`VaultIndex.unlinkedMentions`): arama indeksi aday gün dosyalarını daraltır, dosyalar diskten okunup olay ve görev ilk satırları var olan tanıyıcıyla taranır. `VaultStore.linkingMention` onaylanan tek anmayı yazma kuyruğunda dosyayı yeniden okuyarak, bayat hedef denetimiyle bağlar; önce dosya yazılır, sonra indeks güncellenir.
 - **Tarih ayrıştırma (`DateParsing`):** Doğal dil tarih ifadeleri.
 - **Hedef hesapları (`GoalTracking`):** Dönem/yıl ilerlemesi, zincir, en uzun seri ve ısı haritası.
 - **Özetler (`Summaries`):** Haftalık/aylık sayılar, ilk beş kişi/konum, hedef ve görev durumu, önceki dönem farkları.

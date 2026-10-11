@@ -1,0 +1,360 @@
+{
+  "vault": "unlinked-mentions",
+  "queries": [
+    {
+      "entity": "people/Elif.md",
+      "mentions": [
+        {
+          "file": "journal/2026-10-10.md",
+          "date": "2026-10-10",
+          "line": 7,
+          "byteRange": [
+            8,
+            12
+          ],
+          "spelling": "Elif",
+          "isExplicit": false,
+          "isAmbiguous": false,
+          "isCaseMismatch": false
+        },
+        {
+          "file": "journal/2026-10-10.md",
+          "date": "2026-10-10",
+          "line": 8,
+          "byteRange": [
+            2,
+            6
+          ],
+          "spelling": "Lale",
+          "isExplicit": false,
+          "isAmbiguous": false,
+          "isCaseMismatch": false
+        },
+        {
+          "file": "journal/2026-10-10.md",
+          "date": "2026-10-10",
+          "line": 9,
+          "byteRange": [
+            2,
+            7
+          ],
+          "spelling": "Ortak",
+          "isExplicit": false,
+          "isAmbiguous": true,
+          "isCaseMismatch": false
+        },
+        {
+          "file": "journal/2026-10-10.md",
+          "date": "2026-10-10",
+          "line": 10,
+          "byteRange": [
+            2,
+            7
+          ],
+          "spelling": "Lamba",
+          "isExplicit": false,
+          "isAmbiguous": true,
+          "isCaseMismatch": false
+        },
+        {
+          "file": "journal/2026-10-10.md",
+          "date": "2026-10-10",
+          "line": 13,
+          "byteRange": [
+            2,
+            6
+          ],
+          "spelling": "Elif",
+          "isExplicit": false,
+          "isAmbiguous": false,
+          "isCaseMismatch": false
+        },
+        {
+          "file": "journal/2026-10-10.md",
+          "date": "2026-10-10",
+          "line": 13,
+          "byteRange": [
+            13,
+            17
+          ],
+          "spelling": "Elif",
+          "isExplicit": false,
+          "isAmbiguous": false,
+          "isCaseMismatch": false
+        },
+        {
+          "file": "journal/2026-10-10.md",
+          "date": "2026-10-10",
+          "line": 14,
+          "byteRange": [
+            2,
+            6
+          ],
+          "spelling": "elif",
+          "isExplicit": false,
+          "isAmbiguous": false,
+          "isCaseMismatch": true
+        },
+        {
+          "file": "journal/2026-10-10.md",
+          "date": "2026-10-10",
+          "line": 17,
+          "byteRange": [
+            3,
+            7
+          ],
+          "spelling": "Elif",
+          "isExplicit": true,
+          "isAmbiguous": false,
+          "isCaseMismatch": false
+        },
+        {
+          "file": "journal/2026-10-10.md",
+          "date": "2026-10-10",
+          "line": 24,
+          "byteRange": [
+            6,
+            10
+          ],
+          "spelling": "Lale",
+          "isExplicit": false,
+          "isAmbiguous": false,
+          "isCaseMismatch": false
+        },
+        {
+          "file": "journal/2026-10-09.md",
+          "date": "2026-10-09",
+          "line": 1,
+          "byteRange": [
+            2,
+            6
+          ],
+          "spelling": "Elif",
+          "isExplicit": false,
+          "isAmbiguous": false,
+          "isCaseMismatch": false
+        },
+        {
+          "file": "journal/2026-10-08.md",
+          "date": "2026-10-08",
+          "line": 1,
+          "byteRange": [
+            48,
+            52
+          ],
+          "spelling": "Elif",
+          "isExplicit": false,
+          "isAmbiguous": false,
+          "isCaseMismatch": false
+        },
+        {
+          "file": "journal/2026-10-08.md",
+          "date": "2026-10-08",
+          "line": 4,
+          "byteRange": [
+            2,
+            6
+          ],
+          "spelling": "Elif",
+          "isExplicit": false,
+          "isAmbiguous": false,
+          "isCaseMismatch": false
+        },
+        {
+          "file": "journal/2026-10-08.md",
+          "date": "2026-10-08",
+          "line": 4,
+          "byteRange": [
+            7,
+            11
+          ],
+          "spelling": "Lale",
+          "isExplicit": false,
+          "isAmbiguous": false,
+          "isCaseMismatch": false
+        }
+      ]
+    },
+    {
+      "entity": "people/Ece.md",
+      "mentions": [
+        {
+          "file": "journal/2026-10-10.md",
+          "date": "2026-10-10",
+          "line": 9,
+          "byteRange": [
+            2,
+            7
+          ],
+          "spelling": "Ortak",
+          "isExplicit": false,
+          "isAmbiguous": true,
+          "isCaseMismatch": false
+        },
+        {
+          "file": "journal/2026-10-10.md",
+          "date": "2026-10-10",
+          "line": 10,
+          "byteRange": [
+            2,
+            7
+          ],
+          "spelling": "Lamba",
+          "isExplicit": false,
+          "isAmbiguous": true,
+          "isCaseMismatch": false
+        },
+        {
+          "file": "journal/2026-10-08.md",
+          "date": "2026-10-08",
+          "line": 3,
+          "byteRange": [
+            8,
+            11
+          ],
+          "spelling": "Ece",
+          "isExplicit": false,
+          "isAmbiguous": false,
+          "isCaseMismatch": false
+        },
+        {
+          "file": "journal/2026-10-08.md",
+          "date": "2026-10-08",
+          "line": 3,
+          "byteRange": [
+            12,
+            14
+          ],
+          "spelling": "09",
+          "isExplicit": false,
+          "isAmbiguous": false,
+          "isCaseMismatch": false
+        }
+      ]
+    },
+    {
+      "entity": "people/Deniz (iş).md",
+      "mentions": [
+        {
+          "file": "journal/2026-10-08.md",
+          "date": "2026-10-08",
+          "line": 2,
+          "byteRange": [
+            15,
+            20
+          ],
+          "spelling": "Deniz",
+          "isExplicit": false,
+          "isAmbiguous": false,
+          "isCaseMismatch": false
+        },
+        {
+          "file": "journal/2026-10-08.md",
+          "date": "2026-10-08",
+          "line": 7,
+          "byteRange": [
+            6,
+            11
+          ],
+          "spelling": "Deniz",
+          "isExplicit": false,
+          "isAmbiguous": false,
+          "isCaseMismatch": false
+        }
+      ]
+    },
+    {
+      "entity": "places/İstanbul.md",
+      "mentions": [
+        {
+          "file": "journal/2026-10-08.md",
+          "date": "2026-10-08",
+          "line": 2,
+          "byteRange": [
+            2,
+            11
+          ],
+          "spelling": "İstanbul",
+          "isExplicit": false,
+          "isAmbiguous": false,
+          "isCaseMismatch": false
+        },
+        {
+          "file": "journal/2026-10-08.md",
+          "date": "2026-10-08",
+          "line": 3,
+          "byteRange": [
+            21,
+            30
+          ],
+          "spelling": "İSTANBUL",
+          "isExplicit": false,
+          "isAmbiguous": false,
+          "isCaseMismatch": false
+        }
+      ]
+    },
+    {
+      "entity": "people/Ali Can.md",
+      "mentions": [
+        {
+          "file": "journal/2026-10-08.md",
+          "date": "2026-10-08",
+          "line": 1,
+          "byteRange": [
+            8,
+            12
+          ],
+          "spelling": "🎸",
+          "isExplicit": false,
+          "isAmbiguous": false,
+          "isCaseMismatch": false
+        },
+        {
+          "file": "journal/2026-10-08.md",
+          "date": "2026-10-08",
+          "line": 9,
+          "byteRange": [
+            6,
+            14
+          ],
+          "spelling": "Ali  Can",
+          "isExplicit": false,
+          "isAmbiguous": false,
+          "isCaseMismatch": false
+        },
+        {
+          "file": "journal/2026-10-08.md",
+          "date": "2026-10-08",
+          "line": 9,
+          "byteRange": [
+            19,
+            24
+          ],
+          "spelling": "R2-D2",
+          "isExplicit": false,
+          "isAmbiguous": false,
+          "isCaseMismatch": false
+        }
+      ]
+    },
+    {
+      "entity": "people/Çağrı.md",
+      "mentions": [
+        {
+          "file": "journal/2026-10-08.md",
+          "date": "2026-10-08",
+          "line": 1,
+          "byteRange": [
+            22,
+            32
+          ],
+          "spelling": "Çağrı",
+          "isExplicit": false,
+          "isAmbiguous": false,
+          "isCaseMismatch": false
+        }
+      ]
+    }
+  ]
+}

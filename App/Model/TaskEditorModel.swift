@@ -13,6 +13,8 @@ final class TaskEditorModel: Identifiable {
     private(set) var errorText: String?
     private(set) var isSaving = false
     private(set) var isSaved = false
+    /// The last load or write found the task changed or gone; nothing was written.
+    private(set) var isStale = false
     private var root: URL?
 
     init(store: IndexStore, row: TaskRow) {
@@ -36,7 +38,10 @@ final class TaskEditorModel: Identifiable {
             target = task
             text = task.text
             root = selected
-        } catch { errorText = DayEditError.message(for: error) }
+        } catch {
+            if case VaultStoreError.staleTarget = error { isStale = true }
+            errorText = DayEditError.message(for: error)
+        }
     }
 
     func save() async -> Bool {
@@ -83,6 +88,7 @@ final class TaskEditorModel: Identifiable {
             return true
         } catch {
             target = nil
+            if case VaultStoreError.staleTarget = error { isStale = true }
             errorText = DayEditError.message(for: error)
             return false
         }

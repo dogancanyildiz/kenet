@@ -273,6 +273,46 @@
         }
       }
     },
+    "%lld görev değişmiş olduğu için taşınmadı" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld task was not moved because it changed"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld tasks were not moved because they changed"
+                }
+              }
+            }
+          }
+        },
+        "tr" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld görev değişmiş olduğu için taşınmadı"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld görev değişmiş olduğu için taşınmadı"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "%lld görev tamamlandı" : {
       "localizations" : {
         "en" : {
@@ -306,6 +346,86 @@
                 "stringUnit" : {
                   "state" : "translated",
                   "value" : "%lld görev tamamlandı"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld görev taşınamadı" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld task could not be moved"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld tasks could not be moved"
+                }
+              }
+            }
+          }
+        },
+        "tr" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld görev taşınamadı"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld görev taşınamadı"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld görev taşındı" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld task moved"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld tasks moved"
+                }
+              }
+            }
+          }
+        },
+        "tr" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld görev taşındı"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld görev taşındı"
                 }
               }
             }
@@ -2469,6 +2589,22 @@
         }
       }
     },
+    "Bugüne" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Move to today"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bugüne"
+          }
+        }
+      }
+    },
     "Bugüne git" : {
       "localizations" : {
         "en" : {
@@ -4325,6 +4461,22 @@
         }
       }
     },
+    "Haftaya" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Move to next week"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Haftaya"
+          }
+        }
+      }
+    },
     "Ham alan — salt okunur" : {
       "localizations" : {
         "en" : {
@@ -4769,6 +4921,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Henüz proje yok"
+          }
+        }
+      }
+    },
+    "Hepsini bugüne" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Move all to today"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hepsini bugüne"
           }
         }
       }
@@ -9481,6 +9649,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Yarın"
+          }
+        }
+      }
+    },
+    "Yarına" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Move to tomorrow"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yarına"
           }
         }
       }

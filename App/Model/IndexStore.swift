@@ -846,7 +846,6 @@ final class IndexStore {
                 id: entity.id, name: entity.name, lastDay: last, cadence: cadences[entity.id] ?? .none)
         }
     }
-}
 
     // MARK: - Weekly review
 

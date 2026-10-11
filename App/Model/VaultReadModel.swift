@@ -6,8 +6,9 @@ import VaultIndex
 /// Immutable screen data published together with the index counts.
 ///
 /// Source of truth is `fragments` keyed by vault-relative path. Public lists (days, tasks,
-/// entities, timelines, goals) are derived so a later screen can query Core directly
-/// without changing the fragment map. The graph already does (`IndexStore.computeGraphInput`).
+/// entities, goals) are derived so a later screen can query Core directly without changing
+/// the fragment map. The graph and the entity timelines already do (`IndexStore.computeGraphInput`,
+/// `computeEntityTimeline(for:)`, `computeLastEncounters(asOf:)`).
 struct VaultReadModel: Sendable {
     /// Per-file index slices. An empty map after a successful build is a valid empty vault.
     private(set) var fragments: [String: VaultFileFragment] = [:]
@@ -29,7 +30,6 @@ struct VaultReadModel: Sendable {
     var projects: [String] { VaultIndex.projectNames(tasks.compactMap(\.project)) }
     var days: [DaySummary] = []
     var entities: [EntitySummary] = []
-    var entityTimeline: [String: [EntityTimelineDay]] = [:]
     /// Kept in sync with fragments so publishes need not recount the whole vault.
     var counts = IndexCounts()
 
@@ -164,7 +164,6 @@ struct VaultReadModel: Sendable {
         for goal in goals {
             goalStatuses[goal.key] = GoalProgress.compute(definition: goal, logs: allLogs[goal.key] ?? [], today: today)
         }
-        entityTimeline = EntityTimeline.build(snapshot: snapshot)
         let goalFiles = Set(snapshot.goalLogs.map(\.file))
         let blocks = Dictionary(grouping: snapshot.blocks, by: \.file)
         let links = Dictionary(grouping: snapshot.links, by: \.file)
@@ -233,10 +232,6 @@ struct VaultReadModel: Sendable {
             && tasks.map(\.equalityKey) == other.tasks.map(\.equalityKey)
             && days.map(\.equalityKey) == other.days.map(\.equalityKey)
             && entities == other.entities
-            && entityTimeline.mapValues { $0.map(\.equalityKey) }
-                == other.entityTimeline.mapValues {
-                    $0.map(\.equalityKey)
-                }
     }
 
     static func debugDiff(_ left: VaultReadModel, _ right: VaultReadModel) -> String {
@@ -254,9 +249,6 @@ struct VaultReadModel: Sendable {
             lines.append("days \(left.days.count)/\(right.days.count)")
         }
         if left.entities != right.entities { lines.append("entities") }
-        let leftTimeline = left.entityTimeline.mapValues { $0.map(\.equalityKey) }
-        let rightTimeline = right.entityTimeline.mapValues { $0.map(\.equalityKey) }
-        if leftTimeline != rightTimeline { lines.append("entityTimeline") }
         return "diff: " + (lines.isEmpty ? "none" : lines.joined(separator: ", "))
     }
 
@@ -347,14 +339,5 @@ extension LinkedText {
 extension TaskRow {
     fileprivate var equalityKey: String {
         "\(id)|\(file)|\(text.plainText)|\(sourceLine)|\(sourceEnd)|\(sourceText)|\(sourceIdentifier ?? "")|\(rawStatus)|\(due?.description ?? "")|\(start?.description ?? "")|\(done?.description ?? "")|\(priority?.token ?? "")|\(project ?? "")|\(recurrenceSource ?? "")|\(linkedFiles.sorted().joined(separator: ","))|\(text.spanKey)"
-    }
-}
-
-extension EntityTimelineDay {
-    fileprivate var equalityKey: String {
-        let rowKeys = rows.map {
-            "\($0.file)|\($0.ordinal)|\($0.text.plainText)|\($0.text.spanKey)"
-        }.joined(separator: ";")
-        return "\(date)|\(rowKeys)"
     }
 }

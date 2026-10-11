@@ -11,8 +11,7 @@ import VaultFormat
         let context = try TaskTestContext(sample: true)
         defer { context.clean() }
         await context.start()
-        let insight = EntityInsights.compute(
-            path: "people/Deniz Arıkan.md", content: context.store.content, today: today)
+        let insight = try await Self.insight("people/Deniz Arıkan.md", context.store, today)
         #expect(insight.lastDay == CalendarDate("2026-09-25") && insight.firstDay == CalendarDate("2026-09-14"))
         #expect(insight.recentDayCount == 5 && insight.averageInterval == 2.75)
         #expect(insight.rows.count == 1)
@@ -25,8 +24,7 @@ import VaultFormat
         let context = try TaskTestContext(sample: true)
         defer { context.clean() }
         await context.start()
-        let insight = EntityInsights.compute(
-            path: "people/Mert Aksu (iş).md", content: context.store.content, today: today)
+        let insight = try await Self.insight("people/Mert Aksu (iş).md", context.store, today)
         #expect(insight.firstDay == CalendarDate("2026-09-15") && insight.lastDay == CalendarDate("2026-09-25"))
         #expect(insight.recentDayCount == 2 && insight.averageInterval == 10)
         #expect(insight.people.map(\.id) == ["people/Deniz Arıkan.md"])
@@ -35,8 +33,7 @@ import VaultFormat
         let context = try TaskTestContext(sample: true)
         defer { context.clean() }
         await context.start()
-        let insight = EntityInsights.compute(
-            path: "places/Tepe Spor Salonu.md", content: context.store.content, today: today)
+        let insight = try await Self.insight("places/Tepe Spor Salonu.md", context.store, today)
         #expect(insight.firstDay == CalendarDate("2026-09-14") && insight.lastDay == CalendarDate("2026-09-25"))
         #expect(insight.recentDayCount == 6 && insight.averageInterval == 2.2)
         #expect(insight.rows.count == 2)
@@ -52,9 +49,12 @@ import VaultFormat
             EntitySummary(
                 id: "people/Never.md", kind: "person", name: "Selin Korkmaz",
                 qualifier: "örnek", aliases: [], incomingLinks: 0))
-        let groups = UnseenPeople.compute(people: content.entities, content: content, today: today, threshold: 30)
+        let encounters = try await context.store.computeLastEncounters(asOf: today)
+        let groups = UnseenPeople.compute(
+            people: content.entities, lastEncounters: encounters, today: today, threshold: 30)
         #expect(groups.overdue.isEmpty && groups.never.map(\.id) == ["people/Never.md"])
-        let shorter = UnseenPeople.compute(people: content.entities, content: content, today: today, threshold: 9)
+        let shorter = UnseenPeople.compute(
+            people: content.entities, lastEncounters: encounters, today: today, threshold: 9)
         #expect(
             shorter.overdue.map(\.id) == [
                 "people/Mert Aksu.md", "people/Selin Korkmaz.md", "people/Deniz Arıkan.md", "people/Mert Aksu (iş).md",
@@ -62,26 +62,27 @@ import VaultFormat
         #expect(shorter.overdue.map(\.elapsedDays) == [11, 11, 9, 9])
         #expect(shorter.never.count == 1)
         let filtered = UnseenPeople.compute(
-            people: [content.entities.last!], content: content, today: today, threshold: 1)
+            people: [content.entities.last!], lastEncounters: encounters, today: today, threshold: 1)
         #expect(filtered.overdue.isEmpty && filtered.never.count == 1)
     }
     @Test func ninetyDayWindowDeduplicatesDaysAndIgnoresFuture() {
         let path = "people/Deniz Arıkan.md"
-        var content = VaultReadModel()
+        let content = VaultReadModel()
         let first = today.addingDays(-90)!
         let boundary = today.addingDays(-89)!
-        content.entityTimeline[path] = [
+        let timeline = [
             EntityTimelineDay(date: first, rows: []), EntityTimelineDay(date: boundary, rows: []),
             EntityTimelineDay(date: boundary, rows: []), EntityTimelineDay(date: today, rows: []),
             EntityTimelineDay(date: today.addingDays(1)!, rows: []),
         ]
-        let insight = EntityInsights.compute(path: path, content: content, today: today)
+        let insight = EntityInsights.compute(path: path, timeline: timeline, content: content, today: today)
         #expect(insight.firstDay == first && insight.lastDay == today)
         #expect(insight.recentDayCount == 2 && insight.averageInterval == 89)
-        content.entityTimeline[path] = [EntityTimelineDay(date: today, rows: [])]
-        let single = EntityInsights.compute(path: path, content: content, today: today.addingDays(89)!)
+        let single = EntityInsights.compute(
+            path: path, timeline: [EntityTimelineDay(date: today, rows: [])], content: content,
+            today: today.addingDays(89)!)
         #expect(single.recentDayCount == 1 && single.averageInterval == nil)
-        let empty = EntityInsights.compute(path: "unknown", content: content, today: today)
+        let empty = EntityInsights.compute(path: "unknown", timeline: [], content: content, today: today)
         #expect(
             empty.firstDay == nil && empty.lastDay == nil && empty.averageInterval == nil && empty.recentDayCount == 0)
     }
@@ -93,9 +94,16 @@ import VaultFormat
         try "## Events\n- [[Deniz Arıkan]]\n".write(
             to: context.root.appendingPathComponent("journal/2026-10-05.md"), atomically: true, encoding: .utf8)
         await context.start()
-        let insight = EntityInsights.compute(
-            path: "people/Deniz Arıkan.md", content: context.store.content, today: today)
+        let insight = try await Self.insight("people/Deniz Arıkan.md", context.store, today)
         #expect(insight.lastDay == CalendarDate("2026-09-25") && insight.recentDayCount == 5)
+    }
+    /// The card's input: the entity's queried timeline and the published read model.
+    private static func insight(_ path: String, _ store: IndexStore, _ today: CalendarDate) async throws
+        -> EntityInsights
+    {
+        EntityInsights.compute(
+            path: path, timeline: try await store.computeEntityTimeline(for: path), content: store.content,
+            today: today)
     }
     @Test func preferenceDefaultsAndClampsPersistedValues() throws {
         let defaults = try TestDefaults()

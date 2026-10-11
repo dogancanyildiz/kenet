@@ -26,21 +26,25 @@ struct TaskMoveOption: Hashable, Sendable {
 
 /// Due dates for the move actions. Next week is the day quick entry gives for `haftaya` / `next week`.
 enum TaskMove {
-    /// Quick entry parses without a week start (`QuickEntryModel.dateExpression`), so this passes none either;
-    /// giving one here would make the menu and the typed expression disagree.
-    static func date(_ destination: TaskMoveDestination, today: CalendarDate) -> CalendarDate? {
+    /// Parsed where quick entry parses (`WeekStart`), so the menu and the typed expression agree on
+    /// every calendar.
+    static func date(
+        _ destination: TaskMoveDestination, today: CalendarDate, calendar: Calendar = .autoupdatingCurrent
+    ) -> CalendarDate? {
         switch destination {
         case .today: today
-        case .tomorrow: DateExpressionParser.parse("yarın", today: today, language: [.turkish])?.date
-        case .nextWeek: DateExpressionParser.parse("haftaya", today: today, language: [.turkish])?.date
+        case .tomorrow: WeekStart.date("yarın", today: today, language: [.turkish], calendar: calendar)?.date
+        case .nextWeek: WeekStart.date("haftaya", today: today, language: [.turkish], calendar: calendar)?.date
         }
     }
 
     /// Closed tasks get no move actions. A destination the task is already due on is not offered.
-    static func options(for row: TaskRow, on today: CalendarDate) -> [TaskMoveOption] {
+    static func options(
+        for row: TaskRow, on today: CalendarDate, calendar: Calendar = .autoupdatingCurrent
+    ) -> [TaskMoveOption] {
         guard !row.isClosed else { return [] }
         return [TaskMoveDestination.today, .tomorrow, .nextWeek].compactMap { destination in
-            guard let date = date(destination, today: today), date != row.due else { return nil }
+            guard let date = date(destination, today: today, calendar: calendar), date != row.due else { return nil }
             return TaskMoveOption(destination: destination, date: date)
         }
     }

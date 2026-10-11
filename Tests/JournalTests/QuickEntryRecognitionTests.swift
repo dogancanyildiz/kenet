@@ -289,6 +289,8 @@ struct QuickEntryRecognitionTests {
         let context = try TaskTestContext()
         defer { context.clean() }
         let model = context.model()
+        // The chain below is the Monday week it always was; the process calendar differs by machine.
+        model.calendar = WeekStartTests.calendar(firstWeekday: 2)
         var draws = Draws(seed: 20_261_011)
         let today = context.today
         var recognized = (recurrence: 0, priority: 0, date: 0)

@@ -24,6 +24,8 @@ final class QuickEntryModel {
     var languages: [DateParsing.Language] =
         (Bundle.main.preferredLocalizations.first ?? Locale.preferredLanguages.first)?.hasPrefix("tr") == true
         ? [.turkish, .english] : [.english, .turkish]
+    /// Decides which day a week expression (`haftaya`, `next week`) means.
+    var calendar = Calendar.autoupdatingCurrent
     var taskRecurrence: TaskRecurrence?
     var taskPriority: TaskPriority?
     var overridesDate = false
@@ -246,14 +248,9 @@ final class QuickEntryModel {
         let suppressed = suppressedExpressions
         suppressedExpressions = Self.following(suppressed, from: oldText, to: text)
         guard mode == .task else { return }
-        // Without a suppression this stays the plain date parse it always was.
-        let previous =
-            suppressed.isEmpty
-            ? DateExpressionParser.parse(oldText, today: today(), language: languages)?.date
-            : QuickEntryAnalysis.analyze(
-                oldText, today: today(), language: languages, suppressedRanges: suppressed
-            ).date?.date
-        if previous != dateExpression?.date {
+        // Both sides go through the analysis: a plain date parse of the old text takes the weekday of
+        // `her salı` for a date and every keystroke would look like a changed date.
+        if analysis(of: oldText, suppressing: suppressed).date?.date != dateExpression?.date {
             overridesDate = false
             manualDueDate = nil
             manualDateIsAssumed = false

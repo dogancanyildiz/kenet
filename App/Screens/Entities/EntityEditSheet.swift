@@ -1,3 +1,4 @@
+import Summaries
 import SwiftUI
 import VaultFormat
 
@@ -46,6 +47,7 @@ struct EntityEditSheet: View {
                             .inkListRow()
                     } else {
                         aliasRows
+                        if entity.kind == "person" { PersonCadenceEditor(model: model) }
                         if entity.kind == "place" { coordinateRows }
                         fieldRows
                     }
@@ -186,6 +188,146 @@ struct EntityEditSheet: View {
             dismiss()
         } else {
             leavePrompt = true
+        }
+    }
+}
+
+enum CadenceMenuValue: Hashable {
+    case none
+    case days(Int)
+    case custom
+
+    static let presets = [7, 14, 30, 60, 90]
+
+    static func selection(for days: Int?) -> Self {
+        guard let days else { return .none }
+        return presets.contains(days) ? .days(days) : .custom
+    }
+}
+
+/// What the rhythm editor holds before "Kaydet". Nothing here writes.
+struct CadenceDraft: Equatable {
+    enum Outcome: Equatable {
+        case unchanged
+        case clear
+        case set(Int)
+        case invalid
+    }
+
+    var choice: CadenceMenuValue
+    var customText: String
+    /// The valid day count in the file; nil for a missing field and for a value the app ignores.
+    private(set) var savedDays: Int?
+
+    init(days: Int?) {
+        savedDays = days
+        choice = CadenceMenuValue.selection(for: days)
+        customText = choice == .custom ? (days.map(String.init) ?? "") : ""
+    }
+
+    private var customSpelling: String { customText.trimmingCharacters(in: .whitespacesAndNewlines) }
+
+    /// What "Kaydet" does. A draft equal to the file writes nothing, so "Yok" over an ignored
+    /// spelling (`cadence_days: aylık`) leaves that line alone; only a chosen number replaces it.
+    var outcome: Outcome {
+        let target: Int?
+        switch choice {
+        case .none: target = nil
+        case .days(let days): target = days
+        case .custom:
+            guard let days = PersonCadence.positiveDays(spelling: customSpelling) else { return .invalid }
+            target = days
+        }
+        if target == savedDays { return .unchanged }
+        return target.map(Outcome.set) ?? .clear
+    }
+
+    /// An empty custom box holds nothing the close prompt could lose.
+    var isDirty: Bool {
+        if choice == .custom, customSpelling.isEmpty { return false }
+        return outcome != .unchanged
+    }
+
+    /// Follows the file after a save or an outside change; unsaved input is kept.
+    mutating func rebase(onto days: Int?) {
+        savedDays = days
+        if !isDirty { self = CadenceDraft(days: days) }
+    }
+}
+
+/// Meeting rhythm for a person. Like every editor in the sheet it writes on "Kaydet" only.
+private struct PersonCadenceEditor: View {
+    let model: EntityDetailModel
+    @Environment(\.entityEditorDraft) private var editorDraft
+    @State private var draft: CadenceDraft
+    @State private var invalid = false
+    @State private var saveFailed = false
+
+    private static let draftID = "cadence"
+
+    init(model: EntityDetailModel) {
+        self.model = model
+        _draft = State(initialValue: CadenceDraft(days: model.personCadence.days))
+    }
+
+    private var options: [InkMenuOption<CadenceMenuValue>] {
+        [
+            InkMenuOption("Yok", value: .none),
+            InkMenuOption("7 gün", value: .days(7)),
+            InkMenuOption("14 gün", value: .days(14)),
+            InkMenuOption("30 gün", value: .days(30)),
+            InkMenuOption("60 gün", value: .days(60)),
+            InkMenuOption("90 gün", value: .days(90)),
+            InkMenuOption("Özel", value: .custom),
+        ]
+    }
+
+    var body: some View {
+        SectionHeader("Görüşme ritmi")
+            .inkListRow()
+        VStack(alignment: .leading, spacing: InkSpacing.section) {
+            InkLabeledMenu(
+                "Görüşme ritmi", selection: $draft.choice, options: options,
+                identifier: "entity.cadence.menu")
+            if draft.choice == .custom {
+                InkFilterField("Gün sayısı", text: $draft.customText)
+                    .onSubmit { save() }
+            }
+            Button("Kaydet") { save() }
+                .buttonStyle(InkTextButtonStyle())
+            if invalid {
+                Text("Alan için geçerli bir değer gir.")
+                    .font(.ink.meta)
+                    .foregroundStyle(.ink.danger)
+            } else if saveFailed {
+                Text(
+                    verbatim: model.errorText
+                        ?? String(localized: "Değişiklik kaydedilemedi. Kasayı kontrol edip yeniden dene.")
+                )
+                .font(.ink.meta)
+                .foregroundStyle(.ink.danger)
+            }
+        }
+        .disabled(!model.canEdit)
+        .inkListRow()
+        .onAppear { editorDraft?.report(id: Self.draftID, dirty: draft.isDirty) }
+        .onChange(of: draft) {
+            invalid = false
+            editorDraft?.report(id: Self.draftID, dirty: draft.isDirty)
+        }
+        .onChange(of: model.personCadence.days) { _, days in draft.rebase(onto: days) }
+    }
+
+    private func save() {
+        let outcome = draft.outcome
+        invalid = outcome == .invalid
+        Task {
+            switch outcome {
+            case .unchanged, .invalid: return
+            case .clear: saveFailed = !(await model.clearCadenceDays())
+            case .set(let days): saveFailed = !(await model.setCadenceDays(days))
+            }
+            draft.rebase(onto: model.personCadence.days)
         }
     }
 }

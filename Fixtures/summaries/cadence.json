@@ -1,0 +1,704 @@
+{
+  "spellings": [
+    {
+      "value": "30",
+      "days": 30
+    },
+    {
+      "value": "+30",
+      "days": 30
+    },
+    {
+      "value": "1",
+      "days": 1
+    },
+    {
+      "value": "0",
+      "days": null
+    },
+    {
+      "value": "-4",
+      "days": null
+    },
+    {
+      "value": "7.5",
+      "days": null
+    },
+    {
+      "value": "01",
+      "days": null
+    },
+    {
+      "value": "+0",
+      "days": null
+    },
+    {
+      "value": "aylık",
+      "days": null
+    },
+    {
+      "value": "",
+      "days": null
+    },
+    {
+      "value": "+",
+      "days": null
+    },
+    {
+      "value": "30.0",
+      "days": null
+    },
+    {
+      "value": "99999999999999999999",
+      "days": null
+    },
+    {
+      "value": "9223372036854775807",
+      "days": 9223372036854775807
+    },
+    {
+      "value": " 30",
+      "days": null
+    }
+  ],
+  "people": [
+    {
+      "id": "people/Ada Kaya.md",
+      "name": "Ada Kaya",
+      "fields": [
+        {
+          "key": "cadence_days",
+          "kind": "number",
+          "value": "7"
+        }
+      ],
+      "lastDay": "2026-10-04"
+    },
+    {
+      "id": "people/Bora Demir.md",
+      "name": "Bora Demir",
+      "fields": [
+        {
+          "key": "cadence_days",
+          "kind": "number",
+          "value": "14"
+        }
+      ],
+      "lastDay": "2026-09-20"
+    },
+    {
+      "id": "people/Cem Yıldız.md",
+      "name": "Cem Yıldız",
+      "fields": [],
+      "lastDay": "2026-09-01"
+    },
+    {
+      "id": "people/Duru Akın.md",
+      "name": "Duru Akın",
+      "fields": [],
+      "lastDay": "2026-10-02"
+    },
+    {
+      "id": "people/Eda Soylu.md",
+      "name": "Eda Soylu",
+      "fields": [
+        {
+          "key": "cadence_days",
+          "kind": "number",
+          "value": "+30"
+        }
+      ],
+      "lastDay": "2026-09-12"
+    },
+    {
+      "id": "people/Fela Narin.md",
+      "name": "Fela Narin",
+      "fields": [
+        {
+          "key": "cadence_days",
+          "kind": "number",
+          "value": "7"
+        },
+        {
+          "key": "cadence_snoozed_until",
+          "kind": "date",
+          "value": "2026-10-11"
+        }
+      ],
+      "lastDay": "2026-09-01"
+    },
+    {
+      "id": "people/Gizem Tan.md",
+      "name": "Gizem Tan",
+      "fields": [
+        {
+          "key": "cadence_days",
+          "kind": "number",
+          "value": "7"
+        },
+        {
+          "key": "cadence_snoozed_until",
+          "kind": "date",
+          "value": "2026-10-10"
+        }
+      ],
+      "lastDay": "2026-09-01"
+    },
+    {
+      "id": "people/Hakan Eren.md",
+      "name": "Hakan Eren",
+      "fields": [
+        {
+          "key": "cadence_paused",
+          "kind": "boolean",
+          "value": "TRUE"
+        }
+      ],
+      "lastDay": "2026-09-01"
+    },
+    {
+      "id": "people/İpek Sönmez.md",
+      "name": "İpek Sönmez",
+      "fields": [],
+      "lastDay": null
+    },
+    {
+      "id": "people/Jale Kurt.md",
+      "name": "Jale Kurt",
+      "fields": [
+        {
+          "key": "cadence_paused",
+          "kind": "boolean",
+          "value": "true"
+        }
+      ],
+      "lastDay": null
+    },
+    {
+      "id": "people/Kaan Uslu.md",
+      "name": "Kaan Uslu",
+      "fields": [
+        {
+          "key": "cadence_days",
+          "kind": "number",
+          "value": "0"
+        }
+      ],
+      "lastDay": "2026-09-01"
+    },
+    {
+      "id": "people/Lina Baran.md",
+      "name": "Lina Baran",
+      "fields": [
+        {
+          "key": "cadence_days",
+          "kind": "number",
+          "value": "-4"
+        }
+      ],
+      "lastDay": "2026-10-01"
+    },
+    {
+      "id": "people/Mina Çelik.md",
+      "name": "Mina Çelik",
+      "fields": [
+        {
+          "key": "cadence_days",
+          "kind": "text",
+          "value": "aylık"
+        }
+      ],
+      "lastDay": "2026-09-01"
+    },
+    {
+      "id": "people/Nila Er.md",
+      "name": "Nila Er",
+      "fields": [
+        {
+          "key": "cadence_days",
+          "kind": "number",
+          "value": "7.5"
+        }
+      ],
+      "lastDay": "2026-10-01"
+    },
+    {
+      "id": "people/Okan Peker.md",
+      "name": "Okan Peker",
+      "fields": [
+        {
+          "key": "cadence_snoozed_until",
+          "kind": "text",
+          "value": "2026-13-40"
+        }
+      ],
+      "lastDay": "2026-09-01"
+    },
+    {
+      "id": "people/Pelin Acar.md",
+      "name": "Pelin Acar",
+      "fields": [
+        {
+          "key": "cadence_paused",
+          "kind": "text",
+          "value": "yes"
+        }
+      ],
+      "lastDay": "2026-09-01"
+    },
+    {
+      "id": "people/Rüzgar Eli.md",
+      "name": "Rüzgar Eli",
+      "fields": [
+        {
+          "key": "cadence_days",
+          "kind": "number",
+          "value": "7"
+        },
+        {
+          "key": "cadence_paused",
+          "kind": "boolean",
+          "value": "false"
+        }
+      ],
+      "lastDay": "2026-10-01"
+    },
+    {
+      "id": "people/Sera Koç.md",
+      "name": "Sera Koç",
+      "fields": [
+        {
+          "key": "cadence_snoozed_until",
+          "kind": "date",
+          "value": "2026-10-11"
+        }
+      ],
+      "lastDay": null
+    },
+    {
+      "id": "people/Tuna Mert.md",
+      "name": "Tuna Mert",
+      "fields": [
+        {
+          "key": "cadence_days",
+          "kind": "number",
+          "value": "90"
+        }
+      ],
+      "lastDay": "2026-07-03"
+    },
+    {
+      "id": "people/Umut Say.md",
+      "name": "Umut Say",
+      "fields": [],
+      "lastDay": null
+    },
+    {
+      "id": "people/Vera Lale.md",
+      "name": "Vera Lale",
+      "fields": [
+        {
+          "key": "cadence_days",
+          "kind": "number",
+          "value": "30"
+        },
+        {
+          "key": "cadence_snoozed_until",
+          "kind": "date",
+          "value": "2026-11-01"
+        },
+        {
+          "key": "cadence_paused",
+          "kind": "boolean",
+          "value": "true"
+        }
+      ],
+      "lastDay": "2026-09-25"
+    },
+    {
+      "id": "people/Yel Naz.md",
+      "name": "Yel Naz",
+      "fields": [
+        {
+          "key": "cadence_snoozed_until",
+          "kind": "date",
+          "value": "1990-10-11"
+        }
+      ],
+      "lastDay": "2026-10-01"
+    },
+    {
+      "id": "people/Zeki Mor.md",
+      "name": "Zeki Mor",
+      "fields": [
+        {
+          "key": "cadence_days",
+          "kind": "date",
+          "value": "1991-10-11"
+        },
+        {
+          "key": "cadence_snoozed_until",
+          "kind": "date",
+          "value": "1992-10-11"
+        },
+        {
+          "key": "cadence_paused",
+          "kind": "date",
+          "value": "1993-10-11"
+        }
+      ],
+      "lastDay": null
+    }
+  ],
+  "cases": [
+    {
+      "id": "on-snooze-day",
+      "source": "vault",
+      "today": "2026-10-11",
+      "threshold": 30,
+      "overdue": [
+        {
+          "id": "people/Gizem Tan.md",
+          "elapsedDays": 40,
+          "overdueDays": 33
+        },
+        {
+          "id": "people/Cem Yıldız.md",
+          "elapsedDays": 40,
+          "overdueDays": 10
+        },
+        {
+          "id": "people/Kaan Uslu.md",
+          "elapsedDays": 40,
+          "overdueDays": 10
+        },
+        {
+          "id": "people/Mina Çelik.md",
+          "elapsedDays": 40,
+          "overdueDays": 10
+        },
+        {
+          "id": "people/Okan Peker.md",
+          "elapsedDays": 40,
+          "overdueDays": 10
+        },
+        {
+          "id": "people/Pelin Acar.md",
+          "elapsedDays": 40,
+          "overdueDays": 10
+        },
+        {
+          "id": "people/Tuna Mert.md",
+          "elapsedDays": 100,
+          "overdueDays": 10
+        },
+        {
+          "id": "people/Bora Demir.md",
+          "elapsedDays": 21,
+          "overdueDays": 7
+        },
+        {
+          "id": "people/Rüzgar Eli.md",
+          "elapsedDays": 10,
+          "overdueDays": 3
+        },
+        {
+          "id": "people/Ada Kaya.md",
+          "elapsedDays": 7,
+          "overdueDays": 0
+        }
+      ],
+      "never": [
+        "people/Umut Say.md",
+        "people/Zeki Mor.md",
+        "people/İpek Sönmez.md"
+      ]
+    },
+    {
+      "id": "day-after-snooze",
+      "source": "vault",
+      "today": "2026-10-12",
+      "threshold": 30,
+      "overdue": [
+        {
+          "id": "people/Fela Narin.md",
+          "elapsedDays": 41,
+          "overdueDays": 34
+        },
+        {
+          "id": "people/Gizem Tan.md",
+          "elapsedDays": 41,
+          "overdueDays": 34
+        },
+        {
+          "id": "people/Cem Yıldız.md",
+          "elapsedDays": 41,
+          "overdueDays": 11
+        },
+        {
+          "id": "people/Kaan Uslu.md",
+          "elapsedDays": 41,
+          "overdueDays": 11
+        },
+        {
+          "id": "people/Mina Çelik.md",
+          "elapsedDays": 41,
+          "overdueDays": 11
+        },
+        {
+          "id": "people/Okan Peker.md",
+          "elapsedDays": 41,
+          "overdueDays": 11
+        },
+        {
+          "id": "people/Pelin Acar.md",
+          "elapsedDays": 41,
+          "overdueDays": 11
+        },
+        {
+          "id": "people/Tuna Mert.md",
+          "elapsedDays": 101,
+          "overdueDays": 11
+        },
+        {
+          "id": "people/Bora Demir.md",
+          "elapsedDays": 22,
+          "overdueDays": 8
+        },
+        {
+          "id": "people/Rüzgar Eli.md",
+          "elapsedDays": 11,
+          "overdueDays": 4
+        },
+        {
+          "id": "people/Ada Kaya.md",
+          "elapsedDays": 8,
+          "overdueDays": 1
+        },
+        {
+          "id": "people/Eda Soylu.md",
+          "elapsedDays": 30,
+          "overdueDays": 0
+        }
+      ],
+      "never": [
+        "people/Sera Koç.md",
+        "people/Umut Say.md",
+        "people/Zeki Mor.md",
+        "people/İpek Sönmez.md"
+      ]
+    },
+    {
+      "id": "fallback-includes-threshold-day",
+      "source": "inline",
+      "today": "2026-10-11",
+      "threshold": 9,
+      "people": [
+        {
+          "id": "people/Deneme.md",
+          "name": "Deneme",
+          "fields": [],
+          "lastDay": "2026-10-02"
+        }
+      ],
+      "overdue": [
+        {
+          "id": "people/Deneme.md",
+          "elapsedDays": 9,
+          "overdueDays": 0
+        }
+      ],
+      "never": []
+    },
+    {
+      "id": "never-met-stays-separate",
+      "source": "inline",
+      "today": "2026-10-11",
+      "threshold": 1,
+      "people": [
+        {
+          "id": "people/Deneme.md",
+          "name": "Deneme",
+          "fields": [
+            {
+              "key": "cadence_days",
+              "kind": "number",
+              "value": "7"
+            }
+          ],
+          "lastDay": null
+        }
+      ],
+      "overdue": [],
+      "never": [
+        "people/Deneme.md"
+      ]
+    },
+    {
+      "id": "ties-break-by-id-not-input-order",
+      "source": "inline",
+      "today": "2026-10-11",
+      "threshold": 30,
+      "people": [
+        {
+          "id": "people/Zerrin.md",
+          "name": "Zerrin",
+          "fields": [
+            {
+              "key": "cadence_days",
+              "kind": "number",
+              "value": "10"
+            }
+          ],
+          "lastDay": "2026-09-21"
+        },
+        {
+          "id": "people/Aras.md",
+          "name": "Aras",
+          "fields": [],
+          "lastDay": "2026-09-01"
+        },
+        {
+          "id": "people/Melis.md",
+          "name": "Melis",
+          "fields": [
+            {
+              "key": "cadence_days",
+              "kind": "number",
+              "value": "20"
+            }
+          ],
+          "lastDay": "2026-09-11"
+        },
+        {
+          "id": "people/Büyük.md",
+          "name": "Büyük",
+          "fields": [
+            {
+              "key": "cadence_days",
+              "kind": "number",
+              "value": "9223372036854775807"
+            }
+          ],
+          "lastDay": "2026-01-01"
+        },
+        {
+          "id": "people/Taşan.md",
+          "name": "Taşan",
+          "fields": [
+            {
+              "key": "cadence_days",
+              "kind": "number",
+              "value": "99999999999999999999"
+            }
+          ],
+          "lastDay": "2026-09-01"
+        }
+      ],
+      "overdue": [
+        {
+          "id": "people/Aras.md",
+          "elapsedDays": 40,
+          "overdueDays": 10
+        },
+        {
+          "id": "people/Melis.md",
+          "elapsedDays": 30,
+          "overdueDays": 10
+        },
+        {
+          "id": "people/Taşan.md",
+          "elapsedDays": 40,
+          "overdueDays": 10
+        },
+        {
+          "id": "people/Zerrin.md",
+          "elapsedDays": 20,
+          "overdueDays": 10
+        }
+      ],
+      "never": []
+    },
+    {
+      "id": "never-met-ignores-cadence-but-not-pause-or-snooze",
+      "source": "inline",
+      "today": "2026-10-11",
+      "threshold": 30,
+      "people": [
+        {
+          "id": "people/Zeynep.md",
+          "name": "Zeynep",
+          "fields": [
+            {
+              "key": "cadence_days",
+              "kind": "number",
+              "value": "1"
+            }
+          ],
+          "lastDay": null
+        },
+        {
+          "id": "people/b.md",
+          "name": "Ayla",
+          "fields": [],
+          "lastDay": null
+        },
+        {
+          "id": "people/a.md",
+          "name": "Ayla",
+          "fields": [
+            {
+              "key": "cadence_days",
+              "kind": "number",
+              "value": "90"
+            }
+          ],
+          "lastDay": null
+        },
+        {
+          "id": "people/Durmuş.md",
+          "name": "Durmuş",
+          "fields": [
+            {
+              "key": "cadence_paused",
+              "kind": "boolean",
+              "value": "True"
+            }
+          ],
+          "lastDay": null
+        },
+        {
+          "id": "people/Ertelenen.md",
+          "name": "Ertelenen",
+          "fields": [
+            {
+              "key": "cadence_snoozed_until",
+              "kind": "date",
+              "value": "2026-10-11"
+            }
+          ],
+          "lastDay": null
+        },
+        {
+          "id": "people/Dolmuş.md",
+          "name": "Dolmuş",
+          "fields": [
+            {
+              "key": "cadence_snoozed_until",
+              "kind": "date",
+              "value": "2026-10-10"
+            }
+          ],
+          "lastDay": null
+        }
+      ],
+      "overdue": [],
+      "never": [
+        "people/a.md",
+        "people/b.md",
+        "people/Dolmuş.md",
+        "people/Zeynep.md"
+      ]
+    }
+  ]
+}

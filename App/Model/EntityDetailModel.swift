@@ -1,5 +1,6 @@
 import Foundation
 import Observation
+import Summaries
 import VaultFormat
 import VaultStore
 
@@ -12,12 +13,16 @@ struct EntityField: Identifiable, Hashable {
 @MainActor @Observable
 final class EntityDetailModel {
     static let reservedKeys = ["type", "name", "qualifier", "aliases"]
+    /// Keys the free field list hides and its editors refuse. The cadence keys belong to the
+    /// rhythm editor on a person only; on any other file they are ordinary fields.
+    private(set) var reservedKeys = EntityDetailModel.reservedKeys
     let store: IndexStore
     private(set) var path: String
     private(set) var renameResult: RenameResult?
     private(set) var renamedName: String?
     private(set) var renamedQualifier: String?
     private(set) var fields: [EntityField] = []
+    private(set) var personCadence = PersonCadence.none
     private(set) var aliases: [String] = []
     private(set) var aliasesEditable = false
     private(set) var aliasesSource = ""
@@ -39,6 +44,7 @@ final class EntityDetailModel {
     private var root: URL?
     private var isReadOnly = false
     private var allKeys: [String] = []
+    private var isPersonFile = false
 
     init(store: IndexStore, path: String) {
         self.store = store
@@ -68,7 +74,15 @@ final class EntityDetailModel {
                     } ?? ""
                 if case .raw = coordinates?.value { coordinatesWritable = false } else { coordinatesWritable = true }
                 allKeys = frontmatter.fields.map(\.key)
-                fields = frontmatter.fields.filter { !Self.reservedKeys.contains($0.key) }.map {
+                if case .scalar(let type) = frontmatter.field(named: "type")?.value {
+                    isPersonFile = type.text == "person"
+                } else {
+                    isPersonFile = false
+                }
+                reservedKeys = Self.reservedKeys + (isPersonFile ? PersonCadence.keys : [])
+                personCadence =
+                    isPersonFile ? PersonCadence.parse(frontmatter.fields.compactMap(Self.cadenceField)) : .none
+                fields = frontmatter.fields.filter { !reservedKeys.contains($0.key) }.map {
                     EntityField(key: $0.key, value: $0.value)
                 }
                 let items = frontmatter.field(named: "aliases")?.value.listItems
@@ -85,6 +99,9 @@ final class EntityDetailModel {
                 coordinatesSource = ""
                 coordinatesWritable = true
                 allKeys = []
+                isPersonFile = false
+                reservedKeys = Self.reservedKeys
+                personCadence = .none
                 fields = []
                 aliases = []
                 aliasesSource = ""
@@ -114,19 +131,19 @@ final class EntityDetailModel {
 
     @discardableResult
     func set(_ field: String, to value: FrontmatterLiteral) async -> Bool {
-        guard !Self.reservedKeys.contains(field) else { return false }
+        guard !reservedKeys.contains(field) else { return false }
         return await write { try await self.store.setField(at: self.path, key: field, value: value) }
     }
 
     @discardableResult
     func setList(_ field: String, values: [FrontmatterLiteral]) async -> Bool {
-        guard !Self.reservedKeys.contains(field) else { return false }
+        guard !reservedKeys.contains(field) else { return false }
         return await write { try await self.store.setList(at: self.path, key: field, values: values) }
     }
 
     @discardableResult
     func setEntry(_ field: String, entry: String, value: FrontmatterLiteral) async -> Bool {
-        guard !Self.reservedKeys.contains(field) else { return false }
+        guard !reservedKeys.contains(field) else { return false }
         return await write { try await self.store.setEntry(at: self.path, key: field, entry: entry, value: value) }
     }
 
@@ -156,7 +173,7 @@ final class EntityDetailModel {
     @discardableResult
     func addField(key: String, text: String) async -> Bool {
         let key = key.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !key.isEmpty, !Self.reservedKeys.contains(key),
+        guard !key.isEmpty, !reservedKeys.contains(key),
             !allKeys.contains(where: { $0.utf8.elementsEqual(key.utf8) })
         else {
             errorText = String(localized: "Bu alan adı boş, ayrılmış veya zaten kullanılıyor.")
@@ -166,9 +183,44 @@ final class EntityDetailModel {
     }
 
     @discardableResult
+    func setCadenceDays(_ days: Int) async -> Bool {
+        guard isPersonFile, days >= 1 else { return false }
+        return await write {
+            try await self.store.setField(at: self.path, key: PersonCadence.dayKey, value: .integer(days))
+        }
+    }
+
+    @discardableResult
+    func clearCadenceDays() async -> Bool {
+        guard isPersonFile else { return false }
+        return await write { try await self.store.removeField(at: self.path, key: PersonCadence.dayKey) }
+    }
+
+    @discardableResult
+    func resumeCadence() async -> Bool {
+        guard isPersonFile else { return false }
+        return await write { try await self.store.removeField(at: self.path, key: PersonCadence.pauseKey) }
+    }
+
+    @discardableResult
     func remove(_ field: String) async -> Bool {
-        guard !Self.reservedKeys.contains(field) else { return false }
+        guard !reservedKeys.contains(field) else { return false }
         return await write { try await self.store.removeField(at: self.path, key: field) }
+    }
+
+    private static func cadenceField(_ field: FrontmatterField) -> PersonCadenceField? {
+        guard PersonCadence.keys.contains(field.key) else { return nil }
+        guard case .scalar(let scalar) = field.value else {
+            return PersonCadenceField(key: field.key, kind: "raw", value: "")
+        }
+        let kind: String
+        switch scalar.kind {
+        case .date: kind = "date"
+        case .number: kind = "number"
+        case .boolean: kind = "boolean"
+        default: kind = "other"
+        }
+        return PersonCadenceField(key: field.key, kind: kind, value: scalar.raw)
     }
 
     private func write(_ operation: () async throws -> Void) async -> Bool {

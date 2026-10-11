@@ -7021,6 +7021,22 @@
         }
       }
     },
+    "Kısmi katkı, affedildi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Partial contribution, forgiven"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kısmi katkı, affedildi"
+          }
+        }
+      }
+    },
     "Klasör" : {
       "localizations" : {
         "en" : {

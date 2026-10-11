@@ -23,6 +23,12 @@ public enum GoalProgress {
         let progress = GoalAmount(done: totals[bounds.start] ?? 0, target: definition.target)
         let successful = Set(totals.filter { $0.value >= definition.target }.map(\.key))
         var cursor = progress.isComplete ? bounds.start : definition.period.previous(before: bounds.start)
+        // Today is still open, so it can still forgive yesterday's lone miss: the chain is not dropped yet.
+        if definition.period == .day, !progress.isComplete, let yesterday = cursor, !successful.contains(yesterday),
+            let before = yesterday.addingDays(-1), successful.contains(before)
+        {
+            cursor = before
+        }
         var streak = 0
         while let current = cursor {
             if successful.contains(current) {
@@ -72,7 +78,8 @@ public enum GoalProgress {
                 amount <= 0
                 ? .none : (definition.kind == .boolean || amount >= definition.target ? .full : .partial)
             if let today, isForgiven(day, today: today, period: definition.period, successful: successful) {
-                marks[day] = .forgiven
+                // The day's own contribution stays visible under the forgiven mark.
+                marks[day] = contribution == .partial ? .forgivenPartial : .forgiven
             } else {
                 marks[day] = contribution
             }

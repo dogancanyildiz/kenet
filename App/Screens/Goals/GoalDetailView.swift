@@ -96,7 +96,7 @@ struct GoalDetailView: View {
                             InkProgressMath.ratio(done: year.done, target: year.target),
                             label: "Yıllık ilerleme"))
                 }
-                HStack(alignment: .firstTextBaseline, spacing: 16) {
+                HStack(spacing: 16) {
                     labeledValue(String(localized: "Güncel zincir"), status.streak.formatted())
                     labeledValue(String(localized: "En uzun seri"), status.longestStreak.formatted())
                 }

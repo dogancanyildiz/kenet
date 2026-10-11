@@ -33,6 +33,7 @@ extension GoalDayMark {
         case .partial: "Kısmi katkı"
         case .full: "Tam katkı"
         case .forgiven: "Affedildi"
+        case .forgivenPartial: "Kısmi katkı, affedildi"
         }
     }
 }

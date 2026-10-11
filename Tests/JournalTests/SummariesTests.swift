@@ -40,7 +40,9 @@ import VaultFormat
         let summary = try #require(model.summary)
         #expect(summary.counts.events == 21 && summary.previous.events == 19 && summary.change.events == 2)
         #expect(summary.counts.writtenDays == 7 && summary.people.count == 5)
-        #expect(summary.goals.first { $0.definition.key == "spor" }?.streak == 2)
+        // Monday of a running week: the streak is the goal list's on that day (the week before only),
+        // not the one the week's later logs will earn by Sunday.
+        #expect(summary.goals.first { $0.definition.key == "spor" }?.streak == 1)
         model.period = .month
         model.next()
         await model.load()
@@ -58,11 +60,17 @@ import VaultFormat
         let model = SummariesModel(store: context.store, today: { CalendarDate("2026-09-23")! })
         await model.load()
         #expect(model.summary?.goals.first { $0.definition.key == "su" }?.score == 80)
+        // Su's chain on Wednesday is the goal list's: 23–20, 18, 16, 15, 14 September, not 0.
+        #expect(model.summary?.goals.first { $0.definition.key == "su" }?.streak == 8)
         #expect(model.summary?.goals.first { $0.definition.key == "spor" }?.score == nil)
         // The ended week 14–20 September is measured through its Sunday: 5 of 7.
         model.previous()
         await model.load()
         #expect(model.summary?.goals.first { $0.definition.key == "su" }?.score == 71)
+        // Spor at the end of its first successful week.
+        #expect(model.summary?.goals.first { $0.definition.key == "spor" }?.streak == 1)
+        // Su on that Sunday: 20, 18, 16, 15, 14 September done, 19 and 17 forgiven.
+        #expect(model.summary?.goals.first { $0.definition.key == "su" }?.streak == 5)
     }
     @Test func newIndexPublicationReloadsEditedActivityWithoutWritingSummaryFiles() async throws {
         let context = try TaskTestContext()

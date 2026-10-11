@@ -63,4 +63,26 @@ struct SummaryGoalScoreTests {
                 definition: goals[0].definition, logs: goals[0].logs, through: CalendarDate("2026-09-01")!)
                 == 100)
     }
+
+    @Test func runningPeriodShowsTheStreakTheGoalListShows() throws {
+        let data = try input()
+        let goal = try #require(data.goals.first { $0.definition.id == "water" })
+        let today = CalendarDate("2026-10-07")!
+        // 1 September–7 October with 4 October forgiven: 36 done days.
+        let listed = GoalProgress.compute(definition: goal.definition, logs: goal.logs, today: today)
+        #expect(listed.streak == 36)
+        let running = PeriodSummary.compute(period: .week, containing: today, data: data, today: today)
+        let card = try #require(running.goals.first { $0.definition.id == "water" })
+        #expect(card.streak == 36)
+        // The week before ended on the missed Sunday: 1 September–3 October is 33.
+        #expect(card.streakChange == 3)
+        let ended = PeriodSummary.compute(
+            period: .week, containing: CalendarDate("2026-10-01")!, data: data, today: today)
+        #expect(try #require(ended.goals.first { $0.definition.id == "water" }).streak == 33)
+        // A week still to come: it and the running week before it both read today's chain, no change.
+        let coming = PeriodSummary.compute(
+            period: .week, containing: CalendarDate("2026-10-14")!, data: data, today: today)
+        let next = try #require(coming.goals.first { $0.definition.id == "water" })
+        #expect(next.streak == 36 && next.streakChange == 0)
+    }
 }

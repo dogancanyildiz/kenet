@@ -34,7 +34,7 @@ public struct PeriodSummary: Sendable {
         counts.events == 0 && counts.writtenDays == 0 && counts.peopleMentions == 0 && counts.placeMentions == 0
             && counts.createdTasks == 0 && counts.completedTasks == 0 && goals.allSatisfy { $0.contribution == 0 }
     }
-    /// `today` only bounds the goal score of a period that has not ended; counts and streaks ignore it.
+    /// `today` only bounds the goal streak and score of a period that has not ended; counts ignore it.
     public static func compute(
         period: SummaryPeriod, containing day: CalendarDate, data: SummaryInput, today: CalendarDate? = nil
     ) -> Self {
@@ -51,11 +51,16 @@ public struct PeriodSummary: Sendable {
             goals: data.goals.map { goal in
                 let current = goal.progress(in: range)
                 let old = previousRange.map { goal.progress(in: $0) }
+                let standing = goal.standing(in: range, ended: current.status, today: today)
+                // The period before has ended whenever this one has started; before that it follows today too.
+                let oldStreak = previousRange.flatMap { prior in
+                    old.map { goal.standing(in: prior, ended: $0.status, today: today).streak }
+                }
                 return SummaryGoal(
                     definition: goal.definition, progress: current.amount, contribution: current.contribution,
-                    streak: current.status.streak, change: current.contribution - (old?.contribution ?? 0),
-                    streakChange: current.status.streak - (old?.status.streak ?? 0),
-                    score: goal.score(in: range, today: today), completionDate: current.status.completionDate)
+                    streak: standing.streak, change: current.contribution - (old?.contribution ?? 0),
+                    streakChange: standing.streak - (oldStreak ?? 0),
+                    score: standing.score, completionDate: current.status.completionDate)
             }.sorted {
                 $0.definition.name == $1.definition.name
                     ? $0.definition.id < $1.definition.id : $0.definition.name < $1.definition.name

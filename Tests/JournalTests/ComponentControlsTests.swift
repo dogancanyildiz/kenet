@@ -18,9 +18,16 @@ struct ComponentControlsTests {
         #expect(HeatmapCellKind.forgiven.showsOutline)
         #expect(HeatmapCellKind.forgiven.isDrawn)
         #expect(!HeatmapCellKind.forgiven.showsWell)
-        #expect(HeatmapCellKind.forgiven.usesAccentFrame)
+        #expect(HeatmapCellKind.forgiven.usesForgivenFrame)
         #expect(HeatmapCellKind.empty.showsWell)
-        #expect(!HeatmapCellKind.empty.usesAccentFrame)
+        #expect(!HeatmapCellKind.empty.usesForgivenFrame)
+        // Today's ring stays solid; only the forgiven kinds take the dashed frame.
+        #expect(!HeatmapCellKind.today.usesForgivenFrame)
+        // A forgiven day below the target keeps its partial fill inside the dashed frame.
+        #expect(HeatmapCellKind.forgivenPartial.fillHeightFraction == HeatmapCellKind.partial.fillHeightFraction)
+        #expect(HeatmapCellKind.forgivenPartial.showsWell)
+        #expect(HeatmapCellKind.forgivenPartial.usesForgivenFrame)
+        #expect(HeatmapCellKind.forgivenDash(size: 18) == [3, 3])
     }
 
     @Test func progressFractionClamps() {

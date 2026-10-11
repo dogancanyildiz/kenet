@@ -37,13 +37,16 @@ extension SummaryInput.Goal {
         )
     }
 
-    /// Daily score for the card. A period that has ended is measured through its last day, missed or not.
-    /// A period still running is measured as the goal list measures it on `today`, so days that have not
-    /// come yet are never counted as misses. Without `today` the period is taken as ended.
-    func score(in range: ClosedRange<CalendarDate>, today: CalendarDate?) -> Int? {
+    /// Streak and daily score for the card. A period that has ended is measured at its last day. A period
+    /// still running, or not started, is measured as the goal list measures it on `today`, so days that
+    /// have not come yet never break the chain or count as misses. Without `today` the period is taken as ended.
+    func standing(in range: ClosedRange<CalendarDate>, ended: GoalStatus, today: CalendarDate?) -> (
+        streak: Int, score: Int?
+    ) {
         if let today, today <= range.upperBound {
-            return GoalProgress.compute(definition: definition, logs: logs, today: today).score
+            let listed = GoalProgress.compute(definition: definition, logs: logs, today: today)
+            return (listed.streak, listed.score)
         }
-        return GoalProgress.score(definition: definition, logs: logs, through: range.upperBound)
+        return (ended.streak, GoalProgress.score(definition: definition, logs: logs, through: range.upperBound))
     }
 }

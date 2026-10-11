@@ -268,6 +268,7 @@ extension GoalDayMark {
         case .partial: .partial
         case .full: .full
         case .forgiven: .forgiven
+        case .forgivenPartial: .forgivenPartial
         }
     }
 }

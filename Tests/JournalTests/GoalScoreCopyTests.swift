@@ -55,4 +55,15 @@ struct GoalScoreCopyTests {
         #expect(meta == sport.period.progressTitle)
         #expect(meta?.contains("%") != true)
     }
+
+    @Test func forgivenPartialDayKeepsItsFillAndSaysBoth() throws {
+        #expect(GoalDayMark.forgiven.heatmapKind == .forgiven)
+        #expect(GoalDayMark.forgivenPartial.heatmapKind == .forgivenPartial)
+        #expect(GoalDayMark.partial.heatmapKind == .partial)
+        let turkish = try languageBundle("tr")
+        let english = try languageBundle("en")
+        #expect(String(localized: "Kısmi katkı, affedildi", bundle: turkish) == "Kısmi katkı, affedildi")
+        #expect(String(localized: "Kısmi katkı, affedildi", bundle: english) == "Partial contribution, forgiven")
+        #expect(String(localized: "Affedildi", bundle: english) == "Forgiven")
+    }
 }

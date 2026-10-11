@@ -28,7 +28,7 @@ struct HeatmapCell: View {
                 .overlay {
                     if showsOutline {
                         RoundedRectangle(cornerRadius: 2, style: .continuous)
-                            .stroke(outlineColor, lineWidth: outlineWidth)
+                            .stroke(outlineColor, style: outlineStyle)
                     }
                 }
             } else {
@@ -43,7 +43,7 @@ struct HeatmapCell: View {
 
     private var fillColor: Color {
         switch kind {
-        case .partial, .full, .today: Color.ink.accent
+        case .partial, .full, .today, .forgivenPartial: Color.ink.accent
         case .empty, .future, .forgiven: Color.clear
         }
     }
@@ -53,10 +53,14 @@ struct HeatmapCell: View {
     }
 
     private var outlineColor: Color {
-        (isToday || kind == .today || kind.usesAccentFrame) ? Color.ink.accent : Color.ink.control
+        (isToday || kind == .today || kind.usesForgivenFrame) ? Color.ink.accent : Color.ink.control
     }
 
-    private var outlineWidth: CGFloat {
-        (isToday || kind == .today || kind.usesAccentFrame) ? InkStroke.highPriority : InkStroke.control
+    /// Today keeps its solid ring. A forgiven day is dashed, so the two differ by shape as well.
+    private var outlineStyle: StrokeStyle {
+        if isToday || kind == .today { return StrokeStyle(lineWidth: InkStroke.highPriority) }
+        guard kind.usesForgivenFrame else { return StrokeStyle(lineWidth: InkStroke.control) }
+        return StrokeStyle(
+            lineWidth: InkStroke.highPriority, lineCap: .butt, dash: HeatmapCellKind.forgivenDash(size: size))
     }
 }

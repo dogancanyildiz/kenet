@@ -5,7 +5,7 @@
 
     @testable import Journal
 
-    /// Affedilen ısı haritası hücresi: içi boş vurgu çerçevesi, boş hücrenin çukurundan ayrı.
+    /// Affedilen ısı haritası hücresi: kesik çizgili vurgu çerçevesi; bugünün kesiksiz çerçevesinden biçimle ayrı.
     enum ForgivenHeatmapSnapshotCase: String, CaseIterable, Sendable {
         case light, dark, contrast
 
@@ -37,15 +37,26 @@
             }
         }
 
+        /// Density kinds, both forgiven kinds, and an empty today: the dashed frame against the solid ring.
+        private static let cells: [(kind: HeatmapCellKind, isToday: Bool, label: String)] = [
+            (.empty, false, "empty"), (.partial, false, "partial"), (.full, false, "full"),
+            (.forgiven, false, "forgiven"), (.forgivenPartial, false, "f+part"), (.empty, true, "today"),
+        ]
+
         private static var row: some View {
-            HStack(alignment: .top, spacing: 16) {
-                ForEach([HeatmapCellKind.empty, .partial, .full, .forgiven], id: \.self) { kind in
+            HStack(alignment: .top, spacing: 12) {
+                ForEach(cells, id: \.label) { cell in
                     VStack(spacing: 6) {
                         HeatmapCell(
-                            kind: kind, size: 22,
-                            accessibilityValue: Text(verbatim: kind.rawValue),
-                            accessibilityLabel: Text(verbatim: kind.rawValue))
-                        Text(verbatim: kind.rawValue)
+                            kind: cell.kind, size: 22, isToday: cell.isToday,
+                            accessibilityValue: Text(verbatim: cell.label),
+                            accessibilityLabel: Text(verbatim: cell.label))
+                        // Legend size, where the dashes are smallest.
+                        HeatmapCell(
+                            kind: cell.kind, size: 10, isToday: cell.isToday,
+                            accessibilityValue: Text(verbatim: cell.label),
+                            accessibilityLabel: Text(verbatim: cell.label))
+                        Text(verbatim: cell.label)
                             .font(.ink.meta)
                             .foregroundStyle(Color.ink.secondaryText)
                     }

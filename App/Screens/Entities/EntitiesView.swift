@@ -6,6 +6,11 @@ struct EntitiesView: View {
     @State private var kind: String
     @State private var order: EntityOrdering
     @State private var search: String
+    #if os(iOS)
+        @State private var showsContactPicker = false
+        @State private var showsContactImport = false
+        @State private var contactImportModel: ContactImportModel
+    #endif
 
     private let initialUnseenExpanded: Bool
 
@@ -19,6 +24,9 @@ struct EntitiesView: View {
         _order = State(initialValue: initialOrder)
         _search = State(initialValue: initialSearch)
         self.initialUnseenExpanded = initialUnseenExpanded
+        #if os(iOS)
+            _contactImportModel = State(initialValue: ContactImportModel(store: store))
+        #endif
     }
 
     private var entities: [EntitySummary] {
@@ -46,6 +54,11 @@ struct EntitiesView: View {
             pageLink("Harita", systemImage: "map") {
                 PlacesMapView(store: store)
             }
+            #if os(iOS)
+                if kind == "person" {
+                    contactImportRow
+                }
+            #endif
             EntityFilterField(search: $search)
                 .inkListRow()
             if kind == "person" {
@@ -66,10 +79,58 @@ struct EntitiesView: View {
         .inkPageScrollColumn()
         .inkRootPageNavigationTitle("Kişiler ve Konumlar")
         .accessibilityIdentifier("screen.entities")
+        #if os(iOS)
+            .sheet(isPresented: $showsContactPicker) {
+                ContactPicker(
+                    onSelect: { candidates in
+                        showsContactPicker = false
+                        guard !candidates.isEmpty else { return }
+                        contactImportModel.prepare(candidates: candidates)
+                        Task { @MainActor in
+                            showsContactImport = true
+                        }
+                    },
+                    onCancel: {
+                        showsContactPicker = false
+                    }
+                )
+                .ignoresSafeArea()
+            }
+            .sheet(isPresented: $showsContactImport) {
+                // The sheet bar ("Vazgeç" / "Kapat") is a toolbar: it needs the stack.
+                NavigationStack {
+                    ContactImportView(model: contactImportModel) {
+                        showsContactImport = false
+                        contactImportModel.cancel()
+                    }
+                }
+            }
+        #endif
         .navigationDestination(for: EntitySummary.self) { entity in
             EntityView(store: store, entity: entity)
         }
     }
+
+    #if os(iOS)
+        /// The manşet row already holds sort and search next to a long title; a third symbol
+        /// truncates the title, so the action is a row at the top of the page (people only).
+        private var contactImportRow: some View {
+            Button {
+                showsContactPicker = true
+            } label: {
+                MarginRow(kind: .external, time: nil) {
+                    Label("Rehberden aktar", systemImage: "person.crop.circle.badge.plus")
+                        .font(.body)
+                        .foregroundStyle(.ink.accent)
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .disabled(!store.canAddEvent)
+            .accessibilityIdentifier("button.entities.importContacts")
+            .inkListRow()
+        }
+    #endif
 
     /// A page entry at the top of the list (the pattern of the "Özetler" row in Günlük).
     private func pageLink<Destination: View>(

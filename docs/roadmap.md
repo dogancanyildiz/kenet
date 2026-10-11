@@ -111,15 +111,13 @@ Sektör taramasından çıkan, kimlik kararı gerektirmeyen ve ürünün farkın
 - [x] Takvim etkinliğinden olay taslağı; katılımcı adları kişi adayı olur, emin değilse sorulur
 - [x] Varlık sayfasında bağlanmamış anmalar; satır satır, kullanıcı onayıyla bağlama
 - [x] Önemli tarihler: kişi ve özel tip dosyalarındaki tarih alanlarından doğum günü ve yıl dönümü satırı
-- [ ] Kişi başına görüşme ritmi, erteleme ve duraklatma; isteğe bağlı, günlük tavanı olan hatırlatma
-  - Ritim, erteleme ve duraklatma kişi dosyasında; hatırlatma bildirimi açık.
+- [x] Kişi başına görüşme ritmi, erteleme ve duraklatma; isteğe bağlı, günlük tavanı olan hatırlatma
 - [x] Var olan giriş yollarının ilk kullanımda ve Ayarlar'da gösterilmesi (Eylem düğmesi, Siri cümleleri)
 - [ ] Hızlı girişte tanınan tarih, öncelik, tekrar ve adların kutuda vurgulanması; dokununca ayrıştırma geri alınır
-  - Tarih, öncelik ve tekrar için kutunun üstünde çip ve geri alma eklendi; kutu içi vurgu ve adlar için geri alma açık.
-- [ ] Zincir affı: tek başına kalan kaçırma zinciri kırmaz, dinlenme günü, yumuşak ilerleme skoru (kullanıcı kararı)
-- [ ] Suçlamasız taşıma (bugüne, yarına, haftaya) ve iki dakikalık "günü kapat"
-  - Taşıma eylemleri ve "günü kapat" akışının görev ve hedef adımları eklendi; tek cümlelik günlük adımı ve bildirimden giriş açık (günlüğe ekleyen yazıcıyı bekliyor).
-- [ ] İsteğe bağlı ve atlanabilir haftalık inceleme; çıktısı günlük yazısına düşer
+  - Tarih, öncelik, tekrar ve adlar için kutunun üstünde çip ve geri alma eklendi; kutu içi vurgu kullanıcı kararı bekliyor.
+- [x] Zincir affı: tek başına kalan kaçırma zinciri kırmaz, yumuşak ilerleme skoru (dinlenme günü yok; karar günlüğü 2026-10-11)
+- [x] Suçlamasız taşıma (bugüne, yarına, haftaya) ve iki dakikalık "günü kapat"
+- [x] İsteğe bağlı ve atlanabilir haftalık inceleme; çıktısı günlük yazısına düşer
 - [x] Rehberden seçilen kişilerin tek yönlü, bir kez içe aktarılması
 - [x] Gün sayfasında "bu güne bağlananlar"; günlük takviminde yoğunluk noktaları
 
@@ -127,12 +125,14 @@ Sektör taramasından çıkan, kimlik kararı gerektirmeyen ve ürünün farkın
 
 ## Aşama 11: Kimlik, eşitleme ve widget'lar
 
-Kimlik kararından sonra başlar.
+Kasa konumu ve widget'lar kimlik kararından sonra başlar; kimlik gerektirmeyen dilimler Aşama 10 ile birlikte yürür.
 
 - [ ] Kasa konumu: iCloud kapsayıcısı, yerel yedek seçenek (Aşama 0'dan devreden; yerel kasa ve klasör seçimi hazır)
 - [ ] Eşitlenen kasada güvenli yazma: dosya koordinasyonu, indirilmemiş dosyalar, çakışan sürümlerin tespiti, birleştirme işlevinin bağlanması, kopya dosya kuralı, eşitleme durumu göstergesi
+  - Core'da koordinasyon sınırı (`FileCoordination`) ve eşitlenen klasör tespiti (`SyncedFolderKind`) hazır; App'teki `NSFileCoordinator` uygulaması, indirilmemiş dosyalar ve çakışma yönetimi açık.
 - [ ] Ana ekran widget'ı: zincir ve tek dokunuşla işaretleme; yapılmamışlar vurgulu (Aşama 3'ten devreden)
 - [ ] Ekranlar ve widget kendi sorgusunu çalıştırır: küresel okuma modeli yerine Core sorguları (Aşama 8'den devreden; widget bellek sınırı için)
+  - Graph kendi sorgusunu çalıştırıyor; öteki ekranlar ve widget açık.
 - [ ] Widget yenilenmesinin güvenilirlik testi (Aşama 3'ten devreden)
 - [ ] Kilit ekranı widget'ı: takvim etkinlikleri ve günün görevleri (Aşama 3'ten devreden)
 - [ ] Hızlı giriş widget'ı ile kilit ekranı, Denetim Merkezi ve Eylem düğmesi girişi (Aşama 3'ten devreden)
@@ -144,7 +144,7 @@ Kimlik kararından sonra başlar.
 
 ## Aşama 12: Yayın
 
-- [ ] Mağaza teknik hazırlığı: gizlilik bildirimi dosyası, ihracat bildirimi, uygulama simgesi, gizlilik politikası, üçüncü taraf lisans bildirimi, derleme numarası, platforma göre ayrılmış yetki dosyaları, iPad kararı, yer tutucu bölümlerin kaldırılması (kalanlar: gizlilik politikası, lisans bildirimi, yer tutucu bölümler; ötekiler ilk TestFlight yüklemesi için tamamlandı)
+- [ ] Mağaza teknik hazırlığı: gizlilik bildirimi dosyası, ihracat bildirimi, uygulama simgesi, gizlilik politikası, üçüncü taraf lisans bildirimi, derleme numarası, platforma göre ayrılmış yetki dosyaları, iPad kararı, yer tutucu bölümlerin kaldırılması (kalanlar: gizlilik politikası, yer tutucu bölümler; ötekiler ilk TestFlight yüklemesi için tamamlandı)
 - [ ] CD: TestFlight'a otomatik gönderim (Xcode Cloud ya da fastlane; Aşama 7'den devreden)
   - Elle yol hazır: `.github/scripts/testflight.sh` temiz kopyadan arşivleyip yükler; ilk yapı (0.9.0) yüklendi. CI'dan otomatik gönderim açık (App Store Connect anahtarı gerekir).
 - [ ] Lisans, isim, gelir modeli; yazılı "veri kilidi yok" taahhüdü

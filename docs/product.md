@@ -61,11 +61,10 @@ Ekim 2026 sektör taramasının sonucu. Tarama benzer ürünlerin bugünkü hali
 
 - Yapay zeka özellikleri (karar açık; uygulama onsuz tam çalışır)
 - Şirket şema paketi (şirket yapısı, çalışanlar, sorumluluklar)
-- İsim
 
 ## Dağıtım
 
-Önce yalnızca kişisel kullanım, sonrasında mağaza yayını. Repo herkese açıktır. Gelir modeli olarak reklam ve üyelik düşünülüyor; ayrıntısı ve lisans seçimi sonraya bırakıldı.
+Önce yalnızca kişisel kullanım, sonrasında mağaza yayını. Repo herkese açıktır. Lisans tüm hakları saklıdır (karar günlüğü, 2026-10-07). Gelir modeli açık soru 3'tedir.
 
 Arayüz kullanıcının dilinde görünür (başlangıçta Türkçe ve İngilizce).
 

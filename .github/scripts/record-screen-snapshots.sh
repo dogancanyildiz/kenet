@@ -2,6 +2,9 @@
 # Regenerates screen-snapshot reference PNGs under Tests/JournalTests/Snapshots/.
 # Local: sh .github/scripts/record-screen-snapshots.sh
 # CI: workflow_dispatch on "Ekran görüntüsü referansları" — download the artifact into Tests/.
+# Derleme ve koşu ayrıdır: build-for-testing, DerivedData SNAPSHOT_DERIVED_DATA
+# (varsayılan .dd/snapshots); kayıt ve doğrulama test-without-building ile aynı yoldadır.
+# SNAPSHOT_SUITES doluysa yalnız o kümeler (boşlukla ayrılmış adlar); boşsa bütün iOS kümeleri.
 set -eu
 cd "$(dirname "$0")/../.."
 
@@ -38,7 +41,11 @@ ID=${DEVICE%% *}
 NAME=${DEVICE#* }
 
 # Görüntü test kümeleri ad kuralından bulunur (bkz. snapshot-suites.sh).
-ONLY=$(sh .github/scripts/snapshot-suites.sh | sed 's#^#-only-testing:JournalTests_iOS/#' | tr '\n' ' ')
+if [ -n "${SNAPSHOT_SUITES:-}" ]; then
+  ONLY=$(printf '%s\n' $SNAPSHOT_SUITES | sed 's#^#-only-testing:JournalTests_iOS/#' | tr '\n' ' ')
+else
+  ONLY=$(sh .github/scripts/snapshot-suites.sh | sed 's#^#-only-testing:JournalTests_iOS/#' | tr '\n' ' ')
+fi
 [ -n "$ONLY" ] || { echo "Görüntü test kümesi bulunamadı" >&2; exit 1; }
 
 # Simülatörde kurulu kalan uygulamanın kayıtlı durumu (arayüz testleri ya da elle açılış sonrası)
@@ -53,29 +60,44 @@ xcrun simctl uninstall "$ID" "$APP.uitests.xctrunner" >/dev/null 2>&1 || true
 echo "Simülatör: $NAME"
 echo "SNAPSHOT_TESTING_RECORD=$SNAPSHOT_TESTING_RECORD"
 
+DERIVED="${SNAPSHOT_DERIVED_DATA:-.dd/snapshots}"
+
 # Kayıt modunda ilk koşu referansı yazar; eksik referansta kütüphane bir kez düşer — ikinci koşu doğrular.
 set +e
-xcodebuild test \
+xcodebuild build-for-testing \
   -project Journal.xcodeproj \
   -scheme Journal_iOS \
   -destination "platform=iOS Simulator,id=$ID" \
-  $ONLY \
-  -testLanguage tr -testRegion TR \
+  -derivedDataPath "$DERIVED" \
   CODE_SIGNING_ALLOWED=NO \
   -quiet
 status=$?
-if [ "$SNAPSHOT_TESTING_RECORD" != "never" ] && [ "$status" -ne 0 ]; then
-  echo "İlk kayıt koşusu düştü (beklenen); doğrulama koşusu…"
-  unset SNAPSHOT_TESTING_RECORD
+if [ "$status" -eq 0 ]; then
   xcodebuild test-without-building \
     -project Journal.xcodeproj \
     -scheme Journal_iOS \
     -destination "platform=iOS Simulator,id=$ID" \
+    -derivedDataPath "$DERIVED" \
     $ONLY \
     -testLanguage tr -testRegion TR \
-  CODE_SIGNING_ALLOWED=NO \
+    CODE_SIGNING_ALLOWED=NO \
     -quiet
   status=$?
+  # Kayıt modunda ilk koşu referansı yazınca düşebilir; doğrulama aynı DerivedData ile koşar.
+  if [ "$SNAPSHOT_TESTING_RECORD" != "never" ] && [ "$status" -ne 0 ]; then
+    echo "İlk kayıt koşusu düştü (beklenen); doğrulama koşusu…"
+    unset SNAPSHOT_TESTING_RECORD
+    xcodebuild test-without-building \
+      -project Journal.xcodeproj \
+      -scheme Journal_iOS \
+      -destination "platform=iOS Simulator,id=$ID" \
+      -derivedDataPath "$DERIVED" \
+      $ONLY \
+      -testLanguage tr -testRegion TR \
+      CODE_SIGNING_ALLOWED=NO \
+      -quiet
+    status=$?
+  fi
 fi
 set -e
 echo "Referanslar: Tests/JournalTests/Snapshots/__Snapshots__/"

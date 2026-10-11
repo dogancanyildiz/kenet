@@ -1,0 +1,13 @@
+{
+  "mention": {
+    "vault": "unlinked-mentions",
+    "file": "journal/2026-10-10.md",
+    "entity": "people/Elif.md",
+    "line": 17,
+    "byteRange": [
+      3,
+      7
+    ],
+    "spelling": "Elif"
+  }
+}

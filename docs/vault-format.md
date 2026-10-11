@@ -26,6 +26,7 @@ Bu belge platformlar arası sözleşmedir. Uygulamanın her sürümü ve ileride
    - Hedef, uygulamanın üretmediği bir satır da olabilir (Obsidian'da yazılmış bir görevi tamamlamak gibi); o zaman da yalnızca o satır değişir.
    - Birden çok dosyaya dokunan işlemler bellidir: varlık adını değiştirme (bağlantılar güncellenir) ve çakışma birleştirme.
    - Uygulama dışında yazılmış metin kendiliğinden yeniden yazılmaz: biçimi düzeltilmez, içindeki adlar sonradan bağlantıya çevrilmez.
+   - Tek istisna: kullanıcı, gün dosyasındaki bir olay ya da görev satırında geçen bir adın bağlantıya çevrilmesini o geçiş için açıkça onaylarsa uygulama yalnız o adın baytlarını (varsa önündeki `@` ile birlikte) "Otomatik tanıma ve belirsizlik" kurallarının ürettiği wikilink ile değiştirir. Her onay tek bir geçiş içindir: aynı satırdaki başka geçişler, satırın ve dosyanın kalan baytları korunur; toplu ya da kendiliğinden çevirme yoktur. Dosya yazmadan önce yeniden okunur; satır ya da o aralıktaki yazım onaydan sonra değişmişse hiçbir şey yazılmaz.
 2. **Tanımadığını gösterebil.** Beklenmeyen dosya ya da sözdizimi hata üretmez; düz not olarak gösterilir.
 3. **Dosyada olmayan bilgi tutma.** Kasa tek başına tüm veriyi geri getirebilmelidir.
 

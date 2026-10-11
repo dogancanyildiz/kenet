@@ -1,0 +1,54 @@
+{
+  "entities": [
+    {
+      "file": "people/Deniz Arıkan.md",
+      "kind": "person",
+      "name": "Deniz Arıkan",
+      "aliases": [
+        "Deniz",
+        "Deniz abi"
+      ]
+    },
+    {
+      "file": "people/Selin Korkmaz.md",
+      "kind": "person",
+      "name": "Selin Korkmaz",
+      "aliases": [
+        "Selin"
+      ]
+    },
+    {
+      "file": "people/Mert Aksu.md",
+      "kind": "person",
+      "name": "Mert Aksu",
+      "aliases": []
+    },
+    {
+      "file": "people/Mert Aksu (iş).md",
+      "kind": "person",
+      "name": "Mert Aksu",
+      "aliases": [
+        "Mert"
+      ],
+      "qualifier": "iş"
+    },
+    {
+      "file": "people/Ece Yalın.md",
+      "kind": "person",
+      "name": "Ece Yalın",
+      "aliases": []
+    },
+    {
+      "file": "people/Baran Tunç.md",
+      "kind": "person",
+      "name": "Baran Tunç",
+      "aliases": []
+    },
+    {
+      "file": "people/Irmak İnce.md",
+      "kind": "person",
+      "name": "Irmak İnce",
+      "aliases": []
+    }
+  ]
+}

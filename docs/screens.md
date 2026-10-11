@@ -23,7 +23,8 @@ Uygulama bu ekranda açılır. Yukarıdan aşağıya:
 3. **Görevler (2):** Devreden görevler, bugünün görevleri ve bugün oluşturulan tarihsiz görevler. Kutuya (veya bağlantısız satıra) dokununca tamamlanır, basılı tutunca düzenlenir. Devreden görevin altında geldiği tarih yazar ("30 Eyl'den"); en çok üçü gösterilir, kalanı "N devreden daha" satırında toplanır ve dokununca açılır. Tamamlanan görev listenin sonuna iner; birden çok tamamlanan tek satıra katlanır ("N görev tamamlandı") ve dokununca açılır.
 4. **Takvim (2):** Cihaz takvimindeki bugünkü etkinlikler, salt okunur (sans satır).
 5. **Olaylar (1):** Bugün yazılan olaylar, dosyadaki sırayla (uygulama saatli olayı saat sırasındaki yerine yazar). Kenarda saat; kişi ve konum adları dokunulabilir bağlantıdır.
-6. **Günlük yazısı (1):** Varsa serbest yazının ilk dört satırı ve "Devamını yaz"; dokununca tam ekran yazma alanı açılır. Yazarken `@` önerileri ve belirsiz/bilinmeyen açık anma çözümü hızlı girişteki ortak şerittir; kesin bağlantı yalnız değişen satırlara uygulanır.
+6. **Bağlam (10):** Yalnız Bugün'de, yalnız söyleyecek bir şey varsa çizilir; yoksa yer tutmaz, başlığı da yoktur. *Bu gün geçmişte:* önceki yıllarda aynı ay ve günde kişi ya da konum bağlantısı olan en yakın yıl tek satırdır. Kenarda yıl, satırda o günün kaynak sırasındaki ilk iki kişisi ve ilk konumu, altında kaç yıl önce olduğu ve böyle başka yıl varsa sayısı ("1 yıl önce bugün · ve 2 yıl daha") yazar. Kişi ve konum bağlantısı olmayan gün, bugünün kendisi ve ileri tarihli dosyalar sayılmaz; frontmatter bağlantıları Özetler'deki gibi dışarıdadır. 29 Şubat yalnız artık yılda 29 Şubat'ta görünür. Satıra dokununca o günün sayfası açılır. Geçmiş gün sayfasında bağlam çizilmez.
+7. **Günlük yazısı (1):** Varsa serbest yazının ilk dört satırı ve "Devamını yaz"; dokununca tam ekran yazma alanı açılır. Yazarken `@` önerileri ve belirsiz/bilinmeyen açık anma çözümü hızlı girişteki ortak şerittir; kesin bağlantı yalnız değişen satırlara uygulanır.
 
 Bölüm başlıklarının sağında sayaç durur: hedeflerde yapılan ve toplam (`m/n`), görevlerde kalan, olaylarda sayı. Varsayılan yazı boyutunda (390×844, alt güvenli alan ≈84 pt) hızlı giriş tek satırlı kapsüldür; manşet, hedefler, görevler ve ilk olay satırı kaydırmadan görünür. Geçmiş bir günün sayfası aynı düzeni kullanır.
 
@@ -38,6 +39,7 @@ En altta sabit **hızlı giriş kapsülü** (opak; içeriğin üstüne binmez).
 - Tanınmayan bir ad `@` ile yazıldıysa "kişi olarak ekle" ya da "konum olarak ekle" seçeneği çıkar. Aynı adda varlık varsa kısa bir ayırt edici sorulur.
 - Görev modunda baş/son bağımsız `!` orta, `!!` yüksek önceliktir; `her hafta`/`every week` gibi tekrar ifadesi önceden gösterilir ve gönderimde alanlara çevrilir.
 - Görev modunda tarih cümleden çıkarılır ("yarın Ahmet'i ara") ve kutunun üstünde onay için gösterilir; yanlışsa dokunup düzeltilir.
+- Görev modunda tanınan her tarih, öncelik ve tekrar ifadesi kutunun üstünde, tarih denetimiyle aynı satırda birer çiptir (`yarın ✕`, `!! ✕`, `Her hafta ✕`); tekrar çipi ifadenin nasıl anlaşıldığını gösterir, ayrıca tekrar etiketi çıkmaz. Çipe dokununca tanıma geri alınır: ifade görev metninde düz sözcük olarak kalır, alana çevrilmez. Metin düzenlenince geri alma sözcüğüyle birlikte yer değiştirir; sözcük silinir ya da değiştirilirse unutulur. Çipler satıra sığmazsa satır yana kayar. Kutunun içinde vurgu yoktur.
 - Olay varsayılan olarak şu anki saatle kaydedilir; saat kaldırılabilir ya da değiştirilebilir.
 - Gönderince kutu boşalır, klavye açık kalır; art arda giriş yapılabilir.
 - Konum izni Ayarlar → Takvim ve Konum düğmesiyle verilir. Odaklanma ve gönderim en çok dakikada bir tek seferlik GPS isteği başlatır. Kutunun üstündeki en yakın konum çipi dokunulunca sabit `@Konum` anması ekler; kapatma mevcut taslak oturumunda kalıcıdır, kayıt sonrası sıfırlanır. Olay ve görev için aynı davranış kullanılır. Konum önerisi anahtarı ve sistem ayarları bağlantısı Ayarlar → Takvim ve Konum’dadır.
@@ -46,7 +48,7 @@ En altta sabit **hızlı giriş kapsülü** (opak; içeriğin üstüne binmez).
 
 - Sayfa adı serif manşet olarak listenin içinde durur; gezinme çubuğunda büyük başlık yoktur.
 - Günlerin ters kronolojik listesi; her günde olay sayısı ve günlük yazısının ilk satırı.
-- Üstte Özetler girişi ve takvim ile güne atlama; bugünün günü halkayla işaretlenir (rakam ile halka arasında boşluk kalır).
+- Üstte Özetler girişi ve takvim ile güne atlama; her günün altında yoğunluk düzeyine göre noktalar (1–3 nokta; boş gün işaretsiz); bugünün günü halkayla işaretlenir (rakam ile halka arasında boşluk kalır).
 - Bir güne girince: o günün olayları, görevleri, hedef kayıtları ve serbest yazısı. Bugün ekranıyla aynı düzen, herhangi bir gün için.
 - Geçmiş bir güne olay eklenebilir ve o günün hedef kayıtları düzeltilebilir.
 
@@ -140,14 +142,24 @@ Telefonda okuma ve basit düzenleme. Aramadan ve bağlantılardan ulaşılır; a
 - **Arama:** her ekranda pencere araç çubuğundaki tek düğmeden (ve ⌘F ile) açılır; manşet satırlarında arama simgesi yoktur. İstisna: arama penceresinin içinde açılan not, varlık ve gün sayfasında büyüteç durur ve sonuçlara döndürür. Araç çubuğunda başlık yazılmaz; pencerenin adı seçili kenar çubuğu girdisidir.
 - **Çok sütunlu düzen:** Solda liste, ortada seçili öğe (üç sütun: kenar çubuğu + liste + ayrıntı). Örneğin kişi listesi ve seçili kişinin sayfası yan yana. Liste sütunu en az 280, ideal 320, en çok 400 pt genişliğindedir ve her biri serif manşetle başlar (Günlük, Görevler, proje adı, Kişiler / Konumlar, Hedefler); Günlük sütununda manşetin altında sola yaslı Özetler bağlantısı, Kişiler / Konumlar sütununda manşet satırında sıralama simgesi durur. Sayfa görünümleri en çok 680 pt genişlikte ortalanır. Ana pencerenin en küçük boyutu belirteçlerle sabitlenir (1000 × 560 pt). Görev, gün, kişi ve hedef listelerinde seçili satır çukur zeminde, solda vurgu çizgisiyle çizilir. Görev ayrıntısı satır seçilince açılır; kutu tamamlar, metindeki bağlantı kendi sayfasını açar. Görev satırının bağlam menüsü metin, tarih, tekrar, öncelik ve silmeyi sunar; silme onay diyaloğuna gider. Bölüm, süzgeç değişince veya görev listeden çıkınca seçim kalkar.
 - **Kanban (5)** tam genişlikte; sürükle bırak ile durum ve proje değişir, tarih kart menüsünden değiştirilir. **Zaman çizelgesi (5)** aynı geniş alanda tarih taşımayı ve uç sürükleyerek uzatma/kısaltmayı destekler. Gün ızgarasına yapışır; çubukta tarih alanları aynı farkla kayar, uç yalnız ilgili alanı değiştirir. Sürükleme başlangıcındaki görev ve kasa doğrulanır. İki tarih mevcut yazıcıyla iki kez yazılır; ikinci yazma ilkinden dönen görev hedefini kullanır. Yazma sırasında geçici çubuk konumu, hata/başarı sonrası dosya yenilemesi vardır; kısmi yazma bildirimi otomatik tekrar göndermez. Ayrıntı sağ panelde açılır.
-- **Hızlı giriş penceresi (1):** Sistem genelinde klavye kısayoluyla açılan küçük pencere; telefondaki hızlı giriş kutusuyla aynı davranış. Uygulama öne gelmeden kayıt yapılır. Kısayol Settings → Hızlı giriş sekmesinde ayarlanır.
+- **Hızlı giriş penceresi (1):** Sistem genelinde klavye kısayoluyla açılan küçük pencere; telefondaki hızlı giriş kutusuyla aynı davranış. Uygulama öne gelmeden kayıt yapılır. Kısayol Settings → Hızlı giriş sekmesinde ayarlanır. Sekmede Siri cümleleri ve Kısayollar da listelenir; Eylem düğmesi metni Mac'te yoktur.
 - **Notlar:** Serbest notlar için düzenleme alanı. (Henüz yok; kenar çubuğunda girdisi de yoktur, düzenleme gelince döner. Notlar aramadan açılır.)
 - Klavye kısayolları: arama (⌘F) ve hızlı geçiş (⌘K), bugüne git (⌘T). Yeni olay ve yeni görev kısayolları henüz yok.
 - **Ayarlar:** Mac'te sistem Settings sahnesinde sekmeler (sıra): Hızlı giriş, Gizlilik, Bildirimler, Takvim ve Konum, Kasa, Tanılama.
 
 ## Ayarlar
 
-iPhone'da Bugün manşet satırındaki düğmeden açılan Ayarlar listesi beş bölüme ayrılır; sayfa adı ve alt sayfa adları serif manşet olarak listenin içindedir, satır zemini kâğıttır. Mac'te aynı beş bölüm Settings sekmeleridir; Hızlı giriş kısayolu ilk sekmedir. Hiçbir ayar kaybolmaz; yeni ayar eklenmez.
+iPhone'da Bugün manşet satırındaki düğmeden açılan Ayarlar listesi altı bölüme ayrılır; sıra Hızlı giriş, Gizlilik, Bildirimler, Takvim ve Konum, Kasa, Tanılama'dır. Sayfa adı ve alt sayfa adları serif manşet olarak listenin içindedir, satır zemini kâğıttır. Mac'te aynı altı bölüm Settings sekmeleridir; Hızlı giriş ilk sekmedir. Hiçbir ayar kaybolmaz.
+
+### Ayarlar — Hızlı giriş
+
+Var olan giriş yolları gösterilir; yeni yol eklenmez. iPhone'da bu bölüm bir sayfadır. Mac'te aynı satırlar Hızlı giriş sekmesindedir; klavye kısayolu kaydı sekmenin başında kalır.
+
+- **Siri cümleleri:** `JournalShortcuts` cümleleri, uygulama adıyla, kayıtlı sırada. Cümleler ekrana elle yazılmaz; metin kısayol kataloğundan gelir.
+- **Kısayollar:** aynı cümleler Kısayollar uygulamasında da çalışır.
+- **Eylem düğmesi** yalnız iPhone'da: bu kısayollardan biri sistem Ayarlar'ındaki Eylem düğmesine atanabilir. Mac'te bu başlık ve metin yoktur.
+
+Ana ekranda, kasa açıldıktan sonra, kapatılabilen bir ipucu durur. Tercih cihazda saklanır; kapatılınca bir daha görünmez. UI testinde ve `AppLaunchPolicy` otomatik başlatmaya izin vermediğinde görünmez. iPhone ipucu Siri, Kısayollar ve Eylem düğmesini; Mac ipucu Siri, Kısayollar ve klavye kısayolunu adlandırır.
 
 ### Ayarlar — Gizlilik (7)
 
@@ -206,6 +218,8 @@ Uygulamaya yazmanın tüm yolları aynı hızlı giriş davranışına çıkar:
 - Mac hızlı giriş penceresi (1)
 - Kısayollar ve Siri (4)
 - Akşam hatırlatma bildirimi (4)
+
+Bugün çalışan yollar (Siri cümleleri, Kısayollar, Eylem düğmesi, Mac klavye kısayolu) Ayarlar → Hızlı giriş'te ve ilk kullanım ipucunda gösterilir. Widget, kilit ekranı düğmesi, Denetim Merkezi ve paylaşım uzantısı bu gösterimde yoktur.
 
 ## Boş durumlar
 

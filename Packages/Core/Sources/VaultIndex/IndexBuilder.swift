@@ -38,6 +38,22 @@ enum IndexBuilder {
                     kind == "goal" ? scalar("kind") : nil, kind == "goal" ? scalar("target") : nil,
                     kind == "goal" ? scalar("unit") : nil,
                 ])
+            if kind != "goal", let frontmatter {
+                for field in frontmatter.fields
+                where !["type", "name", "qualifier", "aliases"].contains(field.key) {
+                    guard case .scalar(let scalar) = field.value else { continue }
+                    let fieldKind: String
+                    switch scalar.kind {
+                    case .date: fieldKind = "date"
+                    case .number: fieldKind = "number"
+                    case .boolean: fieldKind = "boolean"
+                    default: continue
+                    }
+                    try db.execute(
+                        sql: "INSERT INTO entity_fields VALUES (?,?,?,?)",
+                        arguments: [file, field.key, fieldKind, scalar.raw])
+                }
+            }
             try search(file: file, block: nil, text: name, db: db)
             for (ordinal, alias) in (frontmatter?.field(named: "aliases")?.value.listItems ?? []).enumerated() {
                 try db.execute(

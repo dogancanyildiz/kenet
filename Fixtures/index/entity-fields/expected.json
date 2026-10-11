@@ -1,0 +1,74 @@
+[
+  {
+    "file": "books/Fable.md",
+    "key": "date",
+    "kind": "date",
+    "value": "2026-04-05"
+  },
+  {
+    "file": "people/Lora.md",
+    "key": "Name",
+    "kind": "number",
+    "value": "5"
+  },
+  {
+    "file": "people/Lora.md",
+    "key": "active",
+    "kind": "boolean",
+    "value": "TRUE"
+  },
+  {
+    "file": "people/Lora.md",
+    "key": "amount",
+    "kind": "number",
+    "value": "29.0290"
+  },
+  {
+    "file": "people/Lora.md",
+    "key": "birthday",
+    "kind": "date",
+    "value": "2026-02-03"
+  },
+  {
+    "file": "people/Lora.md",
+    "key": "doğum günü",
+    "kind": "date",
+    "value": "1995-04-12"
+  },
+  {
+    "file": "people/Lora.md",
+    "key": "inactive",
+    "kind": "boolean",
+    "value": "False"
+  },
+  {
+    "file": "people/Lora.md",
+    "key": "quoted key",
+    "kind": "number",
+    "value": "7"
+  },
+  {
+    "file": "people/Lora.md",
+    "key": "zero",
+    "kind": "number",
+    "value": "0"
+  },
+  {
+    "file": "people/Mira.md",
+    "key": "since",
+    "kind": "date",
+    "value": "2020-01-31"
+  },
+  {
+    "file": "people/Mira.md",
+    "key": "visits",
+    "kind": "number",
+    "value": "+5"
+  },
+  {
+    "file": "places/Hollow.md",
+    "key": "radius",
+    "kind": "number",
+    "value": "-3"
+  }
+]

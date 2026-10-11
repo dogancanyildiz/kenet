@@ -493,6 +493,46 @@
         }
       }
     },
+    "%lld yıl önce bugün" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld year ago today"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld years ago today"
+                }
+              }
+            }
+          }
+        },
+        "tr" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld yıl önce bugün"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld yıl önce bugün"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "📍 %@ misin?" : {
       "localizations" : {
         "en" : {
@@ -1181,6 +1221,22 @@
         }
       }
     },
+    "Ayarlar'da Eylem düğmesine bu kısayollardan birini atayabilirsin." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In Settings, you can assign one of these shortcuts to the Action Button."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ayarlar'da Eylem düğmesine bu kısayollardan birini atayabilirsin."
+          }
+        }
+      }
+    },
     "Ayırt edici" : {
       "localizations" : {
         "en" : {
@@ -1209,6 +1265,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ayırt edici (ör. iş)"
+          }
+        }
+      }
+    },
+    "Aynı cümleler Kısayollar uygulamasında da çalışır." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The same phrases also work in the Shortcuts app."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aynı cümleler Kısayollar uygulamasında da çalışır."
           }
         }
       }
@@ -2057,6 +2129,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bu bağlantı kişi veya konum değil"
+          }
+        }
+      }
+    },
+    "Bu cümleler Siri'ye söylenir." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Say these phrases to Siri."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bu cümleler Siri'ye söylenir."
           }
         }
       }
@@ -3193,6 +3281,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Evet/hayır"
+          }
+        }
+      }
+    },
+    "Eylem düğmesi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Action Button"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eylem düğmesi"
           }
         }
       }
@@ -5997,6 +6101,22 @@
         }
       }
     },
+    "Kısayollar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shortcuts"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kısayollar"
+          }
+        }
+      }
+    },
     "Kısmi katkı" : {
       "localizations" : {
         "en" : {
@@ -7565,6 +7685,54 @@
         }
       }
     },
+    "Siri cümleleri" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Siri phrases"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Siri cümleleri"
+          }
+        }
+      }
+    },
+    "Siri, Kısayollar ve Eylem düğmesiyle de yazabilirsin." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You can also write with Siri, Shortcuts, and the Action Button."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Siri, Kısayollar ve Eylem düğmesiyle de yazabilirsin."
+          }
+        }
+      }
+    },
+    "Siri, Kısayollar ve klavye kısayoluyla da yazabilirsin." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You can also write with Siri, Shortcuts, and a keyboard shortcut."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Siri, Kısayollar ve klavye kısayoluyla da yazabilirsin."
+          }
+        }
+      }
+    },
     "Sistem ayarlarını aç" : {
       "localizations" : {
         "en" : {
@@ -8265,6 +8433,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tanım"
+          }
+        }
+      }
+    },
+    "Tanımayı geri al" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Undo recognition"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tanımayı geri al"
+          }
+        }
+      }
+    },
+    "Tanındı: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recognized: %@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tanındı: %@"
           }
         }
       }
@@ -9101,6 +9301,46 @@
         }
       }
     },
+    "ve %lld yıl daha" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "and %lld more year"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "and %lld more years"
+                }
+              }
+            }
+          }
+        },
+        "tr" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "ve %lld yıl daha"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "ve %lld yıl daha"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "Verilerin Markdown dosyalarında kalır. Yeni bir kasa oluşturabilir veya var olan Obsidian klasörünü seçebilirsin." : {
       "localizations" : {
         "en" : {
@@ -9481,6 +9721,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Yıllık ilerleme"
+          }
+        }
+      }
+    },
+    "Yoğunluk %lld / 3" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Density %lld of 3"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yoğunluk %lld / 3"
           }
         }
       }

@@ -8,6 +8,8 @@ struct PhoneNavigation: View {
     @State private var selectedTab = PhoneTab.today
     @State private var todayPath = NavigationPath()
     @State private var taskPath = NavigationPath()
+    @State private var entitiesPath = NavigationPath()
+    @State private var unseenReveal: UUID?
     @State private var showingSettings = false
 
     var body: some View {
@@ -33,7 +35,10 @@ struct PhoneNavigation: View {
             }
             .accessibilityIdentifier("tab.tasks")
             Tab("Kişiler ve Konumlar", systemImage: "person.2", value: PhoneTab.entities) {
-                NavigationStack { EntitiesView(store: store) }
+                NavigationStack(path: $entitiesPath) {
+                    EntitiesView(store: store, initialUnseenExpanded: unseenReveal != nil)
+                        .id(unseenReveal)
+                }
             }
             .accessibilityIdentifier("tab.entities")
             Tab("Hedefler", systemImage: "target", value: PhoneTab.goals) {
@@ -50,10 +55,15 @@ struct PhoneNavigation: View {
         .onChange(of: notifications.navigationRequest?.id, initial: true) { _, id in
             guard id != nil, let request = notifications.navigationRequest else { return }
             showingSettings = false
-            if request.destination == .tasks {
+            switch NotificationRoute(request.destination) {
+            case .tasks:
                 taskPath = NavigationPath()
                 selectedTab = .tasks
-            } else {
+            case .unseenPeople:
+                entitiesPath = NavigationPath()
+                unseenReveal = request.id
+                selectedTab = .entities
+            case .today:
                 todayPath = NavigationPath()
                 selectedTab = .today
             }

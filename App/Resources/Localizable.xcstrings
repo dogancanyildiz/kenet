@@ -241,6 +241,22 @@
         }
       }
     },
+    "%@ ve %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ and %2$@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ ve %2$@"
+          }
+        }
+      }
+    },
     "%@ ve %@ kaldı" : {
       "localizations" : {
         "en" : {
@@ -253,6 +269,62 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ ve %@ kaldı"
+          }
+        }
+      }
+    },
+    "%@, %@ ve %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@, %2$@ and %3$@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@, %2$@ ve %3$@"
+          }
+        }
+      }
+    },
+    "%@, %@, %@ ve %lld kişi daha" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%1$@, %2$@, %3$@ and %4$lld more person"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%1$@, %2$@, %3$@ and %4$lld more people"
+                }
+              }
+            }
+          }
+        },
+        "tr" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%1$@, %2$@, %3$@ ve %4$lld kişi daha"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%1$@, %2$@, %3$@ ve %4$lld kişi daha"
+                }
+              }
+            }
           }
         }
       }
@@ -1229,18 +1301,18 @@
         }
       }
     },
-    "Afiş, bildirim merkezi ve kilit ekranında görev metni ve hedef adları gösterilmez." : {
+    "Afiş, bildirim merkezi ve kilit ekranında görev metni, hedef adları ve kişi adları gösterilmez." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Task text and goal names are hidden on banners, Notification Center, and the lock screen."
+            "value" : "Task text, goal names, and people names are hidden on banners, Notification Center, and the lock screen."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Afiş, bildirim merkezi ve kilit ekranında görev metni ve hedef adları gösterilmez."
+            "value" : "Afiş, bildirim merkezi ve kilit ekranında görev metni, hedef adları ve kişi adları gösterilmez."
           }
         }
       }
@@ -4445,6 +4517,22 @@
         }
       }
     },
+    "Görüşme hatırlatmaları" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conversation reminders"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Görüşme hatırlatmaları"
+          }
+        }
+      }
+    },
     "Görüşme ritmi" : {
       "localizations" : {
         "en" : {
@@ -4457,6 +4545,78 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Görüşme ritmi"
+          }
+        }
+      }
+    },
+    "Görüşme saati" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conversation time"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Görüşme saati"
+          }
+        }
+      }
+    },
+    "Görüşme zamanı" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Time for a conversation"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Görüşme zamanı"
+          }
+        }
+      }
+    },
+    "Görüşme zamanı gelen %lld kişi var" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld person is due for a conversation"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld people are due for a conversation"
+                }
+              }
+            }
+          }
+        },
+        "tr" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Görüşme zamanı gelen %lld kişi var"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Görüşme zamanı gelen %lld kişi var"
+                }
+              }
+            }
           }
         }
       }
@@ -7501,6 +7661,22 @@
         }
       }
     },
+    "Lisans" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "License"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lisans"
+          }
+        }
+      }
+    },
     "Liste" : {
       "localizations" : {
         "en" : {
@@ -9465,6 +9641,22 @@
         }
       }
     },
+    "Tanılama'ya dön" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Back to Diagnostics"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tanılama'ya dön"
+          }
+        }
+      }
+    },
     "Tanım" : {
       "localizations" : {
         "en" : {
@@ -10077,6 +10269,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Türü olmayan dosyalar"
+          }
+        }
+      }
+    },
+    "Üçüncü taraf lisansları" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Third-party licenses"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Üçüncü taraf lisansları"
           }
         }
       }

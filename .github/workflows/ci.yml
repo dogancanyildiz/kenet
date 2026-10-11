@@ -132,11 +132,14 @@ jobs:
           path: MacTests.xcresult
           retention-days: 7
 
-  # iOS: üç test katmanı ayrı makinelerde paralel koşar (birim, ekran görüntüsü, arayüz dumanı).
-  # Her iş kendi derlemesini yapar ve kendi simülatörünü açar; ortak başlangıç
-  # .github/actions/ios-build içindedir. Derleme ürününü işler arasında taşımak denenmedi.
-  app-ios-unit:
-    name: Uygulama (iOS, birim)
+  # iOS iki makinede paralel koşar: birim testleri + arayüz dumanı bir işte, ekran görüntüleri
+  # ötekinde. Her iş kendi derlemesini yapar ve kendi simülatörünü açar; ortak başlangıç
+  # .github/actions/ios-build içindedir. Arayüz dumanı ayrı işte (yeni açılmış simülatörde) 2,3 kat
+  # yavaş koştu (682 sn, ısınmış simülatörde 243-427): ilk xcodebuild açılışı ve uygulamanın ilk
+  # kurulumu ~170 sn ekliyor, testler de ~1,5 kat yavaş. Birim testlerinden sonra koşunca bu
+  # bedel bir kez ödenir; ayrıca iş sayısı azalınca macOS koşucu kuyruğu kısalır.
+  app-ios:
+    name: Uygulama (iOS)
     needs: changes
     if: needs.changes.outputs.docs_only != 'true'
     runs-on: macos-26
@@ -146,8 +149,8 @@ jobs:
       - name: Derle
         id: build
         uses: ./.github/actions/ios-build
-      # Simülatör testlerden ayrı adımda açılır: bir asılmanın açılışta mı testte mi olduğu adım
-      # sürelerinden okunur (ilk test adımı eskiden açılışı da içeriyordu).
+      # Simülatörün hazır olması testlerden ayrı adımda beklenir: bir asılmanın açılışta mı testte mi
+      # olduğu adım sürelerinden okunur. Açılış derlemeyle aynı anda başlar (ios-build).
       - name: iOS simülatörü aç
         id: ios_boot
         timeout-minutes: 10
@@ -209,6 +212,25 @@ jobs:
             ios-test-diagnostics
           if-no-files-found: warn
           retention-days: 7
+      # Arayüz dumanı birim testlerinden sonra, ısınmış simülatörde (bkz. işin üstündeki not).
+      - name: iOS arayüz dumanı
+        id: ios_ui
+        run: |
+          xcodebuild test-without-building \
+            -project Journal.xcodeproj \
+            -scheme Journal_iOS \
+            -destination "platform=iOS Simulator,id=${{ steps.build.outputs.udid }}" \
+            -only-testing:JournalUITests \
+            -resultBundlePath UITests.xcresult \
+            CODE_SIGNING_ALLOWED=NO \
+            -quiet
+      - name: Arayüz testi sonuç paketi (yalnız düşünce)
+        if: failure() && steps.ios_ui.outcome == 'failure'
+        uses: actions/upload-artifact@v6
+        with:
+          name: ui-test-results
+          path: UITests.xcresult
+          retention-days: 7
 
   # Ekran görüntüsü: birim katmanında SwiftUI çizimi (uygulama açılmaz). Ayrı iş = süre ölçümü
   # ve düşünce fark görüntüleri artifact'ı. Kümeler ad kuralından bulunur (.github/scripts/snapshot-suites.sh).
@@ -248,39 +270,6 @@ jobs:
             ScreenSnapshots.xcresult
             Tests/JournalTests/Snapshots/__Snapshots__
           if-no-files-found: warn
-          retention-days: 7
-
-  app-ios-ui:
-    name: Uygulama (iOS, arayüz)
-    needs: changes
-    if: needs.changes.outputs.docs_only != 'true'
-    runs-on: macos-26
-    timeout-minutes: 30
-    steps:
-      - uses: actions/checkout@v7
-      - name: Derle
-        id: build
-        uses: ./.github/actions/ios-build
-      - name: iOS simülatörü aç
-        timeout-minutes: 10
-        run: xcrun simctl bootstatus "${{ steps.build.outputs.udid }}" -b
-      - name: iOS arayüz dumanı
-        id: ios_ui
-        run: |
-          xcodebuild test-without-building \
-            -project Journal.xcodeproj \
-            -scheme Journal_iOS \
-            -destination "platform=iOS Simulator,id=${{ steps.build.outputs.udid }}" \
-            -only-testing:JournalUITests \
-            -resultBundlePath UITests.xcresult \
-            CODE_SIGNING_ALLOWED=NO \
-            -quiet
-      - name: Arayüz testi sonuç paketi (yalnız düşünce)
-        if: failure() && steps.ios_ui.outcome == 'failure'
-        uses: actions/upload-artifact@v6
-        with:
-          name: ui-test-results
-          path: UITests.xcresult
           retention-days: 7
 
   # Biçim denetimi yereldeki ile aynı swift-format sürümünde koşar (Swift 6.4).
@@ -323,7 +312,7 @@ jobs:
   ci:
     name: ci
     if: always()
-    needs: [changes, core-macos, core-linux, app-macos, app-ios-unit, app-ios-snapshots, app-ios-ui, lint]
+    needs: [changes, core-macos, core-linux, app-macos, app-ios, app-ios-snapshots, lint]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:

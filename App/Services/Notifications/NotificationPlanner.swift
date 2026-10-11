@@ -2,13 +2,33 @@ import Foundation
 import GoalTracking
 import VaultFormat
 
+/// Requests for the seven-day window, plus the people each `people-` request counts.
+struct NotificationSchedule: Equatable, Sendable {
+    var requests: [NotificationRequest]
+    var assignments: [CadenceReminderAssignment]
+}
+
 /// One local calendar week of one-shot requests, derived solely from immutable inputs.
 enum NotificationPlanner {
     static func requests(
         snapshot: VaultReadModel, preferences: NotificationPreferences, now: Date,
-        timeZone: TimeZone = .current
+        timeZone: TimeZone = .current, people: [CadenceReminderPerson] = [],
+        lastNotified: [String: CalendarDate] = [:]
     ) -> [NotificationRequest] {
+        schedule(
+            snapshot: snapshot, preferences: preferences, now: now, timeZone: timeZone, people: people,
+            lastNotified: lastNotified
+        ).requests
+    }
+
+    /// `lastNotified` holds only days whose reminder has already fired.
+    static func schedule(
+        snapshot: VaultReadModel, preferences: NotificationPreferences, now: Date,
+        timeZone: TimeZone = .current, people: [CadenceReminderPerson] = [],
+        lastNotified: [String: CalendarDate] = [:]
+    ) -> NotificationSchedule {
         let today = LocalDay.today(at: now, timeZone: timeZone)
+        var futureDays: [(day: CalendarDate, date: Date)] = []
         var result: [NotificationRequest] = []
         for offset in 0..<7 {
             guard let day = today.addingDays(offset) else { continue }
@@ -50,14 +70,41 @@ enum NotificationPlanner {
                             body: String(localized: "Bugünden bir an yazmak ister misin?"), destination: .journal))
                 }
             }
+            if preferences.peopleEnabled, let date = fireDate(day, time: preferences.peopleTime, timeZone: timeZone),
+                date > now
+            {
+                futureDays.append((day, date))
+            }
         }
-        return result.sorted { $0.date == $1.date ? $0.id < $1.id : $0.date < $1.date }
+        var assignments: [CadenceReminderAssignment] = []
+        if preferences.peopleEnabled {
+            let planned = CadenceReminderPlan.plan(
+                people: people, days: futureDays.map(\.day), lastNotified: lastNotified)
+            for item in futureDays {
+                guard let due = planned[item.day], !due.isEmpty else { continue }
+                let message = CadenceReminderPlan.message(people: due, hideContent: preferences.hideContent)
+                result.append(
+                    NotificationRequest(
+                        id: "people-\(item.day)", date: item.date, title: message.title, body: message.body,
+                        destination: .people))
+                assignments.append(
+                    CadenceReminderAssignment(day: item.day, date: item.date, personIDs: due.map(\.id)))
+            }
+        }
+        return NotificationSchedule(
+            requests: result.sorted { $0.date == $1.date ? $0.id < $1.id : $0.date < $1.date },
+            assignments: assignments)
     }
 
+    /// Task, goal and journal ids. People ids stay separate so this list keeps its previous length.
     static func identifiers(on day: CalendarDate) -> [String] {
         (0..<7).compactMap { day.addingDays($0) }.flatMap { day in
             ["task-\(day)", "goals-\(day)", "journal-\(day)"]
         }
+    }
+
+    static func peopleIdentifiers(on day: CalendarDate) -> [String] {
+        (0..<7).compactMap { day.addingDays($0) }.map { "people-\($0)" }
     }
 
     static func fireDate(_ day: CalendarDate, time: NotificationTime, timeZone: TimeZone) -> Date? {

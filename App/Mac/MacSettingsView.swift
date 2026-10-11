@@ -47,7 +47,7 @@
             case .notifications: NotificationSettingsView()
             case .calendarAndLocation: CalendarAndLocationSettingsView()
             case .vault: MacVaultSettingsPage(store: store)
-            case .diagnostics: DiagnosticsView(store: store)
+            case .diagnostics: MacDiagnosticsSettingsPage(store: store)
             }
         }
     }
@@ -110,6 +110,37 @@
                 page()
             }
             .inkPage()
+        }
+    }
+
+    /// The Tanılama tab. A subpage replaces the tab's content, same as Kasa: a push would add a
+    /// back item to the window toolbar and slide the tab strip's highlight.
+    struct MacDiagnosticsSettingsPage: View {
+        let store: IndexStore
+        @State private var showingLicenses = false
+
+        var body: some View {
+            if showingLicenses {
+                VStack(alignment: .leading, spacing: 0) {
+                    Button {
+                        showingLicenses = false
+                    } label: {
+                        Label("Tanılama", systemImage: "chevron.left")
+                    }
+                    .buttonStyle(InkTextButtonStyle())
+                    // Esc, not ⌘[: on a Turkish keyboard "[" is typed with ⌥8 and the chord never fires.
+                    .keyboardShortcut(.cancelAction)
+                    .accessibilityLabel("Tanılama'ya dön")
+                    .accessibilityIdentifier("button.settings.diagnostics.back")
+                    .padding(.horizontal, InkSpacing.margin + 8)
+                    .padding(.top, 8)
+                    .inkPageColumn()
+                    ThirdPartyLicensesView()
+                }
+                .inkPage()
+            } else {
+                DiagnosticsView(store: store, openLicenses: { showingLicenses = true })
+            }
         }
     }
 

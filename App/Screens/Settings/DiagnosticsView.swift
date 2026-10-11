@@ -1,8 +1,12 @@
 import SwiftUI
 
-/// Index counts, skipped paths, rebuild, and search-history clear.
+/// Index counts, skipped paths, rebuild, search-history clear, and third-party licenses.
 struct DiagnosticsView: View {
     @Bindable var store: IndexStore
+    #if os(macOS)
+        /// The Settings tab swaps its content; a push would shift the tab strip's highlight.
+        var openLicenses: () -> Void = {}
+    #endif
 
     var body: some View {
         List {
@@ -85,6 +89,9 @@ struct DiagnosticsView: View {
                     .inkListRow()
                 }
             }
+            Section {
+                licensesLink
+            }
         }
         .listStyle(.plain)
         .inkPageNavigationTitle("Tanılama")
@@ -95,6 +102,21 @@ struct DiagnosticsView: View {
     private var rebuildButton: some View {
         Button("Yeniden üret") { Task { await store.refresh(rebuild: true) } }
             .disabled(store.isProcessing)
+    }
+
+    @ViewBuilder private var licensesLink: some View {
+        #if os(macOS)
+            Button("Üçüncü taraf lisansları", action: openLicenses)
+                .buttonStyle(.borderless)
+                .accessibilityIdentifier("button.settings.diagnostics.licenses")
+                .inkListRow()
+        #else
+            NavigationLink("Üçüncü taraf lisansları") {
+                ThirdPartyLicensesView()
+            }
+            .accessibilityIdentifier("button.settings.diagnostics.licenses")
+            .inkListRow()
+        #endif
     }
 
     private var clearHistoryButton: some View {

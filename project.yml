@@ -111,7 +111,7 @@ targets:
         # Yalnız özetleme (SHA-256) kullanılır, şifreleme yok: yüklemede ihracat sorusu sorulmaz.
         INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: NO
         INFOPLIST_KEY_NSFaceIDUsageDescription: Günlüğünün kilidini açmak için Face ID kullanılır.
-        INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription: Bugünün takvim etkinliklerini göstermek için takvim erişimi gerekir. Etkinlikler değiştirilmez.
+        INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription: Bugünün takvim etkinliklerini göstermek ve seçtiğin etkinlikten olay taslağı hazırlamak için takvim erişimi gerekir. Etkinlikler değiştirilmez.
         INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription: Kenet, seçtiğin bir konuma vardığında, örneğin spor salonuna girdiğinde, o konuma bağlı hedefi işaretlemek ya da sana hatırlatmak için uygulama kapalıyken de konumunu kullanır. Konumun yalnız sen bir konumun koordinatı olarak Kaydet dediğinde o konumun dosyasına yazılır; hiçbir yere gönderilmez.
         INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: Kenet konumunu, yazarken yakınındaki kayıtlı konumlarını önermek, haritada yerini göstermek ve sen istediğinde bir konumun koordinatını doldurmak için kullanır. Konumun yalnız sen Kaydet dediğinde o konumun dosyasına yazılır; hiçbir yere gönderilmez.
         INFOPLIST_KEY_UILaunchScreen_Generation: YES

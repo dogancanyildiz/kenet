@@ -44,6 +44,8 @@ final class QuickEntryModel {
     let composer: MentionComposer
     var includesTime = true
     private(set) var isSubmitting = false
+    /// Set while the field holds a draft made from a calendar event.
+    var calendarDraft: CalendarDraft?
 
     var text: String {
         get { composer.text }
@@ -108,6 +110,7 @@ final class QuickEntryModel {
     var isHistorical: Bool { day.map { $0 != today() } ?? false }
     var entryTime: LineClock? {
         guard mode == .event, includesTime else { return nil }
+        if !isHistorical, let time = calendarDraft?.time { return LocalDay.clock(at: time) }
         return isHistorical ? LocalDay.clock(at: selectedTime) : LocalDay.clock(at: now())
     }
 
@@ -150,6 +153,7 @@ final class QuickEntryModel {
         guard composer.beginResolution() else { return false }
         isSubmitting = true
         errorText = nil
+        let draftCalendar = calendarDraftSnapshot
         let draft = text
         let draftPins = pins
         let draftSkipped = skipped
@@ -196,6 +200,7 @@ final class QuickEntryModel {
                 composer.errorText =
                     store.entryErrorText
                     ?? String(localized: "Olay kaydedilemedi. Kasayı kontrol edip yeniden dene.")
+                restoreCalendarDraft(draftCalendar)
             }
             return saved
         } catch {
@@ -245,6 +250,7 @@ final class QuickEntryModel {
     }
 
     private func reconcileTaskExpressions(oldText: String) {
+        if text.isEmpty { clearCalendarDraft() }
         let suppressed = suppressedExpressions
         suppressedExpressions = Self.following(suppressed, from: oldText, to: text)
         guard mode == .task else { return }

@@ -12,10 +12,12 @@ struct CalendarSettingsView: View {
         Section {
             SectionHeader("Takvim")
                 .inkListRow()
-            Text("Takvim etkinlikleri yalnızca gösterilir; takvimine ve günlük dosyalarına yazılmaz.")
-                .font(.ink.meta)
-                .foregroundStyle(Color.ink.secondaryText)
-                .inkListRow()
+            Text(
+                "Takvim etkinlikleri yalnızca okunur; takvimine yazılmaz. Bir etkinlikten düşürdüğün olay taslağı, sen gönderince günlüğüne yazılır."
+            )
+            .font(.ink.meta)
+            .foregroundStyle(Color.ink.secondaryText)
+            .inkListRow()
             switch calendar.authorization {
             case .notDetermined, .writeOnly:
                 Button("Takvim etkinliklerini göstermek için izin ver") {

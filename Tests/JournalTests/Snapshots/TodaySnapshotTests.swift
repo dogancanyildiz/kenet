@@ -27,14 +27,20 @@
         case todayImportantDatesLight
         case todayImportantDatesDark
         case todayImportantDatesAX3
+        case todayBacklinksLight
+        case todayBacklinksDark
+        case todayBacklinksAX3
 
         var colorScheme: SnapshotColorScheme {
-            self == .todayDark || self == .todayOnThisDayDark || self == .todayImportantDatesDark ? .dark : .light
+            switch self {
+            case .todayDark, .todayOnThisDayDark, .todayImportantDatesDark, .todayBacklinksDark: .dark
+            default: .light
+            }
         }
 
         var dynamicType: SnapshotDynamicType {
             switch self {
-            case .todayAX3, .todayOnThisDayAX3, .todayImportantDatesAX3: .accessibility3
+            case .todayAX3, .todayOnThisDayAX3, .todayImportantDatesAX3, .todayBacklinksAX3: .accessibility3
             case .todayAX5: .accessibility5
             default: .medium
             }
@@ -57,6 +63,21 @@
             self == .todayImportantDatesLight || self == .todayImportantDatesDark
                 || self == .todayImportantDatesAX3
         }
+
+        var usesBacklinks: Bool {
+            self == .todayBacklinksLight || self == .todayBacklinksDark || self == .todayBacklinksAX3
+        }
+    }
+
+    /// Hızlı giriş, görev kipi: tanınan ifadelerin çipleri (açık, koyu, AX3) ve biri geri alınmış hali.
+    enum QuickEntryChipSnapshotCase: String, CaseIterable, Sendable {
+        case quickEntryChipsLight
+        case quickEntryChipsDark
+        case quickEntryChipsAX3
+        case quickEntryChipsUndone
+
+        var colorScheme: SnapshotColorScheme { self == .quickEntryChipsDark ? .dark : .light }
+        var dynamicType: SnapshotDynamicType { self == .quickEntryChipsAX3 ? .accessibility3 : .medium }
     }
 
     @MainActor @Suite("Today snapshots")
@@ -84,7 +105,12 @@
             if snapshotCase.usesImportantDates {
                 try Self.writeImportantDates(in: context.root)
             }
-            if snapshotCase == .todayOnThisDayAX3 || snapshotCase == .todayImportantDatesAX3 {
+            if snapshotCase.usesBacklinks {
+                try Self.writeBacklinks(in: context.root)
+            }
+            if snapshotCase == .todayOnThisDayAX3 || snapshotCase == .todayImportantDatesAX3
+                || snapshotCase == .todayBacklinksAX3
+            {
                 // At AX3 the full sample day pushes the line off even the tall canvas.
                 try Self.stripOpenTasksDueBeforeSnapshotDay(in: context.root)
                 try FileManager.default.removeItem(at: context.root.appendingPathComponent("goals"))
@@ -110,6 +136,7 @@
             // The goal strip loads in a `.task`; without this the reference can catch its spinner.
             let goalsReady = GoalsReadyBox()
             let contextReady = GoalsReadyBox()
+            let backlinksReady = GoalsReadyBox()
             let store = context.store
             // The line sits below the events; the tall canvas keeps it in view at every type size.
             // AX3 plus the overflow line needs more than the on-this-day canvas.
@@ -117,7 +144,7 @@
                 if snapshotCase == .todayImportantDatesAX3 {
                     CGSize(width: 390, height: 2200)
                 } else if snapshotCase.usesTallCanvas || snapshotCase.usesOnThisDay
-                    || snapshotCase.usesImportantDates
+                    || snapshotCase.usesImportantDates || snapshotCase.usesBacklinks
                 {
                     CGSize(width: 390, height: 1600)
                 } else {
@@ -138,7 +165,9 @@
             .environment(\.openSettings, {})
             .onPreferenceChange(GoalsStripReadyKey.self) { goalsReady.isReady = $0 }
             .onPreferenceChange(DayContextReadyKey.self) { contextReady.isReady = $0 }
+            .onPreferenceChange(DayBacklinksReadyKey.self) { backlinksReady.isReady = $0 }
             let needsContext = snapshotCase.usesOnThisDay || snapshotCase.usesImportantDates
+            let needsBacklinks = snapshotCase.usesBacklinks
             await SnapshotHost.assertView(
                 colorScheme: snapshotCase.colorScheme,
                 dynamicType: snapshotCase.dynamicType,
@@ -150,11 +179,52 @@
                 isReady: {
                     (store.content.goals.isEmpty || goalsReady.isReady)
                         && (!needsContext || contextReady.isReady)
+                        && (!needsBacklinks || backlinksReady.isReady)
                 },
                 testName: "today",
                 file: #filePath,
                 line: #line,
                 content: { root }
+            )
+        }
+
+        /// The bar alone, as it sits above the keyboard: date control and chips share one row.
+        @Test(arguments: QuickEntryChipSnapshotCase.allCases)
+        func quickEntryChips(_ snapshotCase: QuickEntryChipSnapshotCase) async throws {
+            let context = try SnapshotHost.makeContext()
+            defer { context.clean() }
+            await context.start()
+            let store = context.store
+            let model = QuickEntryModel(store: store, today: { snapshotDay }, now: { snapshotNow })
+            model.languages = [.turkish, .english]
+            model.mode = .task
+            model.text = "!! yarın Deniz'i ara her hafta"
+            if snapshotCase == .quickEntryChipsUndone {
+                model.undoRecognition(try #require(model.taskExpressions.first { $0.spelling == "yarın" }))
+            }
+            let location = LocationService(source: FakeLocationSource(), defaults: context.defaults.defaults)
+            await SnapshotHost.assertView(
+                colorScheme: snapshotCase.colorScheme,
+                dynamicType: snapshotCase.dynamicType,
+                increaseContrast: false,
+                named: snapshotCase.rawValue,
+                store: store,
+                size: CGSize(width: 390, height: snapshotCase.dynamicType == .medium ? 200 : 320),
+                testName: "today",
+                file: #filePath,
+                line: #line,
+                content: {
+                    // Placed as on the day page; a plain stack would offer the bar half the canvas.
+                    Color.ink.paper.safeAreaInset(edge: .bottom, spacing: 0) {
+                        QuickEntryBar(store: store, isEnabled: true, model: model)
+                            // The host centres this short canvas between unequal safe areas;
+                            // keep the capsule clear of the edge that shift would cut.
+                            .padding(.bottom, 16)
+                    }
+                    .environment(location)
+                    .environment(\.locale, snapshotLocale)
+                    .environment(\.timeZone, snapshotTimeZone)
+                }
             )
         }
 
@@ -247,6 +317,29 @@
                     to: root.appendingPathComponent("journal/\(date).md"), atomically: true,
                     encoding: .utf8)
             }
+        }
+
+        /// Adds backlinks to snapshotDay from a note, person, and another day.
+        private static func writeBacklinks(in root: URL) throws {
+            let note = root.appendingPathComponent("notes/Proje Fikirleri.md")
+            var noteText = try String(contentsOf: note, encoding: .utf8)
+            noteText += "\n[[2026-09-20]] için sunum taslağı hazırlandı.\n"
+            try noteText.write(to: note, atomically: true, encoding: .utf8)
+
+            let person = root.appendingPathComponent("people/Deniz Arıkan.md")
+            var personText = try String(contentsOf: person, encoding: .utf8)
+            personText += "\n[[2026-09-20]] görüşmesi yapıldı.\n"
+            try personText.write(to: person, atomically: true, encoding: .utf8)
+
+            let otherDay = root.appendingPathComponent("journal/2026-09-19.md")
+            var otherDayText = try String(contentsOf: otherDay, encoding: .utf8)
+            let event = "- 18:00 Yarın için [[2026-09-20]] notu bırakıldı\n"
+            if let range = otherDayText.range(of: "## Events\n") {
+                otherDayText.insert(contentsOf: event, at: range.upperBound)
+            } else {
+                otherDayText += "\n" + event
+            }
+            try otherDayText.write(to: otherDay, atomically: true, encoding: .utf8)
         }
 
         private static func writeIncompleteBooleanGoal(in root: URL) throws {
@@ -396,6 +489,63 @@
                 .flatMap(SnapshotTestingConfiguration.Record.init(rawValue:))
             // Fixed 2× bitmap (and window, see MacSnapshotWindow) so references do not depend on
             // the host display scale.
+            assertSnapshot(
+                of: Self.render(host, scale: MacSnapshotWindow.scale),
+                as: .image(precision: 0.9999, perceptualPrecision: 0.995),
+                named: name,
+                record: record,
+                file: #filePath,
+                testName: "today",
+                line: #line
+            )
+            window.orderOut(nil)
+        }
+
+        /// The shared bar at the quick-entry panel's width and on its surface. The panel itself
+        /// asks for focus when it opens; a caret would make the reference depend on its blink.
+        @Test(arguments: ["quickEntryChipsMacLight", "quickEntryChipsMacDark"])
+        func quickEntryChipsMac(_ name: String) async throws {
+            let context = try TaskTestContext(sample: true)
+            defer { context.clean() }
+            await context.start()
+            let day = context.today
+            let model = QuickEntryModel(store: context.store, today: { day })
+            model.languages = [.turkish, .english]
+            model.mode = .task
+            model.text = "!! yarın Deniz'i ara her hafta"
+
+            let location = LocationService(
+                source: FakeLocationSource(), defaults: context.defaults.defaults)
+            let size = CGSize(width: 480, height: 120)
+            let root = Color.ink.surface.safeAreaInset(edge: .bottom, spacing: 0) {
+                QuickEntryBar(store: context.store, isEnabled: true, model: model)
+            }
+            .frame(width: size.width, height: size.height)
+            .environment(location)
+            .environment(\.locale, Locale(identifier: "tr_TR"))
+            .environment(\.colorScheme, name == "quickEntryChipsMacDark" ? .dark : .light)
+
+            MacSnapshotEnvironment.requireOverlayScrollers()
+            let host = NSHostingView(rootView: root)
+            host.frame = NSRect(origin: .zero, size: size)
+            let window = MacSnapshotWindow(
+                contentRect: NSRect(origin: .zero, size: size),
+                styleMask: [.titled, .closable],
+                backing: .buffered,
+                defer: false
+            )
+            window.contentView = host
+            window.isReleasedWhenClosed = false
+            window.makeKeyAndOrderFront(nil)
+            for _ in 0..<20 {
+                await Task.yield()
+                try? await Task.sleep(for: .milliseconds(50))
+                if !context.store.isProcessing { break }
+            }
+            try? await Task.sleep(for: .milliseconds(200))
+
+            let record = ProcessInfo.processInfo.environment["SNAPSHOT_TESTING_RECORD"]
+                .flatMap(SnapshotTestingConfiguration.Record.init(rawValue:))
             assertSnapshot(
                 of: Self.render(host, scale: MacSnapshotWindow.scale),
                 as: .image(precision: 0.9999, perceptualPrecision: 0.995),

@@ -328,6 +328,17 @@ final class IndexStore {
         return result
     }
 
+    /// Incoming wikilinks to a day are queried on demand and belong to this vault generation.
+    func computeDayBacklinks(_ day: CalendarDate) async throws -> [DayBacklink] {
+        guard let index else { throw VaultStoreError.staleTarget }
+        let current = generation
+        let result = try await Task.detached {
+            try index.dayBacklinks(for: day)
+        }.value
+        guard generation == current else { throw VaultStoreError.staleTarget }
+        return result
+    }
+
     /// Full history is read on demand for detail screens and dates outside the bounded snapshot.
     func goalHistory(key: String? = nil) async throws -> [String: [GoalLog]] {
         guard let index else { throw VaultStoreError.staleTarget }

@@ -29,6 +29,8 @@ final class QuickEntryModel {
     var overridesDate = false
     var manualDueDate: CalendarDate?
     var manualDateIsAssumed = false
+    /// Task expressions the user turned back into plain words, as UTF-8 ranges of `text`.
+    var suppressedExpressions: [Range<Int>] = []
     let today: () -> CalendarDate
     let now: () -> Date
 
@@ -43,7 +45,13 @@ final class QuickEntryModel {
 
     var text: String {
         get { composer.text }
-        set { composer.text = newValue }
+        set {
+            let old = composer.text
+            composer.text = newValue
+            // The composer reports only unequal strings, and two spellings of one accented letter
+            // compare equal; the suppressed byte ranges still have to follow the new bytes.
+            if old == newValue, !old.utf8.elementsEqual(newValue.utf8) { reconcileTaskExpressions(oldText: old) }
+        }
     }
     var qualifier: String {
         get { composer.qualifier }
@@ -92,7 +100,7 @@ final class QuickEntryModel {
         self.selectedTime = now()
         includesTime = day == nil || day == today()
         // Suggestions and "Vazgeç" edit the text through the composer, not through `text`.
-        composer.onTextChange = { [weak self] old in self?.reconcileTaskDate(oldText: old) }
+        composer.onTextChange = { [weak self] old in self?.reconcileTaskExpressions(oldText: old) }
     }
 
     var isHistorical: Bool { day.map { $0 != today() } ?? false }
@@ -148,6 +156,7 @@ final class QuickEntryModel {
         let draftOverridesDate = overridesDate
         let draftManualDueDate = manualDueDate
         let draftManualDateIsAssumed = manualDateIsAssumed
+        let draftSuppressed = suppressedExpressions
         let draftDismissedLocation = dismissedLocation
         let submitMode = mode
         let submitDue = dueDate
@@ -163,6 +172,7 @@ final class QuickEntryModel {
             overridesDate = false
             manualDueDate = nil
             manualDateIsAssumed = false
+            suppressedExpressions = []
             pins = []
             skipped = []
             awaitingResolution = false
@@ -180,7 +190,7 @@ final class QuickEntryModel {
                     draft, pins: draftPins, skipped: draftSkipped, recurrence: draftRecurrence,
                     priority: draftPriority, overridesDate: draftOverridesDate,
                     manualDueDate: draftManualDueDate, manualDateIsAssumed: draftManualDateIsAssumed,
-                    dismissedLocation: draftDismissedLocation)
+                    suppressed: draftSuppressed, dismissedLocation: draftDismissedLocation)
                 composer.errorText =
                     store.entryErrorText
                     ?? String(localized: "Olay kaydedilemedi. Kasayı kontrol edip yeniden dene.")
@@ -192,7 +202,7 @@ final class QuickEntryModel {
                 draft, pins: draftPins, skipped: draftSkipped, recurrence: draftRecurrence,
                 priority: draftPriority, overridesDate: draftOverridesDate,
                 manualDueDate: draftManualDueDate, manualDateIsAssumed: draftManualDateIsAssumed,
-                dismissedLocation: draftDismissedLocation)
+                suppressed: draftSuppressed, dismissedLocation: draftDismissedLocation)
             composer.errorText = String(localized: "Anmalar bağlanamadı. Metni kontrol edip yeniden dene.")
             return false
         }
@@ -201,10 +211,12 @@ final class QuickEntryModel {
     private func restoreFailedDraft(
         _ draft: String, pins draftPins: [Pin], skipped draftSkipped: Set<MentionPosition>,
         recurrence: TaskRecurrence?, priority: TaskPriority?, overridesDate: Bool,
-        manualDueDate: CalendarDate?, manualDateIsAssumed: Bool, dismissedLocation: Bool
+        manualDueDate: CalendarDate?, manualDateIsAssumed: Bool, suppressed: [Range<Int>],
+        dismissedLocation: Bool
     ) {
         if text.isEmpty {
             text = draft
+            suppressedExpressions = suppressed
             pins = draftPins
             skipped = draftSkipped
             taskRecurrence = recurrence
@@ -220,6 +232,8 @@ final class QuickEntryModel {
         pins = []
         skipped = []
         text = draft + "\n" + typed
+        // The failed entry is the prefix, so its ranges still point at the same bytes.
+        suppressedExpressions = suppressed
         taskRecurrence = recurrence
         taskPriority = priority
         self.overridesDate = overridesDate
@@ -228,9 +242,17 @@ final class QuickEntryModel {
         self.dismissedLocation = dismissedLocation
     }
 
-    private func reconcileTaskDate(oldText: String) {
+    private func reconcileTaskExpressions(oldText: String) {
+        let suppressed = suppressedExpressions
+        suppressedExpressions = Self.following(suppressed, from: oldText, to: text)
         guard mode == .task else { return }
-        let previous = DateExpressionParser.parse(oldText, today: today(), language: languages)?.date
+        // Without a suppression this stays the plain date parse it always was.
+        let previous =
+            suppressed.isEmpty
+            ? DateExpressionParser.parse(oldText, today: today(), language: languages)?.date
+            : QuickEntryAnalysis.analyze(
+                oldText, today: today(), language: languages, suppressedRanges: suppressed
+            ).date?.date
         if previous != dateExpression?.date {
             overridesDate = false
             manualDueDate = nil

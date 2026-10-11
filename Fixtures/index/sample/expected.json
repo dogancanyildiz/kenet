@@ -1344,6 +1344,56 @@
       "name": "Çınaraltı Kafe"
     }
   ],
+  "entityFields": [
+    {
+      "file": "people/Baran Tunç.md",
+      "key": "doğum günü",
+      "kind": "date",
+      "value": "1988-08-04"
+    },
+    {
+      "file": "people/Deniz Arıkan.md",
+      "key": "doğum günü",
+      "kind": "date",
+      "value": "1990-05-14"
+    },
+    {
+      "file": "people/Ece Yalın.md",
+      "key": "doğum günü",
+      "kind": "date",
+      "value": "1994-03-30"
+    },
+    {
+      "file": "people/Mert Aksu (iş).md",
+      "key": "doğum günü",
+      "kind": "date",
+      "value": "1989-12-05"
+    },
+    {
+      "file": "people/Mert Aksu.md",
+      "key": "doğum günü",
+      "kind": "date",
+      "value": "1991-07-19"
+    },
+    {
+      "file": "people/Selin Korkmaz.md",
+      "key": "doğum günü",
+      "kind": "date",
+      "value": "1992-11-23"
+    },
+    {
+      "file": "places/Liman Ofis.md",
+      "key": "radius",
+      "kind": "number",
+      "value": "100"
+    },
+    {
+      "file": "places/Tepe Spor Salonu.md",
+      "key": "radius",
+      "kind": "number",
+      "value": "80"
+    }
+  ],
   "files": [
     {
       "kind": "goal",

@@ -39,6 +39,8 @@ extension VaultIndex {
                     db, sql: "SELECT * FROM blocks WHERE file=? ORDER BY ordinal", arguments: [path]),
                 links: try IndexedLink.fetchAll(
                     db, sql: "SELECT * FROM links WHERE file=? ORDER BY ordinal", arguments: [path]),
+                entityFields: try IndexedEntityField.fetchAll(
+                    db, sql: "SELECT * FROM entity_fields WHERE file=? ORDER BY key", arguments: [path]),
                 goalLogs: try IndexedGoalLog.fetchAll(
                     db, sql: "SELECT * FROM goal_logs WHERE file=? ORDER BY key", arguments: [path]))
         }
@@ -52,17 +54,20 @@ public struct IndexedFileContents: Sendable, Equatable {
     public let aliases: [IndexedAlias]
     public let blocks: [IndexedBlock]
     public let links: [IndexedLink]
+    public let entityFields: [IndexedEntityField]
     public let goalLogs: [IndexedGoalLog]
 
     public init(
         file: IndexSnapshot.File, entity: IndexedEntity?, aliases: [IndexedAlias],
-        blocks: [IndexedBlock], links: [IndexedLink], goalLogs: [IndexedGoalLog]
+        blocks: [IndexedBlock], links: [IndexedLink], entityFields: [IndexedEntityField],
+        goalLogs: [IndexedGoalLog]
     ) {
         self.file = file
         self.entity = entity
         self.aliases = aliases
         self.blocks = blocks
         self.links = links
+        self.entityFields = entityFields
         self.goalLogs = goalLogs
     }
 }

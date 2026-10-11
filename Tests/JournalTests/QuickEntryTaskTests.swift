@@ -126,4 +126,87 @@ struct QuickEntryTaskTests {
         #expect(await historical.submit(time: nil))
         #expect(try context.document().bodyLines.tasks.count == 1)
     }
+
+    /// A weekday inside a recurrence (`her salı`) is not the task's date, so typing next to it must
+    /// not look like the date changed.
+    @Test(arguments: ["her salı", "her hafta", "every monday", "every week", "!! her cuma günü"])
+    func pickedDateOutlivesEditsUntilTheTextNamesAnotherDate(expression: String) throws {
+        let context = try TaskTestContext()
+        defer { context.clean() }
+        let model = context.model()
+        model.mode = .task
+        model.text = "\(expression) plan"
+        let written = model.dueDate
+        let picked = try #require(CalendarDate("2026-10-20"))
+        model.selectDate(picked)
+        for text in ["\(expression) plana", "\(expression) pla", "x \(expression) pla", "\(expression) pla "] {
+            model.text = text
+            #expect(model.overridesDate && model.dueDate == picked && !model.dateIsAssumed, "\(text)")
+            #expect(model.recurrenceExpression != nil, "\(text)")
+        }
+        // Letter by letter, as the box reports it: only the finished word is a date.
+        for length in 1..."yarın".count {
+            model.text = "\(expression) pla " + "yarın".prefix(length)
+            #expect(model.overridesDate == (length < "yarın".count), "\(model.text)")
+        }
+        #expect(model.dueDate == context.today.addingDays(1) && !model.dateIsAssumed)
+        // The pick is gone for good, not hidden: taking the word back returns to what the text says.
+        model.text = "\(expression) pla"
+        #expect(!model.overridesDate && model.dueDate == written)
+    }
+
+    @Test func pickedDateFollowsTheWrittenDateOnlyWhenThatDateChanges() throws {
+        let context = try TaskTestContext()
+        defer { context.clean() }
+        let model = context.model()
+        model.mode = .task
+        model.text = "her salı plan 5 ekim"
+        #expect(model.dueDate == CalendarDate("2026-10-05"))
+        let picked = try #require(CalendarDate("2026-10-20"))
+        model.selectDate(picked)
+        model.text = "her salı planı 5 ekim"
+        #expect(model.overridesDate && model.dueDate == picked)
+        model.text = "her salı planı 6 ekim"
+        #expect(!model.overridesDate && model.dueDate == CalendarDate("2026-10-06") && model.dateIsAssumed)
+        // Removing the date by hand is a pick too.
+        model.selectDate(nil)
+        model.text = "her salı plan 6 ekim"
+        #expect(model.overridesDate && model.dueDate == nil)
+        model.text = "her salı plan"
+        #expect(!model.overridesDate && model.dueDate == nil)
+    }
+
+    @Test func pickedDateIsWrittenWithTheWeekdayRecurrence() async throws {
+        let context = try TaskTestContext()
+        defer { context.clean() }
+        await context.start()
+        let model = context.model()
+        model.mode = .task
+        model.text = "her salı pla"
+        model.selectDate(CalendarDate("2026-10-20"))
+        model.text = "her salı plan"
+        #expect(await model.submit(time: nil))
+        let task = try #require(context.document().bodyLines.tasks.first)
+        #expect(task.text == "plan" && task.recurrence?.rule == "every tuesday")
+        #expect(task.dueDate == CalendarDate("2026-10-20"))
+    }
+
+    @Test func undoneDateWordKeepsThePickedDateNextToAWeekdayRecurrence() throws {
+        let context = try TaskTestContext()
+        defer { context.clean() }
+        let model = context.model()
+        model.mode = .task
+        model.text = "her salı yarın ara"
+        model.undoRecognition(try #require(model.taskExpressions.first { $0.spelling == "yarın" }))
+        #expect(model.dueDate == nil)
+        let picked = try #require(CalendarDate("2026-10-20"))
+        model.selectDate(picked)
+        model.text = "her salı yarın aras"
+        #expect(model.overridesDate && model.dueDate == picked && model.submissionText == "yarın aras")
+        // Changing the undone word forgets the undo; once it is a date again the pick drops.
+        model.text = "her salı yarı aras"
+        #expect(model.suppressedExpressions.isEmpty && model.overridesDate && model.dueDate == picked)
+        model.text = "her salı yarın aras"
+        #expect(!model.overridesDate && model.dueDate == context.today.addingDays(1))
+    }
 }

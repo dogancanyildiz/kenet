@@ -70,6 +70,30 @@ struct TaskMoveDateTests {
         #expect(dates == [context.today, CalendarDate("2026-10-04"), CalendarDate("2026-10-05")])
     }
 
+    /// Saturday on a Sunday week: tomorrow and next week are both Sunday, so only tomorrow is offered.
+    @Test func sundayWeekSaturdayKeepsTheEarlierMoveWhenDatesMatch() async throws {
+        let context = try TaskTestContext()
+        defer { context.clean() }
+        await context.start()
+        try Data("- [ ] open ^open\n- [ ] here 📅 2026-10-03 ^here\n".utf8).write(to: context.file)
+        await context.store.refresh()
+        let saturday = CalendarDate("2026-10-03")!
+        #expect(saturday.weekday == 5)
+        #expect(context.today == saturday)
+        let sundayWeek = WeekStartTests.calendar(firstWeekday: 1)
+        let open = TaskMove.options(for: try context.row("open"), on: saturday, calendar: sundayWeek)
+        #expect(open.map(\.destination) == [.today, .tomorrow])
+        #expect(open.map(\.date) == [saturday, CalendarDate("2026-10-04")])
+        let here = TaskMove.options(for: try context.row("here"), on: saturday, calendar: sundayWeek)
+        #expect(here.map(\.destination) == [.tomorrow])
+        #expect(here.map(\.date) == [CalendarDate("2026-10-04")])
+        let mondayWeek = WeekStartTests.calendar(firstWeekday: 2)
+        let monday = TaskMove.options(for: try context.row("open"), on: saturday, calendar: mondayWeek)
+        #expect(monday.map(\.destination) == [.today, .tomorrow, .nextWeek])
+        #expect(
+            monday.map(\.date) == [saturday, CalendarDate("2026-10-04"), CalendarDate("2026-10-05")])
+    }
+
     @Test func noticeCountsEveryOutcomeAndLeavesOutZeroes() {
         for locale in [Locale(identifier: "en_US"), Locale(identifier: "tr_TR")] {
             let all = TaskMoveReport(moved: 5, unchanged: 3, failed: 2).text(locale: locale)

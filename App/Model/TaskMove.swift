@@ -38,15 +38,19 @@ enum TaskMove {
         }
     }
 
-    /// Closed tasks get no move actions. A destination the task is already due on is not offered.
+    /// Closed tasks get no move actions. A day the task is already due on is not offered, and a day
+    /// already offered by an earlier action is not offered again (today, then tomorrow, then next week).
     static func options(
         for row: TaskRow, on today: CalendarDate, calendar: Calendar = .autoupdatingCurrent
     ) -> [TaskMoveOption] {
         guard !row.isClosed else { return [] }
-        return [TaskMoveDestination.today, .tomorrow, .nextWeek].compactMap { destination in
-            guard let date = date(destination, today: today, calendar: calendar), date != row.due else { return nil }
-            return TaskMoveOption(destination: destination, date: date)
+        var offered: [TaskMoveOption] = []
+        for destination in [TaskMoveDestination.today, .tomorrow, .nextWeek] {
+            guard let date = date(destination, today: today, calendar: calendar), date != row.due else { continue }
+            if offered.contains(where: { $0.date == date }) { continue }
+            offered.append(TaskMoveOption(destination: destination, date: date))
         }
+        return offered
     }
 
     /// Each task is read again right before its own write, so an earlier write in the same file cannot

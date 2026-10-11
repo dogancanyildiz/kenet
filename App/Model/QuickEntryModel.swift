@@ -21,9 +21,7 @@ final class QuickEntryModel {
             manualDateIsAssumed = false
         }
     }
-    var languages: [DateParsing.Language] =
-        (Bundle.main.preferredLocalizations.first ?? Locale.preferredLanguages.first)?.hasPrefix("tr") == true
-        ? [.turkish, .english] : [.english, .turkish]
+    var languages: [DateParsing.Language] = DateParsingLanguages.preferred(for: DateParsingLanguages.appLocale)
     /// Decides which day a week expression (`haftaya`, `next week`) means.
     var calendar = Calendar.autoupdatingCurrent
     var taskRecurrence: TaskRecurrence?

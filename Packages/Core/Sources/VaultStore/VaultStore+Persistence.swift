@@ -2,6 +2,7 @@ import Foundation
 import VaultFormat
 
 extension VaultStore {
+    /// Called inside the operation’s coordination boundary; never starts nested coordination.
     nonisolated func persist(_ document: RawDocument, path: String, exclusive: Bool = false) throws {
         let url = try checkedURL(path, writing: true)
         try atomicWrite(Data(document.serialized()), to: url, exclusive: exclusive)

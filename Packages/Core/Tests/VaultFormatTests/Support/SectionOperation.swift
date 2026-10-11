@@ -4,6 +4,27 @@ import VaultFormat
 /// Checks the section append fixture independently against its expected bytes.
 enum SectionOperation {
     static func check(_ json: JSONValue, description: JSONValue, before: RawDocument, name: String) throws {
+        if json["operation"] == .string("append-journal") {
+            let contents = try #require(json["lines"]?.arrayValue).map { try #require($0.stringValue) }
+            if let error = description["expectedError"] {
+                #expect { try before.appendingJournalLines(contents) } throws: {
+                    ($0 as? EditError)?.fixtureName == error.stringValue
+                }
+            } else {
+                let expected = try Fixtures.bytes(at: "write/\(name)/expected.md")
+                let after = try before.appendingJournalLines(contents)
+                #expect(after.serialized() == expected)
+                #expect(after == RawDocument(bytes: expected))
+                #expect(RawDocument(bytes: after.serialized()).serialized() == expected)
+                // Every old byte survives, in order, around one run of inserted bytes.
+                let old = before.serialized()
+                let prefix = zip(old, expected).prefix { $0 == $1 }.count
+                let suffix = zip(old.dropFirst(prefix).reversed(), expected.reversed()).prefix { $0 == $1 }.count
+                #expect(prefix + suffix == old.count)
+            }
+            #expect(before == RawDocument(bytes: before.serialized()))
+            return
+        }
         if json["operation"] == .string("replace-journal") {
             let text = try #require(json["text"]?.stringValue)
             if let error = description["expectedError"] {

@@ -1,0 +1,9 @@
+{
+  "sections": {
+    "operation": "append-journal",
+    "lines": [
+      "Yeni",
+      "İkinci"
+    ]
+  }
+}

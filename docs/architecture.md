@@ -75,6 +75,8 @@ Paket hedeflere ayrılır. `VaultFormat` hedefi ayrıştırıcıyı, yazıcıyı
 
 `VaultStore`, uygulamanın mevcut kasa belgelerini düzenleyen tek kapısıdır; aynı kasa kökündeki yazmaları ortak seri bir Foundation işlem kuyruğunda sıralar. Her işlem belgeyi diskten yeniden okur, `VaultFormat` ile düzenler, dosyaya yazar (mevcut dosyayı atomik değiştirir; sabit bağlantı desteklenmiyorsa yeni dosyayı dışlayıcı oluşturur) ve ardından yalnız değişen yolu `VaultIndex` ile günceller; indeks hatası yazılmış dosyayı geri almaz ve `indexUpdateFailed(path:underlying:)` ile dosyanın yazıldığı açıkça bildirilir.
 
+Journal sonuna ekleme, VaultStore’un aynı dosya-önce atomik yazma yolunu ve RawDocument bölüm ekleme altyapısını kullanır; Summaries içindeki saf WeeklyReviewText yalnız çağıranın yerelleştirdiği özet cümlelerini ve cevapları güvenli düz satırlara birleştirir.
+
 İlk kullanım ve kasa hazırlama sırasında App katmanındaki `VaultImportBootstrap` yalnız eksik klasör, şablon ve `.app/vault.json` oluşturur; mevcut dosyaları değiştirmez. Core’un genel belge yazıcısı bu yapısal yolları kabul etmediğinden yeni dosyalar geçici dosya ve dışlayıcı sabit bağlantıyla yayımlanır; sabit bağlantı desteklenmiyorsa dışlayıcı oluşturma kullanılır. Eksik `type` eklemeleri `VaultStore` üzerinden yapılır.
 
 `GoalTracking`, yalnız `VaultFormat` importu olan saf hedef katmanıdır: tanım, gün kaydı, dönem/yıl ilerlemesi, zincir/en uzun seri ve ısı haritası. İndeks tipleri kaynak alanlarından kurar; kayıt yazımı `VaultStore.settingGoalValue` ile dosya-önce yapılır. Takvim aritmetiği `CalendarDate` üzerinde ortak olup `DateParsing` tarafından da kullanılır.

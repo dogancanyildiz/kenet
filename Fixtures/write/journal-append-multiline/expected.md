@@ -1,0 +1,5 @@
+## Journal
+Eski
+
+Yeni
+İkinci

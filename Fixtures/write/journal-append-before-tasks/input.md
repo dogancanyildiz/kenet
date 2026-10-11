@@ -1,0 +1,5 @@
+## Journal
+Eski
+
+## Tasks
+- [ ] Kitap

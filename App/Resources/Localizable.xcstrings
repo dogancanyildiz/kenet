@@ -369,6 +369,46 @@
         }
       }
     },
+    "%lld görev açık" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld task open"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld tasks open"
+                }
+              }
+            }
+          }
+        },
+        "tr" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld görev açık"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld görev açık"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "%lld görev bugün" : {
       "localizations" : {
         "en" : {
@@ -653,6 +693,46 @@
         }
       }
     },
+    "%lld günde kayıt var" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Entries on %lld day"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Entries on %lld days"
+                }
+              }
+            }
+          }
+        },
+        "tr" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld günde kayıt var"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld günde kayıt var"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "%lld gündür" : {
       "localizations" : {
         "en" : {
@@ -841,6 +921,22 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "%lld/%lld gün" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld/%2$lld days"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld/%2$lld gün"
           }
         }
       }
@@ -1097,6 +1193,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Açık uçlu"
+          }
+        }
+      }
+    },
+    "Açık: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open: %@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Açık: %@"
           }
         }
       }
@@ -2797,6 +2909,38 @@
         }
       }
     },
+    "Bu hafta yapıldı" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Done this week"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bu hafta yapıldı"
+          }
+        }
+      }
+    },
+    "Bu haftadan açık görev kalmadı." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No open tasks left from this week."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bu haftadan açık görev kalmadı."
+          }
+        }
+      }
+    },
     "Bu işlem geri alınamaz." : {
       "localizations" : {
         "en" : {
@@ -3117,6 +3261,54 @@
         }
       }
     },
+    "Bugünün dosyası okunamadığı için yazılmadı. Dosyanın kodlamasını kontrol et." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Today’s file can’t be read, so nothing was written. Check the file’s encoding."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bugünün dosyası okunamadığı için yazılmadı. Dosyanın kodlamasını kontrol et."
+          }
+        }
+      }
+    },
+    "Bugünün dosyasındaki günlük bölümüne eklenemiyor. Kapanmamış kod bloğunu ya da dosyanın başındaki alanları kontrol et." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Can’t add to the journal section of today’s file. Check for an unclosed code block or the fields at the top of the file."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bugünün dosyasındaki günlük bölümüne eklenemiyor. Kapanmamış kod bloğunu ya da dosyanın başındaki alanları kontrol et."
+          }
+        }
+      }
+    },
+    "Bugünün günlük yazısının sonuna aynen eklenir." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Added as is to the end of today’s journal."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bugünün günlük yazısının sonuna aynen eklenir."
+          }
+        }
+      }
+    },
     "Bulunan klasörler" : {
       "localizations" : {
         "en" : {
@@ -3193,6 +3385,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Çıkış"
+          }
+        }
+      }
+    },
+    "Çıktıya ekle" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Include in the output"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Çıktıya ekle"
           }
         }
       }
@@ -4029,6 +4237,22 @@
         }
       }
     },
+    "Geçen hafta" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Last week"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geçen hafta"
+          }
+        }
+      }
+    },
     "Geçerli bir sayı gir." : {
       "localizations" : {
         "en" : {
@@ -4461,6 +4685,22 @@
         }
       }
     },
+    "Görüşmeyeli bir süre oldu: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not seen in a while: %@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Görüşmeyeli bir süre oldu: %@"
+          }
+        }
+      }
+    },
     "Görüşülmeyenler eşiği" : {
       "localizations" : {
         "en" : {
@@ -4653,6 +4893,22 @@
         }
       }
     },
+    "Günlüğe yaz" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Write to journal"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Günlüğe yaz"
+          }
+        }
+      }
+    },
     "Günlüğün, senin dosyaların" : {
       "localizations" : {
         "en" : {
@@ -4829,6 +5085,22 @@
         }
       }
     },
+    "Günlük ya da haftalık hedef yok." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No daily or weekly goals."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Günlük ya da haftalık hedef yok."
+          }
+        }
+      }
+    },
     "Günlük yazısı" : {
       "localizations" : {
         "en" : {
@@ -4989,6 +5261,22 @@
         }
       }
     },
+    "Hafta: %@ – %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Week: %1$@ – %2$@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hafta: %1$@ – %2$@"
+          }
+        }
+      }
+    },
     "Haftalık" : {
       "localizations" : {
         "en" : {
@@ -5001,6 +5289,54 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Haftalık"
+          }
+        }
+      }
+    },
+    "Haftalık inceleme" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weekly review"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Haftalık inceleme"
+          }
+        }
+      }
+    },
+    "Haftalık inceleme günlüğe yazıldı, indeks güncellenemedi." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weekly review written to the journal, but the index could not be updated."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Haftalık inceleme günlüğe yazıldı, indeks güncellenemedi."
+          }
+        }
+      }
+    },
+    "Haftalık inceleme günlüğe yazıldı." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weekly review written to the journal."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Haftalık inceleme günlüğe yazıldı."
           }
         }
       }
@@ -5021,6 +5357,22 @@
         }
       }
     },
+    "Haftanın sayıları" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The week in numbers"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Haftanın sayıları"
+          }
+        }
+      }
+    },
     "Haftaya" : {
       "localizations" : {
         "en" : {
@@ -5033,6 +5385,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Haftaya"
+          }
+        }
+      }
+    },
+    "Haftaya dair eklemek istediğin bir şey varsa yaz; boş bırakabilirsin." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Write anything you want to add about the week; you can leave it empty."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Haftaya dair eklemek istediğin bir şey varsa yaz; boş bırakabilirsin."
+          }
+        }
+      }
+    },
+    "Haftaya dair not" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A note on the week"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Haftaya dair not"
           }
         }
       }
@@ -6365,6 +6749,22 @@
         }
       }
     },
+    "Kasa salt okunur; inceleme günlüğe yazılamaz." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The vault is read-only; the review can’t be written to the journal."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kasa salt okunur; inceleme günlüğe yazılamaz."
+          }
+        }
+      }
+    },
     "Kasa sürümü okunamıyor veya desteklenmiyor. Hazırlama yapılamaz." : {
       "localizations" : {
         "en" : {
@@ -7613,6 +8013,22 @@
         }
       }
     },
+    "Not" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Note"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not"
+          }
+        }
+      }
+    },
     "Notlar" : {
       "localizations" : {
         "en" : {
@@ -8041,6 +8457,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Öncelik %@"
+          }
+        }
+      }
+    },
+    "Önizleme" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preview"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Önizleme"
           }
         }
       }
@@ -10177,6 +10609,22 @@
         }
       }
     },
+    "Vadesi gelen görüşme yok." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No one is due for a catch-up."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vadesi gelen görüşme yok."
+          }
+        }
+      }
+    },
     "Var olan klasörü seç" : {
       "localizations" : {
         "en" : {
@@ -10381,6 +10829,46 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Vazgeç"
+          }
+        }
+      }
+    },
+    "ve %lld görev daha" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "and %lld more task"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "and %lld more tasks"
+                }
+              }
+            }
+          }
+        },
+        "tr" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "ve %lld görev daha"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "ve %lld görev daha"
+                }
+              }
+            }
           }
         }
       }
@@ -10605,6 +11093,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Yarına"
+          }
+        }
+      }
+    },
+    "Yazdığın not günlüğe eklenmedi." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The note you wrote has not been added to the journal."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yazdığın not günlüğe eklenmedi."
+          }
+        }
+      }
+    },
+    "Yazılacak bir şey seçilmedi." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nothing is selected to write."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yazılacak bir şey seçilmedi."
           }
         }
       }

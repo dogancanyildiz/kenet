@@ -49,6 +49,21 @@ import VaultFormat
         #expect(model.summary?.previous.events == 40)
         #expect(!model.isLoading && model.errorText == nil)
     }
+    @Test func runningWeekShowsTodaysGoalScoreAndEndedWeekItsOwn() async throws {
+        let context = try TaskTestContext(sample: true)
+        defer { context.clean() }
+        await context.start()
+        // Wednesday of 21–27 September. Su met its target on 8 of the 10 days from 14 to 23 September;
+        // the days after Wednesday are not misses yet.
+        let model = SummariesModel(store: context.store, today: { CalendarDate("2026-09-23")! })
+        await model.load()
+        #expect(model.summary?.goals.first { $0.definition.key == "su" }?.score == 80)
+        #expect(model.summary?.goals.first { $0.definition.key == "spor" }?.score == nil)
+        // The ended week 14–20 September is measured through its Sunday: 5 of 7.
+        model.previous()
+        await model.load()
+        #expect(model.summary?.goals.first { $0.definition.key == "su" }?.score == 71)
+    }
     @Test func newIndexPublicationReloadsEditedActivityWithoutWritingSummaryFiles() async throws {
         let context = try TaskTestContext()
         defer { context.clean() }

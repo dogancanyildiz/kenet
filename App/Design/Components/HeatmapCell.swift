@@ -14,8 +14,10 @@ struct HeatmapCell: View {
         Group {
             if kind.isDrawn {
                 ZStack(alignment: .bottom) {
-                    RoundedRectangle(cornerRadius: 2, style: .continuous)
-                        .fill(Color.ink.well)
+                    if kind.showsWell {
+                        RoundedRectangle(cornerRadius: 2, style: .continuous)
+                            .fill(Color.ink.well)
+                    }
                     if kind.fillHeightFraction > 0 {
                         RoundedRectangle(cornerRadius: 2, style: .continuous)
                             .fill(fillColor)
@@ -42,7 +44,7 @@ struct HeatmapCell: View {
     private var fillColor: Color {
         switch kind {
         case .partial, .full, .today: Color.ink.accent
-        case .empty, .future: Color.clear
+        case .empty, .future, .forgiven: Color.clear
         }
     }
 
@@ -51,10 +53,10 @@ struct HeatmapCell: View {
     }
 
     private var outlineColor: Color {
-        (isToday || kind == .today) ? Color.ink.accent : Color.ink.control
+        (isToday || kind == .today || kind.usesAccentFrame) ? Color.ink.accent : Color.ink.control
     }
 
     private var outlineWidth: CGFloat {
-        (isToday || kind == .today) ? InkStroke.highPriority : InkStroke.control
+        (isToday || kind == .today || kind.usesAccentFrame) ? InkStroke.highPriority : InkStroke.control
     }
 }

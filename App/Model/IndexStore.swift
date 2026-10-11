@@ -288,13 +288,14 @@ final class IndexStore {
     }
 
     /// Summary history is queried on demand and belongs to this vault generation.
-    func computeSummary(period: SummaryPeriod, day: CalendarDate, from: CalendarDate, to: CalendarDate) async throws
-        -> PeriodSummary
-    {
+    func computeSummary(
+        period: SummaryPeriod, day: CalendarDate, from: CalendarDate, to: CalendarDate, today: CalendarDate? = nil
+    ) async throws -> PeriodSummary {
         guard let index else { throw VaultStoreError.staleTarget }
         let current = generation
         let result = try await Task.detached {
-            PeriodSummary.compute(period: period, containing: day, data: try index.summaryInput(from: from, to: to))
+            PeriodSummary.compute(
+                period: period, containing: day, data: try index.summaryInput(from: from, to: to), today: today)
         }.value
         guard generation == current else { throw VaultStoreError.staleTarget }
         return result

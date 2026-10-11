@@ -14,6 +14,9 @@ public struct SummaryGoal: Sendable {
     public let streak: Int
     public let change: Double
     public let streakChange: Int
+    /// Daily success percent of the 30 days ending at the period end, or at `today` while the period runs.
+    /// Nil for week, year, and milestone, and when no day is measured.
+    public let score: Int?
     public let completionDate: CalendarDate?
 }
 
@@ -31,7 +34,10 @@ public struct PeriodSummary: Sendable {
         counts.events == 0 && counts.writtenDays == 0 && counts.peopleMentions == 0 && counts.placeMentions == 0
             && counts.createdTasks == 0 && counts.completedTasks == 0 && goals.allSatisfy { $0.contribution == 0 }
     }
-    public static func compute(period: SummaryPeriod, containing day: CalendarDate, data: SummaryInput) -> Self {
+    /// `today` only bounds the goal score of a period that has not ended; counts and streaks ignore it.
+    public static func compute(
+        period: SummaryPeriod, containing day: CalendarDate, data: SummaryInput, today: CalendarDate? = nil
+    ) -> Self {
         let range = period.bounds(containing: day)
         let previousRange = period.previous(containing: day)
         let counts = count(data, in: range)
@@ -49,7 +55,7 @@ public struct PeriodSummary: Sendable {
                     definition: goal.definition, progress: current.amount, contribution: current.contribution,
                     streak: current.status.streak, change: current.contribution - (old?.contribution ?? 0),
                     streakChange: current.status.streak - (old?.status.streak ?? 0),
-                    completionDate: current.status.completionDate)
+                    score: goal.score(in: range, today: today), completionDate: current.status.completionDate)
             }.sorted {
                 $0.definition.name == $1.definition.name
                     ? $0.definition.id < $1.definition.id : $0.definition.name < $1.definition.name

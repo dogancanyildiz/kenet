@@ -14,6 +14,13 @@ struct ComponentControlsTests {
         #expect(HeatmapCellKind.today.fillHeightFraction == 1)
         #expect(HeatmapCellKind.today.showsOutline)
         #expect(!HeatmapCellKind.future.isDrawn)
+        #expect(HeatmapCellKind.forgiven.fillHeightFraction == 0)
+        #expect(HeatmapCellKind.forgiven.showsOutline)
+        #expect(HeatmapCellKind.forgiven.isDrawn)
+        #expect(!HeatmapCellKind.forgiven.showsWell)
+        #expect(HeatmapCellKind.forgiven.usesAccentFrame)
+        #expect(HeatmapCellKind.empty.showsWell)
+        #expect(!HeatmapCellKind.empty.usesAccentFrame)
     }
 
     @Test func progressFractionClamps() {

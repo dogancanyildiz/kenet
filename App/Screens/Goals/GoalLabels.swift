@@ -32,7 +32,15 @@ extension GoalDayMark {
         case .none: "Katkı yok"
         case .partial: "Kısmi katkı"
         case .full: "Tam katkı"
+        case .forgiven: "Affedildi"
         }
+    }
+}
+
+enum GoalScoreCopy {
+    /// "Son 30 gün %87" / "Last 30 days 87%". `bundle` selects the language.
+    static func sentence(_ score: Int, bundle: Bundle = .main, locale: Locale = .current) -> String {
+        String(localized: "Son 30 gün \(score)", bundle: bundle, locale: locale)
     }
 }
 
@@ -76,16 +84,21 @@ enum GoalRowPresentation {
         return text
     }
 
-    /// Meta under the name: streak for daily goals, period label for week/year (value is trailing).
-    static func meta(goal: GoalDefinition, status: GoalStatus) -> String? {
+    /// Meta under the name: streak and score for daily goals, period label for week/year.
+    static func meta(
+        goal: GoalDefinition, status: GoalStatus, bundle: Bundle = .main, locale: Locale = .current
+    ) -> String? {
         if goal.kind == .milestone {
             if let day = status.completionDate {
                 return LocalDay.instant(for: day).formatted(.dateTime.day().month().year())
             }
-            return String(localized: "Yapılmadı")
+            return String(localized: "Yapılmadı", bundle: bundle, locale: locale)
         }
         if goal.period == .day {
-            return String(localized: "Güncel zincir: \(status.streak)")
+            let streak = String(localized: "Güncel zincir: \(status.streak)", bundle: bundle, locale: locale)
+            guard let score = status.score else { return streak }
+            // Own line so the percent does not wrap off "Son 30 gün" in a narrow row.
+            return streak + "\n" + GoalScoreCopy.sentence(score, bundle: bundle, locale: locale)
         }
         return goal.period.progressTitle
     }

@@ -36,4 +36,14 @@ extension SummaryInput.Goal {
             contribution, status
         )
     }
+
+    /// Daily score for the card. A period that has ended is measured through its last day, missed or not.
+    /// A period still running is measured as the goal list measures it on `today`, so days that have not
+    /// come yet are never counted as misses. Without `today` the period is taken as ended.
+    func score(in range: ClosedRange<CalendarDate>, today: CalendarDate?) -> Int? {
+        if let today, today <= range.upperBound {
+            return GoalProgress.compute(definition: definition, logs: logs, today: today).score
+        }
+        return GoalProgress.score(definition: definition, logs: logs, through: range.upperBound)
+    }
 }

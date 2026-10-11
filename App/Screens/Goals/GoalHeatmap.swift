@@ -105,7 +105,7 @@ struct GoalHeatmap: View {
     var body: some View {
         let weeks = heatmapWeeks
         let marks = GoalProgress.heatmap(
-            definition: goal, logs: logs, from: weeks.first?.first ?? today, to: today)
+            definition: goal, logs: logs, from: weeks.first?.first ?? today, to: today, today: today)
         ScrollView(.horizontal, showsIndicators: false) {
             VStack(alignment: .leading, spacing: GoalHeatmapMetrics.spacing) {
                 monthLabels(weeks: weeks, cellSize: cellSize)
@@ -220,7 +220,8 @@ struct GoalHeatmap: View {
     }
 
     private var legend: some View {
-        let marks = [GoalDayMark.none, .partial, .full]
+        let marks: [GoalDayMark] =
+            goal.period == .day ? [.none, .partial, .full, .forgiven] : [.none, .partial, .full]
         return Group {
             if dynamicTypeSize.isAccessibilitySize {
                 VStack(alignment: .leading, spacing: 8) {
@@ -266,6 +267,7 @@ extension GoalDayMark {
         case .none: .empty
         case .partial: .partial
         case .full: .full
+        case .forgiven: .forgiven
         }
     }
 }

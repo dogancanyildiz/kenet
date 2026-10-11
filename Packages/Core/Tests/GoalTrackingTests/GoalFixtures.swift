@@ -34,6 +34,8 @@ struct GoalFixture: Decodable, Sendable {
         let done: Double, target: Double, yearDone: Double
         let streak: Int, longestStreak: Int
         let isPendingToday: Bool
+        /// Daily success percent, 0...100. Nil for week, year, and milestone.
+        let score: Int?
         let periodStart: String, periodEnd: String
         let heatmap: [String: String]
         let completionDate: String?
@@ -68,13 +70,14 @@ func goalFixtures(_ fixture: GoalFixture) throws {
             period: period,
             kind: kind, target: source.target ?? 1))
     let logs = try fixture.logs.map { GoalLog(day: try #require(CalendarDate($0.day)), value: $0.value.value) }
-    let result = GoalProgress.compute(
-        definition: definition, logs: logs, today: try #require(CalendarDate(fixture.today)))
+    let today = try #require(CalendarDate(fixture.today))
+    let result = GoalProgress.compute(definition: definition, logs: logs, today: today)
     #expect(result.progress.done == fixture.expected.done, "\(fixture.id)")
     #expect(result.progress.target == fixture.expected.target)
     #expect(result.streak == fixture.expected.streak, "\(fixture.id)")
     #expect(result.longestStreak == fixture.expected.longestStreak, "\(fixture.id)")
     #expect(result.isPendingToday == fixture.expected.isPendingToday)
+    #expect(result.score == fixture.expected.score, "\(fixture.id)")
     #expect(result.yearDone == fixture.expected.yearDone)
     #expect(result.periodStart.description == fixture.expected.periodStart)
     #expect(result.periodEnd.description == fixture.expected.periodEnd)
@@ -86,7 +89,8 @@ func goalFixtures(_ fixture: GoalFixture) throws {
     #expect(result.completionDate?.description == fixture.expected.completionDate)
     let marks = GoalProgress.heatmap(
         definition: definition, logs: logs,
-        from: try #require(CalendarDate(fixture.heatmapFrom)), to: try #require(CalendarDate(fixture.heatmapTo)))
+        from: try #require(CalendarDate(fixture.heatmapFrom)), to: try #require(CalendarDate(fixture.heatmapTo)),
+        today: today)
     let actual = Dictionary(uniqueKeysWithValues: marks.map { ($0.key.description, $0.value.rawValue) })
     #expect(actual == fixture.expected.heatmap, "\(fixture.id)")
 }

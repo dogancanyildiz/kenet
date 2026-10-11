@@ -96,9 +96,14 @@ struct GoalDetailView: View {
                             InkProgressMath.ratio(done: year.done, target: year.target),
                             label: "Yıllık ilerleme"))
                 }
-                HStack(spacing: 16) {
+                HStack(alignment: .firstTextBaseline, spacing: 16) {
                     labeledValue(String(localized: "Güncel zincir"), status.streak.formatted())
                     labeledValue(String(localized: "En uzun seri"), status.longestStreak.formatted())
+                }
+                if goal.period == .day, let score = status.score {
+                    Text(verbatim: GoalScoreCopy.sentence(score))
+                        .font(.ink.meta)
+                        .foregroundStyle(Color.ink.secondaryText)
                 }
             }
         }

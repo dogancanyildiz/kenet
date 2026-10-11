@@ -81,31 +81,10 @@ struct RecognitionLine {
         characters.indices.contains(index) && (characters[index].isLetter || characters[index].isNumber)
     }
 
-    /// Punctuation that joins digits into one time, date, decimal or range, with its full-width and Arabic forms.
-    static let numericSeparators: Set<Character> = [
-        ":", ".", ",", "-", "/", "'", "’", "–", "：", "．", "，", "－", "／", "＇", "٫", "٬",
-    ]
-
     /// A decimal digit of any script; fractions, superscripts, Roman numerals and keycaps are not.
     static func digit(_ character: Character) -> Bool {
         let scalars = character.unicodeScalars
         return scalars.count == 1 && scalars.first?.properties.generalCategory == .decimalNumber
-    }
-
-    /// Whether a separator joins the range to a digit on its other side, with nothing in between.
-    func joinsNumber(_ range: Range<Int>) -> Bool {
-        let after = range.upperBound
-        if characters.indices.contains(after + 1), Self.numericSeparators.contains(characters[after]),
-            Self.digit(characters[after + 1])
-        {
-            return true
-        }
-        let before = range.lowerBound - 1
-        guard before > 0, Self.numericSeparators.contains(characters[before]) else { return false }
-        if Self.digit(characters[before - 1]) { return true }
-        // A part that is already linked keeps its place in the expression: `[[12]]:30`.
-        return before > 2 && characters[before - 1] == "]" && characters[before - 2] == "]"
-            && Self.digit(characters[before - 3]) && !available(before - 1)
     }
 }
 
@@ -134,7 +113,7 @@ struct NamePattern {
         self.isAlias = isAlias
         self.tokens = tokens
         initialLetter = spelling.first(where: { $0.isLetter })
-        isDigitOnly = spelling.allSatisfy(RecognitionLine.digit)
+        isDigitOnly = EntityRecognizer.needsExplicitMention(spelling)
     }
 
     func caseMismatch(in line: RecognitionLine, range: Range<Int>) -> Bool {

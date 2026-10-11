@@ -1,230 +1,6 @@
 {
   "mentions": [
     {
-      "line": 6,
-      "byteRange": [
-        7,
-        9
-      ],
-      "spelling": "12",
-      "candidates": [
-        "places/12.md"
-      ],
-      "isAmbiguous": false,
-      "isCaseMismatch": false,
-      "isCertain": true
-    },
-    {
-      "line": 7,
-      "byteRange": [
-        0,
-        2
-      ],
-      "spelling": "34",
-      "candidates": [
-        "places/34.md"
-      ],
-      "isAmbiguous": false,
-      "isCaseMismatch": false,
-      "isCertain": true
-    },
-    {
-      "line": 7,
-      "byteRange": [
-        18,
-        22
-      ],
-      "spelling": "1907",
-      "candidates": [
-        "places/1907.md"
-      ],
-      "isAmbiguous": false,
-      "isCaseMismatch": false,
-      "isCertain": true
-    },
-    {
-      "line": 8,
-      "byteRange": [
-        11,
-        15
-      ],
-      "spelling": "2026",
-      "candidates": [
-        "places/2026.md"
-      ],
-      "isAmbiguous": false,
-      "isCaseMismatch": false,
-      "isCertain": true
-    },
-    {
-      "line": 9,
-      "byteRange": [
-        0,
-        2
-      ],
-      "spelling": "12",
-      "candidates": [
-        "places/12.md"
-      ],
-      "isAmbiguous": false,
-      "isCaseMismatch": false,
-      "isCertain": true
-    },
-    {
-      "line": 9,
-      "byteRange": [
-        17,
-        21
-      ],
-      "spelling": "2026",
-      "candidates": [
-        "places/2026.md"
-      ],
-      "isAmbiguous": false,
-      "isCaseMismatch": false,
-      "isCertain": true
-    },
-    {
-      "line": 10,
-      "byteRange": [
-        1,
-        3
-      ],
-      "spelling": "12",
-      "candidates": [
-        "places/12.md"
-      ],
-      "isAmbiguous": false,
-      "isCaseMismatch": false,
-      "isCertain": true
-    },
-    {
-      "line": 10,
-      "byteRange": [
-        6,
-        8
-      ],
-      "spelling": "12",
-      "candidates": [
-        "places/12.md"
-      ],
-      "isAmbiguous": false,
-      "isCaseMismatch": false,
-      "isCertain": true
-    },
-    {
-      "line": 10,
-      "byteRange": [
-        10,
-        12
-      ],
-      "spelling": "12",
-      "candidates": [
-        "places/12.md"
-      ],
-      "isAmbiguous": false,
-      "isCaseMismatch": false,
-      "isCertain": true
-    },
-    {
-      "line": 10,
-      "byteRange": [
-        16,
-        18
-      ],
-      "spelling": "12",
-      "candidates": [
-        "places/12.md"
-      ],
-      "isAmbiguous": false,
-      "isCaseMismatch": false,
-      "isCertain": true
-    },
-    {
-      "line": 10,
-      "byteRange": [
-        20,
-        22
-      ],
-      "spelling": "12",
-      "candidates": [
-        "places/12.md"
-      ],
-      "isAmbiguous": false,
-      "isCaseMismatch": false,
-      "isCertain": true
-    },
-    {
-      "line": 10,
-      "byteRange": [
-        24,
-        26
-      ],
-      "spelling": "12",
-      "candidates": [
-        "places/12.md"
-      ],
-      "isAmbiguous": false,
-      "isCaseMismatch": false,
-      "isCertain": true
-    },
-    {
-      "line": 10,
-      "byteRange": [
-        28,
-        30
-      ],
-      "spelling": "12",
-      "candidates": [
-        "places/12.md"
-      ],
-      "isAmbiguous": false,
-      "isCaseMismatch": false,
-      "isCertain": true
-    },
-    {
-      "line": 11,
-      "byteRange": [
-        0,
-        2
-      ],
-      "spelling": "12",
-      "candidates": [
-        "places/12.md"
-      ],
-      "isAmbiguous": false,
-      "isCaseMismatch": false,
-      "isCertain": true
-    },
-    {
-      "line": 12,
-      "byteRange": [
-        0,
-        1
-      ],
-      "spelling": "7",
-      "candidates": [
-        "people/7.md"
-      ],
-      "isAmbiguous": false,
-      "isCaseMismatch": false,
-      "isCertain": true
-    },
-    {
-      "line": 12,
-      "byteRange": [
-        20,
-        21
-      ],
-      "spelling": "7",
-      "candidates": [
-        "people/7.md"
-      ],
-      "isAmbiguous": false,
-      "isCaseMismatch": false,
-      "isCertain": true
-    },
-    {
       "line": 14,
       "byteRange": [
         1,
@@ -247,160 +23,6 @@
       "spelling": "2026",
       "candidates": [
         "places/2026.md"
-      ],
-      "isAmbiguous": false,
-      "isCaseMismatch": false,
-      "isCertain": true
-    },
-    {
-      "line": 15,
-      "byteRange": [
-        0,
-        2
-      ],
-      "spelling": "12",
-      "candidates": [
-        "places/12.md"
-      ],
-      "isAmbiguous": false,
-      "isCaseMismatch": false,
-      "isCertain": true
-    },
-    {
-      "line": 15,
-      "byteRange": [
-        11,
-        13
-      ],
-      "spelling": "12",
-      "candidates": [
-        "places/12.md"
-      ],
-      "isAmbiguous": false,
-      "isCaseMismatch": false,
-      "isCertain": true
-    },
-    {
-      "line": 15,
-      "byteRange": [
-        16,
-        18
-      ],
-      "spelling": "30",
-      "candidates": [
-        "places/Sayılar.md"
-      ],
-      "isAmbiguous": false,
-      "isCaseMismatch": false,
-      "isCertain": true
-    },
-    {
-      "line": 15,
-      "byteRange": [
-        20,
-        22
-      ],
-      "spelling": "12",
-      "candidates": [
-        "places/12.md"
-      ],
-      "isAmbiguous": false,
-      "isCaseMismatch": false,
-      "isCertain": true
-    },
-    {
-      "line": 15,
-      "byteRange": [
-        24,
-        26
-      ],
-      "spelling": "30",
-      "candidates": [
-        "places/Sayılar.md"
-      ],
-      "isAmbiguous": false,
-      "isCaseMismatch": false,
-      "isCertain": true
-    },
-    {
-      "line": 15,
-      "byteRange": [
-        28,
-        30
-      ],
-      "spelling": "12",
-      "candidates": [
-        "places/12.md"
-      ],
-      "isAmbiguous": false,
-      "isCaseMismatch": false,
-      "isCertain": true
-    },
-    {
-      "line": 15,
-      "byteRange": [
-        32,
-        34
-      ],
-      "spelling": "30",
-      "candidates": [
-        "places/Sayılar.md"
-      ],
-      "isAmbiguous": false,
-      "isCaseMismatch": false,
-      "isCertain": true
-    },
-    {
-      "line": 15,
-      "byteRange": [
-        36,
-        38
-      ],
-      "spelling": "12",
-      "candidates": [
-        "places/12.md"
-      ],
-      "isAmbiguous": false,
-      "isCaseMismatch": false,
-      "isCertain": true
-    },
-    {
-      "line": 15,
-      "byteRange": [
-        41,
-        43
-      ],
-      "spelling": "14",
-      "candidates": [
-        "places/Sayılar.md"
-      ],
-      "isAmbiguous": false,
-      "isCaseMismatch": false,
-      "isCertain": true
-    },
-    {
-      "line": 16,
-      "byteRange": [
-        13,
-        17
-      ],
-      "spelling": "١٢",
-      "candidates": [
-        "places/Rakamlar.md"
-      ],
-      "isAmbiguous": false,
-      "isCaseMismatch": false,
-      "isCertain": true
-    },
-    {
-      "line": 17,
-      "byteRange": [
-        19,
-        25
-      ],
-      "spelling": "１２",
-      "candidates": [
-        "places/Rakamlar.md"
       ],
       "isAmbiguous": false,
       "isCaseMismatch": false,
@@ -449,10 +71,10 @@
       "isCertain": true
     },
     {
-      "line": 20,
+      "line": 26,
       "byteRange": [
-        14,
-        16
+        1,
+        3
       ],
       "spelling": "12",
       "candidates": [
@@ -463,14 +85,140 @@
       "isCertain": true
     },
     {
-      "line": 21,
+      "line": 26,
       "byteRange": [
-        40,
-        42
+        19,
+        21
       ],
       "spelling": "12",
       "candidates": [
         "places/12.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 26,
+      "byteRange": [
+        27,
+        29
+      ],
+      "spelling": "12",
+      "candidates": [
+        "places/12.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 26,
+      "byteRange": [
+        35,
+        39
+      ],
+      "spelling": "2026",
+      "candidates": [
+        "places/2026.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 27,
+      "byteRange": [
+        1,
+        3
+      ],
+      "spelling": "34",
+      "candidates": [
+        "places/34.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 27,
+      "byteRange": [
+        21,
+        22
+      ],
+      "spelling": "7",
+      "candidates": [
+        "people/7.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 27,
+      "byteRange": [
+        30,
+        34
+      ],
+      "spelling": "1907",
+      "candidates": [
+        "places/1907.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 28,
+      "byteRange": [
+        1,
+        3
+      ],
+      "spelling": "30",
+      "candidates": [
+        "places/Sayılar.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 28,
+      "byteRange": [
+        8,
+        12
+      ],
+      "spelling": "١٢",
+      "candidates": [
+        "places/Rakamlar.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 28,
+      "byteRange": [
+        25,
+        33
+      ],
+      "spelling": "Sayılar",
+      "candidates": [
+        "places/Sayılar.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 28,
+      "byteRange": [
+        38,
+        46
+      ],
+      "spelling": "Rakamlar",
+      "candidates": [
+        "places/Rakamlar.md"
       ],
       "isAmbiguous": false,
       "isCaseMismatch": false,

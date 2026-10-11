@@ -182,7 +182,14 @@ final class MentionComposer {
         guard fragment.allSatisfy({ $0.isLetter || $0.isNumber || $0 == " " || $0 == "-" }),
             !fragment.hasSuffix(" ")
         else { return nil }
-        return prefix[..<at].utf8.count..<end
+        let start = prefix[..<at].utf8.count
+        // A picked digit-only name keeps its at sign; once pinned it asks nothing more, even with the caret inside it.
+        if EntityRecognizer.needsExplicitMention(String(fragment)),
+            pins.contains(where: { $0.range.lowerBound == start + 1 && $0.range.upperBound >= end })
+        {
+            return nil
+        }
+        return start..<end
     }
 
     func suggestions(at byteOffset: Int? = nil) -> [KnownEntity] {
@@ -233,9 +240,11 @@ final class MentionComposer {
     @discardableResult
     func selectSuggestion(_ entity: KnownEntity, at byteOffset: Int? = nil) -> Int? {
         guard let range = suggestionRange(at: byteOffset) else { return nil }
-        let caret = Self.caretOffset(afterReplacing: range, with: entity.name)
-        replace(range, with: entity.name)
-        pins.append(Pin(range: range.lowerBound..<caret, entity: entity))
+        // A digit-only name is recognized only after its at sign, so it keeps one; linking removes it.
+        let sign = EntityRecognizer.needsExplicitMention(entity.name) ? "@" : ""
+        let caret = Self.caretOffset(afterReplacing: range, with: sign + entity.name)
+        replace(range, with: sign + entity.name)
+        pins.append(Pin(range: (range.lowerBound + sign.utf8.count)..<caret, entity: entity))
         return caret
     }
 

@@ -1,8 +1,8 @@
-import EntityRecognition
 import Foundation
 import Testing
 import VaultFormat
 
+@testable import EntityRecognition
 @testable import VaultIndex
 @testable import VaultStore
 
@@ -360,6 +360,17 @@ struct UnlinkedMentionTests {
         #expect(try vault.index.snapshot() == index)
     }
 
+    /// Every spelling of the entity's name on a line, wherever it stands, as a mention the recognizer might hand over.
+    static func plainMentions(of entity: KnownEntity, onLine line: Int, of document: RawDocument) -> [Mention] {
+        let content = Array(document.lines[line].content)
+        let name = Array(entity.name.utf8)
+        return content.indices.filter { content[$0...].starts(with: name) }.map {
+            Mention(
+                position: MentionPosition(line: line, byteRange: $0..<($0 + name.count)), spelling: entity.name,
+                candidates: [entity], isCaseMismatch: false, isExplicit: false, isAlias: false)
+        }
+    }
+
     /// The last gate before a write: one link over the mention, and the same events, tasks and bytes otherwise.
     @Test(arguments: [
         ["- 12:30 Öğle arası\n", "12", "false"], ["- [ ] Ara 📅 2026-10-12\n", "2026", "false"],
@@ -370,11 +381,9 @@ struct UnlinkedMentionTests {
         let text = "## Events\n" + arguments[0]
         let entity = KnownEntity(file: "people/\(arguments[1]).md", kind: .person, name: arguments[1])
         let source = RawDocument(bytes: text.utf8)
-        // The recognizer no longer reads a clock or a field, so the refused mentions come from the
-        // same line with the number spelled apart: the gate must hold whatever hands it a mention.
-        let spaced = text.replacingOccurrences(of: "12:30", with: "12 30")
-            .replacingOccurrences(of: "2026-10-12", with: "2026 10 12")
-        let mention = try #require(EntityRecognizer.recognize(spaced, entities: [entity]).first)
+        // The recognizer reads neither a clock, nor a field, nor a plainly written digit-only name, so
+        // the gate is handed the name's first spelling on the line: it must hold whoever calls it.
+        let mention = try #require(Self.plainMentions(of: entity, onLine: 1, of: source).first)
         let linked = RawDocument(bytes: try EntityRecognizer.linking(text, mentions: [mention]).utf8)
         #expect(linked != source)
         #expect(VaultStore.isSingleLink(linked, replacing: mention, in: source, to: entity) == (arguments[2] == "true"))
@@ -398,6 +407,32 @@ struct UnlinkedMentionTests {
         #expect(coder.linkTarget == "Kod#1")
         #expect(try vault.index.unlinkedMentionDays(naming: coder).map(\.path) == ["journal/2026-10-07.md"])
         #expect(try vault.index.unlinkedMentions(of: coder, vaultRoot: vault.root).isEmpty)
+    }
+
+    /// A digit-only name or alias is listed where the user wrote it with an at sign and nowhere else.
+    @Test func digitOnlyNameIsListedOnlyWhereItIsExplicit() async throws {
+        let vault = try setup()
+        defer { vault.remove() }
+        let day = "journal/2026-10-07.md"
+        let text =
+            "## Events\n- 12:30 @12 kişi geldi, 12 kişi kaldı, 34 plakalı araç ^e1\n- 12 Ekim 2026, Otoyol ve @34\n"
+            + "## Tasks\n- [ ] 12 kişiyi ara, @12 📅 2026-10-12\n"
+        try vault.write("places/12.md", "---\ntype: place\nname: 12\n---\n")
+        try vault.write("places/Otoyol.md", "---\ntype: place\nname: Otoyol\naliases: [\"34\", \"2026\"]\n---\n")
+        try vault.write(day, text)
+        try vault.index.update(paths: ["places/12.md", "places/Otoyol.md", day], vaultRoot: vault.root)
+        let twelve = try entity("places/12.md", in: vault)
+        let road = try entity("places/Otoyol.md", in: vault)
+        let listed = try vault.index.unlinkedMentions(of: twelve, vaultRoot: vault.root)
+        #expect(listed.map(\.position) == [.init(line: 1, byteRange: 9..<11), .init(line: 4, byteRange: 23..<25)])
+        #expect(listed.allSatisfy { $0.isExplicit && $0.spelling == "12" })
+        let roads = try vault.index.unlinkedMentions(of: road, vaultRoot: vault.root)
+        #expect(roads.map(\.spelling) == ["Otoyol", "34"])
+        #expect(roads.map(\.isExplicit) == [false, true])
+        try await vault.store.linkingMention(try #require(listed.first), to: twelve)
+        #expect(
+            String(decoding: try vault.bytes(day), as: UTF8.self)
+                == text.replacingOccurrences(of: "12:30 @12 kişi", with: "12:30 [[12]] kişi"))
     }
 
     /// The writer works on the bytes it reads under the write queue, not on what the query saw.

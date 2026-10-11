@@ -833,4 +833,22 @@ final class IndexStore {
         }
         return grouped.mapValues(PersonCadence.parse)
     }
+
+    // MARK: - Graph query
+
+    /// Test seam: runs after the graph query returns, before its generation is checked.
+    @ObservationIgnored var testingGraphQueryDidFinish: (@MainActor () async -> Void)?
+
+    /// Graph nodes from the read model's entities, link counts queried from the index on demand.
+    /// Belongs to this vault generation; with no index open, as with an empty read model, it is empty.
+    func computeGraphInput() async throws -> GraphInput {
+        guard let index else { return GraphInput() }
+        let current = generation
+        let mentions = try await Task.detached {
+            try index.graphMentions(kinds: GraphInput.kinds)
+        }.value
+        await testingGraphQueryDidFinish?()
+        guard generation == current else { throw VaultStoreError.staleTarget }
+        return GraphInput(entities: content.entities, mentions: mentions)
+    }
 }

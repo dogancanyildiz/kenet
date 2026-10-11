@@ -655,5 +655,38 @@
         "confidence": "exact"
       }
     ]
+  },
+  {
+    "id": "tr-apostrophe-suffix",
+    "today": "2026-10-05",
+    "language": [
+      "tr",
+      "en"
+    ],
+    "input": "Cuma’ya kadar bitir !!",
+    "suppressed": [],
+    "remainder": "kadar bitir",
+    "tokens": [
+      {
+        "range": [
+          0,
+          9
+        ],
+        "expression": "Cuma’ya",
+        "kind": "date",
+        "value": "2026-10-09",
+        "confidence": "assumed"
+      },
+      {
+        "range": [
+          22,
+          24
+        ],
+        "expression": "!!",
+        "kind": "priority",
+        "value": "high",
+        "confidence": "exact"
+      }
+    ]
   }
 ]

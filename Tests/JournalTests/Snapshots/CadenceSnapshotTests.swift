@@ -72,6 +72,8 @@
                 #expect(detail.personCadence.days == 30)
             }
             let person = try #require(store.content.entities.first { $0.id == Self.personPath })
+            // The entity page queries the timeline the card reads; hosted alone, the test does.
+            let timeline = try await store.computeEntityTimeline(for: person.id)
             let ready = CadenceReadyBox()
             await SnapshotHost.assertView(
                 colorScheme: snapshotCase.colorScheme,
@@ -84,26 +86,28 @@
                 isReady: { snapshotCase.subject == .edit || ready.isReady },
                 testName: "cadence",
                 content: {
-                    Self.hosted(snapshotCase.subject, store: store, detail: detail, person: person)
-                        .environment(IntentNavigation())
-                        .environment(\.locale, snapshotLocale)
-                        .environment(\.timeZone, snapshotTimeZone)
-                        .environment(\.openSearch, {})
-                        .onPreferenceChange(CadenceReadyKey.self) { ready.isReady = $0 }
+                    Self.hosted(
+                        snapshotCase.subject, store: store, detail: detail, person: person, timeline: timeline
+                    )
+                    .environment(IntentNavigation())
+                    .environment(\.locale, snapshotLocale)
+                    .environment(\.timeZone, snapshotTimeZone)
+                    .environment(\.openSearch, {})
+                    .onPreferenceChange(CadenceReadyKey.self) { ready.isReady = $0 }
                 }
             )
         }
 
         @ViewBuilder private static func hosted(
             _ subject: CadenceSnapshotCase.Subject, store: IndexStore, detail: EntityDetailModel,
-            person: EntitySummary
+            person: EntitySummary, timeline: [EntityTimelineDay]
         ) -> some View {
             switch subject {
             case .edit:
                 EntityEditSheet(store: store, model: detail, entity: person)
             case .insights:
                 NavigationStack {
-                    List { EntityInsightsCard(store: store, entity: person) }
+                    List { EntityInsightsCard(store: store, entity: person, timeline: timeline) }
                         .listStyle(.plain)
                         .inkPage()
                 }

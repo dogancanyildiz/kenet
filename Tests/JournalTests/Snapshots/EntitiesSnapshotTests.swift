@@ -68,7 +68,7 @@
             case .people, .peopleUnseenExpanded, .places, .filtered, .customTypes: snapshotCanvasSize
             case .editSheet:
                 dynamicType == .accessibility3
-                    ? CGSize(width: 390, height: 1400) : CGSize(width: 390, height: 1000)
+                    ? CGSize(width: 390, height: 1800) : CGSize(width: 390, height: 1300)
             case .placeEditSheet:
                 // Tall enough for the whole coordinate section under the aliases.
                 dynamicType == .accessibility3

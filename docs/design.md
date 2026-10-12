@@ -1,22 +1,89 @@
 # Tasarım dili
 
-**Durum:** yön seçildi (2026-10-05): Mürekkep, proje sahibinin iki değişikliğiyle. Karar `decisions.md` tablosundadır; uygulama `roadmap.md` Aşama 9'dadır. Bu belge yönü, kuralları ve belirteçleri tutar; ekranların içeriği `screens.md` belgesindedir.
+**Amaç:** Bu belge uygulamanın tasarım dilini tanımlar: seçilen yön, kurallar ve belirteçler.
+
+**Kapsam:**
+
+- Mürekkep yönünün seçimi, oylaması ve yedek seçenekleri.
+- Bütün ekranlar için ortak kurallar ve denetim kalıpları.
+- Renk, yazı, boşluk ve biçim belirteçleri; uygulama simgesi; bileşen ailesi.
+
+## Durum
+
+| Alan | Değer |
+|---|---|
+| Yön | Mürekkep, proje sahibinin iki değişikliğiyle |
+| Seçim tarihi | 2026-10-05 |
+| Karar | [Kararlar](decisions.md) tablosu, 2026-10-05 satırı |
+| Uygulama | [Yol haritası](roadmap.md), Aşama 9 |
+| Belirteç kodu | `App/Design/` ve `App/Resources/Assets.xcassets` |
+| Ekran içeriği | [Ekranlar](screens.md) |
+
+Bu belge yönü, kuralları ve belirteçleri tutar. Ekranların içeriği `screens.md` belgesindedir.
 
 ## Kısıtlar
 
-iOS 26 ve macOS 26'dan beri sekme çubuğu, araç çubuğu ve sheet'ler sistemin Liquid Glass kromudur; HIG camı içerik katmanında istemez. Adaylar bu yüzden içerik katmanında ayrışır. Ürün metin ağırlıklıdır ve her gün, günde birçok kez açılır. Uygulamayı ekranı göremeyen kodlama ajanları yazar: bir dil, kurala bağlanabildiği ölçüde uygulanabilir.
+| Kısıt | Açıklama |
+|---|---|
+| Sistem kromu | iOS 26 ve macOS 26'dan beri sekme çubuğu, araç çubuğu ve sheet'ler sistemin Liquid Glass kromudur. HIG camı içerik katmanında istemez. Adaylar bu yüzden içerik katmanında ayrışır. |
+| Kullanım | Ürün metin ağırlıklıdır. Kullanıcı ürünü her gün, günde birçok kez açar. |
+| Yazarlar | Uygulamayı ekranı göremeyen kodlama ajanları yazar. Ajanlar bir dili ancak kurala bağlanabildiği ölçüde uygular. |
 
-## Nasıl seçildi
+## Seçim süreci
 
-**İlk tur.** Proje sahibi beğendiği üç görseli paylaştı (repoda yok): tek renkli gri bir soft UI panosu; koyu zeminde tek turuncu vurgulu, bento kartlı bir görev planlayıcı; krem kâğıt üstünde mercan ve kömür renkli, dev rakamlı bir baskı düzeni. Yedi aday bu görsellerden ve sahibin andığı iki stilden (cam, kil) türetildi; oylamanın şartlarından "Günün Sayfası" çıktı. Aday listesi sahibin girdisine bağlı olduğu için bu sonuç bağımsız bir araştırmanın sonucu sayılmadı.
+**Seçim iki turda ve bir sahip kararıyla bitti.**
 
-**Kör tur.** Sahibin görsellerini ve ilk turun sonucunu görmeyen altı tasarımcı (dört ayrı yapay zeka model ailesinden) aynı ürün için sıfırdan ikişer yön önerdi. Altısının da birinci tercihi aynı çıktı: kâğıt tonunda opak bir sayfa (krem, kırık beyaz ya da yeşilimsi), ince çizgiler ve kullanıcının kendi sözleri için serif yazı. Hiçbiri dev gün rakamı ya da ters renkli panel kullanmadı; sıcak turuncu bir vurguyu yalnız biri seçti. İkinci yönler sans ya da eş aralıklı yazılı ve yapı ağırlıklıydı: pano, karo, zaman rayı ya da cihaz paneli.
+```mermaid
+flowchart TD
+    A[Sahibin 3 görseli ve 2 stil adı] --> B[İlk tur: 7 aday]
+    B --> C[Oylama şartlarından Günün Sayfası çıktı]
+    C --> D[Heyet sonucu bağımsız saymadı]
+    E[Kör tur: 6 tasarımcı, 4 model ailesi] --> F[12 yeni yön]
+    F --> G[16 aday]
+    B -->|4 finalist| G
+    G --> H[Her aday için aynı içerikle Bugün ekranı]
+    H --> I[5 bakış açısı, adlar gizli oylama]
+    I --> J[Heyet önerisi: Mürekkep]
+    J --> K[Sahibin 2 değişikliği]
+    K --> L[Seçilen yön: Mürekkep]
+```
 
-On iki yeni yön ve ilk turun dört finalisti aynı içerik ve aynı çerçeveyle Bugün ekranı için çizildi. Adları ve kökenleri gizlenerek beş bakış açısından (erişilebilirlik, platform mühendisliği, marka, günlük kullanım, ürün ruhu) bağımsız oylandı. Sahibin zevki bu turda bir üyeyle temsil edilmedi; o oy sahibindir.
+Kör tur, ilk turun sahip girdisine bağlılığını dengeledi. Son karar sahibindir.
+
+### İlk tur
+
+| Adım | Ayrıntı |
+|---|---|
+| Girdi | Proje sahibi beğendiği 3 görseli paylaştı. Görseller repoda yoktur. |
+| Görsel 1 | Tek renkli gri bir soft UI panosu. |
+| Görsel 2 | Koyu zeminde tek turuncu vurgulu, bento kartlı bir görev planlayıcı. |
+| Görsel 3 | Krem kâğıt üstünde mercan ve kömür renkli, dev rakamlı bir baskı düzeni. |
+| Adaylar | 7 aday bu görsellerden ve sahibin andığı 2 stilden türedi: cam ve kil. |
+| Sonuç | Oylamanın şartlarından "Günün Sayfası" çıktı. |
+| Değer | Aday listesi sahibin girdisine bağlıydı. Heyet bu yüzden sonucu bağımsız bir araştırmanın sonucu saymadı. |
+
+### Kör tur
+
+| Adım | Ayrıntı |
+|---|---|
+| Tasarımcılar | 6 tasarımcı, 4 ayrı yapay zeka model ailesinden geldi. Tasarımcılar sahibin görsellerini ve ilk turun sonucunu görmedi. |
+| Görev | Her tasarımcı aynı ürün için sıfırdan 2 yön önerdi. |
+| Birinci tercihler | 6 tasarımcının birinci tercihi aynı çıktı: kâğıt tonunda opak bir sayfa, ince çizgiler ve kullanıcının kendi sözleri için serif yazı. Kâğıt tonu krem, kırık beyaz ya da yeşilimsiydi. |
+| Görülmeyenler | Hiçbir tasarımcı dev gün rakamı ya da ters renkli panel kullanmadı. Sıcak turuncu vurguyu yalnız 1 tasarımcı seçti. |
+| İkinci tercihler | İkinci yönlerin yazısı sans ya da eş aralıklıydı ve yönler yapı ağırlıklıydı: pano, karo, zaman rayı ya da cihaz paneli. |
+| Çizim | Heyet 12 yeni yönü ve ilk turun 4 finalistini aynı içerik ve aynı çerçeveyle Bugün ekranında çizdirdi. |
+| Oylama | 5 bakış açısı adayları adları ve kökenleri gizli olarak bağımsız oyladı: erişilebilirlik, platform mühendisliği, marka, günlük kullanım, ürün ruhu. |
+| Sahibin zevki | Bu turda hiçbir üye sahibin zevkini temsil etmedi. Zevk oyu sahibindir. |
 
 ## Oylama
 
-Sıra puanında her oyda birinci 15, sonuncu 0 alır (en çok 75). "İkili" sütunu, adayın bire bir karşılaştırmada yendiği aday sayısıdır (15 üzerinden).
+| Ölçü | Tanım |
+|---|---|
+| Sıra puanı | Her oyda birinci 15 puan, sonuncu 0 puan alır. En çok 75 puan. |
+| İkili | Adayın bire bir karşılaştırmada yendiği aday sayısı. Üst sınır 15. |
+| Veto | Adayın aldığı veto sayısı. |
+
+**16 adayın sıra puanı, ikili sayısı ve vetosu.**
 
 | Sıra | Aday | Tur | Tek cümle | Sıra puanı | İkili | Veto |
 |---|---|---|---|---|---|---|
@@ -37,167 +104,431 @@ Sıra puanında her oyda birinci 15, sonuncu 0 alır (en çok 75). "İkili" süt
 | 15 | Takvim Yaprağı | ilk | Bento iskeleti, sıcak kâğıt ve dev gün rakamı | 11 | 1 | 1 |
 | 16 | Gösterge | kör | Cihaz paneli: tuşlar, lambalar, eş aralıklı ve dar yazılar | 11 | 0 | 3 |
 
-Tablonun söyledikleri:
+### Oylamanın bulguları
 
-- **Aile.** Üyeler adayları kendi gözleriyle ailelere ayırdı; beşi de ürüne uygun aile olarak kartsız, serif içerikli sayfayı gösterdi (platform bakışı sisteme en yakın, yalnız belirteçle kurulan aileyi de aynı derecede uygun buldu). Bento, pano ve cihaz paneli aileleri ürünü planlayıcı ya da takipçi kategorisine taşıdığı ve olayları ilk ekranın dışına ittiği için sonda kaldı.
-- **İki lider aynı iskelet.** Üç üye, birbirinden bağımsız, Derkenar'ı "Mürekkep ve üstüne iki imza" diye tarif etti. Derkenar bire bir karşılaştırmada her adayı yeniyor (Mürekkep'i 3–2); Mürekkep toplam puanda önde ve hiçbir üyenin sıralamasında dördüncüden aşağı düşmüyor. Derkenar'ı marka, günlük kullanım ve ürün ruhu bakışları birinci, erişilebilirlik ve platform bakışları sekizinci koydu.
-- **İlk turun adayları.** Günün Sayfası 6., A6 Matbaa 12., A5 Kor 14., Takvim Yaprağı 15. sırada. İtirazlar ortaktı: ters renkli büyük yüzey altından geçen sistem camını açık ile koyu arasında çeviriyor ve bir sheet'e benziyor; sistem dışı yazı ailesi Kalın Metin ayarına uymuyor; küçük, büyük harfli etiketler okunmuyor; bento ve hafta şeridi ilk ekranın üst yarısını alıyor. Günün Sayfası bu grubun en ölçülü üyesi sayıldı ve veto almadı.
-- **Model yakınlığı.** Jüri üyeleri üç modeldendi; aynı üç model kör turun on iki yönünden sekizini tasarlamıştı. Beş üyenin dördü, kökenini bilmeden, kendi modelinin tasarımını birinci koydu. Her üyenin kendi modelinden gelen adaylar sayımdan çıkarılınca Mürekkep'in sıraları 2, 4, 2; Derkenar'ın 8, 8, 1 oluyor. Heyet bu yüzden bire bir karşılaştırmanın galibini değil, bu düzeltmeden etkilenmeyen adayı önerdi.
+| Bulgu | Açıklama |
+|---|---|
+| Aile | Üyeler adayları kendi gözleriyle ailelere ayırdı. 5 üye de ürüne uygun aile olarak kartsız, serif içerikli sayfayı gösterdi. Platform bakışı, sisteme en yakın ve yalnız belirteçle kurulan aileyi de aynı derecede uygun buldu. Bento, pano ve cihaz paneli aileleri sonda kaldı. Bu aileler ürünü planlayıcı ya da takipçi kategorisine taşıdı ve olayları ilk ekranın dışına itti. |
+| İki lider aynı iskelet | 3 üye, birbirinden bağımsız, Derkenar'ı "Mürekkep ve üstüne iki imza" diye tarif etti. Derkenar bire bir karşılaştırmada her adayı yener; Mürekkep'i 3–2 yener. Mürekkep toplam puanda öndedir. Hiçbir üye Mürekkep'i dördüncüden aşağı koymadı. Marka, günlük kullanım ve ürün ruhu bakışları Derkenar'ı birinci koydu. Erişilebilirlik ve platform bakışları Derkenar'ı sekizinci koydu. |
+| İlk turun adayları | Günün Sayfası 6., A6 Matbaa 12., A5 Kor 14., Takvim Yaprağı 15. sıradadır. Üyelerin itirazları ortaktı. Ters renkli büyük yüzey, altından geçen sistem camını açık ile koyu arasında çevirir ve bir sheet'e benzer. Sistem dışı yazı ailesi Kalın Metin ayarına uymaz. Küçük, büyük harfli etiketler okunaksızdır. Bento ve hafta şeridi ilk ekranın üst yarısını alır. Heyet Günün Sayfası'nı bu grubun en ölçülü üyesi saydı; Günün Sayfası veto almadı. |
+| Model yakınlığı | Jüri üyeleri 3 modeldendi. Aynı 3 model kör turun 12 yönünden 8'ini tasarlamıştı. 5 üyenin 4'ü, kökeni bilmeden, kendi modelinin tasarımını birinci koydu. Her üyenin kendi modelinden gelen adayları sayımdan çıkarınca Mürekkep'in sıraları 2, 4, 2 olur. Derkenar'ın sıraları 8, 8, 1 olur. Heyet bu yüzden bire bir karşılaştırmanın galibini değil, bu düzeltmeden etkilenmeyen adayı önerdi. |
+
+Bulgular Mürekkep'i öne çıkardı. Derkenar aynı iskeletin imzalı biçimi olarak yedekte kaldı.
 
 ## Seçilen yön: Mürekkep
 
-Tek cümle: kasadan gelen her söz serifle (New York), uygulamanın her sözü sans ile (SF Pro) yazılır; gün, kenar boşluğunda saatleri ve işaretleri duran tek bir sayfadır.
+| Öğe | Tanım |
+|---|---|
+| Kullanıcının sözü | Kasadan gelen her söz serif yazıdır: New York. |
+| Uygulamanın sözü | Uygulamanın her sözü sans yazıdır: SF Pro. |
+| Sayfa | Gün tek bir sayfadır. Saatler ve işaretler sayfanın kenar boşluğunda durur. |
+
+Tek cümleyle: kullanıcının sözü serif, uygulamanın sözü sans; gün, kenar boşluğunda saatleri ve işaretleri duran tek bir sayfadır.
 
 ### Sahibin değişiklikleri
 
-Sahip, heyetin önerdiği Mürekkep'i iki değişiklikle seçti; ikisi de makete çizildi.
+| No | Değişiklik | Kaynak aday | Ayrıntı |
+|---|---|---|---|
+| 1 | Görev işareti köşeli kutudur, öncelik kutunun içindedir | Derkenar | Kutu 22 pt kare, köşe 5 pt. Boş kutu 1,5 pt kontrol çizgisi taşır. Orta öncelikte kutunun içinde "!" durur. Yüksek öncelikte çerçeve 2 pt ve metin rengindedir; içinde "!!" durur. Tamamlanan görevde kutu ikincil metin rengiyle dolar; içinde zemin renginde onay işareti durur. Kenar sütununda ayrı öncelik işareti kalmaz. Hedef işareti halka olarak kalır; böylece görev ile hedef biçimle de ayrışır. |
+| 2 | Hızlı girişte kip iki sözcüktür | Defter | "Olay" ve "Görev" yan yana durur. Seçili sözcük yarı kalındır ve altında 2 pt vurgu çizgisi taşır. Ardından "Gününden bir an…" yer tutucusu ve gönder düğmesi gelir. Kapsül Mürekkep'teki gibi kalır. Mac'te sözcükler arasındaki boşluk 12 pt'dir. iPhone'da erişilebilirlik boyutu aynı aralığı kullanır. Varsayılan iPhone satırında 44 pt dokunma alanı aynı görsel boşluğu üretir; o satır değişmez. |
 
-1. **Görev işareti köşeli kutudur, öncelik kutunun içindedir** (Derkenar'dan). Kutu 22 pt kare, köşe 5 pt. Boş kutu 1,5 pt kontrol çizgisi taşır; orta öncelikte içinde "!" durur; yüksek öncelikte çerçeve 2 pt ve metin rengindedir, içinde "!!" durur. Tamamlanan görevde kutu ikincil metin rengiyle dolar, içinde zemin renginde onay işareti durur. Kenar sütununda ayrı öncelik işareti kalmaz. Hedef işareti halka olarak kalır; böylece görev ile hedef biçimle de ayrışır.
-2. **Hızlı girişte kip iki sözcüktür** (Defter'den). "Olay" ve "Görev" yan yana durur; seçili olan yarı kalındır ve altında 2 pt vurgu çizgisi taşır. Ardından "Gününden bir an…" yer tutucusu ve gönder düğmesi gelir. Kapsül Mürekkep'teki gibi kalır. Mac'te sözcükler arasındaki boşluk 12 pt'dir: iPhone'da erişilebilirlik boyutunun kullandığı aralık; varsayılan iPhone satırında aynı görsel boşluğu 44 pt dokunma alanı üretir ve o satır değişmez.
+Sahip, heyetin önerdiği Mürekkep'i bu iki değişiklikle seçti. Tasarımcı iki değişikliği de makete çizdi. Sahip Derkenar'ın imzasını eklemedi: kenar çizgisi ve fosfor izi. İmza aşağıda ayrı başlıkta durur.
 
-Derkenar'ın imzası (kenar çizgisi ve fosfor izi) eklenmedi; aşağıda ayrı başlıkta durur.
+### Öncelik kutusu itirazı
 
-Jürinin notu: üç üye (platform, günlük kullanım, marka) önceliğin onay kutusunun içine yazılmasına itiraz etmişti: tek denetime iki durum yüklenir ve kutu uyarı rozeti gibi okunabilir. Sahibin kararı geçerlidir; prototipte dokunma davranışıyla birlikte sınanır. Açık ayrıntı: devam eden görevde (kutu yarı dolu) öncelik işaretinin yeri.
+| Konu | Ayrıntı |
+|---|---|
+| İtiraz edenler | Platform, günlük kullanım ve marka bakışları |
+| İtiraz | Önceliği onay kutusunun içine yazmak tek denetime 2 durum yükler. Kullanıcı kutuyu uyarı rozeti gibi okuyabilir. |
+| Karar | Sahibin kararı geçerlidir. Prototip kutuyu dokunma davranışıyla birlikte sınar. |
+| Devam eden görev | Tasarımda açık kalan ayrıntıydı: kutu yarı doluyken öncelik işaretinin yeri. Kod bugün kutunun alt yarısını ikincil metin rengiyle doldurur ve "!" ya da "!!" işaretini açık üst yarıya koyar: `TaskBox.swift`. |
 
-Neden:
+### Seçim gerekçeleri
 
-- Hiçbir bakış açısı onu dördüncüden aşağı koymadı, veto almadı, toplam puanda birinci ve model yakınlığı düzeltmesinden sonra açık ara önde.
-- Platform bakışının birincisi: Bugün tek bir `List`, tek bir satır bileşeni ve yalnız sistem yazı tipleriyle kurulur; özel çizim yalnız hedef halkasındadır. Platform bakışının kaba emek tahmini temel için 5–7 gün, bütün uygulama için 3–4 haftadır.
-- İki ses kuralı ürünün vaadini görünür kılar: dosyada duran söz serif, uygulamanın eklediği ya da hesapladığı her şey sans. Kural verinin kökenine bağlı olduğu için ekranı görmeyen ajan uygulayabilir, inceleyen denetleyebilir.
-- Derkenar aynı iskeletin üstüne iki imza ekler; Mürekkep'le başlamak o yolu kapatmaz.
+| Gerekçe | Açıklama |
+|---|---|
+| Sıra | Hiçbir bakış açısı Mürekkep'i dördüncüden aşağı koymadı. Mürekkep veto almadı ve toplam puanda birincidir. Model yakınlığı düzeltmesinden sonra açık ara öndedir. |
+| Platform | Mürekkep platform bakışının birincisidir. Platform bakışına göre Bugün ekranı tek `List`, tek satır bileşeni ve yalnız sistem yazı tipleri ister. Özel çizim yalnız hedef halkasındadır. Platform bakışının kaba emek tahmini: temel için 5–7 gün, bütün uygulama için 3–4 hafta. |
+| İki ses kuralı | Kural ürünün vaadini görünür kılar. Dosyada duran söz serif yazıdır. Uygulamanın eklediği ya da hesapladığı her şey sans yazıdır. Kural verinin kökenine bağlıdır; bu yüzden ekranı görmeyen ajan kuralı uygular, inceleyen kuralı denetler. |
+| Açık yol | Derkenar aynı iskeletin üstüne 2 imza ekler. Mürekkep'le başlamak Derkenar yolunu kapatmaz. |
 
-Zayıf yanları:
+### Zayıf yanlar
 
-- İmzası yok. Marka bakışı ekran görüntüsünü "zevkli ama anonim" buldu; ürün ruhu bakışına göre 1 piksellik alt çizgi tanımayı fısıldıyor ve yanlış bağlanan ad gözden kaçar.
-- Büyük manşet ve bölüm aralıkları olayları ilk ekranın dışına itiyor (günlük kullanım bakışı).
-- Hiyerarşi sessiz: bölüm etiketleri ve kenardaki öncelik işaretleri küçük (erişilebilirlik bakışı).
-- Sayı ve bakışta durum bu dilin güçlü olmadığı yerdir (hedef ilerlemesi, widget, özetler, zaman çizelgesi); veri görünümleri için ikinci, sınırlı bir kural seti gerekir.
+| Zayıf yan | Kaynak bakış | Açıklama |
+|---|---|---|
+| İmza yok | Marka, ürün ruhu | Marka bakışı ekran görüntüsünü "zevkli ama anonim" buldu. Ürün ruhu bakışına göre 1 piksellik alt çizgi tanımayı fısıldar ve kullanıcı yanlış bağlanan adı gözden kaçırır. |
+| Manşet ve aralıklar | Günlük kullanım | Büyük manşet ve bölüm aralıkları olayları ilk ekranın dışına iter. |
+| Sessiz hiyerarşi | Erişilebilirlik | Bölüm etiketleri ve kenardaki öncelik işaretleri küçüktür. |
+| Veri görünümleri | Heyet | Sayı ve bakışta durum bu dilin güçlü olmadığı yerdir: hedef ilerlemesi, widget, özetler, zaman çizelgesi. Veri görünümleri ikinci, sınırlı bir kural seti ister. |
 
-Jürinin şartları:
+### Jürinin şartları
 
-1. Bugün tek liste ve tek satır bileşenidir. Kenar sütununun genişliği yazı boyutuyla ölçeklenir; erişilebilirlik boyutlarında saat ve öncelik metnin üstüne iner.
-2. Bağlantı yalnız standart metin öznitelikleriyle çizilir ve okuma metninde, hızlı girişte yazarken ve Mac'te aynı görünür. Kontrastı Artır'da alt çizgi kalınlaşır. Kişi ve konum renkleri Graph ve Harita ile aynı belirteçten gelir.
-3. Hızlı girişte olay ve görev kipi görünür olur (sahibin ikinci değişikliğiyle karşılandı); artı ve gönder düğmelerinin ve kip sözcüklerinin dokunma alanı 44 pt'dir.
-4. Manşet bloğu daraltılır; hedef, ilk olayın da kaydırmadan görünmesidir.
-5. Görev kutusunun çizgisi koyulaştırılır: makette 3,48:1; erişilebilirlik bakışı denetim çizgilerinde 4,5:1 arıyor.
-6. Mac kanbanı için çerçeveli, gölgesiz kâğıt kart; tablo ve zaman çizelgesi için tabular saat sütunu ve "şimdi" çizgisi tanımlanır.
+| No | Şart | Koddaki durum |
+|---|---|---|
+| 1 | Bugün tek liste ve tek satır bileşenidir. Kenar sütununun genişliği yazı boyutuyla büyür. Erişilebilirlik boyutlarında saat ve öncelik metnin üstüne iner. | Kenar sütunu `@ScaledMetric` ile büyür: `MarginRow.swift`. Bugün ekranı `List` değil, `ScrollView` içinde tek sütundur: `DayView.swift`. |
+| 2 | Uygulama bağlantıyı yalnız standart metin öznitelikleriyle çizer. Bağlantı okuma metninde, hızlı girişte yazarken ve Mac'te aynı görünür. Kontrastı Artır'da alt çizgi kalınlaşır. Kişi ve konum renkleri Graph ve Harita ile aynı belirteçten gelir. | Kontrastı Artır bugün yalnız renkleri koyulaştırır. `Text.LineStyle` çizgi kalınlığı almaz ve hiçbir kod `InkStroke.underlineHighContrast` değerini okumaz. Hızlı giriş alanı `TextField` ile `String` bağlar; tanınan adlar alanın üstünde ad çipi olur. |
+| 3 | Hızlı girişte olay ve görev kipi görünür olur. Artı ve gönder düğmelerinin ve kip sözcüklerinin dokunma alanı 44 pt'dir. | Sahibin ikinci değişikliği kip şartını karşıladı. |
+| 4 | Manşet bloğu daralır. Hedef: ilk olay da kaydırmadan görünür. | — |
+| 5 | Görev kutusunun çizgisi koyulaşır. Makette kontrast 3,48:1'dir; erişilebilirlik bakışı denetim çizgilerinde 4,5:1 arar. | Kontrol çizgisi açık modda bugün 3,48:1'dir: `InkPalette.swift`. |
+| 6 | Mac kanbanı çerçeveli, gölgesiz kâğıt kart kullanır. Tablo ve zaman çizelgesi tabular saat sütunu ve "şimdi" çizgisi kullanır. | `InkKanbanCard` yüzey renginde, ince çizgi çerçeveli ve gölgesizdir: `InkSurface.swift`. |
 
-### İmza (eklenmedi)
+### İmza: eklenmedi
 
-Derkenar, Mürekkep'in iskeletine iki şey ekler: kenar sütunu ile metin sütunu arasında 1 pt'lik gül kurusu bir kenar çizgisi ve uygulamanın tanıdığı kişi ve konum adlarının üstünde fosforlu kalem izi. Başlığı da araç çubuğu satırına alır; böylece 17 pt metinle görevler, takvim ve ilk olay kaydırmadan görünür.
+| İmza öğesi | Tanım |
+|---|---|
+| Kenar çizgisi | Kenar sütunu ile metin sütunu arasında 1 pt'lik gül kurusu çizgi. |
+| Fosfor izi | Uygulamanın tanıdığı kişi ve konum adlarının üstünde fosforlu kalem izi. |
+| Başlık yeri | Derkenar başlığı araç çubuğu satırına alır. Böylece 17 pt metinle görevler, takvim ve ilk olay kaydırmadan görünür. |
 
-- **İsteyenler (marka, günlük kullanım, ürün ruhu).** Ürünün farkı olan kendiliğinden tanımayı ekranda görünür kılan tek aday. Kimlik kartta ya da başlıkta değil metnin işaretlenme biçiminde durur, yani metin olan her ekranda vardır. Kenar çizgisi "solu uygulamanın, sağı kullanıcının" ayrımını yerleşimle verir.
-- **İtiraz edenler (erişilebilirlik, platform).** Fosfor zeminin kâğıda kontrastı 1,11:1'dir; ayrımı gerçekte yarı kalın yazı taşır ve Kalın Metin açılınca fark daralır. Sarı zemin, sistemin bul ve ara eşleşme vurgusuyla aynı görünür. Önceliğin onay kutusunun içine yazılması tek denetime iki durum yükler. Yoğun günlük yazısında her adın sarı blok olması gürültü yapar.
-- **Benimsenirse şartlar.** İz hiçbir zaman tek ipucu olmaz; altında Mürekkep'in tipli alt çizgisi durur. Sarı yalnız "uygulama bunu tanıdı" anlamına gelir; arama eşleşmesi, seçim ve uyarı başka biçim alır. İz yalnız akan metindeki adlarda kullanılır; varlığın kendi sayfasında kendi adında kullanılmaz. Kenar çizgisinin rengi hata ya da gecikme için kullanılmaz ve çizgi yalnız sayfa görünümlerinde durur (kanban ve zaman çizelgesine taşınmaz). Kâğıt dokusu, satır çizgisi ve el yazısı eklenmez.
+| Taraf | Görüş |
+|---|---|
+| İsteyenler: marka, günlük kullanım, ürün ruhu | Derkenar, ürünün farkı olan kendiliğinden tanımayı ekranda görünür kılan tek adaydır. Kimlik kartta ya da başlıkta durmaz; metnin işaretlenme biçiminde durur. Bu yüzden metin olan her ekranda imza vardır. Kenar çizgisi "solu uygulamanın, sağı kullanıcının" ayrımını yerleşimle verir. |
+| İtiraz edenler: erişilebilirlik, platform | Fosfor zeminin kâğıda kontrastı 1,11:1'dir. Ayrımı gerçekte yarı kalın yazı taşır; Kalın Metin açılınca fark daralır. Sarı zemin sistemin bul ve ara eşleşme vurgusuyla aynı görünür. Önceliği onay kutusunun içine yazmak tek denetime 2 durum yükler. Yoğun günlük yazısında her adın sarı blok olması gürültü yapar. |
+| Benimsenirse şartlar | İz hiçbir zaman tek ipucu olmaz; altında Mürekkep'in tipli alt çizgisi durur. Sarı yalnız "uygulama bunu tanıdı" anlamını taşır. Arama eşleşmesi, seçim ve uyarı başka biçim alır. İz yalnız akan metindeki adlarda durur; varlığın kendi sayfasında kendi adı iz taşımaz. Kenar çizgisinin rengi hata ya da gecikme anlatmaz. Çizgi yalnız sayfa görünümlerinde durur; kanban ve zaman çizelgesine geçmez. Kâğıt dokusu, satır çizgisi ve el yazısı yoktur. |
 
-Sahip imzayı istemedi; tanınan adlar alt çizgili kalır. İmza, Mürekkep'in üstüne eklenen ve geri alınabilen ince bir katmandır; istenirse Aşama 9'un prototipinde açılıp kapatılarak denenir.
+Sahip imzayı istemedi; tanınan adlar alt çizgili kalır. İmza, Mürekkep'in üstünde ince bir katmandır ve sahip katmanı geri alabilir. Sahip isterse Aşama 9 prototipi imzayı açıp kapatarak dener.
 
-Mürekkep'le birlikte kabul edilen ayrıntılar (istenirse değişir):
+### Mürekkep'le kabul edilen ayrıntılar
 
-- **Vurgu rengi.** Mürdüm; yalnız eylemde (artı, gönder, seçili sekme, kip çizgisi) görünür. Sayfa ailesinin öteki üyeleri koyu yeşil, çivit ve çini mavisi kullandı; renk yapıyı değiştirmeden değişir.
-- **Kişi ile konumun ayrımı.** Mürekkep'te kişi düz, konum noktalı alt çizgi taşır. Ürün ruhu bakışı noktalı ve kesik biçimin tipe değil "emin değilim, soruyorum" durumuna ayrılmasını, tipin yalnız renkle ayrılmasını önerdi.
-- **Geciken görevin dili.** "Geciken" sözü ve kırmızı yoktur; görevin altında uyarı rengiyle "30 Eyl'den" yazar, üçten fazlası "N devreden daha" satırında toplanır.
+| Ayrıntı | Tanım |
+|---|---|
+| Vurgu rengi | Mürdüm. Vurgu yalnız eylemde görünür: artı, gönder, seçili sekme, kip çizgisi. Sayfa ailesinin öteki üyeleri koyu yeşil, çivit ve çini mavisi kullandı. Renk değişirse yapı değişmez. |
+| Kişi ile konumun ayrımı | Kişi düz alt çizgi, konum noktalı alt çizgi taşır. Ürün ruhu bakışı bir öneri verdi: noktalı ve kesik biçim tipi değil "emin değilim, soruyorum" durumunu göstersin; tipi yalnız renk ayırsın. |
+| Geciken görevin dili | "Geciken" sözü ve kırmızı yoktur. Görevin altında uyarı rengiyle "30 Eyl'den" yazar. "N devreden daha" satırı üçten fazla geciken görevi toplar. |
+
+Sahip bu ayrıntıları Mürekkep'le birlikte kabul etti. Sahip isterse ayrıntılar değişir.
 
 ## Sıradaki seçenekler
 
-Seçim değişirse, oy sırası ve nedenleriyle:
+| Sıra | Aday | Ne zaman | Gerekçe ve risk |
+|---|---|---|---|
+| 1 | Derkenar | "Mürekkep fazla sessiz" denirse | Aynı iskelet, imza açık. Bire bir karşılaştırmanın galibidir. |
+| 2 | Defter ya da Seyir Defteri (çivit) | Sayfa ailesinin başka bir üyesi istenirse | Defter erişilebilirlik bakışının birincisidir: görev sans, düzyazı serif, koyu yeşil vurgu. Defter hedefleri 3 sütuna dizer; büyük yazıda ikinci bir yerleşim ister. Seyir Defteri (çivit) uygulamanın sözünü eş aralıklı yazıyla verir ve ilerlemeyi çeteleyle gösterir. "Dosyalar senin" vaadini en görünür kılan adaydır. Küçük, eş aralıklı etiketleri okumak zordur. |
+| 3 | Seyir Defteri (zaman rayı) | Kâğıt ve serif istenmezse | Aynı kenar sütunu yapısının soğuk, alet halidir ve marka bakışının yedeğidir. Varlık tipini en iyi gösteren adaylardandır. Riskler: bağlantıyı yalnız renk ve kalınlık ayırır; ürün ölçüm paneline yaklaşır. |
+| 4 | Günün Sayfası | Sahibin görsellerindeki dev gün rakamı ve kor vurgu istenirse | İlk turun en iyi adayıdır: 16 aday içinde 6., vetosuz. Sahip bu adayı seçerse ters renkli günlük paneli ve sistem dışı yazı ailesi çıkar. |
+| 5 | Açık Defter ya da Koordinat | En ucuz ve geri dönüşü en kolay yol istenirse | Platform bakışının üçüncüsü ve ikincisidir. Kimliği en az olan adaylardır. |
 
-1. **Derkenar.** Aynı iskelet, imza açık. Bire bir karşılaştırmanın galibi; "Mürekkep fazla sessiz" denirse ilk seçenek.
-2. **Defter ya da Seyir Defteri (çivit).** Sayfa ailesinin iki başka üyesi. Defter erişilebilirlik bakışının birincisi: görev sans, düzyazı serif, koyu yeşil vurgu; hedefleri üç sütuna dizdiği için büyük yazıda ikinci bir yerleşim ister. Seyir Defteri (çivit) uygulamanın sözünü eş aralıklı yazıyla verir ve ilerlemeyi çeteleyle gösterir; "dosyalar senin" vaadini en görünür kılan aday, ama küçük, eş aralıklı etiketleri okumayı zorlaştırıyor.
-3. **Seyir Defteri (zaman rayı).** Kâğıt ve serif istenmezse: aynı kenar sütunu yapısının soğuk, alet hali ve marka bakışının yedeği. Varlık tipini en iyi gösteren adaylardan; riskleri bağlantının yalnız renk ve kalınlıkla ayrılması ve ürünü ölçüm paneline yaklaştırması.
-4. **Günün Sayfası.** Sahibin görsellerindeki dev gün rakamı ve kor vurgu isteniyorsa: ilk turun en iyi adayı, on altı aday içinde altıncı, vetosuz. Benimsenirse ters renkli günlük paneli ve sistem dışı yazı ailesi bırakılır.
-5. **Açık Defter ya da Koordinat.** En ucuz ve geri dönüşü en kolay olanlar (platform bakışının üçüncüsü ve ikincisi); kimliği en az olanlar.
+| Önerilmeyen aday | Veto |
+|---|---|
+| Gösterge | 3 |
+| A5 Kor, A6 Matbaa, Modern Monolit | 2'şer |
+| Takvim Yaprağı, Gün İşaretleri | 1'er |
 
-Önerilmeyenler: Gösterge (üç veto); A5 Kor, A6 Matbaa ve Modern Monolit (ikişer veto); Takvim Yaprağı ve Gün İşaretleri (birer veto).
-
-Geri dönüş maliyeti: sayfa ailesinin üyeleri aynı belirteç rollerini, aynı iki sesli yazı kuralını ve aynı satır bileşenini paylaşır; aralarında geçiş, belirteç ve birkaç bileşen değişikliğidir.
+Seçim değişirse yukarıdaki sıra geçerlidir. Geri dönüş maliyeti düşüktür: sayfa ailesinin üyeleri aynı belirteç rollerini, aynı iki sesli yazı kuralını ve aynı satır bileşenini paylaşır. Üyeler arasında geçiş yalnız belirteç ve birkaç bileşen değişikliğidir.
 
 ## Her yönde geçerli kurallar
 
-1. Gezinme sistemde kalır: iPhone'da `TabView`, Mac'te `NavigationSplitView`. Özel sekme çubuğu yazılmaz.
-2. İçerik katmanında cam etkisi kullanılmaz; cam yalnız sistem kromunda ve hızlı giriş çubuğundadır.
-3. Açık ve koyu modda yerleşim aynıdır; uygulamaya özel görünüm anahtarı yoktur.
-4. Her renk belirteci dört varyantla tanımlanır: açık, koyu ve ikisinin Kontrastı Artır karşılığı. Gövde ve ikincil metin en az 4,5:1 (hedef 7:1), iri metin ve denetim sınırları en az 3:1 kontrast taşır.
-5. Durum yalnız renkle, gölgeyle ya da opaklıkla anlatılmaz: bağlantı renkten başka bir ipucu daha taşır, devreden görev işaret ve tarih taşır, tamamlanan görev dolu onay işareti taşır ve metni okunur kalır.
-6. Geciken tarih kırmızı değildir; uyarı rengiyle ve işaretle gösterilir. Kırmızı yalnız gerçek hatalara ve yıkıcı eylemlere ayrılır.
-7. Vurgu kalanı gösterir: yapılmış hedef ve tamamlanan görev geri çekilir.
-8. Yalnız sistem yazı tipleri kullanılır (New York ve SF Pro). Metin semantik stillerle yazılır (Dynamic Type); sabit punto kullanılmaz.
-9. iOS'ta hiçbir metin 12 pt'nin altında değildir. Etiketler cümle düzeninde yazılır; büyük harfli, geniş aralıklı etiket kullanılmaz.
-10. Dokunma hedefleri en az 44 pt'dir.
-11. İçerikte büyük ters renkli yüzey bulunmaz: altından geçtiği sistem camını açık ile koyu arasında çevirir.
-12. Mac'te kenar çubuğu uygulamanın vurgu rengini (mürdüm) taşır: simgeler vurgu rengindedir; seçili satır vurgu rengiyle dolar, yazısı ve simgesi vurgu üstü mürekkeptedir (açıkta 8,70:1, koyuda 9,18:1; en az 4,5:1). Yalnız seçili girdi vurgulanır: Görevler'in altındaki Kanban, Zaman çizelgesi ve projeler ayrı satırdır. Seçimin kendisi sistemindir (ok tuşları, odak, VoiceOver); yalnız çizimi uygulamanındır.
-13. Hareket sistem varsayılanlarıyla sınırlıdır ve Hareketi Azalt ayarına uyar. Tek istisna Graph'tır: düğümler kuvvet benzetimiyle hareket eder (içerik hareketin kendisidir); Hareketi Azalt açıkken o da canlı oynamaz, düzen oturmuş hâliyle tek seferde gösterilir.
+| No | Kural |
+|---|---|
+| 1 | Gezinme sistemde kalır: iPhone'da `TabView`, Mac'te `NavigationSplitView`. Uygulama özel sekme çubuğu yazmaz. |
+| 2 | İçerik katmanında cam etkisi yoktur. Cam yalnız sistem kromunda ve hızlı giriş çubuğundadır. |
+| 3 | Açık ve koyu modda yerleşim aynıdır. Uygulamaya özel görünüm anahtarı yoktur. |
+| 4 | Her renk belirtecinin 4 varyantı vardır: açık, koyu ve ikisinin Kontrastı Artır karşılığı. Gövde ve ikincil metin en az 4,5:1 kontrast taşır; hedef 7:1'dir. İri metin ve denetim sınırları en az 3:1 kontrast taşır. |
+| 5 | Durumu hiçbir zaman yalnız renk, gölge ya da opaklık anlatmaz. Bağlantı renkten başka bir ipucu daha taşır. Devreden görev işaret ve tarih taşır. Tamamlanan görev dolu onay işareti taşır ve metni okunur kalır. |
+| 6 | Geciken tarih kırmızı değildir; uyarı rengini ve işareti taşır. Kırmızı yalnız gerçek hatayı ve yıkıcı eylemi gösterir. |
+| 7 | Vurgu kalanı gösterir: yapılmış hedef ve tamamlanan görev geri plana geçer. |
+| 8 | Uygulama yalnız sistem yazı tiplerini kullanır: New York ve SF Pro. Metin semantik stilleri kullanır ve Dynamic Type ile büyür. Sabit punto yoktur. |
+| 9 | iOS'ta hiçbir metin 12 pt'nin altında değildir. Etiketler cümle düzenindedir. Büyük harfli, geniş aralıklı etiket yoktur. |
+| 10 | Dokunma hedefleri en az 44 pt'dir. |
+| 11 | İçerikte büyük ters renkli yüzey yoktur. Böyle bir yüzey altından geçtiği sistem camını açık ile koyu arasında çevirir. |
+| 12 | Mac'te kenar çubuğu uygulamanın vurgu rengini taşır: mürdüm. Simgeler vurgu rengindedir. Seçili satır vurgu rengiyle dolar; yazısı ve simgesi vurgu üstü mürekkeptedir. Kontrast açıkta 8,70:1, koyuda 9,18:1'dir; alt sınır 4,5:1'dir. Yalnız seçili girdi vurgu alır: Görevler'in altındaki Kanban, Zaman çizelgesi ve projeler ayrı satırdır. Seçimin kendisi sistemindir: ok tuşları, odak, VoiceOver. Yalnız çizim uygulamanındır. |
+| 13 | Hareket sistem varsayılanlarıyla sınırlıdır ve Hareketi Azalt ayarına uyar. Tek istisna Graph'tır: düğümler kuvvet benzetimiyle hareket eder, çünkü içerik hareketin kendisidir. Hareketi Azalt açıkken Graph da canlı oynamaz; uygulama oturmuş düzeni tek seferde gösterir. |
+
+**DİKKAT:** Kural numaralarını değiştirme; kod kural 12'ye `MacSidebar.swift` içinde, Mürekkep kuralı 4'e `InkLinkStyle.swift` içinde numarayla gönderme yapar.
 
 ## Mürekkep'in kuralları
 
-1. Yazı tipini veri türü seçer: kasadan gelen metin (olay, görev, günlük yazısı, not, alan değeri) ve sayfa adları New York, geri kalan her şey SF Pro. Yazı tipi ekranda elle seçilmez.
-2. İçerikte kart yoktur. Bölüm, 1 piksellik süs çizgisi, başlık ve sağdaki sayaçtan oluşur.
-3. Her satırın işareti (görev kutusu, hedef halkası, saat) kenar sütununda durur; öncelik görev kutusunun içindedir; metin tek sütunda akar.
-4. Bağlantı metni metin rengindedir; anlamı alt çizgi taşır: kişi düz mavi, konum noktalı yeşil, çözülmemiş bağlantı kesik ve ikincil. Türkçe ek çizginin dışında kalır.
-5. Eylem tek renktir (vurgu). Dikkat yalnız uyarı rengiyle ve yalnız devreden tarihinde gösterilir.
-6. Yapılan soluklaşır (ikincil metin, dolu işaret) ve listenin sonuna iner; üstü çizilmez.
+| No | Kural |
+|---|---|
+| 1 | Yazı tipini veri türü seçer. Kasadan gelen metin ve sayfa adları New York'tur: olay, görev, günlük yazısı, not, alan değeri. Geri kalan her şey SF Pro'dur. Hiçbir ekran yazı tipini elle seçmez. |
+| 2 | İçerikte kart yoktur. Bir bölümün parçaları 1 piksellik süs çizgisi, başlık ve sağdaki sayaçtır. |
+| 3 | Her satırın işareti kenar sütununda durur: görev kutusu, hedef halkası, saat. Öncelik görev kutusunun içindedir. Metin tek sütunda akar. |
+| 4 | Bağlantı metni metin rengindedir; anlamı alt çizgi taşır. Kişi düz mavi, konum noktalı yeşil, çözülmemiş bağlantı kesik ve ikincil alt çizgi taşır. Türkçe ek çizginin dışında kalır. |
+| 5 | Eylem tek renktir: vurgu. Dikkat yalnız uyarı rengiyle ve yalnız devreden tarihinde görünür. |
+| 6 | Tamamlanan görev ve yapılmış hedef soluklaşır: ikincil metin, dolu işaret. Bu satırlar listenin sonuna iner; üstleri çizili olmaz. |
+
+### Bağlantı biçimleri
+
+**Her bağlantı türünün metin rengi ve alt çizgisi.**
+
+| Tür | Metin rengi | Alt çizgi deseni | Alt çizgi rengi |
+|---|---|---|---|
+| Kişi | Metin | Düz | Kişi |
+| Konum | Metin | Noktalı | Konum |
+| Öteki çözülmüş bağlantı: proje notu, özel varlık tipi | Metin | Düz | Kontrol çizgisi |
+| Çözülmemiş bağlantı | İkincil metin | Kesik | İkincil metin |
+
+`InkLinkStyle` bu tabloyu uygular ve okuma metni ile `TextEditor` aynı yolu kullanır. Yedek yol `coloredText` bağlantı metnini alt çizgisiz, tür renginde yazar.
 
 ## Denetim kalıpları
 
-Ekim 2026 denetimi (84 gerçek ekran görüntüsü ve kod envanteri) aynı işin ekrandan ekrana farklı kurulduğunu gösterdi: arama iki biçimde, "birini seç" beş biçimde, sheet başlığı üç yazıda, sheet zemini dört çeşitte. Aşağıdaki kalıplar tek tanımdır; her ekran bunları ortak bileşenlerle kurar, elle yeniden yazmaz. Referans Bugün ekranıdır.
+**Ekim 2026 denetiminde aynı işin kaç biçimde kurulduğu.**
 
-1. **Sayfa üstü.** Sayfa adı solda serif manşettir; sayfanın eylem simgeleri aynı satırın sağında durur. Kök ekranlarda sistem gezinme çubuğu ve cam kapsül kullanılmaz. Mac'te sayfa adı yine sayfanın içinde serif manşettir ve her liste sütunu manşetle başlar; pencere araç çubuğunda başlık yazılmaz (pencerenin adı seçili kenar çubuğu girdisidir ve yalnız Pencere menüsünde görünür), araç çubuğunda yalnız arama düğmesi durur. Alt sayfalarda sistem çubuğunda yalnız geri düğmesi kalır; sayfanın eylemleri yine manşet satırındadır. Manşet satırı içerikle birlikte kayar. İstisna: Ara sayfasında manşet ve arama alanı sabittir; sonuçlar altında kayar.
-2. **Manşet satırı simgeleri.** Çerçevesiz ve kapsülsüz simge. iPhone'da dokunma alanı 44 pt. Mac'te tıklama alanı en az 28 pt, simge semantik `title2` boyutundadır; komşu tıklama alanları arasında 4 pt boşluk vardır. Yardımcı eylemler (ara, sırala, filtrele, Ayarlar) ikincil metin rengindedir. Kayıt açan ya da içeriği değiştiren eylem (ekle, düzenle) vurgu rengindedir; "eylem tek renktir" kuralı bunlar içindir. Bir satırda en çok üç simge bulunur; fazlası sayfanın en üstünde satır olur (Günlük'teki Özetler satırı gibi). Sıra sabittir: en sağda ara (iPhone; Mac'te manşet satırında arama simgesi yoktur), solunda ekrana özgü simgeler. Erişilebilirlik yazı boyutlarında simgeler manşetin üstünde ayrı satıra çıkar.
-3. **Arama.** Genel arama her ekranda aynı yerde ve aynı simgeyle durur: iPhone'da manşet satırının en sağında, Mac'te pencere araç çubuğundaki tek düğmede (seçim olmasa da erişilir; manşet satırlarında büyüteç bulunmaz). Ara sheet'inde sonuçlardan açılan sayfada (not, kişi, konum, gün) manşet büyüteci Mac'te de durur ve sonuçlara döndürür: pencerenin araç çubuğu sheet'in arkasında kalır. Sayfa içi süzgeç alanı gereken ekranda Ara sayfasındaki alanla aynı bileşendir: çukur zemin, kontrol çizgisi, odakta vurgu çizgisi, yer tutucu italik.
-4. **Birini seç.** İki biçim vardır ve hangisinin kullanılacağını seçenek sayısı belirler.
-   - İki ya da üç seçenek: **sekme.** Sola yaslı sözcükler; seçili olan metin renginde ve altı vurgu rengiyle çizili, ötekiler ikincil renkte. Hızlı girişteki Olay | Görev ile aynı bileşendir. Yer: manşetin hemen altı.
-   - Dört ve üstü seçenek: **menü.** Sola yaslı; solda ikincil renkte etiket ("Dönem", "Bölüm", "Grupla", "Ölçek"), sağında vurgu renginde seçili değer ve ok. Dokununca sistem menüsü açılır.
-   - Sistem segmenti, onay kutucuğu dizisi, etiketsiz ya da ortalı menü ve gezinme çubuğuna konan seçici kullanılmaz.
-5. **Sırala ve filtrele.** Manşet satırında simgedir; dokununca menü açılır. Sayfada ayrı satır tutmaz. Varsayılan dışında bir seçim etkinse simge vurgu rengine döner.
-6. **Sheet.** Zemin kâğıttır; başlık serif manşettir; içerik sayfalarla aynı kalıptadır (bölüm başlığı, kâğıt zeminli satır, kart yok). Düzenleyen sheet'te solda "Vazgeç" (ikincil renk, düz yazı), sağda tek onay vardır: "Kaydet", yeni kayıt açan sheet'te "Oluştur" (vurgu rengi, yarı kalın düz yazı). Yalnız okunan sheet'te tek düğme vardır: sağda "Kapat". "Bitti" kullanılmaz. Eylemi taslak kaydetmek olmayan sheet'te (kasa hazırlığı gibi kasaya toplu yazan akışlar) çubukta yalnız "Vazgeç" durur; eylem kendi adıyla sayfada birincil düğmedir ve Return tuşuna bağlanmaz. Yazma sürerken "Vazgeç" devre dışı çizilir. Adımları ayrı ayrı yazan akışta (günü kapat: hedef işareti anında, görev seçimleri "Uygula" ile, günlük cümlesi "Yaz" ile yazılır) çubukta "Vazgeç" yerine "Kapat" durur, çünkü yazılmış adım kapatınca geri alınmaz; yazma sürerken o da bekler. Düğmeler düz yazıdır; dolu kapsül kullanılmaz. Mac'te sistem pencere başlığı çizilmez (tek serif manşet); araç çubuğu ve alt eylem çubuğu kâğıt zemindedir; "Vazgeç" solda, onay/"Kapat" sağda alt çubuktadır. Sheet gövdesi sıfır yükseklikte açılmaz (ortak ideal boyut).
-7. **Sistem denetimleri.** Açma kapama anahtarı vurgu rengindedir. Kâğıt üstünde beyaz ya da gri kutu bulunmaz: alan zemini çukur, liste satırı kâğıttır. Yüzey rengi yalnız belirteç tablosunda sayılan yerlerde kullanılır.
+| Konu | Biçim sayısı |
+|---|---|
+| Arama | 2 |
+| Birini seç | 5 |
+| Sheet başlığı yazısı | 3 |
+| Sheet zemini | 4 |
 
-Koruma: uygulama ekranlarında stil verilmemiş `Picker`, `.pickerStyle(.segmented)`, `.textFieldStyle(.roundedBorder)`, iPhone ekranlarında araç çubuğuna konan arama (Mac'te tersi: arama yalnız kabuğun araç çubuğunda, tek düğme) ve ortak bileşen dışında kurulan sheet araç çubuğu kaynak denetimiyle yasaklanır. Her kök ekranın ve her sheet türünün ekran görüntüsü testi vardır.
+Denetim 84 gerçek ekran görüntüsünü ve kod envanterini inceledi. Aşağıdaki 7 kalıp tek tanımdır. Her ekran kalıpları ortak bileşenlerle kurar; hiçbir ekran bir kalıbı elle yeniden yazmaz. Referans Bugün ekranıdır.
 
-## Belirteçler (Mürekkep)
+### 1. Sayfa üstü
 
-Renkler (parantez içinde zemin üstündeki kontrast; KA: Kontrastı Artır):
+| Yer | Kural |
+|---|---|
+| Kök ekran, iPhone | Sayfa adı solda serif manşettir. Sayfanın eylem simgeleri aynı satırın sağında durur. Sistem gezinme çubuğu ve cam kapsül yoktur. |
+| Mac | Sayfa adı yine sayfanın içinde serif manşettir. Her liste sütunu manşetle başlar. Pencere araç çubuğunda başlık yoktur. Pencerenin adı seçili kenar çubuğu girdisidir ve yalnız Pencere menüsünde görünür. Araç çubuğunda yalnız arama düğmesi durur. |
+| Alt sayfa | Sistem çubuğunda yalnız geri düğmesi kalır. Sayfanın eylemleri yine manşet satırındadır. |
+| Kaydırma | Manşet satırı içerikle birlikte kayar. İstisna Ara sayfasıdır: manşet ve arama alanı sabittir, sonuçlar altta kayar. |
 
-| Belirteç | Açık | Koyu | KA açık | KA koyu | Kullanım |
-|---|---|---|---|---|---|
-| Zemin (kâğıt) | `#FAF8F3` | `#181614` | `#FAF8F3` | `#141210` | Sayfa, kaydırma alanı |
-| Yüzey | `#FFFFFF` | `#23201C` | `#FFFFFF` | `#1E1B18` | Sheet içi, popover, Mac kanban kartı |
-| Çukur | `#F1EDE4` | `#110F0E` | `#ECE7DC` | `#0C0B0A` | Isı haritasının boş hücresi, Mac'te hafta sonu, Mac liste sütununda seçili satır |
-| Süs çizgisi | `#E2DCCF` | `#302C27` | `#C4BBAB` | `#4C463E` | Bölüm çizgisi; bilgi taşımaz |
-| Metin | `#1E1B17` (16,16) | `#EEE9DF` (14,91) | `#0E0C0A` (18,39) | `#FFFDF8` (18,38) | İçerik, başlık |
-| İkincil metin | `#57514A` (7,38) | `#B5AD9F` (8,11) | `#403B35` (10,44) | `#D6CFC2` (12,07) | Meta, saat, yapılmış |
-| Vurgu: metin ve simge | `#7A2C6E` (8,20) | `#E3A3D6` (9,00) | `#5E1F55` (10,97) | `#EDC3E5` (12,05) | Metin düğmesi, artı, seçili sekme |
-| Vurgu dolgusunun üstündeki metin | `#FFFFFF` (8,70) | `#1A1022` (9,18) | `#FFFFFF` (11,65) | `#12091A` (12,54) | Gönder, birincil düğme |
-| Uyarı | `#7A4E00` (6,78) | `#E2B865` (9,69) | `#5C3B00` (9,51) | `#F0CF8E` (12,48) | Yalnız devreden tarihi ve işareti |
-| Tehlike | `#A11E1E` (7,27) | `#F07178` (6,31) | `#7A1010` (10,36) | `#FFB4B4` (11,07) | Yalnız yıkıcı eylem (silme) ve hata metni |
-| Kontrol çizgisi | `#8C8478` (3,48) | `#7E776C` (4,08) | `#655E54` (6,03) | `#A39B8F` (6,80) | Görev kutusu, halka izi, artı konturu |
-| Kişi | `#2D5BA6` (6,26) | `#8FB3F0` (8,49) | `#1D4689` (8,64) | `#B3CDF8` (11,57) | Düz alt çizgi, simge |
-| Konum | `#386E43` (5,69) | `#8FCB9C` (9,62) | `#24562E` (8,09) | `#AEDDB8` (12,31) | Noktalı alt çizgi, simge |
+Kod karşılığı: `InkPageTitle`, `InkPageTitleRow`, `inkRootPageNavigationTitle` ve `inkPageNavigationTitle`.
 
-Değerler tasarımcının hesabıdır; belirteç PR'ında palet denetimiyle yeniden doğrulanır. Vurgu, renk körlüğü benzetiminde kişi mavisinden ayrışsın diye mor yerine mürdüm seçildi. Veri görselleştirme (ısı haritası, graph, zaman çizelgesi) renge ek olarak biçim ipucu taşır.
+### 2. Manşet satırı simgeleri
 
-Kod adları (`App/Design/`, asset catalog): Zemin → `Color.ink.paper` / `InkPaper`; Yüzey → `Color.ink.surface` / `InkSurface`; Çukur → `Color.ink.well` / `InkWell`; Süs çizgisi → `Color.ink.rule` / `InkRule`; Metin → `Color.ink.text` / `InkText`; İkincil metin → `Color.ink.secondaryText` / `InkSecondaryText`; Vurgu → `Color.ink.accent` / `InkAccent` (`AccentColor`); Vurgu dolgusunun üstündeki metin → `Color.ink.onAccent` / `InkOnAccent`; Uyarı → `Color.ink.warning` / `InkWarning`; Tehlike → `Color.ink.danger` / `InkDanger`; Kontrol çizgisi → `Color.ink.control` / `InkControl`; Kişi → `Color.ink.person` / `InkPerson`; Konum → `Color.ink.place` / `InkPlace`. Yazı: manşet → `Font.ink.display`; içerik → `Font.ink.content`; yer tutucu → `Font.ink.placeholder`; künye → `Font.ink.byline`; bölüm başlığı → `Font.ink.section`; meta → `Font.ink.meta`; değer → `Font.ink.value`; saat → `Font.ink.time`; büyük rakam → `Font.ink.largeNumber`. Biçim/boşluk: `InkSpacing`, `InkSize`, `InkStroke`; sayfa zemini → `.inkPage()`.
+| Konu | Kural |
+|---|---|
+| Biçim | Çerçevesiz ve kapsülsüz simge. |
+| iPhone alanı | Dokunma alanı 44 pt. |
+| Mac alanı | Tıklama alanı en az 28 pt. Simge semantik `title2` boyutundadır. Komşu tıklama alanları arasında 4 pt boşluk vardır. |
+| Renk | Yardımcı eylemler ikincil metin rengindedir: ara, sırala, filtrele, Ayarlar. Kayıt açan ya da içeriği değiştiren eylem vurgu rengindedir: ekle, düzenle. "Eylem tek renktir" kuralı bu eylemler içindir. |
+| Sayı | Bir satırda en çok 3 simge durur. Fazlası sayfanın en üstünde ayrı satır olur; örneğin Günlük'teki Özetler satırı. |
+| Sıra | Sıra sabittir. iPhone'da en sağda ara durur, solunda ekrana özgü simgeler durur. Mac'te manşet satırında arama simgesi yoktur. |
+| Büyük yazı | Erişilebilirlik yazı boyutlarında simgeler manşetin üstünde ayrı satıra çıkar. |
 
-İmza benimsenirse eklenecek belirteçler (Derkenar'ın kendi zemininde ölçüldü; Mürekkep zemininde yeniden hesaplanır): fosfor izi `#FFEE99` (açık) ve `#4F4410` (koyu); kenar çizgisi `#D9796B` (açık) ve `#A85A50` (koyu).
+Kod karşılığı: `InkHeaderAction`, `InkHeaderMenu` ve `InkHeaderActionChrome`. Sınırlar `maximumCount = 3`, `spacing = 4` ve `macMinimumSide = 28` değerleridir.
 
-Yazı:
+### 3. Arama
 
-| Rol | Aile ve ağırlık | iOS | Mac |
+| Yer | Kural |
+|---|---|
+| iPhone | Genel arama manşet satırının en sağındadır. Yer ve simge her ekranda aynıdır. |
+| Mac | Genel arama pencere araç çubuğundaki tek düğmedir. Seçim olmasa da kullanıcı düğmeye erişir. Manşet satırlarında büyüteç yoktur. |
+| Mac, Ara sheet'i | Sonuçlardan açılan sayfada manşet büyüteci Mac'te de durur ve sonuçlara döndürür. Sayfa not, kişi, konum ya da gün olabilir. Neden: pencerenin araç çubuğu sheet'in arkasında kalır. |
+| Süzgeç alanı | Sayfa içi süzgeç alanı Ara sayfasındaki alanla aynı bileşendir: çukur zemin, kontrol çizgisi, odakta vurgu çizgisi, italik yer tutucu. |
+
+Kod karşılığı: süzgeç alanı `InkFilterField` bileşenidir.
+
+### 4. Birini seç
+
+**Seçenek sayısı biçimi seçer.**
+
+```mermaid
+flowchart LR
+    A{Seçenek sayısı} -->|2 ya da 3| B[Sekme: InkTabs]
+    A -->|4 ve üstü| C[Menü: InkLabeledMenu]
+    B --> D[Yer: manşetin hemen altı]
+    C --> E[Dokunuş sistem menüsünü açar]
+```
+
+| Biçim | Görünüm |
+|---|---|
+| Sekme | Sola yaslı sözcükler. Seçili sözcük metin rengindedir ve altı vurgu rengiyle çizilidir. Ötekiler ikincil renktedir. Hızlı girişteki Olay \| Görev ile aynı bileşendir. |
+| Menü | Sola yaslı. Solda ikincil renkte etiket durur: "Dönem", "Bölüm", "Grupla", "Ölçek". Sağda vurgu renginde seçili değer ve ok durur. Dokunuş sistem menüsünü açar. |
+| Yasak | Sistem segmentini, onay kutucuğu dizisini, etiketsiz ya da ortalı menüyü ve gezinme çubuğundaki seçiciyi kullanma. |
+
+### 5. Sırala ve filtrele
+
+| Konu | Kural |
+|---|---|
+| Yer | Manşet satırında simgedir. Simgeye dokunmak menüyü açar. Sırala ve filtrele sayfada ayrı satır tutmaz. |
+| Etkin seçim | Varsayılan dışında bir seçim etkinse simge vurgu rengine döner. |
+
+### 6. Sheet
+
+**Sheet türü çubuktaki düğmeleri seçer.**
+
+```mermaid
+flowchart TD
+    A{Sheet türü} -->|Var olan kaydı düzenler| B[Solda Vazgeç, sağda Kaydet]
+    A -->|Yeni kayıt açar| C[Solda Vazgeç, sağda Oluştur]
+    A -->|Yalnız okunur| D[Sağda Kapat]
+    A -->|Kasaya toplu yazar| E[Çubukta yalnız Vazgeç]
+    E --> F[Eylem sayfada birincil düğme, Return bağlı değil]
+    A -->|Adımları ayrı ayrı yazar| G[Çubukta Kapat]
+```
+
+| Konu | Kural |
+|---|---|
+| Zemin ve başlık | Zemin kâğıttır. Başlık serif manşettir. İçerik sayfalarla aynı kalıptadır: bölüm başlığı, kâğıt zeminli satır, kart yok. |
+| Düğme biçimi | Düğmeler düz yazıdır; dolu kapsül yoktur. "Vazgeç" ikincil renkte düz yazıdır. Onay vurgu renginde, yarı kalın düz yazıdır. "Bitti" yoktur. |
+| Toplu yazan akış | Örnek: kasa hazırlığı. Eylem taslak kaydetmek değildir. Çubukta yalnız "Vazgeç" durur. Eylem kendi adıyla sayfada birincil düğmedir ve Return tuşuna bağlı değildir. |
+| Adım akışı | Örnek: günü kapat. Uygulama hedef işaretini anında yazar. Görev seçimlerini "Uygula" ile, günlük cümlesini "Yaz" ile yazar. Kapatmak yazılmış adımı geri almaz; bu yüzden çubukta "Vazgeç" yerine "Kapat" durur. |
+| Yazma sırasında | Yazma sürerken "Vazgeç" devre dışıdır. Adım akışında "Kapat" da yazma bitene dek bekler. |
+| Mac | Sistem pencere başlığı yoktur; tek serif manşet vardır. Araç çubuğu ve alt eylem çubuğu kâğıt zemindedir. Alt çubukta "Vazgeç" solda, onay ya da "Kapat" sağda durur. |
+| Boyut | Sheet gövdesinin yüksekliği hiçbir zaman sıfır olmaz; sheet ortak ideal boyutu kullanır. |
+
+Kod karşılığı: `.inkSheet`, `InkSheetScaffold` ve `InkSheetConfirmation`. `InkSheetConfirmation.save` "Kaydet" sözünü, `InkSheetConfirmation.create` "Oluştur" sözünü verir.
+
+### 7. Sistem denetimleri
+
+| Konu | Kural |
+|---|---|
+| Açma kapama anahtarı | Vurgu rengindedir: `inkToggle()`. |
+| Kutu | Kâğıt üstünde beyaz ya da gri kutu yoktur. Alan zemini çukurdur, liste satırı kâğıttır. |
+| Yüzey rengi | Yüzey rengi yalnız renk tablosunda sayılan yerlerde görünür. |
+
+### Koruma
+
+**Kalıpları koruyan testler.**
+
+| Yasak ya da şart | Test |
+|---|---|
+| Stil verilmemiş `Picker`, `.pickerStyle(.segmented)`, `.textFieldStyle(.roundedBorder)` | `ControlPatternUsageTests` |
+| iPhone ekranlarında araç çubuğuna konan arama | `ControlPatternUsageTests` |
+| Mac'te arama yalnız kabuğun araç çubuğunda, tek düğme | `ControlPatternUsageTests` |
+| Ortak bileşen dışında kurulan sheet araç çubuğu ve "Bitti" düğmesi | `ControlPatternUsageTests` |
+| `App/Design` dışında hex renk; sistem rengi izin listesi yalnız küçülür | `DesignTokenUsageTests` |
+| Her kök ekranın ve her sheet türünün ekran görüntüsü | Adı `SnapshotTests` ile biten kümeler |
+
+Kaynak denetimi yasak kalıpları derlemeden önce yakalar. Ekran görüntüsü testleri kalıbın ekrandaki sonucunu yakalar.
+
+## Renk belirteçleri
+
+**Her renk belirtecinin açık, koyu ve Kontrastı Artır değerleri.**
+
+| Belirteç | Açık | Koyu | KA açık | KA koyu |
+|---|---|---|---|---|
+| Zemin: kâğıt | `#FAF8F3` | `#181614` | `#FAF8F3` | `#141210` |
+| Yüzey | `#FFFFFF` | `#23201C` | `#FFFFFF` | `#1E1B18` |
+| Çukur | `#F1EDE4` | `#110F0E` | `#ECE7DC` | `#0C0B0A` |
+| Süs çizgisi | `#E2DCCF` | `#302C27` | `#C4BBAB` | `#4C463E` |
+| Metin | `#1E1B17` | `#EEE9DF` | `#0E0C0A` | `#FFFDF8` |
+| İkincil metin | `#57514A` | `#B5AD9F` | `#403B35` | `#D6CFC2` |
+| Vurgu: metin ve simge | `#7A2C6E` | `#E3A3D6` | `#5E1F55` | `#EDC3E5` |
+| Vurgu dolgusunun üstündeki metin | `#FFFFFF` | `#1A1022` | `#FFFFFF` | `#12091A` |
+| Uyarı | `#7A4E00` | `#E2B865` | `#5C3B00` | `#F0CF8E` |
+| Tehlike | `#A11E1E` | `#F07178` | `#7A1010` | `#FFB4B4` |
+| Kontrol çizgisi | `#8C8478` | `#7E776C` | `#655E54` | `#A39B8F` |
+| Kişi | `#2D5BA6` | `#8FB3F0` | `#1D4689` | `#B3CDF8` |
+| Konum | `#386E43` | `#8FCB9C` | `#24562E` | `#AEDDB8` |
+
+KA, Kontrastı Artır demektir. Zemin, yüzey, çukur ve süs çizgisi zemin rolündedir; geri kalan belirteçler zeminin üstünde durur.
+
+### Kontrast
+
+**Her ön plan belirtecinin zemin üstündeki kontrastı.** Vurgu dolgusunun üstündeki metnin kontrastı vurgu dolgusuna göredir.
+
+| Belirteç | Açık | Koyu | KA açık | KA koyu |
+|---|---|---|---|---|
+| Metin | 16,16 | 14,91 | 18,39 | 18,38 |
+| İkincil metin | 7,38 | 8,11 | 10,44 | 12,07 |
+| Vurgu: metin ve simge | 8,20 | 9,00 | 10,97 | 12,05 |
+| Vurgu dolgusunun üstündeki metin | 8,70 | 9,18 | 11,65 | 12,54 |
+| Uyarı | 6,78 | 9,69 | 9,51 | 12,48 |
+| Tehlike | 7,27 | 6,31 | 10,36 | 11,07 |
+| Kontrol çizgisi | 3,48 | 4,08 | 6,03 | 6,80 |
+| Kişi | 6,26 | 8,49 | 8,64 | 11,57 |
+| Konum | 5,69 | 9,62 | 8,09 | 12,31 |
+
+Değerler tasarımcının hesabıdır. `PaletteContrastTests` asset catalog değerlerini `InkPalette` ile karşılaştırır ve alt sınırları denetler: metin rolleri 4,5:1, kontrol çizgisi 3:1. 2026-10-12 denetimi kontrastları koddaki değerlerden yeniden hesapladı; sonuçlar tabloyla aynıdır.
+
+### Kod adları ve kullanım
+
+| Belirteç | `Color.ink` | Asset | Kullanım |
 |---|---|---|---|
-| Sayfa adı (manşet) | New York Semibold | 34 | 26 |
-| İçerik | New York Regular | 17; günlük paragrafında satır yüksekliği 26 | 15 |
-| Yer tutucu | New York Italic | 17 | 15 |
-| Künye satırı | SF Pro Regular | 15 | 13 |
-| Bölüm başlığı | SF Pro Semibold | 13 | 11 |
-| Meta | SF Pro Regular | 13 | 11 |
-| Değer ve saat | SF Pro, tabular rakam | 17 ve 15 | 13 |
-| Büyük rakam (hedef detayı, özet) | SF Pro Light, tabular rakam | 48 | 34 |
+| Zemin: kâğıt | `Color.ink.paper` | `InkPaper` | Sayfa, kaydırma alanı |
+| Yüzey | `Color.ink.surface` | `InkSurface` | Sheet içi, popover, Mac kanban kartı |
+| Çukur | `Color.ink.well` | `InkWell` | Isı haritasının boş hücresi, Mac'te hafta sonu, Mac liste sütununda seçili satır |
+| Süs çizgisi | `Color.ink.rule` | `InkRule` | Bölüm çizgisi; bilgi taşımaz |
+| Metin | `Color.ink.text` | `InkText` | İçerik, başlık |
+| İkincil metin | `Color.ink.secondaryText` | `InkSecondaryText` | Meta, saat, yapılmış |
+| Vurgu: metin ve simge | `Color.ink.accent` | `InkAccent`, `AccentColor` | Metin düğmesi, artı, seçili sekme |
+| Vurgu dolgusunun üstündeki metin | `Color.ink.onAccent` | `InkOnAccent` | Gönder, birincil düğme |
+| Uyarı | `Color.ink.warning` | `InkWarning` | Yalnız devreden tarihi ve işareti |
+| Tehlike | `Color.ink.danger` | `InkDanger` | Yalnız yıkıcı eylem ve hata metni; yıkıcı eylem örneği silmedir |
+| Kontrol çizgisi | `Color.ink.control` | `InkControl` | Görev kutusu, halka izi, artı konturu |
+| Kişi | `Color.ink.person` | `InkPerson` | Düz alt çizgi, simge |
+| Konum | `Color.ink.place` | `InkPlace` | Noktalı alt çizgi, simge |
 
-Biçim: görev kutusu 22 pt kare (köşe 5 pt), hedef halkası 22 pt daire, artı 30 pt ve gönder 36 pt daire, hızlı giriş kapsüldür. Kenar boşluğu 16 pt, kenar sütunu 44 pt'dir. Mac liste seçiminin köşesi 6 pt; dolgu satırın kenarından yatay 4 pt, dikey 2 pt içeridedir. Mac'te sayfa en çok 680 pt genişliğinde ortalanır; kaydırma alanı sütunu doldurur, yalnız içerik daralır. Mac'te kenar çubuğu en az 180, ideal 200, en çok 240 pt, liste sütunu en az 280, ideal 320, en çok 400 pt genişliğindedir; ana pencere en az 1000 × 560 pt'dir (en dar pencerede 200 + 320 + 480; liste 280'e çekilirse ayrıntı 520). İçerik opaktır; gölge, doku ve gradyan yoktur.
+`InkPalette.swift` onaltılık değerleri tutar; `InkColors.swift` `Color.ink` adlarını asset adlarına bağlar. `AccentColor` asset'i `InkAccent` ile aynı değerleri taşır. Sayfa zemini değiştiricisi `.inkPage()` sayfayı kâğıt zemine koyar. Tasarımcı vurgu için mor yerine mürdümü seçti: renk körlüğü benzetiminde mürdüm kişi mavisinden ayrışır. Veri görselleştirme renge ek olarak biçim ipucu taşır: ısı haritası, graph, zaman çizelgesi.
+
+### İmza belirteçleri
+
+**Sahip imzayı benimserse eklenecek belirteçler.**
+
+| Belirteç | Açık | Koyu |
+|---|---|---|
+| Fosfor izi | `#FFEE99` | `#4F4410` |
+| Kenar çizgisi | `#D9796B` | `#A85A50` |
+
+Tasarımcı bu değerleri Derkenar'ın kendi zemininde ölçtü. Sahip imzayı benimserse değerleri Mürekkep zemininde yeniden hesapla.
+
+## Yazı belirteçleri
+
+**Her yazı rolünün ailesi, SwiftUI stili ve varsayılan boyutu.**
+
+| Rol | `Font.ink` | Aile ve ağırlık | Semantik stil | iOS | Mac |
+|---|---|---|---|---|---|
+| Sayfa adı: manşet | `display` | New York Semibold | `largeTitle` | 34 | 26 |
+| İçerik | `content` | New York Regular | `body` | 17; günlük paragrafında satır yüksekliği 26 | 15 |
+| Küçük içerik: gün önizlemesi, kısa alıntı | `contentSmall` | New York Regular | `footnote` | 13 | — |
+| Yer tutucu | `placeholder` | New York Italic | `body` | 17 | 15 |
+| Künye satırı | `byline` | SF Pro Regular | `subheadline` | 15 | 13 |
+| Bölüm başlığı | `section` | SF Pro Semibold | `footnote` | 13 | 11 |
+| Meta | `meta` | SF Pro Regular | `footnote` | 13 | 11 |
+| Değer | `value` | SF Pro, tabular rakam | `body` | 17 | 13 |
+| Saat | `time` | SF Pro, tabular rakam | `subheadline` | 15 | 13 |
+| Büyük rakam: hedef detayı, özet | `largeNumber` | SF Pro Light, tabular rakam | `largeTitle` | 48 | 34 |
+
+Boyutlar varsayılan Dynamic Type boyutundaki tasarım hedefidir; `InkFonts.swift` yalnız semantik stilleri kullanır. `inkJournalParagraph()` günlük paragrafına 9 pt ek satır aralığı verir: 26 − 17. `LargeNumberText` 48 pt hedefini `@ScaledMetric` ile büyütür; `Font.ink.largeNumber` yalnız yedektir.
+
+## Boşluk ve biçim ölçeği
+
+**Mac ana penceresinin üç sütunu.**
+
+```mermaid
+flowchart LR
+    A[Kenar çubuğu: en az 180, ideal 200, en çok 240 pt] --> B[Liste sütunu: en az 280, ideal 320, en çok 400 pt]
+    B --> C[Ayrıntı: en dar pencerede 480 pt]
+    C --> D[Okuma sütunu: en çok 680 pt, ortada]
+```
+
+### Boşluk: `InkSpacing`
+
+| Ad | Değer | Kullanım |
+|---|---|---|
+| `margin` | 16 pt | Sayfa yatay kenar boşluğu; `@ScaledMetric` ile büyür |
+| `gutter` | 44 pt | Kenar sütunu; `@ScaledMetric` ile büyür |
+| `row` | 6 pt | Bölüm içinde satırlar arası dikey boşluk |
+| `section` | 8 pt | Bugün'de bölümler arası dikey boşluk |
+| `macPageWidth` | 680 pt | Mac okuma sütununun en çok genişliği |
+| `macSidebarMinWidth`, `macSidebarIdealWidth`, `macSidebarMaxWidth` | 180, 200, 240 pt | Mac kenar çubuğu |
+| `macListMinWidth`, `macListIdealWidth`, `macListMaxWidth` | 280, 320, 400 pt | Mac liste sütunu |
+| `macWindowMinWidth`, `macWindowMinHeight` | 1000 × 560 pt | Mac ana penceresi |
+| `macSettingsMinWidth`, `macSettingsMinHeight` | 480 × 520 pt | Mac Ayarlar penceresi |
+| `listSelectionHorizontal`, `listSelectionVertical` | 4, 2 pt | Mac liste seçim dolgusunun satır kenarından içe payı |
+
+### Biçim: `InkSize`
+
+| Ad | Değer | Kullanım |
+|---|---|---|
+| `taskBox`, `taskBoxCorner` | 22 pt, köşe 5 pt | Görev kutusu: kare |
+| `goalRing` | 22 pt | Hedef halkası: daire |
+| `plus` | 30 pt | Artı düğmesi: daire |
+| `send` | 36 pt | Gönder düğmesi: daire |
+| `largeNumber` | 48 pt | Büyük rakam hedefi |
+| `modeUnderline` | 2 pt | Seçili kip ve sekme çizgisi; Mac liste seçiminin sol çizgisi |
+| `listSelectionCorner` | 6 pt | Mac liste seçim dolgusunun köşesi |
+| `chipCorner` | 4 pt | Etiket çipi ve öneri şeridi köşesi |
+| `kanbanCorner` | 8 pt | Mac kanban kartı, yüzey, Mac kenar çubuğu dolgusu |
+| `quickEntryCorner` | 20 pt | Erişilebilirlik boyutunda üst üste dizilen hızlı giriş |
+
+### Çizgi: `InkStroke`
+
+| Ad | Değer | Kullanım |
+|---|---|---|
+| `control` | 1,5 pt | Boş görev kutusu, halka izi |
+| `highPriority` | 2 pt | Yüksek öncelikli görev kutusu çerçevesi; ısı haritasında bugün ve af çerçevesi |
+| `rule` | 1 pt | Bölüm çizgisi; `hairline(scale:)` gerçek 1 pikseli verir |
+| `underline` | 1 pt | Bağlantı alt çizgisi, varsayılan kontrast |
+| `underlineHighContrast` | 2 pt | Kontrastı Artır'da bağlantı alt çizgisi; bugün hiçbir kod bu değeri okumaz |
+
+Hızlı giriş kapsüldür. Uygulama Mac'te sayfayı en çok 680 pt genişlikte ortalar; kaydırma alanı sütunu doldurur, yalnız içerik daralır. En dar pencerede sütunlar 200 + 320 + 480 pt'dir; liste 280 pt'ye inerse ayrıntı 520 pt olur. İçerik opaktır; gölge, doku ve gradyan yoktur.
 
 ## Uygulama simgesi
 
-Simgenin adı "Geçme"dir: iki şerit dik açıyla birbirinin içinden geçer. Mürekkep şerit yazıdır, mürdüm şerit bağdır (metnin kişi ve konumla kurduğu bağ). Renkler belirteç tablosundandır; gölge ve gradyan yoktur.
+**Simgenin her görünümdeki renkleri.**
 
 | Görünüm | Zemin | Mürekkep şerit | Mürdüm şerit | Dosya biçimi |
 |---|---|---|---|---|
@@ -206,37 +537,205 @@ Simgenin adı "Geçme"dir: iki şerit dik açıyla birbirinin içinden geçer. M
 | Tonlu | Siyah | Gri 0,52 | Gri 0,95 | Opak, gri tonlamalı; rengi sistem verir |
 | Mac | Kâğıt renkli gövde | `#1E1B17` | `#7A2C6E` | Saydam kenar paylı |
 
-- **Biçim.** 1024 birimlik tuvalde şerit kalınlığı 86, geçiş boşluğu 30 birimdir. Alttan geçen şerit, üstten geçenin iki yanından gerçekten kesilmiştir: boşluk zemin rengiyle boyanmaz, bu yüzden zemin değişince (koyu, tonlu, saydam) doğru kalır.
-- **Mac gövdesi.** Mac simgesi yuvarlak köşeli kare gövdesini ve kenar payını kendi içinde taşır (1024 tuvalde 824 gövde, köşe yarıçapı gövdenin 0,225'i). Gövdenin altında sistem simge şablonundaki hafif gölge vardır: Dock ve Finder'da açık renkli gövdeyi açık zeminden ayırır. Bu gölge işaretin değil gövdenin parçasıdır; arayüzdeki "gölge yok" kuralı sürer. 16 ve 32 piksellik dosyalar ayrı çizimdir: şerit ve boşluk daha kalın, gölge yok.
-- **Kaynak.** Vektör kaynak `App/Support/AppIcon/app-icon.svg` dosyasıdır (katmanlar: zemin, mürekkep şerit, mürdüm şerit); aynı klasörde koyu, tonlu ve Mac çizimleri durur. SVG ve PNG dosyaları elle düzenlenmez: hepsini `.github/scripts/render-app-icon.swift` aynı geometriden üretir. Yeniden üretme: `swift .github/scripts/render-app-icon.swift`. Betik belirlenimcidir; değişiklik yoksa dosyalar bayt düzeyinde aynı kalır.
+| Konu | Kural |
+|---|---|
+| Ad ve anlam | Simgenin adı "Geçme"dir: iki şerit dik açıyla birbirinin içinden geçer. Mürekkep şerit yazıdır. Mürdüm şerit bağdır: metnin kişi ve konumla kurduğu bağ. Renkler renk tablosundandır; gölge ve gradyan yoktur. |
+| Biçim | 1024 birimlik tuvalde şerit kalınlığı 86, geçiş boşluğu 30 birimdir. Betik alttan geçen şeridi üstten geçenin iki yanından gerçekten keser. Boşluk zemin rengini almaz; bu yüzden zemin değişince simge doğru kalır: koyu, tonlu, saydam. |
+| Mac gövdesi | Mac simgesi yuvarlak köşeli kare gövdesini ve kenar payını kendi içinde taşır. 1024 tuvalde gövde 824 birimdir; köşe yarıçapı gövdenin 0,225'idir. Gövdenin altında sistem simge şablonundaki hafif gölge vardır; gölge Dock ve Finder'da açık renkli gövdeyi açık zeminden ayırır. Bu gölge işaretin değil gövdenin parçasıdır; arayüzdeki "gölge yok" kuralı sürer. 16 ve 32 piksellik dosyalar ayrı çizimdir: şerit ve boşluk daha kalın, gölge yok. |
+| Kaynak | Vektör kaynak `App/Support/AppIcon/app-icon.svg` dosyasıdır. Katmanlar: zemin, mürekkep şerit, mürdüm şerit. Aynı klasörde koyu, tonlu ve Mac çizimleri durur: `app-icon-dark.svg`, `app-icon-tinted.svg`, `app-icon-mac.svg`, `app-icon-mac-16.svg`, `app-icon-mac-32.svg`. |
+| Üretim | SVG ve PNG dosyalarını elle düzenleme. `.github/scripts/render-app-icon.swift` hepsini aynı geometriden üretir. Yeniden üretme: `swift .github/scripts/render-app-icon.swift`. Betik belirlenimcidir; değişiklik yoksa dosyalar bayt düzeyinde aynı kalır. |
 
 ## Bugün ekranı
 
-Yukarıdan aşağı: manşet (tarih) ve künye satırı (olayla başlayıp "kaldı" ile biten özet: "3 olay · 4 görev ve 2 hedef kaldı"); hedefler (halka, ad, sağda değer ve tek dokunuşluk artı); görevler (köşeli kutu ve içinde öncelik, devreden görevde tarih); takvim (kasa dışı kaynak olduğu için sans); olaylar (kenarda saat); günlük yazısı (dört satır ve "Devamını yaz"). Altta hızlı giriş kapsülü ("Olay" ve "Görev" sözcükleri, yer tutucu, gönder) ve sistem sekme çubuğu.
+**Bugün ekranının yukarıdan aşağı sırası.**
 
-`screens.md` taslağına işlenen ekler: manşet ve künye satırı; bölüm sayaçları; devreden görevlerin üç satır ve "N devreden daha" ile sınırlanması; birden çok tamamlanan görevin tek satıra katlanması. On geciken görevin nasıl görüneceğini adayların hiçbiri çizmedi; kural prototipte sınanır.
+```mermaid
+flowchart TD
+    A[Manşet: tarih, künye satırı] --> B[Durum satırları: ilerleme, hata bandı, boş durum]
+    B --> C[Hedefler]
+    C --> D[Görevler]
+    D --> E[Takvim]
+    E --> F[Olaylar]
+    F --> G[Bağlam satırları: bu gün geçmişte, önemli tarihler]
+    G --> H[Günlük yazısı]
+    H --> I[Bu güne bağlananlar]
+    I --> J[Günü kapat girişi]
+    J -.-> K[Altta sabit: hızlı giriş kapsülü]
+    K -.-> L[Sistem sekme çubuğu]
+```
 
-## Bileşenler
+| Bölüm | İçerik |
+|---|---|
+| Manşet | Tarih ve künye satırı. Künye olayla başlayan, "kaldı" ile biten özettir: "3 olay · 4 görev ve 2 hedef kaldı". |
+| Hedefler | Halka, ad, sağda değer ve tek dokunuşluk artı. |
+| Görevler | Köşeli kutu ve içinde öncelik; devreden görevde tarih. |
+| Takvim | Kasa dışı kaynaktır; bu yüzden sans yazıdır. |
+| Olaylar | Kenarda saat. |
+| Bağlam satırları | Yalnız bugünün sayfasında durur; satır yoksa yer kaplamaz. |
+| Günlük yazısı | 4 satır ve "Devamını yaz". |
+| Bu güne bağlananlar | O güne bağlantı veren notlar, varlıklar ve başka günler; boşken yer kaplamaz. |
+| Günü kapat girişi | Sayfanın son satırı; ilk olayı ilk ekrandan itmesin diye en alttadır. |
+| Hızlı giriş kapsülü | "Olay" ve "Görev" sözcükleri, yer tutucu, gönder. |
 
-Manşet, bölüm başlığı, kenar sütunlu satır (görev, hedef, olay ve takvim için tek bileşen), görev kutusu, hedef halkası, bağlantılı metin, hızlı giriş kapsülü; bunlara ek olarak manşet satırı ve eylem simgeleri, sekme, etiketli menü, süzgeç alanı, sheet iskeleti (başlık ve iki düğme), etiket çipi, boş durum, ısı haritası hücresi, bilgi ve hata bandı, Mac kanban kartı, Mac liste sütunu seçimi. Bütün ekranlar bu parçalardan kurulur; görev satırı, kart ve tarih biçiminin bugünkü farklı varyantları tek parçaya iner.
+`screens.md` taslağı 4 ek aldı: manşet ve künye satırı, bölüm sayaçları ve devreden görevlerin sınırı. Sınır 3 satır ve "N devreden daha" satırıdır. Dördüncü ek, birden çok tamamlanan görevi tek satıra katlar. Adayların hiçbiri 10 geciken görevin görünümünü çizmedi; prototip kuralı sınar. Bölüm sırası `App/Screens/Today/DayView.swift` dosyasındadır.
 
-Isı haritası hücresi (`HeatmapCell`) durumu renge ek olarak biçimle ayırır. Boş hücre çukur dolgu ve kontrol çizgisidir. Kısmi katkı alttan kısmi vurgu dolgusudur. Tam katkı tam vurgu dolgusudur. Bugün ayrıca kesiksiz vurgu çerçevesi taşır. Gelecek gün çizilmez. Affedilen gün (yalnız günlük hedefte, tek başına kalan kaçırma) kesik çizgili vurgu çerçevesi taşır: katkısı yoksa içi boştur (çukur dolgu yok), hedefin altında katkısı varsa çukur ve kısmi dolgu kalır; VoiceOver "affedildi" ya da "kısmi katkı, affedildi" der. Kesik çizgi af işaretini bugünün kesiksiz çerçevesinden renge bağlı olmadan ayırır; boş hücrenin kontrol çizgisinden renk, kalınlık ve kesiklikle ayrılır. Çizgi hücre boyuyla ölçeklenir (kenar başına üç çizgi).
+## Bileşen ailesi
 
-Mac liste sütunu seçimi (`InkListSelection`) şöyle çizilir. Görevler, Günlük, Kişiler ve Hedefler sütunlarında ve Mac'teki arama sonuçlarında seçili satır çukur zeminle, satırın içinde yuvarlatılmış köşeyle ve solda 2 pt vurgu çizgisiyle görünür; iPhone satırı kâğıt kalır. Görev sütununda kutu tamamlar, metindeki bağlantı kendi sayfasını açar, satıra tıklamak ayrıntıyı seçer; bağlam menüsündeki silme onay diyaloğuna gider.
+**Bütün ekranları kuran ortak bileşenler, ailelerine göre.**
 
-Mac kenar çubuğu satırı (`MacSidebarRow`) kural 12'yi şöyle çizer. Dolgu sistem seçiminin yerinde, kenarlardan 10 pt içeride ve 8 pt köşelidir. Dikey kaydırma göstergesi çizilmez: fare bağlıyken yer kaplayan çubuk satırı sağdan daraltmaz, dolgu iki kenardan 10 pt içeride kalır; liste tekerlek, izleme dörtgeni ve ok tuşlarıyla kayar. Etkin olmayan pencerede dolgu çizgi rengine döner ve satır olağan mürekkebiyle yazılır. Yerleşimi değiştiren her seçim (tıklama, ok tuşu ya da VoiceOver) odak serbestse yeni kenar çubuğuna bir kez geri verilir. Serbestlik kenar çubuğunun kendi penceresine bakılır: odak o pencerede başka bir denetimdeyse istek bırakılır.
+```mermaid
+mindmap
+  root((Mürekkep bileşenleri))
+    Sayfa
+      InkPageTitle
+      InkPageTitleRow
+      InkPageHeader
+      PageHeadline
+      SectionHeader
+    Satır
+      MarginRow
+      InkTaskRow
+      InkGoalRow
+      InkEventRow
+      InkCalendarRow
+      TaskBox
+      GoalRing
+      InkLinkedText
+    Seçim ve eylem
+      InkHeaderAction
+      InkHeaderMenu
+      InkTabs
+      InkLabeledMenu
+      InkFilterField
+      Düğme stilleri
+    Kap
+      inkSheet
+      InkSheetScaffold
+      InkSurface
+      InkKanbanCard
+    Durum ve veri
+      InfoBand
+      EmptyState
+      InkProgress
+      HeatmapCell
+      LargeNumberText
+      TagChip
+    Hızlı giriş
+      QuickEntryCapsule
+    Mac
+      InkListSelection
+      MacSidebarRow
+```
+
+| Parça | Kod | Dosya |
+|---|---|---|
+| Manşet | `InkPageTitle`, `InkPageTitleRow`, `PageHeadline` | `App/Design/InkPage.swift`, `App/Design/Components/PageHeadline.swift` |
+| Manşet satırı ve eylem simgeleri | `InkPageHeader`, `InkHeaderAction`, `InkHeaderMenu` | `App/Design/Components/InkPageHeader.swift`, `App/Design/Components/InkHeaderAction.swift` |
+| Bölüm başlığı | `SectionHeader` | `App/Design/Components/SectionHeader.swift` |
+| Kenar sütunlu satır: görev, hedef, olay ve takvim için tek bileşen | `MarginRow`, `InkTaskRow`, `InkGoalRow`, `InkEventRow`, `InkCalendarRow` | `App/Design/Components/MarginRow.swift`, `App/Design/Components/InkRows.swift` |
+| Görev kutusu | `TaskBox` | `App/Design/Components/TaskBox.swift` |
+| Hedef halkası | `GoalRing` | `App/Design/Components/GoalRing.swift` |
+| Bağlantılı metin | `InkLinkedText`, `InkLinkStyle` | `App/Design/Components/InkLinkedText.swift`, `App/Design/Components/InkLinkStyle.swift` |
+| Hızlı giriş kapsülü | `QuickEntryCapsule` | `App/Design/Components/QuickEntryCapsule.swift` |
+| Sekme | `InkTabs` | `App/Design/Components/InkTabs.swift` |
+| Etiketli menü | `InkLabeledMenu` | `App/Design/Components/InkLabeledMenu.swift` |
+| Süzgeç alanı | `InkFilterField` | `App/Design/Components/InkFilterField.swift` |
+| Sheet iskeleti: başlık ve iki düğme | `.inkSheet`, `InkSheetScaffold` | `App/Design/Components/InkSheet.swift` |
+| Düğme stilleri | `InkPrimaryButtonStyle`, `InkTextButtonStyle`, `InkDestructiveButtonStyle` | `App/Design/Components/InkButtonStyles.swift` |
+| Etiket çipi | `TagChip` | `App/Design/Components/TagChip.swift` |
+| Boş durum | `EmptyState` | `App/Design/Components/EmptyState.swift` |
+| İlerleme göstergesi | `InkProgress` | `App/Design/Components/InkProgress.swift` |
+| Isı haritası hücresi | `HeatmapCell` | `App/Design/Components/HeatmapCell.swift` |
+| Bilgi, uyarı ve hata bandı | `InfoBand` | `App/Design/Components/InfoBand.swift` |
+| Büyük rakam | `LargeNumberText` | `App/Design/Components/LargeNumberText.swift` |
+| Mac kanban kartı | `InkKanbanCard` | `App/Design/Components/InkSurface.swift` |
+| Mac liste sütunu seçimi | `InkListSelectionBackground` | `App/Design/Components/InkListSelection.swift` |
+| Mac kenar çubuğu satırı | `MacSidebarRow` | `App/Navigation/MacSidebar.swift` |
+
+Bütün ekranlar bu parçaları kullanır. Görev satırının, kartın ve tarih biçiminin eski varyantları tek parçada birleşti. `ComponentGallery` dosyaları parçaları bir arada gösterir.
+
+### Görev kutusu durumları
+
+| Durum | Dolgu | Çerçeve | İçindeki işaret |
+|---|---|---|---|
+| Açık, öncelik yok ya da düşük | Yok | 1,5 pt kontrol çizgisi | Yok |
+| Açık, orta öncelik | Yok | 1,5 pt kontrol çizgisi | "!" |
+| Açık, yüksek öncelik | Yok | 2 pt metin rengi | "!!" |
+| Devam ediyor | Alt yarı ikincil metin | Önceliğe göre | Öncelik işareti üst yarıda |
+| Tamamlandı | İkincil metin | İkincil metin | Zemin renginde onay işareti |
+| İptal edildi | İkincil metin | İkincil metin | Zemin renginde yatay çizgi |
+
+Kutu `@ScaledMetric` ile büyür; dokunma alanı en az 44 pt kalır. Öncelik işareti iOS'ta 12 pt'nin altına inmez.
+
+### Isı haritası hücresi
+
+**`HeatmapCell` durumu renge ek olarak biçimle ayırır.**
+
+| Durum | `HeatmapCellKind` | Dolgu | Çerçeve | VoiceOver |
+|---|---|---|---|---|
+| Boş | `empty` | Çukur | 1,5 pt kontrol çizgisi | — |
+| Kısmi katkı | `partial` | Çukur ve alttan %45 vurgu | Yok | — |
+| Tam katkı | `full` | Tam vurgu | Yok | — |
+| Bugün | `today` ya da `isToday` | Katkıya göre | 2 pt kesiksiz vurgu | — |
+| Gelecek gün | `future` | Hücre boştur | Yok | Gizli |
+| Affedilen gün, katkısız | `forgiven` | Yok: çukur dolgu da yok | 2 pt kesik vurgu | "Affedildi" |
+| Affedilen gün, hedefin altında katkı | `forgivenPartial` | Çukur ve alttan %45 vurgu | 2 pt kesik vurgu | "Kısmi katkı, affedildi" |
+
+Affedilen gün yalnız günlük hedefte, tek başına kalan bir kaçırmadır. Kesik çizgi af işaretini bugünün kesiksiz çerçevesinden renge bağlı olmadan ayırır. Af çerçevesi boş hücrenin kontrol çizgisinden renk, kalınlık ve kesiklikle ayrışır. Kesik desen hücre boyuyla büyür: kenar başına 3 çizgi.
+
+### Mac liste sütunu seçimi
+
+| Konu | Kural |
+|---|---|
+| Yer | Görevler, Günlük, Kişiler ve Hedefler sütunları ve Mac'teki arama sonuçları. |
+| Dolgu | Çukur zemin, satırın içinde 6 pt yuvarlatılmış köşe. Dolgu satırın kenarından yatay 4 pt, dikey 2 pt içeridedir. |
+| İşaret | Solda 2 pt vurgu çizgisi. |
+| Yazı | Seçili satırdaki yazı belirteçleri çukur zeminde de alt sınır kontrastını taşır. |
+| iPhone | Satır kâğıt kalır. Yalnız arama sonucunda klavye seçimi hafif vurgu zemini alır. |
+| Görev sütunu | Kutu görevi tamamlar. Metindeki bağlantı kendi sayfasını açar. Satıra tıklamak ayrıntıyı seçer. Bağlam menüsündeki silme onay diyaloğuna gider. |
+
+Kod karşılığı: `InkListSelectionBackground` ve `inkListRow(columnSelected:)`.
+
+### Mac kenar çubuğu satırı
+
+**`MacSidebarRow` kural 12'yi pencere durumuna göre çizer.**
+
+| Satır durumu | Dolgu | Yazı | Simge |
+|---|---|---|---|
+| Seçili, etkin pencere | Vurgu | Vurgu üstü mürekkep, yarı kalın | Vurgu üstü mürekkep |
+| Seçili, etkin olmayan pencere | Süs çizgisi rengi | Metin, yarı kalın | Vurgu |
+| Seçili değil | Yok | Metin | Vurgu |
+
+| Konu | Kural |
+|---|---|
+| Dolgu yeri | Dolgu sistem seçiminin yerindedir: kenarlardan 10 pt içeride ve 8 pt köşeli. |
+| Kaydırma göstergesi | Uygulama dikey kaydırma göstergesini çizmez. Fare bağlıyken yer kaplayan çubuk satırı sağdan daraltmaz; dolgu iki kenardan 10 pt içeride kalır. Liste tekerlek, izleme dörtgeni ve ok tuşlarıyla kayar. |
+| Odak | Yerleşimi değiştiren her seçimden sonra uygulama odağı yeni kenar çubuğuna bir kez geri verir. Seçim tıklama, ok tuşu ya da VoiceOver olabilir. Uygulama bunu yalnız odak serbestse yapar. |
+| Odak serbestliği | Kenar çubuğunun kendi penceresi serbestliği belirler. Odak o pencerede başka bir denetimdeyse uygulama isteği bırakır. |
 
 ## Doğrulama
 
-- Prototip: Bugün ve kişi sayfası; seçilen yön (istenirse Derkenar'ın imzası açılıp kapatılarak); açık ve koyu mod, büyük yazı (AX3 ve AX5), Kontrastı Artır, Mac'te üç sütun. Ünlemli görev kutusunun dokunma davranışı ve devam eden görevdeki hali burada sınanır.
-- İlk teknik doğrulama: renkli ve desenli alt çizginin bağlantı parçasında, okuma metninde ve hızlı giriş alanında çizildiği. Çizilmezse yedek yol, bağlantı metnini kişi ya da konum renginde yazmaktır (kontrastlar yeterli).
-- **Doğrulama (2026-10-06):** `Text` ve `TextEditor` (`AttributedString`) içinde renkli desenli alt çizgi çiziliyor (`InkLinkStyle.mode == .underline`); `TextField` hâlâ `String` bağlar — yedek yol `InkLinkStyle` içinde durur.
-- CI'da palet kontrast testi (her belirteç çifti için), erişilebilirlik denetimi ve ekran görüntüsü testleri. Ajanlar ekranı göremediği için ekran görüntüsü testleri bu projede zorunludur.
+| Adım | Kapsam | Durum |
+|---|---|---|
+| Prototip | Bugün ve kişi sayfası; seçilen yön; istenirse Derkenar'ın imzası açık ve kapalı. Açık ve koyu mod, büyük yazı AX3 ve AX5, Kontrastı Artır, Mac'te üç sütun. Ünlemli görev kutusunun dokunma davranışı ve devam eden görevdeki hali. | Ekran yazıldı ve ekran görüntüsü testlerinde doğrulandı; gerçek cihazda gözle doğrulama bekliyor. |
+| İlk teknik doğrulama | Renkli ve desenli alt çizgi bağlantı parçasında, okuma metninde ve hızlı giriş alanında çiziliyor mu? Çizilmezse yedek yol: bağlantı metnini kişi ya da konum renginde yaz; kontrastlar yeterli. | 2026-10-06: `Text` ve `TextEditor` (`AttributedString`) içinde renkli desenli alt çizgi çiziliyor (`InkLinkStyle.mode == .underline`); `TextField` hâlâ `String` bağlar — yedek yol `InkLinkStyle` içinde durur. |
+| CI | Her belirteç çifti için palet kontrast testi, erişilebilirlik denetimi ve ekran görüntüsü testleri. | `PaletteContrastTests`, `Tests/JournalUITests` erişilebilirlik denetimi, adı `SnapshotTests` ile biten kümeler. |
+
+CI, sürekli bütünleştirme demektir. Ajanlar ekranı göremez; bu yüzden ekran görüntüsü testleri bu projede zorunludur.
 
 ## Bilinen sınırlar
 
-- Maketler HTML ile çizildi: cam ve simgeler yaklaşıktır; yalnız iPhone'da Bugün ekranı çizildi. Mac, Dynamic Type ve Kontrastı Artır görünümleri ve öteki ekranlar çizilmedi.
-- Sahibin iki değişikliği oylamadan sonra eklendi; değişiklikli hali çizildi ama jüri oylamadı.
-- Tasarımcıların ve jüri üyelerinin hepsi yapay zeka modeliydi; jüri tek model ailesindendi ve üyelerin çoğu kendi modelinin tasarımını seçti. Dört ayrı model ailesinin kâğıt ve serifte birleşmesi bağımsız bir doğrulama olabileceği gibi, bu modellerin ortak bir alışkanlığı da olabilir. Son söz sahibin gözündedir.
-- Serif görev listesinin sans listeye göre daha yavaş tarandığına dair ölçüm yok; risk prototipte gözlenir.
-- Sıcak özel zemin, HIG'in sistem zemin renklerini tercih etme önerisinden bilinçli bir sapmadır.
+| Sınır | Açıklama |
+|---|---|
+| Maketler | Tasarımcılar maketleri HTML ile çizdi; cam ve simgeler yaklaşıktır. Maketler yalnız iPhone'daki Bugün ekranını gösterir. Mac, Dynamic Type, Kontrastı Artır ve öteki ekranların maketi yoktur. |
+| Oylanmayan değişiklikler | Sahibin iki değişikliği oylamadan sonra geldi. Tasarımcı değişiklikli hali çizdi, ama jüri o hali oylamadı. |
+| Yapay zeka heyeti | Tasarımcıların ve jüri üyelerinin hepsi yapay zeka modeliydi. Jüri tek model ailesindendi ve üyelerin çoğu kendi modelinin tasarımını seçti. Dört model ailesinin kâğıt ve serifte birleşmesi bağımsız bir doğrulama olabilir; bu modellerin ortak bir alışkanlığı da olabilir. Son söz sahibin gözündedir. |
+| Tarama hızı | Serif görev listesinin sans listeye göre daha yavaş tarandığına dair ölçüm yoktur. Prototip bu riski gözler. |
+| Sıcak zemin | Sıcak özel zemin, HIG'in sistem zemin renklerini tercih etme önerisinden bilinçli bir sapmadır. |
+
+## İlgili belgeler
+
+- [Ekranlar](screens.md)
+- [Kararlar](decisions.md)
+- [Yol haritası](roadmap.md)
+- [Mimari](architecture.md)

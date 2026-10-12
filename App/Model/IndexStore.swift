@@ -227,10 +227,11 @@ final class IndexStore {
     /// Returns true once bytes are saved, including a failed index update; callers must not resend them.
     @discardableResult
     func addEvent(on day: CalendarDate = LocalDay.today(), text: String, time: LineClock?) async -> Bool {
-        guard !text.allSatisfy(\.isWhitespace) else { return false }
+        // No vault selected: nothing to write to, as when the vault is not writable.
+        guard !text.allSatisfy(\.isWhitespace), let root = vaultURL else { return false }
         do {
             return try await withWriteSlot {
-                await waitWhileRefreshInFlight()
+                try await awaitEditTurn(in: root)
                 guard canAddEvent, let writer, let index else { return false }
                 isProcessing = true
                 isWriting = true
@@ -366,12 +367,22 @@ final class IndexStore {
 
     /// Like `performEdit(path:)` but the operation reports the paths it actually changed
     /// (for example after filename sanitization in `creatingGoal`).
+    /// The edit belongs to the vault selected when this is called.
     func performEdit(
         estimatedPaths: Set<String> = [],
         operation: (VaultStore) async throws -> Set<String>
     ) async throws {
+        try await performEdit(in: vaultURL, estimatedPaths: estimatedPaths, operation: operation)
+    }
+
+    /// `root` is the vault the edit belongs to. A vault selected since, even while the edit waited
+    /// for its turn or for a refresh, is never written: `staleTarget`, and nothing is written.
+    private func performEdit(
+        in root: URL?, estimatedPaths: Set<String>,
+        operation: (VaultStore) async throws -> Set<String>
+    ) async throws {
         try await withWriteSlot {
-            await waitWhileRefreshInFlight()
+            try await awaitEditTurn(in: root)
             guard canAddEvent, let writer, let index else { throw VaultStoreError.staleTarget }
             isProcessing = true
             isWriting = true
@@ -396,8 +407,9 @@ final class IndexStore {
     }
 
     func renameEntity(at path: String, to name: String, qualifier: String?) async throws -> RenameResult {
-        try await withWriteSlot {
-            await waitWhileRefreshInFlight()
+        let root = vaultURL
+        return try await withWriteSlot {
+            try await awaitEditTurn(in: root)
             guard canAddEvent, let writer, let index else { throw VaultStoreError.staleTarget }
             isProcessing = true
             isWriting = true
@@ -464,8 +476,9 @@ final class IndexStore {
     func createEntity(
         kind: VaultEntityKind, name: String, qualifier: String?, aliases: [String]? = nil
     ) async throws -> KnownEntity {
-        try await withWriteSlot {
-            await waitWhileRefreshInFlight()
+        let root = vaultURL
+        return try await withWriteSlot {
+            try await awaitEditTurn(in: root)
             guard canAddEvent, let writer else { throw VaultStoreError.staleTarget }
             isProcessing = true
             isWriting = true
@@ -702,7 +715,7 @@ final class IndexStore {
             }.value
             guard generation == current else { return }
             index = opened
-            writer = VaultStore(vaultRoot: url, index: opened)
+            writer = VaultStore(vaultRoot: url, index: opened, fileCoordination: SystemFileCoordination())
         } catch {
             if generation == current { report(error) }
         }
@@ -813,9 +826,9 @@ final class IndexStore {
     /// `root` is the vault the row was read from: a vault selected since, even while this write
     /// waited its turn, is never written from another vault's row.
     func linkUnlinkedMention(_ mention: UnlinkedMention, to entity: KnownEntity, readFrom root: URL?) async throws {
-        try await performEdit(path: mention.file) { writer in
-            guard let root, vaultURL == root else { throw VaultStoreError.staleTarget }
+        try await performEdit(in: root, estimatedPaths: [mention.file]) { writer in
             _ = try await writer.linkingMention(mention, to: entity)
+            return [mention.file]
         }
     }
 
@@ -840,11 +853,11 @@ final class IndexStore {
     /// People as of `today`: latest encounter on or before that day, plus the indexed cadence.
     func cadenceReminderPeople(today: CalendarDate) async throws -> [CadenceReminderPerson] {
         let cadences = try await personCadences()
-        let content = self.content
+        let encounters = try await computeLastEncounters(asOf: today)
         return content.entities.filter { $0.kind == "person" }.map { entity in
-            let last = content.entityTimeline[entity.id]?.map(\.date).filter { $0 <= today }.max()
-            return CadenceReminderPerson(
-                id: entity.id, name: entity.name, lastDay: last, cadence: cadences[entity.id] ?? .none)
+            CadenceReminderPerson(
+                id: entity.id, name: entity.name, lastDay: encounters[entity.id],
+                cadence: cadences[entity.id] ?? .none)
         }
     }
 
@@ -868,9 +881,7 @@ final class IndexStore {
     /// write waits its turn is not written (`staleTarget`, nothing written).
     func appendToJournal(on day: CalendarDate, lines: [String]) async throws {
         guard lines.contains(where: { !$0.allSatisfy(\.isWhitespace) }) else { return }
-        let root = vaultURL
         try await performEdit(path: "journal/\(day).md") { writer in
-            guard let root, vaultURL == root else { throw VaultStoreError.staleTarget }
             try await writer.appendingJournal(on: day, lines: lines)
         }
     }
@@ -891,5 +902,49 @@ final class IndexStore {
         await testingGraphQueryDidFinish?()
         guard generation == current else { throw VaultStoreError.staleTarget }
         return GraphInput(entities: content.entities, mentions: mentions)
+    }
+
+    // MARK: - Entity timeline query
+
+    /// Test seam: runs after an entity timeline or last-encounter query returns, before its
+    /// generation is checked.
+    @ObservationIgnored var testingEntityTimelineQueryDidFinish: (@MainActor () async -> Void)?
+
+    /// Day-file events and Journal paragraphs linking to `path`, newest day first, queried from the
+    /// index on demand. Belongs to this vault generation; with no index open it is empty.
+    func computeEntityTimeline(for path: String) async throws -> [EntityTimelineDay] {
+        guard let index else { return [] }
+        let current = generation
+        let days = try await Task.detached {
+            EntityTimeline.days(from: try index.entityTimeline(for: path))
+        }.value
+        await testingEntityTimelineQueryDidFinish?()
+        guard generation == current else { throw VaultStoreError.staleTarget }
+        return days
+    }
+
+    /// Each linked file's latest encounter on or before `day`, counted from the same blocks as the
+    /// timeline. Belongs to this vault generation; with no index open it is empty.
+    func computeLastEncounters(asOf day: CalendarDate) async throws -> [String: CalendarDate] {
+        guard let index else { return [:] }
+        let current = generation
+        let encounters = try await Task.detached { try index.lastEncounters(asOf: day) }.value
+        await testingEntityTimelineQueryDidFinish?()
+        guard generation == current else { throw VaultStoreError.staleTarget }
+        return encounters
+    }
+
+    // MARK: - Edit turn
+
+    /// Test seam: runs once an edit's turn has come, before it checks that its vault is still selected.
+    @ObservationIgnored var testingEditTurnDidArrive: (@MainActor () async -> Void)?
+
+    /// Every write's turn: once the write slot is held and any refresh is over, `root` (the vault
+    /// selected when the write was asked for) must still be selected. A vault selected meanwhile is
+    /// never written: `staleTarget`, before anything is read or written.
+    private func awaitEditTurn(in root: URL?) async throws {
+        await waitWhileRefreshInFlight()
+        await testingEditTurnDidArrive?()
+        guard let root, vaultURL == root else { throw VaultStoreError.staleTarget }
     }
 }

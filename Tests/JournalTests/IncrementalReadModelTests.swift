@@ -161,7 +161,7 @@ struct IncrementalReadModelTests {
         #expect(incremental.matchesScreenFields(full))
         let zora = try #require(incremental.entities.first { $0.name == "Zora Example" })
         #expect(zora.incomingLinks >= 1)
-        #expect(incremental.entityTimeline[zora.id] != nil)
+        #expect(!(try index.entityTimeline(for: zora.id)).isEmpty)
     }
 
     @Test func guessedGoalPathReconcilesUsingWriterPath() async throws {
@@ -321,5 +321,76 @@ struct IncrementalReadModelTests {
         pair = try graphs(model)
         #expect(pair.published == pair.rebuilt)
         #expect(pair.published.days.map(\.date) == [today])
+    }
+
+    /// Entity timelines left the read model for Core queries: after each edit the queries on the
+    /// maintained index equal the old construction from a rebuild, for every file and as of
+    /// several days. This is what `matchesScreenFields` compared for timelines before.
+    @Test func entityTimelinesAfterIncrementalEditsMatchFullRebuild() async throws {
+        let root = try testDirectory()
+        defer { try? FileManager.default.removeItem(at: root) }
+        try IncrementalReadModelVault.seed(at: root)
+        try IncrementalReadModelVault.write(
+            root, "journal/2026-10-03.md", "## Events\n- 11:00 Met [[Zora Example]] ^z1\n")
+        let index = try VaultIndex()
+        try index.rebuild(vaultRoot: root)
+        let store = VaultStore(vaultRoot: root, index: index)
+        let today = IncrementalReadModelVault.today
+        let days = [CalendarDate("2026-10-03")!, CalendarDate("2026-10-04")!, today]
+        @discardableResult
+        func check(_ label: String) throws -> [String: [EntityTimelineDay]] {
+            let rebuilt = try VaultIndex()
+            try rebuilt.rebuild(vaultRoot: root)
+            let expected = EntityTimeline.build(snapshot: try rebuilt.snapshot())
+            let files = Set(try index.files().map(\.path)).union(expected.keys)
+            for file in files {
+                let published = EntityTimeline.days(from: try index.entityTimeline(for: file))
+                #expect(
+                    EntityTimeline.key(published) == EntityTimeline.key(expected[file] ?? []),
+                    Comment(rawValue: "\(label) \(file)"))
+            }
+            for day in days {
+                #expect(
+                    try index.lastEncounters(asOf: day) == EntityTimeline.lastEncounters(expected, asOf: day),
+                    Comment(rawValue: "\(label) \(day)"))
+            }
+            return expected
+        }
+        let deniz = "people/Deniz Example.md"
+        var timelines = try check("seed")
+        #expect(timelines[deniz]?.map(\.date) == [today])
+
+        _ = try await store.addingEvent(on: today, text: "Lunch with [[Deniz Example]] at [[Harbor Cafe]]", time: nil)
+        timelines = try check("event")
+        #expect(timelines[deniz]?.first?.rows.count == 2)
+
+        let document = try await store.document(at: "journal/\(today).md")
+        let task = try #require(document.bodyLines.tasks.first { $0.block.id == "task2" })
+        _ = try await store.changingStatus(of: task, at: "journal/\(today).md", to: .done, completionDate: today)
+        try check("task")
+
+        let renamed = try await store.renamingEntity(at: deniz, to: "Deniz Renamed")
+        timelines = try check("rename")
+        #expect(timelines[deniz] == nil && timelines[renamed.path]?.first?.rows.count == 2)
+
+        _ = try await store.creatingEntity(kind: .person, name: "Zora Example", qualifier: nil)
+        timelines = try check("create")
+        #expect(timelines["people/Zora Example.md"]?.map(\.date) == [CalendarDate("2026-10-03")!])
+
+        let edited = root.appendingPathComponent("journal/2026-10-04.md")
+        var text = try String(contentsOf: edited, encoding: .utf8)
+        text += "\n[[Deniz Renamed]] joined later.\n"
+        try Data(text.utf8).write(to: edited)
+        try FileManager.default.setAttributes(
+            [.modificationDate: Date().addingTimeInterval(2)], ofItemAtPath: edited.path)
+        try index.refresh(vaultRoot: root)
+        timelines = try check("external edit")
+        #expect(timelines[renamed.path]?.map(\.date) == [today, CalendarDate("2026-10-04")!])
+
+        try FileManager.default.removeItem(at: edited)
+        try index.refresh(vaultRoot: root)
+        timelines = try check("external delete")
+        #expect(timelines[renamed.path]?.map(\.date) == [today])
+        #expect(timelines["places/Harbor Cafe.md"]?.map(\.date) == [today])
     }
 }

@@ -33,7 +33,7 @@ struct EntityRenameTests {
         #expect(result.failures.isEmpty)
         #expect(!FileManager.default.fileExists(atPath: context.file.path))
         #expect(context.store.content.entities.contains { $0.id == result.path && $0.qualifier == "ofis" })
-        #expect(context.store.content.entityTimeline[result.path]?.count == 5)
+        #expect(try await context.store.computeEntityTimeline(for: result.path).count == 5)
         let mentions = EntityRecognizer.recognize("Mert Aksu", entities: context.store.knownEntities)
         #expect(mentions.first?.candidates.contains { $0.file == result.path } == true)
         await model.save()

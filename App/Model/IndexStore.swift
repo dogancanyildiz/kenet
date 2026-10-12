@@ -452,16 +452,24 @@ final class IndexStore {
 
     private func reloadRecognition() async throws {
         guard let index else { return }
+        // One vault throughout: place signatures are taken under `root` and the files are read by
+        // `writer`; a vault opened meanwhile must not pair one vault's signature with another's bytes.
+        let writer = writer
+        let root = vaultURL
         if let writer { entityTypes = await writer.entityTypes() }
         let kinds = Set(entityTypes.allTypes.map(\.id))
-        let values = try await Task.detached { (try index.knownEntities(kinds: kinds), try index.entityUsage()) }.value
+        let values = try await Task.detached {
+            let entities = try index.knownEntities(kinds: kinds)
+            return (entities, try index.entityUsage(), PlaceDocumentCache.signatures(of: entities, in: root))
+        }.value
         knownEntities = values.0
         entityUsage = values.1
         var places: [NearbyPlace] = []
         var coordinates: [MapPlace] = []
         if let writer {
+            placeDocuments.keep(only: values.2.keys)
             for entity in values.0 where entity.kind == .place {
-                if let document = try? await writer.document(at: entity.file) {
+                if let document = await placeDocument(entity.file, signature: values.2[entity.file], from: writer) {
                     if let coordinate = PlaceCoordinate(document: document) {
                         coordinates.append(MapPlace(entity: entity, coordinate: coordinate))
                     }
@@ -964,5 +972,73 @@ final class IndexStore {
         await testingGoalStatusQueryDidFinish?()
         guard generation == current else { throw VaultStoreError.staleTarget }
         return rows
+    }
+
+    // MARK: - Place documents
+
+    /// Place files read for coordinates after every write and refresh, kept while unchanged on disk.
+    @ObservationIgnored private var placeDocuments = PlaceDocumentCache()
+
+    /// The disk bytes of one place file: from the cache while the file's signature is unchanged,
+    /// otherwise a coordinated read. A failed read is not kept, so the next reload reads again.
+    private func placeDocument(
+        _ path: String, signature: PlaceDocumentCache.Signature?, from writer: VaultStore
+    ) async -> RawDocument? {
+        if let signature, let document = placeDocuments.document(at: path, signature: signature) { return document }
+        guard let document = try? await writer.document(at: path) else { return nil }
+        if let signature { placeDocuments.store(document, at: path, signature: signature) }
+        return document
+    }
+}
+
+/// Place documents, each kept with the file signature taken before it was read. A file changed
+/// after its signature was taken is read again next time; it is never served stale. Device and
+/// inode are part of the signature, so another vault's file or a file moved onto the path misses.
+struct PlaceDocumentCache {
+    /// Identity, size and change times of a file; any write, replacement or move changes one of them.
+    struct Signature: Equatable, Sendable {
+        let device: Int64
+        let inode: UInt64
+        let size: Int64
+        let modified: [Int]
+        let changed: [Int]
+
+        init?(_ url: URL) {
+            var info = stat()
+            guard url.withUnsafeFileSystemRepresentation({ $0.map { stat($0, &info) } ?? -1 }) == 0 else {
+                return nil
+            }
+            device = Int64(info.st_dev)
+            inode = UInt64(info.st_ino)
+            size = Int64(info.st_size)
+            modified = [Int(info.st_mtimespec.tv_sec), Int(info.st_mtimespec.tv_nsec)]
+            changed = [Int(info.st_ctimespec.tv_sec), Int(info.st_ctimespec.tv_nsec)]
+        }
+    }
+
+    private var entries: [String: (signature: Signature, document: RawDocument)] = [:]
+
+    /// Signatures of the place files under `root`; a file that cannot be examined has none.
+    static func signatures(of entities: [KnownEntity], in root: URL?) -> [String: Signature] {
+        guard let root else { return [:] }
+        var result: [String: Signature] = [:]
+        for entity in entities where entity.kind == .place {
+            result[entity.file] = Signature(root.appendingPathComponent(entity.file))
+        }
+        return result
+    }
+
+    /// Drops every file that is no longer a place with a signature.
+    mutating func keep(only paths: Dictionary<String, Signature>.Keys) {
+        entries = entries.filter { paths.contains($0.key) }
+    }
+
+    func document(at path: String, signature: Signature) -> RawDocument? {
+        guard let entry = entries[path], entry.signature == signature else { return nil }
+        return entry.document
+    }
+
+    mutating func store(_ document: RawDocument, at path: String, signature: Signature) {
+        entries[path] = (signature, document)
     }
 }

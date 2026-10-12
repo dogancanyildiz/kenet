@@ -236,7 +236,7 @@ Aşama 10 sektör taramasından çıkan ilk dalgadır. Maddeler kimlik kararı g
 | Kasa konumu | Açık. Kimlik kararını bekliyor. Yerel kasa ve klasör seçimi hazır. | - |
 | Eşitlenen kasada güvenli yazma | Açık. Hazır: Core koordinasyon sınırı; App'te `NSFileCoordinator` ve okuma kuyruğu; eşitlenen klasör tespiti; yer tutucu tespiti; Core'da gün kopyası birleştirme. Açık: indirme isteği, birleştirmeyi App'e bağlama, `NSFileVersion` çakışmaları, eşitleme göstergesi. İndirme isteği cihaz doğrulamasını, birleştirme kullanıcı kararını bekliyor. | #187, #189, #200, #203, #206, #207 |
 | Ana ekran widget'ı | Açık. App Group kararını bekliyor. | - |
-| Ekranlar kendi sorgusunu çalıştırır | Açık. Graph, varlık zaman akışı, son görüşme, günler, hedefler ve görev ekranları kendi sorgusunu çalıştırıyor. Okuma modelinde `tasks` kaldı: planlayıcı ve Intent için. `goalLogs` kaldı: planlayıcı ve konum için. Açık: alanları kaldırma, parça inceltme, widget. | #192, #201, #205, #208, #210, #211, #212, #214 |
+| Ekranlar kendi sorgusunu çalıştırır | Açık. Bütün ekranlar, bildirim planlayıcı ve proje listeleri kendi sorgusunu çalıştırıyor. Okuma modelinden `days`, `tasks`, `projects` ve `goalStatuses` çıktı; parçalar blok metni taşımıyor. 5 yıllık kasada okuma modeli 10,8 MB'tan 2,35 MB'a, yeniden türetme 1.640 ms'den 50 ms'ye indi. Kalan: `entities`, `goals`, `goalLogs`; widget App Group kararını bekliyor. | #192, #201, #205, #208, #210, #211, #212, #214, #225 |
 | Widget yenilemesinin testi | Açık | - |
 | Kilit ekranı widget'ı | Açık | - |
 | Hızlı giriş widget'ı ve girişler | Açık | - |
@@ -401,6 +401,7 @@ Widget maddeleri Aşama 11'e devretti.
 |---|---|
 | 3 madde | Bitti |
 | Yapay zeka maddeleri | "Sonraki fikirler"e devretti |
+| Özetler yeniden tasarımı | Bitti: Yıl sekmesi, ritim şeridi, aynı tarihe kadar karşılaştırma, ad çipleri, yığılı görev çubuğu, Mac iki sütun (#228) |
 
 - [x] Haftalık ve aylık özetler: kimlerle, nerelerde, hedef ve görev durumu. Özetler sayılara dayanır ve yapay zeka kullanmaz.
 - [x] Kişi sayfasında son görüşme özeti; uzun süredir görüşmediğin kişiler.

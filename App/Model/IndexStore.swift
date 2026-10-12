@@ -298,7 +298,9 @@ final class IndexStore {
             PeriodSummary.compute(
                 period: period, containing: day, data: try index.summaryInput(from: from, to: to), today: today)
         }.value
+        await testingQueryDidFinish?()
         guard generation == current else { throw VaultStoreError.staleTarget }
+        try Task.checkCancellation()
         return result
     }
 
@@ -309,7 +311,9 @@ final class IndexStore {
         let result = try await Task.detached {
             OnThisDay.select(today: today, data: try index.onThisDayInput(for: today))
         }.value
+        await testingQueryDidFinish?()
         guard generation == current else { throw VaultStoreError.staleTarget }
+        try Task.checkCancellation()
         return result
     }
 
@@ -326,7 +330,9 @@ final class IndexStore {
             }
             return ImportantDates.select(today: today, within: windowDays, fields: fields)
         }.value
+        await testingQueryDidFinish?()
         guard generation == current else { throw VaultStoreError.staleTarget }
+        try Task.checkCancellation()
         return result
     }
 
@@ -337,7 +343,9 @@ final class IndexStore {
         let result = try await Task.detached {
             try index.dayBacklinks(for: day)
         }.value
+        await testingQueryDidFinish?()
         guard generation == current else { throw VaultStoreError.staleTarget }
+        try Task.checkCancellation()
         return result
     }
 
@@ -453,21 +461,19 @@ final class IndexStore {
     private func reloadRecognition() async throws {
         guard let index else { return }
         // One vault throughout: place signatures are taken under `root` and the files are read by
-        // `writer`; a vault opened meanwhile must not pair one vault's signature with another's bytes.
+        // `writer`. A vault opened meanwhile gets a new writer; publishing this reload would leave
+        // the previous vault's entities and places on screen until the next write.
         let writer = writer
         let root = vaultURL
-        if let writer { entityTypes = await writer.entityTypes() }
-        let kinds = Set(entityTypes.allTypes.map(\.id))
+        let types: EntityTypeCatalog? = if let writer { await writer.entityTypes() } else { nil }
+        let kinds = Set((types ?? entityTypes).allTypes.map(\.id))
         let values = try await Task.detached {
             let entities = try index.knownEntities(kinds: kinds)
             return (entities, try index.entityUsage(), PlaceDocumentCache.signatures(of: entities, in: root))
         }.value
-        knownEntities = values.0
-        entityUsage = values.1
         var places: [NearbyPlace] = []
         var coordinates: [MapPlace] = []
         if let writer {
-            placeDocuments.keep(only: values.2.keys)
             for entity in values.0 where entity.kind == .place {
                 if let document = await placeDocument(entity.file, signature: values.2[entity.file], from: writer) {
                     if let coordinate = PlaceCoordinate(document: document) {
@@ -477,6 +483,12 @@ final class IndexStore {
                 }
             }
         }
+        try await testingRecognitionReloadDidLoad?()
+        guard writer === self.writer else { return }
+        if let types { entityTypes = types }
+        knownEntities = values.0
+        entityUsage = values.1
+        if writer != nil { placeDocuments.keep(only: values.2.keys) }
         nearbyPlaces = places
         mapPlaces = coordinates
     }
@@ -513,18 +525,25 @@ final class IndexStore {
         writer: VaultStore, kind: VaultEntityKind, name: String, qualifier: String?, aliases: [String]?
     ) async throws -> KnownEntity {
         let path: String
+        var indexFailed = false
         do {
             path = try await writer.creatingEntity(kind: kind, name: name, qualifier: qualifier, aliases: aliases)
         } catch VaultStoreError.indexUpdateFailed(let savedPath, _) {
             // The entity already exists on disk. Never offer to create it again.
             path = savedPath
-            entryErrorText = String(localized: "Varlık kaydedildi, indeks güncellenemedi.")
-            pendingRefresh = true
-            pendingRebuild = true
+            indexFailed = true
         }
         let entity = KnownEntity(
             file: path, kind: KnownEntity.Kind(rawValue: kind.rawValue)!, name: name, qualifier: qualifier,
             aliases: aliases ?? [])
+        // Saved in the vault `writer` belongs to; a vault opened meanwhile never lists it, nor
+        // shows its index error or rebuilds for it.
+        guard writer === self.writer else { return entity }
+        if indexFailed {
+            entryErrorText = String(localized: "Varlık kaydedildi, indeks güncellenemedi.")
+            pendingRefresh = true
+            pendingRebuild = true
+        }
         knownEntities.append(entity)
         do {
             if let index {
@@ -532,7 +551,9 @@ final class IndexStore {
             } else {
                 try await reloadRecognition()
             }
-            if !knownEntities.contains(where: { $0.file == path }) { knownEntities.append(entity) }
+            if writer === self.writer, !knownEntities.contains(where: { $0.file == path }) {
+                knownEntities.append(entity)
+            }
         } catch { entryErrorText = String(localized: "Varlık kaydedildi, indeks güncellenemedi.") }
         return entity
     }
@@ -543,6 +564,7 @@ final class IndexStore {
         forceFull: Bool = false, estimatedPaths: Set<String> = []
     ) async throws {
         let previous = content
+        let writer = self.writer
         do {
             let published = try await Task.detached {
                 try VaultPublishedContent.applying(
@@ -550,17 +572,24 @@ final class IndexStore {
                     deletedPaths: deletedPaths, forceFull: forceFull,
                     estimatedPaths: estimatedPaths)
             }.value
+            // `open` replaces `writer`. This publish belongs to the vault that started it.
+            guard writer === self.writer else { return }
             content = published.content
             counts = published.counts
             try await reloadRecognition()
+            guard writer === self.writer else { return }
             lastUpdated = Date()
             contentEpoch += 1
         } catch {
+            guard writer === self.writer else { return }
             // Index may already include the write; keep a reconcile flag so the next publish
-            // cannot skip or patch on top of a drifted model.
+            // cannot skip or patch on top of a drifted model. Recognition can fail after the
+            // content is already replaced: screens watch `lastUpdated`, so it has to move too.
             var marked = content
             marked.markNeedsFullReconcile()
             content = marked
+            lastUpdated = Date()
+            contentEpoch += 1
             throw error
         }
     }
@@ -797,16 +826,21 @@ final class IndexStore {
                     counts = result.counts
                     skippedPaths = result.skippedPaths
                     try await reloadRecognition()
+                    // A vault opened while recognition loaded owns `lastUpdated` and `errorText`.
+                    guard generation == current else { return }
                     lastUpdated = Date()
                     errorText = nil
                     allowSkip = true
                 }
             } catch {
+                // A vault opened meanwhile owns `isProcessing` and `errorText`; taking the busy
+                // flag here would leave it up with no refresh left to clear it.
+                guard generation == current else { return }
                 if !holdsProcessing {
                     isProcessing = true
                     holdsProcessing = true
                 }
-                if generation == current { report(error) }
+                report(error)
                 allowSkip = false
             }
             full = pendingRebuild
@@ -826,7 +860,9 @@ final class IndexStore {
         let result = try await Task.detached {
             try index.unlinkedMentions(of: entity, vaultRoot: root)
         }.value
+        await testingQueryDidFinish?()
         guard generation == current else { throw VaultStoreError.staleTarget }
+        try Task.checkCancellation()
         return result
     }
 
@@ -909,6 +945,7 @@ final class IndexStore {
         }.value
         await testingGraphQueryDidFinish?()
         guard generation == current else { throw VaultStoreError.staleTarget }
+        try Task.checkCancellation()
         return GraphInput(entities: content.entities, mentions: mentions)
     }
 
@@ -928,6 +965,7 @@ final class IndexStore {
         }.value
         await testingEntityTimelineQueryDidFinish?()
         guard generation == current else { throw VaultStoreError.staleTarget }
+        try Task.checkCancellation()
         return days
     }
 
@@ -939,6 +977,7 @@ final class IndexStore {
         let encounters = try await Task.detached { try index.lastEncounters(asOf: day) }.value
         await testingEntityTimelineQueryDidFinish?()
         guard generation == current else { throw VaultStoreError.staleTarget }
+        try Task.checkCancellation()
         return encounters
     }
 
@@ -971,6 +1010,7 @@ final class IndexStore {
         }.value
         await testingGoalStatusQueryDidFinish?()
         guard generation == current else { throw VaultStoreError.staleTarget }
+        try Task.checkCancellation()
         return rows
     }
 
@@ -1026,6 +1066,17 @@ final class IndexStore {
         if let signature { placeDocuments.store(document, at: path, signature: signature) }
         return document
     }
+
+    // MARK: - Stale reloads and cancelled queries
+
+    /// Test seam: runs after a summary, on-this-day, important-dates, day-backlink or
+    /// unlinked-mention query returns, before its generation is checked. Like every on-demand
+    /// query here, a caller cancelled meanwhile gets `CancellationError` instead of the answer.
+    @ObservationIgnored var testingQueryDidFinish: (@MainActor () async -> Void)?
+
+    /// Test seam: runs once recognition has loaded, before it checks that its vault is still open.
+    /// Throwing stands for a failed reload.
+    @ObservationIgnored var testingRecognitionReloadDidLoad: (@MainActor () async throws -> Void)?
 }
 
 /// Place documents, each kept with the file signature taken before it was read. A file changed

@@ -344,6 +344,8 @@ final class WeeklyReviewModel {
             lastEncounters = encounters
             loadErrorText = nil
             recompute()
+        } catch is CancellationError {
+            // A replaced load leaves the screen to the newer one.
         } catch {
             guard store.vaultURL == root else { return }
             loadErrorText = DayEditError.message(for: error)

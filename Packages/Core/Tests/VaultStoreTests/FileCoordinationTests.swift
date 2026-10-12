@@ -37,7 +37,8 @@ struct FileCoordinationTests {
         let document = RawDocument(bytes: try vault.bytes(workflow == .link ? UnlinkedMentionTests.day : storePath))
         let source = "people/Deniz Arıkan.md"
         let destination = "people/Deniz Arıkan Yılmaz.md"
-        let paths = try vault.index.files().map(\.path).sorted()
+        // Only files linking to the person are claimed again; no other file of the sample names it.
+        let linkSources = Set(try vault.index.links(to: source).map(\.file)).sorted()
         let before = try CoordinationSpy.snapshot(vault.root)
         let indexBefore = try vault.index.snapshot()
         let sql = StatementLog()
@@ -87,8 +88,8 @@ struct FileCoordinationTests {
             }
             expected.append(.end(operation))
             if workflow == .rename {
-                for path in paths {
-                    let update = FileCoordinationOperation.modify(spy.url(path == source ? destination : path))
+                for path in linkSources {
+                    let update = FileCoordinationOperation.modify(spy.url(path))
                     expected += [.begin(update), .end(update)]
                 }
             }

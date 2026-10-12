@@ -243,8 +243,8 @@ struct CoordinatedVaultWriteTests {
             })
         #expect(try await finishes { await store.addEvent(on: today, text: "öteki kasa", time: nil) })
 
-        // Three day edits, then the rename claims every Markdown file to rewrite links to the person.
-        #expect(probes[2].count("toWriter") == 4)
+        // Three day edits. The rename claims only the files linking to the person; the day has none.
+        #expect(probes[2].count("toWriter") == 3)
         let day = RawDocument(bytes: try Data(contentsOf: context.file))
         #expect(day.bodyLines.events.map(\.block.text).contains("kilitsiz"))
         #expect(day.bodyLines.tasks.first?.status == .done)

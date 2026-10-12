@@ -13,8 +13,12 @@ struct EntityInsights {
     let people: [EntitySummary]
     let places: [EntitySummary]
 
-    static func compute(path: String, content: VaultReadModel, today: CalendarDate) -> Self {
-        let history = (content.entityTimeline[path] ?? []).filter { $0.date <= today }
+    /// `timeline` is the entity's own (`IndexStore.computeEntityTimeline(for:)`); `content` gives
+    /// the same-day companions.
+    static func compute(
+        path: String, timeline: [EntityTimelineDay], content: VaultReadModel, today: CalendarDate
+    ) -> Self {
+        let history = timeline.filter { $0.date <= today }
         let dates = Set(history.map(\.date)).sorted()
         let last = dates.last
         let recent = dates.filter { today.ordinal - $0.ordinal < 90 }
@@ -49,17 +53,18 @@ struct UnseenPeople {
     let overdue: [UnseenPerson]
     let never: [UnseenPerson]
 
-    /// `cadences` defaults to empty, which keeps the fallback threshold for every person.
+    /// `lastEncounters` are as of `today` (`IndexStore.computeLastEncounters(asOf:)`). `cadences`
+    /// defaults to empty, which keeps the fallback threshold for every person.
     static func compute(
-        people: [EntitySummary], content: VaultReadModel, today: CalendarDate, threshold: Int,
+        people: [EntitySummary], lastEncounters: [String: CalendarDate], today: CalendarDate, threshold: Int,
         cadences: [String: PersonCadence] = [:]
     ) -> Self {
         // A repeated id must not trap; the first entry wins.
         let byID = Dictionary(people.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
         let inputs = people.filter { $0.kind == "person" }.map { entity in
-            let last = content.entityTimeline[entity.id]?.map(\.date).filter { $0 <= today }.max()
-            return CadencePerson(
-                id: entity.id, name: entity.name, lastDay: last, cadence: cadences[entity.id] ?? .none)
+            CadencePerson(
+                id: entity.id, name: entity.name, lastDay: lastEncounters[entity.id],
+                cadence: cadences[entity.id] ?? .none)
         }
         let lastDays = Dictionary(inputs.map { ($0.id, $0.lastDay) }, uniquingKeysWith: { first, _ in first })
         let listed = MeetingCadence.list(

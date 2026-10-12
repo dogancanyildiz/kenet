@@ -1,5 +1,6 @@
 import Summaries
 import SwiftUI
+import VaultFormat
 
 /// Snapshot hosts wait on this until the unseen list has loaded cadence fields.
 struct CadenceReadyKey: PreferenceKey {
@@ -37,15 +38,18 @@ struct UnseenPeopleSection: View {
     @State private var minute = 0
     @State private var cadences: [String: PersonCadence] = [:]
     @State private var cadenceReady = false
+    /// Nil until the first query returns; a reload keeps the previous dates until then.
+    @State private var lastEncounters: [String: CalendarDate]?
     @State private var actionError: String?
 
     // The rows are direct `List` children: a wrapping container (`TimelineView`,
     // `DisclosureGroup`) keeps the row modifiers from reaching the list and leaves a white row.
     var body: some View {
         let _ = minute
+        let today = LocalDay.today(at: clockNow())
         let groups = UnseenPeople.compute(
-            people: people, content: store.content,
-            today: LocalDay.today(at: clockNow()), threshold: threshold, cadences: cadences)
+            people: people, lastEncounters: lastEncounters ?? [:],
+            today: today, threshold: threshold, cadences: cadences)
         Button {
             expanded.toggle()
         } label: {
@@ -65,12 +69,13 @@ struct UnseenPeopleSection: View {
                 minute &+= 1
             }
         }
-        .task(id: store.lastUpdated) {
+        .task(id: LastEncountersRequest(asOf: today, updated: store.lastUpdated)) {
             cadences = (try? await store.personCadences()) ?? [:]
+            if let loaded = try? await store.computeLastEncounters(asOf: today) { lastEncounters = loaded }
             cadenceReady = true
         }
         .preference(key: CadenceReadyKey.self, value: cadenceReady)
-        if expanded {
+        if expanded, lastEncounters != nil {
             if let actionError {
                 InfoBand(kind: .error, verbatim: actionError)
                     .inkListRow()

@@ -13,7 +13,7 @@ struct EntityNavigationTests {
         await context.start()
         let entity = try #require(context.store.content.entities.first { $0.id == context.path })
         #expect(entity.incomingLinks == 7)
-        let timeline = try #require(context.store.content.entityTimeline[context.path])
+        let timeline = try await context.store.computeEntityTimeline(for: context.path)
         #expect(
             timeline.map { $0.date.description } == [
                 "2026-09-25", "2026-09-22", "2026-09-21", "2026-09-18", "2026-09-14",
@@ -30,7 +30,7 @@ struct EntityNavigationTests {
         defer { context.clean() }
         await context.start()
         #expect(await context.store.addEvent(text: "[[Deniz Arıkan]] ve [[Deniz Arıkan|Deniz]]", time: nil))
-        let first = try #require(context.store.content.entityTimeline[context.path]?.first)
+        let first = try #require(try await context.store.computeEntityTimeline(for: context.path).first)
         #expect(first.date == LocalDay.today())
         #expect(first.rows.count == 1)
         #expect(first.rows.first?.text.plainText == "Deniz Arıkan ve Deniz")

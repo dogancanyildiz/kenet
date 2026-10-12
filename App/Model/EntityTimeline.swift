@@ -1,3 +1,4 @@
+import Foundation
 import VaultFormat
 import VaultIndex
 
@@ -14,31 +15,34 @@ struct EntityTimelineRow: Identifiable, Sendable {
     var id: String { file + ":" + String(ordinal) }
 }
 
+/// Reloads an entity's timeline when its path or the published index changes.
+struct EntityTimelineRequest: Hashable {
+    let path: String
+    let updated: Date?
+}
+
+/// Reloads last-encounter dates when the day or the published index changes.
+struct LastEncountersRequest: Hashable {
+    let asOf: CalendarDate
+    let updated: Date?
+}
+
 enum EntityTimeline {
-    static func build(snapshot: IndexSnapshot) -> [String: [EntityTimelineDay]] {
-        let dates = Dictionary(
-            uniqueKeysWithValues: snapshot.files.compactMap { file -> (String, CalendarDate)? in
-                guard file.kind == "day", let value = file.date, let date = CalendarDate(value) else { return nil }
-                return (file.path, date)
-            })
-        let links = Dictionary(grouping: snapshot.links, by: \.file)
-        var result: [String: [CalendarDate: [EntityTimelineRow]]] = [:]
-        for block in snapshot.blocks
-        where block.kind == "event" || (block.kind == "paragraph" && block.section == "Journal") {
-            guard let date = dates[block.file] else { continue }
-            let source = links[block.file] ?? []
-            let targets = Set(source.filter { $0.block == block.ordinal }.compactMap(\.resolvedFile))
-            for target in targets {
-                result[target, default: [:]][date, default: []].append(
-                    EntityTimelineRow(
-                        file: block.file, ordinal: block.ordinal, text: LinkedText(row: block, links: source)))
+    /// Groups the query's entries into days, keeping its order: newest day first, rows by
+    /// descending file and block.
+    static func days(from entries: [EntityTimelineEntry]) -> [EntityTimelineDay] {
+        var days: [EntityTimelineDay] = []
+        var rows: [EntityTimelineRow] = []
+        for (offset, entry) in entries.enumerated() {
+            rows.append(
+                EntityTimelineRow(
+                    file: entry.block.file, ordinal: entry.block.ordinal,
+                    text: LinkedText(row: entry.block, links: entry.links)))
+            if offset == entries.count - 1 || entries[offset + 1].date != entry.date {
+                days.append(EntityTimelineDay(date: entry.date, rows: rows))
+                rows = []
             }
         }
-        return result.mapValues { days in
-            days.map {
-                EntityTimelineDay(date: $0.key, rows: $0.value.sorted { ($0.file, $0.ordinal) > ($1.file, $1.ordinal) })
-            }
-            .sorted { $0.date > $1.date }
-        }
+        return days
     }
 }

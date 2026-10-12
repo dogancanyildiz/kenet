@@ -15,7 +15,7 @@ extension VaultReadModel {
             if old?.entity != nil || new?.entity != nil { return true }
             if (old?.file.kind ?? new?.file.kind) == "goal" { return true }
             if !(old?.goalLogs.isEmpty ?? true) || !(new?.goalLogs.isEmpty ?? true) {
-                // Goal values change statuses; cheap enough to still patch, but keys may appear.
+                // Goal values change the goal-log list; cheap enough to still patch, but keys may appear.
             }
         }
         return false
@@ -59,10 +59,6 @@ extension VaultReadModel {
                 $0.compactMap(GoalLog.init(indexed:))
             }
             goalLogs = allLogs.mapValues { $0.filter { $0.day >= goalLogStart && $0.day <= goalLogEnd } }
-            for goal in goals {
-                goalStatuses[goal.key] = GoalProgress.compute(
-                    definition: goal, logs: allLogs[goal.key] ?? [], today: today)
-            }
         }
     }
 

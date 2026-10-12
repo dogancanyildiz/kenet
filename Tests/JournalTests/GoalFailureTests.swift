@@ -59,7 +59,10 @@ struct GoalFailureTests {
             try await context.store.setGoal(on: CalendarDate(day)!, key: "run", value: .boolean(true))
         }
         #expect(context.store.content.goalLogs["run"]?.isEmpty == true)
-        #expect(context.store.content.goalStatuses["run"]?.longestStreak == 2)
+        let run = try await context.store.computeGoalStatuses(today: LocalDay.today()).first {
+            $0.definition.key == "run"
+        }
+        #expect(run?.status.longestStreak == 2)
         let model = GoalDayModel(store: context.store, day: LocalDay.today())
         await model.load()
         #expect(model.logs["run"]?.count == 2)

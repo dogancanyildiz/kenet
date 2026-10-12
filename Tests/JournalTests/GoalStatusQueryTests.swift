@@ -7,8 +7,8 @@ import VaultStore
 
 @testable import Journal
 
-/// `IndexStore.computeGoalStatuses` matches `GoalProgress` over the read model's goal logs.
-/// Screens keep reading `content` until a later slice binds them.
+/// `IndexStore.computeGoalStatuses` matches the read model's old `goalStatuses` construction: every
+/// log of the goal through the day asked for. The goal list and the day page read this query.
 @MainActor struct GoalStatusQueryTests {
     @Test func sampleAndSyntheticVaultsMatchGoalProgressFromContent() async throws {
         let sample = try TaskTestContext(sample: true)
@@ -52,10 +52,18 @@ import VaultStore
         let rows = try await context.store.computeGoalStatuses(today: today)
         #expect(rows.map(\.definition) == context.store.content.goals)
         #expect(!rows.isEmpty)
-        for row in rows {
-            let logs = context.store.content.goalLogs[row.definition.key] ?? []
-            #expect(row.status == GoalProgress.compute(definition: row.definition, logs: logs, today: today))
-            #expect(row.score == GoalProgress.score(definition: row.definition, logs: logs, through: today))
+        // Today, and day pages back to before the first log.
+        var day: CalendarDate? = today
+        while let current = day, current.ordinal > today.ordinal - 60 {
+            let rows = try await context.store.computeGoalStatuses(today: current)
+            let expected = context.store.content.goalStatuses(today: current)
+            #expect(TodayPresentation.goalStatuses(rows) == expected, Comment(rawValue: current.description))
+            let logs = Dictionary(grouping: context.store.content.asSnapshot().goalLogs, by: \.key)
+            for row in rows {
+                let entries = (logs[row.definition.key] ?? []).compactMap(GoalLog.init(indexed:))
+                #expect(row.score == GoalProgress.score(definition: row.definition, logs: entries, through: current))
+            }
+            day = current.addingDays(-7)
         }
     }
 }

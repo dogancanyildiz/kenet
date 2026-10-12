@@ -1,6 +1,7 @@
 import Foundation
 import GoalTracking
 import VaultFormat
+import VaultIndex
 
 /// A snapshot for Today and historical day pages. Group order is owned by TaskGroups.
 ///
@@ -46,10 +47,11 @@ struct TodayPresentation: Sendable {
 
     /// Supply closed source rows separately: Today's TaskGroups intentionally excludes them.
     /// completedTaskIDs also accepts DayTasksModel's temporarily retained pre-write rows.
-    /// `goalStatusesDay` must be the day the statuses were computed for; on mismatch, goals are omitted.
+    /// `goalStatusesDay` must be the day the statuses were computed for; on mismatch, or with none
+    /// yet (nil), goals are omitted.
     init(
         day: DaySummary, groups: TaskGroups, goals: [GoalDefinition], goalStatuses: [String: GoalStatus],
-        goalStatusesDay: CalendarDate, today: CalendarDate, locale: Locale, calendar: Calendar,
+        goalStatusesDay: CalendarDate?, today: CalendarDate, locale: Locale, calendar: Calendar,
         completedTasks: [TaskRow] = [], completedTaskIDs: Set<String> = [],
         isCarriedOverExpanded: Bool = false, isCompletedExpanded: Bool = false
     ) {
@@ -134,19 +136,10 @@ struct TodayPresentation: Sendable {
         return result
     }
 
-    /// Builds goal statuses without trapping on duplicate keys (copied Obsidian goal files).
-    static func goalStatuses(
-        goals: [GoalDefinition], logs: [String: [GoalLog]], day: CalendarDate
-    ) -> [String: GoalStatus] {
-        Dictionary(
-            goals.map { goal in
-                (
-                    goal.key,
-                    GoalProgress.compute(
-                        definition: goal, logs: logs[goal.key] ?? [], today: day)
-                )
-            },
-            uniquingKeysWith: { first, _ in first })
+    /// Goal statuses by key from the goal-status query, without trapping on duplicate keys (copied
+    /// Obsidian goal files): the first definition in name order wins, as in the goal list.
+    static func goalStatuses(_ rows: [GoalStatusRow]) -> [String: GoalStatus] {
+        Dictionary(rows.map { ($0.definition.key, $0.status) }, uniquingKeysWith: { first, _ in first })
     }
     /// Every task identity represented by this snapshot, including folded completed rows.
     var representedTaskIDs: Set<String> {

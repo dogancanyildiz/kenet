@@ -9,7 +9,7 @@ import VaultIndex
 @testable import VaultStore
 
 /// The goal-status query against the read model's construction: valid definitions, name order,
-/// and `GoalProgress` over the 400-day log window (399 days back through 6 days ahead).
+/// and `GoalProgress` over every log of the goal (the read model's `goalStatuses` folded them all).
 struct GoalStatusQueryTests {
     @Test func sampleVaultMatchesReadModelConstruction() throws {
         let vault = try StoreVault(sample: true)
@@ -73,18 +73,19 @@ struct GoalStatusQueryTests {
         #expect(elapsed < .seconds(2), "goal status query exceeded 2s: \(elapsed)")
     }
 
-    /// Hand-counted window edges. `su` is true on every day from 400 days before `today` through
-    /// `today`. The day 400 back is outside the window. The day 10 back has a second, later file
-    /// whose value is false, so that day misses and is forgiven.
+    /// Hand-counted history edges. `su` is true on every day from 400 days before `today` through
+    /// `today`: the oldest day lies outside the 400-day list the app keeps for notifications and
+    /// still counts. The day 10 back has a second, later file whose value is false, so that day
+    /// misses and is forgiven. A day after `today` changes nothing.
     @Test func edgeCasesAreHandCounted() throws {
         let vault = try StoreVault()
         defer { vault.remove() }
         let today = CalendarDate("2026-10-12")!
-        let boundary = try #require(today.addingDays(-399))
-        let outside = try #require(today.addingDays(-400))
+        let oldest = try #require(today.addingDays(-400))
         let missed = try #require(today.addingDays(-10))
-        #expect(boundary == CalendarDate("2025-09-08"))
-        #expect(outside == CalendarDate("2025-09-07"))
+        let pastPage = try #require(today.addingDays(-5))
+        let tomorrow = try #require(today.addingDays(1))
+        #expect(oldest == CalendarDate("2025-09-07"))
         #expect(missed == CalendarDate("2026-10-02"))
         #expect(today.addingDays(-29) == CalendarDate("2026-09-13"))
 
@@ -111,7 +112,7 @@ struct GoalStatusQueryTests {
         let yesterday = try #require(today.addingDays(-1))
         let dayBefore = try #require(today.addingDays(-2))
         let siteFalse = try #require(today.addingDays(-11))
-        var cursor = outside
+        var cursor = oldest
         while cursor <= today {
             var lines = ["  su: true"]
             if cursor == yesterday || cursor == dayBefore { lines.append("  ara: true") }
@@ -123,6 +124,9 @@ struct GoalStatusQueryTests {
                 "---\ntype: journal\ndate: \(cursor)\ngoals:\n" + lines.joined(separator: "\n") + "\n---\n")
             cursor = try #require(cursor.addingDays(1))
         }
+        try vault.write(
+            "journal/\(tomorrow).md",
+            "---\ntype: journal\ndate: \(tomorrow)\ngoals:\n  su: false\n  bos: true\n  portfolyo: true\n---\n")
         try vault.index.rebuild(vaultRoot: vault.root)
         let duplicate = "journal/\(missed)b.md"
         try vault.index.database.write { db in
@@ -142,25 +146,17 @@ struct GoalStatusQueryTests {
         let indexed = try vault.index.goalLogs(key: "su")
         #expect(indexed.filter { $0.date == missed.description }.map(\.value) == ["true", "false"])
         let suLogs = indexed.compactMap(GoalLog.init(indexed:))
-        let inWindow = suLogs.filter { $0.day >= boundary && $0.day <= today }
-        // 400 days, one forgiven miss: 399. The outside day would make 400; dropping the boundary day
-        // or today leaves 398. Reversing file order lets the earlier `true` win, so the miss disappears.
-        #expect(inWindow.count == 401)
+        // 401 days, the second file of the missed day, and tomorrow.
+        #expect(suLogs.count == 403)
         let suDefinition = try #require(rows.first { $0.definition.key == "su" }?.definition)
-        #expect(GoalProgress.compute(definition: suDefinition, logs: inWindow, today: today).streak == 399)
-        let opened = inWindow + [GoalLog(day: outside, value: .boolean(true))]
-        #expect(GoalProgress.compute(definition: suDefinition, logs: opened, today: today).streak == 400)
-        let narrower = inWindow.filter { $0.day >= today.addingDays(-398)! }
-        #expect(GoalProgress.compute(definition: suDefinition, logs: narrower, today: today).streak == 398)
-        let withoutToday = inWindow.filter { $0.day < today }
-        let excluded = GoalProgress.compute(definition: suDefinition, logs: withoutToday, today: today)
-        #expect(excluded.streak == 398 && excluded.isPendingToday)
-        let reversed = GoalProgress.compute(definition: suDefinition, logs: inWindow.reversed(), today: today)
-        #expect(reversed.streak == 400 && reversed.yearDone == 285)
+        // Reversing file order lets the earlier `true` win, so the miss disappears.
+        let reversed = GoalProgress.compute(definition: suDefinition, logs: suLogs.reversed(), today: today)
+        #expect(reversed.streak == 401 && reversed.yearDone == 285)
 
         let su = try #require(rows.first { $0.definition.key == "su" })
         #expect(su.definition.place == "Koru")
-        #expect(su.status.streak == 399 && su.status.longestStreak == 399 && su.status.yearDone == 284)
+        // 401 days, one forgiven miss: 400. A 400-day window would leave 399; dropping today leaves 399.
+        #expect(su.status.streak == 400 && su.status.longestStreak == 400 && su.status.yearDone == 284)
         #expect(su.status.progress.done == 1 && su.status.isPendingToday == false)
         #expect(su.status.score == 96 && su.score == 96)
         #expect(try vault.index.goalStatus(key: "su", today: today) == su)
@@ -185,6 +181,16 @@ struct GoalStatusQueryTests {
         #expect(empty.status.isPendingToday && empty.status.score == nil && empty.score == nil)
         #expect(try vault.index.goalStatus(key: "bozuk", today: today) == nil)
         #expect(try vault.index.goalStatus(key: "yok", today: today) == nil)
+
+        // A past day's page: the status as of that day, from the logs up to it.
+        let past = try vault.index.goalStatuses(today: pastPage)
+        #expect(past == (try readModelGoalStatuses(vault.index, today: pastPage)))
+        let suPast = try #require(past.first { $0.definition.key == "su" })
+        #expect(suPast.status.streak == 395 && suPast.status.longestStreak == 395 && suPast.status.yearDone == 279)
+        #expect(suPast.status.progress.isComplete && suPast.score == 96)
+        let araPast = try #require(past.first { $0.definition.key == "ara" })
+        #expect(araPast.status.streak == 0 && araPast.status.longestStreak == 0 && araPast.score == nil)
+        #expect(araPast.status.isPendingToday)
     }
 
     /// A replaced value and a new definition stay equal to a rebuild and to the read-model construction.
@@ -218,19 +224,16 @@ struct GoalStatusQueryTests {
     }
 }
 
-/// `VaultReadModel.rederive` for goals, with logs limited to its `goalLogs` window before
-/// `GoalProgress`. The app's stored `goalStatuses` still folds every log; this is the window the
-/// query and `goalLogs` share.
+/// `VaultReadModel.rederive` for goals before the screens moved to the query: every indexed log
+/// of the goal, in file order, folded by `GoalProgress` (which ignores days after `today`).
 private func readModelGoalStatuses(_ index: VaultIndex, today: CalendarDate) throws -> [GoalStatusRow] {
-    let start = today.addingDays(-399) ?? today
-    let end = today.addingDays(6) ?? today
     let snapshot = try index.snapshot()
     let places = Dictionary(grouping: snapshot.links.filter { $0.key == "place" }, by: \.file)
     let goals =
         snapshot.entities.compactMap { GoalDefinition(entity: $0, place: places[$0.file]?.first?.target) }
         .sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
     let logs = Dictionary(grouping: snapshot.goalLogs, by: \.key).mapValues {
-        $0.compactMap(GoalLog.init(indexed:)).filter { $0.day >= start && $0.day <= end }
+        $0.compactMap(GoalLog.init(indexed:))
     }
     return goals.map { goal in
         let entries = logs[goal.key] ?? []

@@ -1,4 +1,5 @@
 import Foundation
+import GoalTracking
 import Testing
 import VaultFormat
 import VaultIndex
@@ -219,6 +220,34 @@ struct IncrementalReadModelMeasureTests {
         lines.append(
             "  day query median (\(busiestDay.events.count) events, \(busiestDay.journal.count) journal): \(String(format: "%.1f", median(dayMs))) ms"
         )
+        // The goal statuses left the rederive too: their old construction (every log, as the
+        // rederive folded it) for comparison, and the query the goal list and day page now run.
+        var oldGoalMs: [Double] = []
+        var goalQueryMs: [Double] = []
+        var oldGoals: [String: GoalStatus] = [:]
+        var goalRows: [GoalStatusRow] = []
+        for _ in 0..<5 {
+            var start = DispatchTime.now()
+            let logs = Dictionary(grouping: snapshot.goalLogs, by: \.key).mapValues {
+                $0.compactMap(GoalLog.init(indexed:))
+            }
+            oldGoals = [:]
+            for goal in model.goals {
+                oldGoals[goal.key] = GoalProgress.compute(definition: goal, logs: logs[goal.key] ?? [], today: today)
+            }
+            oldGoalMs.append(milliseconds(since: start))
+            start = DispatchTime.now()
+            goalRows = try index.goalStatuses(today: today)
+            goalQueryMs.append(milliseconds(since: start))
+        }
+        let oldGoalSize = PayloadSize(of: oldGoals)
+        lines.append(
+            "  old goalStatuses field | \(oldGoalSize.rows) | \(oldGoalSize.nestedRows) | \(oldGoalSize.bytes)")
+        lines.append("  old goalStatuses build median: \(String(format: "%.1f", median(oldGoalMs))) ms")
+        lines.append(
+            "  goal status query (\(goalRows.count) goals, \(snapshot.goalLogs.count) logs) median: \(String(format: "%.1f", median(goalQueryMs))) ms"
+        )
+        #expect(TodayPresentation.goalStatuses(goalRows) == oldGoals)
         print(lines.joined(separator: "\n"))
         #expect(model.isBuilt && list.count == days.count)
     }

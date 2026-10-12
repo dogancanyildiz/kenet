@@ -25,7 +25,13 @@ final class DayBacklinksModel {
             hasLoaded = false
             loaded = nil
         }
-        guard let raw = try? await store.computeDayBacklinks(day) else {
+        let raw: [DayBacklink]
+        do {
+            raw = try await store.computeDayBacklinks(day)
+        } catch is CancellationError {
+            // A replaced load leaves the list to the newer one.
+            return
+        } catch {
             if request == id {
                 items = []
                 loaded = (root, day)

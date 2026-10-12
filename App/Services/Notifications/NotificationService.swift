@@ -51,7 +51,10 @@ final class NotificationService {
     func attach(to store: IndexStore) {
         cadencePeople = { [weak store] today in
             guard let store else { return nil }
-            return try? await store.cadenceReminderPeople(today: today)
+            // A plan already under way finishes: queries answer a cancelled caller with
+            // `CancellationError`, which would read as a failed read and drop people reminders.
+            // Only the query is shielded, still on the main actor; the plan stays the one writer.
+            return try? await Task { try await store.cadenceReminderPeople(today: today) }.value
         }
         store.onSnapshotChange = { [weak self] content, root in self?.update(snapshot: content, vaultID: root?.path) }
         update(snapshot: store.lastUpdated == nil ? nil : store.content, vaultID: store.vaultURL?.path)

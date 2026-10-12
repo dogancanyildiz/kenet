@@ -249,6 +249,8 @@ final class WeeklyReviewModel {
     private var input: SummaryInput?
     private var cadences: [String: PersonCadence] = [:]
     private var lastEncounters: [String: CalendarDate] = [:]
+    /// Open tasks left from either week (``IndexStore/computeOpenTasks(dueBy:orWrittenFrom:)``).
+    private var openTasks: [TaskRow] = []
 
     init(
         store: IndexStore, today: CalendarDate, calendar: Calendar = .autoupdatingCurrent,
@@ -338,14 +340,16 @@ final class WeeklyReviewModel {
             let read = try await store.weeklyReviewInput(from: first, to: last)
             let fields = try await store.personCadences()
             let encounters = try await store.computeLastEncounters(asOf: today)
+            let open = try await store.computeOpenTasks(dueBy: last, orWrittenFrom: first)
             guard store.vaultURL == root else { return }
             input = read
+            openTasks = open
             cadences = fields
             lastEncounters = encounters
             loadErrorText = nil
             recompute()
         } catch is CancellationError {
-            // A replaced load leaves the screen to the newer one.
+            // A newer publish asked again (`.task(id:)`); its answer is the one to show.
         } catch {
             guard store.vaultURL == root else { return }
             loadErrorText = DayEditError.message(for: error)
@@ -358,7 +362,7 @@ final class WeeklyReviewModel {
             people: store.content.entities, lastEncounters: lastEncounters, today: today,
             threshold: PeopleInsightsPreference.threshold(in: defaults), cadences: cadences)
         content = WeeklyReviewContent.compute(
-            range: range, today: today, input: input, tasks: store.content.tasks, unseen: unseen.overdue)
+            range: range, today: today, input: input, tasks: openTasks, unseen: unseen.overdue)
     }
 
     /// Appends the previewed lines to the review day's Journal. A second call while the first is

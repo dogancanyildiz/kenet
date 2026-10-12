@@ -127,8 +127,12 @@ final class CloseDayModel {
     /// The store's Journal append; tests replace it to fail or wait the way a real write can.
     private let append: @MainActor (CalendarDate, [String]) async throws -> Void
 
+    /// The day's candidate rows (``IndexStore/computeDayTasks(on:)``), refreshed after each write.
+    private var rows: [TaskRow]
+
+    /// - Parameter tasks: the day's rows as Today drew them; the steps are decided from them.
     init(
-        store: IndexStore, today: CalendarDate, step: CloseDayStep = .tasks,
+        store: IndexStore, today: CalendarDate, tasks: [TaskRow], step: CloseDayStep = .tasks,
         calendar: Calendar = .autoupdatingCurrent,
         append: (@MainActor (CalendarDate, [String]) async throws -> Void)? = nil
     ) {
@@ -146,7 +150,8 @@ final class CloseDayModel {
         pendingGoalIDs = goals.goals
             .filter { $0.period == .day && statuses[$0.key]?.progress.isComplete != true }
             .map(\.id)
-        let open = Self.openTasks(store: store, today: today)
+        rows = tasks
+        let open = Self.openTasks(tasks, today: today)
         var included: [CloseDayStep] = []
         if !open.isEmpty { included.append(.tasks) }
         if !pendingGoalIDs.isEmpty { included.append(.goals) }
@@ -156,10 +161,16 @@ final class CloseDayModel {
     }
 
     /// Carried-over tasks, today's tasks and undated tasks written today; closed ones are gone.
-    var tasks: [TaskRow] { Self.openTasks(store: store, today: today) }
+    var tasks: [TaskRow] { Self.openTasks(rows, today: today) }
 
-    private static func openTasks(store: IndexStore, today: CalendarDate) -> [TaskRow] {
-        let groups = TaskGroups(rows: store.content.tasks, on: today, isToday: true)
+    /// Asks the index for the day's rows again; a reload cancelled or outlived by its vault leaves
+    /// them as they were. The steps stay as the flow opened.
+    func loadTasks() async {
+        if let loaded = try? await store.computeDayTasks(on: today) { rows = loaded }
+    }
+
+    private static func openTasks(_ rows: [TaskRow], today: CalendarDate) -> [TaskRow] {
+        let groups = TaskGroups(rows: rows, on: today, isToday: true)
         return groups.overdue + groups.dated + groups.created
     }
 
@@ -251,6 +262,9 @@ final class CloseDayModel {
         guard canApply else { return }
         isApplying = true
         defer { isApplying = false }
+        // Choices are matched against the rows as they are now: an outside edit since the list was
+        // drawn must not carry a choice onto another task.
+        await loadTasks()
         let root = store.vaultURL
         let chosen = tasks.map { (row: $0, choice: choice(for: $0)) }
         var result = CloseDayReport()
@@ -287,6 +301,8 @@ final class CloseDayModel {
             result.moves.failed += moved.failed
             if result.failureText == nil { result.failureText = moved.failureText }
         }
+        // The list shows what is left as soon as the report does.
+        await loadTasks()
         choices = [:]
         report = result
     }

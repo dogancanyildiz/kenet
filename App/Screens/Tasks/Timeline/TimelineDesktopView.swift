@@ -55,7 +55,8 @@ import VaultFormat
                             .onChange(of: model.scale) { _, _ in scrollToday(proxy) }
                         }.frame(height: height)
                     }.frame(height: height)
-                    if groups.isEmpty {
+                    // Not while the first answer is on its way: an empty timeline must not show while it loads.
+                    if groups.isEmpty && model.rows != nil {
                         EmptyState("Görev yok.")
                             .padding()
                     }

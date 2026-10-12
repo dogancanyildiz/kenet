@@ -46,9 +46,10 @@ struct KanbanBoardLayoutTests {
         - [-] Cancel ^cancel
         """.write(to: context.file, atomically: true, encoding: .utf8)
         await context.store.refresh()
-        let model = board(context)
+        let model = await board(context)
         #expect(model.columns.map { $0.rows.count } == [2, 1, 2])
         #expect(model.columns.map(\.destination) == [.status(.todo), .status(.inProgress), .status(.done)])
+        // The board already has the cancelled rows: the toggle draws the column without asking again.
         model.showsCancelled = true
         #expect(model.columns.map { $0.rows.count } == [2, 1, 2, 1])
         #expect(model.columns.last?.destination == .status(.cancelled))
@@ -67,13 +68,14 @@ struct KanbanBoardLayoutTests {
         - [-] Cancel #project/empty ^cancel
         """.write(to: context.file, atomically: true, encoding: .utf8)
         await context.store.refresh()
-        let model = board(context)
+        let model = await board(context)
         model.grouping = .project
         #expect(model.columns.count == 4)
         #expect(model.columns.first { $0.rows.count == 2 }?.rows.compactMap(\.sourceIdentifier) == ["one", "two"])
         #expect(model.columns.last?.rows.compactMap(\.sourceIdentifier) == ["free"])
         #expect(model.columns.first { $0.name == "empty" }?.rows.isEmpty == true)
         model.tasks.projectFilter = "CAFÉ"
+        await model.load()
         #expect(model.columns.flatMap(\.rows).count == 2)
     }
 
@@ -88,16 +90,19 @@ struct KanbanBoardLayoutTests {
         - [ ] [[Unknown Person]] Unresolved #project/board ^unresolved
         """.write(to: context.file, atomically: true, encoding: .utf8)
         await context.store.refresh()
-        let model = board(context)
+        let model = await board(context)
         model.tasks.projectFilter = "board"
+        await model.load()
         model.grouping = .person
         #expect(model.columns.count == 3)
         #expect(model.columns.dropLast().map { $0.rows.compactMap(\.sourceIdentifier) } == [["shared"], ["shared"]])
         #expect(Set(model.columns.last!.rows.compactMap(\.sourceIdentifier)) == ["place", "unresolved"])
         model.tasks.entityFilter = "people/Deniz Arıkan.md"
+        await model.load()
         #expect(model.columns.dropLast().flatMap(\.rows).count == 2)
         #expect(model.columns.last?.rows.isEmpty == true)
         model.tasks.entityFilter = "places/Liman Ofis.md"
+        await model.load()
         #expect(model.columns.count == 1 && model.columns.first?.rows.first?.sourceIdentifier == "place")
     }
 
@@ -117,7 +122,7 @@ struct KanbanBoardLayoutTests {
             """
         try source.write(to: context.file, atomically: true, encoding: .utf8)
         await context.store.refresh()
-        let model = board(context)
+        let model = await board(context)
         #expect(
             model.columns.first?.rows.compactMap(\.sourceIdentifier) == [
                 "early", "high", "medium", "alpha", "zebra", "low", "undated",
@@ -134,7 +139,7 @@ struct KanbanBoardLayoutTests {
             "\u{feff}---\r\ntype: journal\r\ndate: 2026-10-03\r\ncustom: 'keep'\r\n---\r\n\r\n## Tasks\r\n- [ ] Plan 📅 2026-10-06 #project/Alpha ^task\r\n  Note untouched\r\n\r\n## Other\r\nCustom bytes  \r\n"
         try Data(source.utf8).write(to: context.file)
         await context.store.refresh()
-        let model = board(context)
+        let model = await board(context)
         let row = try #require(context.store.content.tasks.first)
         #expect(await model.move(row, to: try #require(model.columns.first { $0.destination == .status(.inProgress) })))
         #expect(try Data(contentsOf: context.file) == Data(source.replacingOccurrences(of: "[ ]", with: "[/]").utf8))
@@ -148,7 +153,7 @@ struct KanbanBoardLayoutTests {
         let source = "## Tasks\n- [ ] Plan 📅 2026-10-06 #project/Alpha ^task\n- [ ] Other #project/Beta ^other\n"
         try source.write(to: context.file, atomically: true, encoding: .utf8)
         await context.store.refresh()
-        let model = board(context)
+        let model = await board(context)
         model.grouping = .project
         let row = try #require(context.store.content.tasks.first { $0.sourceIdentifier == "task" })
         let beta = try #require(model.columns.first { $0.name == "Beta" })
@@ -170,7 +175,7 @@ struct KanbanBoardLayoutTests {
         let source = "## Tasks\n- [/] Plan 📅 2026-10-03 🔁 every week ^original\n"
         try source.write(to: context.file, atomically: true, encoding: .utf8)
         await context.store.refresh()
-        let model = board(context)
+        let model = await board(context)
         let row = try #require(context.store.content.tasks.first)
         let done = try #require(model.columns.first { $0.destination == .status(.done) })
         let token = model.beginDrag(row)
@@ -195,7 +200,7 @@ struct KanbanBoardLayoutTests {
         await context.start()
         try "## Tasks\n- [ ] Plan ^task\n".write(to: context.file, atomically: true, encoding: .utf8)
         await context.store.refresh()
-        let model = board(context)
+        let model = await board(context)
         let token = model.beginDrag(try #require(context.store.content.tasks.first))
         let target = try #require(model.columns.first { $0.destination == .status(.inProgress) })
         let external = "## Tasks\n- [ ] Plan ⏫ ^task\n"
@@ -215,7 +220,7 @@ struct KanbanBoardLayoutTests {
         let source = "## Tasks\n- [?] Plan #project/demo ^task\n"
         try source.write(to: context.file, atomically: true, encoding: .utf8)
         await context.store.refresh()
-        let model = board(context)
+        let model = await board(context)
         let row = try #require(context.store.content.tasks.first)
         #expect(await !model.move(row, to: try #require(model.columns.first)))
         model.grouping = .person
@@ -250,7 +255,11 @@ struct KanbanBoardLayoutTests {
                 let sink = HostedLayout.Sink()
                 let board = KanbanView(tasks: tasks)
                     .onPreferenceChange(KanbanColumnWidthPreference.self) { sink.values = $0 }
-                await HostedLayout.settle(board, size: CGSize(width: hostWidth, height: 640))
+                // The columns are drawn once the board's first answer has come.
+                let mount = HostedLayout.Mount(board, size: CGSize(width: hostWidth, height: 640))
+                defer { mount.close() }
+                for _ in 0..<40 where sink.values.count != 3 { await mount.settle(rounds: 1) }
+                await mount.settle()
                 let expected = KanbanBoardLayout.columnWidth(fitting: hostWidth, columns: 3)
                 #expect(sink.values.count == 3, "host \(hostWidth) reported \(sink.values)")
                 #expect(
@@ -268,7 +277,10 @@ struct KanbanBoardLayoutTests {
         return try String(contentsOf: root.appendingPathComponent(relative), encoding: .utf8)
     }
 
-    private func board(_ context: TaskTestContext) -> KanbanModel {
-        KanbanModel(tasks: TasksModel(store: context.store, today: { context.today }))
+    /// The board once its query has answered, as the view loads it.
+    private func board(_ context: TaskTestContext) async -> KanbanModel {
+        let model = KanbanModel(tasks: TasksModel(store: context.store, today: { context.today }))
+        await model.load()
+        return model
     }
 }

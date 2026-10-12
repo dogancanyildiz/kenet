@@ -7,6 +7,7 @@ struct TaskTimelineView: View {
     @State private var editor: TimelineDateSelection?
     @State private var sourceDay: CalendarDate?
     @State private var todayRequest = UUID()
+    @State private var selectionAnswer = TaskSelectionAnswer()
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     /// `true` when the Mac shell hosts the timeline full-width (outside ``TasksView``).
     let showsFilters: Bool
@@ -56,7 +57,7 @@ struct TaskTimelineView: View {
             #else
                 mobileList.sheet(item: $selected) { selection in
                     NavigationStack {
-                        if let row = model.store.content.tasks.first(where: { $0.id == selection.id }) {
+                        if let row = selectionAnswer.row(for: selection.id, listed: selection) {
                             TaskDetailView(store: model.store, row: row) { path in
                                 sourceDay = CalendarDate(String(path.dropFirst("journal/".count).dropLast(3)))
                             }
@@ -80,8 +81,13 @@ struct TaskTimelineView: View {
             sourceDay = nil
         }
         .onChange(of: selected?.id) { _, _ in sourceDay = nil }
+        .task(id: model.request) { await model.load() }
+        .task(id: TaskSelectionRequest(id: selected?.id, updated: model.store.lastUpdated)) {
+            let request = TaskSelectionRequest(id: selected?.id, updated: model.store.lastUpdated)
+            if let answer = await TaskSelectionAnswer.load(request, store: model.store) { selectionAnswer = answer }
+        }
     }
-    private var selectedTask: TaskRow? { model.store.content.tasks.first { $0.id == selected?.id } }
+    private var selectedTask: TaskRow? { selectionAnswer.row(for: selected?.id, listed: selected) }
     /// Second layer of the view selector ("Ölçek") with the period controls on the same row;
     /// they stack at accessibility sizes.
     private var controls: some View {
@@ -209,7 +215,8 @@ struct TaskTimelineView: View {
                     ForEach(model.undated) { row in taskRow(row) }
                 }
             }
-            if model.mobileGroups.isEmpty && model.undated.isEmpty {
+            // Not while the first answer is on its way: an empty timeline must not show while it loads.
+            if model.rows != nil && model.mobileGroups.isEmpty && model.undated.isEmpty {
                 EmptyState("Görev yok.")
                     .inkListRow()
             }

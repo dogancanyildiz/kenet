@@ -30,6 +30,10 @@ struct TasksView: View {
                 case .list:
                     listContent
                         .inkPageScrollColumn()
+                        .task(id: model.listRequest) {
+                            await model.loadList()
+                            scrollNotification(using: proxy)
+                        }
                 }
             }
             .inkPage()
@@ -49,7 +53,6 @@ struct TasksView: View {
                 pendingNotificationScroll = request
                 scrollNotification(using: proxy)
             }
-            .onChange(of: store.lastUpdated) { _, _ in scrollNotification(using: proxy) }
             .onChange(of: store.vaultURL) { _, _ in
                 model.clearFilters()
                 selection = nil
@@ -101,69 +104,75 @@ struct TasksView: View {
                     .listRowSeparator(.hidden)
                     .listRowBackground(Color.ink.paper)
             }
-            switch model.viewState.listSection {
-            case .projects:
-                ForEach(model.projects, id: \.self) { project in
-                    NavigationLink {
-                        ProjectView(store: store, name: project)
-                    } label: {
-                        LabeledContent {
-                            Text(ProjectModel(store: store, name: project).openCount.formatted())
-                                .font(.ink.value)
-                                .foregroundStyle(.ink.secondaryText)
-                        } label: {
-                            Text(verbatim: project)
-                                .font(.ink.content)
-                                .foregroundStyle(.ink.text)
-                        }
-                    }
-                    .inkListRow()
-                }
-                if model.projects.isEmpty {
-                    EmptyState("Henüz proje yok")
-                        .inkListRow()
-                }
-            case .upcoming:
-                ForEach(model.agenda) { group in
-                    Section {
-                        SectionHeader(title: headingTitle(group.date), count: group.rows.count)
-                            .inkListRow()
-                        rows(group.rows)
-                    }.id(group.id)
-                }
-                if model.agenda.isEmpty {
-                    EmptyState("Görev yok.")
-                        .inkListRow()
-                }
-            case .undated:
-                Section {
-                    SectionHeader(title: String(localized: "Tarihsiz"), count: model.undated.count)
-                        .inkListRow()
-                    rows(model.undated)
-                }
-                if model.undated.isEmpty {
-                    EmptyState("Görev yok.")
-                        .inkListRow()
-                }
-            case .completed:
-                Section {
-                    SectionHeader(title: String(localized: "Tamamlanan"), count: model.completed.count)
-                        .inkListRow()
-                    rows(model.completed)
-                }
-                if model.completed.isEmpty {
-                    EmptyState("Görev yok.")
-                        .inkListRow()
-                }
-            }
+            // The sections wait for the first answer: no "Görev yok." or 0 count while it loads.
+            if model.list != nil { listSections }
         }
         .listStyle(.plain)
         .inkPage()
     }
 
-    /// A cold notification launch can arrive before the first index publication.
+    @ViewBuilder private var listSections: some View {
+        switch model.viewState.listSection {
+        case .projects:
+            ForEach(model.projects, id: \.self) { project in
+                NavigationLink {
+                    ProjectView(store: store, name: project)
+                } label: {
+                    LabeledContent {
+                        Text(model.openCount(ofProject: project).formatted())
+                            .font(.ink.value)
+                            .foregroundStyle(.ink.secondaryText)
+                    } label: {
+                        Text(verbatim: project)
+                            .font(.ink.content)
+                            .foregroundStyle(.ink.text)
+                    }
+                }
+                .inkListRow()
+            }
+            if model.projects.isEmpty {
+                EmptyState("Henüz proje yok")
+                    .inkListRow()
+            }
+        case .upcoming:
+            ForEach(model.agenda) { group in
+                Section {
+                    SectionHeader(title: headingTitle(group.date), count: group.rows.count)
+                        .inkListRow()
+                    rows(group.rows)
+                }.id(group.id)
+            }
+            if model.agenda.isEmpty {
+                EmptyState("Görev yok.")
+                    .inkListRow()
+            }
+        case .undated:
+            Section {
+                SectionHeader(title: String(localized: "Tarihsiz"), count: model.undated.count)
+                    .inkListRow()
+                rows(model.undated)
+            }
+            if model.undated.isEmpty {
+                EmptyState("Görev yok.")
+                    .inkListRow()
+            }
+        case .completed:
+            Section {
+                SectionHeader(title: String(localized: "Tamamlanan"), count: model.completed.count)
+                    .inkListRow()
+                rows(model.completed)
+            }
+            if model.completed.isEmpty {
+                EmptyState("Görev yok.")
+                    .inkListRow()
+            }
+        }
+    }
+
+    /// A cold notification launch can arrive before the first index publication; the jump waits
+    /// for the list's answer to the cleared filters after it.
     private func scrollNotification(using proxy: ScrollViewProxy) {
-        guard let request = pendingNotificationScroll, store.lastUpdated != nil else { return }
+        guard let request = pendingNotificationScroll, store.lastUpdated != nil, model.isListCurrent else { return }
         guard !model.agenda.isEmpty else {
             pendingNotificationScroll = nil
             return

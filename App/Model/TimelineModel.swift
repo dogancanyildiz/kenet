@@ -54,11 +54,30 @@ final class TimelineModel {
         visibleRange = (tasks.day.addingDays(-28) ?? tasks.day)...(tasks.day.addingDays(84) ?? tasks.day)
     }
 
+    /// The timeline's rows across `bounds`
+    /// (``IndexStore/computeTimelineTasks(from:to:today:scope:)``), nil until the first answer; a
+    /// reload keeps the previous rows until then. The visible window moves within them.
+    private(set) var rows: [TaskRow]?
+
+    /// What the timeline asks the index for; a write, a filter or a new day asks again.
+    var request: TaskListRequest { TaskListRequest(scope: tasks.scope, day: today, updated: store.lastUpdated) }
+
+    /// Asks for `request`'s rows; a reload cancelled or outlived by its vault leaves them as they were.
+    func load() async {
+        let request = self.request
+        let day = request.day
+        if let loaded = try? await store.computeTimelineTasks(
+            from: day.addingDays(-365) ?? day, to: day.addingDays(365) ?? day, today: day, scope: request.scope)
+        {
+            rows = loaded
+        }
+    }
+
     var undated: [TaskRow] {
-        tasks.filtered.filter { $0.rawStatus != "-" && $0.start == nil && $0.due == nil }.sorted(by: KanbanModel.order)
+        (rows ?? []).filter { $0.rawStatus != "-" && $0.start == nil && $0.due == nil }.sorted(by: KanbanModel.order)
     }
     private var dated: [TaskRow] {
-        tasks.filtered.filter {
+        (rows ?? []).filter {
             $0.rawStatus != "-" && TimelineDates($0).span(on: today)?.clipped(to: visibleRange) != nil
         }.sorted { lhs, rhs in
             let left = lhs.start ?? lhs.due!

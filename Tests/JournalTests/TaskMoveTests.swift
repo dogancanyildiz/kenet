@@ -296,7 +296,7 @@ struct TaskMoveWriteTests {
             + "- [ ] four 📅 2026-10-01 ^four\n- [ ] here 📅 2026-10-03 ^here\n"
         try Data(source.utf8).write(to: context.file)
         await context.store.refresh()
-        let groups = DayTasksModel(store: context.store, day: context.today, isToday: true).groups
+        let groups = await DayTasksModel.loaded(store: context.store, day: context.today, isToday: true).groups
         #expect(groups.overdue.map(\.sourceText).sorted() == ["four", "one", "three", "two"])
         let rows = try ["one", "two", "three", "done", "four", "here"].map { try context.row($0) }
         let edited = Data(source.replacingOccurrences(of: "- [ ] two ", with: "- [ ] altered ").utf8)

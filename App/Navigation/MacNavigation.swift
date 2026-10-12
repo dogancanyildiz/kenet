@@ -22,6 +22,7 @@
         @State private var selectedEntityKind = "person"
         @State private var unseenReveal: UUID?
         @State private var sidebarRestoresFocus = false
+        @State private var taskSelection = TaskSelectionAnswer()
 
         init(store: IndexStore) {
             self.store = store
@@ -118,6 +119,10 @@
             .onChange(of: selectedDay) { _, value in
                 if value != nil { section = .days }
             }
+            .task(id: TaskSelectionRequest(id: selectedTask, updated: store.lastUpdated)) {
+                let request = TaskSelectionRequest(id: selectedTask, updated: store.lastUpdated)
+                if let answer = await TaskSelectionAnswer.load(request, store: store) { taskSelection = answer }
+            }
             .focusedSceneValue(
                 \.goToToday,
                 {
@@ -182,7 +187,9 @@
                             MacEmptyDetail("Bir gün seç")
                         }
                     case .tasks:
-                        if let row = store.content.tasks.first(where: { $0.id == selectedTask }) {
+                        if let row = taskSelection.row(
+                            for: selectedTask, listed: kanbanTasks.listedRow(id: selectedTask))
+                        {
                             TaskDetailView(store: store, row: row) { path in
                                 selectedDay = path
                                 section = .days

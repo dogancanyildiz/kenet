@@ -3,6 +3,12 @@ import Observation
 import VaultFormat
 import VaultStore
 
+/// Request for a day page's task rows: a new model (another day) or a write asks again.
+struct DayTasksRequest: Hashable {
+    let model: ObjectIdentifier
+    let updated: Date?
+}
+
 @MainActor @Observable
 final class DayTasksModel {
     let store: IndexStore
@@ -13,11 +19,32 @@ final class DayTasksModel {
     private(set) var errorText: String?
     private var retained: [TaskRow] = []
     private var retainedRoot: URL?
+    /// The day's candidate rows (``IndexStore/computeDayTasks(on:)``), nil until the first answer;
+    /// a reload keeps the previous rows until then.
+    private(set) var rows: [TaskRow]?
+    /// The publish (``IndexStore/lastUpdated``) `rows` were asked for.
+    private var rowsUpdated: Date?
+
+    var isLoaded: Bool { rows != nil }
+
+    /// Whether `rows` answer the store's latest publish. An answer asked for before the vault was
+    /// published (no index open yet: no rows) is loaded but not current.
+    var isCurrent: Bool { rows != nil && rowsUpdated == store.lastUpdated }
 
     init(store: IndexStore, day: CalendarDate, isToday: Bool) {
         self.store = store
         self.day = day
         self.isToday = isToday
+    }
+
+    /// Asks the index for the day's rows again; a reload cancelled or outlived by its vault leaves
+    /// the rows as they were.
+    func load() async {
+        let updated = store.lastUpdated
+        if let loaded = try? await store.computeDayTasks(on: day) {
+            rows = loaded
+            rowsUpdated = updated
+        }
     }
 
     var groups: TaskGroups {
@@ -32,7 +59,7 @@ final class DayTasksModel {
     }
 
     private var mergedRows: [TaskRow] {
-        var rows = store.content.tasks
+        var rows = self.rows ?? []
         if retainedRoot == store.vaultURL {
             let ids = Set(rows.map(\.id))
             rows += retained.filter { !ids.contains($0.id) }

@@ -1067,6 +1067,87 @@ final class IndexStore {
         return document
     }
 
+    // MARK: - Task queries
+
+    /// Test seam: runs after a task query returns, before its generation is checked.
+    @ObservationIgnored var testingTaskQueryDidFinish: (@MainActor () async -> Void)?
+
+    /// Open tasks in `scope` around `today` for the Tasks list (and the entity filter's open work).
+    /// Every task query belongs to this vault generation (an answer outliving its vault throws
+    /// `staleTarget`) and is empty with no index open. A caller cancelled meanwhile gets
+    /// `CancellationError`: the detached query runs on, so a screen's `.task(id:)` replaced by a
+    /// newer request would otherwise write its older answer over the newer one.
+    func computeTaskGroups(today: CalendarDate, scope: TaskScope = .all) async throws -> TaskRowGroups {
+        try await taskQuery(TaskRowGroups()) { TaskRowGroups(try $0.taskGroups(today: today, scope: scope)) }
+    }
+
+    /// Done tasks in `scope`, newest completion first, at most `limit`.
+    func computeCompletedTasks(limit: Int, scope: TaskScope = .all) async throws -> [TaskRow] {
+        try await taskQuery([]) { try $0.completedTasks(limit: limit, scope: scope).map(TaskRow.init(entry:)) }
+    }
+
+    /// Every task of the project `name` (any spelling of its key), by file and line.
+    func computeProjectTasks(_ name: String) async throws -> [TaskRow] {
+        try await taskQuery([]) { try $0.tasks(inProject: name).map(TaskRow.init(entry:)) }
+    }
+
+    /// The timeline's tasks in `scope` whose span meets `from` through `to`, and its undated ones.
+    func computeTimelineTasks(
+        from: CalendarDate, to: CalendarDate, today: CalendarDate, scope: TaskScope = .all
+    ) async throws -> [TaskRow] {
+        try await taskQuery([]) {
+            try $0.timelineTasks(from: from, to: to, today: today, scope: scope).map(TaskRow.init(entry:))
+        }
+    }
+
+    /// The board's tasks in `scope`: open ones, ones done from `from` through `to`, cancelled when asked.
+    func computeBoardTasks(
+        doneFrom from: CalendarDate, to: CalendarDate, includeCancelled: Bool, scope: TaskScope = .all
+    ) async throws -> [TaskRow] {
+        try await taskQuery([]) {
+            try $0.boardTasks(doneFrom: from, to: to, includeCancelled: includeCancelled, scope: scope)
+                .map(TaskRow.init(entry:))
+        }
+    }
+
+    /// Every task a day page (and the close-day flow) may list for `day`, in the read model's order.
+    func computeDayTasks(on day: CalendarDate) async throws -> [TaskRow] {
+        try await taskQuery([]) { try $0.dayTasks(on: day).map(TaskRow.init(entry:)).sorted(by: TaskRow.sourceOrder) }
+    }
+
+    /// Open tasks due by `last` or written undated from `first` through `last` (the weekly review).
+    func computeOpenTasks(dueBy last: CalendarDate, orWrittenFrom first: CalendarDate) async throws -> [TaskRow] {
+        try await taskQuery([]) { try $0.openTasks(dueBy: last, orWrittenFrom: first).map(TaskRow.init(entry:)) }
+    }
+
+    /// The task a screen selected, as the index has it now; nil once it is gone.
+    func computeTask(id: String) async throws -> TaskRow? {
+        try await taskQuery(nil) { try $0.task(id: id).map(TaskRow.init(entry:)) }
+    }
+
+    /// Open tasks per project key (``VaultIndex/projectKey(_:)``).
+    func computeOpenTaskCounts() async throws -> [String: Int] {
+        try await taskQuery([:]) { index in
+            var counts: [String: Int] = [:]
+            for (project, count) in try index.openTaskCounts() {
+                counts[VaultIndex.projectKey(project), default: 0] += count
+            }
+            return counts
+        }
+    }
+
+    private func taskQuery<Value: Sendable>(
+        _ empty: Value, _ body: @escaping @Sendable (VaultIndex) throws -> Value
+    ) async throws -> Value {
+        guard let index else { return empty }
+        let current = generation
+        let value = try await Task.detached { try body(index) }.value
+        await testingTaskQueryDidFinish?()
+        guard generation == current else { throw VaultStoreError.staleTarget }
+        try Task.checkCancellation()
+        return value
+    }
+
     // MARK: - Stale reloads and cancelled queries
 
     /// Test seam: runs after a summary, on-this-day, important-dates, day-backlink or

@@ -32,7 +32,7 @@ struct DayTaskTests {
         await context.start()
         #expect(await context.store.addTask(on: context.today, text: "finish", due: context.today))
         let row = try context.row("finish")
-        let model = DayTasksModel(store: context.store, day: context.today, isToday: true)
+        let model = await DayTasksModel.loaded(store: context.store, day: context.today, isToday: true)
         let completing = Task { await model.complete(row, today: context.today) }
         for _ in 0..<100 {
             if model.completed.contains(row.id) { break }
@@ -46,6 +46,7 @@ struct DayTaskTests {
         #expect(
             String(decoding: try Data(contentsOf: context.file), as: UTF8.self).contains(
                 "- [x] finish 📅 2026-10-03 ✅ 2026-10-03 ^"))
+        await model.load()
         #expect(model.groups.isEmpty)
     }
 

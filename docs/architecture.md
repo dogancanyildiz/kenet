@@ -1,156 +1,951 @@
 # Mimari
 
-## Stack
+**Amaç:** Bu belge uygulamanın katmanlarını, veri yollarını ve teknik kurallarını tanımlar.
+
+**Kapsam:**
+
+- Katmanlar, modüller ve proje ayarları.
+- Yazma, okuma, dosya koordinasyonu ve indeks.
+- Eşitleme, widget, platform düzeni, taşınabilirlik ve test.
+
+## Teknoloji yığını
+
+**Tablo her katman için seçilen teknolojiyi gösterir.**
 
 | Katman | Seçim |
 |---|---|
 | Arayüz | SwiftUI, tek projeden iOS ve macOS |
-| Çekirdek | `Core` Swift paketi, Apple arayüz ve sistem çerçevelerine bağımsız |
-| Veri | Markdown dosyaları (gerçek kaynak) |
+| Çekirdek | `Core` Swift paketi; Apple arayüz ve sistem çerçevelerine bağımsız |
+| Veri | Markdown dosyaları; gerçek kaynak |
 | İndeks | SQLite, GRDB, FTS5 |
-| Senkronizasyon | iCloud Drive (uygulamanın kendi kapsayıcısı); planlandı, kimlik kararını bekliyor |
-| Widget | WidgetKit; planlandı, kimlik kararını bekliyor |
-| Sistem girişleri | App Intents (Kısayollar ve Siri) |
-| Takvim | EventKit (salt okunur) |
-| Konum | CoreLocation; harita MapKit |
+| Eşitleme | iCloud Drive, uygulamanın kendi kapsayıcısı. Planlandı; kimlik kararını bekliyor |
+| Widget | WidgetKit. Planlandı; kimlik kararını bekliyor |
+| Sistem girişleri | App Intents: Kısayollar ve Siri |
+| Takvim | EventKit, salt okunur |
+| Konum | CoreLocation; harita için MapKit |
 | Bildirim ve kilit | UserNotifications, LocalAuthentication |
-| Yerelleştirme | String Catalog (tr, en) |
+| Rehber | ContactsUI kişi seçicisi, yalnız iOS. Uygulama rehber izni istemez |
+| Yerelleştirme | String Catalog: tr, en |
 
-## Proje yapısı
+## Modül düzeni
 
-Ekranlar `App/Screens` altında konuya göre durur (`Today`, `Days`, `Summaries`, `Tasks`, `Entities`, `Goals`, `Graph`, `Map`, `Onboarding`, `Settings`); ortak görünüm parçaları `App/Screens/Shared`, platform gezinmesi `App/Navigation`, ekran modelleri `App/Model`, sistem servisleri `App/Services`, Kısayollar `App/Intents`, Mac'e özgü parçalar `App/Mac` altında tutulur.
+**Şema depo klasörlerini ve aralarındaki bağımlılığı gösterir.**
 
-- Xcode projesi `project.yml` ile tanımlanır ve XcodeGen üretir; `Journal.xcodeproj` takip edilmez. Tek `Journal` hedefi iOS ve macOS için iki şema üretir; kaynaklar `App/` klasörüyle eşlenir, `Core` paketi yerel yoldan bağlanır.
-- Bundle kimliği kalıcıdır: `com.dogancanyildiz.kenet` (iOS ve Mac ortak). `project.yml` içinde tek yerde durur (`APP_BUNDLE_IDENTIFIER`); test hedefleri sonek ekler (`.tests`, `.uitests`), betikler aynı satırı okur. Kullanıcıya görünen ad Kenet'tir (`CFBundleDisplayName`, `CFBundleName`); hedef, modül ve `.app` dosyası kod adıyla `Journal` kalır. iCloud kapsayıcısı ve App Group henüz yok.
-- İlk sürüm yalnız iPhone'dur (`TARGETED_DEVICE_FAMILY: 1`, yalnız dikey yön); Mac hedefi ayrıdır.
-- iCloud kapsayıcısı ve App Group henüz yoktur; kullanıcı kararıyla gelir.
-- Takım kimliği repoya girmez: `Config/Signing.xcconfig`, varsa izlenmeyen `Config/Local.xcconfig` dosyasını içerir (örnek: `Config/Local.xcconfig.example`). Dosya yokken proje `CODE_SIGNING_ALLOWED=NO` ile imzasız derlenir.
-- Yetki dosyaları platforma göre ayrıdır: `App/Support/Journal-macOS.entitlements` (sandbox, kullanıcının seçtiği dosyalar, takvim, konum) ve `App/Support/Journal-iOS.entitlements` (boş; iOS'a özgü yetenek yok).
-- Sürüm numarası kök dizindeki `VERSION` dosyasından, yapı numarası (`CFBundleVersion`) git geçmişinden (`git rev-list --count HEAD`, `.github/scripts/build-number.sh`) derleme sırasında Info.plist'e yazılır; iOS ve Mac aynı numarayı alır. Git yoksa ya da kopya sığsa yedek değer `1` kalır ve derleme uyarı verir.
-- Uygulamaya bağlanan uzak paketlerin lisans metni `App/Resources` altında, paketin LICENSE dosyası olduğu gibi paketlenir ve Ayarlar → Tanılama'dan okunur. Test hedefinin paketleri bildirime girmez (`ThirdPartyLicenseTests`).
-- Gizlilik bildirimi `App/Resources/PrivacyInfo.xcprivacy` iki platformun paketine girer: izleme ve toplanan veri yok; neden bildirimi isteyen API'ler UserDefaults (`CA92.1`) ve dosya zaman damgası (`C617.1` kapsayıcıdaki kasa, `3B52.1` kullanıcının seçtiği klasör). Yeni bir API kümesi kullanılırsa bildirim aynı PR'da güncellenir (`ReleaseConfigurationTests` iki yönü de denetler). Şifreleme yoktur (yalnız SHA-256 özeti); `ITSAppUsesNonExemptEncryption` `NO`.
-- Uygulama metinleri `App/Resources/Localizable.xcstrings` içinde (kaynak dil Türkçe, çeviri İngilizce).
+```mermaid
+flowchart TD
+  subgraph AppKatmani["App: iOS ve macOS uygulaması"]
+    Screens["Screens: ekranlar"]
+    Model["Model: ekran modelleri, IndexStore, okuma modeli"]
+    Services["Services: sistem servisleri, SystemFileCoordination"]
+    Intents["Intents: Kısayollar"]
+    Navigation["Navigation: platform gezinmesi"]
+    Mac["Mac: Mac'e özgü parçalar"]
+    Design["Design: ortak bileşenler"]
+  end
+  subgraph CoreKatmani["Packages/Core: Apple'a bağımsız Swift paketi"]
+    VaultStore["VaultStore: yazma kapısı"]
+    VaultIndex["VaultIndex: SQLite indeksi ve sorgular"]
+    VaultFormat["VaultFormat: ayrıştırıcı, yazıcı, modeller"]
+    Saf["Saf hedefler: EntityRecognition, DateParsing, GoalTracking, Summaries, ForceLayout"]
+  end
+  Fixtures["Fixtures: örnek kasalar ve beklenen çıktılar"]
+  subgraph TestKatmani["Tests"]
+    JournalTests["JournalTests: uygulama birim ve ekran görüntüsü testleri"]
+    JournalUITests["JournalUITests: iOS duman testi ve erişilebilirlik"]
+    JournalMacUITests["JournalMacUITests: Mac ekran turu"]
+  end
+  AppKatmani --> CoreKatmani
+  TestKatmani --> AppKatmani
+  CoreKatmani -. paket testleri okur .-> Fixtures
+  TestKatmani -. okur .-> Fixtures
+```
+
+**Tablo uygulama klasörlerinin içeriğini gösterir.**
+
+| Klasör | İçerik |
+|---|---|
+| `App/Screens` | Konuya göre ekranlar: `Today`, `Days`, `Summaries`, `Tasks`, `Entities`, `Goals`, `Graph`, `Map`, `Onboarding`, `Settings` |
+| `App/Screens/Shared` | Ortak görünüm parçaları |
+| `App/Navigation` | Platform gezinmesi |
+| `App/Model` | Ekran modelleri |
+| `App/Services` | Sistem servisleri |
+| `App/Intents` | Kısayollar |
+| `App/Mac` | Mac'e özgü parçalar |
+| `App/Design` | Ortak bileşenler ve tasarım belirteçleri |
+| `App/Resources` | String Catalog, lisans metinleri, gizlilik bildirimi |
+| `App/Support` | Yetki dosyaları ve plist ekleri |
+
+## Proje ayarları
+
+**Tablo proje ve paket ayarlarının kurallarını gösterir.**
+
+| Konu | Kural |
+|---|---|
+| Proje üretimi | `project.yml` projeyi tanımlar. XcodeGen `Journal.xcodeproj` dosyasını üretir. Git `Journal.xcodeproj` dosyasını izlemez |
+| Hedef ve şema | Tek `Journal` hedefi iOS ve macOS için iki şema üretir. Hedef kaynakları `App/` klasöründen alır. Proje `Core` paketini yerel yoldan bağlar |
+| Bundle kimliği | `com.dogancanyildiz.kenet`; kalıcı, iOS ve Mac için ortak. Değer `project.yml` içinde tek yerde durur: `APP_BUNDLE_IDENTIFIER`. Test hedefleri sonek ekler: `.tests`, `.uitests`. Betikler aynı satırı okur |
+| Görünen ad | Kullanıcı Kenet adını görür: `CFBundleDisplayName`, `CFBundleName`. Hedef, modül ve `.app` dosyası kod adı `Journal` ile kalır |
+| Cihaz | İlk sürüm yalnız iPhone içindir: `TARGETED_DEVICE_FAMILY: 1`, yalnız dikey yön. Mac hedefi ayrıdır |
+| iCloud ve App Group | iCloud kapsayıcısı ve App Group henüz yok. İkisi de kullanıcı kararıyla gelir |
+| İmza | Takım kimliği repoya girmez. `Config/Signing.xcconfig`, varsa izlenmeyen `Config/Local.xcconfig` dosyasını içerir. Örnek dosya: `Config/Local.xcconfig.example`. Dosya yoksa Xcode projeyi `CODE_SIGNING_ALLOWED=NO` ile imzasız derler |
+| Yetki dosyaları | Her platformun kendi dosyası var. `App/Support/Journal-macOS.entitlements`: sandbox, kullanıcının seçtiği dosyalar, takvim, konum. `App/Support/Journal-iOS.entitlements`: boş; iOS'a özgü yetenek yok |
+| Sürüm numarası | Derleme numarayı kök dizindeki `VERSION` dosyasından okur ve Info.plist'e yazar |
+| Yapı numarası | Derleme `CFBundleVersion` değerini git geçmişinden üretir: `git rev-list --count HEAD`, `.github/scripts/build-number.sh`. iOS ve Mac aynı numarayı alır. Git yoksa ya da kopya sığsa yedek değer `1` kalır ve derleme uyarı verir |
+| Lisanslar | Uygulamaya bağlanan her uzak paketin LICENSE dosyası `App/Resources` altına olduğu gibi girer. Kullanıcı metni Ayarlar → Tanılama içinde okur. Test hedefinin paketleri bildirime girmez: `ThirdPartyLicenseTests` |
+| Gizlilik bildirimi | `App/Resources/PrivacyInfo.xcprivacy` iki platformun paketine girer. İzleme ve toplanan veri yok. Neden bildirimi isteyen API'ler: UserDefaults `CA92.1`; dosya zaman damgası `C617.1` kapsayıcıdaki kasa için, `3B52.1` kullanıcının seçtiği klasör için |
+| Gizlilik bildiriminin bakımı | Yeni bir API kümesi kullanan PR bildirimi aynı PR'da günceller. `ReleaseConfigurationTests` iki yönü de denetler |
+| Şifreleme | Uygulama şifreleme kullanmaz, yalnız SHA-256 özeti alır. `ITSAppUsesNonExemptEncryption` değeri `NO` |
+| Arayüz metinleri | `App/Resources/Localizable.xcstrings`. Kaynak dil Türkçe, çeviri İngilizce |
 
 ## Veri akışı
 
-```
-Kullanıcı girişi
-   -> Core: satırı üret, dosyaya yaz
-   -> Core: değişen dosyayı ayrıştır, indeksi güncelle
-   -> Arayüz: indeksten oku, göster
+**Şema iki girişin dosyadan indekse, indeksten ekrana yolunu gösterir.**
 
-Dış değişiklik (iCloud, Obsidian)
-   -> Dosya izleyici
-   -> Core: değişen dosyayı yeniden indeksle
-   -> Arayüz güncellenir
+```mermaid
+flowchart LR
+  Giris["Kullanıcı girişi"] --> Yaz["Core: satırı üretir, dosyaya yazar"]
+  Yaz --> Guncelle["Core: değişen dosyayı ayrıştırır, indeksi günceller"]
+  Dis["Dış değişiklik: iCloud, Obsidian"] --> Izleyici["Dosya izleyici"]
+  Izleyici --> Yeniden["Core: değişen dosyayı yeniden indeksler"]
+  Guncelle --> Ekran["Arayüz: indeksten okur, gösterir"]
+  Yeniden --> Ekran
 ```
 
 Yazma yönü her zaman dosyadan indekse doğrudur.
 
-Aşama 0'da kasa varsayılan olarak uygulamanın yerel `Documents/Vault/` klasöründe oluşturulur; seçilen başka bir klasör güvenlik kapsamlı yer imiyle cihazda saklanır, bayat yer imi erişim başladıktan sonra yenilenir, kayıtlı kasaya erişilemeyince yerel kasaya düşülmez ve durum ana ekranda sorulur, bozuk yer imi silinip kayıp bayrağı tutulur (iCloud konumu kullanıcı kararından sonra eklenecek). Dosya izleyici kök ve taranan alt dizinlerde Dispatch dizin kaynaklarını kullanır; ön plandaki 5 saniyelik zamanlayıcı ve ön plana dönüş tetiğiyle birlikte bildirimleri 300 ms birleştirip arka planda `refresh(vaultRoot:)` çağırır. Dizin kaynakları dosya içeriğinin yerinde düzenlenmesini güvenilir biçimde görmez; bunlar ön plandaki zamanlayıcı ve ön plana dönüş yenilemesiyle yakalanır, arka planda ise dizin olayları yenilemeyi tetiklemeye devam eder. En fazla 256 dizin kaynağı açılır; kalan dizinler ve kaynak açılamayan dizinler yalnız ön plan zamanlayıcısıyla denetlenir ve sayıları arayüzde bildirilir. İndeks kasa yolunun SHA-256 özetiyle adlandırılmış ayrı bir Application Support veritabanında tutulur. Okuma modeli dosya başına parçalar (`[yol: VaultFileFragment]`) tutar; ilk kurulumda `snapshot()` ile dolar, yazma ve yenilemede `RebuildResult` yolları için `blocks(inFile:)` / `links(inFile:)` / `contents(ofFile:)` ile yalnız değişen parçalar yenilenir ve ekran alanları parçalardan türetilir. Ekranlar okuma modelinden Core sorgularına dilim dilim geçer; parça haritası buna kapı bırakır. İlk geçen Graph'tır: okuma modeli graph alanı tutmaz, ekran açıkken ve indeks her yayımlandığında (`.task(id:)`) bağlantı toplamlarını ve gün başına anmaları `graphMentions(kinds:)` sorgusundan arka planda alır (`IndexStore.computeGraphInput`); düğüm olacak varlıklar okuma modelinden gelir. İkincisi varlık zaman akışıdır: okuma modeli zaman akışı tutmaz; varlık sayfası açıkken ve indeks her yayımlandığında o varlığa bağlanan gün dosyası olaylarını ve Journal paragraflarını `entityTimeline(for:)` sorgusundan alır (`IndexStore.computeEntityTimeline(for:)`), içgörü kartı da aynı sonucu kullanır. "Bir süredir görüşmediklerin" listesi, haftalık inceleme ve görüşme ritmi hatırlatması kişi başına son görüşme gününü `lastEncounters(asOf:)` sorgusundan alır (`computeLastEncounters(asOf:)`); bu, zaman akışıyla aynı kayıtları sayar, görevleri ve frontmatter'ı saymaz (`entityUsage().lastDate` sayar). Üçüncüsü günlerdir: okuma modeli gün listesi tutmaz. Günlük listesi (iPhone'da `DaysView`, Mac'te gün sütunu) bütün günleri, takvim yalnız gösterdiği ayı `daySummaries(from:to:)` sorgusundan alır (`IndexStore.computeDaySummaries(from:to:)`): gün başına olay sayısı, Journal paragraf ve başlık sayısı, ilk Journal paragrafı (önizleme) ve hedef kaydı. Gün sayfası tek günü `day(on:)` sorgusundan alır (`computeDay(on:)`), varlık içgörü kartının "o gün geçenler"i de son görüşme gününün aynı sorgusundan gelir. Ekran ilk yanıt gelene kadar günün kendi bölümlerini (takvim günlerini) çizmez, yeniden yüklemede eski yanıtı tutar; böylece yüklenen gün bir an boş görünmez. Yerine yenisi istenmiş bir isteğin yanıtı atılır (`.task(id:)` iptali), eski yanıt yenisinin üstüne yazılmaz. Bildirim planlayıcı yayımlanmış okuma modelinden plan yaptığı için yedi günün içeriğini parça haritasından okur (`VaultReadModel.day(on:)`). Dördüncüsü görev ekranlarıdır: Görevler listesi açık görevleri bugüne göre gruplanmış (`taskGroups(today:scope:)`), son 50 tamamlananı (`completedTasks(limit:scope:)`) ve proje başına açık sayıyı (`openTaskCounts()`) alır; kişi ve proje süzgeci sorguya gider (`TaskScope`, proje anahtarla karşılaştırılır). Kanban açık görevleri, son 30 günde tamamlananları ve iptalleri (`boardTasks`; "İptal edilenleri göster" yeni sorgu açmadan süzer), zaman çizelgesi bugünün ±365 günüyle kesişen ve tarihsiz görevleri (`timelineTasks`) alır; görünen pencere bu satırlar içinde kayar. Proje sayfası projenin bütün görevlerini (`tasks(inProject:)`), gün sayfası ve günü kapatma akışı o günün aday satırlarını (`dayTasks(on:)`: önceki açıklar, o güne düşenler, o gün dosyasına yazılan tarihsizler, o gün tamamlananlar), haftalık inceleme iki haftanın açık işlerini (`openTasks(dueBy:orWrittenFrom:)`) alır; seçilen görevin ayrıntısı görevi kimliğiyle yeniden okur (`task(id:)`). Hepsi `IndexStore.compute…Tasks` ile arka planda, yazmadan sonra `.task(id:)` ile yeniden çalışır; ilk yanıta kadar bölümler ve boş durum çizilmez, yeniden yüklemede eski satırlar kalır. Gün sayfası günün kendi bölümlerini gün ve görev yanıtlarının ikisi de gelince çizer; akşam hatırlatması günü kapatma akışını görevlerin o yayıma ait yanıtı gelmeden açmaz. Gruplama ve sıralama ekran modellerinde eskisi gibi yapılır. Okuma modelinin `tasks` alanı şimdilik bildirim planlayıcı ve App Intents için durur. Sorgular kasa kuşağına bağlıdır: yanıt gelmeden başka kasa seçilirse sonuç atılır. Beşincisi hedef durumlarıdır: okuma modeli hedef durumu tutmaz. Hedefler listesi ve gün sayfası durumları `goalStatuses(today:)` sorgusundan alır (`IndexStore.computeGoalStatuses(today:)`); gün sayfası o günün durumunu günle aynı görevde, o güne kadarki kayıtlarla sorgular. Durum, hedefin o güne kadarki bütün kayıtlarından hesaplanır: zincir ve en uzun seri bir yıldan eski olsa da kesilmez; sorgu kayıtlardan yalnız anahtar, gün, tür ve değer sütunlarını okur. Ekranda işaretlenen hedef (listede kilometre taşı, şeritte artı ya da miktar) dokunulduğu anda o ekranın düzenleme modelinden (`GoalDayModel`) çizilir; yazmanın yayımından sonra istenmiş bir yanıt gelince yine sorgunun değeri çizilir. Yazmadan önce istenmiş bir yanıt o hedefi ezmez, ikinci dokunuş ekranda görünen duruma göre işler; hiçbir şey kaydedilmezse işaret geri alınır. Gün sayfasında şerit ve hedef sayacı aynı modeli paylaşır. Liste ilk yanıta kadar satır çizmez, yeniden yüklemede ve gece yarısı yeniden kurulurken eski durumları tutar. Gün sayfası o günün durumları gelene kadar hedef sayacını şeridin kendi modelinden sayar (bir an `0/0` ya da önceki günün sayısı görünmez); "Günü kapat" bekleyen hedefleri açılışta şeridin modelinden alır, kopya anahtarlı tanım gün sayfasındaki gibi adı önce gelen sayılır. Okuma modelindeki `goalLogs` (bugünden 399 gün geri, 6 gün ileri) yalnız bildirim planlayıcı ve konum izleme içindir; gün sayfasının hedef şeridi, "Günü kapat" ve hedef ayrıntısının düzenleme modeli (`GoalDayModel`) ilk çizimde bu listeyle başlar, açılınca bütün geçmişi indeksten okur (`goalHistory`). Widget'ın bağlanması açıktır.
+## Kasa konumu
 
-Bildirimler yalnız App katmanında `NotificationPlanner` ile snapshot/cihaz tercihleri/yerel saatten üretilir, `NotificationService` seri yeniden planlama ve izin durumunu protokolle ayrılmış `UserNotifications` merkezine uygular; indeks yayınları iki saniye birleştirilir, uygulama kapalıyken yedi günlük planın içeriği yeniden hesaplanmaz. Görüşme ritmi hatırlatması aynı plandadır: `CadenceReminderPlan` bugünün kişi, ritim ve son görüşme verisinden pencere içindeki günleri hesaplar; son bildirim günü kasaya yazılmaz, cihazda kasa yoluna göre durur.
+**Şema uygulamanın açılışta kasayı nasıl seçtiğini gösterir.**
 
-App Intents, yer imi kapsamını ve indeksi açan ortak `IntentActions`/`IndexStore` üzerinden olay, görev ve hedef kaydı yazar; `AppShortcutsProvider` tr/en Siri cümlelerini sunar ve `IntentNavigation` Bugün ekranına yönlendirir.
+```mermaid
+stateDiagram-v2
+  state "Kayıtlı kasa denetimi" as Denetim
+  state "Yerel kasa: Documents/Vault" as Yerel
+  state "Seçilen klasör: güvenlik kapsamlı yer imi" as Secilen
+  state "Yer imi yenilendi" as Yenilendi
+  state "Erişim yok: ana ekranda sor" as Erisimsiz
+  state "Yer imi silindi, kayıp bayrağı tutuldu" as Bozuk
+  [*] --> Denetim
+  Denetim --> Yerel: yer imi yok
+  Denetim --> Secilen: yer imi geçerli
+  Secilen --> Yenilendi: yer imi bayat, erişim başladı
+  Denetim --> Erisimsiz: kayıtlı kasaya erişim yok
+  Denetim --> Bozuk: yer imi bozuk
+```
+
+Aşama 0'dan beri uygulama varsayılan kasayı yerel `Documents/Vault/` klasöründe oluşturur. Kullanıcı başka klasör seçerse uygulama güvenlik kapsamlı yer imini cihazda saklar. Kayıtlı kasaya erişim yoksa uygulama yerel kasaya geçmez ve durumu ana ekranda sorar. Kayıp bayrağı sonraki açılışların `Documents/Vault` açmasını önler. iCloud konumu kullanıcı kararından sonra gelir.
+
+## Dosya izleyici
+
+**Şema yenilemeyi başlatan üç tetiği gösterir.**
+
+```mermaid
+flowchart LR
+  Dizin["Dizin olayı: Dispatch dizin kaynağı"] --> Birlestir["300 ms birleştirme"]
+  Zamanlayici["Ön plan zamanlayıcısı: 5 saniye"] --> Birlestir
+  OnPlan["Ön plana dönüş"] --> Birlestir
+  Birlestir --> Yenile["Arka planda refresh(vaultRoot:)"]
+```
+
+**Tablo izleyicinin sınırlarını gösterir.**
+
+| Değer | Anlam |
+|---|---|
+| Dispatch dizin kaynakları | Kök ve taranan alt dizinler |
+| 5 saniye | Ön plan zamanlayıcısının aralığı |
+| 300 ms | Bildirimlerin birleştirme süresi |
+| 256 | En çok dizin kaynağı sayısı |
+
+Dizin kaynakları dosya içeriğinin yerinde düzenlenmesini güvenilir biçimde görmez. Ön plan zamanlayıcısı ve ön plana dönüş yenilemesi bu düzenlemeyi yakalar. Arka planda dizin olayları yenilemeyi tetiklemeye devam eder. İzleyici 256 kaynaktan sonraki dizinleri ve kaynak açamadığı dizinleri yalnız ön plan zamanlayıcısıyla denetler. Arayüz bu dizinlerin sayısını gösterir. `VaultWatcher` yol bildirmez; her olayda `IndexStore` tam `refresh` çağırır.
+
+## Yazma sırası
+
+**Şema bir yazmanın ekrandan dosyaya, dosyadan indekse ve okuma modeline yolunu gösterir.**
+
+```mermaid
+sequenceDiagram
+  participant E as Ekran
+  participant S as IndexStore
+  participant V as VaultStore
+  participant K as Yazma kuyruğu
+  participant C as Dosya koordinasyonu
+  participant D as Kasa dosyası
+  participant I as VaultIndex
+  E->>S: yazma isteği
+  S->>S: yazma sırasını ve kasayı denetle
+  S->>V: düzenleme
+  V->>K: işlemi kasanın seri kuyruğuna koy
+  K->>C: değiştirme koordinasyonu başlat
+  C->>D: diskten yeniden oku
+  C->>D: VaultFormat ile düzenle, atomik yaz
+  C->>I: yalnız değişen yolu güncelle
+  C-->>V: sınır biter
+  V-->>S: yazılan belge ya da indexUpdateFailed
+  S->>S: değişen parçaları yenile, yayımla
+  S-->>E: yeni okuma modeli
+```
+
+`VaultStore` uygulamanın kasa belgelerini düzenleyen tek kapıdır. `VaultStore` aynı kasa kökündeki yazmaları ortak seri bir Foundation işlem kuyruğunda sıralar. Her işlem belgeyi diskten yeniden okur, `VaultFormat` ile düzenler ve dosyaya yazar. Sonra `VaultStore` yalnız değişen yolu `VaultIndex` ile günceller. İndeks hatası yazılmış dosyayı geri almaz; `indexUpdateFailed(path:underlying:)` dosyanın yazıldığını açıkça bildirir.
+
+**Tablo atomik yazmanın iki yolunu gösterir.**
+
+| Durum | Yazma yolu |
+|---|---|
+| Dosya var | `VaultStore` var olan dosyayı atomik değiştirir |
+| Birim sabit bağlantıyı desteklemiyor | `VaultStore` yeni dosyayı dışlayıcı oluşturur |
+
+## Okuma modeli
+
+**Şema okuma modelinin parçalardan nasıl kurulduğunu gösterir.**
+
+```mermaid
+flowchart LR
+  Indeks["İndeks"] -->|"ilk kurulum: snapshot()"| Harita["Parça haritası: yol → VaultFileFragment"]
+  Sonuc["Yazma ya da yenileme: RebuildResult yolları"] --> DosyaOkuma["blocks(inFile:), links(inFile:), contents(ofFile:)"]
+  DosyaOkuma -->|"yalnız değişen parçalar"| Harita
+  Harita --> Alanlar["Ekran alanları"]
+```
+
+Okuma modeli dosya başına parça tutar: `[yol: VaultFileFragment]`. İlk kurulumda `snapshot()` parça haritasını doldurur. Yazma ve yenileme yalnız `RebuildResult` yollarının parçalarını yeniler. Ekran alanları parçalardan türer. Ekranlar okuma modelinden Core sorgularına dilim dilim geçer; parça haritası bu geçişe kapı bırakır.
+
+## Ekran sorguları
+
+**Tablo okuma modelinden çıkan beş dilimi sırasıyla gösterir.**
+
+| Sıra | Dilim | Core sorgusu | `IndexStore` yöntemi | Ekran |
+|---|---|---|---|---|
+| 1 | Graph | `graphMentions(kinds:)` | `computeGraphInput` | Graph |
+| 2 | Varlık zaman akışı | `entityTimeline(for:)` | `computeEntityTimeline(for:)` | Varlık sayfası, içgörü kartı |
+| 2 | Son görüşme | `lastEncounters(asOf:)` | `computeLastEncounters(asOf:)` | "Bir süredir görüşmediklerin", haftalık inceleme, görüşme ritmi hatırlatması |
+| 3 | Gün listesi | `daySummaries(from:to:)` | `computeDaySummaries(from:to:)` | Günlük listesi, takvim |
+| 3 | Tek gün | `day(on:)` | `computeDay(on:)` | Gün sayfası, içgörü kartının "o gün geçenler" bölümü |
+| 4 | Görevler | Görev sorguları tablosu | `IndexStore.compute…Tasks` | Görevler, kanban, zaman çizelgesi, proje, gün sayfası, haftalık inceleme |
+| 5 | Hedef durumu | `goalStatuses(today:)` | `computeGoalStatuses(today:)` | Hedefler listesi, gün sayfası |
+
+Aynı kalıp dilimlerden önceki istek üzerine sorgular için de geçerlidir: `computeSummary`, `computeOnThisDay`, `computeImportantDates`, `computeDayBacklinks`, `computeUnlinkedMentions`.
+
+### Sorgu kalıbı
+
+**Şema bir ekran sorgusunun kuşak ve iptal denetimini gösterir.**
+
+```mermaid
+sequenceDiagram
+  participant E as Ekran görevi .task(id:)
+  participant S as IndexStore
+  participant A as Arka plan görevi
+  participant I as VaultIndex
+  E->>S: IndexStore.compute… çağrısı
+  S->>S: kasa kuşağını sakla
+  S->>A: Task.detached
+  A->>I: sorgu
+  I-->>A: satırlar
+  A-->>S: sonuç
+  alt başka kasa açıldı
+    S-->>E: staleTarget hatası
+  else ekran görevi iptal oldu
+    S-->>E: CancellationError
+  else kuşak aynı, iptal yok
+    S-->>E: yanıt
+  end
+```
+
+Her ekran sorgusu başlarken kasa kuşağını saklar ve indeksi arka plan görevinde okur. Yanıt gelince sorgu önce kuşağı denetler: başka kasa açıldıysa `staleTarget` atar. Sonra sorgu iptali denetler: çağıranın görevi iptal olduysa `CancellationError` atar. Arka plan görevi iptalde durmaz. Bu denetim yalnız eski yanıtın yenisinin üstüne yazmasını önler. İndeks açık değilse sorgu boş sonuç döner.
+
+**Tablo ekranların yanıt beklerken ne çizdiğini gösterir.**
+
+| Durum | Ekran davranışı |
+|---|---|
+| İlk yanıt gelmedi | Ekran kendi bölümlerini ve boş durumu çizmez. Gün sayfası takvim günlerini de çizmez |
+| Yeniden yükleme sürüyor | Ekran eski yanıtı tutar. Yüklenen gün bir an boş görünmez |
+| Yeni istek eskisinin yerini aldı | `.task(id:)` eski görevi iptal eder; ekran eski yanıtı atar |
+| Yanıttan önce başka kasa seçildi | Sorgu sonucu kasa kuşağına bağlıdır; ekran sonucu atar |
+| Gün sayfası açılıyor | Sayfa günün kendi bölümlerini gün ve görev yanıtlarının ikisi de gelince çizer |
+| Akşam hatırlatması geldi | Uygulama günü kapatma akışını görevlerin o yayıma ait yanıtı gelmeden açmaz |
+| Hedefler listesi yükleniyor | Liste ilk yanıta kadar satır çizmez. Yeniden yüklemede ve gece yarısı yeniden kurulumda eski durumları tutar |
+
+### Graph
+
+Okuma modeli Graph alanı tutmaz. Ekran açıkken ve her indeks yayımında `.task(id:)` sorguyu arka planda yeniden çalıştırır. Sorgu bağlantı toplamlarını ve gün başına anmaları getirir. Düğüm olacak varlıklar okuma modelinden gelir.
+
+### Varlık zaman akışı ve son görüşme
+
+Okuma modeli zaman akışı tutmaz. Varlık sayfası açıkken ve her indeks yayımında sayfa o varlığa bağlanan gün dosyası olaylarını ve Journal paragraflarını sorgular. İçgörü kartı aynı sonucu kullanır. `lastEncounters(asOf:)` kişi başına son görüşme gününü verir ve zaman akışıyla aynı kayıtları sayar. Bu sorgu görevleri ve frontmatter'ı saymaz; `entityUsage().lastDate` ise ikisini de sayar.
+
+### Günler
+
+Okuma modeli gün listesi tutmaz. Günlük listesi bütün günleri sorgular: iPhone'da `DaysView`, Mac'te gün sütunu. Takvim yalnız gösterdiği ayı sorgular. Yanıt gün başına olay sayısını, Journal paragraf ve başlık sayısını, ilk Journal paragrafını ve hedef kaydını taşır. İlk paragraf önizleme olarak görünür. Bildirim planlayıcı yayımlanmış okuma modelinden plan yapar; bu yüzden yedi günün içeriğini parça haritasından okur: `VaultReadModel.day(on:)`.
+
+### Görevler
+
+**Tablo her görev ekranının sorgusunu ve getirdiği satırları gösterir.**
+
+| Ekran | Sorgu | Getirdiği satırlar |
+|---|---|---|
+| Görevler listesi | `taskGroups(today:scope:)` | Bugüne göre gruplanmış açık görevler |
+| Görevler listesi | `completedTasks(limit:scope:)` | Son 50 tamamlanan görev |
+| Görevler listesi | `openTaskCounts()` | Proje başına açık görev sayısı |
+| Kanban | `boardTasks` | Açık görevler, son 30 günde tamamlananlar ve iptaller. "İptal edilenleri göster" yeni sorgu açmadan süzer |
+| Zaman çizelgesi | `timelineTasks` | Bugünün ±365 günüyle kesişen görevler ve tarihsiz görevler. Görünen pencere bu satırlar içinde kayar |
+| Proje sayfası | `tasks(inProject:)` | Projenin bütün görevleri |
+| Gün sayfası, günü kapatma akışı | `dayTasks(on:)` | O günün adayları: önceki açıklar, o güne düşenler, o gün dosyasına yazılan tarihsizler, o gün tamamlananlar |
+| Haftalık inceleme | `openTasks(dueBy:orWrittenFrom:)` | İki haftanın açık işleri |
+| Görev ayrıntısı | `task(id:)` | Seçilen görev; sorgu görevi kimliğiyle yeniden okur |
+
+Kişi ve proje süzgeci sorguya gider: `TaskScope`. Sorgu projeyi anahtarla karşılaştırır. Bütün görev sorguları `IndexStore.compute…Tasks` ile arka planda çalışır. Her yazmadan sonra `.task(id:)` sorguları yeniden çalıştırır. Gruplamayı ve sıralamayı ekran modelleri eskisi gibi yapar.
+
+### Hedef durumu
+
+Okuma modeli hedef durumu tutmaz. Hedefler listesi ve gün sayfası durumları `goalStatuses(today:)` sorgusundan alır. Gün sayfası o günün durumunu günle aynı görevde, o güne kadarki kayıtlarla sorgular. Sorgu durumu hedefin o güne kadarki bütün kayıtlarından hesaplar; bir yıldan eski zincir ve en uzun seri de kesintisiz kalır. Sorgu kayıtlardan yalnız anahtar, gün, tür ve değer sütunlarını okur.
+
+**Şema hedef işaretlemede iyimser çizimi gösterir.**
+
+```mermaid
+sequenceDiagram
+  actor K as Kullanıcı
+  participant E as Ekran
+  participant M as GoalDayModel
+  participant S as IndexStore
+  K->>E: hedefi işaretler
+  E->>M: değeri değiştirir
+  M-->>E: işareti hemen çizer
+  M->>S: yazma: önce dosya, sonra indeks, sonra yayım
+  S-->>E: yazmadan önce istenmiş yanıt
+  Note over E: Eski yanıt düzenlenen hedefi ezmez
+  S-->>E: yayımdan sonra istenmiş yanıt
+  Note over E: Ekran sorgunun değerini çizer
+```
+
+Kullanıcı hedefi işaretlediği anda ekran işareti o ekranın düzenleme modelinden çizer: `GoalDayModel`. Örnekler: listede kilometre taşı, şeritte artı ya da miktar. İkinci dokunuş ekranda görünen duruma göre işler. Yazma hiçbir şey kaydetmezse ekran işareti geri alır. Gün sayfasında şerit ve hedef sayacı aynı modeli paylaşır.
+
+**Tablo gün sayfasının ve "Günü kapat" akışının hedef kaynaklarını gösterir.**
+
+| Yer | Kaynak |
+|---|---|
+| Gün sayfası hedef sayacı, durumlar gelmeden | Şeridin kendi modeli. Bir an `0/0` ya da önceki günün sayısı görünmez |
+| "Günü kapat" bekleyen hedefler | Açılışta şeridin modeli |
+| Kopya anahtarlı hedef tanımı | Adı önce gelen tanım; gün sayfasıyla aynı kural |
+| `GoalDayModel` ilk çizim | Okuma modelindeki `goalLogs` |
+| `GoalDayModel` açıldıktan sonra | İndeksteki bütün geçmiş: `goalHistory` |
+
+`GoalDayModel` gün sayfasının hedef şeridini, "Günü kapat" akışını ve hedef ayrıntısını sürer. Okuma modelindeki `goalLogs` bugünden 399 gün geri ve 6 gün ileri kayıt tutar. `goalLogs` listesi yalnız bildirim planlayıcı ve konum izleme içindir. Widget bağlantısı açık bir iştir.
+
+### Okuma modelinde kalan alanlar
+
+**Tablo okuma modelinde kalan alanları ve onları kullananları gösterir.**
+
+| Alan | Kullanan |
+|---|---|
+| `tasks` | Bildirim planlayıcı; varlık sayfasının açık işleri |
+| `projects`, `tasks` alanından türer | Mac kenar çubuğu, kanban ve zaman çizelgesi proje listesi, hızlı giriş proje önerisi |
+| `entities` | Graph düğümleri |
+| `goalLogs` | Bildirim planlayıcı, konum izleme, `GoalDayModel` ilk çizimi |
+| Parça haritası, `VaultReadModel.day(on:)` | Bildirim planlayıcının yedi günü |
+
+## Bayat yanıt ve kasa değişimi
+
+**Tablo kasa değişince ya da istek iptal olunca uygulamanın davranışını gösterir.**
+
+| Durum | Davranış |
+|---|---|
+| Ekran sorgusunun yanıtından önce başka kasa açıldı | Sorgu `staleTarget` atar; ekran sonucu atar |
+| Ekran görevi yenisiyle değişti | Sorgu `CancellationError` atar; eski yanıt yenisinin üstüne yazmaz |
+| Yazma sırasını ya da yenilemeyi beklerken başka kasa seçildi | `IndexStore` yazmayı `staleTarget` ile reddeder; hiçbir dosya değişmez |
+| Tanıma yenilemesi sürerken başka kasa açıldı | Yenileme hiçbir alana atama yapmaz: tipler, varlıklar, kullanım, yakın yerler, harita yerleri |
+| Yazma sonrası yayım sürerken başka kasa açıldı | Yayım içeriği atamaz ve hatayı göstermez |
+| Yenileme sürerken başka kasa açıldı | Yenileme yeni kasanın `lastUpdated`, `errorText` ve `isProcessing` değerlerine dokunmaz |
+| Eski kasaya varlık kaydedildi | Yeni kasanın varlık listesi o varlığı göstermez |
+| Yayımda tanıma yenilemesi hata verdi | `lastUpdated` yine ilerler; ekranlar yeni içeriği çizer |
+| Ayarlar ekranının görevi plan sürerken iptal oldu | Bildirim planı son görüşme sorgusunu iptalden ayırır; plan yarıda kalmaz |
+
+`IndexStore` üzerinden yapılan her yazma çağrıldığı anda seçili olan kasaya aittir. Bu kural olay eklemeyi, `performEdit` düzenlemelerini, varlık oluşturmayı ve yeniden adlandırmayı kapsar. Olay eklemede taslak hızlı girişte kalır ve ekran var olan `staleTarget` iletisini gösterir. Öteki yollar hatayı çağırana atar. Bağlanmamış anma bağlama, satırı okuduğu kasayı bu denetime verir.
+
+## Bildirimler ve App Intents
+
+**Tablo bildirim ve sistem girişi parçalarını gösterir.**
+
+| Parça | Görev |
+|---|---|
+| `NotificationPlanner` | Planı okuma modelinden, cihaz tercihlerinden ve yerel saatten üretir. Yalnız App katmanında çalışır |
+| `NotificationService` | Yeniden planlamayı sırayla uygular ve izin durumunu yönetir. `UserNotifications` merkezine bir protokol üzerinden erişir |
+| `CadenceReminderPlan` | Bugünün kişi, ritim ve son görüşme verisinden pencere içindeki görüşme ritmi günlerini hesaplar |
+| `IntentActions` | Yer imi kapsamını ve indeksi açar; `IndexStore` üzerinden olay, görev ve hedef kaydı yazar |
+| `AppShortcutsProvider` | tr ve en Siri cümlelerini sunar |
+| `IntentNavigation` | Kullanıcıyı Bugün ekranına götürür |
+
+`NotificationService` indeks yayımlarını 2 saniye birleştirir. Uygulama kapalıyken planlayıcı yedi günlük planın içeriğini yeniden hesaplamaz. Görüşme ritmi hatırlatması aynı plandadır. Uygulama son bildirim gününü kasaya yazmaz; günü cihazda kasa yoluna göre saklar.
 
 ## Core paketi
 
-Sorumlulukları:
+**Şema `Core` paketinin hedeflerini ve bağımlılıklarını gösterir.**
 
-- **Ayrıştırıcı:** Frontmatter, bölümler, olay ve görev satırları, bağlantılar, blok kimlikleri.
-- **Yazıcı:** Yalnızca hedef satırı değiştiren, dosyanın geri kalanını birebir koruyan düzenleme.
-- **Birleştirme:** Çakışan iki sürümü tek içerikte birleştiren saf işlev (kurallar: `vault-format.md`).
-- **Modeller:** Gün, olay, görev, varlık (kişi, konum), hedef.
-- **Yeniden adlandırma:** Varlık dosyasını yeniden adlandırma ve kasadaki tüm bağlantıları güncelleme.
-- **Varlık tanıma:** Metinde bilinen adları ve takma adları bulma; birden fazla aday varsa bağlama göre (konum, yakınlık, sıklık) sıralama; emin olunamayan durumları arayüze bildirme.
-- **İndeksleyici:** Tam ve artımlı indeksleme.
-- **Sorgular:** Bugün, varlık zaman akışı, zincir hesabı, arama. Bağlanmamış anmalar (`VaultIndex.unlinkedMentions`): arama indeksi aday gün dosyalarını daraltır, dosyalar diskten okunup olay ve görev ilk satırları var olan tanıyıcıyla taranır. `VaultStore.linkingMention` onaylanan tek anmayı yazma kuyruğunda dosyayı yeniden okuyarak, bayat hedef denetimiyle bağlar; önce dosya yazılır, sonra indeks güncellenir.
-- **Tarih ayrıştırma (`DateParsing`):** Doğal dil tarih ifadeleri.
-- **Hedef hesapları (`GoalTracking`):** Dönem/yıl ilerlemesi, zincir, en uzun seri ve ısı haritası.
-- **Özetler (`Summaries`):** Haftalık/aylık sayılar, ilk beş kişi/konum, hedef ve görev durumu, önceki dönem farkları.
-- **Kuvvet yerleşimi (`ForceLayout`):** Graph'ın canlı kuvvet benzetimi: itme (Barnes-Hut), yay, merkez çekimi, çarpışma, sönümleme; sabit tohumlu ve belirlenimci.
+```mermaid
+flowchart LR
+  VaultStore --> VaultIndex
+  VaultStore --> GoalTracking
+  VaultStore --> VaultFormat
+  VaultIndex --> EntityRecognition
+  VaultIndex --> Summaries
+  VaultIndex --> GoalTracking
+  VaultIndex --> VaultFormat
+  VaultIndex --> GRDB["GRDB: dış paket"]
+  Summaries --> GoalTracking
+  Summaries --> VaultFormat
+  GoalTracking --> VaultFormat
+  DateParsing --> VaultFormat
+  EntityRecognition --> VaultFormat
+  ForceLayout["ForceLayout: bağımlılık yok"]
+```
 
-Kısıt: Yalnızca Foundation ve SQLite katmanı. Bu sayede aynı kod uygulamada, widget'ta ve testlerde çalışır; ileride başka dile çevirmek kolay olur.
+**Tablo `Core` sorumluluklarını ve onları taşıyan hedefi gösterir.**
 
-Paket hedeflere ayrılır. `VaultFormat` hedefi ayrıştırıcıyı, yazıcıyı, birleştirmeyi ve modelleri taşır; paket bağımlılığı yoktur ve Foundation dışında bir çerçeve kullanmaz. `VaultIndex` hedefi GRDB ve `VaultFormat` üzerine kurulur; dosyalara yazmaz, tam yeniden üretim ve küçük sorgu API’si sunar.
+| Sorumluluk | Hedef | İçerik |
+|---|---|---|
+| Ayrıştırıcı | `VaultFormat` | Frontmatter, bölümler, olay ve görev satırları, bağlantılar, blok kimlikleri |
+| Yazıcı | `VaultFormat` | Yalnız hedef satırı değiştiren, dosyanın geri kalanını birebir koruyan düzenleme |
+| Birleştirme | `VaultFormat` | Çakışan iki sürümü tek içerikte birleştiren saf işlev. Kurallar: `vault-format.md` |
+| Modeller | `VaultFormat` | Gün, olay, görev, varlık, hedef. Varlık türleri: kişi, konum |
+| Yeniden adlandırma | `VaultStore` | Varlık dosyasını yeniden adlandırma ve kasadaki tüm bağlantıları güncelleme |
+| Varlık tanıma | `EntityRecognition` | Metinde bilinen adları ve takma adları bulma. Birden fazla aday varsa bağlama göre sıralama: konum, yakınlık, sıklık. Emin olmadığı durumu arayüze bildirme |
+| İndeksleyici | `VaultIndex` | Tam ve artımlı indeksleme |
+| Sorgular | `VaultIndex` | Bugün, gün listesi ve tek gün, güne bağlananlar, varlık zaman akışı ve son görüşme, Graph anmaları, zincir hesabı, hedef durumu, görev görünümleri, özet girdisi, bu gün geçmişte, varlık alanları, bağlanmamış anmalar, arama |
+| Tarih ayrıştırma | `DateParsing` | Doğal dil tarih ifadeleri; hızlı girişte tekrar ve öncelik |
+| Hedef hesapları | `GoalTracking` | Dönem ve yıl ilerlemesi, zincir, en uzun seri, ısı haritası. Günlük hedefte tek kaçırma affı ve kısmi af işareti |
+| Özetler | `Summaries` | Haftalık ve aylık sayılar, ilk beş kişi ve konum, hedef ve görev durumu, önceki dönem farkları. Aynı hedefte bu gün geçmişte, önemli tarihler, görüşme ritmi ve haftalık inceleme metni |
+| Kuvvet yerleşimi | `ForceLayout` | Graph'ın canlı kuvvet benzetimi: Barnes-Hut itmesi, yay, merkez çekimi, çarpışma, sönümleme. Sabit tohumlu ve belirlenimci |
+| Yazma kapısı | `VaultStore` | Kasa yazmalarını sıralama, dosya koordinasyonu, indeks güncellemesi |
 
-`VaultStore`, uygulamanın mevcut kasa belgelerini düzenleyen tek kapısıdır; aynı kasa kökündeki yazmaları ortak seri bir Foundation işlem kuyruğunda sıralar. Her işlem belgeyi diskten yeniden okur, `VaultFormat` ile düzenler, dosyaya yazar (mevcut dosyayı atomik değiştirir; sabit bağlantı desteklenmiyorsa yeni dosyayı dışlayıcı oluşturur) ve ardından yalnız değişen yolu `VaultIndex` ile günceller; indeks hatası yazılmış dosyayı geri almaz ve `indexUpdateFailed(path:underlying:)` ile dosyanın yazıldığı açıkça bildirilir. Core’daki `Sendable` `FileCoordination` arayüzü okuma, değiştirme, iki URL’li taşıma ve silme niyetlerini host katmanına iletir; varsayılanı gövdeyi doğrudan çalıştırır. Oku → dönüştür → atomik yaz zinciri tek değiştirme koordinasyonundadır; yeniden adlandırmanın kaynak/hedef yazması ve geri alması tek taşıma koordinasyonunda, bağlantı güncellemeleri dosya başına değiştirme koordinasyonundadır. Bu güncelleme yalnız güncellemenin değiştirebileceği ya da bildirebileceği dosyaları koordine eder: indeksin yeniden adlandırılan dosyaya bağlantı satırı tuttuğu dosyalar ve ham frontmatter alanında eski adı anan dosyalar. Ham alanların bağlantı satırı olmadığından bu ikinciler koordinasyonsuz bir okumayla bulunur; böyle bir dosya hiç yazılmaz, yalnız `rawField` olarak bildirilir ve bildirim koordineli okumanın baytlarından üretilir. Kök dizinin okuma koordinasyonu içindeki dosyaların sunucularına ulaşmadığı için (ölçüldü: ne kaydetme ne okuma bildirimi gider) bu tarama onunla sarılmaz; bedeli, başka bir düzenleyicide kaydedilmemiş bir ham alan değişikliğinin bildirimde görünmeyebilmesidir. Taşıma sınırın içinden host’a bildirilir (taşımadan hemen önce ve yalnız başarılı taşımadan sonra), çünkü `NSFileCoordinator` dosya sunucularına bu bildirimi aynı koordineli bloktan ister. İndeks güncellemesi yazmayla aynı sınırdadır; bu yüzden `VaultIndex` ve `VaultStore`'a verilen dosya okuyucuları koordinasyon başlatmaz. İndeks veritabanı kasa dışında, uygulamaya özel konumdadır ve koordine edilmez. `persist` ve `atomicWrite` iç içe koordinasyon başlatmaz; reddedilen erişim gövde çalışmadan hata verir ve indeks dosyadan önce güncellenmez. App bu arayüzü `SystemFileCoordination` ile `NSFileCoordinator` üzerinde uygular ve `IndexStore`'un ve içe aktarmanın açtığı her `VaultStore`'a verir: okuma seçeneksiz okuma koordinasyonudur; değiştirme `.forMerging` yazmasıdır (dosyayı sunan uygulamalar önce kaydeder, gövde güncel baytları okur); taşıma, kaynak `.forMerging` ve hedef `.forReplacing` ile iki URL'li tek yazmadır (kaynak düz dosyadır ve taşımadan önce içeriği yeniden yazılır; `.forMoving` düz dosyada etkisizdir ve seçenekler birlikte kullanılamaz); hedef zaten kaynağın kendisiyse (büyük/küçük harf duyarsız birimde yalnız harf boyu değişen ad) hedef seçeneksizdir, yoksa dosyayı sunan uygulamaya silinme bildirilir; silme `.forDeleting` yazmasıdır. Taşıma bildirimleri aynı koordinatörün `item(at:willMoveTo:)` / `item(at:didMoveTo:)` çağrılarıdır. Çağrılar eşzamanlıdır ve gövdeyi çağıran iş parçacığında bir kez çalıştırır: yazmalar kasanın yazma kuyruğunda, `document(at:)` okuması kasanın okuma kuyruğunda bekler (kasa başına bir Foundation işlem kuyruğu, en çok 4 okuma birlikte; aktör, Swift eşzamanlılık havuzu ve yazma kuyruğu değil). İndirilmemiş bir iCloud dosyasının okuma koordinasyonu indirme bitene kadar sürer; bu sürede yalnız o okuma bekler: aynı kasanın yazmaları ve öteki okumaları sürer, ana iş parçacığı bloklanmaz. Okumaların birbirine göre sırası yoktur; sınır, art arda bekleyen indirmelerin her birinin bir iş parçacığı tutmasını önler, bedeli dört okuma indirme beklerken beşincinin (örneğin günün sayfası) sıra beklemesidir. `IndexStore` her yazma ve yenilemeden sonra konum dosyalarını koordinatlar için okur; imzası (aygıt, inode, boyut, içerik ve öznitelik değişiklik zamanları) okumadan önce alınır ve değişmeyen dosya bellekteki baytlardan gelir. Dışarıdan değişen, yeniden adlandırmayla yola gelen ya da imzası alınamayan dosya yeniden okunur; okunamayan dosya saklanmaz. Değişmeyen dosya koordine edilmediğinden onu sunan bir uygulamanın kaydedilmemiş değişikliği, o uygulama kaydedip imza değişince görünür. İmza ve okuma aynı kasaya aittir: yenileme sürerken başka kasa açılırsa okuma yenilemenin başladığı kasadan yapılır. Koordinatörün verdiği yeni URL kullanılmaz. Sunucunun kaydedemediği ya da reddettiği erişimde gövde çalışmaz ve koordinatörün hatası atılır. Uygulama kuralları: kuyrukta beklemek kilitleneceği için zaman uyumsuz `coordinate(with:queue:byAccessor:)` kullanılmaz; ileride eklenecek bir `NSFilePresenter`'ın `presentedItemOperationQueue`'su asla kasa yazma kuyruğu olmaz; `VaultIndex`'e koordine eden okuyucu verilmez (indeks güncellemesi yazmanın sınırı içindedir, iç içe koordinasyon kilitlenir). Uygulamanın kendi dosya sunucusu henüz yoktur. İndeks taraması ve yenileme dosyaları koordinasyonsuz okur.
+Kısıt: `Core` yalnız Foundation ve SQLite katmanını kullanır. Bu sayede aynı kod uygulamada, widget'ta ve testlerde çalışır. Kodu ileride başka dile çevirmek de kolay olur. `VaultFormat` hedefinin paket bağımlılığı yoktur ve Foundation dışında bir çerçeve kullanmaz. `VaultIndex` dosyalara yazmaz; tam yeniden üretim ve küçük bir sorgu API'si sunar.
 
-`IndexStore` üzerinden yapılan her yazma (olay ekleme, `performEdit` düzenlemeleri, varlık oluşturma ve yeniden adlandırma) çağrıldığı anda seçili olan kasaya aittir: yazma sırası ya da süren bir yenileme beklenirken başka kasa seçilirse yazma `staleTarget` ile reddedilir ve hiçbir dosya yazılmaz. Olay eklemede taslak hızlı girişte kalır ve var olan `staleTarget` iletisi gösterilir; öteki yollar hatayı çağırana atar. Bağlanmamış anma bağlama, satırın okunduğu kasayı bu denetime verir.
+### Bağlanmamış anmalar
 
-Journal sonuna ekleme, VaultStore’un aynı dosya-önce atomik yazma yolunu ve RawDocument bölüm ekleme altyapısını kullanır; Summaries içindeki saf WeeklyReviewText yalnız çağıranın yerelleştirdiği özet cümlelerini ve cevapları güvenli düz satırlara birleştirir.
+`VaultIndex.unlinkedMentions` önce arama indeksiyle aday gün dosyalarını daraltır. Sonra sorgu dosyaları diskten okur ve olay ile görev ilk satırlarını var olan tanıyıcıyla tarar. `VaultStore.linkingMention` onaylanan tek anmayı yazma kuyruğunda bağlar. Yazıcı dosyayı yeniden okur ve bayat hedefi denetler. Önce dosyaya yazar, sonra indeksi günceller.
 
-İlk kullanım ve kasa hazırlama sırasında App katmanındaki `VaultImportBootstrap` yalnız eksik klasör, şablon ve `.app/vault.json` oluşturur; mevcut dosyaları değiştirmez. Core’un genel belge yazıcısı bu yapısal yolları kabul etmediğinden yeni dosyalar geçici dosya ve dışlayıcı sabit bağlantıyla yayımlanır; sabit bağlantı desteklenmiyorsa dışlayıcı oluşturma kullanılır. Eksik `type` eklemeleri `VaultStore` üzerinden yapılır.
+### Journal sonuna ekleme ve ilk kullanım
 
-`GoalTracking`, yalnız `VaultFormat` importu olan saf hedef katmanıdır: tanım, gün kaydı, dönem/yıl ilerlemesi, zincir/en uzun seri ve ısı haritası. İndeks tipleri kaynak alanlarından kurar; kayıt yazımı `VaultStore.settingGoalValue` ile dosya-önce yapılır. Takvim aritmetiği `CalendarDate` üzerinde ortak olup `DateParsing` tarafından da kullanılır.
+Journal sonuna ekleme, `VaultStore`'un dosya-önce atomik yazma yolunu ve `RawDocument` bölüm ekleme altyapısını kullanır. `Summaries` içindeki saf `WeeklyReviewText`, çağıranın yerelleştirdiği özet cümlelerini ve cevapları güvenli düz satırlara birleştirir.
 
-`Summaries`, yalnız `VaultFormat` ve `GoalTracking` bağımlılıkları/importları olan saf değer hesaplarıdır; saat, dosya veya indeks erişimi yoktur. `VaultIndex.summaryInput(from:to:)` tek okuma snapshot'ında dönem günlerini/bağlantılarını, görevleri, hedef tanımlarını ve dönem sonuna kadar hedef geçmişini toplar. App seçilen ve önceki dönemi arka planda hesaplatır; kasa değişiminde yeniden yükler ve eski istek sonuçlarını eler. Özet dosyası veya indeks şeması eklenmez. Sayıların kapsamı `screens.md`, sabit beklentiler `fixtures.md` içinde tanımlıdır.
+İlk kullanımda ve kasa hazırlamada App katmanındaki `VaultImportBootstrap` yalnız eksik klasörü, şablonu ve `.app/vault.json` dosyasını oluşturur. `VaultImportBootstrap` var olan dosyaları değiştirmez. `Core`'un genel belge yazıcısı bu yapısal yolları kabul etmez. Bu yüzden `VaultImportBootstrap` yeni dosyaları geçici dosya ve dışlayıcı sabit bağlantıyla yayımlar. Birim sabit bağlantıyı desteklemiyorsa `VaultImportBootstrap` dışlayıcı oluşturmayı kullanır. Eksik `type` eklemelerini `VaultStore` yapar.
 
-`ForceLayout`, başka hiçbir modüle bağlı olmayan saf değer tipidir (`ForceSimulation`): gövde yarıçapları ve yaylar girer, adım adım konumlar çıkar; saat, rastgelelik ya da arayüz bilgisi yoktur. Uygulama graph'ı kimlik sırasına dizip benzetime çevirir (`GraphScene`), ekranda kare başına sabit adımla ilerletir (`GraphMotion`) ve durunca kareleri keser. Aynı girdi ve tohum her zaman aynı düzeni verdiği için canlı düzen, arka planda oturtulan düzenle aynı resimde biter; kamera bu yüzden oturmuş düzene göre baştan çerçevelenir.
+### Hedef hesapları
 
-`DateParsing` (Tarih ayrıştırma) yalnız `VaultFormat` importu olan saf metin hedefidir. `QuickEntryAnalysis.analyze`, tekrar → öncelik → tarih zincirini özgün UTF-8 baytlarına eşleyerek tür, değer ve güven içeren çakışmasız simgeler ile kalan metni verir; özgün aralıklarla bastırılan ifadeler taranmaz, önceki çıkarma bir ifadeyi birleştirmişse özgün parçaları aynı değerle ayrı simgeler olur ve `PriorityParse.byteRanges` baş/son işaretlerini ayrı gösterir. `DateExpressionParser`, çağıranın yerel günü ve sıralı dil tercihleriyle tek tarih, UTF-8 ifade aralığı, kalan metin ve güven döndürür; Foundation, saat veya dosya erişimi kullanmaz. Çıplak hafta günü bugünden sonraki ilk gündür (bugünse yedi gün sonra); `gelecek/next` bunun sonraki haftası, `bu/this` mevcut haftadaki gündür (geçtiyse sonraki hafta). Varsayılan hafta pazartesiden başlar; `weekStartsOnMonday=false` haftayı ve `next week` sonucunu pazardan başlatır. Hafta sonu cumartesidir, geçtiyse gelecek cumartesiye gider. Yılsız mutlak tarihte bugün dahil en yakın geçerli tarih seçilir; 29 Şubat için sonraki artık yıla kadar aranır. Noktalı yazım gün/ay, eğik çizgi dil sırasına göre Türkçe gün/ay ve İngilizce ay/gündür. Yılsız noktalı yazımda ay kısmı tek haneli ve gün 13–31 aralığı dışında ise ondalık sayıyla karıştığı için aday üretilmez (`2.5`, `5.3`, `12.3`); gün 13–31 aralığındaysa (`15.3`) veya ay iki haneliyse (`2.05`, `5.10`) geçerli gün/ay yazımı varsayımlı adaydır. Yılsız eğik çizgide iki parça da tek haneliyse kesirle karıştığı için aday üretilmez (`1/2`, `2/3`); en az bir iki haneli parça varsa (`5/10`, `10/5`, `2/03`) varsayımlı adaydır. Miktar birimi (kg, km, cup, litre, su bardağı vb.), bitişik önde/sonda yüzde işareti (`%15.10`, `15.10%`), oran veya sürüm bağlamındaki yılsız sayılar aday değildir. Noktalı yazımda ilk parça 0–23, ikinci parça 0–59 aralığındaysa bitişik Türkçe saat eki (`1.10'da`, `23.10'da`) aday olmasını engeller; bu aralık dışındaki tarihler (`25.10'da`, `31.12'de`) varsayımlı adaydır. Noktalı sayının hemen önceki sözcüğü `saat` ise de aday üretilmez. Bu bağlam elemeleri tek haneli ayı olan 13–31 gün yazımlarına da uygulanır. Birimsiz `5/10` gibi yazımların tarih mi miktar mı olduğu metinden kesinleşmez; çağıran varsayımlı adayın tarihini ve kalan metnini yalnız kullanıcı onayıyla uygulamalıdır. Açık yıllı tarih yazımları bu yılsız sayı elemesine girmez. `haftaya`, `gelecek hafta` ve `next week` ardından hafta günü geldiğinde ifade bütünüyle seçilir ve gün, ayarlanan sonraki haftanın içinden hesaplanır (pazartesi 2026-10-05 → `haftaya salı` 2026-10-13). Göreli ifadeler ve açık yıl kesin (`exact`); çıplak gün, çıplak hafta sonu ve yılsız mutlak tarih varsayım (`assumed`) taşır. İki yönde de geçerli eğik çizgi yazımı da varsayımdır. İlk konumdaki en uzun geçerli ifade seçilir; eşit uzunlukta dil sırası kullanılır. Sözcük içi, `@` anması, kod ve bağlantı içi taranmaz. İfade çıkarılırken bitişik boşluklar tek birleşme boşluğuna iner; kalan metnin diğer baytları korunur.
+`GoalTracking` yalnız `VaultFormat` importu olan saf hedef katmanıdır. Katman tanımı, gün kaydını, dönem ve yıl ilerlemesini, zinciri, en uzun seriyi ve ısı haritasını taşır. İndeks tipleri kaynak alanlarından kurar. `VaultStore.settingGoalValue` kaydı dosya-önce yazar. Takvim aritmetiği `CalendarDate` üzerinde ortaktır; `DateParsing` de aynı aritmetiği kullanır.
 
-`EntityRecognition` yalnız `VaultFormat` bağımlılığı ve importu olan saf metin işleme hedefidir; bilinen kişi ve konumlar ile kullanım verileri çağıran tarafından değer olarak verilir. Dosya okumaz veya yazmaz; tanıma sonucu ve kullanıcı seçimleriyle ürettiği bağlantılı metni çağıran `VaultStore` üzerinden kaydeder. Bir satırın hangi baytlarının kullanıcının metni olduğunu (liste işareti, kutu, görev alanları, olay saati ve kimlik dışında kalan kısım) `VaultFormat` içindeki tek tanımdan (`LineTextRegion`) okur; bağlanmamış anmalar sorgusu da aynı tanımı kullanır. Aynı hedefteki `AttendeeMatching`, uygulamanın EventKit'ten okuyup değer olarak verdiği katılımcı adlarını tanıyıcının karşılaştırma anahtarlarıyla kesin, belirsiz ve bilinmeyen diye ayırır; takvim çerçevesini görmez.
+### Özetler
 
-İlk harfin büyük/küçük harfi farklı olan tek adaylı yazım öneridir; açık `@` dışında kesin bağlam varlığı olarak sayılmaz. Sıralama her çağrıda farklı adayın puanını bir kez hesaplayıp saklar; aynı aday başka anmalarda veya sıralama karşılaştırmalarında yeniden hesaplanmaz.
+**Tablo özet hesabının parçalarını gösterir.**
 
-Belirsiz adayın bağlam puanı, aynı metinde kesin tanınan ve çağıranın bağlama eklediği farklı varlıklarla birlikte geçtiği gün sayılarının toplamıdır: konum için ağırlık 4, kişi için 1; adayın kendisi sayılmaz. Adaylar önce bu puan, sonra son geçiş günü (yeni önce), toplam bağlantı sayısı (çok önce) ve dosya yolunun Unicode kod noktası sırasıyla sıralanır. Eksik kullanım sıfır ve bilinmeyen tarih kabul edilir; belirsiz eşleşme puanla kesinleşmez. `VaultIndex` bütün kişi ve konumları takma adlarıyla tek sorguda getirir. Kullanım toplamı bütün çözülen bağlantıları sayar; son gün kaynak gün dosyasının tarihidir. Birlikte geçiş yalnız gün dosyalarında, aynı gün ve varlık çifti için bir kez sayılır; tekrar bağlantılar bu puanı artırmaz. Bu veriler dosyalardan üretilen sorgu sonuçlarıdır, şema değişmez. Foundation kullanmayan tanıma katmanında küçük harfli `String` anahtarların kanonik Unicode eşitliği ve hash davranışı NFC karşılaştırmasını sağlar; anahtarın saklanan baytları normalleştirilmez. İndeksin fiziksel anahtarları mevcut NFC kuralıyla saklanmaya devam eder.
+| Konu | Kural |
+|---|---|
+| Bağımlılık | `Summaries` yalnız `VaultFormat` ve `GoalTracking` bağımlılığı ve importu olan saf değer hesaplarıdır. Saat, dosya ya da indeks erişimi yok |
+| Girdi | `VaultIndex.summaryInput(from:to:)` tek okuma işleminde dönem günlerini ve bağlantılarını, görevleri, hedef tanımlarını ve dönem sonuna kadarki hedef geçmişini toplar |
+| Hesaplama | App seçilen ve önceki dönemi arka planda hesaplatır |
+| Kasa değişimi | App özeti yeniden yükler ve eski isteklerin sonuçlarını eler |
+| Depolama | Özet için ayrı dosya ya da indeks şeması yok |
 
-Varlık tiplerinin importsuz değer modeli `VaultFormat` içindedir. Yerleşik kişi/konum tanımlarına isteğe bağlı `.app/types.json` tanımları eklenir; dosya sözleşmesi `vault-format.md` içindedir. Foundation JSON okuması `VaultIndex.EntityTypeReader`, atomik ve hedef dışı baytları koruyan yazma `VaultStore` içindedir. İndeks yalnız geçerli tanımlı tipleri varlık olarak sınıflandırır; tanımlanan id kümesi değişince indeksin dosyadan türeyen tip imzası bütün Markdown dosyalarının yeniden sınıflandırılmasını tetikler. Özel tipler kişi ağırlığıyla tanınır; şirket şema paketi kapsam dışıdır.
+Sayıların kapsamı `screens.md`, sabit beklentiler `fixtures.md` içindedir.
+
+### Kuvvet yerleşimi
+
+**Tablo Graph yerleşiminin parçalarını gösterir.**
+
+| Parça | Görev |
+|---|---|
+| `ForceSimulation` | Gövde yarıçapları ve yaylar girer, adım adım konumlar çıkar. Saat, rastgelelik ya da arayüz bilgisi yok |
+| `GraphScene` | Uygulama graph'ı kimlik sırasına dizer ve benzetime çevirir |
+| `GraphMotion` | Ekran benzetimi kare başına sabit adımla ilerletir. Benzetim durunca ekran kareleri keser |
+
+`ForceLayout` başka hiçbir modüle bağlı olmayan saf değer tipidir. Aynı girdi ve tohum her zaman aynı düzeni verir. Bu yüzden canlı düzen, arka planda oturtulan düzenle aynı resimde biter. Kamera da baştan oturmuş düzene göre çerçeveler.
+
+### Tarih ayrıştırma
+
+**Tablo `DateParsing` hedefinin iki giriş noktasını gösterir.**
+
+| Parça | Girdi | Çıktı |
+|---|---|---|
+| `QuickEntryAnalysis.analyze` | Hızlı giriş metni | Tekrar, öncelik ve tarih zincirini sırayla çalıştırır ve sonucu özgün UTF-8 baytlarına eşler. Tür, değer ve güven taşıyan çakışmasız simgeler ve kalan metin |
+| `DateExpressionParser` | Çağıranın yerel günü ve sıralı dil tercihleri | Tek tarih, UTF-8 ifade aralığı, kalan metin ve güven. Foundation, saat ya da dosya erişimi yok |
+
+`DateParsing` yalnız `VaultFormat` importu olan saf metin hedefidir. Ayrıştırıcı özgün aralıklarla bastırılan ifadeleri taramaz. Önceki çıkarma bir ifadeyi birleştirmişse özgün parçalar aynı değerle ayrı simgeler olur. `PriorityParse.byteRanges` baştaki ve sondaki işaretleri ayrı gösterir.
+
+**Tablo tarih ayrıştırma kurallarını gösterir.**
+
+| Konu | Kural |
+|---|---|
+| Çıplak hafta günü | Bugünden sonraki ilk gün. Gün bugünse yedi gün sonrası |
+| `gelecek/next` | Çıplak hafta gününün sonraki haftası |
+| `bu/this` | Mevcut haftadaki gün. Gün geçtiyse sonraki hafta |
+| Hafta başı | Varsayılan pazartesi. `weekStartsOnMonday=false` haftayı ve `next week` sonucunu pazardan başlatır |
+| Hafta sonu | Cumartesi. Geçtiyse gelecek cumartesi |
+| Yılsız mutlak tarih | Bugün dahil en yakın geçerli tarih. 29 Şubat için ayrıştırıcı sonraki artık yıla kadar arar |
+| Noktalı yazım | Gün/ay |
+| Eğik çizgi | Dil sırasına göre: Türkçe gün/ay, İngilizce ay/gün |
+| Yılsız noktalı, ay tek haneli, gün 13–31 dışında | Ondalık sayıyla karışır; aday yok: `2.5`, `5.3`, `12.3` |
+| Yılsız noktalı, gün 13–31 ya da ay iki haneli | Geçerli gün/ay yazımı varsayımlı adaydır: `15.3`, `2.05`, `5.10` |
+| Yılsız eğik çizgi, iki parça tek haneli | Kesirle karışır; aday yok: `1/2`, `2/3` |
+| Yılsız eğik çizgi, en az bir parça iki haneli | Varsayımlı aday: `5/10`, `10/5`, `2/03` |
+| Miktar birimi | Birimli yılsız sayı aday değildir. Örnek birimler: kg, km, cup, litre, su bardağı |
+| Yüzde, oran, sürüm | Bitişik önde ya da sonda yüzde işareti aday değildir: `%15.10`, `15.10%`. Oran ya da sürüm bağlamı da aday değildir |
+| Saat eki | İlk parça 0–23, ikinci parça 0–59 ise bitişik Türkçe saat eki adayı engeller: `1.10'da`, `23.10'da`. Bu aralık dışındaki tarihler varsayımlı adaydır: `25.10'da`, `31.12'de` |
+| Önceki sözcük `saat` | Noktalı sayının hemen önceki sözcüğü `saat` ise aday yok |
+| Bağlam elemelerinin kapsamı | Ayrıştırıcı yukarıdaki bağlam elemelerini tek haneli ayı olan 13–31 gün yazımlarına da uygular |
+| Açık yıllı tarih | Yılsız sayı elemesine girmez |
+| Hafta ve hafta günü | `haftaya`, `gelecek hafta` ve `next week` ardından hafta günü gelirse ayrıştırıcı ifadeyi bütünüyle seçer. Gün, sonraki haftanın içinden gelir: pazartesi 2026-10-05 → `haftaya salı` 2026-10-13 |
+| Kesme işaretli ek | Türkçe gün ya da ay adından sonra kesme işaretiyle bitişik yönelme ya da çıkma eki ifadeye dahildir: `Cuma'ya`, `5 Ekim'e`, `15 Mart'tan` |
+| Güven | Göreli ifadeler ve açık yıl kesin: `exact`. Çıplak gün, çıplak hafta sonu ve yılsız mutlak tarih varsayım: `assumed`. İki yönde de geçerli eğik çizgi yazımı da varsayımdır |
+| Seçim | İlk konumdaki en uzun geçerli ifade. Eşit uzunlukta dil sırası |
+| Taranmayan yerler | Sözcük içi, `@` anması, kod ve bağlantı içi |
+| Kalan metin | İfade çıkınca bitişik boşluklar tek birleşme boşluğuna iner. Kalan metnin diğer baytları değişmez |
+
+Birimsiz `5/10` gibi yazımların tarih mi miktar mı olduğu metinden kesinleşmez. Çağıran, varsayımlı adayın tarihini ve kalan metnini yalnız kullanıcı onayıyla uygular.
+
+### Varlık tanıma
+
+`EntityRecognition` yalnız `VaultFormat` bağımlılığı ve importu olan saf metin işleme hedefidir. Çağıran bilinen kişileri, konumları ve kullanım verilerini değer olarak verir. Hedef dosya okumaz ve dosyaya yazmaz. Hedef, tanıma sonucundan ve kullanıcı seçimlerinden bağlantılı metin üretir. Çağıran bu metni `VaultStore` üzerinden kaydeder.
+
+**Tablo tanıma ve sıralama kurallarını gösterir.**
+
+| Konu | Kural |
+|---|---|
+| Kullanıcı metni | Satırın hangi baytlarının kullanıcı metni olduğunu `VaultFormat` içindeki tek tanım söyler: `LineTextRegion`. Kullanıcı metni liste işareti, kutu, görev alanları, olay saati ve kimlik dışında kalan kısımdır. Bağlanmamış anmalar sorgusu da aynı tanımı kullanır |
+| Takvim katılımcıları | Aynı hedefteki `AttendeeMatching` katılımcı adlarını kesin, belirsiz ve bilinmeyen diye ayırır. Uygulama adları EventKit'ten okur ve değer olarak verir. `AttendeeMatching` tanıyıcının karşılaştırma anahtarlarını kullanır ve takvim çerçevesini görmez |
+| Harf boyu | İlk harfin büyük ya da küçük harfi farklı olan tek adaylı yazım öneridir. Tanıyıcı bu yazımı açık `@` dışında kesin bağlam varlığı saymaz |
+| Rakam ad | Tanıyıcı yalnız rakamlardan oluşan adı, örneğin `12`, yalnız `@` ile tanır |
+| Puan saklama | Sıralama her çağrıda farklı adayın puanını bir kez hesaplar ve saklar. Sıralama aynı adayın puanını başka anmalarda ya da karşılaştırmalarda yeniden hesaplamaz |
+| Bağlam puanı | Belirsiz aday ile aynı metinde kesin tanınan ve çağıranın bağlama eklediği farklı varlıkların birlikte geçtiği gün sayılarının toplamı. Ağırlık: konum 4, kişi 1. Puan adayın kendisini saymaz |
+| Sıralama | Önce bağlam puanı, sonra son geçiş günü: yeni önce. Sonra toplam bağlantı sayısı: çok önce. Son olarak dosya yolunun Unicode kod noktası sırası |
+| Eksik veri | Sıralama eksik kullanımı sıfır sayar ve eksik tarihi bilinmeyen kabul eder. Belirsiz eşleşme puanla kesinleşmez |
+| Veri kaynağı | `VaultIndex` bütün kişileri ve konumları takma adlarıyla tek sorguda getirir |
+| Kullanım | Kullanım toplamı bütün çözülen bağlantıları sayar. Son gün, kaynak gün dosyasının tarihidir |
+| Birlikte geçiş | Puan birlikte geçişi yalnız gün dosyalarında, aynı gün ve varlık çifti için bir kez sayar. Tekrar bağlantılar bu puanı artırmaz |
+| Şema | Bu veriler dosyalardan üretilen sorgu sonuçlarıdır; şema değişmez |
+| Unicode | Foundation kullanmayan tanıma katmanında küçük harfli `String` anahtarların kanonik Unicode eşitliği ve hash davranışı NFC karşılaştırmasını sağlar. Anahtarın saklanan baytları normalleşmez. İndeksin fiziksel anahtarları NFC kuralıyla kalır |
+
+### Varlık tipleri
+
+**Tablo varlık tipi parçalarının yerini gösterir.**
+
+| Parça | Yer |
+|---|---|
+| Değer modeli | `VaultFormat`, importsuz |
+| Ek tanımlar | İsteğe bağlı `.app/types.json` dosyası yerleşik kişi ve konum tanımlarına yeni tanımlar ekler. Dosya sözleşmesi `vault-format.md` içindedir |
+| JSON okuma | `VaultIndex.EntityTypeReader`, Foundation ile |
+| Yazma | `VaultStore`; atomik, hedef dışı baytları korur |
+
+İndeks yalnız geçerli tanımlı tipleri varlık olarak sınıflandırır. Tanımlı id kümesi değişince dosyadan türeyen tip imzası bütün Markdown dosyalarını yeniden sınıflandırır. Tanıyıcı özel tipleri kişi ağırlığıyla tanır. Şirket şema paketi kapsam dışıdır.
+
+## Dosya koordinasyonu
+
+**Şema `Core` arayüzünün App katmanında `NSFileCoordinator`'a bağlanmasını gösterir.**
+
+```mermaid
+flowchart LR
+  subgraph CoreTarafi["Core: VaultStore"]
+    Arayuz["FileCoordination arayüzü, Sendable"]
+    Dogrudan["DirectFileCoordination: varsayılan, gövdeyi doğrudan çalıştırır"]
+  end
+  subgraph AppTarafi["App"]
+    Sistem["SystemFileCoordination"]
+    Koordinator["NSFileCoordinator"]
+  end
+  Arayuz --> Dogrudan
+  Arayuz --> Sistem
+  Sistem --> Koordinator
+  IndexStore["IndexStore"] -->|"her VaultStore'a verir"| Sistem
+  Ice["İçe aktarma"] -->|"her VaultStore'a verir"| Sistem
+```
+
+`Core`'daki `FileCoordination` arayüzü okuma, değiştirme, iki URL'li taşıma ve silme niyetlerini host katmanına iletir. Varsayılan `DirectFileCoordination` gövdeyi doğrudan çalıştırır. App arayüzü `SystemFileCoordination` ile `NSFileCoordinator` üzerinde uygular. `IndexStore` ve içe aktarma, açtıkları her `VaultStore`'a bu uygulamayı verir.
+
+**Tablo her niyetin `NSFileCoordinator` seçeneğini gösterir.**
+
+| Niyet | `NSFileCoordinator` çağrısı | Neden |
+|---|---|---|
+| Okuma | Seçeneksiz okuma koordinasyonu | Dosyayı sunan uygulama güncel baytları verir |
+| Değiştirme | `.forMerging` yazması | Dosyayı sunan uygulamalar önce kaydeder; gövde güncel baytları okur |
+| Taşıma | İki URL'li tek yazma: kaynak `.forMerging`, hedef `.forReplacing` | Kaynak düz dosyadır ve taşımadan önce gövde içeriği yeniden yazar. `.forMoving` düz dosyada etkisizdir ve iki seçenek birbirini dışlar |
+| Taşıma, hedef kaynağın kendisi | Hedef seçeneksiz | Büyük ve küçük harf duyarsız birimde yalnız harf boyu değişen ad. `.forReplacing` dosyayı sunan uygulamaya silinme bildirirdi |
+| Silme | `.forDeleting` yazması | Tek URL'li silme niyeti |
+
+**Tablo hangi zincirin hangi koordinasyon sınırında çalıştığını gösterir.**
+
+| Zincir | Sınır |
+|---|---|
+| Oku → dönüştür → atomik yaz → indeks güncellemesi | Tek değiştirme koordinasyonu |
+| Yeniden adlandırmanın kaynak ve hedef yazması ve geri alması | Tek taşıma koordinasyonu |
+| Yeniden adlandırmanın bağlantı güncellemeleri | Dosya başına değiştirme koordinasyonu |
+| Taşıma bildirimi | Sınırın içinden: taşımadan hemen önce `item(at:willMoveTo:)`, yalnız başarılı taşımadan sonra `item(at:didMoveTo:)` |
+| Gün kopyası birleştirme | Tek `.move(kopya → gün)` sınırı |
+
+Taşıma bildirimi sınırın içinden gider, çünkü `NSFileCoordinator` dosya sunucularına bu bildirimi aynı koordineli bloktan ister. İndeks güncellemesi yazmayla aynı sınırdadır. Bu yüzden `VaultIndex` ve `VaultStore`'a verilen dosya okuyucuları koordinasyon başlatmaz.
+
+### Yeniden adlandırmanın koordinasyon kapsamı
+
+**Tablo bağlantı güncellemesinin hangi dosyaları koordine ettiğini gösterir.**
+
+| Dosya grubu | Bulan | Ne olur |
+|---|---|---|
+| İndeksin, yeniden adlandırılan dosyaya bağlantı satırı tuttuğu dosyalar | İndeks | Dosya başına değiştirme koordinasyonu; güncelleme yazar |
+| Ham frontmatter alanında eski adı anan dosyalar | Koordinasyonsuz okuma | Güncelleme dosyayı yazmaz. Yalnız `rawField` olarak bildirir. Bildirimi koordineli okumanın baytlarından üretir |
+
+Ham alanlar bağlantı satırı değildir; bu yüzden tarama onları koordinasyonsuz okur. Kök dizinin okuma koordinasyonu içindeki dosyaların sunucularına ulaşmaz. Ölçüm: ne kaydetme ne okuma bildirimi gider. Bu yüzden tarama kök koordinasyonunu kullanmaz. Bedeli: başka bir düzenleyicide kaydedilmemiş ham alan değişikliği bildirimde görünmeyebilir.
+
+### Çağrı kuralları
+
+**Tablo `SystemFileCoordination` çağrılarının kurallarını gösterir.**
+
+| Kural | Neden |
+|---|---|
+| Çağrılar eşzamanlıdır ve gövdeyi çağıran iş parçacığında bir kez çalıştırır | Gövde yazma kuyruğunda ya da okuma kuyruğunda kalır |
+| Zaman uyumsuz `coordinate(with:queue:byAccessor:)` kullanma | Kuyrukta beklemek kilitlenmeye yol açar |
+| İleride eklenecek `NSFilePresenter`'ın `presentedItemOperationQueue` değeri asla kasa yazma kuyruğu olmasın | Sunucu yazma kuyruğunu beklerse kilitlenme olur |
+| `VaultIndex`'e koordine eden okuyucu verme | İndeks güncellemesi yazmanın sınırı içindedir; iç içe koordinasyon kilitlenmeye yol açar |
+| Koordinatörün verdiği yeni URL'yi kullanma | `Core` istediği URL'leri kullanmaya devam eder |
+| Sunucu kaydedemezse ya da host erişimi reddederse gövde çalışmasın | Çağrı koordinatörün hatasını atar. `VaultStore` indeksi hiçbir zaman dosyadan önce güncellemez |
+| `persist` ve `atomicWrite` içinde iç içe koordinasyon başlatma | Bu ikisi zaten açık sınırın içinde çalışır |
+| İndeks veritabanını koordine etme | Veritabanı kasa dışında, uygulamaya özel konumdadır |
+
+Uygulamanın kendi dosya sunucusu henüz yoktur. İndeks taraması ve yenileme dosyaları koordinasyonsuz okur.
+
+### Okuma kuyruğu
+
+**Şema kasa başına iki kuyruğu gösterir.**
+
+```mermaid
+flowchart LR
+  subgraph Kasa["Kasa kökü başına"]
+    YazmaKuyrugu["Yazma kuyruğu: seri, 1 işlem"]
+    OkumaKuyrugu["Okuma kuyruğu: en çok 4 okuma birlikte"]
+  end
+  Yazmalar["Yazmalar"] --> YazmaKuyrugu
+  Belge["document(at:): koordineli okuma"] --> OkumaKuyrugu
+  OkumaKuyrugu -->|"indirilmemiş iCloud dosyası"| Bekle["Yalnız o okuma bekler"]
+```
+
+Yazmalar kasanın yazma kuyruğunda, `document(at:)` okuması kasanın okuma kuyruğunda bekler. Okuma kuyruğu bir Foundation işlem kuyruğudur; aktör, Swift eşzamanlılık havuzu ya da yazma kuyruğu değildir. İndirilmemiş bir iCloud dosyasının okuma koordinasyonu indirme bitene kadar sürer. Bu sürede yalnız o okuma bekler; aynı kasanın yazmaları, öteki okumaları ve ana iş parçacığı çalışmaya devam eder. Okumaların birbirine göre sırası yoktur. 4 okumalık sınır, art arda bekleyen indirmelerin her birinin bir iş parçacığı tutmasını önler.
+
+**NOT:** Dört okuma indirme beklerken beşinci okuma sıra bekler, örneğin günün sayfası.
+
+### Konum dosyası önbelleği
+
+**Şema yer dosyasının ne zaman yeniden okunduğunu gösterir.**
+
+```mermaid
+flowchart TD
+  Basla["Yazma ya da yenileme sonrası tanıma yenilemesi"] --> Imza["Okumadan önce imzayı al"]
+  Imza --> Degisti{"İmza bellektekiyle aynı mı"}
+  Degisti -->|"evet"| Bellek["Bellekteki baytları kullan"]
+  Degisti -->|"hayır, ya da imza alınamadı"| Oku["Koordineli okuma"]
+  Oku --> Basarili{"Okuma başarılı mı"}
+  Basarili -->|"evet"| Sakla["Baytları imzayla sakla"]
+  Basarili -->|"hayır"| Atla["Saklama; sonraki yenileme yeniden okur"]
+```
+
+`IndexStore` her yazma ve yenilemeden sonra konum dosyalarını koordinatlar için okur. İmza şunları içerir: aygıt, inode, boyut, içerik değişiklik zamanı, öznitelik değişiklik zamanı. Dışarıdan değişen, yeniden adlandırmayla yola gelen ya da imzası alınamayan dosyayı `IndexStore` yeniden okur. Değişmeyen dosyanın okuması koordinasyondan geçmez. Bu yüzden dosyayı sunan bir uygulamanın kaydedilmemiş değişikliği, o uygulama kaydedip imza değişince görünür. İmza ve okuma aynı kasaya aittir: yenileme sürerken başka kasa açılırsa `IndexStore` dosyayı yenilemenin başladığı kasadan okur.
 
 ## İndeks
 
-- Her cihazda yerel, kasanın dışında, eşitlenmez.
-- Dosyalardan eksiksiz yeniden üretilebilir; bozulursa silinip yeniden kurulur.
-- Şema sürümü veritabanında tutulur. Uygulamanın beklediği sürümle uyuşmuyorsa indeks silinip dosyalardan yeniden kurulur; şema göçü yazılmaz.
-- `files`: NFC yol birincil anahtarı ve tarih indeksi; tür, gün tarihi, değişiklik zamanı, bayt boyutu, SHA-256 ve UTF-8 okunabilirliği.
-- `entities`: dosya anahtarı; tip, görünen ad, ayırt edici, karşılaştırma anahtarı ve hedef alanları. `aliases`: dosya + sıra anahtarı; takma ad ve karşılaştırma anahtarı.
-- `entity_fields`: varlık dosyası + üst düzey anahtar (bayt karşılaştırmalı); kişi, konum ve kayıtlı özel tip dosyalarının yalnız tarih (`date`), sayı (`number`) ve evet/hayır (`boolean`) alanları. Tür `vault-format.md` tür kurallarıyla değerin yazımından okunur, tip tanımındaki alan türüne bakılmaz; kaynak değer yazımı aynen korunur (`29.0290`, `TRUE`, `+5`). Metin (tırnaklı her değer dahil), boş, liste, eşlem, ham alanlar ve `type/name/qualifier/aliases` dışarıda kalır; hedef, gün ve not dosyaları ile çözülemeyen frontmatter satır üretmez. Satırlar öteki tablolar gibi açık silme listesiyle temizlenir (tam kurulum ve artımlı güncelleme), anlık görüntünün (`snapshot()`) `entityFields` dizisinde yer alır. `entityFields(kinds:)` türleri süzer (nil: tümü, boş küme: hiçbiri), sonuç dosya/anahtar bayt sırasındadır.
-- `blocks`: dosya + sıfır tabanlı sıra anahtarı; tür, bir tabanlı dahil satır aralığı, metin, bölüm, saat, görev durumu ve ham durum, isteğe bağlı kimlik, başlık düzeyi ve sahiplik. Sahip kimlikler benzersiz kısmi indeksle korunur; tüm kimlikleri kapsayan `block_identifiers` indeksi artımlı sahiplik sorgusunu hızlandırır.
-- `links`: kaynak dosya + sıra anahtarı; kaynak blok ya da frontmatter anahtarı/kaydı, fiziksel satır ve bayt aralığı, hedef ve indeksli `targetKey` karşılaştırma anahtarı, çapa türü/metni, görünen metin, gömme ve çözülen dosya. Çözülemeyen hedef `NULL` kalır.
-- `goal_logs`: dosya + hedef anahtarı ve hedef anahtarı indeksi; gün, değer türü ve kaynak değer yazımı. Boolean değerler `true`/`false`, sayılar kaynak yazımı, diğer türler ham yazım taşır.
-- Görev blokları geçerli bitiş/başlangıç/tamamlanma tarihlerini, öncelik tokenını ve projeyi taşır; bitiş ve tamamlanma tarihleri indekslidir, görev metni tanınan alanlardan arındırılmıştır.
-- `search`: FTS5; blok metinleri, varlık adları ve takma adlar; NFC metin üzerinde `unicode61 remove_diacritics 0`. Kullanıcı sorgusu boşluklarda bölünür; her parça çift tırnaklı deyim, son parça önek eşleşmesidir. Dosya ve blok sütunları aranmaz.
-- `PRAGMA user_version = 7`; farklı sürümde tüm indeks tabloları silinip güncel boş şema kurulur. Çağıran `rebuild(vaultRoot:)` veya boş indekste tam kurulum yolunu kullanan `refresh(vaultRoot:)` ile dosyalardan doldurur; göç yapılmaz. Açılışta SQLite NOTADB/CORRUPT hatasında dosya ve `-wal`/`-shm`/`-journal` yardımcıları silinip boş şema kurulur; diğer hatalar fırlatılır.
-- Karşılaştırma anahtarı ve bağlantı çözümü `VaultIndex` içinde yapılır: NFC + yerelden bağımsız Unicode küçük harf. Boş hedef kaynağa, `/` içeren hedef köke göre uzantısız yola, diğer hedefler uzantısız dosya adına gider; yol hedefinde baştaki `/` ve `./` atılır. Çakışmada kod noktası sırasındaki ilk yol kazanır; `name` ve `aliases` yalnız varlık aramasında kullanılır.
-- Tam yeniden üretim tek GRDB işlemi içinde tarar ve doldurur; hata eski içeriği korur. Geçersiz UTF-8 dosya okunamaz `note` türünde yalnız `files` satırı üretir; okuma, tarama ve veritabanı hataları fırlatılır. Sembolik bağlantılar izlenmeden atlanır; aynı NFC yola dönüşen iki dosyadan fiziksel yolun bayt sırasında önce geleni indekslenir. `rebuild` sonucu atlanan fiziksel yolları ve nedenlerini bildirir. Her dosya bir kez okunur, belge tutulmadan içerik ve bağlantı satırları yazılır; dosyalar bitince bağlantılar yol/anahtar tablolarıyla çözülür.
-- Paragraf, olay/görev aralıkları ve başlıklar dışındaki ardışık boş olmayan gövde satırlarıdır; kod çitleri metin olarak dahildir. Başlık paragrafı böler; tanınan bölüm başlıkları blok üretmez, diğer başlıklar `heading` bloğu olarak işaretsiz metin ve düzey taşır; tanınmayan bölüm ve ön içerik `other` taşır. İç içe görevlerin bağlantısı en içteki bloğa bağlanır.
-- `refresh(vaultRoot:)` boş indekste, `refresh` ve `update` ise tip id imzası değiştiğinde aynı işlem içinde tam kurulum yolunu kullanır; sonuç `rebuild` ile aynıdır (tüm mevcut yollar `addedPaths` içinde döner). Diğer durumlarda `refresh(vaultRoot:)` kasayı tam tarayıp karşılaştırır; `update(paths:vaultRoot:)` bildirilen NFC kasa içi dosya veya dizinlerle hem taramayı hem içeriği sınırlar (dizin → alt ağaç; dosya/silinmiş yol → üst dizinin tek düzeyi; kök → tam tarama): zaman/boyut değişince SHA-256 okunur, özet aynıysa yalnız gözlenen metadata güncellenir, farklıysa dosyanın tüm içerik satırları tek işlemde yenilenir, kapsamda eksik dosyalar silinir. Değişen yolların dosya adı/yol anahtarlarına sahip bağlantılar (çözülmüş yinelenen adlar dahil) ve yeni içerikteki bağlantılar yeniden çözülür; `name`/`aliases` varlık araması içindir. Eski ve yeni blok kimliklerinin sahipliği yol ve dosya içi sıra üzerinden yeniden hesaplanır; hata tüm değişiklikleri geri alır, ortak `RebuildResult` eklenen/güncellenen/silinen NFC yolları ve kapsamda atlanan fiziksel yolları bildirir.
-- Dosya başına okuma: `blocks(inFile:)` ve `links(inFile:)` kaynak sırasıyla bir dosyanın blok ve bağlantı satırlarını döner; `contents(ofFile:)` aynı dosya için `files` / `entities` / `aliases` / `blocks` / `links` / `goal_logs` / `entity_fields` dilimini tek okuma işleminde verir (yoksa `nil`). Şema değişmez.
-- Bildirim kapsamı kasa köküne göre NFC ve yerelden bağımsız küçük harf anahtarıyla karşılaştırılır; izleyici yeniden adlandırmada eski ve yeni yolu bildirir, eksik bildirimleri sonraki `refresh` düzeltir. Kök bir kez gerçek yola çözülür; silinmiş bildirimlerde en yakın mevcut üst dizinin gerçek yoluna kayıp kuyruk eklenerek `/private` yol yazımları aynı kasa kimliğinde birleştirilir.
-- `refresh(vaultRoot:)` kasayı tam tarar; `update(paths:vaultRoot:)` yalnız bildirilen kapsamı dolaşır (dizin → alt ağaç; dosya veya silinmiş yol → üst dizinin tek düzeyi; kök `""` → tam tarama). Harfe duyarsız / NFC eşleşen indeksli yolların diskteki (ve aynı karşılaştırma anahtarındaki kardeş) üst dizinleri de tek düzey taranır; böylece silinenler gerçekten dolaşılan kapsamın alt kümesidir. Ayrıştırma ve indeks yazımı artımlıdır. Kapsam dışı `files` satırlarına dokunulmaz; `skippedPaths` yalnız tarama kapsamında görülenleri bildirir.
+**Şema indeks tablolarını ve aralarındaki ilişkiyi gösterir.**
 
-## Senkronizasyon
+```mermaid
+erDiagram
+  files ||--o| entities : "varlık dosyası"
+  entities ||--o{ aliases : "takma ad"
+  entities ||--o{ entity_fields : "alan"
+  files ||--o{ blocks : "blok"
+  files ||--o{ links : "kaynak dosya"
+  blocks |o--o{ links : "kaynak blok"
+  files |o--o{ links : "çözülen dosya"
+  files ||--o{ goal_logs : "hedef kaydı"
+  files ||--o{ search : "arama metni"
+  files {
+    TEXT path PK
+    TEXT kind
+    TEXT date
+    REAL modified
+    INTEGER size
+    TEXT digest
+    BOOLEAN readable
+  }
+  entities {
+    TEXT file PK
+    TEXT kind
+    TEXT name
+    TEXT qualifier
+    TEXT comparisonKey
+    TEXT goalKey
+  }
+  aliases {
+    TEXT file PK
+    INTEGER ordinal PK
+    TEXT name
+    TEXT comparisonKey
+  }
+  entity_fields {
+    TEXT file PK
+    TEXT key PK
+    TEXT kind
+    TEXT value
+  }
+  blocks {
+    TEXT file PK
+    INTEGER ordinal PK
+    TEXT kind
+    TEXT text
+    TEXT identifier
+    BOOLEAN ownsIdentifier
+  }
+  links {
+    TEXT file PK
+    INTEGER ordinal PK
+    INTEGER block
+    TEXT targetKey
+    TEXT resolvedFile
+  }
+  goal_logs {
+    TEXT file PK
+    TEXT key PK
+    TEXT date
+    TEXT kind
+    TEXT value
+  }
+  search {
+    TEXT file
+    INTEGER block
+    TEXT text
+  }
+  entity_type_state {
+    TEXT signature
+  }
+```
 
-**Durum: tasarım, henüz uygulanmadı** (kimlik kararını bekliyor). Bugün kasa uygulamanın yerel `Documents/Vault` klasöründe ya da kullanıcının seçtiği klasördedir. `VaultStore` üzerinden yapılan kasa yazmaları ve belge okumaları `NSFileCoordinator` ile koordine edilir (bkz. Core bölümündeki `SystemFileCoordination`; indeks taraması ve içe aktarmanın klasör, şablon ve ayar dosyası oluşturması koordinasyonsuzdur); ancak uygulamanın dosya sunucusu (`NSFilePresenter`) yoktur, indirilmemiş dosyalar için açık indirme isteği (`startDownloadingUbiquitousItem`) yapılmaz ve çakışma birleştirme işlevi (`VaultFormat` içinde hazır ve sınanmış) uygulamaya bağlanmamıştır; bu yüzden iCloud Drive gibi eşitlenen bir klasörü kasa olarak seçmek şimdilik tam korumalı değildir. Seçilen bir klasörün eşitlenen sağlayıcılarda (iCloud Drive, Dropbox, OneDrive, Google Drive, File Provider) yer alıp almadığı `SyncedFolderKind` yardımcısı ile yol kalıpları ve `isUbiquitousItemKey` üzerinden tespit edilir. Aşağıdaki maddeler hedeflenen davranıştır.
+**Tablo indeksin genel kurallarını gösterir.**
 
-Core, `.X.icloud` yer tutucularını indekslemeden tarama sonucunun `pendingDownloads` alanında bildirir; özgün dosya varsa onu kullanır, yoksa oluşturma ve yeniden adlandırma hedeflerini koordinasyon sınırında `awaitingDownload(path:)` ile reddeder. İndirme isteği App katmanının sonraki dilimidir.
+| Konu | Kural |
+|---|---|
+| Konum | Her cihazda yerel, kasanın dışında. Eşitleme indeksi taşımaz |
+| Yeniden üretim | Uygulama indeksi dosyalardan eksiksiz yeniden üretebilir. İndeks bozulursa uygulama indeksi siler ve yeniden kurar |
+| Dosya adı | İndeks kasa yolunun SHA-256 özetiyle adlandırılmış ayrı bir Application Support veritabanındadır |
+| Şema sürümü | Veritabanı sürümü tutar: `PRAGMA user_version = 7`. Uygulamanın beklediği sürümle uyuşmazsa uygulama bütün tabloları siler ve güncel boş şemayı kurar. Şema göçü yok |
+| Doldurma | Çağıran indeksi `rebuild(vaultRoot:)` ile ya da boş indekste tam kurulum yolunu kullanan `refresh(vaultRoot:)` ile dosyalardan doldurur |
+| Bozuk veritabanı | Açılışta SQLite NOTADB ya da CORRUPT hatası gelirse uygulama dosyayı ve `-wal`/`-shm`/`-journal` yardımcılarını siler ve boş şemayı kurar. Diğer hataları fırlatır |
 
-Gün kopyaları (`journal/2026-10-02 2.md`, ad kuralı `DayCopyName`) indekslenmez; tarama sonucunun `dayCopies` alanında birleştirme sırasıyla bildirilir. `VaultStore.mergingDayCopy(_:)` bir kopyayı tek `.move(kopya → gün)` koordinasyon sınırında birleştirir; iki dosyayı yazmak için tutan tek niyet budur, silme niyeti tek URL'lidir. Sınırın içinde sıra: iki dosya ve değişiklik zamanları okunur, `ConflictMerge` çalışır, saklanacak sürümler `conflicts/` altına dışlayıcı yazılır, gün dosyası atomik değiştirilir, kopya en son silinir, indeks güncellenir. Gün dosyası yoksa kopya onun adına taşınır (taşıma bildirimiyle); yer tutucu varsa `awaitingDownload` döner. Gün dosyası değişmeden önceki her hata o çağrının yazdığı çakışma kopyalarını geri alır; yalnız silme başarısızsa gün dosyası birleşmiş kalır ve sonraki çağrı aynı içeriğe varıp kopyayı siler. App'e bağlanması (taramadan sonra kopyaları sırayla birleştirmek, sonucu kullanıcıya göstermek) sonraki dilimdir.
+**Tablo her indeks tablosunun içeriğini gösterir.**
 
-- Kasa, uygulamanın iCloud kapsayıcısındadır ve Dosyalar ile Finder'da görünür.
-- Sunucu, hesap ya da özel senkronizasyon servisi yoktur.
-- iCloud kapalıysa kasa yerelde durur.
-- Kasa konumu ilk açılışta belirlenir (iCloud açıksa kapsayıcı, değilse yerel) ve cihazda kaydedilir. iCloud sonradan açılsa ya da kapansa uygulama kendiliğinden diğer konuma geçmez; kayıtlı konuma erişilemiyorsa yeni kasa açmaz, durumu bildirir. Konumlar arası taşıma, kullanıcının başlattığı ayrı bir işlemdir.
-- Çakışmada satırlar blok kimliğine göre birleştirilir, birleştirilemeyen içerik kopya olarak saklanır. iCloud'un aynı gün için ayırdığı kopya dosyalar da aynı işlevle birleştirilir (kurallar: `vault-format.md`).
-- Kasadaki tüm dosyalar cihazda tutulur: indirilmemiş dosya için indirme istenir, dosya geldikçe indekslenir. Arayüz eldeki içeriği gösterir ve eşitlemenin sürdüğünü belirtir.
+| Tablo | Anahtar | İçerik |
+|---|---|---|
+| `files` | NFC yol birincil anahtarı; tarih indeksi | Tür, gün tarihi, değişiklik zamanı, bayt boyutu, SHA-256, UTF-8 okunabilirliği |
+| `entities` | Dosya | Tip, görünen ad, ayırt edici, karşılaştırma anahtarı, hedef alanları |
+| `aliases` | Dosya + sıra | Takma ad ve karşılaştırma anahtarı |
+| `entity_fields` | Varlık dosyası + üst düzey anahtar, bayt karşılaştırmalı | Kişi, konum ve kayıtlı özel tip dosyalarının yalnız tarih `date`, sayı `number` ve evet/hayır `boolean` alanları |
+| `blocks` | Dosya + sıfır tabanlı sıra | Tür, bir tabanlı dahil satır aralığı, metin, bölüm, saat, görev durumu ve ham durum, isteğe bağlı kimlik, başlık düzeyi, sahiplik |
+| `links` | Kaynak dosya + sıra | Kaynak blok ya da frontmatter anahtarı ve kaydı, fiziksel satır ve bayt aralığı, hedef, indeksli `targetKey` karşılaştırma anahtarı, çapa türü ve metni, görünen metin, gömme, çözülen dosya |
+| `goal_logs` | Dosya + hedef anahtarı; hedef anahtarı indeksi | Gün, değer türü, kaynak değer yazımı |
+| `search` | FTS5 | Blok metinleri, varlık adları, takma adlar |
+| `entity_type_state` | Tek satır | Dosyadan türeyen tip id imzası |
+
+**Tablo tablo ayrıntılarını gösterir.**
+
+| Tablo | Ayrıntı |
+|---|---|
+| `entity_fields` | Tür, `vault-format.md` tür kurallarıyla değerin yazımından gelir; indeks tip tanımındaki alan türüne bakmaz. Kaynak değer yazımı aynen kalır: `29.0290`, `TRUE`, `+5` |
+| `entity_fields` | Dışarıda kalanlar: metin, tırnaklı her değer, boş, liste, eşlem, ham alanlar ve `type/name/qualifier/aliases`. Hedef, gün ve not dosyaları ile çözülemeyen frontmatter satır üretmez |
+| `entity_fields` | İndeksleyici satırları öteki tablolar gibi açık silme listesiyle temizler: tam kurulumda ve artımlı güncellemede. Satırlar `snapshot()` sonucunun `entityFields` dizisinde yer alır |
+| `entity_fields` | `entityFields(kinds:)` türleri süzer: nil tümünü, boş küme hiçbirini verir. Sonuç dosya ve anahtar bayt sırasındadır |
+| `blocks` | Benzersiz kısmi indeks sahip kimlikleri korur. Tüm kimlikleri kapsayan `block_identifiers` indeksi artımlı sahiplik sorgusunu hızlandırır |
+| `blocks` | Görev blokları geçerli bitiş, başlangıç ve tamamlanma tarihlerini, öncelik belirtecini, projeyi ve tekrarı taşır. Bitiş ve tamamlanma tarihleri indekslidir. Görev metni tanınan alanlardan arınmıştır |
+| `links` | Çözülemeyen hedefin çözülen dosyası `NULL` kalır |
+| `goal_logs` | Boolean değerler `true`/`false`, sayılar kaynak yazımı, diğer türler ham yazım taşır |
+| `search` | NFC metin üzerinde `unicode61 remove_diacritics 0`. Arama kullanıcı sorgusunu boşluklarda böler; her parça çift tırnaklı deyimdir, son parça önek eşleşmesidir. Arama dosya ve blok sütunlarına bakmaz |
+
+### Bağlantı çözümü
+
+`VaultIndex` karşılaştırma anahtarını ve bağlantı çözümünü kendisi yapar: NFC ve yerelden bağımsız Unicode küçük harf.
+
+**Tablo bağlantı hedefinin nasıl çözüldüğünü gösterir.**
+
+| Hedef | Çözüm |
+|---|---|
+| Boş hedef | Kaynak dosya |
+| `/` içeren hedef | Köke göre uzantısız yol. Baştaki `/` ve `./` düşer |
+| Diğer hedefler | Uzantısız dosya adı |
+| Çakışma | Kod noktası sırasındaki ilk yol |
+| `name` ve `aliases` | Yalnız varlık aramasında |
+
+### Tam yeniden üretim
+
+**Şema `rebuild` adımlarını gösterir.**
+
+```mermaid
+flowchart TD
+  Islem["Tek GRDB işlemi başlar"] --> Tara["Kasayı tara"]
+  Tara --> Sembolik{"Sembolik bağlantı mı"}
+  Sembolik -->|"evet"| Atla["İzlemeden atla"]
+  Sembolik -->|"hayır"| UTF8{"Geçerli UTF-8 mi"}
+  UTF8 -->|"hayır"| Okunamaz["Yalnız files satırı: okunamaz note"]
+  UTF8 -->|"evet"| Yaz["Dosyayı bir kez oku; içerik ve bağlantı satırlarını yaz"]
+  Yaz --> Coz["Dosyalar bitince bağlantıları yol ve anahtar tablolarıyla çöz"]
+  Okunamaz --> Coz
+  Coz --> Sonuc["RebuildResult: atlanan fiziksel yollar ve nedenleri"]
+```
+
+Tam yeniden üretim tek GRDB işlemi içinde tarar ve doldurur; hata eski içeriği korur. İndeksleyici okuma, tarama ve veritabanı hatalarını fırlatır. Aynı NFC yola dönüşen iki dosyadan fiziksel yolu bayt sırasında önce gelen girer. İndeksleyici belgeyi bellekte tutmaz.
+
+**Tablo blok ayrıştırma kurallarını gösterir.**
+
+| Konu | Kural |
+|---|---|
+| Paragraf | Olay ve görev aralıkları ve başlıklar dışındaki ardışık boş olmayan gövde satırları. Kod çitleri metin olarak dahildir |
+| Başlık | Başlık paragrafı böler. Tanınan bölüm başlıkları blok üretmez. Diğer başlıklar `heading` bloğu olarak işaretsiz metin ve düzey taşır |
+| Tanınmayan içerik | Tanınmayan bölüm ve ön içerik `other` taşır |
+| İç içe görev | İndeks bağlantıyı en içteki bloğa bağlar |
+
+### Artımlı güncelleme
+
+**Şema `refresh` ve `update` yollarını gösterir.**
+
+```mermaid
+flowchart TD
+  Cagri["refresh(vaultRoot:) ya da update(paths:vaultRoot:)"] --> Bos{"İndeks boş mu ya da tip id imzası değişti mi"}
+  Bos -->|"evet"| Tam["Aynı işlem içinde tam kurulum; bütün yollar addedPaths içinde"]
+  Bos -->|"hayır"| Kapsam["Kapsamı tara"]
+  Kapsam --> Zaman{"Zaman ya da boyut değişti mi"}
+  Zaman -->|"hayır"| Dokunma["Dosyaya dokunma"]
+  Zaman -->|"evet"| Ozet{"SHA-256 aynı mı"}
+  Ozet -->|"evet"| Meta["Yalnız gözlenen metadata'yı güncelle"]
+  Ozet -->|"hayır"| Icerik["Dosyanın tüm içerik satırlarını tek işlemde yenile"]
+  Kapsam --> Eksik["Kapsamda eksik dosyaları sil"]
+```
+
+**Tablo tarama kapsamını gösterir.**
+
+| Çağrı ya da bildirilen yol | Taranan kapsam |
+|---|---|
+| `refresh(vaultRoot:)` | Bütün kasa |
+| `update(paths:vaultRoot:)`, dizin | Alt ağaç |
+| `update(paths:vaultRoot:)`, dosya ya da silinmiş yol | Üst dizinin tek düzeyi |
+| `update(paths:vaultRoot:)`, kök `""` | Bütün kasa |
+| Harfe duyarsız ya da NFC eşleşen indeksli yol | Diskteki üst dizini ve aynı karşılaştırma anahtarındaki kardeş üst dizinleri, tek düzey |
+
+`refresh(vaultRoot:)` boş indekste tam kurulum yolunu kullanır. `refresh` ve `update` tip id imzası değişince aynı yolu kullanır; sonuç `rebuild` ile aynıdır. `update(paths:vaultRoot:)` bildirilen NFC kasa içi dosyalarla ve dizinlerle hem taramayı hem içeriği sınırlar. Silinen yollar gerçekten dolaşılan kapsamın alt kümesidir. Ayrıştırma ve indeks yazımı artımlıdır. Güncelleme kapsam dışı `files` satırlarına dokunmaz; `skippedPaths` yalnız tarama kapsamında görülenleri bildirir.
+
+Güncelleme değişen yolların dosya adı ve yol anahtarlarına sahip bağlantıları yeniden çözer. Çözülmüş yinelenen adlar ve yeni içerikteki bağlantılar da bu kümeye girer; `name` ve `aliases` varlık araması içindir. Güncelleme eski ve yeni blok kimliklerinin sahipliğini yol ve dosya içi sıra üzerinden yeniden hesaplar. Hata tüm değişiklikleri geri alır. Ortak `RebuildResult` eklenen, güncellenen ve silinen NFC yolları ve kapsamda atlanan fiziksel yolları bildirir.
+
+### Dosya başına okuma ve bildirim kapsamı
+
+`blocks(inFile:)` ve `links(inFile:)` bir dosyanın blok ve bağlantı satırlarını kaynak sırasıyla döner. `contents(ofFile:)` aynı dosya için `files` / `entities` / `aliases` / `blocks` / `links` / `goal_logs` / `entity_fields` dilimini tek okuma işleminde verir. Dosya yoksa sonuç `nil` olur. Şema değişmez.
+
+`update` bildirim kapsamını kasa köküne göre NFC ve yerelden bağımsız küçük harf anahtarıyla karşılaştırır. Yol bildiren bir izleyici yeniden adlandırmada eski ve yeni yolu bildirir. Eksik bildirimleri sonraki `refresh` düzeltir. İndeks kökü bir kez gerçek yola çözer. Silinmiş bildirimlerde indeks en yakın mevcut üst dizinin gerçek yoluna kayıp kuyruğu ekler. Böylece `/private` yol yazımları aynı kasa kimliğinde birleşir.
+
+## Eşitleme
+
+**Durum: tasarım, henüz uygulanmadı.** Eşitleme kimlik kararını bekliyor.
+
+**Tablo eşitlemenin bugünkü durumunu gösterir.**
+
+| Parça | Durum |
+|---|---|
+| Kasa konumu | Uygulamanın yerel `Documents/Vault` klasörü ya da kullanıcının seçtiği klasör |
+| `VaultStore` yazmaları ve belge okumaları | `NSFileCoordinator` ile koordineli: `SystemFileCoordination` |
+| İndeks taraması | Koordinasyonsuz |
+| İçe aktarmanın klasör, şablon ve ayar dosyası oluşturması | Koordinasyonsuz |
+| Dosya sunucusu `NSFilePresenter` | Yok |
+| İndirilmemiş dosya için açık indirme isteği `startDownloadingUbiquitousItem` | Yok |
+| Çakışma birleştirme işlevi | `VaultFormat` içinde hazır ve sınanmış; uygulamaya bağlı değil |
+| Yer tutucu tanıma | `Core` içinde hazır; App bağlantısı sonraki dilim |
+| Gün kopyası birleştirme | `Core` içinde hazır; App bağlantısı sonraki dilim |
+| Eşitlenen klasör tespiti | `SyncedFolderKind`: yol kalıpları ve `isUbiquitousItemKey`. Sağlayıcılar: iCloud Drive, Dropbox, OneDrive, Google Drive, File Provider |
+
+**UYARI:** Eşitlenen bir klasörü kasa olarak seçme; uygulama bu klasörü şimdilik tam korumaz.
+
+### Eşitleme güvenliği
+
+**Şema tarama sonucunun eşitleme dosyalarını nasıl ayırdığını gösterir.**
+
+```mermaid
+flowchart TD
+  Tarama["Kasa taraması"] --> Tur{"Dosya türü"}
+  Tur -->|"yer tutucu .X.icloud"| Ozgun{"Özgün dosya var mı"}
+  Ozgun -->|"evet"| Kullan["Özgün dosyayı indeksle"]
+  Ozgun -->|"hayır"| Bekleyen["pendingDownloads listesine ekle"]
+  Tur -->|"gün kopyası: journal/2026-10-02 2.md"| Kopya["dayCopies listesine birleştirme sırasıyla ekle"]
+  Tur -->|"normal dosya"| Indeksle["İndeksle"]
+  Bekleyen --> Ret["Oluşturma ve yeniden adlandırma hedefi: awaitingDownload(path:)"]
+  Kopya --> Birlestir["VaultStore.mergingDayCopy(_:)"]
+```
+
+`Core` `.X.icloud` yer tutucularını indekslemez; tarama sonucunun `pendingDownloads` alanında bildirir. Özgün dosya varsa `Core` özgün dosyayı kullanır. Özgün dosya yoksa `Core` oluşturma ve yeniden adlandırma hedeflerini koordinasyon sınırında `awaitingDownload(path:)` ile reddeder. İndirme isteği App katmanının sonraki dilimidir. İndirilmemiş dosyaları okuma kuyruğu karşılar: indirme bekleyen okuma yalnız kendini bekletir.
+
+`Core` gün kopyalarını indekslemez. Örnek ad: `journal/2026-10-02 2.md`; ad kuralı `DayCopyName`. Tarama sonucu kopyaları `dayCopies` alanında birleştirme sırasıyla bildirir.
+
+**Şema bir gün kopyasının tek koordinasyon sınırında birleşmesini gösterir.**
+
+```mermaid
+sequenceDiagram
+  participant A as Çağıran
+  participant V as VaultStore
+  participant C as Koordinasyon: move kopya → gün
+  participant D as Disk
+  participant I as VaultIndex
+  A->>V: mergingDayCopy(_:)
+  V->>C: tek sınır başlat
+  alt kopya ya da gün dosyası yer tutucu
+    C-->>A: awaitingDownload
+  else gün dosyası yok
+    C->>D: kopyayı gün adına taşı, taşıma bildirimiyle
+    C->>I: indeksi güncelle
+  else gün dosyası var
+    C->>D: iki dosyayı ve değişiklik zamanlarını oku
+    C->>C: ConflictMerge
+    C->>D: saklanacak sürümleri conflicts/ altına dışlayıcı yaz
+    C->>D: gün dosyasını atomik değiştir
+    C->>D: kopyayı en son sil
+    C->>I: indeksi güncelle
+  end
+  C-->>V: sınır biter
+  V-->>A: DayCopyMergeOutcome
+```
+
+`VaultStore.mergingDayCopy(_:)` bir kopyayı tek `.move(kopya → gün)` koordinasyon sınırında birleştirir. İki dosyayı yazmak için tutan tek niyet budur; silme niyeti tek URL'lidir. Gün dosyası değişmeden önceki her hata, o çağrının yazdığı çakışma kopyalarını geri alır. Yalnız silme başarısızsa gün dosyası birleşmiş kalır. Sonraki çağrı aynı içeriğe varır ve kopyayı siler. App bağlantısı sonraki dilimdir: taramadan sonra kopyaları sırayla birleştirme ve sonucu kullanıcıya gösterme.
+
+### Hedeflenen davranış
+
+**Tablo eşitlemenin hedeflenen davranışını gösterir.**
+
+| Konu | Hedef |
+|---|---|
+| Kasa konumu | Kasa uygulamanın iCloud kapsayıcısındadır ve Dosyalar ile Finder'da görünür |
+| Sunucu | Sunucu, hesap ya da özel eşitleme servisi yoktur |
+| iCloud kapalı | Kasa yerelde durur |
+| İlk açılış | Uygulama kasa konumunu ilk açılışta belirler ve cihazda kaydeder: iCloud açıksa kapsayıcı, değilse yerel |
+| iCloud durumu değişti | Uygulama kendiliğinden diğer konuma geçmez. Kayıtlı konuma erişim yoksa yeni kasa açmaz, durumu bildirir |
+| Konumlar arası taşıma | Kullanıcının başlattığı ayrı bir işlem |
+| Çakışma | Birleştirme satırları blok kimliğine göre birleştirir. Birleşmeyen içerik kopya olarak kalır. iCloud'un aynı gün için ayırdığı kopya dosyalar da aynı işlevle birleşir. Kurallar: `vault-format.md` |
+| İndirme | Kasadaki tüm dosyalar cihazda durur. Uygulama indirilmemiş dosya için indirme ister ve dosya geldikçe indeksler |
+| Arayüz | Arayüz eldeki içeriği gösterir ve eşitlemenin sürdüğünü belirtir |
 
 ## Widget'lar
 
-**Durum: tasarım, henüz uygulanmadı** (App Group kimliği kararını bekliyor).
+**Durum: tasarım, henüz uygulanmadı.** Widget'lar App Group kimliği kararını bekliyor.
 
-- Widget hedefi `Core` paketini kullanır.
-- Uygulama ve widget ortak bir App Group üzerinden veri paylaşır.
-- Widget'tan yapılan işaretleme App Intent ile `Core` yazıcısını çağırır; mantık tek yerdedir.
-- Widget'ların iCloud'daki kasaya doğrudan mı yoksa App Group'taki bir anlık görüntü üzerinden mi erişeceği kimlik kararından sonra denenerek kararlaştırılır.
+| Konu | Hedef |
+|---|---|
+| Paket | Widget hedefi `Core` paketini kullanır |
+| Veri paylaşımı | Uygulama ve widget ortak bir App Group üzerinden veri paylaşır |
+| İşaretleme | Widget'tan yapılan işaretleme App Intent ile `Core` yazıcısını çağırır. Mantık tek yerdedir |
+| Kasa erişimi | Widget'ların iCloud'daki kasaya doğrudan mı, App Group'taki bir okuma modeli kopyası üzerinden mi erişeceği açıktır. Kimlik kararından sonra deneme karar verir |
 
 ## Platform düzeni
 
-- **iPhone:** Alt sekmeler; öncelik hızlı giriş ve hızlı bakış.
-- **Mac:** Kenar çubuğu ve çok sütunlu düzen; kanban, zaman çizelgesi ve not düzenleme burada.
-- Mac hızlı giriş, MenuBarExtra ve Carbon RegisterEventHotKey üzerinden açılan nonactivating NSPanel içinde ortak QuickEntryBar/QuickEntryModel ve IndexStore kullanır; kısayol UserDefaults'ta saklanır, uygulama Dock'ta kalır.
-- Ekranlar ortak SwiftUI görünümleridir; düzen platforma göre değişir.
-- Ekranların ayrıntısı: `screens.md`.
+**Tablo iki platformun düzenini gösterir.**
+
+| Platform | Düzen |
+|---|---|
+| iPhone | Alt sekmeler. Öncelik hızlı giriş ve hızlı bakış |
+| Mac | Kenar çubuğu ve çok sütunlu düzen. Kanban, zaman çizelgesi ve not düzenleme burada |
+| Mac hızlı giriş | MenuBarExtra ve Carbon `RegisterEventHotKey` nonactivating bir `NSPanel` açar. Panel ortak `QuickEntryBar`, `QuickEntryModel` ve `IndexStore` kullanır. Kısayol UserDefaults'ta durur. Uygulama Dock'ta kalır |
+| Ortak | Ekranlar ortak SwiftUI görünümleridir; düzen platforma göre değişir |
+
+Ekranların ayrıntısı için bkz. [Ekranlar](screens.md).
 
 ## Taşınabilirlik
 
@@ -160,22 +955,74 @@ Android ve Windows şu an kapsam dışı. İleride mümkün kalması için:
 2. `Core`, Apple çerçevelerine bağımlı değildir.
 3. `Fixtures/` altındaki örnek dosyalar ve beklenen çıktılar dilden bağımsızdır.
 
-Çekirdek şimdiden ortak bir teknolojiyle (Rust, Kotlin Multiplatform) yazılmaz.
+Proje çekirdeği şimdiden ortak bir teknolojiyle yazmaz. Örnek teknolojiler: Rust, Kotlin Multiplatform.
 
 ## Test
 
-- Ayrıştırıcı ve yazıcı: örnek dosya tabanlı testler.
-- Gidiş dönüş: oku ve değiştirmeden yaz, çıktı birebir aynı olmalı.
-- İndeks: örnek kasadan üretilen indeks beklenen sorgu sonuçlarını vermeli.
-- Birleştirme: sonuç sürümlerin sırasından bağımsız olmalı, tekrarlandığında değişmemeli, hiçbir satırı kaybetmemeli.
-- Dayanıklılık: bozuk frontmatter, tanınmayan sözdizimi, boş dosya hata üretmemeli.
-- Biçim: `swift format lint --strict --recursive Packages App Tests`.
-- Belge biçimi: `sh .github/scripts/check-docs.sh` (karar tablosu, README belge tablosu, String Catalog).
-- Uygulama testleri (`JournalTests`) `Journal_macOS` ve `Journal_iOS` şemalarında koşar; iOS için `xcodebuild test -scheme Journal_iOS -destination 'platform=iOS Simulator,name=<simctl available iPhone>' -only-testing:JournalTests_iOS`.
-- Birim ve arayüz testleri uygulamayı `DebugTest` yapılandırmasıyla koşar (Mac ekran turu Debug'da kalır ve kendi `….screentour` kimliğini kullanır): paket kimliği `$(APP_BUNDLE_IDENTIFIER).testhost`, görünen ad "Kenet Test"; Debug ve Release gerçek kimliği (`com.dogancanyildiz.kenet`, "Kenet") taşır. Ayrı kimlik, test konağının pencere çerçevesini ve tercihlerini kullanıcının alanına yazmaması ve çökme penceresinin gerçek uygulamayla karışmaması içindir.
-- Ekran görüntüsü testleri (`Tests/JournalTests/Snapshots` altındaki `*SnapshotTests` kümeleri, iOS birim katmanı): SwiftUI görünümünü sabit ortamda çizip `SnapshotTesting` ile karşılaştırır (açık/koyu, AX3, Kontrastı Artır). Referans PNG'ler `Tests/JournalTests/Snapshots/__Snapshots__/`; yenileme `sh .github/scripts/record-screen-snapshots.sh` veya CI `record-snapshots` işi. Mac görüntüleri için aynı vaka listesine `NSHostingView` stratejisi eklenebilir; CI kapısı iOS'tur. Tam uygulama akışı için XCUITest dumanı kalır.
-- XCUITest dumanı ve erişilebilirlik denetimi (`JournalUITests`, `bundle.ui-testing`) aynı `Journal_iOS` şemasında; CI `-only-testing:JournalUITests` ile koşturur. DEBUG derlemede `JOURNAL_UITEST_VAULT` verilen klasörü kasa olarak açar; otomatik gerçek kasa / bildirim / kilit başlamaz.
-- CI macOS uygulama testlerini `TZ=UTC` ile her PR'da, `TZ=Pacific/Auckland` ile `dev`'e birleşince koşturur; olay saati ve gün/tarih iddiaları cihaz diliminden bağımsız kalmalıdır. macOS ve iOS işleri ayrı makinelerde paralel koşar; iOS iki iştir (birim testleri + arayüz dumanı aynı simülatörde sırayla, ekran görüntüleri ayrı makinede), her biri kendi derlemesini yapıp testleri derlemesiz koşar (ortak başlangıç `.github/actions/ios-build`); arayüz dumanı yeni açılmış simülatörde 2 kattan fazla yavaş koştuğu için ayrı işe alınmaz; SwiftPM paket indirmeleri önbelleklenir.
-- `dev`'e her itmede `testflight-check` iş akışı imzasız arşiv alıp paketi denetler (`sh .github/scripts/testflight.sh --check`); yükleme yapmaz, arşiv düşerse günlük artifact olarak yüklenir.
-- Yalnız belge değiştiren PR'da (`docs/**`, kökteki `*.md`, `LICENSE`; karar `.github/scripts/ci-changes.py`, bilinmeyen her yol koddur) Core ve uygulama işleri atlanır, "Biçim ve kurallar" her zaman koşar; `dev`'e itmede atlama yoktur. Zorunlu `ci` denetimi atlanan işi yalnız bu durumda başarı sayar, düşen ya da iptal olan işi hiçbir zaman (`.github/scripts/ci-gate.py`).
-- CI'da iOS birim testleri adımı ara sıra asılır (kök neden bilinmiyor). Adımın kendi zaman aşımı (20 dk) vardır; düşünce ya da süre dolunca `ios-test-results` paketi yüklenir: `ios-test-diagnostics/xcodebuild.log` (sonunda başlayıp bitmeyen test), 12. dakikada alınan süreç yığın örnekleri (`.github/scripts/ios-test-diagnostics.sh`) ve `IOSTests.xcresult`. Simülatörün açılışı derlemeyle aynı anda başlar, hazır olması ayrı adımda beklenir; asılmanın açılışta mı testte mi olduğu adım sürelerinden okunur.
+**Tablo test katmanlarını ve beklentilerini gösterir.**
+
+| Katman | Beklenti |
+|---|---|
+| Ayrıştırıcı ve yazıcı | Örnek dosya tabanlı testler |
+| Gidiş dönüş | Oku ve değiştirmeden yaz; çıktı birebir aynı kalsın |
+| İndeks | Örnek kasadan üretilen indeks beklenen sorgu sonuçlarını versin |
+| Birleştirme | Sonuç sürümlerin sırasından bağımsız kalsın, tekrarda değişmesin, hiçbir satırı kaybetmesin |
+| Dayanıklılık | Bozuk frontmatter, tanınmayan sözdizimi ve boş dosya hata üretmesin |
+| Biçim | `swift format lint --strict --recursive Packages App Tests` |
+| Belge biçimi | `sh .github/scripts/check-docs.sh`: karar tablosu, README belge tablosu, String Catalog |
+| Uygulama testleri | `JournalTests`, `Journal_macOS` ve `Journal_iOS` şemalarında koşar |
+| Ekran görüntüsü testleri | `Tests/JournalTests/Snapshots` altındaki `*SnapshotTests` kümeleri; iOS birim katmanı |
+| XCUITest dumanı ve erişilebilirlik | `JournalUITests`, `bundle.ui-testing`; `Journal_iOS` şemasında |
+| Mac ekran turu | `JournalMacUITests`; Debug yapılandırmasında, kendi `….screentour` kimliğiyle |
+
+iOS uygulama testleri için komut:
+
+```sh
+xcodebuild test -scheme Journal_iOS -destination 'platform=iOS Simulator,name=<simctl available iPhone>' -only-testing:JournalTests_iOS
+```
+
+### Test kimliği
+
+Birim ve arayüz testleri uygulamayı `DebugTest` yapılandırmasıyla koşar. Bu yapılandırmanın paket kimliği `$(APP_BUNDLE_IDENTIFIER).testhost`, görünen adı "Kenet Test"tir. Mac ekran turu Debug'da kalır ve kendi `….screentour` kimliğini kullanır. Debug ve Release gerçek kimliği taşır: `com.dogancanyildiz.kenet`, "Kenet". Ayrı kimlik, test konağının pencere çerçevesini ve tercihlerini kullanıcının alanına yazmasını önler. Ayrı kimlik ayrıca çökme penceresinin gerçek uygulamayla karışmasını önler.
+
+### Ekran görüntüsü ve duman testleri
+
+Ekran görüntüsü testleri SwiftUI görünümünü sabit ortamda çizer ve `SnapshotTesting` ile karşılaştırır: açık ve koyu, AX3, Kontrastı Artır. Referans PNG'ler `Tests/JournalTests/Snapshots/__Snapshots__/` altındadır. Yenileme için `sh .github/scripts/record-screen-snapshots.sh` ya da CI `record-snapshots` işini kullan. Mac görüntü kümeleri görünümü `NSHostingView` ile çizer. Adı `MacSnapshotTests` ile biten kümeler yalnız macOS hedefinde yer alır ve yalnız yerelde koşar; CI bu kümeleri atlar. CI kapısı iOS'tur.
+
+Tam uygulama akışı için XCUITest dumanı kalır. CI dumanı `-only-testing:JournalUITests` ile koşturur. DEBUG derlemede `JOURNAL_UITEST_VAULT` verilen klasörü kasa olarak açar; otomatik gerçek kasa, bildirim ya da kilit başlamaz.
+
+### CI
+
+**Tablo CI (sürekli bütünleştirme) işlerini ve tetiklerini gösterir.**
+
+| İş | Ne zaman | Ayrıntı |
+|---|---|---|
+| macOS uygulama testleri, `TZ=UTC` | Her PR'da | Olay saati ve gün/tarih iddiaları cihaz diliminden bağımsız kalsın |
+| macOS uygulama testleri, `TZ=Pacific/Auckland` | `dev`'e birleşince | Aynı testler, derlemesiz |
+| iOS birim testleri ve arayüz dumanı | Her PR'da | Aynı simülatörde sırayla, tek işte |
+| iOS ekran görüntüleri | Her PR'da | Ayrı makinede |
+| `testflight-check` | `dev`'e her itmede | İmzasız arşiv alır ve paketi denetler: `sh .github/scripts/testflight.sh --check`. Yükleme yapmaz. Arşiv düşerse iş günlüğü artifact olarak yükler |
+| Biçim ve kurallar | Her zaman | Belge PR'ında da koşar |
+
+macOS ve iOS işleri ayrı makinelerde paralel koşar. Her iOS işi kendi derlemesini yapar ve testleri derlemesiz koşar; ortak başlangıç `.github/actions/ios-build` içindedir. Arayüz dumanı yeni açılmış simülatörde 2 kattan fazla yavaş koşar; bu yüzden CI dumanı ayrı işe almaz. CI SwiftPM paket indirmelerini önbelleğe alır.
+
+Yalnız belge değiştiren PR'da CI Core ve uygulama işlerini atlar. Belge yolları: `docs/**`, kökteki `*.md`, `LICENSE`. Kararı `.github/scripts/ci-changes.py` verir; bilinmeyen her yol koddur. `dev`'e itmede atlama yoktur. Zorunlu `ci` denetimi atlanan işi yalnız bu durumda başarı sayar. Düşen ya da iptal olan işi hiçbir zaman başarı saymaz: `.github/scripts/ci-gate.py`.
+
+### iOS test asılması
+
+**Tablo iOS birim testleri asılınca toplanan teşhis verisini gösterir.**
+
+| Veri | Yer |
+|---|---|
+| Başlayıp bitmeyen test | `ios-test-diagnostics/xcodebuild.log`, günlüğün sonu |
+| Süreç yığın örnekleri | CI örnekleri 12. dakikada alır: `.github/scripts/ios-test-diagnostics.sh` |
+| Sonuç paketi | `IOSTests.xcresult` |
+
+CI'da iOS birim testleri adımı ara sıra asılı kalır. Kök neden henüz belli değil. Adımın kendi zaman aşımı 20 dk'dır. Adım düşünce ya da süre dolunca CI `ios-test-results` paketini yükler. Simülatörün açılışı derlemeyle aynı anda başlar; ayrı bir adım simülatörün hazır olmasını bekler. Adım süreleri asılmanın açılışta mı testte mi olduğunu gösterir.
+
+## İlgili belgeler
+
+- [Kasa biçimi](vault-format.md)
+- [Ekranlar](screens.md)
+- [Örnek dosyalar](fixtures.md)
+- [Kararlar](decisions.md)

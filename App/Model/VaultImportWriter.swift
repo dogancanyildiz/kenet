@@ -38,7 +38,7 @@ enum VaultImportWriter {
         if options.types {
             do {
                 let index = try VaultIndex()
-                let writer = VaultStore(vaultRoot: root, index: index)
+                let writer = VaultStore(vaultRoot: root, index: index, fileCoordination: SystemFileCoordination())
                 for candidate in report.candidates {
                     do {
                         let document = try await writer.document(at: candidate.path)

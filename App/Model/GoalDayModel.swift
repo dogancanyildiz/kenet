@@ -10,7 +10,9 @@ final class GoalDayModel {
     let store: IndexStore
     let day: CalendarDate
     private let root: URL?
-    private(set) var logs: [String: [GoalLog]]
+    private(set) var logs: [String: [GoalLog]] {
+        didSet { forgetStatuses(changedFrom: oldValue) }
+    }
     private(set) var isLoading = false
     private(set) var isWriting = false
     private(set) var errorText: String?
@@ -38,8 +40,26 @@ final class GoalDayModel {
         root != nil && root == store.vaultURL && hasLoaded && !isLoading && !isWriting && store.canAddEvent
     }
     func value(for goal: GoalDefinition) -> GoalValue? { logs[goal.key]?.last { $0.day == day }?.value }
+    /// Statuses by goal id, each with the definition it was computed for: a draw reads a goal's
+    /// status many times (order, count, row), and the full history is computed once per change.
+    @ObservationIgnored private var computedStatuses: [String: (goal: GoalDefinition, status: GoalStatus)] = [:]
+    /// How many statuses this model computed from its history (tests count them per draw).
+    @ObservationIgnored private(set) var statusComputations = 0
     func status(for goal: GoalDefinition) -> GoalStatus {
-        GoalProgress.compute(definition: goal, logs: logs[goal.key] ?? [], today: day)
+        // Read before the kept status too: a view drawn from a status follows the history.
+        let history = logs[goal.key]
+        if let kept = computedStatuses[goal.id], kept.goal == goal { return kept.status }
+        statusComputations += 1
+        let status = GoalProgress.compute(definition: goal, logs: history ?? [], today: day)
+        computedStatuses[goal.id] = (goal, status)
+        return status
+    }
+
+    /// Drops the statuses of the keys whose history changed; a reload with the same history keeps all.
+    private func forgetStatuses(changedFrom old: [String: [GoalLog]]) {
+        let changed = Set(old.keys).union(logs.keys).filter { old[$0] != logs[$0] }
+        guard !changed.isEmpty else { return }
+        computedStatuses = computedStatuses.filter { !changed.contains($0.value.goal.key) }
     }
     func isComplete(for goal: GoalDefinition) -> Bool {
         if goal.kind == .milestone { return status(for: goal).completionDate != nil }

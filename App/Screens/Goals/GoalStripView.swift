@@ -25,6 +25,17 @@ enum GoalStripPresentation {
     static func isPeriodComplete(status: GoalStatus) -> Bool {
         status.progress.isComplete
     }
+
+    /// Goals still open for their period first, then complete ones; each group by name. `status`
+    /// is asked once per goal, not per comparison.
+    static func ordered(_ goals: [GoalDefinition], status: (GoalDefinition) -> GoalStatus) -> [GoalDefinition] {
+        goals.map { (goal: $0, isDone: isPeriodComplete(status: status($0))) }
+            .sorted {
+                if $0.isDone != $1.isDone { return !$0.isDone }
+                return $0.goal.name.localizedStandardCompare($1.goal.name) == .orderedAscending
+            }
+            .map(\.goal)
+    }
 }
 
 struct GoalStripView: View {
@@ -96,12 +107,7 @@ struct GoalStripView: View {
     }
 
     private func ordered(_ goals: [GoalDefinition]) -> [GoalDefinition] {
-        goals.sorted {
-            let leftDone = GoalStripPresentation.isPeriodComplete(status: model.status(for: $0))
-            let rightDone = GoalStripPresentation.isPeriodComplete(status: model.status(for: $1))
-            if leftDone != rightDone { return !leftDone }
-            return $0.name.localizedStandardCompare($1.name) == .orderedAscending
-        }
+        GoalStripPresentation.ordered(goals, status: model.status(for:))
     }
 
     private func periodMeta(for goal: GoalDefinition) -> String {

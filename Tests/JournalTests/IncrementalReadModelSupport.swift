@@ -1,4 +1,5 @@
 import Foundation
+import GoalTracking
 import VaultFormat
 import VaultIndex
 import VaultStore
@@ -242,4 +243,23 @@ extension VaultReadModel {
     /// The old `days` field rebuilt from the published fragments with the oracle above. Lets store
     /// tests check what a publish carries; screens query the index instead.
     var days: [DaySummary] { DaySummary.build(snapshot: asSnapshot()) }
+}
+
+extension VaultReadModel {
+    /// How the read model built `goalStatuses` before the screens moved to the goal-status query:
+    /// every indexed log of each valid definition, in path order, folded by `GoalProgress` on
+    /// `today`. Keyed by goal key; a copied definition with the same key keeps the first by name,
+    /// as the day page counted it (the stored field kept the last; only the list's first frame,
+    /// before its editing model loaded, read that). The oracle the query is compared with.
+    func goalStatuses(today: CalendarDate) -> [String: GoalStatus] {
+        let logs = Dictionary(grouping: asSnapshot().goalLogs, by: \.key).mapValues {
+            $0.compactMap(GoalLog.init(indexed:))
+        }
+        return Dictionary(
+            goals.map { ($0.key, GoalProgress.compute(definition: $0, logs: logs[$0.key] ?? [], today: today)) },
+            uniquingKeysWith: { first, _ in first })
+    }
+
+    /// The old field itself: as of the day the model was derived for.
+    var goalStatuses: [String: GoalStatus] { derivedForDay.map { goalStatuses(today: $0) } ?? [:] }
 }

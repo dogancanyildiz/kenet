@@ -2,17 +2,31 @@ import GoalTracking
 import SwiftUI
 import VaultFormat
 
+/// Goal statuses the list last queried, by goal file. Kept across the midnight rebuild of the list,
+/// so the rows stay until the new day's answer comes; another vault's answer is not used.
+struct GoalListStatuses {
+    let vault: URL?
+    let statuses: [String: GoalStatus]
+}
+
+/// Reloads the list's statuses when its day or the published index changes.
+struct GoalListRequest: Hashable {
+    let day: CalendarDate
+    let updated: Date?
+}
+
 struct GoalsView: View {
     let store: IndexStore
     var selection: Binding<String?>? = nil
     @State private var showsCreation = false
+    @State private var loaded: GoalListStatuses?
     @Environment(\.clockNow) private var clockNow
     var body: some View {
         TimelineView(.periodic(from: .now, by: 60)) { _ in
             let day = LocalDay.today(at: clockNow())
             GoalListContent(
                 store: store, day: day, selection: selection,
-                showsCreation: $showsCreation
+                showsCreation: $showsCreation, loaded: $loaded
             )
             .id(day.description + (store.vaultURL?.path ?? ""))
         }
@@ -27,16 +41,26 @@ private struct GoalListContent: View {
     let store: IndexStore
     let selection: Binding<String?>?
     @Binding var showsCreation: Bool
+    @Binding var loaded: GoalListStatuses?
     @State private var model: GoalDayModel
     init(
         store: IndexStore, day: CalendarDate, selection: Binding<String?>?,
-        showsCreation: Binding<Bool>
+        showsCreation: Binding<Bool>, loaded: Binding<GoalListStatuses?>
     ) {
         self.store = store
         self.selection = selection
         _showsCreation = showsCreation
+        _loaded = loaded
         _model = State(initialValue: GoalDayModel(store: store, day: day))
     }
+
+    /// The queried statuses of this vault; nil until the first answer, so no row is drawn with a
+    /// status still loading.
+    private var statuses: [String: GoalStatus]? {
+        guard let loaded, loaded.vault == store.vaultURL else { return nil }
+        return loaded.statuses
+    }
+
     var body: some View {
         List {
             InkPageTitleRow("Hedefler") {
@@ -46,11 +70,11 @@ private struct GoalListContent: View {
                 .disabled(!store.canAddEvent)
                 SearchButton()
             }
-            ForEach(store.content.goals, id: \.id) { goal in
-                let status =
-                    model.hasLoaded
-                    ? model.status(for: goal) : (store.content.goalStatuses[goal.key] ?? model.status(for: goal))
-                goalRow(goal: goal, status: status)
+            if let statuses {
+                ForEach(store.content.goals, id: \.id) { goal in
+                    // A goal created since the last answer is drawn from the editing model until the next.
+                    goalRow(goal: goal, status: statuses[goal.id] ?? model.status(for: goal))
+                }
             }
             if let error = model.errorText {
                 InfoBand(kind: .error, verbatim: error)
@@ -69,6 +93,13 @@ private struct GoalListContent: View {
             }
         }
         .task(id: store.lastUpdated) { await model.load() }
+        .task(id: GoalListRequest(day: model.day, updated: store.lastUpdated)) {
+            let vault = store.vaultURL
+            guard let rows = try? await store.computeGoalStatuses(today: model.day), !Task.isCancelled else { return }
+            let statuses = rows.map { ($0.definition.id, $0.status) }
+            loaded = GoalListStatuses(
+                vault: vault, statuses: Dictionary(statuses, uniquingKeysWith: { first, _ in first }))
+        }
     }
 
     @ViewBuilder

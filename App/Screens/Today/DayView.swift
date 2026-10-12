@@ -28,6 +28,8 @@ struct DayView: View {
     @State private var isCompletedExpanded = false
     /// Nil until the first query returns; a reload keeps the previous day until then.
     @State private var loadedDay: DaySummary?
+    /// Goal statuses as of the day they were queried for, loaded with the day.
+    @State private var loadedGoals: (day: CalendarDate, statuses: [String: GoalStatus])?
 
     init(store: IndexStore, date: CalendarDate, isToday: Bool = false) {
         self.store = store
@@ -42,11 +44,11 @@ struct DayView: View {
 
     private func makePresentation() -> TodayPresentation {
         let today = isToday ? date : LocalDay.today(at: clockNow())
-        let statuses = TodayPresentation.goalStatuses(
-            goals: store.content.goals, logs: store.content.goalLogs, day: date)
+        let goals = loadedGoals?.day == date ? loadedGoals : nil
         return TodayPresentation(
             day: day ?? DaySummary(empty: date), groups: tasksModel.groups, goals: store.content.goals,
-            goalStatuses: statuses, goalStatusesDay: date, today: today, locale: locale, calendar: calendarValue,
+            goalStatuses: goals?.statuses ?? [:], goalStatusesDay: goals?.day, today: today, locale: locale,
+            calendar: calendarValue,
             completedTasks: tasksModel.completedTasksForPresentation,
             completedTaskIDs: tasksModel.completed,
             isCarriedOverExpanded: isCarriedOverExpanded, isCompletedExpanded: isCompletedExpanded)
@@ -76,9 +78,10 @@ struct DayView: View {
                             : "Bu gün henüz bir şey yazılmadı.")
                 }
 
+                // Until this day's statuses come, the strip counts from its own model: never `0/0`.
                 GoalStripView(
                     store: store, day: date, countedGoalIDs: presented.countedGoalIDs,
-                    counter: presented.counter(for: .goals)
+                    counter: loadedGoals?.day == date ? presented.counter(for: .goals) : nil
                 )
                 .id(GoalStripIdentity.key(day: date, vaultPath: store.vaultURL?.path))
 
@@ -140,7 +143,14 @@ struct DayView: View {
             if AppLaunchPolicy.allowsAutomaticStart() { await calendar.load(date) }
         }
         .task(id: DayRequest(date: date, updated: store.lastUpdated)) {
-            if let loaded = try? await store.computeDay(on: date) { loadedDay = loaded }
+            // One load: the day and its goal statuses as of that day are taken together.
+            async let day = store.computeDay(on: date)
+            async let goals = store.computeGoalStatuses(today: date)
+            let loaded = try? await day
+            let statuses = try? await goals
+            guard !Task.isCancelled else { return }
+            if let loaded { loadedDay = loaded }
+            if let statuses { loadedGoals = (date, TodayPresentation.goalStatuses(statuses)) }
         }
         .task(id: DayTasksRequest(model: ObjectIdentifier(tasksModel), updated: store.lastUpdated)) {
             await tasksModel.load()

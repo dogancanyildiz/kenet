@@ -18,17 +18,12 @@ public struct GoalStatusRow: Sendable, Equatable {
 }
 
 extension VaultIndex {
-    /// Inclusive days before `today` in the log window. With `today` that is 400 days, matching the
-    /// app's goal-log list (`today.addingDays(-399)`).
-    private static let goalStatusLookbackDays = 399
-    /// Inclusive days after `today`. Status math ignores them; they keep the fetched set aligned
-    /// with the app's goal-log list, which also keeps six days ahead.
-    private static let goalStatusLookaheadDays = 6
-
     /// Status and score for every valid goal definition on `today`.
     ///
-    /// Logs in the window are read with one query, in file order. A day with two rows keeps the
-    /// later file: `GoalProgress` stores the last value for a day.
+    /// Every log through `today` counts: a chain or longest streak older than a year is not cut
+    /// short (the goal list and detail have always shown the whole history). Later logs change
+    /// nothing in `GoalProgress`, so they are not read. Logs are read with one query, in file
+    /// order. A day with two rows keeps the later file: `GoalProgress` stores the last value for a day.
     public func goalStatuses(today: CalendarDate) throws -> [GoalStatusRow] {
         try goalStatusRows(today: today, key: nil)
     }
@@ -39,9 +34,7 @@ extension VaultIndex {
     }
 
     private func goalStatusRows(today: CalendarDate, key: String?) throws -> [GoalStatusRow] {
-        let start = today.addingDays(-Self.goalStatusLookbackDays) ?? today
-        let end = today.addingDays(Self.goalStatusLookaheadDays) ?? today
-        return try database.read { db in
+        try database.read { db in
             let entitySQL =
                 key == nil
                 ? "SELECT * FROM entities WHERE kind='goal' ORDER BY file"
@@ -64,10 +57,10 @@ extension VaultIndex {
                 db,
                 sql: """
                     SELECT * FROM goal_logs
-                    WHERE date>=? AND date<=? AND (? IS NULL OR key=?)
+                    WHERE date<=? AND (? IS NULL OR key=?)
                     ORDER BY file, key
                     """,
-                arguments: [start.description, end.description, key, key])
+                arguments: [today.description, key, key])
             let grouped = Dictionary(grouping: logs, by: \.key).mapValues { $0.compactMap(GoalLog.init(indexed:)) }
             return definitions.map { definition in
                 let entries = grouped[definition.key] ?? []

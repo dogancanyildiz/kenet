@@ -53,8 +53,7 @@ struct CloseDayTests {
         let tasks = await DayTasksModel.loaded(store: store, day: context.today, isToday: isToday)
         return TodayPresentation(
             day: store.content.day(on: context.today), groups: tasks.groups, goals: store.content.goals,
-            goalStatuses: TodayPresentation.goalStatuses(
-                goals: store.content.goals, logs: store.content.goalLogs, day: context.today),
+            goalStatuses: store.content.goalStatuses(today: context.today),
             goalStatusesDay: context.today, today: context.today, locale: Locale(identifier: "en_US"),
             calendar: Calendar(identifier: .gregorian))
     }

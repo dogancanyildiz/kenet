@@ -391,11 +391,17 @@ struct TodayPresentationTests {
     @Test func duplicateGoalKeysDoNotTrapWhenBuildingStatuses() throws {
         let first = GoalDefinition(
             id: "goals/A.md", key: "dup", name: "One", period: .day, kind: .boolean)!
+        // The copy counts differently: the first in name order is the one counted.
         let second = GoalDefinition(
-            id: "goals/B.md", key: "dup", name: "Two", period: .day, kind: .boolean)!
-        let statuses = TodayPresentation.goalStatuses(
-            goals: [first, second], logs: [:], day: day)
-        #expect(statuses["dup"] != nil)
+            id: "goals/B.md", key: "dup", name: "Two", period: .day, kind: .number, target: 5)!
+        let logs = [GoalLog(day: day, value: .boolean(true))]
+        let rows = [first, second].map {
+            GoalStatusRow(
+                definition: $0, status: GoalProgress.compute(definition: $0, logs: logs, today: day), score: nil)
+        }
+        #expect(rows[0].status != rows[1].status)
+        let statuses = TodayPresentation.goalStatuses(rows)
+        #expect(statuses["dup"] == rows[0].status)
         let value = try make(
             locale: "tr_TR", goalsDefinitions: [first, second], goalStatuses: statuses)
         #expect(value.goalCount == 2)

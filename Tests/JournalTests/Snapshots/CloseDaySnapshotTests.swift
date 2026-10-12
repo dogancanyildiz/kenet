@@ -30,7 +30,8 @@
             let store = context.store
             // Goals: the sample day with two daily goals still short of their targets.
             let day = step == .tasks ? snapshotDay : goalsSnapshotDay
-            let probe = CloseDayModel(store: store, today: day, step: step)
+            let probe = try await CloseDayModel.opened(store: store, today: day, step: step)
+            let rows = try await store.computeDayTasks(on: day)
             #expect(probe.step == step)
             #expect(step == .journal ? probe.steps == [.tasks, .goals, .journal] : !probe.steps.isEmpty)
             // Goal rows are drawn disabled until the day's history is read.
@@ -40,7 +41,7 @@
                 clock: step == .tasks ? snapshotNow : goalsSnapshotNow, isReady: ready.check,
                 testName: "closeDay", file: #filePath, line: #line
             ) {
-                NavigationStack { CloseDayView(store: store, today: day, step: step) }
+                NavigationStack { CloseDayView(store: store, today: day, tasks: rows, step: step) }
                     .environment(\.locale, snapshotLocale)
                     .environment(\.timeZone, snapshotTimeZone)
                     .onPreferenceChange(GoalsStripReadyKey.self) { ready.isReady = $0 }
@@ -81,7 +82,8 @@
             let store = context.store
             // The same sample days as the iPhone references.
             let day = CalendarDate(step == .tasks ? "2026-09-20" : "2026-09-17")!
-            let probe = CloseDayModel(store: store, today: day, step: step)
+            let probe = try await CloseDayModel.opened(store: store, today: day, step: step)
+            let rows = try await store.computeDayTasks(on: day)
             #expect(probe.step == step)
             var calendar = Calendar(identifier: .gregorian)
             calendar.locale = Locale(identifier: "tr_TR")
@@ -89,7 +91,7 @@
             let size = CGSize(width: InkSheetChrome.macIdealWidth, height: InkSheetChrome.macIdealHeight)
 
             let ready = MacCloseDayReadyBox()
-            let root = NavigationStack { CloseDayView(store: store, today: day, step: step) }
+            let root = NavigationStack { CloseDayView(store: store, today: day, tasks: rows, step: step) }
                 .environment(\.locale, Locale(identifier: "tr_TR"))
                 .environment(\.calendar, calendar)
                 .environment(\.timeZone, calendar.timeZone)

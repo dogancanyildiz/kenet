@@ -1,13 +1,19 @@
+import Foundation
 import VaultFormat
 import VaultIndex
+
+/// Request for a project page's tasks: a write (a new `updated`) asks again.
+struct ProjectTasksRequest: Hashable {
+    let name: String
+    let updated: Date?
+}
 
 @MainActor
 struct ProjectModel {
     let store: IndexStore
     let name: String
-    var tasks: [TaskRow] {
-        store.content.tasks.filter { $0.project.map(VaultIndex.projectKey) == VaultIndex.projectKey(name) }
-    }
+    /// Every task of the project (``IndexStore/computeProjectTasks(_:)``).
+    let tasks: [TaskRow]
     var openCount: Int { tasks.filter { !$0.isClosed }.count }
     var openGroups: [TaskAgendaGroup] {
         let groups = Dictionary(grouping: tasks.filter { !$0.isClosed }, by: \.due)

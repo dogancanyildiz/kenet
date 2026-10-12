@@ -17,8 +17,9 @@ struct CloseDayView: View {
     @Environment(\.locale) private var locale
     @Environment(\.dismiss) private var dismiss
 
-    init(store: IndexStore, today: CalendarDate, step: CloseDayStep = .tasks) {
-        _model = State(initialValue: CloseDayModel(store: store, today: today, step: step))
+    /// - Parameter tasks: the day's rows as Today drew them (``DayTasksModel/rows``).
+    init(store: IndexStore, today: CalendarDate, tasks: [TaskRow], step: CloseDayStep = .tasks) {
+        _model = State(initialValue: CloseDayModel(store: store, today: today, tasks: tasks, step: step))
     }
 
     private var bundle: Bundle { PresentationLocalization.bundle(locale) }
@@ -46,6 +47,7 @@ struct CloseDayView: View {
         .interactiveDismissDisabled(!model.canClose)
         .preference(key: GoalsStripReadyKey.self, value: model.goals.hasLoaded && !model.goals.isLoading)
         .task(id: model.store.lastUpdated) { await model.goals.load() }
+        .task(id: model.store.lastUpdated) { await model.loadTasks() }
         .sheet(item: $editing) { editor in
             NavigationStack { GoalValueEditor(model: editor) }
                 .onChange(of: editor.isSaved) { _, saved in

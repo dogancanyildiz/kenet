@@ -523,6 +523,10 @@ Aynı içeriğin iki sürümü iki yoldan oluşur:
 
 Uygulama iki sürümü tek içerikte birleştirir. Kopya dosya birleştirildikten sonra silinir; ana dosya yoksa kopya onun adını alır.
 
+- Kopya adı `journal/` klasörünün hemen altındadır: `YYYY-MM-DD` biçiminde geçerli bir gün, tek boşluk ve başında sıfır olmayan, 2 ya da daha büyük bir ASCII sayı (`2026-10-02 2.md`, `2026-10-02 10.md`). `2026-10-02 2 2.md`, `2026-10-02-2.md`, `2026-10-02 02.md`, `2026-10-02 1.md`, `2026-13-40 2.md`, alt klasördeki ve `journal/` dışındaki benzer adlar kopya değildir; sıradan not olarak kalır.
+- Kopya indekslenmez: içindeki satırlar olay ya da görev sayılmaz; gün dosyasına ancak birleştirilince girer.
+- Bir günün birden çok kopyası varsa sayısı küçük olandan başlanarak birer birer birleştirilir (`2026-10-02 2.md`, sonra `2026-10-02 3.md`). Böylece iki cihaz sürümleri aynı sırayla birleştirir.
+
 ### Birleştirme işlevi
 
 - Yalnızca iki sürümün içeriğine ve değişiklik zamanlarına bağlıdır; cihazın durumuna ya da indekse bağlı değildir. Değişiklik zamanı tam sayıdır; birimini çağıran belirler.
@@ -569,7 +573,8 @@ Bölgede başlık satırı ve bloklar dışındaki her şey serbest yazıdır; b
 
 ### Çakışma kopyası
 
-- Saklanacak sürüm (çoğunlukla eski sürüm; kapalı görev kuralında yeni sürüm de olabilir) bayt bayt aynen `conflicts/` klasörüne yazılır: `conflicts/2026-10-02 (conflict 20261002T110533Z).md`. Addaki zaman, o sürümün UTC değişiklik zamanıdır.
+- Saklanacak sürüm (çoğunlukla eski sürüm; kapalı görev kuralında yeni sürüm de olabilir) bayt bayt aynen `conflicts/` klasörüne yazılır: `conflicts/2026-10-02 (conflict 20261002T110533Z).md`. Addaki zaman, o sürümün UTC değişiklik zamanıdır (tam saniye).
+- Ad alınmışsa (başka bir dosya ya da onun indirilmemiş yer tutucusu varsa) parantezin içine sayı eklenir: `conflicts/2026-10-02 (conflict 20261002T110533Z 2).md`, sonra `3`. Var olan dosyanın üstüne yazılmaz. Bu ad dizisinde aynı baytları taşıyan bir kopya zaten varsa yeniden yazılmaz; yarım kalmış bir birleştirmenin tekrarı yeni kopya üretmez.
 - `conflicts/` taranmaz: kopyalar indekslenmez, içlerindeki satırlar olay ya da görev sayılmaz.
 - Uygulama kopyaları kullanıcıya gösterir; kullanıcı gerekeni ana dosyaya aldıktan sonra kopyayı siler.
 - Birleştirilmiş içerik ve gerekiyorsa çakışma kopyası yazılmadan hiçbir sürüm silinmez. Hiçbir içerik sessizce kaybolmaz.

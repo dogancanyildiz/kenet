@@ -124,6 +124,8 @@ Varlık tiplerinin importsuz değer modeli `VaultFormat` içindedir. Yerleşik k
 
 Core, `.X.icloud` yer tutucularını indekslemeden tarama sonucunun `pendingDownloads` alanında bildirir; özgün dosya varsa onu kullanır, yoksa oluşturma ve yeniden adlandırma hedeflerini koordinasyon sınırında `awaitingDownload(path:)` ile reddeder. İndirme isteği App katmanının sonraki dilimidir.
 
+Gün kopyaları (`journal/2026-10-02 2.md`, ad kuralı `DayCopyName`) indekslenmez; tarama sonucunun `dayCopies` alanında birleştirme sırasıyla bildirilir. `VaultStore.mergingDayCopy(_:)` bir kopyayı tek `.move(kopya → gün)` koordinasyon sınırında birleştirir; iki dosyayı yazmak için tutan tek niyet budur, silme niyeti tek URL'lidir. Sınırın içinde sıra: iki dosya ve değişiklik zamanları okunur, `ConflictMerge` çalışır, saklanacak sürümler `conflicts/` altına dışlayıcı yazılır, gün dosyası atomik değiştirilir, kopya en son silinir, indeks güncellenir. Gün dosyası yoksa kopya onun adına taşınır (taşıma bildirimiyle); yer tutucu varsa `awaitingDownload` döner. Gün dosyası değişmeden önceki her hata o çağrının yazdığı çakışma kopyalarını geri alır; yalnız silme başarısızsa gün dosyası birleşmiş kalır ve sonraki çağrı aynı içeriğe varıp kopyayı siler. App'e bağlanması (taramadan sonra kopyaları sırayla birleştirmek, sonucu kullanıcıya göstermek) sonraki dilimdir.
+
 - Kasa, uygulamanın iCloud kapsayıcısındadır ve Dosyalar ile Finder'da görünür.
 - Sunucu, hesap ya da özel senkronizasyon servisi yoktur.
 - iCloud kapalıysa kasa yerelde durur.

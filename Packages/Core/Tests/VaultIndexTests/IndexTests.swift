@@ -65,14 +65,16 @@ import VaultFormat
         for source in sources.reversed() { try write(root, source.0, source.1) }
         try Data([0xff]).write(to: root.appendingPathComponent("notes/Su.md"))
         let index = try VaultIndex()
-        try index.rebuild(vaultRoot: root)
+        let result = try index.rebuild(vaultRoot: root)
         let snapshot = try index.snapshot()
-        #expect(snapshot.files.count == 9)
+        #expect(snapshot.files.count == 8)
         #expect(snapshot.files.first { $0.path == "notes/Su.md" }?.readable == false)
         #expect(snapshot.blocks.filter { $0.file == "notes/Su.md" }.isEmpty)
         #expect(snapshot.files.first { $0.path == "notes/Okuma Listesi.md" }?.kind == "note")
         #expect(snapshot.blocks.contains { $0.file == "notes/Okuma Listesi.md" && $0.text == "Su" })
-        #expect(snapshot.files.first { $0.path == "journal/2026-01-01 2.md" }?.kind == "note")
+        // A day copy belongs to its day and reaches the index only by being merged into it.
+        #expect(!snapshot.files.contains { $0.path == "journal/2026-01-01 2.md" })
+        #expect(result.dayCopies == ["journal/2026-01-01 2.md"])
         #expect(snapshot.files.first { $0.path == "journal/2026-01-01.md" }?.kind == "day")
         #expect(
             snapshot.blocks.filter { $0.identifier == "same" && $0.ownsIdentifier }.map(\.file) == ["a/Deniz Arıkan.md"]

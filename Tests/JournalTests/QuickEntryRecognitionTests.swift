@@ -34,7 +34,7 @@ struct QuickEntryRecognitionTests {
             try Data(contentsOf: context.file)
                 == Data(
                     "---\ntype: journal\ndate: 2026-10-03\n---\n\n## Tasks\n- [ ] yarın Deniz'i ara ^\(id)\n".utf8))
-        #expect(try context.row("yarın Deniz'i ara").due == nil)
+        #expect(try await context.row("yarın Deniz'i ara").due == nil)
         #expect(model.text.isEmpty && model.suppressedExpressions.isEmpty)
     }
 

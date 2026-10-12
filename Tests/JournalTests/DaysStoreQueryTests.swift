@@ -214,7 +214,6 @@ import VaultStore
         for date in expected.map(\.date) + [absent] {
             let old = DaySummary.day(on: date, in: expected).key
             #expect(try await context.store.computeDay(on: date).key == old, "\(date)")
-            #expect(context.store.content.day(on: date).key == old, "published \(date)")
         }
         return days
     }

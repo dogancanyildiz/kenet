@@ -35,7 +35,7 @@ struct EditVaultTurnTests {
         let other = context.directory.appendingPathComponent("Other")
         try FileManager.default.copyItem(at: context.root, to: other)
         let store = context.store
-        let row = try context.row("süt al")
+        let row = try await context.row("süt al")
         let before = try Self.files(context.root)
         let otherBefore = try Self.files(other)
         var switched = false

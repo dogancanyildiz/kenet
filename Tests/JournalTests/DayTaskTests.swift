@@ -16,12 +16,13 @@ struct DayTaskTests {
                 .utf8
         ).write(to: context.file)
         await context.store.refresh()
-        let groups = TaskGroups(rows: context.store.content.tasks, on: context.today, isToday: true)
+        let groups = TaskGroups(rows: try await context.store.allTasks(), on: context.today, isToday: true)
         #expect(groups.overdue.contains { $0.sourceText == "late" })
         #expect(groups.dated.map(\.sourceText) == ["today"])
         #expect(groups.created.map(\.sourceText) == ["created"])
         #expect(groups.overdue.allSatisfy { !$0.isClosed && $0.due! < context.today })
-        let past = TaskGroups(rows: context.store.content.tasks, on: CalendarDate("2026-10-02")!, isToday: false)
+        let past = TaskGroups(
+            rows: try await context.store.allTasks(), on: CalendarDate("2026-10-02")!, isToday: false)
         #expect(past.overdue.isEmpty)
         #expect(past.dated.map(\.sourceText) == ["late", "cancelled"])
     }
@@ -31,7 +32,7 @@ struct DayTaskTests {
         defer { context.clean() }
         await context.start()
         #expect(await context.store.addTask(on: context.today, text: "finish", due: context.today))
-        let row = try context.row("finish")
+        let row = try await context.row("finish")
         let model = await DayTasksModel.loaded(store: context.store, day: context.today, isToday: true)
         let completing = Task { await model.complete(row, today: context.today) }
         for _ in 0..<100 {
@@ -57,22 +58,23 @@ struct DayTaskTests {
         let source = "\u{FEFF}## Tasks\r\n- [ ] call 📅 2026-10-03 x ^task\r\n  keep\r\n"
         try Data(source.utf8).write(to: context.file)
         await context.store.refresh()
-        let editor = TaskEditorModel(store: context.store, row: try context.row("call x"))
+        let editor = TaskEditorModel(store: context.store, row: try await context.row("call x"))
         await editor.load()
         #expect(await editor.setDue(CalendarDate("2026-10-05")))
         #expect(
             try Data(contentsOf: context.file)
                 == Data(source.replacingOccurrences(of: "2026-10-03", with: "2026-10-05").utf8))
-        let remove = TaskEditorModel(store: context.store, row: try context.row("call x"))
+        let remove = TaskEditorModel(store: context.store, row: try await context.row("call x"))
         await remove.load()
         #expect(await remove.setDue(nil))
         #expect(
             try Data(contentsOf: context.file) == Data(source.replacingOccurrences(of: " 📅 2026-10-03", with: "").utf8))
-        #expect(TaskGroups(rows: context.store.content.tasks, on: context.today, isToday: true).created.count == 1)
-        let priority = TaskEditorModel(store: context.store, row: try context.row("call x"))
+        let created = TaskGroups(rows: try await context.store.allTasks(), on: context.today, isToday: true).created
+        #expect(created.count == 1)
+        let priority = TaskEditorModel(store: context.store, row: try await context.row("call x"))
         await priority.load()
         #expect(await priority.setPriority(.high))
-        #expect(try context.row("call x").priority == .high)
+        #expect(try await context.row("call x").priority == .high)
     }
 
     @Test func staleTargetRefreshesWithoutOverwritingExternalEdit() async throws {
@@ -80,7 +82,7 @@ struct DayTaskTests {
         defer { context.clean() }
         await context.start()
         #expect(await context.store.addTask(on: context.today, text: "old", due: nil))
-        let row = try context.row("old")
+        let row = try await context.row("old")
         let editor = TaskEditorModel(store: context.store, row: row)
         await editor.load()
         let external = try Data(contentsOf: context.file)
@@ -89,7 +91,7 @@ struct DayTaskTests {
         #expect(await !editor.setDue(context.today))
         #expect(editor.target == nil && editor.errorText == DayEditError.message(for: VaultStoreError.staleTarget))
         #expect(try Data(contentsOf: context.file) == changed)
-        #expect(context.store.content.tasks.contains { $0.sourceText == "new" })
+        #expect(try await context.store.allTasks().contains { $0.sourceText == "new" })
         await #expect(throws: VaultStoreError.staleTarget) {
             try await context.store.completeTask(row, on: context.today)
         }
@@ -101,14 +103,14 @@ struct DayTaskTests {
         await context.start()
         #expect(await context.store.addTask(on: context.today, text: "old", due: context.today))
         #expect(await context.store.addTask(on: context.today, text: "keep", due: nil))
-        let editor = TaskEditorModel(store: context.store, row: try context.row("old"))
+        let editor = TaskEditorModel(store: context.store, row: try await context.row("old"))
         await editor.load()
         editor.text = "new"
         #expect(await editor.save())
-        #expect(try context.row("new").due == context.today)
-        let delete = TaskEditorModel(store: context.store, row: try context.row("new"))
+        #expect(try await context.row("new").due == context.today)
+        let delete = TaskEditorModel(store: context.store, row: try await context.row("new"))
         await delete.load()
         #expect(await delete.delete())
-        #expect(context.store.content.tasks.map(\.sourceText) == ["keep"])
+        #expect(try await context.store.allTasks().map(\.sourceText) == ["keep"])
     }
 }

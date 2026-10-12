@@ -29,8 +29,9 @@ struct TaskTestContext {
     func start() async { await store.start() }
     var file: URL { root.appendingPathComponent("journal/\(today).md") }
     func document() throws -> RawDocument { RawDocument(bytes: try Data(contentsOf: file)) }
-    func row(_ text: String) throws -> TaskRow {
-        try #require(store.content.tasks.first { $0.sourceText == text })
+    /// The task written as `text`, as the task queries read it now.
+    func row(_ text: String) async throws -> TaskRow {
+        try #require(try await store.allTasks().first { $0.sourceText == text })
     }
     func model() -> QuickEntryModel {
         let date = today

@@ -83,7 +83,7 @@ import VaultFormat
         await context.store.finishImport(model)
         #expect(context.store.vaultURL == root && context.store.importModel == nil && !context.store.requiresOnboarding)
         #expect(try bytes(root) == original)
-        #expect(context.store.content.days.count == 1)
+        #expect(try await context.store.days().count == 1)
     }
     @Test func existingAndChangedTypeTemplatesSettingsAndSymlinksAreNeverOverwritten() async throws {
         let root = try sample()
@@ -113,7 +113,8 @@ import VaultFormat
         await context.store.startAutomatically(environment: [:], arguments: [])
         #expect(context.store.vaultURL == nil && !FileManager.default.fileExists(atPath: context.root.path))
         await context.start()
-        #expect(!context.store.requiresOnboarding && context.store.content.days.isEmpty)
+        #expect(!context.store.requiresOnboarding)
+        #expect(try await context.store.days().isEmpty)
         let location = VaultLocation(
             defaults: context.defaults.defaults, documentsURL: context.directory, bookmarks: pathBookmarks())
         #expect(!location.needsFirstLaunch)

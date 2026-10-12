@@ -133,7 +133,7 @@
             let context = try TaskTestContext(sample: true)
             defer { context.clean() }
             await context.start()
-            let row = try #require(context.store.content.tasks.first)
+            let row = try #require(try await context.store.allTasks().first)
             let page = TaskDetailView(store: context.store, row: row) { _ in }
                 .environment(\.locale, Locale(identifier: "tr_TR"))
             try await Self.expectPage(page)

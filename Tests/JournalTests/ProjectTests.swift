@@ -20,6 +20,7 @@ import VaultFormat
         """.write(to: context.file, atomically: true, encoding: .utf8)
         await context.store.refresh()
         let tasks = TasksModel(store: context.store)
+        await tasks.loadList()
         #expect(tasks.projects.filter { $0.lowercased() == "café" }.count == 1)
         var model = try await ProjectModel.loaded(store: context.store, name: "café")
         #expect(model.openCount == 2)
@@ -43,6 +44,7 @@ import VaultFormat
         await context.start()
         #expect(await context.store.addTask(on: context.today, text: "Plan #project/Café/mobile", due: nil))
         let entry = context.model()
+        await entry.loadProjects()
         entry.text = "Plan #project/café"
         #expect(entry.projectSuggestions().isEmpty)
         entry.mode = .task
@@ -60,7 +62,7 @@ import VaultFormat
         entry.text = "Plan #project/new"
         #expect(entry.projectSuggestions().isEmpty)
         #expect(await entry.submit(time: nil))
-        #expect(context.store.content.projects.contains("new"))
+        #expect(try await context.store.computeProjects().contains("new"))
     }
 
     @Test func milestoneCardWritesTodayAndDoesNotRepeatAcrossDays() async throws {

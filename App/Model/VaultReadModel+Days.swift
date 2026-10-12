@@ -97,17 +97,3 @@ extension DaySummary {
         self.init(id: "journal/\(date).md", date: date, events: [], journal: [])
     }
 }
-
-extension VaultReadModel {
-    /// The published day file of `date`, built from its fragment. The notification planner plans
-    /// from a published snapshot without a query; screens query the index instead
-    /// (`IndexStore.computeDay(on:)`).
-    func day(on date: CalendarDate) -> DaySummary {
-        guard let fragment = fragments["journal/\(date).md"], fragment.file.kind == "day",
-            fragment.file.date == date.description
-        else { return DaySummary(empty: date) }
-        return DaySummary(
-            path: fragment.file.path, date: date, blocks: fragment.blocks, links: fragment.links,
-            hasGoalRecords: !fragment.goalLogs.isEmpty)
-    }
-}

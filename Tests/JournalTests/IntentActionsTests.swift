@@ -31,7 +31,7 @@ struct IntentActionsTests {
             "---\ntype: journal\ndate: \(day)\n---\n\n## Events\n- 13:00 [[Deniz Arıkan|Deniz]] ile [[Liman Ofis]]'te ^\(identifier)\n"
         #expect(document.serialized() == Array(expected.utf8))
         #expect(result.text == String(localized: "Olay eklendi: \("Deniz ile Liman Ofis'te")"))
-        #expect(context.store.content.day(on: day).events.last?.text.plainText == "Deniz ile Liman Ofis'te")
+        #expect(try await context.store.computeDay(on: day).events.last?.text.plainText == "Deniz ile Liman Ofis'te")
     }
 
     @Test func defaultClockUsesTheSameLocalDay() async throws {

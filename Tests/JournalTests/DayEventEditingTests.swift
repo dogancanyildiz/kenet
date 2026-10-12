@@ -27,7 +27,7 @@ struct DayEventEditingTests {
         #expect(model.entryTime == (try LineClock(hour: 13, minute: 5)))
         model.text = "Timed"
         #expect(await model.submit(time: model.entryTime))
-        let events = context.store.content.day(on: day).events
+        let events = try await context.store.computeDay(on: day).events
         #expect(events.map(\.time?.hour) == [nil, 13])
         #expect(events.map(\.text.plainText) == ["Untimed", "Timed"])
         let document = try await context.store.dayDocument(for: day)
@@ -45,7 +45,7 @@ struct DayEventEditingTests {
         defer { context.clean() }
         await context.start()
         let before = try String(contentsOf: context.file, encoding: .utf8)
-        let row = try #require(context.store.content.day(on: context.day).events.first)
+        let row = try #require(try await context.store.computeDay(on: context.day).events.first)
         let model = EventEditorModel(store: context.store, day: context.day, row: row)
         await model.load()
         #expect(model.text == "Existing event")
@@ -54,8 +54,8 @@ struct DayEventEditingTests {
         #expect(
             try Data(contentsOf: context.file)
                 == Data(before.replacingOccurrences(of: "Existing event", with: "Edited event").utf8))
-        #expect(context.store.content.day(on: context.day).events.first?.text.plainText == "Edited event")
-        #expect(context.store.content.day(on: context.day).events.first?.time?.hour == 9)
+        #expect(try await context.store.computeDay(on: context.day).events.first?.text.plainText == "Edited event")
+        #expect(try await context.store.computeDay(on: context.day).events.first?.time?.hour == 9)
     }
 
     @Test func deletesCompleteEventBlockPreservingJournalAndSectionHeading() async throws {
@@ -63,21 +63,21 @@ struct DayEventEditingTests {
         defer { context.clean() }
         await context.start()
         let before = try String(contentsOf: context.file, encoding: .utf8)
-        let row = try #require(context.store.content.day(on: context.day).events.first)
+        let row = try #require(try await context.store.computeDay(on: context.day).events.first)
         let model = EventEditorModel(store: context.store, day: context.day, row: row)
         await model.load()
         #expect(await model.delete())
         let expected = before.replacingOccurrences(
             of: "- 09:00 Existing event ^evt123\n  Untouched continuation\n", with: "")
         #expect(try Data(contentsOf: context.file) == Data(expected.utf8))
-        #expect(context.store.content.day(on: context.day).events.isEmpty)
+        #expect(try await context.store.computeDay(on: context.day).events.isEmpty)
     }
 
     @Test func staleEventTargetRefreshesScreenAndKeepsDraft() async throws {
         let context = try DayEditingTestContext()
         defer { context.clean() }
         await context.start()
-        let row = try #require(context.store.content.day(on: context.day).events.first)
+        let row = try #require(try await context.store.computeDay(on: context.day).events.first)
         let model = EventEditorModel(store: context.store, day: context.day, row: row)
         await model.load()
         let external = try String(contentsOf: context.file, encoding: .utf8).replacingOccurrences(
@@ -89,14 +89,14 @@ struct DayEventEditingTests {
         #expect(model.target == nil)
         #expect(model.errorText == DayEditError.message(for: VaultStoreError.staleTarget))
         #expect(try Data(contentsOf: context.file) == Data(external.utf8))
-        #expect(context.store.content.day(on: context.day).events.first?.text.plainText == "External event")
+        #expect(try await context.store.computeDay(on: context.day).events.first?.text.plainText == "External event")
     }
 
     @Test func staleDisplayedRowCannotLoadOrDeleteDifferentEvent() async throws {
         let context = try DayEditingTestContext()
         defer { context.clean() }
         await context.start()
-        let row = try #require(context.store.content.day(on: context.day).events.first)
+        let row = try #require(try await context.store.computeDay(on: context.day).events.first)
         let external = try String(contentsOf: context.file, encoding: .utf8).replacingOccurrences(
             of: "Existing event", with: "Replacement event")
         try Data(external.utf8).write(to: context.file)
@@ -106,14 +106,15 @@ struct DayEventEditingTests {
         #expect(await !model.delete())
         #expect(model.errorText == DayEditError.message(for: VaultStoreError.staleTarget))
         #expect(try Data(contentsOf: context.file) == Data(external.utf8))
-        #expect(context.store.content.day(on: context.day).events.first?.text.plainText == "Replacement event")
+        let replaced = try await context.store.computeDay(on: context.day)
+        #expect(replaced.events.first?.text.plainText == "Replacement event")
     }
 
     @Test func savedButUnindexedEventDoesNotRetryStaleTarget() async throws {
         let context = try DayEditingTestContext()
         defer { context.clean() }
         await context.start()
-        let row = try #require(context.store.content.day(on: context.day).events.first)
+        let row = try #require(try await context.store.computeDay(on: context.day).events.first)
         let model = EventEditorModel(store: context.store, day: context.day, row: row)
         await model.load()
         let database = try #require(
@@ -139,14 +140,14 @@ struct DayEventEditingTests {
         #expect(try Data(contentsOf: context.file) == saved)
         #expect(sqlite3_exec(handle, "DROP TRIGGER reject_edit", nil, nil, nil) == SQLITE_OK)
         await context.store.refresh(rebuild: true)
-        #expect(context.store.content.day(on: context.day).events.first?.text.plainText == "Saved edit")
+        #expect(try await context.store.computeDay(on: context.day).events.first?.text.plainText == "Saved edit")
     }
 
     @Test func eventEditorRejectsMultipleLinesBeforeWriting() async throws {
         let context = try DayEditingTestContext()
         defer { context.clean() }
         await context.start()
-        let row = try #require(context.store.content.day(on: context.day).events.first)
+        let row = try #require(try await context.store.computeDay(on: context.day).events.first)
         let model = EventEditorModel(store: context.store, day: context.day, row: row)
         await model.load()
         let before = try Data(contentsOf: context.file)

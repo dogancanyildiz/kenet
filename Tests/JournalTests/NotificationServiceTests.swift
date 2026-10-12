@@ -118,7 +118,7 @@ struct NotificationServiceTests {
         defer { defaults.clean() }
         let center = FakeNotificationCenter()
         let service = service(center, defaults: defaults)
-        service.update(snapshot: try notificationSample(), vaultID: "first")
+        service.update(snapshot: try notificationSample().model, vaultID: "first")
         await service.replanNow()
         #expect(!service.pending.isEmpty)
         service.update(snapshot: nil, vaultID: "second")

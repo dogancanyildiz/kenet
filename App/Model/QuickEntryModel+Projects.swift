@@ -3,6 +3,12 @@ import VaultFormat
 import VaultIndex
 
 extension QuickEntryModel {
+    /// Reads the project names (``IndexStore/computeProjects()``); a cancelled or failed read keeps
+    /// the previous ones.
+    func loadProjects() async {
+        if let names = try? await store.computeProjects() { knownProjects = names }
+    }
+
     func projectSuggestionRange(at byteOffset: Int? = nil) -> Range<Int>? {
         guard mode == .task, !awaitingResolution else { return nil }
         let bytes = Array(text.utf8)
@@ -32,11 +38,11 @@ extension QuickEntryModel {
         let end = byteOffset ?? text.utf8.count
         let fragment = String(decoding: Array(text.utf8)[(range.lowerBound + 9)..<end], as: UTF8.self)
         let key = VaultIndex.projectKey(fragment)
-        return Array(store.content.projects.filter { VaultIndex.projectKey($0).hasPrefix(key) }.prefix(6))
+        return Array(knownProjects.filter { VaultIndex.projectKey($0).hasPrefix(key) }.prefix(6))
     }
 
     func selectProjectSuggestion(_ project: String, at byteOffset: Int? = nil) {
-        guard let range = projectSuggestionRange(at: byteOffset), store.content.projects.contains(project) else {
+        guard let range = projectSuggestionRange(at: byteOffset), knownProjects.contains(project) else {
             return
         }
         replace(range, with: "#project/" + project)

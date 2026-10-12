@@ -140,10 +140,10 @@ struct KanbanBoardLayoutTests {
         try Data(source.utf8).write(to: context.file)
         await context.store.refresh()
         let model = await board(context)
-        let row = try #require(context.store.content.tasks.first)
+        let row = try #require(try await context.store.allTasks().first)
         #expect(await model.move(row, to: try #require(model.columns.first { $0.destination == .status(.inProgress) })))
         #expect(try Data(contentsOf: context.file) == Data(source.replacingOccurrences(of: "[ ]", with: "[/]").utf8))
-        #expect(context.store.content.tasks.first?.rawStatus == "/")
+        #expect(try await context.store.allTasks().first?.rawStatus == "/")
     }
 
     @Test func projectMoveChangesAndRemovesOnlyTargetTag() async throws {
@@ -155,17 +155,17 @@ struct KanbanBoardLayoutTests {
         await context.store.refresh()
         let model = await board(context)
         model.grouping = .project
-        let row = try #require(context.store.content.tasks.first { $0.sourceIdentifier == "task" })
+        let row = try #require(try await context.store.allTasks().first { $0.sourceIdentifier == "task" })
         let beta = try #require(model.columns.first { $0.name == "Beta" })
         #expect(await model.move(row, to: beta))
         let moved = source.replacingOccurrences(of: "#project/Alpha", with: "#project/Beta")
         #expect(try Data(contentsOf: context.file) == Data(moved.utf8))
-        let changed = try #require(context.store.content.tasks.first { $0.sourceIdentifier == "task" })
+        let changed = try #require(try await context.store.allTasks().first { $0.sourceIdentifier == "task" })
         #expect(await model.move(changed, to: try #require(model.columns.last)))
         #expect(
             try Data(contentsOf: context.file)
                 == Data(moved.replacingOccurrences(of: " #project/Beta ^task", with: " ^task").utf8))
-        #expect(context.store.content.tasks.first { $0.sourceIdentifier == "task" }?.project == nil)
+        #expect(try await context.store.allTasks().first { $0.sourceIdentifier == "task" }?.project == nil)
     }
 
     @Test func doneDropCompletesRecurrenceAndReopeningDoesNotGenerateAnotherRow() async throws {
@@ -176,7 +176,7 @@ struct KanbanBoardLayoutTests {
         try source.write(to: context.file, atomically: true, encoding: .utf8)
         await context.store.refresh()
         let model = await board(context)
-        let row = try #require(context.store.content.tasks.first)
+        let row = try #require(try await context.store.allTasks().first)
         let done = try #require(model.columns.first { $0.destination == .status(.done) })
         let token = model.beginDrag(row)
         #expect(model.acceptsDrop(token, into: done))
@@ -188,10 +188,10 @@ struct KanbanBoardLayoutTests {
         #expect(next.block.id != "original" && next.block.id != nil)
         #expect(document.bodyLines.tasks.last?.block.id == "original")
         #expect(document.bodyLines.tasks.last?.doneDate == context.today)
-        let completed = try #require(context.store.content.tasks.first { $0.sourceIdentifier == "original" })
+        let completed = try #require(try await context.store.allTasks().first { $0.sourceIdentifier == "original" })
         #expect(await model.move(completed, to: try #require(model.columns.first)))
         #expect(try context.document().bodyLines.tasks.count == 2)
-        #expect(context.store.content.tasks.first { $0.sourceIdentifier == "original" }?.done == nil)
+        #expect(try await context.store.allTasks().first { $0.sourceIdentifier == "original" }?.done == nil)
     }
 
     @Test func staleDragReportsErrorRefreshesAndLeavesEditedDiskUntouched() async throws {
@@ -201,13 +201,13 @@ struct KanbanBoardLayoutTests {
         try "## Tasks\n- [ ] Plan ^task\n".write(to: context.file, atomically: true, encoding: .utf8)
         await context.store.refresh()
         let model = await board(context)
-        let token = model.beginDrag(try #require(context.store.content.tasks.first))
+        let token = model.beginDrag(try #require(try await context.store.allTasks().first))
         let target = try #require(model.columns.first { $0.destination == .status(.inProgress) })
         let external = "## Tasks\n- [ ] Plan ⏫ ^task\n"
         try external.write(to: context.file, atomically: true, encoding: .utf8)
         #expect(await !model.drop(token, into: target))
         #expect(model.errorText != nil && model.busy.isEmpty)
-        #expect(context.store.content.tasks.first?.priority == .high)
+        #expect(try await context.store.allTasks().first?.priority == .high)
         #expect(try Data(contentsOf: context.file) == Data(external.utf8))
         #expect(await !model.drop(token, into: target))
         #expect(!model.acceptsDrop("untrusted text", into: target))
@@ -221,7 +221,7 @@ struct KanbanBoardLayoutTests {
         try source.write(to: context.file, atomically: true, encoding: .utf8)
         await context.store.refresh()
         let model = await board(context)
-        let row = try #require(context.store.content.tasks.first)
+        let row = try #require(try await context.store.allTasks().first)
         #expect(await !model.move(row, to: try #require(model.columns.first)))
         model.grouping = .person
         #expect(await !model.move(row, to: try #require(model.columns.first)))

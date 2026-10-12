@@ -184,12 +184,12 @@
             #expect(
                 String(decoding: data, as: UTF8.self).contains("- 13:00 [[Deniz Arıkan|Deniz]] ile [[Liman Ofis]]'te ^")
             )
-            #expect(context.store.content.day(on: day).events.count == 1)
-            #expect(
-                context.store.content.day(on: day).events.first?.text.spans.filter { $0.destination != nil }.count == 2)
+            let first = try await context.store.computeDay(on: day)
+            #expect(first.events.count == 1)
+            #expect(first.events.first?.text.spans.filter { $0.destination != nil }.count == 2)
             model.entry.text = "Second event"
             #expect(await model.entry.submit(time: nil))
-            #expect(context.store.content.day(on: day).events.count == 2)
+            #expect(try await context.store.computeDay(on: day).events.count == 2)
         }
 
         @Test func pendingAmbiguitySurvivesClosingAndResolvesBeforeWriting() async throws {
@@ -207,7 +207,7 @@
             let chosen = try #require(mention.candidates.first { $0.qualifier == "iş" })
             model.entry.choose(chosen, for: mention)
             #expect(await model.entry.submit(time: nil))
-            let text = context.store.content.day(on: LocalDay.today()).events.first?.text
+            let text = try await context.store.computeDay(on: LocalDay.today()).events.first?.text
             #expect(text?.spans.contains { $0.destination == chosen.file } == true)
             #expect(model.entry.text.isEmpty)
         }

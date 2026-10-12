@@ -21,7 +21,7 @@ struct JournalEditingTests {
         #expect(try Data(contentsOf: context.file) == Data(contentsOf: context.fixture("expected.md")))
         #expect(!model.isDirty)
         #expect(
-            context.store.content.day(on: context.day).journal.contains {
+            try await context.store.computeDay(on: context.day).journal.contains {
                 $0.text.plainText.contains("Deniz yeni satır.")
             })
     }
@@ -100,7 +100,7 @@ struct JournalEditingTests {
         #expect(
             try String(contentsOf: file, encoding: .utf8)
                 == "---\ntype: journal\ndate: \(day)\n---\n\n## Journal\n[[Deniz Arıkan|Deniz]] ile gün.\n")
-        #expect(context.store.content.day(on: day).preview == "Deniz ile gün.")
+        #expect(try await context.store.computeDay(on: day).preview == "Deniz ile gün.")
     }
 
     @Test func savedButUnindexedJournalIsNotWrittenAgain() async throws {
@@ -133,7 +133,7 @@ struct JournalEditingTests {
             try context.file.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate == modified)
         #expect(sqlite3_exec(handle, "DROP TRIGGER reject_journal", nil, nil, nil) == SQLITE_OK)
         await context.store.refresh(rebuild: true)
-        #expect(context.store.content.day(on: context.day).preview == "Deniz yeni günlük.")
+        #expect(try await context.store.computeDay(on: context.day).preview == "Deniz yeni günlük.")
     }
 
     @Test func externalJournalChangesAreNotOverwritten() async throws {

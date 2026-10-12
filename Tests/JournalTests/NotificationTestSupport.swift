@@ -15,13 +15,53 @@ func notificationDate(_ day: String = "2026-09-27", hour: Int = 8, minute: Int =
     return calendar.date(
         from: DateComponents(year: value.year, month: value.month, day: value.day, hour: hour, minute: minute))!
 }
-func notificationSample() throws -> VaultReadModel {
+/// A vault as the planner tests hand it over: the published model (goals) and the task rows and
+/// days the planned week is read from, built the old way (`TaskRow.legacy`, `DaySummary.build`).
+struct NotificationVault {
+    var model: VaultReadModel
+    var tasks: [TaskRow] = []
+    var days: [DaySummary] = []
+
+    static let empty = NotificationVault(model: .empty)
+
+    init(model: VaultReadModel, tasks: [TaskRow] = [], days: [DaySummary] = []) {
+        self.model = model
+        self.tasks = tasks
+        self.days = days
+    }
+
+    init(snapshot: IndexSnapshot, today: CalendarDate) {
+        self.init(
+            model: VaultReadModel(snapshot: snapshot, today: today), tasks: TaskRow.legacy(snapshot: snapshot),
+            days: DaySummary.build(snapshot: snapshot))
+    }
+
+    /// The seven days from `first` as `IndexStore.computeNotificationDays` reads them, from the
+    /// rows and days above.
+    func week(from first: CalendarDate) -> NotificationVaultDays {
+        let last = first.addingDays(6)!
+        var week = NotificationVaultDays()
+        for row in tasks where !row.isClosed {
+            guard let due = row.due, due <= last else { continue }
+            week.openTaskCounts[due, default: 0] += 1
+            if due >= first { week.dueTasks.append(row) }
+        }
+        week.writtenDays = Set(
+            (0..<7).compactMap { first.addingDays($0) }.filter {
+                let day = DaySummary.day(on: $0, in: days)
+                return !day.events.isEmpty || !day.journal.isEmpty
+            })
+        return week
+    }
+}
+
+func notificationSample() throws -> NotificationVault {
     let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
         .deletingLastPathComponent()
         .appendingPathComponent("Fixtures/vaults/sample")
     let index = try VaultIndex()
     try index.rebuild(vaultRoot: root)
-    return VaultReadModel(snapshot: try index.snapshot(), today: CalendarDate("2026-09-27")!)
+    return NotificationVault(snapshot: try index.snapshot(), today: CalendarDate("2026-09-27")!)
 }
 
 func notificationTasks(_ text: String) throws -> [TaskRow] {
@@ -33,7 +73,7 @@ func notificationTasks(_ text: String) throws -> [TaskRow] {
         to: directory.appendingPathComponent("2026-09-27.md"))
     let index = try VaultIndex()
     try index.rebuild(vaultRoot: root)
-    return VaultReadModel(snapshot: try index.snapshot()).tasks
+    return TaskRow.legacy(snapshot: try index.snapshot())
 }
 
 @MainActor

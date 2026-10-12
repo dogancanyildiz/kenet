@@ -46,7 +46,8 @@ struct NotificationIntegrationTests {
         let snapshot = VaultReadModel(snapshot: try index.snapshot(), today: CalendarDate("2026-09-27")!)
         #expect(snapshot.goalLogs["su"]?.contains { $0.day == future } == true)
         let plan = NotificationPlanner.requests(
-            snapshot: snapshot, preferences: NotificationPreferences(), now: notificationDate(),
+            snapshot: snapshot, days: NotificationVaultDays(), preferences: NotificationPreferences(),
+            now: notificationDate(),
             timeZone: notificationUTC)
         #expect(!plan.contains { $0.id == "goals-2026-09-28" })
     }

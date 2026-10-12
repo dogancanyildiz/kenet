@@ -63,10 +63,10 @@
             await context.start()
             let store = context.store
             let defaults = context.defaults.defaults
-            let row = try #require(store.content.tasks.first { $0.sourceIdentifier == "r3pe29" })
+            let row = try #require(try await store.allTasks().first { $0.sourceIdentifier == "r3pe29" })
             let project = try #require(row.project)
             let recurring = try #require(
-                store.content.tasks.first { $0.sourceIdentifier == Self.recurringIdentifier(for: subject) })
+                try await store.allTasks().first { $0.sourceIdentifier == Self.recurringIdentifier(for: subject) })
             let recurrence = TaskEditorModel(store: store, row: recurring)
             await recurrence.load()
             await SnapshotHost.assertView(

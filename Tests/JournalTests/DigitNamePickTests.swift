@@ -155,7 +155,7 @@ struct DigitNamePickTests {
         try Data("---\ntype: place\nname: \(name)\n---\n".utf8)
             .write(to: context.root.appendingPathComponent("places/\(name).md"))
         await context.start()
-        let row = try #require(context.store.content.day(on: context.day).events.first)
+        let row = try #require(try await context.store.computeDay(on: context.day).events.first)
         let model = EventEditorModel(store: context.store, day: context.day, row: row)
         await model.load()
         model.text = typed + " ile"

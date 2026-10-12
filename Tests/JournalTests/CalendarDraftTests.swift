@@ -28,7 +28,7 @@ struct CalendarDraftTests {
         #expect(await !model.submit(time: model.entryTime))
         #expect(model.pendingAmbiguity?.spelling == "Mert Aksu")
         #expect(context.store.knownEntities == known)
-        #expect(context.store.content.day(on: LocalDay.today()).events.isEmpty)
+        #expect(try await context.store.computeDay(on: LocalDay.today()).events.isEmpty)
     }
 
     @Test func eventWithoutAttendeesBringsOnlyTitleAndTime() async throws {

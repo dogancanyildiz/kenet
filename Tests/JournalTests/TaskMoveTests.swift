@@ -56,17 +56,17 @@ struct TaskMoveDateTests {
         try Data(source.utf8).write(to: context.file)
         await context.store.refresh()
         let all: [TaskMoveDestination] = [.today, .tomorrow, .nextWeek]
-        #expect(try destinations("past", in: context) == all)
-        #expect(try destinations("none", in: context) == all)
-        #expect(try destinations("doing", in: context) == all)
-        #expect(try destinations("today", in: context) == [.tomorrow, .nextWeek])
-        #expect(try destinations("tomorrow", in: context) == [.today, .nextWeek])
-        #expect(try destinations("monday", in: context) == [.today, .tomorrow])
-        #expect(try destinations("done", in: context).isEmpty)
-        #expect(try destinations("upper", in: context).isEmpty)
-        #expect(try destinations("dropped", in: context).isEmpty)
+        #expect(try await destinations("past", in: context) == all)
+        #expect(try await destinations("none", in: context) == all)
+        #expect(try await destinations("doing", in: context) == all)
+        #expect(try await destinations("today", in: context) == [.tomorrow, .nextWeek])
+        #expect(try await destinations("tomorrow", in: context) == [.today, .nextWeek])
+        #expect(try await destinations("monday", in: context) == [.today, .tomorrow])
+        #expect(try await destinations("done", in: context).isEmpty)
+        #expect(try await destinations("upper", in: context).isEmpty)
+        #expect(try await destinations("dropped", in: context).isEmpty)
         let week = WeekStartTests.calendar(firstWeekday: 2)
-        let dates = TaskMove.options(for: try context.row("past"), on: context.today, calendar: week).map(\.date)
+        let dates = TaskMove.options(for: try await context.row("past"), on: context.today, calendar: week).map(\.date)
         #expect(dates == [context.today, CalendarDate("2026-10-04"), CalendarDate("2026-10-05")])
     }
 
@@ -81,14 +81,14 @@ struct TaskMoveDateTests {
         #expect(saturday.weekday == 5)
         #expect(context.today == saturday)
         let sundayWeek = WeekStartTests.calendar(firstWeekday: 1)
-        let open = TaskMove.options(for: try context.row("open"), on: saturday, calendar: sundayWeek)
+        let open = TaskMove.options(for: try await context.row("open"), on: saturday, calendar: sundayWeek)
         #expect(open.map(\.destination) == [.today, .tomorrow])
         #expect(open.map(\.date) == [saturday, CalendarDate("2026-10-04")])
-        let here = TaskMove.options(for: try context.row("here"), on: saturday, calendar: sundayWeek)
+        let here = TaskMove.options(for: try await context.row("here"), on: saturday, calendar: sundayWeek)
         #expect(here.map(\.destination) == [.tomorrow])
         #expect(here.map(\.date) == [CalendarDate("2026-10-04")])
         let mondayWeek = WeekStartTests.calendar(firstWeekday: 2)
-        let monday = TaskMove.options(for: try context.row("open"), on: saturday, calendar: mondayWeek)
+        let monday = TaskMove.options(for: try await context.row("open"), on: saturday, calendar: mondayWeek)
         #expect(monday.map(\.destination) == [.today, .tomorrow, .nextWeek])
         #expect(
             monday.map(\.date) == [saturday, CalendarDate("2026-10-04"), CalendarDate("2026-10-05")])
@@ -124,9 +124,9 @@ struct TaskMoveDateTests {
         return model.dueDate
     }
 
-    private func destinations(_ text: String, in context: TaskTestContext) throws -> [TaskMoveDestination] {
+    private func destinations(_ text: String, in context: TaskTestContext) async throws -> [TaskMoveDestination] {
         let week = WeekStartTests.calendar(firstWeekday: 2)
-        return TaskMove.options(for: try context.row(text), on: context.today, calendar: week).map(\.destination)
+        return TaskMove.options(for: try await context.row(text), on: context.today, calendar: week).map(\.destination)
     }
 
     private func numbers(_ text: String?) -> [String] {
@@ -209,7 +209,7 @@ struct WeekStartTests {
             #expect(tasks.map(\.dueDate) == [CalendarDate(day), CalendarDate(day)], "\(today)")
             #expect(TaskMove.date(.nextWeek, today: today, calendar: calendar) == CalendarDate(day))
             // The menu of the written task reads the same calendar: the day it is already on is not offered.
-            let row = try #require(context.store.content.tasks.first { $0.sourceText == "plan" })
+            let row = try #require(try await context.store.allTasks().first { $0.sourceText == "plan" })
             let offered = TaskMove.options(for: row, on: today, calendar: calendar).map(\.date)
             #expect(offered == [today, today.addingDays(1)].filter { $0 != row.due }, "\(today)")
         }
@@ -220,14 +220,14 @@ struct WeekStartTests {
 struct TaskMoveWriteTests {
     /// The path a menu or VoiceOver move takes: read the task, then write its due date.
     private func move(_ text: String, to date: CalendarDate, in context: TaskTestContext) async throws -> Bool {
-        let editor = TaskEditorModel(store: context.store, row: try context.row(text))
+        let editor = TaskEditorModel(store: context.store, row: try await context.row(text))
         await editor.load()
         guard editor.target != nil else { return false }
         return await editor.setDue(date)
     }
 
-    private func sameRows(in context: TaskTestContext) -> [TaskRow] {
-        context.store.content.tasks.filter { $0.sourceText == "same" }.sorted { $0.sourceLine < $1.sourceLine }
+    private func sameRows(in context: TaskTestContext) async throws -> [TaskRow] {
+        try await context.store.allTasks().filter { $0.sourceText == "same" }.sorted { $0.sourceLine < $1.sourceLine }
     }
 
     @Test func moveRewritesOnlyTheDueField() async throws {
@@ -264,11 +264,11 @@ struct TaskMoveWriteTests {
         expected[9] = "    - [ ] inner 📅 2026-10-03 🔽 ^inner"
         #expect(try Data(contentsOf: context.file) == Data(expected.joined(separator: "\r\n").utf8))
         // File first, then the index: the rows already carry the new dates.
-        #expect(try context.row("call [[Ada]]").due == context.today)
-        #expect(try context.row("call [[Ada]]").recurrence?.rule == "every week")
-        #expect(try context.row("span 🧪 odd").due == tomorrow)
-        #expect(try context.row("span 🧪 odd").start == CalendarDate("2026-09-20"))
-        #expect(try context.row("parent").due == CalendarDate("2026-10-01"))
+        #expect(try await context.row("call [[Ada]]").due == context.today)
+        #expect(try await context.row("call [[Ada]]").recurrence?.rule == "every week")
+        #expect(try await context.row("span 🧪 odd").due == tomorrow)
+        #expect(try await context.row("span 🧪 odd").start == CalendarDate("2026-09-20"))
+        #expect(try await context.row("parent").due == CalendarDate("2026-10-01"))
     }
 
     @Test func moveGivesAnIdentifierOnlyToTheLineItChanges() async throws {
@@ -298,7 +298,8 @@ struct TaskMoveWriteTests {
         await context.store.refresh()
         let groups = await DayTasksModel.loaded(store: context.store, day: context.today, isToday: true).groups
         #expect(groups.overdue.map(\.sourceText).sorted() == ["four", "one", "three", "two"])
-        let rows = try ["one", "two", "three", "done", "four", "here"].map { try context.row($0) }
+        var rows: [TaskRow] = []
+        for text in ["one", "two", "three", "done", "four", "here"] { rows.append(try await context.row(text)) }
         let edited = Data(source.replacingOccurrences(of: "- [ ] two ", with: "- [ ] altered ").utf8)
         try edited.write(to: context.file)
         let report = await TaskMove.apply(rows, to: context.today, in: context.store)
@@ -309,8 +310,8 @@ struct TaskMoveWriteTests {
             + "- [ ] three 📅 2026-10-03 🔁 every week ^three\n- [x] done 📅 2026-10-01 ✅ 2026-10-02 ^done\n"
             + "- [ ] four 📅 2026-10-03 ^four\n- [ ] here 📅 2026-10-03 ^here\n"
         #expect(try Data(contentsOf: context.file) == Data(expected.utf8))
-        #expect(try context.row("four").due == context.today)
-        #expect(try context.row("altered").due == CalendarDate("2026-10-01"))
+        #expect(try await context.row("four").due == context.today)
+        #expect(try await context.row("altered").due == CalendarDate("2026-10-01"))
     }
 
     @Test func bulkMoveFollowsShiftedLinesAndSkipsClosedOrRemovedTasks() async throws {
@@ -322,7 +323,8 @@ struct TaskMoveWriteTests {
             + "- [ ] two 📅 2026-10-01 ^two\n"
         try Data(source.utf8).write(to: context.file)
         await context.store.refresh()
-        let rows = try ["one", "gone", "closed", "two"].map { try context.row($0) }
+        var rows: [TaskRow] = []
+        for text in ["one", "gone", "closed", "two"] { rows.append(try await context.row(text)) }
         // Outside the app: lines added above, one task deleted, one completed.
         let outside =
             "# Heading\n\n- 09:00 an event ^event\n- [ ] one 📅 2026-10-01 ^one\n"
@@ -345,7 +347,7 @@ struct TaskMoveWriteTests {
         let source = "- [ ] same 📅 2026-10-01 ^a\n- [ ] same 📅 2026-10-01 ^a\n- [ ] other 📅 2026-10-01 ^b\n"
         try Data(source.utf8).write(to: context.file)
         await context.store.refresh()
-        let rows = sameRows(in: context)
+        let rows = try await sameRows(in: context)
         #expect(rows.count == 2)
         let inPlace = await TaskMove.apply(rows, to: context.today, in: context.store)
         #expect(inPlace.moved == 2 && inPlace.unchanged == 0 && inPlace.failed == 0)
@@ -358,7 +360,7 @@ struct TaskMoveWriteTests {
 
         try Data(source.utf8).write(to: context.file)
         await context.store.refresh()
-        let again = sameRows(in: context)
+        let again = try await sameRows(in: context)
         try Data(("note\n" + source).utf8).write(to: context.file)
         let shifted = await TaskMove.apply(again, to: context.today, in: context.store)
         #expect(shifted.moved + shifted.unchanged == 2 && shifted.unchanged >= 1 && shifted.failed == 0)
@@ -376,7 +378,8 @@ struct TaskMoveWriteTests {
         try Data("- [ ] kept 📅 2026-10-01 ^kept\n".utf8).write(to: context.file)
         try Data("- [ ] lost 📅 2026-10-01 ^lost\n".utf8).write(to: other)
         await context.store.refresh()
-        let rows = try ["lost", "kept"].map { try context.row($0) }
+        var rows: [TaskRow] = []
+        for text in ["lost", "kept"] { rows.append(try await context.row(text)) }
         try FileManager.default.removeItem(at: other)
         let report = await TaskMove.apply(rows, to: context.today, in: context.store)
         #expect(report.moved == 1 && report.unchanged == 0 && report.failed == 1)
@@ -394,7 +397,8 @@ struct TaskMoveWriteTests {
         try Data(source.utf8).write(to: context.file)
         await context.store.refresh()
         let stamp = try FileManager.default.attributesOfItem(atPath: context.file.path)[.modificationDate] as? Date
-        let rows = try ["here", "done"].map { try context.row($0) }
+        var rows: [TaskRow] = []
+        for text in ["here", "done"] { rows.append(try await context.row(text)) }
         for list in [[], rows] {
             let report = await TaskMove.apply(list, to: context.today, in: context.store)
             #expect(report == TaskMoveReport())

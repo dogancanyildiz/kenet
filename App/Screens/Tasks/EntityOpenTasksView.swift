@@ -1,18 +1,20 @@
 import SwiftUI
 
+/// Open tasks linking to an entity. The page queries the rows with its timeline
+/// (`IndexStore.computeTaskGroups(today:scope:)`, linked to the entity), since a section that
+/// draws nothing is never mounted to query them itself.
 struct EntityOpenTasksView: View {
     let store: IndexStore
-    let path: String
+    let rows: [TaskRow]
     @State private var model: TasksModel
 
-    init(store: IndexStore, path: String) {
+    init(store: IndexStore, rows: [TaskRow]) {
         self.store = store
-        self.path = path
+        self.rows = rows
         _model = State(initialValue: TasksModel(store: store))
     }
 
     var body: some View {
-        let rows = TasksModel.openTasks(in: store, linkedTo: path)
         if !rows.isEmpty || model.errorText != nil {
             Section {
                 SectionHeader(title: String(localized: "Açık işler"), count: rows.count)

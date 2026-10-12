@@ -14,16 +14,20 @@ public struct RebuildResult: Sendable, Equatable {
     public let skippedPaths: [SkippedPath]
     /// Physical vault-relative original paths awaiting download, in UTF-8 byte order.
     public let pendingDownloads: [String]
+    /// Physical paths of day copies (`journal/2026-10-02 2.md`), in `DayCopyName.copies` merge order.
+    /// Copies are not indexed: their content belongs to the day and reaches it only by merging.
+    public let dayCopies: [String]
 
     init(
         addedPaths: [String] = [], updatedPaths: [String] = [], deletedPaths: [String] = [],
-        skippedPaths: [SkippedPath], pendingDownloads: [String] = []
+        skippedPaths: [SkippedPath], pendingDownloads: [String] = [], dayCopies: [String] = []
     ) {
         self.addedPaths = addedPaths
         self.updatedPaths = updatedPaths
         self.deletedPaths = deletedPaths
         self.skippedPaths = skippedPaths
         self.pendingDownloads = pendingDownloads
+        self.dayCopies = dayCopies
     }
 }
 
@@ -70,9 +74,11 @@ enum VaultScanner {
         var files: [ScannedFile] = []
         var skipped: [SkippedPath] = []
         var pending: Set<String> = []
+        var copies: [String] = []
         let resolved = normalizeScopes(scopes)
         if resolved.contains(.full) {
-            try visit(root, prefix: "", recursive: true, files: &files, skipped: &skipped, pending: &pending)
+            try visit(
+                root, prefix: "", recursive: true, files: &files, skipped: &skipped, pending: &pending, copies: &copies)
         } else {
             for scope in resolved.sorted(by: scopeOrder) {
                 switch scope {
@@ -82,7 +88,7 @@ enum VaultScanner {
                     let directory = relative.isEmpty ? root : root.appendingPathComponent(relative)
                     try visit(
                         directory, prefix: relative.isEmpty ? "" : relative + "/", recursive: true, files: &files,
-                        skipped: &skipped, pending: &pending)
+                        skipped: &skipped, pending: &pending, copies: &copies)
                 case .shallow(let relative):
                     let directory = relative.isEmpty ? root : root.appendingPathComponent(relative)
                     var isDirectory: ObjCBool = false
@@ -91,7 +97,7 @@ enum VaultScanner {
                     else { continue }
                     try visit(
                         directory, prefix: relative.isEmpty ? "" : relative + "/", recursive: false, files: &files,
-                        skipped: &skipped, pending: &pending)
+                        skipped: &skipped, pending: &pending, copies: &copies)
                 }
             }
         }
@@ -101,13 +107,14 @@ enum VaultScanner {
             files,
             RebuildResult(
                 addedPaths: files.map(\.path), skippedPaths: skipped,
-                pendingDownloads: pending.sorted { $0.utf8.lexicographicallyPrecedes($1.utf8) })
+                pendingDownloads: pending.sorted { $0.utf8.lexicographicallyPrecedes($1.utf8) },
+                dayCopies: DayCopyName.copies(in: copies))
         )
     }
 
     private static func visit(
         _ directory: URL, prefix: String, recursive: Bool, files: inout [ScannedFile], skipped: inout [SkippedPath],
-        pending: inout Set<String>
+        pending: inout Set<String>, copies: inout [String]
     ) throws {
         visitProbe?.directories += 1
         for url in try FileManager.default.contentsOfDirectory(
@@ -139,11 +146,14 @@ enum VaultScanner {
                 }
                 if recursive {
                     try visit(
-                        url, prefix: path + "/", recursive: true, files: &files, skipped: &skipped, pending: &pending)
+                        url, prefix: path + "/", recursive: true, files: &files, skipped: &skipped, pending: &pending,
+                        copies: &copies)
                 }
             } else if let original = PlaceholderName.originalName(ofPlaceholder: name), original.hasSuffix(".md") {
                 let originalURL = url.deletingLastPathComponent().appendingPathComponent(original)
                 if !FileManager.default.fileExists(atPath: originalURL.path) { pending.insert(prefix + original) }
+            } else if DayCopyName.isDayCopy(path: path) {
+                copies.append(path)
             } else if name.hasSuffix(".md") {
                 files.append(
                     ScannedFile(url: url, path: path.precomposedStringWithCanonicalMapping, physicalPath: path))

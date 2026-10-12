@@ -79,7 +79,7 @@ struct UnlinkedMentionsTests {
         let beforeFiles = try Self.vaultFiles(context.root)
         let beforeBytes = try #require(beforeFiles[mention.file])
         let beforeIncoming = try #require(context.store.content.entities.first { $0.id == entity.file }).incomingLinks
-        let beforeRows = Self.rows(on: mention.date, path: entity.file, store: context.store)
+        let beforeRows = try await Self.rows(on: mention.date, path: entity.file, store: context.store)
 
         let outcome = await model.link(mention, to: entity)
         #expect(outcome == .linked)
@@ -95,7 +95,7 @@ struct UnlinkedMentionsTests {
         }
         let summary = try #require(context.store.content.entities.first { $0.id == entity.file })
         #expect(summary.incomingLinks == beforeIncoming + 1)
-        #expect(Self.rows(on: mention.date, path: entity.file, store: context.store) == beforeRows + 1)
+        #expect(try await Self.rows(on: mention.date, path: entity.file, store: context.store) == beforeRows + 1)
     }
 
     @Test func linkingOneOfTwoOccurrencesKeepsTheOtherAtItsNewRange() async throws {
@@ -452,8 +452,8 @@ struct UnlinkedMentionsTests {
 
     private static func shown(_ text: AttributedString) -> String { String(text.characters) }
 
-    private static func rows(on date: CalendarDate, path: String, store: IndexStore) -> Int {
-        store.content.entityTimeline[path]?.first { $0.date == date }?.rows.count ?? 0
+    private static func rows(on date: CalendarDate, path: String, store: IndexStore) async throws -> Int {
+        try await store.computeEntityTimeline(for: path).first { $0.date == date }?.rows.count ?? 0
     }
 
     private static func emphasized(_ text: AttributedString) -> String {

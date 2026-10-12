@@ -10,6 +10,8 @@ struct EntityView: View {
     @State private var importantDates: ImportantDatesModel
     @State private var unlinkedMentions: UnlinkedMentionsModel
     @State private var isEditing = false
+    /// Nil until the first query returns; a reload keeps the previous days until then.
+    @State private var timeline: [EntityTimelineDay]?
 
     init(store: IndexStore, entity: EntitySummary, onRenamed: @escaping (String) -> Void = { _ in }) {
         self.store = store
@@ -76,7 +78,7 @@ struct EntityView: View {
                         .inkListRow()
                 }
             }
-            if model.isLoaded {
+            if model.isLoaded, timeline != nil {
                 readingContent
             }
             if let error = model.errorText {
@@ -94,6 +96,9 @@ struct EntityView: View {
         }
         .onChange(of: model.path) { _, path in onRenamed(path) }
         .task(id: store.lastUpdated) { await model.load() }
+        .task(id: EntityTimelineRequest(path: model.path, updated: store.lastUpdated)) {
+            if let days = try? await store.computeEntityTimeline(for: model.path) { timeline = days }
+        }
         // A list row that draws nothing is never mounted, so these queries cannot live on the row.
         .background {
             EntityImportantDatesLoader(model: importantDates, file: model.path, enabled: showsImportantDates)
@@ -147,7 +152,7 @@ struct EntityView: View {
                 }
                 .inkListRow()
             }
-            EntityInsightsCard(store: store, entity: current)
+            EntityInsightsCard(store: store, entity: current, timeline: timeline ?? [])
         }
         if model.unreadableFrontmatter {
             Section {
@@ -200,7 +205,7 @@ struct EntityView: View {
     }
 
     @ViewBuilder private var timelineSection: some View {
-        let timeline = store.content.entityTimeline[model.path] ?? []
+        let timeline = self.timeline ?? []
         Section {
             SectionHeader(title: String(localized: "Zaman akışı"), count: timeline.count)
                 .inkListRow()

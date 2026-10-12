@@ -99,6 +99,35 @@ struct IncrementalReadModelMeasureTests {
             graphMs.append(milliseconds(since: start))
         }
         lines.append("  graph query median: \(String(format: "%.1f", median(graphMs))) ms")
+        // The entity timelines left the rederive as well: their old construction for comparison, and
+        // the two queries the screens now run on demand (the busiest entity's timeline; every
+        // file's last encounter).
+        let snapshot = try index.snapshot()
+        var buildMs: [Double] = []
+        var timelines: [String: [EntityTimelineDay]] = [:]
+        for _ in 0..<5 {
+            let start = DispatchTime.now()
+            timelines = EntityTimeline.build(snapshot: snapshot)
+            buildMs.append(milliseconds(since: start))
+        }
+        let old = PayloadSize(of: timelines)
+        lines.append("  old entityTimeline field | \(old.rows) | \(old.nestedRows) | \(old.bytes)")
+        lines.append("  old entityTimeline build median: \(String(format: "%.1f", median(buildMs))) ms")
+        let busiest = try #require(timelines.max { $0.value.count < $1.value.count })
+        var timelineMs: [Double] = []
+        var encounterMs: [Double] = []
+        for _ in 0..<5 {
+            var start = DispatchTime.now()
+            let days = EntityTimeline.days(from: try index.entityTimeline(for: busiest.key))
+            timelineMs.append(milliseconds(since: start))
+            #expect(days.count == busiest.value.count)
+            start = DispatchTime.now()
+            _ = try index.lastEncounters(asOf: today)
+            encounterMs.append(milliseconds(since: start))
+        }
+        lines.append(
+            "  timeline query median (\(busiest.value.count) days): \(String(format: "%.1f", median(timelineMs))) ms")
+        lines.append("  last encounters query median: \(String(format: "%.1f", median(encounterMs))) ms")
         print(lines.joined(separator: "\n"))
         #expect(model.isBuilt && !model.days.isEmpty)
     }

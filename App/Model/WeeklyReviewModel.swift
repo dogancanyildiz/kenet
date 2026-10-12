@@ -248,6 +248,7 @@ final class WeeklyReviewModel {
     private var included = Set(WeeklyReviewSection.allCases)
     private var input: SummaryInput?
     private var cadences: [String: PersonCadence] = [:]
+    private var lastEncounters: [String: CalendarDate] = [:]
 
     init(
         store: IndexStore, today: CalendarDate, calendar: Calendar = .autoupdatingCurrent,
@@ -336,9 +337,11 @@ final class WeeklyReviewModel {
         do {
             let read = try await store.weeklyReviewInput(from: first, to: last)
             let fields = try await store.personCadences()
+            let encounters = try await store.computeLastEncounters(asOf: today)
             guard store.vaultURL == root else { return }
             input = read
             cadences = fields
+            lastEncounters = encounters
             loadErrorText = nil
             recompute()
         } catch {
@@ -350,7 +353,7 @@ final class WeeklyReviewModel {
     private func recompute() {
         guard let input else { return }
         let unseen = UnseenPeople.compute(
-            people: store.content.entities, content: store.content, today: today,
+            people: store.content.entities, lastEncounters: lastEncounters, today: today,
             threshold: PeopleInsightsPreference.threshold(in: defaults), cadences: cadences)
         content = WeeklyReviewContent.compute(
             range: range, today: today, input: input, tasks: store.content.tasks, unseen: unseen.overdue)

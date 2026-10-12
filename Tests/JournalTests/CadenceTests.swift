@@ -24,7 +24,8 @@ struct CadenceTests {
         for fixture in vaultCases {
             let day = try #require((fixture["today"] as? String).flatMap { CalendarDate($0) })
             let groups = UnseenPeople.compute(
-                people: context.store.content.entities, content: context.store.content,
+                people: context.store.content.entities,
+                lastEncounters: try await context.store.computeLastEncounters(asOf: day),
                 today: day, threshold: 30, cadences: cadences)
             let overdue = try #require(fixture["overdue"] as? [[String: Any]])
             #expect(groups.overdue.map(\.id) == overdue.map { $0["id"] as? String })
@@ -33,7 +34,8 @@ struct CadenceTests {
             #expect(groups.never.map(\.id) == fixture["never"] as? [String])
             #expect(groups.overdue.map(\.id).contains("people/Ada Kaya.md"))
         }
-        let ada = try #require(context.store.content.entityTimeline["people/Ada Kaya.md"]?.map(\.date).max())
+        let ada = try #require(
+            try await context.store.computeEntityTimeline(for: "people/Ada Kaya.md").map(\.date).max())
         #expect(ada == CalendarDate("2026-10-04"))
     }
 
@@ -53,20 +55,23 @@ struct CadenceTests {
             }
             let indexed = try await context.store.personCadences()
             if vault == "sample" { #expect(indexed.isEmpty) }
+            let timelines = EntityTimeline.build(snapshot: content.asSnapshot())
             for day in ["2026-10-03", "2026-10-11", "2027-03-01"] {
                 let today = try #require(CalendarDate(day))
+                let encounters = try await context.store.computeLastEncounters(asOf: today)
                 for threshold in [-5, 0, 1, 9, 30, 365, 9999] {
                     let expected = devList(
-                        people: content.entities, content: content, today: today, threshold: threshold)
+                        people: content.entities, timelines: timelines, today: today, threshold: threshold)
                     var lists = [
                         UnseenPeople.compute(
-                            people: content.entities, content: content, today: today, threshold: threshold)
+                            people: content.entities, lastEncounters: encounters, today: today,
+                            threshold: threshold)
                     ]
                     if vault == "sample" {
                         lists.append(
                             UnseenPeople.compute(
-                                people: content.entities, content: content, today: today, threshold: threshold,
-                                cadences: indexed))
+                                people: content.entities, lastEncounters: encounters, today: today,
+                                threshold: threshold, cadences: indexed))
                     }
                     for list in lists {
                         let label = Comment(rawValue: "\(vault) \(day) \(threshold)")
@@ -85,7 +90,7 @@ struct CadenceTests {
         let person = EntitySummary(
             id: "people/A.md", kind: "person", name: "Aras", qualifier: nil, aliases: [], incomingLinks: 0)
         let list = UnseenPeople.compute(
-            people: [person, person], content: VaultReadModel(), today: today, threshold: 30)
+            people: [person, person], lastEncounters: [:], today: today, threshold: 30)
         #expect(list.never.map(\.id) == ["people/A.md", "people/A.md"])
     }
 
@@ -346,14 +351,15 @@ struct CadenceTests {
         #expect(inclusive.snooze != nil)
     }
 
-    /// The list as `dev` computed it before cadence existed, kept here as the yardstick.
+    /// The list as `dev` computed it before cadence existed, kept here as the yardstick. The
+    /// timelines are the read model's old construction (`EntityTimeline.build(snapshot:)`).
     private func devList(
-        people: [EntitySummary], content: VaultReadModel, today: CalendarDate, threshold: Int
+        people: [EntitySummary], timelines: [String: [EntityTimelineDay]], today: CalendarDate, threshold: Int
     ) -> (overdue: [(id: String, elapsed: Int?, last: CalendarDate?)], never: [String]) {
         var overdue: [(id: String, elapsed: Int?, last: CalendarDate?)] = []
         var never: [(id: String, name: String)] = []
         for entity in people where entity.kind == "person" {
-            let last = content.entityTimeline[entity.id]?.map(\.date).filter { $0 <= today }.max()
+            let last = timelines[entity.id]?.map(\.date).filter { $0 <= today }.max()
             if let last {
                 let elapsed = today.ordinal - last.ordinal
                 if elapsed >= PeopleInsightsPreference.normalized(threshold) {

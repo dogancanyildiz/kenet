@@ -853,11 +853,11 @@ final class IndexStore {
     /// People as of `today`: latest encounter on or before that day, plus the indexed cadence.
     func cadenceReminderPeople(today: CalendarDate) async throws -> [CadenceReminderPerson] {
         let cadences = try await personCadences()
-        let content = self.content
+        let encounters = try await computeLastEncounters(asOf: today)
         return content.entities.filter { $0.kind == "person" }.map { entity in
-            let last = content.entityTimeline[entity.id]?.map(\.date).filter { $0 <= today }.max()
-            return CadenceReminderPerson(
-                id: entity.id, name: entity.name, lastDay: last, cadence: cadences[entity.id] ?? .none)
+            CadenceReminderPerson(
+                id: entity.id, name: entity.name, lastDay: encounters[entity.id],
+                cadence: cadences[entity.id] ?? .none)
         }
     }
 
@@ -902,6 +902,36 @@ final class IndexStore {
         await testingGraphQueryDidFinish?()
         guard generation == current else { throw VaultStoreError.staleTarget }
         return GraphInput(entities: content.entities, mentions: mentions)
+    }
+
+    // MARK: - Entity timeline query
+
+    /// Test seam: runs after an entity timeline or last-encounter query returns, before its
+    /// generation is checked.
+    @ObservationIgnored var testingEntityTimelineQueryDidFinish: (@MainActor () async -> Void)?
+
+    /// Day-file events and Journal paragraphs linking to `path`, newest day first, queried from the
+    /// index on demand. Belongs to this vault generation; with no index open it is empty.
+    func computeEntityTimeline(for path: String) async throws -> [EntityTimelineDay] {
+        guard let index else { return [] }
+        let current = generation
+        let days = try await Task.detached {
+            EntityTimeline.days(from: try index.entityTimeline(for: path))
+        }.value
+        await testingEntityTimelineQueryDidFinish?()
+        guard generation == current else { throw VaultStoreError.staleTarget }
+        return days
+    }
+
+    /// Each linked file's latest encounter on or before `day`, counted from the same blocks as the
+    /// timeline. Belongs to this vault generation; with no index open it is empty.
+    func computeLastEncounters(asOf day: CalendarDate) async throws -> [String: CalendarDate] {
+        guard let index else { return [:] }
+        let current = generation
+        let encounters = try await Task.detached { try index.lastEncounters(asOf: day) }.value
+        await testingEntityTimelineQueryDidFinish?()
+        guard generation == current else { throw VaultStoreError.staleTarget }
+        return encounters
     }
 
     // MARK: - Edit turn

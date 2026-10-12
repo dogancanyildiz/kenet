@@ -75,8 +75,6 @@ extension VaultReadModel {
         let path = fragment.file.path
         tasks.removeAll { $0.file == path }
         days.removeAll { $0.id == path }
-        removeTimelineRows(
-            from: path, targets: Set(fragment.links.compactMap(\.resolvedFile)))
         adjustIncoming(links: fragment.links, delta: -1)
         adjustCounts(of: fragment, delta: -1)
     }
@@ -86,7 +84,6 @@ extension VaultReadModel {
         tasks += fragment.blocks.filter { $0.kind == "task" }.map { TaskRow(row: $0, links: links) }
         if fragment.file.kind == "day", let value = fragment.file.date, let date = CalendarDate(value) {
             days.append(daySummary(fragment: fragment, date: date, hasGoalRecords: !fragment.goalLogs.isEmpty))
-            addTimelineRows(fragment: fragment, date: date)
         }
         adjustIncoming(links: links, delta: 1)
         adjustCounts(of: fragment, delta: 1)
@@ -143,45 +140,5 @@ extension VaultReadModel {
         return DaySummary(
             id: fragment.file.path, date: date, events: events, journal: journal,
             hasGoalRecords: hasGoalRecords)
-    }
-
-    private mutating func removeTimelineRows(from path: String, targets: Set<String>) {
-        for key in targets {
-            guard var days = entityTimeline[key] else { continue }
-            days = days.compactMap { day in
-                let rows = day.rows.filter { $0.file != path }
-                return rows.isEmpty ? nil : EntityTimelineDay(date: day.date, rows: rows)
-            }
-            entityTimeline[key] = days.isEmpty ? nil : days
-        }
-    }
-
-    private mutating func addTimelineRows(fragment: VaultFileFragment, date: CalendarDate) {
-        let links = fragment.links
-        var byTarget: [String: [EntityTimelineRow]] = [:]
-        for block in fragment.blocks
-        where block.kind == "event" || (block.kind == "paragraph" && block.section == "Journal") {
-            let targets = Set(links.filter { $0.block == block.ordinal }.compactMap(\.resolvedFile))
-            guard !targets.isEmpty else { continue }
-            let row = EntityTimelineRow(
-                file: fragment.file.path, ordinal: block.ordinal,
-                text: LinkedText(row: block, links: links))
-            for target in targets { byTarget[target, default: []].append(row) }
-        }
-        for (target, rows) in byTarget {
-            var days = entityTimeline[target] ?? []
-            if let index = days.firstIndex(where: { $0.date == date }) {
-                let merged = (days[index].rows + rows).sorted {
-                    ($0.file, $0.ordinal) > ($1.file, $1.ordinal)
-                }
-                days[index] = EntityTimelineDay(date: date, rows: merged)
-            } else {
-                days.append(
-                    EntityTimelineDay(
-                        date: date, rows: rows.sorted { ($0.file, $0.ordinal) > ($1.file, $1.ordinal) }))
-                days.sort { $0.date > $1.date }
-            }
-            entityTimeline[target] = days
-        }
     }
 }

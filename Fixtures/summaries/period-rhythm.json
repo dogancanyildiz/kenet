@@ -1,0 +1,890 @@
+[
+  {
+    "id": "year-running-to-same-date",
+    "vault": "rhythm",
+    "period": "year",
+    "containing": "2026-10-07",
+    "today": "2026-10-07",
+    "expected": {
+      "change": {
+        "completedTasks": 1,
+        "createdTasks": 3,
+        "events": 7,
+        "firstPeople": 1,
+        "firstPlaces": -1,
+        "overdueTasks": 1,
+        "peopleMentions": 1,
+        "placeMentions": 0,
+        "undatedTasks": 1,
+        "writtenDays": 5
+      },
+      "counts": {
+        "completedTasks": 1,
+        "createdTasks": 3,
+        "events": 10,
+        "firstPeople": 2,
+        "firstPlaces": 0,
+        "overdueTasks": 1,
+        "peopleMentions": 3,
+        "placeMentions": 1,
+        "undatedTasks": 1,
+        "writtenDays": 7
+      },
+      "end": "2026-12-31",
+      "firstPeople": [
+        {
+          "day": "2026-09-30",
+          "id": "people/Toprak Ay.md",
+          "name": "Toprak Ay"
+        },
+        {
+          "day": "2026-10-06",
+          "id": "people/Defne Su.md",
+          "name": "Defne Su"
+        }
+      ],
+      "firstPlaces": [],
+      "goals": [
+        {
+          "change": 2,
+          "completionDate": null,
+          "contribution": 3,
+          "done": 3,
+          "id": "goals/Su.md",
+          "score": 10,
+          "streak": 3,
+          "streakChange": 3,
+          "target": 365
+        }
+      ],
+      "isEmpty": false,
+      "isRunning": true,
+      "measuredEnd": "2026-10-07",
+      "measuredStart": "2026-01-01",
+      "people": [
+        {
+          "change": 1,
+          "count": 1,
+          "id": "people/Defne Su.md",
+          "name": "Defne Su"
+        },
+        {
+          "change": -1,
+          "count": 1,
+          "id": "people/Nehir Ak.md",
+          "name": "Nehir Ak"
+        },
+        {
+          "change": 1,
+          "count": 1,
+          "id": "people/Toprak Ay.md",
+          "name": "Toprak Ay"
+        }
+      ],
+      "places": [
+        {
+          "change": 0,
+          "count": 1,
+          "id": "places/Rüzgâr Kafe.md",
+          "name": "Rüzgâr Kafe"
+        }
+      ],
+      "previous": {
+        "completedTasks": 0,
+        "createdTasks": 0,
+        "events": 3,
+        "firstPeople": 1,
+        "firstPlaces": 1,
+        "overdueTasks": 0,
+        "peopleMentions": 2,
+        "placeMentions": 1,
+        "undatedTasks": 0,
+        "writtenDays": 2
+      },
+      "previousEnd": "2025-12-31",
+      "previousMeasuredEnd": "2025-10-07",
+      "previousMeasuredStart": "2025-01-01",
+      "previousStart": "2025-01-01",
+      "previousUnits": [
+        {
+          "end": "2025-01-31",
+          "events": 0,
+          "measuredDays": 31,
+          "start": "2025-01-01",
+          "writing": "none",
+          "writtenDays": 0
+        },
+        {
+          "end": "2025-02-28",
+          "events": 0,
+          "measuredDays": 28,
+          "start": "2025-02-01",
+          "writing": "none",
+          "writtenDays": 0
+        },
+        {
+          "end": "2025-03-31",
+          "events": 0,
+          "measuredDays": 31,
+          "start": "2025-03-01",
+          "writing": "none",
+          "writtenDays": 0
+        },
+        {
+          "end": "2025-04-30",
+          "events": 0,
+          "measuredDays": 30,
+          "start": "2025-04-01",
+          "writing": "none",
+          "writtenDays": 0
+        },
+        {
+          "end": "2025-05-31",
+          "events": 0,
+          "measuredDays": 31,
+          "start": "2025-05-01",
+          "writing": "none",
+          "writtenDays": 0
+        },
+        {
+          "end": "2025-06-30",
+          "events": 0,
+          "measuredDays": 30,
+          "start": "2025-06-01",
+          "writing": "none",
+          "writtenDays": 0
+        },
+        {
+          "end": "2025-07-31",
+          "events": 0,
+          "measuredDays": 31,
+          "start": "2025-07-01",
+          "writing": "none",
+          "writtenDays": 0
+        },
+        {
+          "end": "2025-08-31",
+          "events": 0,
+          "measuredDays": 31,
+          "start": "2025-08-01",
+          "writing": "none",
+          "writtenDays": 0
+        },
+        {
+          "end": "2025-09-30",
+          "events": 0,
+          "measuredDays": 30,
+          "start": "2025-09-01",
+          "writing": "none",
+          "writtenDays": 0
+        },
+        {
+          "end": "2025-10-31",
+          "events": 3,
+          "measuredDays": 31,
+          "start": "2025-10-01",
+          "writing": "partial",
+          "writtenDays": 2
+        },
+        {
+          "end": "2025-11-30",
+          "events": 0,
+          "measuredDays": 30,
+          "start": "2025-11-01",
+          "writing": "none",
+          "writtenDays": 0
+        },
+        {
+          "end": "2025-12-31",
+          "events": 0,
+          "measuredDays": 31,
+          "start": "2025-12-01",
+          "writing": "none",
+          "writtenDays": 0
+        }
+      ],
+      "start": "2026-01-01",
+      "units": [
+        {
+          "end": "2026-01-31",
+          "events": 0,
+          "measuredDays": 31,
+          "start": "2026-01-01",
+          "writing": "none",
+          "writtenDays": 0
+        },
+        {
+          "end": "2026-02-28",
+          "events": 0,
+          "measuredDays": 28,
+          "start": "2026-02-01",
+          "writing": "none",
+          "writtenDays": 0
+        },
+        {
+          "end": "2026-03-31",
+          "events": 0,
+          "measuredDays": 31,
+          "start": "2026-03-01",
+          "writing": "none",
+          "writtenDays": 0
+        },
+        {
+          "end": "2026-04-30",
+          "events": 0,
+          "measuredDays": 30,
+          "start": "2026-04-01",
+          "writing": "none",
+          "writtenDays": 0
+        },
+        {
+          "end": "2026-05-31",
+          "events": 0,
+          "measuredDays": 31,
+          "start": "2026-05-01",
+          "writing": "none",
+          "writtenDays": 0
+        },
+        {
+          "end": "2026-06-30",
+          "events": 0,
+          "measuredDays": 30,
+          "start": "2026-06-01",
+          "writing": "none",
+          "writtenDays": 0
+        },
+        {
+          "end": "2026-07-31",
+          "events": 0,
+          "measuredDays": 31,
+          "start": "2026-07-01",
+          "writing": "none",
+          "writtenDays": 0
+        },
+        {
+          "end": "2026-08-31",
+          "events": 0,
+          "measuredDays": 31,
+          "start": "2026-08-01",
+          "writing": "none",
+          "writtenDays": 0
+        },
+        {
+          "end": "2026-09-30",
+          "events": 3,
+          "measuredDays": 30,
+          "start": "2026-09-01",
+          "writing": "partial",
+          "writtenDays": 2
+        },
+        {
+          "end": "2026-10-31",
+          "events": 7,
+          "measuredDays": 7,
+          "start": "2026-10-01",
+          "writing": "full",
+          "writtenDays": 5
+        },
+        {
+          "end": "2026-11-30",
+          "events": 0,
+          "measuredDays": 0,
+          "start": "2026-11-01",
+          "writing": "notStarted",
+          "writtenDays": 0
+        },
+        {
+          "end": "2026-12-31",
+          "events": 0,
+          "measuredDays": 0,
+          "start": "2026-12-01",
+          "writing": "notStarted",
+          "writtenDays": 0
+        }
+      ]
+    }
+  },
+  {
+    "id": "week-running-to-same-weekday",
+    "vault": "rhythm",
+    "period": "week",
+    "containing": "2026-10-07",
+    "today": "2026-10-07",
+    "expected": {
+      "change": {
+        "completedTasks": 0,
+        "createdTasks": 0,
+        "events": 1,
+        "firstPeople": 0,
+        "firstPlaces": 0,
+        "overdueTasks": 0,
+        "peopleMentions": 1,
+        "placeMentions": 1,
+        "undatedTasks": 0,
+        "writtenDays": 1
+      },
+      "counts": {
+        "completedTasks": 0,
+        "createdTasks": 0,
+        "events": 4,
+        "firstPeople": 1,
+        "firstPlaces": 0,
+        "overdueTasks": 1,
+        "peopleMentions": 2,
+        "placeMentions": 1,
+        "undatedTasks": 1,
+        "writtenDays": 3
+      },
+      "end": "2026-10-11",
+      "firstPeople": [
+        {
+          "day": "2026-10-06",
+          "id": "people/Defne Su.md",
+          "name": "Defne Su"
+        }
+      ],
+      "firstPlaces": [],
+      "goals": [
+        {
+          "change": 3,
+          "completionDate": null,
+          "contribution": 3,
+          "done": 3,
+          "id": "goals/Su.md",
+          "score": 10,
+          "streak": 3,
+          "streakChange": 3,
+          "target": 7
+        }
+      ],
+      "isEmpty": false,
+      "isRunning": true,
+      "measuredEnd": "2026-10-07",
+      "measuredStart": "2026-10-05",
+      "people": [
+        {
+          "change": 1,
+          "count": 1,
+          "id": "people/Defne Su.md",
+          "name": "Defne Su"
+        },
+        {
+          "change": 1,
+          "count": 1,
+          "id": "people/Nehir Ak.md",
+          "name": "Nehir Ak"
+        }
+      ],
+      "places": [
+        {
+          "change": 1,
+          "count": 1,
+          "id": "places/Rüzgâr Kafe.md",
+          "name": "Rüzgâr Kafe"
+        }
+      ],
+      "previous": {
+        "completedTasks": 0,
+        "createdTasks": 0,
+        "events": 3,
+        "firstPeople": 1,
+        "firstPlaces": 0,
+        "overdueTasks": 1,
+        "peopleMentions": 1,
+        "placeMentions": 0,
+        "undatedTasks": 1,
+        "writtenDays": 2
+      },
+      "previousEnd": "2026-10-04",
+      "previousMeasuredEnd": "2026-09-30",
+      "previousMeasuredStart": "2026-09-28",
+      "previousStart": "2026-09-28",
+      "previousUnits": [
+        {
+          "end": "2026-09-28",
+          "events": 2,
+          "measuredDays": 1,
+          "start": "2026-09-28",
+          "writing": "full",
+          "writtenDays": 1
+        },
+        {
+          "end": "2026-09-29",
+          "events": 0,
+          "measuredDays": 1,
+          "start": "2026-09-29",
+          "writing": "none",
+          "writtenDays": 0
+        },
+        {
+          "end": "2026-09-30",
+          "events": 1,
+          "measuredDays": 1,
+          "start": "2026-09-30",
+          "writing": "full",
+          "writtenDays": 1
+        },
+        {
+          "end": "2026-10-01",
+          "events": 0,
+          "measuredDays": 1,
+          "start": "2026-10-01",
+          "writing": "none",
+          "writtenDays": 0
+        },
+        {
+          "end": "2026-10-02",
+          "events": 3,
+          "measuredDays": 1,
+          "start": "2026-10-02",
+          "writing": "full",
+          "writtenDays": 1
+        },
+        {
+          "end": "2026-10-03",
+          "events": 0,
+          "measuredDays": 1,
+          "start": "2026-10-03",
+          "writing": "none",
+          "writtenDays": 0
+        },
+        {
+          "end": "2026-10-04",
+          "events": 0,
+          "measuredDays": 1,
+          "start": "2026-10-04",
+          "writing": "full",
+          "writtenDays": 1
+        }
+      ],
+      "start": "2026-10-05",
+      "units": [
+        {
+          "end": "2026-10-05",
+          "events": 1,
+          "measuredDays": 1,
+          "start": "2026-10-05",
+          "writing": "full",
+          "writtenDays": 1
+        },
+        {
+          "end": "2026-10-06",
+          "events": 2,
+          "measuredDays": 1,
+          "start": "2026-10-06",
+          "writing": "full",
+          "writtenDays": 1
+        },
+        {
+          "end": "2026-10-07",
+          "events": 1,
+          "measuredDays": 1,
+          "start": "2026-10-07",
+          "writing": "full",
+          "writtenDays": 1
+        },
+        {
+          "end": "2026-10-08",
+          "events": 0,
+          "measuredDays": 0,
+          "start": "2026-10-08",
+          "writing": "notStarted",
+          "writtenDays": 0
+        },
+        {
+          "end": "2026-10-09",
+          "events": 0,
+          "measuredDays": 0,
+          "start": "2026-10-09",
+          "writing": "notStarted",
+          "writtenDays": 0
+        },
+        {
+          "end": "2026-10-10",
+          "events": 0,
+          "measuredDays": 0,
+          "start": "2026-10-10",
+          "writing": "notStarted",
+          "writtenDays": 0
+        },
+        {
+          "end": "2026-10-11",
+          "events": 0,
+          "measuredDays": 0,
+          "start": "2026-10-11",
+          "writing": "notStarted",
+          "writtenDays": 0
+        }
+      ]
+    }
+  },
+  {
+    "id": "month-slices-from-the-first",
+    "vault": "rhythm",
+    "period": "month",
+    "containing": "2025-10-15",
+    "expected": {
+      "change": {
+        "completedTasks": 0,
+        "createdTasks": 0,
+        "events": 3,
+        "firstPeople": 1,
+        "firstPlaces": 1,
+        "overdueTasks": 0,
+        "peopleMentions": 2,
+        "placeMentions": 1,
+        "undatedTasks": 0,
+        "writtenDays": 2
+      },
+      "counts": {
+        "completedTasks": 0,
+        "createdTasks": 0,
+        "events": 3,
+        "firstPeople": 1,
+        "firstPlaces": 1,
+        "overdueTasks": 0,
+        "peopleMentions": 2,
+        "placeMentions": 1,
+        "undatedTasks": 0,
+        "writtenDays": 2
+      },
+      "end": "2025-10-31",
+      "firstPeople": [
+        {
+          "day": "2025-10-01",
+          "id": "people/Nehir Ak.md",
+          "name": "Nehir Ak"
+        }
+      ],
+      "firstPlaces": [
+        {
+          "day": "2025-10-06",
+          "id": "places/Rüzgâr Kafe.md",
+          "name": "Rüzgâr Kafe"
+        }
+      ],
+      "goals": [
+        {
+          "change": 1,
+          "completionDate": null,
+          "contribution": 1,
+          "done": 1,
+          "id": "goals/Su.md",
+          "score": 0,
+          "streak": 0,
+          "streakChange": 0,
+          "target": 31
+        }
+      ],
+      "isEmpty": false,
+      "isRunning": false,
+      "measuredEnd": "2025-10-31",
+      "measuredStart": "2025-10-01",
+      "people": [
+        {
+          "change": 2,
+          "count": 2,
+          "id": "people/Nehir Ak.md",
+          "name": "Nehir Ak"
+        }
+      ],
+      "places": [
+        {
+          "change": 1,
+          "count": 1,
+          "id": "places/Rüzgâr Kafe.md",
+          "name": "Rüzgâr Kafe"
+        }
+      ],
+      "previous": {
+        "completedTasks": 0,
+        "createdTasks": 0,
+        "events": 0,
+        "firstPeople": 0,
+        "firstPlaces": 0,
+        "overdueTasks": 0,
+        "peopleMentions": 0,
+        "placeMentions": 0,
+        "undatedTasks": 0,
+        "writtenDays": 0
+      },
+      "previousEnd": "2025-09-30",
+      "previousMeasuredEnd": "2025-09-30",
+      "previousMeasuredStart": "2025-09-01",
+      "previousStart": "2025-09-01",
+      "previousUnits": [
+        {
+          "end": "2025-09-07",
+          "events": 0,
+          "measuredDays": 7,
+          "start": "2025-09-01",
+          "writing": "none",
+          "writtenDays": 0
+        },
+        {
+          "end": "2025-09-14",
+          "events": 0,
+          "measuredDays": 7,
+          "start": "2025-09-08",
+          "writing": "none",
+          "writtenDays": 0
+        },
+        {
+          "end": "2025-09-21",
+          "events": 0,
+          "measuredDays": 7,
+          "start": "2025-09-15",
+          "writing": "none",
+          "writtenDays": 0
+        },
+        {
+          "end": "2025-09-28",
+          "events": 0,
+          "measuredDays": 7,
+          "start": "2025-09-22",
+          "writing": "none",
+          "writtenDays": 0
+        },
+        {
+          "end": "2025-09-30",
+          "events": 0,
+          "measuredDays": 2,
+          "start": "2025-09-29",
+          "writing": "none",
+          "writtenDays": 0
+        }
+      ],
+      "start": "2025-10-01",
+      "units": [
+        {
+          "end": "2025-10-07",
+          "events": 3,
+          "measuredDays": 7,
+          "start": "2025-10-01",
+          "writing": "partial",
+          "writtenDays": 2
+        },
+        {
+          "end": "2025-10-14",
+          "events": 0,
+          "measuredDays": 7,
+          "start": "2025-10-08",
+          "writing": "none",
+          "writtenDays": 0
+        },
+        {
+          "end": "2025-10-21",
+          "events": 0,
+          "measuredDays": 7,
+          "start": "2025-10-15",
+          "writing": "none",
+          "writtenDays": 0
+        },
+        {
+          "end": "2025-10-28",
+          "events": 0,
+          "measuredDays": 7,
+          "start": "2025-10-22",
+          "writing": "none",
+          "writtenDays": 0
+        },
+        {
+          "end": "2025-10-31",
+          "events": 0,
+          "measuredDays": 3,
+          "start": "2025-10-29",
+          "writing": "none",
+          "writtenDays": 0
+        }
+      ]
+    }
+  },
+  {
+    "id": "empty-week-carries-open-tasks",
+    "vault": "rhythm",
+    "period": "week",
+    "containing": "2026-08-12",
+    "today": "2026-10-07",
+    "expected": {
+      "change": {
+        "completedTasks": -1,
+        "createdTasks": -3,
+        "events": 0,
+        "firstPeople": 0,
+        "firstPlaces": 0,
+        "overdueTasks": 0,
+        "peopleMentions": 0,
+        "placeMentions": 0,
+        "undatedTasks": 0,
+        "writtenDays": 0
+      },
+      "counts": {
+        "completedTasks": 0,
+        "createdTasks": 0,
+        "events": 0,
+        "firstPeople": 0,
+        "firstPlaces": 0,
+        "overdueTasks": 1,
+        "peopleMentions": 0,
+        "placeMentions": 0,
+        "undatedTasks": 1,
+        "writtenDays": 0
+      },
+      "end": "2026-08-16",
+      "firstPeople": [],
+      "firstPlaces": [],
+      "goals": [
+        {
+          "change": 0,
+          "completionDate": null,
+          "contribution": 0,
+          "done": 0,
+          "id": "goals/Su.md",
+          "score": 0,
+          "streak": 0,
+          "streakChange": 0,
+          "target": 7
+        }
+      ],
+      "isEmpty": true,
+      "isRunning": false,
+      "measuredEnd": "2026-08-16",
+      "measuredStart": "2026-08-10",
+      "people": [],
+      "places": [],
+      "previous": {
+        "completedTasks": 1,
+        "createdTasks": 3,
+        "events": 0,
+        "firstPeople": 0,
+        "firstPlaces": 0,
+        "overdueTasks": 1,
+        "peopleMentions": 0,
+        "placeMentions": 0,
+        "undatedTasks": 1,
+        "writtenDays": 0
+      },
+      "previousEnd": "2026-08-09",
+      "previousMeasuredEnd": "2026-08-09",
+      "previousMeasuredStart": "2026-08-03",
+      "previousStart": "2026-08-03",
+      "previousUnits": [
+        {
+          "end": "2026-08-03",
+          "events": 0,
+          "measuredDays": 1,
+          "start": "2026-08-03",
+          "writing": "none",
+          "writtenDays": 0
+        },
+        {
+          "end": "2026-08-04",
+          "events": 0,
+          "measuredDays": 1,
+          "start": "2026-08-04",
+          "writing": "none",
+          "writtenDays": 0
+        },
+        {
+          "end": "2026-08-05",
+          "events": 0,
+          "measuredDays": 1,
+          "start": "2026-08-05",
+          "writing": "none",
+          "writtenDays": 0
+        },
+        {
+          "end": "2026-08-06",
+          "events": 0,
+          "measuredDays": 1,
+          "start": "2026-08-06",
+          "writing": "none",
+          "writtenDays": 0
+        },
+        {
+          "end": "2026-08-07",
+          "events": 0,
+          "measuredDays": 1,
+          "start": "2026-08-07",
+          "writing": "none",
+          "writtenDays": 0
+        },
+        {
+          "end": "2026-08-08",
+          "events": 0,
+          "measuredDays": 1,
+          "start": "2026-08-08",
+          "writing": "none",
+          "writtenDays": 0
+        },
+        {
+          "end": "2026-08-09",
+          "events": 0,
+          "measuredDays": 1,
+          "start": "2026-08-09",
+          "writing": "none",
+          "writtenDays": 0
+        }
+      ],
+      "start": "2026-08-10",
+      "units": [
+        {
+          "end": "2026-08-10",
+          "events": 0,
+          "measuredDays": 1,
+          "start": "2026-08-10",
+          "writing": "none",
+          "writtenDays": 0
+        },
+        {
+          "end": "2026-08-11",
+          "events": 0,
+          "measuredDays": 1,
+          "start": "2026-08-11",
+          "writing": "none",
+          "writtenDays": 0
+        },
+        {
+          "end": "2026-08-12",
+          "events": 0,
+          "measuredDays": 1,
+          "start": "2026-08-12",
+          "writing": "none",
+          "writtenDays": 0
+        },
+        {
+          "end": "2026-08-13",
+          "events": 0,
+          "measuredDays": 1,
+          "start": "2026-08-13",
+          "writing": "none",
+          "writtenDays": 0
+        },
+        {
+          "end": "2026-08-14",
+          "events": 0,
+          "measuredDays": 1,
+          "start": "2026-08-14",
+          "writing": "none",
+          "writtenDays": 0
+        },
+        {
+          "end": "2026-08-15",
+          "events": 0,
+          "measuredDays": 1,
+          "start": "2026-08-15",
+          "writing": "none",
+          "writtenDays": 0
+        },
+        {
+          "end": "2026-08-16",
+          "events": 0,
+          "measuredDays": 1,
+          "start": "2026-08-16",
+          "writing": "none",
+          "writtenDays": 0
+        }
+      ]
+    }
+  }
+]

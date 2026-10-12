@@ -1,51 +1,58 @@
+import Summaries
 import SwiftUI
 
-struct SummaryChangeBadge: View {
-    let value: Double
-    private var change: SummaryChange { SummaryChange(value: value) }
-    var body: some View {
-        HStack(spacing: 4) {
-            Image(systemName: change.symbol)
-                .font(.ink.section)
-                .accessibilityHidden(true)
-            Text(verbatim: signedMagnitude)
-                .font(.ink.meta)
-                .monospacedDigit()
-        }
-        .foregroundStyle(Color.ink.secondaryText)
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(accessibilityText)
-        .accessibilityValue(Text(verbatim: change.magnitude.formatted()))
-    }
-
-    private var signedMagnitude: String {
-        let formatted = change.magnitude.formatted(.number.precision(.fractionLength(0...2)))
-        if value > 0 { return "+" + formatted }
-        if value < 0 { return "−" + formatted }
-        return "=" + formatted
-    }
-
-    private var accessibilityText: Text {
-        value > 0 ? Text("Artış") : value < 0 ? Text("Azalış") : Text("Değişim yok")
-    }
-}
-
+/// A headline number with its title and the change in words under it.
 struct SummaryMetric: View {
     let title: LocalizedStringKey
     let value: Int
-    let change: Int
+    /// "önceki haftaya göre +4": already localized. No arrow; the sign and the words carry it.
+    let change: String
     var body: some View {
-        HStack(alignment: .firstTextBaseline) {
-            VStack(alignment: .leading, spacing: 2) {
-                LargeNumberText(verbatim: value.formatted())
-                Text(title)
+        VStack(alignment: .leading, spacing: 2) {
+            LargeNumberText(verbatim: value.formatted())
+                .lineLimit(1)
+                .minimumScaleFactor(0.5)
+            Text(title)
+                .font(.ink.byline)
+                .foregroundStyle(Color.ink.text)
+            Text(verbatim: change)
+                .font(.ink.meta)
+                .monospacedDigit()
+                .foregroundStyle(Color.ink.secondaryText)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityElement(children: .combine)
+    }
+}
+
+/// Created tasks, then one stacked bar: completed, carried over past their date, open without a date.
+struct SummaryTaskSection: View {
+    let counts: SummaryCounts
+    let change: String
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            SectionHeader(title: String(localized: "Görevler"))
+            let layout =
+                dynamicTypeSize.isAccessibilitySize
+                ? AnyLayout(VStackLayout(alignment: .leading, spacing: 4))
+                : AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: 8))
+            layout {
+                Text("\(counts.createdTasks) görev oluşturuldu")
+                    .font(.ink.byline)
+                    .foregroundStyle(Color.ink.text)
+                if !dynamicTypeSize.isAccessibilitySize { Spacer(minLength: 8) }
+                Text(verbatim: change)
                     .font(.ink.meta)
+                    .monospacedDigit()
                     .foregroundStyle(Color.ink.secondaryText)
             }
-            Spacer(minLength: 8)
-            SummaryChangeBadge(value: Double(change))
-                .frame(minWidth: 72, alignment: .trailing)
+            .accessibilityElement(children: .combine)
+            InkSegmentBar(segments: [
+                .init(id: 0, title: String(localized: "Tamamlanan"), value: counts.completedTasks, style: .done),
+                .init(id: 1, title: String(localized: "Devreden"), value: counts.overdueTasks, style: .carried),
+                .init(id: 2, title: String(localized: "Tarihsiz açık"), value: counts.undatedTasks, style: .outline),
+            ])
         }
-        .accessibilityElement(children: .combine)
     }
 }

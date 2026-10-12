@@ -620,6 +620,9 @@ mindmap
       HeatmapCell
       LargeNumberText
       TagChip
+      RhythmStrip
+      InkSegmentBar
+      InkFlowLayout
     Hızlı giriş
       QuickEntryCapsule
     Mac
@@ -646,6 +649,9 @@ mindmap
 | Boş durum | `EmptyState` | `App/Design/Components/EmptyState.swift` |
 | İlerleme göstergesi | `InkProgress` | `App/Design/Components/InkProgress.swift` |
 | Isı haritası hücresi | `HeatmapCell` | `App/Design/Components/HeatmapCell.swift` |
+| Ritim şeridi: dönem birimleri başına olay sayısı | `RhythmStrip` | `App/Design/Components/RhythmStrip.swift` |
+| Yığılı çubuk: parçaları bir bütüne eşit olan tek çubuk | `InkSegmentBar` | `App/Design/Components/InkSegmentBar.swift` |
+| Akan satır: ad çipi ve açıklama dizisi | `InkFlowLayout` | `App/Design/Components/InkFlowLayout.swift` |
 | Bilgi, uyarı ve hata bandı | `InfoBand` | `App/Design/Components/InfoBand.swift` |
 | Büyük rakam | `LargeNumberText` | `App/Design/Components/LargeNumberText.swift` |
 | Mac kanban kartı | `InkKanbanCard` | `App/Design/Components/InkSurface.swift` |
@@ -682,6 +688,24 @@ Kutu `@ScaledMetric` ile büyür; dokunma alanı en az 44 pt kalır. Öncelik i�
 | Affedilen gün, hedefin altında katkı | `forgivenPartial` | Çukur ve alttan %45 vurgu | 2 pt kesik vurgu | "Kısmi katkı, affedildi" |
 
 Affedilen gün yalnız günlük hedefte, tek başına kalan bir kaçırmadır. Kesik çizgi af işaretini bugünün kesiksiz çerçevesinden renge bağlı olmadan ayırır. Af çerçevesi boş hücrenin kontrol çizgisinden renk, kalınlık ve kesiklikle ayrışır. Kesik desen hücre boyuyla büyür: kenar başına 3 çizgi.
+
+### Ritim şeridi ve yığılı çubuk
+
+**Özetler'in 2 grafiği durumu renge ek olarak biçimle ayırır.**
+
+| Parça | Biçim | Renk | VoiceOver |
+|---|---|---|---|
+| Ritim: bu dönemin çubuğu | Dar çubuk, üst köşeleri yuvarlak | Vurgu | Birim adı ve değer: olay sayısı, önceki dönem, yazıldı işareti |
+| Ritim: önceki dönemin çubuğu | Geniş çubuk, bu dönemin çubuğunun arkasında | %30 opaklıkta kontrol çizgisi | Aynı sütunun değerinde |
+| Ritim: yazıldı | Dolu nokta | Metin | "Yazıldı" |
+| Ritim: yarıdan azı yazıldı | Halka | Metin | "Yarıdan azı yazıldı" |
+| Ritim: yazılmadı | Kısa çizgi | Kontrol çizgisi | "Yazılmadı" |
+| Ritim: başlamamış birim | Çubuk ve işaret yok | — | Yalnız önceki dönem |
+| Yığılı çubuk: tamamlanan | Çapraz tarama ve ince çerçeve | İkincil metin | Açıklamada ad ve sayı |
+| Yığılı çubuk: devreden | Dolu | Metin: mürekkep tonu | Açıklamada ad ve sayı |
+| Yığılı çubuk: tarihsiz açık | Yalnız çerçeve | Kontrol çizgisi | Açıklamada ad ve sayı |
+
+Yığılı çubukta devreden parça uyarı rengini almaz. Uyarı rengi yalnız devreden görevin tarihinde kalır: Mürekkep kuralı 5. Erişilebilirlik boyutunda ritim şeridinin sütunları satıra döner; her satırda birim adı, işaret ve sayı yazar. Önceki dönemin rengi çukur değildir, çünkü çukur koyu kâğıtta görünmez.
 
 ### Mac liste sütunu seçimi
 

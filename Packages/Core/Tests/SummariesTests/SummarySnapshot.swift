@@ -40,3 +40,29 @@ func snapshot(_ summary: PeriodSummary) -> [String: Any] {
         }, "isEmpty": summary.isEmpty,
     ]
 }
+/// The redesign fields on top of ``snapshot(_:)``: measured ranges, rhythm units and first mentions.
+func rhythmSnapshot(_ summary: PeriodSummary) -> [String: Any] {
+    func units(_ values: [SummaryUnit]) -> [[String: Any]] {
+        values.map {
+            [
+                "start": $0.range.lowerBound.description, "end": $0.range.upperBound.description,
+                "events": $0.events, "writtenDays": $0.writtenDays, "measuredDays": $0.measuredDays,
+                "writing": $0.writing.rawValue,
+            ]
+        }
+    }
+    func firsts(_ values: [SummaryFirstMention]) -> [[String: Any]] {
+        values.map { ["id": $0.id, "name": $0.name, "day": $0.day.description] }
+    }
+    var result = snapshot(summary)
+    result["measuredStart"] = summary.measuredRange.lowerBound.description
+    result["measuredEnd"] = summary.measuredRange.upperBound.description
+    result["previousMeasuredStart"] = summary.previousMeasuredRange?.lowerBound.description as Any? ?? NSNull()
+    result["previousMeasuredEnd"] = summary.previousMeasuredRange?.upperBound.description as Any? ?? NSNull()
+    result["isRunning"] = summary.isRunning
+    result["units"] = units(summary.units)
+    result["previousUnits"] = units(summary.previousUnits)
+    result["firstPeople"] = firsts(summary.firstPeople)
+    result["firstPlaces"] = firsts(summary.firstPlaces)
+    return result
+}

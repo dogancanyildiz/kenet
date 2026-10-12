@@ -410,7 +410,7 @@ flowchart LR
 | Sorgular | `VaultIndex` | Bugün, gün listesi ve tek gün, güne bağlananlar, varlık zaman akışı ve son görüşme, Graph anmaları, zincir hesabı, hedef durumu, görev görünümleri, özet girdisi, bu gün geçmişte, varlık alanları, bağlanmamış anmalar, arama |
 | Tarih ayrıştırma | `DateParsing` | Doğal dil tarih ifadeleri; hızlı girişte tekrar ve öncelik |
 | Hedef hesapları | `GoalTracking` | Dönem ve yıl ilerlemesi, zincir, en uzun seri, ısı haritası. Günlük hedefte tek kaçırma affı ve kısmi af işareti |
-| Özetler | `Summaries` | Haftalık ve aylık sayılar, ilk beş kişi ve konum, hedef ve görev durumu, önceki dönem farkları. Aynı hedefte bu gün geçmişte, önemli tarihler, görüşme ritmi ve haftalık inceleme metni |
+| Özetler | `Summaries` | Haftalık, aylık ve yıllık sayılar, ritim birimleri, ilk beş kişi ve konum, ilk kez geçenler, hedef ve görev durumu, önceki dönem farkları. Süren dönemin karşılaştırması aynı tarihe kadardır. Aynı hedefte bu gün geçmişte, önemli tarihler, görüşme ritmi ve haftalık inceleme metni |
 | Kuvvet yerleşimi | `ForceLayout` | Graph'ın canlı kuvvet benzetimi: Barnes-Hut itmesi, yay, merkez çekimi, çarpışma, sönümleme. Sabit tohumlu ve belirlenimci |
 | Yazma kapısı | `VaultStore` | Kasa yazmalarını sıralama, dosya koordinasyonu, indeks güncellemesi |
 
@@ -438,7 +438,7 @@ Journal sonuna ekleme, `VaultStore`'un dosya-önce atomik yazma yolunu ve `RawDo
 |---|---|
 | Bağımlılık | `Summaries` yalnız `VaultFormat` ve `GoalTracking` bağımlılığı ve importu olan saf değer hesaplarıdır. Saat, dosya ya da indeks erişimi yok |
 | Girdi | `VaultIndex.summaryInput(from:to:)` tek okuma işleminde dönem günlerini ve bağlantılarını, görevleri, hedef tanımlarını ve dönem sonuna kadarki hedef geçmişini toplar |
-| Hesaplama | App seçilen ve önceki dönemi arka planda hesaplatır |
+| Hesaplama | App seçilen ve önceki dönemi arka planda hesaplatır. Süren dönemde `PeriodSummary` sayıları bugünde, önceki dönemi aynı tarihte bitirir |
 | Kasa değişimi | App özeti yeniden yükler ve eski isteklerin sonuçlarını eler |
 | Depolama | Özet için ayrı dosya ya da indeks şeması yok |
 

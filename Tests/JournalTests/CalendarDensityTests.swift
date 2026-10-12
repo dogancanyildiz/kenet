@@ -5,32 +5,10 @@ import VaultFormat
 @testable import Journal
 
 @MainActor struct CalendarDensityTests {
-    private func makeDay(date: CalendarDate, eventCount: Int, hasJournal: Bool) -> DaySummary {
-        let events = (0..<eventCount).map { i in
-            EventRow(
-                id: i,
-                time: nil,
-                text: LinkedText(spans: [.init(text: "Olay \(i)", destination: nil)]),
-                sourceLine: i,
-                sourceEnd: i,
-                sourceText: "- Olay \(i)",
-                sourceIdentifier: nil
-            )
-        }
-        let journal =
-            hasJournal
-            ? [
-                JournalRow(
-                    id: 0,
-                    headingLevel: nil,
-                    text: LinkedText(spans: [.init(text: "Günlük yazısı", destination: nil)]))
-            ] : []
-        return DaySummary(
-            id: "journal/\(date).md",
-            date: date,
-            events: events,
-            journal: journal
-        )
+    private func makeDay(date: CalendarDate, eventCount: Int, hasJournal: Bool) -> DayOverview {
+        DayOverview(
+            id: "journal/\(date).md", date: date, eventCount: eventCount, journalCount: hasJournal ? 1 : 0,
+            preview: hasJournal ? "Günlük yazısı" : nil)
     }
 
     @Test func scoreAndDensityThresholds() throws {

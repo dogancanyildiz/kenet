@@ -8,6 +8,8 @@ struct DaysView: View {
     @State private var selectedDay: CalendarDate?
     @State private var showsWeeklyReview = false
     @State private var weeklyReviewNotice: WeeklyReviewNotice?
+    /// Nil until the first query returns; a reload keeps the previous rows until then.
+    @State private var days: [DayOverview]?
 
     var body: some View {
         List {
@@ -50,7 +52,7 @@ struct DaysView: View {
                 ) { selectedDay = $0 }
                 .inkListRow()
             }
-            ForEach(store.content.days) { day in
+            ForEach(days ?? []) { day in
                 NavigationLink {
                     DayView(store: store, date: day.date)
                 } label: {
@@ -58,7 +60,7 @@ struct DaysView: View {
                 }
                 .inkListRow()
             }
-            if store.content.days.isEmpty {
+            if days?.isEmpty == true {
                 EmptyState("Henüz gün yok")
                     .inkListRow()
             }
@@ -68,13 +70,16 @@ struct DaysView: View {
         .inkPageScrollColumn()
         .navigationDestination(item: $selectedDay) { day in DayView(store: store, date: day) }
         .weeklyReviewSheet(isPresented: $showsWeeklyReview, store: store) { weeklyReviewNotice = $0 }
+        .task(id: DayRangeRequest(from: nil, to: nil, updated: store.lastUpdated)) {
+            if let loaded = try? await store.computeDaySummaries() { days = loaded }
+        }
         .inkRootPageNavigationTitle("Günlük")
         .accessibilityIdentifier("screen.days")
     }
 }
 
 struct DayRow: View {
-    let day: DaySummary
+    let day: DayOverview
 
     var body: some View {
         MarginRow(kind: .vault, time: nil) {
@@ -82,7 +87,7 @@ struct DayRow: View {
                 .foregroundStyle(.ink.text)
         } secondary: {
             VStack(alignment: .leading, spacing: 2) {
-                Text("Olaylar: \(day.events.count)")
+                Text("Olaylar: \(day.eventCount)")
                     .font(.ink.meta)
                     .foregroundStyle(.ink.secondaryText)
                 if let preview = day.preview {
@@ -97,6 +102,6 @@ struct DayRow: View {
         .accessibilityLabel(
             Text(
                 verbatim: VoiceOverCopy.dayRowLabel(
-                    date: day.date, eventCount: day.events.count, preview: day.preview)))
+                    date: day.date, eventCount: day.eventCount, preview: day.preview)))
     }
 }

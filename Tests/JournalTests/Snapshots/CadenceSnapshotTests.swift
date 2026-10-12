@@ -72,8 +72,13 @@
                 #expect(detail.personCadence.days == 30)
             }
             let person = try #require(store.content.entities.first { $0.id == Self.personPath })
-            // The entity page queries the timeline the card reads; hosted alone, the test does.
+            // The entity page queries the timeline and the last day the card reads; hosted alone,
+            // the test does.
             let timeline = try await store.computeEntityTimeline(for: person.id)
+            var lastDay: DaySummary?
+            if let last = EntityInsights.lastDay(in: timeline, today: LocalDay.today(at: Self.cadenceNow)) {
+                lastDay = try await store.computeDay(on: last)
+            }
             let ready = CadenceReadyBox()
             await SnapshotHost.assertView(
                 colorScheme: snapshotCase.colorScheme,
@@ -87,7 +92,8 @@
                 testName: "cadence",
                 content: {
                     Self.hosted(
-                        snapshotCase.subject, store: store, detail: detail, person: person, timeline: timeline
+                        snapshotCase.subject, store: store, detail: detail, person: person, timeline: timeline,
+                        lastDay: lastDay
                     )
                     .environment(IntentNavigation())
                     .environment(\.locale, snapshotLocale)
@@ -100,14 +106,14 @@
 
         @ViewBuilder private static func hosted(
             _ subject: CadenceSnapshotCase.Subject, store: IndexStore, detail: EntityDetailModel,
-            person: EntitySummary, timeline: [EntityTimelineDay]
+            person: EntitySummary, timeline: [EntityTimelineDay], lastDay: DaySummary?
         ) -> some View {
             switch subject {
             case .edit:
                 EntityEditSheet(store: store, model: detail, entity: person)
             case .insights:
                 NavigationStack {
-                    List { EntityInsightsCard(store: store, entity: person, timeline: timeline) }
+                    List { EntityInsightsCard(store: store, entity: person, timeline: timeline, lastDay: lastDay) }
                         .listStyle(.plain)
                         .inkPage()
                 }

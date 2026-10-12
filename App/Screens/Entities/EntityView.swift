@@ -6,12 +6,15 @@ struct EntityView: View {
     let entity: EntitySummary
     let onRenamed: (String) -> Void
     @Environment(\.locale) private var locale
+    @Environment(\.clockNow) private var clockNow
     @State private var model: EntityDetailModel
     @State private var importantDates: ImportantDatesModel
     @State private var unlinkedMentions: UnlinkedMentionsModel
     @State private var isEditing = false
     /// Nil until the first query returns; a reload keeps the previous days until then.
     @State private var timeline: [EntityTimelineDay]?
+    /// The last encounter's day, loaded with `timeline` so the insight card opens complete.
+    @State private var lastDay: DaySummary?
 
     init(store: IndexStore, entity: EntitySummary, onRenamed: @escaping (String) -> Void = { _ in }) {
         self.store = store
@@ -97,7 +100,16 @@ struct EntityView: View {
         .onChange(of: model.path) { _, path in onRenamed(path) }
         .task(id: store.lastUpdated) { await model.load() }
         .task(id: EntityTimelineRequest(path: model.path, updated: store.lastUpdated)) {
-            if let days = try? await store.computeEntityTimeline(for: model.path) { timeline = days }
+            guard let days = try? await store.computeEntityTimeline(for: model.path) else { return }
+            var day: DaySummary?
+            if let last = EntityInsights.lastDay(in: days, today: LocalDay.today(at: clockNow())) {
+                guard let loaded = try? await store.computeDay(on: last) else { return }
+                day = loaded
+            }
+            // A request replaced meanwhile must not write its older answer over the newer one.
+            guard !Task.isCancelled else { return }
+            timeline = days
+            lastDay = day
         }
         // A list row that draws nothing is never mounted, so these queries cannot live on the row.
         .background {
@@ -152,7 +164,7 @@ struct EntityView: View {
                 }
                 .inkListRow()
             }
-            EntityInsightsCard(store: store, entity: current, timeline: timeline ?? [])
+            EntityInsightsCard(store: store, entity: current, timeline: timeline ?? [], lastDay: lastDay)
         }
         if model.unreadableFrontmatter {
             Section {

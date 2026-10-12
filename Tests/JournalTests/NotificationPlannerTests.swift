@@ -2,6 +2,7 @@ import Foundation
 import GoalTracking
 import Testing
 import VaultFormat
+import VaultIndex
 
 @testable import Journal
 
@@ -54,17 +55,83 @@ struct NotificationPlannerTests {
         #expect(!plan(snapshot).contains { $0.id == "goals-2026-09-27" })
     }
 
+    /// The planner reads the published day file (`VaultReadModel.day(on:)`): the sample with
+    /// today's file absent, cut to its goal value, to its events, or to its Journal.
     @Test func absentOrGoalOnlyDayGetsJournalReminderButEventsOrWritingSuppressIt() throws {
-        var snapshot = VaultReadModel.empty
-        snapshot.days = [
-            DaySummary(id: "journal/\(today).md", date: today, events: [], journal: [], hasGoalRecords: true)
+        let sample = try notificationSample().asSnapshot()
+        let path = "journal/\(today).md"
+        let goal = try JSONDecoder().decode(
+            IndexedGoalLog.self,
+            from: Data(#"{"file":"\#(path)","key":"su","date":"\#(today)","kind":"number","value":"1"}"#.utf8))
+        func journalReminder(
+            keepsFile: Bool = true, goalLogs: [IndexedGoalLog] = [], keeping keep: (IndexedBlock) -> Bool
+        ) -> Bool {
+            let blocks = sample.blocks.filter { $0.file != path || (keepsFile && keep($0)) }
+            let kept = Set(blocks.filter { $0.file == path }.map(\.ordinal))
+            let snapshot = IndexSnapshot(
+                files: sample.files.filter { keepsFile || $0.path != path }, entities: sample.entities,
+                aliases: sample.aliases, blocks: blocks,
+                links: sample.links.filter { $0.file != path || $0.block.map(kept.contains) == true },
+                goalLogs: sample.goalLogs + goalLogs)
+            let model = VaultReadModel(snapshot: snapshot, today: today)
+            return plan(model).contains { $0.id == "journal-2026-09-27" }
+        }
+        #expect(!journalReminder { _ in true })
+        #expect(journalReminder(keepsFile: false) { _ in true })
+        #expect(journalReminder(goalLogs: [goal]) { _ in false })
+        #expect(!journalReminder { $0.kind == "event" })
+        #expect(!journalReminder { $0.section == "Journal" })
+    }
+
+    /// The read model no longer keeps the days; the planner's `day(on:)` is built from the day
+    /// file's fragment. The planner reads nothing from the day but whether it has events or Journal
+    /// rows, so its journal reminders are all a day can change: from every morning of a month around
+    /// the sample's days and an edge-case vault's, they are the days the old construction
+    /// (`DaySummary.build`) found empty, and the published day equals the old one.
+    @Test func journalRemindersFollowTheOldDayConstruction() throws {
+        let sample = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
+            .deletingLastPathComponent().appendingPathComponent("Fixtures/vaults/sample")
+        let edge = try testDirectory()
+        defer { try? FileManager.default.removeItem(at: edge) }
+        let files = [
+            "people/Ada Test.md": "---\ntype: person\nname: Ada Test\n---\n",
+            "journal/2026-09-02.md": "## Journal\n### Yalnız başlık\n",
+            "journal/2026-09-03.md": "## Tasks\n- [ ] yalnız görev 📅 2026-09-03\n",
+            "journal/2026-09-04.md": "---\ntype: journal\ngoals:\n  su: 3\n---\n",
+            "journal/2026-09-05.md": "",
+            "journal/2026-09-06.md": "## Notlar\nBaşka bölümde paragraf.\n",
+            "journal/2026-09-07.md": "\u{FEFF}## Events\r\n- 08:00 CRLF [[Ada Test]]\r\n",
+            "journal/2026-09-08.md": "## Journal\nYalnız [[Ada Test]] günlük.\n",
+            "journal/2026-09-09.md": "## Events\n\n## Journal\n\n",
+            "journal/2026-9-10.md": "## Events\n- 08:00 Tarih değil\n",
+            "journal/arsiv/2026-09-11.md": "## Events\n- 08:00 Arşiv\n",
+            "notes/Plan.md": "## Events\n- 09:00 [[2026-09-12]] planı\n\n## Journal\n[[2026-09-13]] notu.\n",
         ]
-        #expect(plan(snapshot).contains { $0.id == "journal-2026-09-27" })
-        let sample = try notificationSample().day(on: today)
-        snapshot.days = [DaySummary(id: sample.id, date: today, events: sample.events, journal: [])]
-        #expect(!plan(snapshot).contains { $0.id == "journal-2026-09-27" })
-        snapshot.days = [DaySummary(id: sample.id, date: today, events: [], journal: sample.journal)]
-        #expect(!plan(snapshot).contains { $0.id == "journal-2026-09-27" })
+        for (path, text) in files { try IncrementalReadModelVault.write(edge, path, text) }
+        try Data([0x23, 0x23, 0x20, 0xFF, 0x0A]).write(to: edge.appendingPathComponent("journal/2026-09-14.md"))
+
+        for (root, first) in [(sample, "2026-09-08"), (edge, "2026-08-28")] {
+            let index = try VaultIndex()
+            try index.rebuild(vaultRoot: root)
+            let snapshot = try index.snapshot()
+            let model = VaultReadModel(snapshot: snapshot, today: today)
+            let old = DaySummary.build(snapshot: snapshot)
+            #expect(!old.isEmpty)
+            let start = try #require(CalendarDate(first))
+            for offset in 0..<30 {
+                let day = try #require(start.addingDays(offset))
+                let week = (0..<7).compactMap { day.addingDays($0) }
+                let journal = plan(model, now: notificationDate(day.description)).filter { $0.id.hasPrefix("journal-") }
+                let empty = week.filter {
+                    let summary = DaySummary.day(on: $0, in: old)
+                    return summary.events.isEmpty && summary.journal.isEmpty
+                }
+                #expect(journal.map(\.id) == empty.map { "journal-\($0)" }, "\(root.lastPathComponent) \(day)")
+                for date in week {
+                    #expect(model.day(on: date).key == DaySummary.day(on: date, in: old).key, "\(date)")
+                }
+            }
+        }
     }
 
     @Test func categoriesDisableIndependentlyAndInvalidTimesDoNotSchedule() throws {

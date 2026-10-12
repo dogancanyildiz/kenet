@@ -6,6 +6,8 @@ struct EntityInsightsCard: View {
     let entity: EntitySummary
     /// The entity's timeline, queried by the page that hosts the card.
     let timeline: [EntityTimelineDay]
+    /// The day of the last encounter, queried with the timeline by the same page.
+    let lastDay: DaySummary?
     @Environment(\.clockNow) private var clockNow
     @Environment(\.locale) private var locale
     @Environment(\.timeZone) private var timeZone
@@ -15,7 +17,8 @@ struct EntityInsightsCard: View {
 
     var body: some View {
         let insight = EntityInsights.compute(
-            path: entity.id, timeline: timeline, content: store.content, today: LocalDay.today(at: clockNow()))
+            path: entity.id, timeline: timeline, lastDay: lastDay, entities: store.content.entities,
+            today: LocalDay.today(at: clockNow()))
         Section {
             SectionHeader(
                 title: String(

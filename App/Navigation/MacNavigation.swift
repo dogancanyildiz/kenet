@@ -308,6 +308,8 @@
         let openSummaries: () -> Void
         @State private var showsWeeklyReview = false
         @State private var weeklyReviewNotice: WeeklyReviewNotice?
+        /// Nil until the first query returns; a reload keeps the previous rows until then.
+        @State private var days: [DayOverview]?
 
         var body: some View {
             VStack(spacing: 0) {
@@ -336,9 +338,12 @@
                     InfoBand(kind: notice.kind, verbatim: notice.text, onDismiss: { weeklyReviewNotice = nil })
                 }
                 DaysCalendarView(store: store) { selection = "journal/\($0).md" }
-                MacDayList(days: store.content.days, selection: $selection)
+                MacDayList(days: days ?? [], selection: $selection)
             }
             .weeklyReviewSheet(isPresented: $showsWeeklyReview, store: store) { weeklyReviewNotice = $0 }
+            .task(id: DayRangeRequest(from: nil, to: nil, updated: store.lastUpdated)) {
+                if let loaded = try? await store.computeDaySummaries() { days = loaded }
+            }
         }
     }
 
@@ -409,7 +414,7 @@
 
     /// Günlük column. Selection chrome lives here so the day row and its tests share one list.
     struct MacDayList: View {
-        let days: [DaySummary]
+        let days: [DayOverview]
         @Binding var selection: String?
 
         var body: some View {

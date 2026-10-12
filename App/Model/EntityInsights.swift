@@ -13,10 +13,12 @@ struct EntityInsights {
     let people: [EntitySummary]
     let places: [EntitySummary]
 
-    /// `timeline` is the entity's own (`IndexStore.computeEntityTimeline(for:)`); `content` gives
-    /// the same-day companions.
+    /// `timeline` is the entity's own (`IndexStore.computeEntityTimeline(for:)`). `lastDay` is the
+    /// day of `lastDay(in:today:)` (`IndexStore.computeDay(on:)`), whose other links are the
+    /// same-day companions; another day gives none.
     static func compute(
-        path: String, timeline: [EntityTimelineDay], content: VaultReadModel, today: CalendarDate
+        path: String, timeline: [EntityTimelineDay], lastDay: DaySummary?, entities: [EntitySummary],
+        today: CalendarDate
     ) -> Self {
         let history = timeline.filter { $0.date <= today }
         let dates = Set(history.map(\.date)).sorted()
@@ -28,15 +30,20 @@ struct EntityInsights {
         let rows = history.filter { $0.date == last }.flatMap(\.rows)
             .sorted { ($0.file, $0.ordinal) < ($1.file, $1.ordinal) }
         // Same-day context includes separate events and journal paragraphs, excluding tasks/frontmatter.
-        let days = content.days.filter { $0.date == last }
+        let days = [lastDay].compactMap { $0 }.filter { $0.date == last }
         let texts = days.flatMap { $0.events.map(\.text) + $0.journal.filter { $0.headingLevel == nil }.map(\.text) }
         let companions = Set(texts.flatMap { $0.spans.compactMap(\.destination) }).subtracting([path])
-        let entities = content.entities.filter { companions.contains($0.id) }.sorted {
+        let entities = entities.filter { companions.contains($0.id) }.sorted {
             $0.name == $1.name ? $0.id < $1.id : $0.name < $1.name
         }
         return Self(
             lastDay: last, firstDay: dates.first, recentDayCount: recent.count, averageInterval: interval,
             rows: rows, people: entities.filter { $0.kind == "person" }, places: entities.filter { $0.kind == "place" })
+    }
+
+    /// The newest timeline day on or before `today`: the day whose companions the card lists.
+    static func lastDay(in timeline: [EntityTimelineDay], today: CalendarDate) -> CalendarDate? {
+        timeline.map(\.date).filter { $0 <= today }.max()
     }
 }
 

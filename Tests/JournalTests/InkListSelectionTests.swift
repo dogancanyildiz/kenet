@@ -70,7 +70,7 @@ struct InkListSelectionTests {
             let context = try TaskTestContext(sample: true)
             defer { context.clean() }
             await context.start()
-            let days = context.store.content.days
+            let days = try await context.store.computeDaySummaries()
             let id = try #require(days.first?.id)
             let size = CGSize(width: 320, height: 360)
             let bitmap = try await SelectionBitmap.render(

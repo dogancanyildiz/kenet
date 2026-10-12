@@ -974,6 +974,43 @@ final class IndexStore {
         return rows
     }
 
+    // MARK: - Day queries
+
+    /// Test seam: runs after a day-list or single-day query returns, before its generation is checked.
+    @ObservationIgnored var testingDayQueryDidFinish: (@MainActor () async -> Void)?
+
+    /// Day files dated `from` through `to` (an end left `nil` is open), newest first: the day list
+    /// and the calendar's density. Belongs to this vault generation; with no index open it is empty.
+    /// A caller cancelled meanwhile gets `CancellationError`: the detached query runs on, so a
+    /// screen's `.task(id:)` replaced by a newer request would otherwise write its older answer
+    /// over the newer one.
+    func computeDaySummaries(from: CalendarDate? = nil, to: CalendarDate? = nil) async throws -> [DayOverview] {
+        guard let index else { return [] }
+        let current = generation
+        let days = try await Task.detached {
+            try index.daySummaries(from: from, to: to).map(DayOverview.init(entry:))
+        }.value
+        await testingDayQueryDidFinish?()
+        guard generation == current else { throw VaultStoreError.staleTarget }
+        try Task.checkCancellation()
+        return days
+    }
+
+    /// One day's events and Journal paragraphs and headings in source order; a date without a day
+    /// file is empty. Belongs to this vault generation; with no index open it is empty. A caller
+    /// cancelled meanwhile gets `CancellationError`, as above.
+    func computeDay(on date: CalendarDate) async throws -> DaySummary {
+        guard let index else { return DaySummary(empty: date) }
+        let current = generation
+        let day = try await Task.detached {
+            DaySummary(contents: try index.day(on: date), date: date)
+        }.value
+        await testingDayQueryDidFinish?()
+        guard generation == current else { throw VaultStoreError.staleTarget }
+        try Task.checkCancellation()
+        return day
+    }
+
     // MARK: - Place documents
 
     /// Place files read for coordinates after every write and refresh, kept while unchanged on disk.

@@ -129,10 +129,10 @@ Kasa konumu ve widget'lar kimlik kararından sonra başlar; kimlik gerektirmeyen
 
 - [ ] Kasa konumu: iCloud kapsayıcısı, yerel yedek seçenek (Aşama 0'dan devreden; yerel kasa ve klasör seçimi hazır)
 - [ ] Eşitlenen kasada güvenli yazma: dosya koordinasyonu, indirilmemiş dosyalar, çakışan sürümlerin tespiti, birleştirme işlevinin bağlanması, kopya dosya kuralı, eşitleme durumu göstergesi
-  - Core sınırı, App'te `NSFileCoordinator`, eşitlenen klasör ve yer tutucu tespiti hazır; indirme isteği (cihaz doğrulaması bekliyor), kopya birleştirme, çakışma yönetimi ve eşitleme göstergesi açık.
+  - Core sınırı, App'te `NSFileCoordinator` (okuma kuyruğuyla), eşitlenen klasör ve yer tutucu tespiti, gün kopyası birleştirme (Core) hazır; indirme isteği (cihaz doğrulaması bekliyor), birleştirmenin App'e bağlanması (kullanıcı kararı), `NSFileVersion` çakışmaları ve eşitleme göstergesi açık.
 - [ ] Ana ekran widget'ı: zincir ve tek dokunuşla işaretleme; yapılmamışlar vurgulu (Aşama 3'ten devreden)
 - [ ] Ekranlar ve widget kendi sorgusunu çalıştırır: küresel okuma modeli yerine Core sorguları (Aşama 8'den devreden; widget bellek sınırı için)
-  - Graph ile varlık zaman akışı ve son görüşme kendi sorgusunu çalıştırıyor; günler, görevler, hedefler ve widget açık.
+  - Graph, varlık zaman akışı, son görüşme ve günler kendi sorgusunu çalıştırıyor; hedef durumu sorgusu hazır; görevler, hedef ekranları ve widget açık.
 - [ ] Widget yenilenmesinin güvenilirlik testi (Aşama 3'ten devreden)
 - [ ] Kilit ekranı widget'ı: takvim etkinlikleri ve günün görevleri (Aşama 3'ten devreden)
 - [ ] Hızlı giriş widget'ı ile kilit ekranı, Denetim Merkezi ve Eylem düğmesi girişi (Aşama 3'ten devreden)

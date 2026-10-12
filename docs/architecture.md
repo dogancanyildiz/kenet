@@ -122,6 +122,8 @@ Varlık tiplerinin importsuz değer modeli `VaultFormat` içindedir. Yerleşik k
 
 **Durum: tasarım, henüz uygulanmadı** (kimlik kararını bekliyor). Bugün kasa uygulamanın yerel `Documents/Vault` klasöründe ya da kullanıcının seçtiği klasördedir. Yazmalarda dosya koordinasyonu yoktur ve çakışma birleştirme işlevi (`VaultFormat` içinde hazır ve sınanmış) uygulamaya bağlanmamıştır; bu yüzden iCloud Drive gibi eşitlenen bir klasörü kasa olarak seçmek şimdilik korumasızdır. Seçilen bir klasörün eşitlenen sağlayıcılarda (iCloud Drive, Dropbox, OneDrive, Google Drive, File Provider) yer alıp almadığı `SyncedFolderKind` yardımcısı ile yol kalıpları ve `isUbiquitousItemKey` üzerinden tespit edilir. Aşağıdaki maddeler hedeflenen davranıştır.
 
+Core, `.X.icloud` yer tutucularını indekslemeden tarama sonucunun `pendingDownloads` alanında bildirir; özgün dosya varsa onu kullanır, yoksa oluşturma ve yeniden adlandırma hedeflerini koordinasyon sınırında `awaitingDownload(path:)` ile reddeder. İndirme isteği App katmanının sonraki dilimidir.
+
 - Kasa, uygulamanın iCloud kapsayıcısındadır ve Dosyalar ile Finder'da görünür.
 - Sunucu, hesap ya da özel senkronizasyon servisi yoktur.
 - iCloud kapalıysa kasa yerelde durur.

@@ -26,6 +26,7 @@ extension VaultStore {
             path.utf8.elementsEqual(newPath.utf8)
             ? .modify(sourceURL) : .move(source: sourceURL, destination: targetURL)
         let primary: (changed: Bool, failure: RenameResult?) = try fileCoordination.coordinate(operation) { access in
+            try rejectPendingDownload(at: targetURL, path: newPath)
             let original = RawDocument(bytes: try readFile(sourceURL))
             guard case .parsed(let frontmatter) = original.frontmatter,
                 case .scalar(let type) = frontmatter.field(named: "type")?.value,

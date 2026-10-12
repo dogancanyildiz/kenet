@@ -59,6 +59,15 @@ Vault/
 - Sembolik bağlantılar izlenmez. Adları aynı NFC biçimine dönüşen iki dosyadan bayt sırasında önce gelen indekslenir; diğeri bildirilir.
 - İndeks veritabanı kasanın içinde durmaz.
 
+### İndirilmeyi bekleyen sistem dosyaları
+
+`.X.icloud`, aynı klasördeki `X` dosyasının indirilmesini bekleyen sistem yer tutucusudur: nokta öneki, `.icloud` soneki (küçük harf) ve aralarında boş olmayan özgün ad gerekir; eşleme bayt düzeyindedir, NFC/NFD yazımı korunur. Uygulama bu dosyayı yazmaz, ayrıştırmaz, indekslemez; yalnız adını tanır. `.hidden.md` gibi sıradan gizli dosyalar yer tutucu değildir.
+
+- Tarama, taranan klasörlerde özgün adı `.md` ile biten yer tutucuların kasaya göreli özgün yollarını (diskteki yazımıyla, bayt sırasında) `pendingDownloads` listesinde bildirir; artımlı taramada yalnız bildirilen kapsamdakiler. Gizli klasörlerdeki (`.app/` dahil) yer tutucular bildirilmez.
+- İndirilmemiş dosyanın indeks satırı tutulmaz: indeks yalnız okunabilen dosyalardan yeniden üretilebilir. Dosya yer tutucuya dönünce satırı silinir, indirilince geri gelir.
+- Aynı yerde indirilmiş özgün dosya da varsa o kazanır: indekslenir, düzenlenebilir, bekleyen listesine girmez.
+- Hedefin yer tutucu kardeşi varken eksik gün, varlık, hedef veya `.app/types.json` dosyası oluşturulmaz, yeniden adlandırma hedefi olarak kullanılmaz (`awaitingDownload`). Kardeş, ad karşılaştırma kuralıyla (NFC, küçük harf) aranır; büyük/küçük harfe duyarlı birimde de `selin.md`, `.Selin.md.icloud` yanında oluşturulamaz. Denetim yazma koordinasyonunun içinde, herhangi bir değişiklikten önce yapılır.
+
 ## Adlar ve karşılaştırma
 
 - Dosya adları ve adlarla yapılan tüm karşılaştırmalar Unicode NFC'ye normalleştirilir (macOS ve iCloud dosya adlarını farklı biçimde döndürebilir; Türkçe karakterlerde eşleşme hatasına yol açar). Bu kural yalnızca dosya ve varlık adlarını kapsar; satırlar ve frontmatter değerleri bayt düzeyinde, normalleştirme yapılmadan karşılaştırılır.

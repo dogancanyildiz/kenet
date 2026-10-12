@@ -35,6 +35,7 @@ extension VaultStore {
             }
             let url = try self.checkedURL(path, writing: true)
             try self.fileCoordination.coordinate(.modify(url)) { _ in
+                try self.rejectPendingDownload(at: url, path: path)
                 try self.persist(document, path: path, exclusive: true)
             }
             return path

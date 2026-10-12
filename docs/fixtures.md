@@ -295,6 +295,10 @@ Core testleri bu JSON'u indeks girdisinden hesaplanan sonuçla karşılaştırı
 
 `vaults/backlinks/`, "bu güne bağlananlar" sorgusu ve arayüzü için kurgusal küçük kasadır: 2026-10-02 gün dosyası (kendi içine bağlantılı), 2026-10-01 gün dosyası (hedefe bağlantılı), `notes/Proje Fikirleri.md` (iki ayrı satırda hedefe bağlantı, bir satırda iki yinelenen bağlantı, kod içi bağlantı ve çözülmeyen hedef), `people/Deniz Arıkan.md` ve `places/Liman Ofis.md` (hedefe bağlantılı kişi ve konum). Günün kendisi, kod içi bağlantı ve çözülmeyen hedeflerin dışlandığını, aynı kaynaktan iki satırın iki ayrı satır olarak listelendiğini kanıtlar.
 
+### `vaults/placeholder/`
+
+İndirilmemiş gün, kişi, hedef ve kök klasördeki not yer tutucuları; bildirilmeyen `.app/.types.json.icloud`; hem yer tutucusu hem indirilmiş özgün dosyası bulunan bir gün; sıradan gizli Markdown ve kişi yeniden adlandırma kaynağı içerir. `expected.json`, bekleyen ve indekslenen yolları; `names.json`, düşman adlar, boşluk ve NFD baytlarını koruyan saf ad eşlemesini tanımlar. Reddedilen oluşturma/taşıma işlemlerinde tüm kasa ve SQLite baytları korunur.
+
 ## Özel varlık tipleri
 
 `vaults/typed/`, ana örnek kasanın sabit sayılarını değiştirmeden kitap tipi, iki kurgusal kitap ve bir şablon içerir. `.app/types.json` text/date/number/boolean/link alanlarını tanımlar; `templates/` indekslenmez. `entity-types/` geçerli, bozuk, ayrılmış id ve yinelenen id JSON beklentilerini; oluşturma için tam Markdown çıktısını; bir tanım değişirken hedef dışındaki JSON baytlarını koruyan girdi/çıktıyı taşır. `recognition/custom-book/` @ anmasının özel tip wikilink'ine dönüşümünü mevcut dilden bağımsız tanıma fixture biçimiyle sınar. Tip tanımı kaldırılınca kitaplar not olarak indekslenir ve dosya baytları değişmez.

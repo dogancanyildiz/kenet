@@ -2540,5 +2540,223 @@
     "confidence": "exact",
     "expression": "yarın",
     "weekStartsOnMonday": true
+  },
+  {
+    "today": "2026-10-05",
+    "language": [
+      "tr"
+    ],
+    "input": "Cuma'ya yarın",
+    "expectedDate": "2026-10-09",
+    "remainder": "yarın",
+    "confidence": "assumed",
+    "expression": "Cuma'ya",
+    "weekStartsOnMonday": true
+  },
+  {
+    "today": "2026-10-05",
+    "language": [
+      "tr"
+    ],
+    "input": "Cuma’ya kadar",
+    "expectedDate": "2026-10-09",
+    "remainder": "kadar",
+    "confidence": "assumed",
+    "expression": "Cuma’ya",
+    "weekStartsOnMonday": true
+  },
+  {
+    "today": "2026-10-05",
+    "language": [
+      "tr"
+    ],
+    "input": "Cuma'ya kadar raporu bitir",
+    "expectedDate": "2026-10-09",
+    "remainder": "kadar raporu bitir",
+    "confidence": "assumed",
+    "expression": "Cuma'ya",
+    "weekStartsOnMonday": true
+  },
+  {
+    "today": "2026-10-05",
+    "language": [
+      "tr"
+    ],
+    "input": "Cuma'dan sonra ara",
+    "expectedDate": "2026-10-09",
+    "remainder": "sonra ara",
+    "confidence": "assumed",
+    "expression": "Cuma'dan",
+    "weekStartsOnMonday": true
+  },
+  {
+    "today": "2026-10-05",
+    "language": [
+      "tr"
+    ],
+    "input": "pazartesi'ye taşı",
+    "expectedDate": "2026-10-12",
+    "remainder": "taşı",
+    "confidence": "assumed",
+    "expression": "pazartesi'ye",
+    "weekStartsOnMonday": true
+  },
+  {
+    "today": "2026-10-05",
+    "language": [
+      "tr"
+    ],
+    "input": "haftaya Cuma'ya",
+    "expectedDate": "2026-10-16",
+    "remainder": "",
+    "confidence": "exact",
+    "expression": "haftaya Cuma'ya",
+    "weekStartsOnMonday": true
+  },
+  {
+    "today": "2026-10-05",
+    "language": [
+      "tr"
+    ],
+    "input": "5 Ekim'e",
+    "expectedDate": "2026-10-05",
+    "remainder": "",
+    "confidence": "assumed",
+    "expression": "5 Ekim'e",
+    "weekStartsOnMonday": true
+  },
+  {
+    "today": "2026-10-05",
+    "language": [
+      "tr"
+    ],
+    "input": "15 Mart'tan sonra",
+    "expectedDate": "2027-03-15",
+    "remainder": "sonra",
+    "confidence": "assumed",
+    "expression": "15 Mart'tan",
+    "weekStartsOnMonday": true
+  },
+  {
+    "today": "2026-10-05",
+    "language": [
+      "en",
+      "tr"
+    ],
+    "input": "Cuma'ya",
+    "expectedDate": "2026-10-09",
+    "remainder": "",
+    "confidence": "assumed",
+    "expression": "Cuma'ya",
+    "weekStartsOnMonday": true
+  },
+  {
+    "today": "2026-10-05",
+    "language": [
+      "tr"
+    ],
+    "input": "yarın'a",
+    "expectedDate": "2026-10-06",
+    "remainder": "'a",
+    "confidence": "exact",
+    "expression": "yarın",
+    "weekStartsOnMonday": true
+  },
+  {
+    "today": "2026-10-05",
+    "language": [
+      "tr"
+    ],
+    "input": "Cuma'nın raporu",
+    "expectedDate": "2026-10-09",
+    "remainder": "'nın raporu",
+    "confidence": "assumed",
+    "expression": "Cuma",
+    "weekStartsOnMonday": true
+  },
+  {
+    "today": "2026-10-05",
+    "language": [
+      "tr"
+    ],
+    "input": "Cuma'da ara",
+    "expectedDate": "2026-10-09",
+    "remainder": "'da ara",
+    "confidence": "assumed",
+    "expression": "Cuma",
+    "weekStartsOnMonday": true
+  },
+  {
+    "today": "2026-10-05",
+    "language": [
+      "tr"
+    ],
+    "input": "Cuma'yı ara",
+    "expectedDate": "2026-10-09",
+    "remainder": "'yı ara",
+    "confidence": "assumed",
+    "expression": "Cuma",
+    "weekStartsOnMonday": true
+  },
+  {
+    "today": "2026-10-05",
+    "language": [
+      "tr"
+    ],
+    "input": "Cuma 'ya",
+    "expectedDate": "2026-10-09",
+    "remainder": "'ya",
+    "confidence": "assumed",
+    "expression": "Cuma",
+    "weekStartsOnMonday": true
+  },
+  {
+    "today": "2026-10-05",
+    "language": [
+      "tr"
+    ],
+    "input": "Cuma'yaz",
+    "expectedDate": "2026-10-09",
+    "remainder": "'yaz",
+    "confidence": "assumed",
+    "expression": "Cuma",
+    "weekStartsOnMonday": true
+  },
+  {
+    "today": "2026-10-05",
+    "language": [
+      "tr"
+    ],
+    "input": "25.10'a kadar",
+    "expectedDate": "2026-10-25",
+    "remainder": "'a kadar",
+    "confidence": "assumed",
+    "expression": "25.10",
+    "weekStartsOnMonday": true
+  },
+  {
+    "today": "2026-10-05",
+    "language": [
+      "en"
+    ],
+    "input": "Friday's report",
+    "expectedDate": "2026-10-09",
+    "remainder": "'s report",
+    "confidence": "assumed",
+    "expression": "Friday",
+    "weekStartsOnMonday": true
+  },
+  {
+    "today": "2026-10-05",
+    "language": [
+      "tr",
+      "en"
+    ],
+    "input": "Friday'ya",
+    "expectedDate": "2026-10-09",
+    "remainder": "'ya",
+    "confidence": "assumed",
+    "expression": "Friday",
+    "weekStartsOnMonday": true
   }
 ]

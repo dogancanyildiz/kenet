@@ -12,15 +12,18 @@ public struct RebuildResult: Sendable, Equatable {
     public let updatedPaths: [String]
     public let deletedPaths: [String]
     public let skippedPaths: [SkippedPath]
+    /// Physical vault-relative original paths awaiting download, in UTF-8 byte order.
+    public let pendingDownloads: [String]
 
     init(
         addedPaths: [String] = [], updatedPaths: [String] = [], deletedPaths: [String] = [],
-        skippedPaths: [SkippedPath]
+        skippedPaths: [SkippedPath], pendingDownloads: [String] = []
     ) {
         self.addedPaths = addedPaths
         self.updatedPaths = updatedPaths
         self.deletedPaths = deletedPaths
         self.skippedPaths = skippedPaths
+        self.pendingDownloads = pendingDownloads
     }
 }
 
@@ -66,9 +69,10 @@ enum VaultScanner {
     ) {
         var files: [ScannedFile] = []
         var skipped: [SkippedPath] = []
+        var pending: Set<String> = []
         let resolved = normalizeScopes(scopes)
         if resolved.contains(.full) {
-            try visit(root, prefix: "", recursive: true, files: &files, skipped: &skipped)
+            try visit(root, prefix: "", recursive: true, files: &files, skipped: &skipped, pending: &pending)
         } else {
             for scope in resolved.sorted(by: scopeOrder) {
                 switch scope {
@@ -78,7 +82,7 @@ enum VaultScanner {
                     let directory = relative.isEmpty ? root : root.appendingPathComponent(relative)
                     try visit(
                         directory, prefix: relative.isEmpty ? "" : relative + "/", recursive: true, files: &files,
-                        skipped: &skipped)
+                        skipped: &skipped, pending: &pending)
                 case .shallow(let relative):
                     let directory = relative.isEmpty ? root : root.appendingPathComponent(relative)
                     var isDirectory: ObjCBool = false
@@ -87,17 +91,23 @@ enum VaultScanner {
                     else { continue }
                     try visit(
                         directory, prefix: relative.isEmpty ? "" : relative + "/", recursive: false, files: &files,
-                        skipped: &skipped)
+                        skipped: &skipped, pending: &pending)
                 }
             }
         }
         files = deduplicate(files, skipped: &skipped)
         skipped.sort { $0.path.utf8.lexicographicallyPrecedes($1.path.utf8) }
-        return (files, RebuildResult(addedPaths: files.map(\.path), skippedPaths: skipped))
+        return (
+            files,
+            RebuildResult(
+                addedPaths: files.map(\.path), skippedPaths: skipped,
+                pendingDownloads: pending.sorted { $0.utf8.lexicographicallyPrecedes($1.utf8) })
+        )
     }
 
     private static func visit(
-        _ directory: URL, prefix: String, recursive: Bool, files: inout [ScannedFile], skipped: inout [SkippedPath]
+        _ directory: URL, prefix: String, recursive: Bool, files: inout [ScannedFile], skipped: inout [SkippedPath],
+        pending: inout Set<String>
     ) throws {
         visitProbe?.directories += 1
         for url in try FileManager.default.contentsOfDirectory(
@@ -128,8 +138,12 @@ enum VaultScanner {
                     continue
                 }
                 if recursive {
-                    try visit(url, prefix: path + "/", recursive: true, files: &files, skipped: &skipped)
+                    try visit(
+                        url, prefix: path + "/", recursive: true, files: &files, skipped: &skipped, pending: &pending)
                 }
+            } else if let original = PlaceholderName.originalName(ofPlaceholder: name), original.hasSuffix(".md") {
+                let originalURL = url.deletingLastPathComponent().appendingPathComponent(original)
+                if !FileManager.default.fileExists(atPath: originalURL.path) { pending.insert(prefix + original) }
             } else if name.hasSuffix(".md") {
                 files.append(
                     ScannedFile(url: url, path: path.precomposedStringWithCanonicalMapping, physicalPath: path))

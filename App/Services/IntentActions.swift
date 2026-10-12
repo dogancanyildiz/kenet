@@ -46,18 +46,20 @@ final class IntentActions {
     /// Locked means app lock is enabled and not yet authenticated (`isEnabled && isLocked`).
     var isLocked: () -> Bool
     private var isPerforming = false
-    var languages: [DateParsing.Language] = [.turkish, .english]
+    var languages: [DateParsing.Language]
     var calendar = Calendar.autoupdatingCurrent
 
     init(
         store: IndexStore = IndexStore(), now: @escaping () -> Date = { Date() },
         permitsStart: @escaping () -> Bool = { AppLaunchPolicy.allowsAutomaticStart() },
-        isLocked: @escaping () -> Bool = { false }
+        isLocked: @escaping () -> Bool = { false },
+        locale: Locale = DateParsingLanguages.appLocale
     ) {
         self.store = store
         self.now = now
         self.permitsStart = permitsStart
         self.isLocked = isLocked
+        languages = DateParsingLanguages.preferred(for: locale)
     }
 
     /// Cold intent launch before JournalApp attaches the live service: enabled ⇒ unauthenticated.

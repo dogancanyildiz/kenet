@@ -104,7 +104,7 @@ extension VaultIndex {
                 addedPaths: added, updatedPaths: updated, deletedPaths: deleted,
                 skippedPaths: scan.result.skippedPaths.filter {
                     includes($0.path.precomposedStringWithCanonicalMapping)
-                })
+                }, pendingDownloads: scan.result.pendingDownloads.filter(includes))
         }
     }
 }
@@ -193,8 +193,12 @@ private func notification(for path: String, root: URL) -> Notification? {
         comparisonKey(absolute) == comparisonKey(base)
             || comparisonKey(absolute).hasPrefix(comparisonKey(base) + "/")
     else { return nil }
-    let relative =
+    var relative =
         comparisonKey(absolute) == comparisonKey(base) ? "" : String(absolute.dropFirst(base.count + 1))
+    if let original = PlaceholderName.originalName(ofPlaceholder: url.lastPathComponent) {
+        let parent = (relative as NSString).deletingLastPathComponent
+        relative = (parent.isEmpty || parent == "." ? "" : parent + "/") + original
+    }
     let components = relative.split(separator: "/").map(String.init)
     guard !components.dropLast().contains(where: { $0.hasPrefix(".") }),
         components.first != "templates", components.first != "conflicts",

@@ -59,6 +59,15 @@ Vault/
 - Sembolik bağlantılar izlenmez. Adları aynı NFC biçimine dönüşen iki dosyadan bayt sırasında önce gelen indekslenir; diğeri bildirilir.
 - İndeks veritabanı kasanın içinde durmaz.
 
+### İndirilmeyi bekleyen sistem dosyaları
+
+`.X.icloud`, aynı klasördeki `X` dosyasının indirilmesini bekleyen sistem yer tutucusudur: nokta öneki, `.icloud` soneki (küçük harf) ve aralarında boş olmayan özgün ad gerekir; eşleme bayt düzeyindedir, NFC/NFD yazımı korunur. Uygulama bu dosyayı yazmaz, ayrıştırmaz, indekslemez; yalnız adını tanır. `.hidden.md` gibi sıradan gizli dosyalar yer tutucu değildir.
+
+- Tarama, taranan klasörlerde özgün adı `.md` ile biten yer tutucuların kasaya göreli özgün yollarını (diskteki yazımıyla, bayt sırasında) `pendingDownloads` listesinde bildirir; artımlı taramada yalnız bildirilen kapsamdakiler. Gizli klasörlerdeki (`.app/` dahil) yer tutucular bildirilmez.
+- İndirilmemiş dosyanın indeks satırı tutulmaz: indeks yalnız okunabilen dosyalardan yeniden üretilebilir. Dosya yer tutucuya dönünce satırı silinir, indirilince geri gelir.
+- Aynı yerde indirilmiş özgün dosya da varsa o kazanır: indekslenir, düzenlenebilir, bekleyen listesine girmez.
+- Hedefin yer tutucu kardeşi varken eksik gün, varlık, hedef veya `.app/types.json` dosyası oluşturulmaz, yeniden adlandırma hedefi olarak kullanılmaz (`awaitingDownload`). Kardeş, ad karşılaştırma kuralıyla (NFC, küçük harf) aranır; büyük/küçük harfe duyarlı birimde de `selin.md`, `.Selin.md.icloud` yanında oluşturulamaz. Denetim yazma koordinasyonunun içinde, herhangi bir değişiklikten önce yapılır.
+
 ## Adlar ve karşılaştırma
 
 - Dosya adları ve adlarla yapılan tüm karşılaştırmalar Unicode NFC'ye normalleştirilir (macOS ve iCloud dosya adlarını farklı biçimde döndürebilir; Türkçe karakterlerde eşleşme hatasına yol açar). Bu kural yalnızca dosya ve varlık adlarını kapsar; satırlar ve frontmatter değerleri bayt düzeyinde, normalleştirme yapılmadan karşılaştırılır.
@@ -335,6 +344,7 @@ Obsidian Tasks biçimi. Onay kutusu taşıyan her liste satırı görevdir; hang
 - Açık tekrarlayan görev tamamlandığında özgün satır `[x]` ve `✅` alarak yerinde kalır; hemen üstüne aynı ilk satır metni ve alanlarıyla, açık `[ ]`, sonraki `📅`, varsa `🛫` aynı gün farkıyla kaydırılmış, `✅` olmadan ve kasada benzersiz yeni kimlikle yeni satır eklenir. Devam satırları ve alt görevler özgün görevde kalır; yeni örneğe kopyalanmaz. Kapatılmış görevi tekrar tamamlamak veya iptal etmek yeni örnek üretmez; geri açma mevcut sonraki örneği silmez.
 - Haftanın günü sonraki o gündür (referans gün aynıysa yedi gün sonra). Gün/hafta tam aralık kadar ilerler. Ay/yıl taşması ayın son gününe sıkıştırılır (31 Ocak → 28/29 Şubat; 29 Şubat → sonraki yıl 28 Şubat). Desteklenen tarih sınırında sonraki tarih üretilemiyorsa işlem yazmadan hata verir; tamamlanma ve yeni satır tek atomik dosya işlemidir.
 - Hızlı girişte yalnız görev modunda, metnin başında/sonunda bağımsız `!` orta (`🔼`), `!!` yüksek (`⏫`) olur; `!!!`, sözcük içi işaretler, kod ve bağlantı içindekiler korunur. Baş ve son işaret birlikteyse yüksek olan seçilir; açık emoji önceliği korunur. Düşük yalnız öncelik seçicisinden verilir. `her gün/hafta/ay/yıl`, `her N gün/hafta/ay/yıl`, `her pazartesi/.../pazar`, İngilizce eşdeğerleri ve `tamamlanınca`/`when done` hızlı girişte tekrar alanına çevrilir. Tekrar sözcükleri tarih ayrıştırmasından önce tüketilir; bilinen/protected bağlantı, kod, etiket ve `🔁` alanına dokunulmaz.
+- Tarih ifadesi Türkçe gün ya da ay adıyla bitiyorsa, ada kesme işaretiyle (`'` ya da `’`) bitişik yönelme ya da çıkma eki (`'a`, `'e`, `'ya`, `'ye`, `'dan`, `'den`, `'tan`, `'ten`) ifadenin parçasıdır ve onunla birlikte çıkarılır: `Cuma'ya kadar raporu bitir` → bitiş cuma, metin `kadar raporu bitir` (`kadar` ayrı bir ifade değildir, metinde kalır); `5 Ekim'e`, `15 Mart'tan sonra` aynı kuralla okunur. Başka ekler (`Cuma'da`, `Cuma'yı`, `Cuma'nın`), göreli sözcükler (`yarın'a`), sayısal tarihler (`25.10'a`) ve İngilizce adlar (`Friday's`) eskisi gibi okunur: ifade eksiz çıkarılır, ek metinde kalır.
 
 ## Kişi dosyası
 

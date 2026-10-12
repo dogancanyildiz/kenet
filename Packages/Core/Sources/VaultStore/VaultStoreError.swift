@@ -6,6 +6,9 @@ public enum VaultStoreError: Error, Sendable, Equatable {
     case staleTarget
     /// A filename with the same comparison key already exists in the vault.
     case nameTaken
+    /// The target has a system placeholder sibling and must be downloaded first.
+    /// `path` is the vault-relative original that awaits download, in its on-disk spelling.
+    case awaitingDownload(path: String)
     /// The name or qualifier is empty, multiline, contains controls or exceeds the filename byte limit.
     case invalidName
     /// The requested path is outside the vault, hidden, reserved or a symbolic link.
@@ -28,6 +31,8 @@ public enum VaultStoreError: Error, Sendable, Equatable {
             .reservedFolderCaseMismatch(let rightFound, let rightExpected)
         ):
             return leftFound == rightFound && leftExpected == rightExpected
+        case (.awaitingDownload(let left), .awaitingDownload(let right)):
+            return left == right
         case (.indexUpdateFailed(let leftPath, let leftError), .indexUpdateFailed(let rightPath, let rightError)):
             return leftPath == rightPath && (leftError as NSError) == (rightError as NSError)
         default: return false

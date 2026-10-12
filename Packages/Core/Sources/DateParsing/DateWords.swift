@@ -21,6 +21,9 @@ enum DateWords {
         ],
     ]
 
+    /// Turkish dative and ablative endings written after an apostrophe ("Cuma'ya", "Ekim'den").
+    static let caseSuffixes: Set<String> = ["a", "e", "ya", "ye", "dan", "den", "tan", "ten"]
+
     static func number(_ token: String) -> Int? {
         guard !token.isEmpty, token.utf8.allSatisfy({ (48...57).contains($0) }) else { return nil }
         return Int(token)

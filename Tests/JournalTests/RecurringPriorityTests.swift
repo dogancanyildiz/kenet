@@ -69,8 +69,10 @@ import VaultFormat
         #expect(
             await context.store.addTask(on: context.today, text: "Plan 🔁 every week #project/demo", due: context.today))
         let tasks = TasksModel(store: context.store, today: { context.today })
+        await tasks.loadList()
         let old = try #require(tasks.agenda.first?.rows.first)
         #expect(await tasks.toggle(old))
+        await tasks.loadList()
         #expect(tasks.completed.count == 1)
         let next = try #require(context.store.content.tasks.first { !$0.isClosed })
         #expect(next.id != old.id)
@@ -100,14 +102,15 @@ import VaultFormat
         await context.store.refresh()
         let tasks = TasksModel(store: context.store, today: { context.today })
         tasks.projectFilter = "order"
+        await tasks.loadList()
         let expected = ["high", "medium", "normal", "low"]
         #expect(tasks.agenda.first?.rows.compactMap(\.sourceIdentifier) == expected)
         #expect(
             TaskGroups(rows: context.store.content.tasks, on: context.today, isToday: true).dated.compactMap(
                 \.sourceIdentifier) == expected)
         #expect(
-            ProjectModel(store: context.store, name: "order").openGroups.first?.rows.compactMap(\.sourceIdentifier)
-                == expected)
+            try await ProjectModel.loaded(store: context.store, name: "order").openGroups.first?.rows.compactMap(
+                \.sourceIdentifier) == expected)
         let entity = TasksModel.openTasks(in: context.store, linkedTo: "people/Deniz Arıkan.md").filter {
             $0.project == "order"
         }

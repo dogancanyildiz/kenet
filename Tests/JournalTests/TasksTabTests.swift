@@ -11,6 +11,7 @@ import VaultFormat
         await context.start()
         let day = CalendarDate("2026-09-20")!
         let model = TasksModel(store: context.store, today: { day })
+        await model.loadList()
         #expect(
             model.agenda.map(\.date) == [
                 nil, day, CalendarDate("2026-09-22"), CalendarDate("2026-09-24"), CalendarDate("2026-09-25"),
@@ -28,6 +29,7 @@ import VaultFormat
         defer { context.clean() }
         await context.start()
         let model = TasksModel(store: context.store)
+        await model.loadList()
         #expect(model.undated.count == 3)
         #expect(model.undated.allSatisfy { !$0.isClosed && $0.due == nil })
         #expect(model.undated.first?.createdDate == CalendarDate("2026-09-19"))
@@ -43,17 +45,22 @@ import VaultFormat
         defer { context.clean() }
         await context.start()
         let model = TasksModel(store: context.store)
+        await model.loadList()
         model.entityFilter = "people/Deniz Arıkan.md"
+        await model.loadList()
         #expect(model.undated.count == 1)
         #expect(model.agenda.isEmpty)
         model.entityFilter = "places/Liman Ofis.md"
+        await model.loadList()
         #expect(model.undated.count == 1)
         #expect(model.completed.count == 1)
         model.clearFilters()
         model.projectFilter = "tedarik"
+        await model.loadList()
         #expect(model.agenda.flatMap(\.rows).count == 1)
         #expect(model.projects.contains("tedarik"))
         model.entityFilter = "people/Deniz Arıkan.md"
+        await model.loadList()
         #expect(model.agenda.isEmpty)
         model.clearFilters()
         #expect(!model.hasFilters)
@@ -74,10 +81,12 @@ import VaultFormat
         defer { context.clean() }
         await context.start()
         let model = TasksModel(store: context.store)
+        await model.loadList()
         let row = try #require(model.completed.first)
         let file = context.root.appendingPathComponent(row.file)
         let before = try String(contentsOf: file, encoding: .utf8)
         #expect(await model.toggle(row))
+        await model.loadList()
         let after = try String(contentsOf: file, encoding: .utf8)
         #expect(
             after
@@ -97,6 +106,7 @@ import VaultFormat
             to: context.file, atomically: true, encoding: .utf8)
         await context.store.refresh()
         let model = TasksModel(store: context.store)
+        await model.loadList()
         #expect(model.completed.count == 50)
         #expect(model.agenda.last?.date == CalendarDate("2099-12-31"))
     }
@@ -110,6 +120,7 @@ import VaultFormat
         try "- [ ] Body link\n  [[Deniz Arıkan]]\n".write(to: file, atomically: true, encoding: .utf8)
         await context.store.refresh()
         let model = TasksModel(store: context.store)
+        await model.loadList()
         #expect(model.projects.contains("mobile"))
         #expect(try String(contentsOf: context.file, encoding: .utf8).contains("Plan #project/mobile"))
         #expect(TasksModel.openTasks(in: context.store, linkedTo: "people/Deniz Arıkan.md").count == 2)

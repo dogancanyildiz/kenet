@@ -79,6 +79,7 @@
             let timeline = TimelineModel(tasks: tasks)
             timeline.scale = .week
             timeline.grouping = .none
+            await timeline.load()
             let weekStart = day.addingDays(-3) ?? day
             let weekEnd = day.addingDays(3) ?? day
             timeline.setVisibleRange(weekStart...weekEnd)
@@ -245,6 +246,7 @@
             await context.start()
             let day = CalendarDate("2026-09-20")!
             let tasks = TasksModel(store: context.store, today: { day })
+            await tasks.loadList()
             let id = try #require(tasks.agenda.flatMap(\.rows).first?.id)
             try await assertMacView(
                 TasksView(store: context.store, selection: .constant(id), tasks: tasks),

@@ -38,7 +38,7 @@ struct DayView: View {
 
     /// The queried day, once it is this date's. Until then the day's own sections are not drawn,
     /// so the page never shows an empty day that is still loading.
-    private var day: DaySummary? { loadedDay?.date == date ? loadedDay : nil }
+    private var day: DaySummary? { loadedDay?.date == date && tasksModel.isLoaded ? loadedDay : nil }
 
     private func makePresentation() -> TodayPresentation {
         let today = isToday ? date : LocalDay.today(at: clockNow())
@@ -142,6 +142,9 @@ struct DayView: View {
         .task(id: DayRequest(date: date, updated: store.lastUpdated)) {
             if let loaded = try? await store.computeDay(on: date) { loadedDay = loaded }
         }
+        .task(id: DayTasksRequest(model: ObjectIdentifier(tasksModel), updated: store.lastUpdated)) {
+            await tasksModel.load()
+        }
         .onChange(of: date) { _, newDate in
             tasksModel = DayTasksModel(store: store, day: newDate, isToday: isToday)
             isCarriedOverExpanded = false
@@ -151,17 +154,21 @@ struct DayView: View {
             NavigationStack { JournalView(store: store, date: date) }
         }
         .sheet(item: $closeDayRoute) { route in
-            NavigationStack { CloseDayView(store: store, today: date, step: route.step) }
+            NavigationStack {
+                CloseDayView(store: store, today: date, tasks: tasksModel.rows ?? [], step: route.step)
+            }
         }
         .onChange(of: notifications.navigationRequest?.id, initial: true) { openCloseDayFromReminder() }
         .onChange(of: store.lastUpdated == nil) { openCloseDayFromReminder() }
+        .onChange(of: tasksModel.isCurrent) { openCloseDayFromReminder() }
     }
 
     /// The evening journal reminder opens the flow on its journal step. The reminder's own day is
     /// not the flow's day: whatever day it names, Today's flow opens. A cold launch waits for the
-    /// vault, because the flow lists its task and goal steps once, when it opens.
+    /// vault and for the day's tasks as that publish has them (an answer from before the vault opened
+    /// has none), because the flow lists its task and goal steps once, when it opens.
     private func openCloseDayFromReminder() {
-        guard isToday, store.lastUpdated != nil,
+        guard isToday, store.lastUpdated != nil, tasksModel.isCurrent,
             CloseDayReminder.claim(notifications.navigationRequest?.closeDayRequestID)
         else { return }
         closeDayRoute = CloseDayRoute(step: .journal)

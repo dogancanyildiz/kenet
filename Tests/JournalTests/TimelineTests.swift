@@ -25,7 +25,7 @@ import VaultFormat
         - [-] Cancel 📅 2026-10-03 ^cancel
         """.write(to: context.file, atomically: true, encoding: .utf8)
         await context.store.refresh()
-        let model = timeline(context)
+        let model = await timeline(context)
         #expect(model.groups.flatMap(\.rows).count == 5)
         let both = try #require(context.store.content.tasks.first { $0.sourceIdentifier == "both" })
         let range = try #require(TimelineDates(both).span(on: context.today))
@@ -52,8 +52,9 @@ import VaultFormat
         - [ ] Unassigned 📅 2026-10-03 ^free
         """.write(to: context.file, atomically: true, encoding: .utf8)
         await context.store.refresh()
-        let model = timeline(context)
+        let model = await timeline(context)
         model.tasks.projectFilter = "CAFÉ"
+        await model.load()
         #expect(model.groups.count == 1 && model.groups.first?.rows.count == 2)
         model.collapsed.insert(try #require(model.groups.first?.id))
         #expect(model.collapsed.count == 1)
@@ -62,10 +63,12 @@ import VaultFormat
         #expect(model.groups.dropLast().flatMap(\.rows).compactMap(\.sourceIdentifier) == ["shared", "shared"])
         #expect(model.groups.last?.rows.first?.sourceIdentifier == "place")
         model.tasks.entityFilter = "places/Liman Ofis.md"
+        await model.load()
         #expect(model.groups.count == 1 && model.groups.first?.rows.count == 1)
         model.grouping = .none
         #expect(model.groups.first?.id == "all")
         model.tasks.clearFilters()
+        await model.load()
         #expect(model.groups.first?.rows.contains { $0.sourceIdentifier == "free" } == true)
     }
 
@@ -80,7 +83,7 @@ import VaultFormat
         - [ ] Far 📅 2027-05-01 ^far
         """.write(to: context.file, atomically: true, encoding: .utf8)
         await context.store.refresh()
-        let model = timeline(context)
+        let model = await timeline(context)
         #expect(model.visibleRange == context.today.addingDays(-28)!...context.today.addingDays(84)!)
         #expect(model.days.count == 731)
         #expect(model.bounds.lowerBound == context.today.addingDays(-365))
@@ -129,7 +132,7 @@ import VaultFormat
             "\u{feff}---\r\ntype: journal\r\ndate: 2026-10-03\r\ncustom: 'keep'\r\n---\r\n\r\n## Tasks\r\n- [/] Plan 🛫 2026-10-03 📅 2026-10-06 🔁 every week #project/demo ^task\r\n  Unchanged note  \r\n\r\n## Other\r\nUntouched\r\n"
         try Data(source.utf8).write(to: context.file)
         await context.store.refresh()
-        let model = timeline(context)
+        let model = await timeline(context)
         let row = try #require(context.store.content.tasks.first)
         let dates = try #require(TimelineDates(row).shifted(by: 5))
         model.preview(dates, for: row)
@@ -152,7 +155,7 @@ import VaultFormat
             await context.start()
             try source.write(to: context.file, atomically: true, encoding: .utf8)
             await context.store.refresh()
-            let model = timeline(context)
+            let model = await timeline(context)
             let row = try #require(context.store.content.tasks.first)
             #expect(
                 await model.save(
@@ -172,7 +175,7 @@ import VaultFormat
         let source = "## Tasks\n- [ ] Plan 🛫 2026-10-03 📅 2026-10-06 ^task\n"
         try source.write(to: context.file, atomically: true, encoding: .utf8)
         await context.store.refresh()
-        let model = timeline(context)
+        let model = await timeline(context)
         let row = try #require(context.store.content.tasks.first)
         #expect(
             await !model.save(
@@ -203,7 +206,7 @@ import VaultFormat
         try "## Tasks\n- [ ] Plan 🛫 2026-10-03 📅 2026-10-06 ^task\n".write(
             to: context.file, atomically: true, encoding: .utf8)
         await context.store.refresh()
-        let model = timeline(context)
+        let model = await timeline(context)
         let drag = model.beginDrag(try #require(context.store.content.tasks.first))
         let proposed = try #require(TimelineDates(drag.row).shifted(by: 3))
         model.preview(proposed, for: drag.row)
@@ -222,7 +225,7 @@ import VaultFormat
         try "## Tasks\n- [ ] Plan 🛫 2026-10-03 📅 2026-10-06\n".write(
             to: context.file, atomically: true, encoding: .utf8)
         await context.store.refresh()
-        let model = timeline(context)
+        let model = await timeline(context)
         let row = try #require(context.store.content.tasks.first)
         #expect(row.sourceIdentifier == nil)
         #expect(
@@ -242,12 +245,13 @@ import VaultFormat
         try "## Tasks\n- [ ] Plan 🛫 2026-10-03 📅 2026-10-06 ^task\n".write(
             to: context.file, atomically: true, encoding: .utf8)
         await context.store.refresh()
-        let model = timeline(context)
+        let model = await timeline(context)
         #expect(model.mobileGroups.first?.id == "2026-10-01")
         model.scale = .week
         #expect(model.mobileGroups.first?.id == "2026-09-28")
         let row = try #require(context.store.content.tasks.first)
         #expect(await model.save(row, dates: TimelineDates(start: nil, due: nil), root: context.store.vaultURL))
+        await model.load()
         #expect(model.groups.isEmpty && model.mobileGroups.isEmpty)
         #expect(model.undated.first?.sourceIdentifier == "task")
         #expect(try Data(contentsOf: context.file) == Data("## Tasks\n- [ ] Plan ^task\n".utf8))
@@ -260,7 +264,7 @@ import VaultFormat
         let source = "## Tasks\n- [ ] Plan 🛫 2026-10-06 📅 2026-10-03 ^task\n"
         try source.write(to: context.file, atomically: true, encoding: .utf8)
         await context.store.refresh()
-        let model = timeline(context)
+        let model = await timeline(context)
         let row = try #require(model.groups.first?.rows.first)
         #expect(TimelineDates(row).span(on: context.today)?.isReversed == true)
         #expect(TimelineDates(row).shifted(by: 1) == nil)
@@ -277,7 +281,7 @@ import VaultFormat
         let source = "## Tasks\n- [ ] Plan 🛫 2026-10-03 📅 2026-10-06 ^task\n"
         try source.write(to: context.file, atomically: true, encoding: .utf8)
         await context.store.refresh()
-        let model = timeline(context)
+        let model = await timeline(context)
         let drag = model.beginDrag(try #require(context.store.content.tasks.first))
         let dates = try #require(TimelineDates(drag.row).shifted(by: 3))
         let next = context.directory.appendingPathComponent("AnotherVault", isDirectory: true)
@@ -351,7 +355,7 @@ import VaultFormat
             try "## Tasks\n- [ ] Plan 🛫 2026-10-01 📅 2026-10-06 ^task\n".write(
                 to: context.file, atomically: true, encoding: .utf8)
             await context.store.refresh()
-            let model = timeline(context)
+            let model = await timeline(context)
             let row = try #require(context.store.content.tasks.first)
             let bar = TimelineBarView(model: model, row: row, dayWidth: 1, select: {}, edit: { _ in })
             let host = NSHostingView(rootView: bar)
@@ -494,7 +498,10 @@ import VaultFormat
         }
     #endif
 
-    private func timeline(_ context: TaskTestContext) -> TimelineModel {
-        TimelineModel(tasks: TasksModel(store: context.store, today: { context.today }))
+    /// The timeline once its query has answered, as the view loads it.
+    private func timeline(_ context: TaskTestContext) async -> TimelineModel {
+        let model = TimelineModel(tasks: TasksModel(store: context.store, today: { context.today }))
+        await model.load()
+        return model
     }
 }

@@ -33,9 +33,28 @@ final class KanbanModel {
 
     init(tasks: TasksModel) { self.tasks = tasks }
 
+    /// The board's rows (``IndexStore/computeBoardTasks(doneFrom:to:includeCancelled:scope:)``),
+    /// nil until the first answer; a reload keeps the previous rows until then. Cancelled tasks are
+    /// always asked for, so the show-cancelled toggle draws its column at once.
+    private(set) var rows: [TaskRow]?
+
+    /// What the board asks the index for; a write, a filter or a new day asks again.
+    var request: TaskListRequest { TaskListRequest(scope: tasks.scope, day: tasks.day, updated: store.lastUpdated) }
+
+    /// Asks for `request`'s rows; a reload cancelled or outlived by its vault leaves the board as it was.
+    func load() async {
+        let request = self.request
+        let day = request.day
+        if let loaded = try? await store.computeBoardTasks(
+            doneFrom: day.addingDays(-29) ?? day, to: day, includeCancelled: true, scope: request.scope)
+        {
+            rows = loaded
+        }
+    }
+
     private var eligible: [TaskRow] {
         let first = tasks.day.addingDays(-29) ?? tasks.day
-        return tasks.filtered.filter { row in
+        return (rows ?? []).filter { row in
             if row.rawStatus == "-" { return showsCancelled }
             if row.rawStatus == "x" || row.rawStatus == "X" {
                 return row.done.map { $0 >= first && $0 <= tasks.day } ?? false

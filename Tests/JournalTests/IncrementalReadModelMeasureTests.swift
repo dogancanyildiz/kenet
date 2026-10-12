@@ -219,6 +219,87 @@ struct IncrementalReadModelMeasureTests {
         lines.append(
             "  day query median (\(busiestDay.events.count) events, \(busiestDay.journal.count) journal): \(String(format: "%.1f", median(dayMs))) ms"
         )
+        // The task screens query on demand too (the `tasks` field stays for the notification
+        // planner and the intents): its share of the rederive, and each screen's query.
+        let links = Dictionary(grouping: snapshot.links, by: \.file)
+        var taskBuildMs: [Double] = []
+        for _ in 0..<5 {
+            let start = DispatchTime.now()
+            _ = snapshot.blocks.filter { $0.kind == "task" }.map { TaskRow(row: $0, links: links[$0.file] ?? []) }
+            taskBuildMs.append(milliseconds(since: start))
+        }
+        lines.append("  tasks build in rederive median: \(String(format: "%.1f", median(taskBuildMs))) ms")
+        let project = try #require(
+            Dictionary(grouping: model.tasks.compactMap(\.project), by: { $0 }).max { $0.value.count < $1.value.count })
+        let selected = try #require(model.tasks.last)
+        let taskQueries: [(String, () throws -> Int)] = [
+            (
+                "list (groups + 50 completed + counts)",
+                {
+                    try TaskRowGroups(index.taskGroups(today: today)).open.count
+                        + index.completedTasks(limit: 50, scope: .all).map(TaskRow.init(entry:)).count
+                        + index.openTaskCounts().count
+                }
+            ),
+            (
+                "board (30 days)",
+                {
+                    try index.boardTasks(doneFrom: today.addingDays(-29)!, to: today, includeCancelled: false)
+                        .map(TaskRow.init(entry:)).count
+                }
+            ),
+            (
+                "timeline (±365 days)",
+                {
+                    try index.timelineTasks(from: today.addingDays(-365)!, to: today.addingDays(365)!, today: today)
+                        .map(TaskRow.init(entry:)).count
+                }
+            ),
+            ("day page", { try index.dayTasks(on: today).map(TaskRow.init(entry:)).count }),
+            ("project \(project.key) (\(project.value.count))", { try index.tasks(inProject: project.key).count }),
+            (
+                "weekly review (14 days)",
+                { try index.openTasks(dueBy: today, orWrittenFrom: today.addingDays(-13)!).count }
+            ),
+            ("task by id", { try index.task(id: selected.id) == nil ? 0 : 1 }),
+        ]
+        for (name, query) in taskQueries {
+            var ms: [Double] = []
+            var count = 0
+            for _ in 0..<5 {
+                let start = DispatchTime.now()
+                count = try query()
+                ms.append(milliseconds(since: start))
+            }
+            lines.append("  task query \(name) → \(count) rows median: \(String(format: "%.1f", median(ms))) ms")
+        }
+        // Today's page draws its own sections once both the day and its task rows have answered:
+        // the task side split into the read, the rows (mostly `LinkedText`) and the groups.
+        var readMs: [Double] = []
+        var textMs: [Double] = []
+        var rowsMs: [Double] = []
+        var groupsMs: [Double] = []
+        var pageDayMs: [Double] = []
+        for _ in 0..<5 {
+            var start = DispatchTime.now()
+            let entries = try index.dayTasks(on: today)
+            readMs.append(milliseconds(since: start))
+            start = DispatchTime.now()
+            _ = entries.map { LinkedText(row: $0.block, links: $0.links) }
+            textMs.append(milliseconds(since: start))
+            start = DispatchTime.now()
+            let rows = entries.map(TaskRow.init(entry:)).sorted(by: TaskRow.sourceOrder)
+            rowsMs.append(milliseconds(since: start))
+            start = DispatchTime.now()
+            _ = TaskGroups(rows: rows, on: today, isToday: true)
+            groupsMs.append(milliseconds(since: start))
+            start = DispatchTime.now()
+            _ = DaySummary(contents: try index.day(on: today), date: today)
+            pageDayMs.append(milliseconds(since: start))
+        }
+        lines.append(
+            "  today page: day \(String(format: "%.1f", median(pageDayMs))) ms; tasks read \(String(format: "%.1f", median(readMs))) + rows \(String(format: "%.1f", median(rowsMs))) (LinkedText \(String(format: "%.1f", median(textMs)))) + groups \(String(format: "%.1f", median(groupsMs))) ms"
+        )
         print(lines.joined(separator: "\n"))
         #expect(model.isBuilt && list.count == days.count)
     }

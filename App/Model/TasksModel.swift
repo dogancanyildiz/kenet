@@ -10,6 +10,77 @@ struct TaskAgendaGroup: Identifiable {
     var id: String { date?.description ?? "overdue" }
 }
 
+/// Request for a task list: a new value (a write, a filter, a new day) asks the index again.
+struct TaskListRequest: Hashable {
+    let scope: TaskScope
+    let day: CalendarDate
+    let updated: Date?
+}
+
+/// Open tasks split around a day, from ``IndexStore/computeTaskGroups(today:scope:)``.
+struct TaskRowGroups: Sendable {
+    var overdue: [TaskRow] = []
+    var today: [TaskRow] = []
+    var upcoming: [TaskRow] = []
+    var undated: [TaskRow] = []
+
+    init() {}
+
+    init(_ entries: TaskGroupEntries) {
+        overdue = entries.overdue.map(TaskRow.init(entry:))
+        today = entries.today.map(TaskRow.init(entry:))
+        upcoming = entries.upcoming.map(TaskRow.init(entry:))
+        undated = entries.undated.map(TaskRow.init(entry:))
+    }
+
+    /// Every open task, each group in ``TasksModel/order(_:_:)``.
+    var open: [TaskRow] { (overdue + today + upcoming + undated).sorted(by: TasksModel.order) }
+}
+
+/// The Tasks list's sections for one request.
+struct TaskListContent {
+    /// Overdue tasks first ("Devreden"), then one group per due day from today on.
+    let agenda: [TaskAgendaGroup]
+    let undated: [TaskRow]
+    /// Newest completion first.
+    let completed: [TaskRow]
+    /// Open tasks per project key, whatever the filters.
+    let projectOpenCounts: [String: Int]
+
+    init(groups: TaskRowGroups, completed: [TaskRow], projectOpenCounts: [String: Int]) {
+        let overdue = groups.overdue.sorted(by: TasksModel.order)
+        let future = Dictionary(
+            grouping: (groups.today + groups.upcoming).sorted(by: TasksModel.order), by: { $0.due! })
+        agenda =
+            (overdue.isEmpty ? [] : [TaskAgendaGroup(date: nil, rows: overdue)])
+            + future.keys.sorted().map { TaskAgendaGroup(date: $0, rows: future[$0]!) }
+        undated = groups.undated.sorted(by: TasksModel.order)
+        self.completed = Array(
+            completed.sorted {
+                if $0.done != $1.done {
+                    guard let lhs = $0.done else { return false }
+                    guard let rhs = $1.done else { return true }
+                    return lhs > rhs
+                }
+                if ($0.priority?.sortRank ?? 2) != ($1.priority?.sortRank ?? 2) {
+                    return ($0.priority?.sortRank ?? 2) < ($1.priority?.sortRank ?? 2)
+                }
+                if $0.file != $1.file { return $0.file < $1.file }
+                return $0.sourceLine < $1.sourceLine
+            }.prefix(TasksModel.completedLimit))
+        self.projectOpenCounts = projectOpenCounts
+    }
+}
+
+extension TaskRow {
+    init(entry: TaskEntry) { self.init(row: entry.block, links: entry.links) }
+
+    /// The read model's order: file, then line.
+    nonisolated static func sourceOrder(_ lhs: TaskRow, _ rhs: TaskRow) -> Bool {
+        lhs.file != rhs.file ? lhs.file < rhs.file : lhs.sourceLine < rhs.sourceLine
+    }
+}
+
 @MainActor @Observable
 final class TasksModel {
     /// Six-way value from before the two-layer selector; kept for callers that jump to one
@@ -41,38 +112,46 @@ final class TasksModel {
         projectFilter = nil
     }
 
-    var filtered: [TaskRow] {
-        store.content.tasks.filter {
-            (entityFilter == nil || $0.linkedFiles.contains(entityFilter!))
-                && (projectFilter == nil
-                    || $0.project.map(VaultIndex.projectKey) == projectFilter.map(VaultIndex.projectKey))
-        }
+    /// The filters as the task queries take them.
+    var scope: TaskScope { TaskScope(linkedTo: entityFilter, project: projectFilter) }
+
+    /// What the list asks the index for; a write, a filter or a new day asks again.
+    var listRequest: TaskListRequest { TaskListRequest(scope: scope, day: day, updated: store.lastUpdated) }
+
+    /// The list's sections, nil until the first answer; a reload keeps the previous ones until then.
+    private(set) var list: TaskListContent?
+    /// The request `list` answers.
+    private(set) var loadedListRequest: TaskListRequest?
+    /// Whether `list` answers the current filters, day and publish.
+    var isListCurrent: Bool { list != nil && loadedListRequest == listRequest }
+
+    /// Asks for `listRequest`'s sections. A reload cancelled or outlived by its vault leaves the
+    /// list as it was.
+    func loadList() async {
+        let request = listRequest
+        do {
+            let groups = try await store.computeTaskGroups(today: request.day, scope: request.scope)
+            let completed = try await store.computeCompletedTasks(limit: Self.completedLimit, scope: request.scope)
+            let counts = try await store.computeOpenTaskCounts()
+            list = TaskListContent(groups: groups, completed: completed, projectOpenCounts: counts)
+            loadedListRequest = request
+        } catch {}
     }
 
-    var agenda: [TaskAgendaGroup] {
-        let rows = filtered.filter { !$0.isClosed && $0.due != nil }.sorted(by: Self.order)
-        let overdue = rows.filter { $0.due! < day }
-        let future = Dictionary(grouping: rows.filter { $0.due! >= day }, by: { $0.due! })
-        return (overdue.isEmpty ? [] : [TaskAgendaGroup(date: nil, rows: overdue)])
-            + future.keys.sorted().map { TaskAgendaGroup(date: $0, rows: future[$0]!) }
+    var agenda: [TaskAgendaGroup] { list?.agenda ?? [] }
+    var undated: [TaskRow] { list?.undated ?? [] }
+    var completed: [TaskRow] { list?.completed ?? [] }
+
+    /// Open tasks of `project` (any spelling of its key), whatever the filters.
+    func openCount(ofProject project: String) -> Int { list?.projectOpenCounts[VaultIndex.projectKey(project)] ?? 0 }
+
+    /// The listed row with `id`, in any section.
+    func listedRow(id: String?) -> TaskRow? {
+        guard let id, let list else { return nil }
+        return (list.agenda.flatMap(\.rows) + list.undated + list.completed).first { $0.id == id }
     }
 
-    var undated: [TaskRow] { filtered.filter { !$0.isClosed && $0.due == nil }.sorted(by: Self.order) }
-    var completed: [TaskRow] {
-        Array(
-            filtered.filter { $0.rawStatus == "x" || $0.rawStatus == "X" }.sorted {
-                if $0.done != $1.done {
-                    guard let lhs = $0.done else { return false }
-                    guard let rhs = $1.done else { return true }
-                    return lhs > rhs
-                }
-                if ($0.priority?.sortRank ?? 2) != ($1.priority?.sortRank ?? 2) {
-                    return ($0.priority?.sortRank ?? 2) < ($1.priority?.sortRank ?? 2)
-                }
-                if $0.file != $1.file { return $0.file < $1.file }
-                return $0.sourceLine < $1.sourceLine
-            }.prefix(50))
-    }
+    nonisolated static let completedLimit = 50
 
     static func openTasks(in store: IndexStore, linkedTo path: String) -> [TaskRow] {
         store.content.tasks.filter { !$0.isClosed && $0.linkedFiles.contains(path) }.sorted(by: order)

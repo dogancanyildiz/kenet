@@ -90,6 +90,7 @@ struct InkListSelectionTests {
             await context.start()
             let day = CalendarDate("2026-09-20")!
             let model = TasksModel(store: context.store, today: { day })
+            await model.loadList()
             let tasks = model.agenda.flatMap(\.rows)
             let size = CGSize(width: 420, height: 900)
             let host = MacHost(
@@ -177,6 +178,7 @@ struct InkListSelectionTests {
             await context.start()
             let day = CalendarDate("2026-09-20")!
             let model = TasksModel(store: context.store, today: { day })
+            await model.loadList()
             let project = try #require(
                 model.agenda.flatMap(\.rows).first { $0.project != nil })
             let dated = try #require(

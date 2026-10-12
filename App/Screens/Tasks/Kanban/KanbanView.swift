@@ -5,6 +5,7 @@ struct KanbanView: View {
     @State private var model: KanbanModel
     @State private var selectedRow: TaskRow?
     @State private var sourceDay: CalendarDate?
+    @State private var selectionAnswer = TaskSelectionAnswer()
     /// `true` when the Mac shell hosts the board full-width (outside ``TasksView``).
     let showsFilters: Bool
     let openDay: (String) -> Void
@@ -50,7 +51,7 @@ struct KanbanView: View {
             #else
                 board.sheet(item: $selectedRow) { selection in
                     NavigationStack {
-                        if let row = model.store.content.tasks.first(where: { $0.id == selection.id }) {
+                        if let row = selectionAnswer.row(for: selection.id, listed: selection) {
                             TaskDetailView(store: model.store, row: row) { path in
                                 sourceDay = CalendarDate(String(path.dropFirst("journal/".count).dropLast(3)))
                             }
@@ -73,10 +74,15 @@ struct KanbanView: View {
         }
         .onChange(of: selectedRow?.id) { _, _ in sourceDay = nil }
         .onChange(of: model.grouping) { _, _ in model.clearDrags() }
+        .task(id: model.request) { await model.load() }
+        .task(id: TaskSelectionRequest(id: selectedRow?.id, updated: model.store.lastUpdated)) {
+            let request = TaskSelectionRequest(id: selectedRow?.id, updated: model.store.lastUpdated)
+            if let answer = await TaskSelectionAnswer.load(request, store: model.store) { selectionAnswer = answer }
+        }
     }
 
     private var selectedTask: TaskRow? {
-        model.store.content.tasks.first { $0.id == selectedRow?.id }
+        selectionAnswer.row(for: selectedRow?.id, listed: selectedRow)
     }
 
     /// Show-cancelled toggle. Same header menu as the other pages; the menu sizes to its content.
@@ -107,7 +113,8 @@ struct KanbanView: View {
         GeometryReader { geometry in
             ScrollView(.horizontal) {
                 HStack(alignment: .top, spacing: KanbanBoardLayout.columnSpacing) {
-                    ForEach(model.columns) { column in
+                    // No columns until the first answer: an empty board must not show while it loads.
+                    ForEach(model.rows == nil ? [] : model.columns) { column in
                         KanbanColumnView(model: model, column: column) { selectedRow = $0 }
                             #if os(macOS)
                                 .frame(

@@ -53,15 +53,7 @@ extension VaultIndex {
                 GoalDefinition(entity: $0, place: places[$0.file]?.first?.target)
             }
             definitions.sort { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
-            let logs = try IndexedGoalLog.fetchAll(
-                db,
-                sql: """
-                    SELECT * FROM goal_logs
-                    WHERE date<=? AND (? IS NULL OR key=?)
-                    ORDER BY file, key
-                    """,
-                arguments: [today.description, key, key])
-            let grouped = Dictionary(grouping: logs, by: \.key).mapValues { $0.compactMap(GoalLog.init(indexed:)) }
+            let grouped = try Self.goalLogs(db, through: today, key: key)
             return definitions.map { definition in
                 let entries = grouped[definition.key] ?? []
                 return GoalStatusRow(
@@ -70,5 +62,27 @@ extension VaultIndex {
                     score: GoalProgress.score(definition: definition, logs: entries, through: today))
             }
         }
+    }
+
+    /// Every log through `today` (of `key` only, when given) by goal key, in file order. Only the
+    /// columns a log is made of are read, by position: decoding whole `IndexedGoalLog` records was
+    /// most of the status query's time on a long history. A row is read as `GoalLog(indexed:)`
+    /// reads it; one it rejects is skipped.
+    static func goalLogs(_ db: Database, through today: CalendarDate, key: String?) throws -> [String: [GoalLog]] {
+        let rows = try Row.fetchCursor(
+            db,
+            sql: """
+                SELECT key, date, kind, value FROM goal_logs
+                WHERE date<=? AND (? IS NULL OR key=?)
+                ORDER BY file, key
+                """,
+            arguments: [today.description, key, key])
+        var grouped: [String: [GoalLog]] = [:]
+        while let row = try rows.next() {
+            let log = IndexedGoalLog(file: "", key: row[0], date: row[1], kind: row[2], value: row[3])
+            guard let entry = GoalLog(indexed: log) else { continue }
+            grouped[log.key, default: []].append(entry)
+        }
+        return grouped
     }
 }

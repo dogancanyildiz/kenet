@@ -72,8 +72,9 @@ private struct GoalListContent: View {
             }
             if let statuses {
                 ForEach(store.content.goals, id: \.id) { goal in
-                    // A goal created since the last answer is drawn from the editing model until the next.
-                    goalRow(goal: goal, status: statuses[goal.id] ?? model.status(for: goal))
+                    // A goal created since the last answer, or marked here and not yet in an answer,
+                    // is drawn from the editing model until the next.
+                    goalRow(goal: goal, status: model.shownStatus(for: goal, answer: statuses[goal.id]))
                 }
             }
             if let error = model.errorText {
@@ -95,10 +96,12 @@ private struct GoalListContent: View {
         .task(id: store.lastUpdated) { await model.load() }
         .task(id: GoalListRequest(day: model.day, updated: store.lastUpdated)) {
             let vault = store.vaultURL
+            let revision = model.currentRevision()
             guard let rows = try? await store.computeGoalStatuses(today: model.day), !Task.isCancelled else { return }
             let statuses = rows.map { ($0.definition.id, $0.status) }
             loaded = GoalListStatuses(
                 vault: vault, statuses: Dictionary(statuses, uniquingKeysWith: { first, _ in first }))
+            if vault == store.vaultURL { model.answerShown(askedAt: revision) }
         }
     }
 

@@ -226,7 +226,7 @@ struct GoalStatusQueryTests {
 
 /// `VaultReadModel.rederive` for goals before the screens moved to the query: every indexed log
 /// of the goal, in file order, folded by `GoalProgress` (which ignores days after `today`).
-private func readModelGoalStatuses(_ index: VaultIndex, today: CalendarDate) throws -> [GoalStatusRow] {
+func readModelGoalStatuses(_ index: VaultIndex, today: CalendarDate) throws -> [GoalStatusRow] {
     let snapshot = try index.snapshot()
     let places = Dictionary(grouping: snapshot.links.filter { $0.key == "place" }, by: \.file)
     let goals =

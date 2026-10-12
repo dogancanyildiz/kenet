@@ -2,10 +2,23 @@ import GoalTracking
 import SwiftUI
 import VaultFormat
 
-/// Stable identity for ``GoalStripView`` so ``GoalDayModel`` rebuilds per day/vault.
+/// Stable identity for ``GoalStripView``: its state starts over per day/vault, with the new model.
 enum GoalStripIdentity {
     static func key(day: CalendarDate, vaultPath: String?) -> String {
         day.description + (vaultPath ?? "")
+    }
+}
+
+/// The goal editing model of the page's day, shared by the strip and the page's goal count. Another
+/// day or vault gets a new model in the pass that draws it, so the strip never shows another day's.
+@MainActor final class GoalDayModelSlot {
+    private var current: GoalDayModel?
+
+    func model(store: IndexStore, day: CalendarDate) -> GoalDayModel {
+        if let current, current.day == day, current.belongs(to: store.vaultURL) { return current }
+        let model = GoalDayModel(store: store, day: day)
+        current = model
+        return model
     }
 }
 
@@ -30,6 +43,7 @@ struct DayView: View {
     @State private var loadedDay: DaySummary?
     /// Goal statuses as of the day they were queried for, loaded with the day.
     @State private var loadedGoals: (day: CalendarDate, statuses: [String: GoalStatus])?
+    @State private var goalModels = GoalDayModelSlot()
 
     init(store: IndexStore, date: CalendarDate, isToday: Bool = false) {
         self.store = store
@@ -45,9 +59,11 @@ struct DayView: View {
     private func makePresentation() -> TodayPresentation {
         let today = isToday ? date : LocalDay.today(at: clockNow())
         let goals = loadedGoals?.day == date ? loadedGoals : nil
+        // A goal marked on this page counts from the strip's model until an answer has the mark.
+        let statuses = goals.map { goalModels.model(store: store, day: date).shownStatuses($0.statuses) }
         return TodayPresentation(
             day: day ?? DaySummary(empty: date), groups: tasksModel.groups, goals: store.content.goals,
-            goalStatuses: goals?.statuses ?? [:], goalStatusesDay: goals?.day, today: today, locale: locale,
+            goalStatuses: statuses ?? [:], goalStatusesDay: goals?.day, today: today, locale: locale,
             calendar: calendarValue,
             completedTasks: tasksModel.completedTasksForPresentation,
             completedTaskIDs: tasksModel.completed,
@@ -80,7 +96,7 @@ struct DayView: View {
 
                 // Until this day's statuses come, the strip counts from its own model: never `0/0`.
                 GoalStripView(
-                    store: store, day: date, countedGoalIDs: presented.countedGoalIDs,
+                    model: goalModels.model(store: store, day: date), countedGoalIDs: presented.countedGoalIDs,
                     counter: loadedGoals?.day == date ? presented.counter(for: .goals) : nil
                 )
                 .id(GoalStripIdentity.key(day: date, vaultPath: store.vaultURL?.path))
@@ -144,13 +160,18 @@ struct DayView: View {
         }
         .task(id: DayRequest(date: date, updated: store.lastUpdated)) {
             // One load: the day and its goal statuses as of that day are taken together.
+            let goalModel = goalModels.model(store: store, day: date)
+            let revision = goalModel.currentRevision()
             async let day = store.computeDay(on: date)
             async let goals = store.computeGoalStatuses(today: date)
             let loaded = try? await day
             let statuses = try? await goals
             guard !Task.isCancelled else { return }
             if let loaded { loadedDay = loaded }
-            if let statuses { loadedGoals = (date, TodayPresentation.goalStatuses(statuses)) }
+            if let statuses {
+                loadedGoals = (date, TodayPresentation.goalStatuses(statuses))
+                goalModel.answerShown(askedAt: revision)
+            }
         }
         .task(id: DayTasksRequest(model: ObjectIdentifier(tasksModel), updated: store.lastUpdated)) {
             await tasksModel.load()

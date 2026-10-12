@@ -30,16 +30,14 @@ enum GoalStripPresentation {
 struct GoalStripView: View {
     @Environment(GeofenceService.self) private var geofences: GeofenceService?
     @Environment(\.locale) private var locale
-    @State private var model: GoalDayModel
     @State private var editing: GoalValueModel?
+    /// The page's editing model for the day: its count draws an edit made here before the answer.
+    private let model: GoalDayModel
     private let countedGoalIDs: [String]
     private let counter: String?
 
-    init(
-        store: IndexStore, day: CalendarDate, countedGoalIDs: [String] = [],
-        counter: String? = nil
-    ) {
-        _model = State(initialValue: GoalDayModel(store: store, day: day))
+    init(model: GoalDayModel, countedGoalIDs: [String] = [], counter: String? = nil) {
+        self.model = model
         self.countedGoalIDs = countedGoalIDs
         self.counter = counter
     }

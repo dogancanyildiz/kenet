@@ -74,8 +74,9 @@ extension VaultStore {
         if let failure = primary.failure { return failure }
         var updated: Set<String> = primary.changed || path != newPath ? [newPath] : []
         var failures: [RenameFailure] = []
-        // Also inspect indexed raw fields, which deliberately have no link rows.
-        for source in (path.utf8.elementsEqual(newPath.utf8) ? [] : Set(files).union(candidates).sorted()) {
+        let sources =
+            path.utf8.elementsEqual(newPath.utf8) ? [] : updateSources(files, candidates, targets, path, newPath)
+        for source in sources {
             let destination = source == path ? newPath : source
             do {
                 let url = try checkedURL(destination, writing: true)
@@ -107,5 +108,27 @@ extension VaultStore {
             failures.append(RenameFailure(path: newPath, reason: .index(String(describing: error))))
         }
         return RenameResult(path: newPath, updatedFiles: updated.sorted(), failures: failures)
+    }
+
+    /// The files the update pass claims, in path order: every indexed link source, plus any other
+    /// file whose claimed pass would report something. Such a file is never rewritten (it is not
+    /// eligible); it can only report a raw frontmatter field naming the old file, which deliberately
+    /// has no link row. A plain read finds those, and the claimed pass then reads them again; a file
+    /// that cannot be read or checked here is claimed, as before.
+    private nonisolated func updateSources(
+        _ files: [String], _ candidates: Set<String>, _ targets: RenameTargets, _ path: String, _ newPath: String
+    ) -> [String] {
+        Set(files).union(candidates).sorted().filter { source in
+            if candidates.contains(source) { return true }
+            guard let url = try? checkedURL(source == path ? newPath : source, writing: true),
+                let bytes = try? readFile(url)
+            else { return true }
+            let document = RawDocument(bytes: bytes)
+            if document.isReadOnly { return false }
+            guard let rewrite = try? RenameDocument.rewrite(document, targets: targets, eligible: false) else {
+                return true
+            }
+            return !rewrite.rawFields.isEmpty
+        }
     }
 }

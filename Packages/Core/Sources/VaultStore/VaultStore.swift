@@ -8,6 +8,7 @@ public actor VaultStore {
     let root: URL
     let index: VaultIndex
     let writeQueue: OperationQueue
+    let readQueue: OperationQueue
     let linkFile: @Sendable (URL, URL) throws -> Void
     let moveFile: @Sendable (URL, URL) throws -> Void
     let restoreRenameFile: (@Sendable (Data, URL) throws -> Void)?
@@ -29,6 +30,7 @@ public actor VaultStore {
         self.index = index
         self.fileCoordination = fileCoordination
         writeQueue = VaultWriteQueues.shared.queue(for: vaultRoot)
+        readQueue = VaultReadQueues.shared.queue(for: vaultRoot)
         self.randomValue = randomValue
         linkFile = { try FileManager.default.linkItem(at: $0, to: $1) }
         moveFile = { try FileManager.default.moveItem(at: $0, to: $1) }
@@ -54,6 +56,7 @@ public actor VaultStore {
         self.index = index
         self.fileCoordination = fileCoordination
         writeQueue = VaultWriteQueues.shared.queue(for: vaultRoot)
+        readQueue = VaultReadQueues.shared.queue(for: vaultRoot)
         self.randomValue = randomValue
         self.linkFile = linkFile
         self.moveFile = moveFile
@@ -70,16 +73,26 @@ public actor VaultStore {
     }
 
     /// Reads the current disk bytes without querying the index.
-    public func document(at relativePath: String) throws -> RawDocument {
-        let url = try checkedURL(relativePath)
-        return try fileCoordination.coordinate(.read(url)) { _ in
-            RawDocument(bytes: try readFile(url))
+    ///
+    /// The coordinated read runs on the vault's read queue, so a read the coordinator holds never
+    /// occupies the actor: writes still reach the write queue and other reads still run.
+    public nonisolated func document(at relativePath: String) async throws -> RawDocument {
+        try await withCheckedThrowingContinuation { continuation in
+            readQueue.addOperation {
+                continuation.resume(
+                    with: Result {
+                        let url = try self.checkedURL(relativePath)
+                        return try self.fileCoordination.coordinate(.read(url)) { _ in
+                            RawDocument(bytes: try self.readFile(url))
+                        }
+                    })
+            }
         }
     }
 
     /// Reads an existing day from disk, throwing if it does not exist.
-    public func dayDocument(for date: CalendarDate) throws -> RawDocument {
-        try document(at: dayFilePath(for: date))
+    public nonisolated func dayDocument(for date: CalendarDate) async throws -> RawDocument {
+        try await document(at: dayFilePath(for: date))
     }
 
     /// Adds an event, optionally with a local clock time, and returns the written document.

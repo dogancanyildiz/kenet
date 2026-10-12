@@ -4,23 +4,56 @@ import Testing
 import VaultFormat
 import VaultStore
 
+/// One `goals/creation/cases.json` record: the definition the user enters and the exact new file.
+struct GoalCreationCase: Decodable, Sendable, CustomTestStringConvertible {
+    let input: String
+    let expected: String
+    let name: String
+    let period: String
+    let kind: String
+    /// Absent for milestones: they have no amount, so the store gets the API's placeholder 1.
+    let target: Double?
+    let unit: String?
+
+    var testDescription: String { name }
+
+    static let directory = "goals/creation/"
+
+    static func all() throws -> [GoalCreationCase] {
+        try JSONDecoder().decode(
+            [GoalCreationCase].self,
+            from: Data(contentsOf: Fixtures.root().appendingPathComponent(directory + "cases.json")))
+    }
+}
+
 struct GoalCreationTests {
-    @Test func newDefinitionBytesMatchPortableFixturesAndRebuild() async throws {
+    @Test(arguments: try GoalCreationCase.all())
+    func newDefinitionBytesMatchPortableFixturesAndRebuild(_ item: GoalCreationCase) async throws {
         let vault = try StoreVault()
         defer { vault.remove() }
-        let input = try Data(contentsOf: Fixtures.root().appendingPathComponent("goals/creation/input.md"))
+        let directory = try Fixtures.root().appendingPathComponent(GoalCreationCase.directory)
+        let input = try Data(contentsOf: directory.appendingPathComponent(item.input))
         #expect(Data(RawDocument(bytes: input).serialized()) == input)
-        let first = try await vault.store.creatingGoal(name: "Su İçme", period: .day, kind: .boolean, target: 1)
-        let second = try await vault.store.creatingGoal(
-            name: "Sayfa", period: .year, kind: .number, target: 240, unit: "sayfa")
-        for (path, fixture) in [(first, "boolean-expected.md"), (second, "number-expected.md")] {
-            let expected = try Data(contentsOf: Fixtures.root().appendingPathComponent("goals/creation/" + fixture))
-            #expect(try vault.bytes(path) == expected)
-            #expect(Data(RawDocument(bytes: expected).serialized()) == expected)
-        }
-        #expect(first == "goals/Su İçme.md")
-        #expect(try vault.index.goalDefinitions().count == 2)
+        let period = try #require(GoalPeriod(rawValue: item.period))
+        let kind = try #require(GoalKind(rawValue: item.kind))
+        let path = try await vault.store.creatingGoal(
+            name: item.name, period: period, kind: kind, target: item.target ?? 1, unit: item.unit)
+        let expected = try Data(contentsOf: directory.appendingPathComponent(item.expected))
+        #expect(path == "goals/\(item.name).md")
+        #expect(try vault.bytes(path) == expected)
+        #expect(Data(RawDocument(bytes: expected).serialized()) == expected)
+        let definition = try #require(try vault.index.goalDefinitions().first)
+        #expect(definition.name == item.name && definition.period == period && definition.kind == kind)
+        #expect(definition.unit == item.unit)
+        if let target = item.target { #expect(definition.target == target) }
         try vault.check()
+    }
+
+    @Test func everyExpectedCreationFileHasACase() throws {
+        let directory = try Fixtures.root().appendingPathComponent(GoalCreationCase.directory)
+        let files = try FileManager.default.contentsOfDirectory(atPath: directory.path)
+            .filter { $0.hasSuffix("-expected.md") }
+        #expect(Set(files) == Set(try GoalCreationCase.all().map(\.expected)))
     }
 
     @Test func currentDiskKeysInvalidDefinitionsAndOrphanLogsAreReserved() async throws {

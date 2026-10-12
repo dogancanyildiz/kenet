@@ -60,7 +60,7 @@ enum InkSize {
     static let modeUnderline: CGFloat = 2
     /// Corner of the Mac list-selection fill.
     static let listSelectionCorner: CGFloat = 6
-    /// Heatmap / chip corner radius.
+    /// Tag chip and mention-assist strip corner radius (``HeatmapCell`` uses its own 2 pt corner).
     static let chipCorner: CGFloat = 4
     static let kanbanCorner: CGFloat = 8
     /// Stacked (accessibility) quick-entry chrome; not a full capsule radius.

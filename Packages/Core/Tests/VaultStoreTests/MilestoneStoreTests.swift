@@ -8,11 +8,8 @@ struct MilestoneStoreTests {
     @Test func creationCompletionRemovalAndRebuildPreserveBytes() async throws {
         let vault = try StoreVault()
         defer { vault.remove() }
-        let path = try await vault.store.creatingGoal(name: "Portfolio", period: .year, kind: .milestone, target: 1)
-        let expected = try Data(
-            contentsOf: Fixtures.root().appendingPathComponent("goals/creation/milestone-expected.md"))
-        #expect(try vault.bytes(path) == expected)
-        #expect(Data(RawDocument(bytes: expected).serialized()) == expected)
+        // The new file's bytes come from `goals/creation/cases.json` (GoalCreationTests).
+        _ = try await vault.store.creatingGoal(name: "Portfolio", period: .year, kind: .milestone, target: 1)
         #expect(try vault.index.goalDefinitions().first?.kind == .milestone)
         let day = CalendarDate("2026-10-04")!
         let source = try String(

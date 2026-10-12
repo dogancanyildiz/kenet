@@ -187,7 +187,7 @@ import VaultStore
         }
 
         // "Close the day": the copy of Koşu counts as Koşu, done; only Su is left.
-        let flow = CloseDayModel(store: store, today: now)
+        let flow = try await CloseDayModel.opened(store: store, today: now)
         let old = fromGoalLogList(now)
         #expect(flow.pendingGoals.map(\.name) == ["Su"])
         #expect(flow.pendingGoals == daily.filter { old[$0.key]?.progress.isComplete != true })

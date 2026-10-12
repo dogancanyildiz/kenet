@@ -132,7 +132,7 @@ Kasa konumu ve widget'lar kimlik kararından sonra başlar; kimlik gerektirmeyen
   - Core sınırı, App'te `NSFileCoordinator` (okuma kuyruğuyla), eşitlenen klasör ve yer tutucu tespiti, gün kopyası birleştirme (Core) hazır; indirme isteği (cihaz doğrulaması bekliyor), birleştirmenin App'e bağlanması (kullanıcı kararı), `NSFileVersion` çakışmaları ve eşitleme göstergesi açık.
 - [ ] Ana ekran widget'ı: zincir ve tek dokunuşla işaretleme; yapılmamışlar vurgulu (Aşama 3'ten devreden)
 - [ ] Ekranlar ve widget kendi sorgusunu çalıştırır: küresel okuma modeli yerine Core sorguları (Aşama 8'den devreden; widget bellek sınırı için)
-  - Graph, varlık zaman akışı, son görüşme ve günler kendi sorgusunu çalıştırıyor; hedef durumu sorgusu hazır; görevler, hedef ekranları ve widget açık.
+  - Graph, varlık zaman akışı, son görüşme, günler, hedefler ve görev ekranları kendi sorgusunu çalıştırıyor; okuma modelinde `tasks` (planlayıcı, Intent) ve `goalLogs` (planlayıcı, konum) kaldı; alanların kaldırılması, parça inceltme ve widget açık.
 - [ ] Widget yenilenmesinin güvenilirlik testi (Aşama 3'ten devreden)
 - [ ] Kilit ekranı widget'ı: takvim etkinlikleri ve günün görevleri (Aşama 3'ten devreden)
 - [ ] Hızlı giriş widget'ı ile kilit ekranı, Denetim Merkezi ve Eylem düğmesi girişi (Aşama 3'ten devreden)

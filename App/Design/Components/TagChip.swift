@@ -7,6 +7,8 @@ struct TagChip: View {
     var systemImage: String? = nil
     var isSelected: Bool = false
     var filled: Bool = false
+    /// Trailing tabular count, read after the title (summary name chips).
+    var count: Int? = nil
     var onTap: (() -> Void)? = nil
     var onDismiss: (() -> Void)? = nil
 
@@ -37,7 +39,7 @@ struct TagChip: View {
                     lineWidth: isSelected ? InkStroke.highPriority : InkStroke.control)
         }
         .accessibilityElement(children: onDismiss == nil ? .combine : .contain)
-        .accessibilityLabel(Text(verbatim: title))
+        .accessibilityLabel(Text(verbatim: count.map { title + ", " + $0.formatted() } ?? title))
         .accessibilityAddTraits(isSelected ? .isSelected : [])
         .accessibilityAddTraits(onTap == nil ? [] : .isButton)
     }
@@ -53,6 +55,12 @@ struct TagChip: View {
                 .font(.ink.meta)
                 .foregroundStyle(Color.ink.text)
                 .lineLimit(1)
+            if let count {
+                Text(verbatim: count.formatted())
+                    .font(.ink.meta)
+                    .monospacedDigit()
+                    .foregroundStyle(Color.ink.secondaryText)
+            }
             if isSelected {
                 Image(systemName: "checkmark")
                     .font(.caption.weight(.semibold))

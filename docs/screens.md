@@ -471,17 +471,62 @@ Bir güne dokunma gün ekranını açar. Gün ekranı Bugün ile aynı düzendir
 
 ### Özetler (6)
 
-**Özetler ekranında nerede ne var.**
+**Özetler ekranının yukarıdan aşağı sırası.**
+
+```mermaid
+flowchart TD
+    A[Manşet: Özetler] --> B[Sekme: Hafta, Ay, Yıl]
+    B --> C[Dönem satırı: önceki, dönem adı, sonraki]
+    C --> D{Dönem boş mu}
+    D -->|Evet| E[Tek cümle, açık görevler satırı, Önceki döneme git]
+    D -->|Hayır| F[Ritim şeridi]
+    F --> G[Dört ana sayı ve fark yazısı]
+    G --> H[Kişiler ve Konumlar: ad çipleri]
+    H --> I[Hedefler: hedef satırı ve gün hücreleri]
+    I --> J[Görevler: yığılı çubuk]
+```
 
 | Öğe | Davranış |
 |---|---|
 | Giriş | Günlük ve Mac kenar çubuğu Özetler'i açar. |
-| Dönem sekmesi | Hafta \| Ay. Hafta pazartesi–pazar haftasıdır. Ay takvim ayıdır. |
-| Dönem düğmeleri | Önceki ve sonraki dönem. "Bu hafta" ya da "Bu ay" düğmesi. |
-| Bölümler | Günlük, Kişiler, Konumlar, Hedefler ve Görevler. Kart yoktur. |
-| Fark | Önceki eş dönemle fark nötr ok ve işaretli metinle görünür. |
-| İlk beş | İlk 5 kişi ve konumun satırı kendi ekranını açar. Sıra geçiş sayısına göre azalandır. Eşitlikte ad, sonra yol sırası geçerlidir. |
-| Boş dönem | "Bu dönemde kayıt yok." yazar. Taşınan açık görevler yine görünür. |
+| Dönem sekmesi | Hafta \| Ay \| Yıl. Hafta pazartesi–pazar haftasıdır. Ay takvim ayıdır. Yıl takvim yılıdır. |
+| Dönem düğmeleri | Önceki ve sonraki dönem. Bugünün döneminden sonraki döneme geçiş yoktur. Gösterilen dönem bugünü içermiyorsa "Bu hafta", "Bu ay" ya da "Bu yıl" düğmesi görünür. iPhone'da yatay kaydırma da dönemi değiştirir. |
+| Ritim şeridi | Dönemin birimleri başına olay sayısı. Hafta birimi gündür. Ay birimi ayın 1'inden başlayan 7 günlük dilimdir: 1–7, 8–14, 15–21, 22–28, kalan günler. Yıl birimi aydır. Önceki dönemin aynı sıradaki birimi arkada geniş ve soluk çubuktur. |
+| Yazıldı işareti | Her birimin altında durur. Dolu nokta: gün yazıldı ya da birimin ölçülen günlerinin en az yarısı yazıldı. Halka: yarıdan azı yazıldı. Kısa çizgi: hiç yazılmadı. İşaret yok: birim henüz başlamadı. |
+| Ana sayılar | Olay sayısı, yazılan gün, kişi geçişi, konum geçişi. iPhone'da 2 × 2 düzendedir; erişilebilirlik boyutunda tek sütundur. |
+| Fark | Uygulama farkı yazıyla verir: "önceki haftaya göre +4", "önceki haftayla aynı". Ok yoktur. |
+| Süren dönem farkı | Süren dönemde uygulama önceki dönemi aynı tarihe kadar sayar. Etiket bunu söyler: "geçen yılın aynı tarihine göre +12". |
+| Kişiler ve Konumlar | İlk 5 kişi ve konum ad çipidir. Çipte geçiş sayısı durur. Çip varlığın kendi ekranını açar. Sıra geçiş sayısına göre azalandır. Eşitlikte ad, sonra yol sırası geçerlidir. |
+| İlk kez işareti | Dönemde ilk kez geçen adın çipinde yıldız işareti durur. Bölümün altındaki "İlk kez:" satırı bu adları sayar. İlk 5'in dışındaki adlar da satırdadır. Satır en çok 10 ad gösterir, kalanı sayıyla söyler: "ve 3 kişi daha". |
+| Hedefler | Hedefler ekranındaki satır: halka, ad, değer, ilerleme çubuğu. Hafta ve ayda günlük hedefin günleri tek satır ısı haritası hücresidir. |
+| Hedef farkı | Satırın altında küçük yazı: "önceki haftaya göre +12 sayfa · zincir +2". Uygulama yalnız sıfır olmayan farkı yazar. İki fark da sıfırsa satır yoktur. Kilometre taşında fark yoktur; yıllık hedefte zincir farkı yoktur. |
+| Görevler | "N görev oluşturuldu" ve fark. Altında tek yığılı çubuk durur: tamamlanan, devreden, tarihsiz açık. Her parçanın sayısı açıklamada yazar. |
+| Sıfır bölüm | Sayısı sıfır olan bölümü uygulama çizmez. |
+| Boş dönem | "Bu dönemde kayıt yok." yazar. Açık görev varsa altında tek satır durur: "Açık görevler: 6 devreden, 4 tarihsiz". En altta "Önceki döneme git" düğmesi durur. Uygulama öteki bölümleri çizmez. |
+| Mac düzeni | İki sütun. Sol sütun: ritim, ana sayılar, hedefler. Sağ sütun: kişiler, konumlar, görevler. |
+| Erişilebilirlik | Ritim şeridinin her sütunu birim adını ve değeri okur: olay sayısı, önceki dönem, yazıldı işareti. Erişilebilirlik boyutunda sütunlar satıra döner. Yığılı çubuğun sayıları açıklamada yazar. Ad çipi sayıyı birimiyle okur: "Deniz Arıkan, 7 geçiş". |
+| Yükleme | Dönem değişince ekran eski içeriği yeni yanıt gelene kadar gösterir. Gösterilecek içerik yoksa yükleme göstergesi çıkar. |
+| Gün dönümü | Ekran açıkken gün değişirse uygulama özeti yeni günle yeniden yükler. |
+
+**Ölçülen günler: uygulama süren dönemi aynı tarihe kadar karşılaştırır.**
+
+```mermaid
+flowchart LR
+    A{Dönem süren dönem mi} -->|Evet| B[Sayılar: dönem başı ile bugün arası]
+    B --> C[Önceki dönem: başı ile aynı tarih arası]
+    A -->|Hayır| D[Sayılar: bütün dönem]
+    D --> E[Önceki dönem: bütün dönem]
+```
+
+| Kural | Tanım |
+|---|---|
+| Süren dönem | Dönem bugünü içerir ve son günü bugünden sonradır. Bugün dönemin son günüyse dönem süren dönem değildir. |
+| Aynı tarih | Önceki haftanın aynı günü, önceki ayın aynı tarihi, önceki yılın aynı tarihi. Önceki ayda o tarih yoksa ayın son günü geçerlidir: 31 Mart'ın karşılığı 28 Şubat'tır. |
+| Ölçülen günler | Süren dönemde sayılar, ilk 5, ilk kez geçenler, ritim ve açık envanter bugünde biter. Bugünden sonraki gün dosyaları sayıya girmez. |
+| Artık gün | 29 Şubat'ın önceki yıldaki karşılığı 28 Şubat'tır. 1 Mart 2029'da süren yıl 60 günü 2028'in 61 günüyle karşılaştırır, çünkü 2028 yılı 29 Şubat'ı içerir. 30 Mart'ta süren ay 30 günü Şubat'ın bütün günleriyle karşılaştırır. |
+| Hedef ilerlemesi | Hedef satırının değeri ve çubuğu bütün dönemin hedefine göredir. Hedef farkı ölçülen günlerden gelir. |
+| Ritimde önceki dönem | Arkadaki soluk çubuklar önceki dönemin bütün birimlerini gösterir. |
+| Başlamamış dönem | Bugünden sonraki dönemi Core bütün olarak sayar. Ekran bu döneme geçmez. |
 
 **Sayıların tanımı.**
 
@@ -490,22 +535,22 @@ Bir güne dokunma gün ekranını açar. Gün ekranı Bugün ile aynı düzendir
 | Olay sayısı | Olay bloklarının sayısı. |
 | Yazılan gün | En az bir olay ya da boş olmayan `Journal` paragrafı veya başlığı olan farklı gün tarihleri. Yalnız görev ya da hedef kaydı olan gün bu sayıya girmez. |
 | Kişi ve konum geçişi | Gün dosyalarının gövdesindeki her çözülen bağlantı. Her tekrar ayrı bir geçiştir. Frontmatter bağlantıları bu sayıya girmez. Bölüm toplamı ilk beşin dışındakileri de içerir. |
-| İlk kez geçenler | Bütün günlük geçmişinde ilk gövde bağlantısı bu döneme düşen varlıklar. Kasada oluşturma tarihi yoktur. Bu sayı dosya oluşturma sayısı değildir. |
+| İlk kez geçenler | Bütün günlük geçmişinde ilk gövde bağlantısı bu döneme düşen varlıklar. Kasada oluşturma tarihi yoktur. Bu sayı dosya oluşturma sayısı değildir. Liste önce güne, sonra ada göre sıralıdır. |
 | Görev oluşturma günü | Kaynak gün dosyasının tarihi. Tekrarlayan görevin de oluşturma günü kaynak günüdür. |
 | Tamamlanan görev | Durumu tamamlanmış ve `✅` tarihi dönemde olan görev. |
-| Dönem sonu açık envanteri | O güne kadar kaynak gün dosyasında olan ve tamamlanmamış görevler. Tamamlanma tarihi dönem sonundan sonraysa görev o dönemde açıktır. |
-| Geciken ve tarihsiz | Bitiş tarihi dönem sonundan önceyse görev gecikendir. Bitiş tarihi yoksa tarihsiz açıktır. |
+| Dönem sonu açık envanteri | Ölçülen son güne kadar kaynak gün dosyasında olan ve tamamlanmamış görevler. Tamamlanma tarihi o günden sonraysa görev o dönemde açıktır. Süren dönemde ölçülen son gün bugündür. |
+| Devreden ve tarihsiz | Bitiş tarihi ölçülen son günden önceyse görev devredendir. Bitiş tarihi yoksa görev tarihsiz açıktır. |
 | Envanter dışı | İptaller ve tamamlanma tarihi olmayan tamamlanmış görevler. |
 | Kaynak günü olmayan görev | Oluşturma ve açık sayısına girmez. Geçerli tamamlanma tarihi varsa tamamlanan sayısına girer. |
 | Geri kurulamayan bilgi | Dosyalar durum ve değişiklik geçmişi tutmaz. Yeniden açma, iptal tarihi ve eski bitiş tarihi geri kurulamaz. |
-| Günlük hedef | Dönem katkısı ve hedef × gün sayısı. |
-| Haftalık hedef | Katkı ve hedef × dönemin değdiği pazartesi haftalarının sayısı. Ay kenarlarındaki kısmi haftalar dahildir. |
+| Günlük hedef | Dönem katkısı ve hedef × dönemin gün sayısı. Yılda gün sayısı 365 ya da 366'dır. |
+| Haftalık hedef | Katkı ve hedef × dönemin değdiği pazartesi haftalarının sayısı. Ay ve yıl kenarlarındaki kısmi haftalar dahildir. 2026 yılı 53 haftaya değer. |
 | Yıllık hedef | Dönem sonunda yıl başından ilerleme. Fark yalnız seçilen dönemin katkısını gösterir. |
-| Zincir | Uygulama zinciri bütün geçmişten hesaplar. Bitmiş dönemde dönem sonuna göre, süren dönemde bugüne göre. Hedefler'deki zincirle aynı sayıdır. Günlük hedefte af kuralı geçerlidir. |
+| Zincir | Uygulama zinciri bütün geçmişten hesaplar. Bitmiş dönemde dönem sonuna göre, süren dönemde bugüne göre. Hedefler'deki zincirle aynı sayıdır. Günlük hedefte af kuralı geçerlidir. Satır bitmiş dönemde "Dönem sonu zinciri", süren dönemde "Güncel zincir" yazar. |
 | Günlük hedef skoru | Zincirin altında son 30 günün skoru: "Son 30 gün %87". Bitmiş dönemde dönemin son günüyle biten 30 gün. Süren dönemde Hedefler'deki bugünkü skor. Ölçülen gün yoksa skor satırı yoktur. |
-| Haftalık ve yıllık skor | Haftalık ve yıllık kartta skor yoktur. |
+| Haftalık ve yıllık skor | Haftalık ve yıllık hedefin satırında skor yoktur. |
 | Kilometre taşı | Yıl içindeki ilk tamamlanma ve tarihi. Aynı yıl tekrarlanan kayıt katkıyı artırmaz. Zincir yoktur. |
-| İlerleme farkı | İki dönemin katkı farkı. |
+| İlerleme farkı | İki dönemin ölçülen günlerindeki katkı farkı. |
 | Zincir farkı | Dönem sonlarındaki zincirlerin farkı. |
 
 ### Haftalık inceleme (10)

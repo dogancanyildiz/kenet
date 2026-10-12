@@ -2,7 +2,7 @@
 
 **Amaç:** Bu belge `Fixtures/` klasöründeki test verisinin düzenini, girdi ve beklenen çıktı sözleşmesini ve yeni örnek ekleme yolunu tarif eder.
 
-**Kapsam:** `Fixtures/` altındaki 15 küme ve 11 kasa; her kümenin davranış aileleri, test eşlemesi ve yeni fixture ekleme adımları.
+**Kapsam:** `Fixtures/` altındaki 15 küme ve 12 kasa; her kümenin davranış aileleri, test eşlemesi ve yeni fixture ekleme adımları.
 
 Bu belgede **küme**, `Fixtures/` altındaki birinci düzey klasördür. **Örnek**, kümedeki tek vaka klasörü ya da bir JSON dosyasındaki tek vaka kaydıdır. **İstemci**, fixture dosyalarını okuyup sınayan test kodudur. Bugün Swift testleri istemcidir; ileride başka platformlardaki istemciler aynı dosyaları kullanır. Kasa biçiminin kendisi [Kasa biçimi](vault-format.md) belgesindedir.
 
@@ -28,8 +28,8 @@ flowchart LR
   F --> IM["import/ : 7 örnek"]
   F --> DA["dates/ : 3 JSON, 2 girdi dosyası"]
   F --> GO["goals/ : cases.json, creation/, writes/"]
-  F --> SU["summaries/ : 5 JSON"]
-  F --> VA["vaults/ : 11 kasa"]
+  F --> SU["summaries/ : 6 JSON"]
+  F --> VA["vaults/ : 12 kasa"]
   VA --> V1["sample"]
   VA --> V2["entity-fields"]
   VA --> V3["unlinked-mentions"]
@@ -41,6 +41,7 @@ flowchart LR
   VA --> V9["typed"]
   VA --> V10["placeholder"]
   VA --> V11["day-copies"]
+  VA --> V12["rhythm"]
 ```
 
 Sayılar `find Fixtures -maxdepth 2` çıktısından gelir. Kasalar `vaults/` altında durur ve birden çok küme aynı kasayı kullanır. Örneğin `recognition/unlinked-mentions/` beklentisi `vaults/unlinked-mentions/` kasasını okur.
@@ -135,6 +136,7 @@ Swift testleri `Fixtures/` klasörünü test kaynak dosyasından yukarı doğru 
 | `summaries/cadence.json` | `SummariesTests/MeetingCadenceTests.swift`, `Tests/JournalTests/CadenceTests.swift` | JSON vaka |
 | `summaries/important-dates.json` | `SummariesTests/ImportantDatesTests.swift` | JSON vaka |
 | `summaries/on-this-day.json` | `SummariesTests/OnThisDayTests.swift` | JSON vaka |
+| `summaries/period-rhythm.json` | `SummariesTests/PeriodRhythmTests.swift` | JSON vaka |
 | `vaults/sample/` | `IndexTests`, `PeriodSummaryTests`, `WikiLinkTests`, `MergeTests` ve uygulama testlerinin çoğu | Ad kodda |
 | `vaults/typed/` | `EntityTypeTests`, `EntityTypeStoreTests`, `InitialIndexTests`, `Tests/JournalTests/CustomEntityTypeTests.swift` | Ad kodda |
 | `vaults/backlinks/` | `VaultIndexTests/DayBacklinksTests.swift` | Ad kodda |
@@ -1024,6 +1026,7 @@ Diğer af durumları bugün yapılınca süren zincir, hedefin ilk ve ikinci gü
 | `cadence.json` | `vaults/cadence/` ve satır içi | | Görüşme ritmi |
 | `important-dates.json` | `vaults/anniversaries/` | 10 | Önemli tarihler |
 | `on-this-day.json` | `vaults/history/` | 9 | Bu gün geçmişte |
+| `period-rhythm.json` | `vaults/rhythm/` | 4 | Yıl dönemi, aynı tarihe kadar karşılaştırma, ritim birimleri, ilk kez geçenler, boş dönemde açık görevler |
 
 **Haftalık gözden geçirme metni:** Dosya başlığı, isteğe bağlı `summaryLines`, `selectedLines`, `note` ve beklenen `[String]` `expected` çıktısını taşır. Çıktıda önce hazır yerel özet satırları, sonra seçili satırlar ve not gelir. Test çıktıyı gerçek ayrıştırıcıyla yeniden okur; çıktı görev, olay, bölüm ve frontmatter üretmez. Test günlük ekleme yazıcısının bu satırları değiştirmeden yazdığını da denetler.
 
@@ -1032,6 +1035,17 @@ Diğer af durumları bugün yapılınca süren zincir, hedefin ilk ve ikinci gü
 `people` ve `places` ilk 5 öğedir: yol kimliği, görünen ad, `count`, `change`. `goals` öğeleri `done`, `target`, `contribution`, `streak`, `change`, `streakChange`, `score`, `completionDate` taşır. Olmayan tarih ve haftalık, yıllık, kilometre taşı skoru JSON `null` olur. Günlük skor dönemin son günüyle biten 30 günün hesabıdır; fixture yazarı beklentileri bugün vermeden ve dönemi bitmiş sayarak yazdı. Son gün kaçırılmışsa paydaya girer; sayı tanımları `screens.md` Özetler bölümündedir. Eylül'de Spor hedefi 15'tir, çünkü Eylül 5 pazartesi haftasına değer; Kitap 600, Su 240'tır.
 
 Kitap'ta 17 ve 18 Eylül art arda kaçtığı için zincir biter. Su'da 17, 19 ve 24 Eylül tek başına kaldığı için af alır ama zincire katkı vermez; zincir 20 Eylül'de 5, 27 Eylül'de 10'dur. Core testleri JSON'u indeks girdisinden çıkan hesap sonucuyla karşılaştırır. Testler pazartesi, yıl ve artık ay sınırlarını, geçmiş görev envanterini, yıllık ve kilometre taşı katkısını da sınar. Ek denetimler hedef zinciri için dönem öncesi geçmiş, ilk 5'in kararlı sırası ve çözülemeyen bağlantılardır. Sentetik geçici kasa frontmatter bağlantısının dışlanmasını, eski ilk geçiş tarihini ve artımlı indeks eşitliğini kanıtlar; örnek dosyalar değişmez.
+
+**Dönem ritmi:** Fixture yazarı `vaults/rhythm/` kasasının 4 beklentisini elle saydı. Her durum `vault`, `period`, `containing`, isteğe bağlı `today` ve `expected` taşır. Beklenti `cases.json` alanlarına ek olarak ölçülen aralıkları, `isRunning`, `units`, `previousUnits`, `firstPeople` ve `firstPlaces` taşır. Birim `start`, `end`, `events`, `writtenDays`, `measuredDays` ve `writing` taşır.
+
+| Durum | Ne sınar |
+|---|---|
+| `year-running-to-same-date` | 2026 yılı 7 Ekim'de sürer. Sayılar 1 Ocak–7 Ekim 2026 arasıdır: 10 olay, 7 yazılan gün. Core önceki yılı 7 Ekim 2025'e kadar sayar: 3 olay. 9 Ekim'in 4 olayı sayıya girmez. Kasım ve Aralık başlamamış birimdir. |
+| `week-running-to-same-weekday` | 5–11 Ekim haftası çarşamba sürer: 4 olay. Core önceki haftayı çarşambaya kadar sayar: 3 olay. Bütün önceki haftanın değeri 6'dır. |
+| `month-slices-from-the-first` | Ekim 2025: 1–7, 8–14, 15–21, 22–28, 29–31. Eylül 2025 dilimlerinin sonuncusu 29–30'dur. İlk kez geçen kişi Nehir Ak, konum Rüzgâr Kafe'dir. |
+| `empty-week-carries-open-tasks` | 10–16 Ağustos 2026 boştur. 3 Ağustos'tan 1 devreden ve 1 tarihsiz açık görev kalır. |
+
+Kasada 3 kişi, 1 konum, 1 günlük hedef ve 11 gün dosyası vardır. Fixture yazarı günlük hedefin zincir ve skor değerlerini kodla karşılaştırdı; kurallar `SummaryGoalScoreTests` ile aynıdır.
 
 **Görüşme ritmi:** Fixture yazarı `cadence.json` sözleşmesini elle yazdı. `spellings` `cadence_days` yazımının pozitif tam sayıya dönüp dönmediğini taşır: `30` ve `+30` döner. `0`, negatif, kesir (`30.0` dahil), başı sıfırlı, başı boşluklu, `Int` sınırını aşan ve metin dönmez. `source: vault` olan 2 gün `vaults/cadence/` kadrosunu kullanır ve `today`, `threshold`, sıralı `overdue` (`id`, `elapsedDays`, `overdueDays`) ve ad sıralı `never` taşır. Erteleme günü (2026-10-11) Fela'yı gizler; ertesi gün Fela ve süresi dolan Sera döner, eşiğe eşit Eda listeye girer. Gizem, daha uzun süredir görülmeyen Tuna'dan önce gelir, çünkü sıra eşiğin ne kadar aşıldığına bakar.
 
@@ -1060,6 +1074,7 @@ Kasa 20 Eylül'ü 4 yılda taşır. 2023 bağlantısızdır: not bağlantısı, 
 | `typed` | 4 | Özel kitap tipi; ayrıntı [`entity-types/` kümesi](#entity-types-kümesi) bölümünde | `entity-types/` |
 | `placeholder` | 12 | İndirilmeyi bekleyen yer tutucular | `PlaceholderTests` |
 | `day-copies` | 33 | Gün kopyası birleştirme | `DayCopyTests` |
+| `rhythm` | 16 | Özetler'in yıl, süren dönem ve ritim hesabı | `summaries/period-rhythm.json` |
 
 **Şema, `vaults/sample/` kasasının klasörlerini ve dosya sayılarını gösterir.**
 

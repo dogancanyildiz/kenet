@@ -81,7 +81,7 @@ Harita konuları gösterir; satırların tam metni karar günlüğündedir. Bir 
 
 ```mermaid
 timeline
-    title Karar takvimi, 197 karar
+    title Karar takvimi, 201 karar
     2026-10-02 : 58 karar : Ürün kapsamı ve platform : Kasa biçimi ve ayrıştırıcı : Git, sürüm ve CI
     2026-10-03 : 19 karar : Yazma doğrulaması : İndeks ve arama : Varlık sayfası ve hızlı giriş
     2026-10-04 : 31 karar : Birleştirme ve kayıp yok : VaultStore ve dosya izleme : Görev, hedef ve otomasyon : Özet, graph ve harita
@@ -91,10 +91,10 @@ timeline
     2026-10-08 : 12 karar : Mac sütunları ve kenar çubuğu : Mac sheet ve Ayarlar : Test kimliği : Günlük kaydı temizliği
     2026-10-11 : 27 karar : Aşama 10 geçişi : Önemli tarihler ve bu gün geçmişte : Görüşme ritmi : Günü kapat : İndeks şeması 7
     2026-10-12 : 14 karar : Okuma modelinden sorguya : Ad çipi ve rakam ad : Yer tutucu ve gün kopyası : TestFlight denetimi
-    2026-10-13 : 4 karar : Hedef ve görev sorguları : Bayat yenileme : İyimser hedef işareti
+    2026-10-13 : 8 karar : Hedef ve görev sorguları : Bayat yenileme : İyimser hedef işareti : Okuma modeli inceltme : Fixture testleri : Özetler yeniden tasarımı : Hedef şeridi önbelleği
 ```
 
-Sayılar karar günlüğündeki satır sayısıdır. Toplam 197 satırdır.
+Sayılar karar günlüğündeki satır sayısıdır. Toplam 201 satırdır.
 
 ## Karar günlüğü
 
@@ -299,6 +299,10 @@ Sayılar karar günlüğündeki satır sayısıdır. Toplam 197 satırdır.
 | 2026-10-13 | Görev ekranları okuma modelinin `tasks` alanını bıraktı. Liste, Kanban, zaman çizelgesi, proje, gün sayfası, günü kapat, haftalık inceleme ve Mac ayrıntısı kendi Core sorgusunu `IndexStore.compute…` ile çalıştırır. Süzgeçler sorguya gitti. Gruplama ve sıra Swift'te kaldı. Uygulama ilk yanıta kadar boş durumu çizmez. Kanban iptal edilmiş görevleri her zaman alır; seçenek yalnız süzer. Hatırlatma günü kapat akışını yalnız o yayıma ait görev yanıtıyla açar. `tasks` alanı planlayıcı ve Intent için kalır | Değişiklik A5'te alanın kaldırılmasının ön koşuludur. Sıra birebir aynıdır: NFC yollarda SQL sırası Swift sırasına eşittir; ekip bunu ölçtü. Gün sayfası iki yanıtı bekler: 5 yıllık kasada yaklaşık 90 ms, arka planda |
 | 2026-10-13 | Kasa değişince eski kasanın yenilemesi, yayımı, varlık kaydı ve başarısız yenilemesi yeni kasaya hiçbir şey yazmaz. Mekanizma: `writer` ve `generation` kimliği. `isProcessing` ve `errorText` yeni kasanındır. Ekran sorguları iptal edilen çağırana `CancellationError` döner. Bildirim planı yalnız kişi sorgusunu çağıranın iptalinden ayırır: `Task {}` | Eski kasanın verisi yeni kasada kalıyordu ve meşgul göstergesi takılı kalabiliyordu. Yeni istek eski yanıtın üstüne yazmamalıdır. Başlamış bir plan kişi hatırlatmalarını silip yarıda kalmamalıdır |
 | 2026-10-13 | Hedef işaretlemede iyimser güncelleme. Kullanıcı listede ya da gün sayfasında hedefi işaretleyince ekran hedefi dokunuş anında o ekranın `GoalDayModel` modelinden çizer. Yazmanın yayımından sonra istenmiş bir `goalStatuses` yanıtı gelince ekran yine sorgu sonucunu çizer. "Sonra" ölçüsü duvar saati değildir: model `lastUpdated` değişimlerini tekdüze bir sayaçla sayar. Uygulama kaydedilmeyen işareti geri alır. Gün sayfasında şerit ve sayaç aynı modeli paylaşır. Sorgu `goalStatuses` kayıtlarını yalnız `key, date, kind, value` sütunlarıyla okur | Sayaç ve liste satırı sorgu yanıtını bekliyordu. 5 yıllık kasada dokunuştan çizime süre Release 306 ms, Debug 818 ms idi; şimdi 58 ms ve 163 ms. Yanıttan önceki ikinci dokunuş görünmeyen işareti kaldırabiliyordu. Sorgu 10 yıl ve 20 hedefte Release 60 ms'den 35 ms'ye indi |
+| 2026-10-13 | Okuma modelinden `tasks` ve `projects` çıktı. Parçalar blok metni taşımaz; yalnız dosya, varlık, takma ad, bağlantı, hedef değeri, olay ve görev sayısı tutar. Bildirim planlayıcı haftasını `computeNotificationDays` sorgusundan alır; hafta okunamazsa görev ve günlük hatırlatmasını planlamaz. Proje adları `taskProjects()` sorgusundan gelir. Varlık ekranının açık işleri zaman akışıyla aynı görevde `taskGroups(scope: linkedTo)` sorgusundan gelir. Artımlı yol blok kimliği taramaz | Son görev tüketicileri gidince blokları tutmanın nedeni kalmadı. 5 yıllık kasada model 6,14 MB'tan 2,35 MB'a, yeniden türetme 168 ms'den 50 ms'ye, artımlı uygulama 50 ms'den 14 ms'ye indi. Plan eşitliği testle kanıtlandı. Bedel: her yeniden planlamada 49 ms arka plan sorgusu |
+| 2026-10-13 | Hedef oluşturma vakaları `Fixtures/goals/creation/cases.json` dosyasından okunur; koddaki kopyalar kalktı. `recognition/custom-book` fixture'ı tanıma testlerinde koşar | Belge yeniden yazımı iki fixture'ın hiçbir testte okunmadığını gösterdi. Fixture dilden bağımsız sözleşmedir; test onu okumalı |
+| 2026-10-13 | Özetler'e Yıl sekmesi girer. Süren dönem önceki dönemle aynı tarihe kadar karşılaştırılır; sayılar, ilk beş, ilk kez ve açık envanter bugünde biter. Fark yazıyla verilir, ok yoktur. Ritim birimi hafta için gün, ay için ayın 1'inden 7 günlük dilim, yıl için aydır. Boş dönemde açık görevler tek satırda kalır. Devreden parça mürekkep tonundadır. Mac'te hedefler sol sütundadır. Dönem değişince eski içerik ilk yanıta kadar kalır | Kullanıcı prototipi onayladı. Süren yılı geçen yılın tamamıyla karşılaştırmak yanıltıcıydı; aynı tarihli dilimler iki dönemi aynı günlerle karşılaştırır. Tek sayı listesi yerine ritim şeridi, çipler ve çubuklar: ilk ekranda görünen değer 11'den 30'a çıktı, kaydırma 2.573 pt'den 1.646 pt'ye indi |
+| 2026-10-13 | Hedef düzenleme modeli (`GoalDayModel`) her hedefin durumunu bir kez hesaplar ve tutar. Tutulan durum yalnız o hedefin anahtarındaki geçmiş değişince ya da hedef tanımı değişince düşer. Model önbelleğe bakmadan önce geçmişi okur; böylece SwiftUI şeridi geçmiş değişince yeniden çizer. Şerit sırayı hazır durumlardan kurar | Gün sayfasında şeridin her çizimi her karşılaştırmada bütün geçmişi yeniden hesaplıyordu: 5 yıllık kasada bir çizim 129 ms (Debug) ve 22 ms (Release), 16 hesap. Şimdi 6 ve 5 ms, 0 hesap. Dokunuştan işarete süre Debug'da 153 ms'den 50 ms'ye indi |
 
 Satır sırası ekleme sırasıdır; tablonun ilk satırları tarih sırasında değildir. Sonradan değişen bir kararın gerekçe hücresi değişikliği tarihiyle anar. Güncel durum notları kararın verildiği günden sonraki gerçek durumu söyler.
 

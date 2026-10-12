@@ -67,7 +67,6 @@ import VaultFormat
     }
     @Test func ninetyDayWindowDeduplicatesDaysAndIgnoresFuture() {
         let path = "people/Deniz Arıkan.md"
-        let content = VaultReadModel()
         let first = today.addingDays(-90)!
         let boundary = today.addingDays(-89)!
         let timeline = [
@@ -75,14 +74,14 @@ import VaultFormat
             EntityTimelineDay(date: boundary, rows: []), EntityTimelineDay(date: today, rows: []),
             EntityTimelineDay(date: today.addingDays(1)!, rows: []),
         ]
-        let insight = EntityInsights.compute(path: path, timeline: timeline, content: content, today: today)
+        let insight = EntityInsights.compute(path: path, timeline: timeline, lastDay: nil, entities: [], today: today)
         #expect(insight.firstDay == first && insight.lastDay == today)
         #expect(insight.recentDayCount == 2 && insight.averageInterval == 89)
         let single = EntityInsights.compute(
-            path: path, timeline: [EntityTimelineDay(date: today, rows: [])], content: content,
+            path: path, timeline: [EntityTimelineDay(date: today, rows: [])], lastDay: nil, entities: [],
             today: today.addingDays(89)!)
         #expect(single.recentDayCount == 1 && single.averageInterval == nil)
-        let empty = EntityInsights.compute(path: "unknown", timeline: [], content: content, today: today)
+        let empty = EntityInsights.compute(path: "unknown", timeline: [], lastDay: nil, entities: [], today: today)
         #expect(
             empty.firstDay == nil && empty.lastDay == nil && empty.averageInterval == nil && empty.recentDayCount == 0)
     }
@@ -97,13 +96,18 @@ import VaultFormat
         let insight = try await Self.insight("people/Deniz Arıkan.md", context.store, today)
         #expect(insight.lastDay == CalendarDate("2026-09-25") && insight.recentDayCount == 5)
     }
-    /// The card's input: the entity's queried timeline and the published read model.
+    /// The card's input as the entity page loads it: the queried timeline, the queried day of the
+    /// last encounter, and the published entities.
     private static func insight(_ path: String, _ store: IndexStore, _ today: CalendarDate) async throws
         -> EntityInsights
     {
-        EntityInsights.compute(
-            path: path, timeline: try await store.computeEntityTimeline(for: path), content: store.content,
-            today: today)
+        let timeline = try await store.computeEntityTimeline(for: path)
+        var lastDay: DaySummary?
+        if let last = EntityInsights.lastDay(in: timeline, today: today) {
+            lastDay = try await store.computeDay(on: last)
+        }
+        return EntityInsights.compute(
+            path: path, timeline: timeline, lastDay: lastDay, entities: store.content.entities, today: today)
     }
     @Test func preferenceDefaultsAndClampsPersistedValues() throws {
         let defaults = try TestDefaults()

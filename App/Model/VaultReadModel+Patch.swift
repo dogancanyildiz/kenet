@@ -44,7 +44,6 @@ extension VaultReadModel {
             if left.file != right.file { return left.file < right.file }
             return left.sourceLine < right.sourceLine
         }
-        days.sort(by: VaultReadModel.daySort)
 
         let goalTouched = removed.union(touched).contains { path in
             !(before[path]?.goalLogs.isEmpty ?? true)
@@ -64,17 +63,12 @@ extension VaultReadModel {
                 goalStatuses[goal.key] = GoalProgress.compute(
                     definition: goal, logs: allLogs[goal.key] ?? [], today: today)
             }
-            let goalFiles = Set(indexedLogs.map(\.file))
-            for index in days.indices {
-                days[index].hasGoalRecords = goalFiles.contains(days[index].id)
-            }
         }
     }
 
     private mutating func subtractContributions(of fragment: VaultFileFragment) {
         let path = fragment.file.path
         tasks.removeAll { $0.file == path }
-        days.removeAll { $0.id == path }
         adjustIncoming(links: fragment.links, delta: -1)
         adjustCounts(of: fragment, delta: -1)
     }
@@ -82,9 +76,6 @@ extension VaultReadModel {
     private mutating func addContributions(of fragment: VaultFileFragment) {
         let links = fragment.links
         tasks += fragment.blocks.filter { $0.kind == "task" }.map { TaskRow(row: $0, links: links) }
-        if fragment.file.kind == "day", let value = fragment.file.date, let date = CalendarDate(value) {
-            days.append(daySummary(fragment: fragment, date: date, hasGoalRecords: !fragment.goalLogs.isEmpty))
-        }
         adjustIncoming(links: links, delta: 1)
         adjustCounts(of: fragment, delta: 1)
     }
@@ -114,31 +105,5 @@ extension VaultReadModel {
                 id: entity.id, kind: entity.kind, name: entity.name, qualifier: entity.qualifier,
                 aliases: entity.aliases, incomingLinks: max(0, entity.incomingLinks + change))
         }
-    }
-
-    private func daySummary(
-        fragment: VaultFileFragment, date: CalendarDate, hasGoalRecords: Bool
-    ) -> DaySummary {
-        let rows = fragment.blocks.sorted { $0.ordinal < $1.ordinal }
-        let sourceLinks = fragment.links
-        let events = rows.filter { $0.kind == "event" }.map { row in
-            EventRow(
-                id: row.ordinal,
-                time: row.time.flatMap {
-                    RawDocument(bytes: Array("## Events\n- \($0) event".utf8)).bodyLines.events.first?.time
-                },
-                text: LinkedText(row: row, links: sourceLinks),
-                sourceLine: row.firstLine - 1, sourceEnd: row.lastLine,
-                sourceText: row.text, sourceIdentifier: row.identifier)
-        }
-        let journal = rows.filter { $0.section == "Journal" && ["paragraph", "heading"].contains($0.kind) }
-            .map { row in
-                JournalRow(
-                    id: row.ordinal, headingLevel: row.headingLevel,
-                    text: LinkedText(row: row, links: sourceLinks))
-            }
-        return DaySummary(
-            id: fragment.file.path, date: date, events: events, journal: journal,
-            hasGoalRecords: hasGoalRecords)
     }
 }

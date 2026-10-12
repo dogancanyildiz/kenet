@@ -69,7 +69,8 @@ struct EntityNavigationTests {
         let context = try EntityPageTestContext()
         defer { context.clean() }
         await context.start()
-        let september = JournalCalendar(month: CalendarDate("2026-09-15")!, days: context.store.content.days)
+        let september = JournalCalendar(
+            month: CalendarDate("2026-09-15")!, days: try await context.store.computeDaySummaries())
         #expect(september.markedDays.count == 14)
         #expect(september.markedDays.contains(CalendarDate("2026-09-14")!))
         #expect(!september.markedDays.contains(CalendarDate("2026-09-13")!))
@@ -88,9 +89,15 @@ struct EntityNavigationTests {
         await context.start()
         let day = CalendarDate("2026-09-13")!
         #expect(context.store.content.day(on: day).events.isEmpty)
-        #expect(!JournalCalendar(month: day, days: context.store.content.days).markedDays.contains(day))
+        let month = JournalCalendar.range(of: day)
+        func calendar() async throws -> JournalCalendar {
+            JournalCalendar(
+                month: day,
+                days: try await context.store.computeDaySummaries(from: month.lowerBound, to: month.upperBound))
+        }
+        #expect(try await !calendar().markedDays.contains(day))
         #expect(await context.store.addEvent(on: day, text: "New day", time: nil))
-        #expect(JournalCalendar(month: day, days: context.store.content.days).markedDays.contains(day))
+        #expect(try await calendar().markedDays.contains(day))
     }
 
     @Test func unresolvedLinkCreationIndexesEntityAndResolvesExistingLink() async throws {

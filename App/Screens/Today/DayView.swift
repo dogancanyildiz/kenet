@@ -26,6 +26,8 @@ struct DayView: View {
     @State private var tasksModel: DayTasksModel
     @State private var isCarriedOverExpanded = false
     @State private var isCompletedExpanded = false
+    /// Nil until the first query returns; a reload keeps the previous day until then.
+    @State private var loadedDay: DaySummary?
 
     init(store: IndexStore, date: CalendarDate, isToday: Bool = false) {
         self.store = store
@@ -34,15 +36,17 @@ struct DayView: View {
         _tasksModel = State(initialValue: DayTasksModel(store: store, day: date, isToday: isToday))
     }
 
-    private var day: DaySummary { store.content.day(on: date) }
+    /// The queried day, once it is this date's. Until then the day's own sections are not drawn,
+    /// so the page never shows an empty day that is still loading.
+    private var day: DaySummary? { loadedDay?.date == date ? loadedDay : nil }
 
     private func makePresentation() -> TodayPresentation {
         let today = isToday ? date : LocalDay.today(at: clockNow())
         let statuses = TodayPresentation.goalStatuses(
             goals: store.content.goals, logs: store.content.goalLogs, day: date)
         return TodayPresentation(
-            day: day, groups: tasksModel.groups, goals: store.content.goals, goalStatuses: statuses,
-            goalStatusesDay: date, today: today, locale: locale, calendar: calendarValue,
+            day: day ?? DaySummary(empty: date), groups: tasksModel.groups, goals: store.content.goals,
+            goalStatuses: statuses, goalStatusesDay: date, today: today, locale: locale, calendar: calendarValue,
             completedTasks: tasksModel.completedTasksForPresentation,
             completedTaskIDs: tasksModel.completed,
             isCarriedOverExpanded: isCarriedOverExpanded, isCompletedExpanded: isCompletedExpanded)
@@ -51,9 +55,10 @@ struct DayView: View {
     var body: some View {
         let presented = makePresentation()
         let entitiesByID = InkLinkMapping.entityIndex(store.content.entities)
+        let day = self.day
         let isEmptyDay =
-            day.events.isEmpty && day.journal.isEmpty && tasksModel.groups.isEmpty
-            && !day.hasGoalRecords && presented.completedTaskCount == 0
+            day.map { $0.events.isEmpty && $0.journal.isEmpty && !$0.hasGoalRecords } == true
+            && tasksModel.groups.isEmpty && presented.completedTaskCount == 0
         ScrollView {
             VStack(alignment: .leading, spacing: InkSpacing.section) {
                 headlineBlock(presented)
@@ -85,7 +90,7 @@ struct DayView: View {
 
                 DayCalendarView(date: date)
 
-                if !day.events.isEmpty {
+                if let day, !day.events.isEmpty {
                     VStack(alignment: .leading, spacing: InkSpacing.row) {
                         SectionHeader(
                             title: String(
@@ -104,8 +109,9 @@ struct DayView: View {
                     .dayBacklinks(store: store, date: date)
 
                 // Last on the page: above the fold it would push the first event out of sight.
-                if CloseDayEntry.isOffered(
-                    isToday: isToday, presentation: presented, hasJournal: CloseDayEntry.hasJournal(day))
+                if let day,
+                    CloseDayEntry.isOffered(
+                        isToday: isToday, presentation: presented, hasJournal: CloseDayEntry.hasJournal(day))
                 {
                     closeDayEntry
                 }
@@ -132,6 +138,9 @@ struct DayView: View {
         .accessibilityIdentifier(isToday ? "screen.today" : "screen.day")
         .task(id: date) {
             if AppLaunchPolicy.allowsAutomaticStart() { await calendar.load(date) }
+        }
+        .task(id: DayRequest(date: date, updated: store.lastUpdated)) {
+            if let loaded = try? await store.computeDay(on: date) { loadedDay = loaded }
         }
         .onChange(of: date) { _, newDate in
             tasksModel = DayTasksModel(store: store, day: newDate, isToday: isToday)
@@ -163,7 +172,7 @@ struct DayView: View {
     private func headlineBlock(_ presented: TodayPresentation) -> some View {
         InkPageHeader(
             verbatim: presented.headline, shortTitle: presented.shortHeadline,
-            byline: presented.byline, fitsOneLine: isToday
+            byline: day == nil ? nil : presented.byline, fitsOneLine: isToday
         ) {
             if isToday, let openSettings {
                 InkHeaderAction("Ayarlar", systemImage: "gearshape", identifier: "button.settings") {
@@ -215,7 +224,7 @@ struct DayView: View {
 
     @ViewBuilder private var journalPreview: some View {
         VStack(alignment: .leading, spacing: 6) {
-            if let preview = day.preview {
+            if let day, let preview = day.preview {
                 Text(verbatim: preview)
                     .font(.ink.content)
                     .foregroundStyle(Color.ink.text)
@@ -229,7 +238,7 @@ struct DayView: View {
                 )
                 .font(.ink.byline)
                 .foregroundStyle(Color.ink.accent)
-            } else {
+            } else if day != nil {
                 Text(
                     verbatim: String(
                         localized: "Günlük yazısı ekle…",

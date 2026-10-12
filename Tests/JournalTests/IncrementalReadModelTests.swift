@@ -216,23 +216,6 @@ struct IncrementalReadModelTests {
         #expect(incremental.goalStatuses != previous.goalStatuses)
     }
 
-    @Test func daySortTieBreakMatchesFullDerive() {
-        let day = CalendarDate("2026-10-04")!
-        let earlier = DaySummary(id: "journal/a.md", date: day, events: [], journal: [])
-        let later = DaySummary(id: "journal/b.md", date: day, events: [], journal: [])
-        // Full derive walks path-sorted files then sorts by date (stable → path on ties).
-        let full = [earlier, later].sorted(by: VaultReadModel.daySort)
-        // Patch removes the path-earlier day and re-appends it last.
-        var incremental = [later, earlier]
-        incremental.sort(by: VaultReadModel.daySort)
-        #expect(incremental.map(\.id) == full.map(\.id))
-        #expect(incremental.map(\.id) == ["journal/a.md", "journal/b.md"])
-        // Date-only sort would keep the reversed patch order.
-        var dateOnly = [later, earlier]
-        dateOnly.sort { $0.date > $1.date }
-        #expect(dateOnly.map(\.id) == ["journal/b.md", "journal/a.md"])
-    }
-
     @Test func goalTouchedKeepsInvalidDefinitionKeys() throws {
         let root = try testDirectory()
         defer { try? FileManager.default.removeItem(at: root) }
@@ -392,5 +375,91 @@ struct IncrementalReadModelTests {
         timelines = try check("external delete")
         #expect(timelines[renamed.path]?.map(\.date) == [today])
         #expect(timelines["places/Harbor Cafe.md"]?.map(\.date) == [today])
+    }
+
+    /// Days left the read model for Core queries: after each edit the list and single-day queries on
+    /// the maintained index, and the published day the notification planner reads, equal the old
+    /// construction from a rebuild. This is what `matchesScreenFields` compared for days before.
+    @Test func daysAfterIncrementalEditsMatchFullRebuild() async throws {
+        let root = try testDirectory()
+        defer { try? FileManager.default.removeItem(at: root) }
+        try IncrementalReadModelVault.seed(at: root)
+        let index = try VaultIndex()
+        try index.rebuild(vaultRoot: root)
+        let store = VaultStore(vaultRoot: root, index: index)
+        let today = IncrementalReadModelVault.today
+        let path = "journal/\(today).md"
+        var model = try IncrementalReadModelVault.fullModel(index: index)
+        @discardableResult
+        func check(_ label: String) throws -> [DaySummary] {
+            let rebuilt = try VaultIndex()
+            try rebuilt.rebuild(vaultRoot: root)
+            let expected = DaySummary.build(snapshot: try rebuilt.snapshot())
+            #expect(
+                try index.daySummaries().map(DayOverview.init(entry:)) == expected.map(\.overview),
+                Comment(rawValue: label))
+            let dates = expected.map(\.date) + [CalendarDate("2026-10-01")!, today.addingDays(1)!]
+            for date in dates {
+                let old = DaySummary.day(on: date, in: expected).key
+                #expect(
+                    DaySummary(contents: try index.day(on: date), date: date).key == old,
+                    Comment(rawValue: "\(label) \(date)"))
+                #expect(model.day(on: date).key == old, Comment(rawValue: "published \(label) \(date)"))
+            }
+            return expected
+        }
+        func publish(_ changed: Set<String>, deleted: Set<String> = []) throws {
+            model = try VaultPublishedContent.applying(
+                previous: model, index: index, changedPaths: changed, deletedPaths: deleted, today: today
+            ).content
+        }
+        var days = try check("seed")
+        #expect(days.map(\.date.description) == ["2026-10-05", "2026-10-04"])
+
+        _ = try await store.addingEvent(on: today, text: "Lunch with [[Deniz Example]] at [[Harbor Cafe]]", time: nil)
+        try publish([path])
+        days = try check("event")
+        #expect(days.first?.events.count == 2)
+
+        _ = try await store.appendingJournal(on: today, lines: ["Later with [[Zora Example]]."])
+        try publish([path])
+        days = try check("journal")
+        #expect(days.first?.journal.count == 2)
+
+        let document = try await store.document(at: path)
+        let task = try #require(document.bodyLines.tasks.first { $0.block.id == "task2" })
+        _ = try await store.changingStatus(of: task, at: path, to: .done, completionDate: today)
+        try publish([path])
+        try check("task")
+
+        let renamed = try await store.renamingEntity(at: "people/Deniz Example.md", to: "Deniz Renamed")
+        try publish(Set(renamed.updatedFiles).union([renamed.path]), deleted: ["people/Deniz Example.md"])
+        days = try check("rename")
+        #expect(days.first?.events.last?.text.spans.compactMap(\.destination).contains(renamed.path) == true)
+
+        let created = try await store.creatingEntity(kind: .person, name: "Zora Example", qualifier: nil)
+        try publish([created])
+        days = try check("create")
+        #expect(days.first?.journal.last?.text.spans.compactMap(\.destination) == [created])
+
+        let edited = root.appendingPathComponent("journal/2026-10-04.md")
+        var text = try String(contentsOf: edited, encoding: .utf8)
+        text += "\n\nAnother paragraph.\n"
+        try Data(text.utf8).write(to: edited)
+        try FileManager.default.setAttributes(
+            [.modificationDate: Date().addingTimeInterval(2)], ofItemAtPath: edited.path)
+        model = try IncrementalReadModelVault.apply(model, index: index, result: try index.refresh(vaultRoot: root))
+        days = try check("external edit")
+        #expect(days.last?.journal.count == 2)
+
+        _ = try await store.appendingJournal(on: CalendarDate("2026-10-01")!, lines: ["A day of its own."])
+        try publish(["journal/2026-10-01.md"])
+        days = try check("new day")
+        #expect(days.map(\.date.description) == ["2026-10-05", "2026-10-04", "2026-10-01"])
+
+        try FileManager.default.removeItem(at: edited)
+        model = try IncrementalReadModelVault.apply(model, index: index, result: try index.refresh(vaultRoot: root))
+        days = try check("external delete")
+        #expect(days.map(\.date.description) == ["2026-10-05", "2026-10-01"])
     }
 }

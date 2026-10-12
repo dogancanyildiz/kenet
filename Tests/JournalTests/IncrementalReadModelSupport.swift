@@ -173,3 +173,73 @@ extension EntityTimeline {
         }
     }
 }
+
+extension DaySummary {
+    /// How the read model built its `days` before they moved to Core queries: the oracle the
+    /// queries are compared with. Day files newest first (path on ties), each with its events and
+    /// Journal paragraphs and headings in source order.
+    static func build(snapshot: IndexSnapshot) -> [DaySummary] {
+        let goalFiles = Set(snapshot.goalLogs.map(\.file))
+        let blocks = Dictionary(grouping: snapshot.blocks, by: \.file)
+        let links = Dictionary(grouping: snapshot.links, by: \.file)
+        return snapshot.files.compactMap { file -> DaySummary? in
+            guard file.kind == "day", let value = file.date, let date = CalendarDate(value) else { return nil }
+            let rows = (blocks[file.path] ?? []).sorted { $0.ordinal < $1.ordinal }
+            let sourceLinks = links[file.path] ?? []
+            let events = rows.filter { $0.kind == "event" }.map { row in
+                EventRow(
+                    id: row.ordinal,
+                    time: row.time.flatMap {
+                        RawDocument(bytes: Array("## Events\n- \($0) event".utf8)).bodyLines.events.first?.time
+                    },
+                    text: LinkedText(row: row, links: sourceLinks),
+                    sourceLine: row.firstLine - 1, sourceEnd: row.lastLine,
+                    sourceText: row.text, sourceIdentifier: row.identifier)
+            }
+            let journal = rows.filter { $0.section == "Journal" && ["paragraph", "heading"].contains($0.kind) }
+                .map { row in
+                    JournalRow(
+                        id: row.ordinal, headingLevel: row.headingLevel,
+                        text: LinkedText(row: row, links: sourceLinks))
+                }
+            return DaySummary(
+                id: file.path, date: date, events: events, journal: journal,
+                hasGoalRecords: goalFiles.contains(file.path))
+        }.sorted {
+            if $0.date != $1.date { return $0.date > $1.date }
+            return $0.id < $1.id
+        }
+    }
+
+    /// The old `day(on:)` over a built list: a date without a day file is empty.
+    static func day(on date: CalendarDate, in days: [DaySummary]) -> DaySummary {
+        days.first { $0.date == date } ?? DaySummary(id: "journal/\(date).md", date: date, events: [], journal: [])
+    }
+
+    /// Everything a day shows, as the read model's equality key compared it.
+    var key: String {
+        func spans(_ text: LinkedText) -> String {
+            text.spans.map { "\($0.text):\($0.destination ?? ""):\($0.target ?? "")" }.joined(separator: ",")
+        }
+        let eventKeys = events.map {
+            "\($0.id)|\($0.time?.raw ?? "")|\($0.text.plainText)|\($0.sourceLine)|\($0.sourceEnd)|\($0.sourceText)|\($0.sourceIdentifier ?? "")|\(spans($0.text))"
+        }.joined(separator: ";")
+        let journalKeys = journal.map {
+            "\($0.id)|\($0.headingLevel.map(String.init) ?? "")|\($0.text.plainText)|\(spans($0.text))"
+        }.joined(separator: ";")
+        return "\(id)|\(date)|\(hasGoalRecords)|\(eventKeys)|\(journalKeys)"
+    }
+
+    /// The list row and calendar mark the old read model gave this day.
+    var overview: DayOverview {
+        DayOverview(
+            id: id, date: date, eventCount: events.count, journalCount: journal.count, preview: preview,
+            hasGoalRecords: hasGoalRecords)
+    }
+}
+
+extension VaultReadModel {
+    /// The old `days` field rebuilt from the published fragments with the oracle above. Lets store
+    /// tests check what a publish carries; screens query the index instead.
+    var days: [DaySummary] { DaySummary.build(snapshot: asSnapshot()) }
+}

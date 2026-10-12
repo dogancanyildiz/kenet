@@ -8,9 +8,13 @@ struct DaysCalendarView: View {
     @Environment(\.locale) private var locale
     @Environment(\.clockNow) private var clockNow
     @State private var month: CalendarDate?
+    /// The last month whose days were queried. Until the asked month's answer arrives it stays on
+    /// screen, so the grid never shows a month without its marks; before the first answer the
+    /// days are not drawn.
+    @State private var loaded: JournalCalendar?
     private var resolvedMonth: CalendarDate { month ?? LocalDay.today(at: clockNow()) }
     private var model: JournalCalendar {
-        JournalCalendar(month: resolvedMonth, days: store.content.days)
+        loaded ?? JournalCalendar(month: resolvedMonth, days: [])
     }
     private var calendar: Calendar {
         var result = Calendar(identifier: .gregorian)
@@ -18,12 +22,18 @@ struct DaysCalendarView: View {
         return result
     }
     private var today: CalendarDate { LocalDay.today(at: clockNow()) }
+    private var monthRequest: DayRangeRequest {
+        let range = JournalCalendar.range(of: resolvedMonth)
+        return DayRangeRequest(from: range.lowerBound, to: range.upperBound, updated: store.lastUpdated)
+    }
 
     var body: some View {
         VStack(spacing: 8) {
             HStack {
+                // From the asked month, not the one on screen: a second tap before the first
+                // month's answer arrives moves on instead of asking for the same month again.
                 Button {
-                    month = model.adjacentMonth(-1)
+                    month = JournalCalendar(month: resolvedMonth, days: []).adjacentMonth(-1)
                 } label: {
                     Label("Önceki ay", systemImage: "chevron.left")
                         .labelStyle(.iconOnly)
@@ -36,7 +46,7 @@ struct DaysCalendarView: View {
                     .foregroundStyle(.ink.text)
                 Spacer()
                 Button {
-                    month = model.adjacentMonth(1)
+                    month = JournalCalendar(month: resolvedMonth, days: []).adjacentMonth(1)
                 } label: {
                     Label("Sonraki ay", systemImage: "chevron.right")
                         .labelStyle(.iconOnly)
@@ -74,6 +84,10 @@ struct DaysCalendarView: View {
                         )
                         .accessibilityHint(level > 0 ? Text("Günlük kaydı var") : Text("Boş gün"))
                         .accessibilityAddTraits(isSelected ? .isSelected : [])
+                        // Until the first answer the days keep their place but are not drawn:
+                        // a month drawn without its marks would flash them in a moment later.
+                        .opacity(loaded == nil ? 0 : 1)
+                        .accessibilityHidden(loaded == nil)
                     } else {
                         Color.clear.frame(height: 44)
                     }
@@ -82,6 +96,13 @@ struct DaysCalendarView: View {
         }.padding(.vertical, 4)
             .onAppear {
                 if month == nil { month = LocalDay.today(at: clockNow()) }
+            }
+            .task(id: monthRequest) {
+                let asked = resolvedMonth
+                let range = JournalCalendar.range(of: asked)
+                if let days = try? await store.computeDaySummaries(from: range.lowerBound, to: range.upperBound) {
+                    loaded = JournalCalendar(month: asked, days: days)
+                }
             }
     }
 }

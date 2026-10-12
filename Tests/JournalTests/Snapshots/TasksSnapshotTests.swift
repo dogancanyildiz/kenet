@@ -114,7 +114,7 @@
             let context = try TaskTestContext(sample: true)
             defer { context.clean() }
             await context.start()
-            let days = context.store.content.days
+            let days = try await context.store.computeDaySummaries()
             let id = try #require(days.first?.id)
             try await assertMacView(
                 MacDayList(days: days, selection: .constant(id)),

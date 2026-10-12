@@ -6,7 +6,8 @@ struct JournalCalendar: Sendable {
     let markedDays: Set<CalendarDate>
     let levels: [CalendarDate: Int]
 
-    init(month: CalendarDate, days: [DaySummary]) {
+    /// `days` may cover more than the month; only the month's days are marked.
+    init(month: CalendarDate, days: [DayOverview]) {
         let firstOfMonth = CalendarDate(year: month.year, month: month.month, day: 1)!
         self.month = firstOfMonth
         var computedLevels: [CalendarDate: Int] = [:]
@@ -20,8 +21,15 @@ struct JournalCalendar: Sendable {
         self.markedDays = Set(computedLevels.keys)
     }
 
-    static func score(for day: DaySummary) -> Int {
-        day.events.count + (!day.journal.isEmpty ? 1 : 0)
+    /// The days the month of `month` spans, for the calendar's query.
+    static func range(of month: CalendarDate) -> ClosedRange<CalendarDate> {
+        let first = CalendarDate(year: month.year, month: month.month, day: 1)!
+        let next = JournalCalendar(month: first, days: []).adjacentMonth(1)
+        return first...(next.addingDays(-1) ?? first)
+    }
+
+    static func score(for day: DayOverview) -> Int {
+        day.eventCount + (day.journalCount > 0 ? 1 : 0)
     }
 
     static func densityLevel(score: Int) -> Int {
@@ -36,7 +44,7 @@ struct JournalCalendar: Sendable {
         }
     }
 
-    static func densityLevel(for day: DaySummary) -> Int {
+    static func densityLevel(for day: DayOverview) -> Int {
         densityLevel(score: score(for: day))
     }
 

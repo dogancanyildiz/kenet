@@ -5,10 +5,11 @@ import VaultIndex
 
 /// Immutable screen data published together with the index counts.
 ///
-/// Source of truth is `fragments` keyed by vault-relative path. Public lists (days, tasks,
-/// entities, goals) are derived so a later screen can query Core directly without changing
-/// the fragment map. The graph and the entity timelines already do (`IndexStore.computeGraphInput`,
-/// `computeEntityTimeline(for:)`, `computeLastEncounters(asOf:)`).
+/// Source of truth is `fragments` keyed by vault-relative path. Public lists (tasks, entities,
+/// goals) are derived so a later screen can query Core directly without changing the fragment
+/// map. The graph, the entity timelines and the days already do (`IndexStore.computeGraphInput`,
+/// `computeEntityTimeline(for:)`, `computeLastEncounters(asOf:)`, `computeDaySummaries(from:to:)`,
+/// `computeDay(on:)`).
 struct VaultReadModel: Sendable {
     /// Per-file index slices. An empty map after a successful build is a valid empty vault.
     private(set) var fragments: [String: VaultFileFragment] = [:]
@@ -28,7 +29,6 @@ struct VaultReadModel: Sendable {
     var goalStatuses: [String: GoalStatus] = [:]
     var tasks: [TaskRow] = []
     var projects: [String] { VaultIndex.projectNames(tasks.compactMap(\.project)) }
-    var days: [DaySummary] = []
     var entities: [EntitySummary] = []
     /// Kept in sync with fragments so publishes need not recount the whole vault.
     var counts = IndexCounts()
@@ -164,8 +164,6 @@ struct VaultReadModel: Sendable {
         for goal in goals {
             goalStatuses[goal.key] = GoalProgress.compute(definition: goal, logs: allLogs[goal.key] ?? [], today: today)
         }
-        let goalFiles = Set(snapshot.goalLogs.map(\.file))
-        let blocks = Dictionary(grouping: snapshot.blocks, by: \.file)
         let links = Dictionary(grouping: snapshot.links, by: \.file)
         tasks = snapshot.blocks.filter { $0.kind == "task" }.map {
             TaskRow(row: $0, links: links[$0.file] ?? [])
@@ -184,41 +182,6 @@ struct VaultReadModel: Sendable {
             return qualifier == .orderedSame ? $0.id < $1.id : qualifier == .orderedAscending
         }
         counts = IndexCounts(snapshot: snapshot)
-        days = snapshot.files.compactMap { file in
-            guard file.kind == "day", let value = file.date, let date = CalendarDate(value) else { return nil }
-            let rows = (blocks[file.path] ?? []).sorted { $0.ordinal < $1.ordinal }
-            let sourceLinks = links[file.path] ?? []
-            let events = rows.filter { $0.kind == "event" }.map { row in
-                EventRow(
-                    id: row.ordinal,
-                    time: row.time.flatMap {
-                        RawDocument(bytes: Array("## Events\n- \($0) event".utf8)).bodyLines.events.first?.time
-                    },
-                    text: LinkedText(row: row, links: sourceLinks),
-                    sourceLine: row.firstLine - 1, sourceEnd: row.lastLine,
-                    sourceText: row.text, sourceIdentifier: row.identifier)
-            }
-            let journal = rows.filter { $0.section == "Journal" && ["paragraph", "heading"].contains($0.kind) }
-                .map { row in
-                    JournalRow(
-                        id: row.ordinal, headingLevel: row.headingLevel,
-                        text: LinkedText(row: row, links: sourceLinks))
-                }
-            return DaySummary(
-                id: file.path, date: date, events: events, journal: journal,
-                hasGoalRecords: goalFiles.contains(file.path))
-        }.sorted(by: Self.daySort)
-    }
-
-    /// Same ordering as a full snapshot derive: newest date first, path ascending on ties.
-    static func daySort(_ left: DaySummary, _ right: DaySummary) -> Bool {
-        if left.date != right.date { return left.date > right.date }
-        return left.id < right.id
-    }
-
-    func day(on date: CalendarDate) -> DaySummary {
-        days.first { $0.date == date }
-            ?? DaySummary(id: "journal/\(date).md", date: date, events: [], journal: [])
     }
 
     /// Screen-visible equality used by incremental vs full-build tests.
@@ -230,7 +193,6 @@ struct VaultReadModel: Sendable {
             && goalLogStart == other.goalLogStart
             && goalStatuses == other.goalStatuses
             && tasks.map(\.equalityKey) == other.tasks.map(\.equalityKey)
-            && days.map(\.equalityKey) == other.days.map(\.equalityKey)
             && entities == other.entities
     }
 
@@ -244,9 +206,6 @@ struct VaultReadModel: Sendable {
         if left.goalStatuses != right.goalStatuses { lines.append("goalStatuses") }
         if left.tasks.map(\.equalityKey) != right.tasks.map(\.equalityKey) {
             lines.append("tasks \(left.tasks.count)/\(right.tasks.count)")
-        }
-        if left.days.map(\.equalityKey) != right.days.map(\.equalityKey) {
-            lines.append("days \(left.days.count)/\(right.days.count)")
         }
         if left.entities != right.entities { lines.append("entities") }
         return "diff: " + (lines.isEmpty ? "none" : lines.joined(separator: ", "))
@@ -291,16 +250,6 @@ struct DaySummary: Identifiable, Sendable {
 
     var preview: String? {
         journal.first { $0.headingLevel == nil }?.text.plainText.components(separatedBy: "\n").first
-    }
-
-    fileprivate var equalityKey: String {
-        let eventKeys = events.map {
-            "\($0.id)|\($0.time?.raw ?? "")|\($0.text.plainText)|\($0.sourceLine)|\($0.sourceEnd)|\($0.sourceText)|\($0.sourceIdentifier ?? "")|\($0.text.spanKey)"
-        }.joined(separator: ";")
-        let journalKeys = journal.map {
-            "\($0.id)|\($0.headingLevel.map(String.init) ?? "")|\($0.text.plainText)|\($0.text.spanKey)"
-        }.joined(separator: ";")
-        return "\(id)|\(date)|\(hasGoalRecords)|\(eventKeys)|\(journalKeys)"
     }
 }
 

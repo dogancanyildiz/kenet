@@ -1,0 +1,76 @@
+{
+  "times": {
+    "journal/2026-10-01.md": 1790845200,
+    "journal/2026-10-01 2.md": 1790852733,
+    "journal/2026-10-02.md": 1790928000,
+    "journal/2026-10-02 2.md": 1790933400,
+    "journal/2026-10-02 3.md": 1790937900,
+    "journal/2026-10-03 2.md": 1791010800,
+    "journal/2026-10-04.md": 1791145800,
+    "journal/2026-10-04 2.md": 1791147600,
+    "journal/2026-10-05.md": 1791201600,
+    "journal/2026-10-05 2.md": 1791180000
+  },
+  "dayCopies": [
+    "journal/2026-10-01 2.md",
+    "journal/2026-10-02 2.md",
+    "journal/2026-10-02 3.md",
+    "journal/2026-10-03 2.md",
+    "journal/2026-10-04 2.md",
+    "journal/2026-10-05 2.md"
+  ],
+  "indexedFiles": [
+    "journal/2026-10-01.md",
+    "journal/2026-10-02 02.md",
+    "journal/2026-10-02 2 2.md",
+    "journal/2026-10-02-2.md",
+    "journal/2026-10-02.md",
+    "journal/2026-10-04.md",
+    "journal/2026-10-05.md",
+    "journal/2026-13-40 2.md",
+    "journal/eski/2026-10-02 2.md",
+    "notes/2026-10-02 2.md"
+  ],
+  "outcomes": [
+    {
+      "copy": "journal/2026-10-01 2.md",
+      "kind": "merged",
+      "conflicts": [
+        "conflicts/2026-10-01 (conflict 20261001T090000Z 2).md"
+      ],
+      "fellBack": false
+    },
+    {
+      "copy": "journal/2026-10-02 2.md",
+      "kind": "merged",
+      "conflicts": [],
+      "fellBack": false
+    },
+    {
+      "copy": "journal/2026-10-02 3.md",
+      "kind": "merged",
+      "conflicts": [],
+      "fellBack": false
+    },
+    {
+      "copy": "journal/2026-10-03 2.md",
+      "kind": "renamed",
+      "conflicts": [],
+      "fellBack": false
+    },
+    {
+      "copy": "journal/2026-10-04 2.md",
+      "kind": "identical",
+      "conflicts": [],
+      "fellBack": false
+    },
+    {
+      "copy": "journal/2026-10-05 2.md",
+      "kind": "merged",
+      "conflicts": [
+        "conflicts/2026-10-05 (conflict 20261005T060000Z).md"
+      ],
+      "fellBack": false
+    }
+  ]
+}

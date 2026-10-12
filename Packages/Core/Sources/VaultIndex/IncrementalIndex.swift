@@ -104,7 +104,8 @@ extension VaultIndex {
                 addedPaths: added, updatedPaths: updated, deletedPaths: deleted,
                 skippedPaths: scan.result.skippedPaths.filter {
                     includes($0.path.precomposedStringWithCanonicalMapping)
-                }, pendingDownloads: scan.result.pendingDownloads.filter(includes))
+                }, pendingDownloads: scan.result.pendingDownloads.filter(includes),
+                dayCopies: scan.result.dayCopies.filter(includes))
         }
     }
 }

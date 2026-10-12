@@ -196,6 +196,8 @@ Senkronizasyon çakışması birleştirme örnekleri (`vault-format.md`, "Senkro
 
 İstemci her örnekte şunları denetler: iki veriliş sırası da aynı baytları ve aynı saklanacak sürümleri verir; sonuç, `times` değerlerinin ikisinden de büyük bir zamanla iki sürümden her biriyle yeniden birleştirilince baytları değişmez; sonuç okunup yazılınca aynı kalır; işlevin kendi denetiminden bağımsız bir kayıp denetimi tutar (her sürümün blokları, bölge bölge ve sayımlı olarak serbest yazı satırları, frontmatter alanları ve yorum satırları sonuçta vardır ya da o sürüm saklanır; yalnızca kapalı görevin açık görevin yerini alması, iki kapalı görev arasında yalnız `✅` tarihi farkı, `goals` altında ilerleme ve yalnızca yazım farkı kayıp sayılmaz); adında `falls-back` geçmeyen hiçbir örnekte işlev son güvenceye düşmez (`fellBack` yanlıştır). Adlandırma kuralı burada da geçerlidir: adında `crlf`, `cr`, `bom`, `mixed-line-endings`, `no-final-newline`, `invalid-utf8` ya da `read-only` geçen örneğin Markdown dosyalarından en az biri o özelliği taşır.
 
+Core ayrıca her örneği bir gün dosyası ve onun iCloud kopyası olarak (`a` gün, `b` kopya ve tersi) `VaultStore.mergingDayCopy` üzerinden koşar: zamanlar UTC saniyesi sayılır ve saniyenin kesri eklenir (adı ve sırayı değiştirmemelidir); gün dosyası `expected.md`, her saklanan sürüm `conflicts/2026-10-02 (conflict 19700101T0000SSZ).md` adıyla bayt bayt kendisi olur ve kasada başka dosya kalmaz; kopya aynı baytlarla yeniden gelince (ikinci cihaz ya da yarım kalan birleştirme) kasa değişmez.
+
 ### `journal/`
 
 Uygulama katmanının günlük yazısı düzenleyicisi için örnek: `journal/edit/input.md` bir gün dosyası, `expected.md` Journal bölümü değiştirildikten sonraki tam dosyadır (frontmatter ve Events bayt bayt aynı kalır). Testi `Tests/JournalTests/JournalEditingTests.swift` çalıştırır.
@@ -298,6 +300,19 @@ Core testleri bu JSON'u indeks girdisinden hesaplanan sonuçla karşılaştırı
 ### `vaults/placeholder/`
 
 İndirilmemiş gün, kişi, hedef ve kök klasördeki not yer tutucuları; bildirilmeyen `.app/.types.json.icloud`; hem yer tutucusu hem indirilmiş özgün dosyası bulunan bir gün; sıradan gizli Markdown ve kişi yeniden adlandırma kaynağı içerir. `expected.json`, bekleyen ve indekslenen yolları; `names.json`, düşman adlar, boşluk ve NFD baytlarını koruyan saf ad eşlemesini tanımlar. Reddedilen oluşturma/taşıma işlemlerinde tüm kasa ve SQLite baytları korunur.
+
+### `vaults/day-copies/`
+
+iCloud'un aynı gün için ayırdığı kopyaların birleştirme kasası. `source/` başlangıç kasası, `expected/` bildirilen bütün kopyalar sırayla birleştirildikten sonraki kasanın tamamıdır (bayt bayt). `cases.json` her dosyanın değişiklik zamanını (UTC saniye; test kopyalanan kasaya uygular), beklenen `dayCopies` sırasını, indekslenen yolları ve her kopyanın sonucunu (`renamed`, `identical`, `merged`; çakışma kopyası yolları; `fellBack`) taşır. Durumlar:
+
+- `2026-10-01`: ana dosya ve kopya farklı olaylar ve farklı yönde değişmiş günlük yazısı taşır; olaylar birleşir, eski sürüm (ana dosya) saklanır. `conflicts/` içinde o ad zaten başka bir nota ait olduğu için kopya `… 20261001T090000Z 2).md` adını alır ve var olan not değişmez.
+- `2026-10-02`: kopyanın kopyası; `2026-10-02 2.md` önce, `2026-10-02 3.md` sonra birleşir (ikincisi yalnız `## Tasks` bölgesi getirir).
+- `2026-10-03 2.md`: ana dosya yok; kopya onun adını ve değişiklik zamanını alır.
+- `2026-10-04`: iki sürüm bayt bayt aynı; kopya silinir, `conflicts/` yazılmaz.
+- `2026-10-05`: eski kopya UTF-8 olarak çözülemez (salt okunur); ana dosya değişmez, kopya bayt bayt saklanır.
+- Kopya olmayan benzer adlar (`2026-10-02 2 2.md`, `2026-10-02-2.md`, `2026-10-02 02.md`, `2026-13-40 2.md`, `journal/eski/…`, `notes/…`) sıradan not olarak indekslenir ve hiçbir aşamada değişmez.
+
+`names.json` saf ad kuralının tablosudur: yol ve günü (kopya değilse `null`) ile `mergeOrder` sırası; ayrışmış (NFD) işaret, tam genişlikli ve Arap-Hint rakamları, bölünmez boşluk, büyük harfli klasör, yer tutucu ve alt klasör adları kopya sayılmaz. Ayrışmış adlı dosyalar git'te birleşik biçime döndüğü için kasaya konmaz, test onları geçici kasada oluşturur. `expected/` birleştirme koduyla üretildi ve kurallar elle uygulanarak tek tek doğrulandı; testler her adımda gün dosyasını `ConflictMerge` sonucuyla, çakışma kopyasını saklanan sürümle karşılaştırır.
 
 ## Özel varlık tipleri
 

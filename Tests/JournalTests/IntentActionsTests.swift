@@ -1,3 +1,4 @@
+import DateParsing
 import Foundation
 import GoalTracking
 import Testing
@@ -91,6 +92,34 @@ struct IntentActionsTests {
         #expect(asked == 1)
         #expect(task.dueDate == CalendarDate("2026-10-05"))
         #expect(task.text == "buy milk")
+    }
+
+    /// English locale tries English first and still reads Turkish; Turkish locale is the reverse.
+    /// `10/11` is day/month in Turkish and month/day in English, so the order changes the day.
+    @Test func localeOrdersDateLanguagesAndChangesAnAmbiguousDate() async throws {
+        let tomorrow = try #require(LocalDay.today(at: instant).addingDays(1))
+        for (locale, order, ambiguous) in [
+            (Locale(identifier: "en_US"), [Language.english, .turkish], CalendarDate("2026-10-11")!),
+            (Locale(identifier: "tr_TR"), [Language.turkish, .english], CalendarDate("2026-11-10")!),
+        ] {
+            let context = try TaskTestContext(sample: true)
+            defer { context.clean() }
+            let actions = IntentActions(
+                store: context.store, now: { instant }, permitsStart: { true }, locale: locale)
+            #expect(actions.languages == order)
+            _ = try await actions.addTask(text: "tomorrow buy milk")
+            _ = try await actions.addTask(text: "yarın süt al")
+            var offered: CalendarDate?
+            _ = try await actions.addTask(text: "10/11 call") { date in
+                offered = date
+                return true
+            }
+            let tasks = try document(context).bodyLines.tasks
+            #expect(tasks.map(\.text) == ["buy milk", "süt al", "call"])
+            #expect(tasks.compactMap(\.dueDate) == [tomorrow, tomorrow, ambiguous])
+            #expect(tasks.count == 3)
+            #expect(offered == ambiguous)
+        }
     }
 
     @Test func exactDateAppliesWithoutAskingConfirmation() async throws {

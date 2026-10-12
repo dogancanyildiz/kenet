@@ -80,7 +80,7 @@ struct TaskQueryTests {
             try index.rebuild(vaultRoot: root)
             #expect(try index.openTasks(linkedTo: "people/Deniz.md").map(\.identifier) == ["open", "child"])
             #expect(try index.openTasks(linkedTo: "people/Missing.md").isEmpty)
-            #expect(try index.projects() == ["closed", "ilk", "nested"])
+            #expect(try index.taskProjects() == ["closed", "ilk", "nested"])
         }
     }
 
@@ -91,7 +91,7 @@ struct TaskQueryTests {
                 "- [ ] A #project/Café\n- [x] B #project/café\n- [ ] C #project/CAFÉ\n- [ ] D #project/Café/mobile")
             let index = try VaultIndex()
             try index.rebuild(vaultRoot: root)
-            #expect(try index.projects() == ["CAFÉ", "Café/mobile"])
+            #expect(try index.taskProjects() == ["CAFÉ", "Café/mobile"])
         }
     }
 
@@ -105,7 +105,7 @@ struct TaskQueryTests {
                 !["done", "cancelled"].contains($0.status)
             })
         #expect(try !index.openTasks(linkedTo: "people/Deniz Arıkan.md").isEmpty)
-        #expect(try !index.projects().isEmpty)
+        #expect(try !index.taskProjects().isEmpty)
     }
 
     @Test func schemaThreeIsErasedAndTaskIndexesExist() throws {

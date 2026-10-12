@@ -51,16 +51,6 @@ extension VaultIndex {
             """, arguments: [file.precomposedStringWithCanonicalMapping])
     }
 
-    /// Source project spellings across all tasks, unique and ordered by Unicode code point.
-    public func projects() throws -> [String] {
-        let names = try database.read {
-            try String.fetchAll(
-                $0,
-                sql: "SELECT DISTINCT project FROM blocks WHERE kind='task' AND project IS NOT NULL ORDER BY project")
-        }
-        return Self.projectNames(names)
-    }
-
     public static func projectKey(_ name: String) -> String {
         name.precomposedStringWithCanonicalMapping.lowercased()
     }

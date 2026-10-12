@@ -7,9 +7,9 @@ import VaultIndex
 ///
 /// Source of truth is `fragments` keyed by vault-relative path. Public lists (tasks, entities,
 /// goals) are derived so a later screen can query Core directly without changing the fragment
-/// map. The graph, the entity timelines and the days already do (`IndexStore.computeGraphInput`,
-/// `computeEntityTimeline(for:)`, `computeLastEncounters(asOf:)`, `computeDaySummaries(from:to:)`,
-/// `computeDay(on:)`).
+/// map. The graph, the entity timelines, the days and the goal statuses already do
+/// (`IndexStore.computeGraphInput`, `computeEntityTimeline(for:)`, `computeLastEncounters(asOf:)`,
+/// `computeDaySummaries(from:to:)`, `computeDay(on:)`, `computeGoalStatuses(today:)`).
 struct VaultReadModel: Sendable {
     /// Per-file index slices. An empty map after a successful build is a valid empty vault.
     private(set) var fragments: [String: VaultFileFragment] = [:]
@@ -18,7 +18,7 @@ struct VaultReadModel: Sendable {
     /// Set when an incremental publish could not load a reported path, or when a write published
     /// incompletely. The next `VaultPublishedContent.applying` takes the full path.
     private(set) var needsFullReconcile = false
-    /// Calendar day used for the last `rederive` / goal-status patch. Day rollover forces rederive.
+    /// Calendar day used for the last `rederive` / goal-log patch. Day rollover forces rederive.
     private(set) var derivedForDay: CalendarDate?
 
     var goals: [GoalDefinition] = []
@@ -26,7 +26,6 @@ struct VaultReadModel: Sendable {
     var goalLogs: [String: [GoalLog]] = [:]
     var reservedGoalKeys: Set<String> = []
     var goalLogStart = LocalDay.today().addingDays(-399)!
-    var goalStatuses: [String: GoalStatus] = [:]
     var tasks: [TaskRow] = []
     var projects: [String] { VaultIndex.projectNames(tasks.compactMap(\.project)) }
     var entities: [EntitySummary] = []
@@ -160,10 +159,6 @@ struct VaultReadModel: Sendable {
         // Near-future corrections must also suppress the upcoming notification window.
         let goalLogEnd = today.addingDays(6) ?? today
         goalLogs = allLogs.mapValues { $0.filter { $0.day >= goalLogStart && $0.day <= goalLogEnd } }
-        goalStatuses = [:]
-        for goal in goals {
-            goalStatuses[goal.key] = GoalProgress.compute(definition: goal, logs: allLogs[goal.key] ?? [], today: today)
-        }
         let links = Dictionary(grouping: snapshot.links, by: \.file)
         tasks = snapshot.blocks.filter { $0.kind == "task" }.map {
             TaskRow(row: $0, links: links[$0.file] ?? [])
@@ -191,7 +186,6 @@ struct VaultReadModel: Sendable {
             && goalLogs == other.goalLogs
             && reservedGoalKeys == other.reservedGoalKeys
             && goalLogStart == other.goalLogStart
-            && goalStatuses == other.goalStatuses
             && tasks.map(\.equalityKey) == other.tasks.map(\.equalityKey)
             && entities == other.entities
     }
@@ -203,7 +197,6 @@ struct VaultReadModel: Sendable {
         if left.goalLogs != right.goalLogs { lines.append("goalLogs") }
         if left.reservedGoalKeys != right.reservedGoalKeys { lines.append("reservedGoalKeys") }
         if left.goalLogStart != right.goalLogStart { lines.append("goalLogStart") }
-        if left.goalStatuses != right.goalStatuses { lines.append("goalStatuses") }
         if left.tasks.map(\.equalityKey) != right.tasks.map(\.equalityKey) {
             lines.append("tasks \(left.tasks.count)/\(right.tasks.count)")
         }

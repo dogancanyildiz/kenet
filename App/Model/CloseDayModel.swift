@@ -137,10 +137,13 @@ final class CloseDayModel {
         self.calendar = calendar
         root = store.vaultURL
         self.append = append ?? { try await store.appendToJournal(on: $0, lines: $1) }
-        goals = GoalDayModel(store: store, day: today)
-        let statuses = TodayPresentation.goalStatuses(
-            goals: store.content.goals, logs: store.content.goalLogs, day: today)
-        pendingGoalIDs = store.content.goals
+        let goals = GoalDayModel(store: store, day: today)
+        self.goals = goals
+        // The strip's model, as the flow opens: the day's own value decides a daily goal. A copied
+        // definition with the same key counts as the first by name, as on the day page.
+        let statuses = Dictionary(
+            goals.goals.map { ($0.key, goals.status(for: $0)) }, uniquingKeysWith: { first, _ in first })
+        pendingGoalIDs = goals.goals
             .filter { $0.period == .day && statuses[$0.key]?.progress.isComplete != true }
             .map(\.id)
         let open = Self.openTasks(store: store, today: today)

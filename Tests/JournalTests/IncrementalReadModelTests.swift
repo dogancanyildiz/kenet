@@ -201,7 +201,7 @@ struct IncrementalReadModelTests {
         let previous = try IncrementalReadModelVault.fullModel(index: index, today: dayBuilt)
         #expect(previous.derivedForDay == dayBuilt)
 
-        // Touch a day file that has no goal logs so patch would otherwise skip goalStatuses.
+        // Touch a day file that has no goal logs so patch would otherwise keep the goal-log list.
         let untouchedGoalsDay = CalendarDate("2026-10-04")!
         let store = VaultStore(vaultRoot: root, index: index)
         _ = try await store.addingEvent(on: untouchedGoalsDay, text: "After midnight note", time: nil)
@@ -213,7 +213,10 @@ struct IncrementalReadModelTests {
         let full = try IncrementalReadModelVault.fullModel(index: index, today: nextDay)
         #expect(incremental.matchesScreenFields(full))
         #expect(incremental.derivedForDay == nextDay)
-        #expect(incremental.goalStatuses != previous.goalStatuses)
+        // The goal-log list (notifications, geofence) moves with the day; the screens' statuses
+        // are queried for the day they show.
+        #expect(previous.goalLogStart == dayBuilt.addingDays(-399))
+        #expect(incremental.goalLogStart == nextDay.addingDays(-399))
     }
 
     @Test func goalTouchedKeepsInvalidDefinitionKeys() throws {

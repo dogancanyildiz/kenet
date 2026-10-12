@@ -131,14 +131,14 @@
             case .journalEditor:
                 return AnyView(JournalView(store: store, date: snapshotDay, focusesOnLoad: false))
             case .eventEditor:
-                let row = try #require(store.content.day(on: snapshotDay).events.first)
+                let row = try #require(try await store.computeDay(on: snapshotDay).events.first)
                 let model = EventEditorModel(store: store, day: snapshotDay, row: row)
                 await model.load()
                 return AnyView(EventTextEditor(model: model))
             case .taskDate:
                 // A dated task: the picker otherwise starts from the wall clock.
                 let row = try #require(
-                    store.content.tasks.first { $0.due == snapshotDay && !$0.isClosed })
+                    try await store.allTasks().first { $0.due == snapshotDay && !$0.isClosed })
                 return AnyView(TaskDateEditor(model: TaskEditorModel(store: store, row: row)))
             case .goalValue:
                 let goal = try #require(store.content.goals.first { $0.key == "kitap" })

@@ -201,16 +201,28 @@ sequenceDiagram
 ```mermaid
 flowchart LR
   Indeks["İndeks"] -->|"ilk kurulum: snapshot()"| Harita["Parça haritası: yol → VaultFileFragment"]
-  Sonuc["Yazma ya da yenileme: RebuildResult yolları"] --> DosyaOkuma["blocks(inFile:), links(inFile:), contents(ofFile:)"]
-  DosyaOkuma -->|"yalnız değişen parçalar"| Harita
+  Sonuc["Yazma ya da yenileme: RebuildResult yolları"] --> DosyaOkuma["contents(ofFile:)"]
+  DosyaOkuma -->|"değişen parçalar ve onlara bağlananlar"| Harita
   Harita --> Alanlar["Ekran alanları"]
 ```
 
-Okuma modeli dosya başına parça tutar: `[yol: VaultFileFragment]`. İlk kurulumda `snapshot()` parça haritasını doldurur. Yazma ve yenileme yalnız `RebuildResult` yollarının parçalarını yeniler. Ekran alanları parçalardan türer. Ekranlar okuma modelinden Core sorgularına dilim dilim geçer; parça haritası bu geçişe kapı bırakır.
+Okuma modeli dosya başına parça tutar: `[yol: VaultFileFragment]`. İlk kurulumda `snapshot()` parça haritasını doldurur. Yazma ve yenileme `RebuildResult` yollarının parçalarını yeniler. Bağlantısı bu yollara çözülen dosyaların parçalarını da yeniler. Ekran alanları parçalardan türer. Ekranlar okuma modelinden Core sorgularına dilim dilim geçer.
+
+**Tablo bir parçanın taşıdığı veriyi ve bu veriyi kullanan alanı gösterir.**
+
+| Parça verisi | Kullanan |
+|---|---|
+| Dosya satırı | `counts.filesByKind` |
+| Varlık ve takma adlar | `entities`, `goals`, `reservedGoalKeys` |
+| Bağlantılar | Gelen bağlantı sayısı, hedefin konumu, `counts.links`, silinen dosyaya çözülen kaynaklar |
+| Hedef değerleri | `goalLogs`, `reservedGoalKeys` |
+| Olay ve görev blok sayısı | `counts.events`, `counts.tasks` |
+
+Parça blok metnini taşımaz: paragraf, başlık, görev ve olay metni indekste kalır. Ekranlar blok metnini sorgudan okur. Blok kimliği sahipliği de parçaya ulaşmaz. Bu yüzden artımlı yol kimlik başına bütün parçaları taramaz.
 
 ## Ekran sorguları
 
-**Tablo okuma modelinden çıkan beş dilimi sırasıyla gösterir.**
+**Tablo okuma modelinden çıkan altı dilimi sırasıyla gösterir.**
 
 | Sıra | Dilim | Core sorgusu | `IndexStore` yöntemi | Ekran |
 |---|---|---|---|---|
@@ -221,6 +233,9 @@ Okuma modeli dosya başına parça tutar: `[yol: VaultFileFragment]`. İlk kurul
 | 3 | Tek gün | `day(on:)` | `computeDay(on:)` | Gün sayfası, içgörü kartının "o gün geçenler" bölümü |
 | 4 | Görevler | Görev sorguları tablosu | `IndexStore.compute…Tasks` | Görevler, kanban, zaman çizelgesi, proje, gün sayfası, haftalık inceleme |
 | 5 | Hedef durumu | `goalStatuses(today:)` | `computeGoalStatuses(today:)` | Hedefler listesi, gün sayfası |
+| 6 | Proje adları | `taskProjects()` | `computeProjects()` | Mac kenar çubuğu, kanban ve zaman çizelgesi proje sütunları, süzgeç menüsü, hızlı giriş proje önerisi |
+| 6 | Varlığın açık işleri | `taskGroups(today:scope:)`, varlığa bağlı kapsam | `computeTaskGroups(today:scope:)` | Varlık sayfası |
+| 6 | Bildirim haftası | `taskGroups(today:)`, `daySummaries(from:to:)` | `computeNotificationDays(from:through:)` | Bildirim planlayıcı |
 
 Aynı kalıp dilimlerden önceki istek üzerine sorgular için de geçerlidir: `computeSummary`, `computeOnThisDay`, `computeImportantDates`, `computeDayBacklinks`, `computeUnlinkedMentions`.
 
@@ -273,7 +288,7 @@ Okuma modeli zaman akışı tutmaz. Varlık sayfası açıkken ve her indeks yay
 
 ### Günler
 
-Okuma modeli gün listesi tutmaz. Günlük listesi bütün günleri sorgular: iPhone'da `DaysView`, Mac'te gün sütunu. Takvim yalnız gösterdiği ayı sorgular. Yanıt gün başına olay sayısını, Journal paragraf ve başlık sayısını, ilk Journal paragrafını ve hedef kaydını taşır. İlk paragraf önizleme olarak görünür. Bildirim planlayıcı yayımlanmış okuma modelinden plan yapar; bu yüzden yedi günün içeriğini parça haritasından okur: `VaultReadModel.day(on:)`.
+Okuma modeli gün listesi tutmaz. Günlük listesi bütün günleri sorgular: iPhone'da `DaysView`, Mac'te gün sütunu. Takvim yalnız gösterdiği ayı sorgular. Yanıt gün başına olay sayısını, Journal paragraf ve başlık sayısını, ilk Journal paragrafını ve hedef kaydını taşır. İlk paragraf önizleme olarak görünür.
 
 ### Görevler
 
@@ -291,7 +306,19 @@ Okuma modeli gün listesi tutmaz. Günlük listesi bütün günleri sorgular: iP
 | Haftalık inceleme | `openTasks(dueBy:orWrittenFrom:)` | İki haftanın açık işleri |
 | Görev ayrıntısı | `task(id:)` | Seçilen görev; sorgu görevi kimliğiyle yeniden okur |
 
-Kişi ve proje süzgeci sorguya gider: `TaskScope`. Sorgu projeyi anahtarla karşılaştırır. Bütün görev sorguları `IndexStore.compute…Tasks` ile arka planda çalışır. Her yazmadan sonra `.task(id:)` sorguları yeniden çalıştırır. Gruplamayı ve sıralamayı ekran modelleri eskisi gibi yapar.
+Kişi ve proje süzgeci sorguya gider: `TaskScope`. Sorgu projeyi anahtarla karşılaştırır. Bütün görev sorguları `IndexStore.compute…Tasks` ile arka planda çalışır. Her yazmadan sonra `.task(id:)` sorguları yeniden çalıştırır. Gruplamayı ve sıralamayı ekran modelleri eskisi gibi yapar. Okuma modeli görev tutmaz.
+
+**Tablo proje adlarının ve varlığın açık işlerinin kaynağını gösterir.**
+
+| Yer | Kaynak | Yükleme davranışı |
+|---|---|---|
+| Mac kenar çubuğu | `computeProjects()` | Kenar çubuğu yeni yanıt gelene kadar eski listeyi tutar |
+| Kanban ve zaman çizelgesi proje sütunları | `computeProjects()` | Model adları satırlarla birlikte atar. Bir sütun görevlerinden önce görünmez |
+| Süzgeç menüsü, Görevler › Projeler | `computeProjects()` | Liste yüklemesi adları da getirir |
+| Hızlı giriş `#project/` önerileri | `computeProjects()` | Giriş çubuğu her yayımda adları yeniden okur |
+| Varlık sayfasının açık işleri | `computeTaskGroups(today:scope:)`, varlığa bağlı kapsam | Sayfa açık işleri zaman akışıyla aynı görevde sorgular |
+
+`taskProjects()` her proje anahtarı için bir yazılış verir. Sorgu açık, tamamlanmış ve iptal görevlerin hepsini sayar. Eşit iki yazılıştan dosya ve satır sırasında önce gelen kazanır.
 
 ### Hedef durumu
 
@@ -335,11 +362,8 @@ Kullanıcı hedefi işaretlediği anda ekran işareti o ekranın düzenleme mode
 
 | Alan | Kullanan |
 |---|---|
-| `tasks` | Bildirim planlayıcı; varlık sayfasının açık işleri |
-| `projects`, `tasks` alanından türer | Mac kenar çubuğu, kanban ve zaman çizelgesi proje listesi, hızlı giriş proje önerisi |
 | `entities` | Graph düğümleri |
 | `goalLogs` | Bildirim planlayıcı, konum izleme, `GoalDayModel` ilk çizimi |
-| Parça haritası, `VaultReadModel.day(on:)` | Bildirim planlayıcının yedi günü |
 
 ## Bayat yanıt ve kasa değişimi
 
@@ -365,12 +389,23 @@ Kullanıcı hedefi işaretlediği anda ekran işareti o ekranın düzenleme mode
 
 | Parça | Görev |
 |---|---|
-| `NotificationPlanner` | Planı okuma modelinden, cihaz tercihlerinden ve yerel saatten üretir. Yalnız App katmanında çalışır |
+| `NotificationPlanner` | Planı okuma modelinin hedeflerinden, bildirim haftasından, cihaz tercihlerinden ve yerel saatten üretir. Yalnız App katmanında çalışır |
 | `NotificationService` | Yeniden planlamayı sırayla uygular ve izin durumunu yönetir. `UserNotifications` merkezine bir protokol üzerinden erişir |
 | `CadenceReminderPlan` | Bugünün kişi, ritim ve son görüşme verisinden pencere içindeki görüşme ritmi günlerini hesaplar |
 | `IntentActions` | Yer imi kapsamını ve indeksi açar; `IndexStore` üzerinden olay, görev ve hedef kaydı yazar |
 | `AppShortcutsProvider` | tr ve en Siri cümlelerini sunar |
 | `IntentNavigation` | Kullanıcıyı Bugün ekranına götürür |
+
+**Tablo planlayıcının her hatırlatma için okuduğu kaynağı gösterir.**
+
+| Hatırlatma | Kaynak |
+|---|---|
+| Görev sabahı | Bildirim haftası: son güne kadar vade günü başına açık görev sayısı ve haftaya düşen açık görevler |
+| Günlük hatırlatması | Bildirim haftası: olayı ya da Journal paragrafı veya başlığı olan günler |
+| Hedef hatırlatması | Okuma modelindeki `goals` ve `goalLogs` |
+| Görüşme ritmi hatırlatması | `cadenceReminderPeople(today:)` |
+
+`NotificationService` bildirim haftasını `computeNotificationDays(from:through:)` ile bugünden 6 gün sonrasına kadar okur. Görev ve günlük hatırlatması kapalıysa servis haftayı okumaz. Servis okumayı iptale karşı korur: plan yarıda kalmaz. Servis haftayı okuyamazsa planlayıcı görev ve günlük hatırlatması planlamaz. Planlayıcı hedef hatırlatmasını yine planlar.
 
 `NotificationService` indeks yayımlarını 2 saniye birleştirir. Uygulama kapalıyken planlayıcı yedi günlük planın içeriğini yeniden hesaplamaz. Görüşme ritmi hatırlatması aynı plandadır. Uygulama son bildirim gününü kasaya yazmaz; günü cihazda kasa yoluna göre saklar.
 

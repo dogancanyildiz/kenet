@@ -50,7 +50,7 @@ struct QuickEntryMentionTests {
             "---\ntype: journal\ndate: \(LocalDay.today())\n---\n\n## Events\n- 13:00 [[Deniz Arıkan|Deniz]] ile [[Liman Ofis]]'te ^\(id)\n"
         #expect(bytes == Data(expected.utf8))
         #expect(
-            context.store.content.day(on: LocalDay.today()).events.last?.text.plainText
+            try await context.store.computeDay(on: LocalDay.today()).events.last?.text.plainText
                 == "Deniz ile Liman Ofis'te")
         #expect(context.model.text.isEmpty)
     }

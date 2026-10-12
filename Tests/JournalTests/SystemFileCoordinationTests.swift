@@ -178,17 +178,17 @@ struct CoordinatedVaultWriteTests {
         #expect(await store.addEvent(on: today, text: "kurgu olay", time: nil))
         #expect(dayProbe.count("toWriter") == 1)
         #expect(try context.document().bodyLines.events.map(\.block.text) == ["kahve", "kurgu olay"])
-        #expect(store.content.day(on: today).events.map(\.text.plainText).contains("kurgu olay"))
+        #expect(try await store.computeDay(on: today).events.map(\.text.plainText).contains("kurgu olay"))
 
-        try await store.completeTask(try context.row("süt al"), on: today)
+        try await store.completeTask(try await context.row("süt al"), on: today)
         #expect(dayProbe.count("toWriter") == 2)
         #expect(try context.document().bodyLines.tasks.first?.status == .done)
-        #expect(try context.row("süt al").isClosed)
+        #expect(try await context.row("süt al").isClosed)
 
         try await store.appendToJournal(on: today, lines: ["Kurgu satır."])
         #expect(dayProbe.count("toWriter") == 3)
         #expect(try String(contentsOf: context.file, encoding: .utf8).hasSuffix("Eski.\n\nKurgu satır.\n"))
-        #expect(store.content.day(on: today).journal.last?.text.plainText == "Kurgu satır.")
+        #expect(try await store.computeDay(on: today).journal.last?.text.plainText == "Kurgu satır.")
 
         let result = try await store.renameEntity(at: "people/Ada Kurgu.md", to: "Ada Kurgulu", qualifier: nil)
         let renamed = context.root.appendingPathComponent("people/Ada Kurgulu.md")
@@ -223,7 +223,7 @@ struct CoordinatedVaultWriteTests {
         defer { for probe in probes { probe.remove() } }
         let store = context.store
         let today = context.today
-        let row = try context.row("süt al")
+        let row = try await context.row("süt al")
 
         #expect(try await finishes { await store.addEvent(on: today, text: "kilitsiz", time: nil) })
         #expect(try await finishes { (try? await store.completeTask(row, on: today)) != nil })

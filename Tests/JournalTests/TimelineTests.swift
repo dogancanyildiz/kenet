@@ -27,16 +27,16 @@ import VaultFormat
         await context.store.refresh()
         let model = await timeline(context)
         #expect(model.groups.flatMap(\.rows).count == 5)
-        let both = try #require(context.store.content.tasks.first { $0.sourceIdentifier == "both" })
+        let both = try #require(try await context.store.allTasks().first { $0.sourceIdentifier == "both" })
         let range = try #require(TimelineDates(both).span(on: context.today))
         #expect(range.first == CalendarDate("2026-09-28") && range.last == CalendarDate("2026-10-06"))
-        let due = try #require(context.store.content.tasks.first { $0.sourceIdentifier == "due" })
+        let due = try #require(try await context.store.allTasks().first { $0.sourceIdentifier == "due" })
         let diamond = try #require(TimelineDates(due).span(on: context.today))
         #expect(diamond.isMilestone && diamond.first == diamond.last)
-        let start = try #require(context.store.content.tasks.first { $0.sourceIdentifier == "start" })
+        let start = try #require(try await context.store.allTasks().first { $0.sourceIdentifier == "start" })
         #expect(TimelineDates(start).span(on: context.today)?.last == context.today)
         #expect(TimelineDates(start).span(on: context.today)?.isOpenEnded == true)
-        let future = try #require(context.store.content.tasks.first { $0.sourceIdentifier == "future" })
+        let future = try #require(try await context.store.allTasks().first { $0.sourceIdentifier == "future" })
         #expect(TimelineDates(future).span(on: context.today)?.last == future.start)
         #expect(model.undated.compactMap(\.sourceIdentifier) == ["free"])
     }
@@ -133,7 +133,7 @@ import VaultFormat
         try Data(source.utf8).write(to: context.file)
         await context.store.refresh()
         let model = await timeline(context)
-        let row = try #require(context.store.content.tasks.first)
+        let row = try #require(try await context.store.allTasks().first)
         let dates = try #require(TimelineDates(row).shifted(by: 5))
         model.preview(dates, for: row)
         #expect(model.dates(for: row) == dates)
@@ -142,9 +142,8 @@ import VaultFormat
             of: "📅 2026-10-06", with: "📅 2026-10-11")
         #expect(try Data(contentsOf: context.file) == Data(expected.utf8))
         #expect(model.previews.isEmpty && model.busy.isEmpty)
-        #expect(
-            context.store.content.tasks.first?.start == dates.start
-                && context.store.content.tasks.first?.due == dates.due)
+        let saved = try await context.store.allTasks().first
+        #expect(saved?.start == dates.start && saved?.due == dates.due)
         #expect(try context.document().bodyLines.tasks.count == 1)
     }
 
@@ -156,15 +155,16 @@ import VaultFormat
             try source.write(to: context.file, atomically: true, encoding: .utf8)
             await context.store.refresh()
             let model = await timeline(context)
-            let row = try #require(context.store.content.tasks.first)
+            let row = try #require(try await context.store.allTasks().first)
             #expect(
                 await model.save(
                     row, dates: try #require(TimelineDates(row).shifted(by: -2)), root: context.store.vaultURL))
             #expect(
                 try Data(contentsOf: context.file)
                     == Data(source.replacingOccurrences(of: "2026-10-04", with: "2026-10-02").utf8))
-            #expect(context.store.content.tasks.first?.start == (row.start == nil ? nil : CalendarDate("2026-10-02")))
-            #expect(context.store.content.tasks.first?.due == (row.due == nil ? nil : CalendarDate("2026-10-02")))
+            let moved = try await context.store.allTasks().first
+            #expect(moved?.start == (row.start == nil ? nil : CalendarDate("2026-10-02")))
+            #expect(moved?.due == (row.due == nil ? nil : CalendarDate("2026-10-02")))
         }
     }
 
@@ -176,7 +176,7 @@ import VaultFormat
         try source.write(to: context.file, atomically: true, encoding: .utf8)
         await context.store.refresh()
         let model = await timeline(context)
-        let row = try #require(context.store.content.tasks.first)
+        let row = try #require(try await context.store.allTasks().first)
         #expect(
             await !model.save(
                 row, dates: TimelineDates(start: row.start, due: CalendarDate("2026-10-02")),
@@ -190,13 +190,13 @@ import VaultFormat
         #expect(
             try Data(contentsOf: context.file)
                 == Data(source.replacingOccurrences(of: "📅 2026-10-06", with: "📅 2026-10-09").utf8))
-        let changed = try #require(context.store.content.tasks.first)
+        let changed = try #require(try await context.store.allTasks().first)
         #expect(
             await model.save(
                 changed, dates: try #require(TimelineDates(changed).setting(.start, to: CalendarDate("2026-10-01"))),
                 root: context.store.vaultURL))
-        #expect(context.store.content.tasks.first?.start == CalendarDate("2026-10-01"))
-        #expect(context.store.content.tasks.first?.due == CalendarDate("2026-10-09"))
+        #expect(try await context.store.allTasks().first?.start == CalendarDate("2026-10-01"))
+        #expect(try await context.store.allTasks().first?.due == CalendarDate("2026-10-09"))
     }
 
     @Test func staleDragRefreshesWithoutOverwritingExternalChange() async throws {
@@ -207,14 +207,14 @@ import VaultFormat
             to: context.file, atomically: true, encoding: .utf8)
         await context.store.refresh()
         let model = await timeline(context)
-        let drag = model.beginDrag(try #require(context.store.content.tasks.first))
+        let drag = model.beginDrag(try #require(try await context.store.allTasks().first))
         let proposed = try #require(TimelineDates(drag.row).shifted(by: 3))
         model.preview(proposed, for: drag.row)
         let external = "## Tasks\n- [ ] Changed 🛫 2026-10-03 📅 2026-10-06 ^task\n"
         try external.write(to: context.file, atomically: true, encoding: .utf8)
         #expect(await !model.save(drag.row, dates: proposed, root: drag.root))
         #expect(model.errorText != nil && model.previews.isEmpty && model.busy.isEmpty)
-        #expect(context.store.content.tasks.first?.sourceText == "Changed")
+        #expect(try await context.store.allTasks().first?.sourceText == "Changed")
         #expect(try Data(contentsOf: context.file) == Data(external.utf8))
     }
 
@@ -226,7 +226,7 @@ import VaultFormat
             to: context.file, atomically: true, encoding: .utf8)
         await context.store.refresh()
         let model = await timeline(context)
-        let row = try #require(context.store.content.tasks.first)
+        let row = try #require(try await context.store.allTasks().first)
         #expect(row.sourceIdentifier == nil)
         #expect(
             await model.save(row, dates: try #require(TimelineDates(row).shifted(by: -2)), root: context.store.vaultURL)
@@ -235,7 +235,7 @@ import VaultFormat
         #expect(
             task.block.id != nil && task.startDate == CalendarDate("2026-10-01")
                 && task.dueDate == CalendarDate("2026-10-04"))
-        #expect(context.store.content.tasks.first?.sourceIdentifier == task.block.id)
+        #expect(try await context.store.allTasks().first?.sourceIdentifier == task.block.id)
     }
 
     @Test func phoneWeekAndMonthBucketsAndRemovingDatesMoveToUndated() async throws {
@@ -249,7 +249,7 @@ import VaultFormat
         #expect(model.mobileGroups.first?.id == "2026-10-01")
         model.scale = .week
         #expect(model.mobileGroups.first?.id == "2026-09-28")
-        let row = try #require(context.store.content.tasks.first)
+        let row = try #require(try await context.store.allTasks().first)
         #expect(await model.save(row, dates: TimelineDates(start: nil, due: nil), root: context.store.vaultURL))
         await model.load()
         #expect(model.groups.isEmpty && model.mobileGroups.isEmpty)
@@ -282,7 +282,7 @@ import VaultFormat
         try source.write(to: context.file, atomically: true, encoding: .utf8)
         await context.store.refresh()
         let model = await timeline(context)
-        let drag = model.beginDrag(try #require(context.store.content.tasks.first))
+        let drag = model.beginDrag(try #require(try await context.store.allTasks().first))
         let dates = try #require(TimelineDates(drag.row).shifted(by: 3))
         let next = context.directory.appendingPathComponent("AnotherVault", isDirectory: true)
         try FileManager.default.createDirectory(
@@ -356,7 +356,7 @@ import VaultFormat
                 to: context.file, atomically: true, encoding: .utf8)
             await context.store.refresh()
             let model = await timeline(context)
-            let row = try #require(context.store.content.tasks.first)
+            let row = try #require(try await context.store.allTasks().first)
             let bar = TimelineBarView(model: model, row: row, dayWidth: 1, select: {}, edit: { _ in })
             let host = NSHostingView(rootView: bar)
             host.layoutSubtreeIfNeeded()

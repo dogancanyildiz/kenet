@@ -33,7 +33,7 @@ import VaultStore
         }
         try Self.write(files, in: context)
         await context.start()
-        let all = context.store.content.tasks
+        let all = try await context.store.allTasks()
         #expect(all.filter { $0.rawStatus.lowercased() == "x" }.count == names.count * 11)
 
         for project in [nil, "bahçe"] {
@@ -67,7 +67,7 @@ import VaultStore
         ].joined(separator: "\n")
         try Self.write(["journal/\(today).md": source + "\n"], in: context)
         await context.start()
-        let all = context.store.content.tasks
+        let all = try await context.store.allTasks()
         let tasks = TasksModel(store: context.store, today: { today })
         let timeline = TimelineModel(tasks: tasks)
         timeline.grouping = .none

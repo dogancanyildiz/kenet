@@ -45,9 +45,11 @@ final class KanbanModel {
     func load() async {
         let request = self.request
         let day = request.day
+        let projects = try? await store.computeProjects()
         if let loaded = try? await store.computeBoardTasks(
             doneFrom: day.addingDays(-29) ?? day, to: day, includeCancelled: true, scope: request.scope)
         {
+            if let projects { tasks.projects = projects }
             rows = loaded
         }
     }
@@ -74,7 +76,7 @@ final class KanbanModel {
                     rows: rows.filter { Self.status(of: $0) == status })
             }
         case .project:
-            return store.content.projects.map { project in
+            return tasks.projects.map { project in
                 KanbanColumn(
                     id: "project:" + VaultIndex.projectKey(project), destination: .project(project), name: project,
                     rows: rows.filter { $0.project.map(VaultIndex.projectKey) == VaultIndex.projectKey(project) })

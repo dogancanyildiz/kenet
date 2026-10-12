@@ -27,6 +27,11 @@ final class NotificationService {
     @ObservationIgnored private let timeZone: () -> TimeZone
     @ObservationIgnored private let debounce: Duration
     @ObservationIgnored private var cadencePeople: (CalendarDate) async -> [CadenceReminderPerson]? = { _ in [] }
+    /// Tasks and written days of the planned week; nil stands for a failed read. Without a store
+    /// the week is empty, as an empty vault's.
+    @ObservationIgnored private var vaultDays: (CalendarDate, CalendarDate) async -> NotificationVaultDays? = { _, _ in
+        NotificationVaultDays()
+    }
     @ObservationIgnored private var debounceTask: Task<Void, Never>?
     @ObservationIgnored private var snapshot: VaultReadModel?
     @ObservationIgnored private var vaultID: String?
@@ -56,6 +61,11 @@ final class NotificationService {
             // Only the query is shielded, still on the main actor; the plan stays the one writer.
             return try? await Task { try await store.cadenceReminderPeople(today: today) }.value
         }
+        vaultDays = { [weak store] first, last in
+            guard let store else { return nil }
+            // Shielded like the people read: a cancelled plan would read as a failed read.
+            return try? await Task { try await store.computeNotificationDays(from: first, through: last) }.value
+        }
         store.onSnapshotChange = { [weak self] content, root in self?.update(snapshot: content, vaultID: root?.path) }
         update(snapshot: store.lastUpdated == nil ? nil : store.content, vaultID: store.vaultURL?.path)
     }
@@ -63,6 +73,11 @@ final class NotificationService {
     /// Tests inject people without an open vault; nil stands for a failed read. A later `attach` replaces this.
     func useCadencePeople(_ people: [CadenceReminderPerson]?) {
         cadencePeople = { _ in people }
+    }
+
+    /// Tests inject the planned week without an open vault; nil stands for a failed read.
+    func useVaultDays(_ days: NotificationVaultDays?) {
+        vaultDays = { _, _ in days }
     }
     func activateAutomatically(
         environment: [String: String] = ProcessInfo.processInfo.environment,
@@ -142,9 +157,14 @@ final class NotificationService {
             var schedule = NotificationSchedule(requests: [], assignments: [])
             if authorization.canSchedule, let snapshot {
                 if preferences.peopleEnabled { people = await cadencePeople(anchor) }
+                // Nil when the week could not be read: no task or journal reminder is planned.
+                var days: NotificationVaultDays? = NotificationVaultDays()
+                if preferences.tasksEnabled || preferences.journalEnabled {
+                    days = await vaultDays(anchor, anchor.addingDays(6) ?? anchor)
+                }
                 schedule = NotificationPlanner.schedule(
-                    snapshot: snapshot, preferences: preferences, now: instant, timeZone: zone, people: people ?? [],
-                    lastNotified: history.memory(vaultID: vault).fired)
+                    snapshot: snapshot, days: days, preferences: preferences, now: instant, timeZone: zone,
+                    people: people ?? [], lastNotified: history.memory(vaultID: vault).fired)
             }
             let plan = schedule.requests
             let own = existing.filter { NotificationDestination.from(identifier: $0.id) != nil }

@@ -40,11 +40,6 @@ extension VaultReadModel {
             }
         }
 
-        tasks.sort { left, right in
-            if left.file != right.file { return left.file < right.file }
-            return left.sourceLine < right.sourceLine
-        }
-
         let goalTouched = removed.union(touched).contains { path in
             !(before[path]?.goalLogs.isEmpty ?? true)
                 || !(fragments[path]?.goalLogs.isEmpty ?? true)
@@ -63,16 +58,12 @@ extension VaultReadModel {
     }
 
     private mutating func subtractContributions(of fragment: VaultFileFragment) {
-        let path = fragment.file.path
-        tasks.removeAll { $0.file == path }
         adjustIncoming(links: fragment.links, delta: -1)
         adjustCounts(of: fragment, delta: -1)
     }
 
     private mutating func addContributions(of fragment: VaultFileFragment) {
-        let links = fragment.links
-        tasks += fragment.blocks.filter { $0.kind == "task" }.map { TaskRow(row: $0, links: links) }
-        adjustIncoming(links: links, delta: 1)
+        adjustIncoming(links: fragment.links, delta: 1)
         adjustCounts(of: fragment, delta: 1)
     }
 
@@ -80,10 +71,8 @@ extension VaultReadModel {
         counts.filesByKind[fragment.file.kind, default: 0] += delta
         if counts.filesByKind[fragment.file.kind] == 0 { counts.filesByKind[fragment.file.kind] = nil }
         if fragment.entity != nil { counts.entities += delta }
-        for block in fragment.blocks {
-            if block.kind == "event" { counts.events += delta }
-            if block.kind == "task" { counts.tasks += delta }
-        }
+        counts.events += delta * fragment.eventCount
+        counts.tasks += delta * fragment.taskCount
         counts.links += delta * fragment.links.count
         let unresolved = fragment.links.filter { $0.resolvedFile == nil }.count
         counts.unresolvedLinks += delta * unresolved

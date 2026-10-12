@@ -66,9 +66,11 @@ final class TimelineModel {
     func load() async {
         let request = self.request
         let day = request.day
+        let projects = try? await store.computeProjects()
         if let loaded = try? await store.computeTimelineTasks(
             from: day.addingDays(-365) ?? day, to: day.addingDays(365) ?? day, today: day, scope: request.scope)
         {
+            if let projects { tasks.projects = projects }
             rows = loaded
         }
     }
@@ -90,7 +92,7 @@ final class TimelineModel {
         switch grouping {
         case .none: return rows.isEmpty ? [] : [TimelineGroup(id: "all", name: nil, rows: rows)]
         case .project:
-            return store.content.projects.compactMap { name in
+            return tasks.projects.compactMap { name in
                 let group = rows.filter { $0.project.map(VaultIndex.projectKey) == VaultIndex.projectKey(name) }
                 return group.isEmpty
                     ? nil : TimelineGroup(id: "project:" + VaultIndex.projectKey(name), name: name, rows: group)

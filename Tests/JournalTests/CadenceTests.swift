@@ -2,6 +2,7 @@ import Foundation
 import Summaries
 import Testing
 import VaultFormat
+import VaultIndex
 
 @testable import Journal
 
@@ -55,7 +56,9 @@ struct CadenceTests {
             }
             let indexed = try await context.store.personCadences()
             if vault == "sample" { #expect(indexed.isEmpty) }
-            let timelines = EntityTimeline.build(snapshot: content.asSnapshot())
+            let rebuilt = try VaultIndex()
+            try rebuilt.rebuild(vaultRoot: context.root)
+            let timelines = EntityTimeline.build(snapshot: try rebuilt.snapshot())
             for day in ["2026-10-03", "2026-10-11", "2027-03-01"] {
                 let today = try #require(CalendarDate(day))
                 let encounters = try await context.store.computeLastEncounters(asOf: today)

@@ -268,8 +268,8 @@ struct WeeklyReviewTests {
         let context = try await context()
         defer { context.clean() }
         let before = try vaultFiles(context)
-        let taskCount = context.store.content.tasks.count
-        let eventCount = context.store.content.days.reduce(0) { $0 + $1.events.count }
+        let taskCount = try await context.store.allTasks().count
+        let eventCount = try await context.store.days().reduce(0) { $0 + $1.events.count }
 
         let model = await model(context)
         model.setIncluded(.tasks, false)
@@ -295,8 +295,8 @@ struct WeeklyReviewTests {
 
         // Read back, the block is Journal text: no task and no event came out of it.
         await context.store.refresh()
-        #expect(context.store.content.tasks.count == taskCount)
-        #expect(context.store.content.days.reduce(0) { $0 + $1.events.count } == eventCount)
+        #expect(try await context.store.allTasks().count == taskCount)
+        #expect(try await context.store.days().reduce(0) { $0 + $1.events.count } == eventCount)
         // "Reviewed this week" lives on the device; the comparison above shows the vault has no mark.
         #expect(
             WeeklyReviewPreference.isReviewed(
@@ -407,7 +407,7 @@ struct WeeklyReviewTests {
         let document = RawDocument(bytes: try Data(contentsOf: context.file))
         let tasks = document.bodyLines.tasks.count
         let events = document.bodyLines.events.count
-        let indexedTasks = context.store.content.tasks.count
+        let indexedTasks = try await context.store.allTasks().count
 
         let model = await model(context)
         for section in WeeklyReviewSection.allCases { model.setIncluded(section, false) }
@@ -426,9 +426,9 @@ struct WeeklyReviewTests {
         // Every line stays in Journal: no heading in the note opened a section of its own.
         #expect(journalHolds(preview, in: reread))
         await context.store.refresh()
-        #expect(context.store.content.tasks.count == indexedTasks)
-        #expect(!context.store.content.tasks.contains { $0.sourceText.contains("süt") })
-        #expect(context.store.content.day(on: context.today).events.count == events)
+        #expect(try await context.store.allTasks().count == indexedTasks)
+        #expect(try await !context.store.allTasks().contains { $0.sourceText.contains("süt") })
+        #expect(try await context.store.computeDay(on: context.today).events.count == events)
     }
 
     @Test func twoReviewsAreTwoBlocks() async throws {

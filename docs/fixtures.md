@@ -130,7 +130,7 @@ Swift testleri `Fixtures/` klasörünü test kaynak dosyasından yukarı doğru 
 | `dates/recurrence.json` | `DateParsingTests/RecurrenceTests.swift` | JSON vaka |
 | `goals/cases.json` | `GoalTrackingTests/GoalFixtures.swift` | JSON vaka |
 | `goals/writes/` | `VaultStoreTests/GoalStoreFixtures.swift` | JSON vaka |
-| `goals/creation/` | `VaultStoreTests/GoalCreationTests.swift`, `MilestoneStoreTests.swift`, `Tests/JournalTests/GoalDefinitionTests.swift` | Ad kodda |
+| `goals/creation/` | `VaultStoreTests/GoalCreationTests.swift`, `MilestoneStoreTests.swift`, `Tests/JournalTests/GoalDefinitionTests.swift` | JSON vaka |
 | `summaries/cases.json` | `SummariesTests/PeriodSummaryTests.swift` | JSON vaka |
 | `summaries/weekly-review-text.json` | `SummariesTests/WeeklyReviewTextTests.swift` | JSON vaka |
 | `summaries/cadence.json` | `SummariesTests/MeetingCadenceTests.swift`, `Tests/JournalTests/CadenceTests.swift` | JSON vaka |
@@ -144,8 +144,6 @@ Swift testleri `Fixtures/` klasörünü test kaynak dosyasından yukarı doğru 
 | `vaults/day-copies/` | `VaultStoreTests/DayCopyTests.swift` | Ad kodda |
 
 Tablodaki göreli yollar `Packages/Core/Tests/` altındadır; `Tests/JournalTests/` ile başlayanlar uygulama testleridir. **Klasör tarama** yeni klasörü kendiliğinden bulur. **Ad listesi** yeni klasörü yalnız test dosyasındaki `@Test(arguments:)` listesine eklenince koşar. **JSON vaka** yeni vakayı JSON dizisine eklenince koşar.
-
-**DİKKAT:** `recognition/custom-book/` klasörü `EntityRecognitionTests/Fixtures.swift` ad listesinde yok; bu yüzden hiçbir test bu örneği koşmaz.
 
 ## Yeni fixture ekleme
 
@@ -1017,7 +1015,7 @@ Diğer af durumları bugün yapılınca süren zincir, hedefin ilk ve ikinci gü
 
 **Yazma ve oluşturma:** `goals/writes/cases.json` her vakada `id`, `day`, `key`, `value` (boolean, sayı ya da `null`), `input` ve `expected` taşır. `input` ve `expected` aynı klasördeki Markdown yollarıdır; eksik girdi için `input` `null` olur. İsteğe bağlı `error` beklenen hatayı adlandırır; örneğin `notAMapping`. Test tam çıktı baytlarını ve artımlı indeksin yeniden üretimle eşitliğini sınar.
 
-Örnek kasa mevcut 31 kaydı ve Spor, Kitap, Su tanımlarını korur; Spor 14 ve 21 Eylül 2026 haftalarında üçer günle başarılıdır. `milestone-*` vakaları kilometre taşının tamamlanmasını ve geri alınmasını sınar. `goals/creation/input.md` boştur; 3 beklenen dosya yeni hedef dosyasının tam baytlarıdır. `cases.json` 3 tanımı listeler, ama testler tanımları kodda yazar ve bu dosyayı okumaz.
+Örnek kasa mevcut 31 kaydı ve Spor, Kitap, Su tanımlarını korur; Spor 14 ve 21 Eylül 2026 haftalarında üçer günle başarılıdır. `milestone-*` vakaları kilometre taşının tamamlanmasını ve geri alınmasını sınar. `goals/creation/input.md` boştur; 3 beklenen dosya yeni hedef dosyasının tam baytlarıdır. `cases.json` her vakada `input`, `expected`, `name`, `period`, `kind` ve isteğe bağlı `target` ve `unit` taşır; kilometre taşı vakası `target` taşımaz. Test her vakayı boş kasada oluşturur, tam baytları ve indeksin okuduğu tanımı sınar. Klasördeki her `*-expected.md` dosyası bir vakaya bağlıdır.
 
 ## `summaries/` kümesi
 

@@ -88,7 +88,7 @@ struct EntityNavigationTests {
         defer { context.clean() }
         await context.start()
         let day = CalendarDate("2026-09-13")!
-        #expect(context.store.content.day(on: day).events.isEmpty)
+        #expect(try await context.store.computeDay(on: day).events.isEmpty)
         let month = JournalCalendar.range(of: day)
         func calendar() async throws -> JournalCalendar {
             JournalCalendar(
@@ -110,7 +110,7 @@ struct EntityNavigationTests {
         let entity = try #require(model.created)
         #expect(entity.file == "people/Yeni Kurgusal.md")
         #expect(context.store.content.entities.contains { $0.id == entity.file })
-        let event = try #require(context.store.content.day(on: LocalDay.today()).events.first)
+        let event = try #require(try await context.store.computeDay(on: LocalDay.today()).events.first)
         #expect(event.text.spans.contains { $0.destination == entity.file })
         await model.create(.person)
         #expect(context.store.content.entities.filter { $0.id == entity.file }.count == 1)

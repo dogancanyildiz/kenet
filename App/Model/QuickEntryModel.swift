@@ -51,6 +51,9 @@ final class QuickEntryModel {
     /// Set while the field holds a draft made from a calendar event.
     var calendarDraft: CalendarDraft?
     @ObservationIgnored var analysisCache: (key: AnalysisKey, analysis: QuickEntryAnalysis)?
+    /// Project names the `#project/` suggestions offer (``loadProjects()``); a reload keeps the
+    /// previous names until it answers.
+    var knownProjects: [String] = []
 
     var text: String {
         get { composer.text }

@@ -48,11 +48,11 @@ struct GoalEditingTests {
             of: "date: 2026-09-27\n", with: "date: 2026-09-27\ngoals:\n  spor: true\n")
         #expect(try Data(contentsOf: file) == Data(expected.utf8))
         #expect(context.store.content.goalLogs["spor"]?.last { $0.day == day }?.value == .boolean(true))
-        #expect(context.store.content.day(on: day).hasGoalRecords)
+        #expect(try await context.store.computeDay(on: day).hasGoalRecords)
         #expect(model.isComplete(for: sport))
         #expect(await model.toggle(sport))
         let removed = String(decoding: try Data(contentsOf: file), as: UTF8.self)
-        #expect(!context.store.content.day(on: day).hasGoalRecords)
+        #expect(try await !context.store.computeDay(on: day).hasGoalRecords)
         #expect(!removed.contains("spor:"))
         #expect(!removed.contains("false"))
         #expect(

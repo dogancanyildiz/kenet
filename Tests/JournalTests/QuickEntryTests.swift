@@ -25,7 +25,7 @@ struct QuickEntryTests {
         #expect(id.count == 6)
         #expect(await context.store.addEvent(text: "Earlier event", time: try LineClock(hour: 9, minute: 5)))
         #expect(await context.store.addEvent(text: "Untimed event", time: nil))
-        let events = context.store.content.day(on: date).events
+        let events = try await context.store.computeDay(on: date).events
         #expect(events.map(\.text.plainText) == ["Earlier event", "First event", "Untimed event"])
         #expect(events.map { $0.time?.hour } == [9, 14, nil])
         let disk = RawDocument(bytes: try Data(contentsOf: file))
@@ -83,7 +83,8 @@ struct QuickEntryTests {
         #expect(RawDocument(bytes: try Data(contentsOf: file)).bodyLines.events.count == 1)
         #expect(sqlite3_exec(handle, "DROP TRIGGER reject_event", nil, nil, nil) == SQLITE_OK)
         await context.store.refresh(rebuild: true)
-        #expect(context.store.content.day(on: LocalDay.today()).events.map(\.text.plainText) == ["Saved event"])
+        let saved = try await context.store.computeDay(on: LocalDay.today())
+        #expect(saved.events.map(\.text.plainText) == ["Saved event"])
         #expect(context.store.counts.events == 1)
     }
 

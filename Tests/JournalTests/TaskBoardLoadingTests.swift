@@ -39,7 +39,7 @@
             try Data("## Tasks\n- [ ] only task 📅 \(context.today) ^only\n".utf8).write(to: context.file)
             await context.start()
             let store = context.store
-            #expect(store.content.tasks.count == 1)
+            #expect(try await store.allTasks().count == 1)
             let gate = TaskQueryGate(store: store)
             gate.hold()
             let mount = HostedLayout.Mount(

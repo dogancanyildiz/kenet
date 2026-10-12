@@ -236,7 +236,7 @@ struct QuickEntryLocationTests {
         model.text = "Oku"
         #expect(await model.submit(time: nil))
         #expect(source.locationRequests == 1)
-        #expect(context.store.content.tasks.contains { $0.sourceText == "Oku" })
+        #expect(try await context.store.allTasks().contains { $0.sourceText == "Oku" })
         #expect(model.pins.isEmpty)
     }
 }

@@ -12,6 +12,9 @@ public actor VaultStore {
     let moveFile: @Sendable (URL, URL) throws -> Void
     let restoreRenameFile: (@Sendable (Data, URL) throws -> Void)?
     let readFile: @Sendable (URL) throws -> Data
+    let removeFile: @Sendable (URL) throws -> Void
+    /// Called before each disk-changing step of a day copy merge; tests throw from it to fail that step.
+    let dayCopyStep: @Sendable (DayCopyMergeStep) throws -> Void
     let randomValue: @Sendable () -> UInt64
     /// Serialised with `writeQueue`; caches `.app/vault.json` mtime so writes do not re-parse every time.
     let writeGate: WriteGate
@@ -31,6 +34,8 @@ public actor VaultStore {
         moveFile = { try FileManager.default.moveItem(at: $0, to: $1) }
         restoreRenameFile = nil
         readFile = { try Data(contentsOf: $0) }
+        removeFile = { try FileManager.default.removeItem(at: $0) }
+        dayCopyStep = { _ in }
         writeGate = WriteGate()
     }
 
@@ -41,6 +46,8 @@ public actor VaultStore {
         moveFile: @escaping @Sendable (URL, URL) throws -> Void = { try FileManager.default.moveItem(at: $0, to: $1) },
         restoreRenameFile: (@Sendable (Data, URL) throws -> Void)? = nil,
         readFile: @escaping @Sendable (URL) throws -> Data = { try Data(contentsOf: $0) },
+        removeFile: @escaping @Sendable (URL) throws -> Void = { try FileManager.default.removeItem(at: $0) },
+        dayCopyStep: @escaping @Sendable (DayCopyMergeStep) throws -> Void = { _ in },
         fileCoordination: any FileCoordination = DirectFileCoordination()
     ) {
         root = vaultRoot.resolvingSymlinksInPath().standardizedFileURL
@@ -52,6 +59,8 @@ public actor VaultStore {
         self.moveFile = moveFile
         self.restoreRenameFile = restoreRenameFile
         self.readFile = readFile
+        self.removeFile = removeFile
+        self.dayCopyStep = dayCopyStep
         writeGate = WriteGate()
     }
 

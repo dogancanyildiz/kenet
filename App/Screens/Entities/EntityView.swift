@@ -1,5 +1,6 @@
 import SwiftUI
 import VaultFormat
+import VaultIndex
 
 struct EntityView: View {
     let store: IndexStore
@@ -15,6 +16,8 @@ struct EntityView: View {
     @State private var timeline: [EntityTimelineDay]?
     /// The last encounter's day, loaded with `timeline` so the insight card opens complete.
     @State private var lastDay: DaySummary?
+    /// Open tasks linking here, loaded with `timeline`, by due day, priority, file and line.
+    @State private var openTasks: [TaskRow] = []
 
     init(store: IndexStore, entity: EntitySummary, onRenamed: @escaping (String) -> Void = { _ in }) {
         self.store = store
@@ -102,14 +105,19 @@ struct EntityView: View {
         .task(id: EntityTimelineRequest(path: model.path, updated: store.lastUpdated)) {
             guard let days = try? await store.computeEntityTimeline(for: model.path) else { return }
             var day: DaySummary?
-            if let last = EntityInsights.lastDay(in: days, today: LocalDay.today(at: clockNow())) {
+            let today = LocalDay.today(at: clockNow())
+            if let last = EntityInsights.lastDay(in: days, today: today) {
                 guard let loaded = try? await store.computeDay(on: last) else { return }
                 day = loaded
             }
+            guard
+                let tasks = try? await store.computeTaskGroups(today: today, scope: TaskScope(linkedTo: model.path))
+            else { return }
             // A request replaced meanwhile must not write its older answer over the newer one.
             guard !Task.isCancelled else { return }
             timeline = days
             lastDay = day
+            openTasks = tasks.open
         }
         // A list row that draws nothing is never mounted, so these queries cannot live on the row.
         .background {
@@ -176,7 +184,7 @@ struct EntityView: View {
         } else {
             fieldSections
         }
-        EntityOpenTasksView(store: store, path: model.path).id(model.path)
+        EntityOpenTasksView(store: store, rows: openTasks).id(model.path)
         UnlinkedMentionsSection(model: unlinkedMentions).id(model.path)
         timelineSection
         notesSection

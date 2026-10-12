@@ -21,7 +21,7 @@ struct KanbanCardDragHighlightTests {
         defer { context.clean() }
         await context.start()
         let model = KanbanModel(tasks: TasksModel(store: context.store))
-        let row = try #require(context.store.content.tasks.first)
+        let row = try #require(try await context.store.allTasks().first)
         #expect(model.dragHighlight == .idle)
         let token = model.beginDrag(row)
         #expect(model.dragHighlight == .dragging)

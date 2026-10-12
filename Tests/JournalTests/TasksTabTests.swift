@@ -1,6 +1,7 @@
 import Foundation
 import Testing
 import VaultFormat
+import VaultIndex
 
 @testable import Journal
 
@@ -66,14 +67,19 @@ import VaultFormat
         #expect(!model.hasFilters)
     }
 
+    /// An entity page's open tasks, as the page queries them.
+    private func openTasks(_ context: TaskTestContext, linkedTo path: String) async throws -> [TaskRow] {
+        try await context.store.computeTaskGroups(today: context.today, scope: TaskScope(linkedTo: path)).open
+    }
+
     @Test func entityOpenTasksIncludeNoteTasks() async throws {
         let context = try TaskTestContext(sample: true)
         defer { context.clean() }
         await context.start()
-        let rows = TasksModel.openTasks(in: context.store, linkedTo: "people/Deniz Arıkan.md")
+        let rows = try await openTasks(context, linkedTo: "people/Deniz Arıkan.md")
         #expect(rows.count == 1)
         #expect(rows.first?.file == "notes/Proje Fikirleri.md")
-        #expect(TasksModel.openTasks(in: context.store, linkedTo: "people/Missing.md").isEmpty)
+        #expect(try await openTasks(context, linkedTo: "people/Missing.md").isEmpty)
     }
 
     @Test func reopenPreservesOtherBytesAndRemovesCompletion() async throws {
@@ -123,6 +129,6 @@ import VaultFormat
         await model.loadList()
         #expect(model.projects.contains("mobile"))
         #expect(try String(contentsOf: context.file, encoding: .utf8).contains("Plan #project/mobile"))
-        #expect(TasksModel.openTasks(in: context.store, linkedTo: "people/Deniz Arıkan.md").count == 2)
+        #expect(try await openTasks(context, linkedTo: "people/Deniz Arıkan.md").count == 2)
     }
 }

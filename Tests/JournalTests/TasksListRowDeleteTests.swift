@@ -26,7 +26,7 @@ struct TasksListRowDeleteTests {
         let context = try TaskTestContext(sample: true)
         defer { context.clean() }
         await context.start()
-        let row = try #require(context.store.content.tasks.first { $0.sourceText == Self.taskText })
+        let row = try #require(try await context.store.allTasks().first { $0.sourceText == Self.taskText })
         let file = context.root.appendingPathComponent(row.file)
         let before = try Data(contentsOf: file)
 

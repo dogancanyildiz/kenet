@@ -98,7 +98,7 @@ struct IdleRefreshTests {
         #expect(await write.value)
         #expect(store.counts.events == 1)
         #expect(
-            store.content.days.contains { day in
+            try await store.days().contains { day in
                 day.events.contains { $0.text.plainText.contains("Kept event") }
             })
         #expect(store.counts.tasks == 1)
@@ -162,7 +162,7 @@ struct IdleRefreshTests {
         await store.refresh(rebuild: true)
         #expect(store.counts.tasks == 0)
         #expect(store.counts.files == 0)
-        #expect(store.content.tasks.isEmpty)
+        #expect(try await store.allTasks().isEmpty)
         #expect(store.errorText == nil)
         #expect(!store.isProcessing)
     }

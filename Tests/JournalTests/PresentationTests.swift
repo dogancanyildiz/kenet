@@ -8,12 +8,13 @@ import VaultIndex
 /// Screen data is checked against the same fictional vault used by Core.
 struct PresentationTests {
     @Test func sampleDayRowsAndEventOrder() throws {
-        let content = try sampleContent()
-        #expect(content.days.count == 14)
-        #expect(content.days.flatMap(\.events).count == 40)
-        #expect(content.days.first?.date.description == "2026-09-27")
-        #expect(content.days.last?.date.description == "2026-09-14")
-        let day = content.day(on: try #require(CalendarDate("2026-09-20")))
+        let index = try sampleIndex()
+        let days = try Self.days(index)
+        #expect(days.count == 14)
+        #expect(days.flatMap(\.events).count == 40)
+        #expect(days.first?.date.description == "2026-09-27")
+        #expect(days.last?.date.description == "2026-09-14")
+        let day = try Self.day(index, try #require(CalendarDate("2026-09-20")))
         #expect(day.id == "journal/2026-09-20.md")
         #expect(day.events.count == 2)
         #expect(day.events.map { $0.time?.raw } == ["11:00", "16:00"])
@@ -42,11 +43,11 @@ struct PresentationTests {
     }
 
     @Test func emptyDaysAndNestedJournalHeadings() throws {
-        let content = try sampleContent()
-        let empty = content.day(on: try #require(CalendarDate("2026-10-03")))
+        let index = try sampleIndex()
+        let empty = try Self.day(index, try #require(CalendarDate("2026-10-03")))
         #expect(empty.id == "journal/2026-10-03.md")
         #expect(empty.events.isEmpty && empty.journal.isEmpty && empty.preview == nil)
-        let day = content.day(on: try #require(CalendarDate("2026-09-22")))
+        let day = try Self.day(index, try #require(CalendarDate("2026-09-22")))
         #expect(day.events.isEmpty)
         #expect(day.journal.contains { $0.headingLevel == 3 && $0.text.plainText == "Akşam" })
         #expect(day.journal.last?.headingLevel == nil)
@@ -58,7 +59,7 @@ struct PresentationTests {
         let west = try #require(TimeZone(secondsFromGMT: -7 * 3600))
         #expect(LocalDay.today(at: instant, timeZone: east).description == "2026-09-21")
         #expect(LocalDay.today(at: instant, timeZone: west).description == "2026-09-20")
-        let time = try #require(try sampleContent().days.flatMap(\.events).first?.time)
+        let time = try #require(try Self.days(try sampleIndex()).flatMap(\.events).first?.time)
         let day = try #require(CalendarDate("2026-09-20"))
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = east
@@ -78,11 +79,28 @@ struct PresentationTests {
         try Data(text.utf8).write(to: root.appendingPathComponent("journal/2026-09-20.md"))
         let index = try VaultIndex(databaseURL: temp.appendingPathComponent("index.sqlite"))
         _ = try index.refresh(vaultRoot: root)
-        let day = VaultReadModel(snapshot: try index.snapshot()).days[0]
+        let day = try Self.day(index, try #require(CalendarDate("2026-09-20")))
         #expect(day.events.map { $0.time?.raw } == ["16:00", nil, "9:00"])
         #expect(day.events[0].text.plainText == "Ece ve `[[Ev]]`")
         #expect(day.journal[0].text.plainText == "Birinci satır\nikinci satır evde.")
         #expect(day.preview == "Birinci satır")
+    }
+
+    /// The sample's days as the day list and the day page query them, newest first.
+    private static func days(_ index: VaultIndex) throws -> [DaySummary] {
+        try index.daySummaries().map { try day(index, $0.date) }
+    }
+
+    private static func day(_ index: VaultIndex, _ date: CalendarDate) throws -> DaySummary {
+        DaySummary(contents: try index.day(on: date), date: date)
+    }
+
+    private func sampleIndex() throws -> VaultIndex {
+        let source = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
+            .deletingLastPathComponent().appendingPathComponent("Fixtures/vaults/sample")
+        let index = try VaultIndex()
+        try index.rebuild(vaultRoot: source)
+        return index
     }
 
     private func sampleContent() throws -> VaultReadModel {
@@ -113,17 +131,17 @@ struct PresentationUpdateTests {
         let file = root.appendingPathComponent("journal/2026-09-20.md")
         try Data("## Events\n- 11:00 Bir an\n".utf8).write(to: file)
         for _ in 0..<150 {
-            if store.content.days.first?.events.count == 1 { break }
+            if try await store.days().first?.events.count == 1 { break }
             try await Task.sleep(for: .milliseconds(20))
         }
-        #expect(store.content.days.first?.events.first?.text.plainText == "Bir an")
+        #expect(try await store.days().first?.events.first?.text.plainText == "Bir an")
         #expect(store.counts.events == 1)
         try Data("## Events\n- 11:00 Yeni metin\n".utf8).write(to: file, options: .atomic)
         for _ in 0..<150 {
-            if store.content.days.first?.events.first?.text.plainText == "Yeni metin" { break }
+            if try await store.days().first?.events.first?.text.plainText == "Yeni metin" { break }
             try await Task.sleep(for: .milliseconds(20))
         }
-        #expect(store.content.days.first?.events.first?.text.plainText == "Yeni metin")
+        #expect(try await store.days().first?.events.first?.text.plainText == "Yeni metin")
         try Data("---\ntype: person\nname: Ece Yalın\naliases: [Ece]\n---\n".utf8)
             .write(to: root.appendingPathComponent("people/Ece Yalın.md"))
         for _ in 0..<150 {
@@ -141,6 +159,7 @@ struct PresentationUpdateTests {
             try await Task.sleep(for: .milliseconds(20))
         }
         #expect(store.vaultURL == other)
-        #expect(store.content.days.isEmpty && store.content.entities.isEmpty)
+        #expect(try await store.days().isEmpty)
+        #expect(store.content.entities.isEmpty)
     }
 }

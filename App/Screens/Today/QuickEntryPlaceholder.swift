@@ -167,6 +167,7 @@ struct QuickEntryBar: View {
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("bar.quickEntry")
         .onAppear { model.locationService = location }
+        .task(id: store.lastUpdated) { await model.loadProjects() }
         .onChange(of: navigation?.mentionRequest?.id, initial: true) { _, id in
             if id != nil { applyMention() }
         }

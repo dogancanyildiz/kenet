@@ -11,7 +11,7 @@ struct DayEventMentionTests {
         let context = try DayEditingTestContext()
         defer { context.clean() }
         await context.start()
-        let row = try #require(context.store.content.day(on: context.day).events.first)
+        let row = try #require(try await context.store.computeDay(on: context.day).events.first)
         let model = EventEditorModel(store: context.store, day: context.day, row: row)
         await model.load()
         model.text = "@De"
@@ -25,7 +25,7 @@ struct DayEventMentionTests {
         defer { context.clean() }
         await context.start()
         let before = try String(contentsOf: context.file, encoding: .utf8)
-        let row = try #require(context.store.content.day(on: context.day).events.first)
+        let row = try #require(try await context.store.computeDay(on: context.day).events.first)
         let model = EventEditorModel(store: context.store, day: context.day, row: row)
         await model.load()
         model.text = "@Mert ile"
@@ -50,7 +50,7 @@ struct DayEventMentionTests {
         defer { context.clean() }
         await context.start()
         let before = try Data(contentsOf: context.file)
-        let row = try #require(context.store.content.day(on: context.day).events.first)
+        let row = try #require(try await context.store.computeDay(on: context.day).events.first)
         let model = EventEditorModel(store: context.store, day: context.day, row: row)
         await model.load()
         model.text = "@Mert Aksu ile"
@@ -74,7 +74,7 @@ struct DayEventMentionTests {
         try file.write(to: context.file, atomically: true, encoding: .utf8)
         await context.store.refresh()
         let prepared = try Data(contentsOf: context.file)
-        let row = try #require(context.store.content.day(on: context.day).events.first)
+        let row = try #require(try await context.store.computeDay(on: context.day).events.first)
         let model = EventEditorModel(store: context.store, day: context.day, row: row)
         await model.load()
         #expect(model.text == "Mert Aksu ile Deniz Arıkan")
@@ -89,7 +89,7 @@ struct DayEventMentionTests {
         defer { context.clean() }
         await context.start()
         let before = try Data(contentsOf: context.file)
-        let row = try #require(context.store.content.day(on: context.day).events.first)
+        let row = try #require(try await context.store.computeDay(on: context.day).events.first)
         let model = EventEditorModel(store: context.store, day: context.day, row: row)
         await model.load()
         model.text = "@Yeni Ad ile"
@@ -114,7 +114,7 @@ struct DayEventMentionTests {
         defer { context.clean() }
         await context.start()
         let before = try Data(contentsOf: context.file)
-        let row = try #require(context.store.content.day(on: context.day).events.first)
+        let row = try #require(try await context.store.computeDay(on: context.day).events.first)
         let model = EventEditorModel(store: context.store, day: context.day, row: row)
         await model.load()
         model.text = "@Yeni Ad ile"
@@ -137,7 +137,7 @@ struct DayEventMentionTests {
         let context = try DayEditingTestContext()
         defer { context.clean() }
         await context.start()
-        let row = try #require(context.store.content.day(on: context.day).events.first)
+        let row = try #require(try await context.store.computeDay(on: context.day).events.first)
         let model = EventEditorModel(store: context.store, day: context.day, row: row)
         await model.load()
         model.text = "@Mert"
@@ -156,7 +156,7 @@ struct DayEventMentionTests {
         let context = try DayEditingTestContext()
         defer { context.clean() }
         await context.start()
-        let row = try #require(context.store.content.day(on: context.day).events.first)
+        let row = try #require(try await context.store.computeDay(on: context.day).events.first)
         let model = EventEditorModel(store: context.store, day: context.day, row: row)
         await model.load()
         model.text = "@Mert Aksu"

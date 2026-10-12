@@ -58,7 +58,7 @@ import VaultStore
             let rows = try await context.store.computeGoalStatuses(today: current)
             let expected = context.store.content.goalStatuses(today: current)
             #expect(TodayPresentation.goalStatuses(rows) == expected, Comment(rawValue: current.description))
-            let logs = Dictionary(grouping: context.store.content.asSnapshot().goalLogs, by: \.key)
+            let logs = Dictionary(grouping: context.store.content.indexedGoalLogs, by: \.key)
             for row in rows {
                 let entries = (logs[row.definition.key] ?? []).compactMap(GoalLog.init(indexed:))
                 #expect(row.score == GoalProgress.score(definition: row.definition, logs: entries, through: current))

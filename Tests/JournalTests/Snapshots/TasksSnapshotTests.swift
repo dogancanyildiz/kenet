@@ -176,7 +176,7 @@
             await context.start()
             try await assertMacView(
                 MacSidebarList(
-                    entries: MacSidebar.entries(projects: context.store.content.projects),
+                    entries: MacSidebar.entries(projects: try await context.store.computeProjects()),
                     selection: .constant(board ? .kanban : .section(.tasks))
                 )
                 // The offscreen window is never key; draw the row as the key window does.
@@ -196,7 +196,7 @@
             await context.start()
             try await assertMacView(
                 MacSidebarList(
-                    entries: MacSidebar.entries(projects: context.store.content.projects),
+                    entries: MacSidebar.entries(projects: try await context.store.computeProjects()),
                     selection: .constant(.section(.tasks))
                 )
                 .environment(\.appearsActive, false),

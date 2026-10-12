@@ -27,7 +27,7 @@ struct WriteQueueTests {
         try await first.value
         #expect(await second.value)
 
-        let texts = context.store.content.day(on: day).events.map(\.text.plainText)
+        let texts = try await context.store.computeDay(on: day).events.map(\.text.plainText)
         #expect(texts == ["First queued", "Second queued"])
         let root = try #require(context.store.vaultURL)
         let disk = RawDocument(bytes: try Data(contentsOf: root.appendingPathComponent("journal/\(day).md")))
@@ -42,7 +42,7 @@ struct WriteQueueTests {
         let day = LocalDay.today()
         #expect(await context.store.addEvent(on: day, text: "Seed one", time: nil))
         #expect(await context.store.addEvent(on: day, text: "Seed two", time: nil))
-        let rows = context.store.content.day(on: day).events
+        let rows = try await context.store.computeDay(on: day).events
         let firstRow = try #require(rows.first)
         let secondRow = try #require(rows.last)
         let firstTarget = try await context.store.eventTarget(on: day, row: firstRow)
@@ -66,7 +66,7 @@ struct WriteQueueTests {
         try await hold.value
 
         #expect(secondError == nil)
-        let texts = context.store.content.day(on: day).events.map(\.text.plainText)
+        let texts = try await context.store.computeDay(on: day).events.map(\.text.plainText)
         #expect(texts == ["Edited one", "Edited two"])
         #expect(context.store.entryErrorText == nil)
     }
@@ -77,7 +77,7 @@ struct WriteQueueTests {
         await context.store.start()
         let day = LocalDay.today()
         #expect(await context.store.addEvent(on: day, text: "Original", time: nil))
-        let row = try #require(context.store.content.day(on: day).events.first)
+        let row = try #require(try await context.store.computeDay(on: day).events.first)
         let target = try await context.store.eventTarget(on: day, row: row)
         let root = try #require(context.store.vaultURL)
         let file = root.appendingPathComponent("journal/\(day).md")
@@ -113,7 +113,7 @@ struct WriteQueueTests {
 
         #expect(await context.store.addEvent(on: day, text: "After cancel", time: nil))
         try await hold.value
-        let texts = context.store.content.day(on: day).events.map(\.text.plainText)
+        let texts = try await context.store.computeDay(on: day).events.map(\.text.plainText)
         #expect(texts == ["Holder", "After cancel"])
     }
 
@@ -150,7 +150,7 @@ struct WriteQueueTests {
         #expect(await firstSubmit.value)
         try await hold.value
 
-        let texts = context.store.content.day(on: day).events.map(\.text.plainText)
+        let texts = try await context.store.computeDay(on: day).events.map(\.text.plainText)
         #expect(texts.contains("First enter"))
         #expect(texts.contains("Second enter"))
         #expect(texts.contains("Blocking write"))
@@ -171,7 +171,7 @@ struct WriteQueueTests {
         #expect(await cancelled.value == false)
 
         #expect(await context.store.addEvent(on: day, text: "After handoff cancel", time: nil))
-        let texts = context.store.content.day(on: day).events.map(\.text.plainText)
+        let texts = try await context.store.computeDay(on: day).events.map(\.text.plainText)
         #expect(texts == ["After handoff cancel"])
         #expect(!texts.contains("Cancelled after handoff"))
     }
@@ -288,7 +288,7 @@ struct WriteQueueTests {
         try FileManager.default.createDirectory(at: file.deletingLastPathComponent(), withIntermediateDirectories: true)
         try Data(seed.utf8).write(to: file)
         await context.store.refresh()
-        let row = try #require(context.store.content.tasks.first { $0.sourceText == "Mark me done" })
+        let row = try #require(try await context.store.allTasks().first { $0.sourceText == "Mark me done" })
         let beforeLine = row.sourceLine
 
         let hold = Task {
@@ -304,7 +304,7 @@ struct WriteQueueTests {
         try await context.store.completeTask(row, on: day)
         try await hold.value
 
-        let task = try #require(context.store.content.tasks.first { $0.sourceText == "Mark me done" })
+        let task = try #require(try await context.store.allTasks().first { $0.sourceText == "Mark me done" })
         #expect(task.isClosed)
         #expect(task.sourceLine > beforeLine)
         let disk = RawDocument(bytes: try Data(contentsOf: file))
@@ -347,7 +347,7 @@ struct WriteQueueTests {
         #expect(await write.value)
         #expect(store.lastUpdated != nil)
         #expect(
-            store.content.days.contains { day in
+            try await store.days().contains { day in
                 day.events.contains { $0.text.plainText == "During open" }
             })
     }

@@ -239,10 +239,53 @@ extension DaySummary {
     }
 }
 
+extension IndexStore {
+    /// Every day as the old `days` field listed them, newest first, read through the day queries
+    /// the screens run. Lets store tests check what the index holds after a write.
+    func days() async throws -> [DaySummary] {
+        var days: [DaySummary] = []
+        for overview in try await computeDaySummaries() { days.append(try await computeDay(on: overview.date)) }
+        return days
+    }
+
+    /// Every task as the old `tasks` field listed them (file and line), read through the task
+    /// queries the screens run: every open and cancelled task and every done one.
+    func allTasks() async throws -> [TaskRow] {
+        let board = try await computeBoardTasks(
+            doneFrom: CalendarDate("1000-01-01")!, to: CalendarDate("9999-12-31")!, includeCancelled: true)
+        let done = try await computeCompletedTasks(limit: Int.max)
+        var seen: Set<String> = []
+        return (board + done).filter { seen.insert($0.id).inserted }.sorted(by: TaskRow.sourceOrder)
+    }
+}
+
+extension TaskRow {
+    /// How the read model built its `tasks` before they left it: every task block of a snapshot in
+    /// its order, with its file's links. The oracle the queries are compared with.
+    static func legacy(snapshot: IndexSnapshot) -> [TaskRow] {
+        let links = Dictionary(grouping: snapshot.links, by: \.file)
+        return snapshot.blocks.filter { $0.kind == "task" }.map { TaskRow(row: $0, links: links[$0.file] ?? []) }
+    }
+
+    /// The old `projects` field over those rows.
+    static func legacyProjects(_ rows: [TaskRow]) -> [String] { VaultIndex.projectNames(rows.compactMap(\.project)) }
+}
+
 extension VaultReadModel {
-    /// The old `days` field rebuilt from the published fragments with the oracle above. Lets store
-    /// tests check what a publish carries; screens query the index instead.
-    var days: [DaySummary] { DaySummary.build(snapshot: asSnapshot()) }
+    /// The goal values of every fragment in path order, as a snapshot listed them.
+    var indexedGoalLogs: [IndexedGoalLog] { fragments.keys.sorted().flatMap { fragments[$0]!.goalLogs } }
+
+    /// Everything the incremental tests compare: the screen fields, the counts and the fragments.
+    func matchesFullBuild(_ other: VaultReadModel) -> Bool {
+        matchesScreenFields(other) && counts.key == other.counts.key && fragments == other.fragments
+    }
+}
+
+extension IndexCounts {
+    /// Every count, for equality.
+    var key: String {
+        "\(filesByKind.sorted { $0.key < $1.key })|\(events)|\(tasks)|\(entities)|\(links)|\(unresolvedLinks)"
+    }
 }
 
 extension VaultReadModel {
@@ -252,7 +295,7 @@ extension VaultReadModel {
     /// as the day page counted it (the stored field kept the last; only the list's first frame,
     /// before its editing model loaded, read that). The oracle the query is compared with.
     func goalStatuses(today: CalendarDate) -> [String: GoalStatus] {
-        let logs = Dictionary(grouping: asSnapshot().goalLogs, by: \.key).mapValues {
+        let logs = Dictionary(grouping: indexedGoalLogs, by: \.key).mapValues {
             $0.compactMap(GoalLog.init(indexed:))
         }
         return Dictionary(

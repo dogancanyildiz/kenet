@@ -15,7 +15,7 @@ struct IncrementalReadModelTests {
         try index.rebuild(vaultRoot: root)
         let fromSnapshot = try IncrementalReadModelVault.fullModel(index: index)
         let fromIndex = try VaultReadModel(index: index, today: IncrementalReadModelVault.today)
-        #expect(fromSnapshot.matchesScreenFields(fromIndex))
+        #expect(fromSnapshot.matchesFullBuild(fromIndex))
         let fileCount = try index.files().count
         #expect(fromSnapshot.fragments.count == fileCount)
     }
@@ -36,8 +36,8 @@ struct IncrementalReadModelTests {
             previous: previous, index: index, changedPaths: [day], today: IncrementalReadModelVault.today
         ).content
         let full = try IncrementalReadModelVault.fullModel(index: index)
-        #expect(incremental.matchesScreenFields(full))
-        #expect(incremental.days.contains { $0.events.contains { $0.text.plainText.contains("Wrote after lunch") } })
+        #expect(incremental.matchesFullBuild(full))
+        #expect(incremental.fragments[day]?.eventCount == 2 && incremental.counts.events == 3)
     }
 
     @Test func completingTaskMatchesFullRebuild() async throws {
@@ -59,8 +59,8 @@ struct IncrementalReadModelTests {
             today: IncrementalReadModelVault.today
         ).content
         let full = try IncrementalReadModelVault.fullModel(index: index)
-        #expect(incremental.matchesScreenFields(full))
-        #expect(incremental.tasks.first { $0.sourceIdentifier == "task1" }?.isClosed == true)
+        #expect(incremental.matchesFullBuild(full))
+        #expect(incremental.fragments[path]?.taskCount == 2 && incremental.counts.tasks == 3)
     }
 
     @Test func deletingFileMatchesFullRebuild() throws {
@@ -77,8 +77,8 @@ struct IncrementalReadModelTests {
 
         let incremental = try IncrementalReadModelVault.apply(previous, index: index, result: result)
         let full = try IncrementalReadModelVault.fullModel(index: index)
-        #expect(incremental.matchesScreenFields(full))
-        #expect(!incremental.tasks.contains { $0.file == "notes/Scratch.md" })
+        #expect(incremental.matchesFullBuild(full))
+        #expect(incremental.fragments["notes/Scratch.md"] == nil && incremental.counts.tasks == 2)
     }
 
     @Test func renamingEntityMatchesFullRebuild() async throws {
@@ -99,7 +99,7 @@ struct IncrementalReadModelTests {
             deletedPaths: ["people/Deniz Example.md"], today: IncrementalReadModelVault.today
         ).content
         let full = try IncrementalReadModelVault.fullModel(index: index)
-        #expect(incremental.matchesScreenFields(full))
+        #expect(incremental.matchesFullBuild(full))
         #expect(incremental.entities.contains { $0.name == "Deniz Renamed" })
         #expect(!incremental.entities.contains { $0.id == "people/Deniz Example.md" })
     }
@@ -124,11 +124,36 @@ struct IncrementalReadModelTests {
         #expect(result.updatedPaths.contains(path))
         let incremental = try IncrementalReadModelVault.apply(previous, index: index, result: result)
         let full = try IncrementalReadModelVault.fullModel(index: index)
-        #expect(incremental.matchesScreenFields(full))
-        #expect(
-            incremental.days.first { $0.id == path }?.journal.contains {
-                $0.text.plainText.contains("Extra external paragraph")
-            } == true)
+        #expect(incremental.matchesFullBuild(full))
+        #expect(incremental.fragments[path]?.eventCount == 1 && incremental.counts.files == full.counts.files)
+    }
+
+    /// Fragments keep only how many events and tasks a file has. Every event and task counts,
+    /// with or without an identifier, a due day or a section of its own, before and after an
+    /// outside edit, as a fresh snapshot counts them.
+    @Test func blockCountsFollowEveryEventAndTask() throws {
+        let root = try testDirectory()
+        defer { try? FileManager.default.removeItem(at: root) }
+        try IncrementalReadModelVault.seed(at: root)
+        let path = "journal/2026-10-03.md"
+        try IncrementalReadModelVault.write(
+            root, path, "## Events\n- 08:00 Plain event\n- Untimed event\n\n## Tasks\n- [ ] plain task\n- [x] done\n")
+        let index = try VaultIndex()
+        try index.rebuild(vaultRoot: root)
+        let previous = try IncrementalReadModelVault.fullModel(index: index)
+        #expect(previous.counts.key == IndexCounts(snapshot: try index.snapshot()).key)
+        #expect(previous.fragments[path]?.eventCount == 2 && previous.fragments[path]?.taskCount == 2)
+
+        try IncrementalReadModelVault.write(
+            root, path,
+            "## Events\n- 08:00 Plain event\n- Untimed event\n- 21:00 Late event\n\n## Tasks\n- [ ] plain task\n")
+        try FileManager.default.setAttributes(
+            [.modificationDate: Date().addingTimeInterval(2)], ofItemAtPath: root.appendingPathComponent(path).path)
+        let incremental = try IncrementalReadModelVault.apply(
+            previous, index: index, result: try index.refresh(vaultRoot: root))
+        #expect(incremental.matchesFullBuild(try IncrementalReadModelVault.fullModel(index: index)))
+        #expect(incremental.counts.key == IndexCounts(snapshot: try index.snapshot()).key)
+        #expect(incremental.fragments[path]?.eventCount == 3 && incremental.fragments[path]?.taskCount == 1)
     }
 
     @Test func creatingPersonResolvesExistingLinks() async throws {
@@ -158,7 +183,7 @@ struct IncrementalReadModelTests {
             today: IncrementalReadModelVault.today
         ).content
         let full = try IncrementalReadModelVault.fullModel(index: index)
-        #expect(incremental.matchesScreenFields(full))
+        #expect(incremental.matchesFullBuild(full))
         let zora = try #require(incremental.entities.first { $0.name == "Zora Example" })
         #expect(zora.incomingLinks >= 1)
         #expect(!(try index.entityTimeline(for: zora.id)).isEmpty)
@@ -185,7 +210,7 @@ struct IncrementalReadModelTests {
             estimatedPaths: [guessed], today: IncrementalReadModelVault.today
         ).content
         let full = try IncrementalReadModelVault.fullModel(index: index)
-        #expect(incremental.matchesScreenFields(full))
+        #expect(incremental.matchesFullBuild(full))
         #expect(incremental.goals.contains { $0.name == "Koşu: 5 km" })
         #expect(!incremental.needsFullReconcile)
     }
@@ -211,7 +236,7 @@ struct IncrementalReadModelTests {
             previous: previous, index: index, changedPaths: [dayPath], today: nextDay
         ).content
         let full = try IncrementalReadModelVault.fullModel(index: index, today: nextDay)
-        #expect(incremental.matchesScreenFields(full))
+        #expect(incremental.matchesFullBuild(full))
         #expect(incremental.derivedForDay == nextDay)
         // The goal-log list (notifications, geofence) moves with the day; the screens' statuses
         // are queried for the day they show.
@@ -251,7 +276,7 @@ struct IncrementalReadModelTests {
 
         let incremental = try IncrementalReadModelVault.apply(previous, index: index, result: result)
         let full = try IncrementalReadModelVault.fullModel(index: index)
-        #expect(incremental.matchesScreenFields(full))
+        #expect(incremental.matchesFullBuild(full))
         #expect(incremental.reservedGoalKeys.contains("broken-milestone"))
     }
 
@@ -381,8 +406,9 @@ struct IncrementalReadModelTests {
     }
 
     /// Days left the read model for Core queries: after each edit the list and single-day queries on
-    /// the maintained index, and the published day the notification planner reads, equal the old
-    /// construction from a rebuild. This is what `matchesScreenFields` compared for days before.
+    /// the maintained index equal the old construction from a rebuild, and the published model
+    /// (fragments without block text, counts) equals one built from that rebuild. This is what
+    /// `matchesScreenFields` compared for days before.
     @Test func daysAfterIncrementalEditsMatchFullRebuild() async throws {
         let root = try testDirectory()
         defer { try? FileManager.default.removeItem(at: root) }
@@ -407,8 +433,11 @@ struct IncrementalReadModelTests {
                 #expect(
                     DaySummary(contents: try index.day(on: date), date: date).key == old,
                     Comment(rawValue: "\(label) \(date)"))
-                #expect(model.day(on: date).key == old, Comment(rawValue: "published \(label) \(date)"))
             }
+            let full = try IncrementalReadModelVault.fullModel(index: rebuilt)
+            #expect(
+                model.matchesFullBuild(full), Comment(rawValue: "\(label) \(VaultReadModel.debugDiff(model, full))"))
+            #expect(model.counts.key == IndexCounts(snapshot: try rebuilt.snapshot()).key, Comment(rawValue: label))
             return expected
         }
         func publish(_ changed: Set<String>, deleted: Set<String> = []) throws {

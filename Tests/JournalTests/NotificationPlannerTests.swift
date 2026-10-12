@@ -9,10 +9,13 @@ import VaultIndex
 struct NotificationPlannerTests {
     private let today = CalendarDate("2026-09-27")!
     private func plan(
-        _ snapshot: VaultReadModel, preferences: NotificationPreferences = NotificationPreferences(),
-        now: Date = notificationDate()
+        _ vault: NotificationVault, preferences: NotificationPreferences = NotificationPreferences(),
+        now: Date = notificationDate(), people: [CadenceReminderPerson] = [],
+        lastNotified: [String: CalendarDate] = [:]
     ) -> [NotificationRequest] {
-        NotificationPlanner.requests(snapshot: snapshot, preferences: preferences, now: now, timeZone: notificationUTC)
+        NotificationPlanner.requests(
+            snapshot: vault.model, days: vault.week(from: LocalDay.today(at: now, timeZone: notificationUTC)),
+            preferences: preferences, now: now, timeZone: notificationUTC, people: people, lastNotified: lastNotified)
     }
 
     @Test func sampleDayHasSingleMorningSummaryDailyGoalsAndNoJournalReminder() throws {
@@ -40,98 +43,30 @@ struct NotificationPlannerTests {
 
     @Test func completedDailyGoalsSuppressOnlyTheirDayAndWeeklyYearlyGoalsNeverNotify() throws {
         var snapshot = try notificationSample()
-        snapshot.goalLogs["kitap", default: []].append(GoalLog(day: today, value: .number(20)))
-        snapshot.goalLogs["su", default: []].append(GoalLog(day: today, value: .number(8)))
+        snapshot.model.goalLogs["kitap", default: []].append(GoalLog(day: today, value: .number(20)))
+        snapshot.model.goalLogs["su", default: []].append(GoalLog(day: today, value: .number(8)))
         #expect(!plan(snapshot).contains { $0.id == "goals-2026-09-27" })
         #expect(plan(snapshot).contains { $0.id == "goals-2026-09-28" })
-        snapshot.goals = [
+        snapshot.model.goals = [
             GoalDefinition(
                 id: "goals/Annual.md", key: "annual", name: "Annual", period: .year, kind: .number, target: 24)!
         ]
         #expect(plan(snapshot).allSatisfy { $0.destination != .goals })
-        snapshot.goals.append(
+        snapshot.model.goals.append(
             GoalDefinition(id: "goals/Day.md", key: "daily", name: "Daily", period: .day, kind: .boolean, target: 1)!)
-        snapshot.goalLogs["daily"] = [GoalLog(day: today, value: .boolean(true))]
+        snapshot.model.goalLogs["daily"] = [GoalLog(day: today, value: .boolean(true))]
         #expect(!plan(snapshot).contains { $0.id == "goals-2026-09-27" })
     }
 
-    /// The planner reads the published day file (`VaultReadModel.day(on:)`): the sample with
-    /// today's file absent, cut to its goal value, to its events, or to its Journal.
-    @Test func absentOrGoalOnlyDayGetsJournalReminderButEventsOrWritingSuppressIt() throws {
-        let sample = try notificationSample().asSnapshot()
-        let path = "journal/\(today).md"
-        let goal = try JSONDecoder().decode(
-            IndexedGoalLog.self,
-            from: Data(#"{"file":"\#(path)","key":"su","date":"\#(today)","kind":"number","value":"1"}"#.utf8))
-        func journalReminder(
-            keepsFile: Bool = true, goalLogs: [IndexedGoalLog] = [], keeping keep: (IndexedBlock) -> Bool
-        ) -> Bool {
-            let blocks = sample.blocks.filter { $0.file != path || (keepsFile && keep($0)) }
-            let kept = Set(blocks.filter { $0.file == path }.map(\.ordinal))
-            let snapshot = IndexSnapshot(
-                files: sample.files.filter { keepsFile || $0.path != path }, entities: sample.entities,
-                aliases: sample.aliases, blocks: blocks,
-                links: sample.links.filter { $0.file != path || $0.block.map(kept.contains) == true },
-                goalLogs: sample.goalLogs + goalLogs)
-            let model = VaultReadModel(snapshot: snapshot, today: today)
-            return plan(model).contains { $0.id == "journal-2026-09-27" }
-        }
-        #expect(!journalReminder { _ in true })
-        #expect(journalReminder(keepsFile: false) { _ in true })
-        #expect(journalReminder(goalLogs: [goal]) { _ in false })
-        #expect(!journalReminder { $0.kind == "event" })
-        #expect(!journalReminder { $0.section == "Journal" })
-    }
-
-    /// The read model no longer keeps the days; the planner's `day(on:)` is built from the day
-    /// file's fragment. The planner reads nothing from the day but whether it has events or Journal
-    /// rows, so its journal reminders are all a day can change: from every morning of a month around
-    /// the sample's days and an edge-case vault's, they are the days the old construction
-    /// (`DaySummary.build`) found empty, and the published day equals the old one.
-    @Test func journalRemindersFollowTheOldDayConstruction() throws {
-        let sample = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
-            .deletingLastPathComponent().appendingPathComponent("Fixtures/vaults/sample")
-        let edge = try testDirectory()
-        defer { try? FileManager.default.removeItem(at: edge) }
-        let files = [
-            "people/Ada Test.md": "---\ntype: person\nname: Ada Test\n---\n",
-            "journal/2026-09-02.md": "## Journal\n### Yalnız başlık\n",
-            "journal/2026-09-03.md": "## Tasks\n- [ ] yalnız görev 📅 2026-09-03\n",
-            "journal/2026-09-04.md": "---\ntype: journal\ngoals:\n  su: 3\n---\n",
-            "journal/2026-09-05.md": "",
-            "journal/2026-09-06.md": "## Notlar\nBaşka bölümde paragraf.\n",
-            "journal/2026-09-07.md": "\u{FEFF}## Events\r\n- 08:00 CRLF [[Ada Test]]\r\n",
-            "journal/2026-09-08.md": "## Journal\nYalnız [[Ada Test]] günlük.\n",
-            "journal/2026-09-09.md": "## Events\n\n## Journal\n\n",
-            "journal/2026-9-10.md": "## Events\n- 08:00 Tarih değil\n",
-            "journal/arsiv/2026-09-11.md": "## Events\n- 08:00 Arşiv\n",
-            "notes/Plan.md": "## Events\n- 09:00 [[2026-09-12]] planı\n\n## Journal\n[[2026-09-13]] notu.\n",
-        ]
-        for (path, text) in files { try IncrementalReadModelVault.write(edge, path, text) }
-        try Data([0x23, 0x23, 0x20, 0xFF, 0x0A]).write(to: edge.appendingPathComponent("journal/2026-09-14.md"))
-
-        for (root, first) in [(sample, "2026-09-08"), (edge, "2026-08-28")] {
-            let index = try VaultIndex()
-            try index.rebuild(vaultRoot: root)
-            let snapshot = try index.snapshot()
-            let model = VaultReadModel(snapshot: snapshot, today: today)
-            let old = DaySummary.build(snapshot: snapshot)
-            #expect(!old.isEmpty)
-            let start = try #require(CalendarDate(first))
-            for offset in 0..<30 {
-                let day = try #require(start.addingDays(offset))
-                let week = (0..<7).compactMap { day.addingDays($0) }
-                let journal = plan(model, now: notificationDate(day.description)).filter { $0.id.hasPrefix("journal-") }
-                let empty = week.filter {
-                    let summary = DaySummary.day(on: $0, in: old)
-                    return summary.events.isEmpty && summary.journal.isEmpty
-                }
-                #expect(journal.map(\.id) == empty.map { "journal-\($0)" }, "\(root.lastPathComponent) \(day)")
-                for date in week {
-                    #expect(model.day(on: date).key == DaySummary.day(on: date, in: old).key, "\(date)")
-                }
-            }
-        }
+    /// Without the week (the index could not be read) no task or journal reminder is planned;
+    /// goals still are.
+    @Test func anUnreadWeekPlansNoTaskOrJournalReminder() throws {
+        let sample = try notificationSample()
+        let requests = NotificationPlanner.requests(
+            snapshot: sample.model, days: nil, preferences: NotificationPreferences(), now: notificationDate(),
+            timeZone: notificationUTC)
+        #expect(!requests.isEmpty)
+        #expect(requests.allSatisfy { $0.destination == .goals })
     }
 
     @Test func categoriesDisableIndependentlyAndInvalidTimesDoNotSchedule() throws {
@@ -206,7 +141,8 @@ struct NotificationPlannerTests {
         settings.tasksEnabled = false
         settings.goalsEnabled = false
         settings.journalTime = NotificationTime(hour: 21, minute: 15)
-        let requests = NotificationPlanner.requests(snapshot: .empty, preferences: settings, now: now, timeZone: zone)
+        let requests = NotificationPlanner.requests(
+            snapshot: .empty, days: NotificationVaultDays(), preferences: settings, now: now, timeZone: zone)
         #expect(requests.count == 7)
         #expect(requests[1].date.timeIntervalSince(requests[0].date) == Double(23 * 3600))
         var calendar = Calendar(identifier: .gregorian)
@@ -228,8 +164,8 @@ struct NotificationPlannerTests {
             cadencePerson("people/Lale Mor.md", name: "Lale", last: "2026-08-01", days: 7),
             cadencePerson("people/Ada Kaya.md", name: "Ada", last: "2026-08-01", days: 14),
         ]
-        let withPeople = NotificationPlanner.requests(
-            snapshot: snapshot, preferences: settings, now: now, timeZone: notificationUTC, people: people,
+        let withPeople = plan(
+            snapshot, preferences: settings, now: now, people: people,
             lastNotified: ["people/Lale Mor.md": CalendarDate("2026-09-01")!])
         #expect(withPeople == baseline)
         #expect(withPeople.allSatisfy { !$0.id.hasPrefix("people-") })
@@ -248,8 +184,7 @@ struct NotificationPlannerTests {
             cadencePerson("people/b.md", name: "Ada", last: "2026-09-01", days: 7),
             cadencePerson("people/c.md", name: "Bora", last: "2026-09-10", days: 7),
         ]
-        let requests = NotificationPlanner.requests(
-            snapshot: snapshot, preferences: settings, now: now, timeZone: notificationUTC, people: people)
+        let requests = plan(snapshot, preferences: settings, now: now, people: people)
         #expect(requests.filter { $0.destination != .people } == baseline)
         let todayPeople = requests.filter { $0.id == "people-2026-09-27" }
         #expect(todayPeople.count == 1)
@@ -282,7 +217,8 @@ struct NotificationPlannerTests {
         ]
         let notice = try #require(
             NotificationPlanner.requests(
-                snapshot: .empty, preferences: settings, now: notificationDate(), timeZone: notificationUTC,
+                snapshot: .empty, days: NotificationVaultDays(), preferences: settings, now: notificationDate(),
+                timeZone: notificationUTC,
                 people: people
             ).first { $0.id == "people-2026-09-27" })
         #expect(notice.body == String(localized: "Görüşme zamanı gelen \(3) kişi var"))
@@ -303,14 +239,17 @@ struct NotificationPlannerTests {
         let now = notificationDate("2026-10-10", hour: 22)
         let ahead = try #require(TimeZone(identifier: "Pacific/Kiritimati"))
         let inKiritimati = NotificationPlanner.requests(
-            snapshot: .empty, preferences: settings, now: now, timeZone: ahead, people: [person])
+            snapshot: .empty, days: NotificationVaultDays(), preferences: settings, now: now, timeZone: ahead,
+            people: [person])
         let inUTC = NotificationPlanner.requests(
-            snapshot: .empty, preferences: settings, now: now, timeZone: notificationUTC, people: [person])
+            snapshot: .empty, days: NotificationVaultDays(), preferences: settings, now: now, timeZone: notificationUTC,
+            people: [person])
         #expect(inKiritimati.first { $0.id.hasPrefix("people-") }?.id == "people-2026-10-12")
         #expect(inUTC.first { $0.id.hasPrefix("people-") }?.id == "people-2026-10-11")
         let onTheHour = notificationDate("2026-10-11", hour: 10)
         let skipped = NotificationPlanner.requests(
-            snapshot: .empty, preferences: settings, now: onTheHour, timeZone: notificationUTC, people: [person])
+            snapshot: .empty, days: NotificationVaultDays(), preferences: settings, now: onTheHour,
+            timeZone: notificationUTC, people: [person])
         #expect(!skipped.contains { $0.id == "people-2026-10-11" })
         #expect(skipped.contains { $0.id == "people-2026-10-12" })
     }
@@ -320,9 +259,7 @@ struct NotificationPlannerTests {
         settings.peopleEnabled = true
         settings.peopleTime.hour = 24
         let person = cadencePerson("people/Lale Mor.md", name: "Lale", last: "2026-08-01", days: 7)
-        let requests = NotificationPlanner.requests(
-            snapshot: try notificationSample(), preferences: settings, now: notificationDate(),
-            timeZone: notificationUTC, people: [person])
+        let requests = plan(try notificationSample(), preferences: settings, people: [person])
         #expect(requests.allSatisfy { $0.destination != .people })
         #expect(!requests.isEmpty)
     }

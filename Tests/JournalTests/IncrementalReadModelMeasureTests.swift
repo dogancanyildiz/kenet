@@ -40,28 +40,15 @@ struct IncrementalReadModelMeasureTests {
         let peakMB = Int(residentMemoryBytes() / 1_024 / 1_024)
 
         // Where the incremental apply spends its time, step by step as `VaultReadModel.apply` takes
-        // them: the changed fragment, the files linking to it, then for each identifier of the old
-        // and new fragment its owner and a scan of every fragment's blocks, and the patch.
+        // them: the changed fragment, the files linking to it, and the patch. Fragments keep no
+        // blocks, so block identifiers (their owners, every fragment holding one) are no longer
+        // looked up; that scan was about 31 ms here.
         let loadStart = DispatchTime.now()
         let fragment = try #require(try index.loadFragment(path: day))
         let loadMs = milliseconds(since: loadStart)
         let linksStart = DispatchTime.now()
         let linking = try index.links(to: day).map(\.file)
         let linksMs = milliseconds(since: linksStart)
-        let identifiers = Set(
-            (baseline.fragments[day]?.blocks.compactMap(\.identifier) ?? []) + fragment.blocks.compactMap(\.identifier))
-        let ownerStart = DispatchTime.now()
-        for identifier in identifiers { _ = try index.owner(of: identifier) }
-        let ownerMs = milliseconds(since: ownerStart)
-        let scanStart = DispatchTime.now()
-        var holders = Set<String>()
-        for identifier in identifiers {
-            for (file, fragment) in baseline.fragments
-            where fragment.blocks.contains(where: { $0.identifier == identifier }) {
-                holders.insert(file)
-            }
-        }
-        let scanMs = milliseconds(since: scanStart)
         var patched = baseline
         let patchStart = DispatchTime.now()
         patched.patchDerived(
@@ -86,14 +73,13 @@ struct IncrementalReadModelMeasureTests {
               incremental apply: \(String(format: "%.1f", incMs)) ms
                 load fragment: \(String(format: "%.1f", loadMs)) ms
                 links to the file (\(linking.count)): \(String(format: "%.1f", linksMs)) ms
-                owners of \(identifiers.count) identifiers: \(String(format: "%.1f", ownerMs)) ms
-                scan of \(baseline.fragments.count) fragments per identifier (\(holders.count) holders): \(String(format: "%.1f", scanMs)) ms
                 patch (\(fragment.goalLogs.count) goal values in the day): \(String(format: "%.1f", patchMs)) ms
                 patch of \(plain) (no goal values): \(String(format: "%.1f", plainMs)) ms
               resident memory: \(peakMB) MB
-              equal: \(incremental.matchesScreenFields(full))
+              equal: \(incremental.matchesFullBuild(full))
             """)
-        #expect(incremental.matchesScreenFields(full))
+        #expect(incremental.matchesFullBuild(full))
+        #expect(fragment.eventCount > 0)
         // The incremental path must stay cheaper than rebuilding the model and within a frame budget
         // a publish can afford. It once had to be five times cheaper; since the days left the read
         // model (Aşama 11) the full build fell from about 1200 ms to about 390 ms while the
@@ -248,19 +234,29 @@ struct IncrementalReadModelMeasureTests {
             "  goal status query (\(goalRows.count) goals, \(snapshot.goalLogs.count) logs) median: \(String(format: "%.1f", median(goalQueryMs))) ms"
         )
         #expect(TodayPresentation.goalStatuses(goalRows) == oldGoals)
-        // The task screens query on demand too (the `tasks` field stays for the notification
-        // planner and the intents): its share of the rederive, and each screen's query.
-        let links = Dictionary(grouping: snapshot.links, by: \.file)
+        // The tasks left the read model too: their old construction (what the rederive spent on
+        // them), and each screen's query.
         var taskBuildMs: [Double] = []
+        var tasks: [TaskRow] = []
         for _ in 0..<5 {
             let start = DispatchTime.now()
-            _ = snapshot.blocks.filter { $0.kind == "task" }.map { TaskRow(row: $0, links: links[$0.file] ?? []) }
+            tasks = TaskRow.legacy(snapshot: snapshot)
             taskBuildMs.append(milliseconds(since: start))
         }
-        lines.append("  tasks build in rederive median: \(String(format: "%.1f", median(taskBuildMs))) ms")
+        let oldTasks = PayloadSize(of: tasks)
+        lines.append("  old tasks field | \(oldTasks.rows) | \(oldTasks.nestedRows) | \(oldTasks.bytes)")
+        lines.append("  old tasks build median: \(String(format: "%.1f", median(taskBuildMs))) ms")
+        // What the fragments hold now against the snapshot rows they were cut from.
+        for (name, value) in [
+            ("snapshot blocks", PayloadSize(of: snapshot.blocks)), ("snapshot links", PayloadSize(of: snapshot.links)),
+            ("snapshot goal values", PayloadSize(of: snapshot.goalLogs)),
+            ("fragment links", PayloadSize(of: model.fragments.values.map(\.links))),
+        ] as [(String, PayloadSize)] {
+            lines.append("  \(name) | \(value.rows) | \(value.nestedRows) | \(value.bytes)")
+        }
         let project = try #require(
-            Dictionary(grouping: model.tasks.compactMap(\.project), by: { $0 }).max { $0.value.count < $1.value.count })
-        let selected = try #require(model.tasks.last)
+            Dictionary(grouping: tasks.compactMap(\.project), by: { $0 }).max { $0.value.count < $1.value.count })
+        let selected = try #require(tasks.last)
         let taskQueries: [(String, () throws -> Int)] = [
             (
                 "list (groups + 50 completed + counts)",
@@ -291,6 +287,17 @@ struct IncrementalReadModelMeasureTests {
                 { try index.openTasks(dueBy: today, orWrittenFrom: today.addingDays(-13)!).count }
             ),
             ("task by id", { try index.task(id: selected.id) == nil ? 0 : 1 }),
+            ("project names", { try index.taskProjects().count }),
+            (
+                "notification week (groups + 7 days)",
+                {
+                    let groups = try index.taskGroups(today: today)
+                    let week = today.addingDays(6)!
+                    let due = (groups.today + groups.upcoming).filter { ($0.block.dueDate ?? "") <= week.description }
+                    return groups.overdue.count + due.map(TaskRow.init(entry:)).count
+                        + (try index.daySummaries(from: today, to: week).count)
+                }
+            ),
         ]
         for (name, query) in taskQueries {
             var ms: [Double] = []

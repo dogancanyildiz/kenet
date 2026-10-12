@@ -1211,3 +1211,35 @@ struct PlaceDocumentCache {
         entries[path] = (signature, document)
     }
 }
+
+// MARK: - Project names and notification days
+
+extension IndexStore {
+    /// One name per project across every task (`VaultIndex.taskProjects()`): the Mac sidebar, the
+    /// board and timeline project columns, the filter menu and the quick entry's suggestions.
+    /// A task query: generation, cancellation and its test seam as above.
+    func computeProjects() async throws -> [String] {
+        try await taskQuery([]) { try $0.taskProjects() }
+    }
+
+    /// What the notification planner reads for the days `first` through `last`: open tasks per
+    /// due day through `last`, the rows of those due within the days, and the days whose file has
+    /// events or Journal paragraphs and headings. A task query, as above.
+    func computeNotificationDays(from first: CalendarDate, through last: CalendarDate) async throws
+        -> NotificationVaultDays
+    {
+        try await taskQuery(NotificationVaultDays()) { index in
+            var days = NotificationVaultDays()
+            let groups = try index.taskGroups(today: first)
+            for entry in groups.overdue + groups.today + groups.upcoming {
+                guard let due = entry.block.dueDate.flatMap(CalendarDate.init), due <= last else { continue }
+                days.openTaskCounts[due, default: 0] += 1
+                if due >= first { days.dueTasks.append(TaskRow(entry: entry)) }
+            }
+            days.writtenDays = Set(
+                try index.daySummaries(from: first, to: last).filter { $0.eventCount > 0 || $0.journalCount > 0 }
+                    .map(\.date))
+            return days
+        }
+    }
+}

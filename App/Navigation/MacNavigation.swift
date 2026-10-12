@@ -23,6 +23,8 @@
         @State private var unseenReveal: UUID?
         @State private var sidebarRestoresFocus = false
         @State private var taskSelection = TaskSelectionAnswer()
+        /// The sidebar's project rows (`IndexStore.computeProjects()`); a reload keeps them until it answers.
+        @State private var sidebarProjects: [String] = []
 
         init(store: IndexStore) {
             self.store = store
@@ -111,7 +113,10 @@
                 if value == .people || value == .places { selectedEntityKind = value == .places ? "place" : "person" }
                 if value != .tasks { tasksEvent(.sectionLeft) }
             }
-            .onChange(of: store.content.projects) { _, projects in
+            .task(id: store.lastUpdated) {
+                if let projects = try? await store.computeProjects() { sidebarProjects = projects }
+            }
+            .onChange(of: sidebarProjects) { _, projects in
                 var selection = shellSelection
                 selection.projectsChanged(projects)
                 apply(selection)
@@ -133,7 +138,7 @@
 
         private var sidebar: some View {
             MacSidebarList(
-                entries: MacSidebar.entries(projects: store.content.projects),
+                entries: MacSidebar.entries(projects: sidebarProjects),
                 selection: Binding(
                     get: { shellSelection.sidebarEntry },
                     set: { entry in if let entry { selectSidebarEntry(entry) } }),

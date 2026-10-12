@@ -43,7 +43,7 @@ struct QuickEntryTaskTests {
                         .utf8))
         #expect(document.bodyLines.events.isEmpty)
         #expect(model.text.isEmpty && model.mode == .task && model.dueDate == nil)
-        #expect(try context.row("Deniz'i ara").due == CalendarDate("2026-10-05"))
+        #expect(try await context.row("Deniz'i ara").due == CalendarDate("2026-10-05"))
     }
 
     @Test func pinnedAmbiguousMentionSurvivesDateExtraction() async throws {
@@ -59,7 +59,8 @@ struct QuickEntryTaskTests {
         let task = try #require(context.document().bodyLines.tasks.first)
         #expect(task.text == "[[Mert Aksu (iş)|Mert Aksu]]")
         #expect(task.dueDate == CalendarDate("2026-10-05"))
-        #expect(try context.row("[[Mert Aksu (iş)|Mert Aksu]]").text.spans.contains { $0.destination == entity.file })
+        let linked = try await context.row("[[Mert Aksu (iş)|Mert Aksu]]")
+        #expect(linked.text.spans.contains { $0.destination == entity.file })
     }
 
     @Test func unresolvedTaskMentionKeepsDateAcrossResolution() async throws {

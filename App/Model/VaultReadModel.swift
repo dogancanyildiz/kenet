@@ -5,11 +5,13 @@ import VaultIndex
 
 /// Immutable screen data published together with the index counts.
 ///
-/// Source of truth is `fragments` keyed by vault-relative path. Public lists (tasks, entities,
-/// goals) are derived so a later screen can query Core directly without changing the fragment
-/// map. The graph, the entity timelines, the days and the goal statuses already do
-/// (`IndexStore.computeGraphInput`, `computeEntityTimeline(for:)`, `computeLastEncounters(asOf:)`,
-/// `computeDaySummaries(from:to:)`, `computeDay(on:)`, `computeGoalStatuses(today:)`).
+/// Source of truth is `fragments` keyed by vault-relative path. Public lists (entities, goals)
+/// are derived so a later screen can query Core directly without changing the fragment map. The
+/// graph, the entity timelines, the days, the goal statuses, the tasks and the project names
+/// already do (`IndexStore.computeGraphInput`, `computeEntityTimeline(for:)`,
+/// `computeLastEncounters(asOf:)`, `computeDaySummaries(from:to:)`, `computeDay(on:)`,
+/// `computeGoalStatuses(today:)`, the task queries, `computeProjects()`); the notification
+/// planner reads its tasks and written days through `computeNotificationDays(from:through:)`.
 struct VaultReadModel: Sendable {
     /// Per-file index slices. An empty map after a successful build is a valid empty vault.
     private(set) var fragments: [String: VaultFileFragment] = [:]
@@ -26,8 +28,6 @@ struct VaultReadModel: Sendable {
     var goalLogs: [String: [GoalLog]] = [:]
     var reservedGoalKeys: Set<String> = []
     var goalLogStart = LocalDay.today().addingDays(-399)!
-    var tasks: [TaskRow] = []
-    var projects: [String] { VaultIndex.projectNames(tasks.compactMap(\.project)) }
     var entities: [EntitySummary] = []
     /// Kept in sync with fragments so publishes need not recount the whole vault.
     var counts = IndexCounts()
@@ -60,10 +60,6 @@ struct VaultReadModel: Sendable {
         var reload = changedPaths
         reload.subtract(deletedPaths)
 
-        var identifiers = Set(
-            deletedPaths.flatMap { fragments[$0]?.blocks.compactMap(\.identifier) ?? [] })
-        identifiers.formUnion(reload.flatMap { fragments[$0]?.blocks.compactMap(\.identifier) ?? [] })
-
         // Sources that previously resolved to a deleted file must pick up NULL resolvedFile.
         for path in deletedPaths {
             for (source, fragment) in fragments where fragment.links.contains(where: { $0.resolvedFile == path }) {
@@ -81,7 +77,7 @@ struct VaultReadModel: Sendable {
         }
         isBuilt = true
 
-        if try reloadFragments(reload, index: index, identifiers: &identifiers) {
+        if try reloadFragments(reload, index: index) {
             needsFullReconcile = true
         }
         // Estimated paths that never appear in the index under that spelling need a full rebuild.
@@ -90,17 +86,11 @@ struct VaultReadModel: Sendable {
         }
         if needsFullReconcile { return }
 
-        // Newly resolvable incoming links and ownership flips on other files.
+        // Newly resolvable incoming links on other files. Block identifier ownership no longer
+        // reaches a fragment: it named task rows, which the task queries read from the index.
         var collateral = Set<String>()
         for path in reload {
             collateral.formUnion(try index.links(to: path).map(\.file))
-        }
-        for identifier in identifiers {
-            if let owner = try index.owner(of: identifier) { collateral.insert(owner.file) }
-            for (file, fragment) in fragments
-            where fragment.blocks.contains(where: { $0.identifier == identifier }) {
-                collateral.insert(file)
-            }
         }
         collateral.subtract(deletedPaths)
         collateral.subtract(reload)
@@ -108,7 +98,7 @@ struct VaultReadModel: Sendable {
             if let fragment = fragments[path] { before[path] = fragment }
         }
         if !collateral.isEmpty {
-            if try reloadFragments(collateral, index: index, identifiers: &identifiers) {
+            if try reloadFragments(collateral, index: index) {
                 needsFullReconcile = true
                 return
             }
@@ -124,14 +114,11 @@ struct VaultReadModel: Sendable {
         }
     }
 
-    private mutating func reloadFragments(
-        _ paths: Set<String>, index: VaultIndex, identifiers: inout Set<String>
-    ) throws -> Bool {
+    private mutating func reloadFragments(_ paths: Set<String>, index: VaultIndex) throws -> Bool {
         var missed = false
         for path in paths {
             if let fragment = try index.loadFragment(path: path) {
                 fragments[path] = fragment
-                identifiers.formUnion(fragment.blocks.compactMap(\.identifier))
             } else {
                 fragments.removeValue(forKey: path)
                 // Reported as changed but absent from the index under that path — guessed/wrong path.
@@ -145,38 +132,54 @@ struct VaultReadModel: Sendable {
         derivedForDay = today
         needsFullReconcile = false
         goalLogStart = today.addingDays(-399) ?? today
-        let snapshot = asSnapshot()
-        let goalPlaces = Dictionary(grouping: snapshot.links.filter { $0.key == "place" }, by: \.file)
-        goalPlaceFiles = goalPlaces.compactMapValues { $0.first?.resolvedFile }
-        goals = snapshot.entities.compactMap { GoalDefinition(entity: $0, place: goalPlaces[$0.file]?.first?.target) }
+        // Path order, as a snapshot of the fragments lists its rows.
+        let ordered = fragments.keys.sorted().map { fragments[$0]! }
+        let entityRows = ordered.compactMap(\.entity)
+        var places: [String: IndexedLink] = [:]
+        for fragment in ordered {
+            if let place = fragment.links.first(where: { $0.key == "place" }) { places[fragment.file.path] = place }
+        }
+        goalPlaceFiles = places.compactMapValues(\.resolvedFile)
+        goals = entityRows.compactMap { GoalDefinition(entity: $0, place: places[$0.file]?.target) }
             .sorted {
                 $0.name.localizedStandardCompare($1.name) == .orderedAscending
             }
-        reservedGoalKeys = Set(snapshot.entities.compactMap(\.goalKey) + snapshot.goalLogs.map(\.key))
-        let allLogs = Dictionary(grouping: snapshot.goalLogs, by: \.key).mapValues {
+        let indexedLogs = ordered.flatMap(\.goalLogs)
+        reservedGoalKeys = Set(entityRows.compactMap(\.goalKey) + indexedLogs.map(\.key))
+        let allLogs = Dictionary(grouping: indexedLogs, by: \.key).mapValues {
             $0.compactMap(GoalLog.init(indexed:))
         }
         // Near-future corrections must also suppress the upcoming notification window.
         let goalLogEnd = today.addingDays(6) ?? today
         goalLogs = allLogs.mapValues { $0.filter { $0.day >= goalLogStart && $0.day <= goalLogEnd } }
-        let links = Dictionary(grouping: snapshot.links, by: \.file)
-        tasks = snapshot.blocks.filter { $0.kind == "task" }.map {
-            TaskRow(row: $0, links: links[$0.file] ?? [])
+        var incoming: [String: Int] = [:]
+        counts = IndexCounts()
+        for fragment in ordered {
+            counts.filesByKind[fragment.file.kind, default: 0] += 1
+            counts.events += fragment.eventCount
+            counts.tasks += fragment.taskCount
+            counts.links += fragment.links.count
+            for link in fragment.links {
+                if let target = link.resolvedFile {
+                    incoming[target, default: 0] += 1
+                } else {
+                    counts.unresolvedLinks += 1
+                }
+            }
         }
-        let aliases = Dictionary(grouping: snapshot.aliases, by: \.file)
-        let incoming = Dictionary(grouping: snapshot.links.compactMap(\.resolvedFile), by: { $0 })
-        entities = snapshot.entities.filter { $0.kind != "goal" }.map { entity in
-            EntitySummary(
+        counts.entities = entityRows.count
+        entities = ordered.compactMap { fragment -> EntitySummary? in
+            guard let entity = fragment.entity, entity.kind != "goal" else { return nil }
+            return EntitySummary(
                 id: entity.file, kind: entity.kind, name: entity.name, qualifier: entity.qualifier,
-                aliases: (aliases[entity.file] ?? []).sorted { $0.ordinal < $1.ordinal }.map(\.name),
-                incomingLinks: incoming[entity.file]?.count ?? 0)
+                aliases: fragment.aliases.sorted { $0.ordinal < $1.ordinal }.map(\.name),
+                incomingLinks: incoming[entity.file] ?? 0)
         }.sorted {
             let order = $0.name.localizedStandardCompare($1.name)
             if order != .orderedSame { return order == .orderedAscending }
             let qualifier = ($0.qualifier ?? "").localizedStandardCompare($1.qualifier ?? "")
             return qualifier == .orderedSame ? $0.id < $1.id : qualifier == .orderedAscending
         }
-        counts = IndexCounts(snapshot: snapshot)
     }
 
     /// Screen-visible equality used by incremental vs full-build tests.
@@ -186,7 +189,6 @@ struct VaultReadModel: Sendable {
             && goalLogs == other.goalLogs
             && reservedGoalKeys == other.reservedGoalKeys
             && goalLogStart == other.goalLogStart
-            && tasks.map(\.equalityKey) == other.tasks.map(\.equalityKey)
             && entities == other.entities
     }
 
@@ -197,22 +199,8 @@ struct VaultReadModel: Sendable {
         if left.goalLogs != right.goalLogs { lines.append("goalLogs") }
         if left.reservedGoalKeys != right.reservedGoalKeys { lines.append("reservedGoalKeys") }
         if left.goalLogStart != right.goalLogStart { lines.append("goalLogStart") }
-        if left.tasks.map(\.equalityKey) != right.tasks.map(\.equalityKey) {
-            lines.append("tasks \(left.tasks.count)/\(right.tasks.count)")
-        }
         if left.entities != right.entities { lines.append("entities") }
         return "diff: " + (lines.isEmpty ? "none" : lines.joined(separator: ", "))
-    }
-
-    func asSnapshot() -> IndexSnapshot {
-        let paths = fragments.keys.sorted()
-        return IndexSnapshot(
-            files: paths.map { fragments[$0]!.file },
-            entities: paths.compactMap { fragments[$0]!.entity },
-            aliases: paths.flatMap { fragments[$0]!.aliases },
-            blocks: paths.flatMap { fragments[$0]!.blocks },
-            links: paths.flatMap { fragments[$0]!.links },
-            goalLogs: paths.flatMap { fragments[$0]!.goalLogs })
     }
 
     private static func fragments(from snapshot: IndexSnapshot) -> [String: VaultFileFragment] {
@@ -270,16 +258,4 @@ struct EntitySummary: Identifiable, Hashable, Sendable {
     let qualifier: String?
     let aliases: [String]
     let incomingLinks: Int
-}
-
-extension LinkedText {
-    fileprivate var spanKey: String {
-        spans.map { "\($0.text):\($0.destination ?? "")" }.joined(separator: ",")
-    }
-}
-
-extension TaskRow {
-    fileprivate var equalityKey: String {
-        "\(id)|\(file)|\(text.plainText)|\(sourceLine)|\(sourceEnd)|\(sourceText)|\(sourceIdentifier ?? "")|\(rawStatus)|\(due?.description ?? "")|\(start?.description ?? "")|\(done?.description ?? "")|\(priority?.token ?? "")|\(project ?? "")|\(recurrenceSource ?? "")|\(linkedFiles.sorted().joined(separator: ","))|\(text.spanKey)"
-    }
 }

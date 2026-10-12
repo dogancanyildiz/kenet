@@ -7,8 +7,9 @@ import VaultStore
 @testable import Journal
 
 /// The task screens' queries through `IndexStore` and the screen models, held to the construction
-/// they replaced (``LegacyTaskViews`` over the published `tasks`) and to a fresh rebuild of the
-/// vault, on the sample vault, a hand-written edge-case vault and after edits.
+/// they replaced (``LegacyTaskViews`` over the old `tasks` rows of a fresh rebuild) and to a
+/// fresh rebuild of the vault, on the sample vault, a hand-written edge-case vault and after edits.
+/// The project names and an entity page's open tasks are held to their old constructions too.
 @MainActor struct TasksStoreQueryTests {
     @Test func sampleVaultScreensMatchTheReadModelConstruction() async throws {
         let context = try TaskTestContext(sample: true)
@@ -62,7 +63,7 @@ import VaultStore
         try await expectScreens(context, days: days, projects: projects)
         try await expectRebuild(context, days: days)
         // Move to tomorrow.
-        let moving = try #require(context.store.content.tasks.first { $0.sourceIdentifier == "today" })
+        let moving = try #require(try await context.store.allTasks().first { $0.sourceIdentifier == "today" })
         let move = await TaskMove.apply([moving], to: CalendarDate("2026-10-04")!, in: context.store)
         #expect(move.moved == 1)
         try await expectScreens(context, days: days, projects: projects)
@@ -105,7 +106,7 @@ import VaultStore
         gate.release()
         await #expect(throws: CancellationError.self) { try await groups.value }
         await #expect(throws: CancellationError.self) { try await rows.value }
-        #expect(try await newer.value.open.count == store.content.tasks.filter { !$0.isClosed }.count)
+        #expect(try await newer.value.open.count == Self.legacyTasks(context).filter { !$0.isClosed }.count)
     }
 
     @Test func aQueryThatOutlivesItsVaultIsNotAppliedToTheNext() async throws {
@@ -151,7 +152,7 @@ import VaultStore
         try Self.writeEdgeCases(context)
         await context.store.refresh()
         let store = context.store
-        let tapped = try #require(store.content.tasks.first { $0.sourceIdentifier == "note" })
+        let tapped = try #require(try await store.allTasks().first { $0.sourceIdentifier == "note" })
         var answer = TaskSelectionAnswer()
         #expect(answer.row(for: tapped.id, listed: tapped)?.queryKey == tapped.queryKey)
         #expect(answer.row(for: tapped.id, listed: nil) == nil)
@@ -180,10 +181,23 @@ import VaultStore
     /// published rows; every task is found by its id.
     private func expectScreens(_ context: TaskTestContext, days: [String], projects: [String]) async throws {
         let store = context.store
-        let all = store.content.tasks
+        let all = try Self.legacyTasks(context)
         #expect(!all.isEmpty)
+        #expect(try await store.allTasks().queryKeys == all.queryKeys)
         let entities = Set(all.flatMap(\.linkedFiles)).sorted()
-        let names = store.content.projects + projects
+        // The project names: the old field over the rows, scalar for scalar.
+        let legacyProjects = TaskRow.legacyProjects(all)
+        #expect(!legacyProjects.isEmpty)
+        #expect(
+            try await store.computeProjects().map { Array($0.unicodeScalars) }
+                == legacyProjects.map { Array($0.unicodeScalars) })
+        // An entity page's open tasks: the old filter of the rows, in the list's order.
+        for entity in entities + ["people/Yok.md"] {
+            let open = try await store.computeTaskGroups(today: context.today, scope: TaskScope(linkedTo: entity)).open
+            let legacy = all.filter { !$0.isClosed && $0.linkedFiles.contains(entity) }.sorted(by: TasksModel.order)
+            #expect(open.queryKeys == legacy.queryKeys, "\(entity)")
+        }
+        let names = legacyProjects + projects
         var filters: [(String?, String?)] = [(nil, nil)]
         filters += entities.map { ($0, nil) } + names.map { (nil, $0) }
         filters += entities.prefix(3).flatMap { entity in names.prefix(3).map { (entity, $0) } }
@@ -271,8 +285,8 @@ import VaultStore
     private func expectRebuild(_ context: TaskTestContext, days: [String]) async throws {
         let index = try VaultIndex()
         try index.rebuild(vaultRoot: context.root)
-        let rebuilt = VaultReadModel(snapshot: try index.snapshot()).tasks
-        #expect(rebuilt.queryKeys == context.store.content.tasks.queryKeys)
+        let rebuilt = TaskRow.legacy(snapshot: try index.snapshot())
+        #expect(rebuilt.queryKeys == (try await context.store.allTasks()).queryKeys)
         for value in days {
             let day = try #require(CalendarDate(value))
             let model = TasksModel(store: context.store, today: { day })
@@ -298,6 +312,13 @@ import VaultStore
     /// Fictional tasks around the sample's last day (`TaskTestContext.today`, 2026-10-03): every
     /// status, past, today and future days, start and due, priorities, recurrence, several people,
     /// project spellings and a CRLF file.
+    /// The old `tasks` rows: every task of a fresh rebuild of the vault, by file and line.
+    static func legacyTasks(_ context: TaskTestContext) throws -> [TaskRow] {
+        let index = try VaultIndex()
+        try index.rebuild(vaultRoot: context.root)
+        return TaskRow.legacy(snapshot: try index.snapshot())
+    }
+
     static func writeEdgeCases(_ context: TaskTestContext) throws {
         let files = [
             "journal/2026-10-03.md": """

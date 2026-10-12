@@ -8,33 +8,47 @@ struct NotificationSchedule: Equatable, Sendable {
     var assignments: [CadenceReminderAssignment]
 }
 
+/// What the planner reads from the index for the days it plans
+/// (`IndexStore.computeNotificationDays(from:through:)`): the open tasks a morning counts and
+/// names, and the days already written.
+struct NotificationVaultDays: Sendable {
+    /// Open tasks per due day, every due day through the last planned one.
+    var openTaskCounts: [CalendarDate: Int] = [:]
+    /// Open tasks due on a planned day: the ones a morning names.
+    var dueTasks: [TaskRow] = []
+    /// Planned days whose day file has events or Journal paragraphs and headings.
+    var writtenDays: Set<CalendarDate> = []
+}
+
 /// One local calendar week of one-shot requests, derived solely from immutable inputs.
 enum NotificationPlanner {
     static func requests(
-        snapshot: VaultReadModel, preferences: NotificationPreferences, now: Date,
-        timeZone: TimeZone = .current, people: [CadenceReminderPerson] = [],
-        lastNotified: [String: CalendarDate] = [:]
+        snapshot: VaultReadModel, days: NotificationVaultDays?,
+        preferences: NotificationPreferences, now: Date, timeZone: TimeZone = .current,
+        people: [CadenceReminderPerson] = [], lastNotified: [String: CalendarDate] = [:]
     ) -> [NotificationRequest] {
         schedule(
-            snapshot: snapshot, preferences: preferences, now: now, timeZone: timeZone, people: people,
+            snapshot: snapshot, days: days, preferences: preferences, now: now, timeZone: timeZone, people: people,
             lastNotified: lastNotified
         ).requests
     }
 
-    /// `lastNotified` holds only days whose reminder has already fired.
+    /// `lastNotified` holds only days whose reminder has already fired. `days` covers today and the
+    /// six days after it; nil (the index could not be read) plans no task or journal reminder.
     static func schedule(
-        snapshot: VaultReadModel, preferences: NotificationPreferences, now: Date,
-        timeZone: TimeZone = .current, people: [CadenceReminderPerson] = [],
-        lastNotified: [String: CalendarDate] = [:]
+        snapshot: VaultReadModel, days: NotificationVaultDays?,
+        preferences: NotificationPreferences, now: Date, timeZone: TimeZone = .current,
+        people: [CadenceReminderPerson] = [], lastNotified: [String: CalendarDate] = [:]
     ) -> NotificationSchedule {
         let today = LocalDay.today(at: now, timeZone: timeZone)
         var futureDays: [(day: CalendarDate, date: Date)] = []
         var result: [NotificationRequest] = []
         for offset in 0..<7 {
             guard let day = today.addingDays(offset) else { continue }
-            if preferences.tasksEnabled, let date = fireDate(day, time: preferences.taskTime, timeZone: timeZone),
+            if preferences.tasksEnabled, let days,
+                let date = fireDate(day, time: preferences.taskTime, timeZone: timeZone),
                 date > now,
-                let message = taskMessage(snapshot.tasks, on: day, hideContent: preferences.hideContent)
+                let message = taskMessage(days, on: day, hideContent: preferences.hideContent)
             {
                 result.append(
                     NotificationRequest(
@@ -59,11 +73,10 @@ enum NotificationPlanner {
                             body: body, destination: .goals))
                 }
             }
-            if preferences.journalEnabled, let date = fireDate(day, time: preferences.journalTime, timeZone: timeZone),
-                date > now
+            if preferences.journalEnabled, let days,
+                let date = fireDate(day, time: preferences.journalTime, timeZone: timeZone), date > now
             {
-                let summary = snapshot.day(on: day)
-                if summary.events.isEmpty && summary.journal.isEmpty {
+                if !days.writtenDays.contains(day) {
                     result.append(
                         NotificationRequest(
                             id: "journal-\(day)", date: date, title: String(localized: "Gününden bir an"),
@@ -121,11 +134,10 @@ enum NotificationPlanner {
     }
 
     private static func taskMessage(
-        _ tasks: [TaskRow], on day: CalendarDate, hideContent: Bool
+        _ days: NotificationVaultDays, on day: CalendarDate, hideContent: Bool
     ) -> (title: String, body: String)? {
-        let open = tasks.filter { !$0.isClosed }
-        let due = open.filter { $0.due == day }.sorted { $0.id < $1.id }
-        let overdue = open.filter { $0.due.map { $0 < day } ?? false }.count
+        let due = days.dueTasks.filter { $0.due == day }.sorted { $0.id < $1.id }
+        let overdue = days.openTaskCounts.reduce(0) { $1.key < day ? $0 + $1.value : $0 }
         guard !due.isEmpty || overdue > 0 else { return nil }
         let title: String
         if due.isEmpty {

@@ -105,7 +105,9 @@ final class TasksModel {
     }
 
     var day: CalendarDate { today() }
-    var projects: [String] { store.content.projects }
+    /// Project names (``IndexStore/computeProjects()``), set with each list, board or timeline
+    /// answer; a reload keeps the previous names until then.
+    var projects: [String] = []
     var hasFilters: Bool { entityFilter != nil || projectFilter != nil }
     func clearFilters() {
         entityFilter = nil
@@ -133,7 +135,9 @@ final class TasksModel {
             let groups = try await store.computeTaskGroups(today: request.day, scope: request.scope)
             let completed = try await store.computeCompletedTasks(limit: Self.completedLimit, scope: request.scope)
             let counts = try await store.computeOpenTaskCounts()
+            let names = try await store.computeProjects()
             list = TaskListContent(groups: groups, completed: completed, projectOpenCounts: counts)
+            projects = names
             loadedListRequest = request
         } catch {}
     }
@@ -152,10 +156,6 @@ final class TasksModel {
     }
 
     nonisolated static let completedLimit = 50
-
-    static func openTasks(in store: IndexStore, linkedTo path: String) -> [TaskRow] {
-        store.content.tasks.filter { !$0.isClosed && $0.linkedFiles.contains(path) }.sorted(by: order)
-    }
 
     nonisolated static func order(_ lhs: TaskRow, _ rhs: TaskRow) -> Bool {
         if lhs.due != rhs.due {

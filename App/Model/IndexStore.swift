@@ -892,4 +892,22 @@ final class IndexStore {
         guard generation == current else { throw VaultStoreError.staleTarget }
         return GraphInput(entities: content.entities, mentions: mentions)
     }
+
+    // MARK: - Goal status query
+
+    /// Test seam: runs after the goal-status query returns, before its generation is checked.
+    @ObservationIgnored var testingGoalStatusQueryDidFinish: (@MainActor () async -> Void)?
+
+    /// Goal status queried from the index on demand. Belongs to this vault generation; with no
+    /// index open, as with an empty read model, it is empty. Screens still read `content`.
+    func computeGoalStatuses(today: CalendarDate) async throws -> [GoalStatusRow] {
+        guard let index else { return [] }
+        let current = generation
+        let rows = try await Task.detached {
+            try index.goalStatuses(today: today)
+        }.value
+        await testingGoalStatusQueryDidFinish?()
+        guard generation == current else { throw VaultStoreError.staleTarget }
+        return rows
+    }
 }

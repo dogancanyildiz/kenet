@@ -125,7 +125,7 @@ enum InkPalette {
         static let accentOnPaper: [Double] = [8.20, 9.00, 10.97, 12.05]
         static let onAccentOnAccent: [Double] = [8.70, 9.18, 11.65, 12.54]
         static let warningOnPaper: [Double] = [6.78, 9.69, 9.51, 12.48]
-        /// Measured for `danger` (error / destructive); not listed in `docs/design.md` yet.
+        /// `danger`: error text and destructive actions only.
         static let dangerOnPaper: [Double] = [7.27, 6.31, 10.36, 11.07]
         static let controlOnPaper: [Double] = [3.48, 4.08, 6.03, 6.80]
         static let personOnPaper: [Double] = [6.26, 8.49, 8.64, 11.57]

@@ -68,7 +68,7 @@ func fixtureRoot() throws -> URL {
     "alias-name-collision", "protected-addresses", "protected-tokens", "markdown-links", "syntax-affixes",
     "case-suggestions", "frontmatter", "table-crlf", "unicode-line-separators", "overlap-tie-first",
     "overlap-name-priority", "alias-filename", "path-link-target", "root-path-link-target",
-    "unrepresentable-path-target", "digit-names", "task-fields", "mixed-digit-names-baseline",
+    "unrepresentable-path-target", "digit-names", "task-fields", "mixed-digit-names-baseline", "custom-book",
 ])
 func recognitionFixtures(_ name: String) throws {
     let root = try fixtureRoot().appendingPathComponent("recognition/" + name)

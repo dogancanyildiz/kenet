@@ -38,6 +38,10 @@ struct OnboardingView: View {
                     InkProgress(kind: .indeterminate(label: "Klasör inceleniyor…"))
                 }
                 if store.isProcessing { VaultIndexingProgress(store: store) }
+                // While the chosen vault opens; it stays in Settings → Kasa afterwards.
+                if let synced = store.syncedFolder {
+                    InfoBand(kind: .info, verbatim: synced.notice())
+                }
             }
             .padding(InkSpacing.margin)
             .inkPageColumn()

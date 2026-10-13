@@ -1243,3 +1243,21 @@ extension IndexStore {
         }
     }
 }
+
+// MARK: - Synced folder and copy files
+
+extension IndexStore {
+    /// The sync service that holds the open vault (`SyncedFolderKind`); `nil` for a local folder.
+    var syncedFolder: SyncedFolderKind? { vaultURL.flatMap(SyncedFolderKind.detect(url:)) }
+
+    /// Copies the vault keeps beside their originals, for Diagnostics: day copies under `journal/`,
+    /// read from disk because they are never indexed, then entity copies from the index. Nothing
+    /// is merged or moved. A task query, as above. An unreadable `journal/` (a symlink, no
+    /// permission) hides only the day copies, not the entity copies.
+    func computeCopyFiles() async throws -> [CopyFile] {
+        guard let root = vaultURL else { return [] }
+        return try await taskQuery([]) { index in
+            ((try? VaultIndex.dayCopies(vaultRoot: root)) ?? []) + index.entityCopies()
+        }
+    }
+}

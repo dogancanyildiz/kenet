@@ -2,7 +2,7 @@
 
 **Amaç:** Bu belge `Fixtures/` klasöründeki test verisinin düzenini, girdi ve beklenen çıktı sözleşmesini ve yeni örnek ekleme yolunu tarif eder.
 
-**Kapsam:** `Fixtures/` altındaki 15 küme ve 12 kasa; her kümenin davranış aileleri, test eşlemesi ve yeni fixture ekleme adımları.
+**Kapsam:** `Fixtures/` altındaki 15 küme ve 13 kasa; her kümenin davranış aileleri, test eşlemesi ve yeni fixture ekleme adımları.
 
 Bu belgede **küme**, `Fixtures/` altındaki birinci düzey klasördür. **Örnek**, kümedeki tek vaka klasörü ya da bir JSON dosyasındaki tek vaka kaydıdır. **İstemci**, fixture dosyalarını okuyup sınayan test kodudur. Bugün Swift testleri istemcidir; ileride başka platformlardaki istemciler aynı dosyaları kullanır. Kasa biçiminin kendisi [Kasa biçimi](vault-format.md) belgesindedir.
 
@@ -29,7 +29,7 @@ flowchart LR
   F --> DA["dates/ : 3 JSON, 2 girdi dosyası"]
   F --> GO["goals/ : cases.json, creation/, writes/"]
   F --> SU["summaries/ : 6 JSON"]
-  F --> VA["vaults/ : 12 kasa"]
+  F --> VA["vaults/ : 13 kasa"]
   VA --> V1["sample"]
   VA --> V2["entity-fields"]
   VA --> V3["unlinked-mentions"]
@@ -42,6 +42,7 @@ flowchart LR
   VA --> V10["placeholder"]
   VA --> V11["day-copies"]
   VA --> V12["rhythm"]
+  VA --> V13["copy-files"]
 ```
 
 Sayılar `find Fixtures -maxdepth 2` çıktısından gelir. Kasalar `vaults/` altında durur ve birden çok küme aynı kasayı kullanır. Örneğin `recognition/unlinked-mentions/` beklentisi `vaults/unlinked-mentions/` kasasını okur.
@@ -142,6 +143,7 @@ Swift testleri `Fixtures/` klasörünü test kaynak dosyasından yukarı doğru 
 | `vaults/backlinks/` | `VaultIndexTests/DayBacklinksTests.swift` | Ad kodda |
 | `vaults/placeholder/` | `VaultStoreTests/PlaceholderTests.swift` | Ad kodda |
 | `vaults/day-copies/` | `VaultStoreTests/DayCopyTests.swift` | Ad kodda |
+| `vaults/copy-files/` | `VaultIndexTests/CopyFileTests.swift`, `Tests/JournalTests/SyncedFolderNoticeTests.swift` | Ad kodda |
 
 Tablodaki göreli yollar `Packages/Core/Tests/` altındadır; `Tests/JournalTests/` ile başlayanlar uygulama testleridir. **Klasör tarama** yeni klasörü kendiliğinden bulur. **Ad listesi** yeni klasörü yalnız test dosyasındaki `@Test(arguments:)` listesine eklenince koşar. **JSON vaka** yeni vakayı JSON dizisine eklenince koşar.
 
@@ -1075,6 +1077,7 @@ Kasa 20 Eylül'ü 4 yılda taşır. 2023 bağlantısızdır: not bağlantısı, 
 | `placeholder` | 12 | İndirilmeyi bekleyen yer tutucular | `PlaceholderTests` |
 | `day-copies` | 33 | Gün kopyası birleştirme | `DayCopyTests` |
 | `rhythm` | 16 | Özetler'in yıl, süren dönem ve ritim hesabı | `summaries/period-rhythm.json` |
+| `copy-files` | 19 | Varlık kopyası ve gün kopyası listesi; birleştirme yok | `VaultIndexTests/CopyFileTests`, `Tests/JournalTests/SyncedFolderNoticeTests` |
 
 **Şema, `vaults/sample/` kasasının klasörlerini ve dosya sayılarını gösterir.**
 

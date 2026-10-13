@@ -2685,6 +2685,22 @@
         }
       }
     },
+    "bir eşitleme hizmeti" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "a sync service"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "bir eşitleme hizmeti"
+          }
+        }
+      }
+    },
     "Bir görev seç" : {
       "localizations" : {
         "en" : {
@@ -3241,6 +3257,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bu kasa uygulamanın daha yeni bir sürümüyle yazılmış. Yazmak için uygulamayı güncelle."
+          }
+        }
+      }
+    },
+    "Bu klasör %@ ile eşitleniyor. Kenet dosyaları koordineli yazar; iki cihaz aynı günü düzenlerse gün kopyası oluşabilir ve kopya Tanılama'da görünür." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This folder syncs with %@. Kenet coordinates its file writes; if two devices edit the same day, a day copy can appear, and the copy shows in Diagnostics."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bu klasör %@ ile eşitleniyor. Kenet dosyaları koordineli yazar; iki cihaz aynı günü düzenlerse gün kopyası oluşabilir ve kopya Tanılama'da görünür."
           }
         }
       }
@@ -8421,6 +8453,22 @@
         }
       }
     },
+    "Kopya dosyalar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "File copies"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kopya dosyalar"
+          }
+        }
+      }
+    },
     "Kutuda yazılmış bir taslak var. Önce onu gönder ya da sil." : {
       "localizations" : {
         "en" : {
@@ -9345,6 +9393,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Özgün dosya geri yazılamadı."
+          }
+        }
+      }
+    },
+    "Özgün dosya: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Original file: %@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Özgün dosya: %@"
           }
         }
       }

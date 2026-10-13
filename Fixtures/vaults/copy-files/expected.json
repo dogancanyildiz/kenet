@@ -1,0 +1,29 @@
+{
+  "names": [
+    { "path": "people/Elif 2.md", "original": "people/Elif.md" },
+    { "path": "people/Elif 10.md", "original": "people/Elif.md" },
+    { "path": "Ada 2.md", "original": "Ada.md" },
+    { "path": "places/Liman Kafe 3.md", "original": "places/Liman Kafe.md" },
+    { "path": "a/b/Not 25.md", "original": "a/b/Not.md" },
+    { "path": "people/Elif.md", "original": null },
+    { "path": "people/Elif 1.md", "original": null },
+    { "path": "people/Elif 0.md", "original": null },
+    { "path": "people/Elif 02.md", "original": null },
+    { "path": "people/Elif 2a.md", "original": null },
+    { "path": "people/Elif-2.md", "original": null },
+    { "path": "people/Elif 2.txt", "original": null },
+    { "path": "people/ 2.md", "original": null },
+    { "path": "people 2/Elif.md", "original": null },
+    { "path": "people/Elif ２.md", "original": null }
+  ],
+  "entityCopies": [
+    { "folder": "", "copy": "Ada 2.md", "original": "Ada.md" },
+    { "folder": "people", "copy": "people/Elif 2.md", "original": "people/Elif.md" },
+    { "folder": "people", "copy": "people/Elif 10.md", "original": "people/Elif.md" },
+    { "folder": "people", "copy": "people/selin 2.md", "original": "people/Selin.md" },
+    { "folder": "places", "copy": "places/Liman Kafe 3.md", "original": "places/Liman Kafe.md" }
+  ],
+  "dayCopies": [
+    { "folder": "journal", "copy": "journal/2026-10-02 2.md", "original": "journal/2026-10-02.md" }
+  ]
+}

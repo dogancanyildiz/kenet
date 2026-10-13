@@ -91,6 +91,17 @@ extension View {
         #endif
     }
 
+    /// The split iOS shell sizes its sheets like the Mac (480×360 minimum, 520×480 ideal): the
+    /// regular width's plain system sheet is narrower (414 pt), and a `List` body must get a
+    /// non-zero ideal height. Phone detents and Mac sizing stay with their existing presenters.
+    func inkAdaptiveSheetPresentation() -> some View {
+        modifier(InkAdaptiveSheetPresentation())
+    }
+
+    func inkAdaptiveFormPresentation() -> some View {
+        modifier(InkAdaptiveSheetPresentation(usesPhoneDetents: false))
+    }
+
     /// Pinned manşet strip above non-scrolling full-bleed content (e.g. Map).
     /// Prefer ``InkPageTitle`` inside a `ScrollView` / `List` whenever content scrolls.
     /// ``InkPageTitle`` adds its own horizontal page margin; nesting it inside another
@@ -302,6 +313,33 @@ private struct InkListRowModifier: ViewModifier {
                 Color.ink.accent.opacity(0.12)
             } else {
                 Color.ink.paper
+            }
+        #endif
+    }
+}
+
+private struct InkAdaptiveSheetPresentation: ViewModifier {
+    @Environment(\.shellKind) private var shellKind
+    var usesPhoneDetents = true
+
+    @ViewBuilder func body(content: Content) -> some View {
+        #if os(iOS)
+            if shellKind == .split {
+                content
+                    .frame(
+                        minWidth: InkSheetChrome.macMinWidth, idealWidth: InkSheetChrome.macIdealWidth,
+                        minHeight: InkSheetChrome.macMinHeight, idealHeight: InkSheetChrome.macIdealHeight
+                    )
+            } else if usesPhoneDetents {
+                content.presentationDetents([.medium, .large])
+            } else {
+                content
+            }
+        #else
+            if usesPhoneDetents {
+                content.presentationDetents([.medium, .large])
+            } else {
+                content
             }
         #endif
     }

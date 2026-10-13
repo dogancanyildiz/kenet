@@ -49,7 +49,7 @@ struct DayEventView: View {
         }
         .sheet(item: $editor) { model in
             NavigationStack { EventTextEditor(model: model) }
-                .presentationDetents([.medium, .large])
+                .inkAdaptiveSheetPresentation()
                 .frame(minWidth: 320, minHeight: 200)
         }
         .entityLinkSheet($linkDestination, store: store)

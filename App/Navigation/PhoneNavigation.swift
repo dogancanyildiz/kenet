@@ -68,17 +68,24 @@ struct PhoneNavigation: View {
                 selectedTab = .today
             }
         }
-        .sheet(isPresented: $showingSettings) {
+        .phoneSettingsSheet(store: store, isPresented: $showingSettings)
+        // After `.sheet` so the accent also reaches what the tab view presents.
+        .tint(Color.ink.accent)
+    }
+}
+
+extension View {
+    /// Both iOS shells present the same settings stack and close action.
+    func phoneSettingsSheet(store: IndexStore, isPresented: Binding<Bool>) -> some View {
+        sheet(isPresented: isPresented) {
             NavigationStack {
                 PhoneSettingsView(store: store)
                     .inkSheet(
                         "Ayarlar", closeIdentifier: "button.settings.close",
-                        onClose: { showingSettings = false })
+                        onClose: { isPresented.wrappedValue = false })
             }
-            // Pushed settings pages take the accent from the stack, not from the root page.
             .inkToggle()
+            .inkAdaptiveFormPresentation()
         }
-        // After `.sheet` so the accent also reaches what the tab view presents.
-        .tint(Color.ink.accent)
     }
 }

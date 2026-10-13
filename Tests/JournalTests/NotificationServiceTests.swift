@@ -129,6 +129,34 @@ struct NotificationServiceTests {
         #expect(service.pending.allSatisfy { $0.destination == .journal })
     }
 
+    @Test func vaultSwitchRemovesDeliveredNotificationsOnce() async throws {
+        let defaults = try TestDefaults()
+        defer { defaults.clean() }
+        let center = FakeNotificationCenter()
+        let service = service(center, defaults: defaults)
+        service.update(snapshot: nil, vaultID: "first")
+        await service.replanNow()
+        service.update(snapshot: try notificationSample().model, vaultID: "first")
+        await service.replanNow()
+        // An unreadable vault that reopens as itself is not a switch.
+        service.update(snapshot: nil, vaultID: nil)
+        await service.replanNow()
+        service.update(snapshot: .empty, vaultID: "first")
+        await service.replanNow()
+        #expect(center.deliveredRemovals == 0)
+        service.update(snapshot: nil, vaultID: "second")
+        await service.replanNow()
+        #expect(center.deliveredRemovals == 1)
+        service.update(snapshot: .empty, vaultID: "second")
+        await service.replanNow()
+        await service.replanNow()
+        #expect(center.deliveredRemovals == 1)
+        service.update(snapshot: nil, vaultID: nil)
+        service.update(snapshot: .empty, vaultID: "first")
+        await service.replanNow()
+        #expect(center.deliveredRemovals == 2)
+    }
+
     @Test func partialAddFailureIsVisibleAndRescheduleRecovers() async throws {
         let defaults = try TestDefaults()
         defer { defaults.clean() }

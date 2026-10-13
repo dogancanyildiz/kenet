@@ -35,6 +35,10 @@ final class NotificationService {
     @ObservationIgnored private var debounceTask: Task<Void, Never>?
     @ObservationIgnored private var snapshot: VaultReadModel?
     @ObservationIgnored private var vaultID: String?
+    /// Last vault that was open; an unreadable vault reopening as itself is not a switch.
+    @ObservationIgnored private var lastOpenVaultID: String?
+    /// Delivered notifications name the previous vault's tasks and people; the next plan clears them.
+    @ObservationIgnored private var clearsDelivered = false
     @ObservationIgnored private var revision = 0
     @ObservationIgnored private var needsReplan = false
     @ObservationIgnored private var active = false
@@ -96,6 +100,10 @@ final class NotificationService {
     }
     func update(snapshot: VaultReadModel?, vaultID: String?) {
         let changedVault = self.vaultID != vaultID
+        if let vaultID {
+            if let lastOpenVaultID, lastOpenVaultID != vaultID { clearsDelivered = true }
+            lastOpenVaultID = vaultID
+        }
         self.snapshot = snapshot
         self.vaultID = vaultID
         queueReplan(after: changedVault ? .zero : debounce)
@@ -143,6 +151,10 @@ final class NotificationService {
         defer { isPlanning = false }
         repeat {
             needsReplan = false
+            if clearsDelivered {
+                clearsDelivered = false
+                await center.removeAllDeliveredNotifications()
+            }
             let current = revision
             let instant = now()
             let zone = timeZone()

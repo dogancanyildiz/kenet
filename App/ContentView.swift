@@ -87,7 +87,7 @@ struct ContentView: View {
         #if os(macOS)
             MacNavigation(store: store)
         #else
-            PhoneNavigation(store: store)
+            AdaptiveNavigation(store: store)
         #endif
     }
 

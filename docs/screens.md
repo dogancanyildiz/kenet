@@ -5,6 +5,7 @@
 **Kapsam:**
 
 - iPhone sekmeleri, Mac kenar çubuğu ve Mac sütunları.
+- iPhone Duo iç ekranındaki bölünmüş kabuk.
 - Her ekranın öğeleri, yerleri ve davranışı.
 - Ekranlar arası geçişler, hızlı giriş akışı ve Ayarlar.
 
@@ -997,6 +998,50 @@ Telefonda serbest not okuma ve basit düzenleme vardır. Kullanıcı nota aramad
 | Eksik kısayollar | Yeni olay ve yeni görev kısayolları henüz yok. |
 | Notlar | Serbest notlar için düzenleme alanı henüz yok. Kenar çubuğunda girdisi de yoktur. Düzenleme gelince girdi döner. Kullanıcı notları aramadan açar. |
 | Ayarlar | Sistem Settings sahnesinde sekmeler, bu sırayla: Hızlı giriş, Gizlilik, Bildirimler, Takvim ve Konum, Kasa, Tanılama. |
+
+## iPhone Duo iç ekranı
+
+**Uygulamanın iPhone Duo iç ekranında hangi kabuğu ve hangi sütunları açtığını gösterir.**
+
+```mermaid
+flowchart TD
+  A["Sahnenin boyut sınıfları"] --> B{"Yatay ve dikey sınıf düzenli mi?"}
+  B -- Evet --> C["Bölünmüş kabuk: Mac kenar çubuğu ve sütunları"]
+  B -- Hayır --> D["iPhone sekmeleri"]
+  C --> E{"Genişlik 1000 pt altında mı?"}
+  E -- Evet --> F["İki sütun: kenar çubuğu seçimden sonra gizlenir"]
+  E -- Hayır --> G["Sistem karar verir; iPad için sonra tasarlanır"]
+```
+
+| Sahne | Boyut sınıfı | Kabuk |
+|---|---|---|
+| iPhone dikey, Duo dış ekranı | Sıkışık × düzenli | iPhone sekmeleri |
+| iPhone yatay | Sıkışık × sıkışık | iPhone sekmeleri |
+| Pro Max yatay | Düzenli × sıkışık | iPhone sekmeleri |
+| Duo iç ekranı: açık, kitap, çadır | Düzenli × düzenli | Bölünmüş kabuk |
+
+İç ekran yaklaşık 890 × 626 pt'dir. Bu genişlik 1000 pt eşiğinin altında kalır. Kabuk aynı anda iki sütun gösterir.
+
+| Ekran | Sol sütun | Sağ sütun |
+|---|---|---|
+| Bugün | Günlük listesi | Bugün; hızlı giriş sayfanın altında |
+| Günlük | Günlük listesi | Seçili gün |
+| Görevler ve projeler | Görev listesi ya da proje | Seçili görevin ayrıntısı |
+| Kişiler, Konumlar | Varlık listesi | Seçili varlık |
+| Hedefler | Hedef listesi | Seçili hedefin ayrıntısı |
+| Kanban, Zaman çizelgesi | Tam genişlikte pano | Yok |
+| Özetler, Graph, Harita | Tam genişlikte sayfa | Yok |
+
+| Öğe | Davranış |
+|---|---|
+| Kenar çubuğu | Mac kenar çubuğunun girdileri ve çizimi: mürdüm seçim. Sistem sekme kenar çubuğu değildir. |
+| Kenar çubuğu düğmesi | Sol sütunun gezinme çubuğundadır. Kök sayfalar bu kabukta gezinme çubuğunu gizlemez. |
+| Kenar çubuğu seçimi | Bir girdi seçilince kenar çubuğu gizlenir. Liste ve ayrıntı yeniden yan yana durur. |
+| Ayarlar | Bugün manşetindeki dişli Ayarlar sheet'ini açar. |
+| Arama | Manşet satırındaki büyüteç. Gezinme çubuğunda arama düğmesi yoktur. |
+| Sekme ve bölüm | Her sekme bir bölümü açar: Kişiler ve Konumlar sekmesi Kişiler bölümünü açar. Sekmesi olmayan bölüm onu barındıran sekmeye düşer: Özetler Günlük'e; Konumlar, Graph ve Harita Kişiler ve Konumlar'a. |
+
+**NOT:** Seçim iPhone sekmeleri ile bölünmüş kabuk arasında taşınmaz. Görev satırına dokunmak bu kabukta da görevi tamamlar. İki davranışı sonraki işler değiştirir.
 
 ## Ayarlar
 

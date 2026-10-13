@@ -12,23 +12,34 @@ struct QuickEntryBar: View {
     private let focusRequest: UUID?
     /// Only a day page's own bar takes a calendar draft; a bar handed its model sits elsewhere.
     private let acceptsCalendarDrafts: Bool
+    /// The bridge that keeps a day page's model while the shell is rebuilt; nil for a bar that
+    /// was handed its model or is hosted without a shell.
+    private let drafts: ShellNavigationState?
     @State private var model: QuickEntryModel
     @State private var showsTimePicker = false
     @State private var showsDatePicker = false
     @State private var selection: TextSelection?
     @FocusState private var isFocused: Bool
 
+    /// - Parameter drafts: a day page passes the shell's bridge, which keeps the model (and so
+    ///   the text being typed) for the day: the iPhone Duo rebuilds the page when it opens or closes.
     init(
         store: IndexStore, isEnabled: Bool, day: CalendarDate? = nil,
-        model: QuickEntryModel? = nil, focusRequest: UUID? = nil, acceptsPeopleMentions: Bool = false
+        model: QuickEntryModel? = nil, focusRequest: UUID? = nil, acceptsPeopleMentions: Bool = false,
+        drafts: ShellNavigationState? = nil
     ) {
         self.store = store
         self.isEnabled = isEnabled
         self.focusRequest = focusRequest
         self.acceptsPeopleMentions = acceptsPeopleMentions
         acceptsCalendarDrafts = model == nil
-        let initial = model ?? QuickEntryModel(store: store, day: day)
-        if model == nil, let prefill = AppLaunchPolicy.uiTestQuickEntryText() { initial.text = prefill }
+        self.drafts = model == nil ? drafts : nil
+        let make = {
+            let fresh = QuickEntryModel(store: store, day: day)
+            if let prefill = AppLaunchPolicy.uiTestQuickEntryText() { fresh.text = prefill }
+            return fresh
+        }
+        let initial = model ?? self.drafts?.quickEntryDraft(for: day, store: store, make: make) ?? make()
         _model = State(initialValue: initial)
     }
 
@@ -195,6 +206,13 @@ struct QuickEntryBar: View {
         .onChange(of: isEnabled) { _, enabled in
             if enabled { applyMention() }
             if enabled && focusRequest != nil { isFocused = true }
+        }
+        // A past day's page went with nothing typed: the bridge lets its model go. Today's
+        // stays for the shell's lifetime (its dismissed location suggestion stays dismissed).
+        .onDisappear {
+            if model.day != nil, model.text.isEmpty, !model.isSubmitting, !model.isCreating {
+                drafts?.releaseQuickEntryDraft(model)
+            }
         }
     }
 

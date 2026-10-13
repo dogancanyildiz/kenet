@@ -5,8 +5,9 @@
     /// the iPhone Duo inner screen gets the Mac shell's sidebar and columns, every other scene
     /// the tab bar. A change of size class (the Duo opened or closed) swaps the shell.
     ///
-    /// The split shell's selection lives here, above the swap; the tab shell keeps its own
-    /// state for now and does not read it.
+    /// Both shells read and write one `ShellNavigationState`, kept here above the swap: the
+    /// selection, the open sheets, the drafts being typed and the routes already handled
+    /// survive the swap. The pages below reach it through the environment.
     struct AdaptiveNavigation: View {
         let store: IndexStore
         @Environment(\.horizontalSizeClass) private var horizontalSizeClass
@@ -24,12 +25,15 @@
         }
 
         var body: some View {
-            switch ShellKind.resolve(horizontal: horizontalSizeClass, vertical: verticalSizeClass) {
-            case .tabs:
-                PhoneNavigation(store: store)
-            case .split:
-                SplitShell(store: store, navigation: navigation, showingSettings: showsSettings)
+            Group {
+                switch ShellKind.resolve(horizontal: horizontalSizeClass, vertical: verticalSizeClass) {
+                case .tabs:
+                    PhoneNavigation(store: store, navigation: navigation)
+                case .split:
+                    SplitShell(store: store, navigation: navigation, showingSettings: showsSettings)
+                }
             }
+            .environment(navigation)
         }
     }
 
@@ -40,21 +44,22 @@
         let navigation: ShellNavigationState
         @Environment(IntentNavigation.self) private var intentNavigation
         @Environment(NotificationService.self) private var notifications
-        @State private var showingSettings: Bool
 
+        /// `showingSettings`: opens the Settings sheet at once, through the bridge (hosted tests).
         init(store: IndexStore, navigation: ShellNavigationState, showingSettings: Bool = false) {
             self.store = store
             self.navigation = navigation
-            _showingSettings = State(initialValue: showingSettings)
+            if showingSettings { navigation.showingSettings = true }
         }
 
         var body: some View {
+            @Bindable var navigation = navigation
             MacNavigation(store: store, navigation: navigation)
-                .environment(\.openSettings, { showingSettings = true })
+                .environment(\.openSettings, { navigation.showingSettings = true })
                 // A Siri or notification route lands on the shell, not behind the sheet.
-                .onChange(of: intentNavigation.todayRequest) { _, _ in showingSettings = false }
-                .onChange(of: notifications.navigationRequest?.id) { _, _ in showingSettings = false }
-                .phoneSettingsSheet(store: store, isPresented: $showingSettings)
+                .onChange(of: intentNavigation.todayRequest) { _, _ in navigation.showingSettings = false }
+                .onChange(of: notifications.navigationRequest?.id) { _, _ in navigation.showingSettings = false }
+                .phoneSettingsSheet(store: store, isPresented: $navigation.showingSettings)
                 // Outside the sheet: its content takes the environment of the view that presents
                 // it, and `MacNavigation` sets `.split` only for its own children. Without this the
                 // Settings sheet is drawn for the tab shell (a 414 pt system sheet, not the form).

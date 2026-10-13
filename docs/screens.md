@@ -1041,7 +1041,7 @@ flowchart TD
 | Arama | Manşet satırındaki büyüteç. Gezinme çubuğunda arama düğmesi yoktur. |
 | Sekme ve bölüm | Her sekme bir bölümü açar: Kişiler ve Konumlar sekmesi Kişiler bölümünü açar. Sekmesi olmayan bölüm onu barındıran sekmeye düşer: Özetler Günlük'e; Konumlar, Graph ve Harita Kişiler ve Konumlar'a. |
 
-**NOT:** Seçim iPhone sekmeleri ile bölünmüş kabuk arasında taşınmaz. Görev satırına dokunmak bu kabukta da görevi tamamlar. İki davranışı sonraki işler değiştirir.
+**NOT:** Seçim, Ayarlar ve günlük editörü sheet'leri, hızlı giriş ve günlük taslakları iki kabuk arasında taşınır: kabuk üstünde tek bir `ShellNavigationState` nesnesi durur. Taslaklar yalnız bellektedir ve o kasaya aittir; başka kasa seçilince düşer. Görev satırına dokunmak bu kabukta da görevi tamamlar; bu davranışı sonraki iş değiştirir.
 
 ## Ayarlar
 

@@ -64,7 +64,7 @@ struct TaskTimelineView: View {
                             .navigationDestination(item: $sourceDay) { DayView(store: model.store, date: $0) }
                             .inkSheet("Görev", onClose: { selected = nil })
                         }
-                    }.presentationDetents([.medium, .large])
+                    }.inkAdaptiveSheetPresentation()
                 }
             #endif
         }
@@ -72,7 +72,7 @@ struct TaskTimelineView: View {
         .modifier(OptionalNavigationTitle(showsFilters ? "Zaman çizelgesi" : nil))
         .sheet(item: $editor) { selection in
             NavigationStack { TimelineDateEditor(model: model, selection: selection) }
-                .frame(minWidth: 320, minHeight: 200).presentationDetents([.medium, .large])
+                .frame(minWidth: 320, minHeight: 200).inkAdaptiveSheetPresentation()
         }
         .onChange(of: model.store.vaultURL) { _, _ in
             model.clearInteraction()

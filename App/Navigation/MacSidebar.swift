@@ -216,6 +216,10 @@ struct MacSidebarRow: View {
     var body: some View {
         Label {
             entry.title
+                #if os(iOS)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+                #endif
                 .fontWeight(isSelected ? .semibold : .regular)
                 .foregroundStyle(
                     color(MacSidebarChrome.titleToken(isSelected: isSelected, isWindowActive: isWindowActive)))

@@ -188,6 +188,7 @@ struct DayView: View {
             NavigationStack {
                 CloseDayView(store: store, today: date, tasks: tasksModel.rows ?? [], step: route.step)
             }
+            .inkAdaptiveFormPresentation()
         }
         .onChange(of: notifications.navigationRequest?.id, initial: true) { openCloseDayFromReminder() }
         .onChange(of: store.lastUpdated == nil) { openCloseDayFromReminder() }

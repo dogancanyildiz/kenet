@@ -3,8 +3,8 @@ import VaultFormat
 
 /// Interactive task row built from Mürekkep primitives (``TaskBox`` + ``MarginRow`` + linked text).
 /// Keeps DayTaskView menus and editors; visual language matches ``InkTaskRow``.
-/// iPhone: a touch on the row completes a task without links. Mac: the row belongs to the
-/// list selection, so only the box completes.
+/// Phone tabs: a touch on the row completes a task without links. In the split shell and
+/// on Mac the row belongs to list selection, so only the box completes.
 struct TasksListRow: View {
     let store: IndexStore
     let row: TaskRow
@@ -15,6 +15,7 @@ struct TasksListRow: View {
     var footnote: Text? = nil
     let complete: () -> Void
 
+    @Environment(\.shellKind) private var shellKind
     @State private var textEditor: TaskEditorModel?
     @State private var recurrenceEditor: TaskEditorModel?
     @State private var dateEditor: TaskEditorModel?
@@ -39,6 +40,12 @@ struct TasksListRow: View {
             canAddEvent: store.canAddEvent)
     }
 
+    private var rowTapCompletes: Bool {
+        TasksListRowTouch.completes(
+            canToggle: completion.canToggleCompletion,
+            hasLinks: row.text.spans.contains(where: { $0.target != nil }))
+    }
+
     var body: some View {
         MarginRow(kind: .vault) {
             TaskBox(
@@ -61,16 +68,10 @@ struct TasksListRow: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         #if !os(macOS)
             .contentShape(Rectangle())
-            .onTapGesture {
-                if completion.canToggleCompletion, !row.text.spans.contains(where: { $0.target != nil }) {
-                    complete()
-                }
-            }
+            .modifier(TasksListRowTouch.Tap(shell: shellKind, completes: rowTapCompletes, complete: complete))
         #endif
         .accessibilityAction(named: Text(LocalizedStringKey(completion.boxAccessibilityLabelKey))) {
-            if completion.canToggleCompletion, !row.text.spans.contains(where: { $0.target != nil }) {
-                complete()
-            }
+            if rowTapCompletes { complete() }
         }
         .accessibilityActions { moveButtons }
         .contextMenu { editMenu }
@@ -83,14 +84,14 @@ struct TasksListRow: View {
         }
         .sheet(item: $textEditor) { model in
             NavigationStack { TaskTextEditor(model: model) }.frame(minWidth: 320, minHeight: 200)
-                .presentationDetents([.medium, .large])
+                .inkAdaptiveSheetPresentation()
         }
         .sheet(item: $recurrenceEditor) { model in
-            NavigationStack { TaskRecurrenceEditor(model: model) }.presentationDetents([.medium, .large])
+            NavigationStack { TaskRecurrenceEditor(model: model) }.inkAdaptiveSheetPresentation()
         }
         .sheet(item: $dateEditor) { model in
             NavigationStack { TaskDateEditor(model: model) }.frame(minWidth: 320, minHeight: 200)
-                .presentationDetents([.medium, .large])
+                .inkAdaptiveSheetPresentation()
         }
     }
 
@@ -159,6 +160,34 @@ struct TasksListRow: View {
             await model.load()
             if model.target != nil { _ = await operation(model) }
             errorText = model.errorText
+        }
+    }
+}
+
+/// What a touch on the row does, by shell (unit-tested).
+enum TasksListRowTouch {
+    /// Tabs: the row's own tap is live. Split: the row adds no gesture of its own, so the touch
+    /// reaches the list's selection; the box and the links (subviews) keep theirs.
+    static func gestureMask(in shell: ShellKind) -> GestureMask {
+        shell == .tabs ? .all : .subviews
+    }
+
+    /// The row's tap completes an enabled task whose text holds no link (a link takes its own touch).
+    static func completes(canToggle: Bool, hasLinks: Bool) -> Bool {
+        canToggle && !hasLinks
+    }
+
+    /// The row's tap with the shell's mask; the gesture is built here, in one place, so a call
+    /// site cannot attach it with a mask of its own.
+    struct Tap: ViewModifier {
+        let shell: ShellKind
+        let completes: Bool
+        let complete: () -> Void
+
+        func body(content: Content) -> some View {
+            content.gesture(
+                TapGesture().onEnded { if completes { complete() } },
+                including: TasksListRowTouch.gestureMask(in: shell))
         }
     }
 }

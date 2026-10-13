@@ -166,10 +166,10 @@ Sahip, heyetin önerdiği Mürekkep'i bu iki değişiklikle seçti. Tasarımcı 
 | No | Şart | Koddaki durum |
 |---|---|---|
 | 1 | Bugün tek liste ve tek satır bileşenidir. Kenar sütununun genişliği yazı boyutuyla büyür. Erişilebilirlik boyutlarında saat ve öncelik metnin üstüne iner. | Kenar sütunu `@ScaledMetric` ile büyür: `MarginRow.swift`. Bugün ekranı `List` değil, `ScrollView` içinde tek sütundur: `DayView.swift`. |
-| 2 | Uygulama bağlantıyı yalnız standart metin öznitelikleriyle çizer. Bağlantı okuma metninde, hızlı girişte yazarken ve Mac'te aynı görünür. Kontrastı Artır'da alt çizgi kalınlaşır. Kişi ve konum renkleri Graph ve Harita ile aynı belirteçten gelir. | Kontrastı Artır bugün yalnız renkleri koyulaştırır. `Text.LineStyle` çizgi kalınlığı almaz ve hiçbir kod `InkStroke.underlineHighContrast` değerini okumaz. Hızlı giriş alanı `TextField` ile `String` bağlar; tanınan adlar alanın üstünde ad çipi olur. |
+| 2 | Uygulama bağlantıyı yalnız standart metin öznitelikleriyle çizer. Bağlantı okuma metninde, hızlı girişte yazarken ve Mac'te aynı görünür. Kontrastı Artır'da yalnız renkler koyulaşır. Alt çizgi kalınlığı sistemin standart alt çizgisidir. Kişi ve konum renkleri Graph ve Harita ile aynı belirteçten gelir. | Kontrastı Artır renkleri koyulaştırır: `InkPalette.swift`. `Text.LineStyle` çizgi kalınlığı almaz; bu yüzden `InkStroke` bağlantı alt çizgisi için değer tutmaz. Hızlı giriş alanı `TextField` ile `String` bağlar; tanınan adlar alanın üstünde ad çipi olur. |
 | 3 | Hızlı girişte olay ve görev kipi görünür olur. Artı ve gönder düğmelerinin ve kip sözcüklerinin dokunma alanı 44 pt'dir. | Sahibin ikinci değişikliği kip şartını karşıladı. |
 | 4 | Manşet bloğu daralır. Hedef: ilk olay da kaydırmadan görünür. | — |
-| 5 | Görev kutusunun çizgisi koyulaşır. Makette kontrast 3,48:1'dir; erişilebilirlik bakışı denetim çizgilerinde 4,5:1 arar. | Kontrol çizgisi açık modda bugün 3,48:1'dir: `InkPalette.swift`. |
+| 5 | Görev kutusunun çizgisi koyulaşır. Makette kontrast 3,48:1'dir. Erişilebilirlik bakışı denetim çizgilerinde 4,5:1 istedi. | Çizgi koyulaşmaz. Kontrol çizgisi metin dışı bir denetim sınırıdır; alt sınırı 3:1'dir: kural 4. Açık moddaki 3,48:1 bilinçli bir seçimdir: `InkPalette.swift`. `PaletteContrastTests` 3:1 sınırını denetler. |
 | 6 | Mac kanbanı çerçeveli, gölgesiz kâğıt kart kullanır. Tablo ve zaman çizelgesi tabular saat sütunu ve "şimdi" çizgisi kullanır. | `InkKanbanCard` yüzey renginde, ince çizgi çerçeveli ve gölgesizdir: `InkSurface.swift`. |
 
 ### İmza: eklenmedi
@@ -423,6 +423,8 @@ KA, Kontrastı Artır demektir. Zemin, yüzey, çukur ve süs çizgisi zemin rol
 
 Değerler tasarımcının hesabıdır. `PaletteContrastTests` asset catalog değerlerini `InkPalette` ile karşılaştırır ve alt sınırları denetler: metin rolleri 4,5:1, kontrol çizgisi 3:1. 2026-10-12 denetimi kontrastları koddaki değerlerden yeniden hesapladı; sonuçlar tabloyla aynıdır.
 
+**NOT:** Kontrol çizgisi metin dışı bir denetim sınırıdır ve alt sınırı 3:1'dir. Açık moddaki 3,48:1 bilinçli bir seçimdir; uygulama çizgiyi 4,5:1'e koyulaştırmaz.
+
 ### Kod adları ve kullanım
 
 | Belirteç | `Color.ink` | Asset | Kullanım |
@@ -461,17 +463,17 @@ Tasarımcı bu değerleri Derkenar'ın kendi zemininde ölçtü. Sahip imzayı b
 | Rol | `Font.ink` | Aile ve ağırlık | Semantik stil | iOS | Mac |
 |---|---|---|---|---|---|
 | Sayfa adı: manşet | `display` | New York Semibold | `largeTitle` | 34 | 26 |
-| İçerik | `content` | New York Regular | `body` | 17; günlük paragrafında satır yüksekliği 26 | 15 |
-| Küçük içerik: gün önizlemesi, kısa alıntı | `contentSmall` | New York Regular | `footnote` | 13 | — |
-| Yer tutucu | `placeholder` | New York Italic | `body` | 17 | 15 |
-| Künye satırı | `byline` | SF Pro Regular | `subheadline` | 15 | 13 |
-| Bölüm başlığı | `section` | SF Pro Semibold | `footnote` | 13 | 11 |
-| Meta | `meta` | SF Pro Regular | `footnote` | 13 | 11 |
+| İçerik | `content` | New York Regular | `body` | 17; günlük paragrafında satır yüksekliği 26 | 13 |
+| Küçük içerik: gün önizlemesi, kısa alıntı | `contentSmall` | New York Regular | `footnote` | 13 | 10 |
+| Yer tutucu | `placeholder` | New York Italic | `body` | 17 | 13 |
+| Künye satırı | `byline` | SF Pro Regular | `subheadline` | 15 | 11 |
+| Bölüm başlığı | `section` | SF Pro Semibold | `footnote` | 13 | 10 |
+| Meta | `meta` | SF Pro Regular | `footnote` | 13 | 10 |
 | Değer | `value` | SF Pro, tabular rakam | `body` | 17 | 13 |
-| Saat | `time` | SF Pro, tabular rakam | `subheadline` | 15 | 13 |
-| Büyük rakam: hedef detayı, özet | `largeNumber` | SF Pro Light, tabular rakam | `largeTitle` | 48 | 34 |
+| Saat | `time` | SF Pro, tabular rakam | `subheadline` | 15 | 11 |
+| Büyük rakam: hedef detayı, özet | `largeNumber` | SF Pro Light, tabular rakam | `largeTitle` | 48 | 48 |
 
-Boyutlar varsayılan Dynamic Type boyutundaki tasarım hedefidir; `InkFonts.swift` yalnız semantik stilleri kullanır. `inkJournalParagraph()` günlük paragrafına 9 pt ek satır aralığı verir: 26 − 17. `LargeNumberText` 48 pt hedefini `@ScaledMetric` ile büyütür; `Font.ink.largeNumber` yalnız yedektir.
+`InkFonts.swift` yalnız semantik stilleri kullanır; kod kuraldır. iOS sütunu varsayılan Dynamic Type boyutundaki değerdir. Mac sütunu macOS'un aynı semantik stile verdiği değerdir; Mac için ayrı bir boyut hedefi yoktur. `inkJournalParagraph()` günlük paragrafına 9 pt ek satır aralığı verir: 26 − 17. `LargeNumberText` 48 pt hedefini `@ScaledMetric` ile büyütür; `Font.ink.largeNumber` yalnız yedektir.
 
 ## Boşluk ve biçim ölçeği
 
@@ -521,8 +523,8 @@ flowchart LR
 | `control` | 1,5 pt | Boş görev kutusu, halka izi |
 | `highPriority` | 2 pt | Yüksek öncelikli görev kutusu çerçevesi; ısı haritasında bugün ve af çerçevesi |
 | `rule` | 1 pt | Bölüm çizgisi; `hairline(scale:)` gerçek 1 pikseli verir |
-| `underline` | 1 pt | Bağlantı alt çizgisi, varsayılan kontrast |
-| `underlineHighContrast` | 2 pt | Kontrastı Artır'da bağlantı alt çizgisi; bugün hiçbir kod bu değeri okumaz |
+
+Bağlantı alt çizgisi sistemin standart alt çizgisidir; `InkStroke` bağlantı alt çizgisi için değer tutmaz. Kontrastı Artır'da alt çizgi kalınlaşmaz; yalnız renkler koyulaşır.
 
 Hızlı giriş kapsüldür. Uygulama Mac'te sayfayı en çok 680 pt genişlikte ortalar; kaydırma alanı sütunu doldurur, yalnız içerik daralır. En dar pencerede sütunlar 200 + 320 + 480 pt'dir; liste 280 pt'ye inerse ayrıntı 520 pt olur. İçerik opaktır; gölge, doku ve gradyan yoktur.
 

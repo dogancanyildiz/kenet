@@ -63,6 +63,16 @@ struct ReleaseConfigurationTests {
 
     // MARK: - Device family
 
+    #if os(iOS)
+        /// Read the built host's generated Info.plist: source settings alone do not prove
+        /// which orientations and device family are shipped in the application bundle.
+        @Test func builtIPhoneAppKeepsPortraitOrientationLock() throws {
+            let info = try #require(Self.hostAppInfoDictionary())
+            #expect(info["UISupportedInterfaceOrientations"] as? [String] == ["UIInterfaceOrientationPortrait"])
+            #expect(info["UIDeviceFamily"] as? [Int] == [1])
+        }
+    #endif
+
     @Test func iOSTargetsIPhoneOnly() throws {
         let project = try Self.read("project.yml")
         #expect(Self.values(of: "TARGETED_DEVICE_FAMILY", in: project) == ["1"])

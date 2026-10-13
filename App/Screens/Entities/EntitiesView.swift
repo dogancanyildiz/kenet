@@ -75,8 +75,8 @@ struct EntitiesView: View {
             }
         }
         .listStyle(.plain)
-        .inkPage()
         .inkPageScrollColumn()
+        .inkPage()
         .inkRootPageNavigationTitle("Kişiler ve Konumlar")
         .accessibilityIdentifier("screen.entities")
         #if os(iOS)

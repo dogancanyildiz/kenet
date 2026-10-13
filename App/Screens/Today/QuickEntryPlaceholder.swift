@@ -161,7 +161,7 @@ struct QuickEntryBar: View {
         // Opaque paper shelf under the capsule (safeAreaInset content draws over the list).
         .background {
             Color.ink.paper
-                .ignoresSafeArea(edges: .bottom)
+                .ignoresSafeArea(edges: [.horizontal, .bottom])
         }
         .compositingGroup()
         .accessibilityElement(children: .contain)

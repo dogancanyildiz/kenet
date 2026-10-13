@@ -183,7 +183,7 @@ struct DayCopyMergeCaseTests {
         try Data("bplist00".utf8).write(to: vault.url("journal/.2026-10-02 2.md.icloud"))
         let result = try vault.index.refresh(vaultRoot: vault.root)
         #expect(result.pendingDownloads == ["journal/2026-10-06 2.md", "journal/2026-10-07.md"])
-        #expect(result.dayCopies == vault.cases.dayCopies + ["journal/2026-10-07 2.md"])
+        #expect(result.dayCopies == DayCopyName.copies(in: vault.cases.dayCopies + ["journal/2026-10-07 2.md"]))
         #expect(try !vault.index.blockIdentifiers().contains("e7b001"))
         let before = try vault.tree()
         await #expect(throws: VaultStoreError.awaitingDownload(path: "journal/2026-10-07.md")) {

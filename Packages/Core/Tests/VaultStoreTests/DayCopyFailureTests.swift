@@ -19,9 +19,10 @@ struct DayCopyFailureTests {
     }
 
     /// Reading both files, saving conflict copies, replacing the day, removing the copy and updating
-    /// the index all happen inside one `.move(copy → day)` boundary, with no nested coordination.
+    /// the index all happen inside one `.merge(copy into day)` boundary, with no nested coordination.
+    /// A missing day file is a rename in one `.move(copy → day)` boundary instead.
     @Test(arguments: Shape.allCases)
-    func everyStepRunsInsideOneMoveBoundary(shape: Shape) async throws {
+    func everyStepRunsInsideOneBoundary(shape: Shape) async throws {
         let vault = try DayCopyVault()
         defer { vault.remove() }
         let spy = DayCopySpy(root: vault.root)
@@ -34,18 +35,66 @@ struct DayCopyFailureTests {
         let dayURL = spy.url(try #require(DayCopyName.dayPath(ofCopy: shape.copy)))
         let before = try vault.tree()
         _ = try await store.mergingDayCopy(shape.copy)
-        let operation = FileCoordinationOperation.move(source: copyURL, destination: dayURL)
+        let operation: FileCoordinationOperation =
+            shape == .renamed
+            ? .move(source: copyURL, destination: dayURL) : .merge(source: copyURL, into: dayURL)
         var expected: [DayCopySpy.Event] = [.begin(operation)]
         if shape == .renamed { expected += [.willMove(copyURL, dayURL), .didMove(copyURL, dayURL)] }
         expected.append(.end(operation))
         #expect(spy.events == expected)
         #expect(spy.maximumDepth == 1)
         #expect(spy.reads.allSatisfy { $0.active == operation })
-        #expect(spy.reads.map(\.url) == (shape == .renamed ? [copyURL] : [copyURL, dayURL]))
+        #expect(spy.reads.map(\.url) == (shape == .renamed ? [] : [copyURL, dayURL]))
         let after = try vault.tree()
         #expect(after != before)
         #expect(spy.changesOutsideBoundary(before: before, after: after).isEmpty)
         #expect(after[shape.copy] == nil)
+        try equivalent(vault.index, vault.root)
+    }
+
+    /// A day file that appears after the rename was chosen but before it is claimed is not replaced:
+    /// the rename boundary ends unchanged and the copy is merged under a `.merge` boundary.
+    @Test func aDayFileAppearingBeforeTheRenameIsMerged() async throws {
+        let vault = try DayCopyVault()
+        defer { vault.remove() }
+        let copy = Shape.renamed.copy
+        let dayPath = "journal/2026-10-03.md"
+        let appeared = Data("---\ntype: journal\ndate: 2026-10-03\n---\n\n## Events\n- 07:00 Kahvaltı ^e3x001\n".utf8)
+        let spy = DayCopySpy(root: vault.root) { operation in
+            if case .move = operation { try appeared.write(to: vault.url(dayPath)) }
+        }
+        let copyVersion = try vault.version(copy)
+        let outcome = try await vault.store(fileCoordination: spy).mergingDayCopy(copy)
+        let move = FileCoordinationOperation.move(source: spy.url(copy), destination: spy.url(dayPath))
+        let merge = FileCoordinationOperation.merge(source: spy.url(copy), into: spy.url(dayPath))
+        #expect(spy.events == [.begin(move), .end(move), .begin(merge), .end(merge)])
+        #expect(outcome.kind == .merged)
+        let dayVersion = MergeVersion(bytes: Array(appeared), modificationTime: try vault.time(dayPath))
+        #expect(Array(try Data(contentsOf: vault.url(dayPath))) == ConflictMerge.merge(dayVersion, copyVersion).bytes)
+        #expect(!FileManager.default.fileExists(atPath: vault.url(copy).path))
+        try equivalent(vault.index, vault.root)
+    }
+
+    /// A day file removed after the merge was chosen leaves nothing to merge into: the `.merge`
+    /// boundary holds both files for writing, so the copy takes the day file's name inside it.
+    @Test func aDayFileVanishingBeforeTheMergeIsARename() async throws {
+        let vault = try DayCopyVault()
+        defer { vault.remove() }
+        let copy = Shape.merged.copy
+        let dayPath = "journal/2026-10-01.md"
+        let spy = DayCopySpy(root: vault.root) { operation in
+            if case .merge = operation { try FileManager.default.removeItem(at: vault.url(dayPath)) }
+        }
+        let copyBytes = try Data(contentsOf: vault.url(copy))
+        let outcome = try await vault.store(fileCoordination: spy).mergingDayCopy(copy)
+        let copyURL = spy.url(copy)
+        let dayURL = spy.url(dayPath)
+        let merge = FileCoordinationOperation.merge(source: copyURL, into: dayURL)
+        #expect(spy.events == [.begin(merge), .willMove(copyURL, dayURL), .didMove(copyURL, dayURL), .end(merge)])
+        #expect(outcome.kind == .renamed)
+        #expect(try Data(contentsOf: vault.url(dayPath)) == copyBytes)
+        #expect(try vault.time(dayPath) == vault.cases.times[copy])
+        #expect(!FileManager.default.fileExists(atPath: vault.url(copy).path))
         try equivalent(vault.index, vault.root)
     }
 
@@ -59,8 +108,7 @@ struct DayCopyFailureTests {
         let snapshot = try vault.index.snapshot()
         let copy = Shape.merged.copy
         await #expect(throws: failure) { try await store.mergingDayCopy(copy) }
-        let operation = FileCoordinationOperation.move(
-            source: spy.url(copy), destination: spy.url("journal/2026-10-01.md"))
+        let operation = FileCoordinationOperation.merge(source: spy.url(copy), into: spy.url("journal/2026-10-01.md"))
         #expect(spy.events == [.begin(operation)])
         #expect(try vault.tree() == before)
         #expect(try vault.index.snapshot() == snapshot)
@@ -115,26 +163,48 @@ struct DayCopyFailureTests {
         #expect(try vault.index.snapshot() == snapshot)
     }
 
-    /// Removing the copy is the last step. When only it fails, the day file already holds the merge
-    /// and the conflict copy is kept; the next call removes the copy without saving anything again.
-    @Test func failedCopyRemovalIsCompletedByTheNextMerge() async throws {
+    enum LateFault: CaseIterable, Sendable { case dayFileTime, removeCopy }
+
+    /// Giving the day file its time and removing the copy come after the day file is replaced. When
+    /// either fails, the day file already holds the merge and the conflict copy is kept; the next
+    /// call removes the copy without saving anything again.
+    @Test(arguments: LateFault.allCases)
+    func lateFailureIsCompletedByTheNextMerge(fault: LateFault) async throws {
         let vault = try DayCopyVault()
         defer { vault.remove() }
         let copy = Shape.merged.copy
         let dayPath = "journal/2026-10-01.md"
         let merge = ConflictMerge.merge(try vault.version(dayPath), try vault.version(copy))
-        let failing = vault.store(removeFile: { _ in throw InjectedFailure.failed })
+        let failing = vault.store(
+            removeFile: { url in
+                if fault == .removeCopy { throw InjectedFailure.failed }
+                try FileManager.default.removeItem(at: url)
+            },
+            dayCopyStep: { step in
+                if fault == .dayFileTime, step == .dayFileTime { throw InjectedFailure.failed }
+            })
         await #expect(throws: InjectedFailure.failed) { try await failing.mergingDayCopy(copy) }
         let conflict = "conflicts/2026-10-01 (conflict 20261001T090000Z 2).md"
         #expect(Array(try Data(contentsOf: vault.url(dayPath))) == merge.bytes)
         #expect(Array(try Data(contentsOf: vault.url(conflict))) == merge.preserved.first?.bytes)
         #expect(FileManager.default.fileExists(atPath: vault.url(copy).path))
+        let mergeTime = max(vault.cases.times[dayPath]!, vault.cases.times[copy]!) + 1
+        if fault == .removeCopy {
+            #expect(try vault.time(dayPath) == mergeTime)
+        } else {
+            #expect(try vault.time(dayPath) != mergeTime)
+        }
         try equivalent(vault.index, vault.root)
-        try vault.settle(dayPath)
+        // Without its merge time the day file keeps the time of the write; make it later than both.
+        if fault == .dayFileTime { try vault.settle(dayPath) }
         let partial = try vault.tree()
+        let retryTime = try vault.time(dayPath)
         let outcome = try await vault.store().mergingDayCopy(copy)
         // The day file now holds everything the copy has: nothing is preserved again.
         #expect(outcome.conflictPaths.isEmpty)
+        #expect(!outcome.dayFileChanged)
+        // No day-file write on retry: its time is kept rather than assigned retroactively.
+        #expect(try vault.time(dayPath) == retryTime)
         var expected = partial
         expected.removeValue(forKey: copy)
         #expect(try vault.tree() == expected)
@@ -202,6 +272,7 @@ final class DayCopySpy: FileCoordination, @unchecked Sendable {
 
     let root: URL
     private let failure: Failure?
+    private let onBegin: @Sendable (FileCoordinationOperation) throws -> Void
     private let lock = NSLock()
     private var eventLog: [Event] = []
     private var readLog: [Read] = []
@@ -209,9 +280,16 @@ final class DayCopySpy: FileCoordination, @unchecked Sendable {
     private var active: [FileCoordinationOperation] = []
     private var storedMaximumDepth = 0
 
-    init(root: URL, failure: Failure? = nil) {
+    /// `onBegin` runs as each boundary begins, before its accessor: a change another process makes then.
+    init(
+        root: URL, failure: Failure? = nil,
+        onBegin: @escaping @Sendable (FileCoordinationOperation) throws -> Void = {
+            _ in
+        }
+    ) {
         self.root = root.resolvingSymlinksInPath().standardizedFileURL
         self.failure = failure
+        self.onBegin = onBegin
     }
 
     func url(_ path: String) -> URL { root.appendingPathComponent(path) }
@@ -243,6 +321,7 @@ final class DayCopySpy: FileCoordination, @unchecked Sendable {
         }
         defer { lock.withLock { _ = active.removeLast() } }
         if let failure { throw failure }
+        try onBegin(operation)
         let begin = try DayCopyVault.tree(root)
         defer {
             let end = (try? DayCopyVault.tree(root)) ?? [:]

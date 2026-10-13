@@ -5,6 +5,9 @@ public enum FileCoordinationOperation: Sendable, Equatable {
     case read(URL)
     case modify(URL)
     case move(source: URL, destination: URL)
+    /// Folds `source` into the existing file `into` and removes `source`: the target's presenters
+    /// save first, the source's presenters give way to its deletion.
+    case merge(source: URL, into: URL)
     case delete(URL)
 }
 

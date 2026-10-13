@@ -589,7 +589,7 @@ flowchart LR
   Ice["İçe aktarma"] -->|"her VaultStore'a verir"| Sistem
 ```
 
-`Core`'daki `FileCoordination` arayüzü okuma, değiştirme, iki URL'li taşıma ve silme niyetlerini host katmanına iletir. Varsayılan `DirectFileCoordination` gövdeyi doğrudan çalıştırır. App arayüzü `SystemFileCoordination` ile `NSFileCoordinator` üzerinde uygular. `IndexStore` ve içe aktarma, açtıkları her `VaultStore`'a bu uygulamayı verir.
+`Core`'daki `FileCoordination` arayüzü okuma, değiştirme, iki URL'li taşıma, iki URL'li birleştirme ve silme niyetlerini host katmanına iletir. Varsayılan `DirectFileCoordination` gövdeyi doğrudan çalıştırır. App arayüzü `SystemFileCoordination` ile `NSFileCoordinator` üzerinde uygular. `IndexStore` ve içe aktarma, açtıkları her `VaultStore`'a bu uygulamayı verir.
 
 **Tablo her niyetin `NSFileCoordinator` seçeneğini gösterir.**
 
@@ -599,6 +599,7 @@ flowchart LR
 | Değiştirme | `.forMerging` yazması | Dosyayı sunan uygulamalar önce kaydeder; gövde güncel baytları okur |
 | Taşıma | İki URL'li tek yazma: kaynak `.forMerging`, hedef `.forReplacing` | Kaynak düz dosyadır ve taşımadan önce gövde içeriği yeniden yazar. `.forMoving` düz dosyada etkisizdir ve iki seçenek birbirini dışlar |
 | Taşıma, hedef kaynağın kendisi | Hedef seçeneksiz | Büyük ve küçük harf duyarsız birimde yalnız harf boyu değişen ad. `.forReplacing` dosyayı sunan uygulamaya silinme bildirirdi |
+| Birleştirme | İki URL'li tek yazma: kaynak `.forDeleting`, hedef `.forMerging` | Gövde kaynağı okur ve en son siler; kaynağı sunan uygulama silinmeye yol verir. Gövde hedefi güncel baytlarından yeniden yazar; hedefi sunan uygulama önce kaydeder |
 | Silme | `.forDeleting` yazması | Tek URL'li silme niyeti |
 
 **Tablo hangi zincirin hangi koordinasyon sınırında çalıştığını gösterir.**
@@ -609,7 +610,7 @@ flowchart LR
 | Yeniden adlandırmanın kaynak ve hedef yazması ve geri alması | Tek taşıma koordinasyonu |
 | Yeniden adlandırmanın bağlantı güncellemeleri | Dosya başına değiştirme koordinasyonu |
 | Taşıma bildirimi | Sınırın içinden: taşımadan hemen önce `item(at:willMoveTo:)`, yalnız başarılı taşımadan sonra `item(at:didMoveTo:)` |
-| Gün kopyası birleştirme | Tek `.move(kopya → gün)` sınırı |
+| Gün kopyası birleştirme | Gün dosyası varsa tek `.merge(kopya → gün)` sınırı. Gün dosyası yoksa tek `.move(kopya → gün)` sınırı. Gün dosyası `.merge` içinde yok olursa taşıma aynı sınırda yapılır |
 
 Taşıma bildirimi sınırın içinden gider, çünkü `NSFileCoordinator` dosya sunucularına bu bildirimi aynı koordineli bloktan ister. İndeks güncellemesi yazmayla aynı sınırdadır. Bu yüzden `VaultIndex` ve `VaultStore`'a verilen dosya okuyucuları koordinasyon başlatmaz.
 
@@ -863,6 +864,8 @@ flowchart TD
 
 `refresh(vaultRoot:)` boş indekste tam kurulum yolunu kullanır. `refresh` ve `update` tip id imzası değişince aynı yolu kullanır; sonuç `rebuild` ile aynıdır. `update(paths:vaultRoot:)` bildirilen NFC kasa içi dosyalarla ve dizinlerle hem taramayı hem içeriği sınırlar. Silinen yollar gerçekten dolaşılan kapsamın alt kümesidir. Ayrıştırma ve indeks yazımı artımlıdır. Güncelleme kapsam dışı `files` satırlarına dokunmaz; `skippedPaths` yalnız tarama kapsamında görülenleri bildirir.
 
+Birleşmiş gün dosyası belirlenimci zaman taşır; aynı boyutlu farklı içerik artımlı taramada atlanabilir. B5 bağlaması (yol haritasında açık) birleştirme sonrası dosyayı zorla yeniden okuyacaktır. Core sonucu `dayFileChanged` alanıyla gün dosyasının yazıldığını ya da taşındığını bildirir.
+
 Güncelleme değişen yolların dosya adı ve yol anahtarlarına sahip bağlantıları yeniden çözer. Çözülmüş yinelenen adlar ve yeni içerikteki bağlantılar da bu kümeye girer; `name` ve `aliases` varlık araması içindir. Güncelleme eski ve yeni blok kimliklerinin sahipliğini yol ve dosya içi sıra üzerinden yeniden hesaplar. Hata tüm değişiklikleri geri alır. Ortak `RebuildResult` eklenen, güncellenen ve silinen NFC yolları ve kapsamda atlanan fiziksel yolları bildirir.
 
 ### Dosya başına okuma ve bildirim kapsamı
@@ -918,14 +921,14 @@ flowchart TD
 sequenceDiagram
   participant A as Çağıran
   participant V as VaultStore
-  participant C as Koordinasyon: move kopya → gün
+  participant C as Koordinasyon: gün varsa merge, yoksa move
   participant D as Disk
   participant I as VaultIndex
   A->>V: mergingDayCopy(_:)
   V->>C: tek sınır başlat
   alt kopya ya da gün dosyası yer tutucu
     C-->>A: awaitingDownload
-  else gün dosyası yok
+  else gün dosyası yok ya da merge sınırında yok oldu
     C->>D: kopyayı gün adına taşı, taşıma bildirimiyle
     C->>I: indeksi güncelle
   else gün dosyası var
@@ -933,6 +936,7 @@ sequenceDiagram
     C->>C: ConflictMerge
     C->>D: saklanacak sürümleri conflicts/ altına dışlayıcı yaz
     C->>D: gün dosyasını atomik değiştir
+    C->>D: gün dosyasına büyük zamanı artı 1 saniyeyi ver
     C->>D: kopyayı en son sil
     C->>I: indeksi güncelle
   end
@@ -940,7 +944,9 @@ sequenceDiagram
   V-->>A: DayCopyMergeOutcome
 ```
 
-`VaultStore.mergingDayCopy(_:)` bir kopyayı tek `.move(kopya → gün)` koordinasyon sınırında birleştirir. İki dosyayı yazmak için tutan tek niyet budur; silme niyeti tek URL'lidir. Gün dosyası değişmeden önceki her hata, o çağrının yazdığı çakışma kopyalarını geri alır. Yalnız silme başarısızsa gün dosyası birleşmiş kalır. Sonraki çağrı aynı içeriğe varır ve kopyayı siler. App bağlantısı sonraki dilimdir: taramadan sonra kopyaları sırayla birleştirme ve sonucu kullanıcıya gösterme.
+`VaultStore.mergingDayCopy(_:)` gün dosyası varsa kopyayı tek `.merge(kopya → gün)` sınırında birleştirir. Gün dosyası yoksa kopyayı tek `.move(kopya → gün)` sınırında gün adına taşır. `VaultStore` taşıma sınırını seçtikten sonra gün dosyası oluşursa `VaultStore` taşıma sınırını değişiklik yapmadan bitirir. Sonra kopyayı yeni bir `.merge` sınırında birleştirir. Gün dosyası `.merge` sınırı içinde yok olursa kopyayı aynı sınırda gün adına taşır.
+
+Gün dosyası değişmeden önceki her hata, o çağrının yazdığı çakışma kopyalarını geri alır. Yalnız zaman verme ya da silme başarısızsa gün dosyası birleşmiş kalır. Sonraki çağrı aynı içeriğe varır ve kopyayı siler. App bağlantısı sonraki dilimdir: taramadan sonra kopyaları sırayla birleştirme ve sonucu kullanıcıya gösterme.
 
 ### Hedeflenen davranış
 

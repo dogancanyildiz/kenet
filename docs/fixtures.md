@@ -1073,7 +1073,7 @@ Kasa 20 Eylül'ü 4 yılda taşır. 2023 bağlantısızdır: not bağlantısı, 
 | `backlinks` | 5 | Bu güne bağlananlar sorgusu | `DayBacklinksTests` |
 | `typed` | 4 | Özel kitap tipi; ayrıntı [`entity-types/` kümesi](#entity-types-kümesi) bölümünde | `entity-types/` |
 | `placeholder` | 12 | İndirilmeyi bekleyen yer tutucular | `PlaceholderTests` |
-| `day-copies` | 33 | Gün kopyası birleştirme | `DayCopyTests` |
+| `day-copies` | 41 | Gün kopyası birleştirme | `DayCopyTests` |
 | `rhythm` | 16 | Özetler'in yıl, süren dönem ve ritim hesabı | `summaries/period-rhythm.json` |
 
 **Şema, `vaults/sample/` kasasının klasörlerini ve dosya sayılarını gösterir.**
@@ -1136,6 +1136,8 @@ flowchart TD
   D4["2026-10-04: aynı baytlar"] --> R4["identical: kopya silinir"]
   D5["2026-10-05: eski kopya UTF-8 değil"] --> R5["Kopya bayt bayt saklanır, ana dosya değişmez"]
   D6["Kopya olmayan benzer adlar"] --> R6["Sıradan not; hiç değişmez"]
+  D7["2026-10-08: gün kopyadan yeni"] --> R7["Gün yine yazılır; zaman max+1 sn"]
+  D8["three-versions: gün, kopya 2, kopya 3"] --> R8["2→3 ve 3→2 aynı gün dosyası"]
 ```
 
 **Gün kopyası**, iCloud'un `journal/` içinde bir gün dosyasının yanına ayırdığı `2026-10-02 2.md` biçimindeki dosyadır. `source/` başlangıç kasası, `expected/` bütün kopyalar sırayla birleştikten sonraki kasanın tamamıdır. `cases.json` değişiklik zamanlarını, beklenen `dayCopies` sırasını, indekslenen yolları ve her kopyanın sonucunu taşır. Sonuç `renamed`, `identical` ya da `merged`, saklanan sürüm yolları ve `fellBack` değeridir. Zamanlar UTC saniyesidir; test zamanları kasanın geçici kopyasına uygular.
@@ -1156,6 +1158,8 @@ flowchart TD
 | `2026-10-03 2.md` | Ana dosya yok; kopya onun adını ve değişiklik zamanını alır. |
 | `2026-10-04` | İki sürüm bayt bayt aynı; kopya silinir, `conflicts/` yazılmaz. |
 | `2026-10-05` | Eski kopya UTF-8 olarak çözülemez ve salt okunurdur. Ana dosya değişmez; kopya bayt bayt saklanır. |
+| `2026-10-08` | Gün kopyadan yenidir. Kopya ayrı bir olay getirir; gün yazılır ve günün zamanı artı 1 saniyeyi alır. |
+| `three-versions/` | X/Y/Z aynı olayı değiştirir. `source/` üç sürümü, `expected.md` beklenen günü taşır. `case.json` zamanları, iki sırayı ve her sıranın beklenen `conflicts/` adlarını taşır. İki sıra bu örnekte aynı günü üretir. |
 | Benzer adlar | `2026-10-02 2 2.md`, `2026-10-02-2.md`, `2026-10-02 02.md`, `2026-13-40 2.md`, `journal/eski/…`, `notes/…` sıradan not olarak indekse girer ve hiçbir aşamada değişmez. |
 
 Kopya olmayan benzer adlar (`2026-10-02 2 2.md`, `2026-10-02-2.md`, `2026-10-02 02.md`, `2026-13-40 2.md`, `journal/eski/…`, `notes/…`) sıradan not olarak indekse girer ve değişmez. `names.json` saf ad kuralının tablosudur: yol, gün (kopya değilse `null`) ve `mergeOrder`. Tablo ayrışmış (NFD) işaret, tam genişlikli ve Arap-Hint rakamlı, bölünmez boşluklu, büyük harfli klasörlü, yer tutucu ve alt klasör adlarını kopya saymaz. Git ayrışmış adları birleşik biçime döndürür; bu yüzden test o dosyaları geçici kasada oluşturur. `expected/` klasörünü birleştirme kodu üretti; fixture yazarı kuralları elle uygulayıp her dosyayı doğruladı. Testler her adımda gün dosyasını ve `conflicts/` dosyasını `ConflictMerge` sonucuyla karşılaştırır.

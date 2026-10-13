@@ -1,6 +1,7 @@
 import Foundation
 import Testing
 import VaultFormat
+import VaultIndex
 import VaultStore
 
 @testable import Journal
@@ -11,13 +12,14 @@ import VaultStore
 /// a following coordinated read of the destination reaches the presenter only after it.
 struct SystemFileCoordinationTests {
     enum Intent: String, CaseIterable, Sendable {
-        case read, modify, move, delete
+        case read, modify, move, merge, delete
 
         func operation(_ file: URL, _ destination: URL) -> FileCoordinationOperation {
             switch self {
             case .read: .read(file)
             case .modify: .modify(file)
             case .move: .move(source: file, destination: destination)
+            case .merge: .merge(source: file, into: destination)
             case .delete: .delete(file)
             }
         }
@@ -27,7 +29,7 @@ struct SystemFileCoordinationTests {
             switch self {
             case .read: ["toReader", "save"]
             case .modify, .move: ["toWriter", "save"]
-            case .delete: ["toWriter", "deletion"]
+            case .merge, .delete: ["toWriter", "deletion"]
             }
         }
     }
@@ -60,6 +62,9 @@ struct SystemFileCoordinationTests {
                 access.itemWillMove(from: file, to: destination)
                 try FileManager.default.moveItem(at: file, to: destination)
                 access.itemDidMove(from: file, to: destination)
+            case .merge:
+                try Data(contentsOf: file).write(to: destination)
+                try FileManager.default.removeItem(at: file)
             case .delete: try FileManager.default.removeItem(at: file)
             }
             return 42
@@ -72,7 +77,7 @@ struct SystemFileCoordinationTests {
         switch intent {
         case .read: #expect(read == Data("önce\n".utf8))
         case .modify: #expect(try Data(contentsOf: file) == Data("sonra\n".utf8))
-        case .move:
+        case .move, .merge:
             #expect(!FileManager.default.fileExists(atPath: file.path))
             #expect(try Data(contentsOf: destination) == Data("önce\n".utf8))
         case .delete: #expect(!FileManager.default.fileExists(atPath: file.path))
@@ -139,6 +144,60 @@ struct SystemFileCoordinationTests {
         #expect(presenter.moves.map(Self.canonical) == [Self.canonical(destination)])
         let moved = try #require(events.firstIndex(of: "moved"))
         #expect(events[moved...].contains("toReader"))
+    }
+
+    /// A merge holds both files: the target's presenter saves before the accessor reads it, the
+    /// source's presenter gives way to the source's deletion and is never asked to save.
+    @Test func aMergeLetsTheTargetSaveAndTheSourceGiveWay() throws {
+        let directory = try testDirectory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let source = directory.appendingPathComponent("a 2.md")
+        let target = directory.appendingPathComponent("a.md")
+        try Data("kopya\n".utf8).write(to: source)
+        try Data("gün\n".utf8).write(to: target)
+        let sourceProbe = PresenterProbe(source)
+        defer { sourceProbe.remove() }
+        let targetProbe = PresenterProbe(target)
+        defer { targetProbe.remove() }
+        var seen: (source: [String], target: [String]) = ([], [])
+
+        try SystemFileCoordination().coordinate(.merge(source: source, into: target)) { _ in
+            seen = (sourceProbe.events, targetProbe.events)
+        }
+
+        #expect(Set(seen.source) == ["toWriter", "deletion"])
+        #expect(Set(seen.target) == ["toWriter", "save"])
+    }
+
+    /// Core merges a day copy under `.merge(copy into day)`: an editor presenting the day file saves
+    /// before the merge reads it, and the copy's editor gives way to its deletion.
+    @Test func aDayCopyMergeLetsTheDayEditorSaveFirst() async throws {
+        let root = try testDirectory()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let journal = root.appendingPathComponent("journal")
+        try FileManager.default.createDirectory(at: journal, withIntermediateDirectories: true)
+        let day = journal.appendingPathComponent("2026-10-02.md")
+        let copy = journal.appendingPathComponent("2026-10-02 2.md")
+        let header = "---\ntype: journal\ndate: 2026-10-02\n---\n\n## Events\n"
+        try Data((header + "- 09:00 Kurgu toplantı ^k1\n").utf8).write(to: day)
+        try Data((header + "- 12:00 Kurgu yemek ^k2\n").utf8).write(to: copy)
+        let dayProbe = PresenterProbe(day)
+        defer { dayProbe.remove() }
+        let copyProbe = PresenterProbe(copy)
+        defer { copyProbe.remove() }
+        let index = try VaultIndex()
+        try index.rebuild(vaultRoot: root)
+        let store = VaultStore(vaultRoot: root, index: index, fileCoordination: SystemFileCoordination())
+
+        let outcome = try await store.mergingDayCopy("journal/2026-10-02 2.md")
+
+        #expect(outcome.kind == .merged)
+        #expect(Set(dayProbe.drain()) == ["toWriter", "save"])
+        #expect(Set(copyProbe.drain()).isSuperset(of: ["toWriter", "deletion"]))
+        #expect(!copyProbe.events.contains("save"))
+        #expect(!FileManager.default.fileExists(atPath: copy.path))
+        let merged = try String(contentsOf: day, encoding: .utf8)
+        #expect(merged.contains("^k1") && merged.contains("^k2"))
     }
 
     static func canonical(_ url: URL) -> String { url.resolvingSymlinksInPath().standardizedFileURL.path }

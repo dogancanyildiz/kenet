@@ -44,6 +44,15 @@ struct SystemFileCoordination: FileCoordination {
             ) { _, _ in
                 outcome = Result { try accessor(access) }
             }
+        case .merge(let source, let target):
+            // The source is read and then removed: its presenters give way to the deletion. The
+            // target is rewritten from its current bytes: its presenters save first.
+            coordinator.coordinate(
+                writingItemAt: source, options: .forDeleting, writingItemAt: target, options: .forMerging,
+                error: &denied
+            ) { _, _ in
+                outcome = Result { try accessor(access) }
+            }
         case .delete(let url):
             coordinator.coordinate(writingItemAt: url, options: .forDeleting, error: &denied) { _ in
                 outcome = Result { try accessor(access) }

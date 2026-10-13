@@ -29,7 +29,7 @@ timeline
         Aşama 6 Geri bildirim : Gerçek kullanım başlamadı
         Aşama 7 Genişleme : Ölçüt yok
     section Açık kutusu var
-        Aşama 8 Sağlamlaştırma : 27 kutu bitti : 2 kutu açık
+        Aşama 8 Sağlamlaştırma : 28 kutu bitti : 1 kutu açık
         Aşama 9 Tasarım dili : 9 kutu bitti : 1 kutu açık
         Aşama 10 Bağlam ve geri dönüş : 12 kutu bitti : 0 kutu açık
         Aşama 11 Kimlik, eşitleme ve widget'lar : Aktif aşama : Kimlik kararını bekliyor : 10 kutu açık
@@ -42,8 +42,8 @@ timeline
 
 ```mermaid
 pie title Kutular
-    "Bitti" : 96
-    "Açık" : 22
+    "Bitti" : 97
+    "Açık" : 21
 ```
 
 | İşaret | Anlamı |
@@ -103,7 +103,7 @@ flowchart LR
 
 | Grup | Kutu | Bitti | Açık |
 |---|---|---|---|
-| Doğruluk ve veri güvenliği | 11 | 9 | 2: kilidin cihaz doğrulaması, eşitlenen klasör uyarısı |
+| Doğruluk ve veri güvenliği | 11 | 10 | 1: kilidin cihaz doğrulaması |
 | Ölçek | 7 | 7 | 0 |
 | Veri sahipliği ve gizlilik | 3 | 3 | 0 |
 | Erişilebilirlik ve dil | 4 | 4 | 0 |
@@ -112,7 +112,6 @@ flowchart LR
 | Açık kutu | Durum |
 |---|---|
 | Uygulama kilidi, "Hemen" ayarı | Kod ve test `dev` dalında. Kalan iş: gerçek cihazda doğrulama. |
-| Eşitlenen klasör uyarısı | Tespit kodu var: `SyncedFolderKind`, #187. Kod arayüze bağlı değil. Uyarı metni kullanıcı kararıdır. Dosya koordinasyonu #189 ve #203 ile geldi. Çakışma yönetiminin kalanı Aşama 11'de açık. |
 
 Aşama 8 heyet incelemesinin bulgularını düzeltir. Her hata düzeltmesi hatayı yakalayan bir test ya da fixture getirir. Ölçümlerin hepsi Mac'te, 5 yıllık sentetik kasalarda koştu. Sentetik kasalar 2.300 ile 2.400 arası dosya taşır. iPhone'da ölçüm yok.
 
@@ -128,7 +127,7 @@ Doğruluk ve veri güvenliği:
 - [x] Yazma sırası: uygulama meşgulken gelen yazmayı sıraya alır. Enter tuşu kaybolmaz. Yanlış "dosya dışarıdan değişti" hatası çıkmaz.
 - [ ] Uygulama kilidi: "Hemen" ayarında başarılı doğrulamadan sonra uygulama kendini yeniden kilitlemez. Kullanıcı davranışı gerçek cihazda doğrular.
 - [x] Kasa denetimleri: uygulama her yazmada kasa format sürümünü denetler. Kasa hazırlama harf farkı olan klasör adını bildirir, örneğin `Journal/`. Ön bilgideki boş liste öğesi yeniden adlandırmayı durdurmaz.
-- [ ] Eşitlenen klasör uyarısı: kullanıcı eşitlenen bir klasörü kasa seçerse uygulama uyarı gösterir. Örnek: iCloud Drive.
+- [x] Eşitlenen klasör uyarısı: kullanıcı eşitlenen bir klasörü kasa seçerse uygulama bilgi bandı gösterir. Örnek: iCloud Drive.
 
 Ölçek:
 
@@ -218,7 +217,7 @@ Aşama 10 sektör taramasından çıkan ilk dalgadır. Maddeler kimlik kararı g
 - [x] Kişi başına görüşme ritmi, erteleme ve duraklatma; isteğe bağlı, günlük tavanı olan hatırlatma.
 - [x] Var olan giriş yollarını ilk kullanımda ve Ayarlar'da gösterme. Giriş yolları: Eylem düğmesi ve Siri cümleleri.
 - [x] Hızlı giriş vurgusu: uygulama tanıdığı tarih, öncelik, tekrar ve adları kutunun üstünde çiple gösterir. Kullanıcı çipe dokununca uygulama ayrıştırmayı geri alır. Kutu içi vurgu yoktur.
-- [x] Zincir affı: tek başına kalan kaçırma zinciri kırmaz; yumuşak ilerleme skoru. Dinlenme günü yok. Kural karar günlüğünde, 2026-10-11 tarihli.
+- [x] Zincir affı: önceki iki günü ve sonraki günü yapılmış kaçırma zinciri kırmaz; yumuşak ilerleme skoru. Dinlenme günü yok. Kural karar günlüğünde, 2026-10-11 tarihli.
 - [x] Suçlamasız taşıma ve iki dakikalık "günü kapat". Taşıma seçenekleri: bugüne, yarına, haftaya.
 - [x] İsteğe bağlı haftalık inceleme; kullanıcı incelemeyi atlayabilir. İncelemenin çıktısı günlük yazısına düşer.
 - [x] Rehberden kişi aktarma: kullanıcının seçtiği kişileri tek yönlü ve bir kez içe aktarma.
@@ -231,7 +230,7 @@ Aşama 10 sektör taramasından çıkan ilk dalgadır. Maddeler kimlik kararı g
 | Madde | Durum | Kanıt |
 |---|---|---|
 | Kasa konumu | Açık. Kimlik kararını bekliyor. Yerel kasa ve klasör seçimi hazır. | - |
-| Eşitlenen kasada güvenli yazma | Açık. Hazır: Core koordinasyon sınırı; App'te `NSFileCoordinator` ve okuma kuyruğu; eşitlenen klasör tespiti; yer tutucu tespiti; Core'da gün kopyası birleştirme. Açık: indirme isteği, birleştirmeyi App'e bağlama, `NSFileVersion` çakışmaları, eşitleme göstergesi. İndirme isteği cihaz doğrulamasını, birleştirme kullanıcı kararını bekliyor. | #187, #189, #200, #203, #206, #207 |
+| Eşitlenen kasada güvenli yazma | Açık. Hazır: Core koordinasyon sınırı ve `.merge` niyeti; App'te `NSFileCoordinator` ve okuma kuyruğu; eşitlenen klasör tespiti ve bandı; yer tutucu tespiti; Core'da gün kopyası birleştirme ve belirlenimci zaman kuralı; kopya dosyalar Tanılama'da. Açık: indirme isteği, birleştirmeyi App'e bağlama, `NSFileVersion` çakışmaları, eşitleme göstergesi. İndirme isteği cihaz doğrulamasını, birleştirme iki cihazda denemeyi bekliyor. | #187, #189, #200, #203, #206, #207, #234, #238 |
 | Ana ekran widget'ı | Açık. App Group kararını bekliyor. | - |
 | Ekranlar kendi sorgusunu çalıştırır | Açık. Bütün ekranlar, bildirim planlayıcı ve proje listeleri kendi sorgusunu çalıştırıyor. Okuma modelinden `days`, `tasks`, `projects` ve `goalStatuses` çıktı; parçalar blok metni taşımıyor. 5 yıllık kasada okuma modeli 10,8 MB'tan 2,35 MB'a, yeniden türetme 1.640 ms'den 50 ms'ye indi. Kalan: `entities`, `goals`, `goalLogs`; widget App Group kararını bekliyor. | #192, #201, #205, #208, #210, #211, #212, #214, #225 |
 | Widget yenilemesinin testi | Açık | - |
@@ -289,7 +288,7 @@ flowchart LR
 
 | Madde | Durum | Kanıt |
 |---|---|---|
-| Duo kabuğu, bugünkü SDK | Açık. Sürüyor: uyarlanır kabuk ve görüntü altyapısı. Sırada: durum köprüsü ve taslak koruma, krom ve dokunma, güvenli alan, sheet ve panel, belgeler. | - |
+| Duo kabuğu, bugünkü SDK | Açık. Bitti: uyarlanır kabuk, boyut sınıfıyla görüntü altyapısı. Sürüyor: durum köprüsü ve taslak koruma, krom ve dokunma, güvenli alan, sheet ve panel. Sırada: belgeler. | #233, #236 |
 | Duo iOS 27.1 API uyarlaması | Açık. Xcode 27.1'in iOS 27.1 SDK ile çıkmasını bekliyor. | - |
 | CI geçişi ve Duo kümeleri | Açık. Runner imajında Xcode 27.1'i bekliyor. | - |
 | iPad karma kabuk | Açık. Duo işinden sonra. | - |

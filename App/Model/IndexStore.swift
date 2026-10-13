@@ -1257,7 +1257,8 @@ extension IndexStore {
     func computeCopyFiles() async throws -> [CopyFile] {
         guard let root = vaultURL else { return [] }
         return try await taskQuery([]) { index in
-            ((try? VaultIndex.dayCopies(vaultRoot: root)) ?? []) + index.entityCopies()
+            let dayCopies = (try? VaultIndex.dayCopies(vaultRoot: root)) ?? []
+            return try dayCopies + index.entityCopies()
         }
     }
 }

@@ -82,7 +82,7 @@ Harita konuları gösterir; satırların tam metni karar günlüğündedir. Bir 
 
 ```mermaid
 timeline
-    title Karar takvimi, 227 karar
+    title Karar takvimi, 231 karar
     2026-10-02 : 58 karar : Ürün kapsamı ve platform : Kasa biçimi ve ayrıştırıcı : Git, sürüm ve CI
     2026-10-03 : 19 karar : Yazma doğrulaması : İndeks ve arama : Varlık sayfası ve hızlı giriş
     2026-10-04 : 31 karar : Birleştirme ve kayıp yok : VaultStore ve dosya izleme : Görev, hedef ve otomasyon : Özet, graph ve harita
@@ -92,10 +92,10 @@ timeline
     2026-10-08 : 12 karar : Mac sütunları ve kenar çubuğu : Mac sheet ve Ayarlar : Test kimliği : Günlük kaydı temizliği
     2026-10-11 : 27 karar : Aşama 10 geçişi : Önemli tarihler ve bu gün geçmişte : Görüşme ritmi : Günü kapat : İndeks şeması 7
     2026-10-12 : 14 karar : Okuma modelinden sorguya : Ad çipi ve rakam ad : Yer tutucu ve gün kopyası : TestFlight denetimi
-    2026-10-13 : 34 karar : Hedef ve görev sorguları : Özetler yeniden tasarımı : Aşama 10'un açık soruları : iPad ve iPhone Duo : Aşama 13 : Zincir affı B : Eşitlenen klasör ve kopya dosyalar : Birleşmiş gün zamanı : Duo kabuğu ve tuvalleri
+    2026-10-13 : 38 karar : Hedef ve görev sorguları : Özetler yeniden tasarımı : Aşama 10'un açık soruları : iPad ve iPhone Duo : Aşama 13 : Zincir affı B : Eşitlenen klasör ve kopya dosyalar : Birleşmiş gün zamanı : Duo kabuğu ve tuvalleri : Duo güvenli alan, krom ve köprü
 ```
 
-Sayılar karar günlüğündeki satır sayısıdır. Toplam 227 satırdır.
+Sayılar karar günlüğündeki satır sayısıdır. Toplam 231 satırdır.
 
 ## Karar günlüğü
 
@@ -330,6 +330,10 @@ Sayılar karar günlüğündeki satır sayısıdır. Toplam 227 satırdır.
 | 2026-10-13 | Birleşmiş gün dosyasının değişiklik zamanı 2 sürümün büyük zamanı artı 1 saniyedir; gün dosyası değişmezse ya da kopya taşınırsa zaman değişmez | Yazma anı 3. sürümden yeni olabilir ve en yeni düzenleme `conflicts/`'a düşer; kararlılık kuralı sağlanır. Yakınsama iki cihazın kopyaları aynı numara sırasıyla birleştirmesine ve her sürümün kendi zamanıyla gelmesine bağlıdır. Eşit saniyeli sürümler ya da sıra dışı gelen kopya farklı gün dosyası üretebilir; içerik `conflicts/` altında kalır, kayıp olmaz |
 | 2026-10-13 | Gün dosyası varken gün kopyası birleştirmesi `.merge(source: kopya, into: gün)` niyetiyle koordine edilir: App'te kopya `.forDeleting`, gün `.forMerging`; gün yoksa `.move` kalır | Gündeki düzenleyici okumadan önce kaydetmeli (`.forReplacing` kaydettirmez); kopya okunup silinir. `.move` seçildikten sonra gün oluşursa birleştirme yeni `.merge` sınırında yapılır |
 | 2026-10-13 | Birleşmiş gün dosyasının belirlenimci zamanı artımlı taramada aynı zamanlı, aynı boyutlu farklı içeriğin atlanmasına yol açabilir; B5 bağlaması zorla yeniden okur | Dosya sağlam kalır; indeks bayat kalabilir. Core sonucu `dayFileChanged` alanıyla gün dosyasının yazıldığını ya da taşındığını bildirir |
+| 2026-10-13 | iPhone Duo dış ekranı yalnız dikey ve cihaz ailesi 1 kalır; iç ekran yön kilidini yok sayar. Sayfa zemini güvenli alanın dışına uzanır, içerik güvenli alanda kalır. | Kullanıcı kararı 42 “hayır”; kamera ve menteşe için asimetrik güvenli alanı korumak. |
+| 2026-10-13 | Bölünmüş iOS kabuğunda görev satırının dokunuşu listenin seçimine gider, kutu tamamlar; Bugün sistem çubuğunu telefonda olduğu gibi gizler ve manşet satırı tek çubuktur; detent sheet'leri form sheet olur (480×360 / 520×480); Kanban ayrıntısı pano yanında 240 pt sütun kaldığı sürece (≥ 612 pt) 340 pt panel, altında sheet | İç ekran liste/ayrıntı rolünü Mac gibi taşır; boş çubuk ve sıfır yükseklikli sheet gövdesi önlenir; telefon ve Mac yolları değişmez |
+| 2026-10-13 | iOS kabuk durumu `AdaptiveNavigation` üstünde tek `ShellNavigationState` nesnesidir: sekme ile bölüm tek seçimdir, sekme yolları, Ayarlar ve günlük editörü sheet'leri, hızlı giriş ve günlük taslakları (yalnız bellek) ve işlenmiş Siri/bildirim istek kimlikleri burada durur; sayfalar taslağı ortamdan alır. | iPhone Duo açılıp kapanınca kabuk yeniden kurulur: taslak kaybı veri kaybıdır, eski istek yeniden işlenince seçim siliniyordu. Mac ve öteki iPhone'larda tek kabuk olduğundan davranış değişmez. |
+| 2026-10-13 | Mac'te günlük editöründen kaydedilmemiş metinle çıkılınca metin köprüde kalır ve aynı gün yeniden açılınca döner; temiz çıkışta model bırakılır. Köprü taslakları kasaya aittir: başka kasa seçilince düşer. | Eski kod kenar çubuğuyla çıkışta metni kaybediyordu; veri kaybıdır. Kasa A'nın kaydedilmemiş metni kasa B'nin sayfasında görünmemeli. |
 
 Satır sırası ekleme sırasıdır; tablonun ilk satırları tarih sırasında değildir. Sonradan değişen bir kararın gerekçe hücresi değişikliği tarihiyle anar. Güncel durum notları kararın verildiği günden sonraki gerçek durumu söyler.
 

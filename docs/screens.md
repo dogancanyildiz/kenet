@@ -499,7 +499,7 @@ flowchart TD
 | Süren dönem farkı | Süren dönemde uygulama önceki dönemi aynı tarihe kadar sayar. Etiket bunu söyler: "geçen yılın aynı tarihine göre +12". |
 | Kişiler ve Konumlar | İlk 5 kişi ve konum ad çipidir. Çipte geçiş sayısı durur. Çip varlığın kendi ekranını açar. Sıra geçiş sayısına göre azalandır. Eşitlikte ad, sonra yol sırası geçerlidir. |
 | İlk kez işareti | Dönemde ilk kez geçen adın çipinde yıldız işareti durur. Bölümün altındaki "İlk kez:" satırı bu adları sayar. İlk 5'in dışındaki adlar da satırdadır. Satır en çok 10 ad gösterir, kalanı sayıyla söyler: "ve 3 kişi daha". |
-| Hedefler | Hedefler ekranındaki satır: halka, ad, değer, ilerleme çubuğu. Hafta ve ayda günlük hedefin günleri tek satır ısı haritası hücresidir. |
+| Hedefler | Hedefler ekranındaki satır: halka, ad, değer, ilerleme çubuğu. Değer süren dönemde bugüne kadar sayılır. Hafta ve ayda günlük hedefin günleri tek satır ısı haritası hücresidir. |
 | Hedef farkı | Satırın altında küçük yazı: "önceki haftaya göre +12 sayfa · zincir +2". Uygulama yalnız sıfır olmayan farkı yazar. İki fark da sıfırsa satır yoktur. Kilometre taşında fark yoktur; yıllık hedefte zincir farkı yoktur. |
 | Görevler | "N görev oluşturuldu" ve fark. Altında tek yığılı çubuk durur: tamamlanan, devreden, tarihsiz açık. Her parçanın sayısı açıklamada yazar. |
 | Sıfır bölüm | Sayısı sıfır olan bölümü uygulama çizmez. |
@@ -523,9 +523,9 @@ flowchart LR
 |---|---|
 | Süren dönem | Dönem bugünü içerir ve son günü bugünden sonradır. Bugün dönemin son günüyse dönem süren dönem değildir. |
 | Aynı tarih | Önceki haftanın aynı günü, önceki ayın aynı tarihi, önceki yılın aynı tarihi. Önceki ayda o tarih yoksa ayın son günü geçerlidir: 31 Mart'ın karşılığı 28 Şubat'tır. |
-| Ölçülen günler | Süren dönemde sayılar, ilk 5, ilk kez geçenler, ritim ve açık envanter bugünde biter. Bugünden sonraki gün dosyaları sayıya girmez. |
+| Ölçülen günler | Süren dönemde sayılar, ilk 5, ilk kez geçenler, ritim, açık envanter ve hedef ilerlemesi bugünde biter. Bugünden sonraki gün dosyaları sayıya girmez. |
 | Artık gün | 29 Şubat'ın önceki yıldaki karşılığı 28 Şubat'tır. 1 Mart 2029'da süren yıl 60 günü 2028'in 61 günüyle karşılaştırır, çünkü 2028 yılı 29 Şubat'ı içerir. 30 Mart'ta süren ay 30 günü Şubat'ın bütün günleriyle karşılaştırır. |
-| Hedef ilerlemesi | Hedef satırının değeri ve çubuğu bütün dönemin hedefine göredir. Hedef farkı ölçülen günlerden gelir. |
+| Hedef ilerlemesi | Hedef satırının değeri ve çubuğu bütün dönemin hedefine göredir. Yapılan miktar süren dönemde bugüne kadar sayılır. Örnek: haftada 3 kez hedefinde pazartesi ve salı yapıldı, cuma dosyasında da bir kayıt var. Çarşamba günü satır 2/3 gösterir. Yıllık hedef ve kilometre taşı da bugünde biter. Hedef farkı ölçülen günlerden gelir. |
 | Ritimde önceki dönem | Arkadaki soluk çubuklar önceki dönemin bütün birimlerini gösterir. |
 | Başlamamış dönem | Bugünden sonraki dönemi Core bütün olarak sayar. Ekran bu döneme geçmez. |
 

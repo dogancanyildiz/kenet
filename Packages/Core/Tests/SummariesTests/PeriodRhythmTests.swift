@@ -236,10 +236,12 @@ struct PeriodRhythmTests {
                 let summary = PeriodSummary.compute(period: period, containing: day, data: data, today: day)
                 for goal in goals {
                     let shown = try #require(summary.goals.first { $0.definition.id == goal.definition.id })
-                    let expected = reference(goal, summary.range)
-                    #expect(shown.contribution == expected.0)
-                    if let target = expected.1 { #expect(shown.progress.target == target) }
+                    // Done ends at today like the counts; the target is the whole period's.
                     let measured = reference(goal, summary.measuredRange).0
+                    #expect(shown.contribution == measured)
+                    if let target = reference(goal, summary.range).1 {
+                        #expect(shown.progress.target == target && shown.progress.done == measured)
+                    }
                     let before = summary.previousMeasuredRange.map { reference(goal, $0).0 } ?? 0
                     #expect(shown.change == measured - before)
                 }

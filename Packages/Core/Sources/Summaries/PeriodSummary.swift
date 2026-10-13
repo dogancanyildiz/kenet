@@ -9,7 +9,10 @@ public struct SummaryEntityCount: Sendable, Equatable {
 }
 public struct SummaryGoal: Sendable {
     public let definition: GoalDefinition
+    /// Done over the measured days against the whole period's target: a running week of a "3 a week" goal
+    /// reads 2/3 on Wednesday, even when a day file of Friday already holds a third.
     public let progress: GoalAmount
+    /// What the measured days added.
     public let contribution: Double
     public let streak: Int
     public let change: Double
@@ -51,7 +54,7 @@ public struct PeriodSummary: Sendable {
             && counts.createdTasks == 0 && counts.completedTasks == 0 && goals.allSatisfy { $0.contribution == 0 }
     }
     /// `today` bounds a period that has started and not ended: counts run to `today` and the previous
-    /// period is counted to the same date. It also bounds the goal streak and score. Without `today`,
+    /// period is counted to the same date. It also bounds goal progress, streak and score. Without `today`,
     /// or for a period that has not started, the whole period is counted.
     public static func compute(
         period: SummaryPeriod, containing day: CalendarDate, data: SummaryInput, today: CalendarDate? = nil
@@ -78,22 +81,21 @@ public struct PeriodSummary: Sendable {
             places: leaders(data, kind: .place, counts: mentions, previous: oldMentions),
             goals: data.goals.map { goal in
                 let history = SummaryGoalHistory(goal)
-                let current = history.progress(in: range)
+                // Like the counts, progress ends at today while the period runs; the target stays the whole period's.
+                let current = history.progress(in: range, measured: measured)
                 let old = previousRange.map { history.progress(in: $0) }
                 let standing = goal.standing(in: range, ended: current.status, today: today)
                 // The period before has ended whenever this one has started; before that it follows today too.
                 let oldStreak = previousRange.flatMap { prior in
                     old.map { goal.standing(in: prior, ended: $0.status, today: today).streak }
                 }
-                // Like the counts, the change compares the measured days with the same days before.
-                let measuredContribution =
-                    measured == range ? current.contribution : history.contribution(in: measured)
+                // The change compares the measured days with the same days before.
                 let oldContribution =
                     previousMeasured == previousRange
                     ? old?.contribution : previousMeasured.map { history.contribution(in: $0) }
                 return SummaryGoal(
                     definition: goal.definition, progress: current.amount, contribution: current.contribution,
-                    streak: standing.streak, change: measuredContribution - (oldContribution ?? 0),
+                    streak: standing.streak, change: current.contribution - (oldContribution ?? 0),
                     streakChange: standing.streak - (oldStreak ?? 0),
                     score: standing.score, completionDate: current.status.completionDate,
                     // A year has no day row on the screen, so its marks are not computed.

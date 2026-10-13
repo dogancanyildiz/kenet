@@ -14,12 +14,15 @@ struct SummaryGoalHistory {
         days = byDay.keys.sorted()
     }
 
-    func progress(in range: ClosedRange<CalendarDate>) -> (
+    /// The target is the whole range's; what is done counts only the `measured` days, so in a running
+    /// period a log on a day file after today adds nothing yet.
+    func progress(in range: ClosedRange<CalendarDate>, measured: ClosedRange<CalendarDate>? = nil) -> (
         amount: GoalAmount, contribution: Double, status: GoalStatus
     ) {
         let definition = goal.definition
-        let status = GoalProgress.compute(definition: definition, logs: goal.logs, today: range.upperBound)
-        let contribution = contribution(in: range)
+        let measured = measured ?? range
+        let status = GoalProgress.compute(definition: definition, logs: goal.logs, today: measured.upperBound)
+        let contribution = contribution(in: measured)
         if definition.kind == .milestone || definition.period == .year {
             return (status.progress, contribution, status)
         }

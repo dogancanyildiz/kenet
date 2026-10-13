@@ -4,13 +4,13 @@
 
 **Kapsam:**
 
-- Aşama 0–12'nin maddeleri ve kutuları
+- Aşama 0–13'ün maddeleri ve kutuları
 - Gerçek kullanım ölçütleri ve kullanıcı kararı bekleyen konular
 - Sonraki fikirler
 
-**Aktif aşama:** 10
+**Aktif aşama:** 11
 
-Aşama 11'in kimlik gerektirmeyen dilimleri Aşama 10 ile birlikte yürür. Aşama 8 ve 9'un açık maddeleri kullanıcının elindedir: kilidin ve Bugün ekranının gerçek cihazda doğrulanması, eşitlenen klasör uyarısının metni.
+Aşama 11'in kimlik gerektirmeyen dilimleri bitti; kalan maddeler kimlik kararını ve cihaz denemesini bekler. Aşama 13'ün iPhone Duo dilimi bugünkü SDK ile Aşama 11'in bekleyen maddeleriyle birlikte yürür. Karar günlüğü bu sırayı 2026-10-13'te kaydetti. Aşama 8 ve 9'un açık maddeleri kullanıcının elindedir: kilidin ve Bugün ekranının gerçek cihazda doğrulanması.
 
 ## Genel durum
 
@@ -18,7 +18,7 @@ Aşama 11'in kimlik gerektirmeyen dilimleri Aşama 10 ile birlikte yürür. Aşa
 
 ```mermaid
 timeline
-    title Aşama durumları, 2026-10-12
+    title Aşama durumları, 2026-10-13
     section Teknik kapsam tamam
         Aşama 0 Temel : Çıkış ölçütü sağlandı
         Aşama 1 Günlük : Gerçek kullanım başlamadı
@@ -31,18 +31,19 @@ timeline
     section Açık kutusu var
         Aşama 8 Sağlamlaştırma : 27 kutu bitti : 2 kutu açık
         Aşama 9 Tasarım dili : 9 kutu bitti : 1 kutu açık
-        Aşama 10 Bağlam ve geri dönüş : Aktif aşama : 11 kutu bitti : 1 kutu açık
-        Aşama 11 Kimlik, eşitleme ve widget'lar : Kimlik gerektirmeyen dilimler sürüyor : 10 kutu açık
+        Aşama 10 Bağlam ve geri dönüş : 12 kutu bitti : 0 kutu açık
+        Aşama 11 Kimlik, eşitleme ve widget'lar : Aktif aşama : Kimlik kararını bekliyor : 10 kutu açık
+        Aşama 13 Uyarlanır düzen : iPhone Duo dilimi sürüyor : 5 kutu açık
     section Hazırlık sürüyor
         Aşama 12 Yayın : 4 kutu açık
 ```
 
-**113 kutunun durumu:**
+**118 kutunun durumu:**
 
 ```mermaid
 pie title Kutular
-    "Bitti" : 95
-    "Açık" : 18
+    "Bitti" : 96
+    "Açık" : 22
 ```
 
 | İşaret | Anlamı |
@@ -50,7 +51,7 @@ pie title Kutular
 | `[x]` | Kod `dev` dalında, testlerden ve CI'dan geçti. CI, sürekli bütünleştirme demektir. |
 | `[ ]` | Madde açık. Durum tablosu kalan işi söyler. |
 
-**Durum (2026-10-12).** Aşama 0–10'un kullanıcı kararı gerektirmeyen teknik maddeleri `dev` dalındadır. İlk sürüm `v0.9.0` `main` dalındadır. TestFlight'ta dahili test sürüyor. Aşamaların gerçek kullanım ölçütleri henüz ölçülmedi; "Gerçek kullanım ölçütleri" tablosu ölçütleri ayrıca izler.
+**Durum (2026-10-13).** Aşama 0–10'un teknik maddeleri `dev` dalındadır. İlk sürüm `v0.9.0` `main` dalındadır. TestFlight'ta dahili test sürüyor. Aşamaların gerçek kullanım ölçütleri henüz ölçülmedi; "Gerçek kullanım ölçütleri" tablosu ölçütleri ayrıca izler.
 
 Ekim 2026'da çok modelli bir heyet projeyi inceledi. Heyet 4 iş yaptı: kod ve mimari denetimi, ekran görüntülü kullanım gezisi, sektör taraması, tasarım dili araştırması. İnceleme gerçek hatalar, ölçek sorunları ve vaatle uyuşmayan yerler buldu. Bu nedenle heyetten sonraki ilk iş yeni özellik değil, sağlamlaştırmaydı. Aşama 8 ve sonraki aşamalar heyetin önerdiği sırayı izler; kullanıcı onayı kapsamı ve sırayı kesinleştirir.
 
@@ -81,20 +82,16 @@ flowchart LR
     K --> W[5 widget maddesi]
     K --> PU[Paylaşım uzantısı]
     K --> GP[Gizlilik politikası sayfası]
-    V[Kutu içi vurgu] --> A10[Aşama 10 son açık kutu]
-    U[Eşitlenen klasör uyarı metni] --> A8[Aşama 8 uyarı kutusu]
-    GK[Gün kopyası birleştirmesinin açılması] --> A11[Aşama 11 güvenli yazma kutusu]
+    GK[İki cihazda deneme, sonra gün kopyası birleştirmesinin açılması] --> A11[Aşama 11 güvenli yazma kutusu]
     GM[Gelir modeli] --> A12[Aşama 12 lisans ve gelir kutusu]
+    IP[iPad mağaza kaydı] --> A13[Aşama 13 iPad kutusu]
 ```
 
 | Karar | Neyi açar | Not |
 |---|---|---|
 | iCloud kapsayıcısı, App Group ve alan adı | iCloud kasası, widget'lar, kilit ekranı ve Denetim Merkezi girişleri, paylaşım uzantısı; alan adı mağaza sayfası için gerekir | Üyelik alındı. Ad "Kenet" ve bundle kimliği `com.dogancanyildiz.kenet` 2026-10-07'de karara bağlandı. TestFlight bu kararları beklemez. Kalıcı bundle kimliği koda girdi ve ilk yükleme yapıldı: #130. |
-| Zincir affında gün aşırı kaçırma | Zincir affı kuralının sınırı | Sektör taraması affeden zinciri destekliyor. İlk kural karar günlüğünde, 2026-10-11 tarihli ve kodda: #190. Kural tek başına kalan her kaçırmayı affeder. Açık soru: gün aşırı kaçıran kullanıcı da sınırsız af alır mı. |
-| Hızlı girişte kutu içi vurgu | Aşama 10'un son açık kutusu | Kod bugün yalnız kutunun üstünde çip gösterir. |
-| Eşitlenen klasör uyarı metni | Aşama 8'in uyarı kutusu | Tespit kodu hazır: `SyncedFolderKind`, #187. Metin ve gösterim kullanıcının kararıdır. |
-| Gün kopyasının kendiliğinden birleştirilmesi | Aşama 11'in güvenli yazma kutusu | Core birleştirme işlevi hazır: #206. Uygulama işlevi gerçek kasada çağırmaz. |
-| iPad düzeni | iPad'in mağaza kaydına girmesi | İlk sürüm yalnız iPhone içindir. Kararın tarihi 2026-10-07. Düzen tasarlanmadı. Öneri: iPad'i Mac oturduktan sonra ele al. |
+| Gün kopyasının kendiliğinden birleştirilmesi | Aşama 11'in güvenli yazma kutusu | Core birleştirme işlevi hazır: #206. Uygulama işlevi gerçek kasada çağırmaz. Kullanıcı iki cihazda bir hafta dener, sonra açılmasına karar verir: 2026-10-13. |
+| iPad mağaza kaydı | Aşama 13'ün iPad kutusu ve mağaza listesi | Düzen 2026-10-13'te karara bağlandı: karma kabuk. Release derlemesinde cihaz ailesi 1 kalır. Mağazada iPad desteği geri alınamaz. |
 | Gelir modeli | Aşama 12 | Lisans karara bağlandı: tüm hakları saklıdır. Sektör taraması bu kategoride reklamı önermiyor. |
 | Yapay zeka | Sonraki fikirler | Cihaz üstü model maliyetsiz bir seçenektir. Öneri: varsayılan kapalı. |
 
@@ -205,7 +202,7 @@ Kullanıcı tasarım yönünü seçti: Mürekkep, kullanıcının 2 değişikli�
 | Önemli tarihler | Bitti | #166, #170 |
 | Görüşme ritmi | Bitti | #179, #186 |
 | Giriş yollarını gösterme | Bitti | #165 |
-| Hızlı giriş vurgusu | Açık. Tarih, öncelik, tekrar ve adlar için kutunun üstünde çip ve geri alma var. Kutu içi vurgu kullanıcı kararını bekliyor. | #162, #169, #193 |
+| Hızlı giriş vurgusu | Bitti. Tarih, öncelik, tekrar ve adlar için kutunun üstünde çip ve geri alma var. Kutu içi vurgu yapılmaz; karar 2026-10-13. | #162, #169, #193 |
 | Zincir affı | Bitti | #190 |
 | Suçlamasız taşıma ve günü kapat | Bitti | #167, #177, #195, #199 |
 | Haftalık inceleme | Bitti | #182, #191 |
@@ -220,7 +217,7 @@ Aşama 10 sektör taramasından çıkan ilk dalgadır. Maddeler kimlik kararı g
 - [x] Önemli tarihler: kişi ve özel tip dosyalarındaki tarih alanlarından doğum günü ve yıl dönümü satırı.
 - [x] Kişi başına görüşme ritmi, erteleme ve duraklatma; isteğe bağlı, günlük tavanı olan hatırlatma.
 - [x] Var olan giriş yollarını ilk kullanımda ve Ayarlar'da gösterme. Giriş yolları: Eylem düğmesi ve Siri cümleleri.
-- [ ] Hızlı giriş vurgusu: uygulama tanıdığı tarih, öncelik, tekrar ve adları kutuda vurgular. Kullanıcı vurguya dokununca uygulama ayrıştırmayı geri alır.
+- [x] Hızlı giriş vurgusu: uygulama tanıdığı tarih, öncelik, tekrar ve adları kutunun üstünde çiple gösterir. Kullanıcı çipe dokununca uygulama ayrıştırmayı geri alır. Kutu içi vurgu yoktur.
 - [x] Zincir affı: tek başına kalan kaçırma zinciri kırmaz; yumuşak ilerleme skoru. Dinlenme günü yok. Kural karar günlüğünde, 2026-10-11 tarihli.
 - [x] Suçlamasız taşıma ve iki dakikalık "günü kapat". Taşıma seçenekleri: bugüne, yarına, haftaya.
 - [x] İsteğe bağlı haftalık inceleme; kullanıcı incelemeyi atlayabilir. İncelemenin çıktısı günlük yazısına düşer.
@@ -244,7 +241,7 @@ Aşama 10 sektör taramasından çıkan ilk dalgadır. Maddeler kimlik kararı g
 | Paylaşım uzantısı | Açık. App Group kararını bekliyor. | - |
 | Sistemin günlük önerileri | Açık | - |
 
-Kasa konumu ve widget'lar kimlik kararını bekler. Kimlik gerektirmeyen dilimler Aşama 10 ile birlikte yürür. Karar günlüğü bu sırayı 2026-10-12'de kaydetti.
+Kasa konumu ve widget'lar kimlik kararını bekler. Kimlik gerektirmeyen dilimler Aşama 10 ile birlikte yürüdü ve bitti. Karar günlüğü bu sırayı 2026-10-12'de kaydetti. Güvenli yazmanın kalanı kullanıcının cihaz denemesini bekler.
 
 - [ ] Kasa konumu: iCloud kapsayıcısı; yerel kasa yedek seçenek olarak kalır. Madde Aşama 0'dan devretti.
 - [ ] Eşitlenen kasada güvenli yazma: dosya koordinasyonu, cihaza inmemiş dosyalar, çakışan sürümleri tespit, birleştirme işlevini bağlama, kopya dosya kuralı, eşitleme durumu göstergesi.
@@ -274,6 +271,39 @@ Kasa konumu ve widget'lar kimlik kararını bekler. Kimlik gerektirmeyen dilimle
 - [ ] Mağaza sayfası: metinler, ekran görüntüleri, yaş derecelendirmesi.
 
 **Çıkış ölçütü:** İlk dış kullanıcı uygulamayı TestFlight'tan kurar ve kendi kasasını açar.
+
+## Aşama 13: Uyarlanır düzen
+
+**Aşamanın iki dilimi ve dış olaylara bağlı sırası:**
+
+```mermaid
+flowchart LR
+    K["Kararlar 2026-10-13"] --> D0["Duo: bugünkü SDK ile kabuk"]
+    X["Xcode 27.1, iOS 27.1 SDK"] --> D1["Duo: iOS 27.1 API uyarlaması"]
+    R["Runner imajında Xcode 27.1"] --> D2["CI geçişi ve Duo kümeleri"]
+    D0 --> D1
+    D1 --> D2
+    D2 --> IP["iPad: 3 sütun kademesi ve iPad biçimleri"]
+    M["iPad mağaza kaydı kararı"] --> IP
+```
+
+| Madde | Durum | Kanıt |
+|---|---|---|
+| Duo kabuğu, bugünkü SDK | Açık. Sürüyor: uyarlanır kabuk ve görüntü altyapısı. Sırada: durum köprüsü ve taslak koruma, krom ve dokunma, güvenli alan, sheet ve panel, belgeler. | - |
+| Duo iOS 27.1 API uyarlaması | Açık. Xcode 27.1'in iOS 27.1 SDK ile çıkmasını bekliyor. | - |
+| CI geçişi ve Duo kümeleri | Açık. Runner imajında Xcode 27.1'i bekliyor. | - |
+| iPad karma kabuk | Açık. Duo işinden sonra. | - |
+| iPad mağaza kaydı | Açık. Kullanıcı kararı. | - |
+
+iPhone Duo'nun dış ekranı sıkışık, iç ekranı düzenli × düzenli boyut sınıfındadır. Kabuk boyut sınıfına bakar; cihaz türüne bakmaz. Aynı kabuk iPad'de de çalışır; iPad yalnız 1000 pt üstü kademeyi ve cihaz ailesini ekler. Plan ve ölçüler kullanıcı raporlarındadır; repo yalnız kararları taşır.
+
+- [ ] Duo kabuğu, bugünkü SDK: düzenli × düzenli ekranda Mac biçimli kenar çubuğuyla bölünmüş kabuk; kabuk değişince seçim ve taslak korunur; satır dokunuşu ve manşet kabuğa göre; boyut sınıfıyla görüntü testleri; asimetrik güvenli alan; sheet ve panel düzenli genişlikte; belgeler.
+- [ ] Duo iOS 27.1 API uyarlaması: poz turu, hızlı giriş çubuğu için ayrılmış bölge, Bugün için düzenleme görünümü, bölmeye hizalı sütun, eş merkezli köşe, Kanban yarıları, yeniden boyutlanma denetimi. Kod CI geçişinden önce `dev`'e girmez.
+- [ ] CI geçişi ve Duo kümeleri: xcode-27 runner, simülatör seçicileri, Duo görüntü kümeleri, `testflight.sh` SDK denetimi, tur ve kayıt betikleri.
+- [ ] iPad karma kabuk: 1000 pt ve üstü pencerede 3 sütun, dar pencerede telefon düzeni, kenar çubuğu stili, Kanban ve zaman çizelgesi iPad biçimi, iPad görüntü ve arayüz testleri.
+- [ ] iPad mağaza kaydı: cihaz ailesine 2'nin eklenmesi ve mağaza listesi. Geri alınamaz; kullanıcı kararı.
+
+**Çıkış ölçütü:** Duo simülatöründe 4 pozda bütün ana ekranlar taslak kaybı olmadan çalışır. Var olan iPhone ve Mac görüntü referansları değişmeden geçer.
 
 ## Sonraki fikirler
 

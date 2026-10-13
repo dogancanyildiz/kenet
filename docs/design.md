@@ -687,7 +687,7 @@ Kutu `@ScaledMetric` ile büyür; dokunma alanı en az 44 pt kalır. Öncelik i�
 | Affedilen gün, katkısız | `forgiven` | Yok: çukur dolgu da yok | 2 pt kesik vurgu | "Affedildi" |
 | Affedilen gün, hedefin altında katkı | `forgivenPartial` | Çukur ve alttan %45 vurgu | 2 pt kesik vurgu | "Kısmi katkı, affedildi" |
 
-Affedilen gün yalnız günlük hedefte, tek başına kalan bir kaçırmadır. Kesik çizgi af işaretini bugünün kesiksiz çerçevesinden renge bağlı olmadan ayırır. Af çerçevesi boş hücrenin kontrol çizgisinden renk, kalınlık ve kesiklikle ayrışır. Kesik desen hücre boyuyla büyür: kenar başına 3 çizgi. Hücre köşesi sabit 2 pt'dir; `chipCorner` belirtecini kullanmaz.
+Affedilen gün yalnız günlük hedefte olur. Affedilen gün, önceki iki günü ve sonraki günü yapılmış bir kaçırmadır. Affedilen gün yapılmış gün sayılmaz; bu yüzden gün aşırı ikinci kaçırma affedilmez. Kesik çizgi af işaretini bugünün kesiksiz çerçevesinden renge bağlı olmadan ayırır. Af çerçevesi boş hücrenin kontrol çizgisinden renk, kalınlık ve kesiklikle ayrışır. Kesik desen hücre boyuyla büyür: kenar başına 3 çizgi. Hücre köşesi sabit 2 pt'dir; `chipCorner` belirtecini kullanmaz.
 
 ### Ritim şeridi ve yığılı çubuk
 

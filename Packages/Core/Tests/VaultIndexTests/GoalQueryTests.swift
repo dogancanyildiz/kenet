@@ -28,7 +28,8 @@ struct GoalQueryTests {
         let filtered = try index.goalLogs(key: "spor", from: CalendarDate("2026-09-21"), to: CalendarDate("2026-09-25"))
         #expect(filtered.map(\.date) == ["2026-09-21", "2026-09-23", "2026-09-25"])
         #expect(try index.goalLogs(from: CalendarDate("2026-09-27"), to: CalendarDate("2026-09-14")).isEmpty)
-        for (key, streak, longest, amount) in [("kitap", 8, 8, 320.0), ("su", 10, 10, 104.0)] {
+        // Su forgives 17 and 24 September. 19 September follows the forgiven 17th, so the chain starts on the 20th.
+        for (key, streak, longest, amount) in [("kitap", 8, 8, 320.0), ("su", 6, 6, 104.0)] {
             let definition = try #require(definitions.first { $0.key == key })
             let entries = try index.goalLogs(key: key).compactMap { GoalLog(indexed: $0) }
             let status = GoalProgress.compute(definition: definition, logs: entries, today: CalendarDate("2026-09-27")!)

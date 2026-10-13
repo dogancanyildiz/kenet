@@ -162,8 +162,8 @@
     "expected": {
       "done": 0,
       "target": 1,
-      "streak": 2,
-      "longestStreak": 2,
+      "streak": 1,
+      "longestStreak": 1,
       "isPendingToday": true,
       "score": 66,
       "yearDone": 2,
@@ -200,7 +200,7 @@
     "expected": {
       "done": 0,
       "target": 1,
-      "streak": 1,
+      "streak": 0,
       "longestStreak": 1,
       "isPendingToday": true,
       "score": 50,
@@ -611,8 +611,8 @@
     "expected": {
       "done": 20,
       "target": 20,
-      "streak": 2,
-      "longestStreak": 2,
+      "streak": 1,
+      "longestStreak": 1,
       "isPendingToday": false,
       "score": 66,
       "yearDone": 40,
@@ -1600,8 +1600,8 @@
     "expected": {
       "done": 1,
       "target": 1,
-      "streak": 2,
-      "longestStreak": 2,
+      "streak": 1,
+      "longestStreak": 1,
       "isPendingToday": false,
       "score": 66,
       "yearDone": 2,
@@ -1609,7 +1609,7 @@
       "periodEnd": "2026-10-07",
       "heatmap": {
         "2026-10-05": "full",
-        "2026-10-06": "forgiven",
+        "2026-10-06": "none",
         "2026-10-07": "full"
       }
     }
@@ -1701,8 +1701,8 @@
     "expected": {
       "done": 1,
       "target": 1,
-      "streak": 3,
-      "longestStreak": 3,
+      "streak": 1,
+      "longestStreak": 1,
       "isPendingToday": false,
       "score": 60,
       "yearDone": 3,
@@ -1710,9 +1710,9 @@
       "periodEnd": "2026-10-09",
       "heatmap": {
         "2026-10-05": "full",
-        "2026-10-06": "forgiven",
+        "2026-10-06": "none",
         "2026-10-07": "full",
-        "2026-10-08": "forgiven",
+        "2026-10-08": "none",
         "2026-10-09": "full"
       }
     }
@@ -1743,7 +1743,7 @@
     "expected": {
       "done": 0,
       "target": 1,
-      "streak": 1,
+      "streak": 0,
       "longestStreak": 1,
       "isPendingToday": true,
       "score": 50,
@@ -1769,6 +1769,10 @@
     },
     "logs": [
       {
+        "day": "2026-10-04",
+        "value": true
+      },
+      {
         "day": "2026-10-05",
         "value": true
       },
@@ -1782,19 +1786,20 @@
       }
     ],
     "today": "2026-10-07",
-    "heatmapFrom": "2026-10-05",
+    "heatmapFrom": "2026-10-04",
     "heatmapTo": "2026-10-07",
     "expected": {
       "done": 1,
       "target": 1,
-      "streak": 2,
-      "longestStreak": 2,
+      "streak": 3,
+      "longestStreak": 3,
       "isPendingToday": false,
-      "score": 66,
-      "yearDone": 2,
+      "score": 75,
+      "yearDone": 3,
       "periodStart": "2026-10-07",
       "periodEnd": "2026-10-07",
       "heatmap": {
+        "2026-10-04": "full",
         "2026-10-05": "full",
         "2026-10-06": "forgiven",
         "2026-10-07": "full"
@@ -2226,6 +2231,10 @@
     },
     "logs": [
       {
+        "day": "2026-03-06",
+        "value": true
+      },
+      {
         "day": "2026-03-07",
         "value": true
       },
@@ -2239,19 +2248,20 @@
       }
     ],
     "today": "2026-03-09",
-    "heatmapFrom": "2026-03-07",
+    "heatmapFrom": "2026-03-06",
     "heatmapTo": "2026-03-09",
     "expected": {
       "done": 1,
       "target": 1,
-      "streak": 2,
-      "longestStreak": 2,
+      "streak": 3,
+      "longestStreak": 3,
       "isPendingToday": false,
-      "score": 66,
-      "yearDone": 2,
+      "score": 75,
+      "yearDone": 3,
       "periodStart": "2026-03-09",
       "periodEnd": "2026-03-09",
       "heatmap": {
+        "2026-03-06": "full",
         "2026-03-07": "full",
         "2026-03-08": "forgiven",
         "2026-03-09": "full"
@@ -2270,6 +2280,10 @@
     },
     "logs": [
       {
+        "day": "2025-12-30",
+        "value": true
+      },
+      {
         "day": "2025-12-31",
         "value": true
       },
@@ -2283,19 +2297,20 @@
       }
     ],
     "today": "2026-01-02",
-    "heatmapFrom": "2025-12-31",
+    "heatmapFrom": "2025-12-30",
     "heatmapTo": "2026-01-02",
     "expected": {
       "done": 1,
       "target": 1,
-      "streak": 2,
-      "longestStreak": 2,
+      "streak": 3,
+      "longestStreak": 3,
       "isPendingToday": false,
-      "score": 66,
+      "score": 75,
       "yearDone": 1,
       "periodStart": "2026-01-02",
       "periodEnd": "2026-01-02",
       "heatmap": {
+        "2025-12-30": "full",
         "2025-12-31": "full",
         "2026-01-01": "forgiven",
         "2026-01-02": "full"
@@ -2314,6 +2329,10 @@
     },
     "logs": [
       {
+        "day": "2024-02-27",
+        "value": true
+      },
+      {
         "day": "2024-02-28",
         "value": true
       },
@@ -2327,19 +2346,20 @@
       }
     ],
     "today": "2024-03-01",
-    "heatmapFrom": "2024-02-28",
+    "heatmapFrom": "2024-02-27",
     "heatmapTo": "2024-03-01",
     "expected": {
       "done": 1,
       "target": 1,
-      "streak": 2,
-      "longestStreak": 2,
+      "streak": 3,
+      "longestStreak": 3,
       "isPendingToday": false,
-      "score": 66,
-      "yearDone": 2,
+      "score": 75,
+      "yearDone": 3,
       "periodStart": "2024-03-01",
       "periodEnd": "2024-03-01",
       "heatmap": {
+        "2024-02-27": "full",
         "2024-02-28": "full",
         "2024-02-29": "forgiven",
         "2024-03-01": "full"
@@ -2358,6 +2378,10 @@
     },
     "logs": [
       {
+        "day": "2026-10-04",
+        "value": 20
+      },
+      {
         "day": "2026-10-05",
         "value": 20
       },
@@ -2371,19 +2395,20 @@
       }
     ],
     "today": "2026-10-07",
-    "heatmapFrom": "2026-10-05",
+    "heatmapFrom": "2026-10-04",
     "heatmapTo": "2026-10-07",
     "expected": {
       "done": 20,
       "target": 20,
-      "streak": 2,
-      "longestStreak": 2,
+      "streak": 3,
+      "longestStreak": 3,
       "isPendingToday": false,
-      "score": 66,
-      "yearDone": 50,
+      "score": 75,
+      "yearDone": 70,
       "periodStart": "2026-10-07",
       "periodEnd": "2026-10-07",
       "heatmap": {
+        "2026-10-04": "full",
         "2026-10-05": "full",
         "2026-10-06": "forgivenPartial",
         "2026-10-07": "full"
@@ -2402,6 +2427,10 @@
     },
     "logs": [
       {
+        "day": "2026-10-04",
+        "value": true
+      },
+      {
         "day": "2026-10-05",
         "value": true
       },
@@ -2415,19 +2444,20 @@
       }
     ],
     "today": "2026-10-07",
-    "heatmapFrom": "2026-10-05",
+    "heatmapFrom": "2026-10-04",
     "heatmapTo": "2026-10-07",
     "expected": {
       "done": 1,
       "target": 1,
-      "streak": 2,
-      "longestStreak": 2,
+      "streak": 3,
+      "longestStreak": 3,
       "isPendingToday": false,
-      "score": 66,
-      "yearDone": 2,
+      "score": 75,
+      "yearDone": 3,
       "periodStart": "2026-10-07",
       "periodEnd": "2026-10-07",
       "heatmap": {
+        "2026-10-04": "full",
         "2026-10-05": "full",
         "2026-10-06": "forgiven",
         "2026-10-07": "full"
@@ -2532,8 +2562,8 @@
     "expected": {
       "done": 1,
       "target": 1,
-      "streak": 2,
-      "longestStreak": 2,
+      "streak": 1,
+      "longestStreak": 1,
       "isPendingToday": false,
       "score": 6,
       "yearDone": 2,
@@ -2542,7 +2572,7 @@
       "heatmap": {
         "2026-10-04": "none",
         "2026-10-05": "full",
-        "2026-10-06": "forgiven",
+        "2026-10-06": "none",
         "2026-10-07": "full"
       }
     }
@@ -2854,7 +2884,7 @@
     "expected": {
       "done": 0,
       "target": 1,
-      "streak": 1,
+      "streak": 0,
       "longestStreak": 1,
       "isPendingToday": true,
       "score": 50,
@@ -2916,6 +2946,10 @@
     },
     "logs": [
       {
+        "day": "2026-10-02",
+        "value": true
+      },
+      {
         "day": "2026-10-03",
         "value": true
       },
@@ -2925,19 +2959,20 @@
       }
     ],
     "today": "2026-10-07",
-    "heatmapFrom": "2026-10-03",
+    "heatmapFrom": "2026-10-02",
     "heatmapTo": "2026-10-07",
     "expected": {
       "done": 0,
       "target": 1,
-      "streak": 2,
-      "longestStreak": 2,
+      "streak": 0,
+      "longestStreak": 3,
       "isPendingToday": true,
-      "score": 50,
-      "yearDone": 2,
+      "score": 60,
+      "yearDone": 3,
       "periodStart": "2026-10-07",
       "periodEnd": "2026-10-07",
       "heatmap": {
+        "2026-10-02": "full",
         "2026-10-03": "full",
         "2026-10-04": "forgiven",
         "2026-10-05": "full",
@@ -2976,7 +3011,7 @@
     "expected": {
       "done": 5,
       "target": 20,
-      "streak": 1,
+      "streak": 0,
       "longestStreak": 1,
       "isPendingToday": true,
       "score": 50,
@@ -3002,12 +3037,20 @@
     },
     "logs": [
       {
-        "day": "2026-10-03",
+        "day": "2026-10-01",
         "value": 20
       },
       {
-        "day": "2026-10-04",
+        "day": "2026-10-02",
+        "value": 20
+      },
+      {
+        "day": "2026-10-03",
         "value": 0
+      },
+      {
+        "day": "2026-10-04",
+        "value": 20
       },
       {
         "day": "2026-10-05",
@@ -3023,24 +3066,370 @@
       }
     ],
     "today": "2026-10-07",
-    "heatmapFrom": "2026-10-03",
+    "heatmapFrom": "2026-10-01",
     "heatmapTo": "2026-10-07",
     "expected": {
       "done": 20,
       "target": 20,
+      "streak": 5,
+      "longestStreak": 5,
+      "isPendingToday": false,
+      "score": 71,
+      "yearDone": 101,
+      "periodStart": "2026-10-07",
+      "periodEnd": "2026-10-07",
+      "heatmap": {
+        "2026-10-01": "full",
+        "2026-10-02": "full",
+        "2026-10-03": "forgiven",
+        "2026-10-04": "full",
+        "2026-10-05": "full",
+        "2026-10-06": "forgivenPartial",
+        "2026-10-07": "full"
+      }
+    }
+  },
+  {
+    "id": "daily-two-done-then-miss",
+    "definition": {
+      "id": "goals/Spor.md",
+      "key": "spor",
+      "name": "Spor",
+      "period": "day",
+      "kind": "boolean",
+      "target": 1
+    },
+    "logs": [
+      {
+        "day": "2026-10-04",
+        "value": true
+      },
+      {
+        "day": "2026-10-05",
+        "value": true
+      },
+      {
+        "day": "2026-10-06",
+        "value": false
+      },
+      {
+        "day": "2026-10-07",
+        "value": true
+      }
+    ],
+    "today": "2026-10-07",
+    "heatmapFrom": "2026-10-04",
+    "heatmapTo": "2026-10-07",
+    "expected": {
+      "done": 1,
+      "target": 1,
+      "streak": 3,
+      "longestStreak": 3,
+      "isPendingToday": false,
+      "score": 75,
+      "yearDone": 3,
+      "periodStart": "2026-10-07",
+      "periodEnd": "2026-10-07",
+      "heatmap": {
+        "2026-10-04": "full",
+        "2026-10-05": "full",
+        "2026-10-06": "forgiven",
+        "2026-10-07": "full"
+      }
+    }
+  },
+  {
+    "id": "daily-miss-two-done-miss",
+    "definition": {
+      "id": "goals/Spor.md",
+      "key": "spor",
+      "name": "Spor",
+      "period": "day",
+      "kind": "boolean",
+      "target": 1
+    },
+    "logs": [
+      {
+        "day": "2026-10-03",
+        "value": false
+      },
+      {
+        "day": "2026-10-04",
+        "value": true
+      },
+      {
+        "day": "2026-10-05",
+        "value": true
+      },
+      {
+        "day": "2026-10-06",
+        "value": false
+      },
+      {
+        "day": "2026-10-07",
+        "value": true
+      }
+    ],
+    "today": "2026-10-07",
+    "heatmapFrom": "2026-10-03",
+    "heatmapTo": "2026-10-07",
+    "expected": {
+      "done": 1,
+      "target": 1,
       "streak": 3,
       "longestStreak": 3,
       "isPendingToday": false,
       "score": 60,
-      "yearDone": 61,
+      "yearDone": 3,
       "periodStart": "2026-10-07",
       "periodEnd": "2026-10-07",
       "heatmap": {
+        "2026-10-03": "none",
+        "2026-10-04": "full",
+        "2026-10-05": "full",
+        "2026-10-06": "forgiven",
+        "2026-10-07": "full"
+      }
+    }
+  },
+  {
+    "id": "daily-forgiven-not-a-success",
+    "definition": {
+      "id": "goals/Spor.md",
+      "key": "spor",
+      "name": "Spor",
+      "period": "day",
+      "kind": "boolean",
+      "target": 1
+    },
+    "logs": [
+      {
+        "day": "2026-10-02",
+        "value": true
+      },
+      {
+        "day": "2026-10-03",
+        "value": true
+      },
+      {
+        "day": "2026-10-04",
+        "value": false
+      },
+      {
+        "day": "2026-10-05",
+        "value": true
+      },
+      {
+        "day": "2026-10-06",
+        "value": false
+      },
+      {
+        "day": "2026-10-07",
+        "value": true
+      }
+    ],
+    "today": "2026-10-07",
+    "heatmapFrom": "2026-10-02",
+    "heatmapTo": "2026-10-07",
+    "expected": {
+      "done": 1,
+      "target": 1,
+      "streak": 1,
+      "longestStreak": 3,
+      "isPendingToday": false,
+      "score": 66,
+      "yearDone": 4,
+      "periodStart": "2026-10-07",
+      "periodEnd": "2026-10-07",
+      "heatmap": {
+        "2026-10-02": "full",
         "2026-10-03": "full",
         "2026-10-04": "forgiven",
         "2026-10-05": "full",
-        "2026-10-06": "forgivenPartial",
+        "2026-10-06": "none",
         "2026-10-07": "full"
+      }
+    }
+  },
+  {
+    "id": "daily-two-done-yesterday-miss-pending",
+    "definition": {
+      "id": "goals/Spor.md",
+      "key": "spor",
+      "name": "Spor",
+      "period": "day",
+      "kind": "boolean",
+      "target": 1
+    },
+    "logs": [
+      {
+        "day": "2026-10-04",
+        "value": true
+      },
+      {
+        "day": "2026-10-05",
+        "value": true
+      },
+      {
+        "day": "2026-10-06",
+        "value": false
+      }
+    ],
+    "today": "2026-10-07",
+    "heatmapFrom": "2026-10-04",
+    "heatmapTo": "2026-10-07",
+    "expected": {
+      "done": 0,
+      "target": 1,
+      "streak": 2,
+      "longestStreak": 2,
+      "isPendingToday": true,
+      "score": 66,
+      "yearDone": 2,
+      "periodStart": "2026-10-07",
+      "periodEnd": "2026-10-07",
+      "heatmap": {
+        "2026-10-04": "full",
+        "2026-10-05": "full",
+        "2026-10-06": "none",
+        "2026-10-07": "none"
+      }
+    }
+  },
+  {
+    "id": "daily-longest-alternating-history",
+    "definition": {
+      "id": "goals/Spor.md",
+      "key": "spor",
+      "name": "Spor",
+      "period": "day",
+      "kind": "boolean",
+      "target": 1
+    },
+    "logs": [
+      {
+        "day": "2026-10-01",
+        "value": true
+      },
+      {
+        "day": "2026-10-02",
+        "value": false
+      },
+      {
+        "day": "2026-10-03",
+        "value": true
+      },
+      {
+        "day": "2026-10-04",
+        "value": false
+      },
+      {
+        "day": "2026-10-05",
+        "value": true
+      },
+      {
+        "day": "2026-10-08",
+        "value": true
+      },
+      {
+        "day": "2026-10-09",
+        "value": true
+      }
+    ],
+    "today": "2026-10-09",
+    "heatmapFrom": "2026-10-01",
+    "heatmapTo": "2026-10-09",
+    "expected": {
+      "done": 1,
+      "target": 1,
+      "streak": 2,
+      "longestStreak": 2,
+      "isPendingToday": false,
+      "score": 55,
+      "yearDone": 5,
+      "periodStart": "2026-10-09",
+      "periodEnd": "2026-10-09",
+      "heatmap": {
+        "2026-10-01": "full",
+        "2026-10-02": "none",
+        "2026-10-03": "full",
+        "2026-10-04": "none",
+        "2026-10-05": "full",
+        "2026-10-06": "none",
+        "2026-10-07": "none",
+        "2026-10-08": "full",
+        "2026-10-09": "full"
+      }
+    }
+  },
+  {
+    "id": "daily-longest-two-forgiven-earlier",
+    "definition": {
+      "id": "goals/Spor.md",
+      "key": "spor",
+      "name": "Spor",
+      "period": "day",
+      "kind": "boolean",
+      "target": 1
+    },
+    "logs": [
+      {
+        "day": "2026-10-01",
+        "value": true
+      },
+      {
+        "day": "2026-10-02",
+        "value": true
+      },
+      {
+        "day": "2026-10-03",
+        "value": false
+      },
+      {
+        "day": "2026-10-04",
+        "value": true
+      },
+      {
+        "day": "2026-10-05",
+        "value": true
+      },
+      {
+        "day": "2026-10-06",
+        "value": false
+      },
+      {
+        "day": "2026-10-07",
+        "value": true
+      },
+      {
+        "day": "2026-10-10",
+        "value": true
+      }
+    ],
+    "today": "2026-10-10",
+    "heatmapFrom": "2026-10-01",
+    "heatmapTo": "2026-10-10",
+    "expected": {
+      "done": 1,
+      "target": 1,
+      "streak": 1,
+      "longestStreak": 5,
+      "isPendingToday": false,
+      "score": 60,
+      "yearDone": 6,
+      "periodStart": "2026-10-10",
+      "periodEnd": "2026-10-10",
+      "heatmap": {
+        "2026-10-01": "full",
+        "2026-10-02": "full",
+        "2026-10-03": "forgiven",
+        "2026-10-04": "full",
+        "2026-10-05": "full",
+        "2026-10-06": "forgiven",
+        "2026-10-07": "full",
+        "2026-10-08": "none",
+        "2026-10-09": "none",
+        "2026-10-10": "full"
       }
     }
   }

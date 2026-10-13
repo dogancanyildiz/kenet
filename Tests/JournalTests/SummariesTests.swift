@@ -96,7 +96,7 @@ import VaultFormat
         let su = try #require(running.goals.first { $0.definition.key == "su" })
         #expect(
             SummaryPresentation.goalMeta(su, isRunning: running.isRunning, locale: turkish)
-                == "Güncel zincir: 8\nSon 30 gün %80")
+                == "Güncel zincir: 4\nSon 30 gün %80")
         let ended = try await context.store.periodSummary(
             .week, containing: CalendarDate("2026-09-20")!, today: CalendarDate("2026-09-23"))
         let spor = try #require(ended.goals.first { $0.definition.key == "spor" })
@@ -152,8 +152,9 @@ import VaultFormat
         let model = SummariesModel(store: context.store, today: { CalendarDate("2026-09-23")! })
         await model.load()
         #expect(model.summary?.goals.first { $0.definition.key == "su" }?.score == 80)
-        // Su's chain on Wednesday is the goal list's: 23–20, 18, 16, 15, 14 September, not 0.
-        #expect(model.summary?.goals.first { $0.definition.key == "su" }?.streak == 8)
+        // Su's chain on Wednesday is the goal list's: 23–20 September, not 0. 19 September follows the
+        // forgiven 17th, so it is not forgiven and ends the chain.
+        #expect(model.summary?.goals.first { $0.definition.key == "su" }?.streak == 4)
         #expect(model.summary?.goals.first { $0.definition.key == "spor" }?.score == nil)
         // The ended week 14–20 September is measured through its Sunday: 5 of 7.
         model.previous()
@@ -161,8 +162,8 @@ import VaultFormat
         #expect(model.summary?.goals.first { $0.definition.key == "su" }?.score == 71)
         // Spor at the end of its first successful week.
         #expect(model.summary?.goals.first { $0.definition.key == "spor" }?.streak == 1)
-        // Su on that Sunday: 20, 18, 16, 15, 14 September done, 19 and 17 forgiven.
-        #expect(model.summary?.goals.first { $0.definition.key == "su" }?.streak == 5)
+        // Su on that Sunday: 20 September only. 19 September follows the forgiven 17th and ends the chain.
+        #expect(model.summary?.goals.first { $0.definition.key == "su" }?.streak == 1)
     }
 
     @Test func newIndexPublicationReloadsEditedActivityWithoutWritingSummaryFiles() async throws {

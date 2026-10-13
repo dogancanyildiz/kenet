@@ -917,7 +917,7 @@ Konumda koordinat, Alanlar tablosunda bir satırdır. Okuma ekranında harita yo
 | Yıllık hedef | Satır | İlerleme çubuğu. |
 | Kilometre taşı (5) | Satır | Yıllık, miktarsız satır: yapıldı ya da yapılmadı ve tarih. Dokunma bugünü işaretler ya da bugünkü kaydı kaldırır. Önceki gün tamamlanmış satır salt okunurdur. Zincir ve ısı haritası yoktur. |
 
-**Zincir kuralı.** Bugün henüz yapılmamışken dünkü tek kaçırma zinciri düşürmez. İki gün üst üste kaçırıldıysa zincir 0'dır.
+**Zincir kuralı.** Günlük hedefte önceki iki günü ve sonraki günü yapılmış bir kaçırma affedilir. Affedilen gün zinciri korur, zincire eklenmez ve yapılmış gün sayılmaz. Örnek: "yapıldı, yapıldı, kaçtı, yapıldı" zinciri 3'tür. "Yapıldı, yapıldı, kaçtı, yapıldı, kaçtı, yapıldı" zinciri 1, en uzun zinciri 3'tür: ilk kaçırma affedilir; ikinci kaçırmanın önündeki iki günden biri affedilmiş gündür. "Yapıldı, kaçtı, yapıldı, kaçtı, yapıldı" zinciri 1'dir: hiçbir kaçırmanın önünde iki yapılmış gün yoktur. Bugün henüz yapılmamışken dünkü kaçırma, önceki iki gün yapılmışsa zinciri düşürmez. İki gün üst üste kaçırıldıysa zincir 0'dır.
 
 **Hedef ayrıntısı.**
 

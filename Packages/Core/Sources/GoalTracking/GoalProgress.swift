@@ -23,9 +23,9 @@ public enum GoalProgress {
         let progress = GoalAmount(done: totals[bounds.start] ?? 0, target: definition.target)
         let successful = Set(totals.filter { $0.value >= definition.target }.map(\.key))
         var cursor = progress.isComplete ? bounds.start : definition.period.previous(before: bounds.start)
-        // Today is still open, so it can still forgive yesterday's lone miss: the chain is not dropped yet.
+        // Today is still open, so it can still forgive yesterday's miss: the chain is not dropped yet.
         if definition.period == .day, !progress.isComplete, let yesterday = cursor, !successful.contains(yesterday),
-            let before = yesterday.addingDays(-1), successful.contains(before)
+            canForgive(yesterday, successful: successful), let before = yesterday.addingDays(-1)
         {
             cursor = before
         }
@@ -34,7 +34,7 @@ public enum GoalProgress {
             if successful.contains(current) {
                 streak += 1
             } else if isForgiven(current, today: today, period: definition.period, successful: successful) {
-                // An isolated miss keeps the chain and is not counted.
+                // A forgiven miss keeps the chain and is not counted.
             } else {
                 break
             }
@@ -88,25 +88,33 @@ public enum GoalProgress {
         return marks
     }
 
-    /// Daily only. A past miss whose previous and next periods both succeeded.
+    /// Daily only. A past miss whose next day succeeded and that `canForgive` allows.
     private static func isForgiven(
         _ start: CalendarDate, today: CalendarDate, period: GoalPeriod, successful: Set<CalendarDate>
     ) -> Bool {
-        guard period == .day, start < today, !successful.contains(start) else { return false }
-        guard let previous = period.previous(before: start),
-            let next = period.bounds(on: start).end.addingDays(1).map({ period.bounds(on: $0).start })
-        else { return false }
-        return successful.contains(previous) && successful.contains(next)
+        guard period == .day, start < today, !successful.contains(start), let next = start.addingDays(1) else {
+            return false
+        }
+        return canForgive(start, successful: successful) && successful.contains(next)
+    }
+
+    /// Daily only. A miss can be forgiven when the two days before it both succeeded. A forgiven day is not a
+    /// success, so it cannot be one of those two days.
+    private static func canForgive(_ day: CalendarDate, successful: Set<CalendarDate>) -> Bool {
+        guard let previous = day.addingDays(-1), let earlier = day.addingDays(-2) else { return false }
+        return successful.contains(previous) && successful.contains(earlier)
     }
 
     /// Daily only. Walks successes, not calendar days, so one stray old date cannot stretch the work.
-    /// Two successes with exactly one day between them enclose a forgiven day and stay in one run.
+    /// Two successes with exactly one day between them stay in one run when `canForgive` allows the day between.
     private static func dailyLongest(successful: Set<CalendarDate>) -> Int {
         var longest = 0
         var run = 0
         var last: CalendarDate?
         for day in successful.sorted() {
-            run = last.map { day.ordinal - $0.ordinal <= 2 } == true ? run + 1 : 1
+            let gap = last.map { day.ordinal - $0.ordinal }
+            let forgiven = gap == 2 && day.addingDays(-1).map { canForgive($0, successful: successful) } == true
+            run = gap == 1 || forgiven ? run + 1 : 1
             longest = max(longest, run)
             last = day
         }

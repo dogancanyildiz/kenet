@@ -1491,6 +1491,7 @@ stateDiagram-v2
   state "Gün kopyası" as Kopya
   state "Bekliyor: yer tutucu" as Bekliyor
   state "Ana dosyaya taşındı" as Tasindi
+  state "merge sınırı başladı" as MergeSiniri
   state "Birleştirildi" as Birlesti
   state "Çakışma kopyası yazıldı" as Saklandi
   state "Gün dosyası yazıldı" as GunYazildi
@@ -1498,16 +1499,33 @@ stateDiagram-v2
   [*] --> Kopya: iCloud sayılı adı ayırır
   Kopya --> Bekliyor: Kopyanın ya da gün dosyasının yer tutucusu var
   Kopya --> Tasindi: Gün dosyası yok
-  Kopya --> Birlesti: İki dosyayı ve değişiklik zamanlarını okur
+  Kopya --> MergeSiniri: Gün dosyası var
+  MergeSiniri --> Tasindi: Gün dosyası sınırda yok oldu
+  MergeSiniri --> Birlesti: İki dosyayı ve değişiklik zamanlarını okur
   Birlesti --> Saklandi: Saklanacak sürüm var
   Birlesti --> GunYazildi: Saklanacak sürüm yok
   Saklandi --> GunYazildi: Birleşmiş içerik farklıysa atomik yazar
+  GunYazildi --> GunYazildi: Değişiklik zamanını verir
   GunYazildi --> Silindi: Gün kopyasını en son siler
   Tasindi --> [*]: İndeksi günceller
   Silindi --> [*]: İndeksi günceller
 ```
 
+Gün dosyası `.merge` sınırı içinde yok olursa uygulama kopyayı aynı sınırda gün adına taşır.
+
 Uygulama birleşmiş içeriği ve gerekiyorsa çakışma kopyasını yazmadan hiçbir sürümü silmez. Gün dosyası değişmeden önceki her hata, o çağrının yazdığı çakışma kopyalarını geri alır.
+
+**Birleşmiş gün dosyasının değişiklik zamanı.**
+
+| Durum | Gün dosyasının değişiklik zamanı |
+|---|---|
+| Uygulama birleşmiş içeriği gün dosyasına yazdı | 2 sürümün değişiklik zamanından büyüğü artı 1 saniye. Birim tam saniyedir. |
+| Gün dosyası yoktu; gün kopyası ana dosyanın adını aldı | Gün kopyasının zamanı. Uygulama zamanı değiştirmez. |
+| Birleşmiş içerik gün dosyasıyla bayt bayt aynı | Gün dosyasının zamanı. Uygulama gün dosyasını yazmaz. |
+
+Uygulama birleşmiş gün dosyasına değişiklik zamanı olarak yazma anını vermez. Gerekçe: yazma anı 3. bir sürümün zamanından da büyük olabilir. Örnek: gün dosyası 10:00, gün kopyası 2 10:30, gün kopyası 3 11:00. Uygulama 2'yi birleştirince gün dosyası 10:30:01 olur. Bu yüzden 3. sürüm yeni sürüm kalır ve 11:00'deki düzenleme kazanır. Bu örnekte sıra 3, sonra 2 olsa da 11:00'deki düzenleme kazanır.
+
+Yakınsama iki cihazın kopyaları aynı numara sırasıyla birleştirmesine ve her sürümün kendi zamanıyla gelmesine bağlıdır. Eşit saniyeli sürümler ya da sıra dışı gelen kopya farklı gün dosyası üretebilir. İçerik `conflicts/` altında kalır; kayıp olmaz.
 
 ### Birleştirme işlevi
 
@@ -1516,8 +1534,8 @@ Uygulama birleşmiş içeriği ve gerekiyorsa çakışma kopyasını yazmadan hi
 | Girdiler | Yalnız 2 sürümün içeriği ve değişiklik zamanları. İşlev cihazın durumuna ya da indekse bağlı değildir. |
 | Değişiklik zamanı | Tam sayı. Birimini çağıran belirler. |
 | Sıra | Sürümlerin veriliş sırası sonucu değiştirmez. |
-| Kararlılık | Sonucu sürümlerden biriyle, 2 sürümden de büyük bir zamanla yeniden birleştirmek içeriği değiştirmez. Gerekçe: uygulama birleşmiş dosyayı sonradan yazar. |
-| Yakınsama | 2 cihaz aynı çakışmayı ayrı ayrı çözse de aynı içeriğe varır. |
+| Kararlılık | Sonucu sürümlerden biriyle, 2 sürümden de büyük bir zamanla yeniden birleştirmek içeriği değiştirmez. Gerekçe: uygulama birleşmiş gün dosyasına 2 sürümün büyük zamanından 1 saniye sonrasını verir. |
+| Yakınsama | 2 cihaz aynı 2 sürümü kendi zamanlarıyla birleştirirse aynı içeriğe varır. Birden çok kopyada yukarıdaki sıra sınırı geçerlidir. |
 | Yeni sürüm | Değişiklik zamanı büyük olan. Zamanlar eşitse içeriği bayt sırasında büyük olan. Diğeri eski sürümdür. |
 | Aynı sürümler | Bayt bayt aynı 2 sürümün sonucu kendileridir. Çakışma kopyası yoktur. |
 | Yalnız satır sonu ya da BOM farkı | Sonuç yeni sürümdür. Çakışma kopyası yoktur. |

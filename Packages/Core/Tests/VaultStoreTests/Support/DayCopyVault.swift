@@ -58,8 +58,8 @@ struct DayCopyVault {
             [.modificationDate: Date(timeIntervalSince1970: TimeInterval(seconds))], ofItemAtPath: url(path).path)
     }
 
-    /// A time later than every fixture time. A merged day file is written after both versions; tests
-    /// set this instead of trusting the machine's clock, which merging compares against copy times.
+    /// A time later than every fixture time. A merged day file whose merge time could not be set
+    /// keeps the time of the write; tests set this instead of trusting the machine's clock.
     static let writtenLater = 1_800_000_000
 
     /// Marks a merged day file as written later than every version, as the real clock would.

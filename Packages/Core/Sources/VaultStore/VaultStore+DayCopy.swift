@@ -16,6 +16,8 @@ public struct DayCopyMergeOutcome: Sendable, Equatable {
     public let kind: Kind
     /// The day file that now holds both versions, such as `journal/2026-10-02.md`.
     public let dayPath: String
+    /// Whether this call wrote or moved the day file; callers can force an index reread.
+    public let dayFileChanged: Bool
     /// Where each preserved version lives under `conflicts/`, the older version first. A version
     /// already saved there byte for byte by an earlier, interrupted merge is reported, not rewritten.
     public let conflictPaths: [String]
@@ -27,19 +29,34 @@ public struct DayCopyMergeOutcome: Sendable, Equatable {
 enum DayCopyMergeStep: Sendable, Equatable {
     case conflictCopy(String)
     case dayFile
+    /// Giving the replaced day file its merge time.
+    case dayFileTime
+}
+
+/// The copy and day file one merge works on.
+private struct DayCopyTarget {
+    let copyPath: String
+    let copyURL: URL
+    let dayPath: String
+    let dayURL: URL
+    let day: CalendarDate
 }
 
 extension VaultStore {
     /// Merges an iCloud day copy (`journal/2026-10-02 2.md`) into its day file, as `vault-format.md`
-    /// describes under "Senkronizasyon çakışması".
+    /// describes under "Eşitleme çakışması".
     ///
-    /// Everything runs in one `.move(copy → day)` coordination boundary, the only intent that holds
-    /// both files for writing: both are read, preserved versions are created exclusively under
-    /// `conflicts/`, the day file is replaced atomically, the copy is removed last and the index is
-    /// updated. A missing day file is not created: the copy is moved to its name. A failure before
-    /// the day file is replaced removes the conflict copies this call created, so neither version
-    /// changes. If only removing the copy fails, the day file already holds the merge; calling again
-    /// merges to the same content and reuses the saved conflict copies.
+    /// An existing day file is merged in one `.merge(copy into day)` coordination boundary, which
+    /// holds both files for writing: the day file's presenters save first and the copy's presenters
+    /// give way to its deletion. Both files are read, preserved versions are created exclusively under
+    /// `conflicts/`, the day file is replaced atomically and given the later version's time plus one
+    /// second, the copy is removed last and the index is updated. A missing day file is not created:
+    /// the copy is moved to its name in one `.move(copy → day)` boundary and keeps its time. A day
+    /// file that appears before the move is claimed is merged under a new `.merge` boundary instead.
+    /// A failure before the day file is replaced removes the conflict copies this call created, so
+    /// neither version changes. If only setting the time or removing the copy fails, the day file
+    /// already holds the merge; calling again merges to the same content and reuses the saved
+    /// conflict copies.
     public func mergingDayCopy(_ copyPath: String) async throws -> DayCopyMergeOutcome {
         try await perform { try self.mergeDayCopy(copyPath) }
     }
@@ -50,51 +67,94 @@ extension VaultStore {
         }
         let copyURL = try checkedURL(copyPath, writing: true)
         let dayURL = try checkedURL(dayPath, writing: true)
-        return try fileCoordination.coordinate(.move(source: copyURL, destination: dayURL)) { access in
-            guard FileManager.default.fileExists(atPath: copyURL.path) else {
-                try rejectPendingDownload(at: copyURL, path: copyPath)
-                throw VaultStoreError.staleTarget
-            }
-            let copy = MergeVersion(
-                bytes: Array(try readFile(copyURL)), modificationTime: try modificationTime(copyURL))
-            guard FileManager.default.fileExists(atPath: dayURL.path) else {
-                try rejectPendingDownload(at: dayURL, path: dayPath)
-                try dayCopyStep(.dayFile)
-                access.itemWillMove(from: copyURL, to: dayURL)
-                try moveFile(copyURL, dayURL)
-                access.itemDidMove(from: copyURL, to: dayURL)
-                try updateIndexAfterDayCopy(dayPath: dayPath, copyPath: copyPath)
-                return DayCopyMergeOutcome(kind: .renamed, dayPath: dayPath, conflictPaths: [], fellBack: false)
-            }
-            let current = MergeVersion(
-                bytes: Array(try readFile(dayURL)), modificationTime: try modificationTime(dayURL))
-            let merge = ConflictMerge.merge(current, copy)
-            let saved = try preserveConflictVersions(merge.preserved, day: day)
-            do {
-                if merge.bytes != current.bytes {
-                    try dayCopyStep(.dayFile)
-                    try atomicWrite(Data(merge.bytes), to: dayURL, exclusive: false)
-                }
-            } catch {
-                saved.rollBack()
-                throw error
-            }
-            do {
-                try removeFile(copyURL)
-            } catch {
-                if merge.bytes == current.bytes {
-                    saved.rollBack()
-                } else {
-                    // The day file already holds both versions; keep the index in step with it.
-                    try updateIndexAfterDayCopy(dayPath: dayPath, copyPath: copyPath)
-                }
-                throw error
-            }
-            try updateIndexAfterDayCopy(dayPath: dayPath, copyPath: copyPath)
-            return DayCopyMergeOutcome(
-                kind: current.bytes == copy.bytes ? .identical : .merged, dayPath: dayPath, conflictPaths: saved.paths,
-                fellBack: merge.fellBack)
+        let target = DayCopyTarget(copyPath: copyPath, copyURL: copyURL, dayPath: dayPath, dayURL: dayURL, day: day)
+        if !FileManager.default.fileExists(atPath: dayURL.path),
+            let renamed = try fileCoordination.coordinate(
+                .move(source: copyURL, destination: dayURL),
+                accessor: { access -> DayCopyMergeOutcome? in
+                    try requireCopy(target)
+                    // The day file appeared before the claim: its presenters must save before a merge.
+                    if FileManager.default.fileExists(atPath: dayURL.path) { return nil }
+                    return try renameDayCopy(target, access: access)
+                })
+        {
+            return renamed
         }
+        return try fileCoordination.coordinate(.merge(source: copyURL, into: dayURL)) { access in
+            try mergeIntoDay(target, access: access)
+        }
+    }
+
+    /// Moves the copy to the missing day file's name; the day file keeps the copy's time.
+    private nonisolated func renameDayCopy(_ target: DayCopyTarget, access: FileCoordinationAccess) throws
+        -> DayCopyMergeOutcome
+    {
+        try rejectPendingDownload(at: target.dayURL, path: target.dayPath)
+        try dayCopyStep(.dayFile)
+        access.itemWillMove(from: target.copyURL, to: target.dayURL)
+        try moveFile(target.copyURL, target.dayURL)
+        access.itemDidMove(from: target.copyURL, to: target.dayURL)
+        try updateIndexAfterDayCopy(dayPath: target.dayPath, copyPath: target.copyPath)
+        return DayCopyMergeOutcome(
+            kind: .renamed, dayPath: target.dayPath, dayFileChanged: true, conflictPaths: [], fellBack: false)
+    }
+
+    private nonisolated func requireCopy(_ target: DayCopyTarget) throws {
+        guard FileManager.default.fileExists(atPath: target.copyURL.path) else {
+            try rejectPendingDownload(at: target.copyURL, path: target.copyPath)
+            throw VaultStoreError.staleTarget
+        }
+    }
+
+    private nonisolated func mergeIntoDay(_ target: DayCopyTarget, access: FileCoordinationAccess) throws
+        -> DayCopyMergeOutcome
+    {
+        try requireCopy(target)
+        let (copyURL, dayURL) = (target.copyURL, target.dayURL)
+        let copy = MergeVersion(bytes: Array(try readFile(copyURL)), modificationTime: try modificationTime(copyURL))
+        guard FileManager.default.fileExists(atPath: dayURL.path) else {
+            // The day file went away after the merge was claimed; both files are still held for writing.
+            return try renameDayCopy(target, access: access)
+        }
+        let current = MergeVersion(bytes: Array(try readFile(dayURL)), modificationTime: try modificationTime(dayURL))
+        let merge = ConflictMerge.merge(current, copy)
+        let saved = try preserveConflictVersions(merge.preserved, day: target.day)
+        let replacesDay = merge.bytes != current.bytes
+        do {
+            if replacesDay {
+                try dayCopyStep(.dayFile)
+                try atomicWrite(Data(merge.bytes), to: dayURL, exclusive: false)
+            }
+        } catch {
+            saved.rollBack()
+            throw error
+        }
+        do {
+            if replacesDay {
+                // Later than both versions, never the clock: a third version newer than both stays newer.
+                try dayCopyStep(.dayFileTime)
+                try setModificationTime(max(current.modificationTime, copy.modificationTime) + 1, dayURL)
+            }
+            try removeFile(copyURL)
+        } catch {
+            if replacesDay {
+                // The day file already holds both versions; keep the index in step with it.
+                try updateIndexAfterDayCopy(dayPath: target.dayPath, copyPath: target.copyPath)
+            } else {
+                saved.rollBack()
+            }
+            throw error
+        }
+        try updateIndexAfterDayCopy(dayPath: target.dayPath, copyPath: target.copyPath)
+        return DayCopyMergeOutcome(
+            kind: current.bytes == copy.bytes ? .identical : .merged, dayPath: target.dayPath,
+            dayFileChanged: replacesDay,
+            conflictPaths: saved.paths, fellBack: merge.fellBack)
+    }
+
+    private nonisolated func setModificationTime(_ seconds: Int, _ url: URL) throws {
+        try FileManager.default.setAttributes(
+            [.modificationDate: Date(timeIntervalSince1970: TimeInterval(seconds))], ofItemAtPath: url.path)
     }
 
     /// Whole seconds since 1970 in UTC, the unit of the conflict copy name.

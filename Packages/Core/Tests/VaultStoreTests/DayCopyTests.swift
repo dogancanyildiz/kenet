@@ -85,6 +85,7 @@ struct DayCopyTests {
             let outcome = try await store.mergingDayCopy(copy)
             #expect(String(describing: outcome.kind) == expected.kind, "\(copy)")
             #expect(outcome.dayPath == dayPath)
+            #expect(outcome.dayFileChanged == (dayVersion?.bytes != Array(try Data(contentsOf: vault.url(dayPath)))))
             #expect(outcome.conflictPaths == expected.conflicts, "\(copy)")
             #expect(outcome.fellBack == expected.fellBack)
             #expect(!FileManager.default.fileExists(atPath: vault.url(copy).path), "\(copy) remains")
@@ -95,12 +96,16 @@ struct DayCopyTests {
                 for (version, path) in zip(merge.preserved, outcome.conflictPaths) {
                     #expect(Array(try Data(contentsOf: vault.url(path))) == version.bytes, "\(path)")
                 }
+                // A replaced day file follows the later version by one second; an unchanged one keeps its time.
+                let time =
+                    merge.bytes == dayVersion.bytes
+                    ? dayVersion.modificationTime : max(dayVersion.modificationTime, copyVersion.modificationTime) + 1
+                #expect(try vault.time(dayPath) == time, "\(copy)")
             } else {
                 #expect(Array(try Data(contentsOf: vault.url(dayPath))) == copyVersion.bytes)
                 #expect(try vault.time(dayPath) == copyVersion.modificationTime)
             }
             try equivalent(vault.index, vault.root)
-            try vault.settle(dayPath)
         }
         let expectedTree = try DayCopyVault.tree(DayCopyVault.fixture().appendingPathComponent("expected"))
         #expect(try vault.tree() == expectedTree)
@@ -112,7 +117,7 @@ struct DayCopyTests {
         #expect(Set(identifiers).count == identifiers.count)
         let days = [
             "e1a001": "01", "e1b001": "01", "e2a001": "02", "e2b001": "02", "e2c001": "02", "e3b001": "03",
-            "e4a001": "04", "e5a001": "05",
+            "e4a001": "04", "e5a001": "05", "e8a001": "08", "e8b001": "08",
         ]
         for (identifier, day) in days {
             #expect(blocks.first { $0.identifier == identifier }?.file == "journal/2026-10-\(day).md", "\(identifier)")
@@ -131,7 +136,6 @@ struct DayCopyTests {
         let originalDay = try Data(contentsOf: vault.url(dayPath))
         let conflict = "conflicts/2026-10-01 (conflict 20261001T090000Z 2).md"
         #expect(try await store.mergingDayCopy(copy).conflictPaths == [conflict])
-        try vault.settle(dayPath)
         let merged = try vault.tree()
         for (bytes, time) in [
             (originalCopy, vault.cases.times[copy]!), (originalDay, vault.cases.times[dayPath]!),
@@ -156,13 +160,13 @@ struct DayCopyTests {
             second.remove()
         }
         for copy in first.cases.dayCopies {
-            let dayPath = try #require(DayCopyName.dayPath(ofCopy: copy))
             _ = try await first.store().mergingDayCopy(copy)
             _ = try await second.store().mergingDayCopy(copy)
-            try first.settle(dayPath)
-            try second.settle(dayPath)
         }
         #expect(try first.tree() == second.tree())
+        for path in try first.tree().keys where path.hasPrefix("journal/") {
+            #expect(try first.time(path) == second.time(path), "\(path)")
+        }
         let copy = "journal/2026-10-02 2.md"
         try Data(contentsOf: second.url("journal/2026-10-02.md")).write(to: first.url(copy))
         let outcome = try await first.store().mergingDayCopy(copy)
@@ -180,7 +184,8 @@ struct DayCopyTests {
         #expect(
             outcome
                 == DayCopyMergeOutcome(
-                    kind: .identical, dayPath: "journal/2026-10-04.md", conflictPaths: [], fellBack: false))
+                    kind: .identical, dayPath: "journal/2026-10-04.md", dayFileChanged: false, conflictPaths: [],
+                    fellBack: false))
         var expected = before
         expected.removeValue(forKey: "journal/2026-10-04 2.md")
         #expect(try vault.tree() == expected)
@@ -198,5 +203,54 @@ struct DayCopyTests {
         #expect(outcome.conflictPaths == ["conflicts/2026-10-05 (conflict 20261005T060000Z 3).md"])
         #expect(try Data(contentsOf: vault.url(taken)) == Data("Başka not.\n".utf8))
         #expect(try Data(contentsOf: vault.url(placeholder)) == Data("bplist00".utf8))
+    }
+
+    private struct VersionCases: Decodable {
+        let times: [String: Int]
+        let dayPath: String
+        let orders: [[String]]
+        let conflicts: [[String]]
+    }
+
+    private static func date(_ seconds: Int) -> Date { Date(timeIntervalSince1970: TimeInterval(seconds)) }
+
+    /// A merged day file takes the later version's time plus one second, never the clock, so copy 3
+    /// stays the newer version after copy 2 is merged. Both merge orders reach the same day file and
+    /// both keep copy 3's change of the shared event.
+    @Test func threeVersionsConvergeInEitherOrder() async throws {
+        let fixture = try DayCopyVault.fixture().appendingPathComponent("three-versions")
+        let cases = try JSONDecoder().decode(
+            VersionCases.self, from: Data(contentsOf: fixture.appendingPathComponent("case.json")))
+        let scratch = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: scratch) }
+        try FileManager.default.createDirectory(at: scratch, withIntermediateDirectories: true)
+        let dayPath = cases.dayPath
+        var days: [Data] = []
+        for (order, conflicts) in zip(cases.orders, cases.conflicts) {
+            let root = scratch.appendingPathComponent(String(days.count))
+            try FileManager.default.copyItem(at: fixture.appendingPathComponent("source"), to: root)
+            for (path, time) in cases.times {
+                try FileManager.default.setAttributes(
+                    [.modificationDate: Self.date(time)], ofItemAtPath: root.appendingPathComponent(path).path)
+            }
+            let index = try VaultIndex()
+            try index.rebuild(vaultRoot: root)
+            let store = VaultStore(vaultRoot: root, index: index)
+            let dayURL = root.appendingPathComponent(dayPath)
+            var later = try #require(cases.times[dayPath])
+            for copy in order {
+                #expect(try await store.mergingDayCopy(copy).kind == .merged, "\(order)")
+                later = max(later, try #require(cases.times[copy])) + 1
+                let time = try FileManager.default.attributesOfItem(atPath: dayURL.path)[.modificationDate] as? Date
+                #expect(time == Self.date(later), "\(order) \(copy)")
+            }
+            #expect(
+                try FileManager.default.contentsOfDirectory(atPath: root.appendingPathComponent("conflicts").path)
+                    .map { "conflicts/" + $0 }.sorted() == conflicts.sorted())
+            try equivalent(index, root)
+            days.append(try Data(contentsOf: dayURL))
+        }
+        #expect(days[0] == days[1])
+        #expect(days[0] == (try Data(contentsOf: fixture.appendingPathComponent("expected.md"))))
     }
 }

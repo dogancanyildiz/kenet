@@ -33,7 +33,7 @@ timeline
         Aşama 9 Tasarım dili : 9 kutu bitti : 1 kutu açık
         Aşama 10 Bağlam ve geri dönüş : 12 kutu bitti : 0 kutu açık
         Aşama 11 Kimlik, eşitleme ve widget'lar : Aktif aşama : Kimlik kararını bekliyor : 10 kutu açık
-        Aşama 13 Uyarlanır düzen : iPhone Duo dilimi sürüyor : 5 kutu açık
+        Aşama 13 Uyarlanır düzen : Duo kabuğu bugünkü SDK ile bitti : 1 kutu bitti : 4 kutu açık
     section Hazırlık sürüyor
         Aşama 12 Yayın : 4 kutu açık
 ```
@@ -42,8 +42,8 @@ timeline
 
 ```mermaid
 pie title Kutular
-    "Bitti" : 97
-    "Açık" : 21
+    "Bitti" : 98
+    "Açık" : 20
 ```
 
 | İşaret | Anlamı |
@@ -288,7 +288,7 @@ flowchart LR
 
 | Madde | Durum | Kanıt |
 |---|---|---|
-| Duo kabuğu, bugünkü SDK | Açık. Bitti: uyarlanır kabuk, boyut sınıfıyla görüntü altyapısı. Sürüyor: durum köprüsü ve taslak koruma, krom ve dokunma, güvenli alan, sheet ve panel. Sırada: belgeler. | #233, #236 |
+| Duo kabuğu, bugünkü SDK | Bitti. Uyarlanır kabuk, boyut sınıfıyla görüntü altyapısı, durum köprüsü ve taslak koruma, krom ve dokunma, güvenli alan, sheet ve panel, belgeler. Kalan Duo işi iOS 27.1 SDK'yı bekler. | #233, #236, #240, #241, #242 |
 | Duo iOS 27.1 API uyarlaması | Açık. Xcode 27.1'in iOS 27.1 SDK ile çıkmasını bekliyor. | - |
 | CI geçişi ve Duo kümeleri | Açık. Runner imajında Xcode 27.1'i bekliyor. | - |
 | iPad karma kabuk | Açık. Duo işinden sonra. | - |
@@ -296,7 +296,7 @@ flowchart LR
 
 iPhone Duo'nun dış ekranı sıkışık, iç ekranı düzenli × düzenli boyut sınıfındadır. Kabuk boyut sınıfına bakar; cihaz türüne bakmaz. Aynı kabuk iPad'de de çalışır; iPad yalnız 1000 pt üstü kademeyi ve cihaz ailesini ekler. Plan ve ölçüler kullanıcı raporlarındadır; repo yalnız kararları taşır.
 
-- [ ] Duo kabuğu, bugünkü SDK: düzenli × düzenli ekranda Mac biçimli kenar çubuğuyla bölünmüş kabuk; kabuk değişince seçim ve taslak korunur; satır dokunuşu ve manşet kabuğa göre; boyut sınıfıyla görüntü testleri; asimetrik güvenli alan; sheet ve panel düzenli genişlikte; belgeler.
+- [x] Duo kabuğu, bugünkü SDK: düzenli × düzenli ekranda Mac biçimli kenar çubuğuyla bölünmüş kabuk; kabuk değişince seçim ve taslak korunur; satır dokunuşu ve manşet kabuğa göre; boyut sınıfıyla görüntü testleri; asimetrik güvenli alan; sheet ve panel düzenli genişlikte; belgeler.
 - [ ] Duo iOS 27.1 API uyarlaması: poz turu, hızlı giriş çubuğu için ayrılmış bölge, Bugün için düzenleme görünümü, bölmeye hizalı sütun, eş merkezli köşe, Kanban yarıları, yeniden boyutlanma denetimi. Kod CI geçişinden önce `dev`'e girmez.
 - [ ] CI geçişi ve Duo kümeleri: xcode-27 runner, simülatör seçicileri, Duo görüntü kümeleri, `testflight.sh` SDK denetimi, tur ve kayıt betikleri.
 - [ ] iPad karma kabuk: 1000 pt ve üstü pencerede 3 sütun, dar pencerede telefon düzeni, kenar çubuğu stili, Kanban ve zaman çizelgesi iPad biçimi, iPad görüntü ve arayüz testleri.

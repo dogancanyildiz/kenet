@@ -37,6 +37,70 @@
     /// Phone-sized canvas shared by every case so references stay comparable across machines.
     let snapshotCanvasSize = CGSize(width: 390, height: 844)
 
+    /// Device canvas a reference is drawn on: size, size classes and safe area.
+    /// `.phone` is what every existing reference uses and stays the default everywhere; the Duo
+    /// canvases add size-class trait overrides on top of the same host. Duo sizes are 3× estimates
+    /// from the panel pixels (docs/architecture.md); safe areas are estimates too.
+    enum ShellCanvas: Sendable, Equatable {
+        /// 390×844, SnapshotTesting's iPhone 13 portrait config (compact × regular).
+        case phone
+        /// iPhone Duo outer screen, portrait only: 466×678 pt, compact × regular (phone layout).
+        case duoOuter
+        /// iPhone Duo inner screen, open flat: 890×626 pt, regular × regular. `leading` and
+        /// `trailing` add side safe area for asymmetric insets (fold, camera).
+        case duoInner(leading: CGFloat = 0, trailing: CGFloat = 0)
+
+        var size: CGSize {
+            switch self {
+            case .phone: snapshotCanvasSize
+            case .duoOuter: CGSize(width: 466, height: 678)
+            case .duoInner: CGSize(width: 890, height: 626)
+            }
+        }
+
+        /// Horizontal and vertical size class; `nil` keeps the phone config's own traits so the
+        /// existing references are drawn exactly as before.
+        var sizeClasses: (horizontal: UIUserInterfaceSizeClass, vertical: UIUserInterfaceSizeClass)? {
+            switch self {
+            case .phone: nil
+            case .duoOuter: (.compact, .regular)
+            case .duoInner: (.regular, .regular)
+            }
+        }
+
+        /// Outer screen: phone status bar and home indicator. Inner screen: iPad-like landscape
+        /// bars plus the side insets.
+        var safeArea: UIEdgeInsets {
+            switch self {
+            case .phone: ViewImageConfig.iPhone13.safeArea
+            case .duoOuter: UIEdgeInsets(top: 47, left: 0, bottom: 34, right: 0)
+            case .duoInner(let leading, let trailing):
+                UIEdgeInsets(top: 24, left: leading, bottom: 20, right: trailing)
+            }
+        }
+
+        @MainActor var imageConfig: ViewImageConfig {
+            guard let sizeClasses else { return .iPhone13 }
+            return ViewImageConfig(
+                safeArea: safeArea, size: size,
+                traits: UITraitCollection { mutable in
+                    mutable.layoutDirection = .leftToRight
+                    mutable.preferredContentSizeCategory = .medium
+                    mutable.userInterfaceIdiom = .phone
+                    mutable.horizontalSizeClass = sizeClasses.horizontal
+                    mutable.verticalSizeClass = sizeClasses.vertical
+                })
+        }
+
+        /// Size classes reach SwiftUI's `horizontalSizeClass`/`verticalSizeClass` through the
+        /// host's trait overrides, both in the warm-up window and in SnapshotTesting's window.
+        @MainActor func applySizeClasses(to host: UIViewController) {
+            guard let sizeClasses else { return }
+            host.traitOverrides.horizontalSizeClass = sizeClasses.horizontal
+            host.traitOverrides.verticalSizeClass = sizeClasses.vertical
+        }
+    }
+
     /// Locale kept Turkish so String Catalog copy matches the sample vault language.
     let snapshotLocale = Locale(identifier: "tr_TR")
     let snapshotTimeZone = TimeZone(secondsFromGMT: 3 * 3600)!
@@ -293,6 +357,7 @@
             increaseContrast: Bool,
             store: IndexStore,
             defaults: UserDefaults,
+            shell: ShellCanvas = .phone,
             file: StaticString = #filePath,
             line: UInt = #line,
             testName: String = "screen"
@@ -303,7 +368,8 @@
                 increaseContrast: increaseContrast,
                 named: name,
                 store: store,
-                size: canvasSize(for: screen, dynamicType: dynamicType),
+                shell: shell,
+                size: shell == .phone ? canvasSize(for: screen, dynamicType: dynamicType) : shell.size,
                 clock: clock(for: screen),
                 testName: testName,
                 file: file,
@@ -322,7 +388,9 @@
             increaseContrast: Bool,
             named name: String,
             store: IndexStore,
-            size canvas: CGSize = snapshotCanvasSize,
+            /// Device canvas: size classes, safe area and default size (`size` overrides it).
+            shell: ShellCanvas = .phone,
+            size: CGSize? = nil,
             /// Extra bottom safe area (e.g. tab bar) without an on-screen spacer that steals viewport.
             bottomSafeArea: CGFloat = 0,
             clock: Date = snapshotNow,
@@ -332,6 +400,7 @@
             line: UInt = #line,
             @ViewBuilder content: @MainActor () -> Content
         ) async {
+            let canvas = size ?? shell.size
             await SnapshotHostGate.exclusive {
                 // colorSchemeContrast is set only via UITraitCollection (not a writable EnvironmentValues key).
                 let view = content()
@@ -358,6 +427,7 @@
                 host.overrideUserInterfaceStyle = colorScheme.userInterfaceStyle
                 host.traitOverrides.preferredContentSizeCategory = dynamicType.contentSize
                 host.traitOverrides.accessibilityContrast = increaseContrast ? .high : .normal
+                shell.applySizeClasses(to: host)
                 host.additionalSafeAreaInsets.bottom = bottomSafeArea
                 host.view.frame = CGRect(origin: .zero, size: canvas)
 
@@ -406,7 +476,7 @@
 
                 // Non-zero safeArea keeps SnapshotTesting from parking the view at (10000,10000),
                 // which otherwise skips realistic inset layout for `safeAreaInset` chrome.
-                let config = ViewImageConfig.iPhone13
+                let config = shell.imageConfig
                 assertSnapshot(
                     of: host,
                     as: .image(

@@ -1,17 +1,20 @@
 #!/bin/sh
 # Ekran görüntüsü test kümelerini listeler (satır başına bir ad).
 # Kural: Tests/JournalTests/Snapshots altında adı "SnapshotTests" ile biten her küme görüntü
-# testidir. Adı "MacSnapshotTests" ile bitenler yalnız macOS'ta derlenir.
+# testidir. Adı "MacSnapshotTests" ile bitenler yalnız macOS'ta derlenir. Adı "DuoSnapshotTests"
+# ile bitenler iPhone Duo tuvallerini çizer (SnapshotSupport.swift: ShellCanvas).
 #   sh snapshot-suites.sh        iOS kümeleri (CI'da kapı; kayıt betiği bunları kaydeder)
 #   sh snapshot-suites.sh --mac  Mac kümeleri (yalnız yerelde koşar: çizim macOS sürümüne,
 #                                ekran ölçeğine ve sistem görünümüne bağlı; CI atlar)
+#   sh snapshot-suites.sh --duo  Duo kümeleri (henüz CI kapısı değil; varsayılan listeye girmez;
+#                                kayıt: record-screen-snapshots.sh --duo)
 # Yeni küme eklemek için başka dosyaya dokunmak gerekmez.
 set -eu
 cd "$(dirname "$0")/../.."
 all=$(grep -hoE '(struct|class) +[A-Za-z0-9_]+SnapshotTests\b' \
   Tests/JournalTests/Snapshots/*.swift | awk '{print $NF}' | sort -u)
-if [ "${1:-}" = "--mac" ]; then
-  echo "$all" | grep 'MacSnapshotTests$' || true
-else
-  echo "$all" | grep -v 'MacSnapshotTests$' || true
-fi
+case "${1:-}" in
+  --mac) echo "$all" | grep 'MacSnapshotTests$' || true ;;
+  --duo) echo "$all" | grep 'DuoSnapshotTests$' || true ;;
+  *) echo "$all" | grep -v -e 'MacSnapshotTests$' -e 'DuoSnapshotTests$' || true ;;
+esac

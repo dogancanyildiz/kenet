@@ -1114,6 +1114,7 @@ stateDiagram-v2
 | Öğe | Davranış |
 |---|---|
 | Kasa yolu | Ekran uzun yolu ortadan kırpar. Kullanıcı yolu seçer ve kopyalar. |
+| Eşitlenen klasör | Kasa eşitlenen bir klasördeyse yolun altında kalıcı bilgi bandı durur. Ayrıntı: [Eşitlenen klasör bandı](#eşitlenen-klasör-bandı). |
 | Mac'e özgü | Finder'da göster. |
 | Klasör | Klasör seç ya da değiştir. |
 | Kasa hazırlığı | İçe aktarma alt ekranı. |
@@ -1128,6 +1129,7 @@ stateDiagram-v2
 | İndeks eylemleri | İndeksi yeniden üret. Arama geçmişini temizle. |
 | İndeks sayıları | Dosya, gün, kişi, konum, hedef, not, olay, görev, varlık, bağlantı, çözülmemiş. Son güncelleme. Sayılar tabulardır. |
 | Atlanan yollar | Sembolik bağlantı ya da yinelenen yol. Ekran uzun yolu kırpar. Kullanıcı yolu kopyalar. |
+| Kopya dosyalar | Gün kopyaları ve varlık kopyaları. Her satır kopyanın yolunu ve altında özgün dosyanın yolunu gösterir. Kopya yoksa bölüm görünmez. Uygulama kopyayı birleştirmez. Kural: [Varlık kopyası](vault-format.md#varlık-kopyası). |
 | Üçüncü taraf lisansları | Salt okunur alt ekran. Uygulamaya giren her paketin adı, lisans türü ve paketlenmiş lisans metni. Uygulama metni çevirmez. |
 | Lisans alt ekranı | iPhone alt ekranı gezinme yığınına iter. Mac'te alt ekran Tanılama sekmesinin içeriğinin yerine geçer. En üstteki "Tanılama" düğmesi geri döndürür. Sekme şeridi değişmez. |
 
@@ -1245,7 +1247,28 @@ flowchart TD
 | Uygula | Sonrasında oluşan ve değişen dosya sayıları, atlanan ve hatalı yollar görünür. "Kasayı aç" indeksi hazırlar. |
 | Atla | Dosyalara yazmadan indeksi açar. |
 | Desteklenmeyen sürüm | Desteklenmeyen ya da okunamayan kasa sürümünde hazırlama kapalıdır. Uygulama kasayı salt okunur açar. |
+| Eşitlenen klasör | Seçilen klasör eşitlenen bir klasördeyse Kasa hazırlığı raporu yolun altında bilgi bandı gösterir. İlk açılış ekranı da kasa açılırken aynı bandı gösterir. Ayrıntı: [Eşitlenen klasör bandı](#eşitlenen-klasör-bandı). |
 | İlk indeksleme | Toplam dosya sayısıyla ilerleme göstergesi görünür. İndeks API'si dosya başına bildirim üretmez, bu yüzden gösterge belirsizdir. Bitince gerçek indeks sayıları Ayarlar → Tanılama'dadır. |
+
+### Eşitlenen klasör bandı
+
+**Bandın kaynağı ve göründüğü yerler.**
+
+```mermaid
+flowchart LR
+  Yol["Kasa klasörü"] --> Tespit["SyncedFolderKind: yol kalıbı ve isUbiquitousItemKey"]
+  Tespit -->|eşitlenen| Bant["Bilgi bandı, bilgi tonu"]
+  Tespit -->|yerel| Yok["Bant yok"]
+  Bant --> Hazirlik["Kasa hazırlığı: klasör raporu"]
+  Bant --> Ilk["İlk açılış: kasa açılırken"]
+  Bant --> Ayar["Ayarlar → Kasa: kalıcı"]
+```
+
+| Konu | Davranış |
+|---|---|
+| Metin | "Bu klasör {hizmet} ile eşitleniyor. Kenet dosyaları koordineli yazar; iki cihaz aynı günü düzenlerse gün kopyası oluşabilir ve kopya Tanılama'da görünür." |
+| Hizmet adı | iCloud Drive, Dropbox, OneDrive ya da Google Drive. Bilinmeyen dosya sağlayıcısında "bir eşitleme hizmeti". |
+| Ton | Bilgi tonu. Uyarı tonu yok, kapatma düğmesi yok, izin isteği yok. |
 
 ## İlgili belgeler
 

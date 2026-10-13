@@ -51,6 +51,10 @@ struct VaultSettingsView: View {
                         }
                     #endif
                 }
+                if let synced = store.syncedFolder {
+                    InfoBand(kind: .info, verbatim: synced.notice())
+                        .inkListRow()
+                }
                 HStack {
                     Button("Klasör seç") { choosingFolder = true }.disabled(
                         store.isInspectingImport || store.importModel != nil)

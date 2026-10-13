@@ -96,3 +96,25 @@ enum SyncedFolderKind: Sendable, Equatable, CaseIterable {
         return nil
     }
 }
+
+extension SyncedFolderKind {
+    /// The service's own name; `nil` for a file provider the app cannot name.
+    var serviceName: String? {
+        switch self {
+        case .iCloudDrive: "iCloud Drive"
+        case .dropbox: "Dropbox"
+        case .oneDrive: "OneDrive"
+        case .googleDrive: "Google Drive"
+        case .fileProvider: nil
+        }
+    }
+
+    /// The information band under a synced vault folder: what the app does today, without blame.
+    func notice(bundle: Bundle = .main) -> String {
+        let service = serviceName ?? String(localized: "bir eşitleme hizmeti", bundle: bundle)
+        return String(
+            localized:
+                "Bu klasör \(service) ile eşitleniyor. Kenet dosyaları koordineli yazar; iki cihaz aynı günü düzenlerse gün kopyası oluşabilir ve kopya Tanılama'da görünür.",
+            bundle: bundle)
+    }
+}

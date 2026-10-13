@@ -5,8 +5,16 @@
 # Derleme ve koşu ayrıdır: build-for-testing, DerivedData SNAPSHOT_DERIVED_DATA
 # (varsayılan .dd/snapshots); kayıt ve doğrulama test-without-building ile aynı yoldadır.
 # SNAPSHOT_SUITES doluysa yalnız o kümeler (boşlukla ayrılmış adlar); boşsa bütün iOS kümeleri.
+# --duo: yalnız iPhone Duo tuval kümeleri (snapshot-suites.sh --duo). Bu kümeler test konağında
+# SNAPSHOT_DUO=1 görmeden koşmaz; betik değişkeni TEST_RUNNER_SNAPSHOT_DUO olarak geçirir.
 set -eu
 cd "$(dirname "$0")/../.."
+
+SUITES_FLAG=""
+if [ "${1:-}" = "--duo" ]; then
+  SUITES_FLAG="--duo"
+  export TEST_RUNNER_SNAPSHOT_DUO=1
+fi
 
 DEVELOPER_DIR="${DEVELOPER_DIR:-/Applications/Xcode.app/Contents/Developer}"
 export DEVELOPER_DIR
@@ -44,7 +52,7 @@ NAME=${DEVICE#* }
 if [ -n "${SNAPSHOT_SUITES:-}" ]; then
   ONLY=$(printf '%s\n' $SNAPSHOT_SUITES | sed 's#^#-only-testing:JournalTests_iOS/#' | tr '\n' ' ')
 else
-  ONLY=$(sh .github/scripts/snapshot-suites.sh | sed 's#^#-only-testing:JournalTests_iOS/#' | tr '\n' ' ')
+  ONLY=$(sh .github/scripts/snapshot-suites.sh $SUITES_FLAG | sed 's#^#-only-testing:JournalTests_iOS/#' | tr '\n' ' ')
 fi
 [ -n "$ONLY" ] || { echo "Görüntü test kümesi bulunamadı" >&2; exit 1; }
 

@@ -1,4 +1,5 @@
 import SwiftUI
+import VaultIndex
 
 /// Index counts, skipped paths, rebuild, search-history clear, and third-party licenses.
 struct DiagnosticsView: View {
@@ -7,6 +8,8 @@ struct DiagnosticsView: View {
         /// The Settings tab swaps its content; a push would shift the tab strip's highlight.
         var openLicenses: () -> Void = {}
     #endif
+    /// Sync copies left in the vault; reloaded with each index publish.
+    @State private var copies: [CopyFile] = []
 
     var body: some View {
         List {
@@ -89,6 +92,7 @@ struct DiagnosticsView: View {
                     .inkListRow()
                 }
             }
+            CopyFilesSection(copies: copies)
             Section {
                 licensesLink
             }
@@ -97,6 +101,15 @@ struct DiagnosticsView: View {
         .inkPageNavigationTitle("Tanılama")
         .inkPageScrollColumn()
         .inkPage()
+        .task(id: store.lastUpdated) {
+            do {
+                copies = try await store.computeCopyFiles()
+            } catch is CancellationError {
+                return
+            } catch {
+                copies = []
+            }
+        }
     }
 
     private var rebuildButton: some View {
@@ -133,5 +146,36 @@ struct DiagnosticsView: View {
                 .monospacedDigit()
         }
         .inkListRow()
+    }
+}
+
+/// Day and entity copies a sync service set apart, each with the file it duplicates. The app
+/// lists them and changes nothing; no copies, no section.
+struct CopyFilesSection: View {
+    let copies: [CopyFile]
+
+    var body: some View {
+        if !copies.isEmpty {
+            Section {
+                SectionHeader("Kopya dosyalar")
+                    .inkListRow()
+                ForEach(copies, id: \.copy) { copy in
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(verbatim: copy.copy)
+                            .font(.ink.meta)
+                            .foregroundStyle(Color.ink.text)
+                            .lineLimit(2)
+                            .truncationMode(.middle)
+                            .textSelection(.enabled)
+                        Text("Özgün dosya: \(copy.original)")
+                            .font(.ink.meta)
+                            .foregroundStyle(Color.ink.secondaryText)
+                            .lineLimit(2)
+                            .truncationMode(.middle)
+                    }
+                    .inkListRow()
+                }
+            }
+        }
     }
 }

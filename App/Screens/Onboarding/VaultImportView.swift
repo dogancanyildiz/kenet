@@ -91,6 +91,10 @@ struct VaultImportView: View {
                     .truncationMode(.middle)
                     .textSelection(.enabled)
                     .inkListRow()
+                if let synced = SyncedFolderKind.detect(url: model.report.root) {
+                    InfoBand(kind: .info, verbatim: synced.notice())
+                        .inkListRow()
+                }
                 labeled("Markdown dosyaları", model.report.markdownCount)
                 labeled("Gün dosyaları", model.report.journalDays.count)
                 labeled("Diğer yollardaki gün dosyaları", model.report.externalDays.count)

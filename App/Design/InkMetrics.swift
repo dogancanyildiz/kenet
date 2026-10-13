@@ -77,12 +77,6 @@ enum InkStroke {
     /// Section hairline (1 px intent; use ``hairline(scale:)`` for true device pixels).
     static let rule: CGFloat = 1
 
-    /// Link underline at default contrast.
-    static let underline: CGFloat = 1
-
-    /// Link underline when Increase Contrast is on.
-    static let underlineHighContrast: CGFloat = 2
-
     /// 1-pixel decorative rule for the current display scale.
     static func hairline(scale: CGFloat) -> CGFloat {
         scale > 0 ? 1 / scale : rule

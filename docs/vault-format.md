@@ -40,6 +40,7 @@ mindmap
       Gün kopyası
       Birleştirme işlevi
       Çakışma kopyası
+      Varlık kopyası
 ```
 
 ## Kodlama ve satır sonu
@@ -1459,7 +1460,7 @@ flowchart TD
 
 Uygulama 2 sürümü tek içerikte birleştirir. Uygulama gün kopyasını birleştirdikten sonra siler. Ana dosya yoksa gün kopyası ana dosyanın adını alır.
 
-**NOT:** Birleştirme işlevi ve gün kopyası birleştirme bugün Core'da hazırdır. Uygulama bu işlevi henüz çağırmaz ve çakışma kopyalarını göstermez; bağlantı [yol haritasında](roadmap.md) açık maddedir.
+**NOT:** Birleştirme işlevi ve gün kopyası birleştirme bugün Core'da hazırdır. Uygulama bu işlevi henüz çağırmaz ve çakışma kopyalarını göstermez; bağlantı [yol haritasında](roadmap.md) açık maddedir. Uygulama gün kopyalarını Ayarlar → Tanılama ekranında listeler. Ayrıntı: [Varlık kopyası](#varlık-kopyası).
 
 ### Gün kopyası adları
 
@@ -1670,9 +1671,39 @@ flowchart TD
 
 Uygulama 2 sürümün ortak atasını bilmez. Bu nedenle uygulama çakışma anında silmeyi eklemeden, geri almayı ilerlemeden ayıramaz. Tablodaki sonuçların hepsi kurala uygun, gürültülü sonuçlardır.
 
-### Gün dosyası dışındaki kopyalar
+### Varlık kopyası
 
-Gün dosyaları dışında iCloud'un ayırdığı kopyaları uygulama kendiliğinden birleştirmez. Örnek: `Elif 2.md`. Bu kopyaların kuralı [Kararlar](decisions.md) belgesinde açık soru 11'dir: "Varlık dosyası kopyaları".
+**Varlık kopyası:** iCloud'un aynı varlık dosyası için ayırdığı, adının sonunda sayı taşıyan dosya. Örnek: `people/Elif 2.md`.
+
+**Kasadaki yol: uygulama yolu ne zaman varlık kopyası sayar.**
+
+```mermaid
+flowchart TD
+  A["İndeksteki dosya: Klasör/Ad N.md"] --> B{"Ad boş değil, tek boşluk, N 2 ya da daha büyük bir ASCII sayı ve başında sıfır yok mu?"}
+  B -- Hayır --> B1["Sıradan dosya"]
+  B -- Evet --> C{"Aynı klasörde Klasör/Ad.md varlık dosyası var mı?"}
+  C -- Hayır --> C1["Sıradan dosya; örnek: Kaan 2 adlı kişi"]
+  C -- Evet --> D["Varlık kopyası: Tanılama listeler"]
+```
+
+| Ad | Kasadaki öteki dosya | Varlık kopyası mı | Neden |
+|---|---|---|---|
+| `people/Elif 2.md` | `people/Elif.md` | Evet | Aynı klasörde özgün varlık dosyası var. |
+| `people/Elif 10.md` | `people/Elif.md` | Evet | Sayı 10. |
+| `Ada 2.md` | `Ada.md` | Evet | Kasa kökü de bir klasördür. |
+| `people/selin 2.md` | `people/Selin.md` | Evet | Ad karşılaştırma kuralı: NFC, küçük harf. |
+| `people/Kaan 2.md` | `people/Kaan.md` yok | Hayır | Özgün dosya yok. Dosya "Kaan 2" adlı varlıktır. |
+| `people/Deniz 1.md` | `people/Deniz.md` | Hayır | Sayı 2'den küçük. |
+| `places/Liman Kafe 02.md` | `places/Liman Kafe.md` | Hayır | Sayının başında sıfır. |
+| `notes/Plan 2.md` | `notes/Plan.md`, `type` alanı yok | Hayır | Özgün dosya varlık dosyası değil. |
+
+| Konu | Kural |
+|---|---|
+| Varlık dosyası | İndekste varlık satırı olan dosya: kişi, konum, hedef ya da özel tip dosyası. |
+| Birleştirme | Uygulama varlık kopyasını birleştirmez, taşımaz ve silmez. Kullanıcı kopyayı Obsidian'da ya da Dosyalar'da kendisi düzenler. |
+| İndeks | Uygulama varlık kopyasını sıradan bir dosya gibi indeksler. Kopyada `type` alanı varsa kopya ayrı bir varlıktır. |
+| Liste | Uygulama varlık kopyalarını ve gün kopyalarını Ayarlar → Tanılama ekranında "Kopya dosyalar" bölümünde listeler. Her satır kopyanın yolunu ve özgün dosyanın yolunu gösterir. |
+| Sıra | Önce gün kopyaları birleştirme sırasıyla gelir. Sonra varlık kopyaları özgün yola ve sayıya göre gelir. |
 
 ## İlgili belgeler
 

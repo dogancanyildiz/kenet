@@ -48,7 +48,7 @@ public struct GoalStatus: Sendable, Equatable {
 public enum GoalDayMark: String, Sendable {
     case none, partial, full, forgiven, forgivenPartial
 
-    /// A forgiven isolated miss of a daily goal, with or without a partial contribution.
+    /// A forgiven miss of a daily goal, with or without a partial contribution.
     public var isForgiven: Bool { self == .forgiven || self == .forgivenPartial }
 }
 

@@ -1288,13 +1288,16 @@ Türkçe `ç/ğ/ı/ö/ş/ü` harfleri `c/g/i/o/s/u` olur. Örnek: `Su İçme` �
 
 ### Zincir
 
-**Günlük hedefte tek kaçırma affı: örnekler.**
+**Günlük hedefte kaçırma affı: örnekler.**
 
 | Günler | Sonuç |
 |---|---|
 | Pzt yapıldı, Sal yapıldı, Çar kaçtı, Per yapıldı, Cum yapıldı | Uygulama Çar'ı affeder. Zincir 4. |
+| Yapıldı, kaçtı, yapıldı | Af yok: kaçırmanın önünde iki yapılmış gün yok. Zincir 1. |
 | Yapıldı, kaçtı, kaçtı, yapıldı | Art arda 2 kaçırma. Af yok. Kaçırmalar zinciri keser. |
-| Yapıldı, kaçtı, yapıldı, kaçtı, yapıldı | Uygulama her kaçırmayı ayrı affeder. Zincir sürer ve yalnız yapılmış günleri sayar. |
+| Yapıldı, kaçtı, yapıldı, kaçtı, yapıldı | Af yok: hiçbir kaçırmanın önünde iki yapılmış gün yok. Zincir 1. En uzun zincir 1. |
+| Yapıldı, yapıldı, kaçtı, yapıldı, kaçtı, yapıldı | Uygulama ilk kaçırmayı affeder. İkinci kaçırmanın önündeki iki günden biri affedilmiş gündür ve yapılmış sayılmaz: af yok. Zincir 1. En uzun zincir 3. |
+| Kaçtı, yapıldı, yapıldı, kaçtı, yapıldı | Uygulama ikinci kaçırmayı affeder. Zincir 3. |
 | Pzt–Cum yapıldı, Cmt kaçtı, Pazar sabahı, bugün henüz yapılmadı | Zincir 5. `isPendingToday` döner. |
 | Aynı hafta, Pazar yapıldı | Uygulama Cmt'yi affeder. Zincir 6. |
 | Aynı hafta, Pazar da yapılmadı, ertesi gün | Art arda 2 kaçırma. Zincir 0. |
@@ -1309,12 +1312,13 @@ Türkçe `ç/ğ/ı/ö/ş/ü` harfleri `c/g/i/o/s/u` olur. Örnek: `Su İçme` �
 | Günlük hedefte başlangıç | Aynı kural: bugün henüz başarılı değilse sayım dünden başlar ve `isPendingToday` döner. |
 | Yapılmış gün | Gün katkısı ≥ `target`. Dönem kuralıyla aynı eşik. |
 | Kaçırma | Gün yapılmamış: `false`, eşik altı, `0`, kayıt yok ya da tür uyuşmazlığı. |
-| Tek kaçırma affı | Bir takvim günü yapılmamışsa, hem bir önceki hem bir sonraki takvim günü yapılmışsa uygulama o günü affeder. Uygulama affedilen günü zincir sayısına eklemez. |
-| Art arda 2 kaçırma | Kaçırmaların komşuları yapılmış değildir. Uygulama bu kaçırmaları affetmez. Kaçırmalar zinciri keser. |
+| Kaçırma affı | Bir takvim günü yapılmamışsa ve önceki iki takvim günü ile sonraki takvim günü yapılmışsa uygulama o günü affeder. Affedilen gün yapılmış gün sayılmaz: başka bir kaçırmanın önceki iki gününden biri olamaz. Uygulama affedilen günü zincir sayısına eklemez. |
+| Art arda 2 kaçırma | İkinci kaçırmanın önündeki gün yapılmamıştır. Uygulama bu kaçırmaları affetmez. Kaçırmalar zinciri keser. |
 | Af zamanı | Af yalnız bugünden önceki günlere geçerlidir. |
-| Dün kaçtı, önceki gün yapıldı, bugün henüz yok | Dün henüz affedilmiş değildir ama zinciri de düşürmez. Bugün dünü hâlâ affettirebilir. Bu nedenle uygulama zinciri dünden önceki günden sayar ve `isPendingToday` döner. |
+| Dün kaçtı, önceki iki gün yapıldı, bugün henüz yok | Dün henüz affedilmiş değildir ama zinciri de düşürmez. Bugün dünü hâlâ affettirebilir. Bu nedenle uygulama zinciri dünden önceki günden sayar ve `isPendingToday` döner. |
+| Dün kaçtı, önceki iki günden biri yapılmadı ya da affedildi, bugün henüz yok | Bekleme zinciri korumaz. Zincir 0. `isPendingToday` döner. |
 | Beklemenin etkisi | Bekleme yalnız güncel zinciri etkiler. En uzun zincir ve ısı haritası yalnız kesinleşmiş affı sayar. Dün haritada `none` ya da kısmi kalır. |
-| Affedilmeyen kaçırmalar | Hedefin ilk günü, baştaki kaçırma ve arkası yapılmamış sondaki kaçırma. |
+| Affedilmeyen kaçırmalar | Hedefin ilk ve ikinci günü, önünde iki yapılmış gün olmayan kaçırma, baştaki kaçırma ve arkası yapılmamış sondaki kaçırma. |
 | Günlük hedefte en uzun zincir | Aynı af kuralıyla, ilk kayıttan verilen güne kadar. |
 | Gün tanımı | Gün `CalendarDate` değeridir. Saat dilimi bir takvim gününü bölmez ya da birleştirmez. Yaz saati geçişi de tek gündür. |
 | Dinlenme günü | Yoktur. Af kuralı her zaman açıktır ve ayar değildir. |

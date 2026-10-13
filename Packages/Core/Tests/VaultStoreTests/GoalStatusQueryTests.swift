@@ -25,7 +25,8 @@ struct GoalStatusQueryTests {
         #expect(spor.status.periodStart == CalendarDate("2026-09-21"))
         #expect(spor.status.streak == 2 && spor.status.longestStreak == 2 && spor.status.yearDone == 6)
         #expect(spor.score == nil && spor.status.score == nil)
-        for (key, streak, longest, amount) in [("kitap", 8, 8, 320.0), ("su", 10, 10, 104.0)] {
+        // Su forgives 17 and 24 September. 19 September follows the forgiven 17th, so the chain starts on the 20th.
+        for (key, streak, longest, amount) in [("kitap", 8, 8, 320.0), ("su", 6, 6, 104.0)] {
             let row = try #require(rows.first { $0.definition.key == key })
             #expect(row.status.streak == streak && row.status.longestStreak == longest)
             #expect(row.status.yearDone == amount)

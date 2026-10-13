@@ -82,5 +82,3 @@ struct PhoneNavigation: View {
         .tint(Color.ink.accent)
     }
 }
-
-private enum PhoneTab: Hashable { case today, days, tasks, entities, goals }

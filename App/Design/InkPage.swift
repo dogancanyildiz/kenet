@@ -62,8 +62,9 @@ extension View {
             .inkPageHiddenBarTitle()
     }
 
-    /// Root (tab) screen: the system navigation bar is hidden entirely on iOS, so no bar
-    /// title, no glass capsule; the page's icons live on the manşet row instead. The title
+    /// Root (tab) screen: the system navigation bar is hidden entirely in the iOS tab shell,
+    /// so no bar title, no glass capsule; the page's icons live on the manşet row instead. The
+    /// split shell keeps the empty bar for its sidebar button (`InkHiddenNavigationBar`). The title
     /// still feeds back-button history. Mac keeps the window title (same as
     /// ``inkPageNavigationTitle(_:)``).
     ///
@@ -84,7 +85,7 @@ extension View {
     @ViewBuilder
     private func inkHiddenNavigationBar() -> some View {
         #if os(iOS)
-            self.toolbar(.hidden, for: .navigationBar)
+            modifier(InkHiddenNavigationBar())
         #else
             self
         #endif
@@ -121,6 +122,18 @@ extension View {
         #endif
     }
 }
+
+#if os(iOS)
+    /// A root page's bar is hidden in the tab shell. The split shell (iPhone Duo inner screen)
+    /// keeps it: the bar holds the button that brings the hidden sidebar back.
+    private struct InkHiddenNavigationBar: ViewModifier {
+        @Environment(\.shellKind) private var shellKind
+
+        func body(content: Content) -> some View {
+            content.toolbar(shellKind == .split ? .automatic : .hidden, for: .navigationBar)
+        }
+    }
+#endif
 
 #if os(macOS)
     private struct InkPageScrollColumn: ViewModifier {

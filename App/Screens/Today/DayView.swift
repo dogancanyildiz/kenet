@@ -34,7 +34,14 @@ struct DayView: View {
     @Environment(\.clockNow) private var clockNow
     @Environment(\.openSettings) private var openSettings
     @Environment(\.displayScale) private var displayScale
+    /// The shell's bridge: the journal editor's presence and the drafts live there, so a shell
+    /// rebuilt by the iPhone Duo shows the same page with the same text. Nil when the page is
+    /// hosted without a shell (tests).
+    @Environment(ShellNavigationState.self) private var navigation: ShellNavigationState?
     @State private var showsJournal = false
+    /// On screen (`onAppear`): a page in another tab or under a pushed page is not, and leaves
+    /// the journal editor route to the page the user sees.
+    @State private var isVisible = false
     @State private var closeDayRoute: CloseDayRoute?
     @State private var tasksModel: DayTasksModel
     @State private var isCarriedOverExpanded = false
@@ -144,7 +151,8 @@ struct DayView: View {
         .inkPage()
         .safeAreaInset(edge: .bottom) {
             QuickEntryBar(
-                store: store, isEnabled: true, day: isToday ? nil : date, acceptsPeopleMentions: isToday
+                store: store, isEnabled: true, day: isToday ? nil : date, acceptsPeopleMentions: isToday,
+                drafts: navigation
             )
             .id(isToday ? "today" : date.description)
         }
@@ -181,7 +189,9 @@ struct DayView: View {
             isCarriedOverExpanded = false
             isCompletedExpanded = false
         }
-        .sheet(isPresented: $showsJournal) {
+        .onAppear { isVisible = true }
+        .onDisappear { isVisible = false }
+        .sheet(isPresented: journalPresented) {
             NavigationStack { JournalView(store: store, date: date) }
         }
         .sheet(item: $closeDayRoute) { route in
@@ -204,6 +214,24 @@ struct DayView: View {
             CloseDayReminder.claim(notifications.navigationRequest?.closeDayRequestID)
         else { return }
         closeDayRoute = CloseDayRoute(step: .journal)
+    }
+
+    private var journalRoute: JournalEditorRoute { JournalEditorRoute(day: date, isToday: isToday) }
+
+    /// Whether this page's journal editor is open. With a shell the bridge holds the route, so
+    /// a new shell's page of the same day presents the editor again; only the page on screen
+    /// presents, as the same past day can be live in two tabs. Without a shell the page itself.
+    private var journalPresented: Binding<Bool> {
+        guard let navigation else { return $showsJournal }
+        return Binding(
+            get: { isVisible && navigation.journalEditor == journalRoute },
+            set: { open in
+                if open {
+                    navigation.journalEditor = journalRoute
+                } else {
+                    navigation.closeJournalEditor(journalRoute)
+                }
+            })
     }
 
     /// Manşet row: Settings (Today, phone only) then search, rightmost. A past day keeps only
@@ -243,7 +271,7 @@ struct DayView: View {
                     bundle: PresentationLocalization.bundle(locale), locale: locale))
             #if os(iOS)
                 Button {
-                    showsJournal = true
+                    journalPresented.wrappedValue = true
                 } label: {
                     journalPreview
                 }

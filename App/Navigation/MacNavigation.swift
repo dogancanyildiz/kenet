@@ -81,8 +81,13 @@ struct MacNavigation: View {
             .onChange(of: shellLayout) { _, _ in resetColumns() }
         #endif
         .environment(\.shellKind, .split)
+        // The pages take their drafts from the bridge.
+        .environment(navigation)
+        // `initial: true` so a request from before the shell was built is still routed; the
+        // bridge tells a shell rebuilt after the request (the Duo closed and opened again) to
+        // leave it alone.
         .onChange(of: intentNavigation.todayRequest, initial: true) { _, request in
-            guard request != nil else { return }
+            guard navigation.claimTodayRequest(request) else { return }
             navigation.detailPath = NavigationPath()
             navigation.selectedDay = nil
             navigation.selectedTask = nil
@@ -91,7 +96,7 @@ struct MacNavigation: View {
             navigation.section = .today
         }
         .onChange(of: notifications.navigationRequest?.id, initial: true) { _, id in
-            guard id != nil, let request = notifications.navigationRequest else { return }
+            guard navigation.claimNavigationRequest(id), let request = notifications.navigationRequest else { return }
             navigation.detailPath = NavigationPath()
             tasksEvent(.navigationReset)
             navigation.selectedTask = nil

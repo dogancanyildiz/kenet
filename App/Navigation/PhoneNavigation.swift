@@ -1,23 +1,26 @@
 import SwiftUI
 
-/// Each phone tab retains its own navigation stack.
+/// Each phone tab retains its own navigation stack. The selection, the stacks and the Settings
+/// sheet live in the bridge (`ShellNavigationState`), which outlives the shell: the iPhone Duo
+/// builds this shell anew each time it closes.
 struct PhoneNavigation: View {
     let store: IndexStore
     @Environment(IntentNavigation.self) private var intentNavigation
     @Environment(NotificationService.self) private var notifications
-    @State private var selectedTab = PhoneTab.today
-    @State private var todayPath = NavigationPath()
-    @State private var taskPath = NavigationPath()
-    @State private var entitiesPath = NavigationPath()
-    @State private var unseenReveal: UUID?
-    @State private var showingSettings = false
+    @State private var navigation: ShellNavigationState
+
+    init(store: IndexStore, navigation: ShellNavigationState) {
+        self.store = store
+        _navigation = State(initialValue: navigation)
+    }
 
     var body: some View {
-        TabView(selection: $selectedTab) {
+        @Bindable var navigation = navigation
+        TabView(selection: $navigation.selectedTab) {
             Tab("Bugün", systemImage: "sun.max", value: PhoneTab.today) {
-                NavigationStack(path: $todayPath) {
+                NavigationStack(path: $navigation.todayPath) {
                     TodayView(store: store)
-                        .environment(\.openSettings, { showingSettings = true })
+                        .environment(\.openSettings, { navigation.showingSettings = true })
                 }
             }
             .accessibilityIdentifier("tab.today")
@@ -26,7 +29,7 @@ struct PhoneNavigation: View {
             }
             .accessibilityIdentifier("tab.days")
             Tab("Görevler", systemImage: "checklist", value: PhoneTab.tasks) {
-                NavigationStack(path: $taskPath) {
+                NavigationStack(path: $navigation.tasksPath) {
                     TasksView(
                         store: store,
                         notificationRequest: notifications.navigationRequest?.destination == .tasks
@@ -35,9 +38,9 @@ struct PhoneNavigation: View {
             }
             .accessibilityIdentifier("tab.tasks")
             Tab("Kişiler ve Konumlar", systemImage: "person.2", value: PhoneTab.entities) {
-                NavigationStack(path: $entitiesPath) {
-                    EntitiesView(store: store, initialUnseenExpanded: unseenReveal != nil)
-                        .id(unseenReveal)
+                NavigationStack(path: $navigation.entitiesPath) {
+                    EntitiesView(store: store, initialUnseenExpanded: navigation.unseenReveal != nil)
+                        .id(navigation.unseenReveal)
                 }
             }
             .accessibilityIdentifier("tab.entities")
@@ -46,29 +49,31 @@ struct PhoneNavigation: View {
             }
             .accessibilityIdentifier("tab.goals")
         }
+        // `initial: true` so a request from before the shell was built is still routed; the
+        // bridge tells a shell rebuilt after the request to leave it alone.
         .onChange(of: intentNavigation.todayRequest, initial: true) { _, request in
-            guard request != nil else { return }
-            showingSettings = false
-            todayPath = NavigationPath()
-            selectedTab = .today
+            guard navigation.claimTodayRequest(request) else { return }
+            navigation.showingSettings = false
+            navigation.todayPath = NavigationPath()
+            navigation.selectedTab = .today
         }
         .onChange(of: notifications.navigationRequest?.id, initial: true) { _, id in
-            guard id != nil, let request = notifications.navigationRequest else { return }
-            showingSettings = false
+            guard navigation.claimNavigationRequest(id), let request = notifications.navigationRequest else { return }
+            navigation.showingSettings = false
             switch NotificationRoute(request.destination) {
             case .tasks:
-                taskPath = NavigationPath()
-                selectedTab = .tasks
+                navigation.tasksPath = NavigationPath()
+                navigation.selectedTab = .tasks
             case .unseenPeople:
-                entitiesPath = NavigationPath()
-                unseenReveal = request.id
-                selectedTab = .entities
+                navigation.entitiesPath = NavigationPath()
+                navigation.unseenReveal = request.id
+                navigation.selectedTab = .entities
             case .today:
-                todayPath = NavigationPath()
-                selectedTab = .today
+                navigation.todayPath = NavigationPath()
+                navigation.selectedTab = .today
             }
         }
-        .phoneSettingsSheet(store: store, isPresented: $showingSettings)
+        .phoneSettingsSheet(store: store, isPresented: $navigation.showingSettings)
         // After `.sheet` so the accent also reaches what the tab view presents.
         .tint(Color.ink.accent)
     }

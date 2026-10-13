@@ -9,6 +9,7 @@ struct JournalView: View {
     @State private var selection: TextSelection?
     @FocusState private var isFocused: Bool
     @Environment(\.dismiss) private var dismiss
+    @Environment(ShellNavigationState.self) private var navigation: ShellNavigationState?
 
     private let focusesOnLoad: Bool
 
@@ -51,10 +52,7 @@ struct JournalView: View {
         .confirmationDialog("Kaydedilmemiş değişiklikler", isPresented: $leavePrompt) {
             Button("Kaydet", action: saveAndClose)
                 .disabled(!model.canSave)
-            Button("At", role: .destructive) {
-                isClosing = true
-                dismiss()
-            }
+            Button("At", role: .destructive) { close() }
             Button("Vazgeç", role: .cancel) {}
         } message: {
             Text("Kaydedilmemiş günlük metni var.")
@@ -65,9 +63,33 @@ struct JournalView: View {
             }
         }
         .task {
-            await model.load()
-            isFocused = focusesOnLoad && model.isLoaded
+            // `self.model`: the state, not the `@Bindable` copy above.
+            takeBridgeDraft()
+            await self.model.load()
+            isFocused = focusesOnLoad && self.model.isLoaded
         }
+        // A pushed editor (the Mac) left clean lets its model go, so the next one reads the file
+        // again; left with unsaved text it keeps the model for the next editor of the day. A
+        // sheet's model belongs to its route and goes when the route closes (`DayView`), not
+        // when a shell swap takes the sheet down.
+        .onDisappear {
+            guard let navigation, navigation.journalEditor == nil, !model.isDirty, !model.isSaving else { return }
+            navigation.releaseJournalDraft(model)
+        }
+    }
+
+    /// On screen, the editor takes the day's model the bridge keeps (the text typed before the
+    /// shell was rebuilt) or hands it its own. Here and not in `init`: a pushed editor (the
+    /// Mac's `NavigationLink`) is made with every draw of the day page, long before it opens.
+    private func takeBridgeDraft() {
+        guard let navigation else { return }
+        model = navigation.journalDraft(for: model.day, store: model.store) { model }
+    }
+
+    private func close() {
+        isClosing = true
+        navigation?.releaseJournalDraft(model)
+        dismiss()
     }
 
     private func editor(text: Binding<String>) -> some View {
@@ -123,7 +145,7 @@ struct JournalView: View {
         isClosing = true
         Task {
             if await model.save(), !model.isDirty && model.errorText == nil {
-                dismiss()
+                close()
             } else {
                 isClosing = false
             }
@@ -132,8 +154,7 @@ struct JournalView: View {
 
     private func requestLeave() {
         if UnsavedDraftDecision.canLeaveImmediately(isDirty: model.isDirty, isSaving: model.isSaving) {
-            isClosing = true
-            dismiss()
+            close()
         } else {
             leavePrompt = true
         }

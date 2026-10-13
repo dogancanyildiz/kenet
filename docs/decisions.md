@@ -67,6 +67,7 @@ mindmap
       Mürekkep
       Manşet, sheet, seçili satır
       Mac sütunları ve kenar çubuğu
+      Uyarlanır düzen: Duo ve iPad
     Süreç ve CI
       Dallar ve sürüm
       CI ve ruleset
@@ -81,7 +82,7 @@ Harita konuları gösterir; satırların tam metni karar günlüğündedir. Bir 
 
 ```mermaid
 timeline
-    title Karar takvimi, 201 karar
+    title Karar takvimi, 214 karar
     2026-10-02 : 58 karar : Ürün kapsamı ve platform : Kasa biçimi ve ayrıştırıcı : Git, sürüm ve CI
     2026-10-03 : 19 karar : Yazma doğrulaması : İndeks ve arama : Varlık sayfası ve hızlı giriş
     2026-10-04 : 31 karar : Birleştirme ve kayıp yok : VaultStore ve dosya izleme : Görev, hedef ve otomasyon : Özet, graph ve harita
@@ -91,10 +92,10 @@ timeline
     2026-10-08 : 12 karar : Mac sütunları ve kenar çubuğu : Mac sheet ve Ayarlar : Test kimliği : Günlük kaydı temizliği
     2026-10-11 : 27 karar : Aşama 10 geçişi : Önemli tarihler ve bu gün geçmişte : Görüşme ritmi : Günü kapat : İndeks şeması 7
     2026-10-12 : 14 karar : Okuma modelinden sorguya : Ad çipi ve rakam ad : Yer tutucu ve gün kopyası : TestFlight denetimi
-    2026-10-13 : 8 karar : Hedef ve görev sorguları : Bayat yenileme : İyimser hedef işareti : Okuma modeli inceltme : Fixture testleri : Özetler yeniden tasarımı : Hedef şeridi önbelleği
+    2026-10-13 : 21 karar : Hedef ve görev sorguları : İyimser hedef işareti : Okuma modeli inceltme : Özetler yeniden tasarımı : Aşama 10'un açık soruları : iPad ve iPhone Duo : Aşama 13
 ```
 
-Sayılar karar günlüğündeki satır sayısıdır. Toplam 201 satırdır.
+Sayılar karar günlüğündeki satır sayısıdır. Toplam 214 satırdır.
 
 ## Karar günlüğü
 
@@ -303,6 +304,19 @@ Sayılar karar günlüğündeki satır sayısıdır. Toplam 201 satırdır.
 | 2026-10-13 | Hedef oluşturma vakaları `Fixtures/goals/creation/cases.json` dosyasından okunur; koddaki kopyalar kalktı. `recognition/custom-book` fixture'ı tanıma testlerinde koşar | Belge yeniden yazımı iki fixture'ın hiçbir testte okunmadığını gösterdi. Fixture dilden bağımsız sözleşmedir; test onu okumalı |
 | 2026-10-13 | Özetler'e Yıl sekmesi girer. Süren dönem önceki dönemle aynı tarihe kadar karşılaştırılır; sayılar, ilk beş, ilk kez ve açık envanter bugünde biter. Fark yazıyla verilir, ok yoktur. Ritim birimi hafta için gün, ay için ayın 1'inden 7 günlük dilim, yıl için aydır. Boş dönemde açık görevler tek satırda kalır. Devreden parça mürekkep tonundadır. Mac'te hedefler sol sütundadır. Dönem değişince eski içerik ilk yanıta kadar kalır | Kullanıcı prototipi onayladı. Süren yılı geçen yılın tamamıyla karşılaştırmak yanıltıcıydı; aynı tarihli dilimler iki dönemi aynı günlerle karşılaştırır. Tek sayı listesi yerine ritim şeridi, çipler ve çubuklar: ilk ekranda görünen değer 11'den 30'a çıktı, kaydırma 2.573 pt'den 1.646 pt'ye indi |
 | 2026-10-13 | Hedef düzenleme modeli (`GoalDayModel`) her hedefin durumunu bir kez hesaplar ve tutar. Tutulan durum yalnız o hedefin anahtarındaki geçmiş değişince ya da hedef tanımı değişince düşer. Model önbelleğe bakmadan önce geçmişi okur; böylece SwiftUI şeridi geçmiş değişince yeniden çizer. Şerit sırayı hazır durumlardan kurar | Gün sayfasında şeridin her çizimi her karşılaştırmada bütün geçmişi yeniden hesaplıyordu: 5 yıllık kasada bir çizim 129 ms (Debug) ve 22 ms (Release), 16 hesap. Şimdi 6 ve 5 ms, 0 hesap. Dokunuştan işarete süre Debug'da 153 ms'den 50 ms'ye indi |
+| 2026-10-13 | Aşama 10 incelemesinin açık bıraktığı 8 soru koddaki davranışla kapandı: bağlam satırları Olaylar'ın altında başlıksızdır; "Hepsini bugüne" ve "Olay taslağı" yalnız bağlam menüsünde ve VoiceOver'dadır; "Günü kapat" sayfanın son satırıdır; bağlanmamış anma bağlanınca `@` silinir; görüşme ritminde geri alma, geçersiz değer uyarısı ve üst sınır yoktur; rakam adlı varlık oluştururken ipucu yoktur; haftalık inceleme satırları Obsidian için değişmez; "Günü kapat"ta uygulanmamış seçimler sessizce düşer | Kullanıcı 2026-10-13'te her soruda bugünkü davranışı seçti. Davranışların hiçbiri veri kaybetmez; ek görünür öğe karmaşıklık ekler |
+| 2026-10-13 | Hızlı girişte tanınan tarih, öncelik, tekrar ve adlar kutunun üstünde çiple gösterilir. Kutu içi vurgu yoktur. Aşama 10'un "hızlı giriş vurgusu" maddesi bu biçimle kapanır | Çipler geri almayı da taşır. Kutu içi vurgu `TextEditor` tabanlı ayrı bir bileşen ister; kazancı küçüktür |
+| 2026-10-13 | Mac kenar çubuğu dikey kaydırma göstergesini çizmez. Seçili satırın dolgusu iki kenardan 10 pt içeridedir. Liste tekerlek, izleme dörtgeni ve ok tuşlarıyla kayar: #159 | Fare bağlıyken AppKit yer kaplayan çubuğa geçiyor ve seçili satırın dolgusunu sağdan 27 pt kısaltıyordu |
+| 2026-10-13 | Çalma anı geçen bildirim görülmese de bildirilmiş sayılır. Uygulama teslimi ayrıca doğrulamaz | Sistem teslimi bildirmez. En kötü sonuç birkaç gün sessizliktir; yeniden bildirmek yinelenen bildirim üretir |
+| 2026-10-13 | Uygulama gün kopyası birleştirmesini gerçek kasada çağırmaz. Kullanıcı iki cihazda bir haftalık denemeden sonra birleştirmenin açılmasına karar verir | Birleştirme kullanıcı dosyasını siler. Önce gerçek eşitleme davranışı görülmelidir. Core işlevi hazırdır: #206 |
+| 2026-10-13 | Kasa biçimi yalnız iCloud'un gün kopyası adını tanır: `YYYY-MM-DD N.md`. Dropbox, OneDrive ve Google Drive çakışma kopyası adları biçime girmez | Hedef kullanıcı iCloud Drive'dadır. Her sağlayıcının adı ayrı kural ve ayrı test ister |
+| 2026-10-13 | Türkçe ad tanımada İ ve ı eşlemesi yoktur; 2026-10-02 kuralı kalır. Kesme işaretsiz ek, örneğin `ofiste`, kendiliğinden bağlanmaz. Uygulama böyle bir anmayı ileride yalnız öneri olarak sunabilir | Yanlış bağlama en kötü hatadır. Ek olmadan ad sınırı belirsizdir. Açık soru 10 "sık geçen sözcüklerin takma ad olması" konusuyla sürer |
+| 2026-10-13 | Bitmiş dönemin özet zinciri dönem sonu itibarıyla hesaplanır. Dönemin son günü bekliyor sayılır; tek başına kalan kaçırmanın affı orada da işler | Kesinleşmiş günle ölçmek ayrı kural ister ve dönem sonunda sayıyı bir gün geriye çeker; kazancı küçüktür |
+| 2026-10-13 | Haftalık incelemenin hedef satırı incelenen 7 günü sayar. Hedefler ekranı pazartesi haftasını sayar. Pazar başlangıçlı takvimde iki sayı farklı olabilir | İnceleme kendi tarih aralığını yazar. İki ekranın kuralını eşitlemek incelemenin aralığını takvime bağlar |
+| 2026-10-13 | iPad düzeni karma kabuktur: 1000 pt ve üstü pencerede Mac'in 3 sütunu, 1000 pt altında 2 sütun, dar pencerede iPhone düzeni. Uygulama iPad'de tek pencere açar. Arama yeri, Ayarlar girişi ve kenar çubuğu çizimi iPad işinde kararlaşır. iPad işi Aşama 13'te iPhone Duo'dan sonra gelir. Release derlemesinde cihaz ailesi 1 kalır; mağaza kaydı ayrı karardır | Prototip görüntüleri 13 inçte 3 sütunun çalıştığını, 1000 pt altında zayıf kaldığını gösterdi. Büyütülmüş telefon düzeni yatayda ekranın 2/3'ünü boş bırakıyordu. Mağazada iPad desteği geri alınamaz |
+| 2026-10-13 | iPhone Duo için kabuk iki boyut sınıfına bakar: düzenli × düzenli iç ekranda Mac biçimli kenar çubuğuyla bölünmüş kabuk, sıkışık dış ekranda telefon düzeni. Dış ekran yalnız dikeydir. Cihaz ailesi 1 kalır. Kabuk cihaz türüne, ekrana ve cihaz adına bakmaz | iPhone Pro Max yatayda düzenli × sıkışıktır; tek sınıfa bakan kapı yanlış kabuk açar. İç ekran yön kilidini yok sayar. Yatay dış ekranda klavye sayfaya yaklaşık 200 pt bırakır |
+| 2026-10-13 | Xcode 27.1 iOS 27.1 SDK ile çıkınca yerel Mac'e 27.0'ın yanına kurulur. CI xcode-27 runner'a imajda 27.1 görününce tek PR ile geçer; bu PR iOS referanslarını yeniden kaydeder. iOS 27.1 API kodu bu geçişten önce `dev`'e girmez. Gerçek Duo cihazı simülatör turundan sonra alınır | CI tek yetkilidir; Xcode 26.6 yeni sembolleri tanımaz. Menteşe, kamera kesimi ve pozlar yalnız cihazda görülür |
+| 2026-10-13 | Yol haritasına Aşama 13 "Uyarlanır düzen" girer: önce iPhone Duo, sonra iPad. Duo'nun bugünkü SDK ile yapılabilen dilimi Aşama 11'in bekleyen maddeleriyle birlikte yürür | Aşama 11'in kalan maddeleri kimlik kararını ve cihaz denemesini bekliyor. Aşama kuralı onaysız kodu birleştirmez; madde yol haritasında olmalı |
 
 Satır sırası ekleme sırasıdır; tablonun ilk satırları tarih sırasında değildir. Sonradan değişen bir kararın gerekçe hücresi değişikliği tarihiyle anar. Güncel durum notları kararın verildiği günden sonraki gerçek durumu söyler.
 
@@ -315,7 +329,7 @@ Satır sırası ekleme sırasıdır; tablonun ilk satırları tarih sırasında 
 | 3 | Gelir modeli | Proje reklam ve üyeliği düşünüyor. Hangi özelliklerin ücretli olacağı belirsiz. Ekim 2026 sektör taraması bu kategoride reklamı önermiyor: reklam güveni zedeler ve tarama başarılı bir örnek bulmadı. Taramanın önerisi üç parçadır: ücretsiz çekirdek; yanında tek seferlik ödeme seçeneği de olan bir üst katman; yazılı "veri kilidi yok" taahhüdü |
 | 4 | Yapay zeka | Seçenekler: cihaz üzerinde model, API ya da hiçbiri. Planlanan kullanım: haftalık ve aylık değerlendirme, varlık önerisi, notlara soru sorma. API seçilirse günlük içeriği cihaz dışına çıkar ve açık onay gerekir. Yapay zeka üyelik için ücretli özellik adayıdır. Sektör taramasına göre Apple'ın cihaz üstü modeli maliyetsiz bir seçenektir. Modelin cihaz ve dil desteği sınırlıdır ve Türkçe desteği henüz doğrulanmadı. Öneri: özellik varsayılan olarak kapalıdır ve uygulama çıktıyı dosyaya yalnız kullanıcı kaydederse yazar |
 | 7 | Widget veri erişimi | İki seçenek: iCloud kasasına doğrudan erişim ya da App Group içinde paylaşılan bir veri kopyası. İlgili karar: 2026-10-12 tarihli `goalStatuses` satırına göre ekran ve widget aynı sorguyu kullanacak |
-| 10 | Türkçe ad tanıma ve arama | Açık konular: kesme işaretsiz ekler, örneğin "ofiste"; İ ve ı eşlemesi; sık geçen sözcüklerin takma ad olması |
+| 10 | Türkçe ad tanıma ve arama | Açık konu: sık geçen sözcüklerin takma ad olması. İ ve ı eşlemesi ile kesme işaretsiz ek 2026-10-13'te karara bağlandı |
 | 11 | Varlık dosyası kopyaları | Soru: uygulama iCloud'un ayırdığı kopyaları ne zaman aynı varlık sayar ve birleştirir? Örnek kopya: `Elif 2.md`. Hedef aşama: Aşama 11 |
 | 12 | Kalan kimlikler | Kullanıcı Apple Developer Program üyeliğini aldı. Ad ve bundle kimliği kararı karar günlüğünde: 2026-10-07. Açık kalanlar: iCloud kapsayıcısı, App Group ve alan adı. Alan adı gizlilik politikası ve destek sayfası içindir. iCloud kasası, widget'lar ve paylaşım uzantısı bu kimliklere bağlıdır. TestFlight bu kimlikleri gerektirmez. Kimlik değişince uygulamanın kapsayıcısı ve içindeki varsayılan kasa da değişir |
 

@@ -149,10 +149,16 @@ public enum GoalProgress {
     }
 
     private static func amounts(definition: GoalDefinition, logs: [GoalLog]) -> [CalendarDate: Double] {
+        amounts(kind: definition.kind, logs: logs)
+    }
+
+    /// Each day's amount: the day's last log wins, in log order. A log of the wrong kind or an invalid
+    /// number counts as 0. The value chart (`GoalValueSeries`, `GoalPeriodTotals`) reads days the same way.
+    static func amounts(kind: GoalKind, logs: [GoalLog]) -> [CalendarDate: Double] {
         var result: [CalendarDate: Double] = [:]
         for log in logs {
             let amount: Double
-            switch (definition.kind, log.value) {
+            switch (kind, log.value) {
             case (.boolean, .boolean(let done)), (.milestone, .boolean(let done)): amount = done ? 1 : 0
             case (.number, .number(let value)) where log.value.isValid: amount = value
             default: amount = 0

@@ -7,6 +7,7 @@ struct GoalDetailView: View {
     private let original: GoalDefinition
     @State private var history: GoalDayModel
     @State private var editing: GoalValueModel?
+    @Environment(\.dynamicTypeSize) private var typeSize
     @State private var field: GoalEditableField?
     init(store: IndexStore, goal: GoalDefinition, day: CalendarDate = LocalDay.today()) {
         self.store = store
@@ -24,6 +25,13 @@ struct GoalDetailView: View {
 
                 progressBlock(status: status)
                     .padding(.horizontal, InkSpacing.margin)
+
+                if GoalValueChart.isShown(for: goal) {
+                    section(title: GoalValueChart.title(for: goal, isAccessibilitySize: typeSize.isAccessibilitySize)) {
+                        GoalValueChart(goal: goal, logs: history.logs[goal.key] ?? [], today: history.day)
+                    }
+                    .padding(.horizontal, InkSpacing.margin)
+                }
 
                 if goal.kind != .milestone {
                     section(title: String(localized: "Isı haritası")) {

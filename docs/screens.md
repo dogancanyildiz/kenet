@@ -813,8 +813,8 @@ Konumda koordinat, Alanlar tablosunda bir satırdır. Okuma ekranında harita yo
 | Uyarı metni | Kart, günlük kaydının görüşme kanıtı olmadığını nötr dille söyler. |
 | Satırlar | Son ve ilk geçiş tarihleri. Son günün varlığa bağlı metinleri, bağlantıları dokunma hedefiyle. O gün bütün olay ve `Journal` yazılarında geçen öteki kişi ve konumlar. |
 | Çıkarım yok | Kart aynı olayda karşılaşma çıkarımı yapmaz. |
-| Sıklık | Bugün dahil son 90 takvim gününde (`bugün -89` … bugün) geçilen farklı gün sayısı. Aynı gündeki tekrarlar tek gündür. |
-| Ortalama aralık | Bu penceredeki son ve ilk gün farkının `gün sayısı -1` değerine bölümü. 2 günden az geçiş varsa hesap görünmez. |
+| Geçişler bölümü | Kartın içinde yer alır. 12 takvim ayı çubuğu ve altında 90 günlük `HeatmapCell` şeridi (iki satır, 45+45). Sayaç son 12 ayda geçilen gün sayısıdır. Eşit aylarda en erken ay en yoğun sayılır. Hiç geçmemiş varlıkta bu bölüm görünmez. Konum ekranında aynıdır. |
+| Sıklık ve ortalama aralık | Şerit altında tek satırdır: "Son 90 günde 43 gün · ortalama aralık 2,1 gün" (eski iki ayrı satır yerine). Sıklık bugün dahil son 90 takvim gününde (`bugün -89` … bugün) geçilen farklı gün sayısıdır; aynı gündeki tekrarlar tek gündür. Ortalama aralık bu penceredeki son ve ilk gün farkının `gün sayısı -1` değerine bölümüdür; 2 günden az geçiş varsa aralık parçası görünmez. |
 | İlk geçiş | Bütün geçmişten gelir. |
 | Ritim satırı | Kişide ritim varsa: "Ritim: 30 günde bir". |
 | Erteleme satırı | Erteleme sürüyorsa kısa tarihle: "1 Kas tarihine kadar ertelendi". |

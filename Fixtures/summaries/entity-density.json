@@ -1,0 +1,3216 @@
+[
+  {
+    "id": "empty",
+    "description": "Hiç geçmemiş varlık",
+    "today": "2026-10-15",
+    "days": [],
+    "expected": {
+      "months": [
+        {
+          "month": "2025-11-01",
+          "count": 0,
+          "isCurrentMonth": false
+        },
+        {
+          "month": "2025-12-01",
+          "count": 0,
+          "isCurrentMonth": false
+        },
+        {
+          "month": "2026-01-01",
+          "count": 0,
+          "isCurrentMonth": false
+        },
+        {
+          "month": "2026-02-01",
+          "count": 0,
+          "isCurrentMonth": false
+        },
+        {
+          "month": "2026-03-01",
+          "count": 0,
+          "isCurrentMonth": false
+        },
+        {
+          "month": "2026-04-01",
+          "count": 0,
+          "isCurrentMonth": false
+        },
+        {
+          "month": "2026-05-01",
+          "count": 0,
+          "isCurrentMonth": false
+        },
+        {
+          "month": "2026-06-01",
+          "count": 0,
+          "isCurrentMonth": false
+        },
+        {
+          "month": "2026-07-01",
+          "count": 0,
+          "isCurrentMonth": false
+        },
+        {
+          "month": "2026-08-01",
+          "count": 0,
+          "isCurrentMonth": false
+        },
+        {
+          "month": "2026-09-01",
+          "count": 0,
+          "isCurrentMonth": false
+        },
+        {
+          "month": "2026-10-01",
+          "count": 0,
+          "isCurrentMonth": true
+        }
+      ],
+      "totalYearDays": 0,
+      "busiestMonth": null,
+      "busiestMonthCount": 0,
+      "recentDays": [
+        {
+          "date": "2026-07-18",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-19",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-20",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-21",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-22",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-23",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-24",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-25",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-26",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-27",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-28",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-29",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-30",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-31",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-01",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-02",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-03",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-04",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-05",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-06",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-07",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-08",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-09",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-10",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-11",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-12",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-13",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-14",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-15",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-16",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-17",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-18",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-19",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-20",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-21",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-22",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-23",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-24",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-25",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-26",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-27",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-28",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-29",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-30",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-31",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-01",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-02",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-03",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-04",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-05",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-06",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-07",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-08",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-09",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-10",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-11",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-12",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-13",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-14",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-15",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-16",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-17",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-18",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-19",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-20",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-21",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-22",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-23",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-24",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-25",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-26",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-27",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-28",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-29",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-30",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-01",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-02",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-03",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-04",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-05",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-06",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-07",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-08",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-09",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-10",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-11",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-12",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-13",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-14",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-15",
+          "isMentioned": false,
+          "isToday": true
+        }
+      ],
+      "recentDayCount": 0,
+      "averageInterval": null,
+      "hasHistory": false
+    }
+  },
+  {
+    "id": "boundary-window-and-future",
+    "description": "90 günlük sınır, gelecek gün yok sayma ve yinelenen gün tek sayma",
+    "today": "2026-10-15",
+    "days": [
+      "2026-10-15",
+      "2026-10-15",
+      "2026-10-16",
+      "2026-07-18",
+      "2026-07-17",
+      "2025-10-15"
+    ],
+    "expected": {
+      "months": [
+        {
+          "month": "2025-11-01",
+          "count": 0,
+          "isCurrentMonth": false
+        },
+        {
+          "month": "2025-12-01",
+          "count": 0,
+          "isCurrentMonth": false
+        },
+        {
+          "month": "2026-01-01",
+          "count": 0,
+          "isCurrentMonth": false
+        },
+        {
+          "month": "2026-02-01",
+          "count": 0,
+          "isCurrentMonth": false
+        },
+        {
+          "month": "2026-03-01",
+          "count": 0,
+          "isCurrentMonth": false
+        },
+        {
+          "month": "2026-04-01",
+          "count": 0,
+          "isCurrentMonth": false
+        },
+        {
+          "month": "2026-05-01",
+          "count": 0,
+          "isCurrentMonth": false
+        },
+        {
+          "month": "2026-06-01",
+          "count": 0,
+          "isCurrentMonth": false
+        },
+        {
+          "month": "2026-07-01",
+          "count": 2,
+          "isCurrentMonth": false
+        },
+        {
+          "month": "2026-08-01",
+          "count": 0,
+          "isCurrentMonth": false
+        },
+        {
+          "month": "2026-09-01",
+          "count": 0,
+          "isCurrentMonth": false
+        },
+        {
+          "month": "2026-10-01",
+          "count": 1,
+          "isCurrentMonth": true
+        }
+      ],
+      "totalYearDays": 3,
+      "busiestMonth": "2026-07-01",
+      "busiestMonthCount": 2,
+      "recentDays": [
+        {
+          "date": "2026-07-18",
+          "isMentioned": true,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-19",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-20",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-21",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-22",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-23",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-24",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-25",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-26",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-27",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-28",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-29",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-30",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-31",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-01",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-02",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-03",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-04",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-05",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-06",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-07",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-08",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-09",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-10",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-11",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-12",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-13",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-14",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-15",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-16",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-17",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-18",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-19",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-20",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-21",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-22",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-23",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-24",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-25",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-26",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-27",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-28",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-29",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-30",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-31",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-01",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-02",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-03",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-04",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-05",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-06",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-07",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-08",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-09",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-10",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-11",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-12",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-13",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-14",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-15",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-16",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-17",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-18",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-19",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-20",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-21",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-22",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-23",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-24",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-25",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-26",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-27",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-28",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-29",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-30",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-01",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-02",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-03",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-04",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-05",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-06",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-07",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-08",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-09",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-10",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-11",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-12",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-13",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-14",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-15",
+          "isMentioned": true,
+          "isToday": true
+        }
+      ],
+      "recentDayCount": 2,
+      "averageInterval": 89.0,
+      "hasHistory": true
+    }
+  },
+  {
+    "id": "single-recent-day",
+    "description": "Pencerede tek gün olunca ortalama aralık null",
+    "today": "2026-10-15",
+    "days": [
+      "2026-10-05"
+    ],
+    "expected": {
+      "months": [
+        {
+          "month": "2025-11-01",
+          "count": 0,
+          "isCurrentMonth": false
+        },
+        {
+          "month": "2025-12-01",
+          "count": 0,
+          "isCurrentMonth": false
+        },
+        {
+          "month": "2026-01-01",
+          "count": 0,
+          "isCurrentMonth": false
+        },
+        {
+          "month": "2026-02-01",
+          "count": 0,
+          "isCurrentMonth": false
+        },
+        {
+          "month": "2026-03-01",
+          "count": 0,
+          "isCurrentMonth": false
+        },
+        {
+          "month": "2026-04-01",
+          "count": 0,
+          "isCurrentMonth": false
+        },
+        {
+          "month": "2026-05-01",
+          "count": 0,
+          "isCurrentMonth": false
+        },
+        {
+          "month": "2026-06-01",
+          "count": 0,
+          "isCurrentMonth": false
+        },
+        {
+          "month": "2026-07-01",
+          "count": 0,
+          "isCurrentMonth": false
+        },
+        {
+          "month": "2026-08-01",
+          "count": 0,
+          "isCurrentMonth": false
+        },
+        {
+          "month": "2026-09-01",
+          "count": 0,
+          "isCurrentMonth": false
+        },
+        {
+          "month": "2026-10-01",
+          "count": 1,
+          "isCurrentMonth": true
+        }
+      ],
+      "totalYearDays": 1,
+      "busiestMonth": "2026-10-01",
+      "busiestMonthCount": 1,
+      "recentDays": [
+        {
+          "date": "2026-07-18",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-19",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-20",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-21",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-22",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-23",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-24",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-25",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-26",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-27",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-28",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-29",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-30",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-31",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-01",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-02",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-03",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-04",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-05",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-06",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-07",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-08",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-09",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-10",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-11",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-12",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-13",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-14",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-15",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-16",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-17",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-18",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-19",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-20",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-21",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-22",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-23",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-24",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-25",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-26",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-27",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-28",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-29",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-30",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-31",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-01",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-02",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-03",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-04",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-05",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-06",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-07",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-08",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-09",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-10",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-11",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-12",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-13",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-14",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-15",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-16",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-17",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-18",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-19",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-20",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-21",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-22",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-23",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-24",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-25",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-26",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-27",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-28",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-29",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-30",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-01",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-02",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-03",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-04",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-05",
+          "isMentioned": true,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-06",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-07",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-08",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-09",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-10",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-11",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-12",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-13",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-14",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-15",
+          "isMentioned": false,
+          "isToday": true
+        }
+      ],
+      "recentDayCount": 1,
+      "averageInterval": null,
+      "hasHistory": true
+    }
+  },
+  {
+    "id": "dense-history",
+    "description": "Dolu 12 ay ve 90 gün aralık hesabı",
+    "today": "2026-10-15",
+    "days": [
+      "2025-11-10",
+      "2025-11-20",
+      "2025-12-05",
+      "2025-12-25",
+      "2026-01-01",
+      "2026-01-15",
+      "2026-01-30",
+      "2026-02-14",
+      "2026-03-10",
+      "2026-03-20",
+      "2026-04-05",
+      "2026-04-12",
+      "2026-04-23",
+      "2026-05-01",
+      "2026-05-19",
+      "2026-06-02",
+      "2026-06-08",
+      "2026-06-15",
+      "2026-06-21",
+      "2026-06-28",
+      "2026-07-10",
+      "2026-07-25",
+      "2026-08-05",
+      "2026-08-15",
+      "2026-08-25",
+      "2026-09-04",
+      "2026-09-14",
+      "2026-09-24",
+      "2026-10-04",
+      "2026-10-14"
+    ],
+    "expected": {
+      "months": [
+        {
+          "month": "2025-11-01",
+          "count": 2,
+          "isCurrentMonth": false
+        },
+        {
+          "month": "2025-12-01",
+          "count": 2,
+          "isCurrentMonth": false
+        },
+        {
+          "month": "2026-01-01",
+          "count": 3,
+          "isCurrentMonth": false
+        },
+        {
+          "month": "2026-02-01",
+          "count": 1,
+          "isCurrentMonth": false
+        },
+        {
+          "month": "2026-03-01",
+          "count": 2,
+          "isCurrentMonth": false
+        },
+        {
+          "month": "2026-04-01",
+          "count": 3,
+          "isCurrentMonth": false
+        },
+        {
+          "month": "2026-05-01",
+          "count": 2,
+          "isCurrentMonth": false
+        },
+        {
+          "month": "2026-06-01",
+          "count": 5,
+          "isCurrentMonth": false
+        },
+        {
+          "month": "2026-07-01",
+          "count": 2,
+          "isCurrentMonth": false
+        },
+        {
+          "month": "2026-08-01",
+          "count": 3,
+          "isCurrentMonth": false
+        },
+        {
+          "month": "2026-09-01",
+          "count": 3,
+          "isCurrentMonth": false
+        },
+        {
+          "month": "2026-10-01",
+          "count": 2,
+          "isCurrentMonth": true
+        }
+      ],
+      "totalYearDays": 30,
+      "busiestMonth": "2026-06-01",
+      "busiestMonthCount": 5,
+      "recentDays": [
+        {
+          "date": "2026-07-18",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-19",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-20",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-21",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-22",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-23",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-24",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-25",
+          "isMentioned": true,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-26",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-27",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-28",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-29",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-30",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-31",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-01",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-02",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-03",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-04",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-05",
+          "isMentioned": true,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-06",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-07",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-08",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-09",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-10",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-11",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-12",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-13",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-14",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-15",
+          "isMentioned": true,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-16",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-17",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-18",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-19",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-20",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-21",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-22",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-23",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-24",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-25",
+          "isMentioned": true,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-26",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-27",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-28",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-29",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-30",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-31",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-01",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-02",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-03",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-04",
+          "isMentioned": true,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-05",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-06",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-07",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-08",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-09",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-10",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-11",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-12",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-13",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-14",
+          "isMentioned": true,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-15",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-16",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-17",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-18",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-19",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-20",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-21",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-22",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-23",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-24",
+          "isMentioned": true,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-25",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-26",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-27",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-28",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-29",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-30",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-01",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-02",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-03",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-04",
+          "isMentioned": true,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-05",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-06",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-07",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-08",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-09",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-10",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-11",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-12",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-13",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-14",
+          "isMentioned": true,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-15",
+          "isMentioned": false,
+          "isToday": true
+        }
+      ],
+      "recentDayCount": 9,
+      "averageInterval": 10.125,
+      "hasHistory": true
+    }
+  },
+  {
+    "id": "twelve-month-boundary",
+    "description": "12 ay penceresi tam başlangıç sınırı (2025-11-01 dahil / 2025-10-31 hariç)",
+    "today": "2026-10-15",
+    "days": [
+      "2025-10-31",
+      "2025-11-01",
+      "2026-10-15"
+    ],
+    "expected": {
+      "months": [
+        {
+          "month": "2025-11-01",
+          "count": 1,
+          "isCurrentMonth": false
+        },
+        {
+          "month": "2025-12-01",
+          "count": 0,
+          "isCurrentMonth": false
+        },
+        {
+          "month": "2026-01-01",
+          "count": 0,
+          "isCurrentMonth": false
+        },
+        {
+          "month": "2026-02-01",
+          "count": 0,
+          "isCurrentMonth": false
+        },
+        {
+          "month": "2026-03-01",
+          "count": 0,
+          "isCurrentMonth": false
+        },
+        {
+          "month": "2026-04-01",
+          "count": 0,
+          "isCurrentMonth": false
+        },
+        {
+          "month": "2026-05-01",
+          "count": 0,
+          "isCurrentMonth": false
+        },
+        {
+          "month": "2026-06-01",
+          "count": 0,
+          "isCurrentMonth": false
+        },
+        {
+          "month": "2026-07-01",
+          "count": 0,
+          "isCurrentMonth": false
+        },
+        {
+          "month": "2026-08-01",
+          "count": 0,
+          "isCurrentMonth": false
+        },
+        {
+          "month": "2026-09-01",
+          "count": 0,
+          "isCurrentMonth": false
+        },
+        {
+          "month": "2026-10-01",
+          "count": 1,
+          "isCurrentMonth": true
+        }
+      ],
+      "totalYearDays": 2,
+      "busiestMonth": "2025-11-01",
+      "busiestMonthCount": 1,
+      "recentDays": [
+        {
+          "date": "2026-07-18",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-19",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-20",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-21",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-22",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-23",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-24",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-25",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-26",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-27",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-28",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-29",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-30",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-31",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-01",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-02",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-03",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-04",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-05",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-06",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-07",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-08",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-09",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-10",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-11",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-12",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-13",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-14",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-15",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-16",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-17",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-18",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-19",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-20",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-21",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-22",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-23",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-24",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-25",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-26",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-27",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-28",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-29",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-30",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-31",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-01",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-02",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-03",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-04",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-05",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-06",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-07",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-08",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-09",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-10",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-11",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-12",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-13",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-14",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-15",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-16",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-17",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-18",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-19",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-20",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-21",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-22",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-23",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-24",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-25",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-26",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-27",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-28",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-29",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-30",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-01",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-02",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-03",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-04",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-05",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-06",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-07",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-08",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-09",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-10",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-11",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-12",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-13",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-14",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-15",
+          "isMentioned": true,
+          "isToday": true
+        }
+      ],
+      "recentDayCount": 1,
+      "averageInterval": null,
+      "hasHistory": true
+    }
+  },
+  {
+    "id": "older-history-zero-year",
+    "description": "Geçmiş var ama son 12 ayda 0 gün",
+    "today": "2026-10-15",
+    "days": [
+      "2025-08-10"
+    ],
+    "expected": {
+      "months": [
+        {
+          "month": "2025-11-01",
+          "count": 0,
+          "isCurrentMonth": false
+        },
+        {
+          "month": "2025-12-01",
+          "count": 0,
+          "isCurrentMonth": false
+        },
+        {
+          "month": "2026-01-01",
+          "count": 0,
+          "isCurrentMonth": false
+        },
+        {
+          "month": "2026-02-01",
+          "count": 0,
+          "isCurrentMonth": false
+        },
+        {
+          "month": "2026-03-01",
+          "count": 0,
+          "isCurrentMonth": false
+        },
+        {
+          "month": "2026-04-01",
+          "count": 0,
+          "isCurrentMonth": false
+        },
+        {
+          "month": "2026-05-01",
+          "count": 0,
+          "isCurrentMonth": false
+        },
+        {
+          "month": "2026-06-01",
+          "count": 0,
+          "isCurrentMonth": false
+        },
+        {
+          "month": "2026-07-01",
+          "count": 0,
+          "isCurrentMonth": false
+        },
+        {
+          "month": "2026-08-01",
+          "count": 0,
+          "isCurrentMonth": false
+        },
+        {
+          "month": "2026-09-01",
+          "count": 0,
+          "isCurrentMonth": false
+        },
+        {
+          "month": "2026-10-01",
+          "count": 0,
+          "isCurrentMonth": true
+        }
+      ],
+      "totalYearDays": 0,
+      "busiestMonth": null,
+      "busiestMonthCount": 0,
+      "recentDays": [
+        {
+          "date": "2026-07-18",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-19",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-20",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-21",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-22",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-23",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-24",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-25",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-26",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-27",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-28",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-29",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-30",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-07-31",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-01",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-02",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-03",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-04",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-05",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-06",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-07",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-08",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-09",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-10",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-11",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-12",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-13",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-14",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-15",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-16",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-17",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-18",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-19",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-20",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-21",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-22",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-23",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-24",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-25",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-26",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-27",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-28",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-29",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-30",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-08-31",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-01",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-02",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-03",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-04",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-05",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-06",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-07",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-08",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-09",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-10",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-11",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-12",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-13",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-14",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-15",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-16",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-17",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-18",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-19",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-20",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-21",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-22",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-23",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-24",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-25",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-26",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-27",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-28",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-29",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-09-30",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-01",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-02",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-03",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-04",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-05",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-06",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-07",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-08",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-09",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-10",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-11",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-12",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-13",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-14",
+          "isMentioned": false,
+          "isToday": false
+        },
+        {
+          "date": "2026-10-15",
+          "isMentioned": false,
+          "isToday": true
+        }
+      ],
+      "recentDayCount": 0,
+      "averageInterval": null,
+      "hasHistory": true
+    }
+  }
+]

@@ -709,6 +709,19 @@ Affedilen gün yalnız günlük hedefte olur. Affedilen gün, önceki iki günü
 
 Yığılı çubukta devreden parça uyarı rengini almaz. Uyarı rengi yalnız devreden görevin tarihinde kalır: Mürekkep kuralı 5. Erişilebilirlik boyutunda ritim şeridinin sütunları satıra döner; her satırda birim adı, işaret ve sayı yazar. Önceki dönemin rengi çukur değildir, çünkü çukur koyu kâğıtta görünmez.
 
+### Geçiş çubuğu ve 90 gün şeridi
+
+**Kişi ve konum ekranlarındaki 12 aylık dağılım çubuğu ve 90 günlük şerit durumu renge ek olarak biçimle ayırır.**
+
+| Parça | Biçim | Renk | VoiceOver |
+|---|---|---|---|
+| Geçmiş takvim ayı | Sütun üstü sıfır olmayan sayı, üst köşeleri 3 pt yuvarlak çubuk, taban çizgisi, kısa ay adı | Vurgu | Çubuk tek öğe: "Son 12 ayda 163 gün; en yoğun Haziran, 19 gün" |
+| Süren takvim ayı | Sütun üstü sıfır olmayan sayı, 1,5 pt (`InkStroke.control`) çerçeveli boş çubuk (`strokeBorder`), kısa ay adı | Vurgu | Çubuk tek öğe özetinin içinde |
+| 90 günlük şerit | İki satır (45+45), en fazla 8 pt genişliğe sığan kare `HeatmapCell` (iPhone'da ≈7 pt), 1 pt boşluk, bugün çerçeveli | Geçilen gün tam vurgu, geçilmeyen gün çukur ve kontrol çerçevesi | Şerit tek öğe: "Son 90 günde 43 gün · ortalama aralık 2,1 gün" |
+| Aralık özeti | Şerit altında tek satır metin | İkincil metin | Görünür metin ekran okuyucudan gizlenir; şerit etiketiyle okunur |
+
+Erişilebilirlik boyutunda 12 aylık çubuk grafiğin sütunları satıra döner; her satırda ay adı, sayı ve yatay kapsül çubuk yer alır. 90 günlük şerit her boyutta iki satır (45+45) olarak korunur.
+
 ### Mac liste sütunu seçimi
 
 | Konu | Kural |

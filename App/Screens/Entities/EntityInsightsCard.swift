@@ -16,9 +16,11 @@ struct EntityInsightsCard: View {
     @State private var cadenceError: String?
 
     var body: some View {
+        let today = LocalDay.today(at: clockNow())
         let insight = EntityInsights.compute(
             path: entity.id, timeline: timeline, lastDay: lastDay, entities: store.content.entities,
-            today: LocalDay.today(at: clockNow()))
+            today: today)
+        let mentions = insight.mentions(locale: locale, timeZone: timeZone)
         Section {
             SectionHeader(
                 title: String(
@@ -53,24 +55,13 @@ struct EntityInsightsCard: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .inkListRow()
             }
-            labeled(String(localized: "Son 90 günde")) {
-                Text("\(insight.recentDayCount) gün")
-                    .font(.ink.value)
-                    .foregroundStyle(.ink.text)
-            }
-            .inkListRow()
-            if let interval = insight.averageInterval {
-                labeled(String(localized: "Ortalama aralık")) {
-                    Text("\(interval.formatted(.number.precision(.fractionLength(0...1)))) gün")
-                        .font(.ink.value)
-                        .foregroundStyle(.ink.text)
-                }
+            if let mentions {
+                SectionHeader(
+                    title: String(localized: "Geçişler"),
+                    counter: String(localized: "\(mentions.totalDays) gün")
+                )
                 .inkListRow()
-            } else {
-                Text("Aralık hesabı için en az iki gün gerekir.")
-                    .font(.ink.meta)
-                    .foregroundStyle(.ink.secondaryText)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                EntityMentionChartsView(data: mentions)
                     .inkListRow()
             }
             if entity.kind == "person" { cadenceRows }

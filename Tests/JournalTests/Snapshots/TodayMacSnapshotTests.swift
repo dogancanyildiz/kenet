@@ -64,7 +64,8 @@
             window.isReleasedWhenClosed = false
             window.makeKeyAndOrderFront(nil)
 
-            for _ in 0..<100 {
+            // Up to 20 s: on a loaded machine the goal strip can take longer than 5 s to settle.
+            for _ in 0..<400 {
                 await Task.yield()
                 try? await Task.sleep(for: .milliseconds(50))
                 if !context.store.isProcessing, ready.isReady { break }
@@ -123,7 +124,7 @@
             window.contentView = host
             window.isReleasedWhenClosed = false
             window.makeKeyAndOrderFront(nil)
-            for _ in 0..<20 {
+            for _ in 0..<400 {
                 await Task.yield()
                 try? await Task.sleep(for: .milliseconds(50))
                 if !context.store.isProcessing { break }

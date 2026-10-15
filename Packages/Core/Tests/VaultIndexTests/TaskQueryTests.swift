@@ -6,6 +6,8 @@ import VaultFormat
 @testable import VaultIndex
 
 struct TaskQueryTests {
+    private static let noTasks = TaskGroupEntries(overdue: [], today: [], upcoming: [], undated: [])
+
     @Test func overdueTodayUpcomingAndUndatedQueriesRespectStatusAndDay() throws {
         try withVault { root in
             try write(
@@ -78,8 +80,11 @@ struct TaskQueryTests {
                 """)
             let index = try VaultIndex()
             try index.rebuild(vaultRoot: root)
-            #expect(try index.openTasks(linkedTo: "people/Deniz.md").map(\.identifier) == ["open", "child"])
-            #expect(try index.openTasks(linkedTo: "people/Missing.md").isEmpty)
+            let today = CalendarDate("2026-09-27")!
+            #expect(
+                try index.taskGroups(today: today, scope: TaskScope(linkedTo: "people/Deniz.md")).undated
+                    .map(\.block.identifier) == ["open", "child"])
+            #expect(try index.taskGroups(today: today, scope: TaskScope(linkedTo: "people/Missing.md")) == Self.noTasks)
             #expect(try index.taskProjects() == ["closed", "ilk", "nested"])
         }
     }
@@ -104,7 +109,9 @@ struct TaskQueryTests {
             try index.overdueTasks(asOf: CalendarDate("2026-09-27")!).allSatisfy {
                 !["done", "cancelled"].contains($0.status)
             })
-        #expect(try !index.openTasks(linkedTo: "people/Deniz Arıkan.md").isEmpty)
+        let linked = try index.taskGroups(
+            today: CalendarDate("2026-09-27")!, scope: TaskScope(linkedTo: "people/Deniz Arıkan.md"))
+        #expect(linked != Self.noTasks)
         #expect(try !index.taskProjects().isEmpty)
     }
 

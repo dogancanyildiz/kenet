@@ -1,0 +1,117 @@
+[
+  {
+    "id": "monday-week-running-to-wednesday",
+    "vault": "rhythm",
+    "range": ["2026-10-05", "2026-10-11"],
+    "previousRange": ["2026-09-28", "2026-10-04"],
+    "today": "2026-10-07",
+    "expected": {
+      "days": [
+        { "date": "2026-10-05", "events": 1, "previousEvents": 2, "writing": "full" },
+        { "date": "2026-10-06", "events": 2, "previousEvents": 0, "writing": "full" },
+        { "date": "2026-10-07", "events": 1, "previousEvents": 1, "writing": "full" },
+        { "date": "2026-10-08", "events": 0, "previousEvents": 0, "writing": "notStarted" },
+        { "date": "2026-10-09", "events": 0, "previousEvents": 3, "writing": "notStarted" },
+        { "date": "2026-10-10", "events": 0, "previousEvents": 0, "writing": "notStarted" },
+        { "date": "2026-10-11", "events": 0, "previousEvents": 0, "writing": "notStarted" }
+      ],
+      "events": 4,
+      "previousEvents": 3,
+      "change": 1,
+      "isRunning": true
+    }
+  },
+  {
+    "id": "sunday-week-ended-on-saturday",
+    "vault": "rhythm",
+    "range": ["2026-10-04", "2026-10-10"],
+    "previousRange": ["2026-09-27", "2026-10-03"],
+    "today": "2026-10-10",
+    "expected": {
+      "days": [
+        { "date": "2026-10-04", "events": 0, "previousEvents": 0, "writing": "full" },
+        { "date": "2026-10-05", "events": 1, "previousEvents": 2, "writing": "full" },
+        { "date": "2026-10-06", "events": 2, "previousEvents": 0, "writing": "full" },
+        { "date": "2026-10-07", "events": 1, "previousEvents": 1, "writing": "full" },
+        { "date": "2026-10-08", "events": 0, "previousEvents": 0, "writing": "none" },
+        { "date": "2026-10-09", "events": 4, "previousEvents": 3, "writing": "full" },
+        { "date": "2026-10-10", "events": 0, "previousEvents": 0, "writing": "none" }
+      ],
+      "events": 8,
+      "previousEvents": 6,
+      "change": 2,
+      "isRunning": false
+    }
+  },
+  {
+    "id": "week-not-begun",
+    "vault": "rhythm",
+    "range": ["2026-10-12", "2026-10-18"],
+    "previousRange": ["2026-10-05", "2026-10-11"],
+    "today": "2026-10-07",
+    "expected": {
+      "days": [
+        { "date": "2026-10-12", "events": 0, "previousEvents": 1, "writing": "notStarted" },
+        { "date": "2026-10-13", "events": 0, "previousEvents": 2, "writing": "notStarted" },
+        { "date": "2026-10-14", "events": 0, "previousEvents": 1, "writing": "notStarted" },
+        { "date": "2026-10-15", "events": 0, "previousEvents": 0, "writing": "notStarted" },
+        { "date": "2026-10-16", "events": 0, "previousEvents": 4, "writing": "notStarted" },
+        { "date": "2026-10-17", "events": 0, "previousEvents": 0, "writing": "notStarted" },
+        { "date": "2026-10-18", "events": 0, "previousEvents": 0, "writing": "notStarted" }
+      ],
+      "events": 0,
+      "previousEvents": 0,
+      "change": 0,
+      "isRunning": false
+    }
+  },
+  {
+    "id": "empty-week",
+    "days": [],
+    "range": ["2026-08-10", "2026-08-16"],
+    "previousRange": ["2026-08-03", "2026-08-09"],
+    "today": "2026-10-11",
+    "expected": {
+      "days": [
+        { "date": "2026-08-10", "events": 0, "previousEvents": 0, "writing": "none" },
+        { "date": "2026-08-11", "events": 0, "previousEvents": 0, "writing": "none" },
+        { "date": "2026-08-12", "events": 0, "previousEvents": 0, "writing": "none" },
+        { "date": "2026-08-13", "events": 0, "previousEvents": 0, "writing": "none" },
+        { "date": "2026-08-14", "events": 0, "previousEvents": 0, "writing": "none" },
+        { "date": "2026-08-15", "events": 0, "previousEvents": 0, "writing": "none" },
+        { "date": "2026-08-16", "events": 0, "previousEvents": 0, "writing": "none" }
+      ],
+      "events": 0,
+      "previousEvents": 0,
+      "change": 0,
+      "isRunning": false
+    }
+  },
+  {
+    "id": "rows-of-one-date-add-up-without-today",
+    "days": [
+      { "date": "2026-02-23", "events": -1, "hasJournal": true },
+      { "date": "2026-03-01", "events": 2, "hasJournal": false },
+      { "date": "2026-03-02", "events": 1, "hasJournal": false },
+      { "date": "2026-03-02", "events": 2, "hasJournal": false },
+      { "date": "2026-03-08", "events": 0, "hasJournal": true }
+    ],
+    "range": ["2026-03-02", "2026-03-08"],
+    "previousRange": ["2026-02-23", "2026-03-01"],
+    "expected": {
+      "days": [
+        { "date": "2026-03-02", "events": 3, "previousEvents": 0, "writing": "full" },
+        { "date": "2026-03-03", "events": 0, "previousEvents": 0, "writing": "none" },
+        { "date": "2026-03-04", "events": 0, "previousEvents": 0, "writing": "none" },
+        { "date": "2026-03-05", "events": 0, "previousEvents": 0, "writing": "none" },
+        { "date": "2026-03-06", "events": 0, "previousEvents": 0, "writing": "none" },
+        { "date": "2026-03-07", "events": 0, "previousEvents": 0, "writing": "none" },
+        { "date": "2026-03-08", "events": 0, "previousEvents": 2, "writing": "full" }
+      ],
+      "events": 3,
+      "previousEvents": 2,
+      "change": 1,
+      "isRunning": false
+    }
+  }
+]

@@ -489,6 +489,34 @@
         }
       }
     },
+    "%@: %lld gün yazıldı" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%1$@: %2$lld day written"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%1$@: %2$lld days written"
+                }
+              }
+            }
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@: %lld gün yazıldı"
+          }
+        }
+      }
+    },
     "%@: hangisi?" : {
       "localizations" : {
         "en" : {
@@ -4649,6 +4677,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "geçen haftanın aynı gününe göre %@"
+          }
+        }
+      }
+    },
+    "Geçen haftanın aynı gününe göre %@ olay" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Events compared with the same day last week: %@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geçen haftanın aynı gününe göre %@ olay"
+          }
+        }
+      }
+    },
+    "Geçen haftanın aynı gününe göre aynı sayıda olay" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "As many events as by the same day last week"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geçen haftanın aynı gününe göre aynı sayıda olay"
           }
         }
       }
@@ -8885,6 +8945,22 @@
         }
       }
     },
+    "Olaylı gün" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Day with events"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Olaylı gün"
+          }
+        }
+      }
+    },
     "Ölçek" : {
       "localizations" : {
         "en" : {
@@ -9157,6 +9233,22 @@
         }
       }
     },
+    "Önceki haftaya göre %@ olay" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Events compared with the week before: %@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Önceki haftaya göre %@ olay"
+          }
+        }
+      }
+    },
     "önceki haftayla aynı" : {
       "localizations" : {
         "en" : {
@@ -9169,6 +9261,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "önceki haftayla aynı"
+          }
+        }
+      }
+    },
+    "Önceki haftayla aynı sayıda olay" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "As many events as the week before"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Önceki haftayla aynı sayıda olay"
           }
         }
       }
@@ -12173,6 +12281,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Yazılan gün"
+          }
+        }
+      }
+    },
+    "Yazılan günler" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Days written"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yazılan günler"
           }
         }
       }

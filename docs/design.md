@@ -722,6 +722,25 @@ Bölüm `SectionHeader` ile, kartsız çizilir. Grafik yüksekliği 160 pt'dir; 
 
 Yığılı çubukta devreden parça uyarı rengini almaz. Uyarı rengi yalnız devreden görevin tarihinde kalır: Mürekkep kuralı 5. Erişilebilirlik boyutunda ritim şeridinin sütunları satıra döner; her satırda birim adı, işaret ve sayı yazar. Önceki dönemin rengi çukur değildir, çünkü çukur koyu kâğıtta görünmez.
 
+Kısa ritim şeridi (`RhythmStrip` `isCompact`) haftalık incelemenin ilk adımında sayıların üstünde durur. Çubuk yüksekliği 40 pt'dir. Sütunların üstündeki sayılar ve açıklama yoktur, çünkü altındaki sayılar aynı bilgiyi verir. Erişilebilirlik boyutunda şerit satıra döner ve her satır sayıyı yazar, çünkü satır düzeninde sayı birim adının yanındaki tek değerdir. Çubuk, önceki dönem ve işaret biçimi yukarıdaki tablodur. Şeridin altındaki fark satırı ikincil metin ve `monospacedDigit()` kullanır.
+
+### Yazılan günler haritası
+
+**Özetler'in yıl haritası durumu `HeatmapCell` biçimiyle ayırır.**
+
+| Parça | Biçim | Renk | VoiceOver |
+|---|---|---|---|
+| Ay satırı | Satır başında kısa ay adı, ardından 31 hücre yuvası | Ay adı ikincil metin | Ay başına bir öğe: "Mart: 22 gün yazıldı" |
+| Yazılmadı | `empty`: çukur ve çerçeve | Çukur, kontrol çizgisi | Ayın öğesinde |
+| Yalnız günlük yazısı | `partial`: alttan %45 dolgu | Vurgu | Ayın öğesinde |
+| Olaylı gün | `full`: tam dolgu | Vurgu | Ayın öğesinde |
+| Bugün | `isToday`: 2 pt kesiksiz çerçeve | Vurgu | Ayın öğesinde |
+| Olmayan tarih, gelecek gün | Hücre çizilmez | — | Yok |
+| Sayaç | `SectionHeader` sayacı: "243 gün" | İkincil metin | Başlıkla |
+| Açıklama | Üç örnek hücre ve ad: Yazılmadı, Günlük yazısı, Olaylı gün | İkincil metin | Tek öğe |
+
+Hücre en çok 9 pt'dir; dar sütunda 31 gün sığacak kadar küçülür. Satırlar arası 4 pt, hücreler arası 1 pt'dir. Haftanın günleri sütunda hizalanmaz; satır ayı, sütun ayın gününü gösterir. Erişilebilirlik boyutunda düzen değişir: sabit hafta harfleri solda durur, hücreler pazartesi haftalarına dizilir. Genişliğe 6 hafta sığar; harita yatay kayar ve son ölçülen haftayla açılır. Ay adı ayın ilk tam haftasının üstündedir.
+
 ### Mac liste sütunu seçimi
 
 | Konu | Kural |

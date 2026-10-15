@@ -240,6 +240,8 @@ final class WeeklyReviewModel {
     }
     var note = ""
     private(set) var content: WeeklyReviewContent?
+    /// The reviewed week day by day against the week before it, over the numbers.
+    private(set) var rhythm: WeeklyReviewRhythm?
     private(set) var isLoading = false
     private(set) var loadErrorText: String?
     private(set) var isWriting = false
@@ -269,6 +271,49 @@ final class WeeklyReviewModel {
     }
 
     var range: ClosedRange<CalendarDate> { week.range(containing: today, calendar: calendar) }
+
+    /// The seven days before ``range``: the week the mini rhythm compares with.
+    var previousRange: ClosedRange<CalendarDate> {
+        let range = range
+        let start = range.lowerBound.addingDays(-7) ?? range.lowerBound
+        let end = range.upperBound.addingDays(-7) ?? range.upperBound
+        return start...end
+    }
+
+    /// One column per day of the reviewed week, Sunday weeks too; the week before stands behind.
+    var rhythmItems: [RhythmStripItem] {
+        guard let rhythm else { return [] }
+        let bundle = PresentationLocalization.bundle(locale)
+        return rhythm.days.enumerated().map { index, day in
+            let instant = LocalDay.instant(for: day.date)
+            let mark = SummaryPresentation.mark(day.writing)
+            var parts: [String] = []
+            if mark != .notStarted {
+                parts.append(String(localized: "\(day.events) olay", bundle: bundle, locale: locale))
+            }
+            parts.append(String(localized: "önceki dönemde \(day.previousEvents)", bundle: bundle, locale: locale))
+            if mark != .notStarted { parts.append(SummaryPresentation.markTitle(mark, period: .week, locale: locale)) }
+            return RhythmStripItem(
+                id: index, label: instant.formatted(Date.FormatStyle(locale: locale).weekday(.abbreviated)),
+                spokenLabel: instant.formatted(Date.FormatStyle(locale: locale).weekday(.wide).day().month(.wide)),
+                value: day.events, previous: day.previousEvents, mark: mark, spokenValue: parts.joined(separator: ", "))
+        }
+    }
+
+    /// "Önceki haftaya göre +4 olay"; while the week runs, up to the same weekday of the week before.
+    var rhythmChange: String? {
+        guard let rhythm else { return nil }
+        let bundle = PresentationLocalization.bundle(locale)
+        guard rhythm.change != 0 else {
+            return rhythm.isRunning
+                ? String(localized: "Geçen haftanın aynı gününe göre aynı sayıda olay", bundle: bundle, locale: locale)
+                : String(localized: "Önceki haftayla aynı sayıda olay", bundle: bundle, locale: locale)
+        }
+        let signed = SummaryPresentation.signed(Double(rhythm.change), locale: locale)
+        return rhythm.isRunning
+            ? String(localized: "Geçen haftanın aynı gününe göre \(signed) olay", bundle: bundle, locale: locale)
+            : String(localized: "Önceki haftaya göre \(signed) olay", bundle: bundle, locale: locale)
+    }
 
     func advance() { if let next = step.next { step = next } }
     func back() { if let previous = step.previous { step = previous } }
@@ -329,10 +374,13 @@ final class WeeklyReviewModel {
     /// While the text is being written the sheet stays: one pass through the flow writes once.
     var canClose: Bool { !isWriting }
 
-    /// Reads both weeks at once, so changing the week needs no second read.
+    /// Reads both weeks at once, so changing the week needs no second read. The read also holds
+    /// the week before the previous one, which the previous week's rhythm compares with; the
+    /// counts take only their own week's days.
     func load() async {
         guard store.vaultURL == root else { return }
-        let first = WeeklyReviewWeek.previous.range(containing: today, calendar: calendar).lowerBound
+        let previous = WeeklyReviewWeek.previous.range(containing: today, calendar: calendar).lowerBound
+        let first = previous.addingDays(-7) ?? previous
         let last = WeeklyReviewWeek.current.range(containing: today, calendar: calendar).upperBound
         isLoading = true
         defer { isLoading = false }
@@ -340,7 +388,7 @@ final class WeeklyReviewModel {
             let read = try await store.weeklyReviewInput(from: first, to: last)
             let fields = try await store.personCadences()
             let encounters = try await store.computeLastEncounters(asOf: today)
-            let open = try await store.computeOpenTasks(dueBy: last, orWrittenFrom: first)
+            let open = try await store.computeOpenTasks(dueBy: last, orWrittenFrom: previous)
             guard store.vaultURL == root else { return }
             input = read
             openTasks = open
@@ -363,6 +411,8 @@ final class WeeklyReviewModel {
             threshold: PeopleInsightsPreference.threshold(in: defaults), cadences: cadences)
         content = WeeklyReviewContent.compute(
             range: range, today: today, input: input, tasks: openTasks, unseen: unseen.overdue)
+        rhythm = WeeklyReviewRhythm.compute(
+            days: input.days, range: range, previousRange: previousRange, today: today)
     }
 
     /// Appends the previewed lines to the review day's Journal. A second call while the first is

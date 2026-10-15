@@ -481,7 +481,8 @@ flowchart TD
     C --> D{Dönem boş mu}
     D -->|Evet| E[Tek cümle, açık görevler satırı, Önceki döneme git]
     D -->|Hayır| F[Ritim şeridi]
-    F --> G[Dört ana sayı ve fark yazısı]
+    F --> Y[Yalnız yılda: Yazılan günler haritası]
+    Y --> G[Dört ana sayı ve fark yazısı]
     G --> H[Kişiler ve Konumlar: ad çipleri]
     H --> I[Hedefler: hedef satırı ve gün hücreleri]
     I --> J[Görevler: yığılı çubuk]
@@ -494,6 +495,7 @@ flowchart TD
 | Dönem düğmeleri | Önceki ve sonraki dönem. Bugünün döneminden sonraki döneme geçiş yoktur. Gösterilen dönem bugünü içermiyorsa "Bu hafta", "Bu ay" ya da "Bu yıl" düğmesi görünür. iPhone'da yatay kaydırma da dönemi değiştirir. |
 | Ritim şeridi | Dönemin birimleri başına olay sayısı. Hafta birimi gündür. Ay birimi ayın 1'inden başlayan 7 günlük dilimdir: 1–7, 8–14, 15–21, 22–28, kalan günler. Yıl birimi aydır. Önceki dönemin aynı sıradaki birimi arkada geniş ve soluk çubuktur. |
 | Yazıldı işareti | Her birimin altında durur. Dolu nokta: gün yazıldı ya da birimin ölçülen günlerinin en az yarısı yazıldı. Halka: yarıdan azı yazıldı. Kısa çizgi: hiç yazılmadı. İşaret yok: birim henüz başlamadı. |
+| Yazılan günler | Yalnız Yıl sekmesinde, ritim şeridinin altında. 12 satır: satır başında kısa ay adı, ardından ayın 1'inden 31'ine kadar birer ısı haritası hücresi. Yazılmayan gün boş hücredir. Yalnız `Journal` yazısı olan gün kısmi hücredir. En az bir olayı olan gün tam hücredir. Bugün çerçevelidir. Ayda olmayan tarih ve bugünden sonraki gün çizilmez. Başlığın sayacı yılın "Yazılan gün" sayısıdır: "243 gün". Erişilebilirlik boyutunda hücreler büyür ve pazartesi haftalarına dizilir; harita yatay kayar ve son ölçülen haftayla açılır. |
 | Ana sayılar | Olay sayısı, yazılan gün, kişi geçişi, konum geçişi. iPhone'da 2 × 2 düzendedir; erişilebilirlik boyutunda tek sütundur. |
 | Fark | Uygulama farkı yazıyla verir: "önceki haftaya göre +4", "önceki haftayla aynı". Ok yoktur. |
 | Süren dönem farkı | Süren dönemde uygulama önceki dönemi aynı tarihe kadar sayar. Etiket bunu söyler: "geçen yılın aynı tarihine göre +12". |
@@ -504,8 +506,8 @@ flowchart TD
 | Görevler | "N görev oluşturuldu" ve fark. Altında tek yığılı çubuk durur: tamamlanan, devreden, tarihsiz açık. Her parçanın sayısı açıklamada yazar. |
 | Sıfır bölüm | Sayısı sıfır olan bölümü uygulama çizmez. |
 | Boş dönem | "Bu dönemde kayıt yok." yazar. Açık görev varsa altında tek satır durur: "Açık görevler: 6 devreden, 4 tarihsiz". En altta "Önceki döneme git" düğmesi durur. Uygulama öteki bölümleri çizmez. |
-| Mac düzeni | İki sütun. Sol sütun: ritim, ana sayılar, hedefler. Sağ sütun: kişiler, konumlar, görevler. |
-| Erişilebilirlik | Ritim şeridinin her sütunu birim adını ve değeri okur: olay sayısı, önceki dönem, yazıldı işareti. Erişilebilirlik boyutunda sütunlar satıra döner. Yığılı çubuğun sayıları açıklamada yazar. Ad çipi sayıyı birimiyle okur: "Deniz Arıkan, 7 geçiş". |
+| Mac düzeni | İki sütun. Sol sütun: ritim, yılda yazılan günler, ana sayılar, hedefler. Sağ sütun: kişiler, konumlar, görevler. |
+| Erişilebilirlik | Ritim şeridinin her sütunu birim adını ve değeri okur: olay sayısı, önceki dönem, yazıldı işareti. Erişilebilirlik boyutunda sütunlar satıra döner. Yazılan günler haritası ay başına bir öğe okur: "Mart: 22 gün yazıldı". Yığılı çubuğun sayıları açıklamada yazar. Ad çipi sayıyı birimiyle okur: "Deniz Arıkan, 7 geçiş". |
 | Yükleme | Dönem değişince ekran eski içeriği yeni yanıt gelene kadar gösterir. Gösterilecek içerik yoksa yükleme göstergesi çıkar. |
 | Gün dönümü | Ekran açıkken gün değişirse uygulama özeti yeni günle yeniden yükler. |
 
@@ -589,7 +591,7 @@ Akış bir taslaktır. Tek yazma eylemi son adımdaki "Günlüğe yaz" düğmesi
 
 | Adım | İçerik |
 |---|---|
-| 1 Haftanın sayıları | Olay sayısı, tamamlanan görev ve yazılan gün. Tanımlar Özetler'deki tanımlardır. Sıfır olan sayı ve cümlesi görünmez. Üçü de sıfırsa "Bu dönemde kayıt yok." yazar. |
+| 1 Haftanın sayıları | Sayıların üstünde kısa ritim şeridi: incelenen haftanın 7 günü, cihaz takviminin hafta başından. Her günün arkasında önceki haftanın aynı sıradaki günü soluk çubuktur. Gün altında yazıldı işareti durur. Bugünden sonraki günde günün çubuğu ve işareti yoktur; önceki haftanın soluk çubuğu durur. Şeridin altında olay farkı yazar: "Önceki haftaya göre +4 olay". Süren haftada uygulama önceki haftayı aynı güne kadar sayar: "Geçen haftanın aynı gününe göre +4 olay". Bugünden sonraki tarihli dosyanın olayları şeritte ve farkta sayılmaz; "Olay sayısı" ve çıktı haftanın bütün dosyalarını sayar. "Geçen hafta" sekmesinde karşılaştırma ondan önceki haftayladır. Ardından olay sayısı, tamamlanan görev ve yazılan gün. Tanımlar Özetler'deki tanımlardır. Sıfır olan sayı ve cümlesi görünmez. Üçü de sıfırsa "Bu dönemde kayıt yok." yazar ve şerit yoktur. Şerit ve fark çıktıya girmez. |
 | 2 Açık görevler | Haftadan kalan açık görevlerin sayısı ve ilk 3 görev. Bitişi haftanın son günü ya da öncesi olanlar ve o hafta yazılan tarihsizler. Adım yalnız gösterir. Taşıma ve tamamlama "Günü kapat" akışındadır. |
 | 3 Bir süredir görüşmediklerin | Kişiler'deki listenin vadesi gelen ilk 3 kişisi. Ritim, erteleme ve duraklatma dahildir. Hiç görüşülmeyenler yoktur. |
 | 4 Hedefler | Günlük hedefte haftanın inceleme gününe kadarki günlerinden kaçında hedefe ulaşıldığı: "2/6 gün". Haftalık hedefte incelenen haftanın günlerindeki miktar: "25 / 100 sayfa". Pazar takviminde de adım incelenen pazar–cumartesi günlerini sayar. Hedefin kendi pazartesi haftası geçerli değildir. Yıllık hedef yoktur. |

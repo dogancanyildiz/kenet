@@ -1,0 +1,94 @@
+[
+  {
+    "id": "running-year-ends-today",
+    "vault": "rhythm",
+    "year": 2026,
+    "today": "2026-10-07",
+    "expected": {
+      "eventDays": ["2026-09-28", "2026-09-30", "2026-10-02", "2026-10-05", "2026-10-06", "2026-10-07"],
+      "journalDays": ["2026-10-04"],
+      "measuredEnd": "2026-10-07",
+      "monthDays": [31, 28, 31, 30, 31, 30, 31, 31, 30, 7, 0, 0],
+      "monthWritten": [0, 0, 0, 0, 0, 0, 0, 0, 2, 5, 0, 0],
+      "writtenDays": 7
+    }
+  },
+  {
+    "id": "ended-year-counts-every-day",
+    "vault": "rhythm",
+    "year": 2025,
+    "today": "2026-10-07",
+    "expected": {
+      "eventDays": ["2025-10-01", "2025-10-06"],
+      "journalDays": [],
+      "measuredEnd": "2025-12-31",
+      "monthDays": [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31],
+      "monthWritten": [0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0],
+      "writtenDays": 2
+    }
+  },
+  {
+    "id": "year-not-begun",
+    "vault": "rhythm",
+    "year": 2027,
+    "today": "2026-10-07",
+    "expected": {
+      "eventDays": [],
+      "journalDays": [],
+      "measuredEnd": null,
+      "monthDays": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      "monthWritten": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      "writtenDays": 0
+    }
+  },
+  {
+    "id": "empty-leap-year-without-today",
+    "days": [],
+    "year": 2024,
+    "expected": {
+      "eventDays": [],
+      "journalDays": [],
+      "measuredEnd": "2024-12-31",
+      "monthDays": [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31],
+      "monthWritten": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      "writtenDays": 0
+    }
+  },
+  {
+    "id": "first-day-adds-rows-of-one-date",
+    "days": [
+      { "date": "2025-12-31", "events": 3, "hasJournal": false },
+      { "date": "2026-01-01", "events": 0, "hasJournal": true },
+      { "date": "2026-01-01", "events": 2, "hasJournal": false },
+      { "date": "2026-01-02", "events": 1, "hasJournal": false }
+    ],
+    "year": 2026,
+    "today": "2026-01-01",
+    "expected": {
+      "eventDays": ["2026-01-01"],
+      "journalDays": [],
+      "measuredEnd": "2026-01-01",
+      "monthDays": [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      "monthWritten": [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      "writtenDays": 1
+    }
+  },
+  {
+    "id": "last-day-ends-the-year",
+    "days": [
+      { "date": "2024-02-29", "events": 0, "hasJournal": true },
+      { "date": "2024-06-15", "events": 0, "hasJournal": false },
+      { "date": "2024-12-31", "events": -2, "hasJournal": false }
+    ],
+    "year": 2024,
+    "today": "2024-12-31",
+    "expected": {
+      "eventDays": [],
+      "journalDays": ["2024-02-29"],
+      "measuredEnd": "2024-12-31",
+      "monthDays": [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31],
+      "monthWritten": [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      "writtenDays": 1
+    }
+  }
+]

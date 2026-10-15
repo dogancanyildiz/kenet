@@ -169,14 +169,30 @@ struct GoalHeatmap: View {
             Color.clear.frame(width: weekdayColumnWidth, height: 14)
             ForEach(Array(weeks.enumerated()), id: \.offset) { index, week in
                 let label = monthLabel(for: week, previous: index > 0 ? weeks[index - 1] : nil)
-                Text(verbatim: label)
-                    .font(.ink.meta)
-                    .foregroundStyle(Color.ink.secondaryText)
-                    .fixedSize()
-                    .frame(width: tap, alignment: .leading)
-                    .accessibilityHidden(label.isEmpty)
+                if !label.isEmpty {
+                    let next =
+                        weeks.indices.dropFirst(index + 1).first { candidate in
+                            !monthLabel(for: weeks[candidate], previous: weeks[candidate - 1]).isEmpty
+                        } ?? weeks.count
+                    ViewThatFits(in: .horizontal) {
+                        Text(verbatim: label)
+                            .font(.ink.meta)
+                            .foregroundStyle(Color.ink.secondaryText)
+                            .fixedSize()
+                        Color.clear.frame(height: 14)
+                    }
+                    .frame(width: CGFloat(next - index) * tap - 4, alignment: .leading)
+                    .padding(.trailing, 4)
+                    // VoiceOver reads every month, also one whose label did not fit.
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(Text(verbatim: monthName(for: week)))
+                }
             }
         }
+    }
+
+    private func monthName(for week: [CalendarDate]) -> String {
+        week.first.map { LocalDay.instant(for: $0).formatted(.dateTime.month(.wide).year()) } ?? ""
     }
 
     private func monthLabel(for week: [CalendarDate], previous: [CalendarDate]?) -> String {

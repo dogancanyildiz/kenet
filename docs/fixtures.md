@@ -27,7 +27,7 @@ flowchart LR
   F --> RN["rename/ : 11 örnek"]
   F --> IM["import/ : 7 örnek"]
   F --> DA["dates/ : 3 JSON, 2 girdi dosyası"]
-  F --> GO["goals/ : cases.json, creation/, writes/"]
+  F --> GO["goals/ : cases.json, series.json, creation/, writes/"]
   F --> SU["summaries/ : 6 JSON"]
   F --> VA["vaults/ : 13 kasa"]
   VA --> V1["sample"]
@@ -130,6 +130,7 @@ Swift testleri `Fixtures/` klasörünü test kaynak dosyasından yukarı doğru 
 | `dates/quick-entry.json` | `DateParsingTests/QuickEntryTests.swift` | JSON vaka |
 | `dates/recurrence.json` | `DateParsingTests/RecurrenceTests.swift` | JSON vaka |
 | `goals/cases.json` | `GoalTrackingTests/GoalFixtures.swift` | JSON vaka |
+| `goals/series.json` | `GoalTrackingTests/GoalSeriesTests.swift` | JSON vaka |
 | `goals/writes/` | `VaultStoreTests/GoalStoreFixtures.swift` | JSON vaka |
 | `goals/creation/` | `VaultStoreTests/GoalCreationTests.swift`, `MilestoneStoreTests.swift`, `Tests/JournalTests/GoalDefinitionTests.swift` | JSON vaka |
 | `summaries/cases.json` | `SummariesTests/PeriodSummaryTests.swift` | JSON vaka |
@@ -1006,6 +1007,7 @@ Diğer aileler kod, bağlantı ve anma koruması, tam ve kısmi bastırma ve ç�
 | Parça | Girdi | Beklenen | Vaka sayısı |
 |---|---|---|---|
 | `cases.json` | Hedef tanımı ve günlük kayıtlar | Hesap sonucu | 75 |
+| `series.json` | Günlük değerler ve dönem tanımı | Günlük seri, hareketli ortalama, hafta ve ay toplamları | 18 |
 | `writes/` | `cases.json` ve aynı klasördeki Markdown çiftleri | Yazma sonrası tam baytlar | 15 |
 | `creation/` | Boş `input.md` | `boolean-expected.md`, `number-expected.md`, `milestone-expected.md` | 3 |
 
@@ -1014,6 +1016,8 @@ Diğer aileler kod, bağlantı ve anma koruması, tam ve kısmi bastırma ve ç�
 Vaka aileleri günlük, haftalık ve yıllık boolean ve sayı hedefleri; eşik, boşluk, bugün ve dönem bekliyor; pazartesi ve pazar; yıl ve artık yıldır. Bozuk veri aileleri yinelenen gün, tür uyuşmazlığı ve gelecek kayıtlarıdır. Günlük af ailesi önceki iki günü yapılmış tek kaçırmayı (yapıldı, yapıldı, kaçtı, yapıldı), önünde iki yapılmış gün olmayan kaçırmayı (yapıldı, kaçtı, yapıldı), gün aşırı kaçırmayı (yapıldı, kaçtı, yapıldı, kaçtı, yapıldı: af yok), affedilen günün ardındaki kaçırmayı (yapıldı, yapıldı, kaçtı, yapıldı, kaçtı, yapıldı: yalnız ilk kaçırma affedilir), baştaki kaçırmanın ardından affı (kaçtı, yapıldı, yapıldı, kaçtı, yapıldı), art arda 2 kaçırmayı ve baştaki ve sondaki kaçırmayı kapsar. Dün kaçmış ve bugün bekleyen hedefte zincir yalnız önceki iki gün yapılmışsa düşmez; önceki iki günden biri yapılmamış ya da affedilmişse zincir 0 olur; 2 gün kaçmış ve bugün bekleyende zincir 0 olur. En uzun zincir vakaları gün aşırı geçmişi (en uzun 2) ve iki affı tek koşuda (en uzun 5) sınar.
 
 Diğer af durumları bugün yapılınca süren zincir, hedefin ilk ve ikinci günü, katkısız ve kısmi katkılı affedilen gündür. Skor ailesi 30 günden uzun geçmişi, paydaya girmeyen bugünü, ölçüm günü olmayan hedefi ve skora girmeyen eşik altı günü kapsar. Uç tarih ailesi çok eski tek kaydı, geçmişte kalan af almış en uzun seriyi, yaz saati gün sınırını ve yıl ve artık gün sınırını kapsar.
+
+**Değer grafiği:** `series.json` iki dizi taşır: `daily` (6 vaka) ve `periods` (12 vaka). Günlük girdiler `id`, `today`, `span`, `target`, `logs`; beklentiler `values`, `indices`, `segments`, `average`, `metCount`, `peakIndex`, `averages` (`index`, `value`, `segment`). Boş, seyrek ve dolu seri; görünür aralıktan önceye uzanan 7 günlük pencere, üç kayıt eşiği, çizgi kırılması, eşit hedef, son kayıt, gelecek kayıt, tür uyuşmazlığı, geçersiz sayı (negatif ve NaN), sıfır ve eşit tepede en yeni gün sınanır. Dönem girdileri `period`, `kind`, `target`, `today`, `count`, `logs`; beklentiler `totals`, `starts`, `pace`, `total`, `peakIndex` olur. Her iki dönem için boş, süren dönem sınırı ve dolu veri vardır; haftada pazartesi ve pazar, yılda yıl geçişi, ilk kova ve bugün dahildir. Haftalık dönemde negatif ve NaN kayıt da vardır. Özel dönem sayısı ve grafik gösterilmeyen türlerde `expected: null` da sınanır. JSON NaN taşımadığı için `value` alanında `"nan"`, `"inf"` ve `"-inf"` dizgileri bu sayıları gösterir. Beklentiler sözleşmeden elle hesaplanır; kayıtsız gün sıfır sayılmaz, bir günün son kaydı geçerlidir ve türü uymayan ya da geçersiz son kayıt o günü 0 yapar (`GoalProgress` ile aynı kural).
 
 **Yazma ve oluşturma:** `goals/writes/cases.json` her vakada `id`, `day`, `key`, `value` (boolean, sayı ya da `null`), `input` ve `expected` taşır. `input` ve `expected` aynı klasördeki Markdown yollarıdır; eksik girdi için `input` `null` olur. İsteğe bağlı `error` beklenen hatayı adlandırır; örneğin `notAMapping`. Test tam çıktı baytlarını ve artımlı indeksin yeniden üretimle eşitliğini sınar.
 

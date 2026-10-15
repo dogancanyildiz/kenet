@@ -925,11 +925,14 @@ Konumda koordinat, Alanlar tablosunda bir satırdır. Okuma ekranında harita yo
 | Öğe | Davranış |
 |---|---|
 | Manşet | Kaydırılan manşet ve büyük rakam. |
+| Değer grafiği | Sayısal hedefte ısı haritasının üstünde. Günlük hedefte son 90 gün (erişilebilirlik boyutunda 30 gün), haftalık hedefte son 12 hafta toplamı, yıllık hedefte son 12 ay toplamı. Boolean ve kilometre taşında yoktur. |
 | Isı haritası | Başlık döneme göre hafta sayısı söylemez. Yoğunluk renge ek olarak biçimle görünür. Bugün çerçevelidir. Isı haritası geleceği çizmez. Sığmazsa en yeni hafta açık gelir. |
 | Affedilen gün | Kesik çizgili vurgu çerçevesi. Kısmi katkısı varsa dolgusu kalır. VoiceOver "affedildi" ya da "kısmi katkı, affedildi" der. |
 | Sayılar | En uzun zincir ve günlük hedefte skor. |
 | Geçmiş kayıtlar | Kullanıcı geçmiş günlerin kaydını düzeltir. |
 | Tanım alanları | Kâğıt zeminli satırlar. Satıra dokunma düzenleme sheet'ini açar. |
+
+Grafikte "Ortalama", görünür aralıkta kaydı olan günlerin değer ortalamasıdır; kayıtsız gün sıfır değildir. "Hedefin üstünde" sayısı hedefe eşit ya da üstünde kaydı olan günleri sayar. Bir günün son kaydı geçerlidir; türü uymayan ya da geçersiz (negatif, sonsuz) son kayıt o günü 0 yapar. Kural ilerleme ve ısı haritasıyla aynıdır. Tepe eşitse en yeni gün seçilir. Çizgi her günün ve önceki altı günün kayıt ortalamasıdır; en az üç kayıt gerekir, aksi hâlde çizgi kırılır. İlk günün penceresi görünür aralıktan önceye uzanır. Haftalar pazartesi başlar; son hafta ve ay yalnız bugüne kadarki kayıtları toplar. Aylık hız çizgisi yıllık hedefin on ikide biridir; haftalık çizgi haftalık hedeftir. Gelecek kayıtları hesaba girmez.
 
 **Yeni hedef sheet'i.**
 

@@ -1,0 +1,894 @@
+{
+  "daily": [
+    {
+      "id": "daily-empty",
+      "today": "2026-10-11",
+      "span": 90,
+      "target": 20,
+      "logs": [],
+      "expected": {
+        "values": [],
+        "indices": [],
+        "segments": [],
+        "average": null,
+        "metCount": 0,
+        "peakIndex": null,
+        "averages": []
+      }
+    },
+    {
+      "id": "daily-sparse-window-reach-and-break",
+      "today": "2026-10-11",
+      "span": 14,
+      "target": 20,
+      "logs": [
+        {
+          "day": "2026-09-26",
+          "value": 70
+        },
+        {
+          "day": "2026-09-27",
+          "value": 40
+        },
+        {
+          "day": "2026-09-28",
+          "value": 10
+        },
+        {
+          "day": "2026-09-30",
+          "value": 30
+        },
+        {
+          "day": "2026-10-06",
+          "value": 6
+        },
+        {
+          "day": "2026-10-07",
+          "value": 9
+        },
+        {
+          "day": "2026-10-08",
+          "value": 12
+        }
+      ],
+      "expected": {
+        "values": [
+          10,
+          30,
+          6,
+          9,
+          12
+        ],
+        "indices": [
+          0,
+          2,
+          8,
+          9,
+          10
+        ],
+        "segments": [
+          0,
+          1,
+          2,
+          2,
+          2
+        ],
+        "average": 13.4,
+        "metCount": 1,
+        "peakIndex": 2,
+        "averages": [
+          {
+            "index": 0,
+            "value": 40,
+            "segment": 0
+          },
+          {
+            "index": 1,
+            "value": 40,
+            "segment": 0
+          },
+          {
+            "index": 2,
+            "value": 37.5,
+            "segment": 0
+          },
+          {
+            "index": 3,
+            "value": 37.5,
+            "segment": 0
+          },
+          {
+            "index": 4,
+            "value": 37.5,
+            "segment": 0
+          },
+          {
+            "index": 5,
+            "value": 26.666666666666668,
+            "segment": 0
+          },
+          {
+            "index": 10,
+            "value": 9,
+            "segment": 1
+          },
+          {
+            "index": 11,
+            "value": 9,
+            "segment": 1
+          },
+          {
+            "index": 12,
+            "value": 9,
+            "segment": 1
+          },
+          {
+            "index": 13,
+            "value": 9,
+            "segment": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "daily-full-latest-peak",
+      "today": "2026-10-11",
+      "span": 7,
+      "target": 20,
+      "logs": [
+        {
+          "day": "2026-10-05",
+          "value": 10
+        },
+        {
+          "day": "2026-10-06",
+          "value": 20
+        },
+        {
+          "day": "2026-10-07",
+          "value": 30
+        },
+        {
+          "day": "2026-10-08",
+          "value": 40
+        },
+        {
+          "day": "2026-10-09",
+          "value": 40
+        },
+        {
+          "day": "2026-10-10",
+          "value": 20
+        },
+        {
+          "day": "2026-10-11",
+          "value": 10
+        }
+      ],
+      "expected": {
+        "values": [
+          10,
+          20,
+          30,
+          40,
+          40,
+          20,
+          10
+        ],
+        "indices": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "segments": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "average": 24.285714285714285,
+        "metCount": 5,
+        "peakIndex": 4,
+        "averages": [
+          {
+            "index": 2,
+            "value": 20,
+            "segment": 0
+          },
+          {
+            "index": 3,
+            "value": 25,
+            "segment": 0
+          },
+          {
+            "index": 4,
+            "value": 28,
+            "segment": 0
+          },
+          {
+            "index": 5,
+            "value": 26.666666666666668,
+            "segment": 0
+          },
+          {
+            "index": 6,
+            "value": 24.285714285714285,
+            "segment": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": "daily-today-duplicate-future-boolean",
+      "today": "2026-10-11",
+      "span": 1,
+      "target": 20,
+      "logs": [
+        {
+          "day": "2026-10-10",
+          "value": 10
+        },
+        {
+          "day": "2026-10-11",
+          "value": 99
+        },
+        {
+          "day": "2026-10-11",
+          "value": 20
+        },
+        {
+          "day": "2026-10-12",
+          "value": 50
+        },
+        {
+          "day": "2026-10-11",
+          "value": true
+        }
+      ],
+      "expected": {
+        "values": [
+          0
+        ],
+        "indices": [
+          0
+        ],
+        "segments": [
+          0
+        ],
+        "average": 0,
+        "metCount": 0,
+        "peakIndex": 0,
+        "averages": []
+      }
+    },
+    {
+      "id": "daily-invalid-numbers",
+      "today": "2026-10-11",
+      "span": 3,
+      "target": 20,
+      "logs": [
+        {
+          "day": "2026-10-09",
+          "value": 12
+        },
+        {
+          "day": "2026-10-09",
+          "value": -5
+        },
+        {
+          "day": "2026-10-10",
+          "value": "nan"
+        },
+        {
+          "day": "2026-10-11",
+          "value": 20
+        }
+      ],
+      "expected": {
+        "values": [
+          0,
+          0,
+          20
+        ],
+        "indices": [
+          0,
+          1,
+          2
+        ],
+        "segments": [
+          0,
+          0,
+          0
+        ],
+        "average": 6.666666666666667,
+        "metCount": 1,
+        "peakIndex": 2,
+        "averages": [
+          {
+            "index": 2,
+            "value": 6.666666666666667,
+            "segment": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": "daily-zero-records",
+      "today": "2026-10-11",
+      "span": 3,
+      "target": 20,
+      "logs": [
+        {
+          "day": "2026-10-09",
+          "value": 0
+        },
+        {
+          "day": "2026-10-10",
+          "value": 0
+        },
+        {
+          "day": "2026-10-11",
+          "value": 0
+        }
+      ],
+      "expected": {
+        "values": [
+          0,
+          0,
+          0
+        ],
+        "indices": [
+          0,
+          1,
+          2
+        ],
+        "segments": [
+          0,
+          0,
+          0
+        ],
+        "average": 0,
+        "metCount": 0,
+        "peakIndex": 2,
+        "averages": [
+          {
+            "index": 2,
+            "value": 0,
+            "segment": 0
+          }
+        ]
+      }
+    }
+  ],
+  "periods": [
+    {
+      "id": "weekly-empty",
+      "period": "week",
+      "kind": "number",
+      "target": 24,
+      "today": "2026-10-11",
+      "count": 12,
+      "logs": [],
+      "expected": {
+        "totals": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "starts": [
+          "2026-07-20",
+          "2026-07-27",
+          "2026-08-03",
+          "2026-08-10",
+          "2026-08-17",
+          "2026-08-24",
+          "2026-08-31",
+          "2026-09-07",
+          "2026-09-14",
+          "2026-09-21",
+          "2026-09-28",
+          "2026-10-05"
+        ],
+        "pace": 24,
+        "total": 0,
+        "peakIndex": 11
+      }
+    },
+    {
+      "id": "weekly-boundary-current-sunday",
+      "period": "week",
+      "kind": "number",
+      "target": 24,
+      "today": "2026-10-11",
+      "count": 12,
+      "logs": [
+        {
+          "day": "2026-07-19",
+          "value": 90
+        },
+        {
+          "day": "2026-07-20",
+          "value": 2
+        },
+        {
+          "day": "2026-10-04",
+          "value": 3
+        },
+        {
+          "day": "2026-10-05",
+          "value": 4
+        },
+        {
+          "day": "2026-10-11",
+          "value": 9
+        },
+        {
+          "day": "2026-10-11",
+          "value": 5
+        },
+        {
+          "day": "2026-10-12",
+          "value": 80
+        }
+      ],
+      "expected": {
+        "totals": [
+          2,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          3,
+          9
+        ],
+        "starts": [
+          "2026-07-20",
+          "2026-07-27",
+          "2026-08-03",
+          "2026-08-10",
+          "2026-08-17",
+          "2026-08-24",
+          "2026-08-31",
+          "2026-09-07",
+          "2026-09-14",
+          "2026-09-21",
+          "2026-09-28",
+          "2026-10-05"
+        ],
+        "pace": 24,
+        "total": 14,
+        "peakIndex": 11
+      }
+    },
+    {
+      "id": "weekly-full",
+      "period": "week",
+      "kind": "number",
+      "target": 24,
+      "today": "2026-10-11",
+      "count": 12,
+      "logs": [
+        {
+          "day": "2026-07-20",
+          "value": 1
+        },
+        {
+          "day": "2026-07-27",
+          "value": 2
+        },
+        {
+          "day": "2026-08-03",
+          "value": 3
+        },
+        {
+          "day": "2026-08-10",
+          "value": 4
+        },
+        {
+          "day": "2026-08-17",
+          "value": 5
+        },
+        {
+          "day": "2026-08-24",
+          "value": 6
+        },
+        {
+          "day": "2026-08-31",
+          "value": 7
+        },
+        {
+          "day": "2026-09-07",
+          "value": 8
+        },
+        {
+          "day": "2026-09-14",
+          "value": 9
+        },
+        {
+          "day": "2026-09-21",
+          "value": 10
+        },
+        {
+          "day": "2026-09-28",
+          "value": 11
+        },
+        {
+          "day": "2026-10-05",
+          "value": 12
+        }
+      ],
+      "expected": {
+        "totals": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "starts": [
+          "2026-07-20",
+          "2026-07-27",
+          "2026-08-03",
+          "2026-08-10",
+          "2026-08-17",
+          "2026-08-24",
+          "2026-08-31",
+          "2026-09-07",
+          "2026-09-14",
+          "2026-09-21",
+          "2026-09-28",
+          "2026-10-05"
+        ],
+        "pace": 24,
+        "total": 78,
+        "peakIndex": 11
+      }
+    },
+    {
+      "id": "yearly-empty",
+      "period": "year",
+      "kind": "number",
+      "target": 24,
+      "today": "2026-10-11",
+      "count": 12,
+      "logs": [],
+      "expected": {
+        "totals": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "starts": [
+          "2025-11-01",
+          "2025-12-01",
+          "2026-01-01",
+          "2026-02-01",
+          "2026-03-01",
+          "2026-04-01",
+          "2026-05-01",
+          "2026-06-01",
+          "2026-07-01",
+          "2026-08-01",
+          "2026-09-01",
+          "2026-10-01"
+        ],
+        "pace": 2,
+        "total": 0,
+        "peakIndex": 11
+      }
+    },
+    {
+      "id": "yearly-boundary-current-month",
+      "period": "year",
+      "kind": "number",
+      "target": 24,
+      "today": "2026-10-11",
+      "count": 12,
+      "logs": [
+        {
+          "day": "2025-10-31",
+          "value": 90
+        },
+        {
+          "day": "2025-11-01",
+          "value": 1
+        },
+        {
+          "day": "2026-09-30",
+          "value": 2
+        },
+        {
+          "day": "2026-10-01",
+          "value": 1
+        },
+        {
+          "day": "2026-10-11",
+          "value": 1
+        },
+        {
+          "day": "2026-10-12",
+          "value": 90
+        }
+      ],
+      "expected": {
+        "totals": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          2,
+          2
+        ],
+        "starts": [
+          "2025-11-01",
+          "2025-12-01",
+          "2026-01-01",
+          "2026-02-01",
+          "2026-03-01",
+          "2026-04-01",
+          "2026-05-01",
+          "2026-06-01",
+          "2026-07-01",
+          "2026-08-01",
+          "2026-09-01",
+          "2026-10-01"
+        ],
+        "pace": 2,
+        "total": 5,
+        "peakIndex": 11
+      }
+    },
+    {
+      "id": "yearly-full",
+      "period": "year",
+      "kind": "number",
+      "target": 24,
+      "today": "2026-10-11",
+      "count": 12,
+      "logs": [
+        {
+          "day": "2025-11-01",
+          "value": 1
+        },
+        {
+          "day": "2025-12-01",
+          "value": 1
+        },
+        {
+          "day": "2026-01-01",
+          "value": 1
+        },
+        {
+          "day": "2026-02-01",
+          "value": 1
+        },
+        {
+          "day": "2026-03-01",
+          "value": 1
+        },
+        {
+          "day": "2026-04-01",
+          "value": 1
+        },
+        {
+          "day": "2026-05-01",
+          "value": 1
+        },
+        {
+          "day": "2026-06-01",
+          "value": 1
+        },
+        {
+          "day": "2026-07-01",
+          "value": 1
+        },
+        {
+          "day": "2026-08-01",
+          "value": 1
+        },
+        {
+          "day": "2026-09-01",
+          "value": 1
+        },
+        {
+          "day": "2026-10-01",
+          "value": 1
+        }
+      ],
+      "expected": {
+        "totals": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "starts": [
+          "2025-11-01",
+          "2025-12-01",
+          "2026-01-01",
+          "2026-02-01",
+          "2026-03-01",
+          "2026-04-01",
+          "2026-05-01",
+          "2026-06-01",
+          "2026-07-01",
+          "2026-08-01",
+          "2026-09-01",
+          "2026-10-01"
+        ],
+        "pace": 2,
+        "total": 12,
+        "peakIndex": 11
+      }
+    },
+    {
+      "id": "weekly-custom-count",
+      "period": "week",
+      "kind": "number",
+      "target": 24,
+      "today": "2026-10-11",
+      "count": 2,
+      "logs": [
+        {
+          "day": "2026-09-27",
+          "value": 90
+        },
+        {
+          "day": "2026-09-28",
+          "value": 3
+        },
+        {
+          "day": "2026-10-11",
+          "value": 2
+        }
+      ],
+      "expected": {
+        "totals": [
+          3,
+          2
+        ],
+        "starts": [
+          "2026-09-28",
+          "2026-10-05"
+        ],
+        "pace": 24,
+        "total": 5,
+        "peakIndex": 0
+      }
+    },
+    {
+      "id": "weekly-invalid-numbers",
+      "period": "week",
+      "kind": "number",
+      "target": 24,
+      "today": "2026-10-11",
+      "count": 2,
+      "logs": [
+        {
+          "day": "2026-09-28",
+          "value": 3
+        },
+        {
+          "day": "2026-09-29",
+          "value": -4
+        },
+        {
+          "day": "2026-10-05",
+          "value": 6
+        },
+        {
+          "day": "2026-10-05",
+          "value": "nan"
+        },
+        {
+          "day": "2026-10-06",
+          "value": 2
+        }
+      ],
+      "expected": {
+        "totals": [
+          3,
+          2
+        ],
+        "starts": [
+          "2026-09-28",
+          "2026-10-05"
+        ],
+        "pace": 24,
+        "total": 5,
+        "peakIndex": 0
+      }
+    },
+    {
+      "id": "daily-no-period",
+      "period": "day",
+      "kind": "number",
+      "target": 24,
+      "today": "2026-10-11",
+      "count": 12,
+      "logs": [],
+      "expected": null
+    },
+    {
+      "id": "boolean-no-period",
+      "period": "week",
+      "kind": "boolean",
+      "target": 24,
+      "today": "2026-10-11",
+      "count": 12,
+      "logs": [],
+      "expected": null
+    },
+    {
+      "id": "milestone-no-period",
+      "period": "year",
+      "kind": "milestone",
+      "target": 24,
+      "today": "2026-10-11",
+      "count": 12,
+      "logs": [],
+      "expected": null
+    },
+    {
+      "id": "zero-count",
+      "period": "year",
+      "kind": "number",
+      "target": 24,
+      "today": "2026-10-11",
+      "count": 0,
+      "logs": [],
+      "expected": null
+    }
+  ]
+}

@@ -7,6 +7,8 @@
 # SNAPSHOT_SUITES doluysa yalnız o kümeler (boşlukla ayrılmış adlar); boşsa bütün iOS kümeleri.
 # --duo: yalnız iPhone Duo tuval kümeleri (snapshot-suites.sh --duo). Bu kümeler test konağında
 # SNAPSHOT_DUO=1 görmeden koşmaz; betik değişkeni TEST_RUNNER_SNAPSHOT_DUO olarak geçirir.
+# Kayıt kipi varsayılan "failed": yalnız eşleşmeyen ya da eksik referans yazılır; eşleşen PNG'ler
+# bayt düzeyinde aynı kalır ve diff'e girmez. Hepsini yeniden yazmak için SNAPSHOT_TESTING_RECORD=all.
 set -eu
 cd "$(dirname "$0")/../.."
 
@@ -18,7 +20,7 @@ fi
 
 DEVELOPER_DIR="${DEVELOPER_DIR:-/Applications/Xcode.app/Contents/Developer}"
 export DEVELOPER_DIR
-export SNAPSHOT_TESTING_RECORD="${SNAPSHOT_TESTING_RECORD:-all}"
+export SNAPSHOT_TESTING_RECORD="${SNAPSHOT_TESTING_RECORD:-failed}"
 
 command -v xcodegen >/dev/null || { echo "xcodegen gerekli: brew install xcodegen" >&2; exit 1; }
 xcodegen generate
@@ -70,7 +72,8 @@ echo "SNAPSHOT_TESTING_RECORD=$SNAPSHOT_TESTING_RECORD"
 
 DERIVED="${SNAPSHOT_DERIVED_DATA:-.dd/snapshots}"
 
-# Kayıt modunda ilk koşu referansı yazar; eksik referansta kütüphane bir kez düşer — ikinci koşu doğrular.
+# Kayıt kipinde yazılan her referans o koşuyu düşürür; ikinci koşu yeni referanslara karşı doğrular.
+# Her referans eşleşirse ilk koşu geçer ve ikinci koşu gerekmez.
 set +e
 xcodebuild build-for-testing \
   -project Journal.xcodeproj \
@@ -91,7 +94,7 @@ if [ "$status" -eq 0 ]; then
     CODE_SIGNING_ALLOWED=NO \
     -quiet
   status=$?
-  # Kayıt modunda ilk koşu referansı yazınca düşebilir; doğrulama aynı DerivedData ile koşar.
+  # Kayıt kipinde bir referans yazılınca ilk koşu düşer; doğrulama aynı DerivedData ile koşar.
   if [ "$SNAPSHOT_TESTING_RECORD" != "never" ] && [ "$status" -ne 0 ]; then
     echo "İlk kayıt koşusu düştü (beklenen); doğrulama koşusu…"
     unset SNAPSHOT_TESTING_RECORD

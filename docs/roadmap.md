@@ -308,11 +308,11 @@ iPhone Duo'nun dış ekranı sıkışık, iç ekranı düzenli × düzenli boyut
 
 | Madde | Durum | Kanıt |
 |---|---|---|
-| Grafikler | Açık. Prototip turu 2026-10-15'te bitti; kullanıcı dört grafiği seçti. | `kenet-raporlar/grafikler/prototip` |
+| Grafikler | Bitti. Dört grafik `dev`'de; referanslar açık, koyu ve AX3'te kayıtlı; Core hesapları fixture ile sınanıyor. | #249, #250, #251 |
 
 Kullanıcı bu aşamayı 2026-10-15'te onayladı. Madde kimlik ya da cihaz kararı gerektirmez; bu yüzden Aşama 11 ile birlikte yürür. Prototip kodu `dev`'e girmedi; gerçek dalga Core hesaplarını ve ekranları yeniden yazar.
 
-- [ ] Grafikler: Özetler yılında 12 ay × 31 gün yazılan gün haritası; sayısal hedef ayrıntısında son 90 günün 7 günlük ortalama çizgisi, günlük noktalar ve kesik hedef çizgisi, yıllık hedefte 12 ay toplam çubuğu; kişi ve konum ekranında "Son görüşme" kartının içinde 12 aylık geçiş çubuğu ve 90 günlük şerit; haftalık incelemenin ilk adımında yedi günlük mini ritim ve geçen haftayla fark. Hesaplar Core'da, çizim App'te; her grafik renge ek olarak biçim taşır ve VoiceOver özeti okur.
+- [x] Grafikler: Özetler yılında 12 ay × 31 gün yazılan gün haritası; sayısal hedef ayrıntısında son 90 günün 7 günlük ortalama çizgisi, günlük noktalar ve kesik hedef çizgisi, yıllık hedefte 12 ay toplam çubuğu; kişi ve konum ekranında "Son görüşme" kartının içinde 12 aylık geçiş çubuğu ve 90 günlük şerit; haftalık incelemenin ilk adımında yedi günlük mini ritim ve geçen haftayla fark. Hesaplar Core'da, çizim App'te; her grafik renge ek olarak biçim taşır ve VoiceOver özeti okur.
 
 **Çıkış ölçütü:** Dört grafik iPhone'da açık, koyu ve AX3'te referans görüntüyle korunur; Core hesapları fixture ile sınanır.
 

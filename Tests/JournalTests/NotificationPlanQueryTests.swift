@@ -75,7 +75,10 @@ import VaultIndex
         #expect(await store.addEvent(on: CalendarDate("2026-10-04")!, text: "Bir an", time: nil))
         try await check("event")
         try FileManager.default.removeItem(at: context.root.appendingPathComponent("notes/Edge.md"))
+        // The watcher may still be refreshing after the writes above; `refresh()` then only queues
+        // a rescan and returns, so the plan is read once that rescan has published.
         await store.refresh()
+        await store.waitWhileRefreshInFlight()
         try await check("outside delete")
     }
 

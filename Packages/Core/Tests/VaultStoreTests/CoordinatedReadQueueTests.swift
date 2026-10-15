@@ -54,7 +54,10 @@ struct CoordinatedReadQueueTests {
     #if canImport(Darwin)
         /// Writes replace the file whole: reads racing a run of writes each see one written version,
         /// never a torn or empty file. The reads keep going until every write has finished.
-        @Test(.timeLimit(.minutes(1)))
+        ///
+        /// Forty writes are enough versions to race; a hundred took a loaded CI runner past the
+        /// one-minute limit (164 s with 1000 reads) while every read still saw a whole version.
+        @Test(.timeLimit(.minutes(3)))
         func readsRacingWritesSeeWholeVersions() async throws {
             let vault = try StoreVault(sample: true, random: { UInt64.random(in: .min ... .max) })
             defer { vault.remove() }
@@ -64,20 +67,20 @@ struct CoordinatedReadQueueTests {
             let writes = Task {
                 defer { finished.mark() }
                 var versions: [Data] = []
-                for number in 0..<100 {
+                for number in 0..<40 {
                     versions.append(
                         Data(try await store.addingEvent(on: storeDate, text: "Yarış \(number)").serialized()))
                 }
                 return versions
             }
             var reads: [Data] = []
-            while reads.count < 1000 || !finished.value {
+            while reads.count < 400 || !finished.value {
                 reads.append(Data(try await store.dayDocument(for: storeDate).serialized()))
             }
             let versions = Set([initial] + (try await writes.value))
             print("readsRacingWritesSeeWholeVersions: \(reads.count) reads, \(Set(reads).count) versions seen")
 
-            #expect(versions.count == 101)
+            #expect(versions.count == 41)
             #expect(reads.allSatisfy { versions.contains($0) })
             try vault.check()
         }

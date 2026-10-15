@@ -1262,3 +1262,24 @@ extension IndexStore {
         }
     }
 }
+
+// MARK: - Year writing calendar
+
+extension IndexStore {
+    /// The Özetler year map. It reads only the day rows the year's "Yazılan gün" counts, so the
+    /// map's counter and the number agree. Belongs to this vault generation; with no index open it is empty.
+    func computeYearWritingCalendar(year: Int, today: CalendarDate?) async throws -> YearWritingCalendar {
+        guard let index, let start = CalendarDate(year: year, month: 1, day: 1),
+            let end = CalendarDate(year: year, month: 12, day: 31)
+        else { return YearWritingCalendar.compute(days: [], year: year, today: today) }
+        let current = generation
+        let result = try await Task.detached {
+            YearWritingCalendar.compute(
+                days: try index.summaryDays(from: start, to: end), year: year, today: today)
+        }.value
+        await testingQueryDidFinish?()
+        guard generation == current else { throw VaultStoreError.staleTarget }
+        try Task.checkCancellation()
+        return result
+    }
+}

@@ -31,10 +31,13 @@ struct RhythmLegendItem: Identifiable, Sendable {
 
 /// Bar strip of a period's units with the previous period drawn wide and quiet behind each bar.
 /// Accessibility sizes turn the columns into rows, so labels and numbers keep their size.
+/// The compact strip leaves out the numbers over the columns and the legend: it stands over
+/// numbers that say the same.
 struct RhythmStrip: View {
     let items: [RhythmStripItem]
     let legend: [RhythmLegendItem]
     var barHeight: CGFloat = 112
+    var isCompact = false
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @ScaledMetric(relativeTo: .footnote) private var markSize: CGFloat = 7
 
@@ -45,7 +48,7 @@ struct RhythmStrip: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             if dynamicTypeSize.isAccessibilitySize { rows } else { columns }
-            legendView
+            if !isCompact { legendView }
         }
     }
 
@@ -53,12 +56,14 @@ struct RhythmStrip: View {
         HStack(alignment: .bottom, spacing: items.count > 8 ? 2 : 6) {
             ForEach(items) { item in
                 VStack(spacing: 4) {
-                    Text(verbatim: item.mark == .notStarted ? " " : item.value.formatted())
-                        .font(.ink.meta)
-                        .monospacedDigit()
-                        .foregroundStyle(Color.ink.secondaryText)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.6)
+                    if !isCompact {
+                        Text(verbatim: item.mark == .notStarted ? " " : item.value.formatted())
+                            .font(.ink.meta)
+                            .monospacedDigit()
+                            .foregroundStyle(Color.ink.secondaryText)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.6)
+                    }
                     GeometryReader { geo in
                         ZStack(alignment: .bottom) {
                             if let previous = item.previous, previous > 0 {

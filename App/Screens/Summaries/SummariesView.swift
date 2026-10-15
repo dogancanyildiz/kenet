@@ -10,11 +10,17 @@ struct SummariesReadyKey: PreferenceKey {
     }
 }
 
-/// Rhythm strip, four headline numbers, name chips, goal rows and one stacked task bar.
-/// iPhone: one column. Mac: rhythm, numbers and goals on the left; people, places and tasks on the right.
+/// Rhythm strip, the year's written days, four headline numbers, name chips, goal rows and one
+/// stacked task bar. iPhone: one column. Mac: rhythm, written days, numbers and goals on the left;
+/// people, places and tasks on the right.
 struct SummariesView: View {
     let store: IndexStore
     @State private var model: SummariesModel
+    /// The year map of the shown year; `yearRequest` is the request key it was read for.
+    @State private var yearCalendar: YearWritingCalendar?
+    @State private var yearRequest: String?
+    @State private var yearError: String?
+    private let today: () -> CalendarDate
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.locale) private var locale
 
@@ -26,6 +32,7 @@ struct SummariesView: View {
         period: SummaryPeriod = .week, day: CalendarDate? = nil
     ) {
         self.store = store
+        self.today = today
         _model = State(initialValue: SummariesModel(store: store, today: today, period: period, day: day))
     }
 
@@ -60,15 +67,23 @@ struct SummariesView: View {
         }
         .inkPage()
         .inkPageNavigationTitle("Özetler")
-        .preference(key: SummariesReadyKey.self, value: model.summary != nil && !model.isLoading)
+        .preference(key: SummariesReadyKey.self, value: model.summary != nil && !model.isLoading && isYearReady)
         .background {
             // Ticks each minute so the key sees a new day; the page loads again past midnight.
             TimelineView(.periodic(from: .now, by: 60)) { _ in
-                Color.clear.task(id: model.requestKey) { await model.load() }
+                Color.clear.task(id: model.requestKey) {
+                    await model.load()
+                    await loadYear()
+                }
             }
             .accessibilityHidden(true)
         }
-        .onChange(of: store.vaultURL) { _, _ in model.reset() }
+        .onChange(of: store.vaultURL) { _, _ in
+            model.reset()
+            yearCalendar = nil
+            yearRequest = nil
+            yearError = nil
+        }
         #if os(iOS)
             .simultaneousGesture(swipe)
         #endif
@@ -207,6 +222,7 @@ struct SummariesView: View {
             HStack(alignment: .top, spacing: 48) {
                 VStack(alignment: .leading, spacing: 28) {
                     rhythm(summary)
+                    writtenDays(summary)
                     stats(summary, columns: 2)
                     goals(summary)
                 }
@@ -220,6 +236,7 @@ struct SummariesView: View {
         #else
             VStack(alignment: .leading, spacing: 28) {
                 rhythm(summary)
+                writtenDays(summary)
                 stats(summary, columns: dynamicTypeSize.isAccessibilitySize ? 1 : 2)
                 names(summary)
                 goals(summary)
@@ -237,6 +254,42 @@ struct SummariesView: View {
             )
             .accessibilityElement(children: .contain)
             .accessibilityLabel(Text("Ritim"))
+        }
+    }
+
+    /// The year's day-by-day map under its monthly rhythm; a week or a month has none.
+    @ViewBuilder
+    private func writtenDays(_ summary: PeriodSummary) -> some View {
+        if summary.period == .year {
+            if let yearError {
+                InfoBand(kind: .error, verbatim: yearError)
+            } else if let yearCalendar, yearCalendar.year == summary.range.lowerBound.year {
+                YearWritingHeatmap(calendar: yearCalendar, today: today())
+            }
+        }
+    }
+
+    /// A year page is ready once its map has been read too, or has failed.
+    private var isYearReady: Bool {
+        model.period != .year || yearRequest == model.requestKey
+    }
+
+    /// Reads the year map after the summary, for the same request; a newer request drops the answer.
+    private func loadYear() async {
+        guard model.period == .year else { return }
+        let request = model.requestKey
+        let year = model.range.lowerBound.year
+        do {
+            let result = try await store.computeYearWritingCalendar(year: year, today: today())
+            guard request == model.requestKey, !Task.isCancelled else { return }
+            yearCalendar = result
+            yearError = nil
+            yearRequest = request
+        } catch is CancellationError {
+        } catch {
+            guard request == model.requestKey else { return }
+            yearError = DayEditError.message(for: error)
+            yearRequest = request
         }
     }
 

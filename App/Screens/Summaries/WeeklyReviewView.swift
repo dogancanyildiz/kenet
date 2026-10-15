@@ -133,9 +133,26 @@ struct WeeklyReviewView: View {
             .numbers, title: String(localized: "Haftanın sayıları", bundle: bundle, locale: locale),
             empty: "Bu dönemde kayıt yok."
         ) { content in
+            weekRhythm
             if content.events > 0 { metric(content.events, "Olay sayısı") }
             if content.completedTasks > 0 { metric(content.completedTasks, "Tamamlanan") }
             if content.writtenDays > 0 { metric(content.writtenDays, "Yazılan gün") }
+        }
+    }
+
+    /// Seven short columns over the numbers, the week before behind them, and the change in events.
+    @ViewBuilder private var weekRhythm: some View {
+        RhythmStrip(items: model.rhythmItems, legend: [], barHeight: 40, isCompact: true)
+            .accessibilityElement(children: .contain)
+            .accessibilityLabel(Text(verbatim: String(localized: "Ritim", bundle: bundle, locale: locale)))
+        if let change = model.rhythmChange {
+            Text(verbatim: change)
+                .font(.ink.meta)
+                .monospacedDigit()
+                .foregroundStyle(Color.ink.secondaryText)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.bottom, InkSpacing.row)
         }
     }
 

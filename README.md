@@ -166,7 +166,7 @@ xcodebuild test -project Journal.xcodeproj -scheme Journal_iOS \
 
 | Küme | Ad kuralı | CI | Komut |
 |---|---|---|---|
-| iOS | `…SnapshotTests` | Koşar ve PR'ı durdurur | Doğrula: `SNAPSHOT_TESTING_RECORD=never sh .github/scripts/record-screen-snapshots.sh`. Yenile: `sh .github/scripts/record-screen-snapshots.sh` |
+| iOS | `…SnapshotTests` | Koşar ve PR'ı durdurur | Doğrula: `SNAPSHOT_TESTING_RECORD=never sh .github/scripts/record-screen-snapshots.sh`. Yenile: `sh .github/scripts/record-screen-snapshots.sh` (yalnız eşleşmeyen ya da eksik referansları yazar; hepsini yeniden yazmak için `SNAPSHOT_TESTING_RECORD=all`) |
 | Mac | `…MacSnapshotTests` | Koşmaz; yalnız yerelde doğrula | Kaydet: `SNAPSHOT_TESTING_RECORD=all xcodebuild test -project Journal.xcodeproj -scheme Journal_macOS -destination 'platform=macOS' -only-testing:JournalTests_macOS/<Küme> CODE_SIGNING_ALLOWED=NO` |
 
 **Şema, iOS kayıt betiğinin adımlarını gösterir.**

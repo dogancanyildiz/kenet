@@ -533,6 +533,22 @@
         }
       }
     },
+    "%@: toplam %@, en yüksek %@ %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@: total %2$@, highest %3$@ in %4$@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@: toplam %@, en yüksek %@ %@"
+          }
+        }
+      }
+    },
     "%@. %@ işaretlensin mi?" : {
       "localizations" : {
         "en" : {
@@ -2133,6 +2149,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ayarlar'da Eylem düğmesine bu kısayollardan birini atayabilirsin."
+          }
+        }
+      }
+    },
+    "ayda %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ a month"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ayda %@"
           }
         }
       }
@@ -6161,6 +6193,22 @@
         }
       }
     },
+    "hedef %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "target %@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "hedef %@"
+          }
+        }
+      }
+    },
     "Hedef bulunamadı. Kısayolda hedefi yeniden seç." : {
       "localizations" : {
         "en" : {
@@ -9393,6 +9441,22 @@
         }
       }
     },
+    "Ortalama %@ · %lld günde hedefin üstünde" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Average %1$@ · %2$lld days at or above target"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ortalama %@ · %lld günde hedefin üstünde"
+          }
+        }
+      }
+    },
     "Ortalama aralık" : {
       "localizations" : {
         "en" : {
@@ -10121,6 +10185,118 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sıralama"
+          }
+        }
+      }
+    },
+    "Son %lld gün" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Last %lld days"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Son %lld gün"
+          }
+        }
+      }
+    },
+    "Son %lld gün: ortalama %@, %lld gün hedefin üstünde, en yüksek %@ %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Last %1$lld days: average %2$@, %3$lld days at or above target, highest %4$@ on %5$@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Son %lld gün: ortalama %@, %lld gün hedefin üstünde, en yüksek %@ %@"
+          }
+        }
+      }
+    },
+    "Son %lld günde kayıt yok" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No records in the last %lld days"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Son %lld günde kayıt yok"
+          }
+        }
+      }
+    },
+    "Son 12 ay" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Last 12 months"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Son 12 ay"
+          }
+        }
+      }
+    },
+    "Son 12 ayda toplam %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Total in the last 12 months: %@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Son 12 ayda toplam %@"
+          }
+        }
+      }
+    },
+    "Son 12 hafta" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Last 12 weeks"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Son 12 hafta"
+          }
+        }
+      }
+    },
+    "Son 12 haftada toplam %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Total in the last 12 weeks: %@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Son 12 haftada toplam %@"
           }
         }
       }

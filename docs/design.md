@@ -691,6 +691,19 @@ Kutu `@ScaledMetric` ile büyür; dokunma alanı en az 44 pt kalır. Öncelik i�
 
 Affedilen gün yalnız günlük hedefte olur. Affedilen gün, önceki iki günü ve sonraki günü yapılmış bir kaçırmadır. Affedilen gün yapılmış gün sayılmaz; bu yüzden gün aşırı ikinci kaçırma affedilmez. Kesik çizgi af işaretini bugünün kesiksiz çerçevesinden renge bağlı olmadan ayırır. Af çerçevesi boş hücrenin kontrol çizgisinden renk, kalınlık ve kesiklikle ayrışır. Kesik desen hücre boyuyla büyür: kenar başına 3 çizgi. Hücre köşesi sabit 2 pt'dir; `chipCorner` belirtecini kullanmaz.
 
+### Hedef değer grafiği
+
+| Parça | Biçim | Renk | VoiceOver |
+|---|---|---|---|
+| Günlük eğilim | 7 günlük hareketli ortalama, 2,5 pt monotone çizgi; üç kayıttan az pencerede boşluk | Vurgu | Aralık, ortalama, hedefe ulaşan gün sayısı ve tepe değerin tarihi |
+| Günlük değer | Hedefte ya da üstünde dolu nokta, altında kâğıt dolgulu halka; noktalar bağlanmaz | Vurgu | Grafiğin tek özetinde |
+| Hedef çizgisi | 1 pt, 4/3 kesik; Y ekseninde "hedef N" ya da yıllık hedefte "ayda N" | İkincil metin; anlam taşıyan çizgi açık kâğıtta da seçilir | Grafiğin özetinde hedefe ulaşan gün sayısı |
+| Bugün | İnce dikey çizgi | Kontrol çizgisi | Aralığın son günü |
+| Haftalık / aylık toplam | 12 dolu çubuk, sıfır toplamda iz yok | Vurgu | Aralık, toplam, en yüksek dönem ve değeri |
+| Eksen ve özet | `ink.meta`, sayılarda eş aralıklı rakamlar; ızgara yok | İkincil metin; eksen işareti kontrol çizgisi | Görsel özet yinelenmez |
+
+Bölüm `SectionHeader` ile, kartsız çizilir. Grafik yüksekliği 160 pt'dir; erişilebilirlik boyutunda bir eksen etiketi satırı eklenir, böylece çizim alanı 160 pt'e yakın kalır. Y ekseninde hedef etiketi her zaman vardır; 0 ve tepe etiketi hedefe bir etiket satırından (en az eksenin %15'i) yakınsa çizilmez. Günlük grafikte ay başları etiketlidir; erişilebilirlik boyutunda son 30 gün ve iki uç tarih etiketi vardır. Toplam çubuklarında üç dönemde bir, erişilebilirlik boyutunda altı dönemde bir etiket vardır; erişilebilirlik boyutunda son etiket sağa hizalanır ve kesilmez. Özet satırı sarılır. Hareketi Azalt açıkken animasyon yoktur. Isı haritasında ay etiketi bir sonraki aya kadar ayrılan alana sığmazsa atlanır; etiketler çakışmaz. VoiceOver atlanan etiket dahil her ayın tam adını okur.
+
 ### Ritim şeridi ve yığılı çubuk
 
 **Özetler'in 2 grafiği durumu renge ek olarak biçimle ayırır.**

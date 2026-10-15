@@ -42,15 +42,6 @@ extension VaultIndex {
         return try taskQuery("status='done'", order: "doneDate DESC,file,ordinal", limit: limit)
     }
 
-    /// Open tasks with at least one body link resolved to the supplied vault-relative file.
-    public func openTasks(linkedTo file: String) throws -> [IndexedBlock] {
-        try taskQuery(
-            """
-            status NOT IN ('done','cancelled') AND EXISTS (
-                SELECT 1 FROM links l WHERE l.file=blocks.file AND l.block=blocks.ordinal AND l.resolvedFile=?)
-            """, arguments: [file.precomposedStringWithCanonicalMapping])
-    }
-
     public static func projectKey(_ name: String) -> String {
         name.precomposedStringWithCanonicalMapping.lowercased()
     }

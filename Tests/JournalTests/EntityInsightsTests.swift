@@ -14,6 +14,17 @@ import VaultFormat
         let insight = try await Self.insight("people/Deniz Arıkan.md", context.store, today)
         #expect(insight.lastDay == CalendarDate("2026-09-25") && insight.firstDay == CalendarDate("2026-09-14"))
         #expect(insight.recentDayCount == 5 && insight.averageInterval == 2.75)
+        #expect(insight.density.totalYearDays == 5)
+        #expect(insight.density.busiestMonth == CalendarDate("2026-09-01"))
+        #expect(insight.density.busiestMonthCount == 5)
+        let mentions = try #require(insight.mentions(locale: Locale(identifier: "tr_TR")))
+        #expect(mentions.totalDays == 5)
+        #expect(mentions.busiestMonth == "Eylül")
+        #expect(mentions.busiestCount == 5)
+        #expect(mentions.spokenSummary == "Son 12 ayda 5 gün; en yoğun Eylül, 5 gün")
+        #expect(mentions.recentIntervalText == "Son 90 günde 5 gün · ortalama aralık 2,8 gün")
+        #expect(mentions.monthly.count == 12)
+        #expect(mentions.recentDays.count == 90)
         #expect(insight.rows.count == 1)
         #expect(insight.rows.first?.text.plainText == "Deniz ve Mert ile öğle yemeği")
         #expect(insight.people.map(\.id) == ["people/Mert Aksu (iş).md"])
@@ -65,7 +76,7 @@ import VaultFormat
             people: [content.entities.last!], lastEncounters: encounters, today: today, threshold: 1)
         #expect(filtered.overdue.isEmpty && filtered.never.count == 1)
     }
-    @Test func ninetyDayWindowDeduplicatesDaysAndIgnoresFuture() {
+    @Test func ninetyDayWindowDeduplicatesDaysAndIgnoresFuture() throws {
         let path = "people/Deniz Arıkan.md"
         let first = today.addingDays(-90)!
         let boundary = today.addingDays(-89)!
@@ -81,9 +92,30 @@ import VaultFormat
             path: path, timeline: [EntityTimelineDay(date: today, rows: [])], lastDay: nil, entities: [],
             today: today.addingDays(89)!)
         #expect(single.recentDayCount == 1 && single.averageInterval == nil)
+        let singleMentions = try #require(single.mentions(locale: Locale(identifier: "tr_TR")))
+        #expect(singleMentions.recentIntervalText == "Son 90 günde 1 gün")
+
+        let olderDay = today.addingDays(-400)!
+        let older = EntityInsights.compute(
+            path: path, timeline: [EntityTimelineDay(date: olderDay, rows: [])], lastDay: nil, entities: [],
+            today: today)
+        #expect(older.density.hasHistory)
+        #expect(older.density.totalYearDays == 0)
+        #expect(older.density.busiestMonth == nil)
+        #expect(older.density.busiestMonthCount == 0)
+        #expect(older.density.recentDayCount == 0)
+        #expect(older.density.averageInterval == nil)
+        let olderMentions = try #require(older.mentions(locale: Locale(identifier: "tr_TR")))
+        #expect(olderMentions.totalDays == 0)
+        #expect(olderMentions.busiestMonth == nil)
+        #expect(olderMentions.busiestCount == 0)
+        #expect(olderMentions.spokenSummary == "Son 12 ayda 0 gün")
+        #expect(olderMentions.recentIntervalText == "Son 90 günde 0 gün")
+
         let empty = EntityInsights.compute(path: "unknown", timeline: [], lastDay: nil, entities: [], today: today)
         #expect(
             empty.firstDay == nil && empty.lastDay == nil && empty.averageInterval == nil && empty.recentDayCount == 0)
+        #expect(empty.mentions(locale: Locale(identifier: "tr_TR")) == nil)
     }
     @Test func taskOnlyAndFutureMentionsDoNotChangeLastEncounter() async throws {
         let context = try TaskTestContext(sample: true)
@@ -141,5 +173,19 @@ import VaultFormat
         navigation.mention(person, vault: context.store.vaultURL)
         navigation.openToday()
         #expect(navigation.mentionRequest == nil)
+    }
+
+    @Test func stripCellSizeAdaptsToWidthWithoutScaleDistortion() {
+        // iPhone standard width (390 - 32 = 358 pt): (358 - 44) / 45 = 6.9777...
+        let phoneCellSize = Entity90DayStrip.computeCellSize(availableWidth: 358, columns: 45)
+        #expect(phoneCellSize < 7.0 && phoneCellSize > 6.95)
+
+        // Wide layout (e.g. Mac sheet or column > 500 pt): caps at 8 pt
+        let wideCellSize = Entity90DayStrip.computeCellSize(availableWidth: 600, columns: 45)
+        #expect(wideCellSize == 8.0)
+
+        // Narrow constraint clamps to lower bound 2 pt
+        let narrowCellSize = Entity90DayStrip.computeCellSize(availableWidth: 50, columns: 45)
+        #expect(narrowCellSize >= 2.0)
     }
 }

@@ -28,7 +28,7 @@ flowchart LR
   F --> IM["import/ : 7 örnek"]
   F --> DA["dates/ : 3 JSON, 2 girdi dosyası"]
   F --> GO["goals/ : cases.json, series.json, creation/, writes/"]
-  F --> SU["summaries/ : 8 JSON"]
+  F --> SU["summaries/ : 9 JSON"]
   F --> VA["vaults/ : 13 kasa"]
   VA --> V1["sample"]
   VA --> V2["entity-fields"]
@@ -141,6 +141,7 @@ Swift testleri `Fixtures/` klasörünü test kaynak dosyasından yukarı doğru 
 | `summaries/period-rhythm.json` | `SummariesTests/PeriodRhythmTests.swift` | JSON vaka |
 | `summaries/year-writing.json` | `SummariesTests/YearWritingCalendarTests.swift` | JSON vaka |
 | `summaries/weekly-rhythm.json` | `SummariesTests/WeeklyReviewRhythmTests.swift` | JSON vaka |
+| `summaries/entity-density.json` | `SummariesTests/EntityMentionDensityTests.swift` | JSON vaka |
 | `vaults/sample/` | `IndexTests`, `PeriodSummaryTests`, `WikiLinkTests`, `MergeTests` ve uygulama testlerinin çoğu | Ad kodda |
 | `vaults/typed/` | `EntityTypeTests`, `EntityTypeStoreTests`, `InitialIndexTests`, `Tests/JournalTests/CustomEntityTypeTests.swift` | Ad kodda |
 | `vaults/backlinks/` | `VaultIndexTests/DayBacklinksTests.swift` | Ad kodda |
@@ -1037,8 +1038,11 @@ Diğer af durumları bugün yapılınca süren zincir, hedefin ilk ve ikinci gü
 | `period-rhythm.json` | `vaults/rhythm/` | 4 | Yıl dönemi, aynı tarihe kadar karşılaştırma, ritim birimleri, ilk kez geçenler, boş dönemde açık görevler |
 | `year-writing.json` | `vaults/rhythm/` ve satır içi | 6 | Özetler'in yazılan günler haritası |
 | `weekly-rhythm.json` | `vaults/rhythm/` ve satır içi | 5 | Haftalık incelemenin kısa ritmi |
+| `entity-density.json` | yok | 6 | Kişi ve konum geçiş sıklığı, aylık yoğunluk ve 90 günlük aralık hesabı |
 
 **Haftalık gözden geçirme metni:** Dosya başlığı, isteğe bağlı `summaryLines`, `selectedLines`, `note` ve beklenen `[String]` `expected` çıktısını taşır. Çıktıda önce hazır yerel özet satırları, sonra seçili satırlar ve not gelir. Test çıktıyı gerçek ayrıştırıcıyla yeniden okur; çıktı görev, olay, bölüm ve frontmatter üretmez. Test günlük ekleme yazıcısının bu satırları değiştirmeden yazdığını da denetler.
+
+**Geçiş yoğunluğu:** `entity-density.json` kişi ve konum içgörülerindeki 12 takvim ayı çubuğu ve 90 günlük şerit hesabını sınar. Her vaka `id`, `description`, `today`, `days` ve `expected` taşır. Beklenti `months` (12 ayın `month`, `count`, `isCurrentMonth` dilimleri), `totalYearDays`, `busiestMonth`, `busiestMonthCount`, `recentDays` (90 günün `date`, `isMentioned`, `isToday` kayıtları), `recentDayCount`, `averageInterval` ve `hasHistory` alanlarıdır. Sınır durumları 90 gün eşiği, 12 ay başlangıç sınırı, süren ay, gelecek tarihlerin dışlanması, 12 ayda 0 gün geçmişi ve tek gün aralık durumunu sınar.
 
 **Dönem özeti:** Fixture yazarı 4 dönemi `sample/` kasasından elle saydı. 14–20 Eylül ve 21–27 Eylül 2026 pazartesi haftalarında 19 ve 21 olay, 7'şer yazılan gün vardır. Eylül ayında 40 olay ve 14 gün, boş Ekim ayında 0 olay ve 0 gün vardır. Ekim'de de dönem sonu taşınan geciken görev sayısı 11, tarihsiz açık görev sayısı 1'dir. Her durum `period`, `containing` ve `expected` taşır. Beklenti `range`, `previousRange`, `counts`, `previous`, `change`, `people`, `places`, `goals` ve `empty` taşır.
 

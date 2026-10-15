@@ -4825,6 +4825,22 @@
         }
       }
     },
+    "Geçişler" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mentions"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geçişler"
+          }
+        }
+      }
+    },
     "Geçmiş kayıtlar" : {
       "localizations" : {
         "en" : {
@@ -10253,6 +10269,38 @@
         }
       }
     },
+    "Son 12 ayda %lld gün; en yoğun %@, %lld gün" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In the last 12 months, %lld days; busiest %@, %lld days"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Son 12 ayda %lld gün; en yoğun %@, %lld gün"
+          }
+        }
+      }
+    },
+    "Son 12 ayda 0 gün" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "0 days in the last 12 months"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Son 12 ayda 0 gün"
+          }
+        }
+      }
+    },
     "Son 12 ayda toplam %@" : {
       "localizations" : {
         "en" : {
@@ -10361,6 +10409,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Son 90 günde"
+          }
+        }
+      }
+    },
+    "Son 90 günde %lld gün" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld days in the last 90 days"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Son 90 günde %lld gün"
+          }
+        }
+      }
+    },
+    "Son 90 günde %lld gün · ortalama aralık %@ gün" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld days in the last 90 days · average interval %@ days"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Son 90 günde %lld gün · ortalama aralık %@ gün"
           }
         }
       }

@@ -7,11 +7,13 @@ import VaultStore
 struct EntityInsights {
     let lastDay: CalendarDate?
     let firstDay: CalendarDate?
-    let recentDayCount: Int
-    let averageInterval: Double?
+    let density: EntityMentionDensity
     let rows: [EntityTimelineRow]
     let people: [EntitySummary]
     let places: [EntitySummary]
+
+    var recentDayCount: Int { density.recentDayCount }
+    var averageInterval: Double? { density.averageInterval }
 
     /// `timeline` is the entity's own (`IndexStore.computeEntityTimeline(for:)`). `lastDay` is the
     /// day of `lastDay(in:today:)` (`IndexStore.computeDay(on:)`), whose other links are the
@@ -23,10 +25,7 @@ struct EntityInsights {
         let history = timeline.filter { $0.date <= today }
         let dates = Set(history.map(\.date)).sorted()
         let last = dates.last
-        let recent = dates.filter { today.ordinal - $0.ordinal < 90 }
-        let interval: Double? =
-            recent.count > 1
-            ? Double(recent.last!.ordinal - recent.first!.ordinal) / Double(recent.count - 1) : nil
+        let density = EntityMentionDensity.compute(days: history.map(\.date), today: today)
         let rows = history.filter { $0.date == last }.flatMap(\.rows)
             .sorted { ($0.file, $0.ordinal) < ($1.file, $1.ordinal) }
         // Same-day context includes separate events and journal paragraphs, excluding tasks/frontmatter.
@@ -37,13 +36,137 @@ struct EntityInsights {
             $0.name == $1.name ? $0.id < $1.id : $0.name < $1.name
         }
         return Self(
-            lastDay: last, firstDay: dates.first, recentDayCount: recent.count, averageInterval: interval,
+            lastDay: last, firstDay: dates.first, density: density,
             rows: rows, people: entities.filter { $0.kind == "person" }, places: entities.filter { $0.kind == "place" })
     }
 
     /// The newest timeline day on or before `today`: the day whose companions the card lists.
     static func lastDay(in timeline: [EntityTimelineDay], today: CalendarDate) -> CalendarDate? {
         timeline.map(\.date).filter { $0 <= today }.max()
+    }
+}
+
+struct EntityMonthlyMention: Identifiable, Sendable, Equatable {
+    let monthDate: CalendarDate
+    let label: String
+    let count: Int
+    let isCurrentMonth: Bool
+
+    var id: CalendarDate { monthDate }
+}
+
+struct EntityRecentDay: Identifiable, Sendable, Equatable {
+    let date: CalendarDate
+    let isMentioned: Bool
+    let isToday: Bool
+
+    var id: CalendarDate { date }
+}
+
+struct EntityMentionsData: Sendable, Equatable {
+    let monthly: [EntityMonthlyMention]
+    let totalDays: Int
+    let busiestMonth: String?
+    let busiestCount: Int
+    let recentDays: [EntityRecentDay]
+    let recentDayCount: Int
+    let averageInterval: Double?
+    let spokenSummary: String
+    let spokenStrip: String
+    let recentIntervalText: String
+}
+
+extension EntityInsights {
+    /// Computes the 12-month calendar breakdown and 90-day strip presentation data for an entity.
+    /// Returns nil when the entity has never been mentioned on or before today.
+    func mentions(
+        locale: Locale,
+        timeZone: TimeZone = .gmt
+    ) -> EntityMentionsData? {
+        Self.presentationMentions(density: density, locale: locale, timeZone: timeZone)
+    }
+
+    /// Computes presentation data directly from a density struct.
+    static func presentationMentions(
+        density: EntityMentionDensity,
+        locale: Locale,
+        timeZone: TimeZone = .gmt
+    ) -> EntityMentionsData? {
+        guard density.hasHistory else { return nil }
+
+        let resolved = PresentationLocalization.resolvedLocale(locale)
+        let bundle = PresentationLocalization.bundle(resolved)
+
+        var monthly: [EntityMonthlyMention] = []
+        monthly.reserveCapacity(density.months.count)
+
+        for item in density.months {
+            let instant = LocalDay.instant(for: item.month)
+            let label = instant.formatted(Date.FormatStyle(locale: resolved, timeZone: timeZone).month(.abbreviated))
+            monthly.append(
+                EntityMonthlyMention(
+                    monthDate: item.month,
+                    label: label,
+                    count: item.count,
+                    isCurrentMonth: item.isCurrentMonth
+                ))
+        }
+
+        let busiestMonthName: String?
+        if let busiest = density.busiestMonth, density.busiestMonthCount > 0 {
+            let instant = LocalDay.instant(for: busiest)
+            busiestMonthName = instant.formatted(
+                Date.FormatStyle(locale: resolved, timeZone: timeZone).month(.wide))
+        } else {
+            busiestMonthName = nil
+        }
+
+        let recentDays = density.recentDays.map {
+            EntityRecentDay(
+                date: $0.date,
+                isMentioned: $0.isMentioned,
+                isToday: $0.isToday
+            )
+        }
+
+        let spokenSummary: String
+        if let busiestMonthName, density.busiestMonthCount > 0 {
+            spokenSummary = String(
+                localized:
+                    "Son 12 ayda \(density.totalYearDays) gün; en yoğun \(busiestMonthName), \(density.busiestMonthCount) gün",
+                bundle: bundle, locale: resolved)
+        } else {
+            spokenSummary = String(
+                localized: "Son 12 ayda 0 gün",
+                bundle: bundle, locale: resolved)
+        }
+
+        let recentIntervalText: String
+        if let interval = density.averageInterval {
+            let intervalStr = interval.formatted(.number.precision(.fractionLength(0...1)).locale(resolved))
+            recentIntervalText = String(
+                localized: "Son 90 günde \(density.recentDayCount) gün · ortalama aralık \(intervalStr) gün",
+                bundle: bundle, locale: resolved)
+        } else {
+            recentIntervalText = String(
+                localized: "Son 90 günde \(density.recentDayCount) gün",
+                bundle: bundle, locale: resolved)
+        }
+
+        let spokenStrip = recentIntervalText
+
+        return EntityMentionsData(
+            monthly: monthly,
+            totalDays: density.totalYearDays,
+            busiestMonth: busiestMonthName,
+            busiestCount: density.busiestMonthCount,
+            recentDays: recentDays,
+            recentDayCount: density.recentDayCount,
+            averageInterval: density.averageInterval,
+            spokenSummary: spokenSummary,
+            spokenStrip: spokenStrip,
+            recentIntervalText: recentIntervalText
+        )
     }
 }
 

@@ -741,6 +741,19 @@ Kısa ritim şeridi (`RhythmStrip` `isCompact`) haftalık incelemenin ilk adım�
 
 Hücre en çok 9 pt'dir; dar sütunda 31 gün sığacak kadar küçülür. Satırlar arası 4 pt, hücreler arası 1 pt'dir. Haftanın günleri sütunda hizalanmaz; satır ayı, sütun ayın gününü gösterir. Erişilebilirlik boyutunda düzen değişir: sabit hafta harfleri solda durur, hücreler pazartesi haftalarına dizilir. Genişliğe 6 hafta sığar; harita yatay kayar ve son ölçülen haftayla açılır. Ay adı ayın ilk tam haftasının üstündedir.
 
+### Geçiş çubuğu ve 90 gün şeridi
+
+**Kişi ve konum ekranlarındaki 12 aylık dağılım çubuğu ve 90 günlük şerit durumu renge ek olarak biçimle ayırır.**
+
+| Parça | Biçim | Renk | VoiceOver |
+|---|---|---|---|
+| Geçmiş takvim ayı | Sütun üstü sıfır olmayan sayı, üst köşeleri 3 pt yuvarlak çubuk, taban çizgisi, kısa ay adı | Vurgu | Çubuk tek öğe: "Son 12 ayda 163 gün; en yoğun Haziran, 19 gün" |
+| Süren takvim ayı | Sütun üstü sıfır olmayan sayı, 1,5 pt (`InkStroke.control`) çerçeveli boş çubuk (`strokeBorder`), kısa ay adı | Vurgu | Çubuk tek öğe özetinin içinde |
+| 90 günlük şerit | İki satır (45+45), en fazla 8 pt genişliğe sığan kare `HeatmapCell` (iPhone'da ≈7 pt), 1 pt boşluk, bugün çerçeveli | Geçilen gün tam vurgu, geçilmeyen gün çukur ve kontrol çerçevesi | Şerit tek öğe: "Son 90 günde 43 gün · ortalama aralık 2,1 gün" |
+| Aralık özeti | Şerit altında tek satır metin | İkincil metin | Görünür metin ekran okuyucudan gizlenir; şerit etiketiyle okunur |
+
+Erişilebilirlik boyutunda 12 aylık çubuk grafiğin sütunları satıra döner; her satırda ay adı, sayı ve yatay kapsül çubuk yer alır. 90 günlük şerit her boyutta iki satır (45+45) olarak korunur.
+
 ### Mac liste sütunu seçimi
 
 | Konu | Kural |

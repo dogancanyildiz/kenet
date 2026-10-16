@@ -102,18 +102,20 @@ BUNDLE_ID=$(plist CFBundleIdentifier)
 VERSION=$(plist CFBundleShortVersionString)
 BUILD=$(plist CFBundleVersion)
 FAMILY=$(plist UIDeviceFamily | tr -d ' \n')
+IPAD_ORIENTATIONS=$(plist "UISupportedInterfaceOrientations~ipad" | grep -c UIInterfaceOrientation)
 
 echo "Ad:            $(plist CFBundleDisplayName)"
 echo "Kimlik:        $BUNDLE_ID"
 echo "Sürüm (yapı):  $VERSION ($BUILD)"
-echo "Cihaz ailesi:  $FAMILY"
+echo "Cihaz ailesi:  $FAMILY (iPad yönü: $IPAD_ORIENTATIONS)"
 echo "Şifreleme:     ITSAppUsesNonExemptEncryption=$(plist ITSAppUsesNonExemptEncryption)"
 echo "Belge paylaşımı: UIFileSharingEnabled=$(plist UIFileSharingEnabled) LSSupportsOpeningDocumentsInPlace=$(plist LSSupportsOpeningDocumentsInPlace)"
 
 [ "$BUNDLE_ID" = "$EXPECTED_ID" ] || fail "kimlik '$BUNDLE_ID', beklenen '$EXPECTED_ID'."
 [ "$VERSION" = "$(cat "$TREE/VERSION")" ] || fail "sürüm '$VERSION', VERSION dosyası '$(cat "$TREE/VERSION")'."
 [ "$BUILD" = "$(git rev-list --count HEAD)" ] || fail "yapı numarası '$BUILD', commit sayısı '$(git rev-list --count HEAD)'."
-[ "$FAMILY" = "Array{1}" ] || fail "cihaz ailesi yalnız iPhone olmalı, bulunan: $FAMILY."
+[ "$FAMILY" = "Array{12}" ] || fail "cihaz ailesi iPhone ve iPad olmalı (PlistBuddy çıktısı sıkıştırılmış: Array{12}), bulunan: $FAMILY."
+[ "$IPAD_ORIENTATIONS" = 4 ] || fail "iPad dört yöne dönmeli (UISupportedInterfaceOrientations~ipad), bulunan yön sayısı: $IPAD_ORIENTATIONS."
 [ -f "$APP/PrivacyInfo.xcprivacy" ] || fail "PrivacyInfo.xcprivacy pakette yok."
 [ "$(plist LSSupportsOpeningDocumentsInPlace)" = true ] || fail "LSSupportsOpeningDocumentsInPlace pakette yok."
 

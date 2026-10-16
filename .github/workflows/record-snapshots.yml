@@ -30,7 +30,7 @@ jobs:
           SNAPSHOT_TESTING_RECORD: failed
         run: sh .github/scripts/record-screen-snapshots.sh
       - name: Referans artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: screen-snapshot-references
           path: Tests/JournalTests/Snapshots/__Snapshots__

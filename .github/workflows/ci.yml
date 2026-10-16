@@ -126,7 +126,7 @@ jobs:
       # Paket UTC koşusundandır: düşen beklentinin ölçülen değerleri -quiet günlüğünde görünmez.
       - name: macOS test sonuç paketi (düşünce ya da iptalde)
         if: failure() || cancelled()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: mac-test-results
           path: MacTests.xcresult
@@ -204,7 +204,7 @@ jobs:
           (failure() || cancelled()) &&
           (steps.ios_boot.outcome == 'failure' || steps.ios_boot.outcome == 'cancelled' ||
           steps.ios_unit.outcome == 'failure' || steps.ios_unit.outcome == 'cancelled')
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: ios-test-results
           path: |
@@ -226,7 +226,7 @@ jobs:
             -quiet
       - name: Arayüz testi sonuç paketi (yalnız düşünce)
         if: failure() && steps.ios_ui.outcome == 'failure'
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: ui-test-results
           path: UITests.xcresult
@@ -263,7 +263,7 @@ jobs:
             -quiet
       - name: Ekran görüntüsü farkları (yalnız düşünce)
         if: failure() && steps.screen_snapshots.outcome == 'failure'
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: screen-snapshot-diffs
           path: |

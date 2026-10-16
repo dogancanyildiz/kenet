@@ -8,7 +8,9 @@ struct TaskTimelineView: View {
     @State private var sourceDay: CalendarDate?
     @State private var todayRequest = UUID()
     @State private var selectionAnswer = TaskSelectionAnswer()
+    @State private var availableWidth: CGFloat = 0
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.shellKind) private var shellKind
     /// `true` when the Mac shell hosts the timeline full-width (outside ``TasksView``).
     let showsFilters: Bool
     let openDay: (String) -> Void
@@ -20,56 +22,21 @@ struct TaskTimelineView: View {
     }
     var body: some View {
         VStack(spacing: 0) {
-            #if os(macOS)
-                TasksPageTop(tasks: model.tasks, current: .timeline) {
-                    groupingMenu
-                } menu: {
-                    controls
-                }
-                if let error = model.errorText {
-                    InfoBand(kind: .error, verbatim: error)
-                        .padding(.horizontal, InkSpacing.margin)
-                }
-                HStack(spacing: 0) {
-                    TimelineDesktopView(model: model, todayRequest: todayRequest) {
-                        selected = $0
-                    } edit: {
-                        editor = TimelineDateSelection(row: $0, edge: $1, root: model.store.vaultURL)
-                    }
-                    if let row = selectedTask {
-                        Divider().overlay(Color.ink.rule)
-                        VStack {
-                            HStack {
-                                Spacer()
-                                Button {
-                                    selected = nil
-                                } label: {
-                                    Label("Kapat", systemImage: "xmark")
-                                        .labelStyle(.iconOnly)
-                                        .tapTarget()
-                                }
-                                .buttonStyle(InkTextButtonStyle())
-                            }.padding()
-                            NavigationStack { TaskDetailView(store: model.store, row: row, openDay: openDay) }
-                        }.frame(width: 340)
-                    }
-                }
-            #else
-                mobileList.sheet(item: $selected) { selection in
-                    NavigationStack {
-                        if let row = selectionAnswer.row(for: selection.id, listed: selection) {
-                            TaskDetailView(store: model.store, row: row) { path in
-                                sourceDay = CalendarDate(String(path.dropFirst("journal/".count).dropLast(3)))
-                            }
-                            .navigationDestination(item: $sourceDay) { DayView(store: model.store, date: $0) }
-                            .inkSheet("Görev", onClose: { selected = nil })
-                        }
-                    }.inkAdaptiveSheetPresentation()
-                }
-            #endif
+            if style == .desktop {
+                desktop
+            } else {
+                detailSheet(mobileList, item: $selected)
+            }
         }
         .background(Color.ink.paper)
-        .modifier(OptionalNavigationTitle(showsFilters ? "Zaman çizelgesi" : nil))
+        #if os(iOS)
+            .onGeometryChange(for: CGFloat.self) {
+                $0.size.width
+            } action: {
+                availableWidth = $0
+            }
+        #endif
+        .boardNavigationTitle(showsFilters ? "Zaman çizelgesi" : nil)
         .sheet(item: $editor) { selection in
             NavigationStack { TimelineDateEditor(model: model, selection: selection) }
                 .frame(minWidth: 320, minHeight: 200).inkAdaptiveSheetPresentation()
@@ -87,6 +54,89 @@ struct TaskTimelineView: View {
             if let answer = await TaskSelectionAnswer.load(request, store: model.store) { selectionAnswer = answer }
         }
     }
+
+    private var style: TimelineLayoutStyle { TimelineLayoutStyle.resolve(shell: shellKind) }
+
+    private var usesPanel: Bool { TimelineDetailPlacement.usesPanel(shell: shellKind, width: availableWidth) }
+
+    /// The chart with the detail panel beside it: the Mac window, and the split iOS shell while
+    /// the panel fits (narrower, the detail opens in a sheet as on the phone).
+    @ViewBuilder private var desktop: some View {
+        TasksPageTop(tasks: model.tasks, current: .timeline) {
+            groupingMenu
+        } menu: {
+            controls
+        }
+        if let error = model.errorText {
+            InfoBand(kind: .error, verbatim: error)
+                .padding(.horizontal, InkSpacing.margin)
+        }
+        #if os(macOS)
+            chartWithPanel(showsPanel: true)
+        #else
+            // One branch whatever the width: crossing the panel threshold keeps the chart (and
+            // its scroll position); only the panel comes and goes.
+            detailSheet(
+                chartWithPanel(showsPanel: usesPanel),
+                item: Binding(
+                    get: { availableWidth > 0 && !usesPanel ? selected : nil },
+                    set: { if !usesPanel { selected = $0 } }))
+        #endif
+    }
+
+    private var chart: some View {
+        TimelineDesktopView(model: model, todayRequest: todayRequest) {
+            selected = $0
+        } edit: {
+            editor = TimelineDateSelection(row: $0, edge: $1, root: model.store.vaultURL)
+        }
+    }
+
+    private func chartWithPanel(showsPanel: Bool) -> some View {
+        HStack(spacing: 0) {
+            chart
+            if showsPanel, let row = selectedTask {
+                Divider().overlay(Color.ink.rule)
+                VStack {
+                    HStack {
+                        Spacer()
+                        Button {
+                            selected = nil
+                        } label: {
+                            Label("Kapat", systemImage: "xmark")
+                                .labelStyle(.iconOnly)
+                                .tapTarget()
+                        }
+                        .buttonStyle(InkTextButtonStyle())
+                    }.padding()
+                    // As on the Kanban panel: the stack hides no bar; the column's bar is the shell's.
+                    NavigationStack {
+                        TaskDetailView(store: model.store, row: row, openDay: openDay)
+                    }
+                }.frame(width: TimelineDetailPlacement.panelWidth)
+            }
+        }
+    }
+
+    /// The phone's task sheet, also the narrow split shell's: the stack opens the source day itself.
+    private func detailSheet(_ content: some View, item: Binding<TaskRow?>) -> some View {
+        #if os(iOS)
+            content.sheet(item: item) { selection in
+                NavigationStack {
+                    if let row = selectionAnswer.row(for: selection.id, listed: selection) {
+                        TaskDetailView(store: model.store, row: row) { path in
+                            sourceDay = CalendarDate(String(path.dropFirst("journal/".count).dropLast(3)))
+                        }
+                        .navigationDestination(item: $sourceDay) { DayView(store: model.store, date: $0) }
+                        .inkSheet("Görev", onClose: { selected = nil })
+                    }
+                }.inkAdaptiveSheetPresentation()
+            }
+        #else
+            content
+        #endif
+    }
+
     private var selectedTask: TaskRow? { selectionAnswer.row(for: selected?.id, listed: selected) }
     /// Second layer of the view selector ("Ölçek") with the period controls on the same row;
     /// they stack at accessibility sizes.
@@ -96,28 +146,25 @@ struct TaskTimelineView: View {
                 VStack(alignment: .leading, spacing: 0) {
                     scaleMenu(expands: true)
                     HStack(spacing: 8) {
-                        #if os(iOS)
-                            periodButtons
-                        #endif
+                        if style == .list { periodButtons }
                         todayButton
                         Spacer(minLength: 0)
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
+            } else if style == .desktop {
+                // The menu alone sets the row height (the text button is taller on Mac), so
+                // the row sits where the other views' menu rows sit. The chart scrolls through
+                // the periods itself.
+                scaleMenu(expands: false)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .overlay(alignment: .trailing) { todayButton }
             } else {
-                #if os(macOS)
-                    // The menu alone sets the row height (the text button is taller on Mac), so
-                    // the row sits where the other views' menu rows sit.
-                    scaleMenu(expands: false)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .overlay(alignment: .trailing) { todayButton }
-                #else
-                    HStack(spacing: 16) {
-                        scaleMenu(expands: true)
-                        periodButtons
-                        todayButton
-                    }
-                #endif
+                HStack(spacing: 16) {
+                    scaleMenu(expands: true)
+                    periodButtons
+                    todayButton
+                }
             }
         }
     }
@@ -132,24 +179,22 @@ struct TaskTimelineView: View {
             ], expands: expands, identifier: TasksViewSelector.menuIdentifier)
     }
 
-    #if os(macOS)
-        /// How the rows are grouped: a manşet-row icon, so the menu row holds "Ölçek" alone.
-        /// Accent while the grouping is not the default.
-        private var groupingMenu: some View {
-            InkHeaderMenu(
-                "Grupla", systemImage: "rectangle.3.group",
-                isActive: model.grouping != TimelineModel.defaultGrouping,
-                identifier: "tasks.timeline.grouping"
-            ) {
-                Picker("Grupla", selection: $model.grouping) {
-                    Text("Proje").tag(TimelineModel.Grouping.project)
-                    Text("Kişi").tag(TimelineModel.Grouping.person)
-                    Text("Yok").tag(TimelineModel.Grouping.none)
-                }
-                .pickerStyle(.inline)
+    /// How the chart's rows are grouped: a manşet-row icon, so the menu row holds "Ölçek" alone.
+    /// Accent while the grouping is not the default. The phone list groups by day.
+    private var groupingMenu: some View {
+        InkHeaderMenu(
+            "Grupla", systemImage: "rectangle.3.group",
+            isActive: model.grouping != TimelineModel.defaultGrouping,
+            identifier: "tasks.timeline.grouping"
+        ) {
+            Picker("Grupla", selection: $model.grouping) {
+                Text("Proje").tag(TimelineModel.Grouping.project)
+                Text("Kişi").tag(TimelineModel.Grouping.person)
+                Text("Yok").tag(TimelineModel.Grouping.none)
             }
+            .pickerStyle(.inline)
         }
-    #endif
+    }
 
     private var todayButton: some View {
         Button("Bugün") {
@@ -161,28 +206,26 @@ struct TaskTimelineView: View {
         .lineLimit(1)
     }
 
-    #if os(iOS)
-        private var periodButtons: some View {
-            HStack(spacing: 4) {
-                Button {
-                    model.shiftWindow(by: -model.scale.daysAcross)
-                } label: {
-                    Image(systemName: "chevron.left")
-                        .tapTarget()
-                }
-                .accessibilityLabel("Önceki dönem")
-                .buttonStyle(InkTextButtonStyle())
-                Button {
-                    model.shiftWindow(by: model.scale.daysAcross)
-                } label: {
-                    Image(systemName: "chevron.right")
-                        .tapTarget()
-                }
-                .accessibilityLabel("Sonraki dönem")
-                .buttonStyle(InkTextButtonStyle())
+    private var periodButtons: some View {
+        HStack(spacing: 4) {
+            Button {
+                model.shiftWindow(by: -model.scale.daysAcross)
+            } label: {
+                Image(systemName: "chevron.left")
+                    .tapTarget()
             }
+            .accessibilityLabel("Önceki dönem")
+            .buttonStyle(InkTextButtonStyle())
+            Button {
+                model.shiftWindow(by: model.scale.daysAcross)
+            } label: {
+                Image(systemName: "chevron.right")
+                    .tapTarget()
+            }
+            .accessibilityLabel("Sonraki dönem")
+            .buttonStyle(InkTextButtonStyle())
         }
-    #endif
+    }
 
     /// The page top is part of the list, so the manşet scrolls away with the rows.
     private var mobileList: some View {
@@ -232,5 +275,39 @@ struct TaskTimelineView: View {
         }
         .inkListRow()
         .alignmentGuide(.listRowSeparatorLeading) { _ in 0 }
+    }
+}
+
+/// Which timeline the shell draws (unit-tested). The chart, Mac window and split iOS shell
+/// (iPad, iPhone Duo inner screen): bars on a day axis that scrolls through the periods, the
+/// grouping menu on the manşet row, the detail beside the chart (``TimelineDetailPlacement``).
+/// The list, tab shell: rows by day, period buttons beside "Ölçek", the detail in a sheet.
+enum TimelineLayoutStyle: Equatable, Sendable {
+    case desktop
+    case list
+
+    static func resolve(shell: ShellKind) -> Self {
+        #if os(macOS)
+            .desktop
+        #else
+            shell == .split ? .desktop : .list
+        #endif
+    }
+}
+
+/// Where the chart's selected task goes (unit-tested). Mac: always the panel. The split iOS
+/// shell: the panel while the label column and a readable chart still fit beside it,
+/// otherwise the sheet. Tabs: the list's sheet.
+enum TimelineDetailPlacement {
+    static let panelWidth: CGFloat = 340
+    /// The label column plus the narrowest chart ``TimelineDesktopView`` draws.
+    static let minimumChartWidth: CGFloat = TimelineDesktopMetrics.labelColumnWidth + 200
+
+    static func usesPanel(shell: ShellKind, width: CGFloat) -> Bool {
+        #if os(macOS)
+            true
+        #else
+            shell == .split && width >= panelWidth + minimumChartWidth
+        #endif
     }
 }

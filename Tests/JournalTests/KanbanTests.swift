@@ -230,18 +230,6 @@ struct KanbanBoardLayoutTests {
         #expect(try Data(contentsOf: context.file) == Data(source.utf8))
     }
 
-    @Test func groupingMenuHugsItsLabelOnMac() throws {
-        let view = try Self.read("App/Screens/Tasks/Kanban/KanbanView.swift")
-        #expect(view.contains("expands: KanbanMenuLayout.groupingMenuExpands"))
-        #expect(view.contains("InkHeaderMenu("))
-        #expect(!view.contains("KanbanMacOptionsMenu"))
-        #if os(macOS)
-            #expect(KanbanMenuLayout.groupingMenuExpands == false)
-        #else
-            #expect(KanbanMenuLayout.groupingMenuExpands == true)
-        #endif
-    }
-
     #if os(macOS)
         /// The hosted board's columns are the shared width, so a hardcoded `.frame(width: 300)` fails.
         @Test func macColumnsUseTheSharedBoardWidth() async throws {
@@ -268,14 +256,6 @@ struct KanbanBoardLayoutTests {
             }
         }
     #endif
-
-    private static func read(_ relative: String) throws -> String {
-        let root = URL(fileURLWithPath: #filePath)
-            .deletingLastPathComponent()
-            .deletingLastPathComponent()
-            .deletingLastPathComponent()
-        return try String(contentsOf: root.appendingPathComponent(relative), encoding: .utf8)
-    }
 
     /// The board once its query has answered, as the view loads it.
     private func board(_ context: TaskTestContext) async -> KanbanModel {

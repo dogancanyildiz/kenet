@@ -1,8 +1,6 @@
+import ObjectiveC
 import SwiftUI
-
-#if os(macOS)
-    import ObjectiveC
-#endif
+import UniformTypeIdentifiers
 
 struct KanbanCard: View {
     let model: KanbanModel
@@ -10,6 +8,7 @@ struct KanbanCard: View {
     let select: () -> Void
     @State private var dateEditor: TaskEditorModel?
     @Environment(\.locale) private var locale
+    @Environment(\.shellKind) private var shellKind
 
     var body: some View {
         card
@@ -37,16 +36,17 @@ struct KanbanCard: View {
             }
     }
 
+    /// Mac and the split iOS shell drag a card to another column (``KanbanBoardStyle/dragsCards``).
+    /// On touch the system starts the drag with a long press, after the card's menu lifts, so a
+    /// swipe across the board still scrolls it.
     @ViewBuilder private var card: some View {
-        #if os(macOS)
-            if model.grouping != .person && model.store.canAddEvent && !model.busy.contains(row.id) {
-                buttonContent.onDrag { makeDragProvider() }
-            } else {
-                buttonContent
-            }
-        #else
+        if KanbanBoardStyle.resolve(shell: shellKind).dragsCards && model.grouping != .person
+            && model.store.canAddEvent && !model.busy.contains(row.id)
+        {
+            buttonContent.onDrag { makeDragProvider() }
+        } else {
             buttonContent
-        #endif
+        }
     }
 
     private var presentation: TaskStatusPresentation {
@@ -122,30 +122,47 @@ struct KanbanCard: View {
         .modifier(KanbanMoveAccessibilityActions(model: model, row: row))
     }
 
-    #if os(macOS)
-        private func makeDragProvider() -> NSItemProvider {
-            let token = model.beginDrag(row)
-            let provider = NSItemProvider(object: token as NSString)
-            let endBox = KanbanDragSessionEndBox { [model] in
-                Task { @MainActor in model.abandonDrag(token) }
-            }
-            objc_setAssociatedObject(
-                provider, &KanbanDragSessionEndBox.associatedKey, endBox,
-                .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
-            return provider
+    private func makeDragProvider() -> NSItemProvider {
+        let token = model.beginDrag(row)
+        let provider = KanbanDragPayload.provider(token: token)
+        let endBox = KanbanDragSessionEndBox { [model] in
+            Task { @MainActor in model.abandonDrag(token) }
         }
-    #endif
+        objc_setAssociatedObject(
+            provider, &KanbanDragSessionEndBox.associatedKey, endBox,
+            .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+        return provider
+    }
 }
 
-#if os(macOS)
-    /// Retained on the ``NSItemProvider``; `deinit` runs when the drag session ends (drop or cancel).
-    private final class KanbanDragSessionEndBox: @unchecked Sendable {
-        nonisolated(unsafe) static var associatedKey: UInt8 = 0
-        private let onEnd: () -> Void
-        init(onEnd: @escaping () -> Void) { self.onEnd = onEnd }
-        deinit { onEnd() }
+/// What a dragged card carries: the board's token (``KanbanModel/beginDrag(_:)``) as plain text,
+/// the type the columns' `dropDestination(for: String.self)` reads. On iPad only this app sees
+/// it: a card dropped on another app (a note, a message) pastes nothing, not the token. The Mac
+/// keeps the provider its drags were verified with.
+enum KanbanDragPayload {
+    static func provider(token: String) -> NSItemProvider {
+        #if os(macOS)
+            NSItemProvider(object: token as NSString)
+        #else
+            let provider = NSItemProvider()
+            provider.registerDataRepresentation(
+                forTypeIdentifier: UTType.utf8PlainText.identifier, visibility: .ownProcess
+            ) { load in
+                load(Data(token.utf8), nil)
+                return nil
+            }
+            return provider
+        #endif
     }
-#endif
+}
+
+/// Retained on the ``NSItemProvider``; `deinit` runs when the drag session ends (drop or cancel).
+private final class KanbanDragSessionEndBox: @unchecked Sendable {
+    nonisolated(unsafe) static var associatedKey: UInt8 = 0
+    private let onEnd: () -> Void
+    init(onEnd: @escaping () -> Void) { self.onEnd = onEnd }
+    deinit { onEnd() }
+}
 
 /// Chains one VoiceOver action per movable destination column.
 private struct KanbanMoveAccessibilityActions: ViewModifier {

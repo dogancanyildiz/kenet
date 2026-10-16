@@ -931,14 +931,17 @@ Konumda koordinat, Alanlar tablosunda bir satırdır. Okuma ekranında harita yo
 
 | Öğe | Davranış |
 |---|---|
-| Manşet | Kaydırılan manşet ve büyük rakam. |
+| Manşet | Kaydırılan manşet ve büyük rakam. Sağda "Düzenle" (kalem) ve arama durur. "Düzenle" tanım formunu açar. Kasa yazılamıyorsa "Düzenle" yoktur. |
 | Değer grafiği | Sayısal hedefte ısı haritasının üstünde. Günlük hedefte son 90 gün (erişilebilirlik boyutunda 30 gün), haftalık hedefte son 12 hafta toplamı, yıllık hedefte son 12 ay toplamı. Boolean ve kilometre taşında yoktur. |
 | Isı haritası | Başlık döneme göre hafta sayısı söylemez. Yoğunluk renge ek olarak biçimle görünür. Bugün çerçevelidir. Isı haritası geleceği çizmez. Sığmazsa en yeni hafta açık gelir. |
 | Affedilen gün | Kesik çizgili vurgu çerçevesi. Kısmi katkısı varsa dolgusu kalır. VoiceOver "affedildi" ya da "kısmi katkı, affedildi" der. |
 | Sayılar | En uzun zincir ve günlük hedefte skor. |
 | Geçmiş kayıtlar | Kullanıcı geçmiş günlerin kaydını düzeltir. |
-| Tanım alanları | Kâğıt zeminli satırlar. Satıra dokunma düzenleme sheet'ini açar. |
-| Hedefi sil | Tanım bloğunun altında kırmızı düğme. Onay ister: "<Ad> silinsin mi? Gün kayıtları kalır." Yalnız hedef dosyasını siler, sonra ayrıntıyı kapatır. Mac'te ayrıntı sütunu "Bir hedef seç" durumuna döner. |
+| Tanım | Salt okunur özet: ad, dönem, tür, hedef miktar, birim ve anahtar. Kilometre taşında hedef miktar yoktur. Birim yalnız dosyada varsa görünür. Bloğun herhangi bir yerine dokunma tanım formunu açar. |
+| Tanım formu | Sheet. Ortak kalıp: kâğıt zemin, solda "Vazgeç", sağda "Kaydet". Alanlar: ad, anahtar (salt okunur), dönem (sekme), tür (sekme: evet / hayır, sayı), hedef miktar, birim. Birim sayı türünde ya da dosyada birim varsa görünür. Kilometre taşında dönem ve tür salt okunur satırdır. Altında "Kilometre taşının dönemi ve türü değişmez." yazar. Hedef miktar yoktur. |
+| Formda kaydetme | "Kaydet" yalnız değişen alanları yazar; öteki satırlar ve tanınmayan alanlar bayt düzeyinde kalır. Ad değişse de dosya adı değişmez. Değişen alanlardan biri geçersizse hiçbir alan yazılmaz. Hata alanın altında yazar: boş ad, kullanılan ad, sıfır ya da sayı olmayan miktar. Hiçbir alan değişmediyse "Kaydet" kapalıdır. |
+| Formdan çıkma | Kaydedilmemiş değişiklik varsa "Vazgeç" ve aşağı kaydırma soru sorar: "Değişiklikleri at" ya da "Düzenlemeye devam et". Değişiklik yoksa sheet hemen kapanır. |
+| Hedefi sil | Tanım formunun son satırında kırmızı düğme. Onay ister: "<Ad> silinsin mi? Gün kayıtları kalır." Yalnız hedef dosyasını siler. Sonra form kapanır, ardından ayrıntı kapanır ve Hedefler listesi görünür. Mac'te ayrıntı sütunu "Bir hedef seç" durumuna döner. Silme başarısız olursa form açık kalır ve nedeni yazar. |
 
 Grafikte "Ortalama", görünür aralıkta kaydı olan günlerin değer ortalamasıdır; kayıtsız gün sıfır değildir. "Hedefin üstünde" sayısı hedefe eşit ya da üstünde kaydı olan günleri sayar. Bir günün son kaydı geçerlidir; türü uymayan ya da geçersiz (negatif, sonsuz) son kayıt o günü 0 yapar. Kural ilerleme ve ısı haritasıyla aynıdır. Tepe eşitse en yeni gün seçilir. Çizgi her günün ve önceki altı günün kayıt ortalamasıdır; en az üç kayıt gerekir, aksi hâlde çizgi kırılır. İlk günün penceresi görünür aralıktan önceye uzanır. Haftalar pazartesi başlar; son hafta ve ay yalnız bugüne kadarki kayıtları toplar. Aylık hız çizgisi yıllık hedefin on ikide biridir; haftalık çizgi haftalık hedeftir. Gelecek kayıtları hesaba girmez.
 

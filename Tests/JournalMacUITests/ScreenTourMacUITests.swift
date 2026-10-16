@@ -348,9 +348,13 @@ final class ScreenTourMacUITests: XCTestCase {
             try openGoal()
             tour.shot("12-hedef-ayrintisi")
             tour.scrolledShot("12-hedef-ayrintisi-asagi")
-            try tour.macRow("Hedef miktar").click()
+        }
+        tour.step("12-hedef-tanim-formu") {
+            try openGoal()
+            tour.scrollToTop()
+            try tour.macClick(["Düzenle"], ids: ["button.goal.edit"], in: tour.mainWindow)
             try tour.waitForSheet()
-            tour.shot("12-hedef-alan-duzenleme-sheet")
+            tour.shot("12-hedef-tanim-formu")
         }
         tour.step("12-hedef-olusturma-sheet") {
             try tour.sidebar("Hedefler")

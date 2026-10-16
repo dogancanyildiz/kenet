@@ -1689,6 +1689,22 @@
         }
       }
     },
+    "Ad boş olmamalı ve tek satır olmalı." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The name must not be empty and must be a single line."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ad boş olmamalı ve tek satır olmalı."
+          }
+        }
+      }
+    },
     "Ad değiştirme tamamlanamadı; dosyada kısmi değişiklik kaldı." : {
       "localizations" : {
         "en" : {
@@ -3013,6 +3029,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Birim (isteğe bağlı)"
+          }
+        }
+      }
+    },
+    "Birim tek satır olmalı." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The unit must be a single line."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Birim tek satır olmalı."
           }
         }
       }
@@ -6465,6 +6497,22 @@
         }
       }
     },
+    "Hedef miktar sıfırdan büyük bir sayı olmalı." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The target amount must be a number greater than zero."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hedef miktar sıfırdan büyük bir sayı olmalı."
+          }
+        }
+      }
+    },
     "Hedef saati" : {
       "localizations" : {
         "en" : {
@@ -6477,6 +6525,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Hedef saati"
+          }
+        }
+      }
+    },
+    "Hedef tanımını düzenler" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edits the goal definition"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hedef tanımını düzenler"
           }
         }
       }
@@ -7949,6 +8013,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Kilometre taşı"
+          }
+        }
+      }
+    },
+    "Kilometre taşının dönemi ve türü değişmez." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A milestone keeps its period and type."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kilometre taşının dönemi ve türü değişmez."
           }
         }
       }

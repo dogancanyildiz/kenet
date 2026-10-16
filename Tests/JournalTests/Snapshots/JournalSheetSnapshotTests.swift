@@ -8,8 +8,9 @@
 
     @testable import Journal
 
-    /// Sheet türleri (Bugün, Günlük, Hedefler alanı): günlük düzenleyicisi, görev tarihi,
-    /// hedef miktarı, hedef alanı. Her biri açık, koyu ve AX3; ayrıca tek vakalar.
+    /// Sheet türleri (Bugün, Günlük, Hedefler): günlük düzenleyicisi, görev tarihi, hedef
+    /// miktarı. Her biri açık, koyu ve AX3; ayrıca tek vakalar. Hedef tanımı formu kendi
+    /// kümesindedir: `GoalFormSnapshotTests`.
     enum JournalSheetSnapshotSubject: String, CaseIterable, Sendable {
         /// Toplu kaydeden: "Vazgeç / Kaydet".
         case journalEditor
@@ -19,8 +20,6 @@
         case taskDate
         /// Sayı hedefi: çukur zeminli miktar alanı, "Vazgeç / Kaydet".
         case goalValue
-        /// Dönem alanı: manşetin altında sekme, "Vazgeç / Kaydet".
-        case goalField
     }
 
     enum JournalSheetSnapshotVariant: String, CaseIterable, Sendable {
@@ -57,18 +56,6 @@
             let view = try await Self.goalValueEditor(goal: goal, store: context.store)
             await Self.assert(
                 view, named: "goalValueToggleLight", variant: .light, store: context.store,
-                clock: goalsSnapshotNow)
-        }
-
-        /// Ad alanı: tek metin satırı.
-        @Test func goalFieldNameLight() async throws {
-            let context = try SnapshotHost.makeContext()
-            defer { context.clean() }
-            await context.start()
-            let goal = try #require(context.store.content.goals.first { $0.key == "kitap" })
-            await Self.assert(
-                AnyView(GoalFieldEditor(store: context.store, goal: goal, field: .name)),
-                named: "goalFieldNameLight", variant: .light, store: context.store,
                 clock: goalsSnapshotNow)
         }
 
@@ -119,7 +106,7 @@
 
         private static func clock(for subject: JournalSheetSnapshotSubject) -> Date {
             switch subject {
-            case .goalValue, .goalField: goalsSnapshotNow
+            case .goalValue: goalsSnapshotNow
             case .journalEditor, .eventEditor, .taskDate: snapshotNow
             }
         }
@@ -143,9 +130,6 @@
             case .goalValue:
                 let goal = try #require(store.content.goals.first { $0.key == "kitap" })
                 return try await goalValueEditor(goal: goal, store: store)
-            case .goalField:
-                let goal = try #require(store.content.goals.first { $0.key == "kitap" })
-                return AnyView(GoalFieldEditor(store: store, goal: goal, field: .period))
             }
         }
 

@@ -339,10 +339,13 @@ final class ScreenTourUITests: XCTestCase {
             try openGoal()
             tour.shot("12-hedef-ayrintisi")
             tour.scrolledShot("12-hedef-ayrintisi-asagi")
-            try tour.reach(containing: "Hedef miktar").tap()
+        }
+        tour.step("12-hedef-tanim-formu") {
+            try openGoal()
+            try tour.tap(ids: ["button.goal.edit"])
             try tour.waitFor(labels: ["Kaydet"])
-            tour.shot("12-hedef-alan-duzenleme-sheet")
-            try tour.tap(labels: ["Vazgeç", "Kapat"])
+            tour.shot("12-hedef-tanim-formu")
+            try tour.tap(ids: ["button.goal.form.cancel"], labels: ["Vazgeç"])
         }
         tour.step("12-hedef-olusturma-sheet") {
             try openGoals()

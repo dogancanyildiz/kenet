@@ -47,9 +47,9 @@ extension VaultReadModel {
         if goalTouched {
             // Sparse; rebuild in path order so arrays match a full snapshot derive.
             let indexedLogs = fragments.keys.sorted().flatMap { fragments[$0]!.goalLogs }
-            // Same source as `rederive`: entity goal keys (including invalid definitions).
-            reservedGoalKeys = Set(
-                fragments.values.compactMap(\.entity?.goalKey) + indexedLogs.map(\.key))
+            // Same source as `rederive`: entity goal keys (including invalid definitions); a day
+            // record's key alone reserves nothing.
+            reservedGoalKeys = Set(fragments.values.compactMap(\.entity?.goalKey))
             let allLogs = Dictionary(grouping: indexedLogs, by: \.key).mapValues {
                 $0.compactMap(GoalLog.init(indexed:))
             }

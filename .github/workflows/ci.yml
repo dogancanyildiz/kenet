@@ -235,17 +235,22 @@ jobs:
   # Ekran görüntüsü: birim katmanında SwiftUI çizimi (uygulama açılmaz). Ayrı iş = süre ölçümü
   # ve düşünce fark görüntüleri artifact'ı. Kümeler ad kuralından bulunur (.github/scripts/snapshot-suites.sh).
   # Süreç dili Türkçe: görüntüler tr yerel ayarıyla çizilir; String(localized:) ile aynı dil.
+  # iPad kümeleri (snapshot-suites.sh --pad) aynı derleme ürünüyle ikinci simülatörde koşar; iPad
+  # derlemeyle birlikte açılır (ios-build, pad: true). iPhone adımı düşse de iPad adımı koşar:
+  # iki fark paketi birlikte görünür.
   app-ios-snapshots:
     name: Uygulama (iOS, ekran görüntüsü)
     needs: changes
     if: needs.changes.outputs.docs_only != 'true'
     runs-on: macos-26
-    timeout-minutes: 30
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v7
       - name: Derle
         id: build
         uses: ./.github/actions/ios-build
+        with:
+          pad: "true"
       - name: iOS simülatörü aç
         timeout-minutes: 10
         run: xcrun simctl bootstatus "${{ steps.build.outputs.udid }}" -b
@@ -269,6 +274,36 @@ jobs:
           path: |
             ScreenSnapshots.xcresult
             Tests/JournalTests/Snapshots/__Snapshots__
+          if-no-files-found: warn
+          retention-days: 7
+      - name: iPad simülatörü aç
+        id: pad_boot
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        timeout-minutes: 10
+        run: xcrun simctl bootstatus "${{ steps.build.outputs.pad-udid }}" -b
+      # Yeniden derleme yok: iPhone için üretilen simülatör ürünü iPad'de de koşar (cihaz ailesi 1,2).
+      - name: iPad ekran görüntüsü
+        id: pad_snapshots
+        if: ${{ !cancelled() && steps.pad_boot.outcome == 'success' }}
+        timeout-minutes: 15
+        run: |
+          xcodebuild test-without-building \
+            -project Journal.xcodeproj \
+            -scheme Journal_iOS \
+            -destination "platform=iOS Simulator,id=${{ steps.build.outputs.pad-udid }}" \
+            $(sh .github/scripts/snapshot-suites.sh --pad | sed 's#^#-only-testing:JournalTests_iOS/#' | tr '\n' ' ') \
+            -testLanguage tr -testRegion TR \
+            -resultBundlePath PadSnapshots.xcresult \
+            CODE_SIGNING_ALLOWED=NO \
+            -quiet
+      - name: iPad ekran görüntüsü farkları (yalnız düşünce)
+        if: failure() && steps.pad_snapshots.outcome == 'failure'
+        uses: actions/upload-artifact@v7
+        with:
+          name: pad-snapshot-diffs
+          path: |
+            PadSnapshots.xcresult
+            Tests/JournalTests/Snapshots/__Snapshots__/Pad*
           if-no-files-found: warn
           retention-days: 7
 

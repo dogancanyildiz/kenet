@@ -1016,7 +1016,7 @@ Telefonda serbest not okuma ve basit düzenleme vardır. Kullanıcı nota aramad
 | Hızlı giriş penceresi (1) | Sistem genelinde klavye kısayoluyla açılan küçük pencere. Davranışı telefondaki hızlı giriş kutusuyla aynıdır. Uygulama öne gelmeden kayıt yapar. |
 | Kısayol ayarı | Settings → Hızlı giriş sekmesi. Sekme Siri cümlelerini ve Kısayollar'ı da listeler. Eylem düğmesi metni Mac'te yoktur. |
 | Menü çubuğu | Menü çubuğu simgesinin menüsünde "Hızlı giriş" (kısayoluyla), "Uygulamayı aç" ve "Çıkış" vardır. Kısayol kaydı hata verirse menü hata metnini gösterir. |
-| Klavye kısayolları | Arama ⌘F. Hızlı geçiş ⌘K aynı arama ekranını açar. Bugüne git ⌘T. Hızlı giriş kutusunda kip değiştirme ⌘⇧T. |
+| Klavye kısayolları | Arama ⌘F. Hızlı geçiş ⌘K aynı arama ekranını açar. Bugüne git ⌘T. Hızlı giriş kutusunda kip değiştirme ⌘⇧T. iPad'de donanım klavyesiyle yalnız ⌘⇧T çalışır; iPadOS ⌘F'yi sistem "Bul" komutuna ayırdığı için arama kısayolu ve ⌘T iPad'de henüz yok. Sheet'te Esc kapatır, Return birincil eylemi yapar. iPhone'da kısayol yoktur. |
 | Eksik kısayollar | Yeni olay ve yeni görev kısayolları henüz yok. |
 | Notlar | Serbest notlar için düzenleme alanı henüz yok. Kenar çubuğunda girdisi de yoktur. Düzenleme gelince girdi döner. Kullanıcı notları aramadan açar. |
 | Ayarlar | Sistem Settings sahnesinde sekmeler, bu sırayla: Hızlı giriş, Gizlilik, Bildirimler, Takvim ve Konum, Kasa, Tanılama. |
@@ -1094,10 +1094,10 @@ iPhone'da Ayarlar, Bugün manşet satırındaki düğmenin açtığı sheet'tir.
 | Kapsam | Var olan giriş yollarını gösterir. Yeni yol eklemez. iPhone'da bölüm bir ekrandır. Mac'te aynı satırlar Hızlı giriş sekmesindedir. Klavye kısayolu kaydı sekmenin başındadır. |
 | Siri cümleleri | `JournalShortcuts` cümleleri, uygulama adıyla, kayıtlı sırada. Metin kısayol kataloğundan gelir. Kod cümleleri ekrana elle yazmaz. |
 | Kısayollar | Aynı cümleler Kısayollar uygulamasında da çalışır. |
-| Eylem düğmesi | Yalnız iPhone'da. Kullanıcı bu kısayollardan birini sistem Ayarlar'ındaki Eylem düğmesine atar. Mac'te bu başlık ve metin yoktur. |
+| Eylem düğmesi | Yalnız iPhone'da (cihaz türü `phone`). Kullanıcı bu kısayollardan birini sistem Ayarlar'ındaki Eylem düğmesine atar. iPad'de ve Mac'te bu başlık ve metin yoktur. Kapı yalnız metin içindir, yerleşim boyut sınıfına bakar. |
 | İlk kullanım ipucu | Ana ekranda, kasa açıldıktan sonra kapatma düğmeli bir ipucu durur. Tercih cihazdadır. Kullanıcı kapatınca ipucu bir daha görünmez. |
 | İpucunun görünmediği durum | UI testinde ve `AppLaunchPolicy` otomatik başlatmaya izin vermediğinde. |
-| İpucu içeriği | iPhone ipucu Siri, Kısayollar ve Eylem düğmesini adlandırır. Mac ipucu Siri, Kısayollar ve klavye kısayolunu adlandırır. |
+| İpucu içeriği | iPhone ipucu Siri, Kısayollar ve Eylem düğmesini adlandırır. iPad ipucu Siri ve Kısayollar'ı adlandırır. Mac ipucu Siri, Kısayollar ve klavye kısayolunu adlandırır. |
 
 ### Ayarlar — Gizlilik (7)
 

@@ -4,6 +4,30 @@ import SwiftUI
     import AppKit
 #endif
 
+/// Keyboard shortcuts of the app, one table for the menu bar, the quick-entry box and tests.
+/// The menu items are Mac-only; ⌘⇧T in the quick-entry box also works on iPad (hardware keyboard).
+enum JournalShortcut: CaseIterable {
+    case search
+    case quickSwitch
+    case today
+    case switchMode
+
+    var key: KeyEquivalent {
+        switch self {
+        case .search: "f"
+        case .quickSwitch: "k"
+        case .today, .switchMode: "t"
+        }
+    }
+
+    var modifiers: EventModifiers {
+        switch self {
+        case .switchMode: [.command, .shift]
+        default: .command
+        }
+    }
+}
+
 @main
 struct JournalApp: App {
     @State private var intentNavigation = IntentNavigation.shared
@@ -54,15 +78,20 @@ struct JournalApp: App {
             mainWindow.commands {
                 CommandGroup(after: .textEditing) {
                     Button("Ara") { openSearch?() }
-                        .keyboardShortcut("f", modifiers: .command)
+                        .keyboardShortcut(
+                            JournalShortcut.search.key, modifiers: JournalShortcut.search.modifiers
+                        )
                         .disabled(openSearch == nil || appLock.shouldCover)
                     Button("Hızlı geçiş") { openSearch?() }
-                        .keyboardShortcut("k", modifiers: .command)
+                        .keyboardShortcut(
+                            JournalShortcut.quickSwitch.key,
+                            modifiers: JournalShortcut.quickSwitch.modifiers
+                        )
                         .disabled(openSearch == nil || appLock.shouldCover)
                 }
                 CommandMenu("Git") {
                     Button("Bugüne git") { goToToday?() }
-                        .keyboardShortcut("t", modifiers: .command)
+                        .keyboardShortcut(JournalShortcut.today.key, modifiers: JournalShortcut.today.modifiers)
                         .disabled(goToToday == nil || appLock.shouldCover)
                 }
             }

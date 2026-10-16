@@ -10445,6 +10445,22 @@
         }
       }
     },
+    "Siri ve Kısayollar ile de yazabilirsin." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You can also write with Siri and Shortcuts."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Siri ve Kısayollar ile de yazabilirsin."
+          }
+        }
+      }
+    },
     "Siri, Kısayollar ve Eylem düğmesiyle de yazabilirsin." : {
       "localizations" : {
         "en" : {
@@ -12793,6 +12809,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Yeni kasa oluştur"
+          }
+        }
+      }
+    },
+    "Yeni kasa, Dosyalar’da iPad’imde → Kenet → Vault klasöründe oluşturulur." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A new vault is created in Files under On My iPad → Kenet → Vault."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yeni kasa, Dosyalar’da iPad’imde → Kenet → Vault klasöründe oluşturulur."
           }
         }
       }

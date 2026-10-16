@@ -449,13 +449,10 @@ private struct InkSheetButtonStyle: ButtonStyle {
 }
 
 extension View {
-    /// Esc / Return on Mac sheets. iOS keeps the system behavior of the toolbar placements.
-    @ViewBuilder fileprivate func inkSheetShortcut(_ shortcut: KeyboardShortcut) -> some View {
-        #if os(macOS)
-            keyboardShortcut(shortcut)
-        #else
-            self
-        #endif
+    /// Esc / Return on sheets. On iOS the shortcut only fires from a hardware keyboard (iPad);
+    /// touch behavior stays the system's toolbar placements.
+    fileprivate func inkSheetShortcut(_ shortcut: KeyboardShortcut) -> some View {
+        keyboardShortcut(shortcut)
     }
 
     /// Sheet navigation title: on iPhone the system bar title is set then hidden (back history).

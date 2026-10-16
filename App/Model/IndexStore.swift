@@ -1328,3 +1328,17 @@ extension IndexStore {
         }
     }
 }
+
+// MARK: - Task flow inventory
+
+extension IndexStore {
+    /// The task flow needs all historical tasks, without day, mention or goal queries.
+    func summaryTasks() async throws -> [SummaryInput.Task] {
+        guard let index else { throw VaultStoreError.staleTarget }
+        let current = generation
+        let tasks = try await Task.detached { try index.summaryTasks() }.value
+        guard generation == current else { throw VaultStoreError.staleTarget }
+        try Task.checkCancellation()
+        return tasks
+    }
+}

@@ -10,9 +10,9 @@ struct SummariesReadyKey: PreferenceKey {
     }
 }
 
-/// Rhythm strip, the year's written days, four headline numbers, name chips, goal rows and one
-/// stacked task bar. iPhone: one column. Mac: rhythm, written days, numbers and goals on the left;
-/// people, places and tasks on the right.
+/// Rhythm strip, the year's written days, weekday written-day ratios, four headline numbers, name
+/// chips, goal rows and one stacked task bar. iPhone: one column. Mac: rhythm, written days,
+/// weekdays, numbers and goals on the left; people, places and tasks on the right.
 struct SummariesView: View {
     let store: IndexStore
     @State private var model: SummariesModel
@@ -23,6 +23,11 @@ struct SummariesView: View {
     @State private var yearCalendar: YearWritingCalendar?
     @State private var yearRequest: String?
     @State private var yearError: String?
+    /// The weekday written-day ratios of the month or year `weekdaysRange` names; `weekdaysRequest`
+    /// is its request key.
+    @State private var weekdayDistribution: WeekdayDistribution?
+    @State private var weekdaysRange: ClosedRange<CalendarDate>?
+    @State private var weekdaysRequest: String?
     private let today: () -> CalendarDate
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.locale) private var locale
@@ -72,7 +77,8 @@ struct SummariesView: View {
         .inkPageNavigationTitle("Özetler")
         .preference(
             key: SummariesReadyKey.self,
-            value: model.summary != nil && !model.isLoading && isYearReady && taskFlowRequest == model.requestKey
+            value: model.summary != nil && !model.isLoading && isYearReady && isWeekdaysReady
+                && taskFlowRequest == model.requestKey
         )
         .background {
             // Ticks each minute so the key sees a new day; the page loads again past midnight.
@@ -80,6 +86,7 @@ struct SummariesView: View {
                 Color.clear.task(id: model.requestKey) {
                     await model.load()
                     await loadYear()
+                    await loadWeekdays()
                     await loadTaskFlow()
                 }
             }
@@ -93,6 +100,9 @@ struct SummariesView: View {
             yearCalendar = nil
             yearRequest = nil
             yearError = nil
+            weekdayDistribution = nil
+            weekdaysRange = nil
+            weekdaysRequest = nil
         }
         #if os(iOS)
             .simultaneousGesture(swipe)
@@ -233,6 +243,7 @@ struct SummariesView: View {
                 VStack(alignment: .leading, spacing: 28) {
                     rhythm(summary)
                     writtenDays(summary)
+                    weekdays(summary)
                     stats(summary, columns: 2)
                     goals(summary)
                 }
@@ -247,6 +258,7 @@ struct SummariesView: View {
             VStack(alignment: .leading, spacing: 28) {
                 rhythm(summary)
                 writtenDays(summary)
+                weekdays(summary)
                 stats(summary, columns: dynamicTypeSize.isAccessibilitySize ? 1 : 2)
                 names(summary)
                 goals(summary)
@@ -300,6 +312,44 @@ struct SummariesView: View {
             guard request == model.requestKey else { return }
             yearError = DayEditError.message(for: error)
             yearRequest = request
+        }
+    }
+
+    /// Written-day ratios by weekday for a month or a year; a week has none. The answer of an
+    /// earlier period is not drawn under a newer summary.
+    @ViewBuilder
+    private func weekdays(_ summary: PeriodSummary) -> some View {
+        if summary.period != .week,
+            let weekdayDistribution, weekdaysRange == summary.range,
+            weekdayDistribution.entries.contains(where: { $0.totalDays > 0 })
+        {
+            WeekdayDistributionView(distribution: weekdayDistribution)
+        }
+    }
+
+    private var isWeekdaysReady: Bool {
+        model.period == .week || weekdaysRequest == model.requestKey
+    }
+
+    /// Reads the weekday rows after the summary, for the same request; a newer request drops the answer.
+    private func loadWeekdays() async {
+        guard model.period != .week else { return }
+        let request = model.requestKey
+        let period = model.period
+        let day = model.day
+        let today = today()
+        let range = period.bounds(containing: day)
+        do {
+            let input = try await store.weeklyReviewInput(from: range.lowerBound, to: range.upperBound)
+            guard request == model.requestKey, !Task.isCancelled else { return }
+            weekdayDistribution = WeekdayDistribution.compute(
+                days: input.days, period: period, containing: day, today: today)
+            weekdaysRange = range
+            weekdaysRequest = request
+        } catch is CancellationError {
+        } catch {
+            guard request == model.requestKey else { return }
+            weekdaysRequest = request
         }
     }
 

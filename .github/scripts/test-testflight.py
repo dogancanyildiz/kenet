@@ -54,7 +54,10 @@ elif tool == "xcodebuild":
 elif tool == "PlistBuddy":
     key = args[1].split(":")[-1]
     print({"CFBundleIdentifier": "example.test", "CFBundleShortVersionString": "0.9.0",
-           "CFBundleVersion": "42", "UIDeviceFamily": "Array { 1 }",
+           "CFBundleVersion": "42", "UIDeviceFamily": "Array {\n    1\n    2\n}",
+           "UISupportedInterfaceOrientations~ipad": "Array {\n" + "".join(
+               f"    UIInterfaceOrientation{name}\n"
+               for name in ("Portrait", "PortraitUpsideDown", "LandscapeLeft", "LandscapeRight")) + "}",
            "LSSupportsOpeningDocumentsInPlace": "true"}.get(key, "true"))
 '''
 

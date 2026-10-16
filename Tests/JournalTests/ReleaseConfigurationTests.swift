@@ -66,18 +66,30 @@ struct ReleaseConfigurationTests {
     #if os(iOS)
         /// Read the built host's generated Info.plist: source settings alone do not prove
         /// which orientations and device family are shipped in the application bundle.
-        @Test func builtIPhoneAppKeepsPortraitOrientationLock() throws {
+        @Test func builtAppKeepsThePhonePortraitLockAndRotatesOnIPad() throws {
             let info = try #require(Self.hostAppInfoDictionary())
             #expect(info["UISupportedInterfaceOrientations"] as? [String] == ["UIInterfaceOrientationPortrait"])
-            #expect(info["UIDeviceFamily"] as? [Int] == [1])
+            #expect(info["UISupportedInterfaceOrientations~ipad"] as? [String] == Self.iPadOrientations)
+            #expect(info["UIDeviceFamily"] as? [Int] == [1, 2])
+            // One window on iPad (docs/decisions.md): no multiple scenes.
+            let manifest = info["UIApplicationSceneManifest"] as? [String: Any]
+            #expect(manifest?["UIApplicationSupportsMultipleScenes"] as? Bool != true)
         }
     #endif
 
-    @Test func iOSTargetsIPhoneOnly() throws {
+    static let iPadOrientations = [
+        "UIInterfaceOrientationPortrait", "UIInterfaceOrientationPortraitUpsideDown",
+        "UIInterfaceOrientationLandscapeLeft", "UIInterfaceOrientationLandscapeRight",
+    ]
+
+    @Test func iOSTargetsIPhoneAndIPad() throws {
         let project = try Self.read("project.yml")
-        #expect(Self.values(of: "TARGETED_DEVICE_FAMILY", in: project) == ["1"])
-        #expect(!project.contains("UISupportedInterfaceOrientations_iPad"))
+        #expect(Self.values(of: "TARGETED_DEVICE_FAMILY", in: project) == ["1,2"])
+        #expect(
+            Self.values(of: "INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad", in: project)
+                == [Self.iPadOrientations.joined(separator: " ")])
         #expect(!project.contains("UIRequiresFullScreen"))
+        #expect(Self.values(of: "SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD", in: project) == ["NO"])
         #expect(
             Self.values(of: "INFOPLIST_KEY_UISupportedInterfaceOrientations", in: project)
                 == ["UIInterfaceOrientationPortrait"])
@@ -343,10 +355,16 @@ struct ReleaseConfigurationTests {
     }
 
     /// Unit tests run inside the `.xctest` plug-in; walk up to the host `.app`.
+    /// The host app's Info.plist as written: `Bundle.infoDictionary` resolves the `~ipad`
+    /// variants for the running device and drops the raw keys.
     private static func hostAppInfoDictionary() -> [String: Any]? {
         var url = Bundle.main.bundleURL
         for _ in 0..<6 {
-            if url.pathExtension == "app" { return Bundle(url: url)?.infoDictionary }
+            if url.pathExtension == "app" {
+                let plist = url.appendingPathComponent("Info.plist")
+                guard let data = try? Data(contentsOf: plist) else { return Bundle(url: url)?.infoDictionary }
+                return (try? PropertyListSerialization.propertyList(from: data, format: nil)) as? [String: Any]
+            }
             url = url.deletingLastPathComponent()
         }
         return Bundle.main.infoDictionary

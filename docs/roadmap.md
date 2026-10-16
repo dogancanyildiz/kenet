@@ -84,14 +84,12 @@ flowchart LR
     K --> GP[Gizlilik politikası sayfası]
     GK[İki cihazda deneme, sonra gün kopyası birleştirmesinin açılması] --> A11[Aşama 11 güvenli yazma kutusu]
     GM[Gelir modeli] --> A12[Aşama 12 lisans ve gelir kutusu]
-    IP[iPad mağaza kaydı] --> A13[Aşama 13 iPad kutusu]
 ```
 
 | Karar | Neyi açar | Not |
 |---|---|---|
 | iCloud kapsayıcısı, App Group ve alan adı | iCloud kasası, widget'lar, kilit ekranı ve Denetim Merkezi girişleri, paylaşım uzantısı; alan adı mağaza sayfası için gerekir | Üyelik alındı. Ad "Kenet" ve bundle kimliği `com.dogancanyildiz.kenet` 2026-10-07'de karara bağlandı. TestFlight bu kararları beklemez. Kalıcı bundle kimliği koda girdi ve ilk yükleme yapıldı: #130. |
 | Gün kopyasının kendiliğinden birleştirilmesi | Aşama 11'in güvenli yazma kutusu | Core birleştirme işlevi hazır: #206. Uygulama işlevi gerçek kasada çağırmaz. Kullanıcı iki cihazda bir hafta dener, sonra açılmasına karar verir: 2026-10-13. |
-| iPad mağaza kaydı | Aşama 13'ün iPad kutusu ve mağaza listesi | Düzen 2026-10-13'te karara bağlandı: karma kabuk. Release derlemesinde cihaz ailesi 1 kalır. Mağazada iPad desteği geri alınamaz. |
 | Gelir modeli | Aşama 12 | Lisans karara bağlandı: tüm hakları saklıdır. Sektör taraması bu kategoride reklamı önermiyor. |
 | Yapay zeka | Sonraki fikirler | Cihaz üstü model maliyetsiz bir seçenektir. Öneri: varsayılan kapalı. |
 
@@ -291,16 +289,17 @@ flowchart LR
 | Duo kabuğu, bugünkü SDK | Bitti. Uyarlanır kabuk, boyut sınıfıyla görüntü altyapısı, durum köprüsü ve taslak koruma, krom ve dokunma, güvenli alan, sheet ve panel, belgeler. Kalan Duo işi iOS 27.1 SDK'yı bekler. | #233, #236, #240, #241, #242 |
 | Duo iOS 27.1 API uyarlaması | Açık. Xcode 27.1'in iOS 27.1 SDK ile çıkmasını bekliyor. | - |
 | CI geçişi ve Duo kümeleri | Açık. Runner imajında Xcode 27.1'i bekliyor. | - |
-| iPad karma kabuk | Açık. Duo işinden sonra. | - |
-| iPad mağaza kaydı | Açık. Kullanıcı kararı. | - |
+| iPad karma kabuk | Bitti. Üç sütun kademesi, kenar çubuğu ve seçim biçimi, arama ve Rehberden aktar, Kanban ve zaman çizelgesi iPad biçimi, cihaz türü metinleri, iPad görüntü kümeleri ve CI'da iPad adımı. Kalan: klavye kısayolları (⌘K, ⇧⌘F, ⌘T), iPad ekran turu ve erişilebilirlik denetimi. | #265, #266, #267, #268 |
+| iPad mağaza kaydı | Bitti. Cihaz ailesi `1,2`, iPad dört yön, tek pencere; TestFlight yapısı iPad'e çıkar. Mağaza listesi (iPad ekran görüntüleri) Aşama 12'nin mağaza sayfası maddesinde. | #264 |
 
 iPhone Duo'nun dış ekranı sıkışık, iç ekranı düzenli × düzenli boyut sınıfındadır. Kabuk boyut sınıfına bakar; cihaz türüne bakmaz. Aynı kabuk iPad'de de çalışır; iPad yalnız 1000 pt üstü kademeyi ve cihaz ailesini ekler. Plan ve ölçüler kullanıcı raporlarındadır; repo yalnız kararları taşır.
 
 - [x] Duo kabuğu, bugünkü SDK: düzenli × düzenli ekranda Mac biçimli kenar çubuğuyla bölünmüş kabuk; kabuk değişince seçim ve taslak korunur; satır dokunuşu ve manşet kabuğa göre; boyut sınıfıyla görüntü testleri; asimetrik güvenli alan; sheet ve panel düzenli genişlikte; belgeler.
 - [ ] Duo iOS 27.1 API uyarlaması: poz turu, hızlı giriş çubuğu için ayrılmış bölge, Bugün için düzenleme görünümü, bölmeye hizalı sütun, eş merkezli köşe, Kanban yarıları, yeniden boyutlanma denetimi. Kod CI geçişinden önce `dev`'e girmez.
 - [ ] CI geçişi ve Duo kümeleri: xcode-27 runner, simülatör seçicileri, Duo görüntü kümeleri, `testflight.sh` SDK denetimi, tur ve kayıt betikleri.
-- [ ] iPad karma kabuk: 1000 pt ve üstü pencerede 3 sütun, dar pencerede telefon düzeni, kenar çubuğu stili, Kanban ve zaman çizelgesi iPad biçimi, iPad görüntü ve arayüz testleri.
-- [ ] iPad mağaza kaydı: cihaz ailesine 2'nin eklenmesi ve mağaza listesi. Geri alınamaz; kullanıcı kararı.
+- [x] iPad karma kabuk: 1000 pt ve üstü pencerede 3 sütun, dar pencerede telefon düzeni, kenar çubuğu stili, Kanban ve zaman çizelgesi iPad biçimi, iPad görüntü ve arayüz testleri.
+- [ ] iPad kalanlar: donanım klavyesi kısayolları (⌘K hızlı geçiş, ⇧⌘F arama, ⌘T bugün; odak değerine bağlı olmayan gizli düğmelerle), iPad ekran turu (`screen-tour.sh --pad`, kenar çubuğu kimlikleri) ve erişilebilirlik denetimi, kenar çubuğu ve kart işaretçi vurgusu.
+- [x] iPad mağaza kaydı: cihaz ailesine 2'nin eklenmesi ve mağaza listesi. Geri alınamaz; kullanıcı kararı (2026-10-16). Mağaza listesi sürümde.
 
 **Çıkış ölçütü:** Duo simülatöründe 4 pozda bütün ana ekranlar taslak kaybı olmadan çalışır. Var olan iPhone ve Mac görüntü referansları değişmeden geçer.
 

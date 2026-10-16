@@ -245,7 +245,7 @@ Seçim değişirse yukarıdaki sıra geçerlidir. Geri dönüş maliyeti düşü
 | 3 | Her satırın işareti kenar sütununda durur: görev kutusu, hedef halkası, saat. Öncelik görev kutusunun içindedir. Metin tek sütunda akar. |
 | 4 | Bağlantı metni metin rengindedir; anlamı alt çizgi taşır. Kişi düz mavi, konum noktalı yeşil, çözülmemiş bağlantı kesik ve ikincil alt çizgi taşır. Türkçe ek çizginin dışında kalır. |
 | 5 | Eylem tek renktir: vurgu. Dikkat yalnız uyarı rengiyle ve yalnız devreden tarihinde görünür. |
-| 6 | Tamamlanan görev ve yapılmış hedef soluklaşır: ikincil metin, dolu işaret. Bu satırlar listenin sonuna iner; üstleri çizili olmaz. |
+| 6 | Tamamlanan görev ve yapılmış hedef soluklaşır: ikincil metin, dolu işaret. Bu satırlar listenin sonuna iner; Bugün hedef şeridinde yalnız günün ilk yüklemesinde, çünkü gün ekranda kaldıkça sıra değişmez (`screens.md` Hedefler bölümü). Üstleri çizili olmaz. |
 
 ### Bağlantı biçimleri
 

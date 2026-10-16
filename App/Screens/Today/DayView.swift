@@ -51,6 +51,9 @@ struct DayView: View {
     /// Goal statuses as of the day they were queried for, loaded with the day.
     @State private var loadedGoals: (day: CalendarDate, statuses: [String: GoalStatus])?
     @State private var goalModels = GoalDayModelSlot()
+    /// A goal page pushed from the strip, on this page's stack (the Today tab's on iPhone, the
+    /// detail column's on the Mac).
+    @State private var goalDestination: GoalDetailRoute?
 
     init(store: IndexStore, date: CalendarDate, isToday: Bool = false) {
         self.store = store
@@ -104,7 +107,8 @@ struct DayView: View {
                 // Until this day's statuses come, the strip counts from its own model: never `0/0`.
                 GoalStripView(
                     model: goalModels.model(store: store, day: date), countedGoalIDs: presented.countedGoalIDs,
-                    counter: loadedGoals?.day == date ? presented.counter(for: .goals) : nil
+                    counter: loadedGoals?.day == date ? presented.counter(for: .goals) : nil,
+                    onOpen: { goalDestination = GoalDetailRoute(goal: $0) }
                 )
                 .id(GoalStripIdentity.key(day: date, vaultPath: store.vaultURL?.path))
 
@@ -188,6 +192,10 @@ struct DayView: View {
             tasksModel = DayTasksModel(store: store, day: newDate, isToday: isToday)
             isCarriedOverExpanded = false
             isCompletedExpanded = false
+        }
+        .navigationDestination(item: $goalDestination) { route in
+            // As the Goals list opens it: the page's own day is today.
+            GoalDetailView(store: store, goal: route.goal, day: LocalDay.today(at: clockNow()))
         }
         .onAppear { isVisible = true }
         .onDisappear { isVisible = false }

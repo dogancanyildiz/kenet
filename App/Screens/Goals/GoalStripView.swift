@@ -36,26 +36,53 @@ enum GoalStripPresentation {
             }
             .map(\.goal)
     }
+
+    /// The order a strip keeps while its day is on screen: the ids of `previous` that are still
+    /// listed, in their order, then the new ones in `current`'s order. A goal marked done keeps its
+    /// place; a goal added goes last.
+    static func stableOrder(previous: [String], current: [String]) -> [String] {
+        let listed = Set(current)
+        let kept = previous.filter { listed.contains($0) }
+        let known = Set(kept)
+        return kept + current.filter { !known.contains($0) }
+    }
+}
+
+/// A goal page pushed from the Today strip; the page reads the goal's newest definition by id.
+struct GoalDetailRoute: Hashable {
+    let goal: GoalDefinition
+
+    static func == (lhs: Self, rhs: Self) -> Bool { lhs.goal.id == rhs.goal.id }
+    func hash(into hasher: inout Hasher) { hasher.combine(goal.id) }
 }
 
 struct GoalStripView: View {
     @Environment(GeofenceService.self) private var geofences: GeofenceService?
     @Environment(\.locale) private var locale
     @State private var editing: GoalValueModel?
+    /// The order taken once the day's history first loaded (open goals first); later loads keep
+    /// it. The strip is a new view per day and vault (``GoalStripIdentity``), with a new order.
+    @State private var keptOrder: [String]?
     /// The page's editing model for the day: its count draws an edit made here before the answer.
     private let model: GoalDayModel
     private let countedGoalIDs: [String]
     private let counter: String?
+    private let onOpen: ((GoalDefinition) -> Void)?
 
-    init(model: GoalDayModel, countedGoalIDs: [String] = [], counter: String? = nil) {
+    init(
+        model: GoalDayModel, countedGoalIDs: [String] = [], counter: String? = nil,
+        onOpen: ((GoalDefinition) -> Void)? = nil
+    ) {
         self.model = model
         self.countedGoalIDs = countedGoalIDs
         self.counter = counter
+        self.onOpen = onOpen
     }
 
     var body: some View {
-        let daily = dailyGoals
-        let period = periodGoals
+        let order = goalOrder
+        let daily = ordered(dailySource, by: order)
+        let period = ordered(model.goals.filter { $0.period != .day }, by: order)
         if !daily.isEmpty || !period.isEmpty {
             VStack(alignment: .leading, spacing: InkSpacing.row) {
                 SectionHeader(
@@ -63,8 +90,7 @@ struct GoalStripView: View {
                         localized: "Hedefler",
                         bundle: PresentationLocalization.bundle(locale), locale: locale),
                     counter: counter
-                        ?? "\(daily.filter { model.isComplete(for: $0) }.count)/\(daily.count)",
-                    isLoading: model.isLoading
+                        ?? "\(daily.filter { model.isComplete(for: $0) }.count)/\(daily.count)"
                 )
                 ForEach(daily, id: \.id) { goal in
                     goalRow(goal, metaText: nil)
@@ -84,6 +110,8 @@ struct GoalStripView: View {
                 value: model.hasLoaded && !model.isLoading
             )
             .task(id: model.store.lastUpdated) { await model.load() }
+            .onChange(of: model.hasLoaded, initial: true) { keepOrder() }
+            .onChange(of: model.goals.map(\.id)) { keepOrder() }
             .sheet(item: $editing) { editor in
                 NavigationStack { GoalValueEditor(model: editor) }
                     .onChange(of: editor.isSaved) { _, saved in
@@ -93,21 +121,33 @@ struct GoalStripView: View {
         }
     }
 
-    private var dailyGoals: [GoalDefinition] {
+    private var dailySource: [GoalDefinition] {
         let counted = Set(countedGoalIDs)
-        let source =
-            counted.isEmpty
+        return counted.isEmpty
             ? model.goals.filter { $0.period == .day }
             : model.goals.filter { counted.contains($0.id) }
-        return ordered(source)
     }
 
-    private var periodGoals: [GoalDefinition] {
-        ordered(model.goals.filter { $0.period != .day })
+    /// Every goal's id by the open-first rule, as the history now stands.
+    private var currentOrder: [String] {
+        GoalStripPresentation.ordered(model.goals, status: model.status(for:)).map(\.id)
     }
 
-    private func ordered(_ goals: [GoalDefinition]) -> [GoalDefinition] {
-        GoalStripPresentation.ordered(goals, status: model.status(for:))
+    /// Before the first load the order follows the history; from then on it is the kept one.
+    private var goalOrder: [String] {
+        let current = currentOrder
+        guard let keptOrder else { return current }
+        return GoalStripPresentation.stableOrder(previous: keptOrder, current: current)
+    }
+
+    private func keepOrder() {
+        guard model.hasLoaded else { return }
+        keptOrder = goalOrder
+    }
+
+    private func ordered(_ goals: [GoalDefinition], by order: [String]) -> [GoalDefinition] {
+        let rank = Dictionary(order.enumerated().map { ($1, $0) }, uniquingKeysWith: { first, _ in first })
+        return goals.sorted { (rank[$0.id] ?? .max) < (rank[$1.id] ?? .max) }
     }
 
     private func periodMeta(for goal: GoalDefinition) -> String {
@@ -130,16 +170,19 @@ struct GoalStripView: View {
     @ViewBuilder private func goalRow(_ goal: GoalDefinition, metaText: String?) -> some View {
         let status = model.status(for: goal)
         let progress = GoalStripPresentation.progressValue(status: status)
-        let todayMarked = model.isComplete(for: goal)
         let isBooleanMark = goal.kind == .boolean || goal.kind == .milestone
+        let marked = isBooleanMark && model.isComplete(for: goal)
+        // The controls are there whether or not the model takes edits now (a write or a reload
+        // runs): the row keeps its layout, and `isEditable` turns the taps off.
         InkGoalRow(
             name: goal.name,
             progress: progress,
             isBoolean: GoalStripPresentation.isBooleanRing(goal: goal),
             meta: metaText,
             valueText: valueText(for: goal),
-            onIncrement: model.canEdit && !(isBooleanMark && todayMarked)
-                ? {
+            onIncrement: marked
+                ? nil
+                : {
                     if isBooleanMark {
                         Task {
                             if await model.toggle(goal) { geofences?.clearLockedMarkNotice() }
@@ -147,24 +190,26 @@ struct GoalStripView: View {
                     } else {
                         Task { await increment(goal) }
                     }
-                } : nil,
-            onValueTap: model.canEdit && goal.kind == .number
-                ? { editing = GoalValueModel(dayModel: model, goal: goal) } : nil,
-            onMarkTap: model.canEdit && isBooleanMark && todayMarked
+                },
+            onValueTap: goal.kind == .number
+                ? { if model.canEdit { editing = GoalValueModel(dayModel: model, goal: goal) } } : nil,
+            onMarkTap: marked
                 ? {
                     Task {
                         if await model.toggle(goal) { geofences?.clearLockedMarkNotice() }
                     }
                 } : nil,
-            showsPlus: !(isBooleanMark && todayMarked),
-            incrementLabel: LocalizedStringKey(
-                isBooleanMark && todayMarked ? "İşareti kaldır" : "Artır")
+            onOpen: onOpen.map { open in { open(goal) } },
+            showsPlus: !marked,
+            isEditable: model.canEdit,
+            keepsLayout: true,
+            incrementLabel: LocalizedStringKey(marked ? "İşareti kaldır" : "Artır")
         )
         .contextMenu {
             if model.canEdit, goal.kind == .number {
                 Button("Miktar gir") { editing = GoalValueModel(dayModel: model, goal: goal) }
             }
-            if model.canEdit, isBooleanMark, todayMarked {
+            if model.canEdit, marked {
                 Button("İşareti kaldır") {
                     Task {
                         if await model.toggle(goal) { geofences?.clearLockedMarkNotice() }
@@ -172,7 +217,6 @@ struct GoalStripView: View {
                 }
             }
         }
-        .disabled(!model.canEdit)
     }
 
     private func valueText(for goal: GoalDefinition) -> String? {

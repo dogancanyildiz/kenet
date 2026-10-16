@@ -108,6 +108,7 @@ struct InkTaskRow: View {
 }
 
 /// Goal row: ring, name, optional streak/series meta, trailing value + one-tap plus.
+/// With ``onOpen`` the name and meta open the goal's page; plus, value and ring keep their own taps.
 struct InkGoalRow: View {
     let name: String
     var progress: Double
@@ -120,9 +121,17 @@ struct InkGoalRow: View {
     var onIncrement: (() -> Void)? = nil
     var onValueTap: (() -> Void)? = nil
     var onMarkTap: (() -> Void)? = nil
+    /// Opens the goal's page from the name and meta.
+    var onOpen: (() -> Void)? = nil
     var showsPlus: Bool = true
+    /// False while a write or a reload runs: plus, value and ring stay in place but take no taps.
+    var isEditable: Bool = true
+    /// One layout whatever the row's state: the plus slot stays, empty, when no plus is drawn (a
+    /// marked yes/no goal), and a tappable ring stays at the top of its tap area.
+    var keepsLayout: Bool = false
     var incrementLabel: LocalizedStringKey = "Artır"
     var enterAmountLabel: LocalizedStringKey = "Miktar gir"
+    var openHint: LocalizedStringKey = "Ayrıntıları göster"
 
     @ScaledMetric(relativeTo: .body) private var plusSide = InkSize.plus
 
@@ -134,20 +143,58 @@ struct InkGoalRow: View {
                     .padding(.leading, InkSpacing.gutter + 10)
             }
         }
-        .modifier(GoalValueAccessibilityAction(action: onValueTap, label: enterAmountLabel))
+        // The action stays while the row cannot edit (no change of identity); it then does nothing.
+        .modifier(
+            GoalValueAccessibilityAction(
+                action: onValueTap.map { tap in { if isEditable { tap() } } }, label: enterAmountLabel))
+    }
+
+    private var hasPlusSlot: Bool { (showsPlus && onIncrement != nil) || keepsLayout }
+
+    private var metaText: String? { meta.flatMap { $0.isEmpty ? nil : $0 } }
+
+    private var nameText: some View {
+        Text(verbatim: name)
+            .foregroundStyle(progress >= 1 ? Color.ink.secondaryText : Color.ink.text)
+    }
+
+    private func metaLine(_ meta: String) -> some View {
+        Text(verbatim: meta)
+            .font(.ink.meta)
+            .foregroundStyle(.ink.secondaryText)
+    }
+
+    /// Name and meta as one button: the same 4 pt stack ``MarginRow`` draws them in.
+    private func openButton(_ onOpen: @escaping () -> Void) -> some View {
+        Button(action: onOpen) {
+            VStack(alignment: .leading, spacing: 4) {
+                nameText
+                if let metaText { metaLine(metaText) }
+            }
+            // Tap area as tall as the value button's and the plus slot's, the text on top.
+            .frame(
+                maxWidth: .infinity, minHeight: TapTarget.minimumLength, alignment: .topLeading
+            )
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(Text(verbatim: name))
+        .accessibilityValue(Text(verbatim: valueText ?? metaText ?? ""))
+        .accessibilityHint(Text(openHint))
     }
 
     private var goalRow: some View {
         MarginRow(kind: .vault) {
             mark
         } primary: {
-            Text(verbatim: name)
-                .foregroundStyle(progress >= 1 ? Color.ink.secondaryText : Color.ink.text)
+            if let onOpen {
+                openButton(onOpen)
+            } else {
+                nameText
+            }
         } secondary: {
-            if let meta, !meta.isEmpty {
-                Text(verbatim: meta)
-                    .font(.ink.meta)
-                    .foregroundStyle(.ink.secondaryText)
+            if onOpen == nil, let metaText {
+                metaLine(metaText)
             }
         } trailing: {
             HStack(spacing: 8) {
@@ -165,17 +212,17 @@ struct InkGoalRow: View {
                                 .contentShape(Rectangle())
                         }
                         .buttonStyle(.plain)
-                        .accessibilityLabel(Text(verbatim: name))
-                        .accessibilityValue(Text(verbatim: valueText))
+                        .disabled(!isEditable)
+                        // With the name button beside it, the name is read once.
+                        .accessibilityLabel(Text(verbatim: onOpen == nil ? name : valueText))
+                        .accessibilityValue(Text(verbatim: onOpen == nil ? valueText : ""))
                         .accessibilityHint(Text(enterAmountLabel))
                     } else {
                         Text(verbatim: valueText)
                             .font(.ink.value)
                             .foregroundStyle(.ink.secondaryText)
                     }
-                } else if InkGoalRowTrailing.needsValueBaselinePlaceholder(
-                    showsPlus: showsPlus && onIncrement != nil)
-                {
+                } else if InkGoalRowTrailing.needsValueBaselinePlaceholder(showsPlus: hasPlusSlot) {
                     // Same `.ink.value` baseline as valued rows so the name does not drop ~5 pt.
                     Text(verbatim: " ")
                         .font(.ink.value)
@@ -203,9 +250,19 @@ struct InkGoalRow: View {
                                 minHeight: TapTarget.minimumLength, alignment: .top
                             )
                             .contentShape(Rectangle())
+                            .opacity(isEditable ? 1 : InkGoalRowTrailing.busyPlusOpacity)
                     }
                     .buttonStyle(.plain)
+                    .disabled(!isEditable)
                     .accessibilityLabel(Text(incrementLabel))
+                } else if keepsLayout {
+                    Color.clear
+                        .frame(width: plusSide, height: plusSide)
+                        .frame(
+                            minWidth: TapTarget.minimumLength,
+                            minHeight: TapTarget.minimumLength, alignment: .top
+                        )
+                        .accessibilityHidden(true)
                 }
             }
         }
@@ -215,13 +272,33 @@ struct InkGoalRow: View {
         let ring = GoalRing(progress: progress, isBoolean: isBoolean)
         if let onMarkTap {
             Button(action: onMarkTap) {
-                ring.tapTarget()
+                if keepsLayout {
+                    ring.topAlignedTapTarget()
+                } else {
+                    ring.tapTarget()
+                }
             }
             .buttonStyle(.plain)
+            .disabled(!isEditable)
             .accessibilityLabel(Text(incrementLabel))
         } else {
             ring
         }
+    }
+}
+
+extension GoalRing {
+    /// The tap area grows down and out, as the plus button's: the ring stays where an untappable
+    /// ring is drawn.
+    fileprivate func topAlignedTapTarget() -> some View {
+        #if os(iOS)
+            frame(
+                minWidth: TapTarget.minimumLength, minHeight: TapTarget.minimumLength, alignment: .top
+            )
+            .contentShape(Rectangle())
+        #else
+            self
+        #endif
     }
 }
 
@@ -232,6 +309,9 @@ enum InkGoalRowTrailing {
     static func needsValueBaselinePlaceholder(showsPlus: Bool) -> Bool {
         showsPlus
     }
+
+    /// The plus while the row cannot edit: in place, faded.
+    static let busyPlusOpacity = 0.4
 }
 
 /// Adds a VoiceOver action only when a value editor is available (boolean rows stay clean).

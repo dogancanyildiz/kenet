@@ -226,6 +226,47 @@ struct RowComponentTests {
         #expect(!InkGoalRowTrailing.needsValueBaselinePlaceholder(showsPlus: false))
     }
 
+    /// A goal row is as wide and as tall while a write runs as before it: the plus itself stays in
+    /// place (no empty slot stands in for it), only its taps are off.
+    @MainActor @Test func inkGoalRowKeepsItsSizeWhileAWriteRuns() {
+        func row(isEditable: Bool) -> InkGoalRow {
+            InkGoalRow(
+                name: "Kitap", progress: 0.6, valueText: "12 / 20 sayfa", onIncrement: {}, onValueTap: {},
+                onOpen: {}, isEditable: isEditable)
+        }
+        #expect(Self.sizes(row(isEditable: false)) == Self.sizes(row(isEditable: true)))
+    }
+
+    /// A yes/no goal row keeps its size once marked: the plus goes, its slot stays.
+    @MainActor @Test func inkGoalRowKeepsItsSizeOnceMarked() {
+        let open = InkGoalRow(
+            name: "Yoga", progress: 0, isBoolean: true, onIncrement: {}, onOpen: {}, keepsLayout: true)
+        let marked = InkGoalRow(
+            name: "Yoga", progress: 1, isBoolean: true, onMarkTap: {}, onOpen: {}, showsPlus: false,
+            keepsLayout: true, incrementLabel: "İşareti kaldır")
+        #expect(Self.sizes(marked) == Self.sizes(open))
+    }
+
+    /// The name button is a full 44 pt tall tap area also without meta and without plus slot.
+    @MainActor @Test func inkGoalRowOpenButtonIsAtLeast44ptTall() {
+        let row = InkGoalRow(
+            name: "Su", progress: 0.3, onOpen: {}, showsPlus: false)
+        #expect(Self.sizes(row)[1] >= 44)
+    }
+
+    /// The row's own size (unproposed) and its height in a 360 pt column, in points.
+    @MainActor private static func sizes(_ row: InkGoalRow) -> [Int] {
+        func measure(_ view: some View) -> CGSize {
+            let renderer = ImageRenderer(content: view)
+            renderer.scale = 1
+            guard let image = renderer.cgImage else { return .zero }
+            return CGSize(width: image.width, height: image.height)
+        }
+        let own = measure(row)
+        let column = measure(row.frame(width: 360))
+        return [Int(own.width), Int(own.height), Int(column.height)]
+    }
+
     @Test func pageHeadlineFittingPrefersFullThenShort() {
         #expect(PageHeadlineFitting.pick(fullWidth: 200, shortWidth: 140, available: 220) == .full)
         #expect(

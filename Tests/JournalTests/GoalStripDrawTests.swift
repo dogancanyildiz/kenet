@@ -26,6 +26,17 @@ struct GoalStripOrderTests {
         }
         #expect(ordered.map(\.name) == ["Bahçe", "kitap 2", "Kitap 10", "Yoga", "Ara", "Su"])
     }
+
+    /// The kept order: a goal still listed keeps its place whatever the new order says, a goal no
+    /// longer listed goes, and a new goal comes last (several new ones in the new order).
+    @Test func theKeptOrderHoldsPlacesAndPutsNewGoalsLast() {
+        #expect(GoalStripPresentation.stableOrder(previous: [], current: ["b", "a"]) == ["b", "a"])
+        #expect(GoalStripPresentation.stableOrder(previous: ["a", "b"], current: ["b", "a"]) == ["a", "b"])
+        #expect(
+            GoalStripPresentation.stableOrder(previous: ["a", "b", "c"], current: ["e", "b", "d", "a"])
+                == ["a", "b", "e", "d"])
+        #expect(GoalStripPresentation.stableOrder(previous: ["a"], current: []) == [])
+    }
 }
 
 /// One draw of the strip computes each goal's status at most once, from the model's history; a
@@ -176,13 +187,14 @@ private enum StripVault {
 }
 
 #if os(macOS)
-    /// The mounted strip orders its goals again when a goal's history changes, with nothing else
-    /// it shows changing (its counter is given; the write waits, so nothing is published).
+    /// The mounted strip keeps the order it took when the day's history loaded: a goal done for
+    /// its period stays where it was, during the write and after the reload, and a new goal comes
+    /// last. Another strip (another day or vault) orders again, open goals first.
     @MainActor @Suite(.timeLimit(.minutes(1)))
     struct GoalStripHistoryOrderTests {
         private let watchdog = HostedTestWatchdog()
 
-        @Test func theOrderFollowsTheHistory() async throws {
+        @Test func theOrderStaysWhileTheDayIsOnScreen() async throws {
             let context = try TaskTestContext()
             defer { context.clean() }
             try StripVault.write(at: context.root)
@@ -193,31 +205,86 @@ private enum StripVault {
             let mount = HostedLayout.Mount(
                 GoalStripView(model: model, counter: "x"), size: CGSize(width: 420, height: 400))
             defer { mount.close() }
-            func order() -> [String] {
-                var names: [String] = []
-                for text in HostedAccessibilityTree.texts(under: mount) {
-                    guard let name = ["Alfa", "Beta"].first(where: { text == $0 || text.hasPrefix($0 + ",") }),
-                        names.last != name
-                    else { continue }
-                    names.append(name)
-                }
-                return names
-            }
             guard
                 await HostedAccessibilityTree.isAvailable(
-                    mount, until: { order() == ["Alfa", "Beta"] && model.canEdit })
+                    mount, until: { Self.order(in: mount) == ["Alfa", "Beta"] && model.canEdit })
             else { return }
 
             let published = store.lastUpdated
             store.testingOccupyWriteSlot()
             let edit = Task { await model.set(alfa, value: .number(2)) }
-            for _ in 0..<40 where order() != ["Beta", "Alfa"] { await mount.settle(rounds: 1) }
-            #expect(order() == ["Beta", "Alfa"], "Alfa is complete for the week: it goes last")
+            for _ in 0..<40 where model.status(for: alfa).progress.isComplete == false {
+                await mount.settle(rounds: 1)
+            }
+            await mount.settle()
+            try #require(model.status(for: alfa).progress.isComplete, "Alfa is complete for the week")
+            #expect(Self.order(in: mount) == ["Alfa", "Beta"], "a goal done keeps its place")
+            #expect(
+                GoalScreenEnvironment.node(after: "Alfa", labelled: String(localized: "Artır"), in: mount) != nil,
+                "the plus stays in place while the write runs")
             #expect(store.lastUpdated == published, "the write still waits: nothing was published")
             store.testingReleaseWriteSlot()
             #expect(await edit.value)
             await mount.settle()
-            #expect(order() == ["Beta", "Alfa"])
+            for _ in 0..<40 where !model.canEdit { await mount.settle(rounds: 1) }
+            #expect(Self.order(in: mount) == ["Alfa", "Beta"], "the reload keeps the order")
+
+            try await store.createGoal(name: "Aaa", period: .week, kind: .number, target: 2, unit: nil)
+            for _ in 0..<40 where Self.order(in: mount).count < 3 { await mount.settle(rounds: 1) }
+            #expect(Self.order(in: mount) == ["Alfa", "Beta", "Aaa"], "a new goal comes last")
+
+            // The page's next day or vault: a new model and a new strip, ordered again.
+            let next = GoalDayModel(store: store, day: context.today)
+            let other = HostedLayout.Mount(
+                GoalStripView(model: next, counter: "x"), size: CGSize(width: 420, height: 400))
+            defer { other.close() }
+            for _ in 0..<60 where !(next.canEdit && Self.order(in: other).count == 3) {
+                await other.settle(rounds: 1)
+            }
+            #expect(Self.order(in: other) == ["Aaa", "Beta", "Alfa"])
+        }
+
+        /// The goal names in the order the strip lists them.
+        private static func order(in mount: HostedLayout.Mount) -> [String] {
+            var names: [String] = []
+            for text in HostedAccessibilityTree.texts(under: mount) {
+                guard
+                    let name = ["Alfa", "Beta", "Aaa"].first(where: { text == $0 || text.hasPrefix($0 + ",") }),
+                    names.last != name
+                else { continue }
+                names.append(name)
+            }
+            return names
+        }
+    }
+
+    /// The name of a goal in the day page's strip opens the goal's page on the page's stack.
+    @MainActor @Suite(.timeLimit(.minutes(1)))
+    struct GoalStripOpenTests {
+        private let watchdog = HostedTestWatchdog()
+
+        @Test func theNameOpensTheGoalsPage() async throws {
+            let context = try TaskTestContext(sample: true)
+            defer { context.clean() }
+            await context.start()
+            let store = context.store
+            let sport = try #require(store.content.goals.first { $0.key == "spor" })
+            let mount = HostedLayout.Mount(
+                GoalScreenEnvironment.wrap(
+                    NavigationStack { DayView(store: store, date: context.today) }, context: context),
+                size: CGSize(width: 720, height: 1600))
+            defer { mount.close() }
+            let history = String(localized: "Geçmiş kayıtlar")
+            func texts() -> [String] { HostedAccessibilityTree.texts(under: mount) }
+            guard
+                await HostedAccessibilityTree.isAvailable(
+                    mount, until: { HostedAccessibilityTree.element(under: mount, labelled: sport.name) != nil })
+            else { return }
+            #expect(!texts().contains(history))
+            let name = try #require(HostedAccessibilityTree.element(under: mount, labelled: sport.name))
+            HostedAccessibilityTree.press(name)
+            for _ in 0..<60 where !texts().contains(history) { await mount.settle(rounds: 1) }
+            #expect(texts().contains(history), "the goal's page is on the stack")
         }
     }
 #endif

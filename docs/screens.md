@@ -225,9 +225,11 @@ Varsayılan yazı boyutunda hızlı giriş tek satırlı bir kapsüldür. Ölç�
 | Konu | Davranış |
 |---|---|
 | Liste | Önce günlük hedefler durur. Haftalık ve yıllık hedeflerin meta satırında dönem ilerleme metni vardır. Bu metin sayaca girmez. |
+| Sıra | Uygulama sırayı günün ilk yüklemesinde kurar: önce açık hedefler, sonra dönemi biten hedefler; her grup ada göre. Gün ekranda kaldıkça sıra değişmez. Biten hedef yerinde kalır. Yeni hedef sona eklenir. Gün ya da kasa değişince sıra yeniden kurulur. |
 | İşaretleme | Tek dokunuşluk artı hedefi işaretler ya da sayısal değeri 1 artırır. |
 | Miktar girişi | Sayısal hedefte değer metnine dokunma, basılı tutma ya da menü miktar alanını açar. |
-| Görünüm | Bekleyen hedefler belirgindir, biten hedefler soluktur. |
+| Dokunma | Ada ya da meta satırına dokunma hedefin ayrıntı ekranını açar. Ekran sayfanın gezinme yığınına girer: iPhone'da Bugün sekmesi, Mac'te ayrıntı sütunu. Kilometre taşı satırı da ayrıntıyı açar. Artı, değer metni ve halka kendi işlerini yapar. VoiceOver satırı ad, değer ve "Ayrıntıları göster" ipucuyla okur; artı ayrı öğedir. |
+| Görünüm | Bekleyen hedefler belirgindir, biten hedefler soluktur. Artı yuvası her satırda yerini korur. Yazma ya da yükleme sürerken artı soluk ve devre dışıdır. İşaretli evet/hayır hedefte yuva boş kalır; işareti halka gösterir. Satır yüksekliği ve genişliği yazmadan önce ve sonra aynıdır. Bölüm başlığında yükleme göstergesi yoktur. |
 
 #### Görevler bölümü
 

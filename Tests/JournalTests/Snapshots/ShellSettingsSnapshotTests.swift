@@ -329,11 +329,9 @@ struct EntryPointSettingsTests {
     #endif
 
     @Test func actionButtonCopyFollowsThePlatform() {
-        #if os(iOS)
-            #expect(EntryPointPlatform.showsActionButton)
-        #else
-            #expect(!EntryPointPlatform.showsActionButton)
-        #endif
+        #expect(EntryPointPlatform.showsActionButton(.phone))
+        #expect(!EntryPointPlatform.showsActionButton(.pad))
+        #expect(!EntryPointPlatform.showsActionButton(.mac))
     }
 
     /// Displayed sentences come from the `AppShortcuts` catalog with the app name filled in.

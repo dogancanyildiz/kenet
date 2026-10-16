@@ -1037,10 +1037,20 @@ Ekran görüntüsü testleri SwiftUI görünümünü sabit ortamda çizer ve `Sn
 | `.phone` | 390×844 | sıkışık × düzenli | Üst 47, alt 34 | Bütün iOS kümeleri. Varsayılan. |
 | `.duoOuter` | 466×678 | sıkışık × düzenli | Üst 47, alt 34 | iPhone Duo dış ekranı, dikey |
 | `.duoInner` | 890×626 | düzenli × düzenli | Üst 24, alt 20; sol ve sağ parametre, varsayılan 0 | iPhone Duo iç ekranı, açık |
+| `.pad13Landscape` | 1376×1032 | düzenli × düzenli | Üst 24, alt 20 | iPad Pro 13 inç, yatay |
+| `.pad13Portrait` | 1032×1376 | düzenli × düzenli | Üst 24, alt 20 | iPad Pro 13 inç, dikey |
+| `.pad11Portrait` | 834×1210 | düzenli × düzenli | Üst 24, alt 20 | iPad Pro 11 inç, dikey |
+| `.padCompact` | 440×1032 | sıkışık × düzenli | Üst 24, alt 20 | 13 inçte Split View dar yuvası, yatay |
 
 Adı `DuoSnapshotTests` ile biten kümeler Duo tuvallerini çizer. Bu kümeler henüz CI kapısı değildir. Test konağı `SNAPSHOT_DUO=1` görmezse bu kümeler koşmaz. Kayıt için `sh .github/scripts/record-screen-snapshots.sh --duo` komutunu kullan. Betik değişkeni `TEST_RUNNER_SNAPSHOT_DUO=1` olarak geçirir.
 
 **NOT:** Duo ölçüleri ve güvenli alanları tahmindir: piksel ölçüsü 3× ölçekle bölünür. Tuval iPhone simülatöründe çizer ve boyut sınıfını trait geçersiz kılmayla verir. Tuval Duo simülatörünün yerine geçmez.
+
+Adı `Pad` ile başlayan kümeler iPad tuvallerini çizer: `PadShellSnapshotTests`, `PadBoardSnapshotTests`, `PadSheetSnapshotTests`, `PadCompactSnapshotTests`. Bu kümeler yalnız iPad simülatöründe koşar. iPhone'da kendini atlar; bu yüzden iOS birim işi onları ayrıca dışlamaz. Kümeler içeriği tuval boyutunda bir pencerede barındırır ve pencerenin kendisini çizer. Boyut sınıfı ve Dynamic Type pencerenin trait geçersiz kılmasından gelir; açılan sheet de bunları alır. Kabuk vakaları gerçek `AdaptiveNavigation`'ı çizer. Kayıt ve doğrulama için `sh .github/scripts/record-screen-snapshots.sh --pad` komutunu kullan. Betik iPad Pro 13 inç (M5) simülatörünü seçer; yoksa sırayla M4, iPad Air 13 inç (M4), (M3), iPad Pro 13 inç. Referanslar `__Snapshots__/Pad…` klasörlerindedir.
+
+**NOT:** Kabuğun kendi görev modeli ve hedef sayfası duvar saatinin gününü alır; donmuş günü almaz. Bu yüzden Kanban, zaman çizelgesi ve hedef ayrıntısı kabuksuz sayfa olarak, donmuş günle çizilir. Kabuktaki Hedefler vakası hedef seçmez.
+
+**NOT:** iPad referansları dik duran simülatörde çizilir. Bölünmüş görünüm sütunlarını pencereden değil sahnenin yönünden de seçer; birim testi aygıtı döndüremez. Döndürülmüş simülatörde kümeler piksel karşılaştırmak yerine açık bir hatayla düşer. Kayıt betiği iPad simülatörünü yeniden başlatır; yeniden başlayan simülatör dik açılır. iOS 26'nın cam denetimleri, yani kenar çubuğu düğmesi ve sekme çubuğu, her koşuda biraz farklı çizilir; yakalama onların karesini gri boyar. Ara sheet'i barındırılır ama çizilmez: alanı odak alır ve klavye sheet'i kaydırır.
 
 Tam uygulama akışı için XCUITest dumanı kalır. CI dumanı `-only-testing:JournalUITests` ile koşturur. DEBUG derlemede `JOURNAL_UITEST_VAULT` verilen klasörü kasa olarak açar; otomatik gerçek kasa, bildirim ya da kilit başlamaz.
 
@@ -1053,7 +1063,7 @@ Tam uygulama akışı için XCUITest dumanı kalır. CI dumanı `-only-testing:J
 | macOS uygulama testleri, `TZ=UTC` | Her PR'da | Olay saati ve gün/tarih iddiaları cihaz diliminden bağımsız kalsın |
 | macOS uygulama testleri, `TZ=Pacific/Auckland` | `dev`'e birleşince | Aynı testler, derlemesiz |
 | iOS birim testleri ve arayüz dumanı | Her PR'da | Aynı simülatörde sırayla, tek işte |
-| iOS ekran görüntüleri | Her PR'da | Ayrı makinede |
+| iOS ekran görüntüleri | Her PR'da | Ayrı makinede. Önce iPhone, sonra aynı derleme ürünüyle iPad simülatöründe `--pad` kümeleri |
 | `testflight-check` | `dev`'e her itmede | İmzasız arşiv alır ve paketi denetler: `sh .github/scripts/testflight.sh --check`. Yükleme yapmaz. Arşiv düşerse iş günlüğü artifact olarak yükler |
 | Biçim ve kurallar | Her zaman | Belge PR'ında da koşar |
 

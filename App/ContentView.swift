@@ -89,11 +89,7 @@ struct ContentView: View {
     }
 
     private var entryPointsTip: LocalizedStringKey {
-        #if os(iOS)
-            "Siri, Kısayollar ve Eylem düğmesiyle de yazabilirsin."
-        #else
-            "Siri, Kısayollar ve klavye kısayoluyla da yazabilirsin."
-        #endif
+        LocalizedStringKey(EntryPointPlatform.tip(for: .current).key)
     }
 }
 

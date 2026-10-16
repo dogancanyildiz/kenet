@@ -1,6 +1,18 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
+/// Where a new vault is created, worded for the device's own Files app.
+enum OnboardingCopy {
+    static func newVaultLocation(for idiom: DeviceIdiom) -> LocalizedStringResource {
+        switch idiom {
+        case .phone: "Yeni kasa, Dosyalar’da iPhone’umda → Journal → Vault klasöründe oluşturulur."
+        case .pad: "Yeni kasa, Dosyalar’da iPad’imde → Kenet → Vault klasöründe oluşturulur."
+        case .mac:
+            "Yeni kasa, uygulamanın Belgeler klasöründeki Vault içinde oluşturulur. Ayarlar’dan Finder’da gösterebilirsin."
+        }
+    }
+}
+
 struct OnboardingView: View {
     let store: IndexStore
     @State private var choosesFolder = false
@@ -14,17 +26,9 @@ struct OnboardingView: View {
                 .font(.ink.byline)
                 .foregroundStyle(Color.ink.text)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                #if os(iOS)
-                    Text("Yeni kasa, Dosyalar’da iPhone’umda → Journal → Vault klasöründe oluşturulur.")
-                        .font(.ink.meta)
-                        .foregroundStyle(Color.ink.secondaryText)
-                #else
-                    Text(
-                        "Yeni kasa, uygulamanın Belgeler klasöründeki Vault içinde oluşturulur. Ayarlar’dan Finder’da gösterebilirsin."
-                    )
+                Text(LocalizedStringKey(OnboardingCopy.newVaultLocation(for: .current).key))
                     .font(.ink.meta)
                     .foregroundStyle(Color.ink.secondaryText)
-                #endif
                 Button("Yeni kasa oluştur") { Task { await store.start() } }
                     .buttonStyle(InkPrimaryButtonStyle())
                 Button("Var olan klasörü seç") { choosesFolder = true }

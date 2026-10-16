@@ -11,8 +11,6 @@ struct EntitiesView: View {
     @State private var search: String
     #if os(iOS)
         @State private var showsContactPicker = false
-        @State private var showsContactImport = false
-        @State private var contactImportModel: ContactImportModel
     #endif
 
     private let initialUnseenExpanded: Bool
@@ -27,9 +25,6 @@ struct EntitiesView: View {
         _order = State(initialValue: initialOrder)
         _search = State(initialValue: initialSearch)
         self.initialUnseenExpanded = initialUnseenExpanded
-        #if os(iOS)
-            _contactImportModel = State(initialValue: ContactImportModel(store: store))
-        #endif
     }
 
     private var entities: [EntitySummary] {
@@ -61,7 +56,7 @@ struct EntitiesView: View {
                 createRow(creatable)
             }
             #if os(iOS)
-                if kind == "person" {
+                if ContactImportEntry.isShown(forList: kind) {
                     contactImportRow
                 }
             #endif
@@ -86,31 +81,7 @@ struct EntitiesView: View {
         .inkRootPageNavigationTitle("Kişiler ve Konumlar")
         .accessibilityIdentifier("screen.entities")
         #if os(iOS)
-            .sheet(isPresented: $showsContactPicker) {
-                ContactPicker(
-                    onSelect: { candidates in
-                        showsContactPicker = false
-                        guard !candidates.isEmpty else { return }
-                        contactImportModel.prepare(candidates: candidates)
-                        Task { @MainActor in
-                            showsContactImport = true
-                        }
-                    },
-                    onCancel: {
-                        showsContactPicker = false
-                    }
-                )
-                .ignoresSafeArea()
-            }
-            .sheet(isPresented: $showsContactImport) {
-                // The sheet bar ("Vazgeç" / "Kapat") is a toolbar: it needs the stack.
-                NavigationStack {
-                    ContactImportView(model: contactImportModel) {
-                        showsContactImport = false
-                        contactImportModel.cancel()
-                    }
-                }
-            }
+            .contactImportFlow(store: store, showsPicker: $showsContactPicker)
         #endif
         .entityCreateSheet(store: store, kind: $creationKind) { createdEntity = $0 }
         .navigationDestination(item: $createdEntity) { entity in
@@ -147,7 +118,7 @@ struct EntitiesView: View {
                 showsContactPicker = true
             } label: {
                 MarginRow(kind: .external, time: nil) {
-                    Label("Rehberden aktar", systemImage: "person.crop.circle.badge.plus")
+                    ContactImportEntry.label
                         .font(.body)
                         .foregroundStyle(.ink.accent)
                 }
@@ -155,7 +126,7 @@ struct EntitiesView: View {
             }
             .buttonStyle(.plain)
             .disabled(!store.canAddEvent)
-            .accessibilityIdentifier("button.entities.importContacts")
+            .accessibilityIdentifier(ContactImportEntry.identifier)
             .inkListRow()
         }
     #endif
@@ -176,6 +147,68 @@ struct EntitiesView: View {
         .inkListRow()
     }
 }
+
+#if os(iOS)
+    /// "Rehberden aktar", people only: a row on the phone's Kişiler ve Konumlar page and a text
+    /// button in the split shell's Kişiler column. The Mac has no contact picker.
+    enum ContactImportEntry {
+        static let identifier = "button.entities.importContacts"
+
+        static var label: some View {
+            Label("Rehberden aktar", systemImage: "person.crop.circle.badge.plus")
+        }
+
+        static func isShown(forList kind: String) -> Bool { kind == "person" }
+    }
+
+    extension View {
+        /// The contact picker, then the import sheet with what was picked. Both entries to
+        /// "Rehberden aktar" open this; `showsPicker` is the entry's tap.
+        func contactImportFlow(store: IndexStore, showsPicker: Binding<Bool>) -> some View {
+            modifier(ContactImportFlow(store: store, showsPicker: showsPicker))
+        }
+    }
+
+    private struct ContactImportFlow: ViewModifier {
+        @Binding var showsPicker: Bool
+        @State private var showsImport = false
+        @State private var model: ContactImportModel
+
+        init(store: IndexStore, showsPicker: Binding<Bool>) {
+            _showsPicker = showsPicker
+            _model = State(initialValue: ContactImportModel(store: store))
+        }
+
+        func body(content: Content) -> some View {
+            content
+                .sheet(isPresented: $showsPicker) {
+                    ContactPicker(
+                        onSelect: { candidates in
+                            showsPicker = false
+                            guard !candidates.isEmpty else { return }
+                            model.prepare(candidates: candidates)
+                            Task { @MainActor in
+                                showsImport = true
+                            }
+                        },
+                        onCancel: {
+                            showsPicker = false
+                        }
+                    )
+                    .ignoresSafeArea()
+                }
+                .sheet(isPresented: $showsImport) {
+                    // The sheet bar ("Vazgeç" / "Kapat") is a toolbar: it needs the stack.
+                    NavigationStack {
+                        ContactImportView(model: model) {
+                            showsImport = false
+                            model.cancel()
+                        }
+                    }
+                }
+        }
+    }
+#endif
 
 struct EntityRow: View {
     let entity: EntitySummary

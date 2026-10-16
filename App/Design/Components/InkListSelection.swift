@@ -1,9 +1,9 @@
 import SwiftUI
 
-/// Mac list-column selection (`docs/design.md`).
-/// Görevler, Günlük, Kişiler, Hedefler and search results share one shape: a recessed
+/// Mac list-column selection (`docs/design.md`), also the split shell's on iOS (iPhone Duo,
+/// iPad). Görevler, Günlük, Kişiler, Hedefler and search results share one shape: a recessed
 /// (`well`) fill with a leading accent rule, clipped to the row. Text tokens stay on
-/// `well` so body contrast holds. iPhone rows do not opt in.
+/// `well` so body contrast holds. The iPhone tab shell's rows do not opt in.
 enum InkListSelectionChrome {
     static let fill = InkPalette.Token.well
     static let mark = InkPalette.Token.accent

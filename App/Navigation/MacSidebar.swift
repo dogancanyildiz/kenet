@@ -147,13 +147,14 @@ enum MacSidebarChrome {
 /// The sidebar list. Selection stays the system's (arrow keys, focus, VoiceOver "selected");
 /// only its drawing is ours, so the selected row reads in both appearances.
 ///
-/// iOS (the iPhone Duo inner screen) draws the same rows. A touch selects through the list:
-/// an extra tap gesture there keeps the list from selecting at all, so ``onClick`` and the
-/// keyboard focus hand-back are Mac only.
+/// iOS (the iPhone Duo inner screen, an iPad) draws the same rows. A touch selects through
+/// the list: an extra tap gesture there keeps the list from selecting at all, so ``onClick``
+/// comes from the list's own choice (a tap on the selected row is a choice too), and the
+/// keyboard focus hand-back is Mac only.
 struct MacSidebarList: View {
     let entries: [MacSidebarEntry]
     @Binding var selection: MacSidebarEntry?
-    /// Runs on every click on a row, also when it is already selected. Mac only.
+    /// Runs on every click or tap on a row, also when it is already selected.
     var onClick: (MacSidebarEntry) -> Void = { _ in }
     /// Set by the shell when a choice in the sidebar swaps the split view: the new list takes
     /// the keyboard focus the old one had, so the arrow keys keep walking the rows. Mac only.
@@ -171,7 +172,7 @@ struct MacSidebarList: View {
     @Environment(\.appearsActive) private var appearsActive
 
     var body: some View {
-        List(selection: $selection) {
+        List(selection: listSelection) {
             ForEach(entries, id: \.self) { entry in
                 MacSidebarRow(
                     entry: entry, isSelected: selection == entry,
@@ -190,6 +191,13 @@ struct MacSidebarList: View {
         .scrollIndicators(.never, axes: .vertical)
         #if os(macOS)
             .focused($isFocused)
+        #else
+            // iPadOS floats the sidebar as a glass panel over the system's gray; the panel is
+            // paper like the columns beside it. The keyboard focus halo is not drawn over the
+            // fill (the fill already marks the row; focus and VoiceOver stay the system's).
+            .scrollContentBackground(.hidden)
+            .background(Color.ink.paper)
+            .tint(Color.clear)
         #endif
         .macSidebarColumn()
         #if os(macOS)
@@ -204,6 +212,25 @@ struct MacSidebarList: View {
                 guard !Task.isCancelled, focusIsFree() else { return }
                 isFocused = true
             }
+        #endif
+    }
+}
+
+extension MacSidebarList {
+    /// Mac: the list's selection itself; the tap gesture reports clicks. iOS: every choice the
+    /// list makes, the selected row tapped again included, also reports the click. A new row
+    /// is so handled twice (the selection's own choice, then the click); both ask the shell for
+    /// the same section, as the Mac's selection and click do, so the second changes nothing.
+    fileprivate var listSelection: Binding<MacSidebarEntry?> {
+        #if os(macOS)
+            $selection
+        #else
+            Binding(
+                get: { selection },
+                set: { entry in
+                    selection = entry
+                    if let entry { onClick(entry) }
+                })
         #endif
     }
 }

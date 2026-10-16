@@ -5,7 +5,7 @@
 **Kapsam:**
 
 - iPhone sekmeleri, Mac kenar çubuğu ve Mac sütunları.
-- iPhone Duo iç ekranındaki bölünmüş kabuk.
+- iPhone Duo iç ekranındaki ve iPad'deki bölünmüş kabuk.
 - Her ekranın öğeleri, yerleri ve davranışı.
 - Ekranlar arası geçişler, hızlı giriş akışı ve Ayarlar.
 
@@ -1023,9 +1023,9 @@ Telefonda serbest not okuma ve basit düzenleme vardır. Kullanıcı nota aramad
 | Notlar | Serbest notlar için düzenleme alanı henüz yok. Kenar çubuğunda girdisi de yoktur. Düzenleme gelince girdi döner. Kullanıcı notları aramadan açar. |
 | Ayarlar | Sistem Settings sahnesinde sekmeler, bu sırayla: Hızlı giriş, Gizlilik, Bildirimler, Takvim ve Konum, Kasa, Tanılama. |
 
-## iPhone Duo iç ekranı
+## Bölünmüş kabuk: iPhone Duo iç ekranı ve iPad
 
-**Uygulamanın iPhone Duo iç ekranında hangi kabuğu ve hangi sütunları açtığını gösterir.**
+**Uygulamanın iPhone Duo iç ekranında ve iPad'de hangi kabuğu ve hangi sütunları açtığını gösterir.**
 
 ```mermaid
 flowchart TD
@@ -1034,7 +1034,7 @@ flowchart TD
   B -- Hayır --> D["iPhone sekmeleri"]
   C --> E{"Genişlik 1000 pt altında mı?"}
   E -- Evet --> F["İki sütun: kenar çubuğu seçimden sonra gizlenir"]
-  E -- Hayır --> G["Sistem karar verir; iPad için sonra tasarlanır"]
+  E -- Hayır --> G["Üç sütun yan yana: kenar çubuğu, liste, ayrıntı"]
 ```
 
 | Sahne | Boyut sınıfı | Kabuk |
@@ -1043,10 +1043,17 @@ flowchart TD
 | iPhone yatay | Sıkışık × sıkışık | iPhone sekmeleri |
 | Pro Max yatay | Düzenli × sıkışık | iPhone sekmeleri |
 | Duo iç ekranı: açık, kitap, çadır | Düzenli × düzenli | Bölünmüş kabuk |
+| iPad tam ekran, her yön | Düzenli × düzenli | Bölünmüş kabuk |
+| iPad dar Split View ve Slide Over | Sıkışık × düzenli | iPhone sekmeleri |
 
-İç ekran yaklaşık 890 × 626 pt'dir. Bu genişlik 1000 pt eşiğinin altında kalır. Kabuk aynı anda iki sütun gösterir.
+Kabuk cihaz türüne bakmaz; yalnız boyut sınıflarına ve genişliğe bakar. Genişlik değişince (döndürme, Split View) kademe yeniden hesaplanır. Seçim ve taslaklar kalır.
 
-| Ekran | Sol sütun | Sağ sütun |
+| Pencere genişliği | Örnek | Sütunlar |
+|---|---|---|
+| 1000 pt altı | Duo iç ekranı (yaklaşık 890 × 626 pt), iPad 11" dikey (834 pt), iPad mini | İki sütun: liste ve ayrıntı. Kenar çubuğu düğmeyle açılır, seçimden sonra gizlenir. |
+| 1000 pt ve üstü | iPad 13" dikey (1032 pt) ve yatay (1376 pt), iPad 11" yatay (1210 pt) | Üç sütun yan yana: kenar çubuğu, liste, ayrıntı. Pano ve tam sayfa: kenar çubuğu ve sayfa. |
+
+| Ekran | Liste sütunu | Ayrıntı sütunu |
 |---|---|---|
 | Bugün | Günlük listesi | Bugün; hızlı giriş sayfanın altında |
 | Günlük | Günlük listesi | Seçili gün |
@@ -1058,14 +1065,17 @@ flowchart TD
 
 | Öğe | Davranış |
 |---|---|
-| Kenar çubuğu | Mac kenar çubuğunun girdileri ve çizimi: mürdüm seçim. Sistem sekme kenar çubuğu değildir. |
+| Kenar çubuğu | Mac kenar çubuğunun girdileri ve çizimi: mürdüm seçim. Sistem sekme kenar çubuğu değildir. iPad'in yüzen paneli kâğıt rengindedir. |
+| Kenar çubuğu genişliği | İki sütunda Mac'teki gibi. Üç sütunda en az 200, ideal 240, en çok 280 pt; erişilebilirlik yazı boyutunda 240, 280, 320 pt. Uzun ad sonda "…" ile kısalır. |
 | Kenar çubuğu düğmesi | Sol sütunun gezinme çubuğundadır. Kök sayfalar bu kabukta gezinme çubuğunu gizlemez. |
-| Kenar çubuğu seçimi | Bir girdi seçilince kenar çubuğu gizlenir. Liste ve ayrıntı yeniden yan yana durur. |
+| Kenar çubuğu seçimi | İki sütunda bir girdi seçilince kenar çubuğu gizlenir; liste ve ayrıntı yeniden yan yana durur. Seçili Görevler'e yeniden dokunmak listeyi ilk bölümüne döndürür. Üç sütunda kullanıcının düğmeyle gizlediği kenar çubuğu, düzen değişince ya da pencere aynı kademede boyut değiştirince gizli kalır; sütunlu düzene geçişte liste sütunu her zaman ayrıntıyla birlikte açılır; panoya ya da tam sayfaya geçişte sayfa bütün genişliği alır. Kademeye yeniden girilince (1000 pt altından dönünce) üç sütun geri gelir. |
+| Liste seçimi | Satıra dokunmak satırı seçer ve ayrıntıyı açar; görev kutusu görevi tamamlar. Seçili satır Mac'teki gibi çukur zemindedir. Bölüm ya da süzgeç değişince, görev listeden çıkınca seçim kalkar. |
 | Ayarlar | Bugün manşetindeki dişli Ayarlar sheet'ini açar. |
-| Arama | Manşet satırındaki büyüteç. Gezinme çubuğunda arama düğmesi yoktur. |
+| Arama | Manşet satırındaki büyüteç. Seçim yokken boş ayrıntı sütununun sağ üstünde de büyüteç durur. Gezinme çubuğunda arama düğmesi yoktur. Arama sheet'i form boyutundadır (ideal 580 × 480 pt; form üst payıyla yaklaşık 580 × 490); yazılım klavyesi sonuçları örtmez. |
+| Rehberden aktar | Kişiler sütununda "Yeni kişi"nin altında. iPhone'daki akışın aynısı: rehber seçici, sonra aktarma sheet'i. Mac'te yoktur. |
 | Sekme ve bölüm | Her sekme bir bölümü açar: Kişiler ve Konumlar sekmesi Kişiler bölümünü açar. Sekmesi olmayan bölüm onu barındıran sekmeye düşer: Özetler Günlük'e; Konumlar, Graph ve Harita Kişiler ve Konumlar'a. |
 
-**NOT:** Seçim, Ayarlar ve günlük editörü sheet'leri, hızlı giriş ve günlük taslakları iki kabuk arasında taşınır: kabuk üstünde tek bir `ShellNavigationState` nesnesi durur. Taslaklar yalnız bellektedir ve o kasaya aittir; başka kasa seçilince düşer. Görev satırına dokunmak bu kabukta da görevi tamamlar; bu davranışı sonraki iş değiştirir.
+**NOT:** Seçim, Ayarlar ve günlük editörü sheet'leri, hızlı giriş ve günlük taslakları iki kabuk arasında taşınır: kabuk üstünde tek bir `ShellNavigationState` nesnesi durur. Taslaklar yalnız bellektedir ve o kasaya aittir; başka kasa seçilince düşer.
 
 ## Ayarlar
 

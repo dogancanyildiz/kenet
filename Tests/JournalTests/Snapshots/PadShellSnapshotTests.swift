@@ -55,6 +55,16 @@
             default: .medium
             }
         }
+
+        /// The glass controls painted over: the sidebar button, and in the three-column tier the
+        /// floating sidebar's trailing edge, whose refraction of the list under it differs
+        /// between runs. The 11" canvas is two columns: no sidebar on screen.
+        var masks: [CGRect] {
+            guard screen != .goalDetail else { return [] }
+            guard canvas != .pad11Portrait else { return [PadSnapshotHost.Mask.sidebarButton] }
+            return [PadSnapshotHost.Mask.sidebarButton]
+                + PadSnapshotHost.Mask.sidebarOutline(on: canvas, dynamicType: dynamicType)
+        }
     }
 
     @MainActor
@@ -68,7 +78,7 @@
                 named: snapshotCase.rawValue, testName: "shell", canvas: snapshotCase.canvas,
                 colorScheme: snapshotCase.colorScheme, dynamicType: snapshotCase.dynamicType, clock: clock,
                 shellKind: snapshotCase.screen == .goalDetail ? .split : nil,
-                masks: snapshotCase.screen == .goalDetail ? [] : [PadSnapshotHost.Mask.sidebarButton]
+                masks: snapshotCase.masks
             ) { scene in
                 let store = scene.store
                 switch snapshotCase.screen {
@@ -125,6 +135,22 @@
         enum Mask {
             /// The split shell's floating sidebar button, top leading.
             static let sidebarButton = CGRect(x: 0, y: 0, width: 100, height: 125)
+
+            /// The floating sidebar's glass outline in the three-column tier: the panel sits
+            /// 10 pt in from the leading edge, its border and shadow reach about 40 pt past its
+            /// width (`ShellStyle.sidebarWidth`), and the top and bottom edges refract the bars
+            /// behind them. Four strips around the panel; its rows stay in the comparison.
+            static func sidebarOutline(on canvas: ShellCanvas, dynamicType: SnapshotDynamicType) -> [CGRect] {
+                let width = ShellStyle.sidebarWidth(tier: .threeColumns, dynamicTypeSize: dynamicType.size).ideal
+                let height = canvas.size.height
+                let reach = 10 + width + 40
+                return [
+                    CGRect(x: 0, y: 0, width: reach, height: 70),
+                    CGRect(x: 0, y: height - 40, width: reach, height: 40),
+                    CGRect(x: 0, y: 0, width: 16, height: height),
+                    CGRect(x: 10 + width - 6, y: 0, width: 46, height: height),
+                ]
+            }
 
             /// The tab shell's floating tab bar, along the bottom of the canvas.
             static func tabBar(on canvas: ShellCanvas) -> CGRect {

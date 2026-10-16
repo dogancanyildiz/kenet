@@ -44,10 +44,7 @@ struct ContentView: View {
             }
         }
         .environment(\.openSearch, { searchPresented = true })
-        .sheet(isPresented: $searchPresented) {
-            SearchView(store: store)
-                .environment(\.openSearch, { searchPresented = true })
-        }
+        .searchSheet(isPresented: $searchPresented, store: store)
         #if os(macOS)
             .focusedSceneValue(\.openSearch, { searchPresented = true })
         #endif

@@ -7,6 +7,7 @@ struct TasksView: View {
     @Binding var selection: String?
     @State private var pendingNotificationScroll: UUID?
     @State private var model: TasksModel
+    @Environment(\.shellKind) private var shellKind
     init(
         store: IndexStore, selection: Binding<String?> = .constant(nil), notificationRequest: UUID? = nil,
         tasks: TasksModel? = nil
@@ -57,40 +58,47 @@ struct TasksView: View {
                 model.clearFilters()
                 selection = nil
             }
-            #if os(macOS)
-                // Only the Mac detail column follows the selection; iPhone never sets one.
-                .onChange(of: model.viewState.listSection) { _, _ in
-                    selection = nil
-                }
-                .onChange(of: model.entityFilter) { _, _ in
-                    selection = nil
-                }
-                .onChange(of: model.projectFilter) { _, _ in
-                    selection = nil
-                }
-                .onChange(of: listedTaskIDs) { _, ids in
-                    selection = TaskListSelection.keeping(selection, listedIDs: ids)
-                }
-            #endif
+            // Only a split shell's detail column follows the selection (the Mac window, the
+            // iPhone Duo inner screen, an iPad); the phone's tab shell never sets one.
+            .onChange(of: model.viewState.listSection) { _, _ in
+                if followsSelection { selection = nil }
+            }
+            .onChange(of: model.entityFilter) { _, _ in
+                if followsSelection { selection = nil }
+            }
+            .onChange(of: model.projectFilter) { _, _ in
+                if followsSelection { selection = nil }
+            }
+            // The phone does not build the row list for nothing on every body.
+            .onChange(of: followsSelection ? listedTaskIDs : []) { _, ids in
+                if followsSelection { selection = TaskListSelection.keeping(selection, listedIDs: ids) }
+            }
         }
     }
 
-    #if os(macOS)
-        /// Rows on screen for the current section. The detail column clears when the selection
-        /// is no longer one of them (a completed task leaves Yaklaşan, a filter drops it).
-        private var listedTaskIDs: [String] {
-            switch model.viewState.listSection {
-            case .projects:
-                []
-            case .upcoming:
-                model.agenda.flatMap(\.rows).map(\.id)
-            case .undated:
-                model.undated.map(\.id)
-            case .completed:
-                model.completed.map(\.id)
-            }
+    /// The Mac shell always has a detail column; on iOS only the split shell does.
+    private var followsSelection: Bool {
+        #if os(macOS)
+            true
+        #else
+            shellKind == .split
+        #endif
+    }
+
+    /// Rows on screen for the current section. The detail column clears when the selection
+    /// is no longer one of them (a completed task leaves Yaklaşan, a filter drops it).
+    private var listedTaskIDs: [String] {
+        switch model.viewState.listSection {
+        case .projects:
+            []
+        case .upcoming:
+            model.agenda.flatMap(\.rows).map(\.id)
+        case .undated:
+            model.undated.map(\.id)
+        case .completed:
+            model.completed.map(\.id)
         }
-    #endif
+    }
 
     @ViewBuilder private var listContent: some View {
         List(selection: $selection) {

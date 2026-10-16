@@ -76,10 +76,12 @@ struct MacNavigation: View {
             .onGeometryChange(for: CGFloat.self) {
                 $0.size.width
             } action: { width in
+                let previous = shellWidth
                 shellWidth = width
-                resetColumns()
+                resetColumns(from: previous)
             }
-            .onChange(of: shellLayout) { _, _ in resetColumns() }
+            .onChange(of: shellLayout) { previous, _ in resetColumns(from: shellWidth, layout: previous) }
+            .environment(\.shellTier, ShellTier.resolve(measuredWidth: shellWidth))
         #endif
         .environment(\.shellKind, .split)
         // The pages take their drafts from the bridge.
@@ -310,13 +312,20 @@ struct MacNavigation: View {
         if restoresFocus { sidebarRestoresFocus = true }
         #if os(iOS)
             // Two columns at a time: the choice puts the sidebar away again.
-            resetColumns()
+            resetColumns(from: shellWidth)
         #endif
     }
 
     #if os(iOS)
-        private func resetColumns() {
-            guard let visibility = ShellStyle.columnVisibility(layout: shellLayout, width: shellWidth) else { return }
+        /// `previousWidth`: the width before this change (the same width for a layout switch or a
+        /// sidebar choice), so three columns come back only when the tier is entered;
+        /// `previousLayout`: the layout before a layout switch, whose visibility is translated.
+        private func resetColumns(from previousWidth: CGFloat, layout previousLayout: MacShellLayout? = nil) {
+            guard
+                let visibility = ShellStyle.columnVisibility(
+                    layout: shellLayout, width: shellWidth, previousWidth: previousWidth,
+                    previousLayout: previousLayout, current: columnVisibility)
+            else { return }
             if columnVisibility != visibility { columnVisibility = visibility }
         }
     #endif
@@ -355,8 +364,15 @@ struct MacNavigation: View {
 /// Detail column with nothing selected: the shared empty state (one italic line, no box),
 /// stretched over the column so the shell's `.inkPage()` paper reaches every edge. Günlük,
 /// Görevler (projects included), Hedefler and Kişiler / Konumlar use this.
+///
+/// On iOS the split shell has no window toolbar and an empty detail has no manşet, so the
+/// column keeps the magnifier where a manşet row puts it (top trailing, utility icon). The Mac
+/// window's toolbar already holds it.
 struct MacEmptyDetail: View {
     let message: LocalizedStringKey
+    #if os(iOS)
+        @Environment(\.shellKind) private var shellKind
+    #endif
 
     init(_ message: LocalizedStringKey) {
         self.message = message
@@ -365,7 +381,21 @@ struct MacEmptyDetail: View {
     var body: some View {
         EmptyState(message)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            #if os(iOS)
+                .overlay(alignment: .topTrailing) { searchSlot }
+            #endif
     }
+
+    #if os(iOS)
+        @ViewBuilder private var searchSlot: some View {
+            if shellKind == .split {
+                SearchButton()
+                    .buttonStyle(InkHeaderButtonStyle())
+                    .environment(\.isInkHeaderActionSlot, true)
+                    .padding(.horizontal, InkSpacing.margin)
+            }
+        }
+    #endif
 }
 
 #if os(macOS)
@@ -438,6 +468,9 @@ struct MacEntitiesColumn: View {
     @Binding var selection: String?
     var unseenReveal: UUID? = nil
     @State private var creationKind: VaultEntityKind?
+    #if os(iOS)
+        @State private var showsContactPicker = false
+    #endif
 
     var body: some View {
         VStack(spacing: 0) {
@@ -456,18 +489,13 @@ struct MacEntitiesColumn: View {
             EntityTypePicker(store: store, selection: $kind)
                 .padding(.horizontal, InkSpacing.margin)
                 .padding(.bottom, InkSpacing.section)
-            if let creatable = EntityCreateEntry.kind(forList: kind) {
-                Button {
-                    creationKind = creatable
-                } label: {
-                    Label(EntityCreateEntry.title(creatable), systemImage: EntityCreateEntry.systemImage(creatable))
-                }
-                .buttonStyle(InkTextButtonStyle())
-                .disabled(!store.canAddEvent)
-                .accessibilityIdentifier(EntityCreateEntry.identifier(creatable))
-                .padding(.horizontal, InkSpacing.margin)
-                .padding(.bottom, InkSpacing.section)
-                .frame(maxWidth: .infinity, alignment: .leading)
+            ForEach(EntityColumnAction.actions(forList: kind), id: \.self) { action in
+                actionButton(action)
+                    .buttonStyle(InkTextButtonStyle())
+                    .disabled(!store.canAddEvent)
+                    .padding(.horizontal, InkSpacing.margin)
+                    .padding(.bottom, InkSpacing.section)
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
             EntityFilterField(search: $search)
                 .padding(.horizontal, InkSpacing.margin)
@@ -480,6 +508,31 @@ struct MacEntitiesColumn: View {
         }
         // The new entity opens in the detail column like a row the user picked.
         .entityCreateSheet(store: store, kind: $creationKind) { selection = $0.id }
+        #if os(iOS)
+            .contactImportFlow(store: store, showsPicker: $showsContactPicker)
+        #endif
+    }
+
+    @ViewBuilder private func actionButton(_ action: EntityColumnAction) -> some View {
+        switch action {
+        case .create(let creatable):
+            Button {
+                creationKind = creatable
+            } label: {
+                Label(EntityCreateEntry.title(creatable), systemImage: EntityCreateEntry.systemImage(creatable))
+            }
+            .accessibilityIdentifier(EntityCreateEntry.identifier(creatable))
+        case .importContacts:
+            #if os(iOS)
+                // The phone page's "Rehberden aktar" row, as a text button like "Yeni kişi".
+                Button {
+                    showsContactPicker = true
+                } label: {
+                    ContactImportEntry.label
+                }
+                .accessibilityIdentifier(ContactImportEntry.identifier)
+            #endif
+        }
     }
 
     /// The manşet follows the kind tab, which can differ from the sidebar row.
@@ -489,6 +542,21 @@ struct MacEntitiesColumn: View {
         case "place": "Konumlar"
         default: sectionTitle
         }
+    }
+}
+
+/// The text buttons under the Kişiler / Konumlar column's kind tabs, top to bottom.
+enum EntityColumnAction: Hashable {
+    case create(VaultEntityKind)
+    /// "Rehberden aktar": people only, and only on iOS (the Mac has no contact picker).
+    case importContacts
+
+    static func actions(forList kind: String) -> [Self] {
+        var actions = EntityCreateEntry.kind(forList: kind).map { [Self.create($0)] } ?? []
+        #if os(iOS)
+            if ContactImportEntry.isShown(forList: kind) { actions.append(.importContacts) }
+        #endif
+        return actions
     }
 }
 

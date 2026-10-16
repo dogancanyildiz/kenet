@@ -248,6 +248,10 @@
                 inspect?(host)
                 let format = UIGraphicsImageRendererFormat()
                 format.scale = 2
+                // 8-bit sRGB like the phone references (SnapshotTesting's own strategy). The
+                // iPad simulator's default is 16-bit extended range, where a hairline's sub-level
+                // coverage difference between machines fails the perceptual comparison.
+                format.preferredRange = .standard
                 if draws {
                     image = UIGraphicsImageRenderer(bounds: window.bounds, format: format).image { _ in
                         window.drawHierarchy(in: window.bounds, afterScreenUpdates: true)

@@ -1,8 +1,11 @@
 import SwiftUI
+import VaultStore
 
 /// The phone combines people, places and the vault's custom types behind one type picker.
 struct EntitiesView: View {
     let store: IndexStore
+    @State private var creationKind: VaultEntityKind?
+    @State private var createdEntity: EntitySummary?
     @State private var kind: String
     @State private var order: EntityOrdering
     @State private var search: String
@@ -53,6 +56,9 @@ struct EntitiesView: View {
             }
             pageLink("Harita", systemImage: "map") {
                 PlacesMapView(store: store)
+            }
+            if let creatable = EntityCreateEntry.kind(forList: kind) {
+                createRow(creatable)
             }
             #if os(iOS)
                 if kind == "person" {
@@ -106,14 +112,36 @@ struct EntitiesView: View {
                 }
             }
         #endif
+        .entityCreateSheet(store: store, kind: $creationKind) { createdEntity = $0 }
+        .navigationDestination(item: $createdEntity) { entity in
+            EntityView(store: store, entity: entity)
+        }
         .navigationDestination(for: EntitySummary.self) { entity in
             EntityView(store: store, entity: entity)
         }
     }
 
+    /// "Yeni kişi" / "Yeni konum": a row like contact import, not a manşet symbol (a third
+    /// symbol next to sort and search truncates the long title).
+    private func createRow(_ creatable: VaultEntityKind) -> some View {
+        Button {
+            creationKind = creatable
+        } label: {
+            MarginRow(kind: .external, time: nil) {
+                Label(EntityCreateEntry.title(creatable), systemImage: EntityCreateEntry.systemImage(creatable))
+                    .font(.body)
+                    .foregroundStyle(.ink.accent)
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .disabled(!store.canAddEvent)
+        .accessibilityIdentifier(EntityCreateEntry.identifier(creatable))
+        .inkListRow()
+    }
+
     #if os(iOS)
-        /// The manşet row already holds sort and search next to a long title; a third symbol
-        /// truncates the title, so the action is a row at the top of the page (people only).
+        /// Contact import stays a separate row below the page links (people only).
         private var contactImportRow: some View {
             Button {
                 showsContactPicker = true

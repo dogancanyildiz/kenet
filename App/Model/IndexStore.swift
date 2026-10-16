@@ -1284,6 +1284,51 @@ extension IndexStore {
     }
 }
 
+// MARK: - Definition deletion
+
+extension IndexStore {
+    func deleteEntity(path: String) async throws {
+        try await deleteDefinition(path: path) { try await $0.deletingEntity(path: path) }
+    }
+
+    func deleteGoal(path: String) async throws {
+        try await deleteDefinition(path: path) { try await $0.deletingGoal(path: path) }
+    }
+
+    private func deleteDefinition(
+        path: String, operation: (VaultStore) async throws -> Void
+    ) async throws {
+        let root = vaultURL
+        try await withWriteSlot {
+            try await awaitEditTurn(in: root)
+            guard canAddEvent, let writer, let index else { throw VaultStoreError.staleTarget }
+            isProcessing = true
+            isWriting = true
+            do {
+                do {
+                    try await operation(writer)
+                } catch VaultStoreError.indexUpdateFailed {
+                    // The file is gone. Reconcile from disk; never offer a second deletion.
+                    pendingRefresh = true
+                    pendingRebuild = true
+                    entryErrorText = String(localized: "Dosya silindi, indeks güncellenemedi.")
+                }
+                do {
+                    try await publishAfterWrite(from: index, changedPaths: [], deletedPaths: [path])
+                } catch {
+                    pendingRefresh = true
+                    pendingRebuild = true
+                    entryErrorText = String(localized: "Dosya silindi, indeks güncellenemedi.")
+                }
+                await finishEntityWrite()
+            } catch {
+                await finishEntityWrite()
+                throw error
+            }
+        }
+    }
+}
+
 // MARK: - Task flow inventory
 
 extension IndexStore {

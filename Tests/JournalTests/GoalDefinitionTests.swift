@@ -99,4 +99,27 @@ struct GoalDefinitionTests {
         #expect(await !creation.save())
         #expect(await !definition.set("name", text: "New"))
     }
+
+    /// A deleted goal's key is free: the form shows the same key Core writes, and the day records
+    /// that still carry it (`spor: true` in the sample) reserve nothing.
+    @Test func deletedGoalKeyIsOfferedAndWrittenAgain() async throws {
+        let context = try TaskTestContext(sample: true)
+        defer { context.clean() }
+        await context.start()
+        let day = context.root.appendingPathComponent("journal/2026-09-14.md")
+        #expect(try String(contentsOf: day, encoding: .utf8).contains("  spor: true\n"))
+        let taken = GoalCreationModel(store: context.store)
+        taken.name = "Spor"
+        #expect(taken.key == "spor-2", "the definition reserves its key")
+        try await context.store.deleteGoal(path: "goals/Spor.md")
+        #expect(try String(contentsOf: day, encoding: .utf8).contains("  spor: true\n"))
+        #expect(!context.store.content.reservedGoalKeys.contains("spor"))
+        let model = GoalCreationModel(store: context.store)
+        model.name = "Spor"
+        #expect(model.key == "spor")
+        #expect(await model.save())
+        let written = try String(contentsOf: context.root.appendingPathComponent("goals/Spor.md"), encoding: .utf8)
+        #expect(written.contains("key: spor\n"))
+        #expect(context.store.content.goals.contains { $0.key == "spor" })
+    }
 }

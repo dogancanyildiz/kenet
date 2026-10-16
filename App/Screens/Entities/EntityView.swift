@@ -6,6 +6,11 @@ struct EntityView: View {
     let store: IndexStore
     let entity: EntitySummary
     let onRenamed: (String) -> Void
+    /// Runs after the edit sheet deleted the file and closed. Nil: the page dismisses itself
+    /// (pops its stack or closes its sheet); the Mac detail column clears its selection instead.
+    let onDeleted: ((String) -> Void)?
+    @Environment(\.dismiss) private var dismiss
+    @State private var deletion = DefinitionDeletionModel()
     @Environment(\.locale) private var locale
     @Environment(\.clockNow) private var clockNow
     @State private var model: EntityDetailModel
@@ -19,10 +24,14 @@ struct EntityView: View {
     /// Open tasks linking here, loaded with `timeline`, by due day, priority, file and line.
     @State private var openTasks: [TaskRow] = []
 
-    init(store: IndexStore, entity: EntitySummary, onRenamed: @escaping (String) -> Void = { _ in }) {
+    init(
+        store: IndexStore, entity: EntitySummary, onRenamed: @escaping (String) -> Void = { _ in },
+        onDeleted: ((String) -> Void)? = nil
+    ) {
         self.store = store
         self.entity = entity
         self.onRenamed = onRenamed
+        self.onDeleted = onDeleted
         _model = State(initialValue: EntityDetailModel(store: store, path: entity.id))
         _importantDates = State(initialValue: ImportantDatesModel(store: store))
         _unlinkedMentions = State(initialValue: UnlinkedMentionsModel(store: store))
@@ -97,8 +106,15 @@ struct EntityView: View {
         .inkPageScrollColumn()
         .environment(\.entityLookup, LinkedTextInk.lookup(entities: store.content.entities))
         .inkPageNavigationTitle(verbatim: current.name)
-        .sheet(isPresented: $isEditing) {
-            EntityEditSheet(store: store, model: model, entity: current)
+        .sheet(
+            isPresented: $isEditing,
+            onDismiss: {
+                // "Varlığı sil" closes the sheet first; the page goes once the sheet is down.
+                guard deletion.isDeleted else { return }
+                if let onDeleted { onDeleted(model.path) } else { dismiss() }
+            }
+        ) {
+            EntityEditSheet(store: store, model: model, entity: current, deletion: deletion)
         }
         .onChange(of: model.path) { _, path in onRenamed(path) }
         .task(id: store.lastUpdated) { await model.load() }
@@ -284,6 +300,35 @@ struct EntityView: View {
                 .foregroundStyle(.ink.text)
                 .multilineTextAlignment(.trailing)
                 .textSelection(.enabled)
+        }
+    }
+}
+
+/// The confirmation captures the requested path; failed deletes keep the detail open.
+@MainActor @Observable
+final class DefinitionDeletionModel {
+    var confirmation = DestructiveConfirmation<String>()
+    private(set) var isDeleting = false
+    private(set) var isDeleted = false
+    private(set) var errorText: String?
+
+    func request(path: String) {
+        guard !isDeleting, !isDeleted else { return }
+        confirmation.request(path)
+    }
+
+    func delete(store: IndexStore, path: String, goal: Bool) async -> Bool {
+        guard !isDeleting, !isDeleted else { return false }
+        isDeleting = true
+        errorText = nil
+        defer { isDeleting = false }
+        do {
+            if goal { try await store.deleteGoal(path: path) } else { try await store.deleteEntity(path: path) }
+            isDeleted = true
+            return true
+        } catch {
+            errorText = String(localized: "Dosya silinemedi. Kasayı kontrol edip yeniden dene.")
+            return false
         }
     }
 }

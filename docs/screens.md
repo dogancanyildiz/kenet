@@ -708,7 +708,8 @@ Manşetin altında sekme durur. Sekmenin altında görünüme göre değişen te
 | Tür seçici | Manşetin altı | Yalnız Kişiler ve Konumlar varken sekmedir. Kasada özel tip varsa seçenek sayısı 4'e ulaşınca "Tür" menüsü olur. Özel tipler de seçicide durur. |
 | Süzgeç alanı | Tür seçicinin altı | Ara ekranındaki alanla aynı bileşen. Alan Bir süredir görüşmediklerin bölümünü de süzer. |
 | Graph ve Harita | Listenin en üstü | İki satır. Aynı gezinme yığınında tam ekran açar. Yeni sekme yoktur. |
-| Rehberden aktar | Graph ve Harita satırlarının altı | Yalnız iPhone'da, Kişiler türü seçiliyken. |
+| Yeni kişi ve Yeni konum | iPhone'da Graph ve Harita satırlarının altı. Mac'te liste sütununda tür seçicinin altı. | Kişiler türünde "Yeni kişi", Konumlar türünde "Yeni konum" satırı. Özel tipte satır yoktur. Satır ad ve gerektiğinde ayırt edici isteyen küçük sheet açar. Vazgeç dosya yazmaz. Oluştur varlığı kaydeder ve varlık ekranını açar. Mac'te yeni varlık listede seçili olur. |
+| Rehberden aktar | "Yeni kişi" satırının altı | Yalnız iPhone'da, Kişiler türü seçiliyken. |
 | Bir süredir görüşmediklerin | Kişi listesinin üstü | Katlanan bölüm. Mac'te ve telefonda vardır. |
 | Ayırt edici | Satırda adın altı | Aynı adlı varlıklarda görünür. |
 
@@ -755,6 +756,7 @@ Konumda koordinat, Alanlar tablosunda bir satırdır. Okuma ekranında harita yo
 | Kalıp | Ortak sheet kalıbı: serif manşet, kâğıt zemin, tek "Kapat". Her alan kendi "Kaydet" düğmesiyle yazar. "Kapat" yazmaz. |
 | Kirli taslak | Kullanıcı Kaydet ile yazmadığı alanı "Alanı kaldır" ile silerse taslak kirli değildir. Kaydı bekleyen alan metni varken sheet kapanmaz. `JournalView` ile aynı `UnsavedDraftDecision` kalıbı "At" / "Vazgeç" sorar. |
 | Ad değiştirme | Düzenleme sheet'i ad değiştirmeyi ikinci sheet olarak açar. |
+| Varlığı sil | Sheet'in en altında kırmızı düğme. Kişi, konum ve özel tipte onay ister: "<Ad> silinsin mi? Günlük kayıtlarındaki geçişler kalır." Yalnız varlık dosyasını siler. Başarılı silme önce sheet'i, sonra varlık ekranını kapatır. Mac'te ayrıntı sütunu "Bir varlık seç" durumuna döner. Hata sheet'te kalır. |
 | Görüşme ritmi | Yalnız kişide. Menü: Yok, 7, 14, 30, 60, 90 gün ve özel sayı. Özel sayı pozitif tam sayıdır. Boş, 0, harf ve taşan sayı "geçerli bir değer gir" uyarısı alır. |
 | Ritim yazma | Ritim kendi "Kaydet" düğmesiyle yazar. Seçim tek başına yazmaz. Kaydı bekleyen seçimi "Kapat" sorar. |
 | Yok seçimi | Yok `cadence_days` alanını siler. Dosyadaki değer zaten geçerli bir ritim değilse Yok hiçbir şey yazmaz. |
@@ -936,6 +938,7 @@ Konumda koordinat, Alanlar tablosunda bir satırdır. Okuma ekranında harita yo
 | Sayılar | En uzun zincir ve günlük hedefte skor. |
 | Geçmiş kayıtlar | Kullanıcı geçmiş günlerin kaydını düzeltir. |
 | Tanım alanları | Kâğıt zeminli satırlar. Satıra dokunma düzenleme sheet'ini açar. |
+| Hedefi sil | Tanım bloğunun altında kırmızı düğme. Onay ister: "<Ad> silinsin mi? Gün kayıtları kalır." Yalnız hedef dosyasını siler, sonra ayrıntıyı kapatır. Mac'te ayrıntı sütunu "Bir hedef seç" durumuna döner. |
 
 Grafikte "Ortalama", görünür aralıkta kaydı olan günlerin değer ortalamasıdır; kayıtsız gün sıfır değildir. "Hedefin üstünde" sayısı hedefe eşit ya da üstünde kaydı olan günleri sayar. Bir günün son kaydı geçerlidir; türü uymayan ya da geçersiz (negatif, sonsuz) son kayıt o günü 0 yapar. Kural ilerleme ve ısı haritasıyla aynıdır. Tepe eşitse en yeni gün seçilir. Çizgi her günün ve önceki altı günün kayıt ortalamasıdır; en az üç kayıt gerekir, aksi hâlde çizgi kırılır. İlk günün penceresi görünür aralıktan önceye uzanır. Haftalar pazartesi başlar; son hafta ve ay yalnız bugüne kadarki kayıtları toplar. Aylık hız çizgisi yıllık hedefin on ikide biridir; haftalık çizgi haftalık hedeftir. Gelecek kayıtları hesaba girmez.
 

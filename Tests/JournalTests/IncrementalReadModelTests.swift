@@ -244,6 +244,43 @@ struct IncrementalReadModelTests {
         #expect(incremental.goalLogStart == nextDay.addingDays(-399))
     }
 
+    /// A day record whose key has no definition (a deleted goal's) reserves nothing, in a full
+    /// build and after a goal-touching patch alike: the form offers that key again.
+    @Test func orphanGoalLogKeysStayFree() throws {
+        let root = try testDirectory()
+        defer { try? FileManager.default.removeItem(at: root) }
+        try IncrementalReadModelVault.seed(at: root)
+        try IncrementalReadModelVault.write(
+            root, "journal/2026-10-04.md",
+            """
+            ---
+            type: journal
+            date: 2026-10-04
+            goals:
+              eski: true
+            ---
+
+            ## Journal
+            Quiet evening.
+            """)
+        let index = try VaultIndex()
+        try index.rebuild(vaultRoot: root)
+        let previous = try IncrementalReadModelVault.fullModel(index: index)
+        #expect(try index.goalLogs().contains { $0.key == "eski" })
+        #expect(previous.reservedGoalKeys == ["reading"])
+
+        let file = root.appendingPathComponent("journal/2026-10-05.md")
+        let text = try String(contentsOf: file, encoding: .utf8).replacingOccurrences(
+            of: "reading: 5", with: "reading: 6")
+        try Data(text.utf8).write(to: file)
+        try FileManager.default.setAttributes(
+            [.modificationDate: Date().addingTimeInterval(2)], ofItemAtPath: file.path)
+        let result = try index.refresh(vaultRoot: root)
+        let incremental = try IncrementalReadModelVault.apply(previous, index: index, result: result)
+        #expect(incremental.reservedGoalKeys == ["reading"])
+        #expect(incremental.matchesFullBuild(try IncrementalReadModelVault.fullModel(index: index)))
+    }
+
     @Test func goalTouchedKeepsInvalidDefinitionKeys() throws {
         let root = try testDirectory()
         defer { try? FileManager.default.removeItem(at: root) }

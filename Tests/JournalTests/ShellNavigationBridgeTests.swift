@@ -225,4 +225,25 @@ import VaultFormat
         #expect(JournalEditorRoute(day: day, isToday: true) != JournalEditorRoute(day: day, isToday: false))
         #expect(JournalEditorRoute(day: day, isToday: true) == JournalEditorRoute(day: day, isToday: true))
     }
+
+    // MARK: - Deleted entity
+
+    /// The detail column's entity was deleted: the column empties ("Bir varlık seç") and no row
+    /// stays selected; another path leaves the selection, and the list keeps its section and filter.
+    @Test func deletingTheSelectedEntityEmptiesTheDetailOnly() {
+        let bridge = ShellNavigationState()
+        bridge.section = .places
+        bridge.selectedEntityKind = "place"
+        bridge.entitySearch = "Kafe"
+        let entity = EntitySummary(
+            id: "places/Kurgusal Kafe.md", kind: "place", name: "Kurgusal Kafe", qualifier: nil, aliases: [],
+            incomingLinks: 0)
+        bridge.selectedEntity = entity.id
+        bridge.selectedSummary = entity
+        bridge.entityDeleted(path: "places/Other.md")
+        #expect(bridge.selectedEntity == entity.id && bridge.selectedSummary == entity)
+        bridge.entityDeleted(path: entity.id)
+        #expect(bridge.selectedEntity == nil && bridge.selectedSummary == nil)
+        #expect(bridge.section == .places && bridge.selectedEntityKind == "place" && bridge.entitySearch == "Kafe")
+    }
 }

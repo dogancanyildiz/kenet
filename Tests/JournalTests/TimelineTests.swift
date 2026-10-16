@@ -124,6 +124,55 @@ import VaultFormat
         #expect(TimelineModel.snappedDays(points: 10, dayWidth: 0) == nil)
     }
 
+    /// The dates a drag proposes: whole days only, the body moves both dates, an end moves
+    /// its own; a drag that would reverse the range proposes nothing.
+    @Test func dragProposesWholeDaysForTheBodyOrOneEnd() throws {
+        let dates = TimelineDates(start: CalendarDate("2026-09-23"), due: CalendarDate("2026-09-25"))
+        let week: Double = 28
+        #expect(
+            TimelineModel.proposedDates(from: dates, edge: .due, points: 2 * week + 3, dayWidth: week)
+                == TimelineDates(start: CalendarDate("2026-09-23"), due: CalendarDate("2026-09-27")))
+        #expect(
+            TimelineModel.proposedDates(from: dates, edge: .start, points: -week, dayWidth: week)
+                == TimelineDates(start: CalendarDate("2026-09-22"), due: CalendarDate("2026-09-25")))
+        #expect(
+            TimelineModel.proposedDates(from: dates, edge: nil, points: 3 * week - 5, dayWidth: week)
+                == TimelineDates(start: CalendarDate("2026-09-26"), due: CalendarDate("2026-09-28")))
+        // Less than half a day snaps back to the dates the task has.
+        #expect(TimelineModel.proposedDates(from: dates, edge: .due, points: 13, dayWidth: week) == dates)
+        #expect(TimelineModel.proposedDates(from: dates, edge: .start, points: 3 * week, dayWidth: week) == nil)
+        #expect(TimelineModel.proposedDates(from: dates, edge: .due, points: .nan, dayWidth: week) == nil)
+        // An end the task does not have is not invented.
+        let due = TimelineDates(start: nil, due: CalendarDate("2026-09-25"))
+        #expect(TimelineModel.proposedDates(from: due, edge: .start, points: week, dayWidth: week) == nil)
+    }
+
+    /// Touch: each end of a bar answers in its own half. A bar long enough keeps both ends'
+    /// full 37 × 36 pt areas; a short one (quarter scale) splits at its middle, so the start end
+    /// is not under the due end's area.
+    @Test func barEndsKeepTheirOwnHalfOfAShortBar() {
+        let grip = TimelineBarTouch.gripWidth
+        let outset: CGFloat = 12
+        for barWidth: CGFloat in [26, 30, 41, 49.5, 50, 120] {
+            let start = TimelineBarTouch.handleArea(.start, barWidth: barWidth, outset: outset)
+            // The due grip sits at the bar's trailing edge.
+            let due = TimelineBarTouch.handleArea(.due, barWidth: barWidth, outset: outset)
+                .offsetBy(dx: barWidth - grip, dy: 0)
+            #expect(start.maxX <= due.minX + 0.001, "bar \(barWidth): \(start) overlaps \(due)")
+            #expect(start.minX == -outset && due.maxX == barWidth + outset, "bar \(barWidth)")
+            #expect(start.maxX >= grip && due.minX <= barWidth - grip, "bar \(barWidth): a grip lost its area")
+            #expect(start.height == TimelineBarTouch.gripHeight + outset * 2)
+        }
+        let long = TimelineBarTouch.handleArea(.start, barWidth: 120, outset: outset)
+        #expect(long.size == CGSize(width: grip + outset * 2, height: TimelineBarTouch.gripHeight + outset * 2))
+        let short = TimelineBarTouch.handleArea(.start, barWidth: 30, outset: outset)
+        #expect(short.maxX == 15, "the start end reaches the middle of a 30 pt bar: \(short)")
+        // The pointer (Mac, no outset) keeps the drawn grip.
+        #expect(
+            TimelineBarTouch.handleArea(.due, barWidth: 30, outset: 0)
+                == CGRect(x: 0, y: 0, width: grip, height: TimelineBarTouch.gripHeight))
+    }
+
     @Test func movingBothDatesPreservesExactSurroundingBOMAndCRLFBytes() async throws {
         let context = try TaskTestContext()
         defer { context.clean() }
@@ -297,57 +346,57 @@ import VaultFormat
         #expect(try Data(contentsOf: context.file) == Data(source.utf8))
     }
 
+    @Test func todayLabelMovesAboveANeighboringDate() {
+        // Quarter scale: the 1st prints a date; the 3rd (and the 30th, two days before the
+        // next 1st) is close enough that a centered word would cover it.
+        let third = Self.placement(
+            dayIndex: 2, dayCount: 31, dayWidth: 8, labelWidth: 42, dateLabelWidth: 52, dates: [0])
+        #expect(third.centerY == TimelineAxisLayout.upperCenterY)
+        Self.expectClear(third, dayCount: 31, dayWidth: 8, labelWidth: 42, dateLabelWidth: 52, dates: [0])
+
+        let beforeNextMonth = Self.placement(
+            dayIndex: 28, dayCount: 40, dayWidth: 8, labelWidth: 42, dateLabelWidth: 52, dates: [30])
+        #expect(beforeNextMonth.centerY == TimelineAxisLayout.upperCenterY)
+        Self.expectClear(
+            beforeNextMonth, dayCount: 40, dayWidth: 8, labelWidth: 42, dateLabelWidth: 52, dates: [30])
+
+        // Month scale: Tuesday sits next to Monday's date label.
+        let tuesday = Self.placement(
+            dayIndex: 8, dayCount: 30, dayWidth: 28, labelWidth: 40, dateLabelWidth: 56, dates: [7])
+        Self.expectClear(tuesday, dayCount: 30, dayWidth: 28, labelWidth: 40, dateLabelWidth: 56, dates: [7])
+    }
+
+    @Test func todayLabelStaysInsideWhenTodayIsTheFirstOrLastDay() {
+        let first = Self.placement(
+            dayIndex: 0, dayCount: 40, dayWidth: 8, labelWidth: 42, dateLabelWidth: 52, dates: [])
+        Self.expectInside(first, dayCount: 40, dayWidth: 8, labelWidth: 42)
+        let last = Self.placement(
+            dayIndex: 39, dayCount: 40, dayWidth: 8, labelWidth: 42, dateLabelWidth: 52, dates: [])
+        Self.expectInside(last, dayCount: 40, dayWidth: 8, labelWidth: 42)
+        // Today is also the day that prints the date (the 1st, at the start of the range).
+        let firstWithDate = Self.placement(
+            dayIndex: 0, dayCount: 40, dayWidth: 8, labelWidth: 42, dateLabelWidth: 52, dates: [0])
+        Self.expectInside(firstWithDate, dayCount: 40, dayWidth: 8, labelWidth: 42)
+        Self.expectClear(firstWithDate, dayCount: 40, dayWidth: 8, labelWidth: 42, dateLabelWidth: 52, dates: [0])
+    }
+
+    @Test func todayLineStaysBesideTheWord() {
+        let open = Self.placement(
+            dayIndex: 10, dayCount: 30, dayWidth: 28, labelWidth: 40, dateLabelWidth: 56, dates: [])
+        #expect(open.centerY == TimelineDesktopMetrics.axisHeight / 2)
+        Self.expectLineBeside(open, dayIndex: 10, dayWidth: 28, labelWidth: 40)
+        let third = Self.placement(
+            dayIndex: 2, dayCount: 31, dayWidth: 8, labelWidth: 42, dateLabelWidth: 52, dates: [0])
+        Self.expectLineBeside(third, dayIndex: 2, dayWidth: 8, labelWidth: 42)
+        let first = Self.placement(
+            dayIndex: 0, dayCount: 40, dayWidth: 8, labelWidth: 42, dateLabelWidth: 52, dates: [])
+        Self.expectLineBeside(first, dayIndex: 0, dayWidth: 8, labelWidth: 42)
+        let last = Self.placement(
+            dayIndex: 39, dayCount: 40, dayWidth: 8, labelWidth: 42, dateLabelWidth: 52, dates: [])
+        Self.expectLineBeside(last, dayIndex: 39, dayWidth: 8, labelWidth: 42)
+    }
+
     #if os(macOS)
-        @Test func todayLabelMovesAboveANeighboringDate() {
-            // Quarter scale: the 1st prints a date; the 3rd (and the 30th, two days before the
-            // next 1st) is close enough that a centered word would cover it.
-            let third = Self.placement(
-                dayIndex: 2, dayCount: 31, dayWidth: 8, labelWidth: 42, dateLabelWidth: 52, dates: [0])
-            #expect(third.centerY == TimelineAxisLayout.upperCenterY)
-            Self.expectClear(third, dayCount: 31, dayWidth: 8, labelWidth: 42, dateLabelWidth: 52, dates: [0])
-
-            let beforeNextMonth = Self.placement(
-                dayIndex: 28, dayCount: 40, dayWidth: 8, labelWidth: 42, dateLabelWidth: 52, dates: [30])
-            #expect(beforeNextMonth.centerY == TimelineAxisLayout.upperCenterY)
-            Self.expectClear(
-                beforeNextMonth, dayCount: 40, dayWidth: 8, labelWidth: 42, dateLabelWidth: 52, dates: [30])
-
-            // Month scale: Tuesday sits next to Monday's date label.
-            let tuesday = Self.placement(
-                dayIndex: 8, dayCount: 30, dayWidth: 28, labelWidth: 40, dateLabelWidth: 56, dates: [7])
-            Self.expectClear(tuesday, dayCount: 30, dayWidth: 28, labelWidth: 40, dateLabelWidth: 56, dates: [7])
-        }
-
-        @Test func todayLabelStaysInsideWhenTodayIsTheFirstOrLastDay() {
-            let first = Self.placement(
-                dayIndex: 0, dayCount: 40, dayWidth: 8, labelWidth: 42, dateLabelWidth: 52, dates: [])
-            Self.expectInside(first, dayCount: 40, dayWidth: 8, labelWidth: 42)
-            let last = Self.placement(
-                dayIndex: 39, dayCount: 40, dayWidth: 8, labelWidth: 42, dateLabelWidth: 52, dates: [])
-            Self.expectInside(last, dayCount: 40, dayWidth: 8, labelWidth: 42)
-            // Today is also the day that prints the date (the 1st, at the start of the range).
-            let firstWithDate = Self.placement(
-                dayIndex: 0, dayCount: 40, dayWidth: 8, labelWidth: 42, dateLabelWidth: 52, dates: [0])
-            Self.expectInside(firstWithDate, dayCount: 40, dayWidth: 8, labelWidth: 42)
-            Self.expectClear(firstWithDate, dayCount: 40, dayWidth: 8, labelWidth: 42, dateLabelWidth: 52, dates: [0])
-        }
-
-        @Test func todayLineStaysBesideTheWord() {
-            let open = Self.placement(
-                dayIndex: 10, dayCount: 30, dayWidth: 28, labelWidth: 40, dateLabelWidth: 56, dates: [])
-            #expect(open.centerY == TimelineDesktopMetrics.axisHeight / 2)
-            Self.expectLineBeside(open, dayIndex: 10, dayWidth: 28, labelWidth: 40)
-            let third = Self.placement(
-                dayIndex: 2, dayCount: 31, dayWidth: 8, labelWidth: 42, dateLabelWidth: 52, dates: [0])
-            Self.expectLineBeside(third, dayIndex: 2, dayWidth: 8, labelWidth: 42)
-            let first = Self.placement(
-                dayIndex: 0, dayCount: 40, dayWidth: 8, labelWidth: 42, dateLabelWidth: 52, dates: [])
-            Self.expectLineBeside(first, dayIndex: 0, dayWidth: 8, labelWidth: 42)
-            let last = Self.placement(
-                dayIndex: 39, dayCount: 40, dayWidth: 8, labelWidth: 42, dateLabelWidth: 52, dates: [])
-            Self.expectLineBeside(last, dayIndex: 39, dayWidth: 8, labelWidth: 42)
-        }
-
         @Test func barHeightFollowsTheSharedRowHeight() async throws {
             let context = try TaskTestContext()
             defer { context.clean() }
@@ -362,130 +411,132 @@ import VaultFormat
             host.layoutSubtreeIfNeeded()
             #expect(abs(host.fittingSize.height - TimelineDesktopMetrics.rowHeight) < 0.5)
         }
+    #endif
 
-        private static func placement(
-            dayIndex: Int, dayCount: Int, dayWidth: CGFloat, labelWidth: CGFloat, dateLabelWidth: CGFloat,
-            dates: Set<Int>
-        ) -> TimelineTodayLabelPlacement {
-            TimelineAxisLayout.todayLabelPlacement(
-                dayIndex: dayIndex, dayCount: dayCount, dayWidth: dayWidth, labelWidth: labelWidth,
-                dateLabelWidth: dateLabelWidth, dateLabelDayIndices: dates)
+    private static func placement(
+        dayIndex: Int, dayCount: Int, dayWidth: CGFloat, labelWidth: CGFloat, dateLabelWidth: CGFloat,
+        dates: Set<Int>
+    ) -> TimelineTodayLabelPlacement {
+        TimelineAxisLayout.todayLabelPlacement(
+            dayIndex: dayIndex, dayCount: dayCount, dayWidth: dayWidth, labelWidth: labelWidth,
+            dateLabelWidth: dateLabelWidth, dateLabelDayIndices: dates)
+    }
+
+    private static func expectClear(
+        _ placement: TimelineTodayLabelPlacement, dayCount: Int, dayWidth: CGFloat, labelWidth: CGFloat,
+        dateLabelWidth: CGFloat, dates: Set<Int>
+    ) {
+        expectInside(placement, dayCount: dayCount, dayWidth: dayWidth, labelWidth: labelWidth)
+        let word = wordFrame(placement, labelWidth: labelWidth)
+        let midline = TimelineDesktopMetrics.axisHeight / 2
+        for index in dates {
+            let dropped = placement.loweredDateIndices.contains(index)
+            let centerY = midline + (dropped ? TimelineAxisLayout.loweredDateOffset : 0)
+            let date = CGRect(
+                x: (CGFloat(index) + 0.5) * dayWidth - dateLabelWidth / 2,
+                y: centerY - TimelineAxisLayout.dateLabelHeight / 2,
+                width: dateLabelWidth, height: TimelineAxisLayout.dateLabelHeight)
+            #expect(!word.intersects(date), "day \(index) overlaps Bugün")
         }
+    }
 
-        private static func expectClear(
-            _ placement: TimelineTodayLabelPlacement, dayCount: Int, dayWidth: CGFloat, labelWidth: CGFloat,
-            dateLabelWidth: CGFloat, dates: Set<Int>
-        ) {
-            expectInside(placement, dayCount: dayCount, dayWidth: dayWidth, labelWidth: labelWidth)
-            let word = wordFrame(placement, labelWidth: labelWidth)
-            let midline = TimelineDesktopMetrics.axisHeight / 2
-            for index in dates {
-                let dropped = placement.loweredDateIndices.contains(index)
-                let centerY = midline + (dropped ? TimelineAxisLayout.loweredDateOffset : 0)
-                let date = CGRect(
-                    x: (CGFloat(index) + 0.5) * dayWidth - dateLabelWidth / 2,
-                    y: centerY - TimelineAxisLayout.dateLabelHeight / 2,
-                    width: dateLabelWidth, height: TimelineAxisLayout.dateLabelHeight)
-                #expect(!word.intersects(date), "day \(index) overlaps Bugün")
-            }
-        }
+    private static func expectInside(
+        _ placement: TimelineTodayLabelPlacement, dayCount: Int, dayWidth: CGFloat, labelWidth: CGFloat
+    ) {
+        let word = wordFrame(placement, labelWidth: labelWidth)
+        #expect(word.minX >= -0.01)
+        #expect(word.maxX <= CGFloat(dayCount) * dayWidth + 0.01)
+    }
 
-        private static func expectInside(
-            _ placement: TimelineTodayLabelPlacement, dayCount: Int, dayWidth: CGFloat, labelWidth: CGFloat
-        ) {
-            let word = wordFrame(placement, labelWidth: labelWidth)
-            #expect(word.minX >= -0.01)
-            #expect(word.maxX <= CGFloat(dayCount) * dayWidth + 0.01)
-        }
+    private static func expectLineBeside(
+        _ placement: TimelineTodayLabelPlacement, dayIndex: Int, dayWidth: CGFloat, labelWidth: CGFloat
+    ) {
+        let lineX = (CGFloat(dayIndex) + 0.5) * dayWidth
+        let word = wordFrame(placement, labelWidth: labelWidth)
+        #expect(lineX <= word.minX || lineX >= word.maxX)
+    }
 
-        private static func expectLineBeside(
-            _ placement: TimelineTodayLabelPlacement, dayIndex: Int, dayWidth: CGFloat, labelWidth: CGFloat
-        ) {
-            let lineX = (CGFloat(dayIndex) + 0.5) * dayWidth
-            let word = wordFrame(placement, labelWidth: labelWidth)
-            #expect(lineX <= word.minX || lineX >= word.maxX)
-        }
+    private static func wordFrame(_ placement: TimelineTodayLabelPlacement, labelWidth: CGFloat) -> CGRect {
+        CGRect(
+            x: placement.centerX - labelWidth / 2,
+            y: placement.centerY - TimelineAxisLayout.todayLabelHeight / 2,
+            width: labelWidth, height: TimelineAxisLayout.todayLabelHeight)
+    }
 
-        private static func wordFrame(_ placement: TimelineTodayLabelPlacement, labelWidth: CGFloat) -> CGRect {
-            CGRect(
-                x: placement.centerX - labelWidth / 2,
-                y: placement.centerY - TimelineAxisLayout.todayLabelHeight / 2,
-                width: labelWidth, height: TimelineAxisLayout.todayLabelHeight)
-        }
+    @Test func dateLabelVisibilityFollowsScale() throws {
+        let monday = try #require(CalendarDate("2026-10-05"))
+        #expect(monday.weekday == 0 && monday.day != 1)
+        let tuesday = try #require(CalendarDate("2026-10-06"))
+        #expect(tuesday.weekday == 1 && tuesday.day != 1)
+        let firstOfMonth = try #require(CalendarDate("2026-10-01"))
+        #expect(firstOfMonth.day == 1)
 
-        @Test func dateLabelVisibilityFollowsScale() throws {
-            let monday = try #require(CalendarDate("2026-10-05"))
-            #expect(monday.weekday == 0 && monday.day != 1)
-            let tuesday = try #require(CalendarDate("2026-10-06"))
-            #expect(tuesday.weekday == 1 && tuesday.day != 1)
-            let firstOfMonth = try #require(CalendarDate("2026-10-01"))
-            #expect(firstOfMonth.day == 1)
+        // Week scale: every day shows date label
+        #expect(TimelineAxisLayout.showsAxisDateLabel(monday, scale: .week))
+        #expect(TimelineAxisLayout.showsAxisDateLabel(tuesday, scale: .week))
+        #expect(TimelineAxisLayout.showsAxisDateLabel(firstOfMonth, scale: .week))
 
-            // Week scale: every day shows date label
-            #expect(TimelineAxisLayout.showsAxisDateLabel(monday, scale: .week))
-            #expect(TimelineAxisLayout.showsAxisDateLabel(tuesday, scale: .week))
-            #expect(TimelineAxisLayout.showsAxisDateLabel(firstOfMonth, scale: .week))
+        // Month scale: Mondays and 1st of month show date label
+        #expect(TimelineAxisLayout.showsAxisDateLabel(monday, scale: .month))
+        #expect(!TimelineAxisLayout.showsAxisDateLabel(tuesday, scale: .month))
+        #expect(TimelineAxisLayout.showsAxisDateLabel(firstOfMonth, scale: .month))
 
-            // Month scale: Mondays and 1st of month show date label
-            #expect(TimelineAxisLayout.showsAxisDateLabel(monday, scale: .month))
-            #expect(!TimelineAxisLayout.showsAxisDateLabel(tuesday, scale: .month))
-            #expect(TimelineAxisLayout.showsAxisDateLabel(firstOfMonth, scale: .month))
+        // Quarter scale: only 1st of month shows date label
+        #expect(!TimelineAxisLayout.showsAxisDateLabel(monday, scale: .quarter))
+        #expect(!TimelineAxisLayout.showsAxisDateLabel(tuesday, scale: .quarter))
+        #expect(TimelineAxisLayout.showsAxisDateLabel(firstOfMonth, scale: .quarter))
+    }
 
-            // Quarter scale: only 1st of month shows date label
-            #expect(!TimelineAxisLayout.showsAxisDateLabel(monday, scale: .quarter))
-            #expect(!TimelineAxisLayout.showsAxisDateLabel(tuesday, scale: .quarter))
-            #expect(TimelineAxisLayout.showsAxisDateLabel(firstOfMonth, scale: .quarter))
-        }
+    @Test func dateLabelPlacementComputesCentersAndHandlesCollisionDrop() {
+        let dayWidth: CGFloat = 16
+        let midline = TimelineDesktopMetrics.axisHeight / 2
+        let unlowered = TimelineAxisLayout.dateLabelPlacement(dayIndex: 3, dayWidth: dayWidth, isLowered: false)
+        #expect(unlowered.dayIndex == 3)
+        #expect(unlowered.centerX == 3.5 * dayWidth)
+        #expect(unlowered.centerY == midline)
 
-        @Test func dateLabelPlacementComputesCentersAndHandlesCollisionDrop() {
-            let dayWidth: CGFloat = 16
-            let midline = TimelineDesktopMetrics.axisHeight / 2
-            let unlowered = TimelineAxisLayout.dateLabelPlacement(dayIndex: 3, dayWidth: dayWidth, isLowered: false)
-            #expect(unlowered.dayIndex == 3)
-            #expect(unlowered.centerX == 3.5 * dayWidth)
-            #expect(unlowered.centerY == midline)
+        let lowered = TimelineAxisLayout.dateLabelPlacement(dayIndex: 3, dayWidth: dayWidth, isLowered: true)
+        #expect(lowered.centerX == 3.5 * dayWidth)
+        #expect(lowered.centerY == midline + TimelineAxisLayout.loweredDateOffset)
 
-            let lowered = TimelineAxisLayout.dateLabelPlacement(dayIndex: 3, dayWidth: dayWidth, isLowered: true)
-            #expect(lowered.centerX == 3.5 * dayWidth)
-            #expect(lowered.centerY == midline + TimelineAxisLayout.loweredDateOffset)
+        let placements = TimelineAxisLayout.dateLabelPlacements(
+            dayIndices: [0, 5, 10],
+            dayWidth: dayWidth,
+            loweredDateIndices: [5]
+        )
+        #expect(placements.count == 3)
+        #expect(placements[0].centerY == midline)
+        #expect(placements[1].centerY == midline + TimelineAxisLayout.loweredDateOffset)
+        #expect(placements[2].centerY == midline)
+    }
 
-            let placements = TimelineAxisLayout.dateLabelPlacements(
-                dayIndices: [0, 5, 10],
-                dayWidth: dayWidth,
-                loweredDateIndices: [5]
-            )
-            #expect(placements.count == 3)
-            #expect(placements[0].centerY == midline)
-            #expect(placements[1].centerY == midline + TimelineAxisLayout.loweredDateOffset)
-            #expect(placements[2].centerY == midline)
-        }
+    @Test func todayCollisionDropsCollidingDateLabelInPlacements() {
+        let today = Self.placement(
+            dayIndex: 2, dayCount: 31, dayWidth: 8, labelWidth: 42, dateLabelWidth: 52, dates: [0]
+        )
+        #expect(today.centerY == TimelineAxisLayout.upperCenterY)
+        #expect(today.loweredDateIndices.contains(0))
 
-        @Test func todayCollisionDropsCollidingDateLabelInPlacements() {
-            let today = Self.placement(
-                dayIndex: 2, dayCount: 31, dayWidth: 8, labelWidth: 42, dateLabelWidth: 52, dates: [0]
-            )
-            #expect(today.centerY == TimelineAxisLayout.upperCenterY)
-            #expect(today.loweredDateIndices.contains(0))
+        let placements = TimelineAxisLayout.dateLabelPlacements(
+            dayIndices: [0],
+            dayWidth: 8,
+            loweredDateIndices: today.loweredDateIndices
+        )
+        let datePlacement = placements[0]
+        let midline = TimelineDesktopMetrics.axisHeight / 2
+        #expect(datePlacement.centerY == midline + TimelineAxisLayout.loweredDateOffset)
 
-            let placements = TimelineAxisLayout.dateLabelPlacements(
-                dayIndices: [0],
-                dayWidth: 8,
-                loweredDateIndices: today.loweredDateIndices
-            )
-            let datePlacement = placements[0]
-            let midline = TimelineDesktopMetrics.axisHeight / 2
-            #expect(datePlacement.centerY == midline + TimelineAxisLayout.loweredDateOffset)
+        let todayWord = Self.wordFrame(today, labelWidth: 42)
+        let dateFrame = CGRect(
+            x: datePlacement.centerX - 26,
+            y: datePlacement.centerY - TimelineAxisLayout.dateLabelHeight / 2,
+            width: 52,
+            height: TimelineAxisLayout.dateLabelHeight
+        )
+        #expect(!todayWord.intersects(dateFrame))
+    }
 
-            let todayWord = Self.wordFrame(today, labelWidth: 42)
-            let dateFrame = CGRect(
-                x: datePlacement.centerX - 26,
-                y: datePlacement.centerY - TimelineAxisLayout.dateLabelHeight / 2,
-                width: 52,
-                height: TimelineAxisLayout.dateLabelHeight
-            )
-            #expect(!todayWord.intersects(dateFrame))
-        }
-
+    #if os(macOS)
         @Test func macRowUsesTheSharedDateLine() throws {
             let labels = try String(
                 contentsOf: URL(fileURLWithPath: #filePath)

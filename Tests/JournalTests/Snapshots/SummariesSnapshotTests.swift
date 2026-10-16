@@ -103,7 +103,7 @@ struct SummariesSnapshotShot: Sendable {
             var calendar = Calendar(identifier: .gregorian)
             calendar.locale = locale
             calendar.timeZone = TimeZone(secondsFromGMT: 3 * 3600)!
-            let size = CGSize(width: 1000, height: 1150)
+            let size = CGSize(width: 1000, height: 1700)
 
             let ready = MacSummariesReadyBox()
             let root = NavigationStack {

@@ -186,7 +186,7 @@ Sahip, heyetin önerdiği Mürekkep'i bu iki değişiklikle seçti. Tasarımcı 
 | İtiraz edenler: erişilebilirlik, platform | Fosfor zeminin kâğıda kontrastı 1,11:1'dir. Ayrımı gerçekte yarı kalın yazı taşır; Kalın Metin açılınca fark daralır. Sarı zemin sistemin bul ve ara eşleşme vurgusuyla aynı görünür. Önceliği onay kutusunun içine yazmak tek denetime 2 durum yükler. Yoğun günlük yazısında her adın sarı blok olması gürültü yapar. |
 | Benimsenirse şartlar | İz hiçbir zaman tek ipucu olmaz; altında Mürekkep'in tipli alt çizgisi durur. Sarı yalnız "uygulama bunu tanıdı" anlamını taşır. Arama eşleşmesi, seçim ve uyarı başka biçim alır. İz yalnız akan metindeki adlarda durur; varlığın kendi sayfasında kendi adı iz taşımaz. Kenar çizgisinin rengi hata ya da gecikme anlatmaz. Çizgi yalnız sayfa görünümlerinde durur; kanban ve zaman çizelgesine geçmez. Kâğıt dokusu, satır çizgisi ve el yazısı yoktur. |
 
-Sahip imzayı istemedi; tanınan adlar alt çizgili kalır. İmza, Mürekkep'in üstünde ince bir katmandır ve sahip katmanı geri alabilir. Sahip isterse Aşama 9 prototipi imzayı açıp kapatarak dener.
+Sahip imzayı istemedi; tanınan adlar alt çizgili kalır. Sahip 2026-10-16'da kararı kesinleştirdi: imza eklenmez ve prototipi yapılmaz. Bu bölüm yalnız gerekçe kaydıdır.
 
 ### Mürekkep'le kabul edilen ayrıntılar
 
@@ -723,6 +723,21 @@ Bölüm `SectionHeader` ile, kartsız çizilir. Grafik yüksekliği 160 pt'dir; 
 Yığılı çubukta devreden parça uyarı rengini almaz. Uyarı rengi yalnız devreden görevin tarihinde kalır: Mürekkep kuralı 5. Erişilebilirlik boyutunda ritim şeridinin sütunları satıra döner; her satırda birim adı, işaret ve sayı yazar. Önceki dönemin rengi çukur değildir, çünkü çukur koyu kâğıtta görünmez.
 
 Kısa ritim şeridi (`RhythmStrip` `isCompact`) haftalık incelemenin ilk adımında sayıların üstünde durur. Çubuk yüksekliği 40 pt'dir. Sütunların üstündeki sayılar ve açıklama yoktur, çünkü altındaki sayılar aynı bilgiyi verir. Erişilebilirlik boyutunda şerit satıra döner ve her satır sayıyı yazar, çünkü satır düzeninde sayı birim adının yanındaki tek değerdir. Çubuk, önceki dönem ve işaret biçimi yukarıdaki tablodur. Şeridin altındaki fark satırı ikincil metin ve `monospacedDigit()` kullanır.
+
+### Açık görev eğrisi
+
+**Özetler'in Görevler bölümünde, oluşturulan görev sayısı ile yığılı çubuğun arasında Swift Charts çizimi.**
+
+| Parça | Biçim | Renk | VoiceOver |
+|---|---|---|---|
+| Bu dönem | `LineMark` + `PointMark`; son noktada sayı | Vurgu (`accent`) | Tek öğe: "Açık görevler: başta 14, sonda 23; en çok 3. hafta 24" |
+| Önceki dönem | 2 pt kesikli `LineMark`, bütün birimler | Kontrol çizgisi (`control`) | Eğri özetinde tekrar okunmaz |
+| X ekseni | Bütün birim etiketleri; yılda her ikinci ay; `fixedSize()`, iki yanda yarım birim pay | İkincil metin | Birim adı en yüksek değerin özetinde |
+| Y ekseni | Sıfırdan başlar; `desiredCount: 3`; yatay ızgara | Etiket ikincil metin, ızgara kontrol çizgisi | Sayılar eğri özetinde |
+| Açıklama ve envanter | "— açık görev ┄ Önceki ay/hafta/yıl"; altında "Dönem sonunda 23 açık · dönem başında 14" | İkincil metin | Ayrı öğe değildir |
+| Erişilebilirlik boyutu | Grafik yerine birim adı ve sayı listesi | İkincil metin | Aynı tek öğelik özet |
+
+Eksen, açıklama ve sayılar `Font.ink.meta` ve `monospacedDigit()` kullanır. Grafik 164 pt yüksekliğindedir. Başlamamış birimde mevcut dönem noktası yoktur. Çizim işlemi animasyonu kapatır; Hareketi Azalt açıkken de animasyon yoktur. Mac'te aynı bileşen sağ sütundaki Görevler bölümündedir.
 
 ### Yazılan günler haritası
 

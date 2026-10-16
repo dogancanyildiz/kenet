@@ -16,6 +16,9 @@ struct SummariesReadyKey: PreferenceKey {
 struct SummariesView: View {
     let store: IndexStore
     @State private var model: SummariesModel
+    @State private var taskFlow: TaskFlowSeries?
+    @State private var taskFlowRequest: String?
+    @State private var taskFlowError: String?
     /// The year map of the shown year; `yearRequest` is the request key it was read for.
     @State private var yearCalendar: YearWritingCalendar?
     @State private var yearRequest: String?
@@ -75,6 +78,7 @@ struct SummariesView: View {
         .preference(
             key: SummariesReadyKey.self,
             value: model.summary != nil && !model.isLoading && isYearReady && isWeekdaysReady
+                && taskFlowRequest == model.requestKey
         )
         .background {
             // Ticks each minute so the key sees a new day; the page loads again past midnight.
@@ -83,12 +87,16 @@ struct SummariesView: View {
                     await model.load()
                     await loadYear()
                     await loadWeekdays()
+                    await loadTaskFlow()
                 }
             }
             .accessibilityHidden(true)
         }
         .onChange(of: store.vaultURL) { _, _ in
             model.reset()
+            taskFlow = nil
+            taskFlowRequest = nil
+            taskFlowError = nil
             yearCalendar = nil
             yearRequest = nil
             yearError = nil
@@ -388,7 +396,39 @@ struct SummariesView: View {
         let counts = summary.counts
         if counts.createdTasks + counts.completedTasks + counts.overdueTasks + counts.undatedTasks > 0 {
             SummaryTaskSection(
-                counts: counts, change: change(summary.change.createdTasks, summary))
+                counts: counts, change: change(summary.change.createdTasks, summary),
+                taskFlow: taskFlowRequest == model.requestKey ? taskFlow : nil)
+            if taskFlowRequest == model.requestKey, let taskFlowError {
+                InfoBand(kind: .error, verbatim: taskFlowError)
+            }
+        }
+    }
+
+    private func loadTaskFlow() async {
+        let key = model.requestKey
+        guard model.errorText == nil, model.summary != nil else {
+            taskFlow = nil
+            taskFlowError = nil
+            taskFlowRequest = key
+            return
+        }
+        let period = model.period
+        let day = model.day
+        let measuredToday = today()
+        do {
+            let tasks = try await store.summaryTasks()
+            try Task.checkCancellation()
+            guard key == model.requestKey else { return }
+            taskFlow = TaskFlowSeries.compute(
+                tasks: tasks, period: period, containing: day, today: measuredToday)
+            taskFlowError = nil
+            taskFlowRequest = key
+        } catch is CancellationError {
+        } catch {
+            guard key == model.requestKey else { return }
+            taskFlow = nil
+            taskFlowError = DayEditError.message(for: error)
+            taskFlowRequest = key
         }
     }
 

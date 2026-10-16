@@ -39,9 +39,10 @@ public struct WeekdayDistribution: Sendable, Equatable {
         self.leadingWeekday = leadingWeekday
     }
 
-    /// Measured days follow ``PeriodSummary`` and ``YearWritingCalendar``: the whole period once
-    /// ended or without `today`, its start through `today` while running, and no days when `today`
-    /// is before the period starts. Rows outside the measured range are ignored; rows of one date add up.
+    /// Measured days: the whole period once ended or without `today`, its start through `today` while
+    /// running, and no days when `today` is before the period starts (unlike ``PeriodSummary``, which
+    /// counts an unstarted period whole; the screen never shows such a period). Rows outside the
+    /// measured range are ignored; rows of one date add up.
     public static func compute(
         days: [SummaryInput.Day],
         period: SummaryPeriod,

@@ -18,6 +18,28 @@ final class MentionComposer {
         let entity: KnownEntity
     }
 
+    /// Where a creation started: from the `@` suggestions while the user is still writing, or
+    /// at an unknown name the user's own send or save stopped at.
+    enum CreationOrigin { case typing, submit }
+
+    /// What follows a creation: finish the send or save the user asked for, or keep writing.
+    enum CreationFollowUp: Equatable { case commit, keepEditing }
+
+    /// The one-line confirmation after a creation that keeps the text in place.
+    struct CreationNotice: Equatable {
+        let id = UUID()
+        let name: String
+        let kind: VaultEntityKind
+    }
+
+    /// Only a creation the user's send or save asked for completes that send or save.
+    nonisolated static func followUp(after origin: CreationOrigin) -> CreationFollowUp {
+        switch origin {
+        case .typing: .keepEditing
+        case .submit: .commit
+        }
+    }
+
     let store: IndexStore
     var text = "" {
         didSet {
@@ -35,6 +57,9 @@ final class MentionComposer {
     private(set) var isCreating = false
     var awaitingResolution = false
     var requestedCreation: CreationRequest?
+    private(set) var creationOrigin = CreationOrigin.submit
+    /// Cleared by the next text change; the strip also lets it go after a short while.
+    var creationNotice: CreationNotice?
     var pins: [Pin] = []
     var skipped: Set<MentionPosition> = []
     /// Bare names the user turned back into plain words, as UTF-8 ranges of `text`: they are
@@ -116,6 +141,8 @@ final class MentionComposer {
     /// Arms resolution and returns whether commit can proceed without a strip choice.
     func beginResolution() -> Bool {
         awaitingResolution = true
+        // A send was asked for: any question left open now belongs to the send.
+        creationOrigin = .submit
         return pendingAmbiguity == nil && pendingUnknown == nil
     }
 
@@ -140,8 +167,25 @@ final class MentionComposer {
         replace((range.lowerBound - 1)..<range.lowerBound, with: "")
     }
 
-    func create(_ kind: VaultEntityKind) async {
-        guard !isCreating, let mention = pendingUnknown else { return }
+    /// "Vazgeç" on the unknown-name question. After a send or save the name turns plain and the
+    /// send or save goes on; while writing only the question goes and the text stays as typed.
+    @discardableResult
+    func dismissCreation(_ mention: CreationRequest) -> CreationFollowUp {
+        let followUp = Self.followUp(after: creationOrigin)
+        switch followUp {
+        case .commit: dismissUnknown(mention)
+        case .keepEditing: clearResolutionState()
+        }
+        return followUp
+    }
+
+    /// Writes the entity file and pins the name; returns what follows, or `nil` while the
+    /// creation still waits (a qualifier, an error).
+    @discardableResult
+    func create(_ kind: VaultEntityKind) async -> CreationFollowUp? {
+        guard !isCreating, let mention = pendingUnknown else { return nil }
+        // Typing during the write resets the resolution state; the origin is the one the user started.
+        let origin = creationOrigin
         let draft = text
         let root = store.vaultURL
         isCreating = true
@@ -158,13 +202,22 @@ final class MentionComposer {
             if text == draft && store.vaultURL == root {
                 pins.append(Pin(range: globalRange(mention.position), entity: entity))
             }
+            let followUp = Self.followUp(after: origin)
+            if followUp == .keepEditing {
+                // Writing goes on: the question closes and nothing is sent or saved.
+                awaitingResolution = false
+                creationOrigin = .submit
+                creationNotice = CreationNotice(name: entity.name, kind: kind)
+            }
+            return followUp
         } catch VaultStoreError.nameTaken {
-            guard text == draft && store.vaultURL == root else { return }
+            guard text == draft && store.vaultURL == root else { return nil }
             needsQualifier = true
         } catch {
-            guard text == draft && store.vaultURL == root else { return }
+            guard text == draft && store.vaultURL == root else { return nil }
             errorText = String(localized: "Varlık oluşturulamadı. Kasayı kontrol edip yeniden dene.")
         }
+        return nil
     }
 
     /// Suggestions follow the active mention at the insertion point, defaulting to the end.
@@ -183,12 +236,9 @@ final class MentionComposer {
             !fragment.hasSuffix(" ")
         else { return nil }
         let start = prefix[..<at].utf8.count
-        // A picked digit-only name keeps its at sign; once pinned it asks nothing more, even with the caret inside it.
-        if EntityRecognizer.needsExplicitMention(String(fragment)),
-            pins.contains(where: { $0.range.lowerBound == start + 1 && $0.range.upperBound >= end })
-        {
-            return nil
-        }
+        // A pinned name after its at sign (a picked digit-only name, one created while writing)
+        // asks nothing more: not with the caret inside it, not while the sentence goes on after it.
+        if pins.contains(where: { $0.range.lowerBound == start + 1 }) { return nil }
         return start..<end
     }
 
@@ -213,8 +263,10 @@ final class MentionComposer {
             }.prefix(6))
     }
 
-    func beginCreation(_ kind: VaultEntityKind, at byteOffset: Int? = nil) async {
-        guard let range = suggestionRange(at: byteOffset), range.count > 1 else { return }
+    /// Creates the entity for the `@` name being written; the text is neither sent nor saved.
+    @discardableResult
+    func beginCreation(_ kind: VaultEntityKind, at byteOffset: Int? = nil) async -> CreationFollowUp? {
+        guard let range = suggestionRange(at: byteOffset), range.count > 1 else { return nil }
         let positionRange = (range.lowerBound + 1)..<range.upperBound
         let name = String(decoding: Array(text.utf8)[positionRange], as: UTF8.self)
         let prefix = String(decoding: Array(text.utf8)[..<positionRange.lowerBound], as: UTF8.self)
@@ -225,15 +277,16 @@ final class MentionComposer {
                 byteRange: (lines.last?.utf8.count ?? 0)..<((lines.last?.utf8.count ?? 0) + name.utf8.count)),
             spelling: name)
         awaitingResolution = true
+        creationOrigin = .typing
         creationKind = kind
         if store.knownEntities.contains(where: {
             $0.name.precomposedStringWithCanonicalMapping.lowercased()
                 == name.precomposedStringWithCanonicalMapping.lowercased()
         }) {
             needsQualifier = true
-            return
+            return nil
         }
-        await create(kind)
+        return await create(kind)
     }
 
     /// Replaces the active `@` fragment and returns the caret UTF-8 offset after the inserted name.
@@ -271,6 +324,7 @@ final class MentionComposer {
         needsQualifier = false
         creationKind = nil
         requestedCreation = nil
+        creationOrigin = .submit
         qualifier = ""
         errorText = nil
     }
@@ -329,6 +383,7 @@ final class MentionComposer {
             return nil
         }
         skipped = []
+        creationNotice = nil
         clearResolutionState()
     }
 }

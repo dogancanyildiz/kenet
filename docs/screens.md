@@ -260,6 +260,8 @@ Varsayılan yazı boyutunda hızlı giriş tek satırlı bir kapsüldür. Ölç�
 
 Uygulama saatli olayı dosyada saat sırasındaki yerine yazar. Ekran olayları dosyadaki sırayla gösterir. Kişi ve konum adları dokunma hedefi olan bağlantılardır. Bağlantıya dokunma varlık ekranını sheet içinde açar.
 
+Olay metni düzenleme sheet'indeki anma şeridi hızlı girişteki yeni varlık kuralını kullanır. Yazarken oluşturulan varlık sheet'i kaydetmez ve kapatmaz. Kaydet sonrasında çıkan soruya verilen cevap kaydı tamamlar ve sheet'i kapatır.
+
 #### Bağlam bölümü (10)
 
 | Satır | İçerik | Kural |
@@ -275,7 +277,7 @@ Uygulama bağlamı yalnız Bugün'de ve yalnız söyleyecek bir şey varken çiz
 
 #### Günlük yazısı
 
-Varsa ekran serbest yazının ilk 4 satırını ve "Devamını yaz" bağlantısını gösterir. Dokunma tam ekran yazma alanını açar. Yazma alanındaki `@` önerileri ve belirsiz ya da bilinmeyen açık anma çözümü hızlı girişteki ortak şerittir. Uygulama kesin bağlantıyı yalnız değişen satırlara uygular.
+Varsa ekran serbest yazının ilk 4 satırını ve "Devamını yaz" bağlantısını gösterir. Dokunma tam ekran yazma alanını açar. Yazma alanındaki `@` önerileri ve belirsiz ya da bilinmeyen açık anma çözümü hızlı girişteki ortak şerittir. Uygulama kesin bağlantıyı yalnız değişen satırlara uygular. Yeni varlık kuralı hızlı girişteki gibidir: yazarken oluşturulan varlık metni kaydetmez, imleç alanda kalır. Kaydetme sonrasında çıkan soruya verilen cevap kaydı tamamlar.
 
 #### Bu güne bağlananlar (10)
 
@@ -376,6 +378,7 @@ sequenceDiagram
         Serit->>Kasa: Yeni varlık dosyasını yazar, gerekirse
         Serit->>Model: submit yeniden
     end
+    Note over Kullanici,Serit: Yazarken oluşturma varlığı yazar ama submit çağırmaz. Yalnız gönderimdeki soru gönderimi tamamlar.
     Model->>Model: Anmaları bağlantıya çevirir
     Model->>Kutu: Kutuyu boşaltır, klavye açık kalır
     Model->>Kasa: Olayı ya da görevi gün dosyasına yazar
@@ -415,6 +418,9 @@ Uygulama önce dosyaya yazar, sonra indeksi günceller. Yazma hata verirse kutu 
 | Birleşen ad | İfade çıkınca geri alınan ad yanındaki sözcükle daha uzun bir ada birleşirse birleşen ad da düz kalır: `Mert yarın Aksu` → `Mert Aksu`. |
 | Birden çok aday | Uygulama en olası adayı önerir. Emin değilse seçim ister. |
 | Tanınmayan `@` adı | Şerit "kişi olarak ekle" ya da "konum olarak ekle" seçeneğini gösterir. Aynı adda varlık varsa kısa bir ayırt edici sorar. |
+| Yeni varlık oluşturma | Yazarken: "Yeni kişi oluştur", "Yeni konum oluştur" ya da "… olarak ekle" varlık dosyasını yazar. `@Ad` metinde sabit kalır, kutu ve klavye açık kalır. Uygulama metni göndermez. Sabit ad yeni öneri ya da ikinci oluşturma seçeneği açmaz. Gönderim sonrasında: "Kişi olarak ekle" ya da "Konum olarak ekle" varlığı yazar ve gönderimi tamamlar. |
+| Oluşturma onayı | Yazarken oluşturmadan sonra şeritte tek satır durur: "Deniz Arıkan kişi olarak eklendi". Satır 2 saniye sonra ya da bir sonraki tuşta gider. VoiceOver aynı metni duyurur. Gönderim sonrasında onay satırı yoktur; olay listeye girer. |
+| Oluşturmada "Vazgeç" | Yazarken: soru kapanır, metin yazıldığı gibi kalır. Gönderim sonrasında: `@` işareti kalkar, ad düz metin olur ve gönderim sürer. |
 
 **Görev kipi kuralları.**
 

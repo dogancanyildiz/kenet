@@ -318,6 +318,24 @@ Kullanıcı bu aşamayı 2026-10-15'te onayladı. Madde kimlik ya da cihaz karar
 
 **Çıkış ölçütü:** Altı grafik iPhone'da açık, koyu ve AX3'te referans görüntüyle korunur; Core hesapları fixture ile sınanır.
 
+## Aşama 15: Kullanım kolaylığı
+
+| Madde | Durum | Kanıt |
+|---|---|---|
+| Silme ve ekleme | Sürüyor | - |
+| Bugün hedef şeridi | Sürüyor | - |
+| Oluşturma gönderimi tamamlamaz | Sürüyor | - |
+| Hedef düzenleme formu | Sürüyor | - |
+
+Kullanıcı 2026-10-16'da TestFlight 249 denemesinden sonra dört sorun bildirdi ve aşamayı açtı. Maddeler kimlik ya da cihaz kararı gerektirmez; bu yüzden Aşama 11 ile birlikte yürür. Kararlar karar günlüğünde 2026-10-16 satırlarındadır.
+
+- [ ] Silme ve ekleme: kişi, konum ve özel tip varlığının ekranında onaylı "Sil"; yalnız varlık dosyası silinir, gün dosyalarındaki bağlantılar çözülmemiş bağlantı olarak kalır. Hedef ayrıntısında onaylı "Hedefi sil"; yalnız hedef dosyası silinir, gün kayıtları kalır. Kişiler ve Konumlar listesinde "Yeni kişi" ve "Yeni konum". Silme Core'da dosya koordinasyonuyla yapılır ve kasa biçimi belgesine girer.
+- [ ] Bugün hedef şeridi: işaretleme ya da artırma satırın yerini değiştirmez (sıra güne girişte belirlenir); artı düğmesinin yuvası yazma ve yükleme sırasında sabit kalır; bölüm başlığına yükleme göstergesi gelmez; satıra dokunma hedef ayrıntısını açar.
+- [ ] Oluşturma gönderimi tamamlamaz: hızlı girişte, olay düzenleyicide ve serbest yazıda yazarken "Yeni kişi / konum oluştur" yalnız varlık dosyasını yazar, metni ve odağı korur. Gönder ya da Kaydet sonrası "Kişi olarak ekle" bugünkü gibi işlemi tamamlar.
+- [ ] Hedef düzenleme formu: ad, dönem, tür, miktar ve birim tek sheet'te, Vazgeç ve Kaydet ile; sheet'in altında "Hedefi sil". Alan başına sheet kalkar.
+
+**Çıkış ölçütü:** Dört davranış iPhone'da görüntü ve birim testiyle korunur; silme yolları Core testleriyle sınanır; kullanıcı TestFlight'ta doğrular.
+
 ## Sonraki fikirler
 
 | Fikir | Not |

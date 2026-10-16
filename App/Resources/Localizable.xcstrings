@@ -145,6 +145,22 @@
         }
       }
     },
+    "%@ %@ olarak eklendi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ added as %2$@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ %2$@ olarak eklendi"
+          }
+        }
+      }
+    },
     "%@ gün" : {
       "localizations" : {
         "en" : {
@@ -189,6 +205,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ kaldı"
+          }
+        }
+      }
+    },
+    "%@ kişi olarak eklendi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ added as a person"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ kişi olarak eklendi"
+          }
+        }
+      }
+    },
+    "%@ konum olarak eklendi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ added as a place"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ konum olarak eklendi"
           }
         }
       }

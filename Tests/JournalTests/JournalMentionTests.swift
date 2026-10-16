@@ -237,6 +237,46 @@ struct JournalMentionTests {
         #expect(model.composer.pendingAmbiguity == nil)
         #expect(!model.composer.suggestions().isEmpty)
     }
+
+    @Test func journalCreationWhileTypingDoesNotSave() async throws {
+        let context = try DayEditingTestContext()
+        defer { context.clean() }
+        await context.start()
+        let before = try Data(contentsOf: context.file)
+        let model = JournalEditorModel(store: context.store, day: context.day)
+        await model.load()
+        model.text = "Bugün @Yeni Ad"
+        let followUp = await model.composer.beginCreation(.person)
+        #expect(followUp == .keepEditing)
+        var saved = false
+        MentionAssistStrip.finish(followUp) { saved = true }
+        #expect(!saved)
+        #expect(model.text == "Bugün @Yeni Ad")
+        #expect(!model.composer.awaitingResolution)
+        #expect(try Data(contentsOf: context.file) == before)
+        model.text += " ile.\n"
+        #expect(await model.save())
+        let body = try JournalRecognition.body(of: RawDocument(bytes: try Data(contentsOf: context.file)))
+        #expect(body.contains("Bugün [[Yeni Ad]] ile."))
+    }
+
+    @Test func journalCreationAfterSaveCompletesTheSave() async throws {
+        let context = try DayEditingTestContext()
+        defer { context.clean() }
+        await context.start()
+        let model = JournalEditorModel(store: context.store, day: context.day)
+        await model.load()
+        model.text = "@Yeni Ad ile.\n"
+        #expect(await !model.save())
+        let followUp = await model.composer.create(.person)
+        #expect(followUp == .commit)
+        var saved = false
+        MentionAssistStrip.finish(followUp) { saved = true }
+        #expect(saved)
+        #expect(await model.save())
+        let body = try JournalRecognition.body(of: RawDocument(bytes: try Data(contentsOf: context.file)))
+        #expect(body.contains("[[Yeni Ad]] ile."))
+    }
 }
 
 #if os(iOS)

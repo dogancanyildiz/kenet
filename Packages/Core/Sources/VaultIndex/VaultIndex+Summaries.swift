@@ -52,22 +52,7 @@ extension VaultIndex {
                 guard let date = CalendarDate(source) else { return nil }
                 return .init(day: date, entity: row["resolvedFile"])
             }
-            let taskRows = try Row.fetchAll(
-                db,
-                sql: """
-                    SELECT b.*, CASE WHEN f.kind='day' THEN f.date ELSE NULL END AS created
-                    FROM blocks b JOIN files f ON f.path=b.file WHERE b.kind='task' ORDER BY b.file,b.ordinal
-                    """)
-            let tasks = taskRows.map { row -> SummaryInput.Task in
-                let created: String? = row["created"]
-                let due: String? = row["dueDate"]
-                let done: String? = row["doneDate"]
-                let status: String? = row["status"]
-                return .init(
-                    created: created.flatMap(CalendarDate.init),
-                    status: status.flatMap(TaskStatus.init(rawValue:)) ?? .unknown,
-                    due: due.flatMap(CalendarDate.init), done: done.flatMap(CalendarDate.init))
-            }
+            let tasks = try Self.summaryTasks(in: db)
             let definitions = try IndexedEntity.fetchAll(
                 db, sql: "SELECT * FROM entities WHERE kind='goal' ORDER BY file"
             ).compactMap { GoalDefinition(entity: $0) }
@@ -79,6 +64,30 @@ extension VaultIndex {
                 goals: definitions.map {
                     .init(definition: $0, logs: (grouped[$0.key] ?? []).compactMap(GoalLog.init(indexed:)))
                 })
+        }
+    }
+
+    /// All source-derived tasks, including older inventory and tasks outside day files.
+    public func summaryTasks() throws -> [SummaryInput.Task] {
+        try database.read { try Self.summaryTasks(in: $0) }
+    }
+
+    private static func summaryTasks(in db: Database) throws -> [SummaryInput.Task] {
+        let taskRows = try Row.fetchAll(
+            db,
+            sql: """
+                SELECT b.*, CASE WHEN f.kind='day' THEN f.date ELSE NULL END AS created
+                FROM blocks b JOIN files f ON f.path=b.file WHERE b.kind='task' ORDER BY b.file,b.ordinal
+                """)
+        return taskRows.map { row -> SummaryInput.Task in
+            let created: String? = row["created"]
+            let due: String? = row["dueDate"]
+            let done: String? = row["doneDate"]
+            let status: String? = row["status"]
+            return .init(
+                created: created.flatMap(CalendarDate.init),
+                status: status.flatMap(TaskStatus.init(rawValue:)) ?? .unknown,
+                due: due.flatMap(CalendarDate.init), done: done.flatMap(CalendarDate.init))
         }
     }
 }

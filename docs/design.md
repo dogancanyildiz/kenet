@@ -231,7 +231,7 @@ Seçim değişirse yukarıdaki sıra geçerlidir. Geri dönüş maliyeti düşü
 | 9 | iOS'ta hiçbir metin 12 pt'nin altında değildir. Etiketler cümle düzenindedir. Büyük harfli, geniş aralıklı etiket yoktur. |
 | 10 | Dokunma hedefleri en az 44 pt'dir. |
 | 11 | İçerikte büyük ters renkli yüzey yoktur. Böyle bir yüzey altından geçtiği sistem camını açık ile koyu arasında çevirir. |
-| 12 | Mac'te kenar çubuğu uygulamanın vurgu rengini taşır: mürdüm. Simgeler vurgu rengindedir. Seçili satır vurgu rengiyle dolar; yazısı ve simgesi vurgu üstü mürekkeptedir. Kontrast açıkta 8,70:1, koyuda 9,18:1'dir; alt sınır 4,5:1'dir. Yalnız seçili girdi vurgu alır: Görevler'in altındaki Kanban, Zaman çizelgesi ve projeler ayrı satırdır. Seçimin kendisi sistemindir: ok tuşları, odak, VoiceOver. Yalnız çizim uygulamanındır. |
+| 12 | Mac'te kenar çubuğu uygulamanın vurgu rengini taşır: mürdüm. Simgeler vurgu rengindedir. Seçili satır vurgu rengiyle dolar; yazısı ve simgesi vurgu üstü mürekkeptedir. Kontrast açıkta 8,70:1, koyuda 9,18:1'dir; alt sınır 4,5:1'dir. Yalnız seçili girdi vurgu alır: Görevler'in altındaki Kanban, Zaman çizelgesi ve projeler ayrı satırdır. Seçimin kendisi sistemindir: ok tuşları, odak, VoiceOver. Yalnız çizim uygulamanındır. Bölünmüş kabukta (iPhone Duo iç ekranı, iPad) aynı kural geçerlidir: sistemin seçim vurgusu ve odak çerçevesi dolgunun üstüne çizilmez. |
 | 13 | Hareket sistem varsayılanlarıyla sınırlıdır ve Hareketi Azalt ayarına uyar. Tek istisna Graph'tır: düğümler kuvvet benzetimiyle hareket eder, çünkü içerik hareketin kendisidir. Hareketi Azalt açıkken Graph da canlı oynamaz; uygulama oturmuş düzeni tek seferde gösterir. |
 
 **DİKKAT:** Kural numaralarını değiştirme; kod kural 12'ye `MacSidebar.swift` içinde, Mürekkep kuralı 4'e `InkLinkStyle.swift` içinde numarayla gönderme yapar.
@@ -500,6 +500,9 @@ flowchart LR
 | `macWindowMinWidth`, `macWindowMinHeight` | 1000 × 560 pt | Mac ana penceresi |
 | `macSettingsMinWidth`, `macSettingsMinHeight` | 480 × 520 pt | Mac Ayarlar penceresi |
 | `listSelectionHorizontal`, `listSelectionVertical` | 4, 2 pt | Mac liste seçim dolgusunun satır kenarından içe payı |
+| `ShellStyle.threeColumnSidebarWidth` | 200, 240, 280 pt | iOS bölünmüş kabukta üç sütunun kenar çubuğu (iPad, 1000 pt ve üstü) |
+| `ShellStyle.accessibilitySidebarWidth` | 240, 280, 320 pt | Aynısı, erişilebilirlik yazı boyutunda |
+| `SearchSheetChrome.idealWidth`, `idealHeight` | 580 × 480 pt | iOS bölünmüş kabukta Ara sheet'i; form üst payıyla yükseklik yaklaşık 490 pt |
 
 ### Biçim: `InkSize`
 
@@ -789,7 +792,8 @@ Erişilebilirlik boyutunda 12 aylık çubuk grafiğin sütunları satıra döner
 | Dolgu | Çukur zemin, satırın içinde 6 pt yuvarlatılmış köşe. Dolgu satırın kenarından yatay 4 pt, dikey 2 pt içeridedir. |
 | İşaret | Solda 2 pt vurgu çizgisi. |
 | Yazı | Seçili satırdaki yazı belirteçleri çukur zeminde de alt sınır kontrastını taşır. |
-| iPhone | Satır kâğıt kalır. Yalnız arama sonucunda klavye seçimi hafif vurgu zemini alır. |
+| iPad ve Duo, bölünmüş kabuk | Liste sütunlarında Mac'teki seçim: çukur zemin ve solda vurgu çizgisi. Arama sonucunda da aynı çizim. |
+| iPhone | Sekme kabuğunda satır kâğıt kalır. Yalnız arama sonucunda klavye seçimi hafif vurgu zemini alır. |
 | Görev sütunu | Kutu görevi tamamlar. Metindeki bağlantı kendi sayfasını açar. Satıra tıklamak ayrıntıyı seçer. Bağlam menüsündeki silme onay diyaloğuna gider. |
 
 Kod karşılığı: `InkListSelectionBackground` ve `inkListRow(columnSelected:)`.
@@ -807,6 +811,7 @@ Kod karşılığı: `InkListSelectionBackground` ve `inkListRow(columnSelected:)
 | Konu | Kural |
 |---|---|
 | Dolgu yeri | Dolgu sistem seçiminin yerindedir: kenarlardan 10 pt içeride ve 8 pt köşeli. |
+| iPad ve Duo, bölünmüş kabuk | Aynı dolgu, yazı ve simge. Yüzen panel kâğıt rengindedir. Odak çerçevesi çizilmez; klavyeyle seçim odağı izler, dolgu odağın yerini gösterir. Satır adı tek satırdır, uzun ad sonda "…" ile kısalır. |
 | Kaydırma göstergesi | Uygulama dikey kaydırma göstergesini çizmez. Fare bağlıyken yer kaplayan çubuk satırı sağdan daraltmaz; dolgu iki kenardan 10 pt içeride kalır. Liste tekerlek, izleme dörtgeni ve ok tuşlarıyla kayar. |
 | Odak | Yerleşimi değiştiren her seçimden sonra uygulama odağı yeni kenar çubuğuna bir kez geri verir. Seçim tıklama, ok tuşu ya da VoiceOver olabilir. Uygulama bunu yalnız odak serbestse yapar. |
 | Odak serbestliği | Kenar çubuğunun kendi penceresi serbestliği belirler. Odak o pencerede başka bir denetimdeyse uygulama isteği bırakır. |

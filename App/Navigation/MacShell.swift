@@ -60,11 +60,10 @@ struct MacShellSelection: Equatable {
 }
 
 extension View {
-    /// Width of the sidebar column (`docs/design.md`, "Biçim").
+    /// Width of the sidebar column (`docs/design.md`, "Biçim"); wider on an iPad's three
+    /// columns (``ShellStyle/sidebarWidth(tier:dynamicTypeSize:)``).
     func macSidebarColumn() -> some View {
-        navigationSplitViewColumnWidth(
-            min: InkSpacing.macSidebarMinWidth, ideal: InkSpacing.macSidebarIdealWidth,
-            max: InkSpacing.macSidebarMaxWidth)
+        modifier(SidebarColumnWidth())
     }
 
     /// Width of the list column between the sidebar and the detail.
@@ -96,5 +95,15 @@ extension View {
         #else
             self
         #endif
+    }
+}
+
+private struct SidebarColumnWidth: ViewModifier {
+    @Environment(\.shellTier) private var tier
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    func body(content: Content) -> some View {
+        let width = ShellStyle.sidebarWidth(tier: tier, dynamicTypeSize: dynamicTypeSize)
+        content.navigationSplitViewColumnWidth(min: width.min, ideal: width.ideal, max: width.max)
     }
 }

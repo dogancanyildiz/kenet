@@ -266,9 +266,10 @@ extension View {
     /// List row on paper: matching background, page margin insets, system separators hidden
     /// (section rules come from ``SectionHeader``).
     ///
-    /// `columnSelected` is the Mac list-column and search-result selection. `nil` stays paper
-    /// (sheets, headers). Pass `true` / `false` on a column row; the value does not inherit
-    /// into sheets. On iPhone, `true` keeps the search result's accent wash.
+    /// `columnSelected` is the Mac list-column and search-result selection, and on iOS the split
+    /// shell's (iPhone Duo, iPad). `nil` stays paper (sheets, headers). Pass `true` / `false` on
+    /// a column row; the value does not inherit into sheets. In the iPhone tab shell, `true`
+    /// keeps the search result's accent wash.
     func inkListRow(columnSelected: Bool? = nil) -> some View {
         modifier(InkListRowModifier(columnSelected: columnSelected))
     }
@@ -276,6 +277,9 @@ extension View {
 
 private struct InkListRowModifier: ViewModifier {
     var columnSelected: Bool? = nil
+    #if os(iOS)
+        @Environment(\.shellKind) private var shellKind
+    #endif
 
     func body(content: Content) -> some View {
         row(content)
@@ -308,8 +312,11 @@ private struct InkListRowModifier: ViewModifier {
                 Color.ink.paper
             }
         #else
-            // Search marks the keyboard selection. Phone list columns pass false or nil.
-            if columnSelected == true {
+            if shellKind == .split, let columnSelected {
+                // The split shell's list columns (iPhone Duo, iPad) select like the Mac's.
+                InkListSelectionBackground(isSelected: columnSelected)
+            } else if columnSelected == true {
+                // Search marks the keyboard selection. Phone list columns pass false or nil.
                 Color.ink.accent.opacity(0.12)
             } else {
                 Color.ink.paper

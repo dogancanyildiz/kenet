@@ -75,6 +75,89 @@ struct SearchButton: View {
     }
 }
 
+extension View {
+    /// The global search sheet, presented above the shell (`ContentView`). In the split iOS
+    /// shell (iPhone Duo inner screen, iPad) it is a form sheet like Settings, so the regular
+    /// width's tall page sheet does not run under the software keyboard; the sheet takes the
+    /// shell's kind, which `MacNavigation` sets only for the views below it.
+    func searchSheet(isPresented: Binding<Bool>, store: IndexStore) -> some View {
+        modifier(SearchSheetModifier(isPresented: isPresented, store: store))
+    }
+}
+
+private struct SearchSheetModifier: ViewModifier {
+    @Binding var isPresented: Bool
+    let store: IndexStore
+    #if os(iOS)
+        @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+        @Environment(\.verticalSizeClass) private var verticalSizeClass
+    #endif
+
+    func body(content: Content) -> some View {
+        content.sheet(isPresented: $isPresented) {
+            #if os(iOS)
+                SearchView(store: store)
+                    .environment(\.openSearch, { isPresented = true })
+                    .environment(\.shellKind, shellKind)
+                    .modifier(SearchSheetSizing(shellKind: shellKind))
+            #else
+                SearchView(store: store)
+                    .environment(\.openSearch, { isPresented = true })
+            #endif
+        }
+    }
+
+    #if os(iOS)
+        private var shellKind: ShellKind {
+            ShellKind.resolve(horizontal: horizontalSizeClass, vertical: verticalSizeClass)
+        }
+    #endif
+}
+
+#if os(iOS)
+    /// Split shell: the form size of the other sheets (``SearchSheetChrome``); the tab shell
+    /// keeps the phone's full-height sheet. One view for both shells: a Split View drag that
+    /// changes the size class while the sheet is open keeps the query typed.
+    struct SearchSheetSizing: ViewModifier {
+        let shellKind: ShellKind
+
+        func body(content: Content) -> some View {
+            let isForm = shellKind == .split
+            content
+                .frame(
+                    minWidth: isForm ? InkSheetChrome.macMinWidth : nil,
+                    idealWidth: isForm ? SearchSheetChrome.idealWidth : nil,
+                    minHeight: isForm ? InkSheetChrome.macMinHeight : nil,
+                    idealHeight: isForm ? SearchSheetChrome.idealHeight : nil
+                )
+                .presentationSizing(SearchSheetPresentationSizing(isForm: isForm))
+        }
+    }
+
+    /// The form's fitted size in the split shell, the system's own sizing in the tab shell; one
+    /// type, so the shell kind is a value and not a branch of the view tree.
+    private struct SearchSheetPresentationSizing: PresentationSizing {
+        let isForm: Bool
+
+        func proposedSize(for root: PresentationSizingRoot, context: PresentationSizingContext) -> ProposedViewSize {
+            if isForm {
+                FormPresentationSizing.form.fitted(horizontal: false, vertical: true)
+                    .proposedSize(for: root, context: context)
+            } else {
+                AutomaticPresentationSizing.automatic.proposedSize(for: root, context: context)
+            }
+        }
+    }
+
+    enum SearchSheetChrome {
+        /// Width of the split shell's search sheet (pt): the iPad form sheet's.
+        static let idealWidth: CGFloat = 580
+        /// Height (pt): the manşet, the field and about five results stay above the software
+        /// keyboard of a 13" iPad in landscape (its top at about 530 pt).
+        static let idealHeight: CGFloat = 480
+    }
+#endif
+
 #if os(macOS)
     struct SearchNavigationKey: FocusedValueKey {
         typealias Value = () -> Void

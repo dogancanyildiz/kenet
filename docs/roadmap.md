@@ -165,7 +165,7 @@ Kapılar:
 
 | Madde | Durum | Kanıt |
 |---|---|---|
-| Bugün prototipi | Açık. Ekran `dev` dalında ve görüntü testlerinden geçiyor. Kalan iş: gerçek cihazda gözle doğrulama. | - |
+| Bugün prototipi | Bitti. Ayrı prototip yapılmadı; kullanıcı 2026-10-16'da imzayı istemedi ve maddeyi kapattı. | #254 |
 | Belirteçler ve simge | Bitti. Simge "Geçme": mürdüm ve mürekkep; iPhone'da 3 görünüm, Mac'te 10 boy. Kalan iş: küçük boyları gerçek cihazda gözle doğrulama. | #122 |
 | Bileşen kitaplığı | Bitti | - |
 | Bugün ve hızlı giriş | Bitti | - |

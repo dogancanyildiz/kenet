@@ -142,13 +142,13 @@ struct ComponentControlsTests {
         #expect(InkSize.modeUnderline == 2)
     }
 
-    @Test func goalFieldEditorValidatesInput() throws {
+    @Test func goalDefinitionFormValidatesInput() throws {
         let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
             .deletingLastPathComponent()
         let source = try String(
-            contentsOf: root.appendingPathComponent("App/Screens/Goals/GoalFieldEditor.swift"),
+            contentsOf: root.appendingPathComponent("App/Screens/Goals/GoalDefinitionForm.swift"),
             encoding: .utf8)
-        #expect(source.contains("isConfirmEnabled: model.canEdit && !isSaved && isValid"))
-        #expect(source.contains("private var isValid: Bool"))
+        #expect(source.contains("isConfirmEnabled: !isSaved && model.canSave(draft)"))
+        #expect(source.contains("model.error(for: field, in: draft)"))
     }
 }

@@ -10,7 +10,7 @@ struct GoalDetailView: View {
     @State private var history: GoalDayModel
     @State private var editing: GoalValueModel?
     @Environment(\.dynamicTypeSize) private var typeSize
-    @State private var field: GoalEditableField?
+    @State private var isEditing = false
     init(store: IndexStore, goal: GoalDefinition, day: CalendarDate = LocalDay.today()) {
         self.store = store
         original = goal
@@ -22,6 +22,11 @@ struct GoalDetailView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 InkPageTitle(verbatim: goal.name, byline: goal.period.title) {
+                    if store.canAddEvent {
+                        InkHeaderAction(
+                            "Düzenle", systemImage: "pencil", role: .primary, identifier: "button.goal.edit"
+                        ) { isEditing = true }
+                    }
                     SearchButton()
                 }
 
@@ -52,17 +57,6 @@ struct GoalDetailView: View {
                 .padding(.horizontal, InkSpacing.margin)
                 .disabled(!store.canAddEvent)
 
-                Button("Hedefi sil", role: .destructive) { deletion.request(path: goal.id) }
-                    .buttonStyle(InkDestructiveButtonStyle())
-                    .disabled(!store.canAddEvent || deletion.isDeleting)
-                    .accessibilityIdentifier("button.goal.delete")
-                    .padding(.horizontal, InkSpacing.margin)
-
-                if let error = deletion.errorText {
-                    InfoBand(kind: .error, verbatim: error)
-                        .padding(.horizontal, InkSpacing.margin)
-                }
-
                 section(title: String(localized: "Geçmiş kayıtlar")) {
                     historyBlock
                 }
@@ -82,21 +76,22 @@ struct GoalDetailView: View {
         }
         .inkPage()
         .inkPageNavigationTitle(verbatim: goal.name)
-        .destructiveConfirmationDialog(
-            "Hedefi sil", confirmation: $deletion.confirmation,
-            confirmTitle: "Hedefi sil", message: "\(goal.name) silinsin mi? Gün kayıtları kalır."
-        ) { path in
-            Task { if await deletion.delete(store: store, path: path, goal: true) { dismiss() } }
-        }
         .task(id: store.lastUpdated) {
             await history.load()
         }
         .sheet(item: $editing, onDismiss: { Task { await history.load() } }) { model in
             NavigationStack { GoalValueEditor(model: model) }
         }
-        .sheet(item: $field) { field in
-            NavigationStack { GoalFieldEditor(store: store, goal: goal, field: field) }
-        }
+        .sheet(
+            isPresented: $isEditing,
+            onDismiss: {
+                // "Hedefi sil" closes the form first; the detail goes once the sheet is down.
+                if deletion.isDeleted { dismiss() }
+            },
+            content: {
+                NavigationStack { GoalDefinitionForm(store: store, goal: goal, deletion: deletion) }
+            }
+        )
     }
 
     @ViewBuilder
@@ -136,32 +131,29 @@ struct GoalDetailView: View {
         }
     }
 
+    /// Read-only summary; a tap anywhere on it opens the definition form.
     private var definitionBlock: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            definitionRow(.name, value: goal.name, valueFont: .ink.content)
-            Button {
-                field = .period
-            } label: {
-                definitionLabel(
-                    GoalEditableField.period.title, value: goal.period.title, valueFont: .ink.byline)
+        Button {
+            isEditing = true
+        } label: {
+            VStack(alignment: .leading, spacing: 0) {
+                definitionLabel(GoalEditableField.name.title, value: goal.name, valueFont: .ink.content)
+                definitionLabel(GoalEditableField.period.title, value: goal.period.title, valueFont: .ink.byline)
+                definitionLabel(GoalEditableField.kind.title, value: goal.kind.title, valueFont: .ink.byline)
+                if goal.kind != .milestone {
+                    definitionLabel(
+                        GoalEditableField.target.title, value: goal.target.formatted(), valueFont: .ink.value)
+                }
+                if let unit = goal.unit {
+                    definitionLabel(GoalEditableField.unit.title, value: unit, valueFont: .ink.content)
+                }
+                definitionLabel(String(localized: "Anahtar"), value: goal.key, valueFont: .ink.content)
             }
-            .buttonStyle(.plain)
-            .disabled(goal.kind == .milestone)
-            Button {
-                field = .kind
-            } label: {
-                definitionLabel(
-                    GoalEditableField.kind.title, value: goal.kind.title, valueFont: .ink.byline)
-            }
-            .buttonStyle(.plain)
-            .disabled(goal.kind == .milestone)
-            if goal.kind != .milestone {
-                definitionRow(.target, value: goal.target.formatted(), valueFont: .ink.value)
-            }
-            definitionRow(.unit, value: goal.unit ?? "", valueFont: .ink.content)
-            definitionLabel(String(localized: "Anahtar"), value: goal.key, valueFont: .ink.content)
-                .foregroundStyle(Color.ink.secondaryText)
         }
+        .buttonStyle(.plain)
+        .accessibilityElement(children: .combine)
+        .accessibilityHint(Text("Hedef tanımını düzenler"))
+        .accessibilityIdentifier("button.goal.definition")
     }
 
     @ViewBuilder
@@ -209,17 +201,6 @@ struct GoalDetailView: View {
             SectionHeader(title: title)
             content()
         }
-    }
-
-    private func definitionRow(
-        _ field: GoalEditableField, value: String, valueFont: Font
-    ) -> some View {
-        Button {
-            self.field = field
-        } label: {
-            definitionLabel(field.title, value: value, valueFont: valueFont)
-        }
-        .buttonStyle(.plain)
     }
 
     private func definitionLabel(_ title: String, value: String, valueFont: Font) -> some View {

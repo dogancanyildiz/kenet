@@ -270,8 +270,9 @@ import Testing
         let tasks = try Self.read("App/Screens/Tasks/TasksViewSelector.swift")
         #expect(tasks.contains("accessibilityLabelPrefix: String(localized: \"Görünüm\")"))
 
-        let goals = try Self.read("App/Screens/Goals/GoalFieldEditor.swift")
-        #expect(goals.contains("accessibilityLabelPrefix: field.title"))
+        let goals = try Self.read("App/Screens/Goals/GoalDefinitionForm.swift")
+        #expect(goals.contains("accessibilityLabelPrefix: GoalEditableField.period.title"))
+        #expect(goals.contains("accessibilityLabelPrefix: GoalEditableField.kind.title"))
 
         let summaries = try Self.read("App/Screens/Summaries/SummariesView.swift")
         #expect(summaries.contains("accessibilityLabelPrefix: String(localized: \"Dönem\")"))

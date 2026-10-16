@@ -10,7 +10,9 @@ struct MentionAssistStrip: View {
     var insertionOffset: Int? = nil
     var isEnabled: Bool = true
     /// Invoked after a suggestion or creation edits text; argument is the caret UTF-8 offset when known.
+    /// The hosts keep the focus in the field here, also after a creation that keeps the text.
     var onDidChangeText: ((Int?) -> Void)? = nil
+    /// Completes the send or save the user asked for; never called for a creation made while writing.
     var onResolved: (() -> Void)? = nil
 
     @Environment(\.locale) private var locale
@@ -20,6 +22,7 @@ struct MentionAssistStrip: View {
         composer.pendingAmbiguity != nil
             || composer.pendingUnknown != nil
             || composer.errorText != nil
+            || composer.creationNotice != nil
             || (!composer.awaitingResolution && !composer.suggestions(at: insertionOffset).isEmpty)
             || (!composer.awaitingResolution && (composer.suggestionRange(at: insertionOffset)?.count ?? 0) > 1)
     }
@@ -32,9 +35,43 @@ struct MentionAssistStrip: View {
                 if let error = composer.errorText {
                     InfoBand(kind: .error, verbatim: error)
                 }
+                if let notice = composer.creationNotice {
+                    creationNoticeRow(notice)
+                }
             }
             .onAppear { announceResolutionIfNeeded() }
             .onChange(of: announcementKey) { _, _ in announceResolutionIfNeeded() }
+        }
+    }
+
+    private func creationNoticeRow(_ notice: MentionComposer.CreationNotice) -> some View {
+        Text(verbatim: noticeText(notice))
+            .font(.ink.meta)
+            .foregroundStyle(Color.ink.secondaryText)
+            .lineLimit(nil)
+            .fixedSize(horizontal: false, vertical: true)
+            .task(id: notice) {
+                try? await Task.sleep(for: .seconds(2))
+                guard !Task.isCancelled, composer.creationNotice == notice else { return }
+                composer.creationNotice = nil
+            }
+    }
+
+    private func noticeText(_ notice: MentionComposer.CreationNotice) -> String {
+        Self.noticeText(notice, types: store.entityTypes, language: locale.language.languageCode?.identifier ?? "en")
+    }
+
+    static func noticeText(
+        _ notice: MentionComposer.CreationNotice, types: EntityTypeCatalog, language: String
+    ) -> String {
+        switch notice.kind {
+        case .person:
+            return String(localized: "\(notice.name) kişi olarak eklendi")
+        case .place:
+            return String(localized: "\(notice.name) konum olarak eklendi")
+        case .custom(let id):
+            let type = EntityTypeChoices.choices(types, language: language).first { $0.id == id }?.name ?? id
+            return String(localized: "\(notice.name) \(type) olarak eklendi")
         }
     }
 
@@ -100,6 +137,9 @@ struct MentionAssistStrip: View {
         }
         if let mention = composer.pendingUnknown {
             return String(localized: "Bilinmeyen anma: \(mention.spelling)")
+        }
+        if let notice = composer.creationNotice {
+            return noticeText(notice)
         }
         return nil
     }
@@ -172,9 +212,9 @@ struct MentionAssistStrip: View {
                 }
             }
             Button("Vazgeç") {
-                composer.dismissUnknown(mention)
+                let followUp = composer.dismissCreation(mention)
                 onDidChangeText?(nil)
-                onResolved?()
+                Self.finish(followUp, onResolved: onResolved)
             }
             .buttonStyle(InkTextButtonStyle())
         }
@@ -204,17 +244,23 @@ struct MentionAssistStrip: View {
     private func beginCreation(_ kind: VaultEntityKind) {
         let offset = insertionOffset
         Task { @MainActor in
-            await composer.beginCreation(kind, at: offset)
+            let followUp = await composer.beginCreation(kind, at: offset)
             onDidChangeText?(nil)
-            if !composer.needsQualifier && composer.errorText == nil { onResolved?() }
+            Self.finish(followUp, onResolved: onResolved)
         }
     }
 
     private func create(_ kind: VaultEntityKind) {
         Task { @MainActor in
-            await composer.create(kind)
+            let followUp = await composer.create(kind)
             onDidChangeText?(nil)
-            if !composer.needsQualifier && composer.errorText == nil { onResolved?() }
+            Self.finish(followUp, onResolved: onResolved)
         }
+    }
+
+    /// Hands a finished step back to the host: only a send or save the user asked for goes on.
+    static func finish(_ followUp: MentionComposer.CreationFollowUp?, onResolved: (() -> Void)?) {
+        guard followUp == .commit else { return }
+        onResolved?()
     }
 }

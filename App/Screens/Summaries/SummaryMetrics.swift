@@ -25,10 +25,11 @@ struct SummaryMetric: View {
     }
 }
 
-/// Created tasks, then one stacked bar: completed, carried over past their date, open without a date.
+/// Created tasks, open inventory by unit, then the completed, carried and undated task bar.
 struct SummaryTaskSection: View {
     let counts: SummaryCounts
     let change: String
+    var taskFlow: TaskFlowSeries? = nil
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -48,6 +49,9 @@ struct SummaryTaskSection: View {
                     .foregroundStyle(Color.ink.secondaryText)
             }
             .accessibilityElement(children: .combine)
+            if let taskFlow {
+                TaskFlowChart(series: taskFlow)
+            }
             InkSegmentBar(segments: [
                 .init(id: 0, title: String(localized: "Tamamlanan"), value: counts.completedTasks, style: .done),
                 .init(id: 1, title: String(localized: "Devreden"), value: counts.overdueTasks, style: .carried),

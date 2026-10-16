@@ -145,7 +145,9 @@ struct VaultReadModel: Sendable {
                 $0.name.localizedStandardCompare($1.name) == .orderedAscending
             }
         let indexedLogs = ordered.flatMap(\.goalLogs)
-        reservedGoalKeys = Set(entityRows.compactMap(\.goalKey) + indexedLogs.map(\.key))
+        // Definitions only (valid or not), as `VaultStore.creatingGoal` reserves them: a key left
+        // by a deleted goal is free, and a new goal with that key takes its old day records.
+        reservedGoalKeys = Set(entityRows.compactMap(\.goalKey))
         let allLogs = Dictionary(grouping: indexedLogs, by: \.key).mapValues {
             $0.compactMap(GoalLog.init(indexed:))
         }

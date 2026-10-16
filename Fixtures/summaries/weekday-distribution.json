@@ -1,0 +1,87 @@
+[
+  {
+    "id": "empty-month",
+    "vault": "rhythm",
+    "period": "month",
+    "containing": "2026-08-12",
+    "today": "2026-10-07",
+    "expected": {
+      "events": [0, 0, 0, 0, 0, 0, 0],
+      "leadingWeekday": null,
+      "totalDays": [5, 4, 4, 4, 4, 5, 5],
+      "writtenDays": [0, 0, 0, 0, 0, 0, 0]
+    }
+  },
+  {
+    "id": "running-month-ends-today",
+    "vault": "rhythm",
+    "period": "month",
+    "containing": "2026-10-07",
+    "today": "2026-10-07",
+    "expected": {
+      "events": [1, 2, 1, 0, 3, 0, 0],
+      "leadingWeekday": 4,
+      "totalDays": [1, 1, 1, 1, 1, 1, 1],
+      "writtenDays": [1, 1, 1, 0, 1, 0, 1]
+    }
+  },
+  {
+    "id": "ended-month-higher-ratio-beats-higher-events",
+    "vault": "rhythm",
+    "period": "month",
+    "containing": "2025-10-15",
+    "expected": {
+      "events": [1, 0, 2, 0, 0, 0, 0],
+      "leadingWeekday": 0,
+      "totalDays": [4, 4, 5, 5, 5, 4, 4],
+      "writtenDays": [1, 0, 1, 0, 0, 0, 0]
+    }
+  },
+  {
+    "id": "running-year-ends-today",
+    "vault": "rhythm",
+    "period": "year",
+    "containing": "2026-10-07",
+    "today": "2026-10-07",
+    "expected": {
+      "events": [3, 2, 2, 0, 3, 0, 0],
+      "leadingWeekday": 0,
+      "totalDays": [40, 40, 40, 40, 40, 40, 40],
+      "writtenDays": [2, 1, 2, 0, 1, 0, 1]
+    }
+  },
+  {
+    "id": "tie-on-ratio-and-events-picks-earlier-weekday",
+    "days": [
+      { "date": "2026-01-31", "events": 5, "hasJournal": true },
+      { "date": "2026-02-04", "events": 1, "hasJournal": false },
+      { "date": "2026-02-04", "events": 1, "hasJournal": true },
+      { "date": "2026-02-06", "events": 2, "hasJournal": false },
+      { "date": "2026-02-10", "events": -1, "hasJournal": false },
+      { "date": "2026-03-01", "events": 4, "hasJournal": true }
+    ],
+    "period": "month",
+    "containing": "2026-02-15",
+    "expected": {
+      "events": [0, 0, 2, 0, 2, 0, 0],
+      "leadingWeekday": 2,
+      "totalDays": [4, 4, 4, 4, 4, 4, 4],
+      "writtenDays": [0, 0, 1, 0, 1, 0, 0]
+    }
+  },
+  {
+    "id": "period-not-begun",
+    "days": [
+      { "date": "2026-11-02", "events": 2, "hasJournal": false }
+    ],
+    "period": "month",
+    "containing": "2026-11-01",
+    "today": "2026-10-07",
+    "expected": {
+      "events": [0, 0, 0, 0, 0, 0, 0],
+      "leadingWeekday": null,
+      "totalDays": [0, 0, 0, 0, 0, 0, 0],
+      "writtenDays": [0, 0, 0, 0, 0, 0, 0]
+    }
+  }
+]

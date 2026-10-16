@@ -1,6 +1,22 @@
 {
   "sourceLanguage" : "tr",
   "strings" : {
+    "— açık görev  ┄ %@" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "— açık görev  ┄ %@"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "— open tasks  ┄ %@"
+          }
+        }
+      }
+    },
     "'%@' klasörünün adı '%@' olmalı. Obsidian'da ya da Dosyalar'da yeniden adlandır." : {
       "localizations" : {
         "en" : {
@@ -145,6 +161,22 @@
         }
       }
     },
+    "%@ %@ olarak eklendi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ added as %2$@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ %2$@ olarak eklendi"
+          }
+        }
+      }
+    },
     "%@ gün" : {
       "localizations" : {
         "en" : {
@@ -193,6 +225,38 @@
         }
       }
     },
+    "%@ kişi olarak eklendi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ added as a person"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ kişi olarak eklendi"
+          }
+        }
+      }
+    },
+    "%@ konum olarak eklendi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ added as a place"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ konum olarak eklendi"
+          }
+        }
+      }
+    },
     "%@ olarak ekle" : {
       "localizations" : {
         "en" : {
@@ -221,6 +285,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ olarak mı?"
+          }
+        }
+      }
+    },
+    "%@ silinsin mi? Gün kayıtları kalır." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete %@? Daily records will remain."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ silinsin mi? Gün kayıtları kalır."
+          }
+        }
+      }
+    },
+    "%@ silinsin mi? Günlük kayıtlarındaki geçişler kalır." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete %@? Mentions in journal entries will remain."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ silinsin mi? Günlük kayıtlarındaki geçişler kalır."
           }
         }
       }
@@ -513,6 +609,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@: %lld gün yazıldı"
+          }
+        }
+      }
+    },
+    "%@: %lld günün %@ yazıldı" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@: %3$@ of %2$lld days written"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@: %2$lld günün %3$@ yazıldı"
           }
         }
       }
@@ -1241,6 +1353,22 @@
         }
       }
     },
+    "%lld. hafta" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld. hafta"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "week %lld"
+          }
+        }
+      }
+    },
     "%lld/%lld gün" : {
       "localizations" : {
         "en" : {
@@ -1493,6 +1621,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Açık görevler: %1$lld devreden, %2$lld tarihsiz"
+          }
+        }
+      }
+    },
+    "Açık görevler: başta %lld, sonda %lld; en çok %@ %lld" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Açık görevler: başta %lld, sonda %lld; en çok %@ %lld"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open tasks: %lld at start, %lld at end; peak %@ %lld"
           }
         }
       }
@@ -3081,6 +3225,22 @@
         }
       }
     },
+    "Bu ad zaten kullanılıyor. Ayırt edici ekle." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This name is already in use. Add a qualifier."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bu ad zaten kullanılıyor. Ayırt edici ekle."
+          }
+        }
+      }
+    },
     "Bu ad zaten kullanılıyor. Başka bir ad seç." : {
       "localizations" : {
         "en" : {
@@ -4121,6 +4281,22 @@
         }
       }
     },
+    "Dönem sonunda %lld açık · dönem başında %lld" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dönem sonunda %lld açık · dönem başında %lld"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "At period end %lld open · at period start %lld"
+          }
+        }
+      }
+    },
     "Dosya" : {
       "localizations" : {
         "en" : {
@@ -4181,6 +4357,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Dosya güncellenemedi."
+          }
+        }
+      }
+    },
+    "Dosya silindi, indeks güncellenemedi." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The file was deleted, but the index could not be updated."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dosya silindi, indeks güncellenemedi."
+          }
+        }
+      }
+    },
+    "Dosya silinemedi. Kasayı kontrol edip yeniden dene." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The file could not be deleted. Check the vault and try again."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dosya silinemedi. Kasayı kontrol edip yeniden dene."
           }
         }
       }
@@ -5969,6 +6177,22 @@
         }
       }
     },
+    "Haftanın günleri" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Days of the week"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Haftanın günleri"
+          }
+        }
+      }
+    },
     "Haftanın günü" : {
       "localizations" : {
         "en" : {
@@ -6333,6 +6557,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Hedefi işaretle"
+          }
+        }
+      }
+    },
+    "Hedefi sil" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete goal"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hedefi sil"
           }
         }
       }
@@ -11829,6 +12069,22 @@
         }
       }
     },
+    "Varlığı sil" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete entity"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Varlığı sil"
+          }
+        }
+      }
+    },
     "Varlık" : {
       "localizations" : {
         "en" : {
@@ -12493,6 +12749,22 @@
         }
       }
     },
+    "Yeni kişi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New person"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yeni kişi"
+          }
+        }
+      }
+    },
     "Yeni kişi oluştur" : {
       "localizations" : {
         "en" : {
@@ -12505,6 +12777,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Yeni kişi oluştur"
+          }
+        }
+      }
+    },
+    "Yeni konum" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New place"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yeni konum"
           }
         }
       }

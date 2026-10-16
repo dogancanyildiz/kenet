@@ -18,14 +18,10 @@ extension VaultStore {
                 throw VaultStoreError.nameTaken
             }
             var keys = Set(try self.index.snapshot().entities.compactMap(\.goalKey))
-            keys.formUnion(try self.index.goalLogs().map(\.key))
             // External edits can precede the watcher. Reserve current disk keys and display names too.
             for path in try self.markdownPaths() {
                 let document = RawDocument(bytes: try self.readFile(self.checkedURL(path)))
                 guard case .parsed(let fields) = document.frontmatter else { continue }
-                if case .mapping(let entries) = fields.field(named: "goals")?.value {
-                    keys.formUnion(entries.map(\.key))
-                }
                 guard case .scalar(let type) = fields.field(named: "type")?.value, type.text == "goal" else { continue }
                 if case .scalar(let key) = fields.field(named: "key")?.value { keys.insert(key.text) }
                 if case .scalar(let other) = fields.field(named: "name")?.value,

@@ -30,16 +30,16 @@ struct SummariesSnapshotShot: Sendable {
     /// Separate `@Test` methods so one case can be re-recorded alone.
     @MainActor @Suite("Summaries snapshots", .serialized)
     struct SummariesSnapshotTests {
-        @Test func weekLight() async throws { try await run(.week, "weekLight", height: 1700) }
-        @Test func weekDark() async throws { try await run(.week, "weekDark", height: 1700, scheme: .dark) }
+        @Test func weekLight() async throws { try await run(.week, "weekLight", height: 2200) }
+        @Test func weekDark() async throws { try await run(.week, "weekDark", height: 2200, scheme: .dark) }
         @Test func weekAX3() async throws {
-            try await run(.week, "weekAX3", height: 4300, type: .accessibility3)
+            try await run(.week, "weekAX3", height: 5600, type: .accessibility3)
         }
-        @Test func monthLight() async throws { try await run(.month, "monthLight", height: 1800) }
-        @Test func yearLight() async throws { try await run(.year, "yearLight", height: 1800) }
-        @Test func yearDark() async throws { try await run(.year, "yearDark", height: 1800, scheme: .dark) }
+        @Test func monthLight() async throws { try await run(.month, "monthLight", height: 2300) }
+        @Test func yearLight() async throws { try await run(.year, "yearLight", height: 2700) }
+        @Test func yearDark() async throws { try await run(.year, "yearDark", height: 2700, scheme: .dark) }
         @Test func emptyLight() async throws { try await run(.empty, "emptyLight", height: 844) }
-        @Test func runningWeekLight() async throws { try await run(.runningWeek, "runningWeekLight", height: 1700) }
+        @Test func runningWeekLight() async throws { try await run(.runningWeek, "runningWeekLight", height: 2200) }
 
         private func run(
             _ shot: SummariesSnapshotShot, _ name: String, height: CGFloat, scheme: SnapshotColorScheme = .light,
@@ -103,7 +103,7 @@ struct SummariesSnapshotShot: Sendable {
             var calendar = Calendar(identifier: .gregorian)
             calendar.locale = locale
             calendar.timeZone = TimeZone(secondsFromGMT: 3 * 3600)!
-            let size = CGSize(width: 1000, height: 1150)
+            let size = CGSize(width: 1000, height: 1700)
 
             let ready = MacSummariesReadyBox()
             let root = NavigationStack {

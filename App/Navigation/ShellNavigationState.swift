@@ -25,6 +25,14 @@ final class ShellNavigationState {
     /// A notification asked for the unseen people: the list opens that section once per request.
     var unseenReveal: UUID?
 
+    /// The detail column's entity was deleted: the column goes back to "Bir varlık seç" and no
+    /// list row stays selected. The section, tab, order and filter stay as they were.
+    func entityDeleted(path: String) {
+        guard selectedEntity == path || selectedSummary?.id == path else { return }
+        selectedEntity = nil
+        selectedSummary = nil
+    }
+
     // MARK: Tab shell
 
     /// The phone tab, read from and written to the section through the one table below

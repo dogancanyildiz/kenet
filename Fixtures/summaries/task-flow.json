@@ -1,0 +1,1104 @@
+[
+  {
+    "id": "empty",
+    "period": "week",
+    "containing": "2026-10-05",
+    "today": null,
+    "tasks": [],
+    "expected": {
+      "units": [
+        {
+          "id": 0,
+          "range": [
+            "2026-10-05",
+            "2026-10-05"
+          ],
+          "measuredEnd": "2026-10-05",
+          "open": 0
+        },
+        {
+          "id": 1,
+          "range": [
+            "2026-10-06",
+            "2026-10-06"
+          ],
+          "measuredEnd": "2026-10-06",
+          "open": 0
+        },
+        {
+          "id": 2,
+          "range": [
+            "2026-10-07",
+            "2026-10-07"
+          ],
+          "measuredEnd": "2026-10-07",
+          "open": 0
+        },
+        {
+          "id": 3,
+          "range": [
+            "2026-10-08",
+            "2026-10-08"
+          ],
+          "measuredEnd": "2026-10-08",
+          "open": 0
+        },
+        {
+          "id": 4,
+          "range": [
+            "2026-10-09",
+            "2026-10-09"
+          ],
+          "measuredEnd": "2026-10-09",
+          "open": 0
+        },
+        {
+          "id": 5,
+          "range": [
+            "2026-10-10",
+            "2026-10-10"
+          ],
+          "measuredEnd": "2026-10-10",
+          "open": 0
+        },
+        {
+          "id": 6,
+          "range": [
+            "2026-10-11",
+            "2026-10-11"
+          ],
+          "measuredEnd": "2026-10-11",
+          "open": 0
+        }
+      ],
+      "previous": [
+        {
+          "id": 0,
+          "range": [
+            "2026-09-28",
+            "2026-09-28"
+          ],
+          "measuredEnd": "2026-09-28",
+          "open": 0
+        },
+        {
+          "id": 1,
+          "range": [
+            "2026-09-29",
+            "2026-09-29"
+          ],
+          "measuredEnd": "2026-09-29",
+          "open": 0
+        },
+        {
+          "id": 2,
+          "range": [
+            "2026-09-30",
+            "2026-09-30"
+          ],
+          "measuredEnd": "2026-09-30",
+          "open": 0
+        },
+        {
+          "id": 3,
+          "range": [
+            "2026-10-01",
+            "2026-10-01"
+          ],
+          "measuredEnd": "2026-10-01",
+          "open": 0
+        },
+        {
+          "id": 4,
+          "range": [
+            "2026-10-02",
+            "2026-10-02"
+          ],
+          "measuredEnd": "2026-10-02",
+          "open": 0
+        },
+        {
+          "id": 5,
+          "range": [
+            "2026-10-03",
+            "2026-10-03"
+          ],
+          "measuredEnd": "2026-10-03",
+          "open": 0
+        },
+        {
+          "id": 6,
+          "range": [
+            "2026-10-04",
+            "2026-10-04"
+          ],
+          "measuredEnd": "2026-10-04",
+          "open": 0
+        }
+      ],
+      "unitCount": 7,
+      "opening": 0,
+      "closing": 0,
+      "peak": 0
+    }
+  },
+  {
+    "id": "running-week",
+    "period": "week",
+    "containing": "2026-10-05",
+    "today": "2026-10-07",
+    "tasks": [
+      {
+        "created": "2026-09-20",
+        "status": "todo",
+        "done": null,
+        "due": null
+      },
+      {
+        "created": "2026-10-05",
+        "status": "done",
+        "done": "2026-10-06",
+        "due": null
+      },
+      {
+        "created": "2026-10-06",
+        "status": "todo",
+        "done": null,
+        "due": null
+      },
+      {
+        "created": "2026-10-08",
+        "status": "todo",
+        "done": null,
+        "due": null
+      },
+      {
+        "created": "2026-09-28",
+        "status": "done",
+        "done": "2026-10-01",
+        "due": null
+      }
+    ],
+    "expected": {
+      "units": [
+        {
+          "id": 0,
+          "range": [
+            "2026-10-05",
+            "2026-10-05"
+          ],
+          "measuredEnd": "2026-10-05",
+          "open": 2
+        },
+        {
+          "id": 1,
+          "range": [
+            "2026-10-06",
+            "2026-10-06"
+          ],
+          "measuredEnd": "2026-10-06",
+          "open": 2
+        },
+        {
+          "id": 2,
+          "range": [
+            "2026-10-07",
+            "2026-10-07"
+          ],
+          "measuredEnd": "2026-10-07",
+          "open": 2
+        }
+      ],
+      "previous": [
+        {
+          "id": 0,
+          "range": [
+            "2026-09-28",
+            "2026-09-28"
+          ],
+          "measuredEnd": "2026-09-28",
+          "open": 2
+        },
+        {
+          "id": 1,
+          "range": [
+            "2026-09-29",
+            "2026-09-29"
+          ],
+          "measuredEnd": "2026-09-29",
+          "open": 2
+        },
+        {
+          "id": 2,
+          "range": [
+            "2026-09-30",
+            "2026-09-30"
+          ],
+          "measuredEnd": "2026-09-30",
+          "open": 2
+        },
+        {
+          "id": 3,
+          "range": [
+            "2026-10-01",
+            "2026-10-01"
+          ],
+          "measuredEnd": "2026-10-01",
+          "open": 1
+        },
+        {
+          "id": 4,
+          "range": [
+            "2026-10-02",
+            "2026-10-02"
+          ],
+          "measuredEnd": "2026-10-02",
+          "open": 1
+        },
+        {
+          "id": 5,
+          "range": [
+            "2026-10-03",
+            "2026-10-03"
+          ],
+          "measuredEnd": "2026-10-03",
+          "open": 1
+        },
+        {
+          "id": 6,
+          "range": [
+            "2026-10-04",
+            "2026-10-04"
+          ],
+          "measuredEnd": "2026-10-04",
+          "open": 1
+        }
+      ],
+      "unitCount": 7,
+      "opening": 1,
+      "closing": 2,
+      "peak": 0
+    }
+  },
+  {
+    "id": "finished-leap-month",
+    "period": "month",
+    "containing": "2024-02-01",
+    "today": "2026-10-16",
+    "tasks": [
+      {
+        "created": "2024-01-01",
+        "status": "done",
+        "done": "2024-02-08",
+        "due": null
+      },
+      {
+        "created": "2024-02-07",
+        "status": "todo",
+        "done": null,
+        "due": null
+      },
+      {
+        "created": "2024-02-29",
+        "status": "todo",
+        "done": null,
+        "due": null
+      },
+      {
+        "created": "2024-03-01",
+        "status": "todo",
+        "done": null,
+        "due": null
+      }
+    ],
+    "expected": {
+      "units": [
+        {
+          "id": 0,
+          "range": [
+            "2024-02-01",
+            "2024-02-07"
+          ],
+          "measuredEnd": "2024-02-07",
+          "open": 2
+        },
+        {
+          "id": 1,
+          "range": [
+            "2024-02-08",
+            "2024-02-14"
+          ],
+          "measuredEnd": "2024-02-14",
+          "open": 1
+        },
+        {
+          "id": 2,
+          "range": [
+            "2024-02-15",
+            "2024-02-21"
+          ],
+          "measuredEnd": "2024-02-21",
+          "open": 1
+        },
+        {
+          "id": 3,
+          "range": [
+            "2024-02-22",
+            "2024-02-28"
+          ],
+          "measuredEnd": "2024-02-28",
+          "open": 1
+        },
+        {
+          "id": 4,
+          "range": [
+            "2024-02-29",
+            "2024-02-29"
+          ],
+          "measuredEnd": "2024-02-29",
+          "open": 2
+        }
+      ],
+      "previous": [
+        {
+          "id": 0,
+          "range": [
+            "2024-01-01",
+            "2024-01-07"
+          ],
+          "measuredEnd": "2024-01-07",
+          "open": 1
+        },
+        {
+          "id": 1,
+          "range": [
+            "2024-01-08",
+            "2024-01-14"
+          ],
+          "measuredEnd": "2024-01-14",
+          "open": 1
+        },
+        {
+          "id": 2,
+          "range": [
+            "2024-01-15",
+            "2024-01-21"
+          ],
+          "measuredEnd": "2024-01-21",
+          "open": 1
+        },
+        {
+          "id": 3,
+          "range": [
+            "2024-01-22",
+            "2024-01-28"
+          ],
+          "measuredEnd": "2024-01-28",
+          "open": 1
+        },
+        {
+          "id": 4,
+          "range": [
+            "2024-01-29",
+            "2024-01-31"
+          ],
+          "measuredEnd": "2024-01-31",
+          "open": 1
+        }
+      ],
+      "unitCount": 5,
+      "opening": 1,
+      "closing": 2,
+      "peak": 0
+    }
+  },
+  {
+    "id": "inventory-exclusions",
+    "period": "week",
+    "containing": "2026-10-05",
+    "today": null,
+    "tasks": [
+      {
+        "created": "2026-09-01",
+        "status": "cancelled",
+        "done": null,
+        "due": null
+      },
+      {
+        "created": "2026-09-01",
+        "status": "done",
+        "done": null,
+        "due": null
+      },
+      {
+        "created": null,
+        "status": "todo",
+        "done": null,
+        "due": null
+      },
+      {
+        "created": "2026-10-12",
+        "status": "todo",
+        "done": null,
+        "due": null
+      },
+      {
+        "created": "2026-09-01",
+        "status": "done",
+        "done": "2026-10-06",
+        "due": null
+      },
+      {
+        "created": "2026-10-05",
+        "status": "unknown",
+        "done": null,
+        "due": "2026-12-01"
+      },
+      {
+        "created": "2026-09-01",
+        "status": "inProgress",
+        "done": null,
+        "due": "2026-09-01"
+      },
+      {
+        "created": null,
+        "status": "done",
+        "done": "2026-10-05",
+        "due": null
+      },
+      {
+        "created": "2026-09-01",
+        "status": "done",
+        "done": "2026-10-05",
+        "due": null
+      }
+    ],
+    "expected": {
+      "units": [
+        {
+          "id": 0,
+          "range": [
+            "2026-10-05",
+            "2026-10-05"
+          ],
+          "measuredEnd": "2026-10-05",
+          "open": 3
+        },
+        {
+          "id": 1,
+          "range": [
+            "2026-10-06",
+            "2026-10-06"
+          ],
+          "measuredEnd": "2026-10-06",
+          "open": 2
+        },
+        {
+          "id": 2,
+          "range": [
+            "2026-10-07",
+            "2026-10-07"
+          ],
+          "measuredEnd": "2026-10-07",
+          "open": 2
+        },
+        {
+          "id": 3,
+          "range": [
+            "2026-10-08",
+            "2026-10-08"
+          ],
+          "measuredEnd": "2026-10-08",
+          "open": 2
+        },
+        {
+          "id": 4,
+          "range": [
+            "2026-10-09",
+            "2026-10-09"
+          ],
+          "measuredEnd": "2026-10-09",
+          "open": 2
+        },
+        {
+          "id": 5,
+          "range": [
+            "2026-10-10",
+            "2026-10-10"
+          ],
+          "measuredEnd": "2026-10-10",
+          "open": 2
+        },
+        {
+          "id": 6,
+          "range": [
+            "2026-10-11",
+            "2026-10-11"
+          ],
+          "measuredEnd": "2026-10-11",
+          "open": 2
+        }
+      ],
+      "previous": [
+        {
+          "id": 0,
+          "range": [
+            "2026-09-28",
+            "2026-09-28"
+          ],
+          "measuredEnd": "2026-09-28",
+          "open": 3
+        },
+        {
+          "id": 1,
+          "range": [
+            "2026-09-29",
+            "2026-09-29"
+          ],
+          "measuredEnd": "2026-09-29",
+          "open": 3
+        },
+        {
+          "id": 2,
+          "range": [
+            "2026-09-30",
+            "2026-09-30"
+          ],
+          "measuredEnd": "2026-09-30",
+          "open": 3
+        },
+        {
+          "id": 3,
+          "range": [
+            "2026-10-01",
+            "2026-10-01"
+          ],
+          "measuredEnd": "2026-10-01",
+          "open": 3
+        },
+        {
+          "id": 4,
+          "range": [
+            "2026-10-02",
+            "2026-10-02"
+          ],
+          "measuredEnd": "2026-10-02",
+          "open": 3
+        },
+        {
+          "id": 5,
+          "range": [
+            "2026-10-03",
+            "2026-10-03"
+          ],
+          "measuredEnd": "2026-10-03",
+          "open": 3
+        },
+        {
+          "id": 6,
+          "range": [
+            "2026-10-04",
+            "2026-10-04"
+          ],
+          "measuredEnd": "2026-10-04",
+          "open": 3
+        }
+      ],
+      "unitCount": 7,
+      "opening": 3,
+      "closing": 2,
+      "peak": 0
+    }
+  },
+  {
+    "id": "running-year",
+    "period": "year",
+    "containing": "2026-01-01",
+    "today": "2026-03-15",
+    "tasks": [
+      {
+        "created": "2024-12-31",
+        "status": "todo",
+        "done": null,
+        "due": null
+      },
+      {
+        "created": "2025-12-31",
+        "status": "done",
+        "done": "2026-02-01",
+        "due": null
+      },
+      {
+        "created": "2026-02-28",
+        "status": "todo",
+        "done": null,
+        "due": null
+      },
+      {
+        "created": "2026-03-10",
+        "status": "todo",
+        "done": null,
+        "due": null
+      }
+    ],
+    "expected": {
+      "units": [
+        {
+          "id": 0,
+          "range": [
+            "2026-01-01",
+            "2026-01-31"
+          ],
+          "measuredEnd": "2026-01-31",
+          "open": 2
+        },
+        {
+          "id": 1,
+          "range": [
+            "2026-02-01",
+            "2026-02-28"
+          ],
+          "measuredEnd": "2026-02-28",
+          "open": 2
+        },
+        {
+          "id": 2,
+          "range": [
+            "2026-03-01",
+            "2026-03-31"
+          ],
+          "measuredEnd": "2026-03-15",
+          "open": 3
+        }
+      ],
+      "previous": [
+        {
+          "id": 0,
+          "range": [
+            "2025-01-01",
+            "2025-01-31"
+          ],
+          "measuredEnd": "2025-01-31",
+          "open": 1
+        },
+        {
+          "id": 1,
+          "range": [
+            "2025-02-01",
+            "2025-02-28"
+          ],
+          "measuredEnd": "2025-02-28",
+          "open": 1
+        },
+        {
+          "id": 2,
+          "range": [
+            "2025-03-01",
+            "2025-03-31"
+          ],
+          "measuredEnd": "2025-03-31",
+          "open": 1
+        },
+        {
+          "id": 3,
+          "range": [
+            "2025-04-01",
+            "2025-04-30"
+          ],
+          "measuredEnd": "2025-04-30",
+          "open": 1
+        },
+        {
+          "id": 4,
+          "range": [
+            "2025-05-01",
+            "2025-05-31"
+          ],
+          "measuredEnd": "2025-05-31",
+          "open": 1
+        },
+        {
+          "id": 5,
+          "range": [
+            "2025-06-01",
+            "2025-06-30"
+          ],
+          "measuredEnd": "2025-06-30",
+          "open": 1
+        },
+        {
+          "id": 6,
+          "range": [
+            "2025-07-01",
+            "2025-07-31"
+          ],
+          "measuredEnd": "2025-07-31",
+          "open": 1
+        },
+        {
+          "id": 7,
+          "range": [
+            "2025-08-01",
+            "2025-08-31"
+          ],
+          "measuredEnd": "2025-08-31",
+          "open": 1
+        },
+        {
+          "id": 8,
+          "range": [
+            "2025-09-01",
+            "2025-09-30"
+          ],
+          "measuredEnd": "2025-09-30",
+          "open": 1
+        },
+        {
+          "id": 9,
+          "range": [
+            "2025-10-01",
+            "2025-10-31"
+          ],
+          "measuredEnd": "2025-10-31",
+          "open": 1
+        },
+        {
+          "id": 10,
+          "range": [
+            "2025-11-01",
+            "2025-11-30"
+          ],
+          "measuredEnd": "2025-11-30",
+          "open": 1
+        },
+        {
+          "id": 11,
+          "range": [
+            "2025-12-01",
+            "2025-12-31"
+          ],
+          "measuredEnd": "2025-12-31",
+          "open": 2
+        }
+      ],
+      "unitCount": 12,
+      "opening": 2,
+      "closing": 3,
+      "peak": 2
+    }
+  },
+  {
+    "id": "future-period",
+    "period": "week",
+    "containing": "2026-10-19",
+    "today": "2026-10-07",
+    "tasks": [
+      {
+        "created": "2026-10-19",
+        "status": "todo",
+        "done": null,
+        "due": null
+      },
+      {
+        "created": "2026-10-25",
+        "status": "done",
+        "done": "2026-10-26",
+        "due": null
+      }
+    ],
+    "expected": {
+      "units": [
+        {
+          "id": 0,
+          "range": [
+            "2026-10-19",
+            "2026-10-19"
+          ],
+          "measuredEnd": "2026-10-19",
+          "open": 1
+        },
+        {
+          "id": 1,
+          "range": [
+            "2026-10-20",
+            "2026-10-20"
+          ],
+          "measuredEnd": "2026-10-20",
+          "open": 1
+        },
+        {
+          "id": 2,
+          "range": [
+            "2026-10-21",
+            "2026-10-21"
+          ],
+          "measuredEnd": "2026-10-21",
+          "open": 1
+        },
+        {
+          "id": 3,
+          "range": [
+            "2026-10-22",
+            "2026-10-22"
+          ],
+          "measuredEnd": "2026-10-22",
+          "open": 1
+        },
+        {
+          "id": 4,
+          "range": [
+            "2026-10-23",
+            "2026-10-23"
+          ],
+          "measuredEnd": "2026-10-23",
+          "open": 1
+        },
+        {
+          "id": 5,
+          "range": [
+            "2026-10-24",
+            "2026-10-24"
+          ],
+          "measuredEnd": "2026-10-24",
+          "open": 1
+        },
+        {
+          "id": 6,
+          "range": [
+            "2026-10-25",
+            "2026-10-25"
+          ],
+          "measuredEnd": "2026-10-25",
+          "open": 2
+        }
+      ],
+      "previous": [
+        {
+          "id": 0,
+          "range": [
+            "2026-10-12",
+            "2026-10-12"
+          ],
+          "measuredEnd": "2026-10-12",
+          "open": 0
+        },
+        {
+          "id": 1,
+          "range": [
+            "2026-10-13",
+            "2026-10-13"
+          ],
+          "measuredEnd": "2026-10-13",
+          "open": 0
+        },
+        {
+          "id": 2,
+          "range": [
+            "2026-10-14",
+            "2026-10-14"
+          ],
+          "measuredEnd": "2026-10-14",
+          "open": 0
+        },
+        {
+          "id": 3,
+          "range": [
+            "2026-10-15",
+            "2026-10-15"
+          ],
+          "measuredEnd": "2026-10-15",
+          "open": 0
+        },
+        {
+          "id": 4,
+          "range": [
+            "2026-10-16",
+            "2026-10-16"
+          ],
+          "measuredEnd": "2026-10-16",
+          "open": 0
+        },
+        {
+          "id": 5,
+          "range": [
+            "2026-10-17",
+            "2026-10-17"
+          ],
+          "measuredEnd": "2026-10-17",
+          "open": 0
+        },
+        {
+          "id": 6,
+          "range": [
+            "2026-10-18",
+            "2026-10-18"
+          ],
+          "measuredEnd": "2026-10-18",
+          "open": 0
+        }
+      ],
+      "unitCount": 7,
+      "opening": 0,
+      "closing": 2,
+      "peak": 6
+    }
+  },
+  {
+    "id": "calendar-lower-bound",
+    "period": "month",
+    "containing": "0100-01-01",
+    "today": null,
+    "tasks": [
+      {
+        "created": "0100-01-01",
+        "status": "todo",
+        "done": null,
+        "due": null
+      }
+    ],
+    "expected": {
+      "units": [
+        {
+          "id": 0,
+          "range": [
+            "0100-01-01",
+            "0100-01-07"
+          ],
+          "measuredEnd": "0100-01-07",
+          "open": 1
+        },
+        {
+          "id": 1,
+          "range": [
+            "0100-01-08",
+            "0100-01-14"
+          ],
+          "measuredEnd": "0100-01-14",
+          "open": 1
+        },
+        {
+          "id": 2,
+          "range": [
+            "0100-01-15",
+            "0100-01-21"
+          ],
+          "measuredEnd": "0100-01-21",
+          "open": 1
+        },
+        {
+          "id": 3,
+          "range": [
+            "0100-01-22",
+            "0100-01-28"
+          ],
+          "measuredEnd": "0100-01-28",
+          "open": 1
+        },
+        {
+          "id": 4,
+          "range": [
+            "0100-01-29",
+            "0100-01-31"
+          ],
+          "measuredEnd": "0100-01-31",
+          "open": 1
+        }
+      ],
+      "previous": [],
+      "unitCount": 5,
+      "opening": 0,
+      "closing": 1,
+      "peak": 0
+    }
+  },
+  {
+    "id": "running-month",
+    "period": "month",
+    "containing": "2026-03-01",
+    "today": "2026-03-09",
+    "tasks": [
+      {
+        "created": "2026-02-28",
+        "status": "todo",
+        "done": null,
+        "due": null
+      },
+      {
+        "created": "2026-03-08",
+        "status": "todo",
+        "done": null,
+        "due": null
+      },
+      {
+        "created": "2026-03-10",
+        "status": "todo",
+        "done": null,
+        "due": null
+      }
+    ],
+    "expected": {
+      "units": [
+        {
+          "id": 0,
+          "range": [
+            "2026-03-01",
+            "2026-03-07"
+          ],
+          "measuredEnd": "2026-03-07",
+          "open": 1
+        },
+        {
+          "id": 1,
+          "range": [
+            "2026-03-08",
+            "2026-03-14"
+          ],
+          "measuredEnd": "2026-03-09",
+          "open": 2
+        }
+      ],
+      "previous": [
+        {
+          "id": 0,
+          "range": [
+            "2026-02-01",
+            "2026-02-07"
+          ],
+          "measuredEnd": "2026-02-07",
+          "open": 0
+        },
+        {
+          "id": 1,
+          "range": [
+            "2026-02-08",
+            "2026-02-14"
+          ],
+          "measuredEnd": "2026-02-14",
+          "open": 0
+        },
+        {
+          "id": 2,
+          "range": [
+            "2026-02-15",
+            "2026-02-21"
+          ],
+          "measuredEnd": "2026-02-21",
+          "open": 0
+        },
+        {
+          "id": 3,
+          "range": [
+            "2026-02-22",
+            "2026-02-28"
+          ],
+          "measuredEnd": "2026-02-28",
+          "open": 1
+        }
+      ],
+      "unitCount": 5,
+      "opening": 1,
+      "closing": 2,
+      "peak": 1
+    }
+  }
+]

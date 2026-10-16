@@ -257,6 +257,122 @@ struct QuickEntryMentionTests {
         #expect(!context.model.overridesDate)
         #expect(context.model.manualDueDate == nil)
     }
+
+    @Test func onlyACreationAfterASendCompletesIt() {
+        #expect(MentionComposer.followUp(after: .submit) == .commit)
+        #expect(MentionComposer.followUp(after: .typing) == .keepEditing)
+        var sent = 0
+        MentionAssistStrip.finish(.keepEditing) { sent += 1 }
+        MentionAssistStrip.finish(nil) { sent += 1 }
+        #expect(sent == 0)
+        MentionAssistStrip.finish(.commit) { sent += 1 }
+        #expect(sent == 1)
+    }
+
+    /// "Yeni kişi oluştur" under an `@` being written: the entity file is written, the draft stays
+    /// and nothing is sent until the user sends it.
+    @Test func creatingWhileTypingKeepsTheDraftUnsent() async throws {
+        let context = try MentionTestContext()
+        defer { context.clean() }
+        await context.start()
+        let before = try? context.eventBytes()
+        context.model.text = "Bugün @Yeni Ad"
+        let followUp = await context.model.composer.beginCreation(.person)
+        #expect(followUp == .keepEditing)
+        var sent = false
+        MentionAssistStrip.finish(followUp) { sent = true }
+        #expect(!sent)
+        #expect(FileManager.default.fileExists(atPath: context.root.appendingPathComponent("people/Yeni Ad.md").path))
+        #expect(context.model.text == "Bugün @Yeni Ad")
+        #expect((try? context.eventBytes()) == before)
+        #expect(!context.model.awaitingResolution)
+        #expect(context.model.pendingUnknown == nil)
+        // The pinned name offers neither itself nor a second creation.
+        #expect(context.model.composer.suggestionRange() == nil)
+        let notice = try #require(context.model.composer.creationNotice)
+        #expect(notice.name == "Yeni Ad" && notice.kind == .person)
+        context.model.text += " ile yürüdük"
+        #expect(context.model.composer.creationNotice == nil)
+        #expect(context.model.composer.suggestionRange() == nil)
+        #expect(await context.model.submit(time: nil))
+        #expect(
+            RawDocument(bytes: try context.eventBytes()).bodyLines.events.last?.block.text
+                == "Bugün [[Yeni Ad]] ile yürüdük")
+    }
+
+    @Test func qualifiedCreationWhileTypingKeepsTheDraftUnsent() async throws {
+        let context = try MentionTestContext()
+        defer { context.clean() }
+        await context.start()
+        context.model.text = "@Deniz Arıkan"
+        #expect(await context.model.composer.beginCreation(.person) == nil)
+        #expect(context.model.needsQualifier)
+        context.model.qualifier = "okul"
+        #expect(await context.model.composer.create(.person) == .keepEditing)
+        #expect(context.model.text == "@Deniz Arıkan")
+        #expect(!context.model.awaitingResolution)
+        #expect(context.model.composer.creationNotice?.name == "Deniz Arıkan")
+        #expect(await context.model.submit(time: nil))
+        #expect(
+            RawDocument(bytes: try context.eventBytes()).bodyLines.events.last?.block.text
+                == "[[Deniz Arıkan (okul)|Deniz Arıkan]]")
+    }
+
+    @Test func dismissingACreationKeepsTheDraftWhileTypingAndGoesOnAfterASend() async throws {
+        let context = try MentionTestContext()
+        defer { context.clean() }
+        await context.start()
+        context.model.text = "@Deniz Arıkan"
+        #expect(await context.model.composer.beginCreation(.person) == nil)
+        let typed = try #require(context.model.pendingUnknown)
+        #expect(context.model.composer.dismissCreation(typed) == .keepEditing)
+        #expect(context.model.text == "@Deniz Arıkan")
+        #expect(!context.model.awaitingResolution && !context.model.needsQualifier)
+        #expect(context.model.pendingUnknown == nil)
+        context.model.text = "@Yeni Ad ile"
+        #expect(await !context.model.submit(time: nil))
+        let sent = try #require(context.model.pendingUnknown)
+        #expect(context.model.composer.dismissCreation(sent) == .commit)
+        #expect(context.model.text == "Yeni Ad ile")
+    }
+
+    @Test func creatingAfterASendWithAQuestionOpenedWhileTypingCompletesTheSend() async throws {
+        let context = try MentionTestContext()
+        defer { context.clean() }
+        await context.start()
+        context.model.text = "@Deniz Arıkan"
+        #expect(await context.model.composer.beginCreation(.person) == nil)
+        #expect(context.model.needsQualifier)
+        #expect(await !context.model.submit(time: nil))
+        #expect(context.model.needsQualifier)
+        context.model.qualifier = "okul"
+        let followUp = await context.model.composer.create(.person)
+        #expect(followUp == .commit)
+        var sent = false
+        MentionAssistStrip.finish(followUp) { sent = true }
+        #expect(sent)
+        #expect(await context.model.submit(time: nil))
+        #expect(
+            RawDocument(bytes: try context.eventBytes()).bodyLines.events.last?.block.text
+                == "[[Deniz Arıkan (okul)|Deniz Arıkan]]")
+    }
+
+    @Test func creatingAfterASendCompletesTheSend() async throws {
+        let context = try MentionTestContext()
+        defer { context.clean() }
+        await context.start()
+        context.model.text = "@Yeni Ad ile"
+        #expect(await !context.model.submit(time: nil))
+        let followUp = await context.model.composer.create(.person)
+        #expect(followUp == .commit)
+        #expect(context.model.composer.creationNotice == nil)
+        var sent = false
+        MentionAssistStrip.finish(followUp) { sent = true }
+        #expect(sent)
+        #expect(await context.model.submit(time: nil))
+        #expect(RawDocument(bytes: try context.eventBytes()).bodyLines.events.last?.block.text == "[[Yeni Ad]] ile")
+        #expect(context.model.text.isEmpty)
+    }
 }
 
 @MainActor

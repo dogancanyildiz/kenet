@@ -501,6 +501,17 @@ Uygulama başka hiçbir karakteri kaçışla yazmaz. Böylece satır sonu içere
 | Frontmatter'ı olmayan dosya | Uygulama dosyanın başına yeni blok ekler: `---`, alan satırları, `---`. Uygulama blok ile gövde arasına boş satır eklemez. |
 | Ham alan ve çözülemeyen blok | Uygulama ham alanı değiştirmez ve silmez. Uygulama çözülemeyen bloğa yazmaz. |
 
+#### Silme
+
+| Konu | Kural |
+|---|---|
+| Varlık | Kullanıcı onayından sonra yalnız `people/` içindeki `type: person`, `places/` içindeki `type: place` ya da tanımlı özel tipin klasöründeki aynı tip dosyası silinir. |
+| Hedef | Kullanıcı onayından sonra yalnız `goals/` altındaki `type: goal` dosyası silinir. |
+| Sınır | Gün dosyası, not, başka tip, gizli yol, sembolik bağlantı ve `conflicts/` dosyası bu işlemle silinmez. Çakışma kopyaları yerinde kalır. |
+| Kayıtlar | Gün dosyaları bayt düzeyinde korunur. Varlık bağlantıları çözülmemiş kalır; hedefin gün kayıtları kalır. |
+| Sıra | Silme ortak yazma kuyruğunda dosya koordinasyonuyla yapılır. İndirilmemiş dosya reddedilir. Önce dosya silinir; sonra izleyicinin artımlı indeks yolu dosyayı ve bağlı satırlarını kaldırır, gelen bağlantıları yeniden çözer. |
+| Yeniden kullanım | Silinen dosyanın adı ve hedef anahtarı yeniden kullanılabilir. Aynı hedef anahtarıyla oluşturulan tanım kalan gün kayıtlarını kullanır. |
+
 ## Bağlantılar
 
 **Bağlantı sözdizimi: tanınan ve tanınmayan yazımlar.**
@@ -1260,7 +1271,7 @@ flowchart LR
   H -- Hayır --> J["Anahtar"]
 ```
 
-Türkçe `ç/ğ/ı/ö/ş/ü` harfleri `c/g/i/o/s/u` olur. Örnek: `Su İçme` → `su-icme`. Çakışmada uygulama `-2`, `-3`, … ekler. Uygulama çakışma denetiminde 2 grubu da dolu sayar: tanımı geçersiz hedeflerin anahtarları ve sahipsiz gün kayıtlarının anahtarları.
+Türkçe `ç/ğ/ı/ö/ş/ü` harfleri `c/g/i/o/s/u` olur. Örnek: `Su İçme` → `su-icme`. Çakışmada uygulama `-2`, `-3`, … ekler. Uygulama tanımı geçersiz hedeflerin anahtarlarını da dolu sayar. Yalnız gün kayıtlarında kalan sahipsiz anahtarlar yeniden kullanılabilir.
 
 ### Dönemler ve geçerli tanım
 

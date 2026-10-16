@@ -125,7 +125,7 @@ struct DayEventMentionTests {
         #expect(!model.canSave)
         #expect(await !model.save())
         #expect(try Data(contentsOf: context.file) == before)
-        await creating.value
+        _ = await creating.value
         #expect(model.canSave)
         #expect(await model.save())
         #expect(
@@ -168,5 +168,49 @@ struct DayEventMentionTests {
         model.text = "@Mert Aks"
         #expect(!model.composer.awaitingResolution)
         #expect(!model.composer.suggestions().isEmpty)
+    }
+
+    @Test func eventEditorCreationWhileTypingDoesNotSave() async throws {
+        let context = try DayEditingTestContext()
+        defer { context.clean() }
+        await context.start()
+        let before = try Data(contentsOf: context.file)
+        let row = try #require(try await context.store.computeDay(on: context.day).events.first)
+        let model = EventEditorModel(store: context.store, day: context.day, row: row)
+        await model.load()
+        model.text = "@Yeni Ad"
+        let followUp = await model.composer.beginCreation(.person)
+        #expect(followUp == .keepEditing)
+        var saved = false
+        MentionAssistStrip.finish(followUp) { saved = true }
+        #expect(!saved)
+        #expect(model.text == "@Yeni Ad")
+        #expect(!model.composer.awaitingResolution)
+        #expect(try Data(contentsOf: context.file) == before)
+        model.text += " ile"
+        #expect(await model.save())
+        #expect(
+            RawDocument(bytes: try Data(contentsOf: context.file)).bodyLines.events.first?.block.text
+                == "[[Yeni Ad]] ile")
+    }
+
+    @Test func eventEditorCreationAfterSaveCompletesTheSave() async throws {
+        let context = try DayEditingTestContext()
+        defer { context.clean() }
+        await context.start()
+        let row = try #require(try await context.store.computeDay(on: context.day).events.first)
+        let model = EventEditorModel(store: context.store, day: context.day, row: row)
+        await model.load()
+        model.text = "@Yeni Ad ile"
+        #expect(await !model.save())
+        let followUp = await model.composer.create(.person)
+        #expect(followUp == .commit)
+        var saved = false
+        MentionAssistStrip.finish(followUp) { saved = true }
+        #expect(saved)
+        #expect(await model.save())
+        #expect(
+            RawDocument(bytes: try Data(contentsOf: context.file)).bodyLines.events.first?.block.text
+                == "[[Yeni Ad]] ile")
     }
 }

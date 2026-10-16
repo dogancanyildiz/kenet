@@ -488,7 +488,8 @@ flowchart TD
     D -->|Evet| E[Tek cümle, açık görevler satırı, Önceki döneme git]
     D -->|Hayır| F[Ritim şeridi]
     F --> Y[Yalnız yılda: Yazılan günler haritası]
-    Y --> G[Dört ana sayı ve fark yazısı]
+    Y --> W[Ay ve yılda: Haftanın günleri]
+    W --> G[Dört ana sayı ve fark yazısı]
     G --> H[Kişiler ve Konumlar: ad çipleri]
     H --> I[Hedefler: hedef satırı ve gün hücreleri]
     I --> J[Görevler: yığılı çubuk]
@@ -502,6 +503,7 @@ flowchart TD
 | Ritim şeridi | Dönemin birimleri başına olay sayısı. Hafta birimi gündür. Ay birimi ayın 1'inden başlayan 7 günlük dilimdir: 1–7, 8–14, 15–21, 22–28, kalan günler. Yıl birimi aydır. Önceki dönemin aynı sıradaki birimi arkada geniş ve soluk çubuktur. |
 | Yazıldı işareti | Her birimin altında durur. Dolu nokta: gün yazıldı ya da birimin ölçülen günlerinin en az yarısı yazıldı. Halka: yarıdan azı yazıldı. Kısa çizgi: hiç yazılmadı. İşaret yok: birim henüz başlamadı. |
 | Yazılan günler | Yalnız Yıl sekmesinde, ritim şeridinin altında. 12 satır: satır başında kısa ay adı, ardından ayın 1'inden 31'ine kadar birer ısı haritası hücresi. Yazılmayan gün boş hücredir. Yalnız `Journal` yazısı olan gün kısmi hücredir. En az bir olayı olan gün tam hücredir. Bugün çerçevelidir. Ayda olmayan tarih ve bugünden sonraki gün çizilmez. Başlığın sayacı yılın "Yazılan gün" sayısıdır: "243 gün". Erişilebilirlik boyutunda hücreler büyür ve pazartesi haftalarına dizilir; harita yatay kayar ve son ölçülen haftayla açılır. |
+| Haftanın günleri | Ay ve Yıl sekmelerinde, ritim şeridinin (yılda yazılan günler haritasının) altında, ana sayıların üstünde. Pazartesi'den Pazar'a 7 satır: gün adı, 1 px çerçeveli yazma oranı çubuğu ve sağda eş aralıklı rakamlarla "3/4" sayacı. En yüksek yazma oranlı günün başında nokta işareti durur, adı ve sayacı yarı kalındır; eşitlikte olay sayısı yüksek olan, yine eşitse haftanın ilk günü seçilir. Hafta sekmesinde ve ölçülen günü sıfır olan dönemde çizilmez. |
 | Ana sayılar | Olay sayısı, yazılan gün, kişi geçişi, konum geçişi. iPhone'da 2 × 2 düzendedir; erişilebilirlik boyutunda tek sütundur. |
 | Fark | Uygulama farkı yazıyla verir: "önceki haftaya göre +4", "önceki haftayla aynı". Ok yoktur. |
 | Süren dönem farkı | Süren dönemde uygulama önceki dönemi aynı tarihe kadar sayar. Etiket bunu söyler: "geçen yılın aynı tarihine göre +12". |
@@ -509,11 +511,11 @@ flowchart TD
 | İlk kez işareti | Dönemde ilk kez geçen adın çipinde yıldız işareti durur. Bölümün altındaki "İlk kez:" satırı bu adları sayar. İlk 5'in dışındaki adlar da satırdadır. Satır en çok 10 ad gösterir, kalanı sayıyla söyler: "ve 3 kişi daha". |
 | Hedefler | Hedefler ekranındaki satır: halka, ad, değer, ilerleme çubuğu. Değer süren dönemde bugüne kadar sayılır. Hafta ve ayda günlük hedefin günleri tek satır ısı haritası hücresidir. |
 | Hedef farkı | Satırın altında küçük yazı: "önceki haftaya göre +12 sayfa · zincir +2". Uygulama yalnız sıfır olmayan farkı yazar. İki fark da sıfırsa satır yoktur. Kilometre taşında fark yoktur; yıllık hedefte zincir farkı yoktur. |
-| Görevler | "N görev oluşturuldu" ve fark. Altında tek yığılı çubuk durur: tamamlanan, devreden, tarihsiz açık. Her parçanın sayısı açıklamada yazar. |
+| Görevler | "N görev oluşturuldu" ve fark. Altında, yığılı çubuğun üstünde üç sekmede de açık görev eğrisi durur: ritim birimlerinin ölçülen son günündeki açık envanter; önceki dönemin bütün birimleri kesikli çizgidir. Başlamamış birim çizilmez. Son noktada sayı, altında "— açık görev ┄ Önceki ay/hafta/yıl" ve "Dönem sonunda 23 açık · dönem başında 14" satırları durur. Başlangıç, dönemden önceki günün sonudur. Ardından tek yığılı çubuk gelir: tamamlanan, devreden, tarihsiz açık. Her parçanın sayısı açıklamada yazar. Erişilebilirlik boyutunda eğri birim adı ve sayı listesine döner; VoiceOver tek öğede "Açık görevler: başta 14, sonda 23; en çok 3. hafta 24" okur. Eşit en yüksek değerde ilk birim okunur. |
 | Sıfır bölüm | Sayısı sıfır olan bölümü uygulama çizmez. |
 | Boş dönem | "Bu dönemde kayıt yok." yazar. Açık görev varsa altında tek satır durur: "Açık görevler: 6 devreden, 4 tarihsiz". En altta "Önceki döneme git" düğmesi durur. Uygulama öteki bölümleri çizmez. |
-| Mac düzeni | İki sütun. Sol sütun: ritim, yılda yazılan günler, ana sayılar, hedefler. Sağ sütun: kişiler, konumlar, görevler. |
-| Erişilebilirlik | Ritim şeridinin her sütunu birim adını ve değeri okur: olay sayısı, önceki dönem, yazıldı işareti. Erişilebilirlik boyutunda sütunlar satıra döner. Yazılan günler haritası ay başına bir öğe okur: "Mart: 22 gün yazıldı". Yığılı çubuğun sayıları açıklamada yazar. Ad çipi sayıyı birimiyle okur: "Deniz Arıkan, 7 geçiş". |
+| Mac düzeni | İki sütun. Sol sütun: ritim, yılda yazılan günler, ay ve yılda haftanın günleri, ana sayılar, hedefler. Sağ sütun: kişiler, konumlar, görevler. |
+| Erişilebilirlik | Ritim şeridinin her sütunu birim adını ve değeri okur: olay sayısı, önceki dönem, yazıldı işareti. Erişilebilirlik boyutunda sütunlar satıra döner. Yazılan günler haritası ay başına bir öğe okur: "Mart: 22 gün yazıldı". Haftanın günleri satır başına bir öğe okur: "Cumartesi: 4 günün 4'ü yazıldı"; erişilebilirlik boyutunda gün adı ve sayaç üstte, çubuk altta tam genişliktedir. Yığılı çubuğun sayıları açıklamada yazar. Ad çipi sayıyı birimiyle okur: "Deniz Arıkan, 7 geçiş". |
 | Yükleme | Dönem değişince ekran eski içeriği yeni yanıt gelene kadar gösterir. Gösterilecek içerik yoksa yükleme göstergesi çıkar. |
 | Gün dönümü | Ekran açıkken gün değişirse uygulama özeti yeni günle yeniden yükler. |
 
@@ -548,6 +550,7 @@ flowchart LR
 | Görev oluşturma günü | Kaynak gün dosyasının tarihi. Tekrarlayan görevin de oluşturma günü kaynak günüdür. |
 | Tamamlanan görev | Durumu tamamlanmış ve `✅` tarihi dönemde olan görev. |
 | Dönem sonu açık envanteri | Ölçülen son güne kadar kaynak gün dosyasında olan ve tamamlanmamış görevler. Tamamlanma tarihi o günden sonraysa görev o dönemde açıktır. Süren dönemde ölçülen son gün bugündür. |
+| Birim sonu açık | Dönem sonu açık envanteri kuralının her ritim biriminin ölçülen son gününe uygulanmasıdır. Hafta birimi gün, ay birimi 1'inden başlayan 7 günlük dilim, yıl birimi aydır. Süren birim bugünde biter; başlamamış birimin noktası yoktur. Bitiş tarihi gelecekte olan açık görevler de dahildir. Önceki çizgi önceki dönemin bütün birim sonlarını gösterir. |
 | Devreden ve tarihsiz | Bitiş tarihi ölçülen son günden önceyse görev devredendir. Bitiş tarihi yoksa görev tarihsiz açıktır. |
 | Envanter dışı | İptaller ve tamamlanma tarihi olmayan tamamlanmış görevler. |
 | Kaynak günü olmayan görev | Oluşturma ve açık sayısına girmez. Geçerli tamamlanma tarihi varsa tamamlanan sayısına girer. |
@@ -711,7 +714,8 @@ Manşetin altında sekme durur. Sekmenin altında görünüme göre değişen te
 | Tür seçici | Manşetin altı | Yalnız Kişiler ve Konumlar varken sekmedir. Kasada özel tip varsa seçenek sayısı 4'e ulaşınca "Tür" menüsü olur. Özel tipler de seçicide durur. |
 | Süzgeç alanı | Tür seçicinin altı | Ara ekranındaki alanla aynı bileşen. Alan Bir süredir görüşmediklerin bölümünü de süzer. |
 | Graph ve Harita | Listenin en üstü | İki satır. Aynı gezinme yığınında tam ekran açar. Yeni sekme yoktur. |
-| Rehberden aktar | Graph ve Harita satırlarının altı | Yalnız iPhone'da, Kişiler türü seçiliyken. |
+| Yeni kişi ve Yeni konum | iPhone'da Graph ve Harita satırlarının altı. Mac'te liste sütununda tür seçicinin altı. | Kişiler türünde "Yeni kişi", Konumlar türünde "Yeni konum" satırı. Özel tipte satır yoktur. Satır ad ve gerektiğinde ayırt edici isteyen küçük sheet açar. Vazgeç dosya yazmaz. Oluştur varlığı kaydeder ve varlık ekranını açar. Mac'te yeni varlık listede seçili olur. |
+| Rehberden aktar | "Yeni kişi" satırının altı | Yalnız iPhone'da, Kişiler türü seçiliyken. |
 | Bir süredir görüşmediklerin | Kişi listesinin üstü | Katlanan bölüm. Mac'te ve telefonda vardır. |
 | Ayırt edici | Satırda adın altı | Aynı adlı varlıklarda görünür. |
 
@@ -758,6 +762,7 @@ Konumda koordinat, Alanlar tablosunda bir satırdır. Okuma ekranında harita yo
 | Kalıp | Ortak sheet kalıbı: serif manşet, kâğıt zemin, tek "Kapat". Her alan kendi "Kaydet" düğmesiyle yazar. "Kapat" yazmaz. |
 | Kirli taslak | Kullanıcı Kaydet ile yazmadığı alanı "Alanı kaldır" ile silerse taslak kirli değildir. Kaydı bekleyen alan metni varken sheet kapanmaz. `JournalView` ile aynı `UnsavedDraftDecision` kalıbı "At" / "Vazgeç" sorar. |
 | Ad değiştirme | Düzenleme sheet'i ad değiştirmeyi ikinci sheet olarak açar. |
+| Varlığı sil | Sheet'in en altında kırmızı düğme. Kişi, konum ve özel tipte onay ister: "<Ad> silinsin mi? Günlük kayıtlarındaki geçişler kalır." Yalnız varlık dosyasını siler. Başarılı silme önce sheet'i, sonra varlık ekranını kapatır. Mac'te ayrıntı sütunu "Bir varlık seç" durumuna döner. Hata sheet'te kalır. |
 | Görüşme ritmi | Yalnız kişide. Menü: Yok, 7, 14, 30, 60, 90 gün ve özel sayı. Özel sayı pozitif tam sayıdır. Boş, 0, harf ve taşan sayı "geçerli bir değer gir" uyarısı alır. |
 | Ritim yazma | Ritim kendi "Kaydet" düğmesiyle yazar. Seçim tek başına yazmaz. Kaydı bekleyen seçimi "Kapat" sorar. |
 | Yok seçimi | Yok `cadence_days` alanını siler. Dosyadaki değer zaten geçerli bir ritim değilse Yok hiçbir şey yazmaz. |
@@ -939,6 +944,7 @@ Konumda koordinat, Alanlar tablosunda bir satırdır. Okuma ekranında harita yo
 | Sayılar | En uzun zincir ve günlük hedefte skor. |
 | Geçmiş kayıtlar | Kullanıcı geçmiş günlerin kaydını düzeltir. |
 | Tanım alanları | Kâğıt zeminli satırlar. Satıra dokunma düzenleme sheet'ini açar. |
+| Hedefi sil | Tanım bloğunun altında kırmızı düğme. Onay ister: "<Ad> silinsin mi? Gün kayıtları kalır." Yalnız hedef dosyasını siler, sonra ayrıntıyı kapatır. Mac'te ayrıntı sütunu "Bir hedef seç" durumuna döner. |
 
 Grafikte "Ortalama", görünür aralıkta kaydı olan günlerin değer ortalamasıdır; kayıtsız gün sıfır değildir. "Hedefin üstünde" sayısı hedefe eşit ya da üstünde kaydı olan günleri sayar. Bir günün son kaydı geçerlidir; türü uymayan ya da geçersiz (negatif, sonsuz) son kayıt o günü 0 yapar. Kural ilerleme ve ısı haritasıyla aynıdır. Tepe eşitse en yeni gün seçilir. Çizgi her günün ve önceki altı günün kayıt ortalamasıdır; en az üç kayıt gerekir, aksi hâlde çizgi kırılır. İlk günün penceresi görünür aralıktan önceye uzanır. Haftalar pazartesi başlar; son hafta ve ay yalnız bugüne kadarki kayıtları toplar. Aylık hız çizgisi yıllık hedefin on ikide biridir; haftalık çizgi haftalık hedeftir. Gelecek kayıtları hesaba girmez.
 

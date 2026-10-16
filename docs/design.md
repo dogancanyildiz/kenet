@@ -724,6 +724,21 @@ Yığılı çubukta devreden parça uyarı rengini almaz. Uyarı rengi yalnız d
 
 Kısa ritim şeridi (`RhythmStrip` `isCompact`) haftalık incelemenin ilk adımında sayıların üstünde durur. Çubuk yüksekliği 40 pt'dir. Sütunların üstündeki sayılar ve açıklama yoktur, çünkü altındaki sayılar aynı bilgiyi verir. Erişilebilirlik boyutunda şerit satıra döner ve her satır sayıyı yazar, çünkü satır düzeninde sayı birim adının yanındaki tek değerdir. Çubuk, önceki dönem ve işaret biçimi yukarıdaki tablodur. Şeridin altındaki fark satırı ikincil metin ve `monospacedDigit()` kullanır.
 
+### Açık görev eğrisi
+
+**Özetler'in Görevler bölümünde, oluşturulan görev sayısı ile yığılı çubuğun arasında Swift Charts çizimi.**
+
+| Parça | Biçim | Renk | VoiceOver |
+|---|---|---|---|
+| Bu dönem | `LineMark` + `PointMark`; son noktada sayı | Vurgu (`accent`) | Tek öğe: "Açık görevler: başta 14, sonda 23; en çok 3. hafta 24" |
+| Önceki dönem | 2 pt kesikli `LineMark`, bütün birimler | Kontrol çizgisi (`control`) | Eğri özetinde tekrar okunmaz |
+| X ekseni | Bütün birim etiketleri; yılda her ikinci ay; `fixedSize()`, iki yanda yarım birim pay | İkincil metin | Birim adı en yüksek değerin özetinde |
+| Y ekseni | Sıfırdan başlar; `desiredCount: 3`; yatay ızgara | Etiket ikincil metin, ızgara kontrol çizgisi | Sayılar eğri özetinde |
+| Açıklama ve envanter | "— açık görev ┄ Önceki ay/hafta/yıl"; altında "Dönem sonunda 23 açık · dönem başında 14" | İkincil metin | Ayrı öğe değildir |
+| Erişilebilirlik boyutu | Grafik yerine birim adı ve sayı listesi | İkincil metin | Aynı tek öğelik özet |
+
+Eksen, açıklama ve sayılar `Font.ink.meta` ve `monospacedDigit()` kullanır. Grafik 164 pt yüksekliğindedir. Başlamamış birimde mevcut dönem noktası yoktur. Çizim işlemi animasyonu kapatır; Hareketi Azalt açıkken de animasyon yoktur. Mac'te aynı bileşen sağ sütundaki Görevler bölümündedir.
+
 ### Yazılan günler haritası
 
 **Özetler'in yıl haritası durumu `HeatmapCell` biçimiyle ayırır.**
@@ -740,6 +755,18 @@ Kısa ritim şeridi (`RhythmStrip` `isCompact`) haftalık incelemenin ilk adım�
 | Açıklama | Üç örnek hücre ve ad: Yazılmadı, Günlük yazısı, Olaylı gün | İkincil metin | Tek öğe |
 
 Hücre en çok 9 pt'dir; dar sütunda 31 gün sığacak kadar küçülür. Satırlar arası 4 pt, hücreler arası 1 pt'dir. Haftanın günleri sütunda hizalanmaz; satır ayı, sütun ayın gününü gösterir. Erişilebilirlik boyutunda düzen değişir: sabit hafta harfleri solda durur, hücreler pazartesi haftalarına dizilir. Genişliğe 6 hafta sığar; harita yatay kayar ve son ölçülen haftayla açılır. Ay adı ayın ilk tam haftasının üstündedir.
+
+### Haftanın günleri satırları
+
+**Özetler'in Ay ve Yıl sekmelerindeki 7 satır en yüksek yazma oranını renge ek olarak nokta işareti ve ağırlıkla ayırır.**
+
+| Parça | Biçim | Renk | VoiceOver |
+|---|---|---|---|
+| Gün satırı | Pazartesi…Pazar 7 satır: gün adı, yatay çubuk ve sağda eş aralıklı rakamlarla "3/4" sayacı | Gün adı metin, sayaç ikincil metin | Satır başına tek öğe: "Cumartesi: 4 günün 4'ü yazıldı" |
+| En yüksek oranlı gün | Satır başında 6 pt dolu nokta, gün adı ve sayaç yarı kalın | Nokta, ad ve sayaç metin rengi | Satır öğesinde |
+| Oran çubuğu | 10 pt yüksekliğinde, 3 pt köşeli yatay şerit ve 1 px (`hairline`) çerçeve | Dolu kısım vurgu, boş kısım çukur, çerçeve kontrol çizgisi | Satır öğesinde |
+
+Bölüm başlığında sayaç yoktur. Yazılan günün çubuğu dar sütunda kaybolmaması için en az 3 pt genişlik alır. Eşit yazma oranında olay sayısı yüksek olan gün, yine eşitse haftanın ilk günü işaretlenir. Erişilebilirlik boyutunda gün adı ve sayaç üst satıra çıkar, 12 pt yüksekliğinde oran çubuğu altta tam genişlik alır.
 
 ### Geçiş çubuğu ve 90 gün şeridi
 

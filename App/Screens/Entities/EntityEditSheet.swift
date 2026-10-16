@@ -7,6 +7,8 @@ struct EntityEditSheet: View {
     let store: IndexStore
     let model: EntityDetailModel
     let entity: EntitySummary
+    /// Owned by the page, which closes after the sheet once the file is gone.
+    var deletion = DefinitionDeletionModel()
     @Environment(\.dismiss) private var dismiss
     @State private var newKey = ""
     @State private var newValue = ""
@@ -51,6 +53,9 @@ struct EntityEditSheet: View {
                         if entity.kind == "place" { coordinateRows }
                         fieldRows
                     }
+                    EntityDeleteRow(
+                        store: store, deletion: deletion, path: model.path, name: entity.name,
+                        canEdit: model.canEdit, onDeleted: { dismiss() })
                 }
                 .listStyle(.plain)
                 .onChange(of: model.errorText) { _, error in
@@ -188,6 +193,37 @@ struct EntityEditSheet: View {
             dismiss()
         } else {
             leavePrompt = true
+        }
+    }
+}
+
+/// The last row of the edit sheet: "Varlığı sil" and its confirmation. On success the sheet
+/// closes; the page behind it goes next (`EntityView`). A failure stays here with the reason.
+private struct EntityDeleteRow: View {
+    let store: IndexStore
+    @Bindable var deletion: DefinitionDeletionModel
+    let path: String
+    let name: String
+    let canEdit: Bool
+    let onDeleted: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: InkSpacing.section) {
+            Button("Varlığı sil", role: .destructive) { deletion.request(path: path) }
+                .buttonStyle(InkDestructiveButtonStyle())
+                .disabled(!canEdit || !store.canAddEvent || deletion.isDeleting || deletion.isDeleted)
+                .accessibilityIdentifier("button.entity.delete")
+            if let error = deletion.errorText {
+                InfoBand(kind: .error, verbatim: error)
+            }
+        }
+        .padding(.top, InkSpacing.section)
+        .inkListRow()
+        .destructiveConfirmationDialog(
+            "Varlığı sil", confirmation: $deletion.confirmation,
+            message: "\(name) silinsin mi? Günlük kayıtlarındaki geçişler kalır."
+        ) { path in
+            Task { if await deletion.delete(store: store, path: path, goal: false) { onDeleted() } }
         }
     }
 }

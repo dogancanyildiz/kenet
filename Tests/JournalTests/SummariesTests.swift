@@ -279,6 +279,48 @@ import VaultFormat
             SummaryPresentation.chipLabel(name: "Nil Akın", count: 1, isFirst: true, locale: english)
                 == "Nil Akın, 1 mention, first time")
     }
+
+    @Test func weekdayDistributionRowFormattingAndVoiceOverFollowLocale() {
+        let turkish = Locale(identifier: "tr_TR")
+        let english = Locale(identifier: "en_US")
+        let saturday = WeekdayDistribution.Entry(weekday: 5, writtenDays: 4, totalDays: 4, events: 7)
+        let monday = WeekdayDistribution.Entry(weekday: 0, writtenDays: 2, totalDays: 4, events: 3)
+        let tuesday = WeekdayDistribution.Entry(weekday: 1, writtenDays: 0, totalDays: 5, events: 0)
+        let wednesday = WeekdayDistribution.Entry(weekday: 2, writtenDays: 6, totalDays: 9, events: 11)
+        let thursday = WeekdayDistribution.Entry(weekday: 3, writtenDays: 9, totalDays: 9, events: 14)
+
+        #expect(WeekdayDistributionView.weekdayName(0, locale: turkish) == "Pazartesi")
+        #expect(WeekdayDistributionView.weekdayName(5, locale: english) == "Saturday")
+        #expect(WeekdayDistributionView.fractionText(saturday, locale: turkish) == "4/4")
+        #expect(WeekdayDistributionView.fractionText(monday, locale: english) == "2/4")
+        #expect(
+            WeekdayDistributionView.spokenRow(saturday, locale: turkish)
+                == "Cumartesi: 4 günün 4'ü yazıldı")
+        #expect(
+            WeekdayDistributionView.spokenRow(monday, locale: turkish)
+                == "Pazartesi: 4 günün 2'si yazıldı")
+        #expect(
+            WeekdayDistributionView.spokenRow(tuesday, locale: turkish)
+                == "Salı: 5 günün 0'ı yazıldı")
+        #expect(
+            WeekdayDistributionView.spokenRow(wednesday, locale: turkish)
+                == "Çarşamba: 9 günün 6'sı yazıldı")
+        #expect(
+            WeekdayDistributionView.spokenRow(thursday, locale: turkish)
+                == "Perşembe: 9 günün 9'u yazıldı")
+        #expect(
+            WeekdayDistributionView.spokenRow(saturday, locale: english)
+                == "Saturday: 4 of 4 days written")
+        #expect(
+            WeekdayDistributionView.spokenRow(monday, locale: english)
+                == "Monday: 2 of 4 days written")
+        // The suffix follows the last vowel of the spoken number: doksan, on, altmış.
+        for (written, spoken) in [(90, "90'ı"), (10, "10'u"), (60, "60'ı"), (53, "53'ü"), (40, "40'ı")] {
+            let entry = WeekdayDistribution.Entry(weekday: 6, writtenDays: written, totalDays: 99, events: 0)
+            #expect(
+                WeekdayDistributionView.spokenRow(entry, locale: turkish) == "Pazar: 99 günün \(spoken) yazıldı")
+        }
+    }
 }
 
 @MainActor private final class DayBox {

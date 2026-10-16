@@ -1,5 +1,6 @@
 import SwiftUI
 import VaultFormat
+import VaultStore
 
 /// Lists stay alongside their selection in the desktop's three columns. The Mac window, and
 /// on iOS the iPhone Duo inner screen (`AdaptiveNavigation`): there the shell shows two
@@ -255,11 +256,16 @@ struct MacNavigation: View {
                     }
                 case .people, .places:
                     if let entity = navigation.selectedSummary, entity.kind == entityKind {
-                        EntityView(store: store, entity: entity) { path in
-                            navigation.selectedEntity = path
-                            navigation.selectedSummary =
-                                store.content.entities.first { $0.id == path } ?? navigation.selectedSummary
-                        }.id(navigation.entityRouteID)
+                        EntityView(
+                            store: store, entity: entity,
+                            onRenamed: { path in
+                                navigation.selectedEntity = path
+                                navigation.selectedSummary =
+                                    store.content.entities.first { $0.id == path } ?? navigation.selectedSummary
+                            },
+                            // `dismiss()` does nothing in a split view column; the empty state takes over.
+                            onDeleted: { navigation.entityDeleted(path: $0) }
+                        ).id(navigation.entityRouteID)
                     } else {
                         MacEmptyDetail("Bir varlık seç")
                     }
@@ -431,6 +437,7 @@ struct MacEntitiesColumn: View {
     @Binding var search: String
     @Binding var selection: String?
     var unseenReveal: UUID? = nil
+    @State private var creationKind: VaultEntityKind?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -449,6 +456,19 @@ struct MacEntitiesColumn: View {
             EntityTypePicker(store: store, selection: $kind)
                 .padding(.horizontal, InkSpacing.margin)
                 .padding(.bottom, InkSpacing.section)
+            if let creatable = EntityCreateEntry.kind(forList: kind) {
+                Button {
+                    creationKind = creatable
+                } label: {
+                    Label(EntityCreateEntry.title(creatable), systemImage: EntityCreateEntry.systemImage(creatable))
+                }
+                .buttonStyle(InkTextButtonStyle())
+                .disabled(!store.canAddEvent)
+                .accessibilityIdentifier(EntityCreateEntry.identifier(creatable))
+                .padding(.horizontal, InkSpacing.margin)
+                .padding(.bottom, InkSpacing.section)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
             EntityFilterField(search: $search)
                 .padding(.horizontal, InkSpacing.margin)
                 .padding(.bottom, InkSpacing.section)
@@ -458,6 +478,8 @@ struct MacEntitiesColumn: View {
                     in: store.content, usage: store.entityUsage, kind: kind, search: search, order: order),
                 showsUnseen: kind == "person", unseenReveal: unseenReveal, selection: $selection)
         }
+        // The new entity opens in the detail column like a row the user picked.
+        .entityCreateSheet(store: store, kind: $creationKind) { selection = $0.id }
     }
 
     /// The manşet follows the kind tab, which can differ from the sidebar row.

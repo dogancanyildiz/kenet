@@ -3,6 +3,8 @@ import SwiftUI
 import VaultFormat
 
 struct GoalDetailView: View {
+    @Environment(\.dismiss) private var dismiss
+    @State private var deletion = DefinitionDeletionModel()
     let store: IndexStore
     private let original: GoalDefinition
     @State private var history: GoalDayModel
@@ -50,6 +52,17 @@ struct GoalDetailView: View {
                 .padding(.horizontal, InkSpacing.margin)
                 .disabled(!store.canAddEvent)
 
+                Button("Hedefi sil", role: .destructive) { deletion.request(path: goal.id) }
+                    .buttonStyle(InkDestructiveButtonStyle())
+                    .disabled(!store.canAddEvent || deletion.isDeleting)
+                    .accessibilityIdentifier("button.goal.delete")
+                    .padding(.horizontal, InkSpacing.margin)
+
+                if let error = deletion.errorText {
+                    InfoBand(kind: .error, verbatim: error)
+                        .padding(.horizontal, InkSpacing.margin)
+                }
+
                 section(title: String(localized: "Geçmiş kayıtlar")) {
                     historyBlock
                 }
@@ -69,6 +82,12 @@ struct GoalDetailView: View {
         }
         .inkPage()
         .inkPageNavigationTitle(verbatim: goal.name)
+        .destructiveConfirmationDialog(
+            "Hedefi sil", confirmation: $deletion.confirmation,
+            confirmTitle: "Hedefi sil", message: "\(goal.name) silinsin mi? Gün kayıtları kalır."
+        ) { path in
+            Task { if await deletion.delete(store: store, path: path, goal: true) { dismiss() } }
+        }
         .task(id: store.lastUpdated) {
             await history.load()
         }

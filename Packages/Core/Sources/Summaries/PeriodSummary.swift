@@ -185,9 +185,7 @@ public struct PeriodSummary: Sendable {
         for task in data.tasks {
             if task.created.map(range.contains) == true { result.createdTasks += 1 }
             if task.status == .done && task.done.map(range.contains) == true { result.completedTasks += 1 }
-            guard let created = task.created, created <= range.upperBound, task.status != .cancelled else { continue }
-            let open = task.status != .done || task.done.map { $0 > range.upperBound } == true
-            guard open else { continue }
+            guard task.isOpen(on: range.upperBound) else { continue }
             if let due = task.due {
                 if due < range.upperBound { result.overdueTasks += 1 }
             } else {

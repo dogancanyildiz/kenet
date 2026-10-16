@@ -186,7 +186,7 @@ Sahip, heyetin önerdiği Mürekkep'i bu iki değişiklikle seçti. Tasarımcı 
 | İtiraz edenler: erişilebilirlik, platform | Fosfor zeminin kâğıda kontrastı 1,11:1'dir. Ayrımı gerçekte yarı kalın yazı taşır; Kalın Metin açılınca fark daralır. Sarı zemin sistemin bul ve ara eşleşme vurgusuyla aynı görünür. Önceliği onay kutusunun içine yazmak tek denetime 2 durum yükler. Yoğun günlük yazısında her adın sarı blok olması gürültü yapar. |
 | Benimsenirse şartlar | İz hiçbir zaman tek ipucu olmaz; altında Mürekkep'in tipli alt çizgisi durur. Sarı yalnız "uygulama bunu tanıdı" anlamını taşır. Arama eşleşmesi, seçim ve uyarı başka biçim alır. İz yalnız akan metindeki adlarda durur; varlığın kendi sayfasında kendi adı iz taşımaz. Kenar çizgisinin rengi hata ya da gecikme anlatmaz. Çizgi yalnız sayfa görünümlerinde durur; kanban ve zaman çizelgesine geçmez. Kâğıt dokusu, satır çizgisi ve el yazısı yoktur. |
 
-Sahip imzayı istemedi; tanınan adlar alt çizgili kalır. İmza, Mürekkep'in üstünde ince bir katmandır ve sahip katmanı geri alabilir. Sahip isterse Aşama 9 prototipi imzayı açıp kapatarak dener.
+Sahip imzayı istemedi; tanınan adlar alt çizgili kalır. Sahip 2026-10-16'da kararı kesinleştirdi: imza eklenmez ve prototipi yapılmaz. Bu bölüm yalnız gerekçe kaydıdır.
 
 ### Mürekkep'le kabul edilen ayrıntılar
 

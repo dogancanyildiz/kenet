@@ -165,7 +165,7 @@ Kapılar:
 
 | Madde | Durum | Kanıt |
 |---|---|---|
-| Bugün prototipi | Açık. Ekran `dev` dalında ve görüntü testlerinden geçiyor. Kalan iş: gerçek cihazda gözle doğrulama. | - |
+| Bugün prototipi | Bitti. Ayrı prototip yapılmadı; kullanıcı 2026-10-16'da imzayı istemedi ve maddeyi kapattı. | #254 |
 | Belirteçler ve simge | Bitti. Simge "Geçme": mürdüm ve mürekkep; iPhone'da 3 görünüm, Mac'te 10 boy. Kalan iş: küçük boyları gerçek cihazda gözle doğrulama. | #122 |
 | Bileşen kitaplığı | Bitti | - |
 | Bugün ve hızlı giriş | Bitti | - |
@@ -178,7 +178,7 @@ Kapılar:
 
 Kullanıcı tasarım yönünü seçti: Mürekkep, kullanıcının 2 değişikliğiyle. Yön, belirteçler ve kurallar [Tasarım dili](design.md) belgesindedir.
 
-- [ ] Bugün prototipi: Mürekkep yönünün Bugün ekranı için SwiftUI prototipi. Kullanıcı prototipi gerçek cihazda gözle doğrular: ünlemli görev kutusu, büyük yazı, Kontrastı Artır. Kullanıcı isterse Derkenar'ın imzası da gelir.
+- [x] Bugün prototipi: Mürekkep yönünün Bugün ekranı için SwiftUI prototipi. Ayrı prototip yapılmadı: Bugün ekranı Mürekkep kurallarıyla üretimde ve TestFlight'ta cihazda bakılabiliyor. Kullanıcı 2026-10-16'da Derkenar'ın imzasını istemediğini kesinleştirdi ve maddeyi kapattı.
 - [x] Tasarım belirteçleri ve uygulama simgesi: renk, tipografi, biçim ve boşluk belirteçleri, asset catalog, uygulama simgesi.
 - [x] Bileşen kitaplığı: tarih başlığı, hedef çipi, görev satırı, olay satırı, bölüm başlığı, hızlı giriş çubuğu, yüzey, çip, boş durum, ilerleme göstergesi, ısı haritası hücresi, bilgi bandı.
 - [x] Bugün ve hızlı giriş: tarih başlığı, olayların ilk ekranda görünmesi, geciken görevleri sınırlama. Taslak değişikliği önce `screens.md` belgesine girdi.

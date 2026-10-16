@@ -2,7 +2,14 @@ name: iOS derlemesi (test için)
 description: >-
   Paket önbelleği, XcodeGen, proje üretimi, simülatör seçimi, simülatör açılışını başlatma ve
   build-for-testing. iOS test işlerinin ortak başlangıcı; çağıran iş önce depoyu çeker
-  (actions/checkout) ve sonra simülatörün hazır olmasını bekler (simctl bootstatus).
+  (actions/checkout) ve sonra simülatörün hazır olmasını bekler (simctl bootstatus). `pad: true`
+  ikinci bir simülatör olarak iPad seçer ve onu da açmaya başlatır (iPad görüntü kümeleri).
+
+inputs:
+  pad:
+    description: iPad simülatörü de seçilsin ve açılsın mı ("true" / "false")
+    required: false
+    default: "false"
 
 outputs:
   name:
@@ -11,6 +18,12 @@ outputs:
   udid:
     description: Seçilen simülatörün kimliği; sonraki adımlar aygıtı bununla hedefler
     value: ${{ steps.ios_sim.outputs.udid }}
+  pad-name:
+    description: Seçilen iPad simülatörünün adı (yalnız pad true iken)
+    value: ${{ steps.pad_sim.outputs.name }}
+  pad-udid:
+    description: Seçilen iPad simülatörünün kimliği (yalnız pad true iken)
+    value: ${{ steps.pad_sim.outputs.udid }}
 
 runs:
   using: composite
@@ -59,12 +72,49 @@ runs:
         echo "name=${CHOSEN%%|*}" >> "$GITHUB_OUTPUT"
         echo "udid=${CHOSEN##*|}" >> "$GITHUB_OUTPUT"
         echo "Seçilen simülatör: ${CHOSEN%%|*} (${CHOSEN##*|})"
+    # iPad referansları 13 inçlik ekranda çizilir (record-screen-snapshots.sh --pad ile aynı liste).
+    # Listeden hiçbiri yoksa adım düşer: başka bir iPad'e sessizce geçmek görüntüleri değiştirir.
+    - name: iPad simülatör seç
+      id: pad_sim
+      if: inputs.pad == 'true'
+      shell: bash
+      run: |
+        CHOSEN=$(xcrun simctl list devices available -j | python3 -c '
+        import json, re, sys
+        data = json.load(sys.stdin)
+        preferred = ["iPad Pro 13-inch (M5)", "iPad Pro 13-inch (M4)", "iPad Air 13-inch (M4)",
+                     "iPad Air 13-inch (M3)", "iPad Pro 13-inch"]
+        devices = []
+        for runtime, entries in data.get("devices", {}).items():
+            if "iOS" not in runtime:
+                continue
+            version = tuple(int(part) for part in re.findall(r"[0-9]+", runtime.rsplit("iOS", 1)[-1]))
+            for device in entries:
+                if device.get("isAvailable") and device.get("name") in preferred:
+                    devices.append((version, device["name"], device["udid"]))
+        # iPhone seçimiyle aynı: en yeni çalışma zamanı önce.
+        devices.sort(key=lambda entry: entry[0], reverse=True)
+        for name in preferred:
+            for version, candidate, udid in devices:
+                if candidate == name:
+                    print(candidate + "|" + udid)
+                    sys.exit(0)
+        print("Uygun iPad simülatörü yok; aranan: " + ", ".join(preferred), file=sys.stderr)
+        sys.exit(1)
+        ')
+        echo "name=${CHOSEN%%|*}" >> "$GITHUB_OUTPUT"
+        echo "udid=${CHOSEN##*|}" >> "$GITHUB_OUTPUT"
+        echo "Seçilen iPad simülatörü: ${CHOSEN%%|*} (${CHOSEN##*|})"
     # Açılış derlemeyle aynı anda başlar: açılış (~2 dk) derleme süresine gizlenir ve simülatör testten
     # önce yatışır (yeni açılmış simülatörde testler belirgin yavaş koşuyor). Hazır olmasını çağıran
     # iş ayrı adımda bekler (simctl bootstatus); açılış burada düşerse orada yeniden denenir ve görünür.
     - name: iOS simülatörünü başlat (derlemeyle paralel)
       shell: bash
       run: xcrun simctl boot "${{ steps.ios_sim.outputs.udid }}" || echo "::warning::simctl boot başarısız; açılış adımında yeniden denenecek."
+    - name: iPad simülatörünü başlat (derlemeyle paralel)
+      if: inputs.pad == 'true'
+      shell: bash
+      run: xcrun simctl boot "${{ steps.pad_sim.outputs.udid }}" || echo "::warning::iPad simctl boot başarısız; açılış adımında yeniden denenecek."
     - name: iOS derlemesi (test için)
       shell: bash
       run: |

@@ -1,6 +1,10 @@
 import AppIntents
 import SwiftUI
 
+#if os(iOS)
+    import UIKit
+#endif
+
 /// Device preference for the one-time entry-path hint on the main screen.
 enum EntryPointsTipPreference {
     static let key = "entryPoints.tipDismissed"
@@ -65,15 +69,37 @@ enum EntryPointPhrases {
     }
 }
 
-/// The Action Button is an iPhone control. Kept off the view type so tests can read it
-/// without hopping to the main actor.
-enum EntryPointPlatform {
-    static var showsActionButton: Bool {
+/// Device kind for copy and keyboard gates only. Layout never reads it: the shell follows the
+/// size classes (decisions 2026-10-13). Tests pass each case in directly.
+enum DeviceIdiom: Equatable, Sendable {
+    case phone
+    case pad
+    case mac
+
+    /// The device the process runs on.
+    @MainActor static var current: DeviceIdiom {
         #if os(iOS)
-            true
+            UIDevice.current.userInterfaceIdiom == .pad ? .pad : .phone
         #else
-            false
+            .mac
         #endif
+    }
+}
+
+/// The Action Button is an iPhone control: iPad and Mac have none. Kept off the view type so
+/// tests can read it without hopping to the main actor.
+enum EntryPointPlatform {
+    static func showsActionButton(_ idiom: DeviceIdiom) -> Bool {
+        idiom == .phone
+    }
+
+    /// The first-use tip names only the paths the device has.
+    static func tip(for idiom: DeviceIdiom) -> LocalizedStringResource {
+        switch idiom {
+        case .phone: "Siri, Kısayollar ve Eylem düğmesiyle de yazabilirsin."
+        case .pad: "Siri ve Kısayollar ile de yazabilirsin."
+        case .mac: "Siri, Kısayollar ve klavye kısayoluyla da yazabilirsin."
+        }
     }
 }
 
@@ -98,6 +124,7 @@ struct EntryPointsSettingsView: View {
 /// Siri phrases and Shortcuts. The Action Button block is iPhone-only.
 struct EntryPointSections: View {
     @Environment(\.locale) private var locale
+    var idiom: DeviceIdiom = .current
 
     var body: some View {
         Section {
@@ -122,7 +149,7 @@ struct EntryPointSections: View {
                 .foregroundStyle(Color.ink.secondaryText)
                 .inkListRow()
         }
-        if EntryPointPlatform.showsActionButton {
+        if EntryPointPlatform.showsActionButton(idiom) {
             Section {
                 SectionHeader("Eylem düğmesi")
                     .inkListRow()

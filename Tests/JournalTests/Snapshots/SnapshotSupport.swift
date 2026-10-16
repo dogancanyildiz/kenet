@@ -40,7 +40,9 @@
     /// Device canvas a reference is drawn on: size, size classes and safe area.
     /// `.phone` is what every existing reference uses and stays the default everywhere; the Duo
     /// canvases add size-class trait overrides on top of the same host. Duo sizes are 3× estimates
-    /// from the panel pixels (docs/architecture.md); safe areas are estimates too.
+    /// from the panel pixels (docs/architecture.md); safe areas are estimates too. The iPad
+    /// canvases are the iPad Pro 13-inch and 11-inch screens (and a compact Split View slot);
+    /// their suites (`Pad…SnapshotTests`) run on an iPad simulator only.
     enum ShellCanvas: Sendable, Equatable {
         /// 390×844, SnapshotTesting's iPhone 13 portrait config (compact × regular).
         case phone
@@ -49,12 +51,32 @@
         /// iPhone Duo inner screen, open flat: 890×626 pt, regular × regular. `leading` and
         /// `trailing` add side safe area for asymmetric insets (fold, camera).
         case duoInner(leading: CGFloat = 0, trailing: CGFloat = 0)
+        /// iPad Pro 13-inch in landscape: 1376×1032 pt, regular × regular.
+        case pad13Landscape
+        /// iPad Pro 13-inch in portrait: 1032×1376 pt, regular × regular.
+        case pad13Portrait
+        /// iPad Pro 11-inch in portrait: 834×1210 pt, regular × regular.
+        case pad11Portrait
+        /// The app beside another in Split View on the 13-inch, landscape: 440×1032 pt,
+        /// compact × regular (phone layout).
+        case padCompact
 
         var size: CGSize {
             switch self {
             case .phone: snapshotCanvasSize
             case .duoOuter: CGSize(width: 466, height: 678)
             case .duoInner: CGSize(width: 890, height: 626)
+            case .pad13Landscape: CGSize(width: 1376, height: 1032)
+            case .pad13Portrait: CGSize(width: 1032, height: 1376)
+            case .pad11Portrait: CGSize(width: 834, height: 1210)
+            case .padCompact: CGSize(width: 440, height: 1032)
+            }
+        }
+
+        var isPad: Bool {
+            switch self {
+            case .phone, .duoOuter, .duoInner: false
+            case .pad13Landscape, .pad13Portrait, .pad11Portrait, .padCompact: true
             }
         }
 
@@ -65,17 +87,21 @@
             case .phone: nil
             case .duoOuter: (.compact, .regular)
             case .duoInner: (.regular, .regular)
+            case .pad13Landscape, .pad13Portrait, .pad11Portrait: (.regular, .regular)
+            case .padCompact: (.compact, .regular)
             }
         }
 
         /// Outer screen: phone status bar and home indicator. Inner screen: iPad-like landscape
-        /// bars plus the side insets.
+        /// bars plus the side insets. iPad: status bar and home indicator, no side insets.
         var safeArea: UIEdgeInsets {
             switch self {
             case .phone: ViewImageConfig.iPhone13.safeArea
             case .duoOuter: UIEdgeInsets(top: 47, left: 0, bottom: 34, right: 0)
             case .duoInner(let leading, let trailing):
                 UIEdgeInsets(top: 24, left: leading, bottom: 20, right: trailing)
+            case .pad13Landscape, .pad13Portrait, .pad11Portrait, .padCompact:
+                UIEdgeInsets(top: 24, left: 0, bottom: 20, right: 0)
             }
         }
 
@@ -86,7 +112,8 @@
                 traits: UITraitCollection { mutable in
                     mutable.layoutDirection = .leftToRight
                     mutable.preferredContentSizeCategory = .medium
-                    mutable.userInterfaceIdiom = .phone
+                    mutable.userInterfaceIdiom = isPad ? .pad : .phone
+                    if isPad { mutable.displayScale = 2 }
                     mutable.horizontalSizeClass = sizeClasses.horizontal
                     mutable.verticalSizeClass = sizeClasses.vertical
                 })

@@ -19,6 +19,7 @@ struct InkHeaderButtonStyle: ButtonStyle {
             .inkHeaderIconMetrics()
             .foregroundStyle(InkButtonChrome.color(for: token))
             .tapTarget()
+            .inkPointerHighlight()
     }
 }
 
@@ -35,6 +36,18 @@ extension View {
                     minHeight: InkHeaderActionChrome.macMinimumSide
                 )
                 .contentShape(Rectangle())
+        #else
+            self
+        #endif
+    }
+}
+
+extension View {
+    /// iPad pointer feedback for a frameless icon. No-op on Mac (its own hover) and without a
+    /// pointer, so the iPhone drawing is unchanged.
+    @ViewBuilder func inkPointerHighlight() -> some View {
+        #if os(iOS)
+            hoverEffect(.highlight)
         #else
             self
         #endif

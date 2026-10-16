@@ -64,6 +64,20 @@ struct QuickEntryBar: View {
         )
     }
 
+    /// ⌘⇧T switches the mode (Mac, and iPad with a hardware keyboard). Off-screen and inert for
+    /// touch, so iPhone looks and behaves as before.
+    private var modeShortcutButton: some View {
+        Button("Kip değiştir") {
+            model.mode = model.mode == .task ? .event : .task
+            isFocused = true
+        }
+        .keyboardShortcut(JournalShortcut.switchMode.key, modifiers: JournalShortcut.switchMode.modifiers)
+        .opacity(0)
+        .frame(width: 0, height: 0)
+        .accessibilityHidden(true)
+        .disabled(!isEnabled || model.isSubmitting || model.isCreating || store.isWriting)
+    }
+
     var body: some View {
         @Bindable var model = model
         VStack(alignment: .leading, spacing: 8) {
@@ -153,15 +167,7 @@ struct QuickEntryBar: View {
                 }
             }
             #if os(macOS)
-                Button("Kip değiştir") {
-                    model.mode = model.mode == .task ? .event : .task
-                    isFocused = true
-                }
-                .keyboardShortcut("t", modifiers: [.command, .shift])
-                .opacity(0)
-                .frame(width: 0, height: 0)
-                .accessibilityHidden(true)
-                .disabled(!isEnabled || model.isSubmitting || model.isCreating || store.isWriting)
+                modeShortcutButton
             #endif
         }
         .padding(.horizontal, InkSpacing.margin)
@@ -169,6 +175,10 @@ struct QuickEntryBar: View {
         .padding(.bottom, 4)
         .frame(maxWidth: .infinity)
         .inkPageColumn()
+        #if os(iOS)
+            // iPad hardware keyboard: in the background, so it adds no row to the stack's spacing.
+            .background { modeShortcutButton }
+        #endif
         // Opaque paper shelf under the capsule (safeAreaInset content draws over the list).
         .background {
             Color.ink.paper

@@ -28,7 +28,7 @@ flowchart LR
   F --> IM["import/ : 7 örnek"]
   F --> DA["dates/ : 3 JSON, 2 girdi dosyası"]
   F --> GO["goals/ : cases.json, series.json, creation/, writes/"]
-  F --> SU["summaries/ : 9 JSON"]
+  F --> SU["summaries/ : 10 JSON"]
   F --> VA["vaults/ : 13 kasa"]
   VA --> V1["sample"]
   VA --> V2["entity-fields"]
@@ -142,6 +142,7 @@ Swift testleri `Fixtures/` klasörünü test kaynak dosyasından yukarı doğru 
 | `summaries/year-writing.json` | `SummariesTests/YearWritingCalendarTests.swift` | JSON vaka |
 | `summaries/weekly-rhythm.json` | `SummariesTests/WeeklyReviewRhythmTests.swift` | JSON vaka |
 | `summaries/entity-density.json` | `SummariesTests/EntityMentionDensityTests.swift` | JSON vaka |
+| `summaries/weekday-distribution.json` | `SummariesTests/WeekdayDistributionTests.swift` | JSON vaka |
 | `vaults/sample/` | `IndexTests`, `PeriodSummaryTests`, `WikiLinkTests`, `MergeTests` ve uygulama testlerinin çoğu | Ad kodda |
 | `vaults/typed/` | `EntityTypeTests`, `EntityTypeStoreTests`, `InitialIndexTests`, `Tests/JournalTests/CustomEntityTypeTests.swift` | Ad kodda |
 | `vaults/backlinks/` | `VaultIndexTests/DayBacklinksTests.swift` | Ad kodda |
@@ -1039,6 +1040,7 @@ Diğer af durumları bugün yapılınca süren zincir, hedefin ilk ve ikinci gü
 | `year-writing.json` | `vaults/rhythm/` ve satır içi | 6 | Özetler'in yazılan günler haritası |
 | `weekly-rhythm.json` | `vaults/rhythm/` ve satır içi | 5 | Haftalık incelemenin kısa ritmi |
 | `entity-density.json` | yok | 6 | Kişi ve konum geçiş sıklığı, aylık yoğunluk ve 90 günlük aralık hesabı |
+| `weekday-distribution.json` | `vaults/rhythm/` ve satır içi | 6 | Özetler'in haftanın günleri yazma oranı |
 
 **Haftalık gözden geçirme metni:** Dosya başlığı, isteğe bağlı `summaryLines`, `selectedLines`, `note` ve beklenen `[String]` `expected` çıktısını taşır. Çıktıda önce hazır yerel özet satırları, sonra seçili satırlar ve not gelir. Test çıktıyı gerçek ayrıştırıcıyla yeniden okur; çıktı görev, olay, bölüm ve frontmatter üretmez. Test günlük ekleme yazıcısının bu satırları değiştirmeden yazdığını da denetler.
 
@@ -1071,6 +1073,17 @@ Kasada 3 kişi, 1 konum, 1 günlük hedef ve 11 gün dosyası vardır. Fixture y
 | `empty-leap-year-without-today` | `today` yoksa bütün yıl ölçülür; 2024'te Şubat 29 gündür. |
 | `first-day-adds-rows-of-one-date` | 1 Ocak'ın iki satırı toplanır ve gün olaylıdır. 2025 satırı ve bugünden sonraki 2 Ocak sayılmaz. |
 | `last-day-ends-the-year` | 31 Aralık bugündür ve yıl biter. 29 Şubat yalnız günlük yazısıdır. Eksi olay sayısı ve boş dosya yazılmış gün değildir. |
+
+**Haftanın günleri yazma oranı:** Fixture yazarı 6 beklentiyi elle saydı. Her durum `period`, `containing`, isteğe bağlı `today` ve ya `vault` ya da satır içi `days` taşır. Satır içi gün `date`, `events` ve `hasJournal` taşır. Beklenti Pazartesi'den Pazar'a 7 elemanlı üç dizi taşır: ölçülen gün `totalDays`, yazılan gün `writtenDays` ve olay `events`. Beklenti en yüksek yazma oranlı günü de taşır: `leadingWeekday` (0 Pazartesi, 6 Pazar; `null`: yazılan gün yok). Süren dönemde payda bugüne kadarki günlerdir. Eşit oranda olayı çok olan gün, yine eşitse haftanın ilk günü seçilir.
+
+| Durum | Ne sınar |
+|---|---|
+| `empty-month` | Ağustos 2026'da yazılan gün yoktur: 31 gün ölçülür (Pazartesi, Cumartesi ve Pazar 5'er). 3 Ağustos'ta yalnız görev vardır; gün yazılmamıştır. `leadingWeekday` `null` olur. |
+| `running-month-ends-today` | Ekim 2026 çarşamba 7 Ekim'de sürer: her günden 1 gün ölçülür. 4 Ekim yalnız günlük yazısıdır. Beş gün 1/1'dir; Cuma 3 olayla öndedir (`leadingWeekday = 4`). 9 Ekim sayılmaz. |
+| `ended-month-higher-ratio-beats-higher-events` | Ekim 2025 bitmiştir: 31 gün ölçülür (Çarşamba–Cuma 5'er). Pazartesi 1/4 ve 1 olayla, Çarşamba 1/5 ve 2 olayla yazılır. Oran olaydan önce gelir: `leadingWeekday = 0`. |
+| `running-year-ends-today` | 2026 yılı 7 Ekim'de sürer: 280 gün ölçülür (her günden 40), 7 yazılan gün vardır. Pazartesi ve Çarşamba 2/40 ile eşittir; Pazartesi 3 olayla Çarşamba'yı (2 olay) geçer. |
+| `tie-on-ratio-and-events-picks-earlier-weekday` | Şubat 2026'da her günden 4 gün ölçülür. Aynı tarihin satırları toplanır, eksi olay 0 sayılır ve o gün yazılmamıştır. Çarşamba ve Cuma 1/4 ve 2 olayla eşittir; erken gün seçilir (`leadingWeekday = 2`). Dönem dışındaki 31 Ocak ve 1 Mart sayılmaz. |
+| `period-not-begun` | Bugün dönemden öncedir: 7 günün her birinde `totalDays` 0 ve `leadingWeekday` `null` olur. |
 
 **Haftalık incelemenin kısa ritmi:** Fixture yazarı 5 beklentiyi elle saydı. Her durum `range`, `previousRange`, isteğe bağlı `today` ve ya `vault` ya da satır içi `days` taşır. Beklenti gün başına `date`, `events`, `previousEvents` ve `writing` (`full`, `none`, `notStarted`) ile toplam `events`, `previousEvents`, `change` ve `isRunning` taşır. Aralığın N. günü önceki aralığın N. günüyle karşılaştırılır. Toplamlar yalnız bugüne kadarki günleri sayar; önceki günün çubuğu bugünden sonraki gün için de durur.
 
@@ -1109,7 +1122,7 @@ Kasa 20 Eylül'ü 4 yılda taşır. 2023 bağlantısızdır: not bağlantısı, 
 | `typed` | 4 | Özel kitap tipi; ayrıntı [`entity-types/` kümesi](#entity-types-kümesi) bölümünde | `entity-types/` |
 | `placeholder` | 12 | İndirilmeyi bekleyen yer tutucular | `PlaceholderTests` |
 | `day-copies` | 41 | Gün kopyası birleştirme | `DayCopyTests` |
-| `rhythm` | 16 | Özetler'in yıl, süren dönem ve ritim hesabı | `summaries/period-rhythm.json`, `summaries/year-writing.json`, `summaries/weekly-rhythm.json` |
+| `rhythm` | 16 | Özetler'in yıl, süren dönem ve ritim hesabı | `summaries/period-rhythm.json`, `summaries/year-writing.json`, `summaries/weekly-rhythm.json`, `summaries/weekday-distribution.json` |
 | `copy-files` | 19 | Varlık kopyası ve gün kopyası listesi; birleştirme yok | `VaultIndexTests/CopyFileTests`, `Tests/JournalTests/SyncedFolderNoticeTests` |
 
 **Şema, `vaults/sample/` kasasının klasörlerini ve dosya sayılarını gösterir.**

@@ -187,25 +187,28 @@ Referansı başka cihazda kaydedersen CI'da test düşer. Betik kümeleri ad kur
 
 ## Ekran turu
 
-**Tablo, iPhone ve Mac ekran turlarını karşılaştırır.**
+**Tablo, iPhone, iPad ve Mac ekran turlarını karşılaştırır.**
 
-| Konu | iPhone | Mac |
-|---|---|---|
-| Komut | `sh .github/scripts/screen-tour.sh <çıktı klasörü> [simülatör kimliği]` | `sh .github/scripts/screen-tour.sh --mac <çıktı klasörü>` |
-| Test | `ScreenTourUITests` | `ScreenTourMacUITests` |
-| Şema | `Journal_iOS` | `Journal_macOS_ScreenTour` |
-| Çıktı | Her ekran için `NN-ekran-durum.png` | Aynı adlarla pencere görüntüleri; yalnız Mac'te olan ekranlar 30'dan başlar |
-| Ulaşılamayan adım | `atlananlar.txt` dosyasına düşer; test düşmez | Aynı |
-| Koşu | Yalnız betikle; olağan arayüz testi koşusu ve CI turu atlar | Yalnız betikle; tur sürerken fare ve klavye testin elindedir |
+| Konu | iPhone | iPad | Mac |
+|---|---|---|---|
+| Komut | `sh .github/scripts/screen-tour.sh <çıktı klasörü> [simülatör kimliği]` | `sh .github/scripts/screen-tour.sh --pad <çıktı klasörü> [simülatör kimliği]` | `sh .github/scripts/screen-tour.sh --mac <çıktı klasörü>` |
+| Test | `ScreenTourUITests` | `ScreenTourUITests`; sekme yerine kenar çubuğu satırları (`sidebar.<key>`) | `ScreenTourMacUITests` |
+| Şema | `Journal_iOS` | `Journal_iOS` | `Journal_macOS_ScreenTour` |
+| Aygıt | En eski iOS runtime'ındaki iPhone 17 | `record-screen-snapshots.sh --pad` ile aynı: iPad Pro 13 inç (M5) önce; yatay | Ana ekranda 1280x800 pencere |
+| Çıktı | Her ekran için `NN-ekran-durum.png` | iPhone ile aynı adlar; ayrı klasöre yaz | Aynı adlarla pencere görüntüleri; yalnız Mac'te olan ekranlar 30'dan başlar |
+| Ulaşılamayan adım | `atlananlar.txt` dosyasına düşer; test düşmez | Aynı | Aynı |
+| Koşu | Yalnız betikle; olağan arayüz testi koşusu ve CI turu atlar | Aynı; koşu bitince aygıt dik yöne döner | Yalnız betikle; tur sürerken fare ve klavye testin elindedir |
 
 **Tablo, turu ayarlayan ortam değişkenlerini verir.**
 
 | Değişken | Etki |
 |---|---|
 | `SCREEN_TOUR_SIMULATOR` | Simülatör kimliği; ikinci bağımsız değişkenin yerine geçer |
-| `SCREEN_TOUR_PLATFORM=mac` | `--mac` ile aynı |
+| `SCREEN_TOUR_PLATFORM=mac`, `=pad` | `--mac`, `--pad` ile aynı |
+| `SCREEN_TOUR_ORIENTATION=portrait` | iPad turunu dik koşturur; varsayılan yatay |
+| `SCREEN_TOUR_DERIVED_DATA` | iPhone ve iPad turunun derleme klasörü; varsayılan `.dd/screen-tour` |
 | `SCREEN_TOUR_WINDOW=1000x700` | Mac penceresinin boyutu; varsayılan 1280x800 |
-| `SCREEN_TOUR_ONLY=ayarlar,koyu` | Yalnız adı verilen bölümleri koşar |
+| `SCREEN_TOUR_ONLY=ayarlar,koyu` | Mac turunda yalnız adı verilen bölümleri koşar |
 | `SCREEN_TOUR_TREE=1` | Her görüntünün yanına erişilebilirlik ağacını `<çıktı>/agac/` altına yazar |
 
 Tur, tasarım işinde önce ve sonra karşılaştırması içindir. iPhone turu uygulamayı örnek kasayla simülatörde gezer. Mac turunda uygulama ayrı bir bundle kimliği ve geçici bir ev klasörü kullanır. Mac turu gerçek kasaya ve ayarlara dokunmaz.

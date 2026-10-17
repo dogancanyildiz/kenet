@@ -618,6 +618,7 @@ struct MacEntityList: View {
     var showsUnseen: Bool
     var unseenReveal: UUID? = nil
     @Binding var selection: String?
+    @State private var editingEntity: EntitySummary?
 
     var body: some View {
         List(selection: $selection) {
@@ -629,12 +630,20 @@ struct MacEntityList: View {
                 .id(unseenReveal)
             }
             ForEach(entities) { entity in
-                EntityRow(entity: entity)
-                    .inkListRow(columnSelected: selection == entity.id)
-                    .tag(entity.id)
+                EntityRow(
+                    entity: entity, store: store, onEdit: { editingEntity = entity },
+                    onDeleted: { if selection == $0 { selection = nil } }
+                )
+                .inkListRow(columnSelected: selection == entity.id)
+                .tag(entity.id)
             }
         }
         .listStyle(.plain)
         .scrollContentBackground(.hidden)
+        .entityDefinitionActions(
+            store: store, editing: $editingEntity,
+            onRenamed: { old, new in if selection == old { selection = new } },
+            onDeleted: { if selection == $0 { selection = nil } }
+        )
     }
 }

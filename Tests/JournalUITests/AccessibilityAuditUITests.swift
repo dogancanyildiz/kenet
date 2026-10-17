@@ -7,8 +7,14 @@ import XCTest
 /// Settings, so heatmap contrast issues are not in scope here. If an audit later surfaces
 /// them after navigation changes, filter by identifier prefix `heatmap.` and list them in
 /// the Stage 8 report rather than calling `.ignore` on all types.
+///
+/// On iPad the same screens are audited in the split shell: `UITestSupport.openTab` selects the
+/// tab's sidebar row there. The iPad runs on its side (the screen tour's layout, three columns);
+/// `JOURNAL_UITEST_ORIENTATION=portrait` (through `TEST_RUNNER_`) audits it upright.
 final class AccessibilityAuditUITests: XCTestCase {
+    static let orientationKey = "JOURNAL_UITEST_ORIENTATION"
     private var vaultURL: URL!
+    private var turned = false
 
     override func setUpWithError() throws {
         continueAfterFailure = false
@@ -20,6 +26,17 @@ final class AccessibilityAuditUITests: XCTestCase {
         if let vaultURL {
             try? FileManager.default.removeItem(at: vaultURL)
         }
+        // A simulator left on its side would turn the iPad snapshot run that follows it.
+        if turned { MainActor.assumeIsolated { XCUIDevice.shared.orientation = .portrait } }
+    }
+
+    /// Split shell (iPad): turns the device as requested, on its side by default.
+    @MainActor
+    private func turnSplitShell(_ app: XCUIApplication) {
+        guard UITestSupport.isSplitShell(app) else { return }
+        let requested = ProcessInfo.processInfo.environment[Self.orientationKey] ?? ""
+        XCUIDevice.shared.orientation = requested == "portrait" ? .portrait : .landscapeLeft
+        turned = true
     }
 
     @MainActor
@@ -28,6 +45,7 @@ final class AccessibilityAuditUITests: XCTestCase {
         UITestSupport.activateSystemAlertMonitor(in: app)
 
         UITestSupport.waitForExistence(UITestSupport.element(in: app, identifier: "screen.today"))
+        turnSplitShell(app)
         try audit(app, screen: "today")
 
         UITestSupport.openTab(app, identifier: "tab.days", screen: "screen.days")

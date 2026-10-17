@@ -40,9 +40,10 @@ extension XCUICoordinate {
     }
 }
 
-/// Drives the app for `ScreenTourUITests` (iPhone) and `ScreenTourMacUITests` (Mac): finds controls by identifier first and by
-/// accessibility label second, writes numbered PNGs, and never fails the test for a
-/// screen it cannot reach (the step lands in `atlananlar.txt` instead).
+/// Drives the app for `ScreenTourUITests` (iPhone and iPad) and `ScreenTourMacUITests` (Mac): finds controls by
+/// identifier first and by accessibility label second, writes numbered PNGs, and never fails the
+/// test for a screen it cannot reach (the step lands in `atlananlar.txt` instead). On iPad the
+/// split shell's sidebar rows stand in for the tabs (`UITestSupport.sidebarRows`).
 @MainActor
 final class ScreenTourDriver {
     private(set) var app: XCUIApplication
@@ -57,12 +58,15 @@ final class ScreenTourDriver {
     /// What a screenshot shows. `nil` is the whole screen (iPhone); Mac names a window so that
     /// nothing else on the desktop gets into the image.
     var captureTarget: (@MainActor (XCUIApplication) -> XCUIElement?)?
-    /// Where in the captured window a page scroll happens on Mac (the detail column by default);
-    /// unused on iPhone, where a swipe moves the whole screen.
+    /// Where in the captured window (or the iPad screen) a page scroll happens on Mac and in the
+    /// iPad split shell (the detail column by default); unused in the iPhone tab shell, where a
+    /// swipe moves the whole screen.
     var scrollAnchor = CGVector(dx: 0.72, dy: 0.6)
     private(set) var written: [String] = []
     private(set) var skipped: [String] = []
     private var lastShot = "-"
+    /// Whether the launched app shows the split shell (sidebar) rather than tabs; asked once per launch.
+    private var splitShellCache: Bool?
 
     /// Turkish is the development language: the label fallbacks below are Turkish source keys.
     nonisolated static let turkish = ["-AppleLanguages", "(tr)", "-AppleLocale", "tr_TR"]
@@ -95,8 +99,18 @@ final class ScreenTourDriver {
         if let arguments { launchArguments = arguments }
         app.terminate()
         app = ScreenTourDriver.launch(vaultURL: vaultURL, arguments: launchArguments, environment: launchEnvironment)
+        splitShellCache = nil
         afterLaunch(self)
         _ = id("screen.today").waitForExistence(timeout: 30)
+    }
+
+    /// The iPad split shell: sidebar rows instead of a tab bar, sheets over three columns.
+    var isSplitShell: Bool {
+        if let splitShellCache { return splitShellCache }
+        _ = id("screen.today").waitForExistence(timeout: 10)
+        let split = UITestSupport.isSplitShell(app)
+        splitShellCache = split
+        return split
     }
 
     // MARK: Steps
@@ -169,7 +183,16 @@ final class ScreenTourDriver {
             point.hover()
             point.scroll(byDeltaX: 0, deltaY: back ? 4000 : -420)
         #else
-            if back { app.swipeDown() } else { app.swipeUp() }
+            guard isSplitShell else {
+                if back { app.swipeDown() } else { app.swipeUp() }
+                return
+            }
+            // Columns side by side: a swipe from the screen's centre would move whichever column
+            // is there. The drag starts at the anchor (the detail column, or a sheet's centre).
+            let start = app.coordinate(withNormalizedOffset: scrollAnchor)
+            for _ in 0..<(back ? 3 : 1) {
+                start.press(forDuration: 0.05, thenDragTo: start.withOffset(CGVector(dx: 0, dy: back ? 600 : -420)))
+            }
         #endif
     }
 
@@ -347,9 +370,15 @@ final class ScreenTourDriver {
 
     // MARK: Getting back to a root screen
 
+    /// The tab bar, or in the split shell the sidebar, can be touched (nothing covers the shell).
     private var tabBarIsReachable: Bool {
         let first = app.tabBars.buttons.firstMatch
-        return first.exists && first.isHittable
+        if first.exists { return first.isHittable }
+        guard isSplitShell else { return false }
+        let today = UITestSupport.sidebarRow(in: app, identifier: "sidebar.today")
+        if today.exists { return today.isHittable }
+        let toggle = UITestSupport.sidebarToggle(in: app)
+        return toggle.exists && toggle.isHittable
     }
 
     /// Closes menus, sheets and pushed sheet pages with actions that never save anything.
@@ -428,7 +457,12 @@ final class ScreenTourDriver {
     }
 
     /// Opens a tab at its root. `marker` is the root screen identifier, `title` its headline.
+    /// In the split shell the tab's sidebar row is selected instead (`sidebarRow`).
     func home(_ tab: String, marker: String?, title: String?) throws {
+        if isSplitShell {
+            try sidebarRow(UITestSupport.sidebarIdentifier(forTab: tab), marker: marker, title: title)
+            return
+        }
         dismissOverlays()
         let button = UITestSupport.tab(in: app, identifier: tab)
         guard button.waitForExistence(timeout: 10) else { throw ScreenTourError("sekme yok: \(tab)") }
@@ -447,6 +481,33 @@ final class ScreenTourDriver {
             if isAtRoot(marker: marker, title: title, timeout: 1) { return }
         }
         throw ScreenTourError("kök ekran açılmadı: \(tab)")
+    }
+
+    /// Split shell: selects a sidebar row (`sidebar.<key>`: a section, a board or a project). The
+    /// row's section draws its detail column afresh, so there is no stack to pop: no back button
+    /// is looked for. The root is measured by `marker` or `title` when given, and else (a list
+    /// column without a marker of its own) by the row's selected state.
+    func sidebarRow(_ identifier: String, marker: String? = nil, title: String? = nil) throws {
+        dismissOverlays()
+        let row = UITestSupport.sidebarRow(in: app, identifier: identifier)
+        if !row.waitForExistence(timeout: 3) || !row.isHittable {
+            // The sidebar is put away (two columns at a time, an upright iPad at launch).
+            UITestSupport.revealSidebar(in: app)
+        }
+        guard row.waitForExistence(timeout: 10) else { throw ScreenTourError("kenar çubuğunda yok: \(identifier)") }
+        guard row.isHittable else { throw ScreenTourError("kenar çubuğu satırına dokunulamıyor: \(identifier)") }
+        row.tourTap()
+        if !UITestSupport.waitUntilSelected(row, timeout: 3) {
+            row.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tourTap()
+            _ = UITestSupport.waitUntilSelected(row, timeout: 3)
+        }
+        pause(0.6)
+        if let marker, id(marker).waitForExistence(timeout: 5) { return }
+        if let title, app.staticTexts.matching(ScreenTourDriver.exact(title)).firstMatch.waitForExistence(timeout: 2) {
+            return
+        }
+        if row.isSelected { return }
+        throw ScreenTourError("kenar çubuğu satırı açılmadı: \(identifier)")
     }
 
     private func isAtRoot(marker: String?, title: String?, timeout: TimeInterval) -> Bool {

@@ -369,6 +369,16 @@ Kod karşılığı: `.inkSheet`, `InkSheetScaffold` ve `InkSheetConfirmation`. `
 | Kutu | Kâğıt üstünde beyaz ya da gri kutu yoktur. Alan zemini çukurdur, liste satırı kâğıttır. |
 | Yüzey rengi | Yüzey rengi yalnız renk tablosunda sayılan yerlerde görünür. |
 
+### 8. Bağlam menüsü
+
+| Konu | Kural |
+|---|---|
+| Açma | iPhone ve iPad'de satıra uzun basma; iPad ve Mac'te ikincil tık aynı menüyü açar. Satıra normal dokunma seçimi ve gezinmeyi korur. |
+| Gruplar | Birincil eylemler (düzenle, işaretle ya da miktar gir), bağlantı (kopyala), yıkıcı (sil). Boş gruplar görünmez; gruplar `Divider` ile ayrılır. |
+| Sil | Her zaman sonda ve kırmızıdır (`role: .destructive`). Varlık ve hedef dosyasını silmeden önce kayıtların kalacağını açıklayan onay ister. |
+| Erişim | Düzenle, Sil, işaretleme ve Miktar gir ana arayüzde de bulunur; menü onlara kestirme yoldur. Bağlantıyı kopyala yalnız menüdedir: bağlantı yazarken ad yazılarak da kurulur. |
+| Sayı | En çok 5 öğe. |
+
 ### Koruma
 
 **Kalıpları koruyan testler.**

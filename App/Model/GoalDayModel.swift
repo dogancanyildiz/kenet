@@ -40,6 +40,8 @@ final class GoalDayModel {
         root != nil && root == store.vaultURL && hasLoaded && !isLoading && !isWriting && store.canAddEvent
     }
     func value(for goal: GoalDefinition) -> GoalValue? { logs[goal.key]?.last { $0.day == day }?.value }
+    /// Today's own record says yes (a period already met by earlier days does not count).
+    func isMarkedToday(_ goal: GoalDefinition) -> Bool { value(for: goal) == .boolean(true) }
     /// Statuses by goal id, each with the definition it was computed for: a draw reads a goal's
     /// status many times (order, count, row), and the full history is computed once per change.
     @ObservationIgnored private var computedStatuses: [String: (goal: GoalDefinition, status: GoalStatus)] = [:]

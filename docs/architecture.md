@@ -1056,6 +1056,8 @@ Adı `Pad` ile başlayan kümeler iPad tuvallerini çizer: `PadShellSnapshotTest
 
 Tam uygulama akışı için XCUITest dumanı kalır. CI dumanı `-only-testing:JournalUITests` ile koşturur. DEBUG derlemede `JOURNAL_UITEST_VAULT` verilen klasörü kasa olarak açar; otomatik gerçek kasa, bildirim ya da kilit başlamaz.
 
+Ekran turu (`ScreenTourUITests`, `sh .github/scripts/screen-tour.sh`) aynı testle iPhone'da ve `--pad` ile iPad simülatöründe koşar. iPad'de bölünmüş kabukta sekme yoktur: `UITestSupport` her sekme kimliğini kenar çubuğu satırına eşler (`tab.entities` → `sidebar.people`), Kanban, zaman çizelgesi, proje, Konumlar, Özetler, Graph ve harita kendi satırından açılır. iPad turu yatay koşar; `SCREEN_TOUR_ORIENTATION=portrait` dik koşturur. Erişilebilirlik denetimi (`AccessibilityAuditUITests`) aynı eşlemeyle iPad'de de koşar; bölünmüş kabukta aygıtı yatay döndürür ve bitince dik bırakır.
+
 ### CI
 
 **Tablo CI (sürekli bütünleştirme) işlerini ve tetiklerini gösterir.**
@@ -1065,7 +1067,7 @@ Tam uygulama akışı için XCUITest dumanı kalır. CI dumanı `-only-testing:J
 | macOS uygulama testleri, `TZ=UTC` | Her PR'da | Olay saati ve gün/tarih iddiaları cihaz diliminden bağımsız kalsın |
 | macOS uygulama testleri, `TZ=Pacific/Auckland` | `dev`'e birleşince | Aynı testler, derlemesiz |
 | iOS birim testleri ve arayüz dumanı | Her PR'da | Aynı simülatörde sırayla, tek işte |
-| iOS ekran görüntüleri | Her PR'da | Ayrı makinede. Önce iPhone, sonra aynı derleme ürünüyle iPad simülatöründe `--pad` kümeleri |
+| iOS ekran görüntüleri | Her PR'da | Ayrı makinede. Önce iPhone, sonra aynı derleme ürünüyle iPad simülatöründe `--pad` kümeleri ve iPad erişilebilirlik denetimi (`AccessibilityAuditUITests`, yatay) |
 | `testflight-check` | `dev`'e her itmede | İmzasız arşiv alır ve paketi denetler: `sh .github/scripts/testflight.sh --check`. Yükleme yapmaz. Arşiv düşerse iş günlüğü artifact olarak yükler |
 | Biçim ve kurallar | Her zaman | Belge PR'ında da koşar |
 

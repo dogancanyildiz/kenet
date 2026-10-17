@@ -86,19 +86,80 @@ enum UITestSupport {
     /// Tab order in `PhoneNavigation`; older simulators do not expose `Tab` identifiers.
     static let tabOrder = ["tab.today", "tab.days", "tab.tasks", "tab.entities", "tab.goals"]
 
-    /// Finds a tab by identifier, falling back to the tab bar's button at the known index.
+    /// The split shell (iPad, regular × regular) has no tab bar: each tab's root is a sidebar row
+    /// (`MacSidebarEntry.identifier`). People and places share one tab but are two rows.
+    static let sidebarRows = [
+        "tab.today": "sidebar.today", "tab.days": "sidebar.days", "tab.tasks": "sidebar.tasks",
+        "tab.entities": "sidebar.people", "tab.goals": "sidebar.goals",
+    ]
+
+    /// The split shell's sidebar row for a tab identifier (`sidebar.<key>` stays as it is).
+    static func sidebarIdentifier(forTab identifier: String) -> String {
+        sidebarRows[identifier] ?? identifier
+    }
+
+    /// A sidebar row: the list cell around the row's identifier. The identifier reaches the
+    /// row's icon and title as well, and the icon alone is not always hittable.
+    @MainActor
+    static func sidebarRow(in app: XCUIApplication, identifier: String) -> XCUIElement {
+        app.cells.containing(.any, identifier: identifier).firstMatch
+    }
+
+    /// The split view's own button that brings a put-away sidebar back (system chrome:
+    /// identifier first, then its label in either test language).
+    @MainActor
+    static func sidebarToggle(in app: XCUIApplication) -> XCUIElement {
+        let labels = ["Kenar Çubuğunu Göster", "Kenar çubuğunu göster", "Show Sidebar", "Show sidebar"]
+        return app.buttons.matching(NSPredicate(format: "identifier == %@ OR label IN %@", "ToggleSidebar", labels))
+            .firstMatch
+    }
+
+    /// Brings the split shell's sidebar back when it is put away; false when there is no button.
+    @MainActor
+    @discardableResult
+    static func revealSidebar(in app: XCUIApplication) -> Bool {
+        let toggle = sidebarToggle(in: app)
+        guard toggle.exists, toggle.isHittable else { return false }
+        toggle.tourTap()
+        RunLoop.current.run(until: Date().addingTimeInterval(0.8))
+        return true
+    }
+
+    /// The split shell is showing: no tab bar, and the sidebar's Today row in the tree or the
+    /// button that brings the sidebar back.
+    @MainActor
+    static func isSplitShell(_ app: XCUIApplication) -> Bool {
+        guard !app.tabBars.firstMatch.exists else { return false }
+        return element(in: app, identifier: "sidebar.today").exists || sidebarToggle(in: app).exists
+    }
+
+    /// Finds a tab by identifier, falling back to the tab bar's button at the known index. In
+    /// the split shell the tab's sidebar row stands in for it.
     @MainActor
     static func tab(in app: XCUIApplication, identifier: String) -> XCUIElement {
         let byId = app.tabBars.buttons.matching(identifier: identifier).firstMatch
-        if byId.waitForExistence(timeout: 3) { return byId }
+        let row = sidebarRow(in: app, identifier: sidebarIdentifier(forTab: identifier))
+        // Right after launch neither shell may be drawn yet: wait for one of them.
+        let start = Date()
+        repeat {
+            if byId.exists { return byId }
+            let hasTabBar = app.tabBars.firstMatch.exists
+            if row.exists, !hasTabBar { return row }
+            // A split shell with its sidebar put away (an upright iPad at launch).
+            if !hasTabBar { revealSidebar(in: app) }
+            if hasTabBar, Date().timeIntervalSince(start) > 3 { break }
+            RunLoop.current.run(until: Date().addingTimeInterval(0.2))
+        } while Date().timeIntervalSince(start) < 20
         let anyId = element(in: app, identifier: identifier)
         if anyId.waitForExistence(timeout: 2) { return anyId }
         let index = tabOrder.firstIndex(of: identifier) ?? 0
         return app.tabBars.firstMatch.buttons.element(boundBy: index)
     }
 
-    /// Switches tabs and waits for the screen marker; a selected tab whose content shows any
-    /// list is accepted when the marker is not exposed by the simulator's accessibility tree.
+    /// Switches tabs (or sidebar rows) and waits for the screen marker; a selected tab whose
+    /// content shows any list is accepted when the marker is not exposed by the simulator's
+    /// accessibility tree. The split shell's list columns carry no screen marker of their own
+    /// for Günlük and Kişiler; there the selected sidebar row and its content are measured.
     @MainActor
     static func openTab(_ app: XCUIApplication, identifier: String, screen: String) {
         dismissKeyboard(in: app)
@@ -112,10 +173,13 @@ enum UITestSupport {
             _ = waitUntilSelected(tab, timeout: 5)
         }
         let marker = element(in: app, identifier: screen)
-        if marker.waitForExistence(timeout: 15) { return }
+        // A selected sidebar row needs no long wait for a marker its column may not have.
+        let isSelectedRow = !app.tabBars.firstMatch.exists && tab.isSelected
+        if marker.waitForExistence(timeout: isSelectedRow ? 3 : 15) { return }
         XCTAssertTrue(
             tab.isSelected,
-            "Tab \(identifier) did not become selected (keyboard covers screen: \(keyboardCoversScreen(in: app)))")
+            "Tab \(identifier) did not become selected "
+                + "(keyboard covers screen: \(keyboardCoversScreen(in: app)))")
         XCTAssertTrue(
             app.collectionViews.firstMatch.waitForExistence(timeout: 10)
                 || app.tables.firstMatch.waitForExistence(timeout: 5)

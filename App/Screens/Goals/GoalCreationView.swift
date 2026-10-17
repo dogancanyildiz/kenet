@@ -3,9 +3,16 @@ import SwiftUI
 
 struct GoalCreationView: View {
     @State private var model: GoalCreationModel
+    @Environment(\.locale) private var locale
     @Environment(\.dismiss) private var dismiss
 
     init(store: IndexStore) { _model = State(initialValue: GoalCreationModel(store: store)) }
+
+    init(model: GoalCreationModel) { _model = State(initialValue: model) }
+
+    private var templates: [GoalTemplate] {
+        GoalTemplate.all.filter { GoalCreationModel.matches($0, query: model.name, locale: locale) }
+    }
 
     var body: some View {
         @Bindable var model = model
@@ -17,6 +24,18 @@ struct GoalCreationView: View {
                 TextField("Ad", text: $model.name)
                     .font(.ink.content)
                     .inkListRow()
+            }
+            if !templates.isEmpty {
+                Section {
+                    SectionHeader("Hazır hedefler")
+                        .inkListRow()
+                    ForEach(templates) { template in
+                        templateRow(template)
+                            .inkListRow()
+                    }
+                }
+            }
+            Section {
                 LabeledContent("Anahtar") {
                     Text(verbatim: model.key)
                         .font(.ink.meta)
@@ -76,5 +95,40 @@ struct GoalCreationView: View {
             onConfirm: { Task { if await model.save(), model.errorText == nil { dismiss() } } }
         )
         .frame(minWidth: 320, minHeight: 350)
+    }
+
+    private func templateRow(_ template: GoalTemplate) -> some View {
+        let selected = model.templateID == template.id
+        return Button {
+            model.apply(template, locale: locale)
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: template.symbol)
+                    .frame(width: InkSpacing.gutter)
+                    .accessibilityHidden(true)
+                VStack(alignment: .leading, spacing: InkSpacing.row) {
+                    Text(verbatim: template.localizedName(locale: locale))
+                        .font(.body)
+                        .foregroundStyle(Color.ink.text)
+                    Text(verbatim: template.summary(locale: locale))
+                        .font(.ink.meta)
+                        .foregroundStyle(Color.ink.secondaryText)
+                }
+                .multilineTextAlignment(.leading)
+                .fixedSize(horizontal: false, vertical: true)
+                Spacer(minLength: 0)
+                if selected {
+                    Image(systemName: "checkmark")
+                        .foregroundStyle(Color.ink.accent)
+                        .accessibilityHidden(true)
+                }
+            }
+            .foregroundStyle(Color.ink.secondaryText)
+            .frame(minHeight: 44)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(selected ? [.isSelected] : [])
+        .accessibilityIdentifier("button.goal.template.\(template.id)")
     }
 }

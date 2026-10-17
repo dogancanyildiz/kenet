@@ -33,8 +33,8 @@ enum ShellTier: Equatable, Sendable {
     }
 
     /// The tier for the shell's environment, also before its first measurement (`0`): then
-    /// three columns, so a full-screen iPad's sidebar, on screen from the first frame, opens
-    /// at its own width instead of growing from the two-column tier's 200 to 240 pt.
+    /// three columns. On iOS the split view is built only after that measurement (one built
+    /// before it lost its sidebar on some cold starts), so no column is drawn with this guess.
     static func resolve(measuredWidth width: CGFloat) -> Self {
         width > 0 ? resolve(width: width) : .threeColumns
     }

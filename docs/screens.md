@@ -1047,7 +1047,7 @@ flowchart TD
 | iPad tam ekran, her yön | Düzenli × düzenli | Bölünmüş kabuk |
 | iPad dar Split View ve Slide Over | Sıkışık × düzenli | iPhone sekmeleri |
 
-Kabuk cihaz türüne bakmaz; yalnız boyut sınıflarına ve genişliğe bakar. Genişlik değişince (döndürme, Split View) kademe yeniden hesaplanır. Seçim ve taslaklar kalır.
+Kabuk cihaz türüne bakmaz; yalnız boyut sınıflarına ve genişliğe bakar. Genişlik değişince (döndürme, Split View) kademe yeniden hesaplanır. Seçim ve taslaklar kalır. Bölünmüş görünüm ilk genişlik ölçümünden sonra kurulur; o ana kadar kâğıt çizilir, böylece soğuk açılışta sistem sütun seçimini ezemez.
 
 | Pencere genişliği | Örnek | Sütunlar |
 |---|---|---|

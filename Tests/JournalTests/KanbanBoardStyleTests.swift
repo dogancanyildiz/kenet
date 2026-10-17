@@ -52,11 +52,15 @@ import UniformTypeIdentifiers
         #expect(KanbanBoardStyle.phone.pagesColumns)
     }
 
-    /// iPad 11" upright (834 pt) and 13" keep the panel; the iPad mini upright board (744 pt,
-    /// full width below 1000 pt) does too, as the Duo's inner screen does.
-    @Test func iPadBoardsKeepTheDetailPanel() {
-        for width: CGFloat in [744, 834, 1136, 1176] {
+    /// The 13" boards keep the panel: two columns at their floor fit beside it. The 11" and
+    /// iPad mini upright boards (834 and 744 pt) and the 13" upright board beside an open
+    /// sidebar (792 pt) open the detail in a sheet instead.
+    @Test func iPadBoardsKeepTheDetailPanelOnlyWithTwoColumns() {
+        for width: CGFloat in [1032, 1136, 1176] {
             #expect(KanbanDetailPlacement.usesPanel(shell: .split, width: width), "\(width)")
+        }
+        for width: CGFloat in [744, 792, 834] {
+            #expect(!KanbanDetailPlacement.usesPanel(shell: .split, width: width), "\(width)")
         }
     }
 }

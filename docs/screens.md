@@ -126,7 +126,7 @@ Bugün girdisi de Günlük sütununu gösterir. Kullanıcı o sütunda bir gün 
 | Graph | Kişiler ve Konumlar listesinde satır | Graph girdisi | `App/Screens/Graph` | 6 |
 | Harita | Kişiler ve Konumlar listesinde satır | Harita girdisi | `App/Screens/Map` | 6 |
 | Hedefler | Hedefler sekmesi | Hedefler girdisi | `App/Screens/Goals` | 3 |
-| Arama | Manşet satırındaki simge | Araç çubuğundaki düğme, ⌘F, ⌘K | `App/Screens/Shared/SearchView.swift` | 1 |
+| Arama | Manşet satırındaki simge; iPad’de donanım klavyesiyle ⇧⌘F ve ⌘K | Araç çubuğundaki düğme, ⌘F, ⌘K | `App/Screens/Shared/SearchView.swift` | 1 |
 | Serbest not | Aramadan ve bağlantıdan | Aramadan ve bağlantıdan | `App/Screens/Shared/SearchNoteView.swift` | 1 |
 | Ayarlar | Bugün'den sheet | Sistem Settings sahnesi | `App/Screens/Settings`, `App/Mac/MacSettingsView.swift` | 4, 7 |
 | İlk açılış | Kasa yokken | Kasa yokken | `App/Screens/Onboarding` | 7 |
@@ -962,6 +962,7 @@ Grafikte "Ortalama", görünür aralıkta kaydı olan günlerin değer ortalamas
 | Konu | Davranış |
 |---|---|
 | Düzen | Ayarlar ana ekranı gibi düz liste, kâğıt zemin: `SectionHeader`, `.inkListRow()`. Kart yoktur. |
+| Hazır hedefler | Ad alanının altında 15 şablon: simge, yerelleştirilmiş ad ve miktar/dönem özeti. Ad yazıldıkça yerel dilde büyük/küçük harf ve aksan duyarsız süzülür; eşleşme yoksa bölüm gizlenir. Dokunma ad, tür, dönem, miktar ve birimi doldurur; kullanıcı düzenleyebilir. Seçili şablon onay işaretiyle vurgulanır; alan değişince seçim kalkmaz. Liste sheet içinde kayar; şablon seçmeden de hedef oluşturulur. Şablon kimliği ve simgesi dosyaya yazılmaz. |
 | Alanlar | Hedef miktar etiketli alandır. Kullanıcı türü seçer: kilometre taşı dahil. |
 | Çubuk | Ortak kalıp: solda "Vazgeç", sağda "Oluştur". Her yazı boyutunda üstte durur. |
 
@@ -1020,7 +1021,7 @@ Telefonda serbest not okuma ve basit düzenleme vardır. Kullanıcı nota aramad
 | Hızlı giriş penceresi (1) | Sistem genelinde klavye kısayoluyla açılan küçük pencere. Davranışı telefondaki hızlı giriş kutusuyla aynıdır. Uygulama öne gelmeden kayıt yapar. |
 | Kısayol ayarı | Settings → Hızlı giriş sekmesi. Sekme Siri cümlelerini ve Kısayollar'ı da listeler. Eylem düğmesi metni Mac'te yoktur. |
 | Menü çubuğu | Menü çubuğu simgesinin menüsünde "Hızlı giriş" (kısayoluyla), "Uygulamayı aç" ve "Çıkış" vardır. Kısayol kaydı hata verirse menü hata metnini gösterir. |
-| Klavye kısayolları | Arama ⌘F. Hızlı geçiş ⌘K aynı arama ekranını açar. Bugüne git ⌘T. Hızlı giriş kutusunda kip değiştirme ⌘⇧T. iPad'de donanım klavyesiyle yalnız ⌘⇧T çalışır; iPadOS ⌘F'yi sistem "Bul" komutuna ayırdığı için arama kısayolu ve ⌘T iPad'de henüz yok. Sheet'te Esc kapatır, Return birincil eylemi yapar. iPhone'da kısayol yoktur. |
+| Klavye kısayolları | Mac’te arama ⌘F; hızlı geçiş ⌘K aynı arama ekranını açar; bugüne git ⌘T. iPad’de donanım klavyesiyle ⇧⌘F ve ⌘K aramayı, ⌘T Bugün’ü açar; iPadOS ⌘F’yi sistem "Bul" komutuna ayırdığı için arama ⇧⌘F kullanır. Uygulama kilidi örtüsü açıkken bu üç komut kapalıdır. Hızlı giriş kutusunda kip değiştirme ⌘⇧T. Sheet’te Esc kapatır, Return birincil eylemi yapar. Donanım klavyesi bağlı iPhone’da da aynı kod çalışır; iPhone’da görünür kısayol yoktur. |
 | Eksik kısayollar | Yeni olay ve yeni görev kısayolları henüz yok. |
 | Notlar | Serbest notlar için düzenleme alanı henüz yok. Kenar çubuğunda girdisi de yoktur. Düzenleme gelince girdi döner. Kullanıcı notları aramadan açar. |
 | Ayarlar | Sistem Settings sahnesinde sekmeler, bu sırayla: Hızlı giriş, Gizlilik, Bildirimler, Takvim ve Konum, Kasa, Tanılama. |

@@ -33,6 +33,12 @@
                     SplitShell(store: store, navigation: navigation, showingSettings: showsSettings)
                 }
             }
+            .background {
+                ShellShortcutButtons(
+                    navigation: navigation,
+                    shell: ShellKind.resolve(horizontal: horizontalSizeClass, vertical: verticalSizeClass)
+                )
+            }
             .environment(navigation)
         }
     }

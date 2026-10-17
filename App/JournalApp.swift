@@ -22,6 +22,9 @@ enum JournalShortcut: CaseIterable {
 
     var modifiers: EventModifiers {
         switch self {
+        #if os(iOS)
+            case .search: [.command, .shift]
+        #endif
         case .switchMode: [.command, .shift]
         default: .command
         }

@@ -306,6 +306,29 @@ jobs:
             Tests/JournalTests/Snapshots/__Snapshots__/Pad*
           if-no-files-found: warn
           retention-days: 7
+      # Aynı derleme ürünü UI test koşucusunu da taşır (ios-build: build-for-testing, Journal_iOS).
+      # Denetim bölünmüş kabukta kenar çubuğuyla gezer ve aygıtı yatay döndürür; bitince dik bırakır.
+      # Dil ayarı iPhone arayüz dumanıyla aynı (verilmez). Yerelde ~1,5 dk.
+      - name: iPad erişilebilirlik denetimi
+        id: pad_a11y
+        if: ${{ !cancelled() && steps.pad_boot.outcome == 'success' }}
+        timeout-minutes: 10
+        run: |
+          xcodebuild test-without-building \
+            -project Journal.xcodeproj \
+            -scheme Journal_iOS \
+            -destination "platform=iOS Simulator,id=${{ steps.build.outputs.pad-udid }}" \
+            -only-testing:JournalUITests/AccessibilityAuditUITests \
+            -resultBundlePath PadAccessibility.xcresult \
+            CODE_SIGNING_ALLOWED=NO \
+            -quiet
+      - name: iPad erişilebilirlik sonuç paketi (yalnız düşünce)
+        if: failure() && steps.pad_a11y.outcome == 'failure'
+        uses: actions/upload-artifact@v7
+        with:
+          name: pad-a11y-results
+          path: PadAccessibility.xcresult
+          retention-days: 7
 
   # Biçim denetimi yereldeki ile aynı swift-format sürümünde koşar (Swift 6.4).
   lint:

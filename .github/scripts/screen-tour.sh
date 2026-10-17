@@ -4,7 +4,14 @@
 # karşılaştırması içindir; CI'da koşmaz.
 #
 #   sh .github/scripts/screen-tour.sh <çıktı klasörü> [simülatör kimliği]
+#   sh .github/scripts/screen-tour.sh --pad <çıktı klasörü> [simülatör kimliği]
 #   sh .github/scripts/screen-tour.sh --mac <çıktı klasörü>
+#
+# --pad (ya da SCREEN_TOUR_PLATFORM=pad) aynı iPhone turunu iPad simülatöründe koşar: bölünmüş kabukta
+# sekme yerine kenar çubuğu satırlarıyla gezer, dosya adları iPhone turuyla aynıdır (ayrı klasöre
+# yaz). Aygıt record-screen-snapshots.sh --pad ile aynı kuralla seçilir (pick-simulator.sh). Tur
+# yatay koşar (13 inçte 1376x1032, üç sütun); SCREEN_TOUR_ORIENTATION=portrait dik koşturur. Koşu
+# bitince aygıt dik yöne döndürülür.
 #
 # --mac (ya da SCREEN_TOUR_PLATFORM=mac) Mac uygulamasını gezer ve her ekranın pencere görüntüsünü
 # yazar (Tests/JournalMacUITests/ScreenTourMacUITests.swift). Tur sürerken fare ve klavye testin
@@ -22,11 +29,13 @@
 set -eu
 
 PLATFORM="${SCREEN_TOUR_PLATFORM:-ios}"
-if [ "${1:-}" = "--mac" ]; then
-  PLATFORM=mac
-  shift
-fi
-[ $# -ge 1 ] || { echo "Kullanım: sh .github/scripts/screen-tour.sh [--mac] <çıktı klasörü> [simülatör kimliği]" >&2; exit 2; }
+case "${1:-}" in
+  --mac | --pad)
+    PLATFORM=${1#--}
+    shift
+    ;;
+esac
+[ $# -ge 1 ] || { echo "Kullanım: sh .github/scripts/screen-tour.sh [--mac|--pad] <çıktı klasörü> [simülatör kimliği]" >&2; exit 2; }
 mkdir -p "$1"
 OUT=$(cd "$1" && pwd -P)
 ID="${2:-${SCREEN_TOUR_SIMULATOR:-}}"
@@ -102,27 +111,13 @@ if [ "$PLATFORM" = "mac" ]; then
   set -e
 else
 
-# Cihaz seçimi record-screen-snapshots.sh ile aynıdır: en eski kurulu iOS runtime'ındaki iPhone 17.
+# Cihaz seçimi record-screen-snapshots.sh ile aynıdır (pick-simulator.sh): en eski kurulu iOS
+# runtime'ındaki iPhone 17; --pad ile 13 inçlik iPad.
+FAMILY=iPhone
+[ "$PLATFORM" = "pad" ] && FAMILY=iPad
 if [ -z "$ID" ]; then
-  ID=$(xcrun simctl list devices available -j | python3 -c '
-import json, re, sys
-data = json.load(sys.stdin)
-preferred = ["iPhone 17", "iPhone 16", "iPhone 15", "iPhone 14"]
-runtimes = []
-for runtime, devices in data.get("devices", {}).items():
-    match = re.search(r"iOS-(\d+)-(\d+)", runtime)
-    if not match:
-        continue
-    phones = [d for d in devices if d.get("isAvailable") and d.get("name", "").startswith("iPhone")]
-    if phones:
-        runtimes.append(((int(match.group(1)), int(match.group(2))), phones))
-if not runtimes:
-    print("Uygun iPhone simülatörü yok", file=sys.stderr)
-    raise SystemExit(1)
-version, phones = sorted(runtimes, key=lambda item: item[0])[0]
-by_name = {d["name"]: d for d in phones}
-print(next((by_name[n] for n in preferred if n in by_name), phones[0])["udid"])
-')
+  DEVICE=$(sh .github/scripts/pick-simulator.sh "$FAMILY")
+  ID=${DEVICE%% *}
 fi
 echo "Simülatör: $ID"
 
@@ -150,19 +145,37 @@ xcrun simctl status_bar "$ID" override --time "9:41" --batteryState charged --ba
 
 clear_output
 
+# Derleme ve koşu ayrıdır (record-screen-snapshots.sh gibi): DerivedData SCREEN_TOUR_DERIVED_DATA
+# (varsayılan .dd/screen-tour). Ürün önceden derlenmişse derleme adımı bir şey derlemez.
+DERIVED="${SCREEN_TOUR_DERIVED_DATA:-.dd/screen-tour}"
+# iPad yatay koşar; iPhone dik (boş: aygıt olduğu gibi).
+ORIENTATION="${SCREEN_TOUR_ORIENTATION:-}"
+[ -n "$ORIENTATION" ] || [ "$PLATFORM" != "pad" ] || ORIENTATION=landscape
 # TEST_RUNNER_ önekli değişkenler test koşucusuna öneksiz iletilir; şemaya eklemek gerekmez.
 set +e
-TEST_RUNNER_JOURNAL_SCREEN_TOUR_DIR="$OUT" \
-TEST_RUNNER_JOURNAL_SCREEN_TOUR_TREE="${SCREEN_TOUR_TREE:-}" \
-xcodebuild test \
+xcodebuild build-for-testing \
   -project Journal.xcodeproj \
   -scheme Journal_iOS \
   -destination "platform=iOS Simulator,id=$ID" \
-  -only-testing:JournalUITests/ScreenTourUITests \
-  -resultBundlePath "$RESULT" \
+  -derivedDataPath "$DERIVED" \
   CODE_SIGNING_ALLOWED=NO \
   -quiet
 status=$?
+if [ "$status" -eq 0 ]; then
+  TEST_RUNNER_JOURNAL_SCREEN_TOUR_DIR="$OUT" \
+  TEST_RUNNER_JOURNAL_SCREEN_TOUR_TREE="${SCREEN_TOUR_TREE:-}" \
+  TEST_RUNNER_JOURNAL_SCREEN_TOUR_ORIENTATION="$ORIENTATION" \
+  xcodebuild test-without-building \
+    -project Journal.xcodeproj \
+    -scheme Journal_iOS \
+    -destination "platform=iOS Simulator,id=$ID" \
+    -derivedDataPath "$DERIVED" \
+    -only-testing:JournalUITests/ScreenTourUITests \
+    -resultBundlePath "$RESULT" \
+    CODE_SIGNING_ALLOWED=NO \
+    -quiet
+  status=$?
+fi
 set -e
 
 fi

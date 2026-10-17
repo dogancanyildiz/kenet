@@ -2,6 +2,12 @@ import XCTest
 
 /// Walks the app with the fictional sample vault and saves one PNG per screen.
 ///
+/// The same tour runs on iPhone (tabs) and on iPad (`screen-tour.sh --pad`): there the split
+/// shell's sidebar rows stand in for the tabs, and screens that are a sidebar row of their own
+/// (Kanban, the timeline, a project, places, Özetler, Graph, the map) open from that row. Image
+/// names are the iPhone tour's, so the two sets line up. `JOURNAL_SCREEN_TOUR_ORIENTATION`
+/// (`landscape`, `portrait`) turns the device first and back to portrait when the tour ends.
+///
 /// Skipped unless `JOURNAL_SCREEN_TOUR_DIR` names an output folder, so the regular
 /// `-only-testing:JournalUITests` run does not pay for it. Run it through
 /// `.github/scripts/screen-tour.sh <folder>`; the folder must stay outside the repository.
@@ -12,6 +18,7 @@ import XCTest
 final class ScreenTourUITests: XCTestCase {
     static let directoryKey = "JOURNAL_SCREEN_TOUR_DIR"
     static let treeDumpKey = "JOURNAL_SCREEN_TOUR_TREE"
+    static let orientationKey = "JOURNAL_SCREEN_TOUR_ORIENTATION"
 
     private var vaultURL: URL?
     private var tour: ScreenTourDriver!
@@ -46,11 +53,19 @@ final class ScreenTourUITests: XCTestCase {
         let vault = try XCTUnwrap(vaultURL)
         XCUIDevice.shared.appearance = .light
         defer { XCUIDevice.shared.appearance = .light }
+        switch environment[Self.orientationKey] ?? "" {
+        case "landscape": XCUIDevice.shared.orientation = .landscapeLeft
+        case "portrait": XCUIDevice.shared.orientation = .portrait
+        default: break
+        }
+        // A simulator left on its side would turn the next run's images (the iPad references are drawn upright).
+        defer { XCUIDevice.shared.orientation = .portrait }
 
         tour = ScreenTourDriver(
             directory: directory, vaultURL: vault, test: self,
             dumpsTree: !(environment[Self.treeDumpKey] ?? "").isEmpty)
         _ = tour.id("screen.today").waitForExistence(timeout: 30)
+        tour.log("kabuk: \(tour.isSplitShell ? "bölünmüş" : "sekmeler"), ekran \(tour.app.frame.size)")
 
         todayAndDays()
         tasks()
@@ -97,15 +112,51 @@ final class ScreenTourUITests: XCTestCase {
     private let orderIDs = ["entities.sort", "entities.order", "button.sort"]
     private let orderLabels = ["Sıralama", "Sırala"]
 
+    /// Split shell: Kanban and the timeline are sidebar rows of their own (full-width boards).
+    private let splitTaskBoards = ["Kanban": "sidebar.kanban", "Zaman çizelgesi": "sidebar.timeline"]
+
     @MainActor private func openTasks(_ view: String) throws {
+        if tour.isSplitShell, let board = splitTaskBoards[view] {
+            try tour.sidebarRow(board)
+            return
+        }
         try openTasks()
         try tour.choose(
             view, among: taskViews, listTab: "Liste", openerIDs: taskViewIDs, openerLabels: taskViewLabels)
     }
 
+    /// Split shell: people and places are two sidebar rows of their own.
     @MainActor private func openEntities(_ kind: String) throws {
+        if tour.isSplitShell {
+            try tour.sidebarRow(kind == "Konumlar" ? "sidebar.places" : "sidebar.people")
+            return
+        }
         try openEntities()
         try tour.choose(kind, among: kinds, openerIDs: kindIDs, openerLabels: kindLabels)
+    }
+
+    /// A screen the tab shell opens with a button on a root page is a sidebar row in the split shell.
+    @MainActor private func openSplitRow(_ row: String, orTap ids: [String], labels: [String]) throws {
+        if tour.isSplitShell {
+            try tour.sidebarRow(row)
+        } else {
+            try tour.tap(ids: ids, labels: labels)
+        }
+    }
+
+    /// Where a page scrolls in the split shell: the detail column, or the centre of a sheet.
+    private let detailAnchor = CGVector(dx: 0.72, dy: 0.6)
+    private let sheetAnchor = CGVector(dx: 0.5, dy: 0.55)
+    /// The list column (Günlük, Görevler) between the sidebar and the detail.
+    private let listAnchor = CGVector(dx: 0.3, dy: 0.6)
+
+    /// Scrolls the list column (the whole screen on iPhone) and takes the second image. The
+    /// split shell keeps the column as it was for the next step: it goes back to its top.
+    @MainActor private func listScrolledShot(_ name: String) {
+        tour.scrollAnchor = listAnchor
+        tour.scrolledShot(name)
+        if tour.isSplitShell { tour.scrollToTop() }
+        tour.scrollAnchor = detailAnchor
     }
 
     // MARK: Today, days, summaries
@@ -119,7 +170,7 @@ final class ScreenTourUITests: XCTestCase {
         tour.step("03-gunluk") {
             try openDays()
             tour.shot("03-gunluk")
-            tour.scrolledShot("03-gunluk-asagi")
+            listScrolledShot("03-gunluk-asagi")
         }
         tour.step("02-gun-gecmis") {
             try openDays()
@@ -134,7 +185,7 @@ final class ScreenTourUITests: XCTestCase {
         }
         tour.step("05-ozetler") {
             try openDays()
-            try tour.tap(ids: ["button.summaries"], labels: ["Özetler"])
+            try openSplitRow("sidebar.summaries", orTap: ["button.summaries"], labels: ["Özetler"])
             try tour.waitFor(labels: ["Önceki dönem"])
             tour.shot("05-ozetler-hafta")
             try tour.choose(
@@ -157,7 +208,7 @@ final class ScreenTourUITests: XCTestCase {
             tour.step("06-gorevler-\(name)") {
                 try openTasks(label)
                 tour.shot("06-gorevler-\(name)")
-                if name == "yaklasan" { tour.scrolledShot("06-gorevler-yaklasan-asagi") }
+                if name == "yaklasan" { listScrolledShot("06-gorevler-yaklasan-asagi") }
             }
         }
         tour.step("06-gorevler-gorunum-secici-acik") {
@@ -175,8 +226,13 @@ final class ScreenTourUITests: XCTestCase {
             tour.closeMenu(items: ["Projeler", "Konumlar", "Kişiler"])
         }
         tour.step("07-proje-sayfasi") {
-            try openTasks("Projeler")
-            try tour.row(project).tap()
+            if tour.isSplitShell {
+                // The sidebar lists every project under "Görevler".
+                try tour.sidebarRow("sidebar.project.\(project)")
+            } else {
+                try openTasks("Projeler")
+                try tour.row(project).tap()
+            }
             try tour.waitFor(labels: ["Açık görevler"])
             tour.shot("07-proje-sayfasi")
         }
@@ -218,7 +274,12 @@ final class ScreenTourUITests: XCTestCase {
             try tour.waitFor(labels: ["Kaynak güne git"])
             tour.shot(name)
             if expanded { tour.scrolledShot(name + "-buyuk") }
-            try tour.tap(labels: ["Kapat"])
+            // The split shell may show the task beside the board rather than in a sheet.
+            if tour.isSplitShell {
+                tour.dismissOverlays()
+            } else {
+                try tour.tap(labels: ["Kapat"])
+            }
         }
     }
 
@@ -271,7 +332,8 @@ final class ScreenTourUITests: XCTestCase {
         tour.step("09-konumlar-suzgec-dolu") {
             try openEntities("Konumlar")
             let field = try tour.field(
-                ids: ["field.entityFilter", "field.entitySearch"], placeholders: ["Kişi veya konum ara"])
+                ids: ["field.entityFilter", "field.entitySearch", "field.entities.filter"],
+                placeholders: ["Kişi veya konum ara"])
             tour.type("Li", into: field)
             tour.shot("09-konumlar-suzgec-dolu")
             tour.erase(2)
@@ -280,13 +342,13 @@ final class ScreenTourUITests: XCTestCase {
         }
         tour.step("11-graph") {
             try openEntities()
-            try tour.tap(ids: ["button.graph"], labels: ["Graph"])
+            try openSplitRow("sidebar.graph", orTap: ["button.graph"], labels: ["Graph"])
             try tour.waitFor(labels: ["Yakınlaştır"])
             tour.shot("11-graph", settle: 3)
         }
         tour.step("11-harita") {
             try openEntities()
-            try tour.tap(ids: ["button.map"], labels: ["Harita"])
+            try openSplitRow("sidebar.map", orTap: ["button.map"], labels: ["Harita"])
             try tour.waitFor(labels: ["Beni göster"])
             tour.shot("11-harita", settle: 3)
         }
@@ -294,6 +356,7 @@ final class ScreenTourUITests: XCTestCase {
 
     @MainActor private func entityPages() {
         tour.step("10-kisi-sayfasi") {
+            tour.scrollAnchor = detailAnchor
             try openEntity(kind: "Kişiler", name: person)
             tour.shot("10-kisi-sayfasi")
             tour.scrolledShot("10-kisi-sayfasi-asagi")
@@ -305,9 +368,12 @@ final class ScreenTourUITests: XCTestCase {
             tour.shot("10-kisi-ad-degistir-sheet")
             try tour.tap(labels: ["Vazgeç"])
             tour.pause(0.6)
+            tour.scrollAnchor = sheetAnchor
             tour.scrolledShot("10-kisi-duzenleme-sheet-asagi")
+            tour.scrollAnchor = detailAnchor
         }
         tour.step("10-konum-sayfasi") {
+            tour.scrollAnchor = detailAnchor
             try openEntity(kind: "Konumlar", name: place)
             tour.shot("10-konum-sayfasi")
             tour.scrolledShot("10-konum-sayfasi-asagi")
@@ -366,8 +432,18 @@ final class ScreenTourUITests: XCTestCase {
     }
 
     @MainActor private func openGoal() throws {
+        // The split shell keeps the goal open beside the list, scrolled as the last step left it.
+        // Another section first: the detail column is drawn afresh, at its top.
+        if tour.isSplitShell { try openToday() }
         try openGoals()
-        try tour.require(labels: [numberGoal]).tap()
+        // Beside the list the open goal's definition reads "…, Anahtar, su": only the list row
+        // starts with the goal's name.
+        let listRow = NSPredicate(format: "label BEGINSWITH %@", numberGoal + ",")
+        if tour.isSplitShell, let row = tour.firstHittable(tour.app.buttons.matching(listRow)) {
+            row.tap()
+        } else {
+            try tour.require(labels: [numberGoal]).tap()
+        }
         try tour.waitFor(labels: ["Isı haritası"])
     }
 
@@ -396,6 +472,9 @@ final class ScreenTourUITests: XCTestCase {
     }
 
     @MainActor private func settings() {
+        // Settings is a sheet over the shell (iPad: a form sheet in the middle of the screen).
+        tour.scrollAnchor = sheetAnchor
+        defer { tour.scrollAnchor = detailAnchor }
         tour.step("14-ayarlar") {
             try openSettings()
             tour.shot("14-ayarlar")
@@ -426,7 +505,8 @@ final class ScreenTourUITests: XCTestCase {
             try tour.waitFor(labels: ["Yeni varlık tipi"])
             tour.shot("14-ayarlar-varlik-tipleri")
             try tour.tap(labels: ["Yeni varlık tipi"])
-            try tour.waitFor(labels: ["Alan ekle"])
+            // The editor's last control is below the sheet's fold (iPhone, and the iPad form sheet).
+            _ = try tour.reach(labels: ["Alan ekle"])
             tour.shot("14-ayarlar-varlik-tipi-duzenleyici")
         }
     }

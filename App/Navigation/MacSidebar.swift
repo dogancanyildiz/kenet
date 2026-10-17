@@ -259,6 +259,7 @@ struct MacSidebarRow: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .contentShape(Rectangle())
         .focusEffectDisabled()
+        .inkPointerHighlight()
         .listRowBackground(background)
     }
 

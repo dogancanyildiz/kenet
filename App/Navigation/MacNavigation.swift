@@ -468,6 +468,8 @@ struct MacEntitiesColumn: View {
     @Binding var selection: String?
     var unseenReveal: UUID? = nil
     @State private var creationKind: VaultEntityKind?
+    @State private var showsTypeGallery = false
+    @Environment(\.locale) private var locale
     #if os(iOS)
         @State private var showsContactPicker = false
     #endif
@@ -489,10 +491,10 @@ struct MacEntitiesColumn: View {
             EntityTypePicker(store: store, selection: $kind)
                 .padding(.horizontal, InkSpacing.margin)
                 .padding(.bottom, InkSpacing.section)
-            ForEach(EntityColumnAction.actions(forList: kind), id: \.self) { action in
+            ForEach(EntityColumnAction.actions(forList: kind, types: store.entityTypes), id: \.self) { action in
                 actionButton(action)
                     .buttonStyle(InkTextButtonStyle())
-                    .disabled(!store.canAddEvent)
+                    .disabled(!store.canAddEvent || (action == .newType && !EntityTypeGalleryEntry.isEnabled(store)))
                     .padding(.horizontal, InkSpacing.margin)
                     .padding(.bottom, InkSpacing.section)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -508,6 +510,8 @@ struct MacEntitiesColumn: View {
         }
         // The new entity opens in the detail column like a row the user picked.
         .entityCreateSheet(store: store, kind: $creationKind) { selection = $0.id }
+        // The kind tabs show the type just added.
+        .entityTypeGallerySheet(isPresented: $showsTypeGallery, store: store) { kind = $0.id }
         #if os(iOS)
             .contactImportFlow(store: store, showsPicker: $showsContactPicker)
         #endif
@@ -519,7 +523,11 @@ struct MacEntitiesColumn: View {
             Button {
                 creationKind = creatable
             } label: {
-                Label(EntityCreateEntry.title(creatable), systemImage: EntityCreateEntry.systemImage(creatable))
+                Label(
+                    EntityCreateEntry.title(
+                        creatable, types: store.entityTypes,
+                        language: locale.language.languageCode?.identifier ?? "en"),
+                    systemImage: EntityCreateEntry.systemImage(creatable, types: store.entityTypes))
             }
             .accessibilityIdentifier(EntityCreateEntry.identifier(creatable))
         case .importContacts:
@@ -532,6 +540,13 @@ struct MacEntitiesColumn: View {
                 }
                 .accessibilityIdentifier(ContactImportEntry.identifier)
             #endif
+        case .newType:
+            Button {
+                showsTypeGallery = true
+            } label: {
+                Label("Yeni tip…", systemImage: EntityTypeGalleryEntry.systemImage)
+            }
+            .accessibilityIdentifier(EntityTypeGalleryEntry.identifier)
         }
     }
 
@@ -547,15 +562,19 @@ struct MacEntitiesColumn: View {
 
 /// The text buttons under the Kişiler / Konumlar column's kind tabs, top to bottom.
 enum EntityColumnAction: Hashable {
+    /// "Yeni kişi", "Yeni konum" or "Yeni <tip>" for a custom type the vault defines.
     case create(VaultEntityKind)
     /// "Rehberden aktar": people only, and only on iOS (the Mac has no contact picker).
     case importContacts
+    /// "Yeni tip…": the type gallery, under every kind.
+    case newType
 
-    static func actions(forList kind: String) -> [Self] {
-        var actions = EntityCreateEntry.kind(forList: kind).map { [Self.create($0)] } ?? []
+    static func actions(forList kind: String, types: EntityTypeCatalog) -> [Self] {
+        var actions = EntityCreateEntry.kind(forList: kind, types: types).map { [Self.create($0)] } ?? []
         #if os(iOS)
             if ContactImportEntry.isShown(forList: kind) { actions.append(.importContacts) }
         #endif
+        actions.append(.newType)
         return actions
     }
 }

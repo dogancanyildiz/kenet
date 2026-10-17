@@ -3193,6 +3193,22 @@
         }
       }
     },
+    "Boş tip…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blank type…"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Boş tip…"
+          }
+        }
+      }
+    },
     "Boşluk" : {
       "localizations" : {
         "en" : {
@@ -6413,6 +6429,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Hayır"
+          }
+        }
+      }
+    },
+    "Hazır tip, alanları boş bir şablonla gelir. Kaydetmeden önce her değeri değiştirebilirsin." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A ready-made type comes with a template of empty fields. You can change every value before saving."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hazır tip, alanları boş bir şablonla gelir. Kaydetmeden önce her değeri değiştirebilirsin."
+          }
+        }
+      }
+    },
+    "Hazır tipler" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ready-made types"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hazır tipler"
           }
         }
       }
@@ -11757,6 +11805,22 @@
         }
       }
     },
+    "Tip kaydedildi, şablon dosyası yazılamadı." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Type saved; the template file could not be written."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tip kaydedildi, şablon dosyası yazılamadı."
+          }
+        }
+      }
+    },
     "Tip kaydedilemedi. Tanımları kontrol edip yeniden dene." : {
       "localizations" : {
         "en" : {
@@ -12101,6 +12165,22 @@
         }
       }
     },
+    "Uygulama şablonu yalnız templates/ klasörüne yazar. Bu yolda şablon oluşmaz." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The app writes templates only to the templates/ folder. No template is created at this path."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uygulama şablonu yalnız templates/ klasörüne yazar. Bu yolda şablon oluşmaz."
+          }
+        }
+      }
+    },
     "Uygulamayı aç" : {
       "localizations" : {
         "en" : {
@@ -12241,6 +12321,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Varlık oluşturulamadı. Kasayı kontrol edip yeniden dene."
+          }
+        }
+      }
+    },
+    "Varlık tipi ekle" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add entity type"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Varlık tipi ekle"
           }
         }
       }
@@ -12781,6 +12877,22 @@
         }
       }
     },
+    "Yeni %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New %@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yeni %@"
+          }
+        }
+      }
+    },
     "Yeni hedef" : {
       "localizations" : {
         "en" : {
@@ -12921,6 +13033,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Yeni konum oluştur"
+          }
+        }
+      }
+    },
+    "Yeni tip…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New type…"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yeni tip…"
           }
         }
       }
@@ -13193,6 +13321,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Zaman çizelgesi"
+          }
+        }
+      }
+    },
+    "Zaten var" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Already added"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zaten var"
           }
         }
       }

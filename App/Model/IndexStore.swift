@@ -1342,3 +1342,22 @@ extension IndexStore {
         return tasks
     }
 }
+
+// MARK: - Entity type gallery
+
+extension IndexStore {
+    /// A new type and its starter template (`VaultStore.creatingEntityType`). When only the
+    /// template could not be written, the saved definition is still published, then the error is
+    /// thrown.
+    func createEntityType(_ type: EntityTypeDefinition) async throws {
+        var templateFailure: EntityTypeTemplateError?
+        try await performEdit(path: ".app/types.json") { writer in
+            do {
+                try await writer.creatingEntityType(type)
+            } catch let error as EntityTypeTemplateError {
+                templateFailure = error
+            }
+        }
+        if let templateFailure { throw templateFailure }
+    }
+}

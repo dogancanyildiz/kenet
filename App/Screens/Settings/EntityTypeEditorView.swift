@@ -45,10 +45,13 @@ struct EntityTypeEditorView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var deleteConfirmation = DestructiveConfirmation<UUID>()
     @State private var discardPrompt = false
+    /// Set by the gallery, which closes itself once the type is saved; otherwise the sheet closes.
+    private let onSaved: ((EntityTypeDefinition) -> Void)?
 
-    init(model: EntityTypeEditorModel) {
+    init(model: EntityTypeEditorModel, onSaved: ((EntityTypeDefinition) -> Void)? = nil) {
         _model = State(initialValue: model)
         _opened = State(initialValue: EntityTypeDraftSnapshot(model))
+        self.onSaved = onSaved
     }
 
     private var title: LocalizedStringKey {
@@ -77,6 +80,12 @@ struct EntityTypeEditorView: View {
                 labeledField("SF Symbol adı", example: "book", text: $model.icon)
                 labeledField(
                     "Şablon yolu (isteğe bağlı)", example: "templates/book.md", text: $model.template)
+                if model.templateIsNotWritten {
+                    Text("Uygulama şablonu yalnız templates/ klasörüne yazar. Bu yolda şablon oluşmaz.")
+                        .font(.ink.meta)
+                        .foregroundStyle(Color.ink.warning)
+                        .inkListRow()
+                }
                 Text("Kimlik değişmez. Klasör değişikliği mevcut varlıkları taşımaz.")
                     .font(.ink.meta)
                     .foregroundStyle(Color.ink.secondaryText)
@@ -126,7 +135,12 @@ struct EntityTypeEditorView: View {
             isConfirmEnabled: model.canSave, isBusy: model.isSaving, isCancelEnabled: !model.isSaving,
             cancelIdentifier: "button.entityType.cancel", confirmIdentifier: "button.entityType.save",
             onCancel: { if isDirty { discardPrompt = true } else { dismiss() } },
-            onConfirm: { Task { if await model.save() { dismiss() } } }
+            onConfirm: {
+                Task {
+                    guard await model.save() else { return }
+                    if let onSaved { onSaved(model.definition) } else { dismiss() }
+                }
+            }
         )
         .interactiveDismissDisabled(model.isSaving || isDirty)
         .destructiveConfirmationDialog(

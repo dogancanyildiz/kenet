@@ -13,31 +13,54 @@ struct EntityTypeFieldDraft: Identifiable {
     let store: IndexStore
     private let root: URL?
     private(set) var original: EntityTypeDefinition?
-    var id: String
+    var id: String {
+        // A gallery draft's template is named after its id until the user names it.
+        didSet { if templateFollowsID { template = Self.templatePath(for: id) } }
+    }
     var folder: String
     var nameTR: String
     var nameEN: String
     var pluralTR: String
     var pluralEN: String
     var icon: String
-    var template: String
+    var template: String {
+        didSet { templateFollowsID = isGalleryDraft && template == Self.templatePath(for: id) }
+    }
     var fields: [EntityTypeFieldDraft]
     private(set) var errorText: String?
     private(set) var isSaving = false
+    @ObservationIgnored private var isGalleryDraft = false
+    @ObservationIgnored private var templateFollowsID = false
 
-    init(store: IndexStore, original: EntityTypeDefinition? = nil) {
+    /// `draft` fills a new type's fields (a gallery item) without making it an edit: `original`
+    /// stays `nil`, so saving creates the type.
+    init(store: IndexStore, original: EntityTypeDefinition? = nil, draft: EntityTypeDefinition? = nil) {
         self.store = store
         root = store.vaultURL
         self.original = original
-        id = original?.id ?? ""
-        folder = original?.folder ?? ""
-        nameTR = original?.name.tr ?? ""
-        nameEN = original?.name.en ?? ""
-        pluralTR = original?.plural.tr ?? ""
-        pluralEN = original?.plural.en ?? ""
-        icon = original?.icon ?? "square.stack"
-        template = original?.template ?? ""
-        fields = original?.fields.map { EntityTypeFieldDraft(key: $0.key, kind: $0.kind) } ?? []
+        let filled = original ?? draft
+        id = filled?.id ?? ""
+        folder = filled?.folder ?? ""
+        nameTR = filled?.name.tr ?? ""
+        nameEN = filled?.name.en ?? ""
+        pluralTR = filled?.plural.tr ?? ""
+        pluralEN = filled?.plural.en ?? ""
+        icon = filled?.icon ?? "square.stack"
+        template = filled?.template ?? ""
+        fields = filled?.fields.map { EntityTypeFieldDraft(key: $0.key, kind: $0.kind) } ?? []
+        isGalleryDraft = original == nil && draft != nil
+        templateFollowsID = isGalleryDraft && template == Self.templatePath(for: id)
+    }
+
+    private static func templatePath(for id: String) -> String {
+        "templates/" + id.trimmingCharacters(in: .whitespacesAndNewlines) + ".md"
+    }
+
+    /// A new type whose template path the app does not write: only files under the root
+    /// `templates/` folder are created (`VaultStore.creatingEntityType`).
+    var templateIsNotWritten: Bool {
+        let path = template.trimmingCharacters(in: .whitespacesAndNewlines)
+        return original == nil && !path.isEmpty && !path.hasPrefix("templates/")
     }
 
     var definition: EntityTypeDefinition {
@@ -58,8 +81,17 @@ struct EntityTypeFieldDraft: Identifiable {
         isSaving = true
         defer { isSaving = false }
         do {
-            try await store.saveEntityType(definition, replacing: original)
+            // A new type also gets its starter template when that file is still missing.
+            if let original {
+                try await store.saveEntityType(definition, replacing: original)
+            } else {
+                try await store.createEntityType(definition)
+            }
             return true
+        } catch is EntityTypeTemplateError {
+            errorText = String(localized: "Tip kaydedildi, şablon dosyası yazılamadı.")
+            original = definition
+            return false
         } catch VaultStoreError.indexUpdateFailed {
             errorText = String(localized: "Tip kaydedildi, indeks güncellenemedi. Yeniden indeksle.")
             original = definition

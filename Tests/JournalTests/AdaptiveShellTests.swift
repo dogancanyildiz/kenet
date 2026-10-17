@@ -1,5 +1,6 @@
 import SwiftUI
 import Testing
+import VaultFormat
 import VaultStore
 
 @testable import Journal
@@ -146,15 +147,27 @@ struct AdaptiveShellTests {
     }
 
     /// The Kişiler column's text buttons: "Rehberden aktar" joins "Yeni kişi" on iOS (the split
-    /// shell's column, as on the phone page); the Mac has no contact picker.
+    /// shell's column, as on the phone page); the Mac has no contact picker. "Yeni tip…" closes
+    /// every kind's list; a custom type the vault defines gets its own create button.
     @Test func entitiesColumnActionsFollowTheKindAndPlatform() {
+        let none = EntityTypeCatalog()
         #if os(iOS)
-            #expect(EntityColumnAction.actions(forList: "person") == [.create(.person), .importContacts])
+            #expect(
+                EntityColumnAction.actions(forList: "person", types: none) == [
+                    .create(.person), .importContacts, .newType,
+                ])
         #else
-            #expect(EntityColumnAction.actions(forList: "person") == [.create(.person)])
+            #expect(EntityColumnAction.actions(forList: "person", types: none) == [.create(.person), .newType])
         #endif
-        #expect(EntityColumnAction.actions(forList: "place") == [.create(.place)])
-        #expect(EntityColumnAction.actions(forList: "project").isEmpty)
+        #expect(EntityColumnAction.actions(forList: "place", types: none) == [.create(.place), .newType])
+        #expect(EntityColumnAction.actions(forList: "project", types: none) == [.newType])
+        let project = EntityTypeDefinition(
+            id: "project", folder: "projects", name: .init(tr: "Proje", en: "Project"),
+            plural: .init(tr: "Projeler", en: "Projects"), icon: "folder.fill")
+        #expect(
+            EntityColumnAction.actions(forList: "project", types: EntityTypeCatalog(types: [project])) == [
+                .create(.custom("project")), .newType,
+            ])
     }
 
     /// A tab opens a section it holds, and that section leads back to the same tab.

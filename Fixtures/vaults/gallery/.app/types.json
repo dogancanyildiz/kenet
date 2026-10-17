@@ -1,0 +1,293 @@
+{
+  "formatVersion": 1,
+  "types": [
+    {
+      "id": "book",
+      "folder": "books",
+      "name": {
+        "tr": "Kitap",
+        "en": "Book"
+      },
+      "plural": {
+        "tr": "Kitaplar",
+        "en": "Books"
+      },
+      "icon": "book.closed.fill",
+      "fields": [
+        {
+          "key": "yazar",
+          "kind": "link"
+        },
+        {
+          "key": "sayfa",
+          "kind": "number"
+        },
+        {
+          "key": "puan",
+          "kind": "number"
+        },
+        {
+          "key": "bitirme",
+          "kind": "date"
+        }
+      ],
+      "template": "templates/book.md"
+    },
+    {
+      "id": "film",
+      "folder": "films",
+      "name": {
+        "tr": "Film",
+        "en": "Film"
+      },
+      "plural": {
+        "tr": "Filmler",
+        "en": "Films"
+      },
+      "icon": "film.fill",
+      "fields": [
+        {
+          "key": "yonetmen",
+          "kind": "text"
+        },
+        {
+          "key": "yil",
+          "kind": "number"
+        },
+        {
+          "key": "puan",
+          "kind": "number"
+        },
+        {
+          "key": "izlendi",
+          "kind": "date"
+        }
+      ],
+      "template": "templates/film.md"
+    },
+    {
+      "id": "organization",
+      "folder": "organizations",
+      "name": {
+        "tr": "Kurum",
+        "en": "Organization"
+      },
+      "plural": {
+        "tr": "Kurumlar",
+        "en": "Organizations"
+      },
+      "icon": "building.2.fill",
+      "fields": [
+        {
+          "key": "tur",
+          "kind": "text"
+        },
+        {
+          "key": "kisiler",
+          "kind": "link"
+        },
+        {
+          "key": "web",
+          "kind": "text"
+        }
+      ],
+      "template": "templates/organization.md"
+    },
+    {
+      "id": "project",
+      "folder": "projects",
+      "name": {
+        "tr": "Proje",
+        "en": "Project"
+      },
+      "plural": {
+        "tr": "Projeler",
+        "en": "Projects"
+      },
+      "icon": "folder.fill",
+      "fields": [
+        {
+          "key": "durum",
+          "kind": "text"
+        },
+        {
+          "key": "baslangic",
+          "kind": "date"
+        },
+        {
+          "key": "kurum",
+          "kind": "link"
+        }
+      ],
+      "template": "templates/project.md"
+    },
+    {
+      "id": "event",
+      "folder": "events",
+      "name": {
+        "tr": "Etkinlik",
+        "en": "Event"
+      },
+      "plural": {
+        "tr": "Etkinlikler",
+        "en": "Events"
+      },
+      "icon": "calendar",
+      "fields": [
+        {
+          "key": "baslangic",
+          "kind": "date"
+        },
+        {
+          "key": "bitis",
+          "kind": "date"
+        },
+        {
+          "key": "konum",
+          "kind": "link"
+        }
+      ],
+      "template": "templates/event.md"
+    },
+    {
+      "id": "trip",
+      "folder": "trips",
+      "name": {
+        "tr": "Seyahat",
+        "en": "Trip"
+      },
+      "plural": {
+        "tr": "Seyahatler",
+        "en": "Trips"
+      },
+      "icon": "airplane",
+      "fields": [
+        {
+          "key": "baslangic",
+          "kind": "date"
+        },
+        {
+          "key": "bitis",
+          "kind": "date"
+        },
+        {
+          "key": "konum",
+          "kind": "link"
+        }
+      ],
+      "template": "templates/trip.md"
+    },
+    {
+      "id": "recipe",
+      "folder": "recipes",
+      "name": {
+        "tr": "Tarif",
+        "en": "Recipe"
+      },
+      "plural": {
+        "tr": "Tarifler",
+        "en": "Recipes"
+      },
+      "icon": "fork.knife",
+      "fields": [
+        {
+          "key": "mutfak",
+          "kind": "text"
+        },
+        {
+          "key": "sure",
+          "kind": "number"
+        },
+        {
+          "key": "puan",
+          "kind": "number"
+        }
+      ],
+      "template": "templates/recipe.md"
+    },
+    {
+      "id": "product",
+      "folder": "products",
+      "name": {
+        "tr": "Ürün",
+        "en": "Product"
+      },
+      "plural": {
+        "tr": "Ürünler",
+        "en": "Products"
+      },
+      "icon": "shippingbox.fill",
+      "fields": [
+        {
+          "key": "marka",
+          "kind": "text"
+        },
+        {
+          "key": "fiyat",
+          "kind": "number"
+        },
+        {
+          "key": "alindi",
+          "kind": "date"
+        }
+      ],
+      "template": "templates/product.md"
+    },
+    {
+      "id": "pet",
+      "folder": "pets",
+      "name": {
+        "tr": "Evcil hayvan",
+        "en": "Pet"
+      },
+      "plural": {
+        "tr": "Evcil hayvanlar",
+        "en": "Pets"
+      },
+      "icon": "pawprint.fill",
+      "fields": [
+        {
+          "key": "tur",
+          "kind": "text"
+        },
+        {
+          "key": "dogum",
+          "kind": "date"
+        },
+        {
+          "key": "asi",
+          "kind": "date"
+        }
+      ],
+      "template": "templates/pet.md"
+    },
+    {
+      "id": "vehicle",
+      "folder": "vehicles",
+      "name": {
+        "tr": "Araç",
+        "en": "Vehicle"
+      },
+      "plural": {
+        "tr": "Araçlar",
+        "en": "Vehicles"
+      },
+      "icon": "car.fill",
+      "fields": [
+        {
+          "key": "plaka",
+          "kind": "text"
+        },
+        {
+          "key": "muayene",
+          "kind": "date"
+        },
+        {
+          "key": "sigorta",
+          "kind": "date"
+        }
+      ],
+      "template": "templates/vehicle.md"
+    }
+  ]
+}

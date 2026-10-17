@@ -718,8 +718,9 @@ Manşetin altında sekme durur. Sekmenin altında görünüme göre değişen te
 | Tür seçici | Manşetin altı | Yalnız Kişiler ve Konumlar varken sekmedir. Kasada özel tip varsa seçenek sayısı 4'e ulaşınca "Tür" menüsü olur. Özel tipler de seçicide durur. |
 | Süzgeç alanı | Tür seçicinin altı | Ara ekranındaki alanla aynı bileşen. Alan Bir süredir görüşmediklerin bölümünü de süzer. |
 | Graph ve Harita | Listenin en üstü | İki satır. Aynı gezinme yığınında tam ekran açar. Yeni sekme yoktur. |
-| Yeni kişi ve Yeni konum | iPhone'da Graph ve Harita satırlarının altı. Mac'te liste sütununda tür seçicinin altı. | Kişiler türünde "Yeni kişi", Konumlar türünde "Yeni konum" satırı. Özel tipte satır yoktur. Satır ad ve gerektiğinde ayırt edici isteyen küçük sheet açar. Vazgeç dosya yazmaz. Oluştur varlığı kaydeder ve varlık ekranını açar. Mac'te yeni varlık listede seçili olur. |
+| Yeni kişi, Yeni konum ve Yeni <tip> | iPhone'da Graph ve Harita satırlarının altı. Mac'te ve iPad bölünmüş kabukta liste sütununda tür seçicinin altı. | Kişiler türünde "Yeni kişi", Konumlar türünde "Yeni konum", özel tipte "Yeni <tipin tekil adı>" satırı; örnek "Yeni kitap". Satır ad ve gerektiğinde ayırt edici isteyen küçük sheet açar. Vazgeç dosya yazmaz. Oluştur varlığı tipin klasörüne, varsa tipin şablonuyla kaydeder ve varlık ekranını açar. Mac'te yeni varlık listede seçili olur. |
 | Rehberden aktar | "Yeni kişi" satırının altı | Yalnız iPhone'da, Kişiler türü seçiliyken. |
+| Yeni tip… | Oluşturma satırlarının en altı; her türde durur | Varlık tipi galerisini açar ([Özel varlık tipleri](#özel-varlık-tipleri-7)). Kaydedilen tip tür seçicide seçili olur. Tip tanımı dosyası okunamıyorsa satır devre dışıdır. |
 | Bir süredir görüşmediklerin | Kişi listesinin üstü | Katlanan bölüm. Mac'te ve telefonda vardır. |
 | Ayırt edici | Satırda adın altı | Aynı adlı varlıklarda görünür. |
 
@@ -814,7 +815,10 @@ Konumda koordinat, Alanlar tablosunda bir satırdır. Okuma ekranında harita yo
 | Özel varlık ekranı | Tanımın text, date, number, boolean ve link alanlarına uygun düzenleyiciler. Bilinmeyen alanlar, görevler, günlük zaman akışı ve serbest notlar. |
 | Yerleşik tipe özgü | Graph ve görüşme kartı yalnız kişi ve konumdadır. |
 | Anma | `@` önerileri özel tipleri de içerir. Bilinmeyen adın oluşturma menüsünde tanımlı tipler durur. |
-| Ayarlar → Varlık tipleri | Yerleşik tipler salt okunurdur. Kullanıcı özel tip oluşturur, düzenler ve siler. |
+| Ayarlar → Varlık tipleri | Yerleşik tipler salt okunurdur. Kullanıcı özel tip oluşturur, düzenler ve siler. "Yeni varlık tipi" galeriyi açar. |
+| Galeri | "Varlık tipi ekle" sheet'i. Çubukta yalnız Vazgeç. 10 hazır tip: Kitap, Film, Kurum, Proje, Etkinlik, Seyahat, Tarif, Ürün, Evcil hayvan, Araç. Satırda simge, ad ve alan anahtarları. Kimliği ya da klasörü kasada olan tip "Zaten var" yazar ve seçilmez. En altta "Boş tip…" boş formu açar. |
+| Hazır tip seçimi | Tip formu hazır değerlerle dolu açılır; kullanıcı her değeri değiştirebilir. Formun Vazgeç düğmesi galeriye döner. Oluştur tanımı yazar, sonra şablon dosyasını yazar ve galeriyi kapatır. |
+| Şablon dosyası | Yeni tipin şablon yolu kökteki `templates/` altındaysa ve dosya yoksa uygulama şablonu tipin alanlarından yazar: `type`, boş `name` ve boş alanlar. Var olan şablona dokunmaz. Hazır tipte yol, kullanıcı yolu elle değiştirmedikçe kimliği izler (`templates/<kimlik>.md`). Yol `templates/` dışındaysa formda yolun altında uyarı durur. Şablon yazılmazsa (yol `templates/` dışında, şablon iCloud'dan inmeyi bekliyor ya da yazma hatası) tip yine kaydedilir ve form "Tip kaydedildi, şablon dosyası yazılamadı." der. |
 | Tip formu | Kimlik, tr ve en tekil ve çoğul ad, klasör, SF Symbol, alanlar ve isteğe bağlı şablon yolu. Tip kimliği düzenlemede sabittir. |
 | Bozuk tanım dosyası | Bozuk `types.json` uyarı verir. Uygulama dosyanın üzerine yazmaz. Kullanıcı dosyayı dışarıda onarır. |
 | Silme | Silme onayı yalnız tanımı kaldırır. Varlık dosyaları kalır. |
@@ -1198,7 +1202,7 @@ stateDiagram-v2
 | Klasör | Klasör seç ya da değiştir. |
 | Kasa hazırlığı | İçe aktarma alt ekranı. |
 | Uyarılar ve ilerleme | İzlenmeyen dizin uyarısı ve indeksleme ilerlemesi. |
-| Varlık tipleri | Alt ekrana bağlantı. Yerleşik tipler salt okunurdur. Kullanıcı özel tip oluşturur, değiştirir ve siler. |
+| Varlık tipleri | Alt ekrana bağlantı. Yerleşik tipler salt okunurdur. Kullanıcı özel tip oluşturur, değiştirir ve siler. "Yeni varlık tipi" hazır tip galerisini açar; Kişiler ve Konumlar'daki "Yeni tip…" aynı galeridir. |
 | Alt ekranlar | iPhone Varlık tipleri ve Kasa hazırlığı ekranlarını gezinme yığınına iter. Mac'te alt ekran Kasa sekmesinin içeriğinin yerine geçer. En üstteki "Kasa" düğmesi geri döndürür. Sekme şeridi değişmez. |
 
 ### Ayarlar — Tanılama

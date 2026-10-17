@@ -357,6 +357,7 @@ flowchart TD
 | Yazma sırasında | Yazma sürerken "Vazgeç" devre dışıdır. Adım akışında "Kapat" da yazma bitene dek bekler. |
 | Mac | Sistem pencere başlığı yoktur; tek serif manşet vardır. Araç çubuğu ve alt eylem çubuğu kâğıt zemindedir. Alt çubukta "Vazgeç" solda, onay ya da "Kapat" sağda durur. |
 | Boyut | Sheet gövdesinin yüksekliği hiçbir zaman sıfır olmaz; sheet ortak ideal boyutu kullanır. |
+| Seçim sheet'i | Örnek: varlık tipi galerisi. Çubukta yalnız "Vazgeç" durur; satırlar simge, ad ve özetle listelenir, seçim bir sonraki adımı (editörü) sheet içinde açar; kullanılamayan satır soluk ve nedeniyle ("Zaten var") gösterilir. |
 
 Kod karşılığı: `.inkSheet`, `InkSheetScaffold` ve `InkSheetConfirmation`. `InkSheetConfirmation.save` "Kaydet" sözünü, `InkSheetConfirmation.create` "Oluştur" sözünü verir.
 

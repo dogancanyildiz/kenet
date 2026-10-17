@@ -52,7 +52,7 @@ struct EntitiesView: View {
             pageLink("Harita", systemImage: "map") {
                 PlacesMapView(store: store)
             }
-            if let creatable = EntityCreateEntry.kind(forList: kind) {
+            if let creatable = EntityCreateEntry.kind(forList: kind, types: store.entityTypes) {
                 createRow(creatable)
             }
             #if os(iOS)
@@ -60,6 +60,7 @@ struct EntitiesView: View {
                     contactImportRow
                 }
             #endif
+            newTypeRow
             EntityFilterField(search: $search)
                 .inkListRow()
             if kind == "person" {
@@ -84,6 +85,8 @@ struct EntitiesView: View {
             .contactImportFlow(store: store, showsPicker: $showsContactPicker)
         #endif
         .entityCreateSheet(store: store, kind: $creationKind) { createdEntity = $0 }
+        // The picker shows the type just added.
+        .entityTypeGallerySheet(isPresented: $showsTypeGallery, store: store) { kind = $0.id }
         .navigationDestination(item: $createdEntity) { entity in
             EntityView(store: store, entity: entity)
         }
@@ -92,22 +95,48 @@ struct EntitiesView: View {
         }
     }
 
-    /// "Yeni kişi" / "Yeni konum": a row like contact import, not a manşet symbol (a third
-    /// symbol next to sort and search truncates the long title).
+    @Environment(\.locale) private var locale
+    @State private var showsTypeGallery = false
+
+    /// "Yeni kişi" / "Yeni konum" / "Yeni <tip>": a row like contact import, not a manşet symbol
+    /// (a third symbol next to sort and search truncates the long title).
     private func createRow(_ creatable: VaultEntityKind) -> some View {
         Button {
             creationKind = creatable
         } label: {
             MarginRow(kind: .external, time: nil) {
-                Label(EntityCreateEntry.title(creatable), systemImage: EntityCreateEntry.systemImage(creatable))
-                    .font(.body)
-                    .foregroundStyle(.ink.accent)
+                Label(
+                    EntityCreateEntry.title(
+                        creatable, types: store.entityTypes,
+                        language: locale.language.languageCode?.identifier ?? "en"),
+                    systemImage: EntityCreateEntry.systemImage(creatable, types: store.entityTypes)
+                )
+                .font(.body)
+                .foregroundStyle(.ink.accent)
             }
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .disabled(!store.canAddEvent)
         .accessibilityIdentifier(EntityCreateEntry.identifier(creatable))
+        .inkListRow()
+    }
+
+    /// "Yeni tip…": always under the create rows; opens the gallery of ready-made types.
+    private var newTypeRow: some View {
+        Button {
+            showsTypeGallery = true
+        } label: {
+            MarginRow(kind: .external, time: nil) {
+                Label("Yeni tip…", systemImage: EntityTypeGalleryEntry.systemImage)
+                    .font(.body)
+                    .foregroundStyle(.ink.accent)
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .disabled(!EntityTypeGalleryEntry.isEnabled(store))
+        .accessibilityIdentifier(EntityTypeGalleryEntry.identifier)
         .inkListRow()
     }
 

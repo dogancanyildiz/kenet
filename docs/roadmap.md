@@ -325,6 +325,7 @@ Kullanıcı bu aşamayı 2026-10-15'te onayladı. Madde kimlik ya da cihaz karar
 | Bugün hedef şeridi | Bitti | #261 |
 | Oluşturma gönderimi tamamlamaz | Bitti | #259 |
 | Hedef düzenleme formu | Bitti | #262 |
+| Şablonlar ve bağlam menüsü | Açık | |
 
 Kullanıcı 2026-10-16'da TestFlight 249 denemesinden sonra dört sorun bildirdi ve aşamayı açtı. Dört madde aynı gün `dev`'e girdi; kullanıcı TestFlight'ta doğrular. Maddeler kimlik ya da cihaz kararı gerektirmez; bu yüzden Aşama 11 ile birlikte yürür. Kararlar karar günlüğünde 2026-10-16 satırlarındadır.
 
@@ -332,6 +333,7 @@ Kullanıcı 2026-10-16'da TestFlight 249 denemesinden sonra dört sorun bildirdi
 - [x] Bugün hedef şeridi: işaretleme ya da artırma satırın yerini değiştirmez (sıra güne girişte belirlenir); artı düğmesinin yuvası yazma ve yükleme sırasında sabit kalır; bölüm başlığına yükleme göstergesi gelmez; satıra dokunma hedef ayrıntısını açar.
 - [x] Oluşturma gönderimi tamamlamaz: hızlı girişte, olay düzenleyicide ve serbest yazıda yazarken "Yeni kişi / konum oluştur" yalnız varlık dosyasını yazar, metni ve odağı korur. Gönder ya da Kaydet sonrası "Kişi olarak ekle" bugünkü gibi işlemi tamamlar.
 - [x] Hedef düzenleme formu: ad, dönem, tür, miktar ve birim tek sheet'te, Vazgeç ve Kaydet ile; sheet'in altında "Hedefi sil". Alan başına sheet kalkar.
+- [ ] Şablonlar ve bağlam menüsü: yeni hedef sheet'inde ad alanının altında 15 hazır hedef (yazdıkça süzülür; yalnız formu doldurur, dosya biçimi değişmez, simge yalnız listede). Ayarlar'da ve Kişiler ve Konumlar listesinde 10 hazır varlık tipi galerisi (`types.json` biçiminde, Türkçe alan anahtarları) ve özel tip için "Yeni <tip>" satırı. Kişi, konum, özel varlık ve hedef satırlarında uzun basma menüsü: Düzenle, Bağlantıyı kopyala, Sil; hedefte Bugünü işaretle ya da Miktar gir. Kullanıcı 2026-10-17'de onayladı; araştırma raporu depo dışında.
 
 **Çıkış ölçütü:** Dört davranış iPhone'da görüntü ve birim testiyle korunur; silme yolları Core testleriyle sınanır; kullanıcı TestFlight'ta doğrular.
 

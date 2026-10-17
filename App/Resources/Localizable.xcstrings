@@ -677,6 +677,22 @@
         }
       }
     },
+    "%lld %@ / gün" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld %@ / gün"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld %@ / day"
+          }
+        }
+      }
+    },
     "%lld devreden daha" : {
       "localizations" : {
         "en" : {
@@ -1801,6 +1817,22 @@
         }
       }
     },
+    "adım" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "adım"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "steps"
+          }
+        }
+      }
+    },
     "Adım %lld/%lld" : {
       "localizations" : {
         "en" : {
@@ -2549,6 +2581,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bağlantılı varlıklar"
+          }
+        }
+      }
+    },
+    "bardak" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "bardak"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "glasses"
           }
         }
       }
@@ -4281,6 +4329,54 @@
         }
       }
     },
+    "Dil çalış" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dil çalış"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Practice a language"
+          }
+        }
+      }
+    },
+    "Diş ipi kullan" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diş ipi kullan"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Floss"
+          }
+        }
+      }
+    },
+    "dk" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "dk"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "min"
+          }
+        }
+      }
+    },
     "Dönem" : {
       "localizations" : {
         "en" : {
@@ -4585,6 +4681,22 @@
         }
       }
     },
+    "Egzersiz yap" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Egzersiz yap"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exercise"
+          }
+        }
+      }
+    },
     "Eklediğin konumlar, koordinatı girilince haritada görünür." : {
       "localizations" : {
         "en" : {
@@ -4725,6 +4837,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Enlem -90 ile 90, boylam -180 ile 180 arasında, en çok 15 ondalık basamaklı bir sayı olmalı."
+          }
+        }
+      }
+    },
+    "Erken kalk" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erken kalk"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wake up early"
           }
         }
       }
@@ -6161,6 +6289,22 @@
         }
       }
     },
+    "Haftada %lld" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Haftada %lld"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld per week"
+          }
+        }
+      }
+    },
     "Haftalık" : {
       "localizations" : {
         "en" : {
@@ -6353,6 +6497,22 @@
         }
       }
     },
+    "Harcamasız gün" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Harcamasız gün"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No-spend day"
+          }
+        }
+      }
+    },
     "Harf farkı olan klasörler" : {
       "localizations" : {
         "en" : {
@@ -6429,6 +6589,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Hayır"
+          }
+        }
+      }
+    },
+    "Hazır hedefler" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hazır hedefler"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ready-made goals"
           }
         }
       }
@@ -8369,6 +8545,22 @@
         }
       }
     },
+    "Kitap oku" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kitap oku"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Read"
+          }
+        }
+      }
+    },
     "Kısayol kaydedilemedi. Başka bir tuş birleşimi dene." : {
       "localizations" : {
         "en" : {
@@ -9021,6 +9213,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Markdown dosyaları"
+          }
+        }
+      }
+    },
+    "Meditasyon" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Meditasyon"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Meditate"
           }
         }
       }
@@ -10189,6 +10397,22 @@
         }
       }
     },
+    "saat" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "saat"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "hours"
+          }
+        }
+      }
+    },
     "Saati ekle" : {
       "localizations" : {
         "en" : {
@@ -10265,6 +10489,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Satır değişmiş, bağlanmadı."
+          }
+        }
+      }
+    },
+    "sayfa" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "sayfa"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "pages"
           }
         }
       }
@@ -10381,6 +10621,22 @@
         }
       }
     },
+    "Şekersiz gün" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Şekersiz gün"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No-sugar day"
+          }
+        }
+      }
+    },
     "Sembolik bağlantı" : {
       "localizations" : {
         "en" : {
@@ -10425,6 +10681,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "SF Symbol adı"
+          }
+        }
+      }
+    },
+    "Sigara içme" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sigara içme"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Don't smoke"
           }
         }
       }
@@ -11037,6 +11309,22 @@
         }
       }
     },
+    "Spor salonuna git" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spor salonuna git"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Go to the gym"
+          }
+        }
+      }
+    },
     "Şu anki konumumu kullan" : {
       "localizations" : {
         "en" : {
@@ -11065,6 +11353,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Şu anki saati ekle"
+          }
+        }
+      }
+    },
+    "Su iç" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Su iç"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Drink water"
           }
         }
       }
@@ -11773,6 +12077,22 @@
         }
       }
     },
+    "Temizlik yap" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Temizlik yap"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tidy up"
+          }
+        }
+      }
+    },
     "Tip" : {
       "localizations" : {
         "en" : {
@@ -12197,6 +12517,22 @@
         }
       }
     },
+    "Uyu" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uyu"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sleep"
+          }
+        }
+      }
+    },
     "Uzaklaştır" : {
       "localizations" : {
         "en" : {
@@ -12601,6 +12937,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Verilerin Markdown dosyalarında kalır. Yeni bir kasa oluşturabilir veya var olan Obsidian klasörünü seçebilirsin."
+          }
+        }
+      }
+    },
+    "Vitamin al" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vitamin al"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Take vitamins"
           }
         }
       }
@@ -13289,6 +13641,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Yüksek öncelik"
+          }
+        }
+      }
+    },
+    "Yürü" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yürü"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Walk"
           }
         }
       }

@@ -12,6 +12,7 @@ final class GoalCreationModel {
     var kind = GoalKind.boolean
     var target = "1"
     var unit = ""
+    var templateID: GoalTemplate.ID?
     private(set) var isWriting = false
     private(set) var isSaved = false
     private(set) var errorText: String?
@@ -26,6 +27,25 @@ final class GoalCreationModel {
             && !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
             && (kind == .milestone || (GoalValueModel.number(target) ?? 0) > 0)
     }
+    func apply(_ template: GoalTemplate, locale: Locale = .current) {
+        name = template.localizedName(locale: locale)
+        kind = template.kind
+        period = template.period
+        target = String(template.target)
+        unit = template.localizedUnit(locale: locale) ?? ""
+        templateID = template.id
+    }
+
+    static func matches(_ template: GoalTemplate, query: String, locale: Locale = .current) -> Bool {
+        func folded(_ text: String) -> String {
+            // Also accept an undotted uppercase I typed for a Turkish dotted i ("KITAP").
+            text.folding(options: [.caseInsensitive, .diacriticInsensitive], locale: locale)
+                .replacingOccurrences(of: "ı", with: "i")
+        }
+        return query.isEmpty
+            || folded(template.localizedName(locale: locale)).localizedStandardContains(folded(query))
+    }
+
     func save() async -> Bool {
         guard canSave, let target = kind == .milestone ? 1 : GoalValueModel.number(target) else { return false }
         isWriting = true

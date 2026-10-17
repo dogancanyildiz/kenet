@@ -25,6 +25,15 @@ final class ShellNavigationState {
     /// A notification asked for the unseen people: the list opens that section once per request.
     var unseenReveal: UUID?
 
+    /// Both shells leave the historical day behind; the next shell inherits Today too.
+    func goToToday(shell: ShellKind) {
+        switch shell {
+        case .tabs: selectedTab = .today
+        case .split: section = .today
+        }
+        selectedDay = nil
+    }
+
     /// The detail column's entity was deleted: the column goes back to "Bir varlık seç" and no
     /// list row stays selected. The section, tab, order and filter stay as they were.
     func entityDeleted(path: String) {

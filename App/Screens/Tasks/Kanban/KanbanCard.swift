@@ -32,7 +32,7 @@ struct KanbanCard: View {
             }
             .sheet(item: $dateEditor) { editor in
                 NavigationStack { TaskDateEditor(model: editor) }
-                    .frame(minWidth: 320, minHeight: 200).inkAdaptiveSheetPresentation()
+                    .frame(minWidth: 320, minHeight: 200).inkAdaptiveSheetPresentation(fitsContent: true)
             }
     }
 

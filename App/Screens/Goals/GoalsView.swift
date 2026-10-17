@@ -44,6 +44,7 @@ struct GoalsView: View {
         }
         .sheet(item: $editingAmount) { editor in
             NavigationStack { GoalValueEditor(model: editor) }
+                .inkAdaptiveSheetPresentation(fitsContent: true, usesPhoneDetents: false)
         }
         .sheet(isPresented: $showsCreation) {
             NavigationStack { GoalCreationView(store: store) }

@@ -81,6 +81,7 @@ struct GoalDetailView: View {
         }
         .sheet(item: $editing, onDismiss: { Task { await history.load() } }) { model in
             NavigationStack { GoalValueEditor(model: model) }
+                .inkAdaptiveSheetPresentation(fitsContent: true, usesPhoneDetents: false)
         }
         .sheet(
             isPresented: $isEditing,

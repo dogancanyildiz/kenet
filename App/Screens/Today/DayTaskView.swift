@@ -104,14 +104,14 @@ struct DayTaskView: View {
         }
         .sheet(item: $textEditor) { model in
             NavigationStack { TaskTextEditor(model: model) }.frame(minWidth: 320, minHeight: 200)
-                .inkAdaptiveSheetPresentation()
+                .inkAdaptiveSheetPresentation(fitsContent: true)
         }
         .sheet(item: $recurrenceEditor) { model in
-            NavigationStack { TaskRecurrenceEditor(model: model) }.inkAdaptiveSheetPresentation()
+            NavigationStack { TaskRecurrenceEditor(model: model) }.inkAdaptiveSheetPresentation(fitsContent: true)
         }
         .sheet(item: $dateEditor) { model in
             NavigationStack { TaskDateEditor(model: model) }.frame(minWidth: 320, minHeight: 200)
-                .inkAdaptiveSheetPresentation()
+                .inkAdaptiveSheetPresentation(fitsContent: true)
         }
         .entityLinkSheet($linkDestination, store: store)
     }

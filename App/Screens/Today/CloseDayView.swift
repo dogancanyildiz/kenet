@@ -50,6 +50,7 @@ struct CloseDayView: View {
         .task(id: model.store.lastUpdated) { await model.loadTasks() }
         .sheet(item: $editing) { editor in
             NavigationStack { GoalValueEditor(model: editor) }
+                .inkAdaptiveSheetPresentation(fitsContent: true, usesPhoneDetents: false)
                 .onChange(of: editor.isSaved) { _, saved in
                     if saved { geofences?.clearLockedMarkNotice() }
                 }

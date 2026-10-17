@@ -52,4 +52,14 @@ extension View {
             self
         #endif
     }
+
+    /// iPad pointer feedback for a card that can be picked up (a Kanban card): the card lifts
+    /// under the pointer. No-op on Mac and without a pointer.
+    @ViewBuilder func inkPointerLift() -> some View {
+        #if os(iOS)
+            hoverEffect(.lift)
+        #else
+            self
+        #endif
+    }
 }

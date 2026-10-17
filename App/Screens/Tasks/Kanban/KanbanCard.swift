@@ -110,6 +110,7 @@ struct KanbanCard: View {
                 }
             }
             .contentShape(Rectangle())
+            .inkPointerLift()
         }
         .buttonStyle(.plain)
         .accessibilityElement(children: .contain)

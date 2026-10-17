@@ -792,7 +792,7 @@ Erişilebilirlik boyutunda 12 aylık çubuk grafiğin sütunları satıra döner
 | Dolgu | Çukur zemin, satırın içinde 6 pt yuvarlatılmış köşe. Dolgu satırın kenarından yatay 4 pt, dikey 2 pt içeridedir. |
 | İşaret | Solda 2 pt vurgu çizgisi. |
 | Yazı | Seçili satırdaki yazı belirteçleri çukur zeminde de alt sınır kontrastını taşır. |
-| iPad ve Duo, bölünmüş kabuk | Liste sütunlarında Mac'teki seçim: çukur zemin ve solda vurgu çizgisi. Arama sonucunda da aynı çizim. |
+| iPad ve Duo, bölünmüş kabuk | Liste sütunlarında Mac'teki seçim: çukur zemin ve solda vurgu çizgisi. Arama sonucunda da aynı çizim. İşaretçi (iPad'e bağlı fare ya da izleme dörtgeni) üstünde durduğu sütun satırını sistemin hafif vurgusuyla gösterir; iPhone'da ve Mac'te çizim değişmez. |
 | iPhone | Sekme kabuğunda satır kâğıt kalır. Yalnız arama sonucunda klavye seçimi hafif vurgu zemini alır. |
 | Görev sütunu | Kutu görevi tamamlar. Metindeki bağlantı kendi sayfasını açar. Satıra tıklamak ayrıntıyı seçer. Bağlam menüsündeki silme onay diyaloğuna gider. |
 
@@ -811,7 +811,7 @@ Kod karşılığı: `InkListSelectionBackground` ve `inkListRow(columnSelected:)
 | Konu | Kural |
 |---|---|
 | Dolgu yeri | Dolgu sistem seçiminin yerindedir: kenarlardan 10 pt içeride ve 8 pt köşeli. |
-| iPad ve Duo, bölünmüş kabuk | Aynı dolgu, yazı ve simge. Yüzen panel kâğıt rengindedir. Odak çerçevesi çizilmez; klavyeyle seçim odağı izler, dolgu odağın yerini gösterir. Satır adı tek satırdır, uzun ad sonda "…" ile kısalır. |
+| iPad ve Duo, bölünmüş kabuk | Aynı dolgu, yazı ve simge. Yüzen panel kâğıt rengindedir. Odak çerçevesi çizilmez; klavyeyle seçim odağı izler, dolgu odağın yerini gösterir. Satır adı tek satırdır, uzun ad sonda "…" ile kısalır. İşaretçi üstünde durduğu satırı sistemin hafif vurgusuyla gösterir; manşet simgeleri ve liste sütunu satırlarıyla aynı etki. Kanban kartı işaretçi altında hafifçe kalkar. |
 | Kaydırma göstergesi | Uygulama dikey kaydırma göstergesini çizmez. Fare bağlıyken yer kaplayan çubuk satırı sağdan daraltmaz; dolgu iki kenardan 10 pt içeride kalır. Liste tekerlek, izleme dörtgeni ve ok tuşlarıyla kayar. |
 | Odak | Yerleşimi değiştiren her seçimden sonra uygulama odağı yeni kenar çubuğuna bir kez geri verir. Seçim tıklama, ok tuşu ya da VoiceOver olabilir. Uygulama bunu yalnız odak serbestse yapar. |
 | Odak serbestliği | Kenar çubuğunun kendi penceresi serbestliği belirler. Odak o pencerede başka bir denetimdeyse uygulama isteği bırakır. |

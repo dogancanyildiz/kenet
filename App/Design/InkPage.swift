@@ -292,6 +292,7 @@ private struct InkListRowModifier: ViewModifier {
     }
 
     /// A column row draws its own selection, so the system focus ring is turned off there.
+    /// In the split iOS shell the pointer highlights the column row it is over (iPad).
     @ViewBuilder private func row(_ content: Content) -> some View {
         #if os(macOS)
             if columnSelected != nil {
@@ -300,7 +301,11 @@ private struct InkListRowModifier: ViewModifier {
                 content
             }
         #else
-            content
+            if shellKind == .split, columnSelected != nil {
+                content.inkPointerHighlight()
+            } else {
+                content
+            }
         #endif
     }
 

@@ -221,4 +221,125 @@
             ((root as? T).map { [$0] } ?? []) + root.subviews.flatMap { views(type, under: $0) }
         }
     }
+    extension TaskBoardsRegularHostedTests {
+        /// Full iPad canvases with the observed 240 pt sidebar. Activate the card's real
+        /// accessibility button, then inspect the presentation and actual column frames.
+        @Test func portraitKanbanOpensSelectedCardInSheet() async throws {
+            try await Self.hostedKanban(canvas: CGSize(width: 1032, height: 1376), selecting: true) { hosted in
+                await Self.settleDetail(in: hosted)
+                #expect(hosted.host.presentedViewController != nil, "portrait detail did not open a sheet")
+                #expect(Self.detailPanel(in: hosted) == nil, "portrait kept the narrow inline panel")
+            }
+        }
+
+        @Test func landscapeKanbanKeepsTwoCompleteColumnsBesideSelectedCard() async throws {
+            try await Self.hostedKanban(canvas: Self.canvas, selecting: true) { hosted in
+                await Self.settleDetail(in: hosted)
+                #expect(hosted.host.presentedViewController == nil, "landscape detail opened a sheet")
+                let panel = try #require(Self.detailPanel(in: hosted), "no inline detail panel")
+                let board = try #require(Self.board(in: hosted))
+                let columns = Self.views(UIScrollView.self, under: board)
+                    .filter { $0 !== board && !($0 is UICollectionView) }
+                    .map { $0.convert($0.bounds, to: hosted.window) }
+                    .filter { $0.width >= KanbanBoardLayout.minimumColumnWidth - 1 }
+                    .sorted { $0.minX < $1.minX }
+                #expect(columns.count == 3, "column frames: \(columns)")
+                for column in columns.prefix(2) {
+                    #expect(column.minX >= board.convert(board.bounds, to: hosted.window).minX)
+                    #expect(column.maxX <= panel.minX, "column \(column) clipped by panel \(panel)")
+                }
+            }
+        }
+
+        @Test func narrowingSelectedKanbanMovesPanelToSheetAndKeepsSelection() async throws {
+            try await Self.hostedKanban(canvas: Self.canvas, selecting: true) { hosted in
+                await Self.settleDetail(in: hosted)
+                #expect(Self.detailPanel(in: hosted) != nil)
+                let board = try #require(Self.board(in: hosted))
+                await hosted.resize(width: 1032)
+                await Self.settleDetail(in: hosted)
+                #expect(Self.board(in: hosted) === board, "resizing rebuilt the board")
+                #expect(Self.detailPanel(in: hosted) == nil)
+                let sheet = try #require(hosted.host.presentedViewController, "selection lost on narrowing")
+                #expect(ChromeSheetsDuoHost.hasVisibleRowOrField(in: sheet.view), "selected detail is empty")
+                await hosted.resize(width: Self.canvas.width)
+                await Self.settleDetail(in: hosted)
+                #expect(hosted.host.presentedViewController == nil)
+                #expect(Self.detailPanel(in: hosted) != nil, "selection lost when returning to the panel")
+            }
+        }
+
+        private static func detailPanel(in hosted: Hosted) -> CGRect? {
+            views(UICollectionView.self, under: hosted.host.view)
+                .map { $0.convert($0.bounds, to: hosted.window) }
+                .first {
+                    abs($0.width - KanbanDetailPlacement.panelWidth) <= 2
+                        && abs($0.maxX - hosted.window.bounds.maxX) <= 2
+                }
+        }
+
+        private static func settleDetail(in hosted: Hosted) async {
+            for _ in 0..<12 {
+                try? await Task.sleep(for: .milliseconds(50))
+                hosted.host.view.layoutIfNeeded()
+                hosted.host.presentedViewController?.view.layoutIfNeeded()
+            }
+        }
+
+        private static func hostedKanban(
+            canvas: CGSize, selecting: Bool = false, _ body: @MainActor (Hosted) async throws -> Void
+        ) async throws {
+            let context = try TaskTestContext(sample: true)
+            defer { context.clean() }
+            await context.start()
+            let tasks = TasksModel(store: context.store, today: { snapshotDay })
+            // The selected card comes in as the board's selection, as the Pad snapshot does.
+            let selection =
+                selecting ? try await context.store.allTasks().first { !$0.isClosed && $0.rawStatus == " " } : nil
+            let widths = Widths()
+            let page = HStack(spacing: 0) {
+                Color.clear.frame(width: 240)
+                NavigationStack { KanbanView(tasks: tasks, showsFilters: true, selection: selection) }
+            }
+            .onPreferenceChange(KanbanColumnWidthPreference.self) { values in
+                MainActor.assumeIsolated { widths.values = values }
+            }
+            .environment(\.shellKind, .split)
+            .environment(\.locale, snapshotLocale)
+            .environment(\.openSearch, {})
+            .transaction { $0.animation = nil }
+            var failure: (any Error)?
+            await SnapshotHostGate.exclusive {
+                guard let scene = UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene }).first
+                else {
+                    Issue.record("The board needs the Journal test host's window scene.")
+                    return
+                }
+                let animated = UIView.areAnimationsEnabled
+                UIView.setAnimationsEnabled(false)
+                defer { UIView.setAnimationsEnabled(animated) }
+                let host = UIHostingController(rootView: AnyView(page))
+                host.traitOverrides.horizontalSizeClass = .regular
+                host.traitOverrides.verticalSizeClass = .regular
+                let window = UIWindow(windowScene: scene)
+                window.frame = CGRect(origin: .zero, size: canvas)
+                window.rootViewController = host
+                window.makeKeyAndVisible()
+                var idle = 0
+                for _ in 0..<80 where idle < 8 {
+                    try? await Task.sleep(for: .milliseconds(50))
+                    host.view.layoutIfNeeded()
+                    idle = !context.store.isProcessing && widths.values.count == 3 ? idle + 1 : 0
+                }
+                do { try await body(Hosted(window: window, host: host, widths: widths)) } catch { failure = error }
+                host.presentedViewController?.dismiss(animated: false)
+                for _ in 0..<4 { try? await Task.sleep(for: .milliseconds(50)) }
+                window.isHidden = true
+                window.rootViewController = nil
+                window.windowScene = nil
+                retired = window
+            }
+            if let failure { throw failure }
+        }
+    }
 #endif

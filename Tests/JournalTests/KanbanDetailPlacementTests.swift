@@ -1,22 +1,26 @@
+import SwiftUI
 import Testing
 
 @testable import Journal
 
 @Suite struct KanbanDetailPlacementTests {
-    /// The iPhone Duo inner screen (890 pt) keeps the board beside the 340 pt panel; the
-    /// upright inner screen (626 pt) still fits a column at its floor; narrower goes to a sheet.
-    @Test func splitShellKeepsThePanelWhileAColumnFitsBesideIt() {
-        let threshold = KanbanDetailPlacement.panelWidth + KanbanDetailPlacement.minimumBoardWidth
-        #expect(threshold == 612)
-        #expect(KanbanDetailPlacement.usesPanel(shell: .split, width: 890))
-        #expect(KanbanDetailPlacement.usesPanel(shell: .split, width: 626))
-        #expect(KanbanDetailPlacement.usesPanel(shell: .split, width: threshold))
-        #expect(!KanbanDetailPlacement.usesPanel(shell: .split, width: threshold - 1))
-        #expect(!KanbanDetailPlacement.usesPanel(shell: .split, width: 0))
+    /// The panel reserves two complete columns, their gap and both board margins.
+    @Test(arguments: [
+        (width: 0, panel: false),
+        (width: 626, panel: false),
+        (width: 792, panel: false),
+        (width: 859, panel: false),
+        (width: 860, panel: true),
+        (width: 890, panel: true),
+        (width: 1032, panel: true),
+        (width: 1136, panel: true),
+    ])
+    func splitShellRequiresTwoCompleteColumns(width: Int, panel: Bool) {
+        #expect(KanbanDetailPlacement.usesPanel(shell: .split, width: CGFloat(width)) == panel)
     }
 
-    @Test func tabShellAlwaysPresentsTheSheet() {
-        #expect(!KanbanDetailPlacement.usesPanel(shell: .tabs, width: 890))
-        #expect(!KanbanDetailPlacement.usesPanel(shell: .tabs, width: 2000))
+    @Test(arguments: [0, 792, 859, 860, 890, 1032, 1136, 2000])
+    func tabShellAlwaysPresentsTheSheet(width: Int) {
+        #expect(!KanbanDetailPlacement.usesPanel(shell: .tabs, width: CGFloat(width)))
     }
 }

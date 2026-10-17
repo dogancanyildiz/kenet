@@ -192,12 +192,14 @@ extension View {
 }
 
 /// Where the selected task's detail goes (unit-tested). Mac: always the panel. The split iOS
-/// shell (iPad, iPhone Duo inner screen): the panel while a column at its floor still fits
+/// shell (iPad, iPhone Duo inner screen): the panel while two columns at their floor still fit
 /// beside it, otherwise the sheet. Tabs: the sheet.
 enum KanbanDetailPlacement {
     static let panelWidth: CGFloat = 340
-    /// The phone column's floor plus the board's horizontal padding (`board`: `width - 32`).
-    static let minimumBoardWidth: CGFloat = KanbanBoardLayout.minimumColumnWidth + 32
+    /// Two complete columns at their floor, their gap and the board's horizontal padding.
+    static let minimumBoardWidth: CGFloat =
+        2 * KanbanBoardLayout.minimumColumnWidth + KanbanBoardLayout.columnSpacing
+        + 2 * KanbanBoardLayout.boardPadding
 
     static func usesPanel(shell: ShellKind, width: CGFloat) -> Bool {
         shell == .split && width >= panelWidth + minimumBoardWidth

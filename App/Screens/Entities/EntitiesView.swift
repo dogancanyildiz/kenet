@@ -4,6 +4,7 @@ import VaultStore
 /// The phone combines people, places and the vault's custom types behind one type picker.
 struct EntitiesView: View {
     let store: IndexStore
+    @State private var editingEntity: EntitySummary?
     @State private var creationKind: VaultEntityKind?
     @State private var createdEntity: EntitySummary?
     @State private var kind: String
@@ -67,8 +68,10 @@ struct EntitiesView: View {
                     store: store, people: entities, initiallyExpanded: initialUnseenExpanded)
             }
             ForEach(entities) { entity in
-                NavigationLink(value: entity) { EntityRow(entity: entity) }
-                    .inkListRow()
+                NavigationLink(value: entity) {
+                    EntityRow(entity: entity, store: store, onEdit: { editingEntity = entity })
+                }
+                .inkListRow()
             }
             if !store.content.entities.contains(where: { $0.kind == kind }) {
                 EmptyState("Bu tipteki varlıklar burada görünecek.")
@@ -83,6 +86,7 @@ struct EntitiesView: View {
         #if os(iOS)
             .contactImportFlow(store: store, showsPicker: $showsContactPicker)
         #endif
+        .entityDefinitionActions(store: store, editing: $editingEntity)
         .entityCreateSheet(store: store, kind: $creationKind) { createdEntity = $0 }
         .navigationDestination(item: $createdEntity) { entity in
             EntityView(store: store, entity: entity)
@@ -212,16 +216,50 @@ struct EntitiesView: View {
 
 struct EntityRow: View {
     let entity: EntitySummary
+    var store: IndexStore? = nil
+    var onEdit: () -> Void = {}
+    var onDeleted: (String) -> Void = { _ in }
+    @State private var deletion = DefinitionDeletionModel()
 
     var body: some View {
-        MarginRow(kind: .vault, time: nil) {
-            Text(verbatim: entity.name)
-                .foregroundStyle(.ink.text)
-        } secondary: {
-            if let qualifier = entity.qualifier {
-                Text(verbatim: qualifier)
-                    .font(.ink.meta)
-                    .foregroundStyle(.ink.secondaryText)
+        // One row view: the error band below the row, not a second row with the same tag.
+        VStack(alignment: .leading, spacing: 0) {
+            MarginRow(kind: .vault, time: nil) {
+                Text(verbatim: entity.name)
+                    .foregroundStyle(.ink.text)
+            } secondary: {
+                if let qualifier = entity.qualifier {
+                    Text(verbatim: qualifier)
+                        .font(.ink.meta)
+                        .foregroundStyle(.ink.secondaryText)
+                }
+            }
+            .contextMenu {
+                if let store {
+                    DefinitionMenuButtons(items: DefinitionMenu.items(forEntity: entity), canEdit: store.canAddEvent) {
+                        item in
+                        switch item {
+                        case .edit: onEdit()
+                        case .copyLink: DefinitionMenu.copyLink(for: entity.name)
+                        case .delete:
+                            deletion = DefinitionDeletionModel()
+                            deletion.request(path: entity.id)
+                        default: break
+                        }
+                    }
+                }
+            }
+            .destructiveConfirmationDialog(
+                "Varlığı sil", confirmation: $deletion.confirmation,
+                message: "\(entity.name) silinsin mi? Günlük kayıtlarındaki geçişler kalır."
+            ) { path in
+                guard let store else { return }
+                Task {
+                    if await deletion.delete(store: store, path: path, goal: false) { onDeleted(path) }
+                }
+            }
+            if let error = deletion.errorText {
+                InfoBand(kind: .error, verbatim: error)
             }
         }
     }

@@ -2585,6 +2585,22 @@
         }
       }
     },
+    "Bağlantıyı kopyala" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bağlantıyı kopyala"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copy Link"
+          }
+        }
+      }
+    },
     "bardak" : {
       "localizations" : {
         "tr" : {
@@ -3893,6 +3909,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bugünü aç"
+          }
+        }
+      }
+    },
+    "Bugünü işaretle" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bugünü işaretle"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mark Today"
           }
         }
       }

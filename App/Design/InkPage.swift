@@ -91,11 +91,11 @@ extension View {
         #endif
     }
 
-    /// The split iOS shell sizes its sheets like the Mac (480×360 minimum, 520×480 ideal): the
-    /// regular width's plain system sheet is narrower (414 pt), and a `List` body must get a
-    /// non-zero ideal height. Phone detents and Mac sizing stay with their existing presenters.
-    func inkAdaptiveSheetPresentation() -> some View {
-        modifier(InkAdaptiveSheetPresentation())
+    /// The split iOS shell keeps form width; short editors can fit their content vertically.
+    /// Other sheets keep the common ideal height. Existing phone and Mac presenters stay as is;
+    /// callers without phone detents pass `usesPhoneDetents: false`.
+    func inkAdaptiveSheetPresentation(fitsContent: Bool = false, usesPhoneDetents: Bool = true) -> some View {
+        modifier(InkAdaptiveSheetPresentation(usesPhoneDetents: usesPhoneDetents, fitsContent: fitsContent))
     }
 
     func inkAdaptiveFormPresentation() -> some View {
@@ -333,18 +333,26 @@ private struct InkListRowModifier: ViewModifier {
 private struct InkAdaptiveSheetPresentation: ViewModifier {
     @Environment(\.shellKind) private var shellKind
     var usesPhoneDetents = true
+    var fitsContent = false
 
     @ViewBuilder func body(content: Content) -> some View {
         #if os(iOS)
-            if shellKind == .split {
+            switch InkSheetSizing.resolve(
+                shell: shellKind, fitsContent: fitsContent, usesPhoneDetents: usesPhoneDetents)
+            {
+            case .fittedForm:
+                content
+                    .frame(minWidth: InkSheetChrome.macMinWidth, idealWidth: InkSheetChrome.macIdealWidth)
+                    .presentationSizing(.form.fitted(horizontal: false, vertical: true))
+            case .form:
                 content
                     .frame(
                         minWidth: InkSheetChrome.macMinWidth, idealWidth: InkSheetChrome.macIdealWidth,
                         minHeight: InkSheetChrome.macMinHeight, idealHeight: InkSheetChrome.macIdealHeight
                     )
-            } else if usesPhoneDetents {
+            case .detents:
                 content.presentationDetents([.medium, .large])
-            } else {
+            case .plain:
                 content
             }
         #else

@@ -39,7 +39,7 @@ struct TaskTimelineView: View {
         .boardNavigationTitle(showsFilters ? "Zaman çizelgesi" : nil)
         .sheet(item: $editor) { selection in
             NavigationStack { TimelineDateEditor(model: model, selection: selection) }
-                .frame(minWidth: 320, minHeight: 200).inkAdaptiveSheetPresentation()
+                .frame(minWidth: 320, minHeight: 200).inkAdaptiveSheetPresentation(fitsContent: true)
         }
         .onChange(of: model.store.vaultURL) { _, _ in
             model.clearInteraction()

@@ -55,6 +55,10 @@ struct DeviceIdiomCopyTests {
             let command = flags.contains(.command) ? "⌘" : ""
             return "\(command)\(shift)\(shortcut.key.character)"
         }
-        #expect(table == ["⌘f", "⌘k", "⌘t", "⌘⇧t"])
+        #if os(iOS)
+            #expect(table == ["⌘⇧f", "⌘k", "⌘t", "⌘⇧t"])
+        #else
+            #expect(table == ["⌘f", "⌘k", "⌘t", "⌘⇧t"])
+        #endif
     }
 }

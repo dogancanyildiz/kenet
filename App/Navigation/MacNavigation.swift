@@ -18,6 +18,8 @@ struct MacNavigation: View {
     #if os(iOS)
         @State private var columnVisibility = NavigationSplitViewVisibility.automatic
         @State private var shellWidth: CGFloat = 0
+        /// Set by the first measurement and kept: the split view is built once and stays.
+        @State private var measured = false
     #endif
 
     init(store: IndexStore, navigation: ShellNavigationState = ShellNavigationState()) {
@@ -28,41 +30,19 @@ struct MacNavigation: View {
 
     var body: some View {
         Group {
-            switch shellLayout {
-            case .page:
-                splitView {
-                    sidebar
-                } detail: {
-                    NavigationStack {
-                        if navigation.section == .graph {
-                            GraphView(store: store)
-                        } else if navigation.section == .map {
-                            PlacesMapView(store: store)
-                        } else {
-                            SummariesView(store: store)
-                        }
-                    }
-                    // Full-width paper; graph / map / summaries are not reading columns.
-                    .inkPage()
-                    .macSearchToolbar()
+            #if os(iOS)
+                // No split view before the first measurement: one built earlier opens with the
+                // system's own visibility, and its first layout writes that back over the
+                // shell's request (an upright 13" iPad lost its sidebar on some cold starts).
+                // Built after it, the split view opens with the columns the width asks for.
+                if measured {
+                    layouts
+                } else {
+                    Color.ink.paper.ignoresSafeArea()
                 }
-            case .board:
-                splitView {
-                    sidebar
-                } detail: {
-                    Group {
-                        if tasksShell.layout == .timeline {
-                            TaskTimelineView(tasks: kanbanTasks, showsFilters: true, openDay: openTaskDay)
-                        } else {
-                            KanbanView(tasks: kanbanTasks, showsFilters: true, openDay: openTaskDay)
-                        }
-                    }
-                    .inkPage()
-                    .macSearchToolbar()
-                }
-            case .columns:
-                standardLayout
-            }
+            #else
+                layouts
+            #endif
         }
         #if os(macOS)
             // The page name is the serif manşet inside the page; the toolbar repeats nothing.
@@ -79,6 +59,7 @@ struct MacNavigation: View {
                 let previous = shellWidth
                 shellWidth = width
                 resetColumns(from: previous)
+                if width > 0 { measured = true }
             }
             .onChange(of: shellLayout) { previous, _ in resetColumns(from: shellWidth, layout: previous) }
             .environment(\.shellTier, ShellTier.resolve(measuredWidth: shellWidth))
@@ -153,6 +134,45 @@ struct MacNavigation: View {
                     navigation.selectedDay = nil
                 })
         #endif
+    }
+
+    /// The split view of the current layout: each layout is a split view of its own.
+    @ViewBuilder private var layouts: some View {
+        switch shellLayout {
+        case .page:
+            splitView {
+                sidebar
+            } detail: {
+                NavigationStack {
+                    if navigation.section == .graph {
+                        GraphView(store: store)
+                    } else if navigation.section == .map {
+                        PlacesMapView(store: store)
+                    } else {
+                        SummariesView(store: store)
+                    }
+                }
+                // Full-width paper; graph / map / summaries are not reading columns.
+                .inkPage()
+                .macSearchToolbar()
+            }
+        case .board:
+            splitView {
+                sidebar
+            } detail: {
+                Group {
+                    if tasksShell.layout == .timeline {
+                        TaskTimelineView(tasks: kanbanTasks, showsFilters: true, openDay: openTaskDay)
+                    } else {
+                        KanbanView(tasks: kanbanTasks, showsFilters: true, openDay: openTaskDay)
+                    }
+                }
+                .inkPage()
+                .macSearchToolbar()
+            }
+        case .columns:
+            standardLayout
+        }
     }
 
     private var sidebar: some View {

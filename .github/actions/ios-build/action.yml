@@ -118,6 +118,7 @@ runs:
     # Derleme belirli bir simülatöre bağlı değildir: simülatörler yanda açılırken CoreSimulator'ın
     # aygıt listesi boş kalabiliyor ve kimlikle verilen hedef bulunamıyordu (dev'de iki koşu). Genel
     # simülatör hedefi aynı ürünü (xctestrun) verir; test adımları aygıtı kimlikle seçer.
+    # Runner ve simülatörler Apple silicon olduğu için yalnız arm64 derlenir; x86_64 derlemesi süreyi uzatır.
     - name: iOS derlemesi (test için)
       shell: bash
       run: |
@@ -125,5 +126,6 @@ runs:
           -project Journal.xcodeproj \
           -scheme Journal_iOS \
           -destination "generic/platform=iOS Simulator" \
+          ARCHS=arm64 \
           CODE_SIGNING_ALLOWED=NO \
           -quiet

@@ -238,12 +238,13 @@ jobs:
   # iPad kümeleri (snapshot-suites.sh --pad) aynı derleme ürünüyle ikinci simülatörde koşar; iPad
   # derlemeyle birlikte açılır (ios-build, pad: true). iPhone adımı düşse de iPad adımı koşar:
   # iki fark paketi birlikte görünür.
+  # iPhone ve iPad görüntüleri ile iPad erişilebilirlik denetimine pay bırakmak için işin süre sınırı 55 dakikadır.
   app-ios-snapshots:
     name: Uygulama (iOS, ekran görüntüsü)
     needs: changes
     if: needs.changes.outputs.docs_only != 'true'
     runs-on: macos-26
-    timeout-minutes: 40
+    timeout-minutes: 55
     steps:
       - uses: actions/checkout@v7
       - name: Derle

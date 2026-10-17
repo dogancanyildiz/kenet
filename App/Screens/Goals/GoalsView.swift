@@ -15,10 +15,17 @@ struct GoalListRequest: Hashable {
     let updated: Date?
 }
 
+struct GoalDefinitionSheetTarget: Identifiable {
+    let goal: GoalDefinition
+    var id: String { goal.id }
+}
+
 struct GoalsView: View {
     let store: IndexStore
     var selection: Binding<String?>? = nil
     @State private var showsCreation = false
+    @State private var editingGoal: GoalDefinitionSheetTarget?
+    @State private var editingAmount: GoalValueModel?
     @State private var loaded: GoalListStatuses?
     @Environment(\.clockNow) private var clockNow
     var body: some View {
@@ -26,11 +33,18 @@ struct GoalsView: View {
             let day = LocalDay.today(at: clockNow())
             GoalListContent(
                 store: store, day: day, selection: selection,
-                showsCreation: $showsCreation, loaded: $loaded
+                showsCreation: $showsCreation, loaded: $loaded,
+                editingGoal: $editingGoal, editingAmount: $editingAmount
             )
             .id(day.description + (store.vaultURL?.path ?? ""))
         }
         .inkRootPageNavigationTitle("Hedefler")
+        .sheet(item: $editingGoal) { goal in
+            GoalRowDefinitionEditor(store: store, goal: goal.goal, selection: selection)
+        }
+        .sheet(item: $editingAmount) { editor in
+            NavigationStack { GoalValueEditor(model: editor) }
+        }
         .sheet(isPresented: $showsCreation) {
             NavigationStack { GoalCreationView(store: store) }
         }
@@ -42,15 +56,22 @@ private struct GoalListContent: View {
     let selection: Binding<String?>?
     @Binding var showsCreation: Bool
     @Binding var loaded: GoalListStatuses?
+    @Binding var editingGoal: GoalDefinitionSheetTarget?
+    @Binding var editingAmount: GoalValueModel?
+    @State private var deletion = DefinitionDeletionModel()
+    @State private var deletingGoal: GoalDefinition?
     @State private var model: GoalDayModel
     init(
         store: IndexStore, day: CalendarDate, selection: Binding<String?>?,
-        showsCreation: Binding<Bool>, loaded: Binding<GoalListStatuses?>
+        showsCreation: Binding<Bool>, loaded: Binding<GoalListStatuses?>,
+        editingGoal: Binding<GoalDefinitionSheetTarget?>, editingAmount: Binding<GoalValueModel?>
     ) {
         self.store = store
         self.selection = selection
         _showsCreation = showsCreation
         _loaded = loaded
+        _editingGoal = editingGoal
+        _editingAmount = editingAmount
         _model = State(initialValue: GoalDayModel(store: store, day: day))
     }
 
@@ -77,6 +98,10 @@ private struct GoalListContent: View {
                     goalRow(goal: goal, status: model.shownStatus(for: goal, answer: statuses[goal.id]))
                 }
             }
+            if let error = deletion.errorText {
+                InfoBand(kind: .error, verbatim: error)
+                    .inkListRow()
+            }
             if let error = model.errorText {
                 InfoBand(kind: .error, verbatim: error)
                     .inkListRow()
@@ -91,6 +116,16 @@ private struct GoalListContent: View {
                     "Henüz hedef yok",
                     actionTitle: store.canAddEvent ? "Yeni hedef" : nil
                 ) { showsCreation = true }
+            }
+        }
+        .destructiveConfirmationDialog(
+            "Hedefi sil", confirmation: $deletion.confirmation,
+            confirmTitle: "Hedefi sil", message: "\(deletingGoal?.name ?? "") silinsin mi? Gün kayıtları kalır."
+        ) { path in
+            Task {
+                if await deletion.delete(store: store, path: path, goal: true), selection?.wrappedValue == path {
+                    selection?.wrappedValue = nil
+                }
             }
         }
         .task(id: store.lastUpdated) { await model.load() }
@@ -144,6 +179,41 @@ private struct GoalListContent: View {
                 }
             }
         }
+        .contextMenu {
+            DefinitionMenuButtons(
+                items: DefinitionMenu.items(forGoal: goal.kind, markedToday: model.isMarkedToday(goal)),
+                canEdit: model.canEdit
+            ) { item in
+                switch item {
+                case .markToday, .unmark:
+                    Task { await model.toggle(goal) }
+                case .enterAmount:
+                    editingAmount = GoalValueModel(dayModel: model, goal: goal)
+                case .edit:
+                    editingGoal = GoalDefinitionSheetTarget(goal: goal)
+                case .delete:
+                    deletingGoal = goal
+                    deletion = DefinitionDeletionModel()
+                    deletion.request(path: goal.id)
+                case .copyLink: break
+                }
+            }
+        }
         .inkListRow(columnSelected: selection?.wrappedValue == goal.id)
+    }
+}
+
+/// The form can also delete; clear the split column's selection after that successful write.
+private struct GoalRowDefinitionEditor: View {
+    let store: IndexStore
+    let goal: GoalDefinition
+    let selection: Binding<String?>?
+    @State private var deletion = DefinitionDeletionModel()
+
+    var body: some View {
+        NavigationStack { GoalDefinitionForm(store: store, goal: goal, deletion: deletion) }
+            .onChange(of: deletion.isDeleted) { _, deleted in
+                if deleted, selection?.wrappedValue == goal.id { selection?.wrappedValue = nil }
+            }
     }
 }

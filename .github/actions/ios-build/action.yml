@@ -115,12 +115,15 @@ runs:
       if: inputs.pad == 'true'
       shell: bash
       run: xcrun simctl boot "${{ steps.pad_sim.outputs.udid }}" || echo "::warning::iPad simctl boot başarısız; açılış adımında yeniden denenecek."
+    # Derleme belirli bir simülatöre bağlı değildir: simülatörler yanda açılırken CoreSimulator'ın
+    # aygıt listesi boş kalabiliyor ve kimlikle verilen hedef bulunamıyordu (dev'de iki koşu). Genel
+    # simülatör hedefi aynı ürünü (xctestrun) verir; test adımları aygıtı kimlikle seçer.
     - name: iOS derlemesi (test için)
       shell: bash
       run: |
         xcodebuild build-for-testing \
           -project Journal.xcodeproj \
           -scheme Journal_iOS \
-          -destination "platform=iOS Simulator,id=${{ steps.ios_sim.outputs.udid }}" \
+          -destination "generic/platform=iOS Simulator" \
           CODE_SIGNING_ALLOWED=NO \
           -quiet

@@ -1,4 +1,5 @@
 import SwiftUI
+import VaultFormat
 import VaultStore
 
 struct EntityCreateSheet: View {
@@ -50,27 +51,61 @@ struct EntityCreateSheet: View {
     }
 }
 
-/// The list row that opens ``EntityCreateSheet``. The Kişiler tab creates people and the
-/// Konumlar tab places; a custom type has no row (`createEntity` writes the built-in kinds).
+/// The list row that opens ``EntityCreateSheet``. The Kişiler tab creates people, the Konumlar
+/// tab places, and a custom type's tab an entity of that type while the vault defines it.
 enum EntityCreateEntry {
-    static func kind(forList kind: String) -> VaultEntityKind? {
+    static func kind(forList kind: String, types: EntityTypeCatalog) -> VaultEntityKind? {
         switch kind {
         case "person": .person
         case "place": .place
-        default: nil
+        default: types.types.contains { $0.id == kind } ? .custom(kind) : nil
         }
     }
 
-    static func title(_ kind: VaultEntityKind) -> LocalizedStringKey {
-        kind == .person ? "Yeni kişi" : "Yeni konum"
+    /// "Yeni kişi", "Yeni konum", or "Yeni <tip adı>" with the type's singular name.
+    static func title(
+        _ kind: VaultEntityKind, types: EntityTypeCatalog,
+        language: String = Bundle.main.preferredLocalizations.first ?? "en"
+    ) -> String {
+        // The phrase and the type's name come from one language: the requested one when the app
+        // is localized in it, otherwise the language the app shows.
+        let language = localization(language) != nil ? language : (Bundle.main.preferredLocalizations.first ?? "en")
+        let bundle = localization(language) ?? .main
+        switch kind {
+        case .person: return String(localized: "Yeni kişi", bundle: bundle)
+        case .place: return String(localized: "Yeni konum", bundle: bundle)
+        case .custom(let id):
+            let name = types.types.first { $0.id == id }?.name.localized(language: language) ?? id
+            return String(localized: "Yeni \(inPhrase(name, language: language))", bundle: bundle)
+        }
     }
 
-    static func systemImage(_ kind: VaultEntityKind) -> String {
-        kind == .person ? "person.badge.plus" : "mappin.and.ellipse"
+    private static func localization(_ language: String) -> Bundle? {
+        Bundle.main.path(forResource: language, ofType: "lproj").flatMap(Bundle.init(path:))
+    }
+
+    /// The name as the second word of a phrase: the first letter lowercased in the name's
+    /// language ("Kitap" → "kitap", "İlaç" → "ilaç"), an acronym ("BMW") left as written.
+    static func inPhrase(_ name: String, language: String) -> String {
+        guard let first = name.first else { return name }
+        if let second = name.dropFirst().first, second.isUppercase { return name }
+        return String(first).lowercased(with: Locale(identifier: language)) + name.dropFirst()
+    }
+
+    static func systemImage(_ kind: VaultEntityKind, types: EntityTypeCatalog) -> String {
+        switch kind {
+        case .person: "person.badge.plus"
+        case .place: "mappin.and.ellipse"
+        case .custom(let id): types.types.first { $0.id == id }?.icon ?? "plus"
+        }
     }
 
     static func identifier(_ kind: VaultEntityKind) -> String {
-        kind == .person ? "button.entities.createPerson" : "button.entities.createPlace"
+        switch kind {
+        case .person: "button.entities.createPerson"
+        case .place: "button.entities.createPlace"
+        case .custom(let id): "button.entities.create." + id
+        }
     }
 }
 
@@ -129,7 +164,7 @@ final class EntityCreationModel {
         root = store.vaultURL
     }
 
-    var title: String { kind == .person ? String(localized: "Yeni kişi") : String(localized: "Yeni konum") }
+    var title: String { EntityCreateEntry.title(kind, types: store.entityTypes) }
     private var cleanName: String { name.trimmingCharacters(in: .whitespacesAndNewlines) }
     private var cleanQualifier: String { qualifier.trimmingCharacters(in: .whitespacesAndNewlines) }
     var needsQualifier: Bool {

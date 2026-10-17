@@ -37,6 +37,53 @@ extension VaultStore {
         }
     }
 
+    /// Creates a new type, then its ``EntityTypeDefinition/starterTemplate`` when the definition
+    /// names a file under the root `templates/` folder that does not exist yet. An existing
+    /// template is the user's and stays untouched.
+    ///
+    /// The definition is saved first and stays saved. A template that is not written although the
+    /// definition names one then throws ``EntityTypeTemplateError``: a path outside `templates/`
+    /// (it would be indexed as a note, and `Templates/` is not the template folder), a template
+    /// still downloading (it stays the user's), or a failed write. An index failure of the
+    /// definition takes precedence and is thrown instead.
+    public func creatingEntityType(_ definition: EntityTypeDefinition) async throws {
+        var indexFailure: VaultStoreError?
+        do {
+            try await savingEntityType(definition)
+        } catch let error as VaultStoreError {
+            guard case .indexUpdateFailed = error else { throw error }
+            indexFailure = error
+        }
+        var templateFailure: (any Error)?
+        if let path = definition.template {
+            if path.hasPrefix("templates/") {
+                do {
+                    try await perform {
+                        try self.ensureReservedFolderCase(forCanonicalFolder: "templates")
+                        let url = try self.checkedURL(path)
+                        try self.fileCoordination.coordinate(.modify(url)) { _ in
+                            guard !FileManager.default.fileExists(atPath: url.path) else { return }
+                            try self.rejectPendingDownload(at: url, path: path)
+                            do {
+                                try self.atomicWrite(Data(definition.starterTemplate.utf8), to: url, exclusive: true)
+                            } catch VaultStoreError.nameTaken {
+                                // Another process created the template meanwhile; it wins.
+                            }
+                        }
+                    }
+                } catch {
+                    templateFailure = error
+                }
+            } else {
+                templateFailure = VaultStoreError.invalidPath
+            }
+        }
+        if let indexFailure { throw indexFailure }
+        if let templateFailure, let path = definition.template {
+            throw EntityTypeTemplateError(path: path, underlying: templateFailure)
+        }
+    }
+
     public func deletingEntityType(_ expected: EntityTypeDefinition) async throws {
         try await perform {
             let url = try EntityTypeReader.fileURL(vaultRoot: self.root)
@@ -59,4 +106,10 @@ extension VaultStore {
             throw VaultStoreError.indexUpdateFailed(path: ".app/types.json", underlying: error)
         }
     }
+}
+
+/// The type definition was saved; only its new template file could not be written.
+public struct EntityTypeTemplateError: Error, Sendable {
+    public let path: String
+    public let underlying: any Error
 }

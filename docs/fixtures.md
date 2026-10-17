@@ -29,7 +29,7 @@ flowchart LR
   F --> DA["dates/ : 3 JSON, 2 girdi dosyası"]
   F --> GO["goals/ : cases.json, series.json, creation/, writes/"]
   F --> SU["summaries/ : 11 JSON"]
-  F --> VA["vaults/ : 13 kasa"]
+  F --> VA["vaults/ : 14 kasa"]
   VA --> V1["sample"]
   VA --> V2["entity-fields"]
   VA --> V3["unlinked-mentions"]
@@ -43,6 +43,7 @@ flowchart LR
   VA --> V11["day-copies"]
   VA --> V12["rhythm"]
   VA --> V13["copy-files"]
+  VA --> V14["gallery"]
 ```
 
 Sayılar `find Fixtures -maxdepth 2` çıktısından gelir. Kasalar `vaults/` altında durur ve birden çok küme aynı kasayı kullanır. Örneğin `recognition/unlinked-mentions/` beklentisi `vaults/unlinked-mentions/` kasasını okur.
@@ -73,6 +74,7 @@ Sayılar `find Fixtures -maxdepth 2` çıktısından gelir. Kasalar `vaults/` al
 | Kişi | Deniz Arıkan, Deniz Arıkan Yılmaz (yeniden adlandırma örneği), Selin Korkmaz, Baran Tunç, Ece Yalın, Mert Aksu |
 | Konum | Çınaraltı Kafe, Liman Ofis, Tepe Spor Salonu, Ev |
 | Hedef | Spor, Kitap, Su |
+| Özel tip varlığı | Yeni Kitap, Örnek Kitap, Örnek Film, Örnek Kurum, Örnek Proje, Örnek Etkinlik, Örnek Seyahat, Örnek Tarif, Örnek Ürün, Örnek Evcil Hayvan, Örnek Araç |
 | Emoji örneği | Ev 🏠 |
 
 Yalnız bu tablodaki adları kullan. Yeni ad gerekirse önce bu tabloya ekle.
@@ -146,6 +148,7 @@ Swift testleri `Fixtures/` klasörünü test kaynak dosyasından yukarı doğru 
 | `summaries/weekday-distribution.json` | `SummariesTests/WeekdayDistributionTests.swift` | JSON vaka |
 | `vaults/sample/` | `IndexTests`, `PeriodSummaryTests`, `WikiLinkTests`, `MergeTests` ve uygulama testlerinin çoğu | Ad kodda |
 | `vaults/typed/` | `EntityTypeTests`, `EntityTypeStoreTests`, `InitialIndexTests`, `Tests/JournalTests/CustomEntityTypeTests.swift` | Ad kodda |
+| `vaults/gallery/` | `VaultStoreTests/EntityTypeGalleryTests.swift`, `Tests/JournalTests/EntityTypeGalleryTests.swift` | Ad kodda |
 | `vaults/backlinks/` | `VaultIndexTests/DayBacklinksTests.swift` | Ad kodda |
 | `vaults/placeholder/` | `VaultStoreTests/PlaceholderTests.swift` | Ad kodda |
 | `vaults/day-copies/` | `VaultStoreTests/DayCopyTests.swift` | Ad kodda |
@@ -907,6 +910,8 @@ Tam ve artımlı eşdeğerlik, dosya silme ve yeniden kurulum aynı kasayı kull
 
 `vaults/typed/` ana örnek kasanın sabit sayılarını değiştirmeden kitap tipini, 2 kurgusal kitabı ve bir şablonu taşır. `.app/types.json` text, date, number, boolean ve link alanlarını tanımlar. Uygulama `templates/` klasörünü indekslemez. `recognition/custom-book/` `@` anmasının özel tip wikilink'ine dönüşümünü dilden bağımsız tanıma biçimiyle tarif eder. Tip tanımı kalkınca uygulama kitapları not olarak indeksler ve dosya baytları değişmez.
 
+`vaults/gallery/` hazır tip galerisinin 10 tipini taşır. `.app/types.json` galerinin tanımlarıdır; `templates/<id>.md` uygulamanın yeni tip için yazdığı şablondur: `type`, boş `name` ve tanımdaki sırayla boş alanlar. Her tipin klasöründeki `Örnek <Ad>.md` o şablondan oluşturulan varlığın tam baytlarıdır. Testler Core galerisini bu dosyalarla karşılaştırır ve her tipi boş kasada oluşturup aynı baytları bekler.
+
 ## `rename/` kümesi
 
 | Davranış ailesi | Örnek vaka | Sayı |
@@ -1128,6 +1133,7 @@ Kasa 20 Eylül'ü 4 yılda taşır. 2023 bağlantısızdır: not bağlantısı, 
 | `day-copies` | 41 | Gün kopyası birleştirme | `DayCopyTests` |
 | `rhythm` | 16 | Özetler'in yıl, süren dönem ve ritim hesabı | `summaries/period-rhythm.json`, `summaries/year-writing.json`, `summaries/weekly-rhythm.json`, `summaries/weekday-distribution.json` |
 | `copy-files` | 19 | Varlık kopyası ve gün kopyası listesi; birleştirme yok | `VaultIndexTests/CopyFileTests`, `Tests/JournalTests/SyncedFolderNoticeTests` |
+| `gallery` | 21 | Hazır tip galerisi: 10 tip, şablonları ve her şablondan bir varlık; ayrıntı [`entity-types/` kümesi](#entity-types-kümesi) bölümünde | `EntityTypeGalleryTests` |
 
 **Şema, `vaults/sample/` kasasının klasörlerini ve dosya sayılarını gösterir.**
 

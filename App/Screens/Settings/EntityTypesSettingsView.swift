@@ -7,6 +7,8 @@ struct EntityTypesSettingsView: View {
     @Environment(\.locale) private var locale
     @State private var deleting: EntityTypeDefinition?
     @State private var editing: EditorTarget?
+    /// "Yeni varlık tipi" opens the gallery of ready-made types; editing opens the editor directly.
+    @State private var showsGallery = false
     @State private var errorText: String?
 
     var body: some View {
@@ -50,7 +52,7 @@ struct EntityTypesSettingsView: View {
                     .buttonStyle(.borderless)
                     .inkListRow()
                 }
-                Button("Yeni varlık tipi") { editing = EditorTarget(original: nil) }
+                Button("Yeni varlık tipi") { showsGallery = true }
                     .buttonStyle(.borderless)
                     .disabled(!store.canAddEvent || store.entityTypes.issue != nil)
                     .inkListRow()
@@ -77,8 +79,10 @@ struct EntityTypesSettingsView: View {
         .onChange(of: store.vaultURL) { _, _ in
             deleting = nil
             editing = nil
+            showsGallery = false
             errorText = nil
         }
+        .entityTypeGallerySheet(isPresented: $showsGallery, store: store) { _ in }
         .sheet(item: $editing) { target in
             NavigationStack {
                 EntityTypeEditorView(model: EntityTypeEditorModel(store: store, original: target.original))

@@ -960,6 +960,7 @@ Grafikte "Ortalama", görünür aralıkta kaydı olan günlerin değer ortalamas
 | Konu | Davranış |
 |---|---|
 | Düzen | Ayarlar ana ekranı gibi düz liste, kâğıt zemin: `SectionHeader`, `.inkListRow()`. Kart yoktur. |
+| Hazır hedefler | Ad alanının altında 15 şablon: simge, yerelleştirilmiş ad ve miktar/dönem özeti. Ad yazıldıkça yerel dilde büyük/küçük harf ve aksan duyarsız süzülür; eşleşme yoksa bölüm gizlenir. Dokunma ad, tür, dönem, miktar ve birimi doldurur; kullanıcı düzenleyebilir. Seçili şablon onay işaretiyle vurgulanır; alan değişince seçim kalkmaz. Liste sheet içinde kayar; şablon seçmeden de hedef oluşturulur. Şablon kimliği ve simgesi dosyaya yazılmaz. |
 | Alanlar | Hedef miktar etiketli alandır. Kullanıcı türü seçer: kilometre taşı dahil. |
 | Çubuk | Ortak kalıp: solda "Vazgeç", sağda "Oluştur". Her yazı boyutunda üstte durur. |
 

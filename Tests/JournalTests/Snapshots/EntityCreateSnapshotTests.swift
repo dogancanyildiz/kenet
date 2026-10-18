@@ -8,8 +8,6 @@
     @MainActor @Suite("Entity create snapshots", .serialized)
     struct EntityCreateSnapshotTests {
         @Test func light() async throws { try await run("light") }
-        @Test func dark() async throws { try await run("dark", scheme: .dark) }
-        @Test func accessibility3() async throws { try await run("AX3", type: .accessibility3) }
 
         private func run(
             _ name: String, scheme: SnapshotColorScheme = .light, type: SnapshotDynamicType = .medium

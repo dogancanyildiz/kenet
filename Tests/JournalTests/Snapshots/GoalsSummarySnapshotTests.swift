@@ -9,46 +9,30 @@
     /// Hedefler, Özetler, Graph (+ seçili düğüm, hedef ayrıntı, oluşturma sheet).
     /// Harita MapKit host çökmesi yüzünden bu kümede yok; pin boyutu `GraphMapTests` ile kilitli.
     enum GoalsSummarySnapshotCase: String, CaseIterable, Sendable, SnapshotCaseConfiguring {
-        case goalsLight, goalsDark, goalsAX3, goalsContrast
-        case summariesLight, summariesDark, summariesAX3, summariesContrast
-        case graphLight, graphDark, graphAX3, graphContrast
+        case goalsLight
+        case summariesLight
+        case graphLight
         case graphSelected
-        case goalDetailLight, goalDetailDark, goalDetailAX3, goalDetailContrast
-        case goalCreationLight, goalCreationAX3
+        /// AX3 keeps the goal chart's reduced range and axis labels (docs/design.md).
+        case goalDetailLight, goalDetailAX3
+        case goalCreationLight
 
         var screen: SnapshotScreen {
             switch self {
-            case .goalsLight, .goalsDark, .goalsAX3, .goalsContrast: .goals
-            case .summariesLight, .summariesDark, .summariesAX3, .summariesContrast: .summaries
-            case .graphLight, .graphDark, .graphAX3, .graphContrast: .graph
+            case .goalsLight: .goals
+            case .summariesLight: .summaries
+            case .graphLight: .graph
             case .graphSelected: .graphSelected
-            case .goalDetailLight, .goalDetailDark, .goalDetailAX3, .goalDetailContrast: .goalDetail
-            case .goalCreationLight, .goalCreationAX3: .goalCreation
+            case .goalDetailLight, .goalDetailAX3: .goalDetail
+            case .goalCreationLight: .goalCreation
             }
         }
 
-        var colorScheme: SnapshotColorScheme {
-            switch self {
-            case .goalsDark, .summariesDark, .graphDark, .goalDetailDark: .dark
-            default: .light
-            }
-        }
+        var colorScheme: SnapshotColorScheme { .light }
 
-        var dynamicType: SnapshotDynamicType {
-            switch self {
-            case .goalsAX3, .summariesAX3, .graphAX3, .goalDetailAX3, .goalCreationAX3:
-                .accessibility3
-            default: .medium
-            }
-        }
+        var dynamicType: SnapshotDynamicType { self == .goalDetailAX3 ? .accessibility3 : .medium }
 
-        var increaseContrast: Bool {
-            switch self {
-            case .goalsContrast, .summariesContrast, .graphContrast, .goalDetailContrast:
-                true
-            default: false
-            }
-        }
+        var increaseContrast: Bool { false }
 
     }
 

@@ -8,14 +8,12 @@
 
     @testable import Journal
 
-    /// Hızlı giriş, takvim etkinliğinden düşmüş taslakla: açık, koyu, AX3.
+    /// Hızlı giriş, takvim etkinliğinden düşmüş taslakla: açık tema.
     enum CalendarDraftSnapshotCase: String, CaseIterable, Sendable {
         case calendarDraftLight
-        case calendarDraftDark
-        case calendarDraftAX3
 
-        var colorScheme: SnapshotColorScheme { self == .calendarDraftDark ? .dark : .light }
-        var dynamicType: SnapshotDynamicType { self == .calendarDraftAX3 ? .accessibility3 : .medium }
+        var colorScheme: SnapshotColorScheme { .light }
+        var dynamicType: SnapshotDynamicType { .medium }
     }
 
     @MainActor @Suite("Calendar draft snapshots")

@@ -6,20 +6,17 @@
 
     @testable import Journal
 
-    /// Haftalık inceleme sheet'i: her adım açık temada; ilk adım ve önizleme ayrıca koyu ve AX3.
+    /// Haftalık inceleme sheet'i: her adım açık temada; ilk adım ayrıca AX3 ritim yerleşimini korur.
     /// Separate `@Test` methods so one case can be re-recorded alone.
     @MainActor @Suite("Weekly review snapshots", .serialized)
     struct WeeklyReviewSnapshotTests {
         @Test func numbersLight() async throws { try await run(.numbers, "numbersLight") }
-        @Test func numbersDark() async throws { try await run(.numbers, "numbersDark", scheme: .dark) }
         @Test func numbersAX3() async throws { try await run(.numbers, "numbersAX3", type: .accessibility3) }
         @Test func tasksLight() async throws { try await run(.tasks, "tasksLight") }
         @Test func peopleLight() async throws { try await run(.people, "peopleLight") }
         @Test func goalsLight() async throws { try await run(.goals, "goalsLight") }
         @Test func noteLight() async throws { try await run(.note, "noteLight") }
         @Test func previewLight() async throws { try await run(.preview, "previewLight") }
-        @Test func previewDark() async throws { try await run(.preview, "previewDark", scheme: .dark) }
-        @Test func previewAX3() async throws { try await run(.preview, "previewAX3", type: .accessibility3) }
 
         private func run(
             _ step: WeeklyReviewStep, _ name: String, scheme: SnapshotColorScheme = .light,

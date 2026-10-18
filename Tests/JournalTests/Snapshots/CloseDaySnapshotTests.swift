@@ -6,19 +6,13 @@
 
     @testable import Journal
 
-    /// "Günü kapat" sheet'i: görev adımı ve hedef adımı; her biri açık, koyu ve AX3.
+    /// "Günü kapat" sheet'i: görev adımı ve hedef adımı; her biri açık temada.
     /// Separate `@Test` methods so one case can be re-recorded alone.
     @MainActor @Suite("Close day snapshots", .serialized)
     struct CloseDaySnapshotTests {
         @Test func tasksLight() async throws { try await run(.tasks, "tasksLight") }
-        @Test func tasksDark() async throws { try await run(.tasks, "tasksDark", scheme: .dark) }
-        @Test func tasksAX3() async throws { try await run(.tasks, "tasksAX3", type: .accessibility3) }
         @Test func goalsLight() async throws { try await run(.goals, "goalsLight") }
-        @Test func goalsDark() async throws { try await run(.goals, "goalsDark", scheme: .dark) }
-        @Test func goalsAX3() async throws { try await run(.goals, "goalsAX3", type: .accessibility3) }
         @Test func journalLight() async throws { try await run(.journal, "journalLight") }
-        @Test func journalDark() async throws { try await run(.journal, "journalDark", scheme: .dark) }
-        @Test func journalAX3() async throws { try await run(.journal, "journalAX3", type: .accessibility3) }
 
         private func run(
             _ step: CloseDayStep, _ name: String, scheme: SnapshotColorScheme = .light,

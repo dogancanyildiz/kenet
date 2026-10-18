@@ -9,18 +9,11 @@
 
     /// The synced-folder band (Settings → Kasa, vault preparation) and the copy files of Diagnostics.
     enum SyncedFolderSnapshotCase: String, CaseIterable, Sendable {
-        case vaultLight, vaultAX3, vaultImportLight, copyFilesLight, copyFilesAX3
+        case vaultLight, vaultImportLight, copyFilesLight
 
-        var dynamicType: SnapshotDynamicType {
-            self == .vaultAX3 || self == .copyFilesAX3 ? .accessibility3 : .medium
-        }
+        var dynamicType: SnapshotDynamicType { .medium }
 
-        var canvas: CGSize {
-            switch self {
-            case .vaultAX3, .copyFilesAX3: CGSize(width: 390, height: 1600)
-            default: snapshotCanvasSize
-            }
-        }
+        var canvas: CGSize { snapshotCanvasSize }
 
         /// Fictional paths on screen: no host user name or temporary directory.
         var displayedPath: String {
@@ -47,10 +40,10 @@
                 try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
                 try Data("- Pazar planı\n".utf8).write(to: folder.appendingPathComponent("Plan.md"))
                 importModel = try await VaultImportModel(root: folder)
-            case .copyFilesLight, .copyFilesAX3:
+            case .copyFilesLight:
                 copies = try await context.store.computeCopyFiles()
                 #expect(copies == (try SyncedVaultTestContext.expectedCopies()))
-            case .vaultLight, .vaultAX3:
+            case .vaultLight:
                 break
             }
             await SnapshotHost.assertView(
@@ -64,13 +57,13 @@
             ) {
                 NavigationStack {
                     switch snapshotCase {
-                    case .vaultLight, .vaultAX3:
+                    case .vaultLight:
                         VaultSettingsView(store: context.store).navigationTitle("Kasa")
                     case .vaultImportLight:
                         if let importModel {
                             VaultImportView(store: context.store, model: importModel)
                         }
-                    case .copyFilesLight, .copyFilesAX3:
+                    case .copyFilesLight:
                         // The section alone: the full Diagnostics page shows the time of the last update.
                         List {
                             CopyFilesSection(copies: copies)

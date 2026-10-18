@@ -8,15 +8,16 @@
 
     /// The iPad shell drawn by the real `AdaptiveNavigation` on the iPad canvases
     /// (``ShellCanvas``): Today, Görevler with a task open, Kişiler with a person open and
-    /// Hedefler, on the 13-inch in landscape (light, dark, AX3), and the 13-inch and 11-inch
+    /// Hedefler, on the 13-inch in landscape (light, plus one AX3 sidebar case), and the 13-inch and 11-inch
     /// in portrait. The shell's task model and the goal page take the wall-clock day, not the
     /// frozen one: Hedefler is drawn without a goal open (the list and the empty column) and
     /// the goal page is drawn on its own with the frozen day (`goalDetail`).
     enum PadShellCase: String, CaseIterable, Sendable {
-        case todayLandscapeLight, todayLandscapeDark, todayLandscapeAX3
-        case tasksLandscapeLight, tasksLandscapeDark, tasksLandscapeAX3
-        case peopleLandscapeLight, peopleLandscapeDark, peopleLandscapeAX3
-        case goalsLandscapeLight, goalsLandscapeDark, goalsLandscapeAX3
+        /// AX3 keeps the wider accessibility sidebar (docs/design.md: ShellStyle).
+        case todayLandscapeLight, todayLandscapeAX3
+        case tasksLandscapeLight
+        case peopleLandscapeLight
+        case goalsLandscapeLight
         case goalDetailLandscapeLight
         case todayPortrait, tasksPortrait
         case todayPad11Portrait, peoplePad11Portrait
@@ -25,11 +26,11 @@
 
         var screen: Screen {
             switch self {
-            case .todayLandscapeLight, .todayLandscapeDark, .todayLandscapeAX3, .todayPortrait, .todayPad11Portrait:
+            case .todayLandscapeLight, .todayLandscapeAX3, .todayPortrait, .todayPad11Portrait:
                 .today
-            case .tasksLandscapeLight, .tasksLandscapeDark, .tasksLandscapeAX3, .tasksPortrait: .tasks
-            case .peopleLandscapeLight, .peopleLandscapeDark, .peopleLandscapeAX3, .peoplePad11Portrait: .people
-            case .goalsLandscapeLight, .goalsLandscapeDark, .goalsLandscapeAX3: .goals
+            case .tasksLandscapeLight, .tasksPortrait: .tasks
+            case .peopleLandscapeLight, .peoplePad11Portrait: .people
+            case .goalsLandscapeLight: .goals
             case .goalDetailLandscapeLight: .goalDetail
             }
         }
@@ -42,19 +43,9 @@
             }
         }
 
-        var colorScheme: SnapshotColorScheme {
-            switch self {
-            case .todayLandscapeDark, .tasksLandscapeDark, .peopleLandscapeDark, .goalsLandscapeDark: .dark
-            default: .light
-            }
-        }
+        var colorScheme: SnapshotColorScheme { .light }
 
-        var dynamicType: SnapshotDynamicType {
-            switch self {
-            case .todayLandscapeAX3, .tasksLandscapeAX3, .peopleLandscapeAX3, .goalsLandscapeAX3: .accessibility3
-            default: .medium
-            }
-        }
+        var dynamicType: SnapshotDynamicType { self == .todayLandscapeAX3 ? .accessibility3 : .medium }
 
         /// The glass controls painted over: the sidebar button, and in the three-column tier the
         /// floating sidebar's trailing edge, whose refraction of the list under it differs

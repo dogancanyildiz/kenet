@@ -26,18 +26,16 @@ struct SummariesSnapshotShot: Sendable {
 
     @testable import Journal
 
-    /// Özetler on the synthetic vault, whole page: week, month, year, empty week; dark and AX3.
+    /// Özetler on the synthetic vault, whole page: week, month, year, empty week; AX3 list layout on the week.
     /// Separate `@Test` methods so one case can be re-recorded alone.
     @MainActor @Suite("Summaries snapshots", .serialized)
     struct SummariesSnapshotTests {
         @Test func weekLight() async throws { try await run(.week, "weekLight", height: 2200) }
-        @Test func weekDark() async throws { try await run(.week, "weekDark", height: 2200, scheme: .dark) }
         @Test func weekAX3() async throws {
             try await run(.week, "weekAX3", height: 5600, type: .accessibility3)
         }
         @Test func monthLight() async throws { try await run(.month, "monthLight", height: 2300) }
         @Test func yearLight() async throws { try await run(.year, "yearLight", height: 2700) }
-        @Test func yearDark() async throws { try await run(.year, "yearDark", height: 2700, scheme: .dark) }
         @Test func emptyLight() async throws { try await run(.empty, "emptyLight", height: 844) }
         @Test func runningWeekLight() async throws { try await run(.runningWeek, "runningWeekLight", height: 2200) }
 

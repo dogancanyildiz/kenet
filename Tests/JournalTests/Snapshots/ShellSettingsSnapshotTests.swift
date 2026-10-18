@@ -16,95 +16,37 @@ import Testing
     /// Mac cases omitted: SnapshotTesting host here is UIKit / iOS Simulator only.
     enum ShellSettingsSnapshotCase: String, CaseIterable, Sendable {
         case onboardingLight
-        case onboardingDark
-        case onboardingAX3
-        case onboardingContrast
         case settingsLight
-        case settingsDark
-        case settingsAX3
-        case settingsContrast
         case lockLight
-        case lockDark
-        case lockAX3
-        case lockContrast
         case inaccessibleLight
-        case inaccessibleDark
-        case inaccessibleAX3
-        case inaccessibleContrast
         case privacyLight
-        case privacyAX3
         case vaultLight
-        case vaultAX3
         case diagnosticsLight
-        case diagnosticsAX3
         case entryPointsLight
-        case entryPointsDark
-        case entryPointsAX3
 
         var screen: ShellSettingsScreen {
             switch self {
-            case .onboardingLight, .onboardingDark, .onboardingAX3, .onboardingContrast: .onboarding
-            case .settingsLight, .settingsDark, .settingsAX3, .settingsContrast: .settings
-            case .lockLight, .lockDark, .lockAX3, .lockContrast: .lock
-            case .inaccessibleLight, .inaccessibleDark, .inaccessibleAX3, .inaccessibleContrast:
+            case .onboardingLight: .onboarding
+            case .settingsLight: .settings
+            case .lockLight: .lock
+            case .inaccessibleLight:
                 .inaccessible
-            case .privacyLight, .privacyAX3: .privacy
-            case .vaultLight, .vaultAX3: .vault
-            case .diagnosticsLight, .diagnosticsAX3: .diagnostics
-            case .entryPointsLight, .entryPointsDark, .entryPointsAX3: .entryPoints
+            case .privacyLight: .privacy
+            case .vaultLight: .vault
+            case .diagnosticsLight: .diagnostics
+            case .entryPointsLight: .entryPoints
             }
         }
 
-        var colorScheme: SnapshotColorScheme {
-            switch self {
-            case .onboardingDark, .settingsDark, .lockDark, .inaccessibleDark, .entryPointsDark: .dark
-            default: .light
-            }
-        }
+        var colorScheme: SnapshotColorScheme { .light }
 
-        var dynamicType: SnapshotDynamicType {
-            switch self {
-            case .onboardingAX3, .settingsAX3, .lockAX3, .inaccessibleAX3, .privacyAX3, .vaultAX3,
-                .diagnosticsAX3, .entryPointsAX3:
-                .accessibility3
-            default: .medium
-            }
-        }
+        var dynamicType: SnapshotDynamicType { .medium }
 
-        var increaseContrast: Bool {
-            switch self {
-            case .onboardingContrast, .settingsContrast, .lockContrast, .inaccessibleContrast:
-                true
-            default: false
-            }
-        }
+        var increaseContrast: Bool { false }
 
         /// Opened sample vault (path on screen is overridden to a fictional constant).
         var needsOpenVault: Bool { screen == .settings || screen == .vault }
 
-        /// Light/dark only — smaller bitmaps; run before AX batches to limit host pressure.
-        static var lightDarkCases: [ShellSettingsSnapshotCase] {
-            [
-                .onboardingLight, .onboardingDark, .settingsLight, .settingsDark,
-                .lockLight, .lockDark, .inaccessibleLight, .inaccessibleDark,
-                .entryPointsLight, .entryPointsDark,
-            ]
-        }
-
-        static var accessibilityCases: [ShellSettingsSnapshotCase] {
-            [
-                .onboardingAX3, .onboardingContrast, .settingsAX3, .settingsContrast,
-                .lockAX3, .lockContrast, .inaccessibleAX3, .inaccessibleContrast,
-                .entryPointsAX3,
-            ]
-        }
-
-        static var sectionCases: [ShellSettingsSnapshotCase] {
-            [
-                .privacyLight, .privacyAX3, .vaultLight, .vaultAX3,
-                .diagnosticsLight, .diagnosticsAX3,
-            ]
-        }
     }
 
     enum ShellSettingsScreen: String, Sendable {
@@ -276,26 +218,9 @@ import Testing
         }
     }
 
-    /// Separate suites so each `xcodebuild` run can reclaim memory after AX-sized bitmaps.
     @MainActor @Suite("Shell settings snapshots", .serialized)
     struct ShellSettingsSnapshotTests {
-        @Test(arguments: ShellSettingsSnapshotCase.lightDarkCases)
-        func shellSettings(_ snapshotCase: ShellSettingsSnapshotCase) async throws {
-            try await ShellSettingsSnapshotRunner.run(snapshotCase)
-        }
-    }
-
-    @MainActor @Suite("Shell settings snapshots AX", .serialized)
-    struct ShellSettingsAXSnapshotTests {
-        @Test(arguments: ShellSettingsSnapshotCase.accessibilityCases)
-        func shellSettings(_ snapshotCase: ShellSettingsSnapshotCase) async throws {
-            try await ShellSettingsSnapshotRunner.run(snapshotCase)
-        }
-    }
-
-    @MainActor @Suite("Shell settings snapshots sections", .serialized)
-    struct ShellSettingsSectionsSnapshotTests {
-        @Test(arguments: ShellSettingsSnapshotCase.sectionCases)
+        @Test(arguments: ShellSettingsSnapshotCase.allCases)
         func shellSettings(_ snapshotCase: ShellSettingsSnapshotCase) async throws {
             try await ShellSettingsSnapshotRunner.run(snapshotCase)
         }

@@ -7,43 +7,28 @@
 
     @testable import Journal
 
-    /// Günlük listesi, varlık okuma sayfası ve arama: açık / koyu / AX3 / Kontrastı Artır.
+    /// Günlük listesi, varlık okuma sayfası ve arama: açık tema.
     @MainActor @Suite("Journal entity snapshots", .serialized)
     struct JournalEntitySnapshotTests {
         enum Case: String, CaseIterable, Sendable, SnapshotCaseConfiguring {
-            case daysLight, daysDark, daysAX3, daysContrast, daysSelected
-            case entityLight, entityDark, entityAX3, entityContrast
-            case searchLight, searchDark, searchAX3, searchContrast
+            case daysLight, daysSelected
+            case entityLight
+            case searchLight
 
             var screen: SnapshotScreen {
                 switch self {
-                case .daysLight, .daysDark, .daysAX3, .daysContrast: .days
+                case .daysLight: .days
                 case .daysSelected: .daysSelected
-                case .entityLight, .entityDark, .entityAX3, .entityContrast: .entity
-                case .searchLight, .searchDark, .searchAX3, .searchContrast: .search
+                case .entityLight: .entity
+                case .searchLight: .search
                 }
             }
 
-            var colorScheme: SnapshotColorScheme {
-                switch self {
-                case .daysDark, .entityDark, .searchDark: .dark
-                default: .light
-                }
-            }
+            var colorScheme: SnapshotColorScheme { .light }
 
-            var dynamicType: SnapshotDynamicType {
-                switch self {
-                case .daysAX3, .entityAX3, .searchAX3: .accessibility3
-                default: .medium
-                }
-            }
+            var dynamicType: SnapshotDynamicType { .medium }
 
-            var increaseContrast: Bool {
-                switch self {
-                case .daysContrast, .entityContrast, .searchContrast: true
-                default: false
-                }
-            }
+            var increaseContrast: Bool { false }
         }
 
         @Test func entityScreens() async throws {

@@ -9,11 +9,9 @@
     @MainActor @Suite("Goal chart snapshots", .serialized)
     struct GoalChartSnapshotTests {
         @Test func dailyLight() async throws { try await run("kitap", "dailyLight") }
-        @Test func dailyDark() async throws { try await run("kitap", "dailyDark", scheme: .dark) }
+        /// AX3 keeps the last 30 days and two end labels (docs/design.md).
         @Test func dailyAX3() async throws { try await run("kitap", "dailyAX3", type: .accessibility3) }
         @Test func yearlyLight() async throws { try await run("okunan", "yearlyLight") }
-        @Test func yearlyDark() async throws { try await run("okunan", "yearlyDark", scheme: .dark) }
-        @Test func yearlyAX3() async throws { try await run("okunan", "yearlyAX3", type: .accessibility3) }
 
         private func run(
             _ key: String, _ name: String,

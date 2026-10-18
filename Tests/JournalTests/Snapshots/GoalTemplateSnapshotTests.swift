@@ -9,8 +9,6 @@
     @MainActor @Suite("Goal template snapshots", .serialized)
     struct GoalTemplateSnapshotTests {
         @Test func sheetLight() async throws { try await run("sheetLight") }
-        @Test func sheetDark() async throws { try await run("sheetDark", scheme: .dark) }
-        @Test func sheetAX3() async throws { try await run("sheetAX3", type: .accessibility3) }
         @Test func filteredWater() async throws { try await run("filteredWater", query: "su") }
         @Test func noMatches() async throws { try await run("noMatches", query: "xyz") }
         @Test func selectedWater() async throws { try await run("selectedWater", selected: true) }

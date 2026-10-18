@@ -5,11 +5,11 @@
     @testable import Journal
 
     /// The app beside another in Split View on the 13-inch (440×1032 pt, compact × regular):
-    /// the real `AdaptiveNavigation` picks the tab shell. Light and AX3.
+    /// the real `AdaptiveNavigation` picks the tab shell. Light.
     enum PadCompactCase: String, CaseIterable, Sendable {
-        case todayLight, todayAX3
+        case todayLight
 
-        var dynamicType: SnapshotDynamicType { self == .todayAX3 ? .accessibility3 : .medium }
+        var dynamicType: SnapshotDynamicType { .medium }
     }
 
     @MainActor

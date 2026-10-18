@@ -5,24 +5,24 @@
 
     @testable import Journal
 
-    /// Sheets over the iPad shell on the 13-inch in landscape, light and AX3: Ayarlar (the Today
+    /// Sheets over the iPad shell on the 13-inch in landscape, light: Ayarlar (the Today
     /// manşet's gear, through the real `AdaptiveNavigation`), Ara (the system sheet `ContentView`
     /// presents above the shell), Günü kapat (the evening reminder's route on Today) and the
     /// task detail a board narrower than its panel threshold presents.
     enum PadSheetCase: String, CaseIterable, Sendable {
-        case settingsLight, settingsAX3
-        case searchLight, searchAX3
-        case closeDayLight, closeDayAX3
-        case taskDetailLight, taskDetailAX3
+        case settingsLight
+        case searchLight
+        case closeDayLight
+        case taskDetailLight
 
         enum Sheet: Sendable { case settings, search, closeDay, taskDetail }
 
         var sheet: Sheet {
             switch self {
-            case .settingsLight, .settingsAX3: .settings
-            case .searchLight, .searchAX3: .search
-            case .closeDayLight, .closeDayAX3: .closeDay
-            case .taskDetailLight, .taskDetailAX3: .taskDetail
+            case .settingsLight: .settings
+            case .searchLight: .search
+            case .closeDayLight: .closeDay
+            case .taskDetailLight: .taskDetail
             }
         }
 
@@ -31,12 +31,7 @@
         /// hosted case still checks that the sheet is up with its field on screen.
         var isDrawn: Bool { sheet != .search }
 
-        var dynamicType: SnapshotDynamicType {
-            switch self {
-            case .settingsAX3, .searchAX3, .closeDayAX3, .taskDetailAX3: .accessibility3
-            default: .medium
-            }
-        }
+        var dynamicType: SnapshotDynamicType { .medium }
     }
 
     @MainActor

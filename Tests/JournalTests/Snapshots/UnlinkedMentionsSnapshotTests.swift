@@ -7,14 +7,12 @@
     @testable import Journal
 
     enum UnlinkedMentionsSnapshotCase: String, CaseIterable, Sendable {
-        case light, dark, accessibility3
+        case light
 
-        var colorScheme: SnapshotColorScheme { self == .dark ? .dark : .light }
-        var dynamicType: SnapshotDynamicType { self == .accessibility3 ? .accessibility3 : .medium }
+        var colorScheme: SnapshotColorScheme { .light }
+        var dynamicType: SnapshotDynamicType { .medium }
 
-        var canvas: CGSize {
-            self == .accessibility3 ? CGSize(width: 390, height: 2960) : CGSize(width: 390, height: 1400)
-        }
+        var canvas: CGSize { CGSize(width: 390, height: 1400) }
     }
 
     @MainActor @Suite("Unlinked mention snapshots", .timeLimit(.minutes(2)))

@@ -162,6 +162,8 @@ xcodebuild test -project Journal.xcodeproj -scheme Journal_iOS \
 
 ## Ekran görüntüsü testleri
 
+Açık görüntü her iOS kümesinde kalır; koyu, AX3 ve kontrast temsilci kümelerde tutulur. Küme listesi ve varyanta özgü istisnalar [Mimari](docs/architecture.md#ekran-görüntüsü-ve-duman-testleri) belgesindedir.
+
 **Tablo, iki görüntü kümesi türünü ve komutlarını verir.**
 
 | Küme | Ad kuralı | CI | Komut |

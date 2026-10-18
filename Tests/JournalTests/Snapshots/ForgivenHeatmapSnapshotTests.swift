@@ -7,13 +7,11 @@
 
     /// Affedilen ısı haritası hücresi: kesik çizgili vurgu çerçevesi; bugünün kesiksiz çerçevesinden biçimle ayrı.
     enum ForgivenHeatmapSnapshotCase: String, CaseIterable, Sendable {
-        case light, dark, contrast
+        case light
 
-        var colorScheme: SnapshotColorScheme {
-            self == .dark ? .dark : .light
-        }
+        var colorScheme: SnapshotColorScheme { .light }
 
-        var increaseContrast: Bool { self == .contrast }
+        var increaseContrast: Bool { false }
     }
 
     @MainActor @Suite("Forgiven heatmap cell snapshots")

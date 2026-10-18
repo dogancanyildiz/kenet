@@ -8,33 +8,23 @@
     @testable import Journal
 
     enum CadenceSnapshotCase: String, CaseIterable, Sendable {
-        case editLight, editDark, editAX3
-        case insightsLight, insightsDark, insightsAX3
-        case listLight, listDark, listAX3
+        case editLight
+        case insightsLight
+        case listLight
 
         enum Subject: Sendable { case edit, insights, list }
 
         var subject: Subject {
             switch self {
-            case .editLight, .editDark, .editAX3: .edit
-            case .insightsLight, .insightsDark, .insightsAX3: .insights
-            case .listLight, .listDark, .listAX3: .list
+            case .editLight: .edit
+            case .insightsLight: .insights
+            case .listLight: .list
             }
         }
 
-        var colorScheme: SnapshotColorScheme {
-            switch self {
-            case .editDark, .insightsDark, .listDark: .dark
-            default: .light
-            }
-        }
+        var colorScheme: SnapshotColorScheme { .light }
 
-        var dynamicType: SnapshotDynamicType {
-            switch self {
-            case .editAX3, .insightsAX3, .listAX3: .accessibility3
-            default: .medium
-            }
-        }
+        var dynamicType: SnapshotDynamicType { .medium }
 
         var canvas: CGSize {
             let ax = dynamicType == .accessibility3

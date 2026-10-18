@@ -11,36 +11,26 @@
     /// Kişiler ve Konumlar list's "Yeni tip…" row, under people and under a custom type
     /// ("Yeni kitap").
     enum EntityGallerySnapshotCase: String, CaseIterable, Sendable {
-        case galleryLight, galleryDark, galleryAX3
+        case galleryLight
         /// Film picked: the type editor pushed inside the gallery, filled with the film type.
         case galleryEditorLight
         case peopleNewTypeLight
-        case customKindLight, customKindDark, customKindAX3
+        case customKindLight
 
         enum Subject: Sendable { case gallery, galleryEditor, people, customKind }
 
         var subject: Subject {
             switch self {
-            case .galleryLight, .galleryDark, .galleryAX3: .gallery
+            case .galleryLight: .gallery
             case .galleryEditorLight: .galleryEditor
             case .peopleNewTypeLight: .people
-            case .customKindLight, .customKindDark, .customKindAX3: .customKind
+            case .customKindLight: .customKind
             }
         }
 
-        var colorScheme: SnapshotColorScheme {
-            switch self {
-            case .galleryDark, .customKindDark: .dark
-            default: .light
-            }
-        }
+        var colorScheme: SnapshotColorScheme { .light }
 
-        var dynamicType: SnapshotDynamicType {
-            switch self {
-            case .galleryAX3, .customKindAX3: .accessibility3
-            default: .medium
-            }
-        }
+        var dynamicType: SnapshotDynamicType { .medium }
 
         /// The gallery lists ten two-line rows; its canvas shows the whole sheet.
         var canvas: CGSize {

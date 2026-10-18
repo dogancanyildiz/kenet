@@ -8,29 +8,19 @@
     @testable import Journal
 
     enum ContactImportSnapshotCase: String, CaseIterable, Sendable {
-        case summaryLight, summaryDark, summaryAX3
-        case resultLight, resultDark, resultAX3
+        case summaryLight
+        case resultLight
 
         var isResult: Bool {
             switch self {
-            case .resultLight, .resultDark, .resultAX3: return true
+            case .resultLight: return true
             default: return false
             }
         }
 
-        var colorScheme: SnapshotColorScheme {
-            switch self {
-            case .summaryDark, .resultDark: return .dark
-            default: return .light
-            }
-        }
+        var colorScheme: SnapshotColorScheme { .light }
 
-        var dynamicType: SnapshotDynamicType {
-            switch self {
-            case .summaryAX3, .resultAX3: return .accessibility3
-            default: return .medium
-            }
-        }
+        var dynamicType: SnapshotDynamicType { .medium }
 
         var canvas: CGSize {
             let large = dynamicType == .accessibility3

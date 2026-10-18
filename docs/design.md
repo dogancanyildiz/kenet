@@ -833,7 +833,7 @@ Kod karşılığı: `InkListSelectionBackground` ve `inkListRow(columnSelected:)
 |---|---|---|
 | Prototip | Bugün ve kişi sayfası; seçilen yön; istenirse Derkenar'ın imzası açık ve kapalı. Açık ve koyu mod, büyük yazı AX3 ve AX5, Kontrastı Artır, Mac'te üç sütun. Ünlemli görev kutusunun dokunma davranışı ve devam eden görevdeki hali. | Ekran yazıldı ve ekran görüntüsü testlerinde doğrulandı; gerçek cihazda gözle doğrulama bekliyor. |
 | İlk teknik doğrulama | Renkli ve desenli alt çizgi bağlantı parçasında, okuma metninde ve hızlı giriş alanında çiziliyor mu? Çizilmezse yedek yol: bağlantı metnini kişi ya da konum renginde yaz; kontrastlar yeterli. | 2026-10-06: `Text` ve `TextEditor` (`AttributedString`) içinde renkli desenli alt çizgi çiziliyor (`InkLinkStyle.mode == .underline`); `TextField` hâlâ `String` bağlar — yedek yol `InkLinkStyle` içinde durur. |
-| CI | Her belirteç çifti için palet kontrast testi, erişilebilirlik denetimi ve ekran görüntüsü testleri. | `PaletteContrastTests`, `Tests/JournalUITests` erişilebilirlik denetimi, adı `SnapshotTests` ile biten kümeler. |
+| CI | Her belirteç çifti için palet kontrast testi, erişilebilirlik denetimi ve ekran görüntüsü testleri. | `PaletteContrastTests`, `Tests/JournalUITests` erişilebilirlik denetimi, adı `SnapshotTests` ile biten kümeler. Açık görüntü her iOS kümesinde; koyu, AX3 ve kontrast temsilci kümelerde. Küme listesi ve yerleşim istisnaları [Mimari](architecture.md#ekran-görüntüsü-ve-duman-testleri) belgesindedir. |
 
 CI, sürekli bütünleştirme demektir. Ajanlar ekranı göremez; bu yüzden ekran görüntüsü testleri bu projede zorunludur.
 

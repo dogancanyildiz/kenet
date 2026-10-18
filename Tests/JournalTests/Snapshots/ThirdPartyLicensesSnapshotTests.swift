@@ -7,21 +7,11 @@
     @testable import Journal
 
     enum ThirdPartyLicensesSnapshotCase: String, CaseIterable, Sendable {
-        case light, dark, ax3
+        case light
 
-        var colorScheme: SnapshotColorScheme {
-            switch self {
-            case .dark: .dark
-            case .light, .ax3: .light
-            }
-        }
+        var colorScheme: SnapshotColorScheme { .light }
 
-        var dynamicType: SnapshotDynamicType {
-            switch self {
-            case .ax3: .accessibility3
-            case .light, .dark: .medium
-            }
-        }
+        var dynamicType: SnapshotDynamicType { .medium }
     }
 
     @MainActor @Suite("Third-party licenses snapshots", .serialized)

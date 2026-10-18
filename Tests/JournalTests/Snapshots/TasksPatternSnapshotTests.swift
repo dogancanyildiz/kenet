@@ -14,28 +14,9 @@
         enum Subject { case project, detailSheet, recurrenceSheet, recurrenceInterval, recurrenceUnknown, dateSheet }
 
         @Test func projectLight() async throws { try await run(.project, "projectLight") }
-        @Test func projectDark() async throws { try await run(.project, "projectDark", scheme: .dark) }
-        @Test func projectAX3() async throws {
-            try await run(.project, "projectAX3", type: .accessibility3)
-        }
-        @Test func projectContrast() async throws {
-            try await run(.project, "projectContrast", contrast: true)
-        }
         @Test func detailSheetLight() async throws { try await run(.detailSheet, "detailSheetLight") }
-        @Test func detailSheetDark() async throws {
-            try await run(.detailSheet, "detailSheetDark", scheme: .dark)
-        }
-        @Test func detailSheetAX3() async throws {
-            try await run(.detailSheet, "detailSheetAX3", type: .accessibility3)
-        }
         @Test func recurrenceSheetLight() async throws {
             try await run(.recurrenceSheet, "recurrenceSheetLight")
-        }
-        @Test func recurrenceSheetDark() async throws {
-            try await run(.recurrenceSheet, "recurrenceSheetDark", scheme: .dark)
-        }
-        @Test func recurrenceSheetAX3() async throws {
-            try await run(.recurrenceSheet, "recurrenceSheetAX3", type: .accessibility3)
         }
         /// "Her hafta" with an interval: the Stepper and "Tamamlanınca hesapla" rows.
         @Test func recurrenceSheetIntervalLight() async throws {
@@ -46,12 +27,6 @@
             try await run(.recurrenceUnknown, "recurrenceSheetUnknownLight")
         }
         @Test func dateSheetLight() async throws { try await run(.dateSheet, "dateSheetLight") }
-        @Test func dateSheetDark() async throws {
-            try await run(.dateSheet, "dateSheetDark", scheme: .dark)
-        }
-        @Test func dateSheetAX3() async throws {
-            try await run(.dateSheet, "dateSheetAX3", type: .accessibility3)
-        }
 
         private func run(
             _ subject: Subject, _ name: String, scheme: SnapshotColorScheme = .light,

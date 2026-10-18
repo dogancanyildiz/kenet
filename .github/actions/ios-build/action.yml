@@ -1,126 +1,95 @@
 name: iOS derlemesi (test için)
 description: >-
-  Paket önbelleği, XcodeGen, proje üretimi, simülatör seçimi, simülatör açılışını başlatma ve
-  build-for-testing. iOS test işlerinin ortak başlangıcı; çağıran iş önce depoyu çeker
-  (actions/checkout) ve sonra simülatörün hazır olmasını bekler (simctl bootstatus). `pad: true`
-  ikinci bir simülatör olarak iPad seçer; bu işte simülatörleri çağıran iş derlemeden sonra açar.
+  Xcode seçimi, paket önbelleği, XcodeGen, proje üretimi, tek simülatör seçimi ve build-for-testing.
+  iOS test işlerinin ortak başlangıcı; çağıran iş önce depoyu çeker (actions/checkout), sonra
+  derlemeden sonra simülatörü açar (simctl bootstatus -b). Her iş tek cihaz ailesini koşar:
+  `family: iphone` ya da `family: ipad`.
 
 inputs:
-  pad:
-    description: iPad simülatörü de seçilsin ve simülatör açılışları derleme sonrasına bırakılsın mı ("true" / "false")
-    required: false
-    default: "false"
+  family:
+    description: Seçilecek simülatörün cihaz ailesi ("iphone" / "ipad")
+    required: true
 
 outputs:
   name:
     description: Seçilen simülatörün adı
-    value: ${{ steps.ios_sim.outputs.name }}
+    value: ${{ steps.sim.outputs.name }}
   udid:
     description: Seçilen simülatörün kimliği; sonraki adımlar aygıtı bununla hedefler
-    value: ${{ steps.ios_sim.outputs.udid }}
-  pad-name:
-    description: Seçilen iPad simülatörünün adı (yalnız pad true iken)
-    value: ${{ steps.pad_sim.outputs.name }}
-  pad-udid:
-    description: Seçilen iPad simülatörünün kimliği (yalnız pad true iken)
-    value: ${{ steps.pad_sim.outputs.udid }}
+    value: ${{ steps.sim.outputs.udid }}
 
 runs:
   using: composite
   steps:
+    - name: Xcode
+      uses: ./.github/actions/xcode
     - name: Paket önbelleği
       uses: actions/cache@v6
       with:
         # Yalnız paket indirmeleri; derleme ürünleri önbelleklenmez (bayat test paketi riski).
+        # iOS ve macOS işleri aynı anahtarı paylaşır: içerik aynıdır. project.yml anahtara girer:
+        # uygulama paketlerinin (SnapshotTesting) sürümü orada yazılıdır, kilit dosyası repoya girmez.
         path: ~/Library/Developer/Xcode/DerivedData/**/SourcePackages
-        key: spm-xcode-ios-${{ hashFiles('Packages/Core/Package.resolved') }}
-        restore-keys: spm-xcode-ios-
+        key: spm-xcode-${{ hashFiles('Packages/Core/Package.resolved', 'project.yml') }}
+        restore-keys: spm-xcode-
     - name: XcodeGen
       shell: bash
       run: brew install xcodegen
     - name: Projeyi üret
       shell: bash
       run: xcodegen generate
-    - name: iOS simülatör seç
-      id: ios_sim
+    # Ad ve UDID birlikte seçilir: sonraki adımlar aynı aygıtı kimliğiyle kullanır (aynı adı
+    # taşıyan ikinci bir çalışma zamanı kurulursa hedef belirsizleşmez). En yeni çalışma zamanı önce.
+    # iPhone: tercih listesi, yoksa herhangi bir iPhone. iPad: referanslar 13 inçlik ekranda çizilir
+    # (pick-simulator.sh ile aynı liste); listeden hiçbiri yoksa adım düşer, başka bir iPad'e
+    # sessizce geçmek görüntüleri değiştirir.
+    - name: Simülatör seç
+      id: sim
       shell: bash
-      # Ad ve UDID birlikte seçilir: sonraki adımlar aynı aygıtı kimliğiyle kullanır (aynı adı
-      # taşıyan ikinci bir çalışma zamanı kurulursa hedef belirsizleşmez).
+      env:
+        FAMILY: ${{ inputs.family }}
       run: |
         CHOSEN=$(xcrun simctl list devices available -j | python3 -c '
-        import json, re, sys
+        import json, os, re, sys
+        family = os.environ["FAMILY"]
+        preferred = {
+            "iphone": ["iPhone 17", "iPhone 16", "iPhone 15", "iPhone 14"],
+            "ipad": ["iPad Pro 13-inch (M5)", "iPad Pro 13-inch (M4)", "iPad Air 13-inch (M4)",
+                     "iPad Air 13-inch (M3)", "iPad Pro 13-inch"],
+        }
+        if family not in preferred:
+            print("Bilinmeyen cihaz ailesi: " + repr(family) + " (iphone ya da ipad)", file=sys.stderr)
+            sys.exit(1)
+        names = preferred[family]
         data = json.load(sys.stdin)
-        preferred = ["iPhone 17", "iPhone 16", "iPhone 15", "iPhone 14"]
         devices = []
         for runtime, entries in data.get("devices", {}).items():
             if "iOS" not in runtime:
                 continue
             version = tuple(int(part) for part in re.findall(r"[0-9]+", runtime.rsplit("iOS", 1)[-1]))
             for device in entries:
-                if device.get("isAvailable") and device.get("name", "").startswith("iPhone"):
-                    devices.append((version, device["name"], device["udid"]))
-        # En yeni çalışma zamanı önce: xcodebuild de ada göre seçerken onu alır.
+                name = device.get("name", "")
+                fits = name.startswith("iPhone") if family == "iphone" else name in names
+                if device.get("isAvailable") and fits:
+                    devices.append((version, name, device["udid"]))
         devices.sort(key=lambda entry: entry[0], reverse=True)
-        for name in preferred + [entry[1] for entry in devices]:
+        order = names + [entry[1] for entry in devices] if family == "iphone" else names
+        for name in order:
             for version, candidate, udid in devices:
                 if candidate == name:
                     print(candidate + "|" + udid)
                     sys.exit(0)
-        print("Uygun iPhone simülatörü yok (simctl list devices available).", file=sys.stderr)
+        print("Uygun simülatör yok (" + family + "); aranan: " + ", ".join(names), file=sys.stderr)
         sys.exit(1)
         ')
         echo "name=${CHOSEN%%|*}" >> "$GITHUB_OUTPUT"
         echo "udid=${CHOSEN##*|}" >> "$GITHUB_OUTPUT"
         echo "Seçilen simülatör: ${CHOSEN%%|*} (${CHOSEN##*|})"
-    # iPad referansları 13 inçlik ekranda çizilir (record-screen-snapshots.sh --pad ile aynı liste).
-    # Listeden hiçbiri yoksa adım düşer: başka bir iPad'e sessizce geçmek görüntüleri değiştirir.
-    - name: iPad simülatör seç
-      id: pad_sim
-      if: inputs.pad == 'true'
-      shell: bash
-      run: |
-        CHOSEN=$(xcrun simctl list devices available -j | python3 -c '
-        import json, re, sys
-        data = json.load(sys.stdin)
-        preferred = ["iPad Pro 13-inch (M5)", "iPad Pro 13-inch (M4)", "iPad Air 13-inch (M4)",
-                     "iPad Air 13-inch (M3)", "iPad Pro 13-inch"]
-        devices = []
-        for runtime, entries in data.get("devices", {}).items():
-            if "iOS" not in runtime:
-                continue
-            version = tuple(int(part) for part in re.findall(r"[0-9]+", runtime.rsplit("iOS", 1)[-1]))
-            for device in entries:
-                if device.get("isAvailable") and device.get("name") in preferred:
-                    devices.append((version, device["name"], device["udid"]))
-        # iPhone seçimiyle aynı: en yeni çalışma zamanı önce.
-        devices.sort(key=lambda entry: entry[0], reverse=True)
-        for name in preferred:
-            for version, candidate, udid in devices:
-                if candidate == name:
-                    print(candidate + "|" + udid)
-                    sys.exit(0)
-        print("Uygun iPad simülatörü yok; aranan: " + ", ".join(preferred), file=sys.stderr)
-        sys.exit(1)
-        ')
-        echo "name=${CHOSEN%%|*}" >> "$GITHUB_OUTPUT"
-        echo "udid=${CHOSEN##*|}" >> "$GITHUB_OUTPUT"
-        echo "Seçilen iPad simülatörü: ${CHOSEN%%|*} (${CHOSEN##*|})"
-    # Yalnız iPad'siz işte açılış (~2 dk) derlemeyle örtüşür; çağıran iş bootstatus ile hazır olmasını bekler.
-    # İki simülatörün paralel açıldığı işte derleme 6,5 dk yerine 15,2 dk sürdü; açılış sırasında
-    # CoreSimulator aygıt listesi de boş kalabildi. pad: true işinde iPhone derlemeden sonra,
-    # iPad iPhone görüntülerinden sonra açılır. Seçilmiş iPad yoksa boş kimlikle açılış denenmez.
-    - name: iOS simülatörünü başlat (derlemeyle paralel)
-      if: inputs.pad != 'true'
-      shell: bash
-      run: xcrun simctl boot "${{ steps.ios_sim.outputs.udid }}" || echo "::warning::simctl boot başarısız; açılış adımında yeniden denenecek."
-    - name: iPad simülatörünü başlat (derlemeyle paralel)
-      if: inputs.pad != 'true' && steps.pad_sim.outputs.udid != ''
-      shell: bash
-      run: xcrun simctl boot "${{ steps.pad_sim.outputs.udid }}" || echo "::warning::iPad simctl boot başarısız; açılış adımında yeniden denenecek."
-    # Derleme belirli bir simülatöre bağlı değildir: simülatörler yanda açılırken CoreSimulator'ın
-    # aygıt listesi boş kalabiliyor ve kimlikle verilen hedef bulunamıyordu (dev'de iki koşu). Genel
-    # simülatör hedefi aynı ürünü (xctestrun) verir; test adımları aygıtı kimlikle seçer.
-    # Runner ve simülatörler Apple silicon olduğu için yalnız arm64 derlenir; x86_64 derlemesi süreyi uzatır.
+    # Derleme sırasında simülatör açılmaz: 3 çekirdekli runner'da açılış derlemeyle yarışıyordu
+    # (paralel iki açılışla derleme 19 dk, biriyle 10 dk, açılışsız 4 dk) ve açılış sırasında
+    # CoreSimulator aygıt listesi boş kalabiliyordu. Genel simülatör hedefi aynı ürünü (xctestrun)
+    # verir; test adımları aygıtı kimlikle seçer. Runner ve simülatörler Apple silicon olduğu için
+    # yalnız arm64 derlenir; x86_64 derlemesi süreyi uzatır.
     - name: iOS derlemesi (test için)
       shell: bash
       run: |

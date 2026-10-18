@@ -1060,22 +1060,32 @@ Ekran turu (`ScreenTourUITests`, `sh .github/scripts/screen-tour.sh`) aynı test
 
 ### CI
 
-**Tablo CI (sürekli bütünleştirme) işlerini ve tetiklerini gösterir.**
+**Tablo CI (sürekli bütünleştirme) işlerini, adımlarını ve tetiklerini gösterir.**
 
-| İş | Ne zaman | Ayrıntı |
-|---|---|---|
-| macOS uygulama testleri, `TZ=UTC` | Her PR'da | Olay saati ve gün/tarih iddiaları cihaz diliminden bağımsız kalsın |
-| macOS uygulama testleri, `TZ=Pacific/Auckland` | `dev`'e birleşince | Aynı testler, derlemesiz |
-| iOS birim testleri ve arayüz dumanı | Her PR'da | Aynı simülatörde sırayla, tek işte |
-| iOS ekran görüntüleri | Her PR'da | Ayrı makinede. Önce iPhone, sonra aynı derleme ürünüyle iPad simülatöründe `--pad` kümeleri ve iPad erişilebilirlik denetimi (`AccessibilityAuditUITests`, yatay) |
-| `testflight-check` | `dev`'e her itmede | İmzasız arşiv alır ve paketi denetler: `sh .github/scripts/testflight.sh --check`. Yükleme yapmaz. Arşiv düşerse iş günlüğü artifact olarak yükler |
-| Biçim ve kurallar | Her zaman | Belge PR'ında da koşar |
+| İş | Runner | Adımlar | Ne zaman | İş sınırı |
+|---|---|---|---|---|
+| Değişen dosyalar | Linux | Belge PR'ı mı: `.github/scripts/ci-changes.py` | Her zaman | 5 dk |
+| Biçim ve kurallar | Linux kabı, Swift 6.4 | `swift format lint`, dört denetim betiği, CI betiklerinin testleri | Her zaman; belge PR'ında da | 15 dk |
+| Core (Linux) | Linux kabı, Swift 6.4 | `swift test` | Belge dışı her koşu | 20 dk |
+| Uygulama (macOS ve Core) | macOS | Core `swift test`, ölçek bütçesi, Mac testleri `TZ=UTC`, Mac testleri `TZ=Pacific/Auckland` | Belge dışı her koşu; ölçek bütçesi ve Auckland yalnız `dev`'e birleşince | 35 dk |
+| Uygulama (iPhone) | macOS | Derle, iPhone simülatörünü aç, birim testleri, iPhone görüntü kümeleri, arayüz dumanı | Belge dışı her koşu | 45 dk |
+| Uygulama (iPad) | macOS | Derle, iPad simülatörünü aç, iPad görüntü kümeleri (`--pad`), iPad erişilebilirlik denetimi (`AccessibilityAuditUITests`, yatay) | Belge dışı her koşu | 35 dk |
+| ci | Linux | Bütün işlerin sonucu: `.github/scripts/ci-gate.py` | PR'da her zaman; `dev`'e itmede koşu iptal edilmediyse | 5 dk |
+| `testflight-check` (ayrı iş akışı) | macOS | İmzasız arşiv ve paket denetimi: `sh .github/scripts/testflight.sh --check`. Yükleme yapmaz. Arşiv düşerse günlüğü yükler | `dev`'e her itmede | 30 dk |
 
-macOS ve iOS işleri ayrı makinelerde paralel koşar. Her iOS işi kendi derlemesini yapar ve testleri derlemesiz koşar; ortak başlangıç `.github/actions/ios-build` içindedir. Arayüz dumanı yeni açılmış simülatörde 2 kattan fazla yavaş koşar; bu yüzden CI dumanı ayrı işe almaz. CI SwiftPM paket indirmelerini önbelleğe alır.
+İş sınırı beklenen sürenin yaklaşık 1,5 katıdır. Bir PR dört macOS işi değil üç macOS işi tutar; `dev` itmesi TestFlight denetimiyle dört tutar. GitHub aynı anda en çok beş macOS işi koşturur; iş sayısı kuyruğu belirler.
 
-CI iOS testlerinde geçici simülatör altyapı sorunları olan “Unable to find a device matching the provided destination specifier” ve “hung before establishing connection” hatalarında aygıtın hazır olması beklenip test bir kez yeniden denenir; bu hatalar test beklentilerinden kaynaklanmaz.
+- **Xcode:** macOS işleri, `ios-build` ve `testflight-check` Xcode'u `.github/actions/xcode` eylemiyle seçer. Sürüm yalnız orada yazılıdır: Xcode 26.6. Eylem sürümü günlüğe yazar; sürüm imajdan kalkarsa iş açık bir hatayla düşer.
+- **Cihaz ailesi:** Her iOS işi tek simülatör kullanır. Her iş kendi derlemesini yapar, simülatörü derlemeden sonra açar ve testleri derlemesiz koşar. Ortak başlangıç `.github/actions/ios-build` içindedir; `family` girdisi `iphone` ya da `ipad` alır. Derleme sırasında açılan simülatör 3 çekirdekli runner'da derlemeyi 4 dk'dan 10–19 dk'ya uzatıyordu. Bir runner'daki iki simülatör "Unable to find a device" ve asılma hatalarını üretiyordu.
+- **Sıra:** Arayüz dumanı yeni açılmış simülatörde 2 kattan fazla yavaş koşar; bu yüzden iPhone işinde birim testlerinden sonra koşar. iPhone görüntü adımı önce uygulamayı simülatörden kaldırır: birim testlerinin bıraktığı durum görüntüleri kaydırır. iPad işinde görüntüler erişilebilirlik denetiminden önce koşar: denetim aygıtı döndürür. Bir test adımı düşse de aynı simülatördeki sonraki test adımları koşar; Core düşse de Mac testleri koşar.
+- **Yeniden deneme:** iOS test adımları iki simülatör altyapı hatasında bir kez yeniden dener: “Unable to find a device matching the provided destination specifier” ve “hung before establishing connection”. Betik aygıtın hazır olmasını bekler ve testi bir kez daha koşar: `.github/scripts/xcodebuild-retry.sh`. Bu hatalar test beklentilerinden kaynaklanmaz. Öteki her hata adımı düşürür.
+- **Zaman aşımı:** Her test adımının kendi zaman aşımı vardır: birim 20 dk, görüntü ve arayüz adımları 20 dk, iPad erişilebilirlik 15 dk, simülatör açılışı 10 dk. Birim ve arayüz adımlarında test başına sınır 300 sn'dir (`-test-timeouts-enabled YES`). Sessiz asılma adımı öldürmek yerine test adıyla düşer.
+- **Önbellek:** CI SwiftPM paket indirmelerini önbelleğe alır. iOS ve macOS işleri tek anahtarı paylaşır; anahtar `Packages/Core/Package.resolved` ve `project.yml` dosyalarından türer. Uygulama paketlerinin kilit dosyası repoya girmez: proje üretilir. Bu yüzden `project.yml` SnapshotTesting'i tam sürümle sabitler.
+- **Sonuç paketleri:** Test adımı düşünce CI sonuç paketini yükler: `mac-test-results`, `ios-test-results`, `screen-snapshot-diffs`, `ui-test-results`, `pad-snapshot-diffs`, `pad-a11y-results`. İptal edilen koşu paket yüklemez.
 
 Yalnız belge değiştiren PR'da CI Core ve uygulama işlerini atlar. Belge yolları: `docs/**`, kökteki `*.md`, `LICENSE`. Kararı `.github/scripts/ci-changes.py` verir; bilinmeyen her yol koddur. `dev`'e itmede atlama yoktur. Zorunlu `ci` denetimi atlanan işi yalnız bu durumda başarı sayar. Düşen ya da iptal olan işi hiçbir zaman başarı saymaz: `.github/scripts/ci-gate.py`.
+
+**İptal kuralı:** Art arda birleştirmede `concurrency` önceki `dev` koşusunu iptal eder. `ci` işi iptal edilen `dev` koşusunda koşmaz; commit kırmızı yerine gri görünür. Ruleset `dev` itmesini denetlemez; son koşu ağacın tamamını sınar. PR'da `ci` her zaman koşar: iptal edilen PR koşusu kırmızı kalır ve birleşme kapısı kapanır.
 
 ### iOS test asılması
 
@@ -1087,7 +1097,7 @@ Yalnız belge değiştiren PR'da CI Core ve uygulama işlerini atlar. Belge yoll
 | Süreç yığın örnekleri | CI örnekleri 12. dakikada alır: `.github/scripts/ios-test-diagnostics.sh` |
 | Sonuç paketi | `IOSTests.xcresult` |
 
-CI'da iOS birim testleri adımı ara sıra asılı kalır. Kök neden henüz belli değil. Adımın kendi zaman aşımı 20 dk'dır. Adım düşünce ya da süre dolunca CI `ios-test-results` paketini yükler. iPad'siz işte simülatör derlemeyle birlikte açılır ve ayrı adım hazır olmasını bekler; ekran görüntüsü işinde iPhone derlemeden sonra, iPad iPhone görüntülerinden sonra açılır. Adım süreleri asılmanın açılışta mı testte mi olduğunu gösterir.
+CI'da iOS birim testleri adımı ara sıra asılı kalır. Kök neden henüz belli değil. Adımın kendi zaman aşımı 20 dk'dır. Adım düşünce ya da süre dolunca CI `ios-test-results` paketini yükler. Simülatör derlemeden sonra açılır ve ayrı adım hazır olmasını bekler. Adım süreleri asılmanın açılışta mı testte mi olduğunu gösterir.
 
 ## İlgili belgeler
 

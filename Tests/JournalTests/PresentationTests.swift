@@ -130,8 +130,10 @@ struct PresentationUpdateTests {
         let root = try #require(store.vaultURL)
         let file = root.appendingPathComponent("journal/2026-09-20.md")
         try Data("## Events\n- 11:00 Bir an\n".utf8).write(to: file)
+        // The day query reads the index as soon as the refresh wrote it; the counts arrive with the
+        // published read model a moment later. Both are awaited (bounded), neither is assumed.
         for _ in 0..<150 {
-            if try await store.days().first?.events.count == 1 { break }
+            if try await store.days().first?.events.count == 1, store.counts.events == 1 { break }
             try await Task.sleep(for: .milliseconds(20))
         }
         #expect(try await store.days().first?.events.first?.text.plainText == "Bir an")

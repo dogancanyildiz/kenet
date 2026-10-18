@@ -1,10 +1,9 @@
 name: TestFlight denetimi
 
 # dev'e itilince imzasız arşiv alıp paketi denetler; yükleme yok.
-# Ortak .github/actions/ios-build simülatör açıp test için derler. Bu iş arşivler:
-# testflight.sh temiz kopyada kendi xcodegen'ini çalıştırır, simülatör istemez.
-# Xcode, ci.yml iOS işi gibi macos-26 imajının varsayılanıdır (xcode-select yok);
-# XcodeGen kurulumu o işle aynı adımdır.
+# Ortak .github/actions/ios-build test için derler. Bu iş arşivler: testflight.sh temiz
+# kopyada kendi xcodegen'ini çalıştırır, simülatör istemez. Xcode sürümü ci.yml işleriyle
+# aynı yerden seçilir (.github/actions/xcode); XcodeGen kurulumu o işlerle aynı adımdır.
 
 on:
   push:
@@ -28,6 +27,8 @@ jobs:
           # Yapı numarası git rev-list --count HEAD'dir. Sığ kopyada betik 1 yazar,
           # denetim de 1 sayar; gerçek numara için tam geçmiş gerekir.
           fetch-depth: 0
+      - name: Xcode
+        uses: ./.github/actions/xcode
       - name: XcodeGen
         run: brew install xcodegen
       - name: Denetle

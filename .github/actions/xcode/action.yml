@@ -1,0 +1,23 @@
+name: Xcode seçimi
+description: >-
+  CI'ın Xcode sürümünü seçer ve günlüğe yazar. Sürüm yalnız burada yazılıdır; macOS işleri ve
+  .github/actions/ios-build bu eylemi çağırır. Seçim DEVELOPER_DIR ile sonraki adımlara geçer.
+  İmaj güncellemesi varsayılan Xcode'u ve simülatör çalışma zamanını sessizce değiştirip görüntü
+  farkı üretebilir; seçilen sürüm imajdan kalkarsa iş açık bir hatayla düşer.
+
+runs:
+  using: composite
+  steps:
+    - name: Xcode seç
+      shell: bash
+      run: |
+        app=/Applications/Xcode_26.6.app
+        if [ ! -d "$app" ]; then
+          echo "::error::$app bu runner imajında yok. Kurulu Xcode'lar:"
+          ls -d /Applications/Xcode*.app || true
+          exit 1
+        fi
+        echo "DEVELOPER_DIR=$app/Contents/Developer" >> "$GITHUB_ENV"
+        export DEVELOPER_DIR="$app/Contents/Developer"
+        xcodebuild -version
+        swift --version

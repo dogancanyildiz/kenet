@@ -95,7 +95,7 @@ iPad desteği mağazaya bir kez girerse geri çıkmaz. iPad'i eklemek ise her za
 | Araç | Sürüm | Kullanım |
 |---|---|---|
 | Xcode | 26 ya da üstü | Uygulama derlemesi ve testleri |
-| CI (sürekli bütünleştirme), macOS | macOS 26, Xcode 26.6 | Core ve uygulama testleri |
+| CI (sürekli bütünleştirme), macOS | macOS 26, Xcode 26.6 (`.github/actions/xcode` seçer) | Core ve uygulama testleri; iPhone ve iPad ayrı işlerde |
 | CI, Linux | Swift 6.4 | Core derlemesi, biçim ve belge denetimi |
 | XcodeGen | Homebrew | `project.yml` dosyasından Xcode projesi üretimi |
 | python3 | Sistem sürümü | `.github/scripts/check-docs.sh` |

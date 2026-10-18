@@ -172,6 +172,10 @@
             var judgesItsOwnWindow = false
             let projects = ["altyapi", "mobil"]
             @ObservationIgnored weak var window: NSWindow?
+            /// How many times a list judged whether the focus is free (lists built with the test's check).
+            @ObservationIgnored var judgements = 0
+            /// Runs once, at the moment the list judges, before the judgement: what the user does then.
+            @ObservationIgnored var beforeJudging: (@MainActor () -> Void)?
 
             var selection: MacSidebarEntry? {
                 get { shell.sidebarEntry }
@@ -224,7 +228,13 @@
                 } else {
                     MacSidebarList(
                         entries: entries, selection: $model.selection, restoresFocus: $model.restoresFocus,
-                        focusIsFree: { [model] in model.focusIsFree ?? MacSidebarFocus.isUnowned(in: model.window) })
+                        focusIsFree: { [model] in
+                            model.judgements += 1
+                            let move = model.beforeJudging
+                            model.beforeJudging = nil
+                            move?()
+                            return model.focusIsFree ?? MacSidebarFocus.isUnowned(in: model.window)
+                        })
                 }
             }
         }
@@ -379,35 +389,68 @@
             #expect(MacSidebarFocus.sidebarWindow(among: [settings], key: settings) == nil)
         }
 
-        /// Review finding: the sidebar took focus back from a field the user had moved to.
-        @Test(arguments: [40, 200])
-        func focusTheUserMovedElsewhereStaysThere(afterMilliseconds delay: Int) async throws {
+        /// When the user moves to a field of the new page: in the turn the new list judges its
+        /// request (the latest moment before it would take the focus), or after it took the free focus.
+        enum UserMove: String, CaseIterable, CustomTestStringConvertible {
+            case asTheListJudges, afterTheSidebarTookIt
+            var testDescription: String { rawValue }
+        }
+
+        /// Review finding: the sidebar took focus back from a field the user had moved to. Each
+        /// moment is reached by a condition, not by a fixed pause: a pause that lands while the
+        /// list is applying its own focus proves nothing and failed on a slow runner.
+        @Test(arguments: UserMove.allCases)
+        func focusTheUserMovedElsewhereStaysThere(_ move: UserMove) async throws {
             let model = Model()
             model.shell = MacShellSelection(section: .tasks)
             let mount = await mount(model)
             defer { mount.close() }
             let first = try #require(sidebarTable(in: mount))
             guard HostedFocus.isAvailable(for: first, in: mount.window) else { return }
+            let judgedBefore = model.judgements
+            var target: NSTextField?
+            var moved = false
+            if move == .asTheListJudges {
+                model.beforeJudging = { [mount] in
+                    target = mount.views(NSTextField.self).first { $0.isEditable }
+                    if let field = target { moved = HostedFocus.isAvailable(for: field, in: mount.window) }
+                }
+            }
 
             model.selection = .kanban
-            // The delay counts from the moment the board (and its own sidebar) is installed:
-            // a field of the page that is about to go away would prove nothing.
-            for _ in 0..<200 {
+            // Bounded wait (5 s): the new list is installed and has judged its request; after the
+            // sidebar took the focus, also until it holds it.
+            for _ in 0..<500 {
                 mount.window.contentView?.layoutSubtreeIfNeeded()
-                if let table = sidebarTable(in: mount), table !== first { break }
-                try await Task.sleep(for: .milliseconds(5))
+                if let table = sidebarTable(in: mount), table !== first, model.judgements > judgedBefore,
+                    move == .asTheListJudges || Self.holdsFocus(table, in: mount.window)
+                {
+                    break
+                }
+                try await Task.sleep(for: .milliseconds(10))
             }
-            #expect(sidebarTable(in: mount) !== first, "the board was installed")
-            try await Task.sleep(for: .milliseconds(delay))
-            let target = try #require(
-                mount.views(NSTextField.self).first { $0.isEditable }, "the board page has a text field")
-            guard HostedFocus.isAvailable(for: target, in: mount.window) else { return }
+            let board = try #require(sidebarTable(in: mount))
+            try #require(board !== first, "the board was installed")
+            try #require(model.judgements > judgedBefore, "the new list judged its request")
+            switch move {
+            case .asTheListJudges:
+                try #require(target != nil, "the board page has a text field")
+                guard moved else { return }
+            case .afterTheSidebarTookIt:
+                #expect(Self.holdsFocus(board, in: mount.window), "the sidebar took the free focus")
+                let found = try #require(
+                    mount.views(NSTextField.self).first { $0.isEditable }, "the board page has a text field")
+                guard HostedFocus.isAvailable(for: found, in: mount.window) else { return }
+                target = found
+            }
+            let field = try #require(target)
 
             await mount.settle(rounds: 24)
             let table = try #require(sidebarTable(in: mount))
+            #expect(model.restoresFocus == false, "the request was seen")
             #expect(!Self.holdsFocus(table, in: mount.window), "the sidebar took the focus back")
             #expect(
-                Self.isEditing(target, in: mount.window),
+                Self.isEditing(field, in: mount.window),
                 "focus: \(String(describing: mount.window.firstResponder))")
         }
 

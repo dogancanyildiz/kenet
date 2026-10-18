@@ -26,9 +26,11 @@ packages:
   Core:
     path: Packages/Core
   # Ekran görüntüsü testleri (birim katmanı). CI ile yerel Xcode farkı için algısal tolerans kullanılır.
+  # Tam sürüm: proje üretildiği için kilit dosyası (Package.resolved) repoya girmez; aralık verilirse
+  # her CI koşusu en yeni 1.x'i çözebilir ve kod değişmeden görüntü farkı çıkabilir.
   SnapshotTesting:
     url: https://github.com/pointfreeco/swift-snapshot-testing
-    from: 1.18.0
+    exactVersion: 1.19.6
 
 # Takım kimliği repoya girmez: Config/Signing.xcconfig, varsa izlenmeyen Config/Local.xcconfig
 # dosyasını içerir (örnek: Config/Local.xcconfig.example). Dosya yoksa proje imzasız derlenir.

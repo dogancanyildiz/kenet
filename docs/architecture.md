@@ -1073,6 +1073,8 @@ Ekran turu (`ScreenTourUITests`, `sh .github/scripts/screen-tour.sh`) aynı test
 
 macOS ve iOS işleri ayrı makinelerde paralel koşar. Her iOS işi kendi derlemesini yapar ve testleri derlemesiz koşar; ortak başlangıç `.github/actions/ios-build` içindedir. Arayüz dumanı yeni açılmış simülatörde 2 kattan fazla yavaş koşar; bu yüzden CI dumanı ayrı işe almaz. CI SwiftPM paket indirmelerini önbelleğe alır.
 
+CI iOS testlerinde geçici simülatör altyapı sorunları olan “Unable to find a device matching the provided destination specifier” ve “hung before establishing connection” hatalarında aygıtın hazır olması beklenip test bir kez yeniden denenir; bu hatalar test beklentilerinden kaynaklanmaz.
+
 Yalnız belge değiştiren PR'da CI Core ve uygulama işlerini atlar. Belge yolları: `docs/**`, kökteki `*.md`, `LICENSE`. Kararı `.github/scripts/ci-changes.py` verir; bilinmeyen her yol koddur. `dev`'e itmede atlama yoktur. Zorunlu `ci` denetimi atlanan işi yalnız bu durumda başarı sayar. Düşen ya da iptal olan işi hiçbir zaman başarı saymaz: `.github/scripts/ci-gate.py`.
 
 ### iOS test asılması

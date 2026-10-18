@@ -138,6 +138,8 @@ jobs:
   # yavaş koştu (682 sn, ısınmış simülatörde 243-427): ilk xcodebuild açılışı ve uygulamanın ilk
   # kurulumu ~170 sn ekliyor, testler de ~1,5 kat yavaş. Birim testlerinden sonra koşunca bu
   # bedel bir kez ödenir; ayrıca iş sayısı azalınca macOS koşucu kuyruğu kısalır.
+  # Tek bir geçici altyapı hatasında yeniden deneme 40 dk bütçesine sığabilir; açılış ve test
+  # süreleri değiştiğinden garanti değildir, adım ve iş zaman aşımları toplam süreyi sınırlar.
   app-ios:
     name: Uygulama (iOS)
     needs: changes
@@ -172,7 +174,7 @@ jobs:
             > ios-test-diagnostics/watch.log 2>&1 &
           WATCH=$!
           trap 'kill "$WATCH" 2>/dev/null || true' EXIT
-          xcodebuild test-without-building \
+          sh .github/scripts/xcodebuild-retry.sh "${{ steps.build.outputs.udid }}" test-without-building \
             -project Journal.xcodeproj \
             -scheme Journal_iOS \
             -destination "platform=iOS Simulator,id=${{ steps.build.outputs.udid }}" \
@@ -216,7 +218,7 @@ jobs:
       - name: iOS arayüz dumanı
         id: ios_ui
         run: |
-          xcodebuild test-without-building \
+          sh .github/scripts/xcodebuild-retry.sh "${{ steps.build.outputs.udid }}" test-without-building \
             -project Journal.xcodeproj \
             -scheme Journal_iOS \
             -destination "platform=iOS Simulator,id=${{ steps.build.outputs.udid }}" \
@@ -239,6 +241,8 @@ jobs:
   # derlemeden sonra, iPad iPhone görüntülerinden sonra açılır. iPhone adımı düşse de iPad adımı koşar:
   # iki fark paketi birlikte görünür.
   # iPhone ve iPad görüntüleri ile iPad erişilebilirlik denetimine pay bırakmak için işin süre sınırı 55 dakikadır.
+  # Tek bir erken altyapı hatasının yeniden denemesi 55 dk bütçesine sığabilir; birden çok
+  # adımın yeniden denenmesi veya uzun bootstatus bekleyişi sığmayabilir; sınırlar değişmez.
   app-ios-snapshots:
     name: Uygulama (iOS, ekran görüntüsü)
     needs: changes
@@ -258,7 +262,7 @@ jobs:
       - name: iOS ekran görüntüsü
         id: screen_snapshots
         run: |
-          xcodebuild test-without-building \
+          sh .github/scripts/xcodebuild-retry.sh "${{ steps.build.outputs.udid }}" test-without-building \
             -project Journal.xcodeproj \
             -scheme Journal_iOS \
             -destination "platform=iOS Simulator,id=${{ steps.build.outputs.udid }}" \
@@ -288,7 +292,7 @@ jobs:
         if: ${{ !cancelled() && steps.pad_boot.outcome == 'success' }}
         timeout-minutes: 15
         run: |
-          xcodebuild test-without-building \
+          sh .github/scripts/xcodebuild-retry.sh "${{ steps.build.outputs.pad-udid }}" test-without-building \
             -project Journal.xcodeproj \
             -scheme Journal_iOS \
             -destination "platform=iOS Simulator,id=${{ steps.build.outputs.pad-udid }}" \
@@ -315,7 +319,7 @@ jobs:
         if: ${{ !cancelled() && steps.pad_boot.outcome == 'success' }}
         timeout-minutes: 10
         run: |
-          xcodebuild test-without-building \
+          sh .github/scripts/xcodebuild-retry.sh "${{ steps.build.outputs.pad-udid }}" test-without-building \
             -project Journal.xcodeproj \
             -scheme Journal_iOS \
             -destination "platform=iOS Simulator,id=${{ steps.build.outputs.pad-udid }}" \
@@ -358,6 +362,8 @@ jobs:
         run: sh .github/scripts/check-team-id.sh
       - name: Sürüm akışı kuru koşusu
         run: sh .github/scripts/test-release.sh
+      - name: Xcode simülatör yeniden deneme betiği
+        run: sh .github/scripts/test-xcodebuild-retry.sh
       - name: TestFlight geçici derleme temizliği
         run: python3 .github/scripts/test-testflight.py
       - name: CI betikleri (değişen dosyalar, birleştirici karar)

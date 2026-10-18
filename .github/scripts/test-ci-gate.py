@@ -25,7 +25,7 @@ spec.loader.exec_module(ci_gate)
 
 RESULTS = ["success", "failure", "cancelled", "skipped"]
 NEVER_SKIPPED = ["changes", "lint"]
-SKIPPABLE = ["core-macos", "core-linux", "app-macos", "app-ios", "app-ios-snapshots"]
+SKIPPABLE = ["core-linux", "app-macos", "app-iphone", "app-ipad"]
 JOBS = NEVER_SKIPPED + SKIPPABLE
 # İş akışının verebileceği ve veremeyeceği "yalnız belge" değerleri; yalnız tam "true" atlatır.
 DOCS_ONLY_VALUES = ["true", "false", "", "True", "TRUE", "1", "yes", " true", "true\n", "null"]
@@ -46,7 +46,7 @@ class GateDecisionTests(unittest.TestCase):
         return ci_gate.evaluate(needs(results), docs_only, set(NEVER_SKIPPED)) == []
 
     def test_every_combination_of_results(self):
-        """4^7 sonuç birleşimi x iki durum; beklenti betikten bağımsız yazılmıştır."""
+        """4^6 sonuç birleşimi x iki durum; beklenti betikten bağımsız yazılmıştır."""
         checked = 0
         for combination in itertools.product(RESULTS, repeat=len(JOBS)):
             results = dict(zip(JOBS, combination))
@@ -131,8 +131,8 @@ class GateCommandTests(unittest.TestCase):
             ("belge PR'ı, kod işleri atlandı", docs, "true", 0),
             ("kod PR'ında atlanan iş", docs, "false", 1),
             ("çıktı boşken atlanan iş", docs, "", 1),
-            ("düşen iş", dict(green, **{"app-ios": "failure"}), "false", 1),
-            ("belge PR'ında düşen iş", dict(docs, **{"app-ios": "failure"}), "true", 1),
+            ("düşen iş", dict(green, **{"app-iphone": "failure"}), "false", 1),
+            ("belge PR'ında düşen iş", dict(docs, **{"app-ipad": "failure"}), "true", 1),
             ("belge PR'ında iptal olan iş", dict(docs, **{"core-linux": "cancelled"}), "true", 1),
             ("belge PR'ında düşen biçim işi", dict(docs, lint="failure"), "true", 1),
             ("belge PR'ında atlanan biçim işi", dict(docs, lint="skipped"), "true", 1),
@@ -185,7 +185,11 @@ class WorkflowWiringTests(unittest.TestCase):
         self.assertEqual(sorted(self.gate_arguments), sorted(NEVER_SKIPPED))
 
     def test_gate_always_runs_and_waits_for_every_blocking_job(self):
-        self.assertEqual(self.jobs["ci"].get("if"), "always()")
+        # PR'da her zaman koşar (iptal edilen PR koşusu kırmızı kalır); dev itmesinde iptal
+        # edilen koşuda koşmaz. Düşen iş iptal sayılmaz: o koşuda kapı yine koşar ve düşer.
+        self.assertEqual(
+            self.jobs["ci"].get("if"),
+            "${{ always() && (github.event_name == 'pull_request' || !cancelled()) }}")
         self.assertEqual(self.jobs["ci"].get("name"), "ci")
         blocking = [name for name, job in self.jobs.items()
                     if name != "ci" and job.get("continue-on-error") != "true"]

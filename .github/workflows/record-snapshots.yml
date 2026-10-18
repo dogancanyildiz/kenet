@@ -15,12 +15,15 @@ jobs:
     timeout-minutes: 40
     steps:
       - uses: actions/checkout@v7
+      # Referanslar CI kapısıyla aynı Xcode'da çizilir.
+      - name: Xcode
+        uses: ./.github/actions/xcode
       - name: Paket önbelleği
         uses: actions/cache@v6
         with:
           # Betik -derivedDataPath .dd/snapshots kullanır; paketler orada durur.
           path: .dd/snapshots/SourcePackages
-          key: spm-xcode-ios-snapshots-${{ hashFiles('Packages/Core/Package.resolved') }}
+          key: spm-xcode-ios-snapshots-${{ hashFiles('Packages/Core/Package.resolved', 'project.yml') }}
           restore-keys: spm-xcode-ios-snapshots-
       - name: XcodeGen
         run: brew install xcodegen

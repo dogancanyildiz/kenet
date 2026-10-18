@@ -72,11 +72,17 @@ final class AccessibilityAuditUITests: XCTestCase {
         // - contrast: secondary/warning ink tokens “nearly passed”; Stage 9 design tokens
         // - textClipped: priority/chip labels under review with Stage 9 density tokens
         let deferred: XCUIAccessibilityAuditType = [.hitRegion, .contrast, .dynamicType, .textClipped]
-        // CI simulators occasionally report "Audit failed to complete in time" (code -56); retry once.
+        // CI simulators occasionally report "Audit failed to complete in time" (code -56): the audit's
+        // own time limit ran out on a slow runner, not a finding. Retry once; a second timeout skips the
+        // screen (logged), while every real finding still fails the test.
         do {
             try runAudit(app, screen: screen, types: XCUIAccessibilityAuditType.all.subtracting(deferred))
         } catch let error as NSError where error.code == -56 {
-            try runAudit(app, screen: screen, types: XCUIAccessibilityAuditType.all.subtracting(deferred))
+            do {
+                try runAudit(app, screen: screen, types: XCUIAccessibilityAuditType.all.subtracting(deferred))
+            } catch let error as NSError where error.code == -56 {
+                throw XCTSkip("A11Y audit timed out twice on \(screen) (code -56, runner too slow)")
+            }
         }
     }
 

@@ -46,25 +46,6 @@ jobs:
           echo "$result"
           echo "$result" >> "$GITHUB_OUTPUT"
 
-  core-macos:
-    name: Core (macOS)
-    needs: changes
-    if: needs.changes.outputs.docs_only != 'true'
-    runs-on: macos-26
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@v7
-      - name: SwiftPM önbelleği
-        uses: actions/cache@v6
-        with:
-          path: Packages/Core/.build
-          key: spm-${{ runner.os }}-${{ hashFiles('Packages/Core/Package.swift', 'Packages/Core/Package.resolved') }}
-          restore-keys: spm-${{ runner.os }}-
-      - name: Araç zinciri
-        run: swift --version
-      - name: Derle ve test et
-        run: swift test --package-path Packages/Core -Xswiftc -warnings-as-errors
-
   # Linux'ta derleme, Core'un Apple çerçevelerinden bağımsız kalmasını zorlar:
   # SwiftUI, UIKit gibi modüller orada yoktur, import edilirse derleme düşer.
   core-linux:
@@ -90,72 +71,115 @@ jobs:
       - name: Derle ve test et
         run: swift test --package-path Packages/Core -Xswiftc -warnings-as-errors
 
-  # Uygulama hedefleri: proje project.yml dosyasından üretilir. macOS ve iOS ayrı makinelerde
-  # paralel koşar; paket indirmeleri önbelleklenir. macOS testleri iki saat diliminde
-  # koşar (olay saati / gün kayması); ikinci saat dilimi yalnız dev'e birleşince.
-  # İmza yok (CODE_SIGNING_ALLOWED=NO); runner'da sertifika bulunmaz.
+  # macOS koşucusu sınırlı (aynı anda en çok 5 iş): Core'un macOS testleri, ölçek bütçesi ve Mac
+  # uygulama testleri tek işte sırayla koşar. Core düşse de Mac testleri koşar; iki sonuç birlikte
+  # görünür. Mac testleri iki saat diliminde koşar (olay saati / gün kayması); ikinci saat dilimi ve
+  # ölçek bütçesi yalnız dev'e birleşince. İmza yok (CODE_SIGNING_ALLOWED=NO); runner'da sertifika
+  # bulunmaz. Süre: PR ~14, itme ~21 dk (tahmin); iş sınırı bunun ~1,5 katı.
   app-macos:
-    name: Uygulama (macOS)
+    name: Uygulama (macOS ve Core)
     needs: changes
     if: needs.changes.outputs.docs_only != 'true'
     runs-on: macos-26
-    timeout-minutes: 30
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v7
-      - name: Paket önbelleği
+      - name: Xcode
+        uses: ./.github/actions/xcode
+      - name: SwiftPM önbelleği (Core)
         uses: actions/cache@v6
         with:
+          path: Packages/Core/.build
+          key: spm-${{ runner.os }}-${{ hashFiles('Packages/Core/Package.swift', 'Packages/Core/Package.resolved') }}
+          restore-keys: spm-${{ runner.os }}-
+      - name: Paket önbelleği (uygulama)
+        uses: actions/cache@v6
+        with:
+          # .github/actions/ios-build ile aynı anahtar: iOS ve macOS işleri aynı paketleri indirir.
           # Yalnız paket indirmeleri; derleme ürünleri önbelleklenmez (bayat test paketi riski).
           path: ~/Library/Developer/Xcode/DerivedData/**/SourcePackages
-          key: spm-xcode-macos-${{ hashFiles('Packages/Core/Package.resolved') }}
-          restore-keys: spm-xcode-macos-
+          key: spm-xcode-${{ hashFiles('Packages/Core/Package.resolved', 'project.yml') }}
+          restore-keys: spm-xcode-
       - name: XcodeGen
         run: brew install xcodegen
       - name: Projeyi üret
+        id: project
         run: xcodegen generate
+      - name: Core testleri
+        if: ${{ !cancelled() }}
+        timeout-minutes: 15
+        run: swift test --package-path Packages/Core -Xswiftc -warnings-as-errors
+      # 5 yıllık sentetik kasada süre bütçeleri. Paylaşılan runner'larda kırılgan olduğu için kapı
+      # değildir: adım düşse de iş geçer. Core testlerinin .build klasörünü kullanır.
+      - name: Ölçek bütçesi (isteğe bağlı)
+        if: github.event_name == 'push'
+        continue-on-error: true
+        timeout-minutes: 15
+        env:
+          SCALE_BUDGET_SECONDS: "1"
+        run: >
+          swift test --package-path Packages/Core
+          --filter ScaleBudgetTests.fiveYearVaultStaysWithinOptInBudgets
+          -Xswiftc -warnings-as-errors
       - name: macOS testleri (UTC)
+        id: mac_utc
+        if: ${{ !cancelled() && steps.project.outcome == 'success' }}
+        timeout-minutes: 20
         env:
           TZ: UTC
         # Mac görüntü kümeleri yalnız yerelde koşar (bkz. snapshot-suites.sh).
-        run: xcodebuild test -project Journal.xcodeproj -scheme Journal_macOS -destination 'platform=macOS' $(sh .github/scripts/snapshot-suites.sh --mac | sed 's#^#-skip-testing:JournalTests_macOS/#' | tr '\n' ' ') -resultBundlePath MacTests.xcresult CODE_SIGNING_ALLOWED=NO -quiet
+        run: xcodebuild test -project Journal.xcodeproj -scheme Journal_macOS -destination 'platform=macOS,arch=arm64' $(sh .github/scripts/snapshot-suites.sh --mac | sed 's#^#-skip-testing:JournalTests_macOS/#' | tr '\n' ' ') -resultBundlePath MacTests.xcresult CODE_SIGNING_ALLOWED=NO -quiet
       - name: macOS testleri (Pacific/Auckland)
+        id: mac_auckland
         if: github.event_name == 'push'
+        timeout-minutes: 15
         env:
           TZ: Pacific/Auckland
-        run: xcodebuild test-without-building -project Journal.xcodeproj -scheme Journal_macOS -destination 'platform=macOS' $(sh .github/scripts/snapshot-suites.sh --mac | sed 's#^#-skip-testing:JournalTests_macOS/#' | tr '\n' ' ') CODE_SIGNING_ALLOWED=NO -quiet
-      # Paket UTC koşusundandır: düşen beklentinin ölçülen değerleri -quiet günlüğünde görünmez.
-      - name: macOS test sonuç paketi (düşünce ya da iptalde)
-        if: failure() || cancelled()
+        run: xcodebuild test-without-building -project Journal.xcodeproj -scheme Journal_macOS -destination 'platform=macOS,arch=arm64' $(sh .github/scripts/snapshot-suites.sh --mac | sed 's#^#-skip-testing:JournalTests_macOS/#' | tr '\n' ' ') -resultBundlePath MacTestsAuckland.xcresult CODE_SIGNING_ALLOWED=NO -quiet
+      # Düşen beklentinin ölçülen değerleri -quiet günlüğünde görünmez; paket gösterir. İptal edilen
+      # koşuda yüklenmez (boş paket üretiyordu).
+      - name: macOS test sonuç paketi (yalnız düşünce)
+        if: failure() && (steps.mac_utc.outcome == 'failure' || steps.mac_auckland.outcome == 'failure')
         uses: actions/upload-artifact@v7
         with:
           name: mac-test-results
-          path: MacTests.xcresult
+          path: |
+            MacTests.xcresult
+            MacTestsAuckland.xcresult
+          if-no-files-found: warn
           retention-days: 7
 
-  # iOS iki makinede paralel koşar: birim testleri + arayüz dumanı bir işte, ekran görüntüleri
-  # ötekinde. Her iş kendi derlemesini yapar ve kendi simülatörünü açar; ortak başlangıç
-  # .github/actions/ios-build içindedir. Arayüz dumanı ayrı işte (yeni açılmış simülatörde) 2,3 kat
-  # yavaş koştu (682 sn, ısınmış simülatörde 243-427): ilk xcodebuild açılışı ve uygulamanın ilk
-  # kurulumu ~170 sn ekliyor, testler de ~1,5 kat yavaş. Birim testlerinden sonra koşunca bu
-  # bedel bir kez ödenir; ayrıca iş sayısı azalınca macOS koşucu kuyruğu kısalır.
-  app-ios:
-    name: Uygulama (iOS)
+  # iOS iki işe cihaz ailesine göre bölünür: her runner'da tek simülatör. Bir runner'da iki
+  # simülatör derlemeyi uzatıyor ve "Unable to find a device" ile asılma hatalarını üretiyordu.
+  # Her iş kendi derlemesini yapar (simülatörsüz ~4 dk) ve simülatörü derlemeden sonra açar; ortak
+  # başlangıç .github/actions/ios-build içindedir. Test adımları bilinen iki simülatör altyapı
+  # hatasında bir kez yeniden dener (.github/scripts/xcodebuild-retry.sh); adım zaman aşımları
+  # yeniden denemeyi de sınırlar. Bir test adımı düşse de aynı simülatördeki sonraki adımlar koşar:
+  # bütün sonuçlar ve fark paketleri birlikte görünür.
+  #
+  # iPhone: birim testleri, görüntü kümeleri, arayüz dumanı. Arayüz dumanı yeni açılmış simülatörde
+  # 2,3 kat yavaş koştu (682 sn, ısınmış simülatörde 243-427); birim testlerinden sonra koşunca bu
+  # bedel bir kez ödenir. Süre ~26-30 dk (tahmin); iş sınırı ~1,5 katı.
+  app-iphone:
+    name: Uygulama (iPhone)
     needs: changes
     if: needs.changes.outputs.docs_only != 'true'
     runs-on: macos-26
-    timeout-minutes: 40
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v7
       - name: Derle
         id: build
         uses: ./.github/actions/ios-build
+        with:
+          family: iphone
       # Simülatörün hazır olması testlerden ayrı adımda beklenir: bir asılmanın açılışta mı testte mi
-      # olduğu adım sürelerinden okunur. Açılış derlemeyle aynı anda başlar (ios-build).
-      - name: iOS simülatörü aç
+      # olduğu adım sürelerinden okunur.
+      - name: iPhone simülatörü aç
         id: ios_boot
         timeout-minutes: 10
         run: xcrun simctl bootstatus "${{ steps.build.outputs.udid }}" -b
-      # Bu adım ara sıra hiçbir test düşmeden asılıyor (bkz. docs/architecture.md, "Test").
+      # Bu adım ara sıra hiçbir test düşmeden asılıyor (bkz. docs/architecture.md, "iOS test asılması").
       # Zaman aşımı ADIM düzeyindedir: iş düzeyindeki süre dolunca sonraki adımlar koşmaz, tanılama
       # yüklenemez. Çıktı -quiet değildir ve dosyaya yazılır: başlayıp bitmeyen test oradan okunur.
       # Normal süre 3-8 dk; 12. dakikada hâlâ koşuyorsa süreçler asılıyken yığın örneği alınır.
@@ -172,10 +196,10 @@ jobs:
             > ios-test-diagnostics/watch.log 2>&1 &
           WATCH=$!
           trap 'kill "$WATCH" 2>/dev/null || true' EXIT
-          xcodebuild test-without-building \
+          sh .github/scripts/xcodebuild-retry.sh "${{ steps.build.outputs.udid }}" test-without-building \
             -project Journal.xcodeproj \
             -scheme Journal_iOS \
-            -destination "platform=iOS Simulator,id=${{ steps.build.outputs.udid }}" \
+            -destination "platform=iOS Simulator,id=${{ steps.build.outputs.udid }},arch=arm64" \
             -only-testing:JournalTests_iOS \
             $(sh .github/scripts/snapshot-suites.sh | sed 's#^#-skip-testing:JournalTests_iOS/#' | tr '\n' ' ') \
             -resultBundlePath IOSTests.xcresult \
@@ -189,21 +213,15 @@ jobs:
               exit 1
             }
           tail -n 5 ios-test-diagnostics/xcodebuild.log
-      - name: iOS birim testi tanılaması (düşünce, iptalde ya da zaman aşımında)
-        if: >-
-          (failure() || cancelled()) &&
-          (steps.ios_boot.outcome == 'failure' || steps.ios_boot.outcome == 'cancelled' ||
-          steps.ios_unit.outcome == 'failure' || steps.ios_unit.outcome == 'cancelled')
+      - name: iOS birim testi tanılaması (düşünce ya da zaman aşımında)
+        if: failure() && (steps.ios_boot.outcome == 'failure' || steps.ios_unit.outcome == 'failure')
         timeout-minutes: 5
         run: |
           echo "Günlüğün sonu (başlayıp bitmeyen test burada görünür):"
           tail -n 60 ios-test-diagnostics/xcodebuild.log || true
           sh .github/scripts/ios-test-diagnostics.sh ios-test-diagnostics "${{ steps.build.outputs.udid }}"
-      - name: iOS test sonuç paketi (düşünce, iptalde ya da zaman aşımında)
-        if: >-
-          (failure() || cancelled()) &&
-          (steps.ios_boot.outcome == 'failure' || steps.ios_boot.outcome == 'cancelled' ||
-          steps.ios_unit.outcome == 'failure' || steps.ios_unit.outcome == 'cancelled')
+      - name: iOS test sonuç paketi (düşünce ya da zaman aşımında)
+        if: failure() && (steps.ios_boot.outcome == 'failure' || steps.ios_unit.outcome == 'failure')
         uses: actions/upload-artifact@v7
         with:
           name: ios-test-results
@@ -212,56 +230,23 @@ jobs:
             ios-test-diagnostics
           if-no-files-found: warn
           retention-days: 7
-      # Arayüz dumanı birim testlerinden sonra, ısınmış simülatörde (bkz. işin üstündeki not).
-      - name: iOS arayüz dumanı
-        id: ios_ui
-        run: |
-          xcodebuild test-without-building \
-            -project Journal.xcodeproj \
-            -scheme Journal_iOS \
-            -destination "platform=iOS Simulator,id=${{ steps.build.outputs.udid }}" \
-            -only-testing:JournalUITests \
-            -resultBundlePath UITests.xcresult \
-            CODE_SIGNING_ALLOWED=NO \
-            -quiet
-      - name: Arayüz testi sonuç paketi (yalnız düşünce)
-        if: failure() && steps.ios_ui.outcome == 'failure'
-        uses: actions/upload-artifact@v7
-        with:
-          name: ui-test-results
-          path: UITests.xcresult
-          retention-days: 7
-
-  # Ekran görüntüsü: birim katmanında SwiftUI çizimi (uygulama açılmaz). Ayrı iş = süre ölçümü
-  # ve düşünce fark görüntüleri artifact'ı. Kümeler ad kuralından bulunur (.github/scripts/snapshot-suites.sh).
-  # Süreç dili Türkçe: görüntüler tr yerel ayarıyla çizilir; String(localized:) ile aynı dil.
-  # iPad kümeleri (snapshot-suites.sh --pad) aynı derleme ürünüyle ikinci simülatörde koşar; iPad
-  # derlemeyle birlikte açılır (ios-build, pad: true). iPhone adımı düşse de iPad adımı koşar:
-  # iki fark paketi birlikte görünür.
-  # iPhone ve iPad görüntüleri ile iPad erişilebilirlik denetimine pay bırakmak için işin süre sınırı 55 dakikadır.
-  app-ios-snapshots:
-    name: Uygulama (iOS, ekran görüntüsü)
-    needs: changes
-    if: needs.changes.outputs.docs_only != 'true'
-    runs-on: macos-26
-    timeout-minutes: 55
-    steps:
-      - uses: actions/checkout@v7
-      - name: Derle
-        id: build
-        uses: ./.github/actions/ios-build
-        with:
-          pad: "true"
-      - name: iOS simülatörü aç
-        timeout-minutes: 10
-        run: xcrun simctl bootstatus "${{ steps.build.outputs.udid }}" -b
-      - name: iOS ekran görüntüsü
+      # Ekran görüntüsü: birim katmanında SwiftUI çizimi (uygulama açılmaz). Kümeler ad kuralından
+      # bulunur (.github/scripts/snapshot-suites.sh). Süreç dili Türkçe: görüntüler tr yerel ayarıyla
+      # çizilir; String(localized:) ile aynı dil. Birim testlerinin simülatörde bıraktığı uygulama
+      # durumu görüntüleri kaydırır (record-screen-snapshots.sh ile aynı kural): uygulama önce kaldırılır.
+      - name: iPhone ekran görüntüsü
         id: screen_snapshots
+        if: ${{ !cancelled() && steps.ios_boot.outcome == 'success' }}
+        timeout-minutes: 20
         run: |
-          xcodebuild test-without-building \
+          APP=$(sed -n 's/^ *APP_BUNDLE_IDENTIFIER: *//p' project.yml)
+          for bundle in "$APP" "$APP.testhost" "$APP.uitests.xctrunner"; do
+            xcrun simctl uninstall "${{ steps.build.outputs.udid }}" "$bundle" >/dev/null 2>&1 || true
+          done
+          sh .github/scripts/xcodebuild-retry.sh "${{ steps.build.outputs.udid }}" test-without-building \
             -project Journal.xcodeproj \
             -scheme Journal_iOS \
-            -destination "platform=iOS Simulator,id=${{ steps.build.outputs.udid }}" \
+            -destination "platform=iOS Simulator,id=${{ steps.build.outputs.udid }},arch=arm64" \
             $(sh .github/scripts/snapshot-suites.sh | sed 's#^#-only-testing:JournalTests_iOS/#' | tr '\n' ' ') \
             -testLanguage tr -testRegion TR \
             -resultBundlePath ScreenSnapshots.xcresult \
@@ -277,21 +262,61 @@ jobs:
             Tests/JournalTests/Snapshots/__Snapshots__
           if-no-files-found: warn
           retention-days: 7
-      - name: iPad simülatörü aç
-        id: pad_boot
-        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
-        timeout-minutes: 10
-        run: xcrun simctl bootstatus "${{ steps.build.outputs.pad-udid }}" -b
-      # Yeniden derleme yok: iPhone için üretilen simülatör ürünü iPad'de de koşar (cihaz ailesi 1,2).
-      - name: iPad ekran görüntüsü
-        id: pad_snapshots
-        if: ${{ !cancelled() && steps.pad_boot.outcome == 'success' }}
-        timeout-minutes: 15
+      # Test başına sınır (XCTest, dakikaya yuvarlanır): sessiz asılma adımı öldürmek yerine test
+      # adıyla düşer. En uzun arayüz testi CI'da ~2,5 dk (iPad erişilebilirlik denetimi 141 sn).
+      - name: iOS arayüz dumanı
+        id: ios_ui
+        if: ${{ !cancelled() && steps.ios_boot.outcome == 'success' }}
+        timeout-minutes: 20
         run: |
-          xcodebuild test-without-building \
+          sh .github/scripts/xcodebuild-retry.sh "${{ steps.build.outputs.udid }}" test-without-building \
             -project Journal.xcodeproj \
             -scheme Journal_iOS \
-            -destination "platform=iOS Simulator,id=${{ steps.build.outputs.pad-udid }}" \
+            -destination "platform=iOS Simulator,id=${{ steps.build.outputs.udid }},arch=arm64" \
+            -only-testing:JournalUITests \
+            -resultBundlePath UITests.xcresult \
+            -test-timeouts-enabled YES \
+            -default-test-execution-time-allowance 300 \
+            -maximum-test-execution-time-allowance 300 \
+            CODE_SIGNING_ALLOWED=NO \
+            -quiet
+      - name: Arayüz testi sonuç paketi (yalnız düşünce)
+        if: failure() && steps.ios_ui.outcome == 'failure'
+        uses: actions/upload-artifact@v7
+        with:
+          name: ui-test-results
+          path: UITests.xcresult
+          retention-days: 7
+
+  # iPad: görüntü kümeleri (snapshot-suites.sh --pad) ve erişilebilirlik denetimi, yeni açılmış
+  # tek simülatörde. iPad referansları dik duran simülatörde çizilir; denetim aygıtı yatay döndürür
+  # ve bitince dik bırakır, bu yüzden görüntüler önce koşar. Süre ~20-22 dk (tahmin); iş sınırı ~1,5 katı.
+  app-ipad:
+    name: Uygulama (iPad)
+    needs: changes
+    if: needs.changes.outputs.docs_only != 'true'
+    runs-on: macos-26
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v7
+      - name: Derle
+        id: build
+        uses: ./.github/actions/ios-build
+        with:
+          family: ipad
+      - name: iPad simülatörü aç
+        id: pad_boot
+        timeout-minutes: 10
+        run: xcrun simctl bootstatus "${{ steps.build.outputs.udid }}" -b
+      # Yeni açılmış iPad'de ilk test adımı yavaştır (yerelde ~3, CI'da 8-9 dk).
+      - name: iPad ekran görüntüsü
+        id: pad_snapshots
+        timeout-minutes: 20
+        run: |
+          sh .github/scripts/xcodebuild-retry.sh "${{ steps.build.outputs.udid }}" test-without-building \
+            -project Journal.xcodeproj \
+            -scheme Journal_iOS \
+            -destination "platform=iOS Simulator,id=${{ steps.build.outputs.udid }},arch=arm64" \
             $(sh .github/scripts/snapshot-suites.sh --pad | sed 's#^#-only-testing:JournalTests_iOS/#' | tr '\n' ' ') \
             -testLanguage tr -testRegion TR \
             -resultBundlePath PadSnapshots.xcresult \
@@ -309,18 +334,22 @@ jobs:
           retention-days: 7
       # Aynı derleme ürünü UI test koşucusunu da taşır (ios-build: build-for-testing, Journal_iOS).
       # Denetim bölünmüş kabukta kenar çubuğuyla gezer ve aygıtı yatay döndürür; bitince dik bırakır.
-      # Dil ayarı iPhone arayüz dumanıyla aynı (verilmez). Yerelde ~1,5 dk.
+      # Dil ayarı iPhone arayüz dumanıyla aynı (verilmez). Yerelde ~1,5 dk, CI'da ~2,5 dk. Test başına
+      # sınır iPhone arayüz dumanıyla aynı: sessiz asılma test adıyla düşer.
       - name: iPad erişilebilirlik denetimi
         id: pad_a11y
         if: ${{ !cancelled() && steps.pad_boot.outcome == 'success' }}
-        timeout-minutes: 10
+        timeout-minutes: 15
         run: |
-          xcodebuild test-without-building \
+          sh .github/scripts/xcodebuild-retry.sh "${{ steps.build.outputs.udid }}" test-without-building \
             -project Journal.xcodeproj \
             -scheme Journal_iOS \
-            -destination "platform=iOS Simulator,id=${{ steps.build.outputs.pad-udid }}" \
+            -destination "platform=iOS Simulator,id=${{ steps.build.outputs.udid }},arch=arm64" \
             -only-testing:JournalUITests/AccessibilityAuditUITests \
             -resultBundlePath PadAccessibility.xcresult \
+            -test-timeouts-enabled YES \
+            -default-test-execution-time-allowance 300 \
+            -maximum-test-execution-time-allowance 300 \
             CODE_SIGNING_ALLOWED=NO \
             -quiet
       - name: iPad erişilebilirlik sonuç paketi (yalnız düşünce)
@@ -358,6 +387,8 @@ jobs:
         run: sh .github/scripts/check-team-id.sh
       - name: Sürüm akışı kuru koşusu
         run: sh .github/scripts/test-release.sh
+      - name: Xcode simülatör yeniden deneme betiği
+        run: sh .github/scripts/test-xcodebuild-retry.sh
       - name: TestFlight geçici derleme temizliği
         run: python3 .github/scripts/test-testflight.py
       - name: CI betikleri (değişen dosyalar, birleştirici karar)
@@ -368,10 +399,13 @@ jobs:
   # Dal korumasının zorunlu tuttuğu tek denetim. Yol filtresi yoktur; her PR'da koşar.
   # Karar .github/scripts/ci-gate.py betiğindedir: atlanan iş yalnız belge PR'ında başarı sayılır,
   # düşen ya da iptal olan iş hiçbir zaman; argümandaki işlerin atlanmasına hiç izin yoktur.
+  # PR'da her zaman koşar: iptal edilen PR koşusu kırmızı kalır, birleşme kapısı kapanır. dev'e
+  # itmede koşu iptal edildiyse (yeni birleşme önceki koşuyu concurrency ile keser) koşmaz: iptal
+  # kırmızı değil gri görünür. dev itmesini ruleset denetlemez; son koşu ağacın tamamını sınar.
   ci:
     name: ci
-    if: always()
-    needs: [changes, core-macos, core-linux, app-macos, app-ios, app-ios-snapshots, lint]
+    if: ${{ always() && (github.event_name == 'pull_request' || !cancelled()) }}
+    needs: [changes, core-linux, app-macos, app-iphone, app-ipad, lint]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -381,24 +415,3 @@ jobs:
           NEEDS: ${{ toJSON(needs) }}
           DOCS_ONLY: ${{ needs.changes.outputs.docs_only }}
         run: python3 .github/scripts/ci-gate.py changes lint
-
-  # 5 yıllık sentetik kasada süre bütçeleri. Paylaşılan runner'larda kırılgan olduğu için
-  # ci toplu işine girmez; başarısızlık PR'ı engellemez.
-  scale-budget:
-    name: Ölçek bütçesi (macOS, isteğe bağlı)
-    # Yalnız dev'e birleşince koşar: her PR'da bir macOS makinesi daha tutmasın.
-    if: github.event_name == 'push'
-    runs-on: macos-26
-    timeout-minutes: 40
-    continue-on-error: true
-    steps:
-      - uses: actions/checkout@v7
-      - name: Araç zinciri
-        run: swift --version
-      - name: 5 yıllık süre bütçeleri
-        env:
-          SCALE_BUDGET_SECONDS: "1"
-        run: >
-          swift test --package-path Packages/Core
-          --filter ScaleBudgetTests.fiveYearVaultStaysWithinOptInBudgets
-          -Xswiftc -warnings-as-errors

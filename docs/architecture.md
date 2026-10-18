@@ -1085,7 +1085,7 @@ Yalnız belge değiştiren PR'da CI Core ve uygulama işlerini atlar. Belge yoll
 | Süreç yığın örnekleri | CI örnekleri 12. dakikada alır: `.github/scripts/ios-test-diagnostics.sh` |
 | Sonuç paketi | `IOSTests.xcresult` |
 
-CI'da iOS birim testleri adımı ara sıra asılı kalır. Kök neden henüz belli değil. Adımın kendi zaman aşımı 20 dk'dır. Adım düşünce ya da süre dolunca CI `ios-test-results` paketini yükler. Simülatörün açılışı derlemeyle aynı anda başlar; ayrı bir adım simülatörün hazır olmasını bekler. Adım süreleri asılmanın açılışta mı testte mi olduğunu gösterir.
+CI'da iOS birim testleri adımı ara sıra asılı kalır. Kök neden henüz belli değil. Adımın kendi zaman aşımı 20 dk'dır. Adım düşünce ya da süre dolunca CI `ios-test-results` paketini yükler. iPad'siz işte simülatör derlemeyle birlikte açılır ve ayrı adım hazır olmasını bekler; ekran görüntüsü işinde iPhone derlemeden sonra, iPad iPhone görüntülerinden sonra açılır. Adım süreleri asılmanın açılışta mı testte mi olduğunu gösterir.
 
 ## İlgili belgeler
 

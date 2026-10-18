@@ -3,11 +3,11 @@ description: >-
   Paket önbelleği, XcodeGen, proje üretimi, simülatör seçimi, simülatör açılışını başlatma ve
   build-for-testing. iOS test işlerinin ortak başlangıcı; çağıran iş önce depoyu çeker
   (actions/checkout) ve sonra simülatörün hazır olmasını bekler (simctl bootstatus). `pad: true`
-  ikinci bir simülatör olarak iPad seçer ve onu da açmaya başlatır (iPad görüntü kümeleri).
+  ikinci bir simülatör olarak iPad seçer; bu işte simülatörleri çağıran iş derlemeden sonra açar.
 
 inputs:
   pad:
-    description: iPad simülatörü de seçilsin ve açılsın mı ("true" / "false")
+    description: iPad simülatörü de seçilsin ve simülatör açılışları derleme sonrasına bırakılsın mı ("true" / "false")
     required: false
     default: "false"
 
@@ -105,14 +105,16 @@ runs:
         echo "name=${CHOSEN%%|*}" >> "$GITHUB_OUTPUT"
         echo "udid=${CHOSEN##*|}" >> "$GITHUB_OUTPUT"
         echo "Seçilen iPad simülatörü: ${CHOSEN%%|*} (${CHOSEN##*|})"
-    # Açılış derlemeyle aynı anda başlar: açılış (~2 dk) derleme süresine gizlenir ve simülatör testten
-    # önce yatışır (yeni açılmış simülatörde testler belirgin yavaş koşuyor). Hazır olmasını çağıran
-    # iş ayrı adımda bekler (simctl bootstatus); açılış burada düşerse orada yeniden denenir ve görünür.
+    # Yalnız iPad'siz işte açılış (~2 dk) derlemeyle örtüşür; çağıran iş bootstatus ile hazır olmasını bekler.
+    # İki simülatörün paralel açıldığı işte derleme 6,5 dk yerine 15,2 dk sürdü; açılış sırasında
+    # CoreSimulator aygıt listesi de boş kalabildi. pad: true işinde iPhone derlemeden sonra,
+    # iPad iPhone görüntülerinden sonra açılır. Seçilmiş iPad yoksa boş kimlikle açılış denenmez.
     - name: iOS simülatörünü başlat (derlemeyle paralel)
+      if: inputs.pad != 'true'
       shell: bash
       run: xcrun simctl boot "${{ steps.ios_sim.outputs.udid }}" || echo "::warning::simctl boot başarısız; açılış adımında yeniden denenecek."
     - name: iPad simülatörünü başlat (derlemeyle paralel)
-      if: inputs.pad == 'true'
+      if: inputs.pad != 'true' && steps.pad_sim.outputs.udid != ''
       shell: bash
       run: xcrun simctl boot "${{ steps.pad_sim.outputs.udid }}" || echo "::warning::iPad simctl boot başarısız; açılış adımında yeniden denenecek."
     # Derleme belirli bir simülatöre bağlı değildir: simülatörler yanda açılırken CoreSimulator'ın

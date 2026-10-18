@@ -235,8 +235,8 @@ jobs:
   # Ekran görüntüsü: birim katmanında SwiftUI çizimi (uygulama açılmaz). Ayrı iş = süre ölçümü
   # ve düşünce fark görüntüleri artifact'ı. Kümeler ad kuralından bulunur (.github/scripts/snapshot-suites.sh).
   # Süreç dili Türkçe: görüntüler tr yerel ayarıyla çizilir; String(localized:) ile aynı dil.
-  # iPad kümeleri (snapshot-suites.sh --pad) aynı derleme ürünüyle ikinci simülatörde koşar; iPad
-  # derlemeyle birlikte açılır (ios-build, pad: true). iPhone adımı düşse de iPad adımı koşar:
+  # iPad kümeleri (snapshot-suites.sh --pad) aynı derleme ürünüyle ikinci simülatörde koşar; iPhone
+  # derlemeden sonra, iPad iPhone görüntülerinden sonra açılır. iPhone adımı düşse de iPad adımı koşar:
   # iki fark paketi birlikte görünür.
   # iPhone ve iPad görüntüleri ile iPad erişilebilirlik denetimine pay bırakmak için işin süre sınırı 55 dakikadır.
   app-ios-snapshots:

@@ -3,6 +3,18 @@ import SwiftUI
 import VaultFormat
 import VaultStore
 
+private struct MentionNoticeLifetimeKey: EnvironmentKey {
+    static let defaultValue: Duration? = .seconds(2)
+}
+
+extension EnvironmentValues {
+    /// How long a creation confirmation stays visible; nil disables automatic dismissal.
+    var mentionNoticeLifetime: Duration? {
+        get { self[MentionNoticeLifetimeKey.self] }
+        set { self[MentionNoticeLifetimeKey.self] = newValue }
+    }
+}
+
 /// Shared @ suggestion chips and ambiguity / unknown resolution strip (quick entry, event, journal).
 struct MentionAssistStrip: View {
     @Bindable var composer: MentionComposer
@@ -16,6 +28,7 @@ struct MentionAssistStrip: View {
     var onResolved: (() -> Void)? = nil
 
     @Environment(\.locale) private var locale
+    @Environment(\.mentionNoticeLifetime) private var noticeLifetime
 
     /// Whether the strip should appear in a parent stack (empty strip must not consume spacing).
     var hasContent: Bool {
@@ -51,7 +64,8 @@ struct MentionAssistStrip: View {
             .lineLimit(nil)
             .fixedSize(horizontal: false, vertical: true)
             .task(id: notice) {
-                try? await Task.sleep(for: .seconds(2))
+                guard let noticeLifetime else { return }
+                try? await Task.sleep(for: noticeLifetime)
                 guard !Task.isCancelled, composer.creationNotice == notice else { return }
                 composer.creationNotice = nil
             }

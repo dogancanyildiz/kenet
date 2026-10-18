@@ -48,6 +48,7 @@
                             .padding(.bottom, 16)
                     }
                     .environment(location)
+                    .environment(\.mentionNoticeLifetime, nil)
                     .environment(\.locale, snapshotLocale)
                     .environment(\.timeZone, snapshotTimeZone)
                 }

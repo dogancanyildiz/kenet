@@ -47,23 +47,9 @@ final class CloseDayUITests: XCTestCase {
         XCTAssertTrue(back.waitForNonExistence(timeout: 15))
     }
 
-    /// Same audit types as ``AccessibilityAuditUITests`` (its deferrals are listed there).
+    /// The shared audit (``AccessibilityAuditPolicy``).
     @MainActor
     private func audit(_ app: XCUIApplication) throws {
-        let deferred: XCUIAccessibilityAuditType = [.hitRegion, .contrast, .dynamicType, .textClipped]
-        let types = XCUIAccessibilityAuditType.all.subtracting(deferred)
-        let handler: (XCUIAccessibilityAuditIssue) -> Bool = { issue in
-            let element = issue.element?.description ?? "(no element)"
-            // Screenshot-based detection that names no element leaves nothing to fix.
-            if issue.auditType == .elementDetection, issue.element == nil { return true }
-            print("A11Y issue (closeDay): \(issue.auditType) — \(issue.compactDescription) — \(element)")
-            return false
-        }
-        do {
-            try app.performAccessibilityAudit(for: types, handler)
-        } catch let error as NSError where error.code == -56 {
-            // "Audit failed to complete in time" on a busy simulator: once more.
-            try app.performAccessibilityAudit(for: types, handler)
-        }
+        try AccessibilityAuditPolicy.audit(app, screen: "closeDay")
     }
 }

@@ -27,13 +27,7 @@ final class QuickEntryNameChipAccessibilityUITests: XCTestCase {
         UITestSupport.waitForExistence(deniz)
         UITestSupport.waitForExistence(mert)
 
-        let deferred: XCUIAccessibilityAuditType = [.hitRegion, .contrast, .dynamicType, .textClipped]
-        try app.performAccessibilityAudit(for: XCUIAccessibilityAuditType.all.subtracting(deferred)) { issue in
-            if issue.auditType == .elementDetection, issue.element == nil { return true }
-            let element = issue.element?.description ?? "(no element)"
-            print("A11Y issue (quick entry names): \(issue.auditType) — \(issue.compactDescription) — \(element)")
-            return false
-        }
+        try AccessibilityAuditPolicy.audit(app, screen: "quickEntryNames")
 
         deniz.tourTap()
         XCTAssertTrue(deniz.waitForNonExistence(timeout: 10))

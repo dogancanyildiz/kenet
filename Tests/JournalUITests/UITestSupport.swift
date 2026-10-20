@@ -6,16 +6,40 @@ enum UITestSupport {
 
     /// Copies `Fixtures/vaults/sample` into a unique temporary directory for one launch.
     static func prepareSampleVault() throws -> URL {
-        let fixture = repositoryRoot().appendingPathComponent("Fixtures/vaults/sample", isDirectory: true)
+        try prepareFixtureVault(named: "sample")
+    }
+
+    /// Copies `Fixtures/vaults/<name>` into a unique temporary directory for one launch.
+    ///
+    /// A missing fixture fails the test on CI (`CI` set, as GitHub Actions does): a renamed vault
+    /// would otherwise skip every UI test and leave the job green. A local run skips the test.
+    static func prepareFixtureVault(
+        named name: String, environment: [String: String] = ProcessInfo.processInfo.environment
+    ) throws -> URL {
+        let fixture = repositoryRoot().appendingPathComponent("Fixtures/vaults/\(name)", isDirectory: true)
         var isDirectory: ObjCBool = false
         guard FileManager.default.fileExists(atPath: fixture.path, isDirectory: &isDirectory), isDirectory.boolValue
         else {
-            throw XCTSkip("Sample fixture vault missing at \(fixture.path)")
+            let message = "Fixture vault missing at \(fixture.path)"
+            guard isCI(environment) else { throw XCTSkip(message) }
+            XCTFail(message)
+            throw MissingFixture(path: fixture.path)
         }
         let destination = FileManager.default.temporaryDirectory
             .appendingPathComponent("JournalUITest-\(UUID().uuidString)", isDirectory: true)
         try FileManager.default.copyItem(at: fixture, to: destination)
         return destination
+    }
+
+    /// The fixture a test needs is not in the checkout (CI only; a local run skips instead).
+    struct MissingFixture: Error {
+        let path: String
+    }
+
+    /// CI services set `CI` (GitHub Actions: `true`); empty, `0` and `false` count as unset.
+    static func isCI(_ environment: [String: String]) -> Bool {
+        guard let value = environment["CI"]?.lowercased() else { return false }
+        return !["", "0", "false"].contains(value)
     }
 
     static func repositoryRoot(filePath: String = #filePath) -> URL {

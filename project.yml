@@ -269,9 +269,11 @@ schemes:
       config: DebugTest
       commandLineArguments:
         JOURNAL_NO_AUTOSTART: true
-      # Forwarded so `SNAPSHOT_TESTING_RECORD=all xcodebuild test …` reaches the host.
+      # Forwarded so `SNAPSHOT_TESTING_RECORD=all xcodebuild test …` reaches the host, and so the
+      # UI tests see `CI` (a missing fixture vault fails there instead of skipping).
       environmentVariables:
         SNAPSHOT_TESTING_RECORD: $(SNAPSHOT_TESTING_RECORD)
+        CI: $(CI)
       targets:
         - JournalTests_iOS
         - JournalUITests

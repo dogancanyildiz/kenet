@@ -7,16 +7,7 @@ final class UnlinkedMentionsAccessibilityUITests: XCTestCase {
     override func setUpWithError() throws {
         continueAfterFailure = false
         UITestSupport.installSystemAlertMonitor(on: self)
-        let fixture = UITestSupport.repositoryRoot().appendingPathComponent(
-            "Fixtures/vaults/unlinked-mentions", isDirectory: true)
-        var isDirectory: ObjCBool = false
-        guard FileManager.default.fileExists(atPath: fixture.path, isDirectory: &isDirectory), isDirectory.boolValue
-        else {
-            throw XCTSkip("Unlinked-mentions fixture missing at \(fixture.path)")
-        }
-        vaultURL = FileManager.default.temporaryDirectory.appendingPathComponent(
-            "JournalUITest-\(UUID().uuidString)", isDirectory: true)
-        try FileManager.default.copyItem(at: fixture, to: vaultURL)
+        vaultURL = try UITestSupport.prepareFixtureVault(named: "unlinked-mentions")
     }
 
     override func tearDownWithError() throws {
@@ -78,12 +69,6 @@ final class UnlinkedMentionsAccessibilityUITests: XCTestCase {
     func testEntityPagePassesAccessibilityAudit() throws {
         let (app, _) = openUnlinkedMentions()
 
-        let deferred: XCUIAccessibilityAuditType = [.hitRegion, .contrast, .dynamicType, .textClipped]
-        try app.performAccessibilityAudit(for: XCUIAccessibilityAuditType.all.subtracting(deferred)) { issue in
-            if issue.auditType == .elementDetection, issue.element == nil { return true }
-            let element = issue.element?.description ?? "(no element)"
-            print("A11Y issue (unlinked mentions): \(issue.auditType) — \(issue.compactDescription) — \(element)")
-            return false
-        }
+        try AccessibilityAuditPolicy.audit(app, screen: "unlinkedMentions")
     }
 }

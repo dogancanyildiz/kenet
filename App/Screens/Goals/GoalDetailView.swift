@@ -16,7 +16,9 @@ struct GoalDetailView: View {
         original = goal
         _history = State(initialValue: GoalDayModel(store: store, day: day))
     }
-    private var goal: GoalDefinition { store.content.goals.first { $0.id == original.id } ?? original }
+    /// The goal's newest definition by id, as the history model last loaded it; the one the page
+    /// was opened with until then, and once the file is gone.
+    private var goal: GoalDefinition { history.goals.first { $0.id == original.id } ?? original }
     var body: some View {
         let status = history.status(for: goal)
         ScrollView {
@@ -235,5 +237,41 @@ struct GoalDetailView: View {
         let model = GoalDayModel(store: store, day: day)
         await model.load()
         if model.canEdit { editing = GoalValueModel(dayModel: model, goal: goal) }
+    }
+}
+
+/// The split view's goal page for the selected goal id: its newest definition from the index
+/// (``IndexStore/computeGoalDefinitions()``). The column stays blank until the first answer; a goal
+/// no longer listed gives the empty prompt.
+struct GoalDetailColumn: View {
+    let store: IndexStore
+    let goalID: String?
+    @State private var loaded: (vault: URL?, goals: [GoalDefinition])?
+
+    private var goals: [GoalDefinition]? {
+        guard let loaded, loaded.vault == store.vaultURL else { return nil }
+        return loaded.goals
+    }
+
+    var body: some View {
+        ZStack {
+            if let goalID, let goals {
+                if let goal = goals.first(where: { $0.id == goalID }) {
+                    GoalDetailView(store: store, goal: goal).id(goal.id + (store.vaultURL?.path ?? ""))
+                } else {
+                    MacEmptyDetail("Bir hedef seç")
+                }
+            } else if goalID == nil {
+                MacEmptyDetail("Bir hedef seç")
+            } else {
+                Color.clear
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .task(id: store.lastUpdated) {
+            let vault = store.vaultURL
+            guard let rows = try? await store.computeGoalDefinitions() else { return }
+            loaded = (vault, rows.map(\.definition))
+        }
     }
 }

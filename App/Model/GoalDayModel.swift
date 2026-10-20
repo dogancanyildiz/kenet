@@ -13,10 +13,15 @@ final class GoalDayModel {
     private(set) var logs: [String: [GoalLog]] {
         didSet { forgetStatuses(changedFrom: oldValue) }
     }
+    /// Valid definitions in name order (``IndexStore/computeGoalDefinitions()``), empty until the
+    /// first load; a reload keeps them until its answer.
+    private(set) var goals: [GoalDefinition] = []
     private(set) var isLoading = false
     private(set) var isWriting = false
     private(set) var errorText: String?
     private(set) var hasLoaded = false
+    /// The publish (``IndexStore/lastUpdated``) the loaded goals and history were asked for.
+    private var loadedUpdate: Date?
     private var pendingLoad = false
     /// Edits made here, by goal key, that the screen's goal-status answer may not show yet.
     private var unanswered: [String: UnansweredEdit] = [:]
@@ -26,14 +31,27 @@ final class GoalDayModel {
     @ObservationIgnored private var seenUpdate: Date?
     @ObservationIgnored private var seenRevision = 0
 
+    /// Empty until ``load()``: the goals and their history come from the index together.
     init(store: IndexStore, day: CalendarDate) {
         self.store = store
         self.day = day
         root = store.vaultURL
-        logs = store.content.goalLogs
+        logs = [:]
     }
 
-    var goals: [GoalDefinition] { store.content.goals }
+    /// A model of `day` that starts from `page`'s goals and history: as a flow opens on the page's
+    /// strip, or as the page moves to another day. Neither depends on the day (the history is the
+    /// whole history; statuses are computed for this model's day), so the strip draws at once. It
+    /// still loads on its own before it takes an edit. Another vault's page gives nothing.
+    convenience init(store: IndexStore, day: CalendarDate, startingFrom page: GoalDayModel) {
+        self.init(store: store, day: day)
+        guard page.belongs(to: root) else { return }
+        goals = page.goals
+        logs = page.logs
+    }
+
+    /// Whether the goals and history answer the store's latest publish.
+    var isCurrent: Bool { hasLoaded && !isLoading && loadedUpdate == store.lastUpdated }
     /// Whether this model edits the vault at `url` (a model outlives a vault switch on its screen).
     func belongs(to url: URL?) -> Bool { root == url }
     var canEdit: Bool {
@@ -127,9 +145,15 @@ final class GoalDayModel {
             repeat {
                 pendingLoad = false
                 let revision = store.lastUpdated
-                let history = try await store.goalHistory()
+                // Shielded from the screen task's cancellation: a load asked for meanwhile only
+                // marked `pendingLoad`, so this one must finish and repeat.
+                let (definitions, history) = try await Task { [store] in
+                    (try await store.computeGoalDefinitions(), try await store.goalHistory())
+                }.value
                 guard root == store.vaultURL else { return }
+                goals = definitions.map(\.definition)
                 logs = history
+                loadedUpdate = revision
                 hasLoaded = true
                 errorText = nil
                 pendingLoad = pendingLoad || revision != store.lastUpdated

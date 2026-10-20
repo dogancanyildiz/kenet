@@ -131,7 +131,7 @@ struct GoalTemplateTests {
         let model = GoalCreationModel(store: context.store)
         model.apply(template)
         #expect(await model.save())
-        let goal = try #require(context.store.content.goals.first)
+        let goal = try #require((try await context.store.goalDefinitions()).first)
         let data = try Data(contentsOf: context.root.appendingPathComponent(goal.id))
         let document = RawDocument(bytes: data)
         guard case .parsed(let fields) = document.frontmatter else {
@@ -165,7 +165,7 @@ struct GoalTemplateTests {
         #expect(model.templateID == nil)
         #expect(model.canSave)
         #expect(await model.save())
-        let goal = try #require(context.store.content.goals.first)
+        let goal = try #require((try await context.store.goalDefinitions()).first)
         #expect(goal.name == "Özel hedef" && goal.kind == .boolean && goal.period == .day && goal.target == 1)
     }
 }

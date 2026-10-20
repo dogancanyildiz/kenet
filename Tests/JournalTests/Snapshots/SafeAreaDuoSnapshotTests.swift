@@ -59,7 +59,7 @@
                     shell: snapshotCase.canvas, testName: "duo")
             case .today, .entities:
                 let goalsReady = SafeAreaGoalsReadyBox()
-                let needsGoals = snapshotCase.screen == .today && !store.content.goals.isEmpty
+                let needsGoals = snapshotCase.screen == .today
                 await SnapshotHost.assertView(
                     colorScheme: .light,
                     dynamicType: .medium,

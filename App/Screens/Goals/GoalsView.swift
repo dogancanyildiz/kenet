@@ -2,10 +2,12 @@ import GoalTracking
 import SwiftUI
 import VaultFormat
 
-/// Goal statuses the list last queried, by goal file. Kept across the midnight rebuild of the list,
-/// so the rows stay until the new day's answer comes; another vault's answer is not used.
+/// The goals and statuses the list last queried, statuses by goal file. Kept across the midnight
+/// rebuild of the list, so the rows stay until the new day's answer comes; another vault's answer
+/// is not used.
 struct GoalListStatuses {
     let vault: URL?
+    let goals: [GoalDefinition]
     let statuses: [String: GoalStatus]
 }
 
@@ -76,11 +78,11 @@ private struct GoalListContent: View {
         _model = State(initialValue: GoalDayModel(store: store, day: day))
     }
 
-    /// The queried statuses of this vault; nil until the first answer, so no row is drawn with a
-    /// status still loading.
-    private var statuses: [String: GoalStatus]? {
+    /// The queried goals and statuses of this vault; nil until the first answer, so no row (and no
+    /// empty state) is drawn while it is still loading.
+    private var answer: GoalListStatuses? {
         guard let loaded, loaded.vault == store.vaultURL else { return nil }
-        return loaded.statuses
+        return loaded
     }
 
     var body: some View {
@@ -92,11 +94,11 @@ private struct GoalListContent: View {
                 .disabled(!store.canAddEvent)
                 SearchButton()
             }
-            if let statuses {
-                ForEach(store.content.goals, id: \.id) { goal in
-                    // A goal created since the last answer, or marked here and not yet in an answer,
-                    // is drawn from the editing model until the next.
-                    goalRow(goal: goal, status: model.shownStatus(for: goal, answer: statuses[goal.id]))
+            if let answer {
+                ForEach(answer.goals, id: \.id) { goal in
+                    // A goal marked here and not yet in an answer is drawn from the editing model
+                    // until the next.
+                    goalRow(goal: goal, status: model.shownStatus(for: goal, answer: answer.statuses[goal.id]))
                 }
             }
             if let error = deletion.errorText {
@@ -112,7 +114,7 @@ private struct GoalListContent: View {
         .inkPage()
         .inkPageScrollColumn()
         .overlay {
-            if store.content.goals.isEmpty {
+            if answer?.goals.isEmpty == true {
                 EmptyState(
                     "Henüz hedef yok",
                     actionTitle: store.canAddEvent ? "Yeni hedef" : nil
@@ -136,7 +138,8 @@ private struct GoalListContent: View {
             guard let rows = try? await store.computeGoalStatuses(today: model.day), !Task.isCancelled else { return }
             let statuses = rows.map { ($0.definition.id, $0.status) }
             loaded = GoalListStatuses(
-                vault: vault, statuses: Dictionary(statuses, uniquingKeysWith: { first, _ in first }))
+                vault: vault, goals: rows.map(\.definition),
+                statuses: Dictionary(statuses, uniquingKeysWith: { first, _ in first }))
             if vault == store.vaultURL { model.answerShown(askedAt: revision) }
         }
     }

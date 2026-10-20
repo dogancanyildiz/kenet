@@ -15,25 +15,26 @@ func notificationDate(_ day: String = "2026-09-27", hour: Int = 8, minute: Int =
     return calendar.date(
         from: DateComponents(year: value.year, month: value.month, day: value.day, hour: hour, minute: minute))!
 }
-/// A vault as the planner tests hand it over: the published model (goals) and the task rows and
-/// days the planned week is read from, built the old way (`TaskRow.legacy`, `DaySummary.build`).
+/// A vault as the planner tests hand it over: the goals as the read model held them
+/// (`LegacyGoalFields`) and the task rows and days the planned week is read from, built the old
+/// way (`TaskRow.legacy`, `DaySummary.build`).
 struct NotificationVault {
-    var model: VaultReadModel
+    var goals: NotificationGoals
     var tasks: [TaskRow] = []
     var days: [DaySummary] = []
 
-    static let empty = NotificationVault(model: .empty)
+    static let empty = NotificationVault(goals: NotificationGoals())
 
-    init(model: VaultReadModel, tasks: [TaskRow] = [], days: [DaySummary] = []) {
-        self.model = model
+    init(goals: NotificationGoals, tasks: [TaskRow] = [], days: [DaySummary] = []) {
+        self.goals = goals
         self.tasks = tasks
         self.days = days
     }
 
     init(snapshot: IndexSnapshot, today: CalendarDate) {
         self.init(
-            model: VaultReadModel(snapshot: snapshot, today: today), tasks: TaskRow.legacy(snapshot: snapshot),
-            days: DaySummary.build(snapshot: snapshot))
+            goals: LegacyGoalFields(snapshot: snapshot, today: today).notificationGoals,
+            tasks: TaskRow.legacy(snapshot: snapshot), days: DaySummary.build(snapshot: snapshot))
     }
 
     /// The seven days from `first` as `IndexStore.computeNotificationDays` reads them, from the

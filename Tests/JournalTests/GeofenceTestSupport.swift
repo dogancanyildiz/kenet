@@ -64,7 +64,11 @@ struct GeofenceTestContext {
     func start() async {
         service.activate()
         await vault.store.select(vault.root)
+        await settle()
     }
+    /// Waits for the targets of the store's latest publish: the service reads the goal definitions
+    /// again on every publish (`GeofenceService.reloadGoals`).
+    func settle() async { await service.goalsReload?.value }
     var target: GeofenceTarget { get throws { try #require(service.targets.first { $0.goal.key == "spor" }) } }
     func clean() { vault.clean() }
     func bytes(_ day: String = "2026-10-04") throws -> Data {

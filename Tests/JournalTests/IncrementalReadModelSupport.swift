@@ -272,9 +272,6 @@ extension TaskRow {
 }
 
 extension VaultReadModel {
-    /// The goal values of every fragment in path order, as a snapshot listed them.
-    var indexedGoalLogs: [IndexedGoalLog] { fragments.keys.sorted().flatMap { fragments[$0]!.goalLogs } }
-
     /// Everything the incremental tests compare: the screen fields, the counts and the fragments.
     func matchesFullBuild(_ other: VaultReadModel) -> Bool {
         matchesScreenFields(other) && counts.key == other.counts.key && fragments == other.fragments
@@ -288,21 +285,59 @@ extension IndexCounts {
     }
 }
 
-extension VaultReadModel {
+/// How the read model built its goal fields before they left it (`VaultReadModel.rederive`), from
+/// a snapshot in path order: the valid definitions by name, the resolved file of every file's
+/// first place link, every definition's key (valid or not), the logs from 399 days before `today`
+/// through 6 days after it (a key whose logs all fall outside kept an empty list), and every log
+/// of each key. The oracle the goal queries are compared with.
+struct LegacyGoalFields {
+    let goals: [GoalDefinition]
+    let goalPlaceFiles: [String: String]
+    let reservedGoalKeys: Set<String>
+    let goalLogs: [String: [GoalLog]]
+    let allLogs: [String: [GoalLog]]
+
+    init(snapshot: IndexSnapshot, today: CalendarDate) {
+        var places: [String: IndexedLink] = [:]
+        for link in snapshot.links where link.key == "place" && places[link.file] == nil { places[link.file] = link }
+        goalPlaceFiles = places.compactMapValues(\.resolvedFile)
+        goals = snapshot.entities.compactMap { GoalDefinition(entity: $0, place: places[$0.file]?.target) }
+            .sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
+        reservedGoalKeys = Set(snapshot.entities.compactMap(\.goalKey))
+        allLogs = Dictionary(grouping: snapshot.goalLogs, by: \.key).mapValues { $0.compactMap(GoalLog.init(indexed:)) }
+        let start = today.addingDays(-399) ?? today
+        let end = today.addingDays(6) ?? today
+        goalLogs = allLogs.mapValues { $0.filter { $0.day >= start && $0.day <= end } }
+    }
+
+    /// From a fresh index of the vault at `root`: the files on disk, as the store's index has them.
+    init(root: URL, today: CalendarDate) throws {
+        let index = try VaultIndex()
+        try index.rebuild(vaultRoot: root)
+        self.init(snapshot: try index.snapshot(), today: today)
+    }
+
     /// How the read model built `goalStatuses` before the screens moved to the goal-status query:
     /// every indexed log of each valid definition, in path order, folded by `GoalProgress` on
     /// `today`. Keyed by goal key; a copied definition with the same key keeps the first by name,
-    /// as the day page counted it (the stored field kept the last; only the list's first frame,
-    /// before its editing model loaded, read that). The oracle the query is compared with.
+    /// as the day page counted it.
     func goalStatuses(today: CalendarDate) -> [String: GoalStatus] {
-        let logs = Dictionary(grouping: indexedGoalLogs, by: \.key).mapValues {
-            $0.compactMap(GoalLog.init(indexed:))
-        }
-        return Dictionary(
-            goals.map { ($0.key, GoalProgress.compute(definition: $0, logs: logs[$0.key] ?? [], today: today)) },
+        Dictionary(
+            goals.map { ($0.key, GoalProgress.compute(definition: $0, logs: allLogs[$0.key] ?? [], today: today)) },
             uniquingKeysWith: { first, _ in first })
     }
 
-    /// The old field itself: as of the day the model was derived for.
-    var goalStatuses: [String: GoalStatus] { derivedForDay.map { goalStatuses(today: $0) } ?? [:] }
+    /// Statuses from the goal-log list (the window above), as the day page and "Close the day"
+    /// counted them before the query: a copied key counts as the first by name.
+    func windowStatuses(on day: CalendarDate) -> [String: GoalStatus] {
+        Dictionary(
+            goals.map { ($0.key, GoalProgress.compute(definition: $0, logs: goalLogs[$0.key] ?? [], today: day)) },
+            uniquingKeysWith: { first, _ in first })
+    }
+
+    /// The goal-log list without the keys it kept empty: what a log query over the window answers.
+    var windowLogs: [String: [GoalLog]] { goalLogs.filter { !$0.value.isEmpty } }
+
+    /// What the daily reminder planned from: every definition and the goal-log list.
+    var notificationGoals: NotificationGoals { NotificationGoals(definitions: goals, logs: goalLogs) }
 }

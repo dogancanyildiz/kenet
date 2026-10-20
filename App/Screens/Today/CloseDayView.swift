@@ -17,9 +17,14 @@ struct CloseDayView: View {
     @Environment(\.locale) private var locale
     @Environment(\.dismiss) private var dismiss
 
-    /// - Parameter tasks: the day's rows as Today drew them (``DayTasksModel/rows``).
-    init(store: IndexStore, today: CalendarDate, tasks: [TaskRow], step: CloseDayStep = .tasks) {
-        _model = State(initialValue: CloseDayModel(store: store, today: today, tasks: tasks, step: step))
+    /// - Parameters:
+    ///   - tasks: the day's rows as Today drew them (``DayTasksModel/rows``).
+    ///   - goals: the Today strip's loaded model.
+    init(
+        store: IndexStore, today: CalendarDate, tasks: [TaskRow], goals: GoalDayModel, step: CloseDayStep = .tasks
+    ) {
+        _model = State(
+            initialValue: CloseDayModel(store: store, today: today, tasks: tasks, goals: goals, step: step))
     }
 
     private var bundle: Bundle { PresentationLocalization.bundle(locale) }

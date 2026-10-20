@@ -48,6 +48,7 @@ struct GeofenceRegionTests {
             try Data(text.utf8).write(to: context.vault.root.appendingPathComponent("goals/Extra \(index).md"))
         }
         await context.vault.store.refresh()
+        await context.settle()
         #expect(context.service.targets.count == 23)
         #expect(context.service.regions.count == 20)
         #expect(context.service.overflowCount == 3)
@@ -77,9 +78,38 @@ struct GeofenceRegionTests {
         ] {
             try Data(text.utf8).write(to: file)
             await context.vault.store.refresh()
+            await context.settle()
             #expect(context.service.targets.isEmpty)
             #expect(context.source.installed.isEmpty)
         }
+    }
+
+    /// A read of the goal definitions that a newer one overtook is not applied: the first read is
+    /// held at the query seam while a publish reads again; released after it, its answer is dropped.
+    @Test func anOvertakenGoalReadDoesNotReplaceTheNewerOne() async throws {
+        let context = try GeofenceTestContext()
+        defer { context.clean() }
+        await context.start()
+        try #require(context.service.targets.count == 1)
+        let store = context.vault.store
+        let gate = FirstArrivalGate()
+        store.testingTaskQueryDidFinish = { await gate.pass() }
+        context.service.reloadGoals()
+        let older = try #require(context.service.goalsReload)
+        await gate.waitUntilHeld()
+
+        // The goal loses its place; the publish reads the definitions again, past the held gate.
+        let file = context.vault.root.appendingPathComponent("goals/Spor.md")
+        let original = try String(contentsOf: file, encoding: .utf8)
+        try Data(original.replacingOccurrences(of: "place: \"[[Tepe Spor Salonu]]\"", with: "").utf8).write(to: file)
+        await store.refresh()
+        await context.settle()
+        #expect(context.service.targets.isEmpty)
+
+        gate.release()
+        await older.value
+        #expect(context.service.targets.isEmpty, "the overtaken answer, with the place, is dropped")
+        #expect(context.source.installed.isEmpty)
     }
 
     @Test func missingCoordinatesOrExplicitRadiusHasNoRegion() async throws {
@@ -94,6 +124,7 @@ struct GeofenceRegionTests {
         ] {
             try Data(text.utf8).write(to: file)
             await context.vault.store.refresh()
+            await context.settle()
             #expect(context.service.targets.isEmpty)
             #expect(context.source.installed.isEmpty)
         }
@@ -121,6 +152,7 @@ struct GeofenceRegionTests {
                 of: "radius: 80", with: "radius: 2000")
         try Data(text.utf8).write(to: file)
         await context.vault.store.refresh()
+        await context.settle()
         #expect(try context.target.id != previous)
         #expect(try context.target.region.radius == 1000)
         #expect(context.source.installed.count == 1)

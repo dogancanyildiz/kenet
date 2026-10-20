@@ -23,7 +23,7 @@
             await context.start()
             #expect(context.store.lastUpdated != nil)
             let store = context.store
-            let goal = try #require(store.content.goals.first { $0.key == key })
+            let goal = try #require((try await store.goalDefinitions()).first { $0.key == key })
             await SnapshotHost.assertView(
                 colorScheme: scheme, dynamicType: type, increaseContrast: false, named: name, store: store,
                 size: CGSize(width: snapshotCanvasSize.width, height: 2000), testName: "goalChart",

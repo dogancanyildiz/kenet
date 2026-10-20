@@ -1,6 +1,7 @@
 import Foundation
 import Observation
 import VaultFormat
+import VaultIndex
 import VaultStore
 
 @MainActor @Observable
@@ -23,6 +24,12 @@ final class GeofenceService {
     @ObservationIgnored private var isLocked: () -> Bool = { false }
     @ObservationIgnored private var isLockEnabled: () -> Bool = { false }
     @ObservationIgnored private var lockCoverID: UUID?
+    /// The goal definitions the targets are built from, with the vault they were read in
+    /// (``IndexStore/computeGoalDefinitions()``); read again on every publish.
+    @ObservationIgnored private var goals: (vault: URL?, rows: [GoalDefinitionRow])?
+    /// The latest reload of `goals`; its answer is the one kept. Background entries wait for it.
+    @ObservationIgnored private(set) var goalsReload: Task<Void, Never>?
+    @ObservationIgnored private var goalsReloadCount = 0
     /// Called when a mark action is blocked by app lock so the UI can open goals with an explanation.
     @ObservationIgnored var onLockedMarkBlocked: (() -> Void)?
     private static let modesKey = "journal.geofence.modes"
@@ -47,8 +54,24 @@ final class GeofenceService {
 
     func attach(to store: IndexStore) {
         self.store = store
-        store.onGeofenceSnapshotChange = { [weak self] in self?.rebuild() }
+        store.onGeofenceSnapshotChange = { [weak self] in self?.reloadGoals() }
         location.onAuthorizationRefresh = { [weak self] in self?.rebuild() }
+    }
+
+    /// Reads the goal definitions for the store's latest publish, then rebuilds. Targets of another
+    /// vault, or of a closed one, go at once; a later reload's answer replaces an earlier one's.
+    func reloadGoals() {
+        goalsReloadCount += 1
+        let count = goalsReloadCount
+        if store?.lastUpdated == nil || goals?.vault != store?.vaultURL { rebuild() }
+        goalsReload = Task { [weak self] in
+            guard let store = self?.store else { return }
+            let vault = store.vaultURL
+            let rows = try? await store.computeGoalDefinitions()
+            guard let self, count == self.goalsReloadCount else { return }
+            if let rows { self.goals = (vault, rows) }
+            self.rebuild()
+        }
     }
 
     func attach(lock: AppLockService) {
@@ -96,7 +119,7 @@ final class GeofenceService {
                 localized: "Konum bölgesi izlenemedi. Konum iznini ve sistem ayarlarını kontrol et.")
         }
         location.refreshAuthorization()
-        rebuild()
+        if goals == nil { reloadGoals() } else { rebuild() }
     }
 
     func requestAlwaysAccess() {
@@ -127,8 +150,9 @@ final class GeofenceService {
             if isActive && location.authorization != .always { location.source.replaceRegions([]) }
             return
         }
+        let rows = goals.flatMap { $0.vault == store.vaultURL ? $0.rows : nil } ?? []
         targets = GeofencePlan.targets(
-            snapshot: store.content, places: store.nearbyPlaces,
+            goals: rows, places: store.nearbyPlaces,
             vaultID: vaultID, maximumRadius: location.source.maximumRegionRadius)
         let enabled = targets.filter { mode(for: $0) != .off }
         overflowCount = max(0, enabled.count - 20)
@@ -146,11 +170,15 @@ final class GeofenceService {
         #endif
         do {
             try await store.prepareForBackground()
+            // The regions of the publish the vault opened with.
+            await goalsReload?.value
             location.refreshAuthorization()
             guard let vaultID, let target = regions.first(where: { $0.id == identifier }) else { return }
             let day = today()
             let token = key(for: target, vaultID: vaultID)
-            guard !handling.contains(token), !hasHandled(token, on: day), !isMarked(target, on: day) else { return }
+            let marked = try await isMarked(target, on: day)
+            // Checked and taken with no suspension between: a second entry meanwhile returns here.
+            guard !marked, !handling.contains(token), !hasHandled(token, on: day) else { return }
             handling.insert(token)
             defer { handling.remove(token) }
             errorText = nil
@@ -190,10 +218,11 @@ final class GeofenceService {
         #endif
         do {
             try await store.prepareForBackground()
+            await goalsReload?.value
             location.refreshAuthorization()
             guard vaultID == action.vaultID, location.authorization == .always,
                 let target = regions.first(where: { $0.id == action.regionID }), mode(for: target) != .off,
-                !isMarked(target, on: action.day)
+                try await !isMarked(target, on: action.day)
             else { return }
             try await mark(target, on: action.day, vaultID: action.vaultID)
         } catch {
@@ -201,8 +230,11 @@ final class GeofenceService {
         }
     }
 
-    private func isMarked(_ target: GeofenceTarget, on day: CalendarDate) -> Bool {
-        store?.content.goalLogs[target.goal.key]?.contains { $0.day == day && $0.value == .boolean(true) } == true
+    /// The day's own record of the goal says yes, as the index has it now.
+    private func isMarked(_ target: GeofenceTarget, on day: CalendarDate) async throws -> Bool {
+        guard let store else { return false }
+        let logs = try await store.computeGoalLogs(from: day, through: day, keys: [target.goal.key])
+        return logs[target.goal.key]?.contains { $0.day == day && $0.value == .boolean(true) } == true
     }
     private func hasHandled(_ token: String, on day: CalendarDate) -> Bool {
         (defaults.dictionary(forKey: Self.handledKey) as? [String: String])?[token] == day.description

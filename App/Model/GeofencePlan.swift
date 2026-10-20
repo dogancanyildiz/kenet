@@ -1,6 +1,7 @@
 import CryptoKit
 import Foundation
 import GoalTracking
+import VaultIndex
 
 struct GeofenceRegion: Equatable, Sendable, Identifiable {
     static let prefix = "journal-geofence-"
@@ -23,13 +24,16 @@ enum GeofencePlan {
     static func digest(_ text: String) -> String {
         SHA256.hash(data: Data(text.utf8)).map { String(format: "%02x", $0) }.joined()
     }
+    /// - Parameter goals: the valid definitions with their resolved place files
+    ///   (``IndexStore/computeGoalDefinitions()``).
     static func targets(
-        snapshot: VaultReadModel, places: [NearbyPlace], vaultID: String,
+        goals: [GoalDefinitionRow], places: [NearbyPlace], vaultID: String,
         maximumRadius: Double = .infinity
     ) -> [GeofenceTarget] {
         let byFile = Dictionary(uniqueKeysWithValues: places.map { ($0.entity.file, $0) })
-        return snapshot.goals.sorted { $0.id < $1.id }.compactMap { goal in
-            guard goal.kind == .boolean, let file = snapshot.goalPlaceFiles[goal.id], let place = byFile[file],
+        return goals.sorted { $0.definition.id < $1.definition.id }.compactMap { row in
+            let goal = row.definition
+            guard goal.kind == .boolean, let file = row.placeFile, let place = byFile[file],
                 place.hasExplicitRadius
             else {
                 return nil

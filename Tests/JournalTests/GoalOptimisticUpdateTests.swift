@@ -321,6 +321,7 @@ import VaultFormat
                     if publishedAt == 0, store.lastUpdated != revision { publishedAt = now }
                     if drawnAt == 0, shows(done) { drawnAt = DispatchTime.now().uptimeNanoseconds }
                     await Task.yield()
+                    // Sampling step of the opt-in timing measurement, not a wait for an event.
                     try? await Task.sleep(for: .milliseconds(1))
                 }
                 try #require(drawnAt > 0 && publishedAt > 0 && answer.at > 0)

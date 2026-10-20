@@ -172,10 +172,12 @@ import Testing
                     host.view.setNeedsLayout()
                     host.view.layoutIfNeeded()
                     if !store.isProcessing, host.view.bounds.width > 0 { break }
+                    // Frame pump: SwiftUI and UIKit draw on a later run-loop turn and report no event to await.
                     try? await Task.sleep(for: .milliseconds(25))
                 }
                 for _ in 0..<4 {
                     await Task.yield()
+                    // Frame pump: SwiftUI and UIKit draw on a later run-loop turn and report no event to await.
                     try? await Task.sleep(for: .milliseconds(25))
                     host.view.setNeedsLayout()
                     host.view.layoutIfNeeded()

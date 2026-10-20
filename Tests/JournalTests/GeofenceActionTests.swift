@@ -184,10 +184,7 @@ struct GeofenceActionTests {
         context.center.fails = false
         context.center.pauseNext = true
         let task = Task { await context.service.enter(identifier) }
-        for _ in 0..<100 {
-            if context.center.paused != nil { break }
-            try await Task.sleep(for: .milliseconds(10))
-        }
+        await waitUntil { context.center.paused != nil }
         #expect(context.center.paused != nil)
         await context.service.enter(identifier)
         #expect(context.center.notices.isEmpty)

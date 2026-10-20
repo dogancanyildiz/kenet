@@ -6,7 +6,7 @@ import VaultStore
 
 @testable import Journal
 
-@MainActor
+@MainActor @Suite(.timeLimit(.minutes(1)))
 struct WriteQueueTests {
     @Test func concurrentAddEventsBothPersistInOrder() async throws {
         let context = try WriteQueueContext()
@@ -14,16 +14,18 @@ struct WriteQueueTests {
         await context.store.start()
         let day = LocalDay.today()
 
+        let gate = FirstArrivalGate()
         let first = Task {
             try await context.store.performEdit(path: "journal/\(day).md") { writer in
                 try await writer.addingEvent(on: day, text: "First queued", time: nil)
-                try await Task.sleep(for: .milliseconds(120))
+                await gate.pass()
             }
         }
-        try await Task.sleep(for: .milliseconds(20))
+        await gate.waitUntilHeld()
         #expect(context.store.isWriting || context.store.isProcessing)
 
-        let second = Task { await context.store.addEvent(on: day, text: "Second queued", time: nil) }
+        let second = await startedTask { await context.store.addEvent(on: day, text: "Second queued", time: nil) }
+        gate.release()
         try await first.value
         #expect(await second.value)
 
@@ -48,22 +50,23 @@ struct WriteQueueTests {
         let firstTarget = try await context.store.eventTarget(on: day, row: firstRow)
         let secondTarget = try await context.store.eventTarget(on: day, row: secondRow)
 
+        let gate = FirstArrivalGate()
         let hold = Task {
             try await context.store.performEdit(path: "journal/\(day).md") { writer in
                 try await writer.changingText(of: firstTarget, at: "journal/\(day).md", to: "Edited one")
-                try await Task.sleep(for: .milliseconds(120))
+                await gate.pass()
             }
         }
-        try await Task.sleep(for: .milliseconds(20))
+        await gate.waitUntilHeld()
         #expect(context.store.isWriting || context.store.isProcessing)
 
-        var secondError: (any Error)?
-        do {
+        let second = await startedTask {
             try await context.store.changeEvent(on: day, target: secondTarget, to: "Edited two")
-        } catch {
-            secondError = error
         }
+        gate.release()
         try await hold.value
+        var secondError: (any Error)?
+        if case .failure(let error) = await second.result { secondError = error }
 
         #expect(secondError == nil)
         let texts = try await context.store.computeDay(on: day).events.map(\.text.plainText)
@@ -97,21 +100,23 @@ struct WriteQueueTests {
         await context.store.start()
         let day = LocalDay.today()
 
+        let gate = FirstArrivalGate()
         let hold = Task {
             try await context.store.performEdit(path: "journal/\(day).md") { writer in
                 try await writer.addingEvent(on: day, text: "Holder", time: nil)
-                try await Task.sleep(for: .milliseconds(150))
+                await gate.pass()
             }
         }
-        try await Task.sleep(for: .milliseconds(20))
+        await gate.waitUntilHeld()
         #expect(context.store.isWriting || context.store.isProcessing)
 
-        let cancelled = Task { await context.store.addEvent(on: day, text: "Cancelled", time: nil) }
-        try await Task.sleep(for: .milliseconds(20))
+        let cancelled = await startedTask { await context.store.addEvent(on: day, text: "Cancelled", time: nil) }
         cancelled.cancel()
         #expect(await cancelled.value == false)
 
-        #expect(await context.store.addEvent(on: day, text: "After cancel", time: nil))
+        let after = await startedTask { await context.store.addEvent(on: day, text: "After cancel", time: nil) }
+        gate.release()
+        #expect(await after.value)
         try await hold.value
         let texts = try await context.store.computeDay(on: day).events.map(\.text.plainText)
         #expect(texts == ["Holder", "After cancel"])
@@ -123,30 +128,29 @@ struct WriteQueueTests {
         await context.store.start()
         let day = LocalDay.today()
 
+        let gate = FirstArrivalGate()
         let hold = Task {
             try await context.store.performEdit(path: "journal/\(day).md") { writer in
                 try await writer.addingEvent(on: day, text: "Blocking write", time: nil)
-                try await Task.sleep(for: .milliseconds(200))
+                await gate.pass()
             }
         }
-        try await Task.sleep(for: .milliseconds(20))
+        await gate.waitUntilHeld()
         #expect(context.store.isWriting || context.store.isProcessing)
         #expect(context.store.canAddEvent)
 
         let model = QuickEntryModel(store: context.store, day: day)
         model.includesTime = false
         model.text = "First enter"
-        let firstSubmit = Task { await model.submit(time: nil) }
-        for _ in 0..<40 {
-            if model.text.isEmpty && !model.isSubmitting { break }
-            try await Task.sleep(for: .milliseconds(5))
-        }
+        let firstSubmit = await startedTask { await model.submit(time: nil) }
         #expect(model.text.isEmpty)
         #expect(!model.isSubmitting)
 
         model.text = "Second enter"
         #expect(model.canSubmit)
-        #expect(await model.submit(time: nil))
+        let secondSubmit = await startedTask { await model.submit(time: nil) }
+        gate.release()
+        #expect(await secondSubmit.value)
         #expect(await firstSubmit.value)
         try await hold.value
 
@@ -163,8 +167,9 @@ struct WriteQueueTests {
         let day = LocalDay.today()
 
         context.store.testingOccupyWriteSlot()
-        let cancelled = Task { await context.store.addEvent(on: day, text: "Cancelled after handoff", time: nil) }
-        try await Task.sleep(for: .milliseconds(30))
+        let cancelled = await startedTask {
+            await context.store.addEvent(on: day, text: "Cancelled after handoff", time: nil)
+        }
         // Same turn: hand the slot to the waiter, then cancel before its body runs.
         context.store.testingReleaseWriteSlot()
         cancelled.cancel()
@@ -186,11 +191,7 @@ struct WriteQueueTests {
         let model = QuickEntryModel(store: context.store, day: day)
         model.includesTime = false
         model.text = "Failed first"
-        let firstSubmit = Task { await model.submit(time: nil) }
-        for _ in 0..<40 {
-            if model.text.isEmpty && !model.isSubmitting { break }
-            try await Task.sleep(for: .milliseconds(5))
-        }
+        let firstSubmit = await startedTask { await model.submit(time: nil) }
         #expect(model.text.isEmpty)
 
         model.text = "Typed second"
@@ -222,11 +223,7 @@ struct WriteQueueTests {
         let model = QuickEntryModel(store: context.store, day: day)
         model.includesTime = false
         model.text = "Queued before switch"
-        let firstSubmit = Task { await model.submit(time: nil) }
-        for _ in 0..<40 {
-            if model.text.isEmpty && !model.isSubmitting { break }
-            try await Task.sleep(for: .milliseconds(5))
-        }
+        let firstSubmit = await startedTask { await model.submit(time: nil) }
         #expect(model.text.isEmpty)
 
         await context.store.select(otherRoot)
@@ -252,8 +249,7 @@ struct WriteQueueTests {
         }
 
         context.store.testingOccupyWriteSlot()
-        let queued = Task { await context.store.addEvent(on: day, text: "Old vault text", time: nil) }
-        try await Task.sleep(for: .milliseconds(20))
+        let queued = await startedTask { await context.store.addEvent(on: day, text: "Old vault text", time: nil) }
         // Hand the slot over, then switch vault before the waiter's body runs.
         context.store.testingReleaseWriteSlot()
         await context.store.select(otherRoot)
@@ -291,17 +287,20 @@ struct WriteQueueTests {
         let row = try #require(try await context.store.allTasks().first { $0.sourceText == "Mark me done" })
         let beforeLine = row.sourceLine
 
+        let gate = FirstArrivalGate()
         let hold = Task {
             try await context.store.performEdit(path: "journal/\(day).md") { writer in
                 try await writer.addingEvent(on: day, text: "Inserted event line", time: nil)
                 try await writer.addingEvent(on: day, text: "Second insert shifts further", time: nil)
-                try await Task.sleep(for: .milliseconds(120))
+                await gate.pass()
             }
         }
-        try await Task.sleep(for: .milliseconds(20))
+        await gate.waitUntilHeld()
         #expect(context.store.isWriting || context.store.isProcessing)
 
-        try await context.store.completeTask(row, on: day)
+        let completion = await startedTask { try await context.store.completeTask(row, on: day) }
+        gate.release()
+        try await completion.value
         try await hold.value
 
         let task = try #require(try await context.store.allTasks().first { $0.sourceText == "Mark me done" })
@@ -330,15 +329,12 @@ struct WriteQueueTests {
             })
         await gate.arm()
         let opening = Task { await store.start() }
-        for _ in 0..<100 {
-            if store.canAddEvent { break }
-            try await Task.sleep(for: .milliseconds(10))
-        }
+        try await waitForGate(gate)
         #expect(store.canAddEvent)
         #expect(store.lastUpdated == nil)
 
-        let write = Task { await store.addEvent(on: LocalDay.today(), text: "During open", time: nil) }
-        try await Task.sleep(for: .milliseconds(40))
+        // Started: the write has taken the free slot and waits for the opening refresh held above.
+        let write = await startedTask { await store.addEvent(on: LocalDay.today(), text: "During open", time: nil) }
         #expect(!store.isWriting)
         #expect(store.lastUpdated == nil)
 

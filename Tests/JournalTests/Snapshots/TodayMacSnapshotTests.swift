@@ -67,6 +67,7 @@
             // Up to 20 s: on a loaded machine the goal strip can take longer than 5 s to settle.
             for _ in 0..<400 {
                 await Task.yield()
+                // Frame pump: SwiftUI and AppKit draw on a later run-loop turn and report no event to await.
                 try? await Task.sleep(for: .milliseconds(50))
                 if !context.store.isProcessing, ready.isReady { break }
             }
@@ -126,9 +127,11 @@
             window.makeKeyAndOrderFront(nil)
             for _ in 0..<400 {
                 await Task.yield()
+                // Frame pump: SwiftUI and AppKit draw on a later run-loop turn and report no event to await.
                 try? await Task.sleep(for: .milliseconds(50))
                 if !context.store.isProcessing { break }
             }
+            // Last draw settles before the reference is taken; the references were recorded with this pause.
             try? await Task.sleep(for: .milliseconds(200))
 
             let record = ProcessInfo.processInfo.environment["SNAPSHOT_TESTING_RECORD"]

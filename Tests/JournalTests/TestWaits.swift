@@ -75,7 +75,7 @@ final class WatcherClock: Sendable {
         root = try testDirectory()
         let ticks = WatcherClockTicks()
         self.ticks = ticks
-        watcher = VaultWatcher(root: root, interval: interval) { Task { await ticks.increment() } }
+        watcher = VaultWatcher(root: root, interval: interval) { _ in Task { await ticks.increment() } }
     }
 
     /// Waits `count` debounce periods: each round activates the clock, which reports one debounce

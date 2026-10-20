@@ -115,8 +115,9 @@ struct VaultWatcherTests {
         let root = try temporaryDirectory()
         defer { try? FileManager.default.removeItem(at: root) }
         let counter = ChangeCounter()
-        let watcher = VaultWatcher(root: root) { Task { await counter.increment() } }
+        let watcher = VaultWatcher(root: root) { _ in Task { await counter.increment() } }
         defer { watcher.stop() }
+        await watcher.waitUntilReady()
         for number in 0..<5 {
             try Data("note".utf8).write(to: root.appendingPathComponent("note-\(number).md"))
         }
@@ -143,8 +144,9 @@ struct VaultWatcherTests {
         let file = root.appendingPathComponent("note.md")
         try Data("before".utf8).write(to: file)
         let counter = ChangeCounter()
-        let watcher = VaultWatcher(root: root, interval: 0.8) { Task { await counter.increment() } }
+        let watcher = VaultWatcher(root: root, interval: 0.8) { _ in Task { await counter.increment() } }
         defer { watcher.stop() }
+        await watcher.waitUntilReady()
         let clock = try WatcherClock(interval: 0.8)
         defer { clock.stop() }
         watcher.setForeground(true)
@@ -173,8 +175,9 @@ struct VaultWatcherTests {
                 at: root.appendingPathComponent(name), withIntermediateDirectories: true)
         }
         let counter = ChangeCounter()
-        let watcher = VaultWatcher(root: root) { Task { await counter.increment() } }
+        let watcher = VaultWatcher(root: root) { _ in Task { await counter.increment() } }
         defer { watcher.stop() }
+        await watcher.waitUntilReady()
         let clock = try WatcherClock()
         defer { clock.stop() }
         for name in [".hidden", "templates", "conflicts"] {

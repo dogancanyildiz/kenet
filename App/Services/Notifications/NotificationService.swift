@@ -1,6 +1,7 @@
 import Foundation
 import Observation
 import VaultFormat
+import VaultIndex
 
 /// A single scheduling writer: canceled debounce tasks never cancel an in-flight center operation.
 @MainActor @Observable
@@ -32,8 +33,14 @@ final class NotificationService {
     @ObservationIgnored private var vaultDays: (CalendarDate, CalendarDate) async -> NotificationVaultDays? = { _, _ in
         NotificationVaultDays()
     }
+    /// Daily goals and their logs on the planned days; nil stands for a failed read. Without a
+    /// store there are none, as in an empty vault.
+    @ObservationIgnored private var vaultGoals: (CalendarDate, CalendarDate) async -> NotificationGoals? = { _, _ in
+        NotificationGoals()
+    }
     @ObservationIgnored private var debounceTask: Task<Void, Never>?
-    @ObservationIgnored private var snapshot: VaultReadModel?
+    /// A vault is open and published: only then is anything planned.
+    @ObservationIgnored private var isOpen = false
     @ObservationIgnored private var vaultID: String?
     /// Last vault that was open; an unreadable vault reopening as itself is not a switch.
     @ObservationIgnored private var lastOpenVaultID: String?
@@ -70,8 +77,15 @@ final class NotificationService {
             // Shielded like the people read: a cancelled plan would read as a failed read.
             return try? await Task { try await store.computeNotificationDays(from: first, through: last) }.value
         }
-        store.onSnapshotChange = { [weak self] content, root in self?.update(snapshot: content, vaultID: root?.path) }
-        update(snapshot: store.lastUpdated == nil ? nil : store.content, vaultID: store.vaultURL?.path)
+        vaultGoals = { [weak store] first, last in
+            guard let store else { return nil }
+            // Shielded like the people read: a cancelled plan would read as a failed read.
+            return try? await Task { try await store.computeNotificationGoals(from: first, through: last) }.value
+        }
+        store.onSnapshotChange = { [weak self] content, root in
+            self?.update(isOpen: content != nil, vaultID: root?.path)
+        }
+        update(isOpen: store.lastUpdated != nil, vaultID: store.vaultURL?.path)
     }
 
     /// Tests inject people without an open vault; nil stands for a failed read. A later `attach` replaces this.
@@ -82,6 +96,11 @@ final class NotificationService {
     /// Tests inject the planned week without an open vault; nil stands for a failed read.
     func useVaultDays(_ days: NotificationVaultDays?) {
         vaultDays = { _, _ in days }
+    }
+
+    /// Tests inject the daily goals of the planned week without an open vault; nil stands for a failed read.
+    func useNotificationGoals(_ goals: NotificationGoals?) {
+        vaultGoals = { _, _ in goals }
     }
     func activateAutomatically(
         environment: [String: String] = ProcessInfo.processInfo.environment,
@@ -98,13 +117,14 @@ final class NotificationService {
             self?.navigationRequest = NotificationNavigationRequest(destination: destination)
         }
     }
-    func update(snapshot: VaultReadModel?, vaultID: String?) {
+    /// `isOpen`: a vault is open and published (``IndexStore/lastUpdated`` is set).
+    func update(isOpen: Bool, vaultID: String?) {
         let changedVault = self.vaultID != vaultID
         if let vaultID {
             if let lastOpenVaultID, lastOpenVaultID != vaultID { clearsDelivered = true }
             lastOpenVaultID = vaultID
         }
-        self.snapshot = snapshot
+        self.isOpen = isOpen
         self.vaultID = vaultID
         queueReplan(after: changedVault ? .zero : debounce)
     }
@@ -167,15 +187,18 @@ final class NotificationService {
             // Nil when the people could not be read: no reminder is planned and no record is dropped.
             var people: [CadenceReminderPerson]?
             var schedule = NotificationSchedule(requests: [], assignments: [])
-            if authorization.canSchedule, let snapshot {
+            if authorization.canSchedule, isOpen {
                 if preferences.peopleEnabled { people = await cadencePeople(anchor) }
                 // Nil when the week could not be read: no task or journal reminder is planned.
                 var days: NotificationVaultDays? = NotificationVaultDays()
                 if preferences.tasksEnabled || preferences.journalEnabled {
                     days = await vaultDays(anchor, anchor.addingDays(6) ?? anchor)
                 }
+                // Nil when the goals could not be read: no goal reminder is planned.
+                var goals: NotificationGoals? = NotificationGoals()
+                if preferences.goalsEnabled { goals = await vaultGoals(anchor, anchor.addingDays(6) ?? anchor) }
                 schedule = NotificationPlanner.schedule(
-                    snapshot: snapshot, days: days, preferences: preferences, now: instant, timeZone: zone,
+                    goals: goals, days: days, preferences: preferences, now: instant, timeZone: zone,
                     people: people ?? [], lastNotified: history.memory(vaultID: vault).fired)
             }
             let plan = schedule.requests

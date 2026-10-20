@@ -47,7 +47,7 @@ struct GoalEditingTests {
         let expected = String(decoding: before, as: UTF8.self).replacingOccurrences(
             of: "date: 2026-09-27\n", with: "date: 2026-09-27\ngoals:\n  spor: true\n")
         #expect(try Data(contentsOf: file) == Data(expected.utf8))
-        #expect(context.store.content.goalLogs["spor"]?.last { $0.day == day }?.value == .boolean(true))
+        #expect((try await context.store.goalHistory())["spor"]?.last { $0.day == day }?.value == .boolean(true))
         #expect(try await context.store.computeDay(on: day).hasGoalRecords)
         #expect(model.isComplete(for: sport))
         #expect(await model.toggle(sport))
@@ -87,7 +87,7 @@ struct GoalEditingTests {
         }
         #expect(await invalid.save(remove: true))
         #expect(model.value(for: water) == nil)
-        #expect(context.store.content.goalLogs["su"]?.allSatisfy { $0.day != day } == true)
+        #expect((try await context.store.goalHistory())["su"]?.allSatisfy { $0.day != day } == true)
     }
 
     @Test func historicalCorrectionPreservesNeighbourValuesCommentsAndBody() async throws {
@@ -133,7 +133,11 @@ struct GoalEditingTests {
         await context.start()
         let old = CalendarDate("2024-01-01")!
         try await context.store.setGoal(on: old, key: "su", value: .number(7))
-        #expect(context.store.content.goalLogs["su"]?.allSatisfy { $0.day != old } == true)
+        // Outside the 400-day goal-log list the read model kept.
+        let today = LocalDay.today()
+        let window = try await context.store.computeGoalLogs(
+            from: today.addingDays(-399)!, through: today.addingDays(6)!)
+        #expect(window["su"]?.allSatisfy { $0.day != old } == true)
         let model = GoalDayModel(store: context.store, day: old)
         await model.load()
         let water = try #require(model.goals.first { $0.key == "su" })
@@ -157,6 +161,6 @@ struct GoalEditingTests {
         await context.store.refresh()
         await model.load()
         #expect(model.value(for: try #require(model.goals.first { $0.key == "su" })) == .number(3))
-        #expect(context.store.content.goalLogs["su"]?.last { $0.day == day }?.value == .number(3))
+        #expect((try await context.store.goalHistory())["su"]?.last { $0.day == day }?.value == .number(3))
     }
 }

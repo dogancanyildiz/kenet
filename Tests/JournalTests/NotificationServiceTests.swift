@@ -23,7 +23,7 @@ struct NotificationServiceTests {
             id: "other-feature", date: notificationDate(), title: "foreign", body: "", destination: .journal)
         center.values = [old.id: old, foreign.id: foreign]
         let service = service(center, defaults: defaults)
-        service.update(snapshot: .empty, vaultID: "sample")
+        service.update(isOpen: true, vaultID: "sample")
         await service.replanNow()
         #expect(center.operations.first == "remove")
         #expect(center.removals.first?.contains(old.id) == true)
@@ -45,7 +45,7 @@ struct NotificationServiceTests {
             let center = FakeNotificationCenter()
             center.status = status
             let service = service(center, defaults: defaults)
-            service.update(snapshot: .empty, vaultID: "sample")
+            service.update(isOpen: true, vaultID: "sample")
             await service.replanNow()
             #expect(service.authorization == status)
             #expect(service.pending.count == (status.canSchedule ? 7 : 0))
@@ -59,7 +59,7 @@ struct NotificationServiceTests {
         let center = FakeNotificationCenter()
         center.status = .notDetermined
         let service = service(center, defaults: defaults)
-        service.update(snapshot: .empty, vaultID: "sample")
+        service.update(isOpen: true, vaultID: "sample")
         await service.replanNow()
         #expect(center.permissionRequests == 0)
         center.failPermission = true
@@ -84,7 +84,7 @@ struct NotificationServiceTests {
         defer { defaults.clean() }
         let center = FakeNotificationCenter()
         let service = service(center, defaults: defaults)
-        service.update(snapshot: .empty, vaultID: "sample")
+        service.update(isOpen: true, vaultID: "sample")
         await service.replanNow()
         center.status = .denied
         await service.foreground()
@@ -98,7 +98,7 @@ struct NotificationServiceTests {
         let center = FakeNotificationCenter()
         center.pauseNextAdd = true
         let service = service(center, defaults: defaults)
-        service.update(snapshot: .empty, vaultID: "sample")
+        service.update(isOpen: true, vaultID: "sample")
         let planning = Task { await service.replanNow() }
         for _ in 0..<100 {
             if center.pausedAdd != nil { break }
@@ -118,13 +118,13 @@ struct NotificationServiceTests {
         defer { defaults.clean() }
         let center = FakeNotificationCenter()
         let service = service(center, defaults: defaults)
-        service.update(snapshot: try notificationSample().model, vaultID: "first")
+        service.update(isOpen: true, vaultID: "first")
         await service.replanNow()
         #expect(!service.pending.isEmpty)
-        service.update(snapshot: nil, vaultID: "second")
+        service.update(isOpen: false, vaultID: "second")
         await service.replanNow()
         #expect(service.pending.isEmpty)
-        service.update(snapshot: .empty, vaultID: "second")
+        service.update(isOpen: true, vaultID: "second")
         await service.replanNow()
         #expect(service.pending.allSatisfy { $0.destination == .journal })
     }
@@ -134,25 +134,25 @@ struct NotificationServiceTests {
         defer { defaults.clean() }
         let center = FakeNotificationCenter()
         let service = service(center, defaults: defaults)
-        service.update(snapshot: nil, vaultID: "first")
+        service.update(isOpen: false, vaultID: "first")
         await service.replanNow()
-        service.update(snapshot: try notificationSample().model, vaultID: "first")
+        service.update(isOpen: true, vaultID: "first")
         await service.replanNow()
         // An unreadable vault that reopens as itself is not a switch.
-        service.update(snapshot: nil, vaultID: nil)
+        service.update(isOpen: false, vaultID: nil)
         await service.replanNow()
-        service.update(snapshot: .empty, vaultID: "first")
+        service.update(isOpen: true, vaultID: "first")
         await service.replanNow()
         #expect(center.deliveredRemovals == 0)
-        service.update(snapshot: nil, vaultID: "second")
+        service.update(isOpen: false, vaultID: "second")
         await service.replanNow()
         #expect(center.deliveredRemovals == 1)
-        service.update(snapshot: .empty, vaultID: "second")
+        service.update(isOpen: true, vaultID: "second")
         await service.replanNow()
         await service.replanNow()
         #expect(center.deliveredRemovals == 1)
-        service.update(snapshot: nil, vaultID: nil)
-        service.update(snapshot: .empty, vaultID: "first")
+        service.update(isOpen: false, vaultID: nil)
+        service.update(isOpen: true, vaultID: "first")
         await service.replanNow()
         #expect(center.deliveredRemovals == 2)
     }
@@ -163,7 +163,7 @@ struct NotificationServiceTests {
         let center = FakeNotificationCenter()
         center.failIDs = ["journal-2026-09-27"]
         let service = service(center, defaults: defaults)
-        service.update(snapshot: .empty, vaultID: "sample")
+        service.update(isOpen: true, vaultID: "sample")
         await service.replanNow()
         #expect(service.errorText != nil && service.pending.count == 6)
         center.failIDs = []
@@ -176,7 +176,7 @@ struct NotificationServiceTests {
         defer { defaults.clean() }
         let center = FakeNotificationCenter()
         let service = service(center, defaults: defaults)
-        service.update(snapshot: .empty, vaultID: "sample")
+        service.update(isOpen: true, vaultID: "sample")
         service.activateAutomatically(environment: ["JOURNAL_NO_AUTOSTART": "1"], arguments: [])
         service.activateAutomatically(environment: [:], arguments: ["JOURNAL_NO_AUTOSTART"])
         service.activateAutomatically(environment: ["XCTestConfigurationFilePath": "test"], arguments: [])

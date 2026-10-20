@@ -74,8 +74,8 @@
                 let store = scene.store
                 switch snapshotCase.screen {
                 case .goalDetail:
-                    let goal = try #require(
-                        store.content.goals.first { $0.key == "kitap" } ?? store.content.goals.first)
+                    let goals = try await store.goalDefinitions()
+                    let goal = try #require(goals.first { $0.key == "kitap" } ?? goals.first)
                     return AnyView(
                         NavigationStack { GoalDetailView(store: store, goal: goal, day: goalsSnapshotDay) }.inkPage())
                 case .today, .tasks, .people, .goals:

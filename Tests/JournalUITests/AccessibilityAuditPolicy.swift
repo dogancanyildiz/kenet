@@ -21,9 +21,11 @@ enum AccessibilityAuditPolicy {
     /// Settles the screen, runs the audit (once more after a -56 timeout), then measures touch targets.
     @MainActor
     static func audit(_ app: XCUIApplication, screen: String, secondTimeout: SecondTimeout = .fail) throws {
-        settle(app)
+        // Every query is a round trip to the app (seconds each on a CI runner): the bars are read once
+        // from the settled tree, and each issue's element once (``Seen``).
+        let chrome = Chrome(settle(app))
         let handler: (XCUIAccessibilityAuditIssue) -> Bool = { issue in
-            MainActor.assumeIsolated { handle(issue, screen: screen, app: app) }
+            MainActor.assumeIsolated { handle(issue, screen: screen, chrome: chrome) }
         }
         // CI simulators occasionally report "Audit failed to complete in time" (code -56): the audit's
         // own time limit ran out on a slow runner, not a finding.
@@ -42,10 +44,11 @@ enum AccessibilityAuditPolicy {
     // MARK: - Issues
 
     @MainActor
-    static func handle(_ issue: XCUIAccessibilityAuditIssue, screen: String, app: XCUIApplication) -> Bool {
+    static func handle(_ issue: XCUIAccessibilityAuditIssue, screen: String, chrome: Chrome) -> Bool {
         let type = name(of: issue.auditType)
-        let described = issue.element.map(describe) ?? "(no element)"
-        if let reason = exemptionReason(for: issue, app: app) {
+        let seen = issue.element.map(Seen.init)
+        let described = seen?.described ?? "(no element)"
+        if let reason = exemptionReason(for: issue, seen: seen, chrome: chrome) {
             print("A11Y EXEMPT (\(screen)): type=\(type) \(described) — \(reason)")
             return true
         }
@@ -55,28 +58,74 @@ enum AccessibilityAuditPolicy {
     }
 
     @MainActor
-    static func describe(_ element: XCUIElement) -> String {
-        "\(element.elementType.rawValue) '\(element.identifier)' '\(element.label)' \(element.frame)"
-    }
-
-    @MainActor
-    static func exemptionReason(for issue: XCUIAccessibilityAuditIssue, app: XCUIApplication) -> String? {
-        guard let element = issue.element else {
+    static func exemptionReason(for issue: XCUIAccessibilityAuditIssue, seen: Seen?, chrome: Chrome) -> String? {
+        guard let element = issue.element, let seen else {
             return "names no element: nothing to fix or exempt by element"
                 + (issue.auditType == .hitRegion ? " (touch targets measured by assertTouchTargets)" : "")
         }
-        if issue.auditType == .contrast, let reason = contrastReason(for: element, in: app) {
+        if issue.auditType == .contrast, let reason = contrastReason(for: element, frame: seen.frame, chrome: chrome) {
             return reason
         }
-        if issue.auditType == .hitRegion, element.frame.width >= minimumTarget - 0.5,
-            element.frame.height >= minimumTarget - 0.5
+        if issue.auditType == .hitRegion, seen.frame.width >= minimumTarget - 0.5,
+            seen.frame.height >= minimumTarget - 0.5
         {
-            return "measured \(element.frame.size) on screen, at least 44 × 44 pt (the audit's estimate disagrees)"
+            return "measured \(seen.frame.size) on screen, at least 44 × 44 pt (the audit's estimate disagrees)"
         }
         let exemption = (AccessibilityAuditExemption.all + AccessibilityAuditExemption.touchTargets).first {
-            $0.type == issue.auditType && $0.matches(identifier: element.identifier, label: element.label)
+            $0.type == issue.auditType && $0.matches(identifier: seen.identifier, label: seen.label)
         }
         return exemption?.logged
+    }
+
+    /// An issue's element, each property read once. Not `snapshot()`: that copies the element's whole
+    /// subtree, seconds for a list row on a CI runner.
+    struct Seen {
+        let identifier: String
+        let label: String
+        let frame: CGRect
+
+        @MainActor
+        init(_ element: XCUIElement) {
+            identifier = element.identifier
+            label = element.label
+            frame = element.frame
+        }
+
+        var described: String { "'\(identifier)' '\(label)' \(frame)" }
+    }
+
+    /// The window and the system bars, read from one snapshot of the application.
+    struct Chrome {
+        var window = CGRect.infinite
+        var tabBar: CGRect?
+        /// The first navigation bar in tree order with a height.
+        var navigationBar: CGRect?
+        /// Every navigation bar and toolbar.
+        var bars: [CGRect] = []
+
+        @MainActor
+        init(_ root: XCUIElementSnapshot?) {
+            guard let root else { return }
+            var windowFound = false
+            var stack = [root]
+            while let node = stack.popLast() {
+                switch node.elementType {
+                case .window where !windowFound:
+                    window = node.frame
+                    windowFound = true
+                case .tabBar where tabBar == nil:
+                    tabBar = node.frame
+                case .navigationBar:
+                    if navigationBar == nil, node.frame.height > 0 { navigationBar = node.frame }
+                    bars.append(node.frame)
+                case .toolbar:
+                    bars.append(node.frame)
+                default:
+                    break
+                }
+                stack.append(contentsOf: node.children.reversed())
+            }
+        }
     }
 
     // MARK: - Contrast
@@ -85,33 +134,28 @@ enum AccessibilityAuditPolicy {
     /// every page ground (`PaletteContrastTests`). The element's own rendering is measured instead: the
     /// ground is the median luminance, the ink the 0.2 % at the far end.
     @MainActor
-    static func contrastReason(for element: XCUIElement, in app: XCUIApplication) -> String? {
-        if let bar = coveringBar(of: element.frame, in: app) {
+    static func contrastReason(for element: XCUIElement, frame: CGRect, chrome: Chrome) -> String? {
+        if let bar = coveringBar(of: frame, chrome: chrome) {
             return "under the \(bar): the system bar's glass and scroll edge draw over the text"
         }
-        guard let ratio = measuredContrast(of: element), ratio >= minimumContrast else { return nil }
+        guard let ratio = measuredContrast(of: element, frame: frame), ratio >= minimumContrast else { return nil }
         return String(format: "measured %.2f:1 on screen (the audit's estimate disagrees)", ratio)
     }
 
     static let minimumContrast = 4.5
 
     /// The tab bar or the navigation bar when it overlaps the frame (content scrolled under it).
-    @MainActor
-    static func coveringBar(of frame: CGRect, in app: XCUIApplication) -> String? {
-        let tabBar = app.tabBars.firstMatch
-        if tabBar.exists, tabBar.frame.intersects(frame) { return "tab bar" }
-        let navigationBar = app.navigationBars.firstMatch
-        if navigationBar.exists, navigationBar.frame.height > 0, frame.minY < navigationBar.frame.maxY {
-            return "navigation bar"
-        }
+    static func coveringBar(of frame: CGRect, chrome: Chrome) -> String? {
+        if let tabBar = chrome.tabBar, tabBar.intersects(frame) { return "tab bar" }
+        if let navigationBar = chrome.navigationBar, frame.minY < navigationBar.maxY { return "navigation bar" }
         return nil
     }
 
     /// Contrast of the element as drawn: ground is the median relative luminance of its pixels, ink the
     /// darkest 0.2 % on a light ground, the farther end on a dark one. Nil when it cannot be captured.
     @MainActor
-    static func measuredContrast(of element: XCUIElement) -> Double? {
-        guard element.frame.width >= 1, element.frame.height >= 1 else { return nil }
+    static func measuredContrast(of element: XCUIElement, frame: CGRect) -> Double? {
+        guard frame.width >= 1, frame.height >= 1 else { return nil }
         guard let luminances = relativeLuminances(of: element.screenshot().image), luminances.count > 16
         else { return nil }
         let sorted = luminances.sorted()
@@ -156,9 +200,9 @@ enum AccessibilityAuditPolicy {
     @MainActor
     static func assertTouchTargets(in app: XCUIApplication, screen: String) {
         guard let root = try? app.snapshot() else { return }
-        let window = app.windows.firstMatch.frame
-        let bars = (app.navigationBars.allElementsBoundByIndex + app.toolbars.allElementsBoundByIndex)
-            .map(\.frame)
+        let chrome = Chrome(root)
+        let window = chrome.window
+        let bars = chrome.bars
         var stack: [(node: XCUIElementSnapshot, parent: XCUIElement.ElementType)] = [(root, .any)]
         while let (node, parent) = stack.popLast() {
             stack.append(contentsOf: node.children.map { ($0, node.elementType) })
@@ -195,11 +239,14 @@ enum AccessibilityAuditPolicy {
     // MARK: - Settling
 
     /// Waits until the element tree stops moving (a sheet rising, the iPad turning): an audit taken
-    /// mid-animation measures frames and pixels on their way somewhere else.
+    /// mid-animation measures frames and pixels on their way somewhere else. Returns the settled tree.
     @MainActor
-    static func settle(_ app: XCUIApplication, timeout: TimeInterval = 6) {
+    @discardableResult
+    static func settle(_ app: XCUIApplication, timeout: TimeInterval = 6) -> XCUIElementSnapshot? {
+        var last: XCUIElementSnapshot?
         func frames() -> [CGRect] {
-            guard let root = try? app.snapshot() else { return [] }
+            last = try? app.snapshot()
+            guard let root = last else { return [] }
             var result: [CGRect] = []
             var stack = [root]
             while let node = stack.popLast() {
@@ -213,9 +260,10 @@ enum AccessibilityAuditPolicy {
         while Date() < deadline {
             RunLoop.current.run(until: Date().addingTimeInterval(0.4))
             let current = frames()
-            if current == previous { return }
+            if current == previous { return last }
             previous = current
         }
+        return last
     }
 
     static func name(of type: XCUIAccessibilityAuditType) -> String {

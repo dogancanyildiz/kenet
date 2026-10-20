@@ -36,30 +36,54 @@ final class AccessibilityAuditUITests: XCTestCase {
         turned = true
     }
 
+    // One test per screen: each audit gets the runner's whole per-test time allowance (300 s on CI).
+    // Every type on the iPad's three columns is slow on a CI runner; five screens in one test ran out.
+
     @MainActor
-    func testMainScreensPassAccessibilityAudit() throws {
-        let app = UITestSupport.launchApp(vaultURL: vaultURL)
-        UITestSupport.activateSystemAlertMonitor(in: app)
-
-        UITestSupport.waitForExistence(UITestSupport.element(in: app, identifier: "screen.today"))
-        turnSplitShell(app)
+    func testTodayPassesAccessibilityAudit() throws {
+        let app = launchTurned()
         try audit(app, screen: "today")
+    }
 
+    @MainActor
+    func testDaysPassesAccessibilityAudit() throws {
+        let app = launchTurned()
         UITestSupport.openTab(app, identifier: "tab.days", screen: "screen.days")
         try audit(app, screen: "days")
+    }
 
+    @MainActor
+    func testTasksPassesAccessibilityAudit() throws {
+        let app = launchTurned()
         UITestSupport.openTab(app, identifier: "tab.tasks", screen: "screen.tasks")
         try audit(app, screen: "tasks")
+    }
 
+    @MainActor
+    func testEntitiesPassesAccessibilityAudit() throws {
+        let app = launchTurned()
         UITestSupport.openTab(app, identifier: "tab.entities", screen: "screen.entities")
         try audit(app, screen: "entities")
+    }
 
-        UITestSupport.openTab(app, identifier: "tab.today", screen: "screen.today")
+    @MainActor
+    func testSettingsPassesAccessibilityAudit() throws {
+        let app = launchTurned()
         let settings = UITestSupport.element(in: app, identifier: "button.settings")
         UITestSupport.waitForExistence(settings)
         settings.tap()
         UITestSupport.waitForExistence(UITestSupport.element(in: app, identifier: "screen.settings"))
         try audit(app, screen: "settings")
+    }
+
+    /// Launches on Today and turns the split shell (iPad) as requested.
+    @MainActor
+    private func launchTurned() -> XCUIApplication {
+        let app = UITestSupport.launchApp(vaultURL: vaultURL)
+        UITestSupport.activateSystemAlertMonitor(in: app)
+        UITestSupport.waitForExistence(UITestSupport.element(in: app, identifier: "screen.today"))
+        turnSplitShell(app)
+        return app
     }
 
     /// A second -56 timeout skips the screen here (logged); every real finding still fails the test.

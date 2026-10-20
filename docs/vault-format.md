@@ -1455,7 +1455,7 @@ flowchart TD
 | Silinen tanım | Tanımı silinen ya da eksik dosyalar düz not olarak kalır. Uygulama dosyaları ve bağlantıları silmez. |
 | Yeniden sınıflandırma | `types.json` değişince uygulama indeksi dosyalardan yeniden sınıflandırır. |
 | Tip düzenleme | Oluşturma, düzenleme ve silme yalnız hedef tip tanımını değiştirir. Diğer tipler ve bilinmeyen JSON anahtar ve değerleri bayt düzeyinde aynı kalır. |
-| Yazma yolu | Yazma atomiktir. Uygulama yazmayı ortak kasa yazma kuyruğunda yapar. |
+| Yazma yolu | Yazma atomiktir. Tek istisna: birim sabit bağlantıyı ve dışlayıcı adlandırmayı desteklemiyorsa dosyanın ilk oluşturulması atomik değildir ([Mimari](architecture.md), atomik yazma tablosu). Uygulama yazmayı ortak kasa yazma kuyruğunda yapar. |
 | Tip silme | Tip silme varlık Markdown dosyalarına dokunmaz. |
 
 ## Eşitleme çakışması

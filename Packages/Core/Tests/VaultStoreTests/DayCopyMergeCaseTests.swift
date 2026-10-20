@@ -148,7 +148,10 @@ struct DayCopyMergeCaseTests {
             let data = try Data(contentsOf: vault.url(copy))
             let document = RawDocument(bytes: data)
             var owners: Set<String> = ["e2a001"]
-            try IndexBuilder.insert(file: copy, data: data, document: document, modified: 0, db: db, owners: &owners)
+            try IndexBuilder.insert(
+                file: copy, data: data, document: document,
+                stamp: FileStamp(modified: 0, changed: 0, inode: 0, size: data.count), verified: 0, db: db,
+                owners: &owners)
             try IndexBuilder.insertLinks(document: document, file: copy, db: db)
             // A full build assigned ownership in path order, where the copy came first.
             try db.execute(sql: "UPDATE blocks SET ownsIdentifier=0 WHERE identifier='e2a001'")

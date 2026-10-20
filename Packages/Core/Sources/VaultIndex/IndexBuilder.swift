@@ -4,7 +4,8 @@ import VaultFormat
 
 enum IndexBuilder {
     static func insert(
-        file: String, data: Data, document: RawDocument, modified: Double, db: Database, owners: inout Set<String>,
+        file: String, data: Data, document: RawDocument, stamp: FileStamp, verified: Double, db: Database,
+        owners: inout Set<String>,
         customKinds: Set<String> = []
     ) throws {
         let frontmatter: Frontmatter?
@@ -23,8 +24,14 @@ enum IndexBuilder {
             : (date != nil
                 ? "day" : ((["person", "place", "goal"].contains(type) || customKinds.contains(type)) ? type : "note"))
         try db.execute(
-            sql: "INSERT INTO files VALUES (?,?,?,?,?,?,?)",
-            arguments: [file, kind, date, modified, data.count, ByteDigest.hex(data), document.isValidUTF8])
+            sql: """
+                INSERT INTO files (path,kind,date,modified,size,digest,readable,changed,inode,verified)
+                VALUES (?,?,?,?,?,?,?,?,?,?)
+                """,
+            arguments: [
+                file, kind, date, stamp.modified, data.count, ByteDigest.hex(data), document.isValidUTF8,
+                stamp.changed, stamp.inode, verified,
+            ])
         guard document.isValidUTF8 else { return }
         if ["person", "place", "goal"].contains(kind) || customKinds.contains(kind) {
             let sourceName = scalar("name")

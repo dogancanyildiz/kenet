@@ -132,8 +132,8 @@ struct GoalStatusQueryTests {
         let duplicate = "journal/\(missed)b.md"
         try vault.index.database.write { db in
             try db.execute(
-                sql: "INSERT INTO files VALUES (?,?,?,?,?,?,?)",
-                arguments: [duplicate, "note", missed.description, 0.0, 0, "00", true])
+                sql: "INSERT INTO files VALUES (?,?,?,?,?,?,?,?,?,?)",
+                arguments: [duplicate, "note", missed.description, 0.0, 0, "00", true, 0.0, 0, 0.0])
             try db.execute(
                 sql: "INSERT INTO goal_logs VALUES (?,?,?,?,?)",
                 arguments: [duplicate, "su", missed.description, "boolean", "false"])

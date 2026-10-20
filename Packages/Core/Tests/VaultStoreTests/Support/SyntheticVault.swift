@@ -215,11 +215,16 @@ enum SyntheticVault {
             linkedPersonPath: linked.map { "people/\($0).md" })
     }
 
+    /// A fixed past modification time: the index re-reads files modified within 2 s of their last
+    /// check, so fresh timestamps would make read counts depend on how fast the vault was generated.
+    static let modificationDate = Date(timeIntervalSince1970: 1_759_622_400)
+
     private static func write(_ root: URL, _ path: String, _ text: String) throws {
         let url = root.appendingPathComponent(path)
         try FileManager.default.createDirectory(
             at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
         try Data(text.utf8).write(to: url)
+        try FileManager.default.setAttributes([.modificationDate: modificationDate], ofItemAtPath: url.path)
     }
 
     private static func uniqueNames(

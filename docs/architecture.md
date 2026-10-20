@@ -701,6 +701,9 @@ erDiagram
     INTEGER size
     TEXT digest
     BOOLEAN readable
+    REAL changed
+    INTEGER inode
+    REAL verified
   }
   entities {
     TEXT file PK
@@ -761,15 +764,15 @@ erDiagram
 | Konum | Her cihazda yerel, kasanın dışında. Eşitleme indeksi taşımaz |
 | Yeniden üretim | Uygulama indeksi dosyalardan eksiksiz yeniden üretebilir. İndeks bozulursa uygulama indeksi siler ve yeniden kurar |
 | Dosya adı | İndeks kasa yolunun SHA-256 özetiyle adlandırılmış ayrı bir Application Support veritabanındadır |
-| Şema sürümü | Veritabanı sürümü tutar: `PRAGMA user_version = 7`. Uygulamanın beklediği sürümle uyuşmazsa uygulama bütün tabloları siler ve güncel boş şemayı kurar. Şema göçü yok |
-| Doldurma | Çağıran indeksi `rebuild(vaultRoot:)` ile ya da boş indekste tam kurulum yolunu kullanan `refresh(vaultRoot:)` ile dosyalardan doldurur |
+| Şema sürümü | Veritabanı sürümü tutar: `PRAGMA user_version = 8`. Uygulamanın beklediği sürümle uyuşmazsa uygulama bütün tabloları siler ve güncel boş şemayı kurar. Şema göçü yok |
+| Doldurma | Çağıran indeksi `rebuild(vaultRoot:)` ile ya da boş indekste tam kurulum yolunu kullanan `refresh(vaultRoot:)` ya da `update(paths:vaultRoot:)` ile dosyalardan doldurur |
 | Bozuk veritabanı | Açılışta SQLite NOTADB ya da CORRUPT hatası gelirse uygulama dosyayı ve `-wal`/`-shm`/`-journal` yardımcılarını siler ve boş şemayı kurar. Diğer hataları fırlatır |
 
 **Tablo her indeks tablosunun içeriğini gösterir.**
 
 | Tablo | Anahtar | İçerik |
 |---|---|---|
-| `files` | NFC yol birincil anahtarı; tarih indeksi | Tür, gün tarihi, değişiklik zamanı, bayt boyutu, SHA-256, UTF-8 okunabilirliği |
+| `files` | NFC yol birincil anahtarı; tarih indeksi | Tür, gün tarihi, değişiklik zamanı (`mtime`), bayt boyutu, SHA-256, UTF-8 okunabilirliği, durum değişikliği zamanı (`ctime`), inode, son doğrulama anı |
 | `entities` | Dosya | Tip, görünen ad, ayırt edici, karşılaştırma anahtarı, hedef alanları |
 | `aliases` | Dosya + sıra | Takma ad ve karşılaştırma anahtarı |
 | `entity_fields` | Varlık dosyası + üst düzey anahtar, bayt karşılaştırmalı | Kişi, konum ve kayıtlı özel tip dosyalarının yalnız tarih `date`, sayı `number` ve evet/hayır `boolean` alanları |
@@ -844,13 +847,24 @@ flowchart TD
   Cagri["refresh(vaultRoot:) ya da update(paths:vaultRoot:)"] --> Bos{"İndeks boş mu ya da tip id imzası değişti mi"}
   Bos -->|"evet"| Tam["Aynı işlem içinde tam kurulum; bütün yollar addedPaths içinde"]
   Bos -->|"hayır"| Kapsam["Kapsamı tara"]
-  Kapsam --> Zaman{"Zaman ya da boyut değişti mi"}
+  Kapsam --> Zaman{"mtime, ctime, inode ya da boyut değişti mi; damga yarışlı mı"}
   Zaman -->|"hayır"| Dokunma["Dosyaya dokunma"]
   Zaman -->|"evet"| Ozet{"SHA-256 aynı mı"}
-  Ozet -->|"evet"| Meta["Yalnız gözlenen metadata'yı güncelle"]
+  Ozet -->|"evet"| Meta["Yalnız gözlenen damgayı ve doğrulama anını güncelle"]
   Ozet -->|"hayır"| Icerik["Dosyanın tüm içerik satırlarını tek işlemde yenile"]
   Kapsam --> Eksik["Kapsamda eksik dosyaları sil"]
 ```
+
+**Tablo, dosyayı yeniden okutan değişiklik işaretlerini gösterir.**
+
+| İşaret | Yakaladığı durum |
+|---|---|
+| `mtime` ve boyut | Olağan düzenleme |
+| `ctime` | Aynı boyutlu yerinde yazma. Kaba birimli diskte (FAT ve exFAT 2 sn, SMB ve NFS 1 sn) ya da geri alınmış `mtime` ile değişmeyen zaman |
+| inode | Editörün yeni dosyayı eski dosyanın yerine taşıması |
+| Yarışlı damga | Dosya son doğrulamadan önceki 2 sn içinde değişti. Aynı zaman adımındaki sonraki düzenleme hiçbir işareti değiştirmeyebilir. Bu yüzden indeks dosyayı damga aynı olsa da okur |
+
+İndeks doğrulama anını ilk damgadan önce bir kez kaydeder. Her dosyanın damgasını dosyayı okumadan önce alır. Okuma sırasında gelen düzenleme bu yüzden eski bir damga bırakır ve sonraki tarama dosyayı yeniden okur. Yarışlı dosyanın özeti aynıysa indeks yalnız damgayı ve doğrulama anını yeniler. Dosya `mtime` değerinden 2 sn sonra doğrulanınca oturur ve yeniden okunmaz. Damga `stat` çağrısından gelir; Linux'ta da aynı alanlar okunur.
 
 **Tablo tarama kapsamını gösterir.**
 
@@ -862,9 +876,9 @@ flowchart TD
 | `update(paths:vaultRoot:)`, kök `""` | Bütün kasa |
 | Harfe duyarsız ya da NFC eşleşen indeksli yol | Diskteki üst dizini ve aynı karşılaştırma anahtarındaki kardeş üst dizinleri, tek düzey |
 
-`refresh(vaultRoot:)` boş indekste tam kurulum yolunu kullanır. `refresh` ve `update` tip id imzası değişince aynı yolu kullanır; sonuç `rebuild` ile aynıdır. `update(paths:vaultRoot:)` bildirilen NFC kasa içi dosyalarla ve dizinlerle hem taramayı hem içeriği sınırlar. Silinen yollar gerçekten dolaşılan kapsamın alt kümesidir. Ayrıştırma ve indeks yazımı artımlıdır. Güncelleme kapsam dışı `files` satırlarına dokunmaz; `skippedPaths` yalnız tarama kapsamında görülenleri bildirir.
+`refresh(vaultRoot:)` ve `update(paths:vaultRoot:)` boş indekste tam kurulum yolunu kullanır: ilk açılış, şema sürümü değişimi ya da bozuk veritabanının silinmesi sonrasında bildirilen yol kasanın kalanını eksik bırakmaz. `refresh` ve `update` tip id imzası değişince aynı yolu kullanır; sonuç `rebuild` ile aynıdır. `update(paths:vaultRoot:)` bildirilen NFC kasa içi dosyalarla ve dizinlerle hem taramayı hem içeriği sınırlar. Silinen yollar gerçekten dolaşılan kapsamın alt kümesidir. Ayrıştırma ve indeks yazımı artımlıdır. Güncelleme kapsam dışı `files` satırlarına dokunmaz; `skippedPaths` yalnız tarama kapsamında görülenleri bildirir.
 
-Birleşmiş gün dosyası belirlenimci zaman taşır; aynı boyutlu farklı içerik artımlı taramada atlanabilir. B5 bağlaması (yol haritasında açık) birleştirme sonrası dosyayı zorla yeniden okuyacaktır. Core sonucu `dayFileChanged` alanıyla gün dosyasının yazıldığını ya da taşındığını bildirir.
+Birleşmiş gün dosyası belirlenimci zaman taşır; yazma `ctime` değerini değiştirdiği için artımlı tarama aynı boyutlu farklı içeriği de okur. B5 bağlaması (yol haritasında açık) birleştirme sonrası dosyayı zorla yeniden okuyacaktır. Core sonucu `dayFileChanged` alanıyla gün dosyasının yazıldığını ya da taşındığını bildirir.
 
 Güncelleme değişen yolların dosya adı ve yol anahtarlarına sahip bağlantıları yeniden çözer. Çözülmüş yinelenen adlar ve yeni içerikteki bağlantılar da bu kümeye girer; `name` ve `aliases` varlık araması içindir. Güncelleme eski ve yeni blok kimliklerinin sahipliğini yol ve dosya içi sıra üzerinden yeniden hesaplar. Hata tüm değişiklikleri geri alır. Ortak `RebuildResult` eklenen, güncellenen ve silinen NFC yolları ve kapsamda atlanan fiziksel yolları bildirir.
 

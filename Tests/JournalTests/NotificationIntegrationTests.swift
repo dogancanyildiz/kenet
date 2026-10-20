@@ -34,6 +34,39 @@ struct NotificationIntegrationTests {
         #expect(center.permissionRequests == 0)
     }
 
+    /// At launch the service is attached before the vault opens; the opening refresh is held so the
+    /// vault is still loading when the plan runs.
+    @Test func theLastLaunchPlanStaysWhileTheVaultOpensAndIsReplacedOnceItPublishes() async throws {
+        let context = try TaskTestContext()
+        defer { context.clean() }
+        let defaults = try TestDefaults()
+        defer { defaults.clean() }
+        let center = FakeNotificationCenter()
+        let today = LocalDay.today()
+        let old = NotificationRequest(
+            id: "journal-\(today)", date: notificationDate(today.description, hour: 21), title: "old", body: "",
+            destination: .journal)
+        center.values = [old.id: old]
+        let service = NotificationService(
+            center: center, defaults: defaults.defaults,
+            now: { notificationDate(today.description) }, timeZone: { notificationUTC })
+        service.attach(to: context.store)
+        let gate = FirstArrivalGate()
+        context.store.testingRecognitionReloadDidLoad = { await gate.pass() }
+        let opening = Task { await context.start() }
+        await gate.waitUntilHeld()
+        #expect(context.store.vaultURL != nil && context.store.lastUpdated == nil)
+        await service.replanNow()
+        #expect(center.removals.isEmpty && center.values == [old.id: old])
+
+        gate.release()
+        await opening.value
+        #expect(context.store.lastUpdated != nil)
+        await service.replanNow()
+        #expect(service.pending.count == 7)
+        #expect(center.values[old.id] != nil && center.values[old.id] != old)
+    }
+
     @Test func futureGoalCorrectionsAreIncludedInSnapshotPlanningWindow() async throws {
         let context = try TaskTestContext(sample: true)
         defer { context.clean() }

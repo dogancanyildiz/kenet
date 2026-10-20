@@ -74,7 +74,7 @@ import VaultFormat
         creation.kind = .milestone
         creation.target = ""
         #expect(await creation.save())
-        let goal = try #require(context.store.content.goals.first)
+        let goal = try #require((try await context.store.goalDefinitions()).first)
         #expect(goal.period == .year)
         let model = GoalDayModel(store: context.store, day: context.today)
         await model.load()

@@ -1,17 +1,19 @@
 import Foundation
-import GoalTracking
 import VaultFormat
 import VaultIndex
 
 /// Immutable screen data published together with the index counts.
 ///
-/// Source of truth is `fragments` keyed by vault-relative path. Public lists (entities, goals)
-/// are derived so a later screen can query Core directly without changing the fragment map. The
-/// graph, the entity timelines, the days, the goal statuses, the tasks and the project names
-/// already do (`IndexStore.computeGraphInput`, `computeEntityTimeline(for:)`,
-/// `computeLastEncounters(asOf:)`, `computeDaySummaries(from:to:)`, `computeDay(on:)`,
-/// `computeGoalStatuses(today:)`, the task queries, `computeProjects()`); the notification
-/// planner reads its tasks and written days through `computeNotificationDays(from:through:)`.
+/// Source of truth is `fragments` keyed by vault-relative path. The one public list left
+/// (`entities`) is derived so a later screen can query Core directly without changing the fragment
+/// map. The graph, the entity timelines, the days, the goals (definitions, statuses, reserved keys
+/// and logs), the tasks and the project names already do (`IndexStore.computeGraphInput`,
+/// `computeEntityTimeline(for:)`, `computeLastEncounters(asOf:)`, `computeDaySummaries(from:to:)`,
+/// `computeDay(on:)`, `computeGoalDefinitions()`, `computeGoalStatuses(today:)`,
+/// `computeReservedGoalKeys()`, `computeGoalLogs(from:through:keys:)`, the task queries,
+/// `computeProjects()`); the notification planner reads its tasks and written days through
+/// `computeNotificationDays(from:through:)` and its daily goals through
+/// `computeNotificationGoals(from:through:)`.
 struct VaultReadModel: Sendable {
     /// Per-file index slices. An empty map after a successful build is a valid empty vault.
     private(set) var fragments: [String: VaultFileFragment] = [:]
@@ -20,14 +22,10 @@ struct VaultReadModel: Sendable {
     /// Set when an incremental publish could not load a reported path, or when a write published
     /// incompletely. The next `VaultPublishedContent.applying` takes the full path.
     private(set) var needsFullReconcile = false
-    /// Calendar day used for the last `rederive` / goal-log patch. Day rollover forces rederive.
+    /// Calendar day of the last `rederive` or patch. No field depends on it: a new day patches as
+    /// any other day does.
     private(set) var derivedForDay: CalendarDate?
 
-    var goals: [GoalDefinition] = []
-    var goalPlaceFiles: [String: String] = [:]
-    var goalLogs: [String: [GoalLog]] = [:]
-    var reservedGoalKeys: Set<String> = []
-    var goalLogStart = LocalDay.today().addingDays(-399)!
     var entities: [EntitySummary] = []
     /// Kept in sync with fragments so publishes need not recount the whole vault.
     var counts = IndexCounts()
@@ -105,12 +103,11 @@ struct VaultReadModel: Sendable {
         }
 
         let touched = reload.union(collateral)
-        if derivedForDay != today
-            || requiresFullRederive(before: before, touched: touched, removed: deletedPaths)
-        {
+        if requiresFullRederive(before: before, touched: touched, removed: deletedPaths) {
             rederive(today: today)
         } else {
-            patchDerived(before: before, touched: touched, removed: deletedPaths, today: today)
+            patchDerived(before: before, touched: touched, removed: deletedPaths)
+            derivedForDay = today
         }
     }
 
@@ -131,29 +128,9 @@ struct VaultReadModel: Sendable {
     mutating func rederive(today: CalendarDate) {
         derivedForDay = today
         needsFullReconcile = false
-        goalLogStart = today.addingDays(-399) ?? today
         // Path order, as a snapshot of the fragments lists its rows.
         let ordered = fragments.keys.sorted().map { fragments[$0]! }
         let entityRows = ordered.compactMap(\.entity)
-        var places: [String: IndexedLink] = [:]
-        for fragment in ordered {
-            if let place = fragment.links.first(where: { $0.key == "place" }) { places[fragment.file.path] = place }
-        }
-        goalPlaceFiles = places.compactMapValues(\.resolvedFile)
-        goals = entityRows.compactMap { GoalDefinition(entity: $0, place: places[$0.file]?.target) }
-            .sorted {
-                $0.name.localizedStandardCompare($1.name) == .orderedAscending
-            }
-        let indexedLogs = ordered.flatMap(\.goalLogs)
-        // Definitions only (valid or not), as `VaultStore.creatingGoal` reserves them: a key left
-        // by a deleted goal is free, and a new goal with that key takes its old day records.
-        reservedGoalKeys = Set(entityRows.compactMap(\.goalKey))
-        let allLogs = Dictionary(grouping: indexedLogs, by: \.key).mapValues {
-            $0.compactMap(GoalLog.init(indexed:))
-        }
-        // Near-future corrections must also suppress the upcoming notification window.
-        let goalLogEnd = today.addingDays(6) ?? today
-        goalLogs = allLogs.mapValues { $0.filter { $0.day >= goalLogStart && $0.day <= goalLogEnd } }
         var incoming: [String: Int] = [:]
         counts = IndexCounts()
         for fragment in ordered {
@@ -186,21 +163,11 @@ struct VaultReadModel: Sendable {
 
     /// Screen-visible equality used by incremental vs full-build tests.
     func matchesScreenFields(_ other: VaultReadModel) -> Bool {
-        goals == other.goals
-            && goalPlaceFiles == other.goalPlaceFiles
-            && goalLogs == other.goalLogs
-            && reservedGoalKeys == other.reservedGoalKeys
-            && goalLogStart == other.goalLogStart
-            && entities == other.entities
+        entities == other.entities
     }
 
     static func debugDiff(_ left: VaultReadModel, _ right: VaultReadModel) -> String {
         var lines: [String] = []
-        if left.goals != right.goals { lines.append("goals") }
-        if left.goalPlaceFiles != right.goalPlaceFiles { lines.append("goalPlaceFiles") }
-        if left.goalLogs != right.goalLogs { lines.append("goalLogs") }
-        if left.reservedGoalKeys != right.reservedGoalKeys { lines.append("reservedGoalKeys") }
-        if left.goalLogStart != right.goalLogStart { lines.append("goalLogStart") }
         if left.entities != right.entities { lines.append("entities") }
         return "diff: " + (lines.isEmpty ? "none" : lines.joined(separator: ", "))
     }
@@ -210,14 +177,12 @@ struct VaultReadModel: Sendable {
         let aliases = Dictionary(grouping: snapshot.aliases, by: \.file)
         let blocks = Dictionary(grouping: snapshot.blocks, by: \.file)
         let links = Dictionary(grouping: snapshot.links, by: \.file)
-        let goalLogs = Dictionary(grouping: snapshot.goalLogs, by: \.file)
         var result: [String: VaultFileFragment] = [:]
         result.reserveCapacity(snapshot.files.count)
         for file in snapshot.files {
             result[file.path] = VaultFileFragment(
                 file: file, entity: entities[file.path], aliases: aliases[file.path] ?? [],
-                blocks: blocks[file.path] ?? [], links: links[file.path] ?? [],
-                goalLogs: goalLogs[file.path] ?? [])
+                blocks: blocks[file.path] ?? [], links: links[file.path] ?? [])
         }
         return result
     }

@@ -35,10 +35,7 @@ struct DayTaskTests {
         let row = try await context.row("finish")
         let model = await DayTasksModel.loaded(store: context.store, day: context.today, isToday: true)
         let completing = Task { await model.complete(row, today: context.today) }
-        for _ in 0..<100 {
-            if model.completed.contains(row.id) { break }
-            try await Task.sleep(for: .milliseconds(5))
-        }
+        await waitUntil { model.completed.contains(row.id) }
         #expect(model.completed.contains(row.id))
         #expect(model.groups.dated.contains { $0.id == row.id })
         #expect(await completing.value)

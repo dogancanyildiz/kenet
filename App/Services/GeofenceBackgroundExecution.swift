@@ -7,7 +7,7 @@
         private var identifier = UIBackgroundTaskIdentifier.invalid
         init() {
             identifier = UIApplication.shared.beginBackgroundTask(withName: "Geofence goal") { [weak self] in
-                Task { @MainActor [weak self] in self?.end() }
+                MainActor.assumeIsolated { self?.end() }
             }
         }
         func end() {

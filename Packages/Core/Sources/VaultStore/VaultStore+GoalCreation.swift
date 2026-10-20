@@ -17,7 +17,7 @@ extension VaultStore {
             guard try !self.filenameIsTaken(stem), try self.index.entities(named: name).isEmpty else {
                 throw VaultStoreError.nameTaken
             }
-            var keys = Set(try self.index.snapshot().entities.compactMap(\.goalKey))
+            var keys = try self.index.reservedGoalKeys()
             // External edits can precede the watcher. Reserve current disk keys and display names too.
             for path in try self.markdownPaths() {
                 let document = RawDocument(bytes: try self.readFile(self.checkedURL(path)))

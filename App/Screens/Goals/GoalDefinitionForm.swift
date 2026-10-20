@@ -78,6 +78,7 @@ struct GoalDefinitionForm: View {
             Task { if await deletion.delete(store: store, path: path, goal: true) { dismiss() } }
         }
         .frame(minWidth: 320, minHeight: 420)
+        .task(id: store.lastUpdated) { await model.load() }
     }
 
     /// Period and kind: tabs (two or three choices), or plain rows on a milestone, which keeps both.

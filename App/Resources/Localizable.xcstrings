@@ -1329,6 +1329,86 @@
         }
       }
     },
+    "%lld sürüm" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld version"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld versions"
+                }
+              }
+            }
+          }
+        },
+        "tr" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld sürüm"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld sürüm"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld sürüm · en yenisi %@" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld version · %@"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld versions · newest %@"
+                }
+              }
+            }
+          }
+        },
+        "tr" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld sürüm · %@"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld sürüm · en yenisi %@"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "%lld yıl önce bugün" : {
       "localizations" : {
         "en" : {
@@ -4009,6 +4089,38 @@
         }
       }
     },
+    "Çakışan sürümler" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conflicting versions"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Çakışan sürümler"
+          }
+        }
+      }
+    },
+    "Çakışma kopyaları" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conflict copies"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Çakışma kopyaları"
+          }
+        }
+      }
+    },
     "Çarşamba" : {
       "localizations" : {
         "en" : {
@@ -5837,6 +5949,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Gün dosyaları"
+          }
+        }
+      }
+    },
+    "Gün dosyası: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Day file: %@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gün dosyası: %@"
           }
         }
       }
@@ -8289,6 +8417,22 @@
         }
       }
     },
+    "Kenet sürümleri birleştirmez ve silmez." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kenet doesn't merge or delete versions."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kenet sürümleri birleştirmez ve silmez."
+          }
+        }
+      }
+    },
     "Kilitliyken Siri hedef adlarını listelemez; Kısayollar ve bildirimdeki İşaretle eylemi yazmaz." : {
       "localizations" : {
         "en" : {
@@ -8397,6 +8541,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Kimlik küçük ASCII harfle başlamalı; alan adları benzersiz olmalıdır. Tüm adları doldur."
+          }
+        }
+      }
+    },
+    "Kip değiştir" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Switch mode"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kip değiştir"
           }
         }
       }

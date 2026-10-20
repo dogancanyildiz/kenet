@@ -1,4 +1,5 @@
 #if os(iOS)
+    import GoalTracking
     import SnapshotTesting
     import SwiftUI
     import Testing
@@ -318,10 +319,12 @@
                 .environment(\.openSettings, {})
         }
 
+        /// The page of `goals/Kitap.md`, opened with the definition the sample vault gives it; the
+        /// page reads it again by id from the index (`GoalDetailView`), as it does every definition.
         private static func goalDetailView(store: IndexStore, day: CalendarDate) -> some View {
-            let goal =
-                store.content.goals.first { $0.key == "kitap" }
-                ?? store.content.goals[0]
+            let goal = GoalDefinition(
+                id: "goals/Kitap.md", key: "kitap", name: "Kitap", period: .day, kind: .number, target: 20,
+                unit: "sayfa")!
             return GoalDetailView(store: store, goal: goal, day: day)
         }
 

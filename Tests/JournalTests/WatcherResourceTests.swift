@@ -28,23 +28,21 @@ struct WatcherResourceTests {
             onDescriptorClosed: { descriptor in
                 let wasClosed = fcntl(descriptor, F_GETFD) == -1 && errno == EBADF
                 Task { await diagnostics.recordClose(wasClosed) }
-            }, onChange: { Task { await diagnostics.changed() } })
+            }, onChange: { _ in Task { await diagnostics.changed() } })
         defer { watcher.stop() }
+        await watcher.waitUntilReady()
+        let clock = try WatcherClock()
+        defer { clock.stop() }
         try Data("timer only".utf8).write(to: root.appendingPathComponent("b/note.md"))
-        try await Task.sleep(for: .milliseconds(600))
+        await waitUntil { await diagnostics.unwatched != nil }
+        await clock.waitDebounces()
         #expect(await diagnostics.unwatched == 1)
         #expect(await diagnostics.changes == 0)
         watcher.setForeground(true)
-        for _ in 0..<60 {
-            if await diagnostics.changes > 0 { break }
-            try await Task.sleep(for: .milliseconds(20))
-        }
+        await waitUntil { await diagnostics.changes > 0 }
         #expect(await diagnostics.changes == 1)
         watcher.stop()
-        for _ in 0..<100 {
-            if await diagnostics.closed.count == 2 { break }
-            try await Task.sleep(for: .milliseconds(20))
-        }
+        await waitUntil { await diagnostics.closed.count == 2 }
         #expect(await diagnostics.closed == [true, true])
         // Keep the watcher alive: closure must follow stop(), not its eventual deinit.
         watcher.setForeground(false)
@@ -54,17 +52,17 @@ struct WatcherResourceTests {
         let root = try testDirectory()
         defer { try? FileManager.default.removeItem(at: root) }
         let diagnostics = WatcherDiagnostics()
-        let watcher = VaultWatcher(root: root, interval: 60, onChange: { Task { await diagnostics.changed() } })
+        let watcher = VaultWatcher(root: root, interval: 60, onChange: { _ in Task { await diagnostics.changed() } })
         defer { watcher.stop() }
+        await watcher.waitUntilReady()
+        let clock = try WatcherClock()
+        defer { clock.stop() }
         watcher.setForeground(true, triggerOnActivation: false)
-        try await Task.sleep(for: .milliseconds(400))
+        await clock.waitDebounces()
         #expect(await diagnostics.changes == 0)
         watcher.setForeground(false)
         watcher.setForeground(true)
-        for _ in 0..<60 {
-            if await diagnostics.changes > 0 { break }
-            try await Task.sleep(for: .milliseconds(20))
-        }
+        await waitUntil { await diagnostics.changes > 0 }
         #expect(await diagnostics.changes == 1)
     }
 }

@@ -153,7 +153,7 @@
             let context = try TaskTestContext(sample: true)
             defer { context.clean() }
             await context.start()
-            let id = try #require(context.store.content.goals.first?.id)
+            let id = try #require((try await context.store.goalDefinitions()).first?.id)
             try await assertMacView(
                 GoalsView(store: context.store, selection: .constant(id)),
                 named: "goalsListSelectedMacLight",
@@ -332,11 +332,14 @@
             defer { window?.contentView = nil }
             for _ in 0..<40 {
                 await Task.yield()
+                // Frame pump: SwiftUI and AppKit draw on a later run-loop turn and report no event to await.
                 try? await Task.sleep(for: .milliseconds(50))
                 if !store.isProcessing { break }
             }
+            // Last draw settles before the reference is taken; the references were recorded with this pause.
             try? await Task.sleep(for: .milliseconds(800))
             host.layoutSubtreeIfNeeded()
+            // Last draw settles before the reference is taken; the references were recorded with this pause.
             try? await Task.sleep(for: .milliseconds(200))
 
             let image = Self.renderFixedScaleImage(from: host, scale: Self.bitmapScale)

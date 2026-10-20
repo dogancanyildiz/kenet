@@ -1216,6 +1216,8 @@ stateDiagram-v2
 | İndeks sayıları | Dosya, gün, kişi, konum, hedef, not, olay, görev, varlık, bağlantı, çözülmemiş. Son güncelleme. Sayılar tabulardır. |
 | Atlanan yollar | Sembolik bağlantı ya da yinelenen yol. Ekran uzun yolu kırpar. Kullanıcı yolu kopyalar. |
 | Kopya dosyalar | Gün kopyaları ve varlık kopyaları. Her satır kopyanın yolunu ve altında özgün dosyanın yolunu gösterir. Kopya yoksa bölüm görünmez. Uygulama kopyayı birleştirmez. Kural: [Varlık kopyası](vault-format.md#varlık-kopyası). |
+| Çakışan sürümler | Yalnız iCloud Drive kasasında. iCloud'un çözülmemiş sürüm sakladığı dosyalar. Her satır dosyanın yolunu, "N sürüm" ve en yeni sürümün zamanını, altında sürümü kaydeden cihazların adlarını gösterir. Bölümün altında tek cümle: "Kenet sürümleri birleştirmez ve silmez." Cümle bir çözüm yolu vaat etmez. Dosya yoksa bölüm görünmez. Liste ön plana dönüşte yenilenir. Kural: [Çakışan sürümün listesi](vault-format.md#çakışan-sürümün-listesi). |
+| Çakışma kopyaları | Gün kopyası birleştirmesinin `conflicts/` altına sakladığı sürümler. Her satır kopyanın yolunu ve altında gün dosyasının yolunu gösterir. Kopya yoksa bölüm görünmez. Uygulama kopyayı açmaz ve silmez. Kural: [Çakışma kopyası](vault-format.md#çakışma-kopyası). |
 | Üçüncü taraf lisansları | Salt okunur alt ekran. Uygulamaya giren her paketin adı, lisans türü ve paketlenmiş lisans metni. Uygulama metni çevirmez. |
 | Lisans alt ekranı | iPhone alt ekranı gezinme yığınına iter. Mac'te alt ekran Tanılama sekmesinin içeriğinin yerine geçer. En üstteki "Tanılama" düğmesi geri döndürür. Sekme şeridi değişmez. |
 

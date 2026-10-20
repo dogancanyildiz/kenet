@@ -21,13 +21,13 @@ struct SyncedFolderKindTests {
     private static let tableCases: [TableRow] = [
         // MARK: - Yerel klasörler (nil)
         TableRow(
-            path: "/Users/gokhan/Documents/Vault",
+            path: "/Users/ornek/Documents/Vault",
             isUbiquitous: false,
             expected: nil,
             title: "Yerel Documents/Vault (isUbiquitous=false)"
         ),
         TableRow(
-            path: "/Users/gokhan/Documents/Vault",
+            path: "/Users/ornek/Documents/Vault",
             isUbiquitous: nil,
             expected: nil,
             title: "Yerel Documents/Vault (isUbiquitous=nil)"
@@ -39,7 +39,7 @@ struct SyncedFolderKindTests {
             title: "Göreli Documents/Vault"
         ),
         TableRow(
-            path: "/Users/gokhan/Desktop/Vault",
+            path: "/Users/ornek/Desktop/Vault",
             isUbiquitous: nil,
             expected: nil,
             title: "Yerel Desktop/Vault"
@@ -59,19 +59,19 @@ struct SyncedFolderKindTests {
 
         // MARK: - iCloud Belgeler / Masaüstü (isUbiquitous)
         TableRow(
-            path: "/Users/gokhan/Documents/Vault",
+            path: "/Users/ornek/Documents/Vault",
             isUbiquitous: true,
             expected: .iCloudDrive,
             title: "iCloud Belgeler (isUbiquitous=true)"
         ),
         TableRow(
-            path: "/Users/gokhan/Desktop/Vault",
+            path: "/Users/ornek/Desktop/Vault",
             isUbiquitous: true,
             expected: .iCloudDrive,
             title: "iCloud Masaüstü (isUbiquitous=true)"
         ),
         TableRow(
-            path: "/Users/gokhan/OzelKlasor/Vault",
+            path: "/Users/ornek/OzelKlasor/Vault",
             isUbiquitous: true,
             expected: .iCloudDrive,
             title: "iCloud bayraklı herhangi bir yol"
@@ -79,31 +79,31 @@ struct SyncedFolderKindTests {
 
         // MARK: - iCloud Drive yol kalıpları
         TableRow(
-            path: "/Users/gokhan/Library/Mobile Documents/com~apple~CloudDocs/Documents/Vault",
+            path: "/Users/ornek/Library/Mobile Documents/com~apple~CloudDocs/Documents/Vault",
             isUbiquitous: nil,
             expected: .iCloudDrive,
             title: "iCloud Drive tam yol"
         ),
         TableRow(
-            path: "/Users/gokhan/Library/Mobile Documents/com~apple~CloudDocs",
+            path: "/Users/ornek/Library/Mobile Documents/com~apple~CloudDocs",
             isUbiquitous: nil,
             expected: .iCloudDrive,
             title: "iCloud Drive CloudDocs kök klasörü"
         ),
         TableRow(
-            path: "/Users/gokhan/Library/Mobile Documents/iCloud~com~example~app/Documents",
+            path: "/Users/ornek/Library/Mobile Documents/iCloud~com~example~app/Documents",
             isUbiquitous: nil,
             expected: .iCloudDrive,
             title: "Library/Mobile Documents/ (CloudDocs harici kapsayıcı)"
         ),
         TableRow(
-            path: "/Users/gokhan/Library/Mobile Documents",
+            path: "/Users/ornek/Library/Mobile Documents",
             isUbiquitous: nil,
             expected: .iCloudDrive,
             title: "Library/Mobile Documents takısız yol"
         ),
         TableRow(
-            path: "/Users/gokhan/Kutuk/com~apple~CloudDocs/Vault",
+            path: "/Users/ornek/Kutuk/com~apple~CloudDocs/Vault",
             isUbiquitous: nil,
             expected: .iCloudDrive,
             title: "com~apple~CloudDocs bağımsız kalıbı"
@@ -111,25 +111,25 @@ struct SyncedFolderKindTests {
 
         // MARK: - Dropbox yol kalıpları
         TableRow(
-            path: "/Users/gokhan/Library/CloudStorage/Dropbox/Vault",
+            path: "/Users/ornek/Library/CloudStorage/Dropbox/Vault",
             isUbiquitous: nil,
             expected: .dropbox,
             title: "Dropbox CloudStorage alt klasörü"
         ),
         TableRow(
-            path: "/Users/gokhan/Library/CloudStorage/Dropbox",
+            path: "/Users/ornek/Library/CloudStorage/Dropbox",
             isUbiquitous: nil,
             expected: .dropbox,
             title: "Dropbox CloudStorage kök klasörü"
         ),
         TableRow(
-            path: "/Users/gokhan/Library/CloudStorage/Dropbox-Personal/Vault",
+            path: "/Users/ornek/Library/CloudStorage/Dropbox-Personal/Vault",
             isUbiquitous: nil,
             expected: .dropbox,
             title: "Dropbox-Personal CloudStorage yolu"
         ),
         TableRow(
-            path: "/Users/gokhan/Library/CloudStorage/Dropbox (Personal)/Vault",
+            path: "/Users/ornek/Library/CloudStorage/Dropbox (Personal)/Vault",
             isUbiquitous: nil,
             expected: .dropbox,
             title: "Dropbox (Personal) CloudStorage yolu"
@@ -137,25 +137,25 @@ struct SyncedFolderKindTests {
 
         // MARK: - OneDrive yol kalıpları
         TableRow(
-            path: "/Users/gokhan/Library/CloudStorage/OneDrive-Personal/Vault",
+            path: "/Users/ornek/Library/CloudStorage/OneDrive-Personal/Vault",
             isUbiquitous: nil,
             expected: .oneDrive,
             title: "OneDrive-Personal CloudStorage yolu"
         ),
         TableRow(
-            path: "/Users/gokhan/Library/CloudStorage/OneDrive-Sirket/Vault",
+            path: "/Users/ornek/Library/CloudStorage/OneDrive-Sirket/Vault",
             isUbiquitous: nil,
             expected: .oneDrive,
             title: "OneDrive-Sirket CloudStorage yolu"
         ),
         TableRow(
-            path: "/Users/gokhan/Library/CloudStorage/OneDrive/Vault",
+            path: "/Users/ornek/Library/CloudStorage/OneDrive/Vault",
             isUbiquitous: nil,
             expected: .oneDrive,
             title: "OneDrive/ alt klasörü"
         ),
         TableRow(
-            path: "/Users/gokhan/Library/CloudStorage/OneDrive",
+            path: "/Users/ornek/Library/CloudStorage/OneDrive",
             isUbiquitous: nil,
             expected: .oneDrive,
             title: "OneDrive kök klasörü"
@@ -163,25 +163,25 @@ struct SyncedFolderKindTests {
 
         // MARK: - Google Drive yol kalıpları
         TableRow(
-            path: "/Users/gokhan/Library/CloudStorage/GoogleDrive-kullanici@gmail.com/Drive'ım/Vault",
+            path: "/Users/ornek/Library/CloudStorage/GoogleDrive-ornek@example.com/Drive'ım/Vault",
             isUbiquitous: nil,
             expected: .googleDrive,
             title: "GoogleDrive- hesabı yolu"
         ),
         TableRow(
-            path: "/Users/gokhan/Library/CloudStorage/GoogleDrive-kurum.org/Vault",
+            path: "/Users/ornek/Library/CloudStorage/GoogleDrive-kurum.org/Vault",
             isUbiquitous: nil,
             expected: .googleDrive,
             title: "GoogleDrive- kurum yolu"
         ),
         TableRow(
-            path: "/Users/gokhan/Library/CloudStorage/GoogleDrive/Vault",
+            path: "/Users/ornek/Library/CloudStorage/GoogleDrive/Vault",
             isUbiquitous: nil,
             expected: .googleDrive,
             title: "GoogleDrive/ alt klasörü"
         ),
         TableRow(
-            path: "/Users/gokhan/Library/CloudStorage/GoogleDrive",
+            path: "/Users/ornek/Library/CloudStorage/GoogleDrive",
             isUbiquitous: nil,
             expected: .googleDrive,
             title: "GoogleDrive kök klasörü"
@@ -201,7 +201,7 @@ struct SyncedFolderKindTests {
             title: "File Provider Storage (/var)"
         ),
         TableRow(
-            path: "/Users/gokhan/Library/Application Support/File Provider Storage/Vault",
+            path: "/Users/ornek/Library/Application Support/File Provider Storage/Vault",
             isUbiquitous: nil,
             expected: .fileProvider,
             title: "macOS File Provider Storage"
@@ -253,7 +253,7 @@ struct SyncedFolderKindTests {
             title: "Büyük harf Library/Mobile Documents/"
         ),
         TableRow(
-            path: "/users/gokhan/library/mobile documents/vault",
+            path: "/users/ornek/library/mobile documents/vault",
             isUbiquitous: nil,
             expected: .iCloudDrive,
             title: "Küçük harf library/mobile documents/"
@@ -271,7 +271,7 @@ struct SyncedFolderKindTests {
             title: "Büyük harf DROPBOX"
         ),
         TableRow(
-            path: "/users/gokhan/library/cloudstorage/dropbox/vault",
+            path: "/users/ornek/library/cloudstorage/dropbox/vault",
             isUbiquitous: nil,
             expected: .dropbox,
             title: "Küçük harf dropbox"
@@ -283,7 +283,7 @@ struct SyncedFolderKindTests {
             title: "Büyük harf ONEDRIVE-PERSONAL"
         ),
         TableRow(
-            path: "/users/gokhan/library/cloudstorage/onedrive-personal/vault",
+            path: "/users/ornek/library/cloudstorage/onedrive-personal/vault",
             isUbiquitous: nil,
             expected: .oneDrive,
             title: "Küçük harf onedrive-personal"
@@ -295,7 +295,7 @@ struct SyncedFolderKindTests {
             title: "Büyük harf GOOGLEDRIVE-"
         ),
         TableRow(
-            path: "/users/gokhan/library/cloudstorage/googledrive-user@gmail.com/vault",
+            path: "/users/ornek/library/cloudstorage/googledrive-ornek@example.com/vault",
             isUbiquitous: nil,
             expected: .googleDrive,
             title: "Küçük harf googledrive-"
@@ -321,7 +321,7 @@ struct SyncedFolderKindTests {
             title: "NFD kullanıcı adıyla Dropbox"
         ),
         TableRow(
-            path: "/Users/gokhan/Library/CloudStorage/Dropbox/" + "Günlük".decomposedStringWithCanonicalMapping,
+            path: "/Users/ornek/Library/CloudStorage/Dropbox/" + "Günlük".decomposedStringWithCanonicalMapping,
             isUbiquitous: nil,
             expected: .dropbox,
             title: "NFD klasör adıyla Dropbox"
@@ -334,14 +334,14 @@ struct SyncedFolderKindTests {
             title: "NFD kullanıcı adıyla iCloud"
         ),
         TableRow(
-            path: "/Users/gokhan/Library/CloudStorage/OneDrive-" + "İşletme".decomposedStringWithCanonicalMapping
+            path: "/Users/ornek/Library/CloudStorage/OneDrive-" + "İşletme".decomposedStringWithCanonicalMapping
                 + "/Kasa",
             isUbiquitous: nil,
             expected: .oneDrive,
             title: "NFD hesap adıyla OneDrive"
         ),
         TableRow(
-            path: "/Users/gokhan/Library/CloudStorage/GoogleDrive-"
+            path: "/Users/ornek/Library/CloudStorage/GoogleDrive-"
                 + "öğrenci@üniversite.edu".decomposedStringWithCanonicalMapping + "/Kasa",
             isUbiquitous: nil,
             expected: .googleDrive,
@@ -375,7 +375,7 @@ struct SyncedFolderKindTests {
         let onedriveURL = URL(fileURLWithPath: "/Users/test/Library/CloudStorage/OneDrive-Personal/Vault")
         #expect(SyncedFolderKind.detect(url: onedriveURL) == .oneDrive)
 
-        let gdriveURL = URL(fileURLWithPath: "/Users/test/Library/CloudStorage/GoogleDrive-user@gmail.com/Vault")
+        let gdriveURL = URL(fileURLWithPath: "/Users/test/Library/CloudStorage/GoogleDrive-ornek@example.com/Vault")
         #expect(SyncedFolderKind.detect(url: gdriveURL) == .googleDrive)
 
         let fpPath = "/private/var/mobile/Containers/Shared/AppGroup/UUID/File Provider Storage/Vault"

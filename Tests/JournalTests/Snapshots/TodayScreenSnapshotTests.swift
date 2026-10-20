@@ -106,9 +106,8 @@
                 store: store,
                 size: size,
                 bottomSafeArea: Self.tabBarHeight,
-                isReady: {
-                    store.content.goals.isEmpty || goalsReady.isReady
-                },
+                // Set by the day page once the strip's goals loaded, goals or none.
+                isReady: { goalsReady.isReady },
                 testName: "today",
                 file: #filePath,
                 line: #line,

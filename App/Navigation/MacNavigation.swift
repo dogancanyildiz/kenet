@@ -271,11 +271,7 @@ struct MacNavigation: View {
                     }
                 case .summaries, .graph, .map: EmptyView()
                 case .goals:
-                    if let goal = store.content.goals.first(where: { $0.id == navigation.selectedGoal }) {
-                        GoalDetailView(store: store, goal: goal).id(goal.id + (store.vaultURL?.path ?? ""))
-                    } else {
-                        MacEmptyDetail("Bir hedef seç")
-                    }
+                    GoalDetailColumn(store: store, goalID: navigation.selectedGoal)
                 case .people, .places:
                     if let entity = navigation.selectedSummary, entity.kind == entityKind {
                         EntityView(

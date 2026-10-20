@@ -74,8 +74,8 @@
                 let store = scene.store
                 switch snapshotCase.screen {
                 case .goalDetail:
-                    let goal = try #require(
-                        store.content.goals.first { $0.key == "kitap" } ?? store.content.goals.first)
+                    let goals = try await store.goalDefinitions()
+                    let goal = try #require(goals.first { $0.key == "kitap" } ?? goals.first)
                     return AnyView(
                         NavigationStack { GoalDetailView(store: store, goal: goal, day: goalsSnapshotDay) }.inkPage())
                 case .today, .tasks, .people, .goals:
@@ -253,6 +253,7 @@
                 // Wait for the index, the presented content, then several idle frames.
                 var idleFrames = 0
                 for _ in 0..<100 where idleFrames < 8 {
+                    // Frame pump: SwiftUI and UIKit draw on a later run-loop turn and report no event to await.
                     try? await Task.sleep(for: .milliseconds(50))
                     host.view.layoutIfNeeded()
                     host.presentedViewController?.view.layoutIfNeeded()
@@ -279,6 +280,7 @@
                 // A column or sheet transition leaves a context that UIKit disposes after the next
                 // commit; the window is kept until the next case starts (see ChromeSheetsDuoHost).
                 host.presentedViewController?.dismiss(animated: false)
+                // Frames for UIKit to dispose the last transition before the window is released; no event marks it.
                 for _ in 0..<4 { try? await Task.sleep(for: .milliseconds(50)) }
                 window.isHidden = true
                 window.rootViewController = nil

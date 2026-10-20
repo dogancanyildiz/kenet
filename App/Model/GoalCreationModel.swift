@@ -17,11 +17,23 @@ final class GoalCreationModel {
     private(set) var isSaved = false
     private(set) var errorText: String?
 
+    /// Every key a definition holds (``IndexStore/computeReservedGoalKeys()``), empty until
+    /// ``load()``. The preview only: creation reserves the keys on disk again.
+    private(set) var reservedKeys: Set<String> = []
+
     init(store: IndexStore) {
         self.store = store
         root = store.vaultURL
     }
-    var key: String { VaultStore.goalKey(for: name, reserving: store.content.reservedGoalKeys) }
+
+    /// Reads the reserved keys again; a read that fails, is cancelled or outlives its vault keeps them.
+    func load() async {
+        guard root == store.vaultURL, let keys = try? await store.computeReservedGoalKeys(), root == store.vaultURL
+        else { return }
+        reservedKeys = keys
+    }
+
+    var key: String { VaultStore.goalKey(for: name, reserving: reservedKeys) }
     var canSave: Bool {
         root != nil && root == store.vaultURL && !isWriting && !isSaved && store.canAddEvent
             && !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty

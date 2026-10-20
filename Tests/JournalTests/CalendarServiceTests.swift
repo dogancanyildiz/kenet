@@ -115,10 +115,7 @@ import VaultFormat
         #expect(service.events(on: tomorrow).map(\.id) == ["tomorrow"])
         source.values = []
         source.onChange?()
-        for _ in 0..<100 {
-            if service.events(on: day).isEmpty && service.events(on: tomorrow).isEmpty { break }
-            try await Task.sleep(for: .milliseconds(10))
-        }
+        await waitUntil { service.events(on: day).isEmpty && service.events(on: tomorrow).isEmpty }
         #expect(service.events(on: day).isEmpty)
         #expect(service.events(on: tomorrow).isEmpty)
     }

@@ -8,9 +8,9 @@ import VaultStore
 @testable import Journal
 
 /// The goal screens take their statuses from the goal-status query. The query is compared with the
-/// read model's old `goalStatuses` construction (every log, `VaultReadModel.goalStatuses(today:)`
+/// read model's old `goalStatuses` construction (every log, `LegacyGoalFields.goalStatuses(today:)`
 /// in the test support) after the edits a publish patches, and on a day page older than the
-/// goal-log list the app keeps for notifications.
+/// goal-log list the read model kept for notifications.
 @MainActor struct GoalScreensQueryTests {
     @Test func goalStatusesAfterIncrementalEditsMatchFullRebuild() async throws {
         let root = try testDirectory()
@@ -33,13 +33,17 @@ import VaultStore
             for day in [today, yesterday, today.addingDays(1)!, longAgo] {
                 let rows = try index.goalStatuses(today: day)
                 let comment = Comment(rawValue: "\(label) \(day)")
-                #expect(rows.map(\.definition) == model.goals, comment)
+                let live = LegacyGoalFields(snapshot: try index.snapshot(), today: day)
+                #expect(rows.map(\.definition) == live.goals, comment)
                 let byKey = TodayPresentation.goalStatuses(rows)
-                #expect(byKey == model.goalStatuses(today: day), comment)
-                let full = VaultReadModel(snapshot: try rebuilt.snapshot(), today: day)
+                #expect(byKey == live.goalStatuses(today: day), comment)
+                let full = LegacyGoalFields(snapshot: try rebuilt.snapshot(), today: day)
                 #expect(byKey == full.goalStatuses(today: day), comment)
                 if day == today { statuses = byKey }
             }
+            // The published model the edits patched still equals a full build.
+            #expect(
+                model.matchesFullBuild(try IncrementalReadModelVault.fullModel(index: index)), Comment(rawValue: label))
             return statuses
         }
         func publish(_ changed: Set<String>, deleted: Set<String> = []) throws {
@@ -66,7 +70,8 @@ import VaultStore
             try publish(["journal/\(day).md"])
         }
         statuses = try check("old values")
-        #expect(model.goalLogs["reading"]?.contains { $0.day == longAgo } == false)
+        let window = LegacyGoalFields(snapshot: try index.snapshot(), today: today)
+        #expect(window.goalLogs["reading"]?.contains { $0.day == longAgo } == false)
         #expect(statuses["reading"]?.streak == 2 && statuses["reading"]?.longestStreak == 2)
 
         let created = try await store.creatingGoal(name: "Walk", period: .day, kind: .boolean, target: 1, unit: nil)
@@ -109,22 +114,20 @@ import VaultStore
         try await store.createGoal(name: "Read", period: .day, kind: .number, target: 10, unit: nil)
         try await store.setGoal(on: old, key: "run", value: .boolean(true))
         try await store.setGoal(on: old, key: "read", value: .number(4))
-        #expect(store.content.goalLogs["run"]?.isEmpty == true)
+        let legacy = try LegacyGoalFields(root: context.root, today: today)
+        #expect(legacy.goalLogs["run"]?.isEmpty == true)
 
         let rows = try await store.computeGoalStatuses(today: old)
         let statuses = TodayPresentation.goalStatuses(rows)
-        #expect(statuses == store.content.goalStatuses(today: old))
+        #expect(statuses == legacy.goalStatuses(today: old))
         #expect(statuses["run"]?.progress.isComplete == true && statuses["read"]?.progress.done == 4)
         let page = TodayPresentation(
             day: DaySummary(empty: old), groups: TaskGroups(rows: [], on: old, isToday: false),
-            goals: store.content.goals, goalStatuses: statuses, goalStatusesDay: old, today: today,
+            goals: rows.map(\.definition), goalStatuses: statuses, goalStatusesDay: old, today: today,
             locale: Locale(identifier: "en_US"), calendar: Calendar(identifier: .gregorian))
         #expect(page.counter(for: .goals) == "1/2" && page.remainingGoalCount == 1)
 
-        let fromList = Dictionary(
-            uniqueKeysWithValues: store.content.goals.map {
-                ($0.key, GoalProgress.compute(definition: $0, logs: store.content.goalLogs[$0.key] ?? [], today: old))
-            })
+        let fromList = legacy.windowStatuses(on: old)
         #expect(fromList["run"]?.progress.isComplete == false, "the old page statuses missed the day")
     }
 
@@ -142,18 +145,15 @@ import VaultStore
         await context.start()
         let store = context.store
         try #require(store.content.derivedForDay == now)
-        #expect(store.content.goals.map(\.name) == ["Boş", "Kitap yılı", "Koşu", "Koşu kopya", "Maraton", "Su"])
-        let daily = store.content.goals.filter { $0.period == .day }
+        let legacy = try LegacyGoalFields(root: context.root, today: now)
+        let goals = try await store.goalDefinitions()
+        #expect(goals == legacy.goals)
+        #expect(goals.map(\.name) == ["Boş", "Kitap yılı", "Koşu", "Koşu kopya", "Maraton", "Su"])
+        let daily = goals.filter { $0.period == .day }
         func complete(_ statuses: [String: GoalStatus]) -> [Bool] {
             daily.map { statuses[$0.key]?.progress.isComplete == true }
         }
-        func fromGoalLogList(_ day: CalendarDate) -> [String: GoalStatus] {
-            let logs = store.content.goalLogs
-            return Dictionary(
-                store.content.goals.map {
-                    ($0.key, GoalProgress.compute(definition: $0, logs: logs[$0.key] ?? [], today: day))
-                }, uniquingKeysWith: { first, _ in first })
-        }
+        func fromGoalLogList(_ day: CalendarDate) -> [String: GoalStatus] { legacy.windowStatuses(on: day) }
         let listStart = try #require(now.addingDays(-399))
         let listEnd = try #require(now.addingDays(6))
         for offset in [0, -1, -10, -11, -399, -400, -450, -520, -521, 3, 6, 7, 10] {
@@ -164,16 +164,16 @@ import VaultStore
             await editing.load()
             try #require(editing.hasLoaded)
             let byID = Dictionary(uniqueKeysWithValues: rows.map { ($0.definition.id, $0.status) })
-            for goal in store.content.goals {
+            for goal in goals {
                 #expect(byID[goal.id] == editing.status(for: goal), comment)
             }
             let page = TodayPresentation.goalStatuses(rows)
-            #expect(page == store.content.goalStatuses(today: day), comment)
+            #expect(page == legacy.goalStatuses(today: day), comment)
             if day >= listStart && day <= listEnd {
                 #expect(complete(page) == complete(fromGoalLogList(day)), comment)
             }
         }
-        let run = try #require(store.content.goals.first { $0.name == "Koşu" })
+        let run = try #require(goals.first { $0.name == "Koşu" })
         let rows = try await store.computeGoalStatuses(today: now)
         let chain = try #require(rows.first { $0.definition.id == run.id }?.status)
         #expect(chain.streak == 520 && chain.longestStreak == 520, "the list shows a chain longer than the list")
@@ -245,7 +245,7 @@ private enum EdgeGoalVault {
             let store = context.store
             let day = context.today
             let gate = GoalQueryGate(store: store)
-            let water = try #require(store.content.goals.first { $0.key == "su" })
+            let water = try #require(try await store.goalDefinitions().first { $0.key == "su" })
             func value() async throws -> String {
                 let rows = try await store.computeGoalStatuses(today: day)
                 let status = try #require(rows.first { $0.definition.id == water.id }?.status)
@@ -304,10 +304,11 @@ private enum EdgeGoalVault {
                 Self.environment(NavigationStack { DayView(store: store, date: day) }, context: context),
                 size: CGSize(width: 720, height: 1600))
             defer { mount.close() }
-            let water = try #require(store.content.goals.first { $0.key == "su" })
+            let goals = try await store.goalDefinitions()
+            let water = try #require(goals.first { $0.key == "su" })
             /// The page's goal counter from statuses by key.
             func counter(_ statuses: [String: GoalStatus]) -> String {
-                let daily = store.content.goals.filter { $0.period == .day }
+                let daily = goals.filter { $0.period == .day }
                 return "\(daily.filter { statuses[$0.key]?.progress.isComplete == true }.count)/\(daily.count)"
             }
             let queried = TodayPresentation.goalStatuses(try await store.computeGoalStatuses(today: day))
@@ -322,7 +323,7 @@ private enum EdgeGoalVault {
             gate.hold()
             try await store.setGoal(on: day, key: "su", value: .number(marked ? 0 : water.target))
             // The old construction over the published content; the query is held.
-            let after = counter(store.content.goalStatuses(today: day))
+            let after = counter(try LegacyGoalFields(root: context.root, today: day).goalStatuses(today: day))
             #expect(after != before)
             for _ in 0..<40 where gate.heldCount == 0 { await mount.settle(rounds: 1) }
             #expect(gate.heldCount > 0, "the publish asks for the statuses again")
@@ -344,9 +345,10 @@ private enum EdgeGoalVault {
             await context.start()
             let store = context.store
             let first = context.today
+            let goals = try await store.goalDefinitions()
             func counter(_ day: CalendarDate) async throws -> String {
                 let statuses = TodayPresentation.goalStatuses(try await store.computeGoalStatuses(today: day))
-                let daily = store.content.goals.filter { $0.period == .day }
+                let daily = goals.filter { $0.period == .day }
                 return "\(daily.filter { statuses[$0.key]?.progress.isComplete == true }.count)/\(daily.count)"
             }
             let firstCounter = try await counter(first)
@@ -408,8 +410,11 @@ private enum EdgeGoalVault {
             await context.start()
             let store = context.store
             let day = context.today
-            let water = try #require(store.content.goals.first { $0.key == "su" })
-            let original = store.content.goalLogs["su"]?.last { $0.day == day }?.value ?? .number(1)
+            let goals = try await store.goalDefinitions()
+            let water = try #require(goals.first { $0.key == "su" })
+            let original =
+                try await store.computeGoalLogs(from: day, through: day)["su"]?.last { $0.day == day }?.value
+                ?? .number(1)
             try await store.setGoal(on: day, key: "su", value: original)
             let marked = original == .number(water.target)
             let other = GoalValue.number(marked ? 0 : water.target)
@@ -417,7 +422,7 @@ private enum EdgeGoalVault {
                 TodayPresentation.goalStatuses(try await store.computeGoalStatuses(today: day))
             }
             func counter(_ statuses: [String: GoalStatus]) -> String {
-                let daily = store.content.goals.filter { $0.period == .day }
+                let daily = goals.filter { $0.period == .day }
                 return "\(daily.filter { statuses[$0.key]?.progress.isComplete == true }.count)/\(daily.count)"
             }
             func value(_ statuses: [String: GoalStatus]) throws -> String {
@@ -477,8 +482,9 @@ private enum EdgeGoalVault {
             try EdgeGoalVault.write(at: context.root, now: now)
             await context.start()
             let store = context.store
-            let run = try #require(store.content.goals.first { $0.name == "Koşu" })
-            let copy = try #require(store.content.goals.first { $0.name == "Koşu kopya" })
+            let goals = try await store.goalDefinitions()
+            let run = try #require(goals.first { $0.name == "Koşu" })
+            let copy = try #require(goals.first { $0.name == "Koşu kopya" })
             let editing = GoalDayModel(store: store, day: now)
             await editing.load()
             let own = try #require(GoalRowPresentation.valueText(goal: copy, status: editing.status(for: copy)))
@@ -506,7 +512,7 @@ private enum EdgeGoalVault {
             let store = context.store
             let day = context.today
             let next = try #require(day.addingDays(1))
-            let water = try #require(store.content.goals.first { $0.key == "su" })
+            let water = try #require(try await store.goalDefinitions().first { $0.key == "su" })
             try await store.setGoal(on: day, key: "su", value: .number(water.target))
             try await store.setGoal(on: next, key: "su", value: .number(1))
             func value(_ day: CalendarDate) async throws -> String {

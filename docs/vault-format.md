@@ -1455,7 +1455,7 @@ flowchart TD
 | Silinen tanım | Tanımı silinen ya da eksik dosyalar düz not olarak kalır. Uygulama dosyaları ve bağlantıları silmez. |
 | Yeniden sınıflandırma | `types.json` değişince uygulama indeksi dosyalardan yeniden sınıflandırır. |
 | Tip düzenleme | Oluşturma, düzenleme ve silme yalnız hedef tip tanımını değiştirir. Diğer tipler ve bilinmeyen JSON anahtar ve değerleri bayt düzeyinde aynı kalır. |
-| Yazma yolu | Yazma atomiktir. Uygulama yazmayı ortak kasa yazma kuyruğunda yapar. |
+| Yazma yolu | Yazma atomiktir. Tek istisna: birim sabit bağlantıyı ve dışlayıcı adlandırmayı desteklemiyorsa dosyanın ilk oluşturulması atomik değildir ([Mimari](architecture.md), atomik yazma tablosu). Uygulama yazmayı ortak kasa yazma kuyruğunda yapar. |
 | Tip silme | Tip silme varlık Markdown dosyalarına dokunmaz. |
 
 ## Eşitleme çakışması
@@ -1465,17 +1465,30 @@ flowchart TD
 ```mermaid
 flowchart TD
   A["Aynı dosyayı 2 cihaz eşitlemeden düzenler"] --> A1["iCloud bir sürümü geçerli sayar, diğerini çakışan sürüm olarak saklar"]
+  A1 --> T["Uygulama çakışan sürümü Tanılama'da listeler; birleştirme yok"]
   B["Aynı gün dosyasını 2 cihaz eşitlemeden oluşturur"] --> B1["iCloud ikinci dosyanın adına sayı ekler: journal/2026-10-02 2.md"]
-  A1 --> M["Uygulama 2 sürümü tek içerikte birleştirir"]
-  B1 --> M
+  B1 --> M["Uygulama 2 sürümü tek içerikte birleştirir"]
   M --> C["Birleştirilemeyen sürüm: conflicts/ altında çakışma kopyası"]
+  C --> L["Uygulama çakışma kopyasını Tanılama'da listeler"]
 ```
 
-**Gün kopyası:** iCloud'un aynı gün için ayırdığı, adının sonunda sayı taşıyan dosya. **Çakışma kopyası:** uygulamanın `conflicts/` altına bayt bayt sakladığı sürüm.
+**Çakışan sürüm:** iCloud'un aynı dosya için geçerli sürümün yanında sakladığı, çözülmemiş öteki sürüm. Sürüm kasada ayrı dosya değildir. **Gün kopyası:** iCloud'un aynı gün için ayırdığı, adının sonunda sayı taşıyan dosya. **Çakışma kopyası:** uygulamanın `conflicts/` altına bayt bayt sakladığı sürüm.
 
 Uygulama 2 sürümü tek içerikte birleştirir. Uygulama gün kopyasını birleştirdikten sonra siler. Ana dosya yoksa gün kopyası ana dosyanın adını alır.
 
-**NOT:** Birleştirme işlevi ve gün kopyası birleştirme bugün Core'da hazırdır. Uygulama bu işlevi henüz çağırmaz ve çakışma kopyalarını göstermez; bağlantı [yol haritasında](roadmap.md) açık maddedir. Uygulama gün kopyalarını Ayarlar → Tanılama ekranında listeler. Ayrıntı: [Varlık kopyası](#varlık-kopyası).
+**NOT:** Birleştirme işlevi ve gün kopyası birleştirme bugün Core'da hazırdır. Uygulama bu işlevi henüz çağırmaz; bağlantı [yol haritasında](roadmap.md) açık maddedir. Uygulama gün kopyalarını, çakışma kopyalarını ve çakışan sürümleri Ayarlar → Tanılama ekranında listeler. Ayrıntı: [Varlık kopyası](#varlık-kopyası) ve [Çakışan sürümün listesi](#çakışan-sürümün-listesi).
+
+### Çakışan sürümün listesi
+
+| Konu | Kural |
+|---|---|
+| Kapsam | Yalnız iCloud Drive'daki kasa. Öteki kasada uygulama hiçbir dosyaya sormaz ve liste boştur. |
+| Sorulan dosyalar | İndeksteki her dosya ve `journal/` altındaki her gün kopyası. `conflicts/` ve `templates/` sorulmaz. |
+| Okuma | Uygulama önce dosyanın "çözülmemiş çakışma var" bayrağına bakar. Yalnız bayraklı dosyanın sürümlerini koordineli okumayla okur. Uygulama kasaya hiçbir şey yazmaz. |
+| Satır | Dosyanın yolu, sürüm sayısı, en yeni sürümün kayıt zamanı ve sürümü kaydeden cihazların adları. Zamanı bilinmeyen sürümün satırında zaman yoktur. |
+| Sıra | Dosyalar yolun bayt sırasıyla gelir. Sürümler yeniden eskiye gelir. Aynı saniyedeki sürümler cihaz adına göre gelir; adsız sürüm sondadır. |
+| Çözümleme | Uygulama sürümü birleştirmez, seçmez ve silmez. Bölümün altındaki cümle yalnız bunu söyler; bir çözüm yolu vaat etmez. Dosyalar'ın ya da Finder'ın düz bir dosya için çözüm ekranı sunduğu doğrulanmadı; çözüm yolu iki cihaz denemesinden sonra kararlaştırılır. |
+| Yenileme | Tanılama listeyi her indeks yenilemesinde ve uygulama ön plana her dönüşte yeniden okur. iCloud çakışması kasa klasöründe olay üretmeyebilir. |
 
 ### Gün kopyası adları
 
@@ -1689,8 +1702,9 @@ flowchart TD
 | Ad | `conflicts/2026-10-02 (conflict 20261002T110533Z).md`. Addaki zaman, o sürümün UTC değişiklik zamanıdır; tam saniye. |
 | Alınmış ad | `conflicts/2026-10-02 (conflict 20261002T110533Z 2).md`, sonra `3`. Uygulama var olan dosyanın üstüne yazmaz. |
 | Aynı baytlar | Ad dizisinde aynı baytları taşıyan kopya varsa uygulama yeniden yazmaz. Böylece yarım kalmış bir birleştirmenin tekrarı yeni kopya üretmez. |
-| Tarama | Uygulama `conflicts/` klasörünü taramaz. Kopyalar indekste yoktur. Kopyalardaki satırlar olay ya da görev değildir. |
-| Kullanıcı | Uygulama kopyaları kullanıcıya gösterir. Kullanıcı gerekeni ana dosyaya aldıktan sonra kopyayı siler. |
+| Tarama | Uygulama `conflicts/` klasörünü taramaz. Kopyalar indekste yoktur. Kopyalardaki satırlar olay ya da görev değildir. Tanılama listesi yalnız klasördeki adları okur. |
+| Kullanıcı | Uygulama kopyaları Ayarlar → Tanılama ekranında "Çakışma kopyaları" bölümünde gösterir. Kullanıcı gerekeni ana dosyaya aldıktan sonra kopyayı siler. |
+| Liste | Liste yalnız tam `conflicts/` klasörünün doğrudan içindeki, ad kuralına uyan sıradan dosyaları gösterir. Alt klasör, sembolik bağlantı, yer tutucu ve kuralı tutmayan ad listeye girmez. Her satır kopyanın yolunu ve gün dosyasının yolunu gösterir. Sıra: gün, addaki zaman, sonra sayı; sayısız ad önce gelir. Kural: `ConflictCopyName`. |
 | Silme sırası | Uygulama birleşmiş içeriği ve gerekiyorsa çakışma kopyasını yazmadan hiçbir sürümü silmez. Hiçbir içerik sessizce kaybolmaz. |
 
 ### Bilinen sonuçlar

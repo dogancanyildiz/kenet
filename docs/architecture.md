@@ -137,14 +137,17 @@ Aşama 0'dan beri uygulama varsayılan kasayı yerel `Documents/Vault/` klasör�
 
 ## Dosya izleyici
 
-**Şema yenilemeyi başlatan üç tetiği gösterir.**
+**Şema yenilemeyi başlatan tetikleri ve her tetiğin tarama kapsamını gösterir.**
 
 ```mermaid
 flowchart LR
-  Dizin["Dizin olayı: Dispatch dizin kaynağı"] --> Birlestir["300 ms birleştirme"]
-  Zamanlayici["Ön plan zamanlayıcısı: 5 saniye"] --> Birlestir
-  OnPlan["Ön plana dönüş"] --> Birlestir
-  Birlestir --> Yenile["Arka planda refresh(vaultRoot:)"]
+  Dizin["Alt dizin olayı: Dispatch dizin kaynağı"] -->|"dizin yolu"| Birlestir["300 ms birleştirme"]
+  Kok["Kök dizin olayı"] -->|"tam"| Birlestir
+  Zamanlayici["Ön plan sigortası: 10 saniye"] -->|"tam"| Birlestir
+  OnPlan["Ön plana dönüş"] -->|"tam"| Birlestir
+  Birlestir --> Esik{"200'den çok dizin ya da tam istek var mı?"}
+  Esik -- Hayır --> Kapsamli["Arka planda update(paths:vaultRoot:): dizinler ve alt ağaçları"]
+  Esik -- Evet --> Tam["Arka planda refresh(vaultRoot:): bütün kasa"]
 ```
 
 **Tablo izleyicinin sınırlarını gösterir.**
@@ -152,11 +155,40 @@ flowchart LR
 | Değer | Anlam |
 |---|---|
 | Dispatch dizin kaynakları | Kök ve taranan alt dizinler |
-| 5 saniye | Ön plan zamanlayıcısının aralığı |
+| 10 saniye | Ön plan sigortasının aralığı |
 | 300 ms | Bildirimlerin birleştirme süresi |
+| 200 | Bir yenilemedeki en çok dizin sayısı; fazlası tam yenilemedir |
 | 256 | En çok dizin kaynağı sayısı |
 
-Dizin kaynakları dosya içeriğinin yerinde düzenlenmesini güvenilir biçimde görmez. Ön plan zamanlayıcısı ve ön plana dönüş yenilemesi bu düzenlemeyi yakalar. Arka planda dizin olayları yenilemeyi tetiklemeye devam eder. İzleyici 256 kaynaktan sonraki dizinleri ve kaynak açamadığı dizinleri yalnız ön plan zamanlayıcısıyla denetler. Arayüz bu dizinlerin sayısını gösterir. `VaultWatcher` yol bildirmez; her olayda `IndexStore` tam `refresh` çağırır.
+**Tablo her tetiğin ne bildirdiğini gösterir.**
+
+| Tetik | Bildirim | `IndexStore` çağrısı |
+|---|---|---|
+| Alt dizin olayı: dosya ya da dizin eklendi, silindi, yeniden adlandırıldı | Kasa içi göreli dizin yolu | `refresh(directories:)`; Core `update(paths:)` o dizini alt ağacıyla tarar |
+| Kök dizin olayı | Tam | `refresh()` |
+| Ön plan sigortası ve ön plana dönüş | Tam | `refresh()` |
+| Kaynak sayısı sınırdayken bir kaynak kapandı | Tam | `refresh()` |
+
+İzleyici 300 ms içinde gelen bildirimleri birleştirir. Dizin listeleri birleşir. Tam istek listeyi yutar. 200'den çok dizin tam isteğe döner. `IndexStore` de süren bir yenilemenin arkasında bekleyen istekleri aynı kuralla birleştirir. Bu yüzden hiçbir istek kaybolmaz: bekleyen istek ya bütün dizinleri ya bütün kasayı tarar.
+
+İzleyici bir dizin olayından sonra yalnız o dizinin alt ağacını dolaşır. Yeni alt dizinler kaynak alır. Silinen ya da taşınan dizinlerin kaynakları kapanır. Bütün ağacı yalnız tam istek dolaşır. Dışlamalar her dolaşmada aynıdır: adı nokta ile başlayan dizinler ve kökteki `templates/` ile `conflicts/`.
+
+Dizin kaynakları dosya içeriğinin yerinde düzenlenmesini görmez. Bir düzenleyici dosyayı yerinde yazarsa, örneğin `FileHandle`, `>>` ya da Node `fs.writeFile` ile, indeks bu düzenlemeyi ön plan sigortasında ya da ön plana dönüşte görür; gecikme en çok 10 saniyedir. Ölçüm: yerinde ekleme, kesip yeniden yazma ve `touch` hiçbir dizin olayı üretmez. Atomik kaydetme, yani geçici dosya ve yeniden adlandırma, bir dizin olayıdır; indeks bu düzenlemeyi 1 saniye içinde görür. Arka planda dizin olayları yenilemeyi tetiklemeye devam eder. İzleyici 256 kaynaktan sonraki dizinleri ve kaynak açamadığı dizinleri yalnız ön plan sigortasıyla denetler. Arayüz bu dizinlerin sayısını gösterir.
+
+Yenileme hata verirse `IndexStore` sonraki isteği dizin listesiyle değil bütün kasayla yapar. Başarısız yenilemenin kaçırdığı değişiklik başka bir dizinde olabilir.
+
+Kapsamlı yenilemede Core `skippedPaths` değerini yalnız taranan dizinler için bildirir. `IndexUpdate` taranan dizinlerin dışındaki eski kayıtları korur ve listeyi Core sırasıyla birleştirir. Liste değişmezse yayım olmaz.
+
+**Tablo izleyicinin ana aktörle ilişkisini gösterir.**
+
+| İş | Nerede çalışır |
+|---|---|
+| İlk dolaşma ve kaynak kurulumu | İzleyici kuyruğu. `IndexStore.open` yalnız `waitUntilReady()` ile bekler; ana aktör serbesttir |
+| `setForeground` ve `stop` | İzleyici kuyruğuna iş bırakır; ana aktör beklemez |
+| Dizin dolaşması ve birleştirme | İzleyici kuyruğu |
+| İndeks taraması ve okuma modeli | `Task.detached` |
+
+`IndexStore.open` açılış yenilemesinden önce ilk dolaşmanın bitmesini bekler. Böylece kaynaklar açılış taramasından önce kurulur; ikisinin arasında yapılan bir düzenleme kaybolmaz. Bu bekleme sürerken `isProcessing` açık kalır; gelen yenileme istekleri açılış yenilemesinin arkasında birleşir. Kasa bu sırada değişirse ya da erişim kaybolursa `generation` denetimi eski açılışı durdurur. Eski izleyicinin bildirimleri de aynı denetimle düşer.
 
 ## Yazma sırası
 
@@ -187,12 +219,16 @@ sequenceDiagram
 
 `VaultStore` uygulamanın kasa belgelerini düzenleyen tek kapıdır. `VaultStore` aynı kasa kökündeki yazmaları ortak seri bir Foundation işlem kuyruğunda sıralar. Her işlem belgeyi diskten yeniden okur, `VaultFormat` ile düzenler ve dosyaya yazar. Sonra `VaultStore` yalnız değişen yolu `VaultIndex` ile günceller. İndeks hatası yazılmış dosyayı geri almaz; `indexUpdateFailed(path:underlying:)` dosyanın yazıldığını açıkça bildirir.
 
-**Tablo atomik yazmanın iki yolunu gösterir.**
+`VaultStore` yeni baytları önce hedefin klasöründe geçici bir dosyaya yazar. `VaultStore` geçici dosyayı yayımlamadan önce diske eşitler (`FileHandle.synchronize()`). Eşitleme hata verirse `VaultStore` hiçbir şey yayımlamaz ve geçici dosyayı siler. Eşitleme `fsync` düzeyindedir. Apple aygıtlarında sürücü önbelleğini de boşaltan `F_FULLFSYNC` kullanılmaz.
 
-| Durum | Yazma yolu |
-|---|---|
-| Dosya var | `VaultStore` var olan dosyayı atomik değiştirir |
-| Birim sabit bağlantıyı desteklemiyor | `VaultStore` yeni dosyayı dışlayıcı oluşturur |
+**Tablo atomik yazmanın yollarını ve tek istisnayı gösterir.**
+
+| Durum | Yazma yolu | Kesintide kalan |
+|---|---|---|
+| Dosya var | `VaultStore` var olan dosyayı eşitlenmiş geçici dosyayla atomik değiştirir. | Eski ya da yeni baytların tamamı |
+| Dosya yok | `VaultStore` geçici dosyayı dışlayıcı sabit bağlantıyla yayımlar. Başka sürecin dosyasının üzerine yazmaz. | Dosya yok ya da yeni baytların tamamı |
+| Birim sabit bağlantıyı desteklemiyor | `VaultStore` geçici dosyayı dışlayıcı adlandırmayla yayımlar (`renamex_np`, `RENAME_EXCL`). Hedef varsa adlandırma reddedilir. | Dosya yok ya da yeni baytların tamamı |
+| Birim dışlayıcı adlandırmayı da desteklemiyor | `VaultStore` yeni dosyayı doğrudan dışlayıcı oluşturur. Bu ilk yazma atomik değildir. Linux'ta `Core` dışlayıcı adlandırma kullanmaz ve bu yolu izler. | Yarım dosya kalabilir |
 
 ## Okuma modeli
 
@@ -213,16 +249,15 @@ Okuma modeli dosya başına parça tutar: `[yol: VaultFileFragment]`. İlk kurul
 | Parça verisi | Kullanan |
 |---|---|
 | Dosya satırı | `counts.filesByKind` |
-| Varlık ve takma adlar | `entities`, `goals`, `reservedGoalKeys` |
-| Bağlantılar | Gelen bağlantı sayısı, hedefin konumu, `counts.links`, silinen dosyaya çözülen kaynaklar |
-| Hedef değerleri | `goalLogs`, `reservedGoalKeys` |
+| Varlık ve takma adlar | `entities`, `counts.entities` |
+| Bağlantılar | Gelen bağlantı sayısı, `counts.links`, silinen dosyaya çözülen kaynaklar |
 | Olay ve görev blok sayısı | `counts.events`, `counts.tasks` |
 
-Parça blok metnini taşımaz: paragraf, başlık, görev ve olay metni indekste kalır. Ekranlar blok metnini sorgudan okur. Blok kimliği sahipliği de parçaya ulaşmaz. Bu yüzden artımlı yol kimlik başına bütün parçaları taramaz.
+Parça blok metnini taşımaz: paragraf, başlık, görev ve olay metni indekste kalır. Ekranlar blok metnini sorgudan okur. Blok kimliği sahipliği de parçaya ulaşmaz. Bu yüzden artımlı yol kimlik başına bütün parçaları taramaz. Hedef değerleri de parçaya ulaşmaz; hedef ekranları ve servisler onları sorgudan okur. Hiçbir alan güne bağlı değildir: yeni gün de öteki yayımlar gibi yamayla işler.
 
 ## Ekran sorguları
 
-**Tablo okuma modelinden çıkan altı dilimi sırasıyla gösterir.**
+**Tablo okuma modelinden çıkan yedi dilimi sırasıyla gösterir.**
 
 | Sıra | Dilim | Core sorgusu | `IndexStore` yöntemi | Ekran |
 |---|---|---|---|---|
@@ -236,6 +271,10 @@ Parça blok metnini taşımaz: paragraf, başlık, görev ve olay metni indekste
 | 6 | Proje adları | `taskProjects()` | `computeProjects()` | Mac kenar çubuğu, kanban ve zaman çizelgesi proje sütunları, süzgeç menüsü, hızlı giriş proje önerisi |
 | 6 | Varlığın açık işleri | `taskGroups(today:scope:)`, varlığa bağlı kapsam | `computeTaskGroups(today:scope:)` | Varlık sayfası |
 | 6 | Bildirim haftası | `taskGroups(today:)`, `daySummaries(from:to:)` | `computeNotificationDays(from:through:)` | Bildirim planlayıcı |
+| 7 | Hedef tanımları | `goalDefinitionsByName()` | `computeGoalDefinitions()` | `GoalDayModel` (gün sayfası şeridi, "Günü kapat", hedef ayrıntısı, liste düzenlemesi), Mac hedef sütunu, tanım formunun ad denetimi, App Intents, konum izleme |
+| 7 | Ayrılmış hedef anahtarları | `reservedGoalKeys()` | `computeReservedGoalKeys()` | Yeni hedef formunun anahtar önizlemesi |
+| 7 | Hedef kayıtları aralığı | `goalLogsByKey(from:through:keys:)` | `computeGoalLogs(from:through:keys:)` | Konum izleme: o günün kaydı |
+| 7 | Günlük hedef hatırlatması | `notificationGoals(from:through:)` | `computeNotificationGoals(from:through:)` | Bildirim planlayıcı |
 
 Aynı kalıp dilimlerden önceki istek üzerine sorgular için de geçerlidir: `computeSummary`, `computeOnThisDay`, `computeImportantDates`, `computeDayBacklinks`, `computeUnlinkedMentions`.
 
@@ -276,7 +315,7 @@ Her ekran sorgusu başlarken kasa kuşağını saklar ve indeksi arka plan göre
 | Yanıttan önce başka kasa seçildi | Sorgu sonucu kasa kuşağına bağlıdır; ekran sonucu atar |
 | Gün sayfası açılıyor | Sayfa günün kendi bölümlerini gün ve görev yanıtlarının ikisi de gelince çizer |
 | Akşam hatırlatması geldi | Uygulama günü kapatma akışını görevlerin o yayıma ait yanıtı gelmeden açmaz |
-| Hedefler listesi yükleniyor | Liste ilk yanıta kadar satır çizmez. Yeniden yüklemede ve gece yarısı yeniden kurulumda eski durumları tutar |
+| Hedefler listesi yükleniyor | Liste ilk yanıta kadar satır ve boş durum çizmez. Satırlar ve tanımlar yanıttan gelir. Yeniden yüklemede ve gece yarısı yeniden kurulumda eski satırları tutar |
 
 ### Graph
 
@@ -322,7 +361,7 @@ Kişi ve proje süzgeci sorguya gider: `TaskScope`. Sorgu projeyi anahtarla kar�
 
 ### Hedef durumu
 
-Okuma modeli hedef durumu tutmaz. Hedefler listesi ve gün sayfası durumları `goalStatuses(today:)` sorgusundan alır. Gün sayfası o günün durumunu günle aynı görevde, o güne kadarki kayıtlarla sorgular. Sorgu durumu hedefin o güne kadarki bütün kayıtlarından hesaplar; bir yıldan eski zincir ve en uzun seri de kesintisiz kalır. Sorgu kayıtlardan yalnız anahtar, gün, tür ve değer sütunlarını okur.
+Okuma modeli hedef alanı tutmaz: tanımlar, durumlar, ayrılmış anahtarlar ve kayıtlar sorgudan gelir. Hedefler listesi ve gün sayfası durumları ve tanımları `goalStatuses(today:)` sorgusundan alır. Gün sayfası o günün durumunu günle aynı görevde, o güne kadarki kayıtlarla sorgular. Sorgu durumu hedefin o güne kadarki bütün kayıtlarından hesaplar; bir yıldan eski zincir ve en uzun seri de kesintisiz kalır. Sorgu kayıtlardan yalnız anahtar, gün, tür ve değer sütunlarını okur.
 
 **Şema hedef işaretlemede iyimser çizimi gösterir.**
 
@@ -349,12 +388,25 @@ Kullanıcı hedefi işaretlediği anda ekran işareti o ekranın düzenleme mode
 | Yer | Kaynak |
 |---|---|
 | Gün sayfası hedef sayacı, durumlar gelmeden | Şeridin kendi modeli. Bir an `0/0` ya da önceki günün sayısı görünmez |
-| "Günü kapat" bekleyen hedefler | Açılışta şeridin modeli |
+| "Günü kapat" bekleyen hedefler | Açılışta şeridin yüklü modeli. Giriş satırı ve akşam hatırlatması şeridin o yayıma ait yanıtını bekler |
 | Kopya anahtarlı hedef tanımı | Adı önce gelen tanım; gün sayfasıyla aynı kural |
-| `GoalDayModel` ilk çizim | Okuma modelindeki `goalLogs` |
-| `GoalDayModel` açıldıktan sonra | İndeksteki bütün geçmiş: `goalHistory` |
+| `GoalDayModel` ilk yükleme | Tanımlar ve indeksteki bütün geçmiş birlikte: `computeGoalDefinitions()` ve `goalHistory` |
+| `GoalDayModel` yüklenmeden | Aynı kasada başka güne geçen sayfada önceki modelin tanımları ve geçmişi: ikisi de güne bağlı değil, şerit hemen çizilir. Sayfanın ilk açılışında ve kasa değişince boş: şerit hiçbir şey çizmez, boşluk da bırakmaz. Model yüklenmeden düzenleme almaz |
 
-`GoalDayModel` gün sayfasının hedef şeridini, "Günü kapat" akışını ve hedef ayrıntısını sürer. Okuma modelindeki `goalLogs` bugünden 399 gün geri ve 6 gün ileri kayıt tutar. `goalLogs` listesi yalnız bildirim planlayıcı ve konum izleme içindir. Widget bağlantısı açık bir iştir.
+`GoalDayModel` gün sayfasının hedef şeridini, "Günü kapat" akışını ve hedef ayrıntısını sürer. Gün sayfası modeli her yayımda yeniden yükler; şerit kendisi yüklemez. Yükleme ekran görevinin iptaline karşı korunur: yerini alan istek yalnız yeniden yükleme ister, bu yüzden süren yükleme biter ve yeniden çalışır. Hedef ayrıntısı tanımın en yenisini kimlikle bu modelden okur.
+
+**Tablo hedef tanımlarını okuyan öteki yerleri gösterir.**
+
+| Yer | Kaynak | Yükleme davranışı |
+|---|---|---|
+| Mac hedef sütunu | `computeGoalDefinitions()`, seçili kimlik | Sütun ilk yanıta kadar boş kalır. Listede olmayan kimlik "Bir hedef seç" gösterir |
+| Hedef tanım formu, ad çakışması | `computeGoalDefinitions()` | Form açılışta ve her yayımda adları okur. Adlar gelmeden "Kaydet" kapalıdır. Kaydetme adları yeniden okur |
+| Yeni hedef formu, anahtar önizlemesi | `computeReservedGoalKeys()` | Önizleme yanıt gelene kadar ayrılmış anahtar görmez. Oluşturma diskteki anahtarları yine ayırır |
+| App Intents hedef listesi ve işaretleme | `computeGoalDefinitions()` | Okuma hatası kasayı açılamamış sayar |
+| Konum izleme hedefleri | `computeGoalDefinitions()`: tanım ve konum bağlantısının çözüldüğü dosya | Servis her yayımda tanımları yeniden okur. Sonraki okumanın yanıtı öncekini ezer. Arka plan girişi okumanın bitmesini bekler |
+| Konum izleme "işaretli mi" | `computeGoalLogs(from:through:keys:)`, yalnız o gün | Okuma askıya alınır; denetim ile işi üstlenme arasında askı yoktur: ikinci giriş bekleyen işi görür |
+
+Widget bağlantısı açık bir iştir.
 
 ### Okuma modelinde kalan alanlar
 
@@ -362,8 +414,7 @@ Kullanıcı hedefi işaretlediği anda ekran işareti o ekranın düzenleme mode
 
 | Alan | Kullanan |
 |---|---|
-| `entities` | Graph düğümleri |
-| `goalLogs` | Bildirim planlayıcı, konum izleme, `GoalDayModel` ilk çizimi |
+| `entities` | Graph düğümleri, bağlantılı metin ve bağlantı hedefleri, varlık listesi ve sayfası, arama, görev süzgeci ve görev ayrıntısı, kanban ve zaman çizelgesi kişi sütunları, proje sayfası, haftalık inceleme, harita, gün bağlamı ve geri bağlantılar, görüşme ritmi hatırlatması |
 
 ## Bayat yanıt ve kasa değişimi
 
@@ -389,7 +440,7 @@ Kullanıcı hedefi işaretlediği anda ekran işareti o ekranın düzenleme mode
 
 | Parça | Görev |
 |---|---|
-| `NotificationPlanner` | Planı okuma modelinin hedeflerinden, bildirim haftasından, cihaz tercihlerinden ve yerel saatten üretir. Yalnız App katmanında çalışır |
+| `NotificationPlanner` | Planı bildirim haftasından, günlük hedeflerden, cihaz tercihlerinden ve yerel saatten üretir. Yalnız App katmanında çalışır |
 | `NotificationService` | Yeniden planlamayı sırayla uygular ve izin durumunu yönetir. `UserNotifications` merkezine bir protokol üzerinden erişir |
 | `CadenceReminderPlan` | Bugünün kişi, ritim ve son görüşme verisinden pencere içindeki görüşme ritmi günlerini hesaplar |
 | `IntentActions` | Yer imi kapsamını ve indeksi açar; `IndexStore` üzerinden olay, görev ve hedef kaydı yazar |
@@ -402,12 +453,12 @@ Kullanıcı hedefi işaretlediği anda ekran işareti o ekranın düzenleme mode
 |---|---|
 | Görev sabahı | Bildirim haftası: son güne kadar vade günü başına açık görev sayısı ve haftaya düşen açık görevler |
 | Günlük hatırlatması | Bildirim haftası: olayı ya da Journal paragrafı veya başlığı olan günler |
-| Hedef hatırlatması | Okuma modelindeki `goals` ve `goalLogs` |
+| Hedef hatırlatması | Günlük hedefler: `computeNotificationGoals(from:through:)`. Günlük tanımlar ve planlanan günlerin kayıtları |
 | Görüşme ritmi hatırlatması | `cadenceReminderPeople(today:)` |
 
-`NotificationService` bildirim haftasını `computeNotificationDays(from:through:)` ile bugünden 6 gün sonrasına kadar okur. Görev ve günlük hatırlatması kapalıysa servis haftayı okumaz. Servis okumayı iptale karşı korur: plan yarıda kalmaz. Servis haftayı okuyamazsa planlayıcı görev ve günlük hatırlatması planlamaz. Planlayıcı hedef hatırlatmasını yine planlar.
+`NotificationService` bildirim haftasını `computeNotificationDays(from:through:)` ile bugünden 6 gün sonrasına kadar okur. Görev ve günlük hatırlatması kapalıysa servis haftayı okumaz. Günlük hedefleri aynı günler için `computeNotificationGoals(from:through:)` ile okur; hedef hatırlatması kapalıysa okumaz. Günlük hedefin bir gündeki ilerlemesi yalnız o günün kaydıdır; sorgu daha eski kayıt okumaz. Servis okumaları iptale karşı korur: plan yarıda kalmaz. Servis haftayı okuyamazsa planlayıcı görev ve günlük hatırlatması planlamaz; hedefleri okuyamazsa hedef hatırlatması planlamaz. İki okuma birbirinden bağımsızdır.
 
-`NotificationService` indeks yayımlarını 2 saniye birleştirir. Uygulama kapalıyken planlayıcı yedi günlük planın içeriğini yeniden hesaplamaz. Görüşme ritmi hatırlatması aynı plandadır. Uygulama son bildirim gününü kasaya yazmaz; günü cihazda kasa yoluna göre saklar.
+`NotificationService` indeks yayımlarını 2 saniye birleştirir. Kasa yüklenirken servis merkezdeki planı değiştirmez. Bu kural soğuk açılışı, arka plan açılışını ve aynı kasanın yeniden açılmasını kapsar. Eski plan kasanın ilk yayımından sonraki plana kadar kalır. Açılış yenilemesi hata verirse kasa yüklenmiş sayılmaz ve eski plan kalır. Servis eski planı yalnız iki durumda hemen kaldırır: başka bir kasa açıldı ya da kasaya erişim kayboldu. Servis önce yeni planı hesaplar ve ekler; aynı kimlikli istek eskisinin yerine geçer. Sonra servis yalnız yeni planda olmayan kendi isteklerini kaldırır. Böylece süreç plan sırasında askıya alınırsa hatırlatmalar kaybolmaz. Uygulama kapalıyken planlayıcı yedi günlük planın içeriğini yeniden hesaplamaz. Görüşme ritmi hatırlatması aynı plandadır. Uygulama son bildirim gününü kasaya yazmaz; günü cihazda kasa yoluna göre saklar.
 
 ## Core paketi
 
@@ -892,6 +943,8 @@ Güncelleme değişen yolların dosya adı ve yol anahtarlarına sahip bağlant�
 | Yer tutucu tanıma | `Core` içinde hazır; App bağlantısı sonraki dilim |
 | Gün kopyası birleştirme | `Core` içinde hazır; App bağlantısı sonraki dilim |
 | Eşitlenen klasör tespiti | `SyncedFolderKind`: yol kalıpları ve `isUbiquitousItemKey`. Sağlayıcılar: iCloud Drive, Dropbox, OneDrive, Google Drive, File Provider |
+| Çakışan sürüm `NSFileVersion` | Var: tespit ve listeleme; çözümleme yok. Yalnız iCloud Drive kasasında. `ConflictVersionSource` |
+| Çakışma kopyası listesi | `VaultIndex.conflictCopies(vaultRoot:)`; her kasada. Ad kuralı `ConflictCopyName` |
 
 **UYARI:** Eşitlenen bir klasörü kasa olarak seçme; uygulama bu klasörü şimdilik tam korumaz.
 
@@ -947,6 +1000,34 @@ sequenceDiagram
 `VaultStore.mergingDayCopy(_:)` gün dosyası varsa kopyayı tek `.merge(kopya → gün)` sınırında birleştirir. Gün dosyası yoksa kopyayı tek `.move(kopya → gün)` sınırında gün adına taşır. `VaultStore` taşıma sınırını seçtikten sonra gün dosyası oluşursa `VaultStore` taşıma sınırını değişiklik yapmadan bitirir. Sonra kopyayı yeni bir `.merge` sınırında birleştirir. Gün dosyası `.merge` sınırı içinde yok olursa kopyayı aynı sınırda gün adına taşır.
 
 Gün dosyası değişmeden önceki her hata, o çağrının yazdığı çakışma kopyalarını geri alır. Yalnız zaman verme ya da silme başarısızsa gün dosyası birleşmiş kalır. Sonraki çağrı aynı içeriğe varır ve kopyayı siler. App bağlantısı sonraki dilimdir: taramadan sonra kopyaları sırayla birleştirme ve sonucu kullanıcıya gösterme.
+
+### Çakışan sürümler
+
+**Şema çakışan sürümlerin Tanılama'ya hangi yoldan geldiğini gösterir.**
+
+```mermaid
+flowchart LR
+  subgraph CoreTarafi["Core: VaultIndex"]
+    Model["ConflictedFile ve ConflictVersion: değer modeli, sıralama"]
+  end
+  subgraph AppTarafi["App"]
+    Arayuz["ConflictVersionSource arayüzü, Sendable"]
+    Sistem["SystemConflictVersionSource"]
+    Bayrak["ubiquitousItemHasUnresolvedConflictsKey"]
+    Surum["NSFileVersion.unresolvedConflictVersionsOfItem"]
+    Store["IndexStore.computeConflictedFiles"]
+  end
+  Store -->|"her dosya için sorar"| Arayuz
+  Arayuz --> Sistem
+  Sistem -->|"1. ucuz ön süzgeç"| Bayrak
+  Sistem -->|"2. yalnız bayraklı dosya, koordineli okuma"| Surum
+  Store --> Model
+  Model --> Tanilama["DiagnosticsView: Çakışan sürümler"]
+```
+
+`Core` Apple çerçevesi kullanmaz; bu yüzden `NSFileVersion` yalnız `App/Services` altındaki `SystemConflictVersionSource` içindedir. `IndexStore` kaynağı `conflictVersions` başlatma parametresiyle alır; varsayılan sistem kaynağıdır, testler sahte kaynak verir. `computeConflictedFiles` yalnız `syncedFolder == .iCloudDrive` iken çalışır; öteki kasada hiçbir dosyaya sormadan boş döner. Aday yollar indeksteki dosyalar ve `VaultIndex.dayCopies(vaultRoot:)` listesidir. Sorgu `taskQuery` deseniyle ayrık görevde koşar ve kasa kuşağına bağlıdır. Sistem kaynağı sürümleri `SystemFileCoordination` okuma koordinasyonu içinde okur. Uygulama hiçbir sürümü birleştirmez, seçmez ya da silmez: `NSFileVersion.removeOtherVersionsOfItem`, `replaceItem` ve `isResolved` kullanılmaz.
+
+Tanılama listeyi `store.lastUpdated` değişince ve sahne ön plana her dönünce yeniden okur. Bir iCloud çakışması kasa klasöründe izleyicinin göreceği bir olay üretmeyebilir.
 
 ### Hedeflenen davranış
 
@@ -1012,7 +1093,7 @@ Proje çekirdeği şimdiden ortak bir teknolojiyle yazmaz. Örnek teknolojiler: 
 | Birleştirme | Sonuç sürümlerin sırasından bağımsız kalsın, tekrarda değişmesin, hiçbir satırı kaybetmesin |
 | Dayanıklılık | Bozuk frontmatter, tanınmayan sözdizimi ve boş dosya hata üretmesin |
 | Biçim | `swift format lint --strict --recursive Packages App Tests` |
-| Belge biçimi | `sh .github/scripts/check-docs.sh`: karar tablosu, README belge tablosu, String Catalog |
+| Belge biçimi | `sh .github/scripts/check-docs.sh`: karar tablosu, README belge tablosu, String Catalog; koddaki sabit arayüz metni katalogda yoksa düşer (`check-catalog-keys.py`; `verbatim:`, değişken ve enterpolasyonlu metin sayılmaz) |
 | Uygulama testleri | `JournalTests`, `Journal_macOS` ve `Journal_iOS` şemalarında koşar |
 | Ekran görüntüsü testleri | `Tests/JournalTests/Snapshots` altındaki `*SnapshotTests` kümeleri; iOS birim katmanı |
 | XCUITest dumanı ve erişilebilirlik | `JournalUITests`, `bundle.ui-testing`; `Journal_iOS` şemasında |
@@ -1065,9 +1146,9 @@ Ekran turu (`ScreenTourUITests`, `sh .github/scripts/screen-tour.sh`) aynı test
 | İş | Runner | Adımlar | Ne zaman | İş sınırı |
 |---|---|---|---|---|
 | Değişen dosyalar | Linux | Belge PR'ı mı: `.github/scripts/ci-changes.py` | Her zaman | 5 dk |
-| Biçim ve kurallar | Linux kabı, Swift 6.4 | `swift format lint`, dört denetim betiği, CI betiklerinin testleri | Her zaman; belge PR'ında da | 15 dk |
+| Biçim ve kurallar | Linux kabı, Swift 6.4 | `swift format lint`, dört denetim betiği (`check-docs.sh` kaynak–katalog denetimini de çalıştırır), CI betiklerinin testleri | Her zaman; belge PR'ında da | 15 dk |
 | Core (Linux) | Linux kabı, Swift 6.4 | `swift test` | Belge dışı her koşu | 20 dk |
-| Uygulama (macOS ve Core) | macOS | Core `swift test`, ölçek bütçesi, Mac testleri `TZ=UTC`, Mac testleri `TZ=Pacific/Auckland` | Belge dışı her koşu; ölçek bütçesi ve Auckland yalnız `dev`'e birleşince | 35 dk |
+| Uygulama (macOS ve Core) | macOS | Core `swift test`, ölçek bütçesi, Mac testleri `TZ=UTC`, Mac testleri `TZ=Pacific/Auckland` | Belge dışı her koşu; ölçek bütçesi yalnız `dev`'e birleşince; Auckland her koşuda | 35 dk |
 | Uygulama (iPhone) | macOS | Derle, iPhone simülatörünü aç, birim testleri, iPhone görüntü kümeleri, arayüz dumanı | Belge dışı her koşu | 45 dk |
 | Uygulama (iPad) | macOS | Derle, iPad simülatörünü aç, iPad görüntü kümeleri (`--pad`), iPad erişilebilirlik denetimi (`AccessibilityAuditUITests`, yatay) | Belge dışı her koşu | 35 dk |
 | ci | Linux | Bütün işlerin sonucu: `.github/scripts/ci-gate.py` | PR'da her zaman; `dev`'e itmede koşu iptal edilmediyse | 5 dk |

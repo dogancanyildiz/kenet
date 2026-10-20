@@ -1,121 +1,221 @@
 import Dispatch
 import Foundation
 
-/// All mutable state is confined to queue; public operations synchronize with it.
+/// What a watcher notification asks the index to look at.
+enum VaultChange: Sendable, Equatable {
+    /// Rescan the whole vault: the foreground fuse, foreground return, the root directory,
+    /// a coverage change, or more directories than `fullScanThreshold`.
+    case full
+    /// Vault-relative directories whose entries changed; each one is rescanned with its subtree.
+    case directories(Set<String>)
+
+    /// Above this many changed directories one whole-vault scan replaces the list.
+    static let fullScanThreshold = 200
+
+    /// Joins two requests; `.full` absorbs everything, and too long a list becomes `.full`.
+    func merging(_ other: VaultChange, threshold: Int = fullScanThreshold) -> VaultChange {
+        guard case .directories(let left) = self, case .directories(let right) = other else { return .full }
+        let union = left.union(right)
+        return union.count > threshold ? .full : .directories(union)
+    }
+}
+
+/// Repeating foreground fuse. Tests replace it with a manual clock.
+protocol WatcherTicker: Sendable {
+    /// Calls `tick` on `queue` every `interval` seconds until the returned closure cancels it.
+    func schedule(
+        every interval: TimeInterval, on queue: DispatchQueue, _ tick: @escaping @Sendable () -> Void
+    ) -> @Sendable () -> Void
+}
+
+struct DispatchWatcherTicker: WatcherTicker {
+    func schedule(
+        every interval: TimeInterval, on queue: DispatchQueue, _ tick: @escaping @Sendable () -> Void
+    ) -> @Sendable () -> Void {
+        let timer = DispatchSource.makeTimerSource(queue: queue)
+        timer.schedule(deadline: .now() + interval, repeating: interval)
+        timer.setEventHandler(handler: tick)
+        timer.resume()
+        return { timer.cancel() }
+    }
+}
+
+/// All mutable state is confined to queue. Public operations only enqueue work there, so the
+/// caller (the main actor) never waits for a directory walk.
 final class VaultWatcher: @unchecked Sendable {
+    /// Directory events are the main path; this fuse catches in-place edits and directories
+    /// without a source.
+    static let foregroundInterval: TimeInterval = 10
+
     private let queue = DispatchQueue(label: "journal.vault-watcher")
     private let root: URL
     private let interval: TimeInterval
-    private let callback: @Sendable () -> Void
+    private let ticker: any WatcherTicker
+    private let callback: @Sendable (VaultChange) -> Void
     private let directoryLimit: Int
+    private let fullScanThreshold: Int
     private let coverageChanged: @Sendable (Int) -> Void
     private let descriptorClosed: @Sendable (Int32) -> Void
     private var unwatchedCount: Int?
+    /// Every directory the walks found, watched or not, relative to the root ("" is the root).
+    /// Relative paths are built from names: Foundation may report `/private/var` as `/var`.
+    private var known: Set<String> = []
     private var sources: [String: DispatchSourceFileSystemObject] = [:]
-    private var timer: DispatchSourceTimer?
+    private var cancelTimer: (@Sendable () -> Void)?
     private var pending: DispatchWorkItem?
+    private var pendingChange: VaultChange?
     private var stopped = false
     private var descriptorCount = 0
 
+    /// The first walk runs on the watcher queue; `waitUntilReady()` awaits it.
+    /// `initialScanWillBegin` is a test seam that runs on that queue just before the walk.
     init(
-        root: URL, interval: TimeInterval = 5, directoryLimit: Int = 256,
+        root: URL, interval: TimeInterval = VaultWatcher.foregroundInterval, directoryLimit: Int = 256,
+        fullScanThreshold: Int = VaultChange.fullScanThreshold,
+        ticker: any WatcherTicker = DispatchWatcherTicker(),
+        initialScanWillBegin: (@Sendable () -> Void)? = nil,
         onCoverageChange: @escaping @Sendable (Int) -> Void = { _ in },
         onDescriptorClosed: @escaping @Sendable (Int32) -> Void = { _ in },
-        onChange: @escaping @Sendable () -> Void
+        onChange: @escaping @Sendable (VaultChange) -> Void
     ) {
         self.root = root.resolvingSymlinksInPath()
         self.interval = interval
+        self.ticker = ticker
         callback = onChange
         self.directoryLimit = max(1, directoryLimit)
+        self.fullScanThreshold = fullScanThreshold
         coverageChanged = onCoverageChange
         descriptorClosed = onDescriptorClosed
-        queue.sync { reconcileDirectories() }
+        queue.async { [weak self] in
+            initialScanWillBegin?()
+            guard let self, !self.stopped else { return }
+            self.reconcileDirectories()
+        }
     }
 
     deinit {
         pending?.cancel()
-        timer?.cancel()
+        cancelTimer?()
         for source in sources.values { source.cancel() }
     }
 
+    /// Returns once the first walk has installed its directory sources.
+    func waitUntilReady() async {
+        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+            queue.async { continuation.resume() }
+        }
+    }
+
     func setForeground(_ foreground: Bool, triggerOnActivation: Bool = true) {
-        queue.sync {
-            guard !stopped, foreground != (timer != nil) else { return }
-            timer?.cancel()
-            timer = nil
+        queue.async { [self] in
+            guard !stopped, foreground != (cancelTimer != nil) else { return }
+            cancelTimer?()
+            cancelTimer = nil
             if foreground {
-                let timer = DispatchSource.makeTimerSource(queue: queue)
-                timer.schedule(deadline: .now() + interval, repeating: interval)
-                timer.setEventHandler { [weak self] in self?.trigger() }
-                self.timer = timer
-                timer.resume()
-                if triggerOnActivation { trigger() }
+                cancelTimer = ticker.schedule(every: interval, on: queue) { [weak self] in self?.trigger(.full) }
+                if triggerOnActivation { trigger(.full) }
             }
         }
     }
 
+    /// Work queued before this call finds `stopped` set and does nothing.
     func stop() {
-        queue.sync {
+        queue.async { [self] in
             stopped = true
             pending?.cancel()
             pending = nil
-            timer?.cancel()
-            timer = nil
+            pendingChange = nil
+            cancelTimer?()
+            cancelTimer = nil
             for source in sources.values { source.cancel() }
             sources.removeAll()
         }
     }
 
-    private func trigger() {
+    /// Test seam: holds the watcher queue so directory events wait and then arrive together.
+    func testingSuspendEvents() { queue.suspend() }
+    func testingResumeEvents() { queue.resume() }
+
+    private func trigger(_ change: VaultChange) {
         guard !stopped else { return }
+        pendingChange = pendingChange.map { $0.merging(change, threshold: fullScanThreshold) } ?? change
         pending?.cancel()
         let work = DispatchWorkItem { [weak self] in
-            guard let self, !self.stopped else { return }
-            self.reconcileDirectories()
-            self.callback()
+            guard let self, !self.stopped, let change = self.pendingChange else { return }
+            self.pendingChange = nil
+            switch change {
+            case .full: self.reconcileDirectories()
+            case .directories(let directories): self.reconcileDirectories(under: directories)
+            }
+            self.callback(change)
         }
         pending = work
         queue.asyncAfter(deadline: .now() + .milliseconds(300), execute: work)
     }
 
+    /// Walks the whole tree.
     private func reconcileDirectories() {
+        known = walk(from: "")
+        syncSources()
+    }
+
+    /// Walks only the changed directories' subtrees: new subdirectories gain sources, and
+    /// directories gone from those subtrees lose theirs.
+    private func reconcileDirectories(under bases: Set<String>) {
+        var found: Set<String> = []
+        for base in bases { found.formUnion(walk(from: base)) }
+        known = known.filter { path in
+            found.contains(path) || !bases.contains { $0.isEmpty || path == $0 || path.hasPrefix($0 + "/") }
+        }
+        known.formUnion(found)
+        syncSources()
+    }
+
+    private func walk(from start: String) -> Set<String> {
         var directories: Set<String> = []
-        func visit(_ url: URL, isRoot: Bool) {
+        func visit(_ url: URL, relative: String) {
             guard let values = try? url.resourceValues(forKeys: [.isDirectoryKey, .isSymbolicLinkKey]),
                 values.isDirectory == true, values.isSymbolicLink != true
             else { return }
-            directories.insert(url.path)
+            directories.insert(relative)
             let children =
                 (try? FileManager.default.contentsOfDirectory(
                     at: url, includingPropertiesForKeys: [.isDirectoryKey, .isSymbolicLinkKey])) ?? []
             for child in children {
                 let name = child.lastPathComponent
-                if name.hasPrefix(".") || (isRoot && (name == "templates" || name == "conflicts")) { continue }
-                visit(child, isRoot: false)
+                if name.hasPrefix(".") || (relative.isEmpty && (name == "templates" || name == "conflicts")) {
+                    continue
+                }
+                visit(child, relative: relative.isEmpty ? name : relative + "/" + name)
             }
         }
-        visit(root, isRoot: true)
-        for path in Array(sources.keys) where !directories.contains(path) {
+        visit(absoluteURL(start), relative: start)
+        return directories
+    }
+
+    private func absoluteURL(_ relative: String) -> URL {
+        relative.isEmpty ? root : root.appendingPathComponent(relative, isDirectory: true)
+    }
+
+    private func syncSources() {
+        for path in Array(sources.keys) where !known.contains(path) {
             sources.removeValue(forKey: path)?.cancel()
         }
-        // Always reserve the first descriptor for the root, then use stable path order.
-        let ordered = directories.sorted { left, right in
-            if left == root.path { return right != root.path }
-            if right == root.path { return false }
-            return left < right
-        }
-        for path in ordered where sources[path] == nil {
+        // The empty root path sorts first: the root always gets the first descriptor.
+        for path in known.sorted() where sources[path] == nil {
             guard descriptorCount < directoryLimit else { break }
-            let descriptor = open(path, O_EVTONLY)
+            let descriptor = open(absoluteURL(path).path, O_EVTONLY)
             guard descriptor >= 0 else { continue }
             descriptorCount += 1
             let source = DispatchSource.makeFileSystemObjectSource(
                 fileDescriptor: descriptor, eventMask: [.write, .delete, .rename, .extend, .attrib], queue: queue)
+            // The root holds the vault's top level: a change there rescans everything.
+            let change: VaultChange = path.isEmpty ? .full : .directories([path])
             source.setEventHandler { [weak self] in
                 if let source = self?.sources[path], !source.data.intersection([.delete, .rename]).isEmpty {
                     self?.sources.removeValue(forKey: path)?.cancel()
                 }
-                self?.trigger()
+                self?.trigger(change)
             }
             let didClose = descriptorClosed
             source.setCancelHandler { [weak self] in
@@ -124,12 +224,12 @@ final class VaultWatcher: @unchecked Sendable {
                 guard let self else { return }
                 self.descriptorCount -= 1
                 // Retiring descriptors count against the limit until actually closed.
-                if (self.unwatchedCount ?? 0) > 0 { self.trigger() }
+                if (self.unwatchedCount ?? 0) > 0 { self.trigger(.full) }
             }
             sources[path] = source
             source.resume()
         }
-        let count = directories.count - sources.count
+        let count = known.count - sources.count
         if unwatchedCount != count {
             unwatchedCount = count
             coverageChanged(count)

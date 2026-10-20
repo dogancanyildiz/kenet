@@ -30,9 +30,9 @@ struct GoalDefinitionTests {
         let fixture = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
             .deletingLastPathComponent().appendingPathComponent("Fixtures/goals/creation/boolean-expected.md")
         #expect(try Data(contentsOf: file) == Data(contentsOf: fixture))
-        let goal = try #require(context.store.content.goals.first)
+        let goal = try #require((try await context.store.goalDefinitions()).first)
         #expect(goal.key == "su-icme" && goal.period == .day && goal.kind == .boolean)
-        #expect(context.store.content.reservedGoalKeys.contains(goal.key))
+        #expect((try await context.store.computeReservedGoalKeys()).contains(goal.key))
     }
 
     @Test func collidingNameDoesNotOverwriteAndCanBeCorrected() async throws {
@@ -50,7 +50,7 @@ struct GoalDefinitionTests {
         model.period = .week
         model.target = "3"
         #expect(await model.save())
-        #expect(context.store.content.goals.contains { $0.key == "yeni-spor" })
+        #expect((try await context.store.goalDefinitions()).contains { $0.key == "yeni-spor" })
     }
 
     @Test func definitionEditingKeepsKeyPathUnknownFieldsAndNotes() async throws {
@@ -62,7 +62,7 @@ struct GoalDefinitionTests {
             "---\ntype: goal\nname: Su\nkey: su\nperiod: day\nkind: number\ntarget: 8 # keep\nunit: bardak\ncustom: 20.0290\n---\n\nKeep notes\n"
         try Data(source.utf8).write(to: file)
         await context.store.refresh()
-        let goal = try #require(context.store.content.goals.first { $0.key == "su" })
+        let goal = try #require((try await context.store.goalDefinitions()).first { $0.key == "su" })
         let model = GoalDefinitionModel(store: context.store, goal: goal)
         #expect(await model.set("target", text: "10"))
         #expect(
@@ -72,7 +72,7 @@ struct GoalDefinitionTests {
         #expect(await model.set("kind", text: "boolean"))
         #expect(await model.set("unit", text: ""))
         #expect(await !model.set("key", text: "new-key"))
-        let changed = try #require(context.store.content.goals.first { $0.id == "goals/Su.md" })
+        let changed = try #require((try await context.store.goalDefinitions()).first { $0.id == "goals/Su.md" })
         #expect(
             changed.name == "İçecek" && changed.key == "su" && changed.period == .week && changed.kind == .boolean
                 && changed.unit == nil)
@@ -109,17 +109,19 @@ struct GoalDefinitionTests {
         let day = context.root.appendingPathComponent("journal/2026-09-14.md")
         #expect(try String(contentsOf: day, encoding: .utf8).contains("  spor: true\n"))
         let taken = GoalCreationModel(store: context.store)
+        await taken.load()
         taken.name = "Spor"
         #expect(taken.key == "spor-2", "the definition reserves its key")
         try await context.store.deleteGoal(path: "goals/Spor.md")
         #expect(try String(contentsOf: day, encoding: .utf8).contains("  spor: true\n"))
-        #expect(!context.store.content.reservedGoalKeys.contains("spor"))
+        #expect(!(try await context.store.computeReservedGoalKeys()).contains("spor"))
         let model = GoalCreationModel(store: context.store)
+        await model.load()
         model.name = "Spor"
         #expect(model.key == "spor")
         #expect(await model.save())
         let written = try String(contentsOf: context.root.appendingPathComponent("goals/Spor.md"), encoding: .utf8)
         #expect(written.contains("key: spor\n"))
-        #expect(context.store.content.goals.contains { $0.key == "spor" })
+        #expect((try await context.store.goalDefinitions()).contains { $0.key == "spor" })
     }
 }

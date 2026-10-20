@@ -44,10 +44,6 @@ actor UpdateGate {
     }
 }
 
-func waitForGate(_ gate: UpdateGate) async throws {
-    for _ in 0..<150 {
-        if await gate.blocked { return }
-        try await Task.sleep(for: .milliseconds(20))
-    }
-    Issue.record("Expected index operation to suspend")
+func waitForGate(_ gate: UpdateGate, isolation: isolated (any Actor)? = #isolation) async throws {
+    if !(await waitUntil { await gate.blocked }) { Issue.record("Expected index operation to suspend") }
 }

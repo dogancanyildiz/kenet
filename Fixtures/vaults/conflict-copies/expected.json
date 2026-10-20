@@ -1,0 +1,40 @@
+{
+  "names": [
+    { "path": "conflicts/2026-10-02 (conflict 20261002T110533Z).md", "original": "journal/2026-10-02.md" },
+    { "path": "conflicts/2026-10-02 (conflict 20261002T110533Z 2).md", "original": "journal/2026-10-02.md" },
+    { "path": "conflicts/2026-10-02 (conflict 20261002T110533Z 10).md", "original": "journal/2026-10-02.md" },
+    { "path": "conflicts/2026-09-30 (conflict 20261002T080000Z).md", "original": "journal/2026-09-30.md" },
+    { "path": "conflicts/2024-02-29 (conflict 20240229T235959Z).md", "original": "journal/2024-02-29.md" },
+    { "path": "conflicts/2026-10-02 (conflict 20261002T110533Z 1).md", "original": null },
+    { "path": "conflicts/2026-10-02 (conflict 20261002T110533Z 02).md", "original": null },
+    { "path": "conflicts/2026-10-02 (conflict 20261002T110533Z 2a).md", "original": null },
+    { "path": "conflicts/2026-10-02 (conflict 20261002T110533Z ).md", "original": null },
+    { "path": "conflicts/2026-10-02 (conflict 20261002T110533Z  2).md", "original": null },
+    { "path": "conflicts/2026-10-02 (conflict 20261002T110533Z) 2.md", "original": null },
+    { "path": "conflicts/2026-10-02 (conflict 20261002T110533Z).txt", "original": null },
+    { "path": "conflicts/2026-10-02 (conflict 20261002T110533).md", "original": null },
+    { "path": "conflicts/2026-10-02 (conflict 20261002T250000Z).md", "original": null },
+    { "path": "conflicts/2026-10-02 (conflict 20261002T116000Z).md", "original": null },
+    { "path": "conflicts/2026-10-02 (conflict 20261302T110533Z).md", "original": null },
+    { "path": "conflicts/2026-10-02 (conflict 20250229T110533Z).md", "original": null },
+    { "path": "conflicts/2026-10-02 (Conflict 20261002T120000Z).md", "original": null },
+    { "path": "conflicts/2026-10-02(conflict 20261002T110533Z).md", "original": null },
+    { "path": "conflicts/2026-13-40 (conflict 20261002T110533Z).md", "original": null },
+    { "path": "conflicts/2026-1-02 (conflict 20261002T110533Z).md", "original": null },
+    { "path": "conflicts/2026-10-02 (conflict ２0261002T110533Z).md", "original": null },
+    { "path": "conflicts/2026-10-02 (conflict 20261002T110533Z ２).md", "original": null },
+    { "path": "conflicts/eski/2026-10-02 (conflict 20261002T110533Z).md", "original": null },
+    { "path": "Conflicts/2026-10-02 (conflict 20261002T110533Z).md", "original": null },
+    { "path": "journal/2026-10-02 (conflict 20261002T110533Z).md", "original": null },
+    { "path": "2026-10-02 (conflict 20261002T110533Z).md", "original": null },
+    { "path": "conflicts/.2026-10-04 (conflict 20261004T090000Z).md.icloud", "original": null },
+    { "path": "conflicts/Notlar.md", "original": null }
+  ],
+  "conflictCopies": [
+    { "folder": "conflicts", "copy": "conflicts/2026-09-30 (conflict 20261002T080000Z).md", "original": "journal/2026-09-30.md" },
+    { "folder": "conflicts", "copy": "conflicts/2026-10-02 (conflict 20261001T220000Z).md", "original": "journal/2026-10-02.md" },
+    { "folder": "conflicts", "copy": "conflicts/2026-10-02 (conflict 20261002T110533Z).md", "original": "journal/2026-10-02.md" },
+    { "folder": "conflicts", "copy": "conflicts/2026-10-02 (conflict 20261002T110533Z 2).md", "original": "journal/2026-10-02.md" },
+    { "folder": "conflicts", "copy": "conflicts/2026-10-02 (conflict 20261002T110533Z 10).md", "original": "journal/2026-10-02.md" }
+  ]
+}

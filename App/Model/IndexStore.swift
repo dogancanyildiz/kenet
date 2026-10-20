@@ -71,6 +71,8 @@ final class IndexStore {
         @Sendable (VaultIndex, URL, Bool, EntityTypeCatalog, Bool, [SkippedPath], VaultReadModel) async throws ->
             IndexUpdate
     @ObservationIgnored private let watcherDirectoryLimit: Int
+    /// iCloud's unresolved versions for Diagnostics (`computeConflictedFiles`); a fake in tests.
+    @ObservationIgnored private let conflictVersions: any ConflictVersionSource
     @ObservationIgnored private var index: VaultIndex?
     @ObservationIgnored private var writer: VaultStore?
     @ObservationIgnored private var watcher: VaultWatcher?
@@ -90,6 +92,7 @@ final class IndexStore {
     init(
         location: VaultLocation = VaultLocation(), supportURL: URL? = nil,
         watcherDirectoryLimit: Int = 256,
+        conflictVersions: any ConflictVersionSource = SystemConflictVersionSource(),
         update:
             @escaping @Sendable (
                 VaultIndex, URL, Bool, EntityTypeCatalog, Bool, [SkippedPath], VaultReadModel
@@ -104,6 +107,7 @@ final class IndexStore {
         requiresOnboarding = location.needsFirstLaunch
         self.update = update
         self.watcherDirectoryLimit = watcherDirectoryLimit
+        self.conflictVersions = conflictVersions
         self.supportURL =
             supportURL
             ?? FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
@@ -1391,5 +1395,34 @@ extension IndexStore {
         -> NotificationGoals
     {
         try await taskQuery(NotificationGoals()) { try $0.notificationGoals(from: first, through: last) }
+    }
+}
+
+// MARK: - Sync conflicts
+
+extension IndexStore {
+    /// Files iCloud keeps unresolved conflicting versions of, for Diagnostics: every indexed file
+    /// and every day copy is asked through `ConflictVersionSource`. Only an iCloud Drive vault is
+    /// asked; any other vault returns nothing without touching a file. Nothing is merged, kept or
+    /// removed. A task query: it belongs to this vault generation.
+    func computeConflictedFiles() async throws -> [ConflictedFile] {
+        guard let root = vaultURL, syncedFolder == .iCloudDrive else { return [] }
+        let source = conflictVersions
+        return try await taskQuery([]) { index in
+            let dayCopies = ((try? VaultIndex.dayCopies(vaultRoot: root)) ?? []).map(\.copy)
+            var files: [ConflictedFile] = []
+            for path in try index.files().map(\.path) + dayCopies {
+                let versions = source.unresolvedConflicts(at: root.appendingPathComponent(path))
+                if !versions.isEmpty { files.append(ConflictedFile(path: path, versions: versions)) }
+            }
+            return ConflictedFile.sorted(files)
+        }
+    }
+
+    /// The versions a day copy merge saved under `conflicts/`, read from disk because they are
+    /// never indexed (`VaultIndex.conflictCopies`). Any vault, synced or not. A task query.
+    func computeConflictCopies() async throws -> [CopyFile] {
+        guard let root = vaultURL else { return [] }
+        return try await taskQuery([]) { _ in try VaultIndex.conflictCopies(vaultRoot: root) }
     }
 }

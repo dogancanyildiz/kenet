@@ -907,6 +907,8 @@ Güncelleme değişen yolların dosya adı ve yol anahtarlarına sahip bağlant�
 | Yer tutucu tanıma | `Core` içinde hazır; App bağlantısı sonraki dilim |
 | Gün kopyası birleştirme | `Core` içinde hazır; App bağlantısı sonraki dilim |
 | Eşitlenen klasör tespiti | `SyncedFolderKind`: yol kalıpları ve `isUbiquitousItemKey`. Sağlayıcılar: iCloud Drive, Dropbox, OneDrive, Google Drive, File Provider |
+| Çakışan sürüm `NSFileVersion` | Var: tespit ve listeleme; çözümleme yok. Yalnız iCloud Drive kasasında. `ConflictVersionSource` |
+| Çakışma kopyası listesi | `VaultIndex.conflictCopies(vaultRoot:)`; her kasada. Ad kuralı `ConflictCopyName` |
 
 **UYARI:** Eşitlenen bir klasörü kasa olarak seçme; uygulama bu klasörü şimdilik tam korumaz.
 
@@ -962,6 +964,34 @@ sequenceDiagram
 `VaultStore.mergingDayCopy(_:)` gün dosyası varsa kopyayı tek `.merge(kopya → gün)` sınırında birleştirir. Gün dosyası yoksa kopyayı tek `.move(kopya → gün)` sınırında gün adına taşır. `VaultStore` taşıma sınırını seçtikten sonra gün dosyası oluşursa `VaultStore` taşıma sınırını değişiklik yapmadan bitirir. Sonra kopyayı yeni bir `.merge` sınırında birleştirir. Gün dosyası `.merge` sınırı içinde yok olursa kopyayı aynı sınırda gün adına taşır.
 
 Gün dosyası değişmeden önceki her hata, o çağrının yazdığı çakışma kopyalarını geri alır. Yalnız zaman verme ya da silme başarısızsa gün dosyası birleşmiş kalır. Sonraki çağrı aynı içeriğe varır ve kopyayı siler. App bağlantısı sonraki dilimdir: taramadan sonra kopyaları sırayla birleştirme ve sonucu kullanıcıya gösterme.
+
+### Çakışan sürümler
+
+**Şema çakışan sürümlerin Tanılama'ya hangi yoldan geldiğini gösterir.**
+
+```mermaid
+flowchart LR
+  subgraph CoreTarafi["Core: VaultIndex"]
+    Model["ConflictedFile ve ConflictVersion: değer modeli, sıralama"]
+  end
+  subgraph AppTarafi["App"]
+    Arayuz["ConflictVersionSource arayüzü, Sendable"]
+    Sistem["SystemConflictVersionSource"]
+    Bayrak["ubiquitousItemHasUnresolvedConflictsKey"]
+    Surum["NSFileVersion.unresolvedConflictVersionsOfItem"]
+    Store["IndexStore.computeConflictedFiles"]
+  end
+  Store -->|"her dosya için sorar"| Arayuz
+  Arayuz --> Sistem
+  Sistem -->|"1. ucuz ön süzgeç"| Bayrak
+  Sistem -->|"2. yalnız bayraklı dosya, koordineli okuma"| Surum
+  Store --> Model
+  Model --> Tanilama["DiagnosticsView: Çakışan sürümler"]
+```
+
+`Core` Apple çerçevesi kullanmaz; bu yüzden `NSFileVersion` yalnız `App/Services` altındaki `SystemConflictVersionSource` içindedir. `IndexStore` kaynağı `conflictVersions` başlatma parametresiyle alır; varsayılan sistem kaynağıdır, testler sahte kaynak verir. `computeConflictedFiles` yalnız `syncedFolder == .iCloudDrive` iken çalışır; öteki kasada hiçbir dosyaya sormadan boş döner. Aday yollar indeksteki dosyalar ve `VaultIndex.dayCopies(vaultRoot:)` listesidir. Sorgu `taskQuery` deseniyle ayrık görevde koşar ve kasa kuşağına bağlıdır. Sistem kaynağı sürümleri `SystemFileCoordination` okuma koordinasyonu içinde okur. Uygulama hiçbir sürümü birleştirmez, seçmez ya da silmez: `NSFileVersion.removeOtherVersionsOfItem`, `replaceItem` ve `isResolved` kullanılmaz.
+
+Tanılama listeyi `store.lastUpdated` değişince ve sahne ön plana her dönünce yeniden okur. Bir iCloud çakışması kasa klasöründe izleyicinin göreceği bir olay üretmeyebilir.
 
 ### Hedeflenen davranış
 

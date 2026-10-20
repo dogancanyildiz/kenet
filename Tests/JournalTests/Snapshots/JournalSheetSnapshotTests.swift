@@ -52,7 +52,7 @@
             let context = try SnapshotHost.makeContext()
             defer { context.clean() }
             await context.start()
-            let goal = try #require(context.store.content.goals.first { $0.key == "spor" })
+            let goal = try #require((try await context.store.goalDefinitions()).first { $0.key == "spor" })
             let view = try await Self.goalValueEditor(goal: goal, store: context.store)
             await Self.assert(
                 view, named: "goalValueToggleLight", variant: .light, store: context.store,
@@ -98,7 +98,7 @@
             await SnapshotHost.assertView(
                 colorScheme: variant.colorScheme, dynamicType: variant.dynamicType,
                 increaseContrast: false, named: "dayPast" + variant.rawValue, store: store,
-                isReady: { store.content.goals.isEmpty || ready.isReady }, testName: "sheet",
+                isReady: { ready.isReady }, testName: "sheet",
                 file: #filePath, line: #line, content: { root })
         }
 
@@ -128,7 +128,7 @@
                     try await store.allTasks().first { $0.due == snapshotDay && !$0.isClosed })
                 return AnyView(TaskDateEditor(model: TaskEditorModel(store: store, row: row)))
             case .goalValue:
-                let goal = try #require(store.content.goals.first { $0.key == "kitap" })
+                let goal = try #require((try await store.goalDefinitions()).first { $0.key == "kitap" })
                 return try await goalValueEditor(goal: goal, store: store)
             }
         }

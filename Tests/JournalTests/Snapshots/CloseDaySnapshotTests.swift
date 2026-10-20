@@ -26,6 +26,9 @@
             let day = step == .tasks ? snapshotDay : goalsSnapshotDay
             let probe = try await CloseDayModel.opened(store: store, today: day, step: step)
             let rows = try await store.computeDayTasks(on: day)
+            // The day page's strip model, loaded, as Today opens the flow with it.
+            let strip = GoalDayModel(store: store, day: day)
+            await strip.load()
             #expect(probe.step == step)
             #expect(step == .journal ? probe.steps == [.tasks, .goals, .journal] : !probe.steps.isEmpty)
             // Goal rows are drawn disabled until the day's history is read.
@@ -35,7 +38,7 @@
                 clock: step == .tasks ? snapshotNow : goalsSnapshotNow, isReady: ready.check,
                 testName: "closeDay", file: #filePath, line: #line
             ) {
-                NavigationStack { CloseDayView(store: store, today: day, tasks: rows, step: step) }
+                NavigationStack { CloseDayView(store: store, today: day, tasks: rows, goals: strip, step: step) }
                     .environment(\.locale, snapshotLocale)
                     .environment(\.timeZone, snapshotTimeZone)
                     .onPreferenceChange(GoalsStripReadyKey.self) { ready.isReady = $0 }
@@ -78,6 +81,8 @@
             let day = CalendarDate(step == .tasks ? "2026-09-20" : "2026-09-17")!
             let probe = try await CloseDayModel.opened(store: store, today: day, step: step)
             let rows = try await store.computeDayTasks(on: day)
+            let strip = GoalDayModel(store: store, day: day)
+            await strip.load()
             #expect(probe.step == step)
             var calendar = Calendar(identifier: .gregorian)
             calendar.locale = Locale(identifier: "tr_TR")
@@ -85,14 +90,16 @@
             let size = CGSize(width: InkSheetChrome.macIdealWidth, height: InkSheetChrome.macIdealHeight)
 
             let ready = MacCloseDayReadyBox()
-            let root = NavigationStack { CloseDayView(store: store, today: day, tasks: rows, step: step) }
-                .environment(\.locale, Locale(identifier: "tr_TR"))
-                .environment(\.calendar, calendar)
-                .environment(\.timeZone, calendar.timeZone)
-                .environment(\.colorScheme, scheme)
-                .onPreferenceChange(GoalsStripReadyKey.self) { ready.isReady = $0 }
-                .transaction { $0.animation = nil }
-                .frame(width: size.width, height: size.height)
+            let root = NavigationStack {
+                CloseDayView(store: store, today: day, tasks: rows, goals: strip, step: step)
+            }
+            .environment(\.locale, Locale(identifier: "tr_TR"))
+            .environment(\.calendar, calendar)
+            .environment(\.timeZone, calendar.timeZone)
+            .environment(\.colorScheme, scheme)
+            .onPreferenceChange(GoalsStripReadyKey.self) { ready.isReady = $0 }
+            .transaction { $0.animation = nil }
+            .frame(width: size.width, height: size.height)
 
             MacSnapshotEnvironment.requireOverlayScrollers()
             let host = NSHostingView(rootView: root)
@@ -108,6 +115,7 @@
 
             for _ in 0..<100 {
                 await Task.yield()
+                // Frame pump: SwiftUI and AppKit draw on a later run-loop turn and report no event to await.
                 try? await Task.sleep(for: .milliseconds(50))
                 if !store.isProcessing, ready.isReady { break }
             }

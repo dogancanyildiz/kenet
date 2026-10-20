@@ -2,6 +2,7 @@ import Foundation
 import GoalTracking
 import Observation
 import VaultFormat
+import VaultIndex
 import VaultStore
 
 /// A frontmatter field the definition form edits. The key is never one of them.
@@ -55,7 +56,14 @@ final class GoalDefinitionModel {
     private let root: URL?
     private(set) var isWriting = false
     private(set) var errorText: String?
+    /// The other goals' names, compared as the name check compares them, as the index last listed
+    /// them (``load()``); nil until then, and nothing is written while they are unknown.
+    private var takenNames: Set<String>?
+    /// The last read of the names failed; its message is the one in `errorText`.
+    private var loadFailed = false
     var canEdit: Bool { root != nil && root == store.vaultURL && !isWriting && store.canAddEvent }
+    /// A field can be written: editing is possible and the name check has the other names.
+    private var canWrite: Bool { canEdit && takenNames != nil }
 
     /// A milestone stays a yearly milestone: its period and kind are shown, not edited.
     var isScheduleLocked: Bool { goal.kind == .milestone }
@@ -64,6 +72,31 @@ final class GoalDefinitionModel {
         self.store = store
         self.goal = goal
         root = store.vaultURL
+    }
+
+    /// Reads the other goals' names from the index (``IndexStore/computeGoalDefinitions()``). A
+    /// read that is cancelled or outlives its vault keeps the names as they were; a failed read
+    /// keeps them too and says why "Kaydet" may stay off.
+    func load() async {
+        guard root == store.vaultURL else { return }
+        let rows: [GoalDefinitionRow]
+        do { rows = try await store.computeGoalDefinitions() } catch is CancellationError { return } catch {
+            if root == store.vaultURL {
+                errorText = DayEditError.message(for: error)
+                loadFailed = true
+            }
+            return
+        }
+        guard root == store.vaultURL else { return }
+        if loadFailed {
+            errorText = nil
+            loadFailed = false
+        }
+        takenNames = Set(rows.map(\.definition).filter { $0.id != goal.id }.map { Self.comparisonName($0.name) })
+    }
+
+    private static func comparisonName(_ name: String) -> String {
+        name.precomposedStringWithCanonicalMapping.lowercased()
     }
 
     private enum Check {
@@ -79,13 +112,7 @@ final class GoalDefinitionModel {
             guard field == "unit" || !clean.isEmpty,
                 !clean.unicodeScalars.contains(where: CharacterSet.controlCharacters.contains)
             else { return .invalid }
-            if field == "name",
-                store.content.goals.contains(where: {
-                    $0.id != goal.id
-                        && $0.name.precomposedStringWithCanonicalMapping.lowercased()
-                            == clean.precomposedStringWithCanonicalMapping.lowercased()
-                })
-            {
+            if field == "name", takenNames?.contains(Self.comparisonName(clean)) == true {
                 return .nameTaken
             }
             return .valid(.text(clean), clean: clean)
@@ -107,8 +134,10 @@ final class GoalDefinitionModel {
         }
     }
 
+    /// Reads the names again first: the check sees every goal published until now.
     func set(_ field: String, text: String) async -> Bool {
-        guard canEdit else { return false }
+        await load()
+        guard canWrite else { return false }
         errorText = nil
         switch check(field, text: text) {
         case .invalid:
@@ -174,7 +203,7 @@ final class GoalDefinitionModel {
 
     /// "Kaydet" is possible: something changed and every changed field is valid.
     func canSave(_ draft: GoalDefinitionDraft) -> Bool {
-        guard canEdit, let writes = writes(for: draft) else { return false }
+        guard canWrite, let writes = writes(for: draft) else { return false }
         return !writes.isEmpty
     }
 
@@ -182,7 +211,8 @@ final class GoalDefinitionModel {
     /// stays. Nothing is written when one of them is invalid. A failed write stops the rest and
     /// keeps the reason; the fields written before it are in the file and in the index.
     func apply(_ draft: GoalDefinitionDraft) async -> Bool {
-        guard canEdit, let writes = writes(for: draft), !writes.isEmpty else { return false }
+        await load()
+        guard canWrite, let writes = writes(for: draft), !writes.isEmpty else { return false }
         errorText = nil
         isWriting = true
         defer { isWriting = false }

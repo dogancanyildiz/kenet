@@ -99,6 +99,7 @@
             host.layoutSubtreeIfNeeded()
             for _ in 0..<8 {
                 await Task.yield()
+                // Frame pump: SwiftUI and AppKit draw on a later run-loop turn and report no event to await.
                 try? await Task.sleep(for: .milliseconds(30))
                 host.layoutSubtreeIfNeeded()
             }
@@ -136,6 +137,7 @@
                 host.layoutSubtreeIfNeeded()
                 for _ in 0..<rounds {
                     await Task.yield()
+                    // Frame pump: SwiftUI and AppKit draw on a later run-loop turn and report no event to await.
                     try? await Task.sleep(for: .milliseconds(30))
                     host.layoutSubtreeIfNeeded()
                 }

@@ -113,6 +113,7 @@
             func resize(width: CGFloat) async {
                 window.frame.size.width = width
                 for _ in 0..<12 {
+                    // Frame pump: SwiftUI and UIKit draw on a later run-loop turn and report no event to await.
                     try? await Task.sleep(for: .milliseconds(50))
                     host.view.layoutIfNeeded()
                 }
@@ -168,6 +169,7 @@
                 window.isHidden = false
                 var idle = 0
                 for _ in 0..<80 where idle < 8 {
+                    // Frame pump: SwiftUI and UIKit draw on a later run-loop turn and report no event to await.
                     try? await Task.sleep(for: .milliseconds(50))
                     host.view.layoutIfNeeded()
                     let drawn = board == .timeline || !widths.values.isEmpty
@@ -175,6 +177,7 @@
                 }
                 do { try await body(Hosted(window: window, host: host, widths: widths)) } catch { failure = error }
                 host.presentedViewController?.dismiss(animated: false)
+                // Frames for UIKit to dispose the last transition before the window is released; no event marks it.
                 for _ in 0..<4 { try? await Task.sleep(for: .milliseconds(50)) }
                 window.isHidden = true
                 window.rootViewController = nil
@@ -280,6 +283,7 @@
 
         private static func settleDetail(in hosted: Hosted) async {
             for _ in 0..<12 {
+                // Frame pump: SwiftUI and UIKit draw on a later run-loop turn and report no event to await.
                 try? await Task.sleep(for: .milliseconds(50))
                 hosted.host.view.layoutIfNeeded()
                 hosted.host.presentedViewController?.view.layoutIfNeeded()
@@ -327,12 +331,14 @@
                 window.makeKeyAndVisible()
                 var idle = 0
                 for _ in 0..<80 where idle < 8 {
+                    // Frame pump: SwiftUI and UIKit draw on a later run-loop turn and report no event to await.
                     try? await Task.sleep(for: .milliseconds(50))
                     host.view.layoutIfNeeded()
                     idle = !context.store.isProcessing && widths.values.count == 3 ? idle + 1 : 0
                 }
                 do { try await body(Hosted(window: window, host: host, widths: widths)) } catch { failure = error }
                 host.presentedViewController?.dismiss(animated: false)
+                // Frames for UIKit to dispose the last transition before the window is released; no event marks it.
                 for _ in 0..<4 { try? await Task.sleep(for: .milliseconds(50)) }
                 window.isHidden = true
                 window.rootViewController = nil

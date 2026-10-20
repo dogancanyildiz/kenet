@@ -124,7 +124,7 @@
                 size: size,
                 bottomSafeArea: Self.tabBarHeight,
                 isReady: {
-                    (store.content.goals.isEmpty || goalsReady.isReady)
+                    goalsReady.isReady
                         && (!needsContext || contextReady.isReady)
                         && (!needsBacklinks || backlinksReady.isReady)
                 },

@@ -16,6 +16,7 @@ struct GeofenceActionTests {
             "---\ntype: journal\ndate: 2026-10-04\ncustom: untouched\ngoals:\n  water: 2 # retain\n---\n\n## Journal\nKeep this text.\n"
         try Data(original.utf8).write(to: file)
         await context.vault.store.refresh()
+        await context.settle()
         await context.service.enter(try context.target.id)
         #expect(context.center.notices.count == 1)
         #expect(try context.bytes() == Data(original.utf8))
@@ -183,10 +184,7 @@ struct GeofenceActionTests {
         context.center.fails = false
         context.center.pauseNext = true
         let task = Task { await context.service.enter(identifier) }
-        for _ in 0..<100 {
-            if context.center.paused != nil { break }
-            try await Task.sleep(for: .milliseconds(10))
-        }
+        await waitUntil { context.center.paused != nil }
         #expect(context.center.paused != nil)
         await context.service.enter(identifier)
         #expect(context.center.notices.isEmpty)
@@ -225,6 +223,7 @@ struct GeofenceActionTests {
         locked.onLockedMarkBlocked = { openedGoals = true }
         locked.activate()
         await context.vault.store.select(context.vault.root)
+        await locked.goalsReload?.value
         let target = try #require(locked.targets.first { $0.goal.key == "spor" })
         await locked.enter(target.id)
         #expect(context.center.notices.count == 1)
@@ -254,6 +253,7 @@ struct GeofenceActionTests {
         service.attach(lock: lock)
         service.activate()
         await context.vault.store.select(context.vault.root)
+        await service.goalsReload?.value
         let target = try #require(service.targets.first { $0.goal.key == "spor" })
         await service.enter(target.id)
         let action = try #require(context.center.notices.first?.action)
@@ -273,6 +273,7 @@ struct GeofenceActionTests {
         unlocked.attach(to: context.vault.store)
         unlocked.activate()
         await context.vault.store.select(context.vault.root)
+        await unlocked.goalsReload?.value
         let target = try #require(unlocked.targets.first { $0.goal.key == "spor" })
         await unlocked.enter(target.id)
         let action = try #require(context.center.notices.first?.action)

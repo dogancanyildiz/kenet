@@ -51,9 +51,10 @@ struct CloseDayTests {
     private func presentation(_ context: TaskTestContext, isToday: Bool = true) async throws -> TodayPresentation {
         let store = context.store
         let tasks = await DayTasksModel.loaded(store: store, day: context.today, isToday: isToday)
+        let rows = try await store.computeGoalStatuses(today: context.today)
         return TodayPresentation(
-            day: try await store.computeDay(on: context.today), groups: tasks.groups, goals: store.content.goals,
-            goalStatuses: store.content.goalStatuses(today: context.today),
+            day: try await store.computeDay(on: context.today), groups: tasks.groups, goals: rows.map(\.definition),
+            goalStatuses: TodayPresentation.goalStatuses(rows),
             goalStatusesDay: context.today, today: context.today, locale: Locale(identifier: "en_US"),
             calendar: Calendar(identifier: .gregorian))
     }

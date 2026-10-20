@@ -50,7 +50,7 @@ struct DefinitionMenuTests {
         let context = try EntityPageTestContext()
         defer { context.clean() }
         await context.start()
-        let goal = try #require(context.store.content.goals.first { $0.kind == .boolean })
+        let goal = try #require((try await context.store.goalDefinitions()).first { $0.kind == .boolean })
         let day = try #require(CalendarDate(year: 2026, month: 9, day: 27))
         let model = GoalDayModel(store: context.store, day: day)
         await model.load()
@@ -85,7 +85,7 @@ struct DefinitionMenuTests {
         #expect(await model.delete(store: context.store, path: confirmed, goal: goal))
         #expect(!FileManager.default.fileExists(atPath: context.root.appendingPathComponent(path).path))
         #expect(context.store.content.entities.allSatisfy { $0.id != path })
-        #expect(context.store.content.goals.allSatisfy { $0.id != path })
+        #expect((try await context.store.goalDefinitions()).allSatisfy { $0.id != path })
         #expect(try Data(contentsOf: journal) == before)
         // Another row's delete starts with a new model, including after a successful delete.
         let next = DefinitionDeletionModel()

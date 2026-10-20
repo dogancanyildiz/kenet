@@ -103,7 +103,14 @@ final class IntentActions {
         try await begin()
         defer { isPerforming = false }
         guard let root = store.vaultURL else { throw IntentActionError.vaultUnavailable }
-        return store.content.goals.map { IntentGoal(definition: $0, root: root) }
+        return try await definitions().map { IntentGoal(definition: $0, root: root) }
+    }
+
+    /// Valid goal definitions in the goal list's order, read from the index.
+    private func definitions() async throws -> [GoalDefinition] {
+        do { return try await store.computeGoalDefinitions().map(\.definition) } catch {
+            throw IntentActionError.vaultUnavailable
+        }
     }
     func addEvent(text: String, time: LineClock? = nil) async throws -> IntentActionResult {
         guard !text.allSatisfy(\.isWhitespace) else { throw IntentActionError.emptyText }
@@ -174,8 +181,8 @@ final class IntentActions {
         try requireUnlocked()
         try await begin()
         defer { isPerforming = false }
-        guard let root = store.vaultURL,
-            let goal = store.content.goals.first(where: { IntentGoal(definition: $0, root: root).id == id })
+        guard let root = store.vaultURL else { throw IntentActionError.goalMissing }
+        guard let goal = try await definitions().first(where: { IntentGoal(definition: $0, root: root).id == id })
         else { throw IntentActionError.goalMissing }
         let value: GoalValue
         if goal.kind != .number {

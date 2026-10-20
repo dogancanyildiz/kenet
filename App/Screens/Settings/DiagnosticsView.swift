@@ -8,8 +8,14 @@ struct DiagnosticsView: View {
         /// The Settings tab swaps its content; a push would shift the tab strip's highlight.
         var openLicenses: () -> Void = {}
     #endif
+    @Environment(\.scenePhase) private var scenePhase
     /// Sync copies left in the vault; reloaded with each index publish.
     @State private var copies: [CopyFile] = []
+    /// Files with unresolved iCloud versions and the versions merges saved under `conflicts/`.
+    @State private var conflictedFiles: [ConflictedFile] = []
+    @State private var conflictCopies: [CopyFile] = []
+    /// Counts returns to the foreground: an iCloud conflict may arrive without a vault folder event.
+    @State private var activations = 0
 
     var body: some View {
         List {
@@ -93,6 +99,8 @@ struct DiagnosticsView: View {
                 }
             }
             CopyFilesSection(copies: copies)
+            ConflictedFilesSection(files: conflictedFiles)
+            ConflictCopiesSection(copies: conflictCopies)
             Section {
                 licensesLink
             }
@@ -101,14 +109,36 @@ struct DiagnosticsView: View {
         .inkPageNavigationTitle("Tanılama")
         .inkPageScrollColumn()
         .inkPage()
-        .task(id: store.lastUpdated) {
-            do {
-                copies = try await store.computeCopyFiles()
-            } catch is CancellationError {
-                return
-            } catch {
-                copies = []
-            }
+        .task(id: SyncListReload(lastUpdated: store.lastUpdated, activations: activations)) {
+            await reloadSyncLists()
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active { activations += 1 }
+        }
+    }
+
+    /// Each list loads on its own: one that fails is empty, the others still show.
+    private func reloadSyncLists() async {
+        do {
+            copies = try await store.computeCopyFiles()
+        } catch is CancellationError {
+            return
+        } catch {
+            copies = []
+        }
+        do {
+            conflictedFiles = try await store.computeConflictedFiles()
+        } catch is CancellationError {
+            return
+        } catch {
+            conflictedFiles = []
+        }
+        do {
+            conflictCopies = try await store.computeConflictCopies()
+        } catch is CancellationError {
+            return
+        } catch {
+            conflictCopies = []
         }
     }
 
@@ -173,6 +203,104 @@ struct CopyFilesSection: View {
                             .lineLimit(2)
                             .truncationMode(.middle)
                     }
+                    .accessibilityElement(children: .combine)
+                    .inkListRow()
+                }
+            }
+        }
+    }
+}
+
+private struct SyncListReload: Equatable {
+    let lastUpdated: Date?
+    let activations: Int
+}
+
+/// Files iCloud keeps unresolved conflicting versions of: the path, how many versions, when the
+/// newest was saved and on which devices. The app merges and removes nothing; no files, no section.
+struct ConflictedFilesSection: View {
+    let files: [ConflictedFile]
+    @Environment(\.locale) private var locale
+    @Environment(\.timeZone) private var timeZone
+
+    var body: some View {
+        if !files.isEmpty {
+            Section {
+                SectionHeader("Çakışan sürümler")
+                    .inkListRow()
+                ForEach(files, id: \.path) { file in
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(verbatim: file.path)
+                            .font(.ink.meta)
+                            .foregroundStyle(Color.ink.text)
+                            .lineLimit(2)
+                            .truncationMode(.middle)
+                            .textSelection(.enabled)
+                        summary(file)
+                            .font(.ink.meta)
+                            .foregroundStyle(Color.ink.secondaryText)
+                        if let devices = Self.deviceNames(file) {
+                            Text(verbatim: devices)
+                                .font(.ink.meta)
+                                .foregroundStyle(Color.ink.secondaryText)
+                                .lineLimit(2)
+                        }
+                    }
+                    .accessibilityElement(children: .combine)
+                    .inkListRow()
+                }
+                Text("Kenet sürümleri birleştirmez ve silmez.")
+                    .font(.ink.meta)
+                    .foregroundStyle(Color.ink.secondaryText)
+                    .inkListRow()
+            }
+        }
+    }
+
+    /// "N sürüm", with the newest version's time when the service knows it.
+    private func summary(_ file: ConflictedFile) -> Text {
+        let count = file.versions.count
+        guard let newest = file.versions.map(\.modificationTime).max(), newest > 0 else {
+            return Text("\(count) sürüm")
+        }
+        let date = Date(timeIntervalSince1970: TimeInterval(newest))
+        let style = Date.FormatStyle(date: .abbreviated, time: .shortened, locale: locale, timeZone: timeZone)
+        return Text("\(count) sürüm · en yenisi \(date, format: style)")
+    }
+
+    /// The saving devices in version order, each once; `nil` when none is named.
+    static func deviceNames(_ file: ConflictedFile) -> String? {
+        var seen: Set<String> = []
+        let names = file.versions.compactMap(\.deviceName).filter { !$0.isEmpty && seen.insert($0).inserted }
+        return names.isEmpty ? nil : names.joined(separator: ", ")
+    }
+}
+
+/// The versions a day copy merge saved under `conflicts/`, each with its day file, in the
+/// `CopyFilesSection` layout. The app reads and removes none of them; no copies, no section.
+struct ConflictCopiesSection: View {
+    let copies: [CopyFile]
+
+    var body: some View {
+        if !copies.isEmpty {
+            Section {
+                SectionHeader("Çakışma kopyaları")
+                    .inkListRow()
+                ForEach(copies, id: \.copy) { copy in
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(verbatim: copy.copy)
+                            .font(.ink.meta)
+                            .foregroundStyle(Color.ink.text)
+                            .lineLimit(2)
+                            .truncationMode(.middle)
+                            .textSelection(.enabled)
+                        Text("Gün dosyası: \(copy.original)")
+                            .font(.ink.meta)
+                            .foregroundStyle(Color.ink.secondaryText)
+                            .lineLimit(2)
+                            .truncationMode(.middle)
+                    }
+                    .accessibilityElement(children: .combine)
                     .inkListRow()
                 }
             }

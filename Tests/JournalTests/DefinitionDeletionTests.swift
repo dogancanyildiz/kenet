@@ -29,7 +29,7 @@ struct DefinitionDeletionTests {
         #expect(model.isDeleted)
         #expect(!FileManager.default.fileExists(atPath: file.path))
         #expect(context.store.content.entities.allSatisfy { $0.id != path })
-        #expect(context.store.content.goals.allSatisfy { $0.id != path })
+        #expect((try await context.store.goalDefinitions()).allSatisfy { $0.id != path })
         #expect(context.store.knownEntities.allSatisfy { $0.file != path })
         #expect(await !model.delete(store: context.store, path: path, goal: goal))
     }

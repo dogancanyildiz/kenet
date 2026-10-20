@@ -14,6 +14,7 @@ struct StaleReloadAndCancellationTests {
     enum Query: String, CaseIterable, Sendable {
         case summary, onThisDay, importantDates, dayBacklinks, unlinkedMentions
         case graph, entityTimeline, lastEncounters, goalStatuses
+        case goalDefinitions, reservedGoalKeys, goalLogs, notificationGoals
 
         @MainActor func hold(_ gate: FirstArrivalGate, on store: IndexStore) {
             let pass: @MainActor () async -> Void = { await gate.pass() }
@@ -23,6 +24,8 @@ struct StaleReloadAndCancellationTests {
             case .graph: store.testingGraphQueryDidFinish = pass
             case .entityTimeline, .lastEncounters: store.testingEntityTimelineQueryDidFinish = pass
             case .goalStatuses: store.testingGoalStatusQueryDidFinish = pass
+            case .goalDefinitions, .reservedGoalKeys, .goalLogs, .notificationGoals:
+                store.testingTaskQueryDidFinish = pass
             }
         }
 
@@ -38,6 +41,11 @@ struct StaleReloadAndCancellationTests {
             case .entityTimeline: _ = try await store.computeEntityTimeline(for: person.file)
             case .lastEncounters: _ = try await store.computeLastEncounters(asOf: today)
             case .goalStatuses: _ = try await store.computeGoalStatuses(today: today)
+            case .goalDefinitions: _ = try await store.computeGoalDefinitions()
+            case .reservedGoalKeys: _ = try await store.computeReservedGoalKeys()
+            case .goalLogs: _ = try await store.computeGoalLogs(from: today.addingDays(-7)!, through: today)
+            case .notificationGoals:
+                _ = try await store.computeNotificationGoals(from: today, through: today.addingDays(6)!)
             }
         }
     }
@@ -183,7 +191,7 @@ struct StaleReloadAndCancellationTests {
         service.preferences.goalsEnabled = false
         service.preferences.journalEnabled = false
         service.preferences.peopleEnabled = true
-        service.update(snapshot: context.store.content, vaultID: context.store.vaultURL?.path)
+        service.update(isOpen: context.store.lastUpdated != nil, vaultID: context.store.vaultURL?.path)
 
         let gate = FirstArrivalGate()
         context.store.testingEntityTimelineQueryDidFinish = { await gate.pass() }
@@ -218,7 +226,7 @@ struct StaleReloadAndCancellationTests {
         service.preferences.goalsEnabled = false
         service.preferences.journalEnabled = false
         service.preferences.peopleEnabled = true
-        service.update(snapshot: context.store.content, vaultID: context.store.vaultURL?.path)
+        service.update(isOpen: context.store.lastUpdated != nil, vaultID: context.store.vaultURL?.path)
 
         let gate = FirstArrivalGate()
         context.store.testingEntityTimelineQueryDidFinish = { await gate.pass() }
@@ -352,20 +360,15 @@ struct StaleReloadAndCancellationTests {
 @MainActor final class FirstArrivalGate {
     private var isOpen = false
     private var held: CheckedContinuation<Void, Never>?
-    private var watcher: CheckedContinuation<Void, Never>?
 
     func pass() async {
         guard !isOpen, held == nil else { return }
-        await withCheckedContinuation { continuation in
-            held = continuation
-            watcher?.resume()
-            watcher = nil
-        }
+        await withCheckedContinuation { held = $0 }
     }
 
+    /// Bounded: a caller that never reaches the gate fails the test instead of hanging it.
     func waitUntilHeld() async {
-        guard held == nil else { return }
-        await withCheckedContinuation { watcher = $0 }
+        if !(await waitUntil { held != nil }) { Issue.record("Expected a caller to reach the gate") }
     }
 
     func release() {

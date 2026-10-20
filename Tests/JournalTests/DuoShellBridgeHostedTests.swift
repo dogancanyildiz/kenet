@@ -263,6 +263,7 @@
             func settle(rounds: Int = 10) async {
                 for _ in 0..<rounds {
                     await Task.yield()
+                    // Frame pump: SwiftUI and UIKit draw on a later run-loop turn and report no event to await.
                     try? await Task.sleep(for: .milliseconds(30))
                     host.view.setNeedsLayout()
                     host.view.layoutIfNeeded()

@@ -222,11 +222,11 @@ import VaultFormat
             await context.start()
             let store = context.store
             let day = context.today
-            let water = try #require(store.content.goals.first { $0.key == "su" })
+            let water = try #require((try await store.goalDefinitions()).first { $0.key == "su" })
             try await store.setGoal(on: day, key: "su", value: .number(water.target - 1))
+            let daily = try await store.goalDefinitions().filter { $0.period == .day }
             func counter() async throws -> String {
                 let statuses = TodayPresentation.goalStatuses(try await store.computeGoalStatuses(today: day))
-                let daily = store.content.goals.filter { $0.period == .day }
                 return "\(daily.filter { statuses[$0.key]?.progress.isComplete == true }.count)/\(daily.count)"
             }
             let before = try await counter()
@@ -277,13 +277,13 @@ import VaultFormat
             await context.start()
             let store = context.store
             let day = manifest.endDate
-            let goal = try #require(store.content.goals.first { $0.key == "meditasyon" })
+            let goal = try #require((try await store.goalDefinitions()).first { $0.key == "meditasyon" })
             try await store.setGoal(on: day, key: goal.key, value: nil)
             let answer = AnswerStamp()
             store.testingGoalStatusQueryDidFinish = { answer.at = DispatchTime.now().uptimeNanoseconds }
+            let daily = try await store.goalDefinitions().filter { $0.period == .day }
             func counter() async throws -> String {
                 let statuses = TodayPresentation.goalStatuses(try await store.computeGoalStatuses(today: day))
-                let daily = store.content.goals.filter { $0.period == .day }
                 return "\(daily.filter { statuses[$0.key]?.progress.isComplete == true }.count)/\(daily.count)"
             }
             let open = try await counter()
@@ -321,6 +321,7 @@ import VaultFormat
                     if publishedAt == 0, store.lastUpdated != revision { publishedAt = now }
                     if drawnAt == 0, shows(done) { drawnAt = DispatchTime.now().uptimeNanoseconds }
                     await Task.yield()
+                    // Sampling step of the opt-in timing measurement, not a wait for an event.
                     try? await Task.sleep(for: .milliseconds(1))
                 }
                 try #require(drawnAt > 0 && publishedAt > 0 && answer.at > 0)
@@ -378,7 +379,7 @@ import VaultFormat
             await context.start()
             let store = context.store
             let day = context.today
-            goal = try #require(store.content.goals.first { $0.key == "maraton" })
+            goal = try #require((try await store.goalDefinitions()).first { $0.key == "maraton" })
             let done = GoalProgress.compute(
                 definition: goal, logs: [GoalLog(day: day, value: .boolean(true))], today: day)
             let open = GoalProgress.compute(definition: goal, logs: [], today: day)

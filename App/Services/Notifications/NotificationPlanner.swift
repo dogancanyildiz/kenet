@@ -1,6 +1,7 @@
 import Foundation
 import GoalTracking
 import VaultFormat
+import VaultIndex
 
 /// Requests for the seven-day window, plus the people each `people-` request counts.
 struct NotificationSchedule: Equatable, Sendable {
@@ -23,20 +24,21 @@ struct NotificationVaultDays: Sendable {
 /// One local calendar week of one-shot requests, derived solely from immutable inputs.
 enum NotificationPlanner {
     static func requests(
-        snapshot: VaultReadModel, days: NotificationVaultDays?,
+        goals: NotificationGoals?, days: NotificationVaultDays?,
         preferences: NotificationPreferences, now: Date, timeZone: TimeZone = .current,
         people: [CadenceReminderPerson] = [], lastNotified: [String: CalendarDate] = [:]
     ) -> [NotificationRequest] {
         schedule(
-            snapshot: snapshot, days: days, preferences: preferences, now: now, timeZone: timeZone, people: people,
+            goals: goals, days: days, preferences: preferences, now: now, timeZone: timeZone, people: people,
             lastNotified: lastNotified
         ).requests
     }
 
-    /// `lastNotified` holds only days whose reminder has already fired. `days` covers today and the
-    /// six days after it; nil (the index could not be read) plans no task or journal reminder.
+    /// `lastNotified` holds only days whose reminder has already fired. `days` and `goals` cover
+    /// today and the six days after it; nil `days` (the index could not be read) plans no task or
+    /// journal reminder, nil `goals` no goal reminder.
     static func schedule(
-        snapshot: VaultReadModel, days: NotificationVaultDays?,
+        goals: NotificationGoals?, days: NotificationVaultDays?,
         preferences: NotificationPreferences, now: Date, timeZone: TimeZone = .current,
         people: [CadenceReminderPerson] = [], lastNotified: [String: CalendarDate] = [:]
     ) -> NotificationSchedule {
@@ -54,12 +56,12 @@ enum NotificationPlanner {
                     NotificationRequest(
                         id: "task-\(day)", date: date, title: message.title, body: message.body, destination: .tasks))
             }
-            if preferences.goalsEnabled, let date = fireDate(day, time: preferences.goalTime, timeZone: timeZone),
-                date > now
+            if preferences.goalsEnabled, let goals,
+                let date = fireDate(day, time: preferences.goalTime, timeZone: timeZone), date > now
             {
-                let remaining = snapshot.goals.filter {
+                let remaining = goals.definitions.filter {
                     $0.period == .day
-                        && !GoalProgress.compute(definition: $0, logs: snapshot.goalLogs[$0.key] ?? [], today: day)
+                        && !GoalProgress.compute(definition: $0, logs: goals.logs[$0.key] ?? [], today: day)
                             .progress.isComplete
                 }.sorted { $0.id < $1.id }.map(\.name)
                 if !remaining.isEmpty {

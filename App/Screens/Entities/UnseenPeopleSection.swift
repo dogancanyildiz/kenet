@@ -157,17 +157,22 @@ struct UnseenPeopleSection: View {
                         .foregroundStyle(.ink.secondaryText)
                 }
                 if let days = person.elapsedDays {
-                    Group {
-                        if days >= 7 {
-                            Text("\(days / 7) haftadır")
-                        } else {
-                            Text("\(days) gündür")
-                        }
-                    }
-                    .font(.ink.meta)
-                    .foregroundStyle(.ink.secondaryText)
+                    Text(UnseenElapsedLabel.resource(days: days))
+                        .font(.ink.meta)
+                        .foregroundStyle(.ink.secondaryText)
                 }
             }
         }
+    }
+}
+
+enum UnseenElapsedLabel {
+    /// Catalog plural keys carry the suffix, so English reads "1 day ago" and never "1 days".
+    static func resource(
+        days: Int, locale: Locale = .current, bundle: LocalizedStringResource.BundleDescription = .main
+    ) -> LocalizedStringResource {
+        days >= 7
+            ? LocalizedStringResource("\(days / 7) haftadır", locale: locale, bundle: bundle)
+            : LocalizedStringResource("\(days) gündür", locale: locale, bundle: bundle)
     }
 }

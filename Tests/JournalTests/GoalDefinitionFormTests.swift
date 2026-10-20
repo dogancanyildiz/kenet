@@ -9,8 +9,15 @@ import VaultStore
 /// The definition form: one "Kaydet" for the whole definition, only changed fields written.
 @MainActor
 struct GoalDefinitionFormTests {
-    private func goal(_ context: TaskTestContext, _ path: String) throws -> GoalDefinition {
-        try #require(context.store.content.goals.first { $0.id == path })
+    private func goal(_ context: TaskTestContext, _ path: String) async throws -> GoalDefinition {
+        try #require(try await context.store.goalDefinitions().first { $0.id == path })
+    }
+
+    /// The form's model as the sheet opens it: the other goals' names loaded.
+    private func definitionModel(_ context: TaskTestContext, _ path: String) async throws -> GoalDefinitionModel {
+        let model = GoalDefinitionModel(store: context.store, goal: try await goal(context, path))
+        await model.load()
+        return model
     }
 
     private func text(_ file: URL) throws -> String { String(decoding: try Data(contentsOf: file), as: UTF8.self) }
@@ -21,7 +28,7 @@ struct GoalDefinitionFormTests {
         await context.start()
         let file = context.root.appendingPathComponent("goals/Su.md")
         let before = try text(file)
-        let model = GoalDefinitionModel(store: context.store, goal: try goal(context, "goals/Su.md"))
+        let model = try await definitionModel(context, "goals/Su.md")
         var draft = GoalDefinitionDraft(goal: model.goal)
         #expect(draft.target == "8")
         draft.target = "8,0"
@@ -32,7 +39,7 @@ struct GoalDefinitionFormTests {
         #expect(await model.apply(draft))
         #expect(try text(file) == before.replacingOccurrences(of: "target: 8\n", with: "target: 10\n"))
 
-        let renamed = GoalDefinitionModel(store: context.store, goal: try goal(context, "goals/Su.md"))
+        let renamed = try await definitionModel(context, "goals/Su.md")
         var second = GoalDefinitionDraft(goal: renamed.goal)
         second.name = "  İçecek "
         second.unit = ""
@@ -42,7 +49,7 @@ struct GoalDefinitionFormTests {
             .replacingOccurrences(of: "name: Su\n", with: "name: İçecek\n")
             .replacingOccurrences(of: "unit: bardak\n", with: "")
         #expect(try text(file) == expected)
-        let changed = try goal(context, "goals/Su.md")
+        let changed = try await goal(context, "goals/Su.md")
         #expect(changed.name == "İçecek" && changed.key == "su" && changed.target == 10 && changed.unit == nil)
         #expect(!FileManager.default.fileExists(atPath: context.root.appendingPathComponent("goals/İçecek.md").path))
     }
@@ -53,7 +60,7 @@ struct GoalDefinitionFormTests {
         await context.start()
         let file = context.root.appendingPathComponent("goals/Kitap.md")
         let before = try Data(contentsOf: file)
-        let model = GoalDefinitionModel(store: context.store, goal: try goal(context, "goals/Kitap.md"))
+        let model = try await definitionModel(context, "goals/Kitap.md")
         var draft = GoalDefinitionDraft(goal: model.goal)
         draft.name = "Okuma"
         #expect(model.error(for: .name, in: draft) == nil)
@@ -81,9 +88,9 @@ struct GoalDefinitionFormTests {
         let source = "---\ntype: goal\nname: Yayın\nkey: yayin\nperiod: year\nkind: milestone\n---\n"
         try Data(source.utf8).write(to: file)
         await context.start()
-        let milestone = GoalDefinitionModel(store: context.store, goal: try goal(context, "goals/Yayın.md"))
+        let milestone = try await definitionModel(context, "goals/Yayın.md")
         #expect(milestone.isScheduleLocked)
-        #expect(!GoalDefinitionModel(store: context.store, goal: try goal(context, "goals/Su.md")).isScheduleLocked)
+        #expect(try await !definitionModel(context, "goals/Su.md").isScheduleLocked)
         var draft = GoalDefinitionDraft(goal: milestone.goal)
         draft.period = .day
         draft.kind = .number
@@ -95,7 +102,7 @@ struct GoalDefinitionFormTests {
         #expect(milestone.changes(in: draft).map(\.field) == [.name])
         #expect(await milestone.apply(draft))
         #expect(try text(file) == source.replacingOccurrences(of: "name: Yayın\n", with: "name: İlk yayın\n"))
-        let saved = try goal(context, "goals/Yayın.md")
+        let saved = try await goal(context, "goals/Yayın.md")
         #expect(saved.kind == .milestone && saved.period == .year)
     }
 
@@ -103,7 +110,7 @@ struct GoalDefinitionFormTests {
         let context = try TaskTestContext(sample: true)
         defer { context.clean() }
         await context.start()
-        let model = GoalDefinitionModel(store: context.store, goal: try goal(context, "goals/Spor.md"))
+        let model = try await definitionModel(context, "goals/Spor.md")
         func asks(_ draft: GoalDefinitionDraft, saving: Bool = false) -> Bool {
             UnsavedDraftDecision.requiresPrompt(isDirty: !model.changes(in: draft).isEmpty, isSaving: saving)
         }
@@ -128,7 +135,7 @@ struct GoalDefinitionFormTests {
         await context.start()
         let path = "goals/Spor.md"
         let file = context.root.appendingPathComponent(path)
-        let model = GoalDefinitionModel(store: context.store, goal: try goal(context, path))
+        let model = try await definitionModel(context, path)
         var draft = GoalDefinitionDraft(goal: model.goal)
         draft.target = "4"
         let deletion = DefinitionDeletionModel()
@@ -139,7 +146,7 @@ struct GoalDefinitionFormTests {
         #expect(await deletion.delete(store: context.store, path: confirmed, goal: true))
         #expect(deletion.isDeleted)
         #expect(!FileManager.default.fileExists(atPath: file.path))
-        #expect(context.store.content.goals.allSatisfy { $0.id != path })
+        #expect((try await context.store.goalDefinitions()).allSatisfy { $0.id != path })
         #expect(await !model.apply(draft))
         #expect(model.errorText != nil)
         #expect(!FileManager.default.fileExists(atPath: file.path))
@@ -151,7 +158,7 @@ struct GoalDefinitionFormTests {
         await context.start()
         let file = context.root.appendingPathComponent("goals/Su.md")
         let before = try text(file)
-        let model = GoalDefinitionModel(store: context.store, goal: try goal(context, "goals/Su.md"))
+        let model = try await definitionModel(context, "goals/Su.md")
         var draft = GoalDefinitionDraft(goal: model.goal)
         draft.name = "İçecek"
         draft.target = "10"
@@ -166,7 +173,7 @@ struct GoalDefinitionFormTests {
             .replacingOccurrences(of: "target: 8\n", with: "target: 10\n")
             .replacingOccurrences(of: "unit: bardak\n", with: "unit: kupa\n")
         #expect(try text(file) == expected)
-        let saved = try goal(context, "goals/Su.md")
+        let saved = try await goal(context, "goals/Su.md")
         #expect(saved.name == "İçecek" && saved.target == 10 && saved.unit == "kupa")
     }
 
@@ -175,7 +182,7 @@ struct GoalDefinitionFormTests {
         defer { context.clean() }
         await context.start()
         let file = context.root.appendingPathComponent("goals/Su.md")
-        let model = GoalDefinitionModel(store: context.store, goal: try goal(context, "goals/Su.md"))
+        let model = try await definitionModel(context, "goals/Su.md")
         var draft = GoalDefinitionDraft(goal: model.goal)
         draft.name = "İçecek"
         draft.target = "10"
@@ -200,7 +207,7 @@ struct GoalDefinitionFormTests {
             "---\ntype: goal\nname: Yudum\nkey: yudum\nperiod: day\nkind: number\ntarget: 4\nunit: |\n  bardak\n---\n"
         try Data(source.utf8).write(to: file)
         await context.start()
-        let model = GoalDefinitionModel(store: context.store, goal: try goal(context, "goals/Yudum.md"))
+        let model = try await definitionModel(context, "goals/Yudum.md")
         #expect(model.goal.unit == nil)
         var draft = GoalDefinitionDraft(goal: model.goal)
         draft.name = "Yudum su"
@@ -211,7 +218,7 @@ struct GoalDefinitionFormTests {
         #expect(model.errorText != nil)
         #expect(!model.isWriting)
         #expect(try text(file) == source.replacingOccurrences(of: "name: Yudum\n", with: "name: Yudum su\n"))
-        #expect(try goal(context, "goals/Yudum.md").name == "Yudum su", "the written field reaches the index")
+        #expect(try await goal(context, "goals/Yudum.md").name == "Yudum su", "the written field reaches the index")
     }
 
     @Test func hiddenUnitIsNotWritten() async throws {
@@ -220,7 +227,7 @@ struct GoalDefinitionFormTests {
         await context.start()
         let file = context.root.appendingPathComponent("goals/Spor.md")
         let before = try text(file)
-        let model = GoalDefinitionModel(store: context.store, goal: try goal(context, "goals/Spor.md"))
+        let model = try await definitionModel(context, "goals/Spor.md")
         var draft = GoalDefinitionDraft(goal: model.goal)
         #expect(!model.showsUnit(draft))
         draft.kind = .number
@@ -233,7 +240,7 @@ struct GoalDefinitionFormTests {
         draft.name = "Koşu"
         #expect(await model.apply(draft))
         #expect(try text(file) == before.replacingOccurrences(of: "name: Spor\n", with: "name: Koşu\n"))
-        let kitap = GoalDefinitionModel(store: context.store, goal: try goal(context, "goals/Kitap.md"))
+        let kitap = try await definitionModel(context, "goals/Kitap.md")
         var shown = GoalDefinitionDraft(goal: kitap.goal)
         shown.kind = .boolean
         #expect(kitap.showsUnit(shown), "a unit in the file stays on the form")

@@ -420,14 +420,11 @@
             model.selection = .kanban
             // Bounded wait (5 s): the new list is installed and has judged its request; after the
             // sidebar took the focus, also until it holds it.
-            for _ in 0..<500 {
+            await waitUntil(timeout: .seconds(5)) {
                 mount.window.contentView?.layoutSubtreeIfNeeded()
-                if let table = sidebarTable(in: mount), table !== first, model.judgements > judgedBefore,
-                    move == .asTheListJudges || Self.holdsFocus(table, in: mount.window)
-                {
-                    break
-                }
-                try await Task.sleep(for: .milliseconds(10))
+                guard let table = sidebarTable(in: mount) else { return false }
+                return table !== first && model.judgements > judgedBefore
+                    && (move == .asTheListJudges || Self.holdsFocus(table, in: mount.window))
             }
             let board = try #require(sidebarTable(in: mount))
             try #require(board !== first, "the board was installed")

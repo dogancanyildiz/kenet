@@ -6,14 +6,17 @@ import VaultStore
 @testable import Journal
 
 extension CloseDayModel {
-    /// The flow as Today opens it: with the day's rows the page drew from the index.
+    /// The flow as Today opens it: with the day's rows the page drew from the index and the
+    /// page's goal strip model, loaded.
     static func opened(
         store: IndexStore, today: CalendarDate, step: CloseDayStep = .tasks,
         calendar: Calendar = .autoupdatingCurrent,
         append: (@MainActor (CalendarDate, [String]) async throws -> Void)? = nil
     ) async throws -> CloseDayModel {
-        CloseDayModel(
-            store: store, today: today, tasks: try await store.computeDayTasks(on: today), step: step,
+        let strip = GoalDayModel(store: store, day: today)
+        await strip.load()
+        return CloseDayModel(
+            store: store, today: today, tasks: try await store.computeDayTasks(on: today), goals: strip, step: step,
             calendar: calendar, append: append)
     }
 }

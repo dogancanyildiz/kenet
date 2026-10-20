@@ -1,5 +1,5 @@
 #!/bin/sh
-# Belge biçim denetimi: karar tablosu, README belge tablosu, String Catalog tamlığı.
+# Belge biçim denetimi: karar tablosu, README belge tablosu, String Catalog tamlığı ve kaynak–katalog uyumu.
 # Aşama 8 kapısı; CI "Biçim ve kurallar" işinde koşar.
 set -eu
 
@@ -157,7 +157,6 @@ PY
 
 # --- String Catalog tamlığı --------------------------------------------------
 # Her anahtarın tr ve en çevirisi olmalı. stale uyarılır (hata değil).
-# Koddaki sabit anahtarların katalogda olmaması uyarıdır (hata değil).
 check_string_catalog() {
     python3 - "$root" <<'PY'
 import json
@@ -204,21 +203,6 @@ def localization_has_value(loc: dict) -> bool:
     return False
 
 
-def unescape_swift(s: str) -> str:
-    out: list[str] = []
-    i = 0
-    while i < len(s):
-        if s[i] == "\\" and i + 1 < len(s):
-            n = s[i + 1]
-            mapping = {"n": "\n", "t": "\t", "r": "\r", '"': '"', "\\": "\\"}
-            out.append(mapping.get(n, n))
-            i += 2
-            continue
-        out.append(s[i])
-        i += 1
-    return "".join(out)
-
-
 errors: list[str] = []
 stale: list[str] = []
 for key, entry in sorted(strings.items(), key=lambda kv: kv[0]):
@@ -245,32 +229,14 @@ if stale:
     print(f"Uyarı: {len(stale)} stale anahtar (hata değil):")
     for k in stale:
         print(f"  {k}")
-
-pat = re.compile(
-    r"""(?:String\(\s*localized:\s*|Text\()(?P<q>"(?P<s>(?:\\.|[^"\\])*)")"""
-)
-code_keys: set[str] = set()
-for path in sorted((root / "App").rglob("*.swift")):
-    text = path.read_text(encoding="utf-8")
-    for m in pat.finditer(text):
-        s = m.group("s")
-        if "\\(" in s or s == "":
-            continue
-        code_keys.add(unescape_swift(s))
-
-missing = sorted(k for k in code_keys if k not in strings)
-if missing:
-    print(f"Uyarı: kodda var, katalogda yok ({len(missing)} anahtar, hata değil):")
-    for k in missing[:50]:
-        print(f"  {k}")
-    if len(missing) > 50:
-        print(f"  … ve {len(missing) - 50} tane daha")
 PY
 }
 
 check_decisions || fail=1
 check_readme_table || fail=1
 check_string_catalog || fail=1
+# Koddaki sabit arayüz metinleri katalogda olmalı (ayrıntı: check-catalog-keys.py).
+python3 -I "$root/.github/scripts/check-catalog-keys.py" "$root" || fail=1
 
 if [ "$fail" -ne 0 ]; then
     echo "Belge biçim denetimi başarısız."

@@ -8401,6 +8401,22 @@
         }
       }
     },
+    "Kip değiştir" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Switch mode"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kip değiştir"
+          }
+        }
+      }
+    },
     "Kişi" : {
       "localizations" : {
         "en" : {

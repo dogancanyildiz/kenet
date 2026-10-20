@@ -66,6 +66,12 @@ extension AccessibilityAuditExemption {
         .init(
             type: .dynamicType, element: .labelPattern("[0-9]+"),
             reason: "SectionHeader counter, tabular body font (entities.peopleAX3.png: same component)"),
+        // Days calendar weekday letters (`veryShortStandaloneWeekdaySymbols`, `.ink.meta`) in the list
+        // column; they grow at AX3 (shell.todayLandscapeAX3.png: "S Ç P C C P"). Reported on the CI
+        // runner's iPad only (run 39497456184, Today, 'S').
+        .init(
+            type: .dynamicType, element: .labelPattern(Pattern.weekdayLetter),
+            reason: "calendar weekday letter grows (shell.todayLandscapeAX3.png)"),
         // The entity page grows at AX3: subtitle, row dates, meta lines and links
         // (entities.personDatesAX3.png).
         .init(
@@ -142,6 +148,8 @@ private enum Reason {
 private enum Pattern {
     /// "10 Eki 2026" or "Oct 10, 2026".
     static let shortDate = #"\d{1,2} \p{L}{3}\.? \d{4}|\p{L}{3} \d{1,2}, \d{4}"#
+    /// One weekday letter of the calendar header, English (S M T W F) or Turkish (P S Ç C).
+    static let weekdayLetter = #"[SMTWFPÇC]"#
     /// "Ekim 2026" or "October 2026": the calendar's month title.
     static let monthTitle = #"\p{L}+ \d{4}"#
 }

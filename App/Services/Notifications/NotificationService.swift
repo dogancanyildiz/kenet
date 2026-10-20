@@ -33,7 +33,7 @@ final class NotificationService {
         NotificationVaultDays()
     }
     @ObservationIgnored private var debounceTask: Task<Void, Never>?
-    @ObservationIgnored private var snapshot: VaultReadModel?
+    @ObservationIgnored private var source = PlanSource.loading
     @ObservationIgnored private var vaultID: String?
     /// Last vault that was open; an unreadable vault reopening as itself is not a switch.
     @ObservationIgnored private var lastOpenVaultID: String?
@@ -71,6 +71,8 @@ final class NotificationService {
             return try? await Task { try await store.computeNotificationDays(from: first, through: last) }.value
         }
         store.onSnapshotChange = { [weak self] content, root in self?.update(snapshot: content, vaultID: root?.path) }
+        // A store that has not started yet reports no vault; that is not a lost one.
+        guard store.vaultURL != nil || store.isVaultInaccessible else { return }
         update(snapshot: store.lastUpdated == nil ? nil : store.content, vaultID: store.vaultURL?.path)
     }
 
@@ -98,13 +100,24 @@ final class NotificationService {
             self?.navigationRequest = NotificationNavigationRequest(destination: destination)
         }
     }
+    /// A nil snapshot with a vault means that vault is loading; a nil vault means there is none,
+    /// as when access is lost.
     func update(snapshot: VaultReadModel?, vaultID: String?) {
         let changedVault = self.vaultID != vaultID
+        var switched = false
         if let vaultID {
-            if let lastOpenVaultID, lastOpenVaultID != vaultID { clearsDelivered = true }
+            if let lastOpenVaultID, lastOpenVaultID != vaultID { switched = true }
             lastOpenVaultID = vaultID
         }
-        self.snapshot = snapshot
+        if switched { clearsDelivered = true }
+        if let snapshot {
+            source = .vault(snapshot)
+        } else if vaultID == nil || switched {
+            source = .closed
+        } else if case .vault = source {
+            // The same vault reopens: its plan stays until the reopened vault publishes.
+            source = .loading
+        }
         self.vaultID = vaultID
         queueReplan(after: changedVault ? .zero : debounce)
     }
@@ -160,6 +173,13 @@ final class NotificationService {
             let zone = timeZone()
             authorization = await center.authorization()
             let existing = await center.pendingRequests()
+            let own = existing.filter { NotificationDestination.from(identifier: $0.id) != nil }
+            if case .loading = source {
+                // A loading vault leaves the center alone: its last plan stays until the first publish
+                // replaces it, so a launch suspended before that publish keeps its reminders.
+                pending = own.sorted { $0.date == $1.date ? $0.id < $1.id : $0.date < $1.date }
+                continue
+            }
             let anchor = LocalDay.today(at: instant, timeZone: zone)
             let vault = vaultID
             var history = CadenceReminderHistory(from: defaults)
@@ -167,7 +187,7 @@ final class NotificationService {
             // Nil when the people could not be read: no reminder is planned and no record is dropped.
             var people: [CadenceReminderPerson]?
             var schedule = NotificationSchedule(requests: [], assignments: [])
-            if authorization.canSchedule, let snapshot {
+            if authorization.canSchedule, case .vault(let snapshot) = source {
                 if preferences.peopleEnabled { people = await cadencePeople(anchor) }
                 // Nil when the week could not be read: no task or journal reminder is planned.
                 var days: NotificationVaultDays? = NotificationVaultDays()
@@ -179,30 +199,35 @@ final class NotificationService {
                     people: people ?? [], lastNotified: history.memory(vaultID: vault).fired)
             }
             let plan = schedule.requests
-            let own = existing.filter { NotificationDestination.from(identifier: $0.id) != nil }
             let identifiers = Set(
                 own.map(\.id) + NotificationPlanner.identifiers(on: anchor)
                     + NotificationPlanner.peopleIdentifiers(on: anchor))
-            await center.remove(identifiers: identifiers.sorted())
             history.persist(in: defaults)
             guard current == revision else {
                 needsReplan = true
                 continue
             }
             errorText = nil
+            // Adding replaces the pending request with the same identifier, so the last plan stays
+            // scheduled until the new one is in place. Requests a stale pass did not reach stay too:
+            // the next pass replaces them.
+            var kept = Set<String>()
             var addedPeople = Set<String>()
-            for request in plan {
+            for (offset, request) in plan.enumerated() {
                 guard current == revision else {
                     needsReplan = true
+                    kept.formUnion(plan[offset...].map(\.id))
                     break
                 }
                 do {
                     try await center.add(request)
+                    kept.insert(request.id)
                     if request.destination == .people { addedPeople.insert(request.id) }
                 } catch {
                     errorText = String(localized: "Bazı bildirimler planlanamadı. Yeniden planlayabilirsin.")
                 }
             }
+            await center.remove(identifiers: identifiers.subtracting(kept).sorted())
             history.record(
                 schedule.assignments.filter { addedPeople.contains("people-\($0.day)") },
                 known: people.map { Set($0.filter { $0.cadence.days != nil }.map(\.id)) }, vaultID: vault)
@@ -212,4 +237,12 @@ final class NotificationService {
             if current != revision { needsReplan = true }
         } while needsReplan
     }
+}
+
+/// What the plan is built from. Only a vault switch or a lost vault withdraws the last plan; a vault
+/// that is loading, including at launch, keeps it.
+private enum PlanSource {
+    case loading
+    case closed
+    case vault(VaultReadModel)
 }

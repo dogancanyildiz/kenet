@@ -42,7 +42,11 @@ struct IdleRefreshTests {
         await store.refresh()
         await store.refresh()
         await store.refresh()
-        try await Task.sleep(for: .milliseconds(50))
+        // A late publish or replan would land in this window: one watcher debounce (300 ms) on the
+        // clock, six times the old fixed wait.
+        let clock = try WatcherClock()
+        defer { clock.stop() }
+        await clock.waitDebounces(1)
 
         #expect(store.lastUpdated == afterStart)
         #expect(publishes == publishesAfterAttach)
@@ -52,10 +56,7 @@ struct IdleRefreshTests {
 
         try Data("- [ ] Grown task\n".utf8).write(to: root.appendingPathComponent("notes/seed.md"))
         await store.refresh()
-        for _ in 0..<100 {
-            if center.additions.count > additionsAfterPlan && !service.isPlanning { break }
-            try await Task.sleep(for: .milliseconds(5))
-        }
+        await waitUntil { center.additions.count > additionsAfterPlan && !service.isPlanning }
 
         #expect(store.lastUpdated != afterStart)
         #expect(publishes == publishesAfterAttach + 1)
@@ -88,8 +89,8 @@ struct IdleRefreshTests {
         let refresh = Task { await store.refresh() }
         try await waitForGate(gate)
 
-        let write = Task { await store.addEvent(text: "Kept event", time: nil) }
-        try await Task.sleep(for: .milliseconds(40))
+        // Started: the write has taken the free slot and waits for the refresh held above.
+        let write = await startedTask { await store.addEvent(text: "Kept event", time: nil) }
         #expect(await gate.blocked)
         #expect(!store.isWriting)
 

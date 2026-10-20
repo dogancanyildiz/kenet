@@ -99,10 +99,7 @@ struct IndexStoreTests {
         await store.start()
         let root = try #require(store.vaultURL)
         try Data("- [ ] Example task\n".utf8).write(to: root.appendingPathComponent("notes/example.md"))
-        for _ in 0..<150 {
-            if store.counts.tasks == 1 { break }
-            try await Task.sleep(for: .milliseconds(20))
-        }
+        await waitUntil { store.counts.tasks == 1 }
         #expect(store.counts.tasks == 1)
     }
 }
@@ -124,7 +121,10 @@ struct VaultWatcherTests {
             try Data("note".utf8).write(to: root.appendingPathComponent("note-\(number).md"))
         }
         try await waitForChange(counter, after: 0)
-        try await Task.sleep(for: .milliseconds(400))
+        // Five writes, one debounced change: no second one comes within two debounces.
+        let clock = try WatcherClock()
+        defer { clock.stop() }
+        await clock.waitDebounces()
         #expect(await counter.value == 1)
         try FileManager.default.removeItem(at: root.appendingPathComponent("note-0.md"))
         try await waitForChange(counter, after: 1)
@@ -145,6 +145,8 @@ struct VaultWatcherTests {
         let counter = ChangeCounter()
         let watcher = VaultWatcher(root: root, interval: 0.8) { Task { await counter.increment() } }
         defer { watcher.stop() }
+        let clock = try WatcherClock(interval: 0.8)
+        defer { clock.stop() }
         watcher.setForeground(true)
         try await waitForChange(counter, after: 0)
         let before = await counter.value
@@ -153,9 +155,11 @@ struct VaultWatcherTests {
         try handle.close()
         try await waitForChange(counter, after: before)
         watcher.setForeground(false)
-        try await Task.sleep(for: .milliseconds(400))
+        // A change already debouncing still arrives; after that the paused timer must stay silent
+        // while the clock's timer, with the same interval, ticks twice.
+        await clock.waitDebounces(1)
         let paused = await counter.value
-        try await Task.sleep(for: .milliseconds(1200))
+        await clock.waitTimerTicks(2)
         #expect(await counter.value == paused)
         watcher.setForeground(true)
         try await waitForChange(counter, after: paused)
@@ -171,14 +175,16 @@ struct VaultWatcherTests {
         let counter = ChangeCounter()
         let watcher = VaultWatcher(root: root) { Task { await counter.increment() } }
         defer { watcher.stop() }
+        let clock = try WatcherClock()
+        defer { clock.stop() }
         for name in [".hidden", "templates", "conflicts"] {
             try Data("ignored".utf8).write(to: root.appendingPathComponent("\(name)/note.md"))
         }
-        try await Task.sleep(for: .milliseconds(700))
+        await clock.waitDebounces()
         #expect(await counter.value == 0)
         watcher.stop()
         try Data("stopped".utf8).write(to: root.appendingPathComponent("note.md"))
-        try await Task.sleep(for: .milliseconds(700))
+        await clock.waitDebounces()
         #expect(await counter.value == 0)
     }
 }
@@ -190,9 +196,7 @@ private func temporaryDirectory() throws -> URL {
 }
 
 private func waitForChange(_ counter: ChangeCounter, after value: Int) async throws {
-    for _ in 0..<150 {
-        if await counter.value > value { return }
-        try await Task.sleep(for: .milliseconds(20))
+    if !(await waitUntil { await counter.value > value }) {
+        Issue.record("Expected watcher notification before timeout")
     }
-    Issue.record("Expected watcher notification before timeout")
 }

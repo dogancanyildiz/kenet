@@ -510,9 +510,7 @@ import VaultFormat
         try text.replacingOccurrences(of: "name: Baran Tunç\n", with: "name: Baran Tunç\nqualifier: yürüyüş\n")
             .write(to: file, atomically: true, encoding: .utf8)
         await context.store.refresh()
-        for _ in 0..<200 where context.store.content.entities.first(where: { $0.id == id })?.qualifier == nil {
-            try await Task.sleep(for: .milliseconds(20))
-        }
+        await waitUntil { context.store.content.entities.first(where: { $0.id == id })?.qualifier != nil }
         screen.select(id, recenter: false)
         await screen.load(today: today)
         #expect(screen.graph.nodes.first { $0.id == id }?.name == "Baran Tunç (yürüyüş)")

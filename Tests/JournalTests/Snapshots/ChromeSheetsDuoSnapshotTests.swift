@@ -148,6 +148,7 @@
                 // Wait for the presented content, then several idle frames like SnapshotHost.
                 var idleFrames = 0
                 for _ in 0..<80 where idleFrames < 8 {
+                    // Frame pump: SwiftUI and UIKit draw on a later run-loop turn and report no event to await.
                     try? await Task.sleep(for: .milliseconds(50))
                     host.view.layoutIfNeeded()
                     host.presentedViewController?.view.layoutIfNeeded()
@@ -160,6 +161,7 @@
                 // `UIWindow dealloc`). Dismiss, let frames pass, and keep the window until the
                 // next case starts.
                 host.presentedViewController?.dismiss(animated: false)
+                // Frames for UIKit to dispose the last transition before the window is released; no event marks it.
                 for _ in 0..<4 { try? await Task.sleep(for: .milliseconds(50)) }
                 window.isHidden = true
                 window.rootViewController = nil

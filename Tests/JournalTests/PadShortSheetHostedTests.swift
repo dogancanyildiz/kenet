@@ -139,6 +139,7 @@
 
         static func settle(_ host: UIViewController) async {
             for _ in 0..<12 {
+                // Frame pump: SwiftUI and UIKit draw on a later run-loop turn and report no event to await.
                 try? await Task.sleep(for: .milliseconds(50))
                 host.view.layoutIfNeeded()
                 host.presentedViewController?.view.layoutIfNeeded()

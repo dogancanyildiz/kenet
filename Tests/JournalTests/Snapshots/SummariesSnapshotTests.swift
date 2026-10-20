@@ -131,6 +131,7 @@ struct SummariesSnapshotShot: Sendable {
             var idle = 0
             for _ in 0..<200 {
                 await Task.yield()
+                // Frame pump: SwiftUI and AppKit draw on a later run-loop turn and report no event to await.
                 try? await Task.sleep(for: .milliseconds(50))
                 idle = !store.isProcessing && ready.isReady ? idle + 1 : 0
                 if idle >= 6 { break }

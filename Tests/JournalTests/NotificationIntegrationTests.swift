@@ -94,16 +94,10 @@ struct NotificationIntegrationTests {
             now: { notificationDate() }, timeZone: { notificationUTC }, debounce: .milliseconds(20))
         service.activateAutomatically(environment: [:], arguments: [])
         for _ in 0..<5 { service.update(snapshot: .empty, vaultID: "sample") }
-        for _ in 0..<100 {
-            if service.pending.count == 7 && !service.isPlanning { break }
-            try await Task.sleep(for: .milliseconds(5))
-        }
+        await waitUntil { service.pending.count == 7 && !service.isPlanning }
         #expect(service.pending.count == 7 && center.removals.count == 1)
         service.preferences.journalEnabled = false
-        for _ in 0..<100 {
-            if center.values.isEmpty && !service.isPlanning { break }
-            try await Task.sleep(for: .milliseconds(5))
-        }
+        await waitUntil { center.values.isEmpty && !service.isPlanning }
         #expect(service.pending.isEmpty && center.removals.count == 2)
         #expect(center.permissionRequests == 0)
         #expect(NotificationPreferences.read(from: defaults.defaults).journalEnabled == false)

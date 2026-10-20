@@ -108,6 +108,7 @@
 
             for _ in 0..<100 {
                 await Task.yield()
+                // Frame pump: SwiftUI and AppKit draw on a later run-loop turn and report no event to await.
                 try? await Task.sleep(for: .milliseconds(50))
                 if !store.isProcessing, ready.isReady { break }
             }

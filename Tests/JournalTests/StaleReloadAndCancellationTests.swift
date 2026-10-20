@@ -352,20 +352,15 @@ struct StaleReloadAndCancellationTests {
 @MainActor final class FirstArrivalGate {
     private var isOpen = false
     private var held: CheckedContinuation<Void, Never>?
-    private var watcher: CheckedContinuation<Void, Never>?
 
     func pass() async {
         guard !isOpen, held == nil else { return }
-        await withCheckedContinuation { continuation in
-            held = continuation
-            watcher?.resume()
-            watcher = nil
-        }
+        await withCheckedContinuation { held = $0 }
     }
 
+    /// Bounded: a caller that never reaches the gate fails the test instead of hanging it.
     func waitUntilHeld() async {
-        guard held == nil else { return }
-        await withCheckedContinuation { watcher = $0 }
+        if !(await waitUntil { held != nil }) { Issue.record("Expected a caller to reach the gate") }
     }
 
     func release() {

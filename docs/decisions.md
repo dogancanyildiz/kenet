@@ -82,7 +82,7 @@ Harita konuları gösterir; satırların tam metni karar günlüğündedir. Bir 
 
 ```mermaid
 timeline
-    title Karar takvimi, 231 karar
+    title Karar takvimi, 262 karar
     2026-10-02 : 58 karar : Ürün kapsamı ve platform : Kasa biçimi ve ayrıştırıcı : Git, sürüm ve CI
     2026-10-03 : 19 karar : Yazma doğrulaması : İndeks ve arama : Varlık sayfası ve hızlı giriş
     2026-10-04 : 31 karar : Birleştirme ve kayıp yok : VaultStore ve dosya izleme : Görev, hedef ve otomasyon : Özet, graph ve harita
@@ -93,9 +93,13 @@ timeline
     2026-10-11 : 27 karar : Aşama 10 geçişi : Önemli tarihler ve bu gün geçmişte : Görüşme ritmi : Günü kapat : İndeks şeması 7
     2026-10-12 : 14 karar : Okuma modelinden sorguya : Ad çipi ve rakam ad : Yer tutucu ve gün kopyası : TestFlight denetimi
     2026-10-13 : 38 karar : Hedef ve görev sorguları : Özetler yeniden tasarımı : Aşama 10'un açık soruları : iPad ve iPhone Duo : Aşama 13 : Zincir affı B : Eşitlenen klasör ve kopya dosyalar : Birleşmiş gün zamanı : Duo kabuğu ve tuvalleri : Duo güvenli alan, krom ve köprü
+    2026-10-15 : 5 karar : Görüntü referansı kayıt kipi : Aşama 14 grafikleri : Yıl haritası ve hedef grafiği : Kişi geçiş grafiği
+    2026-10-16 : 15 karar : Grafikler 2 : Aşama 15 açılışı : Varlık ve hedef silme : Hedef düzenleme formu : iPad cihaz ailesi ve bölünmüş kabuk
+    2026-10-17 : 9 karar : Hedef şablonları ve varlık tipi galerisi : Uzun basma menüsü : iPad klavye kısayolları ve işaretçi : iPad Kanban paneli ve sheet boyu
+    2026-10-18 : 2 karar : Görüntü testi temsilci kümeleri : CI cihaz ailesi işleri ve yeniden deneme
 ```
 
-Sayılar karar günlüğündeki satır sayısıdır. Toplam 231 satırdır.
+Sayılar karar günlüğündeki satır sayısıdır. Toplam 262 satırdır.
 
 ## Karar günlüğü
 
@@ -245,7 +249,7 @@ Sayılar karar günlüğündeki satır sayısıdır. Toplam 231 satırdır.
 | 2026-10-07 | Uygulama simgesi "Geçme"dir: birbirinin içinden geçen iki şerit, mürdüm ve mürekkep. Simge tek bir kaynak koddan üretilen SVG'dir. Kaynak kod `design.md` belgesindedir | Kullanıcının seçimi: dört turda 34 fikir arasından. Simge uygulamanın kendi paletini kullanır. Simgede kurumsal mavi-yeşil havası yoktur |
 | 2026-10-07 | Uygulamanın adı "Kenet"tir: iki parçayı birbirine geçirip tutan bağ. Kullanıcı 2026-10-02'deki "içinde core geçecek" yönünü ve Zincore, Ancore, Corenda adaylarını bıraktı. "Journal" çalışma adıdır ve mağazada yer almaz | Kullanıcının seçimi. İki ajan bağımsız taramada 75'ten fazla aday denetledi. Ad simgeyle, yani Geçme ile, ve iki vaatle örtüşür: bağ ve kalıcılık. App Store'da aynı adlı uygulama yok. Ad ASCII'ye kayıpsız iner. "Journal" Apple'ın kendi uygulamasıyla çakışır. Ajanlar marka sicilini tarayamadı. Adın boşta olduğunu App Store Connect kaydı kesinleştirir |
 | 2026-10-07 | Kalıcı bundle kimliği `com.dogancanyildiz.kenet`tir; iOS ve Mac ortaktır. İlk TestFlight yüklemesinden önce kalıcı kimlik koddaki geçici `com.dravcore.journal.dev` kimliğinin yerini alır. Kullanıcı "kimliklerde nötr ad" kararını bıraktı. Takım kimliği repoya girmez. Uygulama takım kimliğini yerel ayar dosyasından okur | Kullanıcının kararı. Bundle kimliği ilk yüklemeden sonra değişmez. Repo herkese açıktır. Bu yüzden hesaba bağlı kimlik depoda durmaz. Güncel durum: `project.yml` kalıcı kimliği taşır |
-| 2026-10-07 | İlk sürüm yalnız iPhone içindir: mağaza kaydına ve cihaz ailesine iPad girmez. Mac uygulaması geliştirmede kalır. Mac uygulaması mağazaya sonra girer | Proje iPad düzenini tasarlamadı. iPad hedefte kalırsa mağaza iPad ekran görüntüsü ve incelemesi ister. Geliştirici yayımlanan iPad desteğini kaldıramaz. Sonradan eklemek serbesttir |
+| 2026-10-07 | İlk sürüm yalnız iPhone içindir: mağaza kaydına ve cihaz ailesine iPad girmez. Mac uygulaması geliştirmede kalır. Mac uygulaması mağazaya sonra girer | Proje iPad düzenini tasarlamadı. iPad hedefte kalırsa mağaza iPad ekran görüntüsü ve incelemesi ister. Geliştirici yayımlanan iPad desteğini kaldıramaz. Sonradan eklemek serbesttir. 2026-10-16 kararıyla değişti: iOS hedefi iPad'i de kapsar |
 | 2026-10-07 | Lisans: tüm hakları saklıdır, `LICENSE`. Depo herkese açık kalır. Yazılı izin olmadan kimse kodu, belgeleri ve görselleri kullanamaz. Proje açık kaynak lisansı vermedi. Proje depoyu `dogancanyildiz/kenet` adresine taşıdı | Kullanıcının kararı. Gelir modeli belli değilken verilen açık lisansı proje geri alamaz. Proje saklı hakları sonradan gevşetebilir. Uygulama bireysel hesapla yayımlanıyor ve adı Kenet |
 | 2026-10-07 | İlk sürüm `v0.9.0` 2026-10-07'de `main`'e çıktı. Dal rolleri: `main` ürünün aldığı sürümdür, yani mağaza. `dev` test içindir. TestFlight dahili test yapıları `dev`'den, mağaza yapıları `main`'den gelir | Kullanıcının kararı. Yapı numarası commit sayısından gelir. Bu yüzden mağaza yüklemesi başlamadan önce iki dalın aynı sürümde çakışmaması ayrı bir iştir |
 | 2026-10-07 | TestFlight yüklemesini Xcode penceresinden yapma. `.github/scripts/testflight.sh` ile HEAD'in temiz bir kopyasından yükle | Xcode açıkken çalışma klasöründeki dosyaları yeniden yazabiliyor. Temiz kopya, yüklenen yapının depodaki kodla aynı olmasını sağlar. Betik paketi yüklemeden önce denetler |

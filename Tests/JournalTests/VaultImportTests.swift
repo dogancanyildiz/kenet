@@ -1,6 +1,7 @@
 import Foundation
 import Testing
 import VaultFormat
+import VaultStore
 
 @testable import Journal
 
@@ -18,6 +19,17 @@ import VaultFormat
         #expect(report.missingFolders == ["notes", "templates"] && report.needsSettings)
         #expect(report.foundFolders.contains(".obsidian") && report.needsPreparation)
         #expect(report.caseVariantFolders.isEmpty)
+    }
+
+    @Test func indexOnlyFailureCountsAsTypedAndNeverAlsoAsFailed() {
+        struct Boom: Error {}
+        var result = VaultImportResult()
+        VaultImportWriter.record(
+            VaultStoreError.indexUpdateFailed(path: "people/Deniz.md", underlying: Boom()),
+            path: "people/Deniz.md", in: &result)
+        VaultImportWriter.record(Boom(), path: "places/Ev.md", in: &result)
+        #expect(result.typed == ["people/Deniz.md"])
+        #expect(result.failures == ["places/Ev.md"])
     }
 
     @Test func reportsJournalCaseVariantAndDoesNotTreatItAsMissing() throws {

@@ -31,6 +31,18 @@ final class AccessibilityAuditExemptionTests: XCTestCase {
         XCTAssertFalse(isExempt(.contrast, label: "S"))
     }
 
+    /// SectionHeader titles and counters are named by the component's identifier, not by their text.
+    func testSectionHeaderIsNamedByItsIdentifier() {
+        XCTAssertTrue(isExempt(.dynamicType, identifier: "sectionHeader", label: "Carried over"))
+        XCTAssertTrue(isExempt(.dynamicType, identifier: "sectionHeader", label: "Bir süredir görüşmediklerin"))
+        XCTAssertTrue(isExempt(.dynamicType, identifier: "sectionHeader.count", label: "13"))
+        // The text alone is not enough, and the rule is for dynamicType only.
+        XCTAssertFalse(isExempt(.dynamicType, label: "Carried over"))
+        XCTAssertFalse(isExempt(.dynamicType, label: "13"))
+        XCTAssertFalse(isExempt(.textClipped, identifier: "sectionHeader", label: "Carried over"))
+        XCTAssertFalse(isExempt(.contrast, identifier: "sectionHeader", label: "Carried over"))
+    }
+
     func testUnlistedElementIsNotExempt() {
         XCTAssertFalse(isExempt(.dynamicType, label: "Günü kapat"))
         XCTAssertFalse(isExempt(.textClipped, identifier: "button.closeDay", label: "Close the day"))

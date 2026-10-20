@@ -57,15 +57,13 @@ extension AccessibilityAuditExemption {
         .init(
             type: .dynamicType, element: .catalogKey("Yaklaşan"),
             reason: "section menu value grows (tasksScreen.tasksAX3.png)"),
-        .init(
-            type: .dynamicType, element: .catalogKey("Bir süredir görüşmediklerin"),
-            reason: "SectionHeader in a list row grows (entities.peopleAX3.png)"),
-        .init(
-            type: .dynamicType, element: .catalogKey("Bağlanmamış anmalar"),
-            reason: "SectionHeader in a list row grows (entities.peopleAX3.png: same component)"),
-        .init(
-            type: .dynamicType, element: .labelPattern("[0-9]+"),
-            reason: "SectionHeader counter, tabular body font (entities.peopleAX3.png: same component)"),
+        // Every SectionHeader title and counter carries the component's identifier (SectionHeader.swift):
+        // section titles grow with Dynamic Type at AX3 (tasksScreen.tasksAX3.png "Devreden",
+        // shell.todayLandscapeAX3.png "Hedefler", "Görevler"). On the CI runner the audit reports one
+        // list-row title or another between runs ('Carried over', 'Unlinked mentions', …), so the
+        // component is named, not each title.
+        .init(type: .dynamicType, element: .identifier("sectionHeader"), reason: Reason.sectionHeader),
+        .init(type: .dynamicType, element: .identifier("sectionHeader.count"), reason: Reason.sectionHeader),
         // Days calendar weekday letters (`veryShortStandaloneWeekdaySymbols`, `.ink.meta`) in the list
         // column; they grow at AX3 (shell.todayLandscapeAX3.png: "S Ç P C C P"). Reported on the CI
         // runner's iPad only (run 39497456184, Today, 'S').
@@ -137,6 +135,7 @@ extension AccessibilityAuditExemption {
 }
 
 private enum Reason {
+    static let sectionHeader = "SectionHeader text grows at AX3 (tasksScreen.tasksAX3.png, shell.todayLandscapeAX3.png)"
     static let stepButton = "text step button as wide as its word; the minimum width is InkTextButtonStyle work"
     static let entityPage = "entity page text grows with Dynamic Type (entities.personDatesAX3.png)"
     static let padColumns = "iPad columns keep their width at accessibility sizes (shell.todayLandscapeAX3.png)"

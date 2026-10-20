@@ -1,5 +1,5 @@
 #!/bin/sh
-# Belge biçim denetimi: karar tablosu, README belge tablosu, String Catalog tamlığı.
+# Belge biçim denetimi: karar tablosu, README belge tablosu, roadmap ve karar sayıları, String Catalog tamlığı.
 # Aşama 8 kapısı; CI "Biçim ve kurallar" işinde koşar.
 set -eu
 
@@ -268,8 +268,62 @@ if missing:
 PY
 }
 
+# --- Sayı eşitliği (roadmap.md, decisions.md) --------------------------------
+# Roadmap: `- [x]` ve `- [ ]` sayısı pasta grafiğiyle ve "N kutunun durumu" başlığıyla eşit olmalı.
+# Karar günlüğü: tablo satır sayısı takvim başlığıyla, takvim günlerinin toplamıyla ve
+# "Toplam N satırdır" cümlesiyle eşit olmalı.
+check_counts() {
+    python3 - "$root" <<'PY'
+import re
+import sys
+from pathlib import Path
+
+root = Path(sys.argv[1])
+errors: list[str] = []
+
+road = (root / "docs/roadmap.md").read_text(encoding="utf-8")
+done = len(re.findall(r"^- \[x\]", road, re.M))
+todo = len(re.findall(r"^- \[ \]", road, re.M))
+pie_done = re.search(r'^\s*"Bitti" : (\d+)\s*$', road, re.M)
+pie_todo = re.search(r'^\s*"Açık" : (\d+)\s*$', road, re.M)
+title = re.search(r"\*\*(\d+) kutunun durumu:\*\*", road)
+if not (pie_done and pie_todo and title):
+    errors.append("docs/roadmap.md: pasta grafiği ya da '<N> kutunun durumu' başlığı bulunamadı")
+else:
+    if int(pie_done.group(1)) != done:
+        errors.append(f"docs/roadmap.md: pasta 'Bitti' {pie_done.group(1)}, kutu sayısı {done}")
+    if int(pie_todo.group(1)) != todo:
+        errors.append(f"docs/roadmap.md: pasta 'Açık' {pie_todo.group(1)}, kutu sayısı {todo}")
+    if int(title.group(1)) != done + todo:
+        errors.append(f"docs/roadmap.md: başlık {title.group(1)} kutu, gerçek toplam {done + todo}")
+
+dec = (root / "docs/decisions.md").read_text(encoding="utf-8")
+rows = len(re.findall(r"^\| \d{4}-\d{2}-\d{2} \|", dec, re.M))
+cal_title = re.search(r"title Karar takvimi, (\d+) karar", dec)
+total = re.search(r"Toplam (\d+) satırdır", dec)
+days = [int(n) for n in re.findall(r"^\s+\d{4}-\d{2}-\d{2} : (\d+) karar", dec, re.M)]
+if not (cal_title and total and days):
+    errors.append("docs/decisions.md: karar takvimi başlığı, günleri ya da 'Toplam N satırdır' bulunamadı")
+else:
+    if int(cal_title.group(1)) != rows:
+        errors.append(f"docs/decisions.md: takvim başlığı {cal_title.group(1)} karar, satır sayısı {rows}")
+    if int(total.group(1)) != rows:
+        errors.append(f"docs/decisions.md: 'Toplam {total.group(1)} satırdır', satır sayısı {rows}")
+    if sum(days) != rows:
+        errors.append(f"docs/decisions.md: takvim günleri toplamı {sum(days)}, satır sayısı {rows}")
+
+if errors:
+    print("Sayı eşitliği hatalı:", file=sys.stderr)
+    for e in errors:
+        print(e, file=sys.stderr)
+    sys.exit(1)
+print(f"Sayı eşitliği uygun (roadmap {done + todo} kutu: {done} bitti, {todo} açık; {rows} karar).")
+PY
+}
+
 check_decisions || fail=1
 check_readme_table || fail=1
+check_counts || fail=1
 check_string_catalog || fail=1
 
 if [ "$fail" -ne 0 ]; then

@@ -12,7 +12,7 @@
 | Konu | Değer |
 |---|---|
 | Ad | Kenet. Şema, hedef ve modül adlarında kod adı `Journal` kalır. |
-| Platform | iPhone ve Mac, SwiftUI |
+| Platform | iPhone, iPad ve Mac, SwiftUI |
 | Temel iş | Kullanıcı gün içinde kısa olaylar yazar. Uygulama metindeki kişi ve konumları tanır. Uygulama tanıdığı adları olaya kendiliğinden bağlar. |
 | Ek özellikler | Görevler, hedefler ve zincir, widget'lar, kanban, zaman çizelgesi |
 | Gerçek kaynak | Obsidian uyumlu Markdown dosyaları |
@@ -94,7 +94,7 @@ flowchart LR
 | **Sonraki aşamaların özelliklerini erken yazma.** | Aktif aşama bitmeden ileriki özellikleri ekleme. İleriki özellikleri kolaylaştıran tasarım tercihleri serbesttir. Proje bu tercihleri teşvik eder. |
 | **Arayüz metnini koda gömme.** | String Catalog kullan: `App/Resources/Localizable.xcstrings`. Her anahtara Türkçe ve İngilizce çeviri yaz. |
 
-Değişmez kurallar zevk değil, ürünün temel vaatleridir. Veri kullanıcınındır, hiçbir şey kaybolmaz, kullanıcı veriyi başka platforma taşıyabilir. CI (sürekli bütünleştirme) Core kuralını `.github/scripts/check-core-imports.sh` ile denetler. Yol haritası sonraki aşamanın bir dilimini açıkça aktif aşamayla birlikte yürütebilir. Örnek: Aşama 11'in kimlik gerektirmeyen dilimleri Aşama 10 ile birlikte yürür.
+Değişmez kurallar zevk değil, ürünün temel vaatleridir. Veri kullanıcınındır, hiçbir şey kaybolmaz, kullanıcı veriyi başka platforma taşıyabilir. CI (sürekli bütünleştirme) Core kuralını `.github/scripts/check-core-imports.sh` ile denetler. Yol haritası sonraki aşamanın bir dilimini açıkça aktif aşamayla birlikte yürütebilir. Örnek: Aşama 11'in kimlik gerektirmeyen dilimleri ve Aşama 14 ile 15 birlikte yürür.
 
 ## Belge kuralları
 

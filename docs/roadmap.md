@@ -4,7 +4,7 @@
 
 **Kapsam:**
 
-- Aşama 0–13'ün maddeleri ve kutuları
+- Aşama 0–15'in maddeleri ve kutuları
 - Gerçek kullanım ölçütleri ve kullanıcı kararı bekleyen konular
 - Sonraki fikirler
 
@@ -18,7 +18,7 @@ Aşama 11'in kimlik gerektirmeyen dilimleri bitti; kalan maddeler kimlik kararı
 
 ```mermaid
 timeline
-    title Aşama durumları, 2026-10-13
+    title Aşama durumları, 2026-10-20
     section Teknik kapsam tamam
         Aşama 0 Temel : Çıkış ölçütü sağlandı
         Aşama 1 Günlük : Gerçek kullanım başlamadı
@@ -28,22 +28,24 @@ timeline
         Aşama 5 Proje görünümleri : Gerçek kullanım başlamadı
         Aşama 6 Geri bildirim : Gerçek kullanım başlamadı
         Aşama 7 Genişleme : Ölçüt yok
+        Aşama 9 Tasarım dili : 10 kutu bitti : 0 kutu açık
+        Aşama 10 Bağlam ve geri dönüş : 12 kutu bitti : 0 kutu açık
+        Aşama 14 Görselleştirme : 2 kutu bitti : 0 kutu açık
+        Aşama 15 Kullanım kolaylığı : 5 kutu bitti : 0 kutu açık
     section Açık kutusu var
         Aşama 8 Sağlamlaştırma : 28 kutu bitti : 1 kutu açık
-        Aşama 9 Tasarım dili : 9 kutu bitti : 1 kutu açık
-        Aşama 10 Bağlam ve geri dönüş : 12 kutu bitti : 0 kutu açık
         Aşama 11 Kimlik, eşitleme ve widget'lar : Aktif aşama : Kimlik kararını bekliyor : 10 kutu açık
-        Aşama 13 Uyarlanır düzen : Duo kabuğu bugünkü SDK ile bitti : 1 kutu bitti : 4 kutu açık
+        Aşama 13 Uyarlanır düzen : Duo kabuğu ve iPad bitti : 4 kutu bitti : 2 kutu açık
     section Hazırlık sürüyor
         Aşama 12 Yayın : 4 kutu açık
 ```
 
-**118 kutunun durumu:**
+**123 kutunun durumu:**
 
 ```mermaid
 pie title Kutular
-    "Bitti" : 98
-    "Açık" : 20
+    "Bitti" : 106
+    "Açık" : 17
 ```
 
 | İşaret | Anlamı |
@@ -51,7 +53,7 @@ pie title Kutular
 | `[x]` | Kod `dev` dalında, testlerden ve CI'dan geçti. CI, sürekli bütünleştirme demektir. |
 | `[ ]` | Madde açık. Durum tablosu kalan işi söyler. |
 
-**Durum (2026-10-13).** Aşama 0–10'un teknik maddeleri `dev` dalındadır. İlk sürüm `v0.9.0` `main` dalındadır. TestFlight'ta dahili test sürüyor. Aşamaların gerçek kullanım ölçütleri henüz ölçülmedi; "Gerçek kullanım ölçütleri" tablosu ölçütleri ayrıca izler.
+**Durum (2026-10-20).** Aşama 0–10, 14 ve 15'in teknik maddeleri `dev` dalındadır. İlk sürüm `v0.9.0` `main` dalındadır. TestFlight'ta dahili test sürüyor. Aşamaların gerçek kullanım ölçütleri henüz ölçülmedi; "Gerçek kullanım ölçütleri" tablosu ölçütleri ayrıca izler.
 
 Ekim 2026'da çok modelli bir heyet projeyi inceledi. Heyet 4 iş yaptı: kod ve mimari denetimi, ekran görüntülü kullanım gezisi, sektör taraması, tasarım dili araştırması. İnceleme gerçek hatalar, ölçek sorunları ve vaatle uyuşmayan yerler buldu. Bu nedenle heyetten sonraki ilk iş yeni özellik değil, sağlamlaştırmaydı. Aşama 8 ve sonraki aşamalar heyetin önerdiği sırayı izler; kullanıcı onayı kapsamı ve sırayı kesinleştirir.
 

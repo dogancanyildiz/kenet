@@ -167,8 +167,9 @@ struct SearchTests {
         await context.start()
         let model = SearchModel(store: context.store, defaults: context.defaults.defaults)
         model.query = "Deniz"
-        let pending = Task { await model.search(debounce: true) }
-        try await Task.sleep(for: .milliseconds(10))
+        // Started: the search is inside its debounce when it is cancelled.
+        let pending = await startedTask { await model.search(debounce: true) }
+        #expect(model.isSearching)
         pending.cancel()
         model.query = "spor"
         await model.search()

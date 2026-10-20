@@ -481,9 +481,13 @@ struct IndexSchedulingTests {
                     index: index, root: root, rebuild: rebuild, previousTypes: previous,
                     skipUnchanged: skip, previousSkipped: skipped, previousContent: previousContent)
             })
+        let clock = try WatcherClock()
+        defer { clock.stop() }
         store.setForeground(true)
         await store.start()
-        try await Task.sleep(for: .milliseconds(700))
+        // An activation trigger would refresh one watcher debounce after the opening; the clock
+        // waits three of its own, no shorter than the old 700 ms window.
+        await clock.waitDebounces(3)
         #expect(await gate.calls == 1)
         store.setForeground(false)
     }

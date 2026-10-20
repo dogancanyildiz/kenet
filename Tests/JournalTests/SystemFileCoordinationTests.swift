@@ -339,10 +339,7 @@ struct CoordinatedVaultWriteTests {
     private func finishes(_ body: @escaping @MainActor () async -> Bool) async throws -> Bool {
         let outcome = WriteOutcome()
         Task { outcome.saved = await body() }
-        let deadline = ContinuousClock.now.advanced(by: .seconds(10))
-        while outcome.saved == nil, ContinuousClock.now < deadline {
-            try await Task.sleep(for: .milliseconds(20))
-        }
+        await waitUntil(timeout: .seconds(10)) { outcome.saved != nil }
         return outcome.saved == true
     }
 }

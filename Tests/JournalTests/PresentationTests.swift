@@ -132,34 +132,22 @@ struct PresentationUpdateTests {
         try Data("## Events\n- 11:00 Bir an\n".utf8).write(to: file)
         // The day query reads the index as soon as the refresh wrote it; the counts arrive with the
         // published read model a moment later. Both are awaited (bounded), neither is assumed.
-        for _ in 0..<150 {
-            if try await store.days().first?.events.count == 1, store.counts.events == 1 { break }
-            try await Task.sleep(for: .milliseconds(20))
-        }
+        try await waitUntil { try await store.days().first?.events.count == 1 && store.counts.events == 1 }
         #expect(try await store.days().first?.events.first?.text.plainText == "Bir an")
         #expect(store.counts.events == 1)
         try Data("## Events\n- 11:00 Yeni metin\n".utf8).write(to: file, options: .atomic)
-        for _ in 0..<150 {
-            if try await store.days().first?.events.first?.text.plainText == "Yeni metin" { break }
-            try await Task.sleep(for: .milliseconds(20))
-        }
+        try await waitUntil { try await store.days().first?.events.first?.text.plainText == "Yeni metin" }
         #expect(try await store.days().first?.events.first?.text.plainText == "Yeni metin")
         try Data("---\ntype: person\nname: Ece Yalın\naliases: [Ece]\n---\n".utf8)
             .write(to: root.appendingPathComponent("people/Ece Yalın.md"))
-        for _ in 0..<150 {
-            if store.content.entities.count == 1 { break }
-            try await Task.sleep(for: .milliseconds(20))
-        }
+        await waitUntil { store.content.entities.count == 1 }
         #expect(store.content.entities.first?.name == "Ece Yalın")
         #expect(store.content.entities.first?.aliases == ["Ece"])
         #expect(store.counts.entities == 1)
         let other = temp.appendingPathComponent("other")
         try FileManager.default.createDirectory(at: other, withIntermediateDirectories: true)
         await store.select(other)
-        for _ in 0..<150 {
-            if store.vaultURL == other && !store.isProcessing { break }
-            try await Task.sleep(for: .milliseconds(20))
-        }
+        await waitUntil { store.vaultURL == other && !store.isProcessing }
         #expect(store.vaultURL == other)
         #expect(try await store.days().isEmpty)
         #expect(store.content.entities.isEmpty)

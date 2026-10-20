@@ -20,14 +20,14 @@ struct EntityRenameTests {
         #expect(model.result == nil)
         #expect(detail.path == context.path)
         #expect(try Data(contentsOf: context.file) == before)
-        for _ in 0..<150 where !detail.canEdit { try await Task.sleep(for: .milliseconds(20)) }
+        await waitUntil { detail.canEdit }
         model.qualifier = "ofis"
         await model.save()
         let result = try #require(model.result)
         #expect(result.path == "people/Mert Aksu (ofis).md")
         #expect(detail.path == result.path)
         #expect(detail.renameResult == result)
-        for _ in 0..<150 where !detail.canEdit { try await Task.sleep(for: .milliseconds(20)) }
+        await waitUntil { detail.canEdit }
         #expect(detail.isLoaded && detail.canEdit)
         #expect(result.updatedFiles.count == 7)
         #expect(result.failures.isEmpty)
@@ -58,7 +58,7 @@ struct EntityRenameTests {
         #expect(
             try String(contentsOf: raw, encoding: .utf8)
                 == "---\nraw: |\n  [[Deniz Arıkan]]\n---\n[[Deniz Arıkan Yılmaz|Deniz]]\n")
-        for _ in 0..<150 where !detail.canEdit { try await Task.sleep(for: .milliseconds(20)) }
+        await waitUntil { detail.canEdit }
         #expect(await detail.addField(key: "Su", text: "Kitap"))
         let file = context.root.appendingPathComponent(result.path)
         #expect(try String(contentsOf: file, encoding: .utf8).contains("Su: Kitap"))

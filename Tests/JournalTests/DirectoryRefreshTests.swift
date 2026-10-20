@@ -42,8 +42,10 @@ struct DirectoryWatcherTests {
         try await changes.wait(for: 4)
         #expect(await changes.all.last == .directories(["c"]))
         try Data("hidden".utf8).write(to: root.appendingPathComponent("c/.cache/four.md"))
-        // Negative check: a source would report within the 300 ms debounce.
-        try await Task.sleep(for: .milliseconds(700))
+        // Negative check: a source would report within two debounces of the clock watcher.
+        let clock = try WatcherClock()
+        defer { clock.stop() }
+        await clock.waitDebounces()
         #expect(await changes.all.count == 4)
     }
 
@@ -128,10 +130,7 @@ struct DirectoryRefreshTests {
         try handle.write(contentsOf: Data("- [ ] Unseen edit\n".utf8))
         try handle.close()
         try write("- [ ] Fresh task\n", to: root.appendingPathComponent("notes/fresh.md"))
-        for _ in 0..<150 {
-            if store.counts.tasks >= 3 { break }
-            try await Task.sleep(for: .milliseconds(20))
-        }
+        await waitUntil { store.counts.tasks >= 3 }
         // Counts publish before recognition reloads; a refresh call meanwhile would only queue.
         await store.waitWhileRefreshInFlight()
         #expect(store.counts.tasks == 3)
@@ -157,10 +156,7 @@ struct DirectoryRefreshTests {
             probe.finish(timedOut: release.wait(timeout: .now() + 5) == .timedOut)
         }
         let opening = Task { await store.start() }
-        for _ in 0..<500 {
-            if probe.state.began { break }
-            try await Task.sleep(for: .milliseconds(10))
-        }
+        await waitUntil { probe.state.began }
         // This line runs on the main actor; the walk must still be held.
         let heldWhileMainRan = probe.state.began && !probe.state.finished
         release.signal()
@@ -192,18 +188,14 @@ struct DirectoryRefreshTests {
             probe.finish(timedOut: release.wait(timeout: .now() + 5) == .timedOut)
         }
         let opening = Task { await store.start() }
-        for _ in 0..<500 {
-            if probe.state.began { break }
-            try await Task.sleep(for: .milliseconds(10))
-        }
+        await waitUntil { probe.state.began }
         // Written before any source exists: only the opening scan can see it.
         let root = temp.appendingPathComponent("Vault", isDirectory: true)
         try Data("- [ ] Early task\n".utf8).write(to: root.appendingPathComponent("notes/early.md"))
-        // Negative check: an opening refresh that did not wait would start within this bound.
-        for _ in 0..<50 {
-            if !walkDoneAtUpdate.all.isEmpty { break }
-            try await Task.sleep(for: .milliseconds(20))
-        }
+        // Negative check: an opening refresh that did not wait would start within two debounces.
+        let clock = try WatcherClock()
+        defer { clock.stop() }
+        await clock.waitDebounces()
         release.signal()
         await opening.value
         #expect(walkDoneAtUpdate.all.first == true)
@@ -226,15 +218,14 @@ struct DirectoryRefreshTests {
         await store.start()
         defer { store.setForeground(false) }
         #expect(await scopes.all == [nil])
-        for _ in 0..<150 {
-            if ticker.isScheduled { break }
-            try await Task.sleep(for: .milliseconds(10))
-        }
+        await waitUntil { ticker.isScheduled }
         #expect(ticker.isScheduled)
 
         ticker.advance(by: 9)
-        // Negative check: a tick would refresh after the 300 ms debounce.
-        try await Task.sleep(for: .milliseconds(500))
+        // Negative check: a tick would refresh within two debounces of the clock watcher.
+        let clock = try WatcherClock()
+        defer { clock.stop() }
+        await clock.waitDebounces()
         #expect(await scopes.all == [nil])
         ticker.advance(by: 1)
         try await scopes.wait(for: 2)
@@ -349,11 +340,9 @@ actor ChangeLog {
     func append(_ change: VaultChange) { all.append(change) }
 
     func wait(for count: Int) async throws {
-        for _ in 0..<150 {
-            if all.count >= count { return }
-            try await Task.sleep(for: .milliseconds(20))
+        if !(await waitUntil { all.count >= count }) {
+            Issue.record("Expected \(count) watcher changes, got \(all.count)")
         }
-        Issue.record("Expected \(count) watcher changes, got \(all.count)")
     }
 }
 
@@ -374,11 +363,9 @@ actor ScopeLog {
     }
 
     func wait(for count: Int) async throws {
-        for _ in 0..<150 {
-            if all.count >= count { return }
-            try await Task.sleep(for: .milliseconds(20))
+        if !(await waitUntil { all.count >= count }) {
+            Issue.record("Expected \(count) refreshes, got \(all.count)")
         }
-        Issue.record("Expected \(count) refreshes, got \(all.count)")
     }
 
     nonisolated func recordingUpdate(gate: UpdateGate? = nil)
@@ -404,11 +391,9 @@ final class LockedLog<Element: Sendable>: @unchecked Sendable {
     func append(_ element: Element) { lock.withLock { elements.append(element) } }
 
     func wait(for count: Int) async throws {
-        for _ in 0..<150 {
-            if all.count >= count { return }
-            try await Task.sleep(for: .milliseconds(20))
+        if !(await waitUntil { all.count >= count }) {
+            Issue.record("Expected \(count) records, got \(all.count)")
         }
-        Issue.record("Expected \(count) records, got \(all.count)")
     }
 }
 

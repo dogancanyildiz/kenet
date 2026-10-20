@@ -68,7 +68,7 @@ struct GoalStripOrderTests {
         #expect(draw(model) == 0)
 
         // The edit waits until the model takes edits.
-        for _ in 0..<200 where !model.canEdit { try await Task.sleep(for: .milliseconds(10)) }
+        await waitUntil { model.canEdit }
         try #require(model.canEdit)
         let water = try #require(goals.first { $0.key == "su" })
         let amount: Double = model.value(for: water) == .number(7) ? 6 : 7

@@ -16,7 +16,7 @@
 |---|---|
 | Ad | Kenet. "Journal" çalışma adıdır ve mağazada görünmez. |
 | Tek cümle | Gün içinde yazdığın kısa olayları kişilere, konumlara ve zamana kendiliğinden bağlayan; görevleri ve hedefleri de aynı yerde tutan, verisi düz Markdown olan kişisel günlük. |
-| Platform | iPhone ve Mac. İlk mağaza sürümü yalnız iPhone'dur; Mac uygulaması mağazaya sonra girer. |
+| Platform | iPhone, iPad ve Mac. iPad kararı 2026-10-16'dadır; mağaza listesinin iPad ekran görüntüleri sürümde gelir. Mac uygulaması mağazaya sonra girer. |
 | Veri | Obsidian uyumlu Markdown kasa. SQLite yalnız indekstir. |
 | Arayüz dili | Kullanıcının dili. Başlangıçta Türkçe ve İngilizce. |
 
@@ -247,7 +247,7 @@ Tarama, sekiz alanın hepsini o gün eksik buldu. Tablo her alanın 2026-10-12 d
 | Sıra | Önce yalnız kişisel kullanım, sonra mağaza yayını. |
 | Test | İlk sürüm `v0.9.0` 2026-10-07'de `main`'e çıktı. TestFlight'ta dahili test sürer; TestFlight yapıları `dev`'den gelir. |
 | Ad ve kimlik | Ad Kenet, bundle kimliği `com.dogancanyildiz.kenet`. Karar günlüğü, 2026-10-07. |
-| Cihaz | İlk mağaza sürümü yalnız iPhone'dur. iPad düzeni karar bekler. |
+| Cihaz | iOS hedefi iPhone ve iPad içindir. Karar günlüğü, 2026-10-16. |
 | Repo | Herkese açık. |
 | Lisans | Tüm hakları saklıdır. Karar günlüğü, 2026-10-07. |
 | Gelir modeli | Karar açıktır, [açık soru 3](decisions.md#açık-sorular). |

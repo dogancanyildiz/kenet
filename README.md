@@ -52,7 +52,7 @@ Yeni okur numara sırasını izler. Ajan önce aktif aşamayı okur, sonra işin
 | Uygulama adı | Kenet |
 | Kod adı | `Journal`: Xcode şemaları, hedefler ve modül bu adı taşır |
 | Depo | `github.com/dogancanyildiz/kenet` |
-| Arayüz | SwiftUI; iPhone ve Mac |
+| Arayüz | SwiftUI; iPhone, iPad ve Mac |
 | Veri | Obsidian uyumlu düz Markdown dosyaları; SQLite yalnız indeks |
 | Ad kararı | Karar günlüğü, 2026-10-07 |
 
@@ -60,16 +60,16 @@ Kenet, kişiler, konumlar ve olaylar üzerine kurulu bir kişisel günlük uygul
 
 ## Proje durumu
 
-**Tablo, 2026-10-12 tarihindeki durumu verir.**
+**Tablo, 2026-10-20 tarihindeki durumu verir.**
 
 | Konu | Durum |
 |---|---|
 | Son sürüm | `v0.9.0`, `main` dalında |
-| Test dağıtımı | `dev` dalındaki yapılar TestFlight'ta dahili testte; yalnız iPhone |
-| Aşama 0–9 | Kullanıcı kararı gerektirmeyen teknik maddeler tamam. Mürekkep tasarım dili ve denetim kalıpları bütün iPhone ekranlarında |
-| Aktif aşama | Aşama 10: 12 maddeden 11'i tamam. Açık madde hızlı girişte kutu içi vurgudur ve kullanıcı kararını bekler |
-| Aşama 11 | Kimlik gerektirmeyen dilimler Aşama 10 ile birlikte yürür. Örnek: ekranların kendi sorgusu, eşitlenen kasada güvenli yazma |
-| Açık işler | Gerçek cihazda gözle doğrulama; Mac'in aynı kalıplara taşınması; iPad düzeni |
+| Test dağıtımı | `dev` dalındaki yapılar TestFlight'ta dahili testte; iPhone ve iPad |
+| Aşama 0–10 | Kullanıcı kararı gerektirmeyen teknik maddeler tamam. Mürekkep tasarım dili ve denetim kalıpları bütün iPhone, iPad ve Mac ekranlarında |
+| Aktif aşama | Aşama 11. Kimlik gerektirmeyen dilimler bitti; kalan maddeler iCloud kapsayıcısı ve App Group kararını bekler |
+| Aşama 12–15 | Aşama 12 (yayın) hazırlık aşamasındadır. Aşama 13 (uyarlanır düzen), 14 (görselleştirme) ve 15 (kullanım kolaylığı) Aşama 11 ile birlikte yürür; Aşama 14 ve 15 bitti |
+| Açık işler | Gerçek cihazda gözle doğrulama; iPhone Duo iOS 27.1 uyarlaması; mağaza sayfası |
 | Bekleyen kimlik kararları | iCloud kapsayıcısı ve App Group. iCloud eşitlemesi ve widget'lar kimlik kararlarını bekler |
 | Dal rolleri | `main`: ürünün aldığı sürüm. `dev`: test |
 
@@ -81,12 +81,11 @@ Ayrıntılı durum `docs/roadmap.md` belgesindedir.
 
 | Platform | En düşük sistem | Düzen | Dağıtım |
 |---|---|---|---|
-| iPhone | iOS 26.0 | Sekmeli | TestFlight dahili test; mağaza kaydı yalnız iPhone: `TARGETED_DEVICE_FAMILY: 1` |
+| iPhone | iOS 26.0 | Sekmeli | TestFlight dahili test; cihaz ailesi `TARGETED_DEVICE_FAMILY: "1,2"` |
+| iPad | iPadOS 26.0 | Dar pencerede sekmeli; 1000 pt ve üstünde 3 sütun | TestFlight dahili test; iPhone ile aynı uygulama |
 | Mac | macOS 26.0 | Kenar çubuklu | `.github/scripts/install-mac.sh`; TestFlight ve mağaza yolu yok |
 
-**NOT:** iPad desteği yok; ilk sürüm yalnız iPhone'dur, iPad düzeni kullanıcı kararını bekler.
-
-iPad desteği mağazaya bir kez girerse geri çıkmaz. iPad'i eklemek ise her zaman mümkündür.
+**NOT:** iPad desteği 2026-10-16 kararıyla açıldı; cihaz ailesine iPad girdi ve geri alınamaz. Mağaza listesindeki iPad ekran görüntüleri sürümde gelir.
 
 ## Geliştirme ortamı
 
@@ -106,7 +105,7 @@ iPad desteği mağazaya bir kez girerse geri çıkmaz. iPad'i eklemek ise her za
 
 | Şema | İçerik |
 |---|---|
-| `Journal_iOS` | iPhone uygulaması; test eylemi `JournalTests_iOS` ve `JournalUITests` hedeflerini koşar |
+| `Journal_iOS` | iPhone ve iPad uygulaması; test eylemi `JournalTests_iOS` ve `JournalUITests` hedeflerini koşar |
 | `Journal_macOS` | Mac uygulaması; test eylemi `JournalTests_macOS` hedefini koşar |
 | `Journal_macOS_ScreenTour` | Mac ekran turu; yalnız `screen-tour.sh --mac` kullanır |
 | `VaultFormat` | Core testleri |
@@ -239,7 +238,7 @@ flowchart TD
 | Bundle kimliği | `com.dogancanyildiz.kenet`; `project.yml` içinde `APP_BUNDLE_IDENTIFIER` |
 | Görünen ad | Kenet |
 | Kod adı | `Journal` |
-| Cihaz ailesi | İlk sürüm yalnız iPhone |
+| Cihaz ailesi | iPhone ve iPad (`1,2`); karar 2026-10-16 |
 
 1. Yerel imza dosyasını oluştur: `cp Config/Local.xcconfig.example Config/Local.xcconfig`. Dosyada `XXXXXXXXXX` yerine kendi takım kimliğini yaz. Takım kimliği repoya girmez; dosya `.gitignore`'dadır.
 2. Projeyi üret: `xcodegen generate`. Xcode takımı yerel dosyadan okur. XcodeGen projeyi yeniden üretince takım seçimi kaybolmaz.

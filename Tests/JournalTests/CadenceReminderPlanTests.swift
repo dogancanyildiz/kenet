@@ -198,7 +198,7 @@ struct CadenceReminderServiceTests {
     ) -> NotificationService {
         let service = NotificationService(
             center: center, defaults: defaults.defaults, now: { clock.now }, timeZone: { notificationUTC })
-        service.update(snapshot: .empty, vaultID: vault)
+        service.update(isOpen: true, vaultID: vault)
         service.preferences.tasksEnabled = false
         service.preferences.goalsEnabled = false
         service.preferences.journalEnabled = false
@@ -316,13 +316,13 @@ struct CadenceReminderServiceTests {
         #expect(peopleIDs(center).count == 3)
 
         // The new vault is still loading; the injected reader still answers with the old people.
-        service.update(snapshot: nil, vaultID: "vault-b")
+        service.update(isOpen: false, vaultID: "vault-b")
         await service.replanNow()
         #expect(center.values.isEmpty)
         #expect(CadenceReminderHistory.read(from: defaults.defaults, vaultID: "vault-a") == CadenceReminderMemory())
 
         service.useCadencePeople([cadencePerson("people/Ada.md", name: "Ada", last: "2026-09-01", days: 7)])
-        service.update(snapshot: .empty, vaultID: "vault-b")
+        service.update(isOpen: true, vaultID: "vault-b")
         await service.replanNow()
         #expect(center.values.values.allSatisfy { $0.body == "Ada" })
         #expect(CadenceReminderHistory.read(from: defaults.defaults, vaultID: "vault-a") == CadenceReminderMemory())
@@ -331,7 +331,7 @@ struct CadenceReminderServiceTests {
         // only because the hour has passed, and tomorrow is free.
         clock.set("2026-10-11", hour: 12)
         service.useCadencePeople([person])
-        service.update(snapshot: .empty, vaultID: "vault-a")
+        service.update(isOpen: true, vaultID: "vault-a")
         await service.replanNow()
         #expect(center.values.values.allSatisfy { $0.body == "Lale" })
         #expect(peopleIDs(center) == ["people-2026-10-12", "people-2026-10-15"])
@@ -430,7 +430,7 @@ struct CadenceReminderVaultTests {
         service.preferences.goalsEnabled = false
         service.preferences.journalEnabled = false
         service.preferences.peopleEnabled = true
-        service.update(snapshot: context.store.content, vaultID: context.store.vaultURL?.path)
+        service.update(isOpen: context.store.lastUpdated != nil, vaultID: context.store.vaultURL?.path)
         await service.replanNow()
         #expect(service.pending.contains { $0.id == "people-2026-10-11" })
 

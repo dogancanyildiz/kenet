@@ -153,7 +153,7 @@
             let context = try TaskTestContext(sample: true)
             defer { context.clean() }
             await context.start()
-            let id = try #require(context.store.content.goals.first?.id)
+            let id = try #require((try await context.store.goalDefinitions()).first?.id)
             try await assertMacView(
                 GoalsView(store: context.store, selection: .constant(id)),
                 named: "goalsListSelectedMacLight",

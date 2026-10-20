@@ -6,10 +6,10 @@ import VaultIndex
 
 @testable import Journal
 
-/// The notification plan from the week the store queries (`IndexStore.computeNotificationDays`)
-/// against the plan `dev` made from the read model's `tasks` and published days: every request,
-/// id, title, body and date, on every morning of a month, on the sample with the task edge cases,
-/// on an edge-case day vault, and after edits.
+/// The notification plan from the week the store queries (`IndexStore.computeNotificationDays`,
+/// `computeNotificationGoals`) against the plan `dev` made from the read model's `tasks`, published
+/// days, `goals` and `goalLogs`: every request, id, title, body and date, on every morning of a
+/// month, on the sample with the task edge cases, on an edge-case day vault, and after edits.
 @MainActor struct NotificationPlanQueryTests {
     @Test func sampleWithTaskEdgeCasesPlansLikeDev() async throws {
         let context = try TaskTestContext(sample: true)
@@ -104,6 +104,11 @@ import VaultIndex
         await service.replanNow()
         #expect(!service.pending.isEmpty)
         #expect(service.pending.allSatisfy { $0.destination == .goals })
+
+        // Goals that could not be read plan no goal reminder either.
+        service.useNotificationGoals(nil)
+        await service.replanNow()
+        #expect(service.pending.isEmpty)
     }
 
     /// The service reads the whole week: a task due on its seventh day is named, and an event
@@ -187,15 +192,17 @@ import VaultIndex
     ) async throws -> [NotificationRequest] {
         let now = now ?? notificationDate(day)
         let first = LocalDay.today(at: now, timeZone: notificationUTC)
-        let week = try await store.computeNotificationDays(from: first, through: try #require(first.addingDays(6)))
+        let last = try #require(first.addingDays(6))
+        let week = try await store.computeNotificationDays(from: first, through: last)
+        let goals = try await store.computeNotificationGoals(from: first, through: last)
         return NotificationPlanner.requests(
-            snapshot: store.content, days: week, preferences: preferences, now: now, timeZone: notificationUTC)
+            goals: goals, days: week, preferences: preferences, now: now, timeZone: notificationUTC)
     }
 
     /// What `dev`'s planner read: the task rows and days of a fresh rebuild of the vault, and the
-    /// published model's goals.
+    /// goals and goal-log list the published model derived on the real day.
     @MainActor private struct LegacyVault {
-        let model: VaultReadModel
+        let goals: LegacyGoalFields
         let tasks: [TaskRow]
         let days: [DaySummary]
 
@@ -203,7 +210,7 @@ import VaultIndex
             let index = try VaultIndex()
             try index.rebuild(vaultRoot: context.root)
             let snapshot = try index.snapshot()
-            model = context.store.content
+            goals = LegacyGoalFields(snapshot: snapshot, today: LocalDay.today())
             tasks = TaskRow.legacy(snapshot: snapshot)
             days = DaySummary.build(snapshot: snapshot)
         }
@@ -213,7 +220,7 @@ import VaultIndex
         _ vault: LegacyVault, now: Date, preferences: NotificationPreferences
     ) -> [NotificationRequest] {
         LegacyNotificationPlanner.requests(
-            snapshot: vault.model, tasks: vault.tasks, days: vault.days, preferences: preferences, now: now,
+            goals: vault.goals, tasks: vault.tasks, days: vault.days, preferences: preferences, now: now,
             timeZone: notificationUTC)
     }
 
@@ -239,11 +246,12 @@ import VaultIndex
     }
 }
 
-/// The planner as `dev` had it, word for word but for its inputs: the read model's `tasks` and the
-/// published day (`DaySummary.day(on:in:)`) in place of the queried week.
+/// The planner as `dev` had it, word for word but for its inputs: the read model's `tasks`, the
+/// published day (`DaySummary.day(on:in:)`) and its `goals` and `goalLogs` (`LegacyGoalFields`) in
+/// place of the queried week and goals.
 private enum LegacyNotificationPlanner {
     static func requests(
-        snapshot: VaultReadModel, tasks: [TaskRow], days: [DaySummary], preferences: NotificationPreferences,
+        goals snapshot: LegacyGoalFields, tasks: [TaskRow], days: [DaySummary], preferences: NotificationPreferences,
         now: Date, timeZone: TimeZone
     ) -> [NotificationRequest] {
         let today = LocalDay.today(at: now, timeZone: timeZone)

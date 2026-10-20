@@ -29,10 +29,10 @@ struct IdleRefreshTests {
         var publishes = 0
         store.onSnapshotChange = { content, url in
             publishes += 1
-            service.update(snapshot: content, vaultID: url?.path)
+            service.update(isOpen: content != nil, vaultID: url?.path)
         }
         service.activateAutomatically(environment: [:], arguments: [])
-        service.update(snapshot: store.content, vaultID: store.vaultURL?.path)
+        service.update(isOpen: store.lastUpdated != nil, vaultID: store.vaultURL?.path)
         await service.replanNow()
         let afterStart = try #require(store.lastUpdated)
         let publishesAfterAttach = publishes

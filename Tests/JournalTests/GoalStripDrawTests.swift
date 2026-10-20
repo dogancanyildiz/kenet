@@ -67,7 +67,7 @@ struct GoalStripOrderTests {
         await model.load()
         #expect(draw(model) == 0)
 
-        // A draw may start the strip's own reload; the edit waits until the model takes edits.
+        // The edit waits until the model takes edits.
         await waitUntil { model.canEdit }
         try #require(model.canEdit)
         let water = try #require(goals.first { $0.key == "su" })
@@ -201,9 +201,9 @@ private enum StripVault {
             await context.start()
             let store = context.store
             let model = GoalDayModel(store: store, day: context.today)
+            await model.load()
             let alfa = try #require(model.goals.first { $0.key == "alfa" })
-            let mount = HostedLayout.Mount(
-                GoalStripView(model: model, counter: "x"), size: CGSize(width: 420, height: 400))
+            let mount = HostedLayout.Mount(PageStrip(model: model), size: CGSize(width: 420, height: 400))
             defer { mount.close() }
             guard
                 await HostedAccessibilityTree.isAvailable(
@@ -235,13 +235,25 @@ private enum StripVault {
 
             // The page's next day or vault: a new model and a new strip, ordered again.
             let next = GoalDayModel(store: store, day: context.today)
-            let other = HostedLayout.Mount(
-                GoalStripView(model: next, counter: "x"), size: CGSize(width: 420, height: 400))
+            await next.load()
+            let other = HostedLayout.Mount(PageStrip(model: next), size: CGSize(width: 420, height: 400))
             defer { other.close() }
             for _ in 0..<60 where !(next.canEdit && Self.order(in: other).count == 3) {
                 await other.settle(rounds: 1)
             }
             #expect(Self.order(in: other) == ["Aaa", "Beta", "Alfa"])
+        }
+
+        /// The strip as the day page hosts it: the page loads its model again on every publish. The
+        /// test loads the model before mounting it (an empty strip draws nothing), so the mount's
+        /// first pass has nothing to load.
+        private struct PageStrip: View {
+            let model: GoalDayModel
+
+            var body: some View {
+                GoalStripView(model: model, counter: "x")
+                    .task(id: model.store.lastUpdated) { if !model.isCurrent { await model.load() } }
+            }
         }
 
         /// The goal names in the order the strip lists them.
@@ -268,7 +280,7 @@ private enum StripVault {
             defer { context.clean() }
             await context.start()
             let store = context.store
-            let sport = try #require(store.content.goals.first { $0.key == "spor" })
+            let sport = try #require((try await store.goalDefinitions()).first { $0.key == "spor" })
             let mount = HostedLayout.Mount(
                 GoalScreenEnvironment.wrap(
                     NavigationStack { DayView(store: store, date: context.today) }, context: context),

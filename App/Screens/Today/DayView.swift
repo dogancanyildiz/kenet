@@ -11,12 +11,16 @@ enum GoalStripIdentity {
 
 /// The goal editing model of the page's day, shared by the strip and the page's goal count. Another
 /// day or vault gets a new model in the pass that draws it, so the strip never shows another day's.
+/// Another day of the same vault starts from the previous model's goals and history (neither
+/// depends on the day): the strip draws at once instead of after the new model's load.
 @MainActor final class GoalDayModelSlot {
     private var current: GoalDayModel?
 
     func model(store: IndexStore, day: CalendarDate) -> GoalDayModel {
         if let current, current.day == day, current.belongs(to: store.vaultURL) { return current }
-        let model = GoalDayModel(store: store, day: day)
+        let model =
+            current.map { GoalDayModel(store: store, day: day, startingFrom: $0) }
+            ?? GoalDayModel(store: store, day: day)
         current = model
         return model
     }
@@ -48,8 +52,8 @@ struct DayView: View {
     @State private var isCompletedExpanded = false
     /// Nil until the first query returns; a reload keeps the previous day until then.
     @State private var loadedDay: DaySummary?
-    /// Goal statuses as of the day they were queried for, loaded with the day.
-    @State private var loadedGoals: (day: CalendarDate, statuses: [String: GoalStatus])?
+    /// Goal definitions and statuses as of the day they were queried for, loaded with the day.
+    @State private var loadedGoals: (day: CalendarDate, goals: [GoalDefinition], statuses: [String: GoalStatus])?
     @State private var goalModels = GoalDayModelSlot()
     /// A goal page pushed from the strip, on this page's stack (the Today tab's on iPhone, the
     /// detail column's on the Mac).
@@ -72,7 +76,7 @@ struct DayView: View {
         // A goal marked on this page counts from the strip's model until an answer has the mark.
         let statuses = goals.map { goalModels.model(store: store, day: date).shownStatuses($0.statuses) }
         return TodayPresentation(
-            day: day ?? DaySummary(empty: date), groups: tasksModel.groups, goals: store.content.goals,
+            day: day ?? DaySummary(empty: date), groups: tasksModel.groups, goals: goals?.goals ?? [],
             goalStatuses: statuses ?? [:], goalStatusesDay: goals?.day, today: today, locale: locale,
             calendar: calendarValue,
             completedTasks: tasksModel.completedTasksForPresentation,
@@ -82,6 +86,7 @@ struct DayView: View {
 
     var body: some View {
         let presented = makePresentation()
+        let goalModel = goalModels.model(store: store, day: date)
         let entitiesByID = InkLinkMapping.entityIndex(store.content.entities)
         let day = self.day
         let isEmptyDay =
@@ -138,8 +143,9 @@ struct DayView: View {
                     .dayContext(store: store, today: isToday ? date : nil)
                     .dayBacklinks(store: store, date: date)
 
-                // Last on the page: above the fold it would push the first event out of sight.
-                if let day,
+                // Last on the page: above the fold it would push the first event out of sight. The
+                // flow decides its goal step from the strip's model, so it waits for its goals.
+                if let day, goalModel.hasLoaded,
                     CloseDayEntry.isOffered(
                         isToday: isToday, presentation: presented, hasJournal: CloseDayEntry.hasJournal(day))
                 {
@@ -167,6 +173,8 @@ struct DayView: View {
             .toolbar(isToday ? .hidden : .automatic, for: .navigationBar)
         #endif
         .accessibilityIdentifier(isToday ? "screen.today" : "screen.day")
+        // The strip draws nothing until its model has the goals; hosts wait for this, goals or none.
+        .preference(key: GoalsStripReadyKey.self, value: goalModel.hasLoaded && !goalModel.isLoading)
         .task(id: date) {
             if AppLaunchPolicy.allowsAutomaticStart() { await calendar.load(date) }
         }
@@ -181,9 +189,13 @@ struct DayView: View {
             guard !Task.isCancelled else { return }
             if let loaded { loadedDay = loaded }
             if let statuses {
-                loadedGoals = (date, TodayPresentation.goalStatuses(statuses))
+                loadedGoals = (date, statuses.map(\.definition), TodayPresentation.goalStatuses(statuses))
                 goalModel.answerShown(askedAt: revision)
             }
+        }
+        // The strip's goals and history, for the page's day and publish.
+        .task(id: DayRequest(date: date, updated: store.lastUpdated)) {
+            await goalModels.model(store: store, day: date).load()
         }
         .task(id: DayTasksRequest(model: ObjectIdentifier(tasksModel), updated: store.lastUpdated)) {
             await tasksModel.load()
@@ -204,21 +216,26 @@ struct DayView: View {
         }
         .sheet(item: $closeDayRoute) { route in
             NavigationStack {
-                CloseDayView(store: store, today: date, tasks: tasksModel.rows ?? [], step: route.step)
+                CloseDayView(
+                    store: store, today: date, tasks: tasksModel.rows ?? [],
+                    goals: goalModels.model(store: store, day: date), step: route.step)
             }
             .inkAdaptiveFormPresentation()
         }
         .onChange(of: notifications.navigationRequest?.id, initial: true) { openCloseDayFromReminder() }
         .onChange(of: store.lastUpdated == nil) { openCloseDayFromReminder() }
         .onChange(of: tasksModel.isCurrent) { openCloseDayFromReminder() }
+        .onChange(of: goalModel.isCurrent) { openCloseDayFromReminder() }
     }
 
     /// The evening journal reminder opens the flow on its journal step. The reminder's own day is
     /// not the flow's day: whatever day it names, Today's flow opens. A cold launch waits for the
     /// vault and for the day's tasks as that publish has them (an answer from before the vault opened
-    /// has none), because the flow lists its task and goal steps once, when it opens.
+    /// has none) and for the strip's goals of that publish, because the flow lists its task and
+    /// goal steps once, when it opens.
     private func openCloseDayFromReminder() {
         guard isToday, store.lastUpdated != nil, tasksModel.isCurrent,
+            goalModels.model(store: store, day: date).isCurrent,
             CloseDayReminder.claim(notifications.navigationRequest?.closeDayRequestID)
         else { return }
         closeDayRoute = CloseDayRoute(step: .journal)

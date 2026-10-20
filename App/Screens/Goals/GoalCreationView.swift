@@ -95,6 +95,7 @@ struct GoalCreationView: View {
             onConfirm: { Task { if await model.save(), model.errorText == nil { dismiss() } } }
         )
         .frame(minWidth: 320, minHeight: 350)
+        .task(id: model.store.lastUpdated) { await model.load() }
     }
 
     private func templateRow(_ template: GoalTemplate) -> some View {

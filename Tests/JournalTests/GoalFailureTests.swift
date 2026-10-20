@@ -24,7 +24,7 @@ struct GoalFailureTests {
         #expect(try Data(contentsOf: file) == saved)
         #expect(sqlite3_exec(connection, "DROP TRIGGER reject_goals", nil, nil, nil) == SQLITE_OK)
         await context.store.refresh(rebuild: true)
-        #expect(context.store.content.goals.first?.key == "su-icme")
+        #expect((try await context.store.goalDefinitions()).first?.key == "su-icme")
     }
 
     @Test func savedButUnindexedAmountRemainsSavedWithVisibleError() async throws {
@@ -46,7 +46,9 @@ struct GoalFailureTests {
         #expect(sqlite3_exec(connection, "DROP TRIGGER reject_goals", nil, nil, nil) == SQLITE_OK)
         await context.store.refresh(rebuild: true)
         #expect(
-            context.store.content.goalLogs["su"]?.contains { $0.day == context.today && $0.value == .number(8) } == true
+            (try await context.store.goalHistory())["su"]?.contains {
+                $0.day == context.today && $0.value == .number(8)
+            } == true
         )
     }
 
@@ -58,7 +60,11 @@ struct GoalFailureTests {
         for day in ["2024-01-01", "2024-01-02"] {
             try await context.store.setGoal(on: CalendarDate(day)!, key: "run", value: .boolean(true))
         }
-        #expect(context.store.content.goalLogs["run"]?.isEmpty == true)
+        // Outside the 400-day goal-log list the read model kept.
+        let today = LocalDay.today()
+        let window = try await context.store.computeGoalLogs(
+            from: today.addingDays(-399)!, through: today.addingDays(6)!)
+        #expect(window["run"] == nil)
         let run = try await context.store.computeGoalStatuses(today: LocalDay.today()).first {
             $0.definition.key == "run"
         }

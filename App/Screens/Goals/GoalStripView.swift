@@ -2,7 +2,8 @@ import GoalTracking
 import SwiftUI
 import VaultFormat
 
-/// Preference for snapshot hosts waiting until the strip finished loading.
+/// Preference for snapshot hosts waiting until the strip's model finished loading: the day page
+/// and the close-day flow set it, also when the vault has no goal.
 struct GoalsStripReadyKey: PreferenceKey {
     static let defaultValue = false
     static func reduce(value: inout Bool, nextValue: () -> Bool) {
@@ -64,6 +65,7 @@ struct GoalStripView: View {
     /// it. The strip is a new view per day and vault (``GoalStripIdentity``), with a new order.
     @State private var keptOrder: [String]?
     /// The page's editing model for the day: its count draws an edit made here before the answer.
+    /// The page loads it on every publish; with no goals loaded the strip draws nothing.
     private let model: GoalDayModel
     private let countedGoalIDs: [String]
     private let counter: String?
@@ -105,11 +107,6 @@ struct GoalStripView: View {
                     InfoBand(kind: .info, verbatim: notice)
                 }
             }
-            .preference(
-                key: GoalsStripReadyKey.self,
-                value: model.hasLoaded && !model.isLoading
-            )
-            .task(id: model.store.lastUpdated) { await model.load() }
             .onChange(of: model.hasLoaded, initial: true) { keepOrder() }
             .onChange(of: model.goals.map(\.id)) { keepOrder() }
             .sheet(item: $editing) { editor in

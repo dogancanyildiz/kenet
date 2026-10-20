@@ -211,11 +211,13 @@ struct IncrementalReadModelTests {
         ).content
         let full = try IncrementalReadModelVault.fullModel(index: index)
         #expect(incremental.matchesFullBuild(full))
-        #expect(incremental.goals.contains { $0.name == "Koşu: 5 km" })
+        #expect(try index.goalDefinitionsByName().contains { $0.definition.name == "Koşu: 5 km" })
         #expect(!incremental.needsFullReconcile)
     }
 
-    @Test func dayChangeRederivesGoalStatuses() async throws {
+    /// A new day patches as any other: no field depends on the day since the goal-log list left
+    /// the read model (the goal queries take their days from the caller).
+    @Test func aNewDayPatchesLikeAnyOther() async throws {
         let root = try testDirectory()
         defer { try? FileManager.default.removeItem(at: root) }
         try IncrementalReadModelVault.seed(at: root)
@@ -226,7 +228,6 @@ struct IncrementalReadModelTests {
         let previous = try IncrementalReadModelVault.fullModel(index: index, today: dayBuilt)
         #expect(previous.derivedForDay == dayBuilt)
 
-        // Touch a day file that has no goal logs so patch would otherwise keep the goal-log list.
         let untouchedGoalsDay = CalendarDate("2026-10-04")!
         let store = VaultStore(vaultRoot: root, index: index)
         _ = try await store.addingEvent(on: untouchedGoalsDay, text: "After midnight note", time: nil)
@@ -238,14 +239,10 @@ struct IncrementalReadModelTests {
         let full = try IncrementalReadModelVault.fullModel(index: index, today: nextDay)
         #expect(incremental.matchesFullBuild(full))
         #expect(incremental.derivedForDay == nextDay)
-        // The goal-log list (notifications, geofence) moves with the day; the screens' statuses
-        // are queried for the day they show.
-        #expect(previous.goalLogStart == dayBuilt.addingDays(-399))
-        #expect(incremental.goalLogStart == nextDay.addingDays(-399))
     }
 
-    /// A day record whose key has no definition (a deleted goal's) reserves nothing, in a full
-    /// build and after a goal-touching patch alike: the form offers that key again.
+    /// A day record whose key has no definition (a deleted goal's) reserves nothing, before and
+    /// after a goal value changes, as the read model's old field: the form offers that key again.
     @Test func orphanGoalLogKeysStayFree() throws {
         let root = try testDirectory()
         defer { try? FileManager.default.removeItem(at: root) }
@@ -267,7 +264,11 @@ struct IncrementalReadModelTests {
         try index.rebuild(vaultRoot: root)
         let previous = try IncrementalReadModelVault.fullModel(index: index)
         #expect(try index.goalLogs().contains { $0.key == "eski" })
-        #expect(previous.reservedGoalKeys == ["reading"])
+        #expect(try index.reservedGoalKeys() == ["reading"])
+        let today = IncrementalReadModelVault.today
+        #expect(
+            try index.reservedGoalKeys()
+                == LegacyGoalFields(snapshot: try index.snapshot(), today: today).reservedGoalKeys)
 
         let file = root.appendingPathComponent("journal/2026-10-05.md")
         let text = try String(contentsOf: file, encoding: .utf8).replacingOccurrences(
@@ -277,7 +278,10 @@ struct IncrementalReadModelTests {
             [.modificationDate: Date().addingTimeInterval(2)], ofItemAtPath: file.path)
         let result = try index.refresh(vaultRoot: root)
         let incremental = try IncrementalReadModelVault.apply(previous, index: index, result: result)
-        #expect(incremental.reservedGoalKeys == ["reading"])
+        #expect(try index.reservedGoalKeys() == ["reading"])
+        #expect(
+            try index.reservedGoalKeys()
+                == LegacyGoalFields(snapshot: try index.snapshot(), today: today).reservedGoalKeys)
         #expect(incremental.matchesFullBuild(try IncrementalReadModelVault.fullModel(index: index)))
     }
 
@@ -300,8 +304,8 @@ struct IncrementalReadModelTests {
         let index = try VaultIndex()
         try index.rebuild(vaultRoot: root)
         let previous = try IncrementalReadModelVault.fullModel(index: index)
-        #expect(previous.goals.allSatisfy { $0.key != "broken-milestone" })
-        #expect(previous.reservedGoalKeys.contains("broken-milestone"))
+        #expect(try index.goalDefinitionsByName().allSatisfy { $0.definition.key != "broken-milestone" })
+        #expect(try index.reservedGoalKeys().contains("broken-milestone"))
 
         var text = try String(contentsOf: root.appendingPathComponent("journal/2026-10-05.md"), encoding: .utf8)
         text = text.replacingOccurrences(of: "reading: 5", with: "reading: 6")
@@ -314,7 +318,7 @@ struct IncrementalReadModelTests {
         let incremental = try IncrementalReadModelVault.apply(previous, index: index, result: result)
         let full = try IncrementalReadModelVault.fullModel(index: index)
         #expect(incremental.matchesFullBuild(full))
-        #expect(incremental.reservedGoalKeys.contains("broken-milestone"))
+        #expect(try index.reservedGoalKeys().contains("broken-milestone"))
     }
 
     /// The graph left the read model for a Core query: after each incremental publish, the query on

@@ -51,19 +51,17 @@ struct IncrementalReadModelMeasureTests {
         let linksMs = milliseconds(since: linksStart)
         var patched = baseline
         let patchStart = DispatchTime.now()
-        patched.patchDerived(
-            before: baseline.fragments.filter { $0.key == day }, touched: [day], removed: [], today: today)
+        patched.patchDerived(before: baseline.fragments.filter { $0.key == day }, touched: [day], removed: [])
         let patchMs = milliseconds(since: patchStart)
-        // Every synthetic day records goal values; the same patch on a file without any (and not
-        // an entity) leaves the goal statuses alone.
+        // The same patch on a note (no entity, not a day file). Goal values no longer reach the
+        // patch: they left the read model for queries.
         let plain = try #require(
             baseline.fragments.keys.sorted().last {
-                baseline.fragments[$0]?.entity == nil && baseline.fragments[$0]?.goalLogs.isEmpty == true
+                baseline.fragments[$0]?.entity == nil && !$0.hasPrefix("journal/")
             })
         var plainPatched = baseline
         let plainStart = DispatchTime.now()
-        plainPatched.patchDerived(
-            before: baseline.fragments.filter { $0.key == plain }, touched: [plain], removed: [], today: today)
+        plainPatched.patchDerived(before: baseline.fragments.filter { $0.key == plain }, touched: [plain], removed: [])
         let plainMs = milliseconds(since: plainStart)
 
         print(
@@ -73,8 +71,8 @@ struct IncrementalReadModelMeasureTests {
               incremental apply: \(String(format: "%.1f", incMs)) ms
                 load fragment: \(String(format: "%.1f", loadMs)) ms
                 links to the file (\(linking.count)): \(String(format: "%.1f", linksMs)) ms
-                patch (\(fragment.goalLogs.count) goal values in the day): \(String(format: "%.1f", patchMs)) ms
-                patch of \(plain) (no goal values): \(String(format: "%.1f", plainMs)) ms
+                patch (\(fragment.eventCount) events in the day): \(String(format: "%.1f", patchMs)) ms
+                patch of \(plain): \(String(format: "%.1f", plainMs)) ms
               resident memory: \(peakMB) MB
               equal: \(incremental.matchesFullBuild(full))
             """)
@@ -218,7 +216,7 @@ struct IncrementalReadModelMeasureTests {
                 $0.compactMap(GoalLog.init(indexed:))
             }
             oldGoals = [:]
-            for goal in model.goals {
+            for goal in LegacyGoalFields(snapshot: snapshot, today: today).goals {
                 oldGoals[goal.key] = GoalProgress.compute(definition: goal, logs: logs[goal.key] ?? [], today: today)
             }
             oldGoalMs.append(milliseconds(since: start))
@@ -234,6 +232,44 @@ struct IncrementalReadModelMeasureTests {
             "  goal status query (\(goalRows.count) goals, \(snapshot.goalLogs.count) logs) median: \(String(format: "%.1f", median(goalQueryMs))) ms"
         )
         #expect(TodayPresentation.goalStatuses(goalRows) == oldGoals)
+        // The goal fields left the rederive as well: their old construction, its payload, and the
+        // queries that replace them (the goal-log list's window for the logs, the planned week for
+        // the reminder).
+        var legacyGoalMs: [Double] = []
+        var legacy = LegacyGoalFields(snapshot: snapshot, today: today)
+        for _ in 0..<5 {
+            let start = DispatchTime.now()
+            legacy = LegacyGoalFields(snapshot: snapshot, today: today)
+            legacyGoalMs.append(milliseconds(since: start))
+        }
+        for (name, value) in [
+            ("goals", PayloadSize(of: legacy.goals)), ("goalPlaceFiles", PayloadSize(of: legacy.goalPlaceFiles)),
+            ("goalLogs", PayloadSize(of: legacy.goalLogs)),
+            ("reservedGoalKeys", PayloadSize(of: legacy.reservedGoalKeys)),
+        ] as [(String, PayloadSize)] {
+            lines.append("  old \(name) field | \(value.rows) | \(value.nestedRows) | \(value.bytes)")
+        }
+        lines.append("  old goal fields build median: \(String(format: "%.1f", median(legacyGoalMs))) ms")
+        let windowStart = try #require(today.addingDays(-399))
+        let windowEnd = try #require(today.addingDays(6))
+        let goalQueries: [(String, () throws -> Int)] = [
+            ("definitions", { try index.goalDefinitionsByName().count }),
+            ("reserved keys", { try index.reservedGoalKeys().count }),
+            ("logs (400-day window)", { try index.goalLogsByKey(from: windowStart, through: windowEnd).count }),
+            ("notification week", { try index.notificationGoals(from: today, through: windowEnd).definitions.count }),
+        ]
+        for (name, query) in goalQueries {
+            var queryMs: [Double] = []
+            var rows = 0
+            for _ in 0..<5 {
+                let start = DispatchTime.now()
+                rows = try query()
+                queryMs.append(milliseconds(since: start))
+            }
+            lines.append("  goal query \(name) → \(rows) rows median: \(String(format: "%.1f", median(queryMs))) ms")
+        }
+        #expect(try index.goalDefinitionsByName().map(\.definition) == legacy.goals)
+        #expect(try index.goalLogsByKey(from: windowStart, through: windowEnd) == legacy.windowLogs)
         // The tasks left the read model too: their old construction (what the rederive spent on
         // them), and each screen's query.
         var taskBuildMs: [Double] = []

@@ -1005,7 +1005,7 @@ final class IndexStore {
     @ObservationIgnored var testingGoalStatusQueryDidFinish: (@MainActor () async -> Void)?
 
     /// Goal status queried from the index on demand. Belongs to this vault generation; with no
-    /// index open, as with an empty read model, it is empty. Screens still read `content`.
+    /// index open, as with an empty read model, it is empty.
     func computeGoalStatuses(today: CalendarDate) async throws -> [GoalStatusRow] {
         guard let index else { return [] }
         let current = generation
@@ -1363,6 +1363,38 @@ extension IndexStore {
             }
         }
         if let templateFailure { throw templateFailure }
+    }
+}
+
+// MARK: - Goal definitions, reserved keys, goal logs and notification goals
+
+extension IndexStore {
+    /// Valid goal definitions in the goal list's name order, each with the file its place link
+    /// resolves to (`VaultIndex.goalDefinitionsByName()`). A task query: generation, cancellation
+    /// and its test seam as above.
+    func computeGoalDefinitions() async throws -> [GoalDefinitionRow] {
+        try await taskQuery([]) { try $0.goalDefinitionsByName() }
+    }
+
+    /// Every goal key a definition holds, valid or not: the new-goal form's key preview. A task query, as above.
+    func computeReservedGoalKeys() async throws -> Set<String> {
+        try await taskQuery([]) { try $0.reservedGoalKeys() }
+    }
+
+    /// Goal logs dated `from` through `through` by key, in file order; of `keys` only, when given.
+    /// A task query, as above.
+    func computeGoalLogs(
+        from: CalendarDate, through: CalendarDate, keys: Set<String>? = nil
+    ) async throws -> [String: [GoalLog]] {
+        try await taskQuery([:]) { try $0.goalLogsByKey(from: from, through: through, keys: keys) }
+    }
+
+    /// What the daily goal reminder reads for the days `first` through `last`: the daily
+    /// definitions and their logs on those days. A task query, as above.
+    func computeNotificationGoals(from first: CalendarDate, through last: CalendarDate) async throws
+        -> NotificationGoals
+    {
+        try await taskQuery(NotificationGoals()) { try $0.notificationGoals(from: first, through: last) }
     }
 }
 

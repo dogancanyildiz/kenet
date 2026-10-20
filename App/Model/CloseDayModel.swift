@@ -130,10 +130,12 @@ final class CloseDayModel {
     /// The day's candidate rows (``IndexStore/computeDayTasks(on:)``), refreshed after each write.
     private var rows: [TaskRow]
 
-    /// - Parameter tasks: the day's rows as Today drew them; the steps are decided from them.
+    /// - Parameters:
+    ///   - tasks: the day's rows as Today drew them; the steps are decided from them.
+    ///   - goals: the Today strip's loaded model; the goal step is decided from its goals and history.
     init(
-        store: IndexStore, today: CalendarDate, tasks: [TaskRow], step: CloseDayStep = .tasks,
-        calendar: Calendar = .autoupdatingCurrent,
+        store: IndexStore, today: CalendarDate, tasks: [TaskRow], goals strip: GoalDayModel,
+        step: CloseDayStep = .tasks, calendar: Calendar = .autoupdatingCurrent,
         append: (@MainActor (CalendarDate, [String]) async throws -> Void)? = nil
     ) {
         self.store = store
@@ -141,7 +143,7 @@ final class CloseDayModel {
         self.calendar = calendar
         root = store.vaultURL
         self.append = append ?? { try await store.appendToJournal(on: $0, lines: $1) }
-        let goals = GoalDayModel(store: store, day: today)
+        let goals = GoalDayModel(store: store, day: today, startingFrom: strip)
         self.goals = goals
         // The strip's model, as the flow opens: the day's own value decides a daily goal. A copied
         // definition with the same key counts as the first by name, as on the day page.

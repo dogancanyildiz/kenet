@@ -278,7 +278,7 @@ project.yml, VERSION      XcodeGen tanımı ve sürüm numarası; Journal.xcodep
 
 | Denetim betiği | Ne denetler |
 |---|---|
-| `.github/scripts/check-docs.sh` | Karar tablosu, README belge tablosu, String Catalog tamlığı ve biçimi |
+| `.github/scripts/check-docs.sh` | Karar tablosu, README belge tablosu, String Catalog tamlığı ve biçimi; koddaki sabit metinlerin katalogda olması (`check-catalog-keys.py`) |
 | `.github/scripts/check-doc-locations.sh` | `docs/` dışındaki `.md` dosyaları |
 | `.github/scripts/check-core-imports.sh` | `Core` içindeki yasak import'lar |
 | `.github/scripts/check-team-id.sh` | Belgelerdeki gerçek takım kimliği |

@@ -35,24 +35,7 @@ extension VaultIndex {
 
     private func goalStatusRows(today: CalendarDate, key: String?) throws -> [GoalStatusRow] {
         try database.read { db in
-            let entitySQL =
-                key == nil
-                ? "SELECT * FROM entities WHERE kind='goal' ORDER BY file"
-                : "SELECT * FROM entities WHERE kind='goal' AND goalKey=? ORDER BY file"
-            let arguments = StatementArguments(key.map { [$0] } ?? [])
-            let entities = try IndexedEntity.fetchAll(db, sql: entitySQL, arguments: arguments)
-            let links = try IndexedLink.fetchAll(
-                db,
-                sql: """
-                    SELECT l.* FROM links l
-                    JOIN entities e ON e.file=l.file AND e.kind='goal'
-                    WHERE l.key='place' ORDER BY l.file, l.ordinal
-                    """)
-            let places = Dictionary(grouping: links, by: \.file)
-            var definitions = entities.compactMap {
-                GoalDefinition(entity: $0, place: places[$0.file]?.first?.target)
-            }
-            definitions.sort { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
+            let definitions = try Self.goalDefinitionRows(db, key: key).map(\.definition)
             let grouped = try Self.goalLogs(db, through: today, key: key)
             return definitions.map { definition in
                 let entries = grouped[definition.key] ?? []
@@ -77,12 +60,6 @@ extension VaultIndex {
                 ORDER BY file, key
                 """,
             arguments: [today.description, key, key])
-        var grouped: [String: [GoalLog]] = [:]
-        while let row = try rows.next() {
-            let log = IndexedGoalLog(file: "", key: row[0], date: row[1], kind: row[2], value: row[3])
-            guard let entry = GoalLog(indexed: log) else { continue }
-            grouped[log.key, default: []].append(entry)
-        }
-        return grouped
+        return try groupedGoalLogs(rows)
     }
 }

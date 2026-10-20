@@ -1,5 +1,4 @@
 import Foundation
-import GoalTracking
 import VaultFormat
 import VaultIndex
 
@@ -13,22 +12,12 @@ extension VaultReadModel {
             let old = before[path]
             let new = fragments[path]
             if old?.entity != nil || new?.entity != nil { return true }
-            if (old?.file.kind ?? new?.file.kind) == "goal" { return true }
-            if !(old?.goalLogs.isEmpty ?? true) || !(new?.goalLogs.isEmpty ?? true) {
-                // Goal values change the goal-log list; cheap enough to still patch, but keys may appear.
-            }
         }
         return false
     }
 
     /// Patches derived screen fields using before/after fragments for a small content delta.
-    mutating func patchDerived(
-        before: [String: VaultFileFragment], touched: Set<String>, removed: Set<String>,
-        today: CalendarDate
-    ) {
-        goalLogStart = today.addingDays(-399) ?? today
-        let goalLogEnd = today.addingDays(6) ?? today
-
+    mutating func patchDerived(before: [String: VaultFileFragment], touched: Set<String>, removed: Set<String>) {
         for path in removed.union(touched) {
             if let old = before[path] {
                 subtractContributions(of: old)
@@ -38,22 +27,6 @@ extension VaultReadModel {
             if let fragment = fragments[path] {
                 addContributions(of: fragment)
             }
-        }
-
-        let goalTouched = removed.union(touched).contains { path in
-            !(before[path]?.goalLogs.isEmpty ?? true)
-                || !(fragments[path]?.goalLogs.isEmpty ?? true)
-        }
-        if goalTouched {
-            // Sparse; rebuild in path order so arrays match a full snapshot derive.
-            let indexedLogs = fragments.keys.sorted().flatMap { fragments[$0]!.goalLogs }
-            // Same source as `rederive`: entity goal keys (including invalid definitions); a day
-            // record's key alone reserves nothing.
-            reservedGoalKeys = Set(fragments.values.compactMap(\.entity?.goalKey))
-            let allLogs = Dictionary(grouping: indexedLogs, by: \.key).mapValues {
-                $0.compactMap(GoalLog.init(indexed:))
-            }
-            goalLogs = allLogs.mapValues { $0.filter { $0.day >= goalLogStart && $0.day <= goalLogEnd } }
         }
     }
 

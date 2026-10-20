@@ -74,12 +74,11 @@ struct NotificationIntegrationTests {
         let future = CalendarDate("2026-09-28")!
         try await context.store.setGoal(on: future, key: "kitap", value: .number(20))
         try await context.store.setGoal(on: future, key: "su", value: .number(8))
-        let index = try VaultIndex()
-        try index.rebuild(vaultRoot: context.root)
-        let snapshot = VaultReadModel(snapshot: try index.snapshot(), today: CalendarDate("2026-09-27")!)
-        #expect(snapshot.goalLogs["su"]?.contains { $0.day == future } == true)
+        let goals = try await context.store.computeNotificationGoals(
+            from: CalendarDate("2026-09-27")!, through: CalendarDate("2026-10-03")!)
+        #expect(goals.logs["su"]?.contains { $0.day == future } == true)
         let plan = NotificationPlanner.requests(
-            snapshot: snapshot, days: NotificationVaultDays(), preferences: NotificationPreferences(),
+            goals: goals, days: NotificationVaultDays(), preferences: NotificationPreferences(),
             now: notificationDate(),
             timeZone: notificationUTC)
         #expect(!plan.contains { $0.id == "goals-2026-09-28" })
@@ -93,7 +92,7 @@ struct NotificationIntegrationTests {
             center: center, defaults: defaults.defaults,
             now: { notificationDate() }, timeZone: { notificationUTC }, debounce: .milliseconds(20))
         service.activateAutomatically(environment: [:], arguments: [])
-        for _ in 0..<5 { service.update(snapshot: .empty, vaultID: "sample") }
+        for _ in 0..<5 { service.update(isOpen: true, vaultID: "sample") }
         await waitUntil { service.pending.count == 7 && !service.isPlanning }
         #expect(service.pending.count == 7 && center.removals.count == 1)
         service.preferences.journalEnabled = false

@@ -14,7 +14,7 @@ struct NotificationPlannerTests {
         lastNotified: [String: CalendarDate] = [:]
     ) -> [NotificationRequest] {
         NotificationPlanner.requests(
-            snapshot: vault.model, days: vault.week(from: LocalDay.today(at: now, timeZone: notificationUTC)),
+            goals: vault.goals, days: vault.week(from: LocalDay.today(at: now, timeZone: notificationUTC)),
             preferences: preferences, now: now, timeZone: notificationUTC, people: people, lastNotified: lastNotified)
     }
 
@@ -43,18 +43,18 @@ struct NotificationPlannerTests {
 
     @Test func completedDailyGoalsSuppressOnlyTheirDayAndWeeklyYearlyGoalsNeverNotify() throws {
         var snapshot = try notificationSample()
-        snapshot.model.goalLogs["kitap", default: []].append(GoalLog(day: today, value: .number(20)))
-        snapshot.model.goalLogs["su", default: []].append(GoalLog(day: today, value: .number(8)))
+        snapshot.goals.logs["kitap", default: []].append(GoalLog(day: today, value: .number(20)))
+        snapshot.goals.logs["su", default: []].append(GoalLog(day: today, value: .number(8)))
         #expect(!plan(snapshot).contains { $0.id == "goals-2026-09-27" })
         #expect(plan(snapshot).contains { $0.id == "goals-2026-09-28" })
-        snapshot.model.goals = [
+        snapshot.goals.definitions = [
             GoalDefinition(
                 id: "goals/Annual.md", key: "annual", name: "Annual", period: .year, kind: .number, target: 24)!
         ]
         #expect(plan(snapshot).allSatisfy { $0.destination != .goals })
-        snapshot.model.goals.append(
+        snapshot.goals.definitions.append(
             GoalDefinition(id: "goals/Day.md", key: "daily", name: "Daily", period: .day, kind: .boolean, target: 1)!)
-        snapshot.model.goalLogs["daily"] = [GoalLog(day: today, value: .boolean(true))]
+        snapshot.goals.logs["daily"] = [GoalLog(day: today, value: .boolean(true))]
         #expect(!plan(snapshot).contains { $0.id == "goals-2026-09-27" })
     }
 
@@ -63,7 +63,7 @@ struct NotificationPlannerTests {
     @Test func anUnreadWeekPlansNoTaskOrJournalReminder() throws {
         let sample = try notificationSample()
         let requests = NotificationPlanner.requests(
-            snapshot: sample.model, days: nil, preferences: NotificationPreferences(), now: notificationDate(),
+            goals: sample.goals, days: nil, preferences: NotificationPreferences(), now: notificationDate(),
             timeZone: notificationUTC)
         #expect(!requests.isEmpty)
         #expect(requests.allSatisfy { $0.destination == .goals })
@@ -142,7 +142,7 @@ struct NotificationPlannerTests {
         settings.goalsEnabled = false
         settings.journalTime = NotificationTime(hour: 21, minute: 15)
         let requests = NotificationPlanner.requests(
-            snapshot: .empty, days: NotificationVaultDays(), preferences: settings, now: now, timeZone: zone)
+            goals: NotificationGoals(), days: NotificationVaultDays(), preferences: settings, now: now, timeZone: zone)
         #expect(requests.count == 7)
         #expect(requests[1].date.timeIntervalSince(requests[0].date) == Double(23 * 3600))
         var calendar = Calendar(identifier: .gregorian)
@@ -217,7 +217,8 @@ struct NotificationPlannerTests {
         ]
         let notice = try #require(
             NotificationPlanner.requests(
-                snapshot: .empty, days: NotificationVaultDays(), preferences: settings, now: notificationDate(),
+                goals: NotificationGoals(), days: NotificationVaultDays(), preferences: settings,
+                now: notificationDate(),
                 timeZone: notificationUTC,
                 people: people
             ).first { $0.id == "people-2026-09-27" })
@@ -239,16 +240,17 @@ struct NotificationPlannerTests {
         let now = notificationDate("2026-10-10", hour: 22)
         let ahead = try #require(TimeZone(identifier: "Pacific/Kiritimati"))
         let inKiritimati = NotificationPlanner.requests(
-            snapshot: .empty, days: NotificationVaultDays(), preferences: settings, now: now, timeZone: ahead,
+            goals: NotificationGoals(), days: NotificationVaultDays(), preferences: settings, now: now, timeZone: ahead,
             people: [person])
         let inUTC = NotificationPlanner.requests(
-            snapshot: .empty, days: NotificationVaultDays(), preferences: settings, now: now, timeZone: notificationUTC,
+            goals: NotificationGoals(), days: NotificationVaultDays(), preferences: settings, now: now,
+            timeZone: notificationUTC,
             people: [person])
         #expect(inKiritimati.first { $0.id.hasPrefix("people-") }?.id == "people-2026-10-12")
         #expect(inUTC.first { $0.id.hasPrefix("people-") }?.id == "people-2026-10-11")
         let onTheHour = notificationDate("2026-10-11", hour: 10)
         let skipped = NotificationPlanner.requests(
-            snapshot: .empty, days: NotificationVaultDays(), preferences: settings, now: onTheHour,
+            goals: NotificationGoals(), days: NotificationVaultDays(), preferences: settings, now: onTheHour,
             timeZone: notificationUTC, people: [person])
         #expect(!skipped.contains { $0.id == "people-2026-10-11" })
         #expect(skipped.contains { $0.id == "people-2026-10-12" })

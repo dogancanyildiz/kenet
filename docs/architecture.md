@@ -1046,7 +1046,7 @@ Proje çekirdeği şimdiden ortak bir teknolojiyle yazmaz. Örnek teknolojiler: 
 | Birleştirme | Sonuç sürümlerin sırasından bağımsız kalsın, tekrarda değişmesin, hiçbir satırı kaybetmesin |
 | Dayanıklılık | Bozuk frontmatter, tanınmayan sözdizimi ve boş dosya hata üretmesin |
 | Biçim | `swift format lint --strict --recursive Packages App Tests` |
-| Belge biçimi | `sh .github/scripts/check-docs.sh`: karar tablosu, README belge tablosu, String Catalog |
+| Belge biçimi | `sh .github/scripts/check-docs.sh`: karar tablosu, README belge tablosu, String Catalog; koddaki sabit arayüz metni katalogda yoksa düşer (`check-catalog-keys.py`; `verbatim:`, değişken ve enterpolasyonlu metin sayılmaz) |
 | Uygulama testleri | `JournalTests`, `Journal_macOS` ve `Journal_iOS` şemalarında koşar |
 | Ekran görüntüsü testleri | `Tests/JournalTests/Snapshots` altındaki `*SnapshotTests` kümeleri; iOS birim katmanı |
 | XCUITest dumanı ve erişilebilirlik | `JournalUITests`, `bundle.ui-testing`; `Journal_iOS` şemasında |
@@ -1099,7 +1099,7 @@ Ekran turu (`ScreenTourUITests`, `sh .github/scripts/screen-tour.sh`) aynı test
 | İş | Runner | Adımlar | Ne zaman | İş sınırı |
 |---|---|---|---|---|
 | Değişen dosyalar | Linux | Belge PR'ı mı: `.github/scripts/ci-changes.py` | Her zaman | 5 dk |
-| Biçim ve kurallar | Linux kabı, Swift 6.4 | `swift format lint`, dört denetim betiği, CI betiklerinin testleri | Her zaman; belge PR'ında da | 15 dk |
+| Biçim ve kurallar | Linux kabı, Swift 6.4 | `swift format lint`, dört denetim betiği (`check-docs.sh` kaynak–katalog denetimini de çalıştırır), CI betiklerinin testleri | Her zaman; belge PR'ında da | 15 dk |
 | Core (Linux) | Linux kabı, Swift 6.4 | `swift test` | Belge dışı her koşu | 20 dk |
 | Uygulama (macOS ve Core) | macOS | Core `swift test`, ölçek bütçesi, Mac testleri `TZ=UTC`, Mac testleri `TZ=Pacific/Auckland` | Belge dışı her koşu; ölçek bütçesi ve Auckland yalnız `dev`'e birleşince | 35 dk |
 | Uygulama (iPhone) | macOS | Derle, iPhone simülatörünü aç, birim testleri, iPhone görüntü kümeleri, arayüz dumanı | Belge dışı her koşu | 45 dk |

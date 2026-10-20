@@ -395,6 +395,7 @@ jobs:
         run: |
           python3 .github/scripts/test-ci-changes.py
           python3 .github/scripts/test-ci-gate.py
+          python3 -I .github/scripts/test-check-catalog-keys.py
 
   # Dal korumasının zorunlu tuttuğu tek denetim. Yol filtresi yoktur; her PR'da koşar.
   # Karar .github/scripts/ci-gate.py betiğindedir: atlanan iş yalnız belge PR'ında başarı sayılır,

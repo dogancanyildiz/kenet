@@ -118,8 +118,9 @@ struct VaultWatcherTests {
         let root = try temporaryDirectory()
         defer { try? FileManager.default.removeItem(at: root) }
         let counter = ChangeCounter()
-        let watcher = VaultWatcher(root: root) { Task { await counter.increment() } }
+        let watcher = VaultWatcher(root: root) { _ in Task { await counter.increment() } }
         defer { watcher.stop() }
+        await watcher.waitUntilReady()
         for number in 0..<5 {
             try Data("note".utf8).write(to: root.appendingPathComponent("note-\(number).md"))
         }
@@ -143,8 +144,9 @@ struct VaultWatcherTests {
         let file = root.appendingPathComponent("note.md")
         try Data("before".utf8).write(to: file)
         let counter = ChangeCounter()
-        let watcher = VaultWatcher(root: root, interval: 0.8) { Task { await counter.increment() } }
+        let watcher = VaultWatcher(root: root, interval: 0.8) { _ in Task { await counter.increment() } }
         defer { watcher.stop() }
+        await watcher.waitUntilReady()
         watcher.setForeground(true)
         try await waitForChange(counter, after: 0)
         let before = await counter.value
@@ -169,8 +171,9 @@ struct VaultWatcherTests {
                 at: root.appendingPathComponent(name), withIntermediateDirectories: true)
         }
         let counter = ChangeCounter()
-        let watcher = VaultWatcher(root: root) { Task { await counter.increment() } }
+        let watcher = VaultWatcher(root: root) { _ in Task { await counter.increment() } }
         defer { watcher.stop() }
+        await watcher.waitUntilReady()
         for name in [".hidden", "templates", "conflicts"] {
             try Data("ignored".utf8).write(to: root.appendingPathComponent("\(name)/note.md"))
         }

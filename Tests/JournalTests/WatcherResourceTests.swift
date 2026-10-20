@@ -28,8 +28,9 @@ struct WatcherResourceTests {
             onDescriptorClosed: { descriptor in
                 let wasClosed = fcntl(descriptor, F_GETFD) == -1 && errno == EBADF
                 Task { await diagnostics.recordClose(wasClosed) }
-            }, onChange: { Task { await diagnostics.changed() } })
+            }, onChange: { _ in Task { await diagnostics.changed() } })
         defer { watcher.stop() }
+        await watcher.waitUntilReady()
         try Data("timer only".utf8).write(to: root.appendingPathComponent("b/note.md"))
         try await Task.sleep(for: .milliseconds(600))
         #expect(await diagnostics.unwatched == 1)
@@ -54,8 +55,9 @@ struct WatcherResourceTests {
         let root = try testDirectory()
         defer { try? FileManager.default.removeItem(at: root) }
         let diagnostics = WatcherDiagnostics()
-        let watcher = VaultWatcher(root: root, interval: 60, onChange: { Task { await diagnostics.changed() } })
+        let watcher = VaultWatcher(root: root, interval: 60, onChange: { _ in Task { await diagnostics.changed() } })
         defer { watcher.stop() }
+        await watcher.waitUntilReady()
         watcher.setForeground(true, triggerOnActivation: false)
         try await Task.sleep(for: .milliseconds(400))
         #expect(await diagnostics.changes == 0)

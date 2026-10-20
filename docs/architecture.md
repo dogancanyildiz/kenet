@@ -137,14 +137,17 @@ Aşama 0'dan beri uygulama varsayılan kasayı yerel `Documents/Vault/` klasör�
 
 ## Dosya izleyici
 
-**Şema yenilemeyi başlatan üç tetiği gösterir.**
+**Şema yenilemeyi başlatan tetikleri ve her tetiğin tarama kapsamını gösterir.**
 
 ```mermaid
 flowchart LR
-  Dizin["Dizin olayı: Dispatch dizin kaynağı"] --> Birlestir["300 ms birleştirme"]
-  Zamanlayici["Ön plan zamanlayıcısı: 5 saniye"] --> Birlestir
-  OnPlan["Ön plana dönüş"] --> Birlestir
-  Birlestir --> Yenile["Arka planda refresh(vaultRoot:)"]
+  Dizin["Alt dizin olayı: Dispatch dizin kaynağı"] -->|"dizin yolu"| Birlestir["300 ms birleştirme"]
+  Kok["Kök dizin olayı"] -->|"tam"| Birlestir
+  Zamanlayici["Ön plan sigortası: 10 saniye"] -->|"tam"| Birlestir
+  OnPlan["Ön plana dönüş"] -->|"tam"| Birlestir
+  Birlestir --> Esik{"200'den çok dizin ya da tam istek var mı?"}
+  Esik -- Hayır --> Kapsamli["Arka planda update(paths:vaultRoot:): dizinler ve alt ağaçları"]
+  Esik -- Evet --> Tam["Arka planda refresh(vaultRoot:): bütün kasa"]
 ```
 
 **Tablo izleyicinin sınırlarını gösterir.**
@@ -152,11 +155,40 @@ flowchart LR
 | Değer | Anlam |
 |---|---|
 | Dispatch dizin kaynakları | Kök ve taranan alt dizinler |
-| 5 saniye | Ön plan zamanlayıcısının aralığı |
+| 10 saniye | Ön plan sigortasının aralığı |
 | 300 ms | Bildirimlerin birleştirme süresi |
+| 200 | Bir yenilemedeki en çok dizin sayısı; fazlası tam yenilemedir |
 | 256 | En çok dizin kaynağı sayısı |
 
-Dizin kaynakları dosya içeriğinin yerinde düzenlenmesini güvenilir biçimde görmez. Ön plan zamanlayıcısı ve ön plana dönüş yenilemesi bu düzenlemeyi yakalar. Arka planda dizin olayları yenilemeyi tetiklemeye devam eder. İzleyici 256 kaynaktan sonraki dizinleri ve kaynak açamadığı dizinleri yalnız ön plan zamanlayıcısıyla denetler. Arayüz bu dizinlerin sayısını gösterir. `VaultWatcher` yol bildirmez; her olayda `IndexStore` tam `refresh` çağırır.
+**Tablo her tetiğin ne bildirdiğini gösterir.**
+
+| Tetik | Bildirim | `IndexStore` çağrısı |
+|---|---|---|
+| Alt dizin olayı: dosya ya da dizin eklendi, silindi, yeniden adlandırıldı | Kasa içi göreli dizin yolu | `refresh(directories:)`; Core `update(paths:)` o dizini alt ağacıyla tarar |
+| Kök dizin olayı | Tam | `refresh()` |
+| Ön plan sigortası ve ön plana dönüş | Tam | `refresh()` |
+| Kaynak sayısı sınırdayken bir kaynak kapandı | Tam | `refresh()` |
+
+İzleyici 300 ms içinde gelen bildirimleri birleştirir. Dizin listeleri birleşir. Tam istek listeyi yutar. 200'den çok dizin tam isteğe döner. `IndexStore` de süren bir yenilemenin arkasında bekleyen istekleri aynı kuralla birleştirir. Bu yüzden hiçbir istek kaybolmaz: bekleyen istek ya bütün dizinleri ya bütün kasayı tarar.
+
+İzleyici bir dizin olayından sonra yalnız o dizinin alt ağacını dolaşır. Yeni alt dizinler kaynak alır. Silinen ya da taşınan dizinlerin kaynakları kapanır. Bütün ağacı yalnız tam istek dolaşır. Dışlamalar her dolaşmada aynıdır: adı nokta ile başlayan dizinler ve kökteki `templates/` ile `conflicts/`.
+
+Dizin kaynakları dosya içeriğinin yerinde düzenlenmesini görmez. Bir düzenleyici dosyayı yerinde yazarsa, örneğin `FileHandle`, `>>` ya da Node `fs.writeFile` ile, indeks bu düzenlemeyi ön plan sigortasında ya da ön plana dönüşte görür; gecikme en çok 10 saniyedir. Ölçüm: yerinde ekleme, kesip yeniden yazma ve `touch` hiçbir dizin olayı üretmez. Atomik kaydetme, yani geçici dosya ve yeniden adlandırma, bir dizin olayıdır; indeks bu düzenlemeyi 1 saniye içinde görür. Arka planda dizin olayları yenilemeyi tetiklemeye devam eder. İzleyici 256 kaynaktan sonraki dizinleri ve kaynak açamadığı dizinleri yalnız ön plan sigortasıyla denetler. Arayüz bu dizinlerin sayısını gösterir.
+
+Yenileme hata verirse `IndexStore` sonraki isteği dizin listesiyle değil bütün kasayla yapar. Başarısız yenilemenin kaçırdığı değişiklik başka bir dizinde olabilir.
+
+Kapsamlı yenilemede Core `skippedPaths` değerini yalnız taranan dizinler için bildirir. `IndexUpdate` taranan dizinlerin dışındaki eski kayıtları korur ve listeyi Core sırasıyla birleştirir. Liste değişmezse yayım olmaz.
+
+**Tablo izleyicinin ana aktörle ilişkisini gösterir.**
+
+| İş | Nerede çalışır |
+|---|---|
+| İlk dolaşma ve kaynak kurulumu | İzleyici kuyruğu. `IndexStore.open` yalnız `waitUntilReady()` ile bekler; ana aktör serbesttir |
+| `setForeground` ve `stop` | İzleyici kuyruğuna iş bırakır; ana aktör beklemez |
+| Dizin dolaşması ve birleştirme | İzleyici kuyruğu |
+| İndeks taraması ve okuma modeli | `Task.detached` |
+
+`IndexStore.open` açılış yenilemesinden önce ilk dolaşmanın bitmesini bekler. Böylece kaynaklar açılış taramasından önce kurulur; ikisinin arasında yapılan bir düzenleme kaybolmaz. Bu bekleme sürerken `isProcessing` açık kalır; gelen yenileme istekleri açılış yenilemesinin arkasında birleşir. Kasa bu sırada değişirse ya da erişim kaybolursa `generation` denetimi eski açılışı durdurur. Eski izleyicinin bildirimleri de aynı denetimle düşer.
 
 ## Yazma sırası
 

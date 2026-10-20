@@ -56,12 +56,20 @@ enum VaultImportWriter {
                             at: candidate.path, key: "type", value: .text(candidate.kind))
                         result.typed.append(candidate.path)
                     } catch {
-                        if case VaultStoreError.indexUpdateFailed = error { result.typed.append(candidate.path) }
-                        result.failures.append(candidate.path)
+                        record(error, path: candidate.path, in: &result)
                     }
                 }
             } catch { result.failures += report.candidates.map(\.path) }
         }
         return result
+    }
+
+    /// The file was written even when only the index update failed, so it counts as typed, never also as failed.
+    static func record(_ error: any Error, path: String, in result: inout VaultImportResult) {
+        if case VaultStoreError.indexUpdateFailed = error {
+            result.typed.append(path)
+        } else {
+            result.failures.append(path)
+        }
     }
 }

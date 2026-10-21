@@ -387,6 +387,11 @@ jobs:
       - name: Belgelerde takım kimliği
         # Aynı kural uygulama testlerinde de var; belge PR'ında o işler atlandığı için burada da koşar.
         run: sh .github/scripts/check-team-id.sh
+      - name: Görüntü referansı tavanı
+        # Karar 61: her referans git geçmişinde kalır; sayı ve boyut tavanı Linux kabında ölçülür.
+        run: |
+          sh .github/scripts/test-check-snapshot-budget.sh
+          sh .github/scripts/check-snapshot-budget.sh
       - name: Sürüm akışı kuru koşusu
         run: sh .github/scripts/test-release.sh
       - name: Xcode simülatör yeniden deneme betiği

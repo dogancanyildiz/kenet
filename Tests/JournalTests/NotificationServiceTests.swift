@@ -271,8 +271,13 @@ struct NotificationServiceTests {
     @Test func enablingHideContentRemovesDeliveredNotifications() async throws {
         let defaults = try TestDefaults()
         defer { defaults.clean() }
+        // Content shown is a stored choice; turning hiding on is the change under test.
+        var shown = NotificationPreferences()
+        shown.hideContent = false
+        shown.persist(in: defaults.defaults)
         let center = FakeNotificationCenter()
         let service = service(center, defaults: defaults, debounce: .zero)
+        #expect(!service.preferences.hideContent)
         #expect(center.deliveredRemovals == 0)
         service.preferences.hideContent = true
         for _ in 0..<50 where center.deliveredRemovals == 0 { await Task.yield() }

@@ -9,6 +9,8 @@ public struct GoalStatusRow: Sendable, Equatable {
     public let status: GoalStatus
     /// `GoalProgress.score` through `today`. For an open daily goal this counts today; `status.score` does not.
     public let score: Int?
+    public var graceDaysAvailable: Int { status.graceDaysAvailable }
+    public var graceSpentDays: [CalendarDate] { status.graceSpentDays }
 
     public init(definition: GoalDefinition, status: GoalStatus, score: Int?) {
         self.definition = definition

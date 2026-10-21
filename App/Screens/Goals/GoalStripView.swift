@@ -201,7 +201,8 @@ struct GoalStripView: View {
             showsPlus: !marked,
             isEditable: model.canEdit,
             keepsLayout: true,
-            incrementLabel: LocalizedStringKey(marked ? "İşareti kaldır" : "Artır")
+            incrementLabel: LocalizedStringKey(marked ? "İşareti kaldır" : "Artır"),
+            graceBadge: GraceDayPresentation.badge(status: status, locale: locale)
         )
         .contextMenu {
             if model.canEdit, goal.kind == .number {

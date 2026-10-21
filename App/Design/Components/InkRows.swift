@@ -132,6 +132,8 @@ struct InkGoalRow: View {
     var incrementLabel: LocalizedStringKey = "Artır"
     var enterAmountLabel: LocalizedStringKey = "Miktar gir"
     var openHint: LocalizedStringKey = "Ayrıntıları göster"
+    /// Chain days still available, after the name; nil draws none and leaves the row as it was.
+    var graceBadge: GraceDayBadge? = nil
 
     @ScaledMetric(relativeTo: .body) private var plusSide = InkSize.plus
 
@@ -158,6 +160,24 @@ struct InkGoalRow: View {
             .foregroundStyle(progress >= 1 ? Color.ink.secondaryText : Color.ink.text)
     }
 
+    /// The name, with the chain-day badge on its first baseline when there is one.
+    @ViewBuilder private var nameLine: some View {
+        if let graceBadge {
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                nameText
+                graceBadge
+            }
+        } else {
+            nameText
+        }
+    }
+
+    /// What VoiceOver reads after the name on the open button: the value or meta, then the badge.
+    private var openValue: String {
+        [valueText ?? metaText, graceBadge?.label].compactMap { $0 }.filter { !$0.isEmpty }
+            .joined(separator: ", ")
+    }
+
     private func metaLine(_ meta: String) -> some View {
         Text(verbatim: meta)
             .font(.ink.meta)
@@ -168,7 +188,7 @@ struct InkGoalRow: View {
     private func openButton(_ onOpen: @escaping () -> Void) -> some View {
         Button(action: onOpen) {
             VStack(alignment: .leading, spacing: 4) {
-                nameText
+                nameLine
                 if let metaText { metaLine(metaText) }
             }
             // Tap area as tall as the value button's and the plus slot's, the text on top.
@@ -179,7 +199,7 @@ struct InkGoalRow: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel(Text(verbatim: name))
-        .accessibilityValue(Text(verbatim: valueText ?? metaText ?? ""))
+        .accessibilityValue(Text(verbatim: openValue))
         .accessibilityHint(Text(openHint))
     }
 
@@ -190,7 +210,7 @@ struct InkGoalRow: View {
             if let onOpen {
                 openButton(onOpen)
             } else {
-                nameText
+                nameLine
             }
         } secondary: {
             if onOpen == nil, let metaText {

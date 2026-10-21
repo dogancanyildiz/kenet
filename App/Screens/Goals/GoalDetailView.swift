@@ -44,8 +44,10 @@ struct GoalDetailView: View {
 
                 if goal.kind != .milestone {
                     section(title: String(localized: "Isı haritası")) {
-                        GoalHeatmap(goal: goal, logs: history.logs[goal.key] ?? [], today: history.day) {
-                            day in
+                        GoalHeatmap(
+                            goal: goal, logs: history.logs[goal.key] ?? [], today: history.day,
+                            graceSpentDays: Set(status.graceSpentDays)
+                        ) { day in
                             Task { await edit(day) }
                         }
                         .disabled(!history.canEdit)
@@ -124,6 +126,9 @@ struct GoalDetailView: View {
                 HStack(spacing: 16) {
                     labeledValue(String(localized: "Güncel zincir"), status.streak.formatted())
                     labeledValue(String(localized: "En uzun seri"), status.longestStreak.formatted())
+                }
+                if let balance = GraceDayPresentation.balance(status: status) {
+                    graceDayLine(balance)
                 }
                 if goal.period == .day, let score = status.score {
                     Text(verbatim: GoalScoreCopy.sentence(score))
@@ -220,6 +225,27 @@ struct GoalDetailView: View {
         .padding(.vertical, 10)
         .contentShape(Rectangle())
         .tapTarget()
+    }
+
+    /// The chain days the goal has now and the rule in one sentence; read as one element.
+    private func graceDayLine(_ balance: Int) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Label {
+                Text(verbatim: GraceDayPresentation.balanceText(balance))
+                    .font(.ink.byline)
+                    .foregroundStyle(Color.ink.text)
+            } icon: {
+                Image(systemName: "link")
+                    .font(.ink.meta)
+                    .foregroundStyle(Color.ink.secondaryText)
+            }
+            Text(verbatim: GraceDayPresentation.explanation())
+                .font(.ink.meta)
+                .foregroundStyle(Color.ink.secondaryText)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("goal.graceDays")
     }
 
     private func labeledValue(_ title: String, _ value: String) -> some View {

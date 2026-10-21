@@ -117,7 +117,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           RUN_ID: ${{ github.run_id }}
-        run: gh run download "$RUN_ID" --name mac-snapshot-references --dir Tests/JournalTests/Snapshots/__Snapshots__
+        # gh run download var olan dosyanın üstüne yazmaz; önce boş klasöre indirilir, sonra kopyalanır.
+        run: |
+          gh run download "$RUN_ID" --name mac-snapshot-references --dir "$RUNNER_TEMP/mac-referanslar"
+          cp -R "$RUNNER_TEMP/mac-referanslar/." Tests/JournalTests/Snapshots/__Snapshots__/
       - name: PR aç
         env:
           GH_TOKEN: ${{ github.token }}

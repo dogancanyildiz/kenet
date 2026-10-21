@@ -18,8 +18,8 @@
 | Çekirdek | `Core` Swift paketi; Apple arayüz ve sistem çerçevelerine bağımsız |
 | Veri | Markdown dosyaları; gerçek kaynak |
 | İndeks | SQLite, GRDB, FTS5 |
-| Eşitleme | iCloud Drive, uygulamanın kendi kapsayıcısı. Planlandı; kimlik kararını bekliyor |
-| Widget | WidgetKit. Planlandı; kimlik kararını bekliyor |
+| Eşitleme | iCloud Drive, uygulamanın kendi kapsayıcısı. Planlandı; kimlik ve yetki hazır, kod henüz yok |
+| Widget | WidgetKit. Planlandı; App Group kimliği ve yetkisi hazır, hedef henüz yok |
 | Sistem girişleri | App Intents: Kısayollar ve Siri |
 | Takvim | EventKit, salt okunur |
 | Konum | CoreLocation; harita için MapKit |
@@ -86,9 +86,9 @@ flowchart TD
 | Bundle kimliği | `com.dogancanyildiz.kenet`; kalıcı, iOS ve Mac için ortak. Değer `project.yml` içinde tek yerde durur: `APP_BUNDLE_IDENTIFIER`. Test hedefleri sonek ekler: `.tests`, `.uitests`. Betikler aynı satırı okur |
 | Görünen ad | Kullanıcı Kenet adını görür: `CFBundleDisplayName`, `CFBundleName`. Hedef, modül ve `.app` dosyası kod adı `Journal` ile kalır |
 | Cihaz | iOS hedefi iPhone, iPhone Duo ve iPad içindir: `TARGETED_DEVICE_FAMILY: "1,2"`. iPhone dikey kilitlidir; iPad dört yöne döner (`UISupportedInterfaceOrientations~ipad`); `testflight.sh` arşivde ikisini de denetler. iPad uygulaması Apple Silicon Mac'te listelenmez (`SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: NO`): yerel Mac hedefi ayrıdır. Duo dış ekranı yalnız dikeydir; iç ekran yön kilidini yok sayar. İç ekran bölünmüş kabuğu açar: `AdaptiveNavigation` iki boyut sınıfı da düzenliyse `MacNavigation`, öteki durumda `PhoneNavigation` seçer. Kabuk durumu `AdaptiveNavigation` üstünde tek `ShellNavigationState` nesnesidir; seçim, sheet'ler ve taslaklar kabuk değişiminde korunur. Kapı cihaz türüne ve ekran boyuna bakmaz. Mac hedefi ayrıdır |
-| iCloud ve App Group | iCloud kapsayıcısı ve App Group henüz yok. İkisi de kullanıcı kararıyla gelir |
+| iCloud ve App Group | iCloud kapsayıcısı `iCloud.com.dogancanyildiz.kenet`, App Group `group.com.dogancanyildiz.kenet`; kalıcı, iOS ve Mac için ortak (kullanıcı kararı, 2026-10-21). `project.yml` değerleri `KENET_ICLOUD_CONTAINER` ve `KENET_APP_GROUP` ayarlarında tek yerde tutar; yetki dosyaları bu ayarları `$(…)` ile okur. Swift karşılığı `App/Support/AppIdentifiers.swift`. `ReleaseConfigurationTests` iki tanımı eşit tutar. Kimlikler bundle kimliğinden türetilmez: betikler bundle kimliğini geçersiz kılsa da kapsayıcı aynı kalır. Kod iki kimliği henüz kullanmaz |
 | İmza | Takım kimliği repoya girmez. `Config/Signing.xcconfig`, varsa izlenmeyen `Config/Local.xcconfig` dosyasını içerir. Örnek dosya: `Config/Local.xcconfig.example`. Dosya yoksa Xcode projeyi `CODE_SIGNING_ALLOWED=NO` ile imzasız derler |
-| Yetki dosyaları | Her platformun kendi dosyası var. `App/Support/Journal-macOS.entitlements`: sandbox, kullanıcının seçtiği dosyalar, takvim, konum. `App/Support/Journal-iOS.entitlements`: boş; iOS'a özgü yetenek yok |
+| Yetki dosyaları | Her platformun kendi dosyası var. İki dosyada da iCloud Documents (`icloud-services: CloudDocuments`, kapsayıcı ve ubiquity kapsayıcısı) ve App Group durur. `App/Support/Journal-macOS.entitlements` bunlara ek olarak sandbox, kullanıcının seçtiği dosyalar, uygulama kapsamlı yer imi (`files.bookmarks.app-scope`; kasa yer imi `.withSecurityScope` ile yazılır ve çözülür), takvim ve konum taşır. Mac Debug ve DebugTest ad hoc imzalanır; ad hoc imza iCloud ve App Group taşıyamaz, Xcode derlemeyi durdurur. Bu iki yapılandırma `App/Support/Journal-macOS-AdHoc.entitlements` dosyasını kullanır: yalnız sandbox anahtarları. Release, arşiv ve `install-mac.sh` tam dosyayla geliştirme imzası ister; App ID'de iki yetenek açık olmalıdır |
 | Sürüm numarası | Derleme numarayı kök dizindeki `VERSION` dosyasından okur ve Info.plist'e yazar |
 | Yapı numarası | Derleme `CFBundleVersion` değerini git geçmişinden üretir: `git rev-list --count HEAD`, `.github/scripts/build-number.sh`. iOS ve Mac aynı numarayı alır. Git yoksa ya da kopya sığsa yedek değer `1` kalır ve derleme uyarı verir |
 | Lisanslar | Uygulamaya bağlanan her uzak paketin LICENSE dosyası `App/Resources` altına olduğu gibi girer. Kullanıcı metni Ayarlar → Tanılama içinde okur. Test hedefinin paketleri bildirime girmez: `ThirdPartyLicenseTests` |
@@ -133,7 +133,7 @@ stateDiagram-v2
   Denetim --> Bozuk: yer imi bozuk
 ```
 
-Aşama 0'dan beri uygulama varsayılan kasayı yerel `Documents/Vault/` klasöründe oluşturur. Kullanıcı başka klasör seçerse uygulama güvenlik kapsamlı yer imini cihazda saklar. Kayıtlı kasaya erişim yoksa uygulama yerel kasaya geçmez ve durumu ana ekranda sorar. Kayıp bayrağı sonraki açılışların `Documents/Vault` açmasını önler. iCloud konumu kullanıcı kararından sonra gelir.
+Aşama 0'dan beri uygulama varsayılan kasayı yerel `Documents/Vault/` klasöründe oluşturur. Kullanıcı başka klasör seçerse uygulama güvenlik kapsamlı yer imini cihazda saklar. Kayıtlı kasaya erişim yoksa uygulama yerel kasaya geçmez ve durumu ana ekranda sorar. Kayıp bayrağı sonraki açılışların `Documents/Vault` açmasını önler. iCloud kapsayıcısı karara bağlandı (2026-10-21); iCloud kasa konumu Aşama 11 maddesiyle gelir.
 
 ## Dosya izleyici
 
@@ -1069,14 +1069,14 @@ Tanılama listeyi `store.lastUpdated` değişince ve sahne ön plana her dönün
 
 ## Widget'lar
 
-**Durum: tasarım, henüz uygulanmadı.** Widget'lar App Group kimliği kararını bekliyor.
+**Durum: tasarım, henüz uygulanmadı.** App Group kimliği `group.com.dogancanyildiz.kenet` karara bağlandı ve uygulamanın yetki dosyalarında durur; widget hedefi henüz yok.
 
 | Konu | Hedef |
 |---|---|
 | Paket | Widget hedefi `Core` paketini kullanır |
 | Veri paylaşımı | Uygulama ve widget ortak bir App Group üzerinden veri paylaşır |
 | İşaretleme | Widget'tan yapılan işaretleme App Intent ile `Core` yazıcısını çağırır. Mantık tek yerdedir |
-| Kasa erişimi | Widget'ların iCloud'daki kasaya doğrudan mı, App Group'taki bir okuma modeli kopyası üzerinden mi erişeceği açıktır. Kimlik kararından sonra deneme karar verir |
+| Kasa erişimi | Widget'ların iCloud'daki kasaya doğrudan mı, App Group'taki bir okuma modeli kopyası üzerinden mi erişeceği açıktır. Deneme karar verir |
 
 ## Platform düzeni
 

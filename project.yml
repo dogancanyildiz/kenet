@@ -45,6 +45,12 @@ settings:
     # Uygulamanın bundle kimliği tek yerde durur: iOS ve Mac ortak (tek mağaza kaydı), test hedefleri
     # sonek ekler, betikler (.github/scripts) bu satırı okur. İlk yüklemeden sonra değiştirilemez.
     APP_BUNDLE_IDENTIFIER: com.dogancanyildiz.kenet
+    # iCloud kapsayıcısı ve App Group (docs/decisions.md, 2026-10-21): kalıcı, iOS ve Mac ortak.
+    # Yetki dosyaları (App/Support/*.entitlements) bu ayarları $(…) ile okur; Swift tarafındaki
+    # karşılığı App/Support/AppIdentifiers.swift. Bundle kimliğinden türetilmez: betikler kimliği
+    # geçersiz kılsa da kapsayıcı aynı kalır.
+    KENET_ICLOUD_CONTAINER: iCloud.com.dogancanyildiz.kenet
+    KENET_APP_GROUP: group.com.dogancanyildiz.kenet
     SWIFT_VERSION: "6.0"
     SWIFT_STRICT_CONCURRENCY: complete
     SWIFT_TREAT_WARNINGS_AS_ERRORS: YES
@@ -72,7 +78,7 @@ settingGroups:
     INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
     # Yerel Mac uygulaması ayrı hedeftir; iPad uygulaması Apple Silicon Mac'te listelenmez.
     SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: NO
-    # iOS'a özgü yetenek yok; dosya boş sözlüktür. macOS sandbox anahtarları iOS imzasına girmez.
+    # iCloud Documents ve App Group. macOS sandbox anahtarları iOS imzasına girmez.
     CODE_SIGN_ENTITLEMENTS: App/Support/Journal-iOS.entitlements
   Journal_macOS:
     CODE_SIGN_ENTITLEMENTS: App/Support/Journal-macOS.entitlements
@@ -142,12 +148,17 @@ targets:
           # Mac yerelde takımsız (ad hoc) imzalanır. iOS'a uygulanmaz: cihaza kurulum otomatik
           # imzalamayla geliştirme sertifikası ister.
           "CODE_SIGN_IDENTITY[sdk=macosx*]": "-"
+          # Ad hoc imza iCloud ve App Group yetkisini taşıyamaz (Xcode derlemeyi durdurur: "requires
+          # signing with a development certificate"). Mac Debug bu iki yetki olmadan, yalnız sandbox
+          # anahtarlarıyla imzalanır; Release (arşiv, install-mac.sh) tam dosyayı kullanır.
+          "CODE_SIGN_ENTITLEMENTS[sdk=macosx*]": App/Support/Journal-macOS-AdHoc.entitlements
         DebugTest:
           # Test eylemi gerçek kimliğin alanına (tercih, pencere çerçevesi, çökme penceresi) yazmasın.
           # Sonek buradan türetilir; APP_BUNDLE_IDENTIFIER tek tanım olarak kalır.
           PRODUCT_BUNDLE_IDENTIFIER: $(APP_BUNDLE_IDENTIFIER).testhost
           INFOPLIST_KEY_CFBundleDisplayName: Kenet Test
           "CODE_SIGN_IDENTITY[sdk=macosx*]": "-"
+          "CODE_SIGN_ENTITLEMENTS[sdk=macosx*]": App/Support/Journal-macOS-AdHoc.entitlements
     postBuildScripts:
       - name: Sürümü yaz
         script: |

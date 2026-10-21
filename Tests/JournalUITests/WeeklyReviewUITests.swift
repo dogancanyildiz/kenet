@@ -55,23 +55,9 @@ final class WeeklyReviewUITests: XCTestCase {
         XCTAssertEqual(journal.sorted(), fixture.sorted())
     }
 
-    /// Same audit types as ``AccessibilityAuditUITests`` (its deferrals are listed there).
+    /// The shared audit (``AccessibilityAuditPolicy``).
     @MainActor
     private func audit(_ app: XCUIApplication) throws {
-        let deferred: XCUIAccessibilityAuditType = [.hitRegion, .contrast, .dynamicType, .textClipped]
-        let types = XCUIAccessibilityAuditType.all.subtracting(deferred)
-        let handler: (XCUIAccessibilityAuditIssue) -> Bool = { issue in
-            let element = issue.element?.description ?? "(no element)"
-            // Screenshot-based detection that names no element leaves nothing to fix.
-            if issue.auditType == .elementDetection, issue.element == nil { return true }
-            print("A11Y issue (weeklyReview): \(issue.auditType) — \(issue.compactDescription) — \(element)")
-            return false
-        }
-        do {
-            try app.performAccessibilityAudit(for: types, handler)
-        } catch let error as NSError where error.code == -56 {
-            // "Audit failed to complete in time" on a busy simulator: once more.
-            try app.performAccessibilityAudit(for: types, handler)
-        }
+        try AccessibilityAuditPolicy.audit(app, screen: "weeklyReview")
     }
 }

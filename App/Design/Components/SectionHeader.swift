@@ -2,6 +2,12 @@ import SwiftUI
 
 /// Section rule + title + optional tabular count (Mürekkep rule 2).
 struct SectionHeader: View {
+    /// Identifiers of the title and the counter text. They name the component, not one section: the
+    /// UI accessibility audit treats every section title alike (`AccessibilityAuditExemption`).
+    /// The spoken label and the drawing do not change; a caller's identifier still names the header.
+    static let titleIdentifier = "sectionHeader"
+    static let counterIdentifier = "sectionHeader.count"
+
     private let titleText: Text
     private let spokenTitle: String?
     /// Integer count formatted with the environment locale (grouping off).
@@ -52,12 +58,14 @@ struct SectionHeader: View {
                     .font(.ink.section)
                     .foregroundStyle(.ink.text)
                     .accessibilityAddTraits(.isHeader)
+                    .accessibilityIdentifier(Self.titleIdentifier)
                 Spacer(minLength: 0)
                 if let counterText {
                     Text(verbatim: counterText)
                         .font(.ink.value)
                         .foregroundStyle(.ink.secondaryText)
                         .accessibilityHidden(true)
+                        .accessibilityIdentifier(Self.counterIdentifier)
                 }
                 if let isExpanded {
                     Image(systemName: isExpanded ? "chevron.down" : "chevron.right")

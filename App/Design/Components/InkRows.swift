@@ -132,8 +132,11 @@ struct InkGoalRow: View {
     var incrementLabel: LocalizedStringKey = "Artır"
     var enterAmountLabel: LocalizedStringKey = "Miktar gir"
     var openHint: LocalizedStringKey = "Ayrıntıları göster"
-    /// Chain days still available, after the name; nil draws none and leaves the row as it was.
+    /// Chain days still available; nil draws none and leaves the row as it was.
     var graceBadge: GraceDayBadge? = nil
+    /// Where ``graceBadge`` sits: after the name (the Today strip, which shows no streak) or after
+    /// the meta's first line, the streak (the Goals list).
+    var graceBadgePlacement: GraceDayBadge.Placement = .name
 
     @ScaledMetric(relativeTo: .body) private var plusSide = InkSize.plus
 
@@ -160,9 +163,9 @@ struct InkGoalRow: View {
             .foregroundStyle(progress >= 1 ? Color.ink.secondaryText : Color.ink.text)
     }
 
-    /// The name, with the chain-day badge on its first baseline when there is one.
+    /// The name, with the chain-day badge on its first baseline when it sits there.
     @ViewBuilder private var nameLine: some View {
-        if let graceBadge {
+        if let graceBadge, graceBadgePlacement == .name {
             HStack(alignment: .firstTextBaseline, spacing: 6) {
                 nameText
                 graceBadge
@@ -178,8 +181,33 @@ struct InkGoalRow: View {
             .joined(separator: ", ")
     }
 
-    private func metaLine(_ meta: String) -> some View {
-        Text(verbatim: meta)
+    /// The meta; with a streak-placed badge, the badge on the first line's baseline and the rest
+    /// (the score) on its own line below. When the streak and the badge do not fit on one line
+    /// (large text), the badge goes under the streak instead of beside a wrapped one.
+    @ViewBuilder private func metaLine(_ meta: String) -> some View {
+        if let graceBadge, graceBadgePlacement == .streak {
+            let lines = meta.split(separator: "\n", maxSplits: 1, omittingEmptySubsequences: false)
+            VStack(alignment: .leading, spacing: 0) {
+                ViewThatFits(in: .horizontal) {
+                    HStack(alignment: .firstTextBaseline, spacing: 6) {
+                        metaLineText(String(lines[0])).fixedSize()
+                        graceBadge
+                    }
+                    VStack(alignment: .leading, spacing: 2) {
+                        // Wraps rather than truncates: the fallback is measured at its ideal height.
+                        metaLineText(String(lines[0])).fixedSize(horizontal: false, vertical: true)
+                        graceBadge
+                    }
+                }
+                if lines.count > 1 { metaLineText(String(lines[1])) }
+            }
+        } else {
+            metaLineText(meta)
+        }
+    }
+
+    private func metaLineText(_ text: String) -> some View {
+        Text(verbatim: text)
             .font(.ink.meta)
             .foregroundStyle(.ink.secondaryText)
     }

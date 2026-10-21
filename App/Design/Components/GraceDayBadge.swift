@@ -1,9 +1,17 @@
 import SwiftUI
 
-/// Chain-day balance after a goal's name: a link glyph and the count in a thin capsule. It is a
+/// Chain-day balance in a goal row: a link glyph and the count in a thin capsule. It is a
 /// note, not an action, so it stays in secondary text with a control-line outline; the glyph and
 /// the number carry it without color. VoiceOver reads `label` ("2 zincir günü").
 struct GraceDayBadge: View {
+    /// Where a goal row draws the badge.
+    enum Placement {
+        /// After the name: the Today strip, which shows no streak.
+        case name
+        /// After the streak on the meta's first line: the Goals list.
+        case streak
+    }
+
     let count: Int
     let label: String
 

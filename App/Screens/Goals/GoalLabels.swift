@@ -104,6 +104,13 @@ enum GoalRowPresentation {
         return goal.period.progressTitle
     }
 
+    /// The chain-day badge after a daily goal's streak (decision 67); nil with no balance and on
+    /// rows without a streak (weekly, yearly, milestone).
+    static func graceBadge(goal: GoalDefinition, status: GoalStatus, locale: Locale) -> GraceDayBadge? {
+        guard goal.kind != .milestone, goal.period == .day else { return nil }
+        return GraceDayPresentation.badge(status: status, locale: locale)
+    }
+
     /// Thin determinate bar for yearly goals only.
     static func barFraction(goal: GoalDefinition, status: GoalStatus) -> Double? {
         guard goal.kind != .milestone, goal.period == .year else { return nil }

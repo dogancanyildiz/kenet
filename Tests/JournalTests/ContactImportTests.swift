@@ -42,14 +42,32 @@ struct ContactImportPlanTests {
         let plan = ContactImportPlan.build(
             selected: [ContactName(name: "deniz ARIKAN"), ContactName(name: decomposed)],
             existingNames: ["Deniz Arıkan", "Şule"])
-        // "ARIKAN" lowercases to "arikan" (locale independent), which is not "arıkan": the store
-        // treats them as two names too, so the plan must not claim a collision the store denies.
-        #expect(plan.toCreate.map(\.name) == ["deniz ARIKAN"])
-        #expect(plan.alreadyExists.map(\.name) == [decomposed])
+        // The Turkish capital `I` reads as `ı`, so "ARIKAN" is "arıkan" and the store refuses it too.
+        #expect(plan.toCreate.isEmpty)
+        #expect(plan.alreadyExists.map(\.name) == ["deniz ARIKAN", decomposed])
 
         let lower = ContactImportPlan.build(
             selected: [ContactName(name: "DENİZ arıkan")], existingNames: ["deni\u{0307}z Arıkan"])
         #expect(lower.toCreate.isEmpty)
+    }
+
+    /// The store's collision rule: the Turkish key (`İ` → `i`, `I` → `ı`) or the default lowercase
+    /// mapping alone makes two names one.
+    @Test func turkishCapitalsFollowTheStoreCollisionRule() {
+        func skipped(_ name: String, _ existing: [ExistingEntityInfo]) -> Bool {
+            ContactImportPlan.build(selected: [ContactName(name: name)], existingEntities: existing).toCreate.isEmpty
+        }
+        #expect(skipped("DENİZ", [.init(name: "Deniz")]))
+        #expect(skipped("IŞIK", [.init(name: "Işık")]))
+        #expect(skipped("SELIN", [.init(name: "Selin")]))
+        #expect(skipped("Selin", [.init(name: "X", fileStem: "SELIN")]))
+        #expect(!skipped("İşık", [.init(name: "Işık")]))
+        let nickname = ContactImportPlan.build(
+            selected: [ContactName(name: "Baran Kaya", nickname: "IŞIK")],
+            existingEntities: [.init(name: "X", aliases: ["ışık"])])
+        #expect(nickname.toCreate.map(\.aliases) == [[]])
+        let selection = ContactImportPlan.build(selected: [ContactName(name: "Deniz"), ContactName(name: "DENİZ")])
+        #expect(selection.alreadyExists == [.init(id: 1, name: "DENİZ", reason: .duplicateInSelection)])
     }
 
     /// A person with a qualifier lives in "Ad (ayırt edici).md" but is still that name; an entity
@@ -213,6 +231,29 @@ struct ContactImportModelTests {
         await model.importContacts()
         #expect(model.result == .init(created: [], skipped: names, failed: []))
         #expect(try snapshot(context.root) == before)
+    }
+
+    /// The plan and the store read Turkish capitals alike: what the plan skips the store refuses as
+    /// taken, and what the plan creates the store accepts.
+    @Test @MainActor func planAndStoreAgreeOnTurkishCapitals() async throws {
+        let context = try EntityPageTestContext()
+        defer { context.clean() }
+        await context.start()
+        // Turkish key only, default lowercase only, Turkish key only, neither.
+        let names = ["DENİZ ARIKAN", "SELIN KORKMAZ", "ECE YALIN", "İŞIK YENİ"]
+        let model = ContactImportModel(store: context.store)
+        model.prepare(candidates: names.map { ContactName(name: $0) })
+        let plan = try #require(model.plan)
+        #expect(plan.alreadyExists.map(\.name) == Array(names.prefix(3)))
+        #expect(plan.toCreate.map(\.name) == [names[3]])
+        for name in names {
+            do {
+                _ = try await context.store.createEntity(kind: .person, name: name, qualifier: nil)
+                #expect(plan.toCreate.contains { $0.name == name }, "store accepted \(name)")
+            } catch VaultStoreError.nameTaken {
+                #expect(plan.alreadyExists.contains { $0.name == name }, "store refused \(name)")
+            }
+        }
     }
 
     /// A file that appears between the summary and the write is never overwritten: the store's

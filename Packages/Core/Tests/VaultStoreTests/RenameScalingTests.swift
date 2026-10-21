@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-
+import VaultFormat
 @testable import VaultStore
 
 struct RenameScalingTests {
@@ -11,11 +11,11 @@ struct RenameScalingTests {
         while normalized.hasPrefix("/") || normalized.hasPrefix("./") {
             normalized.removeFirst(normalized.hasPrefix("./") ? 2 : 1)
         }
-        let key = storeComparisonKey(normalized)
+        let key = nameComparisonKey(normalized)
         return files.first {
             let stem = String($0.dropLast(3))
             let candidate = target.contains("/") ? stem : (stem as NSString).lastPathComponent
-            return storeComparisonKey(candidate).utf8.elementsEqual(key.utf8)
+            return nameComparisonKey(candidate).utf8.elementsEqual(key.utf8)
         } == oldPath
     }
 
@@ -47,7 +47,7 @@ struct RenameScalingTests {
             oldPath: files.last!, newPath: "people/New.md", files: files,
             comparisonKey: {
                 normalizations += 1
-                return storeComparisonKey($0)
+                return nameComparisonKey($0)
             })
         #expect(normalizations == 2 * files.count)
         for query in 0..<24_000 {

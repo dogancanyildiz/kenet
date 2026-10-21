@@ -245,15 +245,13 @@ final class MentionComposer {
     func suggestions(at byteOffset: Int? = nil) -> [KnownEntity] {
         guard !awaitingResolution, let range = suggestionRange(at: byteOffset) else { return [] }
         let fragment = String(decoding: Array(text.utf8)[(range.lowerBound + 1)..<range.upperBound], as: UTF8.self)
-        let key = fragment.precomposedStringWithCanonicalMapping.lowercased()
+        // The vault's name rule, either reading: `@DENİ` offers `Deniz`, `@ian` still offers `Ian`.
+        let key = NameCollision(fragment)
         let dates = Dictionary(
             uniqueKeysWithValues: store.entityUsage.map { ($0.file, $0.lastDate?.description ?? "") })
         return Array(
             store.knownEntities.filter {
-                key.isEmpty
-                    || ([$0.name] + $0.aliases).contains {
-                        $0.precomposedStringWithCanonicalMapping.lowercased().contains(key)
-                    }
+                fragment.isEmpty || ([$0.name] + $0.aliases).contains { key.occurs(in: $0) }
             }.sorted {
                 let left = dates[$0.file] ?? ""
                 let right = dates[$1.file] ?? ""
@@ -279,10 +277,9 @@ final class MentionComposer {
         awaitingResolution = true
         creationOrigin = .typing
         creationKind = kind
-        if store.knownEntities.contains(where: {
-            $0.name.precomposedStringWithCanonicalMapping.lowercased()
-                == name.precomposedStringWithCanonicalMapping.lowercased()
-        }) {
+        // The store's collision rule: `IŞIK` and `Işık`, `SELIN` and `Selin` are one name.
+        let collision = NameCollision(name)
+        if store.knownEntities.contains(where: { collision.matches($0.name) }) {
             needsQualifier = true
             return nil
         }

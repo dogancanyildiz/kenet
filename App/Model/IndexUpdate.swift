@@ -22,7 +22,7 @@ struct IndexUpdate: Sendable {
                 // change makes Core rebuild everything; its list then already holds the others.
                 result = try index.update(paths: directories, vaultRoot: root)
                 skipped =
-                    previousSkipped.filter { !isInside($0.path, directories) && !result.skippedPaths.contains($0) }
+                    previousSkipped.filter { !pathIsInside($0.path, directories) && !result.skippedPaths.contains($0) }
                     + result.skippedPaths
                 // Core's own order, so an unchanged list compares equal.
                 skipped.sort { $0.path.utf8.lexicographicallyPrecedes($1.path.utf8) }
@@ -57,14 +57,12 @@ struct IndexUpdate: Sendable {
     }
 }
 
-/// Whether `path` lies in one of `directories` (vault-relative), compared as the index compares.
-private func isInside(_ path: String, _ directories: Set<String>) -> Bool {
-    func key(_ text: String) -> String {
-        text.precomposedStringWithCanonicalMapping.lowercased().precomposedStringWithCanonicalMapping
-    }
-    let file = key(path)
+/// Whether `path` lies in one of `directories` (vault-relative), compared as the index compares:
+/// by the vault's name key (`nameComparisonKey`), so `people/IŞIK` holds `people/Işık/a.md`.
+func pathIsInside(_ path: String, _ directories: Set<String>) -> Bool {
+    let file = nameComparisonKey(path)
     return directories.contains { directory in
-        let prefix = key(directory)
+        let prefix = nameComparisonKey(directory)
         return prefix.isEmpty || file == prefix || file.hasPrefix(prefix + "/")
     }
 }

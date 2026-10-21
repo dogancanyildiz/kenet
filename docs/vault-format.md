@@ -202,7 +202,7 @@ Yer tutucu biçimi 3 parça ister: nokta öneki, küçük harfli `.icloud` sonek
 ```mermaid
 flowchart TD
   A["Eksik gün, varlık, hedef ya da .app/types.json oluşturma; yeniden adlandırma hedefi"] --> B["Yazma koordinasyonu başlar"]
-  B --> C{"Hedefin yer tutucu kardeşi var mı? Ad karşılaştırma kuralı: NFC, küçük harf"}
+  B --> C{"Hedefin yer tutucu kardeşi var mı? Ad çakışması kuralı: NFC, küçük harf"}
   C -- Evet --> D["awaitingDownload; hiçbir değişiklik yapmaz"]
   C -- Hayır --> E["Oluşturur ya da taşır"]
 ```
@@ -216,27 +216,61 @@ flowchart TD
 | Yer tutucuya dönüş | Dosya yer tutucuya dönünce uygulama indeks satırını siler. Dosya indirilince satır geri gelir. |
 | Özgün dosya da var | Aynı yerde indirilmiş özgün dosya da varsa özgün dosya kazanır. Uygulama onu indeksler ve düzenler. Özgün dosya bekleyen listesine girmez. |
 | Yer tutucu kardeşi | Hedefin yer tutucu kardeşi varken uygulama eksik gün, varlık, hedef ya da `.app/types.json` dosyası oluşturmaz. Uygulama o hedefi yeniden adlandırma hedefi olarak da kullanmaz. Hata: `awaitingDownload`. |
-| Kardeş arama | Uygulama kardeşi ad karşılaştırma kuralıyla arar: NFC ve küçük harf. Büyük ve küçük harfe duyarlı birimde de uygulama `selin.md` dosyasını `.Selin.md.icloud` yanında oluşturmaz. |
+| Kardeş arama | Uygulama kardeşi ad çakışması kuralıyla arar (bkz. Adlar ve karşılaştırma). Büyük ve küçük harfe duyarlı birimde de uygulama `selin.md` dosyasını `.Selin.md.icloud` yanında oluşturmaz. |
 | Denetim zamanı | Uygulama denetimi yazma koordinasyonunun içinde, herhangi bir değişiklikten önce yapar. |
 
 ## Adlar ve karşılaştırma
 
 | Karşılaştırılan | Normalleştirme | Büyük ve küçük harf |
 |---|---|---|
-| Dosya adları ve varlık adları | Unicode NFC | Duyarsız. Unicode'un varsayılan, yerelden bağımsız küçük harf eşlemesi. |
+| Dosya adları ve varlık adları | Unicode NFC | Duyarsız. Önce Türkçe büyük harf eşlemesi: `İ` → `i`, `I` → `ı`. Sonra Unicode'un varsayılan, yerelden bağımsız küçük harf eşlemesi. |
 | Satırlar ve frontmatter değerleri | Yok. Bayt düzeyinde. | Duyarlı |
 
-| Ad çifti | Sonuç | Neden |
+**Ad karşılaştırma anahtarı 4 adımda oluşur.**
+
+| Adım | İşlem | Örnek |
 |---|---|---|
-| `I` ve `i` | Aynı harf | Türkçeye özel eşleme yok. |
-| `İ` ve `i` | Farklı harf | Türkçeye özel eşleme yok. |
-| `I` ve `ı` | Farklı harf | Türkçeye özel eşleme yok. |
-| `Işık` ve `işık` | Aynı ad | Varsayılan küçük harf eşlemesi. |
-| `Işık` ve `ışık` | Ayrı ad | `ı` ile `i` farklı harftir. |
+| 1 | Adı NFC'ye çevir. Ayrışmış `I` + birleşik nokta (U+0307) `İ` olur. | `DENI\u{0307}Z` → `DENİZ` |
+| 2 | Türkçe büyük harf eşlemesi: `İ` → `i`, `I` → `ı`. | `DENİZ` → `DENiZ`; `IŞIK` → `ıŞıK` |
+| 3 | Unicode'un varsayılan küçük harf eşlemesi. | `DENiZ` → `deniz`; `ıŞıK` → `ışık` |
+| 4 | `i` harfinden hemen sonra gelen birleşik noktayı (U+0307) at. Sonucu yeniden NFC'ye çevir. | `i\u{0307}stanbul` → `istanbul` |
+
+4\. adım eski varsayılan eşlemenin `İ` için ürettiği `i` + U+0307 yazımını `i` ile aynı sayar. Böylece başka bir aracın küçük harfe indirdiği `i̇stanbul` yazımı da `İstanbul` adıyla eşleşir.
+
+**Harf ve ad çiftleri.**
+
+| Çift | Sonuç | Neden |
+|---|---|---|
+| `İ` ve `i` | Aynı harf | `İ` → `i` |
+| `I` ve `ı` | Aynı harf | `I` → `ı` |
+| `I` ve `i` | Farklı harf | `I` → `ı`; `ı` ile `i` farklı harftir. |
+| `İ` ve `ı` | Farklı harf | `İ` → `i`; `i` ile `ı` farklı harftir. |
+| `i̇` (`i` + U+0307) ve `i` | Aynı harf | 4. adım |
+| `[[DENİZ]]` ve `Deniz` | Aynı ad | `deniz` |
+| `[[IŞIK]]` ve `Işık` | Aynı ad | `ışık` |
+| `[[İstanbul]]` ve `istanbul` | Aynı ad | `istanbul` |
+| `Işık` ve `ışık` | Aynı ad | `ışık` |
+| `Işık` ve `işık` | Ayrı ad | `ışık` ve `işık` |
+| `ISTANBUL` ve `İstanbul` | Ayrı ad | `ıstanbul` ve `istanbul` |
+| `Irmak` ve `irmak` | Ayrı ad | `ırmak` ve `irmak` |
+
+Eşleme Türkçe yazımı doğru okur, ama Türkçe olmayan adlarda bir bedeli vardır. `I` artık `i` ile eşleşmez. `[[ian]]` bağlantısı `Ian.md` dosyasına çözülmez; `[[ıan]]` ya da `[[Ian]]` çözülür. Tek anahtarla `I` hem `i` hem `ı` ile eşleşemez: o zaman `ı` ile `i` de aynı harf olurdu.
 
 - Uygulama dosya adlarını ve adlarla yapılan bütün karşılaştırmaları NFC'ye normalleştirir. Gerekçe: macOS ve iCloud dosya adlarını farklı biçimde döndürebilir. Farklı biçim Türkçe karakterlerde eşleşme hatası doğurur.
 - NFC kuralı yalnız dosya adlarını ve varlık adlarını kapsar. Uygulama satırları ve frontmatter değerlerini normalleştirme yapmadan, bayt düzeyinde karşılaştırır.
-- Karşılaştırma cihazın dilinden bağımsızdır. Uygulama 2 adı NFC'ye çevirir. Sonra uygulama adları Unicode'un varsayılan küçük harf eşlemesiyle karşılaştırır.
+- Karşılaştırma cihazın dilinden bağımsızdır. Türkçe büyük harf eşlemesi her cihazda ve her dilde aynı uygulanır.
+- Bağlantı çözümü, ad ve takma ad araması, tanıma ve takvim katılımcısı eşlemesi bu anahtarı kullanır.
+
+**Ad çakışması denetimi daha sıkıdır.** İki adın anahtarı aynıysa ya da yalnız Unicode'un varsayılan küçük harf eşlemesi iki adı aynı sayıyorsa ad doludur. Gerekçe: Mac dosya sistemi ve Obsidian Türkçe eşlemeyi yapmaz. `SELIN.md` ile `Selin.md` aynı klasörde aynı dosyadır. Kural yalnız oluşturma ve yeniden adlandırmayı reddeder; hiçbir bağlantıyı çözmez.
+
+| Denetim | Örnek | Sonuç |
+|---|---|---|
+| Dosya adı benzersizliği: varlık ve hedef oluşturma, yeniden adlandırma | `people/DENİZ.md` varken `Deniz` | `nameTaken`: anahtar aynı |
+| Dosya adı benzersizliği | `notes/SELIN KORKMAZ.md` varken `Selin Korkmaz` | `nameTaken`: varsayılan eşleme aynı |
+| Dosya adı benzersizliği | `people/Işık.md` varken `işık` | `nameTaken`: anahtarlar ayrı (`ışık`/`işık`), ama varsayılan eşleme ikisini de `işık` okur |
+| Dosya adı benzersizliği | `people/Işık.md` varken `İşık` | Oluşturur: iki okuma da farklı (`ışık`/`işık`, `işık`/`i̇şık`) |
+| Yer tutucu kardeşi | `.IŞIK.md.icloud` varken `Işık` | `awaitingDownload` |
+| Hedef adı ve hedef anahtarı | `name: IŞIK` olan hedef varken `Işık` | `nameTaken` |
 - Mac dosya sistemi ve Obsidian büyük ve küçük harfe duyarsızdır. iPhone dosya sistemi duyarlıdır. Bu nedenle uygulama karşılaştırmayı dosya sistemine bırakmaz.
 - Uygulamanın yazdığı bağlantılar dosya adını birebir taşır. Bu nedenle Türkçe harf kuralı yalnız elle yazılan bağlantıları etkiler.
 - Uzantısız dosya adları kasa genelinde benzersizdir. Uygulama kendi oluşturduğu dosyalarda benzersizliği sağlar.
@@ -1112,7 +1146,7 @@ flowchart TD
 |---|---|
 | Kaynak | Uygulama `name` ve `aliases` üzerinden tanır. |
 | Sınır | Eşleşme Unicode harf ve rakam sınırlarındadır. Sözcük içindeki ad eşleşmez. |
-| Karşılaştırma | NFC ve yerelden bağımsız küçük harf karşılaştırması. |
+| Karşılaştırma | "Adlar ve karşılaştırma" bölümündeki ad karşılaştırma anahtarı: NFC, Türkçe büyük harf eşlemesi (`İ` → `i`, `I` → `ı`), yerelden bağımsız küçük harf. `DENİZ` `Deniz` adını, `IŞIK` `Işık` adını tanır; `işık` `Işık` adını tanımaz. |
 | Çok sözcüklü ad | Sözcükler arasında 1 ya da daha çok Unicode boşluk olabilir. Satır sonu olamaz. U+2028 ve U+0085 satır sonudur ve boşluğun yerine geçmez. |
 | Örtüşme | Uygulama en uzun eşleşmeyi seçer. Eşit uzunlukta ad takma addan önce gelir. Sonra metinde önce başlayan eşleşme gelir. |
 | Adaylar | Aynı yazıma uyan bütün farklı varlıklar aday kalır. |
@@ -1765,7 +1799,7 @@ flowchart TD
 | `people/Elif 2.md` | `people/Elif.md` | Evet | Aynı klasörde özgün varlık dosyası var. |
 | `people/Elif 10.md` | `people/Elif.md` | Evet | Sayı 10. |
 | `Ada 2.md` | `Ada.md` | Evet | Kasa kökü de bir klasördür. |
-| `people/selin 2.md` | `people/Selin.md` | Evet | Ad karşılaştırma kuralı: NFC, küçük harf. |
+| `people/selin 2.md` | `people/Selin.md` | Evet | Ad karşılaştırma kuralı: NFC, Türkçe büyük harf eşlemesi, küçük harf. |
 | `people/Kaan 2.md` | `people/Kaan.md` yok | Hayır | Özgün dosya yok. Dosya "Kaan 2" adlı varlıktır. |
 | `people/Deniz 1.md` | `people/Deniz.md` | Hayır | Sayı 2'den küçük. |
 | `places/Liman Kafe 02.md` | `places/Liman Kafe.md` | Hayır | Sayının başında sıfır. |

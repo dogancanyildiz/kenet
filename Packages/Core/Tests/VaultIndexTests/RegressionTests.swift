@@ -47,7 +47,8 @@ import VaultFormat
         #expect(try index.search("Selin").map(\.file) == ["people/Deniz Arıkan.md"])
         #expect(try index.search("Çınaraltı").map(\.file) == ["people/Deniz Arıkan.md"])
         #expect(Array(snapshot.aliases[0].comparisonKey.utf8) == Array("çınaraltı kafe".utf8))
-        #expect(Array(comparisonKey("Çınaraltı".decomposedStringWithCanonicalMapping).utf8) == Array("çınaraltı".utf8))
+        #expect(
+            Array(nameComparisonKey("Çınaraltı".decomposedStringWithCanonicalMapping).utf8) == Array("çınaraltı".utf8))
         #expect(snapshot.links.allSatisfy { $0.resolvedFile == "people/Deniz Arıkan.md" })
         #expect(try index.links(to: "people/Deniz Arıkan.md".decomposedStringWithCanonicalMapping).count == 3)
         #expect(snapshot.links.allSatisfy { $0.targetKey == "people/deniz arıkan" })

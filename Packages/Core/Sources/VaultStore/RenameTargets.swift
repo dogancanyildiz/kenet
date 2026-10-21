@@ -11,7 +11,7 @@ struct RenameTargets {
 
     init(
         oldPath: String, newPath: String, files: [String],
-        comparisonKey: @escaping (String) -> String = storeComparisonKey
+        comparisonKey: @escaping (String) -> String = nameComparisonKey
     ) {
         self.oldPath = oldPath
         self.newPath = newPath

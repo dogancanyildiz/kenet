@@ -2,7 +2,7 @@ import GRDB
 
 /// The disposable index schema. Any incompatible version is erased, never migrated.
 enum IndexSchema {
-    static let version = 8
+    static let version = 9
     static func prepare(_ database: DatabaseQueue) throws {
         let actual = try database.read { try Int.fetchOne($0, sql: "PRAGMA user_version") ?? 0 }
         guard actual != version else { return }

@@ -43,8 +43,8 @@ public struct VaultIndex: Sendable {
         for file in files {
             let stem = String(file.path.dropLast(3))
             let basename = (stem as NSString).lastPathComponent
-            if names[comparisonKey(basename)] == nil { names[comparisonKey(basename)] = file.path }
-            if paths[comparisonKey(stem)] == nil { paths[comparisonKey(stem)] = file.path }
+            if names[nameComparisonKey(basename)] == nil { names[nameComparisonKey(basename)] = file.path }
+            if paths[nameComparisonKey(stem)] == nil { paths[nameComparisonKey(stem)] = file.path }
             // Observe before reading: an edit in between leaves a stale stamp, which forces a later read.
             let stamp = try FileStamp.reader(file.url)
             let data = try readFile(file.url)
@@ -106,7 +106,7 @@ public struct VaultIndex: Sendable {
                 sql: """
                     SELECT * FROM entities WHERE comparisonKey=? OR file IN
                     (SELECT file FROM aliases WHERE comparisonKey=?) ORDER BY file
-                    """, arguments: [comparisonKey(name), comparisonKey(name)])
+                    """, arguments: [nameComparisonKey(name), nameComparisonKey(name)])
         }
     }
 

@@ -1127,7 +1127,7 @@ iPhone'da Ayarlar, Bugün manşet satırındaki düğmenin açtığı sheet'tir.
 |---|---|
 | Uygulama kilidi | Anahtar. Açmak bir kez Face ID, Touch ID ya da cihaz parolası ister. Kullanıcı iptal ederse anahtar kapalı kalır. |
 | Şu kadar sonra kilitle | Hemen, 1 dk, 5 dk ya da 15 dk. Tercihler cihazdadır. |
-| Bildirimlerde içeriği gizle | Yalnız iPhone'da, Bildirimler ayarına bağlantı. Anahtar ("Bildirimde içeriği göster", varsayılan kapalı) ve açıklama Bildirimler'dedir. Mac'te Bildirimler sekmesini kullan. |
+| Bildirim içeriği | Yalnız iPhone'da, Bildirimler ayarına bağlantı. Anahtar ("Bildirimde içeriği göster", varsayılan kapalı) ve açıklama Bildirimler'dedir. Mac'te Bildirimler sekmesini kullan. |
 | Kişi hatırlatmaları | Görüşülmeyenler eşiği: 1–365 gün, varsayılan 30. Cihaz tercihi. |
 
 **Uygulama kilidinin durumları.**

@@ -167,7 +167,7 @@ private func fields(_ index: VaultIndex, _ file: String) throws -> [String] {
         let index = try VaultIndex(databaseURL: url)
         #expect(try index.files().isEmpty)
         #expect(try index.entityFields().isEmpty)
-        #expect(try index.database.read { try Int.fetchOne($0, sql: "PRAGMA user_version") } == 7)
+        #expect(try index.database.read { try Int.fetchOne($0, sql: "PRAGMA user_version") } == 8)
         #expect(try index.database.read { try $0.tableExists("obsolete") } == false)
         try index.refresh(vaultRoot: root)
         #expect(try index.entityFields() == expected)

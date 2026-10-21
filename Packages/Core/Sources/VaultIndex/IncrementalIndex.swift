@@ -34,10 +34,13 @@ extension VaultIndex {
             let typeChanged =
                 (try String.fetchOne(db, sql: "SELECT signature FROM entity_type_state") ?? "") != signature
             let isEmpty = try Bool.fetchOne(db, sql: "SELECT EXISTS(SELECT 1 FROM files)") == false
-            if typeChanged || (paths == nil && isEmpty) {
+            // An empty index (first launch, erased schema, deleted corrupt database) has nothing to
+            // update incrementally: a notified path must not leave the rest of the vault unindexed.
+            if typeChanged || isEmpty {
                 return try rebuild(vaultRoot: vaultRoot, customKinds: customKinds, db: db)
             }
-            let old = try IndexedFile.fetchAll(db, sql: "SELECT * FROM files ORDER BY path")
+            let old = try StoredStamp.fetchAll(
+                db, sql: "SELECT path,modified,changed,inode,size,verified,digest FROM files ORDER BY path")
             let scopes: Set<ScanScope> = {
                 guard let notes = notifications else { return [.full] }
                 // Case-/normalization-insensitive includes can match indexed paths whose
@@ -61,11 +64,12 @@ extension VaultIndex {
             for path in deleted {
                 try remove(path, db: db, keys: &keys, identifiers: &identifiers)
             }
+            let verified = FileStamp.clock()
             for file in scan.files where includes(file.path) {
-                let metadata = try file.url.resourceValues(forKeys: [.contentModificationDateKey, .fileSizeKey])
-                let modified = metadata.contentModificationDate?.timeIntervalSince1970 ?? 0
-                if let before = previous[file.path], before.modified == modified,
-                    before.size == metadata.fileSize
+                // Observe before reading: an edit in between leaves a stale stamp, which forces a later read.
+                let stamp = try FileStamp.reader(file.url)
+                if let before = previous[file.path], before.stamp == stamp,
+                    before.stamp.isSettled(verifiedAt: before.verified)
                 {
                     continue
                 }
@@ -73,8 +77,8 @@ extension VaultIndex {
                 if let before = previous[file.path], before.digest == ByteDigest.hex(data) {
                     // Cache the observed metadata without rewriting any source-derived rows.
                     try db.execute(
-                        sql: "UPDATE files SET modified=?,size=? WHERE path=?",
-                        arguments: [modified, data.count, file.path])
+                        sql: "UPDATE files SET modified=?,changed=?,inode=?,size=?,verified=? WHERE path=?",
+                        arguments: [stamp.modified, stamp.changed, stamp.inode, data.count, verified, file.path])
                     continue
                 }
                 if previous[file.path] != nil {
@@ -90,8 +94,8 @@ extension VaultIndex {
                 identifiers.formUnion(owners)
                 // Ownership is assigned after all removals and inserts, in global source order.
                 try IndexBuilder.insert(
-                    file: file.path, data: data, document: document, modified: modified, db: db, owners: &owners,
-                    customKinds: customKinds)
+                    file: file.path, data: data, document: document, stamp: stamp, verified: verified, db: db,
+                    owners: &owners, customKinds: customKinds)
                 if document.isValidUTF8 {
                     try IndexBuilder.insertLinks(document: document, file: file.path, db: db)
                 }
@@ -108,6 +112,19 @@ extension VaultIndex {
                 dayCopies: scan.result.dayCopies.filter(includes))
         }
     }
+}
+
+/// The change-detection columns of one indexed file.
+private struct StoredStamp: Decodable, FetchableRecord {
+    let path: String
+    let modified: Double
+    let changed: Double
+    let inode: Int64
+    let size: Int
+    let verified: Double
+    let digest: String
+
+    var stamp: FileStamp { FileStamp(modified: modified, changed: changed, inode: inode, size: size) }
 }
 
 private func targetKeys(_ path: String) -> Set<String> {

@@ -36,6 +36,7 @@ public struct VaultIndex: Sendable {
         }
         let scan = try VaultScanner.scan(vaultRoot)
         let files = scan.files
+        let verified = FileStamp.clock()
         var owners: Set<String> = []
         var names: [String: String] = [:]
         var paths: [String: String] = [:]
@@ -44,12 +45,12 @@ public struct VaultIndex: Sendable {
             let basename = (stem as NSString).lastPathComponent
             if names[comparisonKey(basename)] == nil { names[comparisonKey(basename)] = file.path }
             if paths[comparisonKey(stem)] == nil { paths[comparisonKey(stem)] = file.path }
+            // Observe before reading: an edit in between leaves a stale stamp, which forces a later read.
+            let stamp = try FileStamp.reader(file.url)
             let data = try readFile(file.url)
             let document = RawDocument(bytes: data)
-            let metadata = try file.url.resourceValues(forKeys: [.contentModificationDateKey])
             try IndexBuilder.insert(
-                file: file.path, data: data, document: document,
-                modified: metadata.contentModificationDate?.timeIntervalSince1970 ?? 0,
+                file: file.path, data: data, document: document, stamp: stamp, verified: verified,
                 db: db, owners: &owners, customKinds: customKinds)
             if document.isValidUTF8 {
                 try IndexBuilder.insertLinks(document: document, file: file.path, db: db)

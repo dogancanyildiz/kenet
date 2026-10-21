@@ -2,7 +2,7 @@
 
 **Amaç:** Bu belge `Fixtures/` klasöründeki test verisinin düzenini, girdi ve beklenen çıktı sözleşmesini ve yeni örnek ekleme yolunu tarif eder.
 
-**Kapsam:** `Fixtures/` altındaki 15 küme ve 15 kasa; her kümenin davranış aileleri, test eşlemesi ve yeni fixture ekleme adımları.
+**Kapsam:** `Fixtures/` altındaki 15 küme ve 16 kasa; her kümenin davranış aileleri, test eşlemesi ve yeni fixture ekleme adımları.
 
 Bu belgede **küme**, `Fixtures/` altındaki birinci düzey klasördür. **Örnek**, kümedeki tek vaka klasörü ya da bir JSON dosyasındaki tek vaka kaydıdır. **İstemci**, fixture dosyalarını okuyup sınayan test kodudur. Bugün Swift testleri istemcidir; ileride başka platformlardaki istemciler aynı dosyaları kullanır. Kasa biçiminin kendisi [Kasa biçimi](vault-format.md) belgesindedir.
 
@@ -29,7 +29,7 @@ flowchart LR
   F --> DA["dates/ : 3 JSON, 2 girdi dosyası"]
   F --> GO["goals/ : cases.json, series.json, creation/, writes/"]
   F --> SU["summaries/ : 11 JSON"]
-  F --> VA["vaults/ : 15 kasa"]
+  F --> VA["vaults/ : 16 kasa"]
   VA --> V1["sample"]
   VA --> V2["entity-fields"]
   VA --> V3["unlinked-mentions"]
@@ -45,6 +45,7 @@ flowchart LR
   VA --> V13["copy-files"]
   VA --> V14["gallery"]
   VA --> V15["conflict-copies"]
+  VA --> V16["nfd-names"]
 ```
 
 Sayılar `find Fixtures -maxdepth 2` çıktısından gelir. Kasalar `vaults/` altında durur ve birden çok küme aynı kasayı kullanır. Örneğin `recognition/unlinked-mentions/` beklentisi `vaults/unlinked-mentions/` kasasını okur.
@@ -155,6 +156,7 @@ Swift testleri `Fixtures/` klasörünü test kaynak dosyasından yukarı doğru 
 | `vaults/day-copies/` | `VaultStoreTests/DayCopyTests.swift`, `VaultStoreTests/ConflictCopyListingTests.swift` | Ad kodda |
 | `vaults/copy-files/` | `VaultIndexTests/CopyFileTests.swift`, `Tests/JournalTests/SyncedFolderNoticeTests.swift` | Ad kodda |
 | `vaults/conflict-copies/` | `VaultIndexTests/ConflictCopyTests.swift`, `Tests/JournalTests/SyncConflictTests.swift`, `Tests/JournalTests/DiagnosticsConflictWiringTests.swift`, `Tests/JournalTests/Snapshots/ConflictVersionsSnapshotTests.swift` | Ad kodda |
+| `vaults/nfd-names/` | `VaultIndexTests/ChangeDetectionTests.swift` | Ad kodda |
 
 Tablodaki göreli yollar `Packages/Core/Tests/` altındadır; `Tests/JournalTests/` ile başlayanlar uygulama testleridir. **Klasör tarama** yeni klasörü kendiliğinden bulur. **Ad listesi** yeni klasörü yalnız test dosyasındaki `@Test(arguments:)` listesine eklenince koşar. **JSON vaka** yeni vakayı JSON dizisine eklenince koşar.
 
@@ -884,7 +886,7 @@ Tam döküm paragraf metinlerini, kod çitlerini ve frontmatter bağlantıların
 | `added.md` | Alan ekleme |
 | `removed.md` | Tüm alanların silinmesi |
 
-Tam ve artımlı eşdeğerlik, dosya silme ve yeniden kurulum aynı kasayı kullanır. Sürüm 6 indeksin silinip doldurulması da aynı kasayı kullanır; güncel şema sürümü 7'dir. Kasa `vaults/` altında durur, çünkü kökteki `.gitignore` `vault/` adlı klasörleri dışlar.
+Tam ve artımlı eşdeğerlik, dosya silme ve yeniden kurulum aynı kasayı kullanır. Sürüm 6 indeksin silinip doldurulması da aynı kasayı kullanır; güncel şema sürümü 8'dir. Kasa `vaults/` altında durur, çünkü kökteki `.gitignore` `vault/` adlı klasörleri dışlar.
 
 ### Ritim alanları
 
@@ -1139,6 +1141,7 @@ Kasa 20 Eylül'ü 4 yılda taşır. 2023 bağlantısızdır: not bağlantısı, 
 | `conflict-copies` | 20 | Çakışma kopyası ad kuralı ve `conflicts/` listesi; çakışan sürüm sorgusunun kasası | `VaultIndexTests/ConflictCopyTests`, `Tests/JournalTests/SyncConflictTests` |
 
 **Çakışma kopyaları:** Fixture yazarı `vaults/conflict-copies/expected.json` beklentisini elle yazdı. `names` saf ad kuralının tablosudur: yol ve gün dosyası (kopya değilse `null`). Tablo sayısı 1 ya da başı sıfırlı, geçersiz gün, geçersiz saat ya da takvim günü, eksik `Z`, büyük harfli `Conflict`, tam genişlikli rakam, alt klasör, kök dizin ve yer tutucu adlarını kopya saymaz. `conflictCopies` diskteki listedir: gün, addaki zaman, sonra sayı sırasıyla 5 kopya; gün dosyası olmayan `2026-09-30` kopyası da listededir. `source/conflicts/` aynı benzer adları, `eski/` alt klasörünü ve bir `.icloud` yer tutucusunu taşır; kökteki benzer adlı dosya sıradan nottur ve indekse girer. Yalnız harf boyu farklı iki ad koyma: büyük ve küçük harf duyarsız birim ikisini tek dosya sayar ve biri ötekinin üzerine yazılır. Uygulama testleri aynı kasayı iCloud Drive yolu altına kopyalar ve sahte sürüm kaynağıyla `IndexStore.computeConflictedFiles` sorgusunu sınar.
+| `nfd-names` | 4 | Ayrışmış (NFD) dosya adı, ad, takma ad ve bağlantı yazımı | `DecomposedNameTests` |
 
 **Şema, `vaults/sample/` kasasının klasörlerini ve dosya sayılarını gösterir.**
 
@@ -1189,6 +1192,8 @@ Aynı adlı iki kişi bağlantılarda `[[Mert Aksu]]` ve `[[Mert Aksu (iş)|Mert
 **Küçük sorgu kasaları:** `vaults/backlinks/` "bu güne bağlananlar" sorgusu ve arayüzü için kasadır. Hedef gün `journal/2026-10-02.md` kendi içine, `journal/2026-10-01.md` hedefe bağlantı verir. `notes/Proje Fikirleri.md` 2 ayrı satırda hedefe bağlantı verir; bir satırda 2 yinelenen bağlantı, kod içi bağlantı ve çözülmeyen hedef taşır. `people/Deniz Arıkan.md` ve `places/Liman Ofis.md` hedefe bağlantılı kişi ve konumdur. Kasa günün kendisinin, kod içi bağlantının ve çözülmeyen hedefin dışarıda kaldığını kanıtlar. Kasa aynı kaynaktan 2 satırın 2 ayrı satır olarak listelendiğini de kanıtlar.
 
 `vaults/placeholder/` gün, kişi, hedef ve kök klasördeki not için indirilmemiş yer tutucular ve bildirilmeyen `.app/.types.json.icloud` taşır. Bir gün hem yer tutucusunu hem yerel özgün dosyasını taşır; diğer dosyalar sıradan gizli Markdown ve kişi yeniden adlandırma kaynağıdır. `expected.json` bekleyen ve indekslenen yolları tanımlar. `names.json` düşman adlar, boşluk ve NFD baytlarını koruyan saf ad eşlemesini tanımlar. Uygulama oluşturma ya da taşıma işlemini reddedince tüm kasa ve SQLite baytları aynı kalır.
+
+`vaults/nfd-names/` ayrışmış (NFD) yazımın indekste birleşik (NFC) karşılaştırma anahtarına döndüğünü sınar. Git ayrışmış dosya adlarını birleşik biçime döndürür; bu yüzden test her yol parçasını NFD biçimiyle geçici kasada oluşturur ve diskteki adın NFD kaldığını denetler. `people/Baran Tunç.md` ve `places/Çınaraltı Kafe.md` adı ve takma adı NFD baytlarıyla yazar. `journal/2026-10-01.md` 3 bağlantı taşır: NFD `[[Baran Tunç]]`, NFD ve küçük harfli `[[places/çınaraltı kafe]]`, NFC `[[Baran Tunç]]`. `expected.json` NFC yolları, varlık ve takma ad anahtarlarını ve her bağlantının satırını, `targetKey` değerini ve çözülen dosyasını taşır. Test baytları karşılaştırır, çünkü Swift `==` NFC ve NFD yazımını eşit sayar. Test NFD yolu bildirerek kişiyi siler ve geri ekler; gelen bağlantılar iki yönde de yeniden çözülür.
 
 **Şema, `vaults/day-copies/` kasasında her gün için kopyaların sonucunu gösterir.**
 

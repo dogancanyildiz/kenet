@@ -2,7 +2,7 @@ import GRDB
 
 /// The disposable index schema. Any incompatible version is erased, never migrated.
 enum IndexSchema {
-    static let version = 7
+    static let version = 8
     static func prepare(_ database: DatabaseQueue) throws {
         let actual = try database.read { try Int.fetchOne($0, sql: "PRAGMA user_version") ?? 0 }
         guard actual != version else { return }
@@ -16,7 +16,8 @@ enum IndexSchema {
                 CREATE TABLE entity_type_state (signature TEXT NOT NULL);
                 CREATE TABLE files (
                     path TEXT PRIMARY KEY, kind TEXT NOT NULL, date TEXT, modified REAL NOT NULL,
-                    size INTEGER NOT NULL, digest TEXT NOT NULL, readable BOOLEAN NOT NULL);
+                    size INTEGER NOT NULL, digest TEXT NOT NULL, readable BOOLEAN NOT NULL,
+                    changed REAL NOT NULL, inode INTEGER NOT NULL, verified REAL NOT NULL);
                 CREATE INDEX file_dates ON files(date);
                 CREATE TABLE entities (
                     file TEXT PRIMARY KEY REFERENCES files(path), kind TEXT NOT NULL, name TEXT NOT NULL,

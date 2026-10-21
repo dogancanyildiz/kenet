@@ -25,6 +25,15 @@ struct HeatmapCell: View {
                     }
                 }
                 .frame(width: size, height: size)
+                .overlay(alignment: .top) {
+                    if kind.showsGraceDot {
+                        let side = HeatmapCellKind.graceDotSide(size: size)
+                        Circle()
+                            .fill(Color.ink.accent)
+                            .frame(width: side, height: side)
+                            .offset(y: size * CGFloat(kind.graceDotCenterFraction) - side / 2)
+                    }
+                }
                 .overlay {
                     if showsOutline {
                         RoundedRectangle(cornerRadius: 2, style: .continuous)
@@ -43,8 +52,8 @@ struct HeatmapCell: View {
 
     private var fillColor: Color {
         switch kind {
-        case .partial, .full, .today, .forgivenPartial: Color.ink.accent
-        case .empty, .future, .forgiven: Color.clear
+        case .partial, .full, .today, .forgivenPartial, .graceSpentPartial: Color.ink.accent
+        case .empty, .future, .forgiven, .graceSpent: Color.clear
         }
     }
 

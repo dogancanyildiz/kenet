@@ -29,6 +29,7 @@ flowchart LR
   F --> DA["dates/ : 3 JSON, 2 girdi dosyası"]
   F --> GO["goals/ : cases.json, series.json, creation/, writes/"]
   F --> SU["summaries/ : 11 JSON"]
+  F --> GC["goal-chain/ : cases.json, query/"]
   F --> VA["vaults/ : 16 kasa"]
   VA --> V1["sample"]
   VA --> V2["entity-fields"]
@@ -137,6 +138,8 @@ Swift testleri `Fixtures/` klasörünü test kaynak dosyasından yukarı doğru 
 | `goals/series.json` | `GoalTrackingTests/GoalSeriesTests.swift` | JSON vaka |
 | `goals/writes/` | `VaultStoreTests/GoalStoreFixtures.swift` | JSON vaka |
 | `goals/creation/` | `VaultStoreTests/GoalCreationTests.swift`, `MilestoneStoreTests.swift`, `Tests/JournalTests/GoalDefinitionTests.swift` | JSON vaka |
+| `goal-chain/cases.json` | `GoalTrackingTests/GraceDayTests.swift`, `SummariesTests/GraceDaySummaryTests.swift` | JSON vaka |
+| `goal-chain/query/` | `VaultIndexTests/GraceDayQueryTests.swift` | Markdown kasa, ad kodda |
 | `summaries/cases.json` | `SummariesTests/PeriodSummaryTests.swift`, `SummariesTests/TaskFlowSeriesTests.swift` | JSON vaka |
 | `summaries/weekly-review-text.json` | `SummariesTests/WeeklyReviewTextTests.swift` | JSON vaka |
 | `summaries/cadence.json` | `SummariesTests/MeetingCadenceTests.swift`, `Tests/JournalTests/CadenceTests.swift` | JSON vaka |
@@ -1036,6 +1039,12 @@ Diğer af durumları bugün yapılınca süren zincir, hedefin ilk ve ikinci gü
 **Yazma ve oluşturma:** `goals/writes/cases.json` her vakada `id`, `day`, `key`, `value` (boolean, sayı ya da `null`), `input` ve `expected` taşır. `input` ve `expected` aynı klasördeki Markdown yollarıdır; eksik girdi için `input` `null` olur. İsteğe bağlı `error` beklenen hatayı adlandırır; örneğin `notAMapping`. Test tam çıktı baytlarını ve artımlı indeksin yeniden üretimle eşitliğini sınar.
 
 Örnek kasa mevcut 31 kaydı ve Spor, Kitap, Su tanımlarını korur; Spor 14 ve 21 Eylül 2026 haftalarında üçer günle başarılıdır. `milestone-*` vakaları kilometre taşının tamamlanmasını ve geri alınmasını sınar. `goals/creation/input.md` boştur; 3 beklenen dosya yeni hedef dosyasının tam baytlarıdır. `cases.json` her vakada `input`, `expected`, `name`, `period`, `kind` ve isteğe bağlı `target` ve `unit` taşır; kilometre taşı vakası `target` taşımaz. Test her vakayı boş kasada oluşturur, tam baytları ve indeksin okuduğu tanımı sınar. Klasördeki her `*-expected.md` dosyası bir vakaya bağlıdır.
+
+## `goal-chain/` kümesi
+
+`cases.json` karar 67 için 21 bağımsız beklenti taşır. `start` ilk ISO gün, `sequence` gün başına `1` (yapıldı), `0` (yapılmadı), `?` (kayıt yok) dizisidir; son gün bugündür. `period` ve `kind` hedef tanımını seçer. Sayı hedefinde hedef 2, yapılmış katkı 2 ve kaçırılmış katkı 1'dir. `expected` zincir, en uzun zincir, bekleme bayrağı, skor, bakiye ve kesinleşmiş ISO harcama tarihlerini taşır. Beklentiler kuraldan elle sayılmıştır; üretim hesabından üretilmez.
+
+Vakalar 6/7 gün eşiğini, af önceliğini, iki harcamayı, tavanı ve düşen ödülü, 35. gün ödülünü, sıfır bakiyeyi, beklemeyi, tükenen bakiyeyi, kırılınca sayacı sıfırlamayı, yapılmış sayılmayan af/harcamayı, eski harcama tarihlerini, yıl sınırını ve günlük olmayan hedefleri kapsar. `summary: true` vakası 31 Ağustos–20 Eylül geçmişinden bitmiş 14–20 Eylül haftasının zincirini de sınar. `query/` aynı iki ardışık harcama vakasının gerçek Markdown hedefini ve 17 gün dosyasını taşır; indeks sorgusu bakiyeyi ve harcama listesini döndürür. Test dosya baytlarının sorgudan önce ve sonra aynı olduğunu denetler. `sample` kasası değişmez.
 
 ## `summaries/` kümesi
 

@@ -1,9 +1,8 @@
 name: Mac ekran görüntüleri (haftalık)
 
-# Mac görüntü kümeleri (snapshot-suites.sh --mac) ci işinde koşmaz: referanslar macOS 27 / Xcode 27.1
-# üzerinde kayıtlıdır, CI macOS 26 / Xcode 26.6'dır ve çizim sürüme bağlıdır. Bu iş akışı farkları
-# haftada bir ölçer ve görünür kılar. Kapı DEĞİLDİR: ci işine bağlanmaz, ruleset değişmez. Düşerse
-# fark paketi mac-snapshot-diffs olarak yüklenir; incelenir, referans ya da sürüm kararı verilir.
+# Mac referansları CI’da kaydedilir (record-snapshots target=mac; macOS 26 / Xcode 26.6).
+# Bu iş haftada bir farkları ölçer; ci kapısı değildir, ruleset değişmez.
+# Düşerse fark paketi mac-snapshot-diffs olarak yüklenir ve incelenir.
 # Duo kümeleri (*Duo*) bilerek dışarıdadır: Xcode 27.1 bekler. Şu an --mac listesinde Duo yoktur;
 # aşağıdaki grep, ileride listeye girerse onları yine dışarıda tutar.
 on:

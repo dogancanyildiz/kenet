@@ -264,9 +264,11 @@ schemes:
         # (legacy) çubuğa geçer, taşan listelerin içeriği daralır ve Mac görüntü testleri düşer.
         # Yalnız test sürecinin bağımsız değişken alanına yazılır; sistem ayarına dokunmaz.
         "-AppleShowScrollBars WhenScrolling": true
-      # Forwarded so `SNAPSHOT_TESTING_RECORD=all xcodebuild test …` reaches the host (Mac suites).
+      # Forward recording and execution policy to the Mac test host.
       environmentVariables:
         SNAPSHOT_TESTING_RECORD: $(SNAPSHOT_TESTING_RECORD)
+        CI: $(CI)
+        SNAPSHOT_MAC_LOCAL: $(SNAPSHOT_MAC_LOCAL)
       targets:
         - JournalTests_macOS
   Journal_iOS:

@@ -5,8 +5,8 @@
 # ile bitenler iPhone Duo tuvallerini çizer (SnapshotSupport.swift: ShellCanvas). Adı "Pad" ile
 # başlayanlar iPad tuvallerini çizer ve yalnız iPad simülatöründe koşar (iPhone'da kendini atlar).
 #   sh snapshot-suites.sh        iOS kümeleri (CI'da kapı; kayıt betiği bunları kaydeder)
-#   sh snapshot-suites.sh --mac  Mac kümeleri (yalnız yerelde koşar: çizim macOS sürümüne,
-#                                ekran ölçeğine ve sistem görünümüne bağlı; CI atlar)
+#   sh snapshot-suites.sh --mac  Mac kümeleri (kayıt ve haftalık ölçüm CI ortamında;
+#                                yerelde SNAPSHOT_MAC_LOCAL=1 ile açılır)
 #   sh snapshot-suites.sh --duo  Duo kümeleri (henüz CI kapısı değil; varsayılan listeye girmez;
 #                                kayıt: record-screen-snapshots.sh --duo)
 #   sh snapshot-suites.sh --pad  iPad kümeleri (CI'da ikinci simülatörde kapı; varsayılan listeye

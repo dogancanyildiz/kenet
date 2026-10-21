@@ -82,12 +82,17 @@ func weeklyReviewSnapshotCalendar(timeZone: TimeZone) -> Calendar {
 
     @testable import Journal
 
-    // Local record (Mac references are not drawn in CI, see snapshot-suites.sh):
-    // SNAPSHOT_TESTING_RECORD=all xcodebuild test -project Journal.xcodeproj -scheme Journal_macOS -destination 'platform=macOS' -only-testing:JournalTests_macOS/WeeklyReviewMacSnapshotTests CODE_SIGNING_ALLOWED=NO
+    // Local inspection only (CI records authoritative Mac references; do not commit local PNGs):
+    // SNAPSHOT_MAC_LOCAL=1 SNAPSHOT_TESTING_RECORD=all xcodebuild test -project Journal.xcodeproj -scheme Journal_macOS -destination 'platform=macOS' -only-testing:JournalTests_macOS/WeeklyReviewMacSnapshotTests CODE_SIGNING_ALLOWED=NO
 
     /// The weekly review at the Mac sheet's ideal size: the first step and the preview, with the
     /// bottom action bar.
-    @MainActor @Suite("Weekly review snapshots (macOS)", .serialized)
+    @MainActor
+    @Suite(
+        "Weekly review snapshots (macOS)", .serialized,
+        .enabled(
+            if: MacSnapshotEnvironment.isEnabled,
+            "Mac references belong to CI; set SNAPSHOT_MAC_LOCAL=1 for local inspection (do not commit)."))
     struct WeeklyReviewMacSnapshotTests {
         @Test func numbersMacLight() async throws { try await run(.numbers, "numbersMacLight", scheme: .light) }
         @Test func previewMacDark() async throws { try await run(.preview, "previewMacDark", scheme: .dark) }

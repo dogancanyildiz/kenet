@@ -7,12 +7,17 @@
 
     @testable import Journal
 
-    // Local record (Mac references are not drawn in CI, see snapshot-suites.sh):
-    // SNAPSHOT_TESTING_RECORD=all xcodebuild test -project Journal.xcodeproj -scheme Journal_macOS -destination 'platform=macOS' -only-testing:JournalTests_macOS/EntityGalleryMacSnapshotTests CODE_SIGNING_ALLOWED=NO
+    // Local inspection only (CI records authoritative Mac references; do not commit local PNGs):
+    // SNAPSHOT_MAC_LOCAL=1 SNAPSHOT_TESTING_RECORD=all xcodebuild test -project Journal.xcodeproj -scheme Journal_macOS -destination 'platform=macOS' -only-testing:JournalTests_macOS/EntityGalleryMacSnapshotTests CODE_SIGNING_ALLOWED=NO
 
     /// "Varlık tipi ekle" at the Mac sheet's minimum size: the gallery, and the type editor pushed
     /// inside it (its bottom bar, no back arrow).
-    @MainActor @Suite("Entity gallery snapshots (macOS)", .serialized)
+    @MainActor
+    @Suite(
+        "Entity gallery snapshots (macOS)", .serialized,
+        .enabled(
+            if: MacSnapshotEnvironment.isEnabled,
+            "Mac references belong to CI; set SNAPSHOT_MAC_LOCAL=1 for local inspection (do not commit)."))
     struct EntityGalleryMacSnapshotTests {
         @Test func galleryMacLight() async throws { try await run("galleryMacLight", opening: nil) }
         @Test func galleryEditorMacLight() async throws { try await run("galleryEditorMacLight", opening: "film") }

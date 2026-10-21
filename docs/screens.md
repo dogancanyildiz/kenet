@@ -416,7 +416,7 @@ Uygulama önce dosyaya yazar, sonra indeksi günceller. Yazma hata verirse kutu 
 | Ad yalnızsa | Öneride yalnız konum ve kişi varsa satır önerinin başlığıyla başlar. Başlık adlardan biriyse başlık yazılmaz. |
 | Birden çok öğe | Kendi sözcüğü olan her öğe ayrı olay satırıdır. Konum ve kişiler ilk satıra bir kez girer. İlk satır kutuya girer. Sonraki satır ancak öneri satırı gönderilince gelir. Kullanıcının kendi yazdığı olay ya da görev sıradaki satırı getirmez ve kipi değiştirmez. Kutu boşsa not satırındaki "Sıradaki" bekleyen satırı getirir. |
 | Fotoğraf ve video | Yazılmaz: kasa biçiminde ek dosya kuralı yoktur. Kutunun üstünde tek satır not durur: "Fotoğraf ve videolar yazılmaz." Not bekleyen satır sayısını da söyler. ✕ notu ve bekleyen satırları kapatır. |
-| Gün ve saat | Öğenin anı girişin saati olur. Başka günün anı o günün dosyasına yazılır. Kutunun üstündeki not o günü söyler, örneğin "19 Eki için.". Kullanıcı tarihi görmeden başka güne yazılmaz. Anın günü bugünse satır bugüne gider. Kutu boşalınca gün de gider; kullanıcının sonra yazdığı giriş sayfanın gününe gider. |
+| Gün ve saat | Öğenin anı girişin saati olur. Anın günü sayfanın günüyse satır o sayfaya gider; değilse anın gününün dosyasına gider. Kutunun üstündeki not o günü söyler, örneğin "19 Eki için.". Kullanıcı tarihi görmeden başka güne yazılmaz. Anın günü bugünse satır bugüne gider. Kutu boşalınca gün de gider; kullanıcının sonra yazdığı giriş sayfanın gününe gider. |
 
 **Anma ve ad çipi kuralları.**
 

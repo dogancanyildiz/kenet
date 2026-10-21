@@ -1449,6 +1449,34 @@
         }
       }
     },
+    "%lld zincir günü" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld streak save"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld streak saves"
+                }
+              }
+            }
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld zincir günü"
+          }
+        }
+      }
+    },
     "%lld. hafta" : {
       "localizations" : {
         "tr" : {
@@ -8849,6 +8877,22 @@
         }
       }
     },
+    "Kısmi katkı, zincir günüyle korundu" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Partial contribution, covered by a streak save"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kısmi katkı, zincir günüyle korundu"
+          }
+        }
+      }
+    },
     "Klasör" : {
       "localizations" : {
         "en" : {
@@ -13945,6 +13989,54 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "zincir %@"
+          }
+        }
+      }
+    },
+    "Zincir günü" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Streak save"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zincir günü"
+          }
+        }
+      }
+    },
+    "Zincir günüyle korundu" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Covered by a streak save"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zincir günüyle korundu"
+          }
+        }
+      }
+    },
+    "Zincirdeki her 7 yapılmış gün 1 zincir günü kazandırır; kaçırılan gün zincir günüyle korunur. En çok 3." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Every 7 done days in a streak earn 1 streak save; a missed day is covered by a streak save. Up to 3."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zincirdeki her 7 yapılmış gün 1 zincir günü kazandırır; kaçırılan gün zincir günüyle korunur. En çok 3."
           }
         }
       }

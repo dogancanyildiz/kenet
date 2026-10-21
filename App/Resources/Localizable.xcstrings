@@ -193,6 +193,22 @@
         }
       }
     },
+    "%@ için." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "For %@."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ için."
+          }
+        }
+      }
+    },
     "%@ işaretlendi" : {
       "localizations" : {
         "en" : {
@@ -693,6 +709,46 @@
         }
       }
     },
+    "%lld adım" : {
+      "localizations" : {
+        "tr" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld adım"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld adım"
+                }
+              }
+            }
+          }
+        },
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld step"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld steps"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "%lld devreden daha" : {
       "localizations" : {
         "en" : {
@@ -729,6 +785,22 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "%lld dk" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld dk"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld min"
           }
         }
       }
@@ -4877,6 +4949,22 @@
         }
       }
     },
+    "Egzersiz" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Egzersiz"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Workout"
+          }
+        }
+      }
+    },
     "Egzersiz yap" : {
       "localizations" : {
         "tr" : {
@@ -5161,6 +5249,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Finder'da göster"
+          }
+        }
+      }
+    },
+    "Fotoğraf ve videolar yazılmaz." : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fotoğraf ve videolar yazılmaz."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Photos and videos are not added."
           }
         }
       }
@@ -8709,6 +8813,22 @@
         }
       }
     },
+    "Kişi olarak ekle: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add as person: %@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kişi olarak ekle: %@"
+          }
+        }
+      }
+    },
     "Kişi ve konum dosyalarına tür ekle" : {
       "localizations" : {
         "en" : {
@@ -9281,6 +9401,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Konum olarak ekle"
+          }
+        }
+      }
+    },
+    "Konum olarak ekle: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add as place: %@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Konum olarak ekle: %@"
           }
         }
       }
@@ -10245,6 +10381,22 @@
         }
       }
     },
+    "Öneriler" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Öneriler"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suggestions"
+          }
+        }
+      }
+    },
     "Önizleme" : {
       "localizations" : {
         "en" : {
@@ -10669,6 +10821,118 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ritim: %lld günde bir"
+          }
+        }
+      }
+    },
+    "Ruh hali: biraz iyi" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ruh hali: biraz iyi"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mood: slightly pleasant"
+          }
+        }
+      }
+    },
+    "Ruh hali: biraz kötü" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ruh hali: biraz kötü"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mood: slightly unpleasant"
+          }
+        }
+      }
+    },
+    "Ruh hali: çok iyi" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ruh hali: çok iyi"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mood: very pleasant"
+          }
+        }
+      }
+    },
+    "Ruh hali: çok kötü" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ruh hali: çok kötü"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mood: very unpleasant"
+          }
+        }
+      }
+    },
+    "Ruh hali: iyi" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ruh hali: iyi"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mood: pleasant"
+          }
+        }
+      }
+    },
+    "Ruh hali: kötü" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ruh hali: kötü"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mood: unpleasant"
+          }
+        }
+      }
+    },
+    "Ruh hali: ne iyi ne kötü" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ruh hali: ne iyi ne kötü"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mood: neutral"
           }
         }
       }
@@ -11121,6 +11385,22 @@
         }
       }
     },
+    "Sistemin günlük önerilerinden birini seç" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sistemin günlük önerilerinden birini seç"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pick one of the system's journaling suggestions"
+          }
+        }
+      }
+    },
     "Sıfır veya pozitif bir sayı gir." : {
       "localizations" : {
         "en" : {
@@ -11133,6 +11413,62 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sıfır veya pozitif bir sayı gir."
+          }
+        }
+      }
+    },
+    "Sırada %lld öneri satırı var." : {
+      "localizations" : {
+        "tr" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Sırada %lld öneri satırı var."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Sırada %lld öneri satırı var."
+                }
+              }
+            }
+          }
+        },
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld more suggestion line is waiting."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld more suggestion lines are waiting."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "Sıradaki" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sıradaki"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Next"
           }
         }
       }

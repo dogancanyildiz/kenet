@@ -61,11 +61,13 @@
 
     @testable import Journal
 
-    // Local record (Mac references are not drawn in CI, see snapshot-suites.sh):
-    // SNAPSHOT_TESTING_RECORD=all xcodebuild test -project Journal.xcodeproj -scheme Journal_macOS -destination 'platform=macOS' -only-testing:JournalTests_macOS/CloseDayMacSnapshotTests CODE_SIGNING_ALLOWED=NO
+    // Local inspection only (CI records authoritative Mac references; do not commit local PNGs):
+    // SNAPSHOT_MAC_LOCAL=1 SNAPSHOT_TESTING_RECORD=all xcodebuild test -project Journal.xcodeproj -scheme Journal_macOS -destination 'platform=macOS' -only-testing:JournalTests_macOS/CloseDayMacSnapshotTests CODE_SIGNING_ALLOWED=NO
 
     /// "Günü kapat" at the Mac sheet's ideal size: both steps, with the bottom action bar.
-    @MainActor @Suite("Close day snapshots (macOS)", .serialized)
+    @MainActor @Suite("Close day snapshots (macOS)", .serialized,
+        .enabled(if: MacSnapshotEnvironment.isEnabled,
+            "Mac references belong to CI; set SNAPSHOT_MAC_LOCAL=1 for local inspection (do not commit)."))
     struct CloseDayMacSnapshotTests {
         @Test func tasksMacLight() async throws { try await run(.tasks, "tasksMacLight", scheme: .light) }
         @Test func goalsMacDark() async throws { try await run(.goals, "goalsMacDark", scheme: .dark) }

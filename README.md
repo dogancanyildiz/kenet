@@ -168,7 +168,9 @@ Açık görüntü her iOS kümesinde kalır; koyu, AX3 ve kontrast temsilci küm
 | Küme | Ad kuralı | CI | Komut |
 |---|---|---|---|
 | iOS | `…SnapshotTests` | Koşar ve PR'ı durdurur | Doğrula: `SNAPSHOT_TESTING_RECORD=never sh .github/scripts/record-screen-snapshots.sh`. Yenile: `sh .github/scripts/record-screen-snapshots.sh` (yalnız eşleşmeyen ya da eksik referansları yazar; hepsini yeniden yazmak için `SNAPSHOT_TESTING_RECORD=all`) |
-| Mac | `…MacSnapshotTests` | `ci` içinde koşmaz; haftalık `mac-snapshots` iş akışı kapı olmadan ölçer; yerelde doğrula | Kaydet: `SNAPSHOT_TESTING_RECORD=all xcodebuild test -project Journal.xcodeproj -scheme Journal_macOS -destination 'platform=macOS' -only-testing:JournalTests_macOS/<Küme> CODE_SIGNING_ALLOWED=NO` |
+| Mac | `…MacSnapshotTests` | `ci` içinde koşmaz; haftalık `mac-snapshots` kapı olmadan ölçer. Yetkili ortam macOS 26 / Xcode 26.6 CI | Kayıt: `record-snapshots` iş akışı, `target=mac`; çıktı `mac-snapshot-references`. Yerelde varsayılan atlanır; incelemek için `SNAPSHOT_MAC_LOCAL=1 SNAPSHOT_TESTING_RECORD=all xcodebuild test -project Journal.xcodeproj -scheme Journal_macOS -destination 'platform=macOS' -only-testing:JournalTests_macOS/<Küme> CODE_SIGNING_ALLOWED=NO`. Yerel PNG’leri commit etme |
+
+CI kayıt iş akışında `target`: `ios` (varsayılan), `mac` ya da `both` seçilir. `open_pr=false` varsayılandır; `true` seçilirse doğrulanan Mac referansları için `chore/mac-referanslar-<run>` dalından `dev`’e PR açılır. Mac kaydı bütün referansları `all` ile yeniler ve `never` ile doğrular. Yerel Mac kümeleri yalnız `SNAPSHOT_MAC_LOCAL=1` ile açılır; `CI=true` ortamında kendiliğinden koşar.
 
 **Şema, iOS kayıt betiğinin adımlarını gösterir.**
 

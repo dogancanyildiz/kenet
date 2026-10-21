@@ -33,8 +33,8 @@
 #endif
 
 #if os(macOS)
-    // Record / verify Mac references (no simulator; local only — CI skips Mac image suites):
-    // SNAPSHOT_TESTING_RECORD=all xcodebuild test -project Journal.xcodeproj -scheme Journal_macOS \
+    // Local inspection only (CI records authoritative Mac references; do not commit local PNGs):
+    // SNAPSHOT_MAC_LOCAL=1 SNAPSHOT_TESTING_RECORD=all xcodebuild test -project Journal.xcodeproj -scheme Journal_macOS \
     //   -destination 'platform=macOS' -only-testing:JournalTests_macOS/TasksMacSnapshotTests \
     //   CODE_SIGNING_ALLOWED=NO
     // Then the same command with SNAPSHOT_TESTING_RECORD=never three times.
@@ -47,7 +47,9 @@
     @testable import Journal
 
     /// Mac kanban and timeline: weekend wells, today marker, completed outline bar, low priority.
-    @MainActor @Suite("Tasks screen snapshots (macOS)", .serialized)
+    @MainActor @Suite("Tasks screen snapshots (macOS)", .serialized,
+        .enabled(if: MacSnapshotEnvironment.isEnabled,
+            "Mac references belong to CI; set SNAPSHOT_MAC_LOCAL=1 for local inspection (do not commit)."))
     struct TasksMacSnapshotTests {
         private static let snapshotPrecision: Float = 0.9999
         private static let snapshotPerceptualPrecision: Float = 0.995

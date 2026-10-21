@@ -4,12 +4,23 @@ name: Ekran görüntüsü referansları
 # İndirip Tests/JournalTests/Snapshots/__Snapshots__/ altına koy; PR'da commit et.
 on:
   workflow_dispatch:
+    inputs:
+      target:
+        description: Referans platformu
+        type: choice
+        options: [ios, mac, both]
+        default: ios
+      open_pr:
+        description: Mac referansları için dev dalına PR aç
+        type: boolean
+        default: false
 
 permissions:
   contents: read
 
 jobs:
   record:
+    if: inputs.target == 'ios' || inputs.target == 'both'
     name: Referans üret (iOS)
     runs-on: macos-26
     timeout-minutes: 40
@@ -38,3 +49,89 @@ jobs:
           name: screen-snapshot-references
           path: Tests/JournalTests/Snapshots/__Snapshots__
           retention-days: 14
+
+  mac:
+    if: inputs.target == 'mac' || inputs.target == 'both'
+    name: Referans üret (Mac)
+    runs-on: macos-26
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v7
+      - name: Xcode
+        uses: ./.github/actions/xcode
+      - name: Paket önbelleği
+        uses: actions/cache@v6
+        with:
+          path: .dd/mac-snapshots/SourcePackages
+          key: spm-xcode-mac-snapshots-${{ hashFiles('Packages/Core/Package.resolved', 'project.yml') }}
+          restore-keys: spm-xcode-mac-snapshots-
+      - name: XcodeGen
+        run: brew install xcodegen
+      - name: Projeyi üret
+        run: xcodegen generate
+      - name: Mac referanslarını kaydet ve doğrula
+        env:
+          CI: 'true'
+          # Yetkili çizim ortamı CI'dır. "failed" eski ortamda tolerans içinde kalan PNG'leri
+          # koruyabilir; "all" tüm Mac referanslarını macOS 26 / Xcode 26.6 ile baştan yazar.
+          SNAPSHOT_TESTING_RECORD: all
+          TEST_RUNNER_SNAPSHOT_TESTING_RECORD: all
+          TEST_RUNNER_CI: 'true'
+        run: |
+          only=$(sh .github/scripts/snapshot-suites.sh --mac | sed 's#^#-only-testing:JournalTests_macOS/#' | tr '\n' ' ')
+          if [ -z "$only" ]; then
+            echo "::error::Mac görüntü kümesi bulunamadı"
+            exit 1
+          fi
+          # Kayıt referans yazınca test düşer; doğrulama gerçek derleme/çizim hatasını da yakalar.
+          status=0
+          xcodebuild test -project Journal.xcodeproj -scheme Journal_macOS -destination 'platform=macOS,arch=arm64' -derivedDataPath .dd/mac-snapshots $only CODE_SIGNING_ALLOWED=NO -quiet || status=$?
+          echo "Kayıt koşusu çıkış kodu: $status"
+          SNAPSHOT_TESTING_RECORD=never TEST_RUNNER_SNAPSHOT_TESTING_RECORD=never \
+            xcodebuild test-without-building -project Journal.xcodeproj -scheme Journal_macOS -destination 'platform=macOS,arch=arm64' -derivedDataPath .dd/mac-snapshots $only CODE_SIGNING_ALLOWED=NO -quiet
+      - name: Mac referans artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: mac-snapshot-references
+          path: Tests/JournalTests/Snapshots/__Snapshots__/*MacSnapshotTests/
+          if-no-files-found: error
+          retention-days: 14
+
+  mac-reference-pr:
+    if: inputs.open_pr && (inputs.target == 'mac' || inputs.target == 'both')
+    needs: mac
+    name: Mac referans PR'ı
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: write
+      pull-requests: write
+    steps:
+      # Sadece referans değişiklikleri dev üzerine uygulanır; kayıt dalının kodu PR'a girmez.
+      - uses: actions/checkout@v7
+        with:
+          ref: dev
+      - name: Mac referanslarını indir
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ github.run_id }}
+        run: gh run download "$RUN_ID" --name mac-snapshot-references --dir Tests/JournalTests/Snapshots/__Snapshots__
+      - name: PR aç
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ github.run_id }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          branch="chore/mac-referanslar-$RUN_ID"
+          git switch -c "$branch"
+          git add Tests/JournalTests/Snapshots/__Snapshots__/*MacSnapshotTests/
+          if git diff --cached --quiet; then
+            echo "Mac referansları değişmedi; PR gerekmiyor."
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'chore: Mac görüntü referanslarını CI ortamında yenile'
+          git push origin "$branch"
+          printf 'Mac görüntü referansları yetkili CI ortamında (macOS 26 / Xcode 26.6) yeniden kaydedildi ve doğrulandı.\n\nKoşu: %s\n' "$RUN_URL" > "$RUNNER_TEMP/mac-reference-pr.txt"
+          gh pr create --base dev --head "$branch" --title 'chore: Mac görüntü referanslarını CI ortamında yenile' --body-file "$RUNNER_TEMP/mac-reference-pr.txt"

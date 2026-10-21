@@ -81,11 +81,13 @@ struct SummariesSnapshotShot: Sendable {
 
     @testable import Journal
 
-    // Local record (Mac references are not drawn in CI, see snapshot-suites.sh):
-    // SNAPSHOT_TESTING_RECORD=all xcodebuild test -project Journal.xcodeproj -scheme Journal_macOS -destination 'platform=macOS' -only-testing:JournalTests_macOS/SummariesMacSnapshotTests CODE_SIGNING_ALLOWED=NO
+    // Local inspection only (CI records authoritative Mac references; do not commit local PNGs):
+    // SNAPSHOT_MAC_LOCAL=1 SNAPSHOT_TESTING_RECORD=all xcodebuild test -project Journal.xcodeproj -scheme Journal_macOS -destination 'platform=macOS' -only-testing:JournalTests_macOS/SummariesMacSnapshotTests CODE_SIGNING_ALLOWED=NO
 
     /// Özetler in a 1000 pt detail area: rhythm, numbers and goals left; people, places and tasks right.
-    @MainActor @Suite("Summaries snapshots (macOS)", .serialized)
+    @MainActor @Suite("Summaries snapshots (macOS)", .serialized,
+        .enabled(if: MacSnapshotEnvironment.isEnabled,
+            "Mac references belong to CI; set SNAPSHOT_MAC_LOCAL=1 for local inspection (do not commit)."))
     struct SummariesMacSnapshotTests {
         @Test func weekMacLight() async throws { try await run(.week, "weekMacLight", scheme: .light) }
         @Test func monthMacDark() async throws { try await run(.month, "monthMacDark", scheme: .dark) }

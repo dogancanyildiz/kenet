@@ -267,7 +267,8 @@ Packages/Core/            Ayrıştırıcı, modeller, indeksleyici (Apple'a bağ
                           Summaries, ForceLayout
 Fixtures/                 Örnek kasalar (vaults/) ve test dosyaları
 Tests/JournalTests/       Uygulama katmanı birim testleri (macOS ve iOS simülatörü);
-                          Snapshots/: ekran görüntüsü testleri
+                          Snapshots/: ekran görüntüsü testleri; Mac referansları CI’da kaydedilir,
+                          Mac kümeleri yerelde varsayılan atlanır (SNAPSHOT_MAC_LOCAL=1 ile açılır)
 Tests/JournalUITests/     XCUITest duman testi, erişilebilirlik denetimi, ekran turu (iOS)
 Tests/JournalMacUITests/  Mac ekran turu (yalnız screen-tour.sh --mac; CI'da koşmaz)
 Config/                   İmzalama ayarı (Signing.xcconfig); Local.xcconfig repoya girmez

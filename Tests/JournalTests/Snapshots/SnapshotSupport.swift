@@ -553,7 +553,7 @@
     ///   whole-point layout) into the 2× bitmap;
     /// - colour space: text SwiftUI rasterises itself (mention links) came out one level off on
     ///   its antialiased edges under the monitor's profile.
-    /// Both are pinned to what the references were recorded with (built-in Retina display).
+    /// Both are pinned for CI recording and verification, including headless runners.
     final class MacSnapshotWindow: NSWindow {
         static let scale: CGFloat = 2
 
@@ -571,6 +571,15 @@
 
     @MainActor
     enum MacSnapshotEnvironment {
+        /// CI owns the references. Local rendering is opt-in because OS versions change pixels.
+        nonisolated static func shouldRun(environment: [String: String]) -> Bool {
+            environment["CI"] == "true" || environment["SNAPSHOT_MAC_LOCAL"] == "1"
+        }
+
+        nonisolated static var isEnabled: Bool {
+            shouldRun(environment: ProcessInfo.processInfo.environment)
+        }
+
         /// Scroll bars follow the pointing device unless told otherwise: with a mouse connected
         /// AppKit switches to legacy scrollers, which take width from every overflowing list and
         /// move its content. The `Journal_macOS` test action pins the overlay style with a launch

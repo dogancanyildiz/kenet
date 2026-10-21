@@ -19,7 +19,7 @@
 | Veri | Markdown dosyaları; gerçek kaynak |
 | İndeks | SQLite, GRDB, FTS5 |
 | Eşitleme | iCloud Drive, uygulamanın kendi kapsayıcısı. Planlandı; kimlik ve yetki hazır, kod henüz yok |
-| Widget | WidgetKit. Planlandı; App Group kimliği ve yetkisi hazır, hedef henüz yok |
+| Widget | WidgetKit. Ana ekran zincir widget'ı, yalnız iOS: `JournalWidgets` hedefi. Veriyi App Group'taki anlık görüntüden okur |
 | Sistem girişleri | App Intents: Kısayollar ve Siri |
 | Takvim | EventKit, salt okunur |
 | Konum | CoreLocation; harita için MapKit |
@@ -54,7 +54,11 @@ flowchart TD
     JournalUITests["JournalUITests: iOS duman testi ve erişilebilirlik"]
     JournalMacUITests["JournalMacUITests: Mac ekran turu"]
   end
+  Widgets["Widgets: WidgetKit uzantısı, yalnız iOS"]
+  Shared["Widgets/Shared: anlık görüntü biçimi ve widget görünümleri"]
   AppKatmani --> CoreKatmani
+  AppKatmani -- derler --> Shared
+  Widgets -- derler --> Shared
   TestKatmani --> AppKatmani
   CoreKatmani -. paket testleri okur .-> Fixtures
   TestKatmani -. okur .-> Fixtures
@@ -74,6 +78,8 @@ flowchart TD
 | `App/Design` | Ortak bileşenler ve tasarım belirteçleri |
 | `App/Resources` | String Catalog, lisans metinleri, gizlilik bildirimi |
 | `App/Support` | Yetki dosyaları ve plist ekleri |
+| `Widgets` | Widget hedefi: `WidgetBundle`, zaman çizelgesi ve yetki dosyası. String Catalog uygulamanınkidir: `App/Resources/Localizable.xcstrings` |
+| `Widgets/Shared` | Uygulamayla ortak: anlık görüntü biçimi, widget bağlantısı, görünümler, renk belirteçleri |
 
 ## Proje ayarları
 
@@ -82,13 +88,13 @@ flowchart TD
 | Konu | Kural |
 |---|---|
 | Proje üretimi | `project.yml` projeyi tanımlar. XcodeGen `Journal.xcodeproj` dosyasını üretir. Git `Journal.xcodeproj` dosyasını izlemez |
-| Hedef ve şema | Tek `Journal` hedefi iOS ve macOS için iki şema üretir. Hedef kaynakları `App/` klasöründen alır. Proje `Core` paketini yerel yoldan bağlar |
-| Bundle kimliği | `com.dogancanyildiz.kenet`; kalıcı, iOS ve Mac için ortak. Değer `project.yml` içinde tek yerde durur: `APP_BUNDLE_IDENTIFIER`. Test hedefleri sonek ekler: `.tests`, `.uitests`. Betikler aynı satırı okur |
+| Hedef ve şema | Tek `Journal` hedefi iOS ve macOS için iki şema üretir. Hedef kaynakları `App/` ve `Widgets/Shared` klasörlerinden alır. Proje `Core` paketini yerel yoldan bağlar. iOS uygulaması `JournalWidgets` uzantısını gömer; Mac uygulaması gömmez |
+| Bundle kimliği | `com.dogancanyildiz.kenet`; kalıcı, iOS ve Mac için ortak. Değer `project.yml` içinde tek yerde durur: `APP_BUNDLE_IDENTIFIER`. Test hedefleri ve widget sonek ekler: `.tests`, `.uitests`, `.widgets`; test konağının widget'ı `.testhost.widgets`. Betikler aynı satırı okur |
 | Görünen ad | Kullanıcı Kenet adını görür: `CFBundleDisplayName`, `CFBundleName`. Hedef, modül ve `.app` dosyası kod adı `Journal` ile kalır |
 | Cihaz | iOS hedefi iPhone, iPhone Duo ve iPad içindir: `TARGETED_DEVICE_FAMILY: "1,2"`. iPhone dikey kilitlidir; iPad dört yöne döner (`UISupportedInterfaceOrientations~ipad`); `testflight.sh` arşivde ikisini de denetler. iPad uygulaması Apple Silicon Mac'te listelenmez (`SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: NO`): yerel Mac hedefi ayrıdır. Duo dış ekranı yalnız dikeydir; iç ekran yön kilidini yok sayar. İç ekran bölünmüş kabuğu açar: `AdaptiveNavigation` iki boyut sınıfı da düzenliyse `MacNavigation`, öteki durumda `PhoneNavigation` seçer. Kabuk durumu `AdaptiveNavigation` üstünde tek `ShellNavigationState` nesnesidir; seçim, sheet'ler ve taslaklar kabuk değişiminde korunur. Kapı cihaz türüne ve ekran boyuna bakmaz. Mac hedefi ayrıdır |
-| iCloud ve App Group | iCloud kapsayıcısı `iCloud.com.dogancanyildiz.kenet`, App Group `group.com.dogancanyildiz.kenet`; kalıcı, iOS ve Mac için ortak (kullanıcı kararı, 2026-10-21). `project.yml` değerleri `KENET_ICLOUD_CONTAINER` ve `KENET_APP_GROUP` ayarlarında tek yerde tutar; yetki dosyaları bu ayarları `$(…)` ile okur. Swift karşılığı `App/Support/AppIdentifiers.swift`. `ReleaseConfigurationTests` iki tanımı eşit tutar. Kimlikler bundle kimliğinden türetilmez: betikler bundle kimliğini geçersiz kılsa da kapsayıcı aynı kalır. Kod iki kimliği henüz kullanmaz |
+| iCloud ve App Group | iCloud kapsayıcısı `iCloud.com.dogancanyildiz.kenet`, App Group `group.com.dogancanyildiz.kenet`; kalıcı, iOS ve Mac için ortak (kullanıcı kararı, 2026-10-21). `project.yml` değerleri `KENET_ICLOUD_CONTAINER` ve `KENET_APP_GROUP` ayarlarında tek yerde tutar; yetki dosyaları bu ayarları `$(…)` ile okur. Swift karşılığı `App/Support/AppIdentifiers.swift`. `ReleaseConfigurationTests` iki tanımı eşit tutar. Kimlikler bundle kimliğinden türetilmez: betikler bundle kimliğini geçersiz kılsa da kapsayıcı aynı kalır. App Group'u iOS'ta widget anlık görüntüsü kullanır; Mac henüz kullanmaz |
 | İmza | Takım kimliği repoya girmez. `Config/Signing.xcconfig`, varsa izlenmeyen `Config/Local.xcconfig` dosyasını içerir. Örnek dosya: `Config/Local.xcconfig.example`. Dosya yoksa Xcode projeyi `CODE_SIGNING_ALLOWED=NO` ile imzasız derler |
-| Yetki dosyaları | Her platformun kendi dosyası var. İki dosyada da iCloud Documents (`icloud-services: CloudDocuments`, kapsayıcı ve ubiquity kapsayıcısı) ve App Group durur. `App/Support/Journal-macOS.entitlements` bunlara ek olarak sandbox, kullanıcının seçtiği dosyalar, uygulama kapsamlı yer imi (`files.bookmarks.app-scope`; kasa yer imi `.withSecurityScope` ile yazılır ve çözülür), takvim ve konum taşır. Mac Debug ve DebugTest ad hoc imzalanır; ad hoc imza iCloud ve App Group taşıyamaz, Xcode derlemeyi durdurur. Bu iki yapılandırma `App/Support/Journal-macOS-AdHoc.entitlements` dosyasını kullanır: yalnız sandbox anahtarları. Release, arşiv ve `install-mac.sh` tam dosyayla geliştirme imzası ister; App ID'de iki yetenek açık olmalıdır |
+| Yetki dosyaları | Her platformun kendi dosyası var. İki dosyada da iCloud Documents (`icloud-services: CloudDocuments`, kapsayıcı ve ubiquity kapsayıcısı) ve App Group durur. `App/Support/Journal-macOS.entitlements` bunlara ek olarak sandbox, kullanıcının seçtiği dosyalar, uygulama kapsamlı yer imi (`files.bookmarks.app-scope`; kasa yer imi `.withSecurityScope` ile yazılır ve çözülür), takvim ve konum taşır. Mac Debug ve DebugTest ad hoc imzalanır; ad hoc imza iCloud ve App Group taşıyamaz, Xcode derlemeyi durdurur. Bu iki yapılandırma `App/Support/Journal-macOS-AdHoc.entitlements` dosyasını kullanır: yalnız sandbox anahtarları. Release, arşiv ve `install-mac.sh` tam dosyayla geliştirme imzası ister; App ID'de iki yetenek açık olmalıdır. Widget'ın dosyası `Widgets/Support/JournalWidgets.entitlements` yalnız App Group taşır; widget'ın App ID'sinde de App Group açık olmalıdır |
 | Sürüm numarası | Derleme numarayı kök dizindeki `VERSION` dosyasından okur ve Info.plist'e yazar |
 | Yapı numarası | Derleme `CFBundleVersion` değerini git geçmişinden üretir: `git rev-list --count HEAD`, `.github/scripts/build-number.sh`. iOS ve Mac aynı numarayı alır. Git yoksa ya da kopya sığsa yedek değer `1` kalır ve derleme uyarı verir |
 | Lisanslar | Uygulamaya bağlanan her uzak paketin LICENSE dosyası `App/Resources` altına olduğu gibi girer. Kullanıcı metni Ayarlar → Tanılama içinde okur. Test hedefinin paketleri bildirime girmez: `ThirdPartyLicenseTests` |
@@ -425,8 +431,9 @@ Kullanıcı hedefi işaretlediği anda ekran işareti o ekranın düzenleme mode
 | App Intents hedef listesi ve işaretleme | `computeGoalDefinitions()` | Okuma hatası kasayı açılamamış sayar |
 | Konum izleme hedefleri | `computeGoalDefinitions()`: tanım ve konum bağlantısının çözüldüğü dosya | Servis her yayımda tanımları yeniden okur. Sonraki okumanın yanıtı öncekini ezer. Arka plan girişi okumanın bitmesini bekler |
 | Konum izleme "işaretli mi" | `computeGoalLogs(from:through:keys:)`, yalnız o gün | Okuma askıya alınır; denetim ile işi üstlenme arasında askı yoktur: ikinci giriş bekleyen işi görür |
+| Widget anlık görüntüsü | `computeGoalStatuses(today:)`, bugün ve yarın | Her yayımda yeniden sorar. Başka kasa açıldıysa yanıtı atar; dosya son yanıtı tutar. Ayrıntı: [Widget'lar](#widgetlar) |
 
-Widget bağlantısı açık bir iştir.
+Widget ekranlarla aynı hedef sorgusunu kullanır. Widget sorguyu kendisi çalıştırmaz: uygulama sonucu App Group'a yazar.
 
 ### Okuma modelinde kalan alanlar
 
@@ -1081,14 +1088,41 @@ Tanılama listeyi `store.lastUpdated` değişince ve sahne ön plana her dönün
 
 ## Widget'lar
 
-**Durum: tasarım, henüz uygulanmadı.** App Group kimliği `group.com.dogancanyildiz.kenet` karara bağlandı ve uygulamanın yetki dosyalarında durur; widget hedefi henüz yok.
+**Durum:** ana ekran zincir widget'ı uygulandı: iOS, küçük ve orta boy. Kilit ekranı, hızlı giriş, Denetim Merkezi ve Mac widget'ları sonraki dalgadır. Widget içinden yazma da sonraki iştir.
 
-| Konu | Hedef |
+**Şema widget'ın veri yolunu ve dokunmanın uygulamaya dönüşünü gösterir.**
+
+```mermaid
+flowchart LR
+  Yayim["IndexStore yayımı"] -->|"onWidgetSnapshotChange"| Yazici["WidgetSnapshotWriter"]
+  Yazici -->|"goalStatuses: bugün ve yarın"| Indeks["İndeks"]
+  Yazici -->|"atomik yazma: widget/today.json"| Grup["App Group kapsayıcısı"]
+  Yazici -->|"reloadTimelines"| WK["WidgetKit"]
+  WK --> Widget["Widget süreci"]
+  Widget -->|"yalnız okur"| Grup
+  Widget -->|"dokunma: kenet-widget bağlantısı"| Uygulama["Uygulama: WidgetLinkHandler"]
+  Uygulama -->|"IntentActions.markGoal"| Yazma["Önce dosya, sonra indeks"]
+  Yazma --> Yayim
+```
+
+**Tablo widget'ın kurallarını gösterir.**
+
+| Konu | Kural |
 |---|---|
-| Paket | Widget hedefi `Core` paketini kullanır |
-| Veri paylaşımı | Uygulama ve widget ortak bir App Group üzerinden veri paylaşır |
-| İşaretleme | Widget'tan yapılan işaretleme App Intent ile `Core` yazıcısını çağırır. Mantık tek yerdedir |
-| Kasa erişimi | Widget'ların iCloud'daki kasaya doğrudan mı, App Group'taki bir okuma modeli kopyası üzerinden mi erişeceği açıktır. Deneme karar verir |
+| Hedef | `JournalWidgets`: WidgetKit uzantısı, yalnız iOS, `Widgets/` klasörü. Uygulama uzantıyı gömer. Sürüm ve yapı numarası uygulamanınkiyle aynı yazılır |
+| Kasa erişimi | Widget kasaya, indekse ve `Core` paketine erişmez. Widget ayrı bir süreçtir ve belleği dardır (yaklaşık 30 MB). Süreç uygulamanın yer imini, `UserDefaults.standard` deposunu ve `Application Support` indeksini göremez. Widget yalnız uygulamanın App Group'a yazdığı küçük anlık görüntüyü okur |
+| Ortak kaynak | `Widgets/Shared` iki hedefte derlenir: anlık görüntü biçimi (`WidgetSnapshot`, yalnız Foundation), widget bağlantısı (`WidgetLink`), görünümler ve renk belirteçleri (`WidgetTheme`). Renkler uygulamanın varlık kataloğundaki adlardır; katalog widget hedefine de girer. Ekran görüntüsü testleri görünümleri uygulama konağında çizer |
+| Anlık görüntü | `<grup>/widget/today.json` dosyası. İçerik: biçim sürümü, yazılma zamanı, kasa kimliği (kasa yolunun SHA-256 özeti; App Intents'in `IntentGoal.id` öneki), bugün ve yarın için günlük hedefler. Hedef başına: anahtar, ad, tür (evet/hayır ya da sayı), hedef miktar, birim, günün değeri, bekliyor mu, zincir, zincir günü bakiyesi. Haftalık hedefler, yıllık hedefler ve kilometre taşları girmez. Bekleyen hedefler önce gelir, sonra ada göre sıralanır |
+| Yazma | `WidgetSnapshotWriter` her yayımda çalışır (`IndexStore.onWidgetSnapshotChange`; bildirim servisinin `onSnapshotChange` dinleyicisinden ayrı). Sahne öne gelince ve kilit açılınca da çalışır. Yazıcı `goalStatuses(today:)` sorgusunu bugün ve yarın için ekranlarla aynı yoldan sorar. Sonucu geçici dosyaya yazar ve yerine taşır (`Data.write(.atomic)`). Ardından `WidgetCenter.reloadTimelines(ofKind:)` çağırır. İçerik değişmediyse yazmaz ve yenilemez. Üst üste gelen yayımlar tek koşuda birleşir; son yayım kazanır |
+| Silme | Kasa erişilemezken yazıcı dosyayı yazmaz, varsa siler. Widget "Kenet'i aç" gösterir. Kasa daha açılmamışken ya da açılırken yazıcı dosyaya dokunmaz; yalnız dosya başka kasanınsa siler. Böylece açılamayan yeni kasa eski kasanın hedeflerini widget'ta bırakmaz |
+| Kilit | Uygulama kilitliyken yazıcı dosyaya dokunmaz: ne yazar ne siler. Kilit açılınca dosyayı bir kez yazar. Dosyayı yalnız uygulamanın çalışırken devreye soktuğu kilit siler: kilit gecikmesi "Hemen" iken uygulama arka plana geçtiği anda kilitlenir ve dosyayı siler (`WidgetSnapshotWriter.lockEngaged`). Gecikme süresi arka planda dolarsa dosya kalır ve widget son durumu gösterir. Uygulama öne gelince süresi dolmuş kilidi fark eder; dosyaya yine dokunmaz. Böylece her açılışta "sil, sonra yeniden yaz" titremesi olmaz. Widget içeriği zaten `privacySensitive` taşır |
+| Gün değişimi | Zaman çizelgesi bugünün girişini hemen, yarının girişini gece yarısından gösterir. Yarının girişi Core'un yarın için hesapladığı durumdur: bugün işaretlenmediyse zincir günü harcanır ya da zincir kırılır. Yarından sonra "Kenet'i aç" gelir |
+| Dokunma | Küçük widget tek dokunma hedefidir ve uygulamayı Bugün'de açar. Orta widget'ta bekleyen evet/hayır hedefinin satırı `kenet-widget://mark?goal=<kimlik>` bağlantısıyla uygulamayı açar. `WidgetLinkHandler` Bugün'e geçer ve `IntentActions.markGoal` ile hedefi o gün için işaretler. Sayı hedefinin ve yapılmış hedefin satırı Bugün'ü açar. Uygulama kilitliyse işaretleme kilit açılınca yapılır. Uygulama URL şeması kaydetmez: bağlantıyı yalnız kendi widget'ı açar (`ReleaseConfigurationTests`). Şema kaydedilirse `WidgetLinkHandler` önce kaynağı denetlemelidir |
+| App Group deposu | `AppGroupStore` kapsayıcıyı verir. Kapsayıcı yoksa (imzasız derleme, test) yazıcı sessizce kapalıdır. Testler geçici klasör verir. Mac grubu henüz kullanmaz: imzasız Mac derlemesinde kapsayıcıya dokunmak kullanıcıdan izin ister |
+| Gizlilik | Widget içeriği `privacySensitive` taşır: kilitli cihazda (StandBy, iPad kilit ekranı) sistem içeriği gizler |
+| Yerelleştirme | Widget uygulamanın String Catalog'unu derler: `App/Resources/Localizable.xcstrings`, tr ve en. Tek katalog: CI'daki katalog denetimi (`check-catalog-keys.py`) `Widgets/` klasörünü de tarar |
+
+Dokunma App Intent düğmesi yerine bağlantı kullanır. `MarkGoalIntent` uygulamanın `IndexStore` nesnesine bağlıdır ve widget hedefinde derlenemez. `openAppWhenRun` değerini açmak Kısayollar'daki işaretlemeyi de uygulamayı açmaya zorlardı. Bağlantı aynı işaretleme yolunu kullanır: `IntentActions.markGoal`.
 
 ## Platform düzeni
 
@@ -1126,7 +1160,7 @@ Proje çekirdeği şimdiden ortak bir teknolojiyle yazmaz. Örnek teknolojiler: 
 | İndeks | Örnek kasadan üretilen indeks beklenen sorgu sonuçlarını versin |
 | Birleştirme | Sonuç sürümlerin sırasından bağımsız kalsın, tekrarda değişmesin, hiçbir satırı kaybetmesin |
 | Dayanıklılık | Bozuk frontmatter, tanınmayan sözdizimi ve boş dosya hata üretmesin |
-| Biçim | `swift format lint --strict --recursive Packages App Tests` |
+| Biçim | `swift format lint --strict --recursive Packages App Tests Widgets` |
 | Belge biçimi | `sh .github/scripts/check-docs.sh`: karar tablosu, README belge tablosu, String Catalog; koddaki sabit arayüz metni katalogda yoksa düşer (`check-catalog-keys.py`; `verbatim:`, değişken ve enterpolasyonlu metin sayılmaz) |
 | Uygulama testleri | `JournalTests`, `Journal_macOS` ve `Journal_iOS` şemalarında koşar |
 | Ekran görüntüsü testleri | `Tests/JournalTests/Snapshots` altındaki `*SnapshotTests` kümeleri; iOS birim katmanı |

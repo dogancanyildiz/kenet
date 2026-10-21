@@ -42,6 +42,11 @@ struct JournalApp: App {
     @State private var appLock: AppLockService
     @Environment(\.scenePhase) private var scenePhase
 
+    #if os(iOS)
+        @State private var widgetSnapshots: WidgetSnapshotWriter
+        @State private var widgetLinks: WidgetLinkHandler
+    #endif
+
     #if os(macOS)
         @Environment(\.openWindow) private var openWindow
         @State private var desktop: MacQuickEntryController
@@ -71,6 +76,14 @@ struct JournalApp: App {
         }
         IntentNavigation.shared.onOpenToday = { [weak notifications] in notifications?.clearNavigationRequest() }
         geofences.activateAutomatically()
+        #if os(iOS)
+            let widgetSnapshots = WidgetSnapshotWriter(
+                store: store, group: SystemAppGroupStore(), isLocked: { IntentActions.shared.isLocked() })
+            if AppLaunchPolicy.allowsAutomaticStart() { widgetSnapshots.attach() }
+            _widgetSnapshots = State(initialValue: widgetSnapshots)
+            _widgetLinks = State(
+                initialValue: WidgetLinkHandler(actions: IntentActions.shared, navigation: IntentNavigation.shared))
+        #endif
         #if os(macOS)
             _desktop = State(initialValue: MacQuickEntryController(store: store, location: location, appLock: appLock))
         #endif
@@ -144,6 +157,15 @@ struct JournalApp: App {
                 #if os(macOS)
                     .background(MainWindowMarker())
                     .task { await desktop.start() }
+                #else
+                    // A tap in the home-screen widget opens the app with a widget link.
+                    .onOpenURL { url in Task { await widgetLinks.open(url) } }
+                    // The unlock writes the widget snapshot once; while locked nothing touches it.
+                    .onChange(of: appLock.isLocked) { _, locked in
+                        guard !locked, AppLaunchPolicy.allowsAutomaticStart() else { return }
+                        widgetSnapshots.update()
+                        Task { await widgetLinks.unlocked() }
+                    }
                 #endif
         }
         .onChange(of: scenePhase, initial: true) { _, phase in
@@ -152,12 +174,16 @@ struct JournalApp: App {
                     switch phase {
                     case .active: appLock.activate()
                     case .inactive: appLock.resignActive(startTimeout: false)
-                    case .background: appLock.resignActive(startTimeout: true)
-                    @unknown default: appLock.resignActive(startTimeout: true)
+                    case .background: leave()
+                    @unknown default: leave()
                     }
                 }
             #endif
             if phase == .active && AppLaunchPolicy.allowsAutomaticStart() {
+                #if os(iOS)
+                    // A new day, or a vault changed while away; a locked app leaves the snapshot alone.
+                    widgetSnapshots.update()
+                #endif
                 Task {
                     location.refreshAuthorization()
                     await calendar.refresh()
@@ -174,4 +200,15 @@ struct JournalApp: App {
             #endif
         }
     }
+
+    #if os(iOS)
+        /// Leaving the app with the "immediately" delay engages the lock here, while the app runs:
+        /// the widget snapshot goes with it (docs/architecture.md "Widget'lar"). A lock that runs
+        /// out later in the background, or is found on arriving in the foreground, leaves it alone.
+        private func leave() {
+            let wasLocked = appLock.isLocked
+            appLock.resignActive(startTimeout: true)
+            if !wasLocked && appLock.isLocked { widgetSnapshots.lockEngaged() }
+        }
+    #endif
 }

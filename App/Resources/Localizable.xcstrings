@@ -2829,6 +2829,38 @@
         }
       }
     },
+    "Bekliyor. Güncel zincir: %lld" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bekliyor. Güncel zincir: %lld"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open. Current streak: %lld"
+          }
+        }
+      }
+    },
+    "Bekliyor. Güncel zincir: %lld. Zincir günü: %lld" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bekliyor. Güncel zincir: %lld. Zincir günü: %lld"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open. Current streak: %lld. Streak saves: %lld"
+          }
+        }
+      }
+    },
     "Ben" : {
       "localizations" : {
         "en" : {
@@ -6213,6 +6245,22 @@
         }
       }
     },
+    "Günlük hedef yok" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Günlük hedef yok"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No daily goals"
+          }
+        }
+      }
+    },
     "Günlük hedefler" : {
       "localizations" : {
         "en" : {
@@ -6225,6 +6273,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Günlük hedefler"
+          }
+        }
+      }
+    },
+    "Günlük hedeflerin ve zincirlerin. Dokunduğun hedefi Kenet işaretler." : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Günlük hedeflerin ve zincirlerin. Dokunduğun hedefi Kenet işaretler."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your daily goals and streaks. Kenet marks the goal you tap."
           }
         }
       }
@@ -7105,6 +7169,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Hedefler yükleniyor"
+          }
+        }
+      }
+    },
+    "Hedeflerini görmek için Kenet'i aç." : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hedeflerini görmek için Kenet'i aç."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Kenet to see your goals."
           }
         }
       }
@@ -13329,6 +13409,38 @@
         }
       }
     },
+    "Yapıldı. Güncel zincir: %lld" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yapıldı. Güncel zincir: %lld"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Done. Current streak: %lld"
+          }
+        }
+      }
+    },
+    "Yapıldı. Güncel zincir: %lld. Zincir günü: %lld" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yapıldı. Güncel zincir: %lld. Zincir günü: %lld"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Done. Current streak: %lld. Streak saves: %lld"
+          }
+        }
+      }
+    },
     "Yapılmadı" : {
       "localizations" : {
         "en" : {
@@ -14013,6 +14125,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Zaten var olanlar (atlanacak)"
+          }
+        }
+      }
+    },
+    "Zincir" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zincir"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Streaks"
           }
         }
       }

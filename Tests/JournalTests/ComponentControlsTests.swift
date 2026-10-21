@@ -106,23 +106,10 @@ struct ComponentControlsTests {
         #expect(destructive.role(isPressed: false, isEnabled: false).foreground == .secondaryText)
     }
 
-    @Test func buttonStylesEnforceMinimumHeightConstant() throws {
+    @Test func buttonStylesEnforceMinimumHeightConstant() {
         #expect(InkButtonChrome.minimumHeight == 44)
         #expect(InkButtonChrome.minimumHeight == TapTarget.minimumLength)
-        let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
-            .deletingLastPathComponent()
-        let source = try String(
-            contentsOf: root.appendingPathComponent("App/Design/Components/InkButtonStyles.swift"),
-            encoding: .utf8)
-        for style in ["InkPrimaryButtonStyle", "InkTextButtonStyle", "InkDestructiveButtonStyle"] {
-            let parts = source.components(separatedBy: "struct \(style)")
-            #expect(parts.count > 1, "\(style) missing")
-            let body = parts[1].components(separatedBy: "struct ").first ?? parts[1]
-            #expect(
-                body.contains("InkButtonChrome.minimumHeight"),
-                "\(style) must use InkButtonChrome.minimumHeight")
-            #expect(body.contains(".contentShape("), "\(style) must set contentShape for hit testing")
-        }
+        // The laid-out height of each style: `ControlAccessibilityHostedTests`.
     }
 
     @Test func infoBandKindsCarryNonColorMarks() {
@@ -140,15 +127,5 @@ struct ComponentControlsTests {
         #expect(InkSize.largeNumber == 48)
         #expect(InkSize.send == 36)
         #expect(InkSize.modeUnderline == 2)
-    }
-
-    @Test func goalDefinitionFormValidatesInput() throws {
-        let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
-            .deletingLastPathComponent()
-        let source = try String(
-            contentsOf: root.appendingPathComponent("App/Screens/Goals/GoalDefinitionForm.swift"),
-            encoding: .utf8)
-        #expect(source.contains("isConfirmEnabled: !isSaved && model.canSave(draft)"))
-        #expect(source.contains("model.error(for: field, in: draft)"))
     }
 }

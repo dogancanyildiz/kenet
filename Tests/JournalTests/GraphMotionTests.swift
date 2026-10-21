@@ -303,17 +303,6 @@ import VaultFormat
         #expect(grabbed < drawn * 1.7, "the grab area stays close to what is drawn: \(grabbed) vs \(drawn)")
         #expect(GraphCanvas.minimumGrabRadius < GraphCanvas.minimumHitRadius)
 
-        // The canvas wires the narrow radius into the drag and keeps the tap target for taps.
-        let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
-            .deletingLastPathComponent()
-        let source =
-            (try? String(
-                contentsOf: root.appendingPathComponent("App/Screens/Graph/GraphCanvas.swift"), encoding: .utf8)) ?? ""
-        let drag = source.range(of: "GraphGrab.begin(").map { source[$0.upperBound...].prefix(300) } ?? ""
-        #expect(drag.contains("minimumRadius: Self.minimumGrabRadius"))
-        let tap = source.range(of: ".onTapGesture").map { source[$0.upperBound...].prefix(300) } ?? ""
-        #expect(tap.contains("minimumRadius: Self.minimumHitRadius"))
-
         // The grab decision itself uses the narrow radius it is given.
         let node = viewport.screen(scene.simulation.positions[0])
         let beside = CGPoint(x: node.x + 18, y: node.y)

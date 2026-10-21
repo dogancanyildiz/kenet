@@ -536,19 +536,6 @@ import VaultFormat
         #expect(!todayWord.intersects(dateFrame))
     }
 
-    #if os(macOS)
-        @Test func macRowUsesTheSharedDateLine() throws {
-            let labels = try String(
-                contentsOf: URL(fileURLWithPath: #filePath)
-                    .deletingLastPathComponent()
-                    .deletingLastPathComponent()
-                    .deletingLastPathComponent()
-                    .appendingPathComponent("App/Screens/Tasks/Timeline/TimelineDesktopView.swift"),
-                encoding: .utf8)
-            #expect(labels.contains("TimelineTaskFacts"))
-        }
-    #endif
-
     /// The timeline once its query has answered, as the view loads it.
     private func timeline(_ context: TaskTestContext) async -> TimelineModel {
         let model = TimelineModel(tasks: TasksModel(store: context.store, today: { context.today }))

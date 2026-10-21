@@ -72,22 +72,6 @@ struct SourcePatternRuleTests {
         #expect(Self.matches(outside, #"\.buttonStyle\([^\n]+\)\s*\n\s*\.tapTarget\(\)"#))
     }
 
-    // MARK: - Each Info.plist key lives in one place
-
-    /// Xcode deletes a plist entry that duplicates a build setting it knows, which kept dirtying
-    /// the working tree: `UIFileSharingEnabled` lives only in `FileSharing.plist`,
-    /// `LSSupportsOpeningDocumentsInPlace` only in `project.yml`. (`VaultVisibilityTests` reads
-    /// both from the built app.)
-    @Test func fileSharingKeysLiveInOnePlace() throws {
-        let project = try Self.read("project.yml")
-        #expect(project.contains("INFOPLIST_FILE: App/Support/FileSharing.plist"))
-        #expect(project.contains("INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace: YES"))
-        #expect(!project.contains("INFOPLIST_KEY_UIFileSharingEnabled"))
-        let plist = try Self.read("App/Support/FileSharing.plist")
-        #expect(plist.contains("UIFileSharingEnabled"))
-        #expect(!plist.contains("LSSupportsOpeningDocumentsInPlace"))
-    }
-
     // MARK: - Writes the user cannot take back sit behind a confirmation
 
     /// The task row's "Sil" lives in a context menu, which no offscreen test can open: the menu

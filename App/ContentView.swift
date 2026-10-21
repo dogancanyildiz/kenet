@@ -29,6 +29,13 @@ struct ContentView: View {
                 VaultInaccessibleView(store: store)
             case .main:
                 mainScreen
+                    .sheet(
+                        isPresented: Binding(
+                            get: { store.showsCloudMigration && store.isCloudMigrationAutomatic },
+                            set: { store.showsCloudMigration = $0 })
+                    ) {
+                        VaultCloudMigrationView(store: store)
+                    }
                     .safeAreaInset(edge: .top, spacing: 0) {
                         if showsEntryPointsTip {
                             InfoBand(

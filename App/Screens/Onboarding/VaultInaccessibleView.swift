@@ -9,16 +9,33 @@ struct VaultInaccessibleView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                InfoBand(
-                    kind: .warning,
-                    "Kayıtlı klasöre erişilemiyor.")
-                Text(
-                    "Kayıtlı klasör bulunamadı veya açılamıyor. Diski bağlayıp yeniden dene ya da başka bir klasör seç."
-                )
-                .font(.ink.byline)
-                .foregroundStyle(Color.ink.text)
+                if store.vaultKind == .icloud, store.isCloudAvailable {
+                    // iCloud answers, but the Kenet folder is gone or unreadable.
+                    InfoBand(kind: .warning, "iCloud’daki kasaya erişilemiyor.")
+                    Text(
+                        "iCloud Drive’daki Kenet klasörü bulunamadı veya açılamıyor. Klasörü geri koyup yeniden dene ya da başka bir seçenek seç."
+                    )
+                    .font(.ink.byline)
+                    .foregroundStyle(Color.ink.text)
+                } else if store.vaultKind == .icloud {
+                    InfoBand(kind: .warning, "iCloud kapalı")
+                    Text("iCloud’a erişilemiyor. Hesabını ve iCloud Drive’ı kontrol edip yeniden dene. Kasan korunur.")
+                        .font(.ink.byline)
+                        .foregroundStyle(Color.ink.text)
+                } else {
+                    InfoBand(kind: .warning, "Kayıtlı klasöre erişilemiyor.")
+                    Text(
+                        "Kayıtlı klasör bulunamadı veya açılamıyor. Diski bağlayıp yeniden dene ya da başka bir klasör seç."
+                    )
+                    .font(.ink.byline)
+                    .foregroundStyle(Color.ink.text)
+                }
                 Button("Yeniden dene") { Task { await store.retryVaultAccess() } }
                     .buttonStyle(InkPrimaryButtonStyle())
+                if store.vaultKind == .icloud {
+                    Button("Bu cihazda devam et") { Task { await store.continueLocally() } }
+                        .buttonStyle(InkTextButtonStyle())
+                }
                 Button("Başka klasör seç") { choosesFolder = true }
                     .buttonStyle(InkTextButtonStyle())
                 if let error = store.errorText {

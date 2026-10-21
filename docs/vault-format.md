@@ -63,7 +63,7 @@ mindmap
 | Konu | Kural |
 |---|---|
 | Sözdizimi | Obsidian uyumludur: YAML frontmatter, `[[wikilink]]`, `#etiket`, blok kimliği, Obsidian Tasks görev biçimi. |
-| Kasa konumu | Kasa bugün uygulamanın yerel klasöründe ya da kullanıcının seçtiği klasörde durur. Uygulamanın kendi iCloud klasörü planlıdır ve henüz yoktur. |
+| Kasa konumu | Kasa uygulamanın yerel klasöründe, uygulamanın iCloud klasöründe (iCloud Drive → Kenet → Kenet) ya da kullanıcının seçtiği klasörde durur. Kasa içeriği üç konumda aynıdır. |
 | Obsidian ile açma | Kullanıcı Mac'te kasayı Obsidian ile kasa olarak açabilir. |
 
 ## Dil katmanları

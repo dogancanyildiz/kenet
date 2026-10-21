@@ -3581,6 +3581,54 @@
         }
       }
     },
+    "Bu cihazda" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bu cihazda"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "On this device"
+          }
+        }
+      }
+    },
+    "Bu cihazda devam et" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bu cihazda devam et"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continue on this device"
+          }
+        }
+      }
+    },
+    "Bu cihazda kal" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bu cihazda kal"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stay on this device"
+          }
+        }
+      }
+    },
     "Bu cümleler Siri'ye söylenir." : {
       "localizations" : {
         "en" : {
@@ -7749,6 +7797,134 @@
         }
       }
     },
+    "iCloud" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud"
+          }
+        }
+      }
+    },
+    "iCloud Drive’daki Kenet klasörü bulunamadı veya açılamıyor. Klasörü geri koyup yeniden dene ya da başka bir seçenek seç." : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud Drive’daki Kenet klasörü bulunamadı veya açılamıyor. Klasörü geri koyup yeniden dene ya da başka bir seçenek seç."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Kenet folder in iCloud Drive is missing or can’t be opened. Put the folder back and try again, or choose another option."
+          }
+        }
+      }
+    },
+    "iCloud kapalı" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud kapalı"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud is unavailable"
+          }
+        }
+      }
+    },
+    "iCloud’a erişilemiyor. Hesabını ve iCloud Drive’ı kontrol edip yeniden dene. Kasan korunur." : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud’a erişilemiyor. Hesabını ve iCloud Drive’ı kontrol edip yeniden dene. Kasan korunur."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud is unavailable. Check your account and iCloud Drive, then try again. Your vault is preserved."
+          }
+        }
+      }
+    },
+    "iCloud’a taşı" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud’a taşı"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Move to iCloud"
+          }
+        }
+      }
+    },
+    "iCloud’da sakla" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud’da sakla"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Store in iCloud"
+          }
+        }
+      }
+    },
+    "iCloud’daki kasa açılıyor…" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud’daki kasa açılıyor…"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opening the vault in iCloud…"
+          }
+        }
+      }
+    },
+    "iCloud’daki kasaya erişilemiyor." : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud’daki kasaya erişilemiyor."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The vault in iCloud can’t be opened."
+          }
+        }
+      }
+    },
     "İleri" : {
       "localizations" : {
         "en" : {
@@ -7841,6 +8017,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "İndekslenecek dosya: %lld"
+          }
+        }
+      }
+    },
+    "iPhone ve Mac aynı klasörü paylaşır." : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iPhone ve Mac aynı klasörü paylaşır."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iPhone and Mac share the same folder."
           }
         }
       }
@@ -8213,6 +8405,54 @@
         }
       }
     },
+    "Kasa iCloud’a kopyalandı. Yerel kasa bu cihazda korundu." : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kasa iCloud’a kopyalandı. Yerel kasa bu cihazda korundu."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The vault was copied to iCloud. The local vault is preserved on this device."
+          }
+        }
+      }
+    },
+    "Kasa iCloud’a kopyalanıyor…" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kasa iCloud’a kopyalanıyor…"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copying vault to iCloud…"
+          }
+        }
+      }
+    },
+    "Kasa iCloud’dan iniyor. Biraz sonra yeniden dene." : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kasa iCloud’dan iniyor. Biraz sonra yeniden dene."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The vault is downloading from iCloud. Try again in a moment."
+          }
+        }
+      }
+    },
     "Kasa kullanılamıyor. Uygulamadan kasayı kontrol et." : {
       "localizations" : {
         "en" : {
@@ -8309,6 +8549,22 @@
         }
       }
     },
+    "Kasan iCloud’a kopyalanır; bu cihazdaki dosyalar korunur. iPhone ve Mac aynı klasörü paylaşır." : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kasan iCloud’a kopyalanır; bu cihazdaki dosyalar korunur. iPhone ve Mac aynı klasörü paylaşır."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your vault will be copied to iCloud. Files on this device are preserved. iPhone and Mac share the same folder."
+          }
+        }
+      }
+    },
     "Kasaya erişilemiyor. Journal'da kasanı açıp yeniden dene." : {
       "localizations" : {
         "en" : {
@@ -8337,6 +8593,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Kasayı aç"
+          }
+        }
+      }
+    },
+    "Kasayı iCloud’a taşı?" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kasayı iCloud’a taşı?"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Move the vault to iCloud?"
           }
         }
       }
@@ -9409,6 +9681,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Konum önerisini kapat"
+          }
+        }
+      }
+    },
+    "Konum türü" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Konum türü"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Location type"
           }
         }
       }
@@ -10945,6 +11233,22 @@
         }
       }
     },
+    "Seçilen klasör" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seçilen klasör"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Selected folder"
+          }
+        }
+      }
+    },
     "Seçili" : {
       "localizations" : {
         "en" : {
@@ -12358,7 +12662,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Move to"
+            "value" : "Move"
           }
         },
         "tr" : {
@@ -12937,6 +13241,22 @@
         }
       }
     },
+    "Var olan kasa açıldı: %@. Yerel kasanın kopyası: %@. Kasalar birleştirilmedi." : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Var olan kasa açıldı: %@. Yerel kasanın kopyası: %@. Kasalar birleştirilmedi."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opened the existing vault: %@. Copy of the local vault: %@. Vaults were not merged."
+          }
+        }
+      }
+    },
     "Var olan klasörü seç" : {
       "localizations" : {
         "en" : {
@@ -13173,6 +13493,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Vazgeç"
+          }
+        }
+      }
+    },
+    "Vazgeç’e dokunursan kasa bu cihazda kalır; sonra Ayarlar’dan taşıyabilirsin." : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vazgeç’e dokunursan kasa bu cihazda kalır; sonra Ayarlar’dan taşıyabilirsin."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "If you tap Cancel, the vault stays on this device. You can move it later from Settings."
           }
         }
       }
@@ -13697,18 +14033,18 @@
         }
       }
     },
-    "Yeni kasa, Dosyalar’da iPhone’umda → Journal → Vault klasöründe oluşturulur." : {
+    "Yeni kasa, Dosyalar’da iPhone’umda → Kenet → Vault klasöründe oluşturulur." : {
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "A new vault is created in Files under On My iPhone → Kenet → Vault."
-          }
-        },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Yeni kasa, Dosyalar’da iPhone’umda → Kenet → Vault klasöründe oluşturulur."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The new vault is created in Files → On My iPhone → Kenet → Vault."
           }
         }
       }
@@ -13869,6 +14205,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Yeniden üret"
+          }
+        }
+      }
+    },
+    "Yerel kasa bu cihazın Belgeler → Vault klasöründe korundu." : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yerel kasa bu cihazın Belgeler → Vault klasöründe korundu."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The local vault is preserved in this device’s Documents → Vault folder."
           }
         }
       }

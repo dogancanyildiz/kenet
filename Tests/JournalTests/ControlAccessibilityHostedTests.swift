@@ -274,7 +274,7 @@
                 OnboardingView(store: context.store).dynamicTypeSize(.accessibility3),
                 size: CGSize(width: 500, height: 500))
             defer { mount.close() }
-            let create = String(localized: "Yeni kasa oluştur")
+            let create = String(localized: "Bu cihazda")
             guard await HostedControls.isAvailable(mount, until: { Self.button(create, mount) != nil }) else { return }
             #expect(HostedControls.nodes(in: mount).contains { $0.role == "AXScrollArea" })
             let location = String(localized: OnboardingCopy.newVaultLocation(for: .current))

@@ -64,7 +64,7 @@ final class IndexStore {
     private(set) var isWriting = false
     /// Vault is open and writable. Background refresh or an in-flight write does not clear this;
     /// those callers wait on the write queue instead of being rejected.
-    var canAddEvent: Bool { writer != nil && !isVaultReadOnly }
+    var canAddEvent: Bool { writer != nil && !isVaultReadOnly && !isMigratingCloud }
     private(set) var notice: String?
     private(set) var pendingSelection: URL?
     private(set) var unwatchedDirectoryCount = 0
@@ -157,6 +157,7 @@ final class IndexStore {
     }
 
     func start() async {
+        guard !isMigratingCloud else { return }
         // A second automatic start in the same session must not re-resolve into Documents/Vault.
         if isVaultInaccessible { return }
         if let vaultURL {
@@ -164,11 +165,13 @@ final class IndexStore {
             return
         }
         do {
+            if location.kind == .icloud { try await refreshCloudAvailability() }
             switch try location.resolve() {
             case .available(let url, let resolvedNotice):
                 notice = resolvedNotice
                 isVaultInaccessible = false
                 await open(url)
+                try await offerCloudMigrationAfterOpening()
             case .inaccessible:
                 enterInaccessibleState()
             }
@@ -178,6 +181,7 @@ final class IndexStore {
     /// Re-resolves the saved bookmark (or legacy Documents/Vault) without creating a new local vault.
     func retryVaultAccess() async {
         do {
+            if location.kind == .icloud { try await refreshCloudAvailability() }
             switch try location.resolveSavedVault() {
             case .available(let url, let resolvedNotice):
                 notice = resolvedNotice
@@ -197,11 +201,15 @@ final class IndexStore {
     /// Background callbacks must reopen security scope and finish indexing before any write.
     func prepareForIntent() async throws {
         guard !isVaultInaccessible else { throw VaultStoreError.staleTarget }
-        if vaultURL == nil { await open(try location.existingVaultForIntent()) }
+        if vaultURL == nil {
+            if location.kind == .icloud { try await refreshCloudAvailability() }
+            await open(try location.existingVaultForIntent())
+        }
         try await prepareForBackground()
     }
 
     func prepareForBackground() async throws {
+        if location.kind == .icloud { try await refreshCloudAvailability() }
         guard !isVaultInaccessible else { throw VaultStoreError.staleTarget }
         if let vaultURL {
             try location.resumeBackgroundAccess(to: vaultURL)
@@ -238,6 +246,7 @@ final class IndexStore {
     }
 
     func select(_ url: URL) async {
+        guard !isMigratingCloud else { return }
         if isProcessing || refreshInFlight {
             pendingSelection = url
             return
@@ -251,6 +260,7 @@ final class IndexStore {
     }
 
     func setForeground(_ active: Bool) {
+        if active { refreshCloudOnActivation() }
         foreground = active
         watcher?.setForeground(active)
     }
@@ -1135,6 +1145,15 @@ final class IndexStore {
     /// Test seam: runs once recognition has loaded, before it checks that its vault is still open.
     /// Throwing stands for a failed reload.
     @ObservationIgnored var testingRecognitionReloadDidLoad: (@MainActor () async throws -> Void)?
+    // MARK: - iCloud vault state
+
+    private(set) var isCloudAvailable = false
+    private(set) var isMigratingCloud = false
+    /// Waiting for another device's vault to download before it opens.
+    private(set) var isOpeningCloudVault = false
+    var showsCloudMigration = false
+    private(set) var isCloudMigrationAutomatic = false
+
 }
 
 /// Place documents, each kept with the file signature taken before it was read. A file changed
@@ -1225,7 +1244,10 @@ extension IndexStore {
 
 extension IndexStore {
     /// The sync service that holds the open vault (`SyncedFolderKind`); `nil` for a local folder.
-    var syncedFolder: SyncedFolderKind? { vaultURL.flatMap(SyncedFolderKind.detect(url:)) }
+    var syncedFolder: SyncedFolderKind? {
+        if location.kind == .icloud, vaultURL != nil { return .iCloudDrive }
+        return vaultURL.flatMap(SyncedFolderKind.detect(url:))
+    }
 
     /// Copies the vault keeps beside their originals, for Diagnostics: day copies under `journal/`,
     /// read from disk because they are never indexed, then entity copies from the index. Nothing
@@ -1450,4 +1472,104 @@ private enum ClosedIndexAnswer<Value> {
     case empty(Value)
     /// `staleTarget`: the query has no empty answer.
     case stale
+}
+
+// MARK: - iCloud vault location
+
+extension IndexStore {
+    var vaultKind: VaultLocation.Kind { location.kind }
+    var retainedLocalVault: Bool { location.retainedLocalVault }
+
+    private func offerCloudMigrationAfterOpening() async throws {
+        guard location.canOfferCloudMigration, let opened = vaultURL, lastUpdated != nil,
+            !requiresOnboarding
+        else { return }
+        try await refreshCloudAvailability()
+        guard vaultURL == opened, location.kind == .local, !isMigratingCloud else { return }
+        try await location.recoverInterruptedMigration()
+        if location.shouldOfferCloudMigration {
+            isCloudMigrationAutomatic = true
+            showsCloudMigration = true
+        }
+    }
+
+    func requestCloudMigration() {
+        isCloudMigrationAutomatic = false
+        showsCloudMigration = true
+    }
+
+    func refreshCloudAvailability() async throws {
+        try await location.refreshCloudAvailability()
+        isCloudAvailable = location.cloudContainerURL != nil
+        if location.kind == .icloud, !isCloudAvailable, vaultURL != nil {
+            enterInaccessibleState()
+        }
+    }
+
+    private func refreshCloudOnActivation() {
+        guard location.kind == .icloud else { return }
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            do { try await refreshCloudAvailability() } catch { report(error) }
+        }
+    }
+
+    func continueLocally() async {
+        guard !isMigratingCloud else { return }
+        // A failed move leaves only this device's own temporary copy behind; it goes now.
+        // A failed removal stays recorded for the next move and never blocks staying local.
+        do { try await location.recoverInterruptedMigration() } catch { report(error) }
+        do {
+            location.declineCloudMigration()
+            if vaultURL == location.localRoot, !isVaultInaccessible {
+                showsCloudMigration = false
+                return
+            }
+            let url = try location.useLocalVault()
+            showsCloudMigration = false
+            isVaultInaccessible = false
+            await open(url)
+        } catch { report(error) }
+    }
+
+    func createCloudVault() async {
+        guard !isMigratingCloud, !isOpeningCloudVault else { return }
+        isOpeningCloudVault = true
+        defer { isOpeningCloudVault = false }
+        do {
+            try await refreshCloudAvailability()
+            try await location.recoverInterruptedMigration()
+            let root = try await location.useCloudVault()
+            isVaultInaccessible = false
+            await open(root)
+        } catch { report(error) }
+    }
+
+    func migrateVaultToCloud(deviceName: String, migration: VaultMigration = VaultMigration()) async {
+        guard !isMigratingCloud, location.kind == .local else { return }
+        isMigratingCloud = true
+        defer { isMigratingCloud = false }
+        do {
+            try await withWriteSlot {
+                await waitWhileRefreshInFlight()
+                isProcessing = true
+                defer { isProcessing = false }
+                try await refreshCloudAvailability()
+                try await location.recoverInterruptedMigration()
+                let result = try await location.migrateToCloud(deviceName: deviceName, migration: migration)
+                showsCloudMigration = false
+                await open(result.opened)
+                if result.openedExistingVault {
+                    let opened = result.opened.path
+                    let copied = result.copied.path
+                    notice = String(
+                        localized:
+                            "Var olan kasa açıldı: \(opened). Yerel kasanın kopyası: \(copied). Kasalar birleştirilmedi."
+                    )
+                } else {
+                    notice = String(localized: "Kasa iCloud’a kopyalandı. Yerel kasa bu cihazda korundu.")
+                }
+            }
+        } catch { report(error) }
+    }
 }

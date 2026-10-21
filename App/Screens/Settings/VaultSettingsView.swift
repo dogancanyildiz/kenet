@@ -30,6 +30,26 @@ struct VaultSettingsView: View {
             Section {
                 SectionHeader("Konum")
                     .inkListRow()
+                LabeledContent("Konum türü") {
+                    switch store.vaultKind {
+                    case .icloud: Text("iCloud")
+                    case .local: Text("Bu cihazda")
+                    case .selected: Text("Seçilen klasör")
+                    }
+                }
+                .inkListRow()
+                if store.vaultKind == .local, store.isCloudAvailable {
+                    Button("iCloud’a taşı") { store.requestCloudMigration() }
+                        .buttonStyle(.borderless)
+                        .disabled(store.isProcessing || store.isMigratingCloud)
+                        .inkListRow()
+                }
+                if store.retainedLocalVault {
+                    Text("Yerel kasa bu cihazın Belgeler → Vault klasöründe korundu.")
+                        .font(.ink.meta)
+                        .foregroundStyle(Color.ink.secondaryText)
+                        .inkListRow()
+                }
                 if let path = VaultPathDisplay.text(
                     for: store.vaultURL, override: pathDisplayOverride)
                 {
@@ -135,6 +155,16 @@ struct VaultSettingsView: View {
         .inkPageNavigationTitle("Kasa")
         .inkPageScrollColumn()
         .inkPage()
+        .task {
+            do { try await store.refreshCloudAvailability() } catch { store.report(error) }
+        }
+        .sheet(
+            isPresented: Binding(
+                get: { store.showsCloudMigration && !store.isCloudMigrationAutomatic },
+                set: { store.showsCloudMigration = $0 })
+        ) {
+            VaultCloudMigrationView(store: store)
+        }
         .fileImporter(isPresented: $choosingFolder, allowedContentTypes: [.folder]) { result in
             switch result {
             case .success(let url): Task { await store.inspectSelection(url) }

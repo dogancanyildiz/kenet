@@ -12,7 +12,7 @@ extension VaultIndex {
             for path in try String.fetchAll(db, sql: "SELECT path FROM files ORDER BY path") {
                 let stem = path.hasSuffix(".md") ? String(path.dropLast(3)) : path
                 let basename = String(stem.split(separator: "/").last ?? Substring(stem))
-                if owners[comparisonKey(basename)] == nil { owners[comparisonKey(basename)] = path }
+                if owners[nameComparisonKey(basename)] == nil { owners[nameComparisonKey(basename)] = path }
             }
             let rows = try Row.fetchAll(
                 db,
@@ -27,7 +27,7 @@ extension VaultIndex {
                 if let current {
                     let stem = KnownEntity.defaultLinkTarget(for: current.file)
                     let linkTarget: String
-                    if owners[comparisonKey(stem)] == current.file {
+                    if owners[nameComparisonKey(stem)] == current.file {
                         linkTarget = stem
                     } else {
                         var path =

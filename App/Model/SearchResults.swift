@@ -36,20 +36,20 @@ enum SearchResults {
         query: String, entities: [EntitySummary], matches: [SearchResult],
         locale: Locale = .autoupdatingCurrent
     ) -> [SearchItem] {
-        let key = comparisonKey(query)
+        let key = NameCollision(query)
         let entityMatches = Set(matches.filter { $0.block == nil }.map(\.file))
         let names = entities.filter {
-            entityMatches.contains($0.id) || ([$0.name] + $0.aliases).contains { comparisonKey($0).hasPrefix(key) }
+            entityMatches.contains($0.id) || ([$0.name] + $0.aliases).contains { namePrefix($0, matches: key) }
         }.sorted {
-            let left = ([$0.name] + $0.aliases).contains { comparisonKey($0).hasPrefix(key) }
-            let right = ([$1.name] + $1.aliases).contains { comparisonKey($0).hasPrefix(key) }
+            let left = ([$0.name] + $0.aliases).contains { namePrefix($0, matches: key) }
+            let right = ([$1.name] + $1.aliases).contains { namePrefix($0, matches: key) }
             if left != right { return left }
             if $0.name != $1.name { return $0.name < $1.name }
             return $0.id < $1.id
         }
         let named = names.map { entity in
             let alias =
-                entity.aliases.first { comparisonKey($0).hasPrefix(key) }
+                entity.aliases.first { namePrefix($0, matches: key) }
                 ?? matches.first { $0.file == entity.id && $0.block == nil && $0.text != entity.name }?.text
             return SearchItem(
                 id: "entity:" + entity.id,
@@ -85,7 +85,16 @@ enum SearchResults {
         return SearchPreviewText.noteDisplayName(file)
     }
 
+    /// The vault's name key (`nameComparisonKey` in Core): `IŞIK` and `ışık` are one query.
     static func comparisonKey(_ text: String) -> String {
-        text.precomposedStringWithCanonicalMapping.lowercased()
+        nameComparisonKey(text)
+    }
+
+    /// Whether `text` starts with the query under either reading of the vault's name rule, as the
+    /// collision check reads names: the Turkish key (`IŞ` finds `Işık`, `DENİ` finds `Deniz`) or the
+    /// default lowercase mapping (`ian` still finds `Ian`).
+    static func namePrefix(_ text: String, matches query: NameCollision) -> Bool {
+        let name = NameCollision(text)
+        return name.key.hasPrefix(query.key) || name.lowercaseKey.hasPrefix(query.lowercaseKey)
     }
 }

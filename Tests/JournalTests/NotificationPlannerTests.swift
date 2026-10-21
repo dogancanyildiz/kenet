@@ -8,8 +8,14 @@ import VaultIndex
 
 struct NotificationPlannerTests {
     private let today = CalendarDate("2026-09-27")!
+    /// Content hidden is the default; the cases that read names turn content on.
+    private static let shown: NotificationPreferences = {
+        var preferences = NotificationPreferences()
+        preferences.hideContent = false
+        return preferences
+    }()
     private func plan(
-        _ vault: NotificationVault, preferences: NotificationPreferences = NotificationPreferences(),
+        _ vault: NotificationVault, preferences: NotificationPreferences = shown,
         now: Date = notificationDate(), people: [CadenceReminderPerson] = [],
         lastNotified: [String: CalendarDate] = [:]
     ) -> [NotificationRequest] {
@@ -121,6 +127,29 @@ struct NotificationPlannerTests {
         #expect(visibleGoals.body == String(localized: "Bugün bekleyen hedefler: \("Kitap, Su")"))
     }
 
+    /// Untouched preferences keep the lock screen generic: a single task is counted, goals and
+    /// people go unnamed, and nothing of the vault reaches a title or a body.
+    @Test func defaultPreferencesHideTaskTextGoalAndPeopleNames() throws {
+        var snapshot = try notificationSample()
+        snapshot.tasks = try notificationTasks("- [ ] private errand 📅 2026-09-27 ^a\n")
+        var settings = NotificationPreferences()
+        settings.peopleEnabled = true
+        let people = [cadencePerson("people/a.md", name: "Deniz", last: "2026-08-01", days: 7)]
+        let requests = plan(snapshot, preferences: settings, people: people)
+        let morning = try #require(requests.first { $0.id == "task-2026-09-27" })
+        #expect(morning.title == String(localized: "\(1) görev bugün"))
+        let goals = try #require(requests.first { $0.id == "goals-2026-09-27" })
+        #expect(goals.title == String(localized: "Günlük hedefler"))
+        #expect(goals.body == String(localized: "Bugün bekleyen hedefler var"))
+        let reminder = try #require(requests.first { $0.id == "people-2026-09-27" })
+        #expect(reminder.body == String(localized: "Görüşme zamanı gelen \(1) kişi var"))
+        for request in requests {
+            for secret in ["private errand", "Kitap", "Su", "Deniz"] {
+                #expect(!request.title.contains(secret) && !request.body.contains(secret), "\(request.id)")
+            }
+        }
+    }
+
     @Test func hideContentReplacesSingleTaskTextWithCount() throws {
         var snapshot = try notificationSample()
         snapshot.tasks = try notificationTasks("- [ ] private errand 📅 2026-09-27 ^a\n")
@@ -158,7 +187,7 @@ struct NotificationPlannerTests {
         let snapshot = try notificationSample()
         let now = notificationDate()
         let baseline = plan(snapshot, now: now)
-        var settings = NotificationPreferences()
+        var settings = Self.shown
         settings.peopleEnabled = false
         let people = [
             cadencePerson("people/Lale Mor.md", name: "Lale", last: "2026-08-01", days: 7),
@@ -176,7 +205,7 @@ struct NotificationPlannerTests {
         let snapshot = try notificationSample()
         let now = notificationDate()
         let baseline = plan(snapshot, now: now)
-        var settings = NotificationPreferences()
+        var settings = Self.shown
         settings.peopleEnabled = true
         let people = [
             cadencePerson("people/d.md", name: "Cem", last: "2026-09-19", days: 7),

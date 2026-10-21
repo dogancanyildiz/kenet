@@ -121,8 +121,11 @@ import VaultIndex
         #expect(await context.store.addTask(on: seventh, text: "yedinci gün işi", due: seventh))
         #expect(await context.store.addEvent(on: seventh, text: "Yedinci gün olayı", time: nil))
         let (service, now) = serviceAt("2026-09-27", context: context)
+        var preferences = NotificationPreferences()
+        preferences.hideContent = false
+        service.preferences = preferences
         await service.replanNow()
-        let expected = legacyPlan(try LegacyVault(context), now: now, preferences: NotificationPreferences())
+        let expected = legacyPlan(try LegacyVault(context), now: now, preferences: preferences)
         #expect(service.pending == expected)
         #expect(service.pending.first { $0.id == "task-\(seventh)" }?.title == "yedinci gün işi")
         #expect(!service.pending.contains { $0.id == "journal-\(seventh)" })
@@ -186,9 +189,16 @@ import VaultIndex
         return seen
     }
 
+    /// The by-hand checks read task text: content shown.
+    private static let shown: NotificationPreferences = {
+        var preferences = NotificationPreferences()
+        preferences.hideContent = false
+        return preferences
+    }()
+
     private func plan(
         _ store: IndexStore, on day: String = "", now: Date? = nil,
-        preferences: NotificationPreferences = NotificationPreferences()
+        preferences: NotificationPreferences = NotificationPlanQueryTests.shown
     ) async throws -> [NotificationRequest] {
         let now = now ?? notificationDate(day)
         let first = LocalDay.today(at: now, timeZone: notificationUTC)

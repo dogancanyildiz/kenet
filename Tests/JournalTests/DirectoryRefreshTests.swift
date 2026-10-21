@@ -108,6 +108,16 @@ struct DirectoryWatcherTests {
 
 @MainActor
 struct DirectoryRefreshTests {
+    /// Skipped paths of a notified directory are matched as the index matches its scope: by the
+    /// vault's name key, so `people/IŞIK` holds `people/Işık/a.md`.
+    @Test func notifiedDirectoryHoldsPathsByTheNameKey() {
+        #expect(pathIsInside("people/Işık/a.md", ["people/IŞIK"]))
+        #expect(pathIsInside("İSTANBUL/x.md", ["istanbul"]))
+        #expect(!pathIsInside("people/işık/a.md", ["people/IŞIK"]))
+        #expect(pathIsInside("people/x.md", [""]))
+        #expect(!pathIsInside("peoplex/a.md", ["people"]))
+    }
+
     @Test func directoryEventRescansOnlyThatDirectory() async throws {
         let temp = try testDirectory()
         defer { try? FileManager.default.removeItem(at: temp) }

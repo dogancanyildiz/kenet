@@ -1,1 +1,1 @@
-😀 DENİZ arıkan [[Deniz Arıkan|Deniz ARıKAN]] Çınaraltı Kafe Çınaraltı Kafe
+😀 [[Deniz Arıkan|DENİZ arıkan]] [[Deniz Arıkan|Deniz ARıKAN]] Çınaraltı Kafe Çınaraltı Kafe

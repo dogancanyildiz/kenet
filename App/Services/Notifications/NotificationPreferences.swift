@@ -18,8 +18,10 @@ struct NotificationPreferences: Codable, Equatable, Sendable {
     var goalTime = NotificationTime(hour: 20)
     var journalTime = NotificationTime(hour: 21)
     var peopleTime = NotificationTime(hour: 10)
-    /// When true, planned notifications omit task text, goal names and people names.
-    var hideContent = false
+    /// When true, planned notifications omit task text, goal names and people names. On until the
+    /// user turns content on; a stored choice is kept, and a record written before the field
+    /// existed reads as hidden.
+    var hideContent = true
     var isValid: Bool { taskTime.isValid && goalTime.isValid && journalTime.isValid && peopleTime.isValid }
 
     static let storageKey = "journal.notifications.v1"
@@ -53,7 +55,7 @@ struct NotificationPreferences: Codable, Equatable, Sendable {
             try container.decodeIfPresent(NotificationTime.self, forKey: .journalTime) ?? NotificationTime(hour: 21)
         peopleTime =
             try container.decodeIfPresent(NotificationTime.self, forKey: .peopleTime) ?? NotificationTime(hour: 10)
-        hideContent = try container.decodeIfPresent(Bool.self, forKey: .hideContent) ?? false
+        hideContent = try container.decodeIfPresent(Bool.self, forKey: .hideContent) ?? true
     }
 }
 

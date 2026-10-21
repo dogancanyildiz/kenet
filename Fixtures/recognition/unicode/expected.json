@@ -3,6 +3,20 @@
     {
       "line": 0,
       "byteRange": [
+        5,
+        19
+      ],
+      "spelling": "DENİZ arıkan",
+      "candidates": [
+        "people/Deniz Arıkan.md"
+      ],
+      "isAmbiguous": false,
+      "isCaseMismatch": false,
+      "isCertain": true
+    },
+    {
+      "line": 0,
+      "byteRange": [
         20,
         33
       ],

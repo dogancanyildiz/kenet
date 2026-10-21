@@ -19,13 +19,14 @@ extension VaultStore {
             }
             var keys = try self.index.reservedGoalKeys()
             // External edits can precede the watcher. Reserve current disk keys and display names too.
+            let collision = NameCollision(name)
             for path in try self.markdownPaths() {
                 let document = RawDocument(bytes: try self.readFile(self.checkedURL(path)))
                 guard case .parsed(let fields) = document.frontmatter else { continue }
                 guard case .scalar(let type) = fields.field(named: "type")?.value, type.text == "goal" else { continue }
                 if case .scalar(let key) = fields.field(named: "key")?.value { keys.insert(key.text) }
                 if case .scalar(let other) = fields.field(named: "name")?.value,
-                    storeComparisonKey(other.text) == storeComparisonKey(name)
+                    collision.matches(other.text)
                 {
                     throw VaultStoreError.nameTaken
                 }
@@ -59,10 +60,10 @@ extension VaultStore {
             separatedBy: CharacterSet(charactersIn: "abcdefghijklmnopqrstuvwxyz0123456789").inverted)
         let slug = pieces.filter { !$0.isEmpty }.joined(separator: "-")
         let base = slug.isEmpty ? "goal" : slug
-        let taken = Set(keys.map(storeComparisonKey))
+        let taken = keys.map(NameCollision.init)
         var candidate = base
         var suffix = 2
-        while taken.contains(candidate) {
+        while taken.contains(where: { $0.matches(candidate) }) {
             candidate = base + "-" + String(suffix)
             suffix += 1
         }

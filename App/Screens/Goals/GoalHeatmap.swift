@@ -78,6 +78,8 @@ struct GoalHeatmap: View {
     let goal: GoalDefinition
     let logs: [GoalLog]
     let today: CalendarDate
+    /// Days a spent chain day covered (``GoalStatus/graceSpentDays``): drawn with the chain-day mark.
+    var graceSpentDays: Set<CalendarDate> = []
     let select: (CalendarDate) -> Void
 
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
@@ -120,7 +122,7 @@ struct GoalHeatmap: View {
                         }
                     }
                 }
-                legend
+                legend(showsGrace: GraceDayPresentation.showsLegend(days: weeks.flatMap { $0 }, spent: graceSpentDays))
             }
             .frame(minWidth: max(availableWidth, 1), alignment: .leading)
         }
@@ -208,7 +210,8 @@ struct GoalHeatmap: View {
     {
         let isFuture = day > today
         let mark = marks[day] ?? .none
-        let kind: HeatmapCellKind = isFuture ? .future : mark.heatmapKind
+        let isSpent = !isFuture && graceSpentDays.contains(day)
+        let kind: HeatmapCellKind = isFuture ? .future : GraceDayPresentation.kind(mark: mark, isSpent: isSpent)
         let visual = GoalHeatmapMetrics.displaySize(cellSize: cellSize)
         let tap = GoalHeatmapMetrics.tapSize(cellSize: cellSize)
         return Button {
@@ -218,7 +221,7 @@ struct GoalHeatmap: View {
                 kind: kind,
                 size: visual,
                 isToday: day == today,
-                accessibilityValue: Text(mark.title),
+                accessibilityValue: Text(GraceDayPresentation.title(mark: mark, isSpent: isSpent)),
                 accessibilityLabel: isFuture
                     ? nil
                     : Text(LocalDay.instant(for: day), format: .dateTime.day().month().year())
@@ -235,33 +238,43 @@ struct GoalHeatmap: View {
                 : Text(LocalDay.instant(for: day), format: .dateTime.day().month().year()))
     }
 
-    private var legend: some View {
+    /// The kinds a goal's heatmap can draw. The chain-day item comes only while a covered day is
+    /// in view, on a line of its own: the row of four is as wide as the narrowest page allows.
+    private func legend(showsGrace: Bool) -> some View {
         let marks: [GoalDayMark] =
             goal.period == .day ? [.none, .partial, .full, .forgiven] : [.none, .partial, .full]
         return Group {
             if dynamicTypeSize.isAccessibilitySize {
                 VStack(alignment: .leading, spacing: 8) {
                     ForEach(marks, id: \.rawValue) { mark in
-                        legendItem(mark)
+                        legendItem(mark.heatmapKind, title: mark.title)
                     }
+                    if showsGrace { graceLegendItem }
                 }
             } else {
-                HStack(spacing: 12) {
-                    ForEach(marks, id: \.rawValue) { mark in
-                        legendItem(mark)
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(spacing: 12) {
+                        ForEach(marks, id: \.rawValue) { mark in
+                            legendItem(mark.heatmapKind, title: mark.title)
+                        }
                     }
+                    if showsGrace { graceLegendItem }
                 }
             }
         }
         .accessibilityElement(children: .combine)
     }
 
-    private func legendItem(_ mark: GoalDayMark) -> some View {
+    private var graceLegendItem: some View {
+        legendItem(.graceSpent, title: "Zincir günü")
+    }
+
+    private func legendItem(_ kind: HeatmapCellKind, title: LocalizedStringKey) -> some View {
         HStack(spacing: 4) {
             HeatmapCell(
-                kind: mark.heatmapKind, size: legendMarkSize, accessibilityValue: Text(mark.title),
-                accessibilityLabel: Text(mark.title))
-            Text(mark.title)
+                kind: kind, size: legendMarkSize, accessibilityValue: Text(title),
+                accessibilityLabel: Text(title))
+            Text(title)
                 .font(.ink.meta)
                 .foregroundStyle(Color.ink.secondaryText)
                 .fixedSize(horizontal: true, vertical: false)

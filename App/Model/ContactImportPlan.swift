@@ -1,4 +1,5 @@
 import Foundation
+import VaultFormat
 
 /// The only data that leaves the system contact picker: a display name and an optional nickname.
 struct ContactName: Equatable, Sendable {
@@ -59,10 +60,23 @@ struct ContactImportPlan: Equatable, Sendable {
 
     var isEmpty: Bool { toCreate.isEmpty && alreadyExists.isEmpty && invalid.isEmpty }
 
-    /// Same key as the store's filename collision check (`storeComparisonKey` in Core): NFC and
-    /// locale-independent lowercase.
-    static func comparisonKey(_ text: String) -> String {
-        text.precomposedStringWithCanonicalMapping.lowercased().precomposedStringWithCanonicalMapping
+    /// Names compared by the store's own collision rule (`NameCollision` in Core): the Turkish
+    /// key (`DENİZ` is `Deniz`) or the default lowercase mapping (`SELIN` is `Selin`) makes two
+    /// names one, so the plan never offers a name the store refuses as taken.
+    struct NameSet {
+        private var keys = Set<String>()
+        private var lowercaseKeys = Set<String>()
+
+        mutating func insert(_ text: String) {
+            let name = NameCollision(text)
+            keys.insert(name.key)
+            lowercaseKeys.insert(name.lowercaseKey)
+        }
+
+        func contains(_ text: String) -> Bool {
+            let name = NameCollision(text)
+            return keys.contains(name.key) || lowercaseKeys.contains(name.lowercaseKey)
+        }
     }
 
     /// The visible name and the filename the store would derive from it, or `nil` when
@@ -98,25 +112,25 @@ struct ContactImportPlan: Equatable, Sendable {
     }
 
     static func build(selected: [ContactName], existingEntities: [ExistingEntityInfo]) -> ContactImportPlan {
-        var taken = Set<String>()
+        var taken = NameSet()
         for entity in existingEntities {
             for text in [entity.name] + entity.aliases + [entity.fileStem ?? ""] where !text.isEmpty {
-                taken.insert(comparisonKey(text))
+                taken.insert(text)
             }
         }
 
         // A nickname must not shadow any selected name, wherever that name stands in the selection.
-        var selectedNameKeys = Set<String>()
+        var selectedNames = NameSet()
         for contact in selected {
             guard let valid = validatedName(contact.name) else { continue }
-            selectedNameKeys.insert(comparisonKey(valid.name))
-            selectedNameKeys.insert(comparisonKey(valid.fileStem))
+            selectedNames.insert(valid.name)
+            selectedNames.insert(valid.fileStem)
         }
 
         var toCreate: [Item] = []
         var alreadyExists: [SkippedItem] = []
         var invalid: [InvalidItem] = []
-        var planned = Set<String>()
+        var planned = NameSet()
 
         for (index, contact) in selected.enumerated() {
             guard let valid = validatedName(contact.name) else {
@@ -124,23 +138,22 @@ struct ContactImportPlan: Equatable, Sendable {
                     InvalidItem(id: index, name: contact.name.trimmingCharacters(in: .whitespacesAndNewlines)))
                 continue
             }
-            let keys = [comparisonKey(valid.name), comparisonKey(valid.fileStem)]
-            if keys.contains(where: taken.contains) {
+            let names = [valid.name, valid.fileStem]
+            if names.contains(where: taken.contains) {
                 alreadyExists.append(SkippedItem(id: index, name: valid.name, reason: .alreadyExists))
                 continue
             }
-            if keys.contains(where: planned.contains) {
+            if names.contains(where: planned.contains) {
                 alreadyExists.append(SkippedItem(id: index, name: valid.name, reason: .duplicateInSelection))
                 continue
             }
-            planned.formUnion(keys)
+            for name in names { planned.insert(name) }
 
             var aliases: [String] = []
             if let nickname = contact.nickname.flatMap(displayText) {
-                let key = comparisonKey(nickname)
-                if !taken.contains(key), !planned.contains(key), !selectedNameKeys.contains(key) {
+                if !taken.contains(nickname), !planned.contains(nickname), !selectedNames.contains(nickname) {
                     aliases.append(nickname)
-                    planned.insert(key)
+                    planned.insert(nickname)
                 }
             }
             toCreate.append(Item(id: index, name: valid.name, aliases: aliases))

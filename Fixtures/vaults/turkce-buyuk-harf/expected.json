@@ -1,0 +1,96 @@
+{
+  "keys": [
+    { "text": "DENİZ", "key": "deniz" },
+    { "text": "DENİZ", "key": "deniz" },
+    { "text": "IŞIK", "key": "ışık" },
+    { "text": "Işık", "key": "ışık" },
+    { "text": "işık", "key": "işık" },
+    { "text": "İstanbul", "key": "istanbul" },
+    { "text": "i̇stanbul", "key": "istanbul" },
+    { "text": "ISTANBUL", "key": "ıstanbul" },
+    { "text": "Ian", "key": "ıan" },
+    { "text": "ÇAĞRI", "key": "çağrı" },
+    { "text": "ÇAĞRI", "key": "çağrı" },
+    { "text": "İĞNE", "key": "iğne" }
+  ],
+  "files": [
+    "journal/2026-10-05.md",
+    "people/Deniz.md",
+    "people/Ian.md",
+    "people/Işık.md",
+    "places/İstanbul.md"
+  ],
+  "entities": [
+    { "file": "people/Deniz.md", "comparisonKey": "deniz" },
+    { "file": "people/Ian.md", "comparisonKey": "ıan" },
+    { "file": "people/Işık.md", "comparisonKey": "ışık" },
+    { "file": "places/İstanbul.md", "comparisonKey": "istanbul" }
+  ],
+  "aliases": [
+    { "file": "people/Işık.md", "comparisonKey": "ırmak" }
+  ],
+  "links": [
+    { "line": 7, "target": "DENİZ", "targetKey": "deniz", "resolvedFile": "people/Deniz.md" },
+    { "line": 8, "target": "IŞIK", "targetKey": "ışık", "resolvedFile": "people/Işık.md" },
+    { "line": 9, "target": "ışık", "targetKey": "ışık", "resolvedFile": "people/Işık.md" },
+    { "line": 9, "target": "işık", "targetKey": "işık", "resolvedFile": null },
+    { "line": 10, "target": "İSTANBUL", "targetKey": "istanbul", "resolvedFile": "places/İstanbul.md" },
+    { "line": 10, "target": "istanbul", "targetKey": "istanbul", "resolvedFile": "places/İstanbul.md" },
+    { "line": 10, "target": "ISTANBUL", "targetKey": "ıstanbul", "resolvedFile": null },
+    { "line": 11, "target": "i̇stanbul", "targetKey": "istanbul", "resolvedFile": "places/İstanbul.md" },
+    { "line": 12, "target": "IAN", "targetKey": "ıan", "resolvedFile": "people/Ian.md" },
+    { "line": 12, "target": "ian", "targetKey": "ian", "resolvedFile": null }
+  ],
+  "named": [
+    { "name": "DENİZ", "files": ["people/Deniz.md"] },
+    { "name": "IŞIK", "files": ["people/Işık.md"] },
+    { "name": "işık", "files": [] },
+    { "name": "IRMAK", "files": ["people/Işık.md"] },
+    { "name": "irmak", "files": [] },
+    { "name": "istanbul", "files": ["places/İstanbul.md"] },
+    { "name": "ISTANBUL", "files": [] },
+    { "name": "ian", "files": [] }
+  ],
+  "mentions": [
+    {
+      "entity": "people/Deniz.md",
+      "mentions": [
+        { "line": 12, "byteRange": [8, 14], "spelling": "DENİZ", "isCaseMismatch": false }
+      ]
+    },
+    {
+      "entity": "people/Ian.md",
+      "mentions": []
+    },
+    {
+      "entity": "people/Işık.md",
+      "mentions": [
+        { "line": 12, "byteRange": [19, 24], "spelling": "IŞIK", "isCaseMismatch": false },
+        { "line": 13, "byteRange": [8, 13], "spelling": "IRMAK", "isCaseMismatch": false }
+      ]
+    },
+    {
+      "entity": "places/İstanbul.md",
+      "mentions": [
+        { "line": 12, "byteRange": [25, 34], "spelling": "İSTANBUL", "isCaseMismatch": false }
+      ]
+    }
+  ],
+  "creations": [
+    { "kind": "person", "name": "DENİZ", "result": "nameTaken" },
+    { "kind": "person", "name": "ışık", "result": "nameTaken" },
+    { "kind": "place", "name": "istanbul", "result": "nameTaken" },
+    { "kind": "person", "name": "ian", "result": "nameTaken" },
+    { "kind": "person", "name": "İşık", "result": "people/İşık.md" },
+    { "kind": "place", "name": "ISTANBUL", "result": "places/ISTANBUL.md" }
+  ],
+  "renames": [
+    { "from": "people/Ian.md", "to": "DENİZ", "result": "nameTaken" },
+    { "from": "people/Ian.md", "to": "IŞIK", "result": "nameTaken" },
+    { "from": "people/Deniz.md", "to": "İpek", "result": "people/İpek.md" }
+  ],
+  "placeholders": [
+    { "placeholder": "people/.DENİZ KAYA.md.icloud", "kind": "person", "name": "Deniz Kaya", "awaiting": "people/DENİZ KAYA.md" },
+    { "placeholder": "people/.SELIN KAYA.md.icloud", "kind": "person", "name": "Selin Kaya", "awaiting": "people/SELIN KAYA.md" }
+  ]
+}

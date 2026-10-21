@@ -58,7 +58,7 @@ final class GoalDefinitionModel {
     private(set) var errorText: String?
     /// The other goals' names, compared as the name check compares them, as the index last listed
     /// them (``load()``); nil until then, and nothing is written while they are unknown.
-    private var takenNames: Set<String>?
+    private var takenNames: [NameCollision]?
     /// The last read of the names failed; its message is the one in `errorText`.
     private var loadFailed = false
     var canEdit: Bool { root != nil && root == store.vaultURL && !isWriting && store.canAddEvent }
@@ -92,11 +92,8 @@ final class GoalDefinitionModel {
             errorText = nil
             loadFailed = false
         }
-        takenNames = Set(rows.map(\.definition).filter { $0.id != goal.id }.map { Self.comparisonName($0.name) })
-    }
-
-    private static func comparisonName(_ name: String) -> String {
-        name.precomposedStringWithCanonicalMapping.lowercased()
+        // The store's goal name rule (`NameCollision`): `KİTAP` and `Kitap`, `SPOR` and `Spor` are one name.
+        takenNames = rows.map(\.definition).filter { $0.id != goal.id }.map { NameCollision($0.name) }
     }
 
     private enum Check {
@@ -112,7 +109,7 @@ final class GoalDefinitionModel {
             guard field == "unit" || !clean.isEmpty,
                 !clean.unicodeScalars.contains(where: CharacterSet.controlCharacters.contains)
             else { return .invalid }
-            if field == "name", takenNames?.contains(Self.comparisonName(clean)) == true {
+            if field == "name", takenNames?.contains(where: { $0.matches(clean) }) == true {
                 return .nameTaken
             }
             return .valid(.text(clean), clean: clean)

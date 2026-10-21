@@ -1,3 +1,5 @@
+import VaultFormat
+
 /// A calendar participant as the caller read it, before any vault lookup.
 public struct Attendee: Equatable, Sendable {
     /// The display name the calendar holds; it can be blank or an address.
@@ -49,7 +51,7 @@ public enum AttendeeMatching {
         var seen: [String] = []
         for attendee in attendees where !attendee.isCurrentUser {
             let name = trimmed(attendee.name)
-            let key = name.lowercased()
+            let key = nameComparisonFold(name)
             guard !name.isEmpty, !name.contains("@"), !seen.contains(key) else { continue }
             seen.append(key)
             var files: Set<String> = []

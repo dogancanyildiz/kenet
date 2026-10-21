@@ -816,15 +816,39 @@
     "%lld görev bugün" : {
       "localizations" : {
         "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld tasks today"
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld task today"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld tasks today"
+                }
+              }
+            }
           }
         },
         "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld görev bugün"
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld görev bugün"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld görev bugün"
+                }
+              }
+            }
           }
         }
       }
@@ -1449,6 +1473,34 @@
         }
       }
     },
+    "%lld zincir günü" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld streak save"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld streak saves"
+                }
+              }
+            }
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld zincir günü"
+          }
+        }
+      }
+    },
     "%lld. hafta" : {
       "localizations" : {
         "tr" : {
@@ -1957,22 +2009,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Affedildi"
-          }
-        }
-      }
-    },
-    "Afiş, bildirim merkezi ve kilit ekranında görev metni, hedef adları ve kişi adları gösterilmez." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Task text, goal names, and people names are hidden on banners, Notification Center, and the lock screen."
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Afiş, bildirim merkezi ve kilit ekranında görev metni, hedef adları ve kişi adları gösterilmez."
           }
         }
       }
@@ -2857,6 +2893,22 @@
         }
       }
     },
+    "Bildirim içeriği" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notification content"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bildirim içeriği"
+          }
+        }
+      }
+    },
     "Bildirim izin durumu okunamadı." : {
       "localizations" : {
         "en" : {
@@ -2937,6 +2989,22 @@
         }
       }
     },
+    "Bildirimde içeriği göster" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show notification content"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bildirimde içeriği göster"
+          }
+        }
+      }
+    },
     "Bildirimler" : {
       "localizations" : {
         "en" : {
@@ -2981,22 +3049,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bildirimler sessiz olarak teslim edilir."
-          }
-        }
-      }
-    },
-    "Bildirimlerde içeriği gizle" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hide notification content"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bildirimlerde içeriği gizle"
           }
         }
       }
@@ -7969,6 +8021,22 @@
         }
       }
     },
+    "Kapalıyken afiş, bildirim merkezi ve kilit ekranı yalnız sayı ve genel başlık gösterir: görev metni, hedef adları ve kişi adları görünmez." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "When off, banners, Notification Center, and the lock screen show only counts and general titles: no task text, goal names, or people names."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kapalıyken afiş, bildirim merkezi ve kilit ekranı yalnız sayı ve genel başlık gösterir: görev metni, hedef adları ve kişi adları görünmez."
+          }
+        }
+      }
+    },
     "Kapat" : {
       "localizations" : {
         "en" : {
@@ -8845,6 +8913,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Kısmi katkı, affedildi"
+          }
+        }
+      }
+    },
+    "Kısmi katkı, zincir günüyle korundu" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Partial contribution, covered by a streak save"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kısmi katkı, zincir günüyle korundu"
           }
         }
       }
@@ -13945,6 +14029,54 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "zincir %@"
+          }
+        }
+      }
+    },
+    "Zincir günü" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Streak save"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zincir günü"
+          }
+        }
+      }
+    },
+    "Zincir günüyle korundu" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Covered by a streak save"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zincir günüyle korundu"
+          }
+        }
+      }
+    },
+    "Zincirdeki her 7 yapılmış gün 1 zincir günü kazandırır; kaçırılan gün zincir günüyle korunur. En çok 3." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Every 7 done days in a streak earn 1 streak save; a missed day is covered by a streak save. Up to 3."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zincirdeki her 7 yapılmış gün 1 zincir günü kazandırır; kaçırılan gün zincir günüyle korunur. En çok 3."
           }
         }
       }

@@ -616,6 +616,7 @@ mindmap
       InkCalendarRow
       TaskBox
       GoalRing
+      GraceDayBadge
       InkLinkedText
     Seçim ve eylem
       InkHeaderAction
@@ -654,6 +655,7 @@ mindmap
 | Kenar sütunlu satır: görev, hedef, olay ve takvim için tek bileşen | `MarginRow`, `InkTaskRow`, `InkGoalRow`, `InkEventRow`, `InkCalendarRow` | `App/Design/Components/MarginRow.swift`, `App/Design/Components/InkRows.swift` |
 | Görev kutusu | `TaskBox` | `App/Design/Components/TaskBox.swift` |
 | Hedef halkası | `GoalRing` | `App/Design/Components/GoalRing.swift` |
+| Zincir günü rozeti | `GraceDayBadge` | `App/Design/Components/GraceDayBadge.swift` |
 | Bağlantılı metin | `InkLinkedText`, `InkLinkStyle` | `App/Design/Components/InkLinkedText.swift`, `App/Design/Components/InkLinkStyle.swift` |
 | Hızlı giriş kapsülü | `QuickEntryCapsule` | `App/Design/Components/QuickEntryCapsule.swift` |
 | Sekme | `InkTabs` | `App/Design/Components/InkTabs.swift` |
@@ -702,8 +704,14 @@ Kutu `@ScaledMetric` ile büyür; dokunma alanı en az 44 pt kalır. Öncelik i�
 | Gelecek gün | `future` | Hücre boştur | Yok | Gizli |
 | Affedilen gün, katkısız | `forgiven` | Yok: çukur dolgu da yok | 2 pt kesik vurgu | "Affedildi" |
 | Affedilen gün, hedefin altında katkı | `forgivenPartial` | Çukur ve alttan %45 vurgu | 2 pt kesik vurgu | "Kısmi katkı, affedildi" |
+| Zincir günüyle korunan gün, katkısız | `graceSpent` | Yok; ortada vurgu noktası | 2 pt kesik vurgu | "Zincir günüyle korundu" |
+| Zincir günüyle korunan gün, hedefin altında katkı | `graceSpentPartial` | Çukur, alttan %45 vurgu; boş kısmın ortasında vurgu noktası | 2 pt kesik vurgu | "Kısmi katkı, zincir günüyle korundu" |
 
 Affedilen gün yalnız günlük hedefte olur. Affedilen gün, önceki iki günü ve sonraki günü yapılmış bir kaçırmadır. Affedilen gün yapılmış gün sayılmaz; bu yüzden gün aşırı ikinci kaçırma affedilmez. Kesik çizgi af işaretini bugünün kesiksiz çerçevesinden renge bağlı olmadan ayırır. Af çerçevesi boş hücrenin kontrol çizgisinden renk, kalınlık ve kesiklikle ayrışır. Kesik desen hücre boyuyla büyür: kenar başına 3 çizgi. Hücre köşesi sabit 2 pt'dir; `chipCorner` belirtecini kullanmaz.
+
+Zincir günüyle korunan gün de zinciri koruyan bir kaçırmadır; bu yüzden af çerçevesini paylaşır. Affedilen günden noktayla ayrılır: renk değil biçim ayırır. Noktanın çapı hücrenin %30'udur, en az 3 pt; lejant hücresinde de seçilir. Nokta hücrenin dolgusuz kısmının ortasındadır; kısmi dolgunun üstüne binmez.
+
+**Zincir günü rozeti.** `GraceDayBadge` Bugün hedef şeridinde adın yanında, Hedefler listesinde zincir metninin yanında durur (`InkGoalRow.graceBadgePlacement`). Şerit zinciri göstermez; liste gösterir ve rozet ilgili sayının yanına gider. Rozet: `link` simgesi ve sayı, `meta` yazısı, ikincil metin rengi, 1 pt kontrol çizgisi kapsül çerçeve. Rozet bir nottur, eylem değildir; bu yüzden vurgu rengini almaz. Bakiye 0 ise rozet çizilmez. Hedef ayrıntısında aynı simge bakiye satırının başında durur.
 
 ### Hedef değer grafiği
 

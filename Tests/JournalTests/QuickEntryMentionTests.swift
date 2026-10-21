@@ -23,6 +23,20 @@ struct QuickEntryMentionTests {
         #expect(context.model.suggestions().map(\.name) == ["Deniz Arıkan"])
     }
 
+    /// Suggestions read names by the vault's rule: the Turkish capitals (`İ` → `i`, `I` → `ı`) or the
+    /// default lowercase mapping alone.
+    @Test func suggestionsReadTurkishCapitals() async throws {
+        let context = try MentionTestContext()
+        defer { context.clean() }
+        await context.start()
+        for fragment in ["@DENİ", "@ARIK", "@deniz", "@DENIZ"] {
+            context.model.text = fragment
+            #expect(context.model.suggestions().map(\.name) == ["Deniz Arıkan"], "\(fragment)")
+        }
+        context.model.text = "@İSTANBUL"
+        #expect(context.model.suggestions().isEmpty)
+    }
+
     @Test func suggestionsSortByDateThenNameAndLimitToSix() async throws {
         let context = try MentionTestContext()
         defer { context.clean() }
@@ -104,6 +118,21 @@ struct QuickEntryMentionTests {
         #expect(await context.model.submit(time: nil))
         #expect(FileManager.default.fileExists(atPath: context.root.appendingPathComponent("people/Ad (iş).md").path))
         #expect(RawDocument(bytes: try context.eventBytes()).bodyLines.events.last?.block.text == "[[Ad (iş)|Ad]]")
+    }
+
+    /// A Turkish capital spelling of a known display name asks for a qualifier before any write, as
+    /// the store's collision rule reads the two as one name.
+    @Test func turkishCapitalSpellingOfAKnownNameAsksForAQualifier() async throws {
+        let context = try MentionTestContext()
+        defer { context.clean() }
+        await context.start()
+        _ = try await context.store.createEntity(kind: .person, name: "Işık Kurgusal", qualifier: "okul")
+        let composer = MentionComposer(store: context.store)
+        composer.text = "@IŞIK KURGUSAL"
+        await composer.beginCreation(.person)
+        #expect(composer.needsQualifier)
+        let file = context.root.appendingPathComponent("people/IŞIK KURGUSAL.md")
+        #expect(!FileManager.default.fileExists(atPath: file.path))
     }
 
     @Test func lowercaseSuggestionRemainsPlainAndUnknownCanBeDismissed() async throws {

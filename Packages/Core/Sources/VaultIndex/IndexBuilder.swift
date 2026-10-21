@@ -40,7 +40,7 @@ enum IndexBuilder {
             try db.execute(
                 sql: "INSERT INTO entities VALUES (?,?,?,?,?,?,?,?,?,?)",
                 arguments: [
-                    file, kind, name, scalar("qualifier"), comparisonKey(name),
+                    file, kind, name, scalar("qualifier"), nameComparisonKey(name),
                     kind == "goal" ? scalar("key") : nil, kind == "goal" ? scalar("period") : nil,
                     kind == "goal" ? scalar("kind") : nil, kind == "goal" ? scalar("target") : nil,
                     kind == "goal" ? scalar("unit") : nil,
@@ -65,7 +65,7 @@ enum IndexBuilder {
             for (ordinal, alias) in (frontmatter?.field(named: "aliases")?.value.listItems ?? []).enumerated() {
                 try db.execute(
                     sql: "INSERT INTO aliases VALUES (?,?,?,?)",
-                    arguments: [file, ordinal, alias.text, comparisonKey(alias.text)])
+                    arguments: [file, ordinal, alias.text, nameComparisonKey(alias.text)])
                 try search(file: file, block: nil, text: alias.text, db: db)
             }
         }
@@ -222,7 +222,7 @@ enum IndexBuilder {
                 anchorKind = nil
                 anchor = nil
             }
-            let targetKey = comparisonKey(normalizedLinkTarget(link.target))
+            let targetKey = nameComparisonKey(normalizedLinkTarget(link.target))
             try db.execute(
                 sql: "INSERT INTO links VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                 arguments: [

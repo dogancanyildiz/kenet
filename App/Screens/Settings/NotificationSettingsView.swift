@@ -57,12 +57,14 @@ struct NotificationSettingsView: View {
                 InkTimePicker(title: "Görüşme saati", selection: time(\.peopleTime))
                     .disabled(!service.preferences.peopleEnabled)
                     .inkListRow()
-                Toggle("Bildirimlerde içeriği gizle", isOn: $service.preferences.hideContent)
+                Toggle("Bildirimde içeriği göster", isOn: showsContent)
                     .inkListRow()
-                Text("Afiş, bildirim merkezi ve kilit ekranında görev metni, hedef adları ve kişi adları gösterilmez.")
-                    .font(.ink.meta)
-                    .foregroundStyle(Color.ink.secondaryText)
-                    .inkListRow()
+                Text(
+                    "Kapalıyken afiş, bildirim merkezi ve kilit ekranı yalnız sayı ve genel başlık gösterir: görev metni, hedef adları ve kişi adları görünmez."
+                )
+                .font(.ink.meta)
+                .foregroundStyle(Color.ink.secondaryText)
+                .inkListRow()
                 Text("Uygulama kapalıyken planlanan hatırlatmalar değişmez.")
                     .font(.ink.meta)
                     .foregroundStyle(Color.ink.secondaryText)
@@ -117,6 +119,12 @@ struct NotificationSettingsView: View {
         .inkPageScrollColumn()
         .inkPage()
         .task { if AppLaunchPolicy.allowsAutomaticStart() { await service.replanNow() } }
+    }
+    /// The page asks to show content; the stored preference keeps its `hideContent` name.
+    private var showsContent: Binding<Bool> {
+        Binding(
+            get: { !service.preferences.hideContent },
+            set: { service.preferences.hideContent = !$0 })
     }
     private func time(_ key: WritableKeyPath<NotificationPreferences, NotificationTime>) -> Binding<Date> {
         Binding(

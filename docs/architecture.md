@@ -512,7 +512,7 @@ Kısıt: `Core` yalnız Foundation ve SQLite katmanını kullanır. Bu sayede ay
 
 ### Bağlanmamış anmalar
 
-`VaultIndex.unlinkedMentions` önce arama indeksiyle aday gün dosyalarını daraltır. Sonra sorgu dosyaları diskten okur ve olay ile görev ilk satırlarını var olan tanıyıcıyla tarar. `VaultStore.linkingMention` onaylanan tek anmayı yazma kuyruğunda bağlar. Yazıcı dosyayı yeniden okur ve bayat hedefi denetler. Önce dosyaya yazar, sonra indeksi günceller.
+`VaultIndex.unlinkedMentions` önce arama indeksiyle aday gün dosyalarını daraltır. Arama belirteci yalnız `I` harfini `i` yapar; `İ`, `ı` ve birleşik noktayı korur. Bu yüzden arama ad anahtarındaki her `ı` için `ı` ve `i`, her `i` için `i`, `İ` ve `i` + U+0307 yazımlarını `OR` ile arar. Bir sözcüğün 81'den çok yazımı varsa sorgu bütün gün dosyalarını okur. Sonra sorgu dosyaları diskten okur ve olay ile görev ilk satırlarını var olan tanıyıcıyla tarar. `VaultStore.linkingMention` onaylanan tek anmayı yazma kuyruğunda bağlar. Yazıcı dosyayı yeniden okur ve bayat hedefi denetler. Önce dosyaya yazar, sonra indeksi günceller.
 
 ### Journal sonuna ekleme ve ilk kullanım
 
@@ -612,7 +612,7 @@ Birimsiz `5/10` gibi yazımların tarih mi miktar mı olduğu metinden kesinleş
 | Kullanım | Kullanım toplamı bütün çözülen bağlantıları sayar. Son gün, kaynak gün dosyasının tarihidir |
 | Birlikte geçiş | Puan birlikte geçişi yalnız gün dosyalarında, aynı gün ve varlık çifti için bir kez sayar. Tekrar bağlantılar bu puanı artırmaz |
 | Şema | Bu veriler dosyalardan üretilen sorgu sonuçlarıdır; şema değişmez |
-| Unicode | Foundation kullanmayan tanıma katmanında küçük harfli `String` anahtarların kanonik Unicode eşitliği ve hash davranışı NFC karşılaştırmasını sağlar. Anahtarın saklanan baytları normalleşmez. İndeksin fiziksel anahtarları NFC kuralıyla kalır |
+| Unicode | Tanıyıcı her karakteri `VaultFormat` içindeki `nameComparisonFold` ile karşılaştırır: Türkçe büyük harf eşlemesi (`İ` → `i`, `I` → `ı`), sonra yerelden bağımsız küçük harf. Bu katlama Foundation kullanmaz. Foundation kullanmayan tanıma katmanında `String` anahtarların kanonik Unicode eşitliği ve hash davranışı NFC karşılaştırmasını sağlar. Anahtarın saklanan baytları normalleşmez. İndeksin fiziksel anahtarları NFC kuralıyla kalır |
 
 ### Varlık tipleri
 
@@ -823,7 +823,7 @@ erDiagram
 | Konum | Her cihazda yerel, kasanın dışında. Eşitleme indeksi taşımaz |
 | Yeniden üretim | Uygulama indeksi dosyalardan eksiksiz yeniden üretebilir. İndeks bozulursa uygulama indeksi siler ve yeniden kurar |
 | Dosya adı | İndeks kasa yolunun SHA-256 özetiyle adlandırılmış ayrı bir Application Support veritabanındadır |
-| Şema sürümü | Veritabanı sürümü tutar: `PRAGMA user_version = 8`. Uygulamanın beklediği sürümle uyuşmazsa uygulama bütün tabloları siler ve güncel boş şemayı kurar. Şema göçü yok |
+| Şema sürümü | Veritabanı sürümü tutar: `PRAGMA user_version = 9`. Sürüm 9 ad anahtarına Türkçe büyük harf eşlemesini ekledi; sürüm 8 indeksi silinir ve dosyalardan yeniden kurulur. Uygulamanın beklediği sürümle uyuşmazsa uygulama bütün tabloları siler ve güncel boş şemayı kurar. Şema göçü yok |
 | Doldurma | Çağıran indeksi `rebuild(vaultRoot:)` ile ya da boş indekste tam kurulum yolunu kullanan `refresh(vaultRoot:)` ya da `update(paths:vaultRoot:)` ile dosyalardan doldurur |
 | Bozuk veritabanı | Açılışta SQLite NOTADB ya da CORRUPT hatası gelirse uygulama dosyayı ve `-wal`/`-shm`/`-journal` yardımcılarını siler ve boş şemayı kurar. Diğer hataları fırlatır |
 
@@ -857,7 +857,7 @@ erDiagram
 
 ### Bağlantı çözümü
 
-`VaultIndex` karşılaştırma anahtarını ve bağlantı çözümünü kendisi yapar: NFC ve yerelden bağımsız Unicode küçük harf.
+`VaultIndex` bağlantı çözümünü kendisi yapar. Karşılaştırma anahtarı `VaultFormat` içindeki tek `nameComparisonKey` işlevidir: NFC, Türkçe büyük harf eşlemesi (`İ` → `i`, `I` → `ı`), yerelden bağımsız Unicode küçük harf ve yeniden NFC. `VaultStore` aynı anahtarla yeniden adlandırma hedeflerini bulur. Ad çakışması denetimleri (`filenameIsTaken`, yer tutucu kardeşi, hedef adı) `NameCollision` kullanır: anahtar ya da yalnız varsayılan küçük harf eşlemesi aynıysa ad doludur. Uygulamada rehberden içe aktarma planı (`ContactImportPlan`), ayırt edici sorusu (`MentionComposer`, `UnresolvedEntityModel`) ve hedef adı denetimi (`GoalDefinitionModel`) aynı `NameCollision` kuralını kullanır; dizin bildirimi kapsamı (`IndexUpdate`) indeks gibi `nameComparisonKey` ile karşılaştırır; arama varlık adı önekini, `@` önerisi (`MentionComposer`) ve varlık listesi süzgeci (`EntityListQuery`) ad içindeki parçayı iki okumadan biriyle eşler (`NameCollision.occurs(in:)`).
 
 **Tablo bağlantı hedefinin nasıl çözüldüğünü gösterir.**
 
@@ -945,7 +945,7 @@ Güncelleme değişen yolların dosya adı ve yol anahtarlarına sahip bağlant�
 
 `blocks(inFile:)` ve `links(inFile:)` bir dosyanın blok ve bağlantı satırlarını kaynak sırasıyla döner. `contents(ofFile:)` aynı dosya için `files` / `entities` / `aliases` / `blocks` / `links` / `goal_logs` / `entity_fields` dilimini tek okuma işleminde verir. Dosya yoksa sonuç `nil` olur. Şema değişmez.
 
-`update` bildirim kapsamını kasa köküne göre NFC ve yerelden bağımsız küçük harf anahtarıyla karşılaştırır. Yol bildiren bir izleyici yeniden adlandırmada eski ve yeni yolu bildirir. Eksik bildirimleri sonraki `refresh` düzeltir. İndeks kökü bir kez gerçek yola çözer. Silinmiş bildirimlerde indeks en yakın mevcut üst dizinin gerçek yoluna kayıp kuyruğu ekler. Böylece `/private` yol yazımları aynı kasa kimliğinde birleşir.
+`update` bildirim kapsamını kasa köküne göre ad karşılaştırma anahtarıyla (`nameComparisonKey`) karşılaştırır. Yol bildiren bir izleyici yeniden adlandırmada eski ve yeni yolu bildirir. Eksik bildirimleri sonraki `refresh` düzeltir. İndeks kökü bir kez gerçek yola çözer. Silinmiş bildirimlerde indeks en yakın mevcut üst dizinin gerçek yoluna kayıp kuyruğu ekler. Böylece `/private` yol yazımları aynı kasa kimliğinde birleşir.
 
 ## Eşitleme
 
@@ -1133,7 +1133,7 @@ Birim ve arayüz testleri uygulamayı `DebugTest` yapılandırmasıyla koşar. B
 
 ### Ekran görüntüsü ve duman testleri
 
-Ekran görüntüsü testleri SwiftUI görünümünü sabit ortamda çizer ve `SnapshotTesting` ile karşılaştırır. Açık görüntü her kümede; koyu, AX3 ve Kontrastı Artır yalnız temsilci kümelerde kalır: `TodayScreenSnapshotTests`, `TodayContextSnapshotTests`, `TasksSnapshotTests`, `EntitiesSnapshotTests`, `JournalSheetSnapshotTests`, `ShellSheetSnapshotTests`, `QuickEntryChipsSnapshotTests`, `QuickEntryNameChipSnapshotTests`, `MentionCreatedSnapshotTests`, `ComponentSnapshotTests`. Varyanta özgü yerleşim kurallarını korumak için küme başına en çok bir istisna tutulur: `PadShellSnapshotTests.todayLandscapeAX3` (geniş kenar çubuğu), `GoalsSummarySnapshotTests.goalDetailAX3` ve `GoalChartSnapshotTests.dailyAX3` (hedef grafiği aralığı ve eksen etiketleri), `SummariesSnapshotTests.weekAX3` (grafik yerine sayı listesi), `WeeklyReviewSnapshotTests.numbersAX3` (kısa ritim şeridinin satırlara dönüşmesi). Referans PNG'ler `Tests/JournalTests/Snapshots/__Snapshots__/` altındadır. Yenileme için `sh .github/scripts/record-screen-snapshots.sh` ya da CI `record-snapshots` işini kullan. Mac görüntü kümeleri görünümü `NSHostingView` ile çizer. Adı `MacSnapshotTests` ile biten kümeler yalnız macOS hedefinde yer alır; `ci` bu kümeleri atlar, haftalık `mac-snapshots` iş akışı kapı olmadan koşturur. CI kapısı iOS'tur.
+Ekran görüntüsü testleri SwiftUI görünümünü sabit ortamda çizer ve `SnapshotTesting` ile karşılaştırır. Açık görüntü her kümede; koyu, AX3 ve Kontrastı Artır yalnız temsilci kümelerde kalır: `TodayScreenSnapshotTests`, `TodayContextSnapshotTests`, `TasksSnapshotTests`, `EntitiesSnapshotTests`, `JournalSheetSnapshotTests`, `ShellSheetSnapshotTests`, `QuickEntryChipsSnapshotTests`, `QuickEntryNameChipSnapshotTests`, `MentionCreatedSnapshotTests`, `ComponentSnapshotTests`. Varyanta özgü yerleşim kurallarını korumak için küme başına en çok bir istisna tutulur: `PadShellSnapshotTests.todayLandscapeAX3` (geniş kenar çubuğu), `GoalsSummarySnapshotTests.goalDetailAX3` ve `GoalChartSnapshotTests.dailyAX3` (hedef grafiği aralığı ve eksen etiketleri), `SummariesSnapshotTests.weekAX3` (grafik yerine sayı listesi), `WeeklyReviewSnapshotTests.numbersAX3` (kısa ritim şeridinin satırlara dönüşmesi). Referans PNG'ler `Tests/JournalTests/Snapshots/__Snapshots__/` altındadır. Referans tavanı: `Tests/**/__Snapshots__/**/*.png` en çok 300 dosya ve 61 MiB olabilir (2026-10-21 ölçümü 261 dosya, 50,8 MiB; boyut bugünkü +%20). Her referans git geçmişinde kalır; bu yüzden yeni vaka tavanı zorlarsa önce açık/koyu/AX3 üçlüsünü temsilci kümelerin dışında tutarak yer aç. `.github/scripts/check-snapshot-budget.sh` tavanı CI "Biçim ve kurallar" işinde denetler, aşınca dosya listesiyle düşer; betiğin testi `test-check-snapshot-budget.sh`. Kayıt betiği yalnız verilen kümeleri (`SNAPSHOT_SUITES`) ve yalnız eşleşmeyen referansı yazar. Yenileme için `sh .github/scripts/record-screen-snapshots.sh` ya da CI `record-snapshots` işini kullan. Mac görüntü kümeleri görünümü `NSHostingView` ile çizer. Adı `MacSnapshotTests` ile biten kümeler yalnız macOS hedefinde yer alır; `ci` bu kümeleri atlar, haftalık `mac-snapshots` iş akışı kapı olmadan koşturur. CI kapısı iOS'tur.
 
 Mac referanslarının tek yetkili ortamı CI’dır: macOS 26 / Xcode 26.6 (karar 68). `record-snapshots` iş akışında `target=mac` (`both` da seçilebilir) bütün Mac referanslarını `SNAPSHOT_TESTING_RECORD=all` ile baştan çizer; `failed` eski ortamdan tolerans içinde kalan PNG’leri koruyabileceği için kullanılmaz. Ardından `never` ile doğrular ve yalnız Mac referanslarını `mac-snapshot-references` artifact’ına yükler. `open_pr=true` ise ayrı, yazma yetkili iş bu çıktıyı `dev` üzerine uygular ve koşu bağlantısıyla PR açar; kayıt işleri yalnız okuma yetkilidir.
 

@@ -1,6 +1,7 @@
 import EntityRecognition
 import Foundation
 import Observation
+import VaultFormat
 import VaultStore
 
 @MainActor @Observable
@@ -23,12 +24,9 @@ final class UnresolvedEntityModel {
     func create(_ kind: VaultEntityKind) async {
         guard !isCreating, store.canAddEvent, created == nil else { return }
         self.kind = kind
-        if !needsQualifier
-            && store.knownEntities.contains(where: {
-                $0.name.precomposedStringWithCanonicalMapping.lowercased()
-                    == name.precomposedStringWithCanonicalMapping.lowercased()
-            })
-        {
+        // The store's collision rule: `IŞIK` and `Işık`, `SELIN` and `Selin` are one name.
+        let collision = NameCollision(name)
+        if !needsQualifier && store.knownEntities.contains(where: { collision.matches($0.name) }) {
             needsQualifier = true
             return
         }

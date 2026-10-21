@@ -278,6 +278,19 @@
           "isExplicit": false,
           "isAmbiguous": false,
           "isCaseMismatch": false
+        },
+        {
+          "file": "journal/2026-10-08.md",
+          "date": "2026-10-08",
+          "line": 3,
+          "byteRange": [
+            34,
+            42
+          ],
+          "spelling": "istanbul",
+          "isExplicit": false,
+          "isAmbiguous": false,
+          "isCaseMismatch": true
         }
       ]
     },

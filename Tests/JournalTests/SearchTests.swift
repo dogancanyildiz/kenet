@@ -76,6 +76,27 @@ struct SearchTests {
         #expect(model.results.first?.title == "Tepe Spor Salonu")
     }
 
+    /// Entity names match the query under the vault's name rule: Turkish capitals (`DENİ`, `IŞIK`)
+    /// find their names although the index tokenizer splits them, and the default lowercase
+    /// reading still finds a name the Turkish key alone would miss (`ilg` → `Ilgaz`).
+    @Test func turkishCapitalQueriesFindEntityNames() async throws {
+        let context = try EntityPageTestContext()
+        defer { context.clean() }
+        for (file, name) in [("Işık Tepesi.md", "Işık Tepesi"), ("Ilgaz Koyu.md", "Ilgaz Koyu")] {
+            try Data("---\ntype: place\nname: \(name)\n---\n".utf8)
+                .write(to: context.root.appendingPathComponent("places/" + file))
+        }
+        await context.start()
+        let model = SearchModel(store: context.store, defaults: context.defaults.defaults)
+        for (query, title) in [
+            ("DENİ", "Deniz Arıkan"), ("IŞIK", "Işık Tepesi"), ("ışık t", "Işık Tepesi"), ("ilg", "Ilgaz Koyu"),
+        ] {
+            model.query = query
+            await model.search()
+            #expect(model.results.contains { $0.title == title }, "\(query)")
+        }
+    }
+
     @Test func tasksAndJournalParagraphsHaveDayDestinations() async throws {
         let context = try EntityPageTestContext()
         defer { context.clean() }

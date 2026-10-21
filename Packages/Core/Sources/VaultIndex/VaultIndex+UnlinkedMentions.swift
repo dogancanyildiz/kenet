@@ -73,8 +73,9 @@ extension VaultIndex {
     /// The search uses the index tokenizer, which splits at punctuation, hyphens and apostrophes, where
     /// the recognizer lets a name end; the recognizer decides everything else. A name's words must share
     /// one block, in any order. The lowercase spelling is searched too when lowercasing changes its
-    /// length, which covers `İ` written as `i` with a combining dot. A name without a letter or digit
-    /// has no searchable word, so every day file is read instead.
+    /// length, which covers `İ` written as `i` with a combining dot, and so is every spelling the name
+    /// fold accepts (``foldedNameSearchExpression(_:)``). A name without a letter or digit has no
+    /// searchable word, so every day file is read instead.
     func unlinkedMentionDays(naming entity: KnownEntity?) throws -> [(path: String, date: String)] {
         var expressions: Set<String>?
         if let entity {
@@ -91,6 +92,11 @@ extension VaultIndex {
                     } else {
                         expressions = nil
                     }
+                }
+                if let expression = foldedNameSearchExpression(name) {
+                    expressions?.insert(expression)
+                } else {
+                    expressions = nil
                 }
             }
         }
@@ -221,4 +227,35 @@ struct UnlinkedMentionScope {
             && after.startDate == task.startDate && after.doneDate == task.doneDate && after.priority == task.priority
             && after.project == task.project && after.recurrenceSource == task.recurrenceSource
     }
+}
+
+/// The search for every text spelling the name fold reads as `name` (`docs/vault-format.md`), or `nil`
+/// when a word has too many to list and every day file is read instead.
+///
+/// The index tokenizer lowercases `I` to `i` and keeps `İ`, `ı` and a combining dot, so a folded `ı`
+/// is indexed as `ı` (written `ı`) or `i` (written `I`), and a folded `i` as `i`, `İ` or `i` with a
+/// combining dot. Each word lists its spellings with `OR`; the last word is a prefix, as in
+/// ``searchExpression(_:)``.
+func foldedNameSearchExpression(_ name: String) -> String? {
+    let words = nameComparisonKey(name).split(whereSeparator: \.isWhitespace)
+        .filter { $0.contains(where: { $0.isLetter || $0.isNumber }) }
+    guard !words.isEmpty else { return nil }
+    var groups: [String] = []
+    for (index, word) in words.enumerated() {
+        var spellings = [""]
+        for scalar in word.unicodeScalars {
+            let options: [String] =
+                switch scalar {
+                case "\u{0131}": ["\u{0131}", "i"]
+                case "i": ["i", "\u{0130}", "i\u{0307}"]
+                default: [String(scalar)]
+                }
+            spellings = spellings.flatMap { prefix in options.map { prefix + $0 } }
+            guard spellings.count <= 81 else { return nil }
+        }
+        let prefix = index == words.count - 1 ? "*" : ""
+        let terms = spellings.map { "\"" + $0.replacingOccurrences(of: "\"", with: "\"\"") + "\"" + prefix }
+        groups.append("(" + terms.joined(separator: " OR ") + ")")
+    }
+    return groups.joined(separator: " AND ")
 }

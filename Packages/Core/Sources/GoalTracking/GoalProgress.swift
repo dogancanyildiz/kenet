@@ -22,27 +22,25 @@ public enum GoalProgress {
         let bounds = definition.period.bounds(on: today)
         let progress = GoalAmount(done: totals[bounds.start] ?? 0, target: definition.target)
         let successful = Set(totals.filter { $0.value >= definition.target }.map(\.key))
-        var cursor = progress.isComplete ? bounds.start : definition.period.previous(before: bounds.start)
-        // Today is still open, so it can still forgive yesterday's miss: the chain is not dropped yet.
-        if definition.period == .day, !progress.isComplete, let yesterday = cursor, !successful.contains(yesterday),
-            canForgive(yesterday, successful: successful), let before = yesterday.addingDays(-1)
-        {
-            cursor = before
-        }
-        var streak = 0
-        while let current = cursor {
-            if successful.contains(current) {
-                streak += 1
-            } else if isForgiven(current, today: today, period: definition.period, successful: successful) {
-                // A forgiven miss keeps the chain and is not counted.
-            } else {
-                break
+        let chain: DailyChain?
+        let streak: Int
+        let longest: Int
+        if definition.period == .day {
+            let dailyChain = dailyChain(successful: successful, today: today, pending: !progress.isComplete)
+            chain = dailyChain
+            streak = dailyChain.streak
+            longest = dailyChain.longest
+        } else {
+            chain = nil
+            var cursor = progress.isComplete ? bounds.start : definition.period.previous(before: bounds.start)
+            var run = 0
+            while let current = cursor, successful.contains(current) {
+                run += 1
+                cursor = definition.period.previous(before: current)
             }
-            cursor = definition.period.previous(before: current)
+            streak = run
+            longest = periodLongest(definition: definition, successful: successful)
         }
-        let longest =
-            definition.period == .day
-            ? dailyLongest(successful: successful) : periodLongest(definition: definition, successful: successful)
         // Today joins the score only once it succeeds.
         let scoreEnd = progress.isComplete ? today : today.addingDays(-1)
         let score =
@@ -52,7 +50,8 @@ public enum GoalProgress {
             periodStart: bounds.start, periodEnd: bounds.end, progress: progress,
             streak: streak, longestStreak: longest, isPendingToday: !progress.isComplete, score: score,
             yearDone: yearDone,
-            yearProgress: definition.period == .year ? GoalAmount(done: yearDone, target: definition.target) : nil)
+            yearProgress: definition.period == .year ? GoalAmount(done: yearDone, target: definition.target) : nil,
+            graceDaysAvailable: chain?.graceDays ?? 0, graceSpentDays: chain?.spent ?? [])
     }
 
     /// Daily goals: success percent of the 30 days ending at `end`, both ends included. Nil for other
@@ -105,20 +104,53 @@ public enum GoalProgress {
         return successful.contains(previous) && successful.contains(earlier)
     }
 
-    /// Daily only. Walks successes, not calendar days, so one stray old date cannot stretch the work.
-    /// Two successes with exactly one day between them stay in one run when `canForgive` allows the day between.
-    private static func dailyLongest(successful: Set<CalendarDate>) -> Int {
+    private struct DailyChain {
+        var streak = 0
         var longest = 0
-        var run = 0
-        var last: CalendarDate?
-        for day in successful.sorted() {
-            let gap = last.map { day.ordinal - $0.ordinal }
-            let forgiven = gap == 2 && day.addingDays(-1).map { canForgive($0, successful: successful) } == true
-            run = gap == 1 || forgiven ? run + 1 : 1
-            longest = max(longest, run)
-            last = day
+        var graceDays = 0
+        var spent: [CalendarDate] = []
+    }
+
+    /// Walk successes in order and only the few misses a live chain can bridge. Large gaps do
+    /// not require walking calendar history. The success count is also the reward clock.
+    private static func dailyChain(successful: Set<CalendarDate>, today: CalendarDate, pending: Bool) -> DailyChain {
+        var result = DailyChain()
+        var previous: CalendarDate?
+        let yesterday = today.addingDays(-1)
+
+        func closeMisses(until end: CalendarDate) {
+            var cursor = previous?.addingDays(1)
+            while let day = cursor, day <= end, result.streak > 0 {
+                if pending, day == yesterday,
+                    canForgive(day, successful: successful) || result.graceDays > 0
+                {
+                    // Today's completion can still choose free forgiveness over spending.
+                    break
+                }
+                if isForgiven(day, today: today, period: .day, successful: successful) {
+                    // Free forgiveness always precedes spending.
+                } else if result.graceDays > 0 {
+                    result.graceDays -= 1
+                    result.spent.append(day)
+                } else {
+                    result.streak = 0
+                    result.graceDays = 0
+                }
+                cursor = day.addingDays(1)
+            }
         }
-        return longest
+
+        for day in successful.sorted() {
+            if let end = day.addingDays(-1) { closeMisses(until: end) }
+            result.streak += 1
+            if result.streak.isMultiple(of: 7) {
+                result.graceDays = min(3, result.graceDays + 1)
+            }
+            result.longest = max(result.longest, result.streak)
+            previous = day
+        }
+        if let yesterday { closeMisses(until: yesterday) }
+        return result
     }
 
     private static func periodLongest(definition: GoalDefinition, successful: Set<CalendarDate>) -> Int {

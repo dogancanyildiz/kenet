@@ -55,7 +55,7 @@ public enum EntityRecognizer {
                     start += 1
                     continue
                 }
-                let options = patterns[String(line.characters[start]).lowercased()] ?? []
+                let options = patterns[nameComparisonFold(String(line.characters[start]))] ?? []
                 let matches = options.compactMap { pattern -> (NamePattern, Int)? in
                     // A digit-only spelling is a number wherever it is written plainly; only `@` makes it a name.
                     guard explicit || !pattern.isDigitOnly, let end = pattern.end(in: line, from: start) else {

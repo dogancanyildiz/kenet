@@ -178,10 +178,6 @@ enum VaultScanner {
 
 }
 
-func comparisonKey(_ text: String) -> String {
-    text.precomposedStringWithCanonicalMapping.lowercased().precomposedStringWithCanonicalMapping
-}
-
 func codePointLess(_ lhs: String, _ rhs: String) -> Bool {
     lhs.unicodeScalars.lexicographicallyPrecedes(rhs.unicodeScalars) { $0.value < $1.value }
 }

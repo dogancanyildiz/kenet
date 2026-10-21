@@ -495,7 +495,7 @@ final class ScreenTourUITests: XCTestCase {
         tour.step("14-ayarlar-gizlilik-bildirim-icerigi") {
             try openSettings()
             try tour.tap(labels: ["Gizlilik"])
-            try tour.reach(labels: ["Bildirimlerde içeriği gizle"]).tap()
+            try tour.reach(labels: ["Bildirim içeriği"]).tap()
             tour.shot("14-ayarlar-gizlilik-bildirim-icerigi")
         }
         tour.step("14-ayarlar-varlik-tipleri") {

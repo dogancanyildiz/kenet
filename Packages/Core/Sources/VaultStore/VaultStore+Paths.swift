@@ -70,12 +70,9 @@ extension VaultStore {
     }
 
     nonisolated func filenameIsTaken(_ name: String, excluding path: String? = nil) throws -> Bool {
-        let key = storeComparisonKey(name)
+        let collision = NameCollision(name)
         if try index.files().contains(where: {
-            $0.path != path
-                && storeComparisonKey(String(URL(fileURLWithPath: $0.path).lastPathComponent.dropLast(3))).utf8
-                    .elementsEqual(
-                        key.utf8)
+            $0.path != path && collision.matches(String(URL(fileURLWithPath: $0.path).lastPathComponent.dropLast(3)))
         }) {
             return true
         }
@@ -91,7 +88,7 @@ extension VaultStore {
                         root.appendingPathComponent($0).resolvingSymlinksInPath().standardizedFileURL.path
                             .precomposedStringWithCanonicalMapping
                     }),
-                    name.hasSuffix(".md"), storeComparisonKey(String(name.dropLast(3))).utf8.elementsEqual(key.utf8)
+                    name.hasSuffix(".md"), collision.matches(String(name.dropLast(3)))
                 {
                     return true
                 }
@@ -103,8 +100,4 @@ extension VaultStore {
         }
         return try visit(root, isRoot: true)
     }
-}
-
-func storeComparisonKey(_ text: String) -> String {
-    text.precomposedStringWithCanonicalMapping.lowercased().precomposedStringWithCanonicalMapping
 }

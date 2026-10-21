@@ -24,12 +24,17 @@ public struct GoalStatus: Sendable, Equatable {
     public let score: Int?
     public let yearDone: Double
     public let yearProgress: GoalAmount?
+    /// Daily goals only. Rewards still available in the current chain, capped at three.
+    public let graceDaysAvailable: Int
+    /// Finalized spending dates across all chains through the measured day, in ascending order.
+    public let graceSpentDays: [CalendarDate]
     public var completionDate: CalendarDate?
 
     public init(
         periodStart: CalendarDate, periodEnd: CalendarDate, progress: GoalAmount,
         streak: Int, longestStreak: Int, isPendingToday: Bool, score: Int?,
-        yearDone: Double, yearProgress: GoalAmount?, completionDate: CalendarDate? = nil
+        yearDone: Double, yearProgress: GoalAmount?, completionDate: CalendarDate? = nil,
+        graceDaysAvailable: Int = 0, graceSpentDays: [CalendarDate] = []
     ) {
         self.periodStart = periodStart
         self.periodEnd = periodEnd
@@ -41,6 +46,8 @@ public struct GoalStatus: Sendable, Equatable {
         self.yearDone = yearDone
         self.yearProgress = yearProgress
         self.completionDate = completionDate
+        self.graceDaysAvailable = graceDaysAvailable
+        self.graceSpentDays = graceSpentDays
     }
 }
 

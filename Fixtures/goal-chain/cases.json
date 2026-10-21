@@ -1,0 +1,370 @@
+[
+  {
+    "id": "six-no-reward",
+    "start": "2026-09-01",
+    "sequence": "111111",
+    "period": "day",
+    "kind": "boolean",
+    "expected": {
+      "streak": 6,
+      "longestStreak": 6,
+      "graceDaysAvailable": 0,
+      "graceSpentDays": [],
+      "isPendingToday": false,
+      "score": 100
+    },
+    "summary": false
+  },
+  {
+    "id": "seventh-reward",
+    "start": "2026-09-01",
+    "sequence": "1111111",
+    "period": "day",
+    "kind": "boolean",
+    "expected": {
+      "streak": 7,
+      "longestStreak": 7,
+      "graceDaysAvailable": 1,
+      "graceSpentDays": [],
+      "isPendingToday": false,
+      "score": 100
+    },
+    "summary": false
+  },
+  {
+    "id": "free-forgiveness-first",
+    "start": "2026-09-01",
+    "sequence": "111111101",
+    "period": "day",
+    "kind": "boolean",
+    "expected": {
+      "streak": 8,
+      "longestStreak": 8,
+      "graceDaysAvailable": 1,
+      "graceSpentDays": [],
+      "isPendingToday": false,
+      "score": 88
+    },
+    "summary": false
+  },
+  {
+    "id": "two-consecutive-spends",
+    "start": "2026-09-01",
+    "sequence": "11111111111111001",
+    "period": "day",
+    "kind": "boolean",
+    "expected": {
+      "streak": 15,
+      "longestStreak": 15,
+      "graceDaysAvailable": 0,
+      "graceSpentDays": [
+        "2026-09-15",
+        "2026-09-16"
+      ],
+      "isPendingToday": false,
+      "score": 88
+    },
+    "summary": false
+  },
+  {
+    "id": "cap-three",
+    "start": "2026-09-01",
+    "sequence": "1111111111111111111111111111",
+    "period": "day",
+    "kind": "boolean",
+    "expected": {
+      "streak": 28,
+      "longestStreak": 28,
+      "graceDaysAvailable": 3,
+      "graceSpentDays": [],
+      "isPendingToday": false,
+      "score": 100
+    },
+    "summary": false
+  },
+  {
+    "id": "dropped-reward-not-banked",
+    "start": "2026-09-01",
+    "sequence": "111111111111111111111111111100111111",
+    "period": "day",
+    "kind": "boolean",
+    "expected": {
+      "streak": 34,
+      "longestStreak": 34,
+      "graceDaysAvailable": 1,
+      "graceSpentDays": [
+        "2026-09-29",
+        "2026-09-30"
+      ],
+      "isPendingToday": false,
+      "score": 93
+    },
+    "summary": false
+  },
+  {
+    "id": "next-reward-after-cap",
+    "start": "2026-09-01",
+    "sequence": "1111111111111111111111111111001111111",
+    "period": "day",
+    "kind": "boolean",
+    "expected": {
+      "streak": 35,
+      "longestStreak": 35,
+      "graceDaysAvailable": 2,
+      "graceSpentDays": [
+        "2026-09-29",
+        "2026-09-30"
+      ],
+      "isPendingToday": false,
+      "score": 93
+    },
+    "summary": false
+  },
+  {
+    "id": "no-grace-break",
+    "start": "2026-09-01",
+    "sequence": "101",
+    "period": "day",
+    "kind": "boolean",
+    "expected": {
+      "streak": 1,
+      "longestStreak": 1,
+      "graceDaysAvailable": 0,
+      "graceSpentDays": [],
+      "isPendingToday": false,
+      "score": 66
+    },
+    "summary": false
+  },
+  {
+    "id": "pending-free-forgiveness",
+    "start": "2026-09-01",
+    "sequence": "11111110?",
+    "period": "day",
+    "kind": "boolean",
+    "expected": {
+      "streak": 7,
+      "longestStreak": 7,
+      "graceDaysAvailable": 1,
+      "graceSpentDays": [],
+      "isPendingToday": true,
+      "score": 87
+    },
+    "summary": false
+  },
+  {
+    "id": "pending-grace-without-free-forgiveness",
+    "start": "2026-09-01",
+    "sequence": "1111111111111100?",
+    "period": "day",
+    "kind": "boolean",
+    "expected": {
+      "streak": 14,
+      "longestStreak": 14,
+      "graceDaysAvailable": 1,
+      "graceSpentDays": [
+        "2026-09-15"
+      ],
+      "isPendingToday": true,
+      "score": 87
+    },
+    "summary": false
+  },
+  {
+    "id": "pending-exhausted",
+    "start": "2026-09-01",
+    "sequence": "111111100?",
+    "period": "day",
+    "kind": "boolean",
+    "expected": {
+      "streak": 0,
+      "longestStreak": 7,
+      "graceDaysAvailable": 0,
+      "graceSpentDays": [
+        "2026-09-08"
+      ],
+      "isPendingToday": true,
+      "score": 77
+    },
+    "summary": false
+  },
+  {
+    "id": "exhaustion-break-and-new-chain",
+    "start": "2026-09-01",
+    "sequence": "111111111111110001",
+    "period": "day",
+    "kind": "boolean",
+    "expected": {
+      "streak": 1,
+      "longestStreak": 14,
+      "graceDaysAvailable": 0,
+      "graceSpentDays": [
+        "2026-09-15",
+        "2026-09-16"
+      ],
+      "isPendingToday": false,
+      "score": 83
+    },
+    "summary": false
+  },
+  {
+    "id": "reward-clock-resets",
+    "start": "2026-09-01",
+    "sequence": "1111111000111111",
+    "period": "day",
+    "kind": "boolean",
+    "expected": {
+      "streak": 6,
+      "longestStreak": 7,
+      "graceDaysAvailable": 0,
+      "graceSpentDays": [
+        "2026-09-08"
+      ],
+      "isPendingToday": false,
+      "score": 81
+    },
+    "summary": false
+  },
+  {
+    "id": "spent-days-do-not-earn",
+    "start": "2026-09-01",
+    "sequence": "111111111111110011111",
+    "period": "day",
+    "kind": "boolean",
+    "expected": {
+      "streak": 19,
+      "longestStreak": 19,
+      "graceDaysAvailable": 0,
+      "graceSpentDays": [
+        "2026-09-15",
+        "2026-09-16"
+      ],
+      "isPendingToday": false,
+      "score": 90
+    },
+    "summary": false
+  },
+  {
+    "id": "forgiven-days-do-not-earn",
+    "start": "2026-09-01",
+    "sequence": "1101111",
+    "period": "day",
+    "kind": "boolean",
+    "expected": {
+      "streak": 6,
+      "longestStreak": 6,
+      "graceDaysAvailable": 0,
+      "graceSpentDays": [],
+      "isPendingToday": false,
+      "score": 85
+    },
+    "summary": false
+  },
+  {
+    "id": "old-spending-survives-break",
+    "start": "2026-09-01",
+    "sequence": "11111110001111111",
+    "period": "day",
+    "kind": "boolean",
+    "expected": {
+      "streak": 7,
+      "longestStreak": 7,
+      "graceDaysAvailable": 1,
+      "graceSpentDays": [
+        "2026-09-08"
+      ],
+      "isPendingToday": false,
+      "score": 82
+    },
+    "summary": false
+  },
+  {
+    "id": "summary-ended-spends",
+    "start": "2026-08-31",
+    "sequence": "111111111111110011111",
+    "period": "day",
+    "kind": "boolean",
+    "expected": {
+      "streak": 19,
+      "longestStreak": 19,
+      "graceDaysAvailable": 0,
+      "graceSpentDays": [
+        "2026-09-14",
+        "2026-09-15"
+      ],
+      "isPendingToday": false,
+      "score": 90
+    },
+    "summary": true
+  },
+  {
+    "id": "number-spending",
+    "start": "2026-09-01",
+    "sequence": "11111111111111001",
+    "period": "day",
+    "kind": "number",
+    "expected": {
+      "streak": 15,
+      "longestStreak": 15,
+      "graceDaysAvailable": 0,
+      "graceSpentDays": [
+        "2026-09-15",
+        "2026-09-16"
+      ],
+      "isPendingToday": false,
+      "score": 88
+    },
+    "summary": false
+  },
+  {
+    "id": "year-boundary",
+    "start": "2025-12-20",
+    "sequence": "11111111111111001",
+    "period": "day",
+    "kind": "boolean",
+    "expected": {
+      "streak": 15,
+      "longestStreak": 15,
+      "graceDaysAvailable": 0,
+      "graceSpentDays": [
+        "2026-01-03",
+        "2026-01-04"
+      ],
+      "isPendingToday": false,
+      "score": 88
+    },
+    "summary": false
+  },
+  {
+    "id": "weekly-no-grace",
+    "start": "2026-09-01",
+    "sequence": "1111111111111111111111111111",
+    "period": "week",
+    "kind": "boolean",
+    "expected": {
+      "streak": 5,
+      "longestStreak": 5,
+      "graceDaysAvailable": 0,
+      "graceSpentDays": [],
+      "isPendingToday": false,
+      "score": null
+    },
+    "summary": false
+  },
+  {
+    "id": "yearly-no-grace",
+    "start": "2026-09-01",
+    "sequence": "1111111111111111111111111111",
+    "period": "year",
+    "kind": "boolean",
+    "expected": {
+      "streak": 1,
+      "longestStreak": 1,
+      "graceDaysAvailable": 0,
+      "graceSpentDays": [],
+      "isPendingToday": false,
+      "score": null
+    },
+    "summary": false
+  }
+]

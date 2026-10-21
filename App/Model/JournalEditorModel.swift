@@ -42,6 +42,8 @@ final class JournalEditorModel {
             root = selectedRoot
             isLoaded = true
             errorText = nil
+        } catch is CancellationError {
+            // The editor left before the file was read; the next one reads it again.
         } catch { errorText = DayEditError.message(for: error) }
     }
 

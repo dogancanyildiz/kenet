@@ -36,10 +36,11 @@ struct UnseenPeopleSection: View {
 
     /// Bumped once a minute so the day boundary moves the list without a vault change.
     @State private var minute = 0
-    @State private var cadences: [String: PersonCadence] = [:]
+    /// Nil until the first query answers; a reload keeps the previous answer until then, and a
+    /// failed one keeps it too and shows its error.
+    @State private var cadences = QueryState<[String: PersonCadence]>()
     @State private var cadenceReady = false
-    /// Nil until the first query returns; a reload keeps the previous dates until then.
-    @State private var lastEncounters: [String: CalendarDate]?
+    @State private var lastEncounters = QueryState<[String: CalendarDate]>()
     @State private var actionError: String?
 
     // The rows are direct `List` children: a wrapping container (`TimelineView`,
@@ -48,8 +49,8 @@ struct UnseenPeopleSection: View {
         let _ = minute
         let today = LocalDay.today(at: clockNow())
         let groups = UnseenPeople.compute(
-            people: people, lastEncounters: lastEncounters ?? [:],
-            today: today, threshold: threshold, cadences: cadences)
+            people: people, lastEncounters: lastEncounters.value ?? [:],
+            today: today, threshold: threshold, cadences: cadences.value ?? [:])
         Button {
             expanded.toggle()
         } label: {
@@ -70,12 +71,17 @@ struct UnseenPeopleSection: View {
             }
         }
         .task(id: LastEncountersRequest(asOf: today, updated: store.lastUpdated)) {
-            cadences = (try? await store.personCadences()) ?? [:]
-            if let loaded = try? await store.computeLastEncounters(asOf: today) { lastEncounters = loaded }
-            cadenceReady = true
+            cadences.apply(await QueryOutcome.of { try await store.personCadences() })
+            lastEncounters.apply(await QueryOutcome.of { try await store.computeLastEncounters(asOf: today) })
+            // A replaced request is not an answer: the one that replaced it signals readiness.
+            if !Task.isCancelled { cadenceReady = true }
         }
         .preference(key: CadenceReadyKey.self, value: cadenceReady)
-        if expanded, lastEncounters != nil {
+        if expanded, let loadError = cadences.errorText ?? lastEncounters.errorText {
+            InfoBand(kind: .error, verbatim: loadError)
+                .inkListRow()
+        }
+        if expanded, lastEncounters.value != nil {
             if let actionError {
                 InfoBand(kind: .error, verbatim: actionError)
                     .inkListRow()

@@ -112,6 +112,8 @@ final class EntityDetailModel {
             }.joined()
             root = selectedRoot
             isLoaded = true
+        } catch is CancellationError {
+            // A newer load (`.task(id:)`) replaced this one; its answer is the one to show.
         } catch { errorText = DayEditError.message(for: error) }
     }
 

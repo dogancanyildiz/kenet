@@ -84,7 +84,17 @@ final class IntentActions {
 
     private func prepare() async throws {
         guard permitsStart() else { throw IntentActionError.vaultUnavailable }
-        do { try await store.prepareForIntent() } catch { throw IntentActionError.vaultUnavailable }
+        try await reading { try await store.prepareForIntent() }
+    }
+
+    /// A cancelled intent ends as cancelled; any other failure to open or read the vault is
+    /// `vaultUnavailable`.
+    private func reading<Value>(_ read: () async throws -> Value) async throws -> Value {
+        switch await QueryOutcome.of(read) {
+        case .answer(let value): return value
+        case .cancelled: throw CancellationError()
+        case .stale, .failed: throw IntentActionError.vaultUnavailable
+        }
     }
     private func begin() async throws {
         for _ in 0..<400 {
@@ -108,9 +118,7 @@ final class IntentActions {
 
     /// Valid goal definitions in the goal list's order, read from the index.
     private func definitions() async throws -> [GoalDefinition] {
-        do { return try await store.computeGoalDefinitions().map(\.definition) } catch {
-            throw IntentActionError.vaultUnavailable
-        }
+        try await reading { try await store.computeGoalDefinitions() }.map(\.definition)
     }
     func addEvent(text: String, time: LineClock? = nil) async throws -> IntentActionResult {
         guard !text.allSatisfy(\.isWhitespace) else { throw IntentActionError.emptyText }

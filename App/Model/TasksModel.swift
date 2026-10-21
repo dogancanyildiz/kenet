@@ -127,19 +127,32 @@ final class TasksModel {
     /// Whether `list` answers the current filters, day and publish.
     var isListCurrent: Bool { list != nil && loadedListRequest == listRequest }
 
+    /// Why the latest list read failed; the next answer clears it.
+    private(set) var listErrorText: String?
+
     /// Asks for `listRequest`'s sections. A reload cancelled or outlived by its vault leaves the
-    /// list as it was.
+    /// list as it was; a failed one leaves it too and sets `listErrorText`.
     func loadList() async {
         let request = listRequest
-        do {
-            let groups = try await store.computeTaskGroups(today: request.day, scope: request.scope)
-            let completed = try await store.computeCompletedTasks(limit: Self.completedLimit, scope: request.scope)
-            let counts = try await store.computeOpenTaskCounts()
-            let names = try await store.computeProjects()
+        let outcome = await QueryOutcome.of {
+            (
+                try await store.computeTaskGroups(today: request.day, scope: request.scope),
+                try await store.computeCompletedTasks(limit: Self.completedLimit, scope: request.scope),
+                try await store.computeOpenTaskCounts(),
+                try await store.computeProjects()
+            )
+        }
+        switch outcome {
+        case .answer(let (groups, completed, counts, names)):
             list = TaskListContent(groups: groups, completed: completed, projectOpenCounts: counts)
             projects = names
             loadedListRequest = request
-        } catch {}
+            listErrorText = nil
+        case .cancelled, .stale:
+            break
+        case .failed:
+            listErrorText = outcome.errorText
+        }
     }
 
     var agenda: [TaskAgendaGroup] { list?.agenda ?? [] }

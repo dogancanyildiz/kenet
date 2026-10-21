@@ -11,7 +11,8 @@ struct EntityInsightsCard: View {
     @Environment(\.clockNow) private var clockNow
     @Environment(\.locale) private var locale
     @Environment(\.timeZone) private var timeZone
-    @State private var cadence = PersonCadence.none
+    /// A reload keeps the previous cadences until it answers; a failed one shows its error.
+    @State private var cadences = QueryState<[String: PersonCadence]>()
     @State private var cadenceReady = false
     @State private var cadenceError: String?
 
@@ -72,9 +73,8 @@ struct EntityInsightsCard: View {
                 .inkListRow()
         }
         .task(id: store.lastUpdated) {
-            let map = (try? await store.personCadences()) ?? [:]
-            cadence = map[entity.id] ?? .none
-            cadenceReady = true
+            cadences.apply(await QueryOutcome.of { try await store.personCadences() })
+            if !Task.isCancelled { cadenceReady = true }
         }
         .preference(key: CadenceReadyKey.self, value: cadenceReady)
     }
@@ -82,7 +82,7 @@ struct EntityInsightsCard: View {
     @ViewBuilder private var cadenceRows: some View {
         let today = LocalDay.today(at: clockNow())
         let status = CadenceStatusPresentation(
-            cadence: cadence, today: today, locale: locale, timeZone: timeZone)
+            cadence: cadences.value?[entity.id] ?? .none, today: today, locale: locale, timeZone: timeZone)
         if let rhythm = status.rhythm {
             Text(verbatim: rhythm)
                 .font(.ink.meta)
@@ -110,8 +110,8 @@ struct EntityInsightsCard: View {
             }
             .inkListRow()
         }
-        if let cadenceError {
-            InfoBand(kind: .error, verbatim: cadenceError)
+        if let error = cadenceError ?? cadences.errorText {
+            InfoBand(kind: .error, verbatim: error)
                 .inkListRow()
         }
     }

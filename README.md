@@ -253,6 +253,7 @@ flowchart TD
    | Seçeneksiz | Arşivler, özeti gösterir, onay gelince yükler |
    | `--yes` | Onay sormadan yükler |
    | `--check` | İmzasız arşivler ve yalnız denetler; yükleme yok |
+   | `--ci` | CI'da API anahtarıyla onaysız yükler; "CI'dan TestFlight (CD)" bölümü |
 
    Betik HEAD'i geçici bir kopyaya çıkarır ve arşivi oradan alır. Xcode'un çalışma klasöründe yeniden yazdığı dosyalar böylece yapıya girmez. Betik paketteki kimliği, sürümü, yapı numarasını ve belge paylaşımı anahtarlarını denetler. Koşullar: yerel `dev`, `origin/dev` ile aynıdır; Xcode'da aynı Apple hesabıyla oturum açıktır. `dev` dalına itme olunca `.github/workflows/testflight-check.yml` aynı `--check` denetimini koşar ve yükleme yapmaz.
 
@@ -263,6 +264,62 @@ flowchart TD
 5. Mac'e kur: `sh .github/scripts/install-mac.sh`. Betik HEAD'i geçici bir kopyaya çıkarır ve Release derler. Betik kimliği, sürümü ve imzayı denetler. Sonra uygulamayı `/Applications/Kenet.app` olarak kopyalar. Kenet açıksa betik durur. `/Applications/Kenet.app` başka bir uygulamaysa da betik durur.
 
 Mac için TestFlight ya da mağaza yolu yok. Mac uygulaması geliştirici imzalıdır ve yalnız derlendiği Mac'te çalışır.
+
+## CI'dan TestFlight (CD)
+
+**Şema, gizli değerlerden TestFlight yüklemesine kadar olan CI yolunu gösterir.**
+
+```mermaid
+flowchart LR
+  A[GitHub Secrets] --> B[Geçici anahtar zinciri ve .p8]
+  B --> C["testflight.sh --ci"]
+  C --> D[İmzalı arşiv ve paket denetimi]
+  D --> E[App Store Connect dahili test]
+```
+
+`.github/workflows/testflight.yml` yerel yolu CI'da koşar: `testflight.sh --ci`. Betik aynı denetimleri yapar ve aynı dışa aktarma ayarıyla yükler. Betik Xcode hesabının yerine App Store Connect API anahtarını kullanır. Betik takım kimliğini anahtar zincirindeki Apple Distribution kimliğinden okur. Repoya ve günlüğe kimlik yazılmaz.
+
+**Tablo, iş akışının beklediği Secrets değerlerini ve kaynaklarını verir.**
+
+| Secret | İçerik | Kaynak |
+|---|---|---|
+| `ASC_KEY_ID` | API anahtarının kimliği, 10 karakter | App Store Connect, anahtar satırı |
+| `ASC_ISSUER_ID` | Yayıncı kimliği, UUID | App Store Connect, anahtar tablosunun üstü |
+| `ASC_KEY_P8` | `AuthKey_<kimlik>.p8` dosyası, base64 | Anahtar oluşunca bir kez indirilir |
+| `DIST_CERT_P12` | Apple Distribution ve Apple Development kimlikleri, tek `.p12`, base64 | Anahtar Zinciri Erişimi, dışa aktarma |
+| `DIST_CERT_PASSWORD` | `.p12` parolası | Dışa aktarırken sen seçersin |
+
+1. API anahtarını oluştur. App Store Connect → Users and Access → Integrations → App Store Connect API → Team Keys → `+`. Ad: `Kenet CI`. Erişim: App Manager. `.p8` dosyasını indir; Apple dosyayı yalnız bir kez verir. Key ID ve Issuer ID değerlerini not et.
+2. Dağıtım sertifikasını hazırla. Xcode → Settings → Accounts → takım → Manage Certificates. Listede Apple Distribution yoksa `+` → Apple Distribution.
+3. Kimlikleri dışa aktar. Anahtar Zinciri Erişimi → login → My Certificates. "Apple Distribution: …" ve "Apple Development: …" satırlarını birlikte seç → Export 2 items → `.p12`, güçlü bir parolayla.
+
+   **NOT:** Otomatik imzalamada arşiv adımı geliştirme kimliğiyle imzalar; dışa aktarma dağıtım kimliğiyle yeniden imzalar. `.p12` içinde Apple Development yoksa Xcode her koşuda API anahtarıyla yeni bir geliştirme sertifikası oluşturabilir. Betik bu durumda uyarı yazar.
+
+4. Secrets değerlerini yaz. Depo kökünde:
+
+   ```sh
+   gh secret set ASC_KEY_ID --body '<Key ID>'
+   gh secret set ASC_ISSUER_ID --body '<Issuer ID>'
+   base64 -i AuthKey_<Key ID>.p8 | gh secret set ASC_KEY_P8
+   base64 -i Kenet-imza.p12 | gh secret set DIST_CERT_P12
+   gh secret set DIST_CERT_PASSWORD
+   ```
+
+   Son komut parolayı gizli girişle sorar. Sonra `.p8` ve `.p12` dosyalarını parola yöneticisine taşı ve diskten sil.
+
+5. İlk koşuyu başlat: `gh workflow run testflight.yml --ref dev -f notes='ilk CD denemesi'`. Not koşu adında ve özetinde görünür; TestFlight'a gitmez.
+6. İsteğe bağlı olarak `dev`'e her itmede yüklemeyi aç: `gh variable set KENET_CD_ON_PUSH --body true`. Varsayılan kapalıdır. Değişken açıkken `testflight-check` atlanır; yükleme koşusu aynı denetimi imzalı arşivde yapar.
+
+**Tablo, CD'nin sınırlarını ve bakımını verir.**
+
+| Konu | Bilgi |
+|---|---|
+| Dal | Yalnız `dev`. Betik başka dalı ve `origin/dev` geçmişinde olmayan commit'i reddeder |
+| Kuyruk | Aynı anda tek yükleme. Yükleme yarıda kesilmez; bekleyen koşu yenisi gelince iptal olur |
+| Yapı numarası | Commit sayısı. Aynı commit'ten ikinci yükleme reddedilir |
+| Sertifika süresi | Apple Distribution bir yıl geçerlidir. Yenileyince `DIST_CERT_P12` ve `DIST_CERT_PASSWORD` değerlerini güncelle |
+| API anahtarı | Süresi dolmaz. Sızarsa App Store Connect'te iptal et ve yenisini yaz. İki adımlı doğrulama istemez |
+| Düşen koşu | `testflight-logs` artifact'ı arşiv ve yükleme günlüğünü taşır. Takım, anahtar ve yayıncı kimliği günlükte yer tutucuyla değişir |
 
 ## Yapı numarası
 

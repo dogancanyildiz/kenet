@@ -4,6 +4,8 @@ name: TestFlight denetimi
 # Ortak .github/actions/ios-build test için derler. Bu iş arşivler: testflight.sh temiz
 # kopyada kendi xcodegen'ini çalıştırır, simülatör istemez. Xcode sürümü ci.yml işleriyle
 # aynı yerden seçilir (.github/actions/xcode); XcodeGen kurulumu o işlerle aynı adımdır.
+# dev itmesinde CD açıksa (depo değişkeni KENET_CD_ON_PUSH=true) bu iş atlanır: testflight.yml
+# aynı denetimi imzalı arşivde yapar ve ikinci bir macOS işi kuyruğu uzatır.
 
 on:
   push:
@@ -19,6 +21,7 @@ permissions:
 jobs:
   check:
     name: İmzasız arşiv denetimi
+    if: vars.KENET_CD_ON_PUSH != 'true'
     runs-on: macos-26
     timeout-minutes: 30
     steps:

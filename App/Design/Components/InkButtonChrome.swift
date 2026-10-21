@@ -9,6 +9,17 @@ enum InkButtonChrome: Equatable, Sendable {
     /// Minimum control height (Apple HIG). Styles apply this as layout and hit target.
     static let minimumHeight: CGFloat = 44
 
+    /// Minimum width of a text button on iOS: a short word ("Geri", "İleri") is narrower than
+    /// the 44 pt touch target. The word keeps its leading edge; the target grows after it. The
+    /// Mac's pointer needs none.
+    static var minimumTextWidth: CGFloat? {
+        #if os(iOS)
+            minimumHeight
+        #else
+            nil
+        #endif
+    }
+
     enum Token: String, Equatable, Sendable {
         case secondaryText
         case paper

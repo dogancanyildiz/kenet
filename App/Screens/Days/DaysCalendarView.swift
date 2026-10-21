@@ -44,6 +44,10 @@ struct DaysCalendarView: View {
                 Text(LocalDay.instant(for: model.month), format: .dateTime.month(.wide).year())
                     .font(.ink.section)
                     .foregroundStyle(.ink.text)
+                    // A narrow column at accessibility sizes: month and year on two lines, never
+                    // cut, even where the column's stack is short of height.
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
                 Spacer()
                 Button {
                     month = JournalCalendar(month: resolvedMonth, days: []).adjacentMonth(1)

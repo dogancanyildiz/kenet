@@ -229,7 +229,7 @@ Seçim değişirse yukarıdaki sıra geçerlidir. Geri dönüş maliyeti düşü
 | 7 | Vurgu kalanı gösterir: yapılmış hedef ve tamamlanan görev geri plana geçer. |
 | 8 | Uygulama yalnız sistem yazı tiplerini kullanır: New York ve SF Pro. Metin semantik stilleri kullanır ve Dynamic Type ile büyür. Sabit punto yoktur. |
 | 9 | iOS'ta hiçbir metin 12 pt'nin altında değildir. Etiketler cümle düzenindedir. Büyük harfli, geniş aralıklı etiket yoktur. |
-| 10 | Dokunma hedefleri en az 44 pt'dir. |
+| 10 | Dokunma hedefleri en az 44 pt'dir. iOS'ta kısa sözcüklü metin düğmesi ("Geri", "İleri") 44 pt genişliğe uzar; sözcük başta kalır. Tek satırlık satır ve anahtar satırı 44 pt yüksekliktedir. |
 | 11 | İçerikte büyük ters renkli yüzey yoktur. Böyle bir yüzey altından geçtiği sistem camını açık ile koyu arasında çevirir. |
 | 12 | Mac'te kenar çubuğu uygulamanın vurgu rengini taşır: mürdüm. Simgeler vurgu rengindedir. Seçili satır vurgu rengiyle dolar; yazısı ve simgesi vurgu üstü mürekkeptedir. Kontrast açıkta 8,70:1, koyuda 9,18:1'dir; alt sınır 4,5:1'dir. Yalnız seçili girdi vurgu alır: Görevler'in altındaki Kanban, Zaman çizelgesi ve projeler ayrı satırdır. Seçimin kendisi sistemindir: ok tuşları, odak, VoiceOver. Yalnız çizim uygulamanındır. Bölünmüş kabukta (iPhone Duo iç ekranı, iPad) aynı kural geçerlidir: sistemin seçim vurgusu ve odak çerçevesi dolgunun üstüne çizilmez. |
 | 13 | Hareket sistem varsayılanlarıyla sınırlıdır ve Hareketi Azalt ayarına uyar. Tek istisna Graph'tır: düğümler kuvvet benzetimiyle hareket eder, çünkü içerik hareketin kendisidir. Hareketi Azalt açıkken Graph da canlı oynamaz; uygulama oturmuş düzeni tek seferde gösterir. |
@@ -822,7 +822,7 @@ Kod karşılığı: `InkListSelectionBackground` ve `inkListRow(columnSelected:)
 | Konu | Kural |
 |---|---|
 | Dolgu yeri | Dolgu sistem seçiminin yerindedir: kenarlardan 10 pt içeride ve 8 pt köşeli. |
-| iPad ve Duo, bölünmüş kabuk | Aynı dolgu, yazı ve simge. Yüzen panel kâğıt rengindedir. Odak çerçevesi çizilmez; klavyeyle seçim odağı izler, dolgu odağın yerini gösterir. Satır adı tek satırdır, uzun ad sonda "…" ile kısalır. İşaretçi üstünde durduğu satırı sistemin hafif vurgusuyla gösterir; manşet simgeleri ve liste sütunu satırlarıyla aynı etki. Kanban kartı işaretçi altında hafifçe kalkar. |
+| iPad ve Duo, bölünmüş kabuk | Aynı dolgu, yazı ve simge. Yüzen panel kâğıt rengindedir. Odak çerçevesi çizilmez; klavyeyle seçim odağı izler, dolgu odağın yerini gösterir. Satır adı tek satırdır, uzun ad sonda "…" ile kısalır. Erişilebilirlik yazı boyutlarında ad kısalmaz: satırlara sarılır ve simgenin yanında hizalanır. Liste sütununun bağlantıları, ay adı ve eylemleri de sarılır. İşaretçi üstünde durduğu satırı sistemin hafif vurgusuyla gösterir; manşet simgeleri ve liste sütunu satırlarıyla aynı etki. Kanban kartı işaretçi altında hafifçe kalkar. |
 | Kaydırma göstergesi | Uygulama dikey kaydırma göstergesini çizmez. Fare bağlıyken yer kaplayan çubuk satırı sağdan daraltmaz; dolgu iki kenardan 10 pt içeride kalır. Liste tekerlek, izleme dörtgeni ve ok tuşlarıyla kayar. |
 | Odak | Yerleşimi değiştiren her seçimden sonra uygulama odağı yeni kenar çubuğuna bir kez geri verir. Seçim tıklama, ok tuşu ya da VoiceOver olabilir. Uygulama bunu yalnız odak serbestse yapar. |
 | Odak serbestliği | Kenar çubuğunun kendi penceresi serbestliği belirler. Odak o pencerede başka bir denetimdeyse uygulama isteği bırakır. |

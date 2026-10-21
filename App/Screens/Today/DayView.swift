@@ -314,9 +314,21 @@ struct DayView: View {
         }
     }
 
-    @ViewBuilder private var journalPreview: some View {
+    private var journalPreview: some View {
+        DayJournalPreview(isLoaded: day != nil, preview: day?.preview)
+    }
+}
+
+/// The Günlük yazısı section's button label: the opening of the day's text and "Devamını yaz",
+/// or the placeholder. Nothing until the day is loaded.
+struct DayJournalPreview: View {
+    let isLoaded: Bool
+    let preview: String?
+    @Environment(\.locale) private var locale
+
+    var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            if let day, let preview = day.preview {
+            if isLoaded, let preview {
                 Text(verbatim: preview)
                     .font(.ink.content)
                     .foregroundStyle(Color.ink.text)
@@ -330,7 +342,7 @@ struct DayView: View {
                 )
                 .font(.ink.byline)
                 .foregroundStyle(Color.ink.accent)
-            } else if day != nil {
+            } else if isLoaded {
                 Text(
                     verbatim: String(
                         localized: "Günlük yazısı ekle…",
@@ -338,9 +350,21 @@ struct DayView: View {
                 )
                 .font(.ink.placeholder)
                 .foregroundStyle(Color.ink.secondaryText)
-                .frame(maxWidth: .infinity, alignment: .leading)
+                // One line of placeholder is shorter than a finger: on iOS the row is a 44 pt
+                // touch target, the text centred in it.
+                .frame(maxWidth: .infinity, minHeight: Self.placeholderMinHeight, alignment: .leading)
             }
         }
+        // The empty part of the row opens the editor too.
+        .contentShape(Rectangle())
+    }
+
+    private static var placeholderMinHeight: CGFloat? {
+        #if os(iOS)
+            TapTarget.minimumLength
+        #else
+            nil
+        #endif
     }
 }
 

@@ -267,14 +267,10 @@ struct WeeklyReviewView: View {
                 EmptyState(empty)
             } else {
                 rows(content)
-                Toggle(
-                    "Çıktıya ekle",
+                WeeklyReviewIncludeToggle(
                     isOn: Binding(
                         get: { model.isIncluded(section) }, set: { model.setIncluded(section, $0) })
                 )
-                .font(.ink.meta)
-                .foregroundStyle(Color.ink.secondaryText)
-                .padding(.top, InkSpacing.row)
                 // The same words on four pages: VoiceOver also says what is included.
                 .accessibilityLabel(
                     Text(verbatim: title + ", " + String(localized: "Çıktıya ekle", bundle: bundle, locale: locale))
@@ -389,5 +385,41 @@ struct WeeklyReviewEntryStatus: View {
                 .font(.ink.meta)
                 .foregroundStyle(Color.ink.secondaryText)
         }
+    }
+}
+
+/// "Çıktıya ekle" under a collecting step's rows. On iOS the row is a 44 pt touch target: the
+/// switch alone is 28 pt, so the label carries the height and the switch sits in its middle,
+/// with no gap above (the row's own height is the gap).
+struct WeeklyReviewIncludeToggle: View {
+    @Binding var isOn: Bool
+
+    var body: some View {
+        Toggle(isOn: $isOn) {
+            Text("Çıktıya ekle")
+                .frame(minHeight: Self.minimumHeight)
+                // The row as VoiceOver and the touch-target audit measure it, not the text's own line.
+                .contentShape(.accessibility, Rectangle())
+        }
+        .contentShape(.accessibility, Rectangle())
+        .font(.ink.meta)
+        .foregroundStyle(Color.ink.secondaryText)
+        .padding(.top, Self.topPadding)
+    }
+
+    private static var minimumHeight: CGFloat? {
+        #if os(iOS)
+            TapTarget.minimumLength
+        #else
+            nil
+        #endif
+    }
+
+    private static var topPadding: CGFloat {
+        #if os(iOS)
+            0
+        #else
+            InkSpacing.row
+        #endif
     }
 }

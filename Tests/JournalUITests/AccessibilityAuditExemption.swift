@@ -89,19 +89,10 @@ extension AccessibilityAuditExemption {
         .init(
             type: .textClipped, element: .identifier("field.entities.filter"),
             reason: "single-line filter field: typed text scrolls sideways, as every text field does"),
-        // iPad split shell at accessibility sizes: the sidebar and the list column keep their width,
-        // so long row titles end in "…" and the list column's leading edge is cut off
-        // (shell.todayLandscapeAX3.png). Widening the columns is shell work (App/Navigation,
-        // ShellStyle), outside this audit change.
-        .init(type: .textClipped, element: .identifierPrefix("sidebar."), reason: Reason.padColumns, open: true),
-        .init(type: .textClipped, element: .catalogKey("Özetler"), reason: Reason.padColumns, open: true),
-        .init(type: .textClipped, element: .catalogKey("Yeni kişi"), reason: Reason.padColumns, open: true),
-        .init(type: .textClipped, element: .catalogKey("Rehberden aktar"), reason: Reason.padColumns, open: true),
-        .init(
-            type: .textClipped, element: .containsCatalogKey("Son görülme: %@"), reason: Reason.padColumns,
-            open: true),
-        .init(
-            type: .textClipped, element: .labelPattern(Pattern.monthTitle), reason: Reason.padColumns, open: true),
+        // The entity page's byline (iPad detail column, a list cell): no line limit; it wraps and is
+        // read whole at every size (entities.personDatesAX3.png; the iPad app measured at xxxLarge
+        // and AX3). The audit reports it on the iPad only.
+        .init(type: .textClipped, element: .containsCatalogKey("Son görülme: %@"), reason: Reason.entityPage),
         // MARK: hitRegion
         .init(
             type: .hitRegion, element: .systemLabel(["Hide Sidebar", "Kenar Çubuğunu Gizle", "Kenar çubuğunu gizle"]),
@@ -112,33 +103,12 @@ extension AccessibilityAuditExemption {
     ]
 
     /// Controls under 44 × 44 pt that ``AccessibilityAuditPolicy/assertTouchTargets(in:screen:)`` accepts.
-    static let touchTargets: [AccessibilityAuditExemption] = [
-        .init(
-            type: .hitRegion, element: .catalogKey("Günlük yazısını düzenle"),
-            reason: "Today's journal preview button is as tall as its text (20 pt with the placeholder);"
-                + " a 44 pt frame lengthens the Today page and needs its references re-recorded",
-            open: true),
-        // Step buttons of Günü kapat and Haftalık inceleme (InkTextButtonStyle): 44 pt tall, as wide as
-        // the word ("İleri", "Geri"). A 44 pt minimum width belongs in InkTextButtonStyle (App/Design)
-        // and moves the words beside them, so the CloseDay and WeeklyReview references are re-recorded.
-        .init(type: .hitRegion, element: .identifier("button.closeDay.next"), reason: Reason.stepButton, open: true),
-        .init(type: .hitRegion, element: .identifier("button.closeDay.back"), reason: Reason.stepButton, open: true),
-        .init(
-            type: .hitRegion, element: .identifier("button.weeklyReview.back"), reason: Reason.stepButton, open: true),
-        // Haftalık inceleme's "Çıktıya ekle" toggle row is as tall as its meta-size text (28 pt); a 44 pt
-        // row lengthens four review pages and needs the WeeklyReview references re-recorded.
-        .init(
-            type: .hitRegion, element: .identifier("toggle.weeklyReview.include"),
-            reason: "toggle row as tall as its text; a 44 pt row is a WeeklyReview layout and reference change",
-            open: true),
-    ]
+    static let touchTargets: [AccessibilityAuditExemption] = []
 }
 
 private enum Reason {
     static let sectionHeader = "SectionHeader text grows at AX3 (tasksScreen.tasksAX3.png, shell.todayLandscapeAX3.png)"
-    static let stepButton = "text step button as wide as its word; the minimum width is InkTextButtonStyle work"
     static let entityPage = "entity page text grows with Dynamic Type (entities.personDatesAX3.png)"
-    static let padColumns = "iPad columns keep their width at accessibility sizes (shell.todayLandscapeAX3.png)"
     static let barItem =
         "sheet toolbar word in the system bar, which keeps bar-item text at a fixed size"
         + " (component.sheetReadingAX3.png)"
@@ -149,8 +119,6 @@ private enum Pattern {
     static let shortDate = #"\d{1,2} \p{L}{3}\.? \d{4}|\p{L}{3} \d{1,2}, \d{4}"#
     /// One weekday letter of the calendar header, English (S M T W F) or Turkish (P S Ç C).
     static let weekdayLetter = #"[SMTWFPÇC]"#
-    /// "Ekim 2026" or "October 2026": the calendar's month title.
-    static let monthTitle = #"\p{L}+ \d{4}"#
 }
 
 /// The app's String Catalog read from the repository (the simulator shares the host's file system).

@@ -460,6 +460,9 @@ struct MacDaysColumn: View {
             .padding(.leading, InkSpacing.margin + MacListColumnChrome.rowInset)
             .padding(.vertical, 8)
             .frame(maxWidth: .infinity, alignment: .leading)
+            // Its whole height before the list's: at accessibility sizes the column is short of
+            // height and the stack would otherwise cut the link names.
+            .fixedSize(horizontal: false, vertical: true)
             if let notice = weeklyReviewNotice {
                 InfoBand(kind: notice.kind, verbatim: notice.text, onDismiss: { weeklyReviewNotice = nil })
             }
@@ -514,6 +517,8 @@ struct MacEntitiesColumn: View {
                     .padding(.horizontal, InkSpacing.margin)
                     .padding(.bottom, InkSpacing.section)
                     .frame(maxWidth: .infinity, alignment: .leading)
+                    // As the Günlük column's links: whole names before the list's height.
+                    .fixedSize(horizontal: false, vertical: true)
             }
             EntityFilterField(search: $search)
                 .padding(.horizontal, InkSpacing.margin)

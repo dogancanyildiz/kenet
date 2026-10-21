@@ -51,9 +51,9 @@ enum ShellStyle {
     /// "Zaman çizelgesi" and a project name fit beside their icon. Upright 13" iPad: 240 + 320
     /// leaves the detail 472 pt.
     static let threeColumnSidebarWidth = ShellColumnWidth(min: 200, ideal: 240, max: 280)
-    /// The same at accessibility text sizes: a name is cut at its end ("…"), never broken
-    /// inside a word. Upright 13" iPad: 280 + 320 still leaves the detail 432 pt, so iPadOS
-    /// keeps the three columns side by side.
+    /// The same at accessibility text sizes, where a name wraps instead of being cut
+    /// (``MacSidebarRow``). Upright 13" iPad: 280 + 320 still leaves the detail 432 pt, so
+    /// iPadOS keeps the three columns side by side.
     static let accessibilitySidebarWidth = ShellColumnWidth(min: 240, ideal: 280, max: 320)
 
     /// Sidebar width for the tier and text size. The Mac window and the two-column tier (the

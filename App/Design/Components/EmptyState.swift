@@ -33,6 +33,8 @@ struct EmptyState: View {
                 .foregroundStyle(Color.ink.secondaryText)
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: .infinity)
+                // The component's sentence, whatever it says (the accessibility audit's table).
+                .accessibilityIdentifier("emptyState")
             if let actionTitle, let action {
                 Button(action: action) {
                     Text(actionTitle)

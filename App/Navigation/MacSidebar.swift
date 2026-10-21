@@ -142,6 +142,15 @@ enum MacSidebarChrome {
     static func iconToken(isSelected: Bool, isWindowActive: Bool) -> InkPalette.Token {
         isSelected && isWindowActive ? .onAccent : .accent
     }
+
+    /// iOS row names: one line, cut at the end; whole and wrapped at accessibility text sizes.
+    static func wrapsTitle(dynamicTypeSize: DynamicTypeSize) -> Bool {
+        dynamicTypeSize.isAccessibilitySize
+    }
+
+    /// Icon to name in a wrapped row, and the icon column's width at the default text size.
+    static let wrappedIconSpacing: CGFloat = 12
+    static let wrappedIconWidth: CGFloat = 26
 }
 
 /// The sidebar list. Selection stays the system's (arrow keys, focus, VoiceOver "selected");
@@ -239,28 +248,59 @@ struct MacSidebarRow: View {
     let entry: MacSidebarEntry
     let isSelected: Bool
     let isWindowActive: Bool
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    /// A wrapped row's icon column: one width for every row, so the names start in one line.
+    @ScaledMetric(relativeTo: .body) private var wrappedIconWidth = MacSidebarChrome.wrappedIconWidth
 
     var body: some View {
-        Label {
-            entry.title
-                #if os(iOS)
-                    .lineLimit(1)
-                    .truncationMode(.tail)
-                #endif
-                .fontWeight(isSelected ? .semibold : .regular)
-                .foregroundStyle(
-                    color(MacSidebarChrome.titleToken(isSelected: isSelected, isWindowActive: isWindowActive)))
-        } icon: {
-            Image(systemName: entry.symbol)
-                .foregroundStyle(
-                    color(MacSidebarChrome.iconToken(isSelected: isSelected, isWindowActive: isWindowActive)))
-        }
-        .padding(.leading, entry.isNested ? InkSpacing.margin : 0)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .contentShape(Rectangle())
-        .focusEffectDisabled()
-        .inkPointerHighlight()
-        .listRowBackground(background)
+        label
+            .padding(.leading, entry.isNested ? InkSpacing.margin : 0)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .contentShape(Rectangle())
+            .focusEffectDisabled()
+            .inkPointerHighlight()
+            .listRowBackground(background)
+    }
+
+    /// One line with "…" at the end. At accessibility sizes on iOS no column is wide enough for
+    /// "Zaman çizelgesi": the name wraps and is read whole, its lines beside the icon (a list's
+    /// own label runs the second line under the icon).
+    @ViewBuilder private var label: some View {
+        #if os(iOS)
+            if MacSidebarChrome.wrapsTitle(dynamicTypeSize: dynamicTypeSize) {
+                HStack(alignment: .firstTextBaseline, spacing: MacSidebarChrome.wrappedIconSpacing) {
+                    icon.frame(width: wrappedIconWidth)
+                    title
+                }
+            } else {
+                Label {
+                    title
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                } icon: {
+                    icon
+                }
+            }
+        #else
+            Label {
+                title
+            } icon: {
+                icon
+            }
+        #endif
+    }
+
+    private var title: some View {
+        entry.title
+            .fontWeight(isSelected ? .semibold : .regular)
+            .foregroundStyle(
+                color(MacSidebarChrome.titleToken(isSelected: isSelected, isWindowActive: isWindowActive)))
+    }
+
+    private var icon: some View {
+        Image(systemName: entry.symbol)
+            .foregroundStyle(
+                color(MacSidebarChrome.iconToken(isSelected: isSelected, isWindowActive: isWindowActive)))
     }
 
     private var background: some View {

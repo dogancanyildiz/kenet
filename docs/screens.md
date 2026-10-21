@@ -1073,7 +1073,7 @@ Kabuk cihaz türüne bakmaz; yalnız boyut sınıflarına ve genişliğe bakar. 
 | Öğe | Davranış |
 |---|---|
 | Kenar çubuğu | Mac kenar çubuğunun girdileri ve çizimi: mürdüm seçim. Sistem sekme kenar çubuğu değildir. iPad'in yüzen paneli kâğıt rengindedir. |
-| Kenar çubuğu genişliği | İki sütunda Mac'teki gibi. Üç sütunda en az 200, ideal 240, en çok 280 pt; erişilebilirlik yazı boyutunda 240, 280, 320 pt. Uzun ad sonda "…" ile kısalır. |
+| Kenar çubuğu genişliği | İki sütunda Mac'teki gibi. Üç sütunda en az 200, ideal 240, en çok 280 pt; erişilebilirlik yazı boyutunda 240, 280, 320 pt. Uzun ad sonda "…" ile kısalır; erişilebilirlik yazı boyutunda ad sarılır. |
 | Kenar çubuğu düğmesi | Sol sütunun gezinme çubuğundadır. Kök sayfalar bu kabukta gezinme çubuğunu gizlemez. |
 | Kenar çubuğu seçimi | İki sütunda bir girdi seçilince kenar çubuğu gizlenir; liste ve ayrıntı yeniden yan yana durur. Seçili Görevler'e yeniden dokunmak listeyi ilk bölümüne döndürür. Üç sütunda kullanıcının düğmeyle gizlediği kenar çubuğu, düzen değişince ya da pencere aynı kademede boyut değiştirince gizli kalır; sütunlu düzene geçişte liste sütunu her zaman ayrıntıyla birlikte açılır; panoya ya da tam sayfaya geçişte sayfa bütün genişliği alır. Kademeye yeniden girilince (1000 pt altından dönünce) üç sütun geri gelir. |
 | Liste seçimi | Satıra dokunmak satırı seçer ve ayrıntıyı açar; görev kutusu görevi tamamlar. Seçili satır Mac'teki gibi çukur zemindedir. Bölüm ya da süzgeç değişince, görev listeden çıkınca seçim kalkar. |

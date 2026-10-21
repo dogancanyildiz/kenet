@@ -512,7 +512,7 @@ flowchart LR
 | `macSettingsMinWidth`, `macSettingsMinHeight` | 480 × 520 pt | Mac Ayarlar penceresi |
 | `listSelectionHorizontal`, `listSelectionVertical` | 4, 2 pt | Mac liste seçim dolgusunun satır kenarından içe payı |
 | `ShellStyle.threeColumnSidebarWidth` | 200, 240, 280 pt | iOS bölünmüş kabukta üç sütunun kenar çubuğu (iPad, 1000 pt ve üstü) |
-| `ShellStyle.accessibilitySidebarWidth` | 240, 280, 320 pt | Aynısı, erişilebilirlik yazı boyutunda |
+| `ShellStyle.accessibilitySidebarWidth` | 240, 280, 320 pt | iOS bölünmüş kabukta erişilebilirlik yazı boyutunda kenar çubuğu: üç sütunda ve iki sütunun yüzen kenar çubuğunda |
 | `SearchSheetChrome.idealWidth`, `idealHeight` | 580 × 480 pt | iOS bölünmüş kabukta Ara sheet'i; form üst payıyla yükseklik yaklaşık 490 pt |
 
 ### Biçim: `InkSize`
@@ -822,7 +822,7 @@ Kod karşılığı: `InkListSelectionBackground` ve `inkListRow(columnSelected:)
 | Konu | Kural |
 |---|---|
 | Dolgu yeri | Dolgu sistem seçiminin yerindedir: kenarlardan 10 pt içeride ve 8 pt köşeli. |
-| iPad ve Duo, bölünmüş kabuk | Aynı dolgu, yazı ve simge. Yüzen panel kâğıt rengindedir. Odak çerçevesi çizilmez; klavyeyle seçim odağı izler, dolgu odağın yerini gösterir. Satır adı tek satırdır, uzun ad sonda "…" ile kısalır. Erişilebilirlik yazı boyutlarında ad kısalmaz: satırlara sarılır ve simgenin yanında hizalanır. Liste sütununun bağlantıları, ay adı ve eylemleri de sarılır. İşaretçi üstünde durduğu satırı sistemin hafif vurgusuyla gösterir; manşet simgeleri ve liste sütunu satırlarıyla aynı etki. Kanban kartı işaretçi altında hafifçe kalkar. |
+| iPad ve Duo, bölünmüş kabuk | Aynı dolgu, yazı ve simge. Yüzen panel kâğıt rengindedir. Odak çerçevesi çizilmez; klavyeyle seçim odağı izler, dolgu odağın yerini gösterir. Satır adı tek satırdır, uzun ad sonda "…" ile kısalır. Erişilebilirlik yazı boyutlarında simge gizlenir ve satır yalnız addır: ad kısalmaz, sözcük aralarından sarılır ve bütün okunur. Simgenin yeri en uzun adın sözcüklerini tek parça tutar. VoiceOver her boyutta yalnız adı okur. Liste sütununun bağlantıları, ay adı ve eylemleri de sarılır. İşaretçi üstünde durduğu satırı sistemin hafif vurgusuyla gösterir; manşet simgeleri ve liste sütunu satırlarıyla aynı etki. Kanban kartı işaretçi altında hafifçe kalkar. |
 | Kaydırma göstergesi | Uygulama dikey kaydırma göstergesini çizmez. Fare bağlıyken yer kaplayan çubuk satırı sağdan daraltmaz; dolgu iki kenardan 10 pt içeride kalır. Liste tekerlek, izleme dörtgeni ve ok tuşlarıyla kayar. |
 | Odak | Yerleşimi değiştiren her seçimden sonra uygulama odağı yeni kenar çubuğuna bir kez geri verir. Seçim tıklama, ok tuşu ya da VoiceOver olabilir. Uygulama bunu yalnız odak serbestse yapar. |
 | Odak serbestliği | Kenar çubuğunun kendi penceresi serbestliği belirler. Odak o pencerede başka bir denetimdeyse uygulama isteği bırakır. |

@@ -127,10 +127,16 @@ struct AdaptiveShellTests {
     }
 
     /// The Mac and the two-column tier keep the Mac sidebar; an iPad's three columns widen it
-    /// for iOS type, and more at accessibility sizes.
+    /// for iOS type, and on iOS both tiers widen more at accessibility sizes.
     @Test func sidebarWidthFollowsTierAndTextSize() {
         #expect(ShellStyle.sidebarWidth(tier: .twoColumns, dynamicTypeSize: .large) == .macSidebar)
-        #expect(ShellStyle.sidebarWidth(tier: .twoColumns, dynamicTypeSize: .accessibility3) == .macSidebar)
+        #if os(iOS)
+            #expect(
+                ShellStyle.sidebarWidth(tier: .twoColumns, dynamicTypeSize: .accessibility3)
+                    == ShellStyle.accessibilitySidebarWidth)
+        #else
+            #expect(ShellStyle.sidebarWidth(tier: .twoColumns, dynamicTypeSize: .accessibility3) == .macSidebar)
+        #endif
         #if os(iOS)
             let regular = ShellStyle.sidebarWidth(tier: .threeColumns, dynamicTypeSize: .large)
             #expect(regular == ShellColumnWidth(min: 200, ideal: 240, max: 280))

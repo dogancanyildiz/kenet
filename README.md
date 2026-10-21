@@ -298,11 +298,17 @@ flowchart LR
 4. Secrets değerlerini yaz. Depo kökünde:
 
    ```sh
-   gh secret set ASC_KEY_ID --body '<Key ID>'
-   gh secret set ASC_ISSUER_ID --body '<Issuer ID>'
-   base64 -i AuthKey_<Key ID>.p8 | gh secret set ASC_KEY_P8
-   base64 -i Kenet-imza.p12 | gh secret set DIST_CERT_P12
-   gh secret set DIST_CERT_PASSWORD
+   # Önce "testflight" ortamını yalnız dev dalına açık olarak oluştur (Settings → Environments:
+   # Deployment branches → Selected branches → dev); Secrets bu ortama yazılır, başka dal okuyamaz.
+   gh api -X PUT repos/dogancanyildiz/kenet/environments/testflight \
+     -F 'deployment_branch_policy[protected_branches]=false' \
+     -F 'deployment_branch_policy[custom_branch_policies]=true'
+   gh api -X POST repos/dogancanyildiz/kenet/environments/testflight/deployment-branch-policies -f name=dev
+   gh secret set ASC_KEY_ID --env testflight
+   gh secret set ASC_ISSUER_ID --env testflight
+   base64 -i AuthKey_<Key ID>.p8 | gh secret set ASC_KEY_P8 --env testflight
+   base64 -i Kenet-imza.p12 | gh secret set DIST_CERT_P12 --env testflight
+   gh secret set DIST_CERT_PASSWORD --env testflight
    ```
 
    Son komut parolayı gizli girişle sorar. Sonra `.p8` ve `.p12` dosyalarını parola yöneticisine taşı ve diskten sil.

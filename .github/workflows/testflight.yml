@@ -32,6 +32,9 @@ jobs:
       (github.event_name == 'workflow_dispatch' || vars.KENET_CD_ON_PUSH == 'true')
     runs-on: macos-26
     timeout-minutes: 45
+    # Secrets ortam düzeyindedir: "testflight" ortamı yalnız dev dalına açıktır; başka bir daldaki iş
+    # akışı (ajan dalları dahil) anahtar ve sertifikayı okuyamaz.
+    environment: testflight
     # Tek kuyruk: yükleme yarıda kesilmez; bekleyen koşu yenisi gelince iptal olur, son commit yüklenir.
     # İş düzeyinde: anahtar kapalıyken atlanan itme koşusu kuyruktaki elle koşuyu düşürmesin.
     concurrency:

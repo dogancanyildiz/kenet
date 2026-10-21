@@ -71,8 +71,8 @@ extension AccessibilityAuditExemption {
             type: .dynamicType, element: .labelPattern(Pattern.weekdayLetter),
             reason: "calendar weekday letter grows (shell.todayLandscapeAX3.png)"),
         // iPad sidebar names grow and, at accessibility sizes, wrap (shell.todayLandscapeAX3.png,
-        // largeText.todayLandscapeAX5.png). A row switches from the list's label to its own
-        // icon-and-text row at those sizes, and the audit reports one row or another as not growing
+        // largeText.todayLandscapeAX5.png). A row switches from the list's label to its name alone
+        // (no icon) at those sizes, and the audit reports one row or another as not growing
         // (CI runs and locally, about one run in three; the names are whole in every reference).
         .init(type: .dynamicType, element: .identifierPrefix("sidebar."), reason: Reason.sidebarName),
         // EmptyState's sentence is body-sized serif and grows (largeText.tasksLandscapeAX3.png,

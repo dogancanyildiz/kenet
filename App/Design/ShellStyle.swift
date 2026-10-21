@@ -51,17 +51,19 @@ enum ShellStyle {
     /// "Zaman çizelgesi" and a project name fit beside their icon. Upright 13" iPad: 240 + 320
     /// leaves the detail 472 pt.
     static let threeColumnSidebarWidth = ShellColumnWidth(min: 200, ideal: 240, max: 280)
-    /// The same at accessibility text sizes, where a name wraps instead of being cut
-    /// (``MacSidebarRow``). Upright 13" iPad: 280 + 320 still leaves the detail 432 pt, so
-    /// iPadOS keeps the three columns side by side.
+    /// The same at accessibility text sizes, where a row is its name alone and the name wraps
+    /// between its words (``MacSidebarRow``): "çizelgesi" at AX5 needs this width. Upright 13"
+    /// iPad: 280 + 320 still leaves the detail 432 pt, so iPadOS keeps the three columns side by
+    /// side. The two-column tier takes it too: its sidebar is laid over the list (upright 11"
+    /// iPad, iPhone Duo), and the Mac width would break the longest names inside a word.
     static let accessibilitySidebarWidth = ShellColumnWidth(min: 240, ideal: 280, max: 320)
 
-    /// Sidebar width for the tier and text size. The Mac window and the two-column tier (the
-    /// sidebar laid over the list on the iPhone Duo) keep the Mac widths.
+    /// Sidebar width for the tier and text size. The Mac window, and the two-column tier below
+    /// the accessibility sizes, keep the Mac widths.
     static func sidebarWidth(tier: ShellTier, dynamicTypeSize: DynamicTypeSize) -> ShellColumnWidth {
         #if os(iOS)
-            guard tier == .threeColumns else { return .macSidebar }
-            return dynamicTypeSize.isAccessibilitySize ? accessibilitySidebarWidth : threeColumnSidebarWidth
+            guard !dynamicTypeSize.isAccessibilitySize else { return accessibilitySidebarWidth }
+            return tier == .threeColumns ? threeColumnSidebarWidth : .macSidebar
         #else
             .macSidebar
         #endif

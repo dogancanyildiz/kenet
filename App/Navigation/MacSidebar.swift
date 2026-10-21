@@ -143,14 +143,12 @@ enum MacSidebarChrome {
         isSelected && isWindowActive ? .onAccent : .accent
     }
 
-    /// iOS row names: one line, cut at the end; whole and wrapped at accessibility text sizes.
+    /// iOS row names: icon and name on one line, cut at the end. At accessibility text sizes
+    /// the row is the name alone, wrapped between words and read whole: the icon's column is
+    /// room the longest name needs to keep its words in one piece.
     static func wrapsTitle(dynamicTypeSize: DynamicTypeSize) -> Bool {
         dynamicTypeSize.isAccessibilitySize
     }
-
-    /// Icon to name in a wrapped row, and the icon column's width at the default text size.
-    static let wrappedIconSpacing: CGFloat = 12
-    static let wrappedIconWidth: CGFloat = 26
 }
 
 /// The sidebar list. Selection stays the system's (arrow keys, focus, VoiceOver "selected");
@@ -249,8 +247,6 @@ struct MacSidebarRow: View {
     let isSelected: Bool
     let isWindowActive: Bool
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-    /// A wrapped row's icon column: one width for every row, so the names start in one line.
-    @ScaledMetric(relativeTo: .body) private var wrappedIconWidth = MacSidebarChrome.wrappedIconWidth
 
     var body: some View {
         label
@@ -263,15 +259,12 @@ struct MacSidebarRow: View {
     }
 
     /// One line with "…" at the end. At accessibility sizes on iOS no column is wide enough for
-    /// "Zaman çizelgesi": the name wraps and is read whole, its lines beside the icon (a list's
-    /// own label runs the second line under the icon).
+    /// "Zaman çizelgesi" beside its icon: the row is the name alone, wrapped between its words
+    /// and read whole. VoiceOver reads the name in both (the icon was never read).
     @ViewBuilder private var label: some View {
         #if os(iOS)
             if MacSidebarChrome.wrapsTitle(dynamicTypeSize: dynamicTypeSize) {
-                HStack(alignment: .firstTextBaseline, spacing: MacSidebarChrome.wrappedIconSpacing) {
-                    icon.frame(width: wrappedIconWidth)
-                    title
-                }
+                title
             } else {
                 Label {
                     title

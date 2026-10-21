@@ -154,7 +154,7 @@ xcodebuild test -project Journal.xcodeproj -scheme Journal_iOS \
 ```
 
 6. iOS arayüz testlerini koş: `Journal_iOS` şemasına `-only-testing:JournalUITests` ekle.
-7. Biçimi denetle: `swift format lint --strict --recursive Packages App Tests`
+7. Biçimi denetle: `swift format lint --strict --recursive Packages App Tests Widgets`
 8. Belgeleri denetle: `sh .github/scripts/check-docs.sh`
 
 **NOT:** CI ve yerel testler `CODE_SIGNING_ALLOWED=NO` ile imzasız koşar; takım kimliği gerekmez.

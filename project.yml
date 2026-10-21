@@ -93,7 +93,15 @@ targets:
         excludes:
           # Simgenin vektör kaynağı depoda durur ama uygulama paketine girmez.
           - "Support/AppIcon/**"
+      # Widget'la ortak kaynaklar (anlık görüntü biçimi, widget görünümleri): uygulama anlık
+      # görüntüyü yazar, testler görünümlerin görüntüsünü alır. Yalnız Foundation ve SwiftUI.
+      - path: Widgets/Shared
+        type: syncedFolder
     dependencies:
+      # Ana ekran widget'ı yalnız iOS'ta (Mac widget'ları sonraki dalga).
+      - target: JournalWidgets
+        embed: true
+        platformFilter: iOS
       - package: Core
         product: VaultFormat
       - package: Core
@@ -175,6 +183,45 @@ targets:
           fi
         # Info.plist girdi sayılır ki betik her derlemede plist üretildikten sonra koşsun; yoksa
         # artımlı derlemede sıra tersine dönebilir ve yazılan değerler silinir.
+        inputFiles:
+          - $(SRCROOT)/VERSION
+          - $(TARGET_BUILD_DIR)/$(INFOPLIST_PATH)
+        basedOnDependencyAnalysis: false
+
+  # Ana ekran widget'ı (docs/architecture.md, "Widget'lar"). Yalnız App Group'taki anlık görüntüyü
+  # okur: SQLite açmaz, Core almaz. Renkler uygulamanın varlık kataloğundan gelir (tek kaynak).
+  JournalWidgets:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: Widgets
+      # Uygulamayla tek tanım: renk belirteçleri, String Catalog ve App Group kimliği.
+      - path: App/Resources/Assets.xcassets
+      - path: App/Resources/Localizable.xcstrings
+      - path: App/Support/AppIdentifiers.swift
+    settings:
+      base:
+        PRODUCT_NAME: JournalWidgets
+        PRODUCT_BUNDLE_IDENTIFIER: $(APP_BUNDLE_IDENTIFIER).widgets
+        INFOPLIST_FILE: Widgets/Support/Info.plist
+        INFOPLIST_KEY_CFBundleDisplayName: Kenet
+        CODE_SIGN_ENTITLEMENTS: Widgets/Support/JournalWidgets.entitlements
+        SKIP_INSTALL: YES
+        ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME: InkPaper
+      configs:
+        DebugTest:
+          # Uzantı kimliği kapsayan uygulamanınkiyle başlamalı (test konağı .testhost).
+          PRODUCT_BUNDLE_IDENTIFIER: $(APP_BUNDLE_IDENTIFIER).testhost.widgets
+    postBuildScripts:
+      # Uzantının sürümü ve yapı numarası uygulamanınkiyle aynı olmalı (mağaza denetimi).
+      - name: Sürümü yaz
+        script: |
+          version=$(tr -d '[:space:]' < "$SRCROOT/VERSION")
+          /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $version" "$TARGET_BUILD_DIR/$INFOPLIST_PATH"
+          build=$(sh "$SRCROOT/.github/scripts/build-number.sh" "$SRCROOT" || true)
+          if [ -n "$build" ]; then
+            /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $build" "$TARGET_BUILD_DIR/$INFOPLIST_PATH"
+          fi
         inputFiles:
           - $(SRCROOT)/VERSION
           - $(TARGET_BUILD_DIR)/$(INFOPLIST_PATH)

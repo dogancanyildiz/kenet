@@ -1291,20 +1291,42 @@ flowchart LR
     Bildirim[Akşam günlük hatırlatması: 4] --> GunuKapat[Günü kapat: günlük adımı]
 ```
 
-Kısayollar ve Siri arayüz göstermez, ama anmaları hızlı girişteki kuralla bağlar. Akşam günlük hatırlatması hızlı giriş kutusunu değil, Günü kapat akışının günlük adımını açar. Bu adım tek cümleyi günlüğün sonuna ekler. Widget ve kilit ekranı düğmesi henüz yok: [Widget'lar](#widgetlar-3) bölümüne bak.
+Kısayollar ve Siri arayüz göstermez, ama anmaları hızlı girişteki kuralla bağlar. Akşam günlük hatırlatması hızlı giriş kutusunu değil, Günü kapat akışının günlük adımını açar. Bu adım tek cümleyi günlüğün sonuna ekler. Hızlı giriş widget'ı ve kilit ekranı düğmesi henüz yok: [Widget'lar](#widgetlar-3) bölümüne bak.
 
 Bugün çalışan yollar Ayarlar → Hızlı giriş'te ve ilk kullanım ipucunda görünür: Siri cümleleri, Kısayollar, Eylem düğmesi ve Mac klavye kısayolu. Widget, kilit ekranı düğmesi, Denetim Merkezi ve paylaşım uzantısı bu gösterimde yoktur.
 
 ## Widget'lar (3)
 
-**Durum:** henüz uygulanmadı. Widget'lar App Group kimliği kararını bekler. Tablo hedeflenen kapsamdır.
+**Durum:** ana ekran zincir widget'ı uygulandı: iOS, küçük ve orta boy. Öteki satırlar hedeflenen kapsamdır. Veri yolu: `architecture.md`, Widget'lar.
 
 | Widget | Yer | İçerik |
 |---|---|---|
-| Hedefler | Ana ekran, Mac | Günün hedefleri. Dokunma hedefi işaretler. Bekleyen hedefler vurguludur. |
+| Zincir | Ana ekran (iOS) | Günün günlük hedefleri ve zincirleri. Ayrıntı aşağıda. |
+| Hedefler, Mac | Mac | Sonraki dalga. |
 | Bugün | Ana ekran, Mac | Günün görevleri ve sıradaki etkinlik. Göreve dokunma görevi tamamlar. |
 | Kilit ekranı | Kilit ekranı | Sıradaki etkinlik ve kalan görev sayısı ya da tek hedefin durumu. |
 | Hızlı giriş | Ana ekran, kilit ekranı, Denetim Merkezi | Dokunma uygulamayı yazma ekranında, klavye açık olarak açar. |
+
+### Zincir widget'ı
+
+Widget galeride "Zincir" adıyla görünür. Widget yalnız günlük evet/hayır ve sayı hedeflerini gösterir. Haftalık hedefler, yıllık hedefler ve kilometre taşları widget'ta yoktur.
+
+**Tablo widget'ın neyi gösterdiğini ve dokunmanın ne yaptığını gösterir.**
+
+| Parça | Küçük | Orta |
+|---|---|---|
+| Başlık | "Hedefler" ve yapılan/toplam sayacı | Aynı |
+| Satırlar | En çok 3 hedef; erişilebilirlik boyutunda 1 | En çok 3 hedef; erişilebilirlik boyutunda 2 |
+| Satır | Halka, ad, zincir sayısı | Halka, ad, zincir günü rozeti, "N gün" zincir |
+| Dokunma | Widget'ın tamamı uygulamayı Bugün'de açar | Bekleyen evet/hayır hedefi: uygulama açılır ve hedefi bugün için işaretler. Sayı hedefi ve yapılmış hedef: uygulama Bugün'de açılır. Satır dışı: Bugün |
+
+- Bekleyen hedefler önce gelir. Bekleyen hedefin adı metin rengindedir, halkası vurgu rengindedir. Sayı hedefinin halkası günün ilerlemesini yay olarak çizer.
+- Yapılmış hedefler sona iner. Adları ikincil metin rengindedir, halkaları doludur (Mürekkep kuralı 6). Durumu renk tek başına anlatmaz: dolu halka ve sıra da anlatır.
+- Zincir günü rozeti Bugün şeridindeki rozetle aynıdır: bağlantı simgesi ve sayı, ince kapsül içinde. Bakiye 0 iken rozet yoktur.
+- Gece yarısı widget kendiliğinden yeni güne geçer: bütün hedefler bekleyen olur, zincir Core'un yeni gün için hesapladığı değeri gösterir.
+- Uygulama kilitliyse işaretleme kilit açılınca yapılır. Kilit gecikmesi "Hemen" iken uygulamadan çıkınca widget "Kenet'i aç" gösterir. Daha uzun gecikmede widget son durumu gösterir.
+- Boş durum "Hedeflerini görmek için Kenet'i aç." metnidir: veri yok, kasa erişilemez, uygulama çıkarken kilitlendi ya da gösterilecek gün kalmamış. Günlük hedef yoksa widget "Günlük hedef yok" der.
+- Kilitli cihazda (StandBy, iPad kilit ekranı) sistem widget içeriğini gizler.
 
 ## Boş durumlar
 

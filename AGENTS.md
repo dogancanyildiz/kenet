@@ -19,7 +19,7 @@
 | İndeks | SQLite |
 | Kimlikler | Bundle `com.dogancanyildiz.kenet`, iCloud kapsayıcısı `iCloud.com.dogancanyildiz.kenet`, App Group `group.com.dogancanyildiz.kenet`. Üçü de kalıcıdır. |
 
-Widget'lar henüz yok. Widget maddeleri Aşama 11'dedir. iCloud kapsayıcısı ve App Group yetki dosyalarında hazırdır; kod ikisini henüz kullanmaz.
+iOS ana ekran zincir widget'ı var. Kilit ekranı, Denetim Merkezi ve Mac widget'ları Aşama 11'in sonraki dalgasıdır. App Group kararı alındı: widget veriyi App Group'tan okur. iCloud kapsayıcısı yetki dosyalarında hazırdır; kod onu henüz kullanmaz.
 
 ## Başlangıç akışı
 
@@ -262,7 +262,8 @@ App/                      iOS ve macOS SwiftUI uygulaması
   Screens/                Ekranlar
   Services/               Sistem hizmetleri (takvim, konum, bildirim, kilit)
   Support/                Entitlements, plist ekleri, küçük yardımcılar, simge kaynağı (AppIcon/)
-Widgets/                  WidgetKit hedefi (henüz yok)
+Widgets/                  WidgetKit hedefi (iOS ana ekran zincir widget'ı); Shared/: uygulamayla ortak;
+                          String Catalog'u App/Resources'tan derler
 Packages/Core/            Ayrıştırıcı, modeller, indeksleyici (Apple'a bağımsız): VaultFormat,
                           VaultIndex, VaultStore, EntityRecognition, DateParsing, GoalTracking,
                           Summaries, ForceLayout

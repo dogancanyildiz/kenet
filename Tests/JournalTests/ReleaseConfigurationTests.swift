@@ -20,8 +20,10 @@ struct ReleaseConfigurationTests {
         #expect(Self.values(of: "bundleIdPrefix", in: project) == [Self.bundleIdentifier])
         #expect(
             Self.values(of: "PRODUCT_BUNDLE_IDENTIFIER", in: project) == [
-                "$(APP_BUNDLE_IDENTIFIER)", "$(APP_BUNDLE_IDENTIFIER).testhost", "$(APP_BUNDLE_IDENTIFIER).tests",
-                "$(APP_BUNDLE_IDENTIFIER).uitests", "$(APP_BUNDLE_IDENTIFIER).uitests",
+                "$(APP_BUNDLE_IDENTIFIER)", "$(APP_BUNDLE_IDENTIFIER).testhost",
+                "$(APP_BUNDLE_IDENTIFIER).widgets", "$(APP_BUNDLE_IDENTIFIER).testhost.widgets",
+                "$(APP_BUNDLE_IDENTIFIER).tests", "$(APP_BUNDLE_IDENTIFIER).uitests",
+                "$(APP_BUNDLE_IDENTIFIER).uitests",
             ])
         // Scripts read the identifier from project.yml instead of repeating it.
         for path in [".github/scripts/record-screen-snapshots.sh", ".github/scripts/screen-tour.sh"] {
@@ -58,6 +60,14 @@ struct ReleaseConfigurationTests {
         #expect(info["CFBundleDisplayName"] as? String == "Kenet Test")
         #expect(info["CFBundleName"] as? String == "Kenet Test")
         #expect(info["ITSAppUsesNonExemptEncryption"] as? Bool == false)
+    }
+
+    /// Widget links (`kenet-widget://`) reach the app only from its own widget because the app
+    /// registers no URL scheme. A registered scheme would let any app open a mark link, and
+    /// `WidgetLinkHandler` would then need a source check.
+    @Test func builtAppRegistersNoURLScheme() throws {
+        let info = try #require(Self.hostAppInfoDictionary())
+        #expect(info["CFBundleURLTypes"] == nil)
     }
 
     @Test func exportComplianceIsDeclared() throws {
@@ -152,6 +162,7 @@ struct ReleaseConfigurationTests {
         #expect(
             Self.values(of: "CODE_SIGN_ENTITLEMENTS", in: project) == [
                 "App/Support/Journal-iOS.entitlements", "App/Support/Journal-macOS.entitlements",
+                "Widgets/Support/JournalWidgets.entitlements",
             ])
         // Mac Debug and DebugTest are signed ad hoc, which cannot carry iCloud or App Group.
         #expect(
@@ -183,12 +194,29 @@ struct ReleaseConfigurationTests {
     /// expands to an empty string at signing time.
     @Test func entitlementsReadOnlyDefinedSettings() throws {
         let project = try Self.read("project.yml")
-        for name in ["Journal-iOS", "Journal-macOS", "Journal-macOS-AdHoc"] {
-            let source = try Self.read("App/Support/\(name).entitlements")
+        let files = ["Journal-iOS", "Journal-macOS", "Journal-macOS-AdHoc"].map { "App/Support/\($0).entitlements" }
+        for path in files + [Self.widgetEntitlements] {
+            let source = try Self.read(path)
             for setting in Self.captures(#"\$\(([A-Z_]+)\)"#, in: source) {
-                #expect(Self.values(of: setting, in: project).count == 1, "\(name) reads undefined $(\(setting))")
+                #expect(Self.values(of: setting, in: project).count == 1, "\(path) reads undefined $(\(setting))")
             }
         }
+    }
+
+    private static let widgetEntitlements = "Widgets/Support/JournalWidgets.entitlements"
+
+    /// The widget is the app's extension (its identifier extends the app's, also for the test
+    /// host) and carries the App Group only: it reads the snapshot there and never the vault.
+    @Test func widgetExtendsTheAppAndCarriesOnlyTheGroup() throws {
+        let project = try Self.read("project.yml")
+        let identifiers = Self.values(of: "PRODUCT_BUNDLE_IDENTIFIER", in: project)
+        #expect(
+            identifiers.filter { $0.hasSuffix(".widgets") } == [
+                "$(APP_BUNDLE_IDENTIFIER).widgets", "$(APP_BUNDLE_IDENTIFIER).testhost.widgets",
+            ])
+        let widget = try Self.plist(Self.widgetEntitlements)
+        #expect(Set(widget.keys) == ["com.apple.security.application-groups"])
+        #expect(widget["com.apple.security.application-groups"] as? [String] == ["$(KENET_APP_GROUP)"])
     }
 
     private static let macSandboxKeys: Set<String> = [

@@ -51,9 +51,12 @@ final class IndexStore {
         didSet {
             onSnapshotChange?(lastUpdated == nil ? nil : content, vaultURL)
             onGeofenceSnapshotChange?()
+            onWidgetSnapshotChange?()
         }
     }
     @ObservationIgnored var onGeofenceSnapshotChange: (() -> Void)?
+    /// Every publish and every reset, for the widget snapshot (`WidgetSnapshotWriter`).
+    @ObservationIgnored var onWidgetSnapshotChange: (() -> Void)?
     @ObservationIgnored var onSnapshotChange: ((VaultReadModel?, URL?) -> Void)?
     private(set) var isProcessing = false
     private(set) var errorText: String?

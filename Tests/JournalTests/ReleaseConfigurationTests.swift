@@ -1,11 +1,15 @@
 import Foundation
 import Testing
 
+@testable import Journal
+
 /// Guards the settings an App Store Connect upload depends on: the permanent bundle identifier,
-/// iPhone-only device family, the export compliance key, the privacy manifest, per-platform
-/// entitlements, and that no real team identifier is committed.
+/// iCloud container and App Group, iPhone-only device family, the export compliance key, the
+/// privacy manifest, per-platform entitlements, and that no real team identifier is committed.
 struct ReleaseConfigurationTests {
     private static let bundleIdentifier = "com.dogancanyildiz.kenet"
+    private static let iCloudContainer = "iCloud.com.dogancanyildiz.kenet"
+    private static let appGroup = "group.com.dogancanyildiz.kenet"
     private static let teamPlaceholder = "XXXXXXXXXX"
 
     // MARK: - Identity
@@ -132,25 +136,85 @@ struct ReleaseConfigurationTests {
 
     // MARK: - Entitlements
 
+    /// Registered with Apple and permanent: the Swift constants and the build settings the
+    /// entitlements read must name the same identifiers.
+    @Test func containerAndGroupIdentifiersAreDefinedOnceAndAgree() throws {
+        let project = try Self.read("project.yml")
+        #expect(Self.values(of: "KENET_ICLOUD_CONTAINER", in: project) == [Self.iCloudContainer])
+        #expect(Self.values(of: "KENET_APP_GROUP", in: project) == [Self.appGroup])
+        #expect(AppIdentifiers.bundle == Self.bundleIdentifier)
+        #expect(AppIdentifiers.iCloudContainer == Self.iCloudContainer)
+        #expect(AppIdentifiers.appGroup == Self.appGroup)
+    }
+
     @Test func entitlementsAreSplitByPlatform() throws {
         let project = try Self.read("project.yml")
         #expect(
             Self.values(of: "CODE_SIGN_ENTITLEMENTS", in: project) == [
                 "App/Support/Journal-iOS.entitlements", "App/Support/Journal-macOS.entitlements",
             ])
+        // Mac Debug and DebugTest are signed ad hoc, which cannot carry iCloud or App Group.
+        #expect(
+            Self.values(of: "CODE_SIGN_ENTITLEMENTS[sdk=macosx*]", in: project) == [
+                "App/Support/Journal-macOS-AdHoc.entitlements", "App/Support/Journal-macOS-AdHoc.entitlements",
+            ])
+
         let iOS = try Self.plist("App/Support/Journal-iOS.entitlements")
-        let sandboxKeys = iOS.keys.filter { $0.hasPrefix("com.apple.security.") }
+        let sandboxKeys = iOS.keys.filter {
+            $0.hasPrefix("com.apple.security.") && $0 != "com.apple.security.application-groups"
+        }
         #expect(sandboxKeys.isEmpty, "macOS sandbox keys in the iOS entitlements: \(sandboxKeys.sorted())")
+        #expect(Set(iOS.keys) == Self.containerKeys)
+        Self.expectContainerValues(iOS, file: "Journal-iOS")
 
         let mac = try Self.plist("App/Support/Journal-macOS.entitlements")
-        #expect(
-            Set(mac.keys) == [
-                "com.apple.security.app-sandbox",
-                "com.apple.security.files.user-selected.read-write",
-                "com.apple.security.personal-information.calendars",
-                "com.apple.security.personal-information.location",
-            ])
-        #expect(mac.values.allSatisfy { $0 as? Bool == true })
+        #expect(Set(mac.keys) == Self.macSandboxKeys.union(Self.containerKeys))
+        #expect(Self.macSandboxKeys.allSatisfy { mac[$0] as? Bool == true })
+        Self.expectContainerValues(mac, file: "Journal-macOS")
+
+        let adHoc = try Self.plist("App/Support/Journal-macOS-AdHoc.entitlements")
+        #expect(Set(adHoc.keys) == Self.macSandboxKeys)
+        #expect(adHoc.values.allSatisfy { $0 as? Bool == true })
+    }
+
+    /// Every `$(SETTING)` an entitlements file reads is defined in `project.yml`; an undefined one
+    /// expands to an empty string at signing time.
+    @Test func entitlementsReadOnlyDefinedSettings() throws {
+        let project = try Self.read("project.yml")
+        for name in ["Journal-iOS", "Journal-macOS", "Journal-macOS-AdHoc"] {
+            let source = try Self.read("App/Support/\(name).entitlements")
+            for setting in Self.captures(#"\$\(([A-Z_]+)\)"#, in: source) {
+                #expect(Self.values(of: setting, in: project).count == 1, "\(name) reads undefined $(\(setting))")
+            }
+        }
+    }
+
+    private static let macSandboxKeys: Set<String> = [
+        "com.apple.security.app-sandbox",
+        // The vault bookmark is created and resolved with `.withSecurityScope` (VaultBookmarks).
+        "com.apple.security.files.bookmarks.app-scope",
+        "com.apple.security.files.user-selected.read-write",
+        "com.apple.security.personal-information.calendars",
+        "com.apple.security.personal-information.location",
+    ]
+
+    private static let containerKeys: Set<String> = [
+        "com.apple.developer.icloud-container-identifiers",
+        "com.apple.developer.icloud-services",
+        "com.apple.developer.ubiquity-container-identifiers",
+        "com.apple.security.application-groups",
+    ]
+
+    private static func expectContainerValues(_ entitlements: [String: Any], file: String) {
+        let expected: [String: [String]] = [
+            "com.apple.developer.icloud-container-identifiers": ["$(KENET_ICLOUD_CONTAINER)"],
+            "com.apple.developer.ubiquity-container-identifiers": ["$(KENET_ICLOUD_CONTAINER)"],
+            "com.apple.developer.icloud-services": ["CloudDocuments"],
+            "com.apple.security.application-groups": ["$(KENET_APP_GROUP)"],
+        ]
+        for (key, value) in expected {
+            #expect(entitlements[key] as? [String] == value, "\(file): \(key)")
+        }
     }
 
     // MARK: - Signing

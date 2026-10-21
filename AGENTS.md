@@ -17,8 +17,9 @@
 | Ek özellikler | Görevler, hedefler ve zincir, widget'lar, kanban, zaman çizelgesi |
 | Gerçek kaynak | Obsidian uyumlu Markdown dosyaları |
 | İndeks | SQLite |
+| Kimlikler | Bundle `com.dogancanyildiz.kenet`, iCloud kapsayıcısı `iCloud.com.dogancanyildiz.kenet`, App Group `group.com.dogancanyildiz.kenet`. Üçü de kalıcıdır. |
 
-Widget'lar henüz yok. Widget maddeleri Aşama 11'dedir ve iCloud kapsayıcısı ile App Group kararını bekler.
+Widget'lar henüz yok. Widget maddeleri Aşama 11'dedir. iCloud kapsayıcısı ve App Group yetki dosyalarında hazırdır; kod ikisini henüz kullanmaz.
 
 ## Başlangıç akışı
 
@@ -244,7 +245,7 @@ Takım kimliği `Config/Local.xcconfig` dosyasında durur; git bu dosyayı izlem
 | Kasa formatını geriye uyumsuz değiştirmek | Yok |
 | Sonradan değiştirmesi zor değerleri belirlemek | Bundle kimliği, iCloud kapsayıcı kimliği, App Group kimliği |
 
-Tablodaki bir işi yapmadan önce dur. Kullanıcıya sor. Kullanıcı bundle kimliğini 2026-10-07'de `com.dogancanyildiz.kenet` olarak seçti. iCloud kapsayıcısı ve App Group kimliği hâlâ açıktır.
+Tablodaki bir işi yapmadan önce dur. Kullanıcıya sor. Kullanıcı bundle kimliğini 2026-10-07'de `com.dogancanyildiz.kenet` olarak seçti. Kullanıcı iCloud kapsayıcısını ve App Group kimliğini 2026-10-21'de seçti: `iCloud.com.dogancanyildiz.kenet` ve `group.com.dogancanyildiz.kenet`.
 
 ## Dizin yapısı
 

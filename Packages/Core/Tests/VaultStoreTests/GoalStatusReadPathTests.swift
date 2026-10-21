@@ -66,8 +66,8 @@ struct GoalStatusReadPathTests {
         try vault.index.database.write { db in
             for (file, key, date, kind, value) in rows.reversed() {
                 try db.execute(
-                    sql: "INSERT OR IGNORE INTO files VALUES (?,?,?,?,?,?,?)",
-                    arguments: [file, "journal", date, 0.0, 0, "00", true])
+                    sql: "INSERT OR IGNORE INTO files VALUES (?,?,?,?,?,?,?,?,?,?)",
+                    arguments: [file, "journal", date, 0.0, 0, "00", true, 0.0, 0, 0.0])
                 try db.execute(
                     sql: "INSERT INTO goal_logs VALUES (?,?,?,?,?)", arguments: [file, key, date, kind, value])
             }

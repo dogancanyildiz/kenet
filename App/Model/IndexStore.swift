@@ -67,10 +67,14 @@ final class IndexStore {
     private(set) var unwatchedDirectoryCount = 0
     @ObservationIgnored private let location: VaultLocation
     @ObservationIgnored private let supportURL: URL
+    /// Index refresh; the fourth argument lists the changed directories, `nil` for the whole vault.
     @ObservationIgnored private let update:
-        @Sendable (VaultIndex, URL, Bool, EntityTypeCatalog, Bool, [SkippedPath], VaultReadModel) async throws ->
-            IndexUpdate
+        @Sendable (VaultIndex, URL, Bool, Set<String>?, EntityTypeCatalog, Bool, [SkippedPath], VaultReadModel)
+            async throws -> IndexUpdate
     @ObservationIgnored private let watcherDirectoryLimit: Int
+    @ObservationIgnored private let watcherTicker: any WatcherTicker
+    /// Test seam: runs on the watcher queue just before its first directory walk.
+    @ObservationIgnored var testingWatcherInitialScan: (@Sendable () -> Void)?
     /// iCloud's unresolved versions for Diagnostics (`computeConflictedFiles`); a fake in tests.
     @ObservationIgnored private let conflictVersions: any ConflictVersionSource
     @ObservationIgnored private var index: VaultIndex?
@@ -79,6 +83,10 @@ final class IndexStore {
     @ObservationIgnored private var foreground = false
     @ObservationIgnored private var pendingRefresh = false
     @ObservationIgnored private var pendingRebuild = false
+    /// Directories the pending refresh rescans; `nil` rescans the whole vault.
+    @ObservationIgnored private var pendingDirectories: Set<String>?
+    /// A failed refresh may have left changes anywhere: the next refresh scans the whole vault.
+    @ObservationIgnored private var needsFullRefresh = false
     @ObservationIgnored private var refreshInFlight = false
     /// Bumped when a write publishes so an overlapping refresh can discard its stale snapshot.
     @ObservationIgnored private var contentEpoch = 0
@@ -92,21 +100,40 @@ final class IndexStore {
     init(
         location: VaultLocation = VaultLocation(), supportURL: URL? = nil,
         watcherDirectoryLimit: Int = 256,
+        watcherTicker: any WatcherTicker = DispatchWatcherTicker(),
         conflictVersions: any ConflictVersionSource = SystemConflictVersionSource(),
         update:
-            @escaping @Sendable (
-                VaultIndex, URL, Bool, EntityTypeCatalog, Bool, [SkippedPath], VaultReadModel
-            ) async throws -> IndexUpdate = {
-                index, root, rebuild, previous, skip, skipped, previousContent in
-                try await IndexUpdate.read(
-                    index: index, root: root, rebuild: rebuild, previousTypes: previous,
-                    skipUnchanged: skip, previousSkipped: skipped, previousContent: previousContent)
-            }
+            (
+                @Sendable (
+                    VaultIndex, URL, Bool, EntityTypeCatalog, Bool, [SkippedPath], VaultReadModel
+                ) async throws -> IndexUpdate
+            )? = nil,
+        scopedUpdate:
+            (
+                @Sendable (
+                    VaultIndex, URL, Bool, Set<String>?, EntityTypeCatalog, Bool, [SkippedPath], VaultReadModel
+                ) async throws -> IndexUpdate
+            )? = nil
     ) {
         self.location = location
         requiresOnboarding = location.needsFirstLaunch
-        self.update = update
+        if let scopedUpdate {
+            self.update = scopedUpdate
+        } else if let update {
+            // A whole-vault update also covers a directory request.
+            self.update = { index, root, rebuild, _, previous, skip, skipped, previousContent in
+                try await update(index, root, rebuild, previous, skip, skipped, previousContent)
+            }
+        } else {
+            self.update = { index, root, rebuild, directories, previous, skip, skipped, previousContent in
+                try await IndexUpdate.read(
+                    index: index, root: root, rebuild: rebuild, previousTypes: previous,
+                    skipUnchanged: skip, previousSkipped: skipped, previousContent: previousContent,
+                    directories: directories)
+            }
+        }
         self.watcherDirectoryLimit = watcherDirectoryLimit
+        self.watcherTicker = watcherTicker
         self.conflictVersions = conflictVersions
         self.supportURL =
             supportURL
@@ -411,7 +438,7 @@ final class IndexStore {
             } catch {
                 let reportPath = changedPaths.sorted().first ?? estimatedPaths.sorted().first ?? ""
                 failure = saved ? VaultStoreError.indexUpdateFailed(path: reportPath, underlying: error) : error
-                if case VaultStoreError.staleTarget = error { pendingRefresh = true }
+                if case VaultStoreError.staleTarget = error { queueRefresh(rebuild: false, directories: nil) }
             }
             await finishEntityWrite()
             if let failure { throw failure }
@@ -437,17 +464,15 @@ final class IndexStore {
                         from: index, changedPaths: changed, deletedPaths: deleted)
                 } catch {
                     entryErrorText = String(localized: "Varlık kaydedildi, indeks güncellenemedi.")
-                    pendingRefresh = true
-                    pendingRebuild = true
+                    queueRefresh(rebuild: true, directories: nil)
                 }
                 if result.failures.contains(where: { if case .index = $0.reason { true } else { false } }) {
-                    pendingRefresh = true
-                    pendingRebuild = true
+                    queueRefresh(rebuild: true, directories: nil)
                 }
                 await finishEntityWrite()
                 return result
             } catch {
-                pendingRefresh = true
+                queueRefresh(rebuild: false, directories: nil)
                 await finishEntityWrite()
                 throw error
             }
@@ -545,8 +570,7 @@ final class IndexStore {
         guard writer === self.writer else { return entity }
         if indexFailed {
             entryErrorText = String(localized: "Varlık kaydedildi, indeks güncellenemedi.")
-            pendingRefresh = true
-            pendingRebuild = true
+            queueRefresh(rebuild: true, directories: nil)
         }
         knownEntities.append(entity)
         do {
@@ -682,6 +706,8 @@ final class IndexStore {
         generation = UUID()
         pendingRefresh = false
         pendingRebuild = false
+        pendingDirectories = nil
+        needsFullRefresh = false
         refreshInFlight = false
         contentEpoch = 0
         failQueuedWriters()
@@ -716,6 +742,8 @@ final class IndexStore {
         let current = generation
         pendingRefresh = false
         pendingRebuild = false
+        pendingDirectories = nil
+        needsFullRefresh = false
         refreshInFlight = false
         contentEpoch = 0
         // Vault identity changed: queued writes must not run against the previous root.
@@ -764,43 +792,55 @@ final class IndexStore {
             indexingFileCount = try? await Task.detached { try VaultImportScanner.markdownFiles(in: url).count }.value
             guard generation == current else { return }
         }
-        isProcessing = false
         guard index != nil else {
+            isProcessing = false
             await applyPendingSelection()
             return
         }
-        watcher = VaultWatcher(
-            root: url, directoryLimit: watcherDirectoryLimit,
+        // The first directory walk runs on the watcher queue; the main actor only awaits it.
+        let watcher = VaultWatcher(
+            root: url, directoryLimit: watcherDirectoryLimit, ticker: watcherTicker,
+            initialScanWillBegin: testingWatcherInitialScan,
             onCoverageChange: { [weak self] count in
                 Task { @MainActor [weak self] in
                     guard let self, self.generation == current else { return }
                     self.unwatchedDirectoryCount = count
                 }
             },
-            onChange: { [weak self] in
+            onChange: { [weak self] change in
                 Task { @MainActor [weak self] in
                     guard let self, self.generation == current else { return }
-                    await self.refresh()
+                    switch change {
+                    case .full: await self.refresh()
+                    case .directories(let directories): await self.refresh(directories: directories)
+                    }
                 }
             })
+        self.watcher = watcher
+        // Sources are in place before the opening refresh scans, so no edit falls between them.
+        // `isProcessing` stays up meanwhile: refresh requests queue behind the opening refresh.
+        await watcher.waitUntilReady()
+        guard generation == current else { return }
+        isProcessing = false
         // The explicit opening refresh also serves as the initial foreground refresh.
-        watcher?.setForeground(foreground, triggerOnActivation: false)
+        watcher.setForeground(foreground, triggerOnActivation: false)
         await refresh()
         guard generation == current else { return }
         indexingFileCount = nil
         if lastUpdated != nil { requiresOnboarding = false }
     }
 
-    func refresh(rebuild: Bool = false) async {
+    /// `directories` (vault-relative) limits the scan to those subtrees; `nil` scans the whole vault.
+    func refresh(rebuild: Bool = false, directories: Set<String>? = nil) async {
         guard let index, let root = vaultURL else { return }
         if isProcessing || refreshInFlight {
-            pendingRefresh = true
-            pendingRebuild = pendingRebuild || rebuild
+            queueRefresh(rebuild: rebuild, directories: directories)
             return
         }
         let current = generation
         refreshInFlight = true
         var full = rebuild
+        var scope = directories.flatMap { $0.count > VaultChange.fullScanThreshold ? nil : $0 }
         var holdsProcessing = false
         // Skip only after a successful publish; rebuild never skips (see IndexUpdate).
         var allowSkip = lastUpdated != nil && errorText == nil
@@ -812,15 +852,18 @@ final class IndexStore {
         repeat {
             pendingRefresh = false
             pendingRebuild = false
+            pendingDirectories = nil
+            if full || needsFullRefresh { scope = nil }
             let epochAtStart = contentEpoch
             do {
                 let result = try await update(
-                    index, root, full, entityTypes, allowSkip, skippedPaths, content)
+                    index, root, full, scope, entityTypes, allowSkip, skippedPaths, content)
                 guard generation == current else { return }
+                if scope == nil { needsFullRefresh = false }
                 if contentEpoch != epochAtStart {
                     // A write published while Core work was in flight; discard and rescan.
                     allowSkip = false
-                    pendingRefresh = true
+                    queueRefresh(rebuild: false, directories: scope)
                 } else if result.hasChanges {
                     if !holdsProcessing {
                         isProcessing = true
@@ -846,8 +889,10 @@ final class IndexStore {
                 }
                 report(error)
                 allowSkip = false
+                needsFullRefresh = true
             }
             full = pendingRebuild
+            scope = pendingDirectories
         } while pendingRefresh && pendingSelection == nil && generation == current
         guard generation == current else { return }
         refreshInFlight = false
@@ -1313,15 +1358,13 @@ extension IndexStore {
                     try await operation(writer)
                 } catch VaultStoreError.indexUpdateFailed {
                     // The file is gone. Reconcile from disk; never offer a second deletion.
-                    pendingRefresh = true
-                    pendingRebuild = true
+                    queueRefresh(rebuild: true, directories: nil)
                     entryErrorText = String(localized: "Dosya silindi, indeks güncellenemedi.")
                 }
                 do {
                     try await publishAfterWrite(from: index, changedPaths: [], deletedPaths: [path])
                 } catch {
-                    pendingRefresh = true
-                    pendingRebuild = true
+                    queueRefresh(rebuild: true, directories: nil)
                     entryErrorText = String(localized: "Dosya silindi, indeks güncellenemedi.")
                 }
                 await finishEntityWrite()
@@ -1424,5 +1467,23 @@ extension IndexStore {
     func computeConflictCopies() async throws -> [CopyFile] {
         guard let root = vaultURL else { return [] }
         return try await taskQuery([]) { _ in try VaultIndex.conflictCopies(vaultRoot: root) }
+    }
+}
+
+// MARK: - Directory refresh queue
+
+extension IndexStore {
+    /// Joins a refresh request with the pending one. A whole-vault request absorbs directory
+    /// lists, and too many directories become a whole-vault request.
+    fileprivate func queueRefresh(rebuild: Bool, directories: Set<String>?) {
+        let request: VaultChange = directories.map { .directories($0) } ?? .full
+        let pending: VaultChange? =
+            pendingRefresh ? (pendingDirectories.map { .directories($0) } ?? .full) : nil
+        switch pending.map({ $0.merging(request) }) ?? request {
+        case .full: pendingDirectories = nil
+        case .directories(let merged): pendingDirectories = merged
+        }
+        pendingRebuild = pendingRebuild || rebuild
+        pendingRefresh = true
     }
 }

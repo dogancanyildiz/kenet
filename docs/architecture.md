@@ -137,14 +137,17 @@ Aşama 0'dan beri uygulama varsayılan kasayı yerel `Documents/Vault/` klasör�
 
 ## Dosya izleyici
 
-**Şema yenilemeyi başlatan üç tetiği gösterir.**
+**Şema yenilemeyi başlatan tetikleri ve her tetiğin tarama kapsamını gösterir.**
 
 ```mermaid
 flowchart LR
-  Dizin["Dizin olayı: Dispatch dizin kaynağı"] --> Birlestir["300 ms birleştirme"]
-  Zamanlayici["Ön plan zamanlayıcısı: 5 saniye"] --> Birlestir
-  OnPlan["Ön plana dönüş"] --> Birlestir
-  Birlestir --> Yenile["Arka planda refresh(vaultRoot:)"]
+  Dizin["Alt dizin olayı: Dispatch dizin kaynağı"] -->|"dizin yolu"| Birlestir["300 ms birleştirme"]
+  Kok["Kök dizin olayı"] -->|"tam"| Birlestir
+  Zamanlayici["Ön plan sigortası: 10 saniye"] -->|"tam"| Birlestir
+  OnPlan["Ön plana dönüş"] -->|"tam"| Birlestir
+  Birlestir --> Esik{"200'den çok dizin ya da tam istek var mı?"}
+  Esik -- Hayır --> Kapsamli["Arka planda update(paths:vaultRoot:): dizinler ve alt ağaçları"]
+  Esik -- Evet --> Tam["Arka planda refresh(vaultRoot:): bütün kasa"]
 ```
 
 **Tablo izleyicinin sınırlarını gösterir.**
@@ -152,11 +155,40 @@ flowchart LR
 | Değer | Anlam |
 |---|---|
 | Dispatch dizin kaynakları | Kök ve taranan alt dizinler |
-| 5 saniye | Ön plan zamanlayıcısının aralığı |
+| 10 saniye | Ön plan sigortasının aralığı |
 | 300 ms | Bildirimlerin birleştirme süresi |
+| 200 | Bir yenilemedeki en çok dizin sayısı; fazlası tam yenilemedir |
 | 256 | En çok dizin kaynağı sayısı |
 
-Dizin kaynakları dosya içeriğinin yerinde düzenlenmesini güvenilir biçimde görmez. Ön plan zamanlayıcısı ve ön plana dönüş yenilemesi bu düzenlemeyi yakalar. Arka planda dizin olayları yenilemeyi tetiklemeye devam eder. İzleyici 256 kaynaktan sonraki dizinleri ve kaynak açamadığı dizinleri yalnız ön plan zamanlayıcısıyla denetler. Arayüz bu dizinlerin sayısını gösterir. `VaultWatcher` yol bildirmez; her olayda `IndexStore` tam `refresh` çağırır.
+**Tablo her tetiğin ne bildirdiğini gösterir.**
+
+| Tetik | Bildirim | `IndexStore` çağrısı |
+|---|---|---|
+| Alt dizin olayı: dosya ya da dizin eklendi, silindi, yeniden adlandırıldı | Kasa içi göreli dizin yolu | `refresh(directories:)`; Core `update(paths:)` o dizini alt ağacıyla tarar |
+| Kök dizin olayı | Tam | `refresh()` |
+| Ön plan sigortası ve ön plana dönüş | Tam | `refresh()` |
+| Kaynak sayısı sınırdayken bir kaynak kapandı | Tam | `refresh()` |
+
+İzleyici 300 ms içinde gelen bildirimleri birleştirir. Dizin listeleri birleşir. Tam istek listeyi yutar. 200'den çok dizin tam isteğe döner. `IndexStore` de süren bir yenilemenin arkasında bekleyen istekleri aynı kuralla birleştirir. Bu yüzden hiçbir istek kaybolmaz: bekleyen istek ya bütün dizinleri ya bütün kasayı tarar.
+
+İzleyici bir dizin olayından sonra yalnız o dizinin alt ağacını dolaşır. Yeni alt dizinler kaynak alır. Silinen ya da taşınan dizinlerin kaynakları kapanır. Bütün ağacı yalnız tam istek dolaşır. Dışlamalar her dolaşmada aynıdır: adı nokta ile başlayan dizinler ve kökteki `templates/` ile `conflicts/`.
+
+Dizin kaynakları dosya içeriğinin yerinde düzenlenmesini görmez. Bir düzenleyici dosyayı yerinde yazarsa, örneğin `FileHandle`, `>>` ya da Node `fs.writeFile` ile, indeks bu düzenlemeyi ön plan sigortasında ya da ön plana dönüşte görür; gecikme en çok 10 saniyedir. Ölçüm: yerinde ekleme, kesip yeniden yazma ve `touch` hiçbir dizin olayı üretmez. Atomik kaydetme, yani geçici dosya ve yeniden adlandırma, bir dizin olayıdır; indeks bu düzenlemeyi 1 saniye içinde görür. Arka planda dizin olayları yenilemeyi tetiklemeye devam eder. İzleyici 256 kaynaktan sonraki dizinleri ve kaynak açamadığı dizinleri yalnız ön plan sigortasıyla denetler. Arayüz bu dizinlerin sayısını gösterir.
+
+Yenileme hata verirse `IndexStore` sonraki isteği dizin listesiyle değil bütün kasayla yapar. Başarısız yenilemenin kaçırdığı değişiklik başka bir dizinde olabilir.
+
+Kapsamlı yenilemede Core `skippedPaths` değerini yalnız taranan dizinler için bildirir. `IndexUpdate` taranan dizinlerin dışındaki eski kayıtları korur ve listeyi Core sırasıyla birleştirir. Liste değişmezse yayım olmaz.
+
+**Tablo izleyicinin ana aktörle ilişkisini gösterir.**
+
+| İş | Nerede çalışır |
+|---|---|
+| İlk dolaşma ve kaynak kurulumu | İzleyici kuyruğu. `IndexStore.open` yalnız `waitUntilReady()` ile bekler; ana aktör serbesttir |
+| `setForeground` ve `stop` | İzleyici kuyruğuna iş bırakır; ana aktör beklemez |
+| Dizin dolaşması ve birleştirme | İzleyici kuyruğu |
+| İndeks taraması ve okuma modeli | `Task.detached` |
+
+`IndexStore.open` açılış yenilemesinden önce ilk dolaşmanın bitmesini bekler. Böylece kaynaklar açılış taramasından önce kurulur; ikisinin arasında yapılan bir düzenleme kaybolmaz. Bu bekleme sürerken `isProcessing` açık kalır; gelen yenileme istekleri açılış yenilemesinin arkasında birleşir. Kasa bu sırada değişirse ya da erişim kaybolursa `generation` denetimi eski açılışı durdurur. Eski izleyicinin bildirimleri de aynı denetimle düşer.
 
 ## Yazma sırası
 
@@ -720,6 +752,9 @@ erDiagram
     INTEGER size
     TEXT digest
     BOOLEAN readable
+    REAL changed
+    INTEGER inode
+    REAL verified
   }
   entities {
     TEXT file PK
@@ -780,15 +815,15 @@ erDiagram
 | Konum | Her cihazda yerel, kasanın dışında. Eşitleme indeksi taşımaz |
 | Yeniden üretim | Uygulama indeksi dosyalardan eksiksiz yeniden üretebilir. İndeks bozulursa uygulama indeksi siler ve yeniden kurar |
 | Dosya adı | İndeks kasa yolunun SHA-256 özetiyle adlandırılmış ayrı bir Application Support veritabanındadır |
-| Şema sürümü | Veritabanı sürümü tutar: `PRAGMA user_version = 7`. Uygulamanın beklediği sürümle uyuşmazsa uygulama bütün tabloları siler ve güncel boş şemayı kurar. Şema göçü yok |
-| Doldurma | Çağıran indeksi `rebuild(vaultRoot:)` ile ya da boş indekste tam kurulum yolunu kullanan `refresh(vaultRoot:)` ile dosyalardan doldurur |
+| Şema sürümü | Veritabanı sürümü tutar: `PRAGMA user_version = 8`. Uygulamanın beklediği sürümle uyuşmazsa uygulama bütün tabloları siler ve güncel boş şemayı kurar. Şema göçü yok |
+| Doldurma | Çağıran indeksi `rebuild(vaultRoot:)` ile ya da boş indekste tam kurulum yolunu kullanan `refresh(vaultRoot:)` ya da `update(paths:vaultRoot:)` ile dosyalardan doldurur |
 | Bozuk veritabanı | Açılışta SQLite NOTADB ya da CORRUPT hatası gelirse uygulama dosyayı ve `-wal`/`-shm`/`-journal` yardımcılarını siler ve boş şemayı kurar. Diğer hataları fırlatır |
 
 **Tablo her indeks tablosunun içeriğini gösterir.**
 
 | Tablo | Anahtar | İçerik |
 |---|---|---|
-| `files` | NFC yol birincil anahtarı; tarih indeksi | Tür, gün tarihi, değişiklik zamanı, bayt boyutu, SHA-256, UTF-8 okunabilirliği |
+| `files` | NFC yol birincil anahtarı; tarih indeksi | Tür, gün tarihi, değişiklik zamanı (`mtime`), bayt boyutu, SHA-256, UTF-8 okunabilirliği, durum değişikliği zamanı (`ctime`), inode, son doğrulama anı |
 | `entities` | Dosya | Tip, görünen ad, ayırt edici, karşılaştırma anahtarı, hedef alanları |
 | `aliases` | Dosya + sıra | Takma ad ve karşılaştırma anahtarı |
 | `entity_fields` | Varlık dosyası + üst düzey anahtar, bayt karşılaştırmalı | Kişi, konum ve kayıtlı özel tip dosyalarının yalnız tarih `date`, sayı `number` ve evet/hayır `boolean` alanları |
@@ -863,13 +898,24 @@ flowchart TD
   Cagri["refresh(vaultRoot:) ya da update(paths:vaultRoot:)"] --> Bos{"İndeks boş mu ya da tip id imzası değişti mi"}
   Bos -->|"evet"| Tam["Aynı işlem içinde tam kurulum; bütün yollar addedPaths içinde"]
   Bos -->|"hayır"| Kapsam["Kapsamı tara"]
-  Kapsam --> Zaman{"Zaman ya da boyut değişti mi"}
+  Kapsam --> Zaman{"mtime, ctime, inode ya da boyut değişti mi; damga yarışlı mı"}
   Zaman -->|"hayır"| Dokunma["Dosyaya dokunma"]
   Zaman -->|"evet"| Ozet{"SHA-256 aynı mı"}
-  Ozet -->|"evet"| Meta["Yalnız gözlenen metadata'yı güncelle"]
+  Ozet -->|"evet"| Meta["Yalnız gözlenen damgayı ve doğrulama anını güncelle"]
   Ozet -->|"hayır"| Icerik["Dosyanın tüm içerik satırlarını tek işlemde yenile"]
   Kapsam --> Eksik["Kapsamda eksik dosyaları sil"]
 ```
+
+**Tablo, dosyayı yeniden okutan değişiklik işaretlerini gösterir.**
+
+| İşaret | Yakaladığı durum |
+|---|---|
+| `mtime` ve boyut | Olağan düzenleme |
+| `ctime` | Aynı boyutlu yerinde yazma. Kaba birimli diskte (FAT ve exFAT 2 sn, SMB ve NFS 1 sn) ya da geri alınmış `mtime` ile değişmeyen zaman |
+| inode | Editörün yeni dosyayı eski dosyanın yerine taşıması |
+| Yarışlı damga | Dosya son doğrulamadan önceki 2 sn içinde değişti. Aynı zaman adımındaki sonraki düzenleme hiçbir işareti değiştirmeyebilir. Bu yüzden indeks dosyayı damga aynı olsa da okur |
+
+İndeks doğrulama anını ilk damgadan önce bir kez kaydeder. Her dosyanın damgasını dosyayı okumadan önce alır. Okuma sırasında gelen düzenleme bu yüzden eski bir damga bırakır ve sonraki tarama dosyayı yeniden okur. Yarışlı dosyanın özeti aynıysa indeks yalnız damgayı ve doğrulama anını yeniler. Dosya `mtime` değerinden 2 sn sonra doğrulanınca oturur ve yeniden okunmaz. Damga `stat` çağrısından gelir; Linux'ta da aynı alanlar okunur.
 
 **Tablo tarama kapsamını gösterir.**
 
@@ -881,9 +927,9 @@ flowchart TD
 | `update(paths:vaultRoot:)`, kök `""` | Bütün kasa |
 | Harfe duyarsız ya da NFC eşleşen indeksli yol | Diskteki üst dizini ve aynı karşılaştırma anahtarındaki kardeş üst dizinleri, tek düzey |
 
-`refresh(vaultRoot:)` boş indekste tam kurulum yolunu kullanır. `refresh` ve `update` tip id imzası değişince aynı yolu kullanır; sonuç `rebuild` ile aynıdır. `update(paths:vaultRoot:)` bildirilen NFC kasa içi dosyalarla ve dizinlerle hem taramayı hem içeriği sınırlar. Silinen yollar gerçekten dolaşılan kapsamın alt kümesidir. Ayrıştırma ve indeks yazımı artımlıdır. Güncelleme kapsam dışı `files` satırlarına dokunmaz; `skippedPaths` yalnız tarama kapsamında görülenleri bildirir.
+`refresh(vaultRoot:)` ve `update(paths:vaultRoot:)` boş indekste tam kurulum yolunu kullanır: ilk açılış, şema sürümü değişimi ya da bozuk veritabanının silinmesi sonrasında bildirilen yol kasanın kalanını eksik bırakmaz. `refresh` ve `update` tip id imzası değişince aynı yolu kullanır; sonuç `rebuild` ile aynıdır. `update(paths:vaultRoot:)` bildirilen NFC kasa içi dosyalarla ve dizinlerle hem taramayı hem içeriği sınırlar. Silinen yollar gerçekten dolaşılan kapsamın alt kümesidir. Ayrıştırma ve indeks yazımı artımlıdır. Güncelleme kapsam dışı `files` satırlarına dokunmaz; `skippedPaths` yalnız tarama kapsamında görülenleri bildirir.
 
-Birleşmiş gün dosyası belirlenimci zaman taşır; aynı boyutlu farklı içerik artımlı taramada atlanabilir. B5 bağlaması (yol haritasında açık) birleştirme sonrası dosyayı zorla yeniden okuyacaktır. Core sonucu `dayFileChanged` alanıyla gün dosyasının yazıldığını ya da taşındığını bildirir.
+Birleşmiş gün dosyası belirlenimci zaman taşır; yazma `ctime` değerini değiştirdiği için artımlı tarama aynı boyutlu farklı içeriği de okur. B5 bağlaması (yol haritasında açık) birleştirme sonrası dosyayı zorla yeniden okuyacaktır. Core sonucu `dayFileChanged` alanıyla gün dosyasının yazıldığını ya da taşındığını bildirir.
 
 Güncelleme değişen yolların dosya adı ve yol anahtarlarına sahip bağlantıları yeniden çözer. Çözülmüş yinelenen adlar ve yeni içerikteki bağlantılar da bu kümeye girer; `name` ve `aliases` varlık araması içindir. Güncelleme eski ve yeni blok kimliklerinin sahipliğini yol ve dosya içi sıra üzerinden yeniden hesaplar. Hata tüm değişiklikleri geri alır. Ortak `RebuildResult` eklenen, güncellenen ve silinen NFC yolları ve kapsamda atlanan fiziksel yolları bildirir.
 
@@ -1116,7 +1162,7 @@ Ekran turu (`ScreenTourUITests`, `sh .github/scripts/screen-tour.sh`) aynı test
 | Değişen dosyalar | Linux | Belge PR'ı mı: `.github/scripts/ci-changes.py` | Her zaman | 5 dk |
 | Biçim ve kurallar | Linux kabı, Swift 6.4 | `swift format lint`, dört denetim betiği (`check-docs.sh` kaynak–katalog denetimini de çalıştırır), CI betiklerinin testleri | Her zaman; belge PR'ında da | 15 dk |
 | Core (Linux) | Linux kabı, Swift 6.4 | `swift test` | Belge dışı her koşu | 20 dk |
-| Uygulama (macOS ve Core) | macOS | Core `swift test`, ölçek bütçesi, Mac testleri `TZ=UTC`, Mac testleri `TZ=Pacific/Auckland` | Belge dışı her koşu; ölçek bütçesi ve Auckland yalnız `dev`'e birleşince | 35 dk |
+| Uygulama (macOS ve Core) | macOS | Core `swift test`, ölçek bütçesi, Mac testleri `TZ=UTC`, Mac testleri `TZ=Pacific/Auckland` | Belge dışı her koşu; ölçek bütçesi yalnız `dev`'e birleşince; Auckland her koşuda | 35 dk |
 | Uygulama (iPhone) | macOS | Derle, iPhone simülatörünü aç, birim testleri, iPhone görüntü kümeleri, arayüz dumanı | Belge dışı her koşu | 45 dk |
 | Uygulama (iPad) | macOS | Derle, iPad simülatörünü aç, iPad görüntü kümeleri (`--pad`), iPad erişilebilirlik denetimi (`AccessibilityAuditUITests`, yatay) | Belge dışı her koşu | 35 dk |
 | ci | Linux | Bütün işlerin sonucu: `.github/scripts/ci-gate.py` | PR'da her zaman; `dev`'e itmede koşu iptal edilmediyse | 5 dk |

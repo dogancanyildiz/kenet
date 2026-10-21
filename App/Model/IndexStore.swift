@@ -73,6 +73,8 @@ final class IndexStore {
             async throws -> IndexUpdate
     @ObservationIgnored private let watcherDirectoryLimit: Int
     @ObservationIgnored private let watcherTicker: any WatcherTicker
+    /// False keeps directory sources on the Mac too (`VaultWatcher`); iOS always uses them.
+    @ObservationIgnored private let watcherFileEvents: Bool
     /// Test seam: runs on the watcher queue just before its first directory walk.
     @ObservationIgnored var testingWatcherInitialScan: (@Sendable () -> Void)?
     /// iCloud's unresolved versions for Diagnostics (`computeConflictedFiles`); a fake in tests.
@@ -100,7 +102,7 @@ final class IndexStore {
     init(
         location: VaultLocation = VaultLocation(), supportURL: URL? = nil,
         watcherDirectoryLimit: Int = 256,
-        watcherTicker: any WatcherTicker = DispatchWatcherTicker(),
+        watcherTicker: any WatcherTicker = DispatchWatcherTicker(), watcherFileEvents: Bool = true,
         conflictVersions: any ConflictVersionSource = SystemConflictVersionSource(),
         update:
             (
@@ -134,6 +136,7 @@ final class IndexStore {
         }
         self.watcherDirectoryLimit = watcherDirectoryLimit
         self.watcherTicker = watcherTicker
+        self.watcherFileEvents = watcherFileEvents
         self.conflictVersions = conflictVersions
         self.supportURL =
             supportURL
@@ -763,10 +766,11 @@ final class IndexStore {
             await applyPendingSelection()
             return
         }
-        // The first directory walk runs on the watcher queue; the main actor only awaits it.
+        // The first directory walk, on the Mac the event stream's start, runs on the watcher queue;
+        // the main actor only awaits it.
         let watcher = VaultWatcher(
             root: url, directoryLimit: watcherDirectoryLimit, ticker: watcherTicker,
-            initialScanWillBegin: testingWatcherInitialScan,
+            initialScanWillBegin: testingWatcherInitialScan, fileEvents: watcherFileEvents,
             onCoverageChange: { [weak self] count in
                 Task { @MainActor [weak self] in
                     guard let self, self.generation == current else { return }

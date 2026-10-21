@@ -144,7 +144,10 @@ struct VaultWatcherTests {
         let file = root.appendingPathComponent("note.md")
         try Data("before".utf8).write(to: file)
         let counter = ChangeCounter()
-        let watcher = VaultWatcher(root: root, interval: 0.8) { _ in Task { await counter.increment() } }
+        // Directory sources, the Mac too: an FSEvents stream would see the in-place edit itself.
+        let watcher = VaultWatcher(root: root, interval: 0.8, fileEvents: false) { _ in
+            Task { await counter.increment() }
+        }
         defer { watcher.stop() }
         await watcher.waitUntilReady()
         let clock = try WatcherClock(interval: 0.8)

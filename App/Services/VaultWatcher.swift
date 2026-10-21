@@ -42,9 +42,13 @@ struct DispatchWatcherTicker: WatcherTicker {
 
 /// All mutable state is confined to queue. Public operations only enqueue work there, so the
 /// caller (the main actor) never waits for a directory walk.
+///
+/// On the Mac one FSEvents stream with file events reports changes, edits written in place
+/// included (`FileEventStream`). On iOS, and on the Mac when the stream cannot start, each directory
+/// has a Dispatch source, which sees entries added, removed or renamed but not in-place edits.
 final class VaultWatcher: @unchecked Sendable {
-    /// Directory events are the main path; this fuse catches in-place edits and directories
-    /// without a source.
+    /// Events are the main path; this fuse catches in-place edits a directory source cannot see and
+    /// directories without a source.
     static let foregroundInterval: TimeInterval = 10
 
     private let queue = DispatchQueue(label: "journal.vault-watcher")
@@ -66,14 +70,19 @@ final class VaultWatcher: @unchecked Sendable {
     private var pendingChange: VaultChange?
     private var stopped = false
     private var descriptorCount = 0
+    #if os(macOS)
+        private let prefersFileEvents: Bool
+        private var fileEvents: FileEventStream?
+    #endif
 
-    /// The first walk runs on the watcher queue; `waitUntilReady()` awaits it.
-    /// `initialScanWillBegin` is a test seam that runs on that queue just before the walk.
+    /// The first walk, or on the Mac the event stream's start, runs on the watcher queue;
+    /// `waitUntilReady()` awaits it. `initialScanWillBegin` is a test seam that runs on that queue
+    /// just before. `fileEvents: false` keeps directory sources on the Mac too; iOS ignores it.
     init(
         root: URL, interval: TimeInterval = VaultWatcher.foregroundInterval, directoryLimit: Int = 256,
         fullScanThreshold: Int = VaultChange.fullScanThreshold,
         ticker: any WatcherTicker = DispatchWatcherTicker(),
-        initialScanWillBegin: (@Sendable () -> Void)? = nil,
+        initialScanWillBegin: (@Sendable () -> Void)? = nil, fileEvents: Bool = true,
         onCoverageChange: @escaping @Sendable (Int) -> Void = { _ in },
         onDescriptorClosed: @escaping @Sendable (Int32) -> Void = { _ in },
         onChange: @escaping @Sendable (VaultChange) -> Void
@@ -86,9 +95,15 @@ final class VaultWatcher: @unchecked Sendable {
         self.fullScanThreshold = fullScanThreshold
         coverageChanged = onCoverageChange
         descriptorClosed = onDescriptorClosed
+        #if os(macOS)
+            prefersFileEvents = fileEvents
+        #endif
         queue.async { [weak self] in
             initialScanWillBegin?()
             guard let self, !self.stopped else { return }
+            #if os(macOS)
+                if self.prefersFileEvents, self.startFileEvents() { return }
+            #endif
             self.reconcileDirectories()
         }
     }
@@ -97,9 +112,13 @@ final class VaultWatcher: @unchecked Sendable {
         pending?.cancel()
         cancelTimer?()
         for source in sources.values { source.cancel() }
+        #if os(macOS)
+            if let fileEvents { queue.async { fileEvents.invalidate() } }
+        #endif
     }
 
-    /// Returns once the first walk has installed its directory sources.
+    /// Returns once the first walk has installed its directory sources, or on the Mac once the
+    /// event stream has started: every later write is reported.
     func waitUntilReady() async {
         await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
             queue.async { continuation.resume() }
@@ -129,6 +148,10 @@ final class VaultWatcher: @unchecked Sendable {
             cancelTimer = nil
             for source in sources.values { source.cancel() }
             sources.removeAll()
+            #if os(macOS)
+                fileEvents?.invalidate()
+                fileEvents = nil
+            #endif
         }
     }
 
@@ -143,14 +166,25 @@ final class VaultWatcher: @unchecked Sendable {
         let work = DispatchWorkItem { [weak self] in
             guard let self, !self.stopped, let change = self.pendingChange else { return }
             self.pendingChange = nil
-            switch change {
-            case .full: self.reconcileDirectories()
-            case .directories(let directories): self.reconcileDirectories(under: directories)
+            // The event stream covers the whole tree: no sources to walk for.
+            if !self.usesFileEvents {
+                switch change {
+                case .full: self.reconcileDirectories()
+                case .directories(let directories): self.reconcileDirectories(under: directories)
+                }
             }
             self.callback(change)
         }
         pending = work
         queue.asyncAfter(deadline: .now() + .milliseconds(300), execute: work)
+    }
+
+    private var usesFileEvents: Bool {
+        #if os(macOS)
+            fileEvents != nil
+        #else
+            false
+        #endif
     }
 
     /// Walks the whole tree.
@@ -236,3 +270,41 @@ final class VaultWatcher: @unchecked Sendable {
         }
     }
 }
+
+#if os(macOS)
+    // MARK: FSEvents
+
+    extension VaultWatcher {
+        /// Test seam: hands a batch to the watcher as the event stream would.
+        func testingDeliverFileEvents(_ events: [FileEventStream.Event]) {
+            queue.async { [self] in receiveFileEvents(events) }
+        }
+
+        /// Test seam: the running event stream, read on the watcher queue.
+        func testingFileEventStream() async -> FileEventStream? {
+            await withCheckedContinuation { continuation in
+                queue.async { [self] in continuation.resume(returning: fileEvents) }
+            }
+        }
+
+        /// Starts the stream; false leaves the directory sources to do the work.
+        fileprivate func startFileEvents() -> Bool {
+            fileEvents = FileEventStream(root: root, queue: queue) { [weak self] events in
+                self?.receiveFileEvents(events)
+            }
+            guard fileEvents != nil else { return false }
+            // One stream covers every directory: nothing is left to the fuse alone.
+            unwatchedCount = 0
+            coverageChanged(0)
+            return true
+        }
+
+        private func receiveFileEvents(_ events: [FileEventStream.Event]) {
+            guard !stopped, let rootComponents = fileEvents?.rootComponents,
+                let change = FileEventStream.change(
+                    for: events, rootComponents: rootComponents, threshold: fullScanThreshold)
+            else { return }
+            trigger(change)
+        }
+    }
+#endif

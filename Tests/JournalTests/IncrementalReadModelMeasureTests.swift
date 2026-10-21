@@ -7,7 +7,7 @@ import VaultStore
 
 @testable import Journal
 
-/// Optional scale measurement. Enable with MEASURE_READ_MODEL=1 (skipped in default CI).
+/// Optional scale measurement. Enable with MEASURE_READ_MODEL=1 (TEST_RUNNER_MEASURE_READ_MODEL=1 under xcodebuild; skipped in default CI).
 struct IncrementalReadModelMeasureTests {
     @Test(
         .enabled(if: ProcessInfo.processInfo.environment["MEASURE_READ_MODEL"] == "1")

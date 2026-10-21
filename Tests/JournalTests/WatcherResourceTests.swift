@@ -23,7 +23,7 @@ struct WatcherResourceTests {
         }
         let diagnostics = WatcherDiagnostics()
         let watcher = VaultWatcher(
-            root: root, interval: 60, directoryLimit: 2,
+            root: root, interval: 60, directoryLimit: 2, fileEvents: false,
             onCoverageChange: { count in Task { await diagnostics.recordCoverage(count) } },
             onDescriptorClosed: { descriptor in
                 let wasClosed = fcntl(descriptor, F_GETFD) == -1 && errno == EBADF

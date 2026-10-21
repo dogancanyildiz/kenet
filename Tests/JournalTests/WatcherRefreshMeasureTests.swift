@@ -116,6 +116,51 @@ struct WatcherRefreshMeasureTests {
               core update journal/ median: \(format(median(coreJournal))) ms
             """)
     }
+
+    /// In-place edit to task count, foreground: directory sources wait for the 10 s fuse, the Mac's
+    /// event stream reports the edit itself. Also the opening's longest main-actor stall for each.
+    @Test(.enabled(if: ProcessInfo.processInfo.environment["MEASURE_READ_MODEL"] == "1"))
+    func fiveYearInPlaceEditReachesTheIndex() async throws {
+        let temp = try testDirectory()
+        defer { try? FileManager.default.removeItem(at: temp) }
+        let root = temp.appendingPathComponent("Vault", isDirectory: true)
+        _ = try SyntheticVault.generate(at: root, configuration: .fiveYears)
+        let note = root.appendingPathComponent("notes/Not 0001.md")
+        var lines: [String] = []
+        for (label, fileEvents, rounds) in [("file events", true, 5), ("directory sources", false, 3)] {
+            let suite = try TestDefaults()
+            defer { suite.clean() }
+            let store = IndexStore(
+                location: VaultLocation(defaults: suite.defaults, documentsURL: temp),
+                supportURL: temp.appendingPathComponent("indexes-\(fileEvents)"), watcherFileEvents: fileEvents)
+            store.setForeground(true)
+            defer { store.setForeground(false) }
+            let beat = MainHeartbeat()
+            let ticking = Task { @MainActor in await beat.run() }
+            let openStart = DispatchTime.now()
+            await store.start()
+            let openMs = milliseconds(since: openStart)
+            beat.running = false
+            await ticking.value
+            var editMs: [Double] = []
+            for round in 0..<rounds {
+                await store.waitWhileRefreshInFlight()
+                let before = store.counts.tasks
+                let start = DispatchTime.now()
+                let handle = try FileHandle(forWritingTo: note)
+                try handle.seekToEnd()
+                try handle.write(contentsOf: Data("\n- [ ] In place \(fileEvents) \(round)\n".utf8))
+                try handle.close()
+                #expect(await waitUntil(timeout: .seconds(15)) { store.counts.tasks > before })
+                editMs.append(milliseconds(since: start))
+            }
+            lines.append(
+                "  \(label): open \(format(openMs)) ms, longest main-actor stall \(format(beat.longestGap)) ms, "
+                    + "in-place edit to task count median \(format(median(editMs))) ms, rounds \(editMs.map(format).joined(separator: " / ")) ms"
+            )
+        }
+        print("MEASURE_READ_MODEL watcher in-place fiveYears:\n" + lines.joined(separator: "\n"))
+    }
 }
 
 @MainActor

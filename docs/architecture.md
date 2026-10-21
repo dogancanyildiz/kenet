@@ -137,12 +137,15 @@ Aşama 0'dan beri uygulama varsayılan kasayı yerel `Documents/Vault/` klasör�
 
 ## Dosya izleyici
 
+İzleyicinin kaynağı platforma göre değişir. Mac'te kasa kökü için tek bir FSEvents akışı dosya düzeyinde olay verir. iPhone'da FSEvents yoktur; her dizin bir Dispatch dizin kaynağı alır. Mac'te akış başlamazsa izleyici dizin kaynaklarına döner. İki kaynak da aynı bildirimi üretir: değişen dizinlerin listesi ya da tam istek.
+
 **Şema yenilemeyi başlatan tetikleri ve her tetiğin tarama kapsamını gösterir.**
 
 ```mermaid
 flowchart LR
-  Dizin["Alt dizin olayı: Dispatch dizin kaynağı"] -->|"dizin yolu"| Birlestir["300 ms birleştirme"]
-  Kok["Kök dizin olayı"] -->|"tam"| Birlestir
+  Akis["Mac: FSEvents dosya olayı"] -->|"dosyanın dizini"| Birlestir["300 ms birleştirme"]
+  Dizin["iPhone: Dispatch dizin kaynağı"] -->|"dizin yolu"| Birlestir
+  Kok["Kökteki olay"] -->|"tam"| Birlestir
   Zamanlayici["Ön plan sigortası: 10 saniye"] -->|"tam"| Birlestir
   OnPlan["Ön plana dönüş"] -->|"tam"| Birlestir
   Birlestir --> Esik{"200'den çok dizin ya da tam istek var mı?"}
@@ -154,26 +157,35 @@ flowchart LR
 
 | Değer | Anlam |
 |---|---|
-| Dispatch dizin kaynakları | Kök ve taranan alt dizinler |
+| Mac: 1 FSEvents akışı | Kasa kökü ve bütün alt ağaç. Dosya tanıtıcısı tutmaz; dizin sınırı yoktur |
+| Mac: 0,3 saniye | FSEvents gecikmesi; bu süredeki olaylar tek geri çağrıda gelir |
+| iPhone: Dispatch dizin kaynakları | Kök ve taranan alt dizinler |
+| iPhone: 256 | En çok dizin kaynağı sayısı |
 | 10 saniye | Ön plan sigortasının aralığı |
 | 300 ms | Bildirimlerin birleştirme süresi |
 | 200 | Bir yenilemedeki en çok dizin sayısı; fazlası tam yenilemedir |
-| 256 | En çok dizin kaynağı sayısı |
 
 **Tablo her tetiğin ne bildirdiğini gösterir.**
 
 | Tetik | Bildirim | `IndexStore` çağrısı |
 |---|---|---|
-| Alt dizin olayı: dosya ya da dizin eklendi, silindi, yeniden adlandırıldı | Kasa içi göreli dizin yolu | `refresh(directories:)`; Core `update(paths:)` o dizini alt ağacıyla tarar |
-| Kök dizin olayı | Tam | `refresh()` |
+| Mac: bir alt dizindeki dosya eklendi, silindi, yeniden adlandırıldı ya da yerinde yazıldı | Dosyanın bulunduğu dizin | `refresh(directories:)`; Core `update(paths:)` o dizini alt ağacıyla tarar |
+| Mac: bir dizin eklendi, silindi ya da yeniden adlandırıldı | Üst dizin | `refresh(directories:)` |
+| iPhone: alt dizin olayı, yani dosya ya da dizin eklendi, silindi, yeniden adlandırıldı | Kasa içi göreli dizin yolu | `refresh(directories:)` |
+| Kökteki olay, kökün kendisi | Tam | `refresh()` |
+| Mac: FSEvents olay kaybı bildirdi (`MustScanSubDirs`, çekirdek ya da kullanıcı kaybı) | Tam | `refresh()` |
 | Ön plan sigortası ve ön plana dönüş | Tam | `refresh()` |
-| Kaynak sayısı sınırdayken bir kaynak kapandı | Tam | `refresh()` |
+| iPhone: kaynak sayısı sınırdayken bir kaynak kapandı | Tam | `refresh()` |
 
 İzleyici 300 ms içinde gelen bildirimleri birleştirir. Dizin listeleri birleşir. Tam istek listeyi yutar. 200'den çok dizin tam isteğe döner. `IndexStore` de süren bir yenilemenin arkasında bekleyen istekleri aynı kuralla birleştirir. Bu yüzden hiçbir istek kaybolmaz: bekleyen istek ya bütün dizinleri ya bütün kasayı tarar.
 
-İzleyici bir dizin olayından sonra yalnız o dizinin alt ağacını dolaşır. Yeni alt dizinler kaynak alır. Silinen ya da taşınan dizinlerin kaynakları kapanır. Bütün ağacı yalnız tam istek dolaşır. Dışlamalar her dolaşmada aynıdır: adı nokta ile başlayan dizinler ve kökteki `templates/` ile `conflicts/`.
+Dışlamalar iki kaynakta aynıdır: adı nokta ile başlayan dizinler ve kökteki `templates/` ile `conflicts/`. Mac'te izleyici bu dizinlerin içindeki olayları yok sayar. Nokta ile başlayan dosya dışlanmaz; Core `.hidden.md` dosyasını okur.
 
-Dizin kaynakları dosya içeriğinin yerinde düzenlenmesini görmez. Bir düzenleyici dosyayı yerinde yazarsa, örneğin `FileHandle`, `>>` ya da Node `fs.writeFile` ile, indeks bu düzenlemeyi ön plan sigortasında ya da ön plana dönüşte görür; gecikme en çok 10 saniyedir. Ölçüm: yerinde ekleme, kesip yeniden yazma ve `touch` hiçbir dizin olayı üretmez. Atomik kaydetme, yani geçici dosya ve yeniden adlandırma, bir dizin olayıdır; indeks bu düzenlemeyi 1 saniye içinde görür. Arka planda dizin olayları yenilemeyi tetiklemeye devam eder. İzleyici 256 kaynaktan sonraki dizinleri ve kaynak açamadığı dizinleri yalnız ön plan sigortasıyla denetler. Arayüz bu dizinlerin sayısını gösterir.
+Mac'te akış dosya içeriğinin yerinde düzenlenmesini de görür. Ölçüm: yerinde ekleme, kesip yeniden yazma, atomik olmayan `Data.write`, `touch` ve atomik kaydetme birer dosya olayıdır. 5 yıllık sentetik kasada yerinde düzenleme 0,4–0,6 saniyede indekse girer; aynı anda süren tam yenileme varsa 1,6 saniyeye çıkar. FSEvents akış başlamadan birkaç milisaniye önceki bir yazmayı da bildirebilir. Akış bu yüzden kasa dışındaki geçici bir klasöre bir işaret dosyası yazar ve olay sırasında işaretin olayından önce gelen kasa olaylarını atar. Açılış taraması bu yazmaları zaten görür.
+
+iPhone'da dizin kaynakları yerinde düzenlemeyi görmez. Bir düzenleyici dosyayı yerinde yazarsa, örneğin `FileHandle` ya da `>>` ile, indeks bu düzenlemeyi ön plan sigortasında ya da ön plana dönüşte görür; gecikme en çok 10 saniyedir. Atomik kaydetme, yani geçici dosya ve yeniden adlandırma, bir dizin olayıdır; indeks bu düzenlemeyi 1 saniye içinde görür. iPhone'da dış düzenleme pratikte iCloud'dan gelir ve atomiktir. İzleyici bir dizin olayından sonra yalnız o dizinin alt ağacını dolaşır. Yeni alt dizinler kaynak alır. Silinen ya da taşınan dizinlerin kaynakları kapanır. Bütün ağacı yalnız tam istek dolaşır. İzleyici 256 kaynaktan sonraki dizinleri ve kaynak açamadığı dizinleri yalnız ön plan sigortasıyla denetler. Arayüz bu dizinlerin sayısını gösterir; Mac'te bu sayı 0'dır.
+
+Arka planda olaylar yenilemeyi tetiklemeye devam eder.
 
 Yenileme hata verirse `IndexStore` sonraki isteği dizin listesiyle değil bütün kasayla yapar. Başarısız yenilemenin kaçırdığı değişiklik başka bir dizinde olabilir.
 
@@ -183,12 +195,12 @@ Kapsamlı yenilemede Core `skippedPaths` değerini yalnız taranan dizinler içi
 
 | İş | Nerede çalışır |
 |---|---|
-| İlk dolaşma ve kaynak kurulumu | İzleyici kuyruğu. `IndexStore.open` yalnız `waitUntilReady()` ile bekler; ana aktör serbesttir |
+| Mac'te akışın başlaması; iPhone'da ilk dolaşma ve kaynak kurulumu | İzleyici kuyruğu. `IndexStore.open` yalnız `waitUntilReady()` ile bekler; ana aktör serbesttir |
 | `setForeground` ve `stop` | İzleyici kuyruğuna iş bırakır; ana aktör beklemez |
-| Dizin dolaşması ve birleştirme | İzleyici kuyruğu |
+| Olayların dizine çevrilmesi, dizin dolaşması ve birleştirme | İzleyici kuyruğu |
 | İndeks taraması ve okuma modeli | `Task.detached` |
 
-`IndexStore.open` açılış yenilemesinden önce ilk dolaşmanın bitmesini bekler. Böylece kaynaklar açılış taramasından önce kurulur; ikisinin arasında yapılan bir düzenleme kaybolmaz. Bu bekleme sürerken `isProcessing` açık kalır; gelen yenileme istekleri açılış yenilemesinin arkasında birleşir. Kasa bu sırada değişirse ya da erişim kaybolursa `generation` denetimi eski açılışı durdurur. Eski izleyicinin bildirimleri de aynı denetimle düşer.
+`IndexStore.open` açılış yenilemesinden önce izleyicinin hazır olmasını bekler: Mac'te akış başlamıştır, iPhone'da ilk dolaşma bitmiştir. Böylece izleme açılış taramasından önce başlar; ikisinin arasında yapılan bir düzenleme kaybolmaz. Bu bekleme sürerken `isProcessing` açık kalır; gelen yenileme istekleri açılış yenilemesinin arkasında birleşir. Kasa bu sırada değişirse ya da erişim kaybolursa `generation` denetimi eski açılışı durdurur. Eski izleyicinin bildirimleri de aynı denetimle düşer.
 
 ## Yazma sırası
 

@@ -5,7 +5,8 @@ import VaultIndex
 
 @testable import Journal
 
-/// The watcher reports changed directories, and the store rescans only those.
+/// The watcher reports changed directories, and the store rescans only those. These cases run on
+/// directory sources, the Mac too (`fileEvents: false`); `FileEventWatcherTests` covers FSEvents.
 @Suite(.serialized)
 struct DirectoryWatcherTests {
     @Test func eventsReportOnlyTheChangedDirectoriesInOneDebouncedChange() async throws {
@@ -16,7 +17,9 @@ struct DirectoryWatcherTests {
                 at: root.appendingPathComponent(name), withIntermediateDirectories: true)
         }
         let changes = ChangeLog()
-        let watcher = VaultWatcher(root: root, interval: 60) { change in Task { await changes.append(change) } }
+        let watcher = VaultWatcher(root: root, interval: 60, fileEvents: false) { change in
+            Task { await changes.append(change) }
+        }
         defer { watcher.stop() }
         await watcher.waitUntilReady()
 
@@ -57,7 +60,7 @@ struct DirectoryWatcherTests {
         let coverage = LockedLog<Int>()
         let changes = LockedLog<VaultChange>()
         let watcher = VaultWatcher(
-            root: root, interval: 60, onCoverageChange: { coverage.append($0) },
+            root: root, interval: 60, fileEvents: false, onCoverageChange: { coverage.append($0) },
             onChange: { changes.append($0) })
         defer { watcher.stop() }
         await watcher.waitUntilReady()
@@ -80,7 +83,7 @@ struct DirectoryWatcherTests {
                 at: root.appendingPathComponent(name), withIntermediateDirectories: true)
         }
         let changes = ChangeLog()
-        let watcher = VaultWatcher(root: root, interval: 60, fullScanThreshold: 2) { change in
+        let watcher = VaultWatcher(root: root, interval: 60, fullScanThreshold: 2, fileEvents: false) { change in
             Task { await changes.append(change) }
         }
         defer { watcher.stop() }
@@ -119,12 +122,14 @@ struct DirectoryRefreshTests {
         let scopes = ScopeLog()
         let store = IndexStore(
             location: VaultLocation(defaults: suite.defaults, documentsURL: temp),
-            supportURL: temp.appendingPathComponent("indexes"), scopedUpdate: scopes.recordingUpdate())
+            supportURL: temp.appendingPathComponent("indexes"), watcherFileEvents: false,
+            scopedUpdate: scopes.recordingUpdate())
         await store.start()
         #expect(store.counts.tasks == 2)
         #expect(await scopes.all == [nil])
 
-        // An in-place edit reaches no directory source; only the full scan would see it.
+        // An in-place edit reaches no directory source (on the Mac too here, `watcherFileEvents: false`);
+        // only the full scan would see it.
         let handle = try FileHandle(forWritingTo: root.appendingPathComponent("projects/other.md"))
         try handle.seekToEnd()
         try handle.write(contentsOf: Data("- [ ] Unseen edit\n".utf8))
@@ -308,7 +313,8 @@ struct DirectoryRefreshTests {
         let scopes = ScopeLog()
         let store = IndexStore(
             location: VaultLocation(defaults: suite.defaults, documentsURL: temp),
-            supportURL: temp.appendingPathComponent("indexes"), scopedUpdate: scopes.recordingUpdate())
+            supportURL: temp.appendingPathComponent("indexes"), watcherFileEvents: false,
+            scopedUpdate: scopes.recordingUpdate())
         await store.start()
         #expect(store.counts.tasks == 0)
         // In place: no directory event, so only this test's requests refresh.

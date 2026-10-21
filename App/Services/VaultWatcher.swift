@@ -280,6 +280,13 @@ final class VaultWatcher: @unchecked Sendable {
             queue.async { [self] in receiveFileEvents(events) }
         }
 
+        /// Test seam: the running event stream, read on the watcher queue.
+        func testingFileEventStream() async -> FileEventStream? {
+            await withCheckedContinuation { continuation in
+                queue.async { [self] in continuation.resume(returning: fileEvents) }
+            }
+        }
+
         /// Starts the stream; false leaves the directory sources to do the work.
         fileprivate func startFileEvents() -> Bool {
             fileEvents = FileEventStream(root: root, queue: queue) { [weak self] events in

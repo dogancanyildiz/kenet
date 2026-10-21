@@ -179,7 +179,7 @@ flowchart LR
 
 İzleyici 300 ms içinde gelen bildirimleri birleştirir. Dizin listeleri birleşir. Tam istek listeyi yutar. 200'den çok dizin tam isteğe döner. `IndexStore` de süren bir yenilemenin arkasında bekleyen istekleri aynı kuralla birleştirir. Bu yüzden hiçbir istek kaybolmaz: bekleyen istek ya bütün dizinleri ya bütün kasayı tarar.
 
-Dışlamalar iki kaynakta aynıdır: adı nokta ile başlayan dizinler ve kökteki `templates/` ile `conflicts/`. Mac'te izleyici bu dizinlerin içindeki olayları yok sayar. Nokta ile başlayan dosya dışlanmaz; Core `.hidden.md` dosyasını okur.
+Dışlamalar iki kaynakta aynıdır: adı nokta ile başlayan dizinler ve kökteki `templates/` ile `conflicts/`. Mac'te izleyici bu dizinlerin içindeki olayları yok sayar. Mac'te izleyici kökteki `.DS_Store` dosyasının olaylarını da yok sayar. Finder bu dosyaya görünüm ayarlarını yazar; kökteki her olay tam yenilemedir. Başka nokta ile başlayan dosya dışlanmaz; Core `.hidden.md` dosyasını okur.
 
 Mac'te akış dosya içeriğinin yerinde düzenlenmesini de görür. Ölçüm: yerinde ekleme, kesip yeniden yazma, atomik olmayan `Data.write`, `touch` ve atomik kaydetme birer dosya olayıdır. 5 yıllık sentetik kasada yerinde düzenleme 0,4–0,6 saniyede indekse girer; aynı anda süren tam yenileme varsa 1,6 saniyeye çıkar. FSEvents akış başlamadan birkaç milisaniye önceki bir yazmayı da bildirebilir. Akış bu yüzden kasa dışındaki geçici bir klasöre bir işaret dosyası yazar ve olay sırasında işaretin olayından önce gelen kasa olaylarını atar. Açılış taraması bu yazmaları zaten görür.
 

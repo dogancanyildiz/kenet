@@ -177,6 +177,84 @@
             #expect(changes.all == [.directories(["a", "b"]), .directories(["c"])])
         }
 
+        @Test func theWatchersThresholdTurnsALongBatchIntoAFullScan() async throws {
+            let root = try testDirectory()
+            defer { try? FileManager.default.removeItem(at: root) }
+            let changes = LockedLog<VaultChange>()
+            let watcher = VaultWatcher(root: root, interval: 60, fullScanThreshold: 2) { changes.append($0) }
+            defer { watcher.stop() }
+            await watcher.waitUntilReady()
+            let base = try realPath(root)
+            let modified = kFSEventStreamEventFlagItemIsFile | kFSEventStreamEventFlagItemModified
+
+            // One batch naming more directories than this watcher's threshold, then one within it.
+            watcher.testingDeliverFileEvents(["a", "b", "c"].map { event(base + "/\($0)/x.md", modified) })
+            try await changes.wait(for: 1)
+            watcher.testingDeliverFileEvents(["a", "b"].map { event(base + "/\($0)/x.md", modified) })
+            try await changes.wait(for: 2)
+            #expect(changes.all == [.full, .directories(["a", "b"])])
+        }
+
+        @Test func stoppingReleasesTheStream() async throws {
+            let root = try testDirectory()
+            defer { try? FileManager.default.removeItem(at: root) }
+            let watcher = VaultWatcher(root: root, interval: 60) { _ in }
+            await watcher.waitUntilReady()
+            // FSEvents retains the stream object until the stream is invalidated.
+            weak let stream = await watcher.testingFileEventStream()
+            #expect(stream != nil)
+
+            watcher.stop()
+            // The invalidation releases the object in a later block on the watcher queue.
+            #expect(await waitUntil { stream == nil })
+        }
+
+        @Test func rootFinderSettingsStayQuietAndOtherRootDotFilesRescan() async throws {
+            let root = try testDirectory()
+            defer { try? FileManager.default.removeItem(at: root) }
+            try FileManager.default.createDirectory(
+                at: root.appendingPathComponent("notes"), withIntermediateDirectories: true)
+            let changes = LockedLog<VaultChange>()
+            let watcher = VaultWatcher(root: root, interval: 60) { changes.append($0) }
+            defer { watcher.stop() }
+            await watcher.waitUntilReady()
+
+            try Data("finder".utf8).write(to: root.appendingPathComponent(".DS_Store"))
+            // Events arrive in order: a reported `.DS_Store` would come before or with this one as `.full`.
+            try Data("- [ ] Seen\n".utf8).write(to: root.appendingPathComponent("notes/seen.md"))
+            try await changes.wait(for: 1)
+            #expect(changes.all == [.directories(["notes"])])
+
+            try Data("- [ ] Hidden\n".utf8).write(to: root.appendingPathComponent(".hidden.md"))
+            try await changes.wait(for: 2)
+            #expect(changes.all == [.directories(["notes"]), .full])
+        }
+
+        @Test func onlyTheSentinelFileEndsTheWaitForTheStart() {
+            let folder = "/private/var/folders/T/journal-watch-1"
+            var gate = FileEventStream.SentinelGate(folder: folder)
+            gate.isWaiting = true
+            let file = kFSEventStreamEventFlagItemIsFile | kFSEventStreamEventFlagItemCreated
+            let early = event("/private/var/vault/notes/early.md", file)
+            let late = event("/private/var/vault/notes/late.md", file)
+
+            // The folder is created before the stream starts and is reported too: it ends nothing.
+            let created = event(folder, kFSEventStreamEventFlagItemIsDir | kFSEventStreamEventFlagItemCreated)
+            #expect(gate.vaultEvents(in: [created]).isEmpty)
+            #expect(gate.isWaiting)
+            // A vault write between the folder's creation and the start, in a batch of its own.
+            #expect(gate.vaultEvents(in: [early]).isEmpty)
+            #expect(gate.isWaiting)
+            // The sentinel file's event drops everything ahead of it in its batch.
+            let sentinel = event(folder + "/start", file)
+            #expect(gate.vaultEvents(in: [early, sentinel, late]).map(\.path) == [late.path])
+            #expect(!gate.isWaiting)
+            // Afterwards vault events pass; the sentinel's removal is not a vault event.
+            let removed = event(
+                folder + "/start", kFSEventStreamEventFlagItemIsFile | kFSEventStreamEventFlagItemRemoved)
+            #expect(gate.vaultEvents(in: [early, removed]).map(\.path) == [early.path])
+        }
+
         @Test func eventFlagsAndPathsMapToTheDirectoryToRescan() throws {
             let root = "/private/var/vault/Günlük".split(separator: "/")
             func change(_ events: [FileEventStream.Event], threshold: Int = 200) -> VaultChange? {
@@ -208,6 +286,10 @@
             #expect(change([event(base + "/notes/templates/a.md", file)]) == .directories(["notes/templates"]))
             // A hidden file outside a hidden directory is read (`.hidden.md`).
             #expect(change([event(base + "/notes/.hidden.md", file)]) == .directories(["notes"]))
+            // Finder's `.DS_Store` is dropped at the root only; another root dot file rescans everything.
+            #expect(change([event(base + "/.DS_Store", file)]) == nil)
+            #expect(change([event(base + "/.hidden.md", file)]) == .full)
+            #expect(change([event(base + "/notes/.DS_Store", file)]) == .directories(["notes"]))
             // The root, the root itself, outside the root, lost events and too many directories.
             #expect(change([event(base + "/top.md", file)]) == .full)
             #expect(change([event(base, directory | kFSEventStreamEventFlagItemXattrMod)]) == .full)

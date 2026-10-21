@@ -4,7 +4,8 @@ import VaultIndex
 
 @testable import Journal
 
-/// Optional scale measurement. Enable with MEASURE_READ_MODEL=1 (skipped in default CI).
+/// Optional scale measurement. Enable with MEASURE_READ_MODEL=1 in the test process (skipped in default
+/// CI); `xcodebuild test` passes it on only as `TEST_RUNNER_MEASURE_READ_MODEL=1`.
 @MainActor
 struct WatcherRefreshMeasureTests {
     @Test(.enabled(if: ProcessInfo.processInfo.environment["MEASURE_READ_MODEL"] == "1"))

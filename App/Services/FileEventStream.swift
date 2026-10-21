@@ -7,8 +7,8 @@
     ///
     /// FSEvents may still deliver a write made a few milliseconds before the stream started. A sentinel
     /// file written just after the start, in a folder outside the vault that the same stream watches,
-    /// marks the boundary: events arrive in order, so every vault event ahead of the sentinel's is
-    /// dropped. A write made after `init` returns comes after the sentinel's event and is reported.
+    /// marks the boundary (`SentinelGate`). A write made after `init` returns comes after the
+    /// sentinel's event and is reported.
     final class FileEventStream: @unchecked Sendable {
         struct Event: Sendable {
             let path: String
@@ -26,8 +26,7 @@
         private let handler: ([Event]) -> Void
         private var stream: FSEventStreamRef?
         private let sentinel: URL?
-        private let sentinelComponents: [Substring]?
-        private var awaitingSentinel = false
+        private var gate: SentinelGate?
 
         /// Starts the stream on `queue`; `nil` when FSEvents refuses the stream. Call on `queue`;
         /// `handler` runs there. The stream retains this object until `invalidate()`.
@@ -40,7 +39,7 @@
             let sentinelPath = (try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true))
                 .map { Self.realPath(folder.path) }
             sentinel = sentinelPath == nil ? nil : folder
-            sentinelComponents = sentinelPath?.split(separator: "/")
+            gate = sentinelPath.map(SentinelGate.init(folder:))
 
             var context = FSEventStreamContext(
                 version: 0, info: Unmanaged.passUnretained(self).toOpaque(),
@@ -73,8 +72,10 @@
             }
             stream = created
             // Without a sentinel every event passes, the latest pre-start write included.
-            guard let sentinel, (try? Data().write(to: sentinel.appendingPathComponent("start"))) != nil else { return }
-            awaitingSentinel = true
+            guard let sentinel,
+                (try? Data().write(to: sentinel.appendingPathComponent(SentinelGate.fileName))) != nil
+            else { return }
+            gate?.isWaiting = true
             queue.asyncAfter(deadline: .now() + Self.sentinelTimeout) { [weak self] in self?.endSentinelWait() }
         }
 
@@ -90,25 +91,20 @@
 
         fileprivate func receive(_ events: [Event]) {
             guard stream != nil else { return }
-            var vault: [Event] = []
-            for event in events {
-                guard let sentinelComponents, Self.components(of: event.path, under: sentinelComponents) != nil else {
-                    vault.append(event)
-                    continue
-                }
-                if awaitingSentinel {
-                    // Everything ahead of the sentinel's first event predates the start.
-                    vault.removeAll()
-                    endSentinelWait()
-                }
+            var vault = events
+            if var gate {
+                let wasWaiting = gate.isWaiting
+                vault = gate.vaultEvents(in: events)
+                self.gate = gate
+                if wasWaiting, !gate.isWaiting { removeSentinel() }
             }
-            guard !awaitingSentinel, !vault.isEmpty else { return }
+            guard !vault.isEmpty else { return }
             handler(vault)
         }
 
         private func endSentinelWait() {
-            guard awaitingSentinel else { return }
-            awaitingSentinel = false
+            guard gate?.isWaiting == true else { return }
+            gate?.isWaiting = false
             removeSentinel()
         }
 
@@ -137,6 +133,8 @@
                 guard event.flags & rescan == 0, let relative = components(of: event.path, under: rootComponents),
                     !relative.isEmpty
                 else { return .full }
+                // Finder's view settings at the root would otherwise rescan the whole vault.
+                if relative.count == 1, relative.first == ".DS_Store" { continue }
                 // A directory whose own attributes changed is itself the directory to rescan.
                 let ownAttributes = event.flags & isDirectory != 0 && event.flags & entryChange == 0
                 let directory = ownAttributes ? relative : relative.dropLast()
@@ -152,7 +150,7 @@
         /// The components of `path` below `base`, `nil` when `path` is not under it. Components compare
         /// as Swift strings, so an NFC and an NFD spelling of a folder name match; the returned names
         /// keep the event's own spelling, which is the one on disk.
-        private static func components(of path: String, under base: [Substring]) -> ArraySlice<Substring>? {
+        fileprivate static func components(of path: String, under base: [Substring]) -> ArraySlice<Substring>? {
             let parts = path.split(separator: "/")
             guard parts.count >= base.count, zip(parts, base).allSatisfy({ $0 == $1 }) else { return nil }
             return parts.dropFirst(base.count)
@@ -162,6 +160,40 @@
             guard let resolved = realpath(path, nil) else { return path }
             defer { free(resolved) }
             return String(cString: resolved)
+        }
+    }
+
+    extension FileEventStream {
+        /// Splits the sentinel folder's events from the vault's. Events arrive in order: while waiting,
+        /// every vault event ahead of the sentinel file's first event predates the start and is dropped.
+        /// Only the file's own path ends the wait. The folder's creation is reported too, but it comes
+        /// before the start, so vault writes made between the two would otherwise pass.
+        struct SentinelGate: Sendable {
+            static let fileName = "start"
+            let folder: [Substring]
+            let file: [Substring]
+            var isWaiting = false
+
+            init(folder: String) {
+                self.folder = folder.split(separator: "/")
+                file = self.folder + [Substring(Self.fileName)]
+            }
+
+            /// The vault events of `events`; none while still waiting.
+            mutating func vaultEvents(in events: [Event]) -> [Event] {
+                var vault: [Event] = []
+                for event in events {
+                    guard FileEventStream.components(of: event.path, under: folder) != nil else {
+                        vault.append(event)
+                        continue
+                    }
+                    if isWaiting, event.path.split(separator: "/") == file {
+                        vault.removeAll()
+                        isWaiting = false
+                    }
+                }
+                return isWaiting ? [] : vault
+            }
         }
     }
 

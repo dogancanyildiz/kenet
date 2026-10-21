@@ -1,0 +1,150 @@
+name: TestFlight
+
+# CD: dev'deki bir commit'i CI'da imzalı arşivler ve TestFlight'a (dahili test) yükler.
+# Yol yerel yolla aynıdır: .github/scripts/testflight.sh --ci. Fark yalnız kimlik bilgisidir:
+# Xcode hesabı yerine App Store Connect API anahtarı, yerel anahtar zinciri yerine geçici zincir.
+# Elle başlatılır (gh workflow run testflight.yml --ref dev). dev'e itmede yükleme isteğe bağlıdır
+# ve varsayılan KAPALIDIR: depo değişkeni KENET_CD_ON_PUSH=true olunca açılır.
+# Repo herkese açıktır: gizli değerler yalnız Secrets'tan gelir; takım kimliği betikte maskelenir,
+# düşen koşunun günlüğü artifact'a kimlikler çıkarılmış olarak gider. Kurulum: README, "CD".
+
+on:
+  workflow_dispatch:
+    inputs:
+      notes:
+        description: Yapı notu (koşu adında ve özetinde görünür; TestFlight'a gönderilmez)
+        required: false
+        default: ""
+  push:
+    branches: [dev]
+
+run-name: >-
+  TestFlight ${{ github.event_name == 'workflow_dispatch' && 'elle' || 'itme' }}${{ inputs.notes && format(': {0}', inputs.notes) || '' }}
+
+permissions:
+  contents: read
+
+jobs:
+  upload:
+    name: Arşivle ve yükle
+    if: >-
+      github.ref == 'refs/heads/dev' &&
+      (github.event_name == 'workflow_dispatch' || vars.KENET_CD_ON_PUSH == 'true')
+    runs-on: macos-26
+    timeout-minutes: 45
+    # Secrets ortam düzeyindedir: "testflight" ortamı yalnız dev dalına açıktır; başka bir daldaki iş
+    # akışı (ajan dalları dahil) anahtar ve sertifikayı okuyamaz.
+    environment: testflight
+    # Tek kuyruk: yükleme yarıda kesilmez; bekleyen koşu yenisi gelince iptal olur, son commit yüklenir.
+    # İş düzeyinde: anahtar kapalıyken atlanan itme koşusu kuyruktaki elle koşuyu düşürmesin.
+    concurrency:
+      group: testflight
+      cancel-in-progress: false
+    steps:
+      - name: Gizli değerler tanımlı mı
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+          DIST_CERT_P12: ${{ secrets.DIST_CERT_P12 }}
+          DIST_CERT_PASSWORD: ${{ secrets.DIST_CERT_PASSWORD }}
+        run: |
+          missing=
+          for name in ASC_KEY_ID ASC_ISSUER_ID ASC_KEY_P8 DIST_CERT_P12 DIST_CERT_PASSWORD; do
+            eval "value=\${$name}"
+            [ -n "$value" ] || missing="$missing $name"
+          done
+          if [ -n "$missing" ]; then
+            echo "::error::Eksik Secrets:$missing (README, CD kurulumu)."
+            exit 1
+          fi
+      - uses: actions/checkout@v7
+        with:
+          # Yapı numarası git rev-list --count HEAD'dir; betik sığ kopyayı reddeder.
+          fetch-depth: 0
+      - name: Xcode
+        uses: ./.github/actions/xcode
+      - name: XcodeGen
+        run: brew install xcodegen
+      - name: İmza zinciri ve API anahtarı
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+          DIST_CERT_P12: ${{ secrets.DIST_CERT_P12 }}
+          DIST_CERT_PASSWORD: ${{ secrets.DIST_CERT_PASSWORD }}
+        run: |
+          set -eu
+          umask 077
+          KEYCHAIN="$RUNNER_TEMP/kenet-signing.keychain-db"
+          KEYCHAIN_PASSWORD=$(openssl rand -hex 24)
+          echo "::add-mask::$KEYCHAIN_PASSWORD"
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          # Ara sertifika imajda yoksa dağıtım kimliği "geçerli" sayılmaz; indirilemezse imajdakine güvenilir.
+          if curl -fsSL https://www.apple.com/certificateauthority/AppleWWDRCAG3.cer -o "$RUNNER_TEMP/wwdr.cer"; then
+            security import "$RUNNER_TEMP/wwdr.cer" -k "$KEYCHAIN" -t cert -f x509 >/dev/null 2>&1 || true
+          else
+            echo "::warning::Apple WWDR G3 ara sertifikası indirilemedi; imajdaki kullanılacak."
+          fi
+          printf '%s' "$DIST_CERT_P12" | base64 --decode > "$RUNNER_TEMP/dist.p12"
+          security import "$RUNNER_TEMP/dist.p12" -k "$KEYCHAIN" -f pkcs12 -P "$DIST_CERT_PASSWORD" \
+            -T /usr/bin/codesign -T /usr/bin/security >/dev/null
+          rm -f "$RUNNER_TEMP/dist.p12"
+          # codesign özel anahtara parola sormadan erişsin.
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN" >/dev/null
+          # Zincir arama listesinin başına; varsayılan zincirler listede kalır.
+          eval "set -- $(security list-keychains -d user | tr '\n' ' ')"
+          security list-keychains -d user -s "$KEYCHAIN" "$@"
+          mkdir -p "$RUNNER_TEMP/asc"
+          KEY_PATH="$RUNNER_TEMP/asc/AuthKey_$ASC_KEY_ID.p8"
+          printf '%s' "$ASC_KEY_P8" | base64 --decode > "$KEY_PATH"
+          echo "KENET_KEYCHAIN=$KEYCHAIN" >> "$GITHUB_ENV"
+          echo "KENET_ASC_KEY_PATH=$KEY_PATH" >> "$GITHUB_ENV"
+      - name: Arşivle ve yükle
+        id: upload
+        env:
+          # Düşen adımda betik günlüğü $TMPDIR/kenet-testflight-{arsiv,yukleme}.log dosyasına
+          # kimlikleri çıkarılmış olarak bırakır.
+          TMPDIR: ${{ runner.temp }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+        run: >-
+          sh .github/scripts/testflight.sh --ci
+          --keychain "$KENET_KEYCHAIN"
+          --api-key "$KENET_ASC_KEY_PATH"
+          --api-key-id "$ASC_KEY_ID"
+          --api-issuer "$ASC_ISSUER_ID"
+      - name: Özet
+        if: success()
+        env:
+          NOTES: ${{ inputs.notes }}
+          VERSION: ${{ steps.upload.outputs.version }}
+          BUILD: ${{ steps.upload.outputs.build }}
+        run: |
+          {
+            echo "### TestFlight: Kenet $VERSION ($BUILD)"
+            echo
+            echo "Commit: \`${GITHUB_SHA}\`. App Store Connect yapıyı birkaç dakikada işler."
+            if [ -n "$NOTES" ]; then
+              echo
+              echo "Not: $NOTES"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Günlükler (düşünce)
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: testflight-logs
+          path: |
+            ${{ runner.temp }}/kenet-testflight-arsiv.log
+            ${{ runner.temp }}/kenet-testflight-yukleme.log
+          if-no-files-found: warn
+          retention-days: 7
+      - name: Zinciri ve anahtarı sil
+        if: always()
+        run: |
+          if [ -n "${KENET_KEYCHAIN:-}" ]; then
+            security delete-keychain "$KENET_KEYCHAIN" || true
+          fi
+          rm -rf "$RUNNER_TEMP/asc" "$RUNNER_TEMP/dist.p12" "$RUNNER_TEMP/wwdr.cer"

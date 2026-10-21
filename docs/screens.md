@@ -1127,7 +1127,7 @@ iPhone'da Ayarlar, Bugün manşet satırındaki düğmenin açtığı sheet'tir.
 |---|---|
 | Uygulama kilidi | Anahtar. Açmak bir kez Face ID, Touch ID ya da cihaz parolası ister. Kullanıcı iptal ederse anahtar kapalı kalır. |
 | Şu kadar sonra kilitle | Hemen, 1 dk, 5 dk ya da 15 dk. Tercihler cihazdadır. |
-| Bildirimlerde içeriği gizle | Yalnız iPhone'da, Bildirimler ayarına bağlantı. Anahtar ve açıklama Bildirimler'dedir. Mac'te Bildirimler sekmesini kullan. |
+| Bildirimlerde içeriği gizle | Yalnız iPhone'da, Bildirimler ayarına bağlantı. Anahtar ("Bildirimde içeriği göster", varsayılan kapalı) ve açıklama Bildirimler'dedir. Mac'te Bildirimler sekmesini kullan. |
 | Kişi hatırlatmaları | Görüşülmeyenler eşiği: 1–365 gün, varsayılan 30. Cihaz tercihi. |
 
 **Uygulama kilidinin durumları.**
@@ -1158,7 +1158,7 @@ stateDiagram-v2
 
 | Tür | Varsayılan saat | Varsayılan durum | İçerik | Dokunma |
 |---|---|---|---|---|
-| Görev | 09:00 | Açık | Sabah tek görev özeti: o gün biten açık görevler, tek görevde metni. Önceki günlerden açık görev sayısı da özettedir. | Görevler'in Bugün grubu; yoksa önceki günlerden açık grup. |
+| Görev | 09:00 | Açık | Sabah tek görev özeti: o gün biten açık görevler, tek görevde metni (içerik gösterilirken; gizliyken "1 görev bugün"). Önceki günlerden açık görev sayısı da özettedir. | Görevler'in Bugün grubu; yoksa önceki günlerden açık grup. |
 | Günlük hedef | 20:00 | Açık | Yalnız o gün tamamlanmamış günlük hedefler. Haftalık ve yıllık hedefler yoktur. | Bugün. |
 | Günlük yazısı | 21:00 | Açık | Olay ve günlük yazısı olmayan güne gelir. | Bugün ve Günü kapat akışının günlük adımı. |
 | Görüşme | 10:00 | Kapalı | Ritmi olup vadesi gelen kişiler: `people-<gün>`. | Kişiler'de açık "Bir süredir görüşmediklerin" bölümü. |
@@ -1169,7 +1169,7 @@ stateDiagram-v2
 |---|---|
 | İzin | Uygulama izni yalnız kullanıcının izin düğmesiyle ister. Açılışta sistem diyaloğu yoktur. |
 | Tercihler | Kullanıcı her türü ayrı açar ve kapatır. Saatler cihazdadır. |
-| İçeriği gizle | Varsayılan kapalı. Açıkken afiş, bildirim merkezi ve kilit ekranı görev metnini, hedef adlarını ve kişi adlarını göstermez. |
+| İçeriği göster | Anahtar: "Bildirimde içeriği göster", varsayılan kapalı. Kapalıyken afiş, bildirim merkezi ve kilit ekranı yalnız sayı ve genel başlık gösterir: "N görev bugün", "Bugün bekleyen hedefler var", "Görüşme zamanı gelen N kişi var", "Bir hedefin yakınındasın". Görev metni, hedef adları ve kişi adları girmez. Anahtarın altındaki açıklama bunu söyler. Tercih cihazdadır. Seçimi kaydedilmiş cihazda seçim korunur. Kaydı olmayan ya da kaydında bu alan olmayan cihazda içerik gizlidir. |
 | Pencere | Bugün dahil 7 gün, yerel takvim saatleriyle. |
 | Görev özeti | Yalnız önceki günlerden açık görev varsa da tek sabah özeti gelir. Ayrı gecikme bildirimi yoktur. Tarihsiz, tamamlanan ve iptal görevler bildirime girmez. |
 | Günlük yazısı | Görev ya da hedef kaydı tek başına hatırlatmayı kapatmaz. |

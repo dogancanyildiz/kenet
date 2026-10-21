@@ -12,7 +12,7 @@ struct GeofenceNotice: Sendable {
     let goalName: String
     let placeName: String
     let automatic: Bool
-    var hideContent: Bool = false
+    var hideContent: Bool = true
     var id: String { "geofence-" + action.regionID + "-" + action.day.description }
 }
 @MainActor

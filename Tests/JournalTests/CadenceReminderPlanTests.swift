@@ -312,6 +312,8 @@ struct CadenceReminderServiceTests {
         let center = FakeNotificationCenter()
         let person = cadencePerson(lale, name: "Lale", last: "2026-09-01", days: 7)
         let service = service(center, defaults: defaults, clock: clock, people: [person])
+        // The bodies name whose vault is planned: content shown (hidden is the default).
+        service.preferences.hideContent = false
         await service.replanNow()
         #expect(peopleIDs(center).count == 3)
 

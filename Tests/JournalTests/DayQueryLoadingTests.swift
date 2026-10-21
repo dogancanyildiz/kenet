@@ -196,7 +196,12 @@
             for _ in 0..<60 where !ready() { await mount.settle(rounds: 1) }
             if ready() { return true }
             if texts(under: mount).isEmpty {
-                FileHandle.standardError.write(Data("ATLANDI (ortam erişilebilirlik ağacı vermiyor): \(test)\n".utf8))
+                if HostedControls.requiresTree {
+                    Issue.record("No accessibility tree, and KENET_REQUIRE_AX asks for one: \(test)")
+                } else {
+                    FileHandle.standardError.write(
+                        Data("ATLANDI (ortam erişilebilirlik ağacı vermiyor): \(test)\n".utf8))
+                }
                 return false
             }
             Issue.record("The mounted view never showed its first answer")

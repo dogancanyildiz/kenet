@@ -64,6 +64,7 @@ private struct GoalListContent: View {
     @State private var deletion = DefinitionDeletionModel()
     @State private var deletingGoal: GoalDefinition?
     @State private var model: GoalDayModel
+    @Environment(\.locale) private var locale
     init(
         store: IndexStore, day: CalendarDate, selection: Binding<String?>?,
         showsCreation: Binding<Bool>, loaded: Binding<GoalListStatuses?>,
@@ -154,7 +155,9 @@ private struct GoalListContent: View {
                 || (goal.kind == .boolean && goal.target <= 1),
             meta: GoalRowPresentation.meta(goal: goal, status: status),
             barFraction: GoalRowPresentation.barFraction(goal: goal, status: status),
-            valueText: GoalRowPresentation.valueText(goal: goal, status: status)
+            valueText: GoalRowPresentation.valueText(goal: goal, status: status),
+            graceBadge: GoalRowPresentation.graceBadge(goal: goal, status: status, locale: locale),
+            graceBadgePlacement: .streak
         )
         Group {
             if goal.kind == .milestone {

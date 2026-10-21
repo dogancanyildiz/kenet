@@ -711,7 +711,7 @@ Affedilen gün yalnız günlük hedefte olur. Affedilen gün, önceki iki günü
 
 Zincir günüyle korunan gün de zinciri koruyan bir kaçırmadır; bu yüzden af çerçevesini paylaşır. Affedilen günden noktayla ayrılır: renk değil biçim ayırır. Noktanın çapı hücrenin %30'udur, en az 3 pt; lejant hücresinde de seçilir. Nokta hücrenin dolgusuz kısmının ortasındadır; kısmi dolgunun üstüne binmez.
 
-**Zincir günü rozeti.** `GraceDayBadge` Bugün hedef şeridinde adın yanında durur: `link` simgesi ve sayı, `meta` yazısı, ikincil metin rengi, 1 pt kontrol çizgisi kapsül çerçeve. Rozet bir nottur, eylem değildir; bu yüzden vurgu rengini almaz. Bakiye 0 ise rozet çizilmez. Hedef ayrıntısında aynı simge bakiye satırının başında durur.
+**Zincir günü rozeti.** `GraceDayBadge` Bugün hedef şeridinde adın yanında, Hedefler listesinde zincir metninin yanında durur (`InkGoalRow.graceBadgePlacement`). Şerit zinciri göstermez; liste gösterir ve rozet ilgili sayının yanına gider. Rozet: `link` simgesi ve sayı, `meta` yazısı, ikincil metin rengi, 1 pt kontrol çizgisi kapsül çerçeve. Rozet bir nottur, eylem değildir; bu yüzden vurgu rengini almaz. Bakiye 0 ise rozet çizilmez. Hedef ayrıntısında aynı simge bakiye satırının başında durur.
 
 ### Hedef değer grafiği
 

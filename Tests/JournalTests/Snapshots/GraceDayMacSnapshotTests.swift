@@ -11,10 +11,10 @@
     // SNAPSHOT_TESTING_RECORD=all xcodebuild test -project Journal.xcodeproj -scheme Journal_macOS -destination 'platform=macOS' -only-testing:JournalTests_macOS/GraceDayMacSnapshotTests CODE_SIGNING_ALLOWED=NO
 
     /// The goal page of the fictional ``GraceDayVault`` on the Mac: the balance line and the
-    /// heatmap's chain-day marks.
+    /// heatmap's chain-day marks; and the Goals list column with the badge after the streak.
     @MainActor @Suite("Chain day snapshots (macOS)")
     struct GraceDayMacSnapshotTests {
-        @Test(arguments: ["goalDetailMacLight"])
+        @Test(arguments: ["goalDetailMacLight", "goalsListMacLight"])
         func goalDetailMac(_ name: String) async throws {
             let context = try TaskTestContext()
             defer { context.clean() }
@@ -26,10 +26,15 @@
             calendar.locale = Locale(identifier: "tr_TR")
             calendar.timeZone = TimeZone(secondsFromGMT: 3 * 3600)!
             let now = calendar.date(from: DateComponents(year: 2026, month: 9, day: 20, hour: 9, minute: 41))!
-            let size = CGSize(width: 720, height: 900)
+            let isList = name == "goalsListMacLight"
+            let size = isList ? CGSize(width: 420, height: 360) : CGSize(width: 720, height: 900)
             let store = context.store
             let root = NavigationStack {
-                GoalDetailView(store: store, goal: GraceDayVault.stretching, day: GraceDayVault.today)
+                if isList {
+                    GoalsView(store: store, selection: .constant(nil))
+                } else {
+                    GoalDetailView(store: store, goal: GraceDayVault.stretching, day: GraceDayVault.today)
+                }
             }
             .environment(\.locale, Locale(identifier: "tr_TR"))
             .environment(\.calendar, calendar)
@@ -48,8 +53,8 @@
             window.contentView = host
             window.isReleasedWhenClosed = false
             window.makeKeyAndOrderFront(nil)
-            // The page loads its history in a `.task`: wait until the index is idle and the
-            // balance line is drawn from the loaded history.
+            // The page loads its history (the list its statuses) in a `.task`: wait until the
+            // index is idle and the balance is drawn from the loaded answer.
             var idle = 0
             for _ in 0..<400 {
                 await Task.yield()

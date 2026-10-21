@@ -55,6 +55,37 @@ import VaultFormat
         #expect(GraceDayPresentation.badge(status: broken, locale: Locale(identifier: "tr")) == nil)
     }
 
+    /// The Goals list's row: the daily goal's badge carries the status balance and its label;
+    /// six done days and a broken chain give none. Rows without a streak line get none either,
+    /// whatever the status says.
+    @Test func listRowBadgeIsTheDailyBalance() throws {
+        let tr = Locale(identifier: "tr")
+        let goal = GraceDayVault.stretching
+        let badge = try #require(GoalRowPresentation.graceBadge(goal: goal, status: status, locale: tr))
+        #expect(badge.count == GraceDayVault.balance)
+        #expect(
+            badge.label == String(localized: "\(GraceDayVault.balance) zincir günü", bundle: try languageBundle("tr")))
+
+        let today = GraceDayVault.today
+        let six = (1...6).map { GoalLog(day: today.addingDays(-$0)!, value: .boolean(true)) }
+        let fresh = GoalProgress.compute(definition: goal, logs: six, today: today)
+        #expect(fresh.streak == 6)
+        #expect(GoalRowPresentation.graceBadge(goal: goal, status: fresh, locale: tr) == nil)
+        let seven = (4...10).map { GoalLog(day: today.addingDays(-$0)!, value: .boolean(true)) }
+        let broken = GoalProgress.compute(definition: goal, logs: seven, today: today)
+        #expect(broken.graceSpentDays.count == 1)
+        #expect(GoalRowPresentation.graceBadge(goal: goal, status: broken, locale: tr) == nil)
+
+        let weekly = try #require(
+            GoalDefinition(id: "goals/Spor.md", key: "spor", name: "Spor", period: .week, kind: .boolean, target: 3))
+        let milestone = try #require(
+            GoalDefinition(
+                id: "goals/Kitap.md", key: "kitap", name: "Kitap", period: .year, kind: .milestone, target: 1))
+        for other in [weekly, milestone] {
+            #expect(GoalRowPresentation.graceBadge(goal: other, status: status, locale: tr) == nil, "\(other.key)")
+        }
+    }
+
     @Test func balanceTextAndRuleInBothLanguages() throws {
         let turkish = try languageBundle("tr")
         let english = try languageBundle("en")
@@ -156,5 +187,10 @@ import VaultFormat
         let rows = try await context.store.computeGoalStatuses(today: GraceDayVault.today)
         let row = try #require(rows.first { $0.definition.key == "esneme" })
         #expect(GraceDayPresentation.balance(status: row.status) == 2)
+        let tr = Locale(identifier: "tr")
+        #expect(GoalRowPresentation.graceBadge(goal: row.definition, status: row.status, locale: tr)?.count == 2)
+        let readingRow = try #require(rows.first { $0.definition.key == "okuma" })
+        #expect(
+            GoalRowPresentation.graceBadge(goal: readingRow.definition, status: readingRow.status, locale: tr) == nil)
     }
 }

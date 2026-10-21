@@ -19,6 +19,17 @@
             #expect(size.height >= Self.minimum, "'\(word)' is \(size)")
         }
 
+        /// Destructive buttons ("Sil", "Kaldır" ...; `InkDestructiveButtonStyle`) follow the same
+        /// rule as the text buttons.
+        @Test(arguments: ["Sil", "Kaldır", "Del", "Remove"])
+        func destructiveButtonIsAtLeastFortyFourPointsWide(_ word: String) {
+            let button = Button(action: {}, label: { Text(verbatim: word) })
+                .buttonStyle(InkDestructiveButtonStyle())
+            let size = Self.size(of: button)
+            #expect(size.width >= Self.minimum, "'\(word)' is \(size)")
+            #expect(size.height >= Self.minimum, "'\(word)' is \(size)")
+        }
+
         /// A word wider than the target keeps its own width: the floor only lifts short words.
         @Test func textButtonLongerThanTheTargetKeepsItsWidth() {
             let word = "Günlük yazısını düzenle"

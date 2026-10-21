@@ -65,7 +65,10 @@ struct InkDestructiveButtonStyle: ButtonStyle {
         return configuration.label
             .font(.ink.byline)
             .foregroundStyle(InkButtonChrome.color(for: role.foreground))
-            .frame(minHeight: InkButtonChrome.minimumHeight)
+            .frame(
+                minWidth: InkButtonChrome.minimumTextWidth, minHeight: InkButtonChrome.minimumHeight,
+                alignment: .leading
+            )
             .contentShape(Rectangle())
     }
 }

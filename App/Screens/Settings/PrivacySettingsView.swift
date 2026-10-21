@@ -11,7 +11,7 @@ struct PrivacySettingsView: View {
             #if os(iOS)
                 // Mac uses the adjacent Bildirimler Settings tab instead of a push.
                 Section {
-                    NavigationLink("Bildirimlerde içeriği gizle") {
+                    NavigationLink("Bildirim içeriği") {
                         NotificationSettingsView()
                     }
                     .inkListRow()

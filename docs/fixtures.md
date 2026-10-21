@@ -29,6 +29,7 @@ flowchart LR
   F --> DA["dates/ : 3 JSON, 2 girdi dosyası"]
   F --> GO["goals/ : cases.json, series.json, creation/, writes/"]
   F --> SU["summaries/ : 11 JSON"]
+  F --> GC["goal-chain/ : cases.json, query/"]
   F --> VA["vaults/ : 16 kasa"]
   VA --> V1["sample"]
   VA --> V2["entity-fields"]
@@ -137,6 +138,8 @@ Swift testleri `Fixtures/` klasörünü test kaynak dosyasından yukarı doğru 
 | `goals/series.json` | `GoalTrackingTests/GoalSeriesTests.swift` | JSON vaka |
 | `goals/writes/` | `VaultStoreTests/GoalStoreFixtures.swift` | JSON vaka |
 | `goals/creation/` | `VaultStoreTests/GoalCreationTests.swift`, `MilestoneStoreTests.swift`, `Tests/JournalTests/GoalDefinitionTests.swift` | JSON vaka |
+| `goal-chain/cases.json` | `GoalTrackingTests/GraceDayTests.swift`, `SummariesTests/GraceDaySummaryTests.swift` | JSON vaka |
+| `goal-chain/query/` | `VaultIndexTests/GraceDayQueryTests.swift` | Markdown kasa, ad kodda |
 | `summaries/cases.json` | `SummariesTests/PeriodSummaryTests.swift`, `SummariesTests/TaskFlowSeriesTests.swift` | JSON vaka |
 | `summaries/weekly-review-text.json` | `SummariesTests/WeeklyReviewTextTests.swift` | JSON vaka |
 | `summaries/cadence.json` | `SummariesTests/MeetingCadenceTests.swift`, `Tests/JournalTests/CadenceTests.swift` | JSON vaka |

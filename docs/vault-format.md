@@ -1330,7 +1330,7 @@ Türkçe `ç/ğ/ı/ö/ş/ü` harfleri `c/g/i/o/s/u` olur. Örnek: `Su İçme` �
 | Dün kaçtı, önceki iki günden biri yapılmadı ya da affedildi, bugün henüz yok | Zincir günü varsa dünün harcaması bekler ve zincir korunur. Yoksa zincir 0. `isPendingToday` döner. |
 | Beklemenin etkisi | Bekleme yalnız güncel zinciri etkiler. En uzun zincir ve ısı haritası yalnız kesinleşmiş affı sayar. Dün haritada `none` ya da kısmi kalır. |
 | Affedilmeyen kaçırmalar | Hedefin ilk ve ikinci günü, önünde iki yapılmış gün olmayan kaçırma, baştaki kaçırma ve arkası yapılmamış sondaki kaçırma. |
-| Günlük hedefte en uzun zincir | Aynı af kuralıyla, ilk kayıttan verilen güne kadar. |
+| Günlük hedefte en uzun zincir | Aynı af ve zincir günü kuralıyla (harcanan günler zinciri köprüler), ilk kayıttan verilen güne kadar. |
 | Gün tanımı | Gün `CalendarDate` değeridir. Saat dilimi bir takvim gününü bölmez ya da birleştirmez. Yaz saati geçişi de tek gündür. |
 | Dinlenme günü | Yoktur. Af kuralı her zaman açıktır ve ayar değildir. |
 
@@ -1357,7 +1357,6 @@ Günlük hedefte aşağıdaki kural kaçırma affından sonra uygulanır (karar 
 | `✓×14 ✗ ✗ ✓` | İki kaçırmaya 2 zincir günü harcanır. Zincir 15, bakiye 0, en uzun 15. |
 | `✓×28` | Zincir 28, bakiye 3; 28. günün ödülü düşer. |
 | `✓×28 ✗ ✗ ✓×6` | İki harcama sonrası zincir 34, bakiye 1; düşen ödül geri gelmez. |
-| `✓×7 ✗ ✓` (`✓✓✗✓` son eki) | Af önceliklidir; bakiye harcanmaz. |
 | `✓ ✗ ✓` | Bakiye ve af yok; zincir 1, en uzun 1. |
 | `✓×7 ✗ ○` | Zincir 7, bakiye 1; dün henüz affedilmiş ya da harcanmış değildir, `isPendingToday = true`. |
 | `✓×7 ✗ ✗ ○` | İlk kaçırma 1 hak harcar; ikinci kaçırma için bakiye ve af yoktur. Zincir 0, bakiye 0, en uzun 7. |

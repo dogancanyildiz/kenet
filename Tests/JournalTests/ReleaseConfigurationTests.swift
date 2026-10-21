@@ -65,6 +65,16 @@ struct ReleaseConfigurationTests {
             try Self.values(of: "INFOPLIST_KEY_ITSAppUsesNonExemptEncryption", in: Self.read("project.yml")) == ["NO"])
     }
 
+    @Test func builtAppPublishesTheDocumentContainer() throws {
+        let info = try #require(Self.hostAppInfoDictionary())
+        let containers = try #require(info["NSUbiquitousContainers"] as? [String: [String: Any]])
+        #expect(Set(containers.keys) == [Self.iCloudContainer])
+        let container = try #require(containers[Self.iCloudContainer])
+        #expect(container["NSUbiquitousContainerIsDocumentScopePublic"] as? Bool == true)
+        #expect(container["NSUbiquitousContainerSupportedFolderLevels"] as? String == "Any")
+        #expect(container["NSUbiquitousContainerName"] as? String == "Kenet")
+    }
+
     // MARK: - Device family
 
     #if os(iOS)

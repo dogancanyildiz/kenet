@@ -2,8 +2,8 @@ import Foundation
 import Testing
 
 /// The built app shares its Documents folder (the default vault) with the Files app and opens
-/// documents in place. Where the keys are written is a rule in `SourcePatternRuleTests`; what
-/// onboarding and settings say about the vault is measured in `ControlAccessibilityHostedTests`.
+/// documents in place. `project.yml` generates the sharing keys together with the iCloud
+/// container. Onboarding and settings copy is measured in `ControlAccessibilityHostedTests`.
 struct VaultVisibilityTests {
     @Test func hostInfoPlistContainsGeneratedFileSharingKeys() throws {
         let info = try #require(Self.hostAppInfoDictionary())

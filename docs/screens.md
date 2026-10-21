@@ -1203,7 +1203,9 @@ stateDiagram-v2
 
 | Öğe | Davranış |
 |---|---|
+| Konum türü | iCloud, Bu cihazda veya Seçilen klasör. Altında kasa yolu görünür. |
 | Kasa yolu | Ekran uzun yolu ortadan kırpar. Kullanıcı yolu seçer ve kopyalar. |
+| iCloud’a taşı | Varsayılan yerel kasada ve iCloud kullanılabiliyorsa görünür; taşıma onay sheet’ini açar. Doğrulanmış kopya tamamlanınca yeni kasa açılır. Kaynak cihazda korunur; bilgi satırı kalır. |
 | Eşitlenen klasör | Kasa eşitlenen bir klasördeyse yolun altında kalıcı bilgi bandı durur. Ayrıntı: [Eşitlenen klasör bandı](#eşitlenen-klasör-bandı). |
 | Mac'e özgü | Finder'da göster. |
 | Klasör | Klasör seç ya da değiştir. |
@@ -1308,7 +1310,9 @@ flowchart TD
 
 | Durum | Ekran |
 |---|---|
-| İlk açılış | Tek ekran Markdown veri sahipliğini anlatır. "Yeni kasa oluştur" ve "Var olan klasörü seç" düğmeleri durur. Çok adımlı kurulum sihirbazı yoktur. |
+| İlk açılış | Tek ekran Markdown veri sahipliğini anlatır. iCloud varsa ilk ve birincil seçenek “iCloud’da sakla”, altında “iPhone ve Mac aynı klasörü paylaşır.” açıklaması; sonra “Bu cihazda” ve “Var olan klasörü seç” gelir. iCloud yoksa ilk seçenek ve açıklaması görünmez; “Bu cihazda” birincil dolu düğme olur. |
+| Yerel kasayı iCloud’a taşıma | Güncellemeden sonraki açılışta varsayılan yerel kasa önce açılıp indekslenir; sonra iCloud varsa ana ekranın üstünde bir kez sorulur. Onboarding yalnız kasa yokken görünür. “Kasayı iCloud’a taşı?” sheet’i `.inkSheet` kullanır; araç çubuğunda tek eylem çifti “Taşı” ve “Vazgeç” bulunur. Gövdedeki açıklama Vazgeç’in kasayı bu cihazda tuttuğunu ve daha sonra Ayarlar’dan taşınabileceğini söyler. Taşırken düğmeler ve kapatma devre dışıdır. Hata aynı sheet’te görünür; tekrar denenebilir. Başka cihazın kasası varsa açılan kasa ve yerel kopyanın ayrı yolu bildirilir. |
+| iCloud kapalı | Kayıtlı tür iCloud ise “iCloud kapalı” ve erişim açıklaması gösterilir. Önce birincil “Yeniden dene”, sonra “Bu cihazda devam et”, ardından “Başka klasör seç” gelir. Sessizce yerel kasaya geçilmez; veri silinmez. |
 | İlk kasa | Kullanıcı kasayı açınca boş Bugün ekranında ipucu görünür: "Gününden bir an yaz; @ ile kişi ekle". İlk kişi ve konum yazarken oluşur. |
 | Kayıtlı kasaya erişilemiyor | Yer imi var ama klasör açılmıyorsa ya da yer imi bozuksa sekmelerin yerine durum ekranı gelir. "Yeniden dene" ve "Başka klasör seç" düğmeleri durur. Yerel kasaya sessiz geçiş yoktur. |
 | Boş gün | Suçlayıcı olmayan kısa metin. Giriş kutusu hazırdır. |

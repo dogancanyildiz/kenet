@@ -5,7 +5,7 @@ import UniformTypeIdentifiers
 enum OnboardingCopy {
     static func newVaultLocation(for idiom: DeviceIdiom) -> LocalizedStringResource {
         switch idiom {
-        case .phone: "Yeni kasa, Dosyalar’da iPhone’umda → Journal → Vault klasöründe oluşturulur."
+        case .phone: "Yeni kasa, Dosyalar’da iPhone’umda → Kenet → Vault klasöründe oluşturulur."
         case .pad: "Yeni kasa, Dosyalar’da iPad’imde → Kenet → Vault klasöründe oluşturulur."
         case .mac:
             "Yeni kasa, uygulamanın Belgeler klasöründeki Vault içinde oluşturulur. Ayarlar’dan Finder’da gösterebilirsin."
@@ -14,7 +14,7 @@ enum OnboardingCopy {
 }
 
 struct OnboardingView: View {
-    let store: IndexStore
+    @Bindable var store: IndexStore
     @State private var choosesFolder = false
     var body: some View {
         ScrollView {
@@ -26,11 +26,21 @@ struct OnboardingView: View {
                 .font(.ink.byline)
                 .foregroundStyle(Color.ink.text)
                 .frame(maxWidth: .infinity, alignment: .leading)
+                if store.isCloudAvailable {
+                    Button("iCloud’da sakla") { Task { await store.createCloudVault() } }
+                        .buttonStyle(InkPrimaryButtonStyle())
+                    Text("iPhone ve Mac aynı klasörü paylaşır.")
+                        .font(.ink.meta)
+                        .foregroundStyle(Color.ink.secondaryText)
+                }
+                if store.isCloudAvailable {
+                    localVaultButton.buttonStyle(InkTextButtonStyle())
+                } else {
+                    localVaultButton.buttonStyle(InkPrimaryButtonStyle())
+                }
                 Text(LocalizedStringKey(OnboardingCopy.newVaultLocation(for: .current).key))
                     .font(.ink.meta)
                     .foregroundStyle(Color.ink.secondaryText)
-                Button("Yeni kasa oluştur") { Task { await store.start() } }
-                    .buttonStyle(InkPrimaryButtonStyle())
                 Button("Var olan klasörü seç") { choosesFolder = true }
                     .buttonStyle(InkTextButtonStyle())
                 if let error = store.errorText {
@@ -54,6 +64,9 @@ struct OnboardingView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .inkPage()
         .accessibilityIdentifier("screen.onboarding")
+        .task {
+            do { try await store.refreshCloudAvailability() } catch { store.report(error) }
+        }
         .disabled(store.isProcessing || store.isInspectingImport)
         .fileImporter(isPresented: $choosesFolder, allowedContentTypes: [.folder]) { result in
             switch result {
@@ -61,6 +74,10 @@ struct OnboardingView: View {
             case .failure(let error): store.report(error)
             }
         }
+    }
+
+    private var localVaultButton: some View {
+        Button("Bu cihazda") { Task { await store.continueLocally() } }
     }
 }
 

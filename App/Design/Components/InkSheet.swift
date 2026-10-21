@@ -6,12 +6,15 @@ enum InkSheetConfirmation: Equatable, Sendable {
     case save
     /// "Oluştur": the sheet opens a new record.
     case create
+    /// "Taşı": the sheet moves an existing item to another location.
+    case move
 
     /// String Catalog key.
     var catalogKey: String {
         switch self {
         case .save: "Kaydet"
         case .create: "Oluştur"
+        case .move: "Taşı"
         }
     }
 }
@@ -21,7 +24,7 @@ enum InkSheetChrome {
     enum Button: Equatable, Sendable {
         /// Left, editing sheet: "Vazgeç".
         case cancel
-        /// Right, editing sheet: "Kaydet" / "Oluştur".
+        /// Right, editing sheet: "Kaydet" / "Oluştur" / "Taşı".
         case confirm
         /// Right, read-only sheet: "Kapat".
         case close
@@ -83,7 +86,7 @@ extension View {
     ///
     /// - Parameters:
     ///   - title: navigation title (not drawn; feeds accessibility and the Mac window).
-    ///   - confirm: `.save` ("Kaydet") or `.create` ("Oluştur").
+    ///   - confirm: `.save` ("Kaydet"), `.create` ("Oluştur") or `.move` ("Taşı").
     ///   - isConfirmEnabled: `false` while the form is invalid or unchanged.
     ///   - isBusy: `true` while writing; confirm is disabled and shows progress.
     ///   - isCancelEnabled: `false` while "Vazgeç" must not be used (a write in flight); the

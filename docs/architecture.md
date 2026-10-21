@@ -86,7 +86,7 @@ flowchart TD
 | Bundle kimliği | `com.dogancanyildiz.kenet`; kalıcı, iOS ve Mac için ortak. Değer `project.yml` içinde tek yerde durur: `APP_BUNDLE_IDENTIFIER`. Test hedefleri sonek ekler: `.tests`, `.uitests`. Betikler aynı satırı okur |
 | Görünen ad | Kullanıcı Kenet adını görür: `CFBundleDisplayName`, `CFBundleName`. Hedef, modül ve `.app` dosyası kod adı `Journal` ile kalır |
 | Cihaz | iOS hedefi iPhone, iPhone Duo ve iPad içindir: `TARGETED_DEVICE_FAMILY: "1,2"`. iPhone dikey kilitlidir; iPad dört yöne döner (`UISupportedInterfaceOrientations~ipad`); `testflight.sh` arşivde ikisini de denetler. iPad uygulaması Apple Silicon Mac'te listelenmez (`SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: NO`): yerel Mac hedefi ayrıdır. Duo dış ekranı yalnız dikeydir; iç ekran yön kilidini yok sayar. İç ekran bölünmüş kabuğu açar: `AdaptiveNavigation` iki boyut sınıfı da düzenliyse `MacNavigation`, öteki durumda `PhoneNavigation` seçer. Kabuk durumu `AdaptiveNavigation` üstünde tek `ShellNavigationState` nesnesidir; seçim, sheet'ler ve taslaklar kabuk değişiminde korunur. Kapı cihaz türüne ve ekran boyuna bakmaz. Mac hedefi ayrıdır |
-| iCloud ve App Group | iCloud kapsayıcısı `iCloud.com.dogancanyildiz.kenet`, App Group `group.com.dogancanyildiz.kenet`; kalıcı, iOS ve Mac için ortak (kullanıcı kararı, 2026-10-21). `project.yml` değerleri `KENET_ICLOUD_CONTAINER` ve `KENET_APP_GROUP` ayarlarında tek yerde tutar; yetki dosyaları bu ayarları `$(…)` ile okur. Swift karşılığı `App/Support/AppIdentifiers.swift`. `ReleaseConfigurationTests` iki tanımı eşit tutar. Kimlikler bundle kimliğinden türetilmez: betikler bundle kimliğini geçersiz kılsa da kapsayıcı aynı kalır. Kod iki kimliği henüz kullanmaz |
+| iCloud ve App Group | iCloud kapsayıcısı `iCloud.com.dogancanyildiz.kenet`, App Group `group.com.dogancanyildiz.kenet`; kalıcı, iOS ve Mac için ortak (kullanıcı kararı, 2026-10-21). `project.yml` değerleri `KENET_ICLOUD_CONTAINER` ve `KENET_APP_GROUP` ayarlarında tek yerde tutar; yetki dosyaları bu ayarları `$(…)` ile okur. İstisna: `NSUbiquitousContainers` sözlük anahtarı aynı kapsayıcı kimliğini düz metinle tekrarlar; Xcode sözlük anahtarlarında yapı ayarını genişletmez. Derlenmiş plist, yapı ayarları ve Swift tanımı arasındaki eşitliği `ReleaseConfigurationTests` korur. Swift karşılığı `App/Support/AppIdentifiers.swift`. `ReleaseConfigurationTests` iki tanımı eşit tutar. Kimlikler bundle kimliğinden türetilmez: betikler bundle kimliğini geçersiz kılsa da kapsayıcı aynı kalır. Kasa konumu iCloud kimliğini kullanır; App Group kullanımı henüz yoktur |
 | İmza | Takım kimliği repoya girmez. `Config/Signing.xcconfig`, varsa izlenmeyen `Config/Local.xcconfig` dosyasını içerir. Örnek dosya: `Config/Local.xcconfig.example`. Dosya yoksa Xcode projeyi `CODE_SIGNING_ALLOWED=NO` ile imzasız derler |
 | Yetki dosyaları | Her platformun kendi dosyası var. İki dosyada da iCloud Documents (`icloud-services: CloudDocuments`, kapsayıcı ve ubiquity kapsayıcısı) ve App Group durur. `App/Support/Journal-macOS.entitlements` bunlara ek olarak sandbox, kullanıcının seçtiği dosyalar, uygulama kapsamlı yer imi (`files.bookmarks.app-scope`; kasa yer imi `.withSecurityScope` ile yazılır ve çözülür), takvim ve konum taşır. Mac Debug ve DebugTest ad hoc imzalanır; ad hoc imza iCloud ve App Group taşıyamaz, Xcode derlemeyi durdurur. Bu iki yapılandırma `App/Support/Journal-macOS-AdHoc.entitlements` dosyasını kullanır: yalnız sandbox anahtarları. Release, arşiv ve `install-mac.sh` tam dosyayla geliştirme imzası ister; App ID'de iki yetenek açık olmalıdır |
 | Sürüm numarası | Derleme numarayı kök dizindeki `VERSION` dosyasından okur ve Info.plist'e yazar |
@@ -115,25 +115,52 @@ Yazma yönü her zaman dosyadan indekse doğrudur.
 
 ## Kasa konumu
 
-**Şema uygulamanın açılışta kasayı nasıl seçtiğini gösterir.**
+**Şema kayıtlı kasa türünün açılışta nasıl çözüldüğünü gösterir.**
 
 ```mermaid
 stateDiagram-v2
-  state "Kayıtlı kasa denetimi" as Denetim
-  state "Yerel kasa: Documents/Vault" as Yerel
+  state "Kayıtlı kasa türü" as Denetim
+  state "Yerel: Documents/Vault" as Yerel
+  state "iCloud: kapsayıcı/Documents/Kenet" as Bulut
   state "Seçilen klasör: güvenlik kapsamlı yer imi" as Secilen
-  state "Yer imi yenilendi" as Yenilendi
-  state "Erişim yok: ana ekranda sor" as Erisimsiz
-  state "Yer imi silindi, kayıp bayrağı tutuldu" as Bozuk
+  state "Erişim yok: yeniden dene veya kullanıcı seçimi" as Erisimsiz
   [*] --> Denetim
-  Denetim --> Yerel: yer imi yok
-  Denetim --> Secilen: yer imi geçerli
-  Secilen --> Yenilendi: yer imi bayat, erişim başladı
-  Denetim --> Erisimsiz: kayıtlı kasaya erişim yok
-  Denetim --> Bozuk: yer imi bozuk
+  Denetim --> Yerel: local veya eski varsayılan
+  Denetim --> Bulut: icloud, hesap ve kapsayıcı var
+  Denetim --> Secilen: selected veya eski yer imi
+  Denetim --> Erisimsiz: kayıtlı konum açılamıyor
+  Erisimsiz --> Denetim: yeniden dene
+  Erisimsiz --> Yerel: bu cihazda devam et
 ```
 
-Aşama 0'dan beri uygulama varsayılan kasayı yerel `Documents/Vault/` klasöründe oluşturur. Kullanıcı başka klasör seçerse uygulama güvenlik kapsamlı yer imini cihazda saklar. Kayıtlı kasaya erişim yoksa uygulama yerel kasaya geçmez ve durumu ana ekranda sorar. Kayıp bayrağı sonraki açılışların `Documents/Vault` açmasını önler. iCloud kapsayıcısı karara bağlandı (2026-10-21); iCloud kasa konumu Aşama 11 maddesiyle gelir.
+| Tür | Kalıcı kayıt | Çözüm |
+|---|---|---|
+| Yerel | UserDefaults `vaultKind = local`; eski kayıtsız kasa da yereldir | Uygulamanın `Documents/Vault` klasörü |
+| iCloud | UserDefaults `vaultKind = icloud`; yer imi tutulmaz | `UbiquityContainerProviding` her açılışta hesap ve kapsayıcıyı yeniden çözer. Gerçek sağlayıcı `ubiquityIdentityToken` ve `url(forUbiquityContainerIdentifier:)` çağrılarını ana aktör dışında yapar. Kök `<kapsayıcı>/Documents/Kenet` olur. |
+| Seçilen klasör | `vaultKind = selected` ve güvenlik kapsamlı yer imi | Bayat yer imi yenilenir; erişilemeyen kasa yerine başka kasa açılmaz. Bozuk yer imi temizlendiğinde kayıp bayrağı sonraki açılışta yerel kasaya geçişi engeller. |
+
+Var olan yerel veya seçilen kasa önce çözülür, açılır ve indekslenir. Varsayılan yerel kasa açıldıktan sonra iCloud kullanılabilirliği ve tek seferlik taşıma sorusu değerlendirilir; soru ana ekranın üstünde sheet olarak görünür, onboarding durumunu değiştirmez. XCTest/UI test süreçlerinde varsayılan kapsayıcı sağlayıcısı AppLaunchPolicy tanımasına göre nil döndürür; iCloud testleri açıkça sahte sağlayıcı enjekte eder. Yerel/seçilen kasanın arka plan, intent ve yeniden deneme yolları kapsayıcı aramaz.
+
+İlk açılışta iCloud kullanılabiliyorsa ilk seçenek iCloud'da saklamaktır; yerel kasa ve klasör seçimi de vardır. Kapsayıcıdaki `.app/vault.json` taşıyan mevcut kasa hazırlama yapılmadan açılır. iCloud yoksa iCloud seçeneği görünmez; kayıtlı tür iCloud ise erişim ekranı gösterilir, tür ve dosyalar korunur. Kullanıcı açıkça bu cihazda devam etmeyi seçince yerel kasa açılır. Mac ad hoc imza kapsayıcı yetkisi taşımadığından yerel akış çalışır. `NSUbiquitousContainers` hedefin `project.yml` info özelliklerinde tanımlanır; Dosyalar'daki yol iCloud Drive → Kenet → Kenet'tir. Üretilen plist `.dd` altındadır; dosya paylaşımı ve iPad tek pencere özellikleri aynı info tanımında korunur.
+
+**Şema yerel kasanın kullanıcı onayıyla taşınmasını gösterir.**
+
+```mermaid
+flowchart TD
+  Ac["Yerel kasayı aç ve indeksle"] --> Soru["Sonra iCloud varsa bir kez sor; Ayarlar'dan da başlat"] --> Karar{Kullanıcı seçimi}
+  Karar -->|Bu cihazda kal| Yerel["Yerel kasayı aç; tekrar sorma"]
+  Karar -->|Taşı| Sira["Uygulama yazma sırasını bekle; kaynak ve hedefi koordine et"]
+  Sira --> Kopya["Documents/.Kenet-tasima-UUID klasörüne kopyala"]
+  Kopya --> Dogrula["Yollar, dosya sayısı, baytlar ve içerik özetlerini doğrula"]
+  Dogrula --> Var{Kenet var mı}
+  Var -->|Hayır| Ad["Geçici klasörü Kenet olarak yeniden adlandır"]
+  Var -->|Evet| Yan["Kenet-cihaz adı; çakışırsa -2; mevcut Kenet açılır"]
+  Ad --> Kayit["Türü iCloud yap; yeni yolun indeksini kur"]
+  Yan --> Kayit
+  Kopya -->|Uygulama kapanırsa| Temizle["Sonraki açılışta yalnız kaydedilmiş geçici klasörü temizle; yeniden sor"]
+```
+
+Taşıma kaynak dosyaları silmez ve kasaları birleştirmez. Kopya doğrulaması gizli dosyalar, Markdown dışı içerik ve boş klasörleri kapsar; kaynak yeniden ölçülür. Sembolik bağlantı ve `.icloud` yer tutucusu varsa taşıma reddedilir. Var olan hedefin üzerine yazılmaz; tanınmayan `Kenet` klasörü hata verir. Başka cihazın ya da sürecin geçici klasörüne dokunulmaz. Kopyalanan ve açılan kasa farklıysa iki yol kullanıcıya bildirilir; yerel kasanın korunduğu Ayarlar'da da görünür. Kullanıcının yer imiyle seçtiği kasaya otomatik taşıma sorusu sorulmaz.
 
 ## Dosya izleyici
 
@@ -1069,12 +1096,12 @@ Tanılama listeyi `store.lastUpdated` değişince ve sahne ön plana her dönün
 
 | Konu | Hedef |
 |---|---|
-| Kasa konumu | Kasa uygulamanın iCloud kapsayıcısındadır ve Dosyalar ile Finder'da görünür |
+| Kasa konumu | Hazır: iCloud kapsayıcısı, yerel kasa ve seçilen klasör. Dosyalar/Finder görünürlüğü gerçek cihazda doğrulanır. |
 | Sunucu | Sunucu, hesap ya da özel eşitleme servisi yoktur |
-| iCloud kapalı | Kasa yerelde durur |
+| iCloud kapalı | Kayıtlı iCloud kasası erişilemez ekranında kalır; tür değiştirilmez ve dosyalar silinmez. Kullanıcı yerel kasayla devam etmeyi açıkça seçebilir. |
 | İlk açılış | Uygulama kasa konumunu ilk açılışta belirler ve cihazda kaydeder: iCloud açıksa kapsayıcı, değilse yerel |
 | iCloud durumu değişti | Uygulama kendiliğinden diğer konuma geçmez. Kayıtlı konuma erişim yoksa yeni kasa açmaz, durumu bildirir |
-| Konumlar arası taşıma | Kullanıcının başlattığı ayrı bir işlem |
+| Konumlar arası taşıma | Hazır: yerel varsayılan kasadan iCloud’a doğrulanmış kopya; kullanıcı onayı gerekir ve yerel kaynak korunur. |
 | Çakışma | Birleştirme satırları blok kimliğine göre birleştirir. Birleşmeyen içerik kopya olarak kalır. iCloud'un aynı gün için ayırdığı kopya dosyalar da aynı işlevle birleşir. Kurallar: `vault-format.md` |
 | İndirme | Kasadaki tüm dosyalar cihazda durur. Uygulama indirilmemiş dosya için indirme ister ve dosya geldikçe indeksler |
 | Arayüz | Arayüz eldeki içeriği gösterir ve eşitlemenin sürdüğünü belirtir |

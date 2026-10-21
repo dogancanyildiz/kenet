@@ -123,9 +123,11 @@ import Testing
         #expect(InkSheetChrome.closeKey == "Kapat")
         #expect(InkSheetConfirmation.save.catalogKey == "Kaydet")
         #expect(InkSheetConfirmation.create.catalogKey == "Oluştur")
+        #expect(InkSheetConfirmation.move.catalogKey == "Taşı")
         let keys = [
             InkSheetChrome.cancelKey, InkSheetChrome.closeKey, InkSheetConfirmation.save.catalogKey,
-            InkSheetConfirmation.create.catalogKey, "Temizle", "Seçmek için çift dokun", "Ara",
+            InkSheetConfirmation.create.catalogKey, InkSheetConfirmation.move.catalogKey, "Temizle",
+            "Seçmek için çift dokun", "Ara",
         ]
         for key in keys {
             for language in ["tr", "en"] {

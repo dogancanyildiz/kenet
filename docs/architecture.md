@@ -276,7 +276,7 @@ Parça blok metnini taşımaz: paragraf, başlık, görev ve olay metni indekste
 | 7 | Hedef kayıtları aralığı | `goalLogsByKey(from:through:keys:)` | `computeGoalLogs(from:through:keys:)` | Konum izleme: o günün kaydı |
 | 7 | Günlük hedef hatırlatması | `notificationGoals(from:through:)` | `computeNotificationGoals(from:through:)` | Bildirim planlayıcı |
 
-Aynı kalıp dilimlerden önceki istek üzerine sorgular için de geçerlidir: `computeSummary`, `computeOnThisDay`, `computeImportantDates`, `computeDayBacklinks`, `computeUnlinkedMentions`.
+Aynı kalıp `IndexStore`'un öteki istek üzerine okumaları için de geçerlidir: `computeSummary`, `computeOnThisDay`, `computeImportantDates`, `computeDayBacklinks`, `computeUnlinkedMentions`, `computeYearWritingCalendar`, `search`, `goalHistory`, `personCadences`, `weeklyReviewInput`, `summaryTasks`, kopya ve eşleme sorguları (`computeCopyFiles`, `computeConflictCopies`, `computeConflictedFiles`) ve diskten belge okumaları (`document(at:)`, `dayDocument(for:)`).
 
 ### Sorgu kalıbı
 
@@ -303,7 +303,14 @@ sequenceDiagram
   end
 ```
 
-Her ekran sorgusu başlarken kasa kuşağını saklar ve indeksi arka plan görevinde okur. Yanıt gelince sorgu önce kuşağı denetler: başka kasa açıldıysa `staleTarget` atar. Sonra sorgu iptali denetler: çağıranın görevi iptal olduysa `CancellationError` atar. Arka plan görevi iptalde durmaz. Bu denetim yalnız eski yanıtın yenisinin üstüne yazmasını önler. İndeks açık değilse sorgu boş sonuç döner.
+Her istek üzerine okuma tek bir yardımcıdan geçer: `IndexStore.answer(seam:_:)`. İndeks sorguları `indexQuery` ile arka plan görevinde çalışır. Belge okumaları dosyayı `VaultStore` üzerinden diskten okur. Okuma başlarken kasa kuşağını saklar. Yanıt gelince önce okumanın test kancası çalışır. Sonra okuma kuşağı denetler: başka kasa açıldıysa `staleTarget` atar. Sonra okuma iptali denetler: çağıranın görevi iptal olduysa `CancellationError` atar. Arka plan görevi iptalde durmaz. Bu denetim yalnız eski yanıtın yenisinin üstüne yazmasını önler.
+
+İndeks açık değilse sorgu iki yoldan birini izler:
+
+- Liste ve sayı sorguları boş sonuç döner: görev, gün, Graph, zaman akışı, son görüşme, hedef durumu, yıl takvimi ve arama sorguları.
+- Boş yanıtı olmayan sorgular `staleTarget` atar: özet, "Geçen yıl bugün", önemli tarihler, gün geri bağlantıları, bağlanmamış anmalar, hedef geçmişi, görüşme ritmi, haftalık inceleme girdisi ve görev akışı.
+
+Ekran tarafında `QueryOutcome` okumanın nasıl bittiğini ayırır: yanıt, iptal, bayat yanıt ya da hata. `QueryState` bir sorgunun son yanıtını ve son hatasını tutar. İptal ve bayat yanıt ekranı değiştirmez ve hata göstermez. Hata ekranın son yanıtını tutar ve "Kasa okunamadı" bandını gösterir. Sonraki yanıt bandı kaldırır. Bu ayrımı Görevler listesi, "Bir süredir görüşmediklerin" bölümü ve varlık sayfasının görüşme ritmi satırları kullanır. App Intents de aynı ayrımı kullanır: sistemin iptal ettiği kısayol iptal olarak biter, "kasaya erişilemiyor" hatası vermez.
 
 **Tablo ekranların yanıt beklerken ne çizdiğini gösterir.**
 
@@ -313,6 +320,7 @@ Her ekran sorgusu başlarken kasa kuşağını saklar ve indeksi arka plan göre
 | Yeniden yükleme sürüyor | Ekran eski yanıtı tutar. Yüklenen gün bir an boş görünmez |
 | Yeni istek eskisinin yerini aldı | `.task(id:)` eski görevi iptal eder; ekran eski yanıtı atar |
 | Yanıttan önce başka kasa seçildi | Sorgu sonucu kasa kuşağına bağlıdır; ekran sonucu atar |
+| Okuma hata verdi | `QueryOutcome` kullanan ekran son yanıtı tutar ve hata bandı gösterir. Bant sonraki yanıtta kalkar |
 | Gün sayfası açılıyor | Sayfa günün kendi bölümlerini gün ve görev yanıtlarının ikisi de gelince çizer |
 | Akşam hatırlatması geldi | Uygulama günü kapatma akışını görevlerin o yayıma ait yanıtı gelmeden açmaz |
 | Hedefler listesi yükleniyor | Liste ilk yanıta kadar satır ve boş durum çizmez. Satırlar ve tanımlar yanıttan gelir. Yeniden yüklemede ve gece yarısı yeniden kurulumda eski satırları tutar |

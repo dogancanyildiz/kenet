@@ -10,27 +10,40 @@ import VaultStore
 /// query whose caller was replaced answers with `CancellationError` instead of its older result.
 @MainActor
 struct StaleReloadAndCancellationTests {
-    /// Every on-demand query that a screen or model reloads when its request changes.
+    /// Every on-demand read `IndexStore` answers a screen, model or service with (the query
+    /// contract). Left out: `computeConflictedFiles`, which asks only an iCloud Drive vault, and
+    /// `cadenceReminderPeople`, which is `personCadences` and `computeLastEncounters`.
     enum Query: String, CaseIterable, Sendable {
         case summary, onThisDay, importantDates, dayBacklinks, unlinkedMentions
         case graph, entityTimeline, lastEncounters, goalStatuses
         case goalDefinitions, reservedGoalKeys, goalLogs, notificationGoals
+        case search, goalHistory, personCadences, weeklyReviewInput, summaryTasks, yearWritingCalendar
+        case document, dayDocument
+        case daySummaries, day
+        case taskGroups, completedTasks, projectTasks, timelineTasks, boardTasks, dayTasks, openTasks, task
+        case openTaskCounts, projects, notificationDays, copyFiles, conflictCopies
 
         @MainActor func hold(_ gate: FirstArrivalGate, on store: IndexStore) {
             let pass: @MainActor () async -> Void = { await gate.pass() }
             switch self {
-            case .summary, .onThisDay, .importantDates, .dayBacklinks, .unlinkedMentions:
+            case .summary, .onThisDay, .importantDates, .dayBacklinks, .unlinkedMentions, .search, .goalHistory,
+                .personCadences, .weeklyReviewInput, .summaryTasks, .yearWritingCalendar, .document, .dayDocument:
                 store.testingQueryDidFinish = pass
             case .graph: store.testingGraphQueryDidFinish = pass
             case .entityTimeline, .lastEncounters: store.testingEntityTimelineQueryDidFinish = pass
             case .goalStatuses: store.testingGoalStatusQueryDidFinish = pass
-            case .goalDefinitions, .reservedGoalKeys, .goalLogs, .notificationGoals:
+            case .daySummaries, .day: store.testingDayQueryDidFinish = pass
+            case .goalDefinitions, .reservedGoalKeys, .goalLogs, .notificationGoals, .taskGroups, .completedTasks,
+                .projectTasks, .timelineTasks, .boardTasks, .dayTasks, .openTasks, .task, .openTaskCounts, .projects,
+                .notificationDays, .copyFiles, .conflictCopies:
                 store.testingTaskQueryDidFinish = pass
             }
         }
 
         @MainActor func run(on store: IndexStore, today: CalendarDate) async throws {
             let person = try #require(store.knownEntities.first { $0.kind == .person })
+            let week = try #require(today.addingDays(-7))
+            let next = try #require(today.addingDays(6))
             switch self {
             case .summary: _ = try await store.periodSummary(.week, containing: today, today: today)
             case .onThisDay: _ = try await store.computeOnThisDay(today)
@@ -43,9 +56,31 @@ struct StaleReloadAndCancellationTests {
             case .goalStatuses: _ = try await store.computeGoalStatuses(today: today)
             case .goalDefinitions: _ = try await store.computeGoalDefinitions()
             case .reservedGoalKeys: _ = try await store.computeReservedGoalKeys()
-            case .goalLogs: _ = try await store.computeGoalLogs(from: today.addingDays(-7)!, through: today)
-            case .notificationGoals:
-                _ = try await store.computeNotificationGoals(from: today, through: today.addingDays(6)!)
+            case .goalLogs: _ = try await store.computeGoalLogs(from: week, through: today)
+            case .notificationGoals: _ = try await store.computeNotificationGoals(from: today, through: next)
+            case .search: _ = try await store.search(person.name)
+            case .goalHistory: _ = try await store.goalHistory()
+            case .personCadences: _ = try await store.personCadences()
+            case .weeklyReviewInput: _ = try await store.weeklyReviewInput(from: week, to: today)
+            case .summaryTasks: _ = try await store.summaryTasks()
+            case .yearWritingCalendar: _ = try await store.computeYearWritingCalendar(year: today.year, today: today)
+            case .document: _ = try await store.document(at: person.file)
+            case .dayDocument: _ = try await store.dayDocument(for: try #require(CalendarDate("2026-09-20")))
+            case .daySummaries: _ = try await store.computeDaySummaries()
+            case .day: _ = try await store.computeDay(on: today)
+            case .taskGroups: _ = try await store.computeTaskGroups(today: today)
+            case .completedTasks: _ = try await store.computeCompletedTasks(limit: 10)
+            case .projectTasks: _ = try await store.computeProjectTasks("Kurgu")
+            case .timelineTasks: _ = try await store.computeTimelineTasks(from: week, to: next, today: today)
+            case .boardTasks: _ = try await store.computeBoardTasks(doneFrom: week, to: today, includeCancelled: true)
+            case .dayTasks: _ = try await store.computeDayTasks(on: today)
+            case .openTasks: _ = try await store.computeOpenTasks(dueBy: today, orWrittenFrom: week)
+            case .task: _ = try await store.computeTask(id: person.file)
+            case .openTaskCounts: _ = try await store.computeOpenTaskCounts()
+            case .projects: _ = try await store.computeProjects()
+            case .notificationDays: _ = try await store.computeNotificationDays(from: today, through: next)
+            case .copyFiles: _ = try await store.computeCopyFiles()
+            case .conflictCopies: _ = try await store.computeConflictCopies()
             }
         }
     }
@@ -67,6 +102,31 @@ struct StaleReloadAndCancellationTests {
         await #expect(throws: CancellationError.self) { try await replaced.value }
         // The same query, not cancelled, answers.
         try await query.run(on: store, today: today)
+    }
+
+    /// A query that outlives its vault answers `staleTarget`: the last vault's rows never reach a
+    /// screen of the next one.
+    @Test(arguments: Query.allCases)
+    func aQueryThatOutlivesItsVaultGetsNoAnswer(_ query: Query) async throws {
+        let context = try TaskTestContext(sample: true)
+        defer { context.clean() }
+        await context.start()
+        let store = context.store
+        let today = context.today
+        let other = try Self.emptyVault(in: context)
+        let gate = FirstArrivalGate()
+        query.hold(gate, on: store)
+
+        let outlived = Task { try await query.run(on: store, today: today) }
+        await gate.waitUntilHeld()
+        await store.retryVaultAccess()
+        #expect(store.vaultURL?.lastPathComponent == other.lastPathComponent)
+        gate.release()
+        let error = await #expect(throws: VaultStoreError.self) { try await outlived.value }
+        guard case .staleTarget = error else {
+            Issue.record("Expected staleTarget, got \(String(describing: error))")
+            return
+        }
     }
 
     @Test func aReloadThatOutlivesItsVaultLeavesTheNextOneAlone() async throws {

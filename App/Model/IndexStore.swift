@@ -290,62 +290,44 @@ final class IndexStore {
         }
     }
 
-    /// Disk reads belong to the selected vault, never to the index's paragraph projection.
+    /// Disk reads belong to the selected vault, never to the index's paragraph projection. Like
+    /// every on-demand read here, the read follows the query contract (`answer(seam:_:)`).
     func dayDocument(for day: CalendarDate) async throws -> RawDocument {
         guard let writer else { throw VaultStoreError.staleTarget }
-        let current = generation
-        let document: RawDocument
-        do { document = try await writer.dayDocument(for: day) } catch CocoaError.fileReadNoSuchFile {
-            document = RawDocument(bytes: [])
+        let document = try await answer(seam: \.testingQueryDidFinish) {
+            do { return try await writer.dayDocument(for: day) } catch CocoaError.fileReadNoSuchFile {
+                return RawDocument(bytes: [])
+            }
         }
-        guard generation == current else { throw VaultStoreError.staleTarget }
         guard !document.isReadOnly else { throw EditError.readOnlyDocument }
         return document
     }
 
     func document(at path: String) async throws -> RawDocument {
         guard let writer else { throw VaultStoreError.staleTarget }
-        let current = generation
-        let document = try await writer.document(at: path)
-        guard generation == current else { throw VaultStoreError.staleTarget }
-        return document
+        return try await answer(seam: \.testingQueryDidFinish) { try await writer.document(at: path) }
     }
 
+    /// Empty with no index open.
     func search(_ query: String) async throws -> [SearchResult] {
-        guard let index else { return [] }
-        let current = generation
-        let results = try await Task.detached { try index.searchResults(query) }.value
-        guard generation == current else { throw VaultStoreError.staleTarget }
-        return results
+        try await indexQuery(seam: \.testingQueryDidFinish, whenClosed: .empty([])) { try $0.searchResults(query) }
     }
 
     /// Summary history is queried on demand and belongs to this vault generation.
     func computeSummary(
         period: SummaryPeriod, day: CalendarDate, from: CalendarDate, to: CalendarDate, today: CalendarDate? = nil
     ) async throws -> PeriodSummary {
-        guard let index else { throw VaultStoreError.staleTarget }
-        let current = generation
-        let result = try await Task.detached {
+        try await indexQuery(seam: \.testingQueryDidFinish, whenClosed: .stale) {
             PeriodSummary.compute(
-                period: period, containing: day, data: try index.summaryInput(from: from, to: to), today: today)
-        }.value
-        await testingQueryDidFinish?()
-        guard generation == current else { throw VaultStoreError.staleTarget }
-        try Task.checkCancellation()
-        return result
+                period: period, containing: day, data: try $0.summaryInput(from: from, to: to), today: today)
+        }
     }
 
     /// Same month-day history is queried on demand and belongs to this vault generation.
     func computeOnThisDay(_ today: CalendarDate) async throws -> OnThisDay? {
-        guard let index else { throw VaultStoreError.staleTarget }
-        let current = generation
-        let result = try await Task.detached {
-            OnThisDay.select(today: today, data: try index.onThisDayInput(for: today))
-        }.value
-        await testingQueryDidFinish?()
-        guard generation == current else { throw VaultStoreError.staleTarget }
-        try Task.checkCancellation()
-        return result
+        try await indexQuery(seam: \.testingQueryDidFinish, whenClosed: .stale) {
+            OnThisDay.select(today: today, data: try $0.onThisDayInput(for: today))
+        }
     }
 
     /// Anniversary fields are queried on demand and belong to this vault generation.
@@ -353,43 +335,27 @@ final class IndexStore {
     func computeImportantDates(_ today: CalendarDate, within windowDays: Int? = ImportantDates.windowDays) async throws
         -> [ImportantDate]
     {
-        guard let index else { throw VaultStoreError.staleTarget }
-        let current = generation
-        let result = try await Task.detached {
-            let fields = try index.anniversaryFields().map {
+        try await indexQuery(seam: \.testingQueryDidFinish, whenClosed: .stale) {
+            let fields = try $0.anniversaryFields().map {
                 ImportantDateField(file: $0.file, key: $0.key, value: $0.value)
             }
             return ImportantDates.select(today: today, within: windowDays, fields: fields)
-        }.value
-        await testingQueryDidFinish?()
-        guard generation == current else { throw VaultStoreError.staleTarget }
-        try Task.checkCancellation()
-        return result
+        }
     }
 
     /// Incoming wikilinks to a day are queried on demand and belong to this vault generation.
     func computeDayBacklinks(_ day: CalendarDate) async throws -> [DayBacklink] {
-        guard let index else { throw VaultStoreError.staleTarget }
-        let current = generation
-        let result = try await Task.detached {
-            try index.dayBacklinks(for: day)
-        }.value
-        await testingQueryDidFinish?()
-        guard generation == current else { throw VaultStoreError.staleTarget }
-        try Task.checkCancellation()
-        return result
+        try await indexQuery(seam: \.testingQueryDidFinish, whenClosed: .stale) {
+            try $0.dayBacklinks(for: day)
+        }
     }
 
     /// Full history is read on demand for detail screens and dates outside the bounded snapshot.
     func goalHistory(key: String? = nil) async throws -> [String: [GoalLog]] {
-        guard let index else { throw VaultStoreError.staleTarget }
-        let current = generation
-        let logs = try await Task.detached {
-            Dictionary(grouping: try index.goalLogs(key: key), by: \.key)
+        try await indexQuery(seam: \.testingQueryDidFinish, whenClosed: .stale) {
+            Dictionary(grouping: try $0.goalLogs(key: key), by: \.key)
                 .mapValues { $0.compactMap(GoalLog.init(indexed:)) }
-        }.value
-        guard generation == current else { throw VaultStoreError.staleTarget }
-        return logs
+        }
     }
 
     /// Shared file-first edit lifecycle. A saved-but-unindexed edit must never be retried.
@@ -904,15 +870,10 @@ final class IndexStore {
 
     /// Plain spellings of one entity in day event and task lines. Reads the vault off the main actor.
     func computeUnlinkedMentions(of entity: KnownEntity) async throws -> [UnlinkedMention] {
-        guard let index, let root = vaultURL else { throw VaultStoreError.staleTarget }
-        let current = generation
-        let result = try await Task.detached {
-            try index.unlinkedMentions(of: entity, vaultRoot: root)
-        }.value
-        await testingQueryDidFinish?()
-        guard generation == current else { throw VaultStoreError.staleTarget }
-        try Task.checkCancellation()
-        return result
+        guard let root = vaultURL else { throw VaultStoreError.staleTarget }
+        return try await indexQuery(seam: \.testingQueryDidFinish, whenClosed: .stale) {
+            try $0.unlinkedMentions(of: entity, vaultRoot: root)
+        }
     }
 
     /// Writes one approved spelling, then publishes the index. A stale line is not written.
@@ -929,10 +890,7 @@ final class IndexStore {
 
     /// Cadence scalars keyed by file. Files without one of the three fields are absent.
     func personCadences() async throws -> [String: PersonCadence] {
-        guard let index else { throw VaultStoreError.staleTarget }
-        let current = generation
-        let fields = try await Task.detached { try index.cadenceFields() }.value
-        guard generation == current else { throw VaultStoreError.staleTarget }
+        let fields = try await indexQuery(seam: \.testingQueryDidFinish, whenClosed: .stale) { try $0.cadenceFields() }
         var grouped: [String: [PersonCadenceField]] = [:]
         for field in fields {
             grouped[field.file, default: []].append(
@@ -959,11 +917,9 @@ final class IndexStore {
     /// Source data of the days in the range; counted by the review itself, whose week follows the
     /// device calendar rather than the summary's fixed Monday week.
     func weeklyReviewInput(from: CalendarDate, to: CalendarDate) async throws -> SummaryInput {
-        guard let index else { throw VaultStoreError.staleTarget }
-        let current = generation
-        let result = try await Task.detached { try index.summaryInput(from: from, to: to) }.value
-        guard generation == current else { throw VaultStoreError.staleTarget }
-        return result
+        try await indexQuery(seam: \.testingQueryDidFinish, whenClosed: .stale) {
+            try $0.summaryInput(from: from, to: to)
+        }
     }
 
     // MARK: - Journal append
@@ -982,19 +938,16 @@ final class IndexStore {
     // MARK: - Graph query
 
     /// Test seam: runs after the graph query returns, before its generation is checked.
-    @ObservationIgnored var testingGraphQueryDidFinish: (@MainActor () async -> Void)?
+    @ObservationIgnored var testingGraphQueryDidFinish: (@MainActor () async throws -> Void)?
 
     /// Graph nodes from the read model's entities, link counts queried from the index on demand.
     /// Belongs to this vault generation; with no index open, as with an empty read model, it is empty.
     func computeGraphInput() async throws -> GraphInput {
-        guard let index else { return GraphInput() }
-        let current = generation
-        let mentions = try await Task.detached {
-            try index.graphMentions(kinds: GraphInput.kinds)
-        }.value
-        await testingGraphQueryDidFinish?()
-        guard generation == current else { throw VaultStoreError.staleTarget }
-        try Task.checkCancellation()
+        let seam: QuerySeam = \.testingGraphQueryDidFinish
+        let mentions: GraphMentions? = try await indexQuery(seam: seam, whenClosed: .empty(nil)) {
+            try $0.graphMentions(kinds: GraphInput.kinds)
+        }
+        guard let mentions else { return GraphInput() }
         return GraphInput(entities: content.entities, mentions: mentions)
     }
 
@@ -1002,32 +955,22 @@ final class IndexStore {
 
     /// Test seam: runs after an entity timeline or last-encounter query returns, before its
     /// generation is checked.
-    @ObservationIgnored var testingEntityTimelineQueryDidFinish: (@MainActor () async -> Void)?
+    @ObservationIgnored var testingEntityTimelineQueryDidFinish: (@MainActor () async throws -> Void)?
 
     /// Day-file events and Journal paragraphs linking to `path`, newest day first, queried from the
     /// index on demand. Belongs to this vault generation; with no index open it is empty.
     func computeEntityTimeline(for path: String) async throws -> [EntityTimelineDay] {
-        guard let index else { return [] }
-        let current = generation
-        let days = try await Task.detached {
-            EntityTimeline.days(from: try index.entityTimeline(for: path))
-        }.value
-        await testingEntityTimelineQueryDidFinish?()
-        guard generation == current else { throw VaultStoreError.staleTarget }
-        try Task.checkCancellation()
-        return days
+        try await indexQuery(seam: \.testingEntityTimelineQueryDidFinish, whenClosed: .empty([])) {
+            EntityTimeline.days(from: try $0.entityTimeline(for: path))
+        }
     }
 
     /// Each linked file's latest encounter on or before `day`, counted from the same blocks as the
     /// timeline. Belongs to this vault generation; with no index open it is empty.
     func computeLastEncounters(asOf day: CalendarDate) async throws -> [String: CalendarDate] {
-        guard let index else { return [:] }
-        let current = generation
-        let encounters = try await Task.detached { try index.lastEncounters(asOf: day) }.value
-        await testingEntityTimelineQueryDidFinish?()
-        guard generation == current else { throw VaultStoreError.staleTarget }
-        try Task.checkCancellation()
-        return encounters
+        try await indexQuery(seam: \.testingEntityTimelineQueryDidFinish, whenClosed: .empty([:])) {
+            try $0.lastEncounters(asOf: day)
+        }
     }
 
     // MARK: - Edit turn
@@ -1047,26 +990,20 @@ final class IndexStore {
     // MARK: - Goal status query
 
     /// Test seam: runs after the goal-status query returns, before its generation is checked.
-    @ObservationIgnored var testingGoalStatusQueryDidFinish: (@MainActor () async -> Void)?
+    @ObservationIgnored var testingGoalStatusQueryDidFinish: (@MainActor () async throws -> Void)?
 
     /// Goal status queried from the index on demand. Belongs to this vault generation; with no
     /// index open, as with an empty read model, it is empty.
     func computeGoalStatuses(today: CalendarDate) async throws -> [GoalStatusRow] {
-        guard let index else { return [] }
-        let current = generation
-        let rows = try await Task.detached {
-            try index.goalStatuses(today: today)
-        }.value
-        await testingGoalStatusQueryDidFinish?()
-        guard generation == current else { throw VaultStoreError.staleTarget }
-        try Task.checkCancellation()
-        return rows
+        try await indexQuery(seam: \.testingGoalStatusQueryDidFinish, whenClosed: .empty([])) {
+            try $0.goalStatuses(today: today)
+        }
     }
 
     // MARK: - Day queries
 
     /// Test seam: runs after a day-list or single-day query returns, before its generation is checked.
-    @ObservationIgnored var testingDayQueryDidFinish: (@MainActor () async -> Void)?
+    @ObservationIgnored var testingDayQueryDidFinish: (@MainActor () async throws -> Void)?
 
     /// Day files dated `from` through `to` (an end left `nil` is open), newest first: the day list
     /// and the calendar's density. Belongs to this vault generation; with no index open it is empty.
@@ -1074,30 +1011,18 @@ final class IndexStore {
     /// screen's `.task(id:)` replaced by a newer request would otherwise write its older answer
     /// over the newer one.
     func computeDaySummaries(from: CalendarDate? = nil, to: CalendarDate? = nil) async throws -> [DayOverview] {
-        guard let index else { return [] }
-        let current = generation
-        let days = try await Task.detached {
-            try index.daySummaries(from: from, to: to).map(DayOverview.init(entry:))
-        }.value
-        await testingDayQueryDidFinish?()
-        guard generation == current else { throw VaultStoreError.staleTarget }
-        try Task.checkCancellation()
-        return days
+        try await indexQuery(seam: \.testingDayQueryDidFinish, whenClosed: .empty([])) {
+            try $0.daySummaries(from: from, to: to).map(DayOverview.init(entry:))
+        }
     }
 
     /// One day's events and Journal paragraphs and headings in source order; a date without a day
     /// file is empty. Belongs to this vault generation; with no index open it is empty. A caller
     /// cancelled meanwhile gets `CancellationError`, as above.
     func computeDay(on date: CalendarDate) async throws -> DaySummary {
-        guard let index else { return DaySummary(empty: date) }
-        let current = generation
-        let day = try await Task.detached {
-            DaySummary(contents: try index.day(on: date), date: date)
-        }.value
-        await testingDayQueryDidFinish?()
-        guard generation == current else { throw VaultStoreError.staleTarget }
-        try Task.checkCancellation()
-        return day
+        try await indexQuery(seam: \.testingDayQueryDidFinish, whenClosed: .empty(DaySummary(empty: date))) {
+            DaySummary(contents: try $0.day(on: date), date: date)
+        }
     }
 
     // MARK: - Place documents
@@ -1119,7 +1044,7 @@ final class IndexStore {
     // MARK: - Task queries
 
     /// Test seam: runs after a task query returns, before its generation is checked.
-    @ObservationIgnored var testingTaskQueryDidFinish: (@MainActor () async -> Void)?
+    @ObservationIgnored var testingTaskQueryDidFinish: (@MainActor () async throws -> Void)?
 
     /// Open tasks in `scope` around `today` for the Tasks list (and the entity filter's open work).
     /// Every task query belongs to this vault generation (an answer outliving its vault throws
@@ -1188,21 +1113,17 @@ final class IndexStore {
     private func taskQuery<Value: Sendable>(
         _ empty: Value, _ body: @escaping @Sendable (VaultIndex) throws -> Value
     ) async throws -> Value {
-        guard let index else { return empty }
-        let current = generation
-        let value = try await Task.detached { try body(index) }.value
-        await testingTaskQueryDidFinish?()
-        guard generation == current else { throw VaultStoreError.staleTarget }
-        try Task.checkCancellation()
-        return value
+        try await indexQuery(seam: \.testingTaskQueryDidFinish, whenClosed: .empty(empty), body)
     }
 
     // MARK: - Stale reloads and cancelled queries
 
-    /// Test seam: runs after a summary, on-this-day, important-dates, day-backlink or
-    /// unlinked-mention query returns, before its generation is checked. Like every on-demand
-    /// query here, a caller cancelled meanwhile gets `CancellationError` instead of the answer.
-    @ObservationIgnored var testingQueryDidFinish: (@MainActor () async -> Void)?
+    /// Test seam: runs after an on-demand query without a seam of its own returns (summary,
+    /// on-this-day, important dates, day backlinks, unlinked mentions, search, goal history,
+    /// cadences, weekly review input, task flow, year calendar, a document read), before its
+    /// generation is checked. Throwing stands for a failed query. Like every on-demand query here,
+    /// a caller cancelled meanwhile gets `CancellationError` instead of the answer.
+    @ObservationIgnored var testingQueryDidFinish: (@MainActor () async throws -> Void)?
 
     /// Test seam: runs once recognition has loaded, before it checks that its vault is still open.
     /// Throwing stands for a failed reload.
@@ -1318,18 +1239,13 @@ extension IndexStore {
     /// The Özetler year map. It reads only the day rows the year's "Yazılan gün" counts, so the
     /// map's counter and the number agree. Belongs to this vault generation; with no index open it is empty.
     func computeYearWritingCalendar(year: Int, today: CalendarDate?) async throws -> YearWritingCalendar {
-        guard let index, let start = CalendarDate(year: year, month: 1, day: 1),
+        let empty = YearWritingCalendar.compute(days: [], year: year, today: today)
+        guard let start = CalendarDate(year: year, month: 1, day: 1),
             let end = CalendarDate(year: year, month: 12, day: 31)
-        else { return YearWritingCalendar.compute(days: [], year: year, today: today) }
-        let current = generation
-        let result = try await Task.detached {
-            YearWritingCalendar.compute(
-                days: try index.summaryDays(from: start, to: end), year: year, today: today)
-        }.value
-        await testingQueryDidFinish?()
-        guard generation == current else { throw VaultStoreError.staleTarget }
-        try Task.checkCancellation()
-        return result
+        else { return empty }
+        return try await indexQuery(seam: \.testingQueryDidFinish, whenClosed: .empty(empty)) {
+            YearWritingCalendar.compute(days: try $0.summaryDays(from: start, to: end), year: year, today: today)
+        }
     }
 }
 
@@ -1381,12 +1297,9 @@ extension IndexStore {
 extension IndexStore {
     /// The task flow needs all historical tasks, without day, mention or goal queries.
     func summaryTasks() async throws -> [SummaryInput.Task] {
-        guard let index else { throw VaultStoreError.staleTarget }
-        let current = generation
-        let tasks = try await Task.detached { try index.summaryTasks() }.value
-        guard generation == current else { throw VaultStoreError.staleTarget }
-        try Task.checkCancellation()
-        return tasks
+        try await indexQuery(seam: \.testingQueryDidFinish, whenClosed: .stale) {
+            try $0.summaryTasks()
+        }
     }
 }
 
@@ -1486,4 +1399,48 @@ extension IndexStore {
         pendingRebuild = pendingRebuild || rebuild
         pendingRefresh = true
     }
+}
+
+// MARK: - Query contract
+
+extension IndexStore {
+    /// A query test seam: runs once the read returns, before its generation is checked.
+    typealias QuerySeam = KeyPath<IndexStore, (@MainActor () async throws -> Void)?>
+
+    /// The contract of every on-demand read a screen or service awaits (architecture.md "Sorgu
+    /// kalıbı"): `read` belongs to the vault generation open when it starts. Once it returns, the
+    /// test seam runs; then a vault opened meanwhile throws `staleTarget` and a caller cancelled
+    /// meanwhile gets `CancellationError`. The read itself runs on: the checks only keep an older
+    /// answer from landing over a newer one, or over another vault's screen.
+    private func answer<Value>(seam: QuerySeam, _ read: () async throws -> Value) async throws -> Value {
+        let current = generation
+        let value = try await read()
+        try await self[keyPath: seam]?()
+        guard generation == current else { throw VaultStoreError.staleTarget }
+        try Task.checkCancellation()
+        return value
+    }
+
+    /// An index query on a background task, under `answer`'s checks. With no index open the
+    /// answer is `whenClosed`: an empty value, or `staleTarget` where the query has no empty answer.
+    private func indexQuery<Value: Sendable>(
+        seam: QuerySeam, whenClosed: ClosedIndexAnswer<Value>,
+        _ body: @escaping @Sendable (VaultIndex) throws -> Value
+    ) async throws -> Value {
+        guard let index else {
+            switch whenClosed {
+            case .empty(let value): return value
+            case .stale: throw VaultStoreError.staleTarget
+            }
+        }
+        return try await answer(seam: seam) { try await Task.detached { try body(index) }.value }
+    }
+}
+
+/// What an index query answers while no index is open.
+private enum ClosedIndexAnswer<Value> {
+    /// The query's empty answer: no rows, no days, no tasks.
+    case empty(Value)
+    /// `staleTarget`: the query has no empty answer.
+    case stale
 }

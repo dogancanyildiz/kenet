@@ -8081,6 +8081,22 @@
         }
       }
     },
+    "Kasa okunamadı. Kasayı kontrol edip yeniden dene." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could not read the vault. Check the vault and try again."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kasa okunamadı. Kasayı kontrol edip yeniden dene."
+          }
+        }
+      }
+    },
     "Kasa salt okunur; inceleme günlüğe yazılamaz." : {
       "localizations" : {
         "en" : {

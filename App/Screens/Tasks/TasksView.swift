@@ -106,7 +106,7 @@ struct TasksView: View {
                 TasksSectionMenu(tasks: model)
             }
             .tasksPageTopRow()
-            if let error = model.errorText {
+            if let error = model.errorText ?? model.listErrorText {
                 InfoBand(kind: .error, verbatim: error)
                     .listRowInsets(EdgeInsets())
                     .listRowSeparator(.hidden)

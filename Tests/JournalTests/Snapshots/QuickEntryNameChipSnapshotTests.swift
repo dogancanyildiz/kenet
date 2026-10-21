@@ -84,8 +84,11 @@
     // Local inspection only (CI records authoritative Mac references; do not commit local PNGs):
     // SNAPSHOT_MAC_LOCAL=1 SNAPSHOT_TESTING_RECORD=all xcodebuild test -project Journal.xcodeproj -scheme Journal_macOS -destination 'platform=macOS' -only-testing:JournalTests_macOS/QuickEntryNameChipMacSnapshotTests CODE_SIGNING_ALLOWED=NO
 
-    @MainActor @Suite("Quick entry name chip snapshots (macOS)",
-        .enabled(if: MacSnapshotEnvironment.isEnabled,
+    @MainActor
+    @Suite(
+        "Quick entry name chip snapshots (macOS)",
+        .enabled(
+            if: MacSnapshotEnvironment.isEnabled,
             "Mac references belong to CI; set SNAPSHOT_MAC_LOCAL=1 for local inspection (do not commit)."))
     struct QuickEntryNameChipMacSnapshotTests {
         /// The shared bar at the quick-entry panel's width and on its surface.

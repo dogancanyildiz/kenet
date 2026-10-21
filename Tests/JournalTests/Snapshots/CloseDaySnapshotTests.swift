@@ -65,8 +65,11 @@
     // SNAPSHOT_MAC_LOCAL=1 SNAPSHOT_TESTING_RECORD=all xcodebuild test -project Journal.xcodeproj -scheme Journal_macOS -destination 'platform=macOS' -only-testing:JournalTests_macOS/CloseDayMacSnapshotTests CODE_SIGNING_ALLOWED=NO
 
     /// "Günü kapat" at the Mac sheet's ideal size: both steps, with the bottom action bar.
-    @MainActor @Suite("Close day snapshots (macOS)", .serialized,
-        .enabled(if: MacSnapshotEnvironment.isEnabled,
+    @MainActor
+    @Suite(
+        "Close day snapshots (macOS)", .serialized,
+        .enabled(
+            if: MacSnapshotEnvironment.isEnabled,
             "Mac references belong to CI; set SNAPSHOT_MAC_LOCAL=1 for local inspection (do not commit)."))
     struct CloseDayMacSnapshotTests {
         @Test func tasksMacLight() async throws { try await run(.tasks, "tasksMacLight", scheme: .light) }

@@ -87,8 +87,11 @@ func weeklyReviewSnapshotCalendar(timeZone: TimeZone) -> Calendar {
 
     /// The weekly review at the Mac sheet's ideal size: the first step and the preview, with the
     /// bottom action bar.
-    @MainActor @Suite("Weekly review snapshots (macOS)", .serialized,
-        .enabled(if: MacSnapshotEnvironment.isEnabled,
+    @MainActor
+    @Suite(
+        "Weekly review snapshots (macOS)", .serialized,
+        .enabled(
+            if: MacSnapshotEnvironment.isEnabled,
             "Mac references belong to CI; set SNAPSHOT_MAC_LOCAL=1 for local inspection (do not commit)."))
     struct WeeklyReviewMacSnapshotTests {
         @Test func numbersMacLight() async throws { try await run(.numbers, "numbersMacLight", scheme: .light) }

@@ -47,8 +47,11 @@
     @testable import Journal
 
     /// Mac kanban and timeline: weekend wells, today marker, completed outline bar, low priority.
-    @MainActor @Suite("Tasks screen snapshots (macOS)", .serialized,
-        .enabled(if: MacSnapshotEnvironment.isEnabled,
+    @MainActor
+    @Suite(
+        "Tasks screen snapshots (macOS)", .serialized,
+        .enabled(
+            if: MacSnapshotEnvironment.isEnabled,
             "Mac references belong to CI; set SNAPSHOT_MAC_LOCAL=1 for local inspection (do not commit)."))
     struct TasksMacSnapshotTests {
         private static let snapshotPrecision: Float = 0.9999

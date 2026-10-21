@@ -12,8 +12,11 @@
 
     /// "Varlık tipi ekle" at the Mac sheet's minimum size: the gallery, and the type editor pushed
     /// inside it (its bottom bar, no back arrow).
-    @MainActor @Suite("Entity gallery snapshots (macOS)", .serialized,
-        .enabled(if: MacSnapshotEnvironment.isEnabled,
+    @MainActor
+    @Suite(
+        "Entity gallery snapshots (macOS)", .serialized,
+        .enabled(
+            if: MacSnapshotEnvironment.isEnabled,
             "Mac references belong to CI; set SNAPSHOT_MAC_LOCAL=1 for local inspection (do not commit)."))
     struct EntityGalleryMacSnapshotTests {
         @Test func galleryMacLight() async throws { try await run("galleryMacLight", opening: nil) }

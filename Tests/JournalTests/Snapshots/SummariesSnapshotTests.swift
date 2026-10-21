@@ -85,8 +85,11 @@ struct SummariesSnapshotShot: Sendable {
     // SNAPSHOT_MAC_LOCAL=1 SNAPSHOT_TESTING_RECORD=all xcodebuild test -project Journal.xcodeproj -scheme Journal_macOS -destination 'platform=macOS' -only-testing:JournalTests_macOS/SummariesMacSnapshotTests CODE_SIGNING_ALLOWED=NO
 
     /// Özetler in a 1000 pt detail area: rhythm, numbers and goals left; people, places and tasks right.
-    @MainActor @Suite("Summaries snapshots (macOS)", .serialized,
-        .enabled(if: MacSnapshotEnvironment.isEnabled,
+    @MainActor
+    @Suite(
+        "Summaries snapshots (macOS)", .serialized,
+        .enabled(
+            if: MacSnapshotEnvironment.isEnabled,
             "Mac references belong to CI; set SNAPSHOT_MAC_LOCAL=1 for local inspection (do not commit)."))
     struct SummariesMacSnapshotTests {
         @Test func weekMacLight() async throws { try await run(.week, "weekMacLight", scheme: .light) }

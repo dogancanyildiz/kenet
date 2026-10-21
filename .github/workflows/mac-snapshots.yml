@@ -1,0 +1,62 @@
+name: Mac ekran görüntüleri (haftalık)
+
+# Mac görüntü kümeleri (snapshot-suites.sh --mac) ci işinde koşmaz: referanslar macOS 27 / Xcode 27.1
+# üzerinde kayıtlıdır, CI macOS 26 / Xcode 26.6'dır ve çizim sürüme bağlıdır. Bu iş akışı farkları
+# haftada bir ölçer ve görünür kılar. Kapı DEĞİLDİR: ci işine bağlanmaz, ruleset değişmez. Düşerse
+# fark paketi mac-snapshot-diffs olarak yüklenir; incelenir, referans ya da sürüm kararı verilir.
+# Duo kümeleri (*Duo*) bilerek dışarıdadır: Xcode 27.1 bekler. Şu an --mac listesinde Duo yoktur;
+# aşağıdaki grep, ileride listeye girerse onları yine dışarıda tutar.
+on:
+  schedule:
+    - cron: "0 5 * * 1" # pazartesi 05:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  mac-snapshots:
+    name: Mac görüntü kümeleri
+    runs-on: macos-26
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v7
+      - name: Xcode
+        uses: ./.github/actions/xcode
+      - name: Paket önbelleği (uygulama)
+        uses: actions/cache@v6
+        with:
+          # ci.yml ve .github/actions/ios-build ile aynı anahtar.
+          path: ~/Library/Developer/Xcode/DerivedData/**/SourcePackages
+          key: spm-xcode-${{ hashFiles('Packages/Core/Package.resolved', 'project.yml') }}
+          restore-keys: spm-xcode-
+      - name: XcodeGen
+        run: brew install xcodegen
+      - name: Projeyi üret
+        run: xcodegen generate
+      - name: Derle
+        timeout-minutes: 20
+        run: xcodebuild build-for-testing -project Journal.xcodeproj -scheme Journal_macOS -destination 'platform=macOS,arch=arm64' CODE_SIGNING_ALLOWED=NO -quiet
+      - name: Mac görüntü kümeleri
+        id: mac_snapshots
+        timeout-minutes: 15
+        env:
+          SNAPSHOT_TESTING_RECORD: never
+          TEST_RUNNER_SNAPSHOT_TESTING_RECORD: never
+        run: |
+          only=$(sh .github/scripts/snapshot-suites.sh --mac | grep -v Duo | sed 's#^#-only-testing:JournalTests_macOS/#' | tr '\n' ' ')
+          if [ -z "$only" ]; then
+            echo "::error::Mac görüntü kümesi bulunamadı"
+            exit 1
+          fi
+          xcodebuild test-without-building -project Journal.xcodeproj -scheme Journal_macOS -destination 'platform=macOS,arch=arm64' $only -resultBundlePath MacSnapshots.xcresult CODE_SIGNING_ALLOWED=NO -quiet
+      - name: Mac görüntü farkları (yalnız düşünce)
+        if: failure() && steps.mac_snapshots.outcome == 'failure'
+        uses: actions/upload-artifact@v7
+        with:
+          name: mac-snapshot-diffs
+          path: |
+            MacSnapshots.xcresult
+            Tests/JournalTests/Snapshots/__Snapshots__
+          if-no-files-found: warn
+          retention-days: 14

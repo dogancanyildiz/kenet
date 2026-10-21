@@ -371,7 +371,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Biçim ve lint
-        run: swift format lint --strict --recursive Packages App Tests
+        run: swift format lint --strict --recursive Packages App Tests Widgets
       - name: Core içinde yasak import
         run: sh .github/scripts/check-core-imports.sh
       - name: Belgelerin yeri

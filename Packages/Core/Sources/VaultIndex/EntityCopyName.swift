@@ -1,3 +1,5 @@
+import VaultFormat
+
 /// A sync copy the app leaves in place: the copy's path, its folder, and the file it duplicates.
 public struct CopyFile: Sendable, Equatable {
     /// The copy's folder relative to the vault root; empty at the root.
@@ -19,7 +21,7 @@ public struct CopyFile: Sendable, Equatable {
 /// A copy is `Folder/Name N.md`: a non-empty name, one space, and an ASCII number of at least 2
 /// without a leading zero, in the same folder as the entity file `Folder/Name.md`. The number alone
 /// does not make a copy: `people/Kaan 2.md` without `people/Kaan.md` is an entity named "Kaan 2".
-/// The original is found with the vault's name comparison (NFC, default lowercase mapping).
+/// The original is found with the vault's name comparison key (``nameComparisonKey(_:)``).
 public enum EntityCopyName {
     private static let suffix = Array(".md".utf8)
 
@@ -33,12 +35,12 @@ public enum EntityCopyName {
     public static func copies(in paths: some Sequence<String>, originals: some Sequence<String>) -> [CopyFile] {
         var byKey: [String: String] = [:]
         for original in originals {
-            let key = comparisonKey(original)
+            let key = nameComparisonKey(original)
             if let kept = byKey[key], kept.utf8.lexicographicallyPrecedes(original.utf8) { continue }
             byKey[key] = original
         }
         return paths.compactMap { path -> (CopyFile, [UInt8])? in
-            guard let parsed = parse(path), let original = byKey[comparisonKey(parsed.original)] else { return nil }
+            guard let parsed = parse(path), let original = byKey[nameComparisonKey(parsed.original)] else { return nil }
             return (CopyFile(folder: parsed.folder, copy: path, original: original), parsed.number)
         }
         .sorted { lhs, rhs in

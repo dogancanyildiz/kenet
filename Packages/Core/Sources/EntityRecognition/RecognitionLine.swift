@@ -1,3 +1,5 @@
+import VaultFormat
+
 /// A grapheme-based view that retains physical UTF-8 positions.
 struct RecognitionLine {
     let characters: [Character]
@@ -88,7 +90,8 @@ struct RecognitionLine {
     }
 }
 
-/// Whitespace is flexible while Unicode canonical equality preserves the comparison rule.
+/// Whitespace is flexible while Unicode canonical equality preserves the comparison rule; each
+/// character compares by the vault's name fold (``nameComparisonFold(_:)``).
 struct NamePattern {
     let entity: KnownEntity
     let isAlias: Bool
@@ -105,7 +108,7 @@ struct NamePattern {
             if RecognitionLine.separator(character) {
                 if tokens.last != " " { tokens.append(" ") }
             } else {
-                tokens.append(String(character).lowercased())
+                tokens.append(nameComparisonFold(String(character)))
             }
         }
         guard tokens.first != " ", tokens.last != " " else { return nil }
@@ -132,7 +135,7 @@ struct NamePattern {
                 } while cursor < line.characters.count && RecognitionLine.separator(line.characters[cursor])
             } else {
                 // String equality performs canonical Unicode comparison without Foundation.
-                guard String(line.characters[cursor]).lowercased() == token else { return nil }
+                guard nameComparisonFold(String(line.characters[cursor])) == token else { return nil }
                 cursor += 1
             }
         }

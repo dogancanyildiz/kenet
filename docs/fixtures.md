@@ -2,7 +2,7 @@
 
 **Amaç:** Bu belge `Fixtures/` klasöründeki test verisinin düzenini, girdi ve beklenen çıktı sözleşmesini ve yeni örnek ekleme yolunu tarif eder.
 
-**Kapsam:** `Fixtures/` altındaki 15 küme ve 16 kasa; her kümenin davranış aileleri, test eşlemesi ve yeni fixture ekleme adımları.
+**Kapsam:** `Fixtures/` altındaki 15 küme ve 17 kasa; her kümenin davranış aileleri, test eşlemesi ve yeni fixture ekleme adımları.
 
 Bu belgede **küme**, `Fixtures/` altındaki birinci düzey klasördür. **Örnek**, kümedeki tek vaka klasörü ya da bir JSON dosyasındaki tek vaka kaydıdır. **İstemci**, fixture dosyalarını okuyup sınayan test kodudur. Bugün Swift testleri istemcidir; ileride başka platformlardaki istemciler aynı dosyaları kullanır. Kasa biçiminin kendisi [Kasa biçimi](vault-format.md) belgesindedir.
 
@@ -29,7 +29,7 @@ flowchart LR
   F --> DA["dates/ : 3 JSON, 2 girdi dosyası"]
   F --> GO["goals/ : cases.json, series.json, creation/, writes/"]
   F --> SU["summaries/ : 11 JSON"]
-  F --> VA["vaults/ : 16 kasa"]
+  F --> VA["vaults/ : 17 kasa"]
   VA --> V1["sample"]
   VA --> V2["entity-fields"]
   VA --> V3["unlinked-mentions"]
@@ -46,6 +46,7 @@ flowchart LR
   VA --> V14["gallery"]
   VA --> V15["conflict-copies"]
   VA --> V16["nfd-names"]
+  VA --> V17["turkce-buyuk-harf"]
 ```
 
 Sayılar `find Fixtures -maxdepth 2` çıktısından gelir. Kasalar `vaults/` altında durur ve birden çok küme aynı kasayı kullanır. Örneğin `recognition/unlinked-mentions/` beklentisi `vaults/unlinked-mentions/` kasasını okur.
@@ -157,6 +158,7 @@ Swift testleri `Fixtures/` klasörünü test kaynak dosyasından yukarı doğru 
 | `vaults/copy-files/` | `VaultIndexTests/CopyFileTests.swift`, `Tests/JournalTests/SyncedFolderNoticeTests.swift` | Ad kodda |
 | `vaults/conflict-copies/` | `VaultIndexTests/ConflictCopyTests.swift`, `Tests/JournalTests/SyncConflictTests.swift`, `Tests/JournalTests/DiagnosticsConflictWiringTests.swift`, `Tests/JournalTests/Snapshots/ConflictVersionsSnapshotTests.swift` | Ad kodda |
 | `vaults/nfd-names/` | `VaultIndexTests/ChangeDetectionTests.swift` | Ad kodda |
+| `vaults/turkce-buyuk-harf/` | `VaultStoreTests/TurkishCapitalTests.swift` | Ad kodda |
 
 Tablodaki göreli yollar `Packages/Core/Tests/` altındadır; `Tests/JournalTests/` ile başlayanlar uygulama testleridir. **Klasör tarama** yeni klasörü kendiliğinden bulur. **Ad listesi** yeni klasörü yalnız test dosyasındaki `@Test(arguments:)` listesine eklenince koşar. **JSON vaka** yeni vakayı JSON dizisine eklenince koşar.
 
@@ -712,7 +714,7 @@ Her anma `file`, `date`, sıfır tabanlı `line`, UTF-8 `byteRange`, `spelling`,
 
 Sorgu yalnız gün dosyalarındaki olay ve görev ilk satırlarının metnini tarar. Görev alt satırları, Journal paragrafı ve notlar listede yoktur. Olay saati ve görev alanları da yoktur; örneğin `📅 2026-10-12` içindeki `2026`. Kod, var olan bağlantı, Markdown bağlantısı, URL ve çitli kod da listede yoktur. Var olan bağlantı başka varlığa bağlı aynı yazımı da kapsar.
 
-Kasa Türkçe ek (`Elif'le`, `İstanbul'da`), takma ad ve iki varlığın ortak takma adını taşır. Kasa yalnız harf büyüklüğüyle ayrışan yazımı, aynı satırda iki geçişi ve tireyle bitişik adları da taşır. Ek durumlar `@` ile açık anma, ayırt edicili varlık, emoji takma ad, NFD yazım ve çift boşluklu çok sözcüklü addır. Kasa `İSTANBUL`/`istanbul` ayrımını ve BOM, CRLF ve son satır sonu olmayan bir gün dosyasını da taşır. Fixture yazarı beklentileri uygulamadan bağımsız üretti.
+Kasa Türkçe ek (`Elif'le`, `İstanbul'da`), takma ad ve iki varlığın ortak takma adını taşır. Kasa yalnız harf büyüklüğüyle ayrışan yazımı, aynı satırda iki geçişi ve tireyle bitişik adları da taşır. Ek durumlar `@` ile açık anma, ayırt edicili varlık, emoji takma ad, NFD yazım ve çift boşluklu çok sözcüklü addır. Kasa `İSTANBUL` ve `istanbul` yazımlarını taşır: Türkçe büyük harf eşlemesi ikisini de `İstanbul` okur, `istanbul` harf boyu farkıyla öneridir. Kasa BOM, CRLF ve son satır sonu olmayan bir gün dosyasını da taşır. Fixture yazarı beklentileri uygulamadan bağımsız üretti.
 
 `recognition/unlinked-mentions-hostile/expected.json` aynı biçimde `vaults/unlinked-mentions-hostile/` kasasının beklenen çıktısıdır. Bu kasa sorguyu ve yazıcıyı zorlayan satırları toplar.
 
@@ -721,7 +723,7 @@ Kasa Türkçe ek (`Elif'le`, `İstanbul'da`), takma ad ve iki varlığın ortak 
 | Ad yerleşimi | Aynı adın satırda 4 geçişi; biri ötekinin içinde geçen iki ad (`Ece`, `Ece Yalın`); 2 tür kesme işareti ve ek; noktalamaya bitişik ad |
 | Sözdizimi | Satır içi kod, köşeli parantez, takma adlı ve kapanmamış bağlantı, Markdown bağlantısı, URL, e-posta, etiket, HTML yorumu, tablo satırı, alıntı ve iç içe liste, saat biçimleri |
 | Özel varlık ve takma ad | Adı sayı ya da alan simgesi (`📅`, `🔁`, `x`) olan varlıklar; `^kimlik` ile ad çakışması; özel karakterli takma adlar |
-| Unicode, dosya, kasa | Emoji ve birleşik karakter, NFC/NFD, Unicode satır ayırıcıları; aynı dosya adlı iki varlık (yol hedefi), ayırt edicili varlık, çitli kod, ikiz satırlar, karışık satır sonlu bir gün |
+| Unicode, dosya, kasa | Emoji ve birleşik karakter, NFC/NFD, Unicode satır ayırıcıları; `İ` ve `ı` takma adlı varlıkta `i` ve `I` yazımları, Türkçe büyük harf eşlemesiyle harf boyu farklı öneri; aynı dosya adlı iki varlık (yol hedefi), ayırt edicili varlık, çitli kod, ikiz satırlar, karışık satır sonlu bir gün |
 | Listelenmez | Görev alanının içi, yinelenen ikinci `📅` alanı ve `⏳ 2026-10-11` dahil; okunamayan tekrar kuralının içi (`🔁 every week Elif ile`: kural satır sonuna kadar sürer); bağlantı içine yazılamayan yazım (`a]b`, `a[b`) |
 | Listelenmez | Çıplak rakam ad ve takma ad: `people/Sayı.md` adı `12`, takma adları `2026`, `7`, `30`; `12 kişi`, `- 12`, `12.30`, `2026-10-12` içindekilerin hiçbiri |
 | Listelenir | `people/Sayı.md` dosyasının rakam olmayan takma adı `09:05`; HTML yorumu içindeki olay, çünkü uygulamada da olaydır |
@@ -734,15 +736,15 @@ Kasa Türkçe ek (`Elif'le`, `İstanbul'da`), takma ad ve iki varlığın ortak 
 
 `certain` öğesi `spelling` ve `file` taşır; `spelling` varlığın kendi ad ya da takma ad yazımıdır. `ambiguous` öğesi katılımcının kırpık adını `spelling` olarak ve `candidates` taşır. `candidates` varlıkların verildiği sırada dosya yollarıdır. `unknown` kırpık adlardır.
 
-Eşleme ad ya da takma adın tamamını tanıyıcının karşılaştırma anahtarıyla karşılaştırır. Anahtar yerelden bağımsız küçük harf ve kanonik Unicode eşitliği kullanır.
+Eşleme ad ya da takma adın tamamını tanıyıcının karşılaştırma anahtarıyla karşılaştırır. Anahtar `vault-format.md` ad karşılaştırma kuralıdır: Türkçe büyük harf eşlemesi (`İ` → `i`, `I` → `ı`), yerelden bağımsız küçük harf ve kanonik Unicode eşitliği.
 
 | Durum | Sonuç |
 |---|---|
 | Adla ya da takma adla (`Selin`) eşleşme; yalnız birinin takma adı (`Mert`) | Kesin |
 | Aynı adı taşıyan ayırt edicili iki varlık (`Mert Aksu`) | Belirsiz |
-| Bilinmeyen ad; Türkçe küçük harfli `ırmak ince`, çünkü yerelden bağımsız karşılaştırmada eşleşmez | Bilinmeyen |
+| Bilinmeyen ad; noktalı küçük harfli `irmak ince`, çünkü Türkçe büyük harf eşlemesi `I` harfini `ı` okur | Bilinmeyen |
 | E-posta, boş, yalnız boşluk, cihaz sahibi | Hiçbir diziye girmez |
-| NFD yazım `Baran Tunc` ve birleşen çengel; büyük harfli `IRMAK İNCE` | Eşleşir |
+| NFD yazım `Baran Tunc` ve birleşen çengel; büyük harfli `IRMAK İNCE`: anahtarı `ırmak ince` | Eşleşir |
 | Baştan sona boşluklu yinelenen ad | İkinci kez listelenmez |
 
 `Irmak İnce` yalnız bu örnekte geçen kurgusal bir kişidir. Fixture yazarı beklentileri uygulamadan bağımsız yazdı.
@@ -1142,6 +1144,7 @@ Kasa 20 Eylül'ü 4 yılda taşır. 2023 bağlantısızdır: not bağlantısı, 
 
 **Çakışma kopyaları:** Fixture yazarı `vaults/conflict-copies/expected.json` beklentisini elle yazdı. `names` saf ad kuralının tablosudur: yol ve gün dosyası (kopya değilse `null`). Tablo sayısı 1 ya da başı sıfırlı, geçersiz gün, geçersiz saat ya da takvim günü, eksik `Z`, büyük harfli `Conflict`, tam genişlikli rakam, alt klasör, kök dizin ve yer tutucu adlarını kopya saymaz. `conflictCopies` diskteki listedir: gün, addaki zaman, sonra sayı sırasıyla 5 kopya; gün dosyası olmayan `2026-09-30` kopyası da listededir. `source/conflicts/` aynı benzer adları, `eski/` alt klasörünü ve bir `.icloud` yer tutucusunu taşır; kökteki benzer adlı dosya sıradan nottur ve indekse girer. Yalnız harf boyu farklı iki ad koyma: büyük ve küçük harf duyarsız birim ikisini tek dosya sayar ve biri ötekinin üzerine yazılır. Uygulama testleri aynı kasayı iCloud Drive yolu altına kopyalar ve sahte sürüm kaynağıyla `IndexStore.computeConflictedFiles` sorgusunu sınar.
 | `nfd-names` | 4 | Ayrışmış (NFD) dosya adı, ad, takma ad ve bağlantı yazımı | `DecomposedNameTests` |
+| `turkce-buyuk-harf` | 6 | Türkçe büyük harf eşlemesi: anahtar, bağlantı, tanıma, ad çakışması | `TurkishCapitalTests` |
 
 **Şema, `vaults/sample/` kasasının klasörlerini ve dosya sayılarını gösterir.**
 
@@ -1194,6 +1197,20 @@ Aynı adlı iki kişi bağlantılarda `[[Mert Aksu]]` ve `[[Mert Aksu (iş)|Mert
 `vaults/placeholder/` gün, kişi, hedef ve kök klasördeki not için indirilmemiş yer tutucular ve bildirilmeyen `.app/.types.json.icloud` taşır. Bir gün hem yer tutucusunu hem yerel özgün dosyasını taşır; diğer dosyalar sıradan gizli Markdown ve kişi yeniden adlandırma kaynağıdır. `expected.json` bekleyen ve indekslenen yolları tanımlar. `names.json` düşman adlar, boşluk ve NFD baytlarını koruyan saf ad eşlemesini tanımlar. Uygulama oluşturma ya da taşıma işlemini reddedince tüm kasa ve SQLite baytları aynı kalır.
 
 `vaults/nfd-names/` ayrışmış (NFD) yazımın indekste birleşik (NFC) karşılaştırma anahtarına döndüğünü sınar. Git ayrışmış dosya adlarını birleşik biçime döndürür; bu yüzden test her yol parçasını NFD biçimiyle geçici kasada oluşturur ve diskteki adın NFD kaldığını denetler. `people/Baran Tunç.md` ve `places/Çınaraltı Kafe.md` adı ve takma adı NFD baytlarıyla yazar. `journal/2026-10-01.md` 3 bağlantı taşır: NFD `[[Baran Tunç]]`, NFD ve küçük harfli `[[places/çınaraltı kafe]]`, NFC `[[Baran Tunç]]`. `expected.json` NFC yolları, varlık ve takma ad anahtarlarını ve her bağlantının satırını, `targetKey` değerini ve çözülen dosyasını taşır. Test baytları karşılaştırır, çünkü Swift `==` NFC ve NFD yazımını eşit sayar. Test NFD yolu bildirerek kişiyi siler ve geri ekler; gelen bağlantılar iki yönde de yeniden çözülür.
+
+`vaults/turkce-buyuk-harf/` ad karşılaştırma anahtarındaki Türkçe büyük harf eşlemesini (`İ` → `i`, `I` → `ı`) sınar. Kasa kurgusal `people/Deniz.md`, `people/Işık.md` (takma ad `Irmak`), `people/Ian.md` ve `places/İstanbul.md` taşır. `journal/2026-10-05.md` elle yazılmış bağlantılar (`[[DENİZ]]`, `[[IŞIK]]`, `[[işık]]`, `[[istanbul]]`, `[[ISTANBUL]]`, `i` + U+0307 yazımlı `[[i̇stanbul]]`, `[[IAN]]`, `[[ian]]`) ve düz yazımlar (`DENİZ`, `IŞIK`, `İSTANBUL'a`, `IRMAK`, `irmak`) taşır. `expected.json` şu dizileri taşır:
+
+| Dizi | İçerik |
+|---|---|
+| `keys` | Ad ve beklenen anahtar; NFD yazımlar dahil |
+| `files`, `entities`, `aliases` | İndekslenen yollar ve NFC anahtar baytları |
+| `links` | Bir tabanlı satır, hedef, `targetKey` ve çözülen dosya; çözülmeyen hedefte `null` |
+| `named` | `entities(named:)` sorgusu ve dönen dosyalar |
+| `mentions` | Varlık başına bağlanmamış anmalar: sıfır tabanlı satır, UTF-8 `byteRange`, yazım, harf boyu farkı |
+| `creations`, `renames` | Oluşturma ya da yeniden adlandırma ve sonucu: yeni yol ya da `nameTaken` |
+| `placeholders` | Test kasaya yazdığı yer tutucu, oluşturulan ad ve `awaitingDownload` yolu |
+
+Ad çakışması iki okumayı birden sınar: Türkçe anahtar (`DENİZ`, `ışık`, `istanbul`) ve yalnız varsayılan küçük harf eşlemesi (`ian`, `.SELIN KAYA.md.icloud`). Her oluşturma ve yeniden adlandırma kasanın ayrı kopyasında çalışır. Reddedilen işlem kasanın baytlarını değiştirmez. Test sürüm 8 olarak işaretlenmiş, eski anahtarlı bir indeksin açılışta silindiğini de sınar. Fixture yazarı beklentileri uygulamadan bağımsız, elle yazdı.
 
 **Şema, `vaults/day-copies/` kasasında her gün için kopyaların sonucunu gösterir.**
 

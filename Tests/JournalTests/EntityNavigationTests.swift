@@ -65,6 +65,23 @@ struct EntityNavigationTests {
             ).allSatisfy { $0.kind == "place" })
     }
 
+    /// The list filter reads names by the vault's rule: the Turkish capitals (`DENİZ`, `ARIKAN`) or
+    /// the default lowercase mapping alone (`SELIN`).
+    @Test func listFilterReadsTurkishCapitals() async throws {
+        let context = try EntityPageTestContext()
+        defer { context.clean() }
+        await context.start()
+        func query(_ search: String) -> [String] {
+            EntityListQuery.entities(
+                in: context.store.content, usage: [], kind: "person", search: search, order: .name
+            ).map(\.name)
+        }
+        #expect(query("DENİZ") == ["Deniz Arıkan"])
+        #expect(query("ARIKAN") == ["Deniz Arıkan"])
+        #expect(query("SELIN") == ["Selin Korkmaz"])
+        #expect(query("İSTANBUL").isEmpty)
+    }
+
     @Test func calendarMarksOnlyExistingDaysAndHandlesLeapAndMonthBoundaries() async throws {
         let context = try EntityPageTestContext()
         defer { context.clean() }
@@ -114,6 +131,18 @@ struct EntityNavigationTests {
         #expect(event.text.spans.contains { $0.destination == entity.file })
         await model.create(.person)
         #expect(context.store.content.entities.filter { $0.id == entity.file }.count == 1)
+    }
+
+    /// The display name check reads Turkish capitals by the store's collision rule.
+    @Test func unresolvedCreationAsksQualifierForTurkishCapitalSpelling() async throws {
+        let context = try EntityPageTestContext()
+        defer { context.clean() }
+        await context.start()
+        _ = try await context.store.createEntity(kind: .place, name: "Işık Kurgusal", qualifier: "okul")
+        let model = UnresolvedEntityModel(store: context.store, target: "IŞIK KURGUSAL")
+        await model.create(.place)
+        #expect(model.needsQualifier)
+        #expect(model.created == nil)
     }
 
     @Test func unresolvedCreationAsksQualifierForExistingDisplayName() async throws {

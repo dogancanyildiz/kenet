@@ -1,11 +1,11 @@
 import Foundation
 import Testing
-
+import VaultFormat
 @testable import VaultIndex
 
 @Test func scopesCoveringIndexedPathsAddsExactCasedParents() {
     let includes: (String) -> Bool = { path in
-        let key = comparisonKey(path)
+        let key = nameComparisonKey(path)
         return key == "notes" || key.hasPrefix("notes/")
     }
     // Identity spellings: unit-level proof that indexed exact-case parents enter the scope
@@ -23,7 +23,7 @@ import Testing
 
 @Test func scopesCoveringIndexedPathsExpandsComparisonKeySiblingSpellings() {
     let includes: (String) -> Bool = { path in
-        comparisonKey(path) == "n/a.md"
+        nameComparisonKey(path) == "n/a.md"
     }
     // Only one indexed parent spelling; directorySpellings reports both on-disk variants.
     let scopes = scopesCoveringIndexedPaths(
@@ -31,7 +31,7 @@ import Testing
         indexedPaths: ["n/a.md"],
         includes: includes,
         directorySpellings: { parent in
-            comparisonKey(parent) == "n" ? ["n", "N"] : [parent]
+            nameComparisonKey(parent) == "n" ? ["n", "N"] : [parent]
         })
     #expect(scopes.contains(.shallow("n")))
     #expect(scopes.contains(.shallow("N")))
@@ -42,7 +42,7 @@ import Testing
     // while includes widens to "notes" and would delete every matching indexed path unless
     // their exact-cased parents are added.
     let includes: (String) -> Bool = { path in
-        let key = comparisonKey(path)
+        let key = nameComparisonKey(path)
         return key == "notes" || key.hasPrefix("notes/")
     }
     let scopes = scopesCoveringIndexedPaths(

@@ -1667,6 +1667,32 @@
           "file": "journal/2026-03-05.md",
           "isAmbiguous": false,
           "date": "2026-03-05"
+        },
+        {
+          "file": "journal/2026-03-05.md",
+          "date": "2026-03-05",
+          "line": 4,
+          "byteRange": [
+            22,
+            23
+          ],
+          "spelling": "I",
+          "isExplicit": false,
+          "isAmbiguous": false,
+          "isCaseMismatch": true
+        },
+        {
+          "file": "journal/2026-03-05.md",
+          "date": "2026-03-05",
+          "line": 4,
+          "byteRange": [
+            27,
+            28
+          ],
+          "spelling": "i",
+          "isExplicit": false,
+          "isAmbiguous": false,
+          "isCaseMismatch": true
         }
       ],
       "entity": "people/Tek.md"

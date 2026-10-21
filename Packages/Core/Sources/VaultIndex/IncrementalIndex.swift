@@ -25,7 +25,7 @@ extension VaultIndex {
         }
         let requested = notifications.map { notes in Set(notes.map(\.includeKey)) }
         func includes(_ path: String) -> Bool {
-            let key = comparisonKey(path)
+            let key = nameComparisonKey(path)
             return requested.map { prefixes in
                 prefixes.contains { $0.isEmpty || key == $0 || key.hasPrefix($0 + "/") }
             } ?? true
@@ -129,7 +129,7 @@ private struct StoredStamp: Decodable, FetchableRecord {
 
 private func targetKeys(_ path: String) -> Set<String> {
     let stem = String(path.dropLast(3))
-    return [comparisonKey(stem), comparisonKey((stem as NSString).lastPathComponent)]
+    return [nameComparisonKey(stem), nameComparisonKey((stem as NSString).lastPathComponent)]
 }
 
 private func remove(_ path: String, db: Database, keys: inout Set<String>, identifiers: inout Set<String>) throws {
@@ -162,9 +162,9 @@ private func repairLinks(keys: Set<String>, sources: [String], db: Database) thr
     var paths: [String: String] = [:]
     for file in try String.fetchAll(db, sql: "SELECT path FROM files ORDER BY path") {
         let stem = String(file.dropLast(3))
-        let key = comparisonKey((stem as NSString).lastPathComponent)
+        let key = nameComparisonKey((stem as NSString).lastPathComponent)
         if names[key] == nil { names[key] = file }
-        if paths[comparisonKey(stem)] == nil { paths[comparisonKey(stem)] = file }
+        if paths[nameComparisonKey(stem)] == nil { paths[nameComparisonKey(stem)] = file }
     }
     // targetKey also includes already-resolved links: a new duplicate can become the first candidate.
     // Bound each insert to one parameter, regardless of the number of changed files.
@@ -208,11 +208,11 @@ private func notification(for path: String, root: URL) -> Notification? {
     let url = path.hasPrefix("/") ? URL(fileURLWithPath: path) : root.appendingPathComponent(path)
     let absolute = resolvedNotificationPath(url).precomposedStringWithCanonicalMapping
     guard
-        comparisonKey(absolute) == comparisonKey(base)
-            || comparisonKey(absolute).hasPrefix(comparisonKey(base) + "/")
+        nameComparisonKey(absolute) == nameComparisonKey(base)
+            || nameComparisonKey(absolute).hasPrefix(nameComparisonKey(base) + "/")
     else { return nil }
     var relative =
-        comparisonKey(absolute) == comparisonKey(base) ? "" : String(absolute.dropFirst(base.count + 1))
+        nameComparisonKey(absolute) == nameComparisonKey(base) ? "" : String(absolute.dropFirst(base.count + 1))
     if let original = PlaceholderName.originalName(ofPlaceholder: url.lastPathComponent) {
         let parent = (relative as NSString).deletingLastPathComponent
         relative = (parent.isEmpty || parent == "." ? "" : parent + "/") + original
@@ -263,7 +263,7 @@ func physicalDirectorySpellings(of relative: String, root: URL) -> [String] {
     if relative.isEmpty { return [""] }
     var candidates = [""]
     for component in relative.split(separator: "/").map(String.init) {
-        let key = comparisonKey(component)
+        let key = nameComparisonKey(component)
         var next: [String] = []
         for parent in candidates {
             next.append(contentsOf: matchingDirectoryChildren(parentRelative: parent, nameKey: key, root: root))
@@ -286,7 +286,7 @@ private func matchingDirectoryChildren(parentRelative: String, nameKey: String, 
     else { return [] }
     var matches: [String] = []
     for url in urls {
-        guard comparisonKey(url.lastPathComponent) == nameKey else { continue }
+        guard nameComparisonKey(url.lastPathComponent) == nameKey else { continue }
         let values = try? url.resourceValues(forKeys: [.isDirectoryKey, .isSymbolicLinkKey])
         var directory = values?.isDirectory == true
         if values?.isSymbolicLink == true {
@@ -304,7 +304,7 @@ private func matchingDirectoryChildren(parentRelative: String, nameKey: String, 
 
 /// Widens a missing intermediate directory so its indexed subtree can be dropped.
 private func includeKey(for relative: String, root: URL) -> String {
-    let key = comparisonKey(relative)
+    let key = nameComparisonKey(relative)
     if relative.isEmpty { return key }
     var prefix = ""
     for component in relative.split(separator: "/").map(String.init) {
@@ -312,7 +312,7 @@ private func includeKey(for relative: String, root: URL) -> String {
         var isDirectory: ObjCBool = false
         if !FileManager.default.fileExists(atPath: root.appendingPathComponent(next).path, isDirectory: &isDirectory) {
             // Intermediate directory gone: drop the whole missing prefix from the index.
-            if next != relative { return comparisonKey(next) }
+            if next != relative { return nameComparisonKey(next) }
             return key
         }
         prefix = next

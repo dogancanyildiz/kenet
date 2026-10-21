@@ -81,6 +81,22 @@ struct GoalDefinitionFormTests {
         #expect(try Data(contentsOf: file) == before)
     }
 
+    /// Another goal's name in Turkish capitals is taken: `KİTAP` is `Kitap` by the store's rule.
+    @Test func turkishCapitalSpellingOfAnotherGoalIsTaken() async throws {
+        let context = try TaskTestContext(sample: true)
+        defer { context.clean() }
+        await context.start()
+        let model = try await definitionModel(context, "goals/Su.md")
+        var draft = GoalDefinitionDraft(goal: model.goal)
+        let taken = String(localized: "Bu ad zaten kullanılıyor. Başka bir ad seç.")
+        for name in ["KİTAP", "Kitap", "SPOR"] {
+            draft.name = name
+            #expect(model.error(for: .name, in: draft) == taken, "\(name)")
+        }
+        draft.name = "KITAPLIK"
+        #expect(model.error(for: .name, in: draft) == nil)
+    }
+
     @Test func milestoneKeepsPeriodAndKind() async throws {
         let context = try TaskTestContext(sample: true)
         defer { context.clean() }

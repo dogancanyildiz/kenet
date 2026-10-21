@@ -143,12 +143,13 @@ struct UnlinkedMentionTests {
         try vault.write(
             "places/İstanbul.md",
             "---\ntype: place\nname: İstanbul\naliases: [Işık, Ali-Can, O'Neil, Ünal Şen, \"%\"]\n---\n")
+        // Turkish capitals fold first (`İ` → `i`, `I` → `ı`); the index tokenizer lowercases only `I`.
         let recognized = [
-            "i\u{0307}stanbul yolu", "İstanbul'da", "İSTANBUL’dan", "Işık'ın", "işık", "ali-can", "o'neil", "ÜNAL  ŞEN",
-            "u\u{0308}nal s\u{0327}en", "(İstanbul)", "\"Işık\"", "x_Işık", "İstanbul.", "İstanbul/Ankara",
-            "yüzde % elli",
+            "i\u{0307}stanbul yolu", "İstanbul'da", "İSTANBUL’dan", "istanbul", "Işık'ın", "ışık geldi", "IŞIK", "IşIk",
+            "ali-can", "o'neil", "ÜNAL  ŞEN", "u\u{0308}nal s\u{0327}en", "(İstanbul)", "\"Işık\"", "x_Işık",
+            "İstanbul.", "İstanbul/Ankara", "yüzde % elli",
         ]
-        let unrecognized = ["ISTANBUL", "istanbul", "ışık geldi", "IŞIK", "Ali–Can", "O’Neil", "İstanbullu"]
+        let unrecognized = ["ISTANBUL", "işık", "Ali–Can", "O’Neil", "İstanbullu"]
         for (number, line) in (recognized + unrecognized).enumerated() {
             try vault.write(String(format: "journal/2026-01-%02d.md", number + 1), "## Events\n- \(line)\n")
         }

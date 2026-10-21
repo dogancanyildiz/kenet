@@ -49,8 +49,9 @@ public struct KnownEntity: Hashable, Sendable {
     public let aliases: [String]
     /// The wikilink target that resolves to this file (basename when unique, otherwise a path target).
     public let linkTarget: String
-    /// Locale-independent lowercase keys, compared with Swift's canonical Unicode equality.
-    public var comparisonKeys: [String] { ([name] + aliases).map { $0.lowercased() } }
+    /// The vault's name comparison keys (``nameComparisonFold(_:)``), compared with Swift's canonical
+    /// Unicode equality.
+    public var comparisonKeys: [String] { ([name] + aliases).map(nameComparisonFold) }
 
     /// Creates an immutable recognition input.
     public init(

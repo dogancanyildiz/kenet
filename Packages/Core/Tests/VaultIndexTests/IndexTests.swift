@@ -82,13 +82,15 @@ import VaultFormat
         #expect(snapshot.blocks.first { $0.identifier == "same" && $0.ownsIdentifier }?.firstLine == 5)
         #expect(snapshot.links.first { $0.target == "Deniz Arıkan" }?.resolvedFile == "a/Deniz Arıkan.md")
         #expect(snapshot.links.first { $0.target == "z/Deniz Arıkan" }?.resolvedFile == "z/Deniz Arıkan.md")
-        #expect(snapshot.links.first { $0.target == "işık" }?.resolvedFile == "people/Işık.md")
-        #expect(snapshot.links.first { $0.target == "ışık" }?.resolvedFile == nil)
+        // `I` folds to `ı`, so `Işık` is `ışık` and never `işık`.
+        #expect(snapshot.links.first { $0.target == "ışık" }?.resolvedFile == "people/Işık.md")
+        #expect(snapshot.links.first { $0.target == "işık" }?.resolvedFile == nil)
         #expect(snapshot.links.first { $0.target == "Çınaraltı Kafe" }?.resolvedFile == "places/Çınaraltı Kafe.md")
         #expect(snapshot.files.contains { Array($0.path.utf8) == Array("places/Çınaraltı Kafe.md".utf8) })
         #expect(snapshot.links.first { $0.target.isEmpty }?.resolvedFile == "notes/Proje Fikirleri.md")
-        #expect(try index.entities(named: "işık").count == 1)
-        #expect(try index.entities(named: "ışık").isEmpty)
+        #expect(try index.entities(named: "ışık").count == 1)
+        #expect(try index.entities(named: "IŞIK").count == 1)
+        #expect(try index.entities(named: "işık").isEmpty)
         try withVault { other in
             for source in sources { try write(other, source.0, source.1) }
             try Data([0xff]).write(to: other.appendingPathComponent("notes/Su.md"))

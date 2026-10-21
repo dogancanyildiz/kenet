@@ -70,6 +70,14 @@ extension AccessibilityAuditExemption {
         .init(
             type: .dynamicType, element: .labelPattern(Pattern.weekdayLetter),
             reason: "calendar weekday letter grows (shell.todayLandscapeAX3.png)"),
+        // iPad sidebar names grow and, at accessibility sizes, wrap (shell.todayLandscapeAX3.png,
+        // largeText.todayLandscapeAX5.png). A row switches from the list's label to its own
+        // icon-and-text row at those sizes, and the audit reports one row or another as not growing
+        // (CI runs and locally, about one run in three; the names are whole in every reference).
+        .init(type: .dynamicType, element: .identifierPrefix("sidebar."), reason: Reason.sidebarName),
+        // EmptyState's sentence is body-sized serif and grows (largeText.tasksLandscapeAX3.png,
+        // "Bir görev seç"); the CI runner reported the iPad detail column's one (run 39529050288).
+        .init(type: .dynamicType, element: .identifier("emptyState"), reason: Reason.emptyState),
         // The entity page grows at AX3: subtitle, row dates, meta lines and links
         // (entities.personDatesAX3.png).
         .init(
@@ -109,6 +117,9 @@ extension AccessibilityAuditExemption {
 private enum Reason {
     static let sectionHeader = "SectionHeader text grows at AX3 (tasksScreen.tasksAX3.png, shell.todayLandscapeAX3.png)"
     static let entityPage = "entity page text grows with Dynamic Type (entities.personDatesAX3.png)"
+    static let sidebarName =
+        "sidebar name grows and wraps at accessibility sizes (largeText.todayLandscapeAX5.png)"
+    static let emptyState = "EmptyState sentence grows with Dynamic Type (largeText.tasksLandscapeAX3.png)"
     static let barItem =
         "sheet toolbar word in the system bar, which keeps bar-item text at a fixed size"
         + " (component.sheetReadingAX3.png)"

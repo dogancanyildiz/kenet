@@ -14,11 +14,13 @@
     enum PadLargeTextCase: String, CaseIterable, Sendable {
         case todayLandscapeAX5
         case peopleLandscapeAX3
+        /// Görevler with no task open: the detail column's EmptyState sentence at AX3.
+        case tasksLandscapeAX3
 
         var dynamicType: SnapshotDynamicType {
             switch self {
             case .todayLandscapeAX5: .accessibility5
-            case .peopleLandscapeAX3: .accessibility3
+            case .peopleLandscapeAX3, .tasksLandscapeAX3: .accessibility3
             }
         }
 
@@ -38,6 +40,9 @@
                 dynamicType: snapshotCase.dynamicType, masks: snapshotCase.masks
             ) { scene in
                 let navigation = ShellNavigationState()
+                if snapshotCase == .tasksLandscapeAX3 {
+                    navigation.section = .tasks
+                }
                 if snapshotCase == .peopleLandscapeAX3 {
                     let store = scene.store
                     let entity = try #require(

@@ -4,7 +4,7 @@ import Testing
 @testable import Journal
 
 enum VaultCloudSnapshotCase: String, CaseIterable, Sendable {
-    case onboardingCloud, onboardingLocal, settingsCloud, settingsLocal, cloudUnavailable, migration
+    case onboardingCloud, onboardingLocal, settingsCloud, settingsLocal, cloudUnavailable, cloudFolderMissing, migration
 }
 
 @MainActor
@@ -15,7 +15,7 @@ private enum VaultCloudSnapshotHost {
         switch name {
         case .settingsCloud: await context.store.createCloudVault()
         case .settingsLocal: await context.store.continueLocally()
-        case .cloudUnavailable:
+        case .cloudUnavailable, .cloudFolderMissing:
             context.defaults.defaults.set("icloud", forKey: VaultLocation.kindKey)
             await context.store.start()
         default: break
@@ -29,7 +29,7 @@ private enum VaultCloudSnapshotHost {
             switch name {
             case .onboardingCloud, .onboardingLocal: OnboardingView(store: store)
             case .settingsCloud, .settingsLocal: VaultSettingsView(store: store)
-            case .cloudUnavailable: VaultInaccessibleView(store: store)
+            case .cloudUnavailable, .cloudFolderMissing: VaultInaccessibleView(store: store)
             case .migration: VaultCloudMigrationView(store: store)
             }
         }

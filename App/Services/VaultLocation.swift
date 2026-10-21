@@ -73,9 +73,23 @@ final class VaultLocation {
         return root
     }
 
-    func useCloudVault() throws -> URL {
+    /// Longest wait for another device's `.app/vault.json` before the user is asked to retry.
+    static let cloudDownloadTimeout: Duration = .seconds(20)
+
+    /// A vault whose settings file is still an iCloud placeholder is recognised and downloaded
+    /// before anything opens it; on timeout nothing is created, moved or registered.
+    private func awaitCloudVaultDownload(_ root: URL) async throws {
+        guard CloudVaultMarker.at(root) == .awaitingDownload else { return }
+        let app = root.appendingPathComponent(".app", isDirectory: true)
+        let ready = try await ubiquity.download(
+            [root, app], waitingFor: app.appendingPathComponent("vault.json"), timeout: Self.cloudDownloadTimeout)
+        guard ready else { throw CloudVaultError.downloading }
+    }
+
+    func useCloudVault() async throws -> URL {
         guard let container = cloudContainerURL else { throw CocoaError(.fileReadNoPermission) }
         let documents = container.appendingPathComponent("Documents", isDirectory: true)
+        try await awaitCloudVaultDownload(documents.appendingPathComponent("Kenet", isDirectory: true))
         try FileManager.default.createDirectory(at: documents, withIntermediateDirectories: true)
         let name = ".Kenet-tasima-" + UUID().uuidString
         let coordinator = NSFileCoordinator()
@@ -86,10 +100,11 @@ final class VaultLocation {
             outcome = Result {
                 let root = documents.appendingPathComponent("Kenet", isDirectory: true)
                 if FileManager.default.fileExists(atPath: root.path) {
-                    guard
-                        FileManager.default.fileExists(
-                            atPath: root.appendingPathComponent(".app/vault.json").path)
-                    else { throw CocoaError(.fileReadUnknown) }
+                    switch CloudVaultMarker.at(root) {
+                    case .present: break
+                    case .awaitingDownload: throw CloudVaultError.downloading
+                    case .absent: throw CocoaError(.fileReadUnknown)
+                    }
                     try validateDirectory(root)
                 } else {
                     let temporary = documents.appendingPathComponent(name, isDirectory: true)
@@ -114,6 +129,9 @@ final class VaultLocation {
         guard kind == .local, let container = cloudContainerURL else {
             throw CocoaError(.fileReadNoPermission)
         }
+        // Another device's vault is downloaded before the copy, so the vault opened afterwards
+        // has its format version on disk.
+        try await awaitCloudVaultDownload(container.appendingPathComponent("Documents/Kenet", isDirectory: true))
         let name = ".Kenet-tasima-" + UUID().uuidString
         defaults.removeObject(forKey: Self.migrationQuestionKey)
         defaults.set(name, forKey: Self.migrationTemporaryKey)

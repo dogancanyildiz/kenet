@@ -49,8 +49,8 @@ struct VaultMigration: Sendable {
         var destination = canonical
         let existing = manager.fileExists(atPath: canonical.path)
         if existing {
-            guard manager.fileExists(atPath: canonical.appendingPathComponent(".app/vault.json").path)
-            else { throw CocoaError(.fileReadUnknown) }
+            // A vault whose settings file is still an iCloud placeholder is another device's vault too.
+            guard CloudVaultMarker.at(canonical) != .absent else { throw CocoaError(.fileReadUnknown) }
             let name = "Kenet-" + Self.safeDeviceName(deviceName)
             destination = documents.appendingPathComponent(name, isDirectory: true)
             var suffix = 2

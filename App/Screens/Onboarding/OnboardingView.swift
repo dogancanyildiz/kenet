@@ -51,6 +51,9 @@ struct OnboardingView: View {
                 if store.isInspectingImport {
                     InkProgress(kind: .indeterminate(label: "Klasör inceleniyor…"))
                 }
+                if store.isOpeningCloudVault {
+                    InkProgress(kind: .indeterminate(label: "iCloud’daki kasa açılıyor…"))
+                }
                 if store.isProcessing { VaultIndexingProgress(store: store) }
                 // While the chosen vault opens; it stays in Settings → Kasa afterwards.
                 if let synced = store.syncedFolder {
@@ -67,7 +70,7 @@ struct OnboardingView: View {
         .task {
             do { try await store.refreshCloudAvailability() } catch { store.report(error) }
         }
-        .disabled(store.isProcessing || store.isInspectingImport)
+        .disabled(store.isProcessing || store.isInspectingImport || store.isOpeningCloudVault)
         .fileImporter(isPresented: $choosesFolder, allowedContentTypes: [.folder]) { result in
             switch result {
             case .success(let url): Task { await store.inspectSelection(url) }

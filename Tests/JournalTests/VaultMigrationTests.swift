@@ -70,7 +70,7 @@ struct VaultMigrationTests {
         defer { context.clean() }
         try context.installLocalSample()
         try await context.location.refreshCloudAvailability()
-        let canonical = try context.location.useCloudVault()
+        let canonical = try await context.location.useCloudVault()
         let marker = canonical.appendingPathComponent(".app/vault.json")
         let before = try Data(contentsOf: marker)
         _ = try context.location.useLocalVault()
@@ -156,6 +156,122 @@ struct VaultMigrationTests {
         #expect(FileManager.default.fileExists(atPath: context.location.localRoot.path))
     }
 
+    @Test func placeholderCloudVaultIsDownloadedThenKeptBesideTheCopy() async throws {
+        let provider = DownloadingUbiquityContainer(delivers: true)
+        let context = try CloudVaultContext(ubiquity: provider)
+        defer { context.clean() }
+        await provider.set(context.container)
+        try context.installLocalSample()
+        let root = try context.installPlaceholderCloudVault()
+        await context.store.start()
+        await context.store.migrateVaultToCloud(deviceName: "Phone")
+        #expect(context.store.errorText == nil)
+        #expect(samePath(context.store.vaultURL, root))
+        #expect(context.location.kind == .icloud)
+        let requested = await provider.requests
+        #expect(requested.count == 2)
+        #expect(samePath(requested.first, root))
+        let copied = context.container.appendingPathComponent("Documents/Kenet-Phone")
+        #expect(FileManager.default.fileExists(atPath: copied.appendingPathComponent("journal/2026-09-20.md").path))
+        #expect(!FileManager.default.fileExists(atPath: root.appendingPathComponent("journal/2026-09-20.md").path))
+        #expect(
+            try Data(contentsOf: root.appendingPathComponent(".app/vault.json"))
+                == DownloadingUbiquityContainer.settings)
+        #expect(FileManager.default.fileExists(atPath: context.location.localRoot.path))
+    }
+
+    @Test func copyRecognisesPlaceholderVaultAndNeverReplacesIt() async throws {
+        let context = try CloudVaultContext()
+        defer { context.clean() }
+        try context.installLocalSample()
+        let root = try context.installPlaceholderCloudVault()
+        let before = try FileManager.default.subpathsOfDirectory(atPath: root.path).sorted()
+        let result = try VaultMigration().copy(
+            source: context.location.localRoot, container: context.container,
+            temporaryName: ".Kenet-tasima-" + UUID().uuidString, deviceName: "Phone")
+        #expect(result.openedExistingVault)
+        #expect(result.copied.lastPathComponent == "Kenet-Phone")
+        #expect(try FileManager.default.subpathsOfDirectory(atPath: root.path).sorted() == before)
+        #expect(
+            FileManager.default.fileExists(
+                atPath: result.copied.appendingPathComponent("journal/2026-09-20.md").path))
+    }
+
+    @Test func stayingLocalAfterFailedMoveRemovesOnlyOwnTemporaryCopy() async throws {
+        let context = try CloudVaultContext()
+        defer { context.clean() }
+        try context.installLocalSample()
+        let documents = context.container.appendingPathComponent("Documents")
+        let other = documents.appendingPathComponent(".Kenet-tasima-" + UUID().uuidString)
+        try FileManager.default.createDirectory(at: other, withIntermediateDirectories: true)
+        await context.store.start()
+        #expect(context.store.showsCloudMigration)
+        let failing = VaultMigration(copyDirectory: { source, target in
+            try FileManager.default.copyItem(at: source, to: target)
+            throw CocoaError(.fileWriteUnknown)
+        })
+        await context.store.migrateVaultToCloud(deviceName: "Phone", migration: failing)
+        #expect(context.store.errorText != nil)
+        let name = try #require(context.defaults.defaults.string(forKey: "vaultMigrationTemporaryName"))
+        let owned = documents.appendingPathComponent(name)
+        #expect(FileManager.default.fileExists(atPath: owned.path))
+        await context.store.continueLocally()
+        #expect(!FileManager.default.fileExists(atPath: owned.path))
+        #expect(FileManager.default.fileExists(atPath: other.path))
+        #expect(context.defaults.defaults.string(forKey: "vaultMigrationTemporaryName") == nil)
+        #expect(!context.store.showsCloudMigration)
+        #expect(context.location.kind == .local)
+        #expect(context.store.vaultURL == context.location.localRoot)
+        #expect(
+            FileManager.default.fileExists(
+                atPath: context.location.localRoot.appendingPathComponent("journal/2026-09-20.md").path))
+    }
+
+    @Test func writesAreClosedWhileTheVaultIsCopied() async throws {
+        let context = try CloudVaultContext()
+        defer { context.clean() }
+        try context.installLocalSample()
+        await context.store.start()
+        #expect(context.store.canAddEvent)
+        let store = context.store
+        let recorder = MigrationFlagRecorder()
+        let migration = VaultMigration(copyDirectory: { source, target in
+            // The copy runs off the main actor while the store awaits it; read the flags there.
+            DispatchQueue.main.sync {
+                MainActor.assumeIsolated {
+                    recorder.flags.append(.init(canAddEvent: store.canAddEvent, migrating: store.isMigratingCloud))
+                }
+            }
+            try FileManager.default.copyItem(at: source, to: target)
+        })
+        await context.store.migrateVaultToCloud(deviceName: "Phone", migration: migration)
+        #expect(recorder.flags == [.init(canAddEvent: false, migrating: true)])
+        #expect(context.location.kind == .icloud)
+        #expect(context.store.canAddEvent)
+    }
+
+    @Test func sourceChangedDuringCopyIsNotPublished() async throws {
+        let context = try CloudVaultContext()
+        defer { context.clean() }
+        try context.installLocalSample()
+        try await context.location.refreshCloudAvailability()
+        let late = Data("- 10:00 Late event\n".utf8)
+        let migration = VaultMigration(copyDirectory: { source, target in
+            try FileManager.default.copyItem(at: source, to: target)
+            try late.write(to: source.appendingPathComponent("journal/2026-09-21-late.md"))
+        })
+        do {
+            _ = try await context.location.migrateToCloud(deviceName: "Phone", migration: migration)
+            Issue.record("A copy older than its source was published")
+        } catch {}
+        #expect(context.location.kind == .local)
+        #expect(
+            !FileManager.default.fileExists(atPath: context.container.appendingPathComponent("Documents/Kenet").path))
+        #expect(
+            try Data(contentsOf: context.location.localRoot.appendingPathComponent("journal/2026-09-21-late.md"))
+                == late)
+    }
+
     @Test func unrecognizedCloudFolderIsNotReplaced() async throws {
         let context = try CloudVaultContext()
         defer { context.clean() }
@@ -171,4 +287,13 @@ struct VaultMigrationTests {
         #expect(try Data(contentsOf: file) == Data([42]))
         #expect(FileManager.default.fileExists(atPath: context.location.localRoot.path))
     }
+}
+
+@MainActor
+private final class MigrationFlagRecorder {
+    struct Flags: Equatable {
+        let canAddEvent: Bool
+        let migrating: Bool
+    }
+    var flags: [Flags] = []
 }

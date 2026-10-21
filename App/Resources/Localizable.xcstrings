@@ -7733,6 +7733,22 @@
         }
       }
     },
+    "iCloud Drive’daki Kenet klasörü bulunamadı veya açılamıyor. Klasörü geri koyup yeniden dene ya da başka bir seçenek seç." : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud Drive’daki Kenet klasörü bulunamadı veya açılamıyor. Klasörü geri koyup yeniden dene ya da başka bir seçenek seç."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Kenet folder in iCloud Drive is missing or can’t be opened. Put the folder back and try again, or choose another option."
+          }
+        }
+      }
+    },
     "iCloud kapalı" : {
       "localizations" : {
         "tr" : {
@@ -7793,6 +7809,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Store in iCloud"
+          }
+        }
+      }
+    },
+    "iCloud’daki kasa açılıyor…" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud’daki kasa açılıyor…"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opening the vault in iCloud…"
+          }
+        }
+      }
+    },
+    "iCloud’daki kasaya erişilemiyor." : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud’daki kasaya erişilemiyor."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The vault in iCloud can’t be opened."
           }
         }
       }
@@ -8305,6 +8353,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Copying vault to iCloud…"
+          }
+        }
+      }
+    },
+    "Kasa iCloud’dan iniyor. Biraz sonra yeniden dene." : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kasa iCloud’dan iniyor. Biraz sonra yeniden dene."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The vault is downloading from iCloud. Try again in a moment."
           }
         }
       }
@@ -13853,22 +13917,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Yeni kasa, Dosyalar’da iPad’imde → Kenet → Vault klasöründe oluşturulur."
-          }
-        }
-      }
-    },
-    "Yeni kasa, Dosyalar’da iPhone’umda → Journal → Vault klasöründe oluşturulur." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "A new vault is created in Files under On My iPhone → Kenet → Vault."
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Yeni kasa, Dosyalar’da iPhone’umda → Kenet → Vault klasöründe oluşturulur."
           }
         }
       }

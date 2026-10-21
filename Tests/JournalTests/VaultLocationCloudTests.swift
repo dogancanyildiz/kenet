@@ -30,6 +30,18 @@ struct CloudVaultContext {
         try FileManager.default.copyItem(at: fixture, to: location.localRoot)
     }
 
+    /// Another device's vault as it first appears here: folders and iCloud placeholders only.
+    func installPlaceholderCloudVault() throws -> URL {
+        let root = container.appendingPathComponent("Documents/Kenet", isDirectory: true)
+        let app = root.appendingPathComponent(".app", isDirectory: true)
+        try FileManager.default.createDirectory(at: app, withIntermediateDirectories: true)
+        try Data().write(to: app.appendingPathComponent(".vault.json.icloud"))
+        try FileManager.default.createDirectory(
+            at: root.appendingPathComponent("journal"), withIntermediateDirectories: true)
+        try Data().write(to: root.appendingPathComponent("journal/.2030-01-01.md.icloud"))
+        return root
+    }
+
     func clean() {
         store.setForeground(false)
         try? FileManager.default.removeItem(at: directory)
@@ -43,6 +55,33 @@ private actor CountingUbiquityContainer: UbiquityContainerProviding {
         calls += 1
         return nil
     }
+}
+
+/// Stands in for iCloud's download: records each request and, when it delivers, swaps the
+/// placeholder for the settings file as the system would.
+actor DownloadingUbiquityContainer: UbiquityContainerProviding {
+    static let settings = Data("{\"formatVersion\":1}".utf8)
+    private var url: URL?
+    private let delivers: Bool
+    private(set) var requests: [URL] = []
+
+    init(delivers: Bool) { self.delivers = delivers }
+    func set(_ url: URL?) { self.url = url }
+    func containerURL() async -> URL? { url }
+
+    func download(_ items: [URL], waitingFor file: URL, timeout: Duration) async throws -> Bool {
+        requests += items
+        guard delivers else { return false }
+        let app = file.deletingLastPathComponent()
+        try FileManager.default.removeItem(at: app.appendingPathComponent(".vault.json.icloud"))
+        try Self.settings.write(to: file)
+        return true
+    }
+}
+
+func samePath(_ lhs: URL?, _ rhs: URL) -> Bool {
+    lhs?.resolvingSymlinksInPath().standardizedFileURL.pathComponents
+        == rhs.resolvingSymlinksInPath().standardizedFileURL.pathComponents
 }
 
 private actor SwitchingUbiquityContainer: UbiquityContainerProviding {
@@ -83,12 +122,68 @@ struct VaultLocationCloudTests {
         let bytes = Data("{ \"formatVersion\": 99 }\n".utf8)
         try bytes.write(to: root.appendingPathComponent(".app/vault.json"))
         try await context.location.refreshCloudAvailability()
-        let opened = try context.location.useCloudVault()
+        let opened = try await context.location.useCloudVault()
         #expect(
             opened.resolvingSymlinksInPath().standardizedFileURL.pathComponents
                 == root.resolvingSymlinksInPath().standardizedFileURL.pathComponents)
         #expect(try Data(contentsOf: root.appendingPathComponent(".app/vault.json")) == bytes)
         #expect(!FileManager.default.fileExists(atPath: root.appendingPathComponent("templates").path))
+    }
+
+    @Test func placeholderCloudVaultIsDownloadedAndOpenedWithoutBootstrapping() async throws {
+        let provider = DownloadingUbiquityContainer(delivers: true)
+        let context = try CloudVaultContext(ubiquity: provider)
+        defer { context.clean() }
+        await provider.set(context.container)
+        let root = try context.installPlaceholderCloudVault()
+        await context.store.createCloudVault()
+        #expect(context.store.errorText == nil)
+        #expect(samePath(context.store.vaultURL, root))
+        #expect(context.location.kind == .icloud)
+        #expect(!context.store.isOpeningCloudVault)
+        let requested = await provider.requests
+        #expect(requested.count == 2)
+        #expect(samePath(requested.first, root))
+        #expect(samePath(requested.last, root.appendingPathComponent(".app")))
+        // The downloaded settings stay as they arrived; nothing is bootstrapped over them.
+        #expect(
+            try Data(contentsOf: root.appendingPathComponent(".app/vault.json"))
+                == DownloadingUbiquityContainer.settings)
+        #expect(!FileManager.default.fileExists(atPath: root.appendingPathComponent("templates").path))
+        #expect(
+            FileManager.default.fileExists(atPath: root.appendingPathComponent("journal/.2030-01-01.md.icloud").path))
+    }
+
+    @Test func placeholderCloudVaultThatDoesNotArriveChangesNothing() async throws {
+        let provider = DownloadingUbiquityContainer(delivers: false)
+        let context = try CloudVaultContext(ubiquity: provider)
+        defer { context.clean() }
+        await provider.set(context.container)
+        let root = try context.installPlaceholderCloudVault()
+        let before = try FileManager.default.subpathsOfDirectory(atPath: context.container.path).sorted()
+        await context.store.createCloudVault()
+        let message = try #require(CloudVaultError.downloading.errorDescription)
+        #expect(context.store.errorText?.contains(message) == true)
+        #expect(await provider.requests.count == 2)
+        #expect(context.location.kind == .local)
+        #expect(context.store.vaultURL == nil)
+        #expect(!context.store.isOpeningCloudVault)
+        #expect(try FileManager.default.subpathsOfDirectory(atPath: context.container.path).sorted() == before)
+        #expect(!FileManager.default.fileExists(atPath: root.appendingPathComponent(".app/vault.json").path))
+        #expect(!FileManager.default.fileExists(atPath: context.location.localRoot.path))
+    }
+
+    @Test func missingCloudFolderIsNotReportedAsICloudOff() async throws {
+        let context = try CloudVaultContext()
+        defer { context.clean() }
+        context.defaults.defaults.set("icloud", forKey: VaultLocation.kindKey)
+        await context.store.start()
+        #expect(context.store.isVaultInaccessible)
+        // iCloud answered: the inaccessible screen names the missing folder, not a disabled iCloud.
+        #expect(context.store.isCloudAvailable)
+        #expect(context.location.kind == .icloud)
+        #expect(
+            !FileManager.default.fileExists(atPath: context.container.appendingPathComponent("Documents/Kenet").path))
     }
 
     @Test func unavailableCloudKeepsRegistrationAndDoesNotCreateLocalVault() async throws {
@@ -97,6 +192,7 @@ struct VaultLocationCloudTests {
         context.defaults.defaults.set("icloud", forKey: VaultLocation.kindKey)
         await context.store.start()
         #expect(context.store.isVaultInaccessible)
+        #expect(!context.store.isCloudAvailable)
         #expect(!context.store.canAddEvent)
         #expect(context.location.kind == .icloud)
         #expect(!FileManager.default.fileExists(atPath: context.location.localRoot.path))

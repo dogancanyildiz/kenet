@@ -1146,6 +1146,8 @@ final class IndexStore {
 
     private(set) var isCloudAvailable = false
     private(set) var isMigratingCloud = false
+    /// Waiting for another device's vault to download before it opens.
+    private(set) var isOpeningCloudVault = false
     var showsCloudMigration = false
     private(set) var isCloudMigrationAutomatic = false
 
@@ -1511,6 +1513,9 @@ extension IndexStore {
 
     func continueLocally() async {
         guard !isMigratingCloud else { return }
+        // A failed move leaves only this device's own temporary copy behind; it goes now.
+        // A failed removal stays recorded for the next move and never blocks staying local.
+        do { try await location.recoverInterruptedMigration() } catch { report(error) }
         do {
             location.declineCloudMigration()
             if vaultURL == location.localRoot, !isVaultInaccessible {
@@ -1525,17 +1530,19 @@ extension IndexStore {
     }
 
     func createCloudVault() async {
-        guard !isMigratingCloud else { return }
+        guard !isMigratingCloud, !isOpeningCloudVault else { return }
+        isOpeningCloudVault = true
+        defer { isOpeningCloudVault = false }
         do {
             try await refreshCloudAvailability()
             try await location.recoverInterruptedMigration()
-            let root = try location.useCloudVault()
+            let root = try await location.useCloudVault()
             isVaultInaccessible = false
             await open(root)
         } catch { report(error) }
     }
 
-    func migrateVaultToCloud(deviceName: String) async {
+    func migrateVaultToCloud(deviceName: String, migration: VaultMigration = VaultMigration()) async {
         guard !isMigratingCloud, location.kind == .local else { return }
         isMigratingCloud = true
         defer { isMigratingCloud = false }
@@ -1546,7 +1553,7 @@ extension IndexStore {
                 defer { isProcessing = false }
                 try await refreshCloudAvailability()
                 try await location.recoverInterruptedMigration()
-                let result = try await location.migrateToCloud(deviceName: deviceName)
+                let result = try await location.migrateToCloud(deviceName: deviceName, migration: migration)
                 showsCloudMigration = false
                 await open(result.opened)
                 if result.openedExistingVault {

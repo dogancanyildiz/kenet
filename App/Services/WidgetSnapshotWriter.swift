@@ -41,6 +41,9 @@ struct SystemWidgetTimelines: WidgetTimelineReloading {
     private var again = false
     /// The widget mark (`WidgetSnapshot.markedAt`) whose day files were rescanned already.
     private var reconciledMark: Date?
+    /// A change of the lock's moment written without a reload: leaving for the background tells
+    /// the widget (`sceneLeftForeground`).
+    private var unannounced = false
 
     init(
         store: IndexStore, group: any AppGroupStore, timelines: any WidgetTimelineReloading = SystemWidgetTimelines(),
@@ -83,6 +86,25 @@ struct SystemWidgetTimelines: WidgetTimelineReloading {
         running = nil
     }
 
+    /// The scene left the foreground; `JournalApp` hands every inactive and background phase here,
+    /// so the lock and the snapshot move together. The lock service covers the app and, in the
+    /// background, starts its timeout. A lock that engaged just now ("immediately", in the
+    /// background) removes the file (`lockEngaged`); otherwise the file learns when the lock
+    /// engages (`lockDeferred`), already on inactive: a process that ends without a background
+    /// phase still leaves the moment behind, and the widget's marker obeys it. Only the
+    /// background reloads the widget: Notification Center and the app switcher pass through
+    /// inactive often, and every reload spends WidgetKit's daily budget. The foreground's next
+    /// write leaves the moment out again, without a reload either.
+    func sceneLeftForeground(lockService lock: AppLockService, background: Bool) {
+        let wasLocked = lock.isLocked
+        lock.resignActive(startTimeout: background)
+        if !wasLocked && lock.isLocked {
+            lockEngaged()
+        } else {
+            lockDeferred(announce: background)
+        }
+    }
+
     /// The app engaged its lock while running (docs/architecture.md "Widget'lar"): the widget
     /// shows "open Kenet" until the unlock writes again. A lock found on arriving in the
     /// foreground, or one that ran out in the background, leaves the file alone.
@@ -95,14 +117,18 @@ struct SystemWidgetTimelines: WidgetTimelineReloading {
     /// the moment the lock engages (`WidgetSnapshot.lockedAfter`). From then on the widget shows
     /// "open Kenet" and marks nothing, though no app runs to remove the file. Written at once,
     /// not after a query: the app may be suspended any moment now. The next write in the
-    /// foreground, unlocked, leaves the moment out.
-    func lockDeferred() {
-        guard let url = group.widgetSnapshotURL, let deadline = lockDeadline(),
-            var written = WidgetSnapshotFile.read(from: url), written.lockedAfter != deadline
-        else { return }
-        written.lockedAfter = deadline
-        do { try WidgetSnapshotFile.write(written, to: url) } catch { return }
-        timelines.reloadTimelines(ofKind: WidgetKinds.goalChain)
+    /// foreground, unlocked, leaves the moment out. `announce` reloads the widget for this and
+    /// for any change of the moment written without a reload before.
+    func lockDeferred(announce: Bool = true) {
+        guard let url = group.widgetSnapshotURL else { return }
+        if let deadline = lockDeadline(), var written = WidgetSnapshotFile.read(from: url),
+            written.lockedAfter != deadline
+        {
+            written.lockedAfter = deadline
+            do { try WidgetSnapshotFile.write(written, to: url) } catch { return }
+            unannounced = true
+        }
+        if announce && unannounced { reload() }
     }
 
     private func write() async {
@@ -156,18 +182,34 @@ struct SystemWidgetTimelines: WidgetTimelineReloading {
             remove(url)
             return
         }
-        if let written = WidgetSnapshotFile.read(from: url), written.hasSameContent(as: snapshot) {
-            // The index agrees with the widget's mark: the mark goes, the widget has nothing new to draw.
-            if written.markedAt != nil { try? WidgetSnapshotFile.write(snapshot, to: url) }
-            return
+        if let written = WidgetSnapshotFile.read(from: url) {
+            if written.hasSameContent(as: snapshot) {
+                // The index agrees with the widget's mark: the mark goes, the widget has nothing new to draw.
+                if written.markedAt != nil { try? WidgetSnapshotFile.write(snapshot, to: url) }
+                return
+            }
+            var sameDays = snapshot
+            sameDays.lockedAfter = written.lockedAfter
+            if written.hasSameContent(as: sameDays) {
+                // Only the lock's moment changed (back in the foreground, or a new one): the file
+                // follows at once, the widget learns it on leaving for the background.
+                do { try WidgetSnapshotFile.write(snapshot, to: url) } catch { return }
+                unannounced = true
+                return
+            }
         }
         do { try WidgetSnapshotFile.write(snapshot, to: url) } catch { return }
-        timelines.reloadTimelines(ofKind: WidgetKinds.goalChain)
+        reload()
     }
 
     private func remove(_ url: URL) {
         guard FileManager.default.fileExists(atPath: url.path) else { return }
         try? FileManager.default.removeItem(at: url)
+        reload()
+    }
+
+    private func reload() {
+        unannounced = false
         timelines.reloadTimelines(ofKind: WidgetKinds.goalChain)
     }
 

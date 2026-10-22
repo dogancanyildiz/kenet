@@ -43,6 +43,8 @@ enum AppLockDelay: Int, CaseIterable {
     @ObservationIgnored private let makeContext: () -> any AppLockAuthenticating
     @ObservationIgnored private let now: () -> Date
     @ObservationIgnored private var suspendedAt: Date?
+    /// When the app last went inactive; unlike `suspendedAt` it starts no timeout.
+    @ObservationIgnored private var resignedAt: Date?
     @ObservationIgnored private var context: (any AppLockAuthenticating)?
     @ObservationIgnored private var attempt = UUID()
     @ObservationIgnored private var covers: [UUID: () -> Void] = [:]
@@ -78,6 +80,7 @@ enum AppLockDelay: Int, CaseIterable {
     /// On macOS resignation of application activity is the equivalent of background.
     func resignActive(startTimeout: Bool) {
         isForeground = false
+        if resignedAt == nil { resignedAt = now() }
         if startTimeout { cancelAuthentication() }
         if isEnabled && startTimeout {
             if suspendedAt == nil { suspendedAt = now() }
@@ -104,6 +107,7 @@ enum AppLockDelay: Int, CaseIterable {
         isForeground = true
         updateLockForElapsedTime()
         suspendedAt = nil
+        resignedAt = nil
         refreshCovers()
     }
 
@@ -118,6 +122,7 @@ enum AppLockDelay: Int, CaseIterable {
         isLocked = false
         // System auth prompts deactivate the scene; do not treat that as suspension.
         suspendedAt = nil
+        resignedAt = nil
         refreshCovers()
         return true
     }
@@ -151,12 +156,16 @@ enum AppLockDelay: Int, CaseIterable {
 
     func unregisterCover(_ id: UUID) { covers[id] = nil }
 
-    /// When the lock engages while the app is away: the moment the delay runs out. Nil when the
-    /// lock is off or engaged already, or the app is in the foreground. The widget, which cannot
-    /// ask this service, learns it from its snapshot (`WidgetSnapshotWriter.lockDeferred`).
+    /// When the lock engages while the app is away: the moment the delay runs out, counted from
+    /// the background or, while the app is only inactive, from then. Nil when the lock is off or
+    /// engaged already, or the app is in the foreground. The widget, which cannot ask this
+    /// service, learns it from its snapshot (`WidgetSnapshotWriter.lockDeferred`).
     var locksAt: Date? {
-        guard isEnabled, !isLocked, let suspendedAt else { return nil }
-        return suspendedAt.addingTimeInterval(Double(delay.rawValue))
+        guard isEnabled, !isLocked, !isForeground, let since = suspendedAt ?? resignedAt else { return nil }
+        let moment = since.addingTimeInterval(Double(delay.rawValue)).timeIntervalSince1970
+        // The snapshot keeps whole seconds (ISO 8601): rounded down, the moment read back from
+        // the file equals this one, and the widget stops early rather than late.
+        return Date(timeIntervalSince1970: moment.rounded(.down))
     }
 
     /// Intents and geofence mark actions call this while the app may stay backgrounded;

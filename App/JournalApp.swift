@@ -172,11 +172,12 @@ struct JournalApp: App {
         .onChange(of: scenePhase, initial: true) { _, phase in
             #if os(iOS)
                 if AppLaunchPolicy.allowsAutomaticStart() {
+                    // Leaving goes through the widget writer: the lock and the snapshot move together.
                     switch phase {
                     case .active: appLock.activate()
-                    case .inactive: appLock.resignActive(startTimeout: false)
-                    case .background: leave()
-                    @unknown default: leave()
+                    case .inactive: widgetSnapshots.sceneLeftForeground(lockService: appLock, background: false)
+                    case .background: widgetSnapshots.sceneLeftForeground(lockService: appLock, background: true)
+                    @unknown default: widgetSnapshots.sceneLeftForeground(lockService: appLock, background: true)
                     }
                 }
             #endif
@@ -201,20 +202,4 @@ struct JournalApp: App {
             #endif
         }
     }
-
-    #if os(iOS)
-        /// Leaving the app with the "immediately" delay engages the lock here, while the app runs:
-        /// the widget snapshot goes with it (docs/architecture.md "Widget'lar"). A longer delay
-        /// runs out later in the background: the snapshot stays and learns when, so the widget
-        /// stops marking then.
-        private func leave() {
-            let wasLocked = appLock.isLocked
-            appLock.resignActive(startTimeout: true)
-            if !wasLocked && appLock.isLocked {
-                widgetSnapshots.lockEngaged()
-            } else {
-                widgetSnapshots.lockDeferred()
-            }
-        }
-    #endif
 }

@@ -245,8 +245,10 @@ struct WidgetMarkingTests {
         await lock.setEnabled(true)
         lock.delay = .fiveMinutes
         #expect(lock.locksAt == nil)
+        // Inactive starts no timeout, but names the moment in case no background phase follows.
         lock.resignActive(startTimeout: false)
-        #expect(lock.locksAt == nil)
+        #expect(lock.locksAt == fixture.time.addingTimeInterval(300))
+        fixture.time = fixture.time.addingTimeInterval(20)
         lock.resignActive(startTimeout: true)
         #expect(lock.locksAt == fixture.time.addingTimeInterval(300))
         await lock.becomeActive()
@@ -256,6 +258,92 @@ struct WidgetMarkingTests {
         lock.resignActive(startTimeout: true)
         #expect(lock.isLocked)
         #expect(lock.locksAt == nil)
+    }
+
+    /// `JournalApp` hands every scene phase that leaves the foreground to the writer
+    /// (`sceneLeftForeground`), with the real lock service. Lock off: the file stays as it is.
+    /// Delayed lock: inactive already writes the moment, the foreground leaves it out again, the
+    /// background writes the moment the delay runs out. Only the background reloads the widget:
+    /// inactive and the foreground write without a reload (WidgetKit's daily budget).
+    /// "Immediately": the lock engages on leaving and the file goes.
+    @Test func leavingTheSceneTellsTheWidgetWhenTheLockEngages() async throws {
+        let harness = try AppLockWidgetHarness()
+        defer { harness.clean() }
+        await harness.start()
+        let unlocked = try Data(contentsOf: harness.file)
+        let before = try #require(harness.snapshot)
+        let reloads = harness.timelines.reloads.count
+
+        harness.writer.sceneLeftForeground(lockService: harness.lock, background: false)
+        harness.writer.sceneLeftForeground(lockService: harness.lock, background: true)
+        #expect(try Data(contentsOf: harness.file) == unlocked)
+        #expect(harness.timelines.reloads.count == reloads)
+
+        await harness.lock.becomeActive()
+        await harness.lock.setEnabled(true)
+        harness.lock.delay = .fiveMinutes
+        harness.writer.sceneLeftForeground(lockService: harness.lock, background: false)
+        #expect(harness.snapshot?.lockedAfter == WidgetSnapshotTests.noon.addingTimeInterval(300))
+        #expect(harness.snapshot?.days == before.days)
+        #expect(harness.timelines.reloads.count == reloads)
+
+        await harness.foreground()
+        #expect(harness.snapshot?.lockedAfter == nil)
+        #expect(harness.timelines.reloads.count == reloads)
+
+        harness.fixture.time = harness.fixture.time.addingTimeInterval(60)
+        harness.writer.sceneLeftForeground(lockService: harness.lock, background: false)
+        #expect(harness.timelines.reloads.count == reloads)
+        harness.writer.sceneLeftForeground(lockService: harness.lock, background: true)
+        #expect(!harness.lock.isLocked)
+        #expect(harness.snapshot?.lockedAfter == WidgetSnapshotTests.noon.addingTimeInterval(360))
+        #expect(harness.snapshot?.days == before.days)
+        #expect(harness.timelines.reloads.count == reloads + 1)
+
+        await harness.foreground()
+        #expect(harness.snapshot?.lockedAfter == nil)
+        #expect(harness.timelines.reloads.count == reloads + 1)
+        harness.lock.delay = .immediately
+        harness.writer.sceneLeftForeground(lockService: harness.lock, background: false)
+        // Inactive does not lock; with no delay the moment is now.
+        #expect(!harness.lock.isLocked)
+        #expect(harness.snapshot?.lockedAfter == WidgetSnapshotTests.noon.addingTimeInterval(60))
+        #expect(harness.timelines.reloads.count == reloads + 1)
+        harness.writer.sceneLeftForeground(lockService: harness.lock, background: true)
+        #expect(harness.lock.isLocked)
+        #expect(!FileManager.default.fileExists(atPath: harness.file.path))
+        #expect(harness.timelines.reloads.count == reloads + 2)
+    }
+
+    /// The snapshot keeps whole seconds, the lock service's clock does not: the moment is
+    /// rounded down, so the file reads back the same moment and a publish in the background
+    /// before the lock engages neither rewrites the file nor redraws the widget. Inactive writes
+    /// the moment without a reload; the background, finding the same moment, reloads once.
+    @Test func lockMomentInWholeSecondsKeepsBackgroundPublishesQuiet() async throws {
+        let harness = try AppLockWidgetHarness()
+        defer { harness.clean() }
+        await harness.start()
+        await harness.lock.setEnabled(true)
+        harness.lock.delay = .fiveMinutes
+        let before = harness.timelines.reloads.count
+
+        harness.writer.sceneLeftForeground(lockService: harness.lock, background: false)
+        #expect(harness.snapshot?.lockedAfter == WidgetSnapshotTests.noon.addingTimeInterval(300))
+        #expect(harness.timelines.reloads.count == before)
+        harness.writer.sceneLeftForeground(lockService: harness.lock, background: true)
+        let deadline = try #require(harness.lock.locksAt)
+        #expect(deadline == WidgetSnapshotTests.noon.addingTimeInterval(300))
+        #expect(harness.snapshot?.lockedAfter == deadline)
+        #expect(harness.timelines.reloads.count == before + 1)
+        let written = try Data(contentsOf: harness.file)
+        let reloads = harness.timelines.reloads.count
+
+        harness.fixture.time = harness.fixture.time.addingTimeInterval(10)
+        harness.writer.update()
+        await harness.writer.settle()
+        #expect(!harness.lock.isLockedNow())
+        #expect(try Data(contentsOf: harness.file) == written)
+        #expect(harness.timelines.reloads.count == reloads)
     }
 
     /// A local vault lives in the app's sandbox: its snapshot names no cloud path, a tap opens
@@ -559,6 +647,53 @@ final class HeldCoordinatedWrite: @unchecked Sendable {
                 continuation.resume()
             }
         }
+    }
+}
+
+/// The writer joined to a real `AppLockService` as `JournalApp` joins them, on `GraceDayVault`
+/// in a local vault. The clock starts at noon and 0.68 seconds: the lock service's moments carry
+/// a fraction of a second, as `Date()` does.
+@MainActor struct AppLockWidgetHarness {
+    let context: TaskTestContext
+    let group: URL
+    let fixture = LockFixture()
+    let lock: AppLockService
+    let timelines = FakeWidgetTimelines()
+    let writer: WidgetSnapshotWriter
+
+    init() throws {
+        context = try TaskTestContext()
+        try GraceDayVault.generate(at: context.root)
+        group = context.directory.appendingPathComponent("group", isDirectory: true)
+        let fixture = fixture
+        fixture.time = WidgetSnapshotTests.noon.addingTimeInterval(0.68)
+        let lock = fixture.lock()
+        self.lock = lock
+        writer = WidgetSnapshotWriter(
+            store: context.store, group: FolderAppGroupStore(containerURL: group), timelines: timelines,
+            isLocked: { lock.isLockedNow() }, lockDeadline: { lock.locksAt }, now: { fixture.time })
+        writer.attach()
+    }
+
+    var file: URL { WidgetSnapshotFile.url(in: group) }
+    var snapshot: WidgetSnapshot? { WidgetSnapshotFile.read(from: file) }
+
+    func start() async {
+        await context.start()
+        await writer.settle()
+        await lock.becomeActive()
+    }
+
+    /// Back in the foreground, unlocked: the lock service first, then the snapshot (`JournalApp`).
+    func foreground() async {
+        await lock.becomeActive()
+        writer.update()
+        await writer.settle()
+    }
+
+    func clean() {
+        context.clean()
+        fixture.clean()
     }
 }
 

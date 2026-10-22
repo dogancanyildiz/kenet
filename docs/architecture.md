@@ -408,7 +408,7 @@ Okuma modeli gün listesi tutmaz. Günlük listesi bütün günleri sorgular: iP
 | Haftalık inceleme | `openTasks(dueBy:orWrittenFrom:)` | İki haftanın açık işleri |
 | Görev ayrıntısı | `task(id:)` | Seçilen görev; sorgu görevi kimliğiyle yeniden okur |
 
-Kişi ve proje süzgeci sorguya gider: `TaskScope`. Sorgu projeyi anahtarla karşılaştırır. Bütün görev sorguları `IndexStore.compute…Tasks` ile arka planda çalışır. Her yazmadan sonra `.task(id:)` sorguları yeniden çalıştırır. Gruplamayı ve sıralamayı ekran modelleri eskisi gibi yapar. Okuma modeli görev tutmaz.
+Kişi ve proje süzgeci sorguya gider: `TaskScope`. Sorgu projeyi anahtarla karşılaştırır. Bütün görev sorguları `IndexStore.compute…Tasks` ile arka planda çalışır. Her yazmadan sonra `.task(id:)` sorguları yeniden çalıştırır. Gruplamayı ve sıralamayı ekran modelleri eskisi gibi yapar. Okuma modeli görev tutmaz. Kanban sütunları önbelleklidir: `KanbanModel` sütunları satırlar, gruplama, iptal anahtarı, gün, proje adları ya da kişi listesi değişince bir kez kurar. Pano, kartların taşı menüsü ve VoiceOver eylemleri aynı sütunları okur; kart satırları gezmez, yalnız sütun adını ve hedefini (`moveTargets`) okur.
 
 **Tablo proje adlarının ve varlığın açık işlerinin kaynağını gösterir.**
 

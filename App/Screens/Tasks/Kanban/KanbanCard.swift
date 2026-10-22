@@ -16,13 +16,13 @@ struct KanbanCard: View {
                 Button("Ayrıntıları göster", systemImage: "info.circle", action: select)
                 if model.grouping != .person {
                     Menu("Taşı") {
-                        ForEach(model.columns) { column in
+                        ForEach(model.moveTargets) { target in
                             Button {
-                                Task { await model.move(row, to: column) }
+                                Task { await model.move(row, to: target) }
                             } label: {
-                                column.title
+                                target.title
                             }
-                            .disabled(!model.canMove(row, to: column))
+                            .disabled(!model.canMove(row, to: target))
                         }
                     }
                 }
@@ -165,22 +165,23 @@ private final class KanbanDragSessionEndBox: @unchecked Sendable {
     deinit { onEnd() }
 }
 
-/// Chains one VoiceOver action per movable destination column.
+/// Chains one VoiceOver action per movable destination column (``KanbanModel/moveTargets``:
+/// the cached column list without rows).
 private struct KanbanMoveAccessibilityActions: ViewModifier {
     let model: KanbanModel
     let row: TaskRow
     @Environment(\.locale) private var locale
 
     func body(content: Content) -> some View {
-        let destinations = model.columns.filter { model.canMove(row, to: $0) }
-        return destinations.reduce(AnyView(content)) { view, column in
+        let destinations = model.moveTargets.filter { model.canMove(row, to: $0) }
+        return destinations.reduce(AnyView(content)) { view, target in
             AnyView(
                 view.accessibilityAction(
                     named: Text(
                         verbatim: VoiceOverCopy.moveActionName(
-                            columnTitle: column.localizedTitle(locale: locale)))
+                            columnTitle: target.localizedTitle(locale: locale)))
                 ) {
-                    Task { await model.move(row, to: column) }
+                    Task { await model.move(row, to: target) }
                 })
         }
     }

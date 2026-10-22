@@ -1,6 +1,6 @@
 import SwiftUI
 
-extension KanbanColumn {
+extension KanbanMoveTarget {
     /// Localized column title for VoiceOver action names and headers.
     /// Pass the SwiftUI environment locale so `-testLanguage` does not override snapshot pinning.
     func localizedTitle(locale: Locale = .current) -> String {

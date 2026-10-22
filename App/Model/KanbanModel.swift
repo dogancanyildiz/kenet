@@ -15,6 +15,16 @@ struct KanbanColumn: Identifiable {
     /// Dynamic names are verbatim; status and unassigned titles are localized by the view.
     let name: String?
     let rows: [TaskRow]
+
+    var target: KanbanMoveTarget { KanbanMoveTarget(id: id, destination: destination, name: name) }
+}
+
+/// A column as a card offers it in its move menu and VoiceOver actions: what it is called and
+/// where a card goes, without its rows.
+struct KanbanMoveTarget: Identifiable, Equatable {
+    let id: String
+    let destination: KanbanColumn.Destination
+    let name: String?
 }
 
 @MainActor @Observable
@@ -36,7 +46,12 @@ final class KanbanModel {
     /// The board's rows (``IndexStore/computeBoardTasks(doneFrom:to:includeCancelled:scope:)``),
     /// nil until the first answer; a reload keeps the previous rows until then. Cancelled tasks are
     /// always asked for, so the show-cancelled toggle draws its column at once.
-    private(set) var rows: [TaskRow]?
+    private(set) var rows: [TaskRow]? { didSet { rowsGeneration += 1 } }
+    @ObservationIgnored private var rowsGeneration = 0
+    /// The columns built for `inputs`; any other input builds them again.
+    @ObservationIgnored private var built: (inputs: BoardInputs, columns: [KanbanColumn], targets: [KanbanMoveTarget])?
+    /// How many times the columns were built (filtered, sorted and split), for tests.
+    @ObservationIgnored private(set) var columnBuilds = 0
 
     /// What the board asks the index for; a write, a filter or a new day asks again.
     var request: TaskListRequest { TaskListRequest(scope: tasks.scope, day: tasks.day, updated: store.lastUpdated) }
@@ -54,29 +69,67 @@ final class KanbanModel {
         }
     }
 
-    private var eligible: [TaskRow] {
-        let first = tasks.day.addingDays(-29) ?? tasks.day
-        return (rows ?? []).filter { row in
-            if row.rawStatus == "-" { return showsCancelled }
+    /// Everything the columns are built from. Arrays compare by storage first, so an unchanged
+    /// project or people list costs no element walk; the rows are compared by their generation.
+    private struct BoardInputs: Equatable {
+        let rows: Int
+        let grouping: Grouping
+        let showsCancelled: Bool
+        let day: CalendarDate
+        let projects: [String]
+        let entities: [EntitySummary]
+    }
+
+    /// Every observed input is read on each call, a cached one too, so a view drawing the
+    /// columns is invalidated by the same changes as before the cache.
+    private var inputs: BoardInputs {
+        _ = rows
+        return BoardInputs(
+            rows: rowsGeneration, grouping: grouping, showsCancelled: showsCancelled, day: tasks.day,
+            projects: grouping == .project ? tasks.projects : [],
+            entities: grouping == .person ? store.content.entities : [])
+    }
+
+    /// The board's columns, built once per set of inputs (rows, grouping, show-cancelled, day,
+    /// project names, people) and shared by the board and every card.
+    var columns: [KanbanColumn] { board.columns }
+
+    /// The columns without their rows: what each card's move menu and VoiceOver actions read.
+    var moveTargets: [KanbanMoveTarget] { board.targets }
+
+    private var board: (columns: [KanbanColumn], targets: [KanbanMoveTarget]) {
+        let inputs = self.inputs
+        if let built, built.inputs == inputs {
+            // Keeps the newest arrays: an equal list republished in new storage compares by storage next time.
+            self.built?.inputs = inputs
+            return (built.columns, built.targets)
+        }
+        let columns = buildColumns(inputs)
+        let targets = columns.map(\.target)
+        built = (inputs, columns, targets)
+        return (columns, targets)
+    }
+
+    private func buildColumns(_ inputs: BoardInputs) -> [KanbanColumn] {
+        columnBuilds += 1
+        let first = inputs.day.addingDays(-29) ?? inputs.day
+        let rows = (self.rows ?? []).filter { row in
+            if row.rawStatus == "-" { return inputs.showsCancelled }
             if row.rawStatus == "x" || row.rawStatus == "X" {
-                return row.done.map { $0 >= first && $0 <= tasks.day } ?? false
+                return row.done.map { $0 >= first && $0 <= inputs.day } ?? false
             }
             return true
         }.sorted(by: Self.order)
-    }
-
-    var columns: [KanbanColumn] {
-        let rows = eligible
-        switch grouping {
+        switch inputs.grouping {
         case .status:
-            let statuses: [TaskStatus] = [.todo, .inProgress, .done] + (showsCancelled ? [.cancelled] : [])
+            let statuses: [TaskStatus] = [.todo, .inProgress, .done] + (inputs.showsCancelled ? [.cancelled] : [])
             return statuses.map { status in
                 KanbanColumn(
                     id: "status:" + status.rawValue, destination: .status(status), name: nil,
                     rows: rows.filter { Self.status(of: $0) == status })
             }
         case .project:
-            return tasks.projects.map { project in
+            return inputs.projects.map { project in
                 KanbanColumn(
                     id: "project:" + VaultIndex.projectKey(project), destination: .project(project), name: project,
                     rows: rows.filter { $0.project.map(VaultIndex.projectKey) == VaultIndex.projectKey(project) })
@@ -85,7 +138,7 @@ final class KanbanModel {
                     id: "project:", destination: .project(nil), name: nil, rows: rows.filter { $0.project == nil })
             ]
         case .person:
-            let people = store.content.entities.filter { $0.kind == "person" }
+            let people = inputs.entities.filter { $0.kind == "person" }
             let paths = Set(people.map(\.id))
             return people.filter { person in rows.contains { $0.linkedFiles.contains(person.id) } }.map { person in
                 KanbanColumn(
@@ -122,9 +175,11 @@ final class KanbanModel {
         return comparison == .orderedSame ? lhs.id < rhs.id : comparison == .orderedAscending
     }
 
-    func canMove(_ row: TaskRow, to column: KanbanColumn) -> Bool {
+    func canMove(_ row: TaskRow, to column: KanbanColumn) -> Bool { canMove(row, to: column.target) }
+
+    func canMove(_ row: TaskRow, to target: KanbanMoveTarget) -> Bool {
         guard grouping != .person, store.canAddEvent, !busy.contains(row.id) else { return false }
-        switch column.destination {
+        switch target.destination {
         case .status(let status):
             return grouping == .status && Self.status(of: row) != status
         case .project(let project):
@@ -134,16 +189,19 @@ final class KanbanModel {
     }
 
     @discardableResult
-    func move(_ row: TaskRow, to column: KanbanColumn) async -> Bool {
-        guard columns.contains(where: { $0.id == column.id && $0.destination == column.destination }),
-            canMove(row, to: column)
+    func move(_ row: TaskRow, to column: KanbanColumn) async -> Bool { await move(row, to: column.target) }
+
+    @discardableResult
+    func move(_ row: TaskRow, to target: KanbanMoveTarget) async -> Bool {
+        guard moveTargets.contains(where: { $0.id == target.id && $0.destination == target.destination }),
+            canMove(row, to: target)
         else { return false }
         let root = store.vaultURL
         busy.insert(row.id)
         errorText = nil
         defer { busy.remove(row.id) }
         do {
-            switch column.destination {
+            switch target.destination {
             case .status(let status): try await store.moveTask(row, to: status, on: tasks.day)
             case .project(let project): try await store.moveTask(row, toProject: project)
             case .person: return false

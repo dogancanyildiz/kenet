@@ -101,7 +101,7 @@ private enum VaultCloudSnapshotHost {
                 .flatMap(SnapshotTestingConfiguration.Record.init(rawValue:))
             assertSnapshot(
                 of: image, as: .image(precision: 0.9999, perceptualPrecision: 0.995),
-                named: name.rawValue, record: record, file: #filePath, testName: "vaultCloud")
+                named: "\(name.rawValue)MacLight", record: record, file: #filePath, testName: "vaultCloud")
         }
     }
 #endif

@@ -197,6 +197,8 @@ struct MacSidebarList: View {
         // is not drawn; the list still scrolls with the wheel, the trackpad and the arrow keys.
         .scrollIndicators(.never, axes: .vertical)
         #if os(macOS)
+            // In a short window the rows scroll under the opaque toolbar: a hairline marks the edge.
+            .inkScrollEdgeRule()
             .focused($isFocused)
         #else
             // iPadOS floats the sidebar as a glass panel over the system's gray; the panel is

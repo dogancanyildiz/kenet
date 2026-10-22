@@ -102,8 +102,9 @@ extension View {
         modifier(InkAdaptiveSheetPresentation(usesPhoneDetents: false))
     }
 
-    /// Pinned manşet strip above non-scrolling full-bleed content (e.g. Map).
-    /// Prefer ``InkPageTitle`` inside a `ScrollView` / `List` whenever content scrolls.
+    /// Pinned manşet strip above non-scrolling full-bleed content (e.g. Map), on every platform.
+    /// Prefer ``InkPageTitle`` inside a `ScrollView` / `List` whenever content scrolls (pinned
+    /// on Mac through ``View/inkPinnedMasthead(_:spacing:columnWidth:)``).
     /// ``InkPageTitle`` adds its own horizontal page margin; nesting it inside another
     /// horizontally padded container doubles the indent.
     func inkPinnedPageTitle(_ title: LocalizedStringKey, byline: String? = nil) -> some View {
@@ -166,7 +167,9 @@ extension View {
 #endif
 
 /// Serif page manşet for `ScrollView` / stack content. Place as the **first** scrolled child
-/// so it scrolls away with the page (not a sticky wrapper).
+/// so it scrolls away with the page (not a sticky wrapper). A page in a Mac window column
+/// defines it once and hands it to ``InkScrolledMasthead`` (the slot in the content) and
+/// ``View/inkPinnedMasthead(_:spacing:columnWidth:)`` (pinned above the content on Mac).
 ///
 /// - List screens: use ``InkPageTitleRow`` instead.
 /// - Non-scrolling full-bleed (Map): use ``inkPinnedPageTitle``.
@@ -218,7 +221,8 @@ extension InkPageTitle where Actions == EmptyView {
 
 /// First `List` row for a serif page manşet: no separator, paper background, page margins.
 /// Applies leading/trailing insets itself; nesting inside another horizontally padded
-/// container doubles the indent. `actions` as in ``InkPageTitle``.
+/// container doubles the indent. `actions` as in ``InkPageTitle``; pinned on Mac the same way
+/// (``InkScrolledMasthead`` and ``View/inkPinnedMasthead(_:columnWidth:)``).
 struct InkPageTitleRow<Actions: View>: View {
     private let header: InkPageHeader<Actions>
 
@@ -239,12 +243,24 @@ struct InkPageTitleRow<Actions: View>: View {
 
     var body: some View {
         header
-            .listRowInsets(
-                EdgeInsets(
-                    top: 8, leading: InkSpacing.margin, bottom: 4, trailing: InkSpacing.margin)
-            )
+            .listRowInsets(Self.insets)
             .listRowSeparator(.hidden)
             .listRowBackground(Color.ink.paper)
+    }
+
+    private static var insets: EdgeInsets {
+        EdgeInsets(top: 8, leading: InkSpacing.margin, bottom: 4, trailing: InkSpacing.margin)
+    }
+
+    /// The same manşet outside the list (``View/inkPinnedMasthead(_:columnWidth:)``): the row's
+    /// insets plus the inset a Mac list gives its rows, so it starts where the rows below do,
+    /// and the gap the list kept between its first two rows, so they do not move up.
+    var pinned: some View {
+        header
+            .padding(Self.insets)
+            .padding(.horizontal, MacListColumnChrome.rowInset)
+            .padding(.bottom, MacListColumnChrome.rowGap)
+            .background(Color.ink.paper)
     }
 }
 

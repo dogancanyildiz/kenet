@@ -5,9 +5,13 @@ struct TaskDetailView: View {
     let row: TaskRow
     let openDay: (String) -> Void
 
+    private var masthead: InkPageTitleRow<some View> {
+        InkPageTitleRow("Görev") { SearchButton() }
+    }
+
     var body: some View {
         List {
-            InkPageTitleRow("Görev") { SearchButton() }
+            InkScrolledMasthead(masthead)
             Section {
                 SectionHeader(title: String(localized: "Görev"))
                     .inkListRow()
@@ -89,6 +93,7 @@ struct TaskDetailView: View {
         .listStyle(.plain)
         .inkPage()
         .inkPageScrollColumn()
+        .inkPinnedMasthead(masthead)
         .inkPageNavigationTitle("Görev")
     }
 

@@ -278,11 +278,13 @@ Denetim 84 gerçek ekran görüntüsünü ve kod envanterini inceledi. Aşağıd
 | Yer | Kural |
 |---|---|
 | Kök ekran, iPhone | Sayfa adı solda serif manşettir. Sayfanın eylem simgeleri aynı satırın sağında durur. Sistem gezinme çubuğu ve cam kapsül yoktur. |
-| Mac | Sayfa adı yine sayfanın içinde serif manşettir. Her liste sütunu manşetle başlar. Pencere araç çubuğunda başlık yoktur. Pencerenin adı seçili kenar çubuğu girdisidir ve yalnız Pencere menüsünde görünür. Araç çubuğunda yalnız arama düğmesi durur. |
+| Mac | Sayfa adı yine sayfanın içinde serif manşettir. Her liste sütunu manşetle başlar. Pencere araç çubuğunda başlık yoktur. Pencerenin adı seçili kenar çubuğu girdisidir ve yalnız Pencere menüsünde görünür. Araç çubuğunda yalnız arama düğmesi durur. Araç çubuğu kâğıt renginde ve opaktır. |
 | Alt sayfa | Sistem çubuğunda yalnız geri düğmesi kalır. Sayfanın eylemleri yine manşet satırındadır. |
-| Kaydırma | Manşet satırı içerikle birlikte kayar. İstisna Ara sayfasıdır: manşet ve arama alanı sabittir, sonuçlar altta kayar. |
+| Kaydırma, iPhone ve iPad | Manşet satırı içerikle birlikte kayar. İstisna Ara sayfasıdır: manşet ve arama alanı sabittir, sonuçlar altta kayar. |
+| Kaydırma, Mac | Pencere sütunlarında manşet satırı sütunun üstünde sabittir; içerik altından kayar. İçerik kaydırılınca manşetin altında ince bir çizgi belirir, sayfa en üstteyken çizgi yoktur. Görevler'de sayfa üstünün tamamı sabittir: manşet, görünüm sekmeleri ve menü satırı. Günlük sütununda manşetle birlikte Özetler ve Haftalık inceleme bağlantıları sabittir; takvim ve günler kayar. Sheet'te açılan sayfa da manşetini sheet'in üstünde sabit tutar: kişi, konum, bulunamayan bağlantı, gün ve not sayfası. Haftalık inceleme ve günlük yazısı sheet'leri bu kalıbı kullanmaz. |
+| Kenar çubuğu, Mac | Satırlar araç çubuğunun altına kayınca kenar çubuğunun üstünde aynı ince çizgi belirir. |
 
-Kod karşılığı: `InkPageTitle`, `InkPageTitleRow`, `inkRootPageNavigationTitle` ve `inkPageNavigationTitle`.
+Kod karşılığı: `InkPageTitle`, `InkPageTitleRow`, `inkRootPageNavigationTitle` ve `inkPageNavigationTitle`. Sayfa manşeti bir kez tanımlar ve aynı değeri iki yere verir: kaydırılan içerikteki `InkScrolledMasthead` yuvasına ve kaydırma görünümünün üstündeki `inkPinnedMasthead` değiştiricisine. `InkMastheadPlacement` hangisinin çizeceğini platforma göre seçer. Kenar çubuğu çizgisi `inkScrollEdgeRule` değiştiricisidir.
 
 ### 2. Manşet satırı simgeleri
 

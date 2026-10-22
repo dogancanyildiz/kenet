@@ -1016,10 +1016,11 @@ Telefonda serbest not okuma ve basit düzenleme vardır. Kullanıcı nota aramad
 | Arama istisnası | Arama penceresinin içinde açılan not, varlık ve gün ekranında büyüteç durur. Büyüteç sonuçlara döndürür. |
 | Pencere adı | Araç çubuğunda başlık yoktur. Pencerenin adı seçili kenar çubuğu girdisidir. |
 | Liste sütunu | En az 280, ideal 320, en çok 400 pt. Her liste sütunu serif manşetle başlar: Günlük, Görevler, proje adı, Kişiler / Konumlar, Hedefler. |
-| Günlük sütunu | Manşetin altında sola yaslı, alt alta Özetler ve Haftalık inceleme bağlantıları. Altında ay takvimi ve gün listesi. |
+| Günlük sütunu | Manşetin altında sola yaslı, alt alta Özetler ve Haftalık inceleme bağlantıları. Altında ay takvimi ve gün listesi. Mac'te manşet ve iki bağlantı sabittir; takvim ve gün listesi altında birlikte kayar. |
 | Kişiler / Konumlar sütunu | Manşet satırında sıralama simgesi. Altında tür seçici ve süzgeç alanı. |
 | Ekran genişliği | Uygulama ekranları en çok 680 pt genişlikte ortalar. |
 | Pencere boyutu | Ana pencerenin en küçük boyutu belirteçlerle sabittir: 1000 × 560 pt. |
+| Kaydırma | Kısa pencerede sütunlar kayar. Manşet satırı ve simgeleri sütunun üstünde kalır, içerik altından geçer. Kenar çubuğunun üst kenarında ince çizgi belirir. Ayrıntı `design.md` içindeki "Sayfa üstü" kalıbındadır. |
 | Seçili satır | Görev, gün, kişi ve hedef listelerinde seçili satır çukur zemindedir. Solda vurgu çizgisi vardır. |
 | Görev ayrıntısı | Satır seçimi ayrıntıyı açar. Kutu görevi tamamlar. Metindeki bağlantı kendi ekranını açar. |
 | Görev bağlam menüsü | Metin, tarih, bugüne, yarına ya da haftaya taşıma, tekrar, öncelik ve silme. Silme onay diyaloğuna gider. |

@@ -64,24 +64,28 @@ struct EntityView: View {
         Set(store.entityTypes.allTypes.first { $0.id == current.kind }?.fields.map(\.key) ?? [])
     }
 
+    /// The manşet row carries the page actions, so it is there before the file loads.
+    private var masthead: InkPageTitleRow<some View> {
+        InkPageTitleRow(
+            verbatim: current.name,
+            byline: model.isLoaded
+                ? EntityReadPresentation.byline(
+                    kindLabel: kindLabel, aliases: model.aliases, lastSeen: lastSeen, locale: locale)
+                : nil
+        ) {
+            if model.isLoaded && model.canEdit {
+                InkHeaderAction(
+                    "Düzenle", systemImage: "pencil", role: .primary, identifier: "button.entity.edit"
+                ) { isEditing = true }
+            }
+            SearchButton()
+        }
+    }
+
     var body: some View {
         List {
             Section {
-                // The manşet row carries the page actions, so it is there before the file loads.
-                InkPageTitleRow(
-                    verbatim: current.name,
-                    byline: model.isLoaded
-                        ? EntityReadPresentation.byline(
-                            kindLabel: kindLabel, aliases: model.aliases, lastSeen: lastSeen, locale: locale)
-                        : nil
-                ) {
-                    if model.isLoaded && model.canEdit {
-                        InkHeaderAction(
-                            "Düzenle", systemImage: "pencil", role: .primary, identifier: "button.entity.edit"
-                        ) { isEditing = true }
-                    }
-                    SearchButton()
-                }
+                InkScrolledMasthead(masthead)
                 if model.isLoaded {
                     headRows
                 } else if model.errorText == nil {
@@ -104,6 +108,7 @@ struct EntityView: View {
         .listStyle(.plain)
         .inkPage()
         .inkPageScrollColumn()
+        .inkPinnedMasthead(masthead)
         .environment(\.entityLookup, LinkedTextInk.lookup(entities: store.content.entities))
         .inkPageNavigationTitle(verbatim: current.name)
         .sheet(

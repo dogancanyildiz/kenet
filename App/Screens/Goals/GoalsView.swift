@@ -86,15 +86,19 @@ private struct GoalListContent: View {
         return loaded
     }
 
+    private var masthead: InkPageTitleRow<some View> {
+        InkPageTitleRow("Hedefler") {
+            InkHeaderAction("Yeni hedef", systemImage: "plus", role: .primary) {
+                showsCreation = true
+            }
+            .disabled(!store.canAddEvent)
+            SearchButton()
+        }
+    }
+
     var body: some View {
         List {
-            InkPageTitleRow("Hedefler") {
-                InkHeaderAction("Yeni hedef", systemImage: "plus", role: .primary) {
-                    showsCreation = true
-                }
-                .disabled(!store.canAddEvent)
-                SearchButton()
-            }
+            InkScrolledMasthead(masthead)
             if let answer {
                 ForEach(answer.goals, id: \.id) { goal in
                     // A goal marked here and not yet in an answer is drawn from the editing model
@@ -114,6 +118,7 @@ private struct GoalListContent: View {
         .listStyle(.plain)
         .inkPage()
         .inkPageScrollColumn()
+        .inkPinnedMasthead(masthead)
         .overlay {
             if answer?.goals.isEmpty == true {
                 EmptyState(

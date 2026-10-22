@@ -12,9 +12,13 @@ struct ProjectView: View {
         self.name = name
         _actions = State(initialValue: TasksModel(store: store))
     }
+    private var masthead: InkPageTitleRow<some View> {
+        InkPageTitleRow(verbatim: name) { SearchButton() }
+    }
+
     var body: some View {
         List {
-            InkPageTitleRow(verbatim: name) { SearchButton() }
+            InkScrolledMasthead(masthead)
             // The page's sections wait for the first answer: no count reads 0 while it loads.
             if let tasks { sections(ProjectModel(store: store, name: name, tasks: tasks)) }
             if let error = actions.errorText {
@@ -27,6 +31,7 @@ struct ProjectView: View {
         .listStyle(.plain)
         .inkPage()
         .inkPageScrollColumn()
+        .inkPinnedMasthead(masthead)
         .inkPageNavigationTitle(verbatim: name)
         .task(id: ProjectTasksRequest(name: name, updated: store.lastUpdated)) {
             if let loaded = try? await store.computeProjectTasks(name) { tasks = loaded }

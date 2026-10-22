@@ -428,6 +428,12 @@ struct MacEmptyDetail: View {
 #endif
 
 /// Günlük list column: manşet, the Özetler and weekly review links under it, the month and the days.
+///
+/// Mac: the manşet and the two links are the pinned strip; the month and the days scroll in one
+/// list under it. Held in a stack above the list, the month too was taller than a short window's
+/// column (1000 × 560 or so): the stack overflowed both ways and the manşet went under the
+/// toolbar. The links stay out of the list, where a text button in a selectable row is not sure
+/// to take a click. iOS (split shell) keeps the stack.
 struct MacDaysColumn: View {
     let store: IndexStore
     @Binding var selection: String?
@@ -438,43 +444,93 @@ struct MacDaysColumn: View {
     @State private var days: [DayOverview]?
 
     var body: some View {
-        VStack(spacing: 0) {
-            InkPageTitle("Günlük").macListColumnTitle()
+        column
+            .weeklyReviewSheet(isPresented: $showsWeeklyReview, store: store) { weeklyReviewNotice = $0 }
+            .task(id: DayRangeRequest(from: nil, to: nil, updated: store.lastUpdated)) {
+                if let loaded = try? await store.computeDaySummaries() { days = loaded }
+            }
+    }
+
+    @ViewBuilder private var column: some View {
+        #if os(macOS)
+            MacDayList(days: days ?? [], selection: $selection) {
+                InkScrolledMasthead(columnTop)
+                    .listRowInsets(EdgeInsets())
+                    .columnTopRow()
+                if let notice = weeklyReviewNotice {
+                    InfoBand(kind: notice.kind, verbatim: notice.text, onDismiss: { weeklyReviewNotice = nil })
+                        .listRowInsets(EdgeInsets())
+                        .columnTopRow()
+                }
+                DaysCalendarView(store: store) { selection = "journal/\($0).md" }
+                    .listRowInsets(EdgeInsets())
+                    .columnTopRow()
+            }
+            .inkPinnedMasthead(columnTop, insets: EdgeInsets(), columnWidth: .infinity)
+        #else
+            VStack(spacing: 0) {
+                InkPageTitle("Günlük").macListColumnTitle()
+                links
+                    // Starts where the manşet above it starts.
+                    .padding(.leading, InkSpacing.margin + MacListColumnChrome.rowInset)
+                    .padding(.vertical, 8)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    // Its whole height before the list's: at accessibility sizes the column is short of
+                    // height and the stack would otherwise cut the link names.
+                    .fixedSize(horizontal: false, vertical: true)
+                if let notice = weeklyReviewNotice {
+                    InfoBand(kind: notice.kind, verbatim: notice.text, onDismiss: { weeklyReviewNotice = nil })
+                }
+                DaysCalendarView(store: store) { selection = "journal/\($0).md" }
+                MacDayList(days: days ?? [], selection: $selection)
+            }
+        #endif
+    }
+
+    #if os(macOS)
+        /// Manşet and links: the strip above the month, in line with the list's rows.
+        private var columnTop: some View {
             VStack(alignment: .leading, spacing: 0) {
-                Button(action: openSummaries) {
-                    Label("Özetler", systemImage: "chart.bar")
-                }
-                // Like the iPhone row: once this week is reviewed, the link says so.
-                HStack(alignment: .firstTextBaseline, spacing: InkSpacing.row) {
-                    Button {
-                        showsWeeklyReview = true
-                    } label: {
-                        Label("Haftalık inceleme", systemImage: "checklist")
-                    }
-                    .accessibilityIdentifier("button.weeklyReview")
-                    WeeklyReviewEntryStatus()
-                }
+                InkPageTitleRow("Günlük").pinned
+                links
+                    .padding(.horizontal, InkSpacing.margin + MacListColumnChrome.rowInset)
+                    .padding(.vertical, 8)
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .buttonStyle(InkTextButtonStyle())
-            // Starts where the manşet above it starts.
-            .padding(.leading, InkSpacing.margin + MacListColumnChrome.rowInset)
-            .padding(.vertical, 8)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            // Its whole height before the list's: at accessibility sizes the column is short of
-            // height and the stack would otherwise cut the link names.
-            .fixedSize(horizontal: false, vertical: true)
-            if let notice = weeklyReviewNotice {
-                InfoBand(kind: notice.kind, verbatim: notice.text, onDismiss: { weeklyReviewNotice = nil })
+        }
+    #endif
+
+    private var links: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Button(action: openSummaries) {
+                Label("Özetler", systemImage: "chart.bar")
             }
-            DaysCalendarView(store: store) { selection = "journal/\($0).md" }
-            MacDayList(days: days ?? [], selection: $selection)
+            // Like the iPhone row: once this week is reviewed, the link says so.
+            HStack(alignment: .firstTextBaseline, spacing: InkSpacing.row) {
+                Button {
+                    showsWeeklyReview = true
+                } label: {
+                    Label("Haftalık inceleme", systemImage: "checklist")
+                }
+                .accessibilityIdentifier("button.weeklyReview")
+                WeeklyReviewEntryStatus()
+            }
         }
-        .weeklyReviewSheet(isPresented: $showsWeeklyReview, store: store) { weeklyReviewNotice = $0 }
-        .task(id: DayRangeRequest(from: nil, to: nil, updated: store.lastUpdated)) {
-            if let loaded = try? await store.computeDaySummaries() { days = loaded }
-        }
+        .buttonStyle(InkTextButtonStyle())
     }
 }
+
+#if os(macOS)
+    extension View {
+        /// A row of the Günlük column's top (links, notice, month) inside its list: on paper, no
+        /// separator, not a day to select.
+        fileprivate func columnTopRow() -> some View {
+            listRowSeparator(.hidden)
+                .listRowBackground(Color.ink.paper)
+                .selectionDisabled()
+        }
+    }
+#endif
 
 /// Kişiler / Konumlar list column: manşet with the sort icon, kind tabs, filter and the list.
 struct MacEntitiesColumn: View {
@@ -606,6 +662,8 @@ enum MacListColumnChrome {
     /// ``InkPageTitle`` starts 4 pt above an ``InkPageTitleRow`` (the first row of a list);
     /// a column whose manşet is not a list row adds the difference.
     static let titleTopInset: CGFloat = 4
+    /// Extra room a Mac list leaves between two rows beyond their own insets (measured).
+    static let rowGap: CGFloat = 4
 }
 
 extension View {
@@ -617,18 +675,29 @@ extension View {
 }
 
 /// Günlük column. Selection chrome lives here so the day row and its tests share one list.
-struct MacDayList: View {
+/// `top`: rows above the days (the Mac column's links and month), not selectable.
+struct MacDayList<Top: View>: View {
     let days: [DayOverview]
     @Binding var selection: String?
+    @ViewBuilder var top: Top
 
     var body: some View {
-        List(days, selection: $selection) { day in
-            DayRow(day: day)
-                .inkListRow(columnSelected: selection == day.id)
-                .tag(day.id)
+        List(selection: $selection) {
+            top
+            ForEach(days) { day in
+                DayRow(day: day)
+                    .inkListRow(columnSelected: selection == day.id)
+                    .tag(day.id)
+            }
         }
         .listStyle(.plain)
         .scrollContentBackground(.hidden)
+    }
+}
+
+extension MacDayList where Top == EmptyView {
+    init(days: [DayOverview], selection: Binding<String?>) {
+        self.init(days: days, selection: selection) { EmptyView() }
     }
 }
 

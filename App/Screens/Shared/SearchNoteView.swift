@@ -12,10 +12,14 @@ struct SearchNoteView: View {
 
     private var noteTitle: String { SearchPreviewText.noteDisplayName(file) }
 
+    private var masthead: InkPageTitle<some View> {
+        InkPageTitle(verbatim: noteTitle) { SearchButton() }
+    }
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
-                InkPageTitle(verbatim: noteTitle) { SearchButton() }
+                InkScrolledMasthead(masthead)
                 Group {
                     if let errorText {
                         Text(verbatim: errorText).foregroundStyle(.ink.danger)
@@ -33,6 +37,7 @@ struct SearchNoteView: View {
             }
             .inkPageColumn()
         }
+        .inkPinnedMasthead(masthead, spacing: 12)
         .inkPage()
         // Mac: keep the sheet action bar ("Kapat") on nested search destinations. iPhone keeps
         // the pushed page chrome only (back to results); adding a second "Kapat" would change it.

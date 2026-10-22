@@ -97,9 +97,19 @@ targets:
       # görüntüyü yazar, testler görünümlerin görüntüsünü alır. Yalnız Foundation ve SwiftUI.
       - path: Widgets/Shared
         type: syncedFolder
+      # Paylaşım uzantısıyla ortak: olay yazıcısı ve kuyruk biçimi (yalnız Foundation ve Core).
+      # Uygulama kuyruğu işler; formu yalnız ekran görüntüsü testleri çizer.
+      - path: Shared
+        type: syncedFolder
+      - path: ShareExtension/Form
+        type: syncedFolder
     dependencies:
       # Ana ekran widget'ı yalnız iOS'ta (Mac widget'ları sonraki dalga).
       - target: JournalWidgets
+        embed: true
+        platformFilter: iOS
+      # Paylaşım uzantısı yalnız iOS'ta (docs/architecture.md, "Paylaşım uzantısı").
+      - target: JournalShare
         embed: true
         platformFilter: iOS
       - package: Core
@@ -234,6 +244,62 @@ targets:
         DebugTest:
           # Uzantı kimliği kapsayan uygulamanınkiyle başlamalı (test konağı .testhost).
           PRODUCT_BUNDLE_IDENTIFIER: $(APP_BUNDLE_IDENTIFIER).testhost.widgets
+    postBuildScripts:
+      # Uzantının sürümü ve yapı numarası uygulamanınkiyle aynı olmalı (mağaza denetimi).
+      - name: Sürümü yaz
+        script: |
+          version=$(tr -d '[:space:]' < "$SRCROOT/VERSION")
+          /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $version" "$TARGET_BUILD_DIR/$INFOPLIST_PATH"
+          build=$(sh "$SRCROOT/.github/scripts/build-number.sh" "$SRCROOT" || true)
+          if [ -n "$build" ]; then
+            /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $build" "$TARGET_BUILD_DIR/$INFOPLIST_PATH"
+          fi
+        inputFiles:
+          - $(SRCROOT)/VERSION
+          - $(TARGET_BUILD_DIR)/$(INFOPLIST_PATH)
+        basedOnDependencyAnalysis: false
+
+  # Paylaşım uzantısı (docs/architecture.md, "Paylaşım uzantısı"): paylaşılan metni olay olarak
+  # ekler. Kasa iCloud'daysa ve uygulama kilidi kapalıysa gün dosyasına kendisi yazar (Core'un
+  # yazıcısı, NSFileCoordinator, indeks yok); yoksa App Group'taki kuyruğa yazar. Form SwiftUI;
+  # tasarım belirteçleri, renk kataloğu ve String Catalog uygulamanınkidir.
+  JournalShare:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: ShareExtension
+      - path: Shared
+      # Tasarım belirteçleri (renk, yazı, ölçü). Bileşenler kabuğa bağlı olduğu için girmez;
+      # form sheet görünümünü bu belirteçlerle kendisi kurar (ShareExtension/Form).
+      - path: App/Design/InkColors.swift
+      - path: App/Design/InkFonts.swift
+      - path: App/Design/InkMetrics.swift
+      - path: App/Design/Components/InkButtonChrome.swift
+      - path: App/Model/LocalDay.swift
+      - path: App/Services/SystemFileCoordination.swift
+      - path: App/Resources/Assets.xcassets
+      - path: App/Resources/Localizable.xcstrings
+      - path: App/Support/AppIdentifiers.swift
+    dependencies:
+      - package: Core
+        product: VaultFormat
+      - package: Core
+        product: VaultIndex
+      - package: Core
+        product: VaultStore
+    settings:
+      base:
+        PRODUCT_NAME: JournalShare
+        PRODUCT_BUNDLE_IDENTIFIER: $(APP_BUNDLE_IDENTIFIER).share
+        INFOPLIST_FILE: ShareExtension/Support/Info.plist
+        INFOPLIST_KEY_CFBundleDisplayName: Kenet
+        # iCloud Documents (kasa iCloud'daysa gün dosyası) ve App Group (kuyruk); uygulamanınkiyle aynı.
+        CODE_SIGN_ENTITLEMENTS: ShareExtension/Support/JournalShare.entitlements
+        SKIP_INSTALL: YES
+      configs:
+        DebugTest:
+          # Uzantı kimliği kapsayan uygulamanınkiyle başlamalı (test konağı .testhost).
+          PRODUCT_BUNDLE_IDENTIFIER: $(APP_BUNDLE_IDENTIFIER).testhost.share
     postBuildScripts:
       # Uzantının sürümü ve yapı numarası uygulamanınkiyle aynı olmalı (mağaza denetimi).
       - name: Sürümü yaz

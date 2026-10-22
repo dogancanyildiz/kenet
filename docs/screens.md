@@ -131,6 +131,7 @@ Bugün girdisi de Günlük sütununu gösterir. Kullanıcı o sütunda bir gün 
 | Ayarlar | Bugün'den sheet | Sistem Settings sahnesi | `App/Screens/Settings`, `App/Mac/MacSettingsView.swift` | 4, 7 |
 | İlk açılış | Kasa yokken | Kasa yokken | `App/Screens/Onboarding` | 7 |
 | Uygulama kilidi örtüsü | Kilit açıkken | Kilit açıkken | `App/Screens/Shared/AppLockCover.swift` | 7 |
+| Paylaşım formu | Paylaşım sayfasında "Kenet" | Yok | `ShareExtension/Form/ShareFormView.swift` | 11 |
 
 ## Ekranlar arası geçişler
 
@@ -1290,12 +1291,32 @@ flowchart LR
     Widget[Hızlı giriş widget'ı ve kilit ekranı düğmesi: 3, henüz yok] -.-> HG
     MacPencere[Mac hızlı giriş penceresi: 1] --> HG
     Siri[Kısayollar ve Siri: 4] --> HG
+    Paylasim[Paylaşım sayfası: 11, iOS] --> Form[Paylaşım formu: olay]
     Bildirim[Akşam günlük hatırlatması: 4] --> GunuKapat[Günü kapat: günlük adımı]
 ```
 
 Kısayollar ve Siri arayüz göstermez, ama anmaları hızlı girişteki kuralla bağlar. Akşam günlük hatırlatması hızlı giriş kutusunu değil, Günü kapat akışının günlük adımını açar. Bu adım tek cümleyi günlüğün sonuna ekler. Hızlı giriş widget'ı ve kilit ekranı düğmesi henüz yok: [Widget'lar](#widgetlar-3) bölümüne bak.
 
-Bugün çalışan yollar Ayarlar → Hızlı giriş'te ve ilk kullanım ipucunda görünür: Siri cümleleri, Kısayollar, Eylem düğmesi ve Mac klavye kısayolu. Widget, kilit ekranı düğmesi, Denetim Merkezi ve paylaşım uzantısı bu gösterimde yoktur.
+Bugün çalışan yollar Ayarlar → Hızlı giriş'te ve ilk kullanım ipucunda görünür: Siri cümleleri, Kısayollar, Eylem düğmesi ve Mac klavye kısayolu. Widget, kilit ekranı düğmesi, Denetim Merkezi ve paylaşım uzantısı bu gösterimde yoktur. Paylaşım formu: [Paylaşım formu](#paylaşım-formu-11-ios).
+
+## Paylaşım formu (11, iOS)
+
+Kullanıcı Safari'de bir sayfayı, başka bir uygulamada seçili metni paylaşır ve paylaşım sayfasında "Kenet"e dokunur. Form tek bir olay ekler. Veri yolu: `architecture.md`, Paylaşım uzantısı.
+
+**Tablo formun parçalarını gösterir.**
+
+| Parça | İçerik |
+|---|---|
+| Araç çubuğu | Solda "Vazgeç", sağda vurgu renginde "Ekle". Uygulamanın düzenleme sheet'leriyle aynı görünüm: kapsülsüz düz sözcükler |
+| Manşet | "Olay olarak ekle", serif |
+| Alan | Görünür "Olay" etiketi altında tek alan, uygulamanın kuyu alanı biçiminde. Önceden dolu: Safari'den "sayfa başlığı ve bağlantısı", başka uygulamadan seçili metin. Uzun metin beş satıra kadar sarılır |
+| Açıklama | "Bugüne, şimdiki saatle eklenir." |
+| Hata | Kuyruk da yazılamazsa (App Group yok) alanın altında kırmızı "Paylaşım eklenemedi. Yeniden dene."; form açık kalır |
+
+- "Ekle" metni tek satır olarak ekler: satır sonları boşluk olur. Boş alanda "Ekle" kapalıdır.
+- Kasa iCloud'daysa ve uygulama kilidi kapalıysa satır hemen gün dosyasına girer. Öteki durumlarda (yerel kasa, seçili klasör, uygulama kilidi açık, iCloud'a ulaşılamıyor) metin kuyrukta bekler; uygulama açılıp kasa açılınca ve kilit çözülünce olay kendi gününe ve saatine eklenir.
+- Uygulama kuyruğu ya da uzantının yazdığı satırları işleyince ana ekranın üstünde kapatılabilir bant görünür: "1 paylaşım eklendi." Okunamayan ya da yazılamayan kayıt ayrı cümleyle sayılır; yazılamayan kayıt kuyrukta kalır.
+- Formda ad tanıma yoktur. Kuyruktaki metindeki kesin adlar uygulama eklerken bağlanır, Kısayollar'daki gibi.
 
 ## Widget'lar (3)
 

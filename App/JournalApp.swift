@@ -45,6 +45,7 @@ struct JournalApp: App {
     #if os(iOS)
         @State private var widgetSnapshots: WidgetSnapshotWriter
         @State private var widgetLinks: WidgetLinkHandler
+        @State private var shareQueue: ShareQueueProcessor
     #endif
 
     #if os(macOS)
@@ -84,6 +85,10 @@ struct JournalApp: App {
             _widgetSnapshots = State(initialValue: widgetSnapshots)
             _widgetLinks = State(
                 initialValue: WidgetLinkHandler(actions: IntentActions.shared, navigation: IntentNavigation.shared))
+            _shareQueue = State(
+                initialValue: ShareQueueProcessor(
+                    store: store, group: SystemAppGroupStore(), isLocked: { IntentActions.shared.isLocked() },
+                    appLockEnabled: { appLock.isEnabled }))
         #endif
         #if os(macOS)
             _desktop = State(initialValue: MacQuickEntryController(store: store, location: location, appLock: appLock))
@@ -154,6 +159,10 @@ struct JournalApp: App {
                 .environment(notifications)
                 .environment(intentNavigation)
                 .environment(appLock)
+                #if os(iOS)
+                    // What the share extension added or queued, once the app has taken it in.
+                    .safeAreaInset(edge: .top, spacing: 0) { ShareImportBand(processor: shareQueue) }
+                #endif
                 .appLockShield(appLock)
                 #if os(macOS)
                     .background(MainWindowMarker())
@@ -166,6 +175,17 @@ struct JournalApp: App {
                         guard !locked, AppLaunchPolicy.allowsAutomaticStart() else { return }
                         widgetSnapshots.update()
                         Task { await widgetLinks.unlocked() }
+                        shareQueue.process()
+                    }
+                    // The share extension learns where the vault is; texts it queued enter once
+                    // the vault is open (docs/architecture.md, "Paylaşım uzantısı").
+                    .onChange(of: store.lastUpdated != nil) { _, published in
+                        guard published, AppLaunchPolicy.allowsAutomaticStart() else { return }
+                        shareQueue.publishTarget()
+                        shareQueue.process()
+                    }
+                    .onChange(of: appLock.isEnabled) {
+                        if AppLaunchPolicy.allowsAutomaticStart() { shareQueue.publishTarget() }
                     }
                 #endif
         }
@@ -185,6 +205,8 @@ struct JournalApp: App {
                 #if os(iOS)
                     // A new day, or a vault changed while away; a locked app leaves the snapshot alone.
                     widgetSnapshots.update()
+                    shareQueue.publishTarget()
+                    shareQueue.process()
                 #endif
                 Task {
                     location.refreshAuthorization()
@@ -194,6 +216,9 @@ struct JournalApp: App {
             }
             if phase == .background && AppLaunchPolicy.allowsAutomaticStart() {
                 Task { await notifications.replanNow() }
+                #if os(iOS)
+                    shareQueue.publishTarget()
+                #endif
             }
             #if os(macOS)
                 store.setForeground(phase == .active || desktop.window.isPresented)
@@ -203,3 +228,21 @@ struct JournalApp: App {
         }
     }
 }
+
+#if os(iOS)
+    /// "1 paylaşım eklendi" and the like, after the app took in what the share extension left.
+    private struct ShareImportBand: View {
+        let processor: ShareQueueProcessor
+
+        var body: some View {
+            if let report = processor.report {
+                InfoBand(
+                    kind: report.unreadable + report.waiting > 0 ? .warning : .info, verbatim: report.message,
+                    onDismiss: processor.dismissReport
+                )
+                .background(Color.ink.paper)
+                .accessibilityIdentifier("banner.shareImport")
+            }
+        }
+    }
+#endif

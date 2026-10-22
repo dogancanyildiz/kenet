@@ -3,10 +3,11 @@
 
 Kullanım: check-catalog-keys.py [kök]   (varsayılan: deponun kökü)
 
-`App/**/*.swift` ve `Widgets/**/*.swift` içinde yerelleştirilen çağrıların ilk sabit metin argümanı çıkarılır
+`App/**/*.swift`, `Widgets/**/*.swift`, `ShareExtension/**/*.swift` ve `Shared/**/*.swift` içinde
+yerelleştirilen çağrıların ilk sabit metin argümanı çıkarılır
 (`Text("…")`, `Button("…")`, `Label("…", …)`, `String(localized: "…")`, `LocalizedStringKey("…")`, …)
 ve `App/Resources/Localizable.xcstrings` anahtar kümesiyle karşılaştırılır. Eksik anahtar hatadır.
-Widget hedefi aynı kataloğu derler (`project.yml`, `JournalWidgets`).
+Widget ve paylaşım uzantısı hedefleri aynı kataloğu derler (`project.yml`, `JournalWidgets`, `JournalShare`).
 
 Sayılmaz: `verbatim:` girdileri, değişken argümanlar (`Text(copy.copy)`), enterpolasyonlu
 metinler (anahtar biçimi `%@` / `%lld` Xcode'a bağlıdır), yorum satırları ve `EXCEPTIONS` listesi.
@@ -101,7 +102,7 @@ def main(argv: list[str]) -> int:
     catalog = json.loads((root / "App/Resources/Localizable.xcstrings").read_text(encoding="utf-8"))
     keys = set(catalog.get("strings") or {})
     missing: list[str] = []
-    for path in sorted(p for folder in ("App", "Widgets") for p in (root / folder).rglob("*.swift")):
+    for path in sorted(p for folder in ("App", "Widgets", "ShareExtension", "Shared") for p in (root / folder).rglob("*.swift")):
         for line, key in extract_keys(path.read_text(encoding="utf-8")):
             if key not in keys and key not in EXCEPTIONS:
                 missing.append(f"{path.relative_to(root)}:{line}: {key!r}")

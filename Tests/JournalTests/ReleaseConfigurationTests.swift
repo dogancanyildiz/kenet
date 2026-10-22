@@ -53,6 +53,25 @@ struct ReleaseConfigurationTests {
         }
     }
 
+    /// iOS shows `CFBundleDisplayName`; Finder, the Dock and TestFlight on the Mac show the bundle
+    /// file name, so the Mac product is `Kenet.app` while the module stays `Journal`. The block
+    /// parser skips conditional keys, so the two override lines are checked verbatim.
+    @Test func macProductIsNamedKenetAndModuleStaysJournal() throws {
+        let project = try Self.read("Journal.xcodeproj/project.pbxproj")
+        // The widget and share targets also show "Kenet"; only the app carries the bare identifier.
+        let apps = Self.configurationBlocks(named: "Release", in: project).filter {
+            $0["PRODUCT_BUNDLE_IDENTIFIER"] == "$(APP_BUNDLE_IDENTIFIER)"
+        }
+        let mac = try #require(apps.first { $0["SDKROOT"] == "macosx" })
+        let ios = try #require(apps.first { $0["SDKROOT"] == "iphoneos" })
+        #expect(mac["PRODUCT_NAME"] == "Journal")
+        #expect(mac["PRODUCT_MODULE_NAME"] == "Journal")
+        #expect(ios["PRODUCT_NAME"] == "Journal")
+        #expect(project.contains("\"PRODUCT_NAME[sdk=macosx*]\" = Kenet;"))
+        let testHost = "\"TEST_HOST[sdk=macosx*]\" = \"$(BUILT_PRODUCTS_DIR)/Kenet.app/Contents/MacOS/Kenet\";"
+        #expect(project.contains(testHost))
+    }
+
     /// The process actually under test, not the project file: a Debug scheme action would still
     /// show the store identifier here.
     @Test func testHostCarriesDerivedIdentityAndExportCompliance() throws {

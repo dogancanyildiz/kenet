@@ -143,8 +143,13 @@ targets:
       groups:
         - Journal_${platform}
       base:
-        # Kod adı (hedef, modül, .app dosyası) Journal kalır; kullanıcıya görünen ad Kenet.
+        # Kod adı (hedef, modül, iOS .app dosyası) Journal kalır; kullanıcıya görünen ad Kenet.
+        # Mac'te Finder, Dock ve TestFlight görünen adı değil paket dosyasının adını gösterir; Mac
+        # paketi Kenet.app olur, modül adı Journal kalır (@testable import Journal, test konağı).
+        # Hedefin base ayarı grup ayarını ezdiği için koşul burada, Journal_macOS grubunda değil.
         PRODUCT_NAME: Journal
+        "PRODUCT_NAME[sdk=macosx*]": Kenet
+        PRODUCT_MODULE_NAME: Journal
         PRODUCT_BUNDLE_IDENTIFIER: $(APP_BUNDLE_IDENTIFIER)
         INFOPLIST_KEY_CFBundleDisplayName: Kenet
         # CFBundleName (Mac menü çubuğu, "Kenet Hakkında") üretilen plist'te PRODUCT_NAME olur ve
@@ -334,6 +339,8 @@ targets:
       base:
         PRODUCT_NAME: JournalTests
         PRODUCT_BUNDLE_IDENTIFIER: $(APP_BUNDLE_IDENTIFIER).tests
+        # XcodeGen test konağını hedef adından türetir (Journal.app); Mac paketi Kenet.app'tir.
+        "TEST_HOST[sdk=macosx*]": $(BUILT_PRODUCTS_DIR)/Kenet.app/Contents/MacOS/Kenet
 
   # Fixture kasasıyla XCUITest dumanı ve erişilebilirlik denetimi (iOS simülatör).
   JournalUITests:

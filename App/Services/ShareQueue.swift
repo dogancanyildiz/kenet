@@ -158,10 +158,9 @@ struct ShareImportReport: Equatable, Sendable {
         // No mark, no write: a queue this run cannot change could not lose the record afterwards either.
         guard (try? file.replace(marked)) != nil else { return .waiting }
         guard await store.addEvent(on: day, text: text, time: entry.clock) else {
-            // Nothing was saved: the mark goes, the record waits as it came.
-            var unmarked = entry
-            unmarked.writing = nil
-            try? file.replace(unmarked)
+            // Nothing was saved now; the record waits as it came. An earlier mark stays: its line may be
+            // in a day this run could not see (a day back in iCloud reads as empty and refuses the write).
+            try? file.replace(entry)
             return .waiting
         }
         // Saved: the record leaves the queue now, so no later run writes it again.

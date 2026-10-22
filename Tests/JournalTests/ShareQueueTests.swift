@@ -188,20 +188,54 @@ struct ShareQueueTests {
     }
 
     /// A run saved the line and stopped before the record left the queue: the record still carries
-    /// its mark, the next run finds the line and only removes the record.
+    /// its mark, the next run finds the line and only removes the record. The saved line is the
+    /// linked text (the mark), not the shared one.
     @Test func aRecordSavedBeforeARunStoppedIsNotWrittenAgain() async throws {
         let harness = try Harness()
         defer { harness.context.clean() }
         await harness.context.start()
-        var entry = harness.entry("Yarım kalan")
+        var entry = harness.entry("Deniz Arıkan ile kahve")
         let day = try #require(entry.calendarDay)
-        #expect(await harness.context.store.addEvent(on: day, text: "Yarım kalan", time: entry.clock))
-        entry.writing = "Yarım kalan"
+        #expect(await harness.context.store.addEvent(on: day, text: "[[Deniz Arıkan]] ile kahve", time: entry.clock))
+        entry.writing = "[[Deniz Arıkan]] ile kahve"
         try harness.pending.append(entry)
 
         await harness.run()
 
-        #expect(try harness.events() == ["Yarım kalan"])
+        #expect(try harness.events() == ["[[Deniz Arıkan]] ile kahve"])
+        #expect(harness.pending.read().elements.isEmpty)
+        #expect(harness.processor.report == ShareImportReport(added: 1))
+    }
+
+    /// The line was saved and the run stopped; before the next run the day went back to iCloud
+    /// (only its placeholder is left). That run cannot see the line and the write is refused: the
+    /// record keeps its mark, so once the day is back the line is found, not written again.
+    @Test func aMarkOutlivesADayBackInICloud() async throws {
+        let harness = try Harness()
+        defer { harness.context.clean() }
+        await harness.context.start()
+        var entry = harness.entry("Deniz Arıkan ile kahve")
+        let day = try #require(entry.calendarDay)
+        #expect(await harness.context.store.addEvent(on: day, text: "[[Deniz Arıkan]] ile kahve", time: entry.clock))
+        entry.writing = "[[Deniz Arıkan]] ile kahve"
+        try harness.pending.append(entry)
+        let saved = try Data(contentsOf: harness.dayFile)
+        let placeholder = harness.dayFile.deletingLastPathComponent()
+            .appendingPathComponent(".\(Harness.day).md.icloud")
+        try FileManager.default.removeItem(at: harness.dayFile)
+        try Data().write(to: placeholder)
+
+        await harness.run()
+
+        #expect(!FileManager.default.fileExists(atPath: harness.dayFile.path))
+        #expect(harness.pending.read().elements.compactMap(\.entry) == [entry])
+        #expect(harness.processor.report == ShareImportReport(waiting: 1))
+
+        try FileManager.default.removeItem(at: placeholder)
+        try saved.write(to: harness.dayFile)
+        await harness.run()
+
+        #expect(try harness.events() == ["[[Deniz Arıkan]] ile kahve"])
         #expect(harness.pending.read().elements.isEmpty)
         #expect(harness.processor.report == ShareImportReport(added: 1))
     }

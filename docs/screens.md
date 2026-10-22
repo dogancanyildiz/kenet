@@ -403,7 +403,20 @@ Uygulama önce dosyaya yazar, sonra indeksi günceller. Yazma hata verirse kutu 
 | Tarih denetimi | Görev kipinde çip satırında | Metinden okunan tarihi onay için gösterir. Kullanıcı dokunup düzeltir. |
 | Proje önerisi | Kutunun üstü | Görev kipinde `#project/` yazınca var olan proje adları çıkar. |
 | Anma şeridi | Kutunun üstü | `@` önerileri, "hangisi?" sorusu ve yeni varlık oluşturma. |
+| Öneriler | Olay kipinde boş kutunun sonu, yalnız iPhone | Simge sistemin günlük önerileri seçicisini açar. iPad, Mac ve çerçevesi olmayan yapı simgeyi göstermez. Kutu dolunca simge gider. |
 | Gönderim | Kutunun sonu | Kutu boşalır, klavye açık kalır. Kullanıcı art arda giriş yapar. |
+
+**Günlük önerisinden olay metni (iPhone).**
+
+| Konu | Davranış |
+|---|---|
+| Doldurma | Seçilen öneri kutuya metin olarak girer. Uygulama kendiliğinden yazmaz; kullanıcı Gönder'e basar. Kutuda yazılmış taslak varsa uygulama öneriyi almaz ve nedenini söyler: takvim taslağıyla aynı kural. |
+| Konum ve kişi | Konum yalnız konumlarla, kişi yalnız kişilerle ve tam adıyla eşlenir. Tek eşi olan ad metne `@Ad` olarak girer ve sabitlenir. Belirsiz ad `@Ad` olarak girer; gönderim "hangisi?" sorusunu açar. Öteki adlar metne girmez: kendi türünü ve tam adını taşıyan bir çip olur. Yalnız öteki türde eşi olan ad da çip olur. Çipe dokununca ad o türle oluşturulur; ad alınmışsa şerit ayırt ediciyi sorar. Oluşan ad metne sabitlenmiş girer. Dokunulmayan çip yazılmaz. Gerekçe: tanıyıcı tür bilmez ve adın ilk sözcüklerini başka bir varlığa bağlayabilir. Ad, rehberden içe aktarmadaki gibi temizlenir: bağlantıyı bozan işaretler düşer, adres ad sayılmaz. |
+| Kısa metin | Egzersiz: `Koşu 32 dk`. Adım: `5.234 adım`. Şarkı, podcast ve öteki medya: `Şarkı – Sanatçı`. Takvim etkinliği yalnız başlığıdır; saati girişin saati olur: `- 16:00 Diş hekimi`. Yansıma sorusu ve ruh hali (`Ruh hali: iyi`) metin olur. Emoji yoktur. Başlıktaki `[[` ve `]]` tek parantez olur; sözcük başındaki `@` ve `#` tam genişlikli `＠` ve `＃` olur. Böylece başlık bağlantı, anma ya da etiket oluşturmaz. |
+| Ad yalnızsa | Öneride yalnız konum ve kişi varsa satır önerinin başlığıyla başlar. Başlık adlardan biriyse başlık yazılmaz. |
+| Birden çok öğe | Kendi sözcüğü olan her öğe ayrı olay satırıdır. Konum ve kişiler ilk satıra bir kez girer. İlk satır kutuya girer. Sonraki satır ancak öneri satırı gönderilince gelir. Kullanıcının kendi yazdığı olay ya da görev sıradaki satırı getirmez ve kipi değiştirmez. Kutu boşsa not satırındaki "Sıradaki" bekleyen satırı getirir. |
+| Fotoğraf ve video | Yazılmaz: kasa biçiminde ek dosya kuralı yoktur. Kutunun üstünde tek satır not durur: "Fotoğraf ve videolar yazılmaz." Not bekleyen satır sayısını da söyler. ✕ notu ve bekleyen satırları kapatır. |
+| Gün ve saat | Öğenin anı girişin saati olur. Anın günü sayfanın günüyse satır o sayfaya gider; değilse anın gününün dosyasına gider. Kutunun üstündeki not o günü söyler, örneğin "19 Eki için.". Kullanıcı tarihi görmeden başka güne yazılmaz. Anın günü bugünse satır bugüne gider. Kutu boşalınca gün de gider; kullanıcının sonra yazdığı giriş sayfanın gününe gider. |
 
 **Anma ve ad çipi kuralları.**
 

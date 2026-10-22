@@ -44,13 +44,17 @@ struct SummariesView: View {
         _model = State(initialValue: SummariesModel(store: store, today: today, period: period, day: day))
     }
 
+    private var masthead: InkPageTitle<some View> {
+        InkPageTitle("Özetler") {
+            SearchButton()
+        }
+    }
+
     var body: some View {
         ScrollView {
             // No gap after the manşet row: the tabs sit right under it (pattern 4).
             VStack(alignment: .leading, spacing: 0) {
-                InkPageTitle("Özetler") {
-                    SearchButton()
-                }
+                InkScrolledMasthead(masthead)
                 VStack(alignment: .leading, spacing: 28) {
                     controls
                     if model.summary == nil, model.isLoading {
@@ -73,6 +77,7 @@ struct SummariesView: View {
             .frame(maxWidth: pageWidth, alignment: .leading)
             .frame(maxWidth: .infinity, alignment: .center)
         }
+        .inkPinnedMasthead(masthead, columnWidth: pageWidth)
         .inkPage()
         .inkPageNavigationTitle("Özetler")
         .preference(

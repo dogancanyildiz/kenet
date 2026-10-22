@@ -19,18 +19,22 @@ struct GoalDetailView: View {
     /// The goal's newest definition by id, as the history model last loaded it; the one the page
     /// was opened with until then, and once the file is gone.
     private var goal: GoalDefinition { history.goals.first { $0.id == original.id } ?? original }
+    private var masthead: InkPageTitle<some View> {
+        InkPageTitle(verbatim: goal.name, byline: goal.period.title) {
+            if store.canAddEvent {
+                InkHeaderAction(
+                    "Düzenle", systemImage: "pencil", role: .primary, identifier: "button.goal.edit"
+                ) { isEditing = true }
+            }
+            SearchButton()
+        }
+    }
+
     var body: some View {
         let status = history.status(for: goal)
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                InkPageTitle(verbatim: goal.name, byline: goal.period.title) {
-                    if store.canAddEvent {
-                        InkHeaderAction(
-                            "Düzenle", systemImage: "pencil", role: .primary, identifier: "button.goal.edit"
-                        ) { isEditing = true }
-                    }
-                    SearchButton()
-                }
+                InkScrolledMasthead(masthead)
 
                 progressBlock(status: status)
                     .padding(.horizontal, InkSpacing.margin)
@@ -78,6 +82,9 @@ struct GoalDetailView: View {
             .padding(.vertical, 12)
             .inkPageColumn()
         }
+        // The stack's 12 pt top pad stays under the strip: the strip takes the same above the
+        // manşet and the rest of the 20 pt gap below it.
+        .inkPinnedMasthead(masthead, insets: EdgeInsets(top: 12, leading: 0, bottom: 8, trailing: 0))
         .inkPage()
         .inkPageNavigationTitle(verbatim: goal.name)
         .task(id: store.lastUpdated) {

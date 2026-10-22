@@ -102,10 +102,8 @@ struct TasksView: View {
 
     @ViewBuilder private var listContent: some View {
         List(selection: $selection) {
-            TasksPageTop(tasks: model, current: .list) {
-                TasksSectionMenu(tasks: model)
-            }
-            .tasksPageTopRow()
+            InkScrolledMasthead(pageTop)
+                .tasksPageTopRow()
             if let error = model.errorText ?? model.listErrorText {
                 InfoBand(kind: .error, verbatim: error)
                     .listRowInsets(EdgeInsets())
@@ -117,6 +115,19 @@ struct TasksView: View {
         }
         .listStyle(.plain)
         .inkPage()
+        // The whole page top stays, as it does above the boards: manşet, view tabs, menu row.
+        // A Mac list insets even a row with no insets of its own; the strip does the same.
+        .inkPinnedMasthead(
+            pageTop,
+            insets: EdgeInsets(
+                top: 0, leading: MacListColumnChrome.rowInset, bottom: 0, trailing: MacListColumnChrome.rowInset),
+            columnWidth: .infinity)
+    }
+
+    private var pageTop: some View {
+        TasksPageTop(tasks: model, current: .list) {
+            TasksSectionMenu(tasks: model)
+        }
     }
 
     @ViewBuilder private var listSections: some View {

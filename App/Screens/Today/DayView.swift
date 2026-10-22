@@ -94,7 +94,7 @@ struct DayView: View {
             && tasksModel.groups.isEmpty && presented.completedTaskCount == 0
         ScrollView {
             VStack(alignment: .leading, spacing: InkSpacing.section) {
-                headlineBlock(presented)
+                InkScrolledMasthead(headlineBlock(presented))
 
                 if store.isProcessing && !store.isWriting {
                     InkProgress(kind: .indeterminate(label: "İndeks güncelleniyor…"))
@@ -158,6 +158,11 @@ struct DayView: View {
             .padding(.bottom, 8)
             .inkPageColumn()
         }
+        // The stack's own top pad stays under the pinned strip: the gap below the manşet is the same.
+        .inkPinnedMasthead(
+            headlineBlock(presented),
+            insets: EdgeInsets(top: 8, leading: InkSpacing.margin, bottom: 0, trailing: InkSpacing.margin)
+        )
         .inkPage()
         .safeAreaInset(edge: .bottom) {
             QuickEntryBar(

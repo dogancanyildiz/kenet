@@ -87,7 +87,7 @@ final class ScreenTourMacUITests: XCTestCase {
             ("varliklar", entities), ("varlik-sayfalari", entityPages), ("hedefler", goals),
             ("arama", { self.search(prefix: "13-arama") }), ("ayarlar", settings),
             ("hizli-giris", { self.quickEntry(prefix: "15-hizli-giris", withTaskMode: true) }),
-            ("mac", macOnly), ("koyu", darkPass),
+            ("mac", macOnly), ("kaydirma", scrolledColumns), ("koyu", darkPass),
         ]
         for (name, run) in parts where only.isEmpty || only.contains(name) { run() }
 
@@ -603,6 +603,59 @@ final class ScreenTourMacUITests: XCTestCase {
             tour.escape()
             tour.captureMainWindow()
         }
+    }
+
+    // MARK: Scrolled columns (numbered from 40)
+
+    /// The sidebar, the list column and the detail scrolled down, as in a short window
+    /// (`SCREEN_TOUR_WINDOW=1000x560`): the manşet row and its icons stay under the toolbar.
+    @MainActor private func scrolledColumns() {
+        tour.step("40-mac-kaydirma-gun") {
+            // As the tour's first part does: Today first, then the Günlük row.
+            try tour.sidebar("Bugün")
+            try tour.waitFor(ids: ["screen.today"])
+            try tour.sidebar("Günlük")
+            try tour.macRow(pastDay, in: tour.mainWindow, scrolls: 0).click()
+            try tour.waitFor(ids: ["screen.day"])
+            scrollColumns(shot: "40-mac-kaydirma-gun", sidebar: true)
+        }
+        tour.step("40-mac-kaydirma-gorev") {
+            try openTaskList("Yaklaşan")
+            try tour.macRow(listTask, in: tour.mainWindow, scrolls: 0).click()
+            _ = try tour.macRequire(["Kaynak güne git"])
+            scrollColumns(shot: "40-mac-kaydirma-gorev")
+        }
+        tour.step("40-mac-kaydirma-kisi") {
+            try openEntity(root: "Kişiler", name: person)
+            scrollColumns(shot: "40-mac-kaydirma-kisi")
+        }
+        tour.step("40-mac-kaydirma-hedef") {
+            try openGoal()
+            scrollColumns(shot: "40-mac-kaydirma-hedef")
+        }
+        tour.step("40-mac-kaydirma-ozetler") {
+            try tour.sidebar("Özetler")
+            _ = try tour.macRequire(["Önceki dönem"])
+            scrollColumns(shot: "40-mac-kaydirma-ozetler", list: false)
+        }
+    }
+
+    /// Scrolls each column one page down, takes the image, and scrolls them back to the top.
+    @MainActor private func scrollColumns(shot name: String, sidebar: Bool = false, list: Bool = true) {
+        var anchors: [CGVector] = []
+        if sidebar { anchors.append(CGVector(dx: 0.08, dy: 0.6)) }
+        if list { anchors.append(CGVector(dx: 0.36, dy: 0.7)) }
+        anchors.append(CGVector(dx: 0.78, dy: 0.6))
+        for anchor in anchors {
+            tour.scrollAnchor = anchor
+            tour.scrollPage()
+        }
+        tour.shot(name, settle: 1.5)
+        for anchor in anchors {
+            tour.scrollAnchor = anchor
+            tour.scrollToTop()
+        }
+        tour.captureMainWindow()
     }
 
     // MARK: Dark appearance (selected base screens)

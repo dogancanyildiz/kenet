@@ -22,13 +22,14 @@ struct GraphView: View {
         TimelineView(.periodic(from: .now, by: 60)) { _ in
             let today = LocalDay.today(at: clockNow())
             let canvasHeight: CGFloat = dynamicTypeSize.isAccessibilitySize ? 280 : 360
+            let masthead = InkPageTitle("Graph") {
+                GraphFilterMenu(filter: $model.filter)
+                SearchButton()
+            }
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
                     VStack(alignment: .leading, spacing: 0) {
-                        InkPageTitle("Graph") {
-                            GraphFilterMenu(filter: $model.filter)
-                            SearchButton()
-                        }
+                        InkScrolledMasthead(masthead)
                         GraphControls(
                             maximumWeight: max(365, model.graph.edges.map(\.weight).max() ?? 1),
                             filter: $model.filter,
@@ -84,6 +85,7 @@ struct GraphView: View {
                     .inkPageColumn()
                 }
             }
+            .inkPinnedMasthead(masthead)
             .inkPage()
             .task(
                 id: String(describing: model.filter) + today.description

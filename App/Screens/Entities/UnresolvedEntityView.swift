@@ -10,6 +10,10 @@ struct UnresolvedEntityView: View {
         _model = State(initialValue: UnresolvedEntityModel(store: store, target: target))
     }
 
+    private var masthead: InkPageTitleRow<EmptyView> {
+        InkPageTitleRow("Bağlantı bulunamadı", byline: String(localized: "Bu ad için bir varlık oluştur."))
+    }
+
     var body: some View {
         @Bindable var model = model
         if let created = model.created {
@@ -21,7 +25,7 @@ struct UnresolvedEntityView: View {
             EntityView(store: store, entity: entity).id(entity.id)
         } else {
             List {
-                InkPageTitleRow("Bağlantı bulunamadı", byline: String(localized: "Bu ad için bir varlık oluştur."))
+                InkScrolledMasthead(masthead)
                 InkFilterField("Ad", text: $model.name)
                     .inkListRow()
                 if model.needsQualifier {
@@ -58,6 +62,8 @@ struct UnresolvedEntityView: View {
                 }
             }
             .listStyle(.plain)
+            // The list has no reading column of its own: the manşet spans it as the rows do.
+            .inkPinnedMasthead(masthead, columnWidth: .infinity)
             .inkPage()
             .disabled(model.isCreating || !store.canAddEvent)
             .inkPageNavigationTitle("Bağlantı bulunamadı")

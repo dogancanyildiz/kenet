@@ -503,7 +503,11 @@ struct InkListSelectionTests {
 
         func click(at point: CGPoint) {
             placeOnScreen()
-            let windowPoint = windowPoint(for: point)
+            send(at: windowPoint(for: point))
+        }
+
+        /// A mouse down and up at `windowPoint` (window coordinates).
+        private func send(at windowPoint: NSPoint) {
             func make(_ type: NSEvent.EventType) -> NSEvent {
                 NSEvent.mouseEvent(
                     with: type, location: windowPoint, modifierFlags: [],
@@ -516,6 +520,27 @@ struct InkListSelectionTests {
             NSApp.sendEvent(make(.leftMouseUp))
             RunLoop.current.run(until: Date().addingTimeInterval(0.05))
         }
+
+        /// Clicks the middle of the first accessibility element `matches` picks, read once the
+        /// window is on screen (where a real click lands). False when no such element shows.
+        func clickElement(
+            offset: CGVector = .zero, where matches: (HostedControls.Node) -> Bool
+        ) async -> Bool {
+            placeOnScreen()
+            HostedControls.enableTree()
+            var node: HostedControls.Node?
+            for _ in 0..<40 where node == nil {
+                await settle()
+                node = HostedControls.nodes(under: host).first(where: matches)
+            }
+            guard let node else { return false }
+            let point = NSPoint(x: node.frame.midX + offset.dx, y: node.frame.midY + offset.dy)
+            send(at: window.convertPoint(fromScreen: point))
+            return true
+        }
+
+        /// The window the view is hosted in (sheets attach to it).
+        var hostWindow: NSWindow { window }
 
         /// First AppKit view of the given type under the hosted SwiftUI content.
         func descendant<T: NSView>(_ type: T.Type) -> T? {

@@ -30,7 +30,9 @@ private enum VaultCloudSnapshotHost {
             case .onboardingCloud, .onboardingLocal: OnboardingView(store: store)
             case .settingsCloud, .settingsLocal: VaultSettingsView(store: store)
             case .cloudUnavailable, .cloudFolderMissing: VaultInaccessibleView(store: store)
-            case .migration: VaultCloudMigrationView(store: store)
+            // Presented as a sheet inside a `NavigationStack`, like the app does: the toolbar
+            // words ("Vazgeç", "Taşı") only render inside one.
+            case .migration: NavigationStack { VaultCloudMigrationView(store: store) }
             }
         }
         .environment(\.vaultPathDisplayOverride, VaultPathDisplay.snapshotExample)

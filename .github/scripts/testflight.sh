@@ -11,6 +11,8 @@
 #   sh .github/scripts/testflight.sh            arşivle, özeti göster, onay alınca yükle
 #   sh .github/scripts/testflight.sh --yes      onay sormadan yükle
 #   sh .github/scripts/testflight.sh --check    imzasız arşivle ve içini denetle; yükleme yok
+#   sh .github/scripts/testflight.sh --mac      Mac uygulamasını (Journal_macOS) arşivle ve yükle;
+#                                               --check ve --ci ile birleşir; öteki seçenekler iOS
 #   sh .github/scripts/testflight.sh --ci --keychain <yol> --api-key <.p8> --api-key-id <kimlik> \
 #     --api-issuer <kimlik>                      CI'da (testflight.yml) onaysız arşivle ve yükle
 #
@@ -20,6 +22,12 @@
 # yayıncı kimliği yer tutucuyla değiştirilir (repo herkese açık). HEAD origin/dev geçmişinde
 # olmalı ve kopya tam olmalı (yapı numarası commit sayısıdır).
 #
+# --mac kipi: Journal_macOS şeması generic/platform=macOS için arşivlenir ve aynı app-store-connect
+# dışa aktarımıyla yüklenir (Mac App Store paketi .pkg; Xcode "Mac Installer Distribution"
+# sertifikasını otomatik imzada kendisi oluşturur). Denetimler Mac paketine göredir: Contents/
+# Info.plist, en düşük macOS sürümü, imzalı pakette App Sandbox ve iCloud kapsayıcı yetkisi.
+# App Store Connect'te uygulama kaydına macOS platformu eklenmiş olmalı (README, Mac).
+#
 # Koşullar: dal `dev` ve origin/dev ile aynı (TestFlight `dev`'den, mağaza `main`'den çıkar),
 # Config/Local.xcconfig içinde takım kimliği var ve Xcode'da aynı Apple hesabıyla oturum açık.
 # Çalışma klasöründeki commit'lenmemiş değişiklikler arşive girmez; betik bunları listeler. Yapı numarası commit sayısıdır: aynı commit'ten
@@ -27,6 +35,7 @@
 set -eu
 
 MODE=upload
+PLATFORM=ios
 ASSUME_YES=0
 CI_MODE=0
 KEYCHAIN=
@@ -40,6 +49,7 @@ usage() {
 while [ $# -gt 0 ]; do
   case "$1" in
     --check) MODE=check ;;
+    --mac) PLATFORM=mac ;;
     --yes) ASSUME_YES=1 ;;
     --ci) CI_MODE=1 ;;
     --keychain | --api-key | --api-key-id | --api-issuer)
@@ -149,7 +159,16 @@ cd "$TREE"
 xcodegen generate >/dev/null
 ARCHIVE="$WORK/Kenet.xcarchive"
 LOG="$WORK/arsiv.log"
-echo "Arşivleniyor ($(git rev-parse --short HEAD))…"
+if [ "$PLATFORM" = mac ]; then
+  SCHEME=Journal_macOS
+  DESTINATION='generic/platform=macOS'
+  LABEL="Kenet (Mac)"
+else
+  SCHEME=Journal_iOS
+  DESTINATION='generic/platform=iOS'
+  LABEL="Kenet"
+fi
+echo "Arşivleniyor ($LABEL, $(git rev-parse --short HEAD))…"
 if [ "$MODE" = check ]; then
   set -- CODE_SIGNING_ALLOWED=NO
 else
@@ -159,8 +178,8 @@ if [ "$CI_MODE" -eq 1 ]; then
   set -- "$@" -authenticationKeyPath "$API_KEY" -authenticationKeyID "$API_KEY_ID" \
     -authenticationKeyIssuerID "$API_ISSUER" DEVELOPMENT_TEAM="$TEAM"
 fi
-if ! xcodebuild archive -project Journal.xcodeproj -scheme Journal_iOS \
-  -destination 'generic/platform=iOS' -archivePath "$ARCHIVE" \
+if ! xcodebuild archive -project Journal.xcodeproj -scheme "$SCHEME" \
+  -destination "$DESTINATION" -archivePath "$ARCHIVE" \
   -derivedDataPath "$WORK/DerivedData" "$@" >"$LOG" 2>&1; then
   grep -E "error:|ARCHIVE FAILED" "$LOG" | head -20 | redact >&2
   KEEP="${TMPDIR:-/tmp}/kenet-testflight-arsiv.log"
@@ -170,28 +189,58 @@ fi
 
 APP=$(find "$ARCHIVE/Products/Applications" -maxdepth 1 -name '*.app' | head -1)
 [ -n "$APP" ] || fail "arşivde uygulama bulunamadı."
-plist() { /usr/libexec/PlistBuddy -c "Print :$1" "$APP/Info.plist" 2>/dev/null || echo "?"; }
-EXPECTED_ID=$(sed -n 's/^[[:space:]]*APP_BUNDLE_IDENTIFIER:[[:space:]]*//p' "$TREE/project.yml" | head -1)
+# Mac paketi Contents/ altına yerleşir; iOS paketi düzdür.
+if [ "$PLATFORM" = mac ]; then
+  INFO="$APP/Contents/Info.plist"
+  PRIVACY="$APP/Contents/Resources/PrivacyInfo.xcprivacy"
+else
+  INFO="$APP/Info.plist"
+  PRIVACY="$APP/PrivacyInfo.xcprivacy"
+fi
+plist() { /usr/libexec/PlistBuddy -c "Print :$1" "$INFO" 2>/dev/null || echo "?"; }
+setting() { sed -n "s/^[[:space:]]*$1:[[:space:]]*//p" "$TREE/project.yml" | head -1 | tr -d '"'; }
+EXPECTED_ID=$(setting APP_BUNDLE_IDENTIFIER)
 BUNDLE_ID=$(plist CFBundleIdentifier)
 VERSION=$(plist CFBundleShortVersionString)
 BUILD=$(plist CFBundleVersion)
-FAMILY=$(plist UIDeviceFamily | tr -d ' \n')
-IPAD_ORIENTATIONS=$(plist "UISupportedInterfaceOrientations~ipad" | grep -c UIInterfaceOrientation)
 
 echo "Ad:            $(plist CFBundleDisplayName)"
 echo "Kimlik:        $BUNDLE_ID"
 echo "Sürüm (yapı):  $VERSION ($BUILD)"
-echo "Cihaz ailesi:  $FAMILY (iPad yönü: $IPAD_ORIENTATIONS)"
+if [ "$PLATFORM" = mac ]; then
+  MIN_MACOS=$(plist LSMinimumSystemVersion)
+  EXPECTED_MACOS=$(setting macOS)
+  echo "Platform:      Mac (en düşük macOS $MIN_MACOS)"
+else
+  FAMILY=$(plist UIDeviceFamily | tr -d ' \n')
+  IPAD_ORIENTATIONS=$(plist "UISupportedInterfaceOrientations~ipad" | grep -c UIInterfaceOrientation)
+  echo "Cihaz ailesi:  $FAMILY (iPad yönü: $IPAD_ORIENTATIONS)"
+fi
 echo "Şifreleme:     ITSAppUsesNonExemptEncryption=$(plist ITSAppUsesNonExemptEncryption)"
-echo "Belge paylaşımı: UIFileSharingEnabled=$(plist UIFileSharingEnabled) LSSupportsOpeningDocumentsInPlace=$(plist LSSupportsOpeningDocumentsInPlace)"
+[ "$PLATFORM" = mac ] ||
+  echo "Belge paylaşımı: UIFileSharingEnabled=$(plist UIFileSharingEnabled) LSSupportsOpeningDocumentsInPlace=$(plist LSSupportsOpeningDocumentsInPlace)"
 
 [ "$BUNDLE_ID" = "$EXPECTED_ID" ] || fail "kimlik '$BUNDLE_ID', beklenen '$EXPECTED_ID'."
 [ "$VERSION" = "$(cat "$TREE/VERSION")" ] || fail "sürüm '$VERSION', VERSION dosyası '$(cat "$TREE/VERSION")'."
 [ "$BUILD" = "$(git rev-list --count HEAD)" ] || fail "yapı numarası '$BUILD', commit sayısı '$(git rev-list --count HEAD)'."
-[ "$FAMILY" = "Array{12}" ] || fail "cihaz ailesi iPhone ve iPad olmalı (PlistBuddy çıktısı sıkıştırılmış: Array{12}), bulunan: $FAMILY."
-[ "$IPAD_ORIENTATIONS" = 4 ] || fail "iPad dört yöne dönmeli (UISupportedInterfaceOrientations~ipad), bulunan yön sayısı: $IPAD_ORIENTATIONS."
-[ -f "$APP/PrivacyInfo.xcprivacy" ] || fail "PrivacyInfo.xcprivacy pakette yok."
-[ "$(plist LSSupportsOpeningDocumentsInPlace)" = true ] || fail "LSSupportsOpeningDocumentsInPlace pakette yok."
+[ -f "$PRIVACY" ] || fail "PrivacyInfo.xcprivacy pakette yok."
+if [ "$PLATFORM" = mac ]; then
+  [ "$MIN_MACOS" = "$EXPECTED_MACOS" ] || fail "en düşük macOS '$MIN_MACOS', project.yml '$EXPECTED_MACOS'."
+  if [ "$MODE" = upload ]; then
+    # İmzalı paket Release yetkilerini taşımalı: Debug'ın AdHoc dosyasında sandbox ve iCloud yoktur.
+    # codesign tek satır XML basar; plutil satırlara açar ki anahtar ve değer art arda okunsun.
+    ENTITLEMENTS=$(codesign -d --entitlements - --xml "$APP" 2>/dev/null | plutil -convert xml1 -o - -) ||
+      fail "Mac paketinin yetkileri okunamadı."
+    printf '%s\n' "$ENTITLEMENTS" | grep -A1 '<key>com.apple.security.app-sandbox</key>' | grep -q '<true/>' ||
+      fail "Mac paketi App Sandbox yetkisi taşımıyor (Mac App Store bunu ister)."
+    printf '%s\n' "$ENTITLEMENTS" | grep -q "<string>$(setting KENET_ICLOUD_CONTAINER)</string>" ||
+      fail "Mac paketi iCloud kapsayıcı yetkisi taşımıyor."
+  fi
+else
+  [ "$FAMILY" = "Array{12}" ] || fail "cihaz ailesi iPhone ve iPad olmalı (PlistBuddy çıktısı sıkıştırılmış: Array{12}), bulunan: $FAMILY."
+  [ "$IPAD_ORIENTATIONS" = 4 ] || fail "iPad dört yöne dönmeli (UISupportedInterfaceOrientations~ipad), bulunan yön sayısı: $IPAD_ORIENTATIONS."
+  [ "$(plist LSSupportsOpeningDocumentsInPlace)" = true ] || fail "LSSupportsOpeningDocumentsInPlace pakette yok."
+fi
 
 if [ "$MODE" = check ]; then
   echo "Denetim geçti (imzasız arşiv; yükleme yapılmadı)."
@@ -199,7 +248,7 @@ if [ "$MODE" = check ]; then
 fi
 
 if [ "$ASSUME_YES" -ne 1 ]; then
-  printf '%s' "Kenet $VERSION ($BUILD) TestFlight'a (dahili test) yüklensin mi? [e/H] "
+  printf '%s' "$LABEL $VERSION ($BUILD) TestFlight'a (dahili test) yüklensin mi? [e/H] "
   read -r answer
   case "$answer" in
     e | E | evet | Evet) ;;
@@ -248,7 +297,7 @@ if ! xcodebuild -exportArchive -archivePath "$ARCHIVE" -exportOptionsPlist "$OPT
   redact <"$UPLOAD_LOG" >"$KEEP"
   fail "yükleme başarısız; günlük: $KEEP"
 fi
-echo "Yüklendi: Kenet $VERSION ($BUILD). İşlenmesi birkaç dakika sürer; TestFlight kendiliğinden günceller."
+echo "Yüklendi: $LABEL $VERSION ($BUILD). İşlenmesi birkaç dakika sürer; TestFlight kendiliğinden günceller."
 if [ "$CI_MODE" -eq 1 ] && [ -n "${GITHUB_OUTPUT:-}" ]; then
-  printf 'version=%s\nbuild=%s\n' "$VERSION" "$BUILD" >>"$GITHUB_OUTPUT"
+  printf 'version=%s\nbuild=%s\nplatform=%s\n' "$VERSION" "$BUILD" "$PLATFORM" >>"$GITHUB_OUTPUT"
 fi

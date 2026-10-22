@@ -28,7 +28,9 @@ if tool == "git":
     elif "add" in args:
         tree = Path(args[-2])
         (tree / "Config").mkdir(parents=True)
-        (tree / "project.yml").write_text("APP_BUNDLE_IDENTIFIER: example.test\n")
+        (tree / "project.yml").write_text(
+            "APP_BUNDLE_IDENTIFIER: example.test\n  KENET_ICLOUD_CONTAINER: iCloud.example.test\n"
+            "  deploymentTarget:\n    iOS: \"26.0\"\n    macOS: \"26.0\"\n")
         (tree / "VERSION").write_text("0.9.0\n")
     elif "--abbrev-ref" in args:
         print(os.environ.get("TEST_BRANCH", "dev"))
@@ -47,7 +49,12 @@ elif tool == "xcodebuild":
         (derived / "build-product").write_text("temporary build")
         app = archive / "Products/Applications/Kenet.app"
         app.mkdir(parents=True)
-        (app / "PrivacyInfo.xcprivacy").touch()
+        # Mac bundles keep resources under Contents/; iOS bundles are flat.
+        if "Journal_macOS" in args:
+            (app / "Contents/Resources").mkdir(parents=True)
+            (app / "Contents/Resources/PrivacyInfo.xcprivacy").touch()
+        else:
+            (app / "PrivacyInfo.xcprivacy").touch()
         (root / "signing").write_text(" ".join(args))
         if os.environ["TEST_MODE"] == "archive-failure":
             # Real xcodebuild logs echo the full command line, credentials included.
@@ -66,6 +73,14 @@ elif tool == "xcodebuild":
 elif tool == "security":
     assert args[:4] == ["find-identity", "-v", "-p", "codesigning"], args
     print(os.environ.get("TEST_IDENTITIES", ""))
+elif tool == "codesign":
+    assert args[:4] == ["-d", "--entitlements", "-", "--xml"], args
+    (root / "codesign-app").write_text(args[-1])
+    print(os.environ.get("TEST_ENTITLEMENTS", MAC_ENTITLEMENTS))
+elif tool == "plutil":
+    # The real tool pretty-prints the one-line XML codesign emits; the fake passes text through.
+    assert args == ["-convert", "xml1", "-o", "-", "-"], args
+    sys.stdout.write(sys.stdin.read())
 elif tool == "PlistBuddy":
     key = args[1].split(":")[-1]
     print({"CFBundleIdentifier": "example.test", "CFBundleShortVersionString": "0.9.0",
@@ -73,8 +88,13 @@ elif tool == "PlistBuddy":
            "UISupportedInterfaceOrientations~ipad": "Array {\n" + "".join(
                f"    UIInterfaceOrientation{name}\n"
                for name in ("Portrait", "PortraitUpsideDown", "LandscapeLeft", "LandscapeRight")) + "}",
-           "LSSupportsOpeningDocumentsInPlace": "true"}.get(key, "true"))
+           "LSSupportsOpeningDocumentsInPlace": "true", "LSMinimumSystemVersion": "26.0"}.get(key, "true"))
 '''
+
+# codesign --xml prints key and value on separate lines, like the real tool.
+MAC_ENTITLEMENTS = ("<plist><dict>\n\t<key>com.apple.security.app-sandbox</key>\n\t<true/>\n"
+                    "\t<key>com.apple.developer.icloud-container-identifiers</key>\n"
+                    "\t<array>\n\t\t<string>iCloud.example.test</string>\n\t</array>\n</dict></plist>")
 
 
 TEAM = "ABCDE12345"
@@ -103,9 +123,9 @@ class TestFlightCleanupTests(unittest.TestCase):
             (root / "AuthKey.p8").write_text("fake key")
             tools = root / "tools"
             tools.mkdir()
-            for name in ("git", "xcodegen", "xcodebuild", "PlistBuddy", "security"):
+            for name in ("git", "xcodegen", "xcodebuild", "PlistBuddy", "security", "codesign", "plutil"):
                 executable = tools / name
-                executable.write_text(FAKE_TOOL)
+                executable.write_text(FAKE_TOOL.replace("MAC_ENTITLEMENTS", repr(MAC_ENTITLEMENTS)))
                 executable.chmod(0o755)
             temporary = root / "tmp"
             temporary.mkdir()
@@ -162,6 +182,58 @@ class TestFlightCleanupTests(unittest.TestCase):
     def test_upload_failure_cleanup(self):
         self.run_case("upload-failure", ["--yes"], 1)
 
+    # --mac: the Mac app (Journal_macOS) goes through the same archive, check and export path.
+
+    def test_mac_check_archives_mac_scheme(self):
+        def inspect(result, root):
+            signing = (root / "signing").read_text()
+            self.assertIn("-scheme Journal_macOS", signing)
+            self.assertIn("-destination generic/platform=macOS", signing)
+            self.assertIn("Platform:      Mac (en düşük macOS 26.0)", result.stdout)
+            self.assertNotIn("Cihaz ailesi", result.stdout)
+            self.assertNotIn("Belge paylaşımı", result.stdout)
+            # Unsigned check: no entitlements to read.
+            self.assertFalse((root / "codesign-app").exists())
+        self.run_case("check", ["--check", "--mac"], 0, inspect=inspect)
+
+    def test_ios_check_keeps_ios_scheme(self):
+        def inspect(result, root):
+            signing = (root / "signing").read_text()
+            self.assertIn("-scheme Journal_iOS", signing)
+            self.assertIn("-destination generic/platform=iOS", signing)
+            self.assertIn("Cihaz ailesi", result.stdout)
+        self.run_case("check", ["--check"], 0, inspect=inspect)
+
+    def test_mac_upload_reads_signed_entitlements(self):
+        def inspect(result, root):
+            self.assertTrue((root / "codesign-app").read_text().endswith("Kenet.app"))
+            self.assertIn("Yüklendi: Kenet (Mac) 0.9.0 (42)", result.stdout)
+            self.assertIn("<string>upload</string>", (root / "export-options").read_text())
+        self.run_case("upload", ["--yes", "--mac"], 0, inspect=inspect)
+
+    def test_mac_upload_refuses_without_sandbox(self):
+        unsandboxed = ("<plist><dict>\n\t<key>com.apple.developer.icloud-container-identifiers</key>\n"
+                       "\t<array>\n\t\t<string>iCloud.example.test</string>\n\t</array>\n</dict></plist>")
+        def inspect(result, root):
+            self.assertIn("App Sandbox", result.stderr)
+            self.assertFalse((root / "uploaded").exists())
+        self.run_case("mac-refused", ["--yes", "--mac"], 1, extra_env={"TEST_ENTITLEMENTS": unsandboxed},
+                      inspect=inspect)
+
+    def test_mac_upload_refuses_without_icloud_container(self):
+        no_container = "<plist><dict>\n\t<key>com.apple.security.app-sandbox</key>\n\t<true/>\n</dict></plist>"
+        def inspect(result, root):
+            self.assertIn("iCloud kapsayıcı", result.stderr)
+            self.assertFalse((root / "uploaded").exists())
+        self.run_case("mac-refused", ["--yes", "--mac"], 1, extra_env={"TEST_ENTITLEMENTS": no_container},
+                      inspect=inspect)
+
+    def test_mac_ci_upload_reports_platform(self):
+        def inspect(result, root):
+            self.assertIn("-scheme Journal_macOS", (root / "signing").read_text())
+            self.assertIn("version=0.9.0\nbuild=42\nplatform=mac\n", (root / "github-output").read_text())
+        self.ci_case("upload", 0, inspect=inspect, arguments=self.CI_ARGUMENTS + ["--mac"])
+
     # --ci: CI upload (testflight.yml) with an API key and a prepared keychain.
 
     CI_ARGUMENTS = ["--ci", "--keychain", "ROOT/keychain-db", "--api-key", "ROOT/AuthKey.p8",
@@ -192,7 +264,7 @@ class TestFlightCleanupTests(unittest.TestCase):
             self.assertTrue(result.stdout.startswith(f"::add-mask::{TEAM}\n"), result.stdout)
             self.assertEqual(result.stdout.count(TEAM), 1, result.stdout)
             self.assertNotIn("yüklensin mi", result.stdout)
-            self.assertIn("version=0.9.0\nbuild=42\n", (root / "github-output").read_text())
+            self.assertIn("version=0.9.0\nbuild=42\nplatform=ios\n", (root / "github-output").read_text())
             self.assertNotIn("Apple Development kimliği yok", result.stderr)
             calls = (root / "calls").read_text()
             self.assertIn("merge-base --is-ancestor HEAD origin/dev", calls)

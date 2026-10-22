@@ -83,7 +83,7 @@ Ayrıntılı durum `docs/roadmap.md` belgesindedir.
 |---|---|---|---|
 | iPhone | iOS 26.0 | Sekmeli | TestFlight dahili test; cihaz ailesi `TARGETED_DEVICE_FAMILY: "1,2"` |
 | iPad | iPadOS 26.0 | Dar pencerede sekmeli; 1000 pt ve üstünde 3 sütun | TestFlight dahili test; iPhone ile aynı uygulama |
-| Mac | macOS 26.0 | Kenar çubuklu | `.github/scripts/install-mac.sh`; TestFlight ve mağaza yolu yok |
+| Mac | macOS 26.0 | Kenar çubuklu | TestFlight dahili test (`testflight.sh --mac`, Mac App Store paketi); geliştirme makinesine `.github/scripts/install-mac.sh` |
 
 **NOT:** iPad desteği 2026-10-16 kararıyla açıldı; cihaz ailesine iPad girdi ve geri alınamaz. Mağaza listesindeki iPad ekran görüntüleri sürümde gelir.
 
@@ -255,6 +255,7 @@ flowchart TD
    | Seçeneksiz | Arşivler, özeti gösterir, onay gelince yükler |
    | `--yes` | Onay sormadan yükler |
    | `--check` | İmzasız arşivler ve yalnız denetler; yükleme yok |
+   | `--mac` | Mac uygulamasını (`Journal_macOS`) arşivler ve yükler; `--check` ve `--ci` ile birleşir |
    | `--ci` | CI'da API anahtarıyla onaysız yükler; "CI'dan TestFlight (CD)" bölümü |
 
    Betik HEAD'i geçici bir kopyaya çıkarır ve arşivi oradan alır. Xcode'un çalışma klasöründe yeniden yazdığı dosyalar böylece yapıya girmez. Betik paketteki kimliği, sürümü, yapı numarasını ve belge paylaşımı anahtarlarını denetler. Koşullar: yerel `dev`, `origin/dev` ile aynıdır; Xcode'da aynı Apple hesabıyla oturum açıktır. `dev` dalına itme olunca `.github/workflows/testflight-check.yml` aynı `--check` denetimini koşar ve yükleme yapmaz.
@@ -263,9 +264,8 @@ flowchart TD
 
    **DİKKAT:** Elle yolda Xcode'un değiştirdiği dosyalar arşive girer; önce `git status` çıktısının temiz olduğunu denetle.
 
-5. Mac'e kur: `sh .github/scripts/install-mac.sh`. Betik HEAD'i geçici bir kopyaya çıkarır ve Release derler. Betik kimliği, sürümü ve imzayı denetler. Sonra uygulamayı `/Applications/Kenet.app` olarak kopyalar. Kenet açıksa betik durur. `/Applications/Kenet.app` başka bir uygulamaysa da betik durur.
-
-Mac için TestFlight ya da mağaza yolu yok. Mac uygulaması geliştirici imzalıdır ve yalnız derlendiği Mac'te çalışır.
+5. Mac'i TestFlight'a yükle: `dev` dalında `sh .github/scripts/testflight.sh --mac`. Betik `Journal_macOS` şemasını Mac App Store paketi olarak arşivler ve aynı hesapla yükler; imzalı pakette App Sandbox ve iCloud kapsayıcı yetkisini denetler. İlk yüklemeden önce iki hazırlık: App Store Connect'te uygulama kaydına macOS platformunu ekle (uygulama sayfası → platform ekle) ve takımda en az bir Mac kayıtlı olsun (Certificates, Identifiers & Profiles → Devices → macOS; UDID: Sistem Bilgisi → Donanım → Provisioning UDID). Xcode arşivi geliştirme profiliyle imzalar ve kayıtlı Mac yoksa "Your team has no devices" hatasıyla durur; CI'daki Mac yüklemesi de aynı kayda dayanır. Xcode "Mac Installer Distribution" sertifikasını otomatik imzada kendisi oluşturur. `dev` itmesinde `testflight-check.yml` Mac arşivini de imzasız denetler.
+6. Mac'e doğrudan kur (geliştirme makinesi): `sh .github/scripts/install-mac.sh`. Betik HEAD'i geçici bir kopyaya çıkarır ve Release derler. Betik kimliği, sürümü ve imzayı denetler. Sonra uygulamayı `/Applications/Kenet.app` olarak kopyalar. Kenet açıksa betik durur. `/Applications/Kenet.app` başka bir uygulamaysa da betik durur. Bu kurulum geliştirici imzalıdır ve yalnız derlendiği Mac'te çalışır; başka Mac'e TestFlight yolu kullanılır.
 
 ## CI'dan TestFlight (CD)
 
@@ -315,7 +315,7 @@ flowchart LR
 
    Son komut parolayı gizli girişle sorar. Sonra `.p8` ve `.p12` dosyalarını parola yöneticisine taşı ve diskten sil.
 
-5. İlk koşuyu başlat: `gh workflow run testflight.yml --ref dev -f notes='ilk CD denemesi'`. Not koşu adında ve özetinde görünür; TestFlight'a gitmez.
+5. İlk koşuyu başlat: `gh workflow run testflight.yml --ref dev -f notes='ilk CD denemesi'`. Not koşu adında ve özetinde görünür; TestFlight'a gitmez. Mac için `-f platform=mac` eklenir; itme koşusu yalnız iOS yükler.
 6. İsteğe bağlı olarak `dev`'e her itmede yüklemeyi aç: `gh variable set KENET_CD_ON_PUSH --body true`. Varsayılan kapalıdır. Değişken açıkken `testflight-check` atlanır; yükleme koşusu aynı denetimi imzalı arşivde yapar.
 
 **Tablo, CD'nin sınırlarını ve bakımını verir.**

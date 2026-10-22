@@ -6,6 +6,7 @@ struct QuickEntryBar: View {
     @Environment(\.clockNow) private var clockNow
     @Environment(LocationService.self) private var location
     @Environment(IntentNavigation.self) private var navigation: IntentNavigation?
+    @Environment(\.journalingSuggestionsAvailable) private var suggestionsAvailable
     private let acceptsPeopleMentions: Bool
     let store: IndexStore
     let isEnabled: Bool
@@ -18,6 +19,7 @@ struct QuickEntryBar: View {
     @State private var model: QuickEntryModel
     @State private var showsTimePicker = false
     @State private var showsDatePicker = false
+    @State private var showsSuggestions = false
     @State private var selection: TextSelection?
     @FocusState private var isFocused: Bool
 
@@ -116,6 +118,21 @@ struct QuickEntryBar: View {
                 }
                 .disabled(model.isCreating || model.isSubmitting)
             }
+            if isEnabled,
+                let note = SuggestionCopy.note(
+                    day: model.suggestionDay, today: model.today(),
+                    remaining: model.suggestionQueue?.remaining.count ?? 0,
+                    skippedMedia: model.suggestionQueue?.skippedMedia ?? 0, locale: locale)
+            {
+                // "Sıradaki" only into an empty field: a typed draft is never replaced. ✕ drops the
+                // waiting lines; the day stays in sight while its line is in the field.
+                let queue = model.suggestionQueue
+                let canTake = queue?.remaining.isEmpty == false && model.text.allSatisfy(\.isWhitespace)
+                InfoBand(
+                    kind: .info, verbatim: note, actionTitle: canTake ? "Sıradaki" : nil,
+                    action: canTake ? { takeNextSuggestion() } : nil,
+                    onDismiss: queue == nil ? nil : { model.dropSuggestions() })
+            }
             QuickEntryTaskControls(model: model, showsPicker: $showsDatePicker) {
                 selection = nil
                 isFocused = true
@@ -164,6 +181,12 @@ struct QuickEntryBar: View {
                             .dynamicTypeSize(...DynamicTypeSize.accessibility2)
                     }
                     textField
+                    if suggestionsAvailable ?? JournalingSuggestionsAvailability.current(), model.mode == .event,
+                        model.text.isEmpty
+                    {
+                        SuggestionsButton(isEnabled: isEnabled && !store.isWriting) { showsSuggestions = true }
+                            .dynamicTypeSize(...DynamicTypeSize.accessibility2)
+                    }
                 }
             }
             #if os(macOS)
@@ -188,6 +211,7 @@ struct QuickEntryBar: View {
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("bar.quickEntry")
         .onAppear { model.locationService = location }
+        .suggestionsPicker(isPresented: $showsSuggestions) { pick in applySuggestion(pick) }
         .task(id: store.lastUpdated) { await model.loadProjects() }
         .onChange(of: navigation?.mentionRequest?.id, initial: true) { _, id in
             if id != nil { applyMention() }
@@ -240,6 +264,19 @@ struct QuickEntryBar: View {
             let event = CalendarDraftInbox.shared.take(on: model.day ?? model.today())
         else { return }
         model.applyCalendarDraft(event)
+        selection = nil
+        isFocused = true
+    }
+
+    private func applySuggestion(_ pick: SuggestionPick) {
+        guard isEnabled else { return }
+        model.applySuggestion(pick, locale: locale)
+        selection = nil
+        isFocused = true
+    }
+
+    private func takeNextSuggestion() {
+        model.takeNextSuggestion()
         selection = nil
         isFocused = true
     }

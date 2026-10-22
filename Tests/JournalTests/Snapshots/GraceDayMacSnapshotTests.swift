@@ -12,7 +12,10 @@
 
     /// The goal page of the fictional ``GraceDayVault`` on the Mac: the balance line and the
     /// heatmap's chain-day marks; and the Goals list column with the badge after the streak.
-    @MainActor @Suite("Chain day snapshots (macOS)")
+    @MainActor
+    @Suite(
+        "Chain day snapshots (macOS)",
+        .enabled(if: MacSnapshotEnvironment.isEnabled, "Mac references are recorded by CI."))
     struct GraceDayMacSnapshotTests {
         @Test(arguments: ["goalDetailMacLight", "goalsListMacLight"])
         func goalDetailMac(_ name: String) async throws {

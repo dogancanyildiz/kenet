@@ -11,6 +11,9 @@ final class MentionComposer {
     struct CreationRequest {
         let position: MentionPosition
         let spelling: String
+        /// A name offered beside the text (a journaling suggestion's chip): it enters the text,
+        /// pinned, only once its entity exists; `position` points nowhere.
+        var isOutsideText = false
     }
 
     struct Pin {
@@ -163,6 +166,8 @@ final class MentionComposer {
     func skip(_ mention: Mention) { skipped.insert(mention.position) }
 
     func dismissUnknown(_ mention: CreationRequest) {
+        // A name beside the text has no `@` to take out; the send goes on without it.
+        guard !mention.isOutsideText else { return clearResolutionState() }
         let range = globalRange(mention.position)
         replace((range.lowerBound - 1)..<range.lowerBound, with: "")
     }
@@ -200,7 +205,11 @@ final class MentionComposer {
             creationKind = nil
             requestedCreation = nil
             if text == draft && store.vaultURL == root {
-                pins.append(Pin(range: globalRange(mention.position), entity: entity))
+                if mention.isOutsideText {
+                    appendPinned(entity, spelling: entity.name)
+                } else {
+                    pins.append(Pin(range: globalRange(mention.position), entity: entity))
+                }
             }
             let followUp = Self.followUp(after: origin)
             if followUp == .keepEditing {
@@ -269,11 +278,28 @@ final class MentionComposer {
         let name = String(decoding: Array(text.utf8)[positionRange], as: UTF8.self)
         let prefix = String(decoding: Array(text.utf8)[..<positionRange.lowerBound], as: UTF8.self)
         let lines = prefix.split(separator: "\n", omittingEmptySubsequences: false)
-        requestedCreation = CreationRequest(
-            position: MentionPosition(
-                line: lines.count - 1,
-                byteRange: (lines.last?.utf8.count ?? 0)..<((lines.last?.utf8.count ?? 0) + name.utf8.count)),
-            spelling: name)
+        return await startCreation(
+            CreationRequest(
+                position: MentionPosition(
+                    line: lines.count - 1,
+                    byteRange: (lines.last?.utf8.count ?? 0)..<((lines.last?.utf8.count ?? 0) + name.utf8.count)),
+                spelling: name),
+            kind: kind)
+    }
+
+    /// Creates the entity for a whole name offered beside the text; the text is neither sent nor
+    /// saved, and the name enters it, pinned, only once the entity exists. Dismissing the
+    /// question leaves the text as it is.
+    @discardableResult
+    func beginCreation(_ kind: VaultEntityKind, outsideTextNamed name: String) async -> CreationFollowUp? {
+        await startCreation(
+            CreationRequest(position: MentionPosition(line: 0, byteRange: 0..<0), spelling: name, isOutsideText: true),
+            kind: kind)
+    }
+
+    private func startCreation(_ request: CreationRequest, kind: VaultEntityKind) async -> CreationFollowUp? {
+        let name = request.spelling
+        requestedCreation = request
         awaitingResolution = true
         creationOrigin = .typing
         creationKind = kind
@@ -314,6 +340,18 @@ final class MentionComposer {
 
     func pin(_ entity: KnownEntity, nameRange: Range<Int>) {
         pins.append(Pin(range: nameRange, entity: entity))
+    }
+
+    /// Adds `@spelling` at the end of the text, pinned to `entity`, and a closing blank that keeps
+    /// the suggestion list shut.
+    func appendPinned(_ entity: KnownEntity, spelling: String) {
+        var draft = text
+        if !draft.isEmpty && draft.last?.isWhitespace != true { draft += " " }
+        let start = draft.utf8.count + 1
+        draft += "@" + spelling
+        let range = start..<draft.utf8.count
+        text = draft + " "
+        pins.append(Pin(range: range, entity: entity))
     }
 
     func clearResolutionState() {

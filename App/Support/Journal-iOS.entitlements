@@ -6,6 +6,10 @@
 	<array>
 		<string>$(KENET_ICLOUD_CONTAINER)</string>
 	</array>
+	<key>com.apple.developer.journal.allow</key>
+	<array>
+		<string>suggestions</string>
+	</array>
 	<key>com.apple.developer.icloud-services</key>
 	<array>
 		<string>CloudDocuments</string>

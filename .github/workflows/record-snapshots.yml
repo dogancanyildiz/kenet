@@ -95,7 +95,10 @@ jobs:
           name: mac-snapshot-references
           # SnapshotTesting klasörü test DOSYASININ adıyla açar; Mac vakaları karma klasörlerde
           # "...Mac..." adıyla durur (snapshot-suites.sh ile aynı kural).
-          path: Tests/JournalTests/Snapshots/__Snapshots__/**/*Mac*.png
+          # Mac vakaları ya dosya adında "Mac" taşır (karma kümeler) ya da "...MacSnapshotTests" klasöründedir.
+          path: |
+            Tests/JournalTests/Snapshots/__Snapshots__/**/*Mac*.png
+            Tests/JournalTests/Snapshots/__Snapshots__/*MacSnapshotTests/*.png
           if-no-files-found: error
           retention-days: 14
 
@@ -129,7 +132,7 @@ jobs:
         run: |
           branch="chore/mac-referanslar-$RUN_ID"
           git switch -c "$branch"
-          git add 'Tests/JournalTests/Snapshots/__Snapshots__/**/*Mac*.png'
+          git add 'Tests/JournalTests/Snapshots/__Snapshots__/**/*Mac*.png' 'Tests/JournalTests/Snapshots/__Snapshots__/*MacSnapshotTests/*.png'
           if git diff --cached --quiet; then
             echo "Mac referansları değişmedi; PR gerekmiyor."
             exit 0

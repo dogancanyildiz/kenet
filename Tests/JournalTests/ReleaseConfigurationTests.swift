@@ -185,8 +185,10 @@ struct ReleaseConfigurationTests {
             $0.hasPrefix("com.apple.security.") && $0 != "com.apple.security.application-groups"
         }
         #expect(sandboxKeys.isEmpty, "macOS sandbox keys in the iOS entitlements: \(sandboxKeys.sorted())")
-        #expect(Set(iOS.keys) == Self.containerKeys)
+        #expect(Set(iOS.keys) == Self.containerKeys.union([Self.journalingSuggestionsKey]))
         Self.expectContainerValues(iOS, file: "Journal-iOS")
+        // The system's journaling suggestions picker (iPhone); the Mac has no such framework.
+        #expect(iOS[Self.journalingSuggestionsKey] as? [String] == ["suggestions"])
 
         let mac = try Self.plist("App/Support/Journal-macOS.entitlements")
         #expect(Set(mac.keys) == Self.macSandboxKeys.union(Self.containerKeys))
@@ -236,6 +238,8 @@ struct ReleaseConfigurationTests {
         "com.apple.security.personal-information.calendars",
         "com.apple.security.personal-information.location",
     ]
+
+    private static let journalingSuggestionsKey = "com.apple.developer.journal.allow"
 
     private static let containerKeys: Set<String> = [
         "com.apple.developer.icloud-container-identifiers",

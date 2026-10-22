@@ -18,8 +18,9 @@ final class GraphScreenModel {
     @ObservationIgnored private var request = UUID()
     /// A rearranged layout is on screen but the view is still framed for the previous graph.
     @ObservationIgnored private var awaitsFraming = false
-    init(store: IndexStore, focus: String? = nil) {
+    init(store: IndexStore, focus: String? = nil, filter: GraphFilter = GraphFilter()) {
         self.store = store
+        self.filter = filter
         selected = focus
     }
 
@@ -38,10 +39,15 @@ final class GraphScreenModel {
         isLoading = true
         defer { if request == id { isLoading = false } }
         // A query that outlived its vault is dropped; the reload for the new vault follows.
-        guard let input = try? await store.computeGraphInput() else { return }
+        let query: GraphInput? =
+            switch filter.scope {
+            case .all: try? await store.computeGraphInput(customTypes: filter.customTypes)
+            case .day(let date): try? await store.computeDayGraphInput(on: date)
+            }
+        guard let input = query else { return }
         let worker = Task.detached { () -> (GraphModel, GraphScene, [GraphPoint]?)? in
             let graph = GraphModel.compute(input: input, filter: filter, today: today)
-            var scene = GraphScene(graph)
+            var scene = GraphScene(graph, carrying: Self.startingPositions(graph, scope: filter.scope))
             // Rearranging starts from the positions at install time, which are not known yet.
             guard !rearranges else { return Task.isCancelled ? nil : (graph, scene, nil) }
             var simulation = scene.simulation
@@ -100,6 +106,21 @@ final class GraphScreenModel {
     private func frame(_ settled: [GraphPoint]) {
         let focus = selected.flatMap { motion.index(of: $0) }.map { settled[$0] }
         camera = GraphCamera.fitting(settled, focus: focus)
+    }
+
+    /// A day's own graph starts as a star: the day at the center, its entities on a ring at one
+    /// link's length, so the day settles in the middle. The whole graph starts from the seed.
+    nonisolated static func startingPositions(_ graph: GraphModel, scope: GraphScope) -> [String: GraphPoint] {
+        guard case .day(let date) = scope, let day = graph.nodes.first(where: { $0.id == GraphModel.dayNodeID(date) })
+        else { return [:] }
+        let others = graph.nodes.filter { $0.id != day.id }
+        var positions = [day.id: GraphPoint(x: 0, y: 0)]
+        for (index, node) in others.enumerated() {
+            let angle = 2 * Double.pi * Double(index) / Double(max(1, others.count)) - Double.pi / 2
+            let distance = day.radius + node.radius + GraphLayout.linkSlack
+            positions[node.id] = GraphPoint(x: cos(angle) * distance, y: sin(angle) * distance)
+        }
+        return positions
     }
 
     private static func value<Value: Sendable>(of worker: Task<Value, Never>) async -> Value {

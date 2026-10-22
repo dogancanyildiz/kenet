@@ -6389,6 +6389,22 @@
         }
       }
     },
+    "Gün, o gün geçen her kayda bağlanır. Öteki çizgiler aynı olayda geçen kayıtları bağlar." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The day links to everything mentioned that day. Other lines connect mentions in the same entry."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gün, o gün geçen her kayda bağlanır. Öteki çizgiler aynı olayda geçen kayıtları bağlar."
+          }
+        }
+      }
+    },
     "Güncel zincir" : {
       "localizations" : {
         "en" : {
@@ -6801,6 +6817,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Günü kapat"
+          }
+        }
+      }
+    },
+    "Günün grafiği" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Day graph"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Günün grafiği"
           }
         }
       }

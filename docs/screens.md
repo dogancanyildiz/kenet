@@ -217,6 +217,7 @@ Varsayılan yazı boyutunda hızlı giriş tek satırlı bir kapsüldür. Ölç�
 | Künye metni | Olayla başlar, kalanla biter: "3 olay · 4 görev ve 2 hedef kaldı". Sıfır olan parçayı yazmaz. Hiçbir şey yoksa satır yoktur. |
 | Gezinme çubuğu | Bugün sekmesi gezinme çubuğunu gizler. Geçmiş gün ekranı geri düğmesi için çubuğu tutar. |
 | Arama ve Ayarlar | Manşet satırının sağında durur. Ayarlar düğmesi yalnız telefondadır: `button.settings`. |
+| Günün grafiği | Manşet satırında Graph simgesi: Bugün'de Ayarlar ve aramanın solunda, geçmiş günde aramanın solunda. Satırda en çok 3 simge durur. Simge yalnız gün dosyası en az bir kişi, konum ya da özel tip varlığına çözülen bağlantı içerirken görünür. Mac'te sabit manşet şeridindedir. Dokunma o günün grafiğini açar: [Günün grafiği](#günün-grafiği). Kimlik `button.dayGraph`. |
 | Büyük yazı boyutları | Erişilebilirlik yazı boyutlarında düğmeler manşetin üstünde, sağa yaslı ayrı bir satırdadır. |
 | Dar genişlik | Manşet önce tam biçimi dener. Gerekirse kısa ay biçimini ve en çok %75 ölçeği dener. |
 | VoiceOver | VoiceOver her zaman tam biçimi okur. `navigationTitle` VoiceOver ve geçmiş için yine tarih metnidir. |
@@ -765,7 +766,7 @@ Manşetin altında sekme durur. Sekmenin altında görünüme göre değişen te
 | 1 | Manşet ve künye | Manşet ekranın içindedir: ad. Künye tip, takma adlar ve son görülme tarihini yazar. Sağda "Düzenle" ve arama durur. Gezinme çubuğunda büyük başlık yoktur. |
 | 2 | Ayırt edici ve gelen bağlantılar | Etiket-değer satırları. |
 | 3 | Yıl dönümü | Kişide ve özel tipte, tarih alanı varsa sıradaki yıl dönümü tek satırdır: "doğum günü · 12 Nis · 31 yıl". Pencere yoktur. Konumda bu satır yoktur. |
-| 4 | Graph'ta göster | Yalnız kişi ve konumda. Graph o düğümü seçer ve ortaya alır. |
+| 4 | Graph'ta göster | Kişide, konumda ve özel tipte. Graph o düğümü seçer ve ortaya alır. Özel tipte Graph o tipi süzgeçte açarak açılır. |
 | 5 | Son görüşme ya da Son ziyaret kartı | Yalnız kişi ve konumda. Ayrıntı [Kişi ve konum içgörüleri](#kişi-ve-konum-içgörüleri-6) bölümündedir. |
 | 6 | Alanlar ve Diğer alanlar | Şablon alanları etiket-değer satırlarıdır. Tanınmayan ön bilgi anahtarları "Diğer alanlar" altında ham adıyla, ikincil renkte durur. Uygulama frontmatter'ı okuyamıyorsa "Frontmatter okunamıyor." yazar. |
 | 7 | Açık görevler (2) | Bu varlığa bağlı tamamlanmamış görevler. |
@@ -829,7 +830,7 @@ Konumda koordinat, Alanlar tablosunda bir satırdır. Okuma ekranında harita yo
 |---|---|
 | Tür seçici | Kişi ve konuma ek olarak kasanın özel tiplerini gösterir. Sekme adı ve Mac kenar çubuğu değişmez. |
 | Özel varlık ekranı | Tanımın text, date, number, boolean ve link alanlarına uygun düzenleyiciler. Bilinmeyen alanlar, görevler, günlük zaman akışı ve serbest notlar. |
-| Yerleşik tipe özgü | Graph ve görüşme kartı yalnız kişi ve konumdadır. |
+| Yerleşik tipe özgü | Görüşme kartı yalnız kişi ve konumdadır. Özel tip Graph'ta altıgen düğümdür; tip başına süzgeç satırı varsayılan kapalıdır. Günün grafiği özel tipleri her zaman gösterir. |
 | Anma | `@` önerileri özel tipleri de içerir. Bilinmeyen adın oluşturma menüsünde tanımlı tipler durur. |
 | Ayarlar → Varlık tipleri | Yerleşik tipler salt okunurdur. Kullanıcı özel tip oluşturur, düzenler ve siler. "Yeni varlık tipi" galeriyi açar. |
 | Galeri | "Varlık tipi ekle" sheet'i. Çubukta yalnız Vazgeç. 10 hazır tip: Kitap, Film, Kurum, Proje, Etkinlik, Seyahat, Tarif, Ürün, Evcil hayvan, Araç. Satırda simge, ad ve alan anahtarları. Kimliği ya da klasörü kasada olan tip "Zaten var" yazar ve seçilmez. En altta "Boş tip…" boş formu açar. |
@@ -891,9 +892,9 @@ Konumda koordinat, Alanlar tablosunda bir satırdır. Okuma ekranında harita yo
 
 | Öğe | Yer | Davranış |
 |---|---|---|
-| Giriş | Mac kenar çubuğu, telefonda Kişiler ve Konumlar listesinin en üstü | Telefonda aynı gezinme yığınında tam ekran. Yeni sekme yoktur. |
-| Tür süzgeci | Manşet satırındaki filtre menüsü | Kişi, konum, gün; çoklu seçim. Varsayılan dışında vurgu rengine döner. |
-| Dönem | Manşetin altındaki "Dönem" menüsü | Son 30, 90, 365 gün ya da tümü. |
+| Giriş | Mac kenar çubuğu, telefonda Kişiler ve Konumlar listesinin en üstü | Telefonda aynı gezinme yığınında tam ekran. Yeni sekme yoktur. Gün ekranının manşetindeki Graph simgesi aynı ekranı o günün grafiği olarak açar. |
+| Tür süzgeci | Manşet satırındaki filtre menüsü | Kişi, konum, gün ve kasanın her özel tipi için bir satır; çoklu seçim. Varsayılan: kişi ve konum açık, gün ve özel tipler kapalı. Varsayılan dışında vurgu rengine döner. |
+| Dönem | Manşetin altındaki "Dönem" menüsü | Son 30, 90, 365 gün ya da tümü. Gün katmanı açılırken dönem "Tümü" ise "Son 90 gün" olur; kullanıcı yine "Tümü"yü seçebilir. |
 | Eşik | Adımlayıcı | En az ortak gün ağırlığı. |
 | Yakınlaştırma | Düğmeler, pinch, Mac'te tekerlek ve trackpad kaydırması | Görüşü büyütür ve küçültür. |
 | Ortala | Düğme | Düzeni o anki haliyle yeniden çerçeveler. |
@@ -904,15 +905,31 @@ Konumda koordinat, Alanlar tablosunda bir satırdır. Okuma ekranında harita yo
 
 | Konu | Davranış |
 |---|---|
-| Düğümler | Varsayılan: bütün kişi ve konumlar. Bağlanmamış varlıklar da düğümdür. |
-| Gün düğümleri | İsteğe bağlı. Bağlantı içeren her gün bir düğümdür. |
+| Düğümler | Varsayılan: bütün kişi ve konumlar. Süzgeçte açılan özel tipin bütün varlıkları da düğümdür. Bağlanmamış varlıklar da düğümdür. |
+| Gün düğümleri | İsteğe bağlı. Bağlantı içeren her gün bir düğümdür. Gün düğümü o gün geçen ve ekranda olan her varlığa bağlanır: kişi, konum, özel tip. |
 | Kenar ağırlığı | Gün dosyasının aynı bloğunda birlikte geçen çiftin farklı gün sayısı. Aynı günde birden çok ortak blok ağırlığı artırmaz. Gün–varlık kenarı bütün gün anmalarından gelir ve ağırlığı 1'dir. |
 | Kaynak | Yalnız tarihli gün dosyalarının olay, görev ve paragraf blokları birlikte geçme üretir; alt satır bağlantısı indeksin atadığı en içteki bloğa aittir. Başlık ve frontmatter bağlantıları yalnız anma ve düğüm boyutuna katılır. Çözülmeyen hedefler dışarıdadır. |
 | Son N gün | Bugün dahil `bugün -(N-1)` … bugün. Tümü gelecek günleri ve tarihsiz kaynak bağlantılarını da içerir. |
 | Düğüm boyutu | Tümü seçiliyken bütün kasadaki geçiş sayısı. Tarih filtresinde seçilen günlerin geçiş sayısı. |
 | Eşik | Eşik kenarları kaldırır. İzole düğümleri silmez. |
-| Renk ve biçim | Kişi ve konum renkleri Bugün bağlantı alt çizgileriyle aynı belirteçten gelir. Kişi daire, konum elmas, gün köşeli karedir. |
+| Renk ve biçim | Kişi ve konum renkleri Bugün bağlantı alt çizgileriyle aynı belirteçten gelir. Kişi daire, konum elmas, gün köşeli kare, özel tip altıgendir. Ayrıntı: `design.md` "Graph düğümleri". |
 | Açıklama | “Çizgiler aynı olayda geçen kayıtları bağlar.” Birlikte geçme gerçek karşılaşma diye yorumlanmaz. |
+
+#### Günün grafiği
+
+**Bir günün kendi grafiği: gün ekranından açılır, yalnız o günü gösterir.**
+
+| Konu | Davranış |
+|---|---|
+| Giriş | Gün ekranının manşet satırındaki Graph simgesi. iPhone'da gün ekranının gezinme yığınında tam ekran, Mac'te ayrıntı sütununun yığınında açılır. Gün sayfası bir bağlantı sheet'inde açıksa grafik o sheet'in yığınına girer. Grafiğin kendi sheet'i yoktur. |
+| Manşet | "Günün grafiği"; künye günün tam tarihidir. Satırda yalnız arama durur; tür süzgeci yoktur. |
+| Düğümler | Ortada gün düğümü. O günün dosyasında çözülen bağlantısı olan her kişi, konum ve özel tip varlığı. Düğüm boyutu o günkü anma sayısıdır. Tür süzgeci, dönem ve eşik uygulanmaz. |
+| Kenarlar | Gün düğümü her varlığa ağırlık 1 ile bağlanır. Aynı blokta birlikte geçen varlıklar ana Graph'taki kuralla birbirine bağlanır. |
+| Denetimler | Dönem menüsü ve eşik adımlayıcısı yoktur. Yakınlaştırma, Ortala ve Düğüm seç vardır. |
+| Sayfayı aç | Varlık düğümünde varlık ekranını açar. Gün düğümünde yoktur; kullanıcı o günden gelmiştir. |
+| Açıklama | "Gün, o gün geçen her kayda bağlanır. Öteki çizgiler aynı olayda geçen kayıtları bağlar." |
+| Boş gün | Simge görünmez. Grafik yine açılırsa "Gösterilecek düğüm yok" yazar. |
+| Erişilebilirlik | Ekran kimliği `screen.dayGraph`. VoiceOver düğümü ad, tür ve komşu sayısıyla okur; özel tipte tür, tipin kasadaki adıdır. |
 
 **Graph yerleşimi ve etkileşimi.**
 

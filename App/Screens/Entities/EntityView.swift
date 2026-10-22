@@ -181,8 +181,13 @@ struct EntityView: View {
         }
     }
 
+    /// People, places and custom types are graph nodes; a custom type's node is switched on.
+    private var isGraphNode: Bool {
+        GraphInput.kinds.contains(current.kind) || store.entityTypes.types.contains { $0.id == current.kind }
+    }
+
     @ViewBuilder private var readingContent: some View {
-        if ["person", "place"].contains(current.kind) {
+        if isGraphNode {
             Section {
                 NavigationLink {
                     GraphView(store: store, focus: model.path)
@@ -193,6 +198,8 @@ struct EntityView: View {
                 }
                 .inkListRow()
             }
+        }
+        if ["person", "place"].contains(current.kind) {
             EntityInsightsCard(store: store, entity: current, timeline: timeline ?? [], lastDay: lastDay)
         }
         if model.unreadableFrontmatter {

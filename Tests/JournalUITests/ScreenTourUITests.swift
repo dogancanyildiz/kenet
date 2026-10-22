@@ -183,6 +183,14 @@ final class ScreenTourUITests: XCTestCase {
             tour.shot("04-gunluk-duzenleyici")
             try tour.tap(labels: ["Vazgeç", "Kapat"])
         }
+        tour.step("02-gunun-grafigi") {
+            try openDays()
+            try tour.row(pastDay).tap()
+            try tour.waitFor(ids: ["screen.day"])
+            try tour.tap(ids: ["button.dayGraph"], labels: ["Günün grafiği"])
+            try tour.waitFor(ids: ["screen.dayGraph"])
+            tour.shot("02-gunun-grafigi", settle: 3)
+        }
         tour.step("05-ozetler") {
             try openDays()
             try openSplitRow("sidebar.summaries", orTap: ["button.summaries"], labels: ["Özetler"])

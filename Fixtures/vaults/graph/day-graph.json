@@ -1,0 +1,69 @@
+{
+  "kinds": ["book", "person", "place"],
+  "days": [
+    {
+      "date": "2026-09-30",
+      "mentions": {},
+      "groups": []
+    },
+    {
+      "date": "2026-10-01",
+      "mentions": {
+        "books/Örnek Kitap.md": 1,
+        "people/Deniz Arıkan.md": 1,
+        "people/Selin Korkmaz.md": 1,
+        "places/Çınaraltı Kafe.md": 1,
+        "places/Liman Ofis.md": 1
+      },
+      "groups": [
+        [
+          "people/Deniz Arıkan.md",
+          "places/Çınaraltı Kafe.md"
+        ],
+        [
+          "people/Selin Korkmaz.md",
+          "places/Liman Ofis.md"
+        ]
+      ]
+    },
+    {
+      "date": "2026-10-02",
+      "mentions": {
+        "people/Deniz Arıkan.md": 4,
+        "people/Selin Korkmaz.md": 4,
+        "places/Çınaraltı Kafe.md": 2,
+        "places/Liman Ofis.md": 3
+      },
+      "groups": [
+        [
+          "people/Deniz Arıkan.md",
+          "people/Selin Korkmaz.md"
+        ],
+        [
+          "people/Deniz Arıkan.md",
+          "people/Selin Korkmaz.md",
+          "places/Liman Ofis.md"
+        ],
+        [
+          "people/Deniz Arıkan.md",
+          "people/Selin Korkmaz.md",
+          "places/Çınaraltı Kafe.md"
+        ]
+      ]
+    },
+    {
+      "date": "2026-10-03",
+      "mentions": {
+        "people/Deniz Arıkan.md": 1,
+        "people/Selin Korkmaz.md": 1,
+        "places/Liman Ofis.md": 1
+      },
+      "groups": [
+        [
+          "people/Deniz Arıkan.md",
+          "people/Selin Korkmaz.md"
+        ]
+      ]
+    }
+  ]
+}

@@ -65,18 +65,21 @@ enum VoiceOverCopy {
         return parts.joined(separator: ", ")
     }
 
-    static func graphNodeKind(_ kind: GraphNode.Kind, locale: Locale = .current) -> String {
+    /// - Parameter typeName: A custom type node's type name (the vault's own, in its language).
+    static func graphNodeKind(_ kind: GraphNode.Kind, typeName: String? = nil, locale: Locale = .current) -> String {
         switch kind {
         case .person: String(localized: "Kişi", locale: locale)
         case .place: String(localized: "Konum", locale: locale)
         case .day: String(localized: "Gün", locale: locale)
+        case .custom: typeName ?? String(localized: "Varlık", locale: locale)
         }
     }
 
     static func graphNodeLabel(
-        name: String, kind: GraphNode.Kind, neighborCount: Int, locale: Locale = .current
+        name: String, kind: GraphNode.Kind, typeName: String? = nil, neighborCount: Int,
+        locale: Locale = .current
     ) -> String {
-        let kindText = graphNodeKind(kind, locale: locale)
+        let kindText = graphNodeKind(kind, typeName: typeName, locale: locale)
         let neighbors = String(localized: "\(neighborCount) komşu", locale: locale)
         return "\(name), \(kindText), \(neighbors)"
     }
@@ -126,14 +129,18 @@ struct GraphAccessibleNode: Identifiable, Equatable, Sendable {
     let name: String
     let kind: GraphNode.Kind
     let neighborCount: Int
+    var typeName: String? = nil
 
     func accessibilityLabel(locale: Locale = .current) -> String {
-        VoiceOverCopy.graphNodeLabel(name: name, kind: kind, neighborCount: neighborCount, locale: locale)
+        VoiceOverCopy.graphNodeLabel(
+            name: name, kind: kind, typeName: typeName, neighborCount: neighborCount, locale: locale)
     }
 
     static func list(from graph: GraphModel) -> [Self] {
         graph.nodes.map {
-            Self(id: $0.id, name: $0.name, kind: $0.kind, neighborCount: graph.neighbors(of: $0.id).count)
+            Self(
+                id: $0.id, name: $0.name, kind: $0.kind, neighborCount: graph.neighbors(of: $0.id).count,
+                typeName: $0.typeName)
         }
     }
 }

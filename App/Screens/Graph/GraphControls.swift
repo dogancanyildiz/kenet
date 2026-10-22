@@ -9,10 +9,13 @@ struct GraphControls: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            periodMenu
-            weightRow
-                .font(.ink.meta)
-                .foregroundStyle(Color.ink.secondaryText)
+            // A day's own graph is the whole day: no period, no threshold.
+            if filter.scope == .all {
+                periodMenu
+                weightRow
+                    .font(.ink.meta)
+                    .foregroundStyle(Color.ink.secondaryText)
+            }
             zoomBar
         }
         .padding(.horizontal, InkSpacing.margin)
@@ -157,16 +160,18 @@ struct GraphWeightStep: Equatable {
     }
 }
 
-/// Node-kind filter on the manşet row: a menu of three switches (people, places, days).
-/// The icon turns accent while the choice differs from the default filter.
+/// Node-kind filter on the manşet row: a menu of switches (people, places, days, then one per
+/// custom type of the vault). The icon turns accent while the choice differs from the default filter.
 struct GraphFilterMenu: View {
     @Binding var filter: GraphFilter
+    /// The vault's custom types, in catalog order.
+    var types: [EntityTypeChoice] = []
 
     /// Pure rule (unit-tested): only the node kinds count, not period or weight.
     static func isActive(_ filter: GraphFilter) -> Bool {
         let standard = GraphFilter()
         return filter.people != standard.people || filter.places != standard.places
-            || filter.days != standard.days
+            || filter.days != standard.days || filter.customTypes != standard.customTypes
     }
 
     var body: some View {
@@ -177,7 +182,20 @@ struct GraphFilterMenu: View {
             Group {
                 Toggle("Kişiler", isOn: $filter.people)
                 Toggle("Konumlar", isOn: $filter.places)
-                Toggle("Günler", isOn: $filter.days)
+                Toggle("Günler", isOn: Binding(get: { filter.days }, set: { filter.setDays($0) }))
+                if !types.isEmpty {
+                    Section {
+                        ForEach(types) { type in
+                            Toggle(
+                                isOn: Binding(
+                                    get: { filter.showsCustomType(type.id) },
+                                    set: { filter.setCustomType(type.id, $0) })
+                            ) {
+                                Text(verbatim: type.plural)
+                            }
+                        }
+                    }
+                }
             }
             // Several kinds are usually switched in one go: keep the menu open (iOS only API).
             #if os(iOS)

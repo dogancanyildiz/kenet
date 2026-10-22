@@ -906,13 +906,13 @@ Konumda koordinat, Alanlar tablosunda bir satırdır. Okuma ekranında harita yo
 |---|---|
 | Düğümler | Varsayılan: bütün kişi ve konumlar. Bağlanmamış varlıklar da düğümdür. |
 | Gün düğümleri | İsteğe bağlı. Bağlantı içeren her gün bir düğümdür. |
-| Kenar ağırlığı | Aynı takvim gününün dosyalarında birlikte geçen farklı gün sayısı. Yinelenen bağlantılar ve aynı tarihli dosyalar ortak günü artırmaz. Gün–varlık kenarı 1 gündür. |
-| Kaynak | Gövde ve frontmatter ayrımı yoktur. Graph çözülen kişi ve konum bağlantılarını kullanır. Bilinmeyen hedefler dışarıdadır. |
+| Kenar ağırlığı | Gün dosyasının aynı bloğunda birlikte geçen çiftin farklı gün sayısı. Aynı günde birden çok ortak blok ağırlığı artırmaz. Gün–varlık kenarı bütün gün anmalarından gelir ve ağırlığı 1'dir. |
+| Kaynak | Yalnız tarihli gün dosyalarının olay, görev ve paragraf blokları birlikte geçme üretir; alt satır bağlantısı indeksin atadığı en içteki bloğa aittir. Başlık ve frontmatter bağlantıları yalnız anma ve düğüm boyutuna katılır. Çözülmeyen hedefler dışarıdadır. |
 | Son N gün | Bugün dahil `bugün -(N-1)` … bugün. Tümü gelecek günleri ve tarihsiz kaynak bağlantılarını da içerir. |
 | Düğüm boyutu | Tümü seçiliyken bütün kasadaki geçiş sayısı. Tarih filtresinde seçilen günlerin geçiş sayısı. |
 | Eşik | Eşik kenarları kaldırır. İzole düğümleri silmez. |
 | Renk ve biçim | Kişi ve konum renkleri Bugün bağlantı alt çizgileriyle aynı belirteçten gelir. Kişi daire, konum elmas, gün köşeli karedir. |
-| Açıklama | Açıklama birlikte geçmeyi gerçek karşılaşma diye yorumlamaz. |
+| Açıklama | “Çizgiler aynı olayda geçen kayıtları bağlar.” Birlikte geçme gerçek karşılaşma diye yorumlanmaz. |
 
 **Graph yerleşimi ve etkileşimi.**
 

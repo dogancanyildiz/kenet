@@ -1,0 +1,95 @@
+{
+  "totals": {
+    "people/Deniz Arıkan.md": 6,
+    "people/Selin Korkmaz.md": 7,
+    "places/Çınaraltı Kafe.md": 3,
+    "places/Liman Ofis.md": 6
+  },
+  "days": [
+    {
+      "date": "2026-10-01",
+      "mentions": {
+        "people/Deniz Arıkan.md": 1,
+        "people/Selin Korkmaz.md": 1,
+        "places/Çınaraltı Kafe.md": 1,
+        "places/Liman Ofis.md": 1
+      },
+      "groups": [
+        [
+          "people/Deniz Arıkan.md",
+          "places/Çınaraltı Kafe.md"
+        ],
+        [
+          "people/Selin Korkmaz.md",
+          "places/Liman Ofis.md"
+        ]
+      ]
+    },
+    {
+      "date": "2026-10-02",
+      "mentions": {
+        "people/Deniz Arıkan.md": 4,
+        "people/Selin Korkmaz.md": 4,
+        "places/Çınaraltı Kafe.md": 2,
+        "places/Liman Ofis.md": 3
+      },
+      "groups": [
+        [
+          "people/Deniz Arıkan.md",
+          "people/Selin Korkmaz.md"
+        ],
+        [
+          "people/Deniz Arıkan.md",
+          "people/Selin Korkmaz.md",
+          "places/Liman Ofis.md"
+        ],
+        [
+          "people/Deniz Arıkan.md",
+          "people/Selin Korkmaz.md",
+          "places/Çınaraltı Kafe.md"
+        ]
+      ]
+    },
+    {
+      "date": "2026-10-03",
+      "mentions": {
+        "people/Deniz Arıkan.md": 1,
+        "people/Selin Korkmaz.md": 1,
+        "places/Liman Ofis.md": 1
+      },
+      "groups": [
+        [
+          "people/Deniz Arıkan.md",
+          "people/Selin Korkmaz.md"
+        ]
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "first": "people/Deniz Arıkan.md",
+      "second": "people/Selin Korkmaz.md",
+      "weight": 2
+    },
+    {
+      "first": "people/Deniz Arıkan.md",
+      "second": "places/Liman Ofis.md",
+      "weight": 1
+    },
+    {
+      "first": "people/Deniz Arıkan.md",
+      "second": "places/Çınaraltı Kafe.md",
+      "weight": 2
+    },
+    {
+      "first": "people/Selin Korkmaz.md",
+      "second": "places/Liman Ofis.md",
+      "weight": 2
+    },
+    {
+      "first": "people/Selin Korkmaz.md",
+      "second": "places/Çınaraltı Kafe.md",
+      "weight": 1
+    }
+  ]
+}

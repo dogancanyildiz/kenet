@@ -353,7 +353,9 @@ struct IncrementalReadModelTests {
         #expect(
             pair.published.days == [
                 .init(date: CalendarDate("2026-10-04")!, mentions: ["places/Harbor Cafe.md": 1]),
-                .init(date: today, mentions: ["people/Deniz Example.md": 3, "places/Harbor Cafe.md": 2]),
+                .init(
+                    date: today, mentions: ["people/Deniz Example.md": 3, "places/Harbor Cafe.md": 2],
+                    groups: [["people/Deniz Example.md", "places/Harbor Cafe.md"]]),
             ])
 
         let renamed = try await store.renamingEntity(at: "people/Deniz Example.md", to: "Deniz Renamed")

@@ -104,8 +104,10 @@ enum IncrementalReadModelVault {
 }
 
 extension GraphInput {
-    /// How the read model built the graph before it moved to a Core query: the oracle the query
-    /// is compared with. Links from every file count; day mentions only from day files.
+    /// The graph rebuilt from the index snapshot instead of the Core query: the oracle the query is
+    /// compared with. Links from every file count; day mentions only from day files (the read
+    /// model's construction before the query existed). Groups apply the same-block rule
+    /// independently: entities sharing an event, task or paragraph block of a day file.
     init(snapshot: IndexSnapshot, entities: [EntitySummary]) {
         self.init()
         self.entities = entities.filter { Self.kinds.contains($0.kind) }
@@ -121,7 +123,22 @@ extension GraphInput {
             totals[target, default: 0] += 1
             if let date = dates[link.file] { days[date, default: [:]][target, default: 0] += 1 }
         }
-        self.days = days.map { Day(date: $0.key, mentions: $0.value) }.sorted { $0.date < $1.date }
+        var members: [String: [Int: Set<String>]] = [:]
+        for link in snapshot.links {
+            guard let block = link.block, let target = link.resolvedFile, known.contains(target) else { continue }
+            members[link.file, default: [:]][block, default: []].insert(target)
+        }
+        var groups: [CalendarDate: Set<[String]>] = [:]
+        for block in snapshot.blocks where ["event", "task", "paragraph"].contains(block.kind) {
+            guard let date = dates[block.file], let entities = members[block.file]?[block.ordinal], entities.count >= 2
+            else { continue }
+            groups[date, default: []].insert(entities.sorted())
+        }
+        self.days = days.map {
+            Day(
+                date: $0.key, mentions: $0.value,
+                groups: groups[$0.key, default: []].sorted { $0.lexicographicallyPrecedes($1) })
+        }.sorted { $0.date < $1.date }
     }
 }
 

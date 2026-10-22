@@ -1,5 +1,6 @@
 import Foundation
 import VaultFormat
+import VaultIndex
 
 enum GraphPeriod: Int, CaseIterable, Sendable {
     case month = 30
@@ -53,25 +54,18 @@ struct GraphModel: Sendable {
                 kind: $0.kind == "person" ? .person : .place, count: totals[$0.id] ?? 0)
         }
         let ids = Set(nodes.map(\.id))
-        struct Pair: Hashable {
-            let first: String
-            let second: String
-        }
-        var weights: [Pair: Int] = [:]
-        for day in days {
-            let members = day.mentions.keys.filter { ids.contains($0) }.sorted()
-            for (index, first) in members.enumerated() {
-                for second in members.dropFirst(index + 1) {
-                    weights[Pair(first: first, second: second), default: 0] += 1
-                }
-            }
-            if filter.days {
+        // Entity links come from shared blocks (Core); a day node links to everything it mentions.
+        var weights = GraphMentions.cooccurrenceWeights(days: days, including: ids)
+        if filter.days {
+            for day in days {
                 let id = "day:" + day.date.description
                 nodes.append(
                     GraphNode(
                         id: id, name: day.date.description, kind: .day,
                         count: day.mentions.values.reduce(0, +), date: day.date))
-                for member in members { weights[Pair(first: id, second: member)] = 1 }
+                for member in day.mentions.keys where ids.contains(member) {
+                    weights[GraphMentions.Pair(first: id, second: member)] = 1
+                }
             }
         }
         let edges = weights.filter { $0.value >= max(1, filter.minimumWeight) }.map {

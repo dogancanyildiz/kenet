@@ -74,7 +74,7 @@ struct GraphView: View {
                             }
                             .padding(InkSpacing.margin)
                         }
-                        Text("Çizgiler aynı gün geçen kayıtları bağlar.")
+                        Text("Çizgiler aynı olayda geçen kayıtları bağlar.")
                             .font(.ink.meta)
                             .foregroundStyle(Color.ink.secondaryText)
                             .fixedSize(horizontal: false, vertical: true)

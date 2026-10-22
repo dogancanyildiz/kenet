@@ -286,7 +286,7 @@
                 case .graph:
                     AnyView(GraphView(store: store, liveMotion: false))
                 case .graphSelected:
-                    AnyView(GraphView(store: store, focus: "people/Ece Yalın.md", liveMotion: false))
+                    AnyView(GraphView(store: store, focus: "people/Deniz Arıkan.md", liveMotion: false))
                 case .map:
                     AnyView(PlacesMapView(store: store))
                 case .goalDetail:

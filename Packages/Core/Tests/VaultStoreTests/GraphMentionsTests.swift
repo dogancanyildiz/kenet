@@ -5,7 +5,7 @@ import VaultIndex
 
 @testable import VaultStore
 
-/// The graph query against the snapshot construction it replaced in the app (`GraphInput`).
+/// The graph query against an independent construction from the index snapshot (`GraphInput`).
 struct GraphMentionsTests {
     static let kinds: Set<String> = ["person", "place"]
 
@@ -16,6 +16,11 @@ struct GraphMentionsTests {
         #expect(mentions == snapshotConstruction(try index.snapshot(), kinds: Self.kinds))
         #expect(mentions.days.count == 14)
         #expect(mentions.totals.count == 10)
+        let weights = GraphMentions.cooccurrenceWeights(days: mentions.days, including: Set(mentions.totals.keys))
+        #expect(weights.count == 5)
+        #expect(weights[.init(first: "people/Deniz Arıkan.md", second: "places/Tepe Spor Salonu.md")] == 1)
+        #expect(weights[.init(first: "people/Deniz Arıkan.md", second: "places/Liman Ofis.md")] == nil)
+        #expect(weights[.init(first: "people/Baran Tunç.md", second: "places/Çınaraltı Kafe.md")] == 2)
     }
 
     @Test func syntheticVaultMatchesSnapshotConstruction() throws {
@@ -66,7 +71,7 @@ struct GraphMentionsTests {
         #expect(mentions.totals == [ada: 6, koru: 6])
         #expect(
             mentions.days == [
-                .init(date: CalendarDate("2026-03-01")!, mentions: [ada: 2, koru: 1]),
+                .init(date: CalendarDate("2026-03-01")!, mentions: [ada: 2, koru: 1], groups: [[ada, koru]]),
                 .init(date: CalendarDate("2026-03-03")!, mentions: [koru: 1]),
             ])
     }
@@ -88,7 +93,10 @@ struct GraphMentionsTests {
         try check()
         let added = try vault.index.graphMentions(kinds: Self.kinds)
         #expect(
-            added.days.last == .init(date: day, mentions: ["people/Deniz Arıkan.md": 1, "places/Liman Ofis.md": 1]))
+            added.days.last
+                == .init(
+                    date: day, mentions: ["people/Deniz Arıkan.md": 1, "places/Liman Ofis.md": 1],
+                    groups: [["people/Deniz Arıkan.md", "places/Liman Ofis.md"]]))
         #expect(added.totals["people/Deniz Arıkan.md"] == (before.totals["people/Deniz Arıkan.md"] ?? 0) + 1)
         let renamed = try await vault.store.renamingEntity(at: "people/Deniz Arıkan.md", to: "Deniz Yeni")
         #expect(renamed.failures.isEmpty)
@@ -99,8 +107,9 @@ struct GraphMentionsTests {
     }
 }
 
-/// `GraphInput.init(snapshot:entities:)` as the app built it before the query existed, with its
-/// entity list (the read model's non-goal entities) narrowed to `kinds`.
+/// The graph rule rebuilt from the index snapshot instead of SQL, with the entity list (the read
+/// model's non-goal entities) narrowed to `kinds`. Mentions and totals are the app's construction
+/// from before the query existed; groups apply the same-block rule independently of the query.
 private func snapshotConstruction(_ snapshot: IndexSnapshot, kinds: Set<String>) -> GraphMentions {
     let known = Set(snapshot.entities.filter { kinds.contains($0.kind) }.map(\.file))
     let dates = Dictionary(
@@ -115,7 +124,23 @@ private func snapshotConstruction(_ snapshot: IndexSnapshot, kinds: Set<String>)
         totals[target, default: 0] += 1
         if let date = dates[link.file] { days[date, default: [:]][target, default: 0] += 1 }
     }
+    // Entities sharing an event, task or paragraph block of a day file; headings and frontmatter do not group.
+    var members: [String: [Int: Set<String>]] = [:]
+    for link in snapshot.links {
+        guard let block = link.block, let target = link.resolvedFile, known.contains(target) else { continue }
+        members[link.file, default: [:]][block, default: []].insert(target)
+    }
+    var groups: [CalendarDate: Set<[String]>] = [:]
+    for block in snapshot.blocks where ["event", "task", "paragraph"].contains(block.kind) {
+        guard let date = dates[block.file], let entities = members[block.file]?[block.ordinal], entities.count >= 2
+        else { continue }
+        groups[date, default: []].insert(entities.sorted())
+    }
     return GraphMentions(
         totals: totals,
-        days: days.map { GraphMentions.Day(date: $0.key, mentions: $0.value) }.sorted { $0.date < $1.date })
+        days: days.map {
+            GraphMentions.Day(
+                date: $0.key, mentions: $0.value,
+                groups: groups[$0.key, default: []].sorted { $0.lexicographicallyPrecedes($1) })
+        }.sorted { $0.date < $1.date })
 }

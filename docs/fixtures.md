@@ -2,7 +2,7 @@
 
 **Amaç:** Bu belge `Fixtures/` klasöründeki test verisinin düzenini, girdi ve beklenen çıktı sözleşmesini ve yeni örnek ekleme yolunu tarif eder.
 
-**Kapsam:** `Fixtures/` altındaki 15 küme ve 17 kasa; her kümenin davranış aileleri, test eşlemesi ve yeni fixture ekleme adımları.
+**Kapsam:** `Fixtures/` altındaki 15 küme ve 18 kasa; her kümenin davranış aileleri, test eşlemesi ve yeni fixture ekleme adımları.
 
 Bu belgede **küme**, `Fixtures/` altındaki birinci düzey klasördür. **Örnek**, kümedeki tek vaka klasörü ya da bir JSON dosyasındaki tek vaka kaydıdır. **İstemci**, fixture dosyalarını okuyup sınayan test kodudur. Bugün Swift testleri istemcidir; ileride başka platformlardaki istemciler aynı dosyaları kullanır. Kasa biçiminin kendisi [Kasa biçimi](vault-format.md) belgesindedir.
 
@@ -30,7 +30,7 @@ flowchart LR
   F --> GO["goals/ : cases.json, series.json, creation/, writes/"]
   F --> SU["summaries/ : 11 JSON"]
   F --> GC["goal-chain/ : cases.json, query/"]
-  F --> VA["vaults/ : 17 kasa"]
+  F --> VA["vaults/ : 18 kasa"]
   VA --> V1["sample"]
   VA --> V2["entity-fields"]
   VA --> V3["unlinked-mentions"]
@@ -48,6 +48,7 @@ flowchart LR
   VA --> V15["conflict-copies"]
   VA --> V16["nfd-names"]
   VA --> V17["turkce-buyuk-harf"]
+  VA --> V18["graph"]
 ```
 
 Sayılar `find Fixtures -maxdepth 2` çıktısından gelir. Kasalar `vaults/` altında durur ve birden çok küme aynı kasayı kullanır. Örneğin `recognition/unlinked-mentions/` beklentisi `vaults/unlinked-mentions/` kasasını okur.
@@ -1150,10 +1151,13 @@ Kasa 20 Eylül'ü 4 yılda taşır. 2023 bağlantısızdır: not bağlantısı, 
 | `copy-files` | 19 | Varlık kopyası ve gün kopyası listesi; birleştirme yok | `VaultIndexTests/CopyFileTests`, `Tests/JournalTests/SyncedFolderNoticeTests` |
 | `gallery` | 21 | Hazır tip galerisi: 10 tip, şablonları ve her şablondan bir varlık; ayrıntı [`entity-types/` kümesi](#entity-types-kümesi) bölümünde | `EntityTypeGalleryTests` |
 | `conflict-copies` | 20 | Çakışma kopyası ad kuralı ve `conflicts/` listesi; çakışan sürüm sorgusunun kasası | `VaultIndexTests/ConflictCopyTests`, `Tests/JournalTests/SyncConflictTests` |
-
-**Çakışma kopyaları:** Fixture yazarı `vaults/conflict-copies/expected.json` beklentisini elle yazdı. `names` saf ad kuralının tablosudur: yol ve gün dosyası (kopya değilse `null`). Tablo sayısı 1 ya da başı sıfırlı, geçersiz gün, geçersiz saat ya da takvim günü, eksik `Z`, büyük harfli `Conflict`, tam genişlikli rakam, alt klasör, kök dizin ve yer tutucu adlarını kopya saymaz. `conflictCopies` diskteki listedir: gün, addaki zaman, sonra sayı sırasıyla 5 kopya; gün dosyası olmayan `2026-09-30` kopyası da listededir. `source/conflicts/` aynı benzer adları, `eski/` alt klasörünü ve bir `.icloud` yer tutucusunu taşır; kökteki benzer adlı dosya sıradan nottur ve indekse girer. Yalnız harf boyu farklı iki ad koyma: büyük ve küçük harf duyarsız birim ikisini tek dosya sayar ve biri ötekinin üzerine yazılır. Uygulama testleri aynı kasayı iCloud Drive yolu altına kopyalar ve sahte sürüm kaynağıyla `IndexStore.computeConflictedFiles` sorgusunu sınar.
 | `nfd-names` | 4 | Ayrışmış (NFD) dosya adı, ad, takma ad ve bağlantı yazımı | `DecomposedNameTests` |
 | `turkce-buyuk-harf` | 6 | Türkçe büyük harf eşlemesi: anahtar, bağlantı, tanıma, ad çakışması | `TurkishCapitalTests` |
+| `graph` | 11 | Olay, alt satır, görev ve paragraf bağları; başlık, frontmatter, özel tip ve indekslenmeyen gün kopyası | `GraphCooccurrenceTests`, `GraphMapTests` |
+
+**Çakışma kopyaları:** Fixture yazarı `vaults/conflict-copies/expected.json` beklentisini elle yazdı. `names` saf ad kuralının tablosudur: yol ve gün dosyası (kopya değilse `null`). Tablo sayısı 1 ya da başı sıfırlı, geçersiz gün, geçersiz saat ya da takvim günü, eksik `Z`, büyük harfli `Conflict`, tam genişlikli rakam, alt klasör, kök dizin ve yer tutucu adlarını kopya saymaz. `conflictCopies` diskteki listedir: gün, addaki zaman, sonra sayı sırasıyla 5 kopya; gün dosyası olmayan `2026-09-30` kopyası da listededir. `source/conflicts/` aynı benzer adları, `eski/` alt klasörünü ve bir `.icloud` yer tutucusunu taşır; kökteki benzer adlı dosya sıradan nottur ve indekse girer. Yalnız harf boyu farklı iki ad koyma: büyük ve küçük harf duyarsız birim ikisini tek dosya sayar ve biri ötekinin üzerine yazılır. Uygulama testleri aynı kasayı iCloud Drive yolu altına kopyalar ve sahte sürüm kaynağıyla `IndexStore.computeConflictedFiles` sorgusunu sınar.
+
+**Graph:** `vaults/graph/expected.json` elle sayılmış `totals`, tarih sıralı `days` (`date`, `mentions`, sıralı ve tekil `groups`) ve `edges` (`first`, `second`, `weight`) alanlarını taşır. Çiftin ağırlığı ortak bloğu olan farklı gün sayısıdır. Gün kopyası mevcut kasa kuralı gereği indekse girmez; aynı tarihli girdilerin birleşmesi saf hesap testinde ayrıca sınanır. Özel kitap tipi bu dilimde Graph düğümü değildir; kendi tür sorgusunda yalnız tekil anması vardır.
 
 **Şema, `vaults/sample/` kasasının klasörlerini ve dosya sayılarını gösterir.**
 

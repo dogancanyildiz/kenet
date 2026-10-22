@@ -398,7 +398,7 @@ Ekran tarafında `QueryOutcome` okumanın nasıl bittiğini ayırır: yanıt, ip
 
 ### Graph
 
-Okuma modeli Graph alanı tutmaz. Ekran açıkken ve her indeks yayımında `.task(id:)` sorguyu arka planda yeniden çalıştırır. Sorgu bağlantı toplamlarını ve gün başına anmaları getirir. Düğüm olacak varlıklar okuma modelinden gelir.
+Okuma modeli Graph alanı tutmaz. Ekran açıkken ve her indeks yayımında `.task(id:)` sorguyu arka planda yeniden çalıştırır. Sorgu bağlantı toplamlarını, gün başına anmaları ve aynı olay, görev ya da paragraf bloğundaki çözülmüş varlık gruplarını getirir. Gruplar dosya ve blok sıra numarasıyla ayrılır; başlık ve frontmatter birlikte geçme üretmez. Alt satırlar indeksin atadığı en içteki bloğa aittir. Core'daki saf `GraphMentions.cooccurrenceWeights(days:including:)` hesabı her çifti ortak bloğu olan farklı tarihler kadar sayar. App dönem ve tür süzgeçlerini uygular; gün düğümü kenarları bütün gün anmalarından gelir. Düğüm olacak varlıklar okuma modelinden gelir. Düğüm boyutu, ad tanımadaki gün düzeyli bağlam puanı ve içgörü kartı değişmez.
 
 ### Varlık zaman akışı ve son görüşme
 

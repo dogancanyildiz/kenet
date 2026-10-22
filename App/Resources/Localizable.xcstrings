@@ -4509,18 +4509,18 @@
         }
       }
     },
-    "Çizgiler aynı gün geçen kayıtları bağlar." : {
+    "Çizgiler aynı olayda geçen kayıtları bağlar." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Lines connect mentions on the same day."
+            "value" : "Lines connect mentions in the same entry."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Çizgiler aynı gün geçen kayıtları bağlar."
+            "value" : "Çizgiler aynı olayda geçen kayıtları bağlar."
           }
         }
       }

@@ -17,15 +17,53 @@ import VaultFormat
         func weight(_ first: String, _ second: String) -> Int? {
             graph.edges.first { Set([$0.first, $0.second]) == Set([first, second]) }?.weight
         }
-        #expect(weight("people/Deniz Arıkan.md", "places/Liman Ofis.md") == 2)
-        #expect(weight("people/Deniz Arıkan.md", "places/Tepe Spor Salonu.md") == 4)
+        #expect(weight("people/Deniz Arıkan.md", "places/Liman Ofis.md") == nil)
+        #expect(weight("people/Deniz Arıkan.md", "places/Tepe Spor Salonu.md") == 1)
+        #expect(weight("people/Baran Tunç.md", "places/Çınaraltı Kafe.md") == 2)
+        #expect(graph.edges.count == 5)
         let neighbors = graph.neighbors(of: "people/Deniz Arıkan.md")
-        #expect(neighbors.contains("places/Liman Ofis.md") && !neighbors.contains("people/Deniz Arıkan.md"))
+        #expect(neighbors.contains("places/Tepe Spor Salonu.md") && !neighbors.contains("people/Deniz Arıkan.md"))
         for usage in context.store.entityUsage {
             #expect(graph.nodes.first { $0.id == usage.file }?.count == usage.totalCount)
-            for (other, count) in usage.cooccurrences { #expect(weight(usage.file, other) == count) }
         }
     }
+    @Test func graphFixtureKeepsEntryEdgesSeparateFromDayEdges() async throws {
+        let context = try TaskTestContext()
+        defer { context.clean() }
+        let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
+            .deletingLastPathComponent().appendingPathComponent("Fixtures/vaults/graph")
+        try FileManager.default.copyItem(at: root, to: context.root)
+        await context.start()
+        let input = try await context.store.computeGraphInput()
+        let graph = GraphModel.compute(input: input, filter: GraphFilter(), today: today)
+        #expect(graph.nodes.count == 4)
+        #expect(
+            graph.edges == [
+                GraphEdge(first: "people/Deniz Arıkan.md", second: "people/Selin Korkmaz.md", weight: 2),
+                GraphEdge(first: "people/Deniz Arıkan.md", second: "places/Liman Ofis.md", weight: 1),
+                GraphEdge(first: "people/Deniz Arıkan.md", second: "places/Çınaraltı Kafe.md", weight: 2),
+                GraphEdge(first: "people/Selin Korkmaz.md", second: "places/Liman Ofis.md", weight: 2),
+                GraphEdge(first: "people/Selin Korkmaz.md", second: "places/Çınaraltı Kafe.md", weight: 1),
+            ])
+        let withDays = GraphModel.compute(input: input, filter: GraphFilter(days: true), today: today)
+        #expect(withDays.nodes.filter { $0.kind == .day }.count == 3)
+        let dayEdges = withDays.edges.filter { $0.first.hasPrefix("day:") }
+        #expect(dayEdges.count == 11 && dayEdges.allSatisfy { $0.weight == 1 })
+        for day in input.days {
+            #expect(
+                Set(dayEdges.filter { $0.first == "day:" + day.date.description }.map(\.second))
+                    == Set(day.mentions.keys))
+        }
+        let weighted = GraphModel.compute(
+            input: input, filter: GraphFilter(minimumWeight: 2), today: today)
+        #expect(weighted.edges.count == 3)
+        let people = GraphModel.compute(input: input, filter: GraphFilter(places: false), today: today)
+        #expect(
+            people.edges == [
+                GraphEdge(first: "people/Deniz Arıkan.md", second: "people/Selin Korkmaz.md", weight: 2)
+            ])
+    }
+
     @Test func filtersIncludeMondayWindowBoundaryKindsDaysAndMinimumWeight() async throws {
         let context = try TaskTestContext(sample: true)
         defer { context.clean() }
@@ -56,10 +94,10 @@ import VaultFormat
         input.entities = [entity("a"), entity("b")]
         input.totals = ["a": 7, "b": 3]
         input.days = [
-            .init(date: today.addingDays(-30)!, mentions: ["a": 1, "b": 1]),
-            .init(date: today.addingDays(-29)!, mentions: ["a": 4, "b": 1]),
-            .init(date: today, mentions: ["a": 1, "b": 1]),
-            .init(date: today.addingDays(1)!, mentions: ["a": 1, "b": 1]),
+            .init(date: today.addingDays(-30)!, mentions: ["a": 1, "b": 1], groups: [["a", "b"]]),
+            .init(date: today.addingDays(-29)!, mentions: ["a": 4, "b": 1], groups: [["a", "b"]]),
+            .init(date: today, mentions: ["a": 1, "b": 1], groups: [["a", "b"]]),
+            .init(date: today.addingDays(1)!, mentions: ["a": 1, "b": 1], groups: [["a", "b"]]),
         ]
         var filter = GraphFilter()
         filter.period = .month

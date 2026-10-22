@@ -2,10 +2,7 @@ import VaultFormat
 import VaultIndex
 
 struct GraphInput: Sendable, Equatable {
-    struct Day: Sendable, Equatable {
-        let date: CalendarDate
-        let mentions: [String: Int]
-    }
+    typealias Day = GraphMentions.Day
     /// Entity kinds the graph draws as nodes.
     static let kinds: Set<String> = ["person", "place"]
     var entities: [EntitySummary] = []
@@ -16,6 +13,6 @@ struct GraphInput: Sendable, Equatable {
     init(entities: [EntitySummary], mentions: GraphMentions) {
         self.entities = entities.filter { Self.kinds.contains($0.kind) }
         totals = mentions.totals
-        days = mentions.days.map { Day(date: $0.date, mentions: $0.mentions) }
+        days = mentions.days
     }
 }

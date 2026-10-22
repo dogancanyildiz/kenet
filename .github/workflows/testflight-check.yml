@@ -1,6 +1,8 @@
 name: TestFlight denetimi
 
-# dev'e itilince imzasız arşiv alıp paketi denetler; yükleme yok.
+# dev'e itilince imzasız arşiv alıp paketi denetler; yükleme yok. iOS ve Mac arşivleri ayrı
+# işlerdir (testflight.sh --check ve --check --mac): iki arşiv aynı runner'da sıralı alınırsa
+# iş sınırı dolar, ayrı işler kuyruğa yan yana girer.
 # Ortak .github/actions/ios-build test için derler. Bu iş arşivler: testflight.sh temiz
 # kopyada kendi xcodegen'ini çalıştırır, simülatör istemez. Xcode sürümü ci.yml işleriyle
 # aynı yerden seçilir (.github/actions/xcode); XcodeGen kurulumu o işlerle aynı adımdır.
@@ -44,6 +46,31 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: testflight-archive-log
+          path: ${{ runner.temp }}/kenet-testflight-arsiv.log
+          if-no-files-found: warn
+          retention-days: 7
+  check-mac:
+    name: İmzasız Mac arşiv denetimi
+    if: vars.KENET_CD_ON_PUSH != 'true'
+    runs-on: macos-26
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Xcode
+        uses: ./.github/actions/xcode
+      - name: XcodeGen
+        run: brew install xcodegen
+      - name: Denetle
+        env:
+          TMPDIR: ${{ runner.temp }}
+        run: sh .github/scripts/testflight.sh --check --mac
+      - name: Arşiv günlüğü (düşünce)
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: testflight-archive-log-mac
           path: ${{ runner.temp }}/kenet-testflight-arsiv.log
           if-no-files-found: warn
           retention-days: 7

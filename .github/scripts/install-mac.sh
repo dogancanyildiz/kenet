@@ -2,9 +2,9 @@
 # Mac uygulamasını bu makineye kurar: HEAD'in temiz bir kopyasından Release derler ve
 # /Applications/Kenet.app olarak kopyalar.
 #
-# Mac için TestFlight ya da mağaza yolu yok (uygulama mağazada yalnız iPhone); Mac sürümü bu
-# betikle, derlendiği makineye kurulur. Geliştirici imzasıyla imzalanır ve Apple onayından
-# (notarization) geçmez: başka bir Mac'e kopyalanırsa Gatekeeper engeller.
+# Mac'in TestFlight yolu testflight.sh --mac'tır (2026-10-22); bu betik geliştirme makinesine
+# hızlı kurulum içindir. Geliştirici imzasıyla imzalanır ve Apple onayından (notarization)
+# geçmez: başka bir Mac'e kopyalanırsa Gatekeeper engeller.
 #
 # Neden temiz kopya: testflight.sh ile aynı gerekçe (Xcode açıkken çalışma klasöründeki dosyaları
 # yeniden yazabiliyor). Commit'lenmemiş değişiklikler kurulan uygulamaya girmez; betik listeler.

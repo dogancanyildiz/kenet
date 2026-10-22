@@ -5,6 +5,8 @@ name: TestFlight
 # Xcode hesabı yerine App Store Connect API anahtarı, yerel anahtar zinciri yerine geçici zincir.
 # Elle başlatılır (gh workflow run testflight.yml --ref dev). dev'e itmede yükleme isteğe bağlıdır
 # ve varsayılan KAPALIDIR: depo değişkeni KENET_CD_ON_PUSH=true olunca açılır.
+# Platform girdisi: ios (varsayılan; iPhone ve iPad) ya da mac (testflight.sh --mac). İtme koşusu
+# yalnız iOS yükler; Mac elle başlatılır.
 # Repo herkese açıktır: gizli değerler yalnız Secrets'tan gelir; takım kimliği betikte maskelenir,
 # düşen koşunun günlüğü artifact'a kimlikler çıkarılmış olarak gider. Kurulum: README, "CD".
 
@@ -15,11 +17,17 @@ on:
         description: Yapı notu (koşu adında ve özetinde görünür; TestFlight'a gönderilmez)
         required: false
         default: ""
+      platform:
+        description: "Platform: ios (iPhone ve iPad) ya da mac"
+        required: false
+        type: choice
+        options: [ios, mac]
+        default: ios
   push:
     branches: [dev]
 
 run-name: >-
-  TestFlight ${{ github.event_name == 'workflow_dispatch' && 'elle' || 'itme' }}${{ inputs.notes && format(': {0}', inputs.notes) || '' }}
+  TestFlight ${{ github.event_name == 'workflow_dispatch' && 'elle' || 'itme' }}${{ inputs.platform == 'mac' && ' (Mac)' || '' }}${{ inputs.notes && format(': {0}', inputs.notes) || '' }}
 
 permissions:
   contents: read
@@ -110,7 +118,7 @@ jobs:
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
         run: >-
-          sh .github/scripts/testflight.sh --ci
+          sh .github/scripts/testflight.sh --ci ${{ inputs.platform == 'mac' && '--mac' || '' }}
           --keychain "$KENET_KEYCHAIN"
           --api-key "$KENET_ASC_KEY_PATH"
           --api-key-id "$ASC_KEY_ID"
@@ -121,9 +129,14 @@ jobs:
           NOTES: ${{ inputs.notes }}
           VERSION: ${{ steps.upload.outputs.version }}
           BUILD: ${{ steps.upload.outputs.build }}
+          PLATFORM: ${{ steps.upload.outputs.platform }}
         run: |
           {
-            echo "### TestFlight: Kenet $VERSION ($BUILD)"
+            if [ "$PLATFORM" = mac ]; then
+              echo "### TestFlight: Kenet (Mac) $VERSION ($BUILD)"
+            else
+              echo "### TestFlight: Kenet $VERSION ($BUILD)"
+            fi
             echo
             echo "Commit: \`${GITHUB_SHA}\`. App Store Connect yapıyı birkaç dakikada işler."
             if [ -n "$NOTES" ]; then

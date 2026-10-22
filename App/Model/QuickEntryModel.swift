@@ -50,6 +50,8 @@ final class QuickEntryModel {
     private(set) var isSubmitting = false
     /// Set while the field holds a draft made from a calendar event.
     var calendarDraft: CalendarDraft?
+    /// Set while lines from a journaling suggestion wait for the field (``applySuggestion(_:)``).
+    var suggestionQueue: SuggestionQueue?
     @ObservationIgnored var analysisCache: (key: AnalysisKey, analysis: QuickEntryAnalysis)?
     /// Project names the `#project/` suggestions offer (``loadProjects()``); a reload keeps the
     /// previous names until it answers.
@@ -118,7 +120,8 @@ final class QuickEntryModel {
     var isHistorical: Bool { day.map { $0 != today() } ?? false }
     var entryTime: LineClock? {
         guard mode == .event, includesTime else { return nil }
-        if !isHistorical, let time = calendarDraft?.time { return LocalDay.clock(at: time) }
+        // Another day's moment keeps its own time on any page.
+        if !isHistorical || suggestionDay != nil, let time = calendarDraft?.time { return LocalDay.clock(at: time) }
         return isHistorical ? LocalDay.clock(at: selectedTime) : LocalDay.clock(at: now())
     }
 
@@ -230,7 +233,9 @@ final class QuickEntryModel {
                     on: today(), text: payload, due: submitDue, priority: submitPriority,
                     recurrence: submitRecurrence)
             } else {
-                saved = await store.addEvent(on: day ?? LocalDay.today(), text: payload, time: time)
+                // Another day's moment goes to its own day's file (``suggestionDay``).
+                let target = draftCalendar.draft?.suggestion?.day ?? day ?? LocalDay.today()
+                saved = await store.addEvent(on: target, text: payload, time: time)
             }
             if !saved {
                 restoreFailedDraft(
@@ -242,6 +247,8 @@ final class QuickEntryModel {
                     store.entryErrorText
                     ?? String(localized: "Olay kaydedilemedi. Kasayı kontrol edip yeniden dene.")
                 restoreCalendarDraft(draftCalendar)
+            } else {
+                advanceSuggestions(afterSending: submitMode == .event ? draftCalendar.draft?.suggestion : nil)
             }
             return saved
         } catch {

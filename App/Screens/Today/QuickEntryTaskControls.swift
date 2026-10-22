@@ -15,7 +15,8 @@ struct QuickEntryTaskControls: View {
     var body: some View {
         let names = model.recognizedNames
         let attendees = model.unknownAttendees
-        if model.mode == .task || !names.isEmpty || !attendees.isEmpty {
+        let suggested = model.suggestedNames
+        if model.mode == .task || !names.isEmpty || !attendees.isEmpty || !suggested.isEmpty {
             // It scrolls sideways instead of wrapping or clipping.
             ScrollView(.horizontal) {
                 HStack(spacing: 8) {
@@ -36,6 +37,9 @@ struct QuickEntryTaskControls: View {
                     }
                     ForEach(attendees, id: \.self) { name in
                         attendeeChip(name)
+                    }
+                    ForEach(suggested, id: \.self) { name in
+                        suggestedNameChip(name)
                     }
                 }
             }
@@ -91,6 +95,33 @@ struct QuickEntryTaskControls: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel(Text("Katılımcıyı ekle: \(name)"))
+    }
+
+    /// A journaling suggestion's person or place the vault does not know by that kind: the name
+    /// enters the text only once its entity exists (or now answers to it), pinned.
+    private func suggestedNameChip(_ name: SuggestionLine.Mention) -> some View {
+        Button {
+            Task { @MainActor in
+                await model.addSuggestedName(name)
+                onAddAttendee()
+            }
+        } label: {
+            HStack(spacing: 4) {
+                Image(systemName: "plus")
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(Color.ink.secondaryText)
+                Image(systemName: name.kind == .person ? "person" : "mappin")
+                Text(verbatim: name.name)
+                    .lineLimit(1)
+            }
+            .font(.ink.meta)
+            .foregroundStyle(Color.ink.text)
+            .modifier(QuickEntryPill(stroke: Color.ink.control))
+            .tapTarget()
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(
+            name.kind == .person ? Text("Kişi olarak ekle: \(name.name)") : Text("Konum olarak ekle: \(name.name)"))
     }
 
     /// The whole chip is the button: it turns the expression back into plain words.

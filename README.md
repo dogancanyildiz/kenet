@@ -60,17 +60,17 @@ Kenet, kişiler, konumlar ve olaylar üzerine kurulu bir kişisel günlük uygul
 
 ## Proje durumu
 
-**Tablo, 2026-10-20 tarihindeki durumu verir.**
+**Tablo, 2026-10-22 tarihindeki durumu verir.**
 
 | Konu | Durum |
 |---|---|
 | Son sürüm | `v0.9.0`, `main` dalında |
 | Test dağıtımı | `dev` dalındaki yapılar TestFlight'ta dahili testte; iPhone ve iPad |
 | Aşama 0–10 | Kullanıcı kararı gerektirmeyen teknik maddeler tamam. Mürekkep tasarım dili ve denetim kalıpları bütün iPhone, iPad ve Mac ekranlarında |
-| Aktif aşama | Aşama 11. Kimlik gerektirmeyen dilimler bitti; kalan maddeler iCloud kapsayıcısı ve App Group kararını bekler |
+| Aktif aşama | Aşama 11. iCloud kasası, iOS ana ekran zincir widget'ı, paylaşım uzantısı ve günlük önerileri seçicisi geldi; güvenli yazmanın kalanı ve öteki widget'lar açık |
 | Aşama 12–15 | Aşama 12 (yayın) hazırlık aşamasındadır. Aşama 13 (uyarlanır düzen), 14 (görselleştirme) ve 15 (kullanım kolaylığı) Aşama 11 ile birlikte yürür; Aşama 14 ve 15 bitti |
 | Açık işler | Gerçek cihazda gözle doğrulama; iPhone Duo iOS 27.1 uyarlaması; mağaza sayfası |
-| Bekleyen kimlik kararları | iCloud kapsayıcısı ve App Group. iCloud eşitlemesi ve widget'lar kimlik kararlarını bekler |
+| Kimlikler | Bundle `com.dogancanyildiz.kenet`, iCloud kapsayıcısı `iCloud.com.dogancanyildiz.kenet`, App Group `group.com.dogancanyildiz.kenet`; üçü de kalıcıdır. Alan adı `kenet.app` karara bağlandı; alan adını kullanıcı alır |
 | Dal rolleri | `main`: ürünün aldığı sürüm. `dev`: test |
 
 Ayrıntılı durum `docs/roadmap.md` belgesindedir.

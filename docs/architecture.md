@@ -1005,13 +1005,13 @@ Güncelleme değişen yolların dosya adı ve yol anahtarlarına sahip bağlant�
 
 ## Eşitleme
 
-**Durum: tasarım, henüz uygulanmadı.** Eşitleme kimlik kararını bekliyor.
+**Durum: kısmen uygulandı.** Kasa iCloud kapsayıcısında durabilir (2026-10-22). Açık: indirme isteği, gün kopyası birleştirmesinin bağlanması, sürüm çözümleme ve eşitleme göstergesi.
 
 **Tablo eşitlemenin bugünkü durumunu gösterir.**
 
 | Parça | Durum |
 |---|---|
-| Kasa konumu | Uygulamanın yerel `Documents/Vault` klasörü ya da kullanıcının seçtiği klasör |
+| Kasa konumu | iCloud kapsayıcısında `Documents/Kenet`, uygulamanın yerel `Documents/Vault` klasörü ya da kullanıcının seçtiği klasör |
 | `VaultStore` yazmaları ve belge okumaları | `NSFileCoordinator` ile koordineli: `SystemFileCoordination` |
 | İndeks taraması | Koordinasyonsuz |
 | İçe aktarmanın klasör, şablon ve ayar dosyası oluşturması | Koordinasyonsuz |

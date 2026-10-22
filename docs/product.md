@@ -102,8 +102,8 @@ Uygulama satırı önce gün dosyasına yazar, sonra indeksi günceller. Siri ve
 
 | Şu an | Ne için kullanılıyor | Karşılığı | Aşama | Durum |
 |---|---|---|---|---|
-| Alışkanlık uygulaması | Zincir widget'ı | Hedefler ve ana ekran widget'ı | 3, 11 | Hedefler ve zincir hazır. Widget Aşama 11'dedir ve kimlik kararını bekler. |
-| Lockday | Kilit ekranında takvim etkinlikleri | Kilit ekranı widget'ı | 11 | Yok. Kimlik kararını bekler. |
+| Alışkanlık uygulaması | Zincir widget'ı | Hedefler ve ana ekran widget'ı | 3, 11 | Hazır. iOS ana ekran zincir widget'ı Aşama 11'de geldi. |
+| Lockday | Kilit ekranında takvim etkinlikleri | Kilit ekranı widget'ı | 11 | Yok. Aşama 11'in sonraki dalgasıdır. |
 | Notion | Kanban, zaman çizelgesi | Görevler'de Kanban ve zaman çizelgesi | 5 | Hazır. |
 | Obsidian | Notlar | Aynı formatta kasa; Obsidian Mac'te yedek editör olarak kalabilir | - | Kasa uyumlu. Uygulama var olan kasayı yerinde açar. |
 
@@ -169,8 +169,8 @@ mindmap
 | Özetler | Haftalık ve aylık örüntüler, sayılara dayalı; kişi sayfasında son görüşme özeti; graph ve harita | 6 | Hazır. Yapay zekalı yazılı geri bildirim "Sonraki fikirler"dedir ve karar açıktır. |
 | Kasa ve güvenlik | İlk kullanım, var olan Obsidian kasasını yerinde açma, uygulama kilidi, özel varlık tipleri | 7 | Hazır |
 | Bağlam ve geri dönüş | Bu gün geçmişte, takvimden olay taslağı, bağlanmamış anmalar, önemli tarihler, görüşme ritmi, zincir affı, suçlamasız taşıma, günü kapat, haftalık inceleme, rehberden kişi içe aktarma, bu güne bağlananlar | 10 | Kısmen. Hızlı girişte tanınan alanların kutu içi vurgusu kullanıcı kararını bekler; çipler ve geri alma hazırdır. |
-| Eşitleme | iCloud kasası, dosya koordinasyonu, gün kopyası birleştirme, eşitleme durumu göstergesi | 11 | Kısmen. Koordinasyon ve Core'daki birleştirme hazırdır; iCloud kapsayıcısı kimlik kararını bekler. |
-| Widget'lar ve uzantılar | Zincir, günün görevleri, takvim etkinlikleri, hızlı giriş; kilit ekranı, Denetim Merkezi, Mac widget'ları, paylaşım uzantısı | 11 | Yok. Kimlik kararını bekler. |
+| Eşitleme | iCloud kasası, dosya koordinasyonu, gün kopyası birleştirme, eşitleme durumu göstergesi | 11 | Kısmen. Kasa iCloud kapsayıcısında durabilir; yerel kasa iCloud'a doğrulanmış kopyayla taşınır. Koordinasyon ve Core'daki birleştirme hazırdır. İndirme isteği, birleştirmenin bağlanması ve eşitleme göstergesi açıktır. |
+| Widget'lar ve uzantılar | Zincir, günün görevleri, takvim etkinlikleri, hızlı giriş; kilit ekranı, Denetim Merkezi, Mac widget'ları, paylaşım uzantısı | 11 | Kısmen. iOS ana ekran zincir widget'ı ve iOS paylaşım uzantısı hazırdır. Kilit ekranı, hızlı giriş, Denetim Merkezi ve Mac widget'ları sonraki dalgadır. |
 
 "Hazır", yol haritasındaki `[x]` ile aynı anlamdadır: özellik kodda var, testlerden ve CI'dan geçti. Gerçek kullanım ölçütleri ayrıdır ve [yol haritası](roadmap.md) onları izler.
 
@@ -202,8 +202,8 @@ Ekim 2026 sektör taraması benzer ürünlerin o günkü durumunu karşılaştı
 |---|---|
 | Fotoğraf | "Sonraki fikirler"de. |
 | Bu gün geçmişte | Hazır, Aşama 10. |
-| Widget ve kilit ekranı girişleri | Aşama 11. Kimlik kararını bekler. |
-| Paylaşım uzantısı | Aşama 11. |
+| Widget ve kilit ekranı girişleri | Aşama 11. Ana ekran zincir widget'ı hazır; kilit ekranı ve hızlı giriş girişleri sonraki dalgadır. |
+| Paylaşım uzantısı | Hazır, iOS, Aşama 11. |
 | Sesle giriş | "Sonraki fikirler"de. |
 | Cihazlar arası eşitleme | Aşama 11, kısmen hazır. |
 | Başka günlük uygulamalarından içe aktarma | "Sonraki fikirler"de: Day One ve Apple Journal. |

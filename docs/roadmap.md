@@ -10,7 +10,7 @@
 
 **Aktif aşama:** 11
 
-Aşama 11'in kimlik gerektirmeyen dilimleri bitti; kalan maddeler kimlik kararını ve cihaz denemesini bekler. Aşama 13'ün iPhone Duo dilimi bugünkü SDK ile Aşama 11'in bekleyen maddeleriyle birlikte yürür. Karar günlüğü bu sırayı 2026-10-13'te kaydetti. Aşama 8 ve 9'un açık maddeleri kullanıcının elindedir: kilidin ve Bugün ekranının gerçek cihazda doğrulanması.
+Aşama 11'in kimlikleri 2026-10-21'de karara bağlandı. Kasa konumu, ana ekran widget'ı, paylaşım uzantısı ve günlük önerileri seçicisi 2026-10-22'de `dev`'e girdi. Kalan maddeler: güvenli yazmanın kalanı (cihaz denemesini bekler), kilit ekranı, hızlı giriş ve Mac widget'ları. Aşama 13'ün iPhone Duo dilimi bugünkü SDK ile Aşama 11'in bekleyen maddeleriyle birlikte yürür. Karar günlüğü bu sırayı 2026-10-13'te kaydetti. Aşama 8 ve 9'un açık maddeleri kullanıcının elindedir: kilidin ve Bugün ekranının gerçek cihazda doğrulanması.
 
 ## Genel durum
 
@@ -18,7 +18,7 @@ Aşama 11'in kimlik gerektirmeyen dilimleri bitti; kalan maddeler kimlik kararı
 
 ```mermaid
 timeline
-    title Aşama durumları, 2026-10-20
+    title Aşama durumları, 2026-10-22
     section Teknik kapsam tamam
         Aşama 0 Temel : Çıkış ölçütü sağlandı
         Aşama 1 Günlük : Gerçek kullanım başlamadı
@@ -34,7 +34,7 @@ timeline
         Aşama 15 Kullanım kolaylığı : 5 kutu bitti : 0 kutu açık
     section Açık kutusu var
         Aşama 8 Sağlamlaştırma : 28 kutu bitti : 1 kutu açık
-        Aşama 11 Kimlik, eşitleme ve widget'lar : Aktif aşama : Kimlik kararını bekliyor : 10 kutu açık
+        Aşama 11 Kimlik, eşitleme ve widget'lar : Aktif aşama : 6 kutu bitti : 4 kutu açık
         Aşama 13 Uyarlanır düzen : Duo kabuğu ve iPad bitti : 4 kutu bitti : 2 kutu açık
     section Hazırlık sürüyor
         Aşama 12 Yayın : 4 kutu açık
@@ -44,8 +44,8 @@ timeline
 
 ```mermaid
 pie title Kutular
-    "Bitti" : 106
-    "Açık" : 17
+    "Bitti" : 112
+    "Açık" : 11
 ```
 
 | İşaret | Anlamı |
@@ -53,7 +53,7 @@ pie title Kutular
 | `[x]` | Kod `dev` dalında, testlerden ve CI'dan geçti. CI, sürekli bütünleştirme demektir. |
 | `[ ]` | Madde açık. Durum tablosu kalan işi söyler. |
 
-**Durum (2026-10-20).** Aşama 0–10, 14 ve 15'in teknik maddeleri `dev` dalındadır. İlk sürüm `v0.9.0` `main` dalındadır. TestFlight'ta dahili test sürüyor. Aşamaların gerçek kullanım ölçütleri henüz ölçülmedi; "Gerçek kullanım ölçütleri" tablosu ölçütleri ayrıca izler.
+**Durum (2026-10-22).** Aşama 0–10, 14 ve 15'in teknik maddeleri `dev` dalındadır. Aşama 11'in 10 maddesinden 6'sı bitti. İlk sürüm `v0.9.0` `main` dalındadır. TestFlight'ta dahili test sürüyor. Aşamaların gerçek kullanım ölçütleri henüz ölçülmedi; "Gerçek kullanım ölçütleri" tablosu ölçütleri ayrıca izler.
 
 Ekim 2026'da çok modelli bir heyet projeyi inceledi. Heyet 4 iş yaptı: kod ve mimari denetimi, ekran görüntülü kullanım gezisi, sektör taraması, tasarım dili araştırması. İnceleme gerçek hatalar, ölçek sorunları ve vaatle uyuşmayan yerler buldu. Bu nedenle heyetten sonraki ilk iş yeni özellik değil, sağlamlaştırmaydı. Aşama 8 ve sonraki aşamalar heyetin önerdiği sırayı izler; kullanıcı onayı kapsamı ve sırayı kesinleştirir.
 
@@ -63,10 +63,10 @@ Kural: Her modülü gerçek kullanımda sına. Aşama 0–7'nin kodu çıkış �
 
 | Aşama | Teknik kapsam | Çıkış ölçütü | Durum |
 |---|---|---|---|
-| 0 Temel | iCloud kasa konumu dışında tamam | Uygulama örnek kasayı okuyor ve indeksliyor; değişiklikler ekrana yansıyor; testler geçiyor | Sağlandı |
+| 0 Temel | Tamam. iCloud kasa konumu Aşama 11'de geldi: #319 | Uygulama örnek kasayı okuyor ve indeksliyor; değişiklikler ekrana yansıyor; testler geçiyor | Sağlandı |
 | 1 Günlük | Tamam | Kullanıcı iki hafta boyunca her gün günlüğünü uygulamada tutuyor | Başlamadı |
 | 2 Görevler | Tamam | Kullanıcı günlük görevlerini yalnız uygulamada izliyor | Başlamadı |
-| 3 Hedefler ve widget'lar | Hedefler tamam, widget'lar yok | Kullanıcı alışkanlık uygulamasını ve Lockday'i telefondan sildi | Widget'lar kimlik kararını bekliyor |
+| 3 Hedefler ve widget'lar | Hedefler ve ana ekran zincir widget'ı tamam; kilit ekranı widget'ı yok | Kullanıcı alışkanlık uygulamasını ve Lockday'i telefondan sildi | Başlamadı. Lockday'in yerini alacak kilit ekranı widget'ı Aşama 11'de açık |
 | 4 Otomasyon | Tamam | İki hafta boyunca hiçbir hatırlatma kaçmıyor; uygulama konuma bağlı hedefleri kullanıcı işaretlemeden yazıyor | Başlamadı |
 | 5 Proje görünümleri | Tamam | Kullanıcı Kanban ve zaman çizelgesi için Notion'u açmıyor | Başlamadı |
 | 6 Geri bildirim | Sayılara dayanan kısım tamam | Kullanıcı haftalık özeti 4 hafta üst üste okuyor | Başlamadı |
@@ -80,22 +80,17 @@ Gerçek kullanım gerçek cihazda kalıcı kurulum ister. TestFlight yapısı ka
 
 ```mermaid
 flowchart LR
-    K[Kimlik kararı: iCloud kapsayıcısı, App Group, alan adı] --> KK[Kasa konumu]
-    K --> W[5 widget maddesi]
-    K --> PU[Paylaşım uzantısı]
-    K --> GP[Gizlilik politikası sayfası]
     GK[İki cihazda deneme, sonra gün kopyası birleştirmesinin açılması] --> A11[Aşama 11 güvenli yazma kutusu]
     GM[Gelir modeli] --> A12[Aşama 12 lisans ve gelir kutusu]
 ```
 
 | Karar | Neyi açar | Not |
 |---|---|---|
-| iCloud kapsayıcısı, App Group ve alan adı | iCloud kasası, widget'lar, kilit ekranı ve Denetim Merkezi girişleri, paylaşım uzantısı; alan adı mağaza sayfası için gerekir | Üyelik alındı. Ad "Kenet" ve bundle kimliği `com.dogancanyildiz.kenet` 2026-10-07'de karara bağlandı. TestFlight bu kararları beklemez. Kalıcı bundle kimliği koda girdi ve ilk yükleme yapıldı: #130. |
 | Gün kopyasının kendiliğinden birleştirilmesi | Aşama 11'in güvenli yazma kutusu | Core birleştirme işlevi hazır: #206. Uygulama işlevi gerçek kasada çağırmaz. Kullanıcı iki cihazda bir hafta dener, sonra açılmasına karar verir: 2026-10-13. |
-| Gelir modeli | Aşama 12 | Lisans karara bağlandı: tüm hakları saklıdır. Sektör taraması bu kategoride reklamı önermiyor. |
+| Gelir modeli | Aşama 12 | Lisans karara bağlandı: tüm hakları saklıdır. Sektör taraması bu kategoride reklamı önermiyor. Karar ilk mağaza yayınından önce verilir: 2026-10-21. |
 | Yapay zeka | Sonraki fikirler | Cihaz üstü model maliyetsiz bir seçenektir. Öneri: varsayılan kapalı. |
 
-**UYARI:** Kimlik değişince uygulamanın kapsayıcısı da değişir; kapsayıcı kararına kadar gerçek veriyi klasör seçiciyle seçilen, kapsayıcının dışındaki bir klasörde tut.
+Kimlikler karara bağlandı: bundle kimliği 2026-10-07'de, iCloud kapsayıcısı ve App Group 2026-10-21'de (#314), alan adı `kenet.app` 2026-10-21'de. Alan adını kullanıcı alır.
 
 **DİKKAT:** Mağazada yayımlanan iPad desteğini geri alamazsın; iPad desteğini sonradan eklemek serbesttir.
 
@@ -229,29 +224,48 @@ Aşama 10 sektör taramasından çıkan ilk dalgadır. Maddeler kimlik kararı g
 
 | Madde | Durum | Kanıt |
 |---|---|---|
-| Kasa konumu | Açık. Kimlik kararını bekliyor. Yerel kasa ve klasör seçimi hazır. | - |
-| Eşitlenen kasada güvenli yazma | Açık. Hazır: Core koordinasyon sınırı ve `.merge` niyeti; App'te `NSFileCoordinator` ve okuma kuyruğu; eşitlenen klasör tespiti ve bandı; yer tutucu tespiti; Core'da gün kopyası birleştirme ve belirlenimci zaman kuralı; kopya dosyalar Tanılama'da. Açık: indirme isteği, birleştirmeyi App'e bağlama, eşitleme göstergesi. `NSFileVersion` çakışmaları için tespit ve Tanılama listesi var (#287); sürüm çözümleme açık. İndirme isteği cihaz doğrulamasını, birleştirme iki cihazda denemeyi bekliyor. | #187, #189, #200, #203, #206, #207, #234, #238, #287 |
-| Ana ekran widget'ı | Açık. App Group kararını bekliyor. | - |
-| Ekranlar kendi sorgusunu çalıştırır | Açık. Bütün ekranlar, bildirim planlayıcı ve proje listeleri kendi sorgusunu çalıştırıyor. Okuma modelinden `days`, `tasks`, `projects` ve `goalStatuses` çıktı; parçalar blok metni taşımıyor. 5 yıllık kasada okuma modeli 10,8 MB'tan 2,35 MB'a, yeniden türetme 1.640 ms'den 50 ms'ye indi. `goals`, `goalLogs`, `goalPlaceFiles`, `reservedGoalKeys` ve `goalLogStart` da çıktı; okuma modeli 2,35 MB'tan 1,92 MB'a, yeniden türetme 50 ms'den 34 ms'ye indi (#294). Kalan yalnız `entities` (karar: okuma modelinde kalır) ve widget (App Group kararını bekliyor). | #192, #201, #205, #208, #210, #211, #212, #214, #225, #294 |
-| Widget yenilemesinin testi | Açık | - |
-| Kilit ekranı widget'ı | Açık | - |
-| Hızlı giriş widget'ı ve girişler | Açık | - |
-| Mac widget'ları | Açık | - |
-| Paylaşım uzantısı | Açık. App Group kararını bekliyor. | - |
-| Sistemin günlük önerileri | Açık | - |
+| Kasa konumu | Bitti. Kasa iCloud kapsayıcısında `Documents/Kenet` klasöründe durur; iCloud varsa ilk açılışta ilk seçenektir. Yerel kasa ve klasör seçimi kalır. Yerelden iCloud'a taşıma doğrulanmış kopyadır; kaynak silinmez. Gerçek cihazda Dosyalar ve ikinci cihaz denemesi kullanıcıdadır. | #314, #319 |
+| Eşitlenen kasada güvenli yazma | Açık. Hazır: Core koordinasyon sınırı ve `.merge` niyeti; App'te `NSFileCoordinator` ve okuma kuyruğu; eşitlenen klasör tespiti ve bandı; yer tutucu tespiti; Core'da gün kopyası birleştirme ve belirlenimci zaman kuralı; kopya dosyalar Tanılama'da. Açık: indirme isteği, birleştirmeyi App'e bağlama, eşitleme göstergesi. Yalnız kasa tanıma için `.app/vault.json` yer tutucusu indirilir (#319); genel indirme isteği açık. `NSFileVersion` çakışmaları için tespit ve Tanılama listesi var (#287); sürüm çözümleme açık. İndirme isteği cihaz doğrulamasını, birleştirme iki cihazda denemeyi bekliyor. | #187, #189, #200, #203, #206, #207, #234, #238, #287, #319 |
+| Ana ekran widget'ı | Bitti. iOS'ta küçük ve orta zincir widget'ı. Widget veriyi App Group'taki anlık görüntüden okur. iCloud kasasında bekleyen evet/hayır hedefi widget içinde işaretlenir; yerel ve seçili kasada dokunma uygulamayı açar ve işaretler. Gerçek cihazda dokunma denemesi kullanıcıdadır. | #318, #325 |
+| Ekranlar kendi sorgusunu çalıştırır | Bitti. Bütün ekranlar, bildirim planlayıcı ve proje listeleri kendi sorgusunu çalıştırıyor. Okuma modelinden `days`, `tasks`, `projects` ve `goalStatuses` çıktı; parçalar blok metni taşımıyor. 5 yıllık kasada okuma modeli 10,8 MB'tan 2,35 MB'a, yeniden türetme 1.640 ms'den 50 ms'ye indi. `goals`, `goalLogs`, `goalPlaceFiles`, `reservedGoalKeys` ve `goalLogStart` da çıktı; okuma modeli 2,35 MB'tan 1,92 MB'a, yeniden türetme 50 ms'den 34 ms'ye indi (#294). Widget `goalStatuses` sonucunu uygulamanın yazdığı anlık görüntüden alır (#318). `entities` okuma modelinde kalır (karar 2026-10-20). | #192, #201, #205, #208, #210, #211, #212, #214, #225, #294, #318 |
+| Widget yenilemesinin testi | Bitti. `WidgetRefreshReliabilityTests`: 100 yayım, gece yarısı geçişi, uygulama ile widget yazmasının uzlaşması ve yenileme sayacı. | #325 |
+| Kilit ekranı widget'ı | Açık. Sonraki dalga: karar 2026-10-21. | - |
+| Hızlı giriş widget'ı ve girişler | Açık. Sonraki dalga. | - |
+| Mac widget'ları | Açık. Sonraki dalga. | - |
+| Paylaşım uzantısı | Bitti, iOS. Metin ve Safari bağlantısı tek olay olur. iCloud kasasında uzantı gün dosyasına kendisi yazar; öteki durumlarda metin App Group kuyruğunda bekler ve uygulama açılınca işlenir. Mac uzantısı ve görsel paylaşımı kapsam dışı. | #324 |
+| Sistemin günlük önerileri | Bitti, iPhone. Hızlı girişte seçici; öneri metne dönüşür, kullanıcı gönderir. Cihaz denemesi bekliyor: yetki ve App ID yeteneği yalnız imzalı yapıda görülür. | #320 |
 
-Kasa konumu ve widget'lar kimlik kararını bekler. Kimlik gerektirmeyen dilimler Aşama 10 ile birlikte yürüdü ve bitti. Karar günlüğü bu sırayı 2026-10-12'de kaydetti. Güvenli yazmanın kalanı kullanıcının cihaz denemesini bekler.
+Kimlik gerektirmeyen dilimler Aşama 10 ile birlikte yürüdü ve bitti. Karar günlüğü bu sırayı 2026-10-12'de kaydetti. Kimlikler 2026-10-21'de geldi; kimliğe bağlı ilk dalga 2026-10-22'de bitti. Kilit ekranı, hızlı giriş ve Mac widget'ları sonraki dalgadır. Güvenli yazmanın kalanı kullanıcının cihaz denemesini bekler. İşaretli maddelerin gerçek cihaz denemesi kullanıcıdadır.
 
-- [ ] Kasa konumu: iCloud kapsayıcısı; yerel kasa yedek seçenek olarak kalır. Madde Aşama 0'dan devretti.
+**Dalga 22 ve 23'te birleşen PR'lar, 2026-10-21 ve 2026-10-22:**
+
+| Dalga | İş | PR |
+|---|---|---|
+| 22 | Mac görüntü kümeleri haftalık iş akışında; Mac referansları CI'da kaydedilir | #304, #310, #315, #316, #321, #322, #323 |
+| 22 | Görüntü referansı sayısı ve boyutu için tavan denetimi | #305 |
+| 22 | Bildirim içeriği varsayılan gizli | #306, #311 |
+| 22 | Erişilebilirlik boyutunda kenar çubuğu satırı yalnız ad | #307 |
+| 22 | Zincir günü: her 7 yapılmış gün 1 gün; şerit, liste, ayrıntı ve ısı haritası | #308, #312 |
+| 22 | Ad karşılaştırmasında Türkçe büyük harf eşlemesi; indeks şeması 9 | #309 |
+| 22 | TestFlight gönderimi CI iş akışı | #313 |
+| 22 | iCloud kapsayıcısı ve App Group kimlikleri | #314 |
+| 22 | Mac'te FSEvents ile dosya düzeyinde izleme; Aşama 11'de maddesi yok | #317 |
+| 23 | Widget altyapısı ve zincir widget'ı | #318 |
+| 23 | Kasa konumu iCloud kapsayıcısı | #319 |
+| 23 | Hızlı girişte günlük önerileri seçicisi | #320 |
+| 23 | Paylaşım uzantısı | #324 |
+| 23 | Widget içinden işaretleme ve yenileme güvenilirliği | #325 |
+
+- [x] Kasa konumu: iCloud kapsayıcısı; yerel kasa yedek seçenek olarak kalır. Madde Aşama 0'dan devretti.
 - [ ] Eşitlenen kasada güvenli yazma: dosya koordinasyonu, cihaza inmemiş dosyalar, çakışan sürümleri tespit, birleştirme işlevini bağlama, kopya dosya kuralı, eşitleme durumu göstergesi.
-- [ ] Ana ekran widget'ı: zincir ve tek dokunuşla işaretleme; widget yapılmamış hedefleri vurgular. Madde Aşama 3'ten devretti.
-- [ ] Ekranlar ve widget kendi sorgusunu çalıştırır: küresel okuma modeli yerine Core sorguları. Gerekçe widget bellek sınırıdır. Madde Aşama 8'den devretti.
-- [ ] Widget yenilemesinin güvenilirlik testi. Madde Aşama 3'ten devretti.
+- [x] Ana ekran widget'ı: zincir ve tek dokunuşla işaretleme; widget yapılmamış hedefleri vurgular. Madde Aşama 3'ten devretti.
+- [x] Ekranlar ve widget kendi sorgusunu çalıştırır: küresel okuma modeli yerine Core sorguları. Gerekçe widget bellek sınırıdır. Madde Aşama 8'den devretti.
+- [x] Widget yenilemesinin güvenilirlik testi. Madde Aşama 3'ten devretti.
 - [ ] Kilit ekranı widget'ı: takvim etkinlikleri ve günün görevleri. Madde Aşama 3'ten devretti.
 - [ ] Hızlı giriş widget'ı ile kilit ekranı, Denetim Merkezi ve Eylem düğmesi girişi. Madde Aşama 3'ten devretti.
 - [ ] Mac widget'ları. Madde Aşama 3'ten devretti.
-- [ ] Paylaşım uzantısı: "olay olarak ekle".
-- [ ] Sistemin günlük önerileri seçicisi. Apple'daki adı Journaling Suggestions.
+- [x] Paylaşım uzantısı: "olay olarak ekle".
+- [x] Sistemin günlük önerileri seçicisi. Apple'daki adı Journaling Suggestions.
 
 **Çıkış ölçütü:** İki cihazda iki haftalık kullanımda kayıp ya da kopya dosya çıkmıyor. Kullanıcı alışkanlık uygulamasını ve Lockday'i telefondan sildi.
 
@@ -259,9 +273,9 @@ Kasa konumu ve widget'lar kimlik kararını bekler. Kimlik gerektirmeyen dilimle
 
 | Madde | Durum | Kanıt |
 |---|---|---|
-| Mağaza teknik hazırlığı | Açık. Kalan iş: gizlilik politikası. Lisans bildirimi bitti. Yer tutucu bölüm olan Mac "Notlar" girdisi kalktı. Ötekiler ilk TestFlight yüklemesi için bitti. | #130, #151, #188 |
-| CD | Açık. Elle yol hazır: `.github/scripts/testflight.sh` temiz kopyadan arşivler ve yükler. İlk yapı 0.9.0 yüklendi. `dev`'e her itmede imzasız arşiv denetimi koşar. CI'dan otomatik gönderim açık ve App Store Connect anahtarı ister. | #134, #197 |
-| Lisans, ad, gelir modeli | Açık. Ad Kenet ve lisans "tüm hakları saklıdır" karara bağlandı. Gelir modeli ve yazılı taahhüt açık. | #131 |
+| Mağaza teknik hazırlığı | Açık. Kalan iş: gizlilik politikası. Adres karara bağlandı: `kenet.app/gizlilik`; alan adını kullanıcı alır. Lisans bildirimi bitti. Yer tutucu bölüm olan Mac "Notlar" girdisi kalktı. Ötekiler ilk TestFlight yüklemesi için bitti. | #130, #151, #188 |
+| CD | Açık. Elle yol hazır: `.github/scripts/testflight.sh` temiz kopyadan arşivler ve yükler. İlk yapı 0.9.0 yüklendi. `dev`'e her itmede imzasız arşiv denetimi koşar. CI iş akışı hazır: `testflight.yml` elle tetiklenir; `dev` itmesinde gönderim `KENET_CD_ON_PUSH` ile açılır. İlk koşu kullanıcının GitHub Secrets'a koyacağı App Store Connect API anahtarını ve imza sertifikalarını bekliyor. | #134, #197, #313 |
+| Lisans, ad, gelir modeli | Açık. Ad Kenet ve lisans "tüm hakları saklıdır" karara bağlandı. Gelir modeli ve yazılı taahhüt açık; gelir modeli ilk mağaza yayınından önce karara bağlanır. | #131 |
 | Mağaza sayfası | Açık | - |
 
 - [ ] Mağaza teknik hazırlığı: gizlilik bildirimi dosyası, ihracat bildirimi, uygulama simgesi, gizlilik politikası, üçüncü taraf lisans bildirimi. Ayrıca derleme numarası, platforma göre ayrı yetki dosyaları, iPad kararı ve yer tutucu bölümleri kaldırma.

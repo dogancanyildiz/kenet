@@ -151,6 +151,14 @@ enum AppLockDelay: Int, CaseIterable {
 
     func unregisterCover(_ id: UUID) { covers[id] = nil }
 
+    /// When the lock engages while the app is away: the moment the delay runs out. Nil when the
+    /// lock is off or engaged already, or the app is in the foreground. The widget, which cannot
+    /// ask this service, learns it from its snapshot (`WidgetSnapshotWriter.lockDeferred`).
+    var locksAt: Date? {
+        guard isEnabled, !isLocked, let suspendedAt else { return nil }
+        return suspendedAt.addingTimeInterval(Double(delay.rawValue))
+    }
+
     /// Intents and geofence mark actions call this while the app may stay backgrounded;
     /// elapsed time is applied first so a long-lived process does not keep reporting unlocked.
     func isLockedNow() -> Bool {

@@ -1,3 +1,4 @@
+import AppIntents
 import SwiftUI
 
 /// The chain widget's two sizes. WidgetKit's family is read by the widget target and mapped here,
@@ -20,6 +21,10 @@ struct GoalChainWidgetView: View {
     /// has one tap target for the whole widget).
     let link: ((WidgetSnapshot.Goal) -> URL)?
     let layout: GoalChainLayout
+    /// The App Intent a goal row runs in the widget's process instead of opening its link
+    /// (``WidgetTap/markInWidget(goalID:)``); nil, or nil for a goal, keeps the link. The row
+    /// looks the same either way.
+    var intent: ((WidgetSnapshot.Goal) -> (any AppIntent)?)? = nil
 
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
@@ -51,7 +56,9 @@ struct GoalChainWidgetView: View {
         VStack(alignment: .leading, spacing: 4) {
             header(done: goals.filter { !$0.isPending }.count, total: goals.count)
             ForEach(goals.prefix(rowLimit)) { goal in
-                if let link {
+                if let intent = intent?(goal) {
+                    button(intent, goal: goal)
+                } else if let link {
                     Link(destination: link(goal)) { row(goal) }
                 } else {
                     row(goal)
@@ -59,6 +66,11 @@ struct GoalChainWidgetView: View {
             }
             Spacer(minLength: 0)
         }
+    }
+
+    private func button(_ intent: any AppIntent, goal: WidgetSnapshot.Goal) -> some View {
+        Button(intent: intent) { row(goal) }
+            .buttonStyle(.plain)
     }
 
     private func row(_ goal: WidgetSnapshot.Goal) -> some View {

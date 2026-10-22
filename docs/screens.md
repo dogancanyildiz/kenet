@@ -1307,14 +1307,15 @@ Widget galeride "Zincir" adıyla görünür. Widget yalnız günlük evet/hayır
 | Başlık | "Hedefler" ve yapılan/toplam sayacı | Aynı |
 | Satırlar | En çok 3 hedef; erişilebilirlik boyutunda 1 | En çok 3 hedef; erişilebilirlik boyutunda 2 |
 | Satır | Halka, ad, zincir sayısı | Halka, ad, zincir günü rozeti, "N gün" zincir |
-| Dokunma | Widget'ın tamamı uygulamayı Bugün'de açar | Bekleyen evet/hayır hedefi: uygulama açılır ve hedefi bugün için işaretler. Sayı hedefi ve yapılmış hedef: uygulama Bugün'de açılır. Satır dışı: Bugün |
+| Dokunma | Widget'ın tamamı uygulamayı Bugün'de açar | Bekleyen evet/hayır hedefi, iCloud kasası: widget hedefi bugün için kendisi işaretler, uygulama açılmaz. Aynı hedef, yerel ya da seçili kasa: uygulama açılır ve hedefi bugün için işaretler. Sayı hedefi ve yapılmış hedef: uygulama Bugün'de açılır. Satır dışı: Bugün |
 
 - Bekleyen hedefler önce gelir. Bekleyen hedefin adı metin rengindedir, halkası vurgu rengindedir. Sayı hedefinin halkası günün ilerlemesini yay olarak çizer.
 - Yapılmış hedefler sona iner. Adları ikincil metin rengindedir, halkaları doludur (Mürekkep kuralı 6). Durumu renk tek başına anlatmaz: dolu halka ve sıra da anlatır.
 - Zincir günü rozeti Bugün şeridindeki rozetle aynıdır: bağlantı simgesi ve sayı, ince kapsül içinde. Bakiye 0 iken rozet yoktur.
 - Gece yarısı widget kendiliğinden yeni güne geçer: bütün hedefler bekleyen olur, zincir Core'un yeni gün için hesapladığı değeri gösterir.
-- Uygulama kilitliyse işaretleme kilit açılınca yapılır. Kilit gecikmesi "Hemen" iken uygulamadan çıkınca widget "Kenet'i aç" gösterir. Daha uzun gecikmede widget son durumu gösterir.
-- Boş durum "Hedeflerini görmek için Kenet'i aç." metnidir: veri yok, kasa erişilemez, uygulama çıkarken kilitlendi ya da gösterilecek gün kalmamış. Günlük hedef yoksa widget "Günlük hedef yok" der.
+- iCloud kasasında widget içinde işaretlenen hedef hemen yapılmış görünür: halka dolar, satır sona iner, zincir bir artar. Zincir 7'nin katına varırsa zincir günü rozeti de bir artar, en çok 3. Uygulama sonraki açılışta günü yeniden okur ve kendi hesabını yazar. İşaretleme yazılamazsa (iCloud kapalı, gün dosyası henüz inmedi) widget değişmez. Cihaz kilitliyken düğme önce cihaz kilidinin açılmasını ister.
+- Uygulama kilitliyse ve dokunma uygulamayı açtıysa işaretleme kilit açılınca yapılır. Kilit gecikmesi "Hemen" iken uygulamadan çıkınca widget "Kenet'i aç" gösterir. Daha uzun gecikmede widget gecikme dolana kadar son durumu gösterir ve işaretler. Gecikme dolunca widget "Kenet'i aç" gösterir ve işaretlemez.
+- Boş durum "Hedeflerini görmek için Kenet'i aç." metnidir: veri yok, kasa erişilemez, uygulama çıkarken kilitlendi, kilit gecikmesi doldu ya da gösterilecek gün kalmamış. Günlük hedef yoksa widget "Günlük hedef yok" der.
 - Kilitli cihazda (StandBy, iPad kilit ekranı) sistem widget içeriğini gizler.
 
 ## Boş durumlar

@@ -32,6 +32,8 @@ struct WidgetSnapshotTests {
 
     final class Lock {
         var isLocked = false
+        /// `AppLockService.locksAt`: when a delayed lock engages while the app is away.
+        var locksAt: Date?
     }
 
     final class Clock {
@@ -54,7 +56,8 @@ struct WidgetSnapshotTests {
             let clock = clock
             writer = WidgetSnapshotWriter(
                 store: context.store, group: FolderAppGroupStore(containerURL: group ? container : nil),
-                timelines: timelines, isLocked: { lock.isLocked }, now: { clock.now })
+                timelines: timelines, isLocked: { lock.isLocked }, lockDeadline: { lock.locksAt },
+                now: { clock.now })
             writer.attach()
         }
 
@@ -402,12 +405,146 @@ struct WidgetSnapshotTests {
             ])
     }
 
+    /// A delayed lock ends the timeline early: "open Kenet" from the moment the lock engages, or
+    /// at once when that moment is past. A moment after the last day changes nothing.
+    @Test func timelineEndsWhereTheDelayedLockEngages() {
+        let today = WidgetSnapshot.Day(date: "2026-09-20", goals: [Self.goal("esneme", pending: true)])
+        let tomorrow = WidgetSnapshot.Day(date: "2026-09-21", goals: [Self.goal("esneme", pending: true)])
+        var snapshot = WidgetSnapshot(writtenAt: date(20, hour: 9), vaultID: "v", days: [today, tomorrow])
+        let unlocked = snapshot.timeline(from: date(20, hour: 12), calendar: calendar)
+
+        snapshot.lockedAfter = date(20, hour: 23)
+        #expect(
+            snapshot.timeline(from: date(20, hour: 12), calendar: calendar) == [
+                WidgetTimelineEntry(date: date(20, hour: 12), day: today),
+                WidgetTimelineEntry(date: date(20, hour: 23), day: nil),
+            ])
+        #expect(
+            snapshot.timeline(from: date(20, hour: 23), calendar: calendar) == [
+                WidgetTimelineEntry(date: date(20, hour: 23), day: nil)
+            ])
+        #expect(!snapshot.isLocked(at: date(20, hour: 22)))
+        #expect(snapshot.isLocked(at: date(20, hour: 23)))
+
+        snapshot.lockedAfter = date(23)
+        #expect(snapshot.timeline(from: date(20, hour: 12), calendar: calendar) == unlocked)
+    }
+
     @Test func openGoalsComeFirstThenByName() {
         let goals = [
             Self.goal("yuruyus", pending: false), Self.goal("su", pending: true),
             Self.goal("esneme", pending: false), Self.goal("okuma", pending: true),
         ]
         #expect(WidgetSnapshot.ordered(goals).map(\.key) == ["okuma", "su", "esneme", "yuruyus"])
+    }
+
+    // MARK: - Marking in the widget
+
+    /// The widget's own mark: the yes/no goal is done with its chain one longer, the day's open
+    /// goals come first, the next day's open entry takes the new chain; nothing else changes.
+    @Test func markingShowsTheGoalDoneAndCarriesTheChainToTomorrow() throws {
+        var esneme = Self.goal("esneme", pending: true)
+        esneme.chainDays = 2
+        let okuma = Self.goal("okuma", pending: true, kind: .number)
+        let today = WidgetSnapshot.Day(date: "2026-09-20", goals: [esneme, okuma])
+        let tomorrow = WidgetSnapshot.Day(date: "2026-09-21", goals: [esneme, okuma])
+        let snapshot = WidgetSnapshot(
+            writtenAt: Self.noon, vaultID: "v", days: [today, tomorrow], vaultKind: .icloud,
+            cloudRelativePath: "Documents/Kenet")
+        let later = Self.noon.addingTimeInterval(60)
+
+        let marked = try #require(snapshot.marking(key: "esneme", on: "2026-09-20", at: later))
+        var done = esneme
+        done.isPending = false
+        done.value = 1
+        done.streak = 4
+        var next = esneme
+        next.streak = 4
+        #expect(marked.days[0].goals == [okuma, done])
+        #expect(marked.days[1].goals == [next, okuma])
+        #expect(marked.markedAt == later)
+        #expect(marked.writtenAt == Self.noon)
+        #expect(marked.vaultID == "v")
+        // Only an open yes/no goal of a stored day is marked.
+        #expect(snapshot.marking(key: "okuma", on: "2026-09-20", at: later) == nil)
+        #expect(marked.marking(key: "esneme", on: "2026-09-20", at: later) == nil)
+        #expect(snapshot.marking(key: "esneme", on: "2026-09-22", at: later) == nil)
+        #expect(snapshot.marking(key: "yok", on: "2026-09-20", at: later) == nil)
+        // The mark is no content of its own: the app's equal answer leaves the widget alone.
+        var answered = marked
+        answered.markedAt = nil
+        #expect(answered.hasSameContent(as: marked))
+        var moved = answered
+        moved.cloudRelativePath = nil
+        #expect(!moved.hasSameContent(as: answered))
+        var replaced = answered
+        replaced.cloudVaultIdentity = "3:4"
+        #expect(!replaced.hasSameContent(as: answered))
+        var leaving = answered
+        leaving.lockedAfter = later
+        #expect(!leaving.hasSameContent(as: answered))
+    }
+
+    /// A chain reaching a multiple of 7 earns a chain day, at most 3, as the app counts it
+    /// (decision 67): the widget's mark shows it at once, today and tomorrow.
+    @Test func markingOnTheSeventhDayEarnsAChainDay() throws {
+        func marked(streak: Int, chainDays: Int) throws -> (today: WidgetSnapshot.Goal, tomorrow: WidgetSnapshot.Goal) {
+            var esneme = Self.goal("esneme", pending: true)
+            esneme.streak = streak
+            esneme.chainDays = chainDays
+            let snapshot = WidgetSnapshot(
+                writtenAt: Self.noon, vaultID: "v",
+                days: [.init(date: "2026-09-20", goals: [esneme]), .init(date: "2026-09-21", goals: [esneme])])
+            let result = try #require(snapshot.marking(key: "esneme", on: "2026-09-20", at: Self.noon))
+            return (try #require(result.days[0].goals.first), try #require(result.days[1].goals.first))
+        }
+        let seventh = try marked(streak: 6, chainDays: 1)
+        #expect(seventh.today.streak == 7)
+        #expect(seventh.today.chainDays == 2)
+        #expect(seventh.tomorrow.streak == 7)
+        #expect(seventh.tomorrow.chainDays == 2)
+        #expect(try marked(streak: 13, chainDays: 3).today.chainDays == 3)
+        #expect(try marked(streak: 7, chainDays: 1).today.chainDays == 1)
+    }
+
+    /// Only an iCloud vault with a known place is marked in the widget; every other vault's tap
+    /// opens the app as before.
+    @Test func onlyAnICloudVaultIsMarkedInTheWidget() {
+        let open = Self.goal("esneme", pending: true)
+        let day = WidgetSnapshot.Day(date: "2026-09-20", goals: [open])
+        let id = WidgetSnapshot.intentID(vaultID: "v", key: "esneme")
+        func snapshot(_ kind: WidgetSnapshot.VaultKind?, _ path: String?, identity: String? = "1:2") -> WidgetSnapshot {
+            WidgetSnapshot(
+                writtenAt: Self.noon, vaultID: "v", days: [day], vaultKind: kind, cloudRelativePath: path,
+                cloudVaultIdentity: identity)
+        }
+        #expect(snapshot(.icloud, "Documents/Kenet").tap(for: open) == .markInWidget(goalID: id))
+        // The app could not name the vault folder on this device: the app marks.
+        #expect(snapshot(.icloud, "Documents/Kenet", identity: nil).tap(for: open) == .open(.markGoal(id: id)))
+        #expect(snapshot(.icloud, nil).tap(for: open) == .open(.markGoal(id: id)))
+        #expect(snapshot(.icloud, "").tap(for: open) == .open(.markGoal(id: id)))
+        #expect(snapshot(.local, nil).tap(for: open) == .open(.markGoal(id: id)))
+        #expect(snapshot(.local, "Documents/Kenet").tap(for: open) == .open(.markGoal(id: id)))
+        #expect(snapshot(.selected, "Documents/Kenet").tap(for: open) == .open(.markGoal(id: id)))
+        #expect(snapshot(.selected, nil).tap(for: open) == .open(.markGoal(id: id)))
+        #expect(snapshot(nil, nil).tap(for: open) == .open(.markGoal(id: id)))
+        let cloud = snapshot(.icloud, "Documents/Kenet")
+        #expect(cloud.tap(for: Self.goal("esneme", pending: false)) == .open(.today))
+        #expect(cloud.tap(for: Self.goal("su", pending: true, kind: .number)) == .open(.today))
+    }
+
+    /// A snapshot written before the vault's place was kept still reads; its taps open the app.
+    @Test func snapshotWithoutTheVaultPlaceStillReads() throws {
+        let directory = try testDirectory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let url = WidgetSnapshotFile.url(in: directory)
+        try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try Data(#"{"days":[],"format":1,"vaultID":"v","writtenAt":"2026-09-20T09:00:00Z"}"#.utf8).write(to: url)
+        let snapshot = try #require(WidgetSnapshotFile.read(from: url))
+        #expect(snapshot.vaultKind == nil)
+        #expect(snapshot.cloudRelativePath == nil)
+        #expect(snapshot.markedAt == nil)
+        #expect(!snapshot.widgetCanMark)
     }
 
     // MARK: - Links

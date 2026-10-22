@@ -78,7 +78,8 @@ struct JournalApp: App {
         geofences.activateAutomatically()
         #if os(iOS)
             let widgetSnapshots = WidgetSnapshotWriter(
-                store: store, group: SystemAppGroupStore(), isLocked: { IntentActions.shared.isLocked() })
+                store: store, group: SystemAppGroupStore(), isLocked: { IntentActions.shared.isLocked() },
+                lockDeadline: { [weak appLock] in appLock?.locksAt })
             if AppLaunchPolicy.allowsAutomaticStart() { widgetSnapshots.attach() }
             _widgetSnapshots = State(initialValue: widgetSnapshots)
             _widgetLinks = State(
@@ -203,12 +204,17 @@ struct JournalApp: App {
 
     #if os(iOS)
         /// Leaving the app with the "immediately" delay engages the lock here, while the app runs:
-        /// the widget snapshot goes with it (docs/architecture.md "Widget'lar"). A lock that runs
-        /// out later in the background, or is found on arriving in the foreground, leaves it alone.
+        /// the widget snapshot goes with it (docs/architecture.md "Widget'lar"). A longer delay
+        /// runs out later in the background: the snapshot stays and learns when, so the widget
+        /// stops marking then.
         private func leave() {
             let wasLocked = appLock.isLocked
             appLock.resignActive(startTimeout: true)
-            if !wasLocked && appLock.isLocked { widgetSnapshots.lockEngaged() }
+            if !wasLocked && appLock.isLocked {
+                widgetSnapshots.lockEngaged()
+            } else {
+                widgetSnapshots.lockDeferred()
+            }
         }
     #endif
 }

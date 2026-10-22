@@ -1,3 +1,4 @@
+import AppIntents
 import SwiftUI
 import WidgetKit
 
@@ -8,9 +9,10 @@ struct JournalWidgets: WidgetBundle {
     }
 }
 
-/// Home-screen chain widget (small, medium). It reads the snapshot the app writes into the App
-/// Group and nothing else: no SQLite, no vault, no writes. A tap opens the app with a
-/// ``WidgetLink``; the app marks the goal through its App Intent path.
+/// Home-screen chain widget (small, medium). It draws only the snapshot the app writes into the
+/// App Group; it never opens the app's index. A tap on an open yes/no goal of an iCloud vault
+/// marks it here (``MarkGoalInWidgetIntent``); every other tap opens the app with a
+/// ``WidgetLink`` and the app marks the goal through its App Intent path.
 struct GoalChainWidget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: WidgetKinds.goalChain, provider: GoalChainProvider()) { entry in
@@ -25,12 +27,13 @@ struct GoalChainWidget: Widget {
 struct GoalChainEntry: TimelineEntry {
     let date: Date
     let day: WidgetSnapshot.Day?
-    let vaultID: String
+    /// The snapshot the day came from: its vault and where the vault lives decide each tap.
+    let snapshot: WidgetSnapshot?
 }
 
 struct GoalChainProvider: TimelineProvider {
     func placeholder(in context: Context) -> GoalChainEntry {
-        GoalChainEntry(date: Date(), day: nil, vaultID: "")
+        GoalChainEntry(date: Date(), day: nil, snapshot: nil)
     }
 
     func getSnapshot(in context: Context, completion: @escaping (GoalChainEntry) -> Void) {
@@ -48,9 +51,9 @@ struct GoalChainProvider: TimelineProvider {
             let container = FileManager.default.containerURL(
                 forSecurityApplicationGroupIdentifier: AppIdentifiers.appGroup),
             let snapshot = WidgetSnapshotFile.read(from: WidgetSnapshotFile.url(in: container))
-        else { return [GoalChainEntry(date: now, day: nil, vaultID: "")] }
+        else { return [GoalChainEntry(date: now, day: nil, snapshot: nil)] }
         return snapshot.timeline(from: now, calendar: WidgetDay.deviceCalendar).map {
-            GoalChainEntry(date: $0.date, day: $0.day, vaultID: snapshot.vaultID)
+            GoalChainEntry(date: $0.date, day: $0.day, snapshot: snapshot)
         }
     }
 }
@@ -62,8 +65,9 @@ struct GoalChainEntryView: View {
     var body: some View {
         GoalChainWidgetView(
             day: entry.day,
-            link: family == .systemSmall ? nil : { WidgetSnapshot.link(for: $0, vaultID: entry.vaultID).url },
-            layout: layout
+            link: family == .systemSmall ? nil : { link(for: $0) },
+            layout: layout,
+            intent: family == .systemSmall ? nil : { intent(for: $0) }
         )
         .privacySensitive()
         .containerBackground(for: .widget) { WidgetTheme.paper }
@@ -71,4 +75,15 @@ struct GoalChainEntryView: View {
     }
 
     private var layout: GoalChainLayout { family == .systemSmall ? .small : .medium }
+
+    /// The row's link; an intent (below) takes its place where the widget marks itself.
+    private func link(for goal: WidgetSnapshot.Goal) -> URL {
+        guard let snapshot = entry.snapshot else { return WidgetLink.today.url }
+        return WidgetSnapshot.link(for: goal, vaultID: snapshot.vaultID).url
+    }
+
+    private func intent(for goal: WidgetSnapshot.Goal) -> (any AppIntent)? {
+        guard case .markInWidget(let id) = entry.snapshot?.tap(for: goal) else { return nil }
+        return MarkGoalInWidgetIntent(goalID: id)
+    }
 }

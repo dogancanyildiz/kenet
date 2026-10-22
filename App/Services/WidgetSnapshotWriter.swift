@@ -21,25 +21,37 @@ struct SystemWidgetTimelines: WidgetTimelineReloading {
 /// goal statuses of today and tomorrow (`VaultIndex.goalStatuses`, the query the screens use),
 /// writes the file atomically and reloads the widget. With the vault unavailable the file is
 /// removed: the widget then shows "open Kenet". While the app is locked the file is left as it
-/// is; only a lock the app engages while it runs removes it (`lockEngaged`). The widget never
-/// opens the index; nothing here is the source of truth.
+/// is; only a lock the app engages while it runs removes it (`lockEngaged`), and a delayed one
+/// leaves the moment it engages in the file (`lockDeferred`). The widget never opens the index;
+/// nothing here is the source of truth.
+///
+/// In an iCloud vault the widget marks a goal itself (`WidgetGoalMarker`): it writes the day file
+/// and shows the mark in the snapshot (`markedAt`). The index has not seen that write yet, so the
+/// next write here first rescans the day files and only then queries: the widget's mark is never
+/// replaced by the index's older answer.
 @MainActor final class WidgetSnapshotWriter {
     private let store: IndexStore
     private let group: any AppGroupStore
     private let timelines: any WidgetTimelineReloading
     private let isLocked: () -> Bool
+    /// When a delayed lock engages while the app is away (`AppLockService.locksAt`), nil otherwise.
+    private let lockDeadline: () -> Date?
     private let now: () -> Date
     private var running: Task<Void, Never>?
     private var again = false
+    /// The widget mark (`WidgetSnapshot.markedAt`) whose day files were rescanned already.
+    private var reconciledMark: Date?
 
     init(
         store: IndexStore, group: any AppGroupStore, timelines: any WidgetTimelineReloading = SystemWidgetTimelines(),
-        isLocked: @escaping () -> Bool, now: @escaping () -> Date = { Date() }
+        isLocked: @escaping () -> Bool, lockDeadline: @escaping () -> Date? = { nil },
+        now: @escaping () -> Date = { Date() }
     ) {
         self.store = store
         self.group = group
         self.timelines = timelines
         self.isLocked = isLocked
+        self.lockDeadline = lockDeadline
         self.now = now
     }
 
@@ -79,6 +91,20 @@ struct SystemWidgetTimelines: WidgetTimelineReloading {
         remove(url)
     }
 
+    /// The app went to the background with a delayed lock: the file keeps its days and learns
+    /// the moment the lock engages (`WidgetSnapshot.lockedAfter`). From then on the widget shows
+    /// "open Kenet" and marks nothing, though no app runs to remove the file. Written at once,
+    /// not after a query: the app may be suspended any moment now. The next write in the
+    /// foreground, unlocked, leaves the moment out.
+    func lockDeferred() {
+        guard let url = group.widgetSnapshotURL, let deadline = lockDeadline(),
+            var written = WidgetSnapshotFile.read(from: url), written.lockedAfter != deadline
+        else { return }
+        written.lockedAfter = deadline
+        do { try WidgetSnapshotFile.write(written, to: url) } catch { return }
+        timelines.reloadTimelines(ofKind: WidgetKinds.goalChain)
+    }
+
     private func write() async {
         guard let url = group.widgetSnapshotURL else { return }
         // Locked: nothing is written or removed; the unlock writes once.
@@ -96,15 +122,29 @@ struct SystemWidgetTimelines: WidgetTimelineReloading {
             }
             return
         }
+        let vaultID = Self.vaultID(for: root)
+        if let written = WidgetSnapshotFile.read(from: url), written.vaultID == vaultID,
+            let markedAt = written.markedAt, markedAt != reconciledMark
+        {
+            // The widget wrote a day file since: the index learns it before it answers.
+            reconciledMark = markedAt
+            await store.refresh(directories: ["journal"])
+            await store.waitWhileRefreshInFlight()
+        }
         let today = LocalDay.today(at: now())
         guard let tomorrow = today.addingDays(1) else { return }
+        let cloudPath = store.cloudRelativeVaultPath
         let snapshot: WidgetSnapshot
         do {
             let current = try await store.computeGoalStatuses(today: today)
             let next = try await store.computeGoalStatuses(today: tomorrow)
             snapshot = WidgetSnapshot(
-                writtenAt: now(), vaultID: Self.vaultID(for: root),
-                days: [.init(date: today, rows: current), .init(date: tomorrow, rows: next)])
+                writtenAt: now(), vaultID: vaultID,
+                days: [.init(date: today, rows: current), .init(date: tomorrow, rows: next)],
+                vaultKind: WidgetSnapshot.VaultKind(rawValue: store.vaultKind.rawValue),
+                cloudRelativePath: cloudPath,
+                cloudVaultIdentity: cloudPath == nil ? nil : WidgetSnapshot.cloudVaultIdentity(at: root),
+                lockedAfter: lockDeadline())
         } catch {
             // Another vault opened meanwhile (its publish updates again) or the read failed: the
             // file keeps the last answer.
@@ -116,7 +156,11 @@ struct SystemWidgetTimelines: WidgetTimelineReloading {
             remove(url)
             return
         }
-        if let written = WidgetSnapshotFile.read(from: url), written.hasSameContent(as: snapshot) { return }
+        if let written = WidgetSnapshotFile.read(from: url), written.hasSameContent(as: snapshot) {
+            // The index agrees with the widget's mark: the mark goes, the widget has nothing new to draw.
+            if written.markedAt != nil { try? WidgetSnapshotFile.write(snapshot, to: url) }
+            return
+        }
         do { try WidgetSnapshotFile.write(snapshot, to: url) } catch { return }
         timelines.reloadTimelines(ofKind: WidgetKinds.goalChain)
     }
@@ -160,8 +204,9 @@ extension WidgetSnapshot.Goal {
 }
 
 /// The app's side of a widget tap (`WidgetLink`): it opens Today and marks a yes/no goal for
-/// today through the App Intent path (`IntentActions.markGoal`), so the widget writes nothing.
-/// A mark asked while the app is locked waits for the unlock.
+/// today through the App Intent path (`IntentActions.markGoal`). A local or selected vault's
+/// goals come this way; an iCloud vault's are marked in the widget (`WidgetGoalMarker`). A mark
+/// asked while the app is locked waits for the unlock.
 ///
 /// The link's source is not checked: the app registers no URL scheme, so only WidgetKit opens a
 /// `kenet-widget` link here (`ReleaseConfigurationTests`). A registered scheme would let any app

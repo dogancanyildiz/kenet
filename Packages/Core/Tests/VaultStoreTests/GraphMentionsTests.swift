@@ -23,6 +23,22 @@ struct GraphMentionsTests {
         #expect(weights[.init(first: "people/Baran Tunç.md", second: "places/Çınaraltı Kafe.md")] == 2)
     }
 
+    /// The graph fixture's Journal list, continuation line, quote run and numbered items reach the
+    /// query and the snapshot construction alike.
+    @Test func graphFixtureMatchesSnapshotConstruction() throws {
+        let index = try VaultIndex()
+        try index.rebuild(vaultRoot: Fixtures.root().appendingPathComponent("vaults/graph"))
+        let mentions = try index.graphMentions(kinds: Self.kinds)
+        #expect(mentions == snapshotConstruction(try index.snapshot(), kinds: Self.kinds))
+        let list = try #require(mentions.days.first { $0.date == CalendarDate("2026-10-04")! })
+        #expect(
+            list.groups == [
+                ["people/Baran Tunç.md", "places/Tepe Spor Salonu.md"],
+                ["people/Deniz Arıkan.md", "places/Ev.md"],
+                ["people/Ece Yalın.md", "places/Ev.md"],
+            ])
+    }
+
     @Test func syntheticVaultMatchesSnapshotConstruction() throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
@@ -109,7 +125,8 @@ struct GraphMentionsTests {
 
 /// The graph rule rebuilt from the index snapshot instead of SQL, with the entity list (the read
 /// model's non-goal entities) narrowed to `kinds`. Mentions and totals are the app's construction
-/// from before the query existed; groups apply the same-block rule independently of the query.
+/// from before the query existed; groups are an independent build of the block and paragraph
+/// segment rule over the snapshot's links and blocks, not over the query's rows.
 private func snapshotConstruction(_ snapshot: IndexSnapshot, kinds: Set<String>) -> GraphMentions {
     let known = Set(snapshot.entities.filter { kinds.contains($0.kind) }.map(\.file))
     let dates = Dictionary(
@@ -124,17 +141,30 @@ private func snapshotConstruction(_ snapshot: IndexSnapshot, kinds: Set<String>)
         totals[target, default: 0] += 1
         if let date = dates[link.file] { days[date, default: [:]][target, default: 0] += 1 }
     }
-    // Entities sharing an event, task or paragraph block of a day file; headings and frontmatter do not group.
-    var members: [String: [Int: Set<String>]] = [:]
+    // Entities sharing an event or task block, or a segment of a paragraph block, of a day file;
+    // headings and frontmatter do not group. Every paragraph is split here, one line or more.
+    struct Entry: Hashable {
+        let date: CalendarDate
+        let file: String
+        let block: Int
+        let segment: Int
+    }
+    let blocks = Dictionary(grouping: snapshot.blocks, by: \.file).mapValues {
+        Dictionary(uniqueKeysWithValues: $0.map { ($0.ordinal, $0) })
+    }
+    var members: [Entry: Set<String>] = [:]
     for link in snapshot.links {
-        guard let block = link.block, let target = link.resolvedFile, known.contains(target) else { continue }
-        members[link.file, default: [:]][block, default: []].insert(target)
+        guard let ordinal = link.block, let target = link.resolvedFile, known.contains(target),
+            let date = dates[link.file], let block = blocks[link.file]?[ordinal],
+            ["event", "task", "paragraph"].contains(block.kind)
+        else { continue }
+        let segment =
+            block.kind == "paragraph" ? ParagraphSegments.index(ofLine: link.line - block.firstLine, in: block.text) : 0
+        members[Entry(date: date, file: link.file, block: ordinal, segment: segment), default: []].insert(target)
     }
     var groups: [CalendarDate: Set<[String]>] = [:]
-    for block in snapshot.blocks where ["event", "task", "paragraph"].contains(block.kind) {
-        guard let date = dates[block.file], let entities = members[block.file]?[block.ordinal], entities.count >= 2
-        else { continue }
-        groups[date, default: []].insert(entities.sorted())
+    for (entry, entities) in members where entities.count >= 2 {
+        groups[entry.date, default: []].insert(entities.sorted())
     }
     return GraphMentions(
         totals: totals,

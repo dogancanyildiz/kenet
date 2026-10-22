@@ -2,6 +2,7 @@ import EntityRecognition
 import Foundation
 import Testing
 import VaultFormat
+import VaultIndex
 
 @testable import Journal
 
@@ -35,20 +36,28 @@ import VaultFormat
         try FileManager.default.copyItem(at: root, to: context.root)
         await context.start()
         let input = try await context.store.computeGraphInput()
+        let index = try VaultIndex()
+        try index.rebuild(vaultRoot: context.root)
+        #expect(input == GraphInput(snapshot: try index.snapshot(), entities: context.store.content.entities))
         let graph = GraphModel.compute(input: input, filter: GraphFilter(), today: today)
-        #expect(graph.nodes.count == 4)
+        #expect(graph.nodes.count == 9)
+        // 2026-10-04 is one Journal paragraph: only its continuation line, quote run and numbered
+        // item add edges; the three single-person items and the sentence under the quote add none.
         #expect(
             graph.edges == [
+                GraphEdge(first: "people/Baran Tunç.md", second: "places/Tepe Spor Salonu.md", weight: 1),
                 GraphEdge(first: "people/Deniz Arıkan.md", second: "people/Selin Korkmaz.md", weight: 2),
+                GraphEdge(first: "people/Deniz Arıkan.md", second: "places/Ev.md", weight: 1),
                 GraphEdge(first: "people/Deniz Arıkan.md", second: "places/Liman Ofis.md", weight: 1),
                 GraphEdge(first: "people/Deniz Arıkan.md", second: "places/Çınaraltı Kafe.md", weight: 2),
+                GraphEdge(first: "people/Ece Yalın.md", second: "places/Ev.md", weight: 1),
                 GraphEdge(first: "people/Selin Korkmaz.md", second: "places/Liman Ofis.md", weight: 2),
                 GraphEdge(first: "people/Selin Korkmaz.md", second: "places/Çınaraltı Kafe.md", weight: 1),
             ])
         let withDays = GraphModel.compute(input: input, filter: GraphFilter(days: true), today: today)
-        #expect(withDays.nodes.filter { $0.kind == .day }.count == 3)
+        #expect(withDays.nodes.filter { $0.kind == .day }.count == 4)
         let dayEdges = withDays.edges.filter { $0.first.hasPrefix("day:") }
-        #expect(dayEdges.count == 11 && dayEdges.allSatisfy { $0.weight == 1 })
+        #expect(dayEdges.count == 18 && dayEdges.allSatisfy { $0.weight == 1 })
         for day in input.days {
             #expect(
                 Set(dayEdges.filter { $0.first == "day:" + day.date.description }.map(\.second))

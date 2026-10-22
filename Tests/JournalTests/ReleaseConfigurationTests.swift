@@ -217,8 +217,9 @@ struct ReleaseConfigurationTests {
     private static let widgetEntitlements = "Widgets/Support/JournalWidgets.entitlements"
 
     /// The widget is the app's extension (its identifier extends the app's, also for the test
-    /// host) and carries the App Group only: it reads the snapshot there and never the vault.
-    @Test func widgetExtendsTheAppAndCarriesOnlyTheGroup() throws {
+    /// host) and carries the iOS app's container entitlements: it reads the snapshot in the App
+    /// Group and marks an iCloud vault's goal through the same iCloud container.
+    @Test func widgetExtendsTheAppAndCarriesTheGroupAndTheContainer() throws {
         let project = try Self.read("project.yml")
         let identifiers = Self.values(of: "PRODUCT_BUNDLE_IDENTIFIER", in: project)
         #expect(
@@ -226,8 +227,8 @@ struct ReleaseConfigurationTests {
                 "$(APP_BUNDLE_IDENTIFIER).widgets", "$(APP_BUNDLE_IDENTIFIER).testhost.widgets",
             ])
         let widget = try Self.plist(Self.widgetEntitlements)
-        #expect(Set(widget.keys) == ["com.apple.security.application-groups"])
-        #expect(widget["com.apple.security.application-groups"] as? [String] == ["$(KENET_APP_GROUP)"])
+        #expect(Set(widget.keys) == Self.containerKeys)
+        Self.expectContainerValues(widget, file: "JournalWidgets")
     }
 
     private static let shareEntitlements = "ShareExtension/Support/JournalShare.entitlements"

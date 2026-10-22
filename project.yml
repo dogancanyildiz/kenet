@@ -208,17 +208,29 @@ targets:
           - $(TARGET_BUILD_DIR)/$(INFOPLIST_PATH)
         basedOnDependencyAnalysis: false
 
-  # Ana ekran widget'ı (docs/architecture.md, "Widget'lar"). Yalnız App Group'taki anlık görüntüyü
-  # okur: SQLite açmaz, Core almaz. Renkler uygulamanın varlık kataloğundan gelir (tek kaynak).
+  # Ana ekran widget'ı (docs/architecture.md, "Widget'lar"). App Group'taki anlık görüntüyü okur;
+  # uygulamanın indeksini açmaz. iCloud kasasında açık evet/hayır hedefini kendi sürecinde işaretler:
+  # gün dosyasını Core'un yazıcısıyla (VaultStore) NSFileCoordinator altında yazar. Renkler
+  # uygulamanın varlık kataloğundan gelir (tek kaynak).
   JournalWidgets:
     type: app-extension
     platform: iOS
     sources:
       - path: Widgets
-      # Uygulamayla tek tanım: renk belirteçleri, String Catalog ve App Group kimliği.
+      # Uygulamayla tek tanım: renk belirteçleri, String Catalog, kimlikler ve dosya koordinasyonu.
       - path: App/Resources/Assets.xcassets
       - path: App/Resources/Localizable.xcstrings
       - path: App/Support/AppIdentifiers.swift
+      - path: App/Services/SystemFileCoordination.swift
+    dependencies:
+      - package: Core
+        product: VaultFormat
+      - package: Core
+        product: VaultIndex
+      - package: Core
+        product: VaultStore
+      - package: Core
+        product: GoalTracking
     settings:
       base:
         PRODUCT_NAME: JournalWidgets

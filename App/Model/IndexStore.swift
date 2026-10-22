@@ -1574,6 +1574,24 @@ extension IndexStore {
     }
 }
 
+// MARK: - Widget vault place
+
+extension IndexStore {
+    /// Where the widget finds the open vault without the app (docs/architecture.md "Widget'lar"):
+    /// for an iCloud vault its root inside the iCloud container (`Documents/Kenet`), nil for any
+    /// other vault or while the container is unknown.
+    var cloudRelativeVaultPath: String? {
+        guard location.kind == .icloud, let root = vaultURL, let container = location.cloudContainerURL else {
+            return nil
+        }
+        let rootParts = root.resolvingSymlinksInPath().standardizedFileURL.pathComponents
+        let containerParts = container.resolvingSymlinksInPath().standardizedFileURL.pathComponents
+        guard rootParts.count > containerParts.count, Array(rootParts.prefix(containerParts.count)) == containerParts
+        else { return nil }
+        return rootParts.dropFirst(containerParts.count).joined(separator: "/")
+    }
+}
+
 // MARK: - Share extension target
 
 extension IndexStore {

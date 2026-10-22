@@ -34,7 +34,7 @@ struct ContentView: View {
                             get: { store.showsCloudMigration && store.isCloudMigrationAutomatic },
                             set: { store.showsCloudMigration = $0 })
                     ) {
-                        VaultCloudMigrationView(store: store)
+                        NavigationStack { VaultCloudMigrationView(store: store) }
                     }
                     .safeAreaInset(edge: .top, spacing: 0) {
                         if showsEntryPointsTip {

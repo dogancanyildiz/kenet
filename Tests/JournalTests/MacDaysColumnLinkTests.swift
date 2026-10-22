@@ -22,8 +22,8 @@
             defer { host.close() }
             await host.settle()
             try await Self.clickCalendarDay(on: host)
-            let label = String(localized: "Özetler")
-            let clicked = await host.clickElement { $0.label == label && $0.role == "AXButton" }
+            // By identifier: CI runs the process in English while the hosted view is Turkish.
+            let clicked = await host.clickElement { $0.identifier == "button.summaries" }
             try #require(clicked, "no Özetler button in the column")
             await host.settle()
             #expect(opened.value == 1, "the click did not reach Özetler (\(opened.value) calls)")

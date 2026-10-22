@@ -505,6 +505,7 @@ struct MacDaysColumn: View {
             Button(action: openSummaries) {
                 Label("Özetler", systemImage: "chart.bar")
             }
+            .accessibilityIdentifier("button.summaries")
             // Like the iPhone row: once this week is reviewed, the link says so.
             HStack(alignment: .firstTextBaseline, spacing: InkSpacing.row) {
                 Button {

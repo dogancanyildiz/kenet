@@ -189,8 +189,8 @@ flowchart LR
   Akis["Mac: FSEvents dosya olayı"] -->|"dosyanın dizini"| Birlestir["300 ms birleştirme"]
   Dizin["iPhone: Dispatch dizin kaynağı"] -->|"dizin yolu"| Birlestir
   Kok["Kökteki olay"] -->|"tam"| Birlestir
-  Zamanlayici["Ön plan sigortası: 10 saniye"] -->|"tam"| Birlestir
-  OnPlan["Ön plana dönüş"] -->|"tam"| Birlestir
+  Zamanlayici["Dizin kaynakları: ön plan sigortası, 10 saniye"] -->|"tam"| Birlestir
+  OnPlan["Dizin kaynakları: ön plana dönüş"] -->|"tam"| Birlestir
   Birlestir --> Esik{"200'den çok dizin ya da tam istek var mı?"}
   Esik -- Hayır --> Kapsamli["Arka planda update(paths:vaultRoot:): dizinler ve alt ağaçları"]
   Esik -- Evet --> Tam["Arka planda refresh(vaultRoot:): bütün kasa"]
@@ -204,7 +204,7 @@ flowchart LR
 | Mac: 0,3 saniye | FSEvents gecikmesi; bu süredeki olaylar tek geri çağrıda gelir |
 | iPhone: Dispatch dizin kaynakları | Kök ve taranan alt dizinler |
 | iPhone: 256 | En çok dizin kaynağı sayısı |
-| 10 saniye | Ön plan sigortasının aralığı |
+| 10 saniye | Ön plan sigortasının aralığı; dizin kaynaklarında ve ağ birimindeki akışta |
 | 300 ms | Bildirimlerin birleştirme süresi |
 | 200 | Bir yenilemedeki en çok dizin sayısı; fazlası tam yenilemedir |
 
@@ -217,7 +217,8 @@ flowchart LR
 | iPhone: alt dizin olayı, yani dosya ya da dizin eklendi, silindi, yeniden adlandırıldı | Kasa içi göreli dizin yolu | `refresh(directories:)` |
 | Kökteki olay, kökün kendisi | Tam | `refresh()` |
 | Mac: FSEvents olay kaybı bildirdi (`MustScanSubDirs`, çekirdek ya da kullanıcı kaybı) | Tam | `refresh()` |
-| Ön plan sigortası ve ön plana dönüş | Tam | `refresh()` |
+| Dizin kaynakları ya da ağ birimindeki akış: ön plan sigortası ve ön plana dönüş | Tam | `refresh()` |
+| Son yenileme hata verdi: ön plana dönüş | Tam | `refresh()` |
 | iPhone: kaynak sayısı sınırdayken bir kaynak kapandı | Tam | `refresh()` |
 
 İzleyici 300 ms içinde gelen bildirimleri birleştirir. Dizin listeleri birleşir. Tam istek listeyi yutar. 200'den çok dizin tam isteğe döner. `IndexStore` de süren bir yenilemenin arkasında bekleyen istekleri aynı kuralla birleştirir. Bu yüzden hiçbir istek kaybolmaz: bekleyen istek ya bütün dizinleri ya bütün kasayı tarar.
@@ -225,6 +226,19 @@ flowchart LR
 Dışlamalar iki kaynakta aynıdır: adı nokta ile başlayan dizinler ve kökteki `templates/` ile `conflicts/`. Mac'te izleyici bu dizinlerin içindeki olayları yok sayar. Mac'te izleyici kökteki `.DS_Store` dosyasının olaylarını da yok sayar. Finder bu dosyaya görünüm ayarlarını yazar; kökteki her olay tam yenilemedir. Başka nokta ile başlayan dosya dışlanmaz; Core `.hidden.md` dosyasını okur.
 
 Mac'te akış dosya içeriğinin yerinde düzenlenmesini de görür. Ölçüm: yerinde ekleme, kesip yeniden yazma, atomik olmayan `Data.write`, `touch` ve atomik kaydetme birer dosya olayıdır. 5 yıllık sentetik kasada yerinde düzenleme 0,4–0,6 saniyede indekse girer; aynı anda süren tam yenileme varsa 1,6 saniyeye çıkar. FSEvents akış başlamadan birkaç milisaniye önceki bir yazmayı da bildirebilir. Akış bu yüzden kasa dışındaki geçici bir klasöre bir işaret dosyası yazar ve olay sırasında işaretin olayından önce gelen kasa olaylarını atar. Açılış taraması bu yazmaları zaten görür.
+
+Akış yerel bir birimde başladıysa Mac'te ön plan sigortası kurulmaz ve ön plana dönüş tarama istemez. Sigorta dizin kaynaklarının görmediği yerinde düzenlemeyi ve kaynaksız dizinleri yakalamak içindir; akış ikisini de kendisi bildirir. Akış uygulama arka plandayken de olay bildirir. Kaybolan olayı akış kendisi tam istek olarak bildirir. Sigorta her 10 saniyede bütün kasayı tarıyordu: tarama indeks veritabanının tek yazma sırasını tutar, ekran sorguları ve yazmalar onu bekler. iCloud kasasında dizin gezmek daha yavaştır ve kullanıcı bunu kasma olarak gördü. Akış başlamazsa Mac de dizin kaynaklarına döner ve sigorta iPhone'daki gibi kurulur (`VaultWatcher.setForeground`).
+
+İki durumda ön plana dönüş akışta da tam tarama ister:
+
+| Durum | Neden | Davranış |
+|---|---|---|
+| Kasa ağ biriminde (SMB, NFS; `volumeIsLocal` yanlış) | FSEvents ağ biriminde yalnız bu Mac'in yazdığını bildirir; başka makinenin yazdığını bildirmez | Akış çalışır; sigorta ve dönüş taraması da dizin kaynaklarındaki gibi kurulur |
+| Son yenileme hata verdi (`needsFullRefresh`) | Hata kendiliğinden kalkmaz; akışta sonraki dosya olayı gelmeyebilir. Örnek: çevrimdışı okunamayan iCloud dosyası, ağ dönünce olay üretmez | `IndexStore.setForeground(true)` izleyiciden tek bir tam tarama ister |
+
+Bu iki durum dışında akışta ön plana dönüşte kaçırılmış değişiklik yoktur.
+
+Mac'in hızlı giriş paneli indeksi yalnız ön plana alır (`MacQuickEntryController.present`); kendi taramasını istemez. Uygulama zaten öndeyse panel tarama başlatmaz. Uygulama arka plandaysa ön plana dönüş kuralı geçerlidir: dizin kaynaklarında bir tam tarama, yerel birimdeki akışta (son yenileme başarılıysa) hiç tarama.
 
 iPhone'da dizin kaynakları yerinde düzenlemeyi görmez. Bir düzenleyici dosyayı yerinde yazarsa, örneğin `FileHandle` ya da `>>` ile, indeks bu düzenlemeyi ön plan sigortasında ya da ön plana dönüşte görür; gecikme en çok 10 saniyedir. Atomik kaydetme, yani geçici dosya ve yeniden adlandırma, bir dizin olayıdır; indeks bu düzenlemeyi 1 saniye içinde görür. iPhone'da dış düzenleme pratikte iCloud'dan gelir ve atomiktir. İzleyici bir dizin olayından sonra yalnız o dizinin alt ağacını dolaşır. Yeni alt dizinler kaynak alır. Silinen ya da taşınan dizinlerin kaynakları kapanır. Bütün ağacı yalnız tam istek dolaşır. İzleyici 256 kaynaktan sonraki dizinleri ve kaynak açamadığı dizinleri yalnız ön plan sigortasıyla denetler. Arayüz bu dizinlerin sayısını gösterir; Mac'te bu sayı 0'dır.
 
@@ -242,6 +256,8 @@ Kapsamlı yenilemede Core `skippedPaths` değerini yalnız taranan dizinler içi
 | `setForeground` ve `stop` | İzleyici kuyruğuna iş bırakır; ana aktör beklemez |
 | Olayların dizine çevrilmesi, dizin dolaşması ve birleştirme | İzleyici kuyruğu |
 | İndeks taraması ve okuma modeli | `Task.detached` |
+
+Kasa bir oturumda bir kez açılır. Mac'te pencere ve hızlı giriş paneli `startAutomatically()` çağrısını ayrı ayrı yapar; iCloud kasasında ilk çağrı kapsayıcıyı beklerken ikincisi gelir. `IndexStore.start()` süren çağrı varken yenisini onun bitişine bağlar: ikinci çağrı kasayı yeniden açmaz, açılış taraması bir kez koşar.
 
 `IndexStore.open` açılış yenilemesinden önce izleyicinin hazır olmasını bekler: Mac'te akış başlamıştır, iPhone'da ilk dolaşma bitmiştir. Böylece izleme açılış taramasından önce başlar; ikisinin arasında yapılan bir düzenleme kaybolmaz. Bu bekleme sürerken `isProcessing` açık kalır; gelen yenileme istekleri açılış yenilemesinin arkasında birleşir. Kasa bu sırada değişirse ya da erişim kaybolursa `generation` denetimi eski açılışı durdurur. Eski izleyicinin bildirimleri de aynı denetimle düşer.
 

@@ -52,7 +52,9 @@ struct WatcherResourceTests {
         let root = try testDirectory()
         defer { try? FileManager.default.removeItem(at: root) }
         let diagnostics = WatcherDiagnostics()
-        let watcher = VaultWatcher(root: root, interval: 60, onChange: { _ in Task { await diagnostics.changed() } })
+        // Directory sources, the Mac too: the event stream needs no foreground scan (`ScanFuseTests`).
+        let watcher = VaultWatcher(
+            root: root, interval: 60, fileEvents: false, onChange: { _ in Task { await diagnostics.changed() } })
         defer { watcher.stop() }
         await watcher.waitUntilReady()
         let clock = try WatcherClock()

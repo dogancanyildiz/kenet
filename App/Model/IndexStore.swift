@@ -101,6 +101,8 @@ final class IndexStore {
     @ObservationIgnored private var writeWaiters: [(id: UUID, continuation: CheckedContinuation<Void, any Error>)] = []
     /// True from vault identity reset until the opening refresh finishes (or open aborts).
     @ObservationIgnored private var isOpening = false
+    /// Callers of `start()` waiting for the one in flight; `nil` while none runs.
+    @ObservationIgnored private var startWaiters: [CheckedContinuation<Void, Never>]?
 
     init(
         location: VaultLocation = VaultLocation(), supportURL: URL? = nil,
@@ -158,6 +160,17 @@ final class IndexStore {
 
     func start() async {
         guard !isMigratingCloud else { return }
+        // The window and the Mac's quick entry both start the store at launch. A second call while
+        // the first waits for iCloud would open the vault again; it waits for the first instead.
+        if startWaiters != nil {
+            await withCheckedContinuation { startWaiters?.append($0) }
+            return
+        }
+        startWaiters = []
+        defer {
+            for waiter in startWaiters ?? [] { waiter.resume() }
+            startWaiters = nil
+        }
         // A second automatic start in the same session must not re-resolve into Documents/Vault.
         if isVaultInaccessible { return }
         if let vaultURL {
@@ -262,7 +275,9 @@ final class IndexStore {
     func setForeground(_ active: Bool) {
         if active { refreshCloudOnActivation() }
         foreground = active
-        watcher?.setForeground(active)
+        // A failed refresh is retried on the foreground return; with the Mac's event stream nothing
+        // else would retry it before the next file event.
+        watcher?.setForeground(active, rescan: needsFullRefresh)
     }
 
     func report(_ error: Error) {

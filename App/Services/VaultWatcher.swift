@@ -48,7 +48,9 @@ struct DispatchWatcherTicker: WatcherTicker {
 /// has a Dispatch source, which sees entries added, removed or renamed but not in-place edits.
 final class VaultWatcher: @unchecked Sendable {
     /// Events are the main path; this fuse catches in-place edits a directory source cannot see and
-    /// directories without a source.
+    /// directories without a source. Directory sources run it, and so does an event stream on a
+    /// network volume, where FSEvents reports only this Mac's own writes. A local event stream
+    /// reports in-place edits itself and covers every directory.
     static let foregroundInterval: TimeInterval = 10
 
     private let queue = DispatchQueue(label: "journal.vault-watcher")
@@ -66,23 +68,28 @@ final class VaultWatcher: @unchecked Sendable {
     private var known: Set<String> = []
     private var sources: [String: DispatchSourceFileSystemObject] = [:]
     private var cancelTimer: (@Sendable () -> Void)?
+    private var isForeground = false
     private var pending: DispatchWorkItem?
     private var pendingChange: VaultChange?
     private var stopped = false
     private var descriptorCount = 0
     #if os(macOS)
         private let prefersFileEvents: Bool
+        private let localVolumeOverride: Bool?
         private var fileEvents: FileEventStream?
+        /// The stream runs on a local volume, so it reports every write, another machine's too.
+        private var streamSeesEveryWrite = false
     #endif
 
     /// The first walk, or on the Mac the event stream's start, runs on the watcher queue;
     /// `waitUntilReady()` awaits it. `initialScanWillBegin` is a test seam that runs on that queue
     /// just before. `fileEvents: false` keeps directory sources on the Mac too; iOS ignores it.
+    /// `localVolume` is a test seam for the root's volume (`URLResourceValues.volumeIsLocal`).
     init(
         root: URL, interval: TimeInterval = VaultWatcher.foregroundInterval, directoryLimit: Int = 256,
         fullScanThreshold: Int = VaultChange.fullScanThreshold,
         ticker: any WatcherTicker = DispatchWatcherTicker(),
-        initialScanWillBegin: (@Sendable () -> Void)? = nil, fileEvents: Bool = true,
+        initialScanWillBegin: (@Sendable () -> Void)? = nil, fileEvents: Bool = true, localVolume: Bool? = nil,
         onCoverageChange: @escaping @Sendable (Int) -> Void = { _ in },
         onDescriptorClosed: @escaping @Sendable (Int32) -> Void = { _ in },
         onChange: @escaping @Sendable (VaultChange) -> Void
@@ -97,6 +104,7 @@ final class VaultWatcher: @unchecked Sendable {
         descriptorClosed = onDescriptorClosed
         #if os(macOS)
             prefersFileEvents = fileEvents
+            localVolumeOverride = localVolume
         #endif
         queue.async { [weak self] in
             initialScanWillBegin?()
@@ -125,15 +133,23 @@ final class VaultWatcher: @unchecked Sendable {
         }
     }
 
-    func setForeground(_ foreground: Bool, triggerOnActivation: Bool = true) {
+    /// With directory sources the foreground runs the fuse and, on return, rescans the whole vault:
+    /// an in-place edit made meanwhile reached no source. A local event stream needs neither: it
+    /// reports in-place edits and keeps reporting while the app is in the background, so a
+    /// foreground return finds nothing it missed. A lost event asks for the whole vault itself
+    /// (`FileEventStream.change`). `rescan` asks for the return's whole-vault scan anyway: the
+    /// store's last refresh failed and nothing else would retry it.
+    func setForeground(_ foreground: Bool, triggerOnActivation: Bool = true, rescan: Bool = false) {
         queue.async { [self] in
-            guard !stopped, foreground != (cancelTimer != nil) else { return }
+            guard !stopped, foreground != isForeground else { return }
+            isForeground = foreground
             cancelTimer?()
             cancelTimer = nil
-            if foreground {
+            guard foreground else { return }
+            if needsFuse {
                 cancelTimer = ticker.schedule(every: interval, on: queue) { [weak self] in self?.trigger(.full) }
-                if triggerOnActivation { trigger(.full) }
             }
+            if triggerOnActivation, needsFuse || rescan { trigger(.full) }
         }
     }
 
@@ -184,6 +200,15 @@ final class VaultWatcher: @unchecked Sendable {
             fileEvents != nil
         #else
             false
+        #endif
+    }
+
+    /// Directory sources, or an event stream that misses other machines' writes.
+    private var needsFuse: Bool {
+        #if os(macOS)
+            !streamSeesEveryWrite
+        #else
+            true
         #endif
     }
 
@@ -296,6 +321,10 @@ final class VaultWatcher: @unchecked Sendable {
             // One stream covers every directory: nothing is left to the fuse alone.
             unwatchedCount = 0
             coverageChanged(0)
+            // On a network volume (SMB, NFS) FSEvents reports only this Mac's writes.
+            streamSeesEveryWrite =
+                localVolumeOverride
+                ?? ((try? root.resourceValues(forKeys: [.volumeIsLocalKey]))?.volumeIsLocal != false)
             return true
         }
 

@@ -76,15 +76,21 @@
         private func presentPanel() {
             if panel == nil { makePanel() }
             guard let panel else { return }
-            window.open()
-            window.entry.store.setForeground(true)
+            Self.present(window)
             let screen = NSScreen.screens.first { $0.frame.contains(NSEvent.mouseLocation) } ?? NSScreen.main
             if let frame = screen?.visibleFrame {
                 panel.setFrameTopLeftPoint(NSPoint(x: frame.midX - panel.frame.width / 2, y: frame.maxY - 28))
             }
             panel.makeKeyAndOrderFront(nil)
             installClickMonitors()
-            Task { await window.entry.store.refresh() }
+        }
+
+        /// The panel's model side. The foreground return is the only scan: with directory sources the
+        /// watcher rescans then (`VaultWatcher.setForeground`); the event stream needs none, and a
+        /// store already in the foreground does nothing.
+        static func present(_ window: QuickEntryWindowModel) {
+            window.open()
+            window.entry.store.setForeground(true)
         }
 
         func close() {

@@ -225,9 +225,10 @@ struct DirectoryRefreshTests {
         defer { suite.clean() }
         let scopes = ScopeLog()
         let ticker = ManualTicker()
+        // Directory sources, the Mac too: the event stream runs no fuse (`ScanFuseTests`).
         let store = IndexStore(
             location: VaultLocation(defaults: suite.defaults, documentsURL: temp),
-            supportURL: temp.appendingPathComponent("indexes"), watcherTicker: ticker,
+            supportURL: temp.appendingPathComponent("indexes"), watcherTicker: ticker, watcherFileEvents: false,
             scopedUpdate: scopes.recordingUpdate())
         store.setForeground(true)
         await store.start()
@@ -442,14 +443,20 @@ final class ManualTicker: WatcherTicker, @unchecked Sendable {
     }
     private let lock = NSLock()
     private var entries: [Entry] = []
+    private var schedules = 0
 
     var isScheduled: Bool { lock.withLock { !entries.isEmpty } }
+    /// Every `schedule` call so far, cancelled ones included.
+    var scheduleCount: Int { lock.withLock { schedules } }
 
     func schedule(
         every interval: TimeInterval, on queue: DispatchQueue, _ tick: @escaping @Sendable () -> Void
     ) -> @Sendable () -> Void {
         let id = UUID()
-        lock.withLock { entries.append(Entry(id: id, interval: interval, elapsed: 0, queue: queue, tick: tick)) }
+        lock.withLock {
+            schedules += 1
+            entries.append(Entry(id: id, interval: interval, elapsed: 0, queue: queue, tick: tick))
+        }
         return { [weak self] in self?.lock.withLock { self?.entries.removeAll { $0.id == id } } }
     }
 

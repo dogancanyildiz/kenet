@@ -1425,6 +1425,126 @@
         }
       }
     },
+    "%lld paylaşım eklendi." : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld share added."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld shares added."
+                }
+              }
+            }
+          }
+        },
+        "tr" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld paylaşım eklendi."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld paylaşım eklendi."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld paylaşım eklenemedi; sonra yeniden denenecek." : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld share could not be added; it will be tried again later."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld shares could not be added; they will be tried again later."
+                }
+              }
+            }
+          }
+        },
+        "tr" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld paylaşım eklenemedi; sonra yeniden denenecek."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld paylaşım eklenemedi; sonra yeniden denenecek."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld paylaşım okunamadı." : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld share could not be read."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld shares could not be read."
+                }
+              }
+            }
+          }
+        },
+        "tr" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld paylaşım okunamadı."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld paylaşım okunamadı."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "%lld sürüm" : {
       "localizations" : {
         "en" : {
@@ -3925,6 +4045,22 @@
         }
       }
     },
+    "Bu metin olay satırı olarak yazılamaz." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This text cannot be written as an event line."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bu metin olay satırı olarak yazılamaz."
+          }
+        }
+      }
+    },
     "Bu süre, kişiler listesindeki hatırlatma bölümünü belirler." : {
       "localizations" : {
         "en" : {
@@ -4177,6 +4313,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bugüne git"
+          }
+        }
+      }
+    },
+    "Bugüne, şimdiki saatle eklenir." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Added to today at the current time."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bugüne, şimdiki saatle eklenir."
           }
         }
       }
@@ -5057,6 +5209,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Exercise"
+          }
+        }
+      }
+    },
+    "Ekle" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ekle"
           }
         }
       }
@@ -10253,6 +10421,22 @@
         }
       }
     },
+    "Olay olarak ekle" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add as event"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Olay olarak ekle"
+          }
+        }
+      }
+    },
     "Olay sayısı" : {
       "localizations" : {
         "en" : {
@@ -11001,6 +11185,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Pano seçenekleri"
+          }
+        }
+      }
+    },
+    "Paylaşım eklenemedi. Yeniden dene." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The share could not be added. Try again."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paylaşım eklenemedi. Yeniden dene."
           }
         }
       }

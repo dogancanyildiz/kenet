@@ -77,6 +77,10 @@ elif tool == "codesign":
     assert args[:4] == ["-d", "--entitlements", "-", "--xml"], args
     (root / "codesign-app").write_text(args[-1])
     print(os.environ.get("TEST_ENTITLEMENTS", MAC_ENTITLEMENTS))
+elif tool == "plutil":
+    # The real tool pretty-prints the one-line XML codesign emits; the fake passes text through.
+    assert args == ["-convert", "xml1", "-o", "-", "-"], args
+    sys.stdout.write(sys.stdin.read())
 elif tool == "PlistBuddy":
     key = args[1].split(":")[-1]
     print({"CFBundleIdentifier": "example.test", "CFBundleShortVersionString": "0.9.0",
@@ -119,7 +123,7 @@ class TestFlightCleanupTests(unittest.TestCase):
             (root / "AuthKey.p8").write_text("fake key")
             tools = root / "tools"
             tools.mkdir()
-            for name in ("git", "xcodegen", "xcodebuild", "PlistBuddy", "security", "codesign"):
+            for name in ("git", "xcodegen", "xcodebuild", "PlistBuddy", "security", "codesign", "plutil"):
                 executable = tools / name
                 executable.write_text(FAKE_TOOL.replace("MAC_ENTITLEMENTS", repr(MAC_ENTITLEMENTS)))
                 executable.chmod(0o755)

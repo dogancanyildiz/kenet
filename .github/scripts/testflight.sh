@@ -228,7 +228,9 @@ if [ "$PLATFORM" = mac ]; then
   [ "$MIN_MACOS" = "$EXPECTED_MACOS" ] || fail "en düşük macOS '$MIN_MACOS', project.yml '$EXPECTED_MACOS'."
   if [ "$MODE" = upload ]; then
     # İmzalı paket Release yetkilerini taşımalı: Debug'ın AdHoc dosyasında sandbox ve iCloud yoktur.
-    ENTITLEMENTS=$(codesign -d --entitlements - --xml "$APP" 2>/dev/null) || fail "Mac paketinin yetkileri okunamadı."
+    # codesign tek satır XML basar; plutil satırlara açar ki anahtar ve değer art arda okunsun.
+    ENTITLEMENTS=$(codesign -d --entitlements - --xml "$APP" 2>/dev/null | plutil -convert xml1 -o - -) ||
+      fail "Mac paketinin yetkileri okunamadı."
     printf '%s\n' "$ENTITLEMENTS" | grep -A1 '<key>com.apple.security.app-sandbox</key>' | grep -q '<true/>' ||
       fail "Mac paketi App Sandbox yetkisi taşımıyor (Mac App Store bunu ister)."
     printf '%s\n' "$ENTITLEMENTS" | grep -q "<string>$(setting KENET_ICLOUD_CONTAINER)</string>" ||

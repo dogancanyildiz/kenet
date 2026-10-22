@@ -18,8 +18,9 @@
 | Çekirdek | `Core` Swift paketi; Apple arayüz ve sistem çerçevelerine bağımsız |
 | Veri | Markdown dosyaları; gerçek kaynak |
 | İndeks | SQLite, GRDB, FTS5 |
-| Eşitleme | iCloud Drive, uygulamanın kendi kapsayıcısı. Planlandı; kimlik ve yetki hazır, kod henüz yok |
+| Eşitleme | iCloud Drive, uygulamanın kendi kapsayıcısı (`Documents/Kenet`); kasa konumu bölümü. Eşitlenen kasada güvenli yazmanın kalanı açık: indirme isteği, gün kopyası birleştirmesinin bağlanması, eşitleme göstergesi |
 | Widget | WidgetKit. Ana ekran zincir widget'ı, yalnız iOS: `JournalWidgets` hedefi. Veriyi App Group'taki anlık görüntüden okur |
+| Paylaşım uzantısı | Share extension, yalnız iOS: `JournalShare` hedefi. Paylaşılan metni ya da sayfa bağlantısını olay olarak ekler |
 | Sistem girişleri | App Intents: Kısayollar ve Siri |
 | Takvim | EventKit, salt okunur |
 | Konum | CoreLocation; harita için MapKit |
@@ -56,9 +57,14 @@ flowchart TD
   end
   Widgets["Widgets: WidgetKit uzantısı, yalnız iOS"]
   Shared["Widgets/Shared: anlık görüntü biçimi ve widget görünümleri"]
+  ShareExt["ShareExtension: paylaşım uzantısı, yalnız iOS"]
+  EntryWriting["Shared: olay yazıcısı ve paylaşım kuyruğu"]
   AppKatmani --> CoreKatmani
   AppKatmani -- derler --> Shared
   Widgets -- derler --> Shared
+  AppKatmani -- derler --> EntryWriting
+  ShareExt -- derler --> EntryWriting
+  EntryWriting --> CoreKatmani
   TestKatmani --> AppKatmani
   CoreKatmani -. paket testleri okur .-> Fixtures
   TestKatmani -. okur .-> Fixtures
@@ -80,6 +86,9 @@ flowchart TD
 | `App/Support` | Yetki dosyaları ve plist ekleri |
 | `Widgets` | Widget hedefi: `WidgetBundle`, zaman çizelgesi ve yetki dosyası. String Catalog uygulamanınkidir: `App/Resources/Localizable.xcstrings` |
 | `Widgets/Shared` | Uygulamayla ortak: anlık görüntü biçimi, widget bağlantısı, görünümler, renk belirteçleri |
+| `ShareExtension` | Paylaşım uzantısı hedefi: giriş noktası (`ShareViewController`), form modeli, Info.plist ve yetki dosyası |
+| `ShareExtension/Form` | Paylaşım formu (`ShareFormView`); uygulama da derler, ekran görüntüsü testleri çizer |
+| `Shared` | Uygulama ve paylaşım uzantısıyla ortak: olay yazıcısı ve App Group listeleri (`EntryWriting.swift`). Yalnız Foundation ve `Core` |
 
 ## Proje ayarları
 
@@ -88,13 +97,13 @@ flowchart TD
 | Konu | Kural |
 |---|---|
 | Proje üretimi | `project.yml` projeyi tanımlar. XcodeGen `Journal.xcodeproj` dosyasını üretir. Git `Journal.xcodeproj` dosyasını izlemez |
-| Hedef ve şema | Tek `Journal` hedefi iOS ve macOS için iki şema üretir. Hedef kaynakları `App/` ve `Widgets/Shared` klasörlerinden alır. Proje `Core` paketini yerel yoldan bağlar. iOS uygulaması `JournalWidgets` uzantısını gömer; Mac uygulaması gömmez |
-| Bundle kimliği | `com.dogancanyildiz.kenet`; kalıcı, iOS ve Mac için ortak. Değer `project.yml` içinde tek yerde durur: `APP_BUNDLE_IDENTIFIER`. Test hedefleri ve widget sonek ekler: `.tests`, `.uitests`, `.widgets`; test konağının widget'ı `.testhost.widgets`. Betikler aynı satırı okur |
+| Hedef ve şema | Tek `Journal` hedefi iOS ve macOS için iki şema üretir. Hedef kaynakları `App/`, `Widgets/Shared`, `Shared` ve `ShareExtension/Form` klasörlerinden alır. Proje `Core` paketini yerel yoldan bağlar. iOS uygulaması `JournalWidgets` ve `JournalShare` uzantılarını gömer; Mac uygulaması gömmez |
+| Bundle kimliği | `com.dogancanyildiz.kenet`; kalıcı, iOS ve Mac için ortak. Değer `project.yml` içinde tek yerde durur: `APP_BUNDLE_IDENTIFIER`. Test hedefleri ve uzantılar sonek ekler: `.tests`, `.uitests`, `.widgets`, `.share`; test konağının uzantıları `.testhost.widgets` ve `.testhost.share`. Betikler aynı satırı okur |
 | Görünen ad | Kullanıcı Kenet adını görür: `CFBundleDisplayName`, `CFBundleName`. Hedef, modül ve `.app` dosyası kod adı `Journal` ile kalır |
 | Cihaz | iOS hedefi iPhone, iPhone Duo ve iPad içindir: `TARGETED_DEVICE_FAMILY: "1,2"`. iPhone dikey kilitlidir; iPad dört yöne döner (`UISupportedInterfaceOrientations~ipad`); `testflight.sh` arşivde ikisini de denetler. iPad uygulaması Apple Silicon Mac'te listelenmez (`SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: NO`): yerel Mac hedefi ayrıdır. Duo dış ekranı yalnız dikeydir; iç ekran yön kilidini yok sayar. İç ekran bölünmüş kabuğu açar: `AdaptiveNavigation` iki boyut sınıfı da düzenliyse `MacNavigation`, öteki durumda `PhoneNavigation` seçer. Kabuk durumu `AdaptiveNavigation` üstünde tek `ShellNavigationState` nesnesidir; seçim, sheet'ler ve taslaklar kabuk değişiminde korunur. Kapı cihaz türüne ve ekran boyuna bakmaz. Mac hedefi ayrıdır |
-| iCloud ve App Group | iCloud kapsayıcısı `iCloud.com.dogancanyildiz.kenet`, App Group `group.com.dogancanyildiz.kenet`; kalıcı, iOS ve Mac için ortak (kullanıcı kararı, 2026-10-21). `project.yml` değerleri `KENET_ICLOUD_CONTAINER` ve `KENET_APP_GROUP` ayarlarında tek yerde tutar; yetki dosyaları bu ayarları `$(…)` ile okur. İstisna: `NSUbiquitousContainers` sözlük anahtarı aynı kapsayıcı kimliğini düz metinle tekrarlar; Xcode sözlük anahtarlarında yapı ayarını genişletmez. Derlenmiş plist, yapı ayarları ve Swift tanımı arasındaki eşitliği `ReleaseConfigurationTests` korur. Swift karşılığı `App/Support/AppIdentifiers.swift`. `ReleaseConfigurationTests` iki tanımı eşit tutar. Kimlikler bundle kimliğinden türetilmez: betikler bundle kimliğini geçersiz kılsa da kapsayıcı aynı kalır. Kasa konumu iCloud kimliğini kullanır; App Group'u iOS'ta widget anlık görüntüsü kullanır, Mac henüz kullanmaz |
+| iCloud ve App Group | iCloud kapsayıcısı `iCloud.com.dogancanyildiz.kenet`, App Group `group.com.dogancanyildiz.kenet`; kalıcı, iOS ve Mac için ortak (kullanıcı kararı, 2026-10-21). `project.yml` değerleri `KENET_ICLOUD_CONTAINER` ve `KENET_APP_GROUP` ayarlarında tek yerde tutar; yetki dosyaları bu ayarları `$(…)` ile okur. İstisna: `NSUbiquitousContainers` sözlük anahtarı aynı kapsayıcı kimliğini düz metinle tekrarlar; Xcode sözlük anahtarlarında yapı ayarını genişletmez. Derlenmiş plist, yapı ayarları ve Swift tanımı arasındaki eşitliği `ReleaseConfigurationTests` korur. Swift karşılığı `App/Support/AppIdentifiers.swift`. `ReleaseConfigurationTests` iki tanımı eşit tutar. Kimlikler bundle kimliğinden türetilmez: betikler bundle kimliğini geçersiz kılsa da kapsayıcı aynı kalır. Kasa konumu iCloud kimliğini kullanır; App Group'u iOS'ta widget anlık görüntüsü ve paylaşım uzantısının kuyruğu kullanır, Mac henüz kullanmaz |
 | İmza | Takım kimliği repoya girmez. `Config/Signing.xcconfig`, varsa izlenmeyen `Config/Local.xcconfig` dosyasını içerir. Örnek dosya: `Config/Local.xcconfig.example`. Dosya yoksa Xcode projeyi `CODE_SIGNING_ALLOWED=NO` ile imzasız derler |
-| Yetki dosyaları | Her platformun kendi dosyası var. İki dosyada da iCloud Documents (`icloud-services: CloudDocuments`, kapsayıcı ve ubiquity kapsayıcısı) ve App Group durur. `App/Support/Journal-macOS.entitlements` bunlara ek olarak sandbox, kullanıcının seçtiği dosyalar, uygulama kapsamlı yer imi (`files.bookmarks.app-scope`; kasa yer imi `.withSecurityScope` ile yazılır ve çözülür), takvim ve konum taşır. Mac Debug ve DebugTest ad hoc imzalanır; ad hoc imza iCloud ve App Group taşıyamaz, Xcode derlemeyi durdurur. Bu iki yapılandırma `App/Support/Journal-macOS-AdHoc.entitlements` dosyasını kullanır: yalnız sandbox anahtarları. Release, arşiv ve `install-mac.sh` tam dosyayla geliştirme imzası ister; App ID'de iki yetenek açık olmalıdır. Widget'ın dosyası `Widgets/Support/JournalWidgets.entitlements` yalnız App Group taşır; widget'ın App ID'sinde de App Group açık olmalıdır |
+| Yetki dosyaları | Her platformun kendi dosyası var. İki dosyada da iCloud Documents (`icloud-services: CloudDocuments`, kapsayıcı ve ubiquity kapsayıcısı) ve App Group durur. `App/Support/Journal-macOS.entitlements` bunlara ek olarak sandbox, kullanıcının seçtiği dosyalar, uygulama kapsamlı yer imi (`files.bookmarks.app-scope`; kasa yer imi `.withSecurityScope` ile yazılır ve çözülür), takvim ve konum taşır. Mac Debug ve DebugTest ad hoc imzalanır; ad hoc imza iCloud ve App Group taşıyamaz, Xcode derlemeyi durdurur. Bu iki yapılandırma `App/Support/Journal-macOS-AdHoc.entitlements` dosyasını kullanır: yalnız sandbox anahtarları. Release, arşiv ve `install-mac.sh` tam dosyayla geliştirme imzası ister; App ID'de iki yetenek açık olmalıdır. Widget'ın dosyası `Widgets/Support/JournalWidgets.entitlements` yalnız App Group taşır; widget'ın App ID'sinde de App Group açık olmalıdır. Paylaşım uzantısının dosyası `ShareExtension/Support/JournalShare.entitlements` iOS uygulamasınınkiyle aynı dört anahtarı taşır: iCloud Documents (kasa iCloud'daysa gün dosyasına yazar) ve App Group (kuyruk). Uzantının App ID'sinde iki yetenek de açık olmalıdır |
 | Sürüm numarası | Derleme numarayı kök dizindeki `VERSION` dosyasından okur ve Info.plist'e yazar |
 | Yapı numarası | Derleme `CFBundleVersion` değerini git geçmişinden üretir: `git rev-list --count HEAD`, `.github/scripts/build-number.sh`. iOS ve Mac aynı numarayı alır. Git yoksa ya da kopya sığsa yedek değer `1` kalır ve derleme uyarı verir |
 | Lisanslar | Uygulamaya bağlanan her uzak paketin LICENSE dosyası `App/Resources` altına olduğu gibi girer. Kullanıcı metni Ayarlar → Tanılama içinde okur. Test hedefinin paketleri bildirime girmez: `ThirdPartyLicenseTests` |
@@ -1151,6 +1160,49 @@ flowchart LR
 
 Dokunma App Intent düğmesi yerine bağlantı kullanır. `MarkGoalIntent` uygulamanın `IndexStore` nesnesine bağlıdır ve widget hedefinde derlenemez. `openAppWhenRun` değerini açmak Kısayollar'daki işaretlemeyi de uygulamayı açmaya zorlardı. Bağlantı aynı işaretleme yolunu kullanır: `IntentActions.markGoal`.
 
+## Paylaşım uzantısı
+
+**Durum:** iOS paylaşım sayfasında "Kenet" uygulandı: düz metin ve tek web bağlantısı (Safari sayfası). Mac paylaşım uzantısı yok.
+
+**Şema paylaşılan metnin iki yazma yolunu gösterir.**
+
+```mermaid
+flowchart TD
+  Form["Form: Ekle"] --> Hedef{"share/target.json: iCloud kasası ve uygulama kilidi kapalı mı?"}
+  Hedef -- Evet --> Kap{"Kapsayıcı ve Documents/Kenet/.app/vault.json var mı?"}
+  Kap -- Evet --> Yaz["Core VaultStore.addingEvent: NSFileCoordinator, bellekte boş indeks"]
+  Yaz -- "baytlar kaydedildi" --> Isaret["share/written.json: işaret"]
+  Yaz -- "kaydedilmedi" --> Kuyruk["share/pending.json: kuyruk"]
+  Kap -- Hayır --> Kuyruk
+  Hedef -- Hayır --> Kuyruk
+  Isaret --> Uyg["Uygulama açılır, kasa açık, kilit açık"]
+  Kuyruk --> Uyg
+  Uyg -->|"işaret"| Yenile["IndexStore.refresh: journal klasörü"]
+  Uyg -->|"kuyruk"| Ekle["IndexStore.addEvent: önce dosya, sonra indeks; ad tanıma"]
+  Ekle --> Sil["Kayıt kuyruktan çıkar"]
+```
+
+**Tablo paylaşım uzantısının kurallarını gösterir.**
+
+| Konu | Kural |
+|---|---|
+| Hedef | `JournalShare`: share extension, yalnız iOS, `ShareExtension/` klasörü. Uygulama uzantıyı gömer. Sürüm ve yapı numarası uygulamanınkiyle aynı yazılır. Etkinleştirme kuralı: düz metin ve en çok bir web bağlantısı |
+| Giriş noktası | `ShareViewController` (`NSExtensionPrincipalClass`). Apple paylaşım uzantısını bir görünüm denetleyicisiyle başlatır; SwiftUI karşılığı yoktur. Denetleyici yalnız SwiftUI formunu barındırır ve isteği bitirir. Uzantının tek UIKit tipi budur |
+| Form | `ShareFormView`: tek alan, önceden dolu (`ShareInput`, `EntryWriting.prefill`). Safari'den bağlantı geldiyse `<başlık> <bağlantı>`; başlık sayfadan gelir, işaretleri düz sözcük olur: `[[` tek köşeli ayraç, sözcük başındaki `@` ve `#` tam genişlikli biçim (Journaling Suggestions başlıklarıyla aynı kural). Bağlantı yoksa paylaşılan metin; ek yoksa öğenin kendi metni (`attributedContentText`). Kullanıcının metnine dokunulmaz. Satır sonları ve boşluk dizileri tek boşluk olur: olay tek satırdır. Gün bugün, saat şimdiki dakika. Uzantı uygulamanın bileşenlerini derlemez (kabuğa bağlılar); form sheet görünümünü tasarım belirteçleriyle kurar: `InkColors`, `InkFonts`, `InkMetrics`, `InkButtonChrome` |
+| Uygulamanın notu | Uygulama `<grup>/share/target.json` dosyasına açık kasanın türünü (`icloud`, `local`, `selected`, `none`) ve uygulama kilidinin açık olup olmadığını yazar (`ShareTarget`). Yazma: kasa yayımlanınca, sahne öne gelince ve arka plana geçince, kilit ayarı değişince; değer değişmediyse yazmaz. Uzantı `UserDefaults.standard` deposunu göremez; not bu yüzden dosyadır. Not yoksa ya da okunamıyorsa uzantı kuyruğa yazar |
+| Yol (a): iCloud | Not `icloud` ve kilit kapalıysa uzantı iCloud kapsayıcısını çözer ve `Documents/Kenet` kasasına kendisi yazar: Core `VaultStore.addingEvent`, `SystemFileCoordination` (`NSFileCoordinator`), bellekte boş `VaultIndex`. Yazıcı gün dosyasına yalnız yeni satırı ekler; dosyanın geri kalanı bayt düzeyinde kalır. Sonra `share/written.json` listesine işaret ekler. Kapsayıcı yoksa, kasanın ayar dosyası yoksa, gün dosyası henüz iCloud'dan inmediyse, kasa ya da gün salt okunursa uzantı hiçbir bayt yazmaz ve yol (b)'ye geçer |
+| Yol (b): kuyruk | Yerel kasa (`Documents/Vault`) ve seçili klasör uzantıdan erişilemez. Uygulama kilidi açıksa iCloud kasasına da yazılmaz: içerik gün dosyasına uygulama açılıp kilit çözülünce girer. Uzantı metni `<grup>/share/pending.json` kuyruğuna ekler |
+| Liste biçimi | `pending.json` ve `written.json`: `{"format":1,"entries":[…]}`. Kayıt: `id` (UUID), `text` (tek satır), `day` (`YYYY-MM-DD`), `time` (`HH:MM`), `sharedAt` (ISO 8601), isteğe bağlı `writing` (uygulamanın yazmakta olduğu satır metni). Her değişiklik koordineli okuma, değişiklik ve atomik yazmadır (`NSFileCoordinator`, `Data.write(.atomic)`): uzantının eklediği ve uygulamanın çıkardığı kayıt birbirini ezmez. Son kayıt çıkınca dosya silinir |
+| Uygulamanın işlemesi | `ShareQueueProcessor`. Kasa açık, yazılabilir ve yayımlanmışken, uygulama kilitli değilken çalışır: kasa yayımlanınca, sahne öne gelince, kilit açılınca. Önce işaretler: `IndexStore.refresh(directories: ["journal"])`, sonra işaretler silinir. Sonra kuyruk: her kayıt `IndexStore.addEvent` ile kendi gününe ve saatine yazılır (önce dosya, sonra indeks). Yazmadan önce kayda `writing` alanı (bağlanmış satır metni) yazılır; işaret yazılamazsa kayıt yazılmaz, bekler. Kayıt, satırı kaydedilir kaydedilmez kuyruktan çıkar; ikinci koşu ya da sonraki açılış onu yeniden yazmaz. Koşu kayıttan sonra ve çıkarmadan önce durduysa sonraki koşu `writing` taşıyan kaydın gününde aynı metin ve saatte olay arar: varsa yazmadan çıkarır, yoksa yazar. Gün okunamazsa kayıt bekler. Yazma başarısız olursa işaret silinir. Üst üste gelen istekler tek koşuda birleşir |
+| Ad tanıma | Uzantıda tanıma yok: bellek ve indeks yok. Kuyruktaki metin App Intent'teki gibi kesin adlarla bağlanır (`IntentText.linking`). Yol (a)'da satır yazıldığı gibi kalır; bağlanmamış anmalar indeks güncellenince her zamanki gibi önerilir |
+| Bozuk kayıt | Okunamayan kayıt (eksik alan, geçersiz gün ya da saat, tek satıra sığmayan metin) kuyruktan çıkar; baytları `share/damaged-<UUID>.json` dosyasında kalır. Liste olmayan ya da okunamayan dosya da bu ada bütün olarak taşınır, sonra yeni liste yazılır; taşıma başarısızsa hiçbir şey değişmez. Silinmez, üzerine yazılmaz |
+| Yazılamayan kayıt | `addEvent` satırı kaydedemezse (kasa ya da gün salt okunur, gün dosyası okunamaz) kayıt kuyrukta kalır; sonraki koşu yeniden dener |
+| Bildirim bandı | Koşu bir şey yaptıysa ana ekranın üstünde bant: "N paylaşım eklendi.", "N paylaşım okunamadı.", "N paylaşım eklenemedi; sonra yeniden denenecek." Bant kapatılabilir |
+| Kimlik | Uzantının yazıcısı yeni satırın kimliğini yalnız gün dosyasındaki kimliklere karşı denetler: indeks yok. Kasada aynı kimlik başka dosyada varsa [yinelenen kimlik](vault-format.md#blok-kimliği) kuralı geçerlidir: sahibi ilk geçen satırdır, uygulama öteki satırı değiştirdiğinde yeni kimlik verir. Çakışma olasılığı yeni satır başına kasadaki kimlik sayısı bölü 36⁶'dır: 10.000 kimlikte yaklaşık 200.000'de bir |
+| Yerelleştirme | Uzantı uygulamanın String Catalog'unu derler. `check-catalog-keys.py` `ShareExtension/` ve `Shared/` klasörlerini de tarar |
+
+Uzantı `AddEventIntent` çağırmaz: intent uygulamanın `IndexStore` nesnesine bağlıdır ve uzantı ayrı süreçtir. İki yol aynı Core yazıcısını kullanır: `VaultStore.addingEvent`. Olay satırının biçimi değişmez.
+
 ## Platform düzeni
 
 **Tablo iki platformun düzenini gösterir.**
@@ -1187,7 +1239,7 @@ Proje çekirdeği şimdiden ortak bir teknolojiyle yazmaz. Örnek teknolojiler: 
 | İndeks | Örnek kasadan üretilen indeks beklenen sorgu sonuçlarını versin |
 | Birleştirme | Sonuç sürümlerin sırasından bağımsız kalsın, tekrarda değişmesin, hiçbir satırı kaybetmesin |
 | Dayanıklılık | Bozuk frontmatter, tanınmayan sözdizimi ve boş dosya hata üretmesin |
-| Biçim | `swift format lint --strict --recursive Packages App Tests Widgets` |
+| Biçim | `swift format lint --strict --recursive Packages App Tests Widgets ShareExtension Shared` |
 | Belge biçimi | `sh .github/scripts/check-docs.sh`: karar tablosu, README belge tablosu, String Catalog; koddaki sabit arayüz metni katalogda yoksa düşer (`check-catalog-keys.py`; `verbatim:`, değişken ve enterpolasyonlu metin sayılmaz) |
 | Uygulama testleri | `JournalTests`, `Journal_macOS` ve `Journal_iOS` şemalarında koşar |
 | Ekran görüntüsü testleri | `Tests/JournalTests/Snapshots` altındaki `*SnapshotTests` kümeleri; iOS birim katmanı |

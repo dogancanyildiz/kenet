@@ -22,6 +22,7 @@ struct ReleaseConfigurationTests {
             Self.values(of: "PRODUCT_BUNDLE_IDENTIFIER", in: project) == [
                 "$(APP_BUNDLE_IDENTIFIER)", "$(APP_BUNDLE_IDENTIFIER).testhost",
                 "$(APP_BUNDLE_IDENTIFIER).widgets", "$(APP_BUNDLE_IDENTIFIER).testhost.widgets",
+                "$(APP_BUNDLE_IDENTIFIER).share", "$(APP_BUNDLE_IDENTIFIER).testhost.share",
                 "$(APP_BUNDLE_IDENTIFIER).tests", "$(APP_BUNDLE_IDENTIFIER).uitests",
                 "$(APP_BUNDLE_IDENTIFIER).uitests",
             ])
@@ -172,7 +173,7 @@ struct ReleaseConfigurationTests {
         #expect(
             Self.values(of: "CODE_SIGN_ENTITLEMENTS", in: project) == [
                 "App/Support/Journal-iOS.entitlements", "App/Support/Journal-macOS.entitlements",
-                "Widgets/Support/JournalWidgets.entitlements",
+                "Widgets/Support/JournalWidgets.entitlements", Self.shareEntitlements,
             ])
         // Mac Debug and DebugTest are signed ad hoc, which cannot carry iCloud or App Group.
         #expect(
@@ -203,7 +204,7 @@ struct ReleaseConfigurationTests {
     @Test func entitlementsReadOnlyDefinedSettings() throws {
         let project = try Self.read("project.yml")
         let files = ["Journal-iOS", "Journal-macOS", "Journal-macOS-AdHoc"].map { "App/Support/\($0).entitlements" }
-        for path in files + [Self.widgetEntitlements] {
+        for path in files + [Self.widgetEntitlements, Self.shareEntitlements] {
             let source = try Self.read(path)
             for setting in Self.captures(#"\$\(([A-Z_]+)\)"#, in: source) {
                 #expect(Self.values(of: setting, in: project).count == 1, "\(path) reads undefined $(\(setting))")
@@ -226,6 +227,49 @@ struct ReleaseConfigurationTests {
         #expect(Set(widget.keys) == ["com.apple.security.application-groups"])
         #expect(widget["com.apple.security.application-groups"] as? [String] == ["$(KENET_APP_GROUP)"])
     }
+
+    private static let shareEntitlements = "ShareExtension/Support/JournalShare.entitlements"
+
+    /// The share extension is the app's extension too (`.share`, `.testhost.share` for the test
+    /// host). It carries the iCloud container (it writes the day file of an iCloud vault itself)
+    /// and the App Group (its queue), with the same values as the iOS app.
+    @Test func shareExtensionExtendsTheAppAndCarriesTheContainerAndGroup() throws {
+        let project = try Self.read("project.yml")
+        let identifiers = Self.values(of: "PRODUCT_BUNDLE_IDENTIFIER", in: project)
+        #expect(
+            identifiers.filter { $0.hasSuffix(".share") } == [
+                "$(APP_BUNDLE_IDENTIFIER).share", "$(APP_BUNDLE_IDENTIFIER).testhost.share",
+            ])
+        let share = try Self.plist(Self.shareEntitlements)
+        #expect(Set(share.keys) == Self.containerKeys)
+        Self.expectContainerValues(share, file: "JournalShare")
+    }
+
+    #if os(iOS)
+        /// The built iOS app embeds the extension: a share extension for text and one web link,
+        /// named after the test host, with the app's version and build number.
+        @Test func builtAppEmbedsTheShareExtension() throws {
+            let host = try #require(Self.hostAppInfoDictionary())
+            var app = Bundle.main.bundleURL
+            while app.pathExtension != "app" && app.pathComponents.count > 1 { app = app.deletingLastPathComponent() }
+            let plist = app.appendingPathComponent("PlugIns/JournalShare.appex/Info.plist")
+            let info = try #require(
+                try PropertyListSerialization.propertyList(from: Data(contentsOf: plist), format: nil) as? [String: Any]
+            )
+            #expect(info["CFBundleIdentifier"] as? String == Self.bundleIdentifier + ".testhost.share")
+            #expect(info["CFBundleShortVersionString"] as? String == host["CFBundleShortVersionString"] as? String)
+            #expect(info["CFBundleVersion"] as? String == host["CFBundleVersion"] as? String)
+            let extensionInfo = try #require(info["NSExtension"] as? [String: Any])
+            #expect(extensionInfo["NSExtensionPointIdentifier"] as? String == "com.apple.share-services")
+            #expect(extensionInfo["NSExtensionPrincipalClass"] as? String == "JournalShare.ShareViewController")
+            let rule = try #require(
+                (extensionInfo["NSExtensionAttributes"] as? [String: Any])?["NSExtensionActivationRule"]
+                    as? [String: Any])
+            #expect(rule["NSExtensionActivationSupportsText"] as? Bool == true)
+            #expect(rule["NSExtensionActivationSupportsWebURLWithMaxCount"] as? Int == 1)
+            #expect(rule.count == 2)
+        }
+    #endif
 
     private static let macSandboxKeys: Set<String> = [
         "com.apple.security.app-sandbox",

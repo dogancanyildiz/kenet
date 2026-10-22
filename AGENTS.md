@@ -264,6 +264,8 @@ App/                      iOS ve macOS SwiftUI uygulaması
   Support/                Entitlements, plist ekleri, küçük yardımcılar, simge kaynağı (AppIcon/)
 Widgets/                  WidgetKit hedefi (iOS ana ekran zincir widget'ı); Shared/: uygulamayla ortak;
                           String Catalog'u App/Resources'tan derler
+ShareExtension/           Paylaşım uzantısı (iOS): paylaşılanı olay olarak ekler; Form/: uygulamayla ortak
+Shared/                   Uygulama ve paylaşım uzantısıyla ortak olay yazıcısı ve kuyruk (Foundation, Core)
 Packages/Core/            Ayrıştırıcı, modeller, indeksleyici (Apple'a bağımsız): VaultFormat,
                           VaultIndex, VaultStore, EntityRecognition, DateParsing, GoalTracking,
                           Summaries, ForceLayout

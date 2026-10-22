@@ -634,7 +634,7 @@ Açık görünen metin kullanıcınındır: `[[Eski|Eski]]` → `[[Yeni|Eski]]`;
 | Kapsam | Uygulamanın ürettiği her olay ve görev satırı sonunda bir kimlik taşır: `^a1b2c3` |
 | Yazma biçimi | Satırın sonunda, bir boşluktan sonra `^` ve ardından 6 karakter: küçük harf `a-z` ve rakam. |
 | Anlam | Kimlik opaktır. Tür ya da başka anlam taşıyan önek içermez. Satırın olay mı görev mi olduğunu kimlik değil satırın yazımı belirler. |
-| Üretim | Uygulama kimliği rastgele üretir. Uygulama kasadaki mevcut kimliklerle çakışmayı denetler. |
+| Üretim | Uygulama kimliği rastgele üretir. Uygulama kasadaki mevcut kimliklerle çakışmayı denetler. Paylaşım uzantısı indeks açmaz; yeni kimliği yalnız gün dosyasındaki kimliklerle denetler, başka dosyayla çakışmayı yinelenen kimlik kuralı çözer. |
 | Düzenleme | Satır değişse de kimlik değişmez. |
 | Kimliksiz satır | Kullanıcının elle ya da Obsidian'da yazdığı satırda kimlik olmayabilir. Uygulama o satırı ilk kez değiştirdiğinde kimlik ekler. |
 | Okuma | Uygulama Obsidian'ın kabul ettiği her kimliği tanır ve değiştirmez: harf, rakam ve `-`, her uzunlukta. |

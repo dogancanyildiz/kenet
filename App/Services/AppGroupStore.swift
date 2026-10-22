@@ -1,12 +1,13 @@
 import Foundation
 
-/// What the app shares with its widget through the App Group (`AppIdentifiers.appGroup`).
+/// What the app shares with its widget and share extension through the App Group
+/// (`AppIdentifiers.appGroup`).
 /// `containerURL` is nil when the group is not available, as in an ad hoc signed Mac build or a
 /// test: whatever uses the group is then off, silently. Tests give a temporary folder instead.
 ///
 /// No key moved to the group yet: the vault bookmark and the app lock stay in
-/// `UserDefaults.standard`, which only the app reads. Shared defaults
-/// (`UserDefaults(suiteName:)`) come with the first key that needs them.
+/// `UserDefaults.standard`, which only the app reads. What the share extension needs of them (the
+/// vault's kind, whether app lock is on) the app writes as a file (`share/target.json`).
 protocol AppGroupStore {
     var containerURL: URL? { get }
 }

@@ -1573,3 +1573,19 @@ extension IndexStore {
         } catch { report(error) }
     }
 }
+
+// MARK: - Share extension target
+
+extension IndexStore {
+    /// The open vault as the share extension sees it (`ShareTarget`): it writes only into an open
+    /// iCloud vault itself; a local or selected folder is out of its reach, and a vault that is not
+    /// open (or is moving to iCloud) is none.
+    var shareVault: ShareTarget.Vault {
+        guard vaultURL != nil, !isVaultInaccessible, !isMigratingCloud else { return .none }
+        switch location.kind {
+        case .icloud: return .icloud
+        case .local: return .local
+        case .selected: return .selected
+        }
+    }
+}

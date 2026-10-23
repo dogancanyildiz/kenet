@@ -1,7 +1,7 @@
 ---
 type: person
-eşi: "[[Selin Korkmaz]]"
 # korunur
+eşi: "[[Selin Korkmaz]]"
 ---
 
 Gövde [[Baran Tunç]].

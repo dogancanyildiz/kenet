@@ -1,7 +1,7 @@
 ---
 type: person
-related: ["[[people/Selin Korkmaz]]"]
 # korunur
+related: ["[[people/Selin Korkmaz]]"]
 ---
 
 Gövde [[Baran Tunç]].

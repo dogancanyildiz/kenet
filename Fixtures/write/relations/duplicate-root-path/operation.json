@@ -5,7 +5,8 @@
     "remove": false,
     "error": null,
     "extraFiles": {
-      "Selin Korkmaz.md": "---\ntype: person\nname: Selin Korkmaz\n---\n"
+      "Selin Korkmaz.md": "---\ntype: person\nname: Selin Korkmaz\n---\n",
+      "Aaa/Selin Korkmaz.md": "---\ntype: person\nname: Selin Korkmaz\n---\n"
     }
   }
 }

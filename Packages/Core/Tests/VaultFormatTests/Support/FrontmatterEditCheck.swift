@@ -3,6 +3,7 @@ import VaultFormat
 /// Whether a value read from a file is the value that was written, judged independently of the writer.
 func literal(_ literal: FrontmatterLiteral, isReadBackAs scalar: FrontmatterScalar) -> Bool {
     switch literal {
+    case .null: scalar.kind == .empty
     case .text(let text): scalar.kind == .text && Array(scalar.text.utf8) == Array(text.utf8)
     case .boolean(let value): scalar.kind == .boolean(value)
     case .integer(let value): scalar.kind == .number && scalar.doubleValue == Double(value)

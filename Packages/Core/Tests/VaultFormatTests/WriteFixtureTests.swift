@@ -15,8 +15,15 @@ struct WriteFixtureTests {
         let before = RawDocument(bytes: input)
 
         #expect(
-            Set(description.keys).isSubset(of: ["frontmatter", "sections", "lines", "mention", "expectedError"]),
+            Set(description.keys).isSubset(of: [
+                "frontmatter", "sections", "lines", "mention", "relation", "expectedError",
+            ]),
             "unknown keys in \(description.keys)")
+        if description["relation"] != nil {
+            // Store operations need serialization and an index; RelationsWriteTests runs them.
+            #expect(try Fixtures.fileNames(in: "write/\(name)") == ["expected.md", "input.md", "operation.json"])
+            return
+        }
         if description["mention"] != nil {
             // Linking a mention needs a vault and its index; `UnlinkedMentionTests` applies these cases.
             #expect(try Fixtures.fileNames(in: "write/\(name)") == ["expected.md", "input.md", "operation.json"])

@@ -544,6 +544,8 @@ Widget ekranlarla aynı hedef sorgusunu kullanır. Widget sorguyu kendisi çalı
 
 ## Core paketi
 
+Açık ilişkiler `VaultIndex.relations(of:)` ile yönlü giden ve gelen listeler, `explicitRelations(kinds:)` ile Graph için yönsüz tekil çiftler olarak okunur. Şema 9 korunur: frontmatter bağlantılarının mevcut `links.key`, `block IS NULL` ve `resolvedFile` alanları kullanılır. `VaultStore.addRelation` ve `removeRelation` seri dosya yazma geçidinde yalnız ilgili frontmatter alanını düzenler, ardından indeksi günceller. Gelen bağlar dosyaya yazılmaz.
+
 **Şema `Core` paketinin hedeflerini ve bağımlılıklarını gösterir.**
 
 ```mermaid

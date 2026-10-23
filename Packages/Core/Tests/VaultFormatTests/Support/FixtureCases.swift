@@ -6,13 +6,18 @@ extension Fixtures {
     /// Each case is a directory, so adding one needs no code change.
     static func caseNames(in category: String) throws -> [String] {
         let directory = try root().appendingPathComponent(category, isDirectory: true)
-        return try FileManager.default.contentsOfDirectory(atPath: directory.path)
+        let names = try FileManager.default.contentsOfDirectory(atPath: directory.path)
             .filter { name in
                 var isDirectory: ObjCBool = false
                 let path = directory.appendingPathComponent(name).path
                 return FileManager.default.fileExists(atPath: path, isDirectory: &isDirectory) && isDirectory.boolValue
             }
             .sorted()
+        if category == "write", names.contains("relations") {
+            return names.filter { $0 != "relations" }
+                + (try caseNames(in: "write/relations")).map { "relations/" + $0 }
+        }
+        return names
     }
 
     /// The names of the files directly inside a fixture directory, sorted. Hidden files that the

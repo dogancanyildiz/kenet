@@ -535,6 +535,109 @@ Uygulama başka hiçbir karakteri kaçışla yazmaz. Böylece satır sonu içere
 | Frontmatter'ı olmayan dosya | Uygulama dosyanın başına yeni blok ekler: `---`, alan satırları, `---`. Uygulama blok ile gövde arasına boş satır eklemez. |
 | Ham alan ve çözülemeyen blok | Uygulama ham alanı değiştirmez ve silmez. Uygulama çözülemeyen bloğa yazmaz. |
 
+### İlişkiler
+
+**Açık bağ:** kullanıcının bir varlıktan başka bir varlığa elle kurduğu bağ. Bağ kaynak varlığın frontmatter'ında durur.
+
+```yaml
+---
+type: person
+name: Mert Aksu
+related: ["[[Liman Ofis]]", "[[Deniz Kaya]]"]       # etiketsiz bağlar
+eşi: "[[Selin Korkmaz]]"                           # etiketli bağ
+iş arkadaşı: ["[[Can Demir]]", "[[Ece Şahin]]"]    # aynı etiket, 2 hedef
+tanışma: Üniversite                                # bağ değil: bağlantı yok
+---
+```
+
+**Okuma: uygulamanın bağ saydığı bağlantılar.**
+
+| Konu | Kural |
+|---|---|
+| Kaynak | Kişi, konum ya da tanımlı özel tip dosyası. Gün, hedef, not ve tanınmayan tipteki dosya bağ kaynağı değildir. |
+| Bağ | Kaynağın frontmatter'ında üst düzey bir alanın tek değerinde ya da liste öğesinde geçen her bağlantı. Uygulama bağlantıyı [Bağlantı ayrıştırma](#bağlantı-ayrıştırma) kurallarıyla bulur. |
+| Hedef | Bağlantının çözüldüğü kişi, konum ya da tanımlı özel tip dosyası. Kaynağın kendisine çözülen bağlantı bağ değildir. |
+| Etiket | Anahtar `related` ise bağ etiketsizdir. Diğer anahtarlarda etiket anahtarın kendisidir: `eşi`. Etiket içerik katmanıdır ve kullanıcının dilindedir ([Dil katmanları](#dil-katmanları)). Uygulama anahtarları bayt bayt karşılaştırır: `Related` bir etikettir. |
+| Özel tip alanı | Tip şemasındaki `link` alanı da bağdır. Etiketi alanın anahtarıdır: kitap dosyasında `yazar: "[[Elif Aydın]]"`. |
+| Tek bağ | Bir anahtar ve bir hedef tek bağdır. Aynı anahtarda aynı hedefe çözülen 2 bağlantı 1 bağdır. Aynı hedef farklı anahtarlarda farklı bağlardır. |
+| Bağ olmayan | Çözülmeyen bağlantı bağ değildir; çözülmemiş bağlantı olarak kalır. Hedef dosyası oluşunca bağ olur. Ham alan, çözülemeyen blok ve eşlem kaydı bağ üretmez. `type`, `name`, `qualifier` ve `aliases` alanlarındaki bağlantı bağ değildir. Gövdedeki bağlantı açık bağ değildir. |
+
+**Yön.**
+
+| Konu | Kural |
+|---|---|
+| Yazılan dosya | Uygulama bağı yalnız kaynak dosyaya yazar. Hedef dosya değişmez. |
+| Gelen bağ | Hedefin sayfası bağı gelen bağ olarak gösterir. Gelen bağ hedefin dosyasına yazılmaz; uygulama onu indeksten okur. |
+| Graph | Graph kenarı yönsüzdür. 2 varlık birbirine bağ kurarsa her bağ kendi kaynağının dosyasında durur. |
+
+**Yazım.**
+
+| Bağ | Uygulamanın yazdığı |
+|---|---|
+| Etiketsiz | `related: ["[[Selin Korkmaz]]"]` |
+| Etiketli, 1 hedef | `eşi: "[[Selin Korkmaz]]"` |
+| Etiketli, birden çok hedef | `iş arkadaşı: ["[[Can Demir]]", "[[Ece Şahin]]"]` |
+
+- Uygulama bağlantıyı her zaman çift tırnak içinde yazar. Tırnaksız `[[X]]` YAML'da iç içe listedir: Kenet'te [ham alan](#ham-alanlar), Obsidian'da bağlantı değil.
+- Uygulama hedefi [Otomatik tanıma ve belirsizlik](#otomatik-tanıma-ve-belirsizlik) bölümündeki Bağlantı yazımı tablosunun Hedef satırıyla yazar. Yol hedefinde `/` yoksa başına `/` ekler. Uygulama görünen metin ve çapa yazmaz: `[[Ahmet Yılmaz (iş)]]`.
+
+**Bağ ekleme: uygulama önce bu 4 denetimi sırayla yapar.**
+
+| Sıra | Durum | Uygulamanın yaptığı |
+|---|---|---|
+| 1 | Kaynağın frontmatter'ı çözülemez. | Yazmaz, hata döndürür. |
+| 2 | Hedef kişi, konum ya da tanımlı özel tip dosyası değil. Ya da hedef kaynağın kendisi. | Yazmaz, hata döndürür. |
+| 3 | Etiket geçersiz ya da ayrılmış. Ayrıntı: aşağıdaki etiket tablosu. | Yazmaz, hata döndürür. |
+| 4 | Aynı anahtarda aynı hedefe çözülen bağlantı zaten var. | Dosyayı değiştirmez. |
+
+**Etiket kuralları.**
+
+| Konu | Kural |
+|---|---|
+| Kırpma | Uygulama etiketin başındaki ve sonundaki boşlukları kırpar. Boş etiket etiketsiz bağdır: uygulama `related` alanına yazar. |
+| Geçersiz etiket | İçinde satır sonu ya da kontrol karakteri olan etiket. `<<` etiketi. |
+| Ayrılmış anahtar | `type`, `name`, `qualifier`, `aliases`, `related`. Kişi dosyasında `cadence_days`, `cadence_snoozed_until`, `cadence_paused`. Konum dosyasında `coordinates`, `radius`. Özel tip dosyasında tipin şemasındaki her alan anahtarı; `link` alanını kullanıcı alan düzenleyicisinde yazar. |
+
+**Bağ ekleme: anahtarın durumuna göre yazılan.** Uygulama [Yazma kuralları](#yazma-kuralları) ile yazar.
+
+| Anahtarın durumu | `related` | Etiket |
+|---|---|---|
+| Yok | `related: ["[[X]]"]` tek satırlı liste, frontmatter'ın sonuna ([Yeni anahtar](#yazma-kuralları)). | `etiket: "[[X]]"`, frontmatter'ın sonuna. |
+| Boş değer | `related: ["[[X]]"]` | `etiket: "[[X]]"` |
+| Tek değer | Tek satırlı listeye çevirir ([Biçim değişimi](#yazma-kuralları)). Eski değer ilk öğedir ve yazımıyla kalır. Her tür geçerlidir. | Değer bağlantı içeriyorsa `related` gibi: `eşi: ["[[A]]", "[[X]]"]`. İçermiyorsa yazmaz, hata döndürür: `tanışma: Üniversite`. |
+| Liste | Öğeyi listenin sonuna ekler. Tek satırlı ya da çok satırlı biçim kalır. Bağlantısız öğeler kalır. | Her öğe bağlantı içeriyorsa `related` gibi. Boş liste de bu satıra girer. Bağlantısız bir öğe varsa yazmaz, hata döndürür. |
+| Eşlem ya da ham alan | Yazmaz, hata döndürür. | Yazmaz, hata döndürür. |
+
+"Bağlantı içeren değer", [Bağlantı ayrıştırma](#bağlantı-ayrıştırma) ile en az bir bağlantı bulunan metin değeridir. Sayı, tarih ve evet/hayır bağlantı içermez.
+
+**Bağ kaldırma.**
+
+| Konu | Kural |
+|---|---|
+| Çıkan öğe | Tek değer tek öğe sayılır. Uygulama anahtarın değerinden hedefe çözülen bağlantıyı taşıyan her öğeyi çıkarır. Diğer öğeler yazımlarıyla ve sıralarıyla kalır. Liste biçimi kalır; tek öğe kalınca da alan liste kalır. |
+| Boşalan alan | `related` ya da etiket alanında öğe kalmazsa uygulama anahtarı siler. Etiketli tek değer alanında da anahtarı siler. Bu kural, [Yazma kuralları](#yazma-kuralları) içindeki boşalan liste kuralının istisnasıdır: `[]` ya da `anahtar:` satırı kalmaz. |
+| Başka içerik | Çıkacak öğenin metni, baştaki ve sondaki boşluklar dışında, tek bir bağlantıdan oluşmuyorsa uygulama yazmaz ve hata döndürür: `"[[X]] ile evli"`, `"[[X]] ve [[Y]]"`. |
+| Olmayan bağ | Olmayan bağı kaldırmak dosyayı değiştirmez. |
+| Çözülemeyen blok | Uygulama yazmaz, hata döndürür. |
+
+**Yeniden adlandırma ve silme.**
+
+| Konu | Kural |
+|---|---|
+| Hedefin adı değişir | Uygulama bağ alanlarındaki bağlantıları [Yeniden adlandırma](#yeniden-adlandırma) kurallarıyla günceller: tek değer, tek satırlı ve çok satırlı liste. Bağ için ayrı kural yoktur. |
+| Hedef silinir | Bağ kaynakta çözülmemiş bağlantı olarak kalır ([Silme](#silme)). Uygulama kaynağa dokunmaz. Aynı adla yeni dosya oluşursa bağ yeniden çözülür. |
+| Kaynak silinir | Kaynağın bağları dosyayla birlikte gider. |
+
+**Obsidian ve geriye uyum.**
+
+| Konu | Kural |
+|---|---|
+| Obsidian | Obsidian 1.4 ve sonrası özellik değerindeki tırnaklı bağlantıyı özellik panelinde, grafikte ve geri bağlantılarda sayar. Önceki sürümler frontmatter bağlantısını grafikte göstermez. |
+| Kasa sürümü | Değişmez. Anahtar yoksa bağ yoktur. Eski istemci `related` alanını diğer alan olarak korur ve gösterir. |
+| Var olan bağlantılar | Varlık dosyalarında önceden yazılmış frontmatter bağlantıları kendiliğinden bağ olarak görünür. Örnek: özel tipin `link` alanı. |
+| Tip tanımı | `related` ayrılmış alan anahtarıdır. `.app/types.json` içinde `related` alan anahtarı taşıyan tanım geçersizdir ([Varlık tipleri](#varlık-tipleri), Bozuk dosya). |
+
+
 #### Silme
 
 | Konu | Kural |

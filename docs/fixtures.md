@@ -116,6 +116,7 @@ Swift testleri `Fixtures/` klasörünü test kaynak dosyasından yukarı doğru 
 | `parse/` | `VaultFormatTests/ParseFixtureTests.swift`, `FixtureCaseGuardTests.swift` | Klasör tarama |
 | `write/` | `VaultFormatTests/WriteFixtureTests.swift`, `FixtureCaseGuardTests.swift` | Klasör tarama |
 | `write/journal-append-*` | ek olarak `VaultStoreTests/JournalAppendTests.swift` | Klasör tarama |
+| `write/relations/` | `VaultStoreTests/RelationsWriteTests.swift` | 76 iç klasörde elle yazılmış önce/sonra baytları ve `operation.json`: `related` tek değerlerinin her türü, boş alanlar, liste biçimleri, kırpılan/geçersiz/türe ayrılmış etiketler, çözülen hedefe göre değişmezlik, güvenli silme, hedef türü ve yol yazımı. |
 | `write/mention-*` | ek olarak `VaultStoreTests/UnlinkedMentionTests.swift` | Klasör tarama |
 | `write/task-recur-trailing-text` | ek olarak `VaultFormatTests/RecurrenceTests.swift` | Ad kodda |
 | `write/cadence-*` | ek olarak `Tests/JournalTests/CadenceTests.swift` | Ad kodda |
@@ -1270,3 +1271,7 @@ Kopya olmayan benzer adlar (`2026-10-02 2 2.md`, `2026-10-02-2.md`, `2026-10-02 
 - [Kasa biçimi](vault-format.md): ayrıştırıcı ve yazıcı kuralları.
 - [Mimari](architecture.md): Core modülleri ve test hedefleri.
 - [Ekranlar](screens.md): özet sayılarının tanımı.
+
+Açık ilişki beklentileri `vaults/graph/relations.json` içindedir; yönlü giden/gelen sorgularını ve yönsüz tekilleştirmeyi `RelationsIndexTests` sınar. Beklentiler biçim kurallarından elle yazılmıştır.
+
+`entity-types/reserved-related/` özel tip şemasında `related` alanını reddeden elle yazılmış JSON sözleşmesidir; `EntityTypeTests.schemaFixtures` tarafından okunur.

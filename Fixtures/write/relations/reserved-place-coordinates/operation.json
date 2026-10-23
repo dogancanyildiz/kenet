@@ -1,0 +1,9 @@
+{
+  "relation": {
+    "target": "Selin Korkmaz",
+    "label": "coordinates",
+    "remove": false,
+    "error": "reservedLabel",
+    "source": "places/Ev.md"
+  }
+}

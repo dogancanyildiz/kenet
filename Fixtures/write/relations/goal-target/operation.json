@@ -1,0 +1,11 @@
+{
+  "relation": {
+    "target": "Spor",
+    "label": null,
+    "remove": false,
+    "error": "invalidTarget",
+    "extraFiles": {
+      "goals/Spor.md": "---\ntype: goal\nname: Spor\n---\n"
+    }
+  }
+}

@@ -6,7 +6,7 @@ import VaultFormat
 @testable import VaultIndex
 
 struct EntityTypeTests {
-    @Test(arguments: ["valid", "invalid", "collision", "duplicate"])
+    @Test(arguments: ["valid", "invalid", "collision", "duplicate", "reserved-related"])
     func schemaFixtures(_ name: String) throws {
         struct Expectation: Decodable {
             let ids: [String]

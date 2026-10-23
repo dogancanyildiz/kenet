@@ -1,0 +1,8 @@
+{
+  "relation": {
+    "target": "Deniz Arıkan",
+    "label": null,
+    "remove": false,
+    "error": "invalidTarget"
+  }
+}

@@ -12,6 +12,9 @@ import XCTest
 enum AccessibilityAuditPolicy {
     static let types: XCUIAccessibilityAuditType = .all
 
+    /// The types whose findings are confirmed by a second pass (see ``audit(_:screen:secondTimeout:)``).
+    static let confirmedTypes: XCUIAccessibilityAuditType = [.dynamicType, .hitRegion]
+
     /// What the second "Audit failed to complete in time" (code -56) does.
     enum SecondTimeout {
         case skip
@@ -24,11 +27,45 @@ enum AccessibilityAuditPolicy {
         // Every query is a round trip to the app (seconds each on a CI runner): the bars are read once
         // from the settled tree, and each issue's element once (``Seen``).
         let chrome = Chrome(settle(app))
+        // The audit's Dynamic Type check is not deterministic: its live size change reaches text in one
+        // run and not in the next, so one run names one of several identical elements (run 39848679358:
+        // the "Geri" text button, which grows at AX3 and passed on the rerun). A Dynamic Type or hit region
+        // issue (run 39848679358; locally a 371 × 19 pt summary label as 'too small') therefore fails only
+        // when a second pass over those types names the same element again.
+        let pending = DynamicTypeIssues()
         let handler: (XCUIAccessibilityAuditIssue) -> Bool = { issue in
-            MainActor.assumeIsolated { handle(issue, screen: screen, chrome: chrome) }
+            MainActor.assumeIsolated {
+                if confirmedTypes.contains(issue.auditType) {
+                    return handleDynamicType(issue, screen: screen, chrome: chrome, pending: pending, confirming: false)
+                }
+                return handle(issue, screen: screen, chrome: chrome)
+            }
         }
-        // CI simulators occasionally report "Audit failed to complete in time" (code -56): the audit's
-        // own time limit ran out on a slow runner, not a finding.
+        try run(app, types: types, screen: screen, secondTimeout: secondTimeout, handler)
+        if !pending.keys.isEmpty {
+            AccessibilityAuditPolicy.settle(app)
+            let confirm: (XCUIAccessibilityAuditIssue) -> Bool = { issue in
+                MainActor.assumeIsolated {
+                    handleDynamicType(issue, screen: screen, chrome: chrome, pending: pending, confirming: true)
+                }
+            }
+            try run(app, types: confirmedTypes, screen: screen, secondTimeout: secondTimeout, confirm)
+            for key in pending.keys.subtracting(pending.confirmed) {
+                print("A11Y UNCONFIRMED (\(screen)): \(key) — not named again by the second pass")
+            }
+        }
+        assertTouchTargets(in: app, screen: screen)
+    }
+
+    /// Runs one audit, once more after a -56 timeout.
+    ///
+    /// CI simulators occasionally report "Audit failed to complete in time" (code -56): the audit's
+    /// own time limit ran out on a slow runner, not a finding.
+    @MainActor
+    private static func run(
+        _ app: XCUIApplication, types: XCUIAccessibilityAuditType, screen: String, secondTimeout: SecondTimeout,
+        _ handler: @escaping (XCUIAccessibilityAuditIssue) -> Bool
+    ) throws {
         do {
             try app.performAccessibilityAudit(for: types, handler)
         } catch let error as NSError where error.code == -56 {
@@ -38,7 +75,33 @@ enum AccessibilityAuditPolicy {
                 throw XCTSkip("A11Y audit timed out twice on \(screen) (code -56, runner too slow)")
             }
         }
-        assertTouchTargets(in: app, screen: screen)
+    }
+
+    /// Dynamic Type issues of the first pass, and those the second pass named again.
+    final class DynamicTypeIssues {
+        var keys: Set<String> = []
+        var confirmed: Set<String> = []
+    }
+
+    /// First pass: an issue no exemption covers is remembered and let through. Second pass: it fails
+    /// only if it is named again.
+    @MainActor
+    static func handleDynamicType(
+        _ issue: XCUIAccessibilityAuditIssue, screen: String, chrome: Chrome, pending: DynamicTypeIssues,
+        confirming: Bool
+    ) -> Bool {
+        let seen = issue.element.map(Seen.init)
+        guard exemptionReason(for: issue, seen: seen, chrome: chrome) == nil, let seen else {
+            return handle(issue, screen: screen, chrome: chrome)
+        }
+        let key = "\(name(of: issue.auditType)) '\(seen.identifier)' '\(seen.label)'"
+        if !confirming {
+            pending.keys.insert(key)
+            return true
+        }
+        guard pending.keys.contains(key) else { return true }
+        pending.confirmed.insert(key)
+        return handle(issue, screen: screen, chrome: chrome)
     }
 
     // MARK: - Issues

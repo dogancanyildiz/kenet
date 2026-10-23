@@ -164,7 +164,10 @@ struct DayCopyTests {
             _ = try await second.store().mergingDayCopy(copy)
         }
         #expect(try first.tree() == second.tree())
-        for path in try first.tree().keys where path.hasPrefix("journal/") {
+        // Only the paths `cases.json` gives a time are compared: the others keep the copy's wall-clock
+        // time, which differs between the two vaults whenever their writes straddle a second boundary.
+        for path in first.cases.times.keys.sorted()
+        where FileManager.default.fileExists(atPath: first.url(path).path) {
             #expect(try first.time(path) == second.time(path), "\(path)")
         }
         let copy = "journal/2026-10-02 2.md"

@@ -4,7 +4,7 @@
 
 **Kapsam:**
 
-- Aşama 0–15'in maddeleri ve kutuları
+- Aşama 0–16'nın maddeleri ve kutuları
 - Gerçek kullanım ölçütleri ve kullanıcı kararı bekleyen konular
 - Sonraki fikirler
 
@@ -18,7 +18,7 @@ Aşama 11'in kimlikleri 2026-10-21'de karara bağlandı. Kasa konumu, ana ekran 
 
 ```mermaid
 timeline
-    title Aşama durumları, 2026-10-22
+    title Aşama durumları, 2026-10-23
     section Teknik kapsam tamam
         Aşama 0 Temel : Çıkış ölçütü sağlandı
         Aşama 1 Günlük : Gerçek kullanım başlamadı
@@ -36,16 +36,17 @@ timeline
         Aşama 8 Sağlamlaştırma : 28 kutu bitti : 1 kutu açık
         Aşama 11 Kimlik, eşitleme ve widget'lar : Aktif aşama : 6 kutu bitti : 4 kutu açık
         Aşama 13 Uyarlanır düzen : Duo kabuğu ve iPad bitti : 4 kutu bitti : 2 kutu açık
+        Aşama 16 İlişkiler ve Graph : 2 kutu bitti : 1 kutu açık
     section Hazırlık sürüyor
         Aşama 12 Yayın : 4 kutu açık
 ```
 
-**123 kutunun durumu:**
+**126 kutunun durumu:**
 
 ```mermaid
 pie title Kutular
-    "Bitti" : 112
-    "Açık" : 11
+    "Bitti" : 114
+    "Açık" : 12
 ```
 
 | İşaret | Anlamı |
@@ -53,7 +54,7 @@ pie title Kutular
 | `[x]` | Kod `dev` dalında, testlerden ve CI'dan geçti. CI, sürekli bütünleştirme demektir. |
 | `[ ]` | Madde açık. Durum tablosu kalan işi söyler. |
 
-**Durum (2026-10-22).** Aşama 0–10, 14 ve 15'in teknik maddeleri `dev` dalındadır. Aşama 11'in 10 maddesinden 6'sı bitti. İlk sürüm `v0.9.0` `main` dalındadır. TestFlight'ta dahili test sürüyor. Aşamaların gerçek kullanım ölçütleri henüz ölçülmedi; "Gerçek kullanım ölçütleri" tablosu ölçütleri ayrıca izler.
+**Durum (2026-10-23).** Aşama 0–10, 14 ve 15'in teknik maddeleri `dev` dalındadır. Aşama 11'in 10 maddesinden 6'sı bitti. İlk sürüm `v0.9.0` `main` dalındadır. TestFlight'ta iPhone/iPad ve Mac için dahili test sürüyor. Aşama 16 açıldı; olay düzeyinde bağ (W1, #333) ve paragraf segmentleri (W1a, #334) `dev` dalındadır; günün grafiği ve açık ilişkiler açıktır. Aşamaların gerçek kullanım ölçütleri henüz ölçülmedi; "Gerçek kullanım ölçütleri" tablosu ölçütleri ayrıca izler.
 
 Ekim 2026'da çok modelli bir heyet projeyi inceledi. Heyet 4 iş yaptı: kod ve mimari denetimi, ekran görüntülü kullanım gezisi, sektör taraması, tasarım dili araştırması. İnceleme gerçek hatalar, ölçek sorunları ve vaatle uyuşmayan yerler buldu. Bu nedenle heyetten sonraki ilk iş yeni özellik değil, sağlamlaştırmaydı. Aşama 8 ve sonraki aşamalar heyetin önerdiği sırayı izler; kullanıcı onayı kapsamı ve sırayı kesinleştirir.
 
@@ -235,14 +236,14 @@ Aşama 10 sektör taramasından çıkan ilk dalgadır. Maddeler kimlik kararı g
 | Paylaşım uzantısı | Bitti, iOS. Metin ve Safari bağlantısı tek olay olur. iCloud kasasında uzantı gün dosyasına kendisi yazar; öteki durumlarda metin App Group kuyruğunda bekler ve uygulama açılınca işlenir. Mac uzantısı ve görsel paylaşımı kapsam dışı. | #324 |
 | Sistemin günlük önerileri | Bitti, iPhone. Hızlı girişte seçici; öneri metne dönüşür, kullanıcı gönderir. Cihaz denemesi bekliyor: yetki ve App ID yeteneği yalnız imzalı yapıda görülür. | #320 |
 
-Kimlik gerektirmeyen dilimler Aşama 10 ile birlikte yürüdü ve bitti. Karar günlüğü bu sırayı 2026-10-12'de kaydetti. Kimlikler 2026-10-21'de geldi; kimliğe bağlı ilk dalga 2026-10-22'de bitti. Kilit ekranı, hızlı giriş ve Mac widget'ları sonraki dalgadır. Güvenli yazmanın kalanı kullanıcının cihaz denemesini bekler. İşaretli maddelerin gerçek cihaz denemesi kullanıcıdadır.
+Kimlik gerektirmeyen dilimler Aşama 10 ile birlikte yürüdü ve bitti. Karar günlüğü bu sırayı 2026-10-12'de kaydetti. Kimlikler 2026-10-21'de geldi; kimliğe bağlı ilk dalga 2026-10-22'de bitti. Kilit ekranı, hızlı giriş ve Mac widget'ları sonraki dalgadır. Güvenli yazmanın kalanı kullanıcının cihaz denemesini bekler. İşaretli maddelerin gerçek cihaz denemesi kullanıcıdadır. Mac TestFlight denemesi 2026-10-22'de başladı (#328).
 
-**Dalga 22 ve 23'te birleşen PR'lar, 2026-10-21 ve 2026-10-22:**
+**Dalga 22, 23 ve 24'te birleşen PR'lar, 2026-10-21'den 2026-10-23'e:**
 
 | Dalga | İş | PR |
 |---|---|---|
 | 22 | Mac görüntü kümeleri haftalık iş akışında; Mac referansları CI'da kaydedilir | #304, #310, #315, #316, #321, #322, #323 |
-| 22 | Görüntü referansı sayısı ve boyutu için tavan denetimi | #305 |
+| 22 | Görüntü referansı sayısı ve boyutu için tavan denetimi; tavan 320 (2026-10-23) | #305 |
 | 22 | Bildirim içeriği varsayılan gizli | #306, #311 |
 | 22 | Erişilebilirlik boyutunda kenar çubuğu satırı yalnız ad | #307 |
 | 22 | Zincir günü: her 7 yapılmış gün 1 gün; şerit, liste, ayrıntı ve ısı haritası | #308, #312 |
@@ -255,6 +256,11 @@ Kimlik gerektirmeyen dilimler Aşama 10 ile birlikte yürüdü ve bitti. Karar g
 | 23 | Hızlı girişte günlük önerileri seçicisi | #320 |
 | 23 | Paylaşım uzantısı | #324 |
 | 23 | Widget içinden işaretleme ve yenileme güvenilirliği | #325 |
+| 24 | Mac TestFlight yolu | #328 |
+| 24 | Mac uygulaması paketinin Kenet.app adı | #329 |
+| 24 | Kanban sütun önbelleği; karesel yeniden hesap kalktı | #330 |
+| 24 | Mac tarama sigortası | #331 |
+| 24 | Mac sabit manşet satırı ve Günlük sütunu bağlantıları | #332 |
 
 - [x] Kasa konumu: iCloud kapsayıcısı; yerel kasa yedek seçenek olarak kalır. Madde Aşama 0'dan devretti.
 - [ ] Eşitlenen kasada güvenli yazma: dosya koordinasyonu, cihaza inmemiş dosyalar, çakışan sürümleri tespit, birleştirme işlevini bağlama, kopya dosya kuralı, eşitleme durumu göstergesi.
@@ -352,6 +358,24 @@ Kullanıcı 2026-10-16'da TestFlight 249 denemesinden sonra dört sorun bildirdi
 - [x] Şablonlar ve bağlam menüsü: yeni hedef sheet'inde ad alanının altında 15 hazır hedef (yazdıkça süzülür; yalnız formu doldurur, dosya biçimi değişmez, simge yalnız listede). Ayarlar'da ve Kişiler ve Konumlar listesinde 10 hazır varlık tipi galerisi (`types.json` biçiminde, Türkçe alan anahtarları) ve özel tip için "Yeni <tip>" satırı. Kişi, konum, özel varlık ve hedef satırlarında uzun basma menüsü: Düzenle, Bağlantıyı kopyala, Sil; hedefte Bugünü işaretle ya da Miktar gir. Kullanıcı 2026-10-17'de onayladı; araştırma raporu depo dışında.
 
 **Çıkış ölçütü:** Dört davranış iPhone'da görüntü ve birim testiyle korunur; silme yolları Core testleriyle sınanır; kullanıcı TestFlight'ta doğrular.
+
+## Aşama 16: İlişkiler ve Graph
+
+| Madde | Durum | Kanıt |
+|---|---|---|
+| Olay düzeyinde bağ | Bitti. Kasa biçimi ve indeks şeması değişmez. | #333, #334, `Fixtures/vaults/graph/` |
+| Günün grafiği | Bitti. Gün kipi `GraphScope.day`, `VaultIndex.dayGraphMentions`; ana Graph'ta özel tip süzgeci ve gün katmanı dönem geçişi; 5 yıllık ölçüm PR açıklamasında. | #337 |
+| Açık ilişkiler | Açık. Kasa biçimi önce `vault-format.md` belgesine girer. | - |
+
+Kullanıcı 2026-10-22'de Graph'ın aynı günün farklı olaylarındaki kişi ve konumları birbirine bağladığını bildirdi. Kullanıcı her günün kendi grafiğini ve varlık sayfasından elle bağ kurmayı istedi. Maddeler kimlik ya da cihaz kararı gerektirmez; bu yüzden Aşama 11 ile birlikte yürür. Başlamak kullanıcı onayına bağlıdır. Araştırma raporu depo dışındadır.
+
+- [x] Olay düzeyinde bağ: Graph iki varlığı yalnız gün dosyasının aynı bloğunda birlikte geçtiklerinde bağlar. Blok olay satırı ve alt satırları, görev satırı ya da paragraftır. Aynı günün farklı olayları kenar üretmez; gün ilişkisini gün düğümü gösterir. Kenar ağırlığı ortak bloğu olan farklı gün sayısıdır. Hesap Core'dadır ve yeni fixture kasasıyla sınanır. Ad tanımadaki bağlam puanı ve içgörü kartının "o gün" listesi gün düzeyinde kalır.
+- [x] Günün grafiği: gün ekranının manşet satırındaki Graph simgesi o günün grafiğini açar. Ortada gün düğümü durur; o gün geçen her kişi, konum ve özel tip varlığı gün düğümüne bağlanır. Aynı bloktaki varlıklar arasında olay bağı çizilir. Ana Graph'ta gün katmanı süzgeçte kalır ve özel tipler süzgece girer. Gün katmanının maliyeti 5 yıllık sentetik kasada ölçülür.
+- [ ] Açık ilişkiler: kişi, konum ve özel tip ekranında "Bağlar" bölümü ve "Bağ kur" sheet'i. Uygulama etiketsiz bağı frontmatter'daki `related` listesine, etiketli bağı etiket adlı alana tırnaklı wikilink olarak yazar: `related: ["[[Selin Korkmaz]]"]`, `eşi: "[[Selin Korkmaz]]"`. Uygulama yalnız kaynak dosyaya yazar; karşı sayfa bağı gelen bağ olarak gösterir. Graph açık bağı ayrı çizgi biçimiyle çizer; dönem ve eşik açık bağı gizlemez. Obsidian'ın grafiği aynı bağı görür.
+
+W1a (#334): paragraftaki her madde satırı girintili devam satırlarıyla, her ardışık alıntı öbeği ve öteki ardışık satırlar ayrı birlikte geçme birimidir; girintisiz devam yeni segmenttir. iPhone Graph referansları (`graphLight`, `graphSelected`) yeniden kaydedildi; `graphSelected` odağı Deniz Arıkan'dır. Mac karşılıkları CI kaydındadır.
+
+**Çıkış ölçütü:** Aynı gün iki ayrı olayda geçen kişi ve konumlar Graph'ta birbirine bağlanmaz. Her gün kendi grafiğini açar. Kullanıcının varlık sayfasından kurduğu bağ Kenet'in Graph'ında ve Obsidian'ın grafiğinde görünür. Davranışlar Core fixture testleri ve iPhone görüntü testleriyle korunur.
 
 ## Sonraki fikirler
 

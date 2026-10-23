@@ -42,6 +42,8 @@ import VaultFormat
         filter.period = .all
         let withDays = GraphModel.compute(input: input, filter: filter, today: today)
         #expect(withDays.neighbors(of: book) == [GraphModel.dayNodeID(CalendarDate("2026-10-01")!)])
+        let dayNode = try #require(withDays.nodes.first { $0.id == GraphModel.dayNodeID(CalendarDate("2026-10-01")!) })
+        #expect(dayNode.name == TodayPresentation.dayTitles(today: today)(CalendarDate("2026-10-01")!))
         // People and places are read without asking for any type.
         let plain = try await context.store.computeGraphInput()
         #expect(plain.typeNames.isEmpty && !plain.entities.contains { $0.id == book })
@@ -68,6 +70,21 @@ import VaultFormat
         #expect(GraphView.initialFilter(scope: .all, focusKind: nil) == GraphFilter())
         let day = CalendarDate("2026-10-01")!
         #expect(GraphView.initialFilter(scope: .day(day), focusKind: nil).scope == .day(day))
+    }
+
+    /// "Graph'ta göster" follows the Graph's own type choices: built-in and custom types of the
+    /// catalog, nothing else.
+    @Test func graphLinkFollowsTheGraphTypeChoices() {
+        let book = EntityTypeDefinition(
+            id: "book", folder: "books", name: .init(tr: "Kitap", en: "Book"),
+            plural: .init(tr: "Kitaplar", en: "Books"), icon: "book")
+        let catalog = EntityTypeCatalog(types: [book])
+        #expect(EntityView.showsGraphLink(kind: "person", types: catalog))
+        #expect(EntityView.showsGraphLink(kind: "place", types: catalog))
+        #expect(EntityView.showsGraphLink(kind: "book", types: catalog))
+        #expect(!EntityView.showsGraphLink(kind: "book", types: EntityTypeCatalog()))
+        #expect(!EntityView.showsGraphLink(kind: "film", types: catalog))
+        #expect(!EntityView.showsGraphLink(kind: "goal", types: catalog))
     }
 
     @Test func customNodeSpeaksItsTypeName() {

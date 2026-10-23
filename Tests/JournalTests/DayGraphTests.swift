@@ -37,6 +37,12 @@ import VaultFormat
         #expect(Set(graph.nodes.map(\.id)) == [dayID, book, deniz, selin, kafe, ofis])
         #expect(graph.nodes.first { $0.id == book }?.kind == .custom("book"))
         #expect(graph.nodes.first { $0.id == dayID }?.kind == .day)
+        // Named as the day page's headline (menu, label, VoiceOver), never the ISO text.
+        let dayName = try #require(graph.nodes.first { $0.id == dayID }?.name)
+        #expect(dayName == TodayPresentation.dayTitles(today: second)(first) && dayName != first.description)
+        #expect(
+            !dayName.contains("2026")
+                && TodayPresentation.dayTitles(today: CalendarDate("2027-01-01")!)(first).contains("2026"))
         let typeName = EntityTypeChoices.choices(context.store.entityTypes).first { $0.id == "book" }?.name
         #expect(graph.nodes.first { $0.id == book }?.typeName == typeName)
         // The day is tied to all five; only the event pairs are tied to each other.

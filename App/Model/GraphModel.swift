@@ -79,7 +79,7 @@ struct GraphModel: Sendable {
     static func dayNodeID(_ date: CalendarDate) -> String { "day:" + date.description }
 
     static func compute(input: GraphInput, filter: GraphFilter, today: CalendarDate) -> Self {
-        if case .day(let date) = filter.scope { return computeDay(date, input: input) }
+        if case .day(let date) = filter.scope { return computeDay(date, input: input, today: today) }
         let days = input.days.filter {
             filter.period == .all || ($0.date <= today && today.ordinal - $0.date.ordinal < filter.period.rawValue)
         }
@@ -99,11 +99,12 @@ struct GraphModel: Sendable {
         // Entity links come from shared blocks (Core); a day node links to everything it mentions.
         var weights = GraphMentions.cooccurrenceWeights(days: days, including: ids)
         if filter.days {
+            let title = TodayPresentation.dayTitles(today: today)
             for day in days {
                 let id = dayNodeID(day.date)
                 nodes.append(
                     GraphNode(
-                        id: id, name: day.date.description, kind: .day,
+                        id: id, name: title(day.date), kind: .day,
                         count: day.mentions.values.reduce(0, +), date: day.date))
                 for member in day.mentions.keys where ids.contains(member) {
                     weights[GraphMentions.Pair(first: id, second: member)] = 1
@@ -119,7 +120,7 @@ struct GraphModel: Sendable {
     /// One day's graph: the day node and every entity the day mentions, whatever its kind, each
     /// tied to the day; entities sharing one of the day's blocks are tied to each other. Period,
     /// kind switches and the weight threshold do not apply. A day without a mention has no graph.
-    private static func computeDay(_ date: CalendarDate, input: GraphInput) -> Self {
+    private static func computeDay(_ date: CalendarDate, input: GraphInput, today: CalendarDate) -> Self {
         guard let day = input.days.first(where: { $0.date == date }) else { return Self(nodes: [], edges: []) }
         var nodes = input.entities.compactMap { entity in
             day.mentions[entity.id].map { node(for: entity, count: $0, typeNames: input.typeNames) }
@@ -130,7 +131,7 @@ struct GraphModel: Sendable {
         let id = dayNodeID(date)
         nodes.append(
             GraphNode(
-                id: id, name: date.description, kind: .day,
+                id: id, name: TodayPresentation.dayTitles(today: today)(date), kind: .day,
                 count: ids.reduce(0) { $0 + (day.mentions[$1] ?? 0) }, date: date))
         for member in ids { weights[GraphMentions.Pair(first: id, second: member)] = 1 }
         let edges = weights.map { GraphEdge(first: $0.key.first, second: $0.key.second, weight: $0.value) }

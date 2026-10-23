@@ -188,6 +188,28 @@ struct TodayPresentation: Sendable {
         return turkishMonthNames[month]
     }
 
+    /// The day page's headline format for many dates at once (Graph day nodes): one formatter per
+    /// year rule instead of one per date. The year shows for another year than `today`'s.
+    static func dayTitles(
+        today: CalendarDate, locale: Locale = .current, calendar: Calendar = .current
+    ) -> (CalendarDate) -> String {
+        let resolved = PresentationLocalization.resolvedLocale(locale)
+        func formatter(_ template: String) -> DateFormatter {
+            let formatter = DateFormatter()
+            formatter.locale = resolved
+            formatter.calendar = calendar
+            formatter.timeZone = calendar.timeZone
+            formatter.setLocalizedDateFormatFromTemplate(template)
+            return formatter
+        }
+        let thisYear = formatter("dMMMMEEEE")
+        let otherYear = formatter("dMMMMEEEEy")
+        return { date in
+            (date.year == today.year ? thisYear : otherYear).string(
+                from: LocalDay.instant(for: date, timeZone: calendar.timeZone))
+        }
+    }
+
     private static func dateText(
         _ date: CalendarDate, today: CalendarDate, locale: Locale, calendar: Calendar, headline: Bool
     ) -> String {

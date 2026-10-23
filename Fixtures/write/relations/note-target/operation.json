@@ -1,0 +1,11 @@
+{
+  "relation": {
+    "target": "Not",
+    "label": null,
+    "remove": false,
+    "error": "invalidTarget",
+    "extraFiles": {
+      "notes/Not.md": "Not\n"
+    }
+  }
+}

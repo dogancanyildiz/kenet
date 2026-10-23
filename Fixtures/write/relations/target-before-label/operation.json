@@ -1,0 +1,8 @@
+{
+  "relation": {
+    "target": "Olmayan",
+    "label": "name",
+    "remove": false,
+    "error": "invalidTarget"
+  }
+}

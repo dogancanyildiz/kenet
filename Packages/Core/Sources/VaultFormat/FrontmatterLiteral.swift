@@ -1,5 +1,7 @@
 /// A single value to write into the frontmatter.
 public enum FrontmatterLiteral: Hashable, Sendable {
+    /// An empty YAML value, preserving an existing null spelling when possible.
+    case null
     /// Text. It is quoted when it would mean something else to YAML unquoted.
     case text(String)
     /// `true` or `false`.
@@ -18,6 +20,7 @@ extension FrontmatterLiteral {
     /// How the value is written. Inside an inline list, text that contains list syntax is quoted too.
     func spelling(inFlow: Bool) throws(EditError) -> String {
         switch self {
+        case .null: return "null"
         case .text(let text):
             return PlainScalar.isSafe(text, inFlow: inFlow) ? text : QuotedScalar.encode(text)
         case .boolean(let value):
@@ -38,6 +41,7 @@ extension FrontmatterLiteral {
     /// ignoring a plus sign and trailing zeros of the fraction, so `20.029` matches `20.0290`.
     func matches(_ scalar: FrontmatterScalar) -> Bool {
         switch self {
+        case .null: return scalar.kind == .empty
         case .text(let text):
             return scalar.kind == .text && Syntax.exactlyEqual(scalar.text, text)
         case .boolean(let value):

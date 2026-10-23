@@ -1,0 +1,8 @@
+{
+  "relation": {
+    "target": "Selin Korkmaz",
+    "label": "e\u0001şi",
+    "remove": false,
+    "error": "invalidLabel"
+  }
+}

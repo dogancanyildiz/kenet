@@ -9,13 +9,11 @@
 
     /// The day's own graph on the graph fixture vault (`Fixtures/vaults/graph`, 2026-10-01: two
     /// people, two places and a custom type book around the day), and the day page's manşet with
-    /// its Graph icon.
+    /// its Graph icon. Light theme at the default size only: dark and AX3 belong to the
+    /// representative suites (docs/architecture.md, reference budget).
     enum DayGraphSnapshotCase: String, CaseIterable, Sendable {
-        case dayGraphLight, dayGraphDark, dayGraphAX3
+        case dayGraphLight
         case dayMastheadLight
-
-        var colorScheme: SnapshotColorScheme { self == .dayGraphDark ? .dark : .light }
-        var dynamicType: SnapshotDynamicType { self == .dayGraphAX3 ? .accessibility3 : .medium }
     }
 
     @MainActor @Suite("Day graph snapshots")
@@ -57,8 +55,8 @@
             .environment(\.openSearch, {})
             .environment(\.openSettings, {})
             await SnapshotHost.assertView(
-                colorScheme: snapshotCase.colorScheme,
-                dynamicType: snapshotCase.dynamicType,
+                colorScheme: .light,
+                dynamicType: .medium,
                 increaseContrast: false,
                 named: snapshotCase.rawValue,
                 store: store,

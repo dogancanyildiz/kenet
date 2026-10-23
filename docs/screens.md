@@ -217,7 +217,7 @@ Varsayılan yazı boyutunda hızlı giriş tek satırlı bir kapsüldür. Ölç�
 | Künye metni | Olayla başlar, kalanla biter: "3 olay · 4 görev ve 2 hedef kaldı". Sıfır olan parçayı yazmaz. Hiçbir şey yoksa satır yoktur. |
 | Gezinme çubuğu | Bugün sekmesi gezinme çubuğunu gizler. Geçmiş gün ekranı geri düğmesi için çubuğu tutar. |
 | Arama ve Ayarlar | Manşet satırının sağında durur. Ayarlar düğmesi yalnız telefondadır: `button.settings`. |
-| Günün grafiği | Manşet satırında Graph simgesi: Bugün'de Ayarlar ve aramanın solunda, geçmiş günde aramanın solunda. Satırda en çok 3 simge durur. Simge yalnız gün dosyası en az bir kişi, konum ya da özel tip varlığına çözülen bağlantı içerirken görünür. Mac'te sabit manşet şeridindedir. Dokunma o günün grafiğini açar: [Günün grafiği](#günün-grafiği). Kimlik `button.dayGraph`. |
+| Günün grafiği | Manşet satırında Graph simgesi: Bugün'de Ayarlar ve aramanın solunda, geçmiş günde aramanın solunda. Satırda en çok 3 simge durur. Simge yalnız gün dosyası en az bir kişi, konum ya da özel tip varlığına çözülen bağlantı içerirken görünür. Mac'te sabit manşet şeridindedir. Dokunma o günün grafiğini açar: [Günün grafiği](#günün-grafiği). Kimlik `button.dayGraph`. Graph simgesiyle satırda üç simge olunca manşet çoğu gün ölçek ya da kısa ay geri çekilmesine girer ("Dar genişlik" satırı): "1 Eki Perşembe". |
 | Büyük yazı boyutları | Erişilebilirlik yazı boyutlarında düğmeler manşetin üstünde, sağa yaslı ayrı bir satırdadır. |
 | Dar genişlik | Manşet önce tam biçimi dener. Gerekirse kısa ay biçimini ve en çok %75 ölçeği dener. |
 | VoiceOver | VoiceOver her zaman tam biçimi okur. `navigationTitle` VoiceOver ve geçmiş için yine tarih metnidir. |

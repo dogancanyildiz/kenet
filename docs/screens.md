@@ -929,7 +929,7 @@ Konumda koordinat, Alanlar tablosunda bir satırdır. Okuma ekranında harita yo
 | Sayfayı aç | Varlık düğümünde varlık ekranını açar. Gün düğümünde yoktur; kullanıcı o günden gelmiştir. |
 | Açıklama | "Gün, o gün geçen her kayda bağlanır. Öteki çizgiler aynı olayda geçen kayıtları bağlar." |
 | Boş gün | Simge görünmez. Grafik yine açılırsa "Gösterilecek düğüm yok" yazar. |
-| Erişilebilirlik | Ekran kimliği `screen.dayGraph`. VoiceOver düğümü ad, tür ve komşu sayısıyla okur; özel tipte tür, tipin kasadaki adıdır. |
+| Erişilebilirlik | Ekran kimliği `screen.dayGraph`. VoiceOver düğümü ad, tür ve komşu sayısıyla okur; özel tipte tür, tipin kasadaki adıdır. Gün düğümünün adı gün ekranının manşet biçimindedir ("1 Ekim Perşembe"; başka yılda yıl da yazılır); "Düğüm seç" menüsü ve ana Graph'ın gün katmanı aynı adı kullanır. |
 
 **Graph yerleşimi ve etkileşimi.**
 

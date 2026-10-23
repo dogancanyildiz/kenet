@@ -56,12 +56,14 @@ struct GraphCanvas: View {
                 .accessibilityElement(children: .contain)
                 .accessibilityLabel("Graph")
                 .accessibilityChildren {
+                    // Label-only elements: a text view here is laid out in the canvas's frame and
+                    // reported as clipped by the accessibility audit, though nothing draws it.
                     ForEach(GraphAccessibleNode.list(from: model.graph)) { node in
-                        Button {
-                            model.select(node.id, recenter: true)
-                        } label: {
-                            Text(verbatim: node.accessibilityLabel())
-                        }
+                        Color.clear
+                            .accessibilityElement()
+                            .accessibilityLabel(Text(verbatim: node.accessibilityLabel()))
+                            .accessibilityAddTraits(.isButton)
+                            .accessibilityAction { model.select(node.id, recenter: true) }
                     }
                 }
                 .highPriorityGesture(dragGesture(viewport))

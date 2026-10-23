@@ -44,20 +44,52 @@ extension VaultIndex {
     /// items, quote runs and prose runs (`ParagraphSegments`); the schema keeps one block.
     public func graphMentions(kinds: Set<String>) throws -> GraphMentions {
         guard !kinds.isEmpty else { return GraphMentions(totals: [:], days: []) }
-        let placeholders = Array(repeating: "?", count: kinds.count).joined(separator: ",")
-        struct BlockKey: Hashable {
-            let file: String
-            let ordinal: Int
-            var segment = 0
+        let rows = try graphRows(kinds: kinds, date: nil)
+        var days: [CalendarDate: [String: Int]] = [:]
+        // Same-date files share one day, so their groups merge and identical groups count once.
+        var groups: [CalendarDate: Set<[String]>] = [:]
+        for (text, mentions) in rows.mentionsByDate {
+            guard let date = CalendarDate(text) else { continue }
+            days[date, default: [:]].merge(mentions, uniquingKeysWith: +)
+            groups[date, default: []].formUnion(Self.graphGroups(rows.blocksByDate[text, default: [:]]))
         }
+        return GraphMentions(
+            totals: rows.totals,
+            days: days.map {
+                GraphMentions.Day(
+                    date: $0.key, mentions: $0.value,
+                    groups: groups[$0.key, default: []].sorted { $0.lexicographicallyPrecedes($1) })
+            }.sorted { $0.date < $1.date })
+    }
+
+    /// One block, or one segment of a multi-line day paragraph, of one file.
+    struct GraphBlockKey: Hashable {
+        let file: String
+        let ordinal: Int
+        var segment = 0
+    }
+
+    /// What both graph queries read, by the stored date text (parsed once per date by the caller).
+    struct GraphRows {
+        /// Entity file to its resolved incoming links from every file read.
         var totals: [String: Int] = [:]
-        // Day mentions and block members by the stored date text, parsed once per date rather than once per row.
-        var byDate: [String: [String: Int]] = [:]
-        var blocksByDate: [String: [BlockKey: Set<String>]] = [:]
+        var mentionsByDate: [String: [String: Int]] = [:]
+        var blocksByDate: [String: [GraphBlockKey: Set<String>]] = [:]
+    }
+
+    /// The one row walk of ``graphMentions(kinds:)`` and ``dayGraphMentions(on:kinds:)``: every
+    /// resolved link into an entity of `kinds` (`date` nil), or only those from `date`'s day files.
+    /// Day-file links are grouped by block, multi-line paragraphs by segment (`ParagraphSegments`).
+    func graphRows(kinds: Set<String>, date: CalendarDate?) throws -> GraphRows {
+        let placeholders = Array(repeating: "?", count: kinds.count).joined(separator: ",")
+        let oneDay = date == nil ? "" : "AND f.kind = 'day' AND f.date = ?"
+        var arguments = kinds.sorted()
+        if let date { arguments.append(date.description) }
+        var rows = GraphRows()
         // Segment ordinals per line of each multi-line paragraph, split once per block.
-        var segments: [BlockKey: [Int]] = [:]
+        var segments: [GraphBlockKey: [Int]] = [:]
         try database.read { db in
-            let rows = try Row.fetchCursor(
+            let cursor = try Row.fetchCursor(
                 db,
                 sql: """
                     SELECT l.resolvedFile, f.kind, f.date, l.file, l.block, b.kind, COUNT(*),
@@ -67,43 +99,32 @@ extension VaultIndex {
                     JOIN entities e ON e.file = l.resolvedFile
                     LEFT JOIN files f ON f.path = l.file
                     LEFT JOIN blocks b ON b.file = l.file AND b.ordinal = l.block
-                    WHERE e.kind IN (\(placeholders))
+                    WHERE e.kind IN (\(placeholders)) \(oneDay)
                     GROUP BY l.resolvedFile, l.file, l.block, offset
-                    """, arguments: StatementArguments(kinds.sorted()))
-            while let row = try rows.next() {
+                    """, arguments: StatementArguments(arguments))
+            while let row = try cursor.next() {
                 let target: String = row[0]
                 let count: Int = row[6]
-                totals[target, default: 0] += count
+                rows.totals[target, default: 0] += count
                 guard row[1] as String? == "day", let date = row[2] as String? else { continue }
-                byDate[date, default: [:]][target, default: 0] += count
+                rows.mentionsByDate[date, default: [:]][target, default: 0] += count
                 guard let ordinal = row[4] as Int?, let kind = row[5] as String?,
                     Self.graphGroupBlockKinds.contains(kind)
                 else { continue }
-                var key = BlockKey(file: row[3], ordinal: ordinal)
+                var key = GraphBlockKey(file: row[3], ordinal: ordinal)
                 if let offset = row[7] as Int?, let text = row[8] as String? {
                     let lines = segments[key] ?? ParagraphSegments.indices(in: text)
                     segments[key] = lines
                     key.segment = lines.indices.contains(offset) ? lines[offset] : 0
                 }
-                blocksByDate[date, default: [:]][key, default: []].insert(target)
+                rows.blocksByDate[date, default: [:]][key, default: []].insert(target)
             }
         }
-        var days: [CalendarDate: [String: Int]] = [:]
-        // Same-date files share one day, so their groups merge and identical groups count once.
-        var groups: [CalendarDate: Set<[String]>] = [:]
-        for (text, mentions) in byDate {
-            guard let date = CalendarDate(text) else { continue }
-            days[date, default: [:]].merge(mentions, uniquingKeysWith: +)
-            for members in blocksByDate[text, default: [:]].values where members.count >= 2 {
-                groups[date, default: []].insert(members.sorted())
-            }
-        }
-        return GraphMentions(
-            totals: totals,
-            days: days.map {
-                GraphMentions.Day(
-                    date: $0.key, mentions: $0.value,
-                    groups: groups[$0.key, default: []].sorted { $0.lexicographicallyPrecedes($1) })
-            }.sorted { $0.date < $1.date })
+        return rows
+    }
+
+    /// The sorted member sets of the blocks shared by at least two entities.
+    static func graphGroups(_ blocks: [GraphBlockKey: Set<String>]) -> Set<[String]> {
+        Set(blocks.values.filter { $0.count >= 2 }.map { $0.sorted() })
     }
 }

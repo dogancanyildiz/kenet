@@ -58,6 +58,9 @@ struct DayView: View {
     /// A goal page pushed from the strip, on this page's stack (the Today tab's on iPhone, the
     /// detail column's on the Mac).
     @State private var goalDestination: GoalDetailRoute?
+    /// Whether the day's own graph has a node besides the day, as of the day it was queried for.
+    @State private var dayGraph: (date: CalendarDate, isOffered: Bool)?
+    @State private var showsDayGraph = false
 
     init(store: IndexStore, date: CalendarDate, isToday: Bool = false) {
         self.store = store
@@ -189,10 +192,13 @@ struct DayView: View {
             let revision = goalModel.currentRevision()
             async let day = store.computeDay(on: date)
             async let goals = store.computeGoalStatuses(today: date)
+            async let graph = store.computeDayGraphInput(on: date)
             let loaded = try? await day
             let statuses = try? await goals
+            let graphInput = try? await graph
             guard !Task.isCancelled else { return }
             if let loaded { loadedDay = loaded }
+            if let graphInput { dayGraph = (date, DayGraphEntry.isOffered(graphInput, on: date)) }
             if let statuses {
                 loadedGoals = (date, statuses.map(\.definition), TodayPresentation.goalStatuses(statuses))
                 goalModel.answerShown(askedAt: revision)
@@ -209,6 +215,9 @@ struct DayView: View {
             tasksModel = DayTasksModel(store: store, day: newDate, isToday: isToday)
             isCarriedOverExpanded = false
             isCompletedExpanded = false
+        }
+        .navigationDestination(isPresented: $showsDayGraph) {
+            GraphView(store: store, scope: .day(date))
         }
         .navigationDestination(item: $goalDestination) { route in
             // As the Goals list opens it: the page's own day is today.
@@ -264,13 +273,22 @@ struct DayView: View {
             })
     }
 
-    /// Manşet row: Settings (Today, phone only) then search, rightmost. A past day keeps only
-    /// search; its bar holds nothing but the back button.
+    /// Manşet row: the day's graph (while the day links an entity), Settings (Today, phone only),
+    /// then search, rightmost. A past day keeps the graph and search; its bar holds nothing but the
+    /// back button.
     private func headlineBlock(_ presented: TodayPresentation) -> some View {
         InkPageHeader(
             verbatim: presented.headline, shortTitle: presented.shortHeadline,
             byline: day == nil ? nil : presented.byline, fitsOneLine: isToday
         ) {
+            if let dayGraph, dayGraph.date == date, dayGraph.isOffered {
+                InkHeaderAction(
+                    "Günün grafiği", systemImage: "point.3.connected.trianglepath.dotted",
+                    identifier: "button.dayGraph"
+                ) {
+                    showsDayGraph = true
+                }
+            }
             if isToday, let openSettings {
                 InkHeaderAction("Ayarlar", systemImage: "gearshape", identifier: "button.settings") {
                     openSettings()
@@ -382,5 +400,15 @@ struct TodayView: View {
         TimelineView(.periodic(from: .now, by: 60)) { _ in
             DayView(store: store, date: LocalDay.today(at: clockNow()), isToday: true)
         }
+    }
+}
+
+/// When the day page offers its own graph (the manşet's Graph icon).
+enum DayGraphEntry {
+    /// Pure rule (unit-tested): the day links at least one entity, so its graph has a node besides
+    /// the day itself.
+    static func isOffered(_ input: GraphInput, on date: CalendarDate) -> Bool {
+        let graph = GraphModel.compute(input: input, filter: GraphFilter(scope: .day(date)), today: date)
+        return graph.nodes.contains { $0.kind != .day }
     }
 }

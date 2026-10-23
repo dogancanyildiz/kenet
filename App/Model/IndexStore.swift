@@ -974,13 +974,16 @@ final class IndexStore {
 
     /// Graph nodes from the read model's entities, link counts queried from the index on demand.
     /// Belongs to this vault generation; with no index open, as with an empty read model, it is empty.
-    func computeGraphInput() async throws -> GraphInput {
+    /// - Parameter customTypes: Custom entity types read besides people and places, by type ID.
+    func computeGraphInput(customTypes: Set<String> = []) async throws -> GraphInput {
         let seam: QuerySeam = \.testingGraphQueryDidFinish
+        let typeNames = graphTypeNames(customTypes)
+        let kinds = GraphInput.kinds.union(typeNames.keys)
         let mentions: GraphMentions? = try await indexQuery(seam: seam, whenClosed: .empty(nil)) {
-            try $0.graphMentions(kinds: GraphInput.kinds)
+            try $0.graphMentions(kinds: kinds)
         }
         guard let mentions else { return GraphInput() }
-        return GraphInput(entities: content.entities, mentions: mentions)
+        return GraphInput(entities: content.entities, mentions: mentions, typeNames: typeNames)
     }
 
     // MARK: - Entity timeline query
@@ -1620,5 +1623,35 @@ extension IndexStore {
         case .local: return .local
         case .selected: return .selected
         }
+    }
+}
+
+// MARK: - Day graph
+
+extension IndexStore {
+    /// One day's graph input: people, places and every custom type of the vault, linked from that
+    /// date's day files, queried on demand (`VaultIndex.dayGraphMentions`). Belongs to this vault
+    /// generation; with no index open it is empty.
+    func computeDayGraphInput(on date: CalendarDate) async throws -> GraphInput {
+        let typeNames = graphTypeNames(Set(entityTypes.types.map(\.id)))
+        let kinds = GraphInput.kinds.union(typeNames.keys)
+        let day: GraphMentions.Day? = try await indexQuery(
+            seam: \.testingGraphQueryDidFinish, whenClosed: .empty(nil)
+        ) {
+            try $0.dayGraphMentions(on: date, kinds: kinds)
+        }
+        guard let day, !day.mentions.isEmpty else { return GraphInput() }
+        return GraphInput(
+            entities: content.entities, mentions: GraphMentions(totals: day.mentions, days: [day]),
+            typeNames: typeNames)
+    }
+
+    /// Singular names of the vault's custom types among `ids`; unknown IDs are dropped.
+    fileprivate func graphTypeNames(_ ids: Set<String>) -> [String: String] {
+        guard !ids.isEmpty else { return [:] }
+        return Dictionary(
+            EntityTypeChoices.choices(entityTypes).filter { ids.contains($0.id) && !GraphInput.kinds.contains($0.id) }
+                .map { ($0.id, $0.name) }
+        ) { first, _ in first }
     }
 }

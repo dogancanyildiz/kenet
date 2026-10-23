@@ -71,11 +71,14 @@ jobs:
       - name: Derle ve test et
         run: swift test --package-path Packages/Core -Xswiftc -warnings-as-errors
 
-  # macOS koşucusu sınırlı (aynı anda en çok 5 iş): Core'un macOS testleri, ölçek bütçesi ve Mac
-  # uygulama testleri tek işte sırayla koşar. Core düşse de Mac testleri koşar; iki sonuç birlikte
-  # görünür. Mac testleri iki saat diliminde koşar (olay saati / gün kayması); ikinci saat dilimi ve
-  # ölçek bütçesi yalnız dev'e birleşince. İmza yok (CODE_SIGNING_ALLOWED=NO); runner'da sertifika
-  # bulunmaz. Süre: PR ~14, itme ~21 dk (tahmin); iş sınırı bunun ~1,5 katı.
+  # macOS koşucusu sınırlı (aynı anda en çok 5 iş): Core'un Darwin'e özgü testleri, ölçek bütçesi ve
+  # Mac uygulama testleri tek işte sırayla koşar. Core düşse de Mac testleri koşar; iki sonuç birlikte
+  # görünür. Core'un tamamı Linux işinde koşar (yetkili); burada yalnız `#if os(macOS)` /
+  # `canImport(Darwin)` dalı olan kümeler koşar (2026-10-23 kısaltması). Mac testleri iki saat
+  # diliminde koşar (olay saati / gün kayması): UTC tam; Pacific/Auckland PR'da yalnız saat dilimine
+  # duyarlı kümeler (timezone-suites.sh), dev'e itmede tam. Ölçek bütçesi yalnız dev'e birleşince.
+  # İmza yok (CODE_SIGNING_ALLOWED=NO); runner'da sertifika bulunmaz. Süre: PR ~18, itme ~26 dk
+  # (tahmin); iş sınırı bunun ~1,5 katı.
   app-macos:
     name: Uygulama (macOS ve Core)
     needs: changes
@@ -105,10 +108,13 @@ jobs:
       - name: Projeyi üret
         id: project
         run: xcodegen generate
-      - name: Core testleri
+      - name: Core testleri (yalnız Darwin dalı olan kümeler)
         if: ${{ !cancelled() }}
         timeout-minutes: 15
-        run: swift test --package-path Packages/Core -Xswiftc -warnings-as-errors
+        # Liste: grep -lE '#if os\(macOS\)|canImport\(Darwin\)|#if os\(Linux\)' Packages/Core/Tests -r
+        run: >
+          swift test --package-path Packages/Core -Xswiftc -warnings-as-errors
+          --filter 'NotificationPathTests|ScopedScanTests|AtomicWriteDurabilityTests|PersistenceRegressionTests|CoordinatedReadQueueTests'
       # 5 yıllık sentetik kasada süre bütçeleri. Paylaşılan runner'larda kırılgan olduğu için kapı
       # değildir: adım düşse de iş geçer. Core testlerinin .build klasörünü kullanır.
       - name: Ölçek bütçesi (isteğe bağlı)
@@ -131,13 +137,21 @@ jobs:
         # Mac görüntü kümeleri yalnız yerelde koşar (bkz. snapshot-suites.sh).
         run: xcodebuild test -project Journal.xcodeproj -scheme Journal_macOS -destination 'platform=macOS,arch=arm64' $(sh .github/scripts/snapshot-suites.sh --mac | sed 's#^#-skip-testing:JournalTests_macOS/#' | tr '\n' ' ') -resultBundlePath MacTests.xcresult CODE_SIGNING_ALLOWED=NO -quiet
       # PR kapısında da koşar: gün kayması hatası yalnız dev'e itmede yakalanıyordu (2026-10-20 incelemesi).
+      # PR'da yalnız saat dilimine duyarlı kümeler (timezone-suites.sh, ~2 dk); dev'e itmede tam küme
+      # (~8 dk): kaçan bir gün kayması dev'de yine görülür.
       - name: macOS testleri (Pacific/Auckland)
         id: mac_auckland
         timeout-minutes: 15
         env:
           TZ: Pacific/Auckland
           TEST_RUNNER_KENET_REQUIRE_AX: "1"
-        run: xcodebuild test-without-building -project Journal.xcodeproj -scheme Journal_macOS -destination 'platform=macOS,arch=arm64' $(sh .github/scripts/snapshot-suites.sh --mac | sed 's#^#-skip-testing:JournalTests_macOS/#' | tr '\n' ' ') -resultBundlePath MacTestsAuckland.xcresult CODE_SIGNING_ALLOWED=NO -quiet
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
+            SELECTION=$(sh .github/scripts/timezone-suites.sh | sed 's#^#-only-testing:JournalTests_macOS/#' | tr '\n' ' ')
+          else
+            SELECTION=$(sh .github/scripts/snapshot-suites.sh --mac | sed 's#^#-skip-testing:JournalTests_macOS/#' | tr '\n' ' ')
+          fi
+          xcodebuild test-without-building -project Journal.xcodeproj -scheme Journal_macOS -destination 'platform=macOS,arch=arm64' $SELECTION -resultBundlePath MacTestsAuckland.xcresult CODE_SIGNING_ALLOWED=NO -quiet
       # Düşen beklentinin ölçülen değerleri -quiet günlüğünde görünmez; paket gösterir. İptal edilen
       # koşuda yüklenmez (boş paket üretiyordu).
       - name: macOS test sonuç paketi (yalnız düşünce)
@@ -159,15 +173,15 @@ jobs:
   # yeniden denemeyi de sınırlar. Bir test adımı düşse de aynı simülatördeki sonraki adımlar koşar:
   # bütün sonuçlar ve fark paketleri birlikte görünür.
   #
-  # iPhone: birim testleri, görüntü kümeleri, arayüz dumanı. Arayüz dumanı yeni açılmış simülatörde
-  # 2,3 kat yavaş koştu (682 sn, ısınmış simülatörde 243-427); birim testlerinden sonra koşunca bu
-  # bedel bir kez ödenir. Süre ~26-30 dk (tahmin); iş sınırı ~1,5 katı.
+  # iPhone: birim testleri ve görüntü kümeleri. Arayüz dumanı ayrı işte koşar (app-iphone-ui): aynı
+  # runner'da art arda 30 dk sürüyordu ve kritik yoldu; iki runner'da ~20 dk (2026-10-23 kısaltması).
+  # Süre ~20 dk (tahmin); iş sınırı ~1,5 katı.
   app-iphone:
     name: Uygulama (iPhone)
     needs: changes
     if: needs.changes.outputs.docs_only != 'true'
     runs-on: macos-26
-    timeout-minutes: 45
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
       - name: Derle
@@ -264,11 +278,30 @@ jobs:
             Tests/JournalTests/Snapshots/__Snapshots__
           if-no-files-found: warn
           retention-days: 7
+  # iPhone arayüz dumanı (JournalUITests): kendi runner'ında kendi derlemesi ve simülatörüyle. Yeni
+  # açılmış simülatörde ilk koşu yavaştır (~10 dk); yine de birim testlerinin ardına eklenmekten kısa.
+  # Erişilebilirlik denetimleri de bu kümededir; PR kapısıdır. Süre ~16 dk (tahmin); iş sınırı ~1,5 katı.
+  app-iphone-ui:
+    name: Uygulama (iPhone arayüz)
+    needs: changes
+    if: needs.changes.outputs.docs_only != 'true'
+    runs-on: macos-26
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+      - name: Derle
+        id: build
+        uses: ./.github/actions/ios-build
+        with:
+          family: iphone
+      - name: iPhone simülatörü aç
+        id: ios_boot
+        timeout-minutes: 10
+        run: xcrun simctl bootstatus "${{ steps.build.outputs.udid }}" -b
       # Test başına sınır (XCTest, dakikaya yuvarlanır): sessiz asılma adımı öldürmek yerine test
       # adıyla düşer. En uzun arayüz testi CI'da ~2,5 dk (iPad erişilebilirlik denetimi 141 sn).
       - name: iOS arayüz dumanı
         id: ios_ui
-        if: ${{ !cancelled() && steps.ios_boot.outcome == 'success' }}
         timeout-minutes: 20
         run: |
           sh .github/scripts/xcodebuild-retry.sh "${{ steps.build.outputs.udid }}" test-without-building \
@@ -413,7 +446,7 @@ jobs:
   ci:
     name: ci
     if: ${{ always() && (github.event_name == 'pull_request' || !cancelled()) }}
-    needs: [changes, core-linux, app-macos, app-iphone, app-ipad, lint]
+    needs: [changes, core-linux, app-macos, app-iphone, app-iphone-ui, app-ipad, lint]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:

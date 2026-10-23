@@ -1,6 +1,7 @@
 import Foundation
 import Testing
 import VaultFormat
+import VaultIndex
 
 @testable import Journal
 
@@ -10,18 +11,25 @@ import VaultFormat
 @MainActor struct DayGraphMeasureTests {
     @Test(.enabled(if: ProcessInfo.processInfo.environment["MEASURE_READ_MODEL"] == "1"))
     func fiveYearDayLayerAndDayGraphCost() async throws {
-        let context = try TaskTestContext()
-        defer { context.clean() }
-        let manifest = try SyntheticVault.generate(at: context.root, configuration: .fiveYears)
-        await context.start()
-        #expect(context.store.lastUpdated != nil)
-        let today = manifest.endDate
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(
+            "day-graph-measure-" + UUID().uuidString, isDirectory: true)
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        // The index is closed (released at the end of `measure`) before its vault folder goes.
+        defer { try? FileManager.default.removeItem(at: root) }
+        let manifest = try SyntheticVault.generate(at: root, configuration: .fiveYears)
+        try measure(root: root, today: manifest.endDate)
+    }
+
+    private func measure(root: URL, today: CalendarDate) throws {
+        let index = try VaultIndex()
+        try index.rebuild(vaultRoot: root)
+        let entities = VaultReadModel(snapshot: try index.snapshot(), today: today).entities
         var lines = [
             "MEASURE_READ_MODEL day graph fiveYears (case | nodes | edges | query ms | compute ms | layout ms):"
         ]
 
         let queryStart = DispatchTime.now()
-        let input = try await context.store.computeGraphInput()
+        let input = GraphInput(entities: entities, mentions: try index.graphMentions(kinds: GraphInput.kinds))
         let queryMs = milliseconds(since: queryStart)
         var quarter = GraphFilter()
         quarter.setDays(true)
@@ -43,7 +51,8 @@ import VaultFormat
         }
 
         let dayStart = DispatchTime.now()
-        let dayInput = try await context.store.computeDayGraphInput(on: today)
+        let day = try index.dayGraphMentions(on: today, kinds: GraphInput.kinds)
+        let dayInput = GraphInput(entities: entities, mentions: GraphMentions(totals: day.mentions, days: [day]))
         let dayQueryMs = milliseconds(since: dayStart)
         let computeStart = DispatchTime.now()
         let dayGraph = GraphModel.compute(input: dayInput, filter: GraphFilter(scope: .day(today)), today: today)

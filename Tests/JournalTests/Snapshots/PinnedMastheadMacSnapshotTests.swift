@@ -24,7 +24,7 @@
         private static let columnHeight: CGFloat = 500
         private static let day = CalendarDate("2026-09-25")!
 
-        @Test(arguments: ["dayAtRestMacLight", "dayScrolledMacLight", "dayScrolledMacDark"])
+        @Test(arguments: ["dayAtRestMacLight", "dayScrolledMacLight"])
         func dayPage(_ name: String) async throws {
             let context = try TaskTestContext(sample: true)
             defer { context.clean() }

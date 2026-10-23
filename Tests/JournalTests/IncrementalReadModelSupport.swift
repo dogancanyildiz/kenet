@@ -106,8 +106,9 @@ enum IncrementalReadModelVault {
 extension GraphInput {
     /// The graph rebuilt from the index snapshot instead of the Core query: the oracle the query is
     /// compared with. Links from every file count; day mentions only from day files (the read
-    /// model's construction before the query existed). Groups apply the same-block rule
-    /// independently: entities sharing an event, task or paragraph block of a day file.
+    /// model's construction before the query existed). Groups are an independent build of the block
+    /// rule over the snapshot: entities sharing an event or task block, or one segment
+    /// (`ParagraphSegments`) of a paragraph block, of a day file.
     init(snapshot: IndexSnapshot, entities: [EntitySummary]) {
         self.init()
         self.entities = entities.filter { Self.kinds.contains($0.kind) }
@@ -123,16 +124,29 @@ extension GraphInput {
             totals[target, default: 0] += 1
             if let date = dates[link.file] { days[date, default: [:]][target, default: 0] += 1 }
         }
-        var members: [String: [Int: Set<String>]] = [:]
+        struct Entry: Hashable {
+            let date: CalendarDate
+            let file: String
+            let block: Int
+            let segment: Int
+        }
+        let blocks = Dictionary(grouping: snapshot.blocks, by: \.file).mapValues {
+            Dictionary(uniqueKeysWithValues: $0.map { ($0.ordinal, $0) })
+        }
+        var members: [Entry: Set<String>] = [:]
         for link in snapshot.links {
-            guard let block = link.block, let target = link.resolvedFile, known.contains(target) else { continue }
-            members[link.file, default: [:]][block, default: []].insert(target)
+            guard let ordinal = link.block, let target = link.resolvedFile, known.contains(target),
+                let date = dates[link.file], let block = blocks[link.file]?[ordinal],
+                ["event", "task", "paragraph"].contains(block.kind)
+            else { continue }
+            let segment =
+                block.kind == "paragraph"
+                ? ParagraphSegments.index(ofLine: link.line - block.firstLine, in: block.text) : 0
+            members[Entry(date: date, file: link.file, block: ordinal, segment: segment), default: []].insert(target)
         }
         var groups: [CalendarDate: Set<[String]>] = [:]
-        for block in snapshot.blocks where ["event", "task", "paragraph"].contains(block.kind) {
-            guard let date = dates[block.file], let entities = members[block.file]?[block.ordinal], entities.count >= 2
-            else { continue }
-            groups[date, default: []].insert(entities.sorted())
+        for (entry, entities) in members where entities.count >= 2 {
+            groups[entry.date, default: []].insert(entities.sorted())
         }
         self.days = days.map {
             Day(

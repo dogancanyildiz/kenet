@@ -2,11 +2,12 @@
 # Görüntü referansı tavanı (karar 61): Tests/**/__Snapshots__/**/*.png en çok MAX_COUNT dosya ve
 # MAX_MB MiB olabilir. Her referans git geçmişine ebediyen girer (815 blob, 132 MB ölçüldü);
 # tavan, yeni vakanın bedelini görünür kılar. Tavan 2026-10-21 ölçümü: 261 dosya, 50,8 MiB;
-# dosya 300, boyut bugünkü +%20 (61 MiB). Aşınca listeyle düşer.
+# dosya 300, boyut bugünkü +%20 (61 MiB). 2026-10-23: Mac sabit manşet ve günün grafiği referanslarıyla
+# dosya tavanı 320 (kullanıcı kararı; temsilci olmayan koyu/AX3 vakaları budandı). Aşınca listeyle düşer.
 # Kullanım: sh .github/scripts/check-snapshot-budget.sh [kök]   (SNAPSHOT_MAX_COUNT, SNAPSHOT_MAX_MB)
 set -eu
 ROOT="${1:-$(dirname "$0")/../..}"
-MAX_COUNT="${SNAPSHOT_MAX_COUNT:-300}"
+MAX_COUNT="${SNAPSHOT_MAX_COUNT:-320}"
 MAX_MB="${SNAPSHOT_MAX_MB:-61}"
 
 [ -d "$ROOT/Tests" ] || { echo "Tests klasörü bulunamadı: $ROOT" >&2; exit 1; }

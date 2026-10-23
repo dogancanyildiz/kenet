@@ -33,7 +33,9 @@ import VaultFormat
         let graph = GraphModel.compute(input: input, filter: filter, today: today)
         let node = try #require(graph.nodes.first { $0.id == book })
         #expect(node.kind == .custom("book") && node.count == 1)
-        #expect(graph.nodes.count == 5)
+        // People and places as without the type, plus the book.
+        #expect(
+            graph.nodes.count == GraphModel.compute(input: input, filter: GraphFilter(), today: today).nodes.count + 1)
         // The book shares no block: no entity edge, but the day layer ties it to its day.
         #expect(graph.neighbors(of: book).isEmpty)
         filter.setDays(true)

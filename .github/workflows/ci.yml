@@ -173,9 +173,12 @@ jobs:
   # yeniden denemeyi de sınırlar. Bir test adımı düşse de aynı simülatördeki sonraki adımlar koşar:
   # bütün sonuçlar ve fark paketleri birlikte görünür.
   #
-  # iPhone: birim testleri ve görüntü kümeleri. Arayüz dumanı ayrı işte koşar (app-iphone-ui): aynı
-  # runner'da art arda 30 dk sürüyordu ve kritik yoldu; iki runner'da ~20 dk (2026-10-23 kısaltması).
-  # Süre ~20 dk (tahmin); iş sınırı ~1,5 katı.
+  # iPhone: birim testleri ve görüntü kümeleri. Arayüz testleri ayrı iki işte koşar (app-iphone-ui,
+  # app-iphone-audit): aynı runner'da art arda 30 dk sürüyordu ve kritik yoldu (2026-10-23 kısaltması).
+  # Birim ve görüntü adımları iki ayrı xcodebuild çağrısıdır (her çağrının ~3-4 dk sabit maliyeti
+  # var), birleşmez: görüntüler Türkçe süreç diliyle çizilir, birim testleri simülatörün dilinde
+  # koşar; görüntü adımı ayrıca birim testlerinin bıraktığı uygulama durumunu önce kaldırır.
+  # Ölçülen süre 22,8 dk (koşu 40385010425); iş sınırı ~1,3 katı.
   app-iphone:
     name: Uygulama (iPhone)
     needs: changes
@@ -290,9 +293,19 @@ jobs:
             Tests/JournalTests/Snapshots/__Snapshots__
           if-no-files-found: warn
           retention-days: 7
-  # iPhone arayüz dumanı (JournalUITests): kendi runner'ında kendi derlemesi ve simülatörüyle. Yeni
-  # açılmış simülatörde ilk koşu yavaştır (~10 dk); yine de birim testlerinin ardına eklenmekten kısa.
-  # Erişilebilirlik denetimleri de bu kümededir; PR kapısıdır. Süre ~16 dk (tahmin); iş sınırı ~1,5 katı.
+
+  # iPhone arayüz testleri (JournalUITests) iki işte, ikisi de kendi runner'ında kendi derlemesi ve
+  # simülatörüyle. Tek iş 28 dk sürüyordu ve kritik yoldu (koşu 40385010425: derleme 6,2 + açılış
+  # 2,4 + test 18,4 dk; 24 vaka 906 sn). Bölme ad kuralıyla yapılır: .github/scripts/ui-audit-suites.sh
+  # denetim kümelerini listeler (adı AccessibilityUITests/AuditUITests ile biten sınıflar, ~530 sn);
+  # denetim işi onları -only-testing ile, akış işi aynı listeyi -skip-testing ile koşar (~376 sn).
+  # Ad kuralına uymayan yeni küme akış işine düşer. Yeni açılmış simülatörde ilk koşu yavaştır; iki
+  # iş de bu bedeli öder, yine de kısalır. İki iş de PR kapısıdır. Bölmeyle bir PR beş macOS işi
+  # tutar, eşzamanlı sınırın tamamı: aynı anda koşan ikinci PR ya da dev itmesindeki iki TestFlight
+  # denetimi sıra bekler.
+  #
+  # Akış: duman turu, görev satırı, fixture kasası, denetim istisnaları, denetim çağıran öteki
+  # kümeler (WeeklyReviewUITests, CloseDayUITests). Süre ~19 dk (tahmin); iş sınırı ~1,5 katı.
   app-iphone-ui:
     name: Uygulama (iPhone arayüz)
     needs: changes
@@ -311,34 +324,86 @@ jobs:
         timeout-minutes: 10
         run: xcrun simctl bootstatus "${{ steps.build.outputs.udid }}" -b
       # Test başına sınır (XCTest, dakikaya yuvarlanır): sessiz asılma adımı öldürmek yerine test
-      # adıyla düşer. En uzun arayüz testi CI'da ~2,5 dk (iPad erişilebilirlik denetimi 141 sn).
-      - name: iOS arayüz dumanı
+      # adıyla düşer. En uzun akış testi CI'da ~2,2 dk (SmokeUITests 131 sn).
+      - name: iOS arayüz akışı
         id: ios_ui
-        timeout-minutes: 25
+        timeout-minutes: 20
         run: |
+          AUDIT=$(sh .github/scripts/ui-audit-suites.sh)
           sh .github/scripts/xcodebuild-retry.sh "${{ steps.build.outputs.udid }}" test-without-building \
             -project Journal.xcodeproj \
             -scheme Journal_iOS \
             -destination "platform=iOS Simulator,id=${{ steps.build.outputs.udid }},arch=arm64" \
             -only-testing:JournalUITests \
-            -resultBundlePath UITests.xcresult \
+            $(printf '%s\n' $AUDIT | sed 's#^#-skip-testing:JournalUITests/#' | tr '\n' ' ') \
+            -resultBundlePath UIFlowTests.xcresult \
             -test-timeouts-enabled YES \
             -default-test-execution-time-allowance 300 \
             -maximum-test-execution-time-allowance 300 \
             CODE_SIGNING_ALLOWED=NO \
             -quiet
-      - name: Vaka süreleri (iOS arayüz dumanı)
+      - name: Vaka süreleri (iOS arayüz akışı)
         if: ${{ !cancelled() && steps.ios_ui.outcome != 'skipped' }}
         run: |
-          [ -d UITests.xcresult ] || { echo "::warning::UITests.xcresult yok, vaka süreleri atlandı"; exit 0; }
-          xcrun xcresulttool get test-results tests --path UITests.xcresult \
-            | python3 -I .github/scripts/test-durations.py --title "iOS arayüz dumanı"
-      - name: Arayüz testi sonuç paketi (yalnız düşünce)
+          [ -d UIFlowTests.xcresult ] || { echo "::warning::UIFlowTests.xcresult yok, vaka süreleri atlandı"; exit 0; }
+          xcrun xcresulttool get test-results tests --path UIFlowTests.xcresult \
+            | python3 -I .github/scripts/test-durations.py --title "iOS arayüz akışı"
+      - name: Arayüz akışı sonuç paketi (yalnız düşünce)
         if: failure() && steps.ios_ui.outcome == 'failure'
         uses: actions/upload-artifact@v7
         with:
-          name: ui-test-results
-          path: UITests.xcresult
+          name: ui-flow-results
+          path: UIFlowTests.xcresult
+          retention-days: 7
+
+  # Denetim: erişilebilirlik denetimi kümeleri (ui-audit-suites.sh). Süre ~22 dk (tahmin); iş sınırı
+  # ~1,4 katı. En uzun denetim testi CI'da ~1,5 dk (iPhone 86 sn; iPad 141 sn).
+  app-iphone-audit:
+    name: Uygulama (iPhone arayüz denetimi)
+    needs: changes
+    if: needs.changes.outputs.docs_only != 'true'
+    runs-on: macos-26
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - name: Derle
+        id: build
+        uses: ./.github/actions/ios-build
+        with:
+          family: iphone
+      - name: iPhone simülatörü aç
+        id: ios_boot
+        timeout-minutes: 10
+        run: xcrun simctl bootstatus "${{ steps.build.outputs.udid }}" -b
+      # Liste boşsa betik düşer: -only-testing verilmezse xcodebuild bütün testleri koşar.
+      - name: iOS arayüz denetimi
+        id: ios_audit
+        timeout-minutes: 20
+        run: |
+          AUDIT=$(sh .github/scripts/ui-audit-suites.sh)
+          sh .github/scripts/xcodebuild-retry.sh "${{ steps.build.outputs.udid }}" test-without-building \
+            -project Journal.xcodeproj \
+            -scheme Journal_iOS \
+            -destination "platform=iOS Simulator,id=${{ steps.build.outputs.udid }},arch=arm64" \
+            $(printf '%s\n' $AUDIT | sed 's#^#-only-testing:JournalUITests/#' | tr '\n' ' ') \
+            -resultBundlePath UIAuditTests.xcresult \
+            -test-timeouts-enabled YES \
+            -default-test-execution-time-allowance 300 \
+            -maximum-test-execution-time-allowance 300 \
+            CODE_SIGNING_ALLOWED=NO \
+            -quiet
+      - name: Vaka süreleri (iOS arayüz denetimi)
+        if: ${{ !cancelled() && steps.ios_audit.outcome != 'skipped' }}
+        run: |
+          [ -d UIAuditTests.xcresult ] || { echo "::warning::UIAuditTests.xcresult yok, vaka süreleri atlandı"; exit 0; }
+          xcrun xcresulttool get test-results tests --path UIAuditTests.xcresult \
+            | python3 -I .github/scripts/test-durations.py --title "iOS arayüz denetimi"
+      - name: Arayüz denetimi sonuç paketi (yalnız düşünce)
+        if: failure() && steps.ios_audit.outcome == 'failure'
+        uses: actions/upload-artifact@v7
+        with:
+          name: ui-audit-results
+          path: UIAuditTests.xcresult
           retention-days: 7
 
   # iPad: görüntü kümeleri (snapshot-suites.sh --pad) ve erişilebilirlik denetimi, yeni açılmış
@@ -393,8 +458,8 @@ jobs:
           retention-days: 7
       # Aynı derleme ürünü UI test koşucusunu da taşır (ios-build: build-for-testing, Journal_iOS).
       # Denetim bölünmüş kabukta kenar çubuğuyla gezer ve aygıtı yatay döndürür; bitince dik bırakır.
-      # Dil ayarı iPhone arayüz dumanıyla aynı (verilmez). Yerelde ~1,5 dk, CI'da ~2,5 dk. Test başına
-      # sınır iPhone arayüz dumanıyla aynı: sessiz asılma test adıyla düşer.
+      # Dil ayarı iPhone arayüz işleriyle aynı (verilmez). Yerelde ~1,5 dk, CI'da ~2,5 dk. Test başına
+      # sınır iPhone arayüz işleriyle aynı: sessiz asılma test adıyla düşer.
       - name: iPad erişilebilirlik denetimi
         id: pad_a11y
         if: ${{ !cancelled() && steps.pad_boot.outcome == 'success' }}
@@ -459,6 +524,8 @@ jobs:
         run: sh .github/scripts/test-release.sh
       - name: Xcode simülatör yeniden deneme betiği
         run: sh .github/scripts/test-xcodebuild-retry.sh
+      - name: iPhone arayüz denetim kümeleri
+        run: sh .github/scripts/test-ui-audit-suites.sh
       - name: TestFlight geçici derleme temizliği
         run: python3 .github/scripts/test-testflight.py
       - name: CI betikleri (değişen dosyalar, birleştirici karar)
@@ -477,7 +544,7 @@ jobs:
   ci:
     name: ci
     if: ${{ always() && (github.event_name == 'pull_request' || !cancelled()) }}
-    needs: [changes, core-linux, app-macos, app-iphone, app-iphone-ui, app-ipad, lint]
+    needs: [changes, core-linux, app-macos, app-iphone, app-iphone-ui, app-iphone-audit, app-ipad, lint]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:

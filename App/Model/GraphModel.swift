@@ -153,10 +153,10 @@ struct GraphModel: Sendable {
         -> [GraphEdge]
     {
         var result = edges
-        var seen: Set<[String]> = []
         for relation in relations where ids.contains(relation.source) && ids.contains(relation.target) {
             let pair = [relation.source, relation.target].sorted()
-            guard pair[0] != pair[1], seen.insert(pair).inserted else { continue }
+            guard pair[0] != pair[1] else { continue }
+            // Removing whatever the pair already has keeps one edge per pair, repeats included.
             result.removeAll { [$0.first, $0.second].sorted() == pair }
             result.append(GraphEdge(first: pair[0], second: pair[1], weight: 1, kind: .relation))
         }

@@ -4013,6 +4013,22 @@
         }
       }
     },
+    "Bu bağ alanın metni içinde; Alanlar'da düzenle." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This link is part of the field's text; edit it in Fields."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bu bağ alanın metni içinde; Alanlar'da düzenle."
+          }
+        }
+      }
+    },
     "Bu bağlantı kişi veya konum değil" : {
       "localizations" : {
         "en" : {
@@ -5673,6 +5689,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Label"
+          }
+        }
+      }
+    },
+    "Etiket geçersiz karakter içeriyor." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The label contains an invalid character."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Etiket geçersiz karakter içeriyor."
           }
         }
       }

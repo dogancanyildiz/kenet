@@ -121,8 +121,12 @@ import VaultStore
         let model = EntityRelationsModel(store: context.store, path: Self.person)
         let target = try #require(context.store.content.entities.first { $0.id == "people/Selin Korkmaz.md" })
         #expect(!(await model.save(target: target, label: "tanışma")))
-        #expect(model.errorText == String(localized: "Bu etiket adında bir alan zaten var."))
+        #expect(model.sheetErrorText == String(localized: "Bu etiket adında bir alan zaten var."))
         #expect(try Data(contentsOf: path) == bytes)
+        // The save failure belongs to the sheet: the section shows nothing, and closing the sheet clears it.
+        #expect(model.errorText == nil)
+        model.clearSheetError()
+        #expect(model.sheetErrorText == nil)
         #expect(
             EntityRelationsModel.errorMessage(RelationError.reservedLabel) == String(localized: "Bu ad ayrılmıştır."))
     }
@@ -160,5 +164,131 @@ import VaultStore
         await model.remove(outgoing)
         #expect(model.errorText == nil)
         #expect(!model.rows.contains { $0.id == outgoing.id })
+    }
+
+    @Test func writeGateFailuresReadAsWhatHappenedToTheFile() {
+        let generic = String(localized: "Bağ kaydedilemedi. Kasayı kontrol edip yeniden dene.")
+        let gate: [any Error] = [
+            VaultStoreError.indexUpdateFailed(path: Self.person, underlying: CocoaError(.fileReadUnknown)),
+            VaultStoreError.staleTarget, VaultStoreError.readOnlyVault,
+        ]
+        for error in gate {
+            #expect(EntityRelationsModel.errorMessage(error) == DayEditError.message(for: error))
+            #expect(EntityRelationsModel.errorMessage(error) != generic)
+        }
+        // The file was written: the copy must not say it was not saved.
+        #expect(
+            EntityRelationsModel.errorMessage(gate[0])
+                == String(localized: "Değişiklik kaydedildi, indeks güncellenemedi."))
+        #expect(
+            EntityRelationsModel.errorMessage(RelationError.invalidLabel)
+                == String(localized: "Etiket geçersiz karakter içeriyor."))
+        #expect(
+            EntityRelationsModel.errorMessage(RelationError.unsafeRemoval)
+                == String(localized: "Bu bağ alanın metni içinde; Alanlar'da düzenle."))
+        #expect(EntityRelationsModel.errorMessage(RelationError.invalidTarget) == generic)
+    }
+
+    @Test func invalidLabelHasSpecificCopyAndKeepsBytes() async throws {
+        let context = try await Self.context()
+        defer { context.clean() }
+        let path = context.root.appendingPathComponent(Self.person)
+        let bytes = try Data(contentsOf: path)
+        let model = EntityRelationsModel(store: context.store, path: Self.person)
+        let target = try #require(context.store.content.entities.first { $0.id == "places/Liman Ofis.md" })
+        #expect(!(await model.save(target: target, label: "<<")))
+        #expect(model.sheetErrorText == String(localized: "Etiket geçersiz karakter içeriyor."))
+        #expect(model.errorText == nil)
+        #expect(try Data(contentsOf: path) == bytes)
+    }
+
+    @Test func unsafeRemovalHasSpecificCopyAndKeepsBytes() async throws {
+        let context = try await Self.context()
+        defer { context.clean() }
+        try await context.store.setField(
+            at: Self.person, key: "ortak", value: .text("[[Selin Korkmaz]] ve [[Liman Ofis]]"))
+        let path = context.root.appendingPathComponent(Self.person)
+        let bytes = try Data(contentsOf: path)
+        let model = EntityRelationsModel(store: context.store, path: Self.person)
+        await model.load()
+        let row = try #require(
+            model.rows.first { $0.isOutgoing && $0.relation.label == "ortak" && $0.path == "places/Liman Ofis.md" })
+        await model.remove(row)
+        #expect(model.errorText == String(localized: "Bu bağ alanın metni içinde; Alanlar'da düzenle."))
+        #expect(model.sheetErrorText == nil)
+        #expect(try Data(contentsOf: path) == bytes)
+    }
+
+    @Test func anchoredMixedAndSelfLinkFieldsStayInTheFieldList() async throws {
+        let context = try await Self.context()
+        defer { context.clean() }
+        try await context.store.setField(at: Self.person, key: "ilk", value: .text("[[Selin Korkmaz#Not]]"))
+        try await context.store.setField(
+            at: Self.person, key: "ortak", value: .text("[[Selin Korkmaz]] ve [[Liman Ofis]]"))
+        try await context.store.setList(
+            at: Self.person, key: "kendi", values: [.text("[[Selin Korkmaz]]"), .text("[[Deniz Arıkan]]")])
+        // Each key is an outgoing relation, so only the spelling decides whether it hides.
+        let relations = EntityRelationsModel(store: context.store, path: Self.person)
+        await relations.load()
+        for key in ["ilk", "ortak", "kendi"] {
+            #expect(relations.rows.contains { $0.isOutgoing && $0.relation.label == key })
+        }
+        let detail = EntityDetailModel(store: context.store, path: Self.person)
+        await detail.load()
+        #expect(detail.isLoaded)
+        #expect(detail.reservedKeys.contains("eşi"))
+        for key in ["ilk", "ortak", "kendi"] {
+            #expect(!detail.reservedKeys.contains(key))
+            #expect(detail.fields.contains { $0.key == key })
+        }
+    }
+
+    @Test func relationWritesGoThroughTheEditGate() async throws {
+        let context = try await Self.context()
+        defer { context.clean() }
+        var turns = 0
+        context.store.testingEditTurnDidArrive = { turns += 1 }
+        let model = EntityRelationsModel(store: context.store, path: Self.person)
+        let target = try #require(context.store.content.entities.first { $0.id == "places/Liman Ofis.md" })
+        let before = context.store.lastUpdated
+        #expect(await model.save(target: target, label: "iş"))
+        #expect(turns == 1)
+        #expect(context.store.lastUpdated != before)
+        let row = try #require(model.rows.first { $0.isOutgoing && $0.relation.label == "iş" })
+        await model.remove(row)
+        #expect(turns == 2)
+        #expect(!model.rows.contains { $0.id == row.id })
+    }
+
+    @Test func readOnlyVaultOffersNoWrite() async throws {
+        let context = try TaskTestContext()
+        defer { context.clean() }
+        let fixture = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
+            .deletingLastPathComponent().appendingPathComponent("Fixtures/vaults/graph")
+        try FileManager.default.copyItem(at: fixture, to: context.root)
+        // A format newer than this build: the vault opens read-only.
+        let app = context.root.appendingPathComponent(".app")
+        try FileManager.default.createDirectory(at: app, withIntermediateDirectories: true)
+        try Data("{ \"formatVersion\": 2 }\n".utf8).write(to: app.appendingPathComponent("vault.json"))
+        await context.start()
+        #expect(context.store.isVaultReadOnly)
+        let model = EntityRelationsModel(store: context.store, path: Self.person)
+        await model.load()
+        #expect(!model.rows.isEmpty)
+        #expect(!model.canWrite)
+        let path = context.root.appendingPathComponent(Self.person)
+        let bytes = try Data(contentsOf: path)
+        let target = try #require(context.store.content.entities.first { $0.id == "places/Liman Ofis.md" })
+        #expect(!(await model.save(target: target, label: "iş")))
+        #expect(try Data(contentsOf: path) == bytes)
+    }
+
+    @Test func suggestionsLeaveOutTheSourcesSchemaKeys() async throws {
+        let context = try await Self.context()
+        defer { context.clean() }
+        // "yazar" is the book type's own field: Core refuses it as a label on a book.
+        let book = EntityRelationsModel(store: context.store, path: "books/Örnek Kitap.md")
+        await book.load()
+        #expect(book.labels == ["eşi"])
     }
 }

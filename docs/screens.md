@@ -769,7 +769,7 @@ Manşetin altında sekme durur. Sekmenin altında görünüme göre değişen te
 | 4 | Graph'ta göster | Kişide, konumda ve özel tipte. Graph o düğümü seçer ve ortaya alır. Özel tipte Graph o tipi süzgeçte açarak açılır. |
 | 5 | Son görüşme ya da Son ziyaret kartı | Yalnız kişi ve konumda. Ayrıntı [Kişi ve konum içgörüleri](#kişi-ve-konum-içgörüleri-6) bölümündedir. |
 | 5a | Bağlar | Kişi, konum ve özel tipte; süs çizgili başlık ve "Bağ kur" düğmesi. Giden satır "eşi · Selin Korkmaz", etiketsizde yalnız addır. Gelen satır "Mert Aksu'nun sayfasında · iş arkadaşı", etiketsizde yalnız kaynak sayfadır. Dokunma karşı varlığı açar. Uzun basma / Mac ikincil tık yalnız giden bağda "Bağı kaldır" sunar; özel tipin şema alanından gelen bağda kaldırma yoktur, o bağ Alanlar’da düzenlenir. Bağ kur sheet’i üstte isteğe bağlı etiketi ve kasadaki etiket önerilerini, altında aramalı listeyle kendisi hariç kişi, konum ve özel tip seçimini içerir; çubukta solda Vazgeç, sağda Kaydet durur (hedef seçilince etkin). Çakışan alan ve ayrılmış ad hatası sheet’te kalır; kaldırma hatası bölümde bilgi bandıdır. |
-| 6 | Alanlar ve Diğer alanlar | Şablon alanları etiket-değer satırlarıdır. Yalnız çözülen wikilinklerden oluşan şema dışı bağ anahtarları okuma ve serbest alan düzenleyicisinde tekrar görünmez; şemadaki `link` alanı Alanlar’da kalır. Tanınmayan ön bilgi anahtarları "Diğer alanlar" altında ham adıyla, ikincil renkte durur. Uygulama frontmatter'ı okuyamıyorsa "Frontmatter okunamıyor." yazar. |
+| 6 | Alanlar ve Diğer alanlar | Şablon alanları etiket-değer satırlarıdır. Yalnız çözülen, uygulamanın yazdığı biçimdeki wikilinklerden (`[[Ad]]`) oluşan şema dışı bağ anahtarları okuma ve serbest alan düzenleyicisinde tekrar görünmez. Görünen metin (`[[Ad|metin]]`) ya da çapa (`[[Ad#başlık]]`) taşıyan, karışık metinli, çözülmeyen ya da sayfanın kendisine bağlanan değeri olan alan Alanlar’da kalır; şemadaki `link` alanı da kalır. Tanınmayan ön bilgi anahtarları "Diğer alanlar" altında ham adıyla, ikincil renkte durur. Uygulama frontmatter'ı okuyamıyorsa "Frontmatter okunamıyor." yazar. |
 | 7 | Açık görevler (2) | Bu varlığa bağlı tamamlanmamış görevler. |
 | 8 | Bağlanmamış anmalar | Zaman akışının hemen üstünde. |
 | 9 | Zaman akışı | Bu varlığın geçtiği olaylar ve günlük paragrafları, gün başlıklarıyla, yeniden eskiye. Başlıkta gün sayacı durur. Her satır ait olduğu günü açar. Boşsa "Henüz günlük kaydı yok." yazar. |
@@ -912,9 +912,9 @@ Konumda koordinat, Alanlar tablosunda bir satırdır. Okuma ekranında harita yo
 | Kaynak | Yalnız tarihli gün dosyalarının olay, görev ve paragraf blokları birlikte geçme üretir; alt satır bağlantısı indeksin atadığı en içteki bloğa aittir. Başlık ve frontmatter bağlantıları yalnız anma ve düğüm boyutuna katılır. Çözülmeyen hedefler dışarıdadır. |
 | Son N gün | Bugün dahil `bugün -(N-1)` … bugün. Tümü gelecek günleri ve tarihsiz kaynak bağlantılarını da içerir. |
 | Düğüm boyutu | Tümü seçiliyken bütün kasadaki geçiş sayısı. Tarih filtresinde seçilen günlerin geçiş sayısı. |
-| Eşik | Eşik kenarları kaldırır. İzole düğümleri silmez. |
+| Eşik | Eşik birlikte geçme kenarlarını kaldırır. İzole düğümleri silmez. Açık bağ eşikten ve dönemden bağımsızdır: iki ucu da ekrandaysa çizilir. |
 | Renk ve biçim | Kişi ve konum renkleri Bugün bağlantı alt çizgileriyle aynı belirteçten gelir. Kişi daire, konum elmas, gün köşeli kare, özel tip altıgendir. Ayrıntı: `design.md` "Graph düğümleri". |
-| Açıklama | “Çizgiler aynı olayda geçen kayıtları bağlar.” Birlikte geçme gerçek karşılaşma diye yorumlanmaz. |
+| Açıklama | “Çizgiler aynı olayda geçen kayıtları ve elle kurulan bağları gösterir.” Birlikte geçme gerçek karşılaşma diye yorumlanmaz. |
 
 #### Günün grafiği
 
@@ -925,10 +925,10 @@ Konumda koordinat, Alanlar tablosunda bir satırdır. Okuma ekranında harita yo
 | Giriş | Gün ekranının manşet satırındaki Graph simgesi. iPhone'da gün ekranının gezinme yığınında tam ekran, Mac'te ayrıntı sütununun yığınında açılır. Gün sayfası bir bağlantı sheet'inde açıksa grafik o sheet'in yığınına girer. Grafiğin kendi sheet'i yoktur. |
 | Manşet | "Günün grafiği"; künye günün tam tarihidir. Satırda yalnız arama durur; tür süzgeci yoktur. |
 | Düğümler | Ortada gün düğümü. O günün dosyasında çözülen bağlantısı olan her kişi, konum ve özel tip varlığı. Düğüm boyutu o günkü anma sayısıdır. Tür süzgeci, dönem ve eşik uygulanmaz. |
-| Kenarlar | Gün düğümü her varlığa ağırlık 1 ile bağlanır. Aynı blokta birlikte geçen varlıklar ana Graph'taki kuralla birbirine bağlanır. |
+| Kenarlar | Gün düğümü her varlığa ağırlık 1 ile bağlanır. Aynı blokta birlikte geçen varlıklar ana Graph'taki kuralla birbirine bağlanır. Günün varlıkları arasındaki açık bağlar kalın çizilir; o gün anılmayan varlığa bağ çizilmez. |
 | Denetimler | Dönem menüsü ve eşik adımlayıcısı yoktur. Yakınlaştırma, Ortala ve Düğüm seç vardır. |
 | Sayfayı aç | Varlık düğümünde varlık ekranını açar. Gün düğümünde yoktur; kullanıcı o günden gelmiştir. |
-| Açıklama | "Gün, o gün geçen her kayda bağlanır. Öteki çizgiler aynı olayda geçen kayıtları bağlar." |
+| Açıklama | "Gün, o gün geçen her kayda bağlanır. Öteki çizgiler aynı olayda geçen kayıtları ve elle kurulan bağları gösterir." |
 | Boş gün | Simge görünmez. Grafik yine açılırsa "Gösterilecek düğüm yok" yazar. |
 | Erişilebilirlik | Ekran kimliği `screen.dayGraph`. VoiceOver düğümü ad, tür ve komşu sayısıyla okur; özel tipte tür, tipin kasadaki adıdır. Gün düğümünün adı gün ekranının manşet biçimindedir ("1 Ekim Perşembe"; başka yılda yıl da yazılır); "Düğüm seç" menüsü ve ana Graph'ın gün katmanı aynı adı kullanır. |
 
@@ -936,7 +936,7 @@ Konumda koordinat, Alanlar tablosunda bir satırdır. Okuma ekranında harita yo
 
 | Konu | Davranış |
 |---|---|
-| Benzetim | Canlı kuvvet benzetimi. Düğümler birbirini iter. Bağlantılar yay gibi çeker: ortak günü çok olan çiftler daha yakındır. Hafif merkez çekimi bağlantısız düğümleri görüş alanında tutar. |
+| Benzetim | Canlı kuvvet benzetimi. Düğümler birbirini iter. Bağlantılar yay gibi çeker: ortak günü çok olan çiftler daha yakındır; bağ kurulan çift ağırlık 1 ile çeker. Hafif merkez çekimi bağlantısız düğümleri görüş alanında tutar. |
 | Oturma | Düzen açılışta ekranda oturur. Düzen durunca hesap da durur. |
 | Düğüm sürükleme | Düğümün üstünde başlayan sürükleme düğümü taşır. Düğüm parmağı ya da fareyi izler. Komşular yayla peşinden gelir. Bırakınca düğüm serbest kalır ve düzen yeniden oturur. |
 | Tuval kaydırma | Boşlukta başlayan sürükleme tuvali kaydırır. |

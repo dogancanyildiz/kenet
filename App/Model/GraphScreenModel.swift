@@ -45,8 +45,8 @@ final class GraphScreenModel {
             case .day(let date): try? await store.computeDayGraphInput(on: date)
             }
         guard var input = query else { return }
-        guard let relations = try? await store.computeExplicitRelations() else { return }
-        input.relations = relations
+        // Relations add to the graph; without them the co-occurrence graph still updates.
+        input.relations = (try? await store.computeExplicitRelations()) ?? []
         guard root == store.vaultURL, request == id else { return }
         let graphInput = input
         let worker = Task.detached { () -> (GraphModel, GraphScene, [GraphPoint]?)? in

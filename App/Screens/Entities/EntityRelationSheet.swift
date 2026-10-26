@@ -22,7 +22,7 @@ struct EntityRelationSheet: View {
             List {
                 InkPageTitleRow("Bağ kur")
                 // Above the list: the confirm word sits in the bar, so a failed save is read here.
-                if let error = model.errorText { InfoBand(kind: .error, verbatim: error).inkListRow() }
+                if let error = model.sheetErrorText { InfoBand(kind: .error, verbatim: error).inkListRow() }
                 // The optional label comes before the target list, which grows with the vault.
                 InkFilterField("Etiket", text: $label, identifier: "field.relation.label", showsClearButton: false)
                     .inkListRow()
@@ -71,6 +71,7 @@ struct EntityRelationSheet: View {
             .accessibilityIdentifier("sheet.relation")
             .interactiveDismissDisabled(model.isWriting)
             .task { await model.load() }
+            .onDisappear { model.clearSheetError() }
         }
     }
 }

@@ -44,7 +44,10 @@ final class EntityRelationsModel {
     let path: String
     private(set) var rows: [EntityRelationRow] = []
     private(set) var labels: [String] = []
+    /// Loading and removal failures: an information band in the section.
     private(set) var errorText: String?
+    /// A failed save: shown only in the sheet and cleared when the sheet opens or closes.
+    private(set) var sheetErrorText: String?
     private(set) var isWriting = false
     private let root: URL?
 
@@ -57,12 +60,18 @@ final class EntityRelationsModel {
     var canWrite: Bool { root == store.vaultURL && store.canAddEvent && !isWriting }
 
     static func errorMessage(_ error: any Error) -> String {
-        switch error as? RelationError {
-        case .keyInUse: String(localized: "Bu etiket adında bir alan zaten var.")
-        case .reservedLabel: String(localized: "Bu ad ayrılmıştır.")
-        default: String(localized: "Bağ kaydedilemedi. Kasayı kontrol edip yeniden dene.")
+        switch error {
+        case RelationError.keyInUse: String(localized: "Bu etiket adında bir alan zaten var.")
+        case RelationError.reservedLabel: String(localized: "Bu ad ayrılmıştır.")
+        case RelationError.invalidLabel: String(localized: "Etiket geçersiz karakter içeriyor.")
+        case RelationError.unsafeRemoval: String(localized: "Bu bağ alanın metni içinde; Alanlar'da düzenle.")
+        case is RelationError: String(localized: "Bağ kaydedilemedi. Kasayı kontrol edip yeniden dene.")
+        // Write-gate failures (written but not indexed, stale, read-only) say what happened to the file.
+        default: DayEditError.message(for: error)
         }
     }
+
+    func clearSheetError() { sheetErrorText = nil }
 
     func load() async {
         do {
@@ -70,14 +79,15 @@ final class EntityRelationsModel {
             let labels = try await store.relationLabels()
             guard root == store.vaultURL, !Task.isCancelled else { return }
             let kind = store.content.entities.first { $0.id == path }?.kind
-            let schemaKeys = Set(store.entityTypes.types.first { $0.id == kind }?.fields.map(\.key) ?? [])
+            let schemaKeys = Set(store.entityTypes.allTypes.first { $0.id == kind }?.fields.map(\.key) ?? [])
             rows =
                 relations.outgoing.map {
                     EntityRelationRow(
                         relation: $0, isOutgoing: true, isSchemaField: $0.label.map(schemaKeys.contains) ?? false)
                 }
                 + relations.incoming.map { EntityRelationRow(relation: $0, isOutgoing: false) }
-            self.labels = labels
+            // The source's own schema keys are refused as labels, so they are not offered.
+            self.labels = labels.filter { !schemaKeys.contains($0) }
             errorText = nil
         } catch {
             guard root == store.vaultURL, !Task.isCancelled else { return }
@@ -88,14 +98,14 @@ final class EntityRelationsModel {
     func save(target: EntitySummary, label: String) async -> Bool {
         guard canWrite else { return false }
         isWriting = true
-        errorText = nil
+        sheetErrorText = nil
         defer { isWriting = false }
         do {
             try await store.addRelation(from: path, to: "/" + String(target.id.dropLast(3)), label: label)
             await load()
             return root == store.vaultURL
         } catch {
-            errorText = Self.errorMessage(error)
+            sheetErrorText = Self.errorMessage(error)
             return false
         }
     }
@@ -112,9 +122,10 @@ final class EntityRelationsModel {
     }
 
     /// Hide only pure, resolved link values in the app's own spelling. Mixed text, aliased or anchored
-    /// links, unresolved links and schema fields stay editable.
+    /// links, unresolved links, links to `path` itself and schema fields stay editable.
     static func hiddenKeys(
-        fields: [EntityField], schemaKeys: Set<String>, outgoing: [Relation], entities: [EntitySummary]
+        of path: String, fields: [EntityField], schemaKeys: Set<String>, outgoing: [Relation],
+        entities: [EntitySummary]
     ) -> [String] {
         fields.compactMap { field in
             guard !schemaKeys.contains(field.key),
@@ -129,7 +140,9 @@ final class EntityRelationsModel {
                         links[0].displayText == nil, links[0].anchor == nil
                     else { return false }
                     let target = links[0].target
+                    // A link to the page itself is no relation (Core leaves it out), so the field shows it.
                     return entities.contains { entity in
+                        guard entity.id != path else { return false }
                         let stem = String(entity.id.dropLast(3))
                         let candidate = target.contains("/") ? stem : (stem as NSString).lastPathComponent
                         let clean = target.hasPrefix("/") ? String(target.dropFirst()) : target

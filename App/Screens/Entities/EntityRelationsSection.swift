@@ -8,12 +8,15 @@ struct EntityRelationsSection: View {
         Section {
             HStack(alignment: .firstTextBaseline, spacing: 8) {
                 SectionHeader("Bağlar")
-                Button("Bağ kur") { isAdding = true }
-                    .buttonStyle(InkTextButtonStyle())
-                    .foregroundStyle(Color.ink.accent)
-                    .tapTarget()
-                    .disabled(!model.canWrite)
-                    .accessibilityIdentifier("button.addRelation")
+                Button("Bağ kur") {
+                    model.clearSheetError()
+                    isAdding = true
+                }
+                .buttonStyle(InkTextButtonStyle())
+                .foregroundStyle(Color.ink.accent)
+                .tapTarget()
+                .disabled(!model.canWrite)
+                .accessibilityIdentifier("button.addRelation")
             }
             .inkListRow()
             ForEach(model.rows) { row in

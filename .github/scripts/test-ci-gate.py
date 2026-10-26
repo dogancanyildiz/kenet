@@ -25,7 +25,7 @@ spec.loader.exec_module(ci_gate)
 
 RESULTS = ["success", "failure", "cancelled", "skipped"]
 NEVER_SKIPPED = ["changes", "lint"]
-SKIPPABLE = ["core-linux", "app-macos", "app-iphone", "app-iphone-ui", "app-ipad"]
+SKIPPABLE = ["core-linux", "app-macos", "app-iphone", "app-iphone-ui", "app-iphone-audit", "app-ipad"]
 JOBS = NEVER_SKIPPED + SKIPPABLE
 # İş akışının verebileceği ve veremeyeceği "yalnız belge" değerleri; yalnız tam "true" atlatır.
 DOCS_ONLY_VALUES = ["true", "false", "", "True", "TRUE", "1", "yes", " true", "true\n", "null"]
@@ -46,7 +46,7 @@ class GateDecisionTests(unittest.TestCase):
         return ci_gate.evaluate(needs(results), docs_only, set(NEVER_SKIPPED)) == []
 
     def test_every_combination_of_results(self):
-        """4^6 sonuç birleşimi x iki durum; beklenti betikten bağımsız yazılmıştır."""
+        """4^8 sonuç birleşimi x iki durum; beklenti betikten bağımsız yazılmıştır."""
         checked = 0
         for combination in itertools.product(RESULTS, repeat=len(JOBS)):
             results = dict(zip(JOBS, combination))

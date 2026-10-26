@@ -85,7 +85,7 @@ Harita konuları gösterir; satırların tam metni karar günlüğündedir. Bir 
 
 ```mermaid
 timeline
-    title Karar takvimi, 311 karar
+    title Karar takvimi, 312 karar
     2026-10-02 : 58 karar : Ürün kapsamı ve platform : Kasa biçimi ve ayrıştırıcı : Git, sürüm ve CI
     2026-10-03 : 19 karar : Yazma doğrulaması : İndeks ve arama : Varlık sayfası ve hızlı giriş
     2026-10-04 : 31 karar : Birleştirme ve kayıp yok : VaultStore ve dosya izleme : Görev, hedef ve otomasyon : Özet, graph ve harita
@@ -104,10 +104,10 @@ timeline
     2026-10-21 : 18 karar : İzleyici değişen dizini bildirir : Tek iptal ve kuşak sözleşmesi : Davranış ölçen arayüz testleri : Büyük yazıda sarma ve 44 pt hedef : Mac görüntüleri CI'da ve haftalık : Görüntü referansı tavanı : Bildirim içeriği varsayılan gizli : Türkçe büyük harf eşlemesi : Zincir günü : TestFlight CD : iCloud ve App Group kimlikleri : Mac'te FSEvents : Alan adı, gelir zamanı ve dalga 23 kapsamı
     2026-10-22 : 16 karar : Widget anlık görüntüsü : Kasa konumu iCloud : Günlük önerileri seçicisi : Paylaşım uzantısı : Widget içinden işaretleme, kilit ve kasa kimliği : Mac TestFlight ve kalite : Aşama 16 açılışı : Graph blokları ve segmentleri
     2026-10-23 : 4 karar : Görüntü referansı tavanı 320 : Günün grafiği : Açık bağ biçimi : CI kısaltması
-    2026-10-26 : 3 karar : Açık bağ Core altyapısı : Açık bağ ekranları ve Graph : Açık bağın düğüm boyutu
+    2026-10-26 : 4 karar : Açık bağ Core altyapısı : Açık bağ ekranları ve Graph : Açık bağın düğüm boyutu : Arayüz testleri iki işte
 ```
 
-Sayılar karar günlüğündeki satır sayısıdır. Toplam 311 satırdır.
+Sayılar karar günlüğündeki satır sayısıdır. Toplam 312 satırdır.
 
 ## Karar günlüğü
 
@@ -426,6 +426,7 @@ Sayılar karar günlüğündeki satır sayısıdır. Toplam 311 satırdır.
 | 2026-10-26 | Açık bağ indeks sorgusu `links` frontmatter satırlarından (`block IS NULL`, `key`) türetilir, şema 9 değişmez; `VaultStore.addRelation/removeRelation` yalnız hedeflenen anahtarı değiştirir, gövde bayt düzeyinde korunur; etiket denetimi `vault-format.md` "Çözülemeyen bloklar" 19'daki kontrol karakteri tanımına bağlıdır, kırpma yalnız boşluk ve sekmedir; `VaultIndex.relationLabels()` kasadaki etiketleri verir (#343) | Kullanıcı kararı 76 (c), bağımsız inceleme (Y0 O3) ve düzeltme turu; `Fixtures/write/relations/` 86 klasör |
 | 2026-10-26 | Varlık ekranında Bağlar bölümü (içgörü kartından sonra, Alanlar'dan önce) giden/gelen satırlar ve "Bağ kur" sheet'i (Vazgeç + Kaydet, `design.md` §6); kaldırma yalnız giden ve şema dışı bağda; uygulamanın yazdığı biçimdeki bağ alanları serbest alanlarda tekrarlanmaz (görünen metinli, çapalı, karışık ve çözülmeyen değer görünür kalır); Graph'ta açık bağ düz kalın çizgi, dönem ve eşikten bağımsız, sabit ağırlık; hata metinleri `DayEditError` eşlemesiyle ortak (#347) | Kullanıcı kararı 76 (c); bağımsız inceleme (Y1 O4) ve düzeltme turu; kenar anlamı renge dayanmaz |
 | 2026-10-26 | Açık bağ Graph'ta anma sayısına girer ve düğümü büyütür; `Fixtures/vaults/graph/expected.json` buna göre | `screens.md` frontmatter bağlantılarını anma sayar; kullanıcı kararı 79, 2026-10-26 "böyle kalsın, düğüm büyüsün" (W3 Core incelemesi D9) |
+| 2026-10-26 | CI: iPhone arayüz testleri iki işte koşar. Denetim işi adı `AccessibilityUITests` ya da `AuditUITests` ile biten kümeleri koşar (`ui-audit-suites.sh`, 530 sn); akış işi geri kalanı koşar (376 sn). iPhone birim ve görüntü adımları ayrı `xcodebuild` çağrısı olarak kalır | Tek arayüz işi 28 dk ile kritik yoldu (koşu 40385010425; 24 vaka 906 sn). Her çağrının ~3–4 dk sabit maliyeti var; bölmeyle iki iş ~19 ve ~22 dk, kritik yol ~23 dk (iPhone/iPad işleri). Birim ve görüntü birleşmez: görüntüler Türkçe süreç diliyle ve kaldırılmış uygulamayla çizilir |
 
 Satır sırası ekleme sırasıdır; tablonun ilk satırları tarih sırasında değildir. Sonradan değişen bir kararın gerekçe hücresi değişikliği tarihiyle anar. Güncel durum notları kararın verildiği günden sonraki gerçek durumu söyler.
 

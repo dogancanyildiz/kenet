@@ -1,0 +1,9 @@
+{
+  "relation": {
+    "target": "Selin Korkmaz",
+    "label": "komşu",
+    "remove": false,
+    "error": null,
+    "source": "places/Ev.md"
+  }
+}

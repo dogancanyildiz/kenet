@@ -687,8 +687,8 @@ tanışma: Üniversite                                # bağ değil: bağlantı 
 
 | Konu | Kural |
 |---|---|
-| Kırpma | Uygulama etiketin başındaki ve sonundaki boşlukları kırpar. Boş etiket etiketsiz bağdır: uygulama `related` alanına yazar. |
-| Geçersiz etiket | İçinde satır sonu ya da kontrol karakteri olan etiket. `<<` etiketi. |
+| Kırpma | Uygulama etiketin başındaki ve sonundaki boşluk ve sekmeleri kırpar. Satır sonunu kırpmaz. Boş etiket etiketsiz bağdır: uygulama `related` alanına yazar. |
+| Geçersiz etiket | Kırpılmış etikette satır sonu, sekme ya da [Çözülemeyen bloklar](#çözülemeyen-bloklar) 19'daki bir karakter. `<<` etiketi. Emoji birleştirici (U+200D) ve yumuşak tire (U+00AD) geçerlidir. |
 | Ayrılmış anahtar | `type`, `name`, `qualifier`, `aliases`, `related`. Kişi dosyasında `cadence_days`, `cadence_snoozed_until`, `cadence_paused`. Konum dosyasında `coordinates`, `radius`. Özel tip dosyasında tipin şemasındaki her alan anahtarı; `link` alanını kullanıcı alan düzenleyicisinde yazar. |
 
 **Bağ ekleme: anahtarın durumuna göre yazılan.** Uygulama [Yazma kuralları](#yazma-kuralları) ile yazar.

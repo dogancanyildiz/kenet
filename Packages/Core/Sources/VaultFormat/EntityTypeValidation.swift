@@ -29,7 +29,7 @@ extension EntityTypeDefinition {
         else { throw EntityTypeError.invalidDefinition }
         var keys: Set<[UInt8]> = []
         for field in fields {
-            guard !["type", "name", "qualifier", "aliases"].contains(field.key),
+            guard !["type", "name", "qualifier", "aliases", "related"].contains(field.key),
                 keys.insert(Array(field.key.utf8)).inserted,
                 (try? RawDocument(bytes: []).settingFrontmatterValue(.text(""), forKey: field.key)) != nil
             else { throw EntityTypeError.invalidDefinition }

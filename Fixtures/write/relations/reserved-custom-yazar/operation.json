@@ -1,0 +1,9 @@
+{
+  "relation": {
+    "target": "Selin Korkmaz",
+    "label": "yazar",
+    "remove": false,
+    "error": "reservedLabel",
+    "source": "books/Örnek Kitap.md"
+  }
+}

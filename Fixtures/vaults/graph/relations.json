@@ -1,0 +1,83 @@
+{
+  "books/Örnek Kitap.md": {
+    "outgoing": [
+      {
+        "source": "books/Örnek Kitap.md",
+        "target": "people/Deniz Arıkan.md",
+        "label": "yazar",
+        "sourceName": "Örnek Kitap",
+        "targetName": "Deniz Arıkan",
+        "targetKind": "person"
+      }
+    ],
+    "incoming": []
+  },
+  "people/Deniz Arıkan.md": {
+    "outgoing": [
+      {
+        "source": "people/Deniz Arıkan.md",
+        "target": "people/Selin Korkmaz.md",
+        "label": null,
+        "sourceName": "Deniz Arıkan",
+        "targetName": "Selin Korkmaz",
+        "targetKind": "person"
+      },
+      {
+        "source": "people/Deniz Arıkan.md",
+        "target": "people/Selin Korkmaz.md",
+        "label": "eşi",
+        "sourceName": "Deniz Arıkan",
+        "targetName": "Selin Korkmaz",
+        "targetKind": "person"
+      }
+    ],
+    "incoming": [
+      {
+        "source": "books/Örnek Kitap.md",
+        "target": "people/Deniz Arıkan.md",
+        "label": "yazar",
+        "sourceName": "Örnek Kitap",
+        "targetName": "Deniz Arıkan",
+        "targetKind": "person"
+      },
+      {
+        "source": "people/Selin Korkmaz.md",
+        "target": "people/Deniz Arıkan.md",
+        "label": null,
+        "sourceName": "Selin Korkmaz",
+        "targetName": "Deniz Arıkan",
+        "targetKind": "person"
+      }
+    ]
+  },
+  "people/Selin Korkmaz.md": {
+    "outgoing": [
+      {
+        "source": "people/Selin Korkmaz.md",
+        "target": "people/Deniz Arıkan.md",
+        "label": null,
+        "sourceName": "Selin Korkmaz",
+        "targetName": "Deniz Arıkan",
+        "targetKind": "person"
+      }
+    ],
+    "incoming": [
+      {
+        "source": "people/Deniz Arıkan.md",
+        "target": "people/Selin Korkmaz.md",
+        "label": null,
+        "sourceName": "Deniz Arıkan",
+        "targetName": "Selin Korkmaz",
+        "targetKind": "person"
+      },
+      {
+        "source": "people/Deniz Arıkan.md",
+        "target": "people/Selin Korkmaz.md",
+        "label": "eşi",
+        "sourceName": "Deniz Arıkan",
+        "targetName": "Selin Korkmaz",
+        "targetKind": "person"
+      }
+    ]
+  }
+}

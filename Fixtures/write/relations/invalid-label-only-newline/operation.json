@@ -1,0 +1,8 @@
+{
+  "relation": {
+    "target": "Selin Korkmaz",
+    "label": "\n",
+    "remove": false,
+    "error": "invalidLabel"
+  }
+}

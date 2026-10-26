@@ -1,0 +1,11 @@
+{
+  "relation": {
+    "target": "people/Selin Korkmaz",
+    "label": null,
+    "remove": false,
+    "error": null,
+    "extraFiles": {
+      "aaa/Selin Korkmaz.md": "---\ntype: person\nname: Selin Korkmaz\n---\n"
+    }
+  }
+}

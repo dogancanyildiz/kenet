@@ -1,0 +1,9 @@
+{
+  "relation": {
+    "target": "Selin Korkmaz",
+    "label": null,
+    "remove": false,
+    "error": "invalidSource",
+    "source": "notes/Kaynak.md"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "relation": {
+    "target": "Selin Korkmaz",
+    "label": "name",
+    "remove": false,
+    "error": "reservedLabel"
+  }
+}

@@ -31,11 +31,12 @@ enum EntityReadPresentation {
 
     /// Groups schema fields first; unknown keys become secondary "other" rows.
     static func fieldRows(
-        fields: [EntityField], schemaKeys: Set<String>, locale: Locale = .autoupdatingCurrent
+        fields: [EntityField], schemaKeys: Set<String>, relationKeys: Set<String> = [],
+        locale: Locale = .autoupdatingCurrent
     ) -> (known: [FieldRow], other: [FieldRow]) {
         var known: [FieldRow] = []
         var other: [FieldRow] = []
-        for field in fields {
+        for field in fields where schemaKeys.contains(field.key) || !relationKeys.contains(field.key) {
             let value = FrontmatterValueDisplay.text(field.value, locale: locale)
             let row = FieldRow(
                 key: field.key,

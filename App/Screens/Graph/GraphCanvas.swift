@@ -39,7 +39,7 @@ struct GraphCanvas: View {
             let viewport = GraphViewport(
                 size: geometry.size, camera: model.camera, zoom: model.zoom * magnification,
                 pan: CGSize(width: model.pan.width + panDrag.width, height: model.pan.height + panDrag.height))
-            GraphDrawing(motion: motion, viewport: viewport, selected: model.selected)
+            GraphDrawing(edges: model.graph.edges, motion: motion, viewport: viewport, selected: model.selected)
                 #if os(macOS)
                     .background(
                         GraphScrollZoom { delta in
@@ -58,6 +58,15 @@ struct GraphCanvas: View {
                 .accessibilityChildren {
                     // Label-only elements: a text view here is laid out in the canvas's frame and
                     // reported as clipped by the accessibility audit, though nothing draws it.
+                    ForEach(Array(model.graph.edges.filter { $0.kind == .relation }.enumerated()), id: \.offset) {
+                        _, edge in
+                        Color.clear.accessibilityElement()
+                            .accessibilityLabel(
+                                Text(
+                                    verbatim: VoiceOverCopy.graphRelationLabel(
+                                        first: model.graph.nodes.first { $0.id == edge.first }?.name ?? edge.first,
+                                        second: model.graph.nodes.first { $0.id == edge.second }?.name ?? edge.second)))
+                    }
                     ForEach(GraphAccessibleNode.list(from: model.graph)) { node in
                         Color.clear
                             .accessibilityElement()
@@ -123,13 +132,14 @@ struct GraphCanvas: View {
 /// Steps the simulation once per display frame while it moves; the timeline is paused at rest,
 /// so an idle graph costs nothing.
 private struct GraphDrawing: View {
+    let edges: [GraphEdge]
     let motion: GraphMotion
     let viewport: GraphViewport
     let selected: String?
 
     var body: some View {
         TimelineView(.animation(paused: !motion.isRunning)) { timeline in
-            GraphFrame(motion: motion, viewport: viewport, selected: selected)
+            GraphFrame(edges: edges, motion: motion, viewport: viewport, selected: selected)
                 .onChange(of: timeline.date) { _, date in motion.advance(to: date) }
         }
     }
@@ -137,6 +147,8 @@ private struct GraphDrawing: View {
 
 /// One drawn frame. Reads the live positions, so it alone redraws while the layout moves.
 private struct GraphFrame: View {
+    let edges: [GraphEdge]
+    @Environment(\.displayScale) private var displayScale
     let motion: GraphMotion
     let viewport: GraphViewport
     let selected: String?
@@ -146,6 +158,7 @@ private struct GraphFrame: View {
         let links = motion.links
         let points = motion.points
         let chosen = selected.flatMap { motion.index(of: $0) }
+        let edgeKinds = Dictionary(edges.map { ([$0.first, $0.second], $0.kind) }) { first, _ in first }
         Canvas { context, size in
             guard points.count == nodes.count else { return }
             var neighbors = Set<Int>()
@@ -161,7 +174,10 @@ private struct GraphFrame: View {
                 context.stroke(
                     path,
                     with: .color(highlighted ? Color.ink.control : Color.ink.rule),
-                    lineWidth: highlighted ? 2 : CGFloat(min(3, 0.5 + Double(link.weight) * 0.3)))
+                    lineWidth: GraphEdgeStyle.width(
+                        edgeKinds[[nodes[link.first].id, nodes[link.second].id]]
+                            ?? .cooccurrence,
+                        scale: displayScale))
             }
             for (index, node) in nodes.enumerated() {
                 let position = viewport.screen(points[index])
@@ -213,5 +229,15 @@ private struct GraphFrame: View {
         let labelRect = CGRect(x: originX, y: originY, width: width, height: height)
         context.fill(Path(roundedRect: labelRect, cornerRadius: 2), with: .color(Color.ink.paper))
         context.draw(resolved, at: CGPoint(x: labelRect.midX, y: labelRect.midY))
+    }
+}
+
+enum GraphEdgeStyle {
+    static func width(_ kind: GraphEdge.Kind, scale: CGFloat) -> CGFloat {
+        switch kind {
+        case .relation: InkStroke.highPriority
+        case .cooccurrence: InkStroke.rule
+        case .day: InkStroke.hairline(scale: scale)
+        }
     }
 }

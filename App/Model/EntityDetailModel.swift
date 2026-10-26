@@ -79,7 +79,14 @@ final class EntityDetailModel {
                 } else {
                     isPersonFile = false
                 }
-                reservedKeys = Self.reservedKeys + (isPersonFile ? PersonCadence.keys : [])
+                let outgoing = try await store.computeRelations(of: selectedPath).outgoing
+                guard store.vaultURL == selectedRoot, path == selectedPath, !Task.isCancelled else { return }
+                let kind = store.content.entities.first { $0.id == selectedPath }?.kind
+                let schemaKeys = Set(store.entityTypes.allTypes.first { $0.id == kind }?.fields.map(\.key) ?? [])
+                let relationKeys = EntityRelationsModel.hiddenKeys(
+                    fields: frontmatter.fields.map { EntityField(key: $0.key, value: $0.value) },
+                    schemaKeys: schemaKeys, outgoing: outgoing, entities: store.content.entities)
+                reservedKeys = Self.reservedKeys + (isPersonFile ? PersonCadence.keys : []) + relationKeys
                 personCadence =
                     isPersonFile ? PersonCadence.parse(frontmatter.fields.compactMap(Self.cadenceField)) : .none
                 fields = frontmatter.fields.filter { !reservedKeys.contains($0.key) }.map {

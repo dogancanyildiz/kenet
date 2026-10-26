@@ -48,6 +48,8 @@ extension AccessibilityAuditExemption {
         .init(type: .dynamicType, element: .identifier("button.settings.close"), reason: Reason.barItem),
         .init(type: .dynamicType, element: .identifier("button.closeDay.close"), reason: Reason.barItem),
         .init(type: .dynamicType, element: .identifier("button.weeklyReview.cancel"), reason: Reason.barItem),
+        .init(type: .dynamicType, element: .identifier("button.relation.cancel"), reason: Reason.barItem),
+        .init(type: .dynamicType, element: .identifier("button.relation.save"), reason: Reason.barItem),
         // List rows: the text uses semantic text styles and grows with Dynamic Type in the AX3
         // references; the audit's live size change does not reach text hosted in a list cell or a
         // system Menu label.

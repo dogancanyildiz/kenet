@@ -206,6 +206,9 @@ struct EntityView: View {
         if ["person", "place"].contains(current.kind) {
             EntityInsightsCard(store: store, entity: current, timeline: timeline ?? [], lastDay: lastDay)
         }
+        if isGraphNode {
+            EntityRelationsHost(store: store, path: model.path).id(model.path)
+        }
         if model.unreadableFrontmatter {
             Section {
                 Text("Frontmatter okunamıyor.")
@@ -346,5 +349,16 @@ final class DefinitionDeletionModel {
             errorText = String(localized: "Dosya silinemedi. Kasayı kontrol edip yeniden dene.")
             return false
         }
+    }
+}
+
+private struct EntityRelationsHost: View {
+    @State private var model: EntityRelationsModel
+    init(store: IndexStore, path: String) {
+        _model = State(initialValue: EntityRelationsModel(store: store, path: path))
+    }
+    var body: some View {
+        EntityRelationsSection(model: model)
+            .task(id: model.store.lastUpdated) { await model.load() }
     }
 }

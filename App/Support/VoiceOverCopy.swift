@@ -75,6 +75,10 @@ enum VoiceOverCopy {
         }
     }
 
+    static func graphRelationLabel(first: String, second: String) -> String {
+        String(localized: "Bağ: \(first), \(second)")
+    }
+
     static func graphNodeLabel(
         name: String, kind: GraphNode.Kind, typeName: String? = nil, neighborCount: Int,
         locale: Locale = .current

@@ -44,9 +44,13 @@ final class GraphScreenModel {
             case .all: try? await store.computeGraphInput(customTypes: filter.customTypes)
             case .day(let date): try? await store.computeDayGraphInput(on: date)
             }
-        guard let input = query else { return }
+        guard var input = query else { return }
+        guard let relations = try? await store.computeExplicitRelations() else { return }
+        input.relations = relations
+        guard root == store.vaultURL, request == id else { return }
+        let graphInput = input
         let worker = Task.detached { () -> (GraphModel, GraphScene, [GraphPoint]?)? in
-            let graph = GraphModel.compute(input: input, filter: filter, today: today)
+            let graph = GraphModel.compute(input: graphInput, filter: filter, today: today)
             var scene = GraphScene(graph, carrying: Self.startingPositions(graph, scope: filter.scope))
             // Rearranging starts from the positions at install time, which are not known yet.
             guard !rearranges else { return Task.isCancelled ? nil : (graph, scene, nil) }

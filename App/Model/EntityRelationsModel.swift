@@ -1,0 +1,143 @@
+import EntityRecognition
+import Foundation
+import Observation
+import VaultFormat
+import VaultIndex
+import VaultStore
+
+struct EntityRelationRow: Identifiable {
+    let relation: Relation
+    let isOutgoing: Bool
+    /// The label is a field of the source's custom-type schema; its editor lives in Fields.
+    var isSchemaField = false
+    var id: [String] { [relation.source, relation.target, relation.label ?? "", isOutgoing ? "out" : "in"] }
+    var path: String { isOutgoing ? relation.target : relation.source }
+    var canRemove: Bool { isOutgoing && !isSchemaField }
+    var text: String {
+        let name = isOutgoing ? relation.targetName : Self.incomingPage(relation.sourceName)
+        return isOutgoing
+            ? [relation.label, name].compactMap { $0 }.joined(separator: " · ")
+            : [name, relation.label].compactMap { $0 }.joined(separator: " · ")
+    }
+
+    static func incomingPage(_ name: String) -> String {
+        let letters = name.lowercased(with: Locale(identifier: "tr_TR"))
+        let lastVowel = letters.last { "aeıioöuü".contains($0) } ?? "ı"
+        let vowelEnding = letters.last.map { "aeıioöuü".contains($0) } ?? false
+        switch (lastVowel, vowelEnding) {
+        case ("a", true), ("ı", true): return String(localized: "\(name)'nın sayfasında")
+        case ("e", true), ("i", true): return String(localized: "\(name)'nin sayfasında")
+        case ("o", true), ("u", true): return String(localized: "\(name)'nun sayfasında")
+        case ("ö", true), ("ü", true): return String(localized: "\(name)'nün sayfasında")
+        case ("e", false), ("i", false): return String(localized: "\(name)'in sayfasında")
+        case ("o", false), ("u", false): return String(localized: "\(name)'un sayfasında")
+        case ("ö", false), ("ü", false): return String(localized: "\(name)'ün sayfasında")
+        default: return String(localized: "\(name)'ın sayfasında")
+        }
+    }
+
+}
+
+@MainActor @Observable
+final class EntityRelationsModel {
+    let store: IndexStore
+    let path: String
+    private(set) var rows: [EntityRelationRow] = []
+    private(set) var labels: [String] = []
+    private(set) var errorText: String?
+    private(set) var isWriting = false
+    private let root: URL?
+
+    init(store: IndexStore, path: String) {
+        self.store = store
+        self.path = path
+        root = store.vaultURL
+    }
+
+    var canWrite: Bool { root == store.vaultURL && store.canAddEvent && !isWriting }
+
+    static func suggestions(_ relations: [Relation]) -> [String] {
+        Set(relations.compactMap(\.label)).sorted()
+    }
+
+    static func errorMessage(_ error: any Error) -> String {
+        switch error as? RelationError {
+        case .keyInUse: String(localized: "Bu etiket adında bir alan zaten var.")
+        case .reservedLabel: String(localized: "Bu ad ayrılmıştır.")
+        default: String(localized: "Bağ kaydedilemedi. Kasayı kontrol edip yeniden dene.")
+        }
+    }
+
+    func load() async {
+        do {
+            let relations = try await store.computeRelations(of: path)
+            let all = try await store.computeExplicitRelations()
+            guard root == store.vaultURL, !Task.isCancelled else { return }
+            let kind = store.content.entities.first { $0.id == path }?.kind
+            let schemaKeys = Set(store.entityTypes.types.first { $0.id == kind }?.fields.map(\.key) ?? [])
+            rows =
+                relations.outgoing.map {
+                    EntityRelationRow(
+                        relation: $0, isOutgoing: true, isSchemaField: $0.label.map(schemaKeys.contains) ?? false)
+                }
+                + relations.incoming.map { EntityRelationRow(relation: $0, isOutgoing: false) }
+            labels = Self.suggestions(all)
+        } catch { errorText = Self.errorMessage(error) }
+    }
+
+    func save(target: EntitySummary, label: String) async -> Bool {
+        guard canWrite else { return false }
+        isWriting = true
+        errorText = nil
+        defer { isWriting = false }
+        do {
+            try await store.addRelation(from: path, to: "/" + String(target.id.dropLast(3)), label: label)
+            await load()
+            return root == store.vaultURL
+        } catch {
+            errorText = Self.errorMessage(error)
+            return false
+        }
+    }
+
+    func remove(_ row: EntityRelationRow) async {
+        guard row.canRemove, canWrite else { return }
+        isWriting = true
+        errorText = nil
+        defer { isWriting = false }
+        do {
+            try await store.removeRelation(row.relation)
+            await load()
+        } catch { errorText = Self.errorMessage(error) }
+    }
+
+    /// Hide only pure, resolved link values in the app's own spelling. Mixed text, aliased or anchored
+    /// links, unresolved links and schema fields stay editable.
+    static func hiddenKeys(
+        fields: [EntityField], schemaKeys: Set<String>, outgoing: [Relation], entities: [EntitySummary]
+    ) -> [String] {
+        fields.compactMap { field in
+            guard !schemaKeys.contains(field.key),
+                outgoing.contains(where: { ($0.label ?? "related").utf8.elementsEqual(field.key.utf8) }),
+                let items = field.value.listItems, !items.isEmpty,
+                items.allSatisfy({ item in
+                    guard item.kind == .text else { return false }
+                    let text = item.text.trimmingCharacters(in: .whitespacesAndNewlines)
+                    let links = RawDocument(bytes: text.utf8).links
+                    // Display text and anchors are the user's own spelling; the field keeps them editable.
+                    guard links.count == 1, links[0].byteRange == 0..<text.utf8.count,
+                        links[0].displayText == nil, links[0].anchor == nil
+                    else { return false }
+                    let target = links[0].target
+                    return entities.contains { entity in
+                        let stem = String(entity.id.dropLast(3))
+                        let candidate = target.contains("/") ? stem : (stem as NSString).lastPathComponent
+                        let clean = target.hasPrefix("/") ? String(target.dropFirst()) : target
+                        return NameCollision(candidate) == NameCollision(clean)
+                    }
+                })
+            else { return nil }
+            return field.key
+        }
+    }
+}

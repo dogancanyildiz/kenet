@@ -18,7 +18,7 @@ Aşama 11'in kimlikleri 2026-10-21'de karara bağlandı. Kasa konumu, ana ekran 
 
 ```mermaid
 timeline
-    title Aşama durumları, 2026-10-23
+    title Aşama durumları, 2026-10-26
     section Teknik kapsam tamam
         Aşama 0 Temel : Çıkış ölçütü sağlandı
         Aşama 1 Günlük : Gerçek kullanım başlamadı
@@ -32,11 +32,11 @@ timeline
         Aşama 10 Bağlam ve geri dönüş : 12 kutu bitti : 0 kutu açık
         Aşama 14 Görselleştirme : 2 kutu bitti : 0 kutu açık
         Aşama 15 Kullanım kolaylığı : 5 kutu bitti : 0 kutu açık
+        Aşama 16 İlişkiler ve Graph : 3 kutu bitti : 0 kutu açık
     section Açık kutusu var
         Aşama 8 Sağlamlaştırma : 28 kutu bitti : 1 kutu açık
         Aşama 11 Kimlik, eşitleme ve widget'lar : Aktif aşama : 6 kutu bitti : 4 kutu açık
         Aşama 13 Uyarlanır düzen : Duo kabuğu ve iPad bitti : 4 kutu bitti : 2 kutu açık
-        Aşama 16 İlişkiler ve Graph : 2 kutu bitti : 1 kutu açık
     section Hazırlık sürüyor
         Aşama 12 Yayın : 4 kutu açık
 ```
@@ -45,8 +45,8 @@ timeline
 
 ```mermaid
 pie title Kutular
-    "Bitti" : 114
-    "Açık" : 12
+    "Bitti" : 115
+    "Açık" : 11
 ```
 
 | İşaret | Anlamı |
@@ -54,7 +54,7 @@ pie title Kutular
 | `[x]` | Kod `dev` dalında, testlerden ve CI'dan geçti. CI, sürekli bütünleştirme demektir. |
 | `[ ]` | Madde açık. Durum tablosu kalan işi söyler. |
 
-**Durum (2026-10-23).** Aşama 0–10, 14 ve 15'in teknik maddeleri `dev` dalındadır. Aşama 11'in 10 maddesinden 6'sı bitti. İlk sürüm `v0.9.0` `main` dalındadır. TestFlight'ta iPhone/iPad ve Mac için dahili test sürüyor. Aşama 16 açıldı; olay düzeyinde bağ (W1, #333) ve paragraf segmentleri (W1a, #334) `dev` dalındadır; günün grafiği (W2, #337) de `dev` dalındadır; açık ilişkiler (W3) kullanıcı onayını bekler. Aşamaların gerçek kullanım ölçütleri henüz ölçülmedi; "Gerçek kullanım ölçütleri" tablosu ölçütleri ayrıca izler.
+**Durum (2026-10-26).** Aşama 0–10, 14, 15 ve 16'nın teknik maddeleri `dev` dalındadır. Aşama 11'in 10 maddesinden 6'sı bitti. İlk sürüm `v0.9.0` `main` dalındadır. TestFlight'ta iPhone/iPad ve Mac için dahili test sürüyor. Aşama 16 tamamlandı; olay düzeyinde bağ (W1, #333), paragraf segmentleri (W1a, #334), günün grafiği (W2, #337) ve açık ilişkiler (W3, #341, #343, #347) `dev` dalındadır. Aşamaların gerçek kullanım ölçütleri henüz ölçülmedi; "Gerçek kullanım ölçütleri" tablosu ölçütleri ayrıca izler.
 
 Ekim 2026'da çok modelli bir heyet projeyi inceledi. Heyet 4 iş yaptı: kod ve mimari denetimi, ekran görüntülü kullanım gezisi, sektör taraması, tasarım dili araştırması. İnceleme gerçek hatalar, ölçek sorunları ve vaatle uyuşmayan yerler buldu. Bu nedenle heyetten sonraki ilk iş yeni özellik değil, sağlamlaştırmaydı. Aşama 8 ve sonraki aşamalar heyetin önerdiği sırayı izler; kullanıcı onayı kapsamı ve sırayı kesinleştirir.
 
@@ -366,17 +366,17 @@ Kullanıcı 2026-10-16'da TestFlight 249 denemesinden sonra dört sorun bildirdi
 |---|---|---|
 | Olay düzeyinde bağ | Bitti. Kasa biçimi ve indeks şeması değişmez. | #333, #334, `Fixtures/vaults/graph/` |
 | Günün grafiği | Bitti. Gün kipi `GraphScope.day`, `VaultIndex.dayGraphMentions`; ana Graph'ta özel tip süzgeci ve gün katmanı dönem geçişi; 5 yıllık ölçüm PR açıklamasında. | #337 |
-| Açık ilişkiler | Açık. Kasa biçimi `vault-format.md` belgesine girdi; Core ve App sırada. | kasa biçimi #341 (W3a) |
+| Açık ilişkiler | Bitti. Frontmatter bağ sorgusu ve yazıcısı, varlık ekranında Bağlar bölümü ve "Bağ kur" sheet'i, Graph'ta kalın kenar. | #341, #343, #347, `Fixtures/write/relations/` |
 
 Kullanıcı 2026-10-22'de Graph'ın aynı günün farklı olaylarındaki kişi ve konumları birbirine bağladığını bildirdi. Kullanıcı her günün kendi grafiğini ve varlık sayfasından elle bağ kurmayı istedi. Maddeler kimlik ya da cihaz kararı gerektirmez; bu yüzden Aşama 11 ile birlikte yürür. Başlamak kullanıcı onayına bağlıdır. Araştırma raporu depo dışındadır.
 
 - [x] Olay düzeyinde bağ: Graph iki varlığı yalnız gün dosyasının aynı bloğunda birlikte geçtiklerinde bağlar. Blok olay satırı ve alt satırları, görev satırı ya da paragraftır. Aynı günün farklı olayları kenar üretmez; gün ilişkisini gün düğümü gösterir. Kenar ağırlığı ortak bloğu olan farklı gün sayısıdır. Hesap Core'dadır ve yeni fixture kasasıyla sınanır. Ad tanımadaki bağlam puanı ve içgörü kartının "o gün" listesi gün düzeyinde kalır.
 - [x] Günün grafiği: gün ekranının manşet satırındaki Graph simgesi o günün grafiğini açar. Ortada gün düğümü durur; o gün geçen her kişi, konum ve özel tip varlığı gün düğümüne bağlanır. Aynı bloktaki varlıklar arasında olay bağı çizilir. Ana Graph'ta gün katmanı süzgeçte kalır ve özel tipler süzgece girer. Gün katmanının maliyeti 5 yıllık sentetik kasada ölçülür.
-- [ ] Açık ilişkiler: kişi, konum ve özel tip ekranında "Bağlar" bölümü ve "Bağ kur" sheet'i. Uygulama etiketsiz bağı frontmatter'daki `related` listesine, etiketli bağı etiket adlı alana tırnaklı wikilink olarak yazar: `related: ["[[Selin Korkmaz]]"]`, `eşi: "[[Selin Korkmaz]]"`. Uygulama yalnız kaynak dosyaya yazar; karşı sayfa bağı gelen bağ olarak gösterir. Graph açık bağı ayrı çizgi biçimiyle çizer; dönem ve eşik açık bağı gizlemez. Obsidian'ın grafiği aynı bağı görür.
+- [x] Açık ilişkiler: kişi, konum ve özel tip ekranında "Bağlar" bölümü ve "Bağ kur" sheet'i. Uygulama etiketsiz bağı frontmatter'daki `related` listesine, etiketli bağı etiket adlı alana tırnaklı wikilink olarak yazar: `related: ["[[Selin Korkmaz]]"]`, `eşi: "[[Selin Korkmaz]]"`. Uygulama yalnız kaynak dosyaya yazar; karşı sayfa bağı gelen bağ olarak gösterir. Graph açık bağı ayrı çizgi biçimiyle çizer; dönem ve eşik açık bağı gizlemez. Obsidian'ın grafiği aynı bağı görür.
 
 W1a (#334): paragraftaki her madde satırı girintili devam satırlarıyla, her ardışık alıntı öbeği ve öteki ardışık satırlar ayrı birlikte geçme birimidir; girintisiz devam yeni segmenttir. iPhone Graph referansları (`graphLight`, `graphSelected`) yeniden kaydedildi; `graphSelected` odağı Deniz Arıkan'dır. Mac karşılıkları CI kaydındadır.
 
-**Çıkış ölçütü:** Aynı gün iki ayrı olayda geçen kişi ve konumlar Graph'ta birbirine bağlanmaz. Her gün kendi grafiğini açar. Kullanıcının varlık sayfasından kurduğu bağ Kenet'in Graph'ında ve Obsidian'ın grafiğinde görünür. Davranışlar Core fixture testleri ve iPhone görüntü testleriyle korunur.
+**Çıkış ölçütü:** Aynı gün iki ayrı olayda geçen kişi ve konumlar Graph'ta birbirine bağlanmaz. Her gün kendi grafiğini açar. Kullanıcının varlık sayfasından kurduğu bağ Kenet'in Graph'ında ve Obsidian'ın grafiğinde görünür. Davranışlar Core fixture testleri ve iPhone görüntü testleriyle korunur. Durum: Core fixture ve iPhone görüntü testleri sağlandı; gerçek kullanım ölçülmedi.
 
 ## Sonraki fikirler
 

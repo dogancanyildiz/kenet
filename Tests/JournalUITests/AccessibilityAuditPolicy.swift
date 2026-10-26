@@ -7,7 +7,8 @@ import XCTest
 /// - The issue names no element. The audit cannot say what it measured, so there is nothing to fix or
 ///   to exempt by element. Touch targets are measured again by ``assertTouchTargets(in:screen:)``,
 ///   which names every element it checks.
-/// - A contrast issue whose element, measured on screen, reaches 4.5:1, or that sits under a system bar.
+/// - A contrast issue whose element, measured on screen, reaches 4.5:1, sits under a system bar, or lies
+///   outside the visible frame of a presented sheet (`sheet.*` identifier; the capture would be the backdrop).
 /// - One entry of ``exemptions``: one audit type, one element (identifier or catalog text), one reason.
 enum AccessibilityAuditPolicy {
     static let types: XCUIAccessibilityAuditType = .all
@@ -165,6 +166,8 @@ enum AccessibilityAuditPolicy {
         var navigationBar: CGRect?
         /// Every navigation bar and toolbar.
         var bars: [CGRect] = []
+        /// Visible frames of presented sheets: the sheet's list carries a `sheet.*` identifier.
+        var sheets: [CGRect] = []
 
         @MainActor
         init(_ root: XCUIElementSnapshot?) {
@@ -172,6 +175,7 @@ enum AccessibilityAuditPolicy {
             var windowFound = false
             var stack = [root]
             while let node = stack.popLast() {
+                if node.identifier.hasPrefix("sheet.") { sheets.append(node.frame) }
                 switch node.elementType {
                 case .window where !windowFound:
                     window = node.frame
@@ -200,6 +204,13 @@ enum AccessibilityAuditPolicy {
     static func contrastReason(for element: XCUIElement, frame: CGRect, chrome: Chrome) -> String? {
         if let bar = coveringBar(of: frame, chrome: chrome) {
             return "under the \(bar): the system bar's glass and scroll edge draw over the text"
+        }
+        // A sheet's list names itself (`sheet.*`) and its frame is the visible part of the sheet: a row
+        // scrolled below its edge keeps a frame but draws nothing there, so the capture is the sheet's
+        // corner and the dimmed backdrop (iPad relation sheet, run 40397762257), and the audit's own
+        // estimate came from the same ground. Elements behind the sheet are dimmed by design.
+        if !chrome.sheets.isEmpty, !chrome.sheets.contains(where: { $0.insetBy(dx: -1, dy: -1).contains(frame) }) {
+            return "outside the sheet's visible frame: clipped by the sheet's edge or dimmed behind it"
         }
         guard let ratio = measuredContrast(of: element, frame: frame), ratio >= minimumContrast else { return nil }
         return String(format: "measured %.2f:1 on screen (the audit's estimate disagrees)", ratio)

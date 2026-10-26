@@ -237,7 +237,7 @@ jobs:
         run: |
           [ -d IOSTests.xcresult ] || { echo "::warning::IOSTests.xcresult yok, vaka süreleri atlandı"; exit 0; }
           xcrun xcresulttool get test-results tests --path IOSTests.xcresult \
-            | python3 -I .github/scripts/test-durations.py --title "iOS birim testleri"
+            | python3 -I .github/scripts/case-durations.py --title "iOS birim testleri"
       - name: iOS birim testi tanılaması (düşünce ya da zaman aşımında)
         if: failure() && (steps.ios_boot.outcome == 'failure' || steps.ios_unit.outcome == 'failure')
         timeout-minutes: 5
@@ -282,7 +282,7 @@ jobs:
         run: |
           [ -d ScreenSnapshots.xcresult ] || { echo "::warning::ScreenSnapshots.xcresult yok, vaka süreleri atlandı"; exit 0; }
           xcrun xcresulttool get test-results tests --path ScreenSnapshots.xcresult \
-            | python3 -I .github/scripts/test-durations.py --title "iPhone ekran görüntüsü"
+            | python3 -I .github/scripts/case-durations.py --title "iPhone ekran görüntüsü"
       - name: Ekran görüntüsü farkları (yalnız düşünce)
         if: failure() && steps.screen_snapshots.outcome == 'failure'
         uses: actions/upload-artifact@v7
@@ -347,7 +347,7 @@ jobs:
         run: |
           [ -d UIFlowTests.xcresult ] || { echo "::warning::UIFlowTests.xcresult yok, vaka süreleri atlandı"; exit 0; }
           xcrun xcresulttool get test-results tests --path UIFlowTests.xcresult \
-            | python3 -I .github/scripts/test-durations.py --title "iOS arayüz akışı"
+            | python3 -I .github/scripts/case-durations.py --title "iOS arayüz akışı"
       - name: Arayüz akışı sonuç paketi (yalnız düşünce)
         if: failure() && steps.ios_ui.outcome == 'failure'
         uses: actions/upload-artifact@v7
@@ -357,7 +357,7 @@ jobs:
           retention-days: 7
 
   # Denetim: erişilebilirlik denetimi kümeleri (ui-audit-suites.sh). Süre ~22 dk (tahmin); iş sınırı
-  # ~1,4 katı. En uzun denetim testi CI'da ~1,5 dk (iPhone 86 sn; iPad 141 sn).
+  # ~1,4 katı. En uzun denetim testi CI'da iPhone'da ~1,5 dk (86 sn), iPad'de ~2,5 dk (141 sn).
   app-iphone-audit:
     name: Uygulama (iPhone arayüz denetimi)
     needs: changes
@@ -397,7 +397,7 @@ jobs:
         run: |
           [ -d UIAuditTests.xcresult ] || { echo "::warning::UIAuditTests.xcresult yok, vaka süreleri atlandı"; exit 0; }
           xcrun xcresulttool get test-results tests --path UIAuditTests.xcresult \
-            | python3 -I .github/scripts/test-durations.py --title "iOS arayüz denetimi"
+            | python3 -I .github/scripts/case-durations.py --title "iOS arayüz denetimi"
       - name: Arayüz denetimi sonuç paketi (yalnız düşünce)
         if: failure() && steps.ios_audit.outcome == 'failure'
         uses: actions/upload-artifact@v7
@@ -445,7 +445,7 @@ jobs:
         run: |
           [ -d PadSnapshots.xcresult ] || { echo "::warning::PadSnapshots.xcresult yok, vaka süreleri atlandı"; exit 0; }
           xcrun xcresulttool get test-results tests --path PadSnapshots.xcresult \
-            | python3 -I .github/scripts/test-durations.py --title "iPad ekran görüntüsü"
+            | python3 -I .github/scripts/case-durations.py --title "iPad ekran görüntüsü"
       - name: iPad ekran görüntüsü farkları (yalnız düşünce)
         if: failure() && steps.pad_snapshots.outcome == 'failure'
         uses: actions/upload-artifact@v7
@@ -481,7 +481,7 @@ jobs:
         run: |
           [ -d PadAccessibility.xcresult ] || { echo "::warning::PadAccessibility.xcresult yok, vaka süreleri atlandı"; exit 0; }
           xcrun xcresulttool get test-results tests --path PadAccessibility.xcresult \
-            | python3 -I .github/scripts/test-durations.py --title "iPad erişilebilirlik denetimi"
+            | python3 -I .github/scripts/case-durations.py --title "iPad erişilebilirlik denetimi"
       - name: iPad erişilebilirlik sonuç paketi (yalnız düşünce)
         if: failure() && steps.pad_a11y.outcome == 'failure'
         uses: actions/upload-artifact@v7
@@ -532,7 +532,7 @@ jobs:
         run: |
           python3 .github/scripts/test-ci-changes.py
           python3 .github/scripts/test-ci-gate.py
-          python3 .github/scripts/test-test-durations.py
+          python3 .github/scripts/test-case-durations.py
           python3 -I .github/scripts/test-check-catalog-keys.py
 
   # Dal korumasının zorunlu tuttuğu tek denetim. Yol filtresi yoktur; her PR'da koşar.

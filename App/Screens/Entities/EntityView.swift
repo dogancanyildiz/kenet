@@ -24,15 +24,17 @@ struct EntityView: View {
     /// Open tasks linking here, loaded with `timeline`, by due day, priority, file and line.
     @State private var openTasks: [TaskRow] = []
 
+    /// `model`: the page's file model; nil builds one for `entity`. A test hands its own in to rename
+    /// the file as the edit sheet does and watch the page follow the new path.
     init(
         store: IndexStore, entity: EntitySummary, onRenamed: @escaping (String) -> Void = { _ in },
-        onDeleted: ((String) -> Void)? = nil
+        onDeleted: ((String) -> Void)? = nil, model: EntityDetailModel? = nil
     ) {
         self.store = store
         self.entity = entity
         self.onRenamed = onRenamed
         self.onDeleted = onDeleted
-        _model = State(initialValue: EntityDetailModel(store: store, path: entity.id))
+        _model = State(initialValue: model ?? EntityDetailModel(store: store, path: entity.id))
         _importantDates = State(initialValue: ImportantDatesModel(store: store))
         _unlinkedMentions = State(initialValue: UnlinkedMentionsModel(store: store))
     }

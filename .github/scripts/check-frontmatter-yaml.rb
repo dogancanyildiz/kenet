@@ -19,7 +19,11 @@
 #     vermeli. `unreadable` beklenen blokta okuyucunun kabul etmesi hata değildir (uygulama
 #     bilerek daha katıdır); bilgi olarak listelenir.
 #   - Fixtures/write: her `expected.md` bloğu okunabilmeli ve işlemin yazdığı değer okuyucuda
-#     da aynı değer olmalı.
+#     da aynı değer olmalı. Fixture'lar iç klasörlerde de olabilir (`write/relations/*`).
+#   - Fixtures/write/relations: hatasız bağ işleminde `expected.md` okunabilmeli; eklemede etiket
+#     alanı (etiketsizse `related`) hedefe giden bir bağlantı dizgisi taşımalı, kaldırmada
+#     taşımamalı. Bağlantı dizgi olarak okunmalı: tırnaksız `[[x]]` YAML'da iç içe liste olur.
+#     Hata beklenen bağ işleminde dosya değişmez; o fixture'lar atlanır.
 #
 # Beklenen farklar: uygulamanın bilerek metin okuduğu yazımlar (`yes`, `012`, `0x1F`, `.5`,
 # `14:30`, üstel sayılar, `2026-1-2`, zaman damgaları). Bunlar ayrı sayılır ve hata değildir.
@@ -268,24 +272,72 @@ def check_write(report, reader, name, operation, result)
   end
 end
 
+# Okuyucunun verdiği tek değer ya da liste öğesi bağın hedefine giden bir bağlantı mı?
+# Hedef yazımı `operation.json` içindeki gibidir: ad, yol ya da `/` ile başlayan kök yolu.
+def links_to?(item, target)
+  return false unless item.is_a?(String)
+
+  match = item.match(/\A\[\[([^\[\]]*)\]\]\z/)
+  return false unless match
+
+  path = match[1].split(/[#|]/, 2).first.to_s.sub(%r{\A/+}, '')
+  wanted = target.sub(%r{\A/+}, '')
+  path == wanted || path.end_with?("/#{wanted}")
+end
+
+def check_relation(report, reader, name, relation, result)
+  where = "write/#{name}"
+  return report.fail!(reader, where, "okuyucu reddetti: #{result['error']}") unless result['ok']
+
+  value = result['value'] || {}
+  return report.fail!(reader, where, "eşlem beklenirken #{value.inspect}") unless value.is_a?(Hash)
+
+  label = relation['label'].to_s.strip
+  key = label.empty? ? 'related' : label
+  items = value.key?(key) ? Array(value[key]) : []
+  # Etiketsiz bağ her zaman listeye yazılır; etiketli bağ tek değer ya da liste olabilir.
+  if !relation['remove'] && key == 'related' && !value[key].is_a?(Array)
+    return report.fail!(reader, where, "related listesi beklenirken #{value[key].inspect}")
+  end
+
+  found = items.any? { |item| links_to?(item, relation['target']) }
+  if relation['remove']
+    report.fail!(reader, where, "#{key}: bağ hâlâ duruyor (#{items.inspect})") if found
+  else
+    report.fail!(reader, where, "#{key}: [[#{relation['target']}]] bağlantısı okunmadı (#{items.inspect})") unless found
+  end
+end
+
 def check_fixtures
   report = Report.new
   parse_cases = Dir.children(File.join(ROOT, 'parse')).sort.map do |name|
     expected = JSON.parse(File.read(File.join(ROOT, 'parse', name, 'expected.json')))['frontmatter']
     [name, expected, block_of(File.join(ROOT, 'parse', name, 'input.md'))]
   end.select { |_, expected, block| expected && expected['state'] != 'absent' && block }
-  write_cases = Dir.children(File.join(ROOT, 'write')).sort.map do |name|
-    description = JSON.parse(File.read(File.join(ROOT, 'write', name, 'operation.json')))
-    expected_path = File.join(ROOT, 'write', name, 'expected.md')
-    [name, description['frontmatter'], File.exist?(expected_path) ? block_of(expected_path) : nil]
-  end.select { |_, operation, block| operation && block }
+  # `operation.json` taşıyan her klasör bir yazma fixture'ıdır; `write/relations/` gibi iç
+  # klasörler de taranır. Ad, `write/` altındaki göreli yoldur.
+  write_root = File.join(ROOT, 'write')
+  descriptions = Dir.glob(File.join(write_root, '**', 'operation.json')).sort.map do |path|
+    folder = File.dirname(path)
+    expected_path = File.join(folder, 'expected.md')
+    [folder.delete_prefix("#{write_root}/"), JSON.parse(File.read(path)),
+     File.exist?(expected_path) ? block_of(expected_path) : nil]
+  end
+  write_cases = descriptions.map { |name, description, block| [name, description['frontmatter'], block] }
+                            .select { |_, operation, block| operation && block }
+  relation_cases = descriptions.map { |name, description, block| [name, description['relation'], block] }
+                               .select { |_, relation, block| relation && relation['error'].nil? && block }
 
   readers.each do |reader, load|
     parse_results = load.call(parse_cases.map { |_, _, block| block })
     parse_cases.each_with_index { |(name, expected, _), index| check_parse(report, reader, name, expected, parse_results[index]) }
     write_results = load.call(write_cases.map { |_, _, block| block })
     write_cases.each_with_index { |(name, operation, _), index| check_write(report, reader, name, operation, write_results[index]) }
-    puts "#{reader}: #{parse_cases.size} okuma, #{write_cases.size} yazma örneği"
+    relation_results = load.call(relation_cases.map { |_, _, block| block })
+    relation_cases.each_with_index do |(name, relation, _), index|
+      check_relation(report, reader, name, relation, relation_results[index])
+    end
+    puts "#{reader}: #{parse_cases.size} okuma, #{write_cases.size} yazma, #{relation_cases.size} bağ örneği"
   end
   report.print
   exit(report.failures.empty? ? 0 : 1)

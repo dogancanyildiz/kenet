@@ -1672,6 +1672,12 @@ extension IndexStore {
         }
     }
 
+    func relationLabels() async throws -> [String] {
+        try await indexQuery(seam: \.testingQueryDidFinish, whenClosed: .empty([])) {
+            try $0.relationLabels()
+        }
+    }
+
     func addRelation(from path: String, to target: String, label: String?) async throws {
         try await performEdit(path: path) { try await $0.addRelation(from: path, to: target, label: label) }
     }

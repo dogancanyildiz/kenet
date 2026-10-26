@@ -24,9 +24,7 @@ struct EntityRelationSheet: View {
                 // Above the list: the confirm word sits in the bar, so a failed save is read here.
                 if let error = model.errorText { InfoBand(kind: .error, verbatim: error).inkListRow() }
                 // The optional label comes before the target list, which grows with the vault.
-                TextField("Etiket", text: $label)
-                    .font(.ink.content)
-                    .accessibilityIdentifier("field.relation.label")
+                InkFilterField("Etiket", text: $label, identifier: "field.relation.label", showsClearButton: false)
                     .inkListRow()
                 ForEach(model.labels, id: \.self) { suggestion in
                     Button {
@@ -38,7 +36,9 @@ struct EntityRelationSheet: View {
                     .tapTarget()
                     .inkListRow()
                 }
-                EntityFilterField(search: $search).inkListRow()
+                InkFilterField("Varlık ara", text: $search, identifier: "field.entities.filter")
+                    .autocorrectionDisabled()
+                    .inkListRow()
                 ForEach(candidates) { entity in
                     Button {
                         selected = entity

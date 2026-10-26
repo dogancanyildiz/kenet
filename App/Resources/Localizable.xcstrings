@@ -3133,6 +3133,22 @@
         }
       }
     },
+    "Bağlar yüklenemedi. Kasayı kontrol edip yeniden dene." : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bağlar yüklenemedi. Kasayı kontrol edip yeniden dene."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could not load relations. Check the vault and try again."
+          }
+        }
+      }
+    },
     "bardak" : {
       "localizations" : {
         "tr" : {
@@ -4765,18 +4781,18 @@
         }
       }
     },
-    "Çizgiler aynı olayda geçen kayıtları bağlar." : {
+    "Çizgiler aynı olayda geçen kayıtları ve elle kurulan bağları gösterir." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Lines connect mentions in the same entry."
+            "value" : "Lines show records in the same event and explicit relations."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Çizgiler aynı olayda geçen kayıtları bağlar."
+            "value" : "Çizgiler aynı olayda geçen kayıtları ve elle kurulan bağları gösterir."
           }
         }
       }
@@ -6661,18 +6677,18 @@
         }
       }
     },
-    "Gün, o gün geçen her kayda bağlanır. Öteki çizgiler aynı olayda geçen kayıtları bağlar." : {
+    "Gün, o gün geçen her kayda bağlanır. Öteki çizgiler aynı olayda geçen kayıtları ve elle kurulan bağları gösterir." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The day links to everything mentioned that day. Other lines connect mentions in the same entry."
+            "value" : "The day connects to every record mentioned that day. Other lines show records in the same event and explicit relations."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Gün, o gün geçen her kayda bağlanır. Öteki çizgiler aynı olayda geçen kayıtları bağlar."
+            "value" : "Gün, o gün geçen her kayda bağlanır. Öteki çizgiler aynı olayda geçen kayıtları ve elle kurulan bağları gösterir."
           }
         }
       }
@@ -14141,6 +14157,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Varlık"
+          }
+        }
+      }
+    },
+    "Varlık ara" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Varlık ara"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search entities"
           }
         }
       }

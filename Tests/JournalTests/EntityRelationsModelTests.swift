@@ -83,17 +83,33 @@ import VaultStore
     @Test func suggestionsAreUniqueSortedAndEmptySafe() async throws {
         let context = try await Self.context()
         defer { context.clean() }
-        let relations = try await context.store.computeRelations(of: Self.person)
-        let all = relations.incoming + relations.outgoing
-        #expect(EntityRelationsModel.suggestions(all + all) == ["eşi", "yazar"])
-        #expect(EntityRelationsModel.suggestions([]).isEmpty)
+        let model = EntityRelationsModel(store: context.store, path: Self.person)
+        await model.load()
+        #expect(model.errorText == nil)
+        // Both labels survive even though the Graph query collapses the Deniz–Selin pair.
+        #expect(model.labels == ["eşi", "yazar"])
+        #expect(try await context.store.relationLabels() == ["eşi", "yazar"])
     }
 
     @Test func emptyVaultHasNoSuggestions() async throws {
         let context = try TaskTestContext()
         defer { context.clean() }
         await context.start()
-        #expect(EntityRelationsModel.suggestions(try await context.store.computeExplicitRelations()).isEmpty)
+        #expect(try await context.store.relationLabels().isEmpty)
+    }
+
+    @Test func loadingFailureUsesLoadingCopy() async throws {
+        let context = try await Self.context()
+        defer { context.clean() }
+        context.store.testingQueryDidFinish = { throw CocoaError(.fileReadUnknown) }
+        let model = EntityRelationsModel(store: context.store, path: Self.person)
+        await model.load()
+        #expect(model.errorText == String(localized: "Bağlar yüklenemedi. Kasayı kontrol edip yeniden dene."))
+        #expect(model.rows.isEmpty)
+        context.store.testingQueryDidFinish = nil
+        await model.load()
+        #expect(model.errorText == nil)
+        #expect(model.labels == ["eşi", "yazar"])
     }
 
     @Test func keyInUseHasSpecificCopyAndKeepsBytes() async throws {

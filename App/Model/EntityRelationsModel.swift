@@ -56,10 +56,6 @@ final class EntityRelationsModel {
 
     var canWrite: Bool { root == store.vaultURL && store.canAddEvent && !isWriting }
 
-    static func suggestions(_ relations: [Relation]) -> [String] {
-        Set(relations.compactMap(\.label)).sorted()
-    }
-
     static func errorMessage(_ error: any Error) -> String {
         switch error as? RelationError {
         case .keyInUse: String(localized: "Bu etiket adında bir alan zaten var.")
@@ -71,7 +67,7 @@ final class EntityRelationsModel {
     func load() async {
         do {
             let relations = try await store.computeRelations(of: path)
-            let all = try await store.computeExplicitRelations()
+            let labels = try await store.relationLabels()
             guard root == store.vaultURL, !Task.isCancelled else { return }
             let kind = store.content.entities.first { $0.id == path }?.kind
             let schemaKeys = Set(store.entityTypes.types.first { $0.id == kind }?.fields.map(\.key) ?? [])
@@ -81,8 +77,12 @@ final class EntityRelationsModel {
                         relation: $0, isOutgoing: true, isSchemaField: $0.label.map(schemaKeys.contains) ?? false)
                 }
                 + relations.incoming.map { EntityRelationRow(relation: $0, isOutgoing: false) }
-            labels = Self.suggestions(all)
-        } catch { errorText = Self.errorMessage(error) }
+            self.labels = labels
+            errorText = nil
+        } catch {
+            guard root == store.vaultURL, !Task.isCancelled else { return }
+            errorText = String(localized: "Bağlar yüklenemedi. Kasayı kontrol edip yeniden dene.")
+        }
     }
 
     func save(target: EntitySummary, label: String) async -> Bool {

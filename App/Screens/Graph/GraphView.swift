@@ -151,8 +151,10 @@ struct GraphView: View {
 
     private var explanation: Text {
         day == nil
-            ? Text("Çizgiler aynı olayda geçen kayıtları bağlar.")
-            : Text("Gün, o gün geçen her kayda bağlanır. Öteki çizgiler aynı olayda geçen kayıtları bağlar.")
+            ? Text("Çizgiler aynı olayda geçen kayıtları ve elle kurulan bağları gösterir.")
+            : Text(
+                "Gün, o gün geçen her kayda bağlanır. Öteki çizgiler aynı olayda geçen kayıtları ve elle kurulan bağları gösterir."
+            )
     }
 
     private var legendRow: some View {

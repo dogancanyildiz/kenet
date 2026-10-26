@@ -693,6 +693,134 @@
         }
       }
     },
+    "%@'in sayfasında" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@'in sayfasında"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "On %@'s page"
+          }
+        }
+      }
+    },
+    "%@'ın sayfasında" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@'ın sayfasında"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "On %@'s page"
+          }
+        }
+      }
+    },
+    "%@'nin sayfasında" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@'nin sayfasında"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "On %@'s page"
+          }
+        }
+      }
+    },
+    "%@'nın sayfasında" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@'nın sayfasında"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "On %@'s page"
+          }
+        }
+      }
+    },
+    "%@'nun sayfasında" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@'nun sayfasında"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "On %@'s page"
+          }
+        }
+      }
+    },
+    "%@'nün sayfasında" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@'nün sayfasında"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "On %@'s page"
+          }
+        }
+      }
+    },
+    "%@'un sayfasında" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@'un sayfasında"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "On %@'s page"
+          }
+        }
+      }
+    },
+    "%@'ün sayfasında" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@'ün sayfasında"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "On %@'s page"
+          }
+        }
+      }
+    },
     "%lld %@ / gün" : {
       "localizations" : {
         "tr" : {
@@ -2749,6 +2877,86 @@
         }
       }
     },
+    "Bağ" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bağ"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Relation"
+          }
+        }
+      }
+    },
+    "Bağ kaydedilemedi. Kasayı kontrol edip yeniden dene." : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bağ kaydedilemedi. Kasayı kontrol edip yeniden dene."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could not save the relation. Check the vault and try again."
+          }
+        }
+      }
+    },
+    "Bağ kur" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bağ kur"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add relation"
+          }
+        }
+      }
+    },
+    "Bağ: %@, %@" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bağ: %@, %@"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Relation: %@, %@"
+          }
+        }
+      }
+    },
+    "Bağı kaldır" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bağı kaldır"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove relation"
+          }
+        }
+      }
+    },
     "Bağla" : {
       "localizations" : {
         "en" : {
@@ -2905,6 +3113,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Copy Link"
+          }
+        }
+      }
+    },
+    "Bağlar" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bağlar"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Relations"
+          }
+        }
+      }
+    },
+    "Bağlar yüklenemedi. Kasayı kontrol edip yeniden dene." : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bağlar yüklenemedi. Kasayı kontrol edip yeniden dene."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could not load relations. Check the vault and try again."
           }
         }
       }
@@ -3661,6 +3901,22 @@
         }
       }
     },
+    "Bu ad ayrılmıştır." : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bu ad ayrılmıştır."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This name is reserved."
+          }
+        }
+      }
+    },
     "Bu ad için bir varlık oluştur." : {
       "localizations" : {
         "en" : {
@@ -3757,6 +4013,22 @@
         }
       }
     },
+    "Bu bağ alanın metni içinde; Alanlar'da düzenle." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This link is part of the field's text; edit it in Fields."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bu bağ alanın metni içinde; Alanlar'da düzenle."
+          }
+        }
+      }
+    },
     "Bu bağlantı kişi veya konum değil" : {
       "localizations" : {
         "en" : {
@@ -3849,6 +4121,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bu dönemde kayıt yok."
+          }
+        }
+      }
+    },
+    "Bu etiket adında bir alan zaten var." : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bu etiket adında bir alan zaten var."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A field with this label already exists."
           }
         }
       }
@@ -4509,18 +4797,18 @@
         }
       }
     },
-    "Çizgiler aynı olayda geçen kayıtları bağlar." : {
+    "Çizgiler aynı olayda geçen kayıtları ve elle kurulan bağları gösterir." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Lines connect mentions in the same entry."
+            "value" : "Lines show records in the same event and explicit relations."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Çizgiler aynı olayda geçen kayıtları bağlar."
+            "value" : "Çizgiler aynı olayda geçen kayıtları ve elle kurulan bağları gösterir."
           }
         }
       }
@@ -5385,6 +5673,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Wake up early"
+          }
+        }
+      }
+    },
+    "Etiket" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Etiket"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Label"
+          }
+        }
+      }
+    },
+    "Etiket geçersiz karakter içeriyor." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The label contains an invalid character."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Etiket geçersiz karakter içeriyor."
           }
         }
       }
@@ -6389,18 +6709,18 @@
         }
       }
     },
-    "Gün, o gün geçen her kayda bağlanır. Öteki çizgiler aynı olayda geçen kayıtları bağlar." : {
+    "Gün, o gün geçen her kayda bağlanır. Öteki çizgiler aynı olayda geçen kayıtları ve elle kurulan bağları gösterir." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The day links to everything mentioned that day. Other lines connect mentions in the same entry."
+            "value" : "The day connects to every record mentioned that day. Other lines show records in the same event and explicit relations."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Gün, o gün geçen her kayda bağlanır. Öteki çizgiler aynı olayda geçen kayıtları bağlar."
+            "value" : "Gün, o gün geçen her kayda bağlanır. Öteki çizgiler aynı olayda geçen kayıtları ve elle kurulan bağları gösterir."
           }
         }
       }
@@ -13869,6 +14189,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Varlık"
+          }
+        }
+      }
+    },
+    "Varlık ara" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Varlık ara"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search entities"
           }
         }
       }

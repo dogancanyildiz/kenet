@@ -273,6 +273,16 @@ Seçim değişirse yukarıdaki sıra geçerlidir. Geri dönüş maliyeti düşü
 
 Özel tip yeni bir renk almaz: düğüm, özel tip bağlantısının alt çizgisiyle aynı belirteci kullanır. Kontrol çizgisi metin dışı öğedir ve 3:1 alt sınırını karşılar. Bütün özel tipler aynı biçimi ve rengi paylaşır; tipi gösterge ve seçili düğümün adı söyler. Gösterge özel tipleri tip adlarıyla tek öğede yazar: "Kitaplar, Filmler". Kod karşılığı: `GraphNodeShape` ve `GraphNodeStyle`.
 
+### Graph kenarları
+
+| Tür | Çizgi |
+|---|---|
+| Birlikte geçme | Düz, ince (`InkStroke.rule`) |
+| Gün | Saç çizgisi (`InkStroke.hairline`) |
+| Açık bağ | Düz, kalın (`InkStroke.highPriority`) |
+
+Ayrım renge dayanmaz; kalınlık anlamı taşır. Graph bir bağ çizdiğinde gösterge "Bağ" öğesini kalın düz çizgi örneğiyle gösterir; özel tip öğesi gibi, bağ yoksa öğe yoktur. Gösterge satıra sığmazsa "Düğüm seç" alt satıra iner. Açık bağ dönem ve eşikten bağımsızdır, yay ağırlığı 1’dir. Aynı çiftte birlikte geçme varsa kalın bağ çizilir.
+
 **Günün grafiği düzeni.** Ana Graph ile aynı sayfa düzenidir: manşet, denetim satırı, tuval, gösterge, açıklama. Manşet "Günün grafiği"dir ve künye günün tam tarihidir. Manşet satırında yalnız arama durur. Denetim satırında dönem ve eşik yoktur; yalnız yakınlaştırma, uzaklaştırma ve Ortala kalır. Göstergede gün tek öğedir: "Gün". Gün ekranındaki giriş simgesi `point.3.connected.trianglepath.dotted`'dur, Graph kenar çubuğu girdisiyle aynı simgedir.
 
 ## Denetim kalıpları

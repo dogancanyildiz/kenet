@@ -5,6 +5,7 @@ struct GraphInput: Sendable, Equatable {
     typealias Day = GraphMentions.Day
     /// Built-in entity kinds the graph always reads; custom types join them on request.
     static let kinds: Set<String> = ["person", "place"]
+    var relations: [Relation] = []
     var entities: [EntitySummary] = []
     var totals: [String: Int] = [:]
     var days: [Day] = []

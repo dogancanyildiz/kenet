@@ -1655,3 +1655,37 @@ extension IndexStore {
         ) { first, _ in first }
     }
 }
+
+// MARK: - Explicit entity relations
+
+extension IndexStore {
+    func computeRelations(of path: String) async throws -> (outgoing: [Relation], incoming: [Relation]) {
+        try await indexQuery(seam: \.testingQueryDidFinish, whenClosed: .stale) {
+            try $0.relations(of: path)
+        }
+    }
+
+    func computeExplicitRelations() async throws -> [Relation] {
+        let kinds = GraphInput.kinds.union(entityTypes.types.map(\.id))
+        return try await indexQuery(seam: \.testingQueryDidFinish, whenClosed: .empty([])) {
+            try $0.explicitRelations(kinds: kinds)
+        }
+    }
+
+    func relationLabels() async throws -> [String] {
+        try await indexQuery(seam: \.testingQueryDidFinish, whenClosed: .empty([])) {
+            try $0.relationLabels()
+        }
+    }
+
+    func addRelation(from path: String, to target: String, label: String?) async throws {
+        try await performEdit(path: path) { try await $0.addRelation(from: path, to: target, label: label) }
+    }
+
+    func removeRelation(_ relation: Relation) async throws {
+        try await performEdit(path: relation.source) {
+            try await $0.removeRelation(
+                from: relation.source, to: "/" + String(relation.target.dropLast(3)), label: relation.label)
+        }
+    }
+}

@@ -151,8 +151,10 @@ struct GraphView: View {
 
     private var explanation: Text {
         day == nil
-            ? Text("Çizgiler aynı olayda geçen kayıtları bağlar.")
-            : Text("Gün, o gün geçen her kayda bağlanır. Öteki çizgiler aynı olayda geçen kayıtları bağlar.")
+            ? Text("Çizgiler aynı olayda geçen kayıtları ve elle kurulan bağları gösterir.")
+            : Text(
+                "Gün, o gün geçen her kayda bağlanır. Öteki çizgiler aynı olayda geçen kayıtları ve elle kurulan bağları gösterir."
+            )
     }
 
     private var legendRow: some View {
@@ -163,10 +165,17 @@ struct GraphView: View {
                     nodeMenu
                 }
             } else {
-                HStack(spacing: 12) {
-                    legendMarks
-                    Spacer(minLength: 0)
-                    nodeMenu
+                // A day with a relation and a custom type is wider than an iPhone: the menu moves down.
+                ViewThatFits(in: .horizontal) {
+                    HStack(spacing: 12) {
+                        legendMarks
+                        Spacer(minLength: 0)
+                        nodeMenu
+                    }
+                    VStack(alignment: .leading, spacing: 0) {
+                        HStack(spacing: 12) { legendMarks }
+                        nodeMenu
+                    }
                 }
             }
         }
@@ -186,6 +195,18 @@ struct GraphView: View {
     }
 
     @ViewBuilder private var legendMarks: some View {
+        // Like custom types, the relation entry appears only when the graph draws one.
+        if model.graph.edges.contains(where: { $0.kind == .relation }) {
+            HStack(spacing: 4) {
+                Rectangle().fill(Color.ink.control).frame(width: 18, height: InkStroke.highPriority)
+                    .accessibilityHidden(true)
+                Text("Bağ")
+                    .foregroundStyle(Color.ink.secondaryText)
+                    .lineLimit(1)
+                    .fixedSize(horizontal: true, vertical: false)
+            }
+            .accessibilityElement(children: .combine)
+        }
         legendMark(kind: .person, title: "Kişiler")
         legendMark(kind: .place, title: "Konumlar")
         if day != nil {

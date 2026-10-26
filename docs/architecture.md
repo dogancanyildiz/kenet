@@ -546,6 +546,8 @@ Widget ekranlarla aynı hedef sorgusunu kullanır. Widget sorguyu kendisi çalı
 
 Açık ilişkiler `VaultIndex.relations(of:)` ile yönlü giden ve gelen listeler, `explicitRelations(kinds:)` ile Graph için yönsüz tekil çiftler olarak okunur. Şema 9 korunur: frontmatter bağlantılarının mevcut `links.key`, `block IS NULL` ve `resolvedFile` alanları kullanılır. `VaultStore.addRelation` ve `removeRelation` seri dosya yazma geçidinde yalnız ilgili frontmatter alanını düzenler, ardından indeksi günceller. Gelen bağlar dosyaya yazılmaz.
 
+App katmanında `EntityRelationsModel` giden/gelen satırları ve bağ yazma hatalarını sunar; `IndexStore` mevcut dosya yazma geçidini kullanır. Yalnız çözülen ve görünen metin ya da çapa taşımayan wikilinklerden oluşan şema dışı alanlar `EntityDetailModel.reservedKeys` ile serbest alanlardan ayrılır; karışık metinli, çözülmeyen ya da sayfanın kendisine bağlanan değer içeren alan ile şema alanları görünür kalır. Graph girdisi açık bağları da taşır; `GraphModel` dönem/eşik hesabından sonra görünür varlık çiftlerine sabit ağırlıklı yönsüz bağ ekler. Aynı çiftin birlikte geçme kenarı açık bağla temsil edilir. Ana Graph ve günün grafiği aynı çizgi ve VoiceOver sunumunu kullanır; gün kipinde yalnız günün varlıkları arasındaki bağlar çizilir.
+
 **Şema `Core` paketinin hedeflerini ve bağımlılıklarını gösterir.**
 
 ```mermaid

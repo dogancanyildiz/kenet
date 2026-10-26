@@ -76,6 +76,21 @@ final class AccessibilityAuditUITests: XCTestCase {
         try audit(app, screen: "settings")
     }
 
+    @MainActor
+    func testRelationSheetPassesAccessibilityAudit() throws {
+        let app = launchTurned()
+        UITestSupport.openTab(app, identifier: "tab.entities", screen: "screen.entities")
+        let person = app.staticTexts["Deniz Arıkan"].firstMatch
+        UITestSupport.waitForExistence(person)
+        person.tourTap()
+        let add = UITestSupport.element(in: app, identifier: "button.addRelation")
+        for _ in 0..<8 where !add.isHittable { app.swipeUp() }
+        UITestSupport.waitForExistence(add)
+        add.tourTap()
+        UITestSupport.waitForExistence(UITestSupport.element(in: app, identifier: "field.relation.label"))
+        try audit(app, screen: "relationSheet")
+    }
+
     /// Launches on Today and turns the split shell (iPad) as requested.
     @MainActor
     private func launchTurned() -> XCUIApplication {

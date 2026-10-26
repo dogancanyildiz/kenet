@@ -64,6 +64,8 @@ struct GraphEdge: Sendable, Equatable {
     let first: String
     let second: String
     let weight: Int
+    enum Kind: Sendable, Equatable { case cooccurrence, day, relation }
+    var kind: Kind = .cooccurrence
 }
 struct GraphModel: Sendable {
     let nodes: [GraphNode]
@@ -111,9 +113,12 @@ struct GraphModel: Sendable {
                 }
             }
         }
-        let edges = weights.filter { $0.value >= max(1, filter.minimumWeight) }.map {
-            GraphEdge(first: $0.key.first, second: $0.key.second, weight: $0.value)
+        var edges = weights.filter { $0.value >= max(1, filter.minimumWeight) }.map {
+            GraphEdge(
+                first: $0.key.first, second: $0.key.second, weight: $0.value,
+                kind: $0.key.first.hasPrefix("day:") || $0.key.second.hasPrefix("day:") ? .day : .cooccurrence)
         }.sorted { ($0.first, $0.second) < ($1.first, $1.second) }
+        edges = addingRelations(input.relations, to: edges, including: ids)
         return Self(nodes: nodes.sorted { $0.id < $1.id }, edges: edges)
     }
 
@@ -134,9 +139,30 @@ struct GraphModel: Sendable {
                 id: id, name: TodayPresentation.dayTitles(today: today)(date), kind: .day,
                 count: ids.reduce(0) { $0 + (day.mentions[$1] ?? 0) }, date: date))
         for member in ids { weights[GraphMentions.Pair(first: id, second: member)] = 1 }
-        let edges = weights.map { GraphEdge(first: $0.key.first, second: $0.key.second, weight: $0.value) }
-            .sorted { ($0.first, $0.second) < ($1.first, $1.second) }
+        var edges = weights.map {
+            GraphEdge(
+                first: $0.key.first, second: $0.key.second, weight: $0.value,
+                kind: $0.key.first.hasPrefix("day:") || $0.key.second.hasPrefix("day:") ? .day : .cooccurrence)
+        }
+        .sorted { ($0.first, $0.second) < ($1.first, $1.second) }
+        edges = addingRelations(input.relations, to: edges, including: ids)
         return Self(nodes: nodes.sorted { $0.id < $1.id }, edges: edges)
+    }
+
+    private static func addingRelations(_ relations: [Relation], to edges: [GraphEdge], including ids: Set<String>)
+        -> [GraphEdge]
+    {
+        var result = edges
+        for relation in relations where ids.contains(relation.source) && ids.contains(relation.target) {
+            let pair = [relation.source, relation.target].sorted()
+            guard pair[0] != pair[1] else { continue }
+            // Removing whatever the pair already has keeps one edge per pair, repeats included.
+            result.removeAll { [$0.first, $0.second].sorted() == pair }
+            result.append(GraphEdge(first: pair[0], second: pair[1], weight: 1, kind: .relation))
+        }
+        return result.sorted {
+            ($0.first, $0.second, $0.kind == .relation ? 1 : 0) < ($1.first, $1.second, $1.kind == .relation ? 1 : 0)
+        }
     }
 
     private static func node(for entity: EntitySummary, count: Int, typeNames: [String: String]) -> GraphNode {

@@ -286,7 +286,7 @@ jobs:
     needs: changes
     if: needs.changes.outputs.docs_only != 'true'
     runs-on: macos-26
-    timeout-minutes: 25
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
       - name: Derle
@@ -302,7 +302,7 @@ jobs:
       # adıyla düşer. En uzun arayüz testi CI'da ~2,5 dk (iPad erişilebilirlik denetimi 141 sn).
       - name: iOS arayüz dumanı
         id: ios_ui
-        timeout-minutes: 20
+        timeout-minutes: 25
         run: |
           sh .github/scripts/xcodebuild-retry.sh "${{ steps.build.outputs.udid }}" test-without-building \
             -project Journal.xcodeproj \

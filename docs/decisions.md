@@ -85,7 +85,7 @@ Harita konuları gösterir; satırların tam metni karar günlüğündedir. Bir 
 
 ```mermaid
 timeline
-    title Karar takvimi, 306 karar
+    title Karar takvimi, 308 karar
     2026-10-02 : 58 karar : Ürün kapsamı ve platform : Kasa biçimi ve ayrıştırıcı : Git, sürüm ve CI
     2026-10-03 : 19 karar : Yazma doğrulaması : İndeks ve arama : Varlık sayfası ve hızlı giriş
     2026-10-04 : 31 karar : Birleştirme ve kayıp yok : VaultStore ve dosya izleme : Görev, hedef ve otomasyon : Özet, graph ve harita
@@ -103,10 +103,10 @@ timeline
     2026-10-20 : 8 karar : iCloud çakışma tespiti : Atomik yazmada fsync : Bildirim planı korunur : Okuma modelinden hedef verisi çıktı : Artımlı indeks ctime ve inode : Erişilebilirlik denetimi : Olay bekleyen testler
     2026-10-21 : 18 karar : İzleyici değişen dizini bildirir : Tek iptal ve kuşak sözleşmesi : Davranış ölçen arayüz testleri : Büyük yazıda sarma ve 44 pt hedef : Mac görüntüleri CI'da ve haftalık : Görüntü referansı tavanı : Bildirim içeriği varsayılan gizli : Türkçe büyük harf eşlemesi : Zincir günü : TestFlight CD : iCloud ve App Group kimlikleri : Mac'te FSEvents : Alan adı, gelir zamanı ve dalga 23 kapsamı
     2026-10-22 : 16 karar : Widget anlık görüntüsü : Kasa konumu iCloud : Günlük önerileri seçicisi : Paylaşım uzantısı : Widget içinden işaretleme, kilit ve kasa kimliği : Mac TestFlight ve kalite : Aşama 16 açılışı : Graph blokları ve segmentleri
-    2026-10-23 : 2 karar : Görüntü referansı tavanı 320 : Günün grafiği
+    2026-10-23 : 4 karar : Görüntü referansı tavanı 320 : Günün grafiği : Açık bağ biçimi : CI kısaltması
 ```
 
-Sayılar karar günlüğündeki satır sayısıdır. Toplam 306 satırdır.
+Sayılar karar günlüğündeki satır sayısıdır. Toplam 308 satırdır.
 
 ## Karar günlüğü
 
@@ -420,6 +420,8 @@ Sayılar karar günlüğündeki satır sayısıdır. Toplam 306 satırdır.
 | 2026-10-22 | Graph'ta paragraf bloğu segmentlere bölünür: her madde satırı (girintili devam satırlarıyla), her ardışık `>` öbeği ve öteki ardışık satırlar ayrı birlikte geçme birimidir; maddenin altındaki girintisiz satır yeni segmenttir, sayıyla başlayan satır maddedir. Şema ve blok tablosu değişmez; bölme sorguda yapılır (`ParagraphSegments`) | Boş satırsız Journal listesinde ayrı maddeler tek paragraf olup birbirine bağlanıyordu (W1 inceleme O1, kullanıcı kararı 77) |
 | 2026-10-23 | Görüntü referansı tavanı 300'den 320 dosyaya çıkar (`check-snapshot-budget.sh` `MAX_COUNT`); boyut tavanı 61 MiB kalır. Temsilci olmayan kümelerdeki koyu ve AX3 vakaları budanır (günün grafiği koyu ve AX3, Mac sabit manşet koyu) | Mac sabit manşet referansları (#335) ve günün grafiği (Aşama 16 W2) birlikte 306'ya çıkıyordu; 2026-10-21 tavanı 261 dosyada konmuştu, budama tek başına yetmiyor (kullanıcı kararı 78) |
 | 2026-10-23 | Günün grafiği: gün ekranının manşetindeki Graph simgesi (yalnız çözülen varlık bağlantısı olan günde) aynı Graph ekranını `scope: .day` ile açar; gün düğümü ortada, o günün kişi, konum ve özel tip varlıkları, aynı bloktakiler arası olay bağı; dönem, eşik ve tür süzgeci yok. Gün düğümünün adı gün manşeti biçimindedir. Ana Graph'ta özel tipler tip başına süzgeç satırıyla girer (varsayılan kapalı, altıgen düğüm, kontrol çizgisi rengi); gün katmanı açılırken dönem "Tümü" ise "Son 90 gün" olur. Bugün manşeti üç simgeyle çoğu gün ölçek ya da kısa ay geri çekilmesine girer | Kullanıcı kararı 76 (b) ve 78. Gün sorgusu tek tarihi okur ve tam kasa sorgusuyla tek yolu paylaşır (ölçüm: 0,5 ms, 8 düğüm). 5 yıllık kasada gün katmanı "Tümü"de 2115 düğüm ve yaklaşık 9 s yerleşim, 90 günde 380 düğüm ve 1,3 s. Özel tip yeni renk almaz (#337) |
+| 2026-10-23 | Açık bağ kaynak varlığın frontmatter'ında tırnaklı wikilink olarak durur: `related` etiketsiz, başka anahtar etiket (içerik katmanı), özel tipin `link` alanı da bağ; yalnız kaynak dosyaya yazılır, gelen bağ indeksten türetilir; `related` ayrılmış anahtardır (`types.json`'da alan olamaz); boşalan bağ alanı silinir | Kullanıcı kararı 76 (c): varlık sayfasından elle bağ. Yazıcı, indeks ve yeniden adlandırma frontmatter bağlantısını zaten taşıyor; Obsidian 1.4+ aynı bağı grafikte sayar; gövdeye yazmak kullanıcının notuna dokunurdu (#341) |
+| 2026-10-23 | CI: iPhone arayüz dumanı ayrı işte paralel koşar; macOS işinde Core yalnız Darwin dalı olan kümeler (tamamı Linux'ta); Pacific/Auckland koşusu PR'da yalnız saat dilimine duyarlı kümeler (`timezone-suites.sh`), `dev`'e itmede tam | Kod PR'ı 31 dk sürüyordu, kritik yol iPhone işiydi; kapı kaybetmeden ~20 dk (kullanıcı 2026-10-23, #342) |
 
 Satır sırası ekleme sırasıdır; tablonun ilk satırları tarih sırasında değildir. Sonradan değişen bir kararın gerekçe hücresi değişikliği tarihiyle anar. Güncel durum notları kararın verildiği günden sonraki gerçek durumu söyler.
 

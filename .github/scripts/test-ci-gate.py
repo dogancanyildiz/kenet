@@ -25,7 +25,7 @@ spec.loader.exec_module(ci_gate)
 
 RESULTS = ["success", "failure", "cancelled", "skipped"]
 NEVER_SKIPPED = ["changes", "lint"]
-SKIPPABLE = ["core-linux", "app-macos", "app-iphone", "app-ipad"]
+SKIPPABLE = ["core-linux", "app-macos", "app-iphone", "app-iphone-ui", "app-ipad"]
 JOBS = NEVER_SKIPPED + SKIPPABLE
 # İş akışının verebileceği ve veremeyeceği "yalnız belge" değerleri; yalnız tam "true" atlatır.
 DOCS_ONLY_VALUES = ["true", "false", "", "True", "TRUE", "1", "yes", " true", "true\n", "null"]

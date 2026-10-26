@@ -127,6 +127,14 @@ final class ScreenTourMacUITests: XCTestCase {
             tour.shot("04-gunluk-duzenleyici")
             try tour.macClick(["Vazgeç", "Kapat"])
         }
+        tour.step("02-gunun-grafigi") {
+            try tour.sidebar("Günlük")
+            try tour.macRow(pastDay, in: tour.mainWindow, scrolls: 0).click()
+            try tour.waitFor(ids: ["screen.day"])
+            try tour.macClick(["Günün grafiği"], ids: ["button.dayGraph"], in: tour.mainWindow)
+            try tour.waitFor(ids: ["screen.dayGraph"])
+            tour.shot("02-gunun-grafigi", settle: 3)
+        }
         tour.step("05-ozetler") {
             try tour.sidebar("Özetler")
             _ = try tour.macRequire(["Önceki dönem"])

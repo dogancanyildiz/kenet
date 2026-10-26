@@ -66,6 +66,12 @@ extension AccessibilityAuditExemption {
         // component is named, not each title.
         .init(type: .dynamicType, element: .identifier("sectionHeader"), reason: Reason.sectionHeader),
         .init(type: .dynamicType, element: .identifier("sectionHeader.count"), reason: Reason.sectionHeader),
+        // The Relations header action ("Bağ kur") shares the SectionHeader's list row: its byline text
+        // grows at AX3 (relations.sectionAX3.png), yet the entity page audit reports it on the CI runner
+        // and locally alike (runs 40338860083, 40349149278, 40353693585), like the titles above.
+        .init(
+            type: .dynamicType, element: .identifier("button.addRelation"),
+            reason: "Relations header action grows at AX3 (relations.sectionAX3.png)"),
         // Days calendar weekday letters (`veryShortStandaloneWeekdaySymbols`, `.ink.meta`) in the list
         // column; they grow at AX3 (shell.todayLandscapeAX3.png: "S Ç P C C P"). Reported on the CI
         // runner's iPad only (run 39497456184, Today, 'S').

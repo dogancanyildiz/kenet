@@ -24,20 +24,52 @@ import VaultStore
         await model.load()
         #expect(model.rows.count == 4)
         let labelled = try #require(model.rows.first { $0.isOutgoing && $0.relation.label == "eşi" })
-        #expect(labelled.text == "eşi · Selin Korkmaz")
+        #expect(labelled.name == "Selin Korkmaz")
+        #expect(labelled.relation.label == "eşi")
         #expect(labelled.canRemove)
         let plain = try #require(model.rows.first { $0.isOutgoing && $0.relation.label == nil })
-        #expect(plain.text == "Selin Korkmaz")
+        #expect(plain.name == "Selin Korkmaz")
+        #expect(plain.relation.label == nil)
         let incoming = try #require(model.rows.first { !$0.isOutgoing && $0.relation.label == "yazar" })
-        let name = incoming.relation.sourceName
-        #expect(incoming.text == String(localized: "\(name)'ın sayfasında") + " · yazar")
+        #expect(incoming.name == "Örnek Kitap")
+        #expect(incoming.relation.label == "yazar")
         let incomingPlain = try #require(model.rows.first { !$0.isOutgoing && $0.relation.label == nil })
-        let plainName = incomingPlain.relation.sourceName
-        #expect(incomingPlain.text == String(localized: "\(plainName)'ın sayfasında"))
+        #expect(incomingPlain.name == "Selin Korkmaz")
+        #expect(incomingPlain.relation.label == nil)
         #expect(model.rows.filter { !$0.isOutgoing }.allSatisfy { !$0.canRemove })
-        let mert = "Mert Aksu"
-        #expect(EntityRelationRow.incomingPage(mert) == String(localized: "\(mert)'nun sayfasında"))
         #expect(incoming.path == "books/Örnek Kitap.md")
+    }
+
+    @Test func removalActionsFollowDirectionSchemaAndWriteAccess() async throws {
+        let context = try await Self.context()
+        defer { context.clean() }
+        for path in [Self.person, "books/Örnek Kitap.md"] {
+            let model = EntityRelationsModel(store: context.store, path: path)
+            await model.load()
+            #expect(!model.rows.isEmpty)
+            for row in model.rows {
+                let expected: [EntityRelationsSection.RemoveAction] =
+                    row.isOutgoing && !row.isSchemaField ? [.remove] : []
+                #expect(EntityRelationsSection.removeActions(for: row, canWrite: true) == expected)
+                #expect(EntityRelationsSection.removeActions(for: row, canWrite: false).isEmpty)
+            }
+        }
+    }
+
+    @Test func incomingPageCopyUsesExplicitLanguageBundles() throws {
+        let examples = [
+            ("Ada", "Ada'nın"), ("Ece", "Ece'nin"), ("Aksu", "Aksu'nun"), ("Öykü", "Öykü'nün"),
+            ("Deniz", "Deniz'in"), ("Bulut", "Bulut'un"), ("Özgür", "Özgür'ün"), ("Arıkan", "Arıkan'ın"),
+        ]
+        for language in ["tr", "en"] {
+            let path = try #require(Bundle.main.path(forResource: language, ofType: "lproj"))
+            for (name, possessive) in examples {
+                let resource = EntityRelationCopy.incomingPage(
+                    name, locale: Locale(identifier: language), bundle: .atURL(URL(fileURLWithPath: path)))
+                let expected = language == "tr" ? "\(possessive) sayfasında" : "On \(name)'s page"
+                #expect(String(localized: resource) == expected)
+            }
+        }
     }
 
     @Test func schemaLinkRowOffersNoRemovalAndKeepsTheFile() async throws {

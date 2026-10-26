@@ -105,6 +105,9 @@ extension AccessibilityAuditExemption {
         .init(
             type: .textClipped, element: .identifier("field.entities.filter"),
             reason: "single-line filter field: typed text scrolls sideways, as every text field does"),
+        .init(
+            type: .textClipped, element: .identifier("field.relation.search"),
+            reason: "single-line filter field: typed text scrolls sideways, as every text field does"),
         // The entity page's byline (iPad detail column, a list cell): no line limit; it wraps and is
         // read whole at every size (entities.personDatesAX3.png; the iPad app measured at xxxLarge
         // and AX3). The audit reports it on the iPad only.

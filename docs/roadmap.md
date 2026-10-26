@@ -261,6 +261,7 @@ Kimlik gerektirmeyen dilimler Aşama 10 ile birlikte yürüdü ve bitti. Karar g
 | 24 | Kanban sütun önbelleği; karesel yeniden hesap kalktı | #330 |
 | 24 | Mac tarama sigortası | #331 |
 | 24 | Mac sabit manşet satırı ve Günlük sütunu bağlantıları | #332 |
+| 24 | CI kısaltması (#342): iPhone arayüz dumanı ayrı işte, PR ~20 dk | #342 |
 
 - [x] Kasa konumu: iCloud kapsayıcısı; yerel kasa yedek seçenek olarak kalır. Madde Aşama 0'dan devretti.
 - [ ] Eşitlenen kasada güvenli yazma: dosya koordinasyonu, cihaza inmemiş dosyalar, çakışan sürümleri tespit, birleştirme işlevini bağlama, kopya dosya kuralı, eşitleme durumu göstergesi.
@@ -365,7 +366,7 @@ Kullanıcı 2026-10-16'da TestFlight 249 denemesinden sonra dört sorun bildirdi
 |---|---|---|
 | Olay düzeyinde bağ | Bitti. Kasa biçimi ve indeks şeması değişmez. | #333, #334, `Fixtures/vaults/graph/` |
 | Günün grafiği | Bitti. Gün kipi `GraphScope.day`, `VaultIndex.dayGraphMentions`; ana Graph'ta özel tip süzgeci ve gün katmanı dönem geçişi; 5 yıllık ölçüm PR açıklamasında. | #337 |
-| Açık ilişkiler | Açık. Kasa biçimi önce `vault-format.md` belgesine girer. | - |
+| Açık ilişkiler | Açık. Kasa biçimi `vault-format.md` belgesine girdi; Core ve App sırada. | kasa biçimi #341 (W3a) |
 
 Kullanıcı 2026-10-22'de Graph'ın aynı günün farklı olaylarındaki kişi ve konumları birbirine bağladığını bildirdi. Kullanıcı her günün kendi grafiğini ve varlık sayfasından elle bağ kurmayı istedi. Maddeler kimlik ya da cihaz kararı gerektirmez; bu yüzden Aşama 11 ile birlikte yürür. Başlamak kullanıcı onayına bağlıdır. Araştırma raporu depo dışındadır.
 

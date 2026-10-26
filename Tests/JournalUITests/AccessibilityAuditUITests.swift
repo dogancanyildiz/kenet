@@ -88,6 +88,12 @@ final class AccessibilityAuditUITests: XCTestCase {
         UITestSupport.waitForExistence(add)
         add.tourTap()
         UITestSupport.waitForExistence(UITestSupport.element(in: app, identifier: "field.relation.label"))
+        let search = UITestSupport.element(in: app, identifier: "field.relation.search")
+        UITestSupport.waitForExistence(search)
+        let caption = app.staticTexts.matching(
+            NSPredicate(format: "label IN %@", ["Etiket (isteğe bağlı)", "Label (optional)"])
+        ).firstMatch
+        UITestSupport.waitForExistence(caption)
         try audit(app, screen: "relationSheet")
     }
 

@@ -5693,6 +5693,22 @@
         }
       }
     },
+    "Etiket (isteğe bağlı)" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Etiket (isteğe bağlı)"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Label (optional)"
+          }
+        }
+      }
+    },
     "Etiket geçersiz karakter içeriyor." : {
       "localizations" : {
         "en" : {

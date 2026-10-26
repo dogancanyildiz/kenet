@@ -24,8 +24,15 @@ struct EntityRelationSheet: View {
                 // Above the list: the confirm word sits in the bar, so a failed save is read here.
                 if let error = model.sheetErrorText { InfoBand(kind: .error, verbatim: error).inkListRow() }
                 // The optional label comes before the target list, which grows with the vault.
-                InkFilterField("Etiket", text: $label, identifier: "field.relation.label", showsClearButton: false)
-                    .inkListRow()
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Etiket (isteğe bağlı)")
+                        .font(.ink.meta)
+                        .foregroundStyle(Color.ink.secondaryText)
+                    // The caption above names the field in full; the placeholder stays one word so it
+                    // never clips at large text sizes.
+                    InkFilterField("Etiket", text: $label, identifier: "field.relation.label", showsClearButton: false)
+                }
+                .inkListRow()
                 ForEach(model.labels, id: \.self) { suggestion in
                     Button {
                         label = suggestion
@@ -36,7 +43,7 @@ struct EntityRelationSheet: View {
                     .tapTarget()
                     .inkListRow()
                 }
-                InkFilterField("Varlık ara", text: $search, identifier: "field.entities.filter")
+                InkFilterField("Varlık ara", text: $search, identifier: "field.relation.search")
                     .autocorrectionDisabled()
                     .inkListRow()
                 ForEach(candidates) { entity in

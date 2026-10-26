@@ -13,29 +13,7 @@ struct EntityRelationRow: Identifiable {
     var id: [String] { [relation.source, relation.target, relation.label ?? "", isOutgoing ? "out" : "in"] }
     var path: String { isOutgoing ? relation.target : relation.source }
     var canRemove: Bool { isOutgoing && !isSchemaField }
-    var text: String {
-        let name = isOutgoing ? relation.targetName : Self.incomingPage(relation.sourceName)
-        return isOutgoing
-            ? [relation.label, name].compactMap { $0 }.joined(separator: " · ")
-            : [name, relation.label].compactMap { $0 }.joined(separator: " · ")
-    }
-
-    static func incomingPage(_ name: String) -> String {
-        let letters = name.lowercased(with: Locale(identifier: "tr_TR"))
-        let lastVowel = letters.last { "aeıioöuü".contains($0) } ?? "ı"
-        let vowelEnding = letters.last.map { "aeıioöuü".contains($0) } ?? false
-        switch (lastVowel, vowelEnding) {
-        case ("a", true), ("ı", true): return String(localized: "\(name)'nın sayfasında")
-        case ("e", true), ("i", true): return String(localized: "\(name)'nin sayfasında")
-        case ("o", true), ("u", true): return String(localized: "\(name)'nun sayfasında")
-        case ("ö", true), ("ü", true): return String(localized: "\(name)'nün sayfasında")
-        case ("e", false), ("i", false): return String(localized: "\(name)'in sayfasında")
-        case ("o", false), ("u", false): return String(localized: "\(name)'un sayfasında")
-        case ("ö", false), ("ü", false): return String(localized: "\(name)'ün sayfasında")
-        default: return String(localized: "\(name)'ın sayfasında")
-        }
-    }
-
+    var name: String { isOutgoing ? relation.targetName : relation.sourceName }
 }
 
 @MainActor @Observable

@@ -61,13 +61,11 @@ extension VaultStore {
                     && targetPath != path
                 if !removing && !validTarget { throw RelationError.invalidTarget }
 
-                let trimmed = label?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                // Only spaces and tabs are trimmed, so a line break anywhere still rejects the label.
+                let trimmed = label?.trimmingCharacters(in: CharacterSet(charactersIn: " \t")) ?? ""
                 let key = trimmed.isEmpty ? "related" : trimmed
                 if !trimmed.isEmpty {
-                    guard trimmed != "<<",
-                        (label ?? "").unicodeScalars.allSatisfy({
-                            !CharacterSet.controlCharacters.contains($0) && $0.value != 0x2028 && $0.value != 0x2029
-                        })
+                    guard trimmed != "<<", !trimmed.unicodeScalars.contains(where: Self.isInvalidLabelScalar)
                     else { throw RelationError.invalidLabel }
                     var reserved = ["type", "name", "qualifier", "aliases", "related"]
                     if source.kind == "person" {
@@ -136,6 +134,16 @@ extension VaultStore {
                 return try document.settingFrontmatterList(
                     items.map(Self.relationLiteral) + [.text(text)], forKey: key)
             }
+        }
+    }
+
+    /// Line breaks and tabs, and the characters that make a frontmatter block unreadable
+    /// (vault format, unreadable blocks 19): C0 controls, DEL, C1 controls, U+2028, U+2029,
+    /// U+FEFF, U+FFFE and U+FFFF. Format characters such as ZWJ and soft hyphen are valid.
+    private nonisolated static func isInvalidLabelScalar(_ scalar: Unicode.Scalar) -> Bool {
+        switch scalar.value {
+        case 0x00...0x1F, 0x7F...0x9F, 0x2028, 0x2029, 0xFEFF, 0xFFFE, 0xFFFF: true
+        default: false
         }
     }
 

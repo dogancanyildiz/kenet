@@ -92,6 +92,55 @@ struct RelationsWriteTests {
         #expect(try vault.bytes(path) == before)
     }
 
+    @Test func readOnlyVaultRejectsAddAndRemove() async throws {
+        let vault = try StoreVault(sample: true)
+        defer { vault.remove() }
+        let path = "people/Deniz Arıkan.md"
+        try await vault.store.addRelation(from: path, to: "Selin Korkmaz", label: "eşi")
+        try vault.write(".app/vault.json", "{ \"formatVersion\": 2 }\n")
+        let before = try vault.bytes(path)
+        await #expect(throws: VaultStoreError.readOnlyVault) {
+            try await vault.store.addRelation(from: path, to: "Selin Korkmaz")
+        }
+        await #expect(throws: VaultStoreError.readOnlyVault) {
+            try await vault.store.removeRelation(from: path, to: "Selin Korkmaz", label: "eşi")
+        }
+        #expect(try vault.bytes(path) == before)
+    }
+
+    @Test func concurrentAddsToOneSourceLoseNoRelations() async throws {
+        let vault = try StoreVault()
+        defer { vault.remove() }
+        let path = "people/Deniz Arıkan.md"
+        let names = (0..<12).map { "Kişi " + String($0) }
+        try vault.write(path, "---\ntype: person\nname: Deniz Arıkan\n---\n")
+        for name in names {
+            try vault.write("people/" + name + ".md", "---\ntype: person\nname: " + name + "\n---\n")
+        }
+        try vault.index.rebuild(vaultRoot: vault.root)
+        // Two stores share the per-root write queue; neither may overwrite the other's edit.
+        let second = VaultStore(vaultRoot: vault.root, index: vault.index)
+        try await withThrowingTaskGroup(of: Void.self) { group in
+            for (number, name) in names.enumerated() {
+                group.addTask {
+                    let store = number.isMultiple(of: 2) ? vault.store : second
+                    try await store.addRelation(from: path, to: name)
+                }
+            }
+            try await group.waitForAll()
+        }
+        guard case .parsed(let frontmatter) = RawDocument(bytes: try vault.bytes(path)).frontmatter else {
+            Issue.record("frontmatter is not readable")
+            return
+        }
+        let items = frontmatter.field(named: "related")?.value.listItems?.map(\.text) ?? []
+        #expect(items.count == names.count)
+        #expect(Set(items) == Set(names.map { "[[" + $0 + "]]" }))
+        let outgoing = try vault.index.relations(of: path).outgoing
+        #expect(Set(outgoing.map(\.target)) == Set(names.map { "people/" + $0 + ".md" }))
+        try vault.check()
+    }
+
     @Test func renameUpdatesBothRelationFields() async throws {
         let vault = try StoreVault(sample: true)
         defer { vault.remove() }

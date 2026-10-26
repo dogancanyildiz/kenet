@@ -27,6 +27,12 @@ extension VaultIndex {
         }
     }
 
+    /// Every explicit relation label in the vault, unique and sorted by `<`; `related` is unlabeled.
+    /// Unlike `explicitRelations(kinds:)`, no label is dropped when a pair has several.
+    public func relationLabels() throws -> [String] {
+        Array(Set(try relationRows().compactMap(\.label))).sorted()
+    }
+
     private func relationRows(path: String? = nil, kinds: Set<String>? = nil) throws -> [Relation] {
         let sorted = kinds?.sorted() ?? []
         let marks = Array(repeating: "?", count: sorted.count).joined(separator: ",")

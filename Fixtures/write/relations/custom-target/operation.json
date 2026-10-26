@@ -1,0 +1,11 @@
+{
+  "relation": {
+    "target": "Kitap",
+    "label": "okuduğu",
+    "remove": false,
+    "error": null,
+    "extraFiles": {
+      "books/Kitap.md": "---\ntype: book\nname: Kitap\n---\n"
+    }
+  }
+}

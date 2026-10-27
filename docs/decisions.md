@@ -85,7 +85,7 @@ Harita konuları gösterir; satırların tam metni karar günlüğündedir. Bir 
 
 ```mermaid
 timeline
-    title Karar takvimi, 313 karar
+    title Karar takvimi, 315 karar
     2026-10-02 : 58 karar : Ürün kapsamı ve platform : Kasa biçimi ve ayrıştırıcı : Git, sürüm ve CI
     2026-10-03 : 19 karar : Yazma doğrulaması : İndeks ve arama : Varlık sayfası ve hızlı giriş
     2026-10-04 : 31 karar : Birleştirme ve kayıp yok : VaultStore ve dosya izleme : Görev, hedef ve otomasyon : Özet, graph ve harita
@@ -105,10 +105,10 @@ timeline
     2026-10-22 : 16 karar : Widget anlık görüntüsü : Kasa konumu iCloud : Günlük önerileri seçicisi : Paylaşım uzantısı : Widget içinden işaretleme, kilit ve kasa kimliği : Mac TestFlight ve kalite : Aşama 16 açılışı : Graph blokları ve segmentleri
     2026-10-23 : 4 karar : Görüntü referansı tavanı 320 : Günün grafiği : Açık bağ biçimi : CI kısaltması
     2026-10-26 : 4 karar : Açık bağ Core altyapısı : Açık bağ ekranları ve Graph : Açık bağın düğüm boyutu : Arayüz testleri iki işte
-    2026-10-27 : 1 karar : Sheet dışı öğede kontrast ölçülmez
+    2026-10-27 : 3 karar : Sheet dışı kontrast, gösterge rengi, ortak denetim iPad’de
 ```
 
-Sayılar karar günlüğündeki satır sayısıdır. Toplam 313 satırdır.
+Sayılar karar günlüğündeki satır sayısıdır. Toplam 315 satırdır.
 
 ## Karar günlüğü
 
@@ -429,6 +429,8 @@ Sayılar karar günlüğündeki satır sayısıdır. Toplam 313 satırdır.
 | 2026-10-26 | Açık bağ Graph'ta anma sayısına girer ve düğümü büyütür; `Fixtures/vaults/graph/expected.json` buna göre | `screens.md` frontmatter bağlantılarını anma sayar; kullanıcı kararı 79, 2026-10-26 "böyle kalsın, düğüm büyüsün" (W3 Core incelemesi D9) |
 | 2026-10-26 | CI: iPhone arayüz testleri iki işte koşar. Denetim işi adı `AccessibilityUITests` ya da `AuditUITests` ile biten kümeleri koşar (`ui-audit-suites.sh`, 530 sn); akış işi geri kalanı koşar (376 sn). iPhone birim ve görüntü adımları ayrı `xcodebuild` çağrısı olarak kalır | Tek arayüz işi 28 dk ile kritik yoldu (koşu 40385010425; 24 vaka 906 sn). Her çağrının ~3–4 dk sabit maliyeti var; bölmeyle iki iş ~19 ve ~22 dk, kritik yol ~23 dk (iPhone/iPad işleri). Birim ve görüntü birleşmez: görüntüler Türkçe süreç diliyle ve kaldırılmış uygulamayla çizilir |
 | 2026-10-27 | Erişilebilirlik denetiminde sheet listesinin (`sheet.*` kimliği) görünür çerçevesi dışındaki öğenin kontrast bulgusu ölçülmez | Kırpılmış satırın görüntüsü sheet kenarı ve karartılmış arka plandır; iPad koşusu 40397762257 (#355) |
+| 2026-10-27 | Graph göstergesindeki "Bağ" örneği çizginin kendi rengindedir (`ink.rule`) | Örnek çizgiyi temsil eder; `ink.control` örneği çizgiden koyu çıkıyordu (W3 dalga incelemesi D9). Ayrım renge değil kalınlığa dayanır |
+| 2026-10-27 | CI: iPad işinin de koştuğu ortak erişilebilirlik denetimi kümesi (`AccessibilityAuditUITests`) iPhone denetim işinde koşmaz; `ui-audit-suites.sh --iphone` ortak küme dışını, `--shared` ortak kümeyi verir, iPad adımı `--shared` kullanır | Aynı ekranlar iPad'de bölünmüş kabukta denetleniyor; iPhone'da yinelemek denetim işine ~6 dk ekliyordu (koşu 40427534859: 6 vaka 370 sn, iş 20 dk). Bedel: iPhone sekme çubuğu denetimi yalnız kalan kümelerle (UnlinkedMentions, DayGraph, QuickEntry) dolaylı denetlenir |
 
 Satır sırası ekleme sırasıdır; tablonun ilk satırları tarih sırasında değildir. Sonradan değişen bir kararın gerekçe hücresi değişikliği tarihiyle anar. Güncel durum notları kararın verildiği günden sonraki gerçek durumu söyler.
 

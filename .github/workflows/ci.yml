@@ -297,9 +297,10 @@ jobs:
   # iPhone arayüz testleri (JournalUITests) iki işte, ikisi de kendi runner'ında kendi derlemesi ve
   # simülatörüyle. Tek iş 28 dk sürüyordu ve kritik yoldu (koşu 40385010425: derleme 6,2 + açılış
   # 2,4 + test 18,4 dk; 24 vaka 906 sn). Bölme ad kuralıyla yapılır: .github/scripts/ui-audit-suites.sh
-  # denetim kümelerini listeler (adı AccessibilityUITests/AuditUITests ile biten sınıflar, ~530 sn);
-  # denetim işi onları -only-testing ile, akış işi aynı listeyi -skip-testing ile koşar (~376 sn).
-  # Ad kuralına uymayan yeni küme akış işine düşer. Yeni açılmış simülatörde ilk koşu yavaştır; iki
+  # denetim kümelerini listeler (adı AccessibilityUITests/AuditUITests ile biten sınıflar); akış işi
+  # bu listeyi -skip-testing ile koşar (~376 sn). Denetim işi listeyi --iphone ile alır: iPad işinin de
+  # koştuğu ortak küme (AccessibilityAuditUITests, --shared; 6 vaka ~370 sn) iPhone'da koşmaz, kalan
+  # kümeler -only-testing ile koşar (~185 sn). Ad kuralına uymayan yeni küme akış işine düşer. Yeni açılmış simülatörde ilk koşu yavaştır; iki
   # iş de bu bedeli öder, yine de kısalır. İki iş de PR kapısıdır. Bölmeyle bir PR beş macOS işi
   # tutar, eşzamanlı sınırın tamamı: aynı anda koşan ikinci PR ya da dev itmesindeki iki TestFlight
   # denetimi sıra bekler.
@@ -356,14 +357,15 @@ jobs:
           path: UIFlowTests.xcresult
           retention-days: 7
 
-  # Denetim: erişilebilirlik denetimi kümeleri (ui-audit-suites.sh). Süre ~22 dk (tahmin); iş sınırı
-  # ~1,4 katı. En uzun denetim testi CI'da iPhone'da ~1,5 dk (86 sn), iPad'de ~2,5 dk (141 sn).
+  # Denetim: yalnız iPhone'a özgü erişilebilirlik denetimi kümeleri (ui-audit-suites.sh --iphone); ortak
+  # küme iPad işinde koşar. Süre ~14 dk (tahmin: 20 dk - 6 dk); iş sınırı ~1,7 katı. En uzun denetim
+  # testi CI'da iPhone'da ~1,2 dk (70 sn), iPad'de ~2,5 dk (141 sn).
   app-iphone-audit:
     name: Uygulama (iPhone arayüz denetimi)
     needs: changes
     if: needs.changes.outputs.docs_only != 'true'
     runs-on: macos-26
-    timeout-minutes: 30
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v7
       - name: Derle
@@ -378,9 +380,9 @@ jobs:
       # Liste boşsa betik düşer: -only-testing verilmezse xcodebuild bütün testleri koşar.
       - name: iOS arayüz denetimi
         id: ios_audit
-        timeout-minutes: 20
+        timeout-minutes: 15
         run: |
-          AUDIT=$(sh .github/scripts/ui-audit-suites.sh)
+          AUDIT=$(sh .github/scripts/ui-audit-suites.sh --iphone)
           sh .github/scripts/xcodebuild-retry.sh "${{ steps.build.outputs.udid }}" test-without-building \
             -project Journal.xcodeproj \
             -scheme Journal_iOS \
@@ -457,19 +459,22 @@ jobs:
           if-no-files-found: warn
           retention-days: 7
       # Aynı derleme ürünü UI test koşucusunu da taşır (ios-build: build-for-testing, Journal_iOS).
-      # Denetim bölünmüş kabukta kenar çubuğuyla gezer ve aygıtı yatay döndürür; bitince dik bırakır.
-      # Dil ayarı iPhone arayüz işleriyle aynı (verilmez). Yerelde ~1,5 dk, CI'da ~2,5 dk. Test başına
-      # sınır iPhone arayüz işleriyle aynı: sessiz asılma test adıyla düşer.
+      # Ortak denetim kümesi (ui-audit-suites.sh --shared: AccessibilityAuditUITests) yalnız burada
+      # koşar; iPhone denetim işi onu atlar. Denetim bölünmüş kabukta kenar çubuğuyla gezer ve aygıtı
+      # yatay döndürür; bitince dik bırakır. Dil ayarı iPhone arayüz işleriyle aynı (verilmez). Yerelde
+      # ~1,5 dk, CI'da ~5 dk (6 vaka 300 sn). Test başına sınır iPhone arayüz işleriyle aynı: sessiz
+      # asılma test adıyla düşer. Liste boşsa betik düşer: boş -only-testing her şeyi koşturur.
       - name: iPad erişilebilirlik denetimi
         id: pad_a11y
         if: ${{ !cancelled() && steps.pad_boot.outcome == 'success' }}
         timeout-minutes: 15
         run: |
+          AUDIT=$(sh .github/scripts/ui-audit-suites.sh --shared)
           sh .github/scripts/xcodebuild-retry.sh "${{ steps.build.outputs.udid }}" test-without-building \
             -project Journal.xcodeproj \
             -scheme Journal_iOS \
             -destination "platform=iOS Simulator,id=${{ steps.build.outputs.udid }},arch=arm64" \
-            -only-testing:JournalUITests/AccessibilityAuditUITests \
+            $(printf '%s\n' $AUDIT | sed 's#^#-only-testing:JournalUITests/#' | tr '\n' ' ') \
             -resultBundlePath PadAccessibility.xcresult \
             -test-timeouts-enabled YES \
             -default-test-execution-time-allowance 300 \

@@ -198,7 +198,8 @@ struct GraphView: View {
         // Like custom types, the relation entry appears only when the graph draws one.
         if model.graph.edges.contains(where: { $0.kind == .relation }) {
             HStack(spacing: 4) {
-                Rectangle().fill(Color.ink.control).frame(width: 18, height: InkStroke.highPriority)
+                // Drawn in the edge's own colour (GraphCanvas): the sample stands for the line, not a control.
+                Rectangle().fill(Color.ink.rule).frame(width: 18, height: InkStroke.highPriority)
                     .accessibilityHidden(true)
                 Text("Bağ")
                     .foregroundStyle(Color.ink.secondaryText)

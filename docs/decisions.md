@@ -85,7 +85,7 @@ Harita konuları gösterir; satırların tam metni karar günlüğündedir. Bir 
 
 ```mermaid
 timeline
-    title Karar takvimi, 312 karar
+    title Karar takvimi, 313 karar
     2026-10-02 : 58 karar : Ürün kapsamı ve platform : Kasa biçimi ve ayrıştırıcı : Git, sürüm ve CI
     2026-10-03 : 19 karar : Yazma doğrulaması : İndeks ve arama : Varlık sayfası ve hızlı giriş
     2026-10-04 : 31 karar : Birleştirme ve kayıp yok : VaultStore ve dosya izleme : Görev, hedef ve otomasyon : Özet, graph ve harita
@@ -105,9 +105,10 @@ timeline
     2026-10-22 : 16 karar : Widget anlık görüntüsü : Kasa konumu iCloud : Günlük önerileri seçicisi : Paylaşım uzantısı : Widget içinden işaretleme, kilit ve kasa kimliği : Mac TestFlight ve kalite : Aşama 16 açılışı : Graph blokları ve segmentleri
     2026-10-23 : 4 karar : Görüntü referansı tavanı 320 : Günün grafiği : Açık bağ biçimi : CI kısaltması
     2026-10-26 : 4 karar : Açık bağ Core altyapısı : Açık bağ ekranları ve Graph : Açık bağın düğüm boyutu : Arayüz testleri iki işte
+    2026-10-27 : 1 karar : Sheet dışı öğede kontrast ölçülmez
 ```
 
-Sayılar karar günlüğündeki satır sayısıdır. Toplam 312 satırdır.
+Sayılar karar günlüğündeki satır sayısıdır. Toplam 313 satırdır.
 
 ## Karar günlüğü
 
@@ -427,6 +428,7 @@ Sayılar karar günlüğündeki satır sayısıdır. Toplam 312 satırdır.
 | 2026-10-26 | Varlık ekranında Bağlar bölümü (içgörü kartından sonra, Alanlar'dan önce) giden/gelen satırlar ve "Bağ kur" sheet'i (Vazgeç + Kaydet, `design.md` §6); kaldırma yalnız giden ve şema dışı bağda; uygulamanın yazdığı biçimdeki bağ alanları serbest alanlarda tekrarlanmaz (görünen metinli, çapalı, karışık ve çözülmeyen değer görünür kalır); Graph'ta açık bağ düz kalın çizgi, dönem ve eşikten bağımsız, sabit ağırlık; hata metinleri `DayEditError` eşlemesiyle ortak (#347) | Kullanıcı kararı 76 (c); bağımsız inceleme (Y1 O4) ve düzeltme turu; kenar anlamı renge dayanmaz |
 | 2026-10-26 | Açık bağ Graph'ta anma sayısına girer ve düğümü büyütür; `Fixtures/vaults/graph/expected.json` buna göre | `screens.md` frontmatter bağlantılarını anma sayar; kullanıcı kararı 79, 2026-10-26 "böyle kalsın, düğüm büyüsün" (W3 Core incelemesi D9) |
 | 2026-10-26 | CI: iPhone arayüz testleri iki işte koşar. Denetim işi adı `AccessibilityUITests` ya da `AuditUITests` ile biten kümeleri koşar (`ui-audit-suites.sh`, 530 sn); akış işi geri kalanı koşar (376 sn). iPhone birim ve görüntü adımları ayrı `xcodebuild` çağrısı olarak kalır | Tek arayüz işi 28 dk ile kritik yoldu (koşu 40385010425; 24 vaka 906 sn). Her çağrının ~3–4 dk sabit maliyeti var; bölmeyle iki iş ~19 ve ~22 dk, kritik yol ~23 dk (iPhone/iPad işleri). Birim ve görüntü birleşmez: görüntüler Türkçe süreç diliyle ve kaldırılmış uygulamayla çizilir |
+| 2026-10-27 | Erişilebilirlik denetiminde sheet listesinin (`sheet.*` kimliği) görünür çerçevesi dışındaki öğenin kontrast bulgusu ölçülmez | Kırpılmış satırın görüntüsü sheet kenarı ve karartılmış arka plandır; iPad koşusu 40397762257 (#355) |
 
 Satır sırası ekleme sırasıdır; tablonun ilk satırları tarih sırasında değildir. Sonradan değişen bir kararın gerekçe hücresi değişikliği tarihiyle anar. Güncel durum notları kararın verildiği günden sonraki gerçek durumu söyler.
 

@@ -410,7 +410,7 @@ Hedef aralığı `\|` ayırıcısının ters bölüsünü kapsamaz. Çapa nesnes
 | Ruby Psych | YAML 1.1 | Her zaman |
 | js-yaml | YAML 1.2, Obsidian'ın okuyucusu | İstenirse |
 
-Uygulamanın okuyucusu ve yazıcısı aynı kuralları paylaşır. İkisinde birden yanlış olan bir kural kendi testlerinden geçer. `.github/scripts/check-frontmatter-yaml.rb` betiği `parse/` beklentilerini ve `write/` çıktılarını bu okuyucularla karşılaştırır. Betik testlerin rastgele ürettiği blokları da aynı okuyuculara gösterebilir.
+Uygulamanın okuyucusu ve yazıcısı aynı kuralları paylaşır. İkisinde birden yanlış olan bir kural kendi testlerinden geçer. `.github/scripts/check-frontmatter-yaml.rb` betiği `parse/` beklentilerini ve `write/` çıktılarını bu okuyucularla karşılaştırır. `write/relations/` altındaki hatasız bağ işlemlerinde okuyucu, etiket alanında (etiketsizse `related`) hedefe giden bağlantıyı dizgi olarak okumalı; kaldırmada okumamalı. Betik testlerin rastgele ürettiği blokları da aynı okuyuculara gösterebilir.
 
 CI (sürekli bütünleştirme) betiği koşmaz. Frontmatter kuralları ya da örnekler değişince betiği elle çalıştır. Kullanımı betiğin başındadır.
 

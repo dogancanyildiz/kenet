@@ -275,6 +275,54 @@ import VaultStore
         }
     }
 
+    /// A note and a person share a name. Core resolves the link to the first path, the note, so
+    /// it is no relation: the field keeps the link visible instead of hiding it with the others.
+    @Test func linkResolvedToANoteKeepsTheFieldVisible() async throws {
+        let context = try await Self.context()
+        defer { context.clean() }
+        let notes = context.root.appendingPathComponent("notes")
+        try FileManager.default.createDirectory(at: notes, withIntermediateDirectories: true)
+        try Data("Not\n".utf8).write(to: notes.appendingPathComponent("Selin Korkmaz.md"))
+        await context.store.refresh()
+        try await context.store.setList(
+            at: Self.person, key: "related", values: [.text("[[Baran Tunç]]"), .text("[[Selin Korkmaz]]")])
+        let relations = EntityRelationsModel(store: context.store, path: Self.person)
+        await relations.load()
+        let related = relations.rows.filter { $0.isOutgoing && $0.relation.label == nil }
+        #expect(related.map(\.relation.target) == ["people/Baran Tunç.md"])
+        let detail = EntityDetailModel(store: context.store, path: Self.person)
+        await detail.load()
+        #expect(detail.isLoaded)
+        #expect(!detail.reservedKeys.contains("related"))
+        #expect(detail.fields.contains { $0.key == "related" })
+        // The same field with only the resolved person hides again.
+        try await context.store.setList(at: Self.person, key: "related", values: [.text("[[Baran Tunç]]")])
+        let resolved = EntityDetailModel(store: context.store, path: Self.person)
+        await resolved.load()
+        #expect(resolved.reservedKeys.contains("related"))
+    }
+
+    /// Each item needs its own link as the index read it; a missing or stale reading hides nothing.
+    @Test func hiddenKeysNeedOneIndexedLinkPerItem() async throws {
+        let context = try await Self.context()
+        defer { context.clean() }
+        let document = try await context.store.document(at: Self.person)
+        guard case .parsed(let frontmatter) = document.frontmatter else {
+            Issue.record("Expected parsed frontmatter")
+            return
+        }
+        let fields = frontmatter.fields.map { EntityField(key: $0.key, value: $0.value) }
+        let outgoing = try await context.store.computeRelations(of: Self.person).outgoing
+        let links = try #require(context.store.content.fragments[Self.person]?.links)
+        func hidden(_ links: [IndexedLink]) -> [String] {
+            EntityRelationsModel.hiddenKeys(fields: fields, schemaKeys: [], outgoing: outgoing, links: links)
+        }
+        // `related` keeps the unresolved [[Yok]], so only `eşi` hides.
+        #expect(hidden(links) == ["eşi"])
+        #expect(hidden([]).isEmpty)
+        #expect(hidden(links + links.filter { $0.key == "eşi" }).isEmpty)
+    }
+
     @Test func relationWritesGoThroughTheEditGate() async throws {
         let context = try await Self.context()
         defer { context.clean() }

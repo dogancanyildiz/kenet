@@ -1,8 +1,11 @@
 #!/bin/sh
-# ui-audit-suites.sh testi: sahte depoda ad kuralı ve boş liste; gerçek depoda listenin geçerliliği.
+# ui-audit-suites.sh testi: sahte depoda ad kuralı ve boş liste; gerçek depoda listenin geçerliliği;
+# ci.yml'deki iki arayüz adımının listeyi nasıl kullandığı.
 # Korunan şey: denetim işi yalnız var olan kümeleri koşar, akış işi boş kalmaz ve uygulamayı açan
 # her denetim kümesi denetim işine gider (adında Accessibility ya da Audit geçen, uygulamayı açan
-# sınıf ad kuralına uymuyorsa düşer).
+# sınıf ad kuralına uymuyorsa düşer). İki iş birbirini tamamlar: denetim adımı listeyi yalnız
+# -only-testing ile, akış adımı bütün JournalUITests'i aynı liste -skip-testing ile koşar; liste
+# boşsa iki adım da xcodebuild'i çağırmadan düşer.
 set -eu
 here=$(cd "$(dirname "$0")" && pwd)
 repo=$(cd "$here/../.." && pwd)
@@ -18,6 +21,8 @@ mkdir -p "$ui" "$tmp/fake/Tests/JournalTests"
 cat > "$ui/A.swift" <<'SWIFT'
 import XCTest
 final class FooAccessibilityUITests: XCTestCase {}
+@available(iOS 26, *) final class CAvailableAccessibilityUITests: XCTestCase {}
+@MainActor @objc(Named) final class NamedAuditUITests: XCTestCase {}
 @MainActor final class BarAuditUITests: XCTestCase {}
 final class SmokeUITests: XCTestCase {}
 final class AccessibilityAuditExemptionTests: XCTestCase {}
@@ -30,10 +35,18 @@ class BazAccessibilityUITests: XCTestCase {
     class func helperAuditUITests() {}
 }
 SWIFT
+mkdir -p "$ui/Sub/Deeper"
+echo 'final class DSubAuditUITests: XCTestCase {}' > "$ui/Sub/D.swift"
+echo 'final class EDeeperAccessibilityUITests: XCTestCase {}' > "$ui/Sub/Deeper/E.swift"
+echo 'final class NotSwiftAuditUITests: XCTestCase {}' > "$ui/Sub/F.txt"
 echo 'final class OtherAccessibilityUITests: XCTestCase {}' > "$tmp/fake/Tests/JournalTests/C.swift"
 want="BarAuditUITests
 BazAccessibilityUITests
-FooAccessibilityUITests"
+CAvailableAccessibilityUITests
+DSubAuditUITests
+EDeeperAccessibilityUITests
+FooAccessibilityUITests
+NamedAuditUITests"
 got=$(sh "$script" "$tmp/fake") || fail "sahte depoda çıkış sıfır değil"
 [ "$got" = "$want" ] || { fail "ad kuralı"; printf 'beklenen:\n%s\nalınan:\n%s\n' "$want" "$got"; }
 
@@ -46,8 +59,8 @@ if out=$(sh "$script" "$tmp/yok" 2>&1); then fail "klasör yokken çıkış sıf
 # 3. Gerçek depo.
 list=$(sh "$script") || fail "gerçek depoda çıkış sıfır değil"
 [ -n "$list" ] || fail "gerçek depoda liste boş"
-classes=$(cat "$repo"/Tests/JournalUITests/*.swift \
-  | grep -oE '^[[:space:]]*([A-Za-z@]+[[:space:]]+)*class[[:space:]]+[A-Za-z0-9_]+[[:space:]]*:[[:space:]]*XCTestCase' \
+classes=$(find "$repo/Tests/JournalUITests" -type f -name '*.swift' -exec cat {} + \
+  | grep -oE '^[[:space:]]*((@[A-Za-z]+(\([^)]*\))?|[A-Za-z]+)[[:space:]]+)*class[[:space:]]+[A-Za-z0-9_]+[[:space:]]*:[[:space:]]*XCTestCase' \
   | sed -E 's/[[:space:]]*:.*//' | awk '{print $NF}' | sort -u)
 for name in $list; do
   printf '%s\n' "$classes" | grep -qx "$name" || fail "$name Tests/JournalUITests içinde XCTestCase sınıfı değil"
@@ -56,10 +69,65 @@ flow=$(printf '%s\n' "$classes" | grep -vxF "$list" || true)
 [ -n "$flow" ] || fail "akış işine küme kalmadı"
 # Adında Accessibility ya da Audit geçen ve uygulamayı açan sınıf denetim listesinde olmalı.
 for name in $(printf '%s\n' "$classes" | grep -E 'Accessibility|Audit' || true); do
-  file=$(grep -lE "class[[:space:]]+$name[[:space:]]*:" "$repo"/Tests/JournalUITests/*.swift | head -n 1)
+  file=$(grep -rlE --include='*.swift' "class[[:space:]]+$name[[:space:]]*:" "$repo/Tests/JournalUITests" | head -n 1)
   grep -qE 'launchApp\(|XCUIApplication\(\)' "$file" || continue
   printf '%s\n' "$list" | grep -qx "$name" \
     || fail "$name uygulamayı açan bir denetim kümesi ama listede yok (ad AccessibilityUITests ya da AuditUITests ile bitmeli)"
+done
+
+# 4. ci.yml bağlantısı: iki adımın run bloğu sahte depoda çalıştırılır; xcodebuild-retry.sh yerine
+# argümanlarını yazan bir betik konur. Ölçülen, adımın xcodebuild'e gerçekten verdiği seçimdir.
+workflow="$repo/.github/workflows/ci.yml"
+# Adım kimliğinden sonraki "run: |" bloğu, girintisi atılmış ve UDID ifadesi sabitlenmiş olarak.
+step_script() {
+  awk -v id="$1" '
+    !found && $0 ~ "^[[:space:]]+id: " id "[[:space:]]*$" { found = 1; next }
+    found && !inrun && /^[[:space:]]+run: \|[[:space:]]*$/ { inrun = 1; match($0, /^[[:space:]]+/); indent = RLENGTH; next }
+    found && !inrun && /^[[:space:]]+- / { exit }
+    inrun {
+      if ($0 ~ /^[[:space:]]*$/) { print ""; next }
+      match($0, /^[[:space:]]*/)
+      if (RLENGTH <= indent) exit
+      print substr($0, indent + 3)
+    }' "$workflow" | sed 's/\${{ steps\.build\.outputs\.udid }}/FAKE-UDID/g'
+}
+# Sahte depoda adımı koşar; xcodebuild argümanları "$2/args" dosyasına satır satır yazılır.
+run_step() {
+  rm -f "$2/args"
+  (cd "$2" && bash -e "$tmp/$1.step" >/dev/null 2>&1)
+}
+make_repo() {
+  mkdir -p "$1/.github/scripts" "$1/Tests/JournalUITests"
+  cp "$script" "$1/.github/scripts/ui-audit-suites.sh"
+  printf '#!/bin/sh\nfor arg do printf "%%s\\n" "$arg"; done > "%s/args"\n' "$1" > "$1/.github/scripts/xcodebuild-retry.sh"
+}
+make_repo "$tmp/steps"
+printf 'final class SmokeUITests: XCTestCase {}\nfinal class OneAuditUITests: XCTestCase {}\nfinal class TwoAccessibilityUITests: XCTestCase {}\n' \
+  > "$tmp/steps/Tests/JournalUITests/A.swift"
+make_repo "$tmp/nosuites"
+echo 'final class SmokeUITests: XCTestCase {}' > "$tmp/nosuites/Tests/JournalUITests/A.swift"
+suites=$(sh "$script" "$tmp/steps")
+only_suites=$(printf '%s\n' $suites | sed 's#^#-only-testing:JournalUITests/#')
+skip_suites=$(printf '%s\n' $suites | sed 's#^#-skip-testing:JournalUITests/#')
+for step in ios_audit ios_ui; do
+  step_script "$step" > "$tmp/$step.step"
+  grep -q 'ui-audit-suites\.sh' "$tmp/$step.step" || { fail "ci.yml: $step adımı ui-audit-suites.sh çağırmıyor"; continue; }
+  if run_step "$step" "$tmp/steps" && [ -f "$tmp/steps/args" ]; then
+    selection=$(grep -E '^-(only|skip)-testing' "$tmp/steps/args" | sort)
+    case $step in
+      ios_audit) want_selection=$(printf '%s\n' "$only_suites" | sort) ;;
+      ios_ui) want_selection=$(printf '%s\n%s\n' "-only-testing:JournalUITests" "$skip_suites" | sort) ;;
+    esac
+    [ "$selection" = "$want_selection" ] \
+      || { fail "ci.yml: $step adımının test seçimi"; printf 'beklenen:\n%s\nalınan:\n%s\n' "$want_selection" "$selection"; }
+    sed -n 2p "$tmp/steps/args" | grep -qx test-without-building || fail "ci.yml: $step adımı test-without-building koşmuyor"
+  else
+    fail "ci.yml: $step adımı sahte depoda koşmadı"
+  fi
+  # Liste boşsa adım xcodebuild'i çağırmadan düşmeli: boş -only-testing her şeyi koşturur.
+  if run_step "$step" "$tmp/nosuites" || [ -f "$tmp/nosuites/args" ]; then
+    fail "ci.yml: $step adımı denetim listesi boşken xcodebuild'i çağırdı ya da geçti"
+  fi
 done
 
 echo "Denetim: $(echo $list)"

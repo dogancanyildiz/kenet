@@ -1,4 +1,3 @@
-import EntityRecognition
 import Foundation
 import Observation
 import VaultFormat
@@ -99,34 +98,34 @@ final class EntityRelationsModel {
         } catch { errorText = Self.errorMessage(error) }
     }
 
-    /// Hide only pure, resolved link values in the app's own spelling. Mixed text, aliased or anchored
-    /// links, unresolved links, links to `path` itself and schema fields stay editable.
+    /// Hide only pure link values that Core resolved to this field's relations. Mixed text, aliased or
+    /// anchored links, unresolved links, links to the page itself, links Core resolved to another file
+    /// of the same name (a note, a goal) and schema fields stay editable. `links` are the source
+    /// file's indexed links: the index resolves each link once, as the relation query reads it.
     static func hiddenKeys(
-        of path: String, fields: [EntityField], schemaKeys: Set<String>, outgoing: [Relation],
-        entities: [EntitySummary]
+        fields: [EntityField], schemaKeys: Set<String>, outgoing: [Relation], links: [IndexedLink]
     ) -> [String] {
         fields.compactMap { field in
-            guard !schemaKeys.contains(field.key),
-                outgoing.contains(where: { ($0.label ?? "related").utf8.elementsEqual(field.key.utf8) }),
+            let key = field.key.utf8
+            let targets = Set(outgoing.filter { ($0.label ?? "related").utf8.elementsEqual(key) }.map(\.target))
+            guard !schemaKeys.contains(field.key), !targets.isEmpty,
                 let items = field.value.listItems, !items.isEmpty,
                 items.allSatisfy({ item in
                     guard item.kind == .text else { return false }
                     let text = item.text.trimmingCharacters(in: .whitespacesAndNewlines)
                     let links = RawDocument(bytes: text.utf8).links
                     // Display text and anchors are the user's own spelling; the field keeps them editable.
-                    guard links.count == 1, links[0].byteRange == 0..<text.utf8.count,
-                        links[0].displayText == nil, links[0].anchor == nil
-                    else { return false }
-                    let target = links[0].target
-                    // A link to the page itself is no relation (Core leaves it out), so the field shows it.
-                    return entities.contains { entity in
-                        guard entity.id != path else { return false }
-                        let stem = String(entity.id.dropLast(3))
-                        let candidate = target.contains("/") ? stem : (stem as NSString).lastPathComponent
-                        let clean = target.hasPrefix("/") ? String(target.dropFirst()) : target
-                        return NameCollision(candidate) == NameCollision(clean)
-                    }
+                    return links.count == 1 && links[0].byteRange == 0..<text.utf8.count
+                        && links[0].displayText == nil && links[0].anchor == nil
                 })
+            else { return nil }
+            // One indexed link per item; each must resolve to a target of this field's relations. A link
+            // to the page itself is no relation (Core leaves it out), so it is no target and the field shows it.
+            let indexed = links.filter {
+                $0.block == nil && $0.entry == nil && $0.key.map { $0.utf8.elementsEqual(key) } == true
+            }
+            guard indexed.count == items.count,
+                indexed.allSatisfy({ $0.resolvedFile.map(targets.contains) == true })
             else { return nil }
             return field.key
         }

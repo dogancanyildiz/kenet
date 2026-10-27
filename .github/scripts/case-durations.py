@@ -5,10 +5,13 @@ Girdi: `xcrun xcresulttool get test-results tests --path <paket>` çıktısı (s
 Çıktı: her vaka için saniye, sonuç ve kimlik; sonda vaka sayısı ve toplam. GITHUB_STEP_SUMMARY
 ortam değişkeni doluysa aynı tablo iş özetine Markdown olarak da eklenir (ilk 25 satır).
 
-Ölçüm içindir; hiçbir eşik koymaz ve her zaman 0 ile çıkar. Girdi okunamazsa uyarır ve yine 0 ile
-çıkar: ölçüm adımı test adımının sonucunu değiştirmez.
+Ölçüm içindir; hiçbir eşik koymaz ve her zaman 0 ile çıkar. Girdi okunamazsa ya da tanınan şemada
+değilse (`testNodes` yok, hiç "Test Case" düğümü yok) uyarır ve yine 0 ile çıkar: ölçüm adımı test
+adımının sonucunu değiştirmez, ama xcresulttool çıktısı değişince sessiz kalmaz.
 
-Kullanım: python3 test-durations.py [<json dosyası>] [--title <başlık>]
+Ad `test-` ile başlamaz: o önek betik testlerine ayrılmıştır (`test-case-durations.py`).
+
+Kullanım: python3 case-durations.py [<json dosyası>] [--title <başlık>]
 """
 
 import json
@@ -38,6 +41,16 @@ def rows(document):
     """Süreye göre azalan, eşitlikte kimliğe göre artan satırlar."""
     root = document.get("testNodes", document) if isinstance(document, dict) else document
     return sorted(cases(root), key=lambda row: (-row[0], row[2]))
+
+
+def schema_warnings(document, table):
+    """Girdi okunduğu hâlde tanınan şemada değilse uyarı metinleri."""
+    warnings = []
+    if not isinstance(document, dict) or "testNodes" not in document:
+        warnings.append("girdide testNodes yok")
+    if not table:
+        warnings.append('girdide "Test Case" düğümü yok')
+    return warnings
 
 
 def render(table, title):
@@ -79,6 +92,9 @@ def main(argv):
         print(f"::warning::Vaka süreleri okunamadı ({title}): {error}")
         return 0
     table = rows(document)
+    problems = schema_warnings(document, table)
+    if problems:
+        print(f"::warning::Vaka süreleri ({title}): {'; '.join(problems)}; xcresulttool şeması değişmiş olabilir")
     print(render(table, title))
     summary = os.environ.get("GITHUB_STEP_SUMMARY")
     if summary:

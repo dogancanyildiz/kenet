@@ -85,8 +85,9 @@ final class EntityDetailModel {
                 let kind = store.content.entities.first { $0.id == selectedPath }?.kind
                 let schemaKeys = Set(store.entityTypes.allTypes.first { $0.id == kind }?.fields.map(\.key) ?? [])
                 let relationKeys = EntityRelationsModel.hiddenKeys(
-                    of: selectedPath, fields: frontmatter.fields.map { EntityField(key: $0.key, value: $0.value) },
-                    schemaKeys: schemaKeys, outgoing: outgoing, entities: store.content.entities)
+                    fields: frontmatter.fields.map { EntityField(key: $0.key, value: $0.value) },
+                    schemaKeys: schemaKeys, outgoing: outgoing,
+                    links: store.content.fragments[selectedPath]?.links ?? [])
                 reservedKeys = Self.reservedKeys + (isPersonFile ? PersonCadence.keys : []) + relationKeys
                 personCadence =
                     isPersonFile ? PersonCadence.parse(frontmatter.fields.compactMap(Self.cadenceField)) : .none

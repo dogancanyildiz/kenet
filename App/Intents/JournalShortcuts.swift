@@ -12,6 +12,9 @@ struct JournalShortcuts: AppShortcutsProvider {
             intent: MarkGoalIntent(), phrases: ["\(.applicationName) ile hedefi işaretle"],
             shortTitle: "Hedefi işaretle", systemImageName: "target")
         AppShortcut(
+            intent: OpenQuickEntryIntent(), phrases: ["\(.applicationName)'e yaz"],
+            shortTitle: "widget.write.open", systemImageName: "square.and.pencil")
+        AppShortcut(
             intent: OpenTodayIntent(), phrases: ["\(.applicationName) ile bugünü aç"],
             shortTitle: "Bugünü aç", systemImageName: "sun.max")
     }

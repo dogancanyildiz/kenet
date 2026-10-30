@@ -85,7 +85,7 @@ Harita konuları gösterir; satırların tam metni karar günlüğündedir. Bir 
 
 ```mermaid
 timeline
-    title Karar takvimi, 320 karar
+    title Karar takvimi, 321 karar
     2026-10-02 : 58 karar : Ürün kapsamı ve platform : Kasa biçimi ve ayrıştırıcı : Git, sürüm ve CI
     2026-10-03 : 19 karar : Yazma doğrulaması : İndeks ve arama : Varlık sayfası ve hızlı giriş
     2026-10-04 : 31 karar : Birleştirme ve kayıp yok : VaultStore ve dosya izleme : Görev, hedef ve otomasyon : Özet, graph ve harita
@@ -106,10 +106,10 @@ timeline
     2026-10-23 : 4 karar : Görüntü referansı tavanı 320 : Günün grafiği : Açık bağ biçimi : CI kısaltması
     2026-10-26 : 4 karar : Açık bağ Core altyapısı : Açık bağ ekranları ve Graph : Açık bağın düğüm boyutu : Arayüz testleri iki işte
     2026-10-27 : 3 karar : Sheet dışı kontrast, gösterge rengi, ortak denetim iPad’de
-    2026-10-30 : 5 karar : Kilit ekranı widget’ı, hızlı giriş, Graph gün merkezli, Core birlikte geçme silindi
+    2026-10-30 : 6 karar : Kilit ekranı widget'ı, hızlı giriş giriş noktaları, Kilit ekranı widget'ı: gizlilik ve takvim kaynağı, Eşitlemenin App bağlantısı, Kilit ekranı widget’ı, hızlı giriş, Graph gün merkezli, Core birlikte geçme silindi
 ```
 
-Sayılar karar günlüğündeki satır sayısıdır. Toplam 320 satırdır.
+Sayılar karar günlüğündeki satır sayısıdır. Toplam 321 satırdır.
 
 ## Karar günlüğü
 
@@ -435,6 +435,7 @@ Sayılar karar günlüğündeki satır sayısıdır. Toplam 320 satırdır.
 | 2026-10-30 | Kilit ekranı widget'ı (`LockScreenWidget`: accessory dikdörtgen, daire, satır) sıradaki etkinliği ve o güne vadesi gelen açık görev sayısını gösterir; bildirimin "İçeriği göster" tercihine bağlıdır: varsayılan gizlide yalnız etkinlik saati ve görev sayısı, başlık anlık görüntüye boş yazılır, görev metni hiç yazılmaz | Kullanıcı kararı 62 (günlük verisi kilit ekranına varsayılan çıkmaz) widget'ta da sürer. Görev sayımı bildirimdeki "N görev bugün" ile aynı tanımdır (`computeNotificationDays`); gecikmiş ve tarihsiz görevler girmez |
 | 2026-10-30 | Kilit ekranı widget'ının takvim verisi uygulamanın enjekte ettiği `CalendarEventSource` ile anlık görüntüye yazılır (gün başına en çok 5 bitmemiş etkinlik; etkinlik bitişleri zaman çizelgesi girişidir); widget EventKit'e dokunmaz | Widget yalnız App Group anlık görüntüsünü okur kuralı korunur, izin ve bellek widget sürecine girmez. Uygulama çalışmadan eklenen etkinliğin görünmemesi kabul edilen sınırdır |
 | 2026-10-30 | Hızlı giriş giriş noktaları: ana ekran ve kilit ekranı "Yaz" widget'ı (`kenet-widget://write`), Denetim Merkezi kontrolü ve Eylem düğmesi (`QuickEntryControl`, `OpenQuickEntryIntent`) ve "Kenet'e yaz" kısayolu uygulamayı Bugün'de hızlı giriş kutusu odaklı açar; kilitliyken istek kilit açılana kadar bekler. Uygulama URL şeması kaydetmez; intent'in `perform` gövdesi hedefe özgüdür (uygulama gezinir, widget yalnız sonuç döner) | Yeni yazma yolu eklenmez (karar 2026-10-11 korunur): metin her zaman uygulamadaki aynı kutuya yazılır; giriş noktası ilk sözcüğe giden yolu kısaltır (`screens.md` ilke 1). Şema kaydedilmediği için bağlantı yalnız WidgetKit'ten gelir (`ReleaseConfigurationTests`) |
+| 2026-10-30 | Uygulama iCloud kasasında indirilmemiş her dosya için `startDownloadingUbiquitousItem` isteğini bir kez gönderir (`CloudDownloader`); yerel kasa ve seçilen klasör istemez. Eşitleme göstergesi (`SyncStatusIndicator`) ana pencerenin üstünde, eşitlenen klasör bandının biçiminde küçük bir bilgi bandıdır ve yalnız iCloud kasasında görünür. Gün kopyası birleştirmesi uygulamaya bağlandı (`IndexStore+DayCopyMerge`), `SyncPolicy.mergesDayCopies` bayrağı varsayılan kapalıdır ve Ayarlar'da anahtarı yoktur | Karar 2026-10-13 iki cihaz denemesini bekliyor; bağlantı hazırken açmak tek satırdır. Gösterge Ayarlar'da kalsaydı "eldeki içerik görünür" kuralı yalnız Ayarlar açıkken işlerdi. Bayrak testte açılıp `day-copies` kasasının `expected/` ile bayt bayt aynı çıktığı ölçüldü. Gün editörü Journal bölümünü yazma sırasında yeniden denetler; araya giren yazma bölümü değiştirdiyse kayıt `staleTarget` ile reddedilir ve taslak editörde kalır; bayrağın açılması bu denetime dayanır (PR #361) |
 | 2026-10-30 | Graph gün merkezlidir: gün düğümleri her zaman çizilir ve o gün geçen, ekrandaki her varlığa ağırlık 1 ile bağlanır; kişi, konum ve özel tip birbirine yalnız açık bağla (frontmatter wikilink alanları ve `related`) bağlanır, birlikte geçme kenarı yoktur; eşik ve "Günler" süzgeç satırı kalkar, dönem varsayılanı "Son 90 gün"dür ("Tümü" seçilebilir); günün grafiği aynı kuralı izler | Kullanıcı kararı 83 (2026-10-30): aynı gün ya da blokta geçmek karşılaşma demek değildir; ilişkiyi kullanıcının yazdığı bağ söyler. 2026-10-04 (kenar ağırlığı ortak gün sayısı), 2026-10-22 (blok düzeyinde birlikte geçme ve paragraf segmentleri; Graph için) ve 2026-10-23 (günün grafiğinde aynı bloktakiler arası bağ, eşik) kararlarının Graph'a ilişkin kısımlarını değiştirir |
 | 2026-10-30 | Graph sorgusu bloklara bakmaz: Core yalnız toplam ve gün başına anma döndürür; blok ve paragraf segmenti grupları (`GraphMentions.Day.groups`), `ParagraphSegments` ve `cooccurrenceWeights` silindi. Başlık ve frontmatter bağlantıları anma sayılmaya devam eder; indeks şeması değişmez | Kullanıcı kararı 83 ile Graph birlikte geçme kenarını bıraktı; kullanıcı 2026-10-30'da Core kodunun silinmesini onayladı. 2026-10-22 "paragraf segmentleri" ve "aynı blokta birlikte geçme" kararlarının Core kısmını kapatır |
 

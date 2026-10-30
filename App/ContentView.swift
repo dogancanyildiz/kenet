@@ -48,6 +48,13 @@ struct ContentView: View {
                             .accessibilityIdentifier("banner.entryPoints")
                         }
                     }
+                    // iCloud sync under way, and what the day copy merge did (docs/screens.md, "Kasa eşitlenirken").
+                    .safeAreaInset(edge: .top, spacing: 0) {
+                        VStack(spacing: 0) {
+                            SyncStatusIndicator(status: store.syncStatus)
+                            DayCopyMergeBand(sync: store.sync)
+                        }
+                    }
             }
         }
         .environment(\.openSearch, { searchPresented = true })
@@ -97,6 +104,22 @@ struct ContentView: View {
 
     private var entryPointsTip: LocalizedStringKey {
         LocalizedStringKey(EntryPointPlatform.tip(for: .current).key)
+    }
+}
+
+/// "2 gün kopyası birleştirildi." and the like, after a day copy merge, until dismissed.
+private struct DayCopyMergeBand: View {
+    let sync: SyncState
+
+    var body: some View {
+        if let report = sync.mergeReport {
+            InfoBand(
+                kind: report.failed > 0 ? .warning : .info, verbatim: report.message,
+                onDismiss: sync.dismissMergeReport
+            )
+            .background(Color.ink.paper)
+            .accessibilityIdentifier("banner.dayCopyMerge")
+        }
     }
 }
 

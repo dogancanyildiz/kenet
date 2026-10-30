@@ -8,6 +8,11 @@ struct IndexUpdate: Sendable {
     let skippedPaths: [SkippedPath]
     /// False when refresh found no Markdown path changes and the type catalog is unchanged.
     let hasChanges: Bool
+    /// The scan's iCloud placeholders without their original and its day copies, as Core reports
+    /// them (`RebuildResult`); after a directory update only those directories'. Filled even when
+    /// nothing else changed: a placeholder is not a Markdown path change.
+    var pendingDownloads: [String] = []
+    var dayCopies: [String] = []
 
     static func read(
         index: VaultIndex, root: URL, rebuild: Bool, previousTypes: EntityTypeCatalog,
@@ -40,7 +45,8 @@ struct IndexUpdate: Sendable {
                 && !previousContent.needsFullReconcile
             {
                 return IndexUpdate(
-                    content: .empty, counts: IndexCounts(), skippedPaths: skipped, hasChanges: false)
+                    content: .empty, counts: IndexCounts(), skippedPaths: skipped, hasChanges: false,
+                    pendingDownloads: result.pendingDownloads, dayCopies: result.dayCopies)
             }
             // Type catalog changes rebuild every file classification; always take the full path.
             let typeChanged = !sameCatalog(types, previousTypes)
@@ -52,7 +58,8 @@ struct IndexUpdate: Sendable {
                     || previousContent.needsFullReconcile)
             return IndexUpdate(
                 content: published.content, counts: published.counts,
-                skippedPaths: skipped, hasChanges: true)
+                skippedPaths: skipped, hasChanges: true,
+                pendingDownloads: result.pendingDownloads, dayCopies: result.dayCopies)
         }.value
     }
 }

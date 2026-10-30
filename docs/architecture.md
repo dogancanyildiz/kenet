@@ -1027,7 +1027,7 @@ Güncelleme değişen yolların dosya adı ve yol anahtarlarına sahip bağlant�
 
 ## Eşitleme
 
-**Durum: kısmen uygulandı.** Kasa iCloud kapsayıcısında durabilir (2026-10-22). Açık: indirme isteği, gün kopyası birleştirmesinin bağlanması, sürüm çözümleme ve eşitleme göstergesi.
+**Durum: kısmen uygulandı.** Kasa iCloud kapsayıcısında durabilir (2026-10-22). İndirme isteği ve eşitleme göstergesi uygulandı. Gün kopyası birleştirmesi uygulamaya bağlıdır; bayrağı varsayılan kapalıdır. Açık: sürüm çözümleme ve birleştirmenin iki cihaz denemesinden sonra açılması.
 
 **Tablo eşitlemenin bugünkü durumunu gösterir.**
 
@@ -1038,10 +1038,11 @@ Güncelleme değişen yolların dosya adı ve yol anahtarlarına sahip bağlant�
 | İndeks taraması | Koordinasyonsuz |
 | İçe aktarmanın klasör, şablon ve ayar dosyası oluşturması | Koordinasyonsuz |
 | Dosya sunucusu `NSFilePresenter` | Yok |
-| İndirilmemiş dosya için açık indirme isteği `startDownloadingUbiquitousItem` | Yok |
+| İndirilmemiş dosya için açık indirme isteği `startDownloadingUbiquitousItem` | Var: yalnız iCloud kasasında, her yer tutucu için bir kez. `CloudDownloading`; reddedilen istek Tanılama'da sayılır |
 | Çakışma birleştirme işlevi | `VaultFormat` içinde hazır ve sınanmış; uygulamaya bağlı değil |
-| Yer tutucu tanıma | `Core` içinde hazır; App bağlantısı sonraki dilim |
-| Gün kopyası birleştirme | `Core` içinde hazır; App bağlantısı sonraki dilim |
+| Yer tutucu tanıma | `Core` içinde hazır; App listeyi `IndexUpdate.pendingDownloads` ile alır |
+| Gün kopyası birleştirme | `Core` içinde hazır; App bağlantısı `IndexStore+DayCopyMerge`. Bayrak `SyncPolicy.mergesDayCopies` varsayılan kapalı; Ayarlar'da anahtar yok |
+| Arayüz | Eşitleme göstergesi `SyncStatusIndicator` ana pencerenin üstünde, yalnız iCloud kasasında. Birleştirme sonucu bandı aynı yerde |
 | Eşitlenen klasör tespiti | `SyncedFolderKind`: yol kalıpları ve `isUbiquitousItemKey`. Sağlayıcılar: iCloud Drive, Dropbox, OneDrive, Google Drive, File Provider |
 | Çakışan sürüm `NSFileVersion` | Var: tespit ve listeleme; çözümleme yok. Yalnız iCloud Drive kasasında. `ConflictVersionSource` |
 | Çakışma kopyası listesi | `VaultIndex.conflictCopies(vaultRoot:)`; her kasada. Ad kuralı `ConflictCopyName` |
@@ -1064,9 +1065,11 @@ flowchart TD
   Kopya --> Birlestir["VaultStore.mergingDayCopy(_:)"]
 ```
 
-`Core` `.X.icloud` yer tutucularını indekslemez; tarama sonucunun `pendingDownloads` alanında bildirir. Özgün dosya varsa `Core` özgün dosyayı kullanır. Özgün dosya yoksa `Core` oluşturma ve yeniden adlandırma hedeflerini koordinasyon sınırında `awaitingDownload(path:)` ile reddeder. İndirme isteği App katmanının sonraki dilimidir. İndirilmemiş dosyaları okuma kuyruğu karşılar: indirme bekleyen okuma yalnız kendini bekletir.
+`Core` `.X.icloud` yer tutucularını indekslemez; tarama sonucunun `pendingDownloads` alanında bildirir. Özgün dosya varsa `Core` özgün dosyayı kullanır. Özgün dosya yoksa `Core` oluşturma ve yeniden adlandırma hedeflerini koordinasyon sınırında `awaitingDownload(path:)` ile reddeder. İndirilmemiş dosyaları okuma kuyruğu karşılar: indirme bekleyen okuma yalnız kendini bekletir.
 
-`Core` gün kopyalarını indekslemez. Örnek ad: `journal/2026-10-02 2.md`; ad kuralı `DayCopyName`. Tarama sonucu kopyaları `dayCopies` alanında birleştirme sırasıyla bildirir. Tanılama gün kopyalarını ve varlık kopyalarını `VaultIndex.dayCopies(vaultRoot:)` ve `entityCopies()` ile listeler; kopya kuralı `EntityCopyName`. Uygulama bu listeden hiçbir dosyayı birleştirmez, taşımaz ya da silmez.
+App her yenilemede listeyi `IndexUpdate.pendingDownloads` ile alır. Klasör yenilemesi yalnız kendi klasörlerinin satırlarını değiştirir. Kasa iCloud kasasıysa `IndexStore` her yeni yer tutucunun özgün yolu için `startDownloadingUbiquitousItem` bir kez ister: istenenler kümesi yinelemeyi önler. Gelen dosya kümeden çıkar; iCloud dosyayı yeniden boşaltırsa istek yeniden gider. Yerel kasa ve seçilen klasör, iCloud Drive içinde olsa da, istek göndermez. Uygulama dosyanın gelmesini beklemez: izleyici ve sonraki yenileme dosyayı indeksler. Reddedilen istek sessizdir; Tanılama sayısını gösterir.
+
+`Core` gün kopyalarını indekslemez. Örnek ad: `journal/2026-10-02 2.md`; ad kuralı `DayCopyName`. Tarama sonucu kopyaları `dayCopies` alanında birleştirme sırasıyla bildirir. Tanılama gün kopyalarını ve varlık kopyalarını `VaultIndex.dayCopies(vaultRoot:)` ve `entityCopies()` ile listeler; kopya kuralı `EntityCopyName`. Tanılama listeden hiçbir dosyayı birleştirmez, taşımaz ya da silmez.
 
 **Şema bir gün kopyasının tek koordinasyon sınırında birleşmesini gösterir.**
 
@@ -1099,7 +1102,9 @@ sequenceDiagram
 
 `VaultStore.mergingDayCopy(_:)` gün dosyası varsa kopyayı tek `.merge(kopya → gün)` sınırında birleştirir. Gün dosyası yoksa kopyayı tek `.move(kopya → gün)` sınırında gün adına taşır. `VaultStore` taşıma sınırını seçtikten sonra gün dosyası oluşursa `VaultStore` taşıma sınırını değişiklik yapmadan bitirir. Sonra kopyayı yeni bir `.merge` sınırında birleştirir. Gün dosyası `.merge` sınırı içinde yok olursa kopyayı aynı sınırda gün adına taşır.
 
-Gün dosyası değişmeden önceki her hata, o çağrının yazdığı çakışma kopyalarını geri alır. Yalnız zaman verme ya da silme başarısızsa gün dosyası birleşmiş kalır. Sonraki çağrı aynı içeriğe varır ve kopyayı siler. App bağlantısı sonraki dilimdir: taramadan sonra kopyaları sırayla birleştirme ve sonucu kullanıcıya gösterme.
+Gün dosyası değişmeden önceki her hata, o çağrının yazdığı çakışma kopyalarını geri alır. Yalnız zaman verme ya da silme başarısızsa gün dosyası birleşmiş kalır. Sonraki çağrı aynı içeriğe varır ve kopyayı siler.
+
+App bağlantısı `IndexStore+DayCopyMerge` içindedir. Yenileme bitince `IndexStore` taramanın `dayCopies` listesini sırayla birleştirir; her kopya yazma kuyruğundan geçen tek bir yazmadır ve gün dosyasını yayımlar. Birleştirme yalnız `SyncPolicy.mergesDayCopies` açıkken, iCloud kasasında ve yazılabilir kasada çalışır. Bayrak varsayılan kapalıdır (karar 2026-10-13); Ayarlar'da anahtarı yoktur, kod ve testler açar. Bayrak kapalıyken hiçbir kopya birleşmez ve Tanılama listesi aynı kalır. Bir kopyanın hatası ötekileri durdurmaz. Başarısız kopya o kasada yeniden denenmez ve Tanılama'da kalır. İndirme bekleyen kopya ya da gün dosyası (`awaitingDownload`) sonraki yenilemede yeniden denenir. Sonuç ana pencerenin üstünde bantta görünür: "N gün kopyası birleştirildi."
 
 ### Çakışan sürümler
 
@@ -1142,8 +1147,8 @@ Tanılama listeyi `store.lastUpdated` değişince ve sahne ön plana her dönün
 | iCloud durumu değişti | Uygulama kendiliğinden diğer konuma geçmez. Kayıtlı konuma erişim yoksa yeni kasa açmaz, durumu bildirir |
 | Konumlar arası taşıma | Hazır: yerel varsayılan kasadan iCloud’a doğrulanmış kopya; kullanıcı onayı gerekir ve yerel kaynak korunur. İki cihaz iCloud yayılımından önce aynı anda taşırsa ikisi de `Kenet` adını alabilir; iCloud aynı adlı klasörleri birleştirir ve aynı yoldaki dosyalar çakışan sürüm olur. Kodla önlenemez; veri kaybolmaz, çakışma kuralları uygulanır. |
 | Çakışma | Birleştirme satırları blok kimliğine göre birleştirir. Birleşmeyen içerik kopya olarak kalır. iCloud'un aynı gün için ayırdığı kopya dosyalar da aynı işlevle birleşir. Kurallar: `vault-format.md` |
-| İndirme | Kasadaki tüm dosyalar cihazda durur. Uygulama indirilmemiş dosya için indirme ister ve dosya geldikçe indeksler |
-| Arayüz | Arayüz eldeki içeriği gösterir ve eşitlemenin sürdüğünü belirtir |
+| İndirme | Hazır: kasadaki tüm dosyalar cihazda durur. Uygulama iCloud kasasında indirilmemiş dosya için indirme ister ve dosya geldikçe indeksler |
+| Arayüz | Hazır: arayüz eldeki içeriği gösterir; ana pencerenin üstündeki küçük gösterge indirmenin ya da birleştirmenin sürdüğünü belirtir |
 
 ## Widget'lar
 

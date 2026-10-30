@@ -60,6 +60,7 @@ struct DiagnosticsView: View {
                 count("Varlıklar", store.counts.entities)
                 count("Bağlantılar", store.counts.links)
                 count("Çözülmemiş bağlantılar", store.counts.unresolvedLinks)
+                count("Reddedilen iCloud indirme istekleri", store.sync.downloadFailures)
                 if let date = store.lastUpdated {
                     LabeledContent("Son güncelleme") {
                         Text(date, format: .dateTime)

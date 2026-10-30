@@ -79,6 +79,11 @@ enum VoiceOverCopy {
         String(localized: "Bağ: \(first), \(second)")
     }
 
+    /// The sync indicator, read as one element: what it is, then its sentence.
+    static func syncStatusLabel(_ status: SyncStatus, locale: Locale = .current) -> String {
+        String(localized: "Eşitleme durumu: \(status.message)", locale: locale)
+    }
+
     static func graphNodeLabel(
         name: String, kind: GraphNode.Kind, typeName: String? = nil, neighborCount: Int,
         locale: Locale = .current

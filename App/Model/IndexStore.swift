@@ -109,6 +109,7 @@ final class IndexStore {
         watcherDirectoryLimit: Int = 256,
         watcherTicker: any WatcherTicker = DispatchWatcherTicker(), watcherFileEvents: Bool = true,
         conflictVersions: any ConflictVersionSource = SystemConflictVersionSource(),
+        cloudDownloader: (any CloudDownloading)? = nil, syncPolicy: SyncPolicy = .standard,
         update:
             (
                 @Sendable (
@@ -143,6 +144,8 @@ final class IndexStore {
         self.watcherTicker = watcherTicker
         self.watcherFileEvents = watcherFileEvents
         self.conflictVersions = conflictVersions
+        self.cloudDownloader = cloudDownloader ?? SystemCloudDownloader.forLaunch()
+        self.syncPolicy = syncPolicy
         self.supportURL =
             supportURL
             ?? FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
@@ -858,6 +861,8 @@ final class IndexStore {
                     index, root, full, scope, entityTypes, allowSkip, skippedPaths, content)
                 guard generation == current else { return }
                 if scope == nil { needsFullRefresh = false }
+                await publishSyncLists(result, root: root, scope: scope)
+                guard generation == current else { return }
                 if contentEpoch != epochAtStart {
                     // A write published while Core work was in flight; discard and rescan.
                     allowSkip = false
@@ -895,6 +900,7 @@ final class IndexStore {
         guard generation == current else { return }
         refreshInFlight = false
         if holdsProcessing { isProcessing = false }
+        scheduleDayCopyMerge()
         await applyPendingSelection()
     }
 
@@ -1171,6 +1177,14 @@ final class IndexStore {
     private(set) var isOpeningCloudVault = false
     var showsCloudMigration = false
     private(set) var isCloudMigrationAutomatic = false
+
+    // MARK: - iCloud downloads and day copy merges
+
+    /// Pending downloads and day copies of the open vault (`IndexStore+DayCopyMerge`).
+    let sync = SyncState()
+    /// Asks iCloud for placeholders; a fake in tests.
+    @ObservationIgnored private let cloudDownloader: any CloudDownloading
+    @ObservationIgnored let syncPolicy: SyncPolicy
 
 }
 
@@ -1687,5 +1701,45 @@ extension IndexStore {
             try await $0.removeRelation(
                 from: relation.source, to: "/" + String(relation.target.dropLast(3)), label: relation.label)
         }
+    }
+}
+
+// MARK: - iCloud download requests
+
+extension IndexStore {
+    /// The vault iCloud keeps (`VaultLocation.Kind.icloud`); a local or selected folder never is,
+    /// even one inside iCloud Drive.
+    var isCloudVault: Bool { location.kind == .icloud && vaultURL != nil }
+
+    /// What sync is doing in the open vault; always `idle` outside an iCloud vault.
+    var syncStatus: SyncStatus {
+        guard let root = vaultURL, sync.root == root else { return .idle }
+        return SyncStatus.resolve(
+            isCloudVault: isCloudVault, pendingDownloads: sync.pendingDownloads.count,
+            mergingCopies: sync.mergingCopies)
+    }
+
+    /// Takes a refresh's placeholders and day copies, then, in an iCloud vault only, asks iCloud
+    /// once for each placeholder not asked for yet. A directory refresh lists only its own
+    /// directories; the others' entries still stand. A file that arrived leaves the asked set, so
+    /// one iCloud evicts again is asked for again. A refused request is only counted.
+    fileprivate func publishSyncLists(_ update: IndexUpdate, root: URL, scope: Set<String>?) async {
+        if sync.root != root { sync.reset(for: root) }
+        var pending = update.pendingDownloads
+        var copies = update.dayCopies
+        if let scope {
+            pending = Set(sync.pendingDownloads.filter { !pathIsInside($0, scope) } + pending)
+                .sorted { $0.utf8.lexicographicallyPrecedes($1.utf8) }
+            copies = DayCopyName.copies(in: Set(sync.dayCopies.filter { !pathIsInside($0, scope) } + copies))
+        }
+        if sync.pendingDownloads != pending { sync.pendingDownloads = pending }
+        if sync.dayCopies != copies { sync.dayCopies = copies }
+        sync.requestedDownloads.formIntersection(pending)
+        guard isCloudVault else { return }
+        let requests = pending.filter { !sync.requestedDownloads.contains($0) }
+        guard !requests.isEmpty else { return }
+        sync.requestedDownloads.formUnion(requests)
+        let refused = await cloudDownloader.startDownloading(requests.map { root.appendingPathComponent($0) })
+        if sync.root == root { sync.downloadFailures += refused }
     }
 }

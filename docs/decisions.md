@@ -85,7 +85,7 @@ Harita konuları gösterir; satırların tam metni karar günlüğündedir. Bir 
 
 ```mermaid
 timeline
-    title Karar takvimi, 316 karar
+    title Karar takvimi, 318 karar
     2026-10-02 : 58 karar : Ürün kapsamı ve platform : Kasa biçimi ve ayrıştırıcı : Git, sürüm ve CI
     2026-10-03 : 19 karar : Yazma doğrulaması : İndeks ve arama : Varlık sayfası ve hızlı giriş
     2026-10-04 : 31 karar : Birleştirme ve kayıp yok : VaultStore ve dosya izleme : Görev, hedef ve otomasyon : Özet, graph ve harita
@@ -106,10 +106,10 @@ timeline
     2026-10-23 : 4 karar : Görüntü referansı tavanı 320 : Günün grafiği : Açık bağ biçimi : CI kısaltması
     2026-10-26 : 4 karar : Açık bağ Core altyapısı : Açık bağ ekranları ve Graph : Açık bağın düğüm boyutu : Arayüz testleri iki işte
     2026-10-27 : 3 karar : Sheet dışı kontrast, gösterge rengi, ortak denetim iPad’de
-    2026-10-30 : 1 karar : Bugün'de bugün yazılan ileri tarihli görev
+    2026-10-30 : 3 karar : Kilit ekranı widget'ı: gizlilik ve takvim kaynağı, Bugün'de bugün yazılan ileri tarihli görev
 ```
 
-Sayılar karar günlüğündeki satır sayısıdır. Toplam 316 satırdır.
+Sayılar karar günlüğündeki satır sayısıdır. Toplam 318 satırdır.
 
 ## Karar günlüğü
 
@@ -432,6 +432,8 @@ Sayılar karar günlüğündeki satır sayısıdır. Toplam 316 satırdır.
 | 2026-10-27 | Erişilebilirlik denetiminde sheet listesinin (`sheet.*` kimliği) görünür çerçevesi dışındaki öğenin kontrast bulgusu ölçülmez | Kırpılmış satırın görüntüsü sheet kenarı ve karartılmış arka plandır; iPad koşusu 40397762257 (#355) |
 | 2026-10-27 | Graph göstergesindeki "Bağ" örneği çizginin kendi rengindedir (`ink.rule`) | Örnek çizgiyi temsil eder; `ink.control` örneği çizgiden koyu çıkıyordu (W3 dalga incelemesi D9). Ayrım renge değil kalınlığa dayanır |
 | 2026-10-27 | CI: iPad işinin de koştuğu ortak erişilebilirlik denetimi kümesi (`AccessibilityAuditUITests`) iPhone denetim işinde koşmaz; `ui-audit-suites.sh --iphone` ortak küme dışını, `--shared` ortak kümeyi verir, iPad adımı `--shared` kullanır | Aynı ekranlar iPad'de bölünmüş kabukta denetleniyor; iPhone'da yinelemek denetim işine ~6 dk ekliyordu (koşu 40427534859: 6 vaka 370 sn, iş 20 dk). Bedel: iPhone sekme çubuğu denetimi yalnız kalan kümelerle (UnlinkedMentions, DayGraph, QuickEntry) dolaylı denetlenir |
+| 2026-10-30 | Kilit ekranı widget'ı (`LockScreenWidget`: accessory dikdörtgen, daire, satır) sıradaki etkinliği ve o güne vadesi gelen açık görev sayısını gösterir; bildirimin "İçeriği göster" tercihine bağlıdır: varsayılan gizlide yalnız etkinlik saati ve görev sayısı, başlık anlık görüntüye boş yazılır, görev metni hiç yazılmaz | Kullanıcı kararı 62 (günlük verisi kilit ekranına varsayılan çıkmaz) widget'ta da sürer. Görev sayımı bildirimdeki "N görev bugün" ile aynı tanımdır (`computeNotificationDays`); gecikmiş ve tarihsiz görevler girmez |
+| 2026-10-30 | Kilit ekranı widget'ının takvim verisi uygulamanın enjekte ettiği `CalendarEventSource` ile anlık görüntüye yazılır (gün başına en çok 5 bitmemiş etkinlik; etkinlik bitişleri zaman çizelgesi girişidir); widget EventKit'e dokunmaz | Widget yalnız App Group anlık görüntüsünü okur kuralı korunur, izin ve bellek widget sürecine girmez. Uygulama çalışmadan eklenen etkinliğin görünmemesi kabul edilen sınırdır |
 | 2026-10-30 | Bugün'ün Görevler bölümü bugünün dosyasına yazılan açık görevi bitiş tarihi ileride olsa da gösterir ve kalan görev sayar (`dayTasks(on:)`: `file=? AND (dueDate IS NULL OR status NOT IN ('done','cancelled'))`; `TaskGroups.created`). Günü kapat akışı bu görevleri listelemez ve "Günü kapat" satırı yalnız akışın listeleyeceği görevlere bakar (`closeDayTaskCount`) | Kullanıcı kararı 82: girilen görev ana sayfadan kaybolmamalı. Akışta Yarına seçimi zaten verilmiş bitişi geri çekerdi. 2026-10-02 "tarihsiz görev yalnız oluşturulduğu gün Bugün'de görünür" kararını genişletir |
 
 Satır sırası ekleme sırasıdır; tablonun ilk satırları tarih sırasında değildir. Sonradan değişen bir kararın gerekçe hücresi değişikliği tarihiyle anar. Güncel durum notları kararın verildiği günden sonraki gerçek durumu söyler.

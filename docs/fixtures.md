@@ -158,8 +158,8 @@ Swift testleri `Fixtures/` klasörünü test kaynak dosyasından yukarı doğru 
 | `vaults/typed/` | `EntityTypeTests`, `EntityTypeStoreTests`, `InitialIndexTests`, `Tests/JournalTests/CustomEntityTypeTests.swift` | Ad kodda |
 | `vaults/gallery/` | `VaultStoreTests/EntityTypeGalleryTests.swift`, `Tests/JournalTests/EntityTypeGalleryTests.swift` | Ad kodda |
 | `vaults/backlinks/` | `VaultIndexTests/DayBacklinksTests.swift` | Ad kodda |
-| `vaults/placeholder/` | `VaultStoreTests/PlaceholderTests.swift` | Ad kodda |
-| `vaults/day-copies/` | `VaultStoreTests/DayCopyTests.swift`, `VaultStoreTests/ConflictCopyListingTests.swift` | Ad kodda |
+| `vaults/placeholder/` | `VaultStoreTests/PlaceholderTests.swift`, `Tests/JournalTests/CloudDownloadTests.swift`, `Tests/JournalTests/SyncStatusTests.swift` | Ad kodda |
+| `vaults/day-copies/` | `VaultStoreTests/DayCopyTests.swift`, `VaultStoreTests/ConflictCopyListingTests.swift`, `Tests/JournalTests/DayCopyMergeWiringTests.swift` | Ad kodda |
 | `vaults/copy-files/` | `VaultIndexTests/CopyFileTests.swift`, `Tests/JournalTests/SyncedFolderNoticeTests.swift` | Ad kodda |
 | `vaults/conflict-copies/` | `VaultIndexTests/ConflictCopyTests.swift`, `Tests/JournalTests/SyncConflictTests.swift`, `Tests/JournalTests/DiagnosticsConflictWiringTests.swift`, `Tests/JournalTests/Snapshots/ConflictVersionsSnapshotTests.swift` | Ad kodda |
 | `vaults/nfd-names/` | `VaultIndexTests/ChangeDetectionTests.swift` | Ad kodda |
@@ -1146,8 +1146,8 @@ Kasa 20 Eylül'ü 4 yılda taşır. 2023 bağlantısızdır: not bağlantısı, 
 | `history` | 19 | Bu gün geçmişte | `summaries/on-this-day.json` |
 | `backlinks` | 5 | Bu güne bağlananlar sorgusu | `DayBacklinksTests` |
 | `typed` | 4 | Özel kitap tipi; ayrıntı [`entity-types/` kümesi](#entity-types-kümesi) bölümünde | `entity-types/` |
-| `placeholder` | 12 | İndirilmeyi bekleyen yer tutucular | `PlaceholderTests` |
-| `day-copies` | 41 | Gün kopyası birleştirme | `DayCopyTests` |
+| `placeholder` | 12 | İndirilmeyi bekleyen yer tutucular | `PlaceholderTests`, `Tests/JournalTests/CloudDownloadTests`, `Tests/JournalTests/SyncStatusTests` |
+| `day-copies` | 41 | Gün kopyası birleştirme | `DayCopyTests`, `Tests/JournalTests/DayCopyMergeWiringTests` |
 | `rhythm` | 16 | Özetler'in yıl, süren dönem ve ritim hesabı | `summaries/period-rhythm.json`, `summaries/year-writing.json`, `summaries/weekly-rhythm.json`, `summaries/weekday-distribution.json` |
 | `copy-files` | 19 | Varlık kopyası ve gün kopyası listesi; birleştirme yok | `VaultIndexTests/CopyFileTests`, `Tests/JournalTests/SyncedFolderNoticeTests` |
 | `gallery` | 21 | Hazır tip galerisi: 10 tip, şablonları ve her şablondan bir varlık; ayrıntı [`entity-types/` kümesi](#entity-types-kümesi) bölümünde | `EntityTypeGalleryTests` |
@@ -1210,7 +1210,7 @@ Aynı adlı iki kişi bağlantılarda `[[Mert Aksu]]` ve `[[Mert Aksu (iş)|Mert
 
 **Küçük sorgu kasaları:** `vaults/backlinks/` "bu güne bağlananlar" sorgusu ve arayüzü için kasadır. Hedef gün `journal/2026-10-02.md` kendi içine, `journal/2026-10-01.md` hedefe bağlantı verir. `notes/Proje Fikirleri.md` 2 ayrı satırda hedefe bağlantı verir; bir satırda 2 yinelenen bağlantı, kod içi bağlantı ve çözülmeyen hedef taşır. `people/Deniz Arıkan.md` ve `places/Liman Ofis.md` hedefe bağlantılı kişi ve konumdur. Kasa günün kendisinin, kod içi bağlantının ve çözülmeyen hedefin dışarıda kaldığını kanıtlar. Kasa aynı kaynaktan 2 satırın 2 ayrı satır olarak listelendiğini de kanıtlar.
 
-`vaults/placeholder/` gün, kişi, hedef ve kök klasördeki not için indirilmemiş yer tutucular ve bildirilmeyen `.app/.types.json.icloud` taşır. Bir gün hem yer tutucusunu hem yerel özgün dosyasını taşır; diğer dosyalar sıradan gizli Markdown ve kişi yeniden adlandırma kaynağıdır. `expected.json` bekleyen ve indekslenen yolları tanımlar. `names.json` düşman adlar, boşluk ve NFD baytlarını koruyan saf ad eşlemesini tanımlar. Uygulama oluşturma ya da taşıma işlemini reddedince tüm kasa ve SQLite baytları aynı kalır.
+`vaults/placeholder/` gün, kişi, hedef ve kök klasördeki not için indirilmemiş yer tutucular ve bildirilmeyen `.app/.types.json.icloud` taşır. Bir gün hem yer tutucusunu hem yerel özgün dosyasını taşır; diğer dosyalar sıradan gizli Markdown ve kişi yeniden adlandırma kaynağıdır. `expected.json` bekleyen ve indekslenen yolları tanımlar. `names.json` düşman adlar, boşluk ve NFD baytlarını koruyan saf ad eşlemesini tanımlar. Uygulama oluşturma ya da taşıma işlemini reddedince tüm kasa ve SQLite baytları aynı kalır. Uygulama testleri kasayı iCloud kasası, yerel kasa ve seçilen klasör olarak açar; `expected.json` bekleyen listesi indirme isteğinin beklentisidir.
 
 `vaults/nfd-names/` ayrışmış (NFD) yazımın indekste birleşik (NFC) karşılaştırma anahtarına döndüğünü sınar. Git ayrışmış dosya adlarını birleşik biçime döndürür; bu yüzden test her yol parçasını NFD biçimiyle geçici kasada oluşturur ve diskteki adın NFD kaldığını denetler. `people/Baran Tunç.md` ve `places/Çınaraltı Kafe.md` adı ve takma adı NFD baytlarıyla yazar. `journal/2026-10-01.md` 3 bağlantı taşır: NFD `[[Baran Tunç]]`, NFD ve küçük harfli `[[places/çınaraltı kafe]]`, NFC `[[Baran Tunç]]`. `expected.json` NFC yolları, varlık ve takma ad anahtarlarını ve her bağlantının satırını, `targetKey` değerini ve çözülen dosyasını taşır. Test baytları karşılaştırır, çünkü Swift `==` NFC ve NFD yazımını eşit sayar. Test NFD yolu bildirerek kişiyi siler ve geri ekler; gelen bağlantılar iki yönde de yeniden çözülür.
 
@@ -1264,7 +1264,7 @@ flowchart TD
 | `three-versions/` | X/Y/Z aynı olayı değiştirir. `source/` üç sürümü, `expected.md` beklenen günü taşır. `case.json` zamanları, iki sırayı ve her sıranın beklenen `conflicts/` adlarını taşır. İki sıra bu örnekte aynı günü üretir. |
 | Benzer adlar | `2026-10-02 2 2.md`, `2026-10-02-2.md`, `2026-10-02 02.md`, `2026-13-40 2.md`, `journal/eski/…`, `notes/…` sıradan not olarak indekse girer ve hiçbir aşamada değişmez. |
 
-Kopya olmayan benzer adlar (`2026-10-02 2 2.md`, `2026-10-02-2.md`, `2026-10-02 02.md`, `2026-13-40 2.md`, `journal/eski/…`, `notes/…`) sıradan not olarak indekse girer ve değişmez. `names.json` saf ad kuralının tablosudur: yol, gün (kopya değilse `null`) ve `mergeOrder`. Tablo ayrışmış (NFD) işaret, tam genişlikli ve Arap-Hint rakamlı, bölünmez boşluklu, büyük harfli klasörlü, yer tutucu ve alt klasör adlarını kopya saymaz. Git ayrışmış adları birleşik biçime döndürür; bu yüzden test o dosyaları geçici kasada oluşturur. `expected/` klasörünü birleştirme kodu üretti; fixture yazarı kuralları elle uygulayıp her dosyayı doğruladı. Testler her adımda gün dosyasını ve `conflicts/` dosyasını `ConflictMerge` sonucuyla karşılaştırır.
+Kopya olmayan benzer adlar (`2026-10-02 2 2.md`, `2026-10-02-2.md`, `2026-10-02 02.md`, `2026-13-40 2.md`, `journal/eski/…`, `notes/…`) sıradan not olarak indekse girer ve değişmez. `names.json` saf ad kuralının tablosudur: yol, gün (kopya değilse `null`) ve `mergeOrder`. Tablo ayrışmış (NFD) işaret, tam genişlikli ve Arap-Hint rakamlı, bölünmez boşluklu, büyük harfli klasörlü, yer tutucu ve alt klasör adlarını kopya saymaz. Git ayrışmış adları birleşik biçime döndürür; bu yüzden test o dosyaları geçici kasada oluşturur. `expected/` klasörünü birleştirme kodu üretti; fixture yazarı kuralları elle uygulayıp her dosyayı doğruladı. Testler her adımda gün dosyasını ve `conflicts/` dosyasını `ConflictMerge` sonucuyla karşılaştırır. Uygulama testi `source/` kasasını iCloud kasası olarak açar, birleştirme bayrağını açar ve kasanın sonunda `expected/` ile bayt bayt aynı olduğunu sınar.
 
 ## İlgili belgeler
 

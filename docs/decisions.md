@@ -85,7 +85,7 @@ Harita konuları gösterir; satırların tam metni karar günlüğündedir. Bir 
 
 ```mermaid
 timeline
-    title Karar takvimi, 319 karar
+    title Karar takvimi, 320 karar
     2026-10-02 : 58 karar : Ürün kapsamı ve platform : Kasa biçimi ve ayrıştırıcı : Git, sürüm ve CI
     2026-10-03 : 19 karar : Yazma doğrulaması : İndeks ve arama : Varlık sayfası ve hızlı giriş
     2026-10-04 : 31 karar : Birleştirme ve kayıp yok : VaultStore ve dosya izleme : Görev, hedef ve otomasyon : Özet, graph ve harita
@@ -106,10 +106,10 @@ timeline
     2026-10-23 : 4 karar : Görüntü referansı tavanı 320 : Günün grafiği : Açık bağ biçimi : CI kısaltması
     2026-10-26 : 4 karar : Açık bağ Core altyapısı : Açık bağ ekranları ve Graph : Açık bağın düğüm boyutu : Arayüz testleri iki işte
     2026-10-27 : 3 karar : Sheet dışı kontrast, gösterge rengi, ortak denetim iPad’de
-    2026-10-30 : 4 karar : Kilit ekranı widget'ı, hızlı giriş giriş noktaları, Kilit ekranı widget'ı: gizlilik ve takvim kaynağı, Bugün'de bugün yazılan ileri tarihli görev
+    2026-10-30 : 5 karar : Kilit ekranı widget'ı, hızlı giriş giriş noktaları, Kilit ekranı widget'ı: gizlilik ve takvim kaynağı, Eşitlemenin App bağlantısı, Bugün'de bugün yazılan ileri tarihli görev
 ```
 
-Sayılar karar günlüğündeki satır sayısıdır. Toplam 319 satırdır.
+Sayılar karar günlüğündeki satır sayısıdır. Toplam 320 satırdır.
 
 ## Karar günlüğü
 
@@ -435,6 +435,7 @@ Sayılar karar günlüğündeki satır sayısıdır. Toplam 319 satırdır.
 | 2026-10-30 | Kilit ekranı widget'ı (`LockScreenWidget`: accessory dikdörtgen, daire, satır) sıradaki etkinliği ve o güne vadesi gelen açık görev sayısını gösterir; bildirimin "İçeriği göster" tercihine bağlıdır: varsayılan gizlide yalnız etkinlik saati ve görev sayısı, başlık anlık görüntüye boş yazılır, görev metni hiç yazılmaz | Kullanıcı kararı 62 (günlük verisi kilit ekranına varsayılan çıkmaz) widget'ta da sürer. Görev sayımı bildirimdeki "N görev bugün" ile aynı tanımdır (`computeNotificationDays`); gecikmiş ve tarihsiz görevler girmez |
 | 2026-10-30 | Kilit ekranı widget'ının takvim verisi uygulamanın enjekte ettiği `CalendarEventSource` ile anlık görüntüye yazılır (gün başına en çok 5 bitmemiş etkinlik; etkinlik bitişleri zaman çizelgesi girişidir); widget EventKit'e dokunmaz | Widget yalnız App Group anlık görüntüsünü okur kuralı korunur, izin ve bellek widget sürecine girmez. Uygulama çalışmadan eklenen etkinliğin görünmemesi kabul edilen sınırdır |
 | 2026-10-30 | Hızlı giriş giriş noktaları: ana ekran ve kilit ekranı "Yaz" widget'ı (`kenet-widget://write`), Denetim Merkezi kontrolü ve Eylem düğmesi (`QuickEntryControl`, `OpenQuickEntryIntent`) ve "Kenet'e yaz" kısayolu uygulamayı Bugün'de hızlı giriş kutusu odaklı açar; kilitliyken istek kilit açılana kadar bekler. Uygulama URL şeması kaydetmez; intent'in `perform` gövdesi hedefe özgüdür (uygulama gezinir, widget yalnız sonuç döner) | Yeni yazma yolu eklenmez (karar 2026-10-11 korunur): metin her zaman uygulamadaki aynı kutuya yazılır; giriş noktası ilk sözcüğe giden yolu kısaltır (`screens.md` ilke 1). Şema kaydedilmediği için bağlantı yalnız WidgetKit'ten gelir (`ReleaseConfigurationTests`) |
+| 2026-10-30 | Uygulama iCloud kasasında indirilmemiş her dosya için `startDownloadingUbiquitousItem` isteğini bir kez gönderir (`CloudDownloader`); yerel kasa ve seçilen klasör istemez. Eşitleme göstergesi (`SyncStatusIndicator`) ana pencerenin üstünde, eşitlenen klasör bandının biçiminde küçük bir bilgi bandıdır ve yalnız iCloud kasasında görünür. Gün kopyası birleştirmesi uygulamaya bağlandı (`IndexStore+DayCopyMerge`), `SyncPolicy.mergesDayCopies` bayrağı varsayılan kapalıdır ve Ayarlar'da anahtarı yoktur | Karar 2026-10-13 iki cihaz denemesini bekliyor; bağlantı hazırken açmak tek satırdır. Gösterge Ayarlar'da kalsaydı "eldeki içerik görünür" kuralı yalnız Ayarlar açıkken işlerdi. Bayrak testte açılıp `day-copies` kasasının `expected/` ile bayt bayt aynı çıktığı ölçüldü. Gün editörü Journal bölümünü yazma sırasında yeniden denetler; araya giren yazma bölümü değiştirdiyse kayıt `staleTarget` ile reddedilir ve taslak editörde kalır; bayrağın açılması bu denetime dayanır (PR #361) |
 | 2026-10-30 | Bugün'ün Görevler bölümü bugünün dosyasına yazılan açık görevi bitiş tarihi ileride olsa da gösterir ve kalan görev sayar (`dayTasks(on:)`: `file=? AND (dueDate IS NULL OR status NOT IN ('done','cancelled'))`; `TaskGroups.created`). Günü kapat akışı bu görevleri listelemez ve "Günü kapat" satırı yalnız akışın listeleyeceği görevlere bakar (`closeDayTaskCount`) | Kullanıcı kararı 82: girilen görev ana sayfadan kaybolmamalı. Akışta Yarına seçimi zaten verilmiş bitişi geri çekerdi. 2026-10-02 "tarihsiz görev yalnız oluşturulduğu gün Bugün'de görünür" kararını genişletir |
 
 Satır sırası ekleme sırasıdır; tablonun ilk satırları tarih sırasında değildir. Sonradan değişen bir kararın gerekçe hücresi değişikliği tarihiyle anar. Güncel durum notları kararın verildiği günden sonraki gerçek durumu söyler.

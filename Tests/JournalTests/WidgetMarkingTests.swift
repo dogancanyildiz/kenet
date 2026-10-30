@@ -191,7 +191,7 @@ struct WidgetMarkingTests {
         defer { harness.clean() }
         await harness.start()
         let id = try harness.goalID("esneme")
-        let reloads = harness.timelines.goalChainReloads.count
+        let reloads = harness.timelines.reloads.count
         let unlocked = try Data(contentsOf: harness.snapshotFile)
         let before = try #require(harness.snapshot)
 
@@ -276,12 +276,12 @@ struct WidgetMarkingTests {
         await harness.start()
         let unlocked = try Data(contentsOf: harness.file)
         let before = try #require(harness.snapshot)
-        let reloads = harness.timelines.goalChainReloads.count
+        let reloads = harness.timelines.reloads.count
 
         harness.writer.sceneLeftForeground(lockService: harness.lock, background: false)
         harness.writer.sceneLeftForeground(lockService: harness.lock, background: true)
         #expect(try Data(contentsOf: harness.file) == unlocked)
-        #expect(harness.timelines.goalChainReloads.count == reloads)
+        #expect(harness.timelines.reloads.count == reloads)
 
         await harness.lock.becomeActive()
         await harness.lock.setEnabled(true)
@@ -289,15 +289,15 @@ struct WidgetMarkingTests {
         harness.writer.sceneLeftForeground(lockService: harness.lock, background: false)
         #expect(harness.snapshot?.lockedAfter == WidgetSnapshotTests.noon.addingTimeInterval(300))
         #expect(harness.snapshot?.days == before.days)
-        #expect(harness.timelines.goalChainReloads.count == reloads)
+        #expect(harness.timelines.reloads.count == reloads)
 
         await harness.foreground()
         #expect(harness.snapshot?.lockedAfter == nil)
-        #expect(harness.timelines.goalChainReloads.count == reloads)
+        #expect(harness.timelines.reloads.count == reloads)
 
         harness.fixture.time = harness.fixture.time.addingTimeInterval(60)
         harness.writer.sceneLeftForeground(lockService: harness.lock, background: false)
-        #expect(harness.timelines.goalChainReloads.count == reloads)
+        #expect(harness.timelines.reloads.count == reloads)
         harness.writer.sceneLeftForeground(lockService: harness.lock, background: true)
         #expect(!harness.lock.isLocked)
         #expect(harness.snapshot?.lockedAfter == WidgetSnapshotTests.noon.addingTimeInterval(360))
@@ -329,25 +329,25 @@ struct WidgetMarkingTests {
         await harness.start()
         await harness.lock.setEnabled(true)
         harness.lock.delay = .fiveMinutes
-        let before = harness.timelines.goalChainReloads.count
+        let before = harness.timelines.reloads.count
 
         harness.writer.sceneLeftForeground(lockService: harness.lock, background: false)
         #expect(harness.snapshot?.lockedAfter == WidgetSnapshotTests.noon.addingTimeInterval(300))
-        #expect(harness.timelines.goalChainReloads.count == before)
+        #expect(harness.timelines.reloads.count == before)
         harness.writer.sceneLeftForeground(lockService: harness.lock, background: true)
         let deadline = try #require(harness.lock.locksAt)
         #expect(deadline == WidgetSnapshotTests.noon.addingTimeInterval(300))
         #expect(harness.snapshot?.lockedAfter == deadline)
         #expect(harness.timelines.reloads.count == before + WidgetKinds.all.count)
         let written = try Data(contentsOf: harness.file)
-        let reloads = harness.timelines.goalChainReloads.count
+        let reloads = harness.timelines.reloads.count
 
         harness.fixture.time = harness.fixture.time.addingTimeInterval(10)
         harness.writer.update()
         await harness.writer.settle()
         #expect(!harness.lock.isLockedNow())
         #expect(try Data(contentsOf: harness.file) == written)
-        #expect(harness.timelines.goalChainReloads.count == reloads)
+        #expect(harness.timelines.reloads.count == reloads)
     }
 
     /// A local vault lives in the app's sandbox: its snapshot names no cloud path, a tap opens

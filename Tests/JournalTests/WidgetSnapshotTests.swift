@@ -9,7 +9,6 @@ import VaultFormat
 @MainActor final class FakeWidgetTimelines: WidgetTimelineReloading {
     private(set) var reloads: [String] = []
     /// Existing publish-count assertions concern the chain widget, independently of other kinds.
-    var goalChainReloads: [String] { reloads.filter { $0 == WidgetKinds.goalChain } }
     func reloadTimelines(ofKind kind: String) { reloads.append(kind) }
 }
 
@@ -168,7 +167,7 @@ struct WidgetSnapshotTests {
         await harness.start()
         #expect(harness.context.store.lastUpdated != nil)
         #expect(!FileManager.default.fileExists(atPath: harness.file.path))
-        #expect(harness.timelines.goalChainReloads.isEmpty)
+        #expect(harness.timelines.reloads.isEmpty)
 
         harness.lock.isLocked = false
         harness.writer.update()
@@ -315,7 +314,7 @@ struct WidgetSnapshotTests {
         await harness.start()
         #expect(harness.context.store.lastUpdated != nil)
         #expect(!FileManager.default.fileExists(atPath: harness.container.path))
-        #expect(harness.timelines.goalChainReloads.isEmpty)
+        #expect(harness.timelines.reloads.isEmpty)
     }
 
     /// The widget listener is the store's own: the snapshot listener the notifications use still

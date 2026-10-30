@@ -29,11 +29,11 @@ enum CloseDayChoice: Hashable, Sendable {
 
 /// The Today row that opens the flow.
 enum CloseDayEntry {
-    /// Only on Today, while a task or daily goal is still open, or while today has no journal
-    /// entry yet. Otherwise the row takes no space. A past day never offers it.
+    /// Only on Today, while a task the flow lists or a daily goal is still open, or while today
+    /// has no journal entry yet. Otherwise the row takes no space. A past day never offers it.
     static func isOffered(isToday: Bool, presentation: TodayPresentation, hasJournal: Bool) -> Bool {
         isToday
-            && (presentation.remainingTaskCount > 0 || presentation.remainingGoalCount > 0 || !hasJournal)
+            && (presentation.closeDayTaskCount > 0 || presentation.remainingGoalCount > 0 || !hasJournal)
     }
 
     /// A journal entry is written prose: the same test as the page's journal preview, so the row
@@ -171,9 +171,11 @@ final class CloseDayModel {
         if let loaded = try? await store.computeDayTasks(on: today) { rows = loaded }
     }
 
+    /// Today's open rows except those due later: their due day is already chosen, and Yarına
+    /// would pull it back.
     private static func openTasks(_ rows: [TaskRow], today: CalendarDate) -> [TaskRow] {
         let groups = TaskGroups(rows: rows, on: today, isToday: true)
-        return groups.overdue + groups.dated + groups.created
+        return groups.overdue + groups.dated + groups.created.filter { $0.due == nil }
     }
 
     var pendingGoals: [GoalDefinition] {

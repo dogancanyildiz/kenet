@@ -27,6 +27,38 @@ struct DayTaskTests {
         #expect(past.dated.map(\.sourceText) == ["late", "cancelled"])
     }
 
+    /// Decision 82: an open task written today stays on Today whatever its due day, once.
+    @Test func todayKeepsOpenTasksWrittenTodayWhateverTheirDueDay() async throws {
+        let context = try TaskTestContext()
+        defer { context.clean() }
+        await context.start()
+        try Data(
+            ("## Tasks\n- [ ] later 📅 2026-10-10 ^later\n- [ ] today 📅 2026-10-03 ^today\n"
+                + "- [ ] late 📅 2026-10-01 ^late\n- [ ] undated ^undated\n"
+                + "- [x] later done 📅 2026-10-10 ✅ 2026-10-02 ^ldone\n- [-] later cancelled 📅 2026-10-10 ^lcancel\n")
+                .utf8
+        ).write(to: context.file)
+        try Data(
+            "## Tasks\n- [ ] yesterday later 📅 2026-10-10 ^ylater\n- [x] yesterday done 📅 2026-10-10 ✅ 2026-10-03 ^ydone\n"
+                .utf8
+        ).write(
+            to: context.root.appendingPathComponent("journal/2026-10-02.md"))
+        await context.store.refresh()
+        let groups = await DayTasksModel.loaded(store: context.store, day: context.today, isToday: true).groups
+        #expect(groups.overdue.map(\.sourceText) == ["late"])
+        #expect(groups.dated.map(\.sourceText) == ["today"])
+        #expect(groups.created.map(\.sourceText) == ["later", "undated"])
+        let ids = (groups.overdue + groups.dated + groups.created).map(\.id)
+        #expect(Set(ids).count == ids.count)
+        // A past day page keeps the open task written that day and due later too, not a closed one
+        // (the query leaves it out; the groups agree when given every row).
+        let yesterday = CalendarDate("2026-10-02")!
+        let past = await DayTasksModel.loaded(store: context.store, day: yesterday, isToday: false).groups
+        #expect(past.created.map(\.sourceText) == ["yesterday later"])
+        let all = TaskGroups(rows: try await context.store.allTasks(), on: yesterday, isToday: false)
+        #expect(all.created.map(\.sourceText) == ["yesterday later"])
+    }
+
     @Test func completionWritesLocalDateFadesAndThenLeavesToday() async throws {
         let context = try TaskTestContext()
         defer { context.clean() }

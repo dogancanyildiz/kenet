@@ -65,6 +65,13 @@ struct TaskGroups {
             overdue = eligible.filter { $0.due.map { $0 < day } ?? false }.sorted(by: TasksModel.order)
         }
         dated = eligible.filter { $0.due == day }.sorted(by: TasksModel.order)
-        created = eligible.filter { $0.due == nil && $0.file == "journal/\(day).md" }.sorted(by: TasksModel.order)
+        // Written in the day's file: undated ones, and open ones due later (decision 82). Due on
+        // the day they are `dated`, before it `overdue`: no row twice.
+        let file = "journal/\(day).md"
+        created = eligible.filter { row in
+            guard row.file == file else { return false }
+            guard let due = row.due else { return true }
+            return due > day && !row.isClosed
+        }.sorted(by: TasksModel.order)
     }
 }

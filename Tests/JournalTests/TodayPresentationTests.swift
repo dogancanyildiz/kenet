@@ -230,6 +230,30 @@ struct TodayPresentationTests {
         #expect(try make(locale: language).countedGoalIDs.isEmpty)
     }
 
+    /// Decision 82: an open task written today and due later is a remaining task among today's,
+    /// after the dated ones and before the undated, with its due day on the row.
+    @Test func openTaskWrittenTodayAndDueLaterCountsAndShowsItsDueDay() throws {
+        let later = "2026-10-09"
+        let rows = try [
+            row(1, due: "2026-09-30"), row(2, due: day.description), row(3), row(4, due: later),
+            row(5, status: "x", due: later, done: "2026-10-05"), row(6, status: "-", due: later),
+            row(7, due: later, file: "journal/2026-10-05.md"),
+        ]
+        let groups = TaskGroups(rows: rows, on: day, isToday: true)
+        let value = try TodayPresentation(
+            day: summary(), groups: groups, goals: [], goalStatuses: [:], goalStatusesDay: day, today: day,
+            locale: Locale(identifier: "en_US"), calendar: calendar)
+        #expect(value.remainingTaskCount == 4)
+        #expect(value.closeDayTaskCount == 3)
+        #expect(value.counter(for: .tasks) == "4")
+        #expect(value.byline == "4 tasks remaining")
+        #expect(value.taskRows.map(\.id) == [rows[0], rows[1], rows[3], rows[2]].map(\.id))
+        let facts = DayTaskSecondaryPresentation(
+            row: rows[3], isCarriedOver: false, carriedOverLabel: nil, today: day,
+            locale: Locale(identifier: "en_US"), calendar: calendar)
+        #expect(facts.dueLabel == "Oct 9")
+    }
+
     @Test func completedOverlayAndHistoricalClosedRowsAreCountedOnce() throws {
         let retained = try row(1, due: "2026-09-30")
         let closed = try row(2, status: "x", due: day.description)

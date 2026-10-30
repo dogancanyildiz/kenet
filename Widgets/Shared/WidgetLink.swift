@@ -14,10 +14,11 @@ enum WidgetTap: Equatable, Sendable {
 
 /// Widget kinds the app asks WidgetKit to reload (`Widget.kind` of each widget in the bundle).
 enum WidgetKinds {
+    static let quickEntry = "QuickEntryWidget"
     static let goalChain = "GoalChainWidget"
     /// Every kind: the app reloads them all after a publish.
     static let lockScreen = "LockScreenWidget"
-    static let all = [goalChain, lockScreen]
+    static let all = [goalChain, lockScreen, quickEntry]
 }
 
 /// What a tap in the widget asks the app to do. The widget passes it as the URL it opens the app
@@ -25,6 +26,7 @@ enum WidgetKinds {
 enum WidgetLink: Equatable, Sendable {
     /// Open the app on Today.
     case today
+    case write
     /// Open the app on Today and mark the yes/no goal with this App Intent identifier for today.
     case markGoal(id: String)
 
@@ -34,6 +36,8 @@ enum WidgetLink: Equatable, Sendable {
         var components = URLComponents()
         components.scheme = Self.scheme
         switch self {
+        case .write:
+            components.host = "write"
         case .today:
             components.host = "today"
         case .markGoal(let id):
@@ -48,6 +52,11 @@ enum WidgetLink: Equatable, Sendable {
             components.scheme == Self.scheme
         else { return nil }
         switch components.host {
+        case "write":
+            guard components.path.isEmpty, components.query == nil, components.fragment == nil,
+                components.user == nil, components.password == nil, components.port == nil
+            else { return nil }
+            self = .write
         case "today": self = .today
         case "mark":
             guard let id = components.queryItems?.first(where: { $0.name == "goal" })?.value, !id.isEmpty

@@ -64,6 +64,22 @@
           }
         }
       }
+    },
+    "${applicationName}'e yaz" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "${applicationName}'e yaz"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Write in ${applicationName}"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

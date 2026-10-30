@@ -1,3 +1,4 @@
+import AppIntents
 import Foundation
 import Observation
 
@@ -12,6 +13,23 @@ final class IntentNavigation {
     }
     private(set) var mentionRequest: MentionRequest?
     private(set) var todayRequest: UUID?
+    private(set) var focusRequest: UUID?
+    private(set) var pendingFocus = false
+
+    func openTodayForWriting(isLocked: Bool = IntentActions.shared.isLocked()) {
+        if isLocked {
+            pendingFocus = true
+            return
+        }
+        pendingFocus = false
+        mentionRequest = nil
+        focusRequest = UUID()
+        navigateToday()
+    }
+
+    func unlocked() {
+        if pendingFocus { openTodayForWriting(isLocked: false) }
+    }
     func mention(_ entity: EntitySummary, vault: URL?) {
         mentionRequest = MentionRequest(entity: entity, vault: vault)
         navigateToday()
@@ -28,5 +46,14 @@ final class IntentNavigation {
     private func navigateToday() {
         onOpenToday?()
         todayRequest = UUID()
+    }
+}
+
+/// App target implementation; the widget target supplies a no-op implementation.
+extension OpenQuickEntryIntent {
+    @MainActor
+    func perform() async throws -> some IntentResult {
+        IntentNavigation.shared.openTodayForWriting()
+        return .result()
     }
 }

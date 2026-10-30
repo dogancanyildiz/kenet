@@ -29,6 +29,9 @@ struct TodayPresentation: Sendable {
     let shortHeadline: String
     let byline: String?
     let remainingTaskCount: Int
+    /// The open tasks the close-day flow lists: `remainingTaskCount` without those written on the
+    /// day and due later (their due day is already chosen).
+    let closeDayTaskCount: Int
     let remainingGoalCount: Int
     let completedGoalCount: Int
     let goalCount: Int
@@ -91,6 +94,7 @@ struct TodayPresentation: Sendable {
         cancelled = cancelledRows
         completed = completedRows
         remainingTaskCount = carriedOver.count + datedTasks.count + createdTasks.count
+        closeDayTaskCount = carriedOver.count + datedTasks.count + createdTasks.filter { $0.due == nil }.count
         if goalStatusesDay == day.date {
             let daily = goals.filter { $0.period == .day }
             countedGoalIDs = daily.map(\.id)

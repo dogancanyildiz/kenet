@@ -71,7 +71,8 @@ struct TaskViewQueryTests {
 
         #expect(
             words(try index.dayTasks(on: today)) == [
-                "geç", "tarihsiz", "geçmiş", "bugün", "bugün", "sürüyor", "iptal", "her", "tarihsiz", "not",
+                "geç", "tarihsiz", "geçmiş", "bugün", "bugün", "gelecek", "sürüyor", "iptal", "bilinmeyen", "acil",
+                "her", "tarihsiz", "ters", "not",
             ])
         let board = try index.boardTasks(doneFrom: today.addingDays(-29)!, to: today, includeCancelled: false)
         #expect(!words(board).contains("iptal") && !words(board).contains("eski") && words(board).contains("dün"))
@@ -100,6 +101,36 @@ struct TaskViewQueryTests {
         // A task whose identifier an event owns is named by its line.
         #expect(try index.task(id: "notes/Plan.md#3")?.block.text.hasPrefix("kopya") == true)
         #expect(try index.task(id: "notes/Plan.md^olay1") == nil)
+    }
+
+    /// A day page keeps the open tasks written in its file whatever their due day; a closed one
+    /// written there with a due day, or an open one written on another day, is not among them.
+    @Test func dayTasksKeepOpenTasksWrittenThatDayWhateverTheirDueDay() throws {
+        let vault = try StoreVault()
+        defer { vault.remove() }
+        try vault.write(
+            "journal/2026-03-10.md",
+            """
+            ## Tasks
+            - [ ] ileri açık 📅 2026-03-15
+            - [/] ileri sürüyor 🛫 2026-03-11 📅 2026-03-12
+            - [x] ileri bitti 📅 2026-03-15 ✅ 2026-03-11
+            - [-] ileri iptal 📅 2026-03-15
+            - [ ] tarihsiz açık
+            - [x] tarihsiz bitti
+
+            """)
+        try vault.write("journal/2026-03-09.md", "## Tasks\n- [ ] dünden ileri 📅 2026-03-15\n")
+        try vault.write("notes/Plan.md", "- [ ] notta ileri 📅 2026-03-15\n")
+        try vault.index.rebuild(vaultRoot: vault.root)
+        try expectConstruction(
+            vault.index, days: ["2026-03-09", "2026-03-10", "2026-03-11", "2026-03-15"], extraScopes: [])
+        func texts(_ day: String) throws -> [String] {
+            try vault.index.dayTasks(on: CalendarDate(day)!).map(\.block.text)
+        }
+        #expect(try texts("2026-03-10") == ["ileri açık", "ileri sürüyor", "tarihsiz açık", "tarihsiz bitti"])
+        #expect(try texts("2026-03-09") == ["dünden ileri"])
+        #expect(try texts("2026-03-11") == ["ileri bitti"])
     }
 
     /// Edits through the store keep the incrementally maintained index answering like a rebuild.
@@ -330,7 +361,7 @@ private struct TaskConstruction {
     func day(_ day: CalendarDate) -> [TaskEntry] {
         tasks.filter { entry in
             (Self.isOpen(entry) && Self.due(entry).map { $0 < day } ?? false) || Self.due(entry) == day
-                || (Self.due(entry) == nil && entry.block.file == "journal/\(day).md")
+                || ((Self.due(entry) == nil || Self.isOpen(entry)) && entry.block.file == "journal/\(day).md")
                 || (Self.isDone(entry) && Self.done(entry) == day)
         }
     }

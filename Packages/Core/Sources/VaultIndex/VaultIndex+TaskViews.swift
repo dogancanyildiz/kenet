@@ -84,13 +84,15 @@ extension VaultIndex {
             limit: limit)
     }
 
-    /// Every task a day page may list for `day`: open tasks due before it, tasks due on it,
-    /// undated tasks written in its file, and tasks done on it. By file and line.
+    /// Every task a day page may list for `day`: open tasks due before it, tasks due on it, tasks
+    /// written in its file (open ones whatever their due day, closed ones when undated), and tasks
+    /// done on it. By file and line.
     public func dayTasks(on day: CalendarDate) throws -> [TaskEntry] {
         try taskEntries(
             """
             (dueDate<? AND status NOT IN ('done','cancelled')) OR dueDate=?
-                OR (dueDate IS NULL AND file=?) OR (status='done' AND doneDate=?)
+                OR (file=? AND (dueDate IS NULL OR status NOT IN ('done','cancelled')))
+                OR (status='done' AND doneDate=?)
             """,
             arguments: [day.description, day.description, "journal/\(day).md", day.description],
             scope: .all, order: "file,ordinal")

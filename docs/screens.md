@@ -190,7 +190,7 @@ Uygulama açılışta Bugün ekranını gösterir. Geçmiş bir günün ekranı 
 |---|---|---|---|---|
 | 1 | Manşet ve künye | 9 | Günün tarihi New York Semibold manşettir. Altında tek satırlık künye durur. | Her zaman. Künye yalnız sayacak bir şey varken görünür. |
 | 2 | Hedefler | 3 | Günlük dönemli hedefler. Altında haftalık ve yıllık hedefler aynı satır bileşeniyle durur. | Hedef varken. |
-| 3 | Görevler | 2 | Devreden görevler, bugünün görevleri ve bugün yazılan tarihsiz görevler. | Görev varken. |
+| 3 | Görevler | 2 | Devreden görevler, bugünün görevleri ve bugün yazılan açık görevler. Bugün yazılan görev bitiş tarihi ileride olsa da görünür. | Görev varken. |
 | 4 | Takvim | 2, 10 | Cihaz takvimindeki bugünkü etkinlikler. Salt okunur, sans satır. | İzin sorulmadıysa ya da etkinlik varsa. |
 | 5 | Olaylar | 1 | Bugün yazılan olaylar, dosyadaki sırayla. Kenarda saat durur. | Olay varken. |
 | 6 | Bağlam | 10 | "Bu gün geçmişte" ve "Önemli tarihler" satırları. Başlık yoktur. | Yalnız Bugün'de, söyleyecek bir şey varken. |
@@ -238,6 +238,7 @@ Varsayılan yazı boyutunda hızlı giriş tek satırlı bir kapsüldür. Ölç�
 
 | Konu | Davranış |
 |---|---|
+| Kapsam | Bölüm üç grup gösterir: devreden görevler, bitişi bugün olan görevler ve bugünün dosyasına yazılan açık görevler. Bugün yazılan görevin bitiş tarihi yoksa ya da ileride ise görev bu grupta durur. Bitiş tarihi ileride olan satırın altında tarih yazar: "9 Eki". Bitişi bugün olan görev ikinci grupta, geçmiş olan devreden grupta durur; hiçbir görev iki kez görünmez. Görev sayacı ve künye bu görevleri kalan görev sayar. |
 | Tamamlama | Kutuya ya da bağlantısız satıra dokunma görevi tamamlar. Basılı tutma düzenleme açar. |
 | Devreden görev | Altında geldiği tarih yazar: "30 Eyl'den". En çok 3 tanesi görünür. "N devreden daha" satırı kalanı toplar. Satıra dokununca liste genişler. |
 | Tamamlanan görev | Listenin sonuna iner. Uygulama birden çok tamamlanan görevi tek satıra katlar: "N görev tamamlandı". Satıra dokununca liste genişler. |
@@ -300,7 +301,7 @@ Varsa ekran serbest yazının ilk 4 satırını ve "Devamını yaz" bağlantıs�
 | Konu | Davranış |
 |---|---|
 | Yer | Ekranın son öğesi. İnce bir çizginin altında tek bağlantı satırı: "Günü kapat", `button.closeDay`. Bölüm başlığı yoktur. |
-| Koşul | Açık görev, işaretlenmemiş günlük hedef ya da bugün henüz günlük yazısı yokken görünür. Üçü de yoksa satır yer tutmaz. |
+| Koşul | Akışın listeleyeceği açık görev, işaretlenmemiş günlük hedef ya da bugün henüz günlük yazısı yokken görünür; bugün yazılıp bitişi ileride olan görev Bugün'de kalan sayılsa da satırı tek başına açmaz. Üçü de yoksa satır yer tutmaz. |
 | Günlük yazısı tanımı | `Journal` bölümündeki düz metin. Ölçü, ekrandaki "Günlük yazısı ekle…" önizlemesiyle aynıdır. Bölüm yoksa, boşsa ya da yalnız başlık taşıyorsa günlük yazısı yoktur. |
 | Boş gün | Ekran kısa olduğu için satır ilk ekranda görünür. |
 | Geçmiş gün | Satır yoktur. |
@@ -350,7 +351,7 @@ stateDiagram-v2
 
 | Adım | İçerik | Eylemler ve yazma |
 |---|---|---|
-| 1 Görevler | Bugün'deki açık görevlerin tamamı: devredenler katlanmadan, bugünün görevleri, bugün yazılan tarihsizler. | Her görevin altında "Karar" menüsü durur: Kalsın (varsayılan), Bitti, Yarına, Haftaya. VoiceOver her görevi tek öğe okur: ad görev metni, değer seçimdir. |
+| 1 Görevler | Bugün'deki açık görevler: devredenler katlanmadan, bugünün görevleri, bugün yazılan tarihsizler. Bugün yazılıp bitişi ileride olan görev Bugün'de görünür ama bu adıma girmez: bitiş tarihi zaten seçilmiştir, Yarına onu geri çekerdi. | Her görevin altında "Karar" menüsü durur: Kalsın (varsayılan), Bitti, Yarına, Haftaya. VoiceOver her görevi tek öğe okur: ad görev metni, değer seçimdir. |
 | 1 Görevler: Uygula | "Uygula" seçimleri birlikte yazar. Bitti görevi bugünün tarihiyle tamamlar. Yarına ve Haftaya yalnız bitiş tarihini değiştirir. Kalsın hiçbir şey yazmaz. | Taşıma kuralı ve yazma yolu Bugün'deki taşıma ile aynıdır. |
 | 1 Görevler: sonuç | Uygulama her görevi yazmadan hemen önce dosyadan yeniden okur. Değişmiş görevi atlar, kalanı yazar. | Bilgi bandı sayıları gösterir: tamamlanan, taşınan, değişmiş olduğu için yazılmayan, yazılamayan. Yazılan görev listeden çıkar. |
 | 1 Görevler: tekrar | Tekrarlayan görev tamamlanınca yeni örnek doğar. Bitişi bugün ya da öncesiyse yeni örnek Bugün'deki gibi listeye açık görev olarak girer. | Seçim yoksa "Uygula" kapalıdır. "Atla" sonraki adıma geçer. Uygulamadan sonra düğmenin adı "İleri" olur. |

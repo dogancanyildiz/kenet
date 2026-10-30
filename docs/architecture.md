@@ -422,7 +422,7 @@ Okuma modeli gün listesi tutmaz. Günlük listesi bütün günleri sorgular: iP
 | Kanban | `boardTasks` | Açık görevler, son 30 günde tamamlananlar ve iptaller. "İptal edilenleri göster" yeni sorgu açmadan süzer |
 | Zaman çizelgesi | `timelineTasks` | Bugünün ±365 günüyle kesişen görevler ve tarihsiz görevler. Görünen pencere bu satırlar içinde kayar |
 | Proje sayfası | `tasks(inProject:)` | Projenin bütün görevleri |
-| Gün sayfası, günü kapatma akışı | `dayTasks(on:)` | O günün adayları: önceki açıklar, o güne düşenler, o gün dosyasına yazılan tarihsizler, o gün tamamlananlar |
+| Gün sayfası, günü kapatma akışı | `dayTasks(on:)` | O günün adayları: önceki açıklar, o güne düşenler, o gün dosyasına yazılan açıklar (bitişi ileride olsa da) ve tarihsizler, o gün tamamlananlar. Günü kapatma akışı bitişi ileride olanları kendisi süzer |
 | Haftalık inceleme | `openTasks(dueBy:orWrittenFrom:)` | İki haftanın açık işleri |
 | Görev ayrıntısı | `task(id:)` | Seçilen görev; sorgu görevi kimliğiyle yeniden okur |
 

@@ -392,6 +392,28 @@ struct CloseDayTests {
         #expect(after == before)
     }
 
+    /// An open task written today and due later is on Today (decision 82) but not in the flow:
+    /// its due day is already chosen, and Yarına would pull it back.
+    @Test func openTaskWrittenTodayAndDueLaterStaysOutOfTheFlow() async throws {
+        let context = try TaskTestContext()
+        defer { context.clean() }
+        await context.start()
+        try await write(
+            ["journal/2026-10-03.md": "## Tasks\n- [ ] later 📅 2026-10-10 ^later\n- [ ] undated ^undated\n"],
+            in: context)
+        let today = await DayTasksModel.loaded(store: context.store, day: context.today, isToday: true)
+        #expect(today.groups.created.map(\.sourceText) == ["later", "undated"])
+        let model = try await CloseDayModel.opened(store: context.store, today: context.today)
+        #expect(model.tasks.map(\.sourceText) == ["undated"])
+        #expect(model.steps.contains(.tasks))
+
+        // Only the later one open: there is no task step.
+        try await write(["journal/2026-10-03.md": "## Tasks\n- [ ] later 📅 2026-10-10 ^later\n"], in: context)
+        let alone = try await CloseDayModel.opened(store: context.store, today: context.today)
+        #expect(alone.tasks.isEmpty)
+        #expect(!alone.steps.contains(.tasks))
+    }
+
     @Test func entryRowShowsOnTodayWhileWorkIsOpenOrTheJournalIsEmpty() async throws {
         let context = try TaskTestContext()
         defer { context.clean() }
@@ -413,6 +435,18 @@ struct CloseDayTests {
         try await write(["journal/2026-10-03.md": "## Journal\nA quiet day.\n"], in: context)
         #expect(try await !offered(context))
         #expect(try await !offered(context, isToday: false))
+
+        // Only a task written today and due later is open: the flow would not list it, so the row
+        // is not offered though Today counts it (decision 82). Due today, it is offered.
+        try await write(
+            ["journal/2026-10-03.md": "## Tasks\n- [ ] later 📅 2026-10-10 ^later\n\n## Journal\nA quiet day.\n"],
+            in: context)
+        #expect(try await presentation(context).remainingTaskCount == 1)
+        #expect(try await !offered(context))
+        try await write(
+            ["journal/2026-10-03.md": "## Tasks\n- [ ] later 📅 2026-10-03 ^later\n\n## Journal\nA quiet day.\n"],
+            in: context)
+        #expect(try await offered(context))
 
         // One open task, even with a journal entry.
         try await write(

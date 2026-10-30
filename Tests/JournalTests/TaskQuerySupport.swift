@@ -116,7 +116,7 @@ extension DayTasksModel {
     /// `CloseDayModel.tasks`.
     static func closeDay(_ rows: [TaskRow], today: CalendarDate) -> [TaskRow] {
         let groups = TaskGroups(rows: rows, on: today, isToday: true)
-        return groups.overdue + groups.dated + groups.created
+        return groups.overdue + groups.dated + groups.created.filter { $0.due == nil }
     }
 }
 

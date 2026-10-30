@@ -70,10 +70,12 @@ final class IndexStore {
     private(set) var unwatchedDirectoryCount = 0
     @ObservationIgnored private let location: VaultLocation
     @ObservationIgnored private let supportURL: URL
-    /// Index refresh; the fourth argument lists the changed directories, `nil` for the whole vault.
+    /// Index refresh; the fourth argument lists the changed directories, `nil` for the whole vault;
+    /// the last one is the sync lists the refresh starts from.
     @ObservationIgnored private let update:
-        @Sendable (VaultIndex, URL, Bool, Set<String>?, EntityTypeCatalog, Bool, [SkippedPath], VaultReadModel)
-            async throws -> IndexUpdate
+        @Sendable (
+            VaultIndex, URL, Bool, Set<String>?, EntityTypeCatalog, Bool, [SkippedPath], VaultReadModel, SyncLists
+        ) async throws -> IndexUpdate
     @ObservationIgnored private let watcherDirectoryLimit: Int
     @ObservationIgnored private let watcherTicker: any WatcherTicker
     /// False keeps directory sources on the Mac too (`VaultWatcher`); iOS always uses them.
@@ -109,6 +111,7 @@ final class IndexStore {
         watcherDirectoryLimit: Int = 256,
         watcherTicker: any WatcherTicker = DispatchWatcherTicker(), watcherFileEvents: Bool = true,
         conflictVersions: any ConflictVersionSource = SystemConflictVersionSource(),
+        cloudDownloader: (any CloudDownloading)? = nil, syncPolicy: SyncPolicy = .standard,
         update:
             (
                 @Sendable (
@@ -125,24 +128,28 @@ final class IndexStore {
         self.location = location
         requiresOnboarding = location.needsFirstLaunch
         if let scopedUpdate {
-            self.update = scopedUpdate
+            self.update = { index, root, rebuild, directories, previous, skip, skipped, previousContent, _ in
+                try await scopedUpdate(index, root, rebuild, directories, previous, skip, skipped, previousContent)
+            }
         } else if let update {
             // A whole-vault update also covers a directory request.
-            self.update = { index, root, rebuild, _, previous, skip, skipped, previousContent in
+            self.update = { index, root, rebuild, _, previous, skip, skipped, previousContent, _ in
                 try await update(index, root, rebuild, previous, skip, skipped, previousContent)
             }
         } else {
-            self.update = { index, root, rebuild, directories, previous, skip, skipped, previousContent in
+            self.update = { index, root, rebuild, directories, previous, skip, skipped, previousContent, sync in
                 try await IndexUpdate.read(
                     index: index, root: root, rebuild: rebuild, previousTypes: previous,
                     skipUnchanged: skip, previousSkipped: skipped, previousContent: previousContent,
-                    directories: directories)
+                    directories: directories, previousSync: sync)
             }
         }
         self.watcherDirectoryLimit = watcherDirectoryLimit
         self.watcherTicker = watcherTicker
         self.watcherFileEvents = watcherFileEvents
         self.conflictVersions = conflictVersions
+        self.cloudDownloader = cloudDownloader ?? SystemCloudDownloader.forLaunch()
+        self.syncPolicy = syncPolicy
         self.supportURL =
             supportURL
             ?? FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
@@ -274,6 +281,7 @@ final class IndexStore {
 
     func setForeground(_ active: Bool) {
         if active { refreshCloudOnActivation() }
+        if active && !foreground { requestDownloadsAgain() }
         foreground = active
         // A failed refresh is retried on the foreground return; with the Mac's event stream nothing
         // else would retry it before the next file event.
@@ -725,6 +733,7 @@ final class IndexStore {
         entityUsage = []
         counts = IndexCounts()
         skippedPaths = []
+        sync.reset(for: nil)
         lastUpdated = nil
         errorText = nil
         notice = nil
@@ -768,6 +777,8 @@ final class IndexStore {
         entityUsage = []
         counts = IndexCounts()
         skippedPaths = []
+        // The vault opened again starts over: lists, requests, merges, the band and its counts.
+        sync.reset(for: url)
         lastUpdated = nil
         errorText = nil
         isProcessing = true
@@ -855,9 +866,11 @@ final class IndexStore {
             let epochAtStart = contentEpoch
             do {
                 let result = try await update(
-                    index, root, full, scope, entityTypes, allowSkip, skippedPaths, content)
+                    index, root, full, scope, entityTypes, allowSkip, skippedPaths, content,
+                    sync.root == root ? sync.lists : SyncLists())
                 guard generation == current else { return }
                 if scope == nil { needsFullRefresh = false }
+                publishSyncLists(result, root: root)
                 if contentEpoch != epochAtStart {
                     // A write published while Core work was in flight; discard and rescan.
                     allowSkip = false
@@ -895,6 +908,7 @@ final class IndexStore {
         guard generation == current else { return }
         refreshInFlight = false
         if holdsProcessing { isProcessing = false }
+        scheduleDayCopyMerge()
         await applyPendingSelection()
     }
 
@@ -1171,6 +1185,14 @@ final class IndexStore {
     private(set) var isOpeningCloudVault = false
     var showsCloudMigration = false
     private(set) var isCloudMigrationAutomatic = false
+
+    // MARK: - iCloud downloads and day copy merges
+
+    /// Pending downloads and day copies of the open vault (`IndexStore+DayCopyMerge`).
+    let sync = SyncState()
+    /// Asks iCloud for placeholders; a fake in tests.
+    @ObservationIgnored private let cloudDownloader: any CloudDownloading
+    @ObservationIgnored let syncPolicy: SyncPolicy
 
 }
 
@@ -1686,6 +1708,70 @@ extension IndexStore {
         try await performEdit(path: relation.source) {
             try await $0.removeRelation(
                 from: relation.source, to: "/" + String(relation.target.dropLast(3)), label: relation.label)
+        }
+    }
+}
+
+// MARK: - iCloud download requests
+
+extension IndexStore {
+    /// The vault iCloud keeps (`VaultLocation.Kind.icloud`); a local or selected folder never is,
+    /// even one inside iCloud Drive.
+    var isCloudVault: Bool { location.kind == .icloud && vaultURL != nil }
+
+    /// What sync is doing in the open vault; always `idle` outside an iCloud vault.
+    var syncStatus: SyncStatus {
+        guard let root = vaultURL, sync.root == root else { return .idle }
+        return SyncStatus.resolve(
+            isCloudVault: isCloudVault, pendingDownloads: sync.pendingDownloads.count,
+            mergingCopies: sync.mergingCopies)
+    }
+
+    /// Takes a refresh's placeholders and day copies (`IndexUpdate.read` keeps the directories a
+    /// directory refresh did not scan), then, in an iCloud vault only, asks iCloud once for each
+    /// placeholder not asked for yet. A file that arrived leaves the asked set, so one iCloud evicts
+    /// again is asked for again; a day copy that went away may be merged again if it comes back.
+    fileprivate func publishSyncLists(_ update: IndexUpdate, root: URL) {
+        if sync.root != root { sync.reset(for: root) }
+        if sync.pendingDownloads != update.pendingDownloads { sync.pendingDownloads = update.pendingDownloads }
+        if sync.dayCopies != update.dayCopies { sync.dayCopies = update.dayCopies }
+        sync.requestedDownloads.formIntersection(update.pendingDownloads)
+        sync.attemptedCopies.formIntersection(update.dayCopies)
+        requestNewDownloads(root: root)
+    }
+
+    /// Back in the foreground every placeholder still waiting is asked for again: iCloud may have
+    /// refused or dropped a request (no network, another account) and the indicator would stay.
+    fileprivate func requestDownloadsAgain() {
+        guard let root = vaultURL, sync.root == root else { return }
+        sync.requestedDownloads = []
+        requestNewDownloads(root: root)
+    }
+
+    /// Sends the requests without waiting for them: a refresh publishes and writes go on while
+    /// iCloud's daemon answers. Requests go out one after another; a refused one is only counted.
+    private func requestNewDownloads(root: URL) {
+        guard isCloudVault else { return }
+        let requests = sync.pendingDownloads.filter { !sync.requestedDownloads.contains($0) }
+        guard !requests.isEmpty else { return }
+        sync.requestedDownloads.formUnion(requests)
+        let urls = requests.map { root.appendingPathComponent($0) }
+        let downloader = cloudDownloader
+        let epoch = sync.epoch
+        let previous = sync.downloadTask
+        sync.downloadTask = Task { [weak self] in
+            await previous?.value
+            let refused = await downloader.startDownloading(urls)
+            guard let self, self.sync.epoch == epoch else { return }
+            self.sync.downloadFailures += refused
+        }
+    }
+
+    /// Test seam: returns once every download request sent so far has been answered.
+    func waitForDownloadRequests() async {
+        while let task = sync.downloadTask {
+            await task.value
+            if sync.downloadTask == task { sync.downloadTask = nil }
         }
     }
 }

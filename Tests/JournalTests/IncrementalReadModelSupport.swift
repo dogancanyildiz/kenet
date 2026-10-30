@@ -106,9 +106,7 @@ enum IncrementalReadModelVault {
 extension GraphInput {
     /// The graph rebuilt from the index snapshot instead of the Core query: the oracle the query is
     /// compared with. Links from every file count; day mentions only from day files (the read
-    /// model's construction before the query existed). Groups are an independent build of the block
-    /// rule over the snapshot: entities sharing an event or task block, or one segment
-    /// (`ParagraphSegments`) of a paragraph block, of a day file.
+    /// model's construction before the query existed).
     init(snapshot: IndexSnapshot, entities: [EntitySummary]) {
         self.init()
         self.entities = entities.filter { Self.kinds.contains($0.kind) }
@@ -124,35 +122,7 @@ extension GraphInput {
             totals[target, default: 0] += 1
             if let date = dates[link.file] { days[date, default: [:]][target, default: 0] += 1 }
         }
-        struct Entry: Hashable {
-            let date: CalendarDate
-            let file: String
-            let block: Int
-            let segment: Int
-        }
-        let blocks = Dictionary(grouping: snapshot.blocks, by: \.file).mapValues {
-            Dictionary(uniqueKeysWithValues: $0.map { ($0.ordinal, $0) })
-        }
-        var members: [Entry: Set<String>] = [:]
-        for link in snapshot.links {
-            guard let ordinal = link.block, let target = link.resolvedFile, known.contains(target),
-                let date = dates[link.file], let block = blocks[link.file]?[ordinal],
-                ["event", "task", "paragraph"].contains(block.kind)
-            else { continue }
-            let segment =
-                block.kind == "paragraph"
-                ? ParagraphSegments.index(ofLine: link.line - block.firstLine, in: block.text) : 0
-            members[Entry(date: date, file: link.file, block: ordinal, segment: segment), default: []].insert(target)
-        }
-        var groups: [CalendarDate: Set<[String]>] = [:]
-        for (entry, entities) in members where entities.count >= 2 {
-            groups[entry.date, default: []].insert(entities.sorted())
-        }
-        self.days = days.map {
-            Day(
-                date: $0.key, mentions: $0.value,
-                groups: groups[$0.key, default: []].sorted { $0.lexicographicallyPrecedes($1) })
-        }.sorted { $0.date < $1.date }
+        self.days = days.map { Day(date: $0.key, mentions: $0.value) }.sorted { $0.date < $1.date }
     }
 }
 

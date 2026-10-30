@@ -907,7 +907,7 @@ Konumda koordinat, Alanlar tablosunda bir satırdır. Okuma ekranında harita yo
 |---|---|
 | Düğümler | Varsayılan: bütün kişi ve konumlar ve dönemin günleri. Süzgeçte açılan özel tipin bütün varlıkları da düğümdür. Bağlanmamış varlıklar da düğümdür. |
 | Gün düğümleri | Her zaman çizilir; graph'ın merkezleridir. Dönemde ekrandaki bir varlığa bağlantı içeren her gün bir düğümdür. Ekranda varlığı olmayan gün düğüm olmaz. |
-| Kenarlar | Gün düğümü o gün geçen ve ekranda olan her varlığa ağırlık 1 ile bağlanır: kişi, konum, özel tip. Varlıklar birbirine yalnız açık bağla bağlanır: varlık sayfasının frontmatter'ındaki wikilink alanları ve `related`. Aynı günde ya da aynı blokta birlikte geçmek iki varlığı bağlamaz. Açık bağ dönemden bağımsızdır: iki ucu da ekrandaysa çizilir. |
+| Kenarlar | Gün düğümü o gün geçen ve ekranda olan her varlığa ağırlık 1 ile bağlanır: kişi, konum, özel tip. Varlıklar birbirine yalnız açık bağla bağlanır: varlık sayfasının frontmatter'ındaki wikilink alanları ve `related`. Aynı günde ya da aynı kayıtta birlikte geçmek iki varlığı bağlamaz. Açık bağ dönemden bağımsızdır: iki ucu da ekrandaysa çizilir. |
 | Kaynak | Tarihli gün dosyalarındaki bütün çözülen bağlantılar gün–varlık kenarını üretir: olay, görev, paragraf, başlık ve frontmatter. Aynı tarihin birden çok dosyası tek gündür. Düğüm boyutu da bu anmalardan gelir. Çözülmeyen hedefler dışarıdadır. |
 | Son N gün | Bugün dahil `bugün -(N-1)` … bugün. Tümü gelecek günleri ve tarihsiz kaynak bağlantılarını da içerir. |
 | Düğüm boyutu | Tümü seçiliyken bütün kasadaki geçiş sayısı. Tarih filtresinde seçilen günlerin geçiş sayısı. |

@@ -50,7 +50,10 @@ struct WidgetSnapshotTests {
         let clock = Clock()
         let writer: WidgetSnapshotWriter
 
-        init(group: Bool = true) throws {
+        init(
+            group: Bool = true, calendarSource: (any CalendarEventSource)? = nil,
+            hideContent: @escaping () -> Bool = { true }
+        ) throws {
             context = try TaskTestContext()
             try GraceDayVault.generate(at: context.root)
             container = context.directory.appendingPathComponent("group", isDirectory: true)
@@ -59,7 +62,7 @@ struct WidgetSnapshotTests {
             writer = WidgetSnapshotWriter(
                 store: context.store, group: FolderAppGroupStore(containerURL: group ? container : nil),
                 timelines: timelines, isLocked: { lock.isLocked }, lockDeadline: { lock.locksAt },
-                now: { clock.now })
+                calendarSource: calendarSource, hideContent: hideContent, now: { clock.now })
             writer.attach()
         }
 
@@ -85,7 +88,7 @@ struct WidgetSnapshotTests {
         #expect(snapshot.format == WidgetSnapshot.currentFormat)
         #expect(snapshot.writtenAt == Self.noon)
         #expect(snapshot.days.map(\.date) == ["2026-09-20", "2026-09-21"])
-        #expect(harness.timelines.goalChainReloads == [WidgetKinds.goalChain])
+        #expect(harness.timelines.reloads == WidgetKinds.all)
 
         // Today: both open, by name; the chain and its chain days are the vault's.
         let today = snapshot.days[0].goals
@@ -141,7 +144,7 @@ struct WidgetSnapshotTests {
         #expect(next.isPending)
         #expect(next.streak == statuses(logs, on: Self.tomorrow).streak)
         #expect(next.chainDays == GraceDayVault.balance)
-        #expect(harness.timelines.goalChainReloads == [WidgetKinds.goalChain, WidgetKinds.goalChain])
+        #expect(harness.timelines.reloads == WidgetKinds.all + WidgetKinds.all)
     }
 
     /// A publish that changes no goal leaves the file and the widget alone.
@@ -155,7 +158,7 @@ struct WidgetSnapshotTests {
         await harness.writer.settle()
 
         #expect(try Data(contentsOf: harness.file) == before)
-        #expect(harness.timelines.goalChainReloads.count == 1)
+        #expect(harness.timelines.reloads.count == WidgetKinds.all.count)
     }
 
     @Test func lockedAppWritesNothing() async throws {
@@ -171,7 +174,7 @@ struct WidgetSnapshotTests {
         harness.writer.update()
         await harness.writer.settle()
         #expect(harness.snapshot != nil)
-        #expect(harness.timelines.goalChainReloads.count == 1)
+        #expect(harness.timelines.reloads.count == WidgetKinds.all.count)
     }
 
     /// A lock the app engages while it runs removes the snapshot: the widget shows "open Kenet".
@@ -185,19 +188,19 @@ struct WidgetSnapshotTests {
         harness.lock.isLocked = true
         harness.writer.lockEngaged()
         #expect(!FileManager.default.fileExists(atPath: harness.file.path))
-        #expect(harness.timelines.goalChainReloads.count == 2)
+        #expect(harness.timelines.reloads.count == 2 * WidgetKinds.all.count)
 
         harness.writer.update()
         try await harness.context.store.setGoal(on: GraceDayVault.today, key: "esneme", value: .boolean(true))
         await harness.writer.settle()
         #expect(!FileManager.default.fileExists(atPath: harness.file.path))
-        #expect(harness.timelines.goalChainReloads.count == 2)
+        #expect(harness.timelines.reloads.count == 2 * WidgetKinds.all.count)
 
         harness.lock.isLocked = false
         harness.writer.update()
         await harness.writer.settle()
         #expect(harness.snapshot?.days[0].goals.last?.isPending == false)
-        #expect(harness.timelines.goalChainReloads.count == 3)
+        #expect(harness.timelines.reloads.count == 3 * WidgetKinds.all.count)
     }
 
     /// A lock found on arriving in the foreground (it ran out in the background) leaves the
@@ -214,14 +217,14 @@ struct WidgetSnapshotTests {
         try await harness.context.store.setGoal(on: GraceDayVault.today, key: "esneme", value: .boolean(true))
         await harness.writer.settle()
         #expect(try Data(contentsOf: harness.file) == before)
-        #expect(harness.timelines.goalChainReloads.count == 1)
+        #expect(harness.timelines.reloads.count == WidgetKinds.all.count)
 
         harness.lock.isLocked = false
         harness.writer.update()
         await harness.writer.settle()
         #expect(try Data(contentsOf: harness.file) != before)
         #expect(harness.snapshot?.days[0].goals.last?.key == "esneme")
-        #expect(harness.timelines.goalChainReloads.count == 2)
+        #expect(harness.timelines.reloads.count == 2 * WidgetKinds.all.count)
     }
 
     /// A publish that arrives while a write runs is not lost: the writer runs once more, and the
@@ -244,7 +247,7 @@ struct WidgetSnapshotTests {
         await writer.settle()
 
         #expect(harness.snapshot?.days.map(\.date) == ["2026-09-21", "2026-09-22"])
-        #expect(harness.timelines.goalChainReloads.count == 2)
+        #expect(harness.timelines.reloads.count == 2 * WidgetKinds.all.count)
     }
 
     /// Weekly and yearly goals and milestones have no daily chain: the goal query answers them,
@@ -282,7 +285,7 @@ struct WidgetSnapshotTests {
         await harness.writer.settle()
 
         #expect(!FileManager.default.fileExists(atPath: harness.file.path))
-        #expect(harness.timelines.goalChainReloads.count == 2)
+        #expect(harness.timelines.reloads.count == 2 * WidgetKinds.all.count)
     }
 
     /// Another vault that never publishes (its index cannot open) does not leave the previous

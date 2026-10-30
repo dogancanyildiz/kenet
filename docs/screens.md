@@ -1341,14 +1341,14 @@ Kullanıcı Safari'de bir sayfayı, başka bir uygulamada seçili metni paylaş�
 
 ## Widget'lar (3)
 
-**Durum:** ana ekran zincir widget'ı uygulandı: iOS, küçük ve orta boy. Hızlı giriş widget’ı ve kontrolü de uygulanmıştır; öteki satırlar hedeflenen kapsamdır. Veri yolu: `architecture.md`, Widget'lar.
+**Durum:** ana ekran zincir widget'ı uygulandı: iOS, küçük ve orta boy. Kilit ekranında sıradaki etkinlik ve kalan görev sayısı, hızlı giriş widget’ı ve kontrolü de uygulanmıştır. Öteki satırlar hedeflenen kapsamdır. Veri yolu: `architecture.md`, Widget'lar.
 
 | Widget | Yer | İçerik |
 |---|---|---|
 | Zincir | Ana ekran (iOS) | Günün günlük hedefleri ve zincirleri. Ayrıntı aşağıda. |
 | Hedefler, Mac | Mac | Sonraki dalga. |
 | Bugün | Ana ekran, Mac | Günün görevleri ve sıradaki etkinlik. Göreve dokunma görevi tamamlar. |
-| Kilit ekranı | Kilit ekranı | Sıradaki etkinlik ve kalan görev sayısı ya da tek hedefin durumu. |
+| Kilit ekranı | Kilit ekranı | Sıradaki etkinlik ve kalan görev sayısı. Tek hedef seçimi sonraki dalga. |
 | Hızlı giriş | Ana ekran, kilit ekranı, Denetim Merkezi | Dokunma uygulamayı Bugün’de, hızlı giriş kutusu odakta ve klavye açık olarak açar. |
 
 ### Hızlı giriş widget'ı ve kontrolü
@@ -1356,6 +1356,15 @@ Kullanıcı Safari'de bir sayfayı, başka bir uygulamada seçili metni paylaş�
 Ana ekrandaki küçük “Yaz” widget’ı kalem simgesi ve bugünün tarihini gösterir. Kilit ekranında dairesel biçim kalem, satır içi biçim “Kenet’e yaz” gösterir. Hepsi `kenet-widget://write` bağlantısıyla Bugün’deki hızlı giriş kutusunu odaklar. Yeni yazma yolu oluşmaz; metin uygulamadaki aynı kutuya yazılır. Uygulama kilitliyse odak isteği kilit açılana kadar bekler. Widget kasa verisi ve anlık görüntü okumaz.
 
 Denetim Merkezi’ndeki “Kenet’e yaz” kontrolü aynı kutuyu açar. Destekleyen iPhone’da Ayarlar → Eylem Düğmesi → Denetimler bölümünden bu kontrol seçilebilir; bunun cihazda doğrulanması gerekir. Kısayollar ve Siri’de “Kenet’e yaz” da aynı davranışı sunar. iPad’de Eylem düğmesi açıklaması gösterilmez.
+
+### Kilit ekranı widget'ı
+
+- Galeride “Bugün”: dikdörtgen (`accessoryRectangular`) sıradaki etkinliği ve görev sayısını, daire (`accessoryCircular`) sayıyı ve küçük görev simgesini, satır (`accessoryInline`) saat ile görev sayısını gösterir. Tamamına dokunma Bugün'ü açar.
+- “Bildirimde içeriği göster” kapalıyken (varsayılan) yalnız etkinlik saati ve görev sayısı görünür; başlık anlık görüntüye boş yazılır. Açıkken başlık da görünür. Görev metni hiçbir zaman yazılmaz. Tüm gün etkinliği saat yerine “Tüm gün” der. İçerik `privacySensitive` taşır.
+- Görev sayısı bildirimdeki “N görev bugün” ile aynıdır: o güne vadesi gelen açık görevler. Gecikmişler bildirimde ayrı sayılır, bu sayıya girmez; tarihsiz görevler de girmez.
+- Takvim izni yokken yalnız görev sayısı görünür. Widget EventKit'e erişmez; uygulamanın son yazdığı veriyi okur. Uygulama çalışmadan eklenen takvim etkinliği yansımaz.
+- Bugünün girişi hemen başlar; her etkinliğin bitişinde sıradakine ilerler. Gece yarısı yarının kaydına geçer; yarından sonra “Kenet’i aç” gösterir. Gün başına başlangıca göre sıralı en çok 5 etkinlik saklanır.
+- Anlık görüntü yoksa, eski dosyada bu alanlar yoksa veya kilit süresi dolmuşsa “Kenet’i aç”; etkinlik yok ve görev sayısı sıfırsa “Bugün boş” görünür. Tek hedef seçimi bu dilimde yoktur.
 
 ### Zincir widget'ı
 

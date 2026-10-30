@@ -73,10 +73,14 @@ import VaultFormat
     func indexDays() async throws -> [WidgetSnapshot.Day] {
         let today = LocalDay.today(at: clock.now)
         let tomorrow = try #require(today.addingDays(1))
-        return [
+        var days: [WidgetSnapshot.Day] = [
             .init(date: today, rows: try await store.computeGoalStatuses(today: today)),
             .init(date: tomorrow, rows: try await store.computeGoalStatuses(today: tomorrow)),
         ]
+        let counts = try await store.computeNotificationDays(from: today, through: tomorrow)
+        days[0].openTaskCount = counts.openTaskCounts[today, default: 0]
+        days[1].openTaskCount = counts.openTaskCounts[tomorrow, default: 0]
+        return days
     }
 }
 
@@ -201,7 +205,7 @@ struct WidgetMarkingTests {
         let left = try #require(harness.snapshot)
         #expect(left.lockedAfter == deadline)
         #expect(left.days == before.days)
-        #expect(harness.timelines.goalChainReloads.count == reloads + 1)
+        #expect(harness.timelines.reloads.count == reloads + WidgetKinds.all.count)
         #expect(
             left.timeline(from: WidgetSnapshotTests.noon, calendar: WidgetDay.deviceCalendar).map(\.date) == [
                 WidgetSnapshotTests.noon, deadline,
@@ -298,21 +302,21 @@ struct WidgetMarkingTests {
         #expect(!harness.lock.isLocked)
         #expect(harness.snapshot?.lockedAfter == WidgetSnapshotTests.noon.addingTimeInterval(360))
         #expect(harness.snapshot?.days == before.days)
-        #expect(harness.timelines.goalChainReloads.count == reloads + 1)
+        #expect(harness.timelines.reloads.count == reloads + WidgetKinds.all.count)
 
         await harness.foreground()
         #expect(harness.snapshot?.lockedAfter == nil)
-        #expect(harness.timelines.goalChainReloads.count == reloads + 1)
+        #expect(harness.timelines.reloads.count == reloads + WidgetKinds.all.count)
         harness.lock.delay = .immediately
         harness.writer.sceneLeftForeground(lockService: harness.lock, background: false)
         // Inactive does not lock; with no delay the moment is now.
         #expect(!harness.lock.isLocked)
         #expect(harness.snapshot?.lockedAfter == WidgetSnapshotTests.noon.addingTimeInterval(60))
-        #expect(harness.timelines.goalChainReloads.count == reloads + 1)
+        #expect(harness.timelines.reloads.count == reloads + WidgetKinds.all.count)
         harness.writer.sceneLeftForeground(lockService: harness.lock, background: true)
         #expect(harness.lock.isLocked)
         #expect(!FileManager.default.fileExists(atPath: harness.file.path))
-        #expect(harness.timelines.goalChainReloads.count == reloads + 2)
+        #expect(harness.timelines.reloads.count == reloads + 2 * WidgetKinds.all.count)
     }
 
     /// The snapshot keeps whole seconds, the lock service's clock does not: the moment is
@@ -334,7 +338,7 @@ struct WidgetMarkingTests {
         let deadline = try #require(harness.lock.locksAt)
         #expect(deadline == WidgetSnapshotTests.noon.addingTimeInterval(300))
         #expect(harness.snapshot?.lockedAfter == deadline)
-        #expect(harness.timelines.goalChainReloads.count == before + 1)
+        #expect(harness.timelines.reloads.count == before + WidgetKinds.all.count)
         let written = try Data(contentsOf: harness.file)
         let reloads = harness.timelines.goalChainReloads.count
 
@@ -397,7 +401,7 @@ struct WidgetMarkingTests {
         #expect(tomorrow.isPending)
         #expect(tomorrow.streak == GraceDayVault.streak + 1)
         // The widget asked WidgetKit nothing through the app's writer.
-        #expect(harness.timelines.goalChainReloads.count == 1)
+        #expect(harness.timelines.reloads.count == WidgetKinds.all.count)
     }
 
     /// The app writes the same day while the widget marks: whichever holds the day file first,

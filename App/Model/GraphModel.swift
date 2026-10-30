@@ -13,22 +13,15 @@ enum GraphScope: Hashable, Sendable {
     case all
     case day(CalendarDate)
 }
+/// Days are always drawn and are the graph's hubs; the whole graph opens on the last 90 days (one
+/// node per written day would crowd it), "Tümü" stays selectable.
 struct GraphFilter: Equatable, Sendable {
     var people = true
     var places = true
-    var days = false
-    var period = GraphPeriod.all
-    var minimumWeight = 1
+    var period = GraphPeriod.quarter
     /// Custom entity types drawn as nodes, by type ID; none by default.
     var customTypes: Set<String> = []
     var scope = GraphScope.all
-
-    /// Turns the day layer on or off. Turned on over the whole vault, the period narrows to the
-    /// last 90 days (one node per written day would crowd the graph); "Tümü" stays selectable.
-    mutating func setDays(_ isOn: Bool) {
-        if isOn, !days, period == .all { period = .quarter }
-        days = isOn
-    }
 
     func showsCustomType(_ id: String) -> Bool { customTypes.contains(id) }
 
@@ -64,8 +57,9 @@ struct GraphEdge: Sendable, Equatable {
     let first: String
     let second: String
     let weight: Int
-    enum Kind: Sendable, Equatable { case cooccurrence, day, relation }
-    var kind: Kind = .cooccurrence
+    /// A day tied to an entity it mentions, or a relation written in an entity's page.
+    enum Kind: Sendable, Equatable { case day, relation }
+    var kind: Kind = .day
 }
 struct GraphModel: Sendable {
     let nodes: [GraphNode]
@@ -80,6 +74,9 @@ struct GraphModel: Sendable {
     }
     static func dayNodeID(_ date: CalendarDate) -> String { "day:" + date.description }
 
+    /// Days are the hubs: each day of the period is tied to every drawn entity it mentions.
+    /// Entities are tied to each other only by an explicit relation, whatever the period; sharing
+    /// a day or a block ties nothing. A day mentioning no drawn entity has no node.
     static func compute(input: GraphInput, filter: GraphFilter, today: CalendarDate) -> Self {
         if case .day(let date) = filter.scope { return computeDay(date, input: input, today: today) }
         let days = input.days.filter {
@@ -98,33 +95,25 @@ struct GraphModel: Sendable {
             }
         }.map { node(for: $0, count: totals[$0.id] ?? 0, typeNames: input.typeNames) }
         let ids = Set(nodes.map(\.id))
-        // Entity links come from shared blocks (Core); a day node links to everything it mentions.
-        var weights = GraphMentions.cooccurrenceWeights(days: days, including: ids)
-        if filter.days {
-            let title = TodayPresentation.dayTitles(today: today)
-            for day in days {
-                let id = dayNodeID(day.date)
-                nodes.append(
-                    GraphNode(
-                        id: id, name: title(day.date), kind: .day,
-                        count: day.mentions.values.reduce(0, +), date: day.date))
-                for member in day.mentions.keys where ids.contains(member) {
-                    weights[GraphMentions.Pair(first: id, second: member)] = 1
-                }
-            }
+        let title = TodayPresentation.dayTitles(today: today)
+        var edges: [GraphEdge] = []
+        for day in days {
+            let members = day.mentions.keys.filter { ids.contains($0) }
+            guard !members.isEmpty else { continue }
+            let id = dayNodeID(day.date)
+            nodes.append(
+                GraphNode(
+                    id: id, name: title(day.date), kind: .day,
+                    count: day.mentions.values.reduce(0, +), date: day.date))
+            edges += members.map { dayEdge(id, $0) }
         }
-        var edges = weights.filter { $0.value >= max(1, filter.minimumWeight) }.map {
-            GraphEdge(
-                first: $0.key.first, second: $0.key.second, weight: $0.value,
-                kind: $0.key.first.hasPrefix("day:") || $0.key.second.hasPrefix("day:") ? .day : .cooccurrence)
-        }.sorted { ($0.first, $0.second) < ($1.first, $1.second) }
-        edges = addingRelations(input.relations, to: edges, including: ids)
-        return Self(nodes: nodes.sorted { $0.id < $1.id }, edges: edges)
+        return Self(
+            nodes: nodes.sorted { $0.id < $1.id }, edges: addingRelations(input.relations, to: edges, including: ids))
     }
 
     /// One day's graph: the day node and every entity the day mentions, whatever its kind, each
-    /// tied to the day; entities sharing one of the day's blocks are tied to each other. Period,
-    /// kind switches and the weight threshold do not apply. A day without a mention has no graph.
+    /// tied to the day; the day's entities are tied to each other only by an explicit relation.
+    /// Period and kind switches do not apply. A day without a mention has no graph.
     private static func computeDay(_ date: CalendarDate, input: GraphInput, today: CalendarDate) -> Self {
         guard let day = input.days.first(where: { $0.date == date }) else { return Self(nodes: [], edges: []) }
         var nodes = input.entities.compactMap { entity in
@@ -132,32 +121,31 @@ struct GraphModel: Sendable {
         }
         guard !nodes.isEmpty else { return Self(nodes: [], edges: []) }
         let ids = Set(nodes.map(\.id))
-        var weights = GraphMentions.cooccurrenceWeights(days: [day], including: ids)
         let id = dayNodeID(date)
         nodes.append(
             GraphNode(
                 id: id, name: TodayPresentation.dayTitles(today: today)(date), kind: .day,
                 count: ids.reduce(0) { $0 + (day.mentions[$1] ?? 0) }, date: date))
-        for member in ids { weights[GraphMentions.Pair(first: id, second: member)] = 1 }
-        var edges = weights.map {
-            GraphEdge(
-                first: $0.key.first, second: $0.key.second, weight: $0.value,
-                kind: $0.key.first.hasPrefix("day:") || $0.key.second.hasPrefix("day:") ? .day : .cooccurrence)
-        }
-        .sorted { ($0.first, $0.second) < ($1.first, $1.second) }
-        edges = addingRelations(input.relations, to: edges, including: ids)
-        return Self(nodes: nodes.sorted { $0.id < $1.id }, edges: edges)
+        let edges = ids.map { dayEdge(id, $0) }
+        return Self(
+            nodes: nodes.sorted { $0.id < $1.id }, edges: addingRelations(input.relations, to: edges, including: ids))
+    }
+
+    /// The pair in lexical order, like every edge, so the edge list is the same however it was built.
+    private static func dayEdge(_ day: String, _ entity: String) -> GraphEdge {
+        GraphEdge(first: min(day, entity), second: max(day, entity), weight: 1, kind: .day)
     }
 
     private static func addingRelations(_ relations: [Relation], to edges: [GraphEdge], including ids: Set<String>)
         -> [GraphEdge]
     {
         var result = edges
+        // A relation written twice (or in both pages) is still one edge; a day edge never joins
+        // two entities, so it never meets one.
+        var pairs = Set<[String]>()
         for relation in relations where ids.contains(relation.source) && ids.contains(relation.target) {
             let pair = [relation.source, relation.target].sorted()
-            guard pair[0] != pair[1] else { continue }
-            // Removing whatever the pair already has keeps one edge per pair, repeats included.
-            result.removeAll { [$0.first, $0.second].sorted() == pair }
+            guard pair[0] != pair[1], pairs.insert(pair).inserted else { continue }
             result.append(GraphEdge(first: pair[0], second: pair[1], weight: 1, kind: .relation))
         }
         return result.sorted {

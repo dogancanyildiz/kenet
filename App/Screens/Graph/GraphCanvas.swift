@@ -175,8 +175,7 @@ private struct GraphFrame: View {
                     path,
                     with: .color(highlighted ? Color.ink.control : Color.ink.rule),
                     lineWidth: GraphEdgeStyle.width(
-                        edgeKinds[[nodes[link.first].id, nodes[link.second].id]]
-                            ?? .cooccurrence,
+                        edgeKinds[[nodes[link.first].id, nodes[link.second].id]] ?? .day,
                         scale: displayScale))
             }
             for (index, node) in nodes.enumerated() {
@@ -232,11 +231,11 @@ private struct GraphFrame: View {
     }
 }
 
+/// A day's many ties draw as hairlines; a written relation stands out in a heavy line.
 enum GraphEdgeStyle {
     static func width(_ kind: GraphEdge.Kind, scale: CGFloat) -> CGFloat {
         switch kind {
         case .relation: InkStroke.highPriority
-        case .cooccurrence: InkStroke.rule
         case .day: InkStroke.hairline(scale: scale)
         }
     }

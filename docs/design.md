@@ -277,13 +277,12 @@ Seçim değişirse yukarıdaki sıra geçerlidir. Geri dönüş maliyeti düşü
 
 | Tür | Çizgi |
 |---|---|
-| Birlikte geçme | Düz, ince (`InkStroke.rule`) |
 | Gün | Saç çizgisi (`InkStroke.hairline`) |
 | Açık bağ | Düz, kalın (`InkStroke.highPriority`) |
 
-Ayrım renge dayanmaz; kalınlık anlamı taşır. Graph bir bağ çizdiğinde gösterge "Bağ" öğesini kalın düz çizgi örneğiyle gösterir, örnek çizginin kendi rengindedir (`ink.rule`); özel tip öğesi gibi, bağ yoksa öğe yoktur. Gösterge satıra sığmazsa "Düğüm seç" alt satıra iner. Açık bağ dönem ve eşikten bağımsızdır, yay ağırlığı 1’dir. Aynı çiftte birlikte geçme varsa kalın bağ çizilir.
+Ayrım renge dayanmaz; kalınlık anlamı taşır. Graph bir bağ çizdiğinde gösterge "Bağ" öğesini kalın düz çizgi örneğiyle gösterir, örnek çizginin kendi rengindedir (`ink.rule`); özel tip öğesi gibi, bağ yoksa öğe yoktur. Gösterge satıra sığmazsa "Düğüm seç" alt satıra iner. Açık bağ dönemden bağımsızdır, yay ağırlığı 1’dir. Birlikte geçme kenarı yoktur: iki varlık arasındaki her çizgi açık bağdır. Gösterge "Günler" öğesini her zaman gösterir.
 
-**Günün grafiği düzeni.** Ana Graph ile aynı sayfa düzenidir: manşet, denetim satırı, tuval, gösterge, açıklama. Manşet "Günün grafiği"dir ve künye günün tam tarihidir. Manşet satırında yalnız arama durur. Denetim satırında dönem ve eşik yoktur; yalnız yakınlaştırma, uzaklaştırma ve Ortala kalır. Göstergede gün tek öğedir: "Gün". Gün ekranındaki giriş simgesi `point.3.connected.trianglepath.dotted`'dur, Graph kenar çubuğu girdisiyle aynı simgedir.
+**Günün grafiği düzeni.** Ana Graph ile aynı sayfa düzenidir: manşet, denetim satırı, tuval, gösterge, açıklama. Manşet "Günün grafiği"dir ve künye günün tam tarihidir. Manşet satırında yalnız arama durur. Denetim satırında dönem yoktur; yalnız yakınlaştırma, uzaklaştırma ve Ortala kalır. Göstergede gün tek öğedir: "Gün". Gün ekranındaki giriş simgesi `point.3.connected.trianglepath.dotted`'dur, Graph kenar çubuğu girdisiyle aynı simgedir.
 
 ## Denetim kalıpları
 

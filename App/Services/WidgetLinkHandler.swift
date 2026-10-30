@@ -22,6 +22,10 @@ import Foundation
     /// False for a URL that is not a widget link; it is left to whoever else handles it.
     @discardableResult func open(_ url: URL) async -> Bool {
         guard let link = WidgetLink(url: url) else { return false }
+        if link == .write {
+            navigation.openTodayForWriting(isLocked: actions.isLocked())
+            return true
+        }
         navigation.openToday()
         if case .markGoal(let id) = link { await mark(id) }
         return true
@@ -29,6 +33,8 @@ import Foundation
 
     /// Marks the goal a locked tap asked for.
     func unlocked() async {
+        guard !actions.isLocked() else { return }
+        navigation.unlocked()
         guard let id = pendingMark else { return }
         pendingMark = nil
         await mark(id)

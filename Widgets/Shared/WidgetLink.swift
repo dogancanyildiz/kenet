@@ -16,7 +16,8 @@ enum WidgetTap: Equatable, Sendable {
 enum WidgetKinds {
     static let goalChain = "GoalChainWidget"
     /// Every kind: the app reloads them all after a publish.
-    static let all = [goalChain]
+    static let lockScreen = "LockScreenWidget"
+    static let all = [goalChain, lockScreen]
 }
 
 /// What a tap in the widget asks the app to do. The widget passes it as the URL it opens the app

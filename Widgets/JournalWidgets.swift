@@ -6,6 +6,7 @@ import WidgetKit
 struct JournalWidgets: WidgetBundle {
     var body: some Widget {
         GoalChainWidget()
+        LockScreenWidget()
     }
 }
 

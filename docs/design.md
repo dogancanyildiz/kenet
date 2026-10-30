@@ -888,3 +888,12 @@ CI, sürekli bütünleştirme demektir. Ajanlar ekranı göremez; bu yüzden ekr
 - [Kararlar](decisions.md)
 - [Yol haritası](roadmap.md)
 - [Mimari](architecture.md)
+
+## Widget
+
+Kilit ekranı accessory aileleri sistem yazı tipini kullanır.
+Sayılar eş aralıklı rakamlarla yazılır; ortak `WidgetTheme.meta` ve `section` yazı belirteçleri kullanılır.
+Sistemin vibrant ön planı korunur; mürekkep renk belirteçleri ve kâğıt arka planı kullanılmaz.
+Dikdörtgende etkinlik tek satıra sığar, görev sayısı alt satırdadır.
+Dairede büyük sayı ve altında küçük görev simgesi vardır; VoiceOver görev sayısını okur.
+Satır ailesinde saat ve görev sayısı orta noktayla ayrılır; boş durum tek kısa metindir.

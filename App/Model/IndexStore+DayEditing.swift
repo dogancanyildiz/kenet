@@ -1,9 +1,23 @@
+import Foundation
 import VaultFormat
 import VaultStore
 
 extension IndexStore {
-    func changeJournal(on day: CalendarDate, to text: String) async throws {
+    /// Replaces the day's Journal section. With `base`, the section on disk must still be `base`
+    /// when the write's turn comes: a write queued before it (a day copy merge, another edit) may
+    /// have changed it after the caller read it, and replacing it would erase those lines.
+    /// A changed section is `staleTarget`, and nothing is written.
+    func changeJournal(on day: CalendarDate, to text: String, base: String? = nil) async throws {
         try await performEdit(path: "journal/\(day).md") { writer in
+            if let base {
+                let document: RawDocument
+                do { document = try await writer.dayDocument(for: day) } catch CocoaError.fileReadNoSuchFile {
+                    document = RawDocument(bytes: [])
+                }
+                guard try JournalRecognition.body(of: document).utf8.elementsEqual(base.utf8) else {
+                    throw VaultStoreError.staleTarget
+                }
+            }
             try await writer.changingJournal(on: day, to: text)
         }
     }

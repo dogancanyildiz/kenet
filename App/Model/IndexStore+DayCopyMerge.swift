@@ -30,8 +30,9 @@ extension IndexStore {
     /// the iCloud vault and writable. With the policy off nothing is merged and Diagnostics lists
     /// the copies as before. Each copy is one write through the write queue (`mergingDayCopy`), so
     /// it waits for refreshes and other writes and publishes its day file. A copy a run took up is
-    /// not taken up again in this vault, except one waiting for iCloud's download: the next
-    /// refresh tries it again. A failed copy never stops the others.
+    /// not taken up again in this session while it stays on disk, except one waiting for iCloud's
+    /// download or one the write found gone or out of turn (`staleTarget`): the next refresh tries
+    /// it again, and it is not counted. A failed copy never stops the others.
     func scheduleDayCopyMerge(excluding waiting: Set<String> = []) {
         guard syncPolicy.mergesDayCopies, isCloudVault, canAddEvent, let root = vaultURL, sync.root == root,
             sync.mergeTask == nil
@@ -40,21 +41,25 @@ extension IndexStore {
         guard !copies.isEmpty else { return }
         sync.attemptedCopies.formUnion(copies)
         sync.mergingCopies = copies.count
+        let epoch = sync.epoch
         sync.mergeTask = Task { [weak self] in
-            await self?.mergeDayCopies(copies, in: root)
+            await self?.mergeDayCopies(copies, in: root, epoch: epoch)
         }
     }
 
     /// Test seam: returns once no merge is running, including one a finished run started.
     func waitForDayCopyMerges() async {
-        while let task = sync.mergeTask { await task.value }
+        while let task = sync.mergeTask {
+            await task.value
+            if sync.mergeTask == task { sync.mergeTask = nil }
+        }
     }
 
-    private func mergeDayCopies(_ copies: [String], in root: URL) async {
+    private func mergeDayCopies(_ copies: [String], in root: URL, epoch: UUID) async {
         var report = DayCopyMergeReport()
         var waiting: Set<String> = []
         for copy in copies {
-            guard vaultURL == root, sync.root == root else { break }
+            guard vaultURL == root, sync.epoch == epoch else { break }
             do {
                 let estimated = DayCopyName.dayPath(ofCopy: copy).map { Set([$0]) } ?? []
                 try await performEdit(estimatedPaths: estimated) { writer in
@@ -62,17 +67,24 @@ extension IndexStore {
                     return [outcome.dayPath]
                 }
                 report.merged += 1
+                forgetMerged(copy, epoch: epoch)
             } catch VaultStoreError.awaitingDownload {
+                waiting.insert(copy)
+            } catch VaultStoreError.staleTarget {
+                // Merged and removed on another device, or the vault changed under the write.
+                waiting.insert(copy)
+            } catch is CancellationError {
                 waiting.insert(copy)
             } catch VaultStoreError.indexUpdateFailed {
                 // The day file holds both versions; the next refresh indexes it.
                 report.merged += 1
+                forgetMerged(copy, epoch: epoch)
             } catch {
                 report.failed += 1
             }
-            if sync.root == root { sync.mergingCopies = max(0, sync.mergingCopies - 1) }
+            if sync.epoch == epoch { sync.mergingCopies = max(0, sync.mergingCopies - 1) }
         }
-        guard sync.root == root else { return }
+        guard sync.epoch == epoch else { return }
         sync.attemptedCopies.subtract(waiting)
         sync.mergingCopies = 0
         if !report.isEmpty {
@@ -85,5 +97,13 @@ extension IndexStore {
         sync.mergeTask = nil
         // Copies found while this run merged; the ones waiting for a download wait for a refresh.
         scheduleDayCopyMerge(excluding: waiting)
+    }
+
+    /// A merged copy is gone from disk: it leaves the list, and a new copy that later takes its
+    /// name is merged again.
+    private func forgetMerged(_ copy: String, epoch: UUID) {
+        guard sync.epoch == epoch else { return }
+        sync.dayCopies.removeAll { $0 == copy }
+        sync.attemptedCopies.remove(copy)
     }
 }

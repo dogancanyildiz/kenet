@@ -19,11 +19,13 @@ enum SyncStatus: Equatable, Sendable {
     }
 
     /// The indicator's sentence; empty when idle.
-    var message: String {
+    var message: String { message(locale: .current) }
+
+    func message(locale: Locale) -> String {
         switch self {
         case .idle: ""
-        case .downloading(let count): String(localized: "\(count) dosya iCloud’dan iniyor.")
-        case .mergingCopies(let count): String(localized: "\(count) gün kopyası birleştiriliyor.")
+        case .downloading(let count): String(localized: "\(count) dosya iCloud’dan iniyor.", locale: locale)
+        case .mergingCopies(let count): String(localized: "\(count) gün kopyası birleştiriliyor.", locale: locale)
         }
     }
 }
@@ -43,6 +45,8 @@ struct SyncPolicy: Sendable, Equatable {
 @MainActor @Observable
 final class SyncState {
     private(set) var root: URL?
+    /// Changes with every reset: a request or merge started before it no longer counts.
+    @ObservationIgnored private(set) var epoch = UUID()
     /// Vault-relative originals that are only iCloud placeholders here, in UTF-8 byte order.
     var pendingDownloads: [String] = []
     /// Day copies on disk, in merge order (`DayCopyName.copies`).
@@ -58,10 +62,16 @@ final class SyncState {
     /// Day copies a merge already took up in this vault; a failed one is not tried again.
     @ObservationIgnored var attemptedCopies: Set<String> = []
     @ObservationIgnored var mergeTask: Task<Void, Never>?
+    /// The last download request sent; requests go out one after another, nothing waits for them.
+    @ObservationIgnored var downloadTask: Task<Void, Never>?
 
-    /// Starts over for another vault.
-    func reset(for root: URL) {
+    /// The lists a refresh starts from (`IndexUpdate.read`).
+    var lists: SyncLists { SyncLists(pendingDownloads: pendingDownloads, dayCopies: dayCopies) }
+
+    /// Starts over for a vault opened (again) or for none.
+    func reset(for root: URL?) {
         self.root = root
+        epoch = UUID()
         pendingDownloads = []
         dayCopies = []
         downloadFailures = 0
@@ -70,6 +80,7 @@ final class SyncState {
         requestedDownloads = []
         attemptedCopies = []
         mergeTask = nil
+        downloadTask = nil
     }
 
     func dismissMergeReport() { mergeReport = nil }

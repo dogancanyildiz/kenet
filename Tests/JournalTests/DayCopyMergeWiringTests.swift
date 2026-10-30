@@ -2,6 +2,7 @@ import Foundation
 import Testing
 import VaultFormat
 import VaultIndex
+import VaultStore
 
 @testable import Journal
 
@@ -156,5 +157,121 @@ struct DayCopyMergeWiringTests {
         await context.store.waitForDayCopyMerges()
         #expect(context.store.sync.dayCopies == [blocked])
         #expect(context.store.sync.mergeReport == report)
+    }
+
+    /// A copy whose day file is still an iCloud placeholder waits (`awaitingDownload`), is not
+    /// counted, and merges on the refresh after the day file arrives.
+    @Test func aCopyWaitingForItsDayMergesOnceTheDayArrives() async throws {
+        let context = try DayCopyVaultContext(policy: SyncPolicy(mergesDayCopies: true))
+        defer { context.clean() }
+        let copy = "journal/2026-10-03 2.md"
+        let placeholder = context.cloud.url("journal/.2026-10-03.md.icloud")
+        try Data().write(to: placeholder)
+        await context.start()
+
+        let others = context.cases.dayCopies.count - 1
+        #expect(context.store.sync.mergeReport == DayCopyMergeReport(merged: others, failed: 0))
+        #expect(FileManager.default.fileExists(atPath: context.cloud.url(copy).path))
+
+        try FileManager.default.removeItem(at: placeholder)
+        let arrived = "---\ntype: journal\ndate: 2026-10-03\n---\n\n## Events\n- 07:00 Koşu ^e3z001\n"
+        try Data(arrived.utf8).write(to: context.cloud.url("journal/2026-10-03.md"))
+        await context.cloud.refresh()
+        await context.store.waitForDayCopyMerges()
+
+        #expect(!FileManager.default.fileExists(atPath: context.cloud.url(copy).path))
+        #expect(context.store.sync.mergeReport == DayCopyMergeReport(merged: others + 1, failed: 0))
+        let day = try String(contentsOf: context.cloud.url("journal/2026-10-03.md"), encoding: .utf8)
+        #expect(day.contains("^e3z001") && day.contains("^e3b001"))
+    }
+
+    /// The policy on, a local vault or a selected folder (one in iCloud Drive too) merges nothing.
+    @Test(arguments: [CloudSyncTestContext.Kind.local, .selected])
+    func onlyTheICloudVaultMerges(_ kind: CloudSyncTestContext.Kind) async throws {
+        let cloud = try CloudSyncTestContext(
+            kind, fixture: "day-copies/source", policy: SyncPolicy(mergesDayCopies: true))
+        defer { cloud.clean() }
+        // The default local vault gains its missing folders and settings on opening; only the
+        // day files, copies and conflict copies are compared.
+        func merged() throws -> [String: Data] {
+            try DayCopyVaultContext.tree(cloud.root).filter {
+                $0.key.hasPrefix("journal/") || $0.key.hasPrefix("conflicts/")
+            }
+        }
+        let before = try merged()
+        await cloud.start()
+        await cloud.store.waitForDayCopyMerges()
+        #expect(cloud.store.vaultURL == cloud.root)
+        #expect(!cloud.store.sync.dayCopies.isEmpty)
+        #expect(try merged() == before)
+        #expect(cloud.store.sync.mergeReport == nil)
+    }
+
+    /// The day editor read the day before a merge reached it; the merge took the write queue first.
+    /// The editor's write must not replace the merged Journal: it is refused, its draft stays.
+    @Test func editorDoesNotOverwriteAMergeQueuedBeforeIt() async throws {
+        let context = try DayCopyVaultContext(policy: SyncPolicy(mergesDayCopies: true))
+        defer { context.clean() }
+        let copy = "journal/2026-10-01 2.md"
+        let aside = context.cloud.directory.appendingPathComponent("aside.md")
+        try FileManager.default.moveItem(at: context.cloud.url(copy), to: aside)
+        await context.start()
+        let day = try #require(CalendarDate("2026-10-01"))
+        let editor = JournalEditorModel(store: context.store, day: day)
+        await editor.load()
+        #expect(editor.isLoaded)
+        editor.text = "Akşam kitap okudum.\n"
+
+        // Once the editor's own check has read the day, the copy arrives and its merge runs.
+        var merged = false
+        context.store.testingQueryDidFinish = { [cloud = context.cloud] in
+            guard !merged else { return }
+            merged = true
+            try FileManager.default.moveItem(at: aside, to: cloud.url(copy))
+            await cloud.refresh()
+            await cloud.store.waitForDayCopyMerges()
+        }
+        #expect(await !editor.save())
+        #expect(merged)
+        #expect(!FileManager.default.fileExists(atPath: context.cloud.url(copy).path))
+
+        let expected = DayCopyVaultContext.fixture.appendingPathComponent("expected/journal/2026-10-01.md")
+        #expect(try Data(contentsOf: context.cloud.url("journal/2026-10-01.md")) == Data(contentsOf: expected))
+        #expect(editor.text == "Akşam kitap okudum.\n")
+        #expect(editor.errorText == DayEditError.message(for: VaultStoreError.staleTarget))
+    }
+
+    /// A copy name merged once is merged again when a new copy with the same name comes later.
+    @Test func aCopyThatComesBackMergesAgain() async throws {
+        let context = try DayCopyVaultContext(policy: SyncPolicy(mergesDayCopies: true))
+        defer { context.clean() }
+        await context.start()
+        let merged = context.cases.dayCopies.count
+        #expect(context.store.sync.mergeReport?.merged == merged)
+
+        let copy = "journal/2026-10-04 2.md"
+        try Data(contentsOf: context.cloud.url("journal/2026-10-04.md")).write(to: context.cloud.url(copy))
+        await context.cloud.refresh()
+        await context.store.waitForDayCopyMerges()
+        #expect(!FileManager.default.fileExists(atPath: context.cloud.url(copy).path))
+        #expect(context.store.sync.mergeReport == DayCopyMergeReport(merged: merged + 1, failed: 0))
+    }
+
+    /// A copy gone before its turn (merged and removed on another device) is neither merged nor
+    /// counted as failed.
+    @Test func aCopyGoneBeforeItsTurnIsNotCounted() async throws {
+        let context = try DayCopyVaultContext(policy: SyncPolicy(mergesDayCopies: true))
+        defer { context.clean() }
+        let gone = try #require(context.cases.dayCopies.last)
+        var removed = false
+        context.store.testingEditTurnDidArrive = { [cloud = context.cloud] in
+            guard !removed else { return }
+            removed = true
+            try? FileManager.default.removeItem(at: cloud.url(gone))
+        }
+        await context.start()
+        #expect(removed)
+        #expect(
+            context.store.sync.mergeReport == DayCopyMergeReport(merged: context.cases.dayCopies.count - 1, failed: 0))
     }
 }

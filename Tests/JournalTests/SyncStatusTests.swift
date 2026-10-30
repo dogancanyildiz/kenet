@@ -29,14 +29,14 @@ struct SyncStatusTests {
         let context = try CloudSyncTestContext(.icloud, fixture: "placeholder")
         defer { context.clean() }
         await context.start()
-        #expect(context.store.syncStatus == .downloading(expected.pending.count))
+        #expect(context.store.syncStatus == .downloading(expected.waiting.count))
 
         try context.arrive("journal/2026-09-30.md", bytes: CloudDownloadTests.arrivedDay)
         await context.refresh()
-        #expect(context.store.syncStatus == .downloading(expected.pending.count - 1))
+        #expect(context.store.syncStatus == .downloading(expected.waiting.count - 1))
 
-        for path in expected.pending where path != "journal/2026-09-30.md" {
-            try context.arrive(path, bytes: "Not\n")
+        for path in expected.waiting where path != "journal/2026-09-30.md" {
+            try context.arrive(path, bytes: path == SyncLists.typesPath ? #"{"formatVersion":1,"types":[]}"# : "Not\n")
         }
         await context.refresh()
         #expect(context.store.sync.pendingDownloads.isEmpty)

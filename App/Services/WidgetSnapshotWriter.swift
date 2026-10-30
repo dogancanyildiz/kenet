@@ -36,6 +36,8 @@ struct SystemWidgetTimelines: WidgetTimelineReloading {
     private let isLocked: () -> Bool
     /// When a delayed lock engages while the app is away (`AppLockService.locksAt`), nil otherwise.
     private let lockDeadline: () -> Date?
+    private let calendarSource: (any CalendarEventSource)?
+    private let hideContent: () -> Bool
     private let now: () -> Date
     private var running: Task<Void, Never>?
     private var again = false
@@ -48,6 +50,8 @@ struct SystemWidgetTimelines: WidgetTimelineReloading {
     init(
         store: IndexStore, group: any AppGroupStore, timelines: any WidgetTimelineReloading = SystemWidgetTimelines(),
         isLocked: @escaping () -> Bool, lockDeadline: @escaping () -> Date? = { nil },
+        calendarSource: (any CalendarEventSource)? = nil,
+        hideContent: @escaping () -> Bool = { NotificationPreferences.read(from: .standard).hideContent },
         now: @escaping () -> Date = { Date() }
     ) {
         self.store = store
@@ -55,11 +59,14 @@ struct SystemWidgetTimelines: WidgetTimelineReloading {
         self.timelines = timelines
         self.isLocked = isLocked
         self.lockDeadline = lockDeadline
+        self.calendarSource = calendarSource
+        self.hideContent = hideContent
         self.now = now
     }
 
     /// Follows the store's publishes; the store's other listeners stay as they are.
     func attach() {
+        calendarSource?.onChange = { [weak self] in self?.update() }
         store.onWidgetSnapshotChange = { [weak self] in self?.update() }
     }
 
@@ -164,13 +171,22 @@ struct SystemWidgetTimelines: WidgetTimelineReloading {
         do {
             let current = try await store.computeGoalStatuses(today: today)
             let next = try await store.computeGoalStatuses(today: tomorrow)
+            let hidden = hideContent()
+            let counts = try await store.computeNotificationDays(from: today, through: tomorrow)
+            var days = [WidgetSnapshot.Day(date: today, rows: current), .init(date: tomorrow, rows: next)]
+            for index in days.indices {
+                let day = index == 0 ? today : tomorrow
+                days[index].openTaskCount = counts.openTaskCounts[day, default: 0]
+                days[index].events = await events(on: day, hidden: hidden)
+            }
+            guard store.vaultURL == root else { return }
             snapshot = WidgetSnapshot(
                 writtenAt: now(), vaultID: vaultID,
-                days: [.init(date: today, rows: current), .init(date: tomorrow, rows: next)],
+                days: days,
                 vaultKind: WidgetSnapshot.VaultKind(rawValue: store.vaultKind.rawValue),
                 cloudRelativePath: cloudPath,
                 cloudVaultIdentity: cloudPath == nil ? nil : WidgetSnapshot.cloudVaultIdentity(at: root),
-                lockedAfter: lockDeadline())
+                lockedAfter: lockDeadline(), hideContent: hidden)
         } catch {
             // Another vault opened meanwhile (its publish updates again) or the read failed: the
             // file keeps the last answer.
@@ -202,6 +218,22 @@ struct SystemWidgetTimelines: WidgetTimelineReloading {
         reload()
     }
 
+    private func events(on day: CalendarDate, hidden: Bool) async -> [WidgetSnapshot.Event]? {
+        guard let calendarSource, calendarSource.authorization.canRead else { return nil }
+        let start = LocalDay.instant(for: day, timeZone: .current)
+        guard let end = WidgetDay.deviceCalendar.date(byAdding: .day, value: 1, to: start),
+            let events = try? await calendarSource.events(from: start, to: end),
+            calendarSource.authorization.canRead
+        else { return nil }
+        return events.filter { $0.start < end && $0.end > max(start, now()) }
+            .sorted {
+                if $0.start != $1.start { return $0.start < $1.start }
+                return $0.id < $1.id
+            }.prefix(5).map {
+                .init(title: hidden ? "" : $0.title, start: $0.start, end: $0.end, isAllDay: $0.isAllDay)
+            }
+    }
+
     private func remove(_ url: URL) {
         guard FileManager.default.fileExists(atPath: url.path) else { return }
         try? FileManager.default.removeItem(at: url)
@@ -210,7 +242,7 @@ struct SystemWidgetTimelines: WidgetTimelineReloading {
 
     private func reload() {
         unannounced = false
-        timelines.reloadTimelines(ofKind: WidgetKinds.goalChain)
+        for kind in WidgetKinds.all { timelines.reloadTimelines(ofKind: kind) }
     }
 
     /// SHA-256 of the vault's resolved path: the vault part of `IntentGoal.id`.
@@ -242,50 +274,5 @@ extension WidgetSnapshot.Goal {
             key: goal.key, name: goal.name, kind: kind, target: goal.target, unit: goal.unit,
             value: row.status.progress.done, isPending: row.status.isPendingToday,
             streak: row.status.streak, chainDays: row.graceDaysAvailable)
-    }
-}
-
-/// The app's side of a widget tap (`WidgetLink`): it opens Today and marks a yes/no goal for
-/// today through the App Intent path (`IntentActions.markGoal`). A local or selected vault's
-/// goals come this way; an iCloud vault's are marked in the widget (`WidgetGoalMarker`). A mark
-/// asked while the app is locked waits for the unlock.
-///
-/// The link's source is not checked: the app registers no URL scheme, so only WidgetKit opens a
-/// `kenet-widget` link here (`ReleaseConfigurationTests`). A registered scheme would let any app
-/// mark goals; it then needs a source check first.
-@MainActor final class WidgetLinkHandler {
-    private let actions: IntentActions
-    private let navigation: IntentNavigation
-    /// The goal a tap asked to mark while the app was locked.
-    private(set) var pendingMark: String?
-
-    init(actions: IntentActions, navigation: IntentNavigation) {
-        self.actions = actions
-        self.navigation = navigation
-    }
-
-    /// False for a URL that is not a widget link; it is left to whoever else handles it.
-    @discardableResult func open(_ url: URL) async -> Bool {
-        guard let link = WidgetLink(url: url) else { return false }
-        navigation.openToday()
-        if case .markGoal(let id) = link { await mark(id) }
-        return true
-    }
-
-    /// Marks the goal a locked tap asked for.
-    func unlocked() async {
-        guard let id = pendingMark else { return }
-        pendingMark = nil
-        await mark(id)
-    }
-
-    private func mark(_ id: String) async {
-        do {
-            _ = try await actions.markGoal(id: id)
-        } catch IntentActionError.appLocked {
-            pendingMark = id
-        } catch {
-            // The goal or the vault is gone since the widget drew: Today shows the day as it is.
-        }
     }
 }

@@ -15,10 +15,14 @@ struct WidgetRefreshReliabilityTests {
     private static func indexDays(_ store: IndexStore, at now: Date) async throws -> [WidgetSnapshot.Day] {
         let today = LocalDay.today(at: now)
         let tomorrow = try #require(today.addingDays(1))
-        return [
+        var days: [WidgetSnapshot.Day] = [
             .init(date: today, rows: try await store.computeGoalStatuses(today: today)),
             .init(date: tomorrow, rows: try await store.computeGoalStatuses(today: tomorrow)),
         ]
+        let counts = try await store.computeNotificationDays(from: today, through: tomorrow)
+        days[0].openTaskCount = counts.openTaskCounts[today, default: 0]
+        days[1].openTaskCount = counts.openTaskCounts[tomorrow, default: 0]
+        return days
     }
 
     /// (a) A hundred goal changes in a row, none awaited by the widget writer: the last snapshot
@@ -40,8 +44,8 @@ struct WidgetRefreshReliabilityTests {
         #expect(!reading.isPending)
         #expect(snapshot.days == (try await Self.indexDays(store, at: WidgetSnapshotTests.noon)))
         // Publishes that arrive while a write runs fold into one more run, never into none.
-        #expect(harness.timelines.reloads.count >= 2)
-        #expect(harness.timelines.reloads.count <= 101)
+        #expect(harness.timelines.reloads.count >= 2 * WidgetKinds.all.count)
+        #expect(harness.timelines.reloads.count <= 101 * WidgetKinds.all.count)
     }
 
     /// (b) At midnight the timeline moves to tomorrow's entry without the app; the app's write
@@ -69,7 +73,7 @@ struct WidgetRefreshReliabilityTests {
         #expect(next.days[0] == first.days[1])
         #expect(next.days == (try await Self.indexDays(harness.context.store, at: harness.clock.now)))
         #expect(next.timeline(from: harness.clock.now, calendar: calendar).first?.day == next.days[0])
-        #expect(harness.timelines.reloads.count == 2)
+        #expect(harness.timelines.reloads.count == 2 * WidgetKinds.all.count)
     }
 
     /// (c) After the widget marked a goal, the app's next write (it arrives in the foreground)
@@ -92,7 +96,7 @@ struct WidgetRefreshReliabilityTests {
         #expect(snapshot.days[0].goals.last?.key == "esneme")
         #expect(snapshot.days[0].goals.last?.isPending == false)
         #expect(snapshot.markedAt == nil)
-        #expect(harness.timelines.reloads.count == 1)
+        #expect(harness.timelines.reloads.count == WidgetKinds.all.count)
     }
 
     /// (c) The index wins once it has read the day files: a mark undone in the file before the
@@ -111,7 +115,7 @@ struct WidgetRefreshReliabilityTests {
         #expect(snapshot.days[0].goals.first { $0.key == "esneme" }?.isPending == true)
         #expect(snapshot.days == (try await harness.indexDays()))
         #expect(snapshot.markedAt == nil)
-        #expect(harness.timelines.reloads.count == 2)
+        #expect(harness.timelines.reloads.count == 2 * WidgetKinds.all.count)
     }
 
     /// (d) WidgetKit reloads only when what the widget draws changed: publishes without goal
@@ -121,26 +125,26 @@ struct WidgetRefreshReliabilityTests {
         defer { harness.context.clean() }
         await harness.start()
         let store = harness.context.store
-        #expect(harness.timelines.reloads.count == 1)
+        #expect(harness.timelines.reloads.count == WidgetKinds.all.count)
 
         for number in 1...10 {
             #expect(await store.addEvent(on: GraceDayVault.today, text: "Olay \(number)", time: nil))
             harness.writer.update()
         }
         await harness.writer.settle()
-        #expect(harness.timelines.reloads.count == 1)
+        #expect(harness.timelines.reloads.count == WidgetKinds.all.count)
 
         try await store.setGoal(on: GraceDayVault.today, key: "esneme", value: .boolean(true))
         await harness.writer.settle()
-        #expect(harness.timelines.reloads.count == 2)
+        #expect(harness.timelines.reloads.count == 2 * WidgetKinds.all.count)
 
         for _ in 1...5 { harness.writer.update() }
         await harness.writer.settle()
-        #expect(harness.timelines.reloads.count == 2)
+        #expect(harness.timelines.reloads.count == 2 * WidgetKinds.all.count)
 
         try await store.setGoal(on: GraceDayVault.today, key: "esneme", value: nil)
         await harness.writer.settle()
-        #expect(harness.timelines.reloads.count == 3)
+        #expect(harness.timelines.reloads.count == 3 * WidgetKinds.all.count)
     }
 
     // MARK: - Cost in the widget

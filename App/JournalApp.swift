@@ -80,7 +80,7 @@ struct JournalApp: App {
         #if os(iOS)
             let widgetSnapshots = WidgetSnapshotWriter(
                 store: store, group: SystemAppGroupStore(), isLocked: { IntentActions.shared.isLocked() },
-                lockDeadline: { [weak appLock] in appLock?.locksAt })
+                lockDeadline: { [weak appLock] in appLock?.locksAt }, calendarSource: EventKitCalendarSource())
             if AppLaunchPolicy.allowsAutomaticStart() { widgetSnapshots.attach() }
             _widgetSnapshots = State(initialValue: widgetSnapshots)
             _widgetLinks = State(

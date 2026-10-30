@@ -49,6 +49,7 @@ enum EntryPointPhrases {
         "${applicationName} ile günlüğe olay ekle",
         "${applicationName} ile görev ekle",
         "${applicationName} ile hedefi işaretle",
+        "${applicationName}'e yaz",
         "${applicationName} ile bugünü aç",
     ]
 
@@ -149,16 +150,31 @@ struct EntryPointSections: View {
                 .foregroundStyle(Color.ink.secondaryText)
                 .inkListRow()
         }
-        if EntryPointPlatform.showsActionButton(idiom) {
+        if idiom != .mac {
             Section {
-                SectionHeader("Eylem düğmesi")
+                SectionHeader("settings.entry.widget.title")
                     .inkListRow()
-                Text("Ayarlar'da Eylem düğmesine bu kısayollardan birini atayabilirsin.")
+                Text("settings.entry.widget.description")
                     .font(.ink.meta)
                     .foregroundStyle(Color.ink.secondaryText)
                     .inkListRow()
             }
+            Section {
+                SectionHeader(
+                    EntryPointPlatform.showsActionButton(idiom)
+                        ? "settings.entry.action.title" : "settings.entry.control.title"
+                )
+                .inkListRow()
+                Text(
+                    EntryPointPlatform.showsActionButton(idiom)
+                        ? "settings.entry.action.description" : "settings.entry.control.description"
+                )
+                .font(.ink.meta)
+                .foregroundStyle(Color.ink.secondaryText)
+                .inkListRow()
+            }
         }
+
     }
 
     private var phrases: [String] {

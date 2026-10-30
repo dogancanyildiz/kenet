@@ -85,7 +85,7 @@ Harita konuları gösterir; satırların tam metni karar günlüğündedir. Bir 
 
 ```mermaid
 timeline
-    title Karar takvimi, 315 karar
+    title Karar takvimi, 316 karar
     2026-10-02 : 58 karar : Ürün kapsamı ve platform : Kasa biçimi ve ayrıştırıcı : Git, sürüm ve CI
     2026-10-03 : 19 karar : Yazma doğrulaması : İndeks ve arama : Varlık sayfası ve hızlı giriş
     2026-10-04 : 31 karar : Birleştirme ve kayıp yok : VaultStore ve dosya izleme : Görev, hedef ve otomasyon : Özet, graph ve harita
@@ -106,9 +106,10 @@ timeline
     2026-10-23 : 4 karar : Görüntü referansı tavanı 320 : Günün grafiği : Açık bağ biçimi : CI kısaltması
     2026-10-26 : 4 karar : Açık bağ Core altyapısı : Açık bağ ekranları ve Graph : Açık bağın düğüm boyutu : Arayüz testleri iki işte
     2026-10-27 : 3 karar : Sheet dışı kontrast, gösterge rengi, ortak denetim iPad’de
+    2026-10-30 : 1 karar : Hızlı giriş giriş noktaları
 ```
 
-Sayılar karar günlüğündeki satır sayısıdır. Toplam 315 satırdır.
+Sayılar karar günlüğündeki satır sayısıdır. Toplam 316 satırdır.
 
 ## Karar günlüğü
 
@@ -431,6 +432,7 @@ Sayılar karar günlüğündeki satır sayısıdır. Toplam 315 satırdır.
 | 2026-10-27 | Erişilebilirlik denetiminde sheet listesinin (`sheet.*` kimliği) görünür çerçevesi dışındaki öğenin kontrast bulgusu ölçülmez | Kırpılmış satırın görüntüsü sheet kenarı ve karartılmış arka plandır; iPad koşusu 40397762257 (#355) |
 | 2026-10-27 | Graph göstergesindeki "Bağ" örneği çizginin kendi rengindedir (`ink.rule`) | Örnek çizgiyi temsil eder; `ink.control` örneği çizgiden koyu çıkıyordu (W3 dalga incelemesi D9). Ayrım renge değil kalınlığa dayanır |
 | 2026-10-27 | CI: iPad işinin de koştuğu ortak erişilebilirlik denetimi kümesi (`AccessibilityAuditUITests`) iPhone denetim işinde koşmaz; `ui-audit-suites.sh --iphone` ortak küme dışını, `--shared` ortak kümeyi verir, iPad adımı `--shared` kullanır | Aynı ekranlar iPad'de bölünmüş kabukta denetleniyor; iPhone'da yinelemek denetim işine ~6 dk ekliyordu (koşu 40427534859: 6 vaka 370 sn, iş 20 dk). Bedel: iPhone sekme çubuğu denetimi yalnız kalan kümelerle (UnlinkedMentions, DayGraph, QuickEntry) dolaylı denetlenir |
+| 2026-10-30 | Hızlı giriş giriş noktaları: ana ekran ve kilit ekranı "Yaz" widget'ı (`kenet-widget://write`), Denetim Merkezi kontrolü ve Eylem düğmesi (`QuickEntryControl`, `OpenQuickEntryIntent`) ve "Kenet'e yaz" kısayolu uygulamayı Bugün'de hızlı giriş kutusu odaklı açar; kilitliyken istek kilit açılana kadar bekler. Uygulama URL şeması kaydetmez; intent'in `perform` gövdesi hedefe özgüdür (uygulama gezinir, widget yalnız sonuç döner) | Yeni yazma yolu eklenmez (karar 2026-10-11 korunur): metin her zaman uygulamadaki aynı kutuya yazılır; giriş noktası ilk sözcüğe giden yolu kısaltır (`screens.md` ilke 1). Şema kaydedilmediği için bağlantı yalnız WidgetKit'ten gelir (`ReleaseConfigurationTests`) |
 
 Satır sırası ekleme sırasıdır; tablonun ilk satırları tarih sırasında değildir. Sonradan değişen bir kararın gerekçe hücresi değişikliği tarihiyle anar. Güncel durum notları kararın verildiği günden sonraki gerçek durumu söyler.
 

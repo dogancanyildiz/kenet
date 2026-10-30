@@ -45,8 +45,8 @@ timeline
 
 ```mermaid
 pie title Kutular
-    "Bitti" : 115
-    "Açık" : 11
+    "Bitti" : 116
+    "Açık" : 10
 ```
 
 | İşaret | Anlamı |
@@ -231,7 +231,7 @@ Aşama 10 sektör taramasından çıkan ilk dalgadır. Maddeler kimlik kararı g
 | Ekranlar kendi sorgusunu çalıştırır | Bitti. Bütün ekranlar, bildirim planlayıcı ve proje listeleri kendi sorgusunu çalıştırıyor. Okuma modelinden `days`, `tasks`, `projects` ve `goalStatuses` çıktı; parçalar blok metni taşımıyor. 5 yıllık kasada okuma modeli 10,8 MB'tan 2,35 MB'a, yeniden türetme 1.640 ms'den 50 ms'ye indi. `goals`, `goalLogs`, `goalPlaceFiles`, `reservedGoalKeys` ve `goalLogStart` da çıktı; okuma modeli 2,35 MB'tan 1,92 MB'a, yeniden türetme 50 ms'den 34 ms'ye indi (#294). Widget `goalStatuses` sonucunu uygulamanın yazdığı anlık görüntüden alır (#318). `entities` okuma modelinde kalır (karar 2026-10-20). | #192, #201, #205, #208, #210, #211, #212, #214, #225, #294, #318 |
 | Widget yenilemesinin testi | Bitti. `WidgetRefreshReliabilityTests`: 100 yayım, gece yarısı geçişi, uygulama ile widget yazmasının uzlaşması ve yenileme sayacı. | #325 |
 | Kilit ekranı widget'ı | Açık. Sonraki dalga: karar 2026-10-21. | - |
-| Hızlı giriş widget'ı ve girişler | Açık. Sonraki dalga. | - |
+| Hızlı giriş widget'ı ve girişler | Bitti, iOS. Ana ekran ve kilit ekranı "Yaz" widget'ı, Denetim Merkezi kontrolü, Eylem düğmesi ve "Kenet'e yaz" kısayolu Bugün'ü hızlı giriş kutusu odaklı açar. Eylem düğmesi ve kilit ekranı kontrolü cihazda denenir. | #360 |
 | Mac widget'ları | Açık. Sonraki dalga. | - |
 | Paylaşım uzantısı | Bitti, iOS. Metin ve Safari bağlantısı tek olay olur. iCloud kasasında uzantı gün dosyasına kendisi yazar; öteki durumlarda metin App Group kuyruğunda bekler ve uygulama açılınca işlenir. Mac uzantısı ve görsel paylaşımı kapsam dışı. | #324 |
 | Sistemin günlük önerileri | Bitti, iPhone. Hızlı girişte seçici; öneri metne dönüşür, kullanıcı gönderir. Cihaz denemesi bekliyor: yetki ve App ID yeteneği yalnız imzalı yapıda görülür. | #320 |
@@ -269,7 +269,7 @@ Kimlik gerektirmeyen dilimler Aşama 10 ile birlikte yürüdü ve bitti. Karar g
 - [x] Ekranlar ve widget kendi sorgusunu çalıştırır: küresel okuma modeli yerine Core sorguları. Gerekçe widget bellek sınırıdır. Madde Aşama 8'den devretti.
 - [x] Widget yenilemesinin güvenilirlik testi. Madde Aşama 3'ten devretti.
 - [ ] Kilit ekranı widget'ı: takvim etkinlikleri ve günün görevleri. Madde Aşama 3'ten devretti.
-- [ ] Hızlı giriş widget'ı ile kilit ekranı, Denetim Merkezi ve Eylem düğmesi girişi. Madde Aşama 3'ten devretti.
+- [x] Hızlı giriş widget'ı ile kilit ekranı, Denetim Merkezi ve Eylem düğmesi girişi. Madde Aşama 3'ten devretti.
 - [ ] Mac widget'ları. Madde Aşama 3'ten devretti.
 - [x] Paylaşım uzantısı: "olay olarak ekle".
 - [x] Sistemin günlük önerileri seçicisi. Apple'daki adı Journaling Suggestions.

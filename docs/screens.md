@@ -1150,7 +1150,9 @@ iPhone'da Ayarlar, Bugün manşet satırındaki düğmenin açtığı sheet'tir.
 | Kapsam | Var olan giriş yollarını gösterir. Yeni yol eklemez. iPhone'da bölüm bir ekrandır. Mac'te aynı satırlar Hızlı giriş sekmesindedir. Klavye kısayolu kaydı sekmenin başındadır. |
 | Siri cümleleri | `JournalShortcuts` cümleleri, uygulama adıyla, kayıtlı sırada. Metin kısayol kataloğundan gelir. Kod cümleleri ekrana elle yazmaz. |
 | Kısayollar | Aynı cümleler Kısayollar uygulamasında da çalışır. |
-| Eylem düğmesi | Yalnız iPhone'da (cihaz türü `phone`). Kullanıcı bu kısayollardan birini sistem Ayarlar'ındaki Eylem düğmesine atar. iPad'de ve Mac'te bu başlık ve metin yoktur. Kapı yalnız metin içindir, yerleşim boyut sınıfına bakar. |
+| Widget ve kilit ekranı | iOS’ta ana ekranı veya kilit ekranını düzenleyerek Yaz widget’ını ekleme açıklaması. |
+| Denetim Merkezi | iOS’ta Kenet’e yaz kontrolünü ekleme açıklaması; iPhone’da başlık “Denetim Merkezi ve Eylem düğmesi” olur. |
+| Eylem düğmesi | Yalnız iPhone'da (cihaz türü `phone`). Kullanıcı Ayarlar → Eylem Düğmesi → Denetimler bölümünde Kenet’e yaz kontrolünü seçer; Kısayollar üzerinden atama da çalışır. iPad'de ve Mac'te bu başlık ve metin yoktur. Kapı yalnız metin içindir, yerleşim boyut sınıfına bakar. |
 | İlk kullanım ipucu | Ana ekranda, kasa açıldıktan sonra kapatma düğmeli bir ipucu durur. Tercih cihazdadır. Kullanıcı kapatınca ipucu bir daha görünmez. |
 | İpucunun görünmediği durum | UI testinde ve `AppLaunchPolicy` otomatik başlatmaya izin vermediğinde. |
 | İpucu içeriği | iPhone ipucu Siri, Kısayollar ve Eylem düğmesini adlandırır. iPad ipucu Siri ve Kısayollar'ı adlandırır. Mac ipucu Siri, Kısayollar ve klavye kısayolunu adlandırır. |
@@ -1307,16 +1309,16 @@ flowchart TD
 ```mermaid
 flowchart LR
     Kutu[Bugün ekranındaki kutu] --> HG[Hızlı giriş davranışı]
-    Widget[Hızlı giriş widget'ı ve kilit ekranı düğmesi: 3, henüz yok] -.-> HG
+    Widget[Widget, kilit ekranı, Denetim Merkezi ve Eylem düğmesi: 11] --> Kutu
     MacPencere[Mac hızlı giriş penceresi: 1] --> HG
     Siri[Kısayollar ve Siri: 4] --> HG
     Paylasim[Paylaşım sayfası: 11, iOS] --> Form[Paylaşım formu: olay]
     Bildirim[Akşam günlük hatırlatması: 4] --> GunuKapat[Günü kapat: günlük adımı]
 ```
 
-Kısayollar ve Siri arayüz göstermez, ama anmaları hızlı girişteki kuralla bağlar. Akşam günlük hatırlatması hızlı giriş kutusunu değil, Günü kapat akışının günlük adımını açar. Bu adım tek cümleyi günlüğün sonuna ekler. Hızlı giriş widget'ı ve kilit ekranı düğmesi henüz yok: [Widget'lar](#widgetlar-3) bölümüne bak.
+Kısayollar ve Siri arayüz göstermez, ama anmaları hızlı girişteki kuralla bağlar. Akşam günlük hatırlatması hızlı giriş kutusunu değil, Günü kapat akışının günlük adımını açar. Bu adım tek cümleyi günlüğün sonuna ekler. Hızlı giriş widget'ı ve kontrolü Bugün kutusunu odaklar: [Widget'lar](#widgetlar-3) bölümüne bak.
 
-Bugün çalışan yollar Ayarlar → Hızlı giriş'te ve ilk kullanım ipucunda görünür: Siri cümleleri, Kısayollar, Eylem düğmesi ve Mac klavye kısayolu. Widget, kilit ekranı düğmesi, Denetim Merkezi ve paylaşım uzantısı bu gösterimde yoktur. Paylaşım formu: [Paylaşım formu](#paylaşım-formu-11-ios).
+Ayarlar → Hızlı giriş Siri cümlelerini, Kısayollar'ı, Widget ve kilit ekranı satırını, Denetim Merkezi'ni ve iPhone'da Eylem düğmesini gösterir. Mac'te klavye kısayolu da vardır. İlk kullanım ipucu Siri ve Kısayollar'ı, cihaza göre Eylem düğmesini ya da Mac klavye kısayolunu adlandırır. Paylaşım formu: [Paylaşım formu](#paylaşım-formu-11-ios).
 
 ## Paylaşım formu (11, iOS)
 
@@ -1339,7 +1341,7 @@ Kullanıcı Safari'de bir sayfayı, başka bir uygulamada seçili metni paylaş�
 
 ## Widget'lar (3)
 
-**Durum:** ana ekran zincir widget'ı uygulandı: iOS, küçük ve orta boy. Öteki satırlar hedeflenen kapsamdır. Veri yolu: `architecture.md`, Widget'lar.
+**Durum:** ana ekran zincir widget'ı uygulandı: iOS, küçük ve orta boy. Hızlı giriş widget’ı ve kontrolü de uygulanmıştır; öteki satırlar hedeflenen kapsamdır. Veri yolu: `architecture.md`, Widget'lar.
 
 | Widget | Yer | İçerik |
 |---|---|---|
@@ -1347,7 +1349,13 @@ Kullanıcı Safari'de bir sayfayı, başka bir uygulamada seçili metni paylaş�
 | Hedefler, Mac | Mac | Sonraki dalga. |
 | Bugün | Ana ekran, Mac | Günün görevleri ve sıradaki etkinlik. Göreve dokunma görevi tamamlar. |
 | Kilit ekranı | Kilit ekranı | Sıradaki etkinlik ve kalan görev sayısı ya da tek hedefin durumu. |
-| Hızlı giriş | Ana ekran, kilit ekranı, Denetim Merkezi | Dokunma uygulamayı yazma ekranında, klavye açık olarak açar. |
+| Hızlı giriş | Ana ekran, kilit ekranı, Denetim Merkezi | Dokunma uygulamayı Bugün’de, hızlı giriş kutusu odakta ve klavye açık olarak açar. |
+
+### Hızlı giriş widget'ı ve kontrolü
+
+Ana ekrandaki küçük “Yaz” widget’ı kalem simgesi ve bugünün tarihini gösterir. Kilit ekranında dairesel biçim kalem, satır içi biçim “Kenet’e yaz” gösterir. Hepsi `kenet-widget://write` bağlantısıyla Bugün’deki hızlı giriş kutusunu odaklar. Yeni yazma yolu oluşmaz; metin uygulamadaki aynı kutuya yazılır. Uygulama kilitliyse odak isteği kilit açılana kadar bekler. Widget kasa verisi ve anlık görüntü okumaz.
+
+Denetim Merkezi’ndeki “Kenet’e yaz” kontrolü aynı kutuyu açar. Destekleyen iPhone’da Ayarlar → Eylem Düğmesi → Denetimler bölümünden bu kontrol seçilebilir; bunun cihazda doğrulanması gerekir. Kısayollar ve Siri’de “Kenet’e yaz” da aynı davranışı sunar. iPad’de Eylem düğmesi açıklaması gösterilmez.
 
 ### Zincir widget'ı
 

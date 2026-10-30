@@ -12177,6 +12177,102 @@
         }
       }
     },
+    "settings.entry.action.description" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Denetim Merkezi’ne Kenet’e yaz kontrolünü ekle veya Ayarlar → Eylem Düğmesi → Denetimler bölümünde bu kontrolü seç."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add Write in Kenet to Control Center or select this control in Settings → Action Button → Controls."
+          }
+        }
+      }
+    },
+    "settings.entry.action.title" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Denetim Merkezi ve Eylem düğmesi"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Control Center and Action Button"
+          }
+        }
+      }
+    },
+    "settings.entry.control.description" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Denetim Merkezi’ni düzenleyip Kenet’e yaz kontrolünü ekle."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit Control Center and add the Write in Kenet control."
+          }
+        }
+      }
+    },
+    "settings.entry.control.title" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Denetim Merkezi"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Control Center"
+          }
+        }
+      }
+    },
+    "settings.entry.widget.description" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ana ekranı veya kilit ekranını düzenleyip Kenet’in Yaz widget’ını ekle."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit your Home Screen or Lock Screen and add Kenet’s Write widget."
+          }
+        }
+      }
+    },
+    "settings.entry.widget.title" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Widget ve kilit ekranı"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Widget and Lock Screen"
+          }
+        }
+      }
+    },
     "SF Symbol adı" : {
       "localizations" : {
         "en" : {
@@ -14581,6 +14677,54 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Take vitamins"
+          }
+        }
+      }
+    },
+    "widget.write.description" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bugün ekranını açar ve hızlı giriş kutusuna odaklanır."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opens Today and focuses the quick entry field."
+          }
+        }
+      }
+    },
+    "widget.write.open" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kenet’e yaz"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Write in Kenet"
+          }
+        }
+      }
+    },
+    "widget.write.title" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yaz"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Write"
           }
         }
       }

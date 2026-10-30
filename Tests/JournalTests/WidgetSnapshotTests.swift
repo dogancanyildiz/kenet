@@ -8,6 +8,7 @@ import VaultFormat
 /// Counts WidgetKit reloads instead of asking the system.
 @MainActor final class FakeWidgetTimelines: WidgetTimelineReloading {
     private(set) var reloads: [String] = []
+    /// Existing publish-count assertions concern the chain widget, independently of other kinds.
     func reloadTimelines(ofKind kind: String) { reloads.append(kind) }
 }
 

@@ -31,6 +31,8 @@ struct DayView: View {
     let store: IndexStore
     let date: CalendarDate
     var isToday = false
+    // Optional: hosted tests build the screen without the app's navigation object.
+    @Environment(IntentNavigation.self) private var intentNavigation: IntentNavigation?
     @Environment(NotificationService.self) private var notifications
     @Environment(CalendarService.self) private var calendar
     @Environment(\.locale) private var locale
@@ -169,7 +171,8 @@ struct DayView: View {
         .inkPage()
         .safeAreaInset(edge: .bottom) {
             QuickEntryBar(
-                store: store, isEnabled: true, day: isToday ? nil : date, acceptsPeopleMentions: isToday,
+                store: store, isEnabled: true, day: isToday ? nil : date,
+                focusRequest: isToday ? intentNavigation?.focusRequest : nil, acceptsPeopleMentions: isToday,
                 drafts: navigation
             )
             .id(isToday ? "today" : date.description)

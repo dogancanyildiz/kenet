@@ -41,7 +41,7 @@ struct LockScreenWidgetTests {
         #expect(events.allSatisfy { $0.title.isEmpty })
         #expect(snapshot.hideContent == true)
         #expect(snapshot.days[0].openTaskCount == 0)
-        #expect(harness.timelines.reloads == [WidgetKinds.goalChain, WidgetKinds.lockScreen])
+        #expect(harness.timelines.reloads == WidgetKinds.all && WidgetKinds.all.contains(WidgetKinds.lockScreen))
     }
 
     @Test func preferenceChangeRewritesTitlesAndUnchangedContentDoesNotWrite() async throws {

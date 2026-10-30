@@ -16,27 +16,28 @@ struct GraphMentionsTests {
         #expect(mentions == snapshotConstruction(try index.snapshot(), kinds: Self.kinds))
         #expect(mentions.days.count == 14)
         #expect(mentions.totals.count == 10)
-        let weights = GraphMentions.cooccurrenceWeights(days: mentions.days, including: Set(mentions.totals.keys))
-        #expect(weights.count == 5)
-        #expect(weights[.init(first: "people/Deniz Arıkan.md", second: "places/Tepe Spor Salonu.md")] == 1)
-        #expect(weights[.init(first: "people/Deniz Arıkan.md", second: "places/Liman Ofis.md")] == nil)
-        #expect(weights[.init(first: "people/Baran Tunç.md", second: "places/Çınaraltı Kafe.md")] == 2)
     }
 
-    /// The graph fixture's Journal list, continuation line, quote run and numbered items reach the
-    /// query and the snapshot construction alike.
-    @Test func graphFixtureMatchesSnapshotConstruction() throws {
+    /// The graph fixture's hand-counted totals and day mentions (`expected.json`): heading and
+    /// frontmatter links count, a duplicate day file stays out of the index, and only the requested
+    /// kinds count.
+    @Test func graphFixtureMatchesHandCountedMentions() throws {
+        let root = try Fixtures.root().appendingPathComponent("vaults/graph")
+        let expected = try JSONDecoder().decode(
+            Expectation.self, from: Data(contentsOf: root.appendingPathComponent("expected.json")))
         let index = try VaultIndex()
-        try index.rebuild(vaultRoot: Fixtures.root().appendingPathComponent("vaults/graph"))
+        try index.rebuild(vaultRoot: root)
         let mentions = try index.graphMentions(kinds: Self.kinds)
         #expect(mentions == snapshotConstruction(try index.snapshot(), kinds: Self.kinds))
-        let list = try #require(mentions.days.first { $0.date == CalendarDate("2026-10-04")! })
+        #expect(mentions.totals == expected.totals)
         #expect(
-            list.groups == [
-                ["people/Baran Tunç.md", "places/Tepe Spor Salonu.md"],
-                ["people/Deniz Arıkan.md", "places/Ev.md"],
-                ["people/Ece Yalın.md", "places/Ev.md"],
-            ])
+            mentions.days
+                == expected.days.map { GraphMentions.Day(date: CalendarDate($0.date)!, mentions: $0.mentions) })
+        let books = try index.graphMentions(kinds: ["book"])
+        #expect(books.totals == ["books/Örnek Kitap.md": 1])
+        #expect(books.days.map(\.mentions) == [["books/Örnek Kitap.md": 1]])
+        #expect(try index.graphMentions(kinds: []).days.isEmpty)
+        #expect(try index.snapshot().files.allSatisfy { $0.path != "journal/2026-10-03 2.md" })
     }
 
     @Test func syntheticVaultMatchesSnapshotConstruction() throws {
@@ -87,7 +88,7 @@ struct GraphMentionsTests {
         #expect(mentions.totals == [ada: 6, koru: 6])
         #expect(
             mentions.days == [
-                .init(date: CalendarDate("2026-03-01")!, mentions: [ada: 2, koru: 1], groups: [[ada, koru]]),
+                .init(date: CalendarDate("2026-03-01")!, mentions: [ada: 2, koru: 1]),
                 .init(date: CalendarDate("2026-03-03")!, mentions: [koru: 1]),
             ])
     }
@@ -109,10 +110,7 @@ struct GraphMentionsTests {
         try check()
         let added = try vault.index.graphMentions(kinds: Self.kinds)
         #expect(
-            added.days.last
-                == .init(
-                    date: day, mentions: ["people/Deniz Arıkan.md": 1, "places/Liman Ofis.md": 1],
-                    groups: [["people/Deniz Arıkan.md", "places/Liman Ofis.md"]]))
+            added.days.last == .init(date: day, mentions: ["people/Deniz Arıkan.md": 1, "places/Liman Ofis.md": 1]))
         #expect(added.totals["people/Deniz Arıkan.md"] == (before.totals["people/Deniz Arıkan.md"] ?? 0) + 1)
         let renamed = try await vault.store.renamingEntity(at: "people/Deniz Arıkan.md", to: "Deniz Yeni")
         #expect(renamed.failures.isEmpty)
@@ -121,12 +119,20 @@ struct GraphMentionsTests {
         try vault.index.refresh(vaultRoot: vault.root)
         try check()
     }
+
+    private struct Expectation: Decodable {
+        struct Day: Decodable {
+            let date: String
+            let mentions: [String: Int]
+        }
+        let totals: [String: Int]
+        let days: [Day]
+    }
 }
 
 /// The graph rule rebuilt from the index snapshot instead of SQL, with the entity list (the read
-/// model's non-goal entities) narrowed to `kinds`. Mentions and totals are the app's construction
-/// from before the query existed; groups are an independent build of the block and paragraph
-/// segment rule over the snapshot's links and blocks, not over the query's rows.
+/// model's non-goal entities) narrowed to `kinds`: the app's construction from before the query
+/// existed. Every resolved link counts, whatever its block; day mentions only from day files.
 private func snapshotConstruction(_ snapshot: IndexSnapshot, kinds: Set<String>) -> GraphMentions {
     let known = Set(snapshot.entities.filter { kinds.contains($0.kind) }.map(\.file))
     let dates = Dictionary(
@@ -141,36 +147,7 @@ private func snapshotConstruction(_ snapshot: IndexSnapshot, kinds: Set<String>)
         totals[target, default: 0] += 1
         if let date = dates[link.file] { days[date, default: [:]][target, default: 0] += 1 }
     }
-    // Entities sharing an event or task block, or a segment of a paragraph block, of a day file;
-    // headings and frontmatter do not group. Every paragraph is split here, one line or more.
-    struct Entry: Hashable {
-        let date: CalendarDate
-        let file: String
-        let block: Int
-        let segment: Int
-    }
-    let blocks = Dictionary(grouping: snapshot.blocks, by: \.file).mapValues {
-        Dictionary(uniqueKeysWithValues: $0.map { ($0.ordinal, $0) })
-    }
-    var members: [Entry: Set<String>] = [:]
-    for link in snapshot.links {
-        guard let ordinal = link.block, let target = link.resolvedFile, known.contains(target),
-            let date = dates[link.file], let block = blocks[link.file]?[ordinal],
-            ["event", "task", "paragraph"].contains(block.kind)
-        else { continue }
-        let segment =
-            block.kind == "paragraph" ? ParagraphSegments.index(ofLine: link.line - block.firstLine, in: block.text) : 0
-        members[Entry(date: date, file: link.file, block: ordinal, segment: segment), default: []].insert(target)
-    }
-    var groups: [CalendarDate: Set<[String]>] = [:]
-    for (entry, entities) in members where entities.count >= 2 {
-        groups[entry.date, default: []].insert(entities.sorted())
-    }
     return GraphMentions(
         totals: totals,
-        days: days.map {
-            GraphMentions.Day(
-                date: $0.key, mentions: $0.value,
-                groups: groups[$0.key, default: []].sorted { $0.lexicographicallyPrecedes($1) })
-        }.sorted { $0.date < $1.date })
+        days: days.map { GraphMentions.Day(date: $0.key, mentions: $0.value) }.sorted { $0.date < $1.date })
 }

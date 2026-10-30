@@ -79,18 +79,18 @@ import VaultIndex
         input.entities = [entity(a), entity(b), entity(c, kind: "place")]
         input.totals = [a: 8, b: 4, c: 1]
         input.days = [
-            .init(date: today.addingDays(-120)!, mentions: [a: 1, b: 1], groups: [[a, b]]),
-            .init(date: today.addingDays(-30)!, mentions: [a: 1, b: 1], groups: [[a, b]]),
-            .init(date: today.addingDays(-29)!, mentions: [a: 4, b: 1], groups: [[a, b]]),
-            .init(date: today, mentions: [a: 1, b: 1, c: 1], groups: [[a, b, c]]),
-            .init(date: today.addingDays(1)!, mentions: [a: 1, b: 1], groups: [[a, b]]),
+            .init(date: today.addingDays(-120)!, mentions: [a: 1, b: 1]),
+            .init(date: today.addingDays(-30)!, mentions: [a: 1, b: 1]),
+            .init(date: today.addingDays(-29)!, mentions: [a: 4, b: 1]),
+            .init(date: today, mentions: [a: 1, b: 1, c: 1]),
+            .init(date: today.addingDays(1)!, mentions: [a: 1, b: 1]),
         ]
         input.relations = [try relation(c, a)]
         var filter = GraphFilter(period: .month)
         let graph = GraphModel.compute(input: input, filter: filter, today: today)
         let recent = [GraphModel.dayNodeID(today.addingDays(-29)!), GraphModel.dayNodeID(today)]
         #expect(graph.nodes.filter { $0.kind == .day }.map(\.id) == recent)
-        // Blocks shared by a and b tie nothing; the written relation c–a is the one entity edge.
+        // Days shared by a and b tie nothing; the written relation c–a is the one entity edge.
         let relation = GraphEdge(first: a, second: c, weight: 1, kind: .relation)
         #expect(
             graph.edges == [

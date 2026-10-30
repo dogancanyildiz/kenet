@@ -8,7 +8,7 @@ import VaultIndex
 /// One day's graph query (`dayGraphMentions(on:kinds:)`): hand-counted fixture days, and on larger
 /// vaults the same answer as the whole-vault query's day.
 struct DayGraphMentionsTests {
-    @Test func graphFixtureDaysMatchHandCountedMentionsAndGroups() throws {
+    @Test func graphFixtureDaysMatchHandCountedMentions() throws {
         let root = try Fixtures.root().appendingPathComponent("vaults/graph")
         let expected = try JSONDecoder().decode(
             Expectation.self, from: Data(contentsOf: root.appendingPathComponent("day-graph.json")))
@@ -18,7 +18,7 @@ struct DayGraphMentionsTests {
             let date = try #require(CalendarDate(day.date))
             #expect(
                 try index.dayGraphMentions(on: date, kinds: expected.kinds)
-                    == GraphMentions.Day(date: date, mentions: day.mentions, groups: day.groups), "\(day.date)")
+                    == GraphMentions.Day(date: date, mentions: day.mentions), "\(day.date)")
         }
         // Only the requested kinds count; no kind, no mention.
         let first = try #require(CalendarDate("2026-10-01"))
@@ -33,9 +33,9 @@ struct DayGraphMentionsTests {
         }
     }
 
-    /// A custom type shares a block with a person like any other entity; links from other files of
-    /// the vault and from other dates stay out of the day.
-    @Test func customTypesGroupWithPeopleAndOtherFilesStayOut() throws {
+    /// A custom type counts on its day like any other entity; links from other files of the vault and
+    /// from other dates stay out of the day.
+    @Test func customTypesCountWithPeopleAndOtherFilesStayOut() throws {
         let vault = try StoreVault()
         defer { vault.remove() }
         try vault.write(
@@ -58,7 +58,7 @@ struct DayGraphMentionsTests {
         let book = "books/Uzun Yol.md"
         #expect(
             try vault.index.dayGraphMentions(on: date, kinds: ["person", "place", "book"])
-                == GraphMentions.Day(date: date, mentions: [ada: 1, book: 2], groups: [[book, ada]]))
+                == GraphMentions.Day(date: date, mentions: [ada: 1, book: 2]))
         #expect(
             try vault.index.dayGraphMentions(on: date, kinds: ["person"])
                 == GraphMentions.Day(date: date, mentions: [ada: 1]))
@@ -93,7 +93,6 @@ struct DayGraphMentionsTests {
         struct Day: Decodable {
             let date: String
             let mentions: [String: Int]
-            let groups: [[String]]
         }
         let kinds: Set<String>
         let days: [Day]

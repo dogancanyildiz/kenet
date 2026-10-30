@@ -35,7 +35,7 @@ struct GraphScene: Sendable {
         simulation = ForceSimulation(
             radii: nodes.map(\.radius),
             links: links.map {
-                // Heavier links sit closer: more shared days pull two nodes together.
+                // Every edge weighs 1 since the graph became day-centred (decision 2026-10-30); the slack formula stays for a heavier edge kind later.
                 let slack = GraphLayout.linkSlack / (1 + 0.4 * log(Double(max(1, $0.weight))))
                 return ForceLink(
                     source: $0.first, target: $0.second,

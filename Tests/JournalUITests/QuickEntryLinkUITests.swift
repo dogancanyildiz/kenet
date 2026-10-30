@@ -13,8 +13,16 @@ final class QuickEntryLinkUITests: XCTestCase {
         UITestSupport.waitForExistence(UITestSupport.element(in: app, identifier: "screen.today"))
         XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 10))
         let field = UITestSupport.quickEntryField(in: app)
-        // Typing without tapping proves that the composer already owns keyboard focus.
-        app.typeText("quick entry link focus probe")
-        XCTAssertEqual(field.value as? String, "quick entry link focus probe")
+        // The composer owns keyboard focus without a tap. Focus is read from the element rather
+        // than proven with a long typed probe: the bar re-renders on every keystroke and a loaded
+        // CI runner dropped characters of a sentence typed in one go.
+        let focused = NSPredicate(format: "hasKeyboardFocus == true")
+        let focus = expectation(for: focused, evaluatedWith: field)
+        XCTAssertEqual(XCTWaiter().wait(for: [focus], timeout: 10), .completed)
+        app.typeText("q")
+        XCTAssertTrue(
+            XCTWaiter().wait(
+                for: [expectation(for: NSPredicate(format: "value == %@", "q"), evaluatedWith: field)], timeout: 10)
+                == .completed)
     }
 }

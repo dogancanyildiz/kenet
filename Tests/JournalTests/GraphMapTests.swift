@@ -8,27 +8,29 @@ import VaultIndex
 
 @MainActor struct GraphMapTests {
     let today = CalendarDate("2026-10-04")!
-    @Test func sampleGraphHasTenNodesAndDistinctDayEdgeWeights() async throws {
+    @Test func sampleGraphTiesEveryDayToItsEntitiesAndNoEntityToAnother() async throws {
         let context = try TaskTestContext(sample: true)
         defer { context.clean() }
         await context.start()
         let input = try await context.store.computeGraphInput()
         let graph = GraphModel.compute(input: input, filter: GraphFilter(), today: today)
-        #expect(graph.nodes.count == 10)
-        func weight(_ first: String, _ second: String) -> Int? {
-            graph.edges.first { Set([$0.first, $0.second]) == Set([first, second]) }?.weight
-        }
-        #expect(weight("people/Deniz Arıkan.md", "places/Liman Ofis.md") == nil)
-        #expect(weight("people/Deniz Arıkan.md", "places/Tepe Spor Salonu.md") == 1)
-        #expect(weight("people/Baran Tunç.md", "places/Çınaraltı Kafe.md") == 2)
-        #expect(graph.edges.count == 5)
-        let neighbors = graph.neighbors(of: "people/Deniz Arıkan.md")
-        #expect(neighbors.contains("places/Tepe Spor Salonu.md") && !neighbors.contains("people/Deniz Arıkan.md"))
+        // Ten entities and the fourteen written days of the last 90 days.
+        #expect(graph.nodes.filter { $0.kind != .day }.count == 10)
+        #expect(graph.nodes.filter { $0.kind == .day }.count == 14)
+        // Deniz and Tepe Spor Salonu share days and blocks; only their days tie them.
+        let deniz = "people/Deniz Arıkan.md"
+        #expect(!graph.neighbors(of: deniz).contains("places/Tepe Spor Salonu.md"))
+        #expect(graph.neighbors(of: deniz).allSatisfy { $0.hasPrefix("day:") })
+        #expect(graph.neighbors(of: deniz).contains("day:2026-09-25"))
+        #expect(graph.edges.allSatisfy { $0.kind == .day && $0.weight == 1 && $0.first.hasPrefix("day:") })
+        #expect(graph.edges.count == input.days.reduce(0) { $0 + $1.mentions.count })
+        // Over the whole vault a node is sized by every link into its entity.
+        let all = GraphModel.compute(input: input, filter: GraphFilter(period: .all), today: today)
         for usage in context.store.entityUsage {
-            #expect(graph.nodes.first { $0.id == usage.file }?.count == usage.totalCount)
+            #expect(all.nodes.first { $0.id == usage.file }?.count == usage.totalCount)
         }
     }
-    @Test func graphFixtureKeepsEntryEdgesSeparateFromDayEdges() async throws {
+    @Test func graphFixtureTiesDaysToEntitiesAndSharedBlocksToNothing() async throws {
         let context = try TaskTestContext()
         defer { context.clean() }
         let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
@@ -40,84 +42,77 @@ import VaultIndex
         try index.rebuild(vaultRoot: context.root)
         #expect(input == GraphInput(snapshot: try index.snapshot(), entities: context.store.content.entities))
         let graph = GraphModel.compute(input: input, filter: GraphFilter(), today: today)
-        #expect(graph.nodes.count == 9)
-        // 2026-10-04 is one Journal paragraph: only its continuation line, quote run and numbered
-        // item add edges; the three single-person items and the sentence under the quote add none.
-        #expect(
-            graph.edges == [
-                GraphEdge(first: "people/Baran Tunç.md", second: "places/Tepe Spor Salonu.md", weight: 1),
-                GraphEdge(first: "people/Deniz Arıkan.md", second: "people/Selin Korkmaz.md", weight: 2),
-                GraphEdge(first: "people/Deniz Arıkan.md", second: "places/Ev.md", weight: 1),
-                GraphEdge(first: "people/Deniz Arıkan.md", second: "places/Liman Ofis.md", weight: 1),
-                GraphEdge(first: "people/Deniz Arıkan.md", second: "places/Çınaraltı Kafe.md", weight: 2),
-                GraphEdge(first: "people/Ece Yalın.md", second: "places/Ev.md", weight: 1),
-                GraphEdge(first: "people/Selin Korkmaz.md", second: "places/Liman Ofis.md", weight: 2),
-                GraphEdge(first: "people/Selin Korkmaz.md", second: "places/Çınaraltı Kafe.md", weight: 1),
-            ])
-        let withDays = GraphModel.compute(input: input, filter: GraphFilter(days: true), today: today)
-        #expect(withDays.nodes.filter { $0.kind == .day }.count == 4)
-        let dayEdges = withDays.edges.filter { $0.first.hasPrefix("day:") }
-        #expect(dayEdges.count == 18 && dayEdges.allSatisfy { $0.weight == 1 })
+        #expect(graph.nodes.count == 9 + 4)
+        // Deniz and Selin share an event, a task and a paragraph: still no edge between them.
+        #expect(!graph.neighbors(of: "people/Deniz Arıkan.md").contains("people/Selin Korkmaz.md"))
+        #expect(graph.edges.count == 18 && graph.edges.allSatisfy { $0.kind == .day && $0.weight == 1 })
         for day in input.days {
-            #expect(
-                Set(dayEdges.filter { $0.first == "day:" + day.date.description }.map(\.second))
-                    == Set(day.mentions.keys))
+            #expect(graph.neighbors(of: GraphModel.dayNodeID(day.date)) == Set(day.mentions.keys))
         }
-        let weighted = GraphModel.compute(
-            input: input, filter: GraphFilter(minimumWeight: 2), today: today)
-        #expect(weighted.edges.count == 3)
         let people = GraphModel.compute(input: input, filter: GraphFilter(places: false), today: today)
-        #expect(
-            people.edges == [
-                GraphEdge(first: "people/Deniz Arıkan.md", second: "people/Selin Korkmaz.md", weight: 2)
-            ])
+        #expect(people.nodes.allSatisfy { $0.kind == .person || $0.kind == .day })
+        #expect(people.edges.count == 11 && people.edges.allSatisfy { $0.second.hasPrefix("people/") })
     }
 
-    @Test func filtersIncludeMondayWindowBoundaryKindsDaysAndMinimumWeight() async throws {
+    @Test func filtersNarrowDaysAndKinds() async throws {
         let context = try TaskTestContext(sample: true)
         defer { context.clean() }
         await context.start()
         let input = try await context.store.computeGraphInput()
         var filter = GraphFilter()
         filter.people = false
+        // Two of the fourteen days mention only people: with people off they have no node.
         let places = GraphModel.compute(input: input, filter: filter, today: today)
-        #expect(places.nodes.count == 4 && places.nodes.allSatisfy { $0.kind == .place })
+        #expect(places.nodes.filter { $0.kind == .place }.count == 4)
+        #expect(places.nodes.filter { $0.kind == .day }.count == 12)
+        #expect(places.nodes.allSatisfy { $0.kind == .place || $0.kind == .day })
+        #expect(places.edges.allSatisfy { $0.second.hasPrefix("places/") })
         filter.people = true
-        filter.days = true
-        let withDays = GraphModel.compute(input: input, filter: filter, today: today)
-        #expect(withDays.nodes.filter { $0.kind == .day }.count == 14)
-        #expect(
-            withDays.edges.contains {
-                $0.first == "day:2026-09-25" && $0.second == "people/Deniz Arıkan.md" && $0.weight == 1
-            })
-        filter.minimumWeight = 4
-        let weighted = GraphModel.compute(input: input, filter: filter, today: today)
-        #expect(weighted.edges.allSatisfy { $0.weight >= 4 })
         filter.period = .month
         let old = GraphModel.compute(input: input, filter: filter, today: CalendarDate("2026-10-27")!)
         #expect(old.edges.isEmpty && old.nodes.filter { $0.kind == .day }.isEmpty)
         #expect(old.nodes.allSatisfy { $0.count == 0 })
     }
-    @Test func windowIsInclusiveCountsRepeatMentionsButNotSharedDays() {
+    @Test func periodNarrowsDaysAndTheirEdgesButNeverARelation() throws {
+        let (a, b, c) = ("people/a", "people/b", "places/c")
         var input = GraphInput()
-        input.entities = [entity("a"), entity("b")]
-        input.totals = ["a": 7, "b": 3]
+        input.entities = [entity(a), entity(b), entity(c, kind: "place")]
+        input.totals = [a: 8, b: 4, c: 1]
         input.days = [
-            .init(date: today.addingDays(-30)!, mentions: ["a": 1, "b": 1], groups: [["a", "b"]]),
-            .init(date: today.addingDays(-29)!, mentions: ["a": 4, "b": 1], groups: [["a", "b"]]),
-            .init(date: today, mentions: ["a": 1, "b": 1], groups: [["a", "b"]]),
-            .init(date: today.addingDays(1)!, mentions: ["a": 1, "b": 1], groups: [["a", "b"]]),
+            .init(date: today.addingDays(-120)!, mentions: [a: 1, b: 1], groups: [[a, b]]),
+            .init(date: today.addingDays(-30)!, mentions: [a: 1, b: 1], groups: [[a, b]]),
+            .init(date: today.addingDays(-29)!, mentions: [a: 4, b: 1], groups: [[a, b]]),
+            .init(date: today, mentions: [a: 1, b: 1, c: 1], groups: [[a, b, c]]),
+            .init(date: today.addingDays(1)!, mentions: [a: 1, b: 1], groups: [[a, b]]),
         ]
-        var filter = GraphFilter()
-        filter.period = .month
+        input.relations = [try relation(c, a)]
+        var filter = GraphFilter(period: .month)
         let graph = GraphModel.compute(input: input, filter: filter, today: today)
-        #expect(graph.edges == [GraphEdge(first: "a", second: "b", weight: 2)])
-        #expect(graph.nodes.first?.count == 5)
-        for period in [GraphPeriod.quarter, .year] {
-            filter.period = period
-            #expect(GraphModel.compute(input: input, filter: filter, today: today).edges.first?.weight == 3)
-        }
+        let recent = [GraphModel.dayNodeID(today.addingDays(-29)!), GraphModel.dayNodeID(today)]
+        #expect(graph.nodes.filter { $0.kind == .day }.map(\.id) == recent)
+        // Blocks shared by a and b tie nothing; the written relation c–a is the one entity edge.
+        let relation = GraphEdge(first: a, second: c, weight: 1, kind: .relation)
+        #expect(
+            graph.edges == [
+                GraphEdge(first: recent[0], second: a, weight: 1),
+                GraphEdge(first: recent[0], second: b, weight: 1),
+                GraphEdge(first: recent[1], second: a, weight: 1),
+                GraphEdge(first: recent[1], second: b, weight: 1),
+                GraphEdge(first: recent[1], second: c, weight: 1),
+                relation,
+            ])
+        #expect(graph.nodes.first { $0.id == a }?.count == 5)
+        #expect(graph.nodes.first { $0.id == recent[0] }?.count == 5)
+        // The default 90 days add the day a month back; the day 120 days back only "Tümü" shows.
+        #expect(GraphModel.compute(input: input, filter: GraphFilter(), today: today).nodes.count == 3 + 3)
+        #expect(GraphModel.compute(input: input, filter: GraphFilter(period: .all), today: today).nodes.count == 3 + 5)
+        // A period without a written day keeps the relation.
+        let empty = GraphModel.compute(input: input, filter: filter, today: today.addingDays(400)!)
+        #expect(empty.edges == [relation])
+        // A day mentioning no drawn entity has no node.
         filter.people = false
+        let place = GraphModel.compute(input: input, filter: filter, today: today)
+        #expect(place.nodes.map(\.id) == [recent[1], c] && place.edges.map(\.kind) == [.day])
         filter.places = false
         #expect(GraphModel.compute(input: input, filter: filter, today: today).nodes.isEmpty)
     }
@@ -146,10 +141,11 @@ import VaultIndex
         await context.start()
         let screen = GraphScreenModel(store: context.store, focus: "people/Deniz Arıkan.md")
         await screen.load(today: today)
-        #expect(screen.selected == "people/Deniz Arıkan.md" && screen.positions.count == 10)
+        #expect(screen.selected == "people/Deniz Arıkan.md" && screen.positions.count == 24)
         screen.filter.people = false
         await screen.load(today: today)
-        #expect(screen.selected == nil && screen.graph.nodes.count == 4)
+        // Four places and the twelve days that mention one.
+        #expect(screen.selected == nil && screen.graph.nodes.count == 16)
         screen.reset()
         #expect(screen.graph.nodes.isEmpty && screen.positions.isEmpty)
     }
@@ -191,10 +187,16 @@ import VaultIndex
         #expect(!GraphFilterMenu.isActive(GraphFilter()))
         #expect(GraphFilterMenu.isActive(GraphFilter(people: false)))
         #expect(GraphFilterMenu.isActive(GraphFilter(places: false)))
-        #expect(GraphFilterMenu.isActive(GraphFilter(days: true)))
-        #expect(!GraphFilterMenu.isActive(GraphFilter(period: .month, minimumWeight: 3)))
+        #expect(GraphFilterMenu.isActive(GraphFilter(customTypes: ["book"])))
+        #expect(!GraphFilterMenu.isActive(GraphFilter(period: .month)))
+        #expect(!GraphFilterMenu.isActive(GraphFilter(period: .all)))
     }
-    private func entity(_ id: String) -> EntitySummary {
-        EntitySummary(id: id, kind: "person", name: id, qualifier: nil, aliases: [], incomingLinks: 0)
+    /// A relation as the index reads it (the type has no public initializer).
+    private func relation(_ source: String, _ target: String) throws -> Relation {
+        let json = #"{"source":"\#(source)","target":"\#(target)","sourceName":"","targetName":"","targetKind":""}"#
+        return try JSONDecoder().decode(Relation.self, from: Data(json.utf8))
+    }
+    private func entity(_ id: String, kind: String = "person") -> EntitySummary {
+        EntitySummary(id: id, kind: kind, name: id, qualifier: nil, aliases: [], incomingLinks: 0)
     }
 }

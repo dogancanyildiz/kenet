@@ -45,42 +45,41 @@ import VaultFormat
                 && TodayPresentation.dayTitles(today: CalendarDate("2027-01-01")!)(first).contains("2026"))
         let typeName = EntityTypeChoices.choices(context.store.entityTypes).first { $0.id == "book" }?.name
         #expect(graph.nodes.first { $0.id == book }?.typeName == typeName)
-        // The day is tied to all five; only the event pairs are tied to each other.
+        // The day is tied to all five; sharing an event ties no two of them.
         #expect(graph.neighbors(of: dayID) == [book, deniz, selin, kafe, ofis])
-        #expect(
-            graph.edges.filter { $0.first != dayID && $0.second != dayID } == [
-                GraphEdge(first: deniz, second: kafe, weight: 1),
-                GraphEdge(first: selin, second: ofis, weight: 1),
-            ])
-        #expect(graph.edges.allSatisfy { $0.weight == 1 })
-        // Period, kind switches and the threshold belong to the whole graph only.
-        var narrowed = GraphFilter(
-            people: false, places: false, days: false, period: .month, minimumWeight: 3, scope: .day(first))
+        #expect(graph.edges.count == 5 && graph.edges.allSatisfy { $0.kind == .day && $0.weight == 1 })
+        // Period and kind switches belong to the whole graph only.
+        var narrowed = GraphFilter(people: false, places: false, period: .month, scope: .day(first))
         narrowed.setCustomType("book", false)
         let same = GraphModel.compute(input: input, filter: narrowed, today: CalendarDate("2027-01-01")!)
         #expect(same.nodes.map(\.id) == graph.nodes.map(\.id))
         #expect(same.edges == graph.edges)
     }
 
-    @Test func dayGraphOfABusyDayCountsBlocksOncePerPair() async throws {
+    @Test func dayGraphOfABusyDayTiesOnlyTheDayAndTheWrittenRelations() async throws {
         let context = try await graphVault()
         defer { context.clean() }
-        let input = try await context.store.computeDayGraphInput(on: second)
+        var input = try await context.store.computeDayGraphInput(on: second)
         let graph = GraphModel.compute(input: input, filter: GraphFilter(scope: .day(second)), today: second)
         let dayID = GraphModel.dayNodeID(second)
         #expect(graph.nodes.count == 5)
         #expect(graph.nodes.first { $0.id == deniz }?.count == 4)
         #expect(graph.nodes.first { $0.id == dayID }?.count == 13)
-        // Event, task and paragraph: Deniz–Selin twice, still one day.
+        // Event, task and paragraph pair the four up; still only the day ties them.
         #expect(
-            graph.edges.filter { $0.first != dayID } == [
-                GraphEdge(first: deniz, second: selin, weight: 1),
-                GraphEdge(first: deniz, second: ofis, weight: 1),
-                GraphEdge(first: deniz, second: kafe, weight: 1),
-                GraphEdge(first: selin, second: ofis, weight: 1),
-                GraphEdge(first: selin, second: kafe, weight: 1),
+            graph.edges == [deniz, selin, kafe, ofis].sorted().map { GraphEdge(first: dayID, second: $0, weight: 1) })
+        // Deniz's page relates him to Selin (and Selin's to him): one heavy edge between the two.
+        input.relations = try await context.store.computeExplicitRelations()
+        let related = GraphModel.compute(input: input, filter: GraphFilter(scope: .day(second)), today: second)
+        #expect(
+            related.edges.filter { $0.kind == .relation } == [
+                GraphEdge(first: deniz, second: selin, weight: 1, kind: .relation)
             ])
-        #expect(graph.edges.count == 9)
+        #expect(related.edges.count == 5)
+        // VoiceOver counts a node's neighbors across both kinds of line.
+        let spoken = Dictionary(
+            uniqueKeysWithValues: GraphAccessibleNode.list(from: related).map { ($0.id, $0.neighborCount) })
+        #expect(spoken == [dayID: 4, deniz: 2, selin: 2, kafe: 1, ofis: 1])
     }
 
     @Test func iconIsOfferedOnlyOnDaysLinkingAnEntity() async throws {

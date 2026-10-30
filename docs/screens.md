@@ -895,9 +895,8 @@ Konumda koordinat, Alanlar tablosunda bir satırdır. Okuma ekranında harita yo
 | Öğe | Yer | Davranış |
 |---|---|---|
 | Giriş | Mac kenar çubuğu, telefonda Kişiler ve Konumlar listesinin en üstü | Telefonda aynı gezinme yığınında tam ekran. Yeni sekme yoktur. Gün ekranının manşetindeki Graph simgesi aynı ekranı o günün grafiği olarak açar. |
-| Tür süzgeci | Manşet satırındaki filtre menüsü | Kişi, konum, gün ve kasanın her özel tipi için bir satır; çoklu seçim. Varsayılan: kişi ve konum açık, gün ve özel tipler kapalı. Varsayılan dışında vurgu rengine döner. |
-| Dönem | Manşetin altındaki "Dönem" menüsü | Son 30, 90, 365 gün ya da tümü. Gün katmanı açılırken dönem "Tümü" ise "Son 90 gün" olur; kullanıcı yine "Tümü"yü seçebilir. |
-| Eşik | Adımlayıcı | En az ortak gün ağırlığı. |
+| Tür süzgeci | Manşet satırındaki filtre menüsü | Kişi, konum ve kasanın her özel tipi için bir satır; çoklu seçim. Gün satırı yoktur: günler her zaman çizilir. Varsayılan: kişi ve konum açık, özel tipler kapalı. Varsayılan dışında vurgu rengine döner. |
+| Dönem | Manşetin altındaki "Dönem" menüsü | Son 30, 90, 365 gün ya da tümü. Varsayılan "Son 90 gün"; kullanıcı "Tümü"yü seçebilir. |
 | Yakınlaştırma | Düğmeler, pinch, Mac'te tekerlek ve trackpad kaydırması | Görüşü büyütür ve küçültür. |
 | Ortala | Düğme | Düzeni o anki haliyle yeniden çerçeveler. |
 | Düğüm seç | Menü | Klavye ve erişilebilirlik için aynı seçimi sunar. Seçilen düğümü ortaya alır. |
@@ -907,15 +906,14 @@ Konumda koordinat, Alanlar tablosunda bir satırdır. Okuma ekranında harita yo
 
 | Konu | Davranış |
 |---|---|
-| Düğümler | Varsayılan: bütün kişi ve konumlar. Süzgeçte açılan özel tipin bütün varlıkları da düğümdür. Bağlanmamış varlıklar da düğümdür. |
-| Gün düğümleri | İsteğe bağlı. Bağlantı içeren her gün bir düğümdür. Gün düğümü o gün geçen ve ekranda olan her varlığa bağlanır: kişi, konum, özel tip. |
-| Kenar ağırlığı | Gün dosyasının aynı bloğunda birlikte geçen çiftin farklı gün sayısı. Paragraf bloğunda birim segmenttir: her madde satırı (`-`, `*`, `+`, `1.`, `1)`) daha girintili devam satırlarıyla bir segmenttir; ardışık `>` satırları bir segmenttir; madde ya da alıntı olmayan ardışık satırlar bir segmenttir. Maddenin altındaki girintisiz satır maddeye bağlanmaz, yeni segment açar (Markdown'daki tembel devam uygulanmaz); `2026. yılda` gibi 1–9 haneli sayı, nokta ya da parantez ve boşlukla başlayan satır madde sayılır. Boş satırsız Journal listesinin maddeleri böylece birbirine bağlanmaz. Aynı günde birden çok ortak blok ya da segment ağırlığı artırmaz. Gün–varlık kenarı bütün gün anmalarından gelir ve ağırlığı 1'dir. |
-| Kaynak | Yalnız tarihli gün dosyalarının olay, görev ve paragraf blokları birlikte geçme üretir; alt satır bağlantısı indeksin atadığı en içteki bloğa aittir. Başlık ve frontmatter bağlantıları yalnız anma ve düğüm boyutuna katılır. Çözülmeyen hedefler dışarıdadır. |
+| Düğümler | Varsayılan: bütün kişi ve konumlar ve dönemin günleri. Süzgeçte açılan özel tipin bütün varlıkları da düğümdür. Bağlanmamış varlıklar da düğümdür. |
+| Gün düğümleri | Her zaman çizilir; graph'ın merkezleridir. Dönemde ekrandaki bir varlığa bağlantı içeren her gün bir düğümdür. Ekranda varlığı olmayan gün düğüm olmaz. |
+| Kenarlar | Gün düğümü o gün geçen ve ekranda olan her varlığa ağırlık 1 ile bağlanır: kişi, konum, özel tip. Varlıklar birbirine yalnız açık bağla bağlanır: varlık sayfasının frontmatter'ındaki wikilink alanları ve `related`. Aynı günde ya da aynı blokta birlikte geçmek iki varlığı bağlamaz. Açık bağ dönemden bağımsızdır: iki ucu da ekrandaysa çizilir. |
+| Kaynak | Tarihli gün dosyalarındaki bütün çözülen bağlantılar gün–varlık kenarını üretir: olay, görev, paragraf, başlık ve frontmatter. Aynı tarihin birden çok dosyası tek gündür. Düğüm boyutu da bu anmalardan gelir. Çözülmeyen hedefler dışarıdadır. |
 | Son N gün | Bugün dahil `bugün -(N-1)` … bugün. Tümü gelecek günleri ve tarihsiz kaynak bağlantılarını da içerir. |
 | Düğüm boyutu | Tümü seçiliyken bütün kasadaki geçiş sayısı. Tarih filtresinde seçilen günlerin geçiş sayısı. |
-| Eşik | Eşik birlikte geçme kenarlarını kaldırır. İzole düğümleri silmez. Açık bağ eşikten ve dönemden bağımsızdır: iki ucu da ekrandaysa çizilir. |
 | Renk ve biçim | Kişi ve konum renkleri Bugün bağlantı alt çizgileriyle aynı belirteçten gelir. Kişi daire, konum elmas, gün köşeli kare, özel tip altıgendir. Ayrıntı: `design.md` "Graph düğümleri". |
-| Açıklama | “Çizgiler aynı olayda geçen kayıtları ve elle kurulan bağları gösterir.” Birlikte geçme gerçek karşılaşma diye yorumlanmaz. |
+| Açıklama | “Gün, o gün geçen her kayda bağlanır. Öteki çizgiler elle kurulan bağları gösterir.” Aynı gün geçmek karşılaşma diye yorumlanmaz; kişi ve konumu birbirine yalnız kullanıcının yazdığı bağ bağlar. |
 
 #### Günün grafiği
 
@@ -925,19 +923,19 @@ Konumda koordinat, Alanlar tablosunda bir satırdır. Okuma ekranında harita yo
 |---|---|
 | Giriş | Gün ekranının manşet satırındaki Graph simgesi. iPhone'da gün ekranının gezinme yığınında tam ekran, Mac'te ayrıntı sütununun yığınında açılır. Gün sayfası bir bağlantı sheet'inde açıksa grafik o sheet'in yığınına girer. Grafiğin kendi sheet'i yoktur. |
 | Manşet | "Günün grafiği"; künye günün tam tarihidir. Satırda yalnız arama durur; tür süzgeci yoktur. |
-| Düğümler | Ortada gün düğümü. O günün dosyasında çözülen bağlantısı olan her kişi, konum ve özel tip varlığı. Düğüm boyutu o günkü anma sayısıdır. Tür süzgeci, dönem ve eşik uygulanmaz. |
-| Kenarlar | Gün düğümü her varlığa ağırlık 1 ile bağlanır. Aynı blokta birlikte geçen varlıklar ana Graph'taki kuralla birbirine bağlanır. Günün varlıkları arasındaki açık bağlar kalın çizilir; o gün anılmayan varlığa bağ çizilmez. |
-| Denetimler | Dönem menüsü ve eşik adımlayıcısı yoktur. Yakınlaştırma, Ortala ve Düğüm seç vardır. |
+| Düğümler | Ortada gün düğümü. O günün dosyasında çözülen bağlantısı olan her kişi, konum ve özel tip varlığı. Düğüm boyutu o günkü anma sayısıdır. Tür süzgeci ve dönem uygulanmaz. |
+| Kenarlar | Ana Graph'taki kural: gün düğümü her varlığa ağırlık 1 ile bağlanır; varlıklar birbirine yalnız açık bağla bağlanır. Günün varlıkları arasındaki açık bağlar kalın çizilir; o gün anılmayan varlığa bağ çizilmez. |
+| Denetimler | Dönem menüsü yoktur. Yakınlaştırma, Ortala ve Düğüm seç vardır. |
 | Sayfayı aç | Varlık düğümünde varlık ekranını açar. Gün düğümünde yoktur; kullanıcı o günden gelmiştir. |
-| Açıklama | "Gün, o gün geçen her kayda bağlanır. Öteki çizgiler aynı olayda geçen kayıtları ve elle kurulan bağları gösterir." |
+| Açıklama | "Gün, o gün geçen her kayda bağlanır. Öteki çizgiler elle kurulan bağları gösterir." Ana Graph'la aynı metindir. |
 | Boş gün | Simge görünmez. Grafik yine açılırsa "Gösterilecek düğüm yok" yazar. |
-| Erişilebilirlik | Ekran kimliği `screen.dayGraph`. VoiceOver düğümü ad, tür ve komşu sayısıyla okur; özel tipte tür, tipin kasadaki adıdır. Gün düğümünün adı gün ekranının manşet biçimindedir ("1 Ekim Perşembe"; başka yılda yıl da yazılır); "Düğüm seç" menüsü ve ana Graph'ın gün katmanı aynı adı kullanır. |
+| Erişilebilirlik | Ekran kimliği `screen.dayGraph`. VoiceOver düğümü ad, tür ve komşu sayısıyla okur; özel tipte tür, tipin kasadaki adıdır. Gün düğümünün adı gün ekranının manşet biçimindedir ("1 Ekim Perşembe"; başka yılda yıl da yazılır); "Düğüm seç" menüsü ve ana Graph'ın gün düğümleri aynı adı kullanır. |
 
 **Graph yerleşimi ve etkileşimi.**
 
 | Konu | Davranış |
 |---|---|
-| Benzetim | Canlı kuvvet benzetimi. Düğümler birbirini iter. Bağlantılar yay gibi çeker: ortak günü çok olan çiftler daha yakındır; bağ kurulan çift ağırlık 1 ile çeker. Hafif merkez çekimi bağlantısız düğümleri görüş alanında tutar. |
+| Benzetim | Canlı kuvvet benzetimi. Düğümler birbirini iter. Bağlantılar yay gibi çeker: gün–varlık ve bağ kenarlarının hepsi ağırlık 1 ile çeker; sık geçen varlık çok güne bağlandığı için o günlerin arasında kalır. Hafif merkez çekimi bağlantısız düğümleri görüş alanında tutar. |
 | Oturma | Düzen açılışta ekranda oturur. Düzen durunca hesap da durur. |
 | Düğüm sürükleme | Düğümün üstünde başlayan sürükleme düğümü taşır. Düğüm parmağı ya da fareyi izler. Komşular yayla peşinden gelir. Bırakınca düğüm serbest kalır ve düzen yeniden oturur. |
 | Tuval kaydırma | Boşlukta başlayan sürükleme tuvali kaydırır. |

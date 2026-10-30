@@ -171,37 +171,6 @@
             #expect(probe.first == untouched)
         }
 
-        // MARK: - Graph weight filter
-
-        @Test func graphWeightStepsByOneInsideItsBounds() {
-            let step = GraphWeightStep(maximumWeight: 5)
-            #expect(step.range(for: 1) == 1...5)
-            #expect(!step.canDecrement(1))
-            #expect(step.decremented(1) == 1)
-            #expect(step.canIncrement(1))
-            #expect(step.incremented(1) == 2)
-            #expect(step.canDecrement(2))
-            #expect(step.decremented(2) == 1)
-            #expect(step.incremented(4) == 5)
-            #expect(!step.canIncrement(5))
-            #expect(step.incremented(5) == 5)
-        }
-
-        @Test func graphWeightAdjustActionUsesTheSameBounds() {
-            let step = GraphWeightStep(maximumWeight: 5)
-            #expect(step.adjusted(3, .increment) == 4)
-            #expect(step.adjusted(3, .decrement) == 2)
-            #expect(step.adjusted(5, .increment) == 5)
-            #expect(step.adjusted(1, .decrement) == 1)
-            // A filter above the graph's maximum stays where it is and can only come down.
-            #expect(step.range(for: 9) == 1...9)
-            #expect(step.adjusted(9, .increment) == 9)
-            #expect(step.adjusted(9, .decrement) == 8)
-            // A graph without edges still has the one valid value.
-            #expect(GraphWeightStep(maximumWeight: 0).range(for: 1) == 1...1)
-            #expect(GraphWeightStep(maximumWeight: 0).adjusted(1, .increment) == 1)
-        }
-
         // MARK: - Settings tabs
 
         @Test func settingsTabsFollowTheDocumentedOrder() {

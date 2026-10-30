@@ -5,7 +5,7 @@ import VaultFormat
 @testable import Journal
 
 @MainActor struct GraphRelationEdgeTests {
-    @Test func explicitPairsSurvivePeriodAndThresholdAndStayUnique() async throws {
+    @Test func explicitPairsSurviveAPeriodWithoutDaysAndStayUnique() async throws {
         let context = try await EntityRelationsModelTests.context()
         defer { context.clean() }
         var input = try await context.store.computeGraphInput(customTypes: ["book"])
@@ -13,13 +13,14 @@ import VaultFormat
         input.relations = relations + relations
         let graph = GraphModel.compute(
             input: input,
-            filter: GraphFilter(period: .month, minimumWeight: 999, customTypes: ["book"]),
+            filter: GraphFilter(period: .month, customTypes: ["book"]),
             today: CalendarDate("2027-10-01")!)
         let edges = graph.edges.filter { $0.kind == .relation }
         #expect(edges.count == 2)
         #expect(Set(edges.map { [$0.first, $0.second].sorted() }).count == edges.count)
         #expect(edges.allSatisfy { $0.weight == 1 })
-        #expect(graph.edges.count == edges.count)
+        // No day of the period: the relations are all there is.
+        #expect(graph.edges.count == edges.count && !graph.nodes.contains { $0.kind == .day })
     }
 
     @Test func dayGraphAlsoIncludesExplicitPairs() async throws {
@@ -39,8 +40,8 @@ import VaultFormat
 
     @Test func lineWeightsDistinguishKindsWithoutColor() {
         #expect(GraphEdgeStyle.width(.relation, scale: 3) == InkStroke.highPriority)
-        #expect(GraphEdgeStyle.width(.relation, scale: 3) > GraphEdgeStyle.width(.cooccurrence, scale: 3))
-        #expect(GraphEdgeStyle.width(.cooccurrence, scale: 3) > GraphEdgeStyle.width(.day, scale: 3))
+        #expect(GraphEdgeStyle.width(.day, scale: 3) == InkStroke.hairline(scale: 3))
+        #expect(GraphEdgeStyle.width(.relation, scale: 1) > GraphEdgeStyle.width(.day, scale: 1))
         #expect(VoiceOverCopy.graphRelationLabel(first: "A", second: "B") == String(localized: "Bağ: \("A"), \("B")"))
     }
 
@@ -74,21 +75,26 @@ import VaultFormat
         #expect(!graph.edges.contains { $0.first == "books/Örnek Kitap.md" || $0.second == "books/Örnek Kitap.md" })
     }
 
-    @Test func aRelatedPairKeepsOneEdge() async throws {
+    @Test func aRelationIsTheOnlyEdgeBetweenTwoEntities() async throws {
         let context = try await EntityRelationsModelTests.context()
         defer { context.clean() }
         var input = try await context.store.computeGraphInput()
         input.relations = try await context.store.computeExplicitRelations()
-        let filter = GraphFilter(period: .all, minimumWeight: 1)
-        // Deniz and Selin also share blocks: without the relation they have a co-occurrence edge.
+        let filter = GraphFilter(period: .all)
+        let today = CalendarDate("2026-10-05")!
+        // Deniz and Selin share blocks on three days: without the relation nothing ties them.
         var unrelated = input
         unrelated.relations = []
-        let plain = GraphModel.compute(input: unrelated, filter: filter, today: CalendarDate("2026-10-05")!)
+        let plain = GraphModel.compute(input: unrelated, filter: filter, today: today)
         let pair = { (edge: GraphEdge) in
             [edge.first, edge.second] == ["people/Deniz Arıkan.md", "people/Selin Korkmaz.md"]
         }
-        #expect(plain.edges.filter(pair).map(\.kind) == [.cooccurrence])
-        let graph = GraphModel.compute(input: input, filter: filter, today: CalendarDate("2026-10-05")!)
+        #expect(plain.edges.filter(pair).isEmpty)
+        #expect(plain.edges.allSatisfy { $0.kind == .day })
+        // Written in both pages and twice in one: still one heavy edge, and the only entity pair.
+        let graph = GraphModel.compute(input: input, filter: filter, today: today)
         #expect(graph.edges.filter(pair).map(\.kind) == [.relation])
+        #expect(graph.edges.filter { $0.kind != .day }.count == 1)
+        #expect(graph.edges.count == plain.edges.count + 1)
     }
 }

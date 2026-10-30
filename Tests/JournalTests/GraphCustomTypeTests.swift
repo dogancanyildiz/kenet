@@ -4,8 +4,8 @@ import VaultFormat
 
 @testable import Journal
 
-/// Custom entity types in the whole graph (off by default, one switch per type), the day layer's
-/// period switch and the custom node's spoken label.
+/// Custom entity types in the whole graph (off by default, one switch per type), the opening
+/// period and the custom node's spoken label.
 @MainActor struct GraphCustomTypeTests {
     let book = "books/Örnek Kitap.md"
     let today = CalendarDate("2026-10-04")!
@@ -36,32 +36,30 @@ import VaultFormat
         // People and places as without the type, plus the book.
         #expect(
             graph.nodes.count == GraphModel.compute(input: input, filter: GraphFilter(), today: today).nodes.count + 1)
-        // The book shares no block: no entity edge, but the day layer ties it to its day.
-        #expect(graph.neighbors(of: book).isEmpty)
-        filter.setDays(true)
-        filter.period = .all
-        let withDays = GraphModel.compute(input: input, filter: filter, today: today)
-        #expect(withDays.neighbors(of: book) == [GraphModel.dayNodeID(CalendarDate("2026-10-01")!)])
-        let dayNode = try #require(withDays.nodes.first { $0.id == GraphModel.dayNodeID(CalendarDate("2026-10-01")!) })
+        // The book is tied to the one day that mentions it, like every entity.
+        #expect(graph.neighbors(of: book) == [GraphModel.dayNodeID(CalendarDate("2026-10-01")!)])
+        let dayNode = try #require(graph.nodes.first { $0.id == GraphModel.dayNodeID(CalendarDate("2026-10-01")!) })
         #expect(dayNode.name == TodayPresentation.dayTitles(today: today)(CalendarDate("2026-10-01")!))
         // People and places are read without asking for any type.
         let plain = try await context.store.computeGraphInput()
         #expect(plain.typeNames.isEmpty && !plain.entities.contains { $0.id == book })
     }
 
-    @Test func dayLayerNarrowsTheWholePeriodOnceAndKeepsOtherChoices() {
-        var filter = GraphFilter()
-        filter.setDays(true)
-        #expect(filter.days && filter.period == .quarter)
-        // The user may choose "Tümü" again; the layer staying on does not undo that.
-        filter.period = .all
-        filter.setDays(true)
-        #expect(filter.period == .all)
-        filter.setDays(false)
-        #expect(!filter.days && filter.period == .all)
-        var month = GraphFilter(period: .month)
-        month.setDays(true)
-        #expect(month.days && month.period == .month)
+    /// The whole graph opens on the last 90 days; any other period, "Tümü" included, stays chosen.
+    @Test func wholeGraphOpensOnTheLastNinetyDays() async throws {
+        #expect(GraphView.initialFilter(scope: .all, focusKind: nil).period == .quarter)
+        #expect(GraphView.initialFilter(scope: .all, focusKind: "book").period == .quarter)
+        let context = try await graphVault()
+        defer { context.clean() }
+        let input = try await context.store.computeGraphInput()
+        // The fixture's last day, 2026-10-04, is the 90th day back from 2027-01-01 and gone a day later.
+        let edge = GraphModel.compute(input: input, filter: GraphFilter(), today: CalendarDate("2027-01-01")!)
+        #expect(edge.nodes.filter { $0.kind == .day }.map(\.id) == [GraphModel.dayNodeID(today)])
+        let later = CalendarDate("2027-01-02")!
+        let opening = GraphModel.compute(input: input, filter: GraphFilter(), today: later)
+        #expect(!opening.nodes.contains { $0.kind == .day } && opening.edges.isEmpty)
+        let all = GraphModel.compute(input: input, filter: GraphFilter(period: .all), today: later)
+        #expect(all.nodes.filter { $0.kind == .day }.count == 4)
     }
 
     @Test func focusedCustomEntitySwitchesItsTypeOn() {

@@ -33,6 +33,8 @@ struct WidgetSnapshot: Codable, Equatable, Sendable {
     /// Set by the widget when it marked a goal itself and changed the days to match; the app's
     /// next write rescans the day files before it queries, then leaves it out.
     var markedAt: Date?
+    /// Notification privacy preference; an older file defaults to hidden in the accessory view.
+    var hideContent: Bool?
     /// The app went to the background with a delayed lock (docs/architecture.md "Widget'lar"):
     /// from this moment on the app counts as locked, so the widget shows "open Kenet" and marks
     /// nothing. The app leaves it out once it is in the foreground and unlocked again.
@@ -41,7 +43,7 @@ struct WidgetSnapshot: Codable, Equatable, Sendable {
     init(
         writtenAt: Date, vaultID: String, days: [Day], vaultKind: VaultKind? = nil,
         cloudRelativePath: String? = nil, cloudVaultIdentity: String? = nil, markedAt: Date? = nil,
-        lockedAfter: Date? = nil
+        lockedAfter: Date? = nil, hideContent: Bool? = nil
     ) {
         format = Self.currentFormat
         self.writtenAt = writtenAt
@@ -51,6 +53,7 @@ struct WidgetSnapshot: Codable, Equatable, Sendable {
         self.cloudRelativePath = cloudRelativePath
         self.cloudVaultIdentity = cloudVaultIdentity
         self.markedAt = markedAt
+        self.hideContent = hideContent
         self.lockedAfter = lockedAfter
     }
 
@@ -85,6 +88,15 @@ struct WidgetSnapshot: Codable, Equatable, Sendable {
         var date: String
         /// Daily goals, open ones first, each group by name (``WidgetSnapshot/ordered(_:)``).
         var goals: [Goal]
+        var events: [Event]? = nil
+        var openTaskCount: Int? = nil
+    }
+
+    struct Event: Codable, Equatable, Sendable {
+        var title: String
+        var start: Date
+        var end: Date
+        var isAllDay: Bool
     }
 
     struct Goal: Codable, Equatable, Sendable, Identifiable {
@@ -125,7 +137,7 @@ struct WidgetSnapshot: Codable, Equatable, Sendable {
     func hasSameContent(as other: WidgetSnapshot) -> Bool {
         format == other.format && vaultID == other.vaultID && days == other.days && vaultKind == other.vaultKind
             && cloudRelativePath == other.cloudRelativePath && cloudVaultIdentity == other.cloudVaultIdentity
-            && lockedAfter == other.lockedAfter
+            && lockedAfter == other.lockedAfter && hideContent == other.hideContent
     }
 
     /// The App Intent identifier of the goal `key` in the vault `vaultID` (`IntentGoal.id`).
@@ -185,6 +197,25 @@ struct WidgetSnapshot: Codable, Equatable, Sendable {
         guard let lockedAfter, lockedAfter < days.last?.date ?? now else { return days }
         guard lockedAfter > now else { return [WidgetTimelineEntry(date: now, day: nil)] }
         return days.filter { $0.date < lockedAfter } + [WidgetTimelineEntry(date: lockedAfter, day: nil)]
+    }
+
+    /// Day transitions plus event ends; the view selects the first event still in progress.
+    func lockScreenTimeline(from now: Date, calendar: Calendar) -> [WidgetTimelineEntry] {
+        let base = timeline(from: now, calendar: calendar)
+        var entries = base
+        if base.first?.date != now { entries.append(.init(date: now, day: nil)) }
+        for entry in base {
+            guard let day = entry.day,
+                let start = WidgetDay.start(of: day.date, calendar: calendar),
+                let end = calendar.date(byAdding: .day, value: 1, to: start)
+            else { continue }
+            for event in day.events ?? [] where event.end > entry.date && event.end < end {
+                guard !isLocked(at: event.end) else { continue }
+                entries.append(.init(date: event.end, day: day))
+            }
+        }
+        var seen: Set<Date> = []
+        return entries.sorted { $0.date < $1.date }.filter { seen.insert($0.date).inserted }
     }
 
     /// Whether the app counts as locked at `time` (``lockedAfter``): the widget then marks nothing.

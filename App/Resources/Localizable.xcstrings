@@ -4957,22 +4957,6 @@
         }
       }
     },
-    "Çizgiler aynı olayda geçen kayıtları ve elle kurulan bağları gösterir." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Lines show records in the same event and explicit relations."
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Çizgiler aynı olayda geçen kayıtları ve elle kurulan bağları gösterir."
-          }
-        }
-      }
-    },
     "Çıkış" : {
       "localizations" : {
         "en" : {
@@ -5753,22 +5737,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Eksik klasörleri ve şablonları oluştur"
-          }
-        }
-      }
-    },
-    "En az %lld ortak gün" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "At least %lld shared days"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "En az %lld ortak gün"
           }
         }
       }
@@ -6901,18 +6869,18 @@
         }
       }
     },
-    "Gün, o gün geçen her kayda bağlanır. Öteki çizgiler aynı olayda geçen kayıtları ve elle kurulan bağları gösterir." : {
+    "Gün, o gün geçen her kayda bağlanır. Öteki çizgiler elle kurulan bağları gösterir." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The day connects to every record mentioned that day. Other lines show records in the same event and explicit relations."
+            "value" : "The day connects to every record mentioned that day. Other lines show explicit relations."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Gün, o gün geçen her kayda bağlanır. Öteki çizgiler aynı olayda geçen kayıtları ve elle kurulan bağları gösterir."
+            "value" : "Gün, o gün geçen her kayda bağlanır. Öteki çizgiler elle kurulan bağları gösterir."
           }
         }
       }

@@ -76,9 +76,10 @@ struct VoiceOverCopyTests {
             GraphNode(id: "places/b.md", name: "Liman Ofis", kind: .place, count: 2),
             GraphNode(id: "day:2026-09-20", name: "2026-09-20", kind: .day, count: 1),
         ]
+        // A neighbor is any node across a day edge or a relation.
         let edges = [
-            GraphEdge(first: "people/a.md", second: "places/b.md", weight: 2),
-            GraphEdge(first: "people/a.md", second: "day:2026-09-20", weight: 1),
+            GraphEdge(first: "people/a.md", second: "places/b.md", weight: 1, kind: .relation),
+            GraphEdge(first: "day:2026-09-20", second: "people/a.md", weight: 1),
         ]
         let list = GraphAccessibleNode.list(from: GraphModel(nodes: nodes, edges: edges))
         #expect(list.map(\.id) == nodes.map(\.id))

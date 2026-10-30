@@ -31,12 +31,9 @@ import VaultIndex
         let queryStart = DispatchTime.now()
         let input = GraphInput(entities: entities, mentions: try index.graphMentions(kinds: GraphInput.kinds))
         let queryMs = milliseconds(since: queryStart)
-        var quarter = GraphFilter()
-        quarter.setDays(true)
         let cases: [(String, GraphFilter)] = [
-            ("days off, all", GraphFilter()),
-            ("days on, all", GraphFilter(days: true)),
-            ("days on, 90 days (switch)", quarter),
+            ("90 days (default)", GraphFilter()),
+            ("all", GraphFilter(period: .all)),
         ]
         for (name, filter) in cases {
             let computeStart = DispatchTime.now()

@@ -55,7 +55,6 @@ struct GraphView: View {
                     VStack(alignment: .leading, spacing: 0) {
                         InkScrolledMasthead(masthead)
                         GraphControls(
-                            maximumWeight: max(365, model.graph.edges.map(\.weight).max() ?? 1),
                             filter: $model.filter,
                             zoom: $model.zoom,
                             // The center control writes a zero pan: frame the layout as it is now.
@@ -149,12 +148,9 @@ struct GraphView: View {
     private var pageTitle: LocalizedStringKey { day == nil ? "Graph" : "Günün grafiği" }
     private var screenIdentifier: String { day == nil ? "screen.graph" : "screen.dayGraph" }
 
+    /// One rule for both graphs: days are the hubs, entities meet only through a written relation.
     private var explanation: Text {
-        day == nil
-            ? Text("Çizgiler aynı olayda geçen kayıtları ve elle kurulan bağları gösterir.")
-            : Text(
-                "Gün, o gün geçen her kayda bağlanır. Öteki çizgiler aynı olayda geçen kayıtları ve elle kurulan bağları gösterir."
-            )
+        Text("Gün, o gün geçen her kayda bağlanır. Öteki çizgiler elle kurulan bağları gösterir.")
     }
 
     private var legendRow: some View {
@@ -210,9 +206,10 @@ struct GraphView: View {
         }
         legendMark(kind: .person, title: "Kişiler")
         legendMark(kind: .place, title: "Konumlar")
+        // Days are always drawn: the hubs every other node hangs from.
         if day != nil {
             legendMark(kind: .day, title: "Gün")
-        } else if model.filter.days {
+        } else {
             legendMark(kind: .day, title: "Günler")
         }
         let types = GraphLegend.customTypeNames(

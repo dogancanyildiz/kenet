@@ -8,6 +8,8 @@ import VaultFormat
 /// Live graph layout: frame pacing, dragging, Reduce Motion and the drag/pan split.
 @MainActor struct GraphMotionTests {
     let today = CalendarDate("2026-10-04")!
+    /// Past the sample vault's last 30 days: a month-long graph has no day.
+    let later = CalendarDate("2027-01-01")!
 
     /// a-b-c chain plus an unconnected d.
     static let chain = GraphModel(
@@ -266,7 +268,7 @@ import VaultFormat
         // A changed graph rearranges from where the nodes are instead of starting over.
         live.filter.people = false
         await live.load(today: today)
-        #expect(live.graph.nodes.count == 4 && live.selected == "places/Liman Ofis.md")
+        #expect(live.graph.nodes.count == 16 && live.selected == "places/Liman Ofis.md")
         #expect(live.positions["places/Liman Ofis.md"] == arranged["places/Liman Ofis.md"])
     }
 
@@ -522,7 +524,7 @@ import VaultFormat
         screen.filter.people = false
         let loading = Task { await screen.load(today: today) }
         await Task.yield()
-        #expect(screen.isLoading && screen.graph.nodes.count == 10, "the load is under way")
+        #expect(screen.isLoading && screen.graph.nodes.count == 24, "the load is under way")
         let held = GraphPoint(x: 640, y: -480)
         screen.motion.beginDrag(try #require(screen.motion.index(of: place)), at: held)
         screen.motion.advance(steps: 40)
@@ -530,7 +532,8 @@ import VaultFormat
         #expect(moved != before[other])
         await loading.value
 
-        #expect(screen.graph.nodes.count == 4 && screen.motion.nodes.count == 4)
+        // Four places and the twelve days that mention one.
+        #expect(screen.graph.nodes.count == 16 && screen.motion.nodes.count == 16)
         let index = try #require(screen.motion.index(of: place))
         #expect(screen.motion.draggedIndex == index && screen.positions[place] == held, "the drag survived")
         #expect(screen.positions[other] == moved, "nodes start where they are now, not where loading began")
@@ -551,13 +554,14 @@ import VaultFormat
         let context = try TaskTestContext(sample: true)
         defer { context.clean() }
         await context.start()
-        let screen = GraphScreenModel(store: context.store)
-        await screen.load(today: today)
+        // A month long past: the ten entities alone, no day.
+        let screen = GraphScreenModel(store: context.store, filter: GraphFilter(period: .month))
+        await screen.load(today: later)
         _ = rest(screen.motion)
         let small = screen.camera
 
-        // Days on: 10 -> 24 nodes, rearranged from where the ten are.
-        screen.filter.days = true
+        // The last 90 days: 10 -> 24 nodes, rearranged from where the ten are.
+        screen.filter.period = .quarter
         await screen.load(today: today)
         #expect(screen.motion.nodes.count == 24 && screen.motion.isRunning)
         let framed = screen.camera
@@ -572,13 +576,13 @@ import VaultFormat
         let context = try TaskTestContext(sample: true)
         defer { context.clean() }
         await context.start()
-        let screen = GraphScreenModel(store: context.store)
-        await screen.load(today: today)
+        let screen = GraphScreenModel(store: context.store, filter: GraphFilter(period: .month))
+        await screen.load(today: later)
         _ = rest(screen.motion)
         let small = screen.camera
 
-        // Days on; before the new layout has been framed the index refreshes and loads again.
-        screen.filter.days = true
+        // Days come in; before the new layout has been framed the index refreshes and loads again.
+        screen.filter.period = .quarter
         let first = Task { await screen.load(today: today) }
         var turns = 0
         while screen.motion.nodes.count == 10 && turns < 100_000 {

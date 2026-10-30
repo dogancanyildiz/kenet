@@ -933,6 +933,46 @@
         }
       }
     },
+    "%lld dosya iCloud’dan iniyor." : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld file is downloading from iCloud."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld files are downloading from iCloud."
+                }
+              }
+            }
+          }
+        },
+        "tr" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld dosya iCloud’dan iniyor."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld dosya iCloud’dan iniyor."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "%lld görev" : {
       "localizations" : {
         "en" : {
@@ -1357,6 +1397,126 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%lld gün"
+          }
+        }
+      }
+    },
+    "%lld gün kopyası birleştirildi." : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld day copy merged."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld day copies merged."
+                }
+              }
+            }
+          }
+        },
+        "tr" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld gün kopyası birleştirildi."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld gün kopyası birleştirildi."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld gün kopyası birleştirilemedi; Tanılama’da duruyor." : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld day copy could not be merged; it stays in Diagnostics."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld day copies could not be merged; they stay in Diagnostics."
+                }
+              }
+            }
+          }
+        },
+        "tr" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld gün kopyası birleştirilemedi; Tanılama’da duruyor."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld gün kopyası birleştirilemedi; Tanılama’da duruyor."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld gün kopyası birleştiriliyor." : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Merging %lld day copy."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Merging %lld day copies."
+                }
+              }
+            }
+          }
+        },
+        "tr" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld gün kopyası birleştiriliyor."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld gün kopyası birleştiriliyor."
+                }
+              }
+            }
           }
         }
       }
@@ -5641,6 +5801,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Wake up early"
+          }
+        }
+      }
+    },
+    "Eşitleme durumu: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sync status: %@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eşitleme durumu: %@"
           }
         }
       }
@@ -11665,6 +11841,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Projesiz"
+          }
+        }
+      }
+    },
+    "Reddedilen iCloud indirme istekleri" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Refused iCloud download requests"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reddedilen iCloud indirme istekleri"
           }
         }
       }

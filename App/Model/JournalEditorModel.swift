@@ -77,7 +77,8 @@ final class JournalEditorModel {
                 in: draft, from: originalText, entities: store.knownEntities,
                 context: composer.pins.map(\.entity), choices: composer.choices)
             linked = composer.removingUnbound(from: linked)
-            try await store.changeJournal(on: day, to: linked)
+            // Checked again in the write's turn: a merge queued meanwhile must not be overwritten.
+            try await store.changeJournal(on: day, to: linked, base: originalText)
             await acceptSaved(draft: draft, linked: linked)
             return true
         } catch VaultStoreError.indexUpdateFailed {

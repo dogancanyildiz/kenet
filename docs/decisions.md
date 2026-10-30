@@ -106,7 +106,7 @@ timeline
     2026-10-23 : 4 karar : Görüntü referansı tavanı 320 : Günün grafiği : Açık bağ biçimi : CI kısaltması
     2026-10-26 : 4 karar : Açık bağ Core altyapısı : Açık bağ ekranları ve Graph : Açık bağın düğüm boyutu : Arayüz testleri iki işte
     2026-10-27 : 3 karar : Sheet dışı kontrast, gösterge rengi, ortak denetim iPad’de
-    2026-10-30 : 6 karar : Kilit ekranı widget'ı, hızlı giriş giriş noktaları, Kilit ekranı widget'ı: gizlilik ve takvim kaynağı, Eşitlemenin App bağlantısı, Kilit ekranı widget’ı, hızlı giriş, Graph gün merkezli, Core birlikte geçme silindi
+    2026-10-30 : 6 karar : Kilit ekranı widget’ı, hızlı giriş, eşitleme bağlantısı, Graph gün merkezli, Core birlikte geçme silindi
 ```
 
 Sayılar karar günlüğündeki satır sayısıdır. Toplam 321 satırdır.

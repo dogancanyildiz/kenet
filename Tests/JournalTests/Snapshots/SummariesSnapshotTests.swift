@@ -61,7 +61,7 @@ struct SummariesSnapshotShot: Sendable {
                 }
                 .environment(\.locale, snapshotLocale)
                 .environment(\.timeZone, snapshotTimeZone)
-                .environment(\.openSearch, {})
+                .environment(\.openSearch, .nothing)
                 .onPreferenceChange(SummariesReadyKey.self) { ready.isReady = $0 }
             }
         }
@@ -116,7 +116,7 @@ struct SummariesSnapshotShot: Sendable {
             .environment(\.calendar, calendar)
             .environment(\.timeZone, calendar.timeZone)
             .environment(\.colorScheme, scheme)
-            .environment(\.openSearch, {})
+            .environment(\.openSearch, .nothing)
             .onPreferenceChange(SummariesReadyKey.self) { ready.isReady = $0 }
             .transaction { $0.animation = nil }
             .frame(width: size.width, height: size.height)

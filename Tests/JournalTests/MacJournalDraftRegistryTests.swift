@@ -31,7 +31,7 @@
             .environment(location)
             .environment(GeofenceService(location: location, center: FakeGeofenceCenter(), defaults: defaults))
             .environment(IntentNavigation())
-            .environment(\.openSearch, {})
+            .environment(\.openSearch, .nothing)
             let mount = HostedLayout.Mount(view, size: CGSize(width: 1000, height: 2100))
             await mount.settle(rounds: 20)
             // The pages drew their "Günlük yazısı" rows: the link's label is in the tree.

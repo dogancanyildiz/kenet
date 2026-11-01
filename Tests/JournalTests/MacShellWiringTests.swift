@@ -125,7 +125,7 @@
                     .environment(CalendarService(source: IdleShellCalendarSource()))
                     .environment(LocationService(source: FakeLocationSource(), defaults: defaults))
                     .environment(IntentNavigation())
-                    .environment(\.openSearch, {})
+                    .environment(\.openSearch, .nothing)
                     .environment(\.locale, Locale(identifier: "tr_TR"))
                 view = AnyView(
                     appearance == nil ? AnyView(navigation) : AnyView(navigation.environment(\.colorScheme, scheme)))

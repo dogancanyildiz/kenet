@@ -46,7 +46,7 @@
             let header = try Self.draw(
                 InkPageHeader(verbatim: "Gün") { SearchButton() }
                     .environment(\.isSearchSheet, true)
-                    .environment(\.openSearch, {}),
+                    .environment(\.openSearch, .nothing),
                 size: size)
             #expect(
                 header.share(.secondaryText) >= bare.share(.secondaryText) + Self.icon,

@@ -67,7 +67,7 @@
             .environment(\.calendar, makeSnapshotCalendar())
             .environment(\.timeZone, snapshotTimeZone)
             .environment(\.clockNow, { snapshotNow })
-            .environment(\.openSearch, {})
+            .environment(\.openSearch, .nothing)
             .environment(\.openSettings, {})
             .onPreferenceChange(GoalsStripReadyKey.self) { ready.isReady = $0 }
             await SnapshotHost.assertView(
@@ -86,7 +86,7 @@
             }
             .environment(\.locale, snapshotLocale)
             .environment(\.timeZone, snapshotTimeZone)
-            .environment(\.openSearch, {})
+            .environment(\.openSearch, .nothing)
             .environment(\.openSettings, {})
             await SnapshotHost.assertView(
                 colorScheme: .light, dynamicType: snapshotCase.dynamicType, increaseContrast: false,
@@ -108,7 +108,7 @@
                 }
                 .environment(\.locale, snapshotLocale)
                 .environment(\.timeZone, snapshotTimeZone)
-                .environment(\.openSearch, {})
+                .environment(\.openSearch, .nothing)
                 .environment(\.openSettings, {})
             }
         }

@@ -43,7 +43,7 @@
             .environment(\.calendar, calendar)
             .environment(\.timeZone, calendar.timeZone)
             .environment(\.clockNow, { now })
-            .environment(\.openSearch, {})
+            .environment(\.openSearch, .nothing)
             .environment(\.colorScheme, .light)
             .frame(width: size.width, height: size.height)
 

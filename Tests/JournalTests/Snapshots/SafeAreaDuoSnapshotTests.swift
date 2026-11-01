@@ -106,7 +106,7 @@
             .environment(IntentNavigation())
             .environment(\.locale, snapshotLocale)
             .environment(\.timeZone, snapshotTimeZone)
-            .environment(\.openSearch, {})
+            .environment(\.openSearch, .nothing)
             // Without an action the masthead hides its Settings button.
             .environment(\.openSettings, {})
         }

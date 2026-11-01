@@ -37,7 +37,7 @@
                 }
             }
             .environment(\.locale, Locale(identifier: "tr_TR"))
-            .environment(\.openSearch, {})
+            .environment(\.openSearch, .nothing)
             .environment(\.colorScheme, .light)
             .frame(width: size.width, height: size.height)
 

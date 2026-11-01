@@ -50,7 +50,7 @@
             .environment(\.calendar, calendar)
             .environment(\.timeZone, calendar.timeZone)
             .environment(\.clockNow, { now })
-            .environment(\.openSearch, {})
+            .environment(\.openSearch, .nothing)
             .environment(\.colorScheme, scheme)
             .onPreferenceChange(GoalsStripReadyKey.self) { ready.isReady = $0 }
             .frame(width: 720, height: 900)

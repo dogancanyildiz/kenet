@@ -85,7 +85,7 @@ Harita konuları gösterir; satırların tam metni karar günlüğündedir. Bir 
 
 ```mermaid
 timeline
-    title Karar takvimi, 322 karar
+    title Karar takvimi, 323 karar
     2026-10-02 : 58 karar : Ürün kapsamı ve platform : Kasa biçimi ve ayrıştırıcı : Git, sürüm ve CI
     2026-10-03 : 19 karar : Yazma doğrulaması : İndeks ve arama : Varlık sayfası ve hızlı giriş
     2026-10-04 : 31 karar : Birleştirme ve kayıp yok : VaultStore ve dosya izleme : Görev, hedef ve otomasyon : Özet, graph ve harita
@@ -107,9 +107,10 @@ timeline
     2026-10-26 : 4 karar : Açık bağ Core altyapısı : Açık bağ ekranları ve Graph : Açık bağın düğüm boyutu : Arayüz testleri iki işte
     2026-10-27 : 3 karar : Sheet dışı kontrast, gösterge rengi, ortak denetim iPad’de
     2026-10-30 : 7 karar : Kilit ekranı widget’ı, hızlı giriş, eşitleme bağlantısı, Graph gün merkezli, ileri tarihli görev, Core birlikte geçme silindi
+    2026-11-01 : 1 karar : Mac menü komutları kimlikli eylem, App sahnesi döngüsü
 ```
 
-Sayılar karar günlüğündeki satır sayısıdır. Toplam 322 satırdır.
+Sayılar karar günlüğündeki satır sayısıdır. Toplam 323 satırdır.
 
 ## Karar günlüğü
 
@@ -439,6 +440,7 @@ Sayılar karar günlüğündeki satır sayısıdır. Toplam 322 satırdır.
 | 2026-10-30 | Graph gün merkezlidir: gün düğümleri her zaman çizilir ve o gün geçen, ekrandaki her varlığa ağırlık 1 ile bağlanır; kişi, konum ve özel tip birbirine yalnız açık bağla (frontmatter wikilink alanları ve `related`) bağlanır, birlikte geçme kenarı yoktur; eşik ve "Günler" süzgeç satırı kalkar, dönem varsayılanı "Son 90 gün"dür ("Tümü" seçilebilir); günün grafiği aynı kuralı izler | Kullanıcı kararı 83 (2026-10-30): aynı gün ya da blokta geçmek karşılaşma demek değildir; ilişkiyi kullanıcının yazdığı bağ söyler. 2026-10-04 (kenar ağırlığı ortak gün sayısı), 2026-10-22 (blok düzeyinde birlikte geçme ve paragraf segmentleri; Graph için) ve 2026-10-23 (günün grafiğinde aynı bloktakiler arası bağ, eşik) kararlarının Graph'a ilişkin kısımlarını değiştirir |
 | 2026-10-30 | Bugün'ün Görevler bölümü bugünün dosyasına yazılan açık görevi bitiş tarihi ileride olsa da gösterir ve kalan görev sayar (`dayTasks(on:)`: `file=? AND (dueDate IS NULL OR status NOT IN ('done','cancelled'))`; `TaskGroups.created`). Günü kapat akışı bu görevleri listelemez ve "Günü kapat" satırı yalnız akışın listeleyeceği görevlere bakar (`closeDayTaskCount`) | Kullanıcı kararı 82: girilen görev ana sayfadan kaybolmamalı. Akışta Yarına seçimi zaten verilmiş bitişi geri çekerdi. 2026-10-02 "tarihsiz görev yalnız oluşturulduğu gün Bugün'de görünür" kararını genişletir |
 | 2026-10-30 | Graph sorgusu bloklara bakmaz: Core yalnız toplam ve gün başına anma döndürür; blok ve paragraf segmenti grupları (`GraphMentions.Day.groups`), `ParagraphSegments` ve `cooccurrenceWeights` silindi. Başlık ve frontmatter bağlantıları anma sayılmaya devam eder; indeks şeması değişmez | Kullanıcı kararı 83 ile Graph birlikte geçme kenarını bıraktı; kullanıcı 2026-10-30'da Core kodunun silinmesini onayladı. 2026-10-22 "paragraf segmentleri" ve "aynı blokta birlikte geçme" kararlarının Core kısmını kapatır |
+| 2026-11-01 | Mac'te odaklanmış değer ve ortam eylemleri kimlikli `ShellAction` olur ve sahibi onları bir kez üretir (`init` içinde ya da tuttuğu `@Observable` nesnede); kapanış türünde odaklanmış değer ya da ortam eylemi yazılmaz | Kapanış her body'de yeni değer sayılır: `JournalApp` sahnesi yeniden kurulur, pencere içeriği yeni kapanış üretir ve döngü boşta da durmaz (Debug'da saniyede ~23 tur, ana iş parçacığı %100 meşgul; TestFlight 362 Release örneklerinde aynı imza). Düzeltmeyle aynı ekran turunda `JournalApp.body` 12 827 → 13, ana iş parçacığı %100 → %22 |
 
 Satır sırası ekleme sırasıdır; tablonun ilk satırları tarih sırasında değildir. Sonradan değişen bir kararın gerekçe hücresi değişikliği tarihiyle anar. Güncel durum notları kararın verildiği günden sonraki gerçek durumu söyler.
 

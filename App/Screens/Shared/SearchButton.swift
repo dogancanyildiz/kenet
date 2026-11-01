@@ -1,11 +1,12 @@
 import SwiftUI
 
 private struct OpenSearchKey: EnvironmentKey {
-    static let defaultValue: @MainActor @Sendable () -> Void = {}
+    static let defaultValue = ShellAction.nothing
 }
 
 extension EnvironmentValues {
-    var openSearch: @MainActor @Sendable () -> Void {
+    /// Made once by its owner (``ShellAction``): a new value here updates every view below.
+    var openSearch: ShellAction {
         get { self[OpenSearchKey.self] }
         set { self[OpenSearchKey.self] = newValue }
     }
@@ -70,7 +71,7 @@ struct SearchButton: View {
     }
 
     private var button: some View {
-        Button("Ara", systemImage: "magnifyingglass", action: openSearch)
+        Button("Ara", systemImage: "magnifyingglass") { openSearch() }
             .labelStyle(.iconOnly)
     }
 }
@@ -95,14 +96,13 @@ private struct SearchSheetModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         content.sheet(isPresented: $isPresented) {
+            // Search inside the sheet means back to the results (``SearchView``, `searchSheetContext`).
             #if os(iOS)
                 SearchView(store: store)
-                    .environment(\.openSearch, { isPresented = true })
                     .environment(\.shellKind, shellKind)
                     .modifier(SearchSheetSizing(shellKind: shellKind))
             #else
                 SearchView(store: store)
-                    .environment(\.openSearch, { isPresented = true })
             #endif
         }
     }
@@ -160,11 +160,12 @@ private struct SearchSheetModifier: ViewModifier {
 
 #if os(macOS)
     struct SearchNavigationKey: FocusedValueKey {
-        typealias Value = () -> Void
+        typealias Value = ShellAction
     }
 
     extension FocusedValues {
-        var openSearch: (() -> Void)? {
+        /// The menu bar's "Ara" and "Hızlı geçiş"; made once by its owner (``ShellAction``).
+        var openSearch: ShellAction? {
             get { self[SearchNavigationKey.self] }
             set { self[SearchNavigationKey.self] = newValue }
         }

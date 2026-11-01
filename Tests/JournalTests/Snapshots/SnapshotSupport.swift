@@ -315,7 +315,7 @@
                 .environment(\.calendar, makeSnapshotCalendar())
                 .environment(\.timeZone, snapshotTimeZone)
                 .environment(\.clockNow, { clock })
-                .environment(\.openSearch, {})
+                .environment(\.openSearch, .nothing)
                 .environment(\.openSettings, {})
         }
 

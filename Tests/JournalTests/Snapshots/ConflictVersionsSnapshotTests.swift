@@ -57,7 +57,7 @@
                 }
                 .environment(\.locale, snapshotLocale)
                 .environment(\.timeZone, snapshotTimeZone)
-                .environment(\.openSearch, {})
+                .environment(\.openSearch, .nothing)
             }
         }
     }

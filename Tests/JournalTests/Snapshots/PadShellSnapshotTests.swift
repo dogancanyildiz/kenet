@@ -206,7 +206,7 @@
                 .environment(\.calendar, makeSnapshotCalendar())
                 .environment(\.colorScheme, colorScheme.colorScheme)
                 .environment(\.dynamicTypeSize, dynamicType.size)
-                .environment(\.openSearch, {})
+                .environment(\.openSearch, .nothing)
                 .environment(\.openSettings, {})
                 .tint(Color.ink.accent)
                 .transaction { $0.animation = nil }

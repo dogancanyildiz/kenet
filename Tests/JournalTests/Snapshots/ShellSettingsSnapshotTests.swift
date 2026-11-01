@@ -104,7 +104,7 @@ import Testing
                 )
                 .environment(\.timeZone, snapshotTimeZone)
                 .environment(\.clockNow, { snapshotNow })
-                .environment(\.openSearch, {})
+                .environment(\.openSearch, .nothing)
                 .environment(
                     \.vaultPathDisplayOverride,
                     screen == .vault ? VaultPathDisplay.snapshotExample : nil)

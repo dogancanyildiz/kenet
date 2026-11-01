@@ -71,7 +71,7 @@
                 .environment(NotificationService(center: FakeNotificationCenter(), defaults: defaults))
                 .environment(CalendarService(source: DayGraphHostedCalendarSource()))
                 .environment(LocationService(source: FakeLocationSource(), defaults: defaults))
-                .environment(\.openSearch, {})
+                .environment(\.openSearch, .nothing)
                 .environment(\.locale, Locale(identifier: "tr_TR"))
                 .inkPage()
         }

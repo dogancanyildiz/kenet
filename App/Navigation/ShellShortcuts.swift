@@ -12,9 +12,9 @@
 
         var body: some View {
             Group {
-                Button("Ara", action: openSearch)
+                Button("Ara") { openSearch() }
                     .keyboardShortcut(JournalShortcut.search.key, modifiers: JournalShortcut.search.modifiers)
-                Button("Hızlı geçiş", action: openSearch)
+                Button("Hızlı geçiş") { openSearch() }
                     .keyboardShortcut(
                         JournalShortcut.quickSwitch.key, modifiers: JournalShortcut.quickSwitch.modifiers)
                 Button("Bugüne git") { navigation.goToToday(shell: shell) }

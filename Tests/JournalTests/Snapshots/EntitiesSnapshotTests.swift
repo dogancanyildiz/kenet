@@ -120,7 +120,7 @@
                         .environment(IntentNavigation())
                         .environment(\.locale, snapshotLocale)
                         .environment(\.timeZone, snapshotTimeZone)
-                        .environment(\.openSearch, {})
+                        .environment(\.openSearch, .nothing)
                         .onPreferenceChange(ImportantDatesReadyKey.self) { datesReady.isReady = $0 }
                 }
             )

@@ -23,7 +23,8 @@
             defer { context.clean() }
             await context.start()
             let mount = HostedLayout.Mount(
-                SearchView(store: context.store).environment(\.openSearch, {}), size: CGSize(width: 700, height: 700))
+                SearchView(store: context.store).environment(\.openSearch, .nothing),
+                size: CGSize(width: 700, height: 700))
             defer { mount.close() }
             guard await HostedControls.isAvailable(mount, until: { Self.has("button.search.close", mount) }) else {
                 return
@@ -43,7 +44,7 @@
                 SearchNoteView(store: context.store, file: "journal/\(context.today).md")
             }
             .inkSheetDismissAction { ended.count += 1 }
-            .environment(\.openSearch, {})
+            .environment(\.openSearch, .nothing)
             let mount = HostedLayout.Mount(note, size: CGSize(width: 700, height: 700))
             defer { mount.close() }
             guard await HostedControls.isAvailable(mount, until: { Self.has("button.search.note.close", mount) })
@@ -64,7 +65,7 @@
             let destination = SearchDestination.note("journal/\(context.today).md")
             model.path = [destination]
             let mount = HostedLayout.Mount(
-                SearchView(store: context.store, model: model).environment(\.openSearch, {}),
+                SearchView(store: context.store, model: model).environment(\.openSearch, .nothing),
                 size: CGSize(width: 700, height: 700))
             defer { mount.close() }
             guard await HostedControls.isAvailable(mount, until: { Self.has("button.search.note.close", mount) })

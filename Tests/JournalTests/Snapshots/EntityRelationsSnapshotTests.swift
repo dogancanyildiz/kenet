@@ -30,7 +30,7 @@
                     }
                 }
                 .environment(\.locale, snapshotLocale)
-                .environment(\.openSearch, {})
+                .environment(\.openSearch, .nothing)
             }
         }
     }

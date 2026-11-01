@@ -1252,6 +1252,7 @@ Uzantı `AddEventIntent` çağırmaz: intent uygulamanın `IndexStore` nesnesine
 | iPad | Boyut sınıfına göre: düzenli × düzenli sahnede Mac'in bölünmüş kabuğu (1000 pt ve üstünde üç sütun, altında iki), sıkışık sahnede (Split View, Slide Over) iPhone sekmeleri. Kanban ve zaman çizelgesi bölünmüş kabukta Mac biçimindedir; dokunarak sürükle bırak |
 | iPhone Duo iç ekranı | iPad ile aynı bölünmüş kabuk, iki sütun kademesinde; dış ekran iPhone sekmeleri |
 | Mac hızlı giriş | MenuBarExtra ve Carbon `RegisterEventHotKey` nonactivating bir `NSPanel` açar. Panel ortak `QuickEntryBar`, `QuickEntryModel` ve `IndexStore` kullanır. Kısayol UserDefaults'ta durur. Uygulama Dock'ta kalır |
+| Mac menü komutları | "Ara", "Hızlı geçiş" ve "Bugüne git" pencereden odaklanmış değerle gelir (`focusedSceneValue`). Uygulamanın sahnesi (`JournalApp`) bu değerleri okur. Değer kimlikli bir `ShellAction` olur ve sahibi onu bir kez üretir: `init` içinde ya da tuttuğu nesnede. Ortam değeri `\.openSearch` aynı kurala uyar. Kapanış her body'de yeni bir değer sayılır: sahne yeniden kurulur, pencere içeriği yeni kapanış üretir ve uygulama boşta da durmadan güncellenir |
 | Ortak | Ekranlar ortak SwiftUI görünümleridir; düzen platforma göre değişir |
 
 Ekranların ayrıntısı için bkz. [Ekranlar](screens.md).

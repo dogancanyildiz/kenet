@@ -156,7 +156,7 @@
                 .environment(CalendarService(source: PinnedShellCalendarSource()))
                 .environment(LocationService(source: FakeLocationSource(), defaults: defaults))
                 .environment(IntentNavigation())
-                .environment(\.openSearch, {})
+                .environment(\.openSearch, .nothing)
                 .environment(\.locale, Locale(identifier: "tr_TR"))
             mount = HostedLayout.Mount(view, size: Self.size, bridgesToolbar: true)
             releaseJournalMark = await HostedJournalWindow.claim(mount.window)

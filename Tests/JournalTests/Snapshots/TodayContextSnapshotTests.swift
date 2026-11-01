@@ -107,7 +107,7 @@
             .environment(\.calendar, makeSnapshotCalendar())
             .environment(\.timeZone, snapshotTimeZone)
             .environment(\.clockNow, { snapshotNow })
-            .environment(\.openSearch, {})
+            .environment(\.openSearch, .nothing)
             // Without an action the masthead hides its Settings button.
             .environment(\.openSettings, {})
             .onPreferenceChange(GoalsStripReadyKey.self) { goalsReady.isReady = $0 }

@@ -260,7 +260,7 @@ struct QuickEntryWordSpacingTests {
                     }
                 }
             }
-            .environment(\.openSearch, {})
+            .environment(\.openSearch, .nothing)
             .environment(\.locale, Locale(identifier: "tr_TR"))
             .frame(width: 640, alignment: .leading)
         }

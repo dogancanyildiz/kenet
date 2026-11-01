@@ -312,7 +312,7 @@
                 .environment(\.calendar, calendar)
                 .environment(\.timeZone, calendar.timeZone)
                 .environment(\.clockNow, { now })
-                .environment(\.openSearch, {})
+                .environment(\.openSearch, .nothing)
                 .environment(\.colorScheme, appearance == .darkAqua ? .dark : .light)
                 .tint(Color.ink.accent)
                 .frame(width: size.width, height: size.height)

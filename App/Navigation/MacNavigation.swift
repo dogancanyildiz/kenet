@@ -15,6 +15,10 @@ struct MacNavigation: View {
     @State private var taskSelection = TaskSelectionAnswer()
     /// The sidebar's project rows (`IndexStore.computeProjects()`); a reload keeps them until it answers.
     @State private var sidebarProjects: [String] = []
+    #if os(macOS)
+        /// The menu bar's "Bugüne git". Made once (``ShellAction``).
+        @State private var goToToday: ShellAction
+    #endif
     #if os(iOS)
         @State private var columnVisibility = NavigationSplitViewVisibility.automatic
         @State private var shellWidth: CGFloat = 0
@@ -26,6 +30,9 @@ struct MacNavigation: View {
         self.store = store
         _kanbanTasks = State(initialValue: TasksModel(store: store))
         _navigation = State(initialValue: navigation)
+        #if os(macOS)
+            _goToToday = State(initialValue: ShellAction { [navigation] in navigation.goToToday(shell: .split) })
+        #endif
     }
 
     var body: some View {
@@ -127,12 +134,7 @@ struct MacNavigation: View {
             if let answer = await TaskSelectionAnswer.load(request, store: store) { taskSelection = answer }
         }
         #if os(macOS)
-            .focusedSceneValue(
-                \.goToToday,
-                {
-                    navigation.section = .today
-                    navigation.selectedDay = nil
-                })
+            .focusedSceneValue(\.goToToday, goToToday)
         #endif
     }
 
@@ -416,11 +418,12 @@ struct MacEmptyDetail: View {
 
 #if os(macOS)
     struct TodayNavigationKey: FocusedValueKey {
-        typealias Value = () -> Void
+        typealias Value = ShellAction
     }
 
     extension FocusedValues {
-        var goToToday: (() -> Void)? {
+        /// The menu bar's "Bugüne git"; made once by the shell (``ShellAction``).
+        var goToToday: ShellAction? {
             get { self[TodayNavigationKey.self] }
             set { self[TodayNavigationKey.self] = newValue }
         }

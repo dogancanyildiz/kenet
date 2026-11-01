@@ -18,6 +18,9 @@ final class SearchModel {
     private(set) var results: [SearchItem] = []
     /// Pages opened from the results inside the search sheet; empty while the results show.
     var path: [SearchDestination] = []
+    /// Asks for search inside the open sheet (⌘F, a page's magnifier); the sheet focuses its
+    /// field on each one (``SearchView``).
+    private(set) var fieldFocusRequests = 0
     private(set) var recentQueries: [String] = []
     private(set) var selectedID: String?
     private(set) var isSearching = false
@@ -71,6 +74,12 @@ final class SearchModel {
 
     /// Back from an opened page to the result list.
     func showResults() { path = [] }
+
+    /// Search asked for again while the sheet is open: back to the results, the field focused.
+    func returnToField() {
+        showResults()
+        fieldFocusRequests += 1
+    }
 
     func activate(_ item: SearchItem) -> SearchDestination? {
         guard resultRoot == store.vaultURL, results.contains(item) else { return nil }

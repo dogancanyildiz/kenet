@@ -123,7 +123,7 @@
             // Pages the shell would hold (`MacNavigation` sets `.split` for its children); the
             // shell cases get it from `AdaptiveNavigation` itself, as in production.
             .environment(\.shellKind, screen.usesShell ? .tabs : .split)
-            .environment(\.openSearch, {})
+            .environment(\.openSearch, .nothing)
             .environment(\.openSettings, {})
             .tint(Color.ink.accent)
             .transaction { $0.animation = nil }

@@ -4,20 +4,22 @@ import VaultFormat
 struct SearchView: View {
     let store: IndexStore
     @State private var model: SearchModel
+    /// Search asked for inside the sheet: ⌘F and a page's magnifier. Made once (``ShellAction``).
+    @State private var returnToField: ShellAction
     @FocusState private var searchFocused: Bool
     @Environment(\.dismiss) private var dismiss
 
     init(store: IndexStore, initialQuery: String = "") {
-        self.store = store
         let model = SearchModel(store: store)
         model.query = initialQuery
-        _model = State(initialValue: model)
+        self.init(store: store, model: model)
     }
 
     /// The caller keeps the model (and with it the pages open in the sheet).
     init(store: IndexStore, model: SearchModel) {
         self.store = store
         _model = State(initialValue: model)
+        _returnToField = State(initialValue: ShellAction { [model] in model.returnToField() })
     }
 
     var body: some View {
@@ -52,18 +54,11 @@ struct SearchView: View {
         .inkSheetDismissAction { dismiss() }
         #if os(macOS)
             .frame(minWidth: 520, idealWidth: 650, minHeight: 460, idealHeight: 650)
-            .focusedSceneValue(
-                \.openSearch,
-                {
-                    model.showResults()
-                    searchFocused = true
-                })
+            .focusedSceneValue(\.openSearch, returnToField)
         #endif
-        .searchSheetContext {
-            model.showResults()
-            searchFocused = true
-        }
+        .searchSheetContext(returnToField)
         .onChange(of: model.path) { _, path in if path.isEmpty { searchFocused = true } }
+        .onChange(of: model.fieldFocusRequests) { searchFocused = true }
         .onChange(of: store.vaultURL) { _, _ in model.reloadHistory() }
         .task { searchFocused = true }
         .task(id: store.vaultURL) { model.reloadHistory() }
@@ -177,7 +172,7 @@ extension View {
     /// What search means on a page opened inside the search sheet: back to the results. Mac draws
     /// the manşet magnifier only in this context (``SearchButton``): the window's toolbar search
     /// is behind the sheet.
-    func searchSheetContext(showResults: @escaping @MainActor @Sendable () -> Void) -> some View {
+    func searchSheetContext(_ showResults: ShellAction) -> some View {
         environment(\.isSearchSheet, true)
             .environment(\.openSearch, showResults)
     }

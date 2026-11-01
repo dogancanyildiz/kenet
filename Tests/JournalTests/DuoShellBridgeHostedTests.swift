@@ -325,7 +325,7 @@
                         GeofenceService(location: location, center: FakeGeofenceCenter(), defaults: defaults)
                     )
                     .environment(intent)
-                    .environment(\.openSearch, {})
+                    .environment(\.openSearch, .nothing)
                     .transaction { $0.animation = nil }
                 var failure: (any Error)?
                 await SnapshotHostGate.exclusive {

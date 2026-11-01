@@ -82,7 +82,7 @@
             ) {
                 Self.hostedView(snapshotCase.subject)
                     .environment(\.locale, snapshotLocale)
-                    .environment(\.openSearch, {})
+                    .environment(\.openSearch, .nothing)
             }
         }
 

@@ -6,7 +6,8 @@ struct ContentView: View {
     @Environment(IntentNavigation.self) private var intentNavigation
     @Environment(NotificationService.self) private var notifications
     @AppStorage(EntryPointsTipPreference.key) private var entryPointsTipDismissed = false
-    @State private var searchPresented = false
+    /// Kept as an object so the search action is made once and still reaches the sheet.
+    @State private var search = SearchPresentation()
 
     /// The hint is session chrome. `AppRootScreen` only chooses onboarding, the inaccessible
     /// vault, or the main shell; it does not present views.
@@ -57,10 +58,10 @@ struct ContentView: View {
                     }
             }
         }
-        .environment(\.openSearch, { searchPresented = true })
-        .searchSheet(isPresented: $searchPresented, store: store)
+        .environment(\.openSearch, search.open)
+        .searchSheet(isPresented: $search.isPresented, store: store)
         #if os(macOS)
-            .focusedSceneValue(\.openSearch, { searchPresented = true })
+            .focusedSceneValue(\.openSearch, search.open)
         #endif
         .sheet(item: Binding(get: { store.importModel }, set: { store.importModel = $0 })) { model in
             NavigationStack { VaultImportView(store: store, model: model) }
@@ -81,8 +82,8 @@ struct ContentView: View {
                     }
             }
         }
-        .onChange(of: intentNavigation.todayRequest) { searchPresented = false }
-        .onChange(of: notifications.navigationRequest?.id) { _, _ in searchPresented = false }
+        .onChange(of: intentNavigation.todayRequest) { search.isPresented = false }
+        .onChange(of: notifications.navigationRequest?.id) { _, _ in search.isPresented = false }
         .task {
             #if DEBUG
                 if let path = AppLaunchPolicy.uiTestVaultPath() {
@@ -104,6 +105,18 @@ struct ContentView: View {
 
     private var entryPointsTip: LocalizedStringKey {
         LocalizedStringKey(EntryPointPlatform.tip(for: .current).key)
+    }
+}
+
+/// Whether the global search sheet is up, and the one action that raises it (``ShellAction``):
+/// the shell's magnifiers and, on the Mac, the menu bar's "Ara" and "Hızlı geçiş".
+@MainActor @Observable
+final class SearchPresentation {
+    var isPresented = false
+    @ObservationIgnored private(set) var open = ShellAction.nothing
+
+    init() {
+        open = ShellAction { [weak self] in self?.isPresented = true }
     }
 }
 

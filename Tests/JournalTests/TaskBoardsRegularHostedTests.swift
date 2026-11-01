@@ -148,7 +148,7 @@
             }
             .environment(\.shellKind, shell)
             .environment(\.locale, snapshotLocale)
-            .environment(\.openSearch, {})
+            .environment(\.openSearch, .nothing)
             .transaction { $0.animation = nil }
             var failure: (any Error)?
             await SnapshotHostGate.exclusive {
@@ -310,7 +310,7 @@
             }
             .environment(\.shellKind, .split)
             .environment(\.locale, snapshotLocale)
-            .environment(\.openSearch, {})
+            .environment(\.openSearch, .nothing)
             .transaction { $0.animation = nil }
             var failure: (any Error)?
             await SnapshotHostGate.exclusive {

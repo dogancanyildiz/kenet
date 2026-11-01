@@ -93,7 +93,7 @@
             .environment(location)
             .environment(\.locale, snapshotLocale)
             .environment(\.timeZone, snapshotTimeZone)
-            .environment(\.openSearch, {})
+            .environment(\.openSearch, .nothing)
             .onPreferenceChange(GoalsStripReadyKey.self) { ready.isReady = $0 }
             await SnapshotHost.assertView(
                 colorScheme: variant.colorScheme, dynamicType: variant.dynamicType,
@@ -154,7 +154,7 @@
                 NavigationStack { view }
                     .environment(\.locale, snapshotLocale)
                     .environment(\.timeZone, snapshotTimeZone)
-                    .environment(\.openSearch, {})
+                    .environment(\.openSearch, .nothing)
             }
         }
     }

@@ -71,7 +71,7 @@
             let box = ActionBox()
 
             let inside = HostedLayout.Mount(
-                HeaderProbe(box: box).searchSheetContext { model.showResults() },
+                HeaderProbe(box: box).searchSheetContext(ShellAction { model.showResults() }),
                 size: CGSize(width: 640, height: 80))
             defer { inside.close() }
             await inside.settle()
@@ -107,7 +107,7 @@
 
         @MainActor
         final class ActionBox {
-            var openSearch: (@MainActor @Sendable () -> Void)?
+            var openSearch: ShellAction?
             var isSearchSheet: Bool?
         }
 

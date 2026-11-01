@@ -98,7 +98,7 @@
                 }
                 SearchButton()
             }
-            .environment(\.openSearch, {})
+            .environment(\.openSearch, .nothing)
             let mount = HostedLayout.Mount(header, size: CGSize(width: 500, height: 120))
             defer { mount.close() }
             guard await HostedControls.isAvailable(mount, until: { HostedControls.node("probe.add", in: mount) != nil })
@@ -116,7 +116,7 @@
             let opened = ShellSheetKindHostedTests.Counter()
             let header = InkPageHeader(verbatim: "Not") { SearchButton() }
                 .environment(\.isSearchSheet, true)
-                .environment(\.openSearch, { opened.count += 1 })
+                .environment(\.openSearch, ShellAction { opened.count += 1 })
             let mount = HostedLayout.Mount(header, size: CGSize(width: 500, height: 120))
             defer { mount.close() }
             let search = String(localized: "Ara")
@@ -465,7 +465,7 @@
                 .environment(CalendarService(source: QuietCalendar()))
                 .environment(LocationService(source: FakeLocationSource(), defaults: defaults))
                 .environment(IntentNavigation())
-                .environment(\.openSearch, {})
+                .environment(\.openSearch, .nothing)
         }
 
         @MainActor private final class QuietCalendar: CalendarEventSource {

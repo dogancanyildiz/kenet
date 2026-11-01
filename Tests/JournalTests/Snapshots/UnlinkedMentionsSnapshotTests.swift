@@ -41,7 +41,7 @@
                     .environment(IntentNavigation())
                     .environment(\.locale, snapshotLocale)
                     .environment(\.timeZone, snapshotTimeZone)
-                    .environment(\.openSearch, {})
+                    .environment(\.openSearch, .nothing)
                     .onPreferenceChange(ImportantDatesReadyKey.self) { ready.dates = $0 }
                     .onPreferenceChange(UnlinkedMentionsReadyKey.self) { ready.mentions = $0 }
                 }

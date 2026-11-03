@@ -73,6 +73,11 @@ vault/
 .idea/
 .vscode/
 .nodeterm/
+# Ajan raporları, brief'ler ve iş worktree'leri depo klasörünün altında durur; repoya girmez
+# (AGENTS.md: rapor ve not dosyası repoya konmaz). Rapor klasöründe gerçek kasadan ekran
+# görüntüleri olabilir; bu satırları kaldırma, `git add -f` ile ekleme.
+raporlar/
+.worktrees/
 
 # ----------------------------------------
 # Genel

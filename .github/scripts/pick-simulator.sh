@@ -1,12 +1,13 @@
 #!/bin/sh
-# Yerel betiklerin simülatör seçimi: record-screen-snapshots.sh ve screen-tour.sh aynı aygıtı alsın.
+# Tek simülatör seçimi: record-screen-snapshots.sh, screen-tour.sh ve CI'daki
+# .github/actions/ios-build aynı aygıtı alsın.
 #
 #   sh .github/scripts/pick-simulator.sh <iPhone|iPad>
 #
-# Tek satır yazar: "<udid> <ad> iOS <sürüm>". CI tek bir iOS runtime'ı taşır; yerelde birden çok
-# olabilir. Referanslar CI ile aynı çizilsin diye en eski kurulu iOS runtime'ındaki aygıt seçilir
-# (kimlikle, ad belirsiz kalmasın). iPad'de yalnız tercih listesindeki aygıtlar sayılır: iPad
-# referansları 13 inçlik ekranda çizilir; liste .github/actions/ios-build ile aynıdır.
+# Tek satır yazar: "<udid> <ad> iOS <sürüm>". Hem CI imajı (macos-26: iOS 26.2 ve 26.5) hem yerel
+# makine birden çok runtime taşıyabilir. Referanslar kapının çizdiği runtime'da kaydedilsin diye
+# en eski kurulu iOS runtime'ındaki aygıt seçilir (kimlikle, ad belirsiz kalmasın). iPad'de yalnız
+# tercih listesindeki aygıtlar sayılır: iPad referansları 13 inçlik ekranda çizilir.
 set -eu
 
 FAMILY="${1:-}"

@@ -21,7 +21,6 @@ enum SearchDestination: Hashable {
     case entity(String)
     case day(CalendarDate)
     case note(String)
-    case newNote
 }
 
 enum SearchScope: String, CaseIterable, Identifiable {
@@ -42,7 +41,8 @@ enum SearchScope: String, CaseIterable, Identifiable {
         case .all: true
         case .events: item.group == .events
         case .tasks: item.group == .tasks
-        case .people: item.group == .people
+        // "Kişiler" shows people, places and custom-type entities (docs/screens.md, Arama).
+        case .people: [.people, .places, .entities].contains(item.group)
         case .days: if case .day = item.destination { true } else { false }
         }
     }

@@ -103,8 +103,11 @@ import VaultIndex
             ])
         #expect(graph.nodes.first { $0.id == a }?.count == 5)
         #expect(graph.nodes.first { $0.id == recent[0] }?.count == 5)
-        // The default 90 days add the day a month back; the day 120 days back only "Tümü" shows.
-        #expect(GraphModel.compute(input: input, filter: GraphFilter(), today: today).nodes.count == 3 + 3)
+        // The default is "Bu ay" (the 30 days above); 90 days add the day a month back; the day
+        // 120 days back only the model's whole range (no longer offered in the UI) shows.
+        #expect(GraphFilter().period == .month)
+        #expect(GraphModel.compute(input: input, filter: GraphFilter(), today: today).nodes.count == 3 + 2)
+        #expect(GraphModel.compute(input: input, filter: GraphFilter(period: .quarter), today: today).nodes.count == 3 + 3)
         #expect(GraphModel.compute(input: input, filter: GraphFilter(period: .all), today: today).nodes.count == 3 + 5)
         // A period without a written day keeps the relation.
         let empty = GraphModel.compute(input: input, filter: filter, today: today.addingDays(400)!)
@@ -156,7 +159,8 @@ import VaultIndex
         let pins = PlacesMapModel.pins(places: context.store.mapPlaces, usage: context.store.entityUsage)
         #expect(pins.map(\.id) == ["places/Liman Ofis.md", "places/Tepe Spor Salonu.md"])
         #expect(pins.map(\.count) == [9, 10])
-        #expect(pins[0].radius < pins[1].radius && pins[0].intensity == 0.9 && pins[1].intensity == 1)
+        // 9 and 10 visits both fall in the top of the three size tiers (≥ 0.67 of the busiest).
+        #expect(pins.map(\.radius) == [22, 22] && pins[0].intensity == 0.9 && pins[1].intensity == 1)
         #expect(pins.allSatisfy { $0.radius.isFinite && $0.coordinate.isValid })
     }
     @Test func mapCoordinatesRemainUsableWithInvalidSuggestionRadiusAndInvalidPinsAreExcluded() {

@@ -5,8 +5,6 @@ struct UnresolvedEntityView: View {
     let store: IndexStore
     @Environment(\.locale) private var locale
     @State private var model: UnresolvedEntityModel
-    @State private var noteBody = ""
-    @State private var isCreatingNote = false
 
     init(store: IndexStore, target: String) {
         self.store = store
@@ -14,7 +12,7 @@ struct UnresolvedEntityView: View {
     }
 
     private var masthead: InkPageTitleRow<EmptyView> {
-        InkPageTitleRow("Bağlantı bulunamadı", byline: String(localized: "Bu ad için bir varlık oluştur."))
+        InkPageTitleRow("Bağlantı bulunamadı", byline: String(localized: "Bu ad için bir sayfa oluştur."))
     }
 
     var body: some View {
@@ -41,40 +39,28 @@ struct UnresolvedEntityView: View {
                         .disabled(model.qualifier.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                         .inkListRow()
                 } else {
-                    option("Kişi olarak ekle", kind: .person)
-                    option("Konum olarak ekle", kind: .place)
-                    ForEach(
-                        EntityTypeChoices.choices(
-                            store.entityTypes, language: locale.language.languageCode?.identifier ?? "en"
-                        ).filter { $0.id != "person" && $0.id != "place" }
-                    ) { type in
-                        option("\(type.name) olarak ekle", kind: type.kind)
-                    }
-                    if isCreatingNote {
-                        InkCard {
-                            TextEditor(text: $noteBody)
-                                .font(.ink.content)
-                                .scrollContentBackground(.hidden)
-                                .frame(minHeight: 140)
-                                .padding(8)
-                        }
-                            .inkListRow()
-                        Button("Notu oluştur") { Task { await model.createNote(body: noteBody) } }
-                            .buttonStyle(InkPrimaryButtonStyle())
-                            .disabled(model.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                            .inkListRow()
-                    } else {
-                        Button { isCreatingNote = true } label: {
-                            HStack(spacing: 12) {
-                                Rectangle().fill(Color.ink.secondaryText).frame(width: 18, height: 18)
-                                    .frame(width: 32, height: 40)
-                                Text("Not olarak oluştur").foregroundStyle(.ink.text)
-                                Spacer()
-                                Image(systemName: "chevron.right").font(.caption).foregroundStyle(.ink.secondaryText)
+                    // One card of choices; each row leads with its Graph node shape (docs/screens.md).
+                    InkCard(padded: false) {
+                        VStack(spacing: 0) {
+                            option("Kişi olarak ekle", kind: .person)
+                            InkCardDivider()
+                            option("Konum olarak ekle", kind: .place)
+                            ForEach(customTypes) { type in
+                                InkCardDivider()
+                                option("\(type.name) olarak ekle", kind: type.kind)
                             }
+                            InkCardDivider()
+                            optionRow("Not olarak oluştur") {
+                                Image(systemName: "doc.text")
+                                    .font(.body)
+                                    .foregroundStyle(.ink.secondaryText)
+                            } action: {
+                                Task { await model.createNote() }
+                            }
+                            .disabled(model.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                         }
-                        .buttonStyle(.plain).inkListRow()
                     }
+                    .inkListRow()
                 }
                 if let error = model.errorText {
                     Text(verbatim: error).font(.ink.meta).foregroundStyle(.ink.danger)
@@ -90,21 +76,38 @@ struct UnresolvedEntityView: View {
         }
     }
 
+    private var customTypes: [EntityTypeChoice] {
+        EntityTypeChoices.choices(store.entityTypes, language: locale.language.languageCode?.identifier ?? "en")
+            .filter { $0.id != "person" && $0.id != "place" }
+    }
+
     private func option(_ title: LocalizedStringKey, kind: VaultEntityKind) -> some View {
-        Button { Task { await model.create(kind) } } label: {
+        optionRow(title) {
+            GraphNodeShape(kind: graphKind(for: kind))
+                .fill(GraphNodeStyle.fill(graphKind(for: kind)))
+                .frame(width: 18, height: 18)
+                .accessibilityHidden(true)
+        } action: {
+            Task { await model.create(kind) }
+        }
+    }
+
+    private func optionRow<Mark: View>(
+        _ title: LocalizedStringKey, @ViewBuilder mark: () -> Mark, action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
             HStack(spacing: 12) {
-                GraphNodeShape(kind: graphKind(for: kind))
-                    .fill(GraphNodeStyle.fill(graphKind(for: kind)))
-                    .frame(width: 18, height: 18)
-                    .frame(width: 32, height: 40)
-                Text(title).foregroundStyle(.ink.text)
-                Spacer()
-                Image(systemName: "chevron.right").font(.caption).foregroundStyle(.ink.secondaryText)
+                mark().frame(width: 32).accessibilityHidden(true)
+                Text(title).font(.ink.content).foregroundStyle(.ink.text)
+                Spacer(minLength: 8)
+                Image(systemName: "chevron.right").font(.ink.meta).foregroundStyle(.ink.secondaryText)
+                    .accessibilityHidden(true)
             }
+            .padding(.horizontal, InkSpacing.cardPadding)
+            .frame(minHeight: TapTarget.minimumLength)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .inkListRow()
     }
 
     private func graphKind(for kind: VaultEntityKind) -> GraphNode.Kind {

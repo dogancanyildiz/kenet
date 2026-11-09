@@ -105,12 +105,14 @@ struct GraphView: View {
               }
               .frame(maxWidth: .infinity)
               #if os(macOS)
-                if let node = model.graph.nodes.first(where: { $0.id == model.selected }) {
-                    GraphSelectionPanel(store: store, node: node, graph: model.graph) {
-                        model.select(nil, recenter: false)
-                    }
-                    .frame(width: 300)
+                // The panel stays; with no selection it says "Düğüm seç" (docs/screens.md).
+                GraphSelectionPanel(
+                    store: store, node: model.graph.nodes.first { $0.id == model.selected },
+                    graph: model.graph, currentDay: day
+                ) {
+                    model.select(nil, recenter: false)
                 }
+                .frame(width: 300)
               #endif
             }
             .inkPinnedMasthead(masthead)
@@ -131,9 +133,9 @@ struct GraphView: View {
     private func selectedRow(_ node: GraphNode) -> some View {
         InkCard {
             VStack(alignment: .leading, spacing: 8) {
-                Text(GraphSelectionPresentation.summary(
-                    name: node.name, links: model.graph.edges.filter { $0.first == node.id || $0.second == node.id }.count,
-                    daysSince: daysSinceLastMention(node)))
+                Text(verbatim: GraphSelectionPresentation.summary(
+                    name: node.name, links: GraphSelectionPresentation.relationCount(of: node.id, in: model.graph),
+                    daysSince: daysSinceLastMention(node), locale: locale))
                     .font(.ink.content).foregroundStyle(.ink.text)
                 openPageLink(node)
                     .buttonStyle(InkPrimaryButtonStyle())
@@ -151,10 +153,11 @@ struct GraphView: View {
         }
     }
 
-    private func daysSinceLastMention(_ node: GraphNode) -> Int {
+    /// Nil for day nodes and never-mentioned entities: the summary then has no "son" part.
+    private func daysSinceLastMention(_ node: GraphNode) -> Int? {
         guard node.date == nil,
             let last = store.entityUsage.first(where: { $0.file == node.id })?.lastDate
-        else { return 0 }
+        else { return nil }
         return max(0, LocalDay.today(at: clockNow()).ordinal - last.ordinal)
     }
 
@@ -168,10 +171,12 @@ struct GraphView: View {
         }
     }
 
+    /// Counts of what the graph draws for the chosen period.
     private var rootByline: String {
-        let people = store.content.entities.filter { $0.kind == "person" }.count
-        let places = store.content.entities.filter { $0.kind == "place" }.count
-        let days = store.counts.filesByKind["day"] ?? store.counts.filesByKind["journal"] ?? 0
+        let nodes = model.graph.nodes
+        let people = nodes.filter { $0.kind == .person }.count
+        let places = nodes.filter { $0.kind == .place }.count
+        let days = nodes.filter { $0.kind == .day }.count
         return String(localized: "\(people) kişi · \(places) konum · \(days) gün", locale: locale)
     }
 
@@ -385,8 +390,34 @@ enum GraphNodeStyle {
 /// can host the same detail view later.
 struct GraphSelectionPanel: View {
     let store: IndexStore
+    let node: GraphNode?
+    let graph: GraphModel
+    /// A day's own graph: its day node has no "Sayfayı aç" (the user came from that day).
+    var currentDay: CalendarDate? = nil
+    var onClose: () -> Void
+
+    var body: some View {
+        Group {
+            if let node {
+                GraphSelectionDetail(store: store, node: node, graph: graph, currentDay: currentDay, onClose: onClose)
+            } else {
+                Text("Düğüm seç")
+                    .font(.ink.meta)
+                    .foregroundStyle(.ink.secondaryText)
+                    .padding(InkSpacing.margin)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            }
+        }
+        .background(Color.ink.paper)
+        .overlay(alignment: .leading) { Rectangle().fill(Color.ink.rule).frame(width: 1) }
+    }
+}
+
+private struct GraphSelectionDetail: View {
+    let store: IndexStore
     let node: GraphNode
     let graph: GraphModel
+    let currentDay: CalendarDate?
     var onClose: () -> Void
 
     private var kindName: String {
@@ -402,14 +433,14 @@ struct GraphSelectionPanel: View {
     private var relatedDays: [GraphNode] {
         let ids = graph.neighbors(of: node.id)
         return graph.nodes.filter { ids.contains($0.id) && $0.date != nil }
-            .sorted { ($0.date?.description ?? "") > ($1.date?.description ?? "") }
+            .sorted { ($0.date?.ordinal ?? 0) > ($1.date?.ordinal ?? 0) }
             .prefix(4).map { $0 }
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: InkSpacing.section) {
             HStack {
-                Text(verbatim: node.name).font(.ink.display).foregroundStyle(.ink.text)
+                Text(verbatim: node.name).font(.ink.dayName).foregroundStyle(.ink.text)
                 Spacer()
                 Button(action: onClose) {
                     Label("Kapat", systemImage: "xmark").labelStyle(.iconOnly).tapTarget()
@@ -417,7 +448,7 @@ struct GraphSelectionPanel: View {
             }
             Text(verbatim: kindName).font(.ink.meta).foregroundStyle(.ink.secondaryText)
             InkCard {
-                detailRow("Bağlantılar", graph.edges.filter { $0.first == node.id || $0.second == node.id }.count.formatted())
+                detailRow("Bağlar", GraphSelectionPresentation.relationCount(of: node.id, in: graph).formatted())
                 InkCardDivider()
                 detailRow("Geçişler", node.count.formatted())
             }
@@ -442,7 +473,7 @@ struct GraphSelectionPanel: View {
             if let entity = store.content.entities.first(where: { $0.id == node.id }) {
                 NavigationLink("Sayfayı aç") { EntityView(store: store, entity: entity) }
                     .buttonStyle(InkPrimaryButtonStyle())
-            } else if let date = node.date {
+            } else if let date = node.date, date != currentDay {
                 NavigationLink("Sayfayı aç") { DayView(store: store, date: date) }
                     .buttonStyle(InkPrimaryButtonStyle())
             }
@@ -450,8 +481,6 @@ struct GraphSelectionPanel: View {
         }
         .padding(InkSpacing.margin)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .background(Color.ink.paper)
-        .overlay(alignment: .leading) { Rectangle().fill(Color.ink.rule).frame(width: 1) }
     }
 
     private func detailRow(_ label: LocalizedStringKey, _ value: String) -> some View {
@@ -464,8 +493,21 @@ struct GraphSelectionPanel: View {
 }
 
 enum GraphSelectionPresentation {
-    static func summary(name: String, links: Int, daysSince: Int, locale: Locale = .autoupdatingCurrent) -> String {
-        String(localized: "\(name) · \(links) bağ · son \(daysSince) gün önce", locale: locale)
+    /// "N bağ" counts explicit relations only; the day edges (a day meets everything mentioned
+    /// on it) are not relations.
+    static func relationCount(of id: String, in graph: GraphModel) -> Int {
+        graph.edges.filter { $0.kind == .relation && ($0.first == id || $0.second == id) }.count
+    }
+
+    /// "Baran Tunç · 8 bağ · son 3 gün önce"; today reads "bugün"; no date (a day node, a
+    /// never-mentioned entity) drops the last part.
+    static func summary(name: String, links: Int, daysSince: Int?, locale: Locale = .autoupdatingCurrent) -> String {
+        let bundle = PresentationLocalization.bundle(locale)
+        return switch daysSince {
+        case nil: String(localized: "\(name) · \(links) bağ", bundle: bundle, locale: locale)
+        case 0?: String(localized: "\(name) · \(links) bağ · son bugün", bundle: bundle, locale: locale)
+        case let days?: String(localized: "\(name) · \(links) bağ · son \(days) gün önce", bundle: bundle, locale: locale)
+        }
     }
 }
 

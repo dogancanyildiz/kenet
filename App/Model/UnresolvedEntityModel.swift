@@ -41,13 +41,13 @@ final class UnresolvedEntityModel {
         }
     }
 
-    func createNote(body: String) async {
+    func createNote() async {
         guard !isCreating, store.canAddEvent, created == nil, createdNotePath == nil else { return }
         isCreating = true
         errorText = nil
         defer { isCreating = false }
         do {
-            createdNotePath = try await store.createNote(name: name, body: body)
+            createdNotePath = try await store.createNote(name: name)
         } catch {
             errorText = DayEditError.message(for: error)
         }

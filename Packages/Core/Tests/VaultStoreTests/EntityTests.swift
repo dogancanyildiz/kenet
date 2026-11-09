@@ -3,40 +3,28 @@ import Testing
 import VaultStore
 
 struct EntityTests {
-    @Test func freeNoteUsesCanonicalPathAndPreservesBodyBytes() async throws {
+    @Test func noteFromUnresolvedLinkIsEmptyFileUnderNotes() async throws {
         let vault = try StoreVault()
         defer { vault.remove() }
-        let body = "Serbest metin\n\n[[Deniz Arıkan]]\n"
-        let path = try await vault.store.creatingNote(name: " Okuma Listesi ", body: body)
+        let path = try await vault.store.creatingNote(name: " Okuma Listesi ")
         #expect(path == "notes/Okuma Listesi.md")
-        #expect(try vault.bytes(path) == Data(body.utf8))
+        #expect(try vault.bytes(path) == Data())
         #expect(try vault.index.files().contains { $0.path == path })
         await #expect(throws: VaultStoreError.nameTaken) {
-            try await vault.store.creatingNote(name: "Okuma Listesi", body: "Başka içerik")
+            try await vault.store.creatingNote(name: "OKUMA LISTESI")
         }
         try vault.check()
     }
 
-    @Test func changingFreeNoteRetainsFrontmatterBytesAndReindexesBody() async throws {
+    @Test func noteNameTakenByAnyVaultFileIsNotWritten() async throws {
         let vault = try StoreVault()
         defer { vault.remove() }
-        let original = "---\ncustom: [one, two] # keep\n---\nOld [[Deniz Arıkan]]\n"
-        try vault.write("notes/Örnek.md", original)
-        let body = "New [[Ekin Yılmaz]]\n\nSecond line\n"
-        _ = try await vault.store.changingNote(at: "notes/Örnek.md", to: body)
-        #expect(try vault.bytes("notes/Örnek.md") == Data(("---\ncustom: [one, two] # keep\n---\n" + body).utf8))
-        #expect(try vault.index.unresolvedLinks().contains { $0.target == "Ekin Yılmaz" })
-        #expect(try vault.index.unresolvedLinks().allSatisfy { $0.target != "Deniz Arıkan" })
-        try vault.check()
-    }
-
-    @Test func addingBodyAfterFrontmatterWithoutFinalNewlineSeparatesTheFence() async throws {
-        let vault = try StoreVault()
-        defer { vault.remove() }
-        try vault.write("notes/Örnek.md", "---\ncustom: value\n---")
-        _ = try await vault.store.changingNote(at: "notes/Örnek.md", to: "İçerik")
-        #expect(try vault.bytes("notes/Örnek.md") == Data("---\ncustom: value\n---\nİçerik".utf8))
-        try vault.check()
+        try vault.write("people/Deniz Arıkan.md", "---\ntype: person\nname: Deniz Arıkan\n---\n")
+        await #expect(throws: VaultStoreError.nameTaken) {
+            try await vault.store.creatingNote(name: "Deniz Arıkan")
+        }
+        #expect(throws: (any Error).self) { try vault.bytes("notes/Deniz Arıkan.md") }
+        #expect(try vault.bytes("people/Deniz Arıkan.md") == Data("---\ntype: person\nname: Deniz Arıkan\n---\n".utf8))
     }
 
     @Test func templateFieldsAndBodyArePreserved() async throws {

@@ -3,51 +3,24 @@ import VaultFormat
 import VaultIndex
 
 extension VaultStore {
-    /// Creates an unstructured Markdown note under `notes/`, then indexes the saved file.
-    /// The note body is written verbatim and is not given frontmatter or a template.
+    /// Creates an empty free note at `notes/<name>.md`, then indexes the saved file.
+    /// `docs/screens.md` ("Bağlantı bulunamadı: not"): the file is empty, with no frontmatter or
+    /// template; an existing file of the same name (vault-wide) is never overwritten.
     @discardableResult
-    public func creatingNote(name: String, body: String = "") async throws -> String {
+    public func creatingNote(name: String) async throws -> String {
         try await perform {
             let name = try self.displayName(name)
             let stem = try self.filenameComponent(name)
             guard (stem + ".md").utf8.count <= 255 else { throw VaultStoreError.invalidName }
             guard try !self.filenameIsTaken(stem) else { throw VaultStoreError.nameTaken }
             let path = "notes/" + stem + ".md"
-            let document = try RawDocument(bytes: Array(body.utf8))
+            let document = RawDocument(bytes: [])
             let url = try self.checkedURL(path, writing: true)
             try self.fileCoordination.coordinate(.modify(url)) { _ in
                 try self.rejectPendingDownload(at: url, path: path)
                 try self.persist(document, path: path, exclusive: true)
             }
             return path
-        }
-    }
-
-    /// Replaces only the editable body of an existing free note, retaining its frontmatter bytes.
-    @discardableResult
-    public func changingNote(at path: String, to body: String) async throws -> RawDocument {
-        guard path.hasPrefix("notes/"), !path.dropFirst("notes/".count).contains("/") else {
-            throw VaultStoreError.invalidPath
-        }
-        return try await perform {
-            let url = try self.checkedURL(path, writing: true)
-            return try self.fileCoordination.coordinate(.modify(url)) { _ in
-                try self.rejectPendingDownload(at: url, path: path)
-                let original = RawDocument(bytes: try self.readFile(url))
-                guard !original.isReadOnly else { throw VaultStoreError.readOnlyVault }
-                if case .unreadable = original.frontmatter { throw VaultStoreError.readOnlyVault }
-                let prefixLineCount = original.frontmatterLineRange?.upperBound ?? 0
-                var prefix = original.hasByteOrderMark ? RawDocument.byteOrderMark : []
-                for line in original.lines.prefix(prefixLineCount) {
-                    prefix.append(contentsOf: line.bytes)
-                }
-                if prefixLineCount > 0, original.lines[prefixLineCount - 1].ending == nil, !body.isEmpty {
-                    prefix.append(contentsOf: original.lineEndingForNewLines.bytes)
-                }
-                let updated = try RawDocument(bytes: prefix + Array(body.utf8))
-                try self.persist(updated, path: path)
-                return updated
-            }
         }
     }
 

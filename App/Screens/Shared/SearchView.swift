@@ -31,14 +31,6 @@ struct SearchView: View {
                     .padding(.horizontal, InkSpacing.margin)
                     .padding(.bottom, 8)
                 scopeChips
-                Button { model.path.append(.newNote) } label: {
-                    Label("Serbest not", systemImage: "square.and.pencil")
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .tapTarget()
-                }
-                .buttonStyle(InkTextButtonStyle())
-                .padding(.horizontal, InkSpacing.margin)
-                .padding(.bottom, 8)
                 if model.isSearching { ProgressView().padding(.bottom, 8) }
                 if let error = model.errorText {
                     Text(verbatim: error).foregroundStyle(.ink.danger).padding()
@@ -57,7 +49,6 @@ struct SearchView: View {
                     }
                 case .day(let date): DayView(store: store, date: date)
                 case .note(let file): SearchNoteView(store: store, file: file)
-                case .newNote: FreeNoteComposerView(store: store)
                 }
             }
         }
@@ -162,7 +153,7 @@ struct SearchView: View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
                 ForEach(SearchScope.allCases) { item in
-                    TagChip(title: item.title, isSelected: scope == item) { scope = item }
+                    TagChip(title: item.title, isSelected: scope == item, onTap: { scope = item })
                 }
             }
             .padding(.horizontal, InkSpacing.margin)
@@ -192,7 +183,7 @@ struct SearchView: View {
         .buttonStyle(.plain)
         .padding(.horizontal, InkSpacing.cardPadding)
         .padding(.vertical, 8)
-        .background(item.id == model.selectedID ? Color.ink.accent.opacity(0.12) : Color.clear)
+        .background(item.id == model.selectedID ? Color.ink.accentSoft : Color.clear)
         .accessibilityElement(children: .contain)
         .id(item.id)
     }

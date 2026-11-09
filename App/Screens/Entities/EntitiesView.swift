@@ -1,10 +1,15 @@
+import Summaries
 import SwiftUI
+import VaultFormat
+import VaultIndex
 import VaultStore
 
 /// The phone combines people, places and the vault's custom types behind one type picker.
 struct EntitiesView: View {
     let store: IndexStore
     @State private var editingEntity: EntitySummary?
+    /// Every row's last encounter, 12-month days and relation count, read once for the list.
+    @State private var activity: [String: EntityListActivity] = [:]
     @State private var creationKind: VaultEntityKind?
     @State private var createdEntity: EntitySummary?
     @State private var kind: String
@@ -47,13 +52,15 @@ struct EntitiesView: View {
             }
             EntityTypePicker(store: store, selection: $kind)
                 .inkListRow()
-            HStack(spacing: 10) {
+            // Side by side; stacked at accessibility text sizes (docs/screens.md).
+            (dynamicTypeSize.isAccessibilitySize
+                ? AnyLayout(VStackLayout(spacing: 10)) : AnyLayout(HStackLayout(alignment: .top, spacing: 10))) {
                 let peopleCount = store.content.entities.filter { $0.kind == "person" }.count
                 let placeCount = store.content.entities.filter { $0.kind == "place" }.count
                 pageCard("Graph", detail: String(localized: "\(peopleCount) kişi · \(placeCount) konum", locale: locale), systemImage: "point.3.connected.trianglepath.dotted") {
                     GraphView(store: store)
                 }
-                pageCard("Harita", detail: "\(store.mapPlaces.count) konum", systemImage: "map") {
+                pageCard("Harita", detail: String(localized: "\(store.mapPlaces.count) konum", locale: locale), systemImage: "map") {
                     PlacesMapView(store: store)
                 }
             }
@@ -73,13 +80,19 @@ struct EntitiesView: View {
                 UnseenPeopleSection(
                     store: store, people: entities, initiallyExpanded: initialUnseenExpanded)
             }
-            ForEach(entities) { entity in
-                NavigationLink(value: entity) {
-                    InkCard(padded: false) {
-                        EntityRow(entity: entity, store: store, onEdit: { editingEntity = entity })
+            // One list card; rows separated by hairlines (docs/screens.md, Liste satırı).
+            if !entities.isEmpty {
+                InkCard {
+                    ForEach(Array(entities.enumerated()), id: \.element.id) { offset, entity in
+                        if offset > 0 { InkCardDivider() }
+                        NavigationLink(value: entity) {
+                            EntityRow(
+                                entity: entity, store: store, activity: activity[entity.id],
+                                onEdit: { editingEntity = entity })
+                        }
+                        .buttonStyle(.plain)
                     }
                 }
-                .buttonStyle(.plain)
                 .inkListRow()
             }
             if !store.content.entities.contains(where: { $0.kind == kind }) {
@@ -89,6 +102,7 @@ struct EntitiesView: View {
         }
         .listStyle(.plain)
         .inkPageScrollColumn()
+        .entityListActivity(store: store, into: $activity)
         .inkGlow()
         .inkPage()
         .inkRootPageNavigationTitle("Kişiler ve Konumlar")
@@ -109,6 +123,7 @@ struct EntitiesView: View {
     }
 
     @Environment(\.locale) private var locale
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var showsTypeGallery = false
 
     /// "Yeni kişi" / "Yeni konum" / "Yeni <tip>": a row like contact import, not a manşet symbol
@@ -258,47 +273,47 @@ struct EntitiesView: View {
 struct EntityRow: View {
     let entity: EntitySummary
     var store: IndexStore? = nil
+    /// The list's bulk read for this row (`IndexStore.computeEntityListActivity`); nil draws the
+    /// name only (rows outside the people/places lists).
+    var activity: EntityListActivity? = nil
     var onEdit: () -> Void = {}
     var onDeleted: (String) -> Void = { _ in }
     @State private var deletion = DefinitionDeletionModel()
-    @State private var mentionData: EntityMentionsData?
     @Environment(\.locale) private var locale
     @Environment(\.clockNow) private var clockNow
+
+    private var lastDate: CalendarDate? { activity?.lastEncounter }
+    private var relationCount: Int { activity?.relationCount ?? 0 }
+
+    private var mentionData: EntityMentionsData? {
+        guard let activity, let last = activity.lastEncounter else { return nil }
+        let density = EntityMentionDensity.compute(
+            days: activity.recentDays + [last], today: LocalDay.today(at: clockNow()))
+        return EntityInsights.presentationMentions(density: density, locale: locale)
+    }
 
     var body: some View {
         // One row view: the error band below the row, not a second row with the same tag.
         VStack(alignment: .leading, spacing: 0) {
-            MarginRow(kind: .vault, mark: { EmptyView() }, time: nil, primary: {
-                HStack(spacing: 12) {
-                    Text(String(entity.name.prefix(1)).uppercased())
-                        .font(.headline)
-                        .foregroundStyle(entity.kind == "place" ? Color.ink.place : Color.ink.person)
-                        .frame(width: 40, height: 40)
-                        .background(Color.ink.well, in: Circle())
-                        .accessibilityHidden(true)
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text(verbatim: entity.name).foregroundStyle(.ink.text)
-                        if let qualifier = entity.qualifier {
-                            Text(verbatim: qualifier).font(.ink.meta).foregroundStyle(.ink.secondaryText)
-                        }
+            MarginRow(kind: .vault, mark: {
+                EntityInitialBadge(entity: entity)
+            }, time: nil, primary: {
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(verbatim: entity.name).foregroundStyle(.ink.text)
+                    if let qualifier = entity.qualifier {
+                        Text(verbatim: qualifier).font(.ink.meta).foregroundStyle(.ink.secondaryText)
                     }
                 }
             }, secondary: {
-                if let store, let usage = store.entityUsage.first(where: { $0.file == entity.id }) {
-                    HStack(spacing: 4) {
-                        if let last = usage.lastDate {
-                            let date = LocalDay.instant(for: last)
-                            let formatter = RelativeDateTimeFormatter()
-                            let _ = formatter.locale = locale
-                            Text(verbatim: formatter.localizedString(for: date, relativeTo: clockNow()))
-                        }
-                        Text(verbatim: "·")
-                        Text(verbatim: "\(usage.totalCount.formatted()) \(String(localized: "bağ"))")
-                    }
-                    .font(.ink.meta).foregroundStyle(.ink.secondaryText)
+                if let meta = EntityRowPresentation.meta(
+                    kind: entity.kind, lastDate: lastDate, links: relationCount,
+                    today: LocalDay.today(at: clockNow()), locale: locale)
+                {
+                    Text(verbatim: meta).font(.ink.meta).foregroundStyle(.ink.secondaryText)
                 }
             }, trailing: {
-                if let mentionData {
+                // Never-mentioned entities have no bar (docs/screens.md, Liste satırı).
+                if lastDate != nil, let mentionData {
                     EntityMonthlyBarChart(data: mentionData, compact: true)
                 }
             })
@@ -330,13 +345,67 @@ struct EntityRow: View {
                 InfoBand(kind: .error, verbatim: error)
             }
         }
-        .task(id: EntityTimelineRequest(path: entity.id, updated: store?.lastUpdated)) {
-            guard let store,
-                let days = try? await store.computeEntityTimeline(for: entity.id), !Task.isCancelled
+    }
+}
+
+/// Loads the people/places list's per-row activity in one query when the index or the day changes.
+private struct EntityListActivityLoader: ViewModifier {
+    let store: IndexStore
+    @Binding var activity: [String: EntityListActivity]
+    @Environment(\.clockNow) private var clockNow
+
+    func body(content: Content) -> some View {
+        let today = LocalDay.today(at: clockNow())
+        content.task(id: LastEncountersRequest(asOf: today, updated: store.lastUpdated)) {
+            guard let loaded = try? await store.computeEntityListActivity(today: today), !Task.isCancelled
             else { return }
-            let insight = EntityInsights.compute(
-                path: entity.id, timeline: days, lastDay: nil, entities: [], today: LocalDay.today(at: clockNow()))
-            mentionData = insight.mentions(locale: locale)
+            activity = loaded
         }
+    }
+}
+
+extension View {
+    func entityListActivity(store: IndexStore, into activity: Binding<[String: EntityListActivity]>) -> some View {
+        modifier(EntityListActivityLoader(store: store, activity: activity))
+    }
+}
+
+/// Tür renkli baş harf rozeti: `well` circle, person or place colour (custom types use person).
+private struct EntityInitialBadge: View {
+    let entity: EntitySummary
+    @ScaledMetric(relativeTo: .body) private var side: CGFloat = 36
+
+    var body: some View {
+        Text(verbatim: String(entity.name.prefix(1)).uppercased())
+            .font(.ink.section)
+            .foregroundStyle(entity.kind == "place" ? Color.ink.place : Color.ink.person)
+            .frame(width: side, height: side)
+            .background(Color.ink.well, in: Circle())
+            .accessibilityHidden(true)
+    }
+}
+
+/// The row's meta line: "Son görüşme 3 gün önce · 14 bağ" ("Son ziyaret" for places).
+enum EntityRowPresentation {
+    static func meta(
+        kind: String, lastDate: CalendarDate?, links: Int, today: CalendarDate, locale: Locale
+    ) -> String? {
+        let bundle = PresentationLocalization.bundle(locale)
+        var parts: [String] = []
+        if let lastDate, lastDate.ordinal <= today.ordinal {
+            let formatter = RelativeDateTimeFormatter()
+            formatter.locale = locale
+            formatter.dateTimeStyle = .named
+            formatter.unitsStyle = .full
+            let relative = formatter.localizedString(from: DateComponents(day: lastDate.ordinal - today.ordinal))
+            parts.append(
+                kind == "place"
+                    ? String(localized: "Son ziyaret \(relative)", bundle: bundle, locale: locale)
+                    : String(localized: "Son görüşme \(relative)", bundle: bundle, locale: locale))
+        }
+        if links > 0 || !parts.isEmpty {
+            parts.append(String(localized: "\(links) bağ", bundle: bundle, locale: locale))
+        }
+        return parts.isEmpty ? nil : parts.joined(separator: " · ")
     }
 }

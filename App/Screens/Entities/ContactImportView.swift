@@ -68,20 +68,20 @@ struct ContactImportView: View {
         if !plan.alreadyExists.isEmpty {
             VStack(alignment: .leading, spacing: 8) {
                 SectionHeader("Kasada var", count: plan.alreadyExists.count)
+                    .accessibilityIdentifier("contactImport.existing")
                 InkCard {
                     ForEach(plan.alreadyExists) { item in
                         if item.id != plan.alreadyExists.first?.id { InkCardDivider() }
                         HStack {
                             Text(verbatim: item.name).foregroundStyle(.ink.secondaryText)
                             Spacer()
-                            TagChip(title: String(localized: "Kasada var"), isSelected: true)
-                                .disabled(true)
+                            // Passive badge: no check mark, no action (docs/screens.md, Özet sheet'i).
+                            TagChip(title: String(localized: "Kasada var"), filled: true)
                         }
                         .frame(minHeight: TapTarget.minimumLength)
                     }
                 }
             }
-            .accessibilityIdentifier("contactImport.existing")
             .inkListRow()
         }
         names(

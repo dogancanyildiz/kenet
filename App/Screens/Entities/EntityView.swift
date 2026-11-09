@@ -106,15 +106,6 @@ struct EntityView: View {
                 Text(verbatim: error).font(.ink.meta).foregroundStyle(.ink.danger)
                     .inkListRow()
             }
-            if model.isLoaded && model.canEdit {
-                Button("Varlığı sil", role: .destructive) {
-                    deletion.request(path: model.path)
-                }
-                .font(.ink.meta)
-                .foregroundStyle(.ink.danger)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .inkListRow()
-            }
         }
         .listStyle(.plain)
         .inkPage()
@@ -122,16 +113,6 @@ struct EntityView: View {
         .inkPinnedMasthead(masthead)
         .environment(\.entityLookup, LinkedTextInk.lookup(entities: store.content.entities))
         .inkPageNavigationTitle(verbatim: current.name)
-        .destructiveConfirmationDialog(
-            "Varlığı sil", confirmation: $deletion.confirmation,
-            message: "\(current.name) silinsin mi? Günlük kayıtlarındaki geçişler kalır."
-        ) { path in
-            Task {
-                if await deletion.delete(store: store, path: path, goal: false) {
-                    if let onDeleted { onDeleted(path) } else { dismiss() }
-                }
-            }
-        }
         .sheet(
             isPresented: $isEditing,
             onDismiss: {
@@ -176,19 +157,29 @@ struct EntityView: View {
     }
 
     @ViewBuilder private var headRows: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            TagChip(title: kindLabel, isSelected: true)
+        TagChip(title: kindLabel, filled: true)
+            .inkListRow()
+        // docs/screens.md order: the Son görüşme / Son ziyaret card sits right under the manşet.
+        if ["person", "place"].contains(current.kind), timeline != nil {
             InkCard {
-                if let qualifier = current.qualifier {
-                    labeledRow(String(localized: "Ayırt edici"), qualifier, valueFont: .ink.content)
-                }
-                labeledRow(String(localized: "Gelen bağlantılar"), current.incomingLinks.formatted(.number), valueFont: .ink.value)
-                if !model.aliasesEditable, !model.aliasesSource.isEmpty {
-                    Text(verbatim: model.aliasesSource).font(.ink.meta).foregroundStyle(.ink.secondaryText).textSelection(.enabled)
-                }
-                if let result = model.renameResult { EntityRenameSummary(result: result) }
+                EntityInsightsCard(store: store, entity: current, timeline: timeline ?? [], lastDay: lastDay)
             }
             .inkListRow()
+        }
+        InkCard {
+            if let qualifier = current.qualifier {
+                labeledRow(String(localized: "Ayırt edici"), qualifier, valueFont: .ink.content)
+                InkCardDivider()
+            }
+            labeledRow(String(localized: "Gelen bağlantılar"), current.incomingLinks.formatted(.number), valueFont: .ink.value)
+            if !model.aliasesEditable, !model.aliasesSource.isEmpty {
+                Text(verbatim: model.aliasesSource).font(.ink.meta).foregroundStyle(.ink.secondaryText).textSelection(.enabled)
+            }
+            if let result = model.renameResult { EntityRenameSummary(result: result) }
+        }
+        .inkListRow()
+        if showsImportantDates {
+            EntityImportantDatesRow(file: model.path, model: importantDates)
         }
     }
 
@@ -202,12 +193,6 @@ struct EntityView: View {
     }
 
     @ViewBuilder private var readingContent: some View {
-        if ["person", "place"].contains(current.kind) {
-            InkCard(padded: false) {
-                EntityInsightsCard(store: store, entity: current, timeline: timeline ?? [], lastDay: lastDay)
-            }
-            .inkListRow()
-        }
         if isGraphNode {
             Section {
                 NavigationLink {

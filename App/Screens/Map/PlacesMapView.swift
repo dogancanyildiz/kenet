@@ -1,5 +1,6 @@
 import MapKit
 import SwiftUI
+import VaultFormat
 
 struct PlacesMapView: View {
     let store: IndexStore
@@ -7,6 +8,8 @@ struct PlacesMapView: View {
     @Environment(\.locale) private var locale
     @State private var camera = MapCameraPosition.automatic
     @State private var selected: EntitySummary?
+    /// The pin picked from the cards: framed on the map; its card offers "Sayfayı aç".
+    @State private var focused: String?
     @State private var showsUser = false
     private var pins: [PlacePin] { PlacesMapModel.pins(places: store.mapPlaces, usage: store.entityUsage) }
     var body: some View {
@@ -29,6 +32,7 @@ struct PlacesMapView: View {
         .onChange(of: location.lastFix) { if showsUser { centerUser() } }
         .onChange(of: store.vaultURL) {
             selected = nil
+            focused = nil
             showsUser = false
             camera = .automatic
         }
@@ -51,9 +55,10 @@ struct PlacesMapView: View {
                 ForEach(pins) { pin in
                     Annotation(pin.entity.name, coordinate: coordinate(pin.coordinate)) {
                         Button {
+                            focused = pin.id
                             selected = store.content.entities.first { $0.id == pin.id }
                         } label: {
-                            placeMarker(pin: pin, isSelected: selected?.id == pin.id)
+                            placeMarker(pin: pin, isSelected: focused == pin.id)
                         }
                         .buttonStyle(.plain)
                         .accessibilityLabel(Text(verbatim: pin.entity.name))
@@ -80,7 +85,9 @@ struct PlacesMapView: View {
                     ScrollView(.horizontal) {
                         HStack(spacing: 10) {
                             ForEach(pins) { pin in
-                                PlaceMapCard(store: store, pin: pin, isSelected: selected?.id == pin.id) {
+                                PlaceMapCard(store: store, pin: pin, isSelected: focused == pin.id) {
+                                    focus(pin)
+                                } onOpen: {
                                     selected = store.content.entities.first { $0.id == pin.id }
                                 }
                             }
@@ -148,6 +155,13 @@ struct PlacesMapView: View {
     private func coordinate(_ point: PlaceCoordinate) -> CLLocationCoordinate2D {
         CLLocationCoordinate2D(latitude: point.latitude, longitude: point.longitude)
     }
+    /// A card picks its pin and brings it to the middle, keeping the current zoom when there is one.
+    private func focus(_ pin: PlacePin) {
+        focused = pin.id
+        let span = camera.region?.span ?? MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
+        withAnimation { camera = .region(MKCoordinateRegion(center: coordinate(pin.coordinate), span: span)) }
+    }
+
     private func centerUser() {
         if let point = location.currentCoordinate {
             camera = .region(
@@ -162,37 +176,50 @@ private struct PlaceMapCard: View {
     let pin: PlacePin
     let isSelected: Bool
     let onTap: () -> Void
+    let onOpen: () -> Void
     @Environment(\.locale) private var locale
     @Environment(\.clockNow) private var clockNow
     @State private var mentionData: EntityMentionsData?
     private var lastDate: CalendarDate? { store.entityUsage.first { $0.file == pin.id }?.lastDate }
 
+    /// "23 ziyaret · son 19 Eyl"; without a mention only the count.
+    private var visitLine: String {
+        guard let lastDate else { return String(localized: "\(pin.count) ziyaret", locale: locale) }
+        let date = LocalDay.instant(for: lastDate).formatted(.dateTime.day().month(.abbreviated).locale(locale))
+        return String(localized: "\(pin.count) ziyaret · son \(date)", locale: locale)
+    }
+
     var body: some View {
-        Button(action: onTap) {
-            VStack(alignment: .leading, spacing: 8) {
-                Text(verbatim: pin.entity.name).font(.ink.content).foregroundStyle(.ink.text)
-                HStack(alignment: .center) {
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text(String(localized: "\(pin.count) ziyaret", locale: locale)).font(.ink.meta).foregroundStyle(.ink.secondaryText)
-                        if let lastDate {
-                            Text(String(localized: "Son ziyaret", locale: locale) + " " + LocalDay.instant(for: lastDate).formatted(.dateTime.day().month(.abbreviated).locale(locale)))
-                                .font(.ink.meta).foregroundStyle(.ink.secondaryText)
-                        }
+        VStack(alignment: .leading, spacing: 8) {
+            Button(action: onTap) {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(verbatim: pin.entity.name).font(.ink.content).foregroundStyle(.ink.text)
+                    HStack(alignment: .center) {
+                        Text(verbatim: visitLine).font(.ink.meta).foregroundStyle(.ink.secondaryText)
+                        Spacer(minLength: 8)
+                        if lastDate != nil, let mentionData { EntityMonthlyBarChart(data: mentionData, compact: true) }
                     }
-                    Spacer(minLength: 8)
-                    if let mentionData { EntityMonthlyBarChart(data: mentionData, compact: true) }
                 }
+                .frame(minHeight: TapTarget.minimumLength)
+                .contentShape(Rectangle())
             }
-            .frame(minWidth: 220, alignment: .leading)
-            .padding(12)
-            .background(Color.ink.surface)
-            .clipShape(RoundedRectangle(cornerRadius: InkCorner.card))
-            .overlay(RoundedRectangle(cornerRadius: InkCorner.card)
-                .stroke(isSelected ? Color.ink.accent : Color.ink.rule,
-                        lineWidth: isSelected ? InkStroke.control : InkStroke.hairline(scale: 1)))
+            .buttonStyle(.plain)
+            .accessibilityElement(children: .combine)
+            .accessibilityAddTraits(isSelected ? .isSelected : [])
+            if isSelected {
+                Button("Sayfayı aç", action: onOpen)
+                    .buttonStyle(InkPrimaryButtonStyle())
+            }
         }
-        .buttonStyle(.plain)
-        .accessibilityLabel(Text(verbatim: pin.entity.name))
+        .frame(minWidth: 220, alignment: .leading)
+        .padding(12)
+        .modifier(InkCardModifier())
+        .overlay {
+            if isSelected {
+                RoundedRectangle(cornerRadius: InkCorner.card, style: .continuous)
+                    .stroke(Color.ink.accent, lineWidth: InkStroke.control)
+            }
+        }
         .task(id: EntityTimelineRequest(path: pin.id, updated: store.lastUpdated)) {
             guard let days = try? await store.computeEntityTimeline(for: pin.id), !Task.isCancelled else { return }
             let insight = EntityInsights.compute(

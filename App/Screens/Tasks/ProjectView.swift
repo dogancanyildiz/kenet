@@ -163,14 +163,14 @@ struct ProjectView: View {
     }
 
     private func rows(_ rows: [TaskRow]) -> some View {
-        ForEach(rows) { row in
+        ForEach(Array(rows.enumerated()), id: \.element.id) { index, row in
             TasksListRow(
                 store: store, row: row, day: actions.day,
                 isOverdue: row.due.map { $0 < actions.day } ?? false,
                 isBusy: actions.busy.contains(row.id), allowsReopening: true,
                 openDetail: { detailRow = row }
             ) { Task { await actions.toggle(row) } }
-            .inkListRow()
+            .inkListRow(cardSegment: .position(index, of: rows.count))
             .alignmentGuide(.listRowSeparatorLeading) { _ in 0 }
         }
     }

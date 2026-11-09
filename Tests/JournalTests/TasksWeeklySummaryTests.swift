@@ -6,50 +6,56 @@ import VaultIndex
 @testable import Journal
 
 @Suite struct TasksWeeklySummaryTests {
-    @Test func countsOnlyDueDatesInCurrentWeekAndCompletedAmongThem() {
-        let today = CalendarDate("2026-11-09")!
+    private func calendar(_ locale: String) -> Calendar {
         var calendar = Calendar(identifier: .gregorian)
-        calendar.locale = Locale(identifier: "tr_TR")
-        let summary = TasksWeeklySummary.count(due: [
-            TaskWeeklyDue(date: CalendarDate("2026-11-09")!, isCompleted: true),
-            TaskWeeklyDue(date: CalendarDate("2026-11-12")!, isCompleted: false),
-            TaskWeeklyDue(date: CalendarDate("2026-11-16")!, isCompleted: true),
-        ], today: today, calendar: calendar)
-        #expect(summary == TasksWeeklySummary(completed: 1, total: 2))
+        calendar.locale = Locale(identifier: locale)
+        return calendar
     }
 
-    @Test func completedCountByDoneDateAndOpenByDueDate() throws {
-        var calendar = Calendar(identifier: .gregorian)
-        calendar.locale = Locale(identifier: "tr_TR")
-        let open = [
-            try row(status: " ", due: "2026-11-12"),  // due this week: counts
-            try row(status: " ", due: "2026-11-02"),  // carried over from last week: out
-            try row(status: " ", due: nil),  // undated: out
-        ]
-        let completed = [
-            try row(status: "x", due: "2026-11-01", done: "2026-11-10"),  // done this week, due earlier
-            try row(status: "x", due: "2026-11-11", done: "2026-11-06"),  // done last week: out
-        ]
-        let summary = TasksWeeklySummary.make(
-            open: open, completed: completed, today: CalendarDate("2026-11-10")!, calendar: calendar)
-        #expect(summary == TasksWeeklySummary(completed: 1, total: 2))
+    @Test func turkishWeekRunsMondayThroughSunday() {
+        let week = TasksWeeklySummary.week(containing: CalendarDate("2026-11-12")!, calendar: calendar("tr_TR"))
+        #expect(week == CalendarDate("2026-11-09")!...CalendarDate("2026-11-15")!)
+        let sunday = TasksWeeklySummary.week(containing: CalendarDate("2026-11-15")!, calendar: calendar("tr_TR"))
+        #expect(sunday == CalendarDate("2026-11-09")!...CalendarDate("2026-11-15")!)
+    }
+
+    @Test func usWeekRunsSundayThroughSaturday() {
+        let week = TasksWeeklySummary.week(containing: CalendarDate("2026-11-12")!, calendar: calendar("en_US"))
+        #expect(week == CalendarDate("2026-11-08")!...CalendarDate("2026-11-14")!)
+    }
+
+    @Test func doneTasksAreTheNumeratorAndJoinTheOpenOnesInTheDenominator() {
+        let summary = TasksWeeklySummary(PeriodTaskCount(done: 3, openDue: 5))
+        #expect(summary == TasksWeeklySummary(completed: 3, total: 8))
+        #expect(summary.fraction == 3.0 / 8.0)
     }
 
     @Test func emptyWeekHasZeroProgress() {
-        let summary = TasksWeeklySummary.count(due: [], today: CalendarDate("2026-11-09")!)
-        #expect(summary.fraction == 0)
+        #expect(TasksWeeklySummary(PeriodTaskCount(done: 0, openDue: 0)).fraction == 0)
     }
+}
 
-    private func row(status: String, due: String?, done: String? = nil) throws -> TaskRow {
-        var fields: [String: Any] = [
-            "file": "journal/2026-11-01.md", "ordinal": 1, "kind": "task", "firstLine": 2,
-            "lastLine": 2, "text": "Sample task", "section": "Tasks", "rawStatus": status,
-            "ownsIdentifier": false,
-        ]
-        if let due { fields["dueDate"] = due }
-        if let done { fields["doneDate"] = done }
-        let block = try JSONDecoder().decode(
-            IndexedBlock.self, from: JSONSerialization.data(withJSONObject: fields))
-        return TaskRow(row: block, links: [])
+/// The card counts the whole vault: a list filter does not narrow it.
+@MainActor @Suite struct TasksWeeklySummaryListTests {
+    @Test func listFiltersDoNotNarrowTheWeeklyCard() async throws {
+        let context = try TaskTestContext(sample: true)
+        defer { context.clean() }
+        await context.start()
+        let day = CalendarDate("2026-09-22")!
+        let model = TasksModel(store: context.store, today: { day })
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.locale = Locale(identifier: "tr_TR")
+        model.calendar = calendar
+        await model.loadList()
+        let all = try #require(model.list?.weekly)
+        // Week of 2026-09-21: the sample's #project/tedarik task is due on the 22nd.
+        #expect(all.total > 0)
+        let period = try await context.store.computePeriodTaskCount(
+            from: CalendarDate("2026-09-21")!, through: CalendarDate("2026-09-27")!)
+        #expect(all == TasksWeeklySummary(period))
+
+        model.projectFilter = "arsiv"
+        await model.loadList()
+        #expect(model.list?.weekly == all)
     }
 }

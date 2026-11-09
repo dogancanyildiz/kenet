@@ -12,7 +12,6 @@ struct TasksView: View {
     @State private var model: TasksModel
     @ScaledMetric(relativeTo: .body) private var projectCardWidth: CGFloat = 170
     @Environment(\.shellKind) private var shellKind
-    @Environment(\.calendar) private var calendar
     init(
         store: IndexStore, selection: Binding<String?> = .constant(nil), notificationRequest: UUID? = nil,
         tasks: TasksModel? = nil
@@ -150,9 +149,7 @@ struct TasksView: View {
     }
 
     private var weeklySummaryRow: some View {
-        let summary = TasksWeeklySummary.make(
-            open: model.agenda.flatMap(\.rows), completed: model.completed,
-            today: model.day, calendar: calendar)
+        let summary = model.list?.weekly ?? .empty
         return InkCard {
             HStack(spacing: 16) {
                 VStack(alignment: .leading, spacing: 8) {
@@ -175,8 +172,9 @@ struct TasksView: View {
                     ForEach(model.projects, id: \.self) { project in
                         let open = model.openCount(ofProject: project)
                         let key = VaultIndex.projectKey(project)
-                        let total = model.list?.projectTotalCounts[key] ?? open
-                        let completed = model.list?.projectCompletedCounts[key] ?? 0
+                        let count = model.list?.projectCounts[key]
+                        let completed = count?.done ?? 0
+                        let total = (count?.open ?? open) + completed
                         NavigationLink {
                             ProjectView(store: store, name: project)
                         } label: {
@@ -280,14 +278,16 @@ struct TasksView: View {
     }
 
     private func rows(_ rows: [TaskRow]) -> some View {
-        ForEach(rows) { row in
+        ForEach(Array(rows.enumerated()), id: \.element.id) { index, row in
             TasksListRow(
                 store: store, row: row, day: model.day,
                 isOverdue: row.due.map { $0 < model.day } ?? false,
                 isBusy: model.busy.contains(row.id), allowsReopening: true,
                 footnote: footnote(for: row), openDetail: { detailRow = row }
             ) { Task { await model.toggle(row) } }
-            .inkListRow(columnSelected: selection == row.id)
+            .inkListRow(
+                columnSelected: selection == row.id,
+                cardSegment: .position(index, of: rows.count))
             .tag(row.id)
             .alignmentGuide(.listRowSeparatorLeading) { _ in 0 }
         }

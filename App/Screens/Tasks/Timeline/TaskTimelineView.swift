@@ -90,7 +90,8 @@ struct TaskTimelineView: View {
     /// the panel fits (narrower, the detail opens in a sheet as on the phone).
     @ViewBuilder private var desktop: some View {
         TasksPageTop(tasks: model.tasks, current: .timeline) {
-            groupingMenu
+            // Gün and Hafta boards are not grouped (screens.md "Mac gruplama": Hafta-Çeyrek chart).
+            if model.scale.showsGrouping { groupingMenu }
         } menu: {
             controls
         }

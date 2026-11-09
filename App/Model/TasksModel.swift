@@ -46,12 +46,14 @@ struct TaskListContent {
     let completed: [TaskRow]
     /// Open tasks per project key, whatever the filters.
     let projectOpenCounts: [String: Int]
-    let projectTotalCounts: [String: Int]
-    let projectCompletedCounts: [String: Int]
+    /// Open and done tasks per project key, whatever the filters (project cards).
+    let projectCounts: [String: ProjectTaskCount]
+    /// This week's card, whatever the filters.
+    let weekly: TasksWeeklySummary
 
     init(
         groups: TaskRowGroups, completed: [TaskRow], projectOpenCounts: [String: Int],
-        projectTotalCounts: [String: Int], projectCompletedCounts: [String: Int]
+        projectCounts: [String: ProjectTaskCount] = [:], weekly: TasksWeeklySummary = .empty
     ) {
         let overdue = groups.overdue.sorted(by: TasksModel.order)
         let future = Dictionary(
@@ -74,8 +76,8 @@ struct TaskListContent {
                 return $0.sourceLine < $1.sourceLine
             }.prefix(TasksModel.completedLimit))
         self.projectOpenCounts = projectOpenCounts
-        self.projectTotalCounts = projectTotalCounts
-        self.projectCompletedCounts = projectCompletedCounts
+        self.projectCounts = projectCounts
+        self.weekly = weekly
     }
 }
 
@@ -105,6 +107,8 @@ final class TasksModel {
     private(set) var busy: Set<String> = []
     private(set) var errorText: String?
     private let today: () -> CalendarDate
+    /// The week the summary card counts (first weekday); the current calendar unless a test sets one.
+    var calendar: Calendar = .autoupdatingCurrent
 
     init(store: IndexStore, today: @escaping () -> CalendarDate = { LocalDay.today() }) {
         self.store = store
@@ -146,22 +150,16 @@ final class TasksModel {
             let completed = try await store.computeCompletedTasks(limit: Self.completedLimit, scope: request.scope)
             let counts = try await store.computeOpenTaskCounts()
             let names = try await store.computeProjects()
-            var totals: [String: Int] = [:]
-            var completedTotals: [String: Int] = [:]
-            for name in names {
-                let projectRows = try await store.computeProjectTasks(name)
-                let key = VaultIndex.projectKey(name)
-                // Cancelled tasks stay out of both counts, as on the project page's progress card.
-                totals[key] = projectRows.filter { $0.rawStatus != "-" }.count
-                completedTotals[key] = projectRows.filter { $0.rawStatus == "x" || $0.rawStatus == "X" }.count
-            }
-            return (groups, completed, counts, names, totals, completedTotals)
+            let projectCounts = try await store.computeProjectTaskCounts()
+            let week = TasksWeeklySummary.week(containing: request.day, calendar: calendar)
+            let period = try await store.computePeriodTaskCount(from: week.lowerBound, through: week.upperBound)
+            return (groups, completed, counts, names, projectCounts, TasksWeeklySummary(period))
         }
         switch outcome {
-        case .answer(let (groups, completed, counts, names, totals, completedTotals)):
+        case .answer(let (groups, completed, counts, names, projectCounts, weekly)):
             list = TaskListContent(
                 groups: groups, completed: completed, projectOpenCounts: counts,
-                projectTotalCounts: totals, projectCompletedCounts: completedTotals)
+                projectCounts: projectCounts, weekly: weekly)
             projects = names
             loadedListRequest = request
             listErrorText = nil

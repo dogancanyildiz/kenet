@@ -76,9 +76,9 @@ struct TasksListRow: View {
             .accessibilityLabel(Text("Ayrıntıları göster"))
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(InkSpacing.cardPadding)
-        // Completed rows fade through secondary text and the filled box, never opacity (design.md).
-        .modifier(InkCardModifier())
+        // Inside the section card (`inkListRow(cardSegment:)` draws it behind the row). Completed
+        // rows fade through secondary text and the filled box, never opacity (design.md).
+        .padding(.horizontal, InkSpacing.cardPadding)
         #if !os(macOS)
             .contentShape(Rectangle())
             .modifier(TasksListRowTouch.Tap(shell: shellKind, completes: rowTapCompletes, complete: complete))

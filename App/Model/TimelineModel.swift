@@ -20,6 +20,8 @@ final class TimelineModel {
     enum Grouping: String, CaseIterable { case project, person, none }
     enum Scale: String, CaseIterable {
         case day, week, month, quarter
+        /// The chart's grouping menu belongs to the bar chart; the Gün and Hafta boards have no groups.
+        var showsGrouping: Bool { self == .month || self == .quarter }
         var daysAcross: Int {
             switch self {
             case .day: 1

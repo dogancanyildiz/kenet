@@ -394,6 +394,7 @@ struct TodayPresentationTests {
             switch row {
             case .task(let task): "t:\(task.id)"
             case .carriedOverDisclosure: "carried"
+            case .moreTasksDisclosure: "more"
             case .completedDisclosure: "completed"
             }
         }
@@ -407,6 +408,7 @@ struct TodayPresentationTests {
         #expect(
             value.rows.allSatisfy {
                 if case .carriedOverDisclosure = $0 { return false }
+                if case .moreTasksDisclosure = $0 { return false }
                 if case .completedDisclosure = $0 { return false }
                 return true
             })

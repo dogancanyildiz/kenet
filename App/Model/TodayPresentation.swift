@@ -13,12 +13,14 @@ struct TodayPresentation: Sendable {
     enum Row: Identifiable, Sendable {
         case task(TaskRow)
         case carriedOverDisclosure(String)
+        case moreTasksDisclosure(String)
         case completedDisclosure(String)
 
         var id: String {
             switch self {
             case .task(let row): row.id
             case .carriedOverDisclosure(let text): "carried:\(text)"
+            case .moreTasksDisclosure(let text): "more:\(text)"
             case .completedDisclosure(let text): "completed:\(text)"
             }
         }
@@ -28,6 +30,8 @@ struct TodayPresentation: Sendable {
     /// Abbreviated-month headline for one-line fitting ("30 Eyl Çarşamba" / "Wed, Sep 30").
     let shortHeadline: String
     let byline: String?
+    /// Şafak künye parts for ``InkSummaryLine`` (greeting omitted when `greeting` is nil).
+    let summaryParts: [InkSummaryLine.Part]
     let remainingTaskCount: Int
     /// The open tasks the close-day flow lists: `remainingTaskCount` without those written on the
     /// day and due later (their due day is already chosen).
@@ -47,6 +51,10 @@ struct TodayPresentation: Sendable {
     let locale: Locale
     var isCarriedOverExpanded: Bool
     var isCompletedExpanded: Bool
+    /// Today folds open tasks when the above-the-fold budget says so (jury condition 4).
+    var isTasksExpanded: Bool
+    /// When true (Today), open tasks may fold behind "N görev daha".
+    let foldsOpenTasks: Bool
 
     /// Supply closed source rows separately: Today's TaskGroups intentionally excludes them.
     /// completedTaskIDs also accepts DayTasksModel's temporarily retained pre-write rows.
@@ -56,12 +64,16 @@ struct TodayPresentation: Sendable {
         day: DaySummary, groups: TaskGroups, goals: [GoalDefinition], goalStatuses: [String: GoalStatus],
         goalStatusesDay: CalendarDate?, today: CalendarDate, locale: Locale, calendar: Calendar,
         completedTasks: [TaskRow] = [], completedTaskIDs: Set<String> = [],
-        isCarriedOverExpanded: Bool = false, isCompletedExpanded: Bool = false
+        isCarriedOverExpanded: Bool = false, isCompletedExpanded: Bool = false,
+        isTasksExpanded: Bool = false, foldsOpenTasks: Bool = false,
+        greeting: TodayGreeting? = nil
     ) {
         let resolved = PresentationLocalization.resolvedLocale(locale)
         self.locale = resolved
         self.isCarriedOverExpanded = isCarriedOverExpanded
         self.isCompletedExpanded = isCompletedExpanded
+        self.isTasksExpanded = isTasksExpanded
+        self.foldsOpenTasks = foldsOpenTasks
         headline = Self.dateText(day.date, today: today, locale: resolved, calendar: calendar, headline: true)
         shortHeadline = Self.shortHeadline(day.date, today: today, locale: resolved, calendar: calendar)
         let all = groups.overdue + groups.dated + groups.created
@@ -110,6 +122,9 @@ struct TodayPresentation: Sendable {
         eventCount = day.events.count
         byline = TodayCopy.byline(
             events: eventCount, tasks: remainingTaskCount, goals: remainingGoalCount, locale: resolved)
+        summaryParts = TodaySummaryCopy.parts(
+            greeting: greeting, events: eventCount, tasks: remainingTaskCount, goals: goalCount,
+            locale: resolved)
     }
 
     var carriedOverTasks: [TaskRow] { isCarriedOverExpanded ? carriedOver : Array(carriedOver.prefix(3)) }
@@ -118,14 +133,57 @@ struct TodayPresentation: Sendable {
         guard hiddenCarriedOverCount > 0 else { return nil }
         return TodayCopy.carriedOver(hiddenCarriedOverCount, locale: locale)
     }
+
+    /// Open tasks in display order before any fold.
+    var openTasks: [TaskRow] { carriedOver + datedTasks + createdTasks }
+
+    /// Whether the above-the-fold budget asks Today to fold open tasks.
+    var shouldFoldOpenTasks: Bool {
+        foldsOpenTasks
+            && TodayAboveFoldBudget.shouldFoldTasks(
+                goalCount: goalCount, openTaskCount: remainingTaskCount, eventCount: eventCount)
+    }
+
+    var visibleOpenTasks: [TaskRow] {
+        guard shouldFoldOpenTasks, !isTasksExpanded else { return openTasks }
+        return Array(openTasks.prefix(TodayAboveFoldBudget.maxVisibleTaskRows))
+    }
+
+    var hiddenOpenTaskCount: Int {
+        guard shouldFoldOpenTasks, !isTasksExpanded else { return 0 }
+        return max(0, openTasks.count - TodayAboveFoldBudget.maxVisibleTaskRows)
+    }
+
+    var openTasksDisclosure: String? {
+        guard hiddenOpenTaskCount > 0 else { return nil }
+        return TodayCopy.moreTasks(hiddenOpenTaskCount, locale: locale)
+    }
+
     /// Visible task rows in display order; disclosure rows are exposed separately.
     /// Past-day closed rows (cancelled, completed any day) follow open rows; folding applies only to `x`.
     var taskRows: [TaskRow] {
-        carriedOverTasks + datedTasks + createdTasks + cancelled + completedTaskRows
+        if shouldFoldOpenTasks {
+            return visibleOpenTasks + cancelled + completedTaskRows
+        }
+        return carriedOverTasks + datedTasks + createdTasks + cancelled + completedTaskRows
     }
 
     /// Carried-over tasks → disclosure → today's / undated → cancelled / completed (or fold).
+    /// On Today with an above-the-fold fold, open tasks collapse to three + "N görev daha".
     var rows: [Row] {
+        if shouldFoldOpenTasks {
+            var result: [Row] = visibleOpenTasks.map(Row.task)
+            if let disclosure = openTasksDisclosure {
+                result.append(.moreTasksDisclosure(disclosure))
+            }
+            result.append(contentsOf: cancelled.map(Row.task))
+            if let disclosure = completedDisclosure {
+                result.append(.completedDisclosure(disclosure))
+            } else {
+                result.append(contentsOf: completedTaskRows.map(Row.task))
+            }
+            return result
+        }
         var result: [Row] = carriedOverTasks.map(Row.task)
         if let disclosure = carriedOverDisclosure {
             result.append(.carriedOverDisclosure(disclosure))
@@ -418,6 +476,10 @@ private enum TodayCopy {
 
     static func carriedOver(_ count: Int, locale: Locale) -> String {
         String(localized: "\(count) devreden daha", bundle: PresentationLocalization.bundle(locale), locale: locale)
+    }
+
+    static func moreTasks(_ count: Int, locale: Locale) -> String {
+        String(localized: "\(count) görev daha", bundle: PresentationLocalization.bundle(locale), locale: locale)
     }
 
     static func completed(_ count: Int, locale: Locale) -> String {

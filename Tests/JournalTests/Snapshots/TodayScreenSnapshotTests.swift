@@ -20,6 +20,8 @@
         case todayPriority
         case todayTall
         case todayGoals
+        /// Jury condition 4: first event visible without scrolling (iPhone portrait, default type).
+        case firstEventVisibleLight
 
         var colorScheme: SnapshotColorScheme {
             self == .todayDark ? .dark : .light
@@ -41,6 +43,9 @@
         var usesCalendar: Bool { self == .todayTall }
         /// Incomplete boolean lives in `todayGoals` so the main light reference keeps first-event room.
         var usesIncompleteBooleanGoal: Bool { self == .todayGoals }
+        var snapshotName: String {
+            self == .firstEventVisibleLight ? "today.firstEventVisibleLight" : rawValue
+        }
     }
 
     @MainActor @Suite("Today screen snapshots")
@@ -102,7 +107,7 @@
                 colorScheme: snapshotCase.colorScheme,
                 dynamicType: snapshotCase.dynamicType,
                 increaseContrast: snapshotCase.increaseContrast,
-                named: snapshotCase.rawValue,
+                named: snapshotCase.snapshotName,
                 store: store,
                 size: size,
                 bottomSafeArea: Self.tabBarHeight,

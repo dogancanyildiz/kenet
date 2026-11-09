@@ -5,6 +5,8 @@ struct InkWeekStrip: View {
     @Binding var selection: Date
     /// Days that have vault writing (compared at start-of-day).
     var writtenDays: Set<Date> = []
+    /// When set, days after this instant are drawn but not tappable (Today / past-day strip).
+    var latestSelectable: Date? = nil
 
     @Environment(\.calendar) private var calendar
     @Environment(\.locale) private var locale
@@ -37,6 +39,10 @@ struct InkWeekStrip: View {
         let selected = calendar.isDate(day, inSameDayAs: selection)
         let isToday = calendar.isDateInToday(day)
         let written = writtenDays.contains { calendar.isDate($0, inSameDayAs: day) }
+        let enabled =
+            latestSelectable.map {
+                TodayWeekStripMath.isSelectable(day, today: $0, calendar: calendar)
+            } ?? true
         return Button {
             selection = calendar.startOfDay(for: day)
         } label: {
@@ -46,7 +52,11 @@ struct InkWeekStrip: View {
                     .foregroundStyle(Color.ink.tertiaryText)
                 Text(verbatim: Self.dayNumber(day, calendar: calendar))
                     .font(.ink.value)
-                    .foregroundStyle(selected ? Color.ink.text : Color.ink.secondaryText)
+                    .foregroundStyle(
+                        enabled
+                            ? (selected ? Color.ink.text : Color.ink.secondaryText)
+                            : Color.ink.tertiaryText
+                    )
                     .monospacedDigit()
                 ZStack {
                     if isToday {
@@ -69,8 +79,10 @@ struct InkWeekStrip: View {
                 }
             }
             .contentShape(Rectangle())
+            .opacity(enabled ? 1 : 0.45)
         }
         .buttonStyle(.plain)
+        .disabled(!enabled)
         .accessibilityLabel(Text(verbatim: Self.accessibilityLabel(
             day: day, written: written, calendar: calendar, locale: locale)))
         .accessibilityAddTraits(selected ? [.isSelected] : [])
@@ -78,12 +90,7 @@ struct InkWeekStrip: View {
 
     /// Seven dates for the week containing `date`, ordered from the calendar's first weekday.
     static func daysInWeek(containing date: Date, calendar: Calendar) -> [Date] {
-        let start = calendar.startOfDay(for: date)
-        let weekday = calendar.component(.weekday, from: start)
-        let first = calendar.firstWeekday
-        let delta = (weekday - first + 7) % 7
-        let weekStart = calendar.date(byAdding: .day, value: -delta, to: start) ?? start
-        return (0..<7).compactMap { calendar.date(byAdding: .day, value: $0, to: weekStart) }
+        TodayWeekStripMath.daysInWeek(containing: date, calendar: calendar)
     }
 
     static func weekdayLetter(_ day: Date, calendar: Calendar, locale: Locale) -> String {

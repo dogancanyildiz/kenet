@@ -13,39 +13,56 @@ struct DayCalendarView: View {
                     title: String(
                         localized: "Takvim",
                         bundle: PresentationLocalization.bundle(locale), locale: locale))
-                if calendar.authorization.canRequest {
-                    Button("Takvim etkinliklerini göstermek için izin ver") {
-                        Task { await calendar.requestAccess() }
+                InkCard(padded: true) {
+                    if calendar.authorization.canRequest {
+                        Button("Takvim etkinliklerini göstermek için izin ver") {
+                            Task { await calendar.requestAccess() }
+                        }
+                        .buttonStyle(InkTextButtonStyle())
+                        .disabled(calendar.isRequesting)
                     }
-                    .buttonStyle(InkTextButtonStyle())
-                    .disabled(calendar.isRequesting)
-                }
-                if let error = calendar.errorText {
-                    InfoBand(
-                        kind: .warning, verbatim: error,
-                        actionTitle: calendar.authorization.canRead ? "Yeniden dene" : nil,
-                        action: calendar.authorization.canRead
-                            ? { Task { await calendar.load(date) } } : nil)
-                }
-                ForEach(calendar.events(on: date)) { event in
-                    InkCalendarRow(
-                        time: startLabel(for: event),
-                        title: event.title.isEmpty
-                            ? String(
-                                localized: "Başlıksız etkinlik",
-                                bundle: PresentationLocalization.bundle(locale), locale: locale)
-                            : event.title,
-                        endLabel: endLabel(for: event)
-                    )
-                    .accessibilityElement(children: .combine)
-                    .contextMenu {
-                        Button {
-                            draft(event)
-                        } label: {
-                            Label("Olay taslağı", systemImage: "square.and.pencil")
+                    if let error = calendar.errorText {
+                        InfoBand(
+                            kind: .warning, verbatim: error,
+                            actionTitle: calendar.authorization.canRead ? "Yeniden dene" : nil,
+                            action: calendar.authorization.canRead
+                                ? { Task { await calendar.load(date) } } : nil)
+                    }
+                    InkCardRows {
+                        ForEach(Array(calendar.events(on: date).enumerated()), id: \.element.id) {
+                            index, event in
+                            if index > 0 { InkCardDivider() }
+                            VStack(alignment: .leading, spacing: 4) {
+                                InkCalendarRow(
+                                    time: startLabel(for: event),
+                                    title: event.title.isEmpty
+                                        ? String(
+                                            localized: "Başlıksız etkinlik",
+                                            bundle: PresentationLocalization.bundle(locale),
+                                            locale: locale)
+                                        : event.title,
+                                    endLabel: endLabel(for: event)
+                                )
+                                Text(
+                                    verbatim: String(
+                                        localized: "Takvim · salt okunur",
+                                        bundle: PresentationLocalization.bundle(locale),
+                                        locale: locale)
+                                )
+                                .font(.ink.meta)
+                                .foregroundStyle(Color.ink.secondaryText)
+                            }
+                            .accessibilityElement(children: .combine)
+                            .contextMenu {
+                                Button {
+                                    draft(event)
+                                } label: {
+                                    Label("Olay taslağı", systemImage: "square.and.pencil")
+                                }
+                            }
+                            .accessibilityAction(named: Text("Olay taslağı")) { draft(event) }
                         }
                     }
-                    .accessibilityAction(named: Text("Olay taslağı")) { draft(event) }
                 }
             }
         }

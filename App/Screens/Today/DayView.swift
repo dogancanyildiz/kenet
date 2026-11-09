@@ -40,6 +40,7 @@ struct DayView: View {
     @Environment(\.clockNow) private var clockNow
     @Environment(\.openSettings) private var openSettings
     @Environment(\.displayScale) private var displayScale
+    @Environment(\.inkMastheadPlacement) private var mastheadPlacement
     /// The shell's bridge: the journal editor's presence and the drafts live there, so a shell
     /// rebuilt by the iPhone Duo shows the same page with the same text. Nil when the page is
     /// hosted without a shell (tests).
@@ -52,6 +53,7 @@ struct DayView: View {
     @State private var tasksModel: DayTasksModel
     @State private var isCarriedOverExpanded = false
     @State private var isCompletedExpanded = false
+    @State private var isTasksExpanded = false
     /// Nil until the first query returns; a reload keeps the previous day until then.
     @State private var loadedDay: DaySummary?
     /// Goal definitions and statuses as of the day they were queried for, loaded with the day.
@@ -63,12 +65,20 @@ struct DayView: View {
     /// Whether the day's own graph has a node besides the day, as of the day it was queried for.
     @State private var dayGraph: (date: CalendarDate, isOffered: Bool)?
     @State private var showsDayGraph = false
+    @State private var weekSelection: Date
+    @State private var weekDestination: CalendarDate?
+    @State private var writtenDays: Set<Date> = []
+    @State private var insightChips: [TodayInsightChip] = []
+    @State private var chipEntityDestination: EntitySummary?
+    @State private var isHeaderCompact = false
 
     init(store: IndexStore, date: CalendarDate, isToday: Bool = false) {
         self.store = store
         self.date = date
         self.isToday = isToday
         _tasksModel = State(initialValue: DayTasksModel(store: store, day: date, isToday: isToday))
+        _weekSelection = State(
+            initialValue: LocalDay.instant(for: date, timeZone: .current))
     }
 
     /// The queried day, once it is this date's. Until then the day's own sections are not drawn,
@@ -80,13 +90,17 @@ struct DayView: View {
         let goals = loadedGoals?.day == date ? loadedGoals : nil
         // A goal marked on this page counts from the strip's model until an answer has the mark.
         let statuses = goals.map { goalModels.model(store: store, day: date).shownStatuses($0.statuses) }
+        let greeting: TodayGreeting? =
+            isToday
+            ? TodayGreeting.resolve(date: clockNow(), calendar: calendarValue) : nil
         return TodayPresentation(
             day: day ?? DaySummary(empty: date), groups: tasksModel.groups, goals: goals?.goals ?? [],
             goalStatuses: statuses ?? [:], goalStatusesDay: goals?.day, today: today, locale: locale,
             calendar: calendarValue,
             completedTasks: tasksModel.completedTasksForPresentation,
             completedTaskIDs: tasksModel.completed,
-            isCarriedOverExpanded: isCarriedOverExpanded, isCompletedExpanded: isCompletedExpanded)
+            isCarriedOverExpanded: isCarriedOverExpanded, isCompletedExpanded: isCompletedExpanded,
+            isTasksExpanded: isTasksExpanded, foldsOpenTasks: isToday, greeting: greeting)
     }
 
     var body: some View {
@@ -97,9 +111,32 @@ struct DayView: View {
         let isEmptyDay =
             day.map { $0.events.isEmpty && $0.journal.isEmpty && !$0.hasGoalRecords } == true
             && tasksModel.groups.isEmpty && presented.completedTaskCount == 0
+        let ringTotal = presented.goalCount
+        let ringProgress = TodayDayRing.progress(
+            completed: presented.completedGoalCount, total: ringTotal)
+        let ringRemaining = TodayDayRing.remaining(
+            completed: presented.completedGoalCount, total: ringTotal)
+        let dayInstant = LocalDay.instant(for: date, timeZone: calendarValue.timeZone)
+        let todayInstant = LocalDay.instant(
+            for: isToday ? date : LocalDay.today(at: clockNow()),
+            timeZone: calendarValue.timeZone)
+
         ScrollView {
             VStack(alignment: .leading, spacing: InkSpacing.section) {
-                InkScrolledMasthead(headlineBlock(presented))
+                InkScrolledMasthead(
+                    dayHeader(
+                        presented, progress: ringProgress, remaining: ringRemaining,
+                        total: ringTotal, compact: false, instant: dayInstant)
+                )
+
+                weekStrip(selectionInstant: dayInstant, todayInstant: todayInstant)
+
+                if day != nil {
+                    InkSummaryLine(parts: presented.summaryParts)
+                    if !insightChips.isEmpty {
+                        chipRow
+                    }
+                }
 
                 if store.isProcessing && !store.isWriting {
                     InkProgress(kind: .indeterminate(label: "İndeks güncelleniyor…"))
@@ -126,6 +163,7 @@ struct DayView: View {
                     store: store, date: date, isToday: isToday, model: tasksModel,
                     presentation: presented, entityIndex: entitiesByID,
                     onExpandCarriedOver: { isCarriedOverExpanded = true },
+                    onExpandTasks: { isTasksExpanded = true },
                     onExpandCompleted: { isCompletedExpanded = true })
 
                 DayCalendarView(date: date)
@@ -137,9 +175,15 @@ struct DayView: View {
                                 localized: "Olaylar",
                                 bundle: PresentationLocalization.bundle(locale), locale: locale),
                             counter: presented.counter(for: .events))
-                        ForEach(day.events) { event in
-                            DayEventView(
-                                store: store, day: date, event: event, entityIndex: entitiesByID)
+                        InkCard(padded: true) {
+                            InkCardRows {
+                                ForEach(Array(day.events.enumerated()), id: \.element.id) { index, event in
+                                    if index > 0 { InkCardDivider() }
+                                    DayEventView(
+                                        store: store, day: date, event: event,
+                                        entityIndex: entitiesByID)
+                                }
+                            }
                         }
                     }
                 }
@@ -162,10 +206,30 @@ struct DayView: View {
             // `safeAreaInset` already reserves the capsule; only a small page pad here.
             .padding(.bottom, 8)
             .inkPageColumn()
+            .modifier(TodayGlowBackground(isToday: isToday))
+        }
+        .onScrollGeometryChange(for: Bool.self) { geometry in
+            geometry.contentOffset.y + geometry.contentInsets.top > 28
+        } action: { _, compact in
+            isHeaderCompact = compact
+        }
+        .safeAreaInset(edge: .top, spacing: 0) {
+            if mastheadPlacement == .scrolled && isHeaderCompact {
+                dayHeader(
+                    presented, progress: ringProgress, remaining: ringRemaining, total: ringTotal,
+                    compact: true, instant: dayInstant
+                )
+                .padding(.horizontal, InkSpacing.margin)
+                .padding(.vertical, 8)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Color.ink.paper)
+            }
         }
         // The stack's own top pad stays under the pinned strip: the gap below the manşet is the same.
         .inkPinnedMasthead(
-            headlineBlock(presented),
+            dayHeader(
+                presented, progress: ringProgress, remaining: ringRemaining, total: ringTotal,
+                compact: false, instant: dayInstant),
             insets: EdgeInsets(top: 8, leading: InkSpacing.margin, bottom: 0, trailing: InkSpacing.margin)
         )
         .inkPage()
@@ -188,6 +252,7 @@ struct DayView: View {
         .preference(key: GoalsStripReadyKey.self, value: goalModel.hasLoaded && !goalModel.isLoading)
         .task(id: date) {
             if AppLaunchPolicy.allowsAutomaticStart() { await calendar.load(date) }
+            weekSelection = LocalDay.instant(for: date, timeZone: calendarValue.timeZone)
         }
         .task(id: DayRequest(date: date, updated: store.lastUpdated)) {
             // One load: the day and its goal statuses as of that day are taken together.
@@ -206,6 +271,9 @@ struct DayView: View {
                 loadedGoals = (date, statuses.map(\.definition), TodayPresentation.goalStatuses(statuses))
                 goalModel.answerShown(askedAt: revision)
             }
+            await loadWeekAndChips(
+                goals: statuses?.map(\.definition) ?? [],
+                statuses: statuses.map(TodayPresentation.goalStatuses) ?? [:])
         }
         // The strip's goals and history, for the page's day and publish.
         .task(id: DayRequest(date: date, updated: store.lastUpdated)) {
@@ -218,6 +286,8 @@ struct DayView: View {
             tasksModel = DayTasksModel(store: store, day: newDate, isToday: isToday)
             isCarriedOverExpanded = false
             isCompletedExpanded = false
+            isTasksExpanded = false
+            weekSelection = LocalDay.instant(for: newDate, timeZone: calendarValue.timeZone)
         }
         .navigationDestination(isPresented: $showsDayGraph) {
             GraphView(store: store, scope: .day(date))
@@ -225,6 +295,12 @@ struct DayView: View {
         .navigationDestination(item: $goalDestination) { route in
             // As the Goals list opens it: the page's own day is today.
             GoalDetailView(store: store, goal: route.goal, day: LocalDay.today(at: clockNow()))
+        }
+        .navigationDestination(item: $weekDestination) { day in
+            DayView(store: store, date: day)
+        }
+        .navigationDestination(item: $chipEntityDestination) { entity in
+            EntityView(store: store, entity: entity)
         }
         .onAppear { isVisible = true }
         .onDisappear { isVisible = false }
@@ -235,7 +311,11 @@ struct DayView: View {
             NavigationStack {
                 CloseDayView(
                     store: store, today: date, tasks: tasksModel.rows ?? [],
-                    goals: goalModels.model(store: store, day: date), step: route.step)
+                    goals: goalModels.model(store: store, day: date), step: route.step,
+                    summary: CloseDaySummary(
+                        events: presented.eventCount,
+                        completedTasks: presented.completedTaskCount,
+                        remainingTasks: presented.closeDayTaskCount))
             }
             .inkAdaptiveFormPresentation()
         }
@@ -243,6 +323,42 @@ struct DayView: View {
         .onChange(of: store.lastUpdated == nil) { openCloseDayFromReminder() }
         .onChange(of: tasksModel.isCurrent) { openCloseDayFromReminder() }
         .onChange(of: goalModel.isCurrent) { openCloseDayFromReminder() }
+    }
+
+    private func loadWeekAndChips(goals: [GoalDefinition], statuses: [String: GoalStatus]) async {
+        let weekDays = TodayWeekStripMath.daysInWeek(
+            containing: LocalDay.instant(for: date, timeZone: calendarValue.timeZone),
+            calendar: calendarValue)
+        let first = weekDays.first.map { LocalDay.today(at: $0, timeZone: calendarValue.timeZone) }
+        let last = weekDays.last.map { LocalDay.today(at: $0, timeZone: calendarValue.timeZone) }
+        if let first, let last {
+            let overviews = (try? await store.computeDaySummaries(from: first, to: last)) ?? []
+            writtenDays = Set(
+                overviews.filter { $0.eventCount > 0 || $0.journalCount > 0 }.map {
+                    LocalDay.instant(for: $0.date, timeZone: calendarValue.timeZone)
+                })
+        }
+
+        let yesterday = date.addingDays(-1)
+        var yesterdayCount = 0
+        if let yesterday {
+            if let overview = try? await store.computeDaySummaries(from: yesterday, to: yesterday)
+                .first
+            {
+                yesterdayCount = overview.eventCount
+            }
+        }
+
+        let encounters = (try? await store.computeLastEncounters(asOf: date)) ?? [:]
+        let streak = TodayInsightChip.longestDailyStreak(goals: goals, statuses: statuses)
+        let person = TodayInsightChip.lastPerson(
+            people: store.content.entities, encounters: encounters, today: date)
+        insightChips = TodayInsightChip.make(
+            from: TodayInsightChip.Inputs(
+                longestDailyStreak: streak.days, streakGoalID: streak.goalID,
+                yesterdayEventCount: yesterdayCount,
+                yesterday: yesterday ?? date,
+                lastPersonName: person?.name, lastPersonID: person?.id))
     }
 
     /// The evening journal reminder opens the flow on its journal step. The reminder's own day is
@@ -276,13 +392,14 @@ struct DayView: View {
             })
     }
 
-    /// Manşet row: the day's graph (while the day links an entity), Settings (Today, phone only),
-    /// then search, rightmost. A past day keeps the graph and search; its bar holds nothing but the
-    /// back button.
-    private func headlineBlock(_ presented: TodayPresentation) -> some View {
-        InkPageHeader(
-            verbatim: presented.headline, shortTitle: presented.shortHeadline,
-            byline: day == nil ? nil : presented.byline, fitsOneLine: isToday
+    private func dayHeader(
+        _ presented: TodayPresentation, progress: Double, remaining: Int, total: Int,
+        compact: Bool, instant: Date
+    ) -> some View {
+        InkDayHeader(
+            date: instant, progress: progress, remainingCount: remaining,
+            showsRing: TodayDayRing.showsRing(total: total), compact: compact,
+            compactTitle: presented.shortHeadline
         ) {
             if let dayGraph, dayGraph.date == date, dayGraph.isOffered {
                 InkHeaderAction(
@@ -301,21 +418,72 @@ struct DayView: View {
         }
     }
 
-    /// A link row under a thin rule; no section title of its own.
-    private var closeDayEntry: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Rectangle()
-                .fill(Color.ink.rule)
-                .frame(height: InkStroke.hairline(scale: displayScale))
-                .accessibilityHidden(true)
-            Button("Günü kapat") { closeDayRoute = CloseDayRoute(step: .tasks) }
-                .buttonStyle(InkTextButtonStyle())
-                .accessibilityIdentifier("button.closeDay")
+    private func weekStrip(selectionInstant: Date, todayInstant: Date) -> some View {
+        InkWeekStrip(
+            selection: Binding(
+                get: { weekSelection },
+                set: { newValue in
+                    weekSelection = newValue
+                    let picked = LocalDay.today(at: newValue, timeZone: calendarValue.timeZone)
+                    if picked == date { return }
+                    if picked > LocalDay.today(at: todayInstant, timeZone: calendarValue.timeZone) {
+                        return
+                    }
+                    weekDestination = picked
+                }),
+            writtenDays: writtenDays,
+            latestSelectable: todayInstant)
+    }
+
+    private var chipRow: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                ForEach(Array(insightChips.enumerated()), id: \.offset) { _, chip in
+                    TagChip(
+                        title: chip.title(locale: locale), systemImage: chip.systemImage,
+                        filled: true,
+                        onTap: {
+                            switch chip {
+                            case .streak(_, let goalID):
+                                if let goal = loadedGoals?.goals.first(where: { $0.id == goalID }) {
+                                    goalDestination = GoalDetailRoute(goal: goal)
+                                }
+                            case .yesterdayEvents(_, let day):
+                                weekDestination = day
+                            case .lastMeeting(_, let entityID):
+                                chipEntityDestination = store.content.entities.first {
+                                    $0.id == entityID
+                                }
+                            }
+                        })
+                }
+            }
         }
     }
 
+    /// Accent row with chevron; no thin rule (Şafak).
+    private var closeDayEntry: some View {
+        Button {
+            closeDayRoute = CloseDayRoute(step: .tasks)
+        } label: {
+            HStack {
+                Text("Günü kapat")
+                    .font(.ink.byline)
+                    .foregroundStyle(Color.ink.accent)
+                Spacer(minLength: 0)
+                Image(systemName: "chevron.right")
+                    .font(.body.weight(.semibold))
+                    .foregroundStyle(Color.ink.accent)
+            }
+            .frame(maxWidth: .infinity, minHeight: TapTarget.minimumLength)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("button.closeDay")
+    }
+
     @ViewBuilder private var journalSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: InkSpacing.row) {
             SectionHeader(
                 title: String(
                     localized: "Günlük yazısı",
@@ -324,7 +492,7 @@ struct DayView: View {
                 Button {
                     journalPresented.wrappedValue = true
                 } label: {
-                    journalPreview
+                    InkCard { journalPreview }
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Günlük yazısını düzenle")
@@ -332,7 +500,7 @@ struct DayView: View {
                 NavigationLink {
                     JournalView(store: store, date: date)
                 } label: {
-                    journalPreview
+                    InkCard { journalPreview }
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Günlük yazısını düzenle")
@@ -342,6 +510,19 @@ struct DayView: View {
 
     private var journalPreview: some View {
         DayJournalPreview(isLoaded: day != nil, preview: day?.preview)
+    }
+}
+
+/// Dawn glow only on Today's scroll content (past days stay flat).
+private struct TodayGlowBackground: ViewModifier {
+    var isToday: Bool
+
+    func body(content: Content) -> some View {
+        if isToday {
+            content.inkGlow()
+        } else {
+            content
+        }
     }
 }
 
@@ -414,4 +595,11 @@ enum DayGraphEntry {
         let graph = GraphModel.compute(input: input, filter: GraphFilter(scope: .day(date)), today: date)
         return graph.nodes.contains { $0.kind != .day }
     }
+}
+
+/// Numbers shown at the top of the close-day sheet.
+struct CloseDaySummary: Equatable, Sendable {
+    var events: Int
+    var completedTasks: Int
+    var remainingTasks: Int
 }

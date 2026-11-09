@@ -49,17 +49,28 @@ struct DayContextView<Following: View>: View {
         let extra = rows.count - shown.count
         VStack(alignment: .leading, spacing: InkSpacing.section) {
             if entry != nil || !shown.isEmpty {
-                // One row per context line, in reading order.
                 VStack(alignment: .leading, spacing: InkSpacing.row) {
-                    if let entry {
-                        onThisDayRow(
-                            OnThisDayPresentation(entry: entry, today: today, locale: locale), day: entry.day)
-                    }
-                    ForEach(shown) { row in
-                        importantDateRow(row)
-                    }
-                    if extra > 0 {
-                        moreDatesRow(extra)
+                    SectionHeader(
+                        title: String(
+                            localized: "Bağlam",
+                            bundle: PresentationLocalization.bundle(locale), locale: locale))
+                    InkCard(padded: true) {
+                        InkCardRows {
+                            if let entry {
+                                onThisDayRow(
+                                    OnThisDayPresentation(
+                                        entry: entry, today: today, locale: locale),
+                                    day: entry.day)
+                            }
+                            ForEach(Array(shown.enumerated()), id: \.element.id) { offset, row in
+                                if entry != nil || offset > 0 { InkCardDivider() }
+                                importantDateRow(row)
+                            }
+                            if extra > 0 {
+                                if entry != nil || !shown.isEmpty { InkCardDivider() }
+                                moreDatesRow(extra)
+                            }
+                        }
                     }
                 }
             }
@@ -91,7 +102,9 @@ struct DayContextView<Following: View>: View {
         Button {
             destination = day
         } label: {
-            MarginRow(kind: .vault, time: text.year) {
+            MarginRow(kind: .vault) {
+                yearBadge(text.year)
+            } primary: {
                 Text(verbatim: text.names)
                     .foregroundStyle(.ink.text)
             } secondary: {
@@ -112,7 +125,13 @@ struct DayContextView<Following: View>: View {
         return Button {
             entityDestination = importantDates.store.content.entities.first { $0.id == row.entry.file }
         } label: {
-            MarginRow(kind: .vault, time: text.when) {
+            MarginRow(kind: .vault) {
+                Image(systemName: "gift")
+                    .font(.body)
+                    .foregroundStyle(Color.ink.secondaryText)
+                    .frame(width: InkSpacing.gutter, alignment: .center)
+                    .accessibilityHidden(true)
+            } primary: {
                 Text(verbatim: text.name)
                     .foregroundStyle(.ink.text)
             } secondary: {
@@ -137,6 +156,15 @@ struct DayContextView<Following: View>: View {
         }
         .accessibilityLabel(Text(verbatim: text))
         .accessibilityIdentifier("today.importantDatesMore")
+    }
+
+    private func yearBadge(_ year: String) -> some View {
+        Text(verbatim: year)
+            .font(.ink.meta.weight(.semibold))
+            .foregroundStyle(Color.ink.secondaryText)
+            .monospacedDigit()
+            .frame(width: InkSpacing.gutter, alignment: .center)
+            .accessibilityHidden(true)
     }
 }
 

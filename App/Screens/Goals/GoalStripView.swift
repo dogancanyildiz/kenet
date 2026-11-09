@@ -85,7 +85,8 @@ struct GoalStripView: View {
         let order = goalOrder
         let daily = ordered(dailySource, by: order)
         let period = ordered(model.goals.filter { $0.period != .day }, by: order)
-        if !daily.isEmpty || !period.isEmpty {
+        let columns = daily + period
+        if !columns.isEmpty {
             VStack(alignment: .leading, spacing: InkSpacing.row) {
                 SectionHeader(
                     title: String(
@@ -94,17 +95,38 @@ struct GoalStripView: View {
                     counter: counter
                         ?? "\(daily.filter { model.isComplete(for: $0) }.count)/\(daily.count)"
                 )
-                ForEach(daily, id: \.id) { goal in
-                    goalRow(goal, metaText: nil)
-                }
-                ForEach(period, id: \.id) { goal in
-                    goalRow(goal, metaText: periodMeta(for: goal))
-                }
-                if let error = model.errorText {
-                    InfoBand(kind: .error, verbatim: error)
-                }
-                if let notice = geofences?.lockedMarkNotice {
-                    InfoBand(kind: .info, verbatim: notice)
+                InkCard(padded: true) {
+                    Group {
+                        if columns.count <= 3 {
+                            HStack(alignment: .top, spacing: 12) {
+                                ForEach(columns, id: \.id) { goal in
+                                    goalColumn(
+                                        goal,
+                                        metaText: goal.period == .day ? nil : periodMeta(for: goal)
+                                    )
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                }
+                            }
+                        } else {
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(alignment: .top, spacing: 12) {
+                                    ForEach(columns, id: \.id) { goal in
+                                        goalColumn(
+                                            goal,
+                                            metaText: goal.period == .day ? nil : periodMeta(for: goal)
+                                        )
+                                        .frame(width: 110, alignment: .leading)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    if let error = model.errorText {
+                        InfoBand(kind: .error, verbatim: error)
+                    }
+                    if let notice = geofences?.lockedMarkNotice {
+                        InfoBand(kind: .info, verbatim: notice)
+                    }
                 }
             }
             .onChange(of: model.hasLoaded, initial: true) { keepOrder() }
@@ -165,45 +187,109 @@ struct GoalStripView: View {
         return "\(period) \(amount)"
     }
 
-    @ViewBuilder private func goalRow(_ goal: GoalDefinition, metaText: String?) -> some View {
+    @ViewBuilder private func goalColumn(_ goal: GoalDefinition, metaText: String?) -> some View {
         let status = model.status(for: goal)
         let progress = GoalStripPresentation.progressValue(status: status)
         let isBooleanMark = goal.kind == .boolean || goal.kind == .milestone
         let marked = isBooleanMark && model.isComplete(for: goal)
-        // The controls are there whether or not the model takes edits now (a write or a reload
-        // runs): the row keeps its layout, and `isEditable` turns the taps off.
-        InkGoalRow(
-            name: goal.name,
-            progress: progress,
-            isBoolean: GoalStripPresentation.isBooleanRing(goal: goal),
-            meta: metaText,
-            valueText: valueText(for: goal),
-            onIncrement: marked
-                ? nil
-                : {
-                    if isBooleanMark {
+        let complete = GoalStripPresentation.isPeriodComplete(status: status)
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(alignment: .top) {
+                Button {
+                    if marked {
                         Task {
                             if await model.toggle(goal) { geofences?.clearLockedMarkNotice() }
                         }
-                    } else {
-                        Task { await increment(goal) }
                     }
-                },
-            onValueTap: goal.kind == .number
-                ? { if model.canEdit { editing = GoalValueModel(dayModel: model, goal: goal) } } : nil,
-            onMarkTap: marked
-                ? {
-                    Task {
-                        if await model.toggle(goal) { geofences?.clearLockedMarkNotice() }
+                } label: {
+                    GoalRing(
+                        progress: progress,
+                        isBoolean: GoalStripPresentation.isBooleanRing(goal: goal))
+                }
+                .buttonStyle(.plain)
+                .disabled(!model.canEdit || !marked)
+                .accessibilityLabel(
+                    Text(LocalizedStringKey(marked ? "İşareti kaldır" : "Hedef")))
+                Spacer(minLength: 0)
+                if complete {
+                    Text(
+                        verbatim: String(
+                            localized: "✓ Tamam",
+                            bundle: PresentationLocalization.bundle(locale), locale: locale)
+                    )
+                    .font(.ink.meta)
+                    .foregroundStyle(Color.ink.secondaryText)
+                    .accessibilityLabel(
+                        Text(
+                            verbatim: String(
+                                localized: "Tamamlandı",
+                                bundle: PresentationLocalization.bundle(locale), locale: locale)))
+                } else if !marked {
+                    Button {
+                        if isBooleanMark {
+                            Task {
+                                if await model.toggle(goal) { geofences?.clearLockedMarkNotice() }
+                            }
+                        } else {
+                            Task { await increment(goal) }
+                        }
+                    } label: {
+                        Image(systemName: "plus")
+                            .font(.body.weight(.semibold))
+                            .foregroundStyle(Color.ink.accent)
+                            .frame(width: 30, height: 30)
+                            .background {
+                                ZStack {
+                                    Circle().fill(Color.ink.control)
+                                    Circle().inset(by: InkStroke.control).fill(Color.ink.paper)
+                                }
+                            }
+                            .frame(
+                                minWidth: TapTarget.minimumLength,
+                                minHeight: TapTarget.minimumLength, alignment: .topTrailing
+                            )
+                            .contentShape(Rectangle())
+                            .opacity(model.canEdit ? 1 : InkGoalRowTrailing.busyPlusOpacity)
                     }
-                } : nil,
-            onOpen: onOpen.map { open in { open(goal) } },
-            showsPlus: !marked,
-            isEditable: model.canEdit,
-            keepsLayout: true,
-            incrementLabel: LocalizedStringKey(marked ? "İşareti kaldır" : "Artır"),
-            graceBadge: GraceDayPresentation.badge(status: status, locale: locale)
-        )
+                    .buttonStyle(.plain)
+                    .disabled(!model.canEdit)
+                    .accessibilityLabel(Text("Artır"))
+                } else {
+                    Color.clear
+                        .frame(width: 30, height: 30)
+                        .frame(
+                            minWidth: TapTarget.minimumLength,
+                            minHeight: TapTarget.minimumLength, alignment: .topTrailing
+                        )
+                        .accessibilityHidden(true)
+                }
+            }
+            Button {
+                onOpen?(goal)
+            } label: {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(verbatim: goal.name)
+                        .font(.ink.contentSmall)
+                        .foregroundStyle(complete ? Color.ink.secondaryText : Color.ink.text)
+                        .lineLimit(2)
+                    if let value = valueText(for: goal) ?? metaText {
+                        Text(verbatim: value)
+                            .font(.ink.meta)
+                            .foregroundStyle(Color.ink.secondaryText)
+                            .lineLimit(2)
+                    }
+                    if let badge = GraceDayPresentation.badge(status: status, locale: locale) {
+                        badge
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .disabled(onOpen == nil)
+            .accessibilityLabel(Text(verbatim: goal.name))
+        }
+        .opacity(complete ? 0.72 : 1)
         .contextMenu {
             if model.canEdit, goal.kind == .number {
                 Button("Miktar gir") { editing = GoalValueModel(dayModel: model, goal: goal) }
@@ -236,3 +322,4 @@ struct GoalStripView: View {
         }
     }
 }
+

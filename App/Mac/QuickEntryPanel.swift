@@ -50,10 +50,10 @@
             .frame(width: 480)
             .fixedSize(horizontal: false, vertical: true)
             .background(Color.ink.surface)
-            .clipShape(RoundedRectangle(cornerRadius: InkSize.kanbanCorner))
+            .clipShape(RoundedRectangle(cornerRadius: InkCorner.card, style: .continuous))
             .overlay {
-                RoundedRectangle(cornerRadius: InkSize.kanbanCorner)
-                    .stroke(Color.ink.rule, lineWidth: InkStroke.rule)
+                RoundedRectangle(cornerRadius: InkCorner.card, style: .continuous)
+                    .stroke(Color.ink.line, lineWidth: InkStroke.rule)
             }
             .onGeometryChange(for: CGFloat.self, of: { $0.size.height }, action: onHeightChange)
             .onChange(of: appLock?.isLocked) { _, locked in

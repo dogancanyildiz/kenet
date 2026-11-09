@@ -28,18 +28,20 @@ struct ShareEntry: Codable, Equatable, Sendable {
     /// cleared when the write fails. A record still carrying it was saved by a run that stopped
     /// before the record left the queue: the next run finds the line and does not write it again.
     var writing: String?
-    /// Task block identifiers (`^id`) with the same text already on `day` before a queued task
-    /// write starts, so crash recovery distinguishes an older identical task from the newly written one.
-    var existingTaskIDs: [String]?
+    /// Block identifiers (`^id`) of the lines on `day` that already read as this record (same text,
+    /// and for an event the same time or none) when the queue marked it: a run that stopped after
+    /// the write finds a line outside this list, so an older identical line is never taken for the
+    /// new one. Every line the app adds carries an identifier.
+    var existingLineIDs: [String]?
     let kind: ShareEntryKind
 
     private enum CodingKeys: String, CodingKey {
-        case id, text, day, time, sharedAt, writing, existingTaskIDs, kind
+        case id, text, day, time, sharedAt, writing, existingLineIDs, kind
     }
 
     init(
         id: String, text: String, day: String, time: String?, sharedAt: Date,
-        writing: String? = nil, existingTaskIDs: [String]? = nil, kind: ShareEntryKind = .event
+        writing: String? = nil, existingLineIDs: [String]? = nil, kind: ShareEntryKind = .event
     ) {
         self.id = id
         self.text = text
@@ -47,7 +49,7 @@ struct ShareEntry: Codable, Equatable, Sendable {
         self.time = time
         self.sharedAt = sharedAt
         self.writing = writing
-        self.existingTaskIDs = existingTaskIDs
+        self.existingLineIDs = existingLineIDs
         self.kind = kind
     }
 
@@ -88,7 +90,7 @@ struct ShareEntry: Codable, Equatable, Sendable {
         time = try container.decodeIfPresent(String.self, forKey: .time)
         sharedAt = try container.decode(Date.self, forKey: .sharedAt)
         writing = try container.decodeIfPresent(String.self, forKey: .writing)
-        existingTaskIDs = try container.decodeIfPresent([String].self, forKey: .existingTaskIDs)
+        existingLineIDs = try container.decodeIfPresent([String].self, forKey: .existingLineIDs)
         kind = try container.decodeIfPresent(ShareEntryKind.self, forKey: .kind) ?? .event
     }
 
@@ -100,8 +102,8 @@ struct ShareEntry: Codable, Equatable, Sendable {
         try container.encodeIfPresent(time, forKey: .time)
         try container.encode(sharedAt, forKey: .sharedAt)
         try container.encodeIfPresent(writing, forKey: .writing)
-        if let existingTaskIDs, !existingTaskIDs.isEmpty {
-            try container.encode(existingTaskIDs, forKey: .existingTaskIDs)
+        if let existingLineIDs, !existingLineIDs.isEmpty {
+            try container.encode(existingLineIDs, forKey: .existingLineIDs)
         }
         if kind != .event {
             try container.encode(kind, forKey: .kind)
@@ -109,6 +111,30 @@ struct ShareEntry: Codable, Equatable, Sendable {
     }
 
     var calendarDay: CalendarDate? { CalendarDate(day) }
+
+    /// Identifiers of the lines in `document` that read as this record written as `text`: an
+    /// open-or-any task with that text, or an event with that text at the record's time (both
+    /// untimed when the record has none). Lines without an identifier are not the app's and never count.
+    func matchingLineIDs(in document: RawDocument, text: String) -> [String] {
+        let lines = document.bodyLines
+        switch kind {
+        case .event:
+            let clock = self.clock
+            return lines.events.filter { event in
+                event.block.text == text && event.time?.hour == clock?.hour
+                    && event.time?.minute == clock?.minute
+            }.compactMap(\.block.id)
+        case .task:
+            return lines.tasks.filter { $0.block.text == text }.compactMap(\.block.id)
+        }
+    }
+
+    /// Whether `document` holds the line a marked run wrote: a matching line that was not there
+    /// when the record was marked (`existingLineIDs`).
+    func isWritten(_ text: String, in document: RawDocument) -> Bool {
+        let earlier = Set(existingLineIDs ?? [])
+        return matchingLineIDs(in: document, text: text).contains { !earlier.contains($0) }
+    }
 
     var clock: LineClock? {
         guard let time else { return nil }

@@ -16320,6 +16320,22 @@
           }
         }
       }
+    },
+    "kasa hatası" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "vault error"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "kasa hatası"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

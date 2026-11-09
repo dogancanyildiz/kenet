@@ -24,7 +24,9 @@ struct PhoneSettingsView: View {
 
     /// The card's index line, from the same store state as Kasa's progress and error rows.
     private var indexState: VaultCardIndexState {
-        VaultCardIndexState(hasError: store.errorText != nil, isProcessing: store.isProcessing)
+        VaultCardIndexState(
+            vaultInaccessible: store.isVaultInaccessible, hasError: store.errorText != nil,
+            isProcessing: store.isProcessing)
     }
 
     var body: some View {
@@ -62,7 +64,7 @@ struct PhoneSettingsView: View {
                                 Image(systemName: indexState.symbol(isCloudVault: store.vaultKind == .icloud))
                                     .font(.ink.meta)
                                     .foregroundStyle(
-                                        indexState == .failed ? Color.ink.danger : Color.ink.secondaryText
+                                        indexState.isFailure ? Color.ink.danger : Color.ink.secondaryText
                                     )
                                     .accessibilityHidden(true)
                                 Text(indexState.title)
@@ -148,13 +150,15 @@ struct PhoneSettingsView: View {
     }
 }
 
-/// What the Settings vault card says about the index: the store's error first, then a refresh
-/// under way, otherwise up to date.
+/// What the Settings vault card says about the index: the folder out of reach first (the vault's
+/// fault, not the index's), then the store's error, then a refresh under way, otherwise up to date.
 enum VaultCardIndexState: Equatable {
-    case current, indexing, failed
+    case current, indexing, failed, vaultUnavailable
 
-    init(hasError: Bool, isProcessing: Bool) {
-        if hasError {
+    init(vaultInaccessible: Bool = false, hasError: Bool, isProcessing: Bool) {
+        if vaultInaccessible {
+            self = .vaultUnavailable
+        } else if hasError {
             self = .failed
         } else if isProcessing {
             self = .indexing
@@ -168,14 +172,18 @@ enum VaultCardIndexState: Equatable {
         case .current: "indeks güncel"
         case .indexing: "indeksleniyor"
         case .failed: "indeks hatası"
+        case .vaultUnavailable: "kasa hatası"
         }
     }
+
+    var isFailure: Bool { self == .failed || self == .vaultUnavailable }
 
     func symbol(isCloudVault: Bool) -> String {
         switch self {
         case .current: isCloudVault ? "checkmark.icloud" : "checkmark.circle"
         case .indexing: "arrow.triangle.2.circlepath"
         case .failed: "exclamationmark.triangle"
+        case .vaultUnavailable: "folder.badge.questionmark"
         }
     }
 }

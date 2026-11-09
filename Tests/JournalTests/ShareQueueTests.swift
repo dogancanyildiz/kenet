@@ -370,7 +370,7 @@ struct ShareQueueTests {
         // Marked before the save, with the earlier task's `^id` recorded: the run stopped before
         // saving the new task, so the next run must still write the new task once.
         entry.writing = "Aynı metinli görev"
-        entry.existingTaskIDs = [existingID]
+        entry.existingLineIDs = [existingID]
         try harness.pending.append(entry)
 
         await harness.run()
@@ -379,6 +379,75 @@ struct ShareQueueTests {
         let afterDoc = RawDocument(bytes: try Data(contentsOf: harness.dayFile))
         #expect(afterDoc.bodyLines.tasks.map(\.block.text) == ["Aynı metinli görev", "Aynı metinli görev"])
         #expect(Set(afterDoc.bodyLines.tasks.compactMap(\.block.id)).count == 2)
+        #expect(harness.pending.read().elements.isEmpty)
+    }
+
+    /// The block identifiers of the shared day's events, in source order.
+    private func eventIDs(_ harness: Harness) throws -> [String?] {
+        RawDocument(bytes: try Data(contentsOf: harness.dayFile)).bodyLines.events.map(\.block.id)
+    }
+
+    /// An untimed event marked while an older untimed event with the same text was on the day; the
+    /// run stopped before the save. The older line is not taken for the new one: the new line is
+    /// written, once (no loss, no duplicate).
+    @Test func anUntimedMarkIsNotSatisfiedByAnOlderSameTextEvent() async throws {
+        let harness = try Harness()
+        defer { harness.context.clean() }
+        await harness.context.start()
+        var entry = harness.entry("Kahve", time: nil)
+        let day = try #require(entry.calendarDay)
+        #expect(await harness.context.store.addEvent(on: day, text: "Kahve", time: nil))
+        let older = try #require(try eventIDs(harness).first ?? nil)
+        entry.writing = "Kahve"
+        entry.existingLineIDs = [older]
+        try harness.pending.append(entry)
+
+        await harness.run()
+        await harness.run()
+
+        #expect(try harness.events() == ["Kahve", "Kahve"])
+        #expect(Set(try eventIDs(harness).compactMap { $0 }).count == 2)
+        #expect(harness.pending.read().elements.isEmpty)
+        #expect(harness.processor.report == ShareImportReport(added: 1))
+    }
+
+    /// The same mark, but the run saved the new line before it stopped: the next run finds the line
+    /// that is not in the mark's list and only removes the record.
+    @Test func anUntimedMarkFindsItsOwnLineBesideAnOlderOne() async throws {
+        let harness = try Harness()
+        defer { harness.context.clean() }
+        await harness.context.start()
+        var entry = harness.entry("Kahve", time: nil)
+        let day = try #require(entry.calendarDay)
+        #expect(await harness.context.store.addEvent(on: day, text: "Kahve", time: nil))
+        let older = try #require(try eventIDs(harness).first ?? nil)
+        #expect(await harness.context.store.addEvent(on: day, text: "Kahve", time: nil))
+        entry.writing = "Kahve"
+        entry.existingLineIDs = [older]
+        try harness.pending.append(entry)
+
+        await harness.run()
+
+        #expect(try harness.events() == ["Kahve", "Kahve"])
+        #expect(harness.pending.read().elements.isEmpty)
+        #expect(harness.processor.report == ShareImportReport(added: 1))
+    }
+
+    /// An unmarked untimed record whose text is already on the day as an older event: the queue
+    /// records that line's `^id` when it marks, writes the new line, and a later run adds nothing.
+    @Test func anUntimedRecordBesideAnOlderSameTextEventIsWrittenOnce() async throws {
+        let harness = try Harness()
+        defer { harness.context.clean() }
+        await harness.context.start()
+        let entry = harness.entry("Kahve", time: nil)
+        let day = try #require(entry.calendarDay)
+        #expect(await harness.context.store.addEvent(on: day, text: "Kahve", time: nil))
+        try harness.pending.append(entry)
+
+        await harness.run()
+        await harness.run()
+
+        #expect(try harness.events() == ["Kahve", "Kahve"])
         #expect(harness.pending.read().elements.isEmpty)
     }
 }

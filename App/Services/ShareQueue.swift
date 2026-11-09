@@ -155,12 +155,13 @@ struct ShareImportReport: Equatable, Sendable {
         let text = (try? IntentText.linking(entry.text, entities: store.knownEntities)) ?? entry.text
         var marked = entry
         marked.writing = text
-        if entry.kind == .task, marked.existingTaskIDs == nil {
-            // Same-text tasks already on the day, by `^id`: a later run tells them from the one this
-            // run writes. A day that cannot be read now waits; the mark would not know them.
+        if marked.existingLineIDs == nil {
+            // Lines already on the day that read as this record, by `^id`: a later run tells them
+            // from the one this run writes. A day that cannot be read now waits; the mark would not
+            // know them. An earlier mark keeps its list: the day has not gained the line since.
             guard let document = try? await store.dayDocument(for: day) else { return .waiting }
-            let existing = document.bodyLines.tasks.filter { $0.block.text == text }.compactMap(\.block.id)
-            if !existing.isEmpty { marked.existingTaskIDs = existing }
+            let existing = marked.matchingLineIDs(in: document, text: text)
+            if !existing.isEmpty { marked.existingLineIDs = existing }
         }
         // No mark, no write: a queue this run cannot change could not lose the record afterwards either.
         guard (try? file.replace(marked)) != nil else { return .waiting }
@@ -182,22 +183,10 @@ struct ShareImportReport: Equatable, Sendable {
         return .added
     }
 
-    /// Whether the day file holds the event or task for `entry`; nil when the day cannot be read.
+    /// Whether the day file holds the line a marked run wrote for `entry`; nil when the day cannot be read.
     private func hasWritten(_ text: String, for entry: ShareEntry, on day: CalendarDate) async -> Bool? {
         guard let document = try? await store.dayDocument(for: day) else { return nil }
-        switch entry.kind {
-        case .event:
-            let clock = entry.clock
-            return document.bodyLines.events.contains { event in
-                event.block.text == text && event.time?.hour == clock?.hour && event.time?.minute == clock?.minute
-            }
-        case .task:
-            let previous = Set(entry.existingTaskIDs ?? [])
-            return document.bodyLines.tasks.contains { task in
-                guard task.block.text == text, let id = task.block.id else { return false }
-                return !previous.contains(id)
-            }
-        }
+        return entry.isWritten(text, in: document)
     }
 
     /// Keeps unreadable records' bytes in the group (`ShareFiles.damaged`) before they leave the queue.

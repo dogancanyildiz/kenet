@@ -272,6 +272,63 @@ struct ShareEntryWritingTests {
         #expect(task.isWritable)
     }
 
+    /// The mark's list: lines that already read as the record, by `^id`; lines without an
+    /// identifier, other texts and other times are left out.
+    @Test func matchingLinesAreSameTextSameTimeWithAnIdentifier() throws {
+        let document = RawDocument(
+            bytes: Array(
+                """
+                ## Events
+                - Kahve ^aaaaaa
+                - 09:30 Kahve ^bbbbbb
+                - Kahve
+                - Çay ^cccccc
+
+                ## Tasks
+                - [ ] Kahve ^dddddd
+                - [x] Kahve ^eeeeee
+                - [ ] Kahve
+                """.utf8))
+        let instant = Date(timeIntervalSince1970: 1_792_000_000)
+        let untimed = ShareEntry(
+            id: UUID().uuidString, text: "Kahve", day: "2026-10-20", time: nil, sharedAt: instant)
+        let timed = ShareEntry(
+            id: UUID().uuidString, text: "Kahve", day: "2026-10-20", time: "09:30", sharedAt: instant)
+        let task = ShareEntry(
+            id: UUID().uuidString, text: "Kahve", day: "2026-10-20", time: nil, sharedAt: instant, kind: .task)
+        #expect(untimed.matchingLineIDs(in: document, text: "Kahve") == ["aaaaaa"])
+        #expect(timed.matchingLineIDs(in: document, text: "Kahve") == ["bbbbbb"])
+        #expect(task.matchingLineIDs(in: document, text: "Kahve") == ["dddddd", "eeeeee"])
+
+        var marked = untimed
+        marked.existingLineIDs = ["aaaaaa"]
+        #expect(!marked.isWritten("Kahve", in: document))
+        #expect(untimed.isWritten("Kahve", in: document))
+        var markedTask = task
+        markedTask.existingLineIDs = ["dddddd"]
+        #expect(markedTask.isWritten("Kahve", in: document))
+        markedTask.existingLineIDs = ["dddddd", "eeeeee"]
+        #expect(!markedTask.isWritten("Kahve", in: document))
+    }
+
+    /// The list survives the App Group file; an empty list is not written, and a record without
+    /// the key (older app) reads as no list.
+    @Test func existingLineIDsRoundTripThroughTheList() throws {
+        let instant = Date(timeIntervalSince1970: 1_792_000_000)
+        var entry = ShareEntry(
+            id: UUID().uuidString, text: "Kahve", day: "2026-10-20", time: nil, sharedAt: instant)
+        entry.writing = "Kahve"
+        entry.existingLineIDs = ["aaaaaa", "bbbbbb"]
+        let raw = try ShareListFile.encode(entry)
+        #expect(String(decoding: raw, as: UTF8.self).contains("\"existingLineIDs\":[\"aaaaaa\",\"bbbbbb\"]"))
+        #expect(ShareListFile.entry(from: raw) == entry)
+
+        entry.existingLineIDs = []
+        let empty = try ShareListFile.encode(entry)
+        #expect(!String(decoding: empty, as: UTF8.self).contains("existingLineIDs"))
+        #expect(ShareListFile.entry(from: empty)?.existingLineIDs == nil)
+    }
+
     // MARK: - App Group lists
 
     @Test func listKeepsOrderAndRemovesByIdentifier() throws {

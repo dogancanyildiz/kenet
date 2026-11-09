@@ -187,8 +187,12 @@ private struct InkTabWordModifier: ViewModifier {
                 .fontWeight(isSelected ? .semibold : .regular)
                 .foregroundStyle(color)
         case .compact:
+            // Footnote stays compact inside the capsule; `.ink.section` is now headline (page sections).
             content
-                .font(isSelected ? Font.ink.section : Font.ink.meta)
+                .font(
+                    isSelected
+                        ? .system(.footnote, design: .default, weight: .semibold) : Font.ink.meta
+                )
                 .fontWeight(isSelected ? .semibold : .regular)
                 .foregroundStyle(color)
                 .fixedSize()

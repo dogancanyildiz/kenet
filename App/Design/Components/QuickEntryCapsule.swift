@@ -70,10 +70,13 @@ struct QuickEntryCapsule<Field: View>: View {
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 4)
-        // Padding sandwich (no strokeBorder): avoids the 1.5 pt end-cap "bracket" on snapshots.
-        .background { chromeFill(Color.ink.paper) }
-        .padding(InkStroke.control)
-        .background { chromeFill(Color.ink.control) }
+        // Padding sandwich (no strokeBorder): keeps mode-word frame metrics stable for Mac audits.
+        .background { chromeFill(Color.ink.surface) }
+        .padding(InkStroke.rule)
+        .background { chromeFill(Color.ink.line) }
+        // Flatten before the floating shadow so glyph layers are not duplicated for metrics.
+        .compositingGroup()
+        .inkFloatingShadow()
         // Chrome (mode words, send) caps at AX2; the field text still scales via the caller.
         .dynamicTypeSize(...DynamicTypeSize.accessibility2)
     }
@@ -145,14 +148,17 @@ private struct QuickEntrySendButton: View {
                 .foregroundStyle(canSubmit ? Color.ink.onAccent : Color.ink.secondaryText)
                 .frame(width: sendSide, height: sendSide)
                 .background {
-                    if canSubmit {
-                        Circle().fill(Color.ink.accent)
-                    } else {
-                        ZStack {
-                            Circle().fill(Color.ink.control)
-                            Circle().inset(by: InkStroke.control).fill(Color.ink.well)
+                    Group {
+                        if canSubmit {
+                            Circle().fill(Color.ink.accent)
+                        } else {
+                            ZStack {
+                                Circle().fill(Color.ink.control)
+                                Circle().inset(by: InkStroke.control).fill(Color.ink.well)
+                            }
                         }
                     }
+                    .inkGlowShadow()
                 }
                 .frame(
                     minWidth: TapTarget.minimumLength, minHeight: TapTarget.minimumLength,

@@ -13,7 +13,7 @@ enum InkPageHeaderLayout: Equatable, Sendable {
     }
 }
 
-/// Manşet row without page margins: ``PageHeadline`` plus the page's action icons on its right.
+/// Manşet row without page margins: sans ``PageHeadline`` plus the page's action icons on its right.
 ///
 /// Use this only where the surrounding container already supplies the horizontal page margin
 /// (Today's padded stack). Everywhere else use ``InkPageTitle`` (ScrollView / stack) or

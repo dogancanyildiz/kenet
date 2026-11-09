@@ -1,7 +1,20 @@
 import SwiftUI
 import VaultFormat
 
+/// Stacks card-internal rows with ``InkCardDivider`` hairlines between them.
+struct InkCardRows<Content: View>: View {
+    @ViewBuilder var content: () -> Content
+
+    var body: some View {
+        // Callers compose rows; dividers are inserted explicitly via ``InkCardDivider``.
+        VStack(alignment: .leading, spacing: InkSpacing.row) {
+            content()
+        }
+    }
+}
+
 /// Ready-made task row on ``MarginRow`` (name avoids clash with model ``TaskRow``).
+/// Mark column stays 44 pt inside the card (``InkSpacing/gutter``).
 struct InkTaskRow: View {
     let title: String
     var state: TaskBoxState

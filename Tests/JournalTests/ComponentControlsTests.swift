@@ -96,6 +96,11 @@ struct ComponentControlsTests {
         #expect(primary.role(isPressed: false, isEnabled: false).background == .well)
         #expect(primary.role(isPressed: false, isEnabled: false).foreground == .secondaryText)
 
+        let secondary = InkButtonChrome.secondary
+        #expect(secondary.role(isPressed: false, isEnabled: true).background == .surface)
+        #expect(secondary.role(isPressed: false, isEnabled: true).foreground == .text)
+        #expect(secondary.role(isPressed: false, isEnabled: false).background == .well)
+
         let text = InkButtonChrome.text
         #expect(text.role(isPressed: false, isEnabled: true).foreground == .accent)
         #expect(text.role(isPressed: true, isEnabled: true).foreground == .text)
@@ -113,9 +118,9 @@ struct ComponentControlsTests {
     }
 
     @Test func infoBandKindsCarryNonColorMarks() {
-        #expect(InfoBandKind.info.markSystemImage == nil)
-        #expect(InfoBandKind.warning.markSystemImage != nil)
-        #expect(InfoBandKind.error.markSystemImage != nil)
+        #expect(!InfoBandKind.info.markSystemImage.isEmpty)
+        #expect(!InfoBandKind.warning.markSystemImage.isEmpty)
+        #expect(!InfoBandKind.error.markSystemImage.isEmpty)
     }
 
     @Test func quickEntryModesUseCatalogKeys() {

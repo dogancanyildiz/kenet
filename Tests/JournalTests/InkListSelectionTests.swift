@@ -9,7 +9,7 @@ struct InkListSelectionTests {
     private static let bodyMinimum = 4.5
 
     @Test func fillAndMarkArePaletteTokens() {
-        #expect(InkListSelectionChrome.fill == .well)
+        #expect(InkListSelectionChrome.fill == .accentSoft)
         #expect(InkListSelectionChrome.mark == .accent)
         #expect(InkListSelectionChrome.markWidth == InkSize.modeUnderline)
         #expect(InkListSelectionChrome.cornerRadius == InkSize.listSelectionCorner)

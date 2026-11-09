@@ -131,10 +131,17 @@ struct QuickEntryWordSpacingTests {
         }
 
         /// Kip words are the short controls on one row (the send control is the tall one).
+        /// Drop parent chrome that contains another candidate (button wrapping its label).
         private static func wordFrames(in root: NSView) -> [CGRect] {
             let boxes = Self.subviewFrames(in: root).filter { $0.height < 24 && $0.width < 80 }
-            guard let row = boxes.map(\.midY).max() else { return [] }
-            return boxes.filter { abs($0.midY - row) <= 4 }.sorted { $0.minX < $1.minX }
+            let leaves = boxes.filter { box in
+                !boxes.contains { other in
+                    other != box
+                        && box.insetBy(dx: 1, dy: 1).contains(CGPoint(x: other.midX, y: other.midY))
+                }
+            }
+            guard let row = leaves.map(\.midY).max() else { return [] }
+            return leaves.filter { abs($0.midY - row) <= 4 }.sorted { $0.minX < $1.minX }
         }
 
         /// Manşet pointer targets: the controls SwiftUI actually built, large enough to click.

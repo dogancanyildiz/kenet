@@ -1,28 +1,19 @@
 import SwiftUI
 
-/// Surface chrome for sheets, popovers, and Mac kanban cards: `ink.surface`, optional hairline, no shadow.
+/// Surface chrome for sheets, popovers, and Mac kanban cards.
+/// Delegates to ``InkCardModifier`` so Şafak card tokens apply without breaking call sites.
 struct InkSurfaceModifier: ViewModifier {
     var bordered: Bool = true
     var cornerRadius: CGFloat = InkSize.kanbanCorner
-    @Environment(\.displayScale) private var displayScale
 
     func body(content: Content) -> some View {
-        content
-            .background {
-                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                    .fill(Color.ink.surface)
-            }
-            .overlay {
-                if bordered {
-                    RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                        .stroke(Color.ink.rule, lineWidth: InkStroke.hairline(scale: displayScale))
-                }
-            }
+        content.modifier(InkCardModifier(bordered: bordered, cornerRadius: cornerRadius))
     }
 }
 
 extension View {
-    /// Applies Mürekkep surface fill and optional 1-pixel rule. Never adds a shadow.
+    /// Applies Şafak surface fill and optional 1-pixel rule. Never adds a shadow.
+    /// Delegates to ``InkCardModifier``.
     func inkSurface(bordered: Bool = true, cornerRadius: CGFloat = InkSize.kanbanCorner) -> some View {
         modifier(InkSurfaceModifier(bordered: bordered, cornerRadius: cornerRadius))
     }
@@ -33,6 +24,8 @@ extension View {
 struct InkKanbanCard<Content: View>: View {
     var isDragging: Bool = false
     @ViewBuilder var content: () -> Content
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
 
     var body: some View {
         content()
@@ -42,9 +35,15 @@ struct InkKanbanCard<Content: View>: View {
             .overlay {
                 if isDragging {
                     RoundedRectangle(cornerRadius: InkSize.kanbanCorner, style: .continuous)
-                        .stroke(Color.ink.accent, lineWidth: InkStroke.highPriority)
+                        .stroke(Color.ink.line, lineWidth: InkStroke.rule)
                 }
             }
+            .shadow(
+                color: isDragging && !reduceTransparency
+                    ? InkShadow.floating(colorScheme: colorScheme).color : .clear,
+                radius: isDragging ? InkShadow.floating(colorScheme: colorScheme).radius : 0,
+                y: isDragging ? InkShadow.floating(colorScheme: colorScheme).y : 0
+            )
             .accessibilityAddTraits(isDragging ? [.updatesFrequently] : [])
     }
 }

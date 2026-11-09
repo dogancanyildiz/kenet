@@ -1,6 +1,6 @@
 import Foundation
 
-/// Hex values for the Mürekkep palette (`docs/design.md`).
+/// Hex values for the Şafak palette (`docs/design.md` draft).
 /// Asset catalog color sets must match these; ``PaletteContrastTests`` enforces that.
 enum InkPalette {
     struct Variant: Equatable, Sendable {
@@ -8,6 +8,27 @@ enum InkPalette {
         let dark: UInt32
         let highContrastLight: UInt32
         let highContrastDark: UInt32
+        /// Alpha 0…1 per appearance. Opaque tokens use `1`.
+        let lightAlpha: Double
+        let darkAlpha: Double
+        let highContrastLightAlpha: Double
+        let highContrastDarkAlpha: Double
+
+        init(
+            light: UInt32, dark: UInt32,
+            highContrastLight: UInt32, highContrastDark: UInt32,
+            lightAlpha: Double = 1, darkAlpha: Double = 1,
+            highContrastLightAlpha: Double = 1, highContrastDarkAlpha: Double = 1
+        ) {
+            self.light = light
+            self.dark = dark
+            self.highContrastLight = highContrastLight
+            self.highContrastDark = highContrastDark
+            self.lightAlpha = lightAlpha
+            self.darkAlpha = darkAlpha
+            self.highContrastLightAlpha = highContrastLightAlpha
+            self.highContrastDarkAlpha = highContrastDarkAlpha
+        }
 
         func hex(for appearance: Appearance) -> UInt32 {
             switch appearance {
@@ -15,6 +36,15 @@ enum InkPalette {
             case .dark: dark
             case .highContrastLight: highContrastLight
             case .highContrastDark: highContrastDark
+            }
+        }
+
+        func alpha(for appearance: Appearance) -> Double {
+            switch appearance {
+            case .light: lightAlpha
+            case .dark: darkAlpha
+            case .highContrastLight: highContrastLightAlpha
+            case .highContrastDark: highContrastDarkAlpha
             }
         }
     }
@@ -28,13 +58,17 @@ enum InkPalette {
 
     enum Token: String, CaseIterable, Sendable {
         case paper
+        case elevated
         case surface
         case well
         case rule
+        case line
         case text
         case secondaryText
+        case tertiaryText
         case accent
         case onAccent
+        case accentSoft
         case warning
         case danger
         case control
@@ -44,13 +78,17 @@ enum InkPalette {
         var assetName: String {
             switch self {
             case .paper: "InkPaper"
+            case .elevated: "InkElevated"
             case .surface: "InkSurface"
             case .well: "InkWell"
             case .rule: "InkRule"
+            case .line: "InkLine"
             case .text: "InkText"
             case .secondaryText: "InkSecondaryText"
+            case .tertiaryText: "InkTertiaryText"
             case .accent: "InkAccent"
             case .onAccent: "InkOnAccent"
+            case .accentSoft: "InkAccentSoft"
             case .warning: "InkWarning"
             case .danger: "InkDanger"
             case .control: "InkControl"
@@ -62,74 +100,120 @@ enum InkPalette {
         var variant: Variant {
             switch self {
             case .paper:
+                // bg
                 Variant(
-                    light: 0xFA_F8_F3, dark: 0x18_16_14,
-                    highContrastLight: 0xFA_F8_F3, highContrastDark: 0x14_12_10)
+                    light: 0xF3_F3_F6, dark: 0x0E_0F_11,
+                    highContrastLight: 0xF3_F3_F6, highContrastDark: 0x08_09_0A)
+            case .elevated:
+                // bgElev
+                Variant(
+                    light: 0xFA_FA_FC, dark: 0x14_15_18,
+                    highContrastLight: 0xFF_FF_FF, highContrastDark: 0x0E_0F_11)
             case .surface:
+                // card
                 Variant(
-                    light: 0xFF_FF_FF, dark: 0x23_20_1C,
-                    highContrastLight: 0xFF_FF_FF, highContrastDark: 0x1E_1B_18)
+                    light: 0xFF_FF_FF, dark: 0x1A_1B_1F,
+                    highContrastLight: 0xFF_FF_FF, highContrastDark: 0x1A_1B_1F)
             case .well:
+                // card2
                 Variant(
-                    light: 0xF1_ED_E4, dark: 0x11_0F_0E,
-                    highContrastLight: 0xEC_E7_DC, highContrastDark: 0x0C_0B_0A)
+                    light: 0xF1_F1_F5, dark: 0x21_22_28,
+                    highContrastLight: 0xF1_F1_F5, highContrastDark: 0x21_22_28)
             case .rule:
+                // hair: black/white at 7% (16% HC)
                 Variant(
-                    light: 0xE2_DC_CF, dark: 0x30_2C_27,
-                    highContrastLight: 0xC4_BB_AB, highContrastDark: 0x4C_46_3E)
+                    light: 0x00_00_00, dark: 0xFF_FF_FF,
+                    highContrastLight: 0x00_00_00, highContrastDark: 0xFF_FF_FF,
+                    lightAlpha: 0.07, darkAlpha: 0.07,
+                    highContrastLightAlpha: 0.16, highContrastDarkAlpha: 0.16)
+            case .line:
+                // line: black/white at 12% (24% HC)
+                Variant(
+                    light: 0x00_00_00, dark: 0xFF_FF_FF,
+                    highContrastLight: 0x00_00_00, highContrastDark: 0xFF_FF_FF,
+                    lightAlpha: 0.12, darkAlpha: 0.12,
+                    highContrastLightAlpha: 0.24, highContrastDarkAlpha: 0.24)
             case .text:
                 Variant(
-                    light: 0x1E_1B_17, dark: 0xEE_E9_DF,
-                    highContrastLight: 0x0E_0C_0A, highContrastDark: 0xFF_FD_F8)
+                    light: 0x15_16_1A, dark: 0xF2_F2_F4,
+                    highContrastLight: 0x05_05_07, highContrastDark: 0xFF_FF_FF)
             case .secondaryText:
                 Variant(
-                    light: 0x57_51_4A, dark: 0xB5_AD_9F,
-                    highContrastLight: 0x40_3B_35, highContrastDark: 0xD6_CF_C2)
+                    light: 0x53_56_5E, dark: 0xA7_AA_B2,
+                    highContrastLight: 0x3A_3D_44, highContrastDark: 0xCD_D0_D6)
+            case .tertiaryText:
+                Variant(
+                    light: 0x66_69_72, dark: 0x8E_91_99,
+                    highContrastLight: 0x4A_4D_55, highContrastDark: 0xB4_B7_BE)
             case .accent:
                 Variant(
-                    light: 0x7A_2C_6E, dark: 0xE3_A3_D6,
-                    highContrastLight: 0x5E_1F_55, highContrastDark: 0xED_C3_E5)
+                    light: 0x7A_2C_6E, dark: 0xD0_8B_C4,
+                    highContrastLight: 0x5E_1F_55, highContrastDark: 0xE8_BC_E0)
             case .onAccent:
                 Variant(
-                    light: 0xFF_FF_FF, dark: 0x1A_10_22,
+                    light: 0xFF_FF_FF, dark: 0x1B_0E_18,
                     highContrastLight: 0xFF_FF_FF, highContrastDark: 0x12_09_1A)
+            case .accentSoft:
+                // accent mixed into paper: dark 16%, light 12% (color-mix equivalent)
+                Variant(
+                    light: 0xE4_DB_E6, dark: 0x2D_23_2E,
+                    highContrastLight: 0xE1_DA_E3, highContrastDark: 0x2C_26_2C)
             case .warning:
                 Variant(
-                    light: 0x7A_4E_00, dark: 0xE2_B8_65,
+                    light: 0x7A_4E_00, dark: 0xE3_B8_6A,
                     highContrastLight: 0x5C_3B_00, highContrastDark: 0xF0_CF_8E)
             case .danger:
                 Variant(
-                    light: 0xA1_1E_1E, dark: 0xF0_71_78,
+                    light: 0xA1_1E_1E, dark: 0xFF_6B_6B,
                     highContrastLight: 0x7A_10_10, highContrastDark: 0xFF_B4_B4)
             case .control:
                 Variant(
-                    light: 0x8C_84_78, dark: 0x7E_77_6C,
-                    highContrastLight: 0x65_5E_54, highContrastDark: 0xA3_9B_8F)
+                    light: 0x86_89_91, dark: 0x7C_7F_88,
+                    highContrastLight: 0x5E_61_69, highContrastDark: 0xA3_A6_AE)
             case .person:
                 Variant(
                     light: 0x2D_5B_A6, dark: 0x8F_B3_F0,
-                    highContrastLight: 0x1D_46_89, highContrastDark: 0xB3_CD_F8)
+                    highContrastLight: 0x1D_46_89, highContrastDark: 0xB8_D0_F8)
             case .place:
                 Variant(
-                    light: 0x38_6E_43, dark: 0x8F_CB_9C,
-                    highContrastLight: 0x24_56_2E, highContrastDark: 0xAE_DD_B8)
+                    light: 0x1B_6B_43, dark: 0x7F_D1_A6,
+                    highContrastLight: 0x11_52_2F, highContrastDark: 0xAE_E5_C6)
             }
         }
     }
 
-    /// Published contrast ratios on paper from `docs/design.md` (parenthetical values).
+    /// Glow peak backgrounds from the design draft (strongest mix at the gradient center).
+    enum GlowPeak: String, CaseIterable, Sendable {
+        case darkA = "482543"
+        case darkB = "423219"
+        case lightA = "E3D6E3"
+        case lightB = "ECE2D6"
+
+        var hex: UInt32 {
+            UInt32(rawValue, radix: 16) ?? 0
+        }
+
+        var appearance: Appearance {
+            switch self {
+            case .darkA, .darkB: .dark
+            case .lightA, .lightB: .light
+            }
+        }
+    }
+
+    /// Published contrast ratios on paper from the Şafak design draft.
     /// Used only for verification; do not change palette values when these drift.
     enum DocumentedContrast {
-        static let textOnPaper: [Double] = [16.16, 14.91, 18.39, 18.38]
-        static let secondaryTextOnPaper: [Double] = [7.38, 8.11, 10.44, 12.07]
-        static let accentOnPaper: [Double] = [8.20, 9.00, 10.97, 12.05]
-        static let onAccentOnAccent: [Double] = [8.70, 9.18, 11.65, 12.54]
-        static let warningOnPaper: [Double] = [6.78, 9.69, 9.51, 12.48]
-        /// `danger`: error text and destructive actions only.
-        static let dangerOnPaper: [Double] = [7.27, 6.31, 10.36, 11.07]
-        static let controlOnPaper: [Double] = [3.48, 4.08, 6.03, 6.80]
-        static let personOnPaper: [Double] = [6.26, 8.49, 8.64, 11.57]
-        static let placeOnPaper: [Double] = [5.69, 9.62, 8.09, 12.31]
+        static let textOnPaper: [Double] = [16.32, 17.15, 18.39, 19.93]
+        static let secondaryTextOnPaper: [Double] = [6.63, 8.25, 9.82, 12.90]
+        static let tertiaryTextOnPaper: [Double] = [4.95, 6.08, 7.63, 9.92]
+        static let accentOnPaper: [Double] = [7.86, 7.46, 10.52, 12.05]
+        static let onAccentOnAccent: [Double] = [8.70, 7.28, 11.65, 11.76]
+        static let warningOnPaper: [Double] = [6.50, 10.35, 9.11, 13.31]
+        static let dangerOnPaper: [Double] = [6.97, 6.91, 9.93, 11.80]
+        static let controlOnPaper: [Double] = [3.16, 4.79, 5.59, 8.18]
+        static let personOnPaper: [Double] = [6.00, 9.02, 8.28, 12.73]
+        static let placeOnPaper: [Double] = [5.87, 10.57, 8.35, 14.07]
     }
 
     static func sRGB(_ hex: UInt32) -> (r: Double, g: Double, b: Double) {
@@ -156,4 +240,31 @@ enum InkPalette {
         let darker = min(l1, l2)
         return (lighter + 0.05) / (darker + 0.05)
     }
+
+    /// Porter-Duff src-over blend of an alpha foreground onto an opaque background.
+    static func blend(foreground: UInt32, alpha: Double, over background: UInt32) -> UInt32 {
+        let a = min(1, max(0, alpha))
+        let (fr, fg, fb) = sRGB(foreground)
+        let (br, bg, bb) = sRGB(background)
+        let r = UInt32(((fr * a + br * (1 - a)) * 255).rounded()).clampedByte
+        let g = UInt32(((fg * a + bg * (1 - a)) * 255).rounded()).clampedByte
+        let b = UInt32(((fb * a + bb * (1 - a)) * 255).rounded()).clampedByte
+        return (r << 16) | (g << 8) | b
+    }
+
+    /// Resolved opaque hex for a token on a background (alpha tokens are blended).
+    static func resolvedHex(
+        token: Token, appearance: Appearance, over background: UInt32? = nil
+    ) -> UInt32 {
+        let variant = token.variant
+        let fg = variant.hex(for: appearance)
+        let alpha = variant.alpha(for: appearance)
+        if alpha >= 0.999 { return fg }
+        let bg = background ?? Token.paper.variant.hex(for: appearance)
+        return blend(foreground: fg, alpha: alpha, over: bg)
+    }
+}
+
+private extension UInt32 {
+    var clampedByte: UInt32 { Swift.min(255, self) }
 }

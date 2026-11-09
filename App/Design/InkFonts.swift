@@ -1,27 +1,39 @@
 import SwiftUI
 
 extension Font {
-    /// Mürekkep type roles. Semantic text styles only — no fixed point sizes.
+    /// Şafak type roles. Semantic text styles only — no fixed point sizes.
     static let ink = InkFontTokens.self
 
     enum InkFontTokens {
-        /// Page title (manşet): New York Semibold ≈ largeTitle (34).
-        static var display: Font { .system(.largeTitle, design: .serif, weight: .semibold) }
+        /// Flip to `.serif` to restore New York for vault content in one place.
+        static let contentDesign: Font.Design = .default
 
-        /// Vault content: New York Regular ≈ body (17).
-        static var content: Font { .system(.body, design: .serif) }
+        /// Page title (manşet): SF Pro Bold ≈ largeTitle (34).
+        static var display: Font { .system(.largeTitle, design: .default, weight: .bold) }
 
-        /// Smaller vault content (day preview, compact quotes): New York Regular ≈ footnote (13).
-        static var contentSmall: Font { .system(.footnote, design: .serif) }
+        /// Day number fallback when ``LargeNumberText`` is unavailable: SF Pro Bold tabular.
+        /// Prefer ``LargeNumberText`` (weight `.bold`) so the design target (48 pt) scales.
+        static var dayNumber: Font {
+            .system(.largeTitle, design: .default, weight: .bold).monospacedDigit()
+        }
 
-        /// Placeholder: New York Italic ≈ body (17).
-        static var placeholder: Font { .system(.body, design: .serif).italic() }
+        /// Day name / month: SF Pro Semibold ≈ title2 (22).
+        static var dayName: Font { .system(.title2, design: .default, weight: .semibold) }
 
-        /// Byline / künye: SF Pro Regular ≈ subheadline (15).
-        static var byline: Font { .subheadline }
+        /// Vault content: SF Pro Regular ≈ body (17). Serif returns via ``contentDesign``.
+        static var content: Font { .system(.body, design: contentDesign) }
 
-        /// Section title: SF Pro Semibold ≈ footnote (13).
-        static var section: Font { .system(.footnote, design: .default, weight: .semibold) }
+        /// Smaller vault content (day preview, compact quotes): same family ≈ footnote (13).
+        static var contentSmall: Font { .system(.footnote, design: contentDesign) }
+
+        /// Placeholder: content family, not italic ≈ body (17).
+        static var placeholder: Font { .system(.body, design: contentDesign) }
+
+        /// Byline / künye: SF Pro Medium ≈ title3 (20).
+        static var byline: Font { .system(.title3, design: .default, weight: .medium) }
+
+        /// Section title: SF Pro Semibold ≈ headline (17).
+        static var section: Font { .system(.headline, design: .default, weight: .semibold) }
 
         /// Meta: SF Pro Regular ≈ footnote (13).
         static var meta: Font { .footnote }
@@ -32,9 +44,14 @@ extension Font {
         /// Time: SF Pro tabular ≈ subheadline (15).
         static var time: Font { .subheadline.monospacedDigit() }
 
+        /// Week-strip weekday letter: SF Pro Medium ≈ caption1 (12).
+        static var weekday: Font { .system(.caption, design: .default, weight: .medium) }
+
         /// Large number fallback when ``LargeNumberText`` is unavailable: SF Pro Light tabular ≈ largeTitle.
         /// Prefer ``LargeNumberText`` so the design target (48 pt) scales with Dynamic Type.
-        static var largeNumber: Font { .system(.largeTitle, design: .default, weight: .light).monospacedDigit() }
+        static var largeNumber: Font {
+            .system(.largeTitle, design: .default, weight: .light).monospacedDigit()
+        }
     }
 }
 

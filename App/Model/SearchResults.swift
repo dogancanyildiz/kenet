@@ -21,6 +21,31 @@ enum SearchDestination: Hashable {
     case entity(String)
     case day(CalendarDate)
     case note(String)
+    case newNote
+}
+
+enum SearchScope: String, CaseIterable, Identifiable {
+    case all, events, tasks, people, days
+    var id: String { rawValue }
+    var title: String {
+        switch self {
+        case .all: String(localized: "Hepsi")
+        case .events: String(localized: "Olaylar")
+        case .tasks: String(localized: "Görevler")
+        case .people: String(localized: "Kişiler")
+        case .days: String(localized: "Günler")
+        }
+    }
+
+    func includes(_ item: SearchItem) -> Bool {
+        switch self {
+        case .all: true
+        case .events: item.group == .events
+        case .tasks: item.group == .tasks
+        case .people: item.group == .people
+        case .days: if case .day = item.destination { true } else { false }
+        }
+    }
 }
 
 struct SearchItem: Identifiable, Hashable {

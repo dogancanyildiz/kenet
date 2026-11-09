@@ -1,9 +1,12 @@
 import SwiftUI
+import VaultStore
 
 struct UnresolvedEntityView: View {
     let store: IndexStore
     @Environment(\.locale) private var locale
     @State private var model: UnresolvedEntityModel
+    @State private var noteBody = ""
+    @State private var isCreatingNote = false
 
     init(store: IndexStore, target: String) {
         self.store = store
@@ -16,7 +19,9 @@ struct UnresolvedEntityView: View {
 
     var body: some View {
         @Bindable var model = model
-        if let created = model.created {
+        if let path = model.createdNotePath {
+            SearchNoteView(store: store, file: path)
+        } else if let created = model.created {
             let entity =
                 store.content.entities.first { $0.id == created.file }
                 ?? EntitySummary(
@@ -36,24 +41,39 @@ struct UnresolvedEntityView: View {
                         .disabled(model.qualifier.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                         .inkListRow()
                 } else {
-                    Button("Kişi olarak ekle") { Task { await model.create(.person) } }
-                        .buttonStyle(InkTextButtonStyle())
-                        .inkListRow()
-                    Button("Konum olarak ekle") { Task { await model.create(.place) } }
-                        .buttonStyle(InkTextButtonStyle())
-                        .inkListRow()
+                    option("Kişi olarak ekle", kind: .person)
+                    option("Konum olarak ekle", kind: .place)
                     ForEach(
                         EntityTypeChoices.choices(
                             store.entityTypes, language: locale.language.languageCode?.identifier ?? "en"
                         ).filter { $0.id != "person" && $0.id != "place" }
                     ) { type in
-                        Button {
-                            Task { await model.create(type.kind) }
-                        } label: {
-                            Text("\(type.name) olarak ekle")
+                        option("\(type.name) olarak ekle", kind: type.kind)
+                    }
+                    if isCreatingNote {
+                        InkCard {
+                            TextEditor(text: $noteBody)
+                                .font(.ink.content)
+                                .scrollContentBackground(.hidden)
+                                .frame(minHeight: 140)
+                                .padding(8)
                         }
-                        .buttonStyle(InkTextButtonStyle())
-                        .inkListRow()
+                            .inkListRow()
+                        Button("Notu oluştur") { Task { await model.createNote(body: noteBody) } }
+                            .buttonStyle(InkPrimaryButtonStyle())
+                            .disabled(model.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                            .inkListRow()
+                    } else {
+                        Button { isCreatingNote = true } label: {
+                            HStack(spacing: 12) {
+                                Rectangle().fill(Color.ink.secondaryText).frame(width: 18, height: 18)
+                                    .frame(width: 32, height: 40)
+                                Text("Not olarak oluştur").foregroundStyle(.ink.text)
+                                Spacer()
+                                Image(systemName: "chevron.right").font(.caption).foregroundStyle(.ink.secondaryText)
+                            }
+                        }
+                        .buttonStyle(.plain).inkListRow()
                     }
                 }
                 if let error = model.errorText {
@@ -67,6 +87,31 @@ struct UnresolvedEntityView: View {
             .inkPage()
             .disabled(model.isCreating || !store.canAddEvent)
             .inkPageNavigationTitle("Bağlantı bulunamadı")
+        }
+    }
+
+    private func option(_ title: LocalizedStringKey, kind: VaultEntityKind) -> some View {
+        Button { Task { await model.create(kind) } } label: {
+            HStack(spacing: 12) {
+                GraphNodeShape(kind: graphKind(for: kind))
+                    .fill(GraphNodeStyle.fill(graphKind(for: kind)))
+                    .frame(width: 18, height: 18)
+                    .frame(width: 32, height: 40)
+                Text(title).foregroundStyle(.ink.text)
+                Spacer()
+                Image(systemName: "chevron.right").font(.caption).foregroundStyle(.ink.secondaryText)
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .inkListRow()
+    }
+
+    private func graphKind(for kind: VaultEntityKind) -> GraphNode.Kind {
+        switch kind {
+        case .person: .person
+        case .place: .place
+        case .custom(let id): .custom(id)
         }
     }
 }

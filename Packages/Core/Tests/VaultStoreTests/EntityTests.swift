@@ -3,6 +3,42 @@ import Testing
 import VaultStore
 
 struct EntityTests {
+    @Test func freeNoteUsesCanonicalPathAndPreservesBodyBytes() async throws {
+        let vault = try StoreVault()
+        defer { vault.remove() }
+        let body = "Serbest metin\n\n[[Deniz Arıkan]]\n"
+        let path = try await vault.store.creatingNote(name: " Okuma Listesi ", body: body)
+        #expect(path == "notes/Okuma Listesi.md")
+        #expect(try vault.bytes(path) == Data(body.utf8))
+        #expect(try vault.index.files().contains { $0.path == path })
+        await #expect(throws: VaultStoreError.nameTaken) {
+            try await vault.store.creatingNote(name: "Okuma Listesi", body: "Başka içerik")
+        }
+        try vault.check()
+    }
+
+    @Test func changingFreeNoteRetainsFrontmatterBytesAndReindexesBody() async throws {
+        let vault = try StoreVault()
+        defer { vault.remove() }
+        let original = "---\ncustom: [one, two] # keep\n---\nOld [[Deniz Arıkan]]\n"
+        try vault.write("notes/Örnek.md", original)
+        let body = "New [[Ekin Yılmaz]]\n\nSecond line\n"
+        _ = try await vault.store.changingNote(at: "notes/Örnek.md", to: body)
+        #expect(try vault.bytes("notes/Örnek.md") == Data(("---\ncustom: [one, two] # keep\n---\n" + body).utf8))
+        #expect(try vault.index.unresolvedLinks().contains { $0.target == "Ekin Yılmaz" })
+        #expect(try vault.index.unresolvedLinks().allSatisfy { $0.target != "Deniz Arıkan" })
+        try vault.check()
+    }
+
+    @Test func addingBodyAfterFrontmatterWithoutFinalNewlineSeparatesTheFence() async throws {
+        let vault = try StoreVault()
+        defer { vault.remove() }
+        try vault.write("notes/Örnek.md", "---\ncustom: value\n---")
+        _ = try await vault.store.changingNote(at: "notes/Örnek.md", to: "İçerik")
+        #expect(try vault.bytes("notes/Örnek.md") == Data("---\ncustom: value\n---\nİçerik".utf8))
+        try vault.check()
+    }
+
     @Test func templateFieldsAndBodyArePreserved() async throws {
         let vault = try StoreVault(sample: true)
         defer { vault.remove() }

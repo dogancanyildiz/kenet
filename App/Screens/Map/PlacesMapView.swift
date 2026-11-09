@@ -4,6 +4,7 @@ import SwiftUI
 struct PlacesMapView: View {
     let store: IndexStore
     @Environment(LocationService.self) private var location
+    @Environment(\.locale) private var locale
     @State private var camera = MapCameraPosition.automatic
     @State private var selected: EntitySummary?
     @State private var showsUser = false
@@ -11,7 +12,7 @@ struct PlacesMapView: View {
     var body: some View {
         // Pinned manşet above the full-bleed map; its row carries the page's icons.
         VStack(alignment: .leading, spacing: 0) {
-            InkPageTitle("Harita") {
+            InkPageTitle("Harita", byline: String(localized: "\(store.content.entities.filter { $0.kind == "place" }.count) konum · \(pins.reduce(0) { $0 + $1.count }) ziyaret", locale: locale)) {
                 InkHeaderAction("Beni göster", systemImage: "location") {
                     showsUser = true
                     location.requestLocationIfNeeded(userInitiated: true)
@@ -23,6 +24,7 @@ struct PlacesMapView: View {
             content
         }
         .inkPageNavigationTitle("Harita")
+        .inkGlow()
         .task { location.refreshAuthorization() }
         .onChange(of: location.lastFix) { if showsUser { centerUser() } }
         .onChange(of: store.vaultURL) {
@@ -71,6 +73,22 @@ struct PlacesMapView: View {
             .mapControls {
                 MapCompass()
                 MapScaleView()
+            }
+            .mapStyle(.standard(elevation: .flat, emphasis: .muted))
+            .overlay(alignment: .bottom) {
+                if !pins.isEmpty {
+                    ScrollView(.horizontal) {
+                        HStack(spacing: 10) {
+                            ForEach(pins) { pin in
+                                PlaceMapCard(store: store, pin: pin, isSelected: selected?.id == pin.id) {
+                                    selected = store.content.entities.first { $0.id == pin.id }
+                                }
+                            }
+                        }
+                        .padding(.horizontal, InkSpacing.margin)
+                        .padding(.bottom, 12)
+                    }
+                }
             }
         }
     }
@@ -135,6 +153,51 @@ struct PlacesMapView: View {
             camera = .region(
                 MKCoordinateRegion(
                     center: coordinate(point), span: MKCoordinateSpan(latitudeDelta: 0.02, longitudeDelta: 0.02)))
+        }
+    }
+}
+
+private struct PlaceMapCard: View {
+    let store: IndexStore
+    let pin: PlacePin
+    let isSelected: Bool
+    let onTap: () -> Void
+    @Environment(\.locale) private var locale
+    @Environment(\.clockNow) private var clockNow
+    @State private var mentionData: EntityMentionsData?
+    private var lastDate: CalendarDate? { store.entityUsage.first { $0.file == pin.id }?.lastDate }
+
+    var body: some View {
+        Button(action: onTap) {
+            VStack(alignment: .leading, spacing: 8) {
+                Text(verbatim: pin.entity.name).font(.ink.content).foregroundStyle(.ink.text)
+                HStack(alignment: .center) {
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(String(localized: "\(pin.count) ziyaret", locale: locale)).font(.ink.meta).foregroundStyle(.ink.secondaryText)
+                        if let lastDate {
+                            Text(String(localized: "Son ziyaret", locale: locale) + " " + LocalDay.instant(for: lastDate).formatted(.dateTime.day().month(.abbreviated).locale(locale)))
+                                .font(.ink.meta).foregroundStyle(.ink.secondaryText)
+                        }
+                    }
+                    Spacer(minLength: 8)
+                    if let mentionData { EntityMonthlyBarChart(data: mentionData, compact: true) }
+                }
+            }
+            .frame(minWidth: 220, alignment: .leading)
+            .padding(12)
+            .background(Color.ink.surface)
+            .clipShape(RoundedRectangle(cornerRadius: InkCorner.card))
+            .overlay(RoundedRectangle(cornerRadius: InkCorner.card)
+                .stroke(isSelected ? Color.ink.accent : Color.ink.rule,
+                        lineWidth: isSelected ? InkStroke.control : InkStroke.hairline(scale: 1)))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(Text(verbatim: pin.entity.name))
+        .task(id: EntityTimelineRequest(path: pin.id, updated: store.lastUpdated)) {
+            guard let days = try? await store.computeEntityTimeline(for: pin.id), !Task.isCancelled else { return }
+            let insight = EntityInsights.compute(
+                path: pin.id, timeline: days, lastDay: nil, entities: [], today: LocalDay.today(at: clockNow()))
+            mentionData = insight.mentions(locale: locale)
         }
     }
 }

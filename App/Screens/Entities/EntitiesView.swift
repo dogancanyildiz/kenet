@@ -47,12 +47,17 @@ struct EntitiesView: View {
             }
             EntityTypePicker(store: store, selection: $kind)
                 .inkListRow()
-            pageLink("Graph", systemImage: "point.3.connected.trianglepath.dotted") {
-                GraphView(store: store)
+            HStack(spacing: 10) {
+                let peopleCount = store.content.entities.filter { $0.kind == "person" }.count
+                let placeCount = store.content.entities.filter { $0.kind == "place" }.count
+                pageCard("Graph", detail: String(localized: "\(peopleCount) kişi · \(placeCount) konum", locale: locale), systemImage: "point.3.connected.trianglepath.dotted") {
+                    GraphView(store: store)
+                }
+                pageCard("Harita", detail: "\(store.mapPlaces.count) konum", systemImage: "map") {
+                    PlacesMapView(store: store)
+                }
             }
-            pageLink("Harita", systemImage: "map") {
-                PlacesMapView(store: store)
-            }
+            .inkListRow()
             if let creatable = EntityCreateEntry.kind(forList: kind, types: store.entityTypes) {
                 createRow(creatable)
             }
@@ -70,8 +75,11 @@ struct EntitiesView: View {
             }
             ForEach(entities) { entity in
                 NavigationLink(value: entity) {
-                    EntityRow(entity: entity, store: store, onEdit: { editingEntity = entity })
+                    InkCard(padded: false) {
+                        EntityRow(entity: entity, store: store, onEdit: { editingEntity = entity })
+                    }
                 }
+                .buttonStyle(.plain)
                 .inkListRow()
             }
             if !store.content.entities.contains(where: { $0.kind == kind }) {
@@ -81,6 +89,7 @@ struct EntitiesView: View {
         }
         .listStyle(.plain)
         .inkPageScrollColumn()
+        .inkGlow()
         .inkPage()
         .inkRootPageNavigationTitle("Kişiler ve Konumlar")
         .accessibilityIdentifier("screen.entities")
@@ -165,19 +174,22 @@ struct EntitiesView: View {
     #endif
 
     /// A page entry at the top of the list (the pattern of the "Özetler" row in Günlük).
-    private func pageLink<Destination: View>(
-        _ title: LocalizedStringKey, systemImage: String, @ViewBuilder destination: () -> Destination
+    private func pageCard<Destination: View>(
+        _ title: LocalizedStringKey, detail: String, systemImage: String, @ViewBuilder destination: () -> Destination
     ) -> some View {
         NavigationLink {
             destination()
         } label: {
-            MarginRow(kind: .external, time: nil) {
-                Label(title, systemImage: systemImage)
-                    .font(.body)
-                    .foregroundStyle(.ink.text)
+            InkCard {
+                VStack(alignment: .leading, spacing: 8) {
+                    Image(systemName: systemImage).foregroundStyle(.ink.accent)
+                    Text(title).font(.ink.content).foregroundStyle(.ink.text)
+                    Text(verbatim: detail).font(.ink.meta).foregroundStyle(.ink.secondaryText)
+                }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .inkListRow()
+        .buttonStyle(.plain)
     }
 }
 
@@ -249,20 +261,47 @@ struct EntityRow: View {
     var onEdit: () -> Void = {}
     var onDeleted: (String) -> Void = { _ in }
     @State private var deletion = DefinitionDeletionModel()
+    @State private var mentionData: EntityMentionsData?
+    @Environment(\.locale) private var locale
+    @Environment(\.clockNow) private var clockNow
 
     var body: some View {
         // One row view: the error band below the row, not a second row with the same tag.
         VStack(alignment: .leading, spacing: 0) {
-            MarginRow(kind: .vault, time: nil) {
-                Text(verbatim: entity.name)
-                    .foregroundStyle(.ink.text)
-            } secondary: {
-                if let qualifier = entity.qualifier {
-                    Text(verbatim: qualifier)
-                        .font(.ink.meta)
-                        .foregroundStyle(.ink.secondaryText)
+            MarginRow(kind: .vault, mark: { EmptyView() }, time: nil, primary: {
+                HStack(spacing: 12) {
+                    Text(String(entity.name.prefix(1)).uppercased())
+                        .font(.headline)
+                        .foregroundStyle(entity.kind == "place" ? Color.ink.place : Color.ink.person)
+                        .frame(width: 40, height: 40)
+                        .background(Color.ink.well, in: Circle())
+                        .accessibilityHidden(true)
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(verbatim: entity.name).foregroundStyle(.ink.text)
+                        if let qualifier = entity.qualifier {
+                            Text(verbatim: qualifier).font(.ink.meta).foregroundStyle(.ink.secondaryText)
+                        }
+                    }
                 }
-            }
+            }, secondary: {
+                if let store, let usage = store.entityUsage.first(where: { $0.file == entity.id }) {
+                    HStack(spacing: 4) {
+                        if let last = usage.lastDate {
+                            let date = LocalDay.instant(for: last)
+                            let formatter = RelativeDateTimeFormatter()
+                            let _ = formatter.locale = locale
+                            Text(verbatim: formatter.localizedString(for: date, relativeTo: clockNow()))
+                        }
+                        Text(verbatim: "·")
+                        Text(verbatim: "\(usage.totalCount.formatted()) \(String(localized: "bağ"))")
+                    }
+                    .font(.ink.meta).foregroundStyle(.ink.secondaryText)
+                }
+            }, trailing: {
+                if let mentionData {
+                    EntityMonthlyBarChart(data: mentionData, compact: true)
+                }
+            })
             .contextMenu {
                 if let store {
                     DefinitionMenuButtons(items: DefinitionMenu.items(forEntity: entity), canEdit: store.canAddEvent) {
@@ -290,6 +329,14 @@ struct EntityRow: View {
             if let error = deletion.errorText {
                 InfoBand(kind: .error, verbatim: error)
             }
+        }
+        .task(id: EntityTimelineRequest(path: entity.id, updated: store?.lastUpdated)) {
+            guard let store,
+                let days = try? await store.computeEntityTimeline(for: entity.id), !Task.isCancelled
+            else { return }
+            let insight = EntityInsights.compute(
+                path: entity.id, timeline: days, lastDay: nil, entities: [], today: LocalDay.today(at: clockNow()))
+            mentionData = insight.mentions(locale: locale)
         }
     }
 }

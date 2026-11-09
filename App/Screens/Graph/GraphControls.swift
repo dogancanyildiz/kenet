@@ -8,25 +8,19 @@ struct GraphControls: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             // A day's own graph is the whole day: no period.
-            if filter.scope == .all {
-                periodMenu
-            }
+            if filter.scope == .all { periodTabs }
             zoomBar
         }
         .padding(.horizontal, InkSpacing.margin)
         .padding(.vertical, InkSpacing.margin)
     }
 
-    /// Four choices: labeled menu, left-aligned under the manşet.
-    private var periodMenu: some View {
-        InkLabeledMenu(
-            "Dönem", selection: $filter.period,
-            options: [
-                InkMenuOption("Son 30 gün", value: GraphPeriod.month),
-                InkMenuOption("Son 90 gün", value: GraphPeriod.quarter),
-                InkMenuOption("Son 365 gün", value: GraphPeriod.year),
-                InkMenuOption("Tümü", value: GraphPeriod.all),
-            ], identifier: "menu.graph.period")
+    private var periodTabs: some View {
+        InkTabs(selection: $filter.period, items: [
+            InkTabItem("Bu ay", value: .month, identifier: "tab.graph.month"),
+            InkTabItem("3 ay", value: .quarter, identifier: "tab.graph.quarter"),
+            InkTabItem("Yıl", value: .year, identifier: "tab.graph.year"),
+        ], identifier: "tabs.graph.period")
     }
 
     private var zoomBar: some View {

@@ -11,7 +11,13 @@ struct PlacePin: Identifiable, Sendable {
     let count: Int
     let intensity: Double
     var id: String { entity.file }
-    var radius: Double { 10 + min(14, sqrt(Double(max(0, count))) * 3) }
+    var radius: Double {
+        switch intensity {
+        case ..<0.34: 12
+        case ..<0.67: 17
+        default: count == 0 ? 12 : 22
+        }
+    }
 }
 enum PlacesMapModel {
     static func pins(places: [MapPlace], usage: [EntityUsage]) -> [PlacePin] {

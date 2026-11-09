@@ -7,6 +7,7 @@ struct SearchView: View {
     /// Search asked for inside the sheet: ⌘F and a page's magnifier. Made once (``ShellAction``).
     @State private var returnToField: ShellAction
     @FocusState private var searchFocused: Bool
+    @State private var scope: SearchScope = .all
     @Environment(\.dismiss) private var dismiss
 
     init(store: IndexStore, initialQuery: String = "") {
@@ -29,6 +30,15 @@ struct SearchView: View {
                 searchField
                     .padding(.horizontal, InkSpacing.margin)
                     .padding(.bottom, 8)
+                scopeChips
+                Button { model.path.append(.newNote) } label: {
+                    Label("Serbest not", systemImage: "square.and.pencil")
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .tapTarget()
+                }
+                .buttonStyle(InkTextButtonStyle())
+                .padding(.horizontal, InkSpacing.margin)
+                .padding(.bottom, 8)
                 if model.isSearching { ProgressView().padding(.bottom, 8) }
                 if let error = model.errorText {
                     Text(verbatim: error).foregroundStyle(.ink.danger).padding()
@@ -47,6 +57,7 @@ struct SearchView: View {
                     }
                 case .day(let date): DayView(store: store, date: date)
                 case .note(let file): SearchNoteView(store: store, file: file)
+                case .newNote: FreeNoteComposerView(store: store)
                 }
             }
         }
@@ -117,13 +128,20 @@ struct SearchView: View {
                         .inkListRow()
                 } else {
                     ForEach(SearchGroup.allCases) { group in
-                        let items = model.results.filter { $0.group == group }
+                        let items = visibleResults.filter { $0.group == group }
                         if !items.isEmpty {
-                            Section {
+                            VStack(alignment: .leading, spacing: 8) {
                                 SectionHeader(title: group.title)
-                                    .inkListRow()
-                                ForEach(items) { item in resultRow(item) }
+                                InkCard(padded: false) {
+                                    VStack(spacing: 0) {
+                                        ForEach(items.indices, id: \.self) { index in
+                                            if index > 0 { InkCardDivider() }
+                                            resultRow(items[index])
+                                        }
+                                    }
+                                }
                             }
+                            .inkListRow()
                         }
                     }
                 }
@@ -134,6 +152,22 @@ struct SearchView: View {
                 if let id { proxy.scrollTo(id) }
             }
         }
+    }
+
+    private var visibleResults: [SearchItem] {
+        model.results.filter(scope.includes)
+    }
+
+    private var scopeChips: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                ForEach(SearchScope.allCases) { item in
+                    TagChip(title: item.title, isSelected: scope == item) { scope = item }
+                }
+            }
+            .padding(.horizontal, InkSpacing.margin)
+        }
+        .padding(.bottom, 8)
     }
 
     private func resultRow(_ item: SearchItem) -> some View {
@@ -156,7 +190,10 @@ struct SearchView: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .inkListRow(columnSelected: item.id == model.selectedID)
+        .padding(.horizontal, InkSpacing.cardPadding)
+        .padding(.vertical, 8)
+        .background(item.id == model.selectedID ? Color.ink.accent.opacity(0.12) : Color.clear)
+        .accessibilityElement(children: .contain)
         .id(item.id)
     }
 

@@ -12,6 +12,7 @@ final class UnresolvedEntityModel {
     private(set) var needsQualifier = false
     private(set) var kind: VaultEntityKind?
     private(set) var created: KnownEntity?
+    private(set) var createdNotePath: String?
     private(set) var errorText: String?
     private(set) var isCreating = false
 
@@ -36,6 +37,18 @@ final class UnresolvedEntityModel {
         do {
             created = try await store.createEntity(kind: kind, name: name, qualifier: needsQualifier ? qualifier : nil)
         } catch VaultStoreError.nameTaken { needsQualifier = true } catch {
+            errorText = DayEditError.message(for: error)
+        }
+    }
+
+    func createNote(body: String) async {
+        guard !isCreating, store.canAddEvent, created == nil, createdNotePath == nil else { return }
+        isCreating = true
+        errorText = nil
+        defer { isCreating = false }
+        do {
+            createdNotePath = try await store.createNote(name: name, body: body)
+        } catch {
             errorText = DayEditError.message(for: error)
         }
     }

@@ -168,7 +168,19 @@ import VaultIndex
         #expect(PlacesMapModel.pins(places: [invalid], usage: []).isEmpty)
         let zero = PlacesMapModel.pins(
             places: [MapPlace(entity: place, coordinate: PlaceCoordinate(latitude: 0, longitude: 0))], usage: [])
-        #expect(zero.first?.radius == 10 && zero.first?.intensity == 0)
+        #expect(zero.first?.radius == 12 && zero.first?.intensity == 0)
+    }
+    @Test func mapPinUsesThreeVisitIntensitySizeTiers() {
+        let places = [2, 5, 10].enumerated().map { index, _ in
+            MapPlace(
+                entity: KnownEntity(file: "places/\(index).md", kind: .place, name: "Konum \(index)"),
+                coordinate: PlaceCoordinate(latitude: 0, longitude: Double(index)))
+        }
+        let usage = [2, 5, 10].enumerated().map { index, count in
+            EntityUsage(file: "places/\(index).md", totalCount: count)
+        }
+        let pins = PlacesMapModel.pins(places: places, usage: usage)
+        #expect(pins.map(\.radius) == [12, 17, 22])
     }
     @Test func mapLocationFixUsesExistingPermissionWithoutRequestingAccess() throws {
         let defaults = try TestDefaults()

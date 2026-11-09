@@ -106,6 +106,15 @@ struct EntityView: View {
                 Text(verbatim: error).font(.ink.meta).foregroundStyle(.ink.danger)
                     .inkListRow()
             }
+            if model.isLoaded && model.canEdit {
+                Button("Varlığı sil", role: .destructive) {
+                    deletion.request(path: model.path)
+                }
+                .font(.ink.meta)
+                .foregroundStyle(.ink.danger)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .inkListRow()
+            }
         }
         .listStyle(.plain)
         .inkPage()
@@ -113,6 +122,16 @@ struct EntityView: View {
         .inkPinnedMasthead(masthead)
         .environment(\.entityLookup, LinkedTextInk.lookup(entities: store.content.entities))
         .inkPageNavigationTitle(verbatim: current.name)
+        .destructiveConfirmationDialog(
+            "Varlığı sil", confirmation: $deletion.confirmation,
+            message: "\(current.name) silinsin mi? Günlük kayıtlarındaki geçişler kalır."
+        ) { path in
+            Task {
+                if await deletion.delete(store: store, path: path, goal: false) {
+                    if let onDeleted { onDeleted(path) } else { dismiss() }
+                }
+            }
+        }
         .sheet(
             isPresented: $isEditing,
             onDismiss: {
@@ -157,29 +176,19 @@ struct EntityView: View {
     }
 
     @ViewBuilder private var headRows: some View {
-        if !model.aliasesEditable, !model.aliasesSource.isEmpty {
-            Text(verbatim: model.aliasesSource)
-                .font(.ink.meta)
-                .foregroundStyle(.ink.secondaryText)
-                .textSelection(.enabled)
-                .inkListRow()
-        }
-        if let qualifier = current.qualifier {
-            labeledRow(String(localized: "Ayırt edici"), qualifier, valueFont: .ink.content)
-                .inkListRow()
-        }
-        labeledRow(
-            String(localized: "Gelen bağlantılar"),
-            current.incomingLinks.formatted(.number),
-            valueFont: .ink.value
-        )
-        .inkListRow()
-        if showsImportantDates {
-            EntityImportantDatesRow(file: model.path, model: importantDates)
-        }
-        if let result = model.renameResult {
-            EntityRenameSummary(result: result)
-                .inkListRow()
+        VStack(alignment: .leading, spacing: 8) {
+            TagChip(title: kindLabel, isSelected: true)
+            InkCard {
+                if let qualifier = current.qualifier {
+                    labeledRow(String(localized: "Ayırt edici"), qualifier, valueFont: .ink.content)
+                }
+                labeledRow(String(localized: "Gelen bağlantılar"), current.incomingLinks.formatted(.number), valueFont: .ink.value)
+                if !model.aliasesEditable, !model.aliasesSource.isEmpty {
+                    Text(verbatim: model.aliasesSource).font(.ink.meta).foregroundStyle(.ink.secondaryText).textSelection(.enabled)
+                }
+                if let result = model.renameResult { EntityRenameSummary(result: result) }
+            }
+            .inkListRow()
         }
     }
 
@@ -193,6 +202,12 @@ struct EntityView: View {
     }
 
     @ViewBuilder private var readingContent: some View {
+        if ["person", "place"].contains(current.kind) {
+            InkCard(padded: false) {
+                EntityInsightsCard(store: store, entity: current, timeline: timeline ?? [], lastDay: lastDay)
+            }
+            .inkListRow()
+        }
         if isGraphNode {
             Section {
                 NavigationLink {
@@ -204,9 +219,6 @@ struct EntityView: View {
                 }
                 .inkListRow()
             }
-        }
-        if ["person", "place"].contains(current.kind) {
-            EntityInsightsCard(store: store, entity: current, timeline: timeline ?? [], lastDay: lastDay)
         }
         if isGraphNode {
             EntityRelationsHost(store: store, path: model.path).id(model.path)
@@ -231,41 +243,37 @@ struct EntityView: View {
         let grouped = EntityReadPresentation.fieldRows(
             fields: model.fields, schemaKeys: schemaKeys, locale: locale)
         if !grouped.known.isEmpty {
-            Section {
+            VStack(alignment: .leading, spacing: 8) {
                 SectionHeader(title: String(localized: "Alanlar"))
-                    .inkListRow()
-                ForEach(grouped.known) { row in
-                    labeledRow(row.label, row.value.isEmpty ? "\u{2014}" : row.value, valueFont: .ink.content)
-                        .inkListRow()
+                InkCard {
+                    ForEach(grouped.known.indices, id: \.self) { index in
+                        let row = grouped.known[index]
+                        if index > 0 { InkCardDivider() }
+                        labeledRow(row.label, row.value.isEmpty ? "\u{2014}" : row.value, valueFont: .ink.content)
+                    }
                 }
-            }
+            }.inkListRow()
         }
         if !grouped.other.isEmpty {
-            Section {
+            VStack(alignment: .leading, spacing: 8) {
                 SectionHeader(title: String(localized: "Diğer alanlar"))
-                    .inkListRow()
-                ForEach(grouped.other) { row in
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(verbatim: row.key)
-                            .font(.ink.meta)
-                            .foregroundStyle(.ink.secondaryText)
-                        Text(verbatim: row.value.isEmpty ? "\u{2014}" : row.value)
-                            .font(.ink.content)
-                            .foregroundStyle(.ink.secondaryText)
-                            .textSelection(.enabled)
+                InkCard {
+                    ForEach(grouped.other) { row in
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(verbatim: row.key).font(.ink.meta).foregroundStyle(.ink.secondaryText)
+                            Text(verbatim: row.value.isEmpty ? "\u{2014}" : row.value)
+                                .font(.ink.content).foregroundStyle(.ink.secondaryText).textSelection(.enabled)
+                        }
                     }
-                    .padding(.vertical, 2)
-                    .inkListRow()
                 }
-            }
+            }.inkListRow()
         }
     }
 
     @ViewBuilder private var timelineSection: some View {
         let timeline = self.timeline ?? []
         Section {
-            SectionHeader(title: String(localized: "Zaman akışı"), count: timeline.count)
-                .inkListRow()
+            SectionHeader(title: String(localized: "Zaman akışı"), count: timeline.count).inkListRow()
             if timeline.isEmpty {
                 Text("Henüz günlük kaydı yok.")
                     .font(.ink.meta)
@@ -273,18 +281,31 @@ struct EntityView: View {
                     .inkListRow()
             }
             ForEach(timeline) { day in
-                Text(LocalDay.instant(for: day.date), format: .dateTime.day().month().year())
-                    .font(.ink.section)
-                    .foregroundStyle(.ink.text)
-                    .inkListRow()
-                ForEach(day.rows) { row in
-                    NavigationLink {
-                        DayView(store: store, date: day.date)
-                    } label: {
-                        LinkedTextView(text: row.text, store: store)
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        NavigationLink {
+                            DayView(store: store, date: day.date)
+                        } label: {
+                            Text(LocalDay.instant(for: day.date), format: .dateTime.day().month().year())
+                                .font(.ink.section).foregroundStyle(.ink.text)
+                        }
+                        Spacer()
+                        NavigationLink {
+                            GraphView(store: store, scope: .day(day.date))
+                        } label: {
+                            Label("Günün grafiği", systemImage: "point.3.connected.trianglepath.dotted")
+                                .labelStyle(.iconOnly).tapTarget()
+                        }
                     }
-                    .inkListRow()
+                    InkCard {
+                        ForEach(day.rows) { row in
+                            NavigationLink { DayView(store: store, date: day.date) } label: {
+                                LinkedTextView(text: row.text, store: store)
+                            }.buttonStyle(.plain)
+                        }
+                    }
                 }
+                .inkListRow()
             }
         }
     }
@@ -300,12 +321,10 @@ struct EntityView: View {
                     .foregroundStyle(.ink.secondaryText)
                     .inkListRow()
             } else {
-                Text(verbatim: display)
-                    .font(.ink.content)
-                    .inkJournalParagraph()
-                    .foregroundStyle(.ink.text)
-                    .textSelection(.enabled)
-                    .inkListRow()
+                InkCard {
+                    Text(verbatim: display).font(.ink.content).inkJournalParagraph()
+                        .foregroundStyle(.ink.text).textSelection(.enabled)
+                }.inkListRow()
             }
         }
     }

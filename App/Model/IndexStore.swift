@@ -548,6 +548,53 @@ final class IndexStore {
         }
     }
 
+    func createNote(name: String, body: String) async throws -> String {
+        let root = vaultURL
+        return try await withWriteSlot {
+            try await awaitEditTurn(in: root)
+            guard canAddEvent, let writer else { throw VaultStoreError.staleTarget }
+            isProcessing = true
+            isWriting = true
+            do {
+                let path: String
+                do {
+                    path = try await writer.creatingNote(name: name, body: body)
+                } catch VaultStoreError.indexUpdateFailed(let savedPath, _) {
+                    path = savedPath
+                    entryErrorText = String(localized: "Not kaydedildi, indeks güncellenemedi.")
+                    queueRefresh(rebuild: true, directories: nil)
+                }
+                await finishEntityWrite()
+                return path
+            } catch {
+                await finishEntityWrite()
+                throw error
+            }
+        }
+    }
+
+    func saveNote(path: String, body: String) async throws {
+        let root = vaultURL
+        try await withWriteSlot {
+            try await awaitEditTurn(in: root)
+            guard canAddEvent, let writer else { throw VaultStoreError.staleTarget }
+            isProcessing = true
+            isWriting = true
+            do {
+                do {
+                    _ = try await writer.changingNote(at: path, to: body)
+                } catch VaultStoreError.indexUpdateFailed {
+                    entryErrorText = String(localized: "Not kaydedildi, indeks güncellenemedi.")
+                    queueRefresh(rebuild: true, directories: nil)
+                }
+                await finishEntityWrite()
+            } catch {
+                await finishEntityWrite()
+                throw error
+            }
+        }
+    }
+
     private func finishEntityWrite() async {
         isProcessing = false
         isWriting = false

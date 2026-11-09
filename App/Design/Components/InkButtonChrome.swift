@@ -3,6 +3,7 @@ import Foundation
 /// Token roles for button chrome (pressed / disabled use tokens, not opacity).
 enum InkButtonChrome: Equatable, Sendable {
     case primary
+    case secondary
     case text
     case destructive
 
@@ -25,10 +26,12 @@ enum InkButtonChrome: Equatable, Sendable {
         case paper
         case text
         case well
+        case surface
         case onAccent
         case accent
         case danger
         case control
+        case rule
     }
 
     struct Role: Equatable, Sendable {
@@ -42,6 +45,10 @@ enum InkButtonChrome: Equatable, Sendable {
             if !isEnabled { return Role(foreground: .secondaryText, background: .well) }
             if isPressed { return Role(foreground: .paper, background: .text) }
             return Role(foreground: .onAccent, background: .accent)
+        case .secondary:
+            if !isEnabled { return Role(foreground: .secondaryText, background: .well) }
+            if isPressed { return Role(foreground: .text, background: .well) }
+            return Role(foreground: .text, background: .surface)
         case .text:
             if !isEnabled { return Role(foreground: .secondaryText, background: nil) }
             if isPressed { return Role(foreground: .text, background: nil) }

@@ -6,9 +6,9 @@ enum InfoBandKind: String, CaseIterable, Sendable {
     case warning
     case error
 
-    var markSystemImage: String? {
+    var markSystemImage: String {
         switch self {
-        case .info: nil
+        case .info: "info.circle.fill"
         case .warning: "exclamationmark.triangle.fill"
         case .error: "xmark.octagon.fill"
         }

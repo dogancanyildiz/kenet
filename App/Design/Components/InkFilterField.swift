@@ -11,8 +11,8 @@ enum InkFilterFieldChrome {
     static func showsClear(text: String) -> Bool { !text.isEmpty }
 }
 
-/// In-page filter / search field: well background, control-line border (accent while focused),
-/// serif text, italic serif placeholder, and a clear button while there is text.
+/// In-page filter / search field: well background, `cornerSM`, control-line border (accent while
+/// focused), sans text, non-italic placeholder, and a clear button while there is text.
 /// It is the Search page's field as a component.
 ///
 /// Draws no horizontal page margin of its own. Submission, key presses and keyboard traits
@@ -68,10 +68,10 @@ struct InkFilterField: View {
             .padding(.vertical, 10)
             .background(
                 Color.ink.well,
-                in: RoundedRectangle(cornerRadius: InkSize.kanbanCorner, style: .continuous)
+                in: RoundedRectangle(cornerRadius: InkCorner.sm, style: .continuous)
             )
             .overlay(
-                RoundedRectangle(cornerRadius: InkSize.kanbanCorner, style: .continuous)
+                RoundedRectangle(cornerRadius: InkCorner.sm, style: .continuous)
                     .strokeBorder(
                         InkButtonChrome.color(
                             for: InkFilterFieldChrome.borderToken(isFocused: focus.wrappedValue)),

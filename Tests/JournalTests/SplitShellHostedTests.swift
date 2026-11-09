@@ -303,13 +303,14 @@
             #expect(idle.isClose(to: paper), "an unselected row is paper: \(idle)")
             switch kind {
             case .split:
-                #expect(fill.isClose(to: Pixels.color(.well, style: .light)), "selected fill \(fill) is not the well")
-                // The 2 pt rule at scale 1 meets the rounded clip: nearer the accent than the well.
+                // Şafak: the selected row fills with `accentSoft` (design.md, Şafak kuralları).
+                let accentSoft = Pixels.color(.accentSoft, style: .light)
+                #expect(fill.isClose(to: accentSoft), "selected fill \(fill) is not accentSoft")
+                // The 2 pt rule at scale 1 meets the rounded clip: nearer the accent than the fill.
                 let accent = Pixels.color(.accent, style: .light)
-                let well = Pixels.color(.well, style: .light)
-                #expect(mark.distance(to: accent) < mark.distance(to: well) / 4, "no accent rule: \(mark)")
+                #expect(mark.distance(to: accent) < mark.distance(to: accentSoft) / 4, "no accent rule: \(mark)")
             case .tabs:
-                #expect(!fill.isClose(to: Pixels.color(.well, style: .light)), "the phone drew the Mac selection")
+                #expect(!fill.isClose(to: Pixels.color(.accentSoft, style: .light)), "the phone drew the Mac selection")
                 #expect(!fill.isClose(to: paper), "the search wash is gone: \(fill)")
             }
         }

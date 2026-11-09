@@ -3,11 +3,18 @@ import Testing
 
 @testable import Journal
 
-/// Reads asset-catalog color sets from the repo and checks WCAG contrast (`docs/design.md` rule 4).
+/// Reads asset-catalog color sets from the repo and checks WCAG contrast (Şafak rule 4).
 struct PaletteContrastTests {
     private static let ratioTolerance = 0.05
     private static let bodyMinimum = 4.5
     private static let controlMinimum = 3.0
+
+    private static let textTokens: [InkPalette.Token] = [
+        .text, .secondaryText, .tertiaryText, .accent, .warning, .danger, .person, .place,
+    ]
+    private static let textBackgrounds: [InkPalette.Token] = [
+        .paper, .surface, .well, .elevated, .accentSoft,
+    ]
 
     @Test func catalogMatchesSwiftPalette() throws {
         for token in InkPalette.Token.allCases {
@@ -17,62 +24,39 @@ struct PaletteContrastTests {
             #expect(catalog.dark == expected.dark, "\(token.rawValue) dark")
             #expect(catalog.highContrastLight == expected.highContrastLight, "\(token.rawValue) HC light")
             #expect(catalog.highContrastDark == expected.highContrastDark, "\(token.rawValue) HC dark")
+            #expect(
+                abs(catalog.lightAlpha - expected.lightAlpha) < 0.001,
+                "\(token.rawValue) light alpha")
+            #expect(
+                abs(catalog.darkAlpha - expected.darkAlpha) < 0.001,
+                "\(token.rawValue) dark alpha")
+            #expect(
+                abs(catalog.highContrastLightAlpha - expected.highContrastLightAlpha) < 0.001,
+                "\(token.rawValue) HC light alpha")
+            #expect(
+                abs(catalog.highContrastDarkAlpha - expected.highContrastDarkAlpha) < 0.001,
+                "\(token.rawValue) HC dark alpha")
         }
     }
 
     @Test func accentColorAliasesInkAccent() throws {
         let accent = try Self.readCatalogVariant(assetName: "AccentColor")
         let ink = InkPalette.Token.accent.variant
-        #expect(accent == ink)
+        #expect(accent.light == ink.light)
+        #expect(accent.dark == ink.dark)
+        #expect(accent.highContrastLight == ink.highContrastLight)
+        #expect(accent.highContrastDark == ink.highContrastDark)
+        #expect(abs(accent.lightAlpha - ink.lightAlpha) < 0.001)
+        #expect(abs(accent.darkAlpha - ink.darkAlpha) < 0.001)
     }
 
-    @Test func textMeetsBodyContrastOnPaperAndSurface() {
-        Self.assertBodyContrast(
-            foreground: .text,
-            backgrounds: [.paper, .surface],
-            documentedOnPaper: InkPalette.DocumentedContrast.textOnPaper)
-    }
-
-    @Test func secondaryTextMeetsBodyContrastOnPaperAndSurface() {
-        Self.assertBodyContrast(
-            foreground: .secondaryText,
-            backgrounds: [.paper, .surface],
-            documentedOnPaper: InkPalette.DocumentedContrast.secondaryTextOnPaper)
-    }
-
-    @Test func accentMeetsBodyContrastOnPaper() {
-        Self.assertBodyContrast(
-            foreground: .accent,
-            backgrounds: [.paper],
-            documentedOnPaper: InkPalette.DocumentedContrast.accentOnPaper)
-    }
-
-    @Test func warningMeetsBodyContrastOnPaper() {
-        Self.assertBodyContrast(
-            foreground: .warning,
-            backgrounds: [.paper],
-            documentedOnPaper: InkPalette.DocumentedContrast.warningOnPaper)
-    }
-
-    @Test func dangerMeetsBodyContrastOnPaper() {
-        Self.assertBodyContrast(
-            foreground: .danger,
-            backgrounds: [.paper],
-            documentedOnPaper: InkPalette.DocumentedContrast.dangerOnPaper)
-    }
-
-    @Test func personMeetsBodyContrastOnPaper() {
-        Self.assertBodyContrast(
-            foreground: .person,
-            backgrounds: [.paper],
-            documentedOnPaper: InkPalette.DocumentedContrast.personOnPaper)
-    }
-
-    @Test func placeMeetsBodyContrastOnPaper() {
-        Self.assertBodyContrast(
-            foreground: .place,
-            backgrounds: [.paper],
-            documentedOnPaper: InkPalette.DocumentedContrast.placeOnPaper)
+    @Test func textTokensMeetBodyContrastOnSurfaces() {
+        for foreground in Self.textTokens {
+            Self.assertBodyContrast(
+                foreground: foreground,
+                backgrounds: Self.textBackgrounds,
+                documentedOnPaper: Self.documentedOnPaper(for: foreground))
+        }
     }
 
     @Test func onAccentMeetsBodyContrastOnAccent() {
@@ -90,27 +74,76 @@ struct PaletteContrastTests {
         }
     }
 
-    @Test func controlMeetsNonTextContrastOnPaper() {
-        for (index, appearance) in InkPalette.Appearance.allCases.enumerated() {
-            let fg = InkPalette.Token.control.variant.hex(for: appearance)
-            let bg = InkPalette.Token.paper.variant.hex(for: appearance)
-            let ratio = InkPalette.contrastRatio(foreground: fg, background: bg)
+    @Test func controlMeetsNonTextContrastOnPaperSurfaceAndWell() {
+        for background in [InkPalette.Token.paper, .surface, .well] {
+            for (index, appearance) in InkPalette.Appearance.allCases.enumerated() {
+                let fg = InkPalette.Token.control.variant.hex(for: appearance)
+                let bg = background.variant.hex(for: appearance)
+                let ratio = InkPalette.contrastRatio(foreground: fg, background: bg)
+                #expect(
+                    ratio + 0.000_1 >= Self.controlMinimum,
+                    "control on \(background.rawValue) \(appearance.rawValue): \(ratio)")
+                if background == .paper {
+                    let documented = InkPalette.DocumentedContrast.controlOnPaper[index]
+                    #expect(
+                        abs(ratio - documented) <= Self.ratioTolerance,
+                        "control documented \(appearance.rawValue): got \(ratio), table \(documented)")
+                }
+            }
+        }
+    }
+
+    /// `line` is decorative alpha chrome: stronger than `rule`, not a 3:1 control.
+    @Test func lineIsMoreVisibleThanRuleOnPaper() {
+        for appearance in InkPalette.Appearance.allCases {
+            let paper = InkPalette.Token.paper.variant.hex(for: appearance)
+            let line = InkPalette.resolvedHex(token: .line, appearance: appearance, over: paper)
+            let rule = InkPalette.resolvedHex(token: .rule, appearance: appearance, over: paper)
+            let lineRatio = InkPalette.contrastRatio(foreground: line, background: paper)
+            let ruleRatio = InkPalette.contrastRatio(foreground: rule, background: paper)
             #expect(
-                ratio + 0.000_1 >= Self.controlMinimum,
-                "control on paper \(appearance.rawValue): \(ratio)")
-            let documented = InkPalette.DocumentedContrast.controlOnPaper[index]
-            #expect(
-                abs(ratio - documented) <= Self.ratioTolerance,
-                "control documented \(appearance.rawValue): got \(ratio), table \(documented)")
+                lineRatio > ruleRatio,
+                "line \(lineRatio) should exceed rule \(ruleRatio) on \(appearance.rawValue)")
+        }
+    }
+
+    @Test func glowPeaksFromInkGlowMeetBodyContrast() {
+        let tokens: [InkPalette.Token] = [.text, .secondaryText, .accent, .warning]
+        let appearances: [InkPalette.Appearance] = [.light, .dark]
+        for appearance in appearances {
+            for stop in InkGlowChrome.PeakStop.allCases {
+                let peak = InkGlowChrome.peakHex(stop: stop, appearance: appearance)
+                for token in tokens {
+                    let fg = token.variant.hex(for: appearance)
+                    let ratio = InkPalette.contrastRatio(foreground: fg, background: peak)
+                    #expect(
+                        ratio + 0.000_1 >= Self.bodyMinimum,
+                        "\(token.rawValue) on glow \(stop.rawValue) \(appearance.rawValue): \(ratio)")
+                }
+            }
         }
     }
 
     // MARK: - Helpers
 
+    private static func documentedOnPaper(for token: InkPalette.Token) -> [Double]? {
+        switch token {
+        case .text: InkPalette.DocumentedContrast.textOnPaper
+        case .secondaryText: InkPalette.DocumentedContrast.secondaryTextOnPaper
+        case .tertiaryText: InkPalette.DocumentedContrast.tertiaryTextOnPaper
+        case .accent: InkPalette.DocumentedContrast.accentOnPaper
+        case .warning: InkPalette.DocumentedContrast.warningOnPaper
+        case .danger: InkPalette.DocumentedContrast.dangerOnPaper
+        case .person: InkPalette.DocumentedContrast.personOnPaper
+        case .place: InkPalette.DocumentedContrast.placeOnPaper
+        default: nil
+        }
+    }
+
     private static func assertBodyContrast(
         foreground: InkPalette.Token,
         backgrounds: [InkPalette.Token],
-        documentedOnPaper: [Double]
+        documentedOnPaper: [Double]?
     ) {
         for background in backgrounds {
             for (index, appearance) in InkPalette.Appearance.allCases.enumerated() {
@@ -120,7 +153,7 @@ struct PaletteContrastTests {
                 #expect(
                     ratio + 0.000_1 >= bodyMinimum,
                     "\(foreground.rawValue) on \(background.rawValue) \(appearance.rawValue): \(ratio)")
-                if background == .paper {
+                if background == .paper, let documentedOnPaper {
                     let documented = documentedOnPaper[index]
                     #expect(
                         abs(ratio - documented) <= ratioTolerance,
@@ -144,29 +177,45 @@ struct PaletteContrastTests {
         var dark: UInt32?
         var hcLight: UInt32?
         var hcDark: UInt32?
+        var lightAlpha: Double?
+        var darkAlpha: Double?
+        var hcLightAlpha: Double?
+        var hcDarkAlpha: Double?
 
         for entry in colors {
             let appearances = entry["appearances"] as? [[String: String]] ?? []
             let hasDark = appearances.contains { $0["appearance"] == "luminosity" && $0["value"] == "dark" }
             let hasHighContrast = appearances.contains { $0["appearance"] == "contrast" && $0["value"] == "high" }
-            let hex = try parseHex(from: entry)
+            let (hex, alpha) = try parseColor(from: entry)
             switch (hasDark, hasHighContrast) {
-            case (false, false): light = hex
-            case (true, false): dark = hex
-            case (false, true): hcLight = hex
-            case (true, true): hcDark = hex
+            case (false, false):
+                light = hex
+                lightAlpha = alpha
+            case (true, false):
+                dark = hex
+                darkAlpha = alpha
+            case (false, true):
+                hcLight = hex
+                hcLightAlpha = alpha
+            case (true, true):
+                hcDark = hex
+                hcDarkAlpha = alpha
             }
         }
 
-        guard let light, let dark, let hcLight, let hcDark else {
+        guard let light, let dark, let hcLight, let hcDark,
+            let lightAlpha, let darkAlpha, let hcLightAlpha, let hcDarkAlpha
+        else {
             Issue.record("Incomplete color set \(assetName)")
             throw CatalogError.incomplete(assetName)
         }
         return InkPalette.Variant(
-            light: light, dark: dark, highContrastLight: hcLight, highContrastDark: hcDark)
+            light: light, dark: dark, highContrastLight: hcLight, highContrastDark: hcDark,
+            lightAlpha: lightAlpha, darkAlpha: darkAlpha,
+            highContrastLightAlpha: hcLightAlpha, highContrastDarkAlpha: hcDarkAlpha)
     }
 
-    private static func parseHex(from entry: [String: Any]) throws -> UInt32 {
+    private static func parseColor(from entry: [String: Any]) throws -> (UInt32, Double) {
         guard
             let color = entry["color"] as? [String: Any],
             let components = color["components"] as? [String: String],
@@ -176,7 +225,9 @@ struct PaletteContrastTests {
         else {
             throw CatalogError.badComponents
         }
-        return (parseComponent(red) << 16) | (parseComponent(green) << 8) | parseComponent(blue)
+        let hex = (parseComponent(red) << 16) | (parseComponent(green) << 8) | parseComponent(blue)
+        let alpha = parseAlpha(components["alpha"] ?? "1")
+        return (hex, alpha)
     }
 
     private static func parseComponent(_ raw: String) -> UInt32 {
@@ -187,6 +238,14 @@ struct PaletteContrastTests {
             return UInt32((unit * 255).rounded())
         }
         return 0
+    }
+
+    private static func parseAlpha(_ raw: String) -> Double {
+        if raw.hasPrefix("0x") || raw.hasPrefix("0X") {
+            let value = Double(UInt32(raw.dropFirst(2), radix: 16) ?? 255)
+            return value / 255
+        }
+        return Double(raw) ?? 1
     }
 
     private static func repositoryRoot(filePath: String = #filePath) -> URL {

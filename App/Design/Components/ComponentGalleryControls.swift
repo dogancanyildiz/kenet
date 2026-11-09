@@ -5,10 +5,51 @@
     struct ComponentGalleryControls: View {
         @State private var mode: QuickEntryMode = .event
         @State private var canSubmit = true
+        @State private var weekDay = Date()
 
         var body: some View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 28) {
+                    section("InkGlow + InkDayHeader + InkWeekStrip + InkSummaryLine") {
+                        VStack(alignment: .leading, spacing: InkSpacing.section) {
+                            InkDayHeader(date: weekDay, progress: 0.4, remainingCount: 6) {
+                                InkHeaderAction("Ekle", systemImage: "plus", role: .primary) {}
+                            }
+                            InkWeekStrip(selection: $weekDay, writtenDays: [weekDay])
+                            InkSummaryLine(parts: [
+                                .text("Bugün"),
+                                .count(
+                                    LocalizedStringResource(stringLiteral: "2 olay"),
+                                    symbol: "calendar"),
+                                .text("ve"),
+                                .count(LocalizedStringResource(stringLiteral: "6 görev")),
+                                .text("kaldı."),
+                            ])
+                            InkCard {
+                                Text(verbatim: "Bölüm kartı")
+                                    .font(.ink.content)
+                                    .foregroundStyle(Color.ink.text)
+                                InkCardDivider()
+                                Text(verbatim: "Ayraçlı satır")
+                                    .font(.ink.meta)
+                                    .foregroundStyle(Color.ink.secondaryText)
+                            }
+                            InkTimelineCard(
+                                title: "Tasarım incelemesi",
+                                meta: "14:30 · Ev",
+                                barColor: Color.ink.place,
+                                kindLabel: "Konum",
+                                isSelected: true)
+                            InkTimelineCard(
+                                title: "Bitmiş iş",
+                                meta: "09:00",
+                                barColor: Color.ink.person,
+                                kindLabel: "Kişi",
+                                isCompleted: true)
+                        }
+                        .inkGlow()
+                    }
+
                     section("QuickEntryCapsule") {
                         QuickEntryCapsule(mode: $mode, canSubmit: canSubmit, onSubmit: {}) {
                             Text(verbatim: "Gününden bir an…")
@@ -74,7 +115,11 @@
                         InfoBand(kind: .error, verbatim: "Could not write the day file.", onDismiss: {})
                     }
 
-                    section("InkSurface / InkKanbanCard") {
+                    section("InkCard / InkSurface / InkKanbanCard") {
+                        InkCard {
+                            Text(verbatim: "InkCard")
+                                .font(.ink.content)
+                        }
                         Text(verbatim: "Sheet body")
                             .padding()
                             .inkSurface()
@@ -91,11 +136,13 @@
                     section("Button styles") {
                         HStack {
                             Button("Gönder") {}.buttonStyle(InkPrimaryButtonStyle())
+                            Button("İptal") {}.buttonStyle(InkSecondaryButtonStyle())
                             Button("Yeniden dene") {}.buttonStyle(InkTextButtonStyle())
                             Button("Sil") {}.buttonStyle(InkDestructiveButtonStyle())
                         }
                         HStack {
                             Button("Gönder") {}.buttonStyle(InkPrimaryButtonStyle()).disabled(true)
+                            Button("İptal") {}.buttonStyle(InkSecondaryButtonStyle()).disabled(true)
                             Button("Yeniden dene") {}.buttonStyle(InkTextButtonStyle()).disabled(true)
                             Button("Sil") {}.buttonStyle(InkDestructiveButtonStyle()).disabled(true)
                         }
@@ -103,6 +150,7 @@
 
                     section("LargeNumberText") {
                         LargeNumberText(verbatim: "48")
+                        LargeNumberText(verbatim: "14", weight: .bold)
                     }
                 }
                 .padding(InkSpacing.margin)

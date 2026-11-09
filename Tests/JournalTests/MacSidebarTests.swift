@@ -62,7 +62,7 @@
             #expect(MacSidebarChrome.fillToken(isSelected: false, isWindowActive: true) == nil)
             #expect(MacSidebarChrome.fillToken(isSelected: false, isWindowActive: false) == nil)
             #expect(MacSidebarChrome.fillToken(isSelected: true, isWindowActive: true) == .accent)
-            #expect(MacSidebarChrome.fillToken(isSelected: true, isWindowActive: false) == .rule)
+            #expect(MacSidebarChrome.fillToken(isSelected: true, isWindowActive: false) == .accentSoft)
         }
 
         /// Audit finding 5: white on the dark accent was 2.03:1. Both window states, all four

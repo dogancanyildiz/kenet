@@ -1,8 +1,9 @@
 import SwiftUI
 
-/// Content type selects the typeface (Mürekkep rule 1): vault words are serif; external sources are sans.
+/// Content type selects the typeface (Şafak rule 1): vault words use ``Font.ink.content``;
+/// external sources stay on the system body style.
 enum MarginRowKind: Sendable {
-    /// Vault-sourced copy (events, tasks, goals, journal): New York via ``Font.ink.content``.
+    /// Vault-sourced copy (events, tasks, goals, journal): ``Font.ink.content``.
     case vault
     /// Non-vault sources (calendar, system): SF Pro body.
     case external

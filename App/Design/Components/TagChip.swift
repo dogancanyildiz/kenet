@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Suggestion chip for tags, projects, or places.
+/// Suggestion chip for tags, projects, or places: capsule on `well`.
 /// Selection is never color-only: thicker stroke and a checkmark.
 struct TagChip: View {
     var title: String
@@ -29,11 +29,11 @@ struct TagChip: View {
         .padding(.horizontal, 10)
         .padding(.vertical, 6)
         .background {
-            RoundedRectangle(cornerRadius: InkSize.chipCorner, style: .continuous)
+            Capsule()
                 .fill(filled || isSelected ? Color.ink.well : Color.clear)
         }
         .overlay {
-            RoundedRectangle(cornerRadius: InkSize.chipCorner, style: .continuous)
+            Capsule()
                 .stroke(
                     isSelected ? Color.ink.accent : Color.ink.control,
                     lineWidth: isSelected ? InkStroke.highPriority : InkStroke.control)

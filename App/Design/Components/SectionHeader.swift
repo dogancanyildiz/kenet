@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Section rule + title + optional tabular count (Mürekkep rule 2).
+/// Section title + optional tabular count above a card (Şafak rule 2). No decorative rule.
 struct SectionHeader: View {
     /// Identifiers of the title and the counter text. They name the component, not one section: the
     /// UI accessibility audit treats every section title alike (`AccessibilityAuditExemption`).
@@ -14,11 +14,10 @@ struct SectionHeader: View {
     var count: Int? = nil
     /// Preformatted counter (e.g. Today goals `"1/3"`). Wins over ``count`` when set.
     var counter: String? = nil
-    /// Shows a spinner that does not shrink the hairline rule (overlay / trailing slot).
+    /// Shows a spinner that does not shrink the title row.
     var isLoading: Bool = false
     /// Shows a disclosure chevron (pointing down when expanded, right when collapsed) aligned with the title.
     var isExpanded: Bool? = nil
-    @Environment(\.displayScale) private var displayScale
     @Environment(\.locale) private var locale
 
     /// Already-localized or verbatim title (callers that used `String(localized:)`).
@@ -48,41 +47,35 @@ struct SectionHeader: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Rectangle()
-                .fill(Color.ink.rule)
-                .frame(height: InkStroke.hairline(scale: displayScale))
-                .accessibilityHidden(true)
-            HStack(alignment: .firstTextBaseline, spacing: 8) {
-                titleText
-                    .font(.ink.section)
-                    .foregroundStyle(.ink.text)
-                    .accessibilityAddTraits(.isHeader)
-                    .accessibilityIdentifier(Self.titleIdentifier)
-                Spacer(minLength: 0)
-                if let counterText {
-                    Text(verbatim: counterText)
-                        .font(.ink.value)
-                        .foregroundStyle(.ink.secondaryText)
-                        .accessibilityHidden(true)
-                        .accessibilityIdentifier(Self.counterIdentifier)
-                }
-                if let isExpanded {
-                    Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
-                        .font(.ink.meta)
-                        .foregroundStyle(Color.ink.secondaryText)
-                        .accessibilityHidden(true)
-                }
-                if isLoading {
-                    ProgressView()
-                        .controlSize(.mini)
-                        .accessibilityLabel(
-                            Text(
-                                verbatim: String(
-                                    localized: "Hedefler yükleniyor",
-                                    bundle: PresentationLocalization.bundle(locale), locale: locale))
-                        )
-                }
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            titleText
+                .font(.ink.section)
+                .foregroundStyle(.ink.text)
+                .accessibilityAddTraits(.isHeader)
+                .accessibilityIdentifier(Self.titleIdentifier)
+            Spacer(minLength: 0)
+            if let counterText {
+                Text(verbatim: counterText)
+                    .font(.ink.value)
+                    .foregroundStyle(.ink.secondaryText)
+                    .accessibilityHidden(true)
+                    .accessibilityIdentifier(Self.counterIdentifier)
+            }
+            if let isExpanded {
+                Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
+                    .font(.ink.meta)
+                    .foregroundStyle(Color.ink.secondaryText)
+                    .accessibilityHidden(true)
+            }
+            if isLoading {
+                ProgressView()
+                    .controlSize(.mini)
+                    .accessibilityLabel(
+                        Text(
+                            verbatim: String(
+                                localized: "Hedefler yükleniyor",
+                                bundle: PresentationLocalization.bundle(locale), locale: locale))
+                    )
             }
         }
         .accessibilityElement(children: .combine)

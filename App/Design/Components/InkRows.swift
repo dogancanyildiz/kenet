@@ -2,6 +2,7 @@ import SwiftUI
 import VaultFormat
 
 /// Ready-made task row on ``MarginRow`` (name avoids clash with model ``TaskRow``).
+/// Mark column stays 44 pt inside the card (``InkSpacing/gutter``).
 struct InkTaskRow: View {
     let title: String
     var state: TaskBoxState

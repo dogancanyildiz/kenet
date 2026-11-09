@@ -10,7 +10,7 @@ extension InfoBandKind {
     }
 }
 
-/// Info / warning / error band. Not a card: hairline rules or a leading mark; no shadow.
+/// Card-shaped info / warning / error band with a leading icon.
 struct InfoBand: View {
     var kind: InfoBandKind
     private let message: Text
@@ -18,7 +18,8 @@ struct InfoBand: View {
     var action: (() -> Void)? = nil
     var onDismiss: (() -> Void)? = nil
 
-    @Environment(\.displayScale) private var displayScale
+    @ScaledMetric(relativeTo: .body) private var padding = InkSpacing.cardPadding
+    @ScaledMetric(relativeTo: .body) private var iconSide: CGFloat = 22
 
     init(
         kind: InfoBandKind,
@@ -49,48 +50,44 @@ struct InfoBand: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            rule
-            HStack(alignment: .firstTextBaseline, spacing: 10) {
-                if let mark = kind.markSystemImage {
-                    Image(systemName: mark)
-                        .font(.footnote)
-                        .foregroundStyle(kind.foreground)
-                        .accessibilityHidden(true)
+        HStack(alignment: .firstTextBaseline, spacing: 10) {
+            Image(systemName: kind.markSystemImage)
+                .font(.body)
+                .foregroundStyle(kind.foreground)
+                .frame(width: iconSide, alignment: .center)
+                .accessibilityHidden(true)
+            message
+                .font(.ink.meta)
+                .foregroundStyle(kind.foreground)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            if let actionTitle, let action {
+                Button(action: action) {
+                    Text(actionTitle)
+                        .font(.ink.meta)
+                        .tapTarget()
                 }
-                message
-                    .font(.ink.meta)
-                    .foregroundStyle(kind.foreground)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                if let actionTitle, let action {
-                    Button(action: action) {
-                        Text(actionTitle)
-                            .font(.ink.meta)
-                            .tapTarget()
-                    }
-                    .buttonStyle(InkTextButtonStyle())
-                }
-                if let onDismiss {
-                    Button(action: onDismiss) {
-                        Image(systemName: "xmark")
-                            .font(.caption.weight(.semibold))
-                            .foregroundStyle(Color.ink.secondaryText)
-                            .tapTarget()
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel(Text("Kapat"))
-                }
+                .buttonStyle(InkTextButtonStyle())
             }
-            .padding(.horizontal, InkSpacing.margin)
-            .padding(.vertical, 10)
-            rule
+            if let onDismiss {
+                Button(action: onDismiss) {
+                    Image(systemName: "xmark")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(Color.ink.secondaryText)
+                        .tapTarget()
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(Text("Kapat"))
+            }
+        }
+        .padding(padding)
+        .background {
+            RoundedRectangle(cornerRadius: InkCorner.card, style: .continuous)
+                .fill(Color.ink.surface)
+        }
+        .overlay {
+            RoundedRectangle(cornerRadius: InkCorner.card, style: .continuous)
+                .stroke(Color.ink.rule, lineWidth: InkStroke.rule)
         }
         .accessibilityElement(children: .contain)
-    }
-
-    private var rule: some View {
-        Rectangle()
-            .fill(Color.ink.rule)
-            .frame(height: InkStroke.hairline(scale: displayScale))
     }
 }

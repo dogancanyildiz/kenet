@@ -114,10 +114,8 @@ final class TimelineModel {
         }
     }
     var mobileGroups: [TimelineGroup] {
-        let buckets = Dictionary(grouping: dated) { row in
-            let date = row.start ?? row.due!
-            return scale == .week ? date.startOfWeek ?? date : date.startOfMonth
-        }
+        // The phone list draws Çeyrek only (Gün and Hafta have boards of their own): months.
+        let buckets = Dictionary(grouping: dated) { row in (row.start ?? row.due!).startOfMonth }
         return buckets.keys.sorted().map { TimelineGroup(id: $0.description, name: nil, rows: buckets[$0]!) }
     }
     private func unassigned(_ rows: [TaskRow], id: String) -> [TimelineGroup] {

@@ -15,7 +15,7 @@ struct TimelineWeekRequest: Hashable {
 
 /// Day-scale timeline (screens.md "Gün ölçeği"): week strip, vertical hour axis with dashed hour
 /// lines and timed events in zone cards, the "now" line with its time badge (today only), then
-/// the untimed tasks and events in a "Saatsiz" card below the axis. Tasks carry no time of day
+/// the untimed tasks and events under a "Saatsiz" header below the axis. Tasks carry no time of day
 /// in the vault format, so every task sits in "Saatsiz".
 struct TimelineDayBoard: View {
     let store: IndexStore
@@ -44,20 +44,10 @@ struct TimelineDayBoard: View {
             if !tasks.isEmpty || !untimed.isEmpty {
                 VStack(alignment: .leading, spacing: InkSpacing.row) {
                     SectionHeader(title: String(localized: "Saatsiz"), count: tasks.count + untimed.count)
-                    InkCard(padded: false) {
-                        VStack(spacing: 0) {
-                            ForEach(untimed) { event in
-                                eventCard(event)
-                                    .padding(.horizontal, InkSpacing.cardPadding)
-                                    .padding(.vertical, 6)
-                            }
-                            ForEach(tasks) { task in
-                                TimelineTaskCard(task: task, today: today) { selectTask(task) }
-                                    .padding(.horizontal, InkSpacing.cardPadding)
-                                    .padding(.vertical, 6)
-                            }
-                        }
-                        .padding(.vertical, 6)
+                    // Zone cards straight on paper: a card never sits inside a card (design.md).
+                    ForEach(untimed) { event in eventCard(event) }
+                    ForEach(tasks) { task in
+                        TimelineTaskCard(task: task, today: today) { selectTask(task) }
                     }
                 }
             }

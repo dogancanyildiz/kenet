@@ -54,7 +54,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%1$d open · %2$d overdue"
+            "value" : "%1$d open · %2$d carried over"
           }
         },
         "tr" : {
@@ -11877,6 +11877,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sürdür"
+          }
+        }
+      }
+    },
+    "Sürüyor" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continues"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sürüyor"
           }
         }
       }

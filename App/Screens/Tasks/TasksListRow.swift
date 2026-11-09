@@ -41,6 +41,15 @@ struct TasksListRow: View {
             canAddEvent: store.canAddEvent)
     }
 
+    /// The detail chevron: the phone's tab shell only (never on Mac, whatever the environment).
+    private var showsDetailChevron: Bool {
+        #if os(macOS)
+            false
+        #else
+            shellKind == .tabs
+        #endif
+    }
+
     private var rowTapCompletes: Bool {
         TasksListRowTouch.completes(
             canToggle: completion.canToggleCompletion,
@@ -66,14 +75,18 @@ struct TasksListRow: View {
         } secondary: {
             metaRow
         } trailing: {
-            Button(action: openDetail) {
-                Image(systemName: "chevron.right")
-                    .font(.ink.meta.weight(.semibold))
-                    .foregroundStyle(.ink.tertiaryText)
-                    .tapTarget()
+            // Tabs only: on Mac and in the split shell a click on the row already selects it and
+            // the detail column (or panel) shows it, so a second path to a sheet would compete.
+            if showsDetailChevron {
+                Button(action: openDetail) {
+                    Image(systemName: "chevron.right")
+                        .font(.ink.meta.weight(.semibold))
+                        .foregroundStyle(.ink.tertiaryText)
+                        .tapTarget()
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(Text("Ayrıntıları göster"))
             }
-            .buttonStyle(.plain)
-            .accessibilityLabel(Text("Ayrıntıları göster"))
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         // Inside the section card (`inkListRow(cardSegment:)` draws it behind the row). Completed

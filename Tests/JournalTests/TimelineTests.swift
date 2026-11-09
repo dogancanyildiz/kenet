@@ -287,7 +287,7 @@ import VaultFormat
         #expect(try await context.store.allTasks().first?.sourceIdentifier == task.block.id)
     }
 
-    @Test func phoneWeekAndMonthBucketsAndRemovingDatesMoveToUndated() async throws {
+    @Test func phoneMonthBucketsAndRemovingDatesMoveToUndated() async throws {
         let context = try TaskTestContext()
         defer { context.clean() }
         await context.start()
@@ -296,8 +296,9 @@ import VaultFormat
         await context.store.refresh()
         let model = await timeline(context)
         #expect(model.mobileGroups.first?.id == "2026-10-01")
+        // The phone list only draws Çeyrek; any scale buckets by month.
         model.scale = .week
-        #expect(model.mobileGroups.first?.id == "2026-09-28")
+        #expect(model.mobileGroups.first?.id == "2026-10-01")
         let row = try #require(try await context.store.allTasks().first)
         #expect(await model.save(row, dates: TimelineDates(start: nil, due: nil), root: context.store.vaultURL))
         await model.load()

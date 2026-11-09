@@ -8,7 +8,6 @@ struct TasksView: View {
     @Binding var selection: String?
     @State private var pendingNotificationScroll: UUID?
     @State private var detailRow: TaskRow?
-    @State private var detailSourceDay: CalendarDate?
     @State private var model: TasksModel
     @ScaledMetric(relativeTo: .body) private var projectCardWidth: CGFloat = 170
     @Environment(\.shellKind) private var shellKind
@@ -44,16 +43,7 @@ struct TasksView: View {
             .inkPage()
             .inkRootPageNavigationTitle("Görevler")
             .accessibilityIdentifier("screen.tasks")
-            .sheet(item: $detailRow) { row in
-                NavigationStack {
-                    TaskDetailView(store: store, row: row) { path in
-                        detailSourceDay = CalendarDate(String(path.dropFirst("journal/".count).dropLast(3)))
-                    }
-                    .navigationDestination(item: $detailSourceDay) { DayView(store: store, date: $0) }
-                    .inkSheet("Görev", onClose: { detailRow = nil })
-                }
-                .inkAdaptiveSheetPresentation()
-            }
+            .taskDetailSheet(store: store, row: $detailRow)
             .onChange(of: model.viewState) { _, state in
                 #if os(iOS)
                     state.save(to: .standard)

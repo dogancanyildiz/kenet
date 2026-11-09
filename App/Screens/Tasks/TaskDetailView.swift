@@ -260,6 +260,34 @@ struct TaskDetailView: View {
     }
 }
 
+/// The task detail in a sheet (list and project screens): "Kaynak güne git" opens the day in
+/// the sheet's own stack.
+private struct TaskDetailSheet: ViewModifier {
+    let store: IndexStore
+    @Binding var row: TaskRow?
+    @State private var sourceDay: CalendarDate?
+
+    func body(content: Content) -> some View {
+        content.sheet(item: $row) { row in
+            NavigationStack {
+                TaskDetailView(store: store, row: row) { path in
+                    sourceDay = CalendarDate(String(path.dropFirst("journal/".count).dropLast(3)))
+                }
+                .navigationDestination(item: $sourceDay) { DayView(store: store, date: $0) }
+                .inkSheet("Görev", onClose: { self.row = nil })
+            }
+            .inkAdaptiveSheetPresentation()
+        }
+    }
+}
+
+extension View {
+    /// Presents ``TaskDetailView`` for `row` in a sheet.
+    func taskDetailSheet(store: IndexStore, row: Binding<TaskRow?>) -> some View {
+        modifier(TaskDetailSheet(store: store, row: row))
+    }
+}
+
 private enum TaskDetailPriority: String, Hashable {
     case low, normal, medium, high
 

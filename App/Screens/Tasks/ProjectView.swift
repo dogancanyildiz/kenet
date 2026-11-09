@@ -8,7 +8,6 @@ struct ProjectView: View {
     /// Nil until the first query returns; a reload keeps the previous rows until then.
     @State private var tasks: [TaskRow]?
     @State private var detailRow: TaskRow?
-    @State private var detailSourceDay: CalendarDate?
     init(store: IndexStore, name: String) {
         self.store = store
         self.name = name
@@ -43,16 +42,7 @@ struct ProjectView: View {
         .inkPageScrollColumn()
         .inkPinnedMasthead(masthead)
         .inkPageNavigationTitle(verbatim: name)
-        .sheet(item: $detailRow) { row in
-            NavigationStack {
-                TaskDetailView(store: store, row: row) { path in
-                    detailSourceDay = CalendarDate(String(path.dropFirst("journal/".count).dropLast(3)))
-                }
-                .navigationDestination(item: $detailSourceDay) { DayView(store: store, date: $0) }
-                .inkSheet("Görev", onClose: { detailRow = nil })
-            }
-            .inkAdaptiveSheetPresentation()
-        }
+        .taskDetailSheet(store: store, row: $detailRow)
         .task(id: ProjectTasksRequest(name: name, updated: store.lastUpdated)) {
             if let loaded = try? await store.computeProjectTasks(name) { tasks = loaded }
         }

@@ -371,6 +371,10 @@ struct TaskTimelineView: View {
     private var mobileWeekPage: some View {
         VStack(spacing: 0) {
             TasksPageTop(tasks: model.tasks, current: .timeline) { controls }
+            if let error = model.errorText {
+                InfoBand(kind: .error, verbatim: error)
+                    .padding(.horizontal, InkSpacing.margin)
+            }
             ScrollView { weekBoard }
         }
         .inkPage()

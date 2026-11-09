@@ -5,6 +5,7 @@ import VaultFormat
 struct DaysView: View {
     let store: IndexStore
     var previewSelectedDay: CalendarDate? = nil
+    @Environment(ShellNavigationState.self) private var navigation: ShellNavigationState?
     @State private var selectedDay: CalendarDate?
     @State private var showsWeeklyReview = false
     @State private var weeklyReviewNotice: WeeklyReviewNotice?
@@ -53,11 +54,12 @@ struct DaysView: View {
                 .inkListRow()
             }
             ForEach(days ?? []) { day in
-                NavigationLink {
-                    DayView(store: store, date: day.date)
+                Button {
+                    selectedDay = day.date
                 } label: {
                     DayRow(day: day)
                 }
+                .buttonStyle(.plain)
                 .inkListRow()
             }
             if days?.isEmpty == true {
@@ -68,7 +70,19 @@ struct DaysView: View {
         .listStyle(.plain)
         .inkPage()
         .inkPageScrollColumn()
-        .navigationDestination(item: $selectedDay) { day in DayView(store: store, date: day) }
+        .navigationDestination(item: $selectedDay) { day in
+            DayView(
+                store: store, date: day,
+                onReplaceDay: { selectedDay = $0 },
+                onReturnToToday: {
+                    selectedDay = nil
+                    #if os(macOS)
+                        navigation?.goToToday(shell: .split)
+                    #else
+                        navigation?.goToToday(shell: .tabs)
+                    #endif
+                })
+        }
         .weeklyReviewSheet(isPresented: $showsWeeklyReview, store: store) { weeklyReviewNotice = $0 }
         .task(id: DayRangeRequest(from: nil, to: nil, updated: store.lastUpdated)) {
             if let loaded = try? await store.computeDaySummaries() { days = loaded }

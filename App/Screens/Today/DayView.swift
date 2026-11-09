@@ -31,6 +31,10 @@ struct DayView: View {
     let store: IndexStore
     let date: CalendarDate
     var isToday = false
+    /// Past-day host replaces the shown day without pushing (week strip / Mac Days).
+    var onReplaceDay: ((CalendarDate) -> Void)? = nil
+    /// Past-day host returns to Today root (`isToday: true`).
+    var onReturnToToday: (() -> Void)? = nil
     // Optional: hosted tests build the screen without the app's navigation object.
     @Environment(IntentNavigation.self) private var intentNavigation: IntentNavigation?
     @Environment(NotificationService.self) private var notifications
@@ -41,6 +45,8 @@ struct DayView: View {
     @Environment(\.openSettings) private var openSettings
     @Environment(\.displayScale) private var displayScale
     @Environment(\.inkMastheadPlacement) private var mastheadPlacement
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.scenePhase) private var scenePhase
     /// The shell's bridge: the journal editor's presence and the drafts live there, so a shell
     /// rebuilt by the iPhone Duo shows the same page with the same text. Nil when the page is
     /// hosted without a shell (tests).
@@ -65,25 +71,41 @@ struct DayView: View {
     /// Whether the day's own graph has a node besides the day, as of the day it was queried for.
     @State private var dayGraph: (date: CalendarDate, isOffered: Bool)?
     @State private var showsDayGraph = false
-    @State private var weekSelection: Date
     @State private var weekDestination: CalendarDate?
     @State private var writtenDays: Set<Date> = []
+    @State private var weekEventCounts: [Date: Int] = [:]
     @State private var insightChips: [TodayInsightChip] = []
     @State private var chipEntityDestination: EntitySummary?
     @State private var isHeaderCompact = false
+    @State private var viewportHeight: CGFloat = 700
+    /// Bumped when the scene becomes active so the greeting tracks the hour.
+    @State private var greetingTick = Date()
 
-    init(store: IndexStore, date: CalendarDate, isToday: Bool = false) {
+    init(
+        store: IndexStore, date: CalendarDate, isToday: Bool = false,
+        onReplaceDay: ((CalendarDate) -> Void)? = nil,
+        onReturnToToday: (() -> Void)? = nil
+    ) {
         self.store = store
         self.date = date
         self.isToday = isToday
+        self.onReplaceDay = onReplaceDay
+        self.onReturnToToday = onReturnToToday
         _tasksModel = State(initialValue: DayTasksModel(store: store, day: date, isToday: isToday))
-        _weekSelection = State(
-            initialValue: LocalDay.instant(for: date, timeZone: .current))
     }
 
     /// The queried day, once it is this date's. Until then the day's own sections are not drawn,
     /// so the page never shows an empty day that is still loading.
     private var day: DaySummary? { loadedDay?.date == date && tasksModel.isLoaded ? loadedDay : nil }
+
+    private var foldsOpenTasks: Bool {
+        guard isToday else { return false }
+        #if os(macOS)
+            return false
+        #else
+            return horizontalSizeClass != .regular
+        #endif
+    }
 
     private func makePresentation() -> TodayPresentation {
         let today = isToday ? date : LocalDay.today(at: clockNow())
@@ -92,7 +114,8 @@ struct DayView: View {
         let statuses = goals.map { goalModels.model(store: store, day: date).shownStatuses($0.statuses) }
         let greeting: TodayGreeting? =
             isToday
-            ? TodayGreeting.resolve(date: clockNow(), calendar: calendarValue) : nil
+            ? TodayGreeting.resolve(date: max(clockNow(), greetingTick), calendar: calendarValue)
+            : nil
         return TodayPresentation(
             day: day ?? DaySummary(empty: date), groups: tasksModel.groups, goals: goals?.goals ?? [],
             goalStatuses: statuses ?? [:], goalStatusesDay: goals?.day, today: today, locale: locale,
@@ -100,7 +123,10 @@ struct DayView: View {
             completedTasks: tasksModel.completedTasksForPresentation,
             completedTaskIDs: tasksModel.completed,
             isCarriedOverExpanded: isCarriedOverExpanded, isCompletedExpanded: isCompletedExpanded,
-            isTasksExpanded: isTasksExpanded, foldsOpenTasks: isToday, greeting: greeting)
+            isTasksExpanded: isTasksExpanded, foldsOpenTasks: foldsOpenTasks,
+            foldViewportHeight: viewportHeight,
+            calendarEventCount: calendar.events(on: date).count,
+            greeting: greeting)
     }
 
     var body: some View {
@@ -129,9 +155,9 @@ struct DayView: View {
                         total: ringTotal, compact: false, instant: dayInstant)
                 )
 
-                weekStrip(selectionInstant: dayInstant, todayInstant: todayInstant)
+                weekStrip(todayInstant: todayInstant)
 
-                if day != nil {
+                if isToday, day != nil {
                     InkSummaryLine(parts: presented.summaryParts)
                     if !insightChips.isEmpty {
                         chipRow
@@ -208,10 +234,19 @@ struct DayView: View {
             .inkPageColumn()
             .modifier(TodayGlowBackground(isToday: isToday))
         }
-        .onScrollGeometryChange(for: Bool.self) { geometry in
-            geometry.contentOffset.y + geometry.contentInsets.top > 28
-        } action: { _, compact in
-            isHeaderCompact = compact
+        .onGeometryChange(for: CGFloat.self) { proxy in
+            proxy.size.height
+        } action: { _, height in
+            if height > 0 { viewportHeight = height }
+        }
+        .onScrollGeometryChange(for: CGFloat.self) { geometry in
+            geometry.contentOffset.y + geometry.contentInsets.top
+        } action: { _, offset in
+            if isHeaderCompact {
+                if offset < 20 { isHeaderCompact = false }
+            } else if offset > 28 {
+                isHeaderCompact = true
+            }
         }
         .safeAreaInset(edge: .top, spacing: 0) {
             if mastheadPlacement == .scrolled && isHeaderCompact {
@@ -252,7 +287,6 @@ struct DayView: View {
         .preference(key: GoalsStripReadyKey.self, value: goalModel.hasLoaded && !goalModel.isLoading)
         .task(id: date) {
             if AppLaunchPolicy.allowsAutomaticStart() { await calendar.load(date) }
-            weekSelection = LocalDay.instant(for: date, timeZone: calendarValue.timeZone)
         }
         .task(id: DayRequest(date: date, updated: store.lastUpdated)) {
             // One load: the day and its goal statuses as of that day are taken together.
@@ -275,6 +309,9 @@ struct DayView: View {
                 goals: statuses?.map(\.definition) ?? [],
                 statuses: statuses.map(TodayPresentation.goalStatuses) ?? [:])
         }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active { greetingTick = clockNow() }
+        }
         // The strip's goals and history, for the page's day and publish.
         .task(id: DayRequest(date: date, updated: store.lastUpdated)) {
             await goalModels.model(store: store, day: date).load()
@@ -287,7 +324,6 @@ struct DayView: View {
             isCarriedOverExpanded = false
             isCompletedExpanded = false
             isTasksExpanded = false
-            weekSelection = LocalDay.instant(for: newDate, timeZone: calendarValue.timeZone)
         }
         .navigationDestination(isPresented: $showsDayGraph) {
             GraphView(store: store, scope: .day(date))
@@ -297,7 +333,13 @@ struct DayView: View {
             GoalDetailView(store: store, goal: route.goal, day: LocalDay.today(at: clockNow()))
         }
         .navigationDestination(item: $weekDestination) { day in
-            DayView(store: store, date: day)
+            DayView(
+                store: store, date: day,
+                onReplaceDay: { weekDestination = $0 },
+                onReturnToToday: {
+                    weekDestination = nil
+                    navigation?.todayPath = NavigationPath()
+                })
         }
         .navigationDestination(item: $chipEntityDestination) { entity in
             EntityView(store: store, entity: entity)
@@ -333,10 +375,23 @@ struct DayView: View {
         let last = weekDays.last.map { LocalDay.today(at: $0, timeZone: calendarValue.timeZone) }
         if let first, let last {
             let overviews = (try? await store.computeDaySummaries(from: first, to: last)) ?? []
-            writtenDays = Set(
-                overviews.filter { $0.eventCount > 0 || $0.journalCount > 0 }.map {
-                    LocalDay.instant(for: $0.date, timeZone: calendarValue.timeZone)
-                })
+            guard !Task.isCancelled else { return }
+            var written: Set<Date> = []
+            var counts: [Date: Int] = [:]
+            for overview in overviews {
+                let instant = LocalDay.instant(for: overview.date, timeZone: calendarValue.timeZone)
+                counts[instant] = overview.eventCount
+                if overview.eventCount > 0 || overview.journalCount > 0 {
+                    written.insert(instant)
+                }
+            }
+            writtenDays = written
+            weekEventCounts = counts
+        }
+
+        guard isToday else {
+            insightChips = []
+            return
         }
 
         let yesterday = date.addingDays(-1)
@@ -348,8 +403,10 @@ struct DayView: View {
                 yesterdayCount = overview.eventCount
             }
         }
+        guard !Task.isCancelled else { return }
 
         let encounters = (try? await store.computeLastEncounters(asOf: date)) ?? [:]
+        guard !Task.isCancelled else { return }
         let streak = TodayInsightChip.longestDailyStreak(goals: goals, statuses: statuses)
         let person = TodayInsightChip.lastPerson(
             people: store.content.entities, encounters: encounters, today: date)
@@ -418,21 +475,49 @@ struct DayView: View {
         }
     }
 
-    private func weekStrip(selectionInstant: Date, todayInstant: Date) -> some View {
-        InkWeekStrip(
+    private func weekStrip(todayInstant: Date) -> some View {
+        let selectionInstant = LocalDay.instant(for: date, timeZone: calendarValue.timeZone)
+        return InkWeekStrip(
             selection: Binding(
-                get: { weekSelection },
+                get: { selectionInstant },
                 set: { newValue in
-                    weekSelection = newValue
-                    let picked = LocalDay.today(at: newValue, timeZone: calendarValue.timeZone)
-                    if picked == date { return }
-                    if picked > LocalDay.today(at: todayInstant, timeZone: calendarValue.timeZone) {
-                        return
-                    }
-                    weekDestination = picked
+                    handleWeekDay(
+                        LocalDay.today(at: newValue, timeZone: calendarValue.timeZone),
+                        today: LocalDay.today(at: todayInstant, timeZone: calendarValue.timeZone))
                 }),
             writtenDays: writtenDays,
+            eventCounts: weekEventCounts,
             latestSelectable: todayInstant)
+    }
+
+    private func handleWeekDay(_ picked: CalendarDate, today: CalendarDate) {
+        if picked == date { return }
+        if picked > today { return }
+        if picked == today {
+            if isToday { return }
+            if let onReturnToToday {
+                onReturnToToday()
+            } else if let navigation {
+                #if os(macOS)
+                    navigation.goToToday(shell: .split)
+                #else
+                    navigation.todayPath = NavigationPath()
+                    navigation.goToToday(shell: .tabs)
+                #endif
+            } else {
+                weekDestination = nil
+            }
+            return
+        }
+        if isToday {
+            weekDestination = picked
+        } else if let onReplaceDay {
+            onReplaceDay(picked)
+        } else if let navigation, navigation.section == .days {
+            navigation.selectedDay = TodayDayPath.file(for: picked)
+        } else {
+            weekDestination = picked
+        }
     }
 
     private var chipRow: some View {
@@ -449,7 +534,7 @@ struct DayView: View {
                                     goalDestination = GoalDetailRoute(goal: goal)
                                 }
                             case .yesterdayEvents(_, let day):
-                                weekDestination = day
+                                handleWeekDay(day, today: date)
                             case .lastMeeting(_, let entityID):
                                 chipEntityDestination = store.content.entities.first {
                                     $0.id == entityID

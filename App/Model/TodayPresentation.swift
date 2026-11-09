@@ -53,8 +53,12 @@ struct TodayPresentation: Sendable {
     var isCompletedExpanded: Bool
     /// Today folds open tasks when the above-the-fold budget says so (jury condition 4).
     var isTasksExpanded: Bool
-    /// When true (Today), open tasks may fold behind "N görev daha".
+    /// When true (compact phone Today), open tasks may fold behind "N görev daha".
     let foldsOpenTasks: Bool
+    /// Measured viewport height for the fold budget; ignored when `foldsOpenTasks` is false.
+    let foldViewportHeight: CGFloat
+    /// Device-calendar rows between tasks and events (fold budget).
+    let calendarEventCount: Int
 
     /// Supply closed source rows separately: Today's TaskGroups intentionally excludes them.
     /// completedTaskIDs also accepts DayTasksModel's temporarily retained pre-write rows.
@@ -66,6 +70,9 @@ struct TodayPresentation: Sendable {
         completedTasks: [TaskRow] = [], completedTaskIDs: Set<String> = [],
         isCarriedOverExpanded: Bool = false, isCompletedExpanded: Bool = false,
         isTasksExpanded: Bool = false, foldsOpenTasks: Bool = false,
+        foldViewportHeight: CGFloat = TodayAboveFoldBudget.mastheadHeight
+            + TodayAboveFoldBudget.bottomChromeHeight + 500,
+        calendarEventCount: Int = 0,
         greeting: TodayGreeting? = nil
     ) {
         let resolved = PresentationLocalization.resolvedLocale(locale)
@@ -74,6 +81,8 @@ struct TodayPresentation: Sendable {
         self.isCompletedExpanded = isCompletedExpanded
         self.isTasksExpanded = isTasksExpanded
         self.foldsOpenTasks = foldsOpenTasks
+        self.foldViewportHeight = foldViewportHeight
+        self.calendarEventCount = calendarEventCount
         headline = Self.dateText(day.date, today: today, locale: resolved, calendar: calendar, headline: true)
         shortHeadline = Self.shortHeadline(day.date, today: today, locale: resolved, calendar: calendar)
         let all = groups.overdue + groups.dated + groups.created
@@ -123,8 +132,8 @@ struct TodayPresentation: Sendable {
         byline = TodayCopy.byline(
             events: eventCount, tasks: remainingTaskCount, goals: remainingGoalCount, locale: resolved)
         summaryParts = TodaySummaryCopy.parts(
-            greeting: greeting, events: eventCount, tasks: remainingTaskCount, goals: goalCount,
-            locale: resolved)
+            greeting: greeting, events: eventCount, tasks: remainingTaskCount,
+            goals: remainingGoalCount, locale: resolved)
     }
 
     var carriedOverTasks: [TaskRow] { isCarriedOverExpanded ? carriedOver : Array(carriedOver.prefix(3)) }
@@ -139,9 +148,10 @@ struct TodayPresentation: Sendable {
 
     /// Whether the above-the-fold budget asks Today to fold open tasks.
     var shouldFoldOpenTasks: Bool {
-        foldsOpenTasks
-            && TodayAboveFoldBudget.shouldFoldTasks(
-                goalCount: goalCount, openTaskCount: remainingTaskCount, eventCount: eventCount)
+        TodayAboveFoldBudget.shouldFoldTasks(
+            goalCount: goalCount, openTaskCount: remainingTaskCount, eventCount: eventCount,
+            calendarEventCount: calendarEventCount, viewportHeight: foldViewportHeight,
+            foldsAllowed: foldsOpenTasks)
     }
 
     var visibleOpenTasks: [TaskRow] {

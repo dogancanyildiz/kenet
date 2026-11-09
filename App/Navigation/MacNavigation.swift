@@ -256,7 +256,11 @@ struct MacNavigation: View {
                     if let path = navigation.selectedDay,
                         let day = CalendarDate(String(path.dropFirst("journal/".count).dropLast(3)))
                     {
-                        DayView(store: store, date: day).id(day)
+                        DayView(
+                            store: store, date: day,
+                            onReplaceDay: { navigation.selectedDay = TodayDayPath.file(for: $0) },
+                            onReturnToToday: { navigation.goToToday(shell: .split) }
+                        ).id(day)
                     } else {
                         MacEmptyDetail("Bir gün seç")
                     }

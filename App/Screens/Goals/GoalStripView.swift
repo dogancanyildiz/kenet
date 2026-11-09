@@ -64,6 +64,7 @@ struct GoalStripView: View {
     /// The order taken once the day's history first loaded (open goals first); later loads keep
     /// it. The strip is a new view per day and vault (``GoalStripIdentity``), with a new order.
     @State private var keptOrder: [String]?
+    @ScaledMetric(relativeTo: .body) private var scrollColumnWidth: CGFloat = 110
     /// The page's editing model for the day: its count draws an edit made here before the answer.
     /// The page loads it on every publish; with no goals loaded the strip draws nothing.
     private let model: GoalDayModel
@@ -115,7 +116,7 @@ struct GoalStripView: View {
                                             goal,
                                             metaText: goal.period == .day ? nil : periodMeta(for: goal)
                                         )
-                                        .frame(width: 110, alignment: .leading)
+                                        .frame(width: scrollColumnWidth, alignment: .leading)
                                     }
                                 }
                             }
@@ -193,101 +194,61 @@ struct GoalStripView: View {
         let isBooleanMark = goal.kind == .boolean || goal.kind == .milestone
         let marked = isBooleanMark && model.isComplete(for: goal)
         let complete = GoalStripPresentation.isPeriodComplete(status: status)
+        let value = valueText(for: goal)
+        let openValue = openAccessibilityValue(
+            value: value, meta: metaText, streak: status.streak, locale: locale)
         VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .top) {
-                Button {
-                    if marked {
-                        Task {
-                            if await model.toggle(goal) { geofences?.clearLockedMarkNotice() }
-                        }
-                    }
-                } label: {
-                    GoalRing(
-                        progress: progress,
-                        isBoolean: GoalStripPresentation.isBooleanRing(goal: goal))
-                }
-                .buttonStyle(.plain)
-                .disabled(!model.canEdit || !marked)
-                .accessibilityLabel(
-                    Text(LocalizedStringKey(marked ? "İşareti kaldır" : "Hedef")))
+                ringControl(goal: goal, progress: progress, marked: marked, isBooleanMark: isBooleanMark)
                 Spacer(minLength: 0)
-                if complete {
-                    Text(
-                        verbatim: String(
-                            localized: "✓ Tamam",
-                            bundle: PresentationLocalization.bundle(locale), locale: locale)
-                    )
-                    .font(.ink.meta)
-                    .foregroundStyle(Color.ink.secondaryText)
-                    .accessibilityLabel(
-                        Text(
-                            verbatim: String(
-                                localized: "Tamamlandı",
-                                bundle: PresentationLocalization.bundle(locale), locale: locale)))
-                } else if !marked {
-                    Button {
-                        if isBooleanMark {
-                            Task {
-                                if await model.toggle(goal) { geofences?.clearLockedMarkNotice() }
-                            }
-                        } else {
-                            Task { await increment(goal) }
-                        }
-                    } label: {
-                        Image(systemName: "plus")
-                            .font(.body.weight(.semibold))
-                            .foregroundStyle(Color.ink.accent)
-                            .frame(width: 30, height: 30)
-                            .background {
-                                ZStack {
-                                    Circle().fill(Color.ink.control)
-                                    Circle().inset(by: InkStroke.control).fill(Color.ink.paper)
-                                }
-                            }
-                            .frame(
-                                minWidth: TapTarget.minimumLength,
-                                minHeight: TapTarget.minimumLength, alignment: .topTrailing
-                            )
-                            .contentShape(Rectangle())
-                            .opacity(model.canEdit ? 1 : InkGoalRowTrailing.busyPlusOpacity)
-                    }
-                    .buttonStyle(.plain)
-                    .disabled(!model.canEdit)
-                    .accessibilityLabel(Text("Artır"))
-                } else {
-                    Color.clear
-                        .frame(width: 30, height: 30)
-                        .frame(
-                            minWidth: TapTarget.minimumLength,
-                            minHeight: TapTarget.minimumLength, alignment: .topTrailing
-                        )
-                        .accessibilityHidden(true)
-                }
+                trailingSlot(
+                    goal: goal, marked: marked, isBooleanMark: isBooleanMark, complete: complete)
             }
-            Button {
-                onOpen?(goal)
-            } label: {
-                VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: 2) {
+                Button {
+                    onOpen?(goal)
+                } label: {
                     Text(verbatim: goal.name)
                         .font(.ink.contentSmall)
                         .foregroundStyle(complete ? Color.ink.secondaryText : Color.ink.text)
                         .lineLimit(2)
-                    if let value = valueText(for: goal) ?? metaText {
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .disabled(onOpen == nil)
+                .accessibilityLabel(
+                    Text(
+                        verbatim: openValue.isEmpty
+                            ? goal.name : "\(goal.name), \(openValue)"))
+                .accessibilityHint(Text("Ayrıntıları göster"))
+
+                if let value {
+                    Button {
+                        if model.canEdit { editing = GoalValueModel(dayModel: model, goal: goal) }
+                    } label: {
                         Text(verbatim: value)
                             .font(.ink.meta)
                             .foregroundStyle(Color.ink.secondaryText)
                             .lineLimit(2)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .contentShape(Rectangle())
                     }
-                    if let badge = GraceDayPresentation.badge(status: status, locale: locale) {
-                        badge
-                    }
+                    .buttonStyle(.plain)
+                    .disabled(!model.canEdit)
+                    .accessibilityLabel(Text(verbatim: value))
+                    .accessibilityHint(Text("Miktar gir"))
+                } else if let metaText {
+                    Text(verbatim: metaText)
+                        .font(.ink.meta)
+                        .foregroundStyle(Color.ink.secondaryText)
+                        .lineLimit(2)
+                        .accessibilityHidden(true)
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .contentShape(Rectangle())
+                if let badge = GraceDayPresentation.badge(status: status, locale: locale) {
+                    badge
+                }
             }
-            .buttonStyle(.plain)
-            .disabled(onOpen == nil)
-            .accessibilityLabel(Text(verbatim: goal.name))
         }
         .opacity(complete ? 0.72 : 1)
         .contextMenu {
@@ -302,6 +263,105 @@ struct GoalStripView: View {
                 }
             }
         }
+    }
+
+    @ViewBuilder private func ringControl(
+        goal: GoalDefinition, progress: Double, marked: Bool, isBooleanMark: Bool
+    ) -> some View {
+        let ring = GoalRing(
+            progress: progress, isBoolean: GoalStripPresentation.isBooleanRing(goal: goal))
+        if marked {
+            Button {
+                Task {
+                    if await model.toggle(goal) { geofences?.clearLockedMarkNotice() }
+                }
+            } label: {
+                ring
+            }
+            .buttonStyle(.plain)
+            .disabled(!model.canEdit)
+            .accessibilityLabel(
+                Text(
+                    verbatim: String(
+                        localized: "\(goal.name), işaretle",
+                        bundle: PresentationLocalization.bundle(locale), locale: locale)))
+        } else {
+            ring.accessibilityHidden(true)
+        }
+    }
+
+    @ViewBuilder private func trailingSlot(
+        goal: GoalDefinition, marked: Bool, isBooleanMark: Bool, complete: Bool
+    ) -> some View {
+        // Plus slot always keeps its place; boolean marked shows ✓ Tamam in the slot chrome.
+        if isBooleanMark && marked {
+            Text(
+                verbatim: String(
+                    localized: "✓ Tamam",
+                    bundle: PresentationLocalization.bundle(locale), locale: locale)
+            )
+            .font(.ink.meta)
+            .foregroundStyle(Color.ink.secondaryText)
+            .frame(width: 30, height: 30, alignment: .center)
+            .frame(
+                minWidth: TapTarget.minimumLength, minHeight: TapTarget.minimumLength,
+                alignment: .topTrailing
+            )
+            .accessibilityLabel(
+                Text(
+                    verbatim: String(
+                        localized: "Tamamlandı",
+                        bundle: PresentationLocalization.bundle(locale), locale: locale)))
+        } else {
+            Button {
+                if isBooleanMark {
+                    Task {
+                        if await model.toggle(goal) { geofences?.clearLockedMarkNotice() }
+                    }
+                } else {
+                    Task { await increment(goal) }
+                }
+            } label: {
+                Image(systemName: "plus")
+                    .font(.body.weight(.semibold))
+                    .foregroundStyle(complete ? Color.ink.secondaryText : Color.ink.accent)
+                    .frame(width: 30, height: 30)
+                    .background {
+                        ZStack {
+                            Circle().fill(Color.ink.control)
+                            Circle().inset(by: InkStroke.control).fill(Color.ink.paper)
+                        }
+                    }
+                    .frame(
+                        minWidth: TapTarget.minimumLength, minHeight: TapTarget.minimumLength,
+                        alignment: .topTrailing
+                    )
+                    .contentShape(Rectangle())
+                    .opacity(model.canEdit ? 1 : InkGoalRowTrailing.busyPlusOpacity)
+            }
+            .buttonStyle(.plain)
+            .disabled(!model.canEdit)
+            .accessibilityLabel(
+                Text(
+                    verbatim: String(
+                        localized: "\(goal.name), artır",
+                        bundle: PresentationLocalization.bundle(locale), locale: locale)))
+        }
+    }
+
+    private func openAccessibilityValue(
+        value: String?, meta: String?, streak: Int, locale: Locale
+    ) -> String {
+        var pieces: [String] = []
+        if let value, !value.isEmpty { pieces.append(value) }
+        else if let meta, !meta.isEmpty { pieces.append(meta) }
+        if streak > 0 {
+            pieces.append(
+                String(
+                    localized: "\(streak) gün zincir",
+                    bundle: PresentationLocalization.bundle(locale), locale: locale))
+        }
+        return pieces.joined(separator: ", ")
     }
 
     private func valueText(for goal: GoalDefinition) -> String? {

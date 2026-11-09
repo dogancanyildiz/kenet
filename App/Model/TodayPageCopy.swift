@@ -41,36 +41,36 @@ enum TodaySummaryCopy: Sendable {
     static let taskSymbol = "checkmark.square"
     static let goalSymbol = "target"
 
-    /// Greeting (Today only) + count parts, or the empty-page sentence when every count is zero.
+    /// Greeting + count parts. All-zero counts leave only the greeting (screens.md).
     static func parts(
         greeting: TodayGreeting?, events: Int, tasks: Int, goals: Int, locale: Locale
     ) -> [InkSummaryLine.Part] {
-        let bundle = PresentationLocalization.bundle(locale)
+        let resolved = PresentationLocalization.resolvedLocale(locale)
+        let bundle = PresentationLocalization.bundle(resolved)
+        var parts: [InkSummaryLine.Part] = []
+        if let greeting {
+            parts.append(.text(greeting.text(locale: resolved)))
+        }
         if events <= 0 && tasks <= 0 && goals <= 0 {
-            var parts: [InkSummaryLine.Part] = []
-            if let greeting {
-                parts.append(.text(greeting.text(locale: locale)))
-            }
-            parts.append(
-                .text(
-                    String(
-                        localized: "Bugün sayfa boş.", bundle: bundle, locale: locale)))
             return parts
         }
 
-        var parts: [InkSummaryLine.Part] = []
-        if let greeting {
-            parts.append(.text(greeting.text(locale: locale)))
+        let turkish = TurkishSuffix.isTurkish(resolved)
+        if turkish {
+            parts.append(.text(String(localized: "Bugün", bundle: bundle, locale: resolved)))
+        } else {
+            parts.append(
+                .text(
+                    String(
+                        localized: "Today you have", bundle: bundle, locale: resolved)))
         }
-        parts.append(
-            .text(String(localized: "Bugün", bundle: bundle, locale: locale)))
 
         var counts: [(Int, String, String)] = []
         if events > 0 {
             counts.append(
                 (
                     events,
-                    String(localized: "\(events) olay", bundle: bundle, locale: locale),
+                    String(localized: "\(events) olay", bundle: bundle, locale: resolved),
                     eventSymbol
                 ))
         }
@@ -78,7 +78,7 @@ enum TodaySummaryCopy: Sendable {
             counts.append(
                 (
                     tasks,
-                    String(localized: "\(tasks) görev", bundle: bundle, locale: locale),
+                    String(localized: "\(tasks) görev", bundle: bundle, locale: resolved),
                     taskSymbol
                 ))
         }
@@ -86,28 +86,43 @@ enum TodaySummaryCopy: Sendable {
             counts.append(
                 (
                     goals,
-                    String(localized: "\(goals) hedef", bundle: bundle, locale: locale),
+                    String(localized: "\(goals) hedef", bundle: bundle, locale: resolved),
                     goalSymbol
                 ))
         }
 
         for (index, item) in counts.enumerated() {
             let noun = nounOnly(from: item.1, count: item.0)
-            parts.append(.count(item.0, noun, symbol: item.2))
-            if index < counts.count - 2 {
-                parts.append(.text(","))
-            } else if index == counts.count - 2 {
+            let isLast = index == counts.count - 1
+            let isSecondLast = index == counts.count - 2
+            let suffix: String
+            if !isLast && !isSecondLast {
+                suffix = ","
+            } else if isLast {
+                suffix = turkish ? "" : ""
+            } else {
+                suffix = ""
+            }
+            parts.append(.count(item.0, noun, symbol: item.2, suffix: suffix))
+            if isSecondLast {
                 parts.append(
                     .text(
-                        String(
-                            localized: "künye ve", bundle: bundle, locale: locale)))
+                        turkish
+                            ? String(localized: "ve", bundle: bundle, locale: resolved)
+                            : String(localized: "and", bundle: bundle, locale: resolved)))
             }
         }
-        let trailing = String(localized: "künye var.", bundle: bundle, locale: locale)
-        if !trailing.isEmpty {
-            parts.append(.text(trailing))
+        if turkish {
+            parts.append(.text(String(localized: "var.", bundle: bundle, locale: resolved)))
+        } else {
+            parts.append(.text("."))
         }
         return parts
+    }
+
+    /// Full spoken / equality string: spaces between parts, no space before attached count suffixes.
+    static func spoken(_ parts: [InkSummaryLine.Part]) -> String {
+        InkSummaryLine.spoken(parts)
     }
 
     /// Strips the leading count from a localized "%lld noun" string.
@@ -191,7 +206,7 @@ enum TodayInsightChip: Equatable, Sendable {
         let bundle = PresentationLocalization.bundle(locale)
         switch self {
         case .streak(let days, _):
-            return String(localized: "Zincir \(days) gün", bundle: bundle, locale: locale)
+            return String(localized: "\(days) gün zincir", bundle: bundle, locale: locale)
         case .yesterdayEvents(let count, _):
             return String(localized: "Dün \(count) olay", bundle: bundle, locale: locale)
         case .lastMeeting(let name, _):
@@ -230,15 +245,12 @@ enum TodayWeekStripMath: Sendable {
 enum TodayAboveFoldBudget: Sendable {
     /// Open task rows shown on Today before the "N görev daha" disclosure.
     static let maxVisibleTaskRows = 3
-
-    /// iPhone portrait canvas used by Today snapshots (points).
-    static let phoneViewportHeight: CGFloat = 844
+    /// Fold only when at least this many open tasks would hide.
+    static let minimumHiddenRows = 2
 
     /// Approximate chrome below the scroll content (tab bar + quick-entry shelf + home).
     static let bottomChromeHeight: CGFloat = 150
 
-    /// Rough section heights at default Dynamic Type (points). Tuned so 3 goals + 3 tasks + 1
-    /// event fit the first screen; when the estimate overflows, Today folds tasks.
     static let mastheadHeight: CGFloat = 72
     static let weekStripHeight: CGFloat = 56
     static let summaryHeight: CGFloat = 48
@@ -247,24 +259,35 @@ enum TodayAboveFoldBudget: Sendable {
     static let goalColumnHeight: CGFloat = 96
     static let taskRowHeight: CGFloat = 56
     static let eventRowHeight: CGFloat = 52
+    static let calendarRowHeight: CGFloat = 52
     static let sectionGap: CGFloat = 16
 
     /// Whether Today should fold open tasks to ``maxVisibleTaskRows``.
+    /// - Parameters:
+    ///   - foldsAllowed: false on regular-width layouts (iPad / Mac).
+    ///   - calendarEventCount: device-calendar rows between tasks and events.
+    ///   - viewportHeight: measured scroll viewport (not a hard-coded phone constant).
     static func shouldFoldTasks(
-        goalCount: Int, openTaskCount: Int, eventCount: Int,
-        viewportHeight: CGFloat = phoneViewportHeight
+        goalCount: Int, openTaskCount: Int, eventCount: Int, calendarEventCount: Int = 0,
+        viewportHeight: CGFloat, foldsAllowed: Bool = true
     ) -> Bool {
-        guard openTaskCount > maxVisibleTaskRows else { return false }
+        guard foldsAllowed else { return false }
+        let hidden = openTaskCount - maxVisibleTaskRows
+        guard hidden >= minimumHiddenRows else { return false }
         let usable = viewportHeight - bottomChromeHeight
+        guard usable > 0 else { return false }
         let goals = goalCount > 0
             ? sectionHeaderHeight + goalColumnHeight + sectionGap : 0
         let tasks = sectionHeaderHeight
             + CGFloat(openTaskCount) * taskRowHeight + sectionGap
+        let calendar = calendarEventCount > 0
+            ? sectionHeaderHeight + CGFloat(calendarEventCount) * calendarRowHeight + sectionGap
+            : 0
         let events = eventCount > 0
             ? sectionHeaderHeight + eventRowHeight + sectionGap : 0
         let top =
             mastheadHeight + weekStripHeight + summaryHeight + chipsHeight + sectionGap
-        return top + goals + tasks + events > usable
+        return top + goals + tasks + calendar + events > usable
     }
 
     /// Section order from the top of the page through the first event (for the unit check).
@@ -291,4 +314,21 @@ enum TodayDayRing: Sendable {
     }
 
     static func showsRing(total: Int) -> Bool { total > 0 }
+
+    static func accessibilityLabel(remaining: Int, locale: Locale) -> String {
+        String(
+            localized: "\(remaining) hedef kaldı",
+            bundle: PresentationLocalization.bundle(locale), locale: locale)
+    }
+}
+
+/// Journal file path used by Mac Days selection (`journal/YYYY-MM-DD.md`).
+enum TodayDayPath {
+    static func file(for day: CalendarDate) -> String { "journal/\(day).md" }
+
+    static func day(fromFile path: String) -> CalendarDate? {
+        guard path.hasPrefix("journal/"), path.hasSuffix(".md") else { return nil }
+        let stamp = String(path.dropFirst("journal/".count).dropLast(3))
+        return CalendarDate(stamp)
+    }
 }

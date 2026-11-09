@@ -5,6 +5,8 @@ struct InkWeekStrip: View {
     @Binding var selection: Date
     /// Days that have vault writing (compared at start-of-day).
     var writtenDays: Set<Date> = []
+    /// Event counts per day (start-of-day keys) for VoiceOver.
+    var eventCounts: [Date: Int] = [:]
     /// When set, days after this instant are drawn but not tappable (Today / past-day strip).
     var latestSelectable: Date? = nil
 
@@ -39,6 +41,7 @@ struct InkWeekStrip: View {
         let selected = calendar.isDate(day, inSameDayAs: selection)
         let isToday = calendar.isDateInToday(day)
         let written = writtenDays.contains { calendar.isDate($0, inSameDayAs: day) }
+        let events = eventCounts.first { calendar.isDate($0.key, inSameDayAs: day) }?.value ?? 0
         let enabled =
             latestSelectable.map {
                 TodayWeekStripMath.isSelectable(day, today: $0, calendar: calendar)
@@ -83,8 +86,11 @@ struct InkWeekStrip: View {
         }
         .buttonStyle(.plain)
         .disabled(!enabled)
-        .accessibilityLabel(Text(verbatim: Self.accessibilityLabel(
-            day: day, written: written, calendar: calendar, locale: locale)))
+        .accessibilityLabel(
+            Text(
+                verbatim: Self.accessibilityLabel(
+                    day: day, isToday: isToday, eventCount: events, calendar: calendar,
+                    locale: locale)))
         .accessibilityAddTraits(selected ? [.isSelected] : [])
     }
 
@@ -97,7 +103,6 @@ struct InkWeekStrip: View {
         let formatter = DateFormatter()
         formatter.calendar = calendar
         formatter.locale = locale
-        // Narrow or short weekday in sentence case ("Pzt", "M").
         formatter.setLocalizedDateFormatFromTemplate("EEE")
         return formatter.string(from: day)
     }
@@ -107,19 +112,21 @@ struct InkWeekStrip: View {
     }
 
     static func accessibilityLabel(
-        day: Date, written: Bool, calendar: Calendar, locale: Locale
+        day: Date, isToday: Bool, eventCount: Int, calendar: Calendar, locale: Locale
     ) -> String {
+        let bundle = PresentationLocalization.bundle(locale)
         let formatter = DateFormatter()
         formatter.calendar = calendar
         formatter.locale = locale
         formatter.setLocalizedDateFormatFromTemplate("EEEE d MMMM")
         var label = formatter.string(from: day)
-        if written {
+        if isToday {
+            label += ", " + String(localized: "bugün", bundle: bundle, locale: locale)
+        }
+        if eventCount > 0 {
             label +=
                 ", "
-                + String(
-                    localized: "Yazıldı", bundle: PresentationLocalization.bundle(locale),
-                    locale: locale)
+                + String(localized: "\(eventCount) olay", bundle: bundle, locale: locale)
         }
         return label
     }

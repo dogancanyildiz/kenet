@@ -69,7 +69,10 @@ struct InkDayHeader<Actions: View>: View {
             diameter: side,
             centerLabel: String(remainingCount)
         )
-        .accessibilityLabel(Text(verbatim: "\(remainingCount)"))
+        .accessibilityLabel(
+            Text(
+                verbatim: TodayDayRing.accessibilityLabel(
+                    remaining: remainingCount, locale: locale)))
     }
 
     private func dayNumberText(size: CGFloat) -> some View {

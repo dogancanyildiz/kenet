@@ -26,7 +26,7 @@ struct DayCopyMergeReport: Equatable, Sendable {
 
 extension IndexStore {
     /// After a refresh: merges the day copies the scan found, one by one in the scan's order, when
-    /// `syncPolicy.mergesDayCopies` allows it (off by default, decision 2026-10-13) and the vault is
+    /// `syncPolicy.mergesDayCopies` allows it (on by default, decision 2026-11-09) and the vault is
     /// the iCloud vault and writable. With the policy off nothing is merged and Diagnostics lists
     /// the copies as before. Each copy is one write through the write queue (`mergingDayCopy`), so
     /// it waits for refreshes and other writes and publishes its day file. A copy a run took up is

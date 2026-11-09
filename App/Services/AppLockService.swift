@@ -2,14 +2,38 @@ import Foundation
 import LocalAuthentication
 import Observation
 
+enum AppLockBiometry: Equatable, Sendable {
+    case faceID
+    case touchID
+    case opticID
+    case none
+}
+
 /// A fresh context is used for each attempt; device credentials are always allowed.
 @MainActor protocol AppLockAuthenticating: AnyObject {
+    var biometry: AppLockBiometry { get }
     func authenticate(reason: String) async throws -> Bool
     func invalidate()
 }
 
+extension AppLockAuthenticating {
+    var biometry: AppLockBiometry { .none }
+}
+
 @MainActor final class SystemAppLockContext: AppLockAuthenticating {
     private let context = LAContext()
+
+    var biometry: AppLockBiometry {
+        var error: NSError?
+        _ = context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error)
+        switch context.biometryType {
+        case .faceID: return .faceID
+        case .touchID: return .touchID
+        case .opticID: return .opticID
+        case .none: return .none
+        @unknown default: return .none
+        }
+    }
 
     func authenticate(reason: String) async throws -> Bool {
         try await context.evaluatePolicy(.deviceOwnerAuthentication, localizedReason: reason)
@@ -38,6 +62,7 @@ enum AppLockDelay: Int, CaseIterable {
         didSet { defaults.set(delay.rawValue, forKey: Self.delayKey) }
     }
     var shouldCover: Bool { isEnabled && (isLocked || !isForeground) }
+    var biometry: AppLockBiometry { makeContext().biometry }
 
     @ObservationIgnored private let defaults: UserDefaults
     @ObservationIgnored private let makeContext: () -> any AppLockAuthenticating

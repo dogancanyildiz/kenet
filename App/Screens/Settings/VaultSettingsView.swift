@@ -30,68 +30,102 @@ struct VaultSettingsView: View {
             Section {
                 SectionHeader("Konum")
                     .inkListRow()
-                LabeledContent("Konum türü") {
-                    switch store.vaultKind {
-                    case .icloud: Text("iCloud")
-                    case .local: Text("Bu cihazda")
-                    case .selected: Text("Seçilen klasör")
+                InkCard(padded: false) {
+                    VStack(alignment: .leading, spacing: 0) {
+                        LabeledContent("Konum türü") {
+                            switch store.vaultKind {
+                            case .icloud: Text("iCloud")
+                            case .local: Text("Bu cihazda")
+                            case .selected: Text("Seçilen klasör")
+                            }
+                        }
+                        .frame(minHeight: InkButtonChrome.minimumHeight)
+                        .padding(.horizontal, InkSpacing.cardPadding)
+
+                        if store.vaultKind == .local, store.isCloudAvailable {
+                            InkCardDivider()
+                            Button("iCloud’a taşı") { store.requestCloudMigration() }
+                                .buttonStyle(.borderless)
+                                .disabled(store.isProcessing || store.isMigratingCloud)
+                                .frame(maxWidth: .infinity, minHeight: InkButtonChrome.minimumHeight, alignment: .leading)
+                                .padding(.horizontal, InkSpacing.cardPadding)
+                        }
+                        if let path = VaultPathDisplay.text(
+                            for: store.vaultURL, override: pathDisplayOverride)
+                        {
+                            InkCardDivider()
+                            Text(verbatim: path)
+                                .font(.ink.meta)
+                                .foregroundStyle(Color.ink.text)
+                                .lineLimit(1)
+                                .truncationMode(.middle)
+                                .textSelection(.enabled)
+                                .accessibilityLabel(Text(verbatim: path))
+                                .frame(maxWidth: .infinity, minHeight: InkButtonChrome.minimumHeight, alignment: .leading)
+                                .padding(.horizontal, InkSpacing.cardPadding)
+                            #if os(macOS)
+                                if let url = store.vaultURL {
+                                    InkCardDivider()
+                                    Button("Finder'da göster") {
+                                        NSWorkspace.shared.activateFileViewerSelecting([url])
+                                    }
+                                    .buttonStyle(.borderless)
+                                    .frame(maxWidth: .infinity, minHeight: InkButtonChrome.minimumHeight, alignment: .leading)
+                                    .padding(.horizontal, InkSpacing.cardPadding)
+                                }
+                            #endif
+                        }
+                        InkCardDivider()
+                        HStack {
+                            Button("Klasör seç") { choosingFolder = true }.disabled(
+                                store.isInspectingImport || store.importModel != nil)
+                            Spacer(minLength: 0)
+                        }
+                        .buttonStyle(.borderless)
+                        .frame(minHeight: InkButtonChrome.minimumHeight)
+                        .padding(.horizontal, InkSpacing.cardPadding)
+
+                        if let selection = store.pendingSelection {
+                            InkCardDivider()
+                            LabeledContent("Klasör seçimi bekliyor…") {
+                                Text(verbatim: selection.path)
+                                    .font(.ink.meta)
+                                    .lineLimit(1)
+                                    .truncationMode(.middle)
+                                    .textSelection(.enabled)
+                                    .accessibilityLabel(Text(verbatim: selection.path))
+                            }
+                            .frame(minHeight: InkButtonChrome.minimumHeight)
+                            .padding(.horizontal, InkSpacing.cardPadding)
+                        }
+                        if let model = store.importModel {
+                            InkCardDivider()
+                            #if os(macOS)
+                                Button("Kasa hazırlığı") { openSubpage(.vaultImport) }
+                                    .buttonStyle(.borderless)
+                                    .frame(maxWidth: .infinity, minHeight: InkButtonChrome.minimumHeight, alignment: .leading)
+                                    .padding(.horizontal, InkSpacing.cardPadding)
+                            #else
+                                NavigationLink("Kasa hazırlığı") {
+                                    VaultImportView(store: store, model: model, isSheet: false)
+                                }
+                                .frame(minHeight: InkButtonChrome.minimumHeight)
+                                .padding(.horizontal, InkSpacing.cardPadding)
+                            #endif
+                        }
                     }
                 }
                 .inkListRow()
-                if store.vaultKind == .local, store.isCloudAvailable {
-                    Button("iCloud’a taşı") { store.requestCloudMigration() }
-                        .buttonStyle(.borderless)
-                        .disabled(store.isProcessing || store.isMigratingCloud)
-                        .inkListRow()
-                }
+
                 if store.retainedLocalVault {
                     Text("Yerel kasa bu cihazın Belgeler → Vault klasöründe korundu.")
                         .font(.ink.meta)
                         .foregroundStyle(Color.ink.secondaryText)
                         .inkListRow()
                 }
-                if let path = VaultPathDisplay.text(
-                    for: store.vaultURL, override: pathDisplayOverride)
-                {
-                    Text(verbatim: path)
-                        .font(.ink.meta)
-                        .foregroundStyle(Color.ink.text)
-                        .lineLimit(1)
-                        .truncationMode(.middle)
-                        .textSelection(.enabled)
-                        .accessibilityLabel(Text(verbatim: path))
-                        .inkListRow()
-                    #if os(macOS)
-                        if let url = store.vaultURL {
-                            Button("Finder'da göster") {
-                                NSWorkspace.shared.activateFileViewerSelecting([url])
-                            }
-                            .buttonStyle(.borderless)
-                            .inkListRow()
-                        }
-                    #endif
-                }
                 if let synced = store.syncedFolder {
                     InfoBand(kind: .info, verbatim: synced.notice())
                         .inkListRow()
-                }
-                HStack {
-                    Button("Klasör seç") { choosingFolder = true }.disabled(
-                        store.isInspectingImport || store.importModel != nil)
-                    Spacer(minLength: 0)
-                }
-                .buttonStyle(.borderless)
-                .inkListRow()
-                if let selection = store.pendingSelection {
-                    LabeledContent("Klasör seçimi bekliyor…") {
-                        Text(verbatim: selection.path)
-                            .font(.ink.meta)
-                            .lineLimit(1)
-                            .truncationMode(.middle)
-                            .textSelection(.enabled)
-                            .accessibilityLabel(Text(verbatim: selection.path))
-                    }
-                    .inkListRow()
                 }
                 if store.unwatchedDirectoryCount > 0 {
                     Text(
@@ -104,18 +138,6 @@ struct VaultSettingsView: View {
                 if store.isInspectingImport {
                     InkProgress(kind: .indeterminate(label: "Klasör inceleniyor…"))
                         .inkListRow()
-                }
-                if let model = store.importModel {
-                    #if os(macOS)
-                        Button("Kasa hazırlığı") { openSubpage(.vaultImport) }
-                            .buttonStyle(.borderless)
-                            .inkListRow()
-                    #else
-                        NavigationLink("Kasa hazırlığı") {
-                            VaultImportView(store: store, model: model, isSheet: false)
-                        }
-                        .inkListRow()
-                    #endif
                 }
                 if store.isProcessing {
                     VaultIndexingProgress(store: store)
@@ -133,14 +155,19 @@ struct VaultSettingsView: View {
             Section {
                 SectionHeader("Varlık tipleri")
                     .inkListRow()
-                #if os(macOS)
-                    Button("Varlık tipleri") { openSubpage(.entityTypes) }
-                        .buttonStyle(.borderless)
-                        .inkListRow()
-                #else
-                    NavigationLink("Varlık tipleri") { EntityTypesSettingsView(store: store) }
-                        .inkListRow()
-                #endif
+                InkCard(padded: false) {
+                    #if os(macOS)
+                        Button("Varlık tipleri") { openSubpage(.entityTypes) }
+                            .buttonStyle(.borderless)
+                            .frame(maxWidth: .infinity, minHeight: InkButtonChrome.minimumHeight, alignment: .leading)
+                            .padding(.horizontal, InkSpacing.cardPadding)
+                    #else
+                        NavigationLink("Varlık tipleri") { EntityTypesSettingsView(store: store) }
+                            .frame(minHeight: InkButtonChrome.minimumHeight)
+                            .padding(.horizontal, InkSpacing.cardPadding)
+                    #endif
+                }
+                .inkListRow()
                 if store.entityTypes.issue != nil {
                     Text(
                         "Varlık tipleri okunamıyor. Yalnız yerleşik tipler kullanılıyor. Kasadaki .app/types.json dosyasını kontrol et."

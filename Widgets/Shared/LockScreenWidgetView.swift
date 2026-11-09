@@ -8,7 +8,7 @@ enum LockScreenLayout: CaseIterable, Sendable {
 struct LockScreenWidgetView: View {
     let day: WidgetSnapshot.Day?
     let date: Date
-    let hideContent: Bool
+    var hideContent: Bool = true
     let layout: LockScreenLayout
 
     var nextEvent: WidgetSnapshot.Event? {

@@ -80,7 +80,7 @@
                 )
                 .padding(16)
                 .frame(width: size.width, height: size.height)
-                .background(WidgetTheme.paper)
+                .background(WidgetTheme.surface)
                 .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(Color.ink.well)

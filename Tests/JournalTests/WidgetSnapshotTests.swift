@@ -621,4 +621,40 @@ struct WidgetSnapshotTests {
         #expect(navigation.todayRequest == nil)
         #expect(try Data(contentsOf: day) == before)
     }
+
+    @Test func widgetChainSelectionPicksLongestStreakAndPendingTiebreaker() {
+        func chainGoal(
+            _ key: String, name: String, pending: Bool, kind: WidgetSnapshot.Kind = .boolean,
+            streak: Int
+        ) -> WidgetSnapshot.Goal {
+            WidgetSnapshot.Goal(
+                key: key, name: name, kind: kind, target: 1, unit: nil, value: pending ? 0 : 1,
+                isPending: pending, streak: streak, chainDays: 0)
+        }
+
+        #expect(WidgetSnapshot.longestStreak(in: []) == 0)
+        #expect(WidgetSnapshot.featuredChainGoal(in: []) == nil)
+
+        let zeroGoals = [
+            chainGoal("esneme", name: "Esneme", pending: true, streak: 0),
+            chainGoal("okuma", name: "Okuma", pending: false, streak: 0),
+        ]
+        #expect(WidgetSnapshot.longestStreak(in: zeroGoals) == 0)
+        #expect(WidgetSnapshot.featuredChainGoal(in: zeroGoals) == nil)
+
+        let distinct = [
+            chainGoal("okuma", name: "Okuma", pending: false, streak: 14),
+            chainGoal("esneme", name: "Esneme", pending: true, streak: 64),
+            chainGoal("su", name: "Su", pending: true, kind: .number, streak: 12),
+        ]
+        let day = WidgetSnapshot.Day(date: "2026-09-20", goals: distinct)
+        #expect(day.longestStreak == 64)
+        #expect(day.featuredChainGoal?.key == "esneme")
+
+        let tiedPendingVsDone = [
+            chainGoal("yuruyus", name: "Yürüyüş", pending: false, streak: 21),
+            chainGoal("esneme", name: "Esneme", pending: true, streak: 21),
+        ]
+        #expect(WidgetSnapshot.featuredChainGoal(in: tiedPendingVsDone)?.key == "esneme")
+    }
 }

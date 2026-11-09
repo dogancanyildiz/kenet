@@ -45,7 +45,7 @@ private struct QuickEntryEntryView: View {
                 QuickEntryWidgetView(date: date)
             }
         }
-        .containerBackground(for: .widget) { WidgetTheme.paper }
+        .containerBackground(for: .widget) { WidgetTheme.surface }
         .widgetURL(WidgetLink.write.url)
     }
 }

@@ -73,11 +73,18 @@ struct GoalChainEntryView: View {
             intent: family == .systemSmall ? nil : { intent(for: $0) }
         )
         .privacySensitive()
-        .containerBackground(for: .widget) { WidgetTheme.paper }
+        .containerBackground(for: .widget) { WidgetTheme.surface }
         .widgetURL(WidgetLink.today.url)
     }
 
-    private var layout: GoalChainLayout { family == .systemSmall ? .small : .medium }
+    private var layout: GoalChainLayout {
+        if family == .systemSmall { return .small }
+        #if os(macOS)
+            return .desktopMedium
+        #else
+            return .medium
+        #endif
+    }
 
     /// The row's link; an intent (below) takes its place where the widget marks itself.
     private func link(for goal: WidgetSnapshot.Goal) -> URL {

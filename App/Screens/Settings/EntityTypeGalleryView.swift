@@ -59,24 +59,40 @@ struct EntityTypeGalleryView: View {
             Section {
                 SectionHeader("Hazır tipler")
                     .inkListRow()
-                ForEach(
-                    EntityTypeGalleryRows.rows(
-                        store.entityTypes, language: locale.language.languageCode?.identifier ?? "en")
-                ) { row in
-                    itemButton(row)
+                LazyVGrid(
+                    columns: [
+                        GridItem(.flexible(minimum: 136), spacing: InkSpacing.row, alignment: .top),
+                        GridItem(.flexible(minimum: 136), spacing: InkSpacing.row, alignment: .top),
+                    ],
+                    alignment: .leading,
+                    spacing: InkSpacing.row
+                ) {
+                    ForEach(
+                        EntityTypeGalleryRows.rows(
+                            store.entityTypes,
+                            language: locale.language.languageCode?.identifier ?? "en")
+                    ) { row in
+                        itemButton(row)
+                    }
                 }
+                .inkListRow()
             }
             Section {
-                Button {
-                    draft = GalleryDraft(definition: nil)
-                } label: {
-                    Label("Boş tip…", systemImage: "square.dashed")
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .tapTarget()
-                        .contentShape(Rectangle())
+                InkCard(padded: false) {
+                    Button {
+                        draft = GalleryDraft(definition: nil)
+                    } label: {
+                        Label("Boş tip…", systemImage: "square.dashed")
+                            .frame(
+                                maxWidth: .infinity, minHeight: InkButtonChrome.minimumHeight,
+                                alignment: .leading
+                            )
+                            .padding(.horizontal, InkSpacing.cardPadding)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.borderless)
+                    .accessibilityIdentifier("button.entityTypeGallery.blank")
                 }
-                .buttonStyle(.borderless)
-                .accessibilityIdentifier("button.entityTypeGallery.blank")
                 .inkListRow()
             }
             Text("Hazır tip, alanları boş bir şablonla gelir. Kaydetmeden önce her değeri değiştirebilirsin.")
@@ -102,29 +118,43 @@ struct EntityTypeGalleryView: View {
         Button {
             draft = GalleryDraft(definition: row.definition)
         } label: {
-            MarginRow(kind: .external) {
-                Image(systemName: row.definition.icon)
-                    .foregroundStyle(row.isTaken ? Color.ink.secondaryText : Color.ink.accent)
-                    .accessibilityHidden(true)
-            } primary: {
-                Text(verbatim: row.name)
-                    .foregroundStyle(row.isTaken ? Color.ink.secondaryText : Color.ink.text)
-            } secondary: {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(verbatim: row.fieldSummary)
-                    if row.isTaken {
-                        Text("Zaten var")
+            InkCard {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(spacing: 8) {
+                        RoundedRectangle(cornerRadius: 8, style: .continuous)
+                            .fill(row.isTaken ? Color.ink.well : Color.ink.accentSoft)
+                            .frame(width: 28, height: 28)
+                            .overlay {
+                                Image(systemName: row.definition.icon)
+                                    .font(.ink.meta.weight(.semibold))
+                                    .foregroundStyle(
+                                        row.isTaken ? Color.ink.secondaryText : Color.ink.accent)
+                            }
+                            .accessibilityHidden(true)
+                        Spacer(minLength: 0)
+                        if row.isTaken {
+                            Text("Zaten var")
+                                .font(.ink.meta)
+                                .foregroundStyle(Color.ink.tertiaryText)
+                        }
                     }
+                    Text(verbatim: row.name)
+                        .font(.ink.section)
+                        .foregroundStyle(row.isTaken ? Color.ink.secondaryText : Color.ink.text)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    Text(verbatim: row.fieldSummary)
+                        .font(.ink.meta)
+                        .foregroundStyle(Color.ink.secondaryText)
+                        .lineLimit(2)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                .font(.ink.meta)
-                .foregroundStyle(Color.ink.secondaryText)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             }
-            .contentShape(Rectangle())
+            .contentShape(RoundedRectangle(cornerRadius: InkCorner.card, style: .continuous))
         }
         .buttonStyle(.plain)
         .disabled(row.isTaken)
         .accessibilityIdentifier("button.entityTypeGallery." + row.id)
-        .inkListRow()
     }
 }
 

@@ -145,19 +145,26 @@ struct ShareImportReport: Equatable, Sendable {
         guard let day = entry.calendarDay else { return .waiting }
         if let line = entry.writing {
             // An earlier run marked it and may have saved the line before it stopped.
-            guard let saved = await hasEvent(line, at: entry.clock, on: day) else { return .waiting }
+            guard let saved = await hasWritten(line, for: entry, on: day) else { return .waiting }
             if saved {
                 try? file.remove(ids: [entry.id])
                 return .added
             }
         }
-        // The event through the app's write path, with names recognised as in an App Intent.
+        // The entry through the app's write path, with names recognised as in an App Intent.
         let text = (try? IntentText.linking(entry.text, entities: store.knownEntities)) ?? entry.text
         var marked = entry
         marked.writing = text
         // No mark, no write: a queue this run cannot change could not lose the record afterwards either.
         guard (try? file.replace(marked)) != nil else { return .waiting }
-        guard await store.addEvent(on: day, text: text, time: entry.clock) else {
+        let wrote: Bool
+        switch entry.kind {
+        case .event:
+            wrote = await store.addEvent(on: day, text: text, time: entry.clock)
+        case .task:
+            wrote = await store.addTask(on: day, text: text, due: nil)
+        }
+        guard wrote else {
             // Nothing was saved now; the record waits as it came. An earlier mark stays: its line may be
             // in a day this run could not see (a day back in iCloud reads as empty and refuses the write).
             try? file.replace(entry)
@@ -168,11 +175,19 @@ struct ShareImportReport: Equatable, Sendable {
         return .added
     }
 
-    /// Whether the day file holds an event with this text and time; nil when the day cannot be read.
-    private func hasEvent(_ text: String, at clock: LineClock?, on day: CalendarDate) async -> Bool? {
+    /// Whether the day file holds the event or task for `entry`; nil when the day cannot be read.
+    private func hasWritten(_ text: String, for entry: ShareEntry, on day: CalendarDate) async -> Bool? {
         guard let document = try? await store.dayDocument(for: day) else { return nil }
-        return document.bodyLines.events.contains { event in
-            event.block.text == text && event.time?.hour == clock?.hour && event.time?.minute == clock?.minute
+        switch entry.kind {
+        case .event:
+            let clock = entry.clock
+            return document.bodyLines.events.contains { event in
+                event.block.text == text && event.time?.hour == clock?.hour && event.time?.minute == clock?.minute
+            }
+        case .task:
+            return document.bodyLines.tasks.contains { task in
+                task.block.text == text
+            }
         }
     }
 

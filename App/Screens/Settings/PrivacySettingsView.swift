@@ -11,8 +11,12 @@ struct PrivacySettingsView: View {
             #if os(iOS)
                 // Mac uses the adjacent Bildirimler Settings tab instead of a push.
                 Section {
-                    NavigationLink("Bildirim içeriği") {
-                        NotificationSettingsView()
+                    InkCard(padded: false) {
+                        NavigationLink("Bildirim içeriği") {
+                            NotificationSettingsView()
+                        }
+                        .frame(minHeight: InkButtonChrome.minimumHeight)
+                        .padding(.horizontal, InkSpacing.cardPadding)
                     }
                     .inkListRow()
                 }

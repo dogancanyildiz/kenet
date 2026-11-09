@@ -82,17 +82,24 @@ struct ThirdPartyLicensesView: View {
                 Section {
                     SectionHeader(title: notice.name)
                         .inkListRow()
-                    LabeledContent("Lisans") {
-                        Text(verbatim: notice.license)
-                            .font(.ink.value)
+                    InkCard(padded: false) {
+                        VStack(alignment: .leading, spacing: 0) {
+                            LabeledContent("Lisans") {
+                                Text(verbatim: notice.license)
+                                    .font(.ink.value)
+                            }
+                            .frame(minHeight: InkButtonChrome.minimumHeight)
+                            .padding(.horizontal, InkSpacing.cardPadding)
+                            InkCardDivider()
+                            Text(verbatim: notice.text)
+                                .font(.ink.byline)
+                                .foregroundStyle(Color.ink.text)
+                                .textSelection(.enabled)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(InkSpacing.cardPadding)
+                        }
                     }
                     .inkListRow()
-                    Text(verbatim: notice.text)
-                        .font(.ink.byline)
-                        .foregroundStyle(Color.ink.text)
-                        .textSelection(.enabled)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .inkListRow()
                 }
             }
         }

@@ -11,12 +11,6 @@ extension Font {
         /// Page title (manşet): SF Pro Bold ≈ largeTitle (34).
         static var display: Font { .system(.largeTitle, design: .default, weight: .bold) }
 
-        /// Day number fallback when ``LargeNumberText`` is unavailable: SF Pro Bold tabular.
-        /// Prefer ``LargeNumberText`` (weight `.bold`) so the design target (48 pt) scales.
-        static var dayNumber: Font {
-            .system(.largeTitle, design: .default, weight: .bold).monospacedDigit()
-        }
-
         /// Day name / month: SF Pro Semibold ≈ title2 (22).
         static var dayName: Font { .system(.title2, design: .default, weight: .semibold) }
 

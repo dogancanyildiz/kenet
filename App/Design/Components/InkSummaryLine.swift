@@ -1,12 +1,12 @@
 import SwiftUI
 
-/// Byline sentence that elevates counts: numbers and their nouns in text/semibold, glue in secondary.
+/// Byline sentence that elevates counts: formatted count phrases and glue.
 struct InkSummaryLine: View {
-    enum Part: Equatable, Sendable {
+    enum Part: Sendable {
         /// Conjunction / glue ("Bugün", "ve", "kaldı").
         case text(String)
-        /// Count + noun, optionally with a leading SF Symbol.
-        case count(Int, String, symbol: String? = nil)
+        /// Caller-formatted count phrase (e.g. LocalizedStringResource for "2 olay").
+        case count(LocalizedStringResource, symbol: String? = nil)
     }
 
     var parts: [Part]
@@ -19,7 +19,7 @@ struct InkSummaryLine: View {
                     Text(verbatim: text)
                         .font(.ink.byline)
                         .foregroundStyle(Color.ink.secondaryText)
-                case .count(let value, let noun, let symbol):
+                case .count(let resource, let symbol):
                     HStack(spacing: 4) {
                         if let symbol {
                             Image(systemName: symbol)
@@ -27,7 +27,7 @@ struct InkSummaryLine: View {
                                 .foregroundStyle(Color.ink.text)
                                 .accessibilityHidden(true)
                         }
-                        Text(verbatim: "\(value) \(noun)")
+                        Text(resource)
                             .font(.system(.title3, design: .default, weight: .semibold).monospacedDigit())
                             .foregroundStyle(Color.ink.text)
                     }
@@ -36,17 +36,17 @@ struct InkSummaryLine: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text(verbatim: spoken))
+        .accessibilityLabel(Text(verbatim: Self.spokenParts(parts).joined(separator: " ")))
     }
 
-    private var spoken: String {
+    /// Spoken words for unit tests (glue + resolved count keys).
+    nonisolated static func spokenParts(_ parts: [Part]) -> [String] {
         parts.map { part in
             switch part {
             case .text(let text): text
-            case .count(let value, let noun, _): "\(value) \(noun)"
+            case .count(let resource, _): String(localized: resource)
             }
         }
         .filter { !$0.isEmpty }
-        .joined(separator: " ")
     }
 }

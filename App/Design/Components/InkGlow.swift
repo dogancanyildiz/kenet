@@ -1,11 +1,33 @@
 import SwiftUI
 
 /// Dawn glow drawn behind root-page content. Scrolls with content; never animated.
+/// CSS equivalent: `radial-gradient(900px 600px at 12% -8%)` — 900×600 are ellipse radii.
 enum InkGlowChrome {
-    static let size = CGSize(width: 900, height: 600)
-    static let center = UnitPoint(x: 0.12, y: -0.08)
-    static let purple = Color(red: 0x8E / 255, green: 0x3F / 255, blue: 0x80 / 255)
-    static let amber = Color(red: 0xC9 / 255, green: 0x8B / 255, blue: 0x2F / 255)
+    /// Ellipse radii (pt). Bounding box is 2× these.
+    static let radius = CGSize(width: 900, height: 600)
+    static var size: CGSize {
+        CGSize(width: radius.width * 2, height: radius.height * 2)
+    }
+
+    /// Center as fractions of the container (x of width, y of height).
+    static let centerXFraction: CGFloat = 0.12
+    static let centerYFraction: CGFloat = -0.08
+
+    static let stopPurple: CGFloat = 0
+    static let stopAmber: CGFloat = 0.38
+    static let stopClear: CGFloat = 0.70
+
+    static let purpleHex: UInt32 = 0x8E_3F_80
+    static let amberHex: UInt32 = 0xC9_8B_2F
+
+    static let purple = Color(
+        red: Double((purpleHex >> 16) & 0xFF) / 255,
+        green: Double((purpleHex >> 8) & 0xFF) / 255,
+        blue: Double(purpleHex & 0xFF) / 255)
+    static let amber = Color(
+        red: Double((amberHex >> 16) & 0xFF) / 255,
+        green: Double((amberHex >> 8) & 0xFF) / 255,
+        blue: Double(amberHex & 0xFF) / 255)
 
     static func shouldDraw(
         contrast: ColorSchemeContrast, reduceTransparency: Bool
@@ -20,6 +42,26 @@ enum InkGlowChrome {
     static func amberOpacity(colorScheme: ColorScheme) -> Double {
         colorScheme == .dark ? 0.28 : 0.16
     }
+
+    /// Strongest mix at the purple / amber stops, blended over paper for the given appearance.
+    static func peakHex(stop: PeakStop, appearance: InkPalette.Appearance) -> UInt32 {
+        let paper = InkPalette.Token.paper.variant.hex(for: appearance)
+        let isDark = appearance == .dark || appearance == .highContrastDark
+        let scheme: ColorScheme = isDark ? .dark : .light
+        switch stop {
+        case .purple:
+            return InkPalette.blend(
+                foreground: purpleHex, alpha: purpleOpacity(colorScheme: scheme), over: paper)
+        case .amber:
+            return InkPalette.blend(
+                foreground: amberHex, alpha: amberOpacity(colorScheme: scheme), over: paper)
+        }
+    }
+
+    enum PeakStop: String, CaseIterable, Sendable {
+        case purple
+        case amber
+    }
 }
 
 private struct InkGlowModifier: ViewModifier {
@@ -28,41 +70,38 @@ private struct InkGlowModifier: ViewModifier {
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
 
     func body(content: Content) -> some View {
-        content.background(alignment: .topLeading) {
+        content.background {
             if InkGlowChrome.shouldDraw(
                 contrast: contrast, reduceTransparency: reduceTransparency)
             {
-                glowLayer
-                    .allowsHitTesting(false)
-                    .accessibilityHidden(true)
+                GeometryReader { geo in
+                    let center = CGPoint(
+                        x: geo.size.width * InkGlowChrome.centerXFraction,
+                        y: geo.size.height * InkGlowChrome.centerYFraction)
+                    EllipticalGradient(
+                        stops: [
+                            .init(
+                                color: InkGlowChrome.purple.opacity(
+                                    InkGlowChrome.purpleOpacity(colorScheme: colorScheme)),
+                                location: InkGlowChrome.stopPurple),
+                            .init(
+                                color: InkGlowChrome.amber.opacity(
+                                    InkGlowChrome.amberOpacity(colorScheme: colorScheme)),
+                                location: InkGlowChrome.stopAmber),
+                            .init(color: .clear, location: InkGlowChrome.stopClear),
+                        ],
+                        center: .center,
+                        startRadiusFraction: 0,
+                        endRadiusFraction: 1
+                    )
+                    .frame(width: InkGlowChrome.size.width, height: InkGlowChrome.size.height)
+                    .position(center)
+                }
+                .allowsHitTesting(false)
+                .accessibilityHidden(true)
+                .ignoresSafeArea(edges: .top)
             }
         }
-    }
-
-    private var glowLayer: some View {
-        let purple = InkGlowChrome.purple.opacity(
-            InkGlowChrome.purpleOpacity(colorScheme: colorScheme))
-        let amber = InkGlowChrome.amber.opacity(
-            InkGlowChrome.amberOpacity(colorScheme: colorScheme))
-        return Ellipse()
-            .fill(
-                RadialGradient(
-                    stops: [
-                        .init(color: purple, location: 0),
-                        .init(color: amber, location: 0.38),
-                        .init(color: .clear, location: 0.70),
-                    ],
-                    center: .center,
-                    startRadius: 0,
-                    endRadius: InkGlowChrome.size.width / 2
-                )
-            )
-            .frame(width: InkGlowChrome.size.width, height: InkGlowChrome.size.height)
-            .offset(
-                x: InkGlowChrome.size.width * (InkGlowChrome.center.x - 0.5),
-                y: InkGlowChrome.size.height * (InkGlowChrome.center.y - 0.5)
-            )
-            .ignoresSafeArea(edges: .top)
     }
 }
 

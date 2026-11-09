@@ -3,8 +3,7 @@ import SwiftUI
 /// Day manşet: ring + day number + day name, with an optional action slot.
 struct InkDayHeader<Actions: View>: View {
     var date: Date
-    /// Remaining work fraction for the ring (0…1 remaining → progress = 1 − remaining share).
-    /// Prefer passing ``progress`` as remaining/total inverted by the caller: accent shows remaining.
+    /// Ring fill 0…1; accent arc shows remaining work (caller passes remaining/total).
     var progress: Double
     /// Number drawn in the ring center (remaining count).
     var remainingCount: Int
@@ -15,8 +14,17 @@ struct InkDayHeader<Actions: View>: View {
     @Environment(\.calendar) private var calendar
     @Environment(\.locale) private var locale
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-    @ScaledMetric(relativeTo: .largeTitle) private var dayNumberSize = InkSize.largeNumber
+    /// Design table: 48 on iPhone, 34 on Mac; scales with Dynamic Type.
+    #if os(macOS)
+        @ScaledMetric(relativeTo: .largeTitle) private var dayNumberSize: CGFloat = 34
+    #else
+        @ScaledMetric(relativeTo: .largeTitle) private var dayNumberSize = InkSize.largeNumber
+    #endif
     @ScaledMetric(relativeTo: .body) private var ringSide = InkSize.dayRing
+
+    private var dayNameFormatter: DateFormatter {
+        InkWeekStrip.makeFormatter(template: "EEEE", calendar: calendar, locale: locale)
+    }
 
     var body: some View {
         Group {
@@ -57,7 +65,12 @@ struct InkDayHeader<Actions: View>: View {
             diameter: ringSide,
             centerLabel: String(remainingCount)
         )
-        .accessibilityLabel(Text(verbatim: "\(remainingCount)"))
+        .accessibilityLabel(
+            Text(
+                verbatim: String(
+                    localized: "\(remainingCount) hedef kaldı",
+                    bundle: PresentationLocalization.bundle(locale), locale: locale))
+        )
     }
 
     private var dayNumberText: some View {
@@ -74,7 +87,7 @@ struct InkDayHeader<Actions: View>: View {
     }
 
     private var dayNameText: some View {
-        Text(verbatim: dayName)
+        Text(verbatim: dayNameFormatter.string(from: date))
             .font(.ink.dayName)
             .foregroundStyle(Color.ink.secondaryText)
             .lineLimit(1)
@@ -88,14 +101,6 @@ struct InkDayHeader<Actions: View>: View {
 
     private var dayNumber: String {
         String(calendar.component(.day, from: date))
-    }
-
-    private var dayName: String {
-        let formatter = DateFormatter()
-        formatter.calendar = calendar
-        formatter.locale = locale
-        formatter.setLocalizedDateFormatFromTemplate("EEEE")
-        return formatter.string(from: date)
     }
 }
 

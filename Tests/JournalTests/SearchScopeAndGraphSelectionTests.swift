@@ -38,6 +38,28 @@ struct SearchScopeAndGraphSelectionTests {
         #expect(GraphSelectionPresentation.summary(name: "Ekin", links: 3, daysSince: 4, locale: en) == "Ekin · 3 links · 4 days ago")
     }
 
+    /// The people list's card drawn across rows (D3's `inkListRow(cardSegment:)`): only its ends round.
+    @Test func entityListCardRoundsOnlyItsEnds() {
+        #expect(InkCardSegment.position(0, of: 1) == .single)
+        #expect((0..<3).map { InkCardSegment.position($0, of: 3) } == [.first, .middle, .last])
+        #expect(!InkCardSegment.middle.roundsTop && !InkCardSegment.middle.roundsBottom)
+        #expect(InkCardSegment.first.roundsTop && InkCardSegment.last.roundsBottom)
+    }
+
+    /// Map and Graph bylines: each count has its own English plural.
+    @Test func countBylinesPluralizeEachCountInEnglish() {
+        let en = Locale(identifier: "en")
+        let bundle = PresentationLocalization.bundle(en)
+        let one = 1
+        let three = 3
+        #expect(String(localized: "\(one) konum · \(one) ziyaret", bundle: bundle, locale: en) == "1 place · 1 visit")
+        #expect(String(localized: "\(three) konum · \(one) ziyaret", bundle: bundle, locale: en) == "3 places · 1 visit")
+        #expect(String(localized: "\(one) kişi · \(three) konum", bundle: bundle, locale: en) == "1 person · 3 places")
+        #expect(
+            String(localized: "\(three) kişi · \(one) konum · \(one) gün", bundle: bundle, locale: en)
+                == "3 people · 1 place · 1 day")
+    }
+
     @Test func graphSelectionCountsOnlyExplicitRelations() {
         let day = GraphModel.dayNodeID(CalendarDate("2026-10-01")!)
         let graph = GraphModel(

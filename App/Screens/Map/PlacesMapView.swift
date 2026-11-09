@@ -1,6 +1,7 @@
 import MapKit
 import SwiftUI
 import VaultFormat
+import VaultIndex
 
 struct PlacesMapView: View {
     let store: IndexStore
@@ -10,12 +11,15 @@ struct PlacesMapView: View {
     @State private var selected: EntitySummary?
     /// The pin picked from the cards: framed on the map; its card offers "Sayfayı aç".
     @State private var focused: String?
+    /// Last visit, 12-month days per place, read once for all cards.
+    @State private var activity: [String: EntityListActivity] = [:]
     @State private var showsUser = false
     private var pins: [PlacePin] { PlacesMapModel.pins(places: store.mapPlaces, usage: store.entityUsage) }
     var body: some View {
         // Pinned manşet above the full-bleed map; its row carries the page's icons.
         VStack(alignment: .leading, spacing: 0) {
-            InkPageTitle("Harita", byline: String(localized: "\(store.content.entities.filter { $0.kind == "place" }.count) konum · \(pins.reduce(0) { $0 + $1.count }) ziyaret", locale: locale)) {
+            // Both counts from the pins drawn: places with a coordinate and their visits.
+            InkPageTitle("Harita", byline: String(localized: "\(pins.count) konum · \(pins.reduce(0) { $0 + $1.count }) ziyaret", locale: locale)) {
                 InkHeaderAction("Beni göster", systemImage: "location") {
                     showsUser = true
                     location.requestLocationIfNeeded(userInitiated: true)
@@ -27,7 +31,7 @@ struct PlacesMapView: View {
             content
         }
         .inkPageNavigationTitle("Harita")
-        .inkGlow()
+        .entityListActivity(store: store, into: $activity)
         .task { location.refreshAuthorization() }
         .onChange(of: location.lastFix) { if showsUser { centerUser() } }
         .onChange(of: store.vaultURL) {
@@ -83,9 +87,9 @@ struct PlacesMapView: View {
             .overlay(alignment: .bottom) {
                 if !pins.isEmpty {
                     ScrollView(.horizontal) {
-                        HStack(spacing: 10) {
+                        LazyHStack(spacing: 10) {
                             ForEach(pins) { pin in
-                                PlaceMapCard(store: store, pin: pin, isSelected: focused == pin.id) {
+                                PlaceMapCard(pin: pin, activity: activity[pin.id], isSelected: focused == pin.id) {
                                     focus(pin)
                                 } onOpen: {
                                     selected = store.content.entities.first { $0.id == pin.id }
@@ -172,15 +176,17 @@ struct PlacesMapView: View {
 }
 
 private struct PlaceMapCard: View {
-    let store: IndexStore
     let pin: PlacePin
+    let activity: EntityListActivity?
     let isSelected: Bool
     let onTap: () -> Void
     let onOpen: () -> Void
     @Environment(\.locale) private var locale
     @Environment(\.clockNow) private var clockNow
-    @State private var mentionData: EntityMentionsData?
-    private var lastDate: CalendarDate? { store.entityUsage.first { $0.file == pin.id }?.lastDate }
+    private var lastDate: CalendarDate? { activity?.lastEncounter }
+    private var mentionData: EntityMentionsData? {
+        activity?.mentions(today: LocalDay.today(at: clockNow()), locale: locale)
+    }
 
     /// "23 ziyaret · son 19 Eyl"; without a mention only the count.
     private var visitLine: String {
@@ -219,12 +225,6 @@ private struct PlaceMapCard: View {
                 RoundedRectangle(cornerRadius: InkCorner.card, style: .continuous)
                     .stroke(Color.ink.accent, lineWidth: InkStroke.control)
             }
-        }
-        .task(id: EntityTimelineRequest(path: pin.id, updated: store.lastUpdated)) {
-            guard let days = try? await store.computeEntityTimeline(for: pin.id), !Task.isCancelled else { return }
-            let insight = EntityInsights.compute(
-                path: pin.id, timeline: days, lastDay: nil, entities: [], today: LocalDay.today(at: clockNow()))
-            mentionData = insight.mentions(locale: locale)
         }
     }
 }

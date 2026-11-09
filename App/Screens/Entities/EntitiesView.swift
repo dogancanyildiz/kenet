@@ -80,20 +80,19 @@ struct EntitiesView: View {
                 UnseenPeopleSection(
                     store: store, people: entities, initiallyExpanded: initialUnseenExpanded)
             }
-            // One list card; rows separated by hairlines (docs/screens.md, Liste satırı).
-            if !entities.isEmpty {
-                InkCard {
-                    ForEach(Array(entities.enumerated()), id: \.element.id) { offset, entity in
-                        if offset > 0 { InkCardDivider() }
-                        NavigationLink(value: entity) {
-                            EntityRow(
-                                entity: entity, store: store, activity: activity[entity.id],
-                                onEdit: { editingEntity = entity })
-                        }
-                        .buttonStyle(.plain)
-                    }
+            // One list card drawn across the rows (first and last round, hairlines between), so
+            // each entity stays its own lazy `List` row (docs/screens.md, Liste satırı).
+            let rows = entities
+            ForEach(Array(rows.enumerated()), id: \.element.id) { index, entity in
+                NavigationLink(value: entity) {
+                    EntityRow(
+                        entity: entity, store: store, activity: activity[entity.id],
+                        onEdit: { editingEntity = entity })
+                        .padding(.vertical, 4)
+                        .padding(.trailing, InkSpacing.cardPadding)
                 }
-                .inkListRow()
+                .buttonStyle(.plain)
+                .inkListRow(cardSegment: .position(index, of: rows.count))
             }
             if !store.content.entities.contains(where: { $0.kind == kind }) {
                 EmptyState("Bu tipteki varlıklar burada görünecek.")
@@ -286,10 +285,7 @@ struct EntityRow: View {
     private var relationCount: Int { activity?.relationCount ?? 0 }
 
     private var mentionData: EntityMentionsData? {
-        guard let activity, let last = activity.lastEncounter else { return nil }
-        let density = EntityMentionDensity.compute(
-            days: activity.recentDays + [last], today: LocalDay.today(at: clockNow()))
-        return EntityInsights.presentationMentions(density: density, locale: locale)
+        activity?.mentions(today: LocalDay.today(at: clockNow()), locale: locale)
     }
 
     var body: some View {
@@ -364,6 +360,15 @@ private struct EntityListActivityLoader: ViewModifier {
     }
 }
 
+extension EntityListActivity {
+    /// The row's 12-month bar; nil for a never-mentioned entity.
+    func mentions(today: CalendarDate, locale: Locale) -> EntityMentionsData? {
+        guard let lastEncounter else { return nil }
+        let density = EntityMentionDensity.compute(days: recentDays + [lastEncounter], today: today)
+        return EntityInsights.presentationMentions(density: density, locale: locale)
+    }
+}
+
 extension View {
     func entityListActivity(store: IndexStore, into activity: Binding<[String: EntityListActivity]>) -> some View {
         modifier(EntityListActivityLoader(store: store, activity: activity))
@@ -373,10 +378,12 @@ extension View {
 /// Tür renkli baş harf rozeti: `well` circle, person or place colour (custom types use person).
 private struct EntityInitialBadge: View {
     let entity: EntitySummary
+    @Environment(\.locale) private var locale
     @ScaledMetric(relativeTo: .body) private var side: CGFloat = 36
 
     var body: some View {
-        Text(verbatim: String(entity.name.prefix(1)).uppercased())
+        // Locale-aware: "ilker" → "İ" in Turkish.
+        Text(verbatim: String(entity.name.prefix(1)).uppercased(with: locale))
             .font(.ink.section)
             .foregroundStyle(entity.kind == "place" ? Color.ink.place : Color.ink.person)
             .frame(width: side, height: side)

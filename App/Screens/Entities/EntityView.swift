@@ -273,6 +273,8 @@ struct EntityView: View {
                         } label: {
                             Text(LocalDay.instant(for: day.date), format: .dateTime.day().month().year())
                                 .font(.ink.section).foregroundStyle(.ink.text)
+                                .frame(minHeight: TapTarget.minimumLength)
+                                .contentShape(Rectangle())
                         }
                         Spacer()
                         NavigationLink {
@@ -286,6 +288,8 @@ struct EntityView: View {
                         ForEach(day.rows) { row in
                             NavigationLink { DayView(store: store, date: day.date) } label: {
                                 LinkedTextView(text: row.text, store: store)
+                                    .frame(maxWidth: .infinity, minHeight: TapTarget.minimumLength, alignment: .leading)
+                                    .contentShape(Rectangle())
                             }.buttonStyle(.plain)
                         }
                     }

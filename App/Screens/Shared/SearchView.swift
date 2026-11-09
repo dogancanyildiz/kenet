@@ -7,7 +7,6 @@ struct SearchView: View {
     /// Search asked for inside the sheet: ⌘F and a page's magnifier. Made once (``ShellAction``).
     @State private var returnToField: ShellAction
     @FocusState private var searchFocused: Bool
-    @State private var scope: SearchScope = .all
     @Environment(\.dismiss) private var dismiss
 
     init(store: IndexStore, initialQuery: String = "") {
@@ -114,12 +113,12 @@ struct SearchView: View {
                             .inkListRow()
                         }
                     }
-                } else if model.results.isEmpty && !model.isSearching && model.errorText == nil {
+                } else if model.visibleResults.isEmpty && !model.isSearching && model.errorText == nil {
                     EmptyState("Sonuç bulunamadı")
                         .inkListRow()
                 } else {
                     ForEach(SearchGroup.allCases) { group in
-                        let items = visibleResults.filter { $0.group == group }
+                        let items = model.visibleResults.filter { $0.group == group }
                         if !items.isEmpty {
                             VStack(alignment: .leading, spacing: 8) {
                                 SectionHeader(title: group.title)
@@ -145,15 +144,11 @@ struct SearchView: View {
         }
     }
 
-    private var visibleResults: [SearchItem] {
-        model.results.filter(scope.includes)
-    }
-
     private var scopeChips: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
                 ForEach(SearchScope.allCases) { item in
-                    TagChip(title: item.title, isSelected: scope == item, onTap: { scope = item })
+                    TagChip(title: item.title, isSelected: model.scope == item, onTap: { model.scope = item })
                 }
             }
             .padding(.horizontal, InkSpacing.margin)

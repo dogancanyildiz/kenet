@@ -116,7 +116,6 @@ struct GraphView: View {
               #endif
             }
             .inkPinnedMasthead(masthead)
-            .modifier(GraphGlowModifier(enabled: day == nil))
             .inkPage()
             .task(
                 id: String(describing: model.filter) + today.description
@@ -508,12 +507,5 @@ enum GraphSelectionPresentation {
         case 0?: String(localized: "\(name) · \(links) bağ · son bugün", bundle: bundle, locale: locale)
         case let days?: String(localized: "\(name) · \(links) bağ · son \(days) gün önce", bundle: bundle, locale: locale)
         }
-    }
-}
-
-private struct GraphGlowModifier: ViewModifier {
-    var enabled: Bool
-    @ViewBuilder func body(content: Content) -> some View {
-        if enabled { content.inkGlow() } else { content }
     }
 }

@@ -5,13 +5,11 @@ import Summaries
 import VaultFormat
 import VaultStore
 
-/// Steps of the weekly review, in order. Every step can be passed without including anything.
+/// Steps of the weekly review, in order (3 steps: numbers + questions, tasks + goals, preview).
+/// Every step can be passed without including anything.
 enum WeeklyReviewStep: Int, CaseIterable, Sendable {
     case numbers
     case tasks
-    case people
-    case goals
-    case note
     case preview
 
     var previous: WeeklyReviewStep? { WeeklyReviewStep(rawValue: rawValue - 1) }
@@ -239,6 +237,9 @@ final class WeeklyReviewModel {
         didSet { if week != oldValue { recompute() } }
     }
     var note = ""
+    var wellNote = ""
+    var blockedNote = ""
+    var focusNote = ""
     private(set) var content: WeeklyReviewContent?
     /// The reviewed week day by day against the week before it, over the numbers.
     private(set) var rhythm: WeeklyReviewRhythm?
@@ -315,6 +316,39 @@ final class WeeklyReviewModel {
             : String(localized: "Önceki haftaya göre \(signed) olay", bundle: bundle, locale: locale)
     }
 
+    /// Compact difference text ("+2 gün · +5 olay", no arrows) comparing written days and events
+    /// against the previous week up to the same weekday.
+    var rhythmDiffSummary: String? {
+        guard let rhythm else { return nil }
+        let bundle = PresentationLocalization.bundle(locale)
+        let measuredDays = rhythm.days.filter { $0.writing != .notStarted }
+        let currentWritten = measuredDays.count { $0.writing == .full || $0.writing == .partial }
+        let previousWritten = measuredDays.count { $0.previousEvents > 0 }
+        let dayDiff = currentWritten - previousWritten
+        let daySigned = SummaryPresentation.signed(Double(dayDiff), locale: locale)
+        let eventSigned = SummaryPresentation.signed(Double(rhythm.change), locale: locale)
+        let dayPart = String(localized: "\(daySigned) gün", bundle: bundle, locale: locale)
+        let eventPart = String(localized: "\(eventSigned) olay", bundle: bundle, locale: locale)
+        return "\(dayPart) · \(eventPart)"
+    }
+
+    /// Combines the 3 optional question card answers (`wellNote`, `blockedNote`, `focusNote`)
+    /// and `note` into the existing note lines passed to `WeeklyReviewText.lines` (no vault
+    /// format change).
+    var effectiveNote: String {
+        var parts: [String] = []
+        for field in [wellNote, blockedNote, focusNote, note] {
+            if !field.allSatisfy(\.isWhitespace) {
+                parts.append(field)
+            }
+        }
+        return parts.joined(separator: "\n")
+    }
+
+    var hasAnyNote: Bool {
+        !effectiveNote.allSatisfy(\.isWhitespace)
+    }
+
     func advance() { if let next = step.next { step = next } }
     func back() { if let previous = step.previous { step = previous } }
 
@@ -339,12 +373,14 @@ final class WeeklyReviewModel {
     /// True when passing the step now leaves nothing of it in the output.
     func isSkipped(_ step: WeeklyReviewStep) -> Bool {
         switch step {
-        case .numbers: contribution(.numbers).isEmpty
-        case .tasks: contribution(.tasks).isEmpty
-        case .people: contribution(.people).isEmpty
-        case .goals: contribution(.goals).isEmpty
-        case .note: note.allSatisfy(\.isWhitespace)
-        case .preview: false
+        case .numbers:
+            contribution(.numbers).isEmpty && !hasAnyNote
+        case .tasks:
+            contribution(.tasks).isEmpty
+                && contribution(.goals).isEmpty
+                && contribution(.people).isEmpty
+        case .preview:
+            false
         }
     }
 
@@ -359,7 +395,7 @@ final class WeeklyReviewModel {
                 localized: "Haftalık inceleme", bundle: PresentationLocalization.bundle(locale), locale: locale),
             summaryLines: contribution(.numbers),
             selectedLines: contribution(.tasks) + contribution(.people) + contribution(.goals),
-            note: note)
+            note: effectiveNote)
     }
 
     /// Set when the vault cannot be written at all; the preview says so before anything is tried.

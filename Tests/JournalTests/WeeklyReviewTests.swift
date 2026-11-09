@@ -748,14 +748,27 @@ struct WeeklyReviewTests {
         let context = try await context()
         defer { context.clean() }
         let model = await model(context)
-        #expect(WeeklyReviewStep.allCases.dropLast().allSatisfy { !model.isSkipped($0) || $0 == .note })
-        #expect(model.isSkipped(.note))
-        model.note = "bir şey"
-        #expect(!model.isSkipped(.note))
+        #expect(WeeklyReviewStep.allCases == [.numbers, .tasks, .preview])
+        #expect(!model.isSkipped(.numbers))
+        #expect(!model.isSkipped(.tasks))
+        #expect(!model.isSkipped(.preview))
+
+        model.setIncluded(.numbers, false)
+        #expect(model.isSkipped(.numbers))
+        model.wellNote = "Sabah yürüyüşleri iyi gitti."
+        #expect(!model.isSkipped(.numbers))
+        model.wellNote = ""
+        #expect(model.isSkipped(.numbers))
+        model.setIncluded(.numbers, true)
+
         model.setIncluded(.goals, false)
-        #expect(model.isSkipped(.goals) && !model.isIncluded(.goals))
+        #expect(!model.isIncluded(.goals))
         #expect(!model.previewLines.contains { $0.contains("Spor") })
+        model.setIncluded(.tasks, false)
+        model.setIncluded(.people, false)
+        #expect(model.isSkipped(.tasks))
         model.setIncluded(.goals, true)
+        #expect(!model.isSkipped(.tasks))
         #expect(model.previewLines.contains("· Spor: 2/6 gün"))
 
         #expect(model.step == .numbers)
@@ -767,6 +780,24 @@ struct WeeklyReviewTests {
         }
         model.advance()
         #expect(model.step == .preview)
+    }
+
+    @Test func threeStepsContentAndQuestionCardsMapping() async throws {
+        let context = try await context()
+        defer { context.clean() }
+        let model = await model(context)
+
+        #expect(WeeklyReviewStep.allCases.count == 3)
+        #expect(model.rhythmDiffSummary == "+2 gün · +3 olay")
+
+        model.wellNote = "Sabah yürüyüşleri düzenliydi."
+        model.blockedNote = "Gece geç yatıldı."
+        model.focusNote = "Erken uyu."
+
+        let preview = model.previewLines
+        #expect(preview.contains("· Sabah yürüyüşleri düzenliydi."))
+        #expect(preview.contains("· Gece geç yatıldı."))
+        #expect(preview.contains("· Erken uyu."))
     }
 }
 

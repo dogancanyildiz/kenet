@@ -14,10 +14,12 @@ struct DayOverview: Identifiable, Sendable, Equatable {
     /// First line of the first Journal paragraph, as `DaySummary.preview` gives it.
     let preview: String?
     let hasGoalRecords: Bool
+    let taskCount: Int
+    let firstEventPreview: String?
 
     init(
         id: String, date: CalendarDate, eventCount: Int, journalCount: Int, preview: String?,
-        hasGoalRecords: Bool = false
+        hasGoalRecords: Bool = false, taskCount: Int = 0, firstEventPreview: String? = nil
     ) {
         self.id = id
         self.date = date
@@ -25,6 +27,8 @@ struct DayOverview: Identifiable, Sendable, Equatable {
         self.journalCount = journalCount
         self.preview = preview
         self.hasGoalRecords = hasGoalRecords
+        self.taskCount = taskCount
+        self.firstEventPreview = firstEventPreview
     }
 
     init(entry: DaySummaryEntry) {
@@ -39,6 +43,25 @@ struct DayOverview: Identifiable, Sendable, Equatable {
                 return text.components(separatedBy: "\n").first
             },
             hasGoalRecords: entry.hasGoalRecords)
+    }
+
+    var hasActivity: Bool {
+        eventCount > 0 || taskCount > 0 || journalCount > 0 || hasGoalRecords
+    }
+
+    var displayPreview: String? {
+        if let firstEventPreview, !firstEventPreview.isEmpty {
+            return firstEventPreview
+        }
+        return preview
+    }
+
+    func enriched(with fragment: VaultFileFragment?) -> DayOverview {
+        guard let fragment else { return self }
+        return DayOverview(
+            id: id, date: date, eventCount: eventCount, journalCount: journalCount,
+            preview: preview, hasGoalRecords: hasGoalRecords,
+            taskCount: fragment.taskCount, firstEventPreview: fragment.firstEventPreview)
     }
 }
 

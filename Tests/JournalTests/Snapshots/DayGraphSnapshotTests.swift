@@ -14,6 +14,7 @@
     enum DayGraphSnapshotCase: String, CaseIterable, Sendable {
         case dayGraphLight
         case dayMastheadLight
+        case dayScheduleLight = "day.scheduleLight"
     }
 
     @MainActor @Suite("Day graph snapshots")
@@ -37,11 +38,13 @@
             let calendar = CalendarService(source: SnapshotCalendarSource())
             let location = LocationService(source: FakeLocationSource(), defaults: defaults)
             let store = context.store
-            let isMasthead = snapshotCase == .dayMastheadLight
             let root = NavigationStack {
-                if isMasthead {
+                switch snapshotCase {
+                case .dayMastheadLight:
                     DayView(store: store, date: Self.day, isToday: true)
-                } else {
+                case .dayScheduleLight:
+                    DayView(store: store, date: Self.day, isToday: false)
+                case .dayGraphLight:
                     GraphView(store: store, scope: .day(Self.day), liveMotion: false)
                 }
             }

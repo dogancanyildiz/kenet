@@ -29,16 +29,14 @@ final class WeeklyReviewUITests: XCTestCase {
         let next = UITestSupport.element(in: app, identifier: "button.weeklyReview.next")
         UITestSupport.waitForExistence(next)
         UITestSupport.waitForExistence(UITestSupport.element(in: app, identifier: "tabs.weeklyReview.week"))
+        UITestSupport.waitForExistence(UITestSupport.element(in: app, identifier: "field.weeklyReview.note"))
         try audit(app)
 
-        // Açık görevler, görüşmediklerin, hedefler, not: four more pages before the preview.
+        // Step 2: Açık görevler ve hedefler özeti before the preview.
         let back = UITestSupport.element(in: app, identifier: "button.weeklyReview.back")
-        for _ in 0..<4 {
-            next.tap()
-            UITestSupport.waitForExistence(back)
-            try audit(app)
-        }
-        UITestSupport.waitForExistence(UITestSupport.element(in: app, identifier: "field.weeklyReview.note"))
+        next.tap()
+        UITestSupport.waitForExistence(back)
+        try audit(app)
 
         next.tap()
         let write = UITestSupport.element(in: app, identifier: "button.weeklyReview.write")

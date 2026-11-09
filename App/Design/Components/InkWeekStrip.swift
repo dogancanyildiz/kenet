@@ -82,13 +82,13 @@ struct InkWeekStrip: View {
                 .frame(height: 5)
             }
             .frame(minWidth: dayWidth, minHeight: dayHeight)
-            .frame(maxWidth: .infinity)
             .background {
                 if selected {
                     RoundedRectangle(cornerRadius: InkCorner.md, style: .continuous)
                         .fill(Color.ink.well)
                 }
             }
+            .frame(maxWidth: .infinity)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)

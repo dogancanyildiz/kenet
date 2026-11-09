@@ -9,9 +9,17 @@ enum InkGlowChrome {
         CGSize(width: radius.width * 2, height: radius.height * 2)
     }
 
-    /// Center as fractions of the container (x of width, y of height).
+    /// Center as fractions of the container (x of width, y of a reference height).
     static let centerXFraction: CGFloat = 0.12
     static let centerYFraction: CGFloat = -0.08
+    /// The glow is anchored to the first screenful, not to the whole scrolled content:
+    /// vertical center uses min(container height, reference height).
+    static let referenceHeight: CGFloat = 900
+
+    /// Vertical center for a container of the given height.
+    static func centerY(containerHeight: CGFloat) -> CGFloat {
+        min(containerHeight, referenceHeight) * centerYFraction
+    }
 
     static let stopPurple: CGFloat = 0
     static let stopAmber: CGFloat = 0.38
@@ -77,7 +85,7 @@ private struct InkGlowModifier: ViewModifier {
                 GeometryReader { geo in
                     let center = CGPoint(
                         x: geo.size.width * InkGlowChrome.centerXFraction,
-                        y: geo.size.height * InkGlowChrome.centerYFraction)
+                        y: InkGlowChrome.centerY(containerHeight: geo.size.height))
                     EllipticalGradient(
                         stops: [
                             .init(
@@ -91,12 +99,15 @@ private struct InkGlowModifier: ViewModifier {
                             .init(color: .clear, location: InkGlowChrome.stopClear),
                         ],
                         center: .center,
+                        // `endRadiusFraction` is a fraction of the frame size: 0.5 makes the
+                        // ellipse radii equal to `InkGlowChrome.radius` and fade out inside the frame.
                         startRadiusFraction: 0,
-                        endRadiusFraction: 1
+                        endRadiusFraction: 0.5
                     )
                     .frame(width: InkGlowChrome.size.width, height: InkGlowChrome.size.height)
                     .position(center)
                 }
+                .clipped()
                 .allowsHitTesting(false)
                 .accessibilityHidden(true)
                 .ignoresSafeArea(edges: .top)

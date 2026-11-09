@@ -85,7 +85,7 @@ Harita konuları gösterir; satırların tam metni karar günlüğündedir. Bir 
 
 ```mermaid
 timeline
-    title Karar takvimi, 324 karar
+    title Karar takvimi, 325 karar
     2026-10-02 : 58 karar : Ürün kapsamı ve platform : Kasa biçimi ve ayrıştırıcı : Git, sürüm ve CI
     2026-10-03 : 19 karar : Yazma doğrulaması : İndeks ve arama : Varlık sayfası ve hızlı giriş
     2026-10-04 : 31 karar : Birleştirme ve kayıp yok : VaultStore ve dosya izleme : Görev, hedef ve otomasyon : Özet, graph ve harita
@@ -109,9 +109,10 @@ timeline
     2026-10-30 : 7 karar : Kilit ekranı widget’ı, hızlı giriş, eşitleme bağlantısı, Graph gün merkezli, ileri tarihli görev, Core birlikte geçme silindi
     2026-11-01 : 1 karar : Mac menü komutları kimlikli eylem, App sahnesi döngüsü
     2026-11-09 : 1 karar : Gün kopyası birleştirmesi varsayılan açık
+    2026-11-10 : 1 karar : CI kapısı simülatörü kayıtla aynı runtime'dan seçer
 ```
 
-Sayılar karar günlüğündeki satır sayısıdır. Toplam 324 satırdır.
+Sayılar karar günlüğündeki satır sayısıdır. Toplam 325 satırdır.
 
 ## Karar günlüğü
 
@@ -443,6 +444,7 @@ Sayılar karar günlüğündeki satır sayısıdır. Toplam 324 satırdır.
 | 2026-10-30 | Graph sorgusu bloklara bakmaz: Core yalnız toplam ve gün başına anma döndürür; blok ve paragraf segmenti grupları (`GraphMentions.Day.groups`), `ParagraphSegments` ve `cooccurrenceWeights` silindi. Başlık ve frontmatter bağlantıları anma sayılmaya devam eder; indeks şeması değişmez | Kullanıcı kararı 83 ile Graph birlikte geçme kenarını bıraktı; kullanıcı 2026-10-30'da Core kodunun silinmesini onayladı. 2026-10-22 "paragraf segmentleri" ve "aynı blokta birlikte geçme" kararlarının Core kısmını kapatır |
 | 2026-11-01 | Mac'te odaklanmış değer ve ortam eylemleri kimlikli `ShellAction` olur ve sahibi onları bir kez üretir (`init` içinde ya da tuttuğu `@Observable` nesnede); kapanış türünde odaklanmış değer ya da ortam eylemi yazılmaz | Kapanış her body'de yeni değer sayılır: `JournalApp` sahnesi yeniden kurulur, pencere içeriği yeni kapanış üretir ve döngü boşta da durmaz (Debug'da saniyede ~23 tur, ana iş parçacığı %100 meşgul; TestFlight 362 Release örneklerinde aynı imza). Düzeltmeyle aynı ekran turunda `JournalApp.body` 12 827 → 13, ana iş parçacığı %100 → %22 |
 | 2026-11-09 | Gün kopyası birleştirmesi varsayılan açıktır: `SyncPolicy.standard.mergesDayCopies = true`. Uygulama iCloud kasasında her yenilemeden sonra taramanın bulduğu gün kopyalarını sırayla birleştirir; Ayarlar'da anahtar yoktur; testler listeleme davranışını bayrağı kapatarak sınar | Kullanıcı kararı 2026-11-09; karar 2026-10-13 bayrağı iki cihaz denemesine kadar kapalı tutmuştu. Zemin hazırdı: Core birleştirme `day-copies` kasasıyla bayt bayt doğrulanmış, kayıp denetimini geçmeyen birleştirme eski sürümü `conflicts/` altında tutuyor, gün editörü araya giren birleştirmeyi `staleTarget` ile reddediyor (#361). Bayrak kapalıyken kopyalar Tanılama'da birikiyor ve iki cihazın aynı güne yazdıkları ayrı dosyalarda kalıyordu |
+| 2026-11-10 | CI kapısı simülatörü kayıt betiğiyle aynı kuralla seçer: `.github/actions/ios-build` `pick-simulator.sh` çağırır, en eski kurulu iOS runtime'ındaki aygıt | macos-26 imajı iOS 26.2 ve 26.5 taşıyor; kapı en yeni (26.5), kayıt en eski (26.2) runtime'ı seçiyordu. SF Pro metin alanlarının glifleri iki runtime arasında 0,003–0,009 piksel kayıyor; AX3'te kenar pikseli eşiği aştı (PR #371, `journalEditorAX3` ve `entityTypeEditorAX3`). Referansların hepsi 26.2'de kayıtlı; kapı onlara uyar, yeniden kayıt gerekmez |
 
 Satır sırası ekleme sırasıdır; tablonun ilk satırları tarih sırasında değildir. Sonradan değişen bir kararın gerekçe hücresi değişikliği tarihiyle anar. Güncel durum notları kararın verildiği günden sonraki gerçek durumu söyler.
 

@@ -112,11 +112,13 @@ struct KanbanCard: View {
                     }
                 }
             }
-            .overlay(alignment: .leading) {
-                RoundedRectangle(cornerRadius: 2, style: .continuous)
-                    .fill(ProjectColor.color(for: row.project))
-                    .frame(width: 4)
-                    .padding(.vertical, 1)
+            .overlay {
+                // Project bar inside the card's corner; the chip carries the project name.
+                ProjectColor.color(for: row.project)
+                    .frame(width: InkSize.timelineBar)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+                    .clipShape(RoundedRectangle(cornerRadius: InkSize.kanbanCorner, style: .continuous))
+                    .allowsHitTesting(false)
                     .accessibilityHidden(true)
             }
             .contentShape(Rectangle())
@@ -131,7 +133,6 @@ struct KanbanCard: View {
             dateEditor = TaskEditorModel(store: model.store, row: row)
         }
         .modifier(KanbanMoveAccessibilityActions(model: model, row: row))
-        .opacity(presentation.usesSecondaryText ? 0.68 : 1)
     }
 
     private func makeDragProvider() -> NSItemProvider {

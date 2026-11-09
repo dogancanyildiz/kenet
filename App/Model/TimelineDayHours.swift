@@ -1,13 +1,17 @@
 import Foundation
 
-/// Visible hour bounds for a day timeline, including the standard working-day range.
+/// Visible hour bounds for the day timeline (screens.md "Gün ölçeği"): 09:00–18:00 by default;
+/// the day's earliest and latest timed record widen it.
 enum TimelineDayHours {
+    static let standard = 9...18
+
     static func range(for dates: [Date], calendar: Calendar) -> ClosedRange<Int> {
-        let hours = dates.map { calendar.component(.hour, from: $0) }
-        return range(forHours: hours)
+        range(forHours: dates.map { calendar.component(.hour, from: $0) })
     }
 
     static func range(forHours hours: [Int]) -> ClosedRange<Int> {
-        min(8, hours.min() ?? 8)...max(20, hours.max() ?? 20)
+        let first = min(standard.lowerBound, hours.min() ?? standard.lowerBound)
+        let last = max(standard.upperBound, hours.max() ?? standard.upperBound)
+        return first...last
     }
 }

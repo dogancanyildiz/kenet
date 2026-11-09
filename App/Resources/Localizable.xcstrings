@@ -65,6 +65,22 @@
         }
       }
     },
+    "%1$d/%2$d açık" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$d/%2$d open"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$d/%2$d açık"
+          }
+        }
+      }
+    },
     "%1$d/%2$d görev" : {
       "localizations" : {
         "en" : {
@@ -4337,22 +4353,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bu gün henüz bir şey yazılmadı."
-          }
-        }
-      }
-    },
-    "Bu gün saatli olay yok." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No timed events today."
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bu gün saatli olay yok."
           }
         }
       }
@@ -15741,6 +15741,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "İleri"
+          }
+        }
+      }
+    },
+    "İlerleme" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Progress"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "İlerleme"
           }
         }
       }

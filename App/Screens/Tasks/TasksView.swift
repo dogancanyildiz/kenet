@@ -1,5 +1,6 @@
 import SwiftUI
 import VaultFormat
+import VaultIndex
 
 struct TasksView: View {
     let store: IndexStore
@@ -163,6 +164,7 @@ struct TasksView: View {
                     .font(.ink.value).monospacedDigit().foregroundStyle(.ink.secondaryText)
             }
         }
+        .accessibilityElement(children: .combine)
         .inkListRow()
     }
 
@@ -182,15 +184,17 @@ struct TasksView: View {
                                 VStack(alignment: .leading, spacing: 8) {
                                     HStack(spacing: 6) {
                                         Circle().fill(ProjectColor.color(for: project)).frame(width: 8, height: 8)
+                                            .accessibilityHidden(true)
                                         Text(verbatim: project).font(.ink.content).foregroundStyle(.ink.text)
                                             .lineLimit(1)
                                     }
-                                    Text(String(format: String(localized: "%1$d/%2$d görev"), open, total))
+                                    Text(String(format: String(localized: "%1$d/%2$d açık"), open, total))
                                         .font(.ink.meta).monospacedDigit().foregroundStyle(.ink.secondaryText)
                                     InkProgress(kind: .fraction(total == 0 ? 0 : Double(completed) / Double(total)))
                                 }
                                 .frame(width: projectCardWidth, alignment: .leading)
                             }
+                            .accessibilityElement(children: .combine)
                         }
                         .buttonStyle(.plain)
                     }

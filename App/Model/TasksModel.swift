@@ -151,7 +151,8 @@ final class TasksModel {
             for name in names {
                 let projectRows = try await store.computeProjectTasks(name)
                 let key = VaultIndex.projectKey(name)
-                totals[key] = projectRows.count
+                // Cancelled tasks stay out of both counts, as on the project page's progress card.
+                totals[key] = projectRows.filter { $0.rawStatus != "-" }.count
                 completedTotals[key] = projectRows.filter { $0.rawStatus == "x" || $0.rawStatus == "X" }.count
             }
             return (groups, completed, counts, names, totals, completedTotals)

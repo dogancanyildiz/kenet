@@ -114,9 +114,9 @@ struct TaskTimelineView: View {
     private var chart: some View {
         Group {
             if model.scale == .day {
-                dayBoard
+                ScrollView(.vertical) { dayBoard }
             } else if model.scale == .week {
-                weekBoard
+                ScrollView(.vertical) { weekBoard }
             } else {
                 TimelineDesktopView(model: model, todayRequest: todayRequest) {
                     selected = $0
@@ -215,15 +215,20 @@ struct TaskTimelineView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             } else if style == .desktop {
                 // The menu alone sets the row height (the text button is taller on Mac), so
-                // the row sits where the other views' menu rows sit. The chart scrolls through
-                // the periods itself.
+                // the row sits where the other views' menu rows sit. The Çeyrek chart scrolls
+                // through the periods itself; Gün and Hafta step a week at a time.
                 scaleTabs
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .overlay(alignment: .trailing) { todayButton }
+                    .overlay(alignment: .trailing) {
+                        HStack(spacing: 4) {
+                            if model.scale != .quarter { periodButtons }
+                            todayButton
+                        }
+                    }
             } else {
                 VStack(alignment: .leading, spacing: 0) {
                     scaleTabs
-                    HStack { todayButton; Spacer() }
+                    HStack { todayButton; Spacer(); periodButtons }
                 }
             }
         }
@@ -267,10 +272,21 @@ struct TaskTimelineView: View {
         .lineLimit(1)
     }
 
+    /// Gün and Hafta move the selected day by a week (the week strip shows one week); the phone
+    /// list (Çeyrek) moves the model's window by its period.
+    private func shiftPeriod(by direction: Int) {
+        switch model.scale {
+        case .day, .week:
+            selectedDay = selectedDay.addingDays(7 * direction) ?? selectedDay
+        case .month, .quarter:
+            model.shiftWindow(by: direction * model.scale.daysAcross)
+        }
+    }
+
     private var periodButtons: some View {
         HStack(spacing: 4) {
             Button {
-                model.shiftWindow(by: -model.scale.daysAcross)
+                shiftPeriod(by: -1)
             } label: {
                 Image(systemName: "chevron.left")
                     .tapTarget()
@@ -278,7 +294,7 @@ struct TaskTimelineView: View {
             .accessibilityLabel("Önceki dönem")
             .buttonStyle(InkTextButtonStyle())
             Button {
-                model.shiftWindow(by: model.scale.daysAcross)
+                shiftPeriod(by: 1)
             } label: {
                 Image(systemName: "chevron.right")
                     .tapTarget()

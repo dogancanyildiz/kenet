@@ -94,7 +94,7 @@ struct TimelineDesktopView: View {
                     HStack {
                         Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
                             .foregroundStyle(.ink.secondaryText)
-                        if grouping == .project {
+                        if model.grouping == .project {
                             Circle().fill(ProjectColor.color(for: group.name))
                                 .frame(width: 8, height: 8)
                                 .accessibilityHidden(true)

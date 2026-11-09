@@ -77,15 +77,8 @@ struct TasksListRow: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(InkSpacing.cardPadding)
-        .background {
-            RoundedRectangle(cornerRadius: InkCorner.card, style: .continuous)
-                .fill(Color.ink.surface)
-                .overlay {
-                    RoundedRectangle(cornerRadius: InkCorner.card, style: .continuous)
-                        .stroke(Color.ink.rule, lineWidth: InkStroke.control)
-                }
-        }
-        .opacity(presentation.usesSecondaryText ? 0.68 : 1)
+        // Completed rows fade through secondary text and the filled box, never opacity (design.md).
+        .modifier(InkCardModifier())
         #if !os(macOS)
             .contentShape(Rectangle())
             .modifier(TasksListRowTouch.Tap(shell: shellKind, completes: rowTapCompletes, complete: complete))
@@ -122,6 +115,12 @@ struct TasksListRow: View {
                     Text(verbatim: project)
                         .font(.ink.meta)
                         .foregroundStyle(.ink.secondaryText)
+                    if row.due != nil {
+                        Text(verbatim: "·")
+                            .font(.ink.meta)
+                            .foregroundStyle(.ink.tertiaryText)
+                            .accessibilityHidden(true)
+                    }
                 }
                 if let date = row.due {
                     TaskDueDateLabel(date: date, presentation: presentation, asOf: day)

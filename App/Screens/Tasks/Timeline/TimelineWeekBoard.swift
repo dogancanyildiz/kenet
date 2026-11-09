@@ -20,7 +20,8 @@ struct TimelineWeekBoard: View {
                 ForEach(week, id: \.self) { date in
                     let day = LocalDay.today(at: date)
                     let events = summaries.first(where: { $0.date == day })?.events ?? []
-                    let tasks = rows.filter { ($0.due ?? $0.start) == day }
+                    // Cancelled tasks stay hidden (screens.md "Durum").
+                    let tasks = rows.filter { $0.rawStatus != "-" && ($0.due ?? $0.start) == day }
                     dayColumn(day, events: events, tasks: tasks)
                 }
             }
@@ -44,31 +45,14 @@ struct TimelineWeekBoard: View {
                             InkTimelineCard(
                                 title: event.text.plainText,
                                 meta: event.time.map { EventTimeFormat.string(for: $0, locale: locale) },
-                                barColor: eventColor(event), kindLabel: String(localized: "Olay"))
+                                barColor: TimelineEventColor.color(for: event, store: store), kindLabel: String(localized: "Olay"))
                         }
                         .buttonStyle(.plain)
                         .padding(.horizontal, 10).padding(.vertical, 5)
                     }
                     ForEach(tasks) { task in
-                        let isLate = !task.isClosed && task.due.map { $0 < today } == true
-                        Button { selectTask(task) } label: {
-                            InkTimelineCard(
-                                title: task.text.plainText,
-                                meta: task.project ?? String(localized: "Projesiz"),
-                                barColor: isLate
-                                    ? .ink.warning : ProjectColor.color(for: task.project),
-                                kindLabel: isLate ? String(localized: "Geç") : nil,
-                                isCompleted: task.isClosed)
-                        }
-                        .buttonStyle(.plain)
-                        .padding(.horizontal, 10).padding(.vertical, 5)
-                        .overlay {
-                            if isLate {
-                                RoundedRectangle(cornerRadius: InkCorner.card, style: .continuous)
-                                    .stroke(Color.ink.warning, lineWidth: InkStroke.highPriority)
-                                    .padding(.horizontal, 10).padding(.vertical, 5)
-                            }
-                        }
+                        TimelineTaskCard(task: task, today: today) { selectTask(task) }
+                            .padding(.horizontal, 10).padding(.vertical, 5)
                     }
                     if events.isEmpty && tasks.isEmpty {
                         Text("Görev veya olay yok.")
@@ -83,13 +67,6 @@ struct TimelineWeekBoard: View {
     }
 
     private func dayName(_ day: CalendarDate) -> String {
-        LocalDay.instant(for: day).formatted(.dateTime.weekday(.abbreviated))
-    }
-
-    private func eventColor(_ event: EventRow) -> Color {
-        guard let target = event.text.spans.compactMap(\.target).first,
-            let entity = store.content.entities.first(where: { $0.id == target })
-        else { return .ink.accent }
-        return entity.kind == "person" ? .ink.person : entity.kind == "place" ? .ink.place : .ink.accent
+        LocalDay.instant(for: day).formatted(.dateTime.weekday(.abbreviated).locale(locale))
     }
 }

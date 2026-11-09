@@ -4,12 +4,23 @@ import VaultFormat
 @testable import Journal
 
 @Suite struct TimelineBarMarkTests {
-    @Test func oneDaySpanUsesCircleAndLongSpanUsesCapsule() {
-        let single = TimelineDates(start: CalendarDate("2026-09-20"), due: CalendarDate("2026-09-20"))
-            .span(on: CalendarDate("2026-09-20")!)!
-        let range = TimelineDates(start: CalendarDate("2026-09-20"), due: CalendarDate("2026-09-22"))
-            .span(on: CalendarDate("2026-09-20")!)!
-        #expect(TimelineBarMark.choice(for: single) == .circle)
-        #expect(TimelineBarMark.choice(for: range) == .capsule)
+    private let day = CalendarDate("2026-09-20")!
+
+    @Test func dueOnlyTaskIsARoundBadge() {
+        let span = TimelineDates(start: nil, due: CalendarDate("2026-09-20")).span(on: day)!
+        #expect(TimelineBarMark.choice(for: span) == .circle)
+    }
+
+    @Test func rangeIsACapsule() {
+        let span = TimelineDates(start: CalendarDate("2026-09-20"), due: CalendarDate("2026-09-22"))
+            .span(on: day)!
+        #expect(TimelineBarMark.choice(for: span) == .capsule)
+    }
+
+    /// Same-day start and due stay a bar: the grips that change its dates stay on it.
+    @Test func sameDayStartAndDueKeepsTheBar() {
+        let span = TimelineDates(start: CalendarDate("2026-09-20"), due: CalendarDate("2026-09-20"))
+            .span(on: day)!
+        #expect(TimelineBarMark.choice(for: span) == .capsule)
     }
 }

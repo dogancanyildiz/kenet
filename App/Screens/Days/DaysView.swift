@@ -8,6 +8,7 @@ struct DaysView: View {
     @Environment(\.clockNow) private var clockNow
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.displayScale) private var displayScale
+    @Environment(ShellNavigationState.self) private var navigation: ShellNavigationState?
     @State private var selectedDay: CalendarDate?
     @State private var showsSummaries = false
     @State private var showsWeeklyReview = false
@@ -45,11 +46,12 @@ struct DaysView: View {
                 .inkListRow()
             }
             ForEach(visibleDays ?? []) { day in
-                NavigationLink {
-                    DayView(store: store, date: day.date)
+                Button {
+                    selectedDay = day.date
                 } label: {
                     DayRow(day: day, isToday: day.date == today, showsCard: true)
                 }
+                .buttonStyle(.plain)
                 .inkListRow()
             }
             if visibleDays?.isEmpty == true {
@@ -62,7 +64,20 @@ struct DaysView: View {
         .inkGlow()
         .inkPageScrollColumn()
         .navigationDestination(isPresented: $showsSummaries) { SummariesView(store: store) }
-        .navigationDestination(item: $selectedDay) { day in DayView(store: store, date: day) }
+        .navigationDestination(item: $selectedDay) { day in
+            DayView(
+                store: store, date: day,
+                onReplaceDay: { selectedDay = $0 },
+                onReturnToToday: {
+                    selectedDay = nil
+                    #if os(macOS)
+                        navigation?.goToToday(shell: .split)
+                    #else
+                        navigation?.todayPath = NavigationPath()
+                        navigation?.goToToday(shell: .tabs)
+                    #endif
+                })
+        }
         .weeklyReviewSheet(isPresented: $showsWeeklyReview, store: store) { weeklyReviewNotice = $0 }
         .task(id: DayRangeRequest(from: nil, to: nil, updated: store.lastUpdated)) {
             if let loaded = try? await store.computeDaySummaries() { days = loaded }

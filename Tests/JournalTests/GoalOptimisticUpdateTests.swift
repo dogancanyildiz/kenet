@@ -242,7 +242,7 @@ import VaultFormat
             else { return }
             let plus = try #require(
                 await GoalScreenEnvironment.enabledElement(in: mount) {
-                    GoalScreenEnvironment.node(after: water.name, labelled: String(localized: "Artır"), in: mount)
+                    GoalScreenEnvironment.plus(of: water.name, in: mount)
                 })
 
             gate.hold()
@@ -303,7 +303,7 @@ import VaultFormat
             for _ in 0..<5 {
                 let plus = try #require(
                     await GoalScreenEnvironment.enabledElement(in: mount) {
-                        GoalScreenEnvironment.node(after: goal.name, labelled: String(localized: "Artır"), in: mount)
+                        GoalScreenEnvironment.plus(of: goal.name, in: mount)
                     })
                 await mount.settle()
                 let revision = store.lastUpdated
@@ -457,11 +457,10 @@ import VaultFormat
 
         /// The first node labelled `text` after the first one that reads `anchor` (a label, or a
         /// static text's value).
-        static func node(after anchor: String, labelled text: String, in mount: HostedLayout.Mount) -> NSObject? {
-            let all = nodes(in: mount)
-            guard let start = all.firstIndex(where: { labelText($0) == anchor || valueText($0) == anchor })
-            else { return nil }
-            return all[start...].first { labelText($0) == text }
+        /// A goal row's plus: its own element, labelled "<name>, artır" (it sits above the name).
+        static func plus(of name: String, in mount: HostedLayout.Mount) -> NSObject? {
+            let label = String(localized: "\(name), artır")
+            return nodes(in: mount).first { labelText($0) == label }
         }
 
         private static func isEnabled(_ node: NSObject) -> Bool {

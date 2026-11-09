@@ -19,6 +19,7 @@ struct InfoBand: View {
     var onDismiss: (() -> Void)? = nil
 
     @ScaledMetric(relativeTo: .body) private var padding = InkSpacing.cardPadding
+    @ScaledMetric(relativeTo: .body) private var iconSide: CGFloat = 22
 
     init(
         kind: InfoBandKind,
@@ -53,7 +54,7 @@ struct InfoBand: View {
             Image(systemName: kind.markSystemImage)
                 .font(.body)
                 .foregroundStyle(kind.foreground)
-                .frame(width: 22, alignment: .center)
+                .frame(width: iconSide, alignment: .center)
                 .accessibilityHidden(true)
             message
                 .font(.ink.meta)

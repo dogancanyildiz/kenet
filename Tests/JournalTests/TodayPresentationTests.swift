@@ -49,7 +49,9 @@ struct TodayPresentationTests {
     private func make(
         events: Int = 0, tasks: Int = 0, goals: Int = 0, locale: String,
         groups: TaskGroups? = nil, completed: [TaskRow] = [], goalStatusesDay: CalendarDate? = nil,
-        goalsDefinitions: [GoalDefinition]? = nil, goalStatuses: [String: GoalStatus] = [:]
+        goalsDefinitions: [GoalDefinition]? = nil, goalStatuses: [String: GoalStatus] = [:],
+        foldsOpenTasks: Bool = false, foldViewportHeight: CGFloat = 694,
+        calendarEventCount: Int = 0, isTasksExpanded: Bool = false
     ) throws -> TodayPresentation {
         let definitions: [GoalDefinition]
         if let goalsDefinitions {
@@ -66,7 +68,9 @@ struct TodayPresentationTests {
                 ?? TaskGroups(
                     rows: (0..<tasks).map { try row($0) }, on: day, isToday: true),
             goals: definitions, goalStatuses: goalStatuses, goalStatusesDay: goalStatusesDay ?? day,
-            today: day, locale: Locale(identifier: locale), calendar: calendar, completedTasks: completed)
+            today: day, locale: Locale(identifier: locale), calendar: calendar, completedTasks: completed,
+            isTasksExpanded: isTasksExpanded, foldsOpenTasks: foldsOpenTasks,
+            foldViewportHeight: foldViewportHeight, calendarEventCount: calendarEventCount)
     }
 
     @Test(arguments: ["tr_TR", "en_US"])
@@ -394,6 +398,7 @@ struct TodayPresentationTests {
             switch row {
             case .task(let task): "t:\(task.id)"
             case .carriedOverDisclosure: "carried"
+            case .moreTasksDisclosure: "more"
             case .completedDisclosure: "completed"
             }
         }
@@ -407,6 +412,7 @@ struct TodayPresentationTests {
         #expect(
             value.rows.allSatisfy {
                 if case .carriedOverDisclosure = $0 { return false }
+                if case .moreTasksDisclosure = $0 { return false }
                 if case .completedDisclosure = $0 { return false }
                 return true
             })
@@ -429,6 +435,57 @@ struct TodayPresentationTests {
         let value = try make(
             locale: "tr_TR", goalsDefinitions: [first, second], goalStatuses: statuses)
         #expect(value.goalCount == 2)
+    }
+
+    @Test func summaryPartsUseRemainingGoals() throws {
+        let day = self.day
+        let definitions = (0..<3).map { index in
+            GoalDefinition(
+                id: "goal\(index)", key: "goal\(index)", name: "G\(index)", period: .day, kind: .boolean)!
+        }
+        var statuses: [String: GoalStatus] = [:]
+        for (index, goal) in definitions.enumerated() {
+            statuses[goal.key] = GoalStatus(
+                periodStart: day, periodEnd: day,
+                progress: GoalAmount(done: index == 0 ? 1 : 0, target: 1),
+                streak: 1, longestStreak: 1, isPendingToday: index != 0, score: 50, yearDone: 1,
+                yearProgress: nil)
+        }
+        let value = try make(
+            events: 2, tasks: 1, goals: 3, locale: "tr_TR", goalsDefinitions: definitions,
+            goalStatuses: statuses)
+        #expect(value.remainingGoalCount == 2)
+        #expect(value.goalCount == 3)
+        #expect(TodaySummaryCopy.spoken(value.summaryParts).contains("2 hedef"))
+        #expect(!TodaySummaryCopy.spoken(value.summaryParts).contains("3 hedef"))
+    }
+
+    @Test func openTaskFoldHidesAtLeastTwoAndExpands() throws {
+        var value = try make(
+            events: 1, tasks: 5, goals: 3, locale: "tr_TR", foldsOpenTasks: true,
+            foldViewportHeight: 694)
+        #expect(value.shouldFoldOpenTasks)
+        #expect(value.visibleOpenTasks.count == 3)
+        #expect(value.hiddenOpenTaskCount == 2)
+        #expect(value.openTasksDisclosure != nil)
+        #expect(
+            value.rows.contains {
+                if case .moreTasksDisclosure = $0 { return true }
+                return false
+            })
+        value.isTasksExpanded = true
+        #expect(value.hiddenOpenTaskCount == 0)
+        #expect(value.visibleOpenTasks.count == 5)
+
+        let four = try make(
+            events: 1, tasks: 4, goals: 3, locale: "tr_TR", foldsOpenTasks: true,
+            foldViewportHeight: 694)
+        #expect(!four.shouldFoldOpenTasks)
+
+        let wide = try make(
+            events: 1, tasks: 8, goals: 3, locale: "tr_TR", foldsOpenTasks: false,
+            foldViewportHeight: 694)
+        #expect(!wide.shouldFoldOpenTasks)
     }
 
     @Test func dayTaskSecondaryExposesDateRecurrencePriorityAndCarried() throws {

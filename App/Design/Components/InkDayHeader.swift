@@ -3,20 +3,32 @@ import SwiftUI
 /// Day manşet: ring + day number + day name, with an optional action slot.
 struct InkDayHeader<Actions: View>: View {
     var date: Date
-    /// Remaining work fraction for the ring (0…1 remaining → progress = 1 − remaining share).
-    /// Prefer passing ``progress`` as remaining/total inverted by the caller: accent shows remaining.
+    /// Ring fill 0…1; accent arc shows remaining work (caller passes remaining/total).
     var progress: Double
     /// Number drawn in the ring center (remaining count).
     var remainingCount: Int
+    /// Hide the ring when the day has no daily goals (screens.md).
+    var showsRing: Bool = true
     /// Compact single-row layout (scrolled / collapsed).
     var compact: Bool = false
+    /// Compact title ("20 Eylül Pazar"); falls back to day number + day name when nil.
+    var compactTitle: String? = nil
     @ViewBuilder var actions: () -> Actions
 
     @Environment(\.calendar) private var calendar
     @Environment(\.locale) private var locale
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-    @ScaledMetric(relativeTo: .largeTitle) private var dayNumberSize = InkSize.largeNumber
+    /// Design table: 48 on iPhone, 34 on Mac; scales with Dynamic Type.
+    #if os(macOS)
+        @ScaledMetric(relativeTo: .largeTitle) private var dayNumberSize: CGFloat = 34
+    #else
+        @ScaledMetric(relativeTo: .largeTitle) private var dayNumberSize = InkSize.largeNumber
+    #endif
     @ScaledMetric(relativeTo: .body) private var ringSide = InkSize.dayRing
+
+    private var dayNameFormatter: DateFormatter {
+        InkWeekStrip.makeFormatter(template: "EEEE", calendar: calendar, locale: locale)
+    }
 
     var body: some View {
         Group {
@@ -31,7 +43,7 @@ struct InkDayHeader<Actions: View>: View {
 
     private var expandedLayout: some View {
         HStack(alignment: .center, spacing: 12) {
-            ring
+            if showsRing { ring }
             VStack(alignment: .leading, spacing: 2) {
                 dayNumberText
                 dayNameText
@@ -43,9 +55,17 @@ struct InkDayHeader<Actions: View>: View {
 
     private var compactLayout: some View {
         HStack(alignment: .center, spacing: 10) {
-            ring
-            dayNumberText
-            dayNameText
+            if showsRing { ring }
+            if let compactTitle, !compactTitle.isEmpty {
+                Text(verbatim: compactTitle)
+                    .font(.ink.dayName)
+                    .foregroundStyle(Color.ink.text)
+                    .lineLimit(1)
+                    .accessibilityAddTraits(.isHeader)
+            } else {
+                dayNumberText
+                dayNameText
+            }
             Spacer(minLength: 0)
             actionGroup
         }
@@ -57,7 +77,10 @@ struct InkDayHeader<Actions: View>: View {
             diameter: ringSide,
             centerLabel: String(remainingCount)
         )
-        .accessibilityLabel(Text(verbatim: "\(remainingCount)"))
+        .accessibilityLabel(
+            Text(
+                verbatim: TodayDayRing.accessibilityLabel(
+                    remaining: remainingCount, locale: locale)))
     }
 
     private var dayNumberText: some View {
@@ -74,7 +97,7 @@ struct InkDayHeader<Actions: View>: View {
     }
 
     private var dayNameText: some View {
-        Text(verbatim: dayName)
+        Text(verbatim: dayNameFormatter.string(from: date))
             .font(.ink.dayName)
             .foregroundStyle(Color.ink.secondaryText)
             .lineLimit(1)
@@ -89,22 +112,16 @@ struct InkDayHeader<Actions: View>: View {
     private var dayNumber: String {
         String(calendar.component(.day, from: date))
     }
-
-    private var dayName: String {
-        let formatter = DateFormatter()
-        formatter.calendar = calendar
-        formatter.locale = locale
-        formatter.setLocalizedDateFormatFromTemplate("EEEE")
-        return formatter.string(from: date)
-    }
 }
 
 extension InkDayHeader where Actions == EmptyView {
     init(
-        date: Date, progress: Double, remainingCount: Int, compact: Bool = false
+        date: Date, progress: Double, remainingCount: Int, showsRing: Bool = true,
+        compact: Bool = false, compactTitle: String? = nil
     ) {
         self.init(
-            date: date, progress: progress, remainingCount: remainingCount, compact: compact
+            date: date, progress: progress, remainingCount: remainingCount, showsRing: showsRing,
+            compact: compact, compactTitle: compactTitle
         ) { EmptyView() }
     }
 }

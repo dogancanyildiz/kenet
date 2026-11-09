@@ -65,39 +65,24 @@ struct DaysCalendarView: View {
                 let symbols = calendar.veryShortStandaloneWeekdaySymbols
                 let weekday = calendar.firstWeekday
                 let cells = model.cells(firstWeekday: weekday)
-                LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 7)) {
-                    ForEach(0..<7, id: \.self) { offset in
-                        Text(verbatim: symbols[(weekday - 1 + offset) % 7])
-                            .font(.ink.meta)
-                            .foregroundStyle(.ink.secondaryText)
+                // An eager Grid, not a LazyVGrid: inside a List row the lazy grid's height came out
+                // 8 pt short on some passes and right on others (same build, same simulator), so the
+                // card and every row under it moved. No column gap: seven 44 pt tap targets fill the
+                // phone column (7 × 46.6 pt) without overflowing the card.
+                Grid(horizontalSpacing: 0, verticalSpacing: 8) {
+                    GridRow {
+                        ForEach(0..<7, id: \.self) { offset in
+                            Text(verbatim: symbols[(weekday - 1 + offset) % 7])
+                                .font(.ink.meta)
+                                .foregroundStyle(.ink.secondaryText)
+                                .frame(maxWidth: .infinity)
+                        }
                     }
-                    ForEach(cells.indices, id: \.self) { index in
-                        if let day = cells[index] {
-                            let isToday = day == today
-                            let level = model.level(for: day)
-                            let isSelected = day == selected
-                            let isFuture = day > today
-                            Button {
-                                select(day)
-                            } label: {
-                                DaysCalendarDayMark(
-                                    day: day.day, level: level, isToday: isToday,
-                                    isSelected: isSelected, isFuture: isFuture
-                                )
-                                .tapTarget()
+                    ForEach(Self.weeks(of: cells), id: \.self) { week in
+                        GridRow {
+                            ForEach(week, id: \.self) { index in
+                                dayCell(cells[index])
                             }
-                            .buttonStyle(.plain)
-                            .accessibilityLabel(
-                                Text(LocalDay.instant(for: day), format: .dateTime.day().month().year())
-                            )
-                            .accessibilityHint(level > 0 ? Text("Günlük kaydı var") : Text("Boş gün"))
-                            .accessibilityAddTraits(isSelected ? .isSelected : [])
-                            // Until the first answer the days keep their place but are not drawn:
-                            // a month drawn without its marks would flash them in a moment later.
-                            .opacity(loaded == nil ? 0 : 1)
-                            .accessibilityHidden(loaded == nil)
-                        } else {
-                            Color.clear.frame(height: 44)
                         }
                     }
                 }
@@ -115,6 +100,42 @@ struct DaysCalendarView: View {
                 let enriched = days.map { $0.enriched(with: fragments[$0.id]) }
                 loaded = JournalCalendar(month: asked, days: enriched)
             }
+        }
+    }
+
+    /// Cell indices split into weeks of seven; the last week may be short.
+    static func weeks(of cells: [CalendarDate?]) -> [[Int]] {
+        stride(from: 0, to: cells.count, by: 7).map { Array($0..<min($0 + 7, cells.count)) }
+    }
+
+    @ViewBuilder
+    private func dayCell(_ cell: CalendarDate?) -> some View {
+        if let day = cell {
+            let isToday = day == today
+            let level = model.level(for: day)
+            let isSelected = day == selected
+            let isFuture = day > today
+            Button {
+                select(day)
+            } label: {
+                DaysCalendarDayMark(
+                    day: day.day, level: level, isToday: isToday,
+                    isSelected: isSelected, isFuture: isFuture
+                )
+                .tapTarget()
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(
+                Text(LocalDay.instant(for: day), format: .dateTime.day().month().year())
+            )
+            .accessibilityHint(level > 0 ? Text("Günlük kaydı var") : Text("Boş gün"))
+            .accessibilityAddTraits(isSelected ? .isSelected : [])
+            // Until the first answer the days keep their place but are not drawn:
+            // a month drawn without its marks would flash them in a moment later.
+            .opacity(loaded == nil ? 0 : 1)
+            .accessibilityHidden(loaded == nil)
+        } else {
+            Color.clear.frame(maxWidth: .infinity, minHeight: 44, maxHeight: 44)
         }
     }
 }

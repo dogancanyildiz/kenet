@@ -88,8 +88,10 @@ struct DayView: View {
     @State private var isHeaderCompact = false
     /// Visible scroll height between the top safe area and the bottom chrome (fold budget).
     @State private var viewportHeight: CGFloat = 550
-    /// Bumped when the scene becomes active so the greeting tracks the hour.
-    @State private var greetingTick = Date()
+    /// Bumped to the injected clock when the scene becomes active so the greeting tracks the
+    /// hour. Starts in the distant past, not at the wall clock: `clockNow` alone decides the
+    /// first greeting, so a frozen clock (previews, references) is never overridden by `Date()`.
+    @State private var greetingTick = Date.distantPast
 
     init(
         store: IndexStore, date: CalendarDate, isToday: Bool = false,

@@ -38,4 +38,7 @@ struct ProjectModel {
             .sorted { $0.id < $1.id }
     }
     var lastActivity: CalendarDate? { tasks.flatMap { [$0.createdDate, $0.done].compactMap { $0 } }.max() }
+    var relatedDays: [CalendarDate] {
+        Array(Set(tasks.flatMap { [$0.createdDate, $0.done].compactMap { $0 } })).sorted(by: >)
+    }
 }

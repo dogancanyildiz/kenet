@@ -9,14 +9,20 @@ struct TaskTimelineView: View {
     @State private var todayRequest = UUID()
     @State private var selectionAnswer = TaskSelectionAnswer()
     @State private var availableWidth: CGFloat = 0
+    @State private var selectedDay: CalendarDate
+    @State private var daySummary: DaySummary?
+    @State private var weekSummaries: [DaySummary] = []
+    @State private var eventEditor: EventEditorModel?
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.shellKind) private var shellKind
+    @Environment(\.calendar) private var calendar
     /// `true` when the Mac shell hosts the timeline full-width (outside ``TasksView``).
     let showsFilters: Bool
     let openDay: (String) -> Void
 
     init(tasks: TasksModel, showsFilters: Bool = false, openDay: @escaping (String) -> Void = { _ in }) {
         _model = State(initialValue: TimelineModel.board(for: tasks))
+        _selectedDay = State(initialValue: tasks.day)
         self.showsFilters = showsFilters
         self.openDay = openDay
     }
@@ -25,7 +31,7 @@ struct TaskTimelineView: View {
             if style == .desktop {
                 desktop
             } else {
-                detailSheet(mobileList, item: $selected)
+                detailSheet(mobileContent, item: $selected)
             }
         }
         .background(Color.ink.paper)
@@ -41,6 +47,11 @@ struct TaskTimelineView: View {
             NavigationStack { TimelineDateEditor(model: model, selection: selection) }
                 .frame(minWidth: 320, minHeight: 200).inkAdaptiveSheetPresentation(fitsContent: true)
         }
+        .sheet(item: $eventEditor) { event in
+            NavigationStack { EventTextEditor(model: event) }
+                .inkAdaptiveSheetPresentation()
+                .frame(minWidth: 320, minHeight: 200)
+        }
         .onChange(of: model.store.vaultURL) { _, _ in
             model.clearInteraction()
             selected = nil
@@ -49,6 +60,22 @@ struct TaskTimelineView: View {
         }
         .onChange(of: selected?.id) { _, _ in sourceDay = nil }
         .task(id: model.request) { await model.load() }
+        .task(id: TimelineDayRequest(date: selectedDay, updated: model.store.lastUpdated, scale: model.scale)) {
+            guard model.scale == .day else { daySummary = nil; return }
+            daySummary = nil
+            daySummary = try? await model.store.computeDay(on: selectedDay)
+        }
+        .task(id: TimelineWeekRequest(date: selectedDay, updated: model.store.lastUpdated, scale: model.scale)) {
+            guard model.scale == .week else { weekSummaries = []; return }
+            var loaded: [DaySummary] = []
+            for date in weekDates {
+                guard !Task.isCancelled else { return }
+                if let summary = try? await model.store.computeDay(on: LocalDay.today(at: date)) {
+                    loaded.append(summary)
+                }
+            }
+            weekSummaries = loaded
+        }
         .task(id: TaskSelectionRequest(id: selected?.id, updated: model.store.lastUpdated)) {
             let request = TaskSelectionRequest(id: selected?.id, updated: model.store.lastUpdated)
             if let answer = await TaskSelectionAnswer.load(request, store: model.store) { selectionAnswer = answer }
@@ -85,11 +112,46 @@ struct TaskTimelineView: View {
     }
 
     private var chart: some View {
-        TimelineDesktopView(model: model, todayRequest: todayRequest) {
-            selected = $0
-        } edit: {
-            editor = TimelineDateSelection(row: $0, edge: $1, root: model.store.vaultURL)
+        Group {
+            if model.scale == .day {
+                dayBoard
+            } else if model.scale == .week {
+                weekBoard
+            } else {
+                TimelineDesktopView(model: model, todayRequest: todayRequest) {
+                    selected = $0
+                } edit: {
+                    editor = TimelineDateSelection(row: $0, edge: $1, root: model.store.vaultURL)
+                }
+            }
         }
+    }
+
+    private var dayBoard: some View {
+        TimelineDayBoard(
+            store: model.store, day: selectedDay, today: model.today,
+            events: daySummary?.events ?? [], tasks: dayRows,
+            selectTask: { selected = $0 },
+            selectEvent: { eventEditor = EventEditorModel(store: model.store, day: selectedDay, row: $0) },
+            selectDay: { selectedDay = $0 })
+    }
+
+    private var dayRows: [TaskRow] {
+        (model.rows ?? []).filter { row in
+            guard row.rawStatus != "-", let span = TimelineDates(row).span(on: model.today) else { return false }
+            return span.first <= selectedDay && selectedDay <= span.last
+        }
+    }
+
+    private var weekDates: [Date] {
+        InkWeekStrip.daysInWeek(containing: LocalDay.instant(for: selectedDay), calendar: calendar)
+    }
+
+    private var weekBoard: some View {
+        TimelineWeekBoard(
+            store: model.store, week: weekDates, summaries: weekSummaries, rows: model.rows ?? [], today: model.today,
+            selectTask: { selected = $0 },
+            selectEvent: { day, event in eventEditor = EventEditorModel(store: model.store, day: day, row: event) })
     }
 
     private func chartWithPanel(showsPanel: Bool) -> some View {
@@ -144,9 +206,8 @@ struct TaskTimelineView: View {
         Group {
             if dynamicTypeSize.isAccessibilitySize {
                 VStack(alignment: .leading, spacing: 0) {
-                    scaleMenu(expands: true)
+                    scaleTabs
                     HStack(spacing: 8) {
-                        if style == .list { periodButtons }
                         todayButton
                         Spacer(minLength: 0)
                     }
@@ -156,27 +217,26 @@ struct TaskTimelineView: View {
                 // The menu alone sets the row height (the text button is taller on Mac), so
                 // the row sits where the other views' menu rows sit. The chart scrolls through
                 // the periods itself.
-                scaleMenu(expands: false)
+                scaleTabs
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .overlay(alignment: .trailing) { todayButton }
             } else {
-                HStack(spacing: 16) {
-                    scaleMenu(expands: true)
-                    periodButtons
-                    todayButton
+                VStack(alignment: .leading, spacing: 0) {
+                    scaleTabs
+                    HStack { todayButton; Spacer() }
                 }
             }
         }
     }
 
-    private func scaleMenu(expands: Bool) -> some View {
-        InkLabeledMenu(
-            "Ölçek", selection: Binding(get: { model.scale }, set: { model.choose($0) }),
-            options: [
-                InkMenuOption("Hafta", value: TimelineModel.Scale.week),
-                InkMenuOption("Ay", value: TimelineModel.Scale.month),
-                InkMenuOption("Çeyrek", value: TimelineModel.Scale.quarter),
-            ], expands: expands, identifier: TasksViewSelector.menuIdentifier)
+    private var scaleTabs: some View {
+        InkTabs(
+            selection: Binding(get: { model.scale }, set: { model.choose($0) }),
+            items: [
+                InkTabItem("Gün", value: TimelineModel.Scale.day),
+                InkTabItem("Hafta", value: TimelineModel.Scale.week),
+                InkTabItem("Çeyrek", value: TimelineModel.Scale.quarter),
+            ], identifier: "tasks.timeline.scale")
     }
 
     /// How the chart's rows are grouped: a manşet-row icon, so the menu row holds "Ölçek" alone.
@@ -199,6 +259,7 @@ struct TaskTimelineView: View {
     private var todayButton: some View {
         Button("Bugün") {
             model.showToday()
+            selectedDay = model.today
             todayRequest = UUID()
         }
         .buttonStyle(InkTextButtonStyle())
@@ -265,6 +326,36 @@ struct TaskTimelineView: View {
             }
         }
         .listStyle(.plain)
+        .inkPage()
+    }
+
+    private var mobileDayPage: some View {
+        VStack(spacing: 0) {
+            TasksPageTop(tasks: model.tasks, current: .timeline) { controls }
+            if let error = model.errorText {
+                InfoBand(kind: .error, verbatim: error)
+                    .padding(.horizontal, InkSpacing.margin)
+            }
+            ScrollView { dayBoard }
+        }
+        .inkPage()
+    }
+
+    @ViewBuilder private var mobileContent: some View {
+        if model.scale == .day {
+            mobileDayPage
+        } else if model.scale == .week {
+            mobileWeekPage
+        } else {
+            mobileList
+        }
+    }
+
+    private var mobileWeekPage: some View {
+        VStack(spacing: 0) {
+            TasksPageTop(tasks: model.tasks, current: .timeline) { controls }
+            ScrollView { weekBoard }
+        }
         .inkPage()
     }
     private func taskRow(_ row: TaskRow) -> some View {

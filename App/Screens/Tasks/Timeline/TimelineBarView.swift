@@ -15,11 +15,13 @@ struct TimelineBarView: View {
         ZStack(alignment: .leading) {
             Color.clear
             if let span = dates.span(on: model.today)?.clipped(to: model.bounds) {
+                let mark = TimelineBarMark.choice(for: span)
+                let isPoint = mark == .circle
                 let offset = CGFloat(span.first.ordinal - model.bounds.lowerBound.ordinal) * dayWidth
                 let length = CGFloat(span.last.ordinal - span.first.ordinal + 1) * dayWidth
-                let barWidth = max(span.isMilestone ? 12 : 8, span.isMilestone ? 12 : length - 4)
+                let barWidth = max(isPoint ? 12 : 8, isPoint ? 12 : length - 4)
                 HStack(spacing: 0) {
-                    if !span.isMilestone && dates.start.map(model.bounds.contains) == true {
+                    if !isPoint && dates.start.map(model.bounds.contains) == true {
                         handle(.start, barWidth: barWidth)
                     }
                     Spacer(minLength: 0)
@@ -35,25 +37,24 @@ struct TimelineBarView: View {
                             .foregroundStyle(.ink.secondaryText)
                             .padding(.trailing, 4)
                     }
-                    if row.isClosed && !span.isMilestone {
+                    if row.isClosed && !isPoint {
                         Circle()
                             .fill(Color.ink.secondaryText)
                             .frame(width: 7, height: 7)
                             .padding(.trailing, 4)
                             .accessibilityHidden(true)
                     }
-                    if !span.isMilestone && dates.due.map(model.bounds.contains) == true {
+                    if !isPoint && dates.due.map(model.bounds.contains) == true {
                         handle(.due, barWidth: barWidth)
                     }
                 }
-                .frame(width: barWidth, height: span.isMilestone ? 12 : 22)
-                .background { barChrome(isMilestone: span.isMilestone) }
-                .rotationEffect(.degrees(span.isMilestone ? 45 : 0))
+                .frame(width: barWidth, height: isPoint ? 12 : 22)
+                .background { barChrome(isPoint: isPoint) }
                 // The bar's shape bounds its ends' touch areas too: it reaches as far as they do.
                 // A short bar draws its grips past its own frame (quarter scale).
                 .contentShape(Rectangle().inset(by: -TimelineBarTouch.handleOutset)).onTapGesture(perform: select)
                 .gesture(gesture(edge: nil), including: TimelineBarTouch.dragsBody ? .all : .subviews)
-                .offset(x: offset + (span.isMilestone ? max(0, (dayWidth - 12) / 2) : 2))
+                .offset(x: offset + (isPoint ? max(0, (dayWidth - 12) / 2) : 2))
                 .contextMenu { TimelineTaskMenu(edit: edit) }
                 .help(dates.isValid ? Text(verbatim: row.text.plainText) : Text("Geçersiz tarih aralığı"))
                 .accessibilityLabel(
@@ -76,16 +77,20 @@ struct TimelineBarView: View {
     private var barColor: Color {
         if !dates.isValid { return Color.ink.warning }
         if presentation.usesSecondaryText { return Color.ink.secondaryText }
-        return presentation.showsOverdueCue ? Color.ink.warning : Color.ink.accent
+        return presentation.showsOverdueCue ? Color.ink.warning : ProjectColor.color(for: row.project)
     }
 
-    @ViewBuilder private func barChrome(isMilestone: Bool) -> some View {
-        let shape = RoundedRectangle(cornerRadius: isMilestone ? 0 : 5)
-        if row.isClosed && !isMilestone {
-            // Completed: outline bar + filled end cap (not color alone).
-            shape.strokeBorder(Color.ink.secondaryText, lineWidth: InkStroke.control)
+    @ViewBuilder private func barChrome(isPoint: Bool) -> some View {
+        if isPoint {
+            Circle().fill(barColor)
         } else {
-            shape.fill(barColor)
+            if row.isClosed {
+                // Completed: outline bar + filled end cap (not color alone).
+                Capsule()
+                    .strokeBorder(Color.ink.secondaryText, lineWidth: InkStroke.control)
+            } else {
+                Capsule().fill(barColor)
+            }
         }
     }
 

@@ -46,8 +46,13 @@ struct TaskListContent {
     let completed: [TaskRow]
     /// Open tasks per project key, whatever the filters.
     let projectOpenCounts: [String: Int]
+    let projectTotalCounts: [String: Int]
+    let projectCompletedCounts: [String: Int]
 
-    init(groups: TaskRowGroups, completed: [TaskRow], projectOpenCounts: [String: Int]) {
+    init(
+        groups: TaskRowGroups, completed: [TaskRow], projectOpenCounts: [String: Int],
+        projectTotalCounts: [String: Int], projectCompletedCounts: [String: Int]
+    ) {
         let overdue = groups.overdue.sorted(by: TasksModel.order)
         let future = Dictionary(
             grouping: (groups.today + groups.upcoming).sorted(by: TasksModel.order), by: { $0.due! })
@@ -69,6 +74,8 @@ struct TaskListContent {
                 return $0.sourceLine < $1.sourceLine
             }.prefix(TasksModel.completedLimit))
         self.projectOpenCounts = projectOpenCounts
+        self.projectTotalCounts = projectTotalCounts
+        self.projectCompletedCounts = projectCompletedCounts
     }
 }
 
@@ -135,16 +142,25 @@ final class TasksModel {
     func loadList() async {
         let request = listRequest
         let outcome = await QueryOutcome.of {
-            (
-                try await store.computeTaskGroups(today: request.day, scope: request.scope),
-                try await store.computeCompletedTasks(limit: Self.completedLimit, scope: request.scope),
-                try await store.computeOpenTaskCounts(),
-                try await store.computeProjects()
-            )
+            let groups = try await store.computeTaskGroups(today: request.day, scope: request.scope)
+            let completed = try await store.computeCompletedTasks(limit: Self.completedLimit, scope: request.scope)
+            let counts = try await store.computeOpenTaskCounts()
+            let names = try await store.computeProjects()
+            var totals: [String: Int] = [:]
+            var completedTotals: [String: Int] = [:]
+            for name in names {
+                let projectRows = try await store.computeProjectTasks(name)
+                let key = VaultIndex.projectKey(name)
+                totals[key] = projectRows.count
+                completedTotals[key] = projectRows.filter { $0.rawStatus == "x" || $0.rawStatus == "X" }.count
+            }
+            return (groups, completed, counts, names, totals, completedTotals)
         }
         switch outcome {
-        case .answer(let (groups, completed, counts, names)):
-            list = TaskListContent(groups: groups, completed: completed, projectOpenCounts: counts)
+        case .answer(let (groups, completed, counts, names, totals, completedTotals)):
+            list = TaskListContent(
+                groups: groups, completed: completed, projectOpenCounts: counts,
+                projectTotalCounts: totals, projectCompletedCounts: completedTotals)
             projects = names
             loadedListRequest = request
             listErrorText = nil

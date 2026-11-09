@@ -6,8 +6,12 @@ struct TasksView: View {
     let notificationRequest: UUID?
     @Binding var selection: String?
     @State private var pendingNotificationScroll: UUID?
+    @State private var detailRow: TaskRow?
+    @State private var detailSourceDay: CalendarDate?
     @State private var model: TasksModel
+    @ScaledMetric(relativeTo: .body) private var projectCardWidth: CGFloat = 170
     @Environment(\.shellKind) private var shellKind
+    @Environment(\.calendar) private var calendar
     init(
         store: IndexStore, selection: Binding<String?> = .constant(nil), notificationRequest: UUID? = nil,
         tasks: TasksModel? = nil
@@ -40,6 +44,16 @@ struct TasksView: View {
             .inkPage()
             .inkRootPageNavigationTitle("Görevler")
             .accessibilityIdentifier("screen.tasks")
+            .sheet(item: $detailRow) { row in
+                NavigationStack {
+                    TaskDetailView(store: store, row: row) { path in
+                        detailSourceDay = CalendarDate(String(path.dropFirst("journal/".count).dropLast(3)))
+                    }
+                    .navigationDestination(item: $detailSourceDay) { DayView(store: store, date: $0) }
+                    .inkSheet("Görev", onClose: { detailRow = nil })
+                }
+                .inkAdaptiveSheetPresentation()
+            }
             .onChange(of: model.viewState) { _, state in
                 #if os(iOS)
                     state.save(to: .standard)
@@ -111,7 +125,11 @@ struct TasksView: View {
                     .listRowBackground(Color.ink.paper)
             }
             // The sections wait for the first answer: no "Görev yok." or 0 count while it loads.
-            if model.list != nil { listSections }
+            if model.list != nil {
+                weeklySummaryRow
+                projectCardsRow
+                listSections
+            }
         }
         .listStyle(.plain)
         .inkPage()
@@ -127,6 +145,58 @@ struct TasksView: View {
     private var pageTop: some View {
         TasksPageTop(tasks: model, current: .list) {
             TasksSectionMenu(tasks: model)
+        }
+    }
+
+    private var weeklySummaryRow: some View {
+        let summary = TasksWeeklySummary.make(
+            open: model.agenda.flatMap(\.rows), completed: model.completed,
+            today: model.day, calendar: calendar)
+        return InkCard {
+            HStack(spacing: 16) {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Bu hafta").font(.ink.section).foregroundStyle(.ink.text)
+                    InkProgress(kind: .fraction(summary.fraction))
+                }
+                Spacer(minLength: 8)
+                Text(String(format: String(localized: "%1$d/%2$d görev"), summary.completed, summary.total))
+                    .font(.ink.value).monospacedDigit().foregroundStyle(.ink.secondaryText)
+            }
+        }
+        .inkListRow()
+    }
+
+    @ViewBuilder private var projectCardsRow: some View {
+        if !model.projects.isEmpty {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 10) {
+                    ForEach(model.projects, id: \.self) { project in
+                        let open = model.openCount(ofProject: project)
+                        let key = VaultIndex.projectKey(project)
+                        let total = model.list?.projectTotalCounts[key] ?? open
+                        let completed = model.list?.projectCompletedCounts[key] ?? 0
+                        NavigationLink {
+                            ProjectView(store: store, name: project)
+                        } label: {
+                            InkCard {
+                                VStack(alignment: .leading, spacing: 8) {
+                                    HStack(spacing: 6) {
+                                        Circle().fill(ProjectColor.color(for: project)).frame(width: 8, height: 8)
+                                        Text(verbatim: project).font(.ink.content).foregroundStyle(.ink.text)
+                                            .lineLimit(1)
+                                    }
+                                    Text(String(format: String(localized: "%1$d/%2$d görev"), open, total))
+                                        .font(.ink.meta).monospacedDigit().foregroundStyle(.ink.secondaryText)
+                                    InkProgress(kind: .fraction(total == 0 ? 0 : Double(completed) / Double(total)))
+                                }
+                                .frame(width: projectCardWidth, alignment: .leading)
+                            }
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+            .inkListRow()
         }
     }
 
@@ -211,7 +281,7 @@ struct TasksView: View {
                 store: store, row: row, day: model.day,
                 isOverdue: row.due.map { $0 < model.day } ?? false,
                 isBusy: model.busy.contains(row.id), allowsReopening: true,
-                footnote: footnote(for: row)
+                footnote: footnote(for: row), openDetail: { detailRow = row }
             ) { Task { await model.toggle(row) } }
             .inkListRow(columnSelected: selection == row.id)
             .tag(row.id)

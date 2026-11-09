@@ -13,6 +13,7 @@ struct TasksListRow: View {
     let isBusy: Bool
     var allowsReopening = false
     var footnote: Text? = nil
+    var openDetail: () -> Void = {}
     let complete: () -> Void
 
     @Environment(\.shellKind) private var shellKind
@@ -64,8 +65,27 @@ struct TasksListRow: View {
             .strikethrough(false)
         } secondary: {
             metaRow
+        } trailing: {
+            Button(action: openDetail) {
+                Image(systemName: "chevron.right")
+                    .font(.ink.meta.weight(.semibold))
+                    .foregroundStyle(.ink.tertiaryText)
+                    .tapTarget()
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(Text("Ayrıntıları göster"))
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(InkSpacing.cardPadding)
+        .background {
+            RoundedRectangle(cornerRadius: InkCorner.card, style: .continuous)
+                .fill(Color.ink.surface)
+                .overlay {
+                    RoundedRectangle(cornerRadius: InkCorner.card, style: .continuous)
+                        .stroke(Color.ink.rule, lineWidth: InkStroke.control)
+                }
+        }
+        .opacity(presentation.usesSecondaryText ? 0.68 : 1)
         #if !os(macOS)
             .contentShape(Rectangle())
             .modifier(TasksListRowTouch.Tap(shell: shellKind, completes: rowTapCompletes, complete: complete))
@@ -98,6 +118,11 @@ struct TasksListRow: View {
     @ViewBuilder private var metaRow: some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack(spacing: 8) {
+                if let project = row.project {
+                    Text(verbatim: project)
+                        .font(.ink.meta)
+                        .foregroundStyle(.ink.secondaryText)
+                }
                 if let date = row.due {
                     TaskDueDateLabel(date: date, presentation: presentation, asOf: day)
                 }

@@ -19,9 +19,10 @@ struct TimelineDrag {
 final class TimelineModel {
     enum Grouping: String, CaseIterable { case project, person, none }
     enum Scale: String, CaseIterable {
-        case week, month, quarter
+        case day, week, month, quarter
         var daysAcross: Int {
             switch self {
+            case .day: 1
             case .week: 7
             case .month: 30
             case .quarter: 113

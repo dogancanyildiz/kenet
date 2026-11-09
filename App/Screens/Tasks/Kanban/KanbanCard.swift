@@ -84,6 +84,9 @@ struct KanbanCard: View {
                                 ? Color.ink.secondaryText : Color.ink.text)
                     }
                     HStack(spacing: 8) {
+                        if let project = row.project {
+                            TagChip(title: project, filled: true)
+                        }
                         if let date = row.due {
                             TaskDueDateLabel(
                                 date: date, presentation: presentation, asOf: model.tasks.day,
@@ -109,6 +112,13 @@ struct KanbanCard: View {
                     }
                 }
             }
+            .overlay(alignment: .leading) {
+                RoundedRectangle(cornerRadius: 2, style: .continuous)
+                    .fill(ProjectColor.color(for: row.project))
+                    .frame(width: 4)
+                    .padding(.vertical, 1)
+                    .accessibilityHidden(true)
+            }
             .contentShape(Rectangle())
             .inkPointerLift()
         }
@@ -121,6 +131,7 @@ struct KanbanCard: View {
             dateEditor = TaskEditorModel(store: model.store, row: row)
         }
         .modifier(KanbanMoveAccessibilityActions(model: model, row: row))
+        .opacity(presentation.usesSecondaryText ? 0.68 : 1)
     }
 
     private func makeDragProvider() -> NSItemProvider {

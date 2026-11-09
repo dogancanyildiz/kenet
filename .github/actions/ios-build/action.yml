@@ -39,52 +39,30 @@ runs:
       shell: bash
       run: xcodegen generate
     # Ad ve UDID birlikte seçilir: sonraki adımlar aynı aygıtı kimliğiyle kullanır (aynı adı
-    # taşıyan ikinci bir çalışma zamanı kurulursa hedef belirsizleşmez). En yeni çalışma zamanı önce.
-    # iPhone: tercih listesi, yoksa herhangi bir iPhone. iPad: referanslar 13 inçlik ekranda çizilir
-    # (pick-simulator.sh ile aynı liste); listeden hiçbiri yoksa adım düşer, başka bir iPad'e
-    # sessizce geçmek görüntüleri değiştirir.
+    # taşıyan ikinci bir çalışma zamanı kurulursa hedef belirsizleşmez). Seçim kayıt betiğiyle
+    # ortaktır (.github/scripts/pick-simulator.sh): en eski kurulu iOS runtime'ı. Kapı referansları
+    # kaydedildikleri runtime'da çizmeli; imaj iki runtime taşıyınca (macos-26: iOS 26.2 ve 26.5)
+    # kapı en yenisini, kayıt en eskisini seçiyordu ve SF Pro metin alanları AX3'te eşleşmiyordu.
+    # iPad: referanslar 13 inçlik ekranda çizilir; listede aygıt yoksa betik düşer, başka bir
+    # iPad'e sessizce geçmek görüntüleri değiştirir.
     - name: Simülatör seç
       id: sim
       shell: bash
       env:
         FAMILY: ${{ inputs.family }}
       run: |
-        CHOSEN=$(xcrun simctl list devices available -j | python3 -c '
-        import json, os, re, sys
-        family = os.environ["FAMILY"]
-        preferred = {
-            "iphone": ["iPhone 17", "iPhone 16", "iPhone 15", "iPhone 14"],
-            "ipad": ["iPad Pro 13-inch (M5)", "iPad Pro 13-inch (M4)", "iPad Air 13-inch (M4)",
-                     "iPad Air 13-inch (M3)", "iPad Pro 13-inch"],
-        }
-        if family not in preferred:
-            print("Bilinmeyen cihaz ailesi: " + repr(family) + " (iphone ya da ipad)", file=sys.stderr)
-            sys.exit(1)
-        names = preferred[family]
-        data = json.load(sys.stdin)
-        devices = []
-        for runtime, entries in data.get("devices", {}).items():
-            if "iOS" not in runtime:
-                continue
-            version = tuple(int(part) for part in re.findall(r"[0-9]+", runtime.rsplit("iOS", 1)[-1]))
-            for device in entries:
-                name = device.get("name", "")
-                fits = name.startswith("iPhone") if family == "iphone" else name in names
-                if device.get("isAvailable") and fits:
-                    devices.append((version, name, device["udid"]))
-        devices.sort(key=lambda entry: entry[0], reverse=True)
-        order = names + [entry[1] for entry in devices] if family == "iphone" else names
-        for name in order:
-            for version, candidate, udid in devices:
-                if candidate == name:
-                    print(candidate + "|" + udid)
-                    sys.exit(0)
-        print("Uygun simülatör yok (" + family + "); aranan: " + ", ".join(names), file=sys.stderr)
-        sys.exit(1)
-        ')
-        echo "name=${CHOSEN%%|*}" >> "$GITHUB_OUTPUT"
-        echo "udid=${CHOSEN##*|}" >> "$GITHUB_OUTPUT"
-        echo "Seçilen simülatör: ${CHOSEN%%|*} (${CHOSEN##*|})"
+        case "$FAMILY" in
+          iphone) PICK=iPhone ;;
+          ipad) PICK=iPad ;;
+          *) echo "Bilinmeyen cihaz ailesi: '$FAMILY' (iphone ya da ipad)" >&2; exit 1 ;;
+        esac
+        CHOSEN=$(sh .github/scripts/pick-simulator.sh "$PICK")
+        UDID=${CHOSEN%% *}
+        REST=${CHOSEN#* }
+        NAME=${REST% iOS *}
+        echo "name=$NAME" >> "$GITHUB_OUTPUT"
+        echo "udid=$UDID" >> "$GITHUB_OUTPUT"
+        echo "Seçilen simülatör: $REST ($UDID)"
     # Derleme sırasında simülatör açılmaz: 3 çekirdekli runner'da açılış derlemeyle yarışıyordu
     # (paralel iki açılışla derleme 19 dk, biriyle 10 dk, açılışsız 4 dk) ve açılış sırasında
     # CoreSimulator aygıt listesi boş kalabiliyordu. Genel simülatör hedefi aynı ürünü (xctestrun)

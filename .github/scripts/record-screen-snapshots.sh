@@ -34,8 +34,8 @@ export SNAPSHOT_TESTING_RECORD="${SNAPSHOT_TESTING_RECORD:-failed}"
 command -v xcodegen >/dev/null || { echo "xcodegen gerekli: brew install xcodegen" >&2; exit 1; }
 xcodegen generate
 
-# Aygıt seçimi screen-tour.sh ile ortaktır (pick-simulator.sh): en eski kurulu iOS runtime'ı;
-# iPad'de 13 inçlik tercih listesi (.github/actions/ios-build ile aynı).
+# Aygıt seçimi screen-tour.sh ve CI kapısıyla (.github/actions/ios-build) ortaktır
+# (pick-simulator.sh): en eski kurulu iOS runtime'ı; iPad'de 13 inçlik tercih listesi.
 DEVICE=$(sh .github/scripts/pick-simulator.sh "$FAMILY")
 ID=${DEVICE%% *}
 NAME=${DEVICE#* }

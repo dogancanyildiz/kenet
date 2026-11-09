@@ -247,6 +247,6 @@ enum InkPalette {
     }
 }
 
-private extension UInt32 {
-    var clampedByte: UInt32 { Swift.min(255, self) }
+extension UInt32 {
+    fileprivate var clampedByte: UInt32 { Swift.min(255, self) }
 }

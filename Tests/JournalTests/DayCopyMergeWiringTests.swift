@@ -58,9 +58,10 @@ struct DayCopyVaultContext {
 
 @MainActor @Suite(.timeLimit(.minutes(1)))
 struct DayCopyMergeWiringTests {
-    @Test func mergeIsOffByDefault() async throws {
-        #expect(SyncPolicy.standard.mergesDayCopies == false)
-        let context = try DayCopyVaultContext(policy: .standard)
+    /// The standard policy merges (decision 2026-11-09); a policy with the flag off only lists.
+    @Test func mergeCanBeTurnedOff() async throws {
+        #expect(SyncPolicy.standard.mergesDayCopies == true)
+        let context = try DayCopyVaultContext(policy: SyncPolicy(mergesDayCopies: false))
         defer { context.clean() }
         let before = try DayCopyVaultContext.tree(context.cloud.root)
         await context.start()
@@ -74,8 +75,9 @@ struct DayCopyMergeWiringTests {
         #expect(listed == context.cases.dayCopies)
     }
 
+    /// Runs with the standard policy: the default wiring merges end to end.
     @Test func mergesEveryCopyInOrderAsCoreDoes() async throws {
-        let context = try DayCopyVaultContext(policy: SyncPolicy(mergesDayCopies: true))
+        let context = try DayCopyVaultContext(policy: .standard)
         defer { context.clean() }
         await context.start()
 

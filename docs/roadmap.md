@@ -81,13 +81,11 @@ Gerçek kullanım gerçek cihazda kalıcı kurulum ister. TestFlight yapısı ka
 
 ```mermaid
 flowchart LR
-    GK[İki cihazda deneme, sonra gün kopyası birleştirmesinin açılması] --> A11[Aşama 11 güvenli yazma kutusu]
     GM[Gelir modeli] --> A12[Aşama 12 lisans ve gelir kutusu]
 ```
 
 | Karar | Neyi açar | Not |
 |---|---|---|
-| Gün kopyasının kendiliğinden birleştirilmesi | Aşama 11'in güvenli yazma kutusu | Core birleştirme işlevi hazır: #206. Uygulama işlevi gerçek kasada çağırmaz. Kullanıcı iki cihazda bir hafta dener, sonra açılmasına karar verir: 2026-10-13. |
 | Gelir modeli | Aşama 12 | Lisans karara bağlandı: tüm hakları saklıdır. Sektör taraması bu kategoride reklamı önermiyor. Karar ilk mağaza yayınından önce verilir: 2026-10-21. |
 | Yapay zeka | Sonraki fikirler | Cihaz üstü model maliyetsiz bir seçenektir. Öneri: varsayılan kapalı. |
 
@@ -226,7 +224,7 @@ Aşama 10 sektör taramasından çıkan ilk dalgadır. Maddeler kimlik kararı g
 | Madde | Durum | Kanıt |
 |---|---|---|
 | Kasa konumu | Bitti. Kasa iCloud kapsayıcısında `Documents/Kenet` klasöründe durur; iCloud varsa ilk açılışta ilk seçenektir. Yerel kasa ve klasör seçimi kalır. Yerelden iCloud'a taşıma doğrulanmış kopyadır; kaynak silinmez. Gerçek cihazda Dosyalar ve ikinci cihaz denemesi kullanıcıdadır. | #314, #319 |
-| Eşitlenen kasada güvenli yazma | Açık. Hazır: Core koordinasyon sınırı ve `.merge` niyeti; App'te `NSFileCoordinator` ve okuma kuyruğu; eşitlenen klasör tespiti ve bandı; yer tutucu tespiti; Core'da gün kopyası birleştirme ve belirlenimci zaman kuralı; kopya dosyalar Tanılama'da; iCloud kasasında indirilmemiş dosya için indirme isteği, eşitleme göstergesi ve gün kopyası birleştirmesinin App bağlantısı (#361; bayrak varsayılan kapalı). `NSFileVersion` çakışmaları için tespit ve Tanılama listesi var (#287); sürüm çözümleme açık. Açık: iki cihaz denemesinden sonra birleştirme bayrağını açmak (karar 2026-10-13), sürüm çözümleme (karar 2026-10-20); indirme isteği ve yer tutucu davranışı gerçek cihazda doğrulanır. | #187, #189, #200, #203, #206, #207, #234, #238, #287, #319, #361 |
+| Eşitlenen kasada güvenli yazma | Açık. Hazır: Core koordinasyon sınırı ve `.merge` niyeti; App'te `NSFileCoordinator` ve okuma kuyruğu; eşitlenen klasör tespiti ve bandı; yer tutucu tespiti; Core'da gün kopyası birleştirme ve belirlenimci zaman kuralı; kopya dosyalar Tanılama'da; iCloud kasasında indirilmemiş dosya için indirme isteği, eşitleme göstergesi ve gün kopyası birleştirmesinin App bağlantısı (#361); birleştirme bayrağı varsayılan açık (karar 2026-11-09). `NSFileVersion` çakışmaları için tespit ve Tanılama listesi var (#287); sürüm çözümleme açık. Açık: sürüm çözümleme (karar 2026-10-20); indirme isteği, yer tutucu davranışı ve kendiliğinden birleştirme gerçek cihazda doğrulanır. | #187, #189, #200, #203, #206, #207, #234, #238, #287, #319, #361 |
 | Ana ekran widget'ı | Bitti. iOS'ta küçük ve orta zincir widget'ı. Widget veriyi App Group'taki anlık görüntüden okur. iCloud kasasında bekleyen evet/hayır hedefi widget içinde işaretlenir; yerel ve seçili kasada dokunma uygulamayı açar ve işaretler. Gerçek cihazda dokunma denemesi kullanıcıdadır. | #318, #325 |
 | Ekranlar kendi sorgusunu çalıştırır | Bitti. Bütün ekranlar, bildirim planlayıcı ve proje listeleri kendi sorgusunu çalıştırıyor. Okuma modelinden `days`, `tasks`, `projects` ve `goalStatuses` çıktı; parçalar blok metni taşımıyor. 5 yıllık kasada okuma modeli 10,8 MB'tan 2,35 MB'a, yeniden türetme 1.640 ms'den 50 ms'ye indi. `goals`, `goalLogs`, `goalPlaceFiles`, `reservedGoalKeys` ve `goalLogStart` da çıktı; okuma modeli 2,35 MB'tan 1,92 MB'a, yeniden türetme 50 ms'den 34 ms'ye indi (#294). Widget `goalStatuses` sonucunu uygulamanın yazdığı anlık görüntüden alır (#318). `entities` okuma modelinde kalır (karar 2026-10-20). | #192, #201, #205, #208, #210, #211, #212, #214, #225, #294, #318 |
 | Widget yenilemesinin testi | Bitti. `WidgetRefreshReliabilityTests`: 100 yayım, gece yarısı geçişi, uygulama ile widget yazmasının uzlaşması ve yenileme sayacı. | #325 |

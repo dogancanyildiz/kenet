@@ -30,11 +30,11 @@ enum SyncStatus: Equatable, Sendable {
     }
 }
 
-/// What the app may do to sync files on its own. Decision 2026-10-13: the app does not merge day
-/// copies in a real vault before the two-device trial, so the merge is off by default and has no
-/// switch in Settings; code and tests turn it on.
+/// What the app may do to sync files on its own. Decision 2026-11-09: the app merges day copies in
+/// the iCloud vault by default (decision 2026-10-13 had kept the merge off until the two-device
+/// trial). There is no switch in Settings; tests turn it off to check the listing-only behavior.
 struct SyncPolicy: Sendable, Equatable {
-    var mergesDayCopies = false
+    var mergesDayCopies = true
 
     static let standard = SyncPolicy()
 }

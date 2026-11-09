@@ -1029,7 +1029,7 @@ Güncelleme değişen yolların dosya adı ve yol anahtarlarına sahip bağlant�
 
 ## Eşitleme
 
-**Durum: kısmen uygulandı.** Kasa iCloud kapsayıcısında durabilir (2026-10-22). İndirme isteği ve eşitleme göstergesi uygulandı. Gün kopyası birleştirmesi uygulamaya bağlıdır; bayrağı varsayılan kapalıdır. Açık: sürüm çözümleme ve birleştirmenin iki cihaz denemesinden sonra açılması.
+**Durum: kısmen uygulandı.** Kasa iCloud kapsayıcısında durabilir (2026-10-22). İndirme isteği ve eşitleme göstergesi uygulandı. Gün kopyası birleştirmesi uygulamaya bağlıdır ve bayrağı varsayılan açıktır (karar 2026-11-09). Açık: sürüm çözümleme.
 
 **Tablo eşitlemenin bugünkü durumunu gösterir.**
 
@@ -1043,7 +1043,7 @@ Güncelleme değişen yolların dosya adı ve yol anahtarlarına sahip bağlant�
 | İndirilmemiş dosya için açık indirme isteği `startDownloadingUbiquitousItem` | Var: yalnız iCloud kasasında, her yer tutucu için bir kez. `CloudDownloading`; reddedilen istek Tanılama'da sayılır |
 | Çakışma birleştirme işlevi | `VaultFormat` içinde hazır ve sınanmış; uygulamaya bağlı değil |
 | Yer tutucu tanıma | `Core` içinde hazır; App listeyi `IndexUpdate.pendingDownloads` ile alır |
-| Gün kopyası birleştirme | `Core` içinde hazır; App bağlantısı `IndexStore+DayCopyMerge`. Bayrak `SyncPolicy.mergesDayCopies` varsayılan kapalı; Ayarlar'da anahtar yok |
+| Gün kopyası birleştirme | `Core` içinde hazır; App bağlantısı `IndexStore+DayCopyMerge`. Bayrak `SyncPolicy.mergesDayCopies` varsayılan açık (karar 2026-11-09); Ayarlar'da anahtar yok |
 | Arayüz | Eşitleme göstergesi `SyncStatusIndicator` ana pencerenin üstünde, yalnız iCloud kasasında. Birleştirme sonucu bandı aynı yerde |
 | Eşitlenen klasör tespiti | `SyncedFolderKind`: yol kalıpları ve `isUbiquitousItemKey`. Sağlayıcılar: iCloud Drive, Dropbox, OneDrive, Google Drive, File Provider |
 | Çakışan sürüm `NSFileVersion` | Var: tespit ve listeleme; çözümleme yok. Yalnız iCloud Drive kasasında. `ConflictVersionSource` |
@@ -1106,7 +1106,7 @@ sequenceDiagram
 
 Gün dosyası değişmeden önceki her hata, o çağrının yazdığı çakışma kopyalarını geri alır. Yalnız zaman verme ya da silme başarısızsa gün dosyası birleşmiş kalır. Sonraki çağrı aynı içeriğe varır ve kopyayı siler.
 
-App bağlantısı `IndexStore+DayCopyMerge` içindedir. Yenileme bitince `IndexStore` taramanın `dayCopies` listesini sırayla birleştirir; her kopya yazma kuyruğundan geçen tek bir yazmadır ve gün dosyasını yayımlar. Birleştirme yalnız `SyncPolicy.mergesDayCopies` açıkken, iCloud kasasında ve yazılabilir kasada çalışır. Bayrak varsayılan kapalıdır (karar 2026-10-13); Ayarlar'da anahtarı yoktur, kod ve testler açar. Bayrak kapalıyken hiçbir kopya birleşmez ve Tanılama listesi aynı kalır. Bir kopyanın hatası ötekileri durdurmaz. Başarısız kopya o oturumda, diskte durdukça yeniden denenmez ve Tanılama'da kalır. İndirme bekleyen kopya ya da gün dosyası (`awaitingDownload`) ve yazma sırasında yok olan kopya (`staleTarget`: başka cihaz birleştirip sildi) sayılmaz, sonraki yenilemede yeniden denenir. Gün editörü Journal bölümünü yazma sırasında, yazmadan hemen önce yeniden okur: araya giren birleştirme ya da başka yazma bölümü değiştirdiyse yazma `staleTarget` ile reddedilir, taslak editörde kalır. Bu kural bayrak kapalıyken de geçerlidir. Sonuç ana pencerenin üstünde bantta görünür: "N gün kopyası birleştirildi."
+App bağlantısı `IndexStore+DayCopyMerge` içindedir. Yenileme bitince `IndexStore` taramanın `dayCopies` listesini sırayla birleştirir; her kopya yazma kuyruğundan geçen tek bir yazmadır ve gün dosyasını yayımlar. Birleştirme yalnız `SyncPolicy.mergesDayCopies` açıkken, iCloud kasasında ve yazılabilir kasada çalışır. Bayrak varsayılan açıktır (karar 2026-11-09; karar 2026-10-13 onu iki cihaz denemesine kadar kapalı tutmuştu); Ayarlar'da anahtarı yoktur, testler kapatır. Bayrak kapalıyken hiçbir kopya birleşmez ve Tanılama listesi aynı kalır. Bir kopyanın hatası ötekileri durdurmaz. Başarısız kopya o oturumda, diskte durdukça yeniden denenmez ve Tanılama'da kalır. İndirme bekleyen kopya ya da gün dosyası (`awaitingDownload`) ve yazma sırasında yok olan kopya (`staleTarget`: başka cihaz birleştirip sildi) sayılmaz, sonraki yenilemede yeniden denenir. Gün editörü Journal bölümünü yazma sırasında, yazmadan hemen önce yeniden okur: araya giren birleştirme ya da başka yazma bölümü değiştirdiyse yazma `staleTarget` ile reddedilir, taslak editörde kalır. Bu kural bayrak kapalıyken de geçerlidir. Sonuç ana pencerenin üstünde bantta görünür: "N gün kopyası birleştirildi."
 
 ### Çakışan sürümler
 

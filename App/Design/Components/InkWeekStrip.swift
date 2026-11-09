@@ -5,10 +5,6 @@ struct InkWeekStrip: View {
     @Binding var selection: Date
     /// Days that have vault writing (compared at start-of-day).
     var writtenDays: Set<Date> = []
-    /// Event counts per day (start-of-day keys), spoken by VoiceOver ("…, 3 olay").
-    var eventCounts: [Date: Int] = [:]
-    /// When set, days after this instant are drawn but not tappable (Today / past-day strip).
-    var latestSelectable: Date? = nil
 
     @Environment(\.calendar) private var calendar
     @Environment(\.locale) private var locale
@@ -57,11 +53,6 @@ struct InkWeekStrip: View {
         let selected = calendar.isDate(day, inSameDayAs: selection)
         let isToday = calendar.isDateInToday(day)
         let written = writtenDays.contains { calendar.isDate($0, inSameDayAs: day) }
-        let events = eventCounts.first { calendar.isDate($0.key, inSameDayAs: day) }?.value ?? 0
-        let enabled =
-            latestSelectable.map {
-                TodayWeekStripMath.isSelectable(day, today: $0, calendar: calendar)
-            } ?? true
         return Button {
             selection = calendar.startOfDay(for: day)
         } label: {
@@ -71,10 +62,7 @@ struct InkWeekStrip: View {
                     .foregroundStyle(Color.ink.secondaryText)
                 Text(verbatim: Self.dayNumber(day, calendar: calendar))
                     .font(.ink.value)
-                    .foregroundStyle(
-                        enabled
-                            ? (selected ? Color.ink.text : Color.ink.secondaryText)
-                            : Color.ink.tertiaryText)
+                    .foregroundStyle(selected ? Color.ink.text : Color.ink.secondaryText)
                     .monospacedDigit()
                 HStack(spacing: 3) {
                     if isToday {
@@ -102,14 +90,12 @@ struct InkWeekStrip: View {
             }
             .frame(maxWidth: .infinity)
             .contentShape(Rectangle())
-            .opacity(enabled ? 1 : 0.45)
         }
         .buttonStyle(.plain)
-        .disabled(!enabled)
         .accessibilityLabel(
             Text(
                 verbatim: Self.accessibilityLabel(
-                    day: day, isToday: isToday, written: written, eventCount: events,
+                    day: day, isToday: isToday, written: written,
                     formatter: spoken, locale: locale))
         )
         .accessibilityAddTraits(selected ? [.isSelected] : [])
@@ -129,35 +115,33 @@ struct InkWeekStrip: View {
         String(calendar.component(.day, from: day))
     }
 
-    /// "20 Eylül Pazar, bugün, 3 olay" (screens.md). A written day without events says
-    /// "yazıldı" instead of the count; lowercase keys because the words sit mid-sentence.
     nonisolated static func accessibilityLabel(
-        day: Date, isToday: Bool, written: Bool, eventCount: Int = 0, formatter: DateFormatter,
-        locale: Locale
+        day: Date, isToday: Bool, written: Bool, formatter: DateFormatter, locale: Locale
     ) -> String {
-        let bundle = PresentationLocalization.bundle(locale)
         var parts = [formatter.string(from: day)]
         if isToday {
-            parts.append(String(localized: "bugün", bundle: bundle, locale: locale))
+            parts.append(
+                String(
+                    localized: "Bugün", bundle: PresentationLocalization.bundle(locale),
+                    locale: locale))
         }
-        if eventCount > 0 {
-            parts.append(String(localized: "\(eventCount) olay", bundle: bundle, locale: locale))
-        } else if written {
-            parts.append(String(localized: "yazıldı", bundle: bundle, locale: locale))
+        if written {
+            parts.append(
+                String(
+                    localized: "Yazıldı", bundle: PresentationLocalization.bundle(locale),
+                    locale: locale))
         }
         return parts.joined(separator: ", ")
     }
 
     /// Back-compat for tests that pass calendar/locale without a formatter.
     nonisolated static func accessibilityLabel(
-        day: Date, written: Bool, calendar: Calendar, locale: Locale, isToday: Bool = false,
-        eventCount: Int = 0
+        day: Date, written: Bool, calendar: Calendar, locale: Locale, isToday: Bool = false
     ) -> String {
         let formatter = makeFormatter(template: "EEEE d MMMM", calendar: calendar, locale: locale)
         let today = isToday || calendar.isDateInToday(day)
         return accessibilityLabel(
-            day: day, isToday: today, written: written, eventCount: eventCount,
-            formatter: formatter, locale: locale)
+            day: day, isToday: today, written: written, formatter: formatter, locale: locale)
     }
 
     nonisolated static func makeFormatter(template: String, calendar: Calendar, locale: Locale)

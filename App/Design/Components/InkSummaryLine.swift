@@ -5,9 +5,8 @@ struct InkSummaryLine: View {
     enum Part: Sendable {
         /// Conjunction / glue ("Bugün", "ve", "kaldı").
         case text(String)
-        /// Caller-formatted count phrase (e.g. LocalizedStringResource for "2 olay"), with
-        /// optional punctuation glued to it (",", ".") so it never wraps or floats alone.
-        case count(LocalizedStringResource, symbol: String? = nil, suffix: String = "")
+        /// Caller-formatted count phrase (e.g. LocalizedStringResource for "2 olay").
+        case count(LocalizedStringResource, symbol: String? = nil)
     }
 
     var parts: [Part]
@@ -20,7 +19,7 @@ struct InkSummaryLine: View {
                     Text(verbatim: text)
                         .font(.ink.byline)
                         .foregroundStyle(Color.ink.secondaryText)
-                case .count(let resource, let symbol, let suffix):
+                case .count(let resource, let symbol):
                     HStack(spacing: 4) {
                         if let symbol {
                             Image(systemName: symbol)
@@ -28,36 +27,26 @@ struct InkSummaryLine: View {
                                 .foregroundStyle(Color.ink.text)
                                 .accessibilityHidden(true)
                         }
-                        HStack(spacing: 0) {
-                            Text(resource)
-                            if !suffix.isEmpty {
-                                Text(verbatim: suffix)
-                            }
-                        }
-                        .font(.system(.title3, design: .default, weight: .semibold).monospacedDigit())
-                        .foregroundStyle(Color.ink.text)
+                        Text(resource)
+                            .font(.system(.title3, design: .default, weight: .semibold).monospacedDigit())
+                            .foregroundStyle(Color.ink.text)
                     }
                 }
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text(verbatim: Self.spoken(parts)))
+        .accessibilityLabel(Text(verbatim: Self.spokenParts(parts).joined(separator: " ")))
     }
 
-    /// Spoken words for unit tests (glue + resolved count keys with their glued suffix).
+    /// Spoken words for unit tests (glue + resolved count keys).
     nonisolated static func spokenParts(_ parts: [Part]) -> [String] {
         parts.map { part in
             switch part {
             case .text(let text): text
-            case .count(let resource, _, let suffix): String(localized: resource) + suffix
+            case .count(let resource, _): String(localized: resource)
             }
         }
         .filter { !$0.isEmpty }
-    }
-
-    /// The whole sentence as VoiceOver reads it: parts joined by single spaces.
-    nonisolated static func spoken(_ parts: [Part]) -> String {
-        spokenParts(parts).joined(separator: " ")
     }
 }

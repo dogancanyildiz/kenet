@@ -56,7 +56,7 @@ flowchart TD
     Arama -.-> Hedefler
 ```
 
-Arama bir sekme değildir. Her kök ekranda arama simgesi manşet satırının en sağında durur. Ayarlar'ı yalnız Bugün manşet satırındaki düğme açar. Ekran üstü, seçici, sıralama ve sheet kalıpları [Tasarım dili](design.md) belgesinin "Denetim kalıpları" bölümündedir.
+Arama bir sekme değildir. iPhone'da her kök ekranda arama simgesi manşet satırının en sağında durur. Ayarlar'ı yalnız Bugün gün başlığındaki düğme açar. Ekran üstü, seçici, sıralama ve sheet kalıpları [Tasarım dili](design.md) belgesinin "Denetim kalıpları" bölümündedir.
 
 **Mac'te kenar çubuğu girdisi pencerenin düzenini seçer: üç sütun ya da iki sütun.**
 
@@ -92,7 +92,7 @@ flowchart LR
 
 | Kenar çubuğu girdisi | Düzen | Liste sütunu | Ayrıntı sütunu |
 |---|---|---|---|
-| Bugün | Üç sütun | Günlük sütunu | Bugün ekranı |
+| Bugün | Üç sütun | Günlük sütunu | Bugün ekranı: gün zaman çizelgesi ve sağ panel |
 | Günlük | Üç sütun | Günlük sütunu | Seçili günün ekranı ya da "Bir gün seç" |
 | Görevler | Üç sütun | Görev listesi | Görev ayrıntısı ya da "Bir görev seç" |
 | Proje adı | Üç sütun | Proje ekranı | Görev ayrıntısı ya da "Bir görev seç" |
@@ -112,7 +112,7 @@ Bugün girdisi de Günlük sütununu gösterir. Kullanıcı o sütunda bir gün 
 | Bugün | Bugün sekmesi | Bugün girdisi, ayrıntı sütunu | `App/Screens/Today` | 1, 2, 3, 10 |
 | Gün ekranı | Günlük listesi iter | Günlük sütununda seçim | `App/Screens/Today` | 1 |
 | Günü kapat | Bugün'den sheet | Bugün'den sheet | `App/Screens/Today/CloseDayView.swift` | 10 |
-| Hızlı giriş | Bugün ve gün ekranının altında | Ayrıntı sütununun altında ve hızlı giriş penceresi | `App/Screens/Today`, `App/Mac` | 1, 2 |
+| Hızlı giriş | Bugün ve gün ekranının altında | Kenar çubuğunun altındaki kart ve hızlı giriş penceresi | `App/Screens/Today`, `App/Mac` | 1, 2 |
 | Günlük | Günlük sekmesi | Günlük sütunu | `App/Screens/Days` | 1 |
 | Özetler | Günlük iter | Kenar çubuğu ve Günlük sütunundaki bağlantı | `App/Screens/Summaries` | 6 |
 | Haftalık inceleme | Günlük'ten sheet | Günlük sütunundan sheet | `App/Screens/Summaries/WeeklyReviewView.swift` | 10 |
@@ -123,10 +123,10 @@ Bugün girdisi de Günlük sütununu gösterir. Kullanıcı o sütunda bir gün 
 | Varlık ekranı | Liste iter | Ayrıntı sütunu | `App/Screens/Entities/EntityView.swift` | 1, 6 |
 | Bağlantı bulunamadı | Bağlantı sheet'inde | Bağlantı sheet'inde | `App/Screens/Entities/UnresolvedEntityView.swift` | 1 |
 | Rehberden aktar | Kişiler türünde satır | Yok | `App/Screens/Entities/ContactImportView.swift` | 10 |
-| Graph | Kişiler ve Konumlar listesinde satır | Graph girdisi | `App/Screens/Graph` | 6 |
-| Harita | Kişiler ve Konumlar listesinde satır | Harita girdisi | `App/Screens/Map` | 6 |
+| Graph | Kişiler ve Konumlar listesinde kart | Graph girdisi | `App/Screens/Graph` | 6 |
+| Harita | Kişiler ve Konumlar listesinde kart | Harita girdisi | `App/Screens/Map` | 6 |
 | Hedefler | Hedefler sekmesi | Hedefler girdisi | `App/Screens/Goals` | 3 |
-| Arama | Manşet satırındaki simge; iPad’de donanım klavyesiyle ⇧⌘F ve ⌘K | Araç çubuğundaki düğme, ⌘F, ⌘K | `App/Screens/Shared/SearchView.swift` | 1 |
+| Arama | Manşet satırındaki simge; iPad’de donanım klavyesiyle ⇧⌘F ve ⌘K | Kenar çubuğunun tepesindeki alan, ⌘F, ⌘K | `App/Screens/Shared/SearchView.swift` | 1 |
 | Serbest not | Aramadan ve bağlantıdan | Aramadan ve bağlantıdan | `App/Screens/Shared/SearchNoteView.swift` | 1 |
 | Ayarlar | Bugün'den sheet | Sistem Settings sahnesi | `App/Screens/Settings`, `App/Mac/MacSettingsView.swift` | 4, 7 |
 | İlk açılış | Kasa yokken | Kasa yokken | `App/Screens/Onboarding` | 7 |
@@ -142,7 +142,8 @@ flowchart LR
     OlaySatiri[Bugün olay ve görev satırı] -->|kişi ya da konum bağlantısı| BaglantiSheet[Bağlantı sheet]
     BaglantiSheet -->|varlık var| VarlikEkrani[Varlık ekranı]
     BaglantiSheet -->|varlık yok| Bulunamadi[Bağlantı bulunamadı]
-    Bulunamadi -->|kişi ya da konum olarak ekle| VarlikEkrani
+    Bulunamadi -->|kişi, konum ya da özel tip| VarlikEkrani
+    Bulunamadi -->|not olarak oluştur| NotEkrani
     Baglam[Bağlam satırı] --> GunEkrani[Gün ekranı]
     Baglam --> VarlikEkrani
     Gelenler[Bu güne bağlananlar satırı] --> GunEkrani
@@ -171,34 +172,37 @@ Bildirim ve "Bugünü aç" kısayolu hedef sekmenin gezinme yığınını başa 
 
 ```mermaid
 flowchart TD
-    A[1 Manşet ve künye] --> B[2 Hedefler]
-    B --> C[3 Görevler]
-    C --> D[4 Takvim]
-    D --> E[5 Olaylar]
-    E --> F[6 Bağlam]
-    F --> G[7 Günlük yazısı]
-    G --> H[8 Bu güne bağlananlar]
-    H --> I[9 Günü kapat satırı]
-    I --> J[Sabit hızlı giriş kapsülü]
+    P[Parıltı: sol üst] -.-> A
+    A[1 Gün başlığı: gün halkası, gün rakamı, gün adı, arama ve Ayarlar] --> W[Hafta şeridi: 7 gün]
+    W --> K[Künye cümlesi ve 3 çip]
+    K --> B[2 Hedefler kartı]
+    B --> C[3 Görevler kartı]
+    C --> D[4 Takvim kartı]
+    D --> E[5 Olaylar kartı]
+    E --> F[6 Bağlam kartı]
+    F --> G[7 Günlük yazısı kartı]
+    G --> H[8 Bu güne bağlananlar kartı]
+    H --> I[9 Günü kapat kartı]
+    I --> J[Altta sabit hızlı giriş kapsülü]
 ```
 
-Uygulama açılışta Bugün ekranını gösterir. Geçmiş bir günün ekranı aynı düzeni kullanır. Bağlam ve "Günü kapat" yalnız Bugün'dedir.
+Uygulama açılışta Bugün ekranını gösterir. Bölüm 2–9 kartlarda durur; bölüm başlığı ve sayaç kartın üstündedir. Geçmiş günün düzeni [Gün ekranı](#gün-ekranı-1) bölümündedir.
 
 **Bugün ekranında nerede ne var.**
 
 | Sıra | Öğe | Aşama | İçerik | Ne zaman görünür |
 |---|---|---|---|---|
-| 1 | Manşet ve künye | 9 | Günün tarihi New York Semibold manşettir. Altında tek satırlık künye durur. | Her zaman. Künye yalnız sayacak bir şey varken görünür. |
+| 1 | Gün başlığı | 17 | Solda gün halkası, yanında gün rakamı ve gün adı, sağda arama ve Ayarlar. Altında hafta şeridi, onun altında künye cümlesi ve 3 çip. | Her zaman. Künye ve çipler yalnız söyleyecek bir şey varken görünür. |
 | 2 | Hedefler | 3 | Günlük dönemli hedefler. Altında haftalık ve yıllık hedefler aynı satır bileşeniyle durur. | Hedef varken. |
 | 3 | Görevler | 2 | Devreden görevler, bugünün görevleri ve bugün yazılan açık görevler. Bugün yazılan görev bitiş tarihi ileride olsa da görünür. | Görev varken. |
-| 4 | Takvim | 2, 10 | Cihaz takvimindeki bugünkü etkinlikler. Salt okunur, sans satır. | İzin sorulmadıysa ya da etkinlik varsa. |
-| 5 | Olaylar | 1 | Bugün yazılan olaylar, dosyadaki sırayla. Kenarda saat durur. | Olay varken. |
+| 4 | Takvim | 2, 10 | Cihaz takvimindeki bugünkü etkinlikler. Salt okunur satır. | İzin sorulmadıysa ya da etkinlik varsa. |
+| 5 | Olaylar | 1 | Bugün yazılan olaylar, dosyadaki sırayla. İşaret sütununda saat durur. | Olay varken. |
 | 6 | Bağlam | 10 | "Bu gün geçmişte" ve "Önemli tarihler" satırları. Başlık yoktur. | Yalnız Bugün'de, söyleyecek bir şey varken. |
 | 7 | Günlük yazısı | 1 | Serbest yazının ilk 4 satırı ve "Devamını yaz". | Her zaman. |
 | 8 | Bu güne bağlananlar | 10 | Başka dosyalardan bu güne bağlanan satırlar. | Satır varken. |
-| 9 | Günü kapat | 10 | İnce çizginin altında tek bağlantı satırı. | Yalnız Bugün'de, kalan bir şey varken. |
-| — | Hızlı giriş kapsülü | 1 | En altta sabit, opak kapsül. İçeriğin üstüne binmez. | Her zaman. |
-| — | Boş gün metni | 1 | Bugün'de "Gününden bir an yaz; @ ile kişi ekle". Geçmiş günde "Bu gün henüz bir şey yazılmadı." | Gün tümüyle boşken. |
+| 9 | Günü kapat | 10 | Tek satırlık kart. | Yalnız Bugün'de, kalan bir şey varken. |
+| — | Hızlı giriş kapsülü | 1 | En altta sabit, opak kapsül. İçeriğin üstüne binmez. Yüzen "+" düğmesi yoktur. | Her zaman. |
+| — | Boş gün metni | 1 | Bugün'de "Gününden bir an yaz; @ ile kişi ekle". | Gün tümüyle boşken. |
 
 **Bölüm başlıklarındaki sayaçlar.**
 
@@ -208,19 +212,23 @@ Uygulama açılışta Bugün ekranını gösterir. Geçmiş bir günün ekranı 
 | Görevler | Kalan görev sayısı. |
 | Olaylar | Olay sayısı. |
 
-Varsayılan yazı boyutunda hızlı giriş tek satırlı bir kapsüldür. Ölçü 390×844 ekran ve yaklaşık 84 pt alt güvenli alandır. Bu ölçüde manşet, hedefler, görevler ve ilk olay satırı kaydırmadan görünür.
+Varsayılan yazı boyutunda hızlı giriş tek satırlı bir kapsüldür. Ölçü 390×844 ekran ve yaklaşık 84 pt alt güvenli alandır. Bu ölçüde gün başlığı, hedefler, görevler ve ilk olay satırı kaydırmadan görünür.
 
-#### Manşet ve künye
+#### Gün başlığı
 
 | Konu | Davranış |
 |---|---|
-| Künye metni | Olayla başlar, kalanla biter: "3 olay · 4 görev ve 2 hedef kaldı". Sıfır olan parçayı yazmaz. Hiçbir şey yoksa satır yoktur. |
-| Gezinme çubuğu | Bugün sekmesi gezinme çubuğunu gizler. Geçmiş gün ekranı geri düğmesi için çubuğu tutar. |
-| Arama ve Ayarlar | Manşet satırının sağında durur. Ayarlar düğmesi yalnız telefondadır: `button.settings`. |
-| Günün grafiği | Manşet satırında Graph simgesi: Bugün'de Ayarlar ve aramanın solunda, geçmiş günde aramanın solunda. Satırda en çok 3 simge durur. Simge yalnız gün dosyası en az bir kişi, konum ya da özel tip varlığına çözülen bağlantı içerirken görünür. Mac'te sabit manşet şeridindedir. Dokunma o günün grafiğini açar: [Günün grafiği](#günün-grafiği). Kimlik `button.dayGraph`. Graph simgesiyle satırda üç simge olunca manşet çoğu gün ölçek ya da kısa ay geri çekilmesine girer ("Dar genişlik" satırı): "1 Eki Perşembe". |
-| Büyük yazı boyutları | Erişilebilirlik yazı boyutlarında düğmeler manşetin üstünde, sağa yaslı ayrı bir satırdadır. |
-| Dar genişlik | Manşet önce tam biçimi dener. Gerekirse kısa ay biçimini ve en çok %75 ölçeği dener. |
-| VoiceOver | VoiceOver her zaman tam biçimi okur. `navigationTitle` VoiceOver ve geçmiş için yine tarih metnidir. |
+| Gün halkası | Günlük hedeflerin yapılan oranını çizer. Ortasındaki sayı kalan günlük hedef sayısıdır. Halka Hedefler sayacıyla aynı kümeyi sayar. Günlük hedef yoksa halka çizilmez. VoiceOver "3 hedef kaldı" okur. |
+| Gün rakamı ve gün adı | Gün rakamı büyük ve kalındır; yanında gün adı ve ay durur: "Perşembe, Ekim". |
+| Hafta şeridi | Cihaz takviminin hafta başından 7 gün: Pzt–Paz ya da Paz–Cmt. Bugün `well` kapsülde vurguludur. Yazılan günün altında nokta durur. Bir güne dokunma o günün Gün ekranını açar. |
+| Künye cümlesi | Saate göre selamlama ve günün sayıları: "Günaydın. Bugün 2 olay, 6 görev ve 3 hedef var." Selamlama 05:00–11:59 "Günaydın", 12:00–17:59 "İyi günler", öteki saatlerde "İyi akşamlar"dır. Sayılar olay, kalan görev ve kalan günlük hedeftir; sayı ve sözcüğü öne çıkar. Sıfır olan parçayı yazmaz. Hiçbir sayı yoksa yalnız selamlama durur. |
+| Künye çipleri | 3 çip: zincir ("12 gün zincir"), dünün olay sayısı ("Dün 4 olay"), son görüşülen kişi. Her çip yalnız verisi varken görünür. Kişi çipi kişinin ekranını açar. |
+| Kaydırma | Kaydırınca gün başlığı tek satıra iner: gün rakamı, gün adı ve simgeler üstte kalır. |
+| Gezinme çubuğu | Bugün sekmesi gezinme çubuğunu gizler. |
+| Arama ve Ayarlar | Gün başlığının sağında durur. Ayarlar düğmesi yalnız telefondadır: `button.settings`. |
+| Günün grafiği | Gün başlığında Graph simgesi: Ayarlar ve aramanın solunda. Satırda en çok 3 simge durur. Simge yalnız gün dosyası en az bir kişi, konum ya da özel tip varlığına çözülen bağlantı içerirken görünür. Mac'te sabit manşet şeridindedir. Dokunma o günün grafiğini açar: [Günün grafiği](#günün-grafiği). Kimlik `button.dayGraph`. |
+| Büyük yazı boyutları | Erişilebilirlik yazı boyutlarında düğmeler ayrı satırdadır. Gün halkası gün rakamının üstüne çıkar. Hafta şeridi 2 satıra iner: 4 + 3 gün. |
+| VoiceOver | Künye cümlesi tek öğedir. Hafta şeridi her günü "20 Eylül Pazar, bugün, 3 olay" biçiminde okur. `navigationTitle` VoiceOver ve geçmiş için tarih metnidir. |
 
 #### Hedefler bölümü
 
@@ -248,7 +256,7 @@ Varsayılan yazı boyutunda hızlı giriş tek satırlı bir kapsüldür. Ölç�
 | Haftaya | Haftaya, sonraki haftanın başıdır. Hızlı girişte ve kısayolda yazılan "haftaya" ile aynı gündür. Üç yol aynı kuralı okur. |
 | Hafta başı | Hafta başı cihaz takviminden gelir. Pazartesi başlayan takvimde pazartesi, öteki takvimlerde pazardır. |
 | VoiceOver | VoiceOver eylemleri menüyle aynı listeden gelir. |
-| Geçmiş gün | Geçmiş gün ekranında taşıma menüsü ve VoiceOver eylemleri yoktur. |
+| Geçmiş gün | Gün ekranında taşıma menüsü ve VoiceOver eylemleri yoktur. |
 | Hepsini bugüne | Devreden görev varken Görevler başlığının ve "N devreden daha" satırının menüsünde durur. Katlanmışlar dahil bütün devreden görevleri bugüne yazar. |
 | Toplu yazma | Uygulama her görevi yazmadan hemen önce dosyadan yeniden okur ve ayrı yazar. Bir görev değişmişse ya da yazma hata verirse uygulama kalan görevleri yine yazar. |
 | Sonuç | Bilgi bandı sayıları gösterir: taşınan, değişmiş olduğu için taşınmayan ve taşınamayan görev. Otomatik yeniden deneme yoktur. |
@@ -272,14 +280,14 @@ Olay metni düzenleme sheet'indeki anma şeridi hızlı girişteki yeni varlık 
 
 | Satır | İçerik | Kural |
 |---|---|---|
-| Bu gün geçmişte | Önceki yıllarda aynı ay ve günde kişi ya da konum bağlantısı olan en yakın yıl. Tek satırdır. | Kenarda yıl durur. Satırda o günün kaynak sırasındaki ilk 2 kişi ve ilk konum durur. Altında kaç yıl önce olduğu ve başka yıl sayısı yazar: "1 yıl önce bugün · ve 2 yıl daha". |
+| Bu gün geçmişte | Önceki yıllarda aynı ay ve günde kişi ya da konum bağlantısı olan en yakın yıl. Tek satırdır. | İşaret sütununda yıl durur. Satırda o günün kaynak sırasındaki ilk 2 kişi ve ilk konum durur. Altında kaç yıl önce olduğu ve başka yıl sayısı yazar: "1 yıl önce bugün · ve 2 yıl daha". |
 | Bu gün geçmişte: dışarıda kalan | Kişi ve konum bağlantısı olmayan gün, bugünün kendisi ve ileri tarihli dosyalar. | Özetler'deki gibi frontmatter bağlantıları dışarıdadır. |
 | Bu gün geçmişte: 29 Şubat | 29 Şubat yalnız artık yılın 29 Şubat'ında görünür. | Satıra dokunma o günün ekranını açar. |
 | Önemli tarihler | Kişi dosyasındaki ve kayıtlı özel tip dosyasındaki her tarih alanı. Bugün dahil sonraki 7 günde yıl dönümüyse bir satırdır. | En çok 3 satır görünür. Fazlası "ve N tarih daha" satırıdır. |
-| Önemli tarihler: satır | Kenarda Bugün, Yarın ya da kısa tarih durur. Satırda varlığın adı, altında alanın adı ve yıl yazar: "doğum günü · 31 yıl". | Aynı kişide 2 tarih alanı 2 satırdır. Satıra dokunma varlığın ekranını açar. |
+| Önemli tarihler: satır | İşaret sütununda Bugün, Yarın ya da kısa tarih durur. Satırda varlığın adı, altında alanın adı ve yıl yazar: "doğum günü · 31 yıl". | Aynı kişide 2 tarih alanı 2 satırdır. Satıra dokunma varlığın ekranını açar. |
 | Önemli tarihler: dışarıda kalan | Konum dosyaları, geçersiz yazımlar, kaynak yılı bu yıldan büyük olanlar, ilk yıl dönümü gelmemiş olanlar ve kaynak tarihin kendisi: 0. yıl. | 29 Şubat tarihi, artık olmayan yılda 28 Şubat'a düşer. Bildirim yoktur. |
 
-Uygulama bağlamı yalnız Bugün'de ve yalnız söyleyecek bir şey varken çizer. Bağlam boşken yer tutmaz ve başlığı da yoktur. Geçmiş gün ekranında bağlam yoktur.
+Uygulama bağlamı yalnız Bugün'de ve yalnız söyleyecek bir şey varken çizer. Bağlam boşken kart da yer tutmaz; başlığı yoktur. Gün ekranında bağlam yoktur.
 
 #### Günlük yazısı
 
@@ -294,13 +302,13 @@ Varsa ekran serbest yazının ilk 4 satırını ve "Devamını yaz" bağlantıs�
 | Satır | Kaynak adı ve bağlantılı satırın metni. Başlıkta `SectionHeader` ve sayaç durur. |
 | Dokunma | Kaynağın ekranını açar: not, varlık ya da gün. |
 | Boş ya da hata | Bölüm boşsa ya da sorgu hata verirse uygulama bölümü çizmez. Bölüm yer tutmaz. |
-| Geçmiş gün | Bugün'de ve geçmiş gün ekranında aynıdır. |
+| Geçmiş gün | Bugün'de ve Gün ekranında aynıdır. |
 
 #### Günü kapat satırı (10)
 
 | Konu | Davranış |
 |---|---|
-| Yer | Ekranın son öğesi. İnce bir çizginin altında tek bağlantı satırı: "Günü kapat", `button.closeDay`. Bölüm başlığı yoktur. |
+| Yer | Ekranın son öğesi. Tek satırlık kart: "Günü kapat", `button.closeDay`. Bölüm başlığı yoktur. |
 | Koşul | Akışın listeleyeceği açık görev, işaretlenmemiş günlük hedef ya da bugün henüz günlük yazısı yokken görünür; bugün yazılıp bitişi ileride olan görev Bugün'de kalan sayılsa da satırı tek başına açmaz. Üçü de yoksa satır yer tutmaz. |
 | Günlük yazısı tanımı | `Journal` bölümündeki düz metin. Ölçü, ekrandaki "Günlük yazısı ekle…" önizlemesiyle aynıdır. Bölüm yoksa, boşsa ya da yalnız başlık taşıyorsa günlük yazısı yoktur. |
 | Boş gün | Ekran kısa olduğu için satır ilk ekranda görünür. |
@@ -486,14 +494,43 @@ Uygulama önce dosyaya yazar, sonra indeksi günceller. Yazma hata verirse kutu 
 
 | Öğe | Yer | Davranış |
 |---|---|---|
-| Manşet | Listenin içinde | Serif manşet. Gezinme çubuğunda büyük başlık yoktur. Sağda arama simgesi durur. |
-| Özetler | Manşetin altı | Özetler ekranını iter. |
-| Haftalık inceleme | Özetler'in altı | `button.weeklyReview`. Sheet açar, ok işareti taşımaz. Bu hafta yapıldıysa altında "Bu hafta yapıldı" yazar. |
-| Bilgi bandı | Haftalık inceleme satırının altı | İnceleme yazıldıktan sonra görünür. Kapatma düğmesi vardır. |
-| Ay takvimi | Satırların altı | Güne atlar. Günün altında yoğunluk düzeyine göre 1–3 nokta durur. Boş gün işaretsizdir. Bugün halkalıdır; rakam ile halka arasında boşluk kalır. |
-| Gün listesi | Takvimin altı | Ters kronolojik. Her günde olay sayısı ve günlük yazısının ilk satırı. Gün yoksa "Henüz gün yok". |
+| Manşet | Listenin içinde | Manşet "Günlük". Gezinme çubuğunda büyük başlık yoktur. Sağda arama simgesi durur. |
+| Özetler ve Haftalık inceleme | Manşetin altı, yan yana | 44 pt yüksekliğinde iki çip. Özetler çipi Özetler ekranını iter. Haftalık inceleme çipi (`button.weeklyReview`) sheet açar. Bu hafta yapıldıysa çipin altında "Bu hafta yapıldı" yazar. Erişilebilirlik boyutunda çipler alt alta durur. |
+| Bilgi bandı | Çiplerin altı | İnceleme yazıldıktan sonra görünür. Kapatma düğmesi vardır. |
+| Ay takvimi | Çiplerin altı, kartta | Güne atlar. Günün altında yoğunluk düzeyine göre 1–3 nokta durur. Boş gün işaretsizdir. Bugün halkalıdır; rakam ile halka arasında boşluk kalır. Gelecek günler üçüncül metin rengindedir. |
+| Gün listesi | Takvimin altı | Ters kronolojik kart satırları. Solda büyük gün rakamı ve kısa gün adı; sağda "2 olay · 2 görev" ve ilk olayın ilk satırı. Olay yoksa günlük yazısının ilk satırı durur. Gün yoksa "Henüz gün yok". |
 
-Bir güne dokunma gün ekranını açar. Gün ekranı Bugün ile aynı düzendir: olaylar, görevler, hedef kayıtları ve serbest yazı. Kullanıcı geçmiş bir güne olay ekler ve o günün hedef kayıtlarını düzeltir.
+Bir güne dokunma Gün ekranını açar.
+
+#### Gün ekranı (1)
+
+**Geçmiş günün ekranı saatli bir programdır.**
+
+```mermaid
+flowchart TD
+    A[Üst satır: geri, ay seçici, arama, günün grafiği] --> B[Hafta şeridi]
+    B --> C[Saatli program: saat sütunu ve zaman kartları]
+    C --> D[Saatsiz grubu]
+    D --> E[Hedef kayıtları kartı]
+    E --> F[Günlük yazısı kartı]
+    F --> G[Bu güne bağlananlar kartı]
+    G --> H[Altta sabit hızlı giriş kapsülü]
+```
+
+| Öğe | Davranış |
+|---|---|
+| Üst satır | Solda geri, ortada ay seçici, sağda arama. Gün dosyası bağlantı içeriyorsa aramanın solunda günün grafiği simgesi durur. Ay seçici dokunmayla o ayın takvimini açar; seçilen gün ekranı değiştirir. |
+| Hafta şeridi | Bugün'deki şerit. Seçili gün `well` kapsüldedir. Bir güne dokunma o günü gösterir. |
+| Saatli program | Solda saat sütunu, sağda olay ve görev kartları saat sırasıyla. Görev kartı görev kutusunu taşır. Kart sol renkli çubuklu zaman kartıdır. |
+| Saatsiz grubu | Saati olmayan olay ve görevler en altta "Saatsiz" başlığının altında, dosyadaki sırayla. |
+| Seçili kart | Dokunulan kart `accentSoft` zemin alır ve altında not satırını gösterir: olayın alt satırları ya da görevin tarihi. İkinci dokunma düzenlemeyi açar. |
+| Hedef kayıtları | O günün hedef kayıtları kartta. Kullanıcı kaydı düzeltir. |
+| Günlük yazısı ve bağlananlar | Bugün'deki kartların aynısı. |
+| Parıltı | Yoktur: Gün ekranı alt sayfadır. |
+| Boş gün | "Bu gün henüz bir şey yazılmadı." |
+| Taşıma | Gün ekranında görev taşıma menüsü ve VoiceOver taşıma eylemleri yoktur. |
+
+Kullanıcı geçmiş bir güne olay ekler ve o günün hedef kayıtlarını düzeltir. Gezinme çubuğu geri düğmesi için durur. Bağlam ve "Günü kapat" yalnız Bugün'dedir.
 
 ### Özetler (6)
 
@@ -505,13 +542,12 @@ flowchart TD
     B --> C[Dönem satırı: önceki, dönem adı, sonraki]
     C --> D{Dönem boş mu}
     D -->|Evet| E[Tek cümle, açık görevler satırı, Önceki döneme git]
-    D -->|Hayır| F[Ritim şeridi]
+    D -->|Hayır| G[3 sayı kartı ve fark yazısı]
+    G --> F[Ritim: haftada 7 gün çubuğu, ayda 30 günlük kare, yılda 12 ay çubuğu]
     F --> Y[Yalnız yılda: Yazılan günler haritası]
     Y --> W[Ay ve yılda: Haftanın günleri]
-    W --> G[Dört ana sayı ve fark yazısı]
-    G --> H[Kişiler ve Konumlar: ad çipleri]
-    H --> I[Hedefler: hedef satırı ve gün hücreleri]
-    I --> J[Görevler: yığılı çubuk]
+    W --> J[Görevler: açık görev eğrisi ve yığılı çubuk]
+    J --> H[En çok görüşülen ve En çok gidilen]
 ```
 
 | Öğe | Davranış |
@@ -519,22 +555,20 @@ flowchart TD
 | Giriş | Günlük ve Mac kenar çubuğu Özetler'i açar. |
 | Dönem sekmesi | Hafta \| Ay \| Yıl. Hafta pazartesi–pazar haftasıdır. Ay takvim ayıdır. Yıl takvim yılıdır. |
 | Dönem düğmeleri | Önceki ve sonraki dönem. Bugünün döneminden sonraki döneme geçiş yoktur. Gösterilen dönem bugünü içermiyorsa "Bu hafta", "Bu ay" ya da "Bu yıl" düğmesi görünür. iPhone'da yatay kaydırma da dönemi değiştirir. |
-| Ritim şeridi | Dönemin birimleri başına olay sayısı. Hafta birimi gündür. Ay birimi ayın 1'inden başlayan 7 günlük dilimdir: 1–7, 8–14, 15–21, 22–28, kalan günler. Yıl birimi aydır. Önceki dönemin aynı sıradaki birimi arkada geniş ve soluk çubuktur. |
-| Yazıldı işareti | Her birimin altında durur. Dolu nokta: gün yazıldı ya da birimin ölçülen günlerinin en az yarısı yazıldı. Halka: yarıdan azı yazıldı. Kısa çizgi: hiç yazılmadı. İşaret yok: birim henüz başlamadı. |
+| Ritim | Kartta. Hafta ve Yıl: dönemin birimleri başına olay sayısı çubuğu; hafta birimi gündür, yıl birimi aydır. Önceki dönemin aynı sıradaki birimi arkada geniş ve soluk çubuktur. Ay: ayın her günü için bir kare. Olaylı gün dolu, yalnız günlük yazısı olan gün yarım, yazılmayan gün boş karedir. Gelecek günde kare yoktur. VoiceOver tek öğe okur: "30 günün 22'sinde yazıldı". |
+| Yazıldı işareti | Hafta ve Yıl ritminde her birimin altında durur. Dolu nokta: gün yazıldı ya da birimin ölçülen günlerinin en az yarısı yazıldı. Halka: yarıdan azı yazıldı. Kısa çizgi: hiç yazılmadı. İşaret yok: birim henüz başlamadı. |
 | Yazılan günler | Yalnız Yıl sekmesinde, ritim şeridinin altında. 12 satır: satır başında kısa ay adı, ardından ayın 1'inden 31'ine kadar birer ısı haritası hücresi. Yazılmayan gün boş hücredir. Yalnız `Journal` yazısı olan gün kısmi hücredir. En az bir olayı olan gün tam hücredir. Bugün çerçevelidir. Ayda olmayan tarih ve bugünden sonraki gün çizilmez. Başlığın sayacı yılın "Yazılan gün" sayısıdır: "243 gün". Erişilebilirlik boyutunda hücreler büyür ve pazartesi haftalarına dizilir; harita yatay kayar ve son ölçülen haftayla açılır. |
 | Haftanın günleri | Ay ve Yıl sekmelerinde, ritim şeridinin (yılda yazılan günler haritasının) altında, ana sayıların üstünde. Pazartesi'den Pazar'a 7 satır: gün adı, 1 px çerçeveli yazma oranı çubuğu ve sağda eş aralıklı rakamlarla "3/4" sayacı. En yüksek yazma oranlı günün başında nokta işareti durur, adı ve sayacı yarı kalındır; eşitlikte olay sayısı yüksek olan, yine eşitse haftanın ilk günü seçilir. Hafta sekmesinde ve ölçülen günü sıfır olan dönemde çizilmez. |
-| Ana sayılar | Olay sayısı, yazılan gün, kişi geçişi, konum geçişi. iPhone'da 2 × 2 düzendedir; erişilebilirlik boyutunda tek sütundur. |
+| Sayı kartları | Sekmenin hemen altında 3 kart yan yana: Yazılan gün (ölçülen gün üzerinden: "22/30"), Olay, Tamamlanan görev. Her kartın altında fark yazar. Erişilebilirlik boyutunda kartlar alt alta durur. |
 | Fark | Uygulama farkı yazıyla verir: "önceki haftaya göre +4", "önceki haftayla aynı". Ok yoktur. |
 | Süren dönem farkı | Süren dönemde uygulama önceki dönemi aynı tarihe kadar sayar. Etiket bunu söyler: "geçen yılın aynı tarihine göre +12". |
-| Kişiler ve Konumlar | İlk 5 kişi ve konum ad çipidir. Çipte geçiş sayısı durur. Çip varlığın kendi ekranını açar. Sıra geçiş sayısına göre azalandır. Eşitlikte ad, sonra yol sırası geçerlidir. |
-| İlk kez işareti | Dönemde ilk kez geçen adın çipinde yıldız işareti durur. Bölümün altındaki "İlk kez:" satırı bu adları sayar. İlk 5'in dışındaki adlar da satırdadır. Satır en çok 10 ad gösterir, kalanı sayıyla söyler: "ve 3 kişi daha". |
-| Hedefler | Hedefler ekranındaki satır: halka, ad, değer, ilerleme çubuğu. Değer süren dönemde bugüne kadar sayılır. Hafta ve ayda günlük hedefin günleri tek satır ısı haritası hücresidir. |
-| Hedef farkı | Satırın altında küçük yazı: "önceki haftaya göre +12 sayfa · zincir +2". Uygulama yalnız sıfır olmayan farkı yazar. İki fark da sıfırsa satır yoktur. Kilometre taşında fark yoktur; yıllık hedefte zincir farkı yoktur. |
-| Görevler | "N görev oluşturuldu" ve fark. Altında, yığılı çubuğun üstünde üç sekmede de açık görev eğrisi durur: ritim birimlerinin ölçülen son günündeki açık envanter; önceki dönemin bütün birimleri kesikli çizgidir. Başlamamış birim çizilmez. Son noktada sayı, altında "— açık görev ┄ Önceki ay/hafta/yıl" ve "Dönem sonunda 23 açık · dönem başında 14" satırları durur. Başlangıç, dönemden önceki günün sonudur. Ardından tek yığılı çubuk gelir: tamamlanan, devreden, tarihsiz açık. Her parçanın sayısı açıklamada yazar. Erişilebilirlik boyutunda eğri birim adı ve sayı listesine döner; VoiceOver tek öğede "Açık görevler: başta 14, sonda 23; en çok 3. hafta 24" okur. Eşit en yüksek değerde ilk birim okunur. |
+| En çok görüşülen ve En çok gidilen | İki kart: ilk 5 kişi ve ilk 5 konum satırı. Satırda baş harf rozeti, ad ve geçiş sayısı durur. Satır varlığın kendi ekranını açar. Sıra geçiş sayısına göre azalandır. Eşitlikte ad, sonra yol sırası geçerlidir. |
+| İlk kez işareti | Dönemde ilk kez geçen adın satırında yıldız işareti durur. Bölümün altındaki "İlk kez:" satırı bu adları sayar. İlk 5'in dışındaki adlar da satırdadır. Satır en çok 10 ad gösterir, kalanı sayıyla söyler: "ve 3 kişi daha". |
+| Görevler | Kartta. "N görev oluşturuldu" ve fark. Altında, yığılı çubuğun üstünde üç sekmede de açık görev eğrisi durur: ritim birimlerinin ölçülen son günündeki açık envanter; önceki dönemin bütün birimleri kesikli çizgidir. Başlamamış birim çizilmez. Son noktada sayı, altında "— açık görev ┄ Önceki ay/hafta/yıl" ve "Dönem sonunda 23 açık · dönem başında 14" satırları durur. Başlangıç, dönemden önceki günün sonudur. Ardından tek yığılı çubuk gelir: tamamlanan, devreden, tarihsiz açık. Her parçanın sayısı açıklamada yazar. Erişilebilirlik boyutunda eğri birim adı ve sayı listesine döner; VoiceOver tek öğede "Açık görevler: başta 14, sonda 23; en çok 3. hafta 24" okur. Eşit en yüksek değerde ilk birim okunur. |
 | Sıfır bölüm | Sayısı sıfır olan bölümü uygulama çizmez. |
 | Boş dönem | "Bu dönemde kayıt yok." yazar. Açık görev varsa altında tek satır durur: "Açık görevler: 6 devreden, 4 tarihsiz". En altta "Önceki döneme git" düğmesi durur. Uygulama öteki bölümleri çizmez. |
-| Mac düzeni | İki sütun. Sol sütun: ritim, yılda yazılan günler, ay ve yılda haftanın günleri, ana sayılar, hedefler. Sağ sütun: kişiler, konumlar, görevler. |
-| Erişilebilirlik | Ritim şeridinin her sütunu birim adını ve değeri okur: olay sayısı, önceki dönem, yazıldı işareti. Erişilebilirlik boyutunda sütunlar satıra döner. Yazılan günler haritası ay başına bir öğe okur: "Mart: 22 gün yazıldı". Haftanın günleri satır başına bir öğe okur: "Cumartesi: 4 günün 4'ü yazıldı"; erişilebilirlik boyutunda gün adı ve sayaç üstte, çubuk altta tam genişliktedir. Yığılı çubuğun sayıları açıklamada yazar. Ad çipi sayıyı birimiyle okur: "Deniz Arıkan, 7 geçiş". |
+| Mac düzeni | Sayı kartları üstte tam genişlikte. Altında iki sütun. Sol sütun: ritim, yılda yazılan günler, ay ve yılda haftanın günleri. Sağ sütun: görevler, en çok görüşülen, en çok gidilen. |
+| Erişilebilirlik | Ritim şeridinin her sütunu birim adını ve değeri okur: olay sayısı, önceki dönem, yazıldı işareti. Erişilebilirlik boyutunda sütunlar satıra döner. Yazılan günler haritası ay başına bir öğe okur: "Mart: 22 gün yazıldı". Haftanın günleri satır başına bir öğe okur: "Cumartesi: 4 günün 4'ü yazıldı"; erişilebilirlik boyutunda gün adı ve sayaç üstte, çubuk altta tam genişliktedir. Yığılı çubuğun sayıları açıklamada yazar. Kişi ve konum satırı sayıyı birimiyle okur: "Deniz Arıkan, 7 geçiş". |
 | Yükleme | Dönem değişince ekran eski içeriği yeni yanıt gelene kadar gösterir. Gösterilecek içerik yoksa yükleme göstergesi çıkar. |
 | Gün dönümü | Ekran açıkken gün değişirse uygulama özeti yeni günle yeniden yükler. |
 
@@ -552,9 +586,8 @@ flowchart LR
 |---|---|
 | Süren dönem | Dönem bugünü içerir ve son günü bugünden sonradır. Bugün dönemin son günüyse dönem süren dönem değildir. |
 | Aynı tarih | Önceki haftanın aynı günü, önceki ayın aynı tarihi, önceki yılın aynı tarihi. Önceki ayda o tarih yoksa ayın son günü geçerlidir: 31 Mart'ın karşılığı 28 Şubat'tır. |
-| Ölçülen günler | Süren dönemde sayılar, ilk 5, ilk kez geçenler, ritim, açık envanter ve hedef ilerlemesi bugünde biter. Bugünden sonraki gün dosyaları sayıya girmez. |
+| Ölçülen günler | Süren dönemde sayılar, ilk 5, ilk kez geçenler, ritim ve açık envanter bugünde biter. Bugünden sonraki gün dosyaları sayıya girmez. |
 | Artık gün | 29 Şubat'ın önceki yıldaki karşılığı 28 Şubat'tır. 1 Mart 2029'da süren yıl 60 günü 2028'in 61 günüyle karşılaştırır, çünkü 2028 yılı 29 Şubat'ı içerir. 30 Mart'ta süren ay 30 günü Şubat'ın bütün günleriyle karşılaştırır. |
-| Hedef ilerlemesi | Hedef satırının değeri ve çubuğu bütün dönemin hedefine göredir. Yapılan miktar süren dönemde bugüne kadar sayılır. Örnek: haftada 3 kez hedefinde pazartesi ve salı yapıldı, cuma dosyasında da bir kayıt var. Çarşamba günü satır 2/3 gösterir. Yıllık hedef ve kilometre taşı da bugünde biter. Hedef farkı ölçülen günlerden gelir. |
 | Ritimde önceki dönem | Arkadaki soluk çubuklar önceki dönemin bütün birimlerini gösterir. |
 | Başlamamış dönem | Bugünden sonraki dönemi Core bütün olarak sayar. Ekran bu döneme geçmez. |
 
@@ -574,43 +607,33 @@ flowchart LR
 | Envanter dışı | İptaller ve tamamlanma tarihi olmayan tamamlanmış görevler. |
 | Kaynak günü olmayan görev | Oluşturma ve açık sayısına girmez. Geçerli tamamlanma tarihi varsa tamamlanan sayısına girer. |
 | Geri kurulamayan bilgi | Dosyalar durum ve değişiklik geçmişi tutmaz. Yeniden açma, iptal tarihi ve eski bitiş tarihi geri kurulamaz. |
-| Günlük hedef | Dönem katkısı ve hedef × dönemin gün sayısı. Yılda gün sayısı 365 ya da 366'dır. |
-| Haftalık hedef | Katkı ve hedef × dönemin değdiği pazartesi haftalarının sayısı. Ay ve yıl kenarlarındaki kısmi haftalar dahildir. 2026 yılı 53 haftaya değer. |
-| Yıllık hedef | Dönem sonunda yıl başından ilerleme. Fark yalnız seçilen dönemin katkısını gösterir. |
-| Zincir | Uygulama zinciri bütün geçmişten hesaplar. Bitmiş dönemde dönem sonuna göre, süren dönemde bugüne göre. Hedefler'deki zincirle aynı sayıdır. Günlük hedefte af kuralı geçerlidir. Satır bitmiş dönemde "Dönem sonu zinciri", süren dönemde "Güncel zincir" yazar. |
-| Günlük hedef skoru | Zincirin altında son 30 günün skoru: "Son 30 gün %87". Bitmiş dönemde dönemin son günüyle biten 30 gün. Süren dönemde Hedefler'deki bugünkü skor. Ölçülen gün yoksa skor satırı yoktur. |
-| Haftalık ve yıllık skor | Haftalık ve yıllık hedefin satırında skor yoktur. |
-| Kilometre taşı | Yıl içindeki ilk tamamlanma ve tarihi. Aynı yıl tekrarlanan kayıt katkıyı artırmaz. Zincir yoktur. |
-| İlerleme farkı | İki dönemin ölçülen günlerindeki katkı farkı. |
-| Zincir farkı | Dönem sonlarındaki zincirlerin farkı. |
+
+Özetler hedef ilerlemesi göstermez. Hedef ilerlemesi, zincir ve skor Hedefler sekmesindedir.
 
 ### Haftalık inceleme (10)
 
-**Haftalık inceleme akışının 6 adımı.**
+**Haftalık inceleme akışının 3 adımı.**
 
 ```mermaid
 flowchart LR
-    A[1 Haftanın sayıları] --> B[2 Açık görevler]
-    B --> C[3 Bir süredir görüşmediklerin]
-    C --> D[4 Hedefler]
-    D --> E[5 Not]
-    E --> F[6 Önizleme]
-    F -->|Günlüğe yaz| G[Günün günlük yazısının sonu]
+    A[1 Hafta: mini ritim, fark, 3 soru kartı] --> B[2 Açık görevler ve hedefler]
+    B --> C[3 Önizleme]
+    C -->|Kaydet| G[Günün günlük yazısının sonu]
     A -.->|Vazgeç| H[Dosyaya dokunmaz]
 ```
 
-Akış bir taslaktır. Tek yazma eylemi son adımdaki "Günlüğe yaz" düğmesidir. "Vazgeç" hiçbir dosyaya dokunmaz ve gün dosyası oluşturmaz.
+Akış bir taslaktır. Tek yazma eylemi son adımdaki "Kaydet" düğmesidir. "Vazgeç" hiçbir dosyaya dokunmaz ve gün dosyası oluşturmaz.
 
 **Akışın genel kuralları.**
 
 | Konu | Davranış |
 |---|---|
-| Giriş | Günlük'teki "Haftalık inceleme" satırı sheet açar. Mac'te Günlük sütunundaki bağlantı aynı sheet'i açar. |
-| İsteğe bağlılık | Uygulama hatırlatmaz. Hiçbir adım zorunlu değildir. Suçlayıcı söz yoktur. |
-| Çubuk | Çubukta yalnız "Vazgeç" vardır. Not yazılmışsa "Vazgeç" önce sorar. |
-| Adım sayacı | Manşetin altında adım yazar: "Adım 1/6". |
-| Gezinme | "Geri" ve "İleri" adımlar arasında gezer. Adım çıktıya bir şey katmıyorsa düğmenin adı "Atla" olur: anahtar kapalı, gösterecek bir şey yok ya da not boş. |
-| Düğme yeri | iPhone'da düğmeler ekranın sonundadır. Mac'te sheet sabit boyuttadır. Düğmeler alt çubuğun hemen üstünde sabit durur. Uzun önizlemede "Günlüğe yaz" kaydırmadan görünür. |
+| Giriş | Günlük'teki "Haftalık inceleme" çipi sheet açar. Mac'te Günlük sütunundaki çip aynı sheet'i açar. |
+| İsteğe bağlılık | Uygulama hatırlatmaz. Hiçbir adım ve hiçbir soru zorunlu değildir. Suçlayıcı söz yoktur. |
+| Çubuk | Çubukta yalnız "Vazgeç" vardır. Bir soru kartı doluysa "Vazgeç" önce sorar. |
+| Adım sayacı | Manşetin altında adım yazar: "Adım 1/3". |
+| Gezinme | "Geri" ve "İleri" adımlar arasında gezer. Adım çıktıya bir şey katmıyorsa düğmenin adı "Atla" olur: anahtar kapalı ya da gösterecek bir şey yok. |
+| Düğme yeri | iPhone'da düğmeler ekranın sonundadır. Mac'te sheet sabit boyuttadır. Düğmeler alt çubuğun hemen üstünde sabit durur. Uzun önizlemede "Kaydet" kaydırmadan görünür. |
 | Hafta | İncelenen hafta cihaz takviminin hafta başına göre 7 gündür: pazartesi ya da pazar. Özetler'in sabit pazartesi haftasından ayrıdır. |
 | Hafta seçimi | İlk adımdaki "Bu hafta \| Geçen hafta" sekmesi haftayı seçer. |
 | Çıktının günü | Seçili hafta ne olursa olsun çıktı incelemenin yapıldığı günün günlük yazısının sonuna gider. Sheet açıkken gece yarısı geçerse açılış günü geçerlidir. |
@@ -619,22 +642,21 @@ Akış bir taslaktır. Tek yazma eylemi son adımdaki "Günlüğe yaz" düğmesi
 
 | Adım | İçerik |
 |---|---|
-| 1 Haftanın sayıları | Sayıların üstünde kısa ritim şeridi: incelenen haftanın 7 günü, cihaz takviminin hafta başından. Her günün arkasında önceki haftanın aynı sıradaki günü soluk çubuktur. Gün altında yazıldı işareti durur. Bugünden sonraki günde günün çubuğu ve işareti yoktur; önceki haftanın soluk çubuğu durur. Şeridin altında olay farkı yazar: "Önceki haftaya göre +4 olay". Süren haftada uygulama önceki haftayı aynı güne kadar sayar: "Geçen haftanın aynı gününe göre +4 olay". Bugünden sonraki tarihli dosyanın olayları şeritte ve farkta sayılmaz; "Olay sayısı" ve çıktı haftanın bütün dosyalarını sayar. "Geçen hafta" sekmesinde karşılaştırma ondan önceki haftayladır. Ardından olay sayısı, tamamlanan görev ve yazılan gün. Tanımlar Özetler'deki tanımlardır. Sıfır olan sayı ve cümlesi görünmez. Üçü de sıfırsa "Bu dönemde kayıt yok." yazar ve şerit yoktur. Şerit ve fark çıktıya girmez. |
-| 2 Açık görevler | Haftadan kalan açık görevlerin sayısı ve ilk 3 görev. Bitişi haftanın son günü ya da öncesi olanlar ve o hafta yazılan tarihsizler. Adım yalnız gösterir. Taşıma ve tamamlama "Günü kapat" akışındadır. |
-| 3 Bir süredir görüşmediklerin | Kişiler'deki listenin vadesi gelen ilk 3 kişisi. Ritim, erteleme ve duraklatma dahildir. Hiç görüşülmeyenler yoktur. |
-| 4 Hedefler | Günlük hedefte haftanın inceleme gününe kadarki günlerinden kaçında hedefe ulaşıldığı: "2/6 gün". Haftalık hedefte incelenen haftanın günlerindeki miktar: "25 / 100 sayfa". Pazar takviminde de adım incelenen pazar–cumartesi günlerini sayar. Hedefin kendi pazartesi haftası geçerli değildir. Yıllık hedef yoktur. |
-| 5 Not | Çok satırlı serbest metin. |
-| 6 Önizleme | Dosyaya gidecek satırlar, baştaki `· ` işaretleriyle aynen. Seçim yoksa ve not boşsa "Yazılacak bir şey seçilmedi." yazar ve "Günlüğe yaz" kapalıdır. |
+| 1 Hafta: ritim | Kartta kısa ritim şeridi: incelenen haftanın 7 günü, cihaz takviminin hafta başından. Her günün arkasında önceki haftanın aynı sıradaki günü soluk çubuktur. Gün altında yazıldı işareti durur. Bugünden sonraki günde günün çubuğu ve işareti yoktur; önceki haftanın soluk çubuğu durur. Şeridin altında olay farkı yazar: "Önceki haftaya göre +4 olay". Süren haftada uygulama önceki haftayı aynı güne kadar sayar: "Geçen haftanın aynı gününe göre +4 olay". Bugünden sonraki tarihli dosyanın olayları şeritte ve farkta sayılmaz. "Geçen hafta" sekmesinde karşılaştırma ondan önceki haftayladır. |
+| 1 Hafta: sayılar | Olay sayısı, tamamlanan görev ve yazılan gün. Tanımlar Özetler'deki tanımlardır. Sıfır olan sayı ve cümlesi görünmez. Üçü de sıfırsa "Bu dönemde kayıt yok." yazar ve şerit yoktur. Şerit ve fark çıktıya girmez; sayı cümleleri girer. |
+| 1 Hafta: soru kartları | Sayıların altında 3 kart, her biri tek satırlık alan: "Ne iyi gitti?", "Ne aksadı?", "Gelecek hafta tek odak". Kartlar isteğe bağlıdır. Boş kart çıktıya girmez. |
+| 2 Açık görevler ve hedefler | Haftadan kalan açık görevlerin sayısı ve ilk 3 görev: bitişi haftanın son günü ya da öncesi olanlar ve o hafta yazılan tarihsizler. Altında hedefler özeti: günlük hedefte haftanın inceleme gününe kadarki günlerinden kaçında hedefe ulaşıldığı ("2/6 gün"); haftalık hedefte incelenen haftanın günlerindeki miktar ("25 / 100 sayfa"). Pazar takviminde de adım incelenen pazar–cumartesi günlerini sayar. Yıllık hedef yoktur. Adım yalnız gösterir. Taşıma ve tamamlama "Günü kapat" akışındadır. |
+| 3 Önizleme | Dosyaya gidecek satırlar, baştaki `· ` işaretleriyle aynen. Seçim yoksa ve soru kartları boşsa "Yazılacak bir şey seçilmedi." yazar ve "Kaydet" kapalıdır. |
 
 **Çıktı ve yazma kuralları.**
 
 | Konu | Davranış |
 |---|---|
-| Anahtar | İlk 4 adımın her birinde "Çıktıya ekle" anahtarı vardır. Varsayılan açıktır. Kapalı adımın cümleleri çıktıya girmez. |
+| Anahtar | Adım 1'in sayıları ve adım 2 birer "Çıktıya ekle" anahtarı taşır. Varsayılan açıktır. Kapalı bölümün cümleleri çıktıya girmez. |
 | Biçim | Kullanıcının dilinde bir `### Haftalık inceleme` alt başlığı ve düz satırlar. Biçim [Kasa biçimi](vault-format.md) belgesindedir. |
-| Sıra | Adımların sırası. Not sondadır. Sayı cümlelerinin başında haftanın tarih aralığı durur. |
-| Kişi adı | Kişiler düz adla gider. Bağlantı sözdizimi yoktur. Niteliği olan kişinin adının ardında nitelik durur: "Mert Aksu (iş)". Nitelik, Özetler'deki gibi aynı adlı 2 kişiyi ayırır. |
-| Not içeriği | Notta görev, saatli olay ya da başlık gibi görünen satır yazı olarak kalır. Çıktı görev ya da olay üretmez. |
+| Sıra | Sayı cümleleri, açık görev ve hedef cümleleri, sonra dolu soru kartları. Sayı cümlelerinin başında haftanın tarih aralığı durur. |
+| Soru kartı satırı | Her dolu kart serbest not satırıdır: soru ve cevap tek satırda, "Ne iyi gitti: …". Çok satırlı cevap aynı temizlikten geçer. |
+| Not içeriği | Cevapta görev, saatli olay ya da başlık gibi görünen satır yazı olarak kalır. Çıktı görev ya da olay üretmez. |
 | İkinci yazma | İkinci yazma ikinci blok ekler. |
 | Yazma sırasında | Düğmeler kapalıdır ve sheet kapanmaz. Bir geçiş bir kez yazar. |
 | Başarı | Sheet kapanır. Günlük'te kapatma düğmeli bir bilgi bandı durur: "Haftalık inceleme günlüğe yazıldı." |
@@ -642,7 +664,7 @@ Akış bir taslaktır. Tek yazma eylemi son adımdaki "Günlüğe yaz" düğmesi
 | Hata: salt okunur kasa | Önizleme bunu baştan söyler. Düğme kapalıdır. |
 | Hata: dışarıdan değişiklik | Dosya dışarıdan değiştiyse kullanıcı yeniden dener. |
 | İndeks hatası | Metin dosyadaysa ve yalnız indeks güncellemesi hata verdiyse inceleme tamamdır. Sheet kapanır, bant uyarı olarak söyler. Uygulama yazmayı yinelemez. |
-| Bu hafta yapıldı | Yalnız cihaz tercihidir: incelenen haftanın ilk günü. Kasaya işaret gitmez. iPhone'da satırın altında, Mac'te bağlantının yanında yazar. |
+| Bu hafta yapıldı | Yalnız cihaz tercihidir: incelenen haftanın ilk günü. Kasaya işaret gitmez. Çipin altında yazar. |
 
 ### Görevler (2, 5)
 
@@ -655,19 +677,21 @@ flowchart TD
     Sekme --> Cizelge[Zaman çizelgesi]
     Liste --> Bolum[Bölüm menüsü: Yaklaşan, Tarihsiz, Tamamlanan, Projeler]
     Kanban --> Grupla[Grupla menüsü: durum, proje, kişi]
-    Cizelge --> Olcek[Ölçek menüsü]
+    Cizelge --> Olcek[Ölçek sekmesi: Gün, Hafta, Çeyrek]
 ```
 
-Manşetin altında sekme durur. Sekmenin altında görünüme göre değişen tek menü durur. iPhone son sekmeyi ve her sekmenin son menü seçimini hatırlar.
+Manşetin altında görünüm sekmesi durur. Sekmenin altında görünüme göre değişen tek seçici durur: Liste'de ve Kanban'da menü, Zaman çizelgesi'nde ölçek sekmesi. iPhone son görünümü ve her görünümün son seçimini hatırlar.
 
 **Görevler ekranında nerede ne var.**
 
 | Öğe | Yer | Davranış |
 |---|---|---|
-| Manşet | Listenin içinde | Serif manşet. Gezinme çubuğunda büyük başlık yoktur. Proje ve görev ayrıntısı ekranları aynı kalıbı kullanır. |
+| Manşet ve künye | Listenin içinde | Manşet "Görevler"; altında künye: "6 açık · 2 devreden". Gezinme çubuğunda büyük başlık yoktur. Proje ve görev ayrıntısı ekranları aynı kalıbı kullanır. |
 | Filtre ve arama | Manşet satırı | Simge. Filtreler: kişi, konum, proje. |
-| Sekme | Manşetin altı | Liste \| Kanban \| Zaman çizelgesi. |
-| Menü | Sekmenin altı | Liste'de "Bölüm", Kanban'da "Grupla", Zaman çizelgesi'nde "Ölçek". |
+| Sekme | Künyenin altı | Liste \| Kanban \| Zaman çizelgesi: altı çizili sekme. |
+| Haftalık özet kartı | Liste'de sekmenin altı | "Bu hafta 3/8 görev" ve ilerleme çubuğu. Pay, bu hafta tamamlanan görevdir; payda, bitişi bu haftada olan ve bu hafta tamamlanan görevlerin toplamıdır. |
+| Proje kartları | Liste'de özet kartının altı | Yatay kayan kartlar: proje adı, açık/toplam ve ilerleme çubuğu. Karta dokunma proje ekranını açar. |
+| Seçici | Liste'de proje kartlarının altı, öteki görünümlerde sekmenin altı | Liste'de "Bölüm" menüsü, Kanban'da "Grupla" menüsü, Zaman çizelgesi'nde Gün \| Hafta \| Çeyrek sekmesi. Bölümler (Devreden, Bugün, Yaklaşan…) kart içindedir. |
 | Geniş yüzey | Kanban ve Zaman çizelgesi | 680 pt sütun sınırına girmez. |
 | Mac kenar çubuğu | Mac | Kanban, Zaman çizelgesi ve proje girdileri gezinme düzenidir ve değişmez. |
 
@@ -679,15 +703,14 @@ Manşetin altında sekme durur. Sekmenin altında görünüme göre değişen te
 | Tarihsiz | 2 | Bitiş tarihi olmayan açık görevler. |
 | Tamamlanan | 2 | Son tamamlananlar. Satır soluktur. Üstünde çizgi yoktur. |
 | Projeler | 5 | Etiketlerden türeyen proje listesi ve açık görev sayısı. |
-| Proje ekranı | 5 | Bitiş gününe göre gruplu açık görevler. Tarihsizler ayrıdır. Tamamlananlar, görevlerdeki kişi ve konumlar ve son etkinlik. Satırlar Görevler ile aynı görev satırı bileşenidir. |
-| Proje: son etkinlik | 5 | Gün dosyasının ya da tamamlanma tarihinin en yenisi. Planlanan başlangıç ve bitiş tarihi etkinlik değildir. |
+| Proje ekranı | 5 | Manşet proje adı; künye "3 açık · 5 bitti". Altında ilerleme kartı: tamamlanan/toplam ve çubuk. Sonra görev grupları kartlarda: bitiş gününe göre açık görevler, tarihsizler, tamamlananlar. En altta ilgili günler: projenin görevlerinin yazıldığı günler, yeniden eskiye; satır o günü açar. Satırlar Görevler ile aynı görev satırı bileşenidir. |
 
 **Kanban (5).**
 
 | Konu | Davranış |
 |---|---|
 | Sütunlar | Durum, proje ya da kişi sütunları. Sütun başlığı sayaçlı bölüm başlığıdır. Kişisiz ve projesiz sütunlar vardır. |
-| Kart | Çerçeveli, gölgesiz kâğıt kart. Öncelik kutunun içindedir. |
+| Kart | `surface` kart, gölgesiz, 12 pt köşe. Sol kenarda proje rengi çubuk, proje çipi ve tarih. Öncelik kutunun içindedir. Bitti sütunundaki kartlar soluktur. |
 | İptal ve tamamlanan | İptal edilenler seçenekle görünür. Tamamlanan görevler son 30 takvim günüyle sınırlıdır: bugün dahil. Tarihsiz ve gelecek tarihli tamamlanmalar dışarıdadır. |
 | Filtre | Kişi, konum ve proje filtreleri ortaktır. |
 | Çok kişili görev | Birden çok çözülen kişiye bağlı görev her kişi sütununda görünür. |
@@ -704,14 +727,18 @@ Manşetin altında sekme durur. Sekmenin altında görünüme göre değişen te
 | Konu | Davranış |
 |---|---|
 | İçerik | Ortak kişi, konum ve proje filtreleriyle tarihli görevler. Tarihsizler ayrı listededir. |
-| Mac gruplama | Proje (varsayılan), kişi ya da gruplamasız satırlar. Gruplar açılıp kapanır. Ölçek hafta, ay ya da çeyrektir. Çok kişili görev kişi gruplarında tekrar eder. |
-| Biçim | Başlangıç ve bitiş varsa çubuk. Yalnız bitiş varsa tek günlük elmas. Yalnız başlangıç varsa bugüne kadar açık uçlu çubuk. Gelecekteki başlangıç tek noktadan başlar. |
-| Eksen | Tabular saat ve tarih sütunu. Vurgu rengi ve etiketle "bugün" çizgisi. Hafta sonu sütunu çukur renktedir. |
+| Ölçek | Altı çizili sekme: Gün \| Hafta \| Çeyrek. Bütün platformlarda aynıdır. |
+| Gün ölçeği | Dikey saat ekseni: varsayılan 09:00–18:00, kesik çizgili saat çizgileri; o günün en erken ve en geç saatli kaydı aralığı genişletir. Saatli görevler ve olaylar zaman kartlarındadır: sol kenarda renkli çubuk ve kartta proje adı. "Şimdi" çizgisi ve saat rozeti durur. Geciken kart uyarı rengi çerçeve ve "geç" etiketi taşır. Saatsiz görevler eksenin altında ayrı listededir. |
+| Hafta ölçeği | 7 gün sütunu; tarihli görevler çubuk ya da rozet olarak. |
+| Çeyrek ölçeği | Kartlı Gantt: yuvarlak uçlu çubuklar, tek günlük görev yuvarlak rozet, "Bugün" çizgisi. |
+| Mac gruplama | Hafta ve Çeyrek'te proje (varsayılan), kişi ya da gruplamasız satırlar. Gruplar açılıp kapanır. Çok kişili görev kişi gruplarında tekrar eder. |
+| Biçim | Başlangıç ve bitiş varsa yuvarlak uçlu çubuk. Yalnız bitiş varsa tek günlük yuvarlak rozet. Yalnız başlangıç varsa bugüne kadar açık uçlu çubuk. Gelecekteki başlangıç tek noktadan başlar. |
+| Eksen | Tabular saat ve tarih sütunu. Vurgu rengi ve etiketle "bugün" çizgisi. Hafta sonu sütunu `well` renktedir. |
 | Durum | Tamamlananlar soluk ve dolu uçludur. İptaller gizlidir. Devreden bitişler uyarı rengi ve işaret taşır. |
 | Ters aralık | Başka bir uygulamanın yazdığı ters aralık kaynakta kalır ve uyarıyla görünür. Yeni değişiklikler ters aralık üretmez. |
 | Aralık | Varsayılan: bugün -4 hafta / +12 hafta. Eksen ±365 gündür. Bugün düğmesi vardır. |
-| Telefon | Hafta ve ay başlıkları, küçük çubuklu dikey liste, dönem düğmeleri ve tarih menüsü. Sürükleme yoktur. |
-| iPad (bölünmüş kabuk) | Mac çizelgesi: etiket sütunu, kayan gün ekseni, manşet satırında "Grupla" menüsü. iPhone Duo iç ekranı da bu çizelgeyi kullanır. Dönem düğmesi yoktur; çizelge kayar. Parmak çubuğun ucunu sürükler ve tarihi Mac ile aynı satıra yazar. Ucun dokunma alanı çizilen tutamaktan geniştir. Kısa çubukta iki ucun alanı çubuğun ortasında ayrılır. Çubuğun gövdesine dokunmak ayrıntıyı açar. Gövdeden başlayan kaydırma çizelgeyi kaydırır; gövde sürüklenmez. Tek tarihli elmasın tarihi menüden değişir. Ayrıntı 340 pt paneldedir. Panel açılınca manşet yerinde kalır. Alan 800 pt'den darsa ayrıntı sheet'te açılır. Sekmeli kabukta telefon listesi durur. |
+| Telefon | Gün ölçeği dikey saat eksenidir. Hafta ve Çeyrek'te hafta başlıkları, küçük çubuklu dikey liste, dönem düğmeleri ve tarih menüsü. Sürükleme yoktur. |
+| iPad (bölünmüş kabuk) | Mac çizelgesi: etiket sütunu, kayan gün ekseni, manşet satırında "Grupla" menüsü. iPhone Duo iç ekranı da bu çizelgeyi kullanır. Dönem düğmesi yoktur; çizelge kayar. Parmak çubuğun ucunu sürükler ve tarihi Mac ile aynı satıra yazar. Ucun dokunma alanı çizilen tutamaktan geniştir. Kısa çubukta iki ucun alanı çubuğun ortasında ayrılır. Çubuğun gövdesine dokunmak ayrıntıyı açar. Gövdeden başlayan kaydırma çizelgeyi kaydırır; gövde sürüklenmez. Tek tarihli rozetin tarihi menüden değişir. Ayrıntı 340 pt paneldedir. Panel açılınca manşet yerinde kalır. Alan 800 pt'den darsa ayrıntı sheet'te açılır. Sekmeli kabukta telefon listesi durur. |
 
 **Görev satırı ve sheet'ler.**
 
@@ -720,9 +747,9 @@ Manşetin altında sekme durur. Sekmenin altında görünüme göre değişen te
 | Sıra | Aynı gündeki görevler yüksek, orta, normal, düşük öncelik sırasındadır. Eşitlikte dosya ve satır sırası geçerlidir. |
 | Satır | Öncelik kutunun içindedir. Tekrar rozeti vardır. |
 | Düzenleme menüsü | Bugüne, Yarına, Haftaya, Tekrar ve Öncelik. Taşıma kuralları Bugün'deki görev satırıyla aynıdır: bitişin zaten olduğu gün yoktur, kapalı görevde taşıma yoktur. |
-| Tekrar sheet'i | Ortak sheet kalıbı, kâğıt zemin, "Vazgeç / Kaydet". |
-| Tarih sheet'i | Ortak sheet kalıbı, kâğıt zemin, "Kapat". Tarih seçici yalnız hızlı girişteki küçük pencerede yüzey üstündedir. |
-| Görev ayrıntısı | Alanlar etiket-değer satırlarıdır. |
+| Tekrar sheet'i | Ortak sheet kalıbı, `elevated` zemin, "Vazgeç / Kaydet". |
+| Tarih sheet'i | Ortak sheet kalıbı, `elevated` zemin, "Kapat". Tarih seçici yalnız hızlı girişteki küçük pencerede `surface` üstündedir. |
+| Görev ayrıntısı | Görev metni ve altında etiket-değer kartı: proje çipi, bitiş tarihi (devredende uyarı rengi ve "30 Eyl'den"), tekrar, kişi ve konum. Öncelik altı çizili sözcük seçimidir: Düşük · Normal · ! Orta · !! Yüksek. Altında not. Altta "Yarına taşı" ve "Haftaya taşı" ikincil düğme, "Bitti" birincil dolu düğme. Kapalı görevde taşıma ve "Bitti" yoktur. |
 
 ### Kişiler ve Konumlar (1)
 
@@ -730,12 +757,13 @@ Manşetin altında sekme durur. Sekmenin altında görünüme göre değişen te
 
 | Öğe | Yer | Davranış |
 |---|---|---|
-| Manşet | Listenin içinde | Serif manşet. Gezinme çubuğunda büyük başlık yoktur. Sekme adı ve Mac kenar çubuğu değişmez. |
+| Manşet | Listenin içinde | Manşet. Gezinme çubuğunda büyük başlık yoktur. Sekme adı ve Mac kenar çubuğu değişmez. |
 | Sıralama ve arama | Manşet satırı | Simge. Sıra ada göre ya da son geçtiği tarihe göredir. |
 | Tür seçici | Manşetin altı | Yalnız Kişiler ve Konumlar varken sekmedir. Kasada özel tip varsa seçenek sayısı 4'e ulaşınca "Tür" menüsü olur. Özel tipler de seçicide durur. |
 | Süzgeç alanı | Tür seçicinin altı | Ara ekranındaki alanla aynı bileşen. Alan Bir süredir görüşmediklerin bölümünü de süzer. |
-| Graph ve Harita | Listenin en üstü | İki satır. Aynı gezinme yığınında tam ekran açar. Yeni sekme yoktur. |
-| Yeni kişi, Yeni konum ve Yeni <tip> | iPhone'da Graph ve Harita satırlarının altı. Mac'te ve iPad bölünmüş kabukta liste sütununda tür seçicinin altı. | Kişiler türünde "Yeni kişi", Konumlar türünde "Yeni konum", özel tipte "Yeni <tipin tekil adı>" satırı; örnek "Yeni kitap". Satır ad ve gerektiğinde ayırt edici isteyen küçük sheet açar. Vazgeç dosya yazmaz. Oluştur varlığı tipin klasörüne, varsa tipin şablonuyla kaydeder ve varlık ekranını açar. Mac'te yeni varlık listede seçili olur. |
+| Graph ve Harita | Listenin en üstü | Yan yana iki kart: simge, ad ve kısa sayı ("42 düğüm", "18 konum"). Aynı gezinme yığınında tam ekran açar. Yeni sekme yoktur. Erişilebilirlik boyutunda kartlar alt alta durur. |
+| Liste satırı | Liste kartı | Baş harf rozeti, ad, altında "Son görüşme 3 gün önce · 14 bağ" (konumda "Son ziyaret"), sağda 12 aylık mini geçiş çubuğu. Bağ sayısı açık bağların sayısıdır. Hiç geçmemiş varlıkta son görüşme metni ve çubuk yoktur. |
+| Yeni kişi, Yeni konum ve Yeni <tip> | iPhone'da Graph ve Harita kartlarının altı. Mac'te ve iPad bölünmüş kabukta liste sütununda tür seçicinin altı. | Kişiler türünde "Yeni kişi", Konumlar türünde "Yeni konum", özel tipte "Yeni <tipin tekil adı>" satırı; örnek "Yeni kitap". Satır ad ve gerektiğinde ayırt edici isteyen küçük sheet açar. Vazgeç dosya yazmaz. Oluştur varlığı tipin klasörüne, varsa tipin şablonuyla kaydeder ve varlık ekranını açar. Mac'te yeni varlık listede seçili olur. |
 | Rehberden aktar | "Yeni kişi" satırının altı | Yalnız iPhone'da, Kişiler türü seçiliyken. |
 | Yeni tip… | Oluşturma satırlarının en altı; her türde durur | Varlık tipi galerisini açar ([Özel varlık tipleri](#özel-varlık-tipleri-7)). Kaydedilen tip tür seçicide seçili olur. Tip tanımı dosyası okunamıyorsa satır devre dışıdır. |
 | Bir süredir görüşmediklerin | Kişi listesinin üstü | Katlanan bölüm. Mac'te ve telefonda vardır. |
@@ -752,7 +780,7 @@ Manşetin altında sekme durur. Sekmenin altında görünüme göre değişen te
 | Yön | Tek yönlü ve bir kerelik. Eşitleme yoktur. Uygulama rehber kimliğini tutmaz. |
 | Okunan alanlar | Yalnız kişinin sistemce biçimlenen tam adı ve varsa lakabı. Lakap takma ad olur. Uygulama telefon, e-posta, adres, doğum günü, şirket, not ve fotoğraf okumaz. |
 | Geçersiz kart | Şirket kartı ve adı olmayan kart geçersizdir. Yalnız lakabı olan kartta lakap ad olur. |
-| Özet sheet'i | Oluşacak kişiler (lakabıyla), kasada adı, takma adı ya da dosya adı zaten olanlar ve geçersiz adlar, sayılarıyla. Uygulama var olanları, türü ne olursa olsun, atlar. |
+| Özet sheet'i | Sistem seçicisinden sonra Kenet'in özet sheet'i açılır. Üç kart, sayılarıyla: oluşacak kişiler (lakabıyla), kasada adı, takma adı ya da dosya adı zaten olanlar ve geçersiz adlar. Eylem sayfada birincil "İçe aktar" düğmesidir. Uygulama var olanları, türü ne olursa olsun, atlar. |
 | Lakap çakışması | Lakap kasadaki ya da seçimdeki başka bir adla çakışırsa uygulama lakabı eklemez. Kişi yine oluşur. |
 | İçe aktar | "İçe aktar" kişileri sırayla yazar. Var olan dosyanın üzerine yazmayan oluşturma yolunu kullanır. Biri hata verirse uygulama kalanları dener. |
 | Sonuç | Sonuç ekranı oluşan, atlanan ve hata veren kişileri adlarıyla listeler. |
@@ -765,16 +793,16 @@ Manşetin altında sekme durur. Sekmenin altında görünüme göre değişen te
 | Sıra | Öğe | Davranış |
 |---|---|---|
 | 1 | Manşet ve künye | Manşet ekranın içindedir: ad. Künye tip, takma adlar ve son görülme tarihini yazar. Sağda "Düzenle" ve arama durur. Gezinme çubuğunda büyük başlık yoktur. |
-| 2 | Ayırt edici ve gelen bağlantılar | Etiket-değer satırları. |
-| 3 | Yıl dönümü | Kişide ve özel tipte, tarih alanı varsa sıradaki yıl dönümü tek satırdır: "doğum günü · 12 Nis · 31 yıl". Pencere yoktur. Konumda bu satır yoktur. |
-| 4 | Graph'ta göster | Kişide, konumda ve özel tipte. Graph o düğümü seçer ve ortaya alır. Özel tipte Graph o tipi süzgeçte açarak açılır. |
-| 5 | Son görüşme ya da Son ziyaret kartı | Yalnız kişi ve konumda. Ayrıntı [Kişi ve konum içgörüleri](#kişi-ve-konum-içgörüleri-6) bölümündedir. |
-| 5a | Bağlar | Kişi, konum ve özel tipte; süs çizgili başlık ve "Bağ kur" düğmesi. Giden satır "eşi · Selin Korkmaz", etiketsizde yalnız addır. Gelen satır "Mert Aksu'nun sayfasında · iş arkadaşı", etiketsizde yalnız kaynak sayfadır. Dokunma karşı varlığı açar. Uzun basma / Mac ikincil tık yalnız giden bağda "Bağı kaldır" sunar; özel tipin şema alanından gelen bağda kaldırma yoktur, o bağ Alanlar’da düzenlenir. Bağ kur sheet’i üstte isteğe bağlı etiketi ve kasadaki etiket önerilerini, altında aramalı listeyle kendisi hariç kişi, konum ve özel tip seçimini içerir; çubukta solda Vazgeç, sağda Kaydet durur (hedef seçilince etkin). Çakışan alan ve ayrılmış ad hatası sheet’te kalır; kaldırma hatası bölümde bilgi bandıdır. |
-| 6 | Alanlar ve Diğer alanlar | Şablon alanları etiket-değer satırlarıdır. Yalnız çözülen, uygulamanın yazdığı biçimdeki wikilinklerden (`[[Ad]]`) oluşan şema dışı bağ anahtarları okuma ve serbest alan düzenleyicisinde tekrar görünmez. Görünen metin (`[[Ad|metin]]`) ya da çapa (`[[Ad#başlık]]`) taşıyan, karışık metinli, çözülmeyen ya da sayfanın kendisine bağlanan değeri olan alan Alanlar’da kalır; şemadaki `link` alanı da kalır. Tanınmayan ön bilgi anahtarları "Diğer alanlar" altında ham adıyla, ikincil renkte durur. Uygulama frontmatter'ı okuyamıyorsa "Frontmatter okunamıyor." yazar. |
-| 7 | Açık görevler (2) | Bu varlığa bağlı tamamlanmamış görevler. |
-| 8 | Bağlanmamış anmalar | Zaman akışının hemen üstünde. |
-| 9 | Zaman akışı | Bu varlığın geçtiği olaylar ve günlük paragrafları, gün başlıklarıyla, yeniden eskiye. Başlıkta gün sayacı durur. Her satır ait olduğu günü açar. Boşsa "Henüz günlük kaydı yok." yazar. |
-| 10 | Serbest notlar | Okumada ham wikilink ve blok kimliği gizlidir. Boşsa "—" yazar. |
+| 2 | Son görüşme ya da Son ziyaret kartı | Yalnız kişi ve konumda, manşetin hemen altında. Kartta 12 aylık geçiş çubuğu ve 90 günlük şerit durur. Ayrıntı [Kişi ve konum içgörüleri](#kişi-ve-konum-içgörüleri-6) bölümündedir. |
+| 3 | Ayırt edici ve gelen bağlantılar | Etiket-değer satırları. |
+| 4 | Yıl dönümü | Kişide ve özel tipte, tarih alanı varsa sıradaki yıl dönümü tek satırdır: "doğum günü · 12 Nis · 31 yıl". Pencere yoktur. Konumda bu satır yoktur. |
+| 5 | Graph'ta göster | Kişide, konumda ve özel tipte. Graph o düğümü seçer ve ortaya alır. Özel tipte Graph o tipi süzgeçte açarak açılır. |
+| 6 | Bağlar | Kişi, konum ve özel tipte; kart üstünde başlık ve "Bağ kur" düğmesi. Giden satır "eşi · Selin Korkmaz", etiketsizde yalnız addır. Gelen satır "Mert Aksu'nun sayfasında · iş arkadaşı", etiketsizde yalnız kaynak sayfadır. Dokunma karşı varlığı açar. Uzun basma / Mac ikincil tık yalnız giden bağda "Bağı kaldır" sunar; özel tipin şema alanından gelen bağda kaldırma yoktur, o bağ Alanlar’da düzenlenir. Bağ kur sheet’i üstte isteğe bağlı etiketi ve kasadaki etiket önerilerini, altında aramalı listeyle kendisi hariç kişi, konum ve özel tip seçimini içerir; çubukta solda Vazgeç, sağda Kaydet durur (hedef seçilince etkin). Çakışan alan ve ayrılmış ad hatası sheet’te kalır; kaldırma hatası bölümde bilgi bandıdır. |
+| 7 | Alanlar ve Diğer alanlar | Şablon alanları etiket-değer satırlarıdır. Yalnız çözülen, uygulamanın yazdığı biçimdeki wikilinklerden (`[[Ad]]`) oluşan şema dışı bağ anahtarları okuma ve serbest alan düzenleyicisinde tekrar görünmez. Görünen metin (`[[Ad|metin]]`) ya da çapa (`[[Ad#başlık]]`) taşıyan, karışık metinli, çözülmeyen ya da sayfanın kendisine bağlanan değeri olan alan Alanlar’da kalır; şemadaki `link` alanı da kalır. Tanınmayan ön bilgi anahtarları "Diğer alanlar" altında ham adıyla, ikincil renkte durur. Uygulama frontmatter'ı okuyamıyorsa "Frontmatter okunamıyor." yazar. |
+| 8 | Açık görevler (2) | Bu varlığa bağlı tamamlanmamış görevler. |
+| 9 | Bağlanmamış anmalar | Zaman akışının hemen üstünde. |
+| 10 | Zaman akışı | Bu varlığın geçtiği olaylar ve günlük paragrafları, kart satırlarında, gün başlıklarıyla, yeniden eskiye. Başlıkta gün sayacı durur. Her satır ait olduğu günü açar. Her gün başlığında "Günün grafiği" bağlantısı durur ve o günün grafiğini açar. Boşsa "Henüz günlük kaydı yok." yazar. |
+| 11 | Serbest notlar | Okumada ham wikilink ve blok kimliği gizlidir. Boşsa "—" yazar. |
 
 Konumda koordinat, Alanlar tablosunda bir satırdır. Okuma ekranında harita yoktur. Konumların haritası Harita ekranındadır.
 
@@ -783,7 +811,7 @@ Konumda koordinat, Alanlar tablosunda bir satırdır. Okuma ekranında harita yo
 | Konu | Davranış |
 |---|---|
 | Giriş | "Düzenle" ayrı bir kip olarak sheet açar. Alan ve takma ad düzenleyicileri sheet'tedir. |
-| Kalıp | Ortak sheet kalıbı: serif manşet, kâğıt zemin, tek "Kapat". Her alan kendi "Kaydet" düğmesiyle yazar. "Kapat" yazmaz. |
+| Kalıp | Ortak sheet kalıbı: sans manşet, `elevated` zemin, tek "Kapat". Her alan kendi "Kaydet" düğmesiyle yazar. "Kapat" yazmaz. |
 | Kirli taslak | Kullanıcı Kaydet ile yazmadığı alanı "Alanı kaldır" ile silerse taslak kirli değildir. Kaydı bekleyen alan metni varken sheet kapanmaz. `JournalView` ile aynı `UnsavedDraftDecision` kalıbı "At" / "Vazgeç" sorar. |
 | Ad değiştirme | Düzenleme sheet'i ad değiştirmeyi ikinci sheet olarak açar. |
 | Varlığı sil | Sheet'in en altında kırmızı düğme. Kişi, konum ve özel tipte onay ister: "<Ad> silinsin mi? Günlük kayıtlarındaki geçişler kalır." Yalnız varlık dosyasını siler. Başarılı silme önce sheet'i, sonra varlık ekranını kapatır. Mac'te ayrıntı sütunu "Bir varlık seç" durumuna döner. Hata sheet'te kalır. |
@@ -820,11 +848,12 @@ Konumda koordinat, Alanlar tablosunda bir satırdır. Okuma ekranında harita yo
 | Durum | Ekran |
 |---|---|
 | Bugün'deki olay ya da görev satırında bağlantıya dokunma | Sheet varlık ekranını açar. Mac'te de sheet'tir. |
-| Bağlantı bir varlığa çözülmedi | Sheet "Bağlantı bulunamadı" ekranını açar: "Bu ad için bir varlık oluştur." |
+| Bağlantı bir varlığa çözülmedi | Sheet "Bağlantı bulunamadı" ekranını açar: "Bu ad için bir sayfa oluştur." |
 | Bağlantının hedefi bir dosya ama kişi ya da konum değil | Sheet "Bu bağlantı kişi veya konum değil" yazar. |
-| Bağlantı bulunamadı: eylemler | Ad alanı, "Kişi olarak ekle", "Konum olarak ekle" ve her özel tip için "… olarak ekle". |
+| Bağlantı bulunamadı: eylemler | Ad alanı ve tek kartta seçenek satırları: Kişi, Konum, "Not olarak oluştur" ve her özel tip. Satırın başında Graph düğüm biçimi durur: kişi daire, konum elmas, özel tip altıgen, not için belge simgesi. |
+| Bağlantı bulunamadı: not | "Not olarak oluştur" `notes/` altına bağlantının adıyla boş bir not yazar ve not ekranını açar. Aynı adda dosya varsa uygulama yazmaz ve nedenini söyler. |
 | Bağlantı bulunamadı: aynı ad | Aynı adda varlık varsa ekran "Ayırt edici (ör. iş)" alanını ve "Oluştur" düğmesini gösterir. |
-| Bağlantı bulunamadı: sonuç | Aynı sheet oluşan varlığın ekranını gösterir. |
+| Bağlantı bulunamadı: sonuç | Aynı sheet oluşan varlığın ya da notun ekranını gösterir. |
 
 #### Özel varlık tipleri (7)
 
@@ -896,11 +925,14 @@ Konumda koordinat, Alanlar tablosunda bir satırdır. Okuma ekranında harita yo
 |---|---|---|
 | Giriş | Mac kenar çubuğu, telefonda Kişiler ve Konumlar listesinin en üstü | Telefonda aynı gezinme yığınında tam ekran. Yeni sekme yoktur. Gün ekranının manşetindeki Graph simgesi aynı ekranı o günün grafiği olarak açar. |
 | Tür süzgeci | Manşet satırındaki filtre menüsü | Kişi, konum ve kasanın her özel tipi için bir satır; çoklu seçim. Gün satırı yoktur: günler her zaman çizilir. Varsayılan: kişi ve konum açık, özel tipler kapalı. Varsayılan dışında vurgu rengine döner. |
-| Dönem | Manşetin altındaki "Dönem" menüsü | Son 30, 90, 365 gün ya da tümü. Varsayılan "Son 90 gün"; kullanıcı "Tümü"yü seçebilir. |
+| Dönem | Manşetin altında altı çizili sekme | Bu ay \| 3 ay \| Yıl. Varsayılan "Bu ay". "Tümü" yoktur. |
 | Yakınlaştırma | Düğmeler, pinch, Mac'te tekerlek ve trackpad kaydırması | Görüşü büyütür ve küçültür. |
 | Ortala | Düğme | Düzeni o anki haliyle yeniden çerçeveler. |
 | Düğüm seç | Menü | Klavye ve erişilebilirlik için aynı seçimi sunar. Seçilen düğümü ortaya alır. |
-| Sayfayı aç | Seçili düğüm | Varlık ya da gün ekranını açar. |
+| Seçim | Dokunulan düğüm | Seçili düğüm çift halka taşır; komşusu olmayan düğümler solar. |
+| Seçim kartı | Tuvalin altı, iPhone ve iPad | Seçili düğümün özeti: "Baran Tunç · 8 bağ · son 3 gün önce" ve "Sayfayı aç". Seçim yokken kart yoktur. |
+| Sağ ayrıntı paneli | Mac | Seçili düğümün adı, türü, bağ sayıları, birlikte geçtiği günler ve "Sayfayı aç". Seçim yokken panel "Düğüm seç" der. |
+| Sayfayı aç | Seçim kartı ve panel | Varlık ya da gün ekranını açar. |
 
 **Graph verisinin kuralları.**
 
@@ -910,8 +942,8 @@ Konumda koordinat, Alanlar tablosunda bir satırdır. Okuma ekranında harita yo
 | Gün düğümleri | Her zaman çizilir; graph'ın merkezleridir. Dönemde ekrandaki bir varlığa bağlantı içeren her gün bir düğümdür. Ekranda varlığı olmayan gün düğüm olmaz. |
 | Kenarlar | Gün düğümü o gün geçen ve ekranda olan her varlığa ağırlık 1 ile bağlanır: kişi, konum, özel tip. Varlıklar birbirine yalnız açık bağla bağlanır: varlık sayfasının frontmatter'ındaki wikilink alanları ve `related`. Aynı günde ya da aynı kayıtta birlikte geçmek iki varlığı bağlamaz. Açık bağ dönemden bağımsızdır: iki ucu da ekrandaysa çizilir. |
 | Kaynak | Tarihli gün dosyalarındaki bütün çözülen bağlantılar gün–varlık kenarını üretir: olay, görev, paragraf, başlık ve frontmatter. Aynı tarihin birden çok dosyası tek gündür. Düğüm boyutu da bu anmalardan gelir. Çözülmeyen hedefler dışarıdadır. |
-| Son N gün | Bugün dahil `bugün -(N-1)` … bugün. Tümü gelecek günleri ve tarihsiz kaynak bağlantılarını da içerir. |
-| Düğüm boyutu | Tümü seçiliyken bütün kasadaki geçiş sayısı. Tarih filtresinde seçilen günlerin geçiş sayısı. |
+| Dönem aralığı | Bu ay: bugün dahil son 30 gün. 3 ay: son 90 gün. Yıl: son 365 gün. Aralık `bugün -(N-1)` … bugündür. |
+| Düğüm boyutu | Seçilen dönemin günlerindeki geçiş sayısı. |
 | Renk ve biçim | Kişi ve konum renkleri Bugün bağlantı alt çizgileriyle aynı belirteçten gelir. Kişi daire, konum elmas, gün köşeli kare, özel tip altıgendir. Ayrıntı: `design.md` "Graph düğümleri". |
 | Açıklama | “Gün, o gün geçen her kayda bağlanır. Öteki çizgiler elle kurulan bağları gösterir.” Aynı gün geçmek karşılaşma diye yorumlanmaz; kişi ve konumu birbirine yalnız kullanıcının yazdığı bağ bağlar. |
 
@@ -925,7 +957,7 @@ Konumda koordinat, Alanlar tablosunda bir satırdır. Okuma ekranında harita yo
 | Manşet | "Günün grafiği"; künye günün tam tarihidir. Satırda yalnız arama durur; tür süzgeci yoktur. |
 | Düğümler | Ortada gün düğümü. O günün dosyasında çözülen bağlantısı olan her kişi, konum ve özel tip varlığı. Düğüm boyutu o günkü anma sayısıdır. Tür süzgeci ve dönem uygulanmaz. |
 | Kenarlar | Ana Graph'taki kural: gün düğümü her varlığa ağırlık 1 ile bağlanır; varlıklar birbirine yalnız açık bağla bağlanır. Günün varlıkları arasındaki açık bağlar kalın çizilir; o gün anılmayan varlığa bağ çizilmez. |
-| Denetimler | Dönem menüsü yoktur. Yakınlaştırma, Ortala ve Düğüm seç vardır. |
+| Denetimler | Dönem sekmesi yoktur. Yakınlaştırma, Ortala ve Düğüm seç vardır. |
 | Sayfayı aç | Varlık düğümünde varlık ekranını açar. Gün düğümünde yoktur; kullanıcı o günden gelmiştir. |
 | Açıklama | "Gün, o gün geçen her kayda bağlanır. Öteki çizgiler elle kurulan bağları gösterir." Ana Graph'la aynı metindir. |
 | Boş gün | Simge görünmez. Grafik yine açılırsa "Gösterilecek düğüm yok" yazar. |
@@ -940,7 +972,7 @@ Konumda koordinat, Alanlar tablosunda bir satırdır. Okuma ekranında harita yo
 | Düğüm sürükleme | Düğümün üstünde başlayan sürükleme düğümü taşır. Düğüm parmağı ya da fareyi izler. Komşular yayla peşinden gelir. Bırakınca düğüm serbest kalır ve düzen yeniden oturur. |
 | Tuval kaydırma | Boşlukta başlayan sürükleme tuvali kaydırır. |
 | Tutma alanı | Sürükleme düğümü yalnız çizilen biçimin hemen yakınından tutar: en az 8 nokta yarıçap. 44 noktalık geniş hedef yalnız dokunmada geçerlidir. Yoğun ya da yakın graph'ta kaydıracak boşluk kalır. |
-| Seçim | Dokunma düğümü seçer. Uygulama düğümün adını ve komşularını vurgular. Görüş yerinde kalır. |
+| Seçim davranışı | Dokunma düğümü seçer. Uygulama düğümün adını ve komşularını vurgular; öteki düğümler solar. Görüş yerinde kalır. |
 | Belirlenimcilik | Benzetimin tohumu sabittir. Aynı graph her zaman aynı düzende oturur. Oturmuş düzende daireler arasında en az 8 nokta boşluk kalır. |
 | Süzgeç değişimi | Graph düğümleri baştan dizmez. Bulundukları yerden yeni düzene geçer. |
 | Kasa yenilemesi | Graph aynı kalırsa kullanıcının elle kurduğu düzen yerinde kalır. Kasa ya da filtre değişirse uygulama eski sonucu kullanmaz. |
@@ -950,8 +982,9 @@ Konumda koordinat, Alanlar tablosunda bir satırdır. Okuma ekranında harita yo
 
 | Konu | Davranış |
 |---|---|
-| Pinler | Geçerli koordinatı olan konumlar. Pin boyutu bütün kasadaki çözülen geçiş sayısına bağlıdır. Konum önerisi yarıçapı pin için gerekli değildir. |
-| İşaretçi | Tam opak konum rengi, elmas biçim. Seçili pin vurgu çerçevesi taşır. Sayı pinin içindedir. |
+| Pinler | Geçerli koordinatı olan konumlar. Pin boyutu bütün kasadaki çözülen geçiş sayısına (ziyaret) bağlıdır. Konum önerisi yarıçapı pin için gerekli değildir. Harita MapKit'in koyu stilindedir; açık modda açık stildedir. |
+| İşaretçi | Tam opak konum rengi, elmas biçim. Ziyaret sayısı elmasın içindedir. Seçili pin vurgu çerçevesi taşır. |
+| Konum kartları | Haritanın altında yatay kayan kartlar: ad, ziyaret sayısı, son tarih, 12 aylık mini geçiş çubuğu. Karta dokunma pini seçer ve ortaya alır; seçili kartın "Sayfayı aç" eylemi konum ekranını açar. |
 | Dokunma | Pin konum ekranını açar. |
 | Boş durum | Hiçbir konumda koordinat yoksa boş görünüm nedenini söyler: konum izni konumlara koordinat eklemez. Koordinatı olmayan konumları listeler. Satır konum ekranını açar. Kullanıcı koordinatı oradaki Düzenle ile girer. |
 | Beni göster | Yalnız var olan konum izni ve etkin konum tercihiyle tek ölçüm ister. Yeni izin istemez. Son geçerli konumu gösterir ve ortaya alır. Pin yokken de ölçüm gelince haritayı açar. |
@@ -965,34 +998,36 @@ Konumda koordinat, Alanlar tablosunda bir satırdır. Okuma ekranında harita yo
 
 | Öğe | Yer | Davranış |
 |---|---|---|
-| Manşet | Listenin içinde | Serif manşet. Sağda "Yeni hedef" (artı) ve arama durur. |
-| Hedef satırı | Liste | Halka, ad, sağda değer, altında zincir ya da dönem ilerlemesi. |
+| Manşet | Listenin içinde | Manşet. Sağda "Yeni hedef" (artı) ve arama durur. |
+| Günlük halkalar | Manşetin altı | Günlük hedeflerin halkaları yan yana; halkanın içinde günün yüzdesi, altında kısa ad. Halkaya dokunma hedefin ayrıntısını açar. Günlük hedef yoksa satır yoktur. Satıra sığmayan halkalar yatay kayar. |
+| Hedef kartı | Liste | Her hedef bir kart satırıdır: ad, dönem çipi (Günlük, Haftalık, Yıllık), sağda değer ve 44 pt "+". Altında 7 günlük çetele: her gün için dolu ya da boş kare, bugün çerçeveli. En altta zincir satırı: "12 gün zincir". "+" hedefi işaretler ya da 1 artırır. |
 | Skor | Günlük hedef satırı | Zincirin altında ikincil metin: "Son 30 gün %87". Ölçülen gün yoksa (yeni hedef) skor yoktur. Haftalık ve yıllık satırda skor yoktur. |
 | Zincir günü rozeti | Günlük hedef satırı | Zincir günü bakiyesi 1–3 ise "Güncel zincir" metninin yanında Bugün şeridindeki rozetin aynısı durur: zincir simgesi ve sayı, ince kontrol çizgisi çerçevesi. Skor alt satırda kalır. Zincir metniyle rozet tek satıra sığmazsa (büyük yazı) rozet zincir metninin altına iner. Bakiye 0 ise rozet yoktur ve satır rozetsiz hâliyle aynıdır. Haftalık, yıllık ve kilometre taşı satırında rozet yoktur. VoiceOver satırı okurken "2 zincir günü" der. Özetler'in günlük şeridinde rozet yoktur. |
-| Haftalık hedef | Satır | "bu hafta 2/3". |
-| Yıllık hedef | Satır | İlerleme çubuğu. |
-| Kilometre taşı (5) | Satır | Yıllık, miktarsız satır: yapıldı ya da yapılmadı ve tarih. Dokunma bugünü işaretler ya da bugünkü kaydı kaldırır. Önceki gün tamamlanmış satır salt okunurdur. Zincir ve ısı haritası yoktur. |
+| Haftalık hedef | Kart | Çetele yerine "bu hafta 2/3". |
+| Yıllık hedef | Kart | Çetele yerine 12 aylık mini çubuk: her ayın katkısı. |
+| Kilometre taşı (5) | Kart | Yıllık, miktarsız kart: yapıldı ya da yapılmadı ve tarih. Dokunma bugünü işaretler ya da bugünkü kaydı kaldırır. Önceki gün tamamlanmış satır salt okunurdur. Zincir ve ısı haritası yoktur. |
 | Uzun basma | Hedef satırı | Boolean hedefte Bugünü işaretle ya da İşareti kaldır; sayısal hedefte Miktar gir; ardından Düzenle ve Sil. Kilometre taşında yalnız Düzenle ve Sil. İkincil tık aynı menüyü açar. Sil onay ister; gün kayıtları kalır. |
 
 **Zincir kuralı.** Günlük hedefte önceki iki günü ve sonraki günü yapılmış bir kaçırma affedilir. Affedilen gün zinciri korur, zincire eklenmez ve yapılmış gün sayılmaz. Örnek: "yapıldı, yapıldı, kaçtı, yapıldı" zinciri 3'tür. "Yapıldı, yapıldı, kaçtı, yapıldı, kaçtı, yapıldı" zinciri 1, en uzun zinciri 3'tür: ilk kaçırma affedilir; ikinci kaçırmanın önündeki iki günden biri affedilmiş gündür. "Yapıldı, kaçtı, yapıldı, kaçtı, yapıldı" zinciri 1'dir: hiçbir kaçırmanın önünde iki yapılmış gün yoktur. Bugün henüz yapılmamışken dünkü kaçırma, önceki iki gün yapılmışsa zinciri düşürmez. İki gün üst üste kaçırıldıysa zincir 0'dır. Zincir günü varsa af olmayan kaçırmayı zincir günü korur: zincirdeki her 7 yapılmış gün 1 zincir günü kazandırır, bakiye en çok 3'tür (`vault-format.md`, Zincir günü).
 
-**Hedef ayrıntısı.**
+**Hedef ayrıntısı: tek sayfa, yukarıdan aşağı.**
 
 | Öğe | Davranış |
 |---|---|
-| Manşet | Kaydırılan manşet ve büyük rakam. Sağda "Düzenle" (kalem) ve arama durur. "Düzenle" tanım formunu açar. Kasa yazılamıyorsa "Düzenle" yoktur. |
-| Değer grafiği | Sayısal hedefte ısı haritasının üstünde. Günlük hedefte son 90 gün (erişilebilirlik boyutunda 30 gün), haftalık hedefte son 12 hafta toplamı, yıllık hedefte son 12 ay toplamı. Boolean ve kilometre taşında yoktur. |
-| Isı haritası | Başlık döneme göre hafta sayısı söylemez. Yoğunluk renge ek olarak biçimle görünür. Bugün çerçevelidir. Isı haritası geleceği çizmez. Sığmazsa en yeni hafta açık gelir. |
+| Manşet | Hedefin adı. Sağda arama durur. |
+| Büyük değer ve halka | Büyük rakamla bugünkü değer ve hedefin halkası. Altında sayısal hedefte "Miktar gir" ve "+", evet/hayır hedefte "Bugünü işaretle" durur. Kilometre taşında yapıldı ya da yapılmadı ve tarih durur. |
+| İstatistik şeridi | Kartta yan yana: güncel zincir ve en uzun zincir, son 30 gün yüzdesi, affedilen gün sayısı. Haftalık ve yıllık hedefte zincir ve skor yoktur. Kilometre taşında şerit yoktur. |
+| Grafik kartı | Günlük hedefte son 90 gün (erişilebilirlik boyutunda 30 gün): günlük nokta, hedefte ya da üstünde dolu, altında boş; 7 günlük ortalama çizgisi; kesik hedef çizgisi. Haftalık hedefte son 12 hafta toplamı. Yıllık hedefte 12 aylık toplam çubuğu ve altında aylık liste. Kilometre taşında yoktur. |
+| Isı haritası | Grafik kartının altında kendi kartında. Başlık döneme göre hafta sayısı söylemez. Yoğunluk renge ek olarak biçimle görünür. Bugün çerçevelidir. Isı haritası geleceği çizmez. Sığmazsa en yeni hafta açık gelir. |
 | Affedilen gün | Kesik çizgili vurgu çerçevesi. Kısmi katkısı varsa dolgusu kalır. VoiceOver "affedildi" ya da "kısmi katkı, affedildi" der. |
 | Zincir günüyle korunan gün | Affedilen günün kesik çerçevesi ve hücrenin boş kısmında vurgu noktası. Kısmi katkısı varsa dolgusu kalır; nokta dolgunun üstünde durur. VoiceOver "zincir günüyle korundu" ya da "kısmi katkı, zincir günüyle korundu" der. Lejantta "Zincir günü" ayrı satırdadır ve yalnız haritada böyle bir gün görünürken çıkar. |
-| Sayılar | En uzun zincir ve günlük hedefte skor. |
-| Zincir günü | Günlük hedefte zincir sayılarının altında: zincir simgesi ve "2 zincir günü", altında tek cümle kural: "Zincirdeki her 7 yapılmış gün 1 zincir günü kazandırır; kaçırılan gün zincir günüyle korunur. En çok 3." Bakiye 0 ise satır ve cümle yoktur. Skor satırı bunun altına iner. |
-| Geçmiş kayıtlar | Kullanıcı geçmiş günlerin kaydını düzeltir. |
-| Tanım | Salt okunur özet: ad, dönem, tür, hedef miktar, birim ve anahtar. Kilometre taşında hedef miktar yoktur. Birim yalnız dosyada varsa görünür. Bloğun herhangi bir yerine dokunma tanım formunu açar. |
-| Tanım formu | Sheet. Ortak kalıp: kâğıt zemin, solda "Vazgeç", sağda "Kaydet". Alanlar: ad, anahtar (salt okunur), dönem (sekme), tür (sekme: evet / hayır, sayı), hedef miktar, birim. Birim sayı türünde ya da dosyada birim varsa görünür. Kilometre taşında dönem ve tür salt okunur satırdır. Altında "Kilometre taşının dönemi ve türü değişmez." yazar. Hedef miktar yoktur. |
+| Zincir günü | Günlük hedefte istatistik şeridinin altında: zincir simgesi ve "2 zincir günü", altında tek cümle kural: "Zincirdeki her 7 yapılmış gün 1 zincir günü kazandırır; kaçırılan gün zincir günüyle korunur. En çok 3." Bakiye 0 ise satır ve cümle yoktur. |
+| Son kayıtlar | Son kayıtlar kart satırlarında, yeniden eskiye: tarih ve değer. Kullanıcı geçmiş günlerin kaydını düzeltir. |
+| Hedefi düzenle | Sayfanın altında düz yazı düğme. Tanım formunu açar. Kasa yazılamıyorsa yoktur. |
+| Hedefi sil | "Hedefi düzenle"nin altında, tehlike renginde düz yazı. Onay ister: "<Ad> silinsin mi? Gün kayıtları kalır." Yalnız hedef dosyasını siler. Sonra ayrıntı kapanır ve Hedefler listesi görünür. Mac'te ayrıntı sütunu "Bir hedef seç" durumuna döner. Silme başarısız olursa ayrıntı açık kalır ve nedeni yazar. |
+| Tanım formu | Sheet. Ortak kalıp: `elevated` zemin, solda "Vazgeç", sağda "Kaydet". Alanlar: ad, anahtar (salt okunur), dönem (sekme), tür (sekme: İşaret \| Sayı), hedef miktar, birim. Birim sayı türünde ya da dosyada birim varsa görünür. Kilometre taşında dönem ve tür salt okunur satırdır. Altında "Kilometre taşının dönemi ve türü değişmez." yazar. Hedef miktar yoktur. |
 | Formda kaydetme | "Kaydet" yalnız değişen alanları yazar; öteki satırlar ve tanınmayan alanlar bayt düzeyinde kalır. Ad değişse de dosya adı değişmez. Değişen alanlardan biri geçersizse hiçbir alan yazılmaz. Hata alanın altında yazar: boş ad, kullanılan ad, sıfır ya da sayı olmayan miktar. Hiçbir alan değişmediyse "Kaydet" kapalıdır. |
 | Formdan çıkma | Kaydedilmemiş değişiklik varsa "Vazgeç" ve aşağı kaydırma soru sorar: "Değişiklikleri at" ya da "Düzenlemeye devam et". Değişiklik yoksa sheet hemen kapanır. |
-| Hedefi sil | Tanım formunun son satırında kırmızı düğme. Onay ister: "<Ad> silinsin mi? Gün kayıtları kalır." Yalnız hedef dosyasını siler. Sonra form kapanır, ardından ayrıntı kapanır ve Hedefler listesi görünür. Mac'te ayrıntı sütunu "Bir hedef seç" durumuna döner. Silme başarısız olursa form açık kalır ve nedeni yazar. |
 
 Grafikte "Ortalama", görünür aralıkta kaydı olan günlerin değer ortalamasıdır; kayıtsız gün sıfır değildir. "Hedefin üstünde" sayısı hedefe eşit ya da üstünde kaydı olan günleri sayar. Bir günün son kaydı geçerlidir; türü uymayan ya da geçersiz (negatif, sonsuz) son kayıt o günü 0 yapar. Kural ilerleme ve ısı haritasıyla aynıdır. Tepe eşitse en yeni gün seçilir. Çizgi her günün ve önceki altı günün kayıt ortalamasıdır; en az üç kayıt gerekir, aksi hâlde çizgi kırılır. İlk günün penceresi görünür aralıktan önceye uzanır. Haftalar pazartesi başlar; son hafta ve ay yalnız bugüne kadarki kayıtları toplar. Aylık hız çizgisi yıllık hedefin on ikide biridir; haftalık çizgi haftalık hedeftir. Gelecek kayıtları hesaba girmez.
 
@@ -1000,19 +1035,20 @@ Grafikte "Ortalama", görünür aralıkta kaydı olan günlerin değer ortalamas
 
 | Konu | Davranış |
 |---|---|
-| Düzen | Ayarlar ana ekranı gibi düz liste, kâğıt zemin: `SectionHeader`, `.inkListRow()`. Kart yoktur. |
+| Düzen | Ortak sheet kalıbı, `elevated` zemin; bölümler kart içindedir. |
 | Hazır hedefler | Ad alanının altında 15 şablon: simge, yerelleştirilmiş ad ve miktar/dönem özeti. Ad yazıldıkça yerel dilde büyük/küçük harf ve aksan duyarsız süzülür; eşleşme yoksa bölüm gizlenir. Dokunma ad, tür, dönem, miktar ve birimi doldurur; kullanıcı düzenleyebilir. Seçili şablon onay işaretiyle vurgulanır; alan değişince seçim kalkmaz. Liste sheet içinde kayar; şablon seçmeden de hedef oluşturulur. Şablon kimliği ve simgesi dosyaya yazılmaz. |
-| Alanlar | Hedef miktar etiketli alandır. Kullanıcı türü seçer: kilometre taşı dahil. |
+| Alanlar | Dönem altı çizili sekmedir: Günlük \| Haftalık \| Yıllık. Tür altı çizili sekmedir: İşaret \| Sayı \| Kilometre taşı. Hedef miktar etiketli alandır. |
 | Çubuk | Ortak kalıp: solda "Vazgeç", sağda "Oluştur". Her yazı boyutunda üstte durur. |
 
 ### Arama (1)
 
 | Öğe | Davranış |
 |---|---|
-| Giriş | Her kök ekranın üstündeki simge. |
-| Manşet | Ekran adı serif manşet olarak ekranın içindedir. |
-| Kutu | Tek kutu, `ink.well` zemin. |
-| Sonuçlar | Türe göre gruplu: kişiler, konumlar, olaylar, görevler, notlar. |
+| Giriş | iPhone'da her kök ekranın üstündeki simge. Mac'te kenar çubuğunun tepesindeki alan ve ⌘F. |
+| Manşet | Ekran adı manşet olarak ekranın içindedir. |
+| Kutu | Tek kutu: süzgeç alanı, `well` zemin. |
+| Kapsam çipleri | Kutunun altında, sonuç gruplarının üstünde: Hepsi, Olaylar, Görevler, Kişiler, Günler. Varsayılan Hepsi. Çip sonuçları o türe süzer. Kişiler çipi kişi, konum ve özel tip sonuçlarını gösterir. |
+| Sonuçlar | Türe göre gruplu, her grup bir kart: kişiler, konumlar, olaylar, görevler, günler, notlar. Notlar yalnız Hepsi'de görünür. |
 | Not önizlemesi | Düz metin. Başlık işaretleri ve liste tireleri yoktur. Sıra sayısı gibi içerik kalır. Kod çitinin içi olduğu gibi görünür. |
 | Hızlı geçiş | Arama aynı zamanda hızlı geçiş ekranıdır. |
 
@@ -1027,18 +1063,21 @@ Telefonda serbest not okuma ve basit düzenleme vardır. Kullanıcı nota aramad
 | Öğe | Davranış |
 |---|---|
 | Kenar çubuğu | Bugün, Günlük, Görevler, Kişiler, Konumlar, Hedefler, Özetler, Graph, Harita. Görevler'in altında ayrı satırlar: Kanban, Zaman çizelgesi ve proje adları. |
-| Kenar çubuğu seçimi | Kenar çubuğu yalnız seçili girdiyi vurgular: mürdüm dolgu. Ok tuşları alt girdiler dahil bütün satırları gezer. |
+| Kenar çubuğu seçimi | Kenar çubuğu yalnız seçili girdiyi vurgular: mürdüm dolgu. Ok tuşları alt girdiler dahil bütün satırları gezer. Kenar çubuğu `elevated` zemindedir. |
 | Kenar çubuğu genişliği | En az 180, ideal 200, en çok 240 pt. |
-| Arama | Her ekranda pencere araç çubuğundaki tek düğme ve ⌘F. Manşet satırlarında arama simgesi yoktur. |
-| Arama istisnası | Arama penceresinin içinde açılan not, varlık ve gün ekranında büyüteç durur. Büyüteç sonuçlara döndürür. |
+| Arama | Kenar çubuğunun tepesindeki tek alan: "Ara" ve ⌘F. ⌘F alana odak verir; yazılan sorgu Ara sheet'ini sonuçlarla açar. Araç çubuğunda arama düğmesi ve manşet satırlarında arama simgesi yoktur. |
+| Arama istisnası | Ara sheet'inin içinde açılan not, varlık ve gün ekranında büyüteç durur. Büyüteç sonuçlara döndürür. |
+| Hızlı giriş kartı | Kenar çubuğunun altında sabit kart: "Hızlı giriş" ve genel kısayolun adı, örneğin ⌥Space. Karta tıklama hızlı giriş penceresini açar. Kısayol her uygulamadan aynı pencereyi açar. |
 | Pencere adı | Araç çubuğunda başlık yoktur. Pencerenin adı seçili kenar çubuğu girdisidir. |
-| Liste sütunu | En az 280, ideal 320, en çok 400 pt. Her liste sütunu serif manşetle başlar: Günlük, Görevler, proje adı, Kişiler / Konumlar, Hedefler. |
-| Günlük sütunu | Manşetin altında sola yaslı, alt alta Özetler ve Haftalık inceleme bağlantıları. Altında ay takvimi ve gün listesi. Mac'te manşet ve iki bağlantı sabittir; takvim ve gün listesi altında birlikte kayar. |
+| Liste sütunu | En az 280, ideal 320, en çok 400 pt. Her liste sütunu manşetle başlar: Günlük, Görevler, proje adı, Kişiler / Konumlar, Hedefler. |
+| Günlük sütunu | Manşetin altında yan yana Özetler ve Haftalık inceleme çipleri. Altında ay takvimi kartı ve gün listesi. Mac'te manşet ve iki çip sabittir; takvim ve gün listesi altında birlikte kayar. |
 | Kişiler / Konumlar sütunu | Manşet satırında sıralama simgesi. Altında tür seçici ve süzgeç alanı. |
 | Ekran genişliği | Uygulama ekranları en çok 680 pt genişlikte ortalar. |
 | Pencere boyutu | Ana pencerenin en küçük boyutu belirteçlerle sabittir: 1000 × 560 pt. |
 | Kaydırma | Kısa pencerede sütunlar kayar. Manşet satırı ve simgeleri sütunun üstünde kalır, içerik altından geçer. Kenar çubuğunun üst kenarında ince çizgi belirir. Ayrıntı `design.md` içindeki "Sayfa üstü" kalıbındadır. |
-| Seçili satır | Görev, gün, kişi ve hedef listelerinde seçili satır çukur zemindedir. Solda vurgu çizgisi vardır. |
+| Seçili satır | Görev, gün, kişi ve hedef listelerinde seçili satır `accentSoft` zemindedir. Solda vurgu çizgisi vardır. |
+| Bugün ayrıntı sütunu | Parıltı sütunun üstündedir. Üstte gün başlığı ve künye cümlesi. Altında saat sütunlu gün zaman çizelgesi: olaylar ve saatli görevler sol renkli çubuklu zaman kartlarında, "şimdi" çizgisiyle. Saatsiz görevler ve olaylar çizelgenin altında "Saatsiz" kartındadır. En altta günlük yazısı kartı. Hedefler, bağlam ve bağlananlar sağ paneldedir. |
+| Bugün sağ paneli | Ayrıntı sütununun sağında "Bugün" paneli: sıradaki olay büyük saatle, Hedefler, Devreden görevler, Bu gün geçmişte ve "Günü kapat". Ayrıntı sütunu 680 pt'den darsa panel kapanır ve bölümler zaman çizelgesinin altına iner. |
 | Görev ayrıntısı | Satır seçimi ayrıntıyı açar. Kutu görevi tamamlar. Metindeki bağlantı kendi ekranını açar. |
 | Görev bağlam menüsü | Metin, tarih, bugüne, yarına ya da haftaya taşıma, tekrar, öncelik ve silme. Silme onay diyaloğuna gider. |
 | Seçimin kalkması | Bölüm ya da süzgeç değişince, görev listeden çıkınca seçim kalkar. |
@@ -1048,7 +1087,7 @@ Telefonda serbest not okuma ve basit düzenleme vardır. Kullanıcı nota aramad
 | Konu | Davranış |
 |---|---|
 | Kanban | Liste sütununu kullanmaz. Kanban kenar çubuğunun yanında tam genişlikte durur. Sürükle bırak durumu ve projeyi değiştirir. Tarih kart menüsünden değişir. Seçili kart sağ ayrıntı panelindedir. |
-| Zaman çizelgesi | Aynı geniş alanda tarih taşıma ve uç sürükleyerek uzatma ya da kısaltma. Ayrıntı sağ paneldedir. |
+| Zaman çizelgesi | Aynı geniş alanda tarih taşıma ve uç sürükleyerek uzatma ya da kısaltma. Sağ ayrıntı paneli seçili görevi gösterir: alanlar, "Bitti", "Yarına taşı" ve "Haftaya taşı". |
 | Yapışma | Sürükleme gün ızgarasına yapışır. Çubukta iki tarih alanı aynı farkla kayar. Uç yalnız kendi alanını değiştirir. |
 | Doğrulama | Uygulama sürükleme başlangıcındaki görevi ve kasayı doğrular. |
 | İki tarih | Var olan yazıcı iki tarihi iki kez yazar. İkinci yazma ilkinden dönen görev hedefini kullanır. |
@@ -1058,10 +1097,10 @@ Telefonda serbest not okuma ve basit düzenleme vardır. Kullanıcı nota aramad
 
 | Öğe | Davranış |
 |---|---|
-| Hızlı giriş penceresi (1) | Sistem genelinde klavye kısayoluyla açılan küçük pencere. Davranışı telefondaki hızlı giriş kutusuyla aynıdır. Uygulama öne gelmeden kayıt yapar. |
+| Hızlı giriş penceresi (1) | Sistem genelinde klavye kısayoluyla ya da kenar çubuğundaki hızlı giriş kartıyla açılan küçük pencere. Davranışı telefondaki hızlı giriş kutusuyla aynıdır. Uygulama öne gelmeden kayıt yapar. |
 | Kısayol ayarı | Settings → Hızlı giriş sekmesi. Sekme Siri cümlelerini ve Kısayollar'ı da listeler. Eylem düğmesi metni Mac'te yoktur. |
 | Menü çubuğu | Menü çubuğu simgesinin menüsünde "Hızlı giriş" (kısayoluyla), "Uygulamayı aç" ve "Çıkış" vardır. Kısayol kaydı hata verirse menü hata metnini gösterir. |
-| Klavye kısayolları | Mac’te arama ⌘F; hızlı geçiş ⌘K aynı arama ekranını açar; bugüne git ⌘T. iPad’de donanım klavyesiyle ⇧⌘F ve ⌘K aramayı, ⌘T Bugün’ü açar; iPadOS ⌘F’yi sistem "Bul" komutuna ayırdığı için arama ⇧⌘F kullanır. Uygulama kilidi örtüsü açıkken bu üç komut kapalıdır. Hızlı giriş kutusunda kip değiştirme ⌘⇧T. Sheet’te Esc kapatır, Return birincil eylemi yapar. Donanım klavyesi bağlı iPhone’da da aynı kod çalışır; iPhone’da görünür kısayol yoktur. |
+| Klavye kısayolları | Mac’te arama alanı ⌘F; hızlı geçiş ⌘K aynı arama ekranını açar; bugüne git ⌘T. iPad’de donanım klavyesiyle ⇧⌘F ve ⌘K aramayı, ⌘T Bugün’ü açar; iPadOS ⌘F’yi sistem "Bul" komutuna ayırdığı için arama ⇧⌘F kullanır. Uygulama kilidi örtüsü açıkken bu üç komut kapalıdır. Hızlı giriş kutusunda kip değiştirme ⌘⇧T. Sheet’te Esc kapatır, Return birincil eylemi yapar. Donanım klavyesi bağlı iPhone’da da aynı kod çalışır; iPhone’da görünür kısayol yoktur. |
 | Eksik kısayollar | Yeni olay ve yeni görev kısayolları henüz yok. |
 | Notlar | Serbest notlar için düzenleme alanı henüz yok. Kenar çubuğunda girdisi de yoktur. Düzenleme gelince girdi döner. Kullanıcı notları aramadan açar. |
 | Ayarlar | Sistem Settings sahnesinde sekmeler, bu sırayla: Hızlı giriş, Gizlilik, Bildirimler, Takvim ve Konum, Kasa, Tanılama. |
@@ -1089,7 +1128,7 @@ flowchart TD
 | iPad tam ekran, her yön | Düzenli × düzenli | Bölünmüş kabuk |
 | iPad dar Split View ve Slide Over | Sıkışık × düzenli | iPhone sekmeleri |
 
-Kabuk cihaz türüne bakmaz; yalnız boyut sınıflarına ve genişliğe bakar. Genişlik değişince (döndürme, Split View) kademe yeniden hesaplanır. Seçim ve taslaklar kalır. Bölünmüş görünüm ilk genişlik ölçümünden sonra kurulur; o ana kadar kâğıt çizilir, böylece soğuk açılışta sistem sütun seçimini ezemez.
+Kabuk cihaz türüne bakmaz; yalnız boyut sınıflarına ve genişliğe bakar. Genişlik değişince (döndürme, Split View) kademe yeniden hesaplanır. Seçim ve taslaklar kalır. Bölünmüş görünüm ilk genişlik ölçümünden sonra kurulur; o ana kadar `paper` zemin çizilir, böylece soğuk açılışta sistem sütun seçimini ezemez.
 
 | Pencere genişliği | Örnek | Sütunlar |
 |---|---|---|
@@ -1098,7 +1137,7 @@ Kabuk cihaz türüne bakmaz; yalnız boyut sınıflarına ve genişliğe bakar. 
 
 | Ekran | Liste sütunu | Ayrıntı sütunu |
 |---|---|---|
-| Bugün | Günlük listesi | Bugün; hızlı giriş sayfanın altında |
+| Bugün | Günlük listesi | Bugün: iPhone'daki düzen (gün başlığı, hafta şeridi, künye, kartlar); hızlı giriş kapsülü altta |
 | Günlük | Günlük listesi | Seçili gün |
 | Görevler ve projeler | Görev listesi ya da proje | Seçili görevin ayrıntısı |
 | Kişiler, Konumlar | Varlık listesi | Seçili varlık |
@@ -1108,11 +1147,11 @@ Kabuk cihaz türüne bakmaz; yalnız boyut sınıflarına ve genişliğe bakar. 
 
 | Öğe | Davranış |
 |---|---|
-| Kenar çubuğu | Mac kenar çubuğunun girdileri ve çizimi: mürdüm seçim. Sistem sekme kenar çubuğu değildir. iPad'in yüzen paneli kâğıt rengindedir. |
+| Kenar çubuğu | Mac kenar çubuğunun girdileri ve çizimi: mürdüm seçim. Sistem sekme kenar çubuğu değildir. iPad'in yüzen paneli `elevated` rengindedir. |
 | Kenar çubuğu genişliği | İki sütunda Mac'teki gibi. Üç sütunda en az 200, ideal 240, en çok 280 pt. Erişilebilirlik yazı boyutunda iki ve üç sütunda 240, 280, 320 pt. Uzun ad sonda "…" ile kısalır. Erişilebilirlik yazı boyutunda simge gizlenir ve ad sözcük aralarından sarılır. |
 | Kenar çubuğu düğmesi | Sol sütunun gezinme çubuğundadır. Kök sayfalar bu kabukta gezinme çubuğunu gizlemez. |
 | Kenar çubuğu seçimi | İki sütunda bir girdi seçilince kenar çubuğu gizlenir; liste ve ayrıntı yeniden yan yana durur. Seçili Görevler'e yeniden dokunmak listeyi ilk bölümüne döndürür. Üç sütunda kullanıcının düğmeyle gizlediği kenar çubuğu, düzen değişince ya da pencere aynı kademede boyut değiştirince gizli kalır; sütunlu düzene geçişte liste sütunu her zaman ayrıntıyla birlikte açılır; panoya ya da tam sayfaya geçişte sayfa bütün genişliği alır. Kademeye yeniden girilince (1000 pt altından dönünce) üç sütun geri gelir. |
-| Liste seçimi | Satıra dokunmak satırı seçer ve ayrıntıyı açar; görev kutusu görevi tamamlar. Seçili satır Mac'teki gibi çukur zemindedir. Bölüm ya da süzgeç değişince, görev listeden çıkınca seçim kalkar. |
+| Liste seçimi | Satıra dokunmak satırı seçer ve ayrıntıyı açar; görev kutusu görevi tamamlar. Seçili satır Mac'teki gibi `accentSoft` zemindedir. Bölüm ya da süzgeç değişince, görev listeden çıkınca seçim kalkar. |
 | Ayarlar | Bugün manşetindeki dişli Ayarlar sheet'ini açar. |
 | Arama | Manşet satırındaki büyüteç. Seçim yokken boş ayrıntı sütununun sağ üstünde de büyüteç durur. Gezinme çubuğunda arama düğmesi yoktur. Arama sheet'i form boyutundadır (ideal 580 × 480 pt; form üst payıyla yaklaşık 580 × 490); yazılım klavyesi sonuçları örtmez. |
 | Rehberden aktar | Kişiler sütununda "Yeni kişi"nin altında. iPhone'daki akışın aynısı: rehber seçici, sonra aktarma sheet'i. Mac'te yoktur. |
@@ -1140,7 +1179,7 @@ flowchart LR
     Tan --> Lisans[Üçüncü taraf lisansları]
 ```
 
-iPhone'da Ayarlar, Bugün manşet satırındaki düğmenin açtığı sheet'tir. Ekran adı ve alt ekran adları serif manşet olarak listenin içindedir. Satır zemini kâğıttır. Mac'te aynı 6 bölüm Settings sekmeleridir ve Hızlı giriş ilk sekmedir. Hiçbir ayar kaybolmaz.
+iPhone'da Ayarlar, Bugün gün başlığındaki düğmenin açtığı sheet'tir. Ekran adı ve alt ekran adları manşet olarak listenin içindedir. En üstte kasa kartı durur: kasa konumu (iCloud, Bu cihazda ya da Seçilen klasör) ve dosya sayısı; karta dokunma Kasa bölümünü açar. Altında 6 bölüm kart içinde satırdır. Mac'te aynı 6 bölüm Settings sekmeleridir ve Hızlı giriş ilk sekmedir. Hiçbir ayar kaybolmaz.
 
 ### Ayarlar — Hızlı giriş
 
@@ -1182,7 +1221,7 @@ stateDiagram-v2
 | Örtü | Kilit açıkken uygulama etkinliğini kaybedince opak örtü içeriği gizler. Açık ekranlar ve taslaklar kalır. |
 | Süre başlangıcı | iOS'ta arka plana geçiş. Mac'te uygulamanın etkinliğini kaybetmesi. |
 | Dönüş | Süre dolmadan dönüşte örtü kalkar. Süre dolduysa ya da uygulama yeni açıldıysa doğrulama gerekir. |
-| Kilit ekranı | "Günlük kilitli". İptal ya da hata durumunda **Tekrar dene** düğmesi. |
+| Kilit ekranı | Parıltılı `paper` zemin, ortada simge, "Kenet kilitli" ve Face ID düğmesi (cihaza göre Touch ID ya da parola). İptal ya da hata durumunda düğmenin adı **Tekrar dene** olur. Örtü de aynı zemini kullanır. |
 | Mac paneli | Mac menü çubuğu ve klavye kısayoluyla açılan hızlı giriş paneli de aynı kilidi denetler. |
 | Kilitliyken | Kilit etkin ve doğrulama yokken Siri hedef adlarını listelemez. Kısayollar ve bildirimdeki İşaretle eylemi yazmaz. |
 | Şifreleme | Uygulama kilidi kasayı şifrelemez. |
@@ -1311,7 +1350,7 @@ flowchart LR
     Widget[Widget, kilit ekranı, Denetim Merkezi ve Eylem düğmesi: 11] --> Kutu
     MacPencere[Mac hızlı giriş penceresi: 1] --> HG
     Siri[Kısayollar ve Siri: 4] --> HG
-    Paylasim[Paylaşım sayfası: 11, iOS] --> Form[Paylaşım formu: olay]
+    Paylasim[Paylaşım sayfası: 11, iOS] --> Form[Paylaşım formu: olay ya da görev]
     Bildirim[Akşam günlük hatırlatması: 4] --> GunuKapat[Günü kapat: günlük adımı]
 ```
 
@@ -1321,24 +1360,29 @@ Ayarlar → Hızlı giriş Siri cümlelerini, Kısayollar'ı, Widget ve kilit ek
 
 ## Paylaşım formu (11, iOS)
 
-Kullanıcı Safari'de bir sayfayı, başka bir uygulamada seçili metni paylaşır ve paylaşım sayfasında "Kenet"e dokunur. Form tek bir olay ekler. Veri yolu: `architecture.md`, Paylaşım uzantısı.
+Kullanıcı Safari'de bir sayfayı, başka bir uygulamada seçili metni paylaşır ve paylaşım sayfasında "Kenet"e dokunur. Form tek bir olay ya da tek bir görev ekler. Veri yolu: `architecture.md`, Paylaşım uzantısı.
 
 **Tablo formun parçalarını gösterir.**
 
 | Parça | İçerik |
 |---|---|
-| Araç çubuğu | Solda "Vazgeç", sağda vurgu renginde "Ekle". Uygulamanın düzenleme sheet'leriyle aynı görünüm: kapsülsüz düz sözcükler |
-| Manşet | "Olay olarak ekle", serif |
-| Alan | Görünür "Olay" etiketi altında tek alan, uygulamanın kuyu alanı biçiminde. Önceden dolu: Safari'den "sayfa başlığı ve bağlantısı", başka uygulamadan seçili metin. Uzun metin beş satıra kadar sarılır |
-| Açıklama | "Bugüne, şimdiki saatle eklenir." |
-| Hata | Kuyruk da yazılamazsa (App Group yok) alanın altında kırmızı "Paylaşım eklenemedi. Yeniden dene."; form açık kalır |
+| Araç çubuğu | Solda "Vazgeç". Ortak sheet kalıbı: kapsülsüz düz sözcük. |
+| Manşet | "Kenet'e ekle" |
+| Kip | Altı çizili sekme: Olay \| Görev. Varsayılan Olay'dır. |
+| Alan | Tek alan, `well` zeminde. Önceden dolu: Safari'den "sayfa başlığı ve bağlantısı", başka uygulamadan seçili metin. Uzun metin beş satıra kadar sarılır. |
+| Saat çipi | Olay kipinde alanın altında: şimdiki saat, "14:32". Dokunma saati değiştirir; ✕ saati kaldırır. Görev kipinde çip yoktur; görev bugünün dosyasına tarihsiz yazılır. |
+| Eylem | Sayfada birincil dolu düğme: "Kenet'e ekle". |
+| Açıklama | Olay kipinde "Bugüne, seçilen saatle eklenir.", görev kipinde "Bugüne görev olarak eklenir." |
+| Hata | Kuyruk da yazılamazsa (App Group yok) alanın altında kırmızı "Paylaşım eklenemedi. Yeniden dene."; form açık kalır. |
 
-- "Ekle" metni tek satır olarak ekler: satır sonları boşluk olur. Boş alanda "Ekle" kapalıdır.
-- Kasa iCloud'daysa ve uygulama kilidi kapalıysa satır hemen gün dosyasına girer. Öteki durumlarda (yerel kasa, seçili klasör, uygulama kilidi açık, iCloud'a ulaşılamıyor) metin kuyrukta bekler; uygulama açılıp kasa açılınca ve kilit çözülünce olay kendi gününe ve saatine eklenir.
+- "Kenet'e ekle" metni tek satır olarak ekler: satır sonları boşluk olur. Boş alanda düğme kapalıdır.
+- Kasa iCloud'daysa ve uygulama kilidi kapalıysa satır hemen gün dosyasına girer. Öteki durumlarda (yerel kasa, seçili klasör, uygulama kilidi açık, iCloud'a ulaşılamıyor) metin kuyrukta bekler; uygulama açılıp kasa açılınca ve kilit çözülünce satır kendi gününe ve saatine eklenir.
 - Uygulama kuyruğu ya da uzantının yazdığı satırları işleyince ana ekranın üstünde kapatılabilir bant görünür: "1 paylaşım eklendi." Okunamayan ya da yazılamayan kayıt ayrı cümleyle sayılır; yazılamayan kayıt kuyrukta kalır.
 - Formda ad tanıma yoktur. Kuyruktaki metindeki kesin adlar uygulama eklerken bağlanır, Kısayollar'daki gibi.
 
 ## Widget'lar (3)
+
+**Görünüm:** ana ekran widget'ları `surface` zemindedir; parıltı yoktur. Kilit ekranı widget'ları sistemin vibrant ön planındadır; saat ve sayı öne çıkar.
 
 **Durum:** ana ekran zincir widget'ı uygulandı: iOS, küçük ve orta boy. Kilit ekranında sıradaki etkinlik ve kalan görev sayısı, hızlı giriş widget’ı ve kontrolü de uygulanmıştır. Öteki satırlar hedeflenen kapsamdır. Veri yolu: `architecture.md`, Widget'lar.
 
@@ -1379,7 +1423,7 @@ Widget galeride "Zincir" adıyla görünür. Widget yalnız günlük evet/hayır
 | Dokunma | Widget'ın tamamı uygulamayı Bugün'de açar | Bekleyen evet/hayır hedefi, iCloud kasası: widget hedefi bugün için kendisi işaretler, uygulama açılmaz. Aynı hedef, yerel ya da seçili kasa: uygulama açılır ve hedefi bugün için işaretler. Sayı hedefi ve yapılmış hedef: uygulama Bugün'de açılır. Satır dışı: Bugün |
 
 - Bekleyen hedefler önce gelir. Bekleyen hedefin adı metin rengindedir, halkası vurgu rengindedir. Sayı hedefinin halkası günün ilerlemesini yay olarak çizer.
-- Yapılmış hedefler sona iner. Adları ikincil metin rengindedir, halkaları doludur (Mürekkep kuralı 6). Durumu renk tek başına anlatmaz: dolu halka ve sıra da anlatır.
+- Yapılmış hedefler sona iner. Adları ikincil metin rengindedir, halkaları doludur (Şafak kuralı 6). Durumu renk tek başına anlatmaz: dolu halka ve sıra da anlatır.
 - Zincir günü rozeti Bugün şeridindeki rozetle aynıdır: bağlantı simgesi ve sayı, ince kapsül içinde. Bakiye 0 iken rozet yoktur.
 - Gece yarısı widget kendiliğinden yeni güne geçer: bütün hedefler bekleyen olur, zincir Core'un yeni gün için hesapladığı değeri gösterir.
 - iCloud kasasında widget içinde işaretlenen hedef hemen yapılmış görünür: halka dolar, satır sona iner, zincir bir artar. Zincir 7'nin katına varırsa zincir günü rozeti de bir artar, en çok 3. Uygulama sonraki açılışta günü yeniden okur ve kendi hesabını yazar. İşaretleme yazılamazsa (iCloud kapalı, gün dosyası henüz inmedi) widget değişmez. Cihaz kilitliyken düğme önce cihaz kilidinin açılmasını ister.
@@ -1400,14 +1444,16 @@ flowchart TD
     Erisim -->|evet| Ana[Sekmeler ya da Mac penceresi]
 ```
 
+**Boş bölüm biçimi:** bölüm boşsa ve boş durumu gösteriyorsa kartın içinde simge rozeti, tek cümle ve bir eylem durur. Cümle cezalandırmayan dildedir: "Bugün için görev yok. Bir görev ekle."
+
 | Durum | Ekran |
 |---|---|
-| İlk açılış | Tek ekran Markdown veri sahipliğini anlatır. iCloud varsa ilk ve birincil seçenek “iCloud’da sakla”, altında “iPhone ve Mac aynı klasörü paylaşır.” açıklaması; sonra “Bu cihazda” ve “Var olan klasörü seç” gelir. iCloud yoksa ilk seçenek ve açıklaması görünmez; “Bu cihazda” birincil dolu düğme olur. Kapsayıcıdaki kasa başka cihazdan iniyorsa “iCloud’daki kasa açılıyor…” ilerlemesi görünür ve ekran bekler; süre dolarsa hata satırı yeniden denemeyi söyler. |
+| İlk açılış | Tek ekran, parıltılı zeminde; seçenekler 24 pt köşeli kartlardadır. Ekran Markdown veri sahipliğini anlatır. iCloud varsa ilk ve birincil seçenek “iCloud’da sakla”, altında “iPhone ve Mac aynı klasörü paylaşır.” açıklaması; sonra “Bu cihazda” ve “Var olan klasörü seç” gelir. iCloud yoksa ilk seçenek ve açıklaması görünmez; “Bu cihazda” birincil dolu düğme olur. Kapsayıcıdaki kasa başka cihazdan iniyorsa “iCloud’daki kasa açılıyor…” ilerlemesi görünür ve ekran bekler; süre dolarsa hata satırı yeniden denemeyi söyler. |
 | Yerel kasayı iCloud’a taşıma | Güncellemeden sonraki açılışta varsayılan yerel kasa önce açılıp indekslenir; sonra iCloud varsa ana ekranın üstünde bir kez sorulur. Onboarding yalnız kasa yokken görünür. “Kasayı iCloud’a taşı?” sheet’i `.inkSheet` kullanır; araç çubuğunda tek eylem çifti “Taşı” ve “Vazgeç” bulunur. Gövdedeki açıklama Vazgeç’in kasayı bu cihazda tuttuğunu ve daha sonra Ayarlar’dan taşınabileceğini söyler. Taşırken düğmeler ve kapatma devre dışıdır. Hata aynı sheet’te görünür; tekrar denenebilir. Başka cihazın kasası varsa açılan kasa ve yerel kopyanın ayrı yolu bildirilir. |
 | iCloud kapalı | Kayıtlı tür iCloud ise “iCloud kapalı” ve erişim açıklaması gösterilir. Önce birincil “Yeniden dene”, sonra “Bu cihazda devam et”, ardından “Başka klasör seç” gelir. Sessizce yerel kasaya geçilmez; veri silinmez. iCloud yanıt verir ama Kenet klasörü yoksa ya da açılmıyorsa başlık “iCloud’daki kasaya erişilemiyor.” olur; düğmeler aynıdır. |
 | İlk kasa | Kullanıcı kasayı açınca boş Bugün ekranında ipucu görünür: "Gününden bir an yaz; @ ile kişi ekle". İlk kişi ve konum yazarken oluşur. |
 | Kayıtlı kasaya erişilemiyor | Yer imi var ama klasör açılmıyorsa ya da yer imi bozuksa sekmelerin yerine durum ekranı gelir. "Yeniden dene" ve "Başka klasör seç" düğmeleri durur. Yerel kasaya sessiz geçiş yoktur. |
-| Boş gün | Suçlayıcı olmayan kısa metin. Giriş kutusu hazırdır. |
+| Boş gün | Kartta simge, suçlayıcı olmayan kısa metin. Giriş kutusu hazırdır. |
 | Kasa eşitlenirken | Eldeki içerik görünür. Yalnız iCloud kasasında ana pencerenin üstünde, içeriği aşağı iterek küçük ve sessiz bir gösterge eşitleme durumunu söyler: “3 dosya iCloud’dan iniyor.” ya da “2 gün kopyası birleştiriliyor.” Gösterge eşitlenen klasör bandının biçimindedir: bilgi tonunda `InfoBand`, kapatma düğmesi yok. Eşitleme bitince gösterge kalkar. İstek reddedilir ya da düşerse uygulama ön plana her dönüşte bekleyen dosyaları yeniden ister. Gün kopyası birleştirmesi bitince aynı yerde kapatılabilir bant sonucu söyler: “7 gün kopyası birleştirildi.”; birleşmeyen kopya varsa bant uyarı tonundadır ve kopyanın Tanılama’da durduğunu söyler. Birleştirme bugün varsayılan kapalıdır. |
 
 ## Var olan klasörü seçme

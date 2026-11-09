@@ -46,6 +46,7 @@ struct InkDesignComponentTests {
         let label = InkWeekStrip.accessibilityLabel(
             day: day, written: true, calendar: calendar, locale: Locale(identifier: "tr_TR"),
             isToday: true)
+<<<<<<< HEAD
         #expect(label.contains("bugün"))
         #expect(label.contains("yazıldı"))
         #expect(label.contains("14"))
@@ -67,6 +68,13 @@ struct InkDesignComponentTests {
         #expect(!quiet.contains(","))
     }
 
+=======
+        #expect(label.contains("Bugün"))
+        #expect(label.contains("Yazıldı"))
+        #expect(label.contains("14"))
+    }
+
+>>>>>>> origin/dev
     @Test func summaryLineSpokenPartsKeepCallerFormatting() {
         let parts: [InkSummaryLine.Part] = [
             .text("Bugün"),
@@ -75,10 +83,13 @@ struct InkDesignComponentTests {
             .count(LocalizedStringResource(stringLiteral: "6 görev")),
         ]
         #expect(InkSummaryLine.spokenParts(parts) == ["Bugün", "2 olay", "ve", "6 görev"])
+<<<<<<< HEAD
         let glued: [InkSummaryLine.Part] = [
             .count(LocalizedStringResource(stringLiteral: "2 events"), suffix: ","),
             .count(LocalizedStringResource(stringLiteral: "3 goals"), suffix: "."),
         ]
         #expect(InkSummaryLine.spoken(glued) == "2 events, 3 goals.")
+=======
+>>>>>>> origin/dev
     }
 }

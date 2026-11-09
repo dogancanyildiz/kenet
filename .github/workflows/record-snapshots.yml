@@ -50,6 +50,36 @@ jobs:
           path: Tests/JournalTests/Snapshots/__Snapshots__
           retention-days: 14
 
+  pad:
+    if: inputs.target == 'ios' || inputs.target == 'both'
+    name: Referans üret (iPad)
+    runs-on: macos-26
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v7
+      - name: Xcode
+        uses: ./.github/actions/xcode
+      - name: Paket önbelleği
+        uses: actions/cache@v6
+        with:
+          path: .dd/snapshots/SourcePackages
+          key: spm-xcode-ios-snapshots-${{ hashFiles('Packages/Core/Package.resolved', 'project.yml') }}
+          restore-keys: spm-xcode-ios-snapshots-
+      - name: XcodeGen
+        run: brew install xcodegen
+      # iPad kümeleri (Pad*) yalnız iPad simülatöründe koşar; CI kapısıyla aynı aygıt seçimi.
+      - name: iPad referanslarını kaydet
+        env:
+          SNAPSHOT_TESTING_RECORD: failed
+        run: sh .github/scripts/record-screen-snapshots.sh --pad
+      - name: iPad referans artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: pad-snapshot-references
+          path: Tests/JournalTests/Snapshots/__Snapshots__/Pad*
+          if-no-files-found: error
+          retention-days: 14
+
   mac:
     if: inputs.target == 'mac' || inputs.target == 'both'
     name: Referans üret (Mac)

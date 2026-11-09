@@ -12,7 +12,9 @@ struct PaletteContrastTests {
     private static let textTokens: [InkPalette.Token] = [
         .text, .secondaryText, .tertiaryText, .accent, .warning, .danger, .person, .place,
     ]
-    private static let textBackgrounds: [InkPalette.Token] = [.paper, .surface, .well]
+    private static let textBackgrounds: [InkPalette.Token] = [
+        .paper, .surface, .well, .elevated, .accentSoft,
+    ]
 
     @Test func catalogMatchesSwiftPalette() throws {
         for token in InkPalette.Token.allCases {
@@ -44,9 +46,11 @@ struct PaletteContrastTests {
         #expect(accent.dark == ink.dark)
         #expect(accent.highContrastLight == ink.highContrastLight)
         #expect(accent.highContrastDark == ink.highContrastDark)
+        #expect(abs(accent.lightAlpha - ink.lightAlpha) < 0.001)
+        #expect(abs(accent.darkAlpha - ink.darkAlpha) < 0.001)
     }
 
-    @Test func textTokensMeetBodyContrastOnPaperSurfaceAndWell() {
+    @Test func textTokensMeetBodyContrastOnSurfaces() {
         for foreground in Self.textTokens {
             Self.assertBodyContrast(
                 foreground: foreground,
@@ -70,41 +74,52 @@ struct PaletteContrastTests {
         }
     }
 
-    @Test func controlMeetsNonTextContrastOnPaper() {
-        for (index, appearance) in InkPalette.Appearance.allCases.enumerated() {
-            let fg = InkPalette.Token.control.variant.hex(for: appearance)
-            let bg = InkPalette.Token.paper.variant.hex(for: appearance)
-            let ratio = InkPalette.contrastRatio(foreground: fg, background: bg)
-            #expect(
-                ratio + 0.000_1 >= Self.controlMinimum,
-                "control on paper \(appearance.rawValue): \(ratio)")
-            let documented = InkPalette.DocumentedContrast.controlOnPaper[index]
-            #expect(
-                abs(ratio - documented) <= Self.ratioTolerance,
-                "control documented \(appearance.rawValue): got \(ratio), table \(documented)")
+    @Test func controlMeetsNonTextContrastOnPaperSurfaceAndWell() {
+        for background in [InkPalette.Token.paper, .surface, .well] {
+            for (index, appearance) in InkPalette.Appearance.allCases.enumerated() {
+                let fg = InkPalette.Token.control.variant.hex(for: appearance)
+                let bg = background.variant.hex(for: appearance)
+                let ratio = InkPalette.contrastRatio(foreground: fg, background: bg)
+                #expect(
+                    ratio + 0.000_1 >= Self.controlMinimum,
+                    "control on \(background.rawValue) \(appearance.rawValue): \(ratio)")
+                if background == .paper {
+                    let documented = InkPalette.DocumentedContrast.controlOnPaper[index]
+                    #expect(
+                        abs(ratio - documented) <= Self.ratioTolerance,
+                        "control documented \(appearance.rawValue): got \(ratio), table \(documented)")
+                }
+            }
         }
     }
 
-    /// `line` is an alpha token; contrast is measured after blending onto paper.
-    /// Design draft notes the blended ratio is ~1.3–2.0 (decorative). Control carries the 3:1 UI chrome.
-    @Test func lineBlendedOnPaperIsMeasurable() {
+    /// `line` is decorative alpha chrome: stronger than `rule`, not a 3:1 control.
+    @Test func lineIsMoreVisibleThanRuleOnPaper() {
         for appearance in InkPalette.Appearance.allCases {
             let paper = InkPalette.Token.paper.variant.hex(for: appearance)
-            let blended = InkPalette.resolvedHex(token: .line, appearance: appearance, over: paper)
-            let ratio = InkPalette.contrastRatio(foreground: blended, background: paper)
-            #expect(ratio > 1.0, "line blended on paper \(appearance.rawValue): \(ratio)")
+            let line = InkPalette.resolvedHex(token: .line, appearance: appearance, over: paper)
+            let rule = InkPalette.resolvedHex(token: .rule, appearance: appearance, over: paper)
+            let lineRatio = InkPalette.contrastRatio(foreground: line, background: paper)
+            let ruleRatio = InkPalette.contrastRatio(foreground: rule, background: paper)
+            #expect(
+                lineRatio > ruleRatio,
+                "line \(lineRatio) should exceed rule \(ruleRatio) on \(appearance.rawValue)")
         }
     }
 
-    @Test func glowPeaksMeetBodyContrastForAllowedTokens() {
+    @Test func glowPeaksFromInkGlowMeetBodyContrast() {
         let tokens: [InkPalette.Token] = [.text, .secondaryText, .accent, .warning]
-        for peak in InkPalette.GlowPeak.allCases {
-            for token in tokens {
-                let fg = token.variant.hex(for: peak.appearance)
-                let ratio = InkPalette.contrastRatio(foreground: fg, background: peak.hex)
-                #expect(
-                    ratio + 0.000_1 >= Self.bodyMinimum,
-                    "\(token.rawValue) on glow \(peak.rawValue): \(ratio)")
+        let appearances: [InkPalette.Appearance] = [.light, .dark]
+        for appearance in appearances {
+            for stop in InkGlowChrome.PeakStop.allCases {
+                let peak = InkGlowChrome.peakHex(stop: stop, appearance: appearance)
+                for token in tokens {
+                    let fg = token.variant.hex(for: appearance)
+                    let ratio = InkPalette.contrastRatio(foreground: fg, background: peak)
+                    #expect(
+                        ratio + 0.000_1 >= Self.bodyMinimum,
+                        "\(token.rawValue) on glow \(stop.rawValue) \(appearance.rawValue): \(ratio)")
+                }
             }
         }
     }

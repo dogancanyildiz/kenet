@@ -18,9 +18,11 @@
                             InkWeekStrip(selection: $weekDay, writtenDays: [weekDay])
                             InkSummaryLine(parts: [
                                 .text("Bugün"),
-                                .count(2, "olay", symbol: "calendar"),
+                                .count(
+                                    LocalizedStringResource(stringLiteral: "2 olay"),
+                                    symbol: "calendar"),
                                 .text("ve"),
-                                .count(6, "görev"),
+                                .count(LocalizedStringResource(stringLiteral: "6 görev")),
                                 .text("kaldı."),
                             ])
                             InkCard {

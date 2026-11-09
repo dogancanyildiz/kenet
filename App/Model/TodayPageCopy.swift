@@ -65,45 +65,35 @@ enum TodaySummaryCopy: Sendable {
                         localized: "Today you have", bundle: bundle, locale: resolved)))
         }
 
-        var counts: [(Int, String, String)] = []
+        let source = LocalizedStringResource.BundleDescription.atURL(bundle.bundleURL)
+        var counts: [(LocalizedStringResource, String)] = []
         if events > 0 {
             counts.append(
-                (
-                    events,
-                    String(localized: "\(events) olay", bundle: bundle, locale: resolved),
-                    eventSymbol
-                ))
+                (LocalizedStringResource("\(events) olay", locale: resolved, bundle: source), eventSymbol))
         }
         if tasks > 0 {
             counts.append(
-                (
-                    tasks,
-                    String(localized: "\(tasks) görev", bundle: bundle, locale: resolved),
-                    taskSymbol
-                ))
+                (LocalizedStringResource("\(tasks) görev", locale: resolved, bundle: source), taskSymbol))
         }
         if goals > 0 {
             counts.append(
-                (
-                    goals,
-                    String(localized: "\(goals) hedef", bundle: bundle, locale: resolved),
-                    goalSymbol
-                ))
+                (LocalizedStringResource("\(goals) hedef", locale: resolved, bundle: source), goalSymbol))
         }
 
         for (index, item) in counts.enumerated() {
-            let noun = nounOnly(from: item.1, count: item.0)
             let isLast = index == counts.count - 1
             let isSecondLast = index == counts.count - 2
+            // Punctuation glues to its count so it never floats alone on screen.
+            // English ends on the last count ("… and 3 goals."); Turkish ends on "var.".
             let suffix: String
-            if !isLast && !isSecondLast {
-                suffix = ","
-            } else if isLast {
-                suffix = turkish ? "" : ""
-            } else {
+            if isLast {
+                suffix = turkish ? "" : "."
+            } else if isSecondLast {
                 suffix = ""
+            } else {
+                suffix = ","
             }
-            parts.append(.count(item.0, noun, symbol: item.2, suffix: suffix))
+            parts.append(.count(item.0, symbol: item.1, suffix: suffix))
             if isSecondLast {
                 parts.append(
                     .text(
@@ -114,8 +104,6 @@ enum TodaySummaryCopy: Sendable {
         }
         if turkish {
             parts.append(.text(String(localized: "var.", bundle: bundle, locale: resolved)))
-        } else {
-            parts.append(.text("."))
         }
         return parts
     }
@@ -123,16 +111,6 @@ enum TodaySummaryCopy: Sendable {
     /// Full spoken / equality string: spaces between parts, no space before attached count suffixes.
     static func spoken(_ parts: [InkSummaryLine.Part]) -> String {
         InkSummaryLine.spoken(parts)
-    }
-
-    /// Strips the leading count from a localized "%lld noun" string.
-    static func nounOnly(from localizedCount: String, count: Int) -> String {
-        let prefix = "\(count)"
-        var rest = localizedCount
-        if rest.hasPrefix(prefix) {
-            rest = String(rest.dropFirst(prefix.count))
-        }
-        return rest.trimmingCharacters(in: .whitespaces)
     }
 }
 
@@ -248,9 +226,6 @@ enum TodayAboveFoldBudget: Sendable {
     /// Fold only when at least this many open tasks would hide.
     static let minimumHiddenRows = 2
 
-    /// Approximate chrome below the scroll content (tab bar + quick-entry shelf + home).
-    static let bottomChromeHeight: CGFloat = 150
-
     static let mastheadHeight: CGFloat = 72
     static let weekStripHeight: CGFloat = 56
     static let summaryHeight: CGFloat = 48
@@ -266,7 +241,9 @@ enum TodayAboveFoldBudget: Sendable {
     /// - Parameters:
     ///   - foldsAllowed: false on regular-width layouts (iPad / Mac).
     ///   - calendarEventCount: device-calendar rows between tasks and events.
-    ///   - viewportHeight: measured scroll viewport (not a hard-coded phone constant).
+    ///   - viewportHeight: measured visible scroll height with the bottom chrome (tab bar,
+    ///     quick-entry shelf, home indicator) and the top safe area already taken out, so
+    ///     nothing is subtracted twice.
     static func shouldFoldTasks(
         goalCount: Int, openTaskCount: Int, eventCount: Int, calendarEventCount: Int = 0,
         viewportHeight: CGFloat, foldsAllowed: Bool = true
@@ -274,7 +251,7 @@ enum TodayAboveFoldBudget: Sendable {
         guard foldsAllowed else { return false }
         let hidden = openTaskCount - maxVisibleTaskRows
         guard hidden >= minimumHiddenRows else { return false }
-        let usable = viewportHeight - bottomChromeHeight
+        let usable = viewportHeight
         guard usable > 0 else { return false }
         let goals = goalCount > 0
             ? sectionHeaderHeight + goalColumnHeight + sectionGap : 0

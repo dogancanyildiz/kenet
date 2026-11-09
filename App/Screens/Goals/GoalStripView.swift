@@ -217,11 +217,13 @@ struct GoalStripView: View {
                 }
                 .buttonStyle(.plain)
                 .disabled(onOpen == nil)
-                .accessibilityLabel(
-                    Text(
-                        verbatim: openValue.isEmpty
-                            ? goal.name : "\(goal.name), \(openValue)"))
+                // Label is the name alone; value and chain ride on the value (screens.md: name,
+                // value and the "Ayrıntıları göster" hint).
+                .accessibilityLabel(Text(verbatim: goal.name))
+                .accessibilityValue(Text(verbatim: openValue))
                 .accessibilityHint(Text("Ayrıntıları göster"))
+                // VoiceOver meets the goal by name first, then its value, ring and plus.
+                .accessibilitySortPriority(2)
 
                 if let value {
                     Button {
@@ -238,6 +240,7 @@ struct GoalStripView: View {
                     .disabled(!model.canEdit)
                     .accessibilityLabel(Text(verbatim: value))
                     .accessibilityHint(Text("Miktar gir"))
+                    .accessibilitySortPriority(1)
                 } else if let metaText {
                     Text(verbatim: metaText)
                         .font(.ink.meta)
@@ -250,6 +253,9 @@ struct GoalStripView: View {
                 }
             }
         }
+        // One container per goal: columns sit side by side, so without it VoiceOver would read
+        // every ring and plus across the strip before the first name.
+        .accessibilityElement(children: .contain)
         .opacity(complete ? 0.72 : 1)
         .contextMenu {
             if model.canEdit, goal.kind == .number {
@@ -283,7 +289,7 @@ struct GoalStripView: View {
             .accessibilityLabel(
                 Text(
                     verbatim: String(
-                        localized: "\(goal.name), işaretle",
+                        localized: "\(goal.name), işareti kaldır",
                         bundle: PresentationLocalization.bundle(locale), locale: locale)))
         } else {
             ring.accessibilityHidden(true)
@@ -293,17 +299,14 @@ struct GoalStripView: View {
     @ViewBuilder private func trailingSlot(
         goal: GoalDefinition, marked: Bool, isBooleanMark: Bool, complete: Bool
     ) -> some View {
-        // Plus slot always keeps its place; boolean marked shows ✓ Tamam in the slot chrome.
+        // Plus slot always keeps its place; a marked boolean goal shows a filled check in the
+        // same 30 pt chrome, so the row width never changes (screens.md, Hedefler).
         if isBooleanMark && marked {
-            Text(
-                verbatim: String(
-                    localized: "✓ Tamam",
-                    bundle: PresentationLocalization.bundle(locale), locale: locale)
-            )
-            .font(.ink.meta)
-            .foregroundStyle(Color.ink.secondaryText)
-            .frame(width: 30, height: 30, alignment: .center)
-            .frame(
+            Image(systemName: "checkmark.circle.fill")
+                .font(.system(size: 22, weight: .semibold))
+                .foregroundStyle(Color.ink.secondaryText)
+                .frame(width: 30, height: 30)
+                .frame(
                 minWidth: TapTarget.minimumLength, minHeight: TapTarget.minimumLength,
                 alignment: .topTrailing
             )

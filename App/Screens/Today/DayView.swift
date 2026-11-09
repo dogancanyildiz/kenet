@@ -77,7 +77,8 @@ struct DayView: View {
     @State private var insightChips: [TodayInsightChip] = []
     @State private var chipEntityDestination: EntitySummary?
     @State private var isHeaderCompact = false
-    @State private var viewportHeight: CGFloat = 700
+    /// Visible scroll height between the top safe area and the bottom chrome (fold budget).
+    @State private var viewportHeight: CGFloat = 550
     /// Bumped when the scene becomes active so the greeting tracks the hour.
     @State private var greetingTick = Date()
 
@@ -202,13 +203,11 @@ struct DayView: View {
                                 bundle: PresentationLocalization.bundle(locale), locale: locale),
                             counter: presented.counter(for: .events))
                         InkCard(padded: true) {
-                            InkCardRows {
-                                ForEach(Array(day.events.enumerated()), id: \.element.id) { index, event in
-                                    if index > 0 { InkCardDivider() }
-                                    DayEventView(
-                                        store: store, day: date, event: event,
-                                        entityIndex: entitiesByID)
-                                }
+                            ForEach(Array(day.events.enumerated()), id: \.element.id) { index, event in
+                                if index > 0 { InkCardDivider() }
+                                DayEventView(
+                                    store: store, day: date, event: event,
+                                    entityIndex: entitiesByID)
                             }
                         }
                     }
@@ -234,8 +233,10 @@ struct DayView: View {
             .inkPageColumn()
             .modifier(TodayGlowBackground(isToday: isToday))
         }
-        .onGeometryChange(for: CGFloat.self) { proxy in
-            proxy.size.height
+        // Measured inside the scroll view's insets: the tab bar, the quick-entry shelf and the
+        // home indicator are already out, so the budget does not subtract chrome a second time.
+        .onScrollGeometryChange(for: CGFloat.self) { geometry in
+            geometry.containerSize.height - geometry.contentInsets.top - geometry.contentInsets.bottom
         } action: { _, height in
             if height > 0 { viewportHeight = height }
         }
@@ -513,9 +514,14 @@ struct DayView: View {
             weekDestination = picked
         } else if let onReplaceDay {
             onReplaceDay(picked)
-        } else if let navigation, navigation.section == .days {
-            navigation.selectedDay = TodayDayPath.file(for: picked)
         } else {
+            #if os(macOS)
+                // Mac Days column: selection drives the detail. iPhone never reads `selectedDay`.
+                if let navigation, navigation.section == .days {
+                    navigation.selectedDay = TodayDayPath.file(for: picked)
+                    return
+                }
+            #endif
             weekDestination = picked
         }
     }

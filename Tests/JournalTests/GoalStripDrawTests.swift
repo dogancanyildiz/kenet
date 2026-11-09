@@ -220,7 +220,7 @@ private enum StripVault {
             try #require(model.status(for: alfa).progress.isComplete, "Alfa is complete for the week")
             #expect(Self.order(in: mount) == ["Alfa", "Beta"], "a goal done keeps its place")
             #expect(
-                GoalScreenEnvironment.node(after: "Alfa", labelled: String(localized: "Artır"), in: mount) != nil,
+                GoalScreenEnvironment.plus(of: "Alfa", in: mount) != nil,
                 "the plus stays in place while the write runs")
             #expect(store.lastUpdated == published, "the write still waits: nothing was published")
             store.testingReleaseWriteSlot()

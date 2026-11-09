@@ -38,59 +38,57 @@ struct DayTasksView: View {
                     if let failure = moveReport?.failureText {
                         InfoBand(kind: .error, verbatim: failure)
                     }
-                    InkCardRows {
-                        ForEach(Array(rows.enumerated()), id: \.element.id) { index, entry in
-                            if index > 0 { InkCardDivider() }
-                            switch entry {
-                            case .task(let row):
-                                let isCarried = carriedIDs.contains(row.id)
-                                DayTaskView(
-                                    store: store, row: row, isToday: isToday, isOverdue: isCarried,
-                                    completed: model.completed.contains(row.id) || row.isClosed,
-                                    isBusy: model.completing.contains(row.id), day: date,
-                                    carriedOverLabel: isCarried ? carriedOverText(for: row) : nil,
-                                    entityIndex: entityIndex
-                                ) { Task { await model.complete(row) } }
-                            case .carriedOverDisclosure(let text):
-                                Button(action: onExpandCarriedOver) {
-                                    Text(verbatim: text)
-                                        .font(.ink.meta)
-                                        .foregroundStyle(Color.ink.warning)
-                                        .frame(
-                                            maxWidth: .infinity, minHeight: TapTarget.minimumLength,
-                                            alignment: .leading
-                                        )
-                                        .contentShape(Rectangle())
-                                }
-                                .buttonStyle(.plain)
-                                .accessibilityLabel(text)
-                                .modifier(carriedOverCommands)
-                            case .moreTasksDisclosure(let text):
-                                Button(action: onExpandTasks) {
-                                    Text(verbatim: text)
-                                        .font(.ink.meta)
-                                        .foregroundStyle(Color.ink.secondaryText)
-                                        .frame(
-                                            maxWidth: .infinity, minHeight: TapTarget.minimumLength,
-                                            alignment: .leading
-                                        )
-                                        .contentShape(Rectangle())
-                                }
-                                .buttonStyle(.plain)
-                                .accessibilityLabel(text)
-                            case .completedDisclosure(let text):
-                                Button(action: onExpandCompleted) {
-                                    Text(verbatim: text)
-                                        .font(.ink.meta)
-                                        .foregroundStyle(Color.ink.secondaryText)
-                                        .frame(
-                                            maxWidth: .infinity, minHeight: TapTarget.minimumLength,
-                                            alignment: .leading
-                                        )
-                                        .contentShape(Rectangle())
-                                }
-                                .buttonStyle(.plain)
+                    ForEach(Array(rows.enumerated()), id: \.element.id) { index, entry in
+                        if index > 0 { InkCardDivider() }
+                        switch entry {
+                        case .task(let row):
+                            let isCarried = carriedIDs.contains(row.id)
+                            DayTaskView(
+                                store: store, row: row, isToday: isToday, isOverdue: isCarried,
+                                completed: model.completed.contains(row.id) || row.isClosed,
+                                isBusy: model.completing.contains(row.id), day: date,
+                                carriedOverLabel: isCarried ? carriedOverText(for: row) : nil,
+                                entityIndex: entityIndex
+                            ) { Task { await model.complete(row) } }
+                        case .carriedOverDisclosure(let text):
+                            Button(action: onExpandCarriedOver) {
+                                Text(verbatim: text)
+                                    .font(.ink.meta)
+                                    .foregroundStyle(Color.ink.warning)
+                                    .frame(
+                                        maxWidth: .infinity, minHeight: TapTarget.minimumLength,
+                                        alignment: .leading
+                                    )
+                                    .contentShape(Rectangle())
                             }
+                            .buttonStyle(.plain)
+                            .accessibilityLabel(text)
+                            .modifier(carriedOverCommands)
+                        case .moreTasksDisclosure(let text):
+                            Button(action: onExpandTasks) {
+                                Text(verbatim: text)
+                                    .font(.ink.meta)
+                                    .foregroundStyle(Color.ink.secondaryText)
+                                    .frame(
+                                        maxWidth: .infinity, minHeight: TapTarget.minimumLength,
+                                        alignment: .leading
+                                    )
+                                    .contentShape(Rectangle())
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityLabel(text)
+                        case .completedDisclosure(let text):
+                            Button(action: onExpandCompleted) {
+                                Text(verbatim: text)
+                                    .font(.ink.meta)
+                                    .foregroundStyle(Color.ink.secondaryText)
+                                    .frame(
+                                        maxWidth: .infinity, minHeight: TapTarget.minimumLength,
+                                        alignment: .leading
+                                    )
+                                    .contentShape(Rectangle())
+                            }
+                            .buttonStyle(.plain)
                         }
                     }
                 }

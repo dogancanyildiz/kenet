@@ -50,7 +50,7 @@ struct TodayPresentationTests {
         events: Int = 0, tasks: Int = 0, goals: Int = 0, locale: String,
         groups: TaskGroups? = nil, completed: [TaskRow] = [], goalStatusesDay: CalendarDate? = nil,
         goalsDefinitions: [GoalDefinition]? = nil, goalStatuses: [String: GoalStatus] = [:],
-        foldsOpenTasks: Bool = false, foldViewportHeight: CGFloat = 844,
+        foldsOpenTasks: Bool = false, foldViewportHeight: CGFloat = 694,
         calendarEventCount: Int = 0, isTasksExpanded: Bool = false
     ) throws -> TodayPresentation {
         let definitions: [GoalDefinition]
@@ -463,7 +463,7 @@ struct TodayPresentationTests {
     @Test func openTaskFoldHidesAtLeastTwoAndExpands() throws {
         var value = try make(
             events: 1, tasks: 5, goals: 3, locale: "tr_TR", foldsOpenTasks: true,
-            foldViewportHeight: 844)
+            foldViewportHeight: 694)
         #expect(value.shouldFoldOpenTasks)
         #expect(value.visibleOpenTasks.count == 3)
         #expect(value.hiddenOpenTaskCount == 2)
@@ -479,12 +479,12 @@ struct TodayPresentationTests {
 
         let four = try make(
             events: 1, tasks: 4, goals: 3, locale: "tr_TR", foldsOpenTasks: true,
-            foldViewportHeight: 844)
+            foldViewportHeight: 694)
         #expect(!four.shouldFoldOpenTasks)
 
         let wide = try make(
             events: 1, tasks: 8, goals: 3, locale: "tr_TR", foldsOpenTasks: false,
-            foldViewportHeight: 844)
+            foldViewportHeight: 694)
         #expect(!wide.shouldFoldOpenTasks)
     }
 

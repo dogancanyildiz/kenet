@@ -47,12 +47,10 @@ struct DayBacklinksSection<Preceding: View>: View {
                         count: model.items.count
                     )
                     InkCard(padded: true) {
-                        InkCardRows {
-                            ForEach(Array(model.items.enumerated()), id: \.element.id) {
-                                index, item in
-                                if index > 0 { InkCardDivider() }
-                                backlinkRow(item)
-                            }
+                        ForEach(Array(model.items.enumerated()), id: \.element.id) {
+                            index, item in
+                            if index > 0 { InkCardDivider() }
+                            backlinkRow(item)
                         }
                     }
                 }

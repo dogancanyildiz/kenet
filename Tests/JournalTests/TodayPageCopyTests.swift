@@ -43,7 +43,11 @@ struct TodayPageCopyTests {
             greeting: .evening, events: 0, tasks: 0, goals: 0, locale: en)
         #expect(TodaySummaryCopy.spoken(trParts) == "Günaydın.")
         #expect(TodaySummaryCopy.spoken(enParts) == "Good evening.")
-        #expect(trParts.first == .text("Günaydın."))
+        #expect(
+            {
+                if case .text(let first) = trParts.first { return first == "Günaydın." }
+                return false
+            }())
         #expect(
             TodaySummaryCopy.parts(greeting: nil, events: 0, tasks: 0, goals: 0, locale: tr).isEmpty)
     }
@@ -68,6 +72,43 @@ struct TodayPageCopyTests {
         let one = TodaySummaryCopy.parts(
             greeting: nil, events: 0, tasks: 4, goals: 0, locale: locale)
         #expect(TodaySummaryCopy.spoken(one) == "Bugün 4 görev var.")
+
+        // On screen the comma rides on its count; Turkish ends on the "var." glue.
+        #expect(Self.countSuffixes(three) == [",", "", ""])
+        #expect(Self.lastText(three) == "var.")
+    }
+
+    @Test func summaryEnglishPeriodGluesToLastCount() {
+        let locale = Locale(identifier: "en_US")
+        let three = TodaySummaryCopy.parts(
+            greeting: nil, events: 2, tasks: 6, goals: 3, locale: locale)
+        // No free-standing "." part: it would float apart ("3 goals .") or wrap alone.
+        #expect(Self.countSuffixes(three) == [",", "", "."])
+        #expect(
+            !three.contains {
+                if case .text(let text) = $0 { return text == "." }
+                return false
+            })
+        #expect(
+            {
+                if case .count(_, let symbol, let suffix) = three.last {
+                    return symbol == TodaySummaryCopy.goalSymbol && suffix == "."
+                }
+                return false
+            }())
+        #expect(InkSummaryLine.spokenParts(three).last == "3 goals.")
+    }
+
+    private static func countSuffixes(_ parts: [InkSummaryLine.Part]) -> [String] {
+        parts.compactMap {
+            if case .count(_, _, let suffix) = $0 { return suffix }
+            return nil
+        }
+    }
+
+    private static func lastText(_ parts: [InkSummaryLine.Part]) -> String? {
+        if case .text(let text) = parts.last { return text }
+        return nil
     }
 
     @Test func summaryFullSentenceEqualityEnglish() {
@@ -136,18 +177,23 @@ struct TodayPageCopyTests {
     @Test func aboveFoldBudgetRequiresTwoHiddenAndCalendar() {
         #expect(
             !TodayAboveFoldBudget.shouldFoldTasks(
-                goalCount: 3, openTaskCount: 4, eventCount: 1, viewportHeight: 844))
+                goalCount: 3, openTaskCount: 4, eventCount: 1, viewportHeight: 694))
         #expect(
             TodayAboveFoldBudget.shouldFoldTasks(
-                goalCount: 3, openTaskCount: 5, eventCount: 1, viewportHeight: 844))
+                goalCount: 3, openTaskCount: 5, eventCount: 1, viewportHeight: 694))
         #expect(
             !TodayAboveFoldBudget.shouldFoldTasks(
-                goalCount: 3, openTaskCount: 8, eventCount: 1, viewportHeight: 844,
+                goalCount: 3, openTaskCount: 8, eventCount: 1, viewportHeight: 694,
                 foldsAllowed: false))
+        // Same page, same viewport: only the calendar rows tip it over (656 vs 752 pt of 700).
+        #expect(
+            !TodayAboveFoldBudget.shouldFoldTasks(
+                goalCount: 0, openTaskCount: 5, eventCount: 1, calendarEventCount: 0,
+                viewportHeight: 700))
         #expect(
             TodayAboveFoldBudget.shouldFoldTasks(
-                goalCount: 0, openTaskCount: 5, eventCount: 1, calendarEventCount: 3,
-                viewportHeight: 600))
+                goalCount: 0, openTaskCount: 5, eventCount: 1, calendarEventCount: 1,
+                viewportHeight: 700))
     }
 
     @Test func dayRingProgressAndLabel() {

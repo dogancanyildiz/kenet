@@ -79,6 +79,7 @@ struct DaysView: View {
                     #if os(macOS)
                         navigation?.goToToday(shell: .split)
                     #else
+                        navigation?.todayPath = NavigationPath()
                         navigation?.goToToday(shell: .tabs)
                     #endif
                 })

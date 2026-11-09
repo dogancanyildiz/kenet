@@ -28,40 +28,38 @@ struct DayCalendarView: View {
                             action: calendar.authorization.canRead
                                 ? { Task { await calendar.load(date) } } : nil)
                     }
-                    InkCardRows {
-                        ForEach(Array(calendar.events(on: date).enumerated()), id: \.element.id) {
-                            index, event in
-                            if index > 0 { InkCardDivider() }
-                            VStack(alignment: .leading, spacing: 4) {
-                                InkCalendarRow(
-                                    time: startLabel(for: event),
-                                    title: event.title.isEmpty
-                                        ? String(
-                                            localized: "Başlıksız etkinlik",
-                                            bundle: PresentationLocalization.bundle(locale),
-                                            locale: locale)
-                                        : event.title,
-                                    endLabel: endLabel(for: event)
-                                )
-                                Text(
-                                    verbatim: String(
-                                        localized: "Takvim · salt okunur",
+                    ForEach(Array(calendar.events(on: date).enumerated()), id: \.element.id) {
+                        index, event in
+                        if index > 0 { InkCardDivider() }
+                        VStack(alignment: .leading, spacing: 4) {
+                            InkCalendarRow(
+                                time: startLabel(for: event),
+                                title: event.title.isEmpty
+                                    ? String(
+                                        localized: "Başlıksız etkinlik",
                                         bundle: PresentationLocalization.bundle(locale),
                                         locale: locale)
-                                )
-                                .font(.ink.meta)
-                                .foregroundStyle(Color.ink.secondaryText)
-                            }
-                            .accessibilityElement(children: .combine)
-                            .contextMenu {
-                                Button {
-                                    draft(event)
-                                } label: {
-                                    Label("Olay taslağı", systemImage: "square.and.pencil")
-                                }
-                            }
-                            .accessibilityAction(named: Text("Olay taslağı")) { draft(event) }
+                                    : event.title,
+                                endLabel: endLabel(for: event)
+                            )
+                            Text(
+                                verbatim: String(
+                                    localized: "Takvim · salt okunur",
+                                    bundle: PresentationLocalization.bundle(locale),
+                                    locale: locale)
+                            )
+                            .font(.ink.meta)
+                            .foregroundStyle(Color.ink.secondaryText)
                         }
+                        .accessibilityElement(children: .combine)
+                        .contextMenu {
+                            Button {
+                                draft(event)
+                            } label: {
+                                Label("Olay taslağı", systemImage: "square.and.pencil")
+                            }
+                        }
+                        .accessibilityAction(named: Text("Olay taslağı")) { draft(event) }
                     }
                 }
             }

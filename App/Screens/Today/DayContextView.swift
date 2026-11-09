@@ -55,21 +55,19 @@ struct DayContextView<Following: View>: View {
                             localized: "Bağlam",
                             bundle: PresentationLocalization.bundle(locale), locale: locale))
                     InkCard(padded: true) {
-                        InkCardRows {
-                            if let entry {
-                                onThisDayRow(
-                                    OnThisDayPresentation(
-                                        entry: entry, today: today, locale: locale),
-                                    day: entry.day)
-                            }
-                            ForEach(Array(shown.enumerated()), id: \.element.id) { offset, row in
-                                if entry != nil || offset > 0 { InkCardDivider() }
-                                importantDateRow(row)
-                            }
-                            if extra > 0 {
-                                if entry != nil || !shown.isEmpty { InkCardDivider() }
-                                moreDatesRow(extra)
-                            }
+                        if let entry {
+                            onThisDayRow(
+                                OnThisDayPresentation(
+                                    entry: entry, today: today, locale: locale),
+                                day: entry.day)
+                        }
+                        ForEach(Array(shown.enumerated()), id: \.element.id) { offset, row in
+                            if entry != nil || offset > 0 { InkCardDivider() }
+                            importantDateRow(row)
+                        }
+                        if extra > 0 {
+                            if entry != nil || !shown.isEmpty { InkCardDivider() }
+                            moreDatesRow(extra)
                         }
                     }
                 }

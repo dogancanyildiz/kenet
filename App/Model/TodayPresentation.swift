@@ -70,8 +70,7 @@ struct TodayPresentation: Sendable {
         completedTasks: [TaskRow] = [], completedTaskIDs: Set<String> = [],
         isCarriedOverExpanded: Bool = false, isCompletedExpanded: Bool = false,
         isTasksExpanded: Bool = false, foldsOpenTasks: Bool = false,
-        foldViewportHeight: CGFloat = TodayAboveFoldBudget.mastheadHeight
-            + TodayAboveFoldBudget.bottomChromeHeight + 500,
+        foldViewportHeight: CGFloat = TodayAboveFoldBudget.mastheadHeight + 500,
         calendarEventCount: Int = 0,
         greeting: TodayGreeting? = nil
     ) {

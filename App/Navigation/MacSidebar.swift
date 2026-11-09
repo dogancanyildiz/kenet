@@ -132,8 +132,8 @@ enum MacSidebarChrome {
     /// `nil`: no fill (a row that is not selected).
     static func fillToken(isSelected: Bool, isWindowActive: Bool) -> InkPalette.Token? {
         guard isSelected else { return nil }
-        // Inactive selection used to use `rule`; hair is now alpha and cannot fill a row.
-        return isWindowActive ? .accent : .well
+        // Inactive selection: accentSoft stays visible on elevated sidebar (well did not).
+        return isWindowActive ? .accent : .accentSoft
     }
 
     static func titleToken(isSelected: Bool, isWindowActive: Bool) -> InkPalette.Token {

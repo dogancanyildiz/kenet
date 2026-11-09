@@ -1,12 +1,12 @@
 import SwiftUI
 
-/// Byline sentence that elevates counts: numbers and their nouns in text/semibold, glue in secondary.
+/// Byline sentence that elevates counts: formatted count phrases and glue.
 struct InkSummaryLine: View {
-    enum Part: Equatable, Sendable {
-        /// Conjunction / glue ("Bugün", "ve", "var.").
+    enum Part: Sendable {
+        /// Conjunction / glue ("Bugün", "ve", "kaldı").
         case text(String)
-        /// Count + noun, optionally with a leading SF Symbol and a glued suffix (",").
-        case count(Int, String, symbol: String? = nil, suffix: String = "")
+        /// Caller-formatted count phrase (e.g. LocalizedStringResource for "2 olay").
+        case count(LocalizedStringResource, symbol: String? = nil)
     }
 
     var parts: [Part]
@@ -19,7 +19,7 @@ struct InkSummaryLine: View {
                     Text(verbatim: text)
                         .font(.ink.byline)
                         .foregroundStyle(Color.ink.secondaryText)
-                case .count(let value, let noun, let symbol, let suffix):
+                case .count(let resource, let symbol):
                     HStack(spacing: 4) {
                         if let symbol {
                             Image(systemName: symbol)
@@ -27,7 +27,7 @@ struct InkSummaryLine: View {
                                 .foregroundStyle(Color.ink.text)
                                 .accessibilityHidden(true)
                         }
-                        Text(verbatim: "\(value) \(noun)\(suffix)")
+                        Text(resource)
                             .font(.system(.title3, design: .default, weight: .semibold).monospacedDigit())
                             .foregroundStyle(Color.ink.text)
                     }
@@ -36,27 +36,17 @@ struct InkSummaryLine: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text(verbatim: Self.spoken(parts)))
+        .accessibilityLabel(Text(verbatim: Self.spokenParts(parts).joined(separator: " ")))
     }
 
-    /// Joins parts with spaces, except a leading "." which glues to the previous piece.
-    static func spoken(_ parts: [Part]) -> String {
-        var result = ""
-        for part in parts {
-            let piece: String =
-                switch part {
-                case .text(let text): text
-                case .count(let value, let noun, _, let suffix): "\(value) \(noun)\(suffix)"
-                }
-            guard !piece.isEmpty else { continue }
-            if result.isEmpty {
-                result = piece
-            } else if piece == "." {
-                result += piece
-            } else {
-                result += " " + piece
+    /// Spoken words for unit tests (glue + resolved count keys).
+    nonisolated static func spokenParts(_ parts: [Part]) -> [String] {
+        parts.map { part in
+            switch part {
+            case .text(let text): text
+            case .count(let resource, _): String(localized: resource)
             }
         }
-        return result
+        .filter { !$0.isEmpty }
     }
 }

@@ -142,8 +142,9 @@ enum InkPalette {
                     light: 0x53_56_5E, dark: 0xA7_AA_B2,
                     highContrastLight: 0x3A_3D_44, highContrastDark: 0xCD_D0_D6)
             case .tertiaryText:
+                // Light darkened so ≥ 4.5:1 on accentSoft (`#5E6168`).
                 Variant(
-                    light: 0x66_69_72, dark: 0x8E_91_99,
+                    light: 0x5E_61_68, dark: 0x8E_91_99,
                     highContrastLight: 0x4A_4D_55, highContrastDark: 0xB4_B7_BE)
             case .accent:
                 Variant(
@@ -182,31 +183,12 @@ enum InkPalette {
         }
     }
 
-    /// Glow peak backgrounds from the design draft (strongest mix at the gradient center).
-    enum GlowPeak: String, CaseIterable, Sendable {
-        case darkA = "482543"
-        case darkB = "423219"
-        case lightA = "E3D6E3"
-        case lightB = "ECE2D6"
-
-        var hex: UInt32 {
-            UInt32(rawValue, radix: 16) ?? 0
-        }
-
-        var appearance: Appearance {
-            switch self {
-            case .darkA, .darkB: .dark
-            case .lightA, .lightB: .light
-            }
-        }
-    }
-
     /// Published contrast ratios on paper from the Şafak design draft.
     /// Used only for verification; do not change palette values when these drift.
     enum DocumentedContrast {
         static let textOnPaper: [Double] = [16.32, 17.15, 18.39, 19.93]
         static let secondaryTextOnPaper: [Double] = [6.63, 8.25, 9.82, 12.90]
-        static let tertiaryTextOnPaper: [Double] = [4.95, 6.08, 7.63, 9.92]
+        static let tertiaryTextOnPaper: [Double] = [5.60, 6.08, 7.63, 9.92]
         static let accentOnPaper: [Double] = [7.86, 7.46, 10.52, 12.05]
         static let onAccentOnAccent: [Double] = [8.70, 7.28, 11.65, 11.76]
         static let warningOnPaper: [Double] = [6.50, 10.35, 9.11, 13.31]

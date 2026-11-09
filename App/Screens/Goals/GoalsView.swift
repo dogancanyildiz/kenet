@@ -42,7 +42,7 @@ struct GoalsView: View {
         }
         .inkRootPageNavigationTitle("Hedefler")
         .sheet(item: $editingGoal) { goal in
-            GoalRowDefinitionEditor(store: store, goal: goal.goal, selection: selection)
+            NavigationStack { GoalDefinitionForm(store: store, goal: goal.goal) }
         }
         .sheet(item: $editingAmount) { editor in
             NavigationStack { GoalValueEditor(model: editor) }
@@ -170,52 +170,63 @@ private struct GoalListContent: View {
 
     @ViewBuilder
     private func row(goal: GoalDefinition, status: GoalStatus) -> some View {
-        let card = { (onOpen: (() -> Void)?) in
-            GoalListCard(
-                goal: goal, status: status, day: model.day, logs: model.logs[goal.key] ?? [],
-                canEdit: model.canEdit, locale: locale,
-                onOpen: onOpen,
-                onIncrement: { Task { await incrementOrToggle(goal) } },
-                onUnmark: { Task { await model.toggle(goal) } }
-            )
-            .contextMenu {
-                DefinitionMenuButtons(
-                    items: DefinitionMenu.items(
-                        forGoal: goal.kind, markedToday: model.isMarkedToday(goal)),
-                    canEdit: model.canEdit
-                ) { item in
-                    switch item {
-                    case .markToday, .unmark:
-                        Task { await model.toggle(goal) }
-                    case .enterAmount:
-                        editingAmount = GoalValueModel(dayModel: model, goal: goal)
-                    case .edit:
-                        editingGoal = GoalDefinitionSheetTarget(goal: goal)
-                    case .delete:
-                        deletingGoal = goal
-                        deletion = DefinitionDeletionModel()
-                        deletion.request(path: goal.id)
-                    case .copyLink: break
-                    }
+        let markedToday = model.isMarkedToday(goal)
+        let markReadOnly =
+            goal.kind == .milestone
+            && status.completionDate != nil
+            && status.completionDate != model.day
+        GoalListCard(
+            goal: goal,
+            status: status,
+            day: model.day,
+            logs: model.logs[goal.key] ?? [],
+            canEdit: model.canEdit,
+            markedToday: markedToday,
+            markReadOnly: markReadOnly,
+            locale: locale,
+            onOpen: openAction(goal: goal, status: status),
+            opensDetail: goal.kind != .milestone && selection == nil,
+            detail: { GoalDetailView(store: store, goal: goal, day: model.day) },
+            onIncrement: { Task { await incrementOrToggle(goal) } },
+            onUnmark: { Task { await model.toggle(goal) } }
+        )
+        .contextMenu {
+            DefinitionMenuButtons(
+                items: DefinitionMenu.items(forGoal: goal.kind, markedToday: markedToday),
+                canEdit: model.canEdit && !markReadOnly
+            ) { item in
+                switch item {
+                case .markToday, .unmark:
+                    Task { await model.toggle(goal) }
+                case .enterAmount:
+                    editingAmount = GoalValueModel(dayModel: model, goal: goal)
+                case .edit:
+                    editingGoal = GoalDefinitionSheetTarget(goal: goal)
+                case .delete:
+                    deletingGoal = goal
+                    deletion = DefinitionDeletionModel()
+                    deletion.request(path: goal.id)
+                case .copyLink: break
                 }
             }
-            .inkListRow(columnSelected: selection?.wrappedValue == goal.id)
         }
+        .inkListRow(columnSelected: selection?.wrappedValue == goal.id)
+    }
 
-        if let selection {
-            card { selection.wrappedValue = goal.id }
-        } else if goal.kind == .milestone {
-            card {
+    /// Milestone first (mark), then Mac selection, else nil so the card uses ``NavigationLink``.
+    private func openAction(goal: GoalDefinition, status: GoalStatus) -> (() -> Void)? {
+        if goal.kind == .milestone {
+            let readOnly =
+                status.completionDate != nil && status.completionDate != model.day
+            return {
+                guard !readOnly else { return }
                 Task { await model.toggle(goal) }
             }
-        } else {
-            NavigationLink {
-                GoalDetailView(store: store, goal: goal, day: model.day)
-            } label: {
-                card(nil)
-            }
-            .buttonStyle(.plain)
         }
+        if let selection {
+            return { selection.wrappedValue = goal.id }
+        }
+        return nil
     }
 
     private func dailyRingsRow(answer: GoalListStatuses) -> some View {
@@ -223,7 +234,7 @@ private struct GoalListContent: View {
             HStack(spacing: InkSpacing.row) {
                 ForEach(dailyGoals, id: \.id) { goal in
                     let status = model.shownStatus(for: goal, answer: answer.statuses[goal.id])
-                    let ring = GoalDailyRingLabel(goal: goal, status: status)
+                    let ring = GoalDailyRingLabel(goal: goal, status: status, locale: locale)
                     if let selection {
                         Button { selection.wrappedValue = goal.id } label: { ring }
                             .buttonStyle(.plain)
@@ -256,6 +267,7 @@ private struct GoalListContent: View {
 private struct GoalDailyRingLabel: View {
     let goal: GoalDefinition
     let status: GoalStatus
+    let locale: Locale
 
     var body: some View {
         let progress = GoalRowPresentation.progress(goal: goal, status: status)
@@ -263,7 +275,8 @@ private struct GoalDailyRingLabel: View {
         let center =
             complete
             ? "✓"
-            : GoalListPresentation.percentLabel(done: status.progress.done, target: goal.target)
+            : GoalListPresentation.percentLabel(
+                done: status.progress.done, target: goal.target, locale: locale)
         VStack(spacing: 6) {
             GoalRing(
                 progress: progress,
@@ -286,7 +299,7 @@ private struct GoalDailyRingLabel: View {
         .accessibilityValue(
             Text(
                 verbatim: GoalListPresentation.percentLabel(
-                    done: status.progress.done, target: goal.target)))
+                    done: status.progress.done, target: goal.target, locale: locale)))
     }
 
     private func valueLine(complete: Bool) -> String {
@@ -296,47 +309,76 @@ private struct GoalDailyRingLabel: View {
 }
 
 /// Card row for one goal on the Goals list.
-private struct GoalListCard: View {
+private struct GoalListCard<Detail: View>: View {
     let goal: GoalDefinition
     let status: GoalStatus
     let day: CalendarDate
     let logs: [GoalLog]
     let canEdit: Bool
+    /// Today's own mark (boolean / milestone), not period completion.
+    let markedToday: Bool
+    /// Milestone completed on another day: mark controls stay off.
+    let markReadOnly: Bool
     let locale: Locale
-    /// Nil when a parent ``NavigationLink`` owns the open gesture.
+    /// Non-nil for milestone mark and Mac selection; nil when ``opensDetail``.
     var onOpen: (() -> Void)?
+    /// iPhone: ``NavigationLink`` wraps only the body; "+" stays a sibling.
+    var opensDetail: Bool
+    @ViewBuilder var detail: () -> Detail
     let onIncrement: () -> Void
     let onUnmark: () -> Void
 
     private var progress: Double { GoalRowPresentation.progress(goal: goal, status: status) }
     private var complete: Bool { progress >= 1 }
     private var isBooleanMark: Bool { goal.kind == .boolean || goal.kind == .milestone }
-    private var marked: Bool { isBooleanMark && complete }
 
     var body: some View {
         InkCard(padded: true) {
             HStack(alignment: .top, spacing: 12) {
-                Group {
-                    if let onOpen {
-                        Button(action: onOpen) {
-                            cardBody
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .contentShape(Rectangle())
-                        }
-                        .buttonStyle(.plain)
-                    } else {
-                        cardBody
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                    }
-                }
-                .accessibilityLabel(Text(verbatim: goal.name))
-                .accessibilityValue(Text(verbatim: accessibilityValue))
-                .accessibilityHint(Text("Ayrıntıları göster"))
-
+                openSection
                 trailingControl
             }
         }
-        .opacity(complete ? 0.72 : 1)
+    }
+
+    @ViewBuilder private var openSection: some View {
+        let body = cardBody
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .contentShape(Rectangle())
+        // Accessibility sits on the control itself so hosted presses activate mark / open.
+        if opensDetail {
+            NavigationLink { detail() } label: { body }
+                .buttonStyle(.plain)
+                .accessibilityLabel(Text(verbatim: accessibilityLabelText))
+                .accessibilityHint(Text(openHint))
+        } else if let onOpen {
+            Button(action: onOpen) { body }
+                .buttonStyle(.plain)
+                .disabled(goal.kind == .milestone && (!canEdit || markReadOnly))
+                .accessibilityLabel(Text(verbatim: accessibilityLabelText))
+                .accessibilityHint(Text(openHint))
+        } else {
+            body
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(Text(verbatim: accessibilityLabelText))
+        }
+    }
+
+    private var openHint: LocalizedStringKey {
+        if goal.kind == .milestone {
+            return markedToday ? "İşareti kaldır" : "Bugünü işaretle"
+        }
+        return "Ayrıntıları göster"
+    }
+
+    /// One element: "ad, değer" (or meta for milestones), matching list query tests.
+    private var accessibilityLabelText: String {
+        let detail =
+            GoalRowPresentation.valueText(goal: goal, status: status)
+            ?? GoalRowPresentation.meta(goal: goal, status: status, locale: locale)
+        let badge = GoalRowPresentation.graceBadge(goal: goal, status: status, locale: locale)?.label
+        return [goal.name, detail, badge].compactMap { $0 }.filter { !$0.isEmpty }
+            .joined(separator: ", ")
     }
 
     private var cardBody: some View {
@@ -412,60 +454,48 @@ private struct GoalListCard: View {
         return String(localized: "bu hafta \(amount)", locale: locale)
     }
 
-    private var accessibilityValue: String {
-        [
-            GoalRowPresentation.valueText(goal: goal, status: status),
-            GoalListPresentation.streakText(status.streak, locale: locale),
-        ]
-        .compactMap { $0 }.joined(separator: ", ")
-    }
-
     @ViewBuilder private var trailingControl: some View {
-        if goal.kind == .milestone {
-            Color.clear.frame(width: InkSize.plus, height: InkSize.plus)
-        } else if marked {
-            Button(action: onUnmark) {
-                GoalRing(progress: 1, isBoolean: true, centerLabel: "✓")
-                    .frame(width: InkSize.plus, height: InkSize.plus)
-                    .frame(minWidth: 44, minHeight: 44)
+        if isBooleanMark {
+            if markedToday {
+                Button(action: onUnmark) {
+                    GoalRing(progress: 1, isBoolean: true, centerLabel: "✓")
+                        .frame(width: InkSize.plus, height: InkSize.plus)
+                        .frame(minWidth: 44, minHeight: 44)
+                }
+                .buttonStyle(.plain)
+                .disabled(!canEdit || markReadOnly)
+                .accessibilityLabel(Text("İşareti kaldır"))
+            } else {
+                Button(action: onIncrement) {
+                    plusGlyph
+                }
+                .buttonStyle(.plain)
+                .disabled(!canEdit || markReadOnly)
+                .accessibilityLabel(Text(goal.kind == .milestone ? "Bugünü işaretle" : "Artır"))
             }
-            .buttonStyle(.plain)
-            .disabled(!canEdit)
-            .accessibilityLabel(Text("İşareti kaldır"))
         } else {
             Button(action: onIncrement) {
-                Image(systemName: "plus")
-                    .font(.body.weight(.semibold))
-                    .foregroundStyle(Color.ink.accent)
-                    .frame(width: InkSize.plus, height: InkSize.plus)
-                    .background {
-                        ZStack {
-                            Circle().fill(Color.ink.control)
-                            Circle().inset(by: InkStroke.control).fill(Color.ink.paper)
-                        }
-                    }
-                    .frame(minWidth: 44, minHeight: 44)
-                    .contentShape(Rectangle())
-                    .opacity(canEdit ? 1 : InkGoalRowTrailing.busyPlusOpacity)
+                plusGlyph
             }
             .buttonStyle(.plain)
             .disabled(!canEdit)
             .accessibilityLabel(Text("Artır"))
         }
     }
-}
 
-/// Clears the split column's selection after a successful delete from the definition sheet.
-private struct GoalRowDefinitionEditor: View {
-    let store: IndexStore
-    let goal: GoalDefinition
-    let selection: Binding<String?>?
-    @State private var deletion = DefinitionDeletionModel()
-
-    var body: some View {
-        NavigationStack { GoalDefinitionForm(store: store, goal: goal, deletion: deletion) }
-            .onChange(of: deletion.isDeleted) { _, deleted in
-                if deleted, selection?.wrappedValue == goal.id { selection?.wrappedValue = nil }
+    private var plusGlyph: some View {
+        Image(systemName: "plus")
+            .font(.body.weight(.semibold))
+            .foregroundStyle(Color.ink.accent)
+            .frame(width: InkSize.plus, height: InkSize.plus)
+            .background {
+                ZStack {
+                    Circle().fill(Color.ink.control)
+                    Circle().inset(by: InkStroke.control).fill(Color.ink.paper)
+                }
             }
+            .frame(minWidth: 44, minHeight: 44)
+            .contentShape(Rectangle())
+            .opacity(canEdit && !markReadOnly ? 1 : InkGoalRowTrailing.busyPlusOpacity)
     }
 }

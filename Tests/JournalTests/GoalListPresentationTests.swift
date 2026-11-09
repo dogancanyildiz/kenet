@@ -30,7 +30,9 @@ struct GoalListPresentationTests {
         let goal = try numberGoal()
         #expect(GoalListPresentation.percent(done: 12, target: 20) == 60)
         #expect(GoalListPresentation.percent(done: 30, target: 20) == 150)
-        #expect(GoalListPresentation.percentLabel(done: 12, target: 20) == "%60")
+        #expect(GoalListPresentation.percentLabel(done: 12, target: 20, locale: tr) == "%60")
+        #expect(GoalListPresentation.percentLabel(done: 12, target: 20, locale: en) == "60%")
+        #expect(GoalListPresentation.scorePercentLabel(87, locale: en) == "87%")
 
         let open = GoalStatus(
             periodStart: day, periodEnd: day, progress: GoalAmount(done: 12, target: 20),

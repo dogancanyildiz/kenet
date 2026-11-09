@@ -16080,6 +16080,70 @@
           }
         }
       }
+    },
+    "%lld günün %lld'i yapıldı" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%2$lld of %1$lld days done"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld günün %lld'i yapıldı"
+          }
+        }
+      }
+    },
+    "%lld günün %lld'i yapıldı, %lld affedildi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%2$lld of %1$lld days done, %3$lld forgiven"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld günün %lld'i yapıldı, %lld affedildi"
+          }
+        }
+      }
+    },
+    "%lld ayda %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld months · %@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld ayda %@"
+          }
+        }
+      }
+    },
+    "Son 7 gün" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Last 7 days"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Son 7 gün"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

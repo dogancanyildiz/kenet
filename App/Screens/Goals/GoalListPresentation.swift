@@ -34,8 +34,44 @@ enum GoalListPresentation {
         return Int((done / target * 100).rounded())
     }
 
-    static func percentLabel(done: Double, target: Double) -> String {
-        "%\(percent(done: done, target: target))"
+    /// Locale-aware percent ("60%" / "%60").
+    static func percentLabel(
+        done: Double, target: Double, locale: Locale = .current
+    ) -> String {
+        let ratio = target > 0 && done.isFinite && target.isFinite ? done / target : 0
+        return ratio.formatted(.percent.precision(.fractionLength(0)).locale(locale))
+    }
+
+    /// Score cell: 87 → "87%" / "%87".
+    static func scorePercentLabel(_ score: Int, locale: Locale = .current) -> String {
+        (Double(score) / 100).formatted(.percent.precision(.fractionLength(0)).locale(locale))
+    }
+
+    /// VoiceOver summary for a 7-day tally.
+    static func tallySummary(
+        _ days: [GoalTallyDay], bundle: Bundle = .main, locale: Locale = .current
+    ) -> String {
+        let done = days.filter { $0.fill == .filled || $0.fill == .partial }.count
+        let forgiven = days.filter { $0.fill == .forgiven }.count
+        let total = days.count
+        if forgiven > 0 {
+            return String(
+                localized: "\(total) günün \(done)'i yapıldı, \(forgiven) affedildi",
+                bundle: bundle, locale: locale)
+        }
+        return String(
+            localized: "\(total) günün \(done)'i yapıldı", bundle: bundle, locale: locale)
+    }
+
+    /// VoiceOver summary for yearly mini bars.
+    static func yearBarsSummary(
+        _ bars: [GoalYearMonthBar], bundle: Bundle = .main, locale: Locale = .current
+    ) -> String {
+        let past = bars.filter { !$0.isFuture }
+        let total = past.reduce(0.0) { $0 + $1.total }
+        let amount = total.formatted(.number.precision(.fractionLength(0)).locale(locale))
+        return String(
+            localized: "\(past.count) ayda \(amount)", bundle: bundle, locale: locale)
     }
 
     /// Remaining amount; nil when complete or milestone.

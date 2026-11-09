@@ -5,8 +5,6 @@ import SwiftUI
 /// the detail page, not here.
 struct GoalDefinitionForm: View {
     let store: IndexStore
-    /// Owned by the detail page (or list editor); unused for delete from this form.
-    @Bindable var deletion: DefinitionDeletionModel
     @State private var model: GoalDefinitionModel
     @State private var draft: GoalDefinitionDraft
     @State private var isSaved = false
@@ -14,9 +12,8 @@ struct GoalDefinitionForm: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.locale) private var locale
 
-    init(store: IndexStore, goal: GoalDefinition, deletion: DefinitionDeletionModel) {
+    init(store: IndexStore, goal: GoalDefinition) {
         self.store = store
-        self.deletion = deletion
         _model = State(initialValue: GoalDefinitionModel(store: store, goal: goal))
         _draft = State(initialValue: GoalDefinitionDraft(goal: goal))
     }
@@ -54,7 +51,7 @@ struct GoalDefinitionForm: View {
         }
         .listStyle(.plain)
         .inkPageScrollColumn()
-        .disabled(model.isWriting || isSaved || deletion.isDeleting)
+        .disabled(model.isWriting || isSaved)
         .inkSheet(
             "Düzenle", isConfirmEnabled: !isSaved && model.canSave(draft), isBusy: model.isWriting,
             isCancelEnabled: !model.isWriting, cancelIdentifier: "button.goal.form.cancel",
@@ -113,7 +110,6 @@ struct GoalDefinitionForm: View {
         }
     }
 
-    /// Visible label above the control; VoiceOver reads the control with the same label.
     private func labeled<Content: View>(
         _ field: GoalEditableField, @ViewBuilder content: () -> Content
     ) -> some View {
@@ -172,7 +168,6 @@ struct GoalDefinitionForm: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    /// A value the form shows but does not edit: the key, and a milestone's period and kind.
     private func readOnlyRow(_ title: String, value: String) -> some View {
         HStack(alignment: .firstTextBaseline) {
             Text(verbatim: title)

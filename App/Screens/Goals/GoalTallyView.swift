@@ -5,6 +5,7 @@ import VaultFormat
 struct GoalTallyStrip: View {
     let days: [GoalTallyDay]
     @ScaledMetric(relativeTo: .caption) private var cell = 10
+    @Environment(\.locale) private var locale
 
     var body: some View {
         HStack(spacing: 4) {
@@ -17,9 +18,13 @@ struct GoalTallyStrip: View {
                     accessibilityLabel: Text(
                         LocalDay.instant(for: day.day), format: .dateTime.weekday(.abbreviated))
                 )
+                .accessibilityHidden(true)
             }
         }
-        .accessibilityElement(children: .combine)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text("Son 7 gün"))
+        .accessibilityValue(
+            Text(verbatim: GoalListPresentation.tallySummary(days, locale: locale)))
     }
 
     private func accessibilityValue(_ day: GoalTallyDay) -> LocalizedStringKey {
@@ -37,6 +42,7 @@ struct GoalYearMiniBars: View {
     let bars: [GoalYearMonthBar]
     @ScaledMetric(relativeTo: .caption) private var maxHeight: CGFloat = 28
     @ScaledMetric(relativeTo: .caption) private var barWidth: CGFloat = 6
+    @Environment(\.locale) private var locale
 
     var body: some View {
         HStack(alignment: .bottom, spacing: 3) {
@@ -62,5 +68,7 @@ struct GoalYearMiniBars: View {
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text("Aylara göre"))
+        .accessibilityValue(
+            Text(verbatim: GoalListPresentation.yearBarsSummary(bars, locale: locale)))
     }
 }

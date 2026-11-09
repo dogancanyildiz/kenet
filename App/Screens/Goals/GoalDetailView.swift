@@ -12,6 +12,7 @@ struct GoalDetailView: View {
     @Environment(\.dynamicTypeSize) private var typeSize
     @Environment(\.locale) private var locale
     @State private var isEditing = false
+    @ScaledMetric(relativeTo: .caption) private var forgivenMark: CGFloat = 12
 
     init(store: IndexStore, goal: GoalDefinition, day: CalendarDate = LocalDay.today()) {
         self.store = store
@@ -24,7 +25,10 @@ struct GoalDetailView: View {
     private var goal: GoalDefinition { history.goals.first { $0.id == original.id } ?? original }
 
     private var masthead: InkPageTitle<some View> {
-        InkPageTitle(verbatim: goal.name, byline: nil) {
+        InkPageTitle(
+            verbatim: goal.name,
+            byline: GoalListPresentation.periodChip(goal.period, locale: locale)
+        ) {
             SearchButton()
         }
     }
@@ -38,10 +42,8 @@ struct GoalDetailView: View {
                 hero(status: status)
                     .padding(.horizontal, InkSpacing.margin)
 
-                if goal.kind != .milestone {
-                    actions(status: status)
-                        .padding(.horizontal, InkSpacing.margin)
-                }
+                actions(status: status)
+                    .padding(.horizontal, InkSpacing.margin)
 
                 if goal.kind != .milestone, showsStats(status) {
                     statsStrip(status: status)
@@ -54,40 +56,13 @@ struct GoalDetailView: View {
                 }
 
                 if GoalValueChart.isShown(for: goal) {
-                    InkCard(padded: true) {
-                        SectionHeader(
-                            title: GoalValueChart.title(
-                                for: goal, isAccessibilitySize: typeSize.isAccessibilitySize))
-                        GoalValueChart(
-                            goal: goal, logs: history.logs[goal.key] ?? [], today: history.day)
-                    }
-                    .padding(.horizontal, InkSpacing.margin)
+                    chartSection
                 } else if goal.kind == .boolean {
-                    InkCard(padded: true) {
-                        SectionHeader(title: String(localized: "Isı haritası"))
-                        GoalHeatmap(
-                            goal: goal, logs: history.logs[goal.key] ?? [], today: history.day,
-                            graceSpentDays: Set(status.graceSpentDays)
-                        ) { day in
-                            Task { await edit(day) }
-                        }
-                        .disabled(!history.canEdit)
-                    }
-                    .padding(.horizontal, InkSpacing.margin)
+                    heatmapSection(status: status)
                 }
 
                 if goal.kind == .number {
-                    InkCard(padded: true) {
-                        SectionHeader(title: String(localized: "Isı haritası"))
-                        GoalHeatmap(
-                            goal: goal, logs: history.logs[goal.key] ?? [], today: history.day,
-                            graceSpentDays: Set(status.graceSpentDays)
-                        ) { day in
-                            Task { await edit(day) }
-                        }
-                        .disabled(!history.canEdit)
-                    }
-                    .padding(.horizontal, InkSpacing.margin)
+                    heatmapSection(status: status)
                 }
 
                 recentLogs
@@ -124,7 +99,7 @@ struct GoalDetailView: View {
                 .inkAdaptiveSheetPresentation(fitsContent: true, usesPhoneDetents: false)
         }
         .sheet(isPresented: $isEditing) {
-            NavigationStack { GoalDefinitionForm(store: store, goal: goal, deletion: deletion) }
+            NavigationStack { GoalDefinitionForm(store: store, goal: goal) }
         }
         .onChange(of: deletion.isDeleted) { _, deleted in
             if deleted { dismiss() }
@@ -134,24 +109,41 @@ struct GoalDetailView: View {
             confirmTitle: "Hedefi sil",
             message: "\(goal.name) silinsin mi? Gün kayıtları kalır."
         ) { path in
-            Task {
-                if await deletion.delete(store: store, path: path, goal: true) {
-                    dismiss()
-                }
-            }
+            Task { _ = await deletion.delete(store: store, path: path, goal: true) }
         }
     }
 
-    private func hero(status: GoalStatus) -> some View {
+    private var chartSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            HStack(alignment: .firstTextBaseline, spacing: 8) {
-                Text(verbatim: goal.name)
-                    .font(.ink.display)
-                    .foregroundStyle(Color.ink.text)
-                    .accessibilityHidden(true)
-                TagChip(title: GoalListPresentation.periodChip(goal.period, locale: locale))
+            SectionHeader(
+                title: GoalValueChart.title(
+                    for: goal, isAccessibilitySize: typeSize.isAccessibilitySize))
+            InkCard(padded: true) {
+                GoalValueChart(
+                    goal: goal, logs: history.logs[goal.key] ?? [], today: history.day)
             }
+        }
+        .padding(.horizontal, InkSpacing.margin)
+    }
 
+    private func heatmapSection(status: GoalStatus) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            SectionHeader(title: String(localized: "Isı haritası"))
+            InkCard(padded: true) {
+                GoalHeatmap(
+                    goal: goal, logs: history.logs[goal.key] ?? [], today: history.day,
+                    graceSpentDays: Set(status.graceSpentDays)
+                ) { day in
+                    Task { await edit(day) }
+                }
+                .disabled(!history.canEdit)
+            }
+        }
+        .padding(.horizontal, InkSpacing.margin)
+    }
+
+    private func hero(status: GoalStatus) -> some View {
+        Group {
             if goal.kind == .milestone {
                 GoalProgressLabel(goal: goal, status: status)
             } else {
@@ -184,7 +176,7 @@ struct GoalDetailView: View {
                         centerLabel: status.progress.isComplete
                             ? "✓"
                             : GoalListPresentation.percentLabel(
-                                done: status.progress.done, target: goal.target)
+                                done: status.progress.done, target: goal.target, locale: locale)
                     )
                 }
             }
@@ -193,8 +185,9 @@ struct GoalDetailView: View {
 
     @ViewBuilder
     private func actions(status: GoalStatus) -> some View {
-        let isBoolean = goal.kind == .boolean
-        let marked = isBoolean && history.isMarkedToday(goal)
+        let marked = history.isMarkedToday(goal)
+        let markReadOnly =
+            status.completionDate != nil && status.completionDate != history.day
         if goal.kind == .number {
             HStack(spacing: 12) {
                 Button("Miktar gir") {
@@ -217,14 +210,12 @@ struct GoalDetailView: View {
                 .disabled(!history.canEdit)
                 .accessibilityLabel(Text("Artır"))
             }
-        } else {
+        } else if goal.kind == .boolean || goal.kind == .milestone {
             Button(marked ? "İşareti kaldır" : "Bugünü işaretle") {
                 Task { await history.toggle(goal) }
             }
             .buttonStyle(InkSecondaryButtonStyle())
-            .disabled(
-                !history.canEdit
-                    || (status.completionDate != nil && status.completionDate != history.day))
+            .disabled(!history.canEdit || markReadOnly)
             .frame(maxWidth: .infinity)
         }
     }
@@ -240,26 +231,47 @@ struct GoalDetailView: View {
         let forgiven = GoalListPresentation.forgivenDays(
             goal: goal, logs: history.logs[goal.key] ?? [], today: history.day)
         return InkCard(padded: true) {
-            HStack(alignment: .top, spacing: 0) {
-                if goal.period == .day {
-                    statCell(
-                        title: String(
-                            localized: "Zincir · en uzun \(status.longestStreak)", locale: locale),
-                        value: GoalListPresentation.streakText(status.streak, locale: locale)
-                    )
-                    Divider().frame(height: 36)
+            ViewThatFits(in: .horizontal) {
+                HStack(alignment: .top, spacing: 0) {
+                    statsCells(status: status, forgiven: forgiven, axis: .horizontal)
                 }
-                if let score = status.score {
-                    statCell(
-                        title: String(localized: "Son 30 gün", locale: locale),
-                        value: "%\(score)"
-                    )
-                    Divider().frame(height: 36)
-                }
-                if goal.period == .day {
-                    forgivenCell(forgiven)
+                VStack(alignment: .leading, spacing: 12) {
+                    statsCells(status: status, forgiven: forgiven, axis: .vertical)
                 }
             }
+        }
+    }
+
+    @ViewBuilder
+    private func statsCells(
+        status: GoalStatus, forgiven: [CalendarDate], axis: Axis
+    ) -> some View {
+        if goal.period == .day {
+            statCell(
+                title: String(
+                    localized: "Zincir · en uzun \(status.longestStreak)", locale: locale),
+                value: GoalListPresentation.streakText(status.streak, locale: locale)
+            )
+            statsDivider(axis: axis)
+        }
+        if let score = status.score {
+            statCell(
+                title: String(localized: "Son 30 gün", locale: locale),
+                value: GoalListPresentation.scorePercentLabel(score, locale: locale)
+            )
+            if goal.period == .day { statsDivider(axis: axis) }
+        }
+        if goal.period == .day {
+            forgivenCell(forgiven)
+        }
+    }
+
+    @ViewBuilder private func statsDivider(axis: Axis) -> some View {
+        switch axis {
+        case .horizontal:
+            Divider()
+        case .vertical:
+            Divider()
         }
     }
 
@@ -276,7 +288,7 @@ struct GoalDetailView: View {
         }()
         return HStack(alignment: .center, spacing: 6) {
             HeatmapCell(
-                kind: .forgiven, size: 12, accessibilityValue: Text("Affedildi"),
+                kind: .forgiven, size: forgivenMark, accessibilityValue: Text("Affedildi"),
                 accessibilityLabel: Text("Affedildi"))
             VStack(alignment: .leading, spacing: 2) {
                 Text(verbatim: String(localized: "\(count) gün", locale: locale))

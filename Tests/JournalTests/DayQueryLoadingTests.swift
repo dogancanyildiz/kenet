@@ -26,10 +26,16 @@
                 Self.environment(NavigationStack { DayView(store: store, date: day) }, context: context),
                 size: CGSize(width: 720, height: 1600))
             defer { mount.close() }
-            let before = try await store.computeDay(on: day).events.map(\.text.plainText)
+            let rows = try await store.computeDay(on: day).events
+            let before = rows.map(\.text.plainText)
             let added = "Yükleme anı"
-            let known = Set(before + [added])
-            func events() -> [String] { Self.texts(mount).filter(known.contains) }
+            // A past day's schedule card says its time, then its text.
+            var spoken = [DayView.scheduleSpokenLabel(time: nil, text: added): added]
+            for row in rows {
+                let time = row.time.map { EventTimeFormat.string(for: $0) }
+                spoken[DayView.scheduleSpokenLabel(time: time, text: row.text.plainText)] = row.text.plainText
+            }
+            func events() -> [String] { Self.texts(mount).compactMap { spoken[$0] } }
             #expect(!before.isEmpty)
             guard await HostedAccessibilityTree.isAvailable(mount, until: { events() == before }) else { return }
 
@@ -59,7 +65,7 @@
             let mount = HostedLayout.Mount(
                 Self.environment(column, context: context), size: CGSize(width: 360, height: 2400))
             defer { mount.close() }
-            let rows = try await store.computeDaySummaries().map(Self.rowLabel)
+            let rows = try await Self.listedRows(store)
             guard await HostedAccessibilityTree.isAvailable(mount, until: { Self.rows(mount, among: rows) == rows })
             else { return }
             // The column opens with no rows while the first answer is on its way; the selection
@@ -74,7 +80,7 @@
             #expect(Self.rows(mount, among: rows) == rows, "the column keeps its rows")
 
             gate.release()
-            let updated = try await store.computeDaySummaries().map(Self.rowLabel)
+            let updated = try await Self.listedRows(store)
             #expect(updated != rows)
             for _ in 0..<40 where Self.rows(mount, among: updated) != updated { await mount.settle(rounds: 1) }
             #expect(Self.rows(mount, among: updated) == updated)
@@ -146,8 +152,14 @@
             HostedAccessibilityTree.texts(under: mount)
         }
 
+        /// The rows the column lists: as `MacDaysColumn` shows them (task counts in, empty days out).
+        private static func listedRows(_ store: IndexStore) async throws -> [String] {
+            DayOverview.listed(try await store.computeDaySummaries(), fragments: store.content.fragments)
+                .map(Self.rowLabel)
+        }
+
         private static func rowLabel(_ day: DayOverview) -> String {
-            VoiceOverCopy.dayRowLabel(date: day.date, eventCount: day.eventCount, preview: day.preview)
+            VoiceOverCopy.dayRowLabel(day)
         }
 
         private static func monthTitle(_ first: String) -> String {

@@ -145,23 +145,6 @@
         }
       }
     },
-    "%@ olay" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ events"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ olay"
-          }
-        }
-      }
-    },
     "%@ silinsin mi? Gün kayıtları kalır." : {
       "localizations" : {
         "en" : {
@@ -3600,6 +3583,22 @@
         }
       }
     },
+    "Başlangıç: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start: %@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Başlangıç: %@"
+          }
+        }
+      }
+    },
     "Başlıksız etkinlik" : {
       "localizations" : {
         "en" : {
@@ -4161,6 +4160,22 @@
         }
       }
     },
+    "Bitiş: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Due: %@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bitiş: %@"
+          }
+        }
+      }
+    },
     "Bitti" : {
       "localizations" : {
         "en" : {
@@ -4574,23 +4589,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bu hafta"
-          }
-        }
-      }
-    },
-    "Bu hafta ne iyi gitti?" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "What went well this week?"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bu hafta ne iyi gitti?"
           }
         }
       }
@@ -6192,6 +6190,22 @@
         }
       }
     },
+    "Gelecek hafta tek odak: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Single focus for next week: %@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gelecek hafta tek odak: %@"
+          }
+        }
+      }
+    },
     "Gelen bağlantılar" : {
       "localizations" : {
         "en" : {
@@ -6734,6 +6748,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Görevler"
+          }
+        }
+      }
+    },
+    "Görevler: %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tasks: %lld"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Görevler: %lld"
           }
         }
       }
@@ -10492,6 +10522,22 @@
         }
       }
     },
+    "Ne aksadı: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What fell short: %@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ne aksadı: %@"
+          }
+        }
+      }
+    },
     "Ne aksadı?" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -10505,6 +10551,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ne aksadı?"
+          }
+        }
+      }
+    },
+    "Ne iyi gitti: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What went well: %@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ne iyi gitti: %@"
+          }
+        }
+      }
+    },
+    "Ne iyi gitti?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What went well?"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ne iyi gitti?"
           }
         }
       }
@@ -12593,6 +12671,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tamamlandı"
+          }
+        }
+      }
+    },
+    "Tamamlandı: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Completed: %@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tamamlandı: %@"
           }
         }
       }

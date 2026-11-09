@@ -20,13 +20,22 @@ enum VoiceOverCopy {
     }
 
     static func dayRowLabel(
-        date: CalendarDate, eventCount: Int, preview: String?, locale: Locale = .current
+        date: CalendarDate, eventCount: Int, taskCount: Int? = nil, preview: String?,
+        locale: Locale = .current
     ) -> String {
         let formatted = LocalDay.instant(for: date).formatted(
             .dateTime.day().month().year().locale(locale))
         var parts = [formatted, String(localized: "Olaylar: \(eventCount)", locale: locale)]
+        if let taskCount { parts.append(String(localized: "Görevler: \(taskCount)", locale: locale)) }
         if let preview, !preview.isEmpty { parts.append(preview) }
         return parts.joined(separator: ", ")
+    }
+
+    /// A day list row as the row shows it: date, events, tasks and the preview line it draws.
+    static func dayRowLabel(_ day: DayOverview, locale: Locale = .current) -> String {
+        dayRowLabel(
+            date: day.date, eventCount: day.eventCount, taskCount: day.taskCount,
+            preview: day.displayPreview, locale: locale)
     }
 
     static func moveActionName(columnTitle: String, locale: Locale = .current) -> String {

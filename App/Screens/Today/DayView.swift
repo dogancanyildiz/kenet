@@ -469,7 +469,8 @@ struct DayView: View {
     ) -> some View {
         let schedule = DaySchedulePresentation(
             events: day?.events ?? [],
-            tasks: day == nil ? [] : (tasksModel.rows ?? [])
+            tasks: day == nil ? [] : (tasksModel.rows ?? []),
+            dayFile: TodayDayPath.file(for: date)
         )
         VStack(alignment: .leading, spacing: InkSpacing.section) {
             InkScrolledMasthead(mastheadBlock(presented, todayInstant: todayInstant))
@@ -507,20 +508,18 @@ struct DayView: View {
                 }
             }
 
-            InkCard {
-                GoalStripView(
-                    model: goalModels.model(store: store, day: date),
-                    countedGoalIDs: presented.countedGoalIDs,
-                    counter: loadedGoals?.day == date ? presented.counter(for: .goals) : nil,
-                    onOpen: { goalDestination = GoalDetailRoute(goal: $0) }
-                )
-                .id(GoalStripIdentity.key(day: date, vaultPath: store.vaultURL?.path))
-            }
+            // The strip, the journal and the backlinks draw their own cards; a day without goals
+            // draws no goal card at all.
+            GoalStripView(
+                model: goalModels.model(store: store, day: date),
+                countedGoalIDs: presented.countedGoalIDs,
+                counter: loadedGoals?.day == date ? presented.counter(for: .goals) : nil,
+                onOpen: { goalDestination = GoalDetailRoute(goal: $0) }
+            )
+            .id(GoalStripIdentity.key(day: date, vaultPath: store.vaultURL?.path))
 
-            InkCard {
-                journalSection
-            }
-            .dayBacklinks(store: store, date: date)
+            journalSection
+                .dayBacklinks(store: store, date: date)
         }
         .padding(.horizontal, InkSpacing.margin)
         .padding(.top, 8)
@@ -734,23 +733,32 @@ struct DayView: View {
 
     private func pastDayHeaderBlock(_ presented: TodayPresentation, todayInstant: Date) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            HStack(alignment: .center, spacing: 8) {
-                Button {
-                    showsMonthPicker = true
-                } label: {
-                    HStack(spacing: 4) {
-                        Text(LocalDay.instant(for: date), format: .dateTime.month(.wide).year())
-                            .font(.ink.section)
-                            .foregroundStyle(.ink.text)
-                        Image(systemName: "chevron.down")
-                            .font(.ink.meta)
-                            .foregroundStyle(.ink.secondaryText)
-                            .accessibilityHidden(true)
+            // The page's heading is the day's full date, on the icons' row; the month picker under it.
+            HStack(alignment: .top, spacing: 8) {
+                VStack(alignment: .leading, spacing: 0) {
+                    Text(verbatim: presented.headline)
+                        .font(.ink.section)
+                        .foregroundStyle(.ink.text)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityAddTraits(.isHeader)
+                    Button {
+                        showsMonthPicker = true
+                    } label: {
+                        HStack(spacing: 4) {
+                            Text(LocalDay.instant(for: date), format: .dateTime.month(.wide).year())
+                                .font(.ink.byline)
+                                .foregroundStyle(.ink.secondaryText)
+                            Image(systemName: "chevron.down")
+                                .font(.ink.meta)
+                                .foregroundStyle(.ink.secondaryText)
+                                .accessibilityHidden(true)
+                        }
+                        .tapTarget()
                     }
-                    .tapTarget()
+                    .buttonStyle(.plain)
+                    .accessibilityHint(Text("Ay seç"))
+                    .accessibilityIdentifier("button.dayMonthPicker")
                 }
-                .buttonStyle(.plain)
-                .accessibilityIdentifier("button.dayMonthPicker")
 
                 Spacer(minLength: 8)
 
@@ -781,34 +789,48 @@ struct DayView: View {
         entry: DayScheduleEntry, isTimedSection: Bool, entitiesByID: [String: EntitySummary]
     ) -> some View {
         let isSelected = selectedScheduleItemID == entry.id
+        let time = entry.time.map { EventTimeFormat.string(for: $0, locale: locale) }
         HStack(alignment: .top, spacing: 8) {
-            Text(
-                verbatim: isTimedSection
-                    ? (entry.time.map { EventTimeFormat.string(for: $0, locale: locale) } ?? "")
-                    : "—"
-            )
-            .font(.ink.time)
-            .monospacedDigit()
-            .foregroundStyle(isTimedSection ? Color.ink.secondaryText : Color.ink.tertiaryText)
-            .frame(width: 52, alignment: .leading)
-            .padding(.top, 10)
+            // The card reads its time itself; the column is for the eye.
+            Text(verbatim: isTimedSection ? (time ?? "") : "—")
+                .font(.ink.time)
+                .monospacedDigit()
+                .foregroundStyle(Color.ink.secondaryText)
+                .frame(width: 52, alignment: .leading)
+                .padding(.top, 10)
+                .accessibilityHidden(true)
 
             switch entry.kind {
             case .event(let event):
                 scheduleEventCard(
-                    entryID: entry.id, event: event, isSelected: isSelected,
+                    entryID: entry.id, event: event, time: time, isSelected: isSelected,
                     entitiesByID: entitiesByID)
             case .task(let task):
                 scheduleTaskCard(
-                    entryID: entry.id, task: task, isTimed: entry.time != nil,
-                    isSelected: isSelected, entitiesByID: entitiesByID)
+                    entryID: entry.id, task: task, time: time, isSelected: isSelected,
+                    entitiesByID: entitiesByID)
             }
         }
     }
 
+    /// First tap selects the card, the second opens its editor.
+    private func tapScheduleCard(_ entryID: String, edit: () -> Void) {
+        if selectedScheduleItemID == entryID { edit() } else { selectedScheduleItemID = entryID }
+    }
+
+    /// The card's frame: `accentSoft` and an accent rule while selected.
+    private func scheduleCardChrome(isSelected: Bool) -> some ViewModifier {
+        ScheduleCardChrome(isSelected: isSelected, hairline: InkStroke.hairline(scale: displayScale))
+    }
+
+    /// The card's spoken label: its time (when it has one), then its text. The meta line is its value.
+    static func scheduleSpokenLabel(time: String?, text: String) -> String {
+        ([time].compactMap { $0 } + [text]).joined(separator: ", ")
+    }
+
     @ViewBuilder
     private func scheduleEventCard(
-        entryID: String, event: EventRow, isSelected: Bool,
+        entryID: String, event: EventRow, time: String?, isSelected: Bool,
         entitiesByID: [String: EntitySummary]
     ) -> some View {
         let allLines = DaySchedulePresentation.splitSegmentsByLine(
@@ -816,6 +838,8 @@ struct DayView: View {
         let firstSegments = allLines.first ?? []
         let subLines = Array(allLines.dropFirst())
         let barColor = Self.scheduleBarColor(for: firstSegments)
+        let meta = scheduleEventMeta(subLineCount: subLines.count, isSelected: isSelected)
+        let edit = { editingScheduleEvent = EventEditorModel(store: store, day: date, row: event) }
 
         HStack(alignment: .top, spacing: 10) {
             Capsule()
@@ -842,12 +866,9 @@ struct DayView: View {
                 )
                 .frame(maxWidth: .infinity, alignment: .leading)
 
-                Text(
-                    verbatim: scheduleEventMeta(
-                        subLineCount: subLines.count, isSelected: isSelected)
-                )
-                .font(.ink.meta)
-                .foregroundStyle(Color.ink.secondaryText)
+                Text(verbatim: meta)
+                    .font(.ink.meta)
+                    .foregroundStyle(Color.ink.secondaryText)
 
                 if isSelected, !subLines.isEmpty {
                     VStack(alignment: .leading, spacing: 4) {
@@ -867,30 +888,24 @@ struct DayView: View {
                     .padding(.top, 4)
                 }
             }
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(
+                Text(
+                    verbatim: Self.scheduleSpokenLabel(
+                        time: time, text: firstSegments.map(\.text).joined())))
+            .accessibilityValue(
+                Text(
+                    verbatim: ([meta] + (isSelected ? subLines.map { $0.map(\.text).joined() } : []))
+                        .joined(separator: ", ")))
+            .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
+            .accessibilityAction { tapScheduleCard(entryID, edit: edit) }
+            .accessibilityAction(named: Text("Metni düzenle"), edit)
+            .accessibilityAction(named: Text("Sil")) { deletingScheduleEvent = event }
         }
-        .padding(InkSpacing.cardPadding)
-        .background {
-            RoundedRectangle(cornerRadius: InkCorner.card, style: .continuous)
-                .fill(isSelected ? Color.ink.accentSoft : Color.ink.surface)
-        }
-        .overlay {
-            RoundedRectangle(cornerRadius: InkCorner.card, style: .continuous)
-                .stroke(
-                    isSelected ? Color.ink.accent : Color.ink.rule,
-                    lineWidth: InkStroke.hairline(scale: displayScale))
-        }
-        .contentShape(Rectangle())
-        .onTapGesture {
-            if selectedScheduleItemID == entryID {
-                editingScheduleEvent = EventEditorModel(store: store, day: date, row: event)
-            } else {
-                selectedScheduleItemID = entryID
-            }
-        }
+        .modifier(scheduleCardChrome(isSelected: isSelected))
+        .onTapGesture { tapScheduleCard(entryID, edit: edit) }
         .contextMenu {
-            Button {
-                editingScheduleEvent = EventEditorModel(store: store, day: date, row: event)
-            } label: {
+            Button(action: edit) {
                 Label("Metni düzenle", systemImage: "pencil")
             }
             Button(role: .destructive) {
@@ -903,13 +918,18 @@ struct DayView: View {
 
     @ViewBuilder
     private func scheduleTaskCard(
-        entryID: String, task: TaskRow, isTimed: Bool, isSelected: Bool,
+        entryID: String, task: TaskRow, time: String?, isSelected: Bool,
         entitiesByID: [String: EntitySummary]
     ) -> some View {
         let box = TaskBoxPresentation(row: task, isCompleted: tasksModel.completed.contains(task.id))
         let isCompleted = box.state.isCompleted
-        let segments = scheduleTaskSegments(for: task, isTimed: isTimed, entitiesByID: entitiesByID)
-        let canToggle = !tasksModel.completing.contains(task.id) && !store.isWriting && store.canAddEvent
+        let segments = scheduleTaskSegments(for: task, isTimed: time != nil, entitiesByID: entitiesByID)
+        // The box only closes a task: completing again does nothing, so a closed box has no action.
+        let canToggle =
+            !isCompleted && !tasksModel.completing.contains(task.id) && !store.isWriting && store.canAddEvent
+        let meta = scheduleTaskMeta(for: task, isCompleted: isCompleted)
+        let dates = isSelected ? scheduleTaskDates(task) : nil
+        let edit = { editingScheduleTask = TaskEditorModel(store: store, row: task) }
 
         HStack(alignment: .top, spacing: 10) {
             Capsule()
@@ -921,7 +941,7 @@ struct DayView: View {
             TaskBox(
                 state: box.state,
                 action: canToggle ? { Task { await tasksModel.complete(task) } } : nil,
-                accessibilityLabel: isCompleted ? "Görevi yeniden aç" : "Görevi tamamla"
+                accessibilityLabel: isCompleted ? "Tamamlandı" : "Görevi tamamla"
             )
 
             VStack(alignment: .leading, spacing: 4) {
@@ -931,35 +951,30 @@ struct DayView: View {
                 )
                 .frame(maxWidth: .infinity, alignment: .leading)
 
-                Text(verbatim: scheduleTaskMeta(for: task, isCompleted: isCompleted))
+                Text(verbatim: meta)
                     .font(.ink.meta)
                     .foregroundStyle(Color.ink.secondaryText)
+
+                // The selected card's note line: the task's dates.
+                if let dates {
+                    Text(verbatim: dates)
+                        .font(.ink.meta)
+                        .foregroundStyle(Color.ink.secondaryText)
+                }
             }
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(
+                Text(verbatim: Self.scheduleSpokenLabel(time: time, text: segments.map(\.text).joined())))
+            .accessibilityValue(Text(verbatim: [meta, dates].compactMap { $0 }.joined(separator: ", ")))
+            .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
+            .accessibilityAction { tapScheduleCard(entryID, edit: edit) }
+            .accessibilityAction(named: Text("Metni düzenle"), edit)
+            .accessibilityAction(named: Text("Sil")) { deletingScheduleTask = task }
         }
-        .padding(InkSpacing.cardPadding)
-        .background {
-            RoundedRectangle(cornerRadius: InkCorner.card, style: .continuous)
-                .fill(isSelected ? Color.ink.accentSoft : Color.ink.surface)
-        }
-        .overlay {
-            RoundedRectangle(cornerRadius: InkCorner.card, style: .continuous)
-                .stroke(
-                    isSelected ? Color.ink.accent : Color.ink.rule,
-                    lineWidth: InkStroke.hairline(scale: displayScale))
-        }
-        .opacity(isCompleted ? 0.72 : 1)
-        .contentShape(Rectangle())
-        .onTapGesture {
-            if selectedScheduleItemID == entryID {
-                editingScheduleTask = TaskEditorModel(store: store, row: task)
-            } else {
-                selectedScheduleItemID = entryID
-            }
-        }
+        .modifier(scheduleCardChrome(isSelected: isSelected))
+        .onTapGesture { tapScheduleCard(entryID, edit: edit) }
         .contextMenu {
-            Button {
-                editingScheduleTask = TaskEditorModel(store: store, row: task)
-            } label: {
+            Button(action: edit) {
                 Label("Metni düzenle", systemImage: "pencil")
             }
             Button(role: .destructive) {
@@ -968,6 +983,23 @@ struct DayView: View {
                 Label("Sil", systemImage: "trash")
             }
         }
+    }
+
+    /// "Bitiş: 1 Eki · Başlangıç: 28 Eyl"; nil when the task carries no date.
+    private func scheduleTaskDates(_ task: TaskRow) -> String? {
+        let bundle = PresentationLocalization.bundle(locale)
+        func day(_ value: CalendarDate) -> String {
+            LocalDay.instant(for: value).formatted(Date.FormatStyle(locale: locale).day().month(.abbreviated))
+        }
+        var parts: [String] = []
+        if let start = task.start {
+            parts.append(String(localized: "Başlangıç: \(day(start))", bundle: bundle, locale: locale))
+        }
+        if let due = task.due { parts.append(String(localized: "Bitiş: \(day(due))", bundle: bundle, locale: locale)) }
+        if let done = task.done {
+            parts.append(String(localized: "Tamamlandı: \(day(done))", bundle: bundle, locale: locale))
+        }
+        return parts.isEmpty ? nil : parts.joined(separator: " · ")
     }
 
     private static func scheduleBarColor(for segments: [InkLinkSegment]) -> Color {
@@ -1146,31 +1178,22 @@ struct DaySchedulePresentation: Sendable {
         untimed = withoutTime.sorted { $0.fileOrder < $1.fileOrder }
     }
 
-    init(events: [EventRow], tasks: [TaskRow]) {
-        var combined: [DayScheduleEntry] = []
-        var order = 0
-        for event in events {
-            combined.append(
-                DayScheduleEntry(
-                    id: "event-\(event.id)-\(event.sourceLine)",
-                    time: event.time,
-                    fileOrder: order,
-                    kind: .event(event)
-                )
-            )
-            order += 1
+    /// Events are the day file's; tasks written in `dayFile` take their place among them by line,
+    /// so "Saatsiz" follows the file. Tasks from other files (due on the day) come after, in the
+    /// order given.
+    init(events: [EventRow], tasks: [TaskRow], dayFile: String? = nil) {
+        var combined: [DayScheduleEntry] = events.map { event in
+            DayScheduleEntry(
+                id: "event-\(event.id)-\(event.sourceLine)", time: event.time,
+                fileOrder: event.sourceLine, kind: .event(event))
         }
-        for task in tasks {
-            let extracted = Self.extractLeadingTime(from: task.text.plainText)
+        let lastLine = (events.map(\.sourceLine) + tasks.map(\.sourceLine)).max() ?? 0
+        for (index, task) in tasks.enumerated() {
+            let inDayFile = dayFile != nil && task.file == dayFile
             combined.append(
                 DayScheduleEntry(
-                    id: "task-\(task.id)",
-                    time: extracted,
-                    fileOrder: order,
-                    kind: .task(task)
-                )
-            )
-            order += 1
+                    id: "task-\(task.id)", time: Self.extractLeadingTime(from: task.text.plainText),
+                    fileOrder: inDayFile ? task.sourceLine : lastLine + 1 + index, kind: .task(task)))
         }
         self.init(entries: combined)
     }
@@ -1298,3 +1321,23 @@ struct CloseDaySummary: Equatable, Sendable {
     var remainingTasks: Int
 }
 
+/// A past-day schedule card's frame: surface and a hairline, `accentSoft` and an accent rule while
+/// selected.
+private struct ScheduleCardChrome: ViewModifier {
+    let isSelected: Bool
+    let hairline: CGFloat
+
+    func body(content: Content) -> some View {
+        content
+            .padding(InkSpacing.cardPadding)
+            .background {
+                RoundedRectangle(cornerRadius: InkCorner.card, style: .continuous)
+                    .fill(isSelected ? Color.ink.accentSoft : Color.ink.surface)
+            }
+            .overlay {
+                RoundedRectangle(cornerRadius: InkCorner.card, style: .continuous)
+                    .stroke(isSelected ? Color.ink.accent : Color.ink.rule, lineWidth: hairline)
+            }
+            .contentShape(Rectangle())
+    }
+}

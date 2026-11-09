@@ -126,10 +126,6 @@ struct WeeklyReviewView: View {
                     .fill(item == model.step ? Color.ink.accent : Color.ink.control)
                     .frame(width: item == model.step ? 18 : 6, height: 6)
             }
-            Text(verbatim: "\(model.step.rawValue + 1)/\(WeeklyReviewStep.allCases.count)")
-                .font(.ink.meta)
-                .monospacedDigit()
-                .foregroundStyle(Color.ink.secondaryText)
         }
         .accessibilityHidden(true)
     }
@@ -178,13 +174,6 @@ struct WeeklyReviewView: View {
         RhythmStrip(items: model.rhythmItems, legend: [], barHeight: 40, isCompact: true)
             .accessibilityElement(children: .contain)
             .accessibilityLabel(Text(verbatim: String(localized: "Ritim", bundle: bundle, locale: locale)))
-        if let diff = model.rhythmDiffSummary {
-            Text(verbatim: diff)
-                .font(.ink.meta)
-                .monospacedDigit()
-                .foregroundStyle(Color.ink.secondaryText)
-                .frame(maxWidth: .infinity, alignment: .leading)
-        }
         if let change = model.rhythmChange {
             Text(verbatim: change)
                 .font(.ink.meta)
@@ -199,7 +188,7 @@ struct WeeklyReviewView: View {
     @ViewBuilder private var questionCards: some View {
         VStack(alignment: .leading, spacing: 10) {
             questionCard(
-                title: "Bu hafta ne iyi gitti?",
+                title: "Ne iyi gitti?",
                 prompt: "Haftaya dair not",
                 text: $model.wellNote,
                 focus: .well,

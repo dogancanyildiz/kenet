@@ -56,6 +56,12 @@ struct DayOverview: Identifiable, Sendable, Equatable {
         return preview
     }
 
+    /// The day list's rows (iPhone Günlük and the Mac column): each day with its task count and
+    /// first event from the content fragments, days with nothing in them left out.
+    static func listed(_ days: [DayOverview], fragments: [String: VaultFileFragment]) -> [DayOverview] {
+        days.map { $0.enriched(with: fragments[$0.id]) }.filter(\.hasActivity)
+    }
+
     func enriched(with fragment: VaultFileFragment?) -> DayOverview {
         guard let fragment else { return self }
         return DayOverview(

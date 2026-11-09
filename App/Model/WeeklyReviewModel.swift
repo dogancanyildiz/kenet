@@ -316,33 +316,29 @@ final class WeeklyReviewModel {
             : String(localized: "Önceki haftaya göre \(signed) olay", bundle: bundle, locale: locale)
     }
 
-    /// Compact difference text ("+2 gün · +5 olay", no arrows) comparing written days and events
-    /// against the previous week up to the same weekday.
-    var rhythmDiffSummary: String? {
-        guard let rhythm else { return nil }
+    /// The question cards' answers and `note` as the note lines handed to `WeeklyReviewText.lines`
+    /// (no vault format change). Each filled card is one free note line with its question in front,
+    /// "Ne iyi gitti: …"; a many-line answer gets the question on its first line, and its other
+    /// lines go through the same cleanup as any note.
+    var effectiveNote: String {
         let bundle = PresentationLocalization.bundle(locale)
-        let measuredDays = rhythm.days.filter { $0.writing != .notStarted }
-        let currentWritten = measuredDays.count { $0.writing == .full || $0.writing == .partial }
-        let previousWritten = measuredDays.count { $0.previousEvents > 0 }
-        let dayDiff = currentWritten - previousWritten
-        let daySigned = SummaryPresentation.signed(Double(dayDiff), locale: locale)
-        let eventSigned = SummaryPresentation.signed(Double(rhythm.change), locale: locale)
-        let dayPart = String(localized: "\(daySigned) gün", bundle: bundle, locale: locale)
-        let eventPart = String(localized: "\(eventSigned) olay", bundle: bundle, locale: locale)
-        return "\(dayPart) · \(eventPart)"
+        let locale = self.locale
+        let cards: [(String, (String) -> String)] = [
+            (wellNote, { String(localized: "Ne iyi gitti: \($0)", bundle: bundle, locale: locale) }),
+            (blockedNote, { String(localized: "Ne aksadı: \($0)", bundle: bundle, locale: locale) }),
+            (focusNote, { String(localized: "Gelecek hafta tek odak: \($0)", bundle: bundle, locale: locale) }),
+        ]
+        var parts = cards.compactMap { Self.answer($0.0, labelled: $0.1) }
+        if !note.allSatisfy(\.isWhitespace) { parts.append(note) }
+        return parts.joined(separator: "\n")
     }
 
-    /// Combines the 3 optional question card answers (`wellNote`, `blockedNote`, `focusNote`)
-    /// and `note` into the existing note lines passed to `WeeklyReviewText.lines` (no vault
-    /// format change).
-    var effectiveNote: String {
-        var parts: [String] = []
-        for field in [wellNote, blockedNote, focusNote, note] {
-            if !field.allSatisfy(\.isWhitespace) {
-                parts.append(field)
-            }
-        }
-        return parts.joined(separator: "\n")
+    /// The answer with the question on its first written line; nil when the card is empty.
+    private static func answer(_ text: String, labelled label: (String) -> String) -> String? {
+        var lines = text.components(separatedBy: .newlines)
+        guard let first = lines.firstIndex(where: { !$0.allSatisfy(\.isWhitespace) }) else { return nil }
+        lines[first] = label(lines[first].trimmingCharacters(in: .whitespaces))
+        return lines.joined(separator: "\n")
     }
 
     var hasAnyNote: Bool {

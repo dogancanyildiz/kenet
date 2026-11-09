@@ -22,10 +22,7 @@ struct DaysView: View {
 
     private var visibleDays: [DayOverview]? {
         guard let days else { return nil }
-        let fragments = store.content.fragments
-        return days
-            .map { $0.enriched(with: fragments[$0.id]) }
-            .filter(\.hasActivity)
+        return DayOverview.listed(days, fragments: store.content.fragments)
     }
 
     var body: some View {
@@ -170,10 +167,7 @@ struct DayRow: View {
             }
         }
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(
-            Text(
-                verbatim: VoiceOverCopy.dayRowLabel(
-                    date: day.date, eventCount: day.eventCount, preview: day.preview)))
+        .accessibilityLabel(Text(verbatim: VoiceOverCopy.dayRowLabel(day)))
     }
 
     @ViewBuilder
@@ -204,6 +198,13 @@ struct DayRow: View {
                             .font(.ink.meta)
                             .foregroundStyle(.ink.secondaryText)
                     }
+                    // The list runs back across months: each row names its own month.
+                    Text(LocalDay.instant(for: day.date), format: .dateTime.month(.wide).year())
+                        .font(.ink.meta)
+                        .foregroundStyle(.ink.secondaryText)
+                    Text(verbatim: "·")
+                        .font(.ink.meta)
+                        .foregroundStyle(.ink.secondaryText)
                     Text("\(day.eventCount) olay · \(day.taskCount) görev")
                         .font(.ink.meta)
                         .foregroundStyle(.ink.secondaryText)

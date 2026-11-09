@@ -450,6 +450,11 @@ struct MacDaysColumn: View {
     /// Nil until the first query returns; a reload keeps the previous rows until then.
     @State private var days: [DayOverview]?
 
+    /// As the iPhone list shows them: task counts and first events in, empty days out.
+    private var listedDays: [DayOverview] {
+        DayOverview.listed(days ?? [], fragments: store.content.fragments)
+    }
+
     var body: some View {
         column
             .weeklyReviewSheet(isPresented: $showsWeeklyReview, store: store) { weeklyReviewNotice = $0 }
@@ -460,7 +465,7 @@ struct MacDaysColumn: View {
 
     @ViewBuilder private var column: some View {
         #if os(macOS)
-            MacDayList(days: days ?? [], selection: $selection) {
+            MacDayList(days: listedDays, selection: $selection) {
                 InkScrolledMasthead(columnTop)
                     .listRowInsets(EdgeInsets())
                     .columnTopRow()
@@ -489,7 +494,7 @@ struct MacDaysColumn: View {
                     InfoBand(kind: notice.kind, verbatim: notice.text, onDismiss: { weeklyReviewNotice = nil })
                 }
                 DaysCalendarView(store: store) { selection = "journal/\($0).md" }
-                MacDayList(days: days ?? [], selection: $selection)
+                MacDayList(days: listedDays, selection: $selection)
             }
         #endif
     }

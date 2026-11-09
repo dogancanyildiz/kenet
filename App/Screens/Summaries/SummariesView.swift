@@ -308,7 +308,7 @@ struct SummariesView: View {
                                         .font(.ink.value)
                                         .foregroundStyle(
                                             item.mark == .notStarted
-                                                ? Color.ink.tertiaryText : Color.ink.text)
+                                                ? Color.ink.secondaryText : Color.ink.text)
                                     Spacer(minLength: 8)
                                     if let previous = item.previous {
                                         Text("önceki dönemde \(previous)")

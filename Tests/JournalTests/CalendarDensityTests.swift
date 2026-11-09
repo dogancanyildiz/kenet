@@ -1,6 +1,7 @@
 import Foundation
 import Testing
 import VaultFormat
+import VaultIndex
 
 @testable import Journal
 
@@ -139,10 +140,10 @@ import VaultFormat
         let untimedEvent2 = makeEvent(4, nil, "Saatsiz olay 2", line: 6)
 
         let timedEntry = DayScheduleEntry(
-            id: "task-timed", time: parseTime("11:00"), fileOrder: 5,
+            id: "task-timed", time: parseTime("11:00"), fileOrder: 10,
             kind: .event(makeEvent(5, "11:00", "11:00 Eczaneye uğra", line: 10)))
         let untimedEntry = DayScheduleEntry(
-            id: "task-untimed", time: nil, fileOrder: 6,
+            id: "task-untimed", time: nil, fileOrder: 11,
             kind: .event(makeEvent(6, nil, "Market listesi", line: 11)))
 
         let base = DaySchedulePresentation(
@@ -167,5 +168,40 @@ import VaultFormat
         #expect(schedule.allOrdered.suffix(3).map(\.id) == schedule.untimed.map(\.id))
         #expect(DaySchedulePresentation.extractLeadingTime(from: "11:00 Eczaneye uğra")?.raw == "11:00")
         #expect(DaySchedulePresentation.extractLeadingTime(from: "Market listesi") == nil)
+    }
+
+    /// Real task rows: the day file's tasks take their place among the events by line, so the
+    /// "Saatsiz" group is the file's order; a task from another file comes after them.
+    @Test func dayScheduleKeepsTheFileOrderOfRealTaskRows() throws {
+        let file = "journal/2026-10-01.md"
+        func task(_ line: Int, _ text: String, in path: String = file) throws -> TaskRow {
+            let fields: [String: Any] = [
+                "file": path, "ordinal": line, "kind": "task", "firstLine": line + 1, "lastLine": line + 1,
+                "text": text, "section": "Tasks", "rawStatus": " ", "ownsIdentifier": false,
+            ]
+            let block = try JSONDecoder().decode(
+                IndexedBlock.self, from: JSONSerialization.data(withJSONObject: fields))
+            return TaskRow(row: block, links: [])
+        }
+        func event(_ id: Int, _ text: String, line: Int) -> EventRow {
+            EventRow(
+                id: id, time: nil, text: LinkedText(spans: [.init(text: text, destination: nil)]),
+                sourceLine: line, sourceEnd: line + 1, sourceText: text, sourceIdentifier: nil)
+        }
+        // ## Tasks (lines 1-3), ## Events (lines 5-6).
+        let first = try task(1, "Faturayı öde")
+        let timed = try task(2, "10:30 Kargoyu al")
+        let second = try task(3, "Kitap iade")
+        let elsewhere = try task(0, "Başka dosyadan", in: "notes/Plan.md")
+        let schedule = DaySchedulePresentation(
+            events: [event(0, "Saatsiz olay", line: 5), event(1, "Son olay", line: 6)],
+            tasks: [elsewhere, second, timed, first], dayFile: file)
+
+        #expect(schedule.timed.map(\.id) == ["task-\(timed.id)"])
+        #expect(schedule.timed.first?.time?.raw == "10:30")
+        #expect(
+            schedule.untimed.map(\.id) == [
+                "task-\(first.id)", "task-\(second.id)", "event-0-5", "event-1-6", "task-\(elsewhere.id)",
+            ])
     }
 }

@@ -191,9 +191,12 @@ private struct GoalListContent: View {
             onUnmark: { Task { await model.toggle(goal) } }
         )
         .contextMenu {
+            // A read-only mark (yesterday already completed) hides only the mark items;
+            // Düzenle and Sil stay available.
             DefinitionMenuButtons(
-                items: DefinitionMenu.items(forGoal: goal.kind, markedToday: markedToday),
-                canEdit: model.canEdit && !markReadOnly
+                items: DefinitionMenu.items(forGoal: goal.kind, markedToday: markedToday)
+                    .filter { !markReadOnly || ($0 != .markToday && $0 != .unmark) },
+                canEdit: model.canEdit
             ) { item in
                 switch item {
                 case .markToday, .unmark:

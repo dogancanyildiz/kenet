@@ -6,6 +6,7 @@ import Observation
     var text = ""
     var kind: ShareEntryKind = .event
     var time = Date()
+    var isTimed = true
     private(set) var isSaving = false
     private(set) var failed = false
     @ObservationIgnored private let writer: ShareEntryWriter
@@ -28,7 +29,8 @@ import Observation
     func confirm() {
         guard !isSaving else { return }
         let entry = ShareEntry(
-            text: EntryWriting.singleLine(text), kind: kind, time: time, sharedAt: Date())
+            text: EntryWriting.singleLine(text), kind: kind,
+            time: isTimed ? time : nil, sharedAt: Date())
         guard entry.isWritable else { return }
         isSaving = true
         failed = false

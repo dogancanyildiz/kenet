@@ -16,6 +16,7 @@ enum OnboardingCopy {
 struct OnboardingView: View {
     @Bindable var store: IndexStore
     @State private var choosesFolder = false
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: InkSpacing.section) {
@@ -39,11 +40,15 @@ struct OnboardingView: View {
                                 .foregroundStyle(Color.ink.secondaryText)
                                 .frame(maxWidth: .infinity, alignment: .center)
                         }
-                        HStack(spacing: InkSpacing.row) {
-                            localVaultButton
-                                .buttonStyle(InkSecondaryButtonStyle())
-                            Button("Var olan klasörü seç") { choosesFolder = true }
-                                .buttonStyle(InkSecondaryButtonStyle())
+                        // Side by side while both words fit one line; stacked otherwise and
+                        // always at accessibility text sizes.
+                        if dynamicTypeSize.isAccessibilitySize {
+                            VStack(alignment: .leading, spacing: InkSpacing.row) { secondaryButtons }
+                        } else {
+                            ViewThatFits(in: .horizontal) {
+                                HStack(spacing: InkSpacing.row) { secondaryButtons }
+                                VStack(alignment: .leading, spacing: InkSpacing.row) { secondaryButtons }
+                            }
                         }
                     } else {
                         localVaultButton
@@ -88,6 +93,13 @@ struct OnboardingView: View {
             case .failure(let error): store.report(error)
             }
         }
+    }
+
+    @ViewBuilder private var secondaryButtons: some View {
+        localVaultButton
+            .buttonStyle(InkSecondaryButtonStyle())
+        Button("Var olan klasörü seç") { choosesFolder = true }
+            .buttonStyle(InkSecondaryButtonStyle())
     }
 
     private var localVaultButton: some View {

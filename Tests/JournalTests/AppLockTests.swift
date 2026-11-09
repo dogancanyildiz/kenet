@@ -362,8 +362,10 @@ import Testing
         fixture.context.biometry = .faceID
         let lock = fixture.lock()
         #expect(lock.biometry == .faceID)
+        // Asked once per service: `body` reads it on every pass, and each ask builds an `LAContext`.
         fixture.context.biometry = .touchID
-        #expect(lock.biometry == .touchID)
+        #expect(lock.biometry == .faceID)
+        #expect(fixture.lock().biometry == .touchID)
     }
 }
 

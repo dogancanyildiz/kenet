@@ -22,6 +22,11 @@ struct PhoneSettingsView: View {
         }
     }
 
+    /// The card's index line, from the same store state as Kasa's progress and error rows.
+    private var indexState: VaultCardIndexState {
+        VaultCardIndexState(hasError: store.errorText != nil, isProcessing: store.isProcessing)
+    }
+
     var body: some View {
         List {
             InkPageTitleRow("Ayarlar")
@@ -52,16 +57,15 @@ struct PhoneSettingsView: View {
                                     .monospacedDigit()
                                 Text("·")
                                     .font(.ink.meta)
-                                    .foregroundStyle(Color.ink.tertiaryText)
+                                    .foregroundStyle(Color.ink.secondaryText)
                                     .accessibilityHidden(true)
-                                Image(
-                                    systemName: store.vaultKind == .icloud
-                                        ? "checkmark.icloud" : "folder"
-                                )
-                                .font(.ink.meta)
-                                .foregroundStyle(Color.ink.secondaryText)
-                                .accessibilityHidden(true)
-                                Text("indeks güncel")
+                                Image(systemName: indexState.symbol(isCloudVault: store.vaultKind == .icloud))
+                                    .font(.ink.meta)
+                                    .foregroundStyle(
+                                        indexState == .failed ? Color.ink.danger : Color.ink.secondaryText
+                                    )
+                                    .accessibilityHidden(true)
+                                Text(indexState.title)
                                     .font(.ink.meta)
                                     .foregroundStyle(Color.ink.secondaryText)
                             }
@@ -69,7 +73,7 @@ struct PhoneSettingsView: View {
                         Spacer(minLength: 8)
                         Image(systemName: "chevron.right")
                             .font(.ink.weekday)
-                            .foregroundStyle(Color.ink.tertiaryText)
+                            .foregroundStyle(Color.ink.secondaryText)
                             .accessibilityHidden(true)
                     }
                 }
@@ -101,7 +105,7 @@ struct PhoneSettingsView: View {
                                 Spacer(minLength: 8)
                                 Image(systemName: "chevron.right")
                                     .font(.ink.weekday)
-                                    .foregroundStyle(Color.ink.tertiaryText)
+                                    .foregroundStyle(Color.ink.secondaryText)
                                     .accessibilityHidden(true)
                             }
                             .frame(minHeight: InkButtonChrome.minimumHeight)
@@ -140,6 +144,38 @@ struct PhoneSettingsView: View {
             VaultSettingsView(store: store)
         case .diagnostics:
             DiagnosticsView(store: store)
+        }
+    }
+}
+
+/// What the Settings vault card says about the index: the store's error first, then a refresh
+/// under way, otherwise up to date.
+enum VaultCardIndexState: Equatable {
+    case current, indexing, failed
+
+    init(hasError: Bool, isProcessing: Bool) {
+        if hasError {
+            self = .failed
+        } else if isProcessing {
+            self = .indexing
+        } else {
+            self = .current
+        }
+    }
+
+    var title: LocalizedStringKey {
+        switch self {
+        case .current: "indeks güncel"
+        case .indexing: "indeksleniyor"
+        case .failed: "indeks hatası"
+        }
+    }
+
+    func symbol(isCloudVault: Bool) -> String {
+        switch self {
+        case .current: isCloudVault ? "checkmark.icloud" : "checkmark.circle"
+        case .indexing: "arrow.triangle.2.circlepath"
+        case .failed: "exclamationmark.triangle"
         }
     }
 }

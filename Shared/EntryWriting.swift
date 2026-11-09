@@ -28,15 +28,18 @@ struct ShareEntry: Codable, Equatable, Sendable {
     /// cleared when the write fails. A record still carrying it was saved by a run that stopped
     /// before the record left the queue: the next run finds the line and does not write it again.
     var writing: String?
+    /// Task block identifiers (`^id`) with the same text already on `day` before a queued task
+    /// write starts, so crash recovery distinguishes an older identical task from the newly written one.
+    var existingTaskIDs: [String]?
     let kind: ShareEntryKind
 
     private enum CodingKeys: String, CodingKey {
-        case id, text, day, time, sharedAt, writing, kind
+        case id, text, day, time, sharedAt, writing, existingTaskIDs, kind
     }
 
     init(
         id: String, text: String, day: String, time: String?, sharedAt: Date,
-        writing: String? = nil, kind: ShareEntryKind = .event
+        writing: String? = nil, existingTaskIDs: [String]? = nil, kind: ShareEntryKind = .event
     ) {
         self.id = id
         self.text = text
@@ -44,6 +47,7 @@ struct ShareEntry: Codable, Equatable, Sendable {
         self.time = time
         self.sharedAt = sharedAt
         self.writing = writing
+        self.existingTaskIDs = existingTaskIDs
         self.kind = kind
     }
 
@@ -52,18 +56,22 @@ struct ShareEntry: Codable, Equatable, Sendable {
         self.init(text: text, kind: kind, time: instant, sharedAt: instant, id: id)
     }
 
-    /// The entry the user confirms with a chosen `kind` and `time` on `sharedAt`'s local day.
+    /// The entry the user confirms with a chosen `kind` and optional `time` on `sharedAt`'s local day.
     init(
-        text: String, kind: ShareEntryKind, time: Date, sharedAt: Date = Date(),
+        text: String, kind: ShareEntryKind, time: Date?, sharedAt: Date = Date(),
         id: UUID = UUID()
     ) {
         let formattedTime: String?
         switch kind {
         case .event:
-            let clock = LocalDay.clock(at: time)
-            formattedTime =
-                (clock.hour < 10 ? "0" : "") + "\(clock.hour):"
-                + (clock.minute < 10 ? "0" : "") + "\(clock.minute)"
+            if let time {
+                let clock = LocalDay.clock(at: time)
+                formattedTime =
+                    (clock.hour < 10 ? "0" : "") + "\(clock.hour):"
+                    + (clock.minute < 10 ? "0" : "") + "\(clock.minute)"
+            } else {
+                formattedTime = nil
+            }
         case .task:
             formattedTime = nil
         }
@@ -80,6 +88,7 @@ struct ShareEntry: Codable, Equatable, Sendable {
         time = try container.decodeIfPresent(String.self, forKey: .time)
         sharedAt = try container.decode(Date.self, forKey: .sharedAt)
         writing = try container.decodeIfPresent(String.self, forKey: .writing)
+        existingTaskIDs = try container.decodeIfPresent([String].self, forKey: .existingTaskIDs)
         kind = try container.decodeIfPresent(ShareEntryKind.self, forKey: .kind) ?? .event
     }
 
@@ -91,6 +100,9 @@ struct ShareEntry: Codable, Equatable, Sendable {
         try container.encodeIfPresent(time, forKey: .time)
         try container.encode(sharedAt, forKey: .sharedAt)
         try container.encodeIfPresent(writing, forKey: .writing)
+        if let existingTaskIDs, !existingTaskIDs.isEmpty {
+            try container.encode(existingTaskIDs, forKey: .existingTaskIDs)
+        }
         if kind != .event {
             try container.encode(kind, forKey: .kind)
         }

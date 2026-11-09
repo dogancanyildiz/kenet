@@ -77,14 +77,7 @@ struct GoalChainEntryView: View {
         .widgetURL(WidgetLink.today.url)
     }
 
-    private var layout: GoalChainLayout {
-        if family == .systemSmall { return .small }
-        #if os(macOS)
-            return .desktopMedium
-        #else
-            return .medium
-        #endif
-    }
+    private var layout: GoalChainLayout { family == .systemSmall ? .small : .medium }
 
     /// The row's link; an intent (below) takes its place where the widget marks itself.
     private func link(for goal: WidgetSnapshot.Goal) -> URL {

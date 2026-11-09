@@ -38,8 +38,7 @@ struct LockScreenProvider: TimelineProvider {
             let snapshot = WidgetSnapshotFile.read(from: WidgetSnapshotFile.url(in: container))
         else { return [.init(date: now, day: nil, hideContent: true)] }
         return snapshot.lockScreenTimeline(from: now, calendar: WidgetDay.deviceCalendar).map {
-            // Lock screen widgets never render event titles or task text: only time and task count.
-            .init(date: $0.date, day: $0.day, hideContent: true)
+            .init(date: $0.date, day: $0.day, hideContent: snapshot.hideContent ?? true)
         }
     }
 }

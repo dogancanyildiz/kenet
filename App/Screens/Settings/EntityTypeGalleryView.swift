@@ -135,7 +135,7 @@ struct EntityTypeGalleryView: View {
                         if row.isTaken {
                             Text("Zaten var")
                                 .font(.ink.meta)
-                                .foregroundStyle(Color.ink.tertiaryText)
+                                .foregroundStyle(Color.ink.secondaryText)
                         }
                     }
                     Text(verbatim: row.name)

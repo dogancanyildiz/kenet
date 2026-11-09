@@ -155,6 +155,13 @@ struct ShareImportReport: Equatable, Sendable {
         let text = (try? IntentText.linking(entry.text, entities: store.knownEntities)) ?? entry.text
         var marked = entry
         marked.writing = text
+        if entry.kind == .task, marked.existingTaskIDs == nil {
+            // Same-text tasks already on the day, by `^id`: a later run tells them from the one this
+            // run writes. A day that cannot be read now waits; the mark would not know them.
+            guard let document = try? await store.dayDocument(for: day) else { return .waiting }
+            let existing = document.bodyLines.tasks.filter { $0.block.text == text }.compactMap(\.block.id)
+            if !existing.isEmpty { marked.existingTaskIDs = existing }
+        }
         // No mark, no write: a queue this run cannot change could not lose the record afterwards either.
         guard (try? file.replace(marked)) != nil else { return .waiting }
         let wrote: Bool
@@ -185,8 +192,10 @@ struct ShareImportReport: Equatable, Sendable {
                 event.block.text == text && event.time?.hour == clock?.hour && event.time?.minute == clock?.minute
             }
         case .task:
+            let previous = Set(entry.existingTaskIDs ?? [])
             return document.bodyLines.tasks.contains { task in
-                task.block.text == text
+                guard task.block.text == text, let id = task.block.id else { return false }
+                return !previous.contains(id)
             }
         }
     }

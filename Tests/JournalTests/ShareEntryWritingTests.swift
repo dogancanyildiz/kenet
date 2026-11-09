@@ -256,6 +256,22 @@ struct ShareEntryWritingTests {
                 == false)
     }
 
+    /// ✕ on the time chip: the event goes in untimed (`- metin ^id`), on the confirm day.
+    @Test func anEventWithoutItsTimeIsWritableUntimed() throws {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = .current
+        let instant = try #require(
+            calendar.date(from: DateComponents(year: 2026, month: 10, day: 22, hour: 9, minute: 5)))
+        let entry = ShareEntry(text: "Kahve", kind: .event, time: nil, sharedAt: instant)
+        #expect(entry.day == "2026-10-22")
+        #expect(entry.time == nil)
+        #expect(entry.clock == nil)
+        #expect(entry.isWritable)
+        let task = ShareEntry(text: "Kahve", kind: .task, time: instant, sharedAt: instant)
+        #expect(task.time == nil)
+        #expect(task.isWritable)
+    }
+
     // MARK: - App Group lists
 
     @Test func listKeepsOrderAndRemovesByIdentifier() throws {

@@ -1,16 +1,15 @@
 import AppIntents
 import SwiftUI
 
-/// The chain widget's layouts. WidgetKit's family is read by the widget target and mapped here,
-/// so the app's snapshot tests can draw all layouts without WidgetKit.
+/// The chain widget's two sizes. WidgetKit's family is read by the widget target and mapped here,
+/// so the app's snapshot tests can draw both without WidgetKit.
 enum GoalChainLayout: Sendable {
-    case small, medium, desktopMedium
+    case small, medium
 }
 
-/// The home-screen and Mac desktop chain widget: the day's daily goals on a `surface` card
-/// background (no glow), open ones first with an accent ring, done ones receded with a filled
-/// secondary circle and checkmark, and a "Zincir N gün" badge. On Mac desktop medium, the left
-/// column highlights the longest chain as a large number.
+/// The home-screen chain widget: the day's daily goals on a `surface` card background (no glow),
+/// open ones first with an accent ring, done ones receded with a filled secondary circle and
+/// checkmark, and a "Zincir N gün" badge. The Mac desktop widget is a later wave (screens.md).
 ///
 /// At accessibility text sizes the small widget shows only the first goal, large, and the medium
 /// one two rows without the badge (VoiceOver still reads it). Text stops growing at AX3: past it
@@ -43,8 +42,6 @@ struct GoalChainWidgetView: View {
                 message("Günlük hedef yok")
             } else if layout == .small, isLarge, let first = day.goals.first {
                 GoalChainFocus(goal: first)
-            } else if layout == .desktopMedium && !isLarge {
-                desktopList(day)
             } else {
                 list(day)
             }
@@ -53,11 +50,9 @@ struct GoalChainWidgetView: View {
         }
     }
 
-    private var rowLimit: Int {
-        if isLarge { return 2 }
-        if layout == .small { return 2 }
-        return 3
-    }
+    /// At most three goals (screens.md, "Zincir widget'ı"); two at accessibility sizes, where
+    /// the small widget shows only the first one (`GoalChainFocus`).
+    private var rowLimit: Int { isLarge ? 2 : 3 }
 
     private func list(_ day: WidgetSnapshot.Day) -> some View {
         let goals = day.goals
@@ -74,45 +69,6 @@ struct GoalChainWidgetView: View {
             Spacer(minLength: 0)
             if layout == .small, !isLarge, longest > 0 {
                 WidgetStreakBadge(streak: longest)
-            }
-        }
-    }
-
-    private func desktopList(_ day: WidgetSnapshot.Day) -> some View {
-        let goals = day.goals
-        let longest = day.longestStreak
-        return HStack(alignment: .center, spacing: 12) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(verbatim: "\(longest)")
-                    .font(WidgetTheme.largeNumber)
-                    .foregroundStyle(WidgetTheme.accent)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.7)
-                Text("gün")
-                    .font(WidgetTheme.meta)
-                    .foregroundStyle(WidgetTheme.secondaryText)
-                Text("en uzun zincir")
-                    .font(WidgetTheme.caption)
-                    .foregroundStyle(WidgetTheme.tertiaryText)
-                    .lineLimit(1)
-            }
-            .frame(minWidth: 72, alignment: .leading)
-
-            Rectangle()
-                .fill(WidgetTheme.rule)
-                .frame(width: 1)
-                .padding(.vertical, 4)
-
-            VStack(alignment: .leading, spacing: 4) {
-                header(
-                    done: goals.filter { !$0.isPending }.count,
-                    total: goals.count,
-                    streakBadge: 0
-                )
-                ForEach(goals.prefix(3)) { goal in
-                    goalRowView(goal)
-                }
-                Spacer(minLength: 0)
             }
         }
     }
@@ -136,7 +92,7 @@ struct GoalChainWidgetView: View {
     private func row(_ goal: WidgetSnapshot.Goal) -> some View {
         GoalChainRow(
             goal: goal,
-            details: (layout == .medium || layout == .desktopMedium) && !isLarge,
+            details: layout == .medium && !isLarge,
             spaced: !isLarge && layout != .small
         )
     }
@@ -270,8 +226,9 @@ struct WidgetGoalRing: View {
                 goal.isPending ? WidgetTheme.accent : WidgetTheme.secondaryText, lineWidth: 1.5)
             if !goal.isPending {
                 Circle().fill(WidgetTheme.secondaryText)
+                // Half the ring: the mark grows with the ring's scaled side.
                 Image(systemName: "checkmark")
-                    .font(.system(size: 8, weight: .bold))
+                    .font(.system(size: side / 2, weight: .bold))
                     .foregroundStyle(WidgetTheme.surface)
             } else if goal.kind == .number, goal.fraction > 0 {
                 Circle()

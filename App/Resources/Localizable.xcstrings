@@ -16001,22 +16001,6 @@
         }
       }
     },
-    "PAYLAŞILAN" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "SHARED"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "PAYLAŞILAN"
-          }
-        }
-      }
-    },
     "Kenet'e ekle" : {
       "localizations" : {
         "en" : {
@@ -16045,38 +16029,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bugün · %@"
-          }
-        }
-      }
-    },
-    "Günlüğe eklenir" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Added to journal"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Günlüğe eklenir"
-          }
-        }
-      }
-    },
-    "Görevlere eklenir" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Added to tasks"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Görevlere eklenir"
           }
         }
       }
@@ -16225,38 +16177,6 @@
         }
       }
     },
-    "gün" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "days"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "gün"
-          }
-        }
-      }
-    },
-    "en uzun zincir" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "longest streak"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "en uzun zincir"
-          }
-        }
-      }
-    },
     "Kenet" : {
       "localizations" : {
         "en" : {
@@ -16269,6 +16189,134 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Kenet"
+          }
+        }
+      }
+    },
+    "Paylaşılan" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shared"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paylaşılan"
+          }
+        }
+      }
+    },
+    "Bugüne, seçilen saatle eklenir." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Added to today at the chosen time."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bugüne, seçilen saatle eklenir."
+          }
+        }
+      }
+    },
+    "Bugüne görev olarak eklenir." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Added to today as a task."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bugüne görev olarak eklenir."
+          }
+        }
+      }
+    },
+    "Bugüne, saatsiz eklenir." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Added to today without a time."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bugüne, saatsiz eklenir."
+          }
+        }
+      }
+    },
+    "Saat, %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Time, %@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saat, %@"
+          }
+        }
+      }
+    },
+    "Saati değiştirir" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Changes the time"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saati değiştirir"
+          }
+        }
+      }
+    },
+    "indeksleniyor" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "indexing"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "indeksleniyor"
+          }
+        }
+      }
+    },
+    "indeks hatası" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "index error"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "indeks hatası"
           }
         }
       }

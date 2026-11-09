@@ -25,7 +25,7 @@
                 named: rectangular ? "rectangularLight" : "circularLight", store: context.store,
                 size: CGSize(width: size.width + 40, height: size.height + 40), testName: "accessory"
             ) {
-                LockScreenWidgetView(day: day, date: date, hideContent: true, layout: layout)
+                LockScreenWidgetView(day: day, date: date, hideContent: false, layout: layout)
                     .padding(4)
                     .frame(width: size.width, height: size.height)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)

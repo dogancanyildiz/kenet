@@ -23,6 +23,7 @@
         @Binding var text: String
         var kind: Binding<ShareEntryKind> = .constant(.event)
         var time: Binding<Date> = .constant(Self.defaultTime)
+        var isTimed: Binding<Bool>? = nil
         let isSaving: Bool
         let failed: Bool
         let onCancel: () -> Void
@@ -31,12 +32,28 @@
         var focusesOnAppear = true
         @FocusState private var isFocused: Bool
         @State private var isPickingTime = false
+        @State private var localIsTimed = true
+
+        private var timedBinding: Binding<Bool> {
+            isTimed ?? $localIsTimed
+        }
 
         /// The text as it would be added: one line (`EntryWriting.singleLine`).
         private var canWrite: Bool {
             EntryWriting.canWrite(
                 EntryWriting.singleLine(text), kind: kind.wrappedValue,
-                timed: kind.wrappedValue == .event)
+                timed: kind.wrappedValue == .event && timedBinding.wrappedValue)
+        }
+
+        /// What the confirm button will do (docs/screens.md, "Açıklama"). An event whose time was
+        /// removed with ✕ goes in untimed, so it does not promise the chosen time.
+        private var explanation: LocalizedStringKey {
+            switch kind.wrappedValue {
+            case .event:
+                timedBinding.wrappedValue ? "Bugüne, seçilen saatle eklenir." : "Bugüne, saatsiz eklenir."
+            case .task:
+                "Bugüne görev olarak eklenir."
+            }
         }
 
         private var formattedClock: String {
@@ -50,18 +67,24 @@
             NavigationStack {
                 ScrollView {
                     VStack(alignment: .leading, spacing: InkSpacing.row) {
-                        previewCard
+                        Text("Kenet'e ekle")
+                            .font(.ink.display)
+                            .foregroundStyle(.ink.text)
+                            .accessibilityAddTraits(.isHeader)
+                            .padding(.top, 4)
                         ShareModeTabs(selection: kind)
                             .disabled(isSaving)
+                        previewCard
                         timeRow
-                        if kind.wrappedValue == .event && isPickingTime {
+                        if kind.wrappedValue == .event && timedBinding.wrappedValue && isPickingTime {
                             DatePicker(
-                                "",
+                                "Saat",
                                 selection: time,
                                 displayedComponents: .hourAndMinute
                             )
                             .datePickerStyle(.wheel)
                             .labelsHidden()
+                            .accessibilityLabel("Saat")
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 6)
                             .background(
@@ -73,6 +96,9 @@
                                     .strokeBorder(Color.ink.rule, lineWidth: InkStroke.rule)
                             )
                         }
+                        Text(explanation)
+                        .font(.ink.meta)
+                        .foregroundStyle(.ink.secondaryText)
                         if !text.allSatisfy(\.isWhitespace) && !canWrite {
                             Text(
                                 kind.wrappedValue == .event
@@ -105,7 +131,6 @@
                 }
                 .background(Color.ink.elevated.ignoresSafeArea())
                 .tint(.ink.accent)
-                .navigationTitle(Text("Kenet"))
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbarBackground(Color.ink.elevated, for: .navigationBar)
                 .toolbar {
@@ -123,14 +148,15 @@
         }
 
         private var previewCard: some View {
-            VStack(alignment: .leading, spacing: 8) {
-                Text("PAYLAŞILAN")
-                    .font(.ink.weekday)
-                    .tracking(1.1)
-                    .foregroundStyle(.ink.tertiaryText)
+            let promptKey: LocalizedStringKey = kind.wrappedValue == .event ? "Olay" : "Görev"
+            return VStack(alignment: .leading, spacing: 8) {
+                Text("Paylaşılan")
+                    .font(.ink.meta)
+                    .foregroundStyle(.ink.secondaryText)
                     .accessibilityHidden(true)
                 TextField(
-                    "Olay", text: $text, prompt: Text("Olay").font(.ink.placeholder), axis: .vertical
+                    promptKey, text: $text, prompt: Text(promptKey).font(.ink.placeholder),
+                    axis: .vertical
                 )
                 .lineLimit(1...5)
                 .textFieldStyle(.plain)
@@ -156,79 +182,121 @@
 
         @ViewBuilder
         private var timeRow: some View {
-            HStack(spacing: 8) {
-                switch kind.wrappedValue {
-                case .event:
-                    Button {
-                        withAnimation(.easeOut(duration: 0.16)) {
-                            isPickingTime.toggle()
+            if kind.wrappedValue == .event {
+                HStack(spacing: 4) {
+                    if timedBinding.wrappedValue {
+                        Button {
+                            withAnimation(.easeOut(duration: 0.16)) {
+                                isPickingTime.toggle()
+                            }
+                        } label: {
+                            HStack(spacing: 6) {
+                                Image(systemName: "clock")
+                                    .font(.ink.meta)
+                                    .foregroundStyle(.ink.secondaryText)
+                                Text("Bugün · \(formattedClock)")
+                                    .font(.ink.meta.weight(.medium))
+                                    .monospacedDigit()
+                                    .foregroundStyle(.ink.text)
+                            }
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(Color.ink.well, in: Capsule())
+                            .overlay(
+                                Capsule()
+                                    .strokeBorder(Color.ink.rule, lineWidth: InkStroke.rule)
+                            )
+                            .frame(minHeight: InkButtonChrome.minimumHeight)
+                            .contentShape(Rectangle())
                         }
-                    } label: {
-                        HStack(spacing: 6) {
-                            Image(systemName: "clock")
-                                .font(.ink.meta)
+                        .buttonStyle(.plain)
+                        .disabled(isSaving)
+                        .accessibilityLabel(Text("Saat, \(formattedClock)"))
+                        .accessibilityHint(Text("Saati değiştirir"))
+                        .accessibilityIdentifier("button.share.time")
+
+                        Button {
+                            withAnimation(.easeOut(duration: 0.16)) {
+                                isPickingTime = false
+                                timedBinding.wrappedValue = false
+                            }
+                        } label: {
+                            Image(systemName: "xmark")
+                                .font(.caption2.weight(.semibold))
                                 .foregroundStyle(.ink.secondaryText)
-                            Text("Bugün · \(formattedClock)")
-                                .font(.ink.meta.weight(.medium))
-                                .monospacedDigit()
-                                .foregroundStyle(.ink.text)
+                                .frame(
+                                    minWidth: InkButtonChrome.minimumHeight,
+                                    minHeight: InkButtonChrome.minimumHeight
+                                )
+                                .contentShape(Rectangle())
                         }
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(Color.ink.well, in: Capsule())
-                        .overlay(
-                            Capsule()
-                                .strokeBorder(Color.ink.rule, lineWidth: InkStroke.rule)
-                        )
+                        .buttonStyle(.plain)
+                        .disabled(isSaving)
+                        .accessibilityLabel("Saati kaldır")
+                        .accessibilityIdentifier("button.share.clearTime")
+                    } else {
+                        Button {
+                            withAnimation(.easeOut(duration: 0.16)) {
+                                timedBinding.wrappedValue = true
+                                isPickingTime = true
+                            }
+                        } label: {
+                            HStack(spacing: 6) {
+                                Image(systemName: "plus")
+                                    .font(.ink.meta)
+                                    .foregroundStyle(.ink.secondaryText)
+                                Text("Saati ekle")
+                                    .font(.ink.meta.weight(.medium))
+                                    .foregroundStyle(.ink.secondaryText)
+                            }
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(Color.ink.well, in: Capsule())
+                            .overlay(
+                                Capsule()
+                                    .strokeBorder(Color.ink.rule, lineWidth: InkStroke.rule)
+                            )
+                            .frame(minHeight: InkButtonChrome.minimumHeight)
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        .disabled(isSaving)
+                        .accessibilityIdentifier("button.share.addTime")
                     }
-                    .buttonStyle(.plain)
-                    .disabled(isSaving)
-                    Spacer(minLength: 8)
-                    Text("Günlüğe eklenir")
-                        .font(.ink.meta)
-                        .foregroundStyle(.ink.tertiaryText)
-                case .task:
-                    HStack(spacing: 6) {
-                        Image(systemName: "checkmark.circle")
-                            .font(.ink.meta)
-                            .foregroundStyle(.ink.secondaryText)
-                        Text("Bugün")
-                            .font(.ink.meta.weight(.medium))
-                            .foregroundStyle(.ink.text)
-                    }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(Color.ink.well, in: Capsule())
-                    .overlay(
-                        Capsule()
-                            .strokeBorder(Color.ink.rule, lineWidth: InkStroke.rule)
-                    )
-                    Spacer(minLength: 8)
-                    Text("Görevlere eklenir")
-                        .font(.ink.meta)
-                        .foregroundStyle(.ink.tertiaryText)
+                    Spacer(minLength: 0)
                 }
             }
         }
     }
 
+    /// Underlined mode tabs (`Olay | Görev`), drawn with the same rules as `InkTabs` (left-aligned
+    /// words on a hairline rule, 44 pt touch targets, accent underline on the selected word).
     private struct ShareModeTabs: View {
         @Binding var selection: ShareEntryKind
+        @Environment(\.displayScale) private var displayScale
 
         var body: some View {
-            HStack(spacing: 2) {
-                tab(.event, title: "Olay")
-                tab(.task, title: "Görev")
+            VStack(alignment: .leading, spacing: 0) {
+                ViewThatFits(in: .horizontal) {
+                    HStack(spacing: 20) { words(wraps: false) }
+                    VStack(alignment: .leading, spacing: 0) { words(wraps: true) }
+                }
+                Rectangle()
+                    .fill(Color.ink.rule)
+                    .frame(height: InkStroke.hairline(scale: displayScale))
             }
-            .padding(2)
-            .background(
-                RoundedRectangle(cornerRadius: InkCorner.sm, style: .continuous)
-                    .fill(Color.ink.well)
-            )
+            .frame(maxWidth: .infinity, alignment: .leading)
             .accessibilityElement(children: .contain)
+            .accessibilityAddTraits(.isTabBar)
         }
 
-        private func tab(_ value: ShareEntryKind, title: LocalizedStringKey) -> some View {
+        @ViewBuilder
+        private func words(wraps: Bool) -> some View {
+            tab(.event, title: "Olay", wraps: wraps)
+            tab(.task, title: "Görev", wraps: wraps)
+        }
+
+        private func tab(_ value: ShareEntryKind, title: LocalizedStringKey, wraps: Bool) -> some View {
             let isSelected = selection == value
             return Button {
                 withAnimation(.easeOut(duration: 0.16)) {
@@ -236,24 +304,22 @@
                 }
             } label: {
                 Text(title)
-                    .font(isSelected ? .ink.meta.weight(.semibold) : .ink.meta.weight(.medium))
+                    .font(.ink.byline)
+                    .fontWeight(isSelected ? .semibold : .regular)
                     .foregroundStyle(isSelected ? Color.ink.text : Color.ink.secondaryText)
-                    .lineLimit(1)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .frame(maxWidth: .infinity, minHeight: 32)
-                    .background {
-                        if isSelected {
-                            RoundedRectangle(cornerRadius: InkCorner.xs, style: .continuous)
-                                .fill(Color.ink.surface)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: InkCorner.xs, style: .continuous)
-                                        .strokeBorder(Color.ink.rule, lineWidth: InkStroke.rule)
-                                )
-                        }
+                    .fixedSize(horizontal: !wraps, vertical: true)
+                    .padding(.vertical, 8)
+                    .overlay(alignment: .bottom) {
+                        Rectangle()
+                            .fill(isSelected ? Color.ink.accent : Color.clear)
+                            .frame(height: InkSize.modeUnderline)
                     }
-                    .contentShape(
-                        RoundedRectangle(cornerRadius: InkCorner.xs, style: .continuous))
+                    .frame(
+                        minWidth: InkButtonChrome.minimumHeight,
+                        minHeight: InkButtonChrome.minimumHeight,
+                        alignment: .bottomLeading
+                    )
+                    .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .accessibilityAddTraits(isSelected ? [.isSelected] : [])

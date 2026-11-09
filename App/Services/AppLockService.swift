@@ -62,7 +62,10 @@ enum AppLockDelay: Int, CaseIterable {
         didSet { defaults.set(delay.rawValue, forKey: Self.delayKey) }
     }
     var shouldCover: Bool { isEnabled && (isLocked || !isForeground) }
-    var biometry: AppLockBiometry { makeContext().biometry }
+    /// The device's biometry, asked once: views read it in `body`, and each ask builds an
+    /// `LAContext` and evaluates the policy. Enrollment changes while the app runs are rare; the
+    /// next launch reads them.
+    var biometry: AppLockBiometry { cachedBiometry }
 
     @ObservationIgnored private let defaults: UserDefaults
     @ObservationIgnored private let makeContext: () -> any AppLockAuthenticating
@@ -73,6 +76,7 @@ enum AppLockDelay: Int, CaseIterable {
     @ObservationIgnored private var context: (any AppLockAuthenticating)?
     @ObservationIgnored private var attempt = UUID()
     @ObservationIgnored private var covers: [UUID: () -> Void] = [:]
+    @ObservationIgnored private lazy var cachedBiometry: AppLockBiometry = makeContext().biometry
 
     init(
         defaults: UserDefaults = .standard,

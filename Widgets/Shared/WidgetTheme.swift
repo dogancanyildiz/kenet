@@ -10,7 +10,6 @@ enum WidgetTheme {
     static let well = Color("InkWell")
     static let text = Color("InkText")
     static let secondaryText = Color("InkSecondaryText")
-    static let tertiaryText = Color("InkTertiaryText")
     static let accent = Color("InkAccent")
     static let accentSoft = Color("InkAccentSoft")
     static let onAccent = Color("InkOnAccent")
@@ -25,8 +24,4 @@ enum WidgetTheme {
     static var meta: Font { .footnote.monospacedDigit() }
     /// Compact badge and caption text: SF Pro caption2, tabular digits.
     static var caption: Font { .caption2.monospacedDigit() }
-    /// Large chain counter on the Mac desktop medium widget.
-    static var largeNumber: Font {
-        .system(size: 32, weight: .bold, design: .default).monospacedDigit()
-    }
 }

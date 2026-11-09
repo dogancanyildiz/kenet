@@ -66,7 +66,7 @@ struct AppLockCover: View {
                     VStack(spacing: InkSpacing.section) {
                         KenetRingsBadge()
                         VStack(spacing: 8) {
-                            Text("Kenet kilitli")
+                            Text(LocalizedStringKey(AppLockCoverCopy.titleKey))
                                 .font(.ink.dayName)
                                 .foregroundStyle(Color.ink.text)
                             Text(

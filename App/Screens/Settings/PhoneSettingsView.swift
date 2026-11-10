@@ -29,6 +29,16 @@ struct PhoneSettingsView: View {
             isProcessing: store.isProcessing)
     }
 
+    /// The row's navigation, behind its content: a `NavigationLink` as the row itself makes `List`
+    /// draw a second chevron beside the card's. The link fills the row and stays out of the
+    /// accessibility tree; the row is the button (`.isButton`, combined children).
+    private func hiddenLink(to section: SettingsSection) -> some View {
+        NavigationLink(value: section) { EmptyView() }
+            .opacity(0)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .accessibilityHidden(true)
+    }
+
     var body: some View {
         List {
             InkPageTitleRow("Ayarlar")
@@ -80,7 +90,9 @@ struct PhoneSettingsView: View {
                         .accessibilityHidden(true)
                 }
             }
-            .background(NavigationLink(value: SettingsSection.vault) { EmptyView() }.opacity(0))
+            .background(hiddenLink(to: .vault))
+            .accessibilityElement(children: .combine)
+            .accessibilityAddTraits(.isButton)
             .inkListRow()
 
             InkCard(padded: false) {
@@ -115,7 +127,9 @@ struct PhoneSettingsView: View {
                         .frame(minHeight: InkButtonChrome.minimumHeight)
                         .padding(.horizontal, InkSpacing.cardPadding)
                         .contentShape(Rectangle())
-                        .background(NavigationLink(value: section) { EmptyView() }.opacity(0))
+                        .background(hiddenLink(to: section))
+                        .accessibilityElement(children: .combine)
+                        .accessibilityAddTraits(.isButton)
                     }
                 }
             }

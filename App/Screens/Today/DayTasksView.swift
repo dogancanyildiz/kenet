@@ -125,7 +125,7 @@ struct DayTasksView: View {
 
     private func carriedOverText(for row: TaskRow) -> String? {
         guard let due = row.due else { return nil }
-        return TodayPresentation.carriedOverDate(
+        return TodayPresentation.carriedOverPhrase(
             due, today: date, locale: presentation.locale, calendar: calendar)
     }
 }

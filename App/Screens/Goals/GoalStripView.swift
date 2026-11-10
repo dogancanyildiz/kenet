@@ -87,7 +87,9 @@ struct GoalStripView: View {
     var body: some View {
         let order = goalOrder
         let daily = ordered(dailySource, by: order)
-        let period = ordered(model.goals.filter { $0.period != .day }, by: order)
+        // The counted goals (daily and weekly) first, then the rest (yearly), each once.
+        let countedIDs = Set(daily.map(\.id))
+        let period = ordered(model.goals.filter { !countedIDs.contains($0.id) }, by: order)
         let columns = daily + period
         if !columns.isEmpty {
             VStack(alignment: .leading, spacing: InkSpacing.row) {
@@ -96,7 +98,7 @@ struct GoalStripView: View {
                         localized: "Hedefler",
                         bundle: PresentationLocalization.bundle(locale), locale: locale),
                     counter: counter
-                        ?? "\(daily.filter { model.isComplete(for: $0) }.count)/\(daily.count)"
+                        ?? "\(daily.filter { GoalStripPresentation.isPeriodComplete(status: model.status(for: $0)) }.count)/\(daily.count)"
                 )
                 // One small card per goal (the drawing's three cards), equal heights in a row.
                 Group {
@@ -143,7 +145,7 @@ struct GoalStripView: View {
     private var dailySource: [GoalDefinition] {
         let counted = Set(countedGoalIDs)
         return counted.isEmpty
-            ? model.goals.filter { $0.period == .day }
+            ? model.goals.filter { $0.period != .year }
             : model.goals.filter { counted.contains($0.id) }
     }
 

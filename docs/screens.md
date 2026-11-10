@@ -208,7 +208,7 @@ Uygulama açılışta Bugün ekranını gösterir. Bölüm 2–9 kartlarda durur
 
 | Bölüm | Sayaç |
 |---|---|
-| Hedefler | Yapılan ve toplam: `m/n`. Sayaç yalnız günlük hedefleri sayar: `countedGoalIDs` ile aynı küme. |
+| Hedefler | Yapılan ve toplam: `m/n`. Sayaç günlük ve haftalık hedefleri sayar: `countedGoalIDs` ile aynı küme. Haftalık hedef haftası tamamsa yapılmış sayılır. Yıllık hedef sayaca girmez. Hedefler ekranındaki "Bugün 1/3 tamam" aynı kümeyi sayar. |
 | Görevler | Kalan görev sayısı. |
 | Olaylar | Olay sayısı. |
 
@@ -218,10 +218,10 @@ Varsayılan yazı boyutunda hızlı giriş tek satırlı bir kapsüldür. Ölç�
 
 | Konu | Davranış |
 |---|---|
-| Gün halkası | Günlük hedeflerin yapılan oranını çizer. Ortasındaki sayı kalan günlük hedef sayısıdır. Halka Hedefler sayacıyla aynı kümeyi sayar. Günlük hedef yoksa halka çizilmez. VoiceOver "3 hedef kaldı" okur. |
+| Gün halkası | Sayılan hedeflerin (günlük ve haftalık) yapılan oranını çizer. Ortasındaki sayı kalan hedef sayısıdır. Halka Hedefler sayacıyla aynı kümeyi sayar. Sayılan hedef yoksa halka çizilmez. VoiceOver "3 hedef kaldı" okur. |
 | Gün rakamı ve gün adı | Gün rakamı büyük ve kalındır; yanında gün adı ve ay durur: "Perşembe, Ekim". |
 | Hafta şeridi | Cihaz takviminin hafta başından 7 gün: Pzt–Paz ya da Paz–Cmt. Bugün `well` kapsülde vurguludur. Yazılan günün altında nokta durur. Bir güne dokunma o günün Gün ekranını açar. |
-| Künye cümlesi | Saate göre selamlama ve günün sayıları: "Günaydın. Bugün 2 olay, 6 görev ve 3 hedef var." Selamlama 05:00–11:59 "Günaydın", 12:00–17:59 "İyi günler", öteki saatlerde "İyi akşamlar"dır. Sayılar olay, kalan görev ve kalan günlük hedeftir; sayı ve sözcüğü öne çıkar. Sıfır olan parçayı yazmaz. Hiçbir sayı yoksa yalnız selamlama durur. |
+| Künye cümlesi | Saate göre selamlama ve günün sayıları: "Günaydın. Bugün 2 olay, 6 görev ve 3 hedef var." Selamlama 05:00–11:59 "Günaydın", 12:00–17:59 "İyi günler", öteki saatlerde "İyi akşamlar"dır. Sayılar olay, kalan görev ve kalan hedeftir (günlük ve haftalık, sayaçla aynı küme); sayı ve sözcüğü öne çıkar. Sıfır olan parçayı yazmaz. Hiçbir sayı yoksa yalnız selamlama durur. |
 | Künye çipleri | 3 çip: zincir ("12 gün zincir"), dünün olay sayısı ("Dün 4 olay"), son görüşülen kişi. Her çip yalnız verisi varken görünür. Kişi çipi kişinin ekranını açar. |
 | Kaydırma | Kaydırınca gün başlığı tek satıra iner: gün rakamı, gün adı ve simgeler üstte kalır. |
 | Gezinme çubuğu | Bugün sekmesi gezinme çubuğunu gizler. |
@@ -234,7 +234,7 @@ Varsayılan yazı boyutunda hızlı giriş tek satırlı bir kapsüldür. Ölç�
 
 | Konu | Davranış |
 |---|---|
-| Liste | Önce günlük hedefler durur. Haftalık ve yıllık hedeflerin meta satırında dönem ilerleme metni vardır. Bu metin sayaca girmez. |
+| Liste | Önce sayılan hedefler (günlük, sonra haftalık) durur, sonra yıllık hedefler. Haftalık ve yıllık hedeflerin meta satırında dönem ilerleme metni vardır. |
 | Sıra | Uygulama sırayı günün ilk yüklemesinde kurar: önce açık hedefler, sonra dönemi biten hedefler; her grup ada göre. Gün ekranda kaldıkça sıra değişmez. Biten hedef yerinde kalır. Yeni hedef sona eklenir. Gün ya da kasa değişince sıra yeniden kurulur. |
 | İşaretleme | Tek dokunuşluk artı hedefi işaretler ya da sayısal değeri 1 artırır. |
 | Miktar girişi | Sayısal hedefte değer metnine dokunma, basılı tutma ya da menü miktar alanını açar. |

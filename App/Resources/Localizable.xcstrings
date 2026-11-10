@@ -113,6 +113,22 @@
         }
       }
     },
+    "%@ devretti" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "carried over %@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ devretti"
+          }
+        }
+      }
+    },
     "%@ gün" : {
       "localizations" : {
         "en" : {

@@ -224,10 +224,10 @@ import VaultFormat
             let day = context.today
             let water = try #require((try await store.goalDefinitions()).first { $0.key == "su" })
             try await store.setGoal(on: day, key: "su", value: .number(water.target - 1))
-            let daily = try await store.goalDefinitions().filter { $0.period == .day }
+            let counted = try await store.goalDefinitions().filter { $0.period != .year }  // daily and weekly
             func counter() async throws -> String {
                 let statuses = TodayPresentation.goalStatuses(try await store.computeGoalStatuses(today: day))
-                return "\(daily.filter { statuses[$0.key]?.progress.isComplete == true }.count)/\(daily.count)"
+                return "\(counted.filter { statuses[$0.key]?.progress.isComplete == true }.count)/\(counted.count)"
             }
             let before = try await counter()
             let gate = GoalQueryGate(store: store)
@@ -281,10 +281,10 @@ import VaultFormat
             try await store.setGoal(on: day, key: goal.key, value: nil)
             let answer = AnswerStamp()
             store.testingGoalStatusQueryDidFinish = { answer.at = DispatchTime.now().uptimeNanoseconds }
-            let daily = try await store.goalDefinitions().filter { $0.period == .day }
+            let counted = try await store.goalDefinitions().filter { $0.period != .year }  // daily and weekly
             func counter() async throws -> String {
                 let statuses = TodayPresentation.goalStatuses(try await store.computeGoalStatuses(today: day))
-                return "\(daily.filter { statuses[$0.key]?.progress.isComplete == true }.count)/\(daily.count)"
+                return "\(counted.filter { statuses[$0.key]?.progress.isComplete == true }.count)/\(counted.count)"
             }
             let open = try await counter()
             let mount = HostedLayout.Mount(

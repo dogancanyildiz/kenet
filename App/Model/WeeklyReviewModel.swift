@@ -5,13 +5,11 @@ import Summaries
 import VaultFormat
 import VaultStore
 
-/// Steps of the weekly review, in order. Every step can be passed without including anything.
+/// Steps of the weekly review, in order (3 steps: numbers + questions, tasks + goals, preview).
+/// Every step can be passed without including anything.
 enum WeeklyReviewStep: Int, CaseIterable, Sendable {
     case numbers
     case tasks
-    case people
-    case goals
-    case note
     case preview
 
     var previous: WeeklyReviewStep? { WeeklyReviewStep(rawValue: rawValue - 1) }
@@ -239,6 +237,9 @@ final class WeeklyReviewModel {
         didSet { if week != oldValue { recompute() } }
     }
     var note = ""
+    var wellNote = ""
+    var blockedNote = ""
+    var focusNote = ""
     private(set) var content: WeeklyReviewContent?
     /// The reviewed week day by day against the week before it, over the numbers.
     private(set) var rhythm: WeeklyReviewRhythm?
@@ -315,6 +316,35 @@ final class WeeklyReviewModel {
             : String(localized: "Önceki haftaya göre \(signed) olay", bundle: bundle, locale: locale)
     }
 
+    /// The question cards' answers and `note` as the note lines handed to `WeeklyReviewText.lines`
+    /// (no vault format change). Each filled card is one free note line with its question in front,
+    /// "Ne iyi gitti: …"; a many-line answer gets the question on its first line, and its other
+    /// lines go through the same cleanup as any note.
+    var effectiveNote: String {
+        let bundle = PresentationLocalization.bundle(locale)
+        let locale = self.locale
+        let cards: [(String, (String) -> String)] = [
+            (wellNote, { String(localized: "Ne iyi gitti: \($0)", bundle: bundle, locale: locale) }),
+            (blockedNote, { String(localized: "Ne aksadı: \($0)", bundle: bundle, locale: locale) }),
+            (focusNote, { String(localized: "Gelecek hafta tek odak: \($0)", bundle: bundle, locale: locale) }),
+        ]
+        var parts = cards.compactMap { Self.answer($0.0, labelled: $0.1) }
+        if !note.allSatisfy(\.isWhitespace) { parts.append(note) }
+        return parts.joined(separator: "\n")
+    }
+
+    /// The answer with the question on its first written line; nil when the card is empty.
+    private static func answer(_ text: String, labelled label: (String) -> String) -> String? {
+        var lines = text.components(separatedBy: .newlines)
+        guard let first = lines.firstIndex(where: { !$0.allSatisfy(\.isWhitespace) }) else { return nil }
+        lines[first] = label(lines[first].trimmingCharacters(in: .whitespaces))
+        return lines.joined(separator: "\n")
+    }
+
+    var hasAnyNote: Bool {
+        !effectiveNote.allSatisfy(\.isWhitespace)
+    }
+
     func advance() { if let next = step.next { step = next } }
     func back() { if let previous = step.previous { step = previous } }
 
@@ -339,12 +369,14 @@ final class WeeklyReviewModel {
     /// True when passing the step now leaves nothing of it in the output.
     func isSkipped(_ step: WeeklyReviewStep) -> Bool {
         switch step {
-        case .numbers: contribution(.numbers).isEmpty
-        case .tasks: contribution(.tasks).isEmpty
-        case .people: contribution(.people).isEmpty
-        case .goals: contribution(.goals).isEmpty
-        case .note: note.allSatisfy(\.isWhitespace)
-        case .preview: false
+        case .numbers:
+            contribution(.numbers).isEmpty && !hasAnyNote
+        case .tasks:
+            contribution(.tasks).isEmpty
+                && contribution(.goals).isEmpty
+                && contribution(.people).isEmpty
+        case .preview:
+            false
         }
     }
 
@@ -359,7 +391,7 @@ final class WeeklyReviewModel {
                 localized: "Haftalık inceleme", bundle: PresentationLocalization.bundle(locale), locale: locale),
             summaryLines: contribution(.numbers),
             selectedLines: contribution(.tasks) + contribution(.people) + contribution(.goals),
-            note: note)
+            note: effectiveNote)
     }
 
     /// Set when the vault cannot be written at all; the preview says so before anything is tried.

@@ -57,7 +57,7 @@ import VaultStore
         let march = JournalCalendar(month: CalendarDate("2026-03-01")!, days: days)
         #expect(
             march.levels == [
-                CalendarDate("2026-03-01")!: 2, CalendarDate("2026-03-02")!: 1, CalendarDate("2026-03-04")!: 2,
+                CalendarDate("2026-03-01")!: 1, CalendarDate("2026-03-02")!: 1, CalendarDate("2026-03-04")!: 1,
                 CalendarDate("2026-03-09")!: 1,
             ])
 

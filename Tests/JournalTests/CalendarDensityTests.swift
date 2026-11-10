@@ -1,14 +1,17 @@
 import Foundation
 import Testing
 import VaultFormat
+import VaultIndex
 
 @testable import Journal
 
 @MainActor struct CalendarDensityTests {
-    private func makeDay(date: CalendarDate, eventCount: Int, hasJournal: Bool) -> DayOverview {
+    private func makeDay(
+        date: CalendarDate, eventCount: Int, taskCount: Int = 0, hasJournal: Bool
+    ) -> DayOverview {
         DayOverview(
             id: "journal/\(date).md", date: date, eventCount: eventCount, journalCount: hasJournal ? 1 : 0,
-            preview: hasJournal ? "Günlük yazısı" : nil)
+            preview: hasJournal ? "Günlük yazısı" : nil, taskCount: taskCount)
     }
 
     @Test func scoreAndDensityThresholds() throws {
@@ -16,7 +19,7 @@ import VaultFormat
         #expect(JournalCalendar.score(for: day0) == 0)
         #expect(JournalCalendar.densityLevel(for: day0) == 0)
 
-        // Threshold 1: either 1 event or journal entry
+        // Level 1: 1–2 (event + task count, or journal-only = 1)
         let day1Event = makeDay(date: CalendarDate("2026-09-02")!, eventCount: 1, hasJournal: false)
         #expect(JournalCalendar.score(for: day1Event) == 1)
         #expect(JournalCalendar.densityLevel(for: day1Event) == 1)
@@ -25,43 +28,34 @@ import VaultFormat
         #expect(JournalCalendar.score(for: day1JournalOnly) == 1)
         #expect(JournalCalendar.densityLevel(for: day1JournalOnly) == 1)
 
-        // Threshold 2: score 2 (lower bound for level 2)
-        let day2 = makeDay(date: CalendarDate("2026-09-04")!, eventCount: 2, hasJournal: false)
+        let day2 = makeDay(date: CalendarDate("2026-09-04")!, eventCount: 1, taskCount: 1, hasJournal: false)
         #expect(JournalCalendar.score(for: day2) == 2)
-        #expect(JournalCalendar.densityLevel(for: day2) == 2)
+        #expect(JournalCalendar.densityLevel(for: day2) == 1)
 
-        let day2WithJournal = makeDay(date: CalendarDate("2026-09-05")!, eventCount: 1, hasJournal: true)
-        #expect(JournalCalendar.score(for: day2WithJournal) == 2)
-        #expect(JournalCalendar.densityLevel(for: day2WithJournal) == 2)
+        // Level 2: 3–5
+        let day3 = makeDay(date: CalendarDate("2026-09-05")!, eventCount: 2, taskCount: 1, hasJournal: true)
+        #expect(JournalCalendar.score(for: day3) == 3)
+        #expect(JournalCalendar.densityLevel(for: day3) == 2)
 
-        // Threshold 4: score 4 (upper bound for level 2)
-        let day4 = makeDay(date: CalendarDate("2026-09-06")!, eventCount: 4, hasJournal: false)
-        #expect(JournalCalendar.score(for: day4) == 4)
-        #expect(JournalCalendar.densityLevel(for: day4) == 2)
-
-        let day4WithJournal = makeDay(date: CalendarDate("2026-09-07")!, eventCount: 3, hasJournal: true)
-        #expect(JournalCalendar.score(for: day4WithJournal) == 4)
-        #expect(JournalCalendar.densityLevel(for: day4WithJournal) == 2)
-
-        // Threshold 5: score 5 (lower bound for level 3)
-        let day5 = makeDay(date: CalendarDate("2026-09-08")!, eventCount: 5, hasJournal: false)
+        let day5 = makeDay(date: CalendarDate("2026-09-06")!, eventCount: 3, taskCount: 2, hasJournal: false)
         #expect(JournalCalendar.score(for: day5) == 5)
-        #expect(JournalCalendar.densityLevel(for: day5) == 3)
+        #expect(JournalCalendar.densityLevel(for: day5) == 2)
 
-        let day5WithJournal = makeDay(date: CalendarDate("2026-09-09")!, eventCount: 4, hasJournal: true)
-        #expect(JournalCalendar.score(for: day5WithJournal) == 5)
-        #expect(JournalCalendar.densityLevel(for: day5WithJournal) == 3)
-
-        // Score 6+ (level 3)
-        let day6 = makeDay(date: CalendarDate("2026-09-10")!, eventCount: 6, hasJournal: false)
+        // Level 3: 6+
+        let day6 = makeDay(date: CalendarDate("2026-09-08")!, eventCount: 4, taskCount: 2, hasJournal: false)
         #expect(JournalCalendar.score(for: day6) == 6)
         #expect(JournalCalendar.densityLevel(for: day6) == 3)
+
+        let day8 = makeDay(date: CalendarDate("2026-09-10")!, eventCount: 6, taskCount: 2, hasJournal: true)
+        #expect(JournalCalendar.score(for: day8) == 8)
+        #expect(JournalCalendar.densityLevel(for: day8) == 3)
     }
 
     @Test func monthTransitionPreservesMonthIsolation() throws {
-        let sepDay = makeDay(date: CalendarDate("2026-09-15")!, eventCount: 3, hasJournal: true)  // score 4 -> level 2
-        let octDay = makeDay(date: CalendarDate("2026-10-15")!, eventCount: 1, hasJournal: false)  // score 1 -> level 1
-        let novDay = makeDay(date: CalendarDate("2026-11-01")!, eventCount: 5, hasJournal: false)  // score 5 -> level 3
+        // sepDay: score 4 -> level 2; octDay: score 1 -> level 1
+        let sepDay = makeDay(date: CalendarDate("2026-09-15")!, eventCount: 3, taskCount: 1, hasJournal: true)
+        let octDay = makeDay(date: CalendarDate("2026-10-15")!, eventCount: 1, hasJournal: false)
+        let novDay = makeDay(date: CalendarDate("2026-11-01")!, eventCount: 6, hasJournal: false)  // score 6 -> level 3
         let days = [sepDay, octDay, novDay]
 
         // September calendar
@@ -128,5 +122,89 @@ import VaultFormat
 
         let typicalCellWidth: CGFloat = 45
         #expect(DaysCalendarMarkLayout.dotsWidth(for: 3) < typicalCellWidth)
+    }
+
+    @Test func dayScheduleSortsTimedChronologicallyAndPlacesUntimedAtEnd() throws {
+        func parseTime(_ raw: String) -> EventTime? {
+            RawDocument(bytes: Array("## Events\n- \(raw) item".utf8)).bodyLines.events.first?.time
+        }
+        func makeEvent(_ id: Int, _ rawTime: String?, _ text: String, line: Int) -> EventRow {
+            EventRow(
+                id: id, time: rawTime.flatMap(parseTime),
+                text: LinkedText(spans: [.init(text: text, destination: nil)]),
+                sourceLine: line, sourceEnd: line + 1, sourceText: text, sourceIdentifier: nil)
+        }
+        let lateEvent = makeEvent(0, "14:30", "Öğleden sonra", line: 2)
+        let untimedEvent1 = makeEvent(1, nil, "Saatsiz olay 1", line: 3)
+        let earlyEvent = makeEvent(2, "09:15", "Sabah kahvesi", line: 4)
+        let tieEvent = makeEvent(3, "14:30", "İkinci 14:30", line: 5)
+        let untimedEvent2 = makeEvent(4, nil, "Saatsiz olay 2", line: 6)
+
+        let timedEntry = DayScheduleEntry(
+            id: "task-timed", time: parseTime("11:00"), fileOrder: 10,
+            kind: .event(makeEvent(5, "11:00", "11:00 Eczaneye uğra", line: 10)))
+        let untimedEntry = DayScheduleEntry(
+            id: "task-untimed", time: nil, fileOrder: 11,
+            kind: .event(makeEvent(6, nil, "Market listesi", line: 11)))
+
+        let base = DaySchedulePresentation(
+            events: [lateEvent, untimedEvent1, earlyEvent, tieEvent, untimedEvent2],
+            tasks: []
+        )
+        let schedule = DaySchedulePresentation(
+            entries: base.timed + base.untimed + [timedEntry, untimedEntry]
+        )
+
+        #expect(
+            schedule.timed.map(\.id) == [
+                "event-2-4",
+                "task-timed",
+                "event-0-2",
+                "event-3-5",
+            ])
+        #expect(
+            schedule.untimed.map(\.id) == [
+                "event-1-3",
+                "event-4-6",
+                "task-untimed",
+            ])
+        #expect(schedule.allOrdered.suffix(3).map(\.id) == schedule.untimed.map(\.id))
+        #expect(DaySchedulePresentation.extractLeadingTime(from: "11:00 Eczaneye uğra")?.raw == "11:00")
+        #expect(DaySchedulePresentation.extractLeadingTime(from: "Market listesi") == nil)
+    }
+
+    /// Real task rows: the day file's tasks take their place among the events by line, so the
+    /// "Saatsiz" group is the file's order; a task from another file comes after them.
+    @Test func dayScheduleKeepsTheFileOrderOfRealTaskRows() throws {
+        let file = "journal/2026-10-01.md"
+        func task(_ line: Int, _ text: String, in path: String = file) throws -> TaskRow {
+            let fields: [String: Any] = [
+                "file": path, "ordinal": line, "kind": "task", "firstLine": line + 1, "lastLine": line + 1,
+                "text": text, "section": "Tasks", "rawStatus": " ", "ownsIdentifier": false,
+            ]
+            let block = try JSONDecoder().decode(
+                IndexedBlock.self, from: JSONSerialization.data(withJSONObject: fields))
+            return TaskRow(row: block, links: [])
+        }
+        func event(_ id: Int, _ text: String, line: Int) -> EventRow {
+            EventRow(
+                id: id, time: nil, text: LinkedText(spans: [.init(text: text, destination: nil)]),
+                sourceLine: line, sourceEnd: line + 1, sourceText: text, sourceIdentifier: nil)
+        }
+        // ## Tasks (lines 1-3), ## Events (lines 5-6).
+        let first = try task(1, "Faturayı öde")
+        let timed = try task(2, "10:30 Kargoyu al")
+        let second = try task(3, "Kitap iade")
+        let elsewhere = try task(0, "Başka dosyadan", in: "notes/Plan.md")
+        let schedule = DaySchedulePresentation(
+            events: [event(0, "Saatsiz olay", line: 5), event(1, "Son olay", line: 6)],
+            tasks: [elsewhere, second, timed, first], dayFile: file)
+
+        #expect(schedule.timed.map(\.id) == ["task-\(timed.id)"])
+        #expect(schedule.timed.first?.time?.raw == "10:30")
+        #expect(
+            schedule.untimed.map(\.id) == [
+                "task-\(first.id)", "task-\(second.id)", "event-0-5", "event-1-6", "task-\(elsewhere.id)",
+            ])
     }
 }

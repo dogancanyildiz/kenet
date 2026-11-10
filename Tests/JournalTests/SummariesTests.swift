@@ -321,6 +321,54 @@ import VaultFormat
                 WeekdayDistributionView.spokenRow(entry, locale: turkish) == "Pazar: 99 günün \(spoken) yazıldı")
         }
     }
+
+    @Test func measuredDayCountAndWrittenDaysFraction() {
+        let runningRange = CalendarDate("2026-09-01")!...CalendarDate("2026-09-20")!
+        #expect(SummaryPresentation.measuredDayCount(in: runningRange) == 20)
+        #expect(
+            SummaryPresentation.writtenDaysValueText(
+                writtenDays: 18, measuredDays: SummaryPresentation.measuredDayCount(in: runningRange),
+                locale: Locale(identifier: "tr_TR")
+            ) == "18/20")
+
+        let finishedRange = CalendarDate("2026-09-01")!...CalendarDate("2026-09-30")!
+        #expect(SummaryPresentation.measuredDayCount(in: finishedRange) == 30)
+        #expect(
+            SummaryPresentation.writtenDaysValueText(
+                writtenDays: 22, measuredDays: SummaryPresentation.measuredDayCount(in: finishedRange),
+                locale: Locale(identifier: "tr_TR")
+            ) == "22/30")
+    }
+
+    @Test func monthWritingRhythmSquareStatesAndFutureDays() {
+        let month = CalendarDate("2026-09-01")!
+        let today = CalendarDate("2026-09-20")!
+        let states: [CalendarDate: YearWritingCalendar.Day] = [
+            CalendarDate("2026-09-01")!: .events,
+            CalendarDate("2026-09-02")!: .journal,
+            CalendarDate("2026-09-03")!: .unwritten,
+            CalendarDate("2026-09-20")!: .events,
+        ]
+        let rhythm = MonthWritingRhythm(month: month, statesByDay: states, today: today)
+        #expect(rhythm.days.count == 30)
+        #expect(rhythm.measuredDayCount == 20)
+        #expect(rhythm.writtenDayCount == 3)
+
+        let sep1 = rhythm.days[0]
+        #expect(sep1.state == .full && sep1.state.showsSquare && !sep1.isToday)
+
+        let sep2 = rhythm.days[1]
+        #expect(sep2.state == .partial && sep2.state.showsSquare && !sep2.isToday)
+
+        let sep3 = rhythm.days[2]
+        #expect(sep3.state == .empty && sep3.state.showsSquare && !sep3.isToday)
+
+        let sep20 = rhythm.days[19]
+        #expect(sep20.state == .full && sep20.state.showsSquare && sep20.isToday)
+
+        let sep21 = rhythm.days[20]
+        #expect(sep21.state == .future && !sep21.state.showsSquare && !sep21.isToday)
+    }
 }
 
 @MainActor private final class DayBox {

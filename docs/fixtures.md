@@ -21,7 +21,7 @@ flowchart LR
   F --> ME["merge/ : 71 örnek"]
   F --> RE["recognition/ : 39 örnek"]
   F --> IX["index/ : 4 örnek"]
-  F --> JO["journal/ : 1 örnek"]
+  F --> JO["journal/ : 2 örnek"]
   F --> EN["entities/ : 1 örnek"]
   F --> ET["entity-types/ : 6 örnek"]
   F --> RN["rename/ : 11 örnek"]
@@ -130,6 +130,7 @@ Swift testleri `Fixtures/` klasörünü test kaynak dosyasından yukarı doğru 
 | `index/entity-fields/` | `VaultIndexTests/EntityFieldTests.swift` | Ad kodda |
 | `index/cadence/` | `VaultIndexTests/CadenceFieldTests.swift` | Ad kodda |
 | `journal/edit/` | `Tests/JournalTests/JournalEditingTests.swift` | Ad kodda |
+| `journal/weekly-review/` | `Tests/JournalTests/WeeklyReviewTests.swift` | Ad kodda |
 | `entities/fields/` | `Tests/JournalTests/EntityPageTests.swift` | Ad kodda |
 | `entity-types/` | `VaultIndexTests/EntityTypeTests.swift`, `VaultStoreTests/EntityTypeStoreTests.swift` | Ad listesi |
 | `rename/` | `VaultStoreTests/RenameTests.swift` | Ad listesi |
@@ -906,7 +907,7 @@ Tam ve artımlı eşdeğerlik, dosya silme ve yeniden kurulum aynı kasayı kull
 
 ## Tek dosyalı uygulama kümeleri
 
-`journal/edit/input.md` bir gün dosyasıdır; `expected.md` Journal bölümü değiştikten sonraki tam dosyadır. Frontmatter ve Events bölümü bayt bayt aynı kalır; testi `Tests/JournalTests/JournalEditingTests.swift` koşar. `entities/fields/input.md` kurgusal bir kişi dosyasıdır. `value.md` bir alan değeri değiştikten, `aliases.md` takma ad listesi yazıldıktan sonraki tam dosyadır. Yalnız hedef anahtarın satırı değişir; testi `Tests/JournalTests/EntityPageTests.swift` koşar.
+`journal/edit/input.md` bir gün dosyasıdır; `expected.md` Journal bölümü değiştikten sonraki tam dosyadır. Frontmatter ve Events bölümü bayt bayt aynı kalır; testi `Tests/JournalTests/JournalEditingTests.swift` koşar. `journal/weekly-review/input.md` haftalık incelemeden önceki gün dosyasıdır; `expected.md` soru kartları yazıldıktan sonraki tam dosyadır. Her dolu kart tek serbest not satırıdır, soru ve cevap birlikte ("Ne iyi gitti: …"); görev gibi görünen cevap yazı olarak kalır. Testi `Tests/JournalTests/WeeklyReviewTests.swift` koşar. `entities/fields/input.md` kurgusal bir kişi dosyasıdır. `value.md` bir alan değeri değiştikten, `aliases.md` takma ad listesi yazıldıktan sonraki tam dosyadır. Yalnız hedef anahtarın satırı değişir; testi `Tests/JournalTests/EntityPageTests.swift` koşar.
 
 ## `entity-types/` kümesi
 

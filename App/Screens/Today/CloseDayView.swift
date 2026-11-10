@@ -16,15 +16,22 @@ struct CloseDayView: View {
     @Environment(GeofenceService.self) private var geofences: GeofenceService?
     @Environment(\.locale) private var locale
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    private let summary: CloseDaySummary
 
     /// - Parameters:
     ///   - tasks: the day's rows as Today drew them (``DayTasksModel/rows``).
     ///   - goals: the Today strip's loaded model.
+    ///   - summary: event / done / remaining counts for the top number cards.
     init(
-        store: IndexStore, today: CalendarDate, tasks: [TaskRow], goals: GoalDayModel, step: CloseDayStep = .tasks
+        store: IndexStore, today: CalendarDate, tasks: [TaskRow], goals: GoalDayModel,
+        step: CloseDayStep = .tasks,
+        summary: CloseDaySummary = CloseDaySummary(
+            events: 0, completedTasks: 0, remainingTasks: 0)
     ) {
         _model = State(
             initialValue: CloseDayModel(store: store, today: today, tasks: tasks, goals: goals, step: step))
+        self.summary = summary
     }
 
     private var bundle: Bundle { PresentationLocalization.bundle(locale) }
@@ -40,12 +47,23 @@ struct CloseDayView: View {
             // The report of a write in flight is still to come: the sheet stays until it shows.
             onClose: { if model.canClose { dismiss() } }
         ) {
-            VStack(alignment: .leading, spacing: InkSpacing.row) {
+            VStack(alignment: .leading, spacing: InkSpacing.section) {
+                summaryCards
                 switch model.step {
                 case .tasks: tasksStep
                 case .goals: goalsStep
                 case .journal: journalStep
                 }
+            }
+        }
+        // Before the bottom bar: an identifier set outside `safeAreaInset` also lands on the bar's
+        // buttons and hides their own ("button.closeDay.apply", CloseDayUITests).
+        .accessibilityIdentifier("screen.closeDay")
+        .background(Color.ink.elevated.ignoresSafeArea())
+        .presentationBackground(Color.ink.elevated)
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            if model.step == .tasks, !model.tasks.isEmpty {
+                bottomApplyBar
             }
         }
         .disabled(!model.canClose)
@@ -66,7 +84,60 @@ struct CloseDayView: View {
         .onChange(of: model.journalNotice ?? model.journalError) { _, text in
             if let text { AccessibilityNotification.Announcement(text).post() }
         }
-        .accessibilityIdentifier("screen.closeDay")
+    }
+
+    /// The day's three numbers in one card: three cards side by side left a third of the width
+    /// minus two paddings per label, and "Biten görev" broke inside its word (accessibility audit:
+    /// text clipped). Accessibility sizes stack the numbers.
+    private var summaryCards: some View {
+        let layout =
+            dynamicTypeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 12))
+            : AnyLayout(HStackLayout(alignment: .top, spacing: 12))
+        return InkCard(padded: true) {
+            layout {
+                summaryStat(
+                    value: summary.events,
+                    label: String(localized: "Olay", bundle: bundle, locale: locale))
+                summaryStat(
+                    value: summary.completedTasks,
+                    label: String(localized: "Biten görev", bundle: bundle, locale: locale))
+                summaryStat(
+                    value: summary.remainingTasks,
+                    label: String(localized: "Kalan görev", bundle: bundle, locale: locale))
+            }
+        }
+    }
+
+    private func summaryStat(value: Int, label: String) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(verbatim: value.formatted(.number.locale(locale)))
+                .font(.ink.largeNumber)
+                .foregroundStyle(Color.ink.text)
+                .monospacedDigit()
+            Text(verbatim: label)
+                .font(.ink.meta)
+                .foregroundStyle(Color.ink.secondaryText)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var bottomApplyBar: some View {
+        HStack(spacing: InkSpacing.section) {
+            Button("Uygula") { Task { await model.apply() } }
+                .buttonStyle(InkPrimaryButtonStyle())
+                .disabled(!model.canApply)
+                .accessibilityIdentifier("button.closeDay.apply")
+            Button(model.report != nil ? "İleri" : "Atla") { model.advance() }
+                .buttonStyle(InkTextButtonStyle())
+                .accessibilityIdentifier("button.closeDay.next")
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, InkSpacing.margin)
+        .padding(.vertical, 12)
+        .frame(maxWidth: .infinity)
+        .background(Color.ink.elevated)
     }
 
     // MARK: - Tasks
@@ -74,51 +145,48 @@ struct CloseDayView: View {
     @ViewBuilder private var tasksStep: some View {
         let tasks = model.tasks
         SectionHeader(title: String(localized: "Görevler", bundle: bundle, locale: locale), count: tasks.count)
-        if let report = model.report, let text = report.text(locale: locale) {
-            InfoBand(kind: report.isPartial ? .warning : .info, verbatim: text)
-        }
-        if let failure = model.report?.failureText {
-            InfoBand(kind: .error, verbatim: failure)
-        }
         if tasks.isEmpty {
             EmptyState("Bugün için açık görev yok.")
         } else {
-            hint("Seçim yapmadığın görev olduğu gibi kalır.")
-            ForEach(tasks) { row in
-                VStack(alignment: .leading, spacing: 0) {
-                    Text(verbatim: row.text.plainText)
-                        .font(.ink.content)
-                        .foregroundStyle(Color.ink.text)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .accessibilityHidden(true)
-                    InkLabeledMenu(
-                        "Karar",
-                        selection: Binding(
-                            get: { model.choice(for: row) }, set: { model.choose($0, for: row) }),
-                        options: [
-                            InkMenuOption("Kalsın", value: CloseDayChoice.keep),
-                            InkMenuOption("Bitti", value: CloseDayChoice.done),
-                            InkMenuOption("Yarına", value: CloseDayChoice.tomorrow),
-                            InkMenuOption("Haftaya", value: CloseDayChoice.nextWeek),
-                        ]
-                    )
-                    // One element per task: its text is the menu's name, the choice its value.
-                    // The shared label ("Karar") alone would read the same on every row.
-                    .accessibilityLabel(Text(verbatim: row.text.plainText))
+            InkCard(padded: true) {
+                if let report = model.report, let text = report.text(locale: locale) {
+                    InfoBand(kind: report.isPartial ? .warning : .info, verbatim: text)
+                }
+                if let failure = model.report?.failureText {
+                    InfoBand(kind: .error, verbatim: failure)
+                }
+                hint("Seçim yapmadığın görev olduğu gibi kalır.")
+                ForEach(tasks) { row in
+                    VStack(alignment: .leading, spacing: 0) {
+                        Text(verbatim: row.text.plainText)
+                            .font(.ink.content)
+                            .foregroundStyle(Color.ink.text)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .accessibilityHidden(true)
+                        InkLabeledMenu(
+                            "Karar",
+                            selection: Binding(
+                                get: { model.choice(for: row) }, set: { model.choose($0, for: row) }),
+                            options: [
+                                InkMenuOption("Kalsın", value: CloseDayChoice.keep),
+                                InkMenuOption("Bitti", value: CloseDayChoice.done),
+                                InkMenuOption("Yarına", value: CloseDayChoice.tomorrow),
+                                InkMenuOption("Haftaya", value: CloseDayChoice.nextWeek),
+                            ]
+                        )
+                        // One element per task: its text is the menu's name, the choice its value.
+                        // The shared label ("Karar") alone would read the same on every row.
+                        .accessibilityLabel(Text(verbatim: row.text.plainText))
+                    }
                 }
             }
         }
-        HStack(spacing: InkSpacing.section) {
-            if !tasks.isEmpty {
-                // The action lives in the page, not in the bar: it is not a save.
-                Button("Uygula") { Task { await model.apply() } }
-                    .buttonStyle(InkPrimaryButtonStyle())
-                    .disabled(!model.canApply)
-                    .accessibilityIdentifier("button.closeDay.apply")
+        if tasks.isEmpty {
+            HStack(spacing: InkSpacing.section) {
+                Button("İleri") { model.advance() }
+                    .buttonStyle(InkTextButtonStyle())
+                    .accessibilityIdentifier("button.closeDay.next")
             }
-            Button(tasks.isEmpty || model.report != nil ? "İleri" : "Atla") { model.advance() }
-                .buttonStyle(InkTextButtonStyle())
-                .accessibilityIdentifier("button.closeDay.next")
         }
     }
 
@@ -133,13 +201,15 @@ struct CloseDayView: View {
         if pending.isEmpty {
             EmptyState("Bugün için işaretlenmemiş hedef yok.")
         } else {
-            hint("İşaretlediğin hedef hemen kaydedilir.")
-            ForEach(pending, id: \.id) { goal in
-                goalRow(goal)
+            InkCard(padded: true) {
+                hint("İşaretlediğin hedef hemen kaydedilir.")
+                ForEach(pending, id: \.id) { goal in
+                    goalRow(goal)
+                }
+                if let error = model.goals.errorText {
+                    InfoBand(kind: .error, verbatim: error)
+                }
             }
-        }
-        if let error = model.goals.errorText {
-            InfoBand(kind: .error, verbatim: error)
         }
         stepButtons
     }
@@ -149,35 +219,37 @@ struct CloseDayView: View {
     @ViewBuilder private var journalStep: some View {
         @Bindable var model = model
         SectionHeader(title: String(localized: "Günlük", bundle: bundle, locale: locale))
-        hint("Bugünden tek bir cümle yeter.")
-        TextField(
-            "Bugünden bir cümle", text: $model.sentence,
-            prompt: Text("Bugünden bir cümle").font(.ink.placeholder), axis: .vertical
-        )
-        .textFieldStyle(.plain)
-        .font(.ink.content)
-        .foregroundStyle(Color.ink.text)
-        .lineLimit(1...6)
-        .focused($sentenceFocused)
-        .accessibilityIdentifier("field.closeDay.sentence")
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
-        .background(
-            Color.ink.well,
-            in: RoundedRectangle(cornerRadius: InkSize.kanbanCorner, style: .continuous)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: InkSize.kanbanCorner, style: .continuous)
-                .strokeBorder(
-                    InkButtonChrome.color(
-                        for: InkFilterFieldChrome.borderToken(isFocused: sentenceFocused)),
-                    lineWidth: InkStroke.control)
-        )
-        if let notice = model.journalNotice {
-            InfoBand(kind: .info, verbatim: notice)
-        }
-        if let error = model.journalError {
-            InfoBand(kind: .error, verbatim: error)
+        InkCard(padded: true) {
+            hint("Bugünden tek bir cümle yeter.")
+            TextField(
+                "Bugünden bir cümle", text: $model.sentence,
+                prompt: Text("Bugünden bir cümle").font(.ink.placeholder), axis: .vertical
+            )
+            .textFieldStyle(.plain)
+            .font(.ink.content)
+            .foregroundStyle(Color.ink.text)
+            .lineLimit(1...6)
+            .focused($sentenceFocused)
+            .accessibilityIdentifier("field.closeDay.sentence")
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+            .background(
+                Color.ink.well,
+                in: RoundedRectangle(cornerRadius: InkSize.kanbanCorner, style: .continuous)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: InkSize.kanbanCorner, style: .continuous)
+                    .strokeBorder(
+                        InkButtonChrome.color(
+                            for: InkFilterFieldChrome.borderToken(isFocused: sentenceFocused)),
+                        lineWidth: InkStroke.control)
+            )
+            if let notice = model.journalNotice {
+                InfoBand(kind: .info, verbatim: notice)
+            }
+            if let error = model.journalError {
+                InfoBand(kind: .error, verbatim: error)
+            }
         }
         HStack(spacing: InkSpacing.section) {
             if model.canGoBack { backButton }

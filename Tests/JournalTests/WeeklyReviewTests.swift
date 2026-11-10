@@ -748,14 +748,27 @@ struct WeeklyReviewTests {
         let context = try await context()
         defer { context.clean() }
         let model = await model(context)
-        #expect(WeeklyReviewStep.allCases.dropLast().allSatisfy { !model.isSkipped($0) || $0 == .note })
-        #expect(model.isSkipped(.note))
-        model.note = "bir şey"
-        #expect(!model.isSkipped(.note))
+        #expect(WeeklyReviewStep.allCases == [.numbers, .tasks, .preview])
+        #expect(!model.isSkipped(.numbers))
+        #expect(!model.isSkipped(.tasks))
+        #expect(!model.isSkipped(.preview))
+
+        model.setIncluded(.numbers, false)
+        #expect(model.isSkipped(.numbers))
+        model.wellNote = "Sabah yürüyüşleri iyi gitti."
+        #expect(!model.isSkipped(.numbers))
+        model.wellNote = ""
+        #expect(model.isSkipped(.numbers))
+        model.setIncluded(.numbers, true)
+
         model.setIncluded(.goals, false)
-        #expect(model.isSkipped(.goals) && !model.isIncluded(.goals))
+        #expect(!model.isIncluded(.goals))
         #expect(!model.previewLines.contains { $0.contains("Spor") })
+        model.setIncluded(.tasks, false)
+        model.setIncluded(.people, false)
+        #expect(model.isSkipped(.tasks))
         model.setIncluded(.goals, true)
+        #expect(!model.isSkipped(.tasks))
         #expect(model.previewLines.contains("· Spor: 2/6 gün"))
 
         #expect(model.step == .numbers)
@@ -767,6 +780,64 @@ struct WeeklyReviewTests {
         }
         model.advance()
         #expect(model.step == .preview)
+    }
+
+    @Test func threeStepsContentAndQuestionCardsMapping() async throws {
+        let context = try await context()
+        defer { context.clean() }
+        let model = await model(context)
+
+        #expect(WeeklyReviewStep.allCases.count == 3)
+
+        model.wellNote = "Sabah yürüyüşleri düzenliydi."
+        model.blockedNote = "Gece geç yatıldı."
+        model.focusNote = "Erken uyu."
+
+        // Each filled card is one line, its question in front; the cards come last, in order.
+        let preview = model.previewLines
+        #expect(
+            Array(preview.suffix(3)) == [
+                "· Ne iyi gitti: Sabah yürüyüşleri düzenliydi.", "· Ne aksadı: Gece geç yatıldı.",
+                "· Gelecek hafta tek odak: Erken uyu.",
+            ])
+
+        // An empty card adds nothing; a many-line answer has the question on its first written line.
+        model.wellNote = " \n "
+        model.blockedNote = "\n  Gece geç yatıldı.\nİkinci satır"
+        #expect(
+            Array(model.previewLines.suffix(3)) == [
+                "· Ne aksadı: Gece geç yatıldı.", "· İkinci satır", "· Gelecek hafta tek odak: Erken uyu.",
+            ])
+
+        let english = await self.model(context, locale: Self.english)
+        english.focusNote = "Sleep early."
+        #expect(english.previewLines.last == "· Single focus for next week: Sleep early.")
+    }
+
+    /// The question cards in the day file: `Fixtures/journal/weekly-review/` holds the day before
+    /// and the whole file after the review is written; only the block at the end is new.
+    @Test func questionCardsAreWrittenAsTheFixtureFile() async throws {
+        let fixture = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
+            .deletingLastPathComponent().appendingPathComponent("Fixtures/journal/weekly-review")
+        let input = try String(contentsOf: fixture.appendingPathComponent("input.md"), encoding: .utf8)
+        let expected = try Data(contentsOf: fixture.appendingPathComponent("expected.md"))
+        var files = Self.files
+        files["journal/2026-10-03.md"] = input
+        let context = try await context(files)
+        defer { context.clean() }
+
+        let model = await model(context)
+        for section in WeeklyReviewSection.allCases { model.setIncluded(section, false) }
+        model.wellNote = "Sabah yürüyüşleri düzenliydi."
+        model.blockedNote = "Gece geç yatıldı.\nİkinci satır da yazı kalır."
+        model.focusNote = "- [ ] erken uyu"
+        await model.write()
+
+        #expect(model.result == .written && model.errorText == nil)
+        #expect(try Data(contentsOf: context.file) == expected)
+        // Read back, the answers are Journal text: the task-looking answer made no task.
+        await context.store.refresh()
+        #expect(try await context.store.allTasks().allSatisfy { !$0.text.plainText.contains("erken uyu") })
     }
 }
 

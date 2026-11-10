@@ -271,4 +271,132 @@ enum SummaryPresentation {
         if goal.definition.kind == .milestone { return goal.completionDate == nil ? 0 : 1 }
         return InkProgressMath.ratio(done: goal.progress.done, target: goal.progress.target)
     }
+
+    /// Number of measured days in `range` (inclusive).
+    static func measuredDayCount(in range: ClosedRange<CalendarDate>) -> Int {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = .gmt
+        let start = LocalDay.instant(for: range.lowerBound, timeZone: .gmt)
+        let end = LocalDay.instant(for: range.upperBound, timeZone: .gmt)
+        let diff = calendar.dateComponents([.day], from: start, to: end).day ?? 0
+        return max(1, diff + 1)
+    }
+
+    /// Number of measured days in `summary.measuredRange`.
+    static func measuredDayCount(for summary: PeriodSummary) -> Int {
+        measuredDayCount(in: summary.measuredRange)
+    }
+
+    /// Formatted "18/20" (or "22/30" in a finished 30-day month) for the "Yazılan gün" KPI card.
+    static func writtenDaysValueText(
+        writtenDays: Int, measuredDays: Int, locale: Locale = .current
+    ) -> String {
+        "\(writtenDays.formatted(.number.locale(locale)))/\(max(1, measuredDays).formatted(.number.locale(locale)))"
+    }
+
+    static func writtenDaysValueText(_ summary: PeriodSummary, locale: Locale = .current) -> String {
+        writtenDaysValueText(
+            writtenDays: summary.counts.writtenDays,
+            measuredDays: measuredDayCount(for: summary),
+            locale: locale)
+    }
+}
+
+/// Square state for a single day in the Month summary's 30-day Rhythm card.
+/// Future days (`state == .future`) draw no square (`showsSquare == false`), only the day numeral.
+enum MonthRhythmDayState: Sendable, Equatable {
+    case empty
+    case partial
+    case full
+    case future
+
+    var showsSquare: Bool {
+        self != .future
+    }
+
+    var isWritten: Bool {
+        self == .partial || self == .full
+    }
+}
+
+struct MonthRhythmDay: Identifiable, Sendable, Equatable {
+    var id: CalendarDate { date }
+    let date: CalendarDate
+    let state: MonthRhythmDayState
+    let isToday: Bool
+}
+
+struct MonthWritingRhythm: Sendable, Equatable {
+    let month: CalendarDate
+    let days: [MonthRhythmDay]
+
+    var measuredDayCount: Int {
+        days.count { $0.state != .future }
+    }
+
+    var writtenDayCount: Int {
+        days.count { $0.state.isWritten }
+    }
+
+    init(month: CalendarDate, calendar: YearWritingCalendar, today: CalendarDate) {
+        let first = CalendarDate(year: month.year, month: month.month, day: 1) ?? month
+        self.month = first
+        let range = JournalCalendar.range(of: first)
+        var built: [MonthRhythmDay] = []
+        var cursor: CalendarDate? = range.lowerBound
+        while let current = cursor, current <= range.upperBound {
+            let state: MonthRhythmDayState
+            if current > today {
+                state = .future
+            } else {
+                switch calendar.day(current) {
+                case nil:
+                    state = .future
+                case .unwritten?:
+                    state = .empty
+                case .journal?:
+                    state = .partial
+                case .events?:
+                    state = .full
+                }
+            }
+            built.append(
+                MonthRhythmDay(date: current, state: state, isToday: current == today)
+            )
+            cursor = current.addingDays(1)
+        }
+        self.days = built
+    }
+
+    init(
+        month: CalendarDate,
+        statesByDay: [CalendarDate: YearWritingCalendar.Day],
+        today: CalendarDate
+    ) {
+        let first = CalendarDate(year: month.year, month: month.month, day: 1) ?? month
+        self.month = first
+        let range = JournalCalendar.range(of: first)
+        var built: [MonthRhythmDay] = []
+        var cursor: CalendarDate? = range.lowerBound
+        while let current = cursor, current <= range.upperBound {
+            let state: MonthRhythmDayState
+            if current > today {
+                state = .future
+            } else {
+                switch statesByDay[current] ?? .unwritten {
+                case .unwritten:
+                    state = .empty
+                case .journal:
+                    state = .partial
+                case .events:
+                    state = .full
+                }
+            }
+            built.append(
+                MonthRhythmDay(date: current, state: state, isToday: current == today)
+            )
+            cursor = current.addingDays(1)
+        }
+        self.days = built
+    }
 }

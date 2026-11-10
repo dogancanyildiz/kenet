@@ -13,9 +13,6 @@
         @Test func numbersLight() async throws { try await run(.numbers, "numbersLight") }
         @Test func numbersAX3() async throws { try await run(.numbers, "numbersAX3", type: .accessibility3) }
         @Test func tasksLight() async throws { try await run(.tasks, "tasksLight") }
-        @Test func peopleLight() async throws { try await run(.people, "peopleLight") }
-        @Test func goalsLight() async throws { try await run(.goals, "goalsLight") }
-        @Test func noteLight() async throws { try await run(.note, "noteLight") }
         @Test func previewLight() async throws { try await run(.preview, "previewLight") }
 
         private func run(
@@ -68,9 +65,9 @@ func weeklyReviewSnapshotCalendar(timeZone: TimeZone) -> Calendar {
     return calendar
 }
 
-/// The note and the preview are drawn with a note typed.
+/// The preview is drawn with a note typed.
 @MainActor func weeklyReviewSnapshotNote(for step: WeeklyReviewStep) -> String {
-    step == .note || step == .preview ? "Sakin bir haftaydı.\nGelecek hafta yürüyüşleri sabaha alacağım." : ""
+    step == .preview ? "Sakin bir haftaydı.\nGelecek hafta yürüyüşleri sabaha alacağım." : ""
 }
 
 #if os(macOS)

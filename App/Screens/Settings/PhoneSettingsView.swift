@@ -81,6 +81,8 @@ struct PhoneSettingsView: View {
                 }
             }
             .buttonStyle(.plain)
+            // The card draws its own chevron; List would add a second one beside it.
+            .navigationLinkIndicatorVisibility(.hidden)
             .inkListRow()
 
             InkCard(padded: false) {
@@ -118,6 +120,7 @@ struct PhoneSettingsView: View {
                             .contentShape(Rectangle())
                         }
                         .buttonStyle(.plain)
+                        .navigationLinkIndicatorVisibility(.hidden)
                     }
                 }
             }

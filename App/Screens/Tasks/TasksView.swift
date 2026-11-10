@@ -145,6 +145,7 @@ struct TasksView: View {
             HStack(spacing: 16) {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Bu hafta").font(.ink.section).foregroundStyle(.ink.text)
+                        .accessibilityIdentifier("tasks.weekly.title")
                     InkProgress(kind: .fraction(summary.fraction))
                 }
                 Spacer(minLength: 8)

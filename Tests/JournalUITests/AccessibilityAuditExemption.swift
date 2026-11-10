@@ -63,13 +63,21 @@ extension AccessibilityAuditExemption {
         .init(
             type: .dynamicType, element: .catalogKey("Bölüm"),
             reason: "section menu label grows (tasksScreen.tasksAX3.png)"),
-        // The "Bu hafta" card's count is `.ink.value` text inside an InkCard; it grows in the AX3
-        // reference, but on iPad the audit's live size change does not reach the card text and
-        // reports it on some runs (PR #377 run 42808922759), not on others.
+        // The "Bu hafta" card's title and count are semantic text inside an InkCard; both grow in
+        // the AX3 reference, but on iPad the audit's live size change does not reach the card text
+        // and reports one of them on some runs (PR #377 run 42808922759: the count; dev 170b9aa:
+        // the title), not on others.
         .init(
-            type: .dynamicType, element: .identifier("tasks.weekly.count"),
-            reason: "weekly card count grows (tasksScreen.tasksAX3.png); iPad audit misses card text",
+            type: .dynamicType, element: .identifierPrefix("tasks.weekly."),
+            reason: "weekly card text grows (tasksScreen.tasksAX3.png); iPad audit misses card text",
             screens: ["tasks"]),
+        // The day graph's legend caption is `.footnote` text under the legend; it grows in the AX3
+        // reference, and the audit reports it on some iPhone runs (PR #378 run 42825559532).
+        .init(
+            type: .dynamicType,
+            element: .catalogKey("Gün, o gün geçen her kayda bağlanır. Öteki çizgiler elle kurulan bağları gösterir."),
+            reason: "graph legend caption grows (graph AX3 references); audit misses it on some runs",
+            screens: ["dayGraph", "graph"]),
         .init(
             type: .dynamicType, element: .catalogKey("Yaklaşan"),
             reason: "section menu value grows (tasksScreen.tasksAX3.png)"),

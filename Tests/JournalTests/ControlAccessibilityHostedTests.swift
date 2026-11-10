@@ -63,12 +63,14 @@
             let goal = try #require(try await store.goalDefinitions().first { $0.id == "goals/Su.md" })
             try await Self.expectTabs(
                 NavigationStack {
-                    GoalDefinitionForm(store: store, goal: goal, deletion: DefinitionDeletionModel())
-                }, prefix: GoalEditableField.period.title, word: GoalPeriod.week.title, context: context)
+                    GoalDefinitionForm(store: store, goal: goal)
+                }, prefix: GoalEditableField.period.title,
+                word: GoalListPresentation.periodChip(.week), context: context)
             try await Self.expectTabs(
                 NavigationStack {
-                    GoalDefinitionForm(store: store, goal: goal, deletion: DefinitionDeletionModel())
-                }, prefix: GoalEditableField.kind.title, word: GoalKind.boolean.title, context: context)
+                    GoalDefinitionForm(store: store, goal: goal)
+                }, prefix: GoalEditableField.kind.title,
+                word: GoalListPresentation.kindTab(.boolean), context: context)
         }
 
         // MARK: - Labeled menu
@@ -328,7 +330,7 @@
             let mount = HostedLayout.Mount(
                 Self.environment(
                     NavigationStack {
-                        GoalDefinitionForm(store: store, goal: goal, deletion: DefinitionDeletionModel())
+                        GoalDefinitionForm(store: store, goal: goal)
                     },
                     context), size: CGSize(width: 600, height: 900))
             defer { mount.close() }
@@ -366,7 +368,7 @@
             let mount = HostedLayout.Mount(
                 Self.environment(
                     NavigationStack {
-                        GoalDefinitionForm(store: store, goal: goal, deletion: DefinitionDeletionModel())
+                        GoalDefinitionForm(store: store, goal: goal)
                     },
                     context), size: CGSize(width: 600, height: 900))
             defer { mount.close() }

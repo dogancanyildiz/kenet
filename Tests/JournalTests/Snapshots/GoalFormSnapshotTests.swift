@@ -24,14 +24,13 @@
             #expect(context.store.lastUpdated != nil)
             let store = context.store
             let goal = try #require((try await store.goalDefinitions()).first { $0.key == key })
-            let deletion = DefinitionDeletionModel()
             await SnapshotHost.assertView(
                 colorScheme: scheme, dynamicType: type, increaseContrast: false, named: name, store: store,
                 size: type == .accessibility3 ? CGSize(width: snapshotCanvasSize.width, height: 1800) : nil,
                 testName: "goalForm", file: #filePath, line: #line
             ) {
                 NavigationStack {
-                    GoalDefinitionForm(store: store, goal: goal, deletion: deletion)
+                    GoalDefinitionForm(store: store, goal: goal)
                 }
                 .environment(\.locale, snapshotLocale)
                 .environment(\.timeZone, snapshotTimeZone)

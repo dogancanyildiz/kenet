@@ -24,9 +24,13 @@ struct DefinitionMenuTests {
     }
 
     @Test(arguments: [false, true])
-    func numberAndMilestoneMenusIgnoreMark(_ marked: Bool) {
+    func numberMenuIgnoresMark(_ marked: Bool) {
         #expect(DefinitionMenu.items(forGoal: .number, markedToday: marked) == [.enterAmount, .edit, .delete])
-        #expect(DefinitionMenu.items(forGoal: .milestone, markedToday: marked) == [.edit, .delete])
+    }
+
+    @Test func milestoneMenuFollowsToday() {
+        #expect(DefinitionMenu.items(forGoal: .milestone, markedToday: false) == [.markToday, .edit, .delete])
+        #expect(DefinitionMenu.items(forGoal: .milestone, markedToday: true) == [.unmark, .edit, .delete])
     }
 
     @Test func goalMenusKeepDeletionLastAndHaveNoLink() {

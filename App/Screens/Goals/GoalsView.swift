@@ -239,8 +239,12 @@ private struct GoalListContent: View {
                     let status = model.shownStatus(for: goal, answer: answer.statuses[goal.id])
                     let ring = GoalDailyRingLabel(goal: goal, status: status, locale: locale)
                     if let selection {
-                        Button { selection.wrappedValue = goal.id } label: { ring }
-                            .buttonStyle(.plain)
+                        Button {
+                            selection.wrappedValue = goal.id
+                        } label: {
+                            ring
+                        }
+                        .buttonStyle(.plain)
                     } else {
                         NavigationLink {
                             GoalDetailView(store: store, goal: goal, day: model.day)
@@ -345,15 +349,20 @@ private struct GoalListCard<Detail: View>: View {
     }
 
     @ViewBuilder private var openSection: some View {
-        let body = cardBody
+        let body =
+            cardBody
             .frame(maxWidth: .infinity, alignment: .leading)
             .contentShape(Rectangle())
         // Accessibility sits on the control itself so hosted presses activate mark / open.
         if opensDetail {
-            NavigationLink { detail() } label: { body }
-                .buttonStyle(.plain)
-                .accessibilityLabel(Text(verbatim: accessibilityLabelText))
-                .accessibilityHint(Text(openHint))
+            NavigationLink {
+                detail()
+            } label: {
+                body
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(Text(verbatim: accessibilityLabelText))
+            .accessibilityHint(Text(openHint))
         } else if let onOpen {
             Button(action: onOpen) { body }
                 .buttonStyle(.plain)

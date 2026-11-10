@@ -224,7 +224,8 @@ struct GoalDetailView: View {
         goal.period == .day
             || status.score != nil
             || !GoalListPresentation.forgivenDays(
-                goal: goal, logs: history.logs[goal.key] ?? [], today: history.day).isEmpty
+                goal: goal, logs: history.logs[goal.key] ?? [], today: history.day
+            ).isEmpty
     }
 
     private func statsStrip(status: GoalStatus) -> some View {

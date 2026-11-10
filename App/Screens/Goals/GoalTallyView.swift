@@ -52,7 +52,8 @@ struct GoalYearMiniBars: View {
                         Capsule()
                             .strokeBorder(
                                 Color.ink.control,
-                                style: StrokeStyle(lineWidth: 1, dash: [2, 2]))
+                                style: StrokeStyle(lineWidth: 1, dash: [2, 2])
+                            )
                             .frame(width: barWidth, height: max(4, maxHeight * 0.25))
                     } else {
                         Capsule()

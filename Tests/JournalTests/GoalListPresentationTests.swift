@@ -70,9 +70,10 @@ struct GoalListPresentationTests {
         ]
         let cells = GoalListPresentation.tallyDays(goal: goal, logs: logs, today: day)
         #expect(cells.count == 7)
-        #expect(cells.map(\.fill) == [
-            .filled, .filled, .forgiven, .filled, .filled, .filled, .empty,
-        ])
+        #expect(
+            cells.map(\.fill) == [
+                .filled, .filled, .forgiven, .filled, .filled, .filled, .empty,
+            ])
         #expect(cells.filter(\.isToday).count == 1)
         #expect(cells.last?.isToday == true)
         #expect(cells.last?.fill == .empty)

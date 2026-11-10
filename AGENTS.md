@@ -109,7 +109,34 @@ Değişmez kurallar zevk değil, ürünün temel vaatleridir. Veri kullanıcın�
 | Kapanan açık soru | Soruyu `docs/decisions.md` içinden sil. |
 | Biten aşama maddesi | `docs/roadmap.md` içindeki kutuyu işaretle. |
 
-CI belge yerini `.github/scripts/check-doc-locations.sh` ile denetler. Betik `docs/` ve `Fixtures/` dışında yalnız kökteki `README.md`, `AGENTS.md` ve `CLAUDE.md` dosyalarını kabul eder. `.github/scripts/check-docs.sh` README belge tablosunun `docs/` klasörüyle aynı olduğunu denetler.
+**Doküman türleri.** Her `docs/` belgesinin tek türü ve cevapladığı tek soru vardır.
+
+| Belge | Tür | Cevapladığı soru |
+|---|---|---|
+| `docs/roadmap.md` | Plan | Ne, ne zaman yapılır? |
+| `docs/product.md` | Açıklama | Ürün nedir ve neden vardır? |
+| `docs/screens.md` | Referans | Hangi öğe nerede durur ve ne yapar? |
+| `docs/vault-format.md` | Referans | Dosyada ne nerede yazılır? |
+| `docs/design.md` | Referans ve gerekçe | Arayüz nasıl görünür ve neden? |
+| `docs/decisions.md` | Açıklama | Neden böyle karar verildi? |
+| `docs/architecture.md` | Açıklama | Sistem nasıl çalışır? |
+| `docs/fixtures.md` | Referans | Test verisi nedir ve nerededir? |
+
+**Cümle ve biçim kuralları.** Bu kurallar `docs/`, `AGENTS.md` ve `README.md` için geçerlidir.
+
+| Kural | Ayrıntı |
+|---|---|
+| Bir cümle, bir fikir | Cümle en çok 20 sözcüktür. |
+| Etken çatı | Özneyi yaz: "Uygulama dosyayı yazar." |
+| Emir kipi | Bir emir cümlesi tek adım söyler. |
+| Sıra | Önce tablo ya da Mermaid gelir. Ardından en çok 3 kısa cümle gelir. |
+| Sayı, tarih, kimlik, yol | Tabloda, listede ya da `kod` içinde yaz. |
+| Belirsiz zarf | "Yakında", "genelde" yerine ölçü yaz: tarih, süre, sayı. |
+| Doğrulanmamış bilgi | Başına "**Varsayım:**" yaz. |
+| Değişiklik kaydı | Üç şey söyle: ne değişti, önceki değer, nasıl geri alınır. Karar tablosu ve şema sürümü notları bu kurala uyar. |
+| Terim | `docs/design.md` "Terim sözlüğü" tablosundaki adı kullan. Yeni terimi önce tabloya ekle. |
+
+CI belge yerini `.github/scripts/check-doc-locations.sh` ile denetler. Betik `docs/` ve `Fixtures/` dışında yalnız kökteki `README.md`, `AGENTS.md` ve `CLAUDE.md` dosyalarını kabul eder. `.github/scripts/check-docs.sh` README belge tablosunun `docs/` klasörüyle aynı olduğunu denetler. Aynı betik 20 sözcüğü aşan cümle sayısını tavanla denetler ve sır kalıplarını arar.
 
 ## Kod kuralları
 
@@ -283,7 +310,7 @@ project.yml, VERSION      XcodeGen tanımı ve sürüm numarası; Journal.xcodep
 
 | Denetim betiği | Ne denetler |
 |---|---|
-| `.github/scripts/check-docs.sh` | Karar tablosu, README belge tablosu, String Catalog tamlığı ve biçimi; koddaki sabit metinlerin katalogda olması (`check-catalog-keys.py`) |
+| `.github/scripts/check-docs.sh` | Karar tablosu, README belge tablosu, String Catalog tamlığı ve biçimi; koddaki sabit metinlerin katalogda olması (`check-catalog-keys.py`); uzun cümle tavanı; sır kalıpları |
 | `.github/scripts/check-doc-locations.sh` | `docs/` dışındaki `.md` dosyaları |
 | `.github/scripts/check-core-imports.sh` | `Core` içindeki yasak import'lar |
 | `.github/scripts/check-team-id.sh` | Belgelerdeki gerçek takım kimliği |

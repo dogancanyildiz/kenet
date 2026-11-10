@@ -1076,9 +1076,21 @@
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld sub-lines"
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld sub-line"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld sub-lines"
+                }
+              }
+            }
           }
         },
         "tr" : {
@@ -1094,7 +1106,29 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%lld months · %@"
+            "value" : "%#@months@ · %2$@"
+          },
+          "substitutions" : {
+            "months" : {
+              "argNum" : 1,
+              "formatSpecifier" : "lld",
+              "variations" : {
+                "plural" : {
+                  "one" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg month"
+                    }
+                  },
+                  "other" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg months"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "tr" : {
@@ -1192,9 +1226,21 @@
     "%lld dosya" : {
       "localizations" : {
         "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld files"
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld file"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld files"
+                }
+              }
+            }
           }
         },
         "tr" : {
@@ -1249,9 +1295,21 @@
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld mentions"
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld mention"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld mentions"
+                }
+              }
+            }
           }
         },
         "tr" : {
@@ -2256,9 +2314,21 @@
     "%lld komşu" : {
       "localizations" : {
         "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld neighbors"
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld neighbor"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld neighbors"
+                }
+              }
+            }
           }
         },
         "tr" : {
@@ -2401,7 +2471,49 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%1$lld events · %2$lld tasks"
+            "value" : "%#@events@ · %#@tasks@"
+          },
+          "substitutions" : {
+            "events" : {
+              "argNum" : 1,
+              "formatSpecifier" : "lld",
+              "variations" : {
+                "plural" : {
+                  "one" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg event"
+                    }
+                  },
+                  "other" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg events"
+                    }
+                  }
+                }
+              }
+            },
+            "tasks" : {
+              "argNum" : 2,
+              "formatSpecifier" : "lld",
+              "variations" : {
+                "plural" : {
+                  "one" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg task"
+                    }
+                  },
+                  "other" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg tasks"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "tr" : {
@@ -2736,22 +2848,6 @@
         }
       }
     },
-    "%lld%% Son 30 gün" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld%% last 30 days"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld%% Son 30 gün"
-          }
-        }
-      }
-    },
     "%lld. hafta" : {
       "localizations" : {
         "en" : {
@@ -2899,9 +2995,21 @@
     "20 bölge sınırı: %lld hedef izlenmiyor." : {
       "localizations" : {
         "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "20-region limit: %lld goals are not monitored."
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "20-region limit: %lld goal is not monitored."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "20-region limit: %lld goals are not monitored."
+                }
+              }
+            }
           }
         },
         "tr" : {
@@ -3392,22 +3500,6 @@
         }
       }
     },
-    "Aralık hesabı için en az iki gün gerekir." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "At least two days are needed to calculate an interval."
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aralık hesabı için en az iki gün gerekir."
-          }
-        }
-      }
-    },
     "Aralık: %lld" : {
       "localizations" : {
         "en" : {
@@ -3629,22 +3721,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ayarlar"
-          }
-        }
-      }
-    },
-    "Ayarlar'da Eylem düğmesine bu kısayollardan birini atayabilirsin." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "In Settings, you can assign one of these shortcuts to the Action Button."
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ayarlar'da Eylem düğmesine bu kısayollardan birini atayabilirsin."
           }
         }
       }
@@ -4078,22 +4154,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bağlantılar"
-          }
-        }
-      }
-    },
-    "Bağlantılı varlıklar" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Linked entities"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bağlantılı varlıklar"
           }
         }
       }
@@ -4979,22 +5039,6 @@
         }
       }
     },
-    "Bu ad için bir varlık oluştur." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Create an entity for this name."
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bu ad için bir varlık oluştur."
-          }
-        }
-      }
-    },
     "Bu ad kullanılıyor. Farklı bir ad veya ayırt edici yazın." : {
       "localizations" : {
         "en" : {
@@ -5135,22 +5179,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bu cihazda devam et"
-          }
-        }
-      }
-    },
-    "Bu cihazda kal" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Stay on this device"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bu cihazda kal"
           }
         }
       }
@@ -5845,22 +5873,6 @@
         }
       }
     },
-    "Bugüne, şimdiki saatle eklenir." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Added to today at the current time."
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bugüne, şimdiki saatle eklenir."
-          }
-        }
-      }
-    },
     "Bugünkü görevler" : {
       "localizations" : {
         "en" : {
@@ -6437,22 +6449,6 @@
         }
       }
     },
-    "Dönem sonu zincir" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Streak at period end"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dönem sonu zincir"
-          }
-        }
-      }
-    },
     "Dönem sonu zinciri: %lld" : {
       "localizations" : {
         "en" : {
@@ -6730,22 +6726,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Eksik klasörleri ve şablonları oluştur"
-          }
-        }
-      }
-    },
-    "En uzun seri" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Longest streak"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "En uzun seri"
           }
         }
       }
@@ -7281,22 +7261,6 @@
         }
       }
     },
-    "Geçmiş kayıtlar" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Past records"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Geçmiş kayıtlar"
-          }
-        }
-      }
-    },
     "Git" : {
       "localizations" : {
         "en" : {
@@ -7565,23 +7529,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Görev yok."
-          }
-        }
-      }
-    },
-    "Görevi geri aç" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Reopen task"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Görevi geri aç"
           }
         }
       }
@@ -7948,22 +7895,6 @@
         }
       }
     },
-    "Güncel zincir" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Current streak"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Güncel zincir"
-          }
-        }
-      }
-    },
     "Güncel zincir: %lld" : {
       "localizations" : {
         "en" : {
@@ -8120,22 +8051,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Günlük kaydı var"
-          }
-        }
-      }
-    },
-    "Günlük kilitli" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Kenet is locked"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Günlük kilitli"
           }
         }
       }
@@ -8312,22 +8227,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Günlüğe yaz"
-          }
-        }
-      }
-    },
-    "Günlüğün, senin dosyaların" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Your journal, your files"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Günlüğün, senin dosyaların"
           }
         }
       }
@@ -8604,22 +8503,6 @@
         }
       }
     },
-    "Haftaya dair eklemek istediğin bir şey varsa yaz; boş bırakabilirsin." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Write anything you want to add about the week; you can leave it empty."
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Haftaya dair eklemek istediğin bir şey varsa yaz; boş bırakabilirsin."
-          }
-        }
-      }
-    },
     "Haftaya dair not" : {
       "localizations" : {
         "en" : {
@@ -8776,22 +8659,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Hayır"
-          }
-        }
-      }
-    },
-    "Hazır hedefler" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ready-made goals"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hazır hedefler"
           }
         }
       }
@@ -8968,22 +8835,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Hedef saati"
-          }
-        }
-      }
-    },
-    "Hedef tanımını düzenler" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Edits the goal definition"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hedef tanımını düzenler"
           }
         }
       }
@@ -10237,22 +10088,6 @@
         }
       }
     },
-    "Kaynak" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Source"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Kaynak"
-          }
-        }
-      }
-    },
     "Kaynak güne git" : {
       "localizations" : {
         "en" : {
@@ -10569,22 +10404,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Kişi"
-          }
-        }
-      }
-    },
-    "Kişi geçişi" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Person mentions"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Kişi geçişi"
           }
         }
       }
@@ -10985,22 +10804,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Konum erişimine izin verildi."
-          }
-        }
-      }
-    },
-    "Konum geçişi" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Place mentions"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Konum geçişi"
           }
         }
       }
@@ -11806,22 +11609,6 @@
         }
       }
     },
-    "Olay olarak ekle" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Add as event"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Olay olarak ekle"
-          }
-        }
-      }
-    },
     "Olay sayısı" : {
       "localizations" : {
         "en" : {
@@ -12084,29 +11871,35 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Average %1$@ · %2$lld days at or above target"
+            "value" : "Average %1$@ · %#@days@ at or above target"
+          },
+          "substitutions" : {
+            "days" : {
+              "argNum" : 2,
+              "formatSpecifier" : "lld",
+              "variations" : {
+                "plural" : {
+                  "one" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg day"
+                    }
+                  },
+                  "other" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg days"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ortalama %@ · %lld günde hedefin üstünde"
-          }
-        }
-      }
-    },
-    "Ortalama aralık" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Average interval"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ortalama aralık"
           }
         }
       }
@@ -12603,22 +12396,6 @@
         }
       }
     },
-    "Saati yok" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No time"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Saati yok"
-          }
-        }
-      }
-    },
     "Saatsiz" : {
       "localizations" : {
         "en" : {
@@ -12958,9 +12735,21 @@
     "Son %lld gün" : {
       "localizations" : {
         "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Last %lld days"
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Last %lld day"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Last %lld days"
+                }
+              }
+            }
           }
         },
         "tr" : {
@@ -12990,9 +12779,21 @@
     "Son %lld günde kayıt yok" : {
       "localizations" : {
         "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No records in the last %lld days"
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "No records in the last %lld day"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "No records in the last %lld days"
+                }
+              }
+            }
           }
         },
         "tr" : {
@@ -13024,7 +12825,49 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "In the last 12 months, %lld days; busiest %@, %lld days"
+            "value" : "In the last 12 months, %#@days@; busiest %2$@, %#@busy@"
+          },
+          "substitutions" : {
+            "days" : {
+              "argNum" : 1,
+              "formatSpecifier" : "lld",
+              "variations" : {
+                "plural" : {
+                  "one" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg day"
+                    }
+                  },
+                  "other" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg days"
+                    }
+                  }
+                }
+              }
+            },
+            "busy" : {
+              "argNum" : 3,
+              "formatSpecifier" : "lld",
+              "variations" : {
+                "plural" : {
+                  "one" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg day"
+                    }
+                  },
+                  "other" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg days"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "tr" : {
@@ -13131,22 +12974,6 @@
         }
       }
     },
-    "Son 365 gün" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Last 365 days"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Son 365 gün"
-          }
-        }
-      }
-    },
     "Son 7 gün" : {
       "localizations" : {
         "en" : {
@@ -13179,28 +13006,24 @@
         }
       }
     },
-    "Son 90 günde" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "In the last 90 days"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Son 90 günde"
-          }
-        }
-      }
-    },
     "Son 90 günde %lld gün" : {
       "localizations" : {
         "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld days in the last 90 days"
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld day in the last 90 days"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld days in the last 90 days"
+                }
+              }
+            }
           }
         },
         "tr" : {
@@ -13216,7 +13039,29 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%lld days in the last 90 days · average interval %@ days"
+            "value" : "%#@days@ in the last 90 days · average interval %2$@ days"
+          },
+          "substitutions" : {
+            "days" : {
+              "argNum" : 1,
+              "formatSpecifier" : "lld",
+              "variations" : {
+                "plural" : {
+                  "one" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg day"
+                    }
+                  },
+                  "other" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg days"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "tr" : {
@@ -14565,22 +14410,6 @@
         }
       }
     },
-    "Tümü" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "All"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tümü"
-          }
-        }
-      }
-    },
     "Tümünü göster (%lld)" : {
       "localizations" : {
         "en" : {
@@ -15501,22 +15330,6 @@
         }
       }
     },
-    "Yeni kasa oluştur" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Create a new vault"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Yeni kasa oluştur"
-          }
-        }
-      }
-    },
     "Yeni kasa, Dosyalar’da iPad’imde → Kenet → Vault klasöründe oluşturulur." : {
       "localizations" : {
         "en" : {
@@ -15741,22 +15554,6 @@
         }
       }
     },
-    "Yinelemeyi düzenle" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Edit recurrence"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Yinelemeyi düzenle"
-          }
-        }
-      }
-    },
     "Yinelenen normalleştirilmiş yol" : {
       "localizations" : {
         "en" : {
@@ -15917,22 +15714,6 @@
         }
       }
     },
-    "Yıllık ilerleme" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Yearly progress"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Yıllık ilerleme"
-          }
-        }
-      }
-    },
     "Zaman akışı" : {
       "localizations" : {
         "en" : {
@@ -15981,22 +15762,6 @@
         }
       }
     },
-    "Zaten var olanlar (atlanacak)" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Already exist (to skip)"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Zaten var olanlar (atlanacak)"
-          }
-        }
-      }
-    },
     "Zincir" : {
       "localizations" : {
         "en" : {
@@ -16016,9 +15781,21 @@
     "Zincir %lld gün" : {
       "localizations" : {
         "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Streak %lld days"
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Streak %lld day"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Streak %lld days"
+                }
+              }
+            }
           }
         },
         "tr" : {
@@ -17309,9 +17086,21 @@
     "Önceki günlerden %lld açık görev." : {
       "localizations" : {
         "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld open tasks from previous days."
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld open task from previous days."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld open tasks from previous days."
+                }
+              }
+            }
           }
         },
         "tr" : {
@@ -18201,23 +17990,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "— açık görev  ┄ %@"
-          }
-        }
-      }
-    },
-    "✓ Tamam" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "✓ Done"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "✓ Tamam"
           }
         }
       }

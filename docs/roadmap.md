@@ -8,7 +8,7 @@
 - Gerçek kullanım ölçütleri ve kullanıcı kararı bekleyen konular
 - Sonraki fikirler
 
-**Aktif aşama:** 11. Aşama 17 (Tasarım yenileme) Aşama 11 ile birlikte yürür.
+**Aktif aşama:** 11. Aşama 17 (Tasarım yenileme) Aşama 11 ile birlikte yürüdü; 9 kutusu bitti. Çıkış ölçütünün TestFlight doğrulaması kullanıcıdadır.
 
 Aşama 11'in kimlikleri 2026-10-21'de karara bağlandı. Kasa konumu, ana ekran widget'ı, paylaşım uzantısı ve günlük önerileri seçicisi 2026-10-22'de `dev`'e girdi. Kalan maddeler: güvenli yazmanın kalanı (cihaz denemesini bekler), kilit ekranı, hızlı giriş ve Mac widget'ları. Aşama 13'ün iPhone Duo dilimi bugünkü SDK ile Aşama 11'in bekleyen maddeleriyle birlikte yürür. Karar günlüğü bu sırayı 2026-10-13'te kaydetti. Aşama 8 ve 9'un açık maddeleri kullanıcının elindedir: kilidin ve Bugün ekranının gerçek cihazda doğrulanması.
 
@@ -18,7 +18,7 @@ Aşama 11'in kimlikleri 2026-10-21'de karara bağlandı. Kasa konumu, ana ekran 
 
 ```mermaid
 timeline
-    title Aşama durumları, 2026-11-09
+    title Aşama durumları, 2026-11-10
     section Teknik kapsam tamam
         Aşama 0 Temel : Çıkış ölçütü sağlandı
         Aşama 1 Günlük : Gerçek kullanım başlamadı
@@ -33,11 +33,11 @@ timeline
         Aşama 14 Görselleştirme : 2 kutu bitti : 0 kutu açık
         Aşama 15 Kullanım kolaylığı : 5 kutu bitti : 0 kutu açık
         Aşama 16 İlişkiler ve Graph : 3 kutu bitti : 0 kutu açık
+        Aşama 17 Tasarım yenileme : 9 kutu bitti : 0 kutu açık
     section Açık kutusu var
         Aşama 8 Sağlamlaştırma : 28 kutu bitti : 1 kutu açık
         Aşama 11 Kimlik, eşitleme ve widget'lar : Aktif aşama : 6 kutu bitti : 4 kutu açık
         Aşama 13 Uyarlanır düzen : Duo kabuğu ve iPad bitti : 4 kutu bitti : 2 kutu açık
-        Aşama 17 Tasarım yenileme : Aşama 11 ile birlikte : 0 kutu bitti : 9 kutu açık
     section Hazırlık sürüyor
         Aşama 12 Yayın : 4 kutu açık
 ```
@@ -46,8 +46,8 @@ timeline
 
 ```mermaid
 pie title Kutular
-    "Bitti" : 117
-    "Açık" : 18
+    "Bitti" : 126
+    "Açık" : 9
 ```
 
 | İşaret | Anlamı |
@@ -55,7 +55,7 @@ pie title Kutular
 | `[x]` | Kod `dev` dalında, testlerden ve CI'dan geçti. CI, sürekli bütünleştirme demektir. |
 | `[ ]` | Madde açık. Durum tablosu kalan işi söyler. |
 
-**Durum (2026-10-26).** Aşama 0–10, 14, 15 ve 16'nın teknik maddeleri `dev` dalındadır. Aşama 11'in 10 maddesinden 6'sı bitti. İlk sürüm `v0.9.0` `main` dalındadır. TestFlight'ta iPhone/iPad ve Mac için dahili test sürüyor. Aşama 16 tamamlandı; olay düzeyinde bağ (W1, #333), paragraf segmentleri (W1a, #334), günün grafiği (W2, #337) ve açık ilişkiler (W3, #341, #343, #347) `dev` dalındadır. Aşama 17 2026-11-09'da açıldı; 9 dalganın hiçbiri bitmedi. Aşamaların gerçek kullanım ölçütleri henüz ölçülmedi; "Gerçek kullanım ölçütleri" tablosu ölçütleri ayrıca izler.
+**Durum (2026-11-10).** Aşama 0–10, 14, 15, 16 ve 17'nin teknik maddeleri `dev` dalındadır. Aşama 11'in 10 maddesinden 6'sı bitti. İlk sürüm `v0.9.0` `main` dalındadır. TestFlight'ta iPhone/iPad ve Mac için dahili test sürüyor. Aşama 16 tamamlandı; olay düzeyinde bağ (W1, #333), paragraf segmentleri (W1a, #334), günün grafiği (W2, #337) ve açık ilişkiler (W3, #341, #343, #347) `dev` dalındadır. Aşama 17 2026-11-09'da açıldı; 9 dalganın 9'u bitti (#371–#377 ve belge kapanışı). Aşamaların gerçek kullanım ölçütleri henüz ölçülmedi; "Gerçek kullanım ölçütleri" tablosu ölçütleri ayrıca izler.
 
 Ekim 2026'da çok modelli bir heyet projeyi inceledi. Heyet 4 iş yaptı: kod ve mimari denetimi, ekran görüntülü kullanım gezisi, sektör taraması, tasarım dili araştırması. İnceleme gerçek hatalar, ölçek sorunları ve vaatle uyuşmayan yerler buldu. Bu nedenle heyetten sonraki ilk iş yeni özellik değil, sağlamlaştırmaydı. Aşama 8 ve sonraki aşamalar heyetin önerdiği sırayı izler; kullanıcı onayı kapsamı ve sırayı kesinleştirir.
 
@@ -280,7 +280,7 @@ Kimlik gerektirmeyen dilimler Aşama 10 ile birlikte yürüdü ve bitti. Karar g
 | Madde | Durum | Kanıt |
 |---|---|---|
 | Mağaza teknik hazırlığı | Açık. Kalan iş: gizlilik politikası. Adres karara bağlandı: `kenet.app/gizlilik`; alan adını kullanıcı alır. Lisans bildirimi bitti. Yer tutucu bölüm olan Mac "Notlar" girdisi kalktı. Ötekiler ilk TestFlight yüklemesi için bitti. | #130, #151, #188 |
-| CD | Açık. Elle yol hazır: `.github/scripts/testflight.sh` temiz kopyadan arşivler ve yükler. İlk yapı 0.9.0 yüklendi. `dev`'e her itmede imzasız arşiv denetimi koşar. CI iş akışı hazır: `testflight.yml` elle tetiklenir; `dev` itmesinde gönderim `KENET_CD_ON_PUSH` ile açılır. İlk koşu kullanıcının GitHub Secrets'a koyacağı App Store Connect API anahtarını ve imza sertifikalarını bekliyor. | #134, #197, #313 |
+| CD | Açık. Elle yol hazır: `.github/scripts/testflight.sh` temiz kopyadan arşivler ve yükler. İlk yapı 0.9.0 yüklendi. `dev`'e her itmede imzasız arşiv denetimi koşar. CI iş akışı hazır: `testflight.yml` elle tetiklenir; `dev` itmesinde gönderim `KENET_CD_ON_PUSH` ile açılır. İlk koşu kullanıcının GitHub Secrets'a koyacağı App Store Connect API anahtarını ve imza sertifikalarını bekliyor. | #134, #197, #313 <!-- sır değil --> |
 | Lisans, ad, gelir modeli | Açık. Ad Kenet ve lisans "tüm hakları saklıdır" karara bağlandı. Gelir modeli ve yazılı taahhüt açık; gelir modeli ilk mağaza yayınından önce karara bağlanır. | #131 |
 | Mağaza sayfası | Açık | - |
 
@@ -381,15 +381,15 @@ W1a (#334): paragraftaki her madde satırı girintili devam satırlarıyla, her 
 
 | Madde | Durum | Kanıt |
 |---|---|---|
-| D1 Belirteçler ve bileşen kitaplığı | Açık | - |
-| D2 Bugün ve hızlı giriş | Açık | - |
-| D3 Görevler, Kanban, zaman çizelgesi | Açık | - |
-| D4 Günlük, Gün, Özetler | Açık | - |
-| D5 Kişiler, Varlık, Graph, Harita | Açık | - |
-| D6 Hedefler | Açık | - |
-| D7 Mac ve iPad kabuğu | Açık | - |
-| D8 Ayarlar, İlk açılış, kilit, paylaşım, widget | Açık | - |
-| D9 Son referans kaydı ve belge kapanışı | Açık | - |
+| D1 Belirteçler ve bileşen kitaplığı | Bitti | #371 |
+| D2 Bugün ve hızlı giriş | Bitti | #376 (D4 ile tek PR) |
+| D3 Görevler, Kanban, zaman çizelgesi | Bitti | #373 |
+| D4 Günlük, Gün, Özetler | Bitti | #376 |
+| D5 Kişiler, Varlık, Graph, Harita | Bitti | #372 |
+| D6 Hedefler | Bitti | #374 |
+| D7 Mac ve iPad kabuğu | Bitti | #377 |
+| D8 Ayarlar, İlk açılış, kilit, paylaşım, widget | Bitti | #375 |
+| D9 Son referans kaydı ve belge kapanışı | Bitti | Bu PR (`docs/safak-kapanis`) |
 
 **Dalgalar bu sırayla ilerler; D1 hepsinin ön koşuludur.**
 
@@ -411,17 +411,19 @@ flowchart TD
 
 Kullanıcı 2026-11-09'da tasarım yönünü Mürekkep'ten Şafak'a çevirdi ve orkestratörün önerilerini kabul etti. Kararlar karar günlüğünde 2026-11-09 satırlarındadır. Aşama kimlik ya da cihaz kararı gerektirmez; bu yüzden Aşama 11 ile birlikte yürür. Aşama 9 Mürekkep'in uygulama kaydı olarak kapalı kalır. Yön, belirteçler ve kurallar [Tasarım dili](design.md) belgesindedir. Belge PR'ı D1'den önce gelir.
 
-**Ara durum:** Palet D1'de tek seferde değişir ve 317 referans yeniden kaydedilir. Sonraki dalgalar yalnız kendi kümelerini kaydeder. `dev` her an derlenir ve yeşildir. TestFlight yapıları birkaç hafta karma görünür: Şafak renkleri, Mürekkep yerleşimi. Sürüm notu "tasarım geçişi sürüyor" der.
+**Ara durum (2026-11-09 planı):** Palet D1'de tek seferde değişti. Her dalga yalnız kendi kümelerini kaydetti. `dev` her dalgada derlendi ve yeşil kaldı.
 
-- [ ] D1 Belirteçler ve bileşen kitaplığı: palet, asset catalog, yazı ve biçim belirteçleri; `InkGlow`, `InkCard`, `InkWeekStrip`, `InkDayHeader`, `InkSummaryLine`, `InkTimelineCard`; 17 bileşen dosyasının yeniden çizimi; `PaletteContrastTests`. 3 PR. Yenilenen png: 317 (renk her referansı etkiler; `ComponentSnapshotTests` 13 png).
-- [ ] D2 Bugün ve hızlı giriş: gün başlığı, hafta şeridi, künye cümlesi, bölüm kartları, parıltı, hızlı giriş, Günü kapat. 3 PR. Yenilenen png: 52, Mac 14.
-- [ ] D3 Görevler, Kanban, zaman çizelgesi: haftalık özet kartı, görev kartları, sol çubuklu kanban ve zaman kartları, saat ekseni, "şimdi" çizgisi. 3 PR. Yenilenen png: 37, Mac 15.
-- [ ] D4 Günlük, Gün, Özetler: ay takvimi kartı, Gün ekranının saatli programı, gün kartları, Özetler ve 3 adımlı Haftalık inceleme. 2 PR. Yenilenen png: 38, Mac 5.
-- [ ] D5 Kişiler, Varlık, Graph, Harita: liste kartları, varlık bölümleri, Graph tuvali, dönem sekmesi ve seçim kartı, Harita paneli, Rehberden aktar. 3 PR. Yenilenen png: 50, Mac 6.
-- [ ] D6 Hedefler: hedef kartları, günlük halkalar, zincir, ısı haritası, tek sayfa hedef ayrıntısı, hedef formu ve şablonlar. 2 PR. Yenilenen png: 31, Mac 2.
-- [ ] D7 Mac ve iPad kabuğu: kenar çubuğu `elevated` ve arama alanı, kural 12 kontrastları, liste seçimi `accentSoft`, ayrıntı sütununda parıltı, Mac Bugün zaman çizelgesi ve sağ panel, Duo ve iPad sheet'leri. 2 PR. Yenilenen png: 39; Mac referansı CI'da.
-- [ ] D8 Ayarlar, İlk açılış, kilit, paylaşım, widget: Ayarlar sheet'i ve 6 alt sayfa, kasa ve eşitleme ekranları, ilk açılış, kilit örtüsü, paylaşım formu, ana ekran widget'ı. 3 PR. Yenilenen png: 57, Mac 8.
-- [ ] D9 Son referans kaydı ve belge kapanışı: bütün kümelerin son kaydı, `architecture.md` güncellemesi. 1 PR. Yenilenen png: 317; Mac 50 png CI'da.
+**Kapanış (2026-11-10):** 9 dalga bitti. D2 ayrı birleşmedi; D4 ile tek PR (#376) olarak geldi. Belgeler koda göre eşitlendi: `screens.md`, `design.md`, `architecture.md`.
+
+- [x] D1 Belirteçler ve bileşen kitaplığı: palet, asset catalog, yazı ve biçim belirteçleri; `InkGlow`, `InkCard`, `InkWeekStrip`, `InkDayHeader`, `InkSummaryLine`, `InkTimelineCard`; 17 bileşen dosyasının yeniden çizimi; `PaletteContrastTests`. 3 PR. Yenilenen png: 317 (renk her referansı etkiler; `ComponentSnapshotTests` 13 png). Kanıt: #371.
+- [x] D2 Bugün ve hızlı giriş: gün başlığı, hafta şeridi, künye cümlesi, bölüm kartları, parıltı, hızlı giriş, Günü kapat. 3 PR. Yenilenen png: 52, Mac 14. Kanıt: #376.
+- [x] D3 Görevler, Kanban, zaman çizelgesi: haftalık özet kartı, görev kartları, sol çubuklu kanban ve zaman kartları, saat ekseni, "şimdi" çizgisi. 3 PR. Yenilenen png: 37, Mac 15. Kanıt: #373.
+- [x] D4 Günlük, Gün, Özetler: ay takvimi kartı, Gün ekranının saatli programı, gün kartları, Özetler ve 3 adımlı Haftalık inceleme. 2 PR. Yenilenen png: 38, Mac 5. Kanıt: #376.
+- [x] D5 Kişiler, Varlık, Graph, Harita: liste kartları, varlık bölümleri, Graph tuvali, dönem sekmesi ve seçim kartı, Harita paneli, Rehberden aktar. 3 PR. Yenilenen png: 50, Mac 6. Kanıt: #372.
+- [x] D6 Hedefler: hedef kartları, günlük halkalar, zincir, ısı haritası, tek sayfa hedef ayrıntısı, hedef formu ve şablonlar. 2 PR. Yenilenen png: 31, Mac 2. Kanıt: #374.
+- [x] D7 Mac ve iPad kabuğu: kenar çubuğu `elevated` ve arama alanı, kural 12 kontrastları, liste seçimi `accentSoft`, ayrıntı sütununda parıltı, Mac Bugün zaman çizelgesi ve sağ panel, Duo ve iPad sheet'leri. 2 PR. Yenilenen png: 39; Mac referansı CI'da. Kanıt: #377.
+- [x] D8 Ayarlar, İlk açılış, kilit, paylaşım, widget: Ayarlar sheet'i ve 6 alt sayfa, kasa ve eşitleme ekranları, ilk açılış, kilit örtüsü, paylaşım formu, ana ekran widget'ı. 3 PR. Yenilenen png: 57, Mac 8. Kanıt: #375.
+- [x] D9 Son referans kaydı ve belge kapanışı: bütün kümelerin son kaydı, `architecture.md` güncellemesi. 1 PR. Yenilenen png: 317; Mac 50 png CI'da. Kanıt: bu PR.
 
 **Çıkış ölçütü:** Bütün ekranlar Şafak bileşenlerini kullanır. Palet testi 4 varyantı ve parıltı noktalarını denetler. 317 referans yeniden kaydedilir ve CI'da geçer. Kullanıcı TestFlight'ta koyu, açık ve KA'yı doğrular.
 

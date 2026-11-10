@@ -286,7 +286,7 @@ private enum StripVault {
                     NavigationStack { DayView(store: store, date: context.today) }, context: context),
                 size: CGSize(width: 720, height: 1600))
             defer { mount.close() }
-            let history = String(localized: "Geçmiş kayıtlar")
+            let history = String(localized: "Son kayıtlar")
             func texts() -> [String] { HostedAccessibilityTree.texts(under: mount) }
             guard
                 await HostedAccessibilityTree.isAvailable(

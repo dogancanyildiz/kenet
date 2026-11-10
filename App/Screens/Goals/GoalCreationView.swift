@@ -19,20 +19,20 @@ struct GoalCreationView: View {
         List {
             InkPageTitleRow("Yeni hedef")
             Section {
-                SectionHeader("Hedef")
-                    .inkListRow()
                 TextField("Ad", text: $model.name)
                     .font(.ink.content)
                     .inkListRow()
             }
             if !templates.isEmpty {
                 Section {
-                    SectionHeader("Hazır hedefler")
-                        .inkListRow()
-                    ForEach(templates) { template in
-                        templateRow(template)
-                            .inkListRow()
+                    InkCard(padded: false) {
+                        ForEach(Array(templates.enumerated()), id: \.element.id) { index, template in
+                            if index > 0 { InkCardDivider() }
+                            templateRow(template)
+                                .padding(.horizontal, InkSpacing.cardPadding)
+                        }
                     }
+                    .inkListRow()
                 }
             }
             Section {
@@ -44,40 +44,67 @@ struct GoalCreationView: View {
                 .inkListRow()
             }
             Section {
-                SectionHeader("Ayarlar")
-                    .inkListRow()
                 if model.kind != .milestone {
-                    InkLabeledMenu(
-                        "Dönem", selection: $model.period,
-                        options: [GoalPeriod.day, .week, .year].map {
-                            InkMenuOption(verbatim: $0.title, value: $0)
-                        }
-                    )
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Dönem")
+                            .font(.ink.meta)
+                            .foregroundStyle(Color.ink.secondaryText)
+                            .accessibilityHidden(true)
+                        InkTabs(
+                            selection: $model.period,
+                            items: [GoalPeriod.day, .week, .year].map {
+                                InkTabItem(
+                                    verbatim: GoalListPresentation.periodChip($0, locale: locale),
+                                    value: $0)
+                            },
+                            identifier: "goal.create.period",
+                            accessibilityLabelPrefix: String(localized: "Dönem")
+                        )
+                    }
                     .inkListRow()
                 }
-                InkLabeledMenu(
-                    "Tür", selection: $model.kind,
-                    options: [GoalKind.boolean, .number, .milestone].map {
-                        InkMenuOption(verbatim: $0.title, value: $0)
-                    }
-                )
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Tür")
+                        .font(.ink.meta)
+                        .foregroundStyle(Color.ink.secondaryText)
+                        .accessibilityHidden(true)
+                    InkTabs(
+                        selection: $model.kind,
+                        items: [GoalKind.boolean, .number, .milestone].map {
+                            InkTabItem(
+                                verbatim: GoalListPresentation.kindTab($0, locale: locale),
+                                value: $0)
+                        },
+                        identifier: "goal.create.kind",
+                        accessibilityLabelPrefix: String(localized: "Tür")
+                    )
+                }
                 .inkListRow()
                 if model.kind != .milestone {
-                    LabeledContent("Hedef miktar") {
-                        TextField("Hedef miktar", text: $model.target)
-                            .font(.ink.value)
-                            .labelsHidden()
-                            .multilineTextAlignment(.trailing)
-                            #if os(iOS)
-                                .keyboardType(.decimalPad)
-                            #endif
+                    HStack(alignment: .firstTextBaseline, spacing: 12) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Hedef miktar")
+                                .font(.ink.meta)
+                                .foregroundStyle(Color.ink.secondaryText)
+                            TextField("Hedef miktar", text: $model.target)
+                                .font(.ink.value)
+                                #if os(iOS)
+                                    .keyboardType(.decimalPad)
+                                #endif
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        if model.kind == .number {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Birim")
+                                    .font(.ink.meta)
+                                    .foregroundStyle(Color.ink.secondaryText)
+                                TextField("Birim (isteğe bağlı)", text: $model.unit)
+                                    .font(.ink.content)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        }
                     }
                     .inkListRow()
-                }
-                if model.kind == .number {
-                    TextField("Birim (isteğe bağlı)", text: $model.unit)
-                        .font(.ink.content)
-                        .inkListRow()
                 }
             }
             if let error = model.errorText {
@@ -109,7 +136,7 @@ struct GoalCreationView: View {
                     .accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: InkSpacing.row) {
                     Text(verbatim: template.localizedName(locale: locale))
-                        .font(.body)
+                        .font(.ink.content)
                         .foregroundStyle(Color.ink.text)
                     Text(verbatim: template.summary(locale: locale))
                         .font(.ink.meta)

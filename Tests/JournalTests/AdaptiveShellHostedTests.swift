@@ -100,7 +100,7 @@
 
             func expectTabs() throws {
                 let tabs = try #require(tabBar, "no tab bar under the shell")
-                #expect(tabs.viewControllers?.count == 5, "five tabs")
+                #expect(tabs.tabs.count == 5, "five tabs")
                 #expect(split == nil || split?.isCollapsed == true, "no side-by-side columns")
             }
 

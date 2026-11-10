@@ -204,16 +204,58 @@ struct GoalStripView: View {
                 trailingSlot(
                     goal: goal, marked: marked, isBooleanMark: isBooleanMark, complete: complete)
             }
+            // The name and meta block opens the goal; the open button lies under the block so
+            // its hit area spans the whole block (at least 44 pt tall, accessibility audit: hit
+            // region) while the value button on top keeps its own taps (screens.md, Dokunma).
             VStack(alignment: .leading, spacing: 2) {
+                Text(verbatim: goal.name)
+                    .font(.ink.contentSmall)
+                    .foregroundStyle(complete ? Color.ink.secondaryText : Color.ink.text)
+                    .lineLimit(2)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .accessibilityHidden(true)
+                    .allowsHitTesting(false)
+
+                if let value {
+                    Button {
+                        if model.canEdit { editing = GoalValueModel(dayModel: model, goal: goal) }
+                    } label: {
+                        Text(verbatim: value)
+                            .font(.ink.meta)
+                            .foregroundStyle(Color.ink.secondaryText)
+                            .lineLimit(2)
+                            .frame(
+                                maxWidth: .infinity, minHeight: TapTarget.minimumLength,
+                                alignment: .topLeading
+                            )
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(!model.canEdit)
+                    .accessibilityLabel(Text(verbatim: value))
+                    .accessibilityHint(Text("Miktar gir"))
+                    .accessibilitySortPriority(1)
+                } else if let metaText {
+                    // No line limit: at large Dynamic Type sizes the period line wraps in its
+                    // narrow column instead of being cut (accessibility audit: text clipped).
+                    Text(verbatim: metaText)
+                        .font(.ink.meta)
+                        .foregroundStyle(Color.ink.secondaryText)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .accessibilityHidden(true)
+                        .allowsHitTesting(false)
+                }
+                if let badge = GraceDayPresentation.badge(status: status, locale: locale) {
+                    badge
+                }
+            }
+            .frame(minHeight: TapTarget.minimumLength, alignment: .topLeading)
+            .background {
                 Button {
                     onOpen?(goal)
                 } label: {
-                    Text(verbatim: goal.name)
-                        .font(.ink.contentSmall)
-                        .foregroundStyle(complete ? Color.ink.secondaryText : Color.ink.text)
-                        .lineLimit(2)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .contentShape(Rectangle())
+                    Color.clear.contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
                 .disabled(onOpen == nil)
@@ -224,33 +266,6 @@ struct GoalStripView: View {
                 .accessibilityHint(Text("Ayrıntıları göster"))
                 // VoiceOver meets the goal by name first, then its value, ring and plus.
                 .accessibilitySortPriority(2)
-
-                if let value {
-                    Button {
-                        if model.canEdit { editing = GoalValueModel(dayModel: model, goal: goal) }
-                    } label: {
-                        Text(verbatim: value)
-                            .font(.ink.meta)
-                            .foregroundStyle(Color.ink.secondaryText)
-                            .lineLimit(2)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-                    .disabled(!model.canEdit)
-                    .accessibilityLabel(Text(verbatim: value))
-                    .accessibilityHint(Text("Miktar gir"))
-                    .accessibilitySortPriority(1)
-                } else if let metaText {
-                    Text(verbatim: metaText)
-                        .font(.ink.meta)
-                        .foregroundStyle(Color.ink.secondaryText)
-                        .lineLimit(2)
-                        .accessibilityHidden(true)
-                }
-                if let badge = GraceDayPresentation.badge(status: status, locale: locale) {
-                    badge
-                }
             }
         }
         // One container per goal: columns sit side by side, so without it VoiceOver would read

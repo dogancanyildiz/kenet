@@ -51,7 +51,7 @@ struct InkWeekStrip: View {
         }
     }
 
-    private func dayCell(
+    @ViewBuilder private func dayCell(
         _ day: Date, weekday: DateFormatter, spoken: DateFormatter
     ) -> some View {
         let selected = calendar.isDate(day, inSameDayAs: selection)
@@ -62,58 +62,73 @@ struct InkWeekStrip: View {
             latestSelectable.map {
                 TodayWeekStripMath.isSelectable(day, today: $0, calendar: calendar)
             } ?? true
-        return Button {
-            selection = calendar.startOfDay(for: day)
-        } label: {
-            VStack(spacing: 4) {
-                Text(verbatim: weekday.string(from: day))
-                    .font(.ink.weekday)
-                    .foregroundStyle(Color.ink.secondaryText)
-                Text(verbatim: Self.dayNumber(day, calendar: calendar))
-                    .font(.ink.value)
-                    .foregroundStyle(
-                        enabled
-                            ? (selected ? Color.ink.text : Color.ink.secondaryText)
-                            : Color.ink.tertiaryText
-                    )
-                    .monospacedDigit()
-                HStack(spacing: 3) {
-                    if isToday {
-                        Circle()
-                            .fill(Color.ink.accent)
-                            .frame(width: 5, height: 5)
-                    }
-                    if written {
-                        Circle()
-                            .fill(Color.ink.secondaryText)
-                            .frame(width: 4, height: 4)
-                    }
-                    if !isToday && !written {
-                        Color.clear.frame(width: 5, height: 5)
-                    }
-                }
-                .frame(height: 5)
+        let label = Text(
+            verbatim: Self.accessibilityLabel(
+                day: day, isToday: isToday, written: written, eventCount: events,
+                formatter: spoken, locale: locale))
+        let face = dayFace(
+            day, weekday: weekday, selected: selected, isToday: isToday, written: written,
+            enabled: enabled)
+        // A day not yet selectable is plain text in tertiary color, not a disabled button: the
+        // system fades a disabled plain button below 4.5:1 (accessibility audit: contrast).
+        if enabled {
+            Button {
+                selection = calendar.startOfDay(for: day)
+            } label: {
+                face
             }
-            .frame(minWidth: dayWidth, minHeight: dayHeight)
-            .background {
-                if selected {
-                    RoundedRectangle(cornerRadius: InkCorner.md, style: .continuous)
-                        .fill(Color.ink.well)
-                }
-            }
-            .frame(maxWidth: .infinity)
-            .contentShape(Rectangle())
-            .opacity(enabled ? 1 : 0.45)
+            .buttonStyle(.plain)
+            .accessibilityLabel(label)
+            .accessibilityAddTraits(selected ? [.isSelected] : [])
+        } else {
+            face
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(label)
         }
-        .buttonStyle(.plain)
-        .disabled(!enabled)
-        .accessibilityLabel(
-            Text(
-                verbatim: Self.accessibilityLabel(
-                    day: day, isToday: isToday, written: written, eventCount: events,
-                    formatter: spoken, locale: locale))
-        )
-        .accessibilityAddTraits(selected ? [.isSelected] : [])
+    }
+
+    private func dayFace(
+        _ day: Date, weekday: DateFormatter, selected: Bool, isToday: Bool, written: Bool,
+        enabled: Bool
+    ) -> some View {
+        VStack(spacing: 4) {
+            Text(verbatim: weekday.string(from: day))
+                .font(.ink.weekday)
+                .foregroundStyle(enabled ? Color.ink.secondaryText : Color.ink.tertiaryText)
+            Text(verbatim: Self.dayNumber(day, calendar: calendar))
+                .font(.ink.value)
+                .foregroundStyle(
+                    enabled
+                        ? (selected ? Color.ink.text : Color.ink.secondaryText)
+                        : Color.ink.tertiaryText
+                )
+                .monospacedDigit()
+            HStack(spacing: 3) {
+                if isToday {
+                    Circle()
+                        .fill(Color.ink.accent)
+                        .frame(width: 5, height: 5)
+                }
+                if written {
+                    Circle()
+                        .fill(Color.ink.secondaryText)
+                        .frame(width: 4, height: 4)
+                }
+                if !isToday && !written {
+                    Color.clear.frame(width: 5, height: 5)
+                }
+            }
+            .frame(height: 5)
+        }
+        .frame(minWidth: dayWidth, minHeight: dayHeight)
+        .background {
+            if selected {
+                RoundedRectangle(cornerRadius: InkCorner.md, style: .continuous)
+                    .fill(Color.ink.well)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .contentShape(Rectangle())
     }
 
     /// Seven dates for the week containing `date`, ordered from the calendar's first weekday.

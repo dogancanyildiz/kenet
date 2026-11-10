@@ -59,6 +59,15 @@ extension AccessibilityAuditExemption {
         .init(
             type: .dynamicType, element: .catalogKey("Yaklaşan"),
             reason: "section menu value grows (tasksScreen.tasksAX3.png)"),
+        // Close the day's task rows use the same InkLabeledMenu (label and value are the system
+        // Menu label the audit's live size change does not reach). Since the rows moved into a card
+        // (D4) every local run reports the label or the value, one or the other.
+        .init(
+            type: .dynamicType, element: .catalogKey("Karar"),
+            reason: "close-day choice menu label grows like the Tasks menu (tasksScreen.tasksAX3.png)"),
+        .init(
+            type: .dynamicType, element: .catalogKey("Kalsın"),
+            reason: "close-day choice menu value grows like the Tasks menu (tasksScreen.tasksAX3.png)"),
         // Every SectionHeader title and counter carries the component's identifier (SectionHeader.swift):
         // section titles grow with Dynamic Type at AX3 (tasksScreen.tasksAX3.png "Devreden",
         // shell.todayLandscapeAX3.png "Hedefler", "Görevler"). On the CI runner the audit reports one

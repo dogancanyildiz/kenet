@@ -16,6 +16,7 @@ struct CloseDayView: View {
     @Environment(GeofenceService.self) private var geofences: GeofenceService?
     @Environment(\.locale) private var locale
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     private let summary: CloseDaySummary
 
     /// - Parameters:
@@ -55,6 +56,9 @@ struct CloseDayView: View {
                 }
             }
         }
+        // Before the bottom bar: an identifier set outside `safeAreaInset` also lands on the bar's
+        // buttons and hides their own ("button.closeDay.apply", CloseDayUITests).
+        .accessibilityIdentifier("screen.closeDay")
         .background(Color.ink.elevated.ignoresSafeArea())
         .presentationBackground(Color.ink.elevated)
         .safeAreaInset(edge: .bottom, spacing: 0) {
@@ -80,36 +84,43 @@ struct CloseDayView: View {
         .onChange(of: model.journalNotice ?? model.journalError) { _, text in
             if let text { AccessibilityNotification.Announcement(text).post() }
         }
-        .accessibilityIdentifier("screen.closeDay")
     }
 
+    /// The day's three numbers in one card: three cards side by side left a third of the width
+    /// minus two paddings per label, and "Biten görev" broke inside its word (accessibility audit:
+    /// text clipped). Accessibility sizes stack the numbers.
     private var summaryCards: some View {
-        HStack(spacing: 10) {
-            summaryCard(
-                value: summary.events,
-                label: String(localized: "Olay", bundle: bundle, locale: locale))
-            summaryCard(
-                value: summary.completedTasks,
-                label: String(localized: "Biten görev", bundle: bundle, locale: locale))
-            summaryCard(
-                value: summary.remainingTasks,
-                label: String(localized: "Kalan görev", bundle: bundle, locale: locale))
+        let layout =
+            dynamicTypeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 12))
+            : AnyLayout(HStackLayout(alignment: .top, spacing: 12))
+        return InkCard(padded: true) {
+            layout {
+                summaryStat(
+                    value: summary.events,
+                    label: String(localized: "Olay", bundle: bundle, locale: locale))
+                summaryStat(
+                    value: summary.completedTasks,
+                    label: String(localized: "Biten görev", bundle: bundle, locale: locale))
+                summaryStat(
+                    value: summary.remainingTasks,
+                    label: String(localized: "Kalan görev", bundle: bundle, locale: locale))
+            }
         }
     }
 
-    private func summaryCard(value: Int, label: String) -> some View {
-        InkCard(padded: true) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(verbatim: value.formatted(.number.locale(locale)))
-                    .font(.ink.largeNumber)
-                    .foregroundStyle(Color.ink.text)
-                    .monospacedDigit()
-                Text(verbatim: label)
-                    .font(.ink.meta)
-                    .foregroundStyle(Color.ink.secondaryText)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
+    private func summaryStat(value: Int, label: String) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(verbatim: value.formatted(.number.locale(locale)))
+                .font(.ink.largeNumber)
+                .foregroundStyle(Color.ink.text)
+                .monospacedDigit()
+            Text(verbatim: label)
+                .font(.ink.meta)
+                .foregroundStyle(Color.ink.secondaryText)
+                .fixedSize(horizontal: false, vertical: true)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private var bottomApplyBar: some View {

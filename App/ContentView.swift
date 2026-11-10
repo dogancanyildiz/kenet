@@ -59,7 +59,10 @@ struct ContentView: View {
             }
         }
         .environment(\.openSearch, search.open)
-        .searchSheet(isPresented: $search.isPresented, store: store)
+        .environment(\.openSearchQuery, search.openQuery)
+        .searchSheet(
+            isPresented: $search.isPresented, store: store, initialQuery: search.initialQuery
+        )
         #if os(macOS)
             .focusedSceneValue(\.openSearch, search.open)
         #endif
@@ -110,13 +113,24 @@ struct ContentView: View {
 
 /// Whether the global search sheet is up, and the one action that raises it (``ShellAction``):
 /// the shell's magnifiers and, on the Mac, the menu bar's "Ara" and "Hızlı geçiş".
+/// The Mac sidebar search field also opens the sheet with the typed query.
 @MainActor @Observable
 final class SearchPresentation {
     var isPresented = false
+    /// Query handed to ``SearchView`` when the sheet opens (sidebar submit or empty for ⌘K).
+    private(set) var initialQuery = ""
     @ObservationIgnored private(set) var open = ShellAction.nothing
+    /// Stable callback for sidebar searchable submit (never recreated in a view body).
+    @ObservationIgnored private(set) var openQuery: @MainActor @Sendable (String) -> Void = { _ in }
 
     init() {
-        open = ShellAction { [weak self] in self?.isPresented = true }
+        open = ShellAction { [weak self] in self?.openSheet() }
+        openQuery = { @MainActor [weak self] query in self?.openSheet(query: query) }
+    }
+
+    func openSheet(query: String = "") {
+        initialQuery = query
+        isPresented = true
     }
 }
 

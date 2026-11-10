@@ -197,16 +197,19 @@ struct MacSidebarList: View {
         // width, so the row background stops short of the trailing edge. The indicator
         // is not drawn; the list still scrolls with the wheel, the trackpad and the arrow keys.
         .scrollIndicators(.never, axes: .vertical)
+        .scrollContentBackground(.hidden)
+        .background(Color.ink.elevated)
         #if os(macOS)
             // In a short window the rows scroll under the opaque toolbar: a hairline marks the edge.
             .inkScrollEdgeRule()
             .focused($isFocused)
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                MacSidebarQuickEntryCard()
+            }
         #else
             // iPadOS floats the sidebar as a glass panel over the system's gray; the panel is
-            // paper like the columns beside it. The keyboard focus halo is not drawn over the
+            // elevated like the Mac sidebar. The keyboard focus halo is not drawn over the
             // fill (the fill already marks the row; focus and VoiceOver stay the system's).
-            .scrollContentBackground(.hidden)
-            .background(Color.ink.paper)
             .tint(Color.clear)
         #endif
         .macSidebarColumn()

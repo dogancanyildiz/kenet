@@ -23,6 +23,13 @@ struct AccessibilityAuditExemption {
     let element: Element
     let reason: String
     var open = false
+    /// The audited screens (the `screen` an audit names) this entry holds for; `nil` holds for all.
+    var screens: Set<String>? = nil
+
+    func applies(to screen: String?) -> Bool {
+        guard let screens else { return true }
+        return screen.map(screens.contains) ?? false
+    }
 
     /// The reason as logged: an open finding says so.
     var logged: String { open ? "OPEN FINDING: " + reason : reason }
@@ -56,6 +63,13 @@ extension AccessibilityAuditExemption {
         .init(
             type: .dynamicType, element: .catalogKey("Bölüm"),
             reason: "section menu label grows (tasksScreen.tasksAX3.png)"),
+        // The "Bu hafta" card's count is `.ink.value` text inside an InkCard; it grows in the AX3
+        // reference, but on iPad the audit's live size change does not reach the card text and
+        // reports it on some runs (PR #377 run 42808922759), not on others.
+        .init(
+            type: .dynamicType, element: .identifier("tasks.weekly.count"),
+            reason: "weekly card count grows (tasksScreen.tasksAX3.png); iPad audit misses card text",
+            screens: ["tasks"]),
         .init(
             type: .dynamicType, element: .catalogKey("Yaklaşan"),
             reason: "section menu value grows (tasksScreen.tasksAX3.png)"),
@@ -104,6 +118,11 @@ extension AccessibilityAuditExemption {
         .init(type: .dynamicType, element: .catalogKey("İlk geçiş"), reason: Reason.entityPage),
         .init(type: .dynamicType, element: .containsCatalogKey("Son görülme: %@"), reason: Reason.entityPage),
         .init(type: .dynamicType, element: .labelPattern(Pattern.shortDate), reason: Reason.entityPage),
+        // Settings section rows (`PhoneSettingsView` InkCard): body text grows at AX3
+        // (shellSheet.settingsSheetAX3.png); the audit's live size change does not reach list-cell text.
+        .init(
+            type: .dynamicType, element: .identifierPrefix("settings.section."),
+            reason: Reason.settingsRow),
         // Entity page read-only rows (EntityView.labeledRow, "Gelen bağlantılar" and its count) and
         // the "Graph'ta göster" link use semantic styles (.footnote, .body) and grow in the AX3
         // reference; since the rows sit in an InkCard the audit's live size change reports the label
@@ -133,6 +152,17 @@ extension AccessibilityAuditExemption {
         .init(
             type: .textClipped, element: .identifier("button.unlinkedMention.showAll"),
             reason: "position-dependent: the grown rows above push it under the tab bar (unlinkedMentions.light.png)"),
+        // The entity page's section titles (SectionHeader, "Timeline"/"Zaman çizelgesi" and the rest)
+        // have no line limit and are read whole. The test scrolls with swipes until the first "Link"
+        // button shows, so where the page stops varies; a title that stops on the viewport's lower edge
+        // (y 776 of 852 pt, under the tab bar) is reported as clipped by the audit's viewport cut
+        // (PR #377 run 42808922759; the page's layout is unchanged from dev). Position, not size: only
+        // this screen (d4-ci-duzeltme.md).
+        .init(
+            type: .textClipped, element: .identifier("sectionHeader"),
+            reason: "position-dependent: the swipe-scrolled page can stop with a section title on the"
+                + " viewport's lower edge (unlinkedMentions.light.png)",
+            screens: ["unlinkedMentions"]),
         // MARK: hitRegion
         .init(
             type: .hitRegion, element: .systemLabel(["Hide Sidebar", "Kenar Çubuğunu Gizle", "Kenar çubuğunu gizle"]),
@@ -155,6 +185,9 @@ private enum Reason {
     static let barItem =
         "sheet toolbar word in the system bar, which keeps bar-item text at a fixed size"
         + " (component.sheetReadingAX3.png)"
+    static let settingsRow =
+        "Settings section row grows at AX3 (shellSheet.settingsSheetAX3.png); list-cell text"
+        + " does not see the audit's live size change"
 }
 
 private enum Pattern {

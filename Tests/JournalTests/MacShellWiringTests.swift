@@ -20,7 +20,7 @@
             try await MacSplitMeasure.expectSidebar(widths[0], isIdeal: 200, window: 1280)
             #expect(abs(widths[1] - 320) <= 2, "list \(widths[1]) pt")
             #expect(widths[2] >= InkSpacing.macPageWidth, "detail \(widths[2]) pt")
-            #expect(shell.searchItems == 1, "toolbar: \(shell.toolbarLabels)")
+            #expect(shell.searchItems == 0, "search moved to the sidebar; toolbar: \(shell.toolbarLabels)")
         }
 
         @Test func windowDoesNotShrinkBelowItsMinimum() async throws {
@@ -31,8 +31,8 @@
             #expect(fitted.height == 560, "height \(fitted.height)")
         }
 
-        /// Down the sidebar with the arrow keys: every layout keeps one toolbar search, a board
-        /// row really opens its board, and focus stays in the sidebar across the layout swaps
+        /// Down the sidebar with the arrow keys: every layout keeps search out of the toolbar, a
+        /// board row really opens its board, and focus stays in the sidebar across the layout swaps
         /// (the test never puts it back itself).
         @Test func sidebarRowsOpenTheirLayoutsWithOneSearchEach() async throws {
             let shell = try await Shell()
@@ -59,9 +59,66 @@
             #expect(seen[String(localized: "Zaman çizelgesi")]?.panes == 2)
             #expect(seen[String(localized: "Özetler")]?.panes == 2)
             for (title, state) in seen {
-                #expect(state.search == 1, "\(title): \(state.search) toolbar search items")
+                #expect(state.search == 0, "\(title): \(state.search) toolbar search items")
             }
             #expect(shell.window.titleVisibility == .hidden)
+        }
+
+        /// One search field, in the sidebar column; its submit hands the typed query to the
+        /// search sheet and clears the field (`docs/design.md` kalıp 3). The shell's
+        /// `.onSubmit(of: .search)` is `SidebarSearchState.submit(openSearchQuery)`; an offscreen
+        /// window is never key, so AppKit does not deliver Return to the field here and the test
+        /// drives the same submit with the sheet's real `openQuery`.
+        @Test func sidebarSearchFieldSubmitsQueryIntoTheSearchSheet() async throws {
+            let search = SearchPresentation()
+            let shell = try await Shell(search: search)
+            defer { shell.close() }
+            let fields = shell.mount.views(NSSearchField.self)
+            #expect(fields.count == 1, "search fields in the window: \(fields.count)")
+            let field = try #require(fields.first, "sidebar searchable field missing")
+            let sidebar = try #require(shell.sidebarTable)
+            let fieldFrame = field.convert(field.bounds, to: nil)
+            let sidebarFrame = sidebar.convert(sidebar.bounds, to: nil)
+            #expect(
+                fieldFrame.minX >= sidebarFrame.minX - 1 && fieldFrame.maxX <= sidebarFrame.maxX + 1,
+                "the field is outside the sidebar column: \(fieldFrame) vs \(sidebarFrame)")
+            // The app resolves the prompt in its own bundle; the test bundle may run in another
+            // language (CI: en), so the placeholder is checked against the catalog's own values.
+            let prompts = Set(
+                ["tr", "en"].compactMap { Bundle.main.path(forResource: $0, ofType: "lproj") }
+                    .compactMap(Bundle.init(path:))
+                    .map { $0.localizedString(forKey: "Ara", value: nil, table: nil) })
+            #expect(
+                prompts.contains(field.placeholderString ?? ""),
+                "placeholder: \(field.placeholderString ?? "nil") not in \(prompts)")
+
+            let state = SidebarSearchState()
+            state.focus()
+            state.query = "  Baran "
+            state.submit(search.openQuery)
+            await shell.mount.settle(rounds: 4)
+            #expect(search.isPresented)
+            #expect(search.initialQuery == "Baran")
+            #expect(state.query.isEmpty)
+            #expect(state.isFocused == false)
+        }
+
+        /// The submit rule behind the field: trimmed query once, blank does nothing, field clears.
+        @Test func sidebarSearchSubmitOpensTrimmedQueryOnce() {
+            let state = SidebarSearchState()
+            var opened: [String] = []
+            state.query = "   "
+            state.isFocused = true
+            state.submit { opened.append($0) }
+            #expect(opened.isEmpty)
+            #expect(state.isFocused)
+            state.query = "  Baran \n"
+            state.submit { opened.append($0) }
+            #expect(opened == ["Baran"])
+            #expect(state.query.isEmpty)
+            #expect(state.isFocused == false)
+            state.focus()
+            #expect(state.isFocused)
         }
 
         /// A project removed from the vault while its page is open.
@@ -115,20 +172,24 @@
             let view: AnyView
             let mount: HostedLayout.Mount
 
-            init(appearance: NSAppearance.Name? = nil) async throws {
+            init(appearance: NSAppearance.Name? = nil, search: SearchPresentation? = nil) async throws {
                 context = try TaskTestContext(sample: true)
                 await context.start()
                 let defaults = context.defaults.defaults
                 let scheme: ColorScheme = appearance == .darkAqua ? .dark : .light
-                let navigation = MacNavigation(store: context.store)
+                let base = MacNavigation(store: context.store)
                     .environment(NotificationService(center: FakeNotificationCenter(), defaults: defaults))
                     .environment(CalendarService(source: IdleShellCalendarSource()))
                     .environment(LocationService(source: FakeLocationSource(), defaults: defaults))
                     .environment(IntentNavigation())
-                    .environment(\.openSearch, .nothing)
+                    .environment(\.openSearch, search?.open ?? .nothing)
                     .environment(\.locale, Locale(identifier: "tr_TR"))
-                view = AnyView(
-                    appearance == nil ? AnyView(navigation) : AnyView(navigation.environment(\.colorScheme, scheme)))
+                let withSearch =
+                    search.map { AnyView(base.environment(\.openSearchQuery, $0.openQuery)) }
+                    ?? AnyView(base)
+                view =
+                    appearance == nil
+                    ? withSearch : AnyView(withSearch.environment(\.colorScheme, scheme))
                 mount = HostedLayout.Mount(view, size: CGSize(width: 1280, height: 800), bridgesToolbar: true)
                 releaseJournalMark = await HostedJournalWindow.claim(mount.window)
                 if let appearance {

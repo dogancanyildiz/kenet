@@ -11,6 +11,10 @@ struct InkTimelineCard: View {
     var kindLabel: String? = nil
     var isSelected: Bool = false
     var isCompleted: Bool = false
+    /// Room kept free at the content's leading edge for a control the caller overlays there
+    /// (the Mac Today grid's task box, placed with ``accessoryInset(padding:)``). With it the
+    /// card leaves the done mark to that control.
+    var leadingAccessoryWidth: CGFloat = 0
 
     @Environment(\.displayScale) private var displayScale
     @Environment(\.locale) private var locale
@@ -23,7 +27,7 @@ struct InkTimelineCard: View {
                     .font(.ink.content)
                     .foregroundStyle(isCompleted ? Color.ink.secondaryText : Color.ink.text)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                if isCompleted {
+                if isCompleted && leadingAccessoryWidth == 0 {
                     Image(systemName: "checkmark.circle.fill")
                         .font(.body)
                         .foregroundStyle(Color.ink.secondaryText)
@@ -39,6 +43,7 @@ struct InkTimelineCard: View {
                 TagChip(title: kindLabel, filled: true)
             }
         }
+        .padding(.leading, leadingAccessoryWidth)
         .padding(padding)
         .padding(.leading, InkSize.timelineBar + 12)
         .background {
@@ -61,6 +66,12 @@ struct InkTimelineCard: View {
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(isSelected ? [.isSelected] : [])
         .accessibilityValue(Text(verbatim: completedAccessibilityValue))
+    }
+
+    /// Where an overlaid leading control's top-leading corner sits, for the card's scaled
+    /// `padding` (``InkSpacing/cardPadding`` scaled relative to `.body`).
+    static func accessoryInset(padding: CGFloat) -> EdgeInsets {
+        EdgeInsets(top: padding, leading: InkSize.timelineBar + 12 + padding, bottom: 0, trailing: 0)
     }
 
     private var completedAccessibilityValue: String {

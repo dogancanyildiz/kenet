@@ -59,6 +59,10 @@ struct SectionHeader: View {
                     // Drawing: a small counter beside the section title ("6 kaldı", "2/3").
                     .font(.caption.monospacedDigit())
                     .foregroundStyle(.ink.secondaryText)
+                    // Whole at every text size, never cut (audit "Text clipped" on "1 day"); the
+                    // title beside it wraps instead.
+                    .fixedSize()
+                    .layoutPriority(1)
                     .accessibilityHidden(true)
                     .accessibilityIdentifier(Self.counterIdentifier)
             }

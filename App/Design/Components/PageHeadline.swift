@@ -45,11 +45,12 @@ struct PageHeadline: View {
                     .accessibilityAddTraits(.isHeader)
             }
             if let shownByline {
-                // A subpage's byline is one footnote line (drawing: varlık sayfası).
+                // A subpage's byline is a footnote line (drawing: varlık sayfası). No line limit:
+                // a long date wraps at larger text sizes instead of being cut (audit "Text clipped").
                 shownByline
                     .font(isSubpage ? .ink.meta : .ink.pageByline)
                     .foregroundStyle(.ink.secondaryText)
-                    .lineLimit(isSubpage ? 1 : nil)
+                    .fixedSize(horizontal: false, vertical: isSubpage)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)

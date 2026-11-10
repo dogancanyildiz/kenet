@@ -273,11 +273,15 @@ struct GoalStripView: View {
                     badge
                 }
             }
-            .background {
+            // Top-aligned: a short block (one-line name and value) is under 44 pt, so the open
+            // button reaches past its bottom into the card's padding instead of growing the card.
+            .background(alignment: .top) {
                 Button {
                     onOpen?(goal)
                 } label: {
-                    Color.clear.contentShape(Rectangle())
+                    Color.clear
+                        .frame(minHeight: TapTarget.minimumLength)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
                 .disabled(onOpen == nil)

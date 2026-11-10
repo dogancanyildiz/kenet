@@ -178,6 +178,8 @@ struct Entity90DayStrip: View {
             Text(verbatim: [data.recentIntervalText, footnote].compactMap { $0 }.joined(separator: ". "))
                 .font(.ink.meta)
                 .foregroundStyle(Color.ink.secondaryText)
+                // Two sentences on one line: at larger text sizes they wrap, never cut (audit).
+                .fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .accessibilityHidden(true)
         }

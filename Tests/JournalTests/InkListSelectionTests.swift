@@ -512,7 +512,11 @@ struct InkListSelectionTests {
             send(at: windowPoint(for: point))
         }
 
-        /// A mouse down and up at `windowPoint` (window coordinates).
+        /// A mouse down and up at `windowPoint` (window coordinates), delivered as a real click
+        /// is: the up waits in the event queue while the down is handled. A down that reaches the
+        /// list's table view (macOS 26: a SwiftUI row hands it on) starts a tracking loop that
+        /// reads the up from the queue; an up sent only after the down returned never reached
+        /// that loop, and the test hung until its time limit.
         private func send(at windowPoint: NSPoint) {
             func make(_ type: NSEvent.EventType) -> NSEvent {
                 NSEvent.mouseEvent(
@@ -521,9 +525,13 @@ struct InkListSelectionTests {
                     windowNumber: window.windowNumber, context: nil,
                     eventNumber: 0, clickCount: 1, pressure: 1)!
             }
+            NSApp.postEvent(make(.leftMouseUp), atStart: false)
             NSApp.sendEvent(make(.leftMouseDown))
             RunLoop.current.run(until: Date().addingTimeInterval(0.02))
-            NSApp.sendEvent(make(.leftMouseUp))
+            // No tracking loop took the up: deliver it now, as the event loop would.
+            if let up = NSApp.nextEvent(matching: .leftMouseUp, until: Date(), inMode: .default, dequeue: true) {
+                NSApp.sendEvent(up)
+            }
             RunLoop.current.run(until: Date().addingTimeInterval(0.05))
         }
 

@@ -198,8 +198,10 @@ struct InkBackButton: View {
                     Image(systemName: "chevron.left")
                         .fontWeight(.semibold)
                         .accessibilityHidden(true)
+                    // No line limit: a long name or a large text size wraps the title, never
+                    // cuts it (audit "Text clipped"); one line otherwise.
                     title
-                        .lineLimit(1)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
                 .font(.body)
                 .foregroundStyle(.ink.accent)

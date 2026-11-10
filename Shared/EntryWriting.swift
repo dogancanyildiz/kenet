@@ -7,40 +7,134 @@ import VaultStore
 // the extension both compile this file: the extension adds a shared text, the app reads what the
 // extension left in the App Group. Foundation and Core only; no index is opened here.
 
-/// One shared text on its way into the vault: an event line for `day` at `time`, as the extension
-/// saw the clock when the user tapped the confirm word. `id` names the record in the App Group lists.
+/// Whether the shared text becomes an event line (`- HH:MM …`) or an open task (`- [ ] …`).
+enum ShareEntryKind: String, Codable, CaseIterable, Sendable {
+    case event
+    case task
+}
+
+/// One shared text on its way into the vault: an event line for `day` at `time`, or an open task
+/// line for `day`, as the extension saw the clock when the user tapped the confirm button. `id`
+/// names the record in the App Group lists.
 struct ShareEntry: Codable, Equatable, Sendable {
     let id: String
     let text: String
     /// `YYYY-MM-DD`, the user's local day.
     let day: String
-    /// `HH:MM`, 24 hours.
+    /// `HH:MM`, 24 hours; nil for tasks or untimed events.
     let time: String?
     let sharedAt: Date
     /// The line text the app is saving for this record, set in the queue just before the write and
     /// cleared when the write fails. A record still carrying it was saved by a run that stopped
     /// before the record left the queue: the next run finds the line and does not write it again.
     var writing: String?
+    /// Block identifiers (`^id`) of the lines on `day` that already read as this record (same text,
+    /// and for an event the same time or none) when the queue marked it: a run that stopped after
+    /// the write finds a line outside this list, so an older identical line is never taken for the
+    /// new one. Every line the app adds carries an identifier.
+    var existingLineIDs: [String]?
+    let kind: ShareEntryKind
 
-    init(id: String, text: String, day: String, time: String?, sharedAt: Date, writing: String? = nil) {
+    private enum CodingKeys: String, CodingKey {
+        case id, text, day, time, sharedAt, writing, existingLineIDs, kind
+    }
+
+    init(
+        id: String, text: String, day: String, time: String?, sharedAt: Date,
+        writing: String? = nil, existingLineIDs: [String]? = nil, kind: ShareEntryKind = .event
+    ) {
         self.id = id
         self.text = text
         self.day = day
         self.time = time
         self.sharedAt = sharedAt
         self.writing = writing
+        self.existingLineIDs = existingLineIDs
+        self.kind = kind
     }
 
-    /// The event the user confirms at `instant`: today, at the current minute.
-    init(text: String, at instant: Date, id: UUID = UUID()) {
-        let clock = LocalDay.clock(at: instant)
+    /// The entry the user confirms at `instant`: today, at the current minute (for events) or open task.
+    init(text: String, at instant: Date, id: UUID = UUID(), kind: ShareEntryKind = .event) {
+        self.init(text: text, kind: kind, time: instant, sharedAt: instant, id: id)
+    }
+
+    /// The entry the user confirms with a chosen `kind` and optional `time` on `sharedAt`'s local day.
+    init(
+        text: String, kind: ShareEntryKind, time: Date?, sharedAt: Date = Date(),
+        id: UUID = UUID()
+    ) {
+        let formattedTime: String?
+        switch kind {
+        case .event:
+            if let time {
+                let clock = LocalDay.clock(at: time)
+                formattedTime =
+                    (clock.hour < 10 ? "0" : "") + "\(clock.hour):"
+                    + (clock.minute < 10 ? "0" : "") + "\(clock.minute)"
+            } else {
+                formattedTime = nil
+            }
+        case .task:
+            formattedTime = nil
+        }
         self.init(
-            id: id.uuidString, text: text, day: "\(LocalDay.today(at: instant))",
-            time: (clock.hour < 10 ? "0" : "") + "\(clock.hour):" + (clock.minute < 10 ? "0" : "") + "\(clock.minute)",
-            sharedAt: instant)
+            id: id.uuidString, text: text, day: "\(LocalDay.today(at: sharedAt))",
+            time: formattedTime, sharedAt: sharedAt, kind: kind)
+    }
+
+    init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        text = try container.decode(String.self, forKey: .text)
+        day = try container.decode(String.self, forKey: .day)
+        time = try container.decodeIfPresent(String.self, forKey: .time)
+        sharedAt = try container.decode(Date.self, forKey: .sharedAt)
+        writing = try container.decodeIfPresent(String.self, forKey: .writing)
+        existingLineIDs = try container.decodeIfPresent([String].self, forKey: .existingLineIDs)
+        kind = try container.decodeIfPresent(ShareEntryKind.self, forKey: .kind) ?? .event
+    }
+
+    func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(text, forKey: .text)
+        try container.encode(day, forKey: .day)
+        try container.encodeIfPresent(time, forKey: .time)
+        try container.encode(sharedAt, forKey: .sharedAt)
+        try container.encodeIfPresent(writing, forKey: .writing)
+        if let existingLineIDs, !existingLineIDs.isEmpty {
+            try container.encode(existingLineIDs, forKey: .existingLineIDs)
+        }
+        if kind != .event {
+            try container.encode(kind, forKey: .kind)
+        }
     }
 
     var calendarDay: CalendarDate? { CalendarDate(day) }
+
+    /// Identifiers of the lines in `document` that read as this record written as `text`: an
+    /// open-or-any task with that text, or an event with that text at the record's time (both
+    /// untimed when the record has none). Lines without an identifier are not the app's and never count.
+    func matchingLineIDs(in document: RawDocument, text: String) -> [String] {
+        let lines = document.bodyLines
+        switch kind {
+        case .event:
+            let clock = self.clock
+            return lines.events.filter { event in
+                event.block.text == text && event.time?.hour == clock?.hour
+                    && event.time?.minute == clock?.minute
+            }.compactMap(\.block.id)
+        case .task:
+            return lines.tasks.filter { $0.block.text == text }.compactMap(\.block.id)
+        }
+    }
+
+    /// Whether `document` holds the line a marked run wrote: a matching line that was not there
+    /// when the record was marked (`existingLineIDs`).
+    func isWritten(_ text: String, in document: RawDocument) -> Bool {
+        let earlier = Set(existingLineIDs ?? [])
+        return matchingLineIDs(in: document, text: text).contains { !earlier.contains($0) }
+    }
 
     var clock: LineClock? {
         guard let time else { return nil }
@@ -51,10 +145,16 @@ struct ShareEntry: Codable, Equatable, Sendable {
         return try? LineClock(hour: hour, minute: minute)
     }
 
-    /// A record the app can write: a known day, a valid time, a text Core accepts as one event line.
+    /// A record the app can write: a known day, a valid time, a text Core accepts as one event or task line.
     var isWritable: Bool {
-        UUID(uuidString: id) != nil && calendarDay != nil && (time == nil || clock != nil)
-            && EntryWriting.canWrite(text, timed: time != nil)
+        guard UUID(uuidString: id) != nil, calendarDay != nil else { return false }
+        switch kind {
+        case .event:
+            return (time == nil || clock != nil)
+                && EntryWriting.canWrite(text, kind: .event, timed: time != nil)
+        case .task:
+            return time == nil && EntryWriting.canWrite(text, kind: .task, timed: false)
+        }
     }
 }
 
@@ -95,14 +195,19 @@ enum EntryWriting {
             .joined(separator: " ")
     }
 
-    /// Whether Core writes `text` as one event line, as the extension writes it (with a time). The
+    /// Whether Core writes `text` as one event or task line, as the extension writes it. The
     /// form asks it of the text it would add (`singleLine`), so practically only empty text is
     /// refused; a record read from the queue is asked again, with or without its time.
-    static func canWrite(_ text: String, timed: Bool = true) -> Bool {
+    static func canWrite(_ text: String, kind: ShareEntryKind = .event, timed: Bool = true) -> Bool {
         guard !text.allSatisfy(\.isWhitespace) else { return false }
-        let time = timed ? try? LineClock(hour: 12, minute: 0) : nil
         do {
-            _ = try RawDocument(bytes: []).addingEvent(text: text, id: "aaaaaa", time: time)
+            switch kind {
+            case .event:
+                let time = timed ? try? LineClock(hour: 12, minute: 0) : nil
+                _ = try RawDocument(bytes: []).addingEvent(text: text, id: "aaaaaa", time: time)
+            case .task:
+                _ = try RawDocument(bytes: []).addingTask(text: text, id: "aaaaaa")
+            }
             return true
         } catch {
             return false
@@ -348,7 +453,12 @@ struct ShareEntryWriter: Sendable {
             // An empty index in memory: the writer checks identifiers against the day file only.
             let store = VaultStore(
                 vaultRoot: root, index: try VaultIndex(), randomValue: randomValue, fileCoordination: coordination)
-            try await store.addingEvent(on: day, text: entry.text, time: entry.clock)
+            switch entry.kind {
+            case .event:
+                try await store.addingEvent(on: day, text: entry.text, time: entry.clock)
+            case .task:
+                try await store.addingTask(on: day, text: entry.text)
+            }
             return true
         } catch VaultStoreError.indexUpdateFailed {
             return true

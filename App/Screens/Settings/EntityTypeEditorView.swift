@@ -70,16 +70,22 @@ struct EntityTypeEditorView: View {
             Section {
                 SectionHeader("Tip tanımı")
                     .inkListRow()
-                labeledField("Tip kimliği", example: "book", text: $model.id)
-                    .disabled(model.original != nil)
-                labeledField("Klasör", example: "books", text: $model.folder)
-                labeledField("Ad — Türkçe", example: "Kitap", text: $model.nameTR)
-                labeledField("Ad — İngilizce", example: "Book", text: $model.nameEN)
-                labeledField("Çoğul ad — Türkçe", example: "Kitaplar", text: $model.pluralTR)
-                labeledField("Çoğul ad — İngilizce", example: "Books", text: $model.pluralEN)
-                labeledField("SF Symbol adı", example: "book", text: $model.icon)
-                labeledField(
-                    "Şablon yolu (isteğe bağlı)", example: "templates/book.md", text: $model.template)
+                InkCard {
+                    VStack(alignment: .leading, spacing: InkSpacing.row) {
+                        labeledField("Tip kimliği", example: "book", text: $model.id)
+                            .disabled(model.original != nil)
+                        labeledField("Klasör", example: "books", text: $model.folder)
+                        labeledField("Ad — Türkçe", example: "Kitap", text: $model.nameTR)
+                        labeledField("Ad — İngilizce", example: "Book", text: $model.nameEN)
+                        labeledField("Çoğul ad — Türkçe", example: "Kitaplar", text: $model.pluralTR)
+                        labeledField("Çoğul ad — İngilizce", example: "Books", text: $model.pluralEN)
+                        labeledField("SF Symbol adı", example: "book", text: $model.icon)
+                        labeledField(
+                            "Şablon yolu (isteğe bağlı)", example: "templates/book.md",
+                            text: $model.template)
+                    }
+                }
+                .inkListRow()
                 if model.templateIsNotWritten {
                     Text("Uygulama şablonu yalnız templates/ klasörüne yazar. Bu yolda şablon oluşmaz.")
                         .font(.ink.meta)
@@ -94,27 +100,37 @@ struct EntityTypeEditorView: View {
             Section {
                 SectionHeader("Alanlar")
                     .inkListRow()
-                ForEach($model.fields) { $field in
-                    VStack(alignment: .leading, spacing: 4) {
-                        fieldLabel("Alan adı")
-                        formField("Alan adı", example: "yazar", text: $field.key)
-                        ViewThatFits(in: .horizontal) {
-                            HStack {
-                                fieldKindMenu($field.kind)
-                                Spacer(minLength: 0)
-                                removeFieldButton(field.id)
+                InkCard(padded: false) {
+                    VStack(alignment: .leading, spacing: 0) {
+                        ForEach($model.fields) { $field in
+                            VStack(alignment: .leading, spacing: 4) {
+                                fieldLabel("Alan adı")
+                                formField("Alan adı", example: "yazar", text: $field.key)
+                                ViewThatFits(in: .horizontal) {
+                                    HStack {
+                                        fieldKindMenu($field.kind)
+                                        Spacer(minLength: 0)
+                                        removeFieldButton(field.id)
+                                    }
+                                    VStack(alignment: .leading, spacing: 0) {
+                                        fieldKindMenu($field.kind)
+                                        removeFieldButton(field.id)
+                                    }
+                                }
                             }
-                            VStack(alignment: .leading, spacing: 0) {
-                                fieldKindMenu($field.kind)
-                                removeFieldButton(field.id)
-                            }
+                            .padding(InkSpacing.cardPadding)
+                            InkCardDivider()
                         }
+                        Button("Alan ekle") { model.fields.append(EntityTypeFieldDraft()) }
+                            .buttonStyle(.borderless)
+                            .frame(
+                                maxWidth: .infinity, minHeight: InkButtonChrome.minimumHeight,
+                                alignment: .leading
+                            )
+                            .padding(.horizontal, InkSpacing.cardPadding)
                     }
-                    .inkListRow()
                 }
-                Button("Alan ekle") { model.fields.append(EntityTypeFieldDraft()) }
-                    .buttonStyle(.borderless)
-                    .inkListRow()
+                .inkListRow()
             }
             if let error = model.errorText {
                 Text(verbatim: error)
@@ -162,7 +178,6 @@ struct EntityTypeEditorView: View {
             fieldLabel(label)
             formField(label, example: example, text: text)
         }
-        .inkListRow()
     }
 
     /// The visible label; VoiceOver reads it as the field's own label instead.

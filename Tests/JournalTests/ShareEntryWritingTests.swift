@@ -87,9 +87,10 @@ struct ShareWritingContext {
         try bytes.write(to: dayFile)
     }
 
-    func entry(_ text: String, time: String? = "14:00") -> ShareEntry {
+    func entry(_ text: String, time: String? = "14:00", kind: ShareEntryKind = .event) -> ShareEntry {
         ShareEntry(
-            id: UUID().uuidString, text: text, day: Self.day, time: time, sharedAt: Date(timeIntervalSince1970: 0))
+            id: UUID().uuidString, text: text, day: Self.day,
+            time: kind == .task ? nil : time, sharedAt: Date(timeIntervalSince1970: 0), kind: kind)
     }
 
     /// Every file under the vault with its bytes.
@@ -136,6 +137,35 @@ struct EventLineFixture: CustomTestStringConvertible, Sendable {
             }
             return EventLineFixture(
                 name: name, input: input, text: text, identifier: identifier, time: time,
+                expected: try? Data(contentsOf: directory.appendingPathComponent("expected.md")))
+        }
+    }()
+}
+
+/// An `add-task` case of `Fixtures/write` (docs/fixtures.md, "write/ kümesi").
+struct TaskLineFixture: CustomTestStringConvertible, Sendable {
+    let name: String
+    let input: Data
+    let text: String
+    let identifier: String
+    let expected: Data?
+
+    var testDescription: String { name }
+
+    static let all: [TaskLineFixture] = {
+        let folder = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
+            .deletingLastPathComponent().appendingPathComponent("Fixtures/write")
+        let names = (try? FileManager.default.contentsOfDirectory(atPath: folder.path)) ?? []
+        return names.sorted().compactMap { name in
+            let directory = folder.appendingPathComponent(name)
+            guard let input = try? Data(contentsOf: directory.appendingPathComponent("input.md")),
+                let operation = try? Data(contentsOf: directory.appendingPathComponent("operation.json")),
+                let object = try? JSONSerialization.jsonObject(with: operation) as? [String: Any],
+                let lines = object["lines"] as? [String: Any], lines["operation"] as? String == "add-task",
+                let text = lines["text"] as? String, let identifier = lines["id"] as? String
+            else { return nil }
+            return TaskLineFixture(
+                name: name, input: input, text: text, identifier: identifier,
                 expected: try? Data(contentsOf: directory.appendingPathComponent("expected.md")))
         }
     }()
@@ -224,6 +254,79 @@ struct ShareEntryWritingTests {
         #expect(
             ShareEntry(id: UUID().uuidString, text: "Kahve", day: "2026-13-01", time: nil, sharedAt: instant).isWritable
                 == false)
+    }
+
+    /// ✕ on the time chip: the event goes in untimed (`- metin ^id`), on the confirm day.
+    @Test func anEventWithoutItsTimeIsWritableUntimed() throws {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = .current
+        let instant = try #require(
+            calendar.date(from: DateComponents(year: 2026, month: 10, day: 22, hour: 9, minute: 5)))
+        let entry = ShareEntry(text: "Kahve", kind: .event, time: nil, sharedAt: instant)
+        #expect(entry.day == "2026-10-22")
+        #expect(entry.time == nil)
+        #expect(entry.clock == nil)
+        #expect(entry.isWritable)
+        let task = ShareEntry(text: "Kahve", kind: .task, time: instant, sharedAt: instant)
+        #expect(task.time == nil)
+        #expect(task.isWritable)
+    }
+
+    /// The mark's list: lines that already read as the record, by `^id`; lines without an
+    /// identifier, other texts and other times are left out.
+    @Test func matchingLinesAreSameTextSameTimeWithAnIdentifier() throws {
+        let document = RawDocument(
+            bytes: Array(
+                """
+                ## Events
+                - Kahve ^aaaaaa
+                - 09:30 Kahve ^bbbbbb
+                - Kahve
+                - Çay ^cccccc
+
+                ## Tasks
+                - [ ] Kahve ^dddddd
+                - [x] Kahve ^eeeeee
+                - [ ] Kahve
+                """.utf8))
+        let instant = Date(timeIntervalSince1970: 1_792_000_000)
+        let untimed = ShareEntry(
+            id: UUID().uuidString, text: "Kahve", day: "2026-10-20", time: nil, sharedAt: instant)
+        let timed = ShareEntry(
+            id: UUID().uuidString, text: "Kahve", day: "2026-10-20", time: "09:30", sharedAt: instant)
+        let task = ShareEntry(
+            id: UUID().uuidString, text: "Kahve", day: "2026-10-20", time: nil, sharedAt: instant, kind: .task)
+        #expect(untimed.matchingLineIDs(in: document, text: "Kahve") == ["aaaaaa"])
+        #expect(timed.matchingLineIDs(in: document, text: "Kahve") == ["bbbbbb"])
+        #expect(task.matchingLineIDs(in: document, text: "Kahve") == ["dddddd", "eeeeee"])
+
+        var marked = untimed
+        marked.existingLineIDs = ["aaaaaa"]
+        #expect(!marked.isWritten("Kahve", in: document))
+        #expect(untimed.isWritten("Kahve", in: document))
+        var markedTask = task
+        markedTask.existingLineIDs = ["dddddd"]
+        #expect(markedTask.isWritten("Kahve", in: document))
+        markedTask.existingLineIDs = ["dddddd", "eeeeee"]
+        #expect(!markedTask.isWritten("Kahve", in: document))
+    }
+
+    /// The list survives the App Group file; an empty list is not written, and a record without
+    /// the key (older app) reads as no list.
+    @Test func existingLineIDsRoundTripThroughTheList() throws {
+        let instant = Date(timeIntervalSince1970: 1_792_000_000)
+        var entry = ShareEntry(
+            id: UUID().uuidString, text: "Kahve", day: "2026-10-20", time: nil, sharedAt: instant)
+        entry.writing = "Kahve"
+        entry.existingLineIDs = ["aaaaaa", "bbbbbb"]
+        let raw = try ShareListFile.encode(entry)
+        #expect(String(decoding: raw, as: UTF8.self).contains("\"existingLineIDs\":[\"aaaaaa\",\"bbbbbb\"]"))
+        #expect(ShareListFile.entry(from: raw) == entry)
+
+        entry.existingLineIDs = []
+        let empty = try ShareListFile.encode(entry)
+        #expect(!String(decoding: empty, as: UTF8.self).contains("existingLineIDs"))
+        #expect(ShareListFile.entry(from: empty)?.existingLineIDs == nil)
     }
 
     // MARK: - App Group lists
@@ -460,5 +563,69 @@ struct ShareEntryWritingTests {
             opened.resolvingSymlinksInPath().standardizedFileURL
                 == ShareVault.cloudRoot(in: context.container).resolvingSymlinksInPath().standardizedFileURL)
         #expect(context.store.shareVault == .icloud)
+    }
+
+    /// Share mode (`Olay | Görev`) writes either a timed event line or an open task line in the vault format.
+    @Test(arguments: TaskLineFixture.all)
+    func cloudWriteAddsOnlyTheTaskLine(_ fixture: TaskLineFixture) async throws {
+        let context = try ShareWritingContext(identifier: fixture.identifier)
+        defer { context.clean() }
+        try context.publish(.icloud)
+        try context.installDay(fixture.input)
+        let before = try context.vaultFiles()
+        let entry = context.entry(fixture.text, time: nil, kind: .task)
+
+        let outcome = try? await context.writer().add(entry)
+
+        var after = try context.vaultFiles()
+        let day = "journal/\(ShareWritingContext.day).md"
+        if let expected = fixture.expected {
+            #expect(outcome == .written)
+            #expect(after[day] == expected)
+            #expect(context.written.read().elements.compactMap(\.entry) == [entry])
+            #expect(context.pending.read().elements.isEmpty)
+        } else if entry.isWritable {
+            #expect(outcome == .queued)
+            #expect(after[day] == fixture.input)
+            #expect(context.pending.read().elements.compactMap(\.entry) == [entry])
+            #expect(context.written.read().elements.isEmpty)
+        } else {
+            #expect(outcome == nil)
+            #expect(after[day] == fixture.input)
+            #expect(context.pending.read().elements.isEmpty && context.written.read().elements.isEmpty)
+        }
+        after[day] = before[day]
+        #expect(after == before)
+    }
+
+    @Test func shareModeWritesEventOrTaskLineIntoVaultFixture() async throws {
+        let context = try ShareWritingContext(identifier: "new123tsk456")
+        defer { context.clean() }
+        try context.publish(.icloud)
+        let instant = Date(timeIntervalSince1970: 1_776_695_520)
+
+        let eventEntry = ShareEntry(
+            text: "Proje toplantısı", kind: .event, time: instant, sharedAt: instant)
+        #expect(eventEntry.kind == .event)
+        #expect(eventEntry.time != nil)
+        #expect(eventEntry.isWritable)
+
+        let taskEntry = ShareEntry(
+            text: "Raporu gözden geçir", kind: .task, time: instant, sharedAt: instant)
+        #expect(taskEntry.kind == .task)
+        #expect(taskEntry.time == nil)
+        #expect(taskEntry.isWritable)
+        let encodedTask = try ShareListFile.encode(taskEntry)
+        #expect(ShareListFile.entry(from: encodedTask) == taskEntry)
+
+        let writer = context.writer()
+        let writtenEvent = context.entry("Proje toplantısı", time: "14:32", kind: .event)
+        let writtenTask = context.entry("Raporu gözden geçir", time: nil, kind: .task)
+        #expect(try await writer.add(writtenEvent) == .written)
+        #expect(try await writer.add(writtenTask) == .written)
+
+        let dayMarkdown = try String(contentsOf: context.dayFile, encoding: .utf8)
+        #expect(dayMarkdown.contains("## Events\n- 14:32 Proje toplantısı ^new123"))
+        #expect(dayMarkdown.contains("## Tasks\n- [ ] Raporu gözden geçir ^tsk456"))
     }
 }

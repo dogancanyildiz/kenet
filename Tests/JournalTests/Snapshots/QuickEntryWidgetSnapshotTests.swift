@@ -19,7 +19,7 @@
                 QuickEntryWidgetView(date: snapshotNow)
                     .padding(16)
                     .frame(width: 170, height: 170)
-                    .background(WidgetTheme.paper)
+                    .background(WidgetTheme.surface)
                     .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .background(Color.ink.well)

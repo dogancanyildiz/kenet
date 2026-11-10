@@ -19,14 +19,20 @@ struct VaultCloudMigrationView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
+            VStack(alignment: .leading, spacing: InkSpacing.row) {
                 PageHeadline("Kasayı iCloud’a taşı?")
-                Text("Kasan iCloud’a kopyalanır; bu cihazdaki dosyalar korunur. iPhone ve Mac aynı klasörü paylaşır.")
+                InkCard {
+                    Text(
+                        "Kasan iCloud’a kopyalanır; bu cihazdaki dosyalar korunur. iPhone ve Mac aynı klasörü paylaşır."
+                    )
                     .font(.ink.byline)
                     .foregroundStyle(Color.ink.text)
-                Text("Vazgeç’e dokunursan kasa bu cihazda kalır; sonra Ayarlar’dan taşıyabilirsin.")
-                    .font(.ink.meta)
-                    .foregroundStyle(Color.ink.secondaryText)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                InfoBand(
+                    kind: .info,
+                    "Vazgeç’e dokunursan kasa bu cihazda kalır; sonra Ayarlar’dan taşıyabilirsin."
+                )
                 if store.isMigratingCloud {
                     InkProgress(kind: .indeterminate(label: "Kasa iCloud’a kopyalanıyor…"))
                 }

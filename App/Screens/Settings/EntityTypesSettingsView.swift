@@ -19,43 +19,70 @@ struct EntityTypesSettingsView: View {
             Section {
                 SectionHeader("Yerleşik tipler")
                     .inkListRow()
-                ForEach(EntityTypeChoices.choices(store.entityTypes).filter { $0.id == "person" || $0.id == "place" }) {
-                    type in
-                    Label(type.plural, systemImage: type.definition.icon)
-                        .inkListRow()
+                let builtIn = EntityTypeChoices.choices(store.entityTypes).filter {
+                    $0.id == "person" || $0.id == "place"
                 }
+                InkCard(padded: false) {
+                    VStack(alignment: .leading, spacing: 0) {
+                        ForEach(Array(builtIn.enumerated()), id: \.element.id) { index, type in
+                            if index > 0 { InkCardDivider() }
+                            Label(type.plural, systemImage: type.definition.icon)
+                                .frame(
+                                    maxWidth: .infinity, minHeight: InkButtonChrome.minimumHeight, alignment: .leading
+                                )
+                                .padding(.horizontal, InkSpacing.cardPadding)
+                        }
+                    }
+                }
+                .inkListRow()
             }
             Section {
                 SectionHeader("Özel varlık tipleri")
                     .inkListRow()
-                if store.entityTypes.types.isEmpty {
-                    Text("Henüz özel tip yok.")
-                        .inkListRow()
-                }
-                ForEach(store.entityTypes.types, id: \.id) { type in
-                    HStack {
-                        Button {
-                            editing = EditorTarget(original: type)
-                        } label: {
-                            Label(
-                                type.name.localized(language: locale.language.languageCode?.identifier ?? "en"),
-                                systemImage: type.icon
-                            )
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .tapTarget()
-                            .contentShape(Rectangle())
+                InkCard(padded: false) {
+                    VStack(alignment: .leading, spacing: 0) {
+                        if store.entityTypes.types.isEmpty {
+                            Text("Henüz özel tip yok.")
+                                .font(.ink.meta)
+                                .foregroundStyle(Color.ink.secondaryText)
+                                .frame(
+                                    maxWidth: .infinity, minHeight: InkButtonChrome.minimumHeight, alignment: .leading
+                                )
+                                .padding(.horizontal, InkSpacing.cardPadding)
                         }
-                        .accessibilityHint(Text("Varlık tipini düzenle"))
-                        Button("Tipi sil", role: .destructive) { deleting = type }
-                            .buttonStyle(InkDestructiveButtonStyle())
+                        ForEach(Array(store.entityTypes.types.enumerated()), id: \.element.id) {
+                            index, type in
+                            if index > 0 { InkCardDivider() }
+                            HStack {
+                                Button {
+                                    editing = EditorTarget(original: type)
+                                } label: {
+                                    Label(
+                                        type.name.localized(
+                                            language: locale.language.languageCode?.identifier ?? "en"),
+                                        systemImage: type.icon
+                                    )
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .tapTarget()
+                                    .contentShape(Rectangle())
+                                }
+                                .accessibilityHint(Text("Varlık tipini düzenle"))
+                                Button("Tipi sil", role: .destructive) { deleting = type }
+                                    .buttonStyle(InkDestructiveButtonStyle())
+                            }
+                            .buttonStyle(.borderless)
+                            .frame(minHeight: InkButtonChrome.minimumHeight)
+                            .padding(.horizontal, InkSpacing.cardPadding)
+                        }
+                        InkCardDivider()
+                        Button("Yeni varlık tipi") { showsGallery = true }
+                            .buttonStyle(.borderless)
+                            .disabled(!store.canAddEvent || store.entityTypes.issue != nil)
+                            .frame(maxWidth: .infinity, minHeight: InkButtonChrome.minimumHeight, alignment: .leading)
+                            .padding(.horizontal, InkSpacing.cardPadding)
                     }
-                    .buttonStyle(.borderless)
-                    .inkListRow()
                 }
-                Button("Yeni varlık tipi") { showsGallery = true }
-                    .buttonStyle(.borderless)
-                    .disabled(!store.canAddEvent || store.entityTypes.issue != nil)
-                    .inkListRow()
+                .inkListRow()
             }
             if store.entityTypes.issue != nil {
                 Text(

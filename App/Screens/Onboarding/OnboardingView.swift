@@ -16,37 +16,52 @@ enum OnboardingCopy {
 struct OnboardingView: View {
     @Bindable var store: IndexStore
     @State private var choosesFolder = false
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                PageHeadline("Günlüğün, senin dosyaların")
-                Text(
-                    "Verilerin Markdown dosyalarında kalır. Yeni bir kasa oluşturabilir veya var olan Obsidian klasörünü seçebilirsin."
-                )
-                .font(.ink.byline)
-                .foregroundStyle(Color.ink.text)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                if store.isCloudAvailable {
-                    Button("iCloud’da sakla") { Task { await store.createCloudVault() } }
-                        .buttonStyle(InkPrimaryButtonStyle())
-                    Text("iPhone ve Mac aynı klasörü paylaşır.")
+            VStack(alignment: .leading, spacing: InkSpacing.section) {
+                VStack(alignment: .leading, spacing: InkSpacing.row) {
+                    KenetRingsBadge(size: 64, cornerRadius: 20, ringDiameter: 24, ringOffset: 6)
+                    PageHeadline("Kenet")
+                    Text(
+                        "Verilerin Markdown dosyalarında kalır. Yeni bir kasa oluşturabilir veya var olan Obsidian klasörünü seçebilirsin."
+                    )
+                    .font(.ink.byline)
+                    .foregroundStyle(Color.ink.secondaryText)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                VStack(alignment: .leading, spacing: InkSpacing.row) {
+                    if store.isCloudAvailable {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Button("iCloud’da sakla") { Task { await store.createCloudVault() } }
+                                .buttonStyle(InkPrimaryButtonStyle())
+                            Text("iPhone ve Mac aynı klasörü paylaşır.")
+                                .font(.ink.meta)
+                                .foregroundStyle(Color.ink.secondaryText)
+                                .frame(maxWidth: .infinity, alignment: .center)
+                        }
+                        // Side by side while both words fit one line; stacked otherwise and
+                        // always at accessibility text sizes.
+                        if dynamicTypeSize.isAccessibilitySize {
+                            VStack(alignment: .leading, spacing: InkSpacing.row) { secondaryButtons }
+                        } else {
+                            ViewThatFits(in: .horizontal) {
+                                HStack(spacing: InkSpacing.row) { secondaryButtons }
+                                VStack(alignment: .leading, spacing: InkSpacing.row) { secondaryButtons }
+                            }
+                        }
+                    } else {
+                        localVaultButton
+                            .buttonStyle(InkPrimaryButtonStyle())
+                        Button("Var olan klasörü seç") { choosesFolder = true }
+                            .buttonStyle(InkSecondaryButtonStyle())
+                    }
+                    Text(LocalizedStringKey(OnboardingCopy.newVaultLocation(for: .current).key))
                         .font(.ink.meta)
                         .foregroundStyle(Color.ink.secondaryText)
                 }
-                if store.isCloudAvailable {
-                    localVaultButton.buttonStyle(InkTextButtonStyle())
-                } else {
-                    localVaultButton.buttonStyle(InkPrimaryButtonStyle())
-                }
-                Text(LocalizedStringKey(OnboardingCopy.newVaultLocation(for: .current).key))
-                    .font(.ink.meta)
-                    .foregroundStyle(Color.ink.secondaryText)
-                Button("Var olan klasörü seç") { choosesFolder = true }
-                    .buttonStyle(InkTextButtonStyle())
                 if let error = store.errorText {
-                    Text(verbatim: error)
-                        .font(.ink.meta)
-                        .foregroundStyle(Color.ink.danger)
+                    InfoBand(kind: .error, verbatim: error)
                 }
                 if store.isInspectingImport {
                     InkProgress(kind: .indeterminate(label: "Klasör inceleniyor…"))
@@ -66,6 +81,7 @@ struct OnboardingView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .inkPage()
+        .inkGlow()
         .accessibilityIdentifier("screen.onboarding")
         .task {
             do { try await store.refreshCloudAvailability() } catch { store.report(error) }
@@ -77,6 +93,13 @@ struct OnboardingView: View {
             case .failure(let error): store.report(error)
             }
         }
+    }
+
+    @ViewBuilder private var secondaryButtons: some View {
+        localVaultButton
+            .buttonStyle(InkSecondaryButtonStyle())
+        Button("Var olan klasörü seç") { choosesFolder = true }
+            .buttonStyle(InkSecondaryButtonStyle())
     }
 
     private var localVaultButton: some View {

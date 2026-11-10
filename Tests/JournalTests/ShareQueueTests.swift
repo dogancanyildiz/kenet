@@ -39,17 +39,24 @@ struct ShareQueueTests {
         var pending: ShareListFile { ShareListFile(url: ShareFiles.pending(in: group)) }
         var dayFile: URL { context.root.appendingPathComponent("journal/\(Self.day).md") }
 
-        func entry(_ text: String, time: String? = "09:30") -> ShareEntry {
+        func entry(_ text: String, time: String? = "09:30", kind: ShareEntryKind = .event) -> ShareEntry {
             // Whole seconds: the lists keep ISO 8601 dates.
             ShareEntry(
-                id: UUID().uuidString, text: text, day: Self.day, time: time,
-                sharedAt: Date(timeIntervalSince1970: 1_792_000_000))
+                id: UUID().uuidString, text: text, day: Self.day,
+                time: kind == .task ? nil : time,
+                sharedAt: Date(timeIntervalSince1970: 1_792_000_000), kind: kind)
         }
 
         /// The events of the shared day, as text, from the disk.
         func events() throws -> [String] {
             guard FileManager.default.fileExists(atPath: dayFile.path) else { return [] }
             return RawDocument(bytes: try Data(contentsOf: dayFile)).bodyLines.events.map(\.block.text)
+        }
+
+        /// The tasks of the shared day, as text, from the disk.
+        func tasks() throws -> [String] {
+            guard FileManager.default.fileExists(atPath: dayFile.path) else { return [] }
+            return RawDocument(bytes: try Data(contentsOf: dayFile)).bodyLines.tasks.map(\.block.text)
         }
 
         func run(_ processor: ShareQueueProcessor? = nil) async {
@@ -319,5 +326,128 @@ struct ShareQueueTests {
         #expect(try await context.store.search("Paylaşılanmakale").count == 1)
         #expect(!FileManager.default.fileExists(atPath: ShareFiles.written(in: group).path))
         #expect(processor.report == ShareImportReport(added: 1))
+    }
+
+    @Test func queuedTaskBecomesAnOpenTaskOnItsDayAndIsNotDuplicatedAfterInterruptedRun() async throws {
+        let harness = try Harness()
+        defer { harness.context.clean() }
+        await harness.context.start()
+        try harness.pending.append(harness.entry("Deniz Arıkan için notları gönder", kind: .task))
+
+        await harness.run()
+
+        let document = RawDocument(bytes: try Data(contentsOf: harness.dayFile))
+        let task = try #require(document.bodyLines.tasks.first)
+        #expect(document.bodyLines.tasks.count == 1)
+        #expect(task.status == .todo)
+        #expect(task.dueDate == nil)
+        #expect(task.block.text == "[[Deniz Arıkan]] için notları gönder")
+        #expect(task.block.id != nil)
+        #expect(harness.pending.read().elements.isEmpty)
+        #expect(harness.processor.report == ShareImportReport(added: 1))
+
+        // An interrupted run that already saved the task does not write a second `- [ ]` line.
+        var interrupted = harness.entry("Deniz Arıkan için notları gönder", kind: .task)
+        interrupted.writing = "[[Deniz Arıkan]] için notları gönder"
+        try harness.pending.append(interrupted)
+
+        await harness.run()
+
+        #expect(try harness.tasks() == ["[[Deniz Arıkan]] için notları gönder"])
+        #expect(harness.pending.read().elements.isEmpty)
+    }
+
+    @Test func taskMarkDistinguishesAnEarlierSameTextTaskByBlockIdentifier() async throws {
+        let harness = try Harness()
+        defer { harness.context.clean() }
+        await harness.context.start()
+        var entry = harness.entry("Aynı metinli görev", kind: .task)
+        let day = try #require(entry.calendarDay)
+        #expect(await harness.context.store.addTask(on: day, text: "Aynı metinli görev", due: nil))
+        let firstDoc = RawDocument(bytes: try Data(contentsOf: harness.dayFile))
+        let existingID = try #require(firstDoc.bodyLines.tasks.first?.block.id)
+
+        // Marked before the save, with the earlier task's `^id` recorded: the run stopped before
+        // saving the new task, so the next run must still write the new task once.
+        entry.writing = "Aynı metinli görev"
+        entry.existingLineIDs = [existingID]
+        try harness.pending.append(entry)
+
+        await harness.run()
+        await harness.run()
+
+        let afterDoc = RawDocument(bytes: try Data(contentsOf: harness.dayFile))
+        #expect(afterDoc.bodyLines.tasks.map(\.block.text) == ["Aynı metinli görev", "Aynı metinli görev"])
+        #expect(Set(afterDoc.bodyLines.tasks.compactMap(\.block.id)).count == 2)
+        #expect(harness.pending.read().elements.isEmpty)
+    }
+
+    /// The block identifiers of the shared day's events, in source order.
+    private func eventIDs(_ harness: Harness) throws -> [String?] {
+        RawDocument(bytes: try Data(contentsOf: harness.dayFile)).bodyLines.events.map(\.block.id)
+    }
+
+    /// An untimed event marked while an older untimed event with the same text was on the day; the
+    /// run stopped before the save. The older line is not taken for the new one: the new line is
+    /// written, once (no loss, no duplicate).
+    @Test func anUntimedMarkIsNotSatisfiedByAnOlderSameTextEvent() async throws {
+        let harness = try Harness()
+        defer { harness.context.clean() }
+        await harness.context.start()
+        var entry = harness.entry("Kahve", time: nil)
+        let day = try #require(entry.calendarDay)
+        #expect(await harness.context.store.addEvent(on: day, text: "Kahve", time: nil))
+        let older = try #require(try eventIDs(harness).first ?? nil)
+        entry.writing = "Kahve"
+        entry.existingLineIDs = [older]
+        try harness.pending.append(entry)
+
+        await harness.run()
+        await harness.run()
+
+        #expect(try harness.events() == ["Kahve", "Kahve"])
+        #expect(Set(try eventIDs(harness).compactMap { $0 }).count == 2)
+        #expect(harness.pending.read().elements.isEmpty)
+        #expect(harness.processor.report == ShareImportReport(added: 1))
+    }
+
+    /// The same mark, but the run saved the new line before it stopped: the next run finds the line
+    /// that is not in the mark's list and only removes the record.
+    @Test func anUntimedMarkFindsItsOwnLineBesideAnOlderOne() async throws {
+        let harness = try Harness()
+        defer { harness.context.clean() }
+        await harness.context.start()
+        var entry = harness.entry("Kahve", time: nil)
+        let day = try #require(entry.calendarDay)
+        #expect(await harness.context.store.addEvent(on: day, text: "Kahve", time: nil))
+        let older = try #require(try eventIDs(harness).first ?? nil)
+        #expect(await harness.context.store.addEvent(on: day, text: "Kahve", time: nil))
+        entry.writing = "Kahve"
+        entry.existingLineIDs = [older]
+        try harness.pending.append(entry)
+
+        await harness.run()
+
+        #expect(try harness.events() == ["Kahve", "Kahve"])
+        #expect(harness.pending.read().elements.isEmpty)
+        #expect(harness.processor.report == ShareImportReport(added: 1))
+    }
+
+    /// An unmarked untimed record whose text is already on the day as an older event: the queue
+    /// records that line's `^id` when it marks, writes the new line, and a later run adds nothing.
+    @Test func anUntimedRecordBesideAnOlderSameTextEventIsWrittenOnce() async throws {
+        let harness = try Harness()
+        defer { harness.context.clean() }
+        await harness.context.start()
+        let entry = harness.entry("Kahve", time: nil)
+        let day = try #require(entry.calendarDay)
+        #expect(await harness.context.store.addEvent(on: day, text: "Kahve", time: nil))
+        try harness.pending.append(entry)
+
+        await harness.run()
+        await harness.run()
+
+        #expect(try harness.events() == ["Kahve", "Kahve"])
+        #expect(harness.pending.read().elements.isEmpty)
     }
 }

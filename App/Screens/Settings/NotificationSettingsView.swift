@@ -20,45 +20,75 @@ struct NotificationSettingsView: View {
             Section {
                 SectionHeader("İzin")
                     .inkListRow()
-                Text(service.authorization.title)
-                    .font(.ink.meta)
-                    .foregroundStyle(Color.ink.text)
-                    .inkListRow()
-                if service.authorization.canRequest {
-                    Button("Bildirimlere izin ver") { Task { await service.requestAccess() } }
-                        .buttonStyle(InkTextButtonStyle())
-                        .disabled(service.isRequesting)
-                        .inkListRow()
+                InkCard(padded: false) {
+                    VStack(alignment: .leading, spacing: 0) {
+                        Text(service.authorization.title)
+                            .font(.ink.meta)
+                            .foregroundStyle(Color.ink.text)
+                            .frame(maxWidth: .infinity, minHeight: InkButtonChrome.minimumHeight, alignment: .leading)
+                            .padding(.horizontal, InkSpacing.cardPadding)
+                        if service.authorization.canRequest {
+                            InkCardDivider()
+                            Button("Bildirimlere izin ver") { Task { await service.requestAccess() } }
+                                .buttonStyle(InkTextButtonStyle())
+                                .disabled(service.isRequesting)
+                                .padding(.horizontal, InkSpacing.cardPadding)
+                        }
+                        InkCardDivider()
+                        Button("Sistem ayarlarını aç") { openSettings() }
+                            .buttonStyle(InkTextButtonStyle())
+                            .padding(.horizontal, InkSpacing.cardPadding)
+                    }
                 }
-                Button("Sistem ayarlarını aç") { openSettings() }
-                    .buttonStyle(InkTextButtonStyle())
-                    .inkListRow()
+                .inkListRow()
             }
             Section {
                 SectionHeader("Hatırlatmalar")
                     .inkListRow()
-                Toggle("Görev hatırlatmaları", isOn: $service.preferences.tasksEnabled)
-                    .inkListRow()
-                InkTimePicker(title: "Görev saati", selection: time(\.taskTime))
-                    .disabled(!service.preferences.tasksEnabled)
-                    .inkListRow()
-                Toggle("Günlük hedef hatırlatmaları", isOn: $service.preferences.goalsEnabled)
-                    .inkListRow()
-                InkTimePicker(title: "Hedef saati", selection: time(\.goalTime))
-                    .disabled(!service.preferences.goalsEnabled)
-                    .inkListRow()
-                Toggle("Akşam günlük hatırlatması", isOn: $service.preferences.journalEnabled)
-                    .inkListRow()
-                InkTimePicker(title: "Günlük saati", selection: time(\.journalTime))
-                    .disabled(!service.preferences.journalEnabled)
-                    .inkListRow()
-                Toggle("Görüşme hatırlatmaları", isOn: $service.preferences.peopleEnabled)
-                    .inkListRow()
-                InkTimePicker(title: "Görüşme saati", selection: time(\.peopleTime))
-                    .disabled(!service.preferences.peopleEnabled)
-                    .inkListRow()
-                Toggle("Bildirimde içeriği göster", isOn: showsContent)
-                    .inkListRow()
+                InkCard(padded: false) {
+                    VStack(alignment: .leading, spacing: 0) {
+                        Toggle("Görev hatırlatmaları", isOn: $service.preferences.tasksEnabled)
+                            .frame(minHeight: InkButtonChrome.minimumHeight)
+                            .padding(.horizontal, InkSpacing.cardPadding)
+                        InkCardDivider()
+                        InkTimePicker(title: "Görev saati", selection: time(\.taskTime))
+                            .disabled(!service.preferences.tasksEnabled)
+                            .frame(minHeight: InkButtonChrome.minimumHeight)
+                            .padding(.horizontal, InkSpacing.cardPadding)
+                        InkCardDivider()
+                        Toggle("Günlük hedef hatırlatmaları", isOn: $service.preferences.goalsEnabled)
+                            .frame(minHeight: InkButtonChrome.minimumHeight)
+                            .padding(.horizontal, InkSpacing.cardPadding)
+                        InkCardDivider()
+                        InkTimePicker(title: "Hedef saati", selection: time(\.goalTime))
+                            .disabled(!service.preferences.goalsEnabled)
+                            .frame(minHeight: InkButtonChrome.minimumHeight)
+                            .padding(.horizontal, InkSpacing.cardPadding)
+                        InkCardDivider()
+                        Toggle("Akşam günlük hatırlatması", isOn: $service.preferences.journalEnabled)
+                            .frame(minHeight: InkButtonChrome.minimumHeight)
+                            .padding(.horizontal, InkSpacing.cardPadding)
+                        InkCardDivider()
+                        InkTimePicker(title: "Günlük saati", selection: time(\.journalTime))
+                            .disabled(!service.preferences.journalEnabled)
+                            .frame(minHeight: InkButtonChrome.minimumHeight)
+                            .padding(.horizontal, InkSpacing.cardPadding)
+                        InkCardDivider()
+                        Toggle("Görüşme hatırlatmaları", isOn: $service.preferences.peopleEnabled)
+                            .frame(minHeight: InkButtonChrome.minimumHeight)
+                            .padding(.horizontal, InkSpacing.cardPadding)
+                        InkCardDivider()
+                        InkTimePicker(title: "Görüşme saati", selection: time(\.peopleTime))
+                            .disabled(!service.preferences.peopleEnabled)
+                            .frame(minHeight: InkButtonChrome.minimumHeight)
+                            .padding(.horizontal, InkSpacing.cardPadding)
+                        InkCardDivider()
+                        Toggle("Bildirimde içeriği göster", isOn: showsContent)
+                            .frame(minHeight: InkButtonChrome.minimumHeight)
+                            .padding(.horizontal, InkSpacing.cardPadding)
+                    }
+                }
+                .inkListRow()
                 Text(
                     "Kapalıyken afiş, bildirim merkezi ve kilit ekranı yalnız sayı ve genel başlık gösterir: görev metni, hedef adları ve kişi adları görünmez."
                 )
@@ -73,10 +103,46 @@ struct NotificationSettingsView: View {
             Section {
                 SectionHeader("Planlananlar")
                     .inkListRow()
-                Button("Şimdi yeniden planla") { Task { await service.replanNow() } }
-                    .buttonStyle(InkTextButtonStyle())
-                    .disabled(service.isPlanning || service.isRequesting)
-                    .inkListRow()
+                InkCard(padded: false) {
+                    VStack(alignment: .leading, spacing: 0) {
+                        Button("Şimdi yeniden planla") { Task { await service.replanNow() } }
+                            .buttonStyle(InkTextButtonStyle())
+                            .disabled(service.isPlanning || service.isRequesting)
+                            .padding(.horizontal, InkSpacing.cardPadding)
+                        if service.pending.isEmpty {
+                            InkCardDivider()
+                            Text("Planlanan bildirim yok.")
+                                .font(.ink.meta)
+                                .foregroundStyle(Color.ink.secondaryText)
+                                .frame(
+                                    maxWidth: .infinity, minHeight: InkButtonChrome.minimumHeight, alignment: .leading
+                                )
+                                .padding(.horizontal, InkSpacing.cardPadding)
+                        }
+                        ForEach(service.pending) { request in
+                            InkCardDivider()
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(verbatim: request.title)
+                                    .font(.ink.content)
+                                    .foregroundStyle(Color.ink.text)
+                                Text(request.date, format: .dateTime.day().month().year().hour().minute())
+                                    .font(.ink.meta)
+                                    .foregroundStyle(Color.ink.secondaryText)
+                                    .monospacedDigit()
+                                Text(verbatim: request.id)
+                                    .font(.ink.meta)
+                                    .foregroundStyle(Color.ink.secondaryText)
+                                    .lineLimit(1)
+                                    .truncationMode(.middle)
+                                    .textSelection(.enabled)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal, InkSpacing.cardPadding)
+                            .padding(.vertical, 10)
+                        }
+                    }
+                }
+                .inkListRow()
                 if service.isPlanning {
                     InkProgress(kind: .indeterminate(label: "Bildirimler planlanıyor…"))
                         .inkListRow()
@@ -86,30 +152,6 @@ struct NotificationSettingsView: View {
                         .font(.ink.meta)
                         .foregroundStyle(Color.ink.secondaryText)
                         .inkListRow()
-                }
-                if service.pending.isEmpty {
-                    Text("Planlanan bildirim yok.")
-                        .font(.ink.meta)
-                        .foregroundStyle(Color.ink.secondaryText)
-                        .inkListRow()
-                }
-                ForEach(service.pending) { request in
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(verbatim: request.title)
-                            .font(.ink.content)
-                            .foregroundStyle(Color.ink.text)
-                        Text(request.date, format: .dateTime.day().month().year().hour().minute())
-                            .font(.ink.meta)
-                            .foregroundStyle(Color.ink.secondaryText)
-                            .monospacedDigit()
-                        Text(verbatim: request.id)
-                            .font(.ink.meta)
-                            .foregroundStyle(Color.ink.secondaryText)
-                            .lineLimit(1)
-                            .truncationMode(.middle)
-                            .textSelection(.enabled)
-                    }
-                    .inkListRow()
                 }
             }
         }

@@ -84,111 +84,154 @@ struct VaultImportView: View {
             Section {
                 SectionHeader(title: String(localized: "Klasör raporu"))
                     .inkListRow()
-                Text(verbatim: VaultPathDisplay.text(for: model.report.root, override: pathDisplayOverride) ?? "")
-                    .font(.ink.meta)
-                    .foregroundStyle(Color.ink.text)
-                    .lineLimit(2)
-                    .truncationMode(.middle)
-                    .textSelection(.enabled)
-                    .inkListRow()
                 if let synced = SyncedFolderKind.detect(url: model.report.root) {
                     InfoBand(kind: .info, verbatim: synced.notice())
                         .inkListRow()
                 }
-                labeled("Markdown dosyaları", model.report.markdownCount)
-                labeled("Gün dosyaları", model.report.journalDays.count)
-                labeled("Diğer yollardaki gün dosyaları", model.report.externalDays.count)
-                labeled("Kişiler", model.report.typed["person", default: 0])
-                labeled("Konumlar", model.report.typed["place", default: 0])
-                labeled("Hedefler", model.report.typed["goal", default: 0])
-                DisclosureGroup("Bulunan klasörler") {
-                    ForEach(model.report.foundFolders, id: \.self) { path in
-                        Text(verbatim: path)
-                            .font(.ink.meta)
-                            .lineLimit(1)
-                            .truncationMode(.middle)
-                            .textSelection(.enabled)
+                InkCard(padded: false) {
+                    VStack(alignment: .leading, spacing: 0) {
+                        Text(
+                            verbatim: VaultPathDisplay.text(
+                                for: model.report.root, override: pathDisplayOverride) ?? ""
+                        )
+                        .font(.ink.meta)
+                        .foregroundStyle(Color.ink.text)
+                        .lineLimit(2)
+                        .truncationMode(.middle)
+                        .textSelection(.enabled)
+                        .padding(.horizontal, InkSpacing.cardPadding)
+                        .padding(.vertical, 10)
+                        InkCardDivider()
+                        cardLabeled("Markdown dosyaları", model.report.markdownCount)
+                        InkCardDivider()
+                        cardLabeled("Gün dosyaları", model.report.journalDays.count)
+                        InkCardDivider()
+                        cardLabeled("Diğer yollardaki gün dosyaları", model.report.externalDays.count)
+                        InkCardDivider()
+                        cardLabeled("Kişiler", model.report.typed["person", default: 0])
+                        InkCardDivider()
+                        cardLabeled("Konumlar", model.report.typed["place", default: 0])
+                        InkCardDivider()
+                        cardLabeled("Hedefler", model.report.typed["goal", default: 0])
+                        InkCardDivider()
+                        DisclosureGroup("Bulunan klasörler") {
+                            ForEach(model.report.foundFolders, id: \.self) { path in
+                                Text(verbatim: path)
+                                    .font(.ink.meta)
+                                    .lineLimit(1)
+                                    .truncationMode(.middle)
+                                    .textSelection(.enabled)
+                            }
+                        }
+                        .padding(.horizontal, InkSpacing.cardPadding)
+                        .padding(.vertical, 10)
+                        if !model.report.caseVariantFolders.isEmpty {
+                            InkCardDivider()
+                            VStack(alignment: .leading, spacing: 8) {
+                                DisclosureGroup("Harf farkı olan klasörler") {
+                                    ForEach(model.report.caseVariantFolders, id: \.self) {
+                                        Text(verbatim: $0 + "/")
+                                    }
+                                }
+                                Text(
+                                    "Bu klasör adları tam olarak journal, people, places, goals, notes veya templates olmalı. Obsidian'da yeniden adlandır; aksi halde o klasöre yazma reddedilir."
+                                )
+                                .font(.ink.meta)
+                                .foregroundStyle(Color.ink.secondaryText)
+                            }
+                            .padding(.horizontal, InkSpacing.cardPadding)
+                            .padding(.vertical, 10)
+                        }
+                        if !model.report.externalDays.isEmpty {
+                            InkCardDivider()
+                            VStack(alignment: .leading, spacing: 8) {
+                                DisclosureGroup("Taşınmayacak günlükler") {
+                                    ForEach(model.report.externalDays, id: \.self) { path in
+                                        Text(verbatim: path)
+                                            .font(.ink.meta)
+                                            .lineLimit(1)
+                                            .truncationMode(.middle)
+                                            .textSelection(.enabled)
+                                    }
+                                }
+                                Text(
+                                    "Bu günlükler taşınmaz. Gün görünümünde kullanmak için Obsidian'da journal klasörüne düzenleyebilirsin."
+                                )
+                                .font(.ink.meta)
+                                .foregroundStyle(Color.ink.secondaryText)
+                            }
+                            .padding(.horizontal, InkSpacing.cardPadding)
+                            .padding(.vertical, 10)
+                        }
+                        InkCardDivider()
+                        DisclosureGroup("Türü olmayan dosyalar") {
+                            ForEach(model.report.candidates, id: \.path) { candidate in
+                                Text(verbatim: candidate.path)
+                                    .font(.ink.meta)
+                                    .lineLimit(1)
+                                    .truncationMode(.middle)
+                                    .textSelection(.enabled)
+                            }
+                        }
+                        .padding(.horizontal, InkSpacing.cardPadding)
+                        .padding(.vertical, 10)
+                        if !model.report.skipped.isEmpty {
+                            InkCardDivider()
+                            DisclosureGroup("Atlanacak dosyalar") {
+                                ForEach(model.report.skipped, id: \.self) { path in
+                                    Text(verbatim: path)
+                                        .font(.ink.meta)
+                                        .lineLimit(1)
+                                        .truncationMode(.middle)
+                                        .textSelection(.enabled)
+                                }
+                            }
+                            .padding(.horizontal, InkSpacing.cardPadding)
+                            .padding(.vertical, 10)
+                        }
                     }
                 }
                 .inkListRow()
-                if !model.report.caseVariantFolders.isEmpty {
-                    DisclosureGroup("Harf farkı olan klasörler") {
-                        ForEach(model.report.caseVariantFolders, id: \.self) { Text(verbatim: $0 + "/") }
-                    }
-                    .inkListRow()
-                    Text(
-                        "Bu klasör adları tam olarak journal, people, places, goals, notes veya templates olmalı. Obsidian'da yeniden adlandır; aksi halde o klasöre yazma reddedilir."
-                    )
-                    .font(.ink.meta)
-                    .foregroundStyle(Color.ink.secondaryText)
-                    .inkListRow()
-                }
-                if !model.report.externalDays.isEmpty {
-                    DisclosureGroup("Taşınmayacak günlükler") {
-                        ForEach(model.report.externalDays, id: \.self) { path in
-                            Text(verbatim: path)
-                                .font(.ink.meta)
-                                .lineLimit(1)
-                                .truncationMode(.middle)
-                                .textSelection(.enabled)
-                        }
-                    }
-                    .inkListRow()
-                    Text(
-                        "Bu günlükler taşınmaz. Gün görünümünde kullanmak için Obsidian'da journal klasörüne düzenleyebilirsin."
-                    )
-                    .font(.ink.meta)
-                    .foregroundStyle(Color.ink.secondaryText)
-                    .inkListRow()
-                }
-                DisclosureGroup("Türü olmayan dosyalar") {
-                    ForEach(model.report.candidates, id: \.path) { candidate in
-                        Text(verbatim: candidate.path)
-                            .font(.ink.meta)
-                            .lineLimit(1)
-                            .truncationMode(.middle)
-                            .textSelection(.enabled)
-                    }
-                }
-                .inkListRow()
-                if !model.report.skipped.isEmpty {
-                    DisclosureGroup("Atlanacak dosyalar") {
-                        ForEach(model.report.skipped, id: \.self) { path in
-                            Text(verbatim: path)
-                                .font(.ink.meta)
-                                .lineLimit(1)
-                                .truncationMode(.middle)
-                                .textSelection(.enabled)
-                        }
-                    }
-                    .inkListRow()
-                }
             }
             if model.result == nil {
                 Section {
                     SectionHeader(title: String(localized: "Hazırlama seçenekleri"))
                         .inkListRow()
-                    DisclosureGroup("Eksik klasörler ve şablonlar") {
-                        ForEach(
-                            model.report.missingFolders.map { $0 + "/" } + model.report.missingTemplates, id: \.self
-                        ) { Text(verbatim: $0) }
+                    InkCard(padded: false) {
+                        VStack(alignment: .leading, spacing: 0) {
+                            DisclosureGroup("Eksik klasörler ve şablonlar") {
+                                ForEach(
+                                    model.report.missingFolders.map { $0 + "/" }
+                                        + model.report.missingTemplates, id: \.self
+                                ) { Text(verbatim: $0) }
+                            }
+                            .padding(.horizontal, InkSpacing.cardPadding)
+                            .padding(.vertical, 10)
+                            InkCardDivider()
+                            Toggle("Eksik klasörleri ve şablonları oluştur", isOn: $model.options.folders)
+                                .frame(minHeight: InkButtonChrome.minimumHeight)
+                                .padding(.horizontal, InkSpacing.cardPadding)
+                            InkCardDivider()
+                            Toggle("Eksik kasa ayarını oluştur", isOn: $model.options.settings)
+                                .frame(minHeight: InkButtonChrome.minimumHeight)
+                                .padding(.horizontal, InkSpacing.cardPadding)
+                            InkCardDivider()
+                            Toggle("Kişi ve konum dosyalarına tür ekle", isOn: $model.options.types)
+                                .frame(minHeight: InkButtonChrome.minimumHeight)
+                                .padding(.horizontal, InkSpacing.cardPadding)
+                        }
                     }
                     .inkListRow()
-                    Toggle("Eksik klasörleri ve şablonları oluştur", isOn: $model.options.folders)
-                        .inkListRow()
-                    Toggle("Eksik kasa ayarını oluştur", isOn: $model.options.settings)
-                        .inkListRow()
-                    Toggle("Kişi ve konum dosyalarına tür ekle", isOn: $model.options.types)
-                        .inkListRow()
                     Text("Mevcut dosyalar taşınmaz; Obsidian ayarları korunur.")
                         .font(.ink.meta)
                         .foregroundStyle(Color.ink.secondaryText)
                         .inkListRow()
                     if !model.report.canPrepare {
-                        Text("Kasa sürümü okunamıyor veya desteklenmiyor. Hazırlama yapılamaz.")
-                            .font(.ink.meta)
-                            .foregroundStyle(Color.ink.secondaryText)
-                            .inkListRow()
+                        InfoBand(
+                            kind: .warning,
+                            "Kasa sürümü okunamıyor veya desteklenmiyor. Hazırlama yapılamaz."
+                        )
+                        .inkListRow()
                     }
                     // The primary action lives in the page, not in the bar: it is not a save.
                     Button("Uygula") { Task { await model.apply() } }
@@ -243,25 +286,35 @@ struct VaultImportView: View {
         Section {
             SectionHeader(title: String(localized: "Hazırlama sonucu"))
                 .inkListRow()
-            labeled("Oluşturulan öğeler", result.created.count)
-            labeled("Tür eklenen dosyalar", result.typed.count)
-            DisclosureGroup("Atlananlar") {
-                ForEach(result.skipped, id: \.self) { path in
-                    Text(verbatim: path)
-                        .font(.ink.meta)
-                        .lineLimit(1)
-                        .truncationMode(.middle)
-                        .textSelection(.enabled)
-                }
-            }
-            .inkListRow()
-            DisclosureGroup("Tamamlanamayanlar", isExpanded: $showsFailures) {
-                ForEach(result.failures, id: \.self) { path in
-                    Text(verbatim: path)
-                        .font(.ink.meta)
-                        .lineLimit(1)
-                        .truncationMode(.middle)
-                        .textSelection(.enabled)
+            InkCard(padded: false) {
+                VStack(alignment: .leading, spacing: 0) {
+                    cardLabeled("Oluşturulan öğeler", result.created.count)
+                    InkCardDivider()
+                    cardLabeled("Tür eklenen dosyalar", result.typed.count)
+                    InkCardDivider()
+                    DisclosureGroup("Atlananlar") {
+                        ForEach(result.skipped, id: \.self) { path in
+                            Text(verbatim: path)
+                                .font(.ink.meta)
+                                .lineLimit(1)
+                                .truncationMode(.middle)
+                                .textSelection(.enabled)
+                        }
+                    }
+                    .padding(.horizontal, InkSpacing.cardPadding)
+                    .padding(.vertical, 10)
+                    InkCardDivider()
+                    DisclosureGroup("Tamamlanamayanlar", isExpanded: $showsFailures) {
+                        ForEach(result.failures, id: \.self) { path in
+                            Text(verbatim: path)
+                                .font(.ink.meta)
+                                .lineLimit(1)
+                                .truncationMode(.middle)
+                                .textSelection(.enabled)
+                        }
+                    }
+                    .padding(.horizontal, InkSpacing.cardPadding)
+                    .padding(.vertical, 10)
                 }
             }
             .inkListRow()
@@ -274,12 +327,13 @@ struct VaultImportView: View {
         }
     }
 
-    private func labeled(_ title: LocalizedStringKey, _ value: Int) -> some View {
+    private func cardLabeled(_ title: LocalizedStringKey, _ value: Int) -> some View {
         LabeledContent(title) {
             Text(value, format: .number)
                 .font(.ink.value)
                 .monospacedDigit()
         }
-        .inkListRow()
+        .frame(minHeight: InkButtonChrome.minimumHeight)
+        .padding(.horizontal, InkSpacing.cardPadding)
     }
 }

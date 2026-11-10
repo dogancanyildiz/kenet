@@ -25,18 +25,6 @@ struct DiagnosticsView: View {
             Section {
                 SectionHeader("İndeks")
                     .inkListRow()
-                ViewThatFits(in: .horizontal) {
-                    HStack {
-                        rebuildButton
-                        clearHistoryButton
-                    }
-                    VStack(alignment: .leading, spacing: 8) {
-                        rebuildButton
-                        clearHistoryButton
-                    }
-                }
-                .buttonStyle(.borderless)
-                .inkListRow()
                 if store.isProcessing {
                     VaultIndexingProgress(store: store)
                         .inkListRow()
@@ -49,55 +37,98 @@ struct DiagnosticsView: View {
                     InfoBand(kind: .error, verbatim: error)
                         .inkListRow()
                 }
-                count("Dosyalar", store.counts.files)
-                count("Günler", store.counts.filesByKind["day", default: 0])
-                count("Kişiler", store.counts.filesByKind["person", default: 0])
-                count("Konumlar", store.counts.filesByKind["place", default: 0])
-                count("Hedefler", store.counts.filesByKind["goal", default: 0])
-                count("Notlar", store.counts.filesByKind["note", default: 0])
-                count("Olaylar", store.counts.events)
-                count("Görevler", store.counts.tasks)
-                count("Varlıklar", store.counts.entities)
-                count("Bağlantılar", store.counts.links)
-                count("Çözülmemiş bağlantılar", store.counts.unresolvedLinks)
-                count("Reddedilen iCloud indirme istekleri", store.sync.downloadFailures)
-                if let date = store.lastUpdated {
-                    LabeledContent("Son güncelleme") {
-                        Text(date, format: .dateTime)
-                            .font(.ink.value)
+                InkCard(padded: false) {
+                    VStack(alignment: .leading, spacing: 0) {
+                        ViewThatFits(in: .horizontal) {
+                            HStack(spacing: InkSpacing.row) {
+                                rebuildButton
+                                clearHistoryButton
+                            }
+                            VStack(alignment: .leading, spacing: 8) {
+                                rebuildButton
+                                clearHistoryButton
+                            }
+                        }
+                        .buttonStyle(.borderless)
+                        .frame(maxWidth: .infinity, minHeight: InkButtonChrome.minimumHeight, alignment: .leading)
+                        .padding(.horizontal, InkSpacing.cardPadding)
+                        InkCardDivider()
+                        countRow("Dosyalar", store.counts.files)
+                        InkCardDivider()
+                        countRow("Günler", store.counts.filesByKind["day", default: 0])
+                        InkCardDivider()
+                        countRow("Kişiler", store.counts.filesByKind["person", default: 0])
+                        InkCardDivider()
+                        countRow("Konumlar", store.counts.filesByKind["place", default: 0])
+                        InkCardDivider()
+                        countRow("Hedefler", store.counts.filesByKind["goal", default: 0])
+                        InkCardDivider()
+                        countRow("Notlar", store.counts.filesByKind["note", default: 0])
+                        InkCardDivider()
+                        countRow("Olaylar", store.counts.events)
+                        InkCardDivider()
+                        countRow("Görevler", store.counts.tasks)
+                        InkCardDivider()
+                        countRow("Varlıklar", store.counts.entities)
+                        InkCardDivider()
+                        countRow("Bağlantılar", store.counts.links)
+                        InkCardDivider()
+                        countRow("Çözülmemiş bağlantılar", store.counts.unresolvedLinks)
+                        InkCardDivider()
+                        countRow("Reddedilen iCloud indirme istekleri", store.sync.downloadFailures)
+                        if let date = store.lastUpdated {
+                            InkCardDivider()
+                            LabeledContent("Son güncelleme") {
+                                Text(date, format: .dateTime)
+                                    .font(.ink.value)
+                            }
+                            .frame(minHeight: InkButtonChrome.minimumHeight)
+                            .padding(.horizontal, InkSpacing.cardPadding)
+                        }
                     }
-                    .inkListRow()
                 }
+                .inkListRow()
             }
             Section {
                 SectionHeader("Atlanan yollar")
                     .inkListRow()
-                if store.skippedPaths.isEmpty {
-                    Text("Atlanan yol yok.")
-                        .font(.ink.meta)
-                        .foregroundStyle(Color.ink.secondaryText)
-                        .inkListRow()
-                }
-                ForEach(store.skippedPaths, id: \.path) { skipped in
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(verbatim: skipped.path)
-                            .font(.ink.meta)
-                            .foregroundStyle(Color.ink.text)
-                            .lineLimit(2)
-                            .truncationMode(.middle)
-                            .textSelection(.enabled)
-                        if skipped.reason == .symbolicLink {
-                            Text("Sembolik bağlantı")
+                InkCard(padded: false) {
+                    VStack(alignment: .leading, spacing: 0) {
+                        if store.skippedPaths.isEmpty {
+                            Text("Atlanan yol yok.")
                                 .font(.ink.meta)
                                 .foregroundStyle(Color.ink.secondaryText)
-                        } else {
-                            Text("Yinelenen normalleştirilmiş yol")
-                                .font(.ink.meta)
-                                .foregroundStyle(Color.ink.secondaryText)
+                                .frame(
+                                    maxWidth: .infinity, minHeight: InkButtonChrome.minimumHeight, alignment: .leading
+                                )
+                                .padding(.horizontal, InkSpacing.cardPadding)
+                        }
+                        ForEach(Array(store.skippedPaths.enumerated()), id: \.element.path) { index, skipped in
+                            if index > 0 { InkCardDivider() }
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(verbatim: skipped.path)
+                                    .font(.ink.meta)
+                                    .foregroundStyle(Color.ink.text)
+                                    .lineLimit(2)
+                                    .truncationMode(.middle)
+                                    .textSelection(.enabled)
+                                if skipped.reason == .symbolicLink {
+                                    Text("Sembolik bağlantı")
+                                        .font(.ink.meta)
+                                        .foregroundStyle(Color.ink.secondaryText)
+                                } else {
+                                    Text("Yinelenen normalleştirilmiş yol")
+                                        .font(.ink.meta)
+                                        .foregroundStyle(Color.ink.secondaryText)
+                                }
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal, InkSpacing.cardPadding)
+                            .padding(.vertical, 10)
                         }
                     }
-                    .inkListRow()
                 }
+                .inkListRow()
             }
             CopyFilesSection(copies: copies)
             ConflictedFilesSection(files: conflictedFiles)
@@ -149,18 +180,23 @@ struct DiagnosticsView: View {
     }
 
     @ViewBuilder private var licensesLink: some View {
-        #if os(macOS)
-            Button("Üçüncü taraf lisansları", action: openLicenses)
-                .buttonStyle(.borderless)
+        InkCard(padded: false) {
+            #if os(macOS)
+                Button("Üçüncü taraf lisansları", action: openLicenses)
+                    .buttonStyle(.borderless)
+                    .frame(maxWidth: .infinity, minHeight: InkButtonChrome.minimumHeight, alignment: .leading)
+                    .padding(.horizontal, InkSpacing.cardPadding)
+                    .accessibilityIdentifier("button.settings.diagnostics.licenses")
+            #else
+                NavigationLink("Üçüncü taraf lisansları") {
+                    ThirdPartyLicensesView()
+                }
+                .frame(minHeight: InkButtonChrome.minimumHeight)
+                .padding(.horizontal, InkSpacing.cardPadding)
                 .accessibilityIdentifier("button.settings.diagnostics.licenses")
-                .inkListRow()
-        #else
-            NavigationLink("Üçüncü taraf lisansları") {
-                ThirdPartyLicensesView()
-            }
-            .accessibilityIdentifier("button.settings.diagnostics.licenses")
-            .inkListRow()
-        #endif
+            #endif
+        }
+        .inkListRow()
     }
 
     private var clearHistoryButton: some View {
@@ -170,13 +206,14 @@ struct DiagnosticsView: View {
         .disabled(store.vaultURL == nil)
     }
 
-    private func count(_ label: LocalizedStringKey, _ value: Int) -> some View {
+    private func countRow(_ label: LocalizedStringKey, _ value: Int) -> some View {
         LabeledContent(label) {
             Text(value, format: .number)
                 .font(.ink.value)
                 .monospacedDigit()
         }
-        .inkListRow()
+        .frame(minHeight: InkButtonChrome.minimumHeight)
+        .padding(.horizontal, InkSpacing.cardPadding)
     }
 }
 
@@ -190,23 +227,31 @@ struct CopyFilesSection: View {
             Section {
                 SectionHeader("Kopya dosyalar")
                     .inkListRow()
-                ForEach(copies, id: \.copy) { copy in
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(verbatim: copy.copy)
-                            .font(.ink.meta)
-                            .foregroundStyle(Color.ink.text)
-                            .lineLimit(2)
-                            .truncationMode(.middle)
-                            .textSelection(.enabled)
-                        Text("Özgün dosya: \(copy.original)")
-                            .font(.ink.meta)
-                            .foregroundStyle(Color.ink.secondaryText)
-                            .lineLimit(2)
-                            .truncationMode(.middle)
+                InkCard(padded: false) {
+                    VStack(alignment: .leading, spacing: 0) {
+                        ForEach(Array(copies.enumerated()), id: \.element.copy) { index, copy in
+                            if index > 0 { InkCardDivider() }
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(verbatim: copy.copy)
+                                    .font(.ink.meta)
+                                    .foregroundStyle(Color.ink.text)
+                                    .lineLimit(2)
+                                    .truncationMode(.middle)
+                                    .textSelection(.enabled)
+                                Text("Özgün dosya: \(copy.original)")
+                                    .font(.ink.meta)
+                                    .foregroundStyle(Color.ink.secondaryText)
+                                    .lineLimit(2)
+                                    .truncationMode(.middle)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal, InkSpacing.cardPadding)
+                            .padding(.vertical, 10)
+                            .accessibilityElement(children: .combine)
+                        }
                     }
-                    .accessibilityElement(children: .combine)
-                    .inkListRow()
                 }
+                .inkListRow()
             }
         }
     }
@@ -229,27 +274,35 @@ struct ConflictedFilesSection: View {
             Section {
                 SectionHeader("Çakışan sürümler")
                     .inkListRow()
-                ForEach(files, id: \.path) { file in
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(verbatim: file.path)
-                            .font(.ink.meta)
-                            .foregroundStyle(Color.ink.text)
-                            .lineLimit(2)
-                            .truncationMode(.middle)
-                            .textSelection(.enabled)
-                        summary(file)
-                            .font(.ink.meta)
-                            .foregroundStyle(Color.ink.secondaryText)
-                        if let devices = Self.deviceNames(file) {
-                            Text(verbatim: devices)
-                                .font(.ink.meta)
-                                .foregroundStyle(Color.ink.secondaryText)
-                                .lineLimit(2)
+                InkCard(padded: false) {
+                    VStack(alignment: .leading, spacing: 0) {
+                        ForEach(Array(files.enumerated()), id: \.element.path) { index, file in
+                            if index > 0 { InkCardDivider() }
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(verbatim: file.path)
+                                    .font(.ink.meta)
+                                    .foregroundStyle(Color.ink.text)
+                                    .lineLimit(2)
+                                    .truncationMode(.middle)
+                                    .textSelection(.enabled)
+                                summary(file)
+                                    .font(.ink.meta)
+                                    .foregroundStyle(Color.ink.secondaryText)
+                                if let devices = Self.deviceNames(file) {
+                                    Text(verbatim: devices)
+                                        .font(.ink.meta)
+                                        .foregroundStyle(Color.ink.secondaryText)
+                                        .lineLimit(2)
+                                }
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal, InkSpacing.cardPadding)
+                            .padding(.vertical, 10)
+                            .accessibilityElement(children: .combine)
                         }
                     }
-                    .accessibilityElement(children: .combine)
-                    .inkListRow()
                 }
+                .inkListRow()
                 Text("Kenet sürümleri birleştirmez ve silmez.")
                     .font(.ink.meta)
                     .foregroundStyle(Color.ink.secondaryText)
@@ -287,23 +340,31 @@ struct ConflictCopiesSection: View {
             Section {
                 SectionHeader("Çakışma kopyaları")
                     .inkListRow()
-                ForEach(copies, id: \.copy) { copy in
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(verbatim: copy.copy)
-                            .font(.ink.meta)
-                            .foregroundStyle(Color.ink.text)
-                            .lineLimit(2)
-                            .truncationMode(.middle)
-                            .textSelection(.enabled)
-                        Text("Gün dosyası: \(copy.original)")
-                            .font(.ink.meta)
-                            .foregroundStyle(Color.ink.secondaryText)
-                            .lineLimit(2)
-                            .truncationMode(.middle)
+                InkCard(padded: false) {
+                    VStack(alignment: .leading, spacing: 0) {
+                        ForEach(Array(copies.enumerated()), id: \.element.copy) { index, copy in
+                            if index > 0 { InkCardDivider() }
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(verbatim: copy.copy)
+                                    .font(.ink.meta)
+                                    .foregroundStyle(Color.ink.text)
+                                    .lineLimit(2)
+                                    .truncationMode(.middle)
+                                    .textSelection(.enabled)
+                                Text("Gün dosyası: \(copy.original)")
+                                    .font(.ink.meta)
+                                    .foregroundStyle(Color.ink.secondaryText)
+                                    .lineLimit(2)
+                                    .truncationMode(.middle)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal, InkSpacing.cardPadding)
+                            .padding(.vertical, 10)
+                            .accessibilityElement(children: .combine)
+                        }
                     }
-                    .accessibilityElement(children: .combine)
-                    .inkListRow()
                 }
+                .inkListRow()
             }
         }
     }

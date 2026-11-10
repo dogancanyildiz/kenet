@@ -39,7 +39,8 @@ private struct ShareRootView: View {
 
     var body: some View {
         ShareFormView(
-            text: $model.text, isSaving: model.isSaving, failed: model.failed, onCancel: model.cancel,
+            text: $model.text, kind: $model.kind, time: $model.time, isTimed: $model.isTimed,
+            isSaving: model.isSaving, failed: model.failed, onCancel: model.cancel,
             onConfirm: model.confirm)
     }
 }

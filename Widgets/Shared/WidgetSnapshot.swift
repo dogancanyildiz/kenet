@@ -90,6 +90,9 @@ struct WidgetSnapshot: Codable, Equatable, Sendable {
         var goals: [Goal]
         var events: [Event]? = nil
         var openTaskCount: Int? = nil
+
+        var longestStreak: Int { WidgetSnapshot.longestStreak(in: goals) }
+        var featuredChainGoal: Goal? { WidgetSnapshot.featuredChainGoal(in: goals) }
     }
 
     struct Event: Codable, Equatable, Sendable {
@@ -127,6 +130,21 @@ struct WidgetSnapshot: Codable, Equatable, Sendable {
     /// Open goals first, then done ones; each group by name, as the Today strip orders a day.
     static func ordered(_ goals: [Goal]) -> [Goal] {
         goals.sorted {
+            if $0.isPending != $1.isPending { return $0.isPending }
+            return $0.name.localizedStandardCompare($1.name) == .orderedAscending
+        }
+    }
+
+    /// The longest active chain among `goals` (0 when none has a positive streak).
+    static func longestStreak(in goals: [Goal]) -> Int {
+        max(0, goals.map(\.streak).max() ?? 0)
+    }
+
+    /// The goal whose chain leads the widget badge: highest `streak` (> 0), breaking ties with
+    /// pending goals first and then localized name order.
+    static func featuredChainGoal(in goals: [Goal]) -> Goal? {
+        goals.filter { $0.streak > 0 }.min {
+            if $0.streak != $1.streak { return $0.streak > $1.streak }
             if $0.isPending != $1.isPending { return $0.isPending }
             return $0.name.localizedStandardCompare($1.name) == .orderedAscending
         }

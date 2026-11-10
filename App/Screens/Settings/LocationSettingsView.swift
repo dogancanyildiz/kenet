@@ -25,30 +25,40 @@ struct LocationSettingsView: View {
                             Text("Konum izni henüz verilmedi.")
                                 .font(.ink.meta)
                                 .foregroundStyle(Color.ink.secondaryText)
-                                .frame(maxWidth: .infinity, minHeight: InkButtonChrome.minimumHeight, alignment: .leading)
+                                .frame(
+                                    maxWidth: .infinity, minHeight: InkButtonChrome.minimumHeight, alignment: .leading
+                                )
                                 .padding(.horizontal, InkSpacing.cardPadding)
                             InkCardDivider()
                             Button("Konum önerileri için izin ver") { location.requestAccess() }
                                 .disabled(location.isRequesting)
-                                .frame(maxWidth: .infinity, minHeight: InkButtonChrome.minimumHeight, alignment: .leading)
+                                .frame(
+                                    maxWidth: .infinity, minHeight: InkButtonChrome.minimumHeight, alignment: .leading
+                                )
                                 .padding(.horizontal, InkSpacing.cardPadding)
                         case .authorized, .always:
                             Text("Konum erişimine izin verildi.")
                                 .font(.ink.meta)
                                 .foregroundStyle(Color.ink.text)
-                                .frame(maxWidth: .infinity, minHeight: InkButtonChrome.minimumHeight, alignment: .leading)
+                                .frame(
+                                    maxWidth: .infinity, minHeight: InkButtonChrome.minimumHeight, alignment: .leading
+                                )
                                 .padding(.horizontal, InkSpacing.cardPadding)
                         case .denied:
                             Text("Konum erişimi reddedildi.")
                                 .font(.ink.meta)
                                 .foregroundStyle(Color.ink.secondaryText)
-                                .frame(maxWidth: .infinity, minHeight: InkButtonChrome.minimumHeight, alignment: .leading)
+                                .frame(
+                                    maxWidth: .infinity, minHeight: InkButtonChrome.minimumHeight, alignment: .leading
+                                )
                                 .padding(.horizontal, InkSpacing.cardPadding)
                         case .restricted:
                             Text("Konum erişimi bu cihazda kısıtlanmış.")
                                 .font(.ink.meta)
                                 .foregroundStyle(Color.ink.secondaryText)
-                                .frame(maxWidth: .infinity, minHeight: InkButtonChrome.minimumHeight, alignment: .leading)
+                                .frame(
+                                    maxWidth: .infinity, minHeight: InkButtonChrome.minimumHeight, alignment: .leading
+                                )
                                 .padding(.horizontal, InkSpacing.cardPadding)
                         }
                         InkCardDivider()
@@ -57,8 +67,9 @@ struct LocationSettingsView: View {
                                 if let url = URL(string: UIApplication.openSettingsURLString) { openURL(url) }
                             #else
                                 if let url = URL(
-                                    string: "x-apple.systempreferences:com.apple.preference.security?Privacy_LocationServices")
-                                {
+                                    string:
+                                        "x-apple.systempreferences:com.apple.preference.security?Privacy_LocationServices"
+                                ) {
                                     openURL(url)
                                 }
                             #endif

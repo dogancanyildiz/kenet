@@ -47,7 +47,9 @@ struct VaultSettingsView: View {
                             Button("iCloud’a taşı") { store.requestCloudMigration() }
                                 .buttonStyle(.borderless)
                                 .disabled(store.isProcessing || store.isMigratingCloud)
-                                .frame(maxWidth: .infinity, minHeight: InkButtonChrome.minimumHeight, alignment: .leading)
+                                .frame(
+                                    maxWidth: .infinity, minHeight: InkButtonChrome.minimumHeight, alignment: .leading
+                                )
                                 .padding(.horizontal, InkSpacing.cardPadding)
                         }
                         if let path = VaultPathDisplay.text(
@@ -61,7 +63,9 @@ struct VaultSettingsView: View {
                                 .truncationMode(.middle)
                                 .textSelection(.enabled)
                                 .accessibilityLabel(Text(verbatim: path))
-                                .frame(maxWidth: .infinity, minHeight: InkButtonChrome.minimumHeight, alignment: .leading)
+                                .frame(
+                                    maxWidth: .infinity, minHeight: InkButtonChrome.minimumHeight, alignment: .leading
+                                )
                                 .padding(.horizontal, InkSpacing.cardPadding)
                             #if os(macOS)
                                 if let url = store.vaultURL {
@@ -70,7 +74,10 @@ struct VaultSettingsView: View {
                                         NSWorkspace.shared.activateFileViewerSelecting([url])
                                     }
                                     .buttonStyle(.borderless)
-                                    .frame(maxWidth: .infinity, minHeight: InkButtonChrome.minimumHeight, alignment: .leading)
+                                    .frame(
+                                        maxWidth: .infinity, minHeight: InkButtonChrome.minimumHeight,
+                                        alignment: .leading
+                                    )
                                     .padding(.horizontal, InkSpacing.cardPadding)
                                 }
                             #endif
@@ -103,7 +110,10 @@ struct VaultSettingsView: View {
                             #if os(macOS)
                                 Button("Kasa hazırlığı") { openSubpage(.vaultImport) }
                                     .buttonStyle(.borderless)
-                                    .frame(maxWidth: .infinity, minHeight: InkButtonChrome.minimumHeight, alignment: .leading)
+                                    .frame(
+                                        maxWidth: .infinity, minHeight: InkButtonChrome.minimumHeight,
+                                        alignment: .leading
+                                    )
                                     .padding(.horizontal, InkSpacing.cardPadding)
                             #else
                                 NavigationLink("Kasa hazırlığı") {

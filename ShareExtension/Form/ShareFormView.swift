@@ -97,8 +97,8 @@
                             )
                         }
                         Text(explanation)
-                        .font(.ink.meta)
-                        .foregroundStyle(.ink.secondaryText)
+                            .font(.ink.meta)
+                            .foregroundStyle(.ink.secondaryText)
                         if !text.allSatisfy(\.isWhitespace) && !canWrite {
                             Text(
                                 kind.wrappedValue == .event

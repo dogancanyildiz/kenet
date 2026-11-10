@@ -13,11 +13,15 @@
                             Text("Her zaman konum izni verildi.")
                                 .font(.ink.meta)
                                 .foregroundStyle(Color.ink.text)
-                                .frame(maxWidth: .infinity, minHeight: InkButtonChrome.minimumHeight, alignment: .leading)
+                                .frame(
+                                    maxWidth: .infinity, minHeight: InkButtonChrome.minimumHeight, alignment: .leading
+                                )
                                 .padding(.horizontal, InkSpacing.cardPadding)
                         } else {
                             Button("Her zaman konum izni ver") { geofences.requestAlwaysAccess() }
-                                .frame(maxWidth: .infinity, minHeight: InkButtonChrome.minimumHeight, alignment: .leading)
+                                .frame(
+                                    maxWidth: .infinity, minHeight: InkButtonChrome.minimumHeight, alignment: .leading
+                                )
                                 .padding(.horizontal, InkSpacing.cardPadding)
                         }
                         if geofences.targets.isEmpty {
@@ -25,7 +29,9 @@
                             Text("Konum bağlantısı olan uygun hedef yok.")
                                 .font(.ink.meta)
                                 .foregroundStyle(Color.ink.secondaryText)
-                                .frame(maxWidth: .infinity, minHeight: InkButtonChrome.minimumHeight, alignment: .leading)
+                                .frame(
+                                    maxWidth: .infinity, minHeight: InkButtonChrome.minimumHeight, alignment: .leading
+                                )
                                 .padding(.horizontal, InkSpacing.cardPadding)
                         }
                         ForEach(geofences.targets) { target in
@@ -77,7 +83,9 @@
                             Text("İzlenen bölge yok.")
                                 .font(.ink.meta)
                                 .foregroundStyle(Color.ink.secondaryText)
-                                .frame(maxWidth: .infinity, minHeight: InkButtonChrome.minimumHeight, alignment: .leading)
+                                .frame(
+                                    maxWidth: .infinity, minHeight: InkButtonChrome.minimumHeight, alignment: .leading
+                                )
                                 .padding(.horizontal, InkSpacing.cardPadding)
                         }
                         ForEach(Array(geofences.regions.enumerated()), id: \.element.id) { index, target in

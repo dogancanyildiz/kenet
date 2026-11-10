@@ -27,7 +27,9 @@ struct EntityTypesSettingsView: View {
                         ForEach(Array(builtIn.enumerated()), id: \.element.id) { index, type in
                             if index > 0 { InkCardDivider() }
                             Label(type.plural, systemImage: type.definition.icon)
-                                .frame(maxWidth: .infinity, minHeight: InkButtonChrome.minimumHeight, alignment: .leading)
+                                .frame(
+                                    maxWidth: .infinity, minHeight: InkButtonChrome.minimumHeight, alignment: .leading
+                                )
                                 .padding(.horizontal, InkSpacing.cardPadding)
                         }
                     }
@@ -43,7 +45,9 @@ struct EntityTypesSettingsView: View {
                             Text("Henüz özel tip yok.")
                                 .font(.ink.meta)
                                 .foregroundStyle(Color.ink.secondaryText)
-                                .frame(maxWidth: .infinity, minHeight: InkButtonChrome.minimumHeight, alignment: .leading)
+                                .frame(
+                                    maxWidth: .infinity, minHeight: InkButtonChrome.minimumHeight, alignment: .leading
+                                )
                                 .padding(.horizontal, InkSpacing.cardPadding)
                         }
                         ForEach(Array(store.entityTypes.types.enumerated()), id: \.element.id) {

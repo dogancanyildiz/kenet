@@ -29,12 +29,14 @@ struct CalendarSettingsView: View {
                             .frame(maxWidth: .infinity, minHeight: InkButtonChrome.minimumHeight, alignment: .leading)
                             .padding(.horizontal, InkSpacing.cardPadding)
                     case .denied:
-                        Text("Takvim erişimi reddedildi. Etkinlikleri göstermek için sistem ayarlarından izin verebilirsin.")
-                            .font(.ink.meta)
-                            .foregroundStyle(Color.ink.secondaryText)
-                            .frame(maxWidth: .infinity, minHeight: InkButtonChrome.minimumHeight, alignment: .leading)
-                            .padding(.horizontal, InkSpacing.cardPadding)
-                            .padding(.vertical, 8)
+                        Text(
+                            "Takvim erişimi reddedildi. Etkinlikleri göstermek için sistem ayarlarından izin verebilirsin."
+                        )
+                        .font(.ink.meta)
+                        .foregroundStyle(Color.ink.secondaryText)
+                        .frame(maxWidth: .infinity, minHeight: InkButtonChrome.minimumHeight, alignment: .leading)
+                        .padding(.horizontal, InkSpacing.cardPadding)
+                        .padding(.vertical, 8)
                     case .restricted:
                         Text("Takvim erişimi bu cihazda kısıtlanmış.")
                             .font(.ink.meta)

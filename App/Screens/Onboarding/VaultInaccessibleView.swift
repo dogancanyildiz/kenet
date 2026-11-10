@@ -23,10 +23,12 @@ struct VaultInaccessibleView: View {
                 } else if store.vaultKind == .icloud {
                     InfoBand(kind: .warning, "iCloud kapalı")
                     InkCard {
-                        Text("iCloud’a erişilemiyor. Hesabını ve iCloud Drive’ı kontrol edip yeniden dene. Kasan korunur.")
-                            .font(.ink.byline)
-                            .foregroundStyle(Color.ink.text)
-                            .frame(maxWidth: .infinity, alignment: .leading)
+                        Text(
+                            "iCloud’a erişilemiyor. Hesabını ve iCloud Drive’ı kontrol edip yeniden dene. Kasan korunur."
+                        )
+                        .font(.ink.byline)
+                        .foregroundStyle(Color.ink.text)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     }
                 } else {
                     InfoBand(kind: .warning, "Kayıtlı klasöre erişilemiyor.")

@@ -22,10 +22,12 @@ struct VaultCloudMigrationView: View {
             VStack(alignment: .leading, spacing: InkSpacing.row) {
                 PageHeadline("Kasayı iCloud’a taşı?")
                 InkCard {
-                    Text("Kasan iCloud’a kopyalanır; bu cihazdaki dosyalar korunur. iPhone ve Mac aynı klasörü paylaşır.")
-                        .font(.ink.byline)
-                        .foregroundStyle(Color.ink.text)
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                    Text(
+                        "Kasan iCloud’a kopyalanır; bu cihazdaki dosyalar korunur. iPhone ve Mac aynı klasörü paylaşır."
+                    )
+                    .font(.ink.byline)
+                    .foregroundStyle(Color.ink.text)
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 InfoBand(
                     kind: .info,

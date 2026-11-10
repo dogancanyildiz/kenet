@@ -114,7 +114,9 @@ struct NotificationSettingsView: View {
                             Text("Planlanan bildirim yok.")
                                 .font(.ink.meta)
                                 .foregroundStyle(Color.ink.secondaryText)
-                                .frame(maxWidth: .infinity, minHeight: InkButtonChrome.minimumHeight, alignment: .leading)
+                                .frame(
+                                    maxWidth: .infinity, minHeight: InkButtonChrome.minimumHeight, alignment: .leading
+                                )
                                 .padding(.horizontal, InkSpacing.cardPadding)
                         }
                         ForEach(service.pending) { request in

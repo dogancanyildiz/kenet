@@ -98,7 +98,9 @@ struct DiagnosticsView: View {
                             Text("Atlanan yol yok.")
                                 .font(.ink.meta)
                                 .foregroundStyle(Color.ink.secondaryText)
-                                .frame(maxWidth: .infinity, minHeight: InkButtonChrome.minimumHeight, alignment: .leading)
+                                .frame(
+                                    maxWidth: .infinity, minHeight: InkButtonChrome.minimumHeight, alignment: .leading
+                                )
                                 .padding(.horizontal, InkSpacing.cardPadding)
                         }
                         ForEach(Array(store.skippedPaths.enumerated()), id: \.element.path) { index, skipped in

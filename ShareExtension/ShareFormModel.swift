@@ -1,9 +1,12 @@
 import Foundation
 import Observation
 
-/// The form's state in the extension: the text, a write in flight, a failed write.
+/// The form's state in the extension: the text, kind, time, a write in flight, a failed write.
 @MainActor @Observable final class ShareFormModel {
     var text = ""
+    var kind: ShareEntryKind = .event
+    var time = Date()
+    var isTimed = true
     private(set) var isSaving = false
     private(set) var failed = false
     @ObservationIgnored private let writer: ShareEntryWriter
@@ -25,7 +28,9 @@ import Observation
     /// once either is saved, and stays open with an error when neither could be.
     func confirm() {
         guard !isSaving else { return }
-        let entry = ShareEntry(text: EntryWriting.singleLine(text), at: Date())
+        let entry = ShareEntry(
+            text: EntryWriting.singleLine(text), kind: kind,
+            time: isTimed ? time : nil, sharedAt: Date())
         guard entry.isWritable else { return }
         isSaving = true
         failed = false

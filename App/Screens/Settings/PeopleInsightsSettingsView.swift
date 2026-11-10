@@ -6,12 +6,16 @@ struct PeopleInsightsSettingsView: View {
         Section {
             SectionHeader("Kişi hatırlatmaları")
                 .inkListRow()
-            Stepper(value: threshold, in: 1...365) {
-                LabeledContent("Görüşülmeyenler eşiği") {
-                    Text("\(threshold.wrappedValue) gün")
-                        .font(.ink.value)
-                        .monospacedDigit()
+            InkCard(padded: false) {
+                Stepper(value: threshold, in: 1...365) {
+                    LabeledContent("Görüşülmeyenler eşiği") {
+                        Text("\(threshold.wrappedValue) gün")
+                            .font(.ink.value)
+                            .monospacedDigit()
+                    }
                 }
+                .frame(minHeight: InkButtonChrome.minimumHeight)
+                .padding(.horizontal, InkSpacing.cardPadding)
             }
             .inkListRow()
             Text("Bu süre, kişiler listesindeki hatırlatma bölümünü belirler.")

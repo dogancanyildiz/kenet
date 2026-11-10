@@ -7,9 +7,9 @@ enum GoalChainLayout: Sendable {
     case small, medium
 }
 
-/// The home-screen chain widget: the day's daily goals, open ones first and in full ink, done
-/// ones receded with a filled ring (Mürekkep rule 6), each with its chain and chain-day badge.
-/// The background is the widget's container; this view draws only the content.
+/// The home-screen chain widget: the day's daily goals on a `surface` card background (no glow),
+/// open ones first with an accent ring, done ones receded with a filled secondary circle and
+/// checkmark, and a "Zincir N gün" badge. The Mac desktop widget is a later wave (screens.md).
 ///
 /// At accessibility text sizes the small widget shows only the first goal, large, and the medium
 /// one two rows without the badge (VoiceOver still reads it). Text stops growing at AX3: past it
@@ -43,28 +43,44 @@ struct GoalChainWidgetView: View {
             } else if layout == .small, isLarge, let first = day.goals.first {
                 GoalChainFocus(goal: first)
             } else {
-                list(day.goals)
+                list(day)
             }
         } else {
             message("Hedeflerini görmek için Kenet'i aç.")
         }
     }
 
+    /// At most three goals (screens.md, "Zincir widget'ı"); two at accessibility sizes, where
+    /// the small widget shows only the first one (`GoalChainFocus`).
     private var rowLimit: Int { isLarge ? 2 : 3 }
 
-    private func list(_ goals: [WidgetSnapshot.Goal]) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            header(done: goals.filter { !$0.isPending }.count, total: goals.count)
+    private func list(_ day: WidgetSnapshot.Day) -> some View {
+        let goals = day.goals
+        let longest = day.longestStreak
+        return VStack(alignment: .leading, spacing: 4) {
+            header(
+                done: goals.filter { !$0.isPending }.count,
+                total: goals.count,
+                streakBadge: layout == .medium && !isLarge ? longest : 0
+            )
             ForEach(goals.prefix(rowLimit)) { goal in
-                if let intent = intent?(goal) {
-                    button(intent, goal: goal)
-                } else if let link {
-                    Link(destination: link(goal)) { row(goal) }
-                } else {
-                    row(goal)
-                }
+                goalRowView(goal)
             }
             Spacer(minLength: 0)
+            if layout == .small, !isLarge, longest > 0 {
+                WidgetStreakBadge(streak: longest)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func goalRowView(_ goal: WidgetSnapshot.Goal) -> some View {
+        if let intent = intent?(goal) {
+            button(intent, goal: goal)
+        } else if let link {
+            Link(destination: link(goal)) { row(goal) }
+        } else {
+            row(goal)
         }
     }
 
@@ -74,15 +90,22 @@ struct GoalChainWidgetView: View {
     }
 
     private func row(_ goal: WidgetSnapshot.Goal) -> some View {
-        GoalChainRow(goal: goal, details: layout == .medium && !isLarge, spaced: !isLarge)
+        GoalChainRow(
+            goal: goal,
+            details: layout == .medium && !isLarge,
+            spaced: !isLarge && layout != .small
+        )
     }
 
-    private func header(done: Int, total: Int) -> some View {
-        HStack(alignment: .firstTextBaseline) {
+    private func header(done: Int, total: Int, streakBadge: Int) -> some View {
+        HStack(alignment: .center, spacing: 6) {
             Text("Hedefler")
                 .font(WidgetTheme.section)
                 .foregroundStyle(WidgetTheme.text)
             Spacer(minLength: 4)
+            if streakBadge > 0 {
+                WidgetStreakBadge(streak: streakBadge)
+            }
             Text(verbatim: "\(done)/\(total)")
                 .font(WidgetTheme.meta)
                 .foregroundStyle(WidgetTheme.secondaryText)
@@ -192,16 +215,21 @@ enum GoalChainAccessibility {
 }
 
 /// The goal ring of the app (`GoalRing`), drawn small: an empty accent outline for an open goal,
-/// an accent arc for a number goal on its way, a filled secondary disc once done.
+/// an accent arc for a number goal on its way, a filled secondary disc with a checkmark once done.
 struct WidgetGoalRing: View {
     let goal: WidgetSnapshot.Goal
     @ScaledMetric(relativeTo: .subheadline) private var side: CGFloat = 16
 
     var body: some View {
         ZStack {
-            Circle().strokeBorder(goal.isPending ? WidgetTheme.accent : WidgetTheme.control, lineWidth: 1.5)
+            Circle().strokeBorder(
+                goal.isPending ? WidgetTheme.accent : WidgetTheme.secondaryText, lineWidth: 1.5)
             if !goal.isPending {
                 Circle().fill(WidgetTheme.secondaryText)
+                // Half the ring: the mark grows with the ring's scaled side.
+                Image(systemName: "checkmark")
+                    .font(.system(size: side / 2, weight: .bold))
+                    .foregroundStyle(WidgetTheme.surface)
             } else if goal.kind == .number, goal.fraction > 0 {
                 Circle()
                     .trim(from: 0, to: goal.fraction)
@@ -212,6 +240,23 @@ struct WidgetGoalRing: View {
         }
         .frame(width: side, height: side)
         .accessibilityHidden(true)
+    }
+}
+
+/// "Zincir N gün" badge on the home-screen chain widget.
+struct WidgetStreakBadge: View {
+    let streak: Int
+
+    var body: some View {
+        Text("Zincir \(streak) gün")
+            .font(WidgetTheme.caption.weight(.semibold))
+            .foregroundStyle(WidgetTheme.accent)
+            .padding(.horizontal, 7)
+            .padding(.vertical, 2)
+            .background(WidgetTheme.accentSoft, in: Capsule())
+            .lineLimit(1)
+            .fixedSize()
+            .accessibilityHidden(true)
     }
 }
 

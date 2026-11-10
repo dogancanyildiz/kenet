@@ -131,33 +131,48 @@ struct EntryPointSections: View {
         Section {
             SectionHeader("Siri cümleleri")
                 .inkListRow()
-            Text("Bu cümleler Siri'ye söylenir.")
-                .font(.ink.meta)
-                .foregroundStyle(Color.ink.secondaryText)
-                .inkListRow()
-            ForEach(phrases, id: \.self) { phrase in
-                Text(verbatim: phrase)
-                    .foregroundStyle(Color.ink.text)
-                    .textSelection(.enabled)
-                    .inkListRow()
+            InkCard(padded: false) {
+                VStack(alignment: .leading, spacing: 0) {
+                    Text("Bu cümleler Siri'ye söylenir.")
+                        .font(.ink.meta)
+                        .foregroundStyle(Color.ink.secondaryText)
+                        .padding(.horizontal, InkSpacing.cardPadding)
+                        .padding(.vertical, 10)
+                    ForEach(phrases, id: \.self) { phrase in
+                        InkCardDivider()
+                        Text(verbatim: phrase)
+                            .font(.ink.content)
+                            .foregroundStyle(Color.ink.text)
+                            .textSelection(.enabled)
+                            .frame(maxWidth: .infinity, minHeight: InkButtonChrome.minimumHeight, alignment: .leading)
+                            .padding(.horizontal, InkSpacing.cardPadding)
+                    }
+                }
             }
+            .inkListRow()
         }
         Section {
             SectionHeader("Kısayollar")
                 .inkListRow()
-            Text("Aynı cümleler Kısayollar uygulamasında da çalışır.")
-                .font(.ink.meta)
-                .foregroundStyle(Color.ink.secondaryText)
-                .inkListRow()
+            InkCard {
+                Text("Aynı cümleler Kısayollar uygulamasında da çalışır.")
+                    .font(.ink.meta)
+                    .foregroundStyle(Color.ink.secondaryText)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .inkListRow()
         }
         if idiom != .mac {
             Section {
                 SectionHeader("settings.entry.widget.title")
                     .inkListRow()
-                Text("settings.entry.widget.description")
-                    .font(.ink.meta)
-                    .foregroundStyle(Color.ink.secondaryText)
-                    .inkListRow()
+                InkCard {
+                    Text("settings.entry.widget.description")
+                        .font(.ink.meta)
+                        .foregroundStyle(Color.ink.secondaryText)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .inkListRow()
             }
             Section {
                 SectionHeader(
@@ -165,16 +180,18 @@ struct EntryPointSections: View {
                         ? "settings.entry.action.title" : "settings.entry.control.title"
                 )
                 .inkListRow()
-                Text(
-                    EntryPointPlatform.showsActionButton(idiom)
-                        ? "settings.entry.action.description" : "settings.entry.control.description"
-                )
-                .font(.ink.meta)
-                .foregroundStyle(Color.ink.secondaryText)
+                InkCard {
+                    Text(
+                        EntryPointPlatform.showsActionButton(idiom)
+                            ? "settings.entry.action.description" : "settings.entry.control.description"
+                    )
+                    .font(.ink.meta)
+                    .foregroundStyle(Color.ink.secondaryText)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
                 .inkListRow()
             }
         }
-
     }
 
     private var phrases: [String] {

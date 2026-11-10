@@ -73,7 +73,7 @@ struct GoalChainEntryView: View {
             intent: family == .systemSmall ? nil : { intent(for: $0) }
         )
         .privacySensitive()
-        .containerBackground(for: .widget) { WidgetTheme.paper }
+        .containerBackground(for: .widget) { WidgetTheme.surface }
         .widgetURL(WidgetLink.today.url)
     }
 

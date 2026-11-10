@@ -1189,6 +1189,22 @@
         }
       }
     },
+    "%lld dosya" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld files"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld dosya"
+          }
+        }
+      }
+    },
     "%lld dosya iCloud’dan iniyor." : {
       "localizations" : {
         "en" : {
@@ -4915,6 +4931,22 @@
         }
       }
     },
+    "Bu Mac" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "On My Mac"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bu Mac"
+          }
+        }
+      }
+    },
     "Bu ad ayrılmıştır." : {
       "localizations" : {
         "en" : {
@@ -5300,6 +5332,38 @@
         }
       }
     },
+    "Bu iPad" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "On My iPad"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bu iPad"
+          }
+        }
+      }
+    },
+    "Bu iPhone" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "On My iPhone"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bu iPhone"
+          }
+        }
+      }
+    },
     "Bu işlem geri alınamaz." : {
       "localizations" : {
         "en" : {
@@ -5376,6 +5440,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bu metin bölüm yapısını değiştiriyor. Başlıkları ve kod çitlerini kontrol et."
+          }
+        }
+      }
+    },
+    "Bu metin görev satırı olarak yazılamaz." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This text cannot be written as a task line."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bu metin görev satırı olarak yazılamaz."
           }
         }
       }
@@ -5605,6 +5685,22 @@
         }
       }
     },
+    "Bugün · %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Today · %@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bugün · %@"
+          }
+        }
+      }
+    },
     "Bugün · %@ kaldı" : {
       "localizations" : {
         "en" : {
@@ -5697,6 +5793,54 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bugüne git"
+          }
+        }
+      }
+    },
+    "Bugüne görev olarak eklenir." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Added to today as a task."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bugüne görev olarak eklenir."
+          }
+        }
+      }
+    },
+    "Bugüne, saatsiz eklenir." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Added to today without a time."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bugüne, saatsiz eklenir."
+          }
+        }
+      }
+    },
+    "Bugüne, seçilen saatle eklenir." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Added to today at the chosen time."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bugüne, seçilen saatle eklenir."
           }
         }
       }
@@ -5921,6 +6065,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Devam"
+          }
+        }
+      }
+    },
+    "Devam etmek için kimliğini doğrula." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Authenticate to continue."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Devam etmek için kimliğini doğrula."
           }
         }
       }
@@ -6796,6 +6956,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Eşitleme durumu: %@"
+          }
+        }
+      }
+    },
+    "Face ID ile aç" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unlock with Face ID"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Face ID ile aç"
           }
         }
       }
@@ -10173,6 +10349,38 @@
         }
       }
     },
+    "Kenet" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kenet"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kenet"
+          }
+        }
+      }
+    },
+    "Kenet kilitli" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kenet is locked"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kenet kilitli"
+          }
+        }
+      }
+    },
     "Kenet sürümleri birleştirmez ve silmez." : {
       "localizations" : {
         "en" : {
@@ -10185,6 +10393,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Kenet sürümleri birleştirmez ve silmez."
+          }
+        }
+      }
+    },
+    "Kenet'e ekle" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add to Kenet"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kenet'e ekle"
           }
         }
       }
@@ -11791,6 +12015,22 @@
         }
       }
     },
+    "Optic ID ile aç" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unlock with Optic ID"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Optic ID ile aç"
+          }
+        }
+      }
+    },
     "Orta" : {
       "localizations" : {
         "en" : {
@@ -11899,6 +12139,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Pano seçenekleri"
+          }
+        }
+      }
+    },
+    "Parola ile aç" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unlock with Passcode"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Parola ile aç"
+          }
+        }
+      }
+    },
+    "Paylaşılan" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shared"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paylaşılan"
           }
         }
       }
@@ -12263,6 +12535,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Saat"
+          }
+        }
+      }
+    },
+    "Saat, %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Time, %@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saat, %@"
+          }
+        }
+      }
+    },
+    "Saati değiştirir" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Changes the time"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saati değiştirir"
           }
         }
       }
@@ -14229,6 +14533,22 @@
         }
       }
     },
+    "Touch ID ile aç" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unlock with Touch ID"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Touch ID ile aç"
+          }
+        }
+      }
+    },
     "Tüm gün" : {
       "localizations" : {
         "en" : {
@@ -16064,6 +16384,22 @@
         }
       }
     },
+    "iCloud Drive › Kenet" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud Drive › Kenet"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud Drive › Kenet"
+          }
+        }
+      }
+    },
     "iCloud Drive’daki Kenet klasörü bulunamadı veya açılamıyor. Klasörü geri koyup yeniden dene ya da başka bir seçenek seç." : {
       "localizations" : {
         "en" : {
@@ -16188,6 +16524,70 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "iPhone ve Mac aynı klasörü paylaşır."
+          }
+        }
+      }
+    },
+    "indeks güncel" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "index up to date"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "indeks güncel"
+          }
+        }
+      }
+    },
+    "indeks hatası" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "index error"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "indeks hatası"
+          }
+        }
+      }
+    },
+    "indeksleniyor" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "indexing"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "indeksleniyor"
+          }
+        }
+      }
+    },
+    "kasa hatası" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "vault error"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "kasa hatası"
           }
         }
       }
@@ -16646,6 +17046,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "zincir %@"
+          }
+        }
+      }
+    },
+    "·" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "·"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "·"
           }
         }
       }

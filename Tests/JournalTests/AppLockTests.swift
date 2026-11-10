@@ -342,6 +342,31 @@ import Testing
         #expect(lock.isLockedNow())
         #expect(lock.shouldCover)
     }
+
+    @Test func unlockButtonTitleFollowsDeviceBiometryAndRetryState() {
+        #expect(AppLockCoverCopy.titleKey == "Kenet kilitli")
+        #expect(AppLockCoverCopy.biometryButtonTitle(.faceID) == String(localized: "Face ID ile aç"))
+        #expect(AppLockCoverCopy.biometryButtonTitle(.touchID) == String(localized: "Touch ID ile aç"))
+        #expect(AppLockCoverCopy.biometryButtonTitle(.opticID) == String(localized: "Optic ID ile aç"))
+        #expect(AppLockCoverCopy.biometryButtonTitle(.none) == String(localized: "Parola ile aç"))
+
+        #expect(
+            AppLockCoverCopy.unlockButtonTitle(biometry: .faceID, authenticationFailed: false)
+                == String(localized: "Face ID ile aç"))
+        #expect(
+            AppLockCoverCopy.unlockButtonTitle(biometry: .faceID, authenticationFailed: true)
+                == String(localized: "Tekrar dene"))
+
+        let fixture = LockFixture(enabled: true)
+        defer { fixture.clean() }
+        fixture.context.biometry = .faceID
+        let lock = fixture.lock()
+        #expect(lock.biometry == .faceID)
+        // Asked once per service: `body` reads it on every pass, and each ask builds an `LAContext`.
+        fixture.context.biometry = .touchID
+        #expect(lock.biometry == .faceID)
+        #expect(fixture.lock().biometry == .touchID)
+    }
 }
 
 @MainActor final class LockFixture {
@@ -364,6 +389,7 @@ import Testing
 
 @MainActor final class FakeAppLockContext: AppLockAuthenticating {
     enum Failure: Error { case cancelled }
+    var biometry: AppLockBiometry = .none
     var result = true
     var throwsError = false
     var paused = false

@@ -78,7 +78,7 @@ struct GraphView: View {
                                 GraphCanvas(model: model)
                                     .frame(height: canvasHeight)
                                     .frame(maxWidth: .infinity)
-                                    .background(Color.ink.paper)
+                                    .background(Color.ink.surface)
                                     .clipShape(RoundedRectangle(cornerRadius: InkCorner.card))
                             }
                             .padding(.horizontal, InkSpacing.margin)
@@ -197,31 +197,20 @@ struct GraphView: View {
         Text("Gün, o gün geçen her kayda bağlanır. Öteki çizgiler elle kurulan bağları gösterir.")
     }
 
+    /// The legend on one row, "Düğüm seç ⌄" under it (Şafak drawing).
     private var legendRow: some View {
-        Group {
+        VStack(alignment: .leading, spacing: 0) {
             if dynamicTypeSize.isAccessibilitySize {
-                VStack(alignment: .leading, spacing: 8) {
-                    legendMarks
-                    nodeMenu
-                }
+                VStack(alignment: .leading, spacing: 8) { legendMarks }
             } else {
-                // A day with a relation and a custom type is wider than an iPhone: the menu moves down.
-                ViewThatFits(in: .horizontal) {
-                    HStack(spacing: 12) {
-                        legendMarks
-                        Spacer(minLength: 0)
-                        nodeMenu
-                    }
-                    VStack(alignment: .leading, spacing: 0) {
-                        HStack(spacing: 12) { legendMarks }
-                        nodeMenu
-                    }
-                }
+                InkFlowLayout(spacing: 12, lineSpacing: 6) { legendMarks }
             }
+            nodeMenu
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .font(.ink.meta)
         .padding(.horizontal, InkSpacing.margin)
+        .padding(.top, 10)
         .padding(.vertical, Self.legendPadding)
     }
 
@@ -235,27 +224,10 @@ struct GraphView: View {
     }
 
     @ViewBuilder private var legendMarks: some View {
-        // Like custom types, the relation entry appears only when the graph draws one.
-        if model.graph.edges.contains(where: { $0.kind == .relation }) {
-            HStack(spacing: 4) {
-                // Drawn in the edge's own colour (GraphCanvas): the sample stands for the line, not a control.
-                Rectangle().fill(Color.ink.rule).frame(width: 18, height: InkStroke.highPriority)
-                    .accessibilityHidden(true)
-                Text("Bağ")
-                    .foregroundStyle(Color.ink.secondaryText)
-                    .lineLimit(1)
-                    .fixedSize(horizontal: true, vertical: false)
-            }
-            .accessibilityElement(children: .combine)
-        }
-        legendMark(kind: .person, title: "Kişiler")
-        legendMark(kind: .place, title: "Konumlar")
+        legendMark(kind: .person, title: "Kişi")
+        legendMark(kind: .place, title: "Konum")
         // Days are always drawn: the hubs every other node hangs from.
-        if day != nil {
-            legendMark(kind: .day, title: "Gün")
-        } else {
-            legendMark(kind: .day, title: "Günler")
-        }
+        legendMark(kind: .day, title: "Gün")
         let types = GraphLegend.customTypeNames(
             in: model.graph, plurals: Dictionary(customTypes.map { ($0.id, $0.plural) }) { first, _ in first })
         if !types.isEmpty {
@@ -266,6 +238,19 @@ struct GraphView: View {
                 Text(verbatim: types.joined(separator: ", "))
                     .foregroundStyle(Color.ink.secondaryText)
                     .lineLimit(1)
+            }
+            .accessibilityElement(children: .combine)
+        }
+        // Like custom types, the relation entry appears only when the graph draws one.
+        if model.graph.edges.contains(where: { $0.kind == .relation }) {
+            HStack(spacing: 4) {
+                // Drawn in the edge's own colour (GraphCanvas): the sample stands for the line, not a control.
+                Rectangle().fill(Color.ink.rule).frame(width: 18, height: InkStroke.highPriority)
+                    .accessibilityHidden(true)
+                Text("Bağ")
+                    .foregroundStyle(Color.ink.secondaryText)
+                    .lineLimit(1)
+                    .fixedSize(horizontal: true, vertical: false)
             }
             .accessibilityElement(children: .combine)
         }
@@ -303,11 +288,14 @@ struct GraphView: View {
                     }
                 }
             } label: {
-                // The 44 pt target sets the legend row's height on iPhone (no extra row padding).
-                Text("Düğüm seç")
-                    .tapTarget()
+                // The 44 pt target sets the row's height on iPhone (no extra row padding).
+                HStack(spacing: 4) {
+                    Text("Düğüm seç")
+                    Image(systemName: "chevron.down").font(.caption.weight(.semibold))
+                }
+                .tapTarget()
             }
-            .font(.ink.meta)
+            .font(.subheadline.weight(.semibold))
             .foregroundStyle(Color.ink.accent)
         #endif
     }

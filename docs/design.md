@@ -120,7 +120,7 @@ Seçim sürecinin, oylamanın ve jürinin ayrıntılı gerekçesi git geçmişin
 | Gün | Köşeli kare | İkincil metin |
 | Özel tip | Altıgen; düz kenarları üstte ve altta | Kontrol çizgisi |
 
-Özel tip yeni bir renk almaz: düğüm, özel tip bağlantısının alt çizgisiyle aynı belirteci kullanır. Kontrol çizgisi metin dışı öğedir ve 3:1 alt sınırını karşılar. Bütün özel tipler aynı biçimi ve rengi paylaşır; tipi gösterge ve seçili düğümün adı söyler. Gösterge özel tipleri tip adlarıyla tek öğede yazar: "Kitaplar, Filmler". Seçili düğüm çift halka taşır; komşusu olmayan düğümler solar. Tuval `paper` zemindedir; parıltı yoktur, çünkü düğümlerin altında renk kayması olur. Kod karşılığı: `GraphNodeShape` ve `GraphNodeStyle`.
+Özel tip yeni bir renk almaz: düğüm, özel tip bağlantısının alt çizgisiyle aynı belirteci kullanır. Kontrol çizgisi metin dışı öğedir ve 3:1 alt sınırını karşılar. Bütün özel tipler aynı biçimi ve rengi paylaşır; tipi gösterge ve seçili düğümün adı söyler. Gösterge özel tipleri tip adlarıyla tek öğede yazar: "Kitaplar, Filmler". Seçili düğüm çift halka taşır; komşusu olmayan düğümler solar. Tuval `surface` zeminli karttır; parıltı yoktur, çünkü düğümlerin altında renk kayması olur. Her varlık düğümünün altında `caption` boyutunda ikincil renkli ad durur; seçili düğümün adı metin renginde ve yarı kalındır. Kod karşılığı: `GraphNodeShape` ve `GraphNodeStyle`.
 
 ### Graph kenarları
 
@@ -129,7 +129,7 @@ Seçim sürecinin, oylamanın ve jürinin ayrıntılı gerekçesi git geçmişin
 | Gün | Saç çizgisi (`InkStroke.hairline`) |
 | Açık bağ | Düz, kalın (`InkStroke.highPriority`) |
 
-Ayrım renge dayanmaz; kalınlık anlamı taşır. Graph bir bağ çizdiğinde gösterge "Bağ" öğesini kalın düz çizgi örneğiyle gösterir, örnek çizginin kendi rengindedir (`ink.rule`); özel tip öğesi gibi, bağ yoksa öğe yoktur. Gösterge satıra sığmazsa "Düğüm seç" alt satıra iner. Açık bağ dönemden bağımsızdır, yay ağırlığı 1’dir. Birlikte geçme kenarı yoktur: iki varlık arasındaki her çizgi açık bağdır. Gösterge "Günler" öğesini her zaman gösterir.
+Ayrım renge dayanmaz; kalınlık anlamı taşır. Graph bir bağ çizdiğinde gösterge "Bağ" öğesini kalın düz çizgi örneğiyle gösterir, örnek çizginin kendi rengindedir (`ink.rule`); özel tip öğesi gibi, bağ yoksa öğe yoktur. "Düğüm seç ⌄" her zaman göstergenin altındadır. Açık bağ dönemden bağımsızdır, yay ağırlığı 1’dir. Birlikte geçme kenarı yoktur: iki varlık arasındaki her çizgi açık bağdır. Gösterge tekil adlarla yazar ve "Gün" öğesini her zaman gösterir: Kişi, Konum, Gün, özel tipler, Bağ.
 
 **Günün grafiği düzeni.** Ana Graph ile aynı sayfa düzenidir: manşet, denetim satırı, tuval, gösterge, açıklama. Manşet "Günün grafiği"dir ve künye günün tam tarihidir. Manşet satırında yalnız arama durur. Denetim satırında dönem yoktur; yalnız yakınlaştırma, uzaklaştırma ve Ortala kalır. Göstergede gün tek öğedir: "Gün". Gün ekranındaki giriş simgesi `point.3.connected.trianglepath.dotted`'dur, Graph kenar çubuğu girdisiyle aynı simgedir.
 
@@ -328,9 +328,9 @@ Değerler WCAG 2.x göreli parlaklık formülüyle hesaplandı: `InkPalette.cont
 
 | Kod adı | Asset | Kullanım |
 |---|---|---|
-| `paper` | `InkPaper` | Sayfa, kaydırma alanı, Graph tuvali, Mac araç çubuğu |
+| `paper` | `InkPaper` | Sayfa, kaydırma alanı, Mac araç çubuğu |
 | `elevated` (yeni) | `InkElevated` | Sheet, Mac kenar çubuğu, popover, iPad yüzen kenar çubuğu |
-| `surface` | `InkSurface` | Bölüm kartı, liste kartı, kanban kartı, zaman kartı, hızlı giriş kapsülü |
+| `surface` | `InkSurface` | Bölüm kartı, liste kartı, kanban kartı, zaman kartı, hızlı giriş kapsülü, Graph tuvali |
 | `well` | `InkWell` | Çip, süzgeç alanı, hafta şeridinde seçili gün kapsülü, ısı haritasının boş hücresi, Mac'te hafta sonu sütunu |
 | `rule` | `InkRule` | Kart sınırı, satır ayracı; bilgi taşımaz |
 | `line` (yeni) | `InkLine` | Yüzen öğe sınırı, seçili kart sınırı |

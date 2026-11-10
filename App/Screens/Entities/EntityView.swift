@@ -23,6 +23,9 @@ struct EntityView: View {
     @State private var lastDay: DaySummary?
     /// Open tasks linking here, loaded with `timeline`, by due day, priority, file and line.
     @State private var openTasks: [TaskRow] = []
+    /// What a chip or a timeline row opens: pushed from outside the list, so rows draw no
+    /// disclosure arrow (a `NavigationLink` in a list row adds one).
+    @State private var pushed: EntityPagePush?
 
     /// `model`: the page's file model; nil builds one for `entity`. A test hands its own in to rename
     /// the file as the edit sheet does and watch the page follow the new path.
@@ -113,6 +116,14 @@ struct EntityView: View {
         .inkPinnedMasthead(masthead)
         .environment(\.entityLookup, LinkedTextInk.lookup(entities: store.content.entities))
         .inkPageNavigationTitle(verbatim: current.name)
+        .navigationDestination(item: $pushed) { push in
+            switch push {
+            case .graph: GraphView(store: store, focus: model.path)
+            case .dayGraph(let date): GraphView(store: store, scope: .day(date))
+            case .day(let date): DayView(store: store, date: date)
+            case .entity(let entity): EntityView(store: store, entity: entity)
+            }
+        }
         .sheet(
             isPresented: $isEditing,
             onDismiss: {
@@ -157,31 +168,55 @@ struct EntityView: View {
     }
 
     @ViewBuilder private var headRows: some View {
-        TagChip(title: kindLabel, filled: true)
+        // Şafak chip row under the manşet: the next anniversary and "Graph'ta göster". The kind
+        // is already in the künye.
+        if (showsImportantDates && importantDates.nearest(file: model.path) != nil) || isGraphNode {
+            // A chip row; stacked when the two chips do not fit side by side.
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: 8) { headChips }
+                VStack(alignment: .leading, spacing: 0) { headChips }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
             .inkListRow()
+        }
         // docs/screens.md order: the Son görüşme / Son ziyaret card sits right under the manşet.
         if ["person", "place"].contains(current.kind), timeline != nil {
             InkCard {
-                EntityInsightsCard(store: store, entity: current, timeline: timeline ?? [], lastDay: lastDay)
+                EntityInsightsCard(
+                    store: store, entity: current, timeline: timeline ?? [], lastDay: lastDay,
+                    open: { pushed = .entity($0) })
             }
             .inkListRow()
         }
-        InkCard {
-            if let qualifier = current.qualifier {
-                labeledRow(String(localized: "Ayırt edici"), qualifier, valueFont: .ink.content)
-                InkCardDivider()
-            }
-            labeledRow(
-                String(localized: "Gelen bağlantılar"), current.incomingLinks.formatted(.number), valueFont: .ink.value)
-            if !model.aliasesEditable, !model.aliasesSource.isEmpty {
-                Text(verbatim: model.aliasesSource).font(.ink.meta).foregroundStyle(.ink.secondaryText).textSelection(
-                    .enabled)
-            }
-            if let result = model.renameResult { EntityRenameSummary(result: result) }
-        }
-        .inkListRow()
+        fieldsCard
+    }
+
+    @ViewBuilder private var headChips: some View {
         if showsImportantDates {
-            EntityImportantDatesRow(file: model.path, model: importantDates)
+            EntityImportantDatesChip(file: model.path, model: importantDates)
+                .fixedSize()
+        }
+        if isGraphNode {
+            // A button, not a list `NavigationLink`: a link in a list row draws a disclosure arrow.
+            Button {
+                pushed = .graph
+            } label: {
+                HStack(spacing: 4) {
+                    Image(systemName: "point.3.connected.trianglepath.dotted").accessibilityHidden(true)
+                    Text("Graph'ta göster").lineLimit(1)
+                }
+                .font(.footnote.weight(.medium))
+                .foregroundStyle(.ink.accent)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 5)
+                .background(Color.ink.accentSoft, in: Capsule())
+                .fixedSize()
+                .frame(minHeight: TapTarget.minimumLength)
+                // `minHeight` alone grows to whatever height the row offers.
+                .fixedSize()
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.borderless)
         }
     }
 
@@ -196,29 +231,7 @@ struct EntityView: View {
 
     @ViewBuilder private var readingContent: some View {
         if isGraphNode {
-            Section {
-                NavigationLink {
-                    GraphView(store: store, focus: model.path)
-                } label: {
-                    Text("Graph'ta göster")
-                        .font(.body)
-                        .foregroundStyle(.ink.accent)
-                }
-                .inkListRow()
-            }
-        }
-        if isGraphNode {
             EntityRelationsHost(store: store, path: model.path).id(model.path)
-        }
-        if model.unreadableFrontmatter {
-            Section {
-                Text("Frontmatter okunamıyor.")
-                    .font(.ink.meta)
-                    .foregroundStyle(.ink.secondaryText)
-                    .inkListRow()
-            }
-        } else {
-            fieldSections
         }
         EntityOpenTasksView(store: store, rows: openTasks).id(model.path)
         UnlinkedMentionsSection(model: unlinkedMentions).id(model.path)
@@ -226,41 +239,61 @@ struct EntityView: View {
         notesSection
     }
 
-    @ViewBuilder private var fieldSections: some View {
+    /// One key–value card (Şafak drawing): distinguishing name, template fields, then the other
+    /// frontmatter keys in secondary ink, and the incoming link count. Key left, value right.
+    @ViewBuilder private var fieldsCard: some View {
         let grouped = EntityReadPresentation.fieldRows(
             fields: model.fields, schemaKeys: schemaKeys, locale: locale)
-        if !grouped.known.isEmpty {
-            VStack(alignment: .leading, spacing: 8) {
-                SectionHeader(title: String(localized: "Alanlar"))
-                InkCard {
-                    ForEach(grouped.known.indices, id: \.self) { index in
-                        let row = grouped.known[index]
-                        if index > 0 { InkCardDivider() }
-                        labeledRow(row.label, row.value.isEmpty ? "\u{2014}" : row.value, valueFont: .ink.content)
-                    }
+        InkCard(padded: false) {
+            VStack(alignment: .leading, spacing: 0) {
+                if let qualifier = current.qualifier {
+                    kvRow(String(localized: "Ayırt edici"), qualifier, valueFont: .subheadline.weight(.medium))
+                    InkCardDivider()
                 }
-            }.inkListRow()
-        }
-        if !grouped.other.isEmpty {
-            VStack(alignment: .leading, spacing: 8) {
-                SectionHeader(title: String(localized: "Diğer alanlar"))
-                InkCard {
+                if model.unreadableFrontmatter {
+                    Text("Frontmatter okunamıyor.")
+                        .font(.ink.meta)
+                        .foregroundStyle(.ink.secondaryText)
+                        .frame(minHeight: 40, alignment: .leading)
+                    InkCardDivider()
+                } else {
+                    ForEach(grouped.known) { row in
+                        kvRow(
+                            row.label, row.value.isEmpty ? "\u{2014}" : row.value,
+                            valueFont: .subheadline.weight(.medium))
+                        InkCardDivider()
+                    }
                     ForEach(grouped.other) { row in
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(verbatim: row.key).font(.ink.meta).foregroundStyle(.ink.secondaryText)
-                            Text(verbatim: row.value.isEmpty ? "\u{2014}" : row.value)
-                                .font(.ink.content).foregroundStyle(.ink.secondaryText).textSelection(.enabled)
-                        }
+                        kvRow(
+                            row.key, row.value.isEmpty ? "\u{2014}" : row.value, valueFont: .subheadline,
+                            valueColor: .ink.secondaryText)
+                        InkCardDivider()
                     }
                 }
-            }.inkListRow()
+                kvRow(
+                    String(localized: "Gelen bağlantılar"), current.incomingLinks.formatted(.number),
+                    valueFont: .subheadline.monospacedDigit())
+                if !model.aliasesEditable, !model.aliasesSource.isEmpty {
+                    Text(verbatim: model.aliasesSource).font(.ink.meta).foregroundStyle(.ink.secondaryText)
+                        .textSelection(.enabled)
+                        .padding(.bottom, 8)
+                }
+                if let result = model.renameResult { EntityRenameSummary(result: result).padding(.bottom, 8) }
+            }
+            .padding(.horizontal, padding)
         }
+        .inkListRow()
     }
+
+    @ScaledMetric(relativeTo: .body) private var padding = InkSpacing.cardPadding
 
     @ViewBuilder private var timelineSection: some View {
         let timeline = self.timeline ?? []
         Section {
-            SectionHeader(title: String(localized: "Zaman akışı"), count: timeline.count).inkListRow()
+            SectionHeader(
+                title: String(localized: "Zaman akışı"),
+                counter: timeline.isEmpty ? nil : String(localized: "\(timeline.count) gün")
+            ).inkListRow()
             if timeline.isEmpty {
                 Text("Henüz günlük kaydı yok.")
                     .font(.ink.meta)
@@ -269,42 +302,71 @@ struct EntityView: View {
             }
             ForEach(timeline) { day in
                 VStack(alignment: .leading, spacing: 8) {
-                    HStack {
-                        NavigationLink {
-                            DayView(store: store, date: day.date)
-                        } label: {
-                            Text(LocalDay.instant(for: day.date), format: .dateTime.day().month().year())
-                                .font(.ink.section).foregroundStyle(.ink.text)
-                                .frame(minHeight: TapTarget.minimumLength)
-                                .contentShape(Rectangle())
-                        }
-                        // Two links share the list row: each keeps its own tap (borderless), not the whole row.
-                        .buttonStyle(.borderless)
+                    // Quiet day head (Şafak `dayhead`): the date, and the day's own graph on the right.
+                    HStack(alignment: .center) {
+                        Text(
+                            LocalDay.instant(for: day.date),
+                            format: .dateTime.weekday(.abbreviated).day().month().year()
+                        )
+                        .font(.footnote.weight(.semibold))
+                        .foregroundStyle(.ink.secondaryText)
+                        .accessibilityAddTraits(.isHeader)
+                        // Section title, not a manşet (manşet probes and audits key on this).
+                        .accessibilityIdentifier(SectionHeader.titleIdentifier)
                         Spacer()
-                        NavigationLink {
-                            GraphView(store: store, scope: .day(day.date))
+                        Button {
+                            pushed = .dayGraph(day.date)
                         } label: {
                             Label("Günün grafiği", systemImage: "point.3.connected.trianglepath.dotted")
-                                .labelStyle(.iconOnly).tapTarget()
+                                .labelStyle(.iconOnly)
+                                .font(.footnote)
+                                .foregroundStyle(.ink.secondaryText)
+                                .tapTarget()
                         }
                         .buttonStyle(.borderless)
                     }
-                    InkCard {
-                        ForEach(day.rows) { row in
-                            NavigationLink {
-                                DayView(store: store, date: day.date)
-                            } label: {
-                                LinkedTextView(text: row.text, store: store)
-                                    .frame(maxWidth: .infinity, minHeight: TapTarget.minimumLength, alignment: .leading)
-                                    .contentShape(Rectangle())
-                            }.buttonStyle(.plain)
+                    ForEach(day.rows) { row in
+                        Button {
+                            pushed = .day(day.date)
+                        } label: {
+                            timelineRow(row)
                         }
+                        // Several links share the list row: each keeps its own tap.
+                        .buttonStyle(.borderless)
                     }
                 }
                 .inkListRow()
             }
         }
     }
+
+    /// Card row of the timeline: icon box, the linked text, a chevron.
+    private func timelineRow(_ row: EntityTimelineRow) -> some View {
+        HStack(alignment: .center, spacing: 12) {
+            Image(systemName: "pencil")
+                .font(.footnote)
+                .foregroundStyle(.ink.secondaryText)
+                .frame(width: badgeSide, height: badgeSide)
+                .background(Color.ink.well, in: RoundedRectangle(cornerRadius: InkCorner.xs, style: .continuous))
+                .accessibilityHidden(true)
+            LinkedTextView(text: row.text, store: store)
+                .font(.subheadline)
+                .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 2)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            Image(systemName: "chevron.right")
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(.ink.tertiaryText)
+                .accessibilityHidden(true)
+        }
+        .padding(.vertical, 8)
+        .padding(.horizontal, 12)
+        .frame(minHeight: 56)
+        .modifier(InkCardModifier(cornerRadius: InkCorner.md))
+        .contentShape(Rectangle())
+    }
+
+    @ScaledMetric(relativeTo: .body) private var badgeSide: CGFloat = 32
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     @ViewBuilder private var notesSection: some View {
         Section {
@@ -325,21 +387,34 @@ struct EntityView: View {
         }
     }
 
-    private func labeledRow(_ label: String, _ value: String, valueFont: Font) -> some View {
-        HStack(alignment: .firstTextBaseline) {
+    /// Key–value row of the fields card: the key in secondary ink on the left, the value on the right.
+    private func kvRow(
+        _ label: String, _ value: String, valueFont: Font, valueColor: Color = .ink.text
+    ) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 12) {
             Text(verbatim: label)
-                .font(.ink.meta)
+                .font(.subheadline)
                 .foregroundStyle(.ink.secondaryText)
                 .accessibilityIdentifier("entity.labeledRow.label")
             Spacer(minLength: 12)
             Text(verbatim: value)
                 .font(valueFont)
-                .foregroundStyle(.ink.text)
+                .foregroundStyle(valueColor)
                 .multilineTextAlignment(.trailing)
                 .textSelection(.enabled)
                 .accessibilityIdentifier("entity.labeledRow.value")
         }
+        .padding(.vertical, 10)
+        .frame(minHeight: 40)
     }
+}
+
+/// A page the entity page pushes onto its stack.
+enum EntityPagePush: Hashable {
+    case graph
+    case dayGraph(CalendarDate)
+    case day(CalendarDate)
+    case entity(EntitySummary)
 }
 
 /// The confirmation captures the requested path; failed deletes keep the detail open.

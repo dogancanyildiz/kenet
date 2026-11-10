@@ -9,10 +9,11 @@ struct ImportantDatesReadyKey: PreferenceKey {
     }
 }
 
-/// The nearest anniversary of one person or custom-type file. Nothing is drawn when there is none.
+/// The nearest anniversary of one person or custom-type file, as a chip in the entity page's
+/// chip row ("doğum günü · 4 Ağu · 39 yıl"). Nothing is drawn when there is none.
 /// The query lives on ``EntityImportantDatesLoader``: a `List` drops an empty row, so a `.task`
 /// on this view would never start.
-struct EntityImportantDatesRow: View {
+struct EntityImportantDatesChip: View {
     let file: String
     let model: ImportantDatesModel
     @Environment(\.locale) private var locale
@@ -21,11 +22,13 @@ struct EntityImportantDatesRow: View {
     var body: some View {
         if let entry = model.nearest(file: file) {
             Text(verbatim: EntityImportantDatePresentation(entry: entry, locale: locale, timeZone: timeZone).line)
-                .font(.ink.content)
+                .font(.footnote)
                 .foregroundStyle(.ink.text)
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 5)
+                .background(Color.ink.surface, in: Capsule())
+                .overlay { Capsule().stroke(Color.ink.rule, lineWidth: 1) }
                 .accessibilityIdentifier("entity.importantDate")
-                .inkListRow()
         }
     }
 }

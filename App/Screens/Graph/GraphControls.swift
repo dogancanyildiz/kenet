@@ -5,14 +5,34 @@ struct GraphControls: View {
     @Binding var zoom: Double
     @Binding var pan: CGSize
 
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            // A day's own graph is the whole day: no period.
-            if filter.scope == .all { periodTabs }
-            zoomBar
+        Group {
+            if filter.scope == .all {
+                // Şafak drawing: the period tabs on the left, the zoom icons on the right of one row.
+                if dynamicTypeSize.isAccessibilitySize {
+                    VStack(alignment: .leading, spacing: 10) {
+                        periodTabs
+                        zoomBar(namesCenter: true)
+                    }
+                } else {
+                    HStack(alignment: .center, spacing: 8) {
+                        periodTabs.fixedSize()
+                        Spacer(minLength: 0)
+                        zoomBar(namesCenter: false)
+                    }
+                }
+            } else {
+                // A day's own graph is the whole day: no period; "Ortala" carries its word.
+                HStack(spacing: 4) {
+                    zoomBar(namesCenter: true)
+                    Spacer(minLength: 0)
+                }
+            }
         }
         .padding(.horizontal, InkSpacing.margin)
-        .padding(.vertical, InkSpacing.margin)
+        .padding(.vertical, 8)
     }
 
     private var periodTabs: some View {
@@ -25,33 +45,42 @@ struct GraphControls: View {
             ], identifier: "tabs.graph.period")
     }
 
-    private var zoomBar: some View {
+    /// Zoom out, zoom in and center in text ink (controls, not links).
+    private func zoomBar(namesCenter: Bool) -> some View {
         HStack(spacing: 4) {
             Button {
                 zoom = max(0.2, zoom / 1.25)
             } label: {
                 Label("Uzaklaştır", systemImage: "minus.magnifyingglass")
-                    .foregroundStyle(Color.ink.accent)
+                    .labelStyle(.iconOnly)
+                    .foregroundStyle(Color.ink.text)
                     .tapTarget()
             }
             Button {
                 zoom = min(5, zoom * 1.25)
             } label: {
                 Label("Yakınlaştır", systemImage: "plus.magnifyingglass")
-                    .foregroundStyle(Color.ink.accent)
+                    .labelStyle(.iconOnly)
+                    .foregroundStyle(Color.ink.text)
                     .tapTarget()
             }
             Button {
                 zoom = 1
                 pan = .zero
             } label: {
-                Label("Ortala", systemImage: "scope")
-                    .foregroundStyle(Color.ink.accent)
-                    .tapTarget()
+                Group {
+                    if namesCenter {
+                        Label("Ortala", systemImage: "scope")
+                            .labelStyle(.titleAndIcon)
+                            .font(.subheadline.weight(.semibold))
+                    } else {
+                        Label("Ortala", systemImage: "scope").labelStyle(.iconOnly)
+                    }
+                }
+                .foregroundStyle(Color.ink.text)
+                .tapTarget()
             }
-            Spacer(minLength: 0)
         }
-        .labelStyle(.iconOnly)
         .buttonStyle(.borderless)
     }
 }

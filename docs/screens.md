@@ -760,12 +760,12 @@ Manşetin altında görünüm sekmesi durur. Sekmenin altında görünüme göre
 | Manşet | Listenin içinde | Manşet. Gezinme çubuğunda büyük başlık yoktur. Sekme adı ve Mac kenar çubuğu değişmez. |
 | Sıralama ve arama | Manşet satırı | Simge. Sıra ada göre ya da son geçtiği tarihe göredir. |
 | Tür seçici | Manşetin altı | Yalnız Kişiler ve Konumlar varken sekmedir. Kasada özel tip varsa seçenek sayısı 4'e ulaşınca "Tür" menüsü olur. Özel tipler de seçicide durur. |
-| Süzgeç alanı | Tür seçicinin altı | Ara ekranındaki alanla aynı bileşen. Alan Bir süredir görüşmediklerin bölümünü de süzer. |
-| Graph ve Harita | Listenin en üstü | Yan yana iki kart: simge, ad ve kısa sayı ("42 düğüm", "18 konum"). Aynı gezinme yığınında tam ekran açar. Yeni sekme yoktur. Erişilebilirlik boyutunda kartlar alt alta durur. |
-| Liste satırı | Liste kartı | Baş harf rozeti, ad, altında "Son görüşme 3 gün önce · 14 bağ" (konumda "Son ziyaret"), sağda 12 aylık mini geçiş çubuğu. Bağ sayısı açık bağların sayısıdır. Hiç geçmemiş varlıkta son görüşme metni ve çubuk yoktur. |
-| Yeni kişi, Yeni konum ve Yeni <tip> | iPhone'da Graph ve Harita kartlarının altı. Mac'te ve iPad bölünmüş kabukta liste sütununda tür seçicinin altı. | Kişiler türünde "Yeni kişi", Konumlar türünde "Yeni konum", özel tipte "Yeni <tipin tekil adı>" satırı; örnek "Yeni kitap". Satır ad ve gerektiğinde ayırt edici isteyen küçük sheet açar. Vazgeç dosya yazmaz. Oluştur varlığı tipin klasörüne, varsa tipin şablonuyla kaydeder ve varlık ekranını açar. Mac'te yeni varlık listede seçili olur. |
-| Rehberden aktar | "Yeni kişi" satırının altı | Yalnız iPhone'da, Kişiler türü seçiliyken. |
-| Yeni tip… | Oluşturma satırlarının en altı; her türde durur | Varlık tipi galerisini açar ([Özel varlık tipleri](#özel-varlık-tipleri-7)). Kaydedilen tip tür seçicide seçili olur. Tip tanımı dosyası okunamıyorsa satır devre dışıdır. |
+| Süzgeç alanı | Tür seçicinin hemen altı, Graph ve Harita kartlarının üstü | Ara ekranındaki alanla aynı bileşen. Alan Bir süredir görüşmediklerin bölümünü de süzer. |
+| Graph ve Harita | Süzgeç alanının altı | Yan yana iki kart: simge kutusu, ad ve kısa sayı ("6 kişi · 4 konum", "4 konum"). Kartta parıltı tonu vardır, ok yoktur. Kart aynı gezinme yığınında ekranı açar. Yeni sekme yoktur. Erişilebilirlik boyutunda kartlar alt alta durur. |
+| Liste satırı | Her varlık ayrı kart; üstte tipin çoğul adı ve sayaç ("Kişiler 6") | İki harfli renkli rozet ("BT"), ad, altında tek satır "Son görüşme 3 gün önce · 14 bağ" (konumda "Son ziyaret"; ayırt edici başta), sağda 12 aylık mini geçiş çubuğu: ay başına ince çubuk, boş ay kısa çizgi, içinde bulunulan ay çerçeve. Satırda ok yoktur. Bağ sayısı açık bağların sayısıdır. Hiç geçmemiş varlıkta son görüşme metni ve çubuk yoktur. |
+| Yeni kişi, Yeni konum ve Yeni <tip> | iPhone'da Graph ve Harita kartlarının altında tek eylem satırı: solda "+ Yeni kişi", sağda "…" menüsü. Mac'te ve iPad bölünmüş kabukta liste sütununda tür seçicinin altı. | Kişiler türünde "Yeni kişi", Konumlar türünde "Yeni konum", özel tipte "Yeni <tipin tekil adı>" satırı; örnek "Yeni kitap". Satır ad ve gerektiğinde ayırt edici isteyen küçük sheet açar. Vazgeç dosya yazmaz. Oluştur varlığı tipin klasörüne, varsa tipin şablonuyla kaydeder ve varlık ekranını açar. Mac'te yeni varlık listede seçili olur. |
+| Rehberden aktar | Eylem satırının "…" menüsü | Yalnız iPhone'da, Kişiler türü seçiliyken. |
+| Yeni tip… | Eylem satırının "…" menüsü; her türde durur | Varlık tipi galerisini açar ([Özel varlık tipleri](#özel-varlık-tipleri-7)). Kaydedilen tip tür seçicide seçili olur. Tip tanımı dosyası okunamıyorsa satır devre dışıdır. |
 | Bir süredir görüşmediklerin | Kişi listesinin üstü | Katlanan bölüm. Mac'te ve telefonda vardır. |
 | Ayırt edici | Satırda adın altı | Aynı adlı varlıklarda görünür. |
 | Uzun basma | Kişi, konum ve özel varlık satırı | Düzenle, Bağlantıyı kopyala (`[[Ad]]`), Sil. İkincil tık aynı menüyü açar. Sil onay ister; günlük kayıtlarındaki geçişler kalır. |
@@ -774,7 +774,7 @@ Manşetin altında görünüm sekmesi durur. Sekmenin altında görünüme göre
 
 | Konu | Davranış |
 |---|---|
-| Giriş | "Rehberden aktar" satırı rehber seçicisini açar. Mac'te giriş yoktur. |
+| Giriş | "…" menüsündeki "Rehberden aktar" rehber seçicisini açar. Mac'te giriş yoktur. |
 | Simge yok | Uygulama manşet satırına simge eklemez. Sırala ve ara ile üçüncü simge uzun ekran adını keser. |
 | İzin | Uygulama sistemin süreç dışı seçicisini kullanır. Rehber izni istemez. |
 | Yön | Tek yönlü ve bir kerelik. Eşitleme yoktur. Uygulama rehber kimliğini tutmaz. |
@@ -792,16 +792,16 @@ Manşetin altında görünüm sekmesi durur. Sekmenin altında görünüme göre
 
 | Sıra | Öğe | Davranış |
 |---|---|---|
-| 1 | Manşet ve künye | Manşet ekranın içindedir: ad. Künye tip, takma adlar ve son görülme tarihini yazar. Sağda "Düzenle" ve arama durur. Gezinme çubuğunda büyük başlık yoktur. |
+| 1 | Manşet, künye ve çip satırı | Manşet ekranın içindedir: ad. Künye tip, takma adlar ve son görülme tarihini yazar. Sağda "Düzenle" ve arama durur. Gezinme çubuğunda büyük başlık yoktur. Künyenin altındaki çip satırında yıl dönümü çipi ve "Graph'ta göster" çipi durur. |
 | 2 | Son görüşme ya da Son ziyaret kartı | Yalnız kişi ve konumda, manşetin hemen altında. Kartta 12 aylık geçiş çubuğu ve 90 günlük şerit durur. Ayrıntı [Kişi ve konum içgörüleri](#kişi-ve-konum-içgörüleri-6) bölümündedir. |
-| 3 | Ayırt edici ve gelen bağlantılar | Etiket-değer satırları. |
-| 4 | Yıl dönümü | Kişide ve özel tipte, tarih alanı varsa sıradaki yıl dönümü tek satırdır: "doğum günü · 12 Nis · 31 yıl". Pencere yoktur. Konumda bu satır yoktur. |
-| 5 | Graph'ta göster | Kişide, konumda ve özel tipte. Graph o düğümü seçer ve ortaya alır. Özel tipte Graph o tipi süzgeçte açarak açılır. |
+| 3 | Alanlar kartı | Tek kart, anahtar solda, değer sağda: ayırt edici, şablon alanları, öteki alanlar (ikincil renkte) ve en altta gelen bağlantı sayısı. |
+| 4 | Yıl dönümü | Çip satırında. Kişide ve özel tipte, tarih alanı varsa sıradaki yıl dönümü tek çiptir: "doğum günü · 12 Nis · 31 yıl". Pencere yoktur. Konumda bu çip yoktur. |
+| 5 | Graph'ta göster | Çip satırında vurgu çipi. Kişide, konumda ve özel tipte. Graph o düğümü seçer ve ortaya alır. Özel tipte Graph o tipi süzgeçte açarak açılır. |
 | 6 | Bağlar | Kişi, konum ve özel tipte; kart üstünde başlık ve "Bağ kur" düğmesi. Giden satır "eşi · Selin Korkmaz", etiketsizde yalnız addır. Gelen satır "Mert Aksu'nun sayfasında · iş arkadaşı", etiketsizde yalnız kaynak sayfadır. Dokunma karşı varlığı açar. Uzun basma / Mac ikincil tık yalnız giden bağda "Bağı kaldır" sunar; özel tipin şema alanından gelen bağda kaldırma yoktur, o bağ Alanlar’da düzenlenir. Bağ kur sheet’i üstte isteğe bağlı etiketi ve kasadaki etiket önerilerini, altında aramalı listeyle kendisi hariç kişi, konum ve özel tip seçimini içerir; çubukta solda Vazgeç, sağda Kaydet durur (hedef seçilince etkin). Çakışan alan ve ayrılmış ad hatası sheet’te kalır; kaldırma hatası bölümde bilgi bandıdır. |
-| 7 | Alanlar ve Diğer alanlar | Şablon alanları etiket-değer satırlarıdır. Yalnız çözülen, uygulamanın yazdığı biçimdeki wikilinklerden (`[[Ad]]`) oluşan şema dışı bağ anahtarları okuma ve serbest alan düzenleyicisinde tekrar görünmez. Görünen metin (`[[Ad|metin]]`) ya da çapa (`[[Ad#başlık]]`) taşıyan, karışık metinli, çözülmeyen ya da sayfanın kendisine bağlanan değeri olan alan Alanlar’da kalır; şemadaki `link` alanı da kalır. Tanınmayan ön bilgi anahtarları "Diğer alanlar" altında ham adıyla, ikincil renkte durur. Uygulama frontmatter'ı okuyamıyorsa "Frontmatter okunamıyor." yazar. |
+| 7 | Alanlar ve Diğer alanlar | 3. sıradaki Alanlar kartındadır; ayrı başlık yoktur. Şablon alanları anahtar-değer satırlarıdır. Yalnız çözülen, uygulamanın yazdığı biçimdeki wikilinklerden (`[[Ad]]`) oluşan şema dışı bağ anahtarları okuma ve serbest alan düzenleyicisinde tekrar görünmez. Görünen metin (`[[Ad|metin]]`) ya da çapa (`[[Ad#başlık]]`) taşıyan, karışık metinli, çözülmeyen ya da sayfanın kendisine bağlanan değeri olan alan Alanlar’da kalır; şemadaki `link` alanı da kalır. Tanınmayan ön bilgi anahtarları şablon alanlarının altında ham adıyla, ikincil renkte durur. Uygulama frontmatter'ı okuyamıyorsa "Frontmatter okunamıyor." yazar. |
 | 8 | Açık görevler (2) | Bu varlığa bağlı tamamlanmamış görevler. |
 | 9 | Bağlanmamış anmalar | Zaman akışının hemen üstünde. |
-| 10 | Zaman akışı | Bu varlığın geçtiği olaylar ve günlük paragrafları, kart satırlarında, gün başlıklarıyla, yeniden eskiye. Başlıkta gün sayacı durur. Her satır ait olduğu günü açar. Her gün başlığında "Günün grafiği" bağlantısı durur ve o günün grafiğini açar. Boşsa "Henüz günlük kaydı yok." yazar. |
+| 10 | Zaman akışı | Bu varlığın geçtiği olaylar ve günlük paragrafları, yeniden eskiye. Her kayıt ayrı kart satırıdır: simge kutusu, metin, ok. Kayıtlar küçük gün başlıklarının altında durur. Başlıkta gün sayacı durur ("2 gün"). Her satır ait olduğu günü açar. Her gün başlığının sağında "Günün grafiği" simgesi durur ve o günün grafiğini açar. Boşsa "Henüz günlük kaydı yok." yazar. |
 | 11 | Serbest notlar | Okumada ham wikilink ve blok kimliği gizlidir. Boşsa "—" yazar. |
 
 Konumda koordinat, Alanlar tablosunda bir satırdır. Okuma ekranında harita yoktur. Konumların haritası Harita ekranındadır.
@@ -880,10 +880,10 @@ Konumda koordinat, Alanlar tablosunda bir satırdır. Okuma ekranında harita yo
 | Kapsam | Zaman akışıyla aynı kapsam: gün dosyalarındaki olaylar ve `Journal` paragraflarının çözülen bağlantıları. |
 | Dışarıda kalan | Görev, frontmatter, serbest not ve gelecek tarihli geçişler görüşme değildir. |
 | Uyarı metni | Kart, günlük kaydının görüşme kanıtı olmadığını nötr dille söyler. |
-| Satırlar | Son ve ilk geçiş tarihleri. Son günün varlığa bağlı metinleri, bağlantıları dokunma hedefiyle. O gün bütün olay ve `Journal` yazılarında geçen öteki kişi ve konumlar. |
+| Satırlar | Başlık satırının sağında son geçiş: "19 Eyl Cmt · 1 gün önce". Grafiklerin altında son günün varlığa bağlı metinleri, bağlantıları dokunma hedefiyle; "O gün" ile o gün geçen öteki kişi ve konumların çipleri; ilk geçiş tarihi. |
 | Çıkarım yok | Kart aynı olayda karşılaşma çıkarımı yapmaz. |
-| Geçişler bölümü | Kartın içinde yer alır. 12 takvim ayı çubuğu ve altında 90 günlük `HeatmapCell` şeridi (iki satır, 45+45). Sayaç son 12 ayda geçilen gün sayısıdır. Eşit aylarda en erken ay en yoğun sayılır. Hiç geçmemiş varlıkta bu bölüm görünmez. Konum ekranında aynıdır. |
-| Sıklık ve ortalama aralık | Şerit altında tek satırdır: "Son 90 günde 43 gün · ortalama aralık 2,1 gün" (eski iki ayrı satır yerine). Sıklık bugün dahil son 90 takvim gününde (`bugün -89` … bugün) geçilen farklı gün sayısıdır; aynı gündeki tekrarlar tek gündür. Ortalama aralık bu penceredeki son ve ilk gün farkının `gün sayısı -1` değerine bölümüdür; 2 günden az geçiş varsa aralık parçası görünmez. |
+| Geçişler bölümü | Kartın içinde, başlığın hemen altında yer alır; ayrı başlığı yoktur. 12 takvim ayı çubuğu (ay adları altta, sayı yok) ve altında 90 günlük `HeatmapCell` şeridi (iki satır, 45+45). Son 12 aydaki gün sayısı çubuğun VoiceOver etiketindedir. Eşit aylarda en erken ay en yoğun sayılır. Hiç geçmemiş varlıkta bu bölüm görünmez. Konum ekranında aynıdır. |
+| Sıklık ve ortalama aralık | Şerit altında tek satırdır ve uyarı metniyle biter: "Son 90 günde 43 gün · ortalama aralık 2,1 gün. Günlükteki geçişlere dayanır." Sıklık bugün dahil son 90 takvim gününde (`bugün -89` … bugün) geçilen farklı gün sayısıdır; aynı gündeki tekrarlar tek gündür. Ortalama aralık bu penceredeki son ve ilk gün farkının `gün sayısı -1` değerine bölümüdür; 2 günden az geçiş varsa aralık parçası görünmez. |
 | İlk geçiş | Bütün geçmişten gelir. |
 | Ritim satırı | Kişide ritim varsa: "Ritim: 30 günde bir". |
 | Erteleme satırı | Erteleme sürüyorsa kısa tarihle: "1 Kas tarihine kadar ertelendi". |
@@ -925,10 +925,10 @@ Konumda koordinat, Alanlar tablosunda bir satırdır. Okuma ekranında harita yo
 |---|---|---|
 | Giriş | Mac kenar çubuğu, telefonda Kişiler ve Konumlar listesinin en üstü | Telefonda aynı gezinme yığınında tam ekran. Yeni sekme yoktur. Gün ekranının manşetindeki Graph simgesi aynı ekranı o günün grafiği olarak açar. |
 | Tür süzgeci | Manşet satırındaki filtre menüsü | Kişi, konum ve kasanın her özel tipi için bir satır; çoklu seçim. Gün satırı yoktur: günler her zaman çizilir. Varsayılan: kişi ve konum açık, özel tipler kapalı. Varsayılan dışında vurgu rengine döner. |
-| Dönem | Manşetin altında altı çizili sekme | Bu ay \| 3 ay \| Yıl. Varsayılan "Bu ay". "Tümü" yoktur. |
+| Dönem | Manşetin altında altı çizili sekme; yakınlaştırma simgeleri aynı satırın sağında | Bu ay \| 3 ay \| Yıl. Varsayılan "Bu ay". "Tümü" yoktur. |
 | Yakınlaştırma | Düğmeler, pinch, Mac'te tekerlek ve trackpad kaydırması | Görüşü büyütür ve küçültür. |
 | Ortala | Düğme | Düzeni o anki haliyle yeniden çerçeveler. |
-| Düğüm seç | Menü | Klavye ve erişilebilirlik için aynı seçimi sunar. Seçilen düğümü ortaya alır. |
+| Düğüm seç | Göstergenin altında menü ("Düğüm seç ⌄") | Klavye ve erişilebilirlik için aynı seçimi sunar. Seçilen düğümü ortaya alır. |
 | Seçim | Dokunulan düğüm | Seçili düğüm çift halka taşır; komşusu olmayan düğümler solar. |
 | Seçim kartı | Tuvalin altı, iPhone ve iPad | Seçili düğümün özeti: "Baran Tunç · 8 bağ · son 3 gün önce" ve "Sayfayı aç". Seçim yokken kart yoktur. |
 | Sağ ayrıntı paneli | Mac | Seçili düğümün adı, türü, bağ sayıları, birlikte geçtiği günler ve "Sayfayı aç". Seçim yokken panel "Düğüm seç" der. |
@@ -957,7 +957,7 @@ Konumda koordinat, Alanlar tablosunda bir satırdır. Okuma ekranında harita yo
 | Manşet | "Günün grafiği"; künye günün tam tarihidir. Satırda yalnız arama durur; tür süzgeci yoktur. |
 | Düğümler | Ortada gün düğümü. O günün dosyasında çözülen bağlantısı olan her kişi, konum ve özel tip varlığı. Düğüm boyutu o günkü anma sayısıdır. Tür süzgeci ve dönem uygulanmaz. |
 | Kenarlar | Ana Graph'taki kural: gün düğümü her varlığa ağırlık 1 ile bağlanır; varlıklar birbirine yalnız açık bağla bağlanır. Günün varlıkları arasındaki açık bağlar kalın çizilir; o gün anılmayan varlığa bağ çizilmez. |
-| Denetimler | Dönem sekmesi yoktur. Yakınlaştırma, Ortala ve Düğüm seç vardır. |
+| Denetimler | Dönem sekmesi yoktur. Yakınlaştırma, metinli "Ortala" ve Düğüm seç vardır. |
 | Sayfayı aç | Varlık düğümünde varlık ekranını açar. Gün düğümünde yoktur; kullanıcı o günden gelmiştir. |
 | Açıklama | "Gün, o gün geçen her kayda bağlanır. Öteki çizgiler elle kurulan bağları gösterir." Ana Graph'la aynı metindir. |
 | Boş gün | Simge görünmez. Grafik yine açılırsa "Gösterilecek düğüm yok" yazar. |
@@ -972,7 +972,8 @@ Konumda koordinat, Alanlar tablosunda bir satırdır. Okuma ekranında harita yo
 | Düğüm sürükleme | Düğümün üstünde başlayan sürükleme düğümü taşır. Düğüm parmağı ya da fareyi izler. Komşular yayla peşinden gelir. Bırakınca düğüm serbest kalır ve düzen yeniden oturur. |
 | Tuval kaydırma | Boşlukta başlayan sürükleme tuvali kaydırır. |
 | Tutma alanı | Sürükleme düğümü yalnız çizilen biçimin hemen yakınından tutar: en az 8 nokta yarıçap. 44 noktalık geniş hedef yalnız dokunmada geçerlidir. Yoğun ya da yakın graph'ta kaydıracak boşluk kalır. |
-| Seçim davranışı | Dokunma düğümü seçer. Uygulama düğümün adını ve komşularını vurgular; öteki düğümler solar. Görüş yerinde kalır. |
+| Seçim davranışı | Dokunma düğümü seçer. Uygulama düğümün adını ve komşularını vurgular; öteki düğümler ve adları solar. Görüş yerinde kalır. |
+| Düğüm adı | Her varlık düğümünün altında küçük ad etiketi durur. Ana Graph'ta gün düğümünün adı yalnız seçiliyken görünür; Günün grafiğinde gün düğümü kısa tarihi taşır ("17 Eyl"). 80'den çok düğümde yalnız seçili düğüm ve komşuları ad taşır. |
 | Belirlenimcilik | Benzetimin tohumu sabittir. Aynı graph her zaman aynı düzende oturur. Oturmuş düzende daireler arasında en az 8 nokta boşluk kalır. |
 | Süzgeç değişimi | Graph düğümleri baştan dizmez. Bulundukları yerden yeni düzene geçer. |
 | Kasa yenilemesi | Graph aynı kalırsa kullanıcının elle kurduğu düzen yerinde kalır. Kasa ya da filtre değişirse uygulama eski sonucu kullanmaz. |
@@ -983,8 +984,9 @@ Konumda koordinat, Alanlar tablosunda bir satırdır. Okuma ekranında harita yo
 | Konu | Davranış |
 |---|---|
 | Pinler | Geçerli koordinatı olan konumlar. Pin boyutu bütün kasadaki çözülen geçiş sayısına (ziyaret) bağlıdır. Konum önerisi yarıçapı pin için gerekli değildir. Harita MapKit'in koyu stilindedir; açık modda açık stildedir. |
-| İşaretçi | Tam opak konum rengi, elmas biçim. Ziyaret sayısı elmasın içindedir. Seçili pin vurgu çerçevesi taşır. |
-| Konum kartları | Haritanın altında yatay kayan kartlar: ad, ziyaret sayısı, son tarih, 12 aylık mini geçiş çubuğu. Karta dokunma pini seçer ve ortaya alır; seçili kartın "Sayfayı aç" eylemi konum ekranını açar. |
+| İşaretçi | Tam opak konum rengi, elmas biçim. Ziyaret sayısı elmasın içindedir. Seçili pin vurgu çerçevesi ve durağan vurgu halesi taşır. |
+| Yerleşim | Harita manşetin altında yuvarlak köşeli karttır; tam ekran değildir. İlk görünüm bütün pinleri kenardan ve harita logosundan uzak tutar. |
+| Konum kartları | Harita kartının altında yatay kayan şerit; kartlar haritanın üstünde yüzmez. Kart: elmas simge, ad, ziyaret sayısı, son tarih, konum renginde 12 aylık mini geçiş çubuğu ve ilk ile son ay adı. Karta dokunma pini seçer ve ortaya alır; seçili kartın "Sayfayı aç" eylemi konum ekranını açar. |
 | Dokunma | Pin konum ekranını açar. |
 | Boş durum | Hiçbir konumda koordinat yoksa boş görünüm nedenini söyler: konum izni konumlara koordinat eklemez. Koordinatı olmayan konumları listeler. Satır konum ekranını açar. Kullanıcı koordinatı oradaki Düzenle ile girer. |
 | Beni göster | Yalnız var olan konum izni ve etkin konum tercihiyle tek ölçüm ister. Yeni izin istemez. Son geçerli konumu gösterir ve ortaya alır. Pin yokken de ölçüm gelince haritayı açar. |

@@ -111,7 +111,7 @@ struct GoalValueChart: View {
         ForEach(series.points.filter { $0.value < series.target }, id: \.index) { point in
             PointMark(x: .value(Plot.day, point.index), y: .value(Plot.value, point.value))
                 .symbol {
-                    Circle().fill(Color.ink.paper)
+                    Circle().fill(Color.ink.surface)
                         .overlay(Circle().strokeBorder(Color.ink.accent, lineWidth: 1.5))
                         .frame(width: 6, height: 6)
                 }
@@ -138,7 +138,7 @@ struct GoalValueChart: View {
                 )
                 .interpolationMethod(.monotone)
                 .lineStyle(StrokeStyle(lineWidth: 2.5, lineCap: .round, lineJoin: .round))
-                .foregroundStyle(Color.ink.accent)
+                .foregroundStyle(Color.ink.text)
             }
             dayPoints(series)
         }
@@ -223,11 +223,20 @@ struct GoalValueChart: View {
         let trailing = typeSize.isAccessibilitySize ? totals.buckets.count - 1 : nil
         return Chart {
             ForEach(totals.buckets, id: \.index) { bucket in
-                BarMark(
-                    x: .value(Plot.period, bucket.index), y: .value(Plot.value, bucket.total), width: .fixed(14)
-                )
-                .foregroundStyle(Color.ink.accent)
-                .cornerRadius(2)
+                if bucket.total > 0 {
+                    BarMark(
+                        x: .value(Plot.period, bucket.index), y: .value(Plot.value, bucket.total),
+                        width: .fixed(14)
+                    )
+                    .foregroundStyle(Color.ink.accent)
+                    .cornerRadius(2)
+                    .annotation(position: .top, spacing: 2) {
+                        Text(verbatim: bucket.total.formatted(Self.axisNumber.locale(locale)))
+                            .font(.ink.meta.monospacedDigit())
+                            .foregroundStyle(Color.ink.secondaryText)
+                            .accessibilityHidden(true)
+                    }
+                }
             }
             RuleMark(y: .value(Plot.target, totals.pace))
                 .lineStyle(StrokeStyle(lineWidth: 1, dash: [4, 3]))

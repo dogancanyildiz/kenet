@@ -1,21 +1,19 @@
 import GoalTracking
 import SwiftUI
 
-/// The whole definition in one sheet: "Kaydet" writes only the changed fields. "Hedefi sil" is
-/// the last row; after it the sheet closes and the detail behind it goes too (`GoalDetailView`).
+/// The whole definition in one sheet: "Kaydet" writes only the changed fields. Deletion lives on
+/// the detail page, not here.
 struct GoalDefinitionForm: View {
     let store: IndexStore
-    /// Owned by the detail page, which closes after the sheet once the file is gone.
-    @Bindable var deletion: DefinitionDeletionModel
     @State private var model: GoalDefinitionModel
     @State private var draft: GoalDefinitionDraft
     @State private var isSaved = false
     @State private var leavePrompt = false
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.locale) private var locale
 
-    init(store: IndexStore, goal: GoalDefinition, deletion: DefinitionDeletionModel) {
+    init(store: IndexStore, goal: GoalDefinition) {
         self.store = store
-        self.deletion = deletion
         _model = State(initialValue: GoalDefinitionModel(store: store, goal: goal))
         _draft = State(initialValue: GoalDefinitionDraft(goal: goal))
     }
@@ -26,22 +24,22 @@ struct GoalDefinitionForm: View {
         List {
             InkPageTitleRow("Düzenle", byline: model.goal.name)
             Section {
-                SectionHeader("Hedef")
-                    .inkListRow()
                 textField(.name, text: $draft.name, font: .ink.content)
                 readOnlyRow(String(localized: "Anahtar"), value: model.goal.key)
             }
             Section {
-                SectionHeader("Ayarlar")
-                    .inkListRow()
                 scheduleRows
                 if draft.kind != .milestone {
-                    textField(.target, text: $draft.target, font: .ink.value, isDecimal: true)
-                }
-                if model.showsUnit(draft) {
-                    textField(
-                        .unit, text: $draft.unit, font: .ink.content,
-                        prompt: String(localized: "Birim (isteğe bağlı)"))
+                    HStack(alignment: .firstTextBaseline, spacing: 12) {
+                        textFieldColumn(
+                            .target, text: $draft.target, font: .ink.value, isDecimal: true)
+                        if model.showsUnit(draft) {
+                            textFieldColumn(
+                                .unit, text: $draft.unit, font: .ink.content,
+                                prompt: String(localized: "Birim (isteğe bağlı)"))
+                        }
+                    }
+                    .inkListRow()
                 }
             }
             if let error = model.errorText {
@@ -50,11 +48,10 @@ struct GoalDefinitionForm: View {
                         .inkListRow()
                 }
             }
-            deleteRow
         }
         .listStyle(.plain)
         .inkPageScrollColumn()
-        .disabled(model.isWriting || isSaved || deletion.isDeleting)
+        .disabled(model.isWriting || isSaved)
         .inkSheet(
             "Düzenle", isConfirmEnabled: !isSaved && model.canSave(draft), isBusy: model.isWriting,
             isCancelEnabled: !model.isWriting, cancelIdentifier: "button.goal.form.cancel",
@@ -70,12 +67,6 @@ struct GoalDefinitionForm: View {
         .confirmationDialog("Kaydedilmemiş değişiklikler", isPresented: $leavePrompt) {
             Button("Değişiklikleri at", role: .destructive) { dismiss() }
             Button("Düzenlemeye devam et", role: .cancel) {}
-        }
-        .destructiveConfirmationDialog(
-            "Hedefi sil", confirmation: $deletion.confirmation,
-            confirmTitle: "Hedefi sil", message: "\(model.goal.name) silinsin mi? Gün kayıtları kalır."
-        ) { path in
-            Task { if await deletion.delete(store: store, path: path, goal: true) { dismiss() } }
         }
         .frame(minWidth: 320, minHeight: 420)
         .task(id: store.lastUpdated) { await model.load() }
@@ -94,7 +85,10 @@ struct GoalDefinitionForm: View {
             labeled(.period) {
                 InkTabs(
                     selection: $draft.period,
-                    items: [GoalPeriod.day, .week, .year].map { InkTabItem(verbatim: $0.title, value: $0) },
+                    items: [GoalPeriod.day, .week, .year].map {
+                        InkTabItem(
+                            verbatim: GoalListPresentation.periodChip($0, locale: locale), value: $0)
+                    },
                     identifier: "goal.form.period",
                     accessibilityLabelPrefix: GoalEditableField.period.title
                 )
@@ -102,7 +96,10 @@ struct GoalDefinitionForm: View {
             labeled(.kind) {
                 InkTabs(
                     selection: $draft.kind,
-                    items: [GoalKind.boolean, .number].map { InkTabItem(verbatim: $0.title, value: $0) },
+                    items: [GoalKind.boolean, .number].map {
+                        InkTabItem(
+                            verbatim: GoalListPresentation.kindTab($0, locale: locale), value: $0)
+                    },
                     identifier: "goal.form.kind",
                     accessibilityLabelPrefix: GoalEditableField.kind.title
                 )
@@ -113,21 +110,6 @@ struct GoalDefinitionForm: View {
         }
     }
 
-    private var deleteRow: some View {
-        VStack(alignment: .leading, spacing: InkSpacing.section) {
-            Button("Hedefi sil", role: .destructive) { deletion.request(path: model.goal.id) }
-                .buttonStyle(InkDestructiveButtonStyle())
-                .disabled(!model.canEdit || deletion.isDeleting || deletion.isDeleted)
-                .accessibilityIdentifier("button.goal.delete")
-            if let error = deletion.errorText {
-                InfoBand(kind: .error, verbatim: error)
-            }
-        }
-        .padding(.top, InkSpacing.section)
-        .inkListRow()
-    }
-
-    /// Visible label above the control; VoiceOver reads the control with the same label.
     private func labeled<Content: View>(
         _ field: GoalEditableField, @ViewBuilder content: () -> Content
     ) -> some View {
@@ -161,7 +143,31 @@ struct GoalDefinitionForm: View {
         }
     }
 
-    /// A value the form shows but does not edit: the key, and a milestone's period and kind.
+    private func textFieldColumn(
+        _ field: GoalEditableField, text: Binding<String>, font: Font, prompt: String? = nil,
+        isDecimal: Bool = false
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(verbatim: field.title)
+                .font(.ink.meta)
+                .foregroundStyle(Color.ink.secondaryText)
+                .accessibilityHidden(true)
+            TextField(prompt ?? field.title, text: text)
+                .font(font)
+                .accessibilityLabel(Text(verbatim: field.title))
+                .accessibilityIdentifier("goal.form." + field.rawValue)
+                #if os(iOS)
+                    .keyboardType(isDecimal ? .decimalPad : .default)
+                #endif
+            if let error = model.error(for: field, in: draft) {
+                Text(verbatim: error)
+                    .font(.ink.meta)
+                    .foregroundStyle(Color.ink.danger)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
     private func readOnlyRow(_ title: String, value: String) -> some View {
         HStack(alignment: .firstTextBaseline) {
             Text(verbatim: title)

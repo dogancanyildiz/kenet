@@ -52,7 +52,7 @@ enum DefinitionMenu {
         switch kind {
         case .boolean: [markedToday ? .unmark : .markToday, .edit, .delete]
         case .number: [.enterAmount, .edit, .delete]
-        case .milestone: [.edit, .delete]
+        case .milestone: [markedToday ? .unmark : .markToday, .edit, .delete]
         }
     }
 

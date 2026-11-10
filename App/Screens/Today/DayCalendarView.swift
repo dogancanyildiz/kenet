@@ -15,10 +15,17 @@ struct DayCalendarView: View {
                         bundle: PresentationLocalization.bundle(locale), locale: locale))
                 InkCard(padded: true) {
                     if calendar.authorization.canRequest {
-                        Button("Takvim etkinliklerini göstermek için izin ver") {
+                        // A small row, not a call to action: the day's writing comes first.
+                        Button {
                             Task { await calendar.requestAccess() }
+                        } label: {
+                            Label("Takvim etkinliklerini göstermek için izin ver", systemImage: "calendar")
+                                .font(.subheadline.weight(.medium))
+                                .foregroundStyle(Color.ink.accent)
+                                .frame(maxWidth: .infinity, minHeight: TapTarget.minimumLength, alignment: .leading)
+                                .contentShape(Rectangle())
                         }
-                        .buttonStyle(InkTextButtonStyle())
+                        .buttonStyle(.plain)
                         .disabled(calendar.isRequesting)
                     }
                     if let error = calendar.errorText {

@@ -9,6 +9,9 @@ struct GoalValueChart: View {
     let goal: GoalDefinition
     let logs: [GoalLog]
     let today: CalendarDate
+    /// The card's title ("Son 90 gün"): drawn in the chart's own header row with the summary on
+    /// its trailing side; nil keeps the summary under the plot.
+    var title: String? = nil
     @Environment(\.dynamicTypeSize) private var typeSize
     @Environment(\.locale) private var locale
     @Environment(\.timeZone) private var timeZone
@@ -76,6 +79,9 @@ struct GoalValueChart: View {
     private func daily(_ series: GoalValueSeries) -> some View {
         if let average = series.average, let peak = series.peak {
             VStack(alignment: .leading, spacing: 8) {
+                header(
+                    String(
+                        localized: "Ortalama \(amount(average)) · \(series.metCount) günde hedefin üstünde"))
                 lineChart(series, peak: peak)
                     .frame(height: chartHeight)
                     .accessibilityElement(children: .ignore)
@@ -84,19 +90,59 @@ struct GoalValueChart: View {
                             localized:
                                 "Son \(series.span) gün: ortalama \(amount(average)), \(series.metCount) gün hedefin üstünde, en yüksek \(amount(peak.value)) \(dayText(peak.day))"
                         ))
-                Text(
-                    String(
-                        localized: "Ortalama \(amount(average)) · \(series.metCount) günde hedefin üstünde")
-                )
-                .font(.ink.meta.monospacedDigit())
-                .foregroundStyle(Color.ink.secondaryText)
-                .accessibilityHidden(true)
+                if title == nil {
+                    Text(
+                        String(
+                            localized: "Ortalama \(amount(average)) · \(series.metCount) günde hedefin üstünde")
+                    )
+                    .font(.ink.meta.monospacedDigit())
+                    .foregroundStyle(Color.ink.secondaryText)
+                    .accessibilityHidden(true)
+                }
             }
         } else {
-            Text("Son \(series.span) günde kayıt yok")
-                .font(.ink.meta)
-                .foregroundStyle(Color.ink.secondaryText)
+            VStack(alignment: .leading, spacing: 8) {
+                header(nil)
+                Text("Son \(series.span) günde kayıt yok")
+                    .font(.ink.meta)
+                    .foregroundStyle(Color.ink.secondaryText)
+            }
         }
+    }
+
+    /// The title row inside the card: title on the leading side, the summary on the trailing one
+    /// (wrapping under the title at large sizes). Draws nothing without a ``title``.
+    @ViewBuilder
+    private func header(_ summary: String?) -> some View {
+        if let title {
+            ViewThatFits(in: .horizontal) {
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    headerTitle(title)
+                    Spacer(minLength: 8)
+                    if let summary { headerSummary(summary) }
+                }
+                VStack(alignment: .leading, spacing: 2) {
+                    headerTitle(title)
+                    if let summary { headerSummary(summary).fixedSize(horizontal: false, vertical: true) }
+                }
+            }
+        }
+    }
+
+    private func headerTitle(_ title: String) -> some View {
+        Text(verbatim: title)
+            .font(.ink.content.weight(.semibold))
+            .foregroundStyle(Color.ink.text)
+            .accessibilityAddTraits(.isHeader)
+            // A section title like ``SectionHeader``'s: the page's manşet stays its only other heading.
+            .accessibilityIdentifier(SectionHeader.titleIdentifier)
+    }
+
+    private func headerSummary(_ summary: String) -> some View {
+        Text(verbatim: summary)
+            .font(.ink.meta.monospacedDigit())
+            .foregroundStyle(Color.ink.secondaryText)
+            .accessibilityHidden(true)
     }
 
     /// Recorded days as points: filled at or above the target, a ring below it.
@@ -128,9 +174,6 @@ struct GoalValueChart: View {
             RuleMark(y: .value(Plot.target, series.target))
                 .lineStyle(StrokeStyle(lineWidth: 1, dash: [4, 3]))
                 .foregroundStyle(Color.ink.secondaryText)
-            RuleMark(x: .value(Plot.day, series.span - 1))
-                .lineStyle(StrokeStyle(lineWidth: 1))
-                .foregroundStyle(Color.ink.control)
             ForEach(series.averages, id: \.index) { point in
                 LineMark(
                     x: .value(Plot.day, point.index), y: .value(Plot.value, point.value),
@@ -193,6 +236,7 @@ struct GoalValueChart: View {
     private func periodic(_ totals: GoalPeriodTotals) -> some View {
         let peak = totals.peak
         VStack(alignment: .leading, spacing: 8) {
+            header(totalText(totals))
             barChart(totals)
                 .frame(height: chartHeight)
                 .accessibilityElement(children: .ignore)
@@ -201,10 +245,12 @@ struct GoalValueChart: View {
                         localized:
                             "\(Self.title(for: goal, isAccessibilitySize: typeSize.isAccessibilitySize)): toplam \(amount(totals.total)), en yüksek \(amount(peak?.total ?? 0)) \(peak.map { bucketText($0.start, unit: totals.unit) } ?? "")"
                     ))
-            Text(totalText(totals))
-                .font(.ink.meta.monospacedDigit())
-                .foregroundStyle(Color.ink.secondaryText)
-                .accessibilityHidden(true)
+            if title == nil {
+                Text(totalText(totals))
+                    .font(.ink.meta.monospacedDigit())
+                    .foregroundStyle(Color.ink.secondaryText)
+                    .accessibilityHidden(true)
+            }
         }
     }
 

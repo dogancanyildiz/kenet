@@ -27,8 +27,11 @@ struct DayTasksView: View {
                     title: String(
                         localized: "Görevler",
                         bundle: PresentationLocalization.bundle(locale), locale: locale),
+                    // "6 kaldı": the open tasks, worded (the drawing); the Mac desk keeps its own.
                     counter: deskPlan?.dayListTaskCounter(presentation)
-                        ?? presentation.counter(for: .tasks)
+                        ?? String(
+                            localized: "\(presentation.remainingTaskCount) kaldı",
+                            bundle: PresentationLocalization.bundle(locale), locale: locale)
                 )
                 .modifier(carriedOverCommands)
                 InkCard(padded: true) {

@@ -307,14 +307,14 @@ struct GoalStripView: View {
                 .foregroundStyle(Color.ink.secondaryText)
                 .frame(width: 30, height: 30)
                 .frame(
-                minWidth: TapTarget.minimumLength, minHeight: TapTarget.minimumLength,
-                alignment: .topTrailing
-            )
-            .accessibilityLabel(
-                Text(
-                    verbatim: String(
-                        localized: "Tamamlandı",
-                        bundle: PresentationLocalization.bundle(locale), locale: locale)))
+                    minWidth: TapTarget.minimumLength, minHeight: TapTarget.minimumLength,
+                    alignment: .topTrailing
+                )
+                .accessibilityLabel(
+                    Text(
+                        verbatim: String(
+                            localized: "Tamamlandı",
+                            bundle: PresentationLocalization.bundle(locale), locale: locale)))
         } else {
             Button {
                 if isBooleanMark {
@@ -356,8 +356,7 @@ struct GoalStripView: View {
         value: String?, meta: String?, streak: Int, locale: Locale
     ) -> String {
         var pieces: [String] = []
-        if let value, !value.isEmpty { pieces.append(value) }
-        else if let meta, !meta.isEmpty { pieces.append(meta) }
+        if let value, !value.isEmpty { pieces.append(value) } else if let meta, !meta.isEmpty { pieces.append(meta) }
         if streak > 0 {
             pieces.append(
                 String(
@@ -385,4 +384,3 @@ struct GoalStripView: View {
         }
     }
 }
-

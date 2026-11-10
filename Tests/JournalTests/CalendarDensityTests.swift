@@ -154,17 +154,19 @@ import VaultIndex
             entries: base.timed + base.untimed + [timedEntry, untimedEntry]
         )
 
-        #expect(schedule.timed.map(\.id) == [
-            "event-2-4",
-            "task-timed",
-            "event-0-2",
-            "event-3-5",
-        ])
-        #expect(schedule.untimed.map(\.id) == [
-            "event-1-3",
-            "event-4-6",
-            "task-untimed",
-        ])
+        #expect(
+            schedule.timed.map(\.id) == [
+                "event-2-4",
+                "task-timed",
+                "event-0-2",
+                "event-3-5",
+            ])
+        #expect(
+            schedule.untimed.map(\.id) == [
+                "event-1-3",
+                "event-4-6",
+                "task-untimed",
+            ])
         #expect(schedule.allOrdered.suffix(3).map(\.id) == schedule.untimed.map(\.id))
         #expect(DaySchedulePresentation.extractLeadingTime(from: "11:00 Eczaneye uğra")?.raw == "11:00")
         #expect(DaySchedulePresentation.extractLeadingTime(from: "Market listesi") == nil)

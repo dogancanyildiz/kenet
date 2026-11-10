@@ -74,7 +74,8 @@ struct InkWeekStrip: View {
                     .foregroundStyle(
                         enabled
                             ? (selected ? Color.ink.text : Color.ink.secondaryText)
-                            : Color.ink.tertiaryText)
+                            : Color.ink.tertiaryText
+                    )
                     .monospacedDigit()
                 HStack(spacing: 3) {
                     if isToday {

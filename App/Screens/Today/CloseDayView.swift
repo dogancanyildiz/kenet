@@ -24,7 +24,8 @@ struct CloseDayView: View {
     ///   - summary: event / done / remaining counts for the top number cards.
     init(
         store: IndexStore, today: CalendarDate, tasks: [TaskRow], goals: GoalDayModel,
-        step: CloseDayStep = .tasks, summary: CloseDaySummary = CloseDaySummary(
+        step: CloseDayStep = .tasks,
+        summary: CloseDaySummary = CloseDaySummary(
             events: 0, completedTasks: 0, remainingTasks: 0)
     ) {
         _model = State(

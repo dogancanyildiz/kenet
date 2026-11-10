@@ -253,14 +253,18 @@ enum TodayAboveFoldBudget: Sendable {
         guard hidden >= minimumHiddenRows else { return false }
         let usable = viewportHeight
         guard usable > 0 else { return false }
-        let goals = goalCount > 0
+        let goals =
+            goalCount > 0
             ? sectionHeaderHeight + goalColumnHeight + sectionGap : 0
-        let tasks = sectionHeaderHeight
+        let tasks =
+            sectionHeaderHeight
             + CGFloat(openTaskCount) * taskRowHeight + sectionGap
-        let calendar = calendarEventCount > 0
+        let calendar =
+            calendarEventCount > 0
             ? sectionHeaderHeight + CGFloat(calendarEventCount) * calendarRowHeight + sectionGap
             : 0
-        let events = eventCount > 0
+        let events =
+            eventCount > 0
             ? sectionHeaderHeight + eventRowHeight + sectionGap : 0
         let top =
             mastheadHeight + weekStripHeight + summaryHeight + chipsHeight + sectionGap

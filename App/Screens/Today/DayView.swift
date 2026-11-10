@@ -894,11 +894,13 @@ struct DayView: View {
             .accessibilityLabel(
                 Text(
                     verbatim: Self.scheduleSpokenLabel(
-                        time: time, text: firstSegments.map(\.text).joined())))
+                        time: time, text: firstSegments.map(\.text).joined()))
+            )
             .accessibilityValue(
                 Text(
                     verbatim: ([meta] + (isSelected ? subLines.map { $0.map(\.text).joined() } : []))
-                        .joined(separator: ", ")))
+                        .joined(separator: ", "))
+            )
             .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
             .accessibilityAction { tapScheduleCard(entryID, edit: edit) }
             .accessibilityAction(named: Text("Metni düzenle"), edit)
@@ -966,7 +968,8 @@ struct DayView: View {
             }
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(
-                Text(verbatim: Self.scheduleSpokenLabel(time: time, text: segments.map(\.text).joined())))
+                Text(verbatim: Self.scheduleSpokenLabel(time: time, text: segments.map(\.text).joined()))
+            )
             .accessibilityValue(Text(verbatim: [meta, dates].compactMap { $0 }.joined(separator: ", ")))
             .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
             .accessibilityAction { tapScheduleCard(entryID, edit: edit) }

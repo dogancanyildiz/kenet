@@ -178,7 +178,8 @@ struct SummaryTaskSection: View {
                 InkSegmentBar(segments: [
                     .init(id: 0, title: String(localized: "Tamamlanan"), value: counts.completedTasks, style: .done),
                     .init(id: 1, title: String(localized: "Devreden"), value: counts.overdueTasks, style: .carried),
-                    .init(id: 2, title: String(localized: "Tarihsiz açık"), value: counts.undatedTasks, style: .outline),
+                    .init(
+                        id: 2, title: String(localized: "Tarihsiz açık"), value: counts.undatedTasks, style: .outline),
                 ])
             }
         }

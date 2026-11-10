@@ -158,10 +158,29 @@ struct SummariesView: View {
                     .buttonStyle(.plain)
                 #endif
                 Spacer(minLength: 0)
-                periodTitle
-                    .font(.ink.byline.weight(.semibold))
-                    .foregroundStyle(Color.ink.text)
-                    .multilineTextAlignment(.center)
+                // Back to the current period beside the title, not on a row of its own (Şafak
+                // çizimi: nothing between the period row and the first card).
+                HStack(spacing: 8) {
+                    periodTitle
+                        .font(.ink.section)
+                        .foregroundStyle(Color.ink.text)
+                        .multilineTextAlignment(.center)
+                    if !model.isCurrent {
+                        Button {
+                            model.current()
+                        } label: {
+                            Text(currentTitle)
+                                .font(.footnote.weight(.semibold))
+                                .foregroundStyle(Color.ink.accent)
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 4)
+                                .background(Capsule(style: .continuous).fill(Color.ink.accentSoft))
+                                .frame(minHeight: TapTarget.minimumLength)
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
                 Spacer(minLength: 0)
                 Button {
                     model.next()
@@ -174,11 +193,6 @@ struct SummariesView: View {
                 #if os(macOS)
                     .buttonStyle(.plain)
                 #endif
-            }
-            if !model.isCurrent {
-                Button(currentTitle) { model.current() }
-                    .buttonStyle(InkTextButtonStyle())
-                    .frame(maxWidth: .infinity)
             }
         }
         #if os(macOS)
@@ -404,20 +418,37 @@ struct SummariesView: View {
         }
     }
 
+    /// Three equal-height number cards side by side (one column at accessibility sizes) and the
+    /// three changes in one line under them (Şafak çizimi).
     private func stats(_ summary: PeriodSummary, columns: Int) -> some View {
-        let grid = Array(repeating: GridItem(.flexible(), spacing: 10, alignment: .topLeading), count: columns)
-        return LazyVGrid(columns: grid, alignment: .leading, spacing: 10) {
-            SummaryMetric(
-                title: "Yazılan gün",
-                valueText: SummaryPresentation.writtenDaysValueText(summary, locale: locale),
-                change: change(summary.change.writtenDays, summary))
-            SummaryMetric(
-                title: "Olay", value: summary.counts.events,
-                change: change(summary.change.events, summary))
-            SummaryMetric(
-                title: "Biten görev", value: summary.counts.completedTasks,
-                change: change(summary.change.completedTasks, summary))
+        let layout =
+            columns == 1
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8))
+            : AnyLayout(HStackLayout(alignment: .top, spacing: 8))
+        return VStack(alignment: .leading, spacing: 8) {
+            layout {
+                SummaryMetric(
+                    title: "Yazılan gün",
+                    valueText: SummaryPresentation.writtenDaysValueText(summary, locale: locale))
+                SummaryMetric(title: "Olay", value: summary.counts.events)
+                SummaryMetric(title: "Biten görev", value: summary.counts.completedTasks)
+            }
+            .fixedSize(horizontal: false, vertical: true)
+            Text(changeLine(summary))
+                .font(.caption)
+                .monospacedDigit()
+                .foregroundStyle(Color.ink.secondaryText)
+                .fixedSize(horizontal: false, vertical: true)
         }
+    }
+
+    /// The change line with its changes in ink.
+    private func changeLine(_ summary: PeriodSummary) -> AttributedString {
+        var line = SummaryPresentation.changeLine(summary, locale: locale)
+        for run in line.runs where run.inlinePresentationIntent == .stronglyEmphasized {
+            line[run.range].foregroundColor = Color.ink.text
+        }
+        return line
     }
 
     @ViewBuilder

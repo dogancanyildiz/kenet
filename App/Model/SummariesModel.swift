@@ -98,6 +98,66 @@ enum SummaryPresentation {
         return text + " " + unit
     }
 
+    /// "Geçen ayın aynı tarihine göre +2 gün, +9 olay, +4 görev": the three headline changes in one
+    /// line under the number cards; the changes carry `stronglyEmphasized`.
+    static func changeLine(_ summary: PeriodSummary, locale: Locale) -> AttributedString {
+        let bundle = PresentationLocalization.bundle(locale)
+        let change = summary.change
+        let parts = [
+            String(localized: "\(signedCount(change.writtenDays, locale: locale)) gün", bundle: bundle, locale: locale),
+            String(localized: "\(signedCount(change.events, locale: locale)) olay", bundle: bundle, locale: locale),
+            String(
+                localized: "\(signedCount(change.completedTasks, locale: locale)) görev", bundle: bundle,
+                locale: locale),
+        ]
+        let marker = "\u{FFFC}"
+        let sentence = compared(marker, period: summary.period, isRunning: summary.isRunning, locale: locale)
+        let pieces = sentence.components(separatedBy: marker)
+        var changes = AttributedString(parts.joined(separator: ", "))
+        changes.inlinePresentationIntent = .stronglyEmphasized
+        var result = AttributedString(capitalizedFirst(pieces.first ?? "", locale: locale))
+        result.append(changes)
+        if pieces.count > 1 { result.append(AttributedString(pieces[1...].joined(separator: marker))) }
+        return result
+    }
+
+    /// "+2", "−3", "±0": a count's change with its sign.
+    static func signedCount(_ value: Int, locale: Locale) -> String {
+        value == 0 ? "±" + 0.formatted(.number.locale(locale)) : signed(Double(value), locale: locale)
+    }
+
+    private static func capitalizedFirst(_ text: String, locale: Locale) -> String {
+        guard let first = text.first else { return text }
+        return String(first).uppercased(with: locale) + text.dropFirst()
+    }
+
+    /// "20 Eyl'e kadar" (English "through Sep 20"): the last counted day of a running month's rhythm.
+    static func rhythmThrough(_ day: CalendarDate, locale: Locale) -> String {
+        let bundle = PresentationLocalization.bundle(locale)
+        let instant = LocalDay.instant(for: day)
+        let label = instant.formatted(Date.FormatStyle(locale: locale).day().month(.abbreviated))
+        let argument: String
+        if TurkishSuffix.isTurkish(locale) {
+            // The ending follows the spoken month (Eylül'e, Ocak'a), whatever its short form.
+            let month = instant.formatted(Date.FormatStyle(locale: locale).month(.wide))
+            argument = label + "'" + dativeEnding(month)
+        } else {
+            argument = label
+        }
+        return String(localized: "\(argument) kadar", bundle: bundle, locale: locale)
+    }
+
+    /// Turkish dative ending for a word: last vowel front → "e", back → "a"; after a vowel "ye"/"ya".
+    static func dativeEnding(_ word: String) -> String {
+        let front: Set<Character> = ["e", "i", "ö", "ü"]
+        let vowels: Set<Character> = front.union(["a", "ı", "o", "u", "â"])
+        let lower = word.lowercased(with: Locale(identifier: "tr"))
+        let lastVowel = lower.last { vowels.contains($0) }
+        let vowel = lastVowel.map { front.contains($0) } == true ? "e" : "a"
+        let buffer = lower.last.map { vowels.contains($0) } == true ? "y" : ""
+        return buffer + vowel
+    }
+
     /// The signed change named against the period it is compared with.
     private static func compared(_ signed: String, period: SummaryPeriod, isRunning: Bool, locale: Locale) -> String {
         let bundle = PresentationLocalization.bundle(locale)
@@ -336,6 +396,11 @@ struct MonthWritingRhythm: Sendable, Equatable {
 
     var writtenDayCount: Int {
         days.count { $0.state.isWritten }
+    }
+
+    /// Today when the month holds it (a running month); nil for a past month.
+    var throughDay: CalendarDate? {
+        days.first(where: \.isToday)?.date
     }
 
     init(month: CalendarDate, calendar: YearWritingCalendar, today: CalendarDate) {

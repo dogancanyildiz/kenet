@@ -34,6 +34,22 @@ import VaultFormat
         #expect(model.day == CalendarDate("2026-09-20"))
     }
 
+    /// The rhythm card of a running month says how far it counts, with the Turkish dative after
+    /// the spoken month; the count changes keep their sign, zero included.
+    @Test func rhythmThroughAndSignedCountsReadAsWords() throws {
+        let turkish = Locale(identifier: "tr_TR")
+        let english = Locale(identifier: "en_US")
+        #expect(SummaryPresentation.rhythmThrough(CalendarDate("2026-09-20")!, locale: turkish) == "20 Eyl'e kadar")
+        #expect(SummaryPresentation.rhythmThrough(CalendarDate("2026-01-05")!, locale: turkish).hasSuffix("'a kadar"))
+        #expect(SummaryPresentation.rhythmThrough(CalendarDate("2026-09-20")!, locale: english) == "through Sep 20")
+        #expect(SummaryPresentation.dativeEnding("Eylül") == "e")
+        #expect(SummaryPresentation.dativeEnding("Kasım") == "a")
+        #expect(SummaryPresentation.dativeEnding("Ayşe") == "ye")
+        #expect(SummaryPresentation.signedCount(2, locale: turkish) == "+2")
+        #expect(SummaryPresentation.signedCount(-3, locale: turkish) == "−3")
+        #expect(SummaryPresentation.signedCount(0, locale: turkish) == "±0")
+    }
+
     @Test func changeIsWordsAndARunningPeriodNamesTheSameDate() throws {
         let turkish = Locale(identifier: "tr_TR")
         let english = Locale(identifier: "en_US")

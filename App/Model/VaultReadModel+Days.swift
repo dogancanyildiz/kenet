@@ -16,10 +16,13 @@ struct DayOverview: Identifiable, Sendable, Equatable {
     let hasGoalRecords: Bool
     let taskCount: Int
     let firstEventPreview: String?
+    /// ``firstEventPreview`` with its links (nil when it has none or there is no event).
+    let firstEventSpans: [DayPreviewSpan]?
 
     init(
         id: String, date: CalendarDate, eventCount: Int, journalCount: Int, preview: String?,
-        hasGoalRecords: Bool = false, taskCount: Int = 0, firstEventPreview: String? = nil
+        hasGoalRecords: Bool = false, taskCount: Int = 0, firstEventPreview: String? = nil,
+        firstEventSpans: [DayPreviewSpan]? = nil
     ) {
         self.id = id
         self.date = date
@@ -29,6 +32,7 @@ struct DayOverview: Identifiable, Sendable, Equatable {
         self.hasGoalRecords = hasGoalRecords
         self.taskCount = taskCount
         self.firstEventPreview = firstEventPreview
+        self.firstEventSpans = firstEventSpans
     }
 
     init(entry: DaySummaryEntry) {
@@ -49,6 +53,12 @@ struct DayOverview: Identifiable, Sendable, Equatable {
         eventCount > 0 || taskCount > 0 || journalCount > 0 || hasGoalRecords
     }
 
+    /// Linked spans of ``displayPreview`` when it is the first event's line and holds a link.
+    var displayPreviewSpans: [DayPreviewSpan]? {
+        guard let firstEventPreview, !firstEventPreview.isEmpty else { return nil }
+        return firstEventSpans
+    }
+
     var displayPreview: String? {
         if let firstEventPreview, !firstEventPreview.isEmpty {
             return firstEventPreview
@@ -67,7 +77,8 @@ struct DayOverview: Identifiable, Sendable, Equatable {
         return DayOverview(
             id: id, date: date, eventCount: eventCount, journalCount: journalCount,
             preview: preview, hasGoalRecords: hasGoalRecords,
-            taskCount: fragment.taskCount, firstEventPreview: fragment.firstEventPreview)
+            taskCount: fragment.taskCount, firstEventPreview: fragment.firstEventPreview,
+            firstEventSpans: fragment.firstEventSpans)
     }
 }
 

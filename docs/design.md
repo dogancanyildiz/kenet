@@ -269,8 +269,8 @@ Kod karşılığı: `.inkSheet`, `InkSheetScaffold` ve `InkSheetConfirmation`. `
 | iPhone ekranlarında araç çubuğuna konan arama | `ControlPatternUsageTests` |
 | Mac'te arama yalnız kenar çubuğunun tepesindeki tek alan | `ControlPatternUsageTests` |
 | Ortak bileşen dışında kurulan sheet araç çubuğu ve "Bitti" düğmesi | `ControlPatternUsageTests` |
-| `App/Design` dışında hex renk; sistem rengi izin listesi yalnız küçülür | `DesignTokenUsageTests` |
-| `.inkGlow()` yalnız kök ekran görünümlerinde | `DesignTokenUsageTests` |
+| `App/Design` dışında hex renk; sistem rengi izin listesi yalnız küçülür | `DesignTokenUsageTests` <!-- sır değil --> |
+| `.inkGlow()` yalnız kök ekran görünümlerinde | `DesignTokenUsageTests` <!-- sır değil --> |
 | Her kök ekranın ve her sheet türünün ekran görüntüsü | Adı `SnapshotTests` ile biten kümeler |
 
 Kaynak denetimi yasak kalıpları derlemeden önce yakalar. Ekran görüntüsü testleri kalıbın ekrandaki sonucunu yakalar.
@@ -290,7 +290,7 @@ Kaynak denetimi yasak kalıpları derlemeden önce yakalar. Ekran görüntüsü 
 | Kontrol çizgisi | `control` | `#7C7F88` | `#868991` | `#A3A6AE` | `#5E6169` |
 | Metin | `text` | `#F2F2F4` | `#15161A` | `#FFFFFF` | `#050507` |
 | İkincil metin | `secondaryText` | `#A7AAB2` | `#53565E` | `#CDD0D6` | `#3A3D44` |
-| Üçüncül metin | `tertiaryText` | `#8E9199` | `#666972` | `#B4B7BE` | `#4A4D55` |
+| Üçüncül metin | `tertiaryText` | `#8E9199` | `#5E6168` | `#B4B7BE` | `#4A4D55` |
 | Vurgu | `accent` | `#D08BC4` | `#7A2C6E` | `#E8BCE0` | `#5E1F55` |
 | Vurgu üstü | `onAccent` | `#1B0E18` | `#FFFFFF` | `#12091A` | `#FFFFFF` |
 | Vurgu tonu | `accentSoft` | vurgu %16 | vurgu %12 | vurgu %16 | vurgu %12 |
@@ -309,7 +309,7 @@ KA yüzeyleri değiştirmez; ön planı ve çizgileri güçlendirir. Tek istisna
 |---|---|---|---|---|---|
 | Metin | 17,15 / 14,19 | 16,32 / 16,05 | 19,93 / 15,86 | 18,39 / 18,08 | 4,5 |
 | İkincil metin | 8,25 / 6,82 | 6,63 / 6,52 | 12,90 / 10,26 | 9,82 / 9,65 | 4,5 |
-| Üçüncül metin | 6,08 / 5,03 | 4,95 / 4,87 | 9,92 / 7,90 | 7,63 / 7,50 | 4,5 |
+| Üçüncül metin | 6,08 / 5,03 | 5,60 / 5,51 | 9,92 / 7,90 | 7,63 / 7,50 | 4,5 |
 | Vurgu | 7,46 / 6,17 | 7,86 / 7,73 | 12,05 / 9,59 | 10,52 / 10,34 | 4,5 |
 | Vurgu üstü (vurgu dolgusunda) | 7,28 | 8,70 | 11,76 | 11,65 | 4,5 |
 | Uyarı | 10,35 / 8,56 | 6,50 / 6,39 | 13,31 / 10,59 | 9,11 / 8,96 | 4,5 |
@@ -320,7 +320,9 @@ KA yüzeyleri değiştirmez; ön planı ve çizgileri güçlendirir. Tek istisna
 
 Değerler WCAG 2.x göreli parlaklık formülüyle hesaplandı: `InkPalette.contrastRatio` ile aynı formül. `PaletteContrastTests` asset catalog değerlerini `InkPalette` ile karşılaştırır ve alt sınırları denetler: metin rolleri 4,5:1, kontrol çizgisi 3:1.
 
-**NOT:** Kart ile zemin arasındaki kontrast iki modda da 1,11:1'dir. Kartı sınır çizgisi ayırır; sınır süstür ve bilgi taşımaz. Kontrol çizgisi metin dışı bir denetim sınırıdır ve alt sınırı 3:1'dir.
+**NOT:** Kart ile zemin arasındaki kontrast iki modda da 1,11:1'dir. `rule` ve `line` süstür ve bilgi taşımaz; ikisi için 3:1 istenmez. Kontrol çizgisi (`control`) metin dışı bir denetim sınırıdır ve alt sınırı 3:1'dir.
+
+Açık modda `tertiaryText` `#5E6168` değerindedir; önceki değer `#666972` idi. Koyulaşma `accentSoft` seçim zemininde 4,60:1 verir. `InkPalette.DocumentedContrast` bu tablodaki değerleri taşır.
 
 ### Kod adları ve kullanım
 
@@ -355,19 +357,20 @@ Değerler WCAG 2.x göreli parlaklık formülüyle hesaplandı: `InkPalette.cont
 ```mermaid
 flowchart TD
     A{Ekran türü} -->|Kök ekran: sekme ya da kenar çubuğu girdisi, ilk açılış, kilit örtüsü| B{Ayar}
-    A -->|Alt sayfa, sheet, popover, liste sütunu, Graph, widget| X[Parıltı yok: düz zemin]
+    A -->|Alt sayfa, sheet, popover, liste sütunu, Graph tuvali, Harita, widget| X[Parıltı yok: düz zemin]
     B -->|Kontrastı Artır ya da Saydamlığı Azalt açık| X
     B -->|Varsayılan| C[Parıltı: sol üst, içerikle birlikte kayar]
 ```
 
 | Özellik | Değer |
 |---|---|
-| Biçim | Eliptik radyal gradyan, 900 × 600 pt |
-| Merkez | Yatay %12, dikey −%8: merkez ekranın üstündedir |
-| Duraklar | 0: renk A; %38: renk B; %70: saydam |
+| Biçim | `EllipticalGradient`. Yarıçap 900 × 600 pt; çerçeve 1800 × 1200 pt. |
+| Merkez | Yatay: genişliğin %12'si. Dikey: referans yüksekliğin −%8'i; merkez ekranın üstündedir. |
+| Referans yükseklik | Kap yüksekliği ile 900 pt'nin küçüğü. Parıltı ilk ekrana bağlıdır, uzun içerikle büyümez. |
+| Duraklar | 0: renk A; %38: renk B; %70: saydam. |
 | Renk A | Mürdüm `#8E3F80`; koyuda %45, açıkta %16 |
 | Renk B | Kehribar `#C98B2F`; koyuda %28, açıkta %16 |
-| Kaydırma | İçerikle birlikte kayar. Sabit durmaz; kartların altında kalmaz. |
+| Kaydırma | İçerikle birlikte kayar. Sabit durmaz; kartların altında kalmaz. Kabın dışına taşan kısım kırpılır. |
 | Platform | iPhone ve iPad kök ekranları; Mac'te ayrıntı sütununun üstü |
 
 **Parıltının en güçlü noktasında kontrast.** Nokta, gradyan merkezindeki karışımdır; ekrandaki gerçek değer bundan yüksektir.
@@ -393,7 +396,7 @@ Parıltı bilgi taşımaz. Kod karşılığı `.inkGlow()` değiştiricisidir; K
 
 | Rol | `Font.ink` | Aile ve ağırlık | Semantik stil | iOS | Mac |
 |---|---|---|---|---|---|
-| Gün rakamı | `dayNumber` | SF Pro Bold, tabular | `largeTitle`, `@ScaledMetric` ile 48 | 48 | 34 |
+| Gün rakamı | Yok: `InkDayHeader` | SF Pro Bold, tabular | `largeTitle`'a bağlı `@ScaledMetric` | 48 | 34 |
 | Manşet: sayfa adı | `display` | SF Pro Bold | `largeTitle` | 34 | 26 |
 | Gün adı, ay | `dayName` | SF Pro Semibold, ikincil | `title2` | 22 | 17 |
 | Künye cümlesi | `byline` | SF Pro Medium; sayılar Semibold ve metin rengi | `title3` | 20 | 15 |
@@ -407,7 +410,7 @@ Parıltı bilgi taşımaz. Kod karşılığı `.inkGlow()` değiştiricisidir; K
 | Hafta şeridi gün harfi | `weekday` | SF Pro Medium | `caption1` | 12 | 10 |
 | Büyük rakam: hedef ayrıntısı, özet | `largeNumber` | SF Pro Light, tabular | `largeTitle` | 48 | 48 |
 
-`InkFonts.swift` yalnız semantik stilleri kullanır; kod kuraldır. Mac sütunu macOS'un aynı stile verdiği değerdir; Mac için ayrı bir boyut hedefi yoktur. `content` rolü ayrı kalır; serif dönerse yalnız bu rolün ailesi değişir. `inkJournalParagraph()` günlük paragrafına 9 pt ek satır aralığı verir. `LargeNumberText` 48 pt hedefini `@ScaledMetric` ile büyütür; gün rakamı da bu bileşeni kullanır.
+`InkFonts.swift` yalnız semantik stilleri kullanır; kod kuraldır. Mac sütunu macOS'un aynı stile verdiği değerdir; Mac için ayrı bir boyut hedefi yoktur. `content` rolü ayrı kalır; serif dönerse yalnız bu rolün ailesi değişir. `inkJournalParagraph()` günlük paragrafına 9 pt ek satır aralığı verir. `LargeNumberText` 48 pt hedefini `@ScaledMetric` ile büyütür. Gün rakamının `Font.ink` rolü yoktur: `InkDayHeader` boyutu kendi `@ScaledMetric` değeriyle çizer.
 
 ## Yarıçap, boşluk ve biçim
 
@@ -600,7 +603,7 @@ mindmap
 | `InkSheet.swift` | Korunur | Zemin `elevated` |
 | `InkSurface.swift` | Yeniden çizilir | `InkCard` olur; `InkKanbanCard` sol çubuk alır |
 | `InkTabs.swift` | Korunur | |
-| `LargeNumberText.swift` | Korunur | Gün rakamı da bunu kullanır |
+| `LargeNumberText.swift` | Korunur | Hedef ayrıntısı ve özet sayıları |
 | `MarginRow.swift` | Korunur | İşaret sütunu kartın içine girer |
 | `PageHeadline.swift` | Yeniden çizilir | Gün rakamı ve gün adı |
 | `QuickEntryCapsule.swift`, `QuickEntryMode.swift` | Yeniden çizilir | `surface` zemin, `line` sınır, gönderde hale |
@@ -613,14 +616,15 @@ mindmap
 | `InkWeekStrip` | Yeni | 7 günlük şerit |
 | `InkDayHeader` | Yeni | Gün halkası, gün rakamı, gün adı |
 | `InkSummaryLine` | Yeni | Künye cümlesi: sayılar öne çıkar |
-| `InkCard` | Yeni (`InkSurface`'ten) | Bölüm kartı |
+| `InkCard` | Yeni (`InkSurface`'ten) | Bölüm kartı ve satır ayracı `InkCardDivider`. Segment kalıbı: `InkCardSegment` (`single`, `first`, `middle`, `last`) ve `InkCardSegmentBackground`, kartı birden çok `List` satırına böler. |
+| `inkListRow(cardSegment:)` | Yeni değiştirici | Liste satırını kartın bir parçası yapar: ilk satır üstte, son satır altta yuvarlanır; aradaki satırlarda ayraç durur. Görevler bölümleri, proje ekranı ve Kişiler listesi bunu kullanır. Taslaktaki `InkCardRows` yoktur; yerini bu değiştirici alır. |
 | `InkTimelineCard` | Yeni | Sol çubuklu zaman kartı: Mac, iPad ve iPhone zaman çizelgesi; Gün ekranının saatli programı |
 
 | Dosya dışı | Durum |
 |---|---|
 | `App/Design/InkPalette.swift` | Değerler değişir; `elevated`, `line`, `tertiaryText`, `accentSoft` eklenir; biten iş için renk eklenmez |
 | `App/Design/InkMetrics.swift` | `row`, `section`, `kanbanCorner`, `chipCorner`, `taskBoxCorner` değişir; `cardPadding`, `dayRing`, `timelineBar` eklenir |
-| `App/Design/InkFonts.swift` | `display` ve `content` sans olur; `dayNumber`, `dayName`, `weekday` eklenir |
+| `App/Design/InkFonts.swift` | `display` ve `content` sans olur; `dayName` ve `weekday` eklenir; `dayNumber` yoktur |
 | `App/Navigation/MacSidebar.swift` | Kural 12 sürer; zemin `elevated`; tepede arama alanı |
 
 Sayım: 39 dosyadan 22'si korunur, 17'si yeniden çizilir, hiçbiri kalkmaz; 6 yeni bileşen gelir.
@@ -761,7 +765,7 @@ Erişilebilirlik boyutunda 12 aylık çubuğun sütunları satıra döner. 90 g�
 | Biten | Metin ikincil renkte; "Bitti" etiketi | `secondaryText` |
 | Şimdi çizgisi | Yatay vurgu çizgisi ve saat rozeti | `accent`, rozet yazısı `onAccent` |
 
-**Proje rengi.** Proje adından kararlı türetilir: adın hash'i 5 belirteçlik diziye bölünür: `accent`, `person`, `place`, `warning`, `control`. Renk her zaman proje adı metniyle birlikte görünür; renk tek başına anlam taşımaz. Türetme tek yardımcıdadır (`ProjectColor`); Kanban kartı ve zaman kartı aynı yardımcıyı kullanır.
+**Proje rengi.** Proje adından kararlı türetilir: adın FNV-1a özeti 5 belirteçlik diziye bölünür: `accent`, `person`, `place`, `warning`, `control`. Projesiz görev `control` alır. Renk her zaman proje adı metniyle birlikte görünür; renk tek başına anlam taşımaz. Türetme tek yardımcıdadır: `ProjectColor` (`App/Model/ProjectColor.swift`). Kanban kartı, zaman kartı, zaman çizelgesi çubuğu, proje grubu başlığı ve proje kartı noktası aynı yardımcıyı kullanır.
 
 Renk tek başına anlam taşımaz; proje adı ve durum metni yanında durur. Proje renk dizisi henüz belirteç tablosunda yoktur; D3 dalgasından önce bu tabloya 4 varyantıyla girer.
 
@@ -786,7 +790,7 @@ Kod karşılığı: `InkListSelectionBackground` ve `inkListRow(columnSelected:)
 | Satır durumu | Dolgu | Yazı | Simge |
 |---|---|---|---|
 | Seçili, etkin pencere | Vurgu | Vurgu üstü, yarı kalın | Vurgu üstü |
-| Seçili, etkin olmayan pencere | `rule` rengi | Metin, yarı kalın | Vurgu |
+| Seçili, etkin olmayan pencere | `accentSoft` | Metin, yarı kalın | Vurgu |
 | Seçili değil | Yok | Metin | Vurgu |
 
 | Konu | Kural |
@@ -863,7 +867,7 @@ Parıltı bilgi taşımaz. Bu yüzden kalktığında hiçbir bilgi kaybolmaz.
 | Adım | Kapsam |
 |---|---|
 | Palet testi | `PaletteContrastTests` yeni değerleri, 4 varyantı ve parıltı karışım noktalarını denetler. |
-| Kaynak denetimi | `DesignTokenUsageTests`: hex yalnız `App/Design` içinde; `.inkGlow()` yalnız kök ekran görünümlerinde. |
+| Kaynak denetimi | `DesignTokenUsageTests`: hex yalnız `App/Design` içinde; `.inkGlow()` yalnız kök ekran görünümlerinde. <!-- sır değil --> |
 | Ekran görüntüsü | 317 referans yeniden kaydedilir; dalga başına sayılar yol haritasında, Aşama 17'dedir. Küme listesi [Mimari](architecture.md#ekran-görüntüsü-ve-duman-testleri) belgesindedir. |
 | Gerçek cihaz | Koyu ve açık, KA, AX3, Hareketi Azalt; iPhone, iPad ve Mac. |
 
@@ -877,6 +881,28 @@ Ajanlar ekranı göremez; bu yüzden ekran görüntüsü testleri bu projede zor
 | İlk ekran yüksekliği | Gün halkası, hafta şeridi ve künye cümlesi ilk ekranı uzatır. İlk olay kaydırmadan görünmelidir; D2 bunu görüntü testiyle ölçer. |
 | Parıltı ve fotoğraf | Parıltı kart zemini değildir; kart opak kalır. Kartın altında renk kayması olmaz. |
 | Maketler | Maketler HTML'dir; cam ve parıltı yaklaşıktır. Son söz gerçek cihazdadır. |
+
+## Terim sözlüğü
+
+**Belgede, arayüzde ve katalogda kullanılan tek ad.** Yeni terim önce bu tabloya girer; metinde terim icat edilmez.
+
+| Kullan | Kullanma | İngilizce (katalog) | Anlamı |
+|---|---|---|---|
+| olay | etkinlik, kayıt | Event | Kullanıcının gün dosyasına yazdığı satır |
+| takvim etkinliği | olay | Calendar event | Cihaz takviminden okunan, kasaya yazılmayan öğe |
+| görev | iş, yapılacak | Task | Kutulu satır: `- [ ]` |
+| devreden | geciken, gecikmiş | Carried over | Bitişi geçmiş, açık görev |
+| kart | yüzey, kutu | Card | Bölümü taşıyan `surface` kap |
+| künye cümlesi | özet cümlesi, alt başlık | Summary line | Bugün'ün gün başlığının altındaki sayılı cümle |
+| künye çipi | içgörü çipi | (çipin kendi metni) | Künye cümlesinin altındaki 3 çip |
+| hafta şeridi | hafta çubuğu, takvim şeridi | Week strip | Gün başlığının altındaki 7 günlük satır |
+| zaman kartı | olay kartı, zaman çubuğu | (kartın kendi metni) | Sol renkli çubuklu, saatli kart |
+| hızlı giriş | hızlı ekleme, yazma kutusu | Quick entry | Olay ya da görev yazan kapsül ve panel |
+| parıltı | ışık, gradyan, hale | (arayüzde yok) | Kök ekranın sol üstündeki renk; hale ayrı terimdir |
+| zincir | seri | Streak | Günlük hedefin art arda yapılan günleri |
+| zincir günü | af günü, joker | Streak save | Zinciri koruyan biriken gün |
+| konuma girince | check-in | On arrival | Konuma girince çalışan hatırlatma ve kayıt |
+| gün ekranı | gün sayfası | (başlık tarih) | Geçmiş günün saatli programı |
 
 ## İlgili belgeler
 

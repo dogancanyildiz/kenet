@@ -1,6 +1,6 @@
 #!/bin/sh
-# Belge biçim denetimi: karar tablosu, README belge tablosu, roadmap ve karar sayıları, String Catalog tamlığı
-# ve kaynak–katalog uyumu.
+# Belge biçim denetimi: karar tablosu, README belge tablosu, roadmap ve karar sayıları, String Catalog tamlığı,
+# kaynak–katalog uyumu, uzun cümle tavanı ve sır kalıpları.
 # Aşama 8 kapısı; CI "Biçim ve kurallar" işinde koşar.
 set -eu
 
@@ -286,10 +286,99 @@ print(f"Sayı eşitliği uygun (roadmap {done + todo} kutu: {done} bitti, {todo}
 PY
 }
 
+# --- Uzun cümle tavanı (docs/*.md, AGENTS.md, README.md) -----------------------
+# AGENTS.md "Cümle ve biçim kuralları": cümle en çok 20 sözcüktür. Tablo satırları, kod blokları ve
+# Mermaid blokları sayılmaz. Mevcut aşım sayısı tavandır; tavan yalnız düşer. Sayı tavanın altına
+# inerse LONG_SENTENCE_MAX değerini yeni sayıya indir. Aşımları görmek için LIST_LONG_SENTENCES=1.
+LONG_SENTENCE_MAX=115
+check_long_sentences() {
+    LONG_SENTENCE_MAX="$LONG_SENTENCE_MAX" LIST_LONG_SENTENCES="${LIST_LONG_SENTENCES:-0}" \
+        python3 - "$root" <<'PY'
+import os
+import re
+import sys
+from pathlib import Path
+
+root = Path(sys.argv[1])
+limit = int(os.environ["LONG_SENTENCE_MAX"])
+show = os.environ.get("LIST_LONG_SENTENCES") == "1"
+files = sorted((root / "docs").glob("*.md")) + [root / "AGENTS.md", root / "README.md"]
+LEAD = r"^(\s*([-*+]|\d+\.)\s+|#+\s+|>\s*)"
+
+
+def paragraphs(lines):
+    """Düz metin paragrafları: (satır no, metin). Tablo, kod ve Mermaid blokları atlanır."""
+    fence = False
+    para, start = [], 0
+    for no, line in enumerate(lines, 1):
+        stripped = line.strip()
+        if stripped.startswith("```"):
+            fence = not fence
+        if fence or stripped.startswith("```") or stripped.startswith("|") or stripped == "":
+            if para:
+                yield start, " ".join(para)
+                para = []
+            continue
+        if re.match(LEAD, line) and para:
+            yield start, " ".join(para)
+            para = []
+        if not para:
+            start = no
+        para.append(stripped)
+    if para:
+        yield start, " ".join(para)
+
+
+def sentences(text):
+    text = re.sub(r"<!--.*?-->", " ", text)
+    text = re.sub(r"`[^`]*`", "KOD", text)
+    text = re.sub(r"\]\([^)]*\)", "]", text)
+    text = re.sub(LEAD, "", text)
+    return [s for s in re.split(r"(?<=[.!?])\s+", text) if s.strip()]
+
+
+found = []
+for path in files:
+    lines = path.read_text(encoding="utf-8").splitlines()
+    for no, para in paragraphs(lines):
+        for sentence in sentences(para):
+            words = len(re.findall(r"[^\s*_]+", sentence))
+            if words > 20:
+                found.append((path.relative_to(root), no, words, sentence))
+
+count = len(found)
+if show or count > limit:
+    for rel, no, words, sentence in found:
+        print(f"  {rel}:{no}: {words} sözcük: {sentence[:100]}")
+if count > limit:
+    print(f"Uzun cümle sayısı tavanı aştı: {count} > {limit} (20 sözcükten uzun cümle).", file=sys.stderr)
+    sys.exit(1)
+note = " Tavanı indir." if count < limit else ""
+print(f"Uzun cümle sayısı uygun ({count}/{limit}).{note}")
+PY
+}
+
+# --- Sır kalıpları (docs/, AGENTS.md, README.md) ---------------------------------
+# Repo herkese açıktır. Kalıp eşleşen satır düşer. Sözcük olarak geçen terim için satır sonuna
+# `<!-- sır değil -->` yaz (tablo satırında son `|` işaretinden önce; kod bloğunda `# sır değil`).
+check_secrets() {
+    hits=$(grep -n -i -E 'token|password|secret|apikey|api_key|-----BEGIN' \
+        "$root"/docs/*.md "$root/AGENTS.md" "$root/README.md" |
+        grep -v -E 'sır değil( *-->)? *\|? *$' || true)
+    if [ -n "$hits" ]; then
+        echo "Sır kalıbı eşleşti (muafiyet: satır sonunda <!-- sır değil -->):" >&2
+        printf '%s\n' "$hits" | sed "s#^$root/#  #" >&2
+        return 1
+    fi
+    echo "Sır kalıbı yok."
+}
+
 check_decisions || fail=1
 check_readme_table || fail=1
 check_counts || fail=1
 check_string_catalog || fail=1
+check_long_sentences || fail=1
+check_secrets || fail=1
 # Koddaki sabit arayüz metinleri katalogda olmalı (ayrıntı: check-catalog-keys.py).
 python3 -I "$root/.github/scripts/check-catalog-keys.py" "$root" || fail=1
 

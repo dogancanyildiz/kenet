@@ -273,7 +273,7 @@ flowchart TD
 
 ```mermaid
 flowchart LR
-  A[GitHub Secrets] --> B[Geçici anahtar zinciri ve .p8]
+  A[GitHub ortam sırları] --> B[Geçici anahtar zinciri ve .p8]
   B --> C["testflight.sh --ci"]
   C --> D[İmzalı arşiv ve paket denetimi]
   D --> E[App Store Connect dahili test]
@@ -281,15 +281,15 @@ flowchart LR
 
 `.github/workflows/testflight.yml` yerel yolu CI'da koşar: `testflight.sh --ci`. Betik aynı denetimleri yapar ve aynı dışa aktarma ayarıyla yükler. Betik Xcode hesabının yerine App Store Connect API anahtarını kullanır. Betik takım kimliğini anahtar zincirindeki Apple Distribution kimliğinden okur. Repoya ve günlüğe kimlik yazılmaz.
 
-**Tablo, iş akışının beklediği Secrets değerlerini ve kaynaklarını verir.**
+**Tablo, iş akışının beklediği Secrets değerlerini ve kaynaklarını verir.** <!-- sır değil -->
 
-| Secret | İçerik | Kaynak |
+| Secret | İçerik | Kaynak <!-- sır değil --> |
 |---|---|---|
 | `ASC_KEY_ID` | API anahtarının kimliği, 10 karakter | App Store Connect, anahtar satırı |
 | `ASC_ISSUER_ID` | Yayıncı kimliği, UUID | App Store Connect, anahtar tablosunun üstü |
 | `ASC_KEY_P8` | `AuthKey_<kimlik>.p8` dosyası, base64 | Anahtar oluşunca bir kez indirilir |
 | `DIST_CERT_P12` | Apple Distribution ve Apple Development kimlikleri, tek `.p12`, base64 | Anahtar Zinciri Erişimi, dışa aktarma |
-| `DIST_CERT_PASSWORD` | `.p12` parolası | Dışa aktarırken sen seçersin |
+| `DIST_CERT_PASSWORD` | `.p12` parolası | Dışa aktarırken sen seçersin <!-- sır değil --> |
 
 1. API anahtarını oluştur. App Store Connect → Users and Access → Integrations → App Store Connect API → Team Keys → `+`. Ad: `Kenet CI`. Erişim: App Manager. `.p8` dosyasını indir; Apple dosyayı yalnız bir kez verir. Key ID ve Issuer ID değerlerini not et.
 2. Dağıtım sertifikasını hazırla. Xcode → Settings → Accounts → takım → Manage Certificates. Listede Apple Distribution yoksa `+` → Apple Distribution.
@@ -297,20 +297,20 @@ flowchart LR
 
    **NOT:** Otomatik imzalamada arşiv adımı geliştirme kimliğiyle imzalar; dışa aktarma dağıtım kimliğiyle yeniden imzalar. `.p12` içinde Apple Development yoksa Xcode her koşuda API anahtarıyla yeni bir geliştirme sertifikası oluşturabilir. Betik bu durumda uyarı yazar.
 
-4. Secrets değerlerini yaz. Depo kökünde:
+4. Secrets değerlerini yaz. Depo kökünde: <!-- sır değil -->
 
    ```sh
    # Önce "testflight" ortamını yalnız dev dalına açık olarak oluştur (Settings → Environments:
-   # Deployment branches → Selected branches → dev); Secrets bu ortama yazılır, başka dal okuyamaz.
+   # Deployment branches → Selected branches → dev); Secrets bu ortama yazılır, başka dal okuyamaz.  # sır değil
    gh api -X PUT repos/dogancanyildiz/kenet/environments/testflight \
      -F 'deployment_branch_policy[protected_branches]=false' \
      -F 'deployment_branch_policy[custom_branch_policies]=true'
    gh api -X POST repos/dogancanyildiz/kenet/environments/testflight/deployment-branch-policies -f name=dev
-   gh secret set ASC_KEY_ID --env testflight
-   gh secret set ASC_ISSUER_ID --env testflight
-   base64 -i AuthKey_<Key ID>.p8 | gh secret set ASC_KEY_P8 --env testflight
-   base64 -i Kenet-imza.p12 | gh secret set DIST_CERT_P12 --env testflight
-   gh secret set DIST_CERT_PASSWORD --env testflight
+   gh secret set ASC_KEY_ID --env testflight  # sır değil
+   gh secret set ASC_ISSUER_ID --env testflight  # sır değil
+   base64 -i AuthKey_<Key ID>.p8 | gh secret set ASC_KEY_P8 --env testflight  # sır değil
+   base64 -i Kenet-imza.p12 | gh secret set DIST_CERT_P12 --env testflight  # sır değil
+   gh secret set DIST_CERT_PASSWORD --env testflight  # sır değil
    ```
 
    Son komut parolayı gizli girişle sorar. Sonra `.p8` ve `.p12` dosyalarını parola yöneticisine taşı ve diskten sil.
@@ -325,7 +325,7 @@ flowchart LR
 | Dal | Yalnız `dev`. Betik başka dalı ve `origin/dev` geçmişinde olmayan commit'i reddeder |
 | Kuyruk | Aynı anda tek yükleme. Yükleme yarıda kesilmez; bekleyen koşu yenisi gelince iptal olur |
 | Yapı numarası | Commit sayısı. Aynı commit'ten ikinci yükleme reddedilir |
-| Sertifika süresi | Apple Distribution bir yıl geçerlidir. Yenileyince `DIST_CERT_P12` ve `DIST_CERT_PASSWORD` değerlerini güncelle |
+| Sertifika süresi | Apple Distribution bir yıl geçerlidir. Yenileyince `DIST_CERT_P12` ve `DIST_CERT_PASSWORD` değerlerini güncelle <!-- sır değil --> |
 | API anahtarı | Süresi dolmaz. Sızarsa App Store Connect'te iptal et ve yenisini yaz. İki adımlı doğrulama istemez |
 | Düşen koşu | `testflight-logs` artifact'ı arşiv ve yükleme günlüğünü taşır. Takım, anahtar ve yayıncı kimliği günlükte yer tutucuyla değişir |
 

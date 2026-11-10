@@ -61,12 +61,18 @@ struct TaskTimelineView: View {
         .onChange(of: selected?.id) { _, _ in sourceDay = nil }
         .task(id: model.request) { await model.load() }
         .task(id: TimelineDayRequest(date: selectedDay, updated: model.store.lastUpdated, scale: model.scale)) {
-            guard model.scale == .day else { daySummary = nil; return }
+            guard model.scale == .day else {
+                daySummary = nil
+                return
+            }
             daySummary = nil
             daySummary = try? await model.store.computeDay(on: selectedDay)
         }
         .task(id: TimelineWeekRequest(date: selectedDay, updated: model.store.lastUpdated, scale: model.scale)) {
-            guard model.scale == .week else { weekSummaries = []; return }
+            guard model.scale == .week else {
+                weekSummaries = []
+                return
+            }
             var loaded: [DaySummary] = []
             for date in weekDates {
                 guard !Task.isCancelled else { return }
@@ -229,7 +235,11 @@ struct TaskTimelineView: View {
             } else {
                 VStack(alignment: .leading, spacing: 0) {
                     scaleTabs
-                    HStack { todayButton; Spacer(); periodButtons }
+                    HStack {
+                        todayButton
+                        Spacer()
+                        periodButtons
+                    }
                 }
             }
         }

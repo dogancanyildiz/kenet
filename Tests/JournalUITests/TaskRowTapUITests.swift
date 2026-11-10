@@ -61,11 +61,18 @@ final class TaskRowTapUITests: XCTestCase {
         app.coordinate(withNormalizedOffset: .zero).withOffset(CGVector(dx: x, dy: y)).tap()
     }
 
-    /// The row's text element, in the upper part of the first screen.
+    /// The row's text element, brought into the upper part of the screen. The weekly summary
+    /// and project cards sit above the sections (screens.md), so the list is scrolled up by a
+    /// drag in the left page margin (clear of the rows) when the row starts lower.
     @MainActor
     private func taskText(_ text: String, in app: XCUIApplication) throws -> XCUIElement {
         let element = app.staticTexts.matching(NSPredicate(format: "label == %@", text)).firstMatch
         UITestSupport.waitForExistence(element, timeout: 30)
+        for _ in 0..<3 where element.frame.maxY > app.frame.height * 0.6 {
+            let from = app.coordinate(withNormalizedOffset: CGVector(dx: 0.02, dy: 0.7))
+            let to = app.coordinate(withNormalizedOffset: CGVector(dx: 0.02, dy: 0.45))
+            from.press(forDuration: 0.05, thenDragTo: to)
+        }
         XCTAssertLessThanOrEqual(
             element.frame.maxY, app.frame.height * 0.6, "task row is too low to touch safely: \(text)")
         XCTAssertTrue(element.isHittable, "task row is off screen: \(text)")

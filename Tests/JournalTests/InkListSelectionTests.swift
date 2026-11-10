@@ -99,11 +99,17 @@ struct InkListSelectionTests {
             await host.settle()
             let table = try #require(host.descendant(NSTableView.self), "the task list is not table backed")
             var listed = (0..<table.numberOfRows).map { table.rect(ofRow: $0).height }
+            // The rows' own width: the cells are narrower than the window (the table's inset),
+            // and a card row's text wraps by the width it is given.
+            let cellWidth =
+                (0..<table.numberOfRows).compactMap {
+                    table.view(atColumn: 0, row: $0, makeIfNecessary: false)?.frame.width
+                }.max() ?? size.width
             host.close()
             #expect(!tasks.isEmpty)
             // `inkListRow` insets the content 6 pt above and below.
             let insets: CGFloat = 12
-            let contentWidth = size.width - InkSpacing.margin * 2
+            let contentWidth = cellWidth - InkSpacing.margin * 2
             for task in tasks {
                 let alone = await Self.rowHeight(task, context: context, day: day, width: contentWidth)
                 let match = listed.firstIndex { abs($0 - (alone + insets)) < 1.5 }

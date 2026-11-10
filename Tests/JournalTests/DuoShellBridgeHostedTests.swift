@@ -68,7 +68,7 @@
             try await DuoShell.hosted { shell in
                 let today = LocalDay.today()
                 shell.navigation.journalEditor = JournalEditorRoute(day: today, isToday: true)
-                await shell.settle(until: { shell.journalText != nil })
+                await shell.settleUntilEditor(for: today)
                 let draft = shell.editorDraft(for: today)
                 await shell.settle(until: { draft.isLoaded })
                 #expect(draft.isLoaded, "the editor loaded the day")
@@ -106,13 +106,13 @@
             try await DuoShell.hosted { shell in
                 let today = LocalDay.today()
                 shell.navigation.journalEditor = JournalEditorRoute(day: today, isToday: true)
-                await shell.settle(until: { shell.journalText != nil })
+                await shell.settleUntilEditor(for: today)
                 let opened = shell.editorDraft(for: today)
                 await shell.settle(until: { opened.isLoaded })
                 #expect(!opened.isDirty, "nothing typed yet")
 
                 await shell.fold(to: .duoInner())
-                await shell.settle(until: { shell.journalText != nil })
+                await shell.settleUntilEditor(for: today)
                 let draft = shell.editorDraft(for: today)
                 #expect(draft === opened, "the inner screen's editor took the model that was open")
                 draft.text = "İç ekranda yazıldı"
@@ -241,6 +241,12 @@
             /// The controller that presents the sheet, or nil without one.
             var presenter: UIViewController? {
                 controllers(of: UIViewController.self).first { $0.presentedViewController != nil }
+            }
+
+            /// Waits for the sheet's editor and for the model it puts into the bridge: the text view
+            /// can be on screen a pass before the editor registers its model.
+            func settleUntilEditor(for day: CalendarDate) async {
+                await settle(until: { journalText != nil && navigation.holdsJournalDraft(for: day, store: store) })
             }
 
             /// The day's editor model, which the editor on screen put into the bridge.

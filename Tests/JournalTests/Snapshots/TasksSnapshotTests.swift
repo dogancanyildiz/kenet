@@ -17,6 +17,7 @@
         @Test func kanbanAX3() async throws { try await run(.kanbanAX3) }
         @Test func kanbanContrast() async throws { try await run(.kanbanContrast) }
         @Test func timelineLight() async throws { try await run(.timelineLight) }
+        @Test func timelineDayLight() async throws { try await run(.timelineDayLight) }
         @Test func timelineDark() async throws { try await run(.timelineDark) }
         @Test func timelineAX3() async throws { try await run(.timelineAX3) }
         @Test func timelineContrast() async throws { try await run(.timelineContrast) }

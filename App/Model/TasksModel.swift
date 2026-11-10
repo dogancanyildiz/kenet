@@ -46,8 +46,15 @@ struct TaskListContent {
     let completed: [TaskRow]
     /// Open tasks per project key, whatever the filters.
     let projectOpenCounts: [String: Int]
+    /// Open and done tasks per project key, whatever the filters (project cards).
+    let projectCounts: [String: ProjectTaskCount]
+    /// This week's card, whatever the filters.
+    let weekly: TasksWeeklySummary
 
-    init(groups: TaskRowGroups, completed: [TaskRow], projectOpenCounts: [String: Int]) {
+    init(
+        groups: TaskRowGroups, completed: [TaskRow], projectOpenCounts: [String: Int],
+        projectCounts: [String: ProjectTaskCount] = [:], weekly: TasksWeeklySummary = .empty
+    ) {
         let overdue = groups.overdue.sorted(by: TasksModel.order)
         let future = Dictionary(
             grouping: (groups.today + groups.upcoming).sorted(by: TasksModel.order), by: { $0.due! })
@@ -69,6 +76,8 @@ struct TaskListContent {
                 return $0.sourceLine < $1.sourceLine
             }.prefix(TasksModel.completedLimit))
         self.projectOpenCounts = projectOpenCounts
+        self.projectCounts = projectCounts
+        self.weekly = weekly
     }
 }
 
@@ -98,6 +107,8 @@ final class TasksModel {
     private(set) var busy: Set<String> = []
     private(set) var errorText: String?
     private let today: () -> CalendarDate
+    /// The week the summary card counts (first weekday); the current calendar unless a test sets one.
+    var calendar: Calendar = .autoupdatingCurrent
 
     init(store: IndexStore, today: @escaping () -> CalendarDate = { LocalDay.today() }) {
         self.store = store
@@ -135,16 +146,20 @@ final class TasksModel {
     func loadList() async {
         let request = listRequest
         let outcome = await QueryOutcome.of {
-            (
-                try await store.computeTaskGroups(today: request.day, scope: request.scope),
-                try await store.computeCompletedTasks(limit: Self.completedLimit, scope: request.scope),
-                try await store.computeOpenTaskCounts(),
-                try await store.computeProjects()
-            )
+            let groups = try await store.computeTaskGroups(today: request.day, scope: request.scope)
+            let completed = try await store.computeCompletedTasks(limit: Self.completedLimit, scope: request.scope)
+            let counts = try await store.computeOpenTaskCounts()
+            let names = try await store.computeProjects()
+            let projectCounts = try await store.computeProjectTaskCounts()
+            let week = TasksWeeklySummary.week(containing: request.day, calendar: calendar)
+            let period = try await store.computePeriodTaskCount(from: week.lowerBound, through: week.upperBound)
+            return (groups, completed, counts, names, projectCounts, TasksWeeklySummary(period))
         }
         switch outcome {
-        case .answer(let (groups, completed, counts, names)):
-            list = TaskListContent(groups: groups, completed: completed, projectOpenCounts: counts)
+        case .answer(let (groups, completed, counts, names, projectCounts, weekly)):
+            list = TaskListContent(
+                groups: groups, completed: completed, projectOpenCounts: counts,
+                projectCounts: projectCounts, weekly: weekly)
             projects = names
             loadedListRequest = request
             listErrorText = nil

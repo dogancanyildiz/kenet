@@ -84,6 +84,9 @@ struct KanbanCard: View {
                                 ? Color.ink.secondaryText : Color.ink.text)
                     }
                     HStack(spacing: 8) {
+                        if let project = row.project {
+                            TagChip(title: project, filled: true)
+                        }
                         if let date = row.due {
                             TaskDueDateLabel(
                                 date: date, presentation: presentation, asOf: model.tasks.day,
@@ -108,6 +111,15 @@ struct KanbanCard: View {
                         .foregroundStyle(.ink.secondaryText)
                     }
                 }
+            }
+            .overlay {
+                // Project bar inside the card's corner; the chip carries the project name.
+                ProjectColor.color(for: row.project)
+                    .frame(width: InkSize.timelineBar)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+                    .clipShape(RoundedRectangle(cornerRadius: InkSize.kanbanCorner, style: .continuous))
+                    .allowsHitTesting(false)
+                    .accessibilityHidden(true)
             }
             .contentShape(Rectangle())
             .inkPointerLift()

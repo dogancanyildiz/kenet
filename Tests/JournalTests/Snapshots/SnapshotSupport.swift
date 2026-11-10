@@ -197,6 +197,7 @@
         case kanbanAX3
         case kanbanContrast
         case timelineLight
+        case timelineDayLight
         case timelineDark
         case timelineAX3
         case timelineContrast
@@ -206,6 +207,7 @@
             case .tasksLight, .tasksDark, .tasksAX3, .tasksContrast: .tasks
             case .kanbanLight, .kanbanDark, .kanbanAX3, .kanbanContrast: .kanban
             case .timelineLight, .timelineDark, .timelineAX3, .timelineContrast: .timeline
+            case .timelineDayLight: .timelineDay
             }
         }
 
@@ -234,7 +236,7 @@
     /// Screens hosted by ``SnapshotHost/hostedView``. Today builds its own root in
     /// ``TodaySnapshotTests`` (calendar source, tab-bar inset, goal-strip readiness).
     enum SnapshotScreen: String, Sendable {
-        case tasks, kanban, timeline
+        case tasks, kanban, timeline, timelineDay
         case goals, summaries, graph, graphSelected, map, goalDetail, goalCreation
         case days, daysSelected, entity, search
     }
@@ -270,6 +272,10 @@
             case .timeline:
                 tasks.section = .timeline
                 defaults.set(TasksModel.Section.timeline.rawValue, forKey: TasksModel.Section.storageKey)
+            case .timelineDay:
+                tasks.section = .timeline
+                tasks.viewState.timelineScale = .day
+                defaults.set(TasksModel.Section.timeline.rawValue, forKey: TasksModel.Section.storageKey)
             default:
                 break
             }
@@ -277,7 +283,7 @@
             let clock = clock(for: screen)
             let root: AnyView =
                 switch screen {
-                case .tasks, .kanban, .timeline:
+                case .tasks, .kanban, .timeline, .timelineDay:
                     AnyView(TasksView(store: store, tasks: tasks))
                 case .goals:
                     AnyView(GoalsView(store: store))

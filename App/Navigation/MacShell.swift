@@ -79,14 +79,6 @@ extension View {
             frame(minWidth: InkSpacing.macWindowMinWidth, minHeight: InkSpacing.macWindowMinHeight)
         }
     #endif
-
-    /// Formerly the window toolbar search button. Search now lives in the sidebar
-    /// (``.searchable(placement: .sidebar)``); this modifier is a no-op kept so call sites
-    /// compile until they are cleaned up.
-    @ViewBuilder
-    func macSearchToolbar() -> some View {
-        self
-    }
 }
 
 private struct SidebarColumnWidth: ViewModifier {

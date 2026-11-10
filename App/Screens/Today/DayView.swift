@@ -51,6 +51,9 @@ struct DayView: View {
     /// rebuilt by the iPhone Duo shows the same page with the same text. Nil when the page is
     /// hosted without a shell (tests).
     @Environment(ShellNavigationState.self) private var navigation: ShellNavigationState?
+    #if os(macOS)
+        @Environment(\.todayDeskChrome) private var todayDeskChrome: TodayDeskChrome?
+    #endif
     @State private var showsJournal = false
     /// On screen (`onAppear`): a page in another tab or under a pushed page is not, and leaves
     /// the journal editor route to the page the user sees.
@@ -109,6 +112,15 @@ struct DayView: View {
     /// The queried day, once it is this date's. Until then the day's own sections are not drawn,
     /// so the page never shows an empty day that is still loading.
     private var day: DaySummary? { loadedDay?.date == date && tasksModel.isLoaded ? loadedDay : nil }
+
+    /// Mac desk shell draws "Günü kapat" in the panel / folded block.
+    private var showsInlineCloseDay: Bool {
+        #if os(macOS)
+            todayDeskChrome?.suppressCloseDay != true
+        #else
+            true
+        #endif
+    }
 
     private var foldsOpenTasks: Bool {
         guard isToday else { return false }
@@ -207,12 +219,23 @@ struct DayView: View {
         )
         .inkPage()
         .safeAreaInset(edge: .bottom) {
-            QuickEntryBar(
-                store: store, isEnabled: true, day: isToday ? nil : date,
-                focusRequest: isToday ? intentNavigation?.focusRequest : nil, acceptsPeopleMentions: isToday,
-                drafts: navigation
-            )
-            .id(isToday ? "today" : date.description)
+            #if os(macOS)
+                if todayDeskChrome?.suppressQuickEntry != true {
+                    QuickEntryBar(
+                        store: store, isEnabled: true, day: isToday ? nil : date,
+                        focusRequest: isToday ? intentNavigation?.focusRequest : nil,
+                        acceptsPeopleMentions: isToday, drafts: navigation
+                    )
+                    .id(isToday ? "today" : date.description)
+                }
+            #else
+                QuickEntryBar(
+                    store: store, isEnabled: true, day: isToday ? nil : date,
+                    focusRequest: isToday ? intentNavigation?.focusRequest : nil, acceptsPeopleMentions: isToday,
+                    drafts: navigation
+                )
+                .id(isToday ? "today" : date.description)
+            #endif
         }
         // Today is a root screen: same modifiers as `inkRootPageNavigationTitle`, kept
         // conditional because a past day is a pushed page that needs the bar's back button.
@@ -394,6 +417,15 @@ struct DayView: View {
                 }
             }
 
+            #if os(macOS)
+                if let desk = todayDeskChrome {
+                    desk.hourGrid
+                    if let folded = desk.foldedPanel {
+                        folded
+                    }
+                }
+            #endif
+
             if store.isProcessing && !store.isWriting {
                 InkProgress(kind: .indeterminate(label: "İndeks güncelleniyor…"))
             }
@@ -448,7 +480,7 @@ struct DayView: View {
 
             // Last on the page: above the fold it would push the first event out of sight. The
             // flow decides its goal step from the strip's model, so it waits for its goals.
-            if let day, goalModel.hasLoaded,
+            if showsInlineCloseDay, let day, goalModel.hasLoaded,
                 CloseDayEntry.isOffered(
                     isToday: isToday, presentation: presented, hasJournal: CloseDayEntry.hasJournal(day))
             {

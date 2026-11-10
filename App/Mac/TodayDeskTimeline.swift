@@ -18,6 +18,7 @@ import VaultFormat
 
         @ScaledMetric(relativeTo: .body) private var hourHeight: CGFloat = 68
         @ScaledMetric(relativeTo: .body) private var timeColumnWidth: CGFloat = 48
+        @State private var rowHeights: [Int: CGFloat] = [:]
 
         var body: some View {
             VStack(alignment: .leading, spacing: InkSpacing.section) {
@@ -74,14 +75,24 @@ import VaultFormat
                         }
                     }
                     .frame(minHeight: hourHeight, alignment: .top)
+                    .background {
+                        GeometryReader { geo in
+                            Color.clear.preference(
+                                key: TodayDeskHourHeightKey.self,
+                                value: [hour: geo.size.height])
+                        }
+                    }
                     .overlay(alignment: .topLeading) {
-                        if day == today, currentHour == hour { nowLine }
+                        if day == today, currentHour == hour {
+                            nowLine(rowHeight: rowHeights[hour] ?? hourHeight)
+                        }
                     }
                 }
             }
+            .onPreferenceChange(TodayDeskHourHeightKey.self) { rowHeights = $0 }
         }
 
-        private var nowLine: some View {
+        private func nowLine(rowHeight: CGFloat) -> some View {
             HStack(spacing: 6) {
                 Text(EventTimeFormat.string(hour: currentHour, minute: currentMinute, locale: locale))
                     .font(.ink.meta.weight(.semibold))
@@ -96,7 +107,7 @@ import VaultFormat
                     .accessibilityHidden(true)
             }
             .padding(.leading, timeColumnWidth + 10)
-            .offset(y: CGFloat(currentMinute) / 60 * hourHeight)
+            .offset(y: CGFloat(currentMinute) / 60 * rowHeight)
             .accessibilityElement(children: .combine)
             .accessibilityLabel(Text("Şimdi"))
         }
@@ -116,14 +127,23 @@ import VaultFormat
 
         private func timedTaskCard(_ task: TaskRow, time: EventTime) -> some View {
             let isLate = !task.isClosed && task.due.map { $0 < today } == true
+            let projectLabel = task.project?.trimmingCharacters(in: .whitespacesAndNewlines)
+            let kindLabel: String = {
+                if isLate, let due = task.due {
+                    return TodayPresentation.carriedOverDate(
+                        due, today: today, locale: locale, calendar: calendar)
+                }
+                if let projectLabel, !projectLabel.isEmpty { return projectLabel }
+                return String(localized: "Görev")
+            }()
             return Button {
                 onSelectTask(task)
             } label: {
                 InkTimelineCard(
-                    title: TodayDeskPlan.strippingLeadingTime(from: task.text.plainText),
+                    title: DaySchedulePresentation.strippingLeadingTime(from: task.text.plainText),
                     meta: EventTimeFormat.string(for: time, locale: locale),
                     barColor: ProjectColor.color(for: task.project),
-                    kindLabel: isLate ? String(localized: "Geç") : String(localized: "Görev"),
+                    kindLabel: kindLabel,
                     isCompleted: task.isClosed
                 )
                 .overlay {
@@ -140,5 +160,12 @@ import VaultFormat
         private var now: Date { clockNow() }
         private var currentHour: Int { calendar.component(.hour, from: now) }
         private var currentMinute: Int { calendar.component(.minute, from: now) }
+    }
+
+    private struct TodayDeskHourHeightKey: PreferenceKey {
+        static let defaultValue: [Int: CGFloat] = [:]
+        static func reduce(value: inout [Int: CGFloat], nextValue: () -> [Int: CGFloat]) {
+            value.merge(nextValue(), uniquingKeysWith: { _, new in new })
+        }
     }
 #endif

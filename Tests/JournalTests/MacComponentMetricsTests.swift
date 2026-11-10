@@ -106,9 +106,9 @@ struct QuickEntryWordSpacingTests {
                 "title ends at \(title.maxX) pt, first icon starts at \(firstIcon.minX) pt")
         }
 
-        /// Mac search lives in the window toolbar: the manşet row shows no magnifier, and the
-        /// same button outside a manşet row (the toolbar) is still drawn.
-        @Test func headerRowDrawsNoSearchButTheBareButtonStillDraws() async {
+        /// Mac search is the sidebar field: the manşet row shows no magnifier, and a bare
+        /// ``SearchButton`` outside a manşet (and outside the search sheet) also draws nothing.
+        @Test func headerRowDrawsNoSearchAndBareButtonDrawsOnlyInsideSearchSheet() async {
             let header = HostedLayout.Mount(SearchSlotProbe(inHeader: true), size: CGSize(width: 640, height: 80))
             defer { header.close() }
             await header.settle()
@@ -119,7 +119,7 @@ struct QuickEntryWordSpacingTests {
             defer { bare.close() }
             await bare.settle()
             let outside = Self.pointerTargets(in: bare.window.contentView ?? NSView())
-            #expect(outside.count == 2, "targets outside a manşet \(outside): the icon and search")
+            #expect(outside.count == 1, "targets outside a manşet \(outside): only the screen's icon")
         }
 
         private static func modeWordGap(in mount: HostedLayout.Mount) throws -> CGFloat {

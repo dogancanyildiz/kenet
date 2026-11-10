@@ -22,9 +22,8 @@ struct MacNavigation: View {
     #if os(macOS)
         /// The menu bar's "Bugüne git". Made once (``ShellAction``).
         @State private var goToToday: ShellAction
-        /// Sidebar search field (``.searchable(placement: .sidebar)``); ⌘F focuses it.
-        @State private var sidebarSearch = ""
-        @State private var isSidebarSearchFocused = false
+        /// Sidebar searchable text + ⌘F focus action (stable ``ShellAction``).
+        @State private var sidebarSearch = SidebarSearchState()
     #endif
     #if os(iOS)
         @State private var columnVisibility = NavigationSplitViewVisibility.automatic
@@ -81,17 +80,6 @@ struct MacNavigation: View {
         .environment(\.shellKind, .split)
         // The pages take their drafts from the bridge.
         .environment(navigation)
-        #if os(macOS)
-            .searchable(
-                text: $sidebarSearch, isPresented: $isSidebarSearchFocused,
-                placement: .sidebar, prompt: "Ara"
-            )
-            .onSubmit(of: .search) {
-                let query = sidebarSearch.trimmingCharacters(in: .whitespacesAndNewlines)
-                guard !query.isEmpty else { return }
-                openSearchQuery(query)
-            }
-        #endif
         // `initial: true` so a request from before the shell was built is still routed; the
         // bridge tells a shell rebuilt after the request (the Duo closed and opened again) to
         // leave it alone.
@@ -152,7 +140,10 @@ struct MacNavigation: View {
             if let answer = await TaskSelectionAnswer.load(request, store: store) { taskSelection = answer }
         }
         #if os(macOS)
+            // Searchable stays on the sidebar child (below), not here: applying it on the shell
+            // root republished menu-bar focused values on every rebuild.
             .focusedSceneValue(\.goToToday, goToToday)
+            .focusedSceneValue(\.focusSidebarSearch, sidebarSearch.focus)
         #endif
     }
 
@@ -174,7 +165,6 @@ struct MacNavigation: View {
                 }
                 // Full-width paper; graph / map / summaries are not reading columns.
                 .inkPage()
-                .macSearchToolbar()
             }
         case .board:
             splitView {
@@ -188,7 +178,6 @@ struct MacNavigation: View {
                     }
                 }
                 .inkPage()
-                .macSearchToolbar()
             }
         case .columns:
             standardLayout
@@ -205,6 +194,23 @@ struct MacNavigation: View {
             onClick: { entry in if entry == .section(.tasks) { tasksEvent(.sidebarTasks) } },
             restoresFocus: $sidebarRestoresFocus
         )
+        #if os(macOS)
+            .searchable(
+                text: Bindable(sidebarSearch).query,
+                isPresented: Bindable(sidebarSearch).isFocused,
+                placement: .sidebar, prompt: "Ara"
+            )
+            .onSubmit(of: .search) {
+                let query = sidebarSearch.query.trimmingCharacters(in: .whitespacesAndNewlines)
+                guard !query.isEmpty else { return }
+                openSearchQuery(query)
+                sidebarSearch.query = ""
+                sidebarSearch.isFocused = false
+            }
+            .accessibilityIdentifier("sidebar.search")
+            // Re-apply after searchable so the split view still sees the column width range.
+            .macSidebarColumn()
+        #endif
     }
 
     /// Sidebar and one full-width detail (board, page). iOS hands the column visibility to the
@@ -323,7 +329,6 @@ struct MacNavigation: View {
             // paper is only as large as the prompt and the stack's system white (dark: gray)
             // shows around it.
             .inkPage()
-            .macSearchToolbar()
         }
     }
 
@@ -443,7 +448,23 @@ struct MacEmptyDetail: View {
 }
 
 #if os(macOS)
+    /// Sidebar searchable state: query text, focus flag, and a once-made ⌘F ``ShellAction``.
+    @MainActor @Observable
+    final class SidebarSearchState {
+        var query = ""
+        var isFocused = false
+        @ObservationIgnored private(set) var focus = ShellAction.nothing
+
+        init() {
+            focus = ShellAction { [weak self] in self?.isFocused = true }
+        }
+    }
+
     struct TodayNavigationKey: FocusedValueKey {
+        typealias Value = ShellAction
+    }
+
+    struct SidebarSearchFocusKey: FocusedValueKey {
         typealias Value = ShellAction
     }
 
@@ -452,6 +473,12 @@ struct MacEmptyDetail: View {
         var goToToday: ShellAction? {
             get { self[TodayNavigationKey.self] }
             set { self[TodayNavigationKey.self] = newValue }
+        }
+
+        /// Menu bar "Ara" / ⌘F: focuses the sidebar searchable field.
+        var focusSidebarSearch: ShellAction? {
+            get { self[SidebarSearchFocusKey.self] }
+            set { self[SidebarSearchFocusKey.self] = newValue }
         }
     }
 #endif

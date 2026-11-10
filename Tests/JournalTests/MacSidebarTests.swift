@@ -89,13 +89,28 @@
             }
         }
 
-        /// Sidebar ground is `elevated`: unselected text stays above 4.5:1 on that fill.
+        /// Sidebar ground is `elevated`: unselected text stays above 4.5:1; accent icon ≥ 3:1.
         @Test(arguments: InkPalette.Appearance.allCases)
         func elevatedSidebarKeepsUnselectedTextReadable(appearance: InkPalette.Appearance) {
             let ground = InkPalette.Token.elevated.variant.hex(for: appearance)
             let title = InkPalette.Token.text.variant.hex(for: appearance)
-            let ratio = InkPalette.contrastRatio(foreground: title, background: ground)
-            #expect(ratio >= 4.5, "text on elevated, \(appearance.rawValue): \(ratio)")
+            let icon = InkPalette.Token.accent.variant.hex(for: appearance)
+            let titleRatio = InkPalette.contrastRatio(foreground: title, background: ground)
+            let iconRatio = InkPalette.contrastRatio(foreground: icon, background: ground)
+            #expect(titleRatio >= 4.5, "text on elevated, \(appearance.rawValue): \(titleRatio)")
+            #expect(iconRatio >= 3, "accent icon on elevated, \(appearance.rawValue): \(iconRatio)")
+        }
+
+        /// Rule 12 pinned ratios: on-accent on accent is 8.70 (light) and 7.28 (dark).
+        @Test func selectedRowPinsRule12ContrastNumbers() {
+            let light = InkPalette.contrastRatio(
+                foreground: InkPalette.Token.onAccent.variant.hex(for: .light),
+                background: InkPalette.Token.accent.variant.hex(for: .light))
+            let dark = InkPalette.contrastRatio(
+                foreground: InkPalette.Token.onAccent.variant.hex(for: .dark),
+                background: InkPalette.Token.accent.variant.hex(for: .dark))
+            #expect(abs(light - 8.70) < 0.05, "light onAccent/accent: \(light)")
+            #expect(abs(dark - 7.28) < 0.05, "dark onAccent/accent: \(dark)")
         }
     }
 

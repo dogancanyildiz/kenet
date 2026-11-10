@@ -59,7 +59,7 @@ struct ContentView: View {
             }
         }
         .environment(\.openSearch, search.open)
-        .environment(\.openSearchQuery, { [search] query in search.openSheet(query: query) })
+        .environment(\.openSearchQuery, search.openQuery)
         .searchSheet(
             isPresented: $search.isPresented, store: store, initialQuery: search.initialQuery
         )
@@ -120,9 +120,12 @@ final class SearchPresentation {
     /// Query handed to ``SearchView`` when the sheet opens (sidebar submit or empty for ⌘K).
     private(set) var initialQuery = ""
     @ObservationIgnored private(set) var open = ShellAction.nothing
+    /// Stable callback for sidebar searchable submit (never recreated in a view body).
+    @ObservationIgnored private(set) var openQuery: @MainActor @Sendable (String) -> Void = { _ in }
 
     init() {
         open = ShellAction { [weak self] in self?.openSheet() }
+        openQuery = { @MainActor [weak self] query in self?.openSheet(query: query) }
     }
 
     func openSheet(query: String = "") {

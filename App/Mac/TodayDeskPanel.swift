@@ -4,9 +4,8 @@ import SwiftUI
 import VaultFormat
 
 #if os(macOS)
-    /// Mac Today right panel (300 pt): next event, next timed task, goals, carried-over tasks,
-    /// on-this-day, and "Günü kapat". Hidden sections stay out of the layout when empty.
-    struct TodayDeskPanel: View {
+    /// Sections shared by the Mac Today right panel and the folded-under-grid layout.
+    struct TodayDeskPanelSections: View {
         let store: IndexStore
         let plan: TodayDeskPlan
         let day: CalendarDate
@@ -16,42 +15,34 @@ import VaultFormat
         let closeDayLabel: String?
         let onCloseDay: () -> Void
         let onOpenGoal: (GoalDefinition) -> Void
+        /// When true, draws the "Bugün" header (right panel only).
+        var showsHeader = true
 
         @Environment(\.locale) private var locale
         @Environment(\.calendar) private var calendar
 
         var body: some View {
-            ScrollView {
-                VStack(alignment: .leading, spacing: InkSpacing.section) {
-                    header
-                    if let event = plan.nextEvent {
-                        nextEventCard(event)
-                    }
-                    if let next = plan.nextTimedTask {
-                        nextTaskCard(next.task, time: next.time)
-                    }
-                    if !goals.isEmpty {
-                        goalsSection
-                    }
-                    if !plan.carriedPreview.isEmpty {
-                        carriedSection
-                    }
-                    if let onThisDay {
-                        onThisDayCard(onThisDay)
-                    }
-                    if let closeDayLabel {
-                        closeDayButton(closeDayLabel)
-                    }
+            VStack(alignment: .leading, spacing: InkSpacing.section) {
+                if showsHeader { header }
+                if let event = plan.nextEvent {
+                    nextEventCard(event)
                 }
-                .padding(InkSpacing.margin)
-                .frame(maxWidth: .infinity, alignment: .leading)
+                if let next = plan.nextTimedTask {
+                    nextTaskCard(next.task, time: next.time)
+                }
+                if !goals.isEmpty {
+                    goalsSection
+                }
+                if !plan.carriedPreview.isEmpty {
+                    carriedSection
+                }
+                if let onThisDay {
+                    onThisDayCard(onThisDay)
+                }
+                if let closeDayLabel {
+                    closeDayButton(closeDayLabel)
+                }
             }
-            .frame(width: ShellStyle.todayPanelWidth)
-            .background(Color.ink.paper)
-            .overlay(alignment: .leading) {
-                Rectangle().fill(Color.ink.rule).frame(width: 1)
-            }
-            .accessibilityIdentifier("panel.todayDesk")
         }
 
         private var header: some View {
@@ -130,10 +121,13 @@ import VaultFormat
                     Text("Sonraki görev")
                         .font(.ink.meta)
                         .foregroundStyle(Color.ink.secondaryText)
-                    Text(verbatim: TodayDeskPlan.strippingLeadingTime(from: task.text.plainText))
-                        .font(.ink.content)
-                        .foregroundStyle(Color.ink.text)
-                        .lineLimit(2)
+                    Text(
+                        verbatim: DaySchedulePresentation.strippingLeadingTime(
+                            from: task.text.plainText)
+                    )
+                    .font(.ink.content)
+                    .foregroundStyle(Color.ink.text)
+                    .lineLimit(2)
                 }
                 Spacer(minLength: 0)
             }
@@ -146,6 +140,14 @@ import VaultFormat
                         RoundedRectangle(cornerRadius: InkCorner.card, style: .continuous)
                             .stroke(Color.ink.rule, lineWidth: 1))
             )
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel(
+                Text(
+                    verbatim: [
+                        String(localized: "Sonraki görev"),
+                        EventTimeFormat.string(for: time, locale: locale),
+                        DaySchedulePresentation.strippingLeadingTime(from: task.text.plainText),
+                    ].joined(separator: ", ")))
         }
 
         private var goalsSection: some View {
@@ -193,7 +195,8 @@ import VaultFormat
                     title: String(localized: "Devreden görevler"),
                     count: plan.carriedPreview.count + plan.hiddenCarriedCount)
                 InkCard(padded: false) {
-                    ForEach(Array(plan.carriedPreview.enumerated()), id: \.element.id) { index, task in
+                    ForEach(Array(plan.carriedPreview.enumerated()), id: \.element.id) {
+                        index, task in
                         if index > 0 { InkCardDivider() }
                         HStack(alignment: .top, spacing: 10) {
                             TaskBox(
@@ -284,6 +287,37 @@ import VaultFormat
             .buttonStyle(.plain)
             .accessibilityIdentifier("button.closeDay")
             .padding(.top, 8)
+        }
+    }
+
+    /// Mac Today right panel (300 pt).
+    struct TodayDeskPanel: View {
+        let store: IndexStore
+        let plan: TodayDeskPlan
+        let day: CalendarDate
+        let goals: [GoalDefinition]
+        let statuses: [String: GoalStatus]
+        let onThisDay: OnThisDay?
+        let closeDayLabel: String?
+        let onCloseDay: () -> Void
+        let onOpenGoal: (GoalDefinition) -> Void
+
+        var body: some View {
+            ScrollView {
+                TodayDeskPanelSections(
+                    store: store, plan: plan, day: day, goals: goals, statuses: statuses,
+                    onThisDay: onThisDay, closeDayLabel: closeDayLabel, onCloseDay: onCloseDay,
+                    onOpenGoal: onOpenGoal, showsHeader: true
+                )
+                .padding(InkSpacing.margin)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .frame(width: ShellStyle.todayPanelWidth)
+            .background(Color.ink.paper)
+            .overlay(alignment: .leading) {
+                Rectangle().fill(Color.ink.rule).frame(width: 1)
+            }
+            .accessibilityIdentifier("panel.todayDesk")
         }
     }
 #endif

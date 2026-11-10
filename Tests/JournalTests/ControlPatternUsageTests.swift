@@ -18,8 +18,8 @@ struct ControlPatternUsageTests {
         /// `.textFieldStyle(.roundedBorder)` → ``InkFilterField``.
         case roundedBorderField
         /// `SearchButton()` inside `.toolbar` in code that iPhone compiles → the manşet row's
-        /// `actions` slot. Mac is the opposite: search lives in the window toolbar only
-        /// (``macShellOwnsTheOnlyToolbarSearch()``), so `#if os(macOS)` code is not scanned here.
+        /// `actions` slot. Mac search is the sidebar searchable
+        /// (``macShellOwnsNoToolbarSearch()``), so `#if os(macOS)` code is not scanned here.
         case toolbarSearch
         /// `Button("Bitti"` → the sheet words are "Vazgeç", "Kaydet", "Oluştur", "Kapat".
         case doneButton
@@ -56,8 +56,8 @@ struct ControlPatternUsageTests {
             "\(rule.rawValue): no longer offending — remove from the allowlist: \(cleared.sorted())")
     }
 
-    /// Mac: one toolbar search for the whole window, in the shell (`docs/design.md`, kalıp 3).
-    @Test func macShellOwnsTheOnlyToolbarSearch() throws {
+    /// Mac: no toolbar search — the sidebar searchable is the one field (`docs/design.md`, kalıp 3).
+    @Test func macShellOwnsNoToolbarSearch() throws {
         var counts: [String: Int] = [:]
         for path in try Self.screenSwiftFiles() {
             let mac = ControlPatternScanner.macOnlyCode(
@@ -67,7 +67,7 @@ struct ControlPatternUsageTests {
                 .filter { $0.contains("SearchButton(") && !$0.contains("ToolbarItem") }.count
             if count > 0 { counts[path] = count }
         }
-        #expect(counts == ["App/Navigation/MacShell.swift": 1], "Mac toolbar search: \(counts)")
+        #expect(counts.isEmpty, "Mac toolbar search must be empty: \(counts)")
     }
 
     @Test func everyRuleHasAnAllowlistEntry() {

@@ -2,12 +2,10 @@ import Foundation
 import VaultFormat
 
 /// Pure selection for the Mac Today desk right panel and hour grid (`docs/screens.md`, "Mac").
-/// Built without D4's `DaySchedulePresentation`; after D4 merges, set `taskTime` to
-/// `DaySchedulePresentation.extractLeadingTime` (or drop the local copy).
 struct TodayDeskPlan: Sendable {
     /// Next timed event at or after `now`, if any.
     let nextEvent: EventRow?
-    /// Next timed open task at or after `now`, if any.
+    /// Next timed open task at or after `now`, if any (today's timed tasks only; not carried-over).
     let nextTimedTask: (task: TaskRow, time: EventTime)?
     /// At most two carried-over (overdue open) tasks for the panel rows.
     let carriedPreview: [TaskRow]
@@ -17,35 +15,20 @@ struct TodayDeskPlan: Sendable {
     let hourRange: ClosedRange<Int>
     /// Timed events for the hour grid, sorted by time then file order.
     let timedEvents: [EventRow]
-    /// Timed open tasks for the hour grid.
+    /// Timed open tasks for the hour grid (excludes carried-over / overdue).
     let timedTasks: [(task: TaskRow, time: EventTime)]
     /// Untimed events (shown under "Saatsiz").
     let untimedEvents: [EventRow]
-    /// Untimed open tasks (shown under "Saatsiz").
+    /// Untimed open tasks of today (excludes carried-over).
     let untimedTasks: [TaskRow]
 
-    /// Right panel stays when the detail column is at least this wide (`screens.md`: 680 pt reading
-    /// column + 300 pt panel). Narrower windows fold the panel away.
+    /// Right panel stays when the detail column is at least reading width + panel
+    /// (`InkSpacing.macPageWidth` + ``ShellStyle/todayPanelWidth``). Narrower detail folds the
+    /// panel sections under the hour grid.
     static let panelMinDetailWidth: CGFloat = InkSpacing.macPageWidth + ShellStyle.todayPanelWidth
 
     static func showsPanel(detailWidth: CGFloat) -> Bool {
         detailWidth >= panelMinDetailWidth
-    }
-
-    /// Leading `HH:mm` on task text (D4's schedule rule). Keep until D4's helper is available.
-    static func extractLeadingTime(from text: String) -> EventTime? {
-        let trimmed = text.trimmingCharacters(in: .whitespaces)
-        guard trimmed.count >= 5 else { return nil }
-        let prefix = String(trimmed.prefix(5))
-        let rest = trimmed.dropFirst(5)
-        guard rest.isEmpty || rest.first == " " else { return nil }
-        return RawDocument(bytes: Array("## Events\n- \(prefix) item".utf8)).bodyLines.events.first?.time
-    }
-
-    static func strippingLeadingTime(from text: String) -> String {
-        let trimmed = text.trimmingCharacters(in: .whitespaces)
-        guard extractLeadingTime(from: trimmed) != nil else { return text }
-        return String(trimmed.dropFirst(5)).trimmingCharacters(in: .whitespaces)
     }
 
     init(
@@ -54,8 +37,13 @@ struct TodayDeskPlan: Sendable {
         carriedOver: [TaskRow],
         nowHour: Int,
         nowMinute: Int,
-        taskTime: (TaskRow) -> EventTime? = { TodayDeskPlan.extractLeadingTime(from: $0.text.plainText) }
+        taskTime: (TaskRow) -> EventTime? = {
+            DaySchedulePresentation.extractLeadingTime(from: $0.text.plainText)
+        }
     ) {
+        let carriedIDs = Set(carriedOver.map(\.id))
+        let todayTasks = openTasks.filter { !carriedIDs.contains($0.id) }
+
         let timedEventRows = events.compactMap { event -> (EventRow, EventTime)? in
             guard let time = event.time else { return nil }
             return (event, time)
@@ -66,7 +54,7 @@ struct TodayDeskPlan: Sendable {
             return lhs.0.sourceLine < rhs.0.sourceLine
         }
 
-        let timedTaskRows = openTasks.compactMap { task -> (TaskRow, EventTime)? in
+        let timedTaskRows = todayTasks.compactMap { task -> (TaskRow, EventTime)? in
             guard let time = taskTime(task) else { return nil }
             return (task, time)
         }
@@ -79,7 +67,7 @@ struct TodayDeskPlan: Sendable {
         timedEvents = timedEventRows.map(\.0)
         timedTasks = timedTaskRows
         untimedEvents = events.filter { $0.time == nil }
-        untimedTasks = openTasks.filter { taskTime($0) == nil }
+        untimedTasks = todayTasks.filter { taskTime($0) == nil }
 
         nextEvent =
             timedEventRows.first {

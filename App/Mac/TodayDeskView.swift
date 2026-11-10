@@ -3,13 +3,11 @@ import SwiftUI
 import VaultFormat
 
 #if os(macOS)
-    /// Mac Today detail: hour-grid desk + optional 300 pt "Bugün" panel. Built beside D4's
-    /// `DayView` / `TodayView`; after D4 merges, swap the Mac `.today` detail to this (or fold
-    /// D4's header/week-strip helpers into it). Do not edit `DayView.swift` from D7.
+    /// Mac Today detail shell: ``TodayView`` / ``DayView`` content, hour grid, optional 300 pt
+    /// panel (or the same sections folded under the grid when the detail is narrow).
     struct TodayDeskView: View {
         let store: IndexStore
         @Environment(IntentNavigation.self) private var intentNavigation: IntentNavigation?
-        @Environment(NotificationService.self) private var notifications
         @Environment(ShellNavigationState.self) private var navigation: ShellNavigationState?
         @Environment(\.locale) private var locale
         @Environment(\.calendar) private var calendar
@@ -23,8 +21,10 @@ import VaultFormat
         @State private var closeDayRoute: CloseDayRoute?
         @State private var goalDestination: GoalDetailRoute?
         @State private var detailWidth: CGFloat = 0
-        @State private var isCarriedOverExpanded = false
-        @State private var isCompletedExpanded = false
+        @State private var editingEvent: EventEditorModel?
+        @State private var editingTask: TaskEditorModel?
+        @State private var deletingEvent: EventRow?
+        @State private var deletingTask: TaskRow?
 
         init(store: IndexStore) {
             self.store = store
@@ -38,7 +38,6 @@ import VaultFormat
                 let today = LocalDay.today(at: context.date)
                 desk(now: context.date, today: today)
             }
-            .accessibilityIdentifier("screen.today")
         }
 
         @ViewBuilder
@@ -48,21 +47,46 @@ import VaultFormat
             let plan = makePlan(
                 presented: presented, events: daySummary?.events ?? [], now: now)
             let showsPanel = TodayDeskPlan.showsPanel(detailWidth: detailWidth)
-            let goalModel = goalModels.model(store: store, day: today)
+            let shownStatuses: [String: GoalStatus] = {
+                guard loadedGoals?.day == today, let raw = loadedGoals?.statuses else { return [:] }
+                return goalModels.model(store: store, day: today).shownStatuses(raw)
+            }()
+            let goals = loadedGoals?.day == today ? loadedGoals?.goals ?? [] : []
+            let closeLabel = closeDayLabel(presented: presented, day: daySummary)
 
             HStack(spacing: 0) {
-                deskColumn(
-                    presented: presented, plan: plan, today: today, daySummary: daySummary,
-                    showsPanel: showsPanel)
+                TodayView(store: store)
+                    .environment(
+                        \.todayDeskChrome,
+                        TodayDeskChrome(
+                            hourGrid: AnyView(
+                                TodayDeskTimeline(
+                                    store: store, plan: plan, day: today, today: today,
+                                    onSelectEvent: { openEvent($0, day: today) },
+                                    onSelectTask: { openTask($0) }
+                                )
+                            ),
+                            foldedPanel: showsPanel
+                                ? nil
+                                : AnyView(
+                                    TodayDeskPanelSections(
+                                        store: store, plan: plan, day: today, goals: goals,
+                                        statuses: shownStatuses, onThisDay: onThisDay.entry,
+                                        closeDayLabel: closeLabel,
+                                        onCloseDay: { closeDayRoute = CloseDayRoute(step: .tasks) },
+                                        onOpenGoal: { goalDestination = GoalDetailRoute(goal: $0) },
+                                        showsHeader: false
+                                    )
+                                ),
+                            suppressCloseDay: true,
+                            suppressQuickEntry: true
+                        )
+                    )
                 if showsPanel {
                     TodayDeskPanel(
-                        store: store,
-                        plan: plan,
-                        day: today,
-                        goals: loadedGoals?.day == today ? loadedGoals?.goals ?? [] : [],
-                        statuses: loadedGoals?.day == today ? loadedGoals?.statuses ?? [:] : [:],
-                        onThisDay: onThisDay.entry,
-                        closeDayLabel: closeDayLabel(presented: presented, day: daySummary),
+                        store: store, plan: plan, day: today, goals: goals,
+                        statuses: shownStatuses, onThisDay: onThisDay.entry,
+                        closeDayLabel: closeLabel,
                         onCloseDay: { closeDayRoute = CloseDayRoute(step: .tasks) },
                         onOpenGoal: { goalDestination = GoalDetailRoute(goal: $0) }
                     )
@@ -73,7 +97,6 @@ import VaultFormat
             } action: {
                 detailWidth = $0
             }
-            .inkPage()
             .safeAreaInset(edge: .bottom) {
                 QuickEntryBar(
                     store: store, isEnabled: true, day: nil,
@@ -89,9 +112,59 @@ import VaultFormat
                 NavigationStack {
                     CloseDayView(
                         store: store, today: today, tasks: tasksModel.rows ?? [],
-                        goals: goalModel, step: route.step)
+                        goals: goalModels.model(store: store, day: today), step: route.step)
                 }
                 .inkAdaptiveFormPresentation()
+            }
+            .sheet(item: $editingEvent) { model in
+                NavigationStack { EventTextEditor(model: model) }
+                    .inkAdaptiveSheetPresentation()
+                    .frame(minWidth: 320, minHeight: 200)
+            }
+            .sheet(item: $editingTask) { model in
+                NavigationStack { TaskTextEditor(model: model) }
+                    .frame(minWidth: 320, minHeight: 200)
+                    .inkAdaptiveSheetPresentation(fitsContent: true)
+            }
+            .confirmationDialog(
+                "Bu olayı silmek istiyor musun?",
+                isPresented: Binding(
+                    get: { deletingEvent != nil },
+                    set: { if !$0 { deletingEvent = nil } }
+                ),
+                titleVisibility: .visible
+            ) {
+                Button("Olayı sil", role: .destructive) {
+                    if let event = deletingEvent {
+                        deletingEvent = nil
+                        let model = EventEditorModel(store: store, day: today, row: event)
+                        Task {
+                            await model.load()
+                            if model.target != nil { await model.delete() }
+                        }
+                    }
+                }
+                Button("Vazgeç", role: .cancel) { deletingEvent = nil }
+            }
+            .confirmationDialog(
+                "Bu görevi silmek istiyor musun?",
+                isPresented: Binding(
+                    get: { deletingTask != nil },
+                    set: { if !$0 { deletingTask = nil } }
+                ),
+                titleVisibility: .visible
+            ) {
+                Button("Görevi sil", role: .destructive) {
+                    if let task = deletingTask {
+                        deletingTask = nil
+                        Task {
+                            let model = TaskEditorModel(store: store, row: task)
+                            await model.load()
+                            if model.target != nil { _ = await model.delete() }
+                        }
+                    }
+                }
+                Button("Vazgeç", role: .cancel) { deletingTask = nil }
             }
             .task(id: DayRequest(date: today, updated: store.lastUpdated)) {
                 await reloadDay(today: today)
@@ -104,83 +177,6 @@ import VaultFormat
             }
             .onChange(of: today) { _, newDay in
                 tasksModel = DayTasksModel(store: store, day: newDay, isToday: true)
-                isCarriedOverExpanded = false
-                isCompletedExpanded = false
-            }
-            .onChange(of: notifications.navigationRequest?.id, initial: true) { _, _ in
-                openCloseDayFromReminder(today: today, goalModel: goalModel)
-            }
-            .preference(
-                key: GoalsStripReadyKey.self,
-                value: goalModel.hasLoaded && !goalModel.isLoading)
-        }
-
-        private func deskColumn(
-            presented: TodayPresentation, plan: TodayDeskPlan, today: CalendarDate,
-            daySummary: DaySummary?, showsPanel: Bool
-        ) -> some View {
-            ScrollView {
-                VStack(alignment: .leading, spacing: InkSpacing.section) {
-                    header(presented: presented, today: today)
-                    summary(presented: presented)
-                    TodayDeskTimeline(store: store, plan: plan, day: today, today: today)
-                    journalCard(today: today, daySummary: daySummary)
-                    if !showsPanel, let label = closeDayLabel(presented: presented, day: daySummary) {
-                        Button {
-                            closeDayRoute = CloseDayRoute(step: .tasks)
-                        } label: {
-                            Text(verbatim: label)
-                                .font(.ink.byline.weight(.semibold))
-                                .foregroundStyle(Color.ink.accent)
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityIdentifier("button.closeDay")
-                    }
-                }
-                .padding(.horizontal, InkSpacing.margin)
-                .padding(.top, 8)
-                .padding(.bottom, 8)
-                .inkPageColumn()
-            }
-            .inkGlow()
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-        }
-
-        private func header(presented: TodayPresentation, today: CalendarDate) -> some View {
-            let total = max(1, presented.goalCount)
-            let done = presented.completedGoalCount
-            let progress = Double(done) / Double(total)
-            return InkDayHeader(
-                date: LocalDay.instant(for: today),
-                progress: presented.goalCount == 0 ? 1 : progress,
-                remainingCount: presented.remainingGoalCount
-            )
-        }
-
-        private func summary(presented: TodayPresentation) -> some View {
-            // D4's InkSummaryLine greeting lands with that PR; until then the existing byline.
-            Group {
-                if let byline = presented.byline {
-                    Text(verbatim: byline)
-                        .font(.ink.byline)
-                        .foregroundStyle(Color.ink.secondaryText)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                }
-            }
-        }
-
-        private func journalCard(today: CalendarDate, daySummary: DaySummary?) -> some View {
-            VStack(alignment: .leading, spacing: 8) {
-                SectionHeader(title: String(localized: "Günlük yazısı"))
-                NavigationLink {
-                    JournalView(store: store, date: today)
-                } label: {
-                    InkCard {
-                        DayJournalPreview(isLoaded: daySummary != nil, preview: daySummary?.preview)
-                    }
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel("Günlük yazısını düzenle")
             }
         }
 
@@ -200,8 +196,8 @@ import VaultFormat
                 calendar: calendar,
                 completedTasks: tasksModel.completedTasksForPresentation,
                 completedTaskIDs: tasksModel.completed,
-                isCarriedOverExpanded: isCarriedOverExpanded,
-                isCompletedExpanded: isCompletedExpanded)
+                isCarriedOverExpanded: true,
+                isCompletedExpanded: true)
         }
 
         private func makePlan(presented: TodayPresentation, events: [EventRow], now: Date)
@@ -213,7 +209,8 @@ import VaultFormat
                 openTasks: carried + presented.datedTasks + presented.createdTasks,
                 carriedOver: carried,
                 nowHour: calendar.component(.hour, from: now),
-                nowMinute: calendar.component(.minute, from: now))
+                nowMinute: calendar.component(.minute, from: now),
+                taskTime: { DaySchedulePresentation.extractLeadingTime(from: $0.text.plainText) })
         }
 
         private func closeDayLabel(presented: TodayPresentation, day: DaySummary?) -> String? {
@@ -228,6 +225,14 @@ import VaultFormat
                     + String(localized: "\(count) görev")
             }
             return String(localized: "Günü kapat")
+        }
+
+        private func openEvent(_ event: EventRow, day: CalendarDate) {
+            editingEvent = EventEditorModel(store: store, day: day, row: event)
+        }
+
+        private func openTask(_ task: TaskRow) {
+            editingTask = TaskEditorModel(store: store, row: task)
         }
 
         private func reloadDay(today: CalendarDate) async {
@@ -247,13 +252,6 @@ import VaultFormat
                 )
                 goalModel.answerShown(askedAt: revision)
             }
-        }
-
-        private func openCloseDayFromReminder(today: CalendarDate, goalModel: GoalDayModel) {
-            guard store.lastUpdated != nil, tasksModel.isCurrent, goalModel.isCurrent,
-                CloseDayReminder.claim(notifications.navigationRequest?.closeDayRequestID)
-            else { return }
-            closeDayRoute = CloseDayRoute(step: .journal)
         }
     }
 #endif

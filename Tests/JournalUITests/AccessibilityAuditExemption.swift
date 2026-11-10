@@ -106,12 +106,9 @@ extension AccessibilityAuditExemption {
         .init(type: .dynamicType, element: .labelPattern(Pattern.shortDate), reason: Reason.entityPage),
         // Settings section rows (`PhoneSettingsView` InkCard): body text grows at AX3
         // (shellSheet.settingsSheetAX3.png); the audit's live size change does not reach list-cell text.
-        .init(type: .dynamicType, element: .catalogKey("Hızlı giriş"), reason: Reason.settingsRow),
-        .init(type: .dynamicType, element: .catalogKey("Gizlilik"), reason: Reason.settingsRow),
-        .init(type: .dynamicType, element: .catalogKey("Bildirimler"), reason: Reason.settingsRow),
-        .init(type: .dynamicType, element: .catalogKey("Takvim ve Konum"), reason: Reason.settingsRow),
-        .init(type: .dynamicType, element: .catalogKey("Kasa"), reason: Reason.settingsRow),
-        .init(type: .dynamicType, element: .catalogKey("Tanılama"), reason: Reason.settingsRow),
+        .init(
+            type: .dynamicType, element: .identifierPrefix("settings.section."),
+            reason: Reason.settingsRow),
         // Entity page read-only rows (EntityView.labeledRow, "Gelen bağlantılar" and its count) and
         // the "Graph'ta göster" link use semantic styles (.footnote, .body) and grow in the AX3
         // reference; since the rows sit in an InkCard the audit's live size change reports the label

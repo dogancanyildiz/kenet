@@ -5,7 +5,7 @@ private struct OpenSearchKey: EnvironmentKey {
 }
 
 private struct OpenSearchQueryKey: EnvironmentKey {
-    static let defaultValue: @MainActor (String) -> Void = { _ in }
+    static let defaultValue: @MainActor @Sendable (String) -> Void = { _ in }
 }
 
 extension EnvironmentValues {
@@ -16,7 +16,7 @@ extension EnvironmentValues {
     }
 
     /// Opens the search sheet with a prefilled query (Mac sidebar searchable submit).
-    var openSearchQuery: @MainActor (String) -> Void {
+    var openSearchQuery: @MainActor @Sendable (String) -> Void {
         get { self[OpenSearchQueryKey.self] }
         set { self[OpenSearchQueryKey.self] = newValue }
     }

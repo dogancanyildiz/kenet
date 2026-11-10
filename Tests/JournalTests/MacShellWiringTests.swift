@@ -64,6 +64,27 @@
             #expect(shell.window.titleVisibility == .hidden)
         }
 
+        /// Sidebar searchable is present; submit opens search with the typed query (`docs/design.md` kalıp 3).
+        @Test func sidebarSearchFieldSubmitsQueryIntoTheSearchSheet() async throws {
+            let search = SearchPresentation()
+            let shell = try await Shell(search: search)
+            defer { shell.close() }
+            #expect(
+                HostedControls.node("sidebar.search", in: shell.mount) != nil
+                    || shell.sidebarSearchField != nil,
+                "sidebar searchable field missing")
+            // Same path `.onSubmit(of: .search)` uses after the user types and presses Return.
+            search.openQuery("Baran")
+            await shell.mount.settle(rounds: 4)
+            #expect(search.isPresented)
+            #expect(search.initialQuery == "Baran")
+            // ⌘F action is made once and focuses the field.
+            let focus = SidebarSearchState()
+            #expect(focus.isFocused == false)
+            focus.focus()
+            #expect(focus.isFocused)
+        }
+
         /// A project removed from the vault while its page is open.
         @Test func deletedProjectFallsBackToTasks() async throws {
             let shell = try await Shell()
@@ -115,20 +136,24 @@
             let view: AnyView
             let mount: HostedLayout.Mount
 
-            init(appearance: NSAppearance.Name? = nil) async throws {
+            init(appearance: NSAppearance.Name? = nil, search: SearchPresentation? = nil) async throws {
                 context = try TaskTestContext(sample: true)
                 await context.start()
                 let defaults = context.defaults.defaults
                 let scheme: ColorScheme = appearance == .darkAqua ? .dark : .light
-                let navigation = MacNavigation(store: context.store)
+                let base = MacNavigation(store: context.store)
                     .environment(NotificationService(center: FakeNotificationCenter(), defaults: defaults))
                     .environment(CalendarService(source: IdleShellCalendarSource()))
                     .environment(LocationService(source: FakeLocationSource(), defaults: defaults))
                     .environment(IntentNavigation())
-                    .environment(\.openSearch, .nothing)
+                    .environment(\.openSearch, search?.open ?? .nothing)
                     .environment(\.locale, Locale(identifier: "tr_TR"))
-                view = AnyView(
-                    appearance == nil ? AnyView(navigation) : AnyView(navigation.environment(\.colorScheme, scheme)))
+                let withSearch =
+                    search.map { AnyView(base.environment(\.openSearchQuery, $0.openQuery)) }
+                    ?? AnyView(base)
+                view =
+                    appearance == nil
+                    ? withSearch : AnyView(withSearch.environment(\.colorScheme, scheme))
                 mount = HostedLayout.Mount(view, size: CGSize(width: 1280, height: 800), bridgesToolbar: true)
                 releaseJournalMark = await HostedJournalWindow.claim(mount.window)
                 if let appearance {
@@ -146,6 +171,13 @@
             var paneCounts: [Int] { mount.views(NSSplitView.self).map(\.arrangedSubviews.count) }
             var toolbarLabels: [String] { window.toolbar?.items.map(\.label) ?? [] }
             var searchItems: Int { toolbarLabels.filter { $0 == "Ara" }.count }
+            /// Search field drawn by `.searchable(placement: .sidebar)`.
+            var sidebarSearchField: NSView? {
+                mount.views(NSView.self).first {
+                    String(describing: type(of: $0)).contains("Search")
+                        && $0.convert($0.bounds, to: nil).width <= InkSpacing.macSidebarMaxWidth + 40
+                }
+            }
             /// The sidebar's list: the table that is as narrow as the sidebar column.
             var sidebarTable: NSTableView? {
                 mount.views(NSTableView.self).first {

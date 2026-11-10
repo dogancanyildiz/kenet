@@ -108,9 +108,6 @@ struct EntityView: View {
             }
         }
         .listStyle(.plain)
-        // Room under the last section: the page's end scrolls clear of the floating tab bar, so the
-        // timeline and notes are read above it, not under its edge.
-        .contentMargins(.bottom, 120, for: .scrollContent)
         .inkPage()
         .inkPageScrollColumn()
         .inkPinnedMasthead(masthead)
@@ -333,12 +330,14 @@ struct EntityView: View {
             Text(verbatim: label)
                 .font(.ink.meta)
                 .foregroundStyle(.ink.secondaryText)
+                .accessibilityIdentifier("entity.labeledRow.label")
             Spacer(minLength: 12)
             Text(verbatim: value)
                 .font(valueFont)
                 .foregroundStyle(.ink.text)
                 .multilineTextAlignment(.trailing)
                 .textSelection(.enabled)
+                .accessibilityIdentifier("entity.labeledRow.value")
         }
     }
 }

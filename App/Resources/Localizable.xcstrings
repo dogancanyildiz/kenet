@@ -1,6 +1,102 @@
 {
   "sourceLanguage" : "tr",
   "strings" : {
+    "! Orta" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "! Medium"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "! Orta"
+          }
+        }
+      }
+    },
+    "!! Yüksek" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "!! High"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "!! Yüksek"
+          }
+        }
+      }
+    },
+    "%1$d açık · %2$d bitti" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$d open · %2$d done"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$d açık · %2$d bitti"
+          }
+        }
+      }
+    },
+    "%1$d açık · %2$d devreden" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$d open · %2$d carried over"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$d açık · %2$d devreden"
+          }
+        }
+      }
+    },
+    "%1$d/%2$d açık" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$d/%2$d open"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$d/%2$d açık"
+          }
+        }
+      }
+    },
+    "%1$d/%2$d görev" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$d/%2$d tasks"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$d/%2$d görev"
+          }
+        }
+      }
+    },
     "%@ %@ olarak eklendi" : {
       "localizations" : {
         "en" : {
@@ -6133,6 +6229,22 @@
         }
       }
     },
+    "Geç" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Late"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geç"
+          }
+        }
+      }
+    },
     "Geçen hafta" : {
       "localizations" : {
         "en" : {
@@ -6513,6 +6625,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Görev tarihini değiştir"
+          }
+        }
+      }
+    },
+    "Görev veya olay yok." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No tasks or events."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Görev veya olay yok."
           }
         }
       }
@@ -7529,6 +7657,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Haftaya dair not"
+          }
+        }
+      }
+    },
+    "Haftaya taşı" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Move to next week"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Haftaya taşı"
           }
         }
       }
@@ -10381,6 +10525,22 @@
         }
       }
     },
+    "Normal" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Normal"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Normal"
+          }
+        }
+      }
+    },
     "Not" : {
       "localizations" : {
         "en" : {
@@ -11305,6 +11465,38 @@
         }
       }
     },
+    "Saati yok" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No time"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saati yok"
+          }
+        }
+      }
+    },
+    "Saatsiz" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Untimed"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saatsiz"
+          }
+        }
+      }
+    },
     "Salı" : {
       "localizations" : {
         "en" : {
@@ -12149,6 +12341,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sürdür"
+          }
+        }
+      }
+    },
+    "Sürüyor" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continues"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sürüyor"
           }
         }
       }
@@ -13897,6 +14105,22 @@
         }
       }
     },
+    "Yarına taşı" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Move to tomorrow"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yarına taşı"
+          }
+        }
+      }
+    },
     "Yaz" : {
       "localizations" : {
         "en" : {
@@ -14293,6 +14517,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Yerleşik tipler"
+          }
+        }
+      }
+    },
+    "Yinelemeyi düzenle" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit recurrence"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yinelemeyi düzenle"
           }
         }
       }
@@ -16145,6 +16385,38 @@
         }
       }
     },
+    "İlerleme" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Progress"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "İlerleme"
+          }
+        }
+      }
+    },
+    "İlgili günler" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Related days"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "İlgili günler"
+          }
+        }
+      }
+    },
     "İlk geçiş" : {
       "localizations" : {
         "en" : {
@@ -16445,6 +16717,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Şekersiz gün"
+          }
+        }
+      }
+    },
+    "Şimdi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Now"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Şimdi"
           }
         }
       }

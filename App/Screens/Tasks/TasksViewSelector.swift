@@ -59,7 +59,7 @@ struct TasksPageTop<Actions: View, MenuRow: View>: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            InkPageHeader("Görevler") {
+            InkPageHeader("Görevler", byline: byline) {
                 actions
                 TaskFiltersMenu(model: tasks)
                 SearchButton()
@@ -79,6 +79,13 @@ struct TasksPageTop<Actions: View, MenuRow: View>: View {
         .padding(.horizontal, InkSpacing.margin)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color.ink.paper)
+    }
+
+    private var byline: String? {
+        guard current == .list, tasks.list != nil else { return nil }
+        let open = tasks.agenda.flatMap(\.rows).count + tasks.undated.count
+        let overdue = tasks.agenda.first(where: { $0.id == "overdue" })?.rows.count ?? 0
+        return String(format: String(localized: "%1$d açık · %2$d devreden"), open, overdue)
     }
 
     /// Space above and below each row of the page top (same as a list row's inset).
@@ -125,7 +132,9 @@ extension TimelineModel {
     /// A timeline that starts from the scale last chosen in the shared view state.
     static func board(for tasks: TasksModel) -> TimelineModel {
         let model = TimelineModel(tasks: tasks)
-        model.scale = tasks.viewState.timelineScale
+        let scale = tasks.viewState.timelineScale
+        model.scale = scale == .month ? .quarter : scale
+        if scale == .month { tasks.viewState.timelineScale = .quarter }
         return model
     }
 

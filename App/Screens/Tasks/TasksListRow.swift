@@ -13,6 +13,7 @@ struct TasksListRow: View {
     let isBusy: Bool
     var allowsReopening = false
     var footnote: Text? = nil
+    var openDetail: () -> Void = {}
     let complete: () -> Void
 
     @Environment(\.shellKind) private var shellKind
@@ -38,6 +39,16 @@ struct TasksListRow: View {
             allowsReopening: allowsReopening,
             isBusy: isBusy,
             canAddEvent: store.canAddEvent)
+    }
+
+    /// The detail entry (menu and VoiceOver action): the phone's tab shell only. On Mac and in
+    /// the split shell a click on the row selects it and the detail column shows it.
+    private var showsDetailEntry: Bool {
+        #if os(macOS)
+            false
+        #else
+            shellKind == .tabs
+        #endif
     }
 
     private var rowTapCompletes: Bool {
@@ -66,6 +77,9 @@ struct TasksListRow: View {
             metaRow
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+        // Inside the section card (`inkListRow(cardSegment:)` draws it behind the row). Completed
+        // rows fade through secondary text and the filled box, never opacity (design.md).
+        .padding(.horizontal, InkSpacing.cardPadding)
         #if !os(macOS)
             .contentShape(Rectangle())
             .modifier(TasksListRowTouch.Tap(shell: shellKind, completes: rowTapCompletes, complete: complete))
@@ -73,7 +87,12 @@ struct TasksListRow: View {
         .accessibilityAction(named: Text(LocalizedStringKey(completion.boxAccessibilityLabelKey))) {
             if rowTapCompletes { complete() }
         }
-        .accessibilityActions { moveButtons }
+        .accessibilityActions {
+            if showsDetailEntry {
+                Button("Ayrıntıları göster", action: openDetail)
+            }
+            moveButtons
+        }
         .contextMenu { editMenu }
         #if os(macOS)
             // The list column draws the selection; the system focus ring would double it.
@@ -98,6 +117,17 @@ struct TasksListRow: View {
     @ViewBuilder private var metaRow: some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack(spacing: 8) {
+                if let project = row.project {
+                    Text(verbatim: project)
+                        .font(.ink.meta)
+                        .foregroundStyle(.ink.secondaryText)
+                    if row.due != nil {
+                        Text(verbatim: "·")
+                            .font(.ink.meta)
+                            .foregroundStyle(.ink.tertiaryText)
+                            .accessibilityHidden(true)
+                    }
+                }
                 if let date = row.due {
                     TaskDueDateLabel(date: date, presentation: presentation, asOf: day)
                 }
@@ -132,6 +162,12 @@ struct TasksListRow: View {
     }
 
     @ViewBuilder private var editMenu: some View {
+        // The phone's way into the detail sheet: a touch on the row completes the task
+        // (screens.md "Tamamlama"), so the detail sits in the menu, not behind a chevron whose
+        // touch area would take touches meant for the row.
+        if showsDetailEntry {
+            Button("Ayrıntıları göster", systemImage: "info.circle", action: openDetail)
+        }
         Button("Metni düzenle", systemImage: "pencil") { textEditor = TaskEditorModel(store: store, row: row) }
         Button("Tarih ver / değiştir", systemImage: "calendar") {
             dateEditor = TaskEditorModel(store: store, row: row)

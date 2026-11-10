@@ -9,12 +9,12 @@
     /// it), so the boards are hosted as the shell's full-width page with a task model frozen on
     /// the snapshot day, in the split shell's environment.
     enum PadBoardCase: String, CaseIterable, Sendable {
-        case kanbanLight, timelineLight
+        case kanbanLight, timelineLight, timelineDayLight
 
         var section: TasksModel.Section {
             switch self {
             case .kanbanLight: .kanban
-            case .timelineLight: .timeline
+            case .timelineLight, .timelineDayLight: .timeline
             }
         }
 
@@ -32,6 +32,7 @@
             ) { scene in
                 let tasks = TasksModel(store: scene.store, today: { snapshotDay })
                 tasks.section = snapshotCase.section
+                if snapshotCase == .timelineDayLight { tasks.viewState.timelineScale = .day }
                 return AnyView(
                     Group {
                         if snapshotCase.section == .timeline {

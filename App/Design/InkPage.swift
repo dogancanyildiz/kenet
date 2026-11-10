@@ -286,13 +286,22 @@ extension View {
     /// shell's (iPhone Duo, iPad). `nil` stays paper (sheets, headers). Pass `true` / `false` on
     /// a column row; the value does not inherit into sheets. In the iPhone tab shell, `true`
     /// keeps the search result's accent wash.
-    func inkListRow(columnSelected: Bool? = nil) -> some View {
-        modifier(InkListRowModifier(columnSelected: columnSelected))
+    ///
+    /// `cardSegment` puts the row in a section card drawn across rows (``InkCardSegment``): the
+    /// card is the row's background, so the row keeps the insets and height of any list row.
+    func inkListRow(columnSelected: Bool? = nil, cardSegment: InkCardSegment? = nil) -> some View {
+        modifier(InkListRowModifier(columnSelected: columnSelected, cardSegment: cardSegment))
     }
+}
+
+/// The page list row's insets (``View/inkListRow(columnSelected:cardSegment:)``).
+enum InkListRowInsets {
+    static let vertical: CGFloat = 6
 }
 
 private struct InkListRowModifier: ViewModifier {
     var columnSelected: Bool? = nil
+    var cardSegment: InkCardSegment? = nil
     #if os(iOS)
         @Environment(\.shellKind) private var shellKind
     #endif
@@ -302,7 +311,8 @@ private struct InkListRowModifier: ViewModifier {
             .listRowBackground(background)
             .listRowInsets(
                 EdgeInsets(
-                    top: 6, leading: InkSpacing.margin, bottom: 6, trailing: InkSpacing.margin)
+                    top: InkListRowInsets.vertical, leading: InkSpacing.margin,
+                    bottom: InkListRowInsets.vertical, trailing: InkSpacing.margin)
             )
             .listRowSeparator(.hidden)
     }
@@ -326,6 +336,14 @@ private struct InkListRowModifier: ViewModifier {
     }
 
     @ViewBuilder private var background: some View {
+        if let cardSegment {
+            InkCardSegmentBackground(segment: cardSegment, isSelected: columnSelected == true)
+        } else {
+            plainBackground
+        }
+    }
+
+    @ViewBuilder private var plainBackground: some View {
         #if os(macOS)
             if let columnSelected {
                 InkListSelectionBackground(isSelected: columnSelected)

@@ -1,13 +1,17 @@
 import SwiftUI
 import VaultFormat
+import VaultIndex
 
 struct TasksView: View {
     let store: IndexStore
     let notificationRequest: UUID?
     @Binding var selection: String?
     @State private var pendingNotificationScroll: UUID?
+    @State private var detailRow: TaskRow?
     @State private var model: TasksModel
+    @ScaledMetric(relativeTo: .body) private var projectCardWidth: CGFloat = 170
     @Environment(\.shellKind) private var shellKind
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     init(
         store: IndexStore, selection: Binding<String?> = .constant(nil), notificationRequest: UUID? = nil,
         tasks: TasksModel? = nil
@@ -40,6 +44,7 @@ struct TasksView: View {
             .inkPage()
             .inkRootPageNavigationTitle("Görevler")
             .accessibilityIdentifier("screen.tasks")
+            .taskDetailSheet(store: store, row: $detailRow)
             .onChange(of: model.viewState) { _, state in
                 #if os(iOS)
                     state.save(to: .standard)
@@ -111,7 +116,11 @@ struct TasksView: View {
                     .listRowBackground(Color.ink.paper)
             }
             // The sections wait for the first answer: no "Görev yok." or 0 count while it loads.
-            if model.list != nil { listSections }
+            if model.list != nil {
+                weeklySummaryRow
+                projectCardsRow
+                listSections
+            }
         }
         .listStyle(.plain)
         .inkPage()
@@ -128,6 +137,77 @@ struct TasksView: View {
         TasksPageTop(tasks: model, current: .list) {
             TasksSectionMenu(tasks: model)
         }
+    }
+
+    private var weeklySummaryRow: some View {
+        let summary = model.list?.weekly ?? .empty
+        return InkCard {
+            HStack(spacing: 16) {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Bu hafta").font(.ink.section).foregroundStyle(.ink.text)
+                    InkProgress(kind: .fraction(summary.fraction))
+                }
+                Spacer(minLength: 8)
+                Text(String(format: String(localized: "%1$d/%2$d görev"), summary.completed, summary.total))
+                    .font(.ink.value).monospacedDigit().foregroundStyle(.ink.secondaryText)
+            }
+        }
+        .accessibilityElement(children: .combine)
+        .inkListRow()
+    }
+
+    /// Project cards (screens.md): a horizontal strip; at accessibility sizes the cards stack
+    /// full width, as the Graph and Map cards do, so grown text is never cut by the strip.
+    @ViewBuilder private var projectCardsRow: some View {
+        if !model.projects.isEmpty {
+            Group {
+                if dynamicTypeSize.isAccessibilitySize {
+                    VStack(alignment: .leading, spacing: 10) {
+                        ForEach(model.projects, id: \.self) { projectCard($0, width: nil) }
+                    }
+                } else {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(alignment: .top, spacing: 10) {
+                            ForEach(model.projects, id: \.self) { projectCard($0, width: projectCardWidth) }
+                        }
+                        .fixedSize(horizontal: false, vertical: true)
+                    }
+                    // A text size change rebuilds the strip, so the row takes the grown cards'
+                    // height instead of clipping them at the old one (iPad Dynamic Type audit).
+                    .id(dynamicTypeSize)
+                    .scrollClipDisabled()
+                }
+            }
+            .inkListRow()
+        }
+    }
+
+    private func projectCard(_ project: String, width: CGFloat?) -> some View {
+        let open = model.openCount(ofProject: project)
+        let count = model.list?.projectCounts[VaultIndex.projectKey(project)]
+        let completed = count?.done ?? 0
+        let total = (count?.open ?? open) + completed
+        return NavigationLink {
+            ProjectView(store: store, name: project)
+        } label: {
+            InkCard {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(spacing: 6) {
+                        Circle().fill(ProjectColor.color(for: project)).frame(width: 8, height: 8)
+                            .accessibilityHidden(true)
+                        Text(verbatim: project).font(.ink.content).foregroundStyle(.ink.text)
+                            .lineLimit(width == nil ? nil : 1)
+                    }
+                    Text(String(format: String(localized: "%1$d/%2$d açık"), open, total))
+                        .font(.ink.meta).monospacedDigit().foregroundStyle(.ink.secondaryText)
+                    InkProgress(kind: .fraction(total == 0 ? 0 : Double(completed) / Double(total)))
+                }
+                .frame(width: width, alignment: .leading)
+                .frame(maxWidth: width == nil ? .infinity : nil, alignment: .leading)
+            }
+            .accessibilityElement(children: .combine)
+        }
+        .buttonStyle(.plain)
     }
 
     @ViewBuilder private var listSections: some View {
@@ -206,14 +286,17 @@ struct TasksView: View {
     }
 
     private func rows(_ rows: [TaskRow]) -> some View {
-        ForEach(rows) { row in
+        ForEach(Array(rows.enumerated()), id: \.element.id) { index, row in
             TasksListRow(
                 store: store, row: row, day: model.day,
                 isOverdue: row.due.map { $0 < model.day } ?? false,
                 isBusy: model.busy.contains(row.id), allowsReopening: true,
-                footnote: footnote(for: row)
+                footnote: footnote(for: row), openDetail: { detailRow = row }
             ) { Task { await model.toggle(row) } }
-            .inkListRow(columnSelected: selection == row.id)
+            .inkListRow(
+                columnSelected: selection == row.id,
+                cardSegment: .position(index, of: rows.count)
+            )
             .tag(row.id)
             .alignmentGuide(.listRowSeparatorLeading) { _ in 0 }
         }

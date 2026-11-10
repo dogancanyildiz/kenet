@@ -19,9 +19,12 @@ struct TimelineDrag {
 final class TimelineModel {
     enum Grouping: String, CaseIterable { case project, person, none }
     enum Scale: String, CaseIterable {
-        case week, month, quarter
+        case day, week, month, quarter
+        /// The chart's grouping menu belongs to the bar chart; the Gün and Hafta boards have no groups.
+        var showsGrouping: Bool { self == .month || self == .quarter }
         var daysAcross: Int {
             switch self {
+            case .day: 1
             case .week: 7
             case .month: 30
             case .quarter: 113
@@ -111,10 +114,8 @@ final class TimelineModel {
         }
     }
     var mobileGroups: [TimelineGroup] {
-        let buckets = Dictionary(grouping: dated) { row in
-            let date = row.start ?? row.due!
-            return scale == .week ? date.startOfWeek ?? date : date.startOfMonth
-        }
+        // The phone list draws Çeyrek only (Gün and Hafta have boards of their own): months.
+        let buckets = Dictionary(grouping: dated) { row in (row.start ?? row.due!).startOfMonth }
         return buckets.keys.sorted().map { TimelineGroup(id: $0.description, name: nil, rows: buckets[$0]!) }
     }
     private func unassigned(_ rows: [TaskRow], id: String) -> [TimelineGroup] {

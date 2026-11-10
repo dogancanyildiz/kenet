@@ -93,6 +93,7 @@ struct TaskViewQueryTests {
                 == ["geçmiş", "not", "dünkü"])
         // Swift keys compare canonically: the decomposed spelling counts with "Café".
         #expect(try index.openTaskCounts() == ["Café": 2, "café": 1, "CAFÉ": 1])
+        #expect(try index.projectTaskCounts().keys.sorted() == ["CAFÉ", "Café", "café"].sorted())
         let owned = try #require(try index.task(id: "journal/2026-03-10.md^bugun1"))
         #expect(owned.links.map(\.resolvedFile) == ["people/Ada Test.md", "people/Can Test.md"])
         #expect(try index.task(id: "journal/2026-03-10.md#3")?.block.text.hasPrefix("geçmiş") == true)
@@ -257,6 +258,10 @@ struct TaskViewQueryTests {
                         == oracle.timeline(day, near, day, scope))
             }
             #expect(try index.dayTasks(on: day) == oracle.day(day), "\(day)")
+            let weekStart = day.addingDays(-6)!
+            #expect(
+                try index.periodTaskCount(from: weekStart, through: day) == oracle.period(weekStart, day),
+                "\(day)")
             let monday = day.addingDays(-6)!
             #expect(try index.openTasks(dueBy: day, orWrittenFrom: monday) == oracle.week(monday, day), "\(day)")
         }
@@ -266,6 +271,7 @@ struct TaskViewQueryTests {
         }
         #expect(try index.tasks(inProject: "yok-böyle-proje").isEmpty)
         #expect(try index.openTaskCounts() == oracle.openCounts)
+        #expect(try index.projectTaskCounts() == oracle.projectCounts)
         for entry in oracle.tasks {
             #expect(try index.task(id: TaskConstruction.id(entry.block)) == entry)
         }
@@ -400,6 +406,28 @@ private struct TaskConstruction {
             else { return false }
             return created >= first && created <= last
         }.sorted(by: Self.order)
+    }
+
+    /// `TasksModel`'s project cards: open and done per spelling, cancelled left out.
+    var projectCounts: [String: ProjectTaskCount] {
+        var counts: [String: ProjectTaskCount] = [:]
+        for entry in tasks where !Self.isCancelled(entry) {
+            guard let project = entry.block.project else { continue }
+            if Self.isOpen(entry) {
+                counts[project, default: ProjectTaskCount(open: 0, done: 0)].open += 1
+            } else {
+                counts[project, default: ProjectTaskCount(open: 0, done: 0)].done += 1
+            }
+        }
+        return counts
+    }
+
+    /// The weekly summary card: done from `first` through `last`, and open tasks due in it.
+    func period(_ first: CalendarDate, _ last: CalendarDate) -> PeriodTaskCount {
+        PeriodTaskCount(
+            done: tasks.filter { Self.isDone($0) && Self.done($0).map { $0 >= first && $0 <= last } ?? false }.count,
+            openDue: tasks.filter { Self.isOpen($0) && Self.due($0).map { $0 >= first && $0 <= last } ?? false }
+                .count)
     }
 
     var openCounts: [String: Int] {

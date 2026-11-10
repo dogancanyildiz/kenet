@@ -46,9 +46,25 @@ struct InkDesignComponentTests {
         let label = InkWeekStrip.accessibilityLabel(
             day: day, written: true, calendar: calendar, locale: Locale(identifier: "tr_TR"),
             isToday: true)
-        #expect(label.contains("Bugün"))
-        #expect(label.contains("Yazıldı"))
+        #expect(label.contains("bugün"))
+        #expect(label.contains("yazıldı"))
         #expect(label.contains("14"))
+    }
+
+    @Test func weekStripAccessibilityReadsEventCountAfterToday() {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.locale = Locale(identifier: "tr_TR")
+        let day = calendar.date(from: DateComponents(year: 2026, month: 9, day: 20))!
+        let label = InkWeekStrip.accessibilityLabel(
+            day: day, written: true, calendar: calendar, locale: Locale(identifier: "tr_TR"),
+            isToday: true, eventCount: 3)
+        #expect(label.hasSuffix(", bugün, 3 olay"))
+        #expect(!label.contains("yazıldı"))
+
+        let quiet = InkWeekStrip.accessibilityLabel(
+            day: day, written: false, calendar: calendar, locale: Locale(identifier: "tr_TR"),
+            isToday: false)
+        #expect(!quiet.contains(","))
     }
 
     @Test func summaryLineSpokenPartsKeepCallerFormatting() {
@@ -59,5 +75,10 @@ struct InkDesignComponentTests {
             .count(LocalizedStringResource(stringLiteral: "6 görev")),
         ]
         #expect(InkSummaryLine.spokenParts(parts) == ["Bugün", "2 olay", "ve", "6 görev"])
+        let glued: [InkSummaryLine.Part] = [
+            .count(LocalizedStringResource(stringLiteral: "2 events"), suffix: ","),
+            .count(LocalizedStringResource(stringLiteral: "3 goals"), suffix: "."),
+        ]
+        #expect(InkSummaryLine.spoken(glued) == "2 events, 3 goals.")
     }
 }

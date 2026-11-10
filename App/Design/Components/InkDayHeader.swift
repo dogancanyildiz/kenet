@@ -7,8 +7,12 @@ struct InkDayHeader<Actions: View>: View {
     var progress: Double
     /// Number drawn in the ring center (remaining count).
     var remainingCount: Int
+    /// Hide the ring when the day has no daily goals (screens.md).
+    var showsRing: Bool = true
     /// Compact single-row layout (scrolled / collapsed).
     var compact: Bool = false
+    /// Compact title ("20 Eylül Pazar"); falls back to day number + day name when nil.
+    var compactTitle: String? = nil
     @ViewBuilder var actions: () -> Actions
 
     @Environment(\.calendar) private var calendar
@@ -39,7 +43,7 @@ struct InkDayHeader<Actions: View>: View {
 
     private var expandedLayout: some View {
         HStack(alignment: .center, spacing: 12) {
-            ring
+            if showsRing { ring }
             VStack(alignment: .leading, spacing: 2) {
                 dayNumberText
                 dayNameText
@@ -51,9 +55,17 @@ struct InkDayHeader<Actions: View>: View {
 
     private var compactLayout: some View {
         HStack(alignment: .center, spacing: 10) {
-            ring
-            dayNumberText
-            dayNameText
+            if showsRing { ring }
+            if let compactTitle, !compactTitle.isEmpty {
+                Text(verbatim: compactTitle)
+                    .font(.ink.dayName)
+                    .foregroundStyle(Color.ink.text)
+                    .lineLimit(1)
+                    .accessibilityAddTraits(.isHeader)
+            } else {
+                dayNumberText
+                dayNameText
+            }
             Spacer(minLength: 0)
             actionGroup
         }
@@ -67,10 +79,8 @@ struct InkDayHeader<Actions: View>: View {
         )
         .accessibilityLabel(
             Text(
-                verbatim: String(
-                    localized: "\(remainingCount) hedef kaldı",
-                    bundle: PresentationLocalization.bundle(locale), locale: locale))
-        )
+                verbatim: TodayDayRing.accessibilityLabel(
+                    remaining: remainingCount, locale: locale)))
     }
 
     private var dayNumberText: some View {
@@ -106,10 +116,12 @@ struct InkDayHeader<Actions: View>: View {
 
 extension InkDayHeader where Actions == EmptyView {
     init(
-        date: Date, progress: Double, remainingCount: Int, compact: Bool = false
+        date: Date, progress: Double, remainingCount: Int, showsRing: Bool = true,
+        compact: Bool = false, compactTitle: String? = nil
     ) {
         self.init(
-            date: date, progress: progress, remainingCount: remainingCount, compact: compact
+            date: date, progress: progress, remainingCount: remainingCount, showsRing: showsRing,
+            compact: compact, compactTitle: compactTitle
         ) { EmptyView() }
     }
 }

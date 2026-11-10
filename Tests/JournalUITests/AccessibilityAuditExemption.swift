@@ -59,6 +59,15 @@ extension AccessibilityAuditExemption {
         .init(
             type: .dynamicType, element: .catalogKey("Yaklaşan"),
             reason: "section menu value grows (tasksScreen.tasksAX3.png)"),
+        // Close the day's task rows use the same InkLabeledMenu (label and value are the system
+        // Menu label the audit's live size change does not reach). Since the rows moved into a card
+        // (D4) every local run reports the label or the value, one or the other.
+        .init(
+            type: .dynamicType, element: .catalogKey("Karar"),
+            reason: "close-day choice menu label grows like the Tasks menu (tasksScreen.tasksAX3.png)"),
+        .init(
+            type: .dynamicType, element: .catalogKey("Kalsın"),
+            reason: "close-day choice menu value grows like the Tasks menu (tasksScreen.tasksAX3.png)"),
         // Every SectionHeader title and counter carries the component's identifier (SectionHeader.swift):
         // section titles grow with Dynamic Type at AX3 (tasksScreen.tasksAX3.png "Devreden",
         // shell.todayLandscapeAX3.png "Hedefler", "Görevler"). On the CI runner the audit reports one
@@ -95,6 +104,12 @@ extension AccessibilityAuditExemption {
         .init(type: .dynamicType, element: .catalogKey("İlk geçiş"), reason: Reason.entityPage),
         .init(type: .dynamicType, element: .containsCatalogKey("Son görülme: %@"), reason: Reason.entityPage),
         .init(type: .dynamicType, element: .labelPattern(Pattern.shortDate), reason: Reason.entityPage),
+        // Entity page read-only rows (EntityView.labeledRow, "Gelen bağlantılar" and its count) and
+        // the "Graph'ta göster" link use semantic styles (.footnote, .body) and grow in the AX3
+        // reference; since the rows sit in an InkCard the audit's live size change reports the label
+        // or the value, one or the other, on every run (d5-ci-duzeltme.md).
+        .init(type: .dynamicType, element: .identifierPrefix("entity.labeledRow."), reason: Reason.entityPage),
+        .init(type: .dynamicType, element: .catalogKey("Graph'ta göster"), reason: Reason.entityPage),
         // MARK: textClipped
         .init(
             type: .textClipped, element: .catalogKey("Takvim ve Konum"),
@@ -112,6 +127,12 @@ extension AccessibilityAuditExemption {
         // read whole at every size (entities.personDatesAX3.png; the iPad app measured at xxxLarge
         // and AX3). The audit reports it on the iPad only.
         .init(type: .textClipped, element: .containsCatalogKey("Son görülme: %@"), reason: Reason.entityPage),
+        // "Tümünü göster (n)" under the unlinked mentions: no line limit, it wraps. Reported only when
+        // the row sits in the screen's lower third: the audit's size change grows the rows above and
+        // pushes it under the tab bar; scrolled to the middle it is not reported (d5-ci-duzeltme.md).
+        .init(
+            type: .textClipped, element: .identifier("button.unlinkedMention.showAll"),
+            reason: "position-dependent: the grown rows above push it under the tab bar (unlinkedMentions.light.png)"),
         // MARK: hitRegion
         .init(
             type: .hitRegion, element: .systemLabel(["Hide Sidebar", "Kenar Çubuğunu Gizle", "Kenar çubuğunu gizle"]),

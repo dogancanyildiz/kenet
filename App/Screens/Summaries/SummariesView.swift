@@ -243,44 +243,86 @@ struct SummariesView: View {
 
     @ViewBuilder
     private func content(_ summary: PeriodSummary) -> some View {
+        let kpiColumns = dynamicTypeSize.isAccessibilitySize ? 1 : 3
         #if os(macOS)
             HStack(alignment: .top, spacing: 48) {
-                VStack(alignment: .leading, spacing: 28) {
+                VStack(alignment: .leading, spacing: 20) {
+                    stats(summary, columns: kpiColumns)
                     rhythm(summary)
                     writtenDays(summary)
                     weekdays(summary)
-                    stats(summary, columns: 2)
-                    goals(summary)
                 }
                 .frame(maxWidth: .infinity, alignment: .topLeading)
-                VStack(alignment: .leading, spacing: 28) {
-                    names(summary)
+                VStack(alignment: .leading, spacing: 20) {
                     tasks(summary)
+                    names(summary)
                 }
                 .frame(maxWidth: .infinity, alignment: .topLeading)
             }
         #else
-            VStack(alignment: .leading, spacing: 28) {
+            VStack(alignment: .leading, spacing: 20) {
+                stats(summary, columns: kpiColumns)
                 rhythm(summary)
                 writtenDays(summary)
                 weekdays(summary)
-                stats(summary, columns: dynamicTypeSize.isAccessibilitySize ? 1 : 2)
-                names(summary)
-                goals(summary)
                 tasks(summary)
+                names(summary)
             }
         #endif
     }
 
+    @ViewBuilder
     private func rhythm(_ summary: PeriodSummary) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            SectionHeader(title: String(localized: "Ritim"))
-            RhythmStrip(
-                items: SummaryPresentation.rhythm(summary, locale: locale),
-                legend: SummaryPresentation.legend(summary.period, locale: locale)
+        if summary.period == .month,
+            let yearCalendar,
+            yearCalendar.year == summary.range.lowerBound.year
+        {
+            MonthWritingRhythmView(
+                rhythm: MonthWritingRhythm(
+                    month: summary.range.lowerBound,
+                    calendar: yearCalendar,
+                    today: today()
+                )
             )
-            .accessibilityElement(children: .contain)
-            .accessibilityLabel(Text("Ritim"))
+        } else {
+            let items = SummaryPresentation.rhythm(summary, locale: locale)
+            InkCard {
+                VStack(alignment: .leading, spacing: 12) {
+                    SectionHeader(title: String(localized: "Ritim"))
+                    RhythmStrip(
+                        items: items,
+                        legend: SummaryPresentation.legend(summary.period, locale: locale)
+                    )
+                    .accessibilityElement(children: .contain)
+                    .accessibilityLabel(Text("Ritim"))
+
+                    if summary.period == .week {
+                        VStack(alignment: .leading, spacing: 6) {
+                            ForEach(items) { item in
+                                HStack(spacing: 8) {
+                                    Text(verbatim: item.label)
+                                        .font(.ink.meta)
+                                        .foregroundStyle(Color.ink.secondaryText)
+                                        .frame(width: 40, alignment: .leading)
+                                    Text("\(item.value) olay")
+                                        .font(.ink.value)
+                                        .foregroundStyle(
+                                            item.mark == .notStarted
+                                                ? Color.ink.secondaryText : Color.ink.text)
+                                    Spacer(minLength: 8)
+                                    if let previous = item.previous {
+                                        Text("önceki dönemde \(previous)")
+                                            .font(.ink.meta)
+                                            .monospacedDigit()
+                                            .foregroundStyle(Color.ink.secondaryText)
+                                    }
+                                }
+                                .padding(.vertical, 2)
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -291,19 +333,21 @@ struct SummariesView: View {
             if let yearError {
                 InfoBand(kind: .error, verbatim: yearError)
             } else if let yearCalendar, yearCalendar.year == summary.range.lowerBound.year {
-                YearWritingHeatmap(calendar: yearCalendar, today: today())
+                InkCard {
+                    YearWritingHeatmap(calendar: yearCalendar, today: today())
+                }
             }
         }
     }
 
-    /// A year page is ready once its map has been read too, or has failed.
+    /// A month or year page is ready once its year calendar has been read too, or has failed.
     private var isYearReady: Bool {
-        model.period != .year || yearRequest == model.requestKey
+        model.period == .week || yearRequest == model.requestKey
     }
 
     /// Reads the year map after the summary, for the same request; a newer request drops the answer.
     private func loadYear() async {
-        guard model.period == .year else { return }
+        guard model.period != .week else { return }
         let request = model.requestKey
         let year = model.range.lowerBound.year
         do {
@@ -328,7 +372,9 @@ struct SummariesView: View {
             let weekdayDistribution, weekdaysRange == summary.range,
             weekdayDistribution.entries.contains(where: { $0.totalDays > 0 })
         {
-            WeekdayDistributionView(distribution: weekdayDistribution)
+            InkCard {
+                WeekdayDistributionView(distribution: weekdayDistribution)
+            }
         }
     }
 
@@ -359,19 +405,18 @@ struct SummariesView: View {
     }
 
     private func stats(_ summary: PeriodSummary, columns: Int) -> some View {
-        let grid = Array(repeating: GridItem(.flexible(), spacing: 16, alignment: .topLeading), count: columns)
-        return LazyVGrid(columns: grid, alignment: .leading, spacing: 20) {
+        let grid = Array(repeating: GridItem(.flexible(), spacing: 10, alignment: .topLeading), count: columns)
+        return LazyVGrid(columns: grid, alignment: .leading, spacing: 10) {
             SummaryMetric(
-                title: "Olay sayısı", value: summary.counts.events, change: change(summary.change.events, summary))
-            SummaryMetric(
-                title: "Yazılan gün", value: summary.counts.writtenDays,
+                title: "Yazılan gün",
+                valueText: SummaryPresentation.writtenDaysValueText(summary, locale: locale),
                 change: change(summary.change.writtenDays, summary))
             SummaryMetric(
-                title: "Kişi geçişi", value: summary.counts.peopleMentions,
-                change: change(summary.change.peopleMentions, summary))
+                title: "Olay", value: summary.counts.events,
+                change: change(summary.change.events, summary))
             SummaryMetric(
-                title: "Konum geçişi", value: summary.counts.placeMentions,
-                change: change(summary.change.placeMentions, summary))
+                title: "Biten görev", value: summary.counts.completedTasks,
+                change: change(summary.change.completedTasks, summary))
         }
     }
 
@@ -379,20 +424,13 @@ struct SummariesView: View {
     private func names(_ summary: PeriodSummary) -> some View {
         if summary.counts.peopleMentions > 0 {
             SummaryEntitySection(
-                store: store, title: String(localized: "Kişiler"), entities: summary.people,
+                store: store, title: String(localized: "En çok görüşülen"), entities: summary.people,
                 mentions: summary.counts.peopleMentions, firsts: summary.firstPeople, kind: .person)
         }
         if summary.counts.placeMentions > 0 {
             SummaryEntitySection(
-                store: store, title: String(localized: "Konumlar"), entities: summary.places,
+                store: store, title: String(localized: "En çok gidilen"), entities: summary.places,
                 mentions: summary.counts.placeMentions, firsts: summary.firstPlaces, kind: .place)
-        }
-    }
-
-    @ViewBuilder
-    private func goals(_ summary: PeriodSummary) -> some View {
-        if !summary.goals.isEmpty {
-            SummaryGoalSection(summary: summary)
         }
     }
 

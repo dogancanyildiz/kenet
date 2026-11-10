@@ -9,15 +9,23 @@ struct WeeklyReviewReadyKey: PreferenceKey {
     }
 }
 
-/// The optional weekly look back: five steps that only show and collect, then a preview of the
-/// lines and "Günlüğe yaz". Each step can be passed; what is not included is not written.
+/// The optional weekly look back in 3 steps:
+/// 1. 7-day compact rhythm + diff text + numbers + 3 optional question cards
+/// 2. Open tasks and goals summary (plus unseen people if any) with include toggles
+/// 3. Preview of the lines and "Günlüğe yaz"
 ///
 /// The sheet holds a draft, so the bar has "Vazgeç" alone and the one action lives in the page:
 /// leaving writes nothing. Use inside the sheet's `NavigationStack`.
 struct WeeklyReviewView: View {
+    private enum FocusedQuestion: Hashable {
+        case well
+        case blocked
+        case focus
+    }
+
     @State private var model: WeeklyReviewModel
     @State private var leavePrompt = false
-    @FocusState private var noteFocused: Bool
+    @FocusState private var focusedQuestion: FocusedQuestion?
     private let onFinish: (WeeklyReviewResult) -> Void
     @Environment(\.locale) private var locale
     @Environment(\.dismiss) private var dismiss
@@ -25,11 +33,15 @@ struct WeeklyReviewView: View {
     init(
         store: IndexStore, today: CalendarDate, calendar: Calendar, locale: Locale,
         defaults: UserDefaults = .standard, step: WeeklyReviewStep = .numbers, note: String = "",
+        wellNote: String = "", blockedNote: String = "", focusNote: String = "",
         onFinish: @escaping (WeeklyReviewResult) -> Void = { _ in }
     ) {
         let model = WeeklyReviewModel(
             store: store, today: today, calendar: calendar, locale: locale, defaults: defaults, step: step)
         model.note = note
+        model.wellNote = wellNote
+        model.blockedNote = blockedNote
+        model.focusNote = focusNote
         _model = State(initialValue: model)
         self.onFinish = onFinish
     }
@@ -49,19 +61,18 @@ struct WeeklyReviewView: View {
             + LocalDay.instant(for: range.upperBound).formatted(style)
     }
 
-    private var hasNote: Bool { !model.note.allSatisfy(\.isWhitespace) }
+    private var hasNote: Bool { model.hasAnyNote }
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: InkSpacing.section) {
                 InkPageTitle("Haftalık inceleme", byline: stepText)
+                stepDots
+                    .padding(.horizontal, InkSpacing.margin)
                 VStack(alignment: .leading, spacing: InkSpacing.row) {
                     switch model.step {
                     case .numbers: numbersStep
-                    case .tasks: tasksStep
-                    case .people: peopleStep
-                    case .goals: goalsStep
-                    case .note: noteStep
+                    case .tasks: tasksAndGoalsStep
                     case .preview: previewStep
                     }
                     #if !os(macOS)
@@ -108,6 +119,17 @@ struct WeeklyReviewView: View {
         .accessibilityIdentifier("screen.weeklyReview")
     }
 
+    private var stepDots: some View {
+        HStack(spacing: 6) {
+            ForEach(WeeklyReviewStep.allCases, id: \.rawValue) { item in
+                Capsule(style: .continuous)
+                    .fill(item == model.step ? Color.ink.accent : Color.ink.control)
+                    .frame(width: item == model.step ? 18 : 6, height: 6)
+            }
+        }
+        .accessibilityHidden(true)
+    }
+
     private func requestLeave() {
         guard model.canClose else { return }
         if hasNote { leavePrompt = true } else { dismiss() }
@@ -129,15 +151,22 @@ struct WeeklyReviewView: View {
             .foregroundStyle(Color.ink.secondaryText)
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.bottom, InkSpacing.row)
-        section(
-            .numbers, title: String(localized: "Haftanın sayıları", bundle: bundle, locale: locale),
-            empty: "Bu dönemde kayıt yok."
-        ) { content in
-            weekRhythm
-            if content.events > 0 { metric(content.events, "Olay sayısı") }
-            if content.completedTasks > 0 { metric(content.completedTasks, "Tamamlanan") }
-            if content.writtenDays > 0 { metric(content.writtenDays, "Yazılan gün") }
+
+        InkCard {
+            VStack(alignment: .leading, spacing: InkSpacing.row) {
+                section(
+                    .numbers, title: String(localized: "Haftanın sayıları", bundle: bundle, locale: locale),
+                    empty: "Bu dönemde kayıt yok."
+                ) { content in
+                    weekRhythm
+                    if content.events > 0 { metric(content.events, "Olay sayısı") }
+                    if content.completedTasks > 0 { metric(content.completedTasks, "Tamamlanan") }
+                    if content.writtenDays > 0 { metric(content.writtenDays, "Yazılan gün") }
+                }
+            }
         }
+
+        questionCards
     }
 
     /// Seven short columns over the numbers, the week before behind them, and the change in events.
@@ -156,76 +185,126 @@ struct WeeklyReviewView: View {
         }
     }
 
-    @ViewBuilder private var tasksStep: some View {
-        section(
-            .tasks, title: String(localized: "Açık görevler", bundle: bundle, locale: locale),
-            count: model.content?.openTaskCount, empty: "Bu haftadan açık görev kalmadı."
-        ) { content in
-            ForEach(Array(content.openTasks.enumerated()), id: \.offset) { _, text in
-                vaultLine(text)
-            }
-            let rest = content.openTaskCount - content.openTasks.count
-            if rest > 0 {
-                hint(verbatim: String(localized: "ve \(rest) görev daha", bundle: bundle, locale: locale))
+    @ViewBuilder private var questionCards: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            questionCard(
+                title: "Ne iyi gitti?",
+                prompt: "Haftaya dair not",
+                text: $model.wellNote,
+                focus: .well,
+                identifier: "field.weeklyReview.note"
+            )
+            questionCard(
+                title: "Ne aksadı?",
+                prompt: "Zorlayan ya da yarım kalan",
+                text: $model.blockedNote,
+                focus: .blocked,
+                identifier: "field.weeklyReview.blockedNote"
+            )
+            questionCard(
+                title: "Gelecek hafta tek odak",
+                prompt: "Önümüzdeki hafta için tek niyet",
+                text: $model.focusNote,
+                focus: .focus,
+                identifier: "field.weeklyReview.focusNote"
+            )
+        }
+        .padding(.top, 4)
+    }
+
+    private func questionCard(
+        title: LocalizedStringKey,
+        prompt: LocalizedStringKey,
+        text: Binding<String>,
+        focus: FocusedQuestion,
+        identifier: String
+    ) -> some View {
+        let isFocused = focusedQuestion == focus
+        return InkCard {
+            VStack(alignment: .leading, spacing: 6) {
+                Text(title)
+                    .font(.ink.meta)
+                    .foregroundStyle(Color.ink.secondaryText)
+                TextField(
+                    title, text: text, prompt: Text(prompt).font(.ink.placeholder), axis: .vertical
+                )
+                .lineLimit(2...6)
+                .textFieldStyle(.plain)
+                .font(.ink.content)
+                .foregroundStyle(Color.ink.text)
+                .focused($focusedQuestion, equals: focus)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 8)
+                .background(
+                    Color.ink.well,
+                    in: RoundedRectangle(cornerRadius: InkSize.kanbanCorner, style: .continuous)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: InkSize.kanbanCorner, style: .continuous)
+                        .strokeBorder(
+                            InkButtonChrome.color(for: InkFilterFieldChrome.borderToken(isFocused: isFocused)),
+                            lineWidth: InkStroke.control)
+                )
+                .accessibilityIdentifier(identifier)
             }
         }
     }
 
-    @ViewBuilder private var peopleStep: some View {
-        section(
-            .people, title: String(localized: "Bir süredir görüşmediklerin", bundle: bundle, locale: locale),
-            empty: "Vadesi gelen görüşme yok."
-        ) { content in
-            ForEach(Array(content.people.enumerated()), id: \.offset) { _, name in
-                vaultLine(name)
-            }
-        }
-    }
-
-    @ViewBuilder private var goalsStep: some View {
-        section(
-            .goals, title: String(localized: "Hedefler", bundle: bundle, locale: locale),
-            empty: "Günlük ya da haftalık hedef yok."
-        ) { content in
-            ForEach(content.goals) { goal in
-                HStack(alignment: .firstTextBaseline, spacing: InkSpacing.section) {
-                    Text(verbatim: goal.name)
-                        .font(.ink.content)
-                        .foregroundStyle(Color.ink.text)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    Text(verbatim: WeeklyReviewContent.standingText(goal.standing, locale: locale))
-                        .font(.ink.value)
-                        .foregroundStyle(Color.ink.secondaryText)
+    @ViewBuilder private var tasksAndGoalsStep: some View {
+        InkCard {
+            VStack(alignment: .leading, spacing: InkSpacing.row) {
+                section(
+                    .tasks, title: String(localized: "Açık görevler", bundle: bundle, locale: locale),
+                    count: model.content?.openTaskCount, empty: "Bu haftadan açık görev kalmadı."
+                ) { content in
+                    ForEach(Array(content.openTasks.enumerated()), id: \.offset) { _, text in
+                        vaultLine(text)
+                    }
+                    let rest = content.openTaskCount - content.openTasks.count
+                    if rest > 0 {
+                        hint(verbatim: String(localized: "ve \(rest) görev daha", bundle: bundle, locale: locale))
+                    }
                 }
-                .accessibilityElement(children: .combine)
             }
         }
-    }
 
-    @ViewBuilder private var noteStep: some View {
-        SectionHeader(title: String(localized: "Not", bundle: bundle, locale: locale))
-        hint("Haftaya dair eklemek istediğin bir şey varsa yaz; boş bırakabilirsin.")
-        TextField(
-            "Not", text: $model.note, prompt: Text("Haftaya dair not").font(.ink.placeholder), axis: .vertical
-        )
-        .lineLimit(4...12)
-        .textFieldStyle(.plain)
-        .font(.ink.content)
-        .foregroundStyle(Color.ink.text)
-        .focused($noteFocused)
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
-        .background(
-            Color.ink.well,
-            in: RoundedRectangle(cornerRadius: InkSize.kanbanCorner, style: .continuous)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: InkSize.kanbanCorner, style: .continuous)
-                .strokeBorder(
-                    InkButtonChrome.color(for: InkFilterFieldChrome.borderToken(isFocused: noteFocused)),
-                    lineWidth: InkStroke.control)
-        )
-        .accessibilityIdentifier("field.weeklyReview.note")
+        InkCard {
+            VStack(alignment: .leading, spacing: InkSpacing.row) {
+                section(
+                    .goals, title: String(localized: "Hedefler", bundle: bundle, locale: locale),
+                    empty: "Günlük ya da haftalık hedef yok."
+                ) { content in
+                    ForEach(content.goals) { goal in
+                        HStack(alignment: .firstTextBaseline, spacing: InkSpacing.section) {
+                            Text(verbatim: goal.name)
+                                .font(.ink.content)
+                                .foregroundStyle(Color.ink.text)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            Text(verbatim: WeeklyReviewContent.standingText(goal.standing, locale: locale))
+                                .font(.ink.value)
+                                .foregroundStyle(Color.ink.secondaryText)
+                        }
+                        .accessibilityElement(children: .combine)
+                    }
+                }
+            }
+        }
+
+        if let content = model.content, !content.people.isEmpty {
+            InkCard {
+                VStack(alignment: .leading, spacing: InkSpacing.row) {
+                    section(
+                        .people,
+                        title: String(localized: "Bir süredir görüşmediklerin", bundle: bundle, locale: locale),
+                        empty: "Vadesi gelen görüşme yok."
+                    ) { loaded in
+                        ForEach(Array(loaded.people.enumerated()), id: \.offset) { _, name in
+                            vaultLine(name)
+                        }
+                    }
+                }
+            }
+        }
     }
 
     @ViewBuilder private var previewStep: some View {
@@ -241,13 +320,15 @@ struct WeeklyReviewView: View {
             EmptyState("Yazılacak bir şey seçilmedi.")
         } else {
             hint("Bugünün günlük yazısının sonuna aynen eklenir.")
-            // The lines as they will stand in the file, marks included.
-            VStack(alignment: .leading, spacing: InkSpacing.row) {
-                ForEach(Array(lines.enumerated()), id: \.offset) { _, line in
-                    vaultLine(line)
+            InkCard {
+                // The lines as they will stand in the file, marks included.
+                VStack(alignment: .leading, spacing: InkSpacing.row) {
+                    ForEach(Array(lines.enumerated()), id: \.offset) { _, line in
+                        vaultLine(line)
+                    }
                 }
+                .accessibilityIdentifier("text.weeklyReview.preview")
             }
-            .accessibilityIdentifier("text.weeklyReview.preview")
         }
     }
 

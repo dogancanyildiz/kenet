@@ -4,6 +4,7 @@ import VaultFormat
 struct DaysCalendarView: View {
     let store: IndexStore
     var selected: CalendarDate? = nil
+    var initialMonth: CalendarDate? = nil
     let select: (CalendarDate) -> Void
     @Environment(\.locale) private var locale
     @Environment(\.clockNow) private var clockNow
@@ -12,7 +13,7 @@ struct DaysCalendarView: View {
     /// screen, so the grid never shows a month without its marks; before the first answer the
     /// days are not drawn.
     @State private var loaded: JournalCalendar?
-    private var resolvedMonth: CalendarDate { month ?? LocalDay.today(at: clockNow()) }
+    private var resolvedMonth: CalendarDate { month ?? initialMonth ?? selected ?? LocalDay.today(at: clockNow()) }
     private var model: JournalCalendar {
         loaded ?? JournalCalendar(month: resolvedMonth, days: [])
     }
@@ -28,86 +29,114 @@ struct DaysCalendarView: View {
     }
 
     var body: some View {
-        VStack(spacing: 8) {
-            HStack {
-                // From the asked month, not the one on screen: a second tap before the first
-                // month's answer arrives moves on instead of asking for the same month again.
-                Button {
-                    month = JournalCalendar(month: resolvedMonth, days: []).adjacentMonth(-1)
-                } label: {
-                    Label("Önceki ay", systemImage: "chevron.left")
-                        .labelStyle(.iconOnly)
-                        .foregroundStyle(.ink.accent)
-                        .tapTarget()
-                }
-                Spacer()
-                Text(LocalDay.instant(for: model.month), format: .dateTime.month(.wide).year())
-                    .font(.ink.section)
-                    .foregroundStyle(.ink.text)
-                    // A narrow column at accessibility sizes: month and year on two lines, never
-                    // cut, even where the column's stack is short of height.
-                    .multilineTextAlignment(.center)
-                    .fixedSize(horizontal: false, vertical: true)
-                Spacer()
-                Button {
-                    month = JournalCalendar(month: resolvedMonth, days: []).adjacentMonth(1)
-                } label: {
-                    Label("Sonraki ay", systemImage: "chevron.right")
-                        .labelStyle(.iconOnly)
-                        .foregroundStyle(.ink.accent)
-                        .tapTarget()
-                }
-            }
-            // Inside a List row every bordered button fires on one tap; borderless keeps them separate.
-            .buttonStyle(.borderless)
-            let symbols = calendar.veryShortStandaloneWeekdaySymbols
-            let weekday = calendar.firstWeekday
-            let cells = model.cells(firstWeekday: weekday)
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 7)) {
-                ForEach(0..<7, id: \.self) { offset in
-                    Text(verbatim: symbols[(weekday - 1 + offset) % 7])
-                        .font(.ink.meta)
-                        .foregroundStyle(.ink.secondaryText)
-                }
-                ForEach(cells.indices, id: \.self) { index in
-                    if let day = cells[index] {
-                        let isToday = day == today
-                        let level = model.level(for: day)
-                        let isSelected = day == selected
-                        Button {
-                            select(day)
-                        } label: {
-                            DaysCalendarDayMark(
-                                day: day.day, level: level, isToday: isToday, isSelected: isSelected
-                            )
+        InkCard {
+            VStack(spacing: 8) {
+                HStack {
+                    // From the asked month, not the one on screen: a second tap before the first
+                    // month's answer arrives moves on instead of asking for the same month again.
+                    Button {
+                        month = JournalCalendar(month: resolvedMonth, days: []).adjacentMonth(-1)
+                    } label: {
+                        Label("Önceki ay", systemImage: "chevron.left")
+                            .labelStyle(.iconOnly)
+                            .foregroundStyle(.ink.accent)
                             .tapTarget()
+                    }
+                    Spacer()
+                    Text(LocalDay.instant(for: model.month), format: .dateTime.month(.wide).year())
+                        .font(.ink.section)
+                        .foregroundStyle(.ink.text)
+                        // A narrow column at accessibility sizes: month and year on two lines, never
+                        // cut, even where the column's stack is short of height.
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Spacer()
+                    Button {
+                        month = JournalCalendar(month: resolvedMonth, days: []).adjacentMonth(1)
+                    } label: {
+                        Label("Sonraki ay", systemImage: "chevron.right")
+                            .labelStyle(.iconOnly)
+                            .foregroundStyle(.ink.accent)
+                            .tapTarget()
+                    }
+                }
+                // Inside a List row every bordered button fires on one tap; borderless keeps them separate.
+                .buttonStyle(.borderless)
+                let symbols = calendar.veryShortStandaloneWeekdaySymbols
+                let weekday = calendar.firstWeekday
+                let cells = model.cells(firstWeekday: weekday)
+                // An eager Grid, not a LazyVGrid: inside a List row the lazy grid's height came out
+                // 8 pt short on some passes and right on others (same build, same simulator), so the
+                // card and every row under it moved. No column gap: seven 44 pt tap targets fill the
+                // phone column (7 × 46.6 pt) without overflowing the card.
+                Grid(horizontalSpacing: 0, verticalSpacing: 8) {
+                    GridRow {
+                        ForEach(0..<7, id: \.self) { offset in
+                            Text(verbatim: symbols[(weekday - 1 + offset) % 7])
+                                .font(.ink.meta)
+                                .foregroundStyle(.ink.secondaryText)
+                                .frame(maxWidth: .infinity)
                         }
-                        .buttonStyle(.plain)
-                        .accessibilityLabel(
-                            Text(LocalDay.instant(for: day), format: .dateTime.day().month().year())
-                        )
-                        .accessibilityHint(level > 0 ? Text("Günlük kaydı var") : Text("Boş gün"))
-                        .accessibilityAddTraits(isSelected ? .isSelected : [])
-                        // Until the first answer the days keep their place but are not drawn:
-                        // a month drawn without its marks would flash them in a moment later.
-                        .opacity(loaded == nil ? 0 : 1)
-                        .accessibilityHidden(loaded == nil)
-                    } else {
-                        Color.clear.frame(height: 44)
+                    }
+                    ForEach(Self.weeks(of: cells), id: \.self) { week in
+                        GridRow {
+                            ForEach(week, id: \.self) { index in
+                                dayCell(cells[index])
+                            }
+                        }
                     }
                 }
             }
-        }.padding(.vertical, 4)
-            .onAppear {
-                if month == nil { month = LocalDay.today(at: clockNow()) }
+        }
+        .padding(.vertical, 4)
+        .onAppear {
+            if month == nil { month = initialMonth ?? selected ?? LocalDay.today(at: clockNow()) }
+        }
+        .task(id: monthRequest) {
+            let asked = resolvedMonth
+            let range = JournalCalendar.range(of: asked)
+            if let days = try? await store.computeDaySummaries(from: range.lowerBound, to: range.upperBound) {
+                let fragments = store.content.fragments
+                let enriched = days.map { $0.enriched(with: fragments[$0.id]) }
+                loaded = JournalCalendar(month: asked, days: enriched)
             }
-            .task(id: monthRequest) {
-                let asked = resolvedMonth
-                let range = JournalCalendar.range(of: asked)
-                if let days = try? await store.computeDaySummaries(from: range.lowerBound, to: range.upperBound) {
-                    loaded = JournalCalendar(month: asked, days: days)
-                }
+        }
+    }
+
+    /// Cell indices split into weeks of seven; the last week may be short.
+    static func weeks(of cells: [CalendarDate?]) -> [[Int]] {
+        stride(from: 0, to: cells.count, by: 7).map { Array($0..<min($0 + 7, cells.count)) }
+    }
+
+    @ViewBuilder
+    private func dayCell(_ cell: CalendarDate?) -> some View {
+        if let day = cell {
+            let isToday = day == today
+            let level = model.level(for: day)
+            let isSelected = day == selected
+            let isFuture = day > today
+            Button {
+                select(day)
+            } label: {
+                DaysCalendarDayMark(
+                    day: day.day, level: level, isToday: isToday,
+                    isSelected: isSelected, isFuture: isFuture
+                )
+                .tapTarget()
             }
+            .buttonStyle(.plain)
+            .accessibilityLabel(
+                Text(LocalDay.instant(for: day), format: .dateTime.day().month().year())
+            )
+            .accessibilityHint(level > 0 ? Text("Günlük kaydı var") : Text("Boş gün"))
+            .accessibilityAddTraits(isSelected ? .isSelected : [])
+            // Until the first answer the days keep their place but are not drawn:
+            // a month drawn without its marks would flash them in a moment later.
+            .opacity(loaded == nil ? 0 : 1)
+            .accessibilityHidden(loaded == nil)
+        } else {
+            Color.clear.frame(maxWidth: .infinity, minHeight: 44, maxHeight: 44)
+        }
     }
 }
 
@@ -144,24 +173,31 @@ enum DaysCalendarMarkLayout {
     }
 }
 
-/// Day cell: today = ring, marked = 1–3 density dots, selected = filled disc (form beyond color).
+/// Day cell: today = ring, marked = 1–3 density dots, selected = well capsule/disc, future = dimmed.
 struct DaysCalendarDayMark: View {
     let day: Int
     let level: Int
     let isToday: Bool
     let isSelected: Bool
+    var isFuture: Bool = false
     var isMarked: Bool { level > 0 }
     @ScaledMetric(relativeTo: .body) private var preferredDiameter = 32.0
 
-    init(day: Int, level: Int = 0, isToday: Bool = false, isSelected: Bool = false) {
+    init(
+        day: Int, level: Int = 0, isToday: Bool = false, isSelected: Bool = false,
+        isFuture: Bool = false
+    ) {
         self.day = day
         self.level = level
         self.isToday = isToday
         self.isSelected = isSelected
+        self.isFuture = isFuture
     }
 
-    init(day: Int, isToday: Bool, isMarked: Bool, isSelected: Bool) {
-        self.init(day: day, level: isMarked ? 1 : 0, isToday: isToday, isSelected: isSelected)
+    init(day: Int, isToday: Bool, isMarked: Bool, isSelected: Bool, isFuture: Bool = false) {
+        self.init(
+            day: day, level: isMarked ? 1 : 0, isToday: isToday, isSelected: isSelected,
+            isFuture: isFuture)
     }
 
     nonisolated static func accessibilityValueText(
@@ -174,6 +210,19 @@ struct DaysCalendarDayMark: View {
         ].compactMap { $0 }.joined(separator: ", ")
     }
 
+    private var numeralColor: Color {
+        if isToday {
+            return .ink.accent
+        }
+        if isSelected {
+            return .ink.text
+        }
+        if isFuture {
+            return .ink.tertiaryText
+        }
+        return .ink.text
+    }
+
     var body: some View {
         GeometryReader { geo in
             let diameter = DaysCalendarMarkLayout.markDiameter(
@@ -181,7 +230,7 @@ struct DaysCalendarDayMark: View {
             VStack(spacing: 2) {
                 Text(day, format: .number)
                     .font(.ink.value)
-                    .foregroundStyle(isSelected ? Color.ink.onAccent : Color.ink.text)
+                    .foregroundStyle(numeralColor)
                     .minimumScaleFactor(0.35)
                     .lineLimit(1)
                     // Only cells that draw a ring or disc need clearance; plain days keep full size.
@@ -192,7 +241,14 @@ struct DaysCalendarDayMark: View {
                     .frame(width: diameter, height: diameter)
                     .background {
                         if isSelected {
-                            Circle().fill(Color.ink.accent)
+                            Capsule(style: .continuous)
+                                .fill(Color.ink.well)
+                                .overlay {
+                                    if isToday {
+                                        Capsule(style: .continuous)
+                                            .strokeBorder(Color.ink.accent, lineWidth: InkStroke.control)
+                                    }
+                                }
                         } else if isToday {
                             Circle().strokeBorder(Color.ink.accent, lineWidth: InkStroke.control)
                         }
@@ -202,7 +258,6 @@ struct DaysCalendarDayMark: View {
                         HStack(spacing: DaysCalendarMarkLayout.dotSpacing) {
                             ForEach(0..<min(level, 3), id: \.self) { _ in
                                 if isSelected {
-                                    // Selected already fills; mark with a square so form differs from the disc.
                                     RoundedRectangle(cornerRadius: 1, style: .continuous)
                                         .fill(Color.ink.accent)
                                         .frame(

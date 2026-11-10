@@ -100,7 +100,7 @@
 
             func expectTabs() throws {
                 let tabs = try #require(tabBar, "no tab bar under the shell")
-                #expect(tabs.viewControllers?.count == 5, "five tabs")
+                #expect(tabs.drawnTabCount == 5, "five tabs")
                 #expect(split == nil || split?.isCollapsed == true, "no side-by-side columns")
             }
 
@@ -225,5 +225,12 @@
         var onChange: (@MainActor @Sendable () -> Void)?
         func requestFullAccess() async throws -> Bool { false }
         func events(from start: Date, to end: Date) async throws -> [CalendarEvent] { [] }
+    }
+
+    extension UITabBarController {
+        /// The tabs the shell draws. iOS 26 fills `viewControllers` and leaves `tabs` empty for a
+        /// SwiftUI `TabView`; iOS 27 fills `tabs` and leaves `viewControllers` nil. Whichever the
+        /// running system fills is the count; the other reads zero.
+        var drawnTabCount: Int { max(tabs.count, viewControllers?.count ?? 0) }
     }
 #endif

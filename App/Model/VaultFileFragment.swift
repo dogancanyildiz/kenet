@@ -13,6 +13,8 @@ struct VaultFileFragment: Sendable, Equatable {
     var eventCount: Int
     /// Task blocks of the file (`IndexCounts.tasks`).
     var taskCount: Int
+    /// First plain-text line of the first event block when this fragment is a day file.
+    var firstEventPreview: String?
 
     init(contents: IndexedFileContents) {
         self.init(
@@ -20,7 +22,7 @@ struct VaultFileFragment: Sendable, Equatable {
             links: contents.links)
     }
 
-    /// Keeps of `blocks` only how many are events and tasks.
+    /// Keeps of `blocks` only how many are events and tasks, plus the first event line for a day.
     init(
         file: IndexSnapshot.File, entity: IndexedEntity? = nil, aliases: [IndexedAlias] = [],
         blocks: [IndexedBlock] = [], links: [IndexedLink] = []
@@ -31,6 +33,16 @@ struct VaultFileFragment: Sendable, Equatable {
         self.links = links
         eventCount = blocks.count { $0.kind == "event" }
         taskCount = blocks.count { $0.kind == "task" }
+        if file.kind == "day",
+            let firstEvent = blocks.filter({ $0.kind == "event" }).min(by: { $0.ordinal < $1.ordinal })
+        {
+            let text =
+                links.isEmpty
+                ? firstEvent.text : LinkedText(row: firstEvent, links: links).plainText
+            firstEventPreview = text.components(separatedBy: "\n").first
+        } else {
+            firstEventPreview = nil
+        }
     }
 }
 

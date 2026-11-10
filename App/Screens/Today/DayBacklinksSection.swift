@@ -46,8 +46,12 @@ struct DayBacklinksSection<Preceding: View>: View {
                             bundle: PresentationLocalization.bundle(locale), locale: locale),
                         count: model.items.count
                     )
-                    ForEach(model.items) { item in
-                        backlinkRow(item)
+                    InkCard(padded: true) {
+                        ForEach(Array(model.items.enumerated()), id: \.element.id) {
+                            index, item in
+                            if index > 0 { InkCardDivider() }
+                            backlinkRow(item)
+                        }
                     }
                 }
             }

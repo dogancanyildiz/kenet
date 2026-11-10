@@ -85,7 +85,7 @@ Harita konuları gösterir; satırların tam metni karar günlüğündedir. Bir 
 
 ```mermaid
 timeline
-    title Karar takvimi, 339 karar
+    title Karar takvimi, 340 karar
     2026-10-02 : 58 karar : Ürün kapsamı ve platform : Kasa biçimi ve ayrıştırıcı : Git, sürüm ve CI
     2026-10-03 : 19 karar : Yazma doğrulaması : İndeks ve arama : Varlık sayfası ve hızlı giriş
     2026-10-04 : 31 karar : Birleştirme ve kayıp yok : VaultStore ve dosya izleme : Görev, hedef ve otomasyon : Özet, graph ve harita
@@ -109,10 +109,10 @@ timeline
     2026-10-30 : 7 karar : Kilit ekranı widget’ı, hızlı giriş, eşitleme bağlantısı, Graph gün merkezli, ileri tarihli görev, Core birlikte geçme silindi
     2026-11-01 : 1 karar : Mac menü komutları kimlikli eylem, App sahnesi döngüsü
     2026-11-09 : 15 karar : Gün kopyası birleştirmesi varsayılan açık : Tasarım yönü Şafak ve Aşama 17 : Ekran davranışları
-    2026-11-10 : 1 karar : CI kapısı simülatörü kayıt betiğiyle aynı
+    2026-11-10 : 2 karar : CI kapısı simülatörü kayıt betiğiyle aynı : Görüntü referansı boyut tavanı 80 MiB
 ```
 
-Sayılar karar günlüğündeki satır sayısıdır. Toplam 339 satırdır.
+Sayılar karar günlüğündeki satır sayısıdır. Toplam 340 satırdır.
 
 ## Karar günlüğü
 
@@ -459,6 +459,7 @@ Sayılar karar günlüğündeki satır sayısıdır. Toplam 339 satırdır.
 | 2026-11-09 | Mac'te arama kenar çubuğunun tepesindeki tek alandır (⌘F); araç çubuğunda arama düğmesi yoktur | Arama her ekranda aynı yerde ve görünür alan olarak durur. Karar 2026-10-08'in araç çubuğu düğmesinin yerini alır |
 | 2026-11-09 | Biten işin ayrı yeşili (`done`) yoktur; biten iş ikincil metin rengini alır | Kural 7: vurgu kalanı gösterir. Yeşil "bitti" konum rengiyle çakışırdı |
 | 2026-11-10 | CI kapısı simülatörü kayıt betiğiyle aynı kuralla seçer: `.github/actions/ios-build` `pick-simulator.sh` çağırır, en eski kurulu iOS runtime'ındaki aygıt | macos-26 imajı iOS 26.2 ve 26.5 taşıyor; kapı en yeni (26.5), kayıt en eski (26.2) runtime'ı seçiyordu. SF Pro metin alanlarının glifleri iki runtime arasında 0,003–0,009 piksel kayıyor; AX3'te kenar pikseli eşiği aştı (PR #371, `journalEditorAX3` ve `entityTypeEditorAX3`). Referansların hepsi 26.2'de kayıtlı; kapı onlara uyar, yeniden kayıt gerekmez |
+| 2026-11-10 | Görüntü referansı boyut tavanı 61 MiB'den 80 MiB'ye çıkar (`check-snapshot-budget.sh` `MAX_MB`); dosya tavanı 320 kalır | Şafak koyu zeminli referanslar yaklaşık 2 kat büyük (ör. `shell.todayLandscapeAX3` 577 KB'tan 1,24 MB'a); Bugün ve Günlük (PR #376) sonrası 318 PNG 69,6 MiB tutuyor; sayı tavanı vaka bedelini görünür kılmayı sürdürür |
 
 Satır sırası ekleme sırasıdır; tablonun ilk satırları tarih sırasında değildir. Sonradan değişen bir kararın gerekçe hücresi değişikliği tarihiyle anar. Güncel durum notları kararın verildiği günden sonraki gerçek durumu söyler.
 

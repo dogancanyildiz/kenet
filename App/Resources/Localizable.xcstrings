@@ -891,6 +891,39 @@
         }
       }
     },
+    "%@, artır" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@, increment"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@, artır"
+          }
+        }
+      }
+    },
+    "%@, işareti kaldır" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@, clear mark"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@, işareti kaldır"
+          }
+        }
+      }
+    },
     "%@. %@ işaretlensin mi?" : {
       "localizations" : {
         "en" : {
@@ -1035,6 +1068,23 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "%lld alt satır" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld sub-lines"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld alt satır"
           }
         }
       }
@@ -1195,6 +1245,23 @@
         }
       }
     },
+    "%lld geçiş" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld mentions"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld geçiş"
+          }
+        }
+      }
+    },
     "%lld görev" : {
       "localizations" : {
         "en" : {
@@ -1308,6 +1375,47 @@
                 "stringUnit" : {
                   "state" : "translated",
                   "value" : "%lld görev bugün"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld görev daha" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld more task"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld more tasks"
+                }
+              }
+            }
+          }
+        },
+        "tr" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld görev daha"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld görev daha"
                 }
               }
             }
@@ -1743,6 +1851,47 @@
         }
       }
     },
+    "%lld gün zincir" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld day streak"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld day streak"
+                }
+              }
+            }
+          }
+        },
+        "tr" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld gün zincir"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld gün zincir"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "%lld günde kayıt var" : {
       "localizations" : {
         "en" : {
@@ -1839,6 +1988,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%lld günün %lld'i yapıldı, %lld affedildi"
+          }
+        }
+      }
+    },
+    "%lld günün %lld'sinde yazıldı" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Written on %2$lld of %1$lld days"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld günün %2$lld'sinde yazıldı"
           }
         }
       }
@@ -2225,6 +2391,23 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "%lld olay · %lld görev" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld events · %2$lld tasks"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld olay · %2$lld görev"
           }
         }
       }
@@ -3417,6 +3600,23 @@
         }
       }
     },
+    "Ay seç" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Select month"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ay seç"
+          }
+        }
+      }
+    },
     "Ayarlar" : {
       "localizations" : {
         "en" : {
@@ -3769,6 +3969,23 @@
         }
       }
     },
+    "Bağlam" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Context"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bağlam"
+          }
+        }
+      }
+    },
     "Bağlamadan devam et" : {
       "localizations" : {
         "en" : {
@@ -4005,6 +4222,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Başlangıç tarihini değiştir"
+          }
+        }
+      }
+    },
+    "Başlangıç: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start: %@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Başlangıç: %@"
           }
         }
       }
@@ -4537,6 +4770,23 @@
         }
       }
     },
+    "Biten görev" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Completed tasks"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Biten görev"
+          }
+        }
+      }
+    },
     "Bitiş tarihi" : {
       "localizations" : {
         "en" : {
@@ -4581,6 +4831,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bitiş tarihini değiştir"
+          }
+        }
+      }
+    },
+    "Bitiş: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Due: %@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bitiş: %@"
           }
         }
       }
@@ -4937,6 +5203,23 @@
         }
       }
     },
+    "Bu görevi silmek istiyor musun?" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete this task?"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bu görevi silmek istiyor musun?"
+          }
+        }
+      }
+    },
     "Bu gün" : {
       "localizations" : {
         "en" : {
@@ -5205,6 +5488,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bu nota bağlananlar"
+          }
+        }
+      }
+    },
+    "Bu olayı silmek istiyor musun?" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete this event?"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bu olayı silmek istiyor musun?"
           }
         }
       }
@@ -6185,6 +6485,47 @@
         }
       }
     },
+    "Dün %lld olay" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Yesterday %lld event"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Yesterday %lld events"
+                }
+              }
+            }
+          }
+        },
+        "tr" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Dün %lld olay"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Dün %lld olay"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "Düzenle" : {
       "localizations" : {
         "en" : {
@@ -6405,6 +6746,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "En uzun seri"
+          }
+        }
+      }
+    },
+    "En çok gidilen" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Most visited"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En çok gidilen"
+          }
+        }
+      }
+    },
+    "En çok görüşülen" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Most seen"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En çok görüşülen"
           }
         }
       }
@@ -6677,6 +7052,39 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Frontmatter okunamıyor."
+          }
+        }
+      }
+    },
+    "Gelecek hafta tek odak" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Single focus for next week"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gelecek hafta tek odak"
+          }
+        }
+      }
+    },
+    "Gelecek hafta tek odak: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Single focus for next week: %@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gelecek hafta tek odak: %@"
           }
         }
       }
@@ -7161,6 +7569,40 @@
         }
       }
     },
+    "Görevi geri aç" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reopen task"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Görevi geri aç"
+          }
+        }
+      }
+    },
+    "Görevi sil" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete task"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Görevi sil"
+          }
+        }
+      }
+    },
     "Görevi sil?" : {
       "localizations" : {
         "en" : {
@@ -7221,6 +7663,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Görevler"
+          }
+        }
+      }
+    },
+    "Görevler: %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tasks: %lld"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Görevler: %lld"
           }
         }
       }
@@ -7469,6 +7927,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Gün, o gün geçen her kayda bağlanır. Öteki çizgiler elle kurulan bağları gösterir."
+          }
+        }
+      }
+    },
+    "Günaydın." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Good morning."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Günaydın."
           }
         }
       }
@@ -9213,6 +9688,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Kenet"
+          }
+        }
+      }
+    },
+    "Kalan görev" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open tasks"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kalan görev"
           }
         }
       }
@@ -11057,6 +11549,71 @@
         }
       }
     },
+    "Ne aksadı: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What fell short: %@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ne aksadı: %@"
+          }
+        }
+      }
+    },
+    "Ne aksadı?" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What fell short?"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ne aksadı?"
+          }
+        }
+      }
+    },
+    "Ne iyi gitti: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What went well: %@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ne iyi gitti: %@"
+          }
+        }
+      }
+    },
+    "Ne iyi gitti?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What went well?"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ne iyi gitti?"
+          }
+        }
+      }
+    },
     "Normal" : {
       "localizations" : {
         "en" : {
@@ -11341,6 +11898,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Olaylı gün"
+          }
+        }
+      }
+    },
+    "Olayı sil" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete event"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Olayı sil"
           }
         }
       }
@@ -13253,6 +13827,23 @@
         }
       }
     },
+    "Takvim · salt okunur" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calendar · read only"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Takvim · salt okunur"
+          }
+        }
+      }
+    },
     "Tam katkı" : {
       "localizations" : {
         "en" : {
@@ -13313,6 +13904,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tamamlandı"
+          }
+        }
+      }
+    },
+    "Tamamlandı: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Completed: %@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tamamlandı: %@"
           }
         }
       }
@@ -13905,6 +14512,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tipi silmek varlık dosyalarını silmez. Tanımı olmayan dosyalar düz not olarak kalır."
+          }
+        }
+      }
+    },
+    "Today you have" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Today you have"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Today you have"
           }
         }
       }
@@ -15469,6 +16093,23 @@
         }
       }
     },
+    "Zorlayan ya da yarım kalan" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What got in the way or stayed unfinished"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zorlayan ya da yarım kalan"
+          }
+        }
+      }
+    },
     "adım" : {
       "localizations" : {
         "en" : {
@@ -15481,6 +16122,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "adım"
+          }
+        }
+      }
+    },
+    "and" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "and"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ve"
           }
         }
       }
@@ -15545,6 +16203,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "bu hafta %@"
+          }
+        }
+      }
+    },
+    "bugün" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "today"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "bugün"
           }
         }
       }
@@ -16045,6 +16720,40 @@
         }
       }
     },
+    "var." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "var."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "var."
+          }
+        }
+      }
+    },
+    "ve" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "and"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ve"
+          }
+        }
+      }
+    },
     "ve %lld görev daha" : {
       "localizations" : {
         "en" : {
@@ -16305,6 +17014,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Yaz"
+          }
+        }
+      }
+    },
+    "yazıldı" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "written"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "yazıldı"
           }
         }
       }
@@ -16725,6 +17450,23 @@
         }
       }
     },
+    "Önümüzdeki hafta için tek niyet" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "One intention for the coming week"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Önümüzdeki hafta için tek niyet"
+          }
+        }
+      }
+    },
     "Özel" : {
       "localizations" : {
         "en" : {
@@ -17125,6 +17867,40 @@
         }
       }
     },
+    "İyi akşamlar." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Good evening."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "İyi akşamlar."
+          }
+        }
+      }
+    },
+    "İyi günler." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Good afternoon."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "İyi günler."
+          }
+        }
+      }
+    },
     "İzin" : {
       "localizations" : {
         "en" : {
@@ -17425,6 +18201,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "— açık görev  ┄ %@"
+          }
+        }
+      }
+    },
+    "✓ Tamam" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "✓ Done"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "✓ Tamam"
           }
         }
       }

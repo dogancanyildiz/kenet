@@ -33,13 +33,19 @@ enum QuickEntryCapsuleLayout: Equatable, Sendable {
 
 /// Capsule chrome for the quick-entry bar: mode words, field slot, send.
 /// Callers supply their own field; this view does not own text state.
-struct QuickEntryCapsule<Field: View>: View {
+///
+/// iPhone (drawing: Bugün): two rows in a rounded card: the mode words and the `accessory`
+/// (the time chip) on top, the field and send below. Mac keeps one row; there the accessory
+/// sits before the field.
+struct QuickEntryCapsule<Field: View, Accessory: View>: View {
     @Binding var mode: QuickEntryMode
     var canSubmit: Bool
     var onSubmit: () -> Void
     /// When false, mode words stay visible but do not change the mode (busy / writing).
     var isModeEnabled: Bool = true
     @ViewBuilder var field: () -> Field
+    /// Top-row slot after the mode words (the time chip). Empty by default.
+    @ViewBuilder var accessory: () -> Accessory
 
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.locale) private var locale
@@ -48,23 +54,49 @@ struct QuickEntryCapsule<Field: View>: View {
         QuickEntryCapsuleLayout.resolve(dynamicTypeSize: dynamicTypeSize)
     }
 
+    /// The iPhone draws the default text sizes on two rows; Mac keeps one row.
+    private var usesTwoRows: Bool {
+        #if os(iOS)
+            layout == .singleRow
+        #else
+            false
+        #endif
+    }
+
     var body: some View {
         Group {
-            switch layout {
-            case .singleRow:
-                HStack(alignment: .center, spacing: 6) {
-                    modePicker
-                    fieldSlot
-                    sendButton
-                }
-            case .stacked:
-                VStack(alignment: .leading, spacing: 8) {
+            if usesTwoRows {
+                VStack(alignment: .leading, spacing: 0) {
                     HStack(alignment: .center, spacing: 6) {
                         modePicker
+                        accessory()
                         Spacer(minLength: 0)
+                    }
+                    HStack(alignment: .center, spacing: 6) {
+                        fieldSlot
                         sendButton
                     }
-                    fieldSlot
+                }
+                .padding(.leading, 6)
+            } else {
+                switch layout {
+                case .singleRow:
+                    HStack(alignment: .center, spacing: 6) {
+                        modePicker
+                        accessory()
+                        fieldSlot
+                        sendButton
+                    }
+                case .stacked:
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack(alignment: .center, spacing: 6) {
+                            modePicker
+                            accessory()
+                            Spacer(minLength: 0)
+                            sendButton
+                        }
+                        fieldSlot
+                    }
                 }
             }
         }
@@ -83,9 +115,9 @@ struct QuickEntryCapsule<Field: View>: View {
 
     @ViewBuilder private func chromeFill(_ color: Color) -> some View {
         switch layout {
-        case .singleRow:
+        case .singleRow where !usesTwoRows:
             Capsule().fill(color)
-        case .stacked:
+        case .singleRow, .stacked:
             RoundedRectangle(cornerRadius: InkSize.quickEntryCorner, style: .continuous)
                 .fill(color)
         }
@@ -145,20 +177,14 @@ private struct QuickEntrySendButton: View {
         Button(action: onSubmit) {
             Image(systemName: "arrow.up")
                 .font(.body.weight(.semibold))
-                .foregroundStyle(canSubmit ? Color.ink.onAccent : Color.ink.secondaryText)
+                // Drawing: a filled accent disc. Empty field: the soft accent disc with an accent
+                // arrow (a token step, not opacity), so the state still reads.
+                .foregroundStyle(canSubmit ? Color.ink.onAccent : Color.ink.accent)
                 .frame(width: sendSide, height: sendSide)
                 .background {
-                    Group {
-                        if canSubmit {
-                            Circle().fill(Color.ink.accent)
-                        } else {
-                            ZStack {
-                                Circle().fill(Color.ink.control)
-                                Circle().inset(by: InkStroke.control).fill(Color.ink.well)
-                            }
-                        }
-                    }
-                    .inkGlowShadow()
+                    Circle()
+                        .fill(canSubmit ? Color.ink.accent : Color.ink.accentSoft)
+                        .inkGlowShadow()
                 }
                 .frame(
                     minWidth: TapTarget.minimumLength, minHeight: TapTarget.minimumLength,
@@ -184,5 +210,16 @@ enum QuickEntryModeLock {
         isEnabled: Bool, isSubmitting: Bool, isCreating: Bool, isWriting: Bool
     ) -> Bool {
         isEnabled && !isSubmitting && !isCreating && !isWriting
+    }
+}
+
+extension QuickEntryCapsule where Accessory == EmptyView {
+    init(
+        mode: Binding<QuickEntryMode>, canSubmit: Bool, onSubmit: @escaping () -> Void,
+        isModeEnabled: Bool = true, @ViewBuilder field: @escaping () -> Field
+    ) {
+        self.init(
+            mode: mode, canSubmit: canSubmit, onSubmit: onSubmit, isModeEnabled: isModeEnabled,
+            field: field, accessory: { EmptyView() })
     }
 }

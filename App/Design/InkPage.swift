@@ -3,9 +3,11 @@ import SwiftUI
 extension View {
     /// Page chrome: paper background and hidden list/scroll system fill.
     /// Screens adopt this in a later Stage 9 pass; defined here as the shared entry point.
+    /// On a root page of the iPhone tab shell (``View/inkGlow()`` or
+    /// ``inkRootPageNavigationTitle(_:)`` around it) the paper carries the dawn glow, which moves
+    /// with the scrolled content.
     func inkPage() -> some View {
-        self
-            .background(Color.ink.paper.ignoresSafeArea())
+        modifier(InkPageBackground())
             .scrollContentBackground(.hidden)
             .inkPaperWindowToolbar()
     }
@@ -50,14 +52,27 @@ extension View {
     /// Pair with ``InkPageTitleRow`` (List) or ``InkPageTitle`` (ScrollView / stack).
     /// ``InkPageTitle`` adds its own horizontal page margin; nesting it inside another
     /// horizontally padded container doubles the indent.
+    ///
+    /// In the iPhone tab shell a subpage's manşet (``InkPageHeader``) draws the back item
+    /// itself, "‹ <parent page>", on a row above its title; the system bar is then hidden.
     func inkPageNavigationTitle(_ title: LocalizedStringKey) -> some View {
+        inkPageNavigationTitle(title, isRoot: false)
+    }
+
+    func inkPageNavigationTitle(verbatim title: String) -> some View {
+        inkPageNavigationTitle(verbatim: title, isRoot: false)
+    }
+
+    fileprivate func inkPageNavigationTitle(_ title: LocalizedStringKey, isRoot: Bool) -> some View {
         self
+            .modifier(InkSubpageChrome(title: Text(title), isRoot: isRoot))
             .navigationTitle(title)
             .inkPageHiddenBarTitle()
     }
 
-    func inkPageNavigationTitle(verbatim title: String) -> some View {
+    fileprivate func inkPageNavigationTitle(verbatim title: String, isRoot: Bool) -> some View {
         self
+            .modifier(InkSubpageChrome(title: Text(verbatim: title), isRoot: isRoot))
             .navigationTitle(title)
             .inkPageHiddenBarTitle()
     }
@@ -72,13 +87,15 @@ extension View {
     /// and their actions also go on the manşet row, not in `.toolbar`.
     func inkRootPageNavigationTitle(_ title: LocalizedStringKey) -> some View {
         self
-            .inkPageNavigationTitle(title)
+            .environment(\.inkPageGlow, true)
+            .inkPageNavigationTitle(title, isRoot: true)
             .inkHiddenNavigationBar()
     }
 
     func inkRootPageNavigationTitle(verbatim title: String) -> some View {
         self
-            .inkPageNavigationTitle(verbatim: title)
+            .environment(\.inkPageGlow, true)
+            .inkPageNavigationTitle(verbatim: title, isRoot: true)
             .inkHiddenNavigationBar()
     }
 
@@ -110,6 +127,8 @@ extension View {
     func inkPinnedPageTitle(_ title: LocalizedStringKey, byline: String? = nil) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             InkPageTitle(title, byline: byline)
+                // A strip over full-bleed content: opaque paper up under the status bar.
+                .background(Color.ink.paper.ignoresSafeArea(edges: .top))
             self
         }
         .inkPageNavigationTitle(title)
@@ -118,6 +137,8 @@ extension View {
     func inkPinnedPageTitle(verbatim title: String, byline: String? = nil) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             InkPageTitle(verbatim: title, byline: byline)
+                // A strip over full-bleed content: opaque paper up under the status bar.
+                .background(Color.ink.paper.ignoresSafeArea(edges: .top))
             self
         }
         .inkPageNavigationTitle(verbatim: title)
@@ -178,7 +199,7 @@ extension View {
 /// - `actions`: the page's icons on the manşet row (``InkHeaderAction``, ``InkHeaderMenu``,
 ///   ``SearchButton``); at most ``InkHeaderActionChrome/maximumCount``, search last.
 struct InkPageTitle<Actions: View>: View {
-    private let header: InkPageHeader<Actions>
+    private var header: InkPageHeader<Actions>
 
     init(
         _ title: LocalizedStringKey, byline: String? = nil, @ViewBuilder actions: () -> Actions
@@ -201,7 +222,16 @@ struct InkPageTitle<Actions: View>: View {
             .padding(.top, 4)
             .padding(.bottom, 8)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color.ink.paper)
+            .background(InkListRowPaper())
+    }
+}
+
+extension InkPageTitle {
+    /// A styled byline (bold count, warning carried-over part) in place of the plain one.
+    func byline(_ text: Text) -> Self {
+        var copy = self
+        copy.header = header.byline(text)
+        return copy
     }
 }
 
@@ -224,7 +254,7 @@ extension InkPageTitle where Actions == EmptyView {
 /// container doubles the indent. `actions` as in ``InkPageTitle``; pinned on Mac the same way
 /// (``InkScrolledMasthead`` and ``View/inkPinnedMasthead(_:columnWidth:)``).
 struct InkPageTitleRow<Actions: View>: View {
-    private let header: InkPageHeader<Actions>
+    private var header: InkPageHeader<Actions>
 
     init(
         _ title: LocalizedStringKey, byline: String? = nil, @ViewBuilder actions: () -> Actions
@@ -245,7 +275,7 @@ struct InkPageTitleRow<Actions: View>: View {
         header
             .listRowInsets(Self.insets)
             .listRowSeparator(.hidden)
-            .listRowBackground(Color.ink.paper)
+            .inkListRowBackground()
     }
 
     private static var insets: EdgeInsets {
@@ -261,6 +291,15 @@ struct InkPageTitleRow<Actions: View>: View {
             .padding(.horizontal, MacListColumnChrome.rowInset)
             .padding(.bottom, MacListColumnChrome.rowGap)
             .background(Color.ink.paper)
+    }
+}
+
+extension InkPageTitleRow {
+    /// A styled byline (bold count, warning carried-over part) in place of the plain one.
+    func byline(_ text: Text) -> Self {
+        var copy = self
+        copy.header = header.byline(text)
+        return copy
     }
 }
 
@@ -308,6 +347,7 @@ private struct InkListRowModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         row(content)
+            .modifier(InkHiddenLinkIndicator())
             .listRowBackground(background)
             .listRowInsets(
                 EdgeInsets(
@@ -358,9 +398,53 @@ private struct InkListRowModifier: ViewModifier {
                 // Search marks the keyboard selection. Phone list columns pass false or nil.
                 Color.ink.accent.opacity(0.12)
             } else {
-                Color.ink.paper
+                // Clear on the tab shell: the page's paper (and a root page's glow) shows through.
+                InkListRowPaper()
             }
         #endif
+    }
+}
+
+/// A page row draws its own "›" where it has one (``InkCard``, ``InkRows``); the chevron
+/// `List` adds to a `NavigationLink` row would sit outside the card (Kişiler, Ayarlar).
+private struct InkHiddenLinkIndicator: ViewModifier {
+    func body(content: Content) -> some View {
+        #if os(iOS)
+            content.navigationLinkIndicatorVisibility(.hidden)
+        #else
+            content
+        #endif
+    }
+}
+
+/// The background of a plain page row (and the manşet row). On a root page of the iPhone tab
+/// shell (``EnvironmentValues/inkPageGlow``) it is clear, so the glow is not covered row by row;
+/// the page's own paper lies under the list. Elsewhere (subpages, sheets, split shell, Mac) it
+/// stays paper, as before.
+struct InkListRowPaper: View {
+    @Environment(\.inkPageGlow) private var glow
+    #if os(iOS)
+        @Environment(\.shellKind) private var shellKind
+    #endif
+
+    var body: some View {
+        #if os(iOS)
+            if glow && shellKind == .tabs {
+                Color.clear
+            } else {
+                Color.ink.paper
+            }
+        #else
+            Color.ink.paper
+        #endif
+    }
+}
+
+extension View {
+    /// List row background of a page row outside ``View/inkListRow(columnSelected:cardSegment:)``:
+    /// clear on the iPhone tab shell (the glow shows), paper elsewhere.
+    func inkListRowBackground() -> some View {
+        listRowBackground(InkListRowPaper())
     }
 }
 
@@ -395,6 +479,124 @@ private struct InkAdaptiveSheetPresentation: ViewModifier {
             } else {
                 content
             }
+        #endif
+    }
+}
+
+/// The page's paper. In the iPhone tab shell, on a root page (``EnvironmentValues/inkPageGlow``),
+/// the glow lies on the paper and follows the scroll view this is applied to. Elsewhere (Mac,
+/// split shell, subpages, sheets) plain paper, as before.
+private struct InkPageBackground: ViewModifier {
+    @Environment(\.inkPageGlow) private var glow
+    #if os(iOS)
+        @Environment(\.shellKind) private var shellKind
+    #endif
+    @State private var shift: CGFloat = 0
+
+    private var drawsGlow: Bool {
+        #if os(iOS)
+            glow && shellKind == .tabs
+        #else
+            false
+        #endif
+    }
+
+    func body(content: Content) -> some View {
+        if drawsGlow {
+            content
+                .background {
+                    ZStack(alignment: .top) {
+                        Color.ink.paper.ignoresSafeArea()
+                        InkGlowLayer(shift: shift)
+                    }
+                }
+                .modifier(InkGlowScrollTracking(shift: $shift))
+        } else {
+            content.background(Color.ink.paper.ignoresSafeArea())
+        }
+    }
+}
+
+extension EnvironmentValues {
+    /// The title a page pushed from here shows on its back item (``InkPageHeader``). Each page
+    /// title modifier sets its own; the tab shell sets the tab's name on the stack.
+    @Entry var inkBackTitle: Text? = nil
+    /// The back item this page's manşet draws: the parent's title on a subpage, nil on a root
+    /// page and in a sheet's first page.
+    @Entry var inkHeaderBackTitle: Text? = nil
+    /// Inside a sheet (``InkSheetModifier``): pages keep the system back button there.
+    @Entry var inkInSheet = false
+}
+
+/// A manşet that drew its own back item (``InkPageHeader``) asks for the system bar to hide.
+struct InkHeaderBackShownKey: PreferenceKey {
+    static let defaultValue = false
+    static func reduce(value: inout Bool, nextValue: () -> Bool) {
+        value = value || nextValue()
+    }
+}
+
+/// Subpage chrome of the iPhone tab shell: hands the parent's title to the manşet's back item,
+/// its own title to the pages pushed from it, and hides the system bar once the manşet drew the
+/// back item (latched: a manşet row scrolled out of a `List` does not bring the bar back). Root
+/// pages and other shells keep the system behavior.
+private struct InkSubpageChrome: ViewModifier {
+    let title: Text
+    let isRoot: Bool
+    @Environment(\.inkBackTitle) private var parentTitle
+    @Environment(\.inkInSheet) private var inSheet
+    #if os(iOS)
+        @Environment(\.shellKind) private var shellKind
+    #endif
+    @State private var drawsOwnBack = false
+
+    func body(content: Content) -> some View {
+        content
+            .environment(\.inkHeaderBackTitle, isRoot || inSheet ? nil : parentTitle)
+            .environment(\.inkBackTitle, title)
+            .modifier(SubpageGlowReset(isRoot: isRoot))
+            .onPreferenceChange(InkHeaderBackShownKey.self) { shown in
+                if shown { drawsOwnBack = true }
+            }
+            .modifier(SubpageBarVisibility(isRoot: isRoot, hidesBar: hidesBar))
+    }
+
+    private var hidesBar: Bool {
+        #if os(iOS)
+            !isRoot && shellKind == .tabs && drawsOwnBack
+        #else
+            false
+        #endif
+    }
+}
+
+/// A subpage never carries the root page's glow, even when it is pushed from inside one.
+private struct SubpageGlowReset: ViewModifier {
+    let isRoot: Bool
+
+    @ViewBuilder func body(content: Content) -> some View {
+        if isRoot {
+            content
+        } else {
+            content.environment(\.inkPageGlow, false)
+        }
+    }
+}
+
+private struct SubpageBarVisibility: ViewModifier {
+    let isRoot: Bool
+    let hidesBar: Bool
+
+    /// One view tree for both states: toggling the bar must not rebuild the page.
+    @ViewBuilder func body(content: Content) -> some View {
+        #if os(iOS)
+            if isRoot {
+                content
+            } else {
+                content.toolbar(hidesBar ? .hidden : .automatic, for: .navigationBar)
+            }
+        #else
+            content
         #endif
     }
 }

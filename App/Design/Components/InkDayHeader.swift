@@ -3,9 +3,10 @@ import SwiftUI
 /// Day manşet: ring + day number + day name, with an optional action slot.
 struct InkDayHeader<Actions: View>: View {
     var date: Date
-    /// Ring fill 0…1; accent arc shows remaining work (caller passes remaining/total).
+    /// Ring fill 0…1: the accent arc is the day's completed share; the ring center shows it as a
+    /// percent ("67"), as in the drawing.
     var progress: Double
-    /// Number drawn in the ring center (remaining count).
+    /// Work left (VoiceOver: "3 hedef kaldı").
     var remainingCount: Int
     /// Hide the ring when the day has no daily goals (screens.md).
     var showsRing: Bool = true
@@ -41,10 +42,11 @@ struct InkDayHeader<Actions: View>: View {
         .accessibilityElement(children: .contain)
     }
 
+    /// Ring, then day number and day name on one baseline ("20 Pazar"), icons on the right.
     private var expandedLayout: some View {
         HStack(alignment: .center, spacing: 12) {
             if showsRing { ring }
-            VStack(alignment: .leading, spacing: 2) {
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
                 dayNumberText
                 dayNameText
             }
@@ -75,7 +77,8 @@ struct InkDayHeader<Actions: View>: View {
         GoalRing(
             progress: progress,
             diameter: ringSide,
-            centerLabel: String(remainingCount)
+            centerLabel: String(DayRingLabel.percent(progress)),
+            emphasizesArc: true
         )
         .accessibilityLabel(
             Text(
@@ -123,5 +126,12 @@ extension InkDayHeader where Actions == EmptyView {
             date: date, progress: progress, remainingCount: remainingCount, showsRing: showsRing,
             compact: compact, compactTitle: compactTitle
         ) { EmptyView() }
+    }
+}
+
+/// The number in the day ring: the completed share as a whole percent (unit-tested).
+enum DayRingLabel {
+    static func percent(_ progress: Double) -> Int {
+        Int((GoalRingProgress.clamped(progress) * 100).rounded())
     }
 }

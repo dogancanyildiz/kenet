@@ -56,7 +56,8 @@ struct SectionHeader: View {
             Spacer(minLength: 0)
             if let counterText {
                 Text(verbatim: counterText)
-                    .font(.ink.value)
+                    // Drawing: a small counter beside the section title ("6 kaldı", "2/3").
+                    .font(.caption.monospacedDigit())
                     .foregroundStyle(.ink.secondaryText)
                     .accessibilityHidden(true)
                     .accessibilityIdentifier(Self.counterIdentifier)

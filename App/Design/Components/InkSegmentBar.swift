@@ -1,14 +1,16 @@
 import SwiftUI
 
 /// One stacked bar whose parts add up to a whole, with a legend that carries the numbers.
-/// The parts differ by pattern as well as tone: hatched, solid, outline.
+/// The parts differ by pattern as well as tone (drawing: Özetler): done solid, carried hatched in
+/// the warning color, undated a light outlined fill. Done has no green of its own (decisions
+/// 2026-11-09): it takes the secondary text color.
 struct InkSegmentBar: View {
     enum Style: Sendable {
-        /// Done work recedes: secondary text hatching (Mürekkep rule 6).
+        /// Done work recedes: solid secondary text.
         case done
-        /// Open work carried on: solid ink. The warning color stays on overdue dates only.
+        /// Open work carried on: warning hatching.
         case carried
-        /// Open work without a date: outline only.
+        /// Open work without a date: light gray fill with an outline.
         case outline
     }
 
@@ -65,14 +67,15 @@ struct InkSegmentBar: View {
         let shape = RoundedRectangle(cornerRadius: 3, style: .continuous)
         switch style {
         case .done:
-            shape.fill(Color.clear)
-                .overlay { InkHatch().stroke(Color.ink.secondaryText, lineWidth: InkStroke.control) }
-                .clipShape(shape)
-                .overlay { shape.strokeBorder(Color.ink.secondaryText, lineWidth: InkStroke.rule) }
+            shape.fill(Color.ink.secondaryText)
         case .carried:
-            shape.fill(Color.ink.text)
+            shape.fill(Color.clear)
+                .overlay { InkHatch().stroke(Color.ink.warning, lineWidth: InkStroke.control) }
+                .clipShape(shape)
+                .overlay { shape.strokeBorder(Color.ink.warning, lineWidth: InkStroke.rule) }
         case .outline:
-            shape.strokeBorder(Color.ink.control, lineWidth: InkStroke.control)
+            shape.fill(Color.ink.well)
+                .overlay { shape.strokeBorder(Color.ink.control, lineWidth: InkStroke.rule) }
         }
     }
 }

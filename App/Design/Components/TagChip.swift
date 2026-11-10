@@ -13,7 +13,7 @@ struct TagChip: View {
     var onDismiss: (() -> Void)? = nil
 
     var body: some View {
-        HStack(spacing: 6) {
+        HStack(spacing: 2) {
             labelContent
             if let onDismiss {
                 Button(action: onDismiss) {
@@ -24,24 +24,32 @@ struct TagChip: View {
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(Text("Kapat"))
+                // The 44 pt target overlaps the chip's edge; the capsule keeps its own height.
+                .padding(.vertical, -TagChipChrome.targetOverhang)
             }
-        }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 6)
-        .background {
-            Capsule()
-                .fill(filled || isSelected ? Color.ink.well : Color.clear)
-        }
-        .overlay {
-            Capsule()
-                .stroke(
-                    isSelected ? Color.ink.accent : Color.ink.control,
-                    lineWidth: isSelected ? InkStroke.highPriority : InkStroke.control)
         }
         .accessibilityElement(children: onDismiss == nil ? .combine : .contain)
         .accessibilityLabel(Text(verbatim: count.map { title + ", " + $0.formatted() } ?? title))
         .accessibilityAddTraits(isSelected ? .isSelected : [])
         .accessibilityAddTraits(onTap == nil ? [] : .isButton)
+    }
+
+    /// The drawn chip: a thin capsule (≈ 30 pt at the default text size), whatever the tap
+    /// target around it.
+    private func capsule(_ content: some View) -> some View {
+        content
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .background {
+                Capsule()
+                    .fill(filled || isSelected ? Color.ink.well : Color.clear)
+            }
+            .overlay {
+                Capsule()
+                    .stroke(
+                        isSelected ? Color.ink.accent : Color.ink.control,
+                        lineWidth: isSelected ? InkStroke.highPriority : InkStroke.control)
+            }
     }
 
     @ViewBuilder private var labelContent: some View {
@@ -71,13 +79,18 @@ struct TagChip: View {
 
         if let onTap {
             Button(action: onTap) {
-                core
-                    .contentShape(Rectangle())
+                // The capsule is drawn first; the 44 pt target is a clear frame around it.
+                capsule(core)
                     .tapTarget()
             }
             .buttonStyle(.plain)
         } else {
-            core
+            capsule(core)
         }
     }
+}
+
+enum TagChipChrome {
+    /// How far a dismiss button's 44 pt target reaches past the chip's top and bottom edges.
+    static let targetOverhang: CGFloat = 7
 }

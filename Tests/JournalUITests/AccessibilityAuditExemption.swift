@@ -63,6 +63,13 @@ extension AccessibilityAuditExemption {
         .init(
             type: .dynamicType, element: .catalogKey("Bölüm"),
             reason: "section menu label grows (tasksScreen.tasksAX3.png)"),
+        // The "Bu hafta" card's count is `.ink.value` text inside an InkCard; it grows in the AX3
+        // reference, but on iPad the audit's live size change does not reach the card text and
+        // reports it on some runs (PR #377 run 42808922759), not on others.
+        .init(
+            type: .dynamicType, element: .identifier("tasks.weekly.count"),
+            reason: "weekly card count grows (tasksScreen.tasksAX3.png); iPad audit misses card text",
+            screens: ["tasks"]),
         .init(
             type: .dynamicType, element: .catalogKey("Yaklaşan"),
             reason: "section menu value grows (tasksScreen.tasksAX3.png)"),

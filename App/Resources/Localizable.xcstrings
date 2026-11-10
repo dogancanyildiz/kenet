@@ -14558,7 +14558,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%lld-day streak"
+            "value" : "Streak %lld days"
           }
         },
         "tr" : {

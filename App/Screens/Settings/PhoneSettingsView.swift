@@ -29,16 +29,6 @@ struct PhoneSettingsView: View {
             isProcessing: store.isProcessing)
     }
 
-    /// The row's navigation, behind its content: a `NavigationLink` as the row itself makes `List`
-    /// draw a second chevron beside the card's. The link fills the row and stays out of the
-    /// accessibility tree; the row is the button (`.isButton`, combined children).
-    private func hiddenLink(to section: SettingsSection) -> some View {
-        NavigationLink(value: section) { EmptyView() }
-            .opacity(0)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .accessibilityHidden(true)
-    }
-
     var body: some View {
         List {
             InkPageTitleRow("Ayarlar")
@@ -46,53 +36,53 @@ struct PhoneSettingsView: View {
                 SyncStatusIndicator(status: store.syncStatus)
                     .inkListRow()
             }
-            // The link sits behind the card as an invisible background: a NavigationLink as the
-            // row's content makes List draw its own disclosure chevron beside the card's.
-            InkCard {
-                HStack(spacing: InkSpacing.row) {
-                    RoundedRectangle(cornerRadius: InkCorner.sm, style: .continuous)
-                        .fill(Color.ink.accentSoft)
-                        .frame(width: 36, height: 36)
-                        .overlay {
-                            Image(systemName: store.vaultKind == .icloud ? "icloud" : "folder")
+            NavigationLink(value: SettingsSection.vault) {
+                InkCard {
+                    HStack(spacing: InkSpacing.row) {
+                        RoundedRectangle(cornerRadius: InkCorner.sm, style: .continuous)
+                            .fill(Color.ink.accentSoft)
+                            .frame(width: 36, height: 36)
+                            .overlay {
+                                Image(systemName: store.vaultKind == .icloud ? "icloud" : "folder")
+                                    .font(.ink.section)
+                                    .foregroundStyle(Color.ink.accent)
+                            }
+                            .accessibilityHidden(true)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(verbatim: vaultLocationTitle)
                                 .font(.ink.section)
-                                .foregroundStyle(Color.ink.accent)
+                                .foregroundStyle(Color.ink.text)
+                            HStack(spacing: 6) {
+                                Text("\(store.counts.files) dosya")
+                                    .font(.ink.meta)
+                                    .foregroundStyle(Color.ink.secondaryText)
+                                    .monospacedDigit()
+                                Text("·")
+                                    .font(.ink.meta)
+                                    .foregroundStyle(Color.ink.secondaryText)
+                                    .accessibilityHidden(true)
+                                Image(systemName: indexState.symbol(isCloudVault: store.vaultKind == .icloud))
+                                    .font(.ink.meta)
+                                    .foregroundStyle(
+                                        indexState.isFailure ? Color.ink.danger : Color.ink.secondaryText
+                                    )
+                                    .accessibilityHidden(true)
+                                Text(indexState.title)
+                                    .font(.ink.meta)
+                                    .foregroundStyle(Color.ink.secondaryText)
+                            }
                         }
-                        .accessibilityHidden(true)
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(verbatim: vaultLocationTitle)
-                            .font(.ink.section)
-                            .foregroundStyle(Color.ink.text)
-                        HStack(spacing: 6) {
-                            Text("\(store.counts.files) dosya")
-                                .font(.ink.meta)
-                                .foregroundStyle(Color.ink.secondaryText)
-                                .monospacedDigit()
-                            Text("·")
-                                .font(.ink.meta)
-                                .foregroundStyle(Color.ink.secondaryText)
-                                .accessibilityHidden(true)
-                            Image(systemName: indexState.symbol(isCloudVault: store.vaultKind == .icloud))
-                                .font(.ink.meta)
-                                .foregroundStyle(
-                                    indexState.isFailure ? Color.ink.danger : Color.ink.secondaryText
-                                )
-                                .accessibilityHidden(true)
-                            Text(indexState.title)
-                                .font(.ink.meta)
-                                .foregroundStyle(Color.ink.secondaryText)
-                        }
+                        Spacer(minLength: 8)
+                        Image(systemName: "chevron.right")
+                            .font(.ink.weekday)
+                            .foregroundStyle(Color.ink.secondaryText)
+                            .accessibilityHidden(true)
                     }
-                    Spacer(minLength: 8)
-                    Image(systemName: "chevron.right")
-                        .font(.ink.weekday)
-                        .foregroundStyle(Color.ink.secondaryText)
-                        .accessibilityHidden(true)
                 }
             }
-            .background(hiddenLink(to: .vault))
-            .accessibilityElement(children: .combine)
-            .accessibilityAddTraits(.isButton)
+            .buttonStyle(.plain)
+            // The card draws its own chevron; List would add a second one beside it.
+            .navigationLinkIndicatorVisibility(.hidden)
             .inkListRow()
 
             InkCard(padded: false) {
@@ -102,34 +92,35 @@ struct PhoneSettingsView: View {
                         if index > 0 {
                             InkCardDivider()
                         }
-                        HStack(spacing: InkSpacing.row) {
-                            RoundedRectangle(cornerRadius: InkCorner.xs, style: .continuous)
-                                .fill(Color.ink.well)
-                                .frame(width: 30, height: 30)
-                                .overlay {
-                                    Image(systemName: section.symbol)
-                                        .font(.ink.meta.weight(.semibold))
-                                        .foregroundStyle(Color.ink.accent)
-                                }
-                                .accessibilityHidden(true)
-                            Text(section.title)
-                                .font(.ink.content)
-                                .foregroundStyle(Color.ink.text)
-                                // On the title text the audit reads: NavigationLink cells drop
-                                // identifiers on the link itself (settings a11y / AX3).
-                                .accessibilityIdentifier("settings.section.\(section.rawValue)")
-                            Spacer(minLength: 8)
-                            Image(systemName: "chevron.right")
-                                .font(.ink.weekday)
-                                .foregroundStyle(Color.ink.secondaryText)
-                                .accessibilityHidden(true)
+                        NavigationLink(value: section) {
+                            HStack(spacing: InkSpacing.row) {
+                                RoundedRectangle(cornerRadius: InkCorner.xs, style: .continuous)
+                                    .fill(Color.ink.well)
+                                    .frame(width: 30, height: 30)
+                                    .overlay {
+                                        Image(systemName: section.symbol)
+                                            .font(.ink.meta.weight(.semibold))
+                                            .foregroundStyle(Color.ink.accent)
+                                    }
+                                    .accessibilityHidden(true)
+                                Text(section.title)
+                                    .font(.ink.content)
+                                    .foregroundStyle(Color.ink.text)
+                                    // On the title text the audit reads: NavigationLink cells drop
+                                    // identifiers on the link itself (settings a11y / AX3).
+                                    .accessibilityIdentifier("settings.section.\(section.rawValue)")
+                                Spacer(minLength: 8)
+                                Image(systemName: "chevron.right")
+                                    .font(.ink.weekday)
+                                    .foregroundStyle(Color.ink.secondaryText)
+                                    .accessibilityHidden(true)
+                            }
+                            .frame(minHeight: InkButtonChrome.minimumHeight)
+                            .padding(.horizontal, InkSpacing.cardPadding)
+                            .contentShape(Rectangle())
                         }
-                        .frame(minHeight: InkButtonChrome.minimumHeight)
-                        .padding(.horizontal, InkSpacing.cardPadding)
-                        .contentShape(Rectangle())
-                        .background(hiddenLink(to: section))
-                        .accessibilityElement(children: .combine)
-                        .accessibilityAddTraits(.isButton)
+                        .buttonStyle(.plain)
+                        .navigationLinkIndicatorVisibility(.hidden)
                     }
                 }
             }

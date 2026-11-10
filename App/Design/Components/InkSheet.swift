@@ -34,6 +34,14 @@ enum InkSheetChrome {
     static let cancelKey = "Vazgeç"
     static let closeKey = "Kapat"
 
+    /// iOS: the sheet's title is an inline large title in the system bar, on the row of
+    /// "Kapat" / "Vazgeç" (drawing: Ayarlar). Mac keeps the manşet in the page.
+    #if os(iOS)
+        static let titleInBar = true
+    #else
+        static let titleInBar = false
+    #endif
+
     /// Mac sheet minimum width (pt). Without an explicit size a `List` reports ~0 ideal height
     /// and the sheet collapses to a title bar (entity edit).
     static let macMinWidth: CGFloat = 480
@@ -134,7 +142,7 @@ extension View {
         _ title: LocalizedStringKey, closeIdentifier: String? = nil, onClose: (() -> Void)? = nil
     ) -> some View {
         modifier(InkSheetModifier(kind: .reading(closeIdentifier: closeIdentifier, onClose: onClose)))
-            .inkSheetNavigationTitle(title)
+            .inkSheetNavigationTitle(title, titleInBar: true)
     }
 
     /// Read-only sheet chrome with a non-localized title.
@@ -142,7 +150,7 @@ extension View {
         verbatim title: String, closeIdentifier: String? = nil, onClose: (() -> Void)? = nil
     ) -> some View {
         modifier(InkSheetModifier(kind: .reading(closeIdentifier: closeIdentifier, onClose: onClose)))
-            .inkSheetNavigationTitle(verbatim: title)
+            .inkSheetNavigationTitle(verbatim: title, titleInBar: true)
     }
 
     /// Cancel-only sheet chrome: same background and title rules, one button: "Vazgeç" on the
@@ -238,8 +246,9 @@ struct InkSheetScaffold<Content: View>: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .modifier(InkSheetModifier(kind: kind))
-        .inkSheetNavigationTitle(title)
+        // A byline keeps the title in the page (drawing: Günü kapat, "Adım 1/3" under it).
+        .modifier(InkSheetModifier(kind: kind, allowsBarTitle: byline == nil))
+        .inkSheetNavigationTitle(title, titleInBar: kind.isReading && byline == nil)
     }
 }
 
@@ -254,9 +263,20 @@ struct InkSheetModifier: ViewModifier {
         case cancelOnly(
             cancelIdentifier: String?, showsCancel: Bool, isCancelEnabled: Bool,
             onCancel: (() -> Void)?)
+
+        var isReading: Bool {
+            if case .reading = self { return true }
+            return false
+        }
     }
 
     let kind: Kind
+    /// `false`: the page keeps its manşet title even in a read-only sheet.
+    var allowsBarTitle = true
+
+    /// Only a read-only sheet ("Kapat") puts its title in the bar; an editing sheet keeps
+    /// "Vazgeç" and the confirm word on the top row and the title below (drawing: Yeni hedef).
+    private var titleInBar: Bool { InkSheetChrome.titleInBar && kind.isReading && allowsBarTitle }
     @Environment(\.dismiss) private var dismiss
 
     func body(content: Content) -> some View {
@@ -268,6 +288,8 @@ struct InkSheetModifier: ViewModifier {
             .environment(\.inkHeaderBackTitle, nil)
             .environment(\.inkBackTitle, nil)
             .environment(\.inkPageGlow, false)
+            .environment(\.inkSheetBarTitle, titleInBar)
+            .environment(\.inkHeadlineTitleInBar, titleInBar)
             .inkPage()
             .inkToggle()
             .presentationBackground(Color.ink.elevated)
@@ -470,21 +492,33 @@ extension View {
     /// Sheet navigation title: on iPhone the system bar title is set then hidden (back history).
     /// On Mac the sans title must be an explicit blank: leaving it unset lets the stack infer the
     /// manşet text into the toolbar; the default title item is also removed.
-    @ViewBuilder fileprivate func inkSheetNavigationTitle(_ title: LocalizedStringKey) -> some View {
+    @ViewBuilder fileprivate func inkSheetNavigationTitle(
+        _ title: LocalizedStringKey, titleInBar: Bool = false
+    ) -> some View {
         #if os(macOS)
             navigationTitle(" ")
                 .toolbar(removing: .title)
         #else
-            inkPageNavigationTitle(title)
+            if titleInBar {
+                inkSheetBarNavigationTitle(title)
+            } else {
+                inkPageNavigationTitle(title)
+            }
         #endif
     }
 
-    @ViewBuilder fileprivate func inkSheetNavigationTitle(verbatim title: String) -> some View {
+    @ViewBuilder fileprivate func inkSheetNavigationTitle(
+        verbatim title: String, titleInBar: Bool = false
+    ) -> some View {
         #if os(macOS)
             navigationTitle(" ")
                 .toolbar(removing: .title)
         #else
-            inkPageNavigationTitle(verbatim: title)
+            if titleInBar {
+                inkSheetBarNavigationTitle(verbatim: title)
+            } else {
+                inkPageNavigationTitle(verbatim: title)
+            }
         #endif
     }
 

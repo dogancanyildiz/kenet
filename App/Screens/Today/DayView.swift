@@ -267,7 +267,9 @@ struct DayView: View {
         // conditional because a past day is a pushed page that needs the bar's back button.
         .inkPageNavigationTitle(verbatim: presented.headline)
         #if os(iOS)
-            .toolbar(isToday ? .hidden : .automatic, for: .navigationBar)
+            // A past day leaves the bar to its subpage chrome: in the tab shell the navigation
+            // row (``InkNavigationRow``) hides it; an `.automatic` here would bring it back.
+            .modifier(TodayHiddenBar(isToday: isToday))
         #endif
         .accessibilityIdentifier(isToday ? "screen.today" : "screen.day")
         // The strip draws nothing until its model has the goals; hosts wait for this, goals or none.
@@ -315,10 +317,12 @@ struct DayView: View {
         }
         .navigationDestination(isPresented: $showsDayGraph) {
             GraphView(store: store, scope: .day(date))
+                .modifier(DayBackTitle(title: isToday ? nil : presented.headline))
         }
         .navigationDestination(item: $goalDestination) { route in
             // As the Goals list opens it: the page's own day is today.
             GoalDetailView(store: store, goal: route.goal, day: LocalDay.today(at: clockNow()))
+                .modifier(DayBackTitle(title: isToday ? nil : presented.headline))
         }
         .navigationDestination(item: $weekDestination) { day in
             DayView(
@@ -327,10 +331,13 @@ struct DayView: View {
                 onReturnToToday: {
                     weekDestination = nil
                     navigation?.todayPath = NavigationPath()
-                })
+                }
+            )
+            .modifier(DayBackTitle(title: isToday ? nil : presented.headline))
         }
         .navigationDestination(item: $chipEntityDestination) { entity in
             EntityView(store: store, entity: entity)
+                .modifier(DayBackTitle(title: isToday ? nil : presented.headline))
         }
         .onAppear { isVisible = true }
         .onDisappear { isVisible = false }
@@ -719,12 +726,13 @@ struct DayView: View {
                     showsDayGraph = true
                 }
             }
+            // Drawing order: search, then settings.
+            SearchButton()
             if isToday, let openSettings {
                 InkHeaderAction("Ayarlar", systemImage: "gearshape", identifier: "button.settings") {
                     openSettings()
                 }
             }
-            SearchButton()
         }
     }
 
@@ -867,12 +875,13 @@ struct DayView: View {
                     .frame(maxWidth: .infinity)
                 pastDayCountsText(presented)
             #else
-                // iPhone and iPad (the drawing): month picker and icons on top, the week strip,
-                // then the day's full date with its counts on the trailing side. Subpages keep
-                // their actions on the manşet row, not in `.toolbar` (InkPage).
-                HStack(alignment: .center, spacing: 8) {
+                // iPhone and iPad (the drawing): one navigation row with the back chip, the
+                // month picker in the middle and the icons; then the week strip and the day's
+                // full date with its counts on the trailing side. In the tab shell the row hides
+                // the system bar (InkNavigationRow).
+                InkNavigationRow(backShowsTitle: false) {
                     monthPickerButton
-                    Spacer(minLength: 8)
+                } actions: {
                     dayGraphAction
                     SearchButton()
                 }
@@ -1518,5 +1527,34 @@ private struct TodayDeskColumns: ViewModifier {
         #else
             content
         #endif
+    }
+}
+
+#if os(iOS)
+    /// Today hides the navigation bar; a past day adds nothing of its own.
+    private struct TodayHiddenBar: ViewModifier {
+        let isToday: Bool
+
+        @ViewBuilder func body(content: Content) -> some View {
+            if isToday {
+                content.toolbar(.hidden, for: .navigationBar)
+            } else {
+                content
+            }
+        }
+    }
+#endif
+
+/// Pages pushed from a past day show its date on their back item ("‹ 27 Eylül Pazar"); the
+/// destinations sit outside the day's own title modifier, so they would read the tab's name.
+private struct DayBackTitle: ViewModifier {
+    let title: String?
+
+    @ViewBuilder func body(content: Content) -> some View {
+        if let title {
+            content.environment(\.inkBackTitle, Text(verbatim: title))
+        } else {
+            content
+        }
     }
 }

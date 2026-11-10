@@ -85,21 +85,13 @@ struct TasksPageTop<Actions: View, MenuRow: View>: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            VStack(alignment: .leading, spacing: 2) {
-                InkPageHeader("Görevler") {
-                    actions
-                    TaskFiltersMenu(model: tasks)
-                    SearchButton()
-                }
-                if let text = byline ?? countsByline {
-                    // The künye highlights its numbers (Şafak rule 7), so it is drawn here
-                    // rather than as the header's plain string.
-                    text
-                        .font(.ink.byline)
-                        .foregroundStyle(.ink.secondaryText)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                }
+            // The künye highlights its numbers (Şafak rule 7): a styled byline of the manşet.
+            InkPageHeader("Görevler") {
+                actions
+                TaskFiltersMenu(model: tasks)
+                SearchButton()
             }
+            .byline(byline ?? countsByline)
             // Same insets as ``InkPageTitleRow``.
             .padding(.top, 8)
             .padding(.bottom, 4)
@@ -114,7 +106,7 @@ struct TasksPageTop<Actions: View, MenuRow: View>: View {
         }
         .padding(.horizontal, InkSpacing.margin)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.ink.paper)
+        // No paper of its own: the page's paper and, on the tab shell's root, its glow show.
         // The boards show the list's counts too; the list view loads them itself.
         .task(id: current == .kanban ? tasks.listRequest : nil) {
             if current == .kanban { await tasks.loadList() }
@@ -159,7 +151,7 @@ extension View {
     func tasksPageTopRow() -> some View {
         listRowInsets(EdgeInsets())
             .listRowSeparator(.hidden)
-            .listRowBackground(Color.ink.paper)
+            .inkListRowBackground()
     }
 }
 

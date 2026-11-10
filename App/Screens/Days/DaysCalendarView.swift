@@ -78,6 +78,8 @@ struct DaysCalendarView: View {
                             Text(verbatim: symbols[(weekday - 1 + offset) % 7])
                                 .font(.caption)
                                 .foregroundStyle(.ink.secondaryText)
+                                // Short names ("Sun", "Paz") are never truncated (audit).
+                                .fixedSize()
                                 .frame(maxWidth: .infinity)
                         }
                     }

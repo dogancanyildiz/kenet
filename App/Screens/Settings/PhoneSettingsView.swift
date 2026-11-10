@@ -110,11 +110,15 @@ struct PhoneSettingsView: View {
                                         // On the title text the audit reads: NavigationLink cells
                                         // drop identifiers on the link itself (settings a11y / AX3).
                                         .accessibilityIdentifier("settings.section.\(section.rawValue)")
+                                    // VoiceOver reads the summary as the hint: in the label,
+                                    // "Eylem düğmesi" / "Action button" repeats the button trait.
                                     Text(section.summary)
                                         .font(.caption)
                                         .foregroundStyle(Color.ink.secondaryText)
+                                        .accessibilityHidden(true)
                                 }
                                 .padding(.vertical, 6)
+                                .accessibilityHint(Text(section.summary))
                                 Spacer(minLength: 8)
                                 Image(systemName: "chevron.right")
                                     .font(.ink.weekday)

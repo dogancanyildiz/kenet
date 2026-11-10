@@ -148,7 +148,8 @@ struct DaysView: View {
             content()
                 .font(.subheadline)
                 .foregroundStyle(.ink.text)
-                .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 1)
+                // The capsule is as wide as its words: never truncated (audit "Text clipped").
+                .fixedSize(horizontal: !dynamicTypeSize.isAccessibilitySize, vertical: false)
         }
         .padding(.horizontal, 16)
         .frame(minHeight: 44)

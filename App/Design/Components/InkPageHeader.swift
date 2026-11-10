@@ -32,6 +32,8 @@ struct InkPageHeader<Actions: View>: View {
     private let shortTitle: String?
     private let byline: String?
     private var bylineText: Text? = nil
+    /// A small view on the title's trailing side (hedef ayrıntısı: the period pill).
+    private var titleAccessory: AnyView? = nil
     private let fitsOneLine: Bool
     private let actions: Actions
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
@@ -68,19 +70,21 @@ struct InkPageHeader<Actions: View>: View {
         if let backTitle = drawnBackTitle {
             subpageBody(backTitle: backTitle)
                 .preference(key: InkHeaderBackShownKey.self, value: true)
-        } else if Actions.self == EmptyView.self {
+        } else if Actions.self == EmptyView.self && titleAccessory == nil {
             headline
         } else {
             switch InkPageHeaderLayout.resolve(dynamicTypeSize: dynamicTypeSize) {
             case .inline:
                 HStack(alignment: .firstTextBaseline, spacing: InkHeaderActionChrome.spacing) {
                     headline
+                    titleAccessory
                     actionGroup
                 }
             case .stacked:
                 VStack(alignment: .leading, spacing: InkSpacing.row) {
                     HStack(spacing: InkHeaderActionChrome.spacing) {
                         Spacer(minLength: 0)
+                        titleAccessory
                         actionGroup
                     }
                     headline
@@ -109,8 +113,11 @@ struct InkPageHeader<Actions: View>: View {
                     actionGroup
                 }
             }
-            headline
-                .environment(\.inkPageHeadlineIsSubpage, true)
+            HStack(alignment: .center, spacing: InkHeaderActionChrome.spacing) {
+                headline
+                    .environment(\.inkPageHeadlineIsSubpage, true)
+                titleAccessory
+            }
         }
     }
 
@@ -136,9 +143,17 @@ struct InkPageHeader<Actions: View>: View {
 
 extension InkPageHeader {
     /// A styled byline (bold count, warning carried-over part) in place of the plain one.
-    func byline(_ text: Text) -> Self {
+    func byline(_ text: Text?) -> Self {
         var copy = self
         copy.bylineText = text
+        return copy
+    }
+
+    /// A small view beside the title: on its trailing side on a subpage, before the icons
+    /// elsewhere.
+    func titleAccessory(_ view: some View) -> Self {
+        var copy = self
+        copy.titleAccessory = AnyView(view)
         return copy
     }
 }

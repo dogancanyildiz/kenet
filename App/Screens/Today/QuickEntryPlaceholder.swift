@@ -176,10 +176,6 @@ struct QuickEntryBar: View {
                     isCreating: model.isCreating, isWriting: store.isWriting)
             ) {
                 HStack(alignment: .center, spacing: 4) {
-                    if model.mode == .event {
-                        timeButton
-                            .dynamicTypeSize(...DynamicTypeSize.accessibility2)
-                    }
                     textField
                     if suggestionsAvailable ?? JournalingSuggestionsAvailability.current(), model.mode == .event,
                         model.text.isEmpty
@@ -187,6 +183,12 @@ struct QuickEntryBar: View {
                         SuggestionsButton(isEnabled: isEnabled && !store.isWriting) { showsSuggestions = true }
                             .dynamicTypeSize(...DynamicTypeSize.accessibility2)
                     }
+                }
+            } accessory: {
+                // The time chip sits on the capsule's top row beside the mode words (drawing).
+                if model.mode == .event {
+                    timeButton
+                        .dynamicTypeSize(...DynamicTypeSize.accessibility2)
                 }
             }
             #if os(macOS)

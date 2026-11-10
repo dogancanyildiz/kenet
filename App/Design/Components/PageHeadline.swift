@@ -18,6 +18,7 @@ struct PageHeadline: View {
     var fitsOneLine = false
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.inkPageHeadlineIsSubpage) private var isSubpage
+    @Environment(\.inkHeadlineTitleInBar) private var titleInBar
 
     init(
         title: String, shortTitle: String? = nil, byline: String? = nil, fitsOneLine: Bool = false
@@ -35,11 +36,14 @@ struct PageHeadline: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
-            titleBlock
-                .foregroundStyle(.ink.text)
-                // Always speak the full form, even when a short title is on screen.
-                .accessibilityLabel(accessibilityTitle)
-                .accessibilityAddTraits(.isHeader)
+            // An iOS sheet's first page shows its title in the bar, beside "Kapat" (drawing).
+            if !titleInBar {
+                titleBlock
+                    .foregroundStyle(.ink.text)
+                    // Always speak the full form, even when a short title is on screen.
+                    .accessibilityLabel(accessibilityTitle)
+                    .accessibilityAddTraits(.isHeader)
+            }
             if let shownByline {
                 // A subpage's byline is one footnote line (drawing: varlık sayfası).
                 shownByline
@@ -174,4 +178,9 @@ enum PageHeadlineFitting {
 extension EnvironmentValues {
     /// Set by ``InkPageHeader`` when it draws a back item: the title below it is ``Font/InkFontTokens/subpageTitle``.
     @Entry var inkPageHeadlineIsSubpage = false
+    /// Set by an iOS sheet (``InkSheetModifier``): the next page title inside it goes to the
+    /// system bar as an inline large title. The first page chrome consumes it.
+    @Entry var inkSheetBarTitle = false
+    /// The manşet leaves its title out: the system bar shows it (a sheet's first page, iOS).
+    @Entry var inkHeadlineTitleInBar = false
 }

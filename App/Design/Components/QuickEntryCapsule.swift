@@ -34,8 +34,8 @@ enum QuickEntryCapsuleLayout: Equatable, Sendable {
 /// Capsule chrome for the quick-entry bar: mode words, field slot, send.
 /// Callers supply their own field; this view does not own text state.
 ///
-/// iPhone (drawing: Bugün): two rows in a rounded card: the mode words and the `accessory`
-/// (the time chip) on top, the field and send below. Mac keeps one row; there the accessory
+/// iPhone (drawing: Bugün): two rows in a rounded card: the mode words and, at the trailing
+/// end, the `accessory` (the time chip) on top, the field and send below. Mac keeps one row; there the accessory
 /// sits before the field.
 struct QuickEntryCapsule<Field: View, Accessory: View>: View {
     @Binding var mode: QuickEntryMode
@@ -67,10 +67,11 @@ struct QuickEntryCapsule<Field: View, Accessory: View>: View {
         Group {
             if usesTwoRows {
                 VStack(alignment: .leading, spacing: 0) {
+                    // Drawing: mode words on the left, the time chip at the row's trailing end.
                     HStack(alignment: .center, spacing: 6) {
                         modePicker
-                        accessory()
                         Spacer(minLength: 0)
+                        accessory()
                     }
                     HStack(alignment: .center, spacing: 6) {
                         fieldSlot

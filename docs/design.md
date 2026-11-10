@@ -151,9 +151,9 @@ Denetim 84 gerçek ekran görüntüsünü ve kod envanterini inceledi. Aşağıd
 | Yer | Kural |
 |---|---|
 | Kök ekran, iPhone | Sayfa adı solda sans manşettir (`display`). Sayfanın eylem simgeleri aynı satırın sağında durur. Sistem gezinme çubuğu ve cam kapsül yoktur. |
-| Bugün ve Gün ekranı | Manşet gün başlığıdır: Bugün'de gün halkası, gün rakamı ve gün adı; altında hafta şeridi durur. Gün ekranında üst satır geri, ay seçici ve aramadır; altında hafta şeridi durur. |
+| Bugün ve Gün ekranı | Manşet gün başlığıdır: Bugün'de gün halkası, gün rakamı ve gün adı; altında hafta şeridi durur. Gün ekranında üst satır geri, ay seçici, Günün grafiği ve aramadır; altında hafta şeridi durur. |
 | Mac | Sayfa adı yine sayfanın içinde sans manşettir. Her liste sütunu manşetle başlar. Pencere araç çubuğunda başlık yoktur. Pencerenin adı seçili kenar çubuğu girdisidir ve yalnız Pencere menüsünde görünür. Araç çubuğunda arama düğmesi yoktur; arama kenar çubuğunun tepesindeki alandır. Araç çubuğu `paper` renginde ve opaktır. |
-| Alt sayfa, iPhone | Manşetin üstünde gezinme satırı durur: solda "‹ Üst sayfa" metinli geri öğesi, sağda sayfanın simgeleri. Sistem çubuğu gizlenir. Başlık `title1` boyutundadır (`subpageTitle`); künye tek satır `footnote`tur. |
+| Alt sayfa, iPhone | Manşetin üstünde gezinme satırı durur: solda "‹ Üst sayfa" metinli geri öğesi, sağda sayfanın simgeleri. Sistem çubuğu gizlenir; kenardan kaydırma yine üst sayfaya döner. Başlık `title1` boyutundadır (`subpageTitle`); künye tek satır `footnote`tur. |
 | Alt sayfa, iPad bölünmüş kabuk, Mac ve sheet | Sistem çubuğunda yalnız geri düğmesi kalır. Sayfanın eylemleri manşet satırındadır. |
 | Kaydırma, iPhone ve iPad | Manşet satırı içerikle birlikte kayar. Bugün'de gün başlığı kaydırınca tek satıra iner ve üstte kalır. İstisna Ara sayfasıdır: manşet ve arama alanı sabittir, sonuçlar altta kayar. |
 | Kaydırma, Mac | Pencere sütunlarında manşet satırı sütunun üstünde sabittir; içerik altından kayar. İçerik kaydırılınca manşetin altında ince bir çizgi belirir, sayfa en üstteyken çizgi yoktur. Görevler'de sayfa üstünün tamamı sabittir: manşet, görünüm sekmeleri ve menü satırı. Günlük sütununda manşetle birlikte Özetler ve Haftalık inceleme çipleri sabittir; takvim ve günler kayar. Sheet'te açılan sayfa da manşetini sheet'in üstünde sabit tutar: kişi, konum, bulunamayan bağlantı, gün ve not sayfası. Haftalık inceleme ve günlük yazısı sheet'leri bu kalıbı kullanmaz. |
@@ -179,7 +179,7 @@ Kod karşılığı: `InkHeaderAction`, `InkHeaderMenu` ve `InkHeaderActionChrome
 
 | Yer | Kural |
 |---|---|
-| iPhone | Genel arama manşet satırının en sağındadır. Yer ve simge her ekranda aynıdır. |
+| iPhone | Genel arama manşet satırının en sağındadır. Bugün istisnadır: arama Ayarlar'ın solundadır (çizim). Simge her ekranda aynıdır. |
 | Mac | Genel arama kenar çubuğunun tepesindeki tek alandır: "Ara" ve ⌘F. ⌘F alana odak verir. Yazılan sorgu Ara sheet'ini sonuçlarla açar. Araç çubuğunda ve manşet satırlarında büyüteç yoktur. |
 | Mac, Ara sheet'i | Sonuçlardan açılan sayfada manşet büyüteci Mac'te de durur ve sonuçlara döndürür. Sayfa not, kişi, konum ya da gün olabilir. Neden: kenar çubuğunun arama alanı sheet'in arkasında kalır. |
 | Kapsam çipleri | Ara sayfasında sonuç gruplarının üstünde: Hepsi, Olaylar, Görevler, Kişiler, Günler. Çip `well` zeminli, ince çizgili, yaklaşık 28 pt yüksekliğinde kapsüldür; dokunma hedefi 44 pt'dir. Seçili çip `accentSoft` zeminli, vurgu renginde ve kalındır; "Renksiz ayırt et" açıkken onay işareti de taşır. |
@@ -231,6 +231,7 @@ flowchart TD
 | Konu | Kural |
 |---|---|
 | Zemin ve başlık | Zemin `elevated`'dır. Başlık sans manşettir. İçerikte bölümler karttır: bölüm başlığı kartın üstünde, satırlar kartın içinde. |
+| Başlık, iOS | Salt okunur sheet'in başlığı sistem çubuğunda, "Kapat" ile aynı satırdadır. Künyeli sheet başlığı sayfada tutar: "Günü kapat". Düzenleme sheet'inde başlık "Vazgeç" ve onay satırının altındadır. |
 | Düğme biçimi | Çubuktaki düğmeler düz yazıdır; dolu kapsül yoktur. "Vazgeç" ikincil renkte düz yazıdır. Onay vurgu renginde, yarı kalın düz yazıdır. "Bitti" yoktur. |
 | Toplu yazan akış | Örnek: kasa hazırlığı. Eylem taslak kaydetmek değildir. Çubukta yalnız "Vazgeç" durur. Eylem kendi adıyla sayfada birincil düğmedir ve Return tuşuna bağlı değildir. |
 | Paylaşım formu | Çubukta yalnız "Vazgeç" durur. Onay sayfada birincil düğmedir: "Kenet'e ekle". |
@@ -334,7 +335,7 @@ Açık modda `tertiaryText` `#5E6168` değerindedir; önceki değer `#666972` id
 | `paper` | `InkPaper` | Sayfa, kaydırma alanı, Mac araç çubuğu |
 | `elevated` (yeni) | `InkElevated` | Sheet, Mac kenar çubuğu, popover, iPad yüzen kenar çubuğu |
 | `surface` | `InkSurface` | Bölüm kartı, liste kartı, kanban kartı, zaman kartı, hızlı giriş kapsülü, Graph tuvali |
-| `well` | `InkWell` | Çip, süzgeç alanı, hafta şeridinde seçili gün kapsülü, ısı haritasının boş hücresi, Mac'te hafta sonu sütunu |
+| `well` | `InkWell` | Çip, süzgeç alanı, ısı haritasının boş hücresi, Mac'te hafta sonu sütunu |
 | `rule` | `InkRule` | Kart sınırı, satır ayracı; bilgi taşımaz |
 | `line` (yeni) | `InkLine` | Yüzen öğe sınırı, seçili kart sınırı |
 | `control` | `InkControl` | Görev kutusu, halka izi, artı konturu; metin dışı |
@@ -432,9 +433,9 @@ flowchart LR
 | `r-xs` | 8 pt | Küçük rozet, Mac kenar çubuğu dolgusu |
 | `r-sm` | 12 pt | İç alan, süzgeç alanı, hafta şeridindeki seçili gün, Mac kanban ve zaman kartı |
 | `r-md` | 16 pt | İç kart |
-| `r-lg` | 20 pt | Bölüm kartı (iPhone, iPad), erişilebilirlik boyutunda hızlı giriş |
+| `r-lg` | 20 pt | Bölüm kartı (iPhone, iPad), iPhone'da iki satırlı hızlı giriş kartı |
 | `r-xl` | 24 pt | Sheet içi büyük kart, ilk açılış kartı |
-| `r-pill` | Kapsül | Çip, birincil düğme, hızlı giriş, "+" düğmesi |
+| `r-pill` | Kapsül | Çip, birincil düğme, Mac'te tek satırlı hızlı giriş, "+" düğmesi |
 
 ### Boşluk: `InkSpacing`
 
@@ -471,7 +472,7 @@ flowchart LR
 | `chipCorner` | Kapsül | Etiket çipi, künye çipi, kapsam çipi ve öneri şeridi |
 | `kanbanCorner` | 12 pt | Kanban kartı, zaman kartı |
 | `timelineBar` | 4 pt | Zaman kartının ve kanban kartının sol çubuğu |
-| `quickEntryCorner` | 20 pt | Erişilebilirlik boyutunda üst üste dizilen hızlı giriş |
+| `quickEntryCorner` | 20 pt | iPhone'da iki satırlı ve erişilebilirlik boyutunda üst üste dizilen hızlı giriş |
 
 ### Çizgi: `InkStroke`
 
@@ -620,7 +621,7 @@ mindmap
 | `InkSummaryLine` | Yeni | Künye cümlesi: sayılar öne çıkar |
 | `InkCard` | Yeni (`InkSurface`'ten) | Bölüm kartı ve satır ayracı `InkCardDivider`. Segment kalıbı: `InkCardSegment` (`single`, `first`, `middle`, `last`) ve `InkCardSegmentBackground`, kartı birden çok `List` satırına böler. |
 | `inkListRow(cardSegment:)` | Yeni değiştirici | Liste satırını kartın bir parçası yapar: ilk satır üstte, son satır altta yuvarlanır; aradaki satırlarda ayraç durur. Görevler bölümleri, proje ekranı ve Kişiler listesi bunu kullanır. Taslaktaki `InkCardRows` yoktur; yerini bu değiştirici alır. |
-| `InkTimelineCard` | Yeni | Sol çubuklu zaman kartı: Mac, iPad ve iPhone zaman çizelgesi; Gün ekranının saatli programı |
+| `InkTimelineCard` | Yeni | Sol çubuklu zaman kartı: Mac, iPad ve iPhone zaman çizelgesi |
 
 | Dosya dışı | Durum |
 |---|---|
@@ -810,20 +811,20 @@ Kod karşılığı: `InkListSelectionBackground` ve `inkListRow(columnSelected:)
 | Ekran | Değişen |
 |---|---|
 | Bugün | Parıltı; gün başlığı: gün halkası, gün rakamı, gün adı; hafta şeridi; künye cümlesi ve 3 çip; her bölüm kart. İlk olay kaydırmadan görünür kalır. |
-| Gün ekranı | Üstte geri, ay seçici, arama; hafta şeridi; saatli program: saat sütunu ve zaman kartları. Alt sayfa olduğu için parıltı yok. |
+| Gün ekranı | Üstte geri, ay seçici, Günün grafiği ve arama; hafta şeridi; saatli program: saat sütunu ve simge kutulu kartlar. Alt sayfa olduğu için parıltı yok. |
 | Günü kapat | Sheet, `elevated`; adımlar kart. |
-| Hızlı giriş | iPhone'da altta sabit kapsül: `surface` zemin, `line` sınır, gönder düğmesinde hale. Yüzen "+" yok. Mac'te kenar çubuğunun altında kart. |
+| Hızlı giriş | iPhone'da altta sabit iki satırlı kart: üstte kip ve saat çipi, altta alan ve gönder. Zemin `surface`, sınır `line`. Yüzen "+" yok. Mac'te kenar çubuğunun altında kart. |
 | Günlük | Parıltı; ay takvimi kartta; Özetler ve Haftalık inceleme iki çip; gün satırları kart içinde. |
 | Özetler | Hafta \| Ay \| Yıl sekmesi; sayı kartları; Ay'da 30 günlük kare ritim; grafikler kart içinde. |
 | Haftalık inceleme | Sheet, 3 adım; soru kartları. |
 | Görevler | Parıltı; haftalık özet kartı ("Bu hafta 3/8 görev" ve ilerleme çubuğu); proje kartları; bölümler kart içinde. |
-| Kanban | Sütun başlığı kartın üstünde; kart `surface`, 12 pt köşe, sol çubuk projeyi gösterir; Bitti sütunu soluk. |
+| Kanban | Sütun başlığı kartın üstünde; iPhone'da sütun kutusu yok. Kart `surface`, 12 pt köşe, sol çubuk projeyi gösterir; Bitti sütunu soluk. |
 | Zaman çizelgesi | Gün \| Hafta \| Çeyrek sekmesi; saat ekseni, dikey kesik çizgiler, zaman kartları, "şimdi" çizgisi ve saat rozeti; Çeyrek'te kartlı Gantt. |
 | Kişiler ve Konumlar | Parıltı; Graph ve Harita yan yana iki kart; liste kart içinde: baş harf rozeti ve mini geçiş çubuğu. |
 | Varlık ekranı | Son görüşme kartı en üstte; bölümler kart; zaman akışı kart satırları. |
 | Bağlantı bulunamadı | Sheet, `elevated`; seçenek satırları Graph düğüm biçimini taşır. |
 | Rehberden aktar | Özet sheet'inde liste kart içinde. |
-| Graph | Tuval `paper`; parıltı yok; dönem sekmesi; seçim kartı; Mac'te sağ ayrıntı paneli. |
+| Graph | Tuval `surface` kart; parıltı yok; dönem sekmesi; seçim kartı; Mac'te sağ ayrıntı paneli. |
 | Harita | MapKit koyu stil; elmas iğneler; altta yatay konum kartları. |
 | Hedefler | Parıltı; günlük hedef halkaları satırı; hedef kartları: çetele, zincir, 44 pt "+". |
 | Hedef ayrıntısı | Tek sayfa: büyük değer ve halka, istatistik şeridi, grafik kartı, son kayıtlar, altta "Hedefi düzenle" ve "Hedefi sil". |

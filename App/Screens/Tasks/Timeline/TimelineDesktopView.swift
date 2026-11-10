@@ -79,7 +79,9 @@ struct TimelineDesktopView: View {
                 }
             }
         }
-        .background(Color.ink.paper)
+        // The phone's carded chart lies on the page's paper (and glow); the desktop chart keeps
+        // its own paper.
+        .background(compact ? Color.clear : Color.ink.paper)
     }
 
     private var undated: some View {

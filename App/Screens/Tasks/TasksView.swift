@@ -113,7 +113,7 @@ struct TasksView: View {
                 InfoBand(kind: .error, verbatim: error)
                     .listRowInsets(EdgeInsets())
                     .listRowSeparator(.hidden)
-                    .listRowBackground(Color.ink.paper)
+                    .inkListRowBackground()
             }
             // The sections wait for the first answer: no "Görev yok." or 0 count while it loads.
             if model.list != nil {

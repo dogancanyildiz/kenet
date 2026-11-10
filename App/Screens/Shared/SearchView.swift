@@ -8,8 +8,6 @@ struct SearchView: View {
     @State private var returnToField: ShellAction
     @FocusState private var searchFocused: Bool
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.displayScale) private var displayScale
-    @Environment(\.accessibilityDifferentiateWithoutColor) private var differentiateWithoutColor
 
     init(store: IndexStore, initialQuery: String = "") {
         let model = SearchModel(store: store)
@@ -161,40 +159,9 @@ struct SearchView: View {
     }
 
     private func scopeChip(_ item: SearchScope) -> some View {
-        let isSelected = model.scope == item
-        return Button {
-            model.scope = item
-        } label: {
-            HStack(spacing: 4) {
-                Text(verbatim: item.title)
-                    .font(.footnote.weight(isSelected ? .semibold : .regular))
-                    .foregroundStyle(isSelected ? Color.ink.accent : Color.ink.secondaryText)
-                    .lineLimit(1)
-                if isSelected && differentiateWithoutColor {
-                    Image(systemName: "checkmark")
-                        .font(.caption2.weight(.bold))
-                        .foregroundStyle(Color.ink.accent)
-                        .accessibilityHidden(true)
-                }
-            }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 6)
-            .background {
-                Capsule(style: .continuous)
-                    .fill(isSelected ? Color.ink.accentSoft : Color.ink.well)
-            }
-            .overlay {
-                Capsule(style: .continuous)
-                    .strokeBorder(
-                        isSelected ? Color.clear : Color.ink.rule,
-                        lineWidth: InkStroke.hairline(scale: displayScale))
-            }
-            .frame(minHeight: TapTarget.minimumLength)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(Text(verbatim: item.title))
-        .accessibilityAddTraits(isSelected ? .isSelected : [])
+        TagChip(
+            title: item.title, isSelected: model.scope == item, onTap: { model.scope = item },
+            accentSelection: true)
     }
 
     /// Kind mark of a result row: people and places, events, notes on an accent-soft tile; a task

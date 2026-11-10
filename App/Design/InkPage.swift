@@ -63,6 +63,24 @@ extension View {
         inkPageNavigationTitle(verbatim: title, isRoot: false)
     }
 
+    #if os(iOS)
+        /// A sheet's first page: the title sits in the system bar as an inline large title, on
+        /// one row with the sheet's words ("Kapat"); the manşet leaves it out (``PageHeadline``).
+        func inkSheetBarNavigationTitle(_ title: LocalizedStringKey) -> some View {
+            self
+                .modifier(InkSubpageChrome(title: Text(title), isRoot: false))
+                .navigationTitle(title)
+                .toolbarTitleDisplayMode(.inlineLarge)
+        }
+
+        func inkSheetBarNavigationTitle(verbatim title: String) -> some View {
+            self
+                .modifier(InkSubpageChrome(title: Text(verbatim: title), isRoot: false))
+                .navigationTitle(title)
+                .toolbarTitleDisplayMode(.inlineLarge)
+        }
+    #endif
+
     fileprivate func inkPageNavigationTitle(_ title: LocalizedStringKey, isRoot: Bool) -> some View {
         self
             .modifier(InkSubpageChrome(title: Text(title), isRoot: isRoot))
@@ -147,9 +165,7 @@ extension View {
     @ViewBuilder
     private func inkPageHiddenBarTitle() -> some View {
         #if os(iOS)
-            self
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar(removing: .title)
+            modifier(InkHiddenBarTitle())
         #else
             self
         #endif
@@ -157,6 +173,22 @@ extension View {
 }
 
 #if os(iOS)
+    /// The bar shows no title: the manşet carries it. A sheet's first page is the exception: its
+    /// title is the bar's inline large title, on one row with "Kapat" (``InkSheetChrome``).
+    private struct InkHiddenBarTitle: ViewModifier {
+        @Environment(\.inkSheetBarTitle) private var titleInBar
+
+        @ViewBuilder func body(content: Content) -> some View {
+            if titleInBar {
+                content.toolbarTitleDisplayMode(.inlineLarge)
+            } else {
+                content
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar(removing: .title)
+            }
+        }
+    }
+
     /// A root page's bar is hidden in the tab shell. The split shell (iPhone Duo inner screen)
     /// keeps it: the bar holds the button that brings the hidden sidebar back.
     private struct InkHiddenNavigationBar: ViewModifier {
@@ -233,6 +265,13 @@ extension InkPageTitle {
         copy.header = header.byline(text)
         return copy
     }
+
+    /// A small view beside the title (``InkPageHeader/titleAccessory(_:)``).
+    func titleAccessory(_ view: some View) -> Self {
+        var copy = self
+        copy.header = header.titleAccessory(view)
+        return copy
+    }
 }
 
 extension InkPageTitle where Actions == EmptyView {
@@ -255,11 +294,14 @@ extension InkPageTitle where Actions == EmptyView {
 /// (``InkScrolledMasthead`` and ``View/inkPinnedMasthead(_:columnWidth:)``).
 struct InkPageTitleRow<Actions: View>: View {
     private var header: InkPageHeader<Actions>
+    private var hasByline = false
+    @Environment(\.inkHeadlineTitleInBar) private var titleInBar
 
     init(
         _ title: LocalizedStringKey, byline: String? = nil, @ViewBuilder actions: () -> Actions
     ) {
         header = InkPageHeader(title, byline: byline, actions: actions)
+        hasByline = byline != nil
     }
 
     init(
@@ -269,13 +311,19 @@ struct InkPageTitleRow<Actions: View>: View {
         header = InkPageHeader(
             verbatim: title, shortTitle: shortTitle, byline: byline, fitsOneLine: fitsOneLine,
             actions: actions)
+        hasByline = byline != nil
     }
 
     var body: some View {
-        header
-            .listRowInsets(Self.insets)
-            .listRowSeparator(.hidden)
-            .inkListRowBackground()
+        if titleInBar && !hasByline && Actions.self == EmptyView.self {
+            // A read-only sheet's bar shows the title (iOS): no empty manşet row under it.
+            EmptyView()
+        } else {
+            header
+                .listRowInsets(Self.insets)
+                .listRowSeparator(.hidden)
+                .inkListRowBackground()
+        }
     }
 
     private static var insets: EdgeInsets {
@@ -299,6 +347,7 @@ extension InkPageTitleRow {
     func byline(_ text: Text) -> Self {
         var copy = self
         copy.header = header.byline(text)
+        copy.hasByline = true
         return copy
     }
 }
@@ -306,6 +355,7 @@ extension InkPageTitleRow {
 extension InkPageTitleRow where Actions == EmptyView {
     init(_ title: LocalizedStringKey, byline: String? = nil) {
         header = InkPageHeader(title, byline: byline)
+        hasByline = byline != nil
     }
 
     init(
@@ -314,6 +364,7 @@ extension InkPageTitleRow where Actions == EmptyView {
     ) {
         header = InkPageHeader(
             verbatim: title, shortTitle: shortTitle, byline: byline, fitsOneLine: fitsOneLine)
+        hasByline = byline != nil
     }
 }
 
@@ -545,6 +596,7 @@ private struct InkSubpageChrome: ViewModifier {
     let isRoot: Bool
     @Environment(\.inkBackTitle) private var parentTitle
     @Environment(\.inkInSheet) private var inSheet
+    @Environment(\.inkSheetBarTitle) private var titleInSheetBar
     #if os(iOS)
         @Environment(\.shellKind) private var shellKind
     #endif
@@ -554,6 +606,9 @@ private struct InkSubpageChrome: ViewModifier {
         content
             .environment(\.inkHeaderBackTitle, isRoot || inSheet ? nil : parentTitle)
             .environment(\.inkBackTitle, title)
+            // A sheet's first page gives its title to the bar; pages pushed from it draw their own.
+            .environment(\.inkSheetBarTitle, false)
+            .environment(\.inkHeadlineTitleInBar, titleInSheetBar)
             .modifier(SubpageGlowReset(isRoot: isRoot))
             .onPreferenceChange(InkHeaderBackShownKey.self) { shown in
                 if shown { drawsOwnBack = true }
@@ -594,6 +649,8 @@ private struct SubpageBarVisibility: ViewModifier {
                 content
             } else {
                 content.toolbar(hidesBar ? .hidden : .automatic, for: .navigationBar)
+                    // A hidden bar stops UIKit's edge swipe back; the enabler keeps it.
+                    .background { InkInteractivePopEnabler() }
             }
         #else
             content

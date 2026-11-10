@@ -314,26 +314,8 @@ private struct GoalSummaryRingLabel: View {
         let percent = GoalListPresentation.percentLabel(
             done: status.progress.done, target: goal.target, locale: locale)
         VStack(spacing: 4) {
-            ZStack {
-                Circle()
-                    .stroke(Color.ink.well, lineWidth: side * 0.11)
-                Circle()
-                    .trim(from: 0, to: min(1, max(0, progress)))
-                    .stroke(
-                        Color.ink.accent,
-                        style: StrokeStyle(lineWidth: side * 0.11, lineCap: .round)
-                    )
-                    .rotationEffect(.degrees(-90))
-                Text(verbatim: percent)
-                    .font(.ink.meta.weight(.bold))
-                    .monospacedDigit()
-                    .foregroundStyle(Color.ink.text)
-                    .minimumScaleFactor(0.6)
-                    .lineLimit(1)
-                    .padding(side * 0.14)
-            }
-            .frame(width: side, height: side)
-            .padding(.bottom, 4)
+            GoalRing(progress: progress, diameter: side, centerLabel: percent, emphasizesArc: true)
+                .padding(.bottom, 4)
             Text(verbatim: goal.name)
                 .font(.ink.meta.weight(.semibold))
                 .foregroundStyle(Color.ink.text)

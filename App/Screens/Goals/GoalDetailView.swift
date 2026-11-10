@@ -25,10 +25,11 @@ struct GoalDetailView: View {
     private var goal: GoalDefinition { history.goals.first { $0.id == original.id } ?? original }
 
     private var masthead: InkPageTitle<some View> {
+        // Drawing: the period pill sits on the title's row, search alone on the navigation row.
         InkPageTitle(verbatim: goal.name) {
-            periodPill
             SearchButton()
         }
+        .titleAccessory(periodPill)
     }
 
     var body: some View {

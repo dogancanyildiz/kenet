@@ -11,6 +11,16 @@ struct TagChip: View {
     var count: Int? = nil
     var onTap: (() -> Void)? = nil
     var onDismiss: (() -> Void)? = nil
+    /// Scope chip (Ara): selected is `accentSoft` with accent, bold text and no stroke; the
+    /// checkmark shows only with "Renksiz ayırt et". Unselected is `well` with a thin rule.
+    var accentSelection = false
+
+    @Environment(\.accessibilityDifferentiateWithoutColor) private var differentiateWithoutColor
+    @Environment(\.displayScale) private var displayScale
+
+    private var showsCheckmark: Bool {
+        isSelected && (!accentSelection || differentiateWithoutColor)
+    }
 
     var body: some View {
         HStack(spacing: 2) {
@@ -42,14 +52,31 @@ struct TagChip: View {
             .padding(.vertical, 6)
             .background {
                 Capsule()
-                    .fill(filled || isSelected ? Color.ink.well : Color.clear)
+                    .fill(fill)
             }
             .overlay {
-                Capsule()
-                    .stroke(
-                        isSelected ? Color.ink.accent : Color.ink.control,
-                        lineWidth: isSelected ? InkStroke.highPriority : InkStroke.control)
+                if accentSelection {
+                    Capsule()
+                        .strokeBorder(
+                            isSelected ? Color.clear : Color.ink.rule,
+                            lineWidth: InkStroke.hairline(scale: displayScale))
+                } else {
+                    Capsule()
+                        .stroke(
+                            isSelected ? Color.ink.accent : Color.ink.control,
+                            lineWidth: isSelected ? InkStroke.highPriority : InkStroke.control)
+                }
             }
+    }
+
+    private var fill: Color {
+        if accentSelection { return isSelected ? Color.ink.accentSoft : Color.ink.well }
+        return filled || isSelected ? Color.ink.well : Color.clear
+    }
+
+    private var titleColor: Color {
+        guard accentSelection else { return Color.ink.text }
+        return isSelected ? Color.ink.accent : Color.ink.secondaryText
     }
 
     @ViewBuilder private var labelContent: some View {
@@ -60,8 +87,8 @@ struct TagChip: View {
                     .foregroundStyle(Color.ink.secondaryText)
             }
             Text(verbatim: title)
-                .font(.ink.meta)
-                .foregroundStyle(Color.ink.text)
+                .font(.ink.meta.weight(accentSelection && isSelected ? .semibold : .regular))
+                .foregroundStyle(titleColor)
                 .lineLimit(1)
             if let count {
                 Text(verbatim: count.formatted())
@@ -69,7 +96,7 @@ struct TagChip: View {
                     .monospacedDigit()
                     .foregroundStyle(Color.ink.secondaryText)
             }
-            if isSelected {
+            if showsCheckmark {
                 Image(systemName: "checkmark")
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(Color.ink.accent)

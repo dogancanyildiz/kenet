@@ -34,7 +34,7 @@ struct TaskTimelineView: View {
                 detailSheet(mobileContent, item: $selected)
             }
         }
-        .background(Color.ink.paper)
+        // No paper here: the page's ``View/inkPage()`` draws it, with the glow on the tab shell.
         #if os(iOS)
             .onGeometryChange(for: CGFloat.self) {
                 $0.size.width

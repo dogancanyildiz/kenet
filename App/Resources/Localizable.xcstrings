@@ -829,6 +829,22 @@
         }
       }
     },
+    "%lld ayda %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld months · %@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld ayda %@"
+          }
+        }
+      }
+    },
     "%lld devreden daha" : {
       "localizations" : {
         "en" : {
@@ -1557,6 +1573,38 @@
         }
       }
     },
+    "%lld günün %lld'i yapıldı" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%2$lld of %1$lld days done"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld günün %lld'i yapıldı"
+          }
+        }
+      }
+    },
+    "%lld günün %lld'i yapıldı, %lld affedildi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%2$lld of %1$lld days done, %3$lld forgiven"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld günün %lld'i yapıldı, %lld affedildi"
+          }
+        }
+      }
+    },
     "%lld haftadır" : {
       "localizations" : {
         "en" : {
@@ -1989,6 +2037,22 @@
         }
       }
     },
+    "%lld%% Son 30 gün" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld%% last 30 days"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld%% Son 30 gün"
+          }
+        }
+      }
+    },
     "%lld. hafta" : {
       "localizations" : {
         "en" : {
@@ -2385,6 +2449,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Affedildi"
+          }
+        }
+      }
+    },
+    "Affedildi · %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Forgiven · %@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Affedildi · %@"
           }
         }
       }
@@ -2833,6 +2913,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ayarlar'da Eylem düğmesine bu kısayollardan birini atayabilirsin."
+          }
+        }
+      }
+    },
+    "Aylara göre" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "By month"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aylara göre"
           }
         }
       }
@@ -4705,6 +4801,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bugün · %@"
+          }
+        }
+      }
+    },
+    "Bugün · %@ kaldı" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Today · %@ left"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bugün · %@ kaldı"
           }
         }
       }
@@ -7769,6 +7881,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Hedef tanımını kontrol et: ad boş olmamalı, miktar sıfırdan büyük olmalı."
+          }
+        }
+      }
+    },
+    "Hedefi düzenle" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit goal"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hedefi düzenle"
           }
         }
       }
@@ -11689,6 +11817,22 @@
         }
       }
     },
+    "Son 7 gün" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Last 7 days"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Son 7 gün"
+          }
+        }
+      }
+    },
     "Son 90 gün" : {
       "localizations" : {
         "en" : {
@@ -11861,6 +12005,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Son güncelleme"
+          }
+        }
+      }
+    },
+    "Son kayıtlar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recent logs"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Son kayıtlar"
           }
         }
       }
@@ -14441,6 +14601,22 @@
         }
       }
     },
+    "Zincir · en uzun %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Streak · longest %lld"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zincir · en uzun %lld"
+          }
+        }
+      }
+    },
     "Zincirdeki her 7 yapılmış gün 1 zincir günü kazandırır; kaçırılan gün zincir günüyle korunur. En çok 3." : {
       "localizations" : {
         "en" : {
@@ -14517,6 +14693,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "bir eşitleme hizmeti"
+          }
+        }
+      }
+    },
+    "bu hafta %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "this week %@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "bu hafta %@"
           }
         }
       }
@@ -16141,6 +16333,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "İçe aktar"
+          }
+        }
+      }
+    },
+    "İşaret" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mark"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "İşaret"
           }
         }
       }

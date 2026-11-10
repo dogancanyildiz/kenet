@@ -39,48 +39,51 @@ struct GraphCanvas: View {
             let viewport = GraphViewport(
                 size: geometry.size, camera: model.camera, zoom: model.zoom * magnification,
                 pan: CGSize(width: model.pan.width + panDrag.width, height: model.pan.height + panDrag.height))
-            GraphDrawing(edges: model.graph.edges, motion: motion, viewport: viewport, selected: model.selected)
-                #if os(macOS)
-                    .background(
-                        GraphScrollZoom { delta in
-                            model.zoom = min(5, max(0.2, model.zoom * exp(delta * 0.01)))
-                        })
-                #endif
-                .contentShape(Rectangle())
-                .onTapGesture { location in
-                    let index = viewport.nodeIndex(
-                        at: location, nodes: motion.nodes, points: motion.points,
-                        minimumRadius: Self.minimumHitRadius)
-                    model.select(index.map { motion.nodes[$0].id }, recenter: false)
+            GraphDrawing(
+                edges: model.graph.edges, motion: motion, viewport: viewport, selected: model.selected,
+                labelsDays: model.filter.scope != .all
+            )
+            #if os(macOS)
+                .background(
+                    GraphScrollZoom { delta in
+                        model.zoom = min(5, max(0.2, model.zoom * exp(delta * 0.01)))
+                    })
+            #endif
+            .contentShape(Rectangle())
+            .onTapGesture { location in
+                let index = viewport.nodeIndex(
+                    at: location, nodes: motion.nodes, points: motion.points,
+                    minimumRadius: Self.minimumHitRadius)
+                model.select(index.map { motion.nodes[$0].id }, recenter: false)
+            }
+            .accessibilityElement(children: .contain)
+            .accessibilityLabel("Graph")
+            .accessibilityChildren {
+                // Label-only elements: a text view here is laid out in the canvas's frame and
+                // reported as clipped by the accessibility audit, though nothing draws it.
+                ForEach(Array(model.graph.edges.filter { $0.kind == .relation }.enumerated()), id: \.offset) {
+                    _, edge in
+                    Color.clear.accessibilityElement()
+                        .accessibilityLabel(
+                            Text(
+                                verbatim: VoiceOverCopy.graphRelationLabel(
+                                    first: model.graph.nodes.first { $0.id == edge.first }?.name ?? edge.first,
+                                    second: model.graph.nodes.first { $0.id == edge.second }?.name ?? edge.second)))
                 }
-                .accessibilityElement(children: .contain)
-                .accessibilityLabel("Graph")
-                .accessibilityChildren {
-                    // Label-only elements: a text view here is laid out in the canvas's frame and
-                    // reported as clipped by the accessibility audit, though nothing draws it.
-                    ForEach(Array(model.graph.edges.filter { $0.kind == .relation }.enumerated()), id: \.offset) {
-                        _, edge in
-                        Color.clear.accessibilityElement()
-                            .accessibilityLabel(
-                                Text(
-                                    verbatim: VoiceOverCopy.graphRelationLabel(
-                                        first: model.graph.nodes.first { $0.id == edge.first }?.name ?? edge.first,
-                                        second: model.graph.nodes.first { $0.id == edge.second }?.name ?? edge.second)))
-                    }
-                    ForEach(GraphAccessibleNode.list(from: model.graph)) { node in
-                        Color.clear
-                            .accessibilityElement()
-                            .accessibilityLabel(Text(verbatim: node.accessibilityLabel()))
-                            .accessibilityAddTraits(.isButton)
-                            .accessibilityAction { model.select(node.id, recenter: true) }
-                    }
+                ForEach(GraphAccessibleNode.list(from: model.graph)) { node in
+                    Color.clear
+                        .accessibilityElement()
+                        .accessibilityLabel(Text(verbatim: node.accessibilityLabel()))
+                        .accessibilityAddTraits(.isButton)
+                        .accessibilityAction { model.select(node.id, recenter: true) }
                 }
-                .highPriorityGesture(dragGesture(viewport))
-                .simultaneousGesture(
-                    MagnifyGesture().updating($magnification) { value, state, _ in
-                        state = min(5 / model.zoom, max(0.2 / model.zoom, Double(value.magnification)))
-                    }.onEnded { model.zoom = min(5, max(0.2, model.zoom * Double($0.magnification))) }
-                )
+            }
+            .highPriorityGesture(dragGesture(viewport))
+            .simultaneousGesture(
+                MagnifyGesture().updating($magnification) { value, state, _ in
+                    state = min(5 / model.zoom, max(0.2 / model.zoom, Double(value.magnification)))
+                }.onEnded { model.zoom = min(5, max(0.2, model.zoom * Double($0.magnification))) }
+            )
         }
         // A gesture the system cancels never reports its end: let go of the node anyway.
         // Deferred one turn so a normal end is handled by `onEnded` first.
@@ -136,10 +139,11 @@ private struct GraphDrawing: View {
     let motion: GraphMotion
     let viewport: GraphViewport
     let selected: String?
+    let labelsDays: Bool
 
     var body: some View {
         TimelineView(.animation(paused: !motion.isRunning)) { timeline in
-            GraphFrame(edges: edges, motion: motion, viewport: viewport, selected: selected)
+            GraphFrame(edges: edges, motion: motion, viewport: viewport, selected: selected, labelsDays: labelsDays)
                 .onChange(of: timeline.date) { _, date in motion.advance(to: date) }
         }
     }
@@ -152,6 +156,12 @@ private struct GraphFrame: View {
     let motion: GraphMotion
     let viewport: GraphViewport
     let selected: String?
+    /// A day's own graph names its day node ("17 Eyl"); the whole graph's day hubs stay unnamed.
+    let labelsDays: Bool
+
+    /// Above this many nodes only the selection and its neighbours carry a name: a dense graph
+    /// would be covered by text (and every frame would lay out hundreds of labels).
+    static let labelLimit = 80
 
     var body: some View {
         let nodes = motion.nodes
@@ -190,6 +200,19 @@ private struct GraphFrame: View {
                 let fill = GraphNodeStyle.fill(node.kind).opacity(dimmed ? 0.25 : 1)
                 context.fill(GraphNodeShape(kind: node.kind).path(in: rect), with: .color(fill))
             }
+            // Name under every node (Şafak drawing); the selected one in text ink, semibold.
+            let labelsAll = nodes.count <= Self.labelLimit
+            for (index, node) in nodes.enumerated() {
+                let isChosen = index == chosen
+                guard labelsAll || isChosen || neighbors.contains(index) else { continue }
+                if node.kind == .day && !labelsDays && !isChosen { continue }
+                let dimmed = chosen != nil && !isChosen && !neighbors.contains(index)
+                let position = viewport.screen(points[index])
+                let radius = CGFloat(viewport.radius(of: node))
+                Self.drawLabel(
+                    Self.label(for: node), at: position, radius: radius, canvasSize: size, emphasized: isChosen,
+                    dimmed: dimmed, in: &context)
+            }
             if let chosen {
                 let node = nodes[chosen]
                 let position = viewport.screen(points[chosen])
@@ -204,10 +227,16 @@ private struct GraphFrame: View {
                         with: .color(Color.ink.accent),
                         lineWidth: InkStroke.control)
                 }
-                Self.drawSelectedLabel(
-                    node.name, at: position, radius: radius, canvasSize: size, in: &context)
             }
         }
+    }
+
+    /// The node's name; a day node reads short ("17 Eyl").
+    private static func label(for node: GraphNode) -> Text {
+        if let date = node.date {
+            return Text(LocalDay.instant(for: date), format: .dateTime.day().month(.abbreviated))
+        }
+        return Text(verbatim: node.name)
     }
 
     /// Screen-space dot grid in `rule` under the edges; it does not move with the graph.
@@ -227,28 +256,29 @@ private struct GraphFrame: View {
         context.fill(dots, with: .color(Color.ink.rule))
     }
 
-    private static func drawSelectedLabel(
-        _ name: String, at position: CGPoint, radius: CGFloat, canvasSize: CGSize,
+    private static func drawLabel(
+        _ text: Text, at position: CGPoint, radius: CGFloat, canvasSize: CGSize, emphasized: Bool, dimmed: Bool,
         in context: inout GraphicsContext
     ) {
-        let label = Text(verbatim: name).font(.ink.content).foregroundStyle(Color.ink.text)
+        let label =
+            text
+            .font(emphasized ? .caption.weight(.semibold) : .caption)
+            .foregroundStyle(emphasized ? Color.ink.text : Color.ink.secondaryText)
         let resolved = context.resolve(label)
-        let textSize = resolved.measure(in: CGSize(width: 240, height: 40))
-        let padX: CGFloat = 4
-        let padY: CGFloat = 2
-        let width = textSize.width + padX * 2
-        let height = textSize.height + padY * 2
-        // Prefer below the node (clear of the accent ring); flip above if clipped.
-        var originY = position.y + radius + 10
-        if originY + height > canvasSize.height - 2 {
-            originY = position.y - radius - height - 10
+        let textSize = resolved.measure(in: CGSize(width: 160, height: 40))
+        // Below the node, clear of the selection ring; above it when the bottom edge is near.
+        let gap: CGFloat = emphasized ? 10 : 4
+        var originY = position.y + radius + gap
+        if originY + textSize.height > canvasSize.height - 2 {
+            originY = position.y - radius - textSize.height - gap
         }
-        originY = min(max(2, originY), max(2, canvasSize.height - height - 2))
-        var originX = position.x - width / 2
-        originX = min(max(2, originX), max(2, canvasSize.width - width - 2))
-        let labelRect = CGRect(x: originX, y: originY, width: width, height: height)
-        context.fill(Path(roundedRect: labelRect, cornerRadius: 2), with: .color(Color.ink.paper))
-        context.draw(resolved, at: CGPoint(x: labelRect.midX, y: labelRect.midY))
+        originY = min(max(2, originY), max(2, canvasSize.height - textSize.height - 2))
+        var originX = position.x - textSize.width / 2
+        originX = min(max(2, originX), max(2, canvasSize.width - textSize.width - 2))
+        let rect = CGRect(origin: CGPoint(x: originX, y: originY), size: textSize)
+        var layer = context
+        layer.opacity = dimmed ? 0.35 : 1
+        layer.draw(resolved, in: rect)
     }
 }
 

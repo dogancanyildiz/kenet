@@ -15,6 +15,14 @@ struct PlacesMapView: View {
     @State private var activity: [String: EntityListActivity] = [:]
     @State private var showsUser = false
     private var pins: [PlacePin] { PlacesMapModel.pins(places: store.mapPlaces, usage: store.entityUsage) }
+
+    /// The first camera frames every pin with room around it (``framing(_:)``), so no marker
+    /// starts on the map's edge or under the Maps logo.
+    init(store: IndexStore) {
+        self.store = store
+        _camera = State(
+            initialValue: Self.framing(PlacesMapModel.pins(places: store.mapPlaces, usage: store.entityUsage)))
+    }
     var body: some View {
         // Pinned manşet above the full-bleed map; its row carries the page's icons.
         VStack(alignment: .leading, spacing: 0) {
@@ -34,6 +42,8 @@ struct PlacesMapView: View {
             }
             content
         }
+        .inkGlow()
+        .inkPage()
         .inkPageNavigationTitle("Harita")
         .entityListActivity(store: store, into: $activity)
         .task { location.refreshAuthorization() }
@@ -42,7 +52,10 @@ struct PlacesMapView: View {
             selected = nil
             focused = nil
             showsUser = false
-            camera = .automatic
+            camera = Self.framing(pins)
+        }
+        .onChange(of: pins.map(\.id)) {
+            if !camera.positionedByUser, focused == nil, !showsUser { camera = Self.framing(pins) }
         }
         .sheet(item: $selected) { entity in
             NavigationStack {
@@ -59,6 +72,12 @@ struct PlacesMapView: View {
         if pins.isEmpty && !showsUserPoint {
             emptyContent
         } else {
+            mapContent
+        }
+    }
+
+    @ViewBuilder private var mapContent: some View {
+        VStack(spacing: 0) {
             Map(position: $camera) {
                 ForEach(pins) { pin in
                     Annotation(pin.entity.name, coordinate: coordinate(pin.coordinate)) {
@@ -88,22 +107,32 @@ struct PlacesMapView: View {
                 MapScaleView()
             }
             .mapStyle(.standard(elevation: .flat, emphasis: .muted))
-            .overlay(alignment: .bottom) {
-                if !pins.isEmpty {
-                    ScrollView(.horizontal) {
-                        LazyHStack(spacing: 10) {
-                            ForEach(pins) { pin in
-                                PlaceMapCard(pin: pin, activity: activity[pin.id], isSelected: focused == pin.id) {
-                                    focus(pin)
-                                } onOpen: {
-                                    selected = store.content.entities.first { $0.id == pin.id }
-                                }
+            // Şafak drawing: the map is a rounded card under the manşet, the place cards a strip
+            // below it, never floating over the map.
+            .clipShape(RoundedRectangle(cornerRadius: InkCorner.card, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: InkCorner.card, style: .continuous)
+                    .stroke(Color.ink.rule, lineWidth: 1)
+            }
+            .padding(.horizontal, InkSpacing.margin)
+            .padding(.top, 4)
+            .frame(maxHeight: .infinity)
+            if !pins.isEmpty {
+                ScrollView(.horizontal) {
+                    LazyHStack(alignment: .top, spacing: 10) {
+                        ForEach(pins) { pin in
+                            PlaceMapCard(pin: pin, activity: activity[pin.id], isSelected: focused == pin.id) {
+                                focus(pin)
+                            } onOpen: {
+                                selected = store.content.entities.first { $0.id == pin.id }
                             }
                         }
-                        .padding(.horizontal, InkSpacing.margin)
-                        .padding(.bottom, 12)
                     }
+                    .padding(.horizontal, InkSpacing.margin)
+                    .padding(.vertical, 12)
                 }
+                .scrollIndicators(.hidden)
+                .fixedSize(horizontal: false, vertical: true)
             }
         }
     }
@@ -144,6 +173,17 @@ struct PlacesMapView: View {
     private func placeMarker(pin: PlacePin, isSelected: Bool) -> some View {
         let side = pin.radius * 2
         return ZStack {
+            if isSelected {
+                // Static accent halo under the picked pin (design.md: glow and halo never move).
+                Circle()
+                    .fill(
+                        RadialGradient(
+                            colors: [Color.ink.accent.opacity(0.35), Color.ink.accent.opacity(0)],
+                            center: .center, startRadius: side * 0.3, endRadius: side * 1.6)
+                    )
+                    .frame(width: side * 3.2, height: side * 3.2)
+                    .allowsHitTesting(false)
+            }
             GraphNodeShape(kind: .place)
                 .fill(Color.ink.place)
                 .frame(width: side, height: side)
@@ -158,6 +198,25 @@ struct PlacesMapView: View {
                 .monospacedDigit()
         }
         .frame(minWidth: 44, minHeight: 44)
+    }
+
+    /// The pins' bounding box with room around it, a little more at the bottom: every marker
+    /// stays inside the rounded map, clear of its edge and of the Maps logo in the corner.
+    static func framing(_ pins: [PlacePin]) -> MapCameraPosition {
+        guard !pins.isEmpty else { return .automatic }
+        let lats = pins.map(\.coordinate.latitude)
+        let lons = pins.map(\.coordinate.longitude)
+        guard let minLat = lats.min(), let maxLat = lats.max(), let minLon = lons.min(), let maxLon = lons.max()
+        else { return .automatic }
+        // Twice the pins' extent (at least about a kilometre), centred a little below their
+        // middle so the bottom pins clear the logo corner.
+        let latSpan = max((maxLat - minLat) * 2, 0.01)
+        let lonSpan = max((maxLon - minLon) * 2, 0.01)
+        let center = CLLocationCoordinate2D(
+            latitude: (minLat + maxLat) / 2 - latSpan * 0.06, longitude: (minLon + maxLon) / 2)
+        return .region(
+            MKCoordinateRegion(
+                center: center, span: MKCoordinateSpan(latitudeDelta: latSpan, longitudeDelta: lonSpan)))
     }
 
     private func coordinate(_ point: PlaceCoordinate) -> CLLocationCoordinate2D {
@@ -199,18 +258,40 @@ private struct PlaceMapCard: View {
         return String(localized: "\(pin.count) ziyaret · son \(date)", locale: locale)
     }
 
+    @ScaledMetric(relativeTo: .body) private var cardWidth: CGFloat = 200
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Button(action: onTap) {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(verbatim: pin.entity.name).font(.ink.content).foregroundStyle(.ink.text)
-                    HStack(alignment: .center) {
-                        Text(verbatim: visitLine).font(.ink.meta).foregroundStyle(.ink.secondaryText)
-                        Spacer(minLength: 8)
-                        if lastDate != nil, let mentionData { EntityMonthlyBarChart(data: mentionData, compact: true) }
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack(spacing: 6) {
+                        GraphNodeShape(kind: .place)
+                            .fill(Color.ink.place)
+                            .frame(width: 10, height: 10)
+                            .accessibilityHidden(true)
+                        Text(verbatim: pin.entity.name)
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(.ink.text)
+                            .lineLimit(1)
+                    }
+                    Text(verbatim: visitLine).font(.footnote).foregroundStyle(.ink.secondaryText).lineLimit(1)
+                    if lastDate != nil, let mentionData {
+                        VStack(alignment: .leading, spacing: 2) {
+                            EntityMonthlyBarChart(data: mentionData, compact: true, tint: .ink.place)
+                            HStack {
+                                Text(verbatim: mentionData.monthly.first?.label ?? "")
+                                Spacer(minLength: 4)
+                                Text(verbatim: mentionData.monthly.last?.label ?? "")
+                            }
+                            .font(.caption)
+                            .foregroundStyle(.ink.secondaryText)
+                            .accessibilityHidden(true)
+                        }
+                        .fixedSize()
+                        .padding(.top, 4)
                     }
                 }
-                .frame(minHeight: TapTarget.minimumLength)
+                .frame(maxWidth: .infinity, minHeight: TapTarget.minimumLength, alignment: .leading)
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
@@ -221,7 +302,7 @@ private struct PlaceMapCard: View {
                     .buttonStyle(InkPrimaryButtonStyle())
             }
         }
-        .frame(minWidth: 220, alignment: .leading)
+        .frame(width: cardWidth, alignment: .leading)
         .padding(12)
         .modifier(InkCardModifier())
         .overlay {

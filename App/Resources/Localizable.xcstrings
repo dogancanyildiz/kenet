@@ -1,6 +1,38 @@
 {
   "sourceLanguage" : "tr",
   "strings" : {
+    "O gün" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "That day"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O gün"
+          }
+        }
+      }
+    },
+    "Diğer eylemler" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "More actions"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diğer eylemler"
+          }
+        }
+      }
+    },
     "! Orta" : {
       "localizations" : {
         "en" : {

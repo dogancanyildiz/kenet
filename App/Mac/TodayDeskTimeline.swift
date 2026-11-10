@@ -20,27 +20,10 @@ import VaultFormat
         @ScaledMetric(relativeTo: .body) private var timeColumnWidth: CGFloat = 48
         @State private var rowHeights: [Int: CGFloat] = [:]
 
+        /// Timed records only: the day page's own task and event lists keep the untimed ones
+        /// (``TodayDeskPlan/dayListEvents``, ``TodayDeskPlan/dayListTaskRows(_:)``).
         var body: some View {
-            VStack(alignment: .leading, spacing: InkSpacing.section) {
-                hourAxis(plan.hourRange)
-                if !plan.untimedEvents.isEmpty || !plan.untimedTasks.isEmpty {
-                    untimedSection
-                }
-            }
-        }
-
-        private var untimedSection: some View {
-            VStack(alignment: .leading, spacing: InkSpacing.row) {
-                SectionHeader(
-                    title: String(localized: "Saatsiz"),
-                    count: plan.untimedEvents.count + plan.untimedTasks.count)
-                ForEach(plan.untimedEvents) { event in
-                    eventCard(event)
-                }
-                ForEach(plan.untimedTasks) { task in
-                    TimelineTaskCard(task: task, today: today) { onSelectTask(task) }
-                }
-            }
+            hourAxis(plan.hourRange)
         }
 
         private func hourAxis(_ hours: ClosedRange<Int>) -> some View {

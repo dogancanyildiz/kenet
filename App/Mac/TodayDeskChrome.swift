@@ -1,22 +1,20 @@
+import Summaries
 import SwiftUI
 
 #if os(macOS)
-    /// Mac Today desk chrome injected into ``DayView``: hour grid, folded panel sections, and
-    /// which DayView chrome the shell already draws (close day, quick entry).
+    /// Mac Today desk shell values handed to ``DayView``. DayView draws the hour grid and the panel
+    /// from its own loaded day, goals and tasks; the shell only adds what DayView does not load.
+    /// Present means desk mode: DayView leaves its "Günü kapat" to the panel and its quick-entry
+    /// bar to the shell.
     struct TodayDeskChrome {
-        /// Hour-column timeline inserted into Today's scroll content.
-        var hourGrid: AnyView
-        /// Panel sections drawn under the grid when the right panel is folded away.
-        var foldedPanel: AnyView?
-        /// DayView omits its own "Günü kapat" (the panel or folded block owns it).
-        var suppressCloseDay: Bool
-        /// DayView omits its bottom quick-entry bar (the desk column owns it).
-        var suppressQuickEntry: Bool
+        /// The detail column fits the 300 pt right panel; otherwise its sections fold under the grid.
+        var showsPanel: Bool
+        /// "Bu gün geçmişte" entry, loaded by the shell.
+        var onThisDay: OnThisDay?
     }
 
     private struct TodayDeskChromeKey: EnvironmentKey {
-        // AnyView slots are MainActor UI values; EnvironmentKey requires a static default.
-        nonisolated(unsafe) static let defaultValue: TodayDeskChrome? = nil
+        static let defaultValue: TodayDeskChrome? = nil
     }
 
     extension EnvironmentValues {

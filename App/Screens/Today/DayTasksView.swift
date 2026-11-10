@@ -11,13 +11,15 @@ struct DayTasksView: View {
     var onExpandCarriedOver: () -> Void
     var onExpandTasks: () -> Void = {}
     var onExpandCompleted: () -> Void
+    /// Mac Today desk: the hour grid owns today's timed tasks, so this list leaves them out.
+    var deskPlan: TodayDeskPlan? = nil
     @Environment(\.calendar) private var calendar
     @Environment(\.locale) private var locale
     @State private var moveReport: TaskMoveReport?
     @State private var isMovingCarriedOver = false
 
     var body: some View {
-        let rows = presentation.rows
+        let rows = deskPlan?.dayListTaskRows(presentation.rows) ?? presentation.rows
         let carriedIDs = Set(presentation.carriedOverTasks.map(\.id))
         if !rows.isEmpty {
             VStack(alignment: .leading, spacing: InkSpacing.row) {
@@ -25,7 +27,8 @@ struct DayTasksView: View {
                     title: String(
                         localized: "Görevler",
                         bundle: PresentationLocalization.bundle(locale), locale: locale),
-                    counter: presentation.counter(for: .tasks)
+                    counter: deskPlan?.dayListTaskCounter(presentation)
+                        ?? presentation.counter(for: .tasks)
                 )
                 .modifier(carriedOverCommands)
                 InkCard(padded: true) {

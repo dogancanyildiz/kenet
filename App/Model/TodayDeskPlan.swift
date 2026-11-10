@@ -31,6 +31,41 @@ struct TodayDeskPlan: Sendable {
         detailWidth >= panelMinDetailWidth
     }
 
+    /// One block of the Today panel, in drawing order.
+    enum PanelSection: Sendable, CaseIterable {
+        case nextEvent, nextTask, goals, carriedOver, onThisDay, closeDay
+    }
+
+    /// Panel blocks for the layout. Folded under the grid, the day page above already draws the
+    /// goal strip and the carried-over tasks, so those two are left out; the right panel keeps all.
+    static func panelSections(isFolded: Bool) -> [PanelSection] {
+        isFolded ? PanelSection.allCases.filter { $0 != .goals && $0 != .carriedOver } : PanelSection.allCases
+    }
+
+    /// The grid is the only place timed records appear: the day page's event list keeps the
+    /// untimed events.
+    var dayListEvents: [EventRow] { untimedEvents }
+
+    /// Today's timed open tasks, drawn on the grid and so left out of the day page's task list.
+    var gridTaskIDs: Set<String> { Set(timedTasks.map(\.task.id)) }
+
+    /// The day page's task rows without the grid's timed tasks. Carried-over, closed and
+    /// disclosure rows stay.
+    func dayListTaskRows(_ rows: [TodayPresentation.Row]) -> [TodayPresentation.Row] {
+        let hidden = gridTaskIDs
+        guard !hidden.isEmpty else { return rows }
+        return rows.filter { row in
+            if case .task(let task) = row { return !hidden.contains(task.id) }
+            return true
+        }
+    }
+
+    /// The task section's counter without the grid's timed tasks.
+    func dayListTaskCounter(_ presentation: TodayPresentation) -> String {
+        let onGrid = gridTaskIDs.intersection(presentation.openTasks.map(\.id)).count
+        return (presentation.remainingTaskCount - onGrid).formatted(.number.locale(presentation.locale))
+    }
+
     init(
         events: [EventRow],
         openTasks: [TaskRow],

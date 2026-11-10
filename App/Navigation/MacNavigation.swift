@@ -200,13 +200,7 @@ struct MacNavigation: View {
                 isPresented: Bindable(sidebarSearch).isFocused,
                 placement: .sidebar, prompt: "Ara"
             )
-            .onSubmit(of: .search) {
-                let query = sidebarSearch.query.trimmingCharacters(in: .whitespacesAndNewlines)
-                guard !query.isEmpty else { return }
-                openSearchQuery(query)
-                sidebarSearch.query = ""
-                sidebarSearch.isFocused = false
-            }
+            .onSubmit(of: .search) { sidebarSearch.submit(openSearchQuery) }
             .accessibilityIdentifier("sidebar.search")
             // Re-apply after searchable so the split view still sees the column width range.
             .macSidebarColumn()
@@ -457,6 +451,16 @@ struct MacEmptyDetail: View {
 
         init() {
             focus = ShellAction { [weak self] in self?.isFocused = true }
+        }
+
+        /// Return in the field: a non-empty query opens the search sheet, then the field clears
+        /// and gives up focus.
+        func submit(_ openQuery: (String) -> Void) {
+            let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !trimmed.isEmpty else { return }
+            openQuery(trimmed)
+            query = ""
+            isFocused = false
         }
     }
 

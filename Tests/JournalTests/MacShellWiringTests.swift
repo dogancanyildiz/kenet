@@ -64,25 +64,53 @@
             #expect(shell.window.titleVisibility == .hidden)
         }
 
-        /// Sidebar searchable is present; submit opens search with the typed query (`docs/design.md` kalıp 3).
+        /// One search field, in the sidebar column; its submit hands the typed query to the
+        /// search sheet and clears the field (`docs/design.md` kalıp 3). The shell's
+        /// `.onSubmit(of: .search)` is `SidebarSearchState.submit(openSearchQuery)`; an offscreen
+        /// window is never key, so AppKit does not deliver Return to the field here and the test
+        /// drives the same submit with the sheet's real `openQuery`.
         @Test func sidebarSearchFieldSubmitsQueryIntoTheSearchSheet() async throws {
             let search = SearchPresentation()
             let shell = try await Shell(search: search)
             defer { shell.close() }
+            let fields = shell.mount.views(NSSearchField.self)
+            #expect(fields.count == 1, "search fields in the window: \(fields.count)")
+            let field = try #require(fields.first, "sidebar searchable field missing")
+            let sidebar = try #require(shell.sidebarTable)
+            let fieldFrame = field.convert(field.bounds, to: nil)
+            let sidebarFrame = sidebar.convert(sidebar.bounds, to: nil)
             #expect(
-                HostedControls.node("sidebar.search", in: shell.mount) != nil
-                    || shell.sidebarSearchField != nil,
-                "sidebar searchable field missing")
-            // Same path `.onSubmit(of: .search)` uses after the user types and presses Return.
-            search.openQuery("Baran")
+                fieldFrame.minX >= sidebarFrame.minX - 1 && fieldFrame.maxX <= sidebarFrame.maxX + 1,
+                "the field is outside the sidebar column: \(fieldFrame) vs \(sidebarFrame)")
+            #expect(field.placeholderString == String(localized: "Ara"))
+
+            let state = SidebarSearchState()
+            state.focus()
+            state.query = "  Baran "
+            state.submit(search.openQuery)
             await shell.mount.settle(rounds: 4)
             #expect(search.isPresented)
             #expect(search.initialQuery == "Baran")
-            // ⌘F action is made once and focuses the field.
-            let focus = SidebarSearchState()
-            #expect(focus.isFocused == false)
-            focus.focus()
-            #expect(focus.isFocused)
+            #expect(state.query.isEmpty)
+            #expect(state.isFocused == false)
+        }
+
+        /// The submit rule behind the field: trimmed query once, blank does nothing, field clears.
+        @Test func sidebarSearchSubmitOpensTrimmedQueryOnce() {
+            let state = SidebarSearchState()
+            var opened: [String] = []
+            state.query = "   "
+            state.isFocused = true
+            state.submit { opened.append($0) }
+            #expect(opened.isEmpty)
+            #expect(state.isFocused)
+            state.query = "  Baran \n"
+            state.submit { opened.append($0) }
+            #expect(opened == ["Baran"])
+            #expect(state.query.isEmpty)
+            #expect(state.isFocused == false)
+            state.focus()
+            #expect(state.isFocused)
         }
 
         /// A project removed from the vault while its page is open.
@@ -171,13 +199,6 @@
             var paneCounts: [Int] { mount.views(NSSplitView.self).map(\.arrangedSubviews.count) }
             var toolbarLabels: [String] { window.toolbar?.items.map(\.label) ?? [] }
             var searchItems: Int { toolbarLabels.filter { $0 == "Ara" }.count }
-            /// Search field drawn by `.searchable(placement: .sidebar)`.
-            var sidebarSearchField: NSView? {
-                mount.views(NSView.self).first {
-                    String(describing: type(of: $0)).contains("Search")
-                        && $0.convert($0.bounds, to: nil).width <= InkSpacing.macSidebarMaxWidth + 40
-                }
-            }
             /// The sidebar's list: the table that is as narrow as the sidebar column.
             var sidebarTable: NSTableView? {
                 mount.views(NSTableView.self).first {

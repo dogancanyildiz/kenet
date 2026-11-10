@@ -1,4 +1,5 @@
 import GoalTracking
+import Summaries
 import SwiftUI
 import VaultFormat
 
@@ -116,7 +117,7 @@ struct DayView: View {
     /// Mac desk shell draws "Günü kapat" in the panel / folded block.
     private var showsInlineCloseDay: Bool {
         #if os(macOS)
-            todayDeskChrome?.suppressCloseDay != true
+            todayDeskChrome == nil
         #else
             true
         #endif
@@ -161,16 +162,36 @@ struct DayView: View {
         let isEmptyDay =
             day.map { $0.events.isEmpty && $0.journal.isEmpty && !$0.hasGoalRecords } == true
             && tasksModel.groups.isEmpty && presented.completedTaskCount == 0
+        let deskPlan = makeDeskPlan(presented: presented, day: day)
         return withPastDaySheets(
             mainScrollPage(
                 presented: presented, goalModel: goalModel, entitiesByID: entitiesByID,
-                day: day, isEmptyDay: isEmptyDay)
+                day: day, isEmptyDay: isEmptyDay, deskPlan: deskPlan)
         )
+    }
+
+    /// Mac Today desk only: today's records split between the hour grid and the page, from the
+    /// page's own loaded day and tasks. Nil everywhere else (iPhone, iPad, past days).
+    private func makeDeskPlan(presented: TodayPresentation, day: DaySummary?) -> TodayDeskPlan? {
+        #if os(macOS)
+            guard isToday, todayDeskChrome != nil else { return nil }
+            let now = clockNow()
+            let carried = tasksModel.groups.overdue.filter { !$0.isClosed }
+            return TodayDeskPlan(
+                events: day?.events ?? [],
+                openTasks: carried + presented.datedTasks + presented.createdTasks,
+                carriedOver: carried,
+                nowHour: calendarValue.component(.hour, from: now),
+                nowMinute: calendarValue.component(.minute, from: now))
+        #else
+            return nil
+        #endif
     }
 
     private func mainScrollPage(
         presented: TodayPresentation, goalModel: GoalDayModel,
-        entitiesByID: [String: EntitySummary], day: DaySummary?, isEmptyDay: Bool
+        entitiesByID: [String: EntitySummary], day: DaySummary?, isEmptyDay: Bool,
+        deskPlan: TodayDeskPlan?
     ) -> some View {
         let todayInstant = LocalDay.instant(
             for: isToday ? date : LocalDay.today(at: clockNow()),
@@ -179,7 +200,8 @@ struct DayView: View {
             if isToday {
                 todayScrollContent(
                     presented: presented, goalModel: goalModel, entitiesByID: entitiesByID,
-                    day: day, isEmptyDay: isEmptyDay, todayInstant: todayInstant)
+                    day: day, isEmptyDay: isEmptyDay, todayInstant: todayInstant,
+                    deskPlan: deskPlan)
             } else {
                 pastDayScrollContent(
                     presented: presented, goalModel: goalModel, entitiesByID: entitiesByID,
@@ -218,9 +240,10 @@ struct DayView: View {
             insets: EdgeInsets(top: 8, leading: InkSpacing.margin, bottom: 0, trailing: InkSpacing.margin)
         )
         .inkPage()
+        .modifier(TodayDeskColumns(panel: deskPanel(presented: presented, goalModel: goalModel, deskPlan: deskPlan)))
         .safeAreaInset(edge: .bottom) {
             #if os(macOS)
-                if todayDeskChrome?.suppressQuickEntry != true {
+                if todayDeskChrome == nil {
                     QuickEntryBar(
                         store: store, isEnabled: true, day: isToday ? nil : date,
                         focusRequest: isToday ? intentNavigation?.focusRequest : nil,
@@ -403,7 +426,8 @@ struct DayView: View {
     @ViewBuilder
     private func todayScrollContent(
         presented: TodayPresentation, goalModel: GoalDayModel,
-        entitiesByID: [String: EntitySummary], day: DaySummary?, isEmptyDay: Bool, todayInstant: Date
+        entitiesByID: [String: EntitySummary], day: DaySummary?, isEmptyDay: Bool, todayInstant: Date,
+        deskPlan: TodayDeskPlan?
     ) -> some View {
         VStack(alignment: .leading, spacing: InkSpacing.section) {
             InkScrolledMasthead(todayHeader(presented, compact: false))
@@ -418,10 +442,15 @@ struct DayView: View {
             }
 
             #if os(macOS)
-                if let desk = todayDeskChrome {
-                    desk.hourGrid
-                    if let folded = desk.foldedPanel {
-                        folded
+                if let desk = todayDeskChrome, let deskPlan {
+                    TodayDeskTimeline(
+                        store: store, plan: deskPlan, day: date, today: date,
+                        onSelectEvent: { editingScheduleEvent = EventEditorModel(store: store, day: date, row: $0) },
+                        onSelectTask: { editingScheduleTask = TaskEditorModel(store: store, row: $0) })
+                    if !desk.showsPanel {
+                        deskPanelSections(
+                            presented: presented, goalModel: goalModel, day: day, deskPlan: deskPlan,
+                            onThisDay: desk.onThisDay, isFolded: true)
                     }
                 }
             #endif
@@ -452,19 +481,23 @@ struct DayView: View {
                 presentation: presented, entityIndex: entitiesByID,
                 onExpandCarriedOver: { isCarriedOverExpanded = true },
                 onExpandTasks: { isTasksExpanded = true },
-                onExpandCompleted: { isCompletedExpanded = true })
+                onExpandCompleted: { isCompletedExpanded = true },
+                deskPlan: deskPlan)
 
             DayCalendarView(date: date)
 
-            if let day, !day.events.isEmpty {
+            // On the Mac desk the hour grid owns the timed events; this list keeps the untimed ones.
+            if let day, case let listed = deskPlan?.dayListEvents ?? day.events, !listed.isEmpty {
                 VStack(alignment: .leading, spacing: InkSpacing.row) {
                     SectionHeader(
                         title: String(
                             localized: "Olaylar",
                             bundle: PresentationLocalization.bundle(locale), locale: locale),
-                        counter: presented.counter(for: .events))
+                        counter: deskPlan == nil
+                            ? presented.counter(for: .events)
+                            : listed.count.formatted(.number.locale(presented.locale)))
                     InkCard(padded: true) {
-                        ForEach(Array(day.events.enumerated()), id: \.element.id) { index, event in
+                        ForEach(Array(listed.enumerated()), id: \.element.id) { index, event in
                             if index > 0 { InkCardDivider() }
                             DayEventView(
                                 store: store, day: date, event: event,
@@ -1098,6 +1131,55 @@ struct DayView: View {
             url: url, entities: store.content.entities)
     }
 
+    /// Mac Today desk: the right panel beside the page when the detail column is wide enough.
+    private func deskPanel(
+        presented: TodayPresentation, goalModel: GoalDayModel, deskPlan: TodayDeskPlan?
+    ) -> AnyView? {
+        #if os(macOS)
+            guard let desk = todayDeskChrome, desk.showsPanel, let deskPlan else { return nil }
+            return AnyView(
+                TodayDeskPanel(
+                    sections: deskPanelSections(
+                        presented: presented, goalModel: goalModel, day: day, deskPlan: deskPlan,
+                        onThisDay: desk.onThisDay, isFolded: false)))
+        #else
+            return nil
+        #endif
+    }
+
+    #if os(macOS)
+        private func deskPanelSections(
+            presented: TodayPresentation, goalModel: GoalDayModel, day: DaySummary?,
+            deskPlan: TodayDeskPlan, onThisDay: OnThisDay?, isFolded: Bool
+        ) -> TodayDeskPanelSections {
+            let goals = loadedGoals?.day == date ? loadedGoals : nil
+            return TodayDeskPanelSections(
+                store: store, plan: deskPlan, day: date, goals: goals?.goals ?? [],
+                statuses: goals.map { goalModel.shownStatuses($0.statuses) } ?? [:],
+                onThisDay: onThisDay,
+                closeDayLabel: deskCloseDayLabel(presented: presented, goalModel: goalModel, day: day),
+                onCloseDay: { closeDayRoute = CloseDayRoute(step: .tasks) },
+                onOpenGoal: { goalDestination = GoalDetailRoute(goal: $0) },
+                sections: TodayDeskPlan.panelSections(isFolded: isFolded),
+                showsHeader: !isFolded)
+        }
+
+        /// The panel's "Günü kapat" label, offered as the inline entry would be.
+        private func deskCloseDayLabel(
+            presented: TodayPresentation, goalModel: GoalDayModel, day: DaySummary?
+        ) -> String? {
+            guard let day, goalModel.hasLoaded,
+                CloseDayEntry.isOffered(
+                    isToday: true, presentation: presented, hasJournal: CloseDayEntry.hasJournal(day))
+            else { return nil }
+            let count = presented.closeDayTaskCount
+            if count > 0 {
+                return String(localized: "Günü kapat") + " · " + String(localized: "\(count) görev")
+            }
+            return String(localized: "Günü kapat")
+        }
+    #endif
+
     /// Accent row with chevron; no thin rule (Şafak).
     private var closeDayEntry: some View {
         Button {
@@ -1369,5 +1451,22 @@ private struct ScheduleCardChrome: ViewModifier {
                     .stroke(isSelected ? Color.ink.accent : Color.ink.rule, lineWidth: hairline)
             }
             .contentShape(Rectangle())
+    }
+}
+
+/// Mac Today desk: the page and, when the detail is wide enough, the right panel beside it. The
+/// page keeps its identity when the panel comes and goes. Elsewhere the page alone.
+private struct TodayDeskColumns: ViewModifier {
+    let panel: AnyView?
+
+    func body(content: Content) -> some View {
+        #if os(macOS)
+            HStack(spacing: 0) {
+                content
+                if let panel { panel }
+            }
+        #else
+            content
+        #endif
     }
 }

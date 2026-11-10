@@ -15,6 +15,9 @@ import VaultFormat
         let closeDayLabel: String?
         let onCloseDay: () -> Void
         let onOpenGoal: (GoalDefinition) -> Void
+        /// Blocks to draw, in order (``TodayDeskPlan/panelSections(isFolded:)``); each still hides
+        /// when it has nothing to show.
+        var sections: [TodayDeskPlan.PanelSection] = TodayDeskPlan.PanelSection.allCases
         /// When true, draws the "Bugün" header (right panel only).
         var showsHeader = true
 
@@ -24,21 +27,36 @@ import VaultFormat
         var body: some View {
             VStack(alignment: .leading, spacing: InkSpacing.section) {
                 if showsHeader { header }
+                ForEach(sections, id: \.self) { section in
+                    self.section(section)
+                }
+            }
+        }
+
+        @ViewBuilder
+        private func section(_ section: TodayDeskPlan.PanelSection) -> some View {
+            switch section {
+            case .nextEvent:
                 if let event = plan.nextEvent {
                     nextEventCard(event)
                 }
+            case .nextTask:
                 if let next = plan.nextTimedTask {
                     nextTaskCard(next.task, time: next.time)
                 }
+            case .goals:
                 if !goals.isEmpty {
                     goalsSection
                 }
+            case .carriedOver:
                 if !plan.carriedPreview.isEmpty {
                     carriedSection
                 }
+            case .onThisDay:
                 if let onThisDay {
                     onThisDayCard(onThisDay)
                 }
+            case .closeDay:
                 if let closeDayLabel {
                     closeDayButton(closeDayLabel)
                 }
@@ -292,25 +310,13 @@ import VaultFormat
 
     /// Mac Today right panel (300 pt).
     struct TodayDeskPanel: View {
-        let store: IndexStore
-        let plan: TodayDeskPlan
-        let day: CalendarDate
-        let goals: [GoalDefinition]
-        let statuses: [String: GoalStatus]
-        let onThisDay: OnThisDay?
-        let closeDayLabel: String?
-        let onCloseDay: () -> Void
-        let onOpenGoal: (GoalDefinition) -> Void
+        let sections: TodayDeskPanelSections
 
         var body: some View {
             ScrollView {
-                TodayDeskPanelSections(
-                    store: store, plan: plan, day: day, goals: goals, statuses: statuses,
-                    onThisDay: onThisDay, closeDayLabel: closeDayLabel, onCloseDay: onCloseDay,
-                    onOpenGoal: onOpenGoal, showsHeader: true
-                )
-                .padding(InkSpacing.margin)
-                .frame(maxWidth: .infinity, alignment: .leading)
+                sections
+                    .padding(InkSpacing.margin)
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
             .frame(width: ShellStyle.todayPanelWidth)
             .background(Color.ink.paper)

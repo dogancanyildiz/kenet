@@ -1824,7 +1824,6 @@
       }
     },
     "%lld hedef kaldı" : {
-      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "variations" : {
@@ -1832,13 +1831,13 @@
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%lld goal left"
+                  "value" : "%lld goal remaining"
                 }
               },
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "%lld goals left"
+                  "value" : "%lld goals remaining"
                 }
               }
             }

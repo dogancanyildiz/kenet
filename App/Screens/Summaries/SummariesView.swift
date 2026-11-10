@@ -418,25 +418,37 @@ struct SummariesView: View {
         }
     }
 
-    /// Three equal-height number cards side by side; one column at accessibility sizes.
+    /// Three equal-height number cards side by side (one column at accessibility sizes) and the
+    /// three changes in one line under them (Şafak çizimi).
     private func stats(_ summary: PeriodSummary, columns: Int) -> some View {
         let layout =
             columns == 1
             ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8))
             : AnyLayout(HStackLayout(alignment: .top, spacing: 8))
-        return layout {
-            SummaryMetric(
-                title: "Yazılan gün",
-                valueText: SummaryPresentation.writtenDaysValueText(summary, locale: locale),
-                change: change(summary.change.writtenDays, summary))
-            SummaryMetric(
-                title: "Olay", value: summary.counts.events,
-                change: change(summary.change.events, summary))
-            SummaryMetric(
-                title: "Biten görev", value: summary.counts.completedTasks,
-                change: change(summary.change.completedTasks, summary))
+        return VStack(alignment: .leading, spacing: 8) {
+            layout {
+                SummaryMetric(
+                    title: "Yazılan gün",
+                    valueText: SummaryPresentation.writtenDaysValueText(summary, locale: locale))
+                SummaryMetric(title: "Olay", value: summary.counts.events)
+                SummaryMetric(title: "Biten görev", value: summary.counts.completedTasks)
+            }
+            .fixedSize(horizontal: false, vertical: true)
+            Text(changeLine(summary))
+                .font(.caption)
+                .monospacedDigit()
+                .foregroundStyle(Color.ink.secondaryText)
+                .fixedSize(horizontal: false, vertical: true)
         }
-        .fixedSize(horizontal: false, vertical: true)
+    }
+
+    /// The change line with its changes in ink.
+    private func changeLine(_ summary: PeriodSummary) -> AttributedString {
+        var line = SummaryPresentation.changeLine(summary, locale: locale)
+        for run in line.runs where run.inlinePresentationIntent == .stronglyEmphasized {
+            line[run.range].foregroundColor = Color.ink.text
+        }
+        return line
     }
 
     @ViewBuilder

@@ -45,6 +45,7 @@ struct DaysView: View {
             }
             // One card per month (Şafak çizimi: ayraçlı satırlar, sağda "›"). The month heads its
             // card only when it is not the current one, so a row never repeats its month.
+            let lookup = LinkedTextInk.lookup(entities: store.content.entities)
             ForEach(DayListMonth.grouped(visibleDays ?? [])) { group in
                 if group.id != DayListMonth.key(today) {
                     SectionHeader(title: group.title(locale: locale))
@@ -57,7 +58,7 @@ struct DaysView: View {
                     } label: {
                         DayRow(
                             day: day, isToday: day.date == today, showsMonth: false,
-                            showsChevron: true
+                            showsChevron: true, entityLookup: lookup
                         )
                         .padding(.horizontal, InkSpacing.cardPadding)
                         .padding(.top, segment.roundsTop ? 12 : 6)
@@ -203,7 +204,12 @@ struct DayRow: View {
     /// iPhone list heads each month's card instead.
     var showsMonth: Bool = true
     var showsChevron: Bool = false
+    /// When set, people and places in the first event's line are drawn underlined (not tappable:
+    /// the whole row opens the day).
+    var entityLookup: [String: EntitySummary]? = nil
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.accessibilityDifferentiateWithoutColor) private var differentiateWithoutColor
+    @Environment(\.colorSchemeContrast) private var contrast
 
     var body: some View {
         Group {
@@ -278,8 +284,23 @@ struct DayRow: View {
     }
 
     private func previewText(_ preview: String) -> Text {
-        Text(verbatim: VaultDisplayText.line(preview))
-            .font(
-                showsChevron ? .system(.subheadline, design: Font.ink.contentDesign) : .ink.contentSmall)
+        let font: Font = showsChevron ? .system(.subheadline, design: Font.ink.contentDesign) : .ink.contentSmall
+        guard let entityLookup, let spans = day.displayPreviewSpans else {
+            return Text(verbatim: VaultDisplayText.line(preview)).font(font)
+        }
+        var segments = LinkedTextInk.segments(
+            LinkedText(spans: spans.map(\.linkedSpan)), byPath: entityLookup)
+        // The last plain run drops a trailing block id the way `VaultDisplayText.line` does.
+        if let last = segments.last, last.kind == .plain {
+            segments[segments.count - 1] = InkLinkSegment(
+                id: last.id, text: VaultDisplayText.line(last.text), kind: .plain)
+        }
+        var attributed = InkLinkTextBuilder.attributed(
+            segments: segments, highContrast: contrast == .increased || differentiateWithoutColor)
+        // The whole row opens the day; a link inside it would take the tap.
+        for run in attributed.runs where run.link != nil {
+            attributed[run.range].link = nil
+        }
+        return Text(attributed).font(font)
     }
 }

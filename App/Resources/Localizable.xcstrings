@@ -113,6 +113,22 @@
         }
       }
     },
+    "%@ görev" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ tasks"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ görev"
+          }
+        }
+      }
+    },
     "%@ gün" : {
       "localizations" : {
         "en" : {
@@ -157,6 +173,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ işaretlendi"
+          }
+        }
+      }
+    },
+    "%@ kadar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "through %@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ kadar"
           }
         }
       }
@@ -237,6 +269,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ olarak mı?"
+          }
+        }
+      }
+    },
+    "%@ olay" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ events"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ olay"
           }
         }
       }

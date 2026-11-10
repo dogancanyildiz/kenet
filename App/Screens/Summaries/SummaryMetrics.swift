@@ -5,16 +5,17 @@ import SwiftUI
 struct SummaryMetric: View {
     let title: LocalizedStringKey
     let valueText: String
-    /// "önceki haftaya göre +4": already localized. No arrow; the sign and the words carry it.
-    let change: String
+    /// "önceki haftaya göre +4": already localized. No arrow; the sign and the words carry it. Nil
+    /// when the page says the changes in one line under the cards (Özetler).
+    let change: String?
 
-    init(title: LocalizedStringKey, value: Int, change: String) {
+    init(title: LocalizedStringKey, value: Int, change: String? = nil) {
         self.title = title
         self.valueText = value.formatted()
         self.change = change
     }
 
-    init(title: LocalizedStringKey, valueText: String, change: String) {
+    init(title: LocalizedStringKey, valueText: String, change: String? = nil) {
         self.title = title
         self.valueText = valueText
         self.change = change
@@ -31,10 +32,12 @@ struct SummaryMetric: View {
                 Text(title)
                     .font(.caption)
                     .foregroundStyle(Color.ink.secondaryText)
-                Text(verbatim: change)
-                    .font(.caption2)
-                    .monospacedDigit()
-                    .foregroundStyle(Color.ink.secondaryText)
+                if let change {
+                    Text(verbatim: change)
+                        .font(.caption2)
+                        .monospacedDigit()
+                        .foregroundStyle(Color.ink.secondaryText)
+                }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         }
@@ -69,10 +72,11 @@ struct MonthWritingRhythmView: View {
     var body: some View {
         InkCard {
             VStack(alignment: .leading, spacing: 12) {
+                // A running month says how far it counts ("20 Eyl'e kadar"); a past one its tally.
                 SectionHeader(
                     title: String(localized: "Ritim", bundle: bundle, locale: locale),
-                    counter:
-                        "\(rhythm.writtenDayCount)/\(rhythm.measuredDayCount)"
+                    counter: rhythm.throughDay.map { SummaryPresentation.rhythmThrough($0, locale: locale) }
+                        ?? "\(rhythm.writtenDayCount)/\(rhythm.measuredDayCount)"
                 )
                 // Ten days a row (Şafak çizimi): three rows hold a month.
                 LazyVGrid(

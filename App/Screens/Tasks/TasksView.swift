@@ -150,6 +150,7 @@ struct TasksView: View {
                 Spacer(minLength: 8)
                 Text(String(format: String(localized: "%1$d/%2$d görev"), summary.completed, summary.total))
                     .font(.ink.value).monospacedDigit().foregroundStyle(.ink.secondaryText)
+                    .accessibilityIdentifier("tasks.weekly.count")
             }
         }
         .accessibilityElement(children: .combine)

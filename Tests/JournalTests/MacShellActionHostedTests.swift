@@ -55,12 +55,33 @@
             #expect(navigation.selectedDay == nil, "the past day stays selected")
         }
 
+        /// "Ara" / ⌘F: the shell makes its focus command once (``SidebarSearchState``), so the
+        /// menu bar sees one value however often the shell's body runs.
+        @Test func shellHandsTheMenuBarOneSidebarSearchCommand() async throws {
+            let context = try TaskTestContext(sample: true)
+            defer { context.clean() }
+            await context.start()
+            let reader = CommandReader()
+            let rebuilds = Rebuilds()
+            let host = await Host(context: context, reader: reader) {
+                Rebuilt(rebuilds: rebuilds) { MacNavigation(store: context.store) }
+            }
+            defer { host.close() }
+            guard host.receivesFocusedValues(reader.focusSearch) else { return }
+
+            try await host.rebuild(rebuilds, times: 5)
+            #expect(
+                reader.focusSearch.count == 1,
+                "the menu bar saw \(reader.focusSearch.count) sidebar search commands")
+        }
+
         // MARK: - Support
 
         /// Every focused command value the menu bar would see, one entry per change.
         @MainActor final class CommandReader {
             var search: [ShellAction] = []
             var today: [ShellAction] = []
+            var focusSearch: [ShellAction] = []
         }
 
         /// Bumped to run the parent's body again, as the app's scene re-runs the window content.
@@ -87,6 +108,7 @@
             let reader: CommandReader
             @FocusedValue(\.openSearch) private var openSearch
             @FocusedValue(\.goToToday) private var goToToday
+            @FocusedValue(\.focusSidebarSearch) private var focusSidebarSearch
 
             var body: some View {
                 Color.clear
@@ -96,6 +118,9 @@
                     }
                     .onChange(of: goToToday, initial: true) { _, value in
                         if let value { reader.today.append(value) }
+                    }
+                    .onChange(of: focusSidebarSearch, initial: true) { _, value in
+                        if let value { reader.focusSearch.append(value) }
                     }
             }
         }

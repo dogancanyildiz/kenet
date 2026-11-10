@@ -4,11 +4,21 @@ private struct OpenSearchKey: EnvironmentKey {
     static let defaultValue = ShellAction.nothing
 }
 
+private struct OpenSearchQueryKey: EnvironmentKey {
+    static let defaultValue: @MainActor @Sendable (String) -> Void = { _ in }
+}
+
 extension EnvironmentValues {
     /// Made once by its owner (``ShellAction``): a new value here updates every view below.
     var openSearch: ShellAction {
         get { self[OpenSearchKey.self] }
         set { self[OpenSearchKey.self] = newValue }
+    }
+
+    /// Opens the search sheet with a prefilled query (Mac sidebar searchable submit).
+    var openSearchQuery: @MainActor @Sendable (String) -> Void {
+        get { self[OpenSearchQueryKey.self] }
+        set { self[OpenSearchQueryKey.self] = newValue }
     }
 }
 
@@ -50,21 +60,23 @@ extension EnvironmentValues {
 /// The exception is the search sheet: a page opened from the results keeps the manşet
 /// magnifier, which leads back to the results (the window toolbar is behind the sheet).
 ///
-/// The body stays a bare system button on purpose: the Mac toolbar draws it as its own glass
-/// control and the manşet slot supplies the iPhone look (`ControlPatternUsageTests`).
+/// The body stays a bare system button on purpose: the manşet slot supplies the iPhone look
+/// (`ControlPatternUsageTests`). On Mac the sidebar searchable owns search; manşet rows draw
+/// nothing except inside the search sheet (back to results).
 struct SearchButton: View {
     @Environment(\.openSearch) private var openSearch
 
     #if os(macOS)
-        @Environment(\.isInkHeaderActionSlot) private var isHeaderSlot
         @Environment(\.isSearchSheet) private var isSearchSheet
     #endif
 
     var body: some View {
         #if os(macOS)
-            // Mac: search lives in the window toolbar only; the manşet rows show no magnifier,
+            // Mac: search lives in the sidebar field; manşet rows show no magnifier,
             // except inside the search sheet, where it is the way back to the results.
-            if !isHeaderSlot || isSearchSheet { button }
+            if isSearchSheet {
+                button
+            }
         #else
             button
         #endif
@@ -81,14 +93,18 @@ extension View {
     /// shell (iPhone Duo inner screen, iPad) it is a form sheet like Settings, so the regular
     /// width's tall page sheet does not run under the software keyboard; the sheet takes the
     /// shell's kind, which `MacNavigation` sets only for the views below it.
-    func searchSheet(isPresented: Binding<Bool>, store: IndexStore) -> some View {
-        modifier(SearchSheetModifier(isPresented: isPresented, store: store))
+    func searchSheet(isPresented: Binding<Bool>, store: IndexStore, initialQuery: String = "")
+        -> some View
+    {
+        modifier(
+            SearchSheetModifier(isPresented: isPresented, store: store, initialQuery: initialQuery))
     }
 }
 
 private struct SearchSheetModifier: ViewModifier {
     @Binding var isPresented: Bool
     let store: IndexStore
+    var initialQuery: String = ""
     #if os(iOS)
         @Environment(\.horizontalSizeClass) private var horizontalSizeClass
         @Environment(\.verticalSizeClass) private var verticalSizeClass
@@ -98,11 +114,11 @@ private struct SearchSheetModifier: ViewModifier {
         content.sheet(isPresented: $isPresented) {
             // Search inside the sheet means back to the results (``SearchView``, `searchSheetContext`).
             #if os(iOS)
-                SearchView(store: store)
+                SearchView(store: store, initialQuery: initialQuery)
                     .environment(\.shellKind, shellKind)
                     .modifier(SearchSheetSizing(shellKind: shellKind))
             #else
-                SearchView(store: store)
+                SearchView(store: store, initialQuery: initialQuery)
             #endif
         }
     }

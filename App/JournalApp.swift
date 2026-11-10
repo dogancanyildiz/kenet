@@ -53,6 +53,7 @@ struct JournalApp: App {
         @State private var desktop: MacQuickEntryController
         @FocusedValue(\.goToToday) private var goToToday
         @FocusedValue(\.openSearch) private var openSearch
+        @FocusedValue(\.focusSidebarSearch) private var focusSidebarSearch
     #endif
 
     init() {
@@ -99,11 +100,13 @@ struct JournalApp: App {
         #if os(macOS)
             mainWindow.commands {
                 CommandGroup(after: .textEditing) {
-                    Button("Ara") { openSearch?() }
+                    // ⌘F focuses the sidebar searchable (`docs/design.md` kalıp 3); submit opens
+                    // the sheet with the typed query. ⌘K still opens an empty search sheet.
+                    Button("Ara") { focusSidebarSearch?() }
                         .keyboardShortcut(
                             JournalShortcut.search.key, modifiers: JournalShortcut.search.modifiers
                         )
-                        .disabled(openSearch == nil || appLock.shouldCover)
+                        .disabled(focusSidebarSearch == nil || appLock.shouldCover)
                     Button("Hızlı geçiş") { openSearch?() }
                         .keyboardShortcut(
                             JournalShortcut.quickSwitch.key,
@@ -166,6 +169,12 @@ struct JournalApp: App {
                 .appLockShield(appLock)
                 #if os(macOS)
                     .background(MainWindowMarker())
+                    .environment(
+                        \.macQuickEntry,
+                        MacQuickEntryBridge(
+                            shortcutDisplay: desktop.shortcut.shortcut.display,
+                            open: { desktop.open() })
+                    )
                     .task { await desktop.start() }
                 #else
                     // A tap in the home-screen widget opens the app with a widget link.

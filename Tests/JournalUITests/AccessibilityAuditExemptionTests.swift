@@ -3,9 +3,11 @@ import XCTest
 /// The exemption table names elements the way the audit reports them, in both test languages.
 /// No app is launched; labels are matched as the audit's handler matches them.
 final class AccessibilityAuditExemptionTests: XCTestCase {
-    private func isExempt(_ type: XCUIAccessibilityAuditType, identifier: String = "", label: String) -> Bool {
+    private func isExempt(
+        _ type: XCUIAccessibilityAuditType, identifier: String = "", label: String, screen: String? = nil
+    ) -> Bool {
         AccessibilityAuditExemption.all.contains {
-            $0.type == type && $0.matches(identifier: identifier, label: label)
+            $0.type == type && $0.applies(to: screen) && $0.matches(identifier: identifier, label: label)
         }
     }
 
@@ -40,7 +42,16 @@ final class AccessibilityAuditExemptionTests: XCTestCase {
         XCTAssertFalse(isExempt(.dynamicType, label: "Carried over"))
         XCTAssertFalse(isExempt(.dynamicType, label: "13"))
         XCTAssertFalse(isExempt(.textClipped, identifier: "sectionHeader", label: "Carried over"))
+        XCTAssertFalse(isExempt(.textClipped, identifier: "sectionHeader", label: "Timeline", screen: "tasks"))
         XCTAssertFalse(isExempt(.contrast, identifier: "sectionHeader", label: "Carried over"))
+    }
+
+    /// A screen-scoped entry holds only for the screen it names: the entity page's bottom-edge header.
+    func testScreenScopedEntryHoldsOnlyForItsScreen() {
+        XCTAssertTrue(
+            isExempt(.textClipped, identifier: "sectionHeader", label: "Timeline", screen: "unlinkedMentions"))
+        XCTAssertFalse(isExempt(.textClipped, identifier: "sectionHeader", label: "Timeline", screen: "today"))
+        XCTAssertFalse(isExempt(.textClipped, identifier: "sectionHeader", label: "Timeline"))
     }
 
     func testUnlistedElementIsNotExempt() {

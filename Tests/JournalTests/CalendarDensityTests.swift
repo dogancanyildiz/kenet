@@ -52,8 +52,9 @@ import VaultIndex
     }
 
     @Test func monthTransitionPreservesMonthIsolation() throws {
-        let sepDay = makeDay(date: CalendarDate("2026-09-15")!, eventCount: 3, taskCount: 1, hasJournal: true)  // score 4 -> level 2
-        let octDay = makeDay(date: CalendarDate("2026-10-15")!, eventCount: 1, hasJournal: false)  // score 1 -> level 1
+        // sepDay: score 4 -> level 2; octDay: score 1 -> level 1
+        let sepDay = makeDay(date: CalendarDate("2026-09-15")!, eventCount: 3, taskCount: 1, hasJournal: true)
+        let octDay = makeDay(date: CalendarDate("2026-10-15")!, eventCount: 1, hasJournal: false)
         let novDay = makeDay(date: CalendarDate("2026-11-01")!, eventCount: 6, hasJournal: false)  // score 6 -> level 3
         let days = [sepDay, octDay, novDay]
 

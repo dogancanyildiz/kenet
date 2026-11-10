@@ -1142,13 +1142,6 @@ struct DayScheduleEntry: Identifiable, Sendable {
     let time: EventTime?
     let fileOrder: Int
     let kind: Kind
-
-    init(id: String, time: EventTime?, fileOrder: Int, kind: Kind) {
-        self.id = id
-        self.time = time
-        self.fileOrder = fileOrder
-        self.kind = kind
-    }
 }
 
 /// Pure chronological sorting for a past day's schedule: timed items sorted by `EventTime`

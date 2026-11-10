@@ -687,11 +687,11 @@ Manşetin altında görünüm sekmesi durur. Sekmenin altında görünüme göre
 
 | Öğe | Yer | Davranış |
 |---|---|---|
-| Manşet ve künye | Listenin içinde | Manşet "Görevler"; altında künye: "6 açık · 2 devreden". Gezinme çubuğunda büyük başlık yoktur. Proje ve görev ayrıntısı ekranları aynı kalıbı kullanır. |
+| Manşet ve künye | Listenin içinde | Manşet "Görevler"; altında künye: Liste ve Kanban'da "**6** açık · 2 devreden" (sayı kalın, devreden uyarı renginde); Zaman çizelgesi'nde Gün'de "20 Eylül 2026 Pazar · 4 görev", Hafta'da hafta aralığı, Çeyrek'te ekrandaki aylar ("Eylül – Aralık 2026"). Gezinme çubuğunda büyük başlık yoktur. Proje ve görev ayrıntısı ekranları aynı kalıbı kullanır. |
 | Filtre ve arama | Manşet satırı | Simge. Filtreler: kişi, konum, proje. |
-| Sekme | Künyenin altı | Liste \| Kanban \| Zaman çizelgesi: altı çizili sekme. |
-| Haftalık özet kartı | Liste'de sekmenin altı | "Bu hafta 3/8 görev" ve ilerleme çubuğu. Pay, bu hafta tamamlanan görevdir; payda, bitişi bu haftada olan ve bu hafta tamamlanan görevlerin toplamıdır. |
-| Proje kartları | Liste'de özet kartının altı | Yatay kayan kartlar: proje adı, açık/toplam ve ilerleme çubuğu. Karta dokunma proje ekranını açar. |
+| Sekme | Künyenin altı | Liste \| Kanban \| Zaman çizelgesi: altı çizili sekme. Dar sütunda (iPad liste sütunu) sözcükler tek satıra sığmazsa üçüncü sekme "Çizelge" olur. |
+| Haftalık özet kartı | Liste'de sekmenin altı | Küçük "Bu hafta" etiketi, altında büyük "3/8 görev" ve vurgu renkli ilerleme çubuğu. Pay, bu hafta tamamlanan görevdir; payda, bitişi bu haftada olan ve bu hafta tamamlanan görevlerin toplamıdır. |
+| Proje kartları | Liste'de özet kartının altı | Yatay kayan kartlar: durum çipi (Başlamadı, Sürüyor, Bitti; görev sayılarından), proje renkli nokta ve ad, "1/3 görev" (biten/toplam) ve proje renginde ilerleme çubuğu. Karta dokunma proje ekranını açar. |
 | Seçici | Liste'de proje kartlarının altı, öteki görünümlerde sekmenin altı | Liste'de "Bölüm" menüsü, Kanban'da "Grupla" menüsü, Zaman çizelgesi'nde Gün \| Hafta \| Çeyrek sekmesi. Bölümler (Devreden, Bugün, Yaklaşan…) kart içindedir. |
 | Geniş yüzey | Kanban ve Zaman çizelgesi | 680 pt sütun sınırına girmez. |
 | Mac kenar çubuğu | Mac | Kanban, Zaman çizelgesi ve proje girdileri gezinme düzenidir ve değişmez. |
@@ -717,7 +717,7 @@ Manşetin altında görünüm sekmesi durur. Sekmenin altında görünüme göre
 | Çok kişili görev | Birden çok çözülen kişiye bağlı görev her kişi sütununda görünür. |
 | Kart sırası | Bitiş tarihi (tarihsiz en son), öncelik, metin, eşitlikte kimlik. Dosya sırası değişmez. |
 | Bilinmeyen durum | Bilinmeyen açık durumlar Yapılacak sütununda kalır. |
-| Telefon | Yatay kaydırmalı sütunlar, kart menüsünden taşıma ve ayrıntı sheet'i. |
+| Telefon | Yatay kaydırmalı sütunlar; sütun panonun yaklaşık %72'sidir, sonraki sütun yanında görünür. Sütun kutusu yoktur: başlık durum simgesi, ad ve sayaç kapsülüdür ("○ Yapılacak 4"); kartlar sayfanın üstündedir. Kartta proje çipi renkli noktalı dolu kapsüldür. Kart menüsünden taşıma ve ayrıntı sheet'i. |
 | Mac | Sürükle bırak ve sağ ayrıntı paneli. |
 | iPad (bölünmüş kabuk) | Mac panosu. iPhone Duo iç ekranı da bu panoyu kullanır. Sütunlar genişliği paylaşır. Sütun en az 240 pt'dir. Sütunlar sığmazsa pano serbest kayar ve sayfa sayfa durmaz. 13" yatay ekranda üç durum sütunu ve 340 pt ayrıntı paneli yan yana tam görünür. Panel açılınca manşet yerinde kalır. Panel, yanında en az iki 240 pt sütun, aralarındaki 16 pt boşluk ve panonun iki yanındaki 12 pt iç boşluk sığarsa açılır (toplam alan en az 860 pt). Daha dar alanda ayrıntı sheet'te açılır; panel açıkken alan daralırsa seçili görev sheet'e geçer. "Grupla" menüsü etiketi kadar geniştir. Uzun basılan kart kalkar ve başka sütuna sürüklenir. Parmağın altındaki sütun vurgulanır. Vurgu çizgisi kartın kart sırasına göre ineceği yeri gösterir. Sürükleme Mac ile aynı satırı yazar. Kart menüsündeki "Taşı" kalır. Sekmeli kabukta (Split View, Slide Over) telefon panosu durur. |
 | Yazma | Durum ve proje taşıması var olan dosya yazıcılarını kullanır. Kişi sütunları bağlantı metnini değiştirmez ve taşıma kabul etmez. |
@@ -738,17 +738,15 @@ Manşetin altında görünüm sekmesi durur. Sekmenin altında görünüme göre
 | Durum | Tamamlananlar soluk ve dolu uçludur. İptaller gizlidir. Devreden bitişler uyarı rengi ve işaret taşır. |
 | Ters aralık | Başka bir uygulamanın yazdığı ters aralık kaynakta kalır ve uyarıyla görünür. Yeni değişiklikler ters aralık üretmez. |
 | Aralık | Varsayılan: bugün -4 hafta / +12 hafta. Eksen ±365 gündür. Bugün düğmesi vardır. |
-| Telefon | Gün ölçeği dikey saat eksenidir. Hafta ölçeği yatay kayan 7 gün sütunudur. Çeyrek'te hafta başlıkları, küçük çubuklu dikey liste, dönem düğmeleri ve tarih menüsü durur. Sürükleme yoktur. |
-| iPad (bölünmüş kabuk) | Mac çizelgesi: etiket sütunu, kayan gün ekseni, Çeyrek'te manşet satırında "Grupla" menüsü. iPhone Duo iç ekranı da bu çizelgeyi kullanır. Dönem düğmesi yoktur; çizelge kayar. Parmak çubuğun ucunu sürükler ve tarihi Mac ile aynı satıra yazar. Ucun dokunma alanı çizilen tutamaktan geniştir. Kısa çubukta iki ucun alanı çubuğun ortasında ayrılır. Çubuğun gövdesine dokunmak ayrıntıyı açar. Gövdeden başlayan kaydırma çizelgeyi kaydırır; gövde sürüklenmez. Tek tarihli rozetin tarihi menüden değişir. Ayrıntı 340 pt paneldedir. Panel açılınca manşet yerinde kalır. Alan 800 pt'den darsa ayrıntı sheet'te açılır. Sekmeli kabukta telefon listesi durur. |
+| Telefon | "Ölçek", ölçek sekmesi ve "Bugün" tek satırdadır. Gün ölçeği dikey saat eksenidir. Çeyrek ilk ekranda kartlı Gantt'tır: dar etiket sütunu (tek satır başlık), proje grupları ve sayaç kapsülü, kendi kayan gün ekseni. Tarihsizler Gantt'ın altında kartta listelenir. Tarih menüden değişir; sürükleme yoktur. |
+| iPad (bölünmüş kabuk) | Mac çizelgesi: etiket sütunu, kayan gün ekseni, manşet satırında "Grupla" menüsü. iPhone Duo iç ekranı da bu çizelgeyi kullanır. Dönem düğmesi yoktur; çizelge kayar. Parmak çubuğun ucunu sürükler ve tarihi Mac ile aynı satıra yazar. Ucun dokunma alanı çizilen tutamaktan geniştir. Kısa çubukta iki ucun alanı çubuğun ortasında ayrılır. Çubuğun gövdesine dokunmak ayrıntıyı açar. Gövdeden başlayan kaydırma çizelgeyi kaydırır; gövde sürüklenmez. Tek tarihli rozetin tarihi menüden değişir. Ayrıntı 340 pt paneldedir. Panel açılınca manşet yerinde kalır. Alan 800 pt'den darsa ayrıntı sheet'te açılır. Sekmeli kabukta telefon listesi durur. |
 
 **Görev satırı ve sheet'ler.**
 
 | Konu | Davranış |
 |---|---|
 | Sıra | Aynı gündeki görevler yüksek, orta, normal, düşük öncelik sırasındadır. Eşitlikte dosya ve satır sırası geçerlidir. |
-| Satır | Öncelik kutunun içindedir. Tekrar rozeti vardır. Satırda ayrıntı oku (chevron) yoktur. |
-| Dokunma (Liste) | Telefonda kart içindeki satırın boş alanına dokunma bağlantısız görevi tamamlar. Bağlantıya dokunma bağlantıyı açar. Bölünmüş kabukta ve Mac'te satıra dokunma satırı seçer; yalnız kutu tamamlar. |
-| Ayrıntı (telefon) | Görev ayrıntısı bağlam menüsündeki "Ayrıntıları göster" ile açılır. VoiceOver aynı adlı eylemi sunar. |
+| Satır | Öncelik kutunun içindedir. Tekrar rozeti vardır. Başlık tek satırda kesilir (erişilebilirlik boyutlarında sarar). Telefonda sağdaki "›" ayrıntıyı açar; satırın kendisi tamamlar. Devreden satırın alt satırı bütünüyle uyarı rengindedir: "→ mobil · 14 Eyl'den devretti". Projesiz görev "Projesiz" yazar. |
 | Düzenleme menüsü | Bugüne, Yarına, Haftaya, Tekrar ve Öncelik. Taşıma kuralları Bugün'deki görev satırıyla aynıdır: bitişin zaten olduğu gün yoktur, kapalı görevde taşıma yoktur. |
 | Tekrar sheet'i | Ortak sheet kalıbı, `elevated` zemin, "Vazgeç / Kaydet". |
 | Tarih sheet'i | Ortak sheet kalıbı, `elevated` zemin, "Kapat". Tarih seçici yalnız hızlı girişteki küçük pencerede `surface` üstündedir. |

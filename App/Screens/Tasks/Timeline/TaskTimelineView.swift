@@ -95,7 +95,7 @@ struct TaskTimelineView: View {
     /// The chart with the detail panel beside it: the Mac window, and the split iOS shell while
     /// the panel fits (narrower, the detail opens in a sheet as on the phone).
     @ViewBuilder private var desktop: some View {
-        TasksPageTop(tasks: model.tasks, current: .timeline) {
+        TasksPageTop(tasks: model.tasks, current: .timeline, byline: byline) {
             // Gün and Hafta boards are not grouped (screens.md "Mac gruplama": Hafta-Çeyrek chart).
             if model.scale.showsGrouping { groupingMenu }
         } menu: {
@@ -233,15 +233,35 @@ struct TaskTimelineView: View {
                         }
                     }
             } else {
-                VStack(alignment: .leading, spacing: 0) {
-                    scaleTabs
-                    HStack {
-                        todayButton
-                        Spacer()
-                        periodButtons
+                // Phone: "Ölçek", the scale tabs and "Bugün" on one row (the Çeyrek chart scrolls
+                // itself; Gün and Hafta keep the week arrows while they fit beside it).
+                ViewThatFits(in: .horizontal) {
+                    phoneControlsRow(showsPeriodButtons: model.scale != .quarter)
+                    phoneControlsRow(showsPeriodButtons: false)
+                    VStack(alignment: .leading, spacing: 0) {
+                        scaleTabs
+                        HStack {
+                            todayButton
+                            Spacer()
+                            if model.scale != .quarter { periodButtons }
+                        }
                     }
                 }
             }
+        }
+    }
+
+    private func phoneControlsRow(showsPeriodButtons: Bool) -> some View {
+        HStack(spacing: 10) {
+            Text("Ölçek")
+                .font(.ink.byline)
+                .foregroundStyle(.ink.secondaryText)
+                .fixedSize()
+                .accessibilityHidden(true)
+            scaleTabs.fixedSize(horizontal: true, vertical: false)
+            Spacer(minLength: 4)
+            if showsPeriodButtons { periodButtons }
+            todayButton
         }
     }
 
@@ -315,50 +335,9 @@ struct TaskTimelineView: View {
         }
     }
 
-    /// The page top is part of the list, so the manşet scrolls away with the rows.
-    private var mobileList: some View {
-        List {
-            TasksPageTop(tasks: model.tasks, current: .timeline) {
-                controls
-            }
-            .tasksPageTopRow()
-            if let error = model.errorText {
-                InfoBand(kind: .error, verbatim: error)
-                    .inkListRow()
-            }
-            ForEach(model.mobileGroups) { group in
-                Section {
-                    if let date = CalendarDate(group.id) {
-                        SectionHeader(
-                            title: LocalDay.instant(for: date).formatted(
-                                .dateTime.month(.wide).year().day()),
-                            count: group.rows.count
-                        )
-                        .inkListRow()
-                    }
-                    ForEach(group.rows) { row in taskRow(row) }
-                }
-            }
-            if !model.undated.isEmpty {
-                Section {
-                    SectionHeader(title: String(localized: "Tarihsiz"), count: model.undated.count)
-                        .inkListRow()
-                    ForEach(model.undated) { row in taskRow(row) }
-                }
-            }
-            // Not while the first answer is on its way: an empty timeline must not show while it loads.
-            if model.rows != nil && model.mobileGroups.isEmpty && model.undated.isEmpty {
-                EmptyState("Görev yok.")
-                    .inkListRow()
-            }
-        }
-        .listStyle(.plain)
-        .inkPage()
-    }
-
     private var mobileDayPage: some View {
         VStack(spacing: 0) {
-            TasksPageTop(tasks: model.tasks, current: .timeline) { controls }
+            TasksPageTop(tasks: model.tasks, current: .timeline, byline: byline) { controls }
             if let error = model.errorText {
                 InfoBand(kind: .error, verbatim: error)
                     .padding(.horizontal, InkSpacing.margin)
@@ -374,13 +353,63 @@ struct TaskTimelineView: View {
         } else if model.scale == .week {
             mobileWeekPage
         } else {
-            mobileList
+            mobileChartPage
         }
+    }
+
+    /// Çeyrek on the phone: the page top stays, the chart sits in a card under it with the
+    /// undated tasks below (screens.md "Çeyrek ölçeği": kartlı Gantt).
+    private var mobileChartPage: some View {
+        VStack(spacing: 0) {
+            TasksPageTop(tasks: model.tasks, current: .timeline, byline: byline) { controls }
+            if let error = model.errorText {
+                InfoBand(kind: .error, verbatim: error)
+                    .padding(.horizontal, InkSpacing.margin)
+            }
+            TimelineDesktopView(model: model, todayRequest: todayRequest, compact: true) {
+                selected = $0
+            } edit: {
+                editor = TimelineDateSelection(row: $0, edge: $1, root: model.store.vaultURL)
+            }
+        }
+        .inkPage()
+    }
+
+    /// Künye under the manşet: the day and its task count (Gün), the week (Hafta), the
+    /// months on screen (Çeyrek).
+    private var byline: Text? {
+        switch model.scale {
+        case .day:
+            let date = LocalDay.instant(for: selectedDay).formatted(
+                .dateTime.day().month(.wide).year().weekday(.wide))
+            return Text("\(date) · \(TasksByline.number(dayRows.count)) görev")
+        case .week:
+            guard let first = weekDates.first, let last = weekDates.last else { return nil }
+            let count = weekRowCount
+            return Text(
+                "\((first..<last).formatted(.interval.day().month(.wide).year())) · \(TasksByline.number(count)) görev")
+        case .month, .quarter:
+            let range = model.visibleRange
+            let start = LocalDay.instant(for: range.lowerBound)
+            let end = LocalDay.instant(for: range.upperBound)
+            return Text(verbatim: (start..<end).formatted(.interval.month(.wide).year()))
+        }
+    }
+
+    /// Dated tasks whose span meets the week on screen (Hafta künyesi).
+    private var weekRowCount: Int {
+        guard let first = weekDates.first.map({ LocalDay.today(at: $0) }),
+            let last = weekDates.last.map({ LocalDay.today(at: $0) })
+        else { return 0 }
+        return (model.rows ?? []).filter { row in
+            guard row.rawStatus != "-", let span = TimelineDates(row).span(on: model.today) else { return false }
+            return span.first <= last && first <= span.last
+        }.count
     }
 
     private var mobileWeekPage: some View {
         VStack(spacing: 0) {
-            TasksPageTop(tasks: model.tasks, current: .timeline) { controls }
+            TasksPageTop(tasks: model.tasks, current: .timeline, byline: byline) { controls }
             if let error = model.errorText {
                 InfoBand(kind: .error, verbatim: error)
                     .padding(.horizontal, InkSpacing.margin)
@@ -388,15 +417,6 @@ struct TaskTimelineView: View {
             ScrollView { weekBoard }
         }
         .inkPage()
-    }
-    private func taskRow(_ row: TaskRow) -> some View {
-        TimelineTaskRow(model: model, row: row) {
-            selected = row
-        } edit: {
-            editor = TimelineDateSelection(row: row, edge: $0, root: model.store.vaultURL)
-        }
-        .inkListRow()
-        .alignmentGuide(.listRowSeparatorLeading) { _ in 0 }
     }
 }
 

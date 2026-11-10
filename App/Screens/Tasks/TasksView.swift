@@ -119,6 +119,11 @@ struct TasksView: View {
             if model.list != nil {
                 weeklySummaryRow
                 projectCardsRow
+                #if !os(macOS)
+                    // screens.md "Seçici": the list's section menu sits under the project cards.
+                    TasksSectionMenu(tasks: model)
+                        .inkListRow()
+                #endif
                 listSections
             }
         }
@@ -133,29 +138,39 @@ struct TasksView: View {
             columnWidth: .infinity)
     }
 
+    /// The Mac keeps the section menu in the pinned page top; on iOS it sits under the
+    /// project cards (``listContent``).
     private var pageTop: some View {
         TasksPageTop(tasks: model, current: .list) {
-            TasksSectionMenu(tasks: model)
+            #if os(macOS)
+                TasksSectionMenu(tasks: model)
+            #endif
         }
     }
 
+    /// "Bu hafta": a small label, the large "3/8 görev" and the accent bar under them.
     private var weeklySummaryRow: some View {
         let summary = model.list?.weekly ?? .empty
         return InkCard {
-            HStack(spacing: 16) {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Bu hafta").font(.ink.section).foregroundStyle(.ink.text)
-                        .accessibilityIdentifier("tasks.weekly.title")
-                    InkProgress(kind: .fraction(summary.fraction))
-                }
-                Spacer(minLength: 8)
-                Text(String(format: String(localized: "%1$d/%2$d görev"), summary.completed, summary.total))
-                    .font(.ink.value).monospacedDigit().foregroundStyle(.ink.secondaryText)
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Bu hafta").font(.ink.meta).foregroundStyle(.ink.secondaryText)
+                    .accessibilityIdentifier("tasks.weekly.title")
+                Text("\(weeklyFraction(summary)) görev")
+                    .font(.ink.content)
+                    .foregroundStyle(.ink.secondaryText)
+                    .monospacedDigit()
                     .accessibilityIdentifier("tasks.weekly.count")
+                InkProgress(kind: .fraction(summary.fraction))
             }
         }
         .accessibilityElement(children: .combine)
         .inkListRow()
+    }
+
+    private func weeklyFraction(_ summary: TasksWeeklySummary) -> Text {
+        Text(verbatim: "\(summary.completed)/\(summary.total)")
+            .font(.title2.weight(.bold))
+            .foregroundStyle(.ink.text)
     }
 
     /// Project cards (screens.md): a horizontal strip; at accessibility sizes the cards stack
@@ -189,20 +204,22 @@ struct TasksView: View {
         let count = model.list?.projectCounts[VaultIndex.projectKey(project)]
         let completed = count?.done ?? 0
         let total = (count?.open ?? open) + completed
+        let color = ProjectColor.color(for: project)
         return NavigationLink {
             ProjectView(store: store, name: project)
         } label: {
             InkCard {
                 VStack(alignment: .leading, spacing: 8) {
+                    ProjectStateChip(state: .make(completed: completed, total: total))
                     HStack(spacing: 6) {
-                        Circle().fill(ProjectColor.color(for: project)).frame(width: 8, height: 8)
+                        Circle().fill(color).frame(width: 8, height: 8)
                             .accessibilityHidden(true)
-                        Text(verbatim: project).font(.ink.content).foregroundStyle(.ink.text)
+                        Text(verbatim: project).font(.ink.content.weight(.semibold)).foregroundStyle(.ink.text)
                             .lineLimit(width == nil ? nil : 1)
                     }
-                    Text(String(format: String(localized: "%1$d/%2$d açık"), open, total))
+                    Text(String(format: String(localized: "%1$d/%2$d görev"), completed, total))
                         .font(.ink.meta).monospacedDigit().foregroundStyle(.ink.secondaryText)
-                    InkProgress(kind: .fraction(total == 0 ? 0 : Double(completed) / Double(total)))
+                    ProjectProgressBar(fraction: total == 0 ? 0 : Double(completed) / Double(total), color: color)
                 }
                 .frame(width: width, alignment: .leading)
                 .frame(maxWidth: width == nil ? .infinity : nil, alignment: .leading)
@@ -293,7 +310,8 @@ struct TasksView: View {
                 store: store, row: row, day: model.day,
                 isOverdue: row.due.map { $0 < model.day } ?? false,
                 isBusy: model.busy.contains(row.id), allowsReopening: true,
-                footnote: footnote(for: row), openDetail: { detailRow = row }
+                footnote: footnote(for: row), openDetail: { detailRow = row },
+                namesMissingProject: true
             ) { Task { await model.toggle(row) } }
             .inkListRow(
                 columnSelected: selection == row.id,
@@ -331,6 +349,71 @@ struct TasksView: View {
         let calendar = Calendar(identifier: .gregorian)
         let instant = calendar.date(byAdding: .day, value: 1, to: LocalDay.instant(for: model.day))!
         return LocalDay.today(at: instant)
+    }
+}
+
+/// A project's state on its card, from its task counts: none done yet, some done, all done.
+enum ProjectCardState: Equatable {
+    case notStarted, running, done
+
+    static func make(completed: Int, total: Int) -> Self {
+        if total > 0 && completed >= total { return .done }
+        return completed > 0 ? .running : .notStarted
+    }
+}
+
+/// The small state capsule at the top of a project card ("● Sürüyor").
+struct ProjectStateChip: View {
+    let state: ProjectCardState
+
+    var body: some View {
+        HStack(spacing: 4) {
+            Circle()
+                .strokeBorder(dotColor, lineWidth: state == .notStarted ? 1.5 : 0)
+                .background(Circle().fill(state == .notStarted ? Color.clear : dotColor))
+                .frame(width: 7, height: 7)
+                .accessibilityHidden(true)
+            title
+                .font(.ink.meta)
+                .foregroundStyle(.ink.secondaryText)
+                .lineLimit(1)
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 3)
+        .background(Capsule().fill(Color.ink.well))
+    }
+
+    private var dotColor: Color {
+        switch state {
+        case .running: Color.ink.accent
+        case .notStarted, .done: Color.ink.secondaryText
+        }
+    }
+
+    private var title: Text {
+        switch state {
+        case .notStarted: Text("Başlamadı")
+        case .running: Text("Sürüyor")
+        case .done: Text("Bitti")
+        }
+    }
+}
+
+/// A project card's bar in the project's own color (the weekly card keeps the accent).
+struct ProjectProgressBar: View {
+    let fraction: Double
+    let color: Color
+
+    var body: some View {
+        let value = InkProgressMath.fraction(fraction)
+        GeometryReader { geometry in
+            ZStack(alignment: .leading) {
+                Capsule().fill(Color.ink.well)
+                Capsule().fill(color).frame(width: max(0, geometry.size.width * value))
+            }
+        }
+        .frame(height: 4)
+        .accessibilityValue(Text(verbatim: InkProgressMath.percentText(value)))
     }
 }
 

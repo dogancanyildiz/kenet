@@ -192,6 +192,7 @@ struct TimelineDesktopContent: View {
     /// Floors until the drawn word and date labels report a larger width.
     @State private var todayLabelWidth: CGFloat = 48
     @State private var dateLabelWidth: CGFloat = 64
+    @Environment(\.timelineRowHeight) private var rowHeight
 
     var body: some View {
         let chartWidth = CGFloat(days.count) * dayWidth
@@ -233,7 +234,7 @@ struct TimelineDesktopContent: View {
         if clipsToWindow {
             bar
                 .offset(x: -shift)
-                .frame(width: chartWidth, height: TimelineDesktopMetrics.rowHeight, alignment: .leading)
+                .frame(width: chartWidth, height: rowHeight, alignment: .leading)
                 .clipped()
         } else {
             bar

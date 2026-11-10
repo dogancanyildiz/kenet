@@ -85,7 +85,7 @@ struct KanbanCard: View {
                     }
                     HStack(spacing: 8) {
                         if let project = row.project {
-                            TagChip(title: project, filled: true)
+                            KanbanProjectChip(project: project)
                         }
                         if let date = row.due {
                             TaskDueDateLabel(
@@ -145,6 +145,28 @@ struct KanbanCard: View {
             provider, &KanbanDragSessionEndBox.associatedKey, endBox,
             .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
         return provider
+    }
+}
+
+/// The card's project: a filled capsule with the project's color dot and its name.
+struct KanbanProjectChip: View {
+    let project: String
+
+    var body: some View {
+        HStack(spacing: 5) {
+            Circle()
+                .fill(ProjectColor.color(for: project))
+                .frame(width: 7, height: 7)
+                .accessibilityHidden(true)
+            Text(verbatim: project)
+                .font(.ink.meta)
+                .foregroundStyle(.ink.text)
+                .lineLimit(1)
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 3)
+        .background(Capsule().fill(Color.ink.well))
+        .accessibilityElement(children: .combine)
     }
 }
 

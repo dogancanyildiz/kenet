@@ -25,15 +25,28 @@ struct TimelineTaskRow: View {
         return parts.joined(separator: ", ")
     }
 
+    private var title: some View {
+        LinkedTextView(
+            text: row.text, store: model.store, isMuted: presentation.usesSecondaryText
+        )
+        .font(.ink.content)
+        .foregroundStyle(
+            presentation.usesSecondaryText ? Color.ink.secondaryText : Color.ink.text)
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            LinkedTextView(
-                text: row.text, store: model.store, isMuted: presentation.usesSecondaryText
-            )
-            .font(.ink.content)
-            .foregroundStyle(
-                presentation.usesSecondaryText ? Color.ink.secondaryText : Color.ink.text)
-            TimelineTaskFacts(model: model, row: row, presentation: presentation)
+            if row.start == nil && row.due == nil {
+                // An undated row has no date line: its marks (priority, done) sit beside the text.
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    title
+                    Spacer(minLength: 0)
+                    TimelineTaskFacts(model: model, row: row, presentation: presentation)
+                }
+            } else {
+                title
+                TimelineTaskFacts(model: model, row: row, presentation: presentation)
+            }
             if let span = model.dates(for: row).span(on: model.today), span.isReversed {
                 HStack(spacing: 4) {
                     Image(systemName: "exclamationmark.triangle")
@@ -61,12 +74,20 @@ struct TimelineTaskFacts: View {
     let model: TimelineModel
     let row: TaskRow
     let presentation: TaskStatusPresentation
+    /// The phone chart's narrow label column: day and short month, no year ("1 Eki → 30 Kas").
+    var compact = false
+
+    private var format: Date.FormatStyle {
+        compact ? .dateTime.day().month(.abbreviated) : .dateTime.day().month().year()
+    }
+
+    private var font: Font { compact ? .ink.meta.monospacedDigit() : .ink.time }
 
     var body: some View {
-        HStack(spacing: 6) {
+        HStack(spacing: compact ? 4 : 6) {
             if let start = row.start {
-                Text(LocalDay.instant(for: start), format: .dateTime.day().month().year())
-                    .font(.ink.time)
+                Text(LocalDay.instant(for: start), format: format)
+                    .font(font)
                     .foregroundStyle(.ink.secondaryText)
                     .monospacedDigit()
             }
@@ -78,8 +99,8 @@ struct TimelineTaskFacts: View {
             if let due = row.due {
                 TaskDueDateLabel(
                     date: due, presentation: presentation, asOf: model.today,
-                    format: .dateTime.day().month().year(),
-                    font: .ink.time
+                    format: format,
+                    font: font
                 )
                 .monospacedDigit()
             } else if row.start != nil {

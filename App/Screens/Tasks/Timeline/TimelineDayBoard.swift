@@ -103,7 +103,9 @@ struct TimelineDayBoard: View {
     }
 
     private func eventCard(_ event: EventRow) -> some View {
-        Button { selectEvent(event) } label: {
+        Button {
+            selectEvent(event)
+        } label: {
             InkTimelineCard(
                 title: event.text.plainText,
                 meta: event.time.map { EventTimeFormat.string(for: $0, locale: locale) },
@@ -134,7 +136,8 @@ struct TimelineTaskCard: View {
                 meta: task.project ?? String(localized: "Projesiz"),
                 barColor: ProjectColor.color(for: task.project),
                 kindLabel: isLate ? String(localized: "Geç") : nil,
-                isCompleted: task.isClosed)
+                isCompleted: task.isClosed
+            )
             .overlay {
                 if isLate {
                     RoundedRectangle(cornerRadius: InkCorner.card, style: .continuous)

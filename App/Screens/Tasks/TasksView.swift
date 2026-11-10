@@ -277,7 +277,8 @@ struct TasksView: View {
             ) { Task { await model.toggle(row) } }
             .inkListRow(
                 columnSelected: selection == row.id,
-                cardSegment: .position(index, of: rows.count))
+                cardSegment: .position(index, of: rows.count)
+            )
             .tag(row.id)
             .alignmentGuide(.listRowSeparatorLeading) { _ in 0 }
         }

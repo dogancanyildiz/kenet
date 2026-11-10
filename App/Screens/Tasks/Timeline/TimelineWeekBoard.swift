@@ -43,7 +43,9 @@ struct TimelineWeekBoard: View {
             }
             .accessibilityElement(children: .combine)
             ForEach(events) { event in
-                Button { selectEvent(day, event) } label: {
+                Button {
+                    selectEvent(day, event)
+                } label: {
                     InkTimelineCard(
                         title: event.text.plainText,
                         meta: event.time.map { EventTimeFormat.string(for: $0, locale: locale) },

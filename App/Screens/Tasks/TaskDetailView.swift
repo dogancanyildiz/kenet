@@ -175,7 +175,8 @@ struct TaskDetailView: View {
                     InkTabItem("! Orta", value: TaskDetailPriority.medium),
                     InkTabItem("!! Yüksek", value: TaskDetailPriority.high),
                 ],
-                accessibilityLabelPrefix: String(localized: "Öncelik"))
+                accessibilityLabelPrefix: String(localized: "Öncelik")
+            )
             .disabled(!store.canAddEvent)
         }
     }

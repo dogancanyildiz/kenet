@@ -208,7 +208,7 @@ Uygulama açılışta Bugün ekranını gösterir. Bölüm 2–9 kartlarda durur
 
 | Bölüm | Sayaç |
 |---|---|
-| Hedefler | Yapılan ve toplam: `m/n`. Sayaç yalnız günlük hedefleri sayar: `countedGoalIDs` ile aynı küme. |
+| Hedefler | Yapılan ve toplam: `m/n`. Sayaç günlük ve haftalık hedefleri sayar: `countedGoalIDs` ile aynı küme. Haftalık hedef haftası tamamsa yapılmış sayılır. Yıllık hedef sayaca girmez. Hedefler ekranındaki "Bugün 1/3 tamam" aynı kümeyi sayar. |
 | Görevler | Kalan görev sayısı. |
 | Olaylar | Olay sayısı. |
 
@@ -218,10 +218,10 @@ Varsayılan yazı boyutunda hızlı giriş tek satırlı bir kapsüldür. Ölç�
 
 | Konu | Davranış |
 |---|---|
-| Gün halkası | Günlük hedeflerin yapılan oranını çizer. Ortasındaki sayı kalan günlük hedef sayısıdır. Halka Hedefler sayacıyla aynı kümeyi sayar. Günlük hedef yoksa halka çizilmez. VoiceOver "3 hedef kaldı" okur. |
+| Gün halkası | Sayılan hedeflerin (günlük ve haftalık) yapılan oranını çizer. Ortasındaki sayı kalan hedef sayısıdır. Halka Hedefler sayacıyla aynı kümeyi sayar. Sayılan hedef yoksa halka çizilmez. VoiceOver "3 hedef kaldı" okur. |
 | Gün rakamı ve gün adı | Gün rakamı büyük ve kalındır; yanında gün adı ve ay durur: "Perşembe, Ekim". |
 | Hafta şeridi | Cihaz takviminin hafta başından 7 gün: Pzt–Paz ya da Paz–Cmt. Bugün `well` kapsülde vurguludur. Yazılan günün altında nokta durur. Bir güne dokunma o günün Gün ekranını açar. |
-| Künye cümlesi | Saate göre selamlama ve günün sayıları: "Günaydın. Bugün 2 olay, 6 görev ve 3 hedef var." Selamlama 05:00–11:59 "Günaydın", 12:00–17:59 "İyi günler", öteki saatlerde "İyi akşamlar"dır. Sayılar olay, kalan görev ve kalan günlük hedeftir; sayı ve sözcüğü öne çıkar. Sıfır olan parçayı yazmaz. Hiçbir sayı yoksa yalnız selamlama durur. |
+| Künye cümlesi | Saate göre selamlama ve günün sayıları: "Günaydın. Bugün 2 olay, 6 görev ve 3 hedef var." Selamlama 05:00–11:59 "Günaydın", 12:00–17:59 "İyi günler", öteki saatlerde "İyi akşamlar"dır. Sayılar olay, kalan görev ve kalan hedeftir (günlük ve haftalık, sayaçla aynı küme); sayı ve sözcüğü öne çıkar. Sıfır olan parçayı yazmaz. Hiçbir sayı yoksa yalnız selamlama durur. |
 | Künye çipleri | 3 çip: zincir ("12 gün zincir"), dünün olay sayısı ("Dün 4 olay"), son görüşülen kişi. Her çip yalnız verisi varken görünür. Kişi çipi kişinin ekranını açar. |
 | Kaydırma | Kaydırınca gün başlığı tek satıra iner: gün rakamı, gün adı ve simgeler üstte kalır. |
 | Gezinme çubuğu | Bugün sekmesi gezinme çubuğunu gizler. |
@@ -234,13 +234,13 @@ Varsayılan yazı boyutunda hızlı giriş tek satırlı bir kapsüldür. Ölç�
 
 | Konu | Davranış |
 |---|---|
-| Liste | Önce günlük hedefler durur. Haftalık ve yıllık hedeflerin meta satırında dönem ilerleme metni vardır. Bu metin sayaca girmez. |
+| Liste | Önce sayılan hedefler (günlük, sonra haftalık) durur, sonra yıllık hedefler. Haftalık ve yıllık hedeflerin meta satırında dönem ilerleme metni vardır. |
 | Sıra | Uygulama sırayı günün ilk yüklemesinde kurar: önce açık hedefler, sonra dönemi biten hedefler; her grup ada göre. Gün ekranda kaldıkça sıra değişmez. Biten hedef yerinde kalır. Yeni hedef sona eklenir. Gün ya da kasa değişince sıra yeniden kurulur. |
 | İşaretleme | Tek dokunuşluk artı hedefi işaretler ya da sayısal değeri 1 artırır. |
 | Miktar girişi | Sayısal hedefte değer metnine dokunma, basılı tutma ya da menü miktar alanını açar. |
 | Dokunma | Ad ve meta satırı tek dokunma bloğudur; blok en az 44 pt yüksektir. Bloğa dokunma hedefin ayrıntı ekranını açar. Ekran sayfanın gezinme yığınına girer: iPhone'da Bugün sekmesi, Mac'te ayrıntı sütunu. Kilometre taşı satırı da ayrıntıyı açar. Artı, değer metni ve halka kendi işlerini yapar. VoiceOver satırı ad, değer ve "Ayrıntıları göster" ipucuyla okur; artı ayrı öğedir. |
 | Zincir günü rozeti | Günlük hedefin zincir günü bakiyesi 1–3 ise adın yanında küçük rozet durur: zincir simgesi ve sayı, ince kontrol çizgisi çerçevesi. Bakiye 0 ise rozet yoktur ve satır rozetsiz hâliyle aynıdır. VoiceOver satırın değerine "2 zincir günü" ekler. Kural `vault-format.md` Zincir günü bölümündedir. |
-| Görünüm | Bekleyen hedefler belirgindir, biten hedefler soluktur. Artı yuvası her satırda yerini korur. Yazma ya da yükleme sürerken artı soluk ve devre dışıdır. İşaretli evet/hayır hedefte yuvada dolu onay simgesi durur; simge ikincil metin rengindedir. Satır yüksekliği ve genişliği yazmadan önce ve sonra aynıdır. Bölüm başlığında yükleme göstergesi yoktur. |
+| Görünüm | Bekleyen hedefler belirgindir, biten hedefler soluktur. Artı yuvası her satırda yerini korur. Yazma ya da yükleme sürerken artı soluk ve devre dışıdır. Her hedef kendi küçük kartındadır: üstte halka ve artı, altta ad ve değer. İşaretli evet/hayır hedefte artı yuvasında "✓ Tamam" durur. Sayı hedefinde artı dönem bitince de kalır: miktar hedefi aşabilir. Satır yüksekliği ve genişliği yazmadan önce ve sonra aynıdır. Bölüm başlığında yükleme göstergesi yoktur. |
 
 #### Görevler bölümü
 
@@ -522,8 +522,9 @@ flowchart TD
 | Başlık | Başlık günün tam tarihidir: "12 Ekim Pazartesi". Başka yılın gününde yıl da yazar. Ay seçici başlığın altında durur: ay, yıl ve aşağı ok. Sağda arama durur. Gün dosyası bağlantı içeriyorsa aramanın solunda günün grafiği simgesi durur. Ay seçici dokunmayla "Ay seç" sheet'ini açar; seçilen gün ekranı değiştirir. Geri düğmesi gezinme çubuğundadır. |
 | Künye satırı | Hafta şeridinin altında günün sayıları: "3 olay · 2 görev kaldı". Sıfır olan parça yazılmaz. Bugün'deki künye cümlesi ve çipler yoktur. |
 | Hafta şeridi | Bugün'deki şerit. Seçili gün `well` kapsüldedir. Bir güne dokunma o günü gösterir. |
-| Saatli program | Solda saat sütunu, sağda olay ve görev kartları saat sırasıyla. Görev kartı görev kutusunu taşır. Kart sol renkli çubuklu zaman kartıdır. |
-| Saatsiz grubu | Saati olmayan olay ve görevler en altta "Saatsiz" başlığının altındadır. Sıra dosyadaki satır sırasıdır; olay ve görev karışık durur. Başka dosyadan gelen görevler (bitişi o gün) en sonda durur. |
+| Gün başlığı | Hafta şeridinin altında günün tam tarihi durur. Sağında "3 olay · 2 görev" yazar. |
+| Saatli program | Solda saat sütunu, sağda olay ve görev kartları saat sırasıyla. Kartın solunda simge kutusu, sağında "›" durur. Görev kartı görev kutusunu taşır. Renkli çubuk yoktur. |
+| Saatsiz grubu | Saati olmayan olay ve görevler en altta "Saatsiz" başlığının altında, dosyadaki sırayla. |
 | Seçili kart | Dokunulan kart `accentSoft` zemin alır ve altında not satırını gösterir: olayın alt satırları ya da görevin tarihi. İkinci dokunma düzenlemeyi açar. |
 | Hedef kayıtları | O günün hedef kayıtları kartta. Kullanıcı kaydı düzeltir. |
 | Günlük yazısı ve bağlananlar | Bugün'deki kartların aynısı. |
@@ -1001,12 +1002,13 @@ Konumda koordinat, Alanlar tablosunda bir satırdır. Okuma ekranında harita yo
 
 | Öğe | Yer | Davranış |
 |---|---|---|
-| Manşet | Listenin içinde | Manşet. Sağda "Yeni hedef" (artı) ve arama durur. |
-| Günlük halkalar | Manşetin altı | Günlük hedeflerin halkaları yan yana; halkanın içinde günün yüzdesi, altında kısa ad. Halkaya dokunma hedefin ayrıntısını açar. Günlük hedef yoksa satır yoktur. Satıra sığmayan halkalar yatay kayar. |
-| Hedef kartı | Liste | Her hedef bir kart satırıdır: ad, dönem çipi (Günlük, Haftalık, Yıllık), sağda değer ve 44 pt "+". Altında 7 günlük çetele: her gün için dolu ya da boş kare, bugün çerçeveli. En altta zincir satırı: "12 gün zincir". "+" hedefi işaretler ya da 1 artırır. |
-| Skor | Günlük hedef satırı | Zincirin altında ikincil metin: "Son 30 gün %87". Ölçülen gün yoksa (yeni hedef) skor yoktur. Haftalık ve yıllık satırda skor yoktur. |
+| Manşet | Listenin içinde | Manşet. Altında künye: "Bugün 1/3 tamam". Sağda "Yeni hedef" (artı) ve arama durur. |
+| Özet kartı | Manşetin altı | Günlük ve haftalık hedeflerin büyük halkaları bir kartta yan yana: halkanın içinde yüzde, altında ad ve değer. Halkaya dokunma hedefin ayrıntısını açar. Böyle hedef yoksa kart yoktur. Sığmayan halkalar yatay kayar. |
+| Tüm hedefler | Özet kartının altı | Bölüm başlığı ve hedef sayısı. |
+| Hedef kartı | Liste | Her hedef bir kart satırıdır: ad, dönem çipi (Günlük, Haftalık, Yıllık), altında değer satırı, sağda büyük "+". Solda halka ve sağda "›" yoktur. Altında 7 günlük çetele: her gün için dolu ya da boş kare, bugün çerçeveli. En altta zincir simgeli satır: "Zincir 12 gün". "+" hedefi işaretler ya da 1 artırır. |
+| Skor | Günlük hedef satırı | Değer satırının sonunda: "30/20 sayfa · Son 30 gün %87". Ölçülen gün yoksa (yeni hedef) skor yoktur. Haftalık ve yıllık satırda skor yerine kalan miktar durur: "7 kitap kaldı". |
 | Zincir günü rozeti | Günlük hedef satırı | Zincir günü bakiyesi 1–3 ise "Güncel zincir" metninin yanında Bugün şeridindeki rozetin aynısı durur: zincir simgesi ve sayı, ince kontrol çizgisi çerçevesi. Skor alt satırda kalır. Zincir metniyle rozet tek satıra sığmazsa (büyük yazı) rozet zincir metninin altına iner. Bakiye 0 ise rozet yoktur ve satır rozetsiz hâliyle aynıdır. Haftalık, yıllık ve kilometre taşı satırında rozet yoktur. VoiceOver satırı okurken "2 zincir günü" der. Özetler'in günlük şeridinde rozet yoktur. |
-| Haftalık hedef | Kart | Çetele yerine "bu hafta 2/3". |
+| Haftalık hedef | Kart | Çetele yoktur; değer satırı "0/3 · 3 kaldı" yazar. |
 | Yıllık hedef | Kart | Çetele yerine 12 aylık mini çubuk: her ayın katkısı. |
 | Kilometre taşı (5) | Kart | Yıllık, miktarsız kart: yapıldı ya da yapılmadı ve tarih. Dokunma bugünü işaretler ya da bugünkü kaydı kaldırır. Önceki gün tamamlanmış satır salt okunurdur. Zincir ve ısı haritası yoktur. |
 | Uzun basma | Hedef satırı | Boolean hedefte Bugünü işaretle ya da İşareti kaldır; sayısal hedefte Miktar gir; ardından Düzenle ve Sil. Kilometre taşında yalnız Düzenle ve Sil. İkincil tık aynı menüyü açar. Sil onay ister; gün kayıtları kalır. |
@@ -1017,15 +1019,15 @@ Konumda koordinat, Alanlar tablosunda bir satırdır. Okuma ekranında harita yo
 
 | Öğe | Davranış |
 |---|---|
-| Manşet | Hedefin adı. Sağda arama durur. |
-| Büyük değer ve halka | Büyük rakamla bugünkü değer ve hedefin halkası. Altında sayısal hedefte "Miktar gir" ve "+", evet/hayır hedefte "Bugünü işaretle" durur. Kilometre taşında yapıldı ya da yapılmadı ve tarih durur. |
+| Manşet | Hedefin adı. Sağda dönem hapı ("Günlük · 20 sayfa") ve arama durur. |
+| Büyük değer ve halka | Büyük rakamla bugünkü değer ve hedefin halkası. Altında sayısal hedefte geniş "Miktar gir" hapı ve hemen yanında "+", evet/hayır hedefte "Bugünü işaretle" durur. Kilometre taşında yapıldı ya da yapılmadı ve tarih durur. |
 | İstatistik şeridi | Kartta yan yana: güncel zincir ve en uzun zincir, son 30 gün yüzdesi, affedilen gün sayısı. Haftalık ve yıllık hedefte zincir ve skor yoktur. Kilometre taşında şerit yoktur. |
-| Grafik kartı | Günlük hedefte son 90 gün (erişilebilirlik boyutunda 30 gün): günlük nokta, hedefte ya da üstünde dolu, altında boş; 7 günlük ortalama çizgisi; kesik hedef çizgisi. Haftalık hedefte son 12 hafta toplamı. Yıllık hedefte 12 aylık toplam çubuğu ve altında aylık liste. Kilometre taşında yoktur. |
+| Grafik kartı | Başlık kartın içindedir; sağında özet: "Ortalama 25 · 18 günde hedefin üstünde". Günlük hedefte son 90 gün (erişilebilirlik boyutunda 30 gün): günlük nokta, hedefte ya da üstünde dolu, altında boş; 7 günlük ortalama çizgisi; kesik hedef çizgisi. Haftalık hedefte son 12 hafta toplamı. Yıllık hedefte 12 aylık toplam çubuğu ve altında aylık liste. Kilometre taşında yoktur. |
 | Isı haritası | Grafik kartının altında kendi kartında. Başlık döneme göre hafta sayısı söylemez. Yoğunluk renge ek olarak biçimle görünür. Bugün çerçevelidir. Isı haritası geleceği çizmez. Sığmazsa en yeni hafta açık gelir. |
 | Affedilen gün | Kesik çizgili vurgu çerçevesi. Kısmi katkısı varsa dolgusu kalır. VoiceOver "affedildi" ya da "kısmi katkı, affedildi" der. |
 | Zincir günüyle korunan gün | Affedilen günün kesik çerçevesi ve hücrenin boş kısmında vurgu noktası. Kısmi katkısı varsa dolgusu kalır; nokta dolgunun üstünde durur. VoiceOver "zincir günüyle korundu" ya da "kısmi katkı, zincir günüyle korundu" der. Lejantta "Zincir günü" ayrı satırdadır ve yalnız haritada böyle bir gün görünürken çıkar. |
 | Zincir günü | Günlük hedefte istatistik şeridinin altında: zincir simgesi ve "2 zincir günü", altında tek cümle kural: "Zincirdeki her 7 yapılmış gün 1 zincir günü kazandırır; kaçırılan gün zincir günüyle korunur. En çok 3." Bakiye 0 ise satır ve cümle yoktur. |
-| Son kayıtlar | Son kayıtlar kart satırlarında, yeniden eskiye: tarih ve değer. Kullanıcı geçmiş günlerin kaydını düzeltir. |
+| Son kayıtlar | Son kayıtlar kart satırlarında, yeniden eskiye: "19 Eyl Cumartesi", hedefe ulaşan günde ✓, kalın değer ve "›". Başlığın sağında "Dokun, düzelt" yazar. Kullanıcı geçmiş günlerin kaydını düzeltir. |
 | Hedefi düzenle | Sayfanın altında düz yazı düğme. Tanım formunu açar. Kasa yazılamıyorsa yoktur. |
 | Hedefi sil | "Hedefi düzenle"nin altında, tehlike renginde düz yazı. Onay ister: "<Ad> silinsin mi? Gün kayıtları kalır." Yalnız hedef dosyasını siler. Sonra ayrıntı kapanır ve Hedefler listesi görünür. Mac'te ayrıntı sütunu "Bir hedef seç" durumuna döner. Silme başarısız olursa ayrıntı açık kalır ve nedeni yazar. |
 | Tanım formu | Sheet. Ortak kalıp: `elevated` zemin, solda "Vazgeç", sağda "Kaydet". Alanlar: ad, anahtar (salt okunur), dönem (sekme), tür (sekme: İşaret \| Sayı), hedef miktar, birim. Birim sayı türünde ya da dosyada birim varsa görünür. Kilometre taşında dönem ve tür salt okunur satırdır. Altında "Kilometre taşının dönemi ve türü değişmez." yazar. Hedef miktar yoktur. |
@@ -1039,7 +1041,8 @@ Grafikte "Ortalama", görünür aralıkta kaydı olan günlerin değer ortalamas
 | Konu | Davranış |
 |---|---|
 | Düzen | Ortak sheet kalıbı, `elevated` zemin; bölümler kart içindedir. |
-| Hazır hedefler | Ad alanının altında 15 şablon: simge, yerelleştirilmiş ad ve miktar/dönem özeti. Ad yazıldıkça yerel dilde büyük/küçük harf ve aksan duyarsız süzülür; eşleşme yoksa bölüm gizlenir. Dokunma ad, tür, dönem, miktar ve birimi doldurur; kullanıcı düzenleyebilir. Seçili şablon onay işaretiyle vurgulanır; alan değişince seçim kalkmaz. Liste sheet içinde kayar; şablon seçmeden de hedef oluşturulur. Şablon kimliği ve simgesi dosyaya yazılmaz. |
+| Ad | Etiketin altında dolgulu yazı alanı; düzenlenirken vurgu renginde çerçeve. |
+| Hazır hedefler | Ad alanının altında 15 şablondan eşleşen ilk 5'i. Başlığın sağında "15 hedeften 5'i" yazar; fazlası "Tümünü göster" ile açılır. Satır: renkli simge kutusu, yerelleştirilmiş ad (eşleşen harfler kalın), sağda miktar/dönem özeti. Dönem ve Tür ilk ekranda görünür. Ad yazıldıkça yerel dilde büyük/küçük harf ve aksan duyarsız süzülür; eşleşme yoksa bölüm gizlenir. Dokunma ad, tür, dönem, miktar ve birimi doldurur; kullanıcı düzenleyebilir. Seçili şablon onay işaretiyle vurgulanır; alan değişince seçim kalkmaz. Liste sheet içinde kayar; şablon seçmeden de hedef oluşturulur. Şablon kimliği ve simgesi dosyaya yazılmaz. |
 | Alanlar | Dönem altı çizili sekmedir: Günlük \| Haftalık \| Yıllık. Tür altı çizili sekmedir: İşaret \| Sayı \| Kilometre taşı. Hedef miktar etiketli alandır. |
 | Çubuk | Ortak kalıp: solda "Vazgeç", sağda "Oluştur". Her yazı boyutunda üstte durur. |
 

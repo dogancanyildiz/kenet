@@ -23,11 +23,10 @@ struct TaskDueDateLabel: View {
 
     @ViewBuilder private var dateLabel: some View {
         if presentation.showsOverdueCue {
-            HStack(spacing: 4) {
-                Image(systemName: "arrow.forward.circle")
-                    .accessibilityHidden(true)
-                Text(verbatim: carriedOverText)
-            }
+            // "14 Eyl'den devretti" in amber semibold: the word, not an icon, says it is carried
+            // over (the drawing), so the state is never told by colour alone.
+            Text(verbatim: carriedOverText)
+                .fontWeight(.semibold)
         } else if includeCalendarIcon {
             HStack(spacing: 4) {
                 Image(systemName: "calendar")
@@ -40,10 +39,11 @@ struct TaskDueDateLabel: View {
 
     private var carriedOverText: String {
         if let asOf {
-            return TodayPresentation.carriedOverDate(
+            return TodayPresentation.carriedOverPhrase(
                 date, today: asOf, locale: locale, calendar: calendar)
         }
-        return LocalDay.instant(for: date).formatted(format)
+        let day = LocalDay.instant(for: date).formatted(format)
+        return String(localized: "\(day) devretti", locale: locale)
     }
 }
 

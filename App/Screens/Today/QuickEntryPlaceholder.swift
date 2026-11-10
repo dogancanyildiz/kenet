@@ -328,20 +328,31 @@ struct QuickEntryBar: View {
                 model.includesTime.toggle()
             }
         } label: {
-            Group {
-                if model.includesTime {
-                    Text(
-                        model.isHistorical ? model.selectedTime : model.calendarDraft?.time ?? now,
-                        format: .dateTime.hour().minute()
-                    )
-                    .font(.ink.time)
-                    .foregroundStyle(Color.ink.secondaryText)
-                    .monospacedDigit()
-                } else {
-                    Image(systemName: "clock.badge.xmark")
-                        .foregroundStyle(Color.ink.secondaryText)
+            // The drawing's time chip: a clock and the time in a soft pill ("⏱ 09:41"); without a
+            // time the pill keeps its place and reads "Saat".
+            HStack(spacing: 4) {
+                Image(systemName: "clock")
+                    .font(.ink.meta)
+                    .accessibilityHidden(true)
+                Group {
+                    if model.includesTime {
+                        Text(
+                            model.isHistorical ? model.selectedTime : model.calendarDraft?.time ?? now,
+                            format: .dateTime.hour().minute()
+                        )
+                        .monospacedDigit()
+                    } else {
+                        Text("Saat")
+                    }
                 }
+                .font(.ink.meta.weight(.semibold))
             }
+            .foregroundStyle(model.includesTime ? Color.ink.text : Color.ink.secondaryText)
+            .lineLimit(1)
+            .fixedSize()
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(Capsule().fill(Color.ink.well))
             .tapTarget()
         }
         .buttonStyle(.plain)

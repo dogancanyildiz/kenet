@@ -36,11 +36,15 @@ struct TodayPresentation: Sendable {
     /// The open tasks the close-day flow lists: `remainingTaskCount` without those written on the
     /// day and due later (their due day is already chosen).
     let closeDayTaskCount: Int
+    /// The open daily goals alone: the close-day flow's goal step lists only these.
     let remainingGoalCount: Int
+    /// The open counted goals (daily and weekly): the byline and the summary sentence say these.
+    let remainingCountedGoalCount: Int
     let completedGoalCount: Int
     let goalCount: Int
-    /// Daily goals only (`period == .day`). Counter, byline, and this ID list share one set;
-    /// the view should draw the same IDs so a fraction like `1/3` matches visible goal rows.
+    /// Daily and weekly goals (`period != .year`), as the Goals page's "Bugün 1/3 tamam" counts.
+    /// Counter, byline, day ring and this ID list share one set; the view draws the same IDs
+    /// first so a fraction like `1/3` matches the visible goal cards.
     let countedGoalIDs: [String]
     let eventCount: Int
     private let carriedOver: [TaskRow]
@@ -116,23 +120,26 @@ struct TodayPresentation: Sendable {
         remainingTaskCount = carriedOver.count + datedTasks.count + createdTasks.count
         closeDayTaskCount = carriedOver.count + datedTasks.count + createdTasks.filter { $0.due == nil }.count
         if goalStatusesDay == day.date {
-            let daily = goals.filter { $0.period == .day }
-            countedGoalIDs = daily.map(\.id)
-            goalCount = daily.count
-            completedGoalCount = daily.filter { goalStatuses[$0.key]?.progress.isComplete == true }.count
-            remainingGoalCount = goalCount - completedGoalCount
+            let counted = goals.filter { $0.period != .year }
+            let isComplete = { (goal: GoalDefinition) in goalStatuses[goal.key]?.progress.isComplete == true }
+            countedGoalIDs = counted.map(\.id)
+            goalCount = counted.count
+            completedGoalCount = counted.filter(isComplete).count
+            remainingCountedGoalCount = goalCount - completedGoalCount
+            remainingGoalCount = goals.filter { $0.period == .day && !isComplete($0) }.count
         } else {
             countedGoalIDs = []
             goalCount = 0
             completedGoalCount = 0
             remainingGoalCount = 0
+            remainingCountedGoalCount = 0
         }
         eventCount = day.events.count
         byline = TodayCopy.byline(
-            events: eventCount, tasks: remainingTaskCount, goals: remainingGoalCount, locale: resolved)
+            events: eventCount, tasks: remainingTaskCount, goals: remainingCountedGoalCount, locale: resolved)
         summaryParts = TodaySummaryCopy.parts(
             greeting: greeting, events: eventCount, tasks: remainingTaskCount,
-            goals: remainingGoalCount, locale: resolved)
+            goals: remainingCountedGoalCount, locale: resolved)
     }
 
     var carriedOverTasks: [TaskRow] { isCarriedOverExpanded ? carriedOver : Array(carriedOver.prefix(3)) }
@@ -233,6 +240,16 @@ struct TodayPresentation: Sendable {
         case .events: eventCount.formatted(.number.locale(locale))
         case .calendar, .journal: nil
         }
+    }
+
+    /// The carried-over task's label: "14 Eyl'den devretti" / "carried over from Sep 14".
+    static func carriedOverPhrase(
+        _ date: CalendarDate, today: CalendarDate, locale: Locale, calendar: Calendar
+    ) -> String {
+        let resolved = PresentationLocalization.resolvedLocale(locale)
+        let from = carriedOverDate(date, today: today, locale: resolved, calendar: calendar)
+        return String(
+            localized: "\(from) devretti", bundle: PresentationLocalization.bundle(resolved), locale: resolved)
     }
 
     static func carriedOverDate(
@@ -464,7 +481,7 @@ enum PresentationLocalization {
     }
 }
 
-private enum TodayCopy {
+enum TodayCopy {
     static func byline(events: Int, tasks: Int, goals: Int, locale: Locale) -> String? {
         let bundle = PresentationLocalization.bundle(locale)
         let eventText = String(localized: "\(events) olay", bundle: bundle, locale: locale)

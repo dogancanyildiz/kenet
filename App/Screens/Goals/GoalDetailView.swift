@@ -25,10 +25,8 @@ struct GoalDetailView: View {
     private var goal: GoalDefinition { history.goals.first { $0.id == original.id } ?? original }
 
     private var masthead: InkPageTitle<some View> {
-        InkPageTitle(
-            verbatim: goal.name,
-            byline: GoalListPresentation.periodChip(goal.period, locale: locale)
-        ) {
+        InkPageTitle(verbatim: goal.name) {
+            periodPill
             SearchButton()
         }
     }
@@ -113,15 +111,37 @@ struct GoalDetailView: View {
         }
     }
 
+    /// "Günlük · 20 sayfa" beside the title (the drawing's period pill).
+    private var periodPill: some View {
+        let period = GoalListPresentation.periodChip(goal.period, locale: locale)
+        var amount: String?
+        if goal.kind == .number {
+            amount = goal.target.formatted(.number.locale(locale)) + (goal.unit.map { " " + $0 } ?? "")
+        }
+        return HStack(spacing: 4) {
+            Text(verbatim: period)
+                .fontWeight(.semibold)
+                .foregroundStyle(Color.ink.text)
+            if let amount {
+                Text(verbatim: "· " + amount)
+                    .foregroundStyle(Color.ink.secondaryText)
+            }
+        }
+        .font(.ink.meta)
+        .lineLimit(1)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 4)
+        .background(Capsule().fill(Color.ink.surface))
+        .overlay(Capsule().strokeBorder(Color.ink.rule, lineWidth: 1))
+        .accessibilityElement(children: .combine)
+    }
+
     private var chartSection: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            SectionHeader(
+        InkCard(padded: true) {
+            GoalValueChart(
+                goal: goal, logs: history.logs[goal.key] ?? [], today: history.day,
                 title: GoalValueChart.title(
                     for: goal, isAccessibilitySize: typeSize.isAccessibilitySize))
-            InkCard(padded: true) {
-                GoalValueChart(
-                    goal: goal, logs: history.logs[goal.key] ?? [], today: history.day)
-            }
         }
         .padding(.horizontal, InkSpacing.margin)
     }
@@ -150,7 +170,7 @@ struct GoalDetailView: View {
                 HStack(alignment: .center, spacing: 16) {
                     VStack(alignment: .leading, spacing: 6) {
                         HStack(alignment: .firstTextBaseline, spacing: 6) {
-                            LargeNumberText(verbatim: status.progress.done.formatted())
+                            LargeNumberText(verbatim: status.progress.done.formatted(), weight: .bold)
                             Text(verbatim: "/ " + goal.target.formatted())
                                 .font(.ink.value)
                                 .foregroundStyle(Color.ink.secondaryText)
@@ -190,12 +210,14 @@ struct GoalDetailView: View {
             status.completionDate != nil && status.completionDate != history.day
         if goal.kind == .number {
             HStack(spacing: 12) {
-                Button("Miktar gir") {
+                Button {
                     editing = GoalValueModel(dayModel: history, goal: goal)
+                } label: {
+                    Label("Miktar gir", systemImage: "line.3.horizontal")
+                        .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(InkSecondaryButtonStyle())
                 .disabled(!history.canEdit)
-                .frame(maxWidth: .infinity)
 
                 Button {
                     Task { await increment() }
@@ -211,12 +233,14 @@ struct GoalDetailView: View {
                 .accessibilityLabel(Text("Artır"))
             }
         } else if goal.kind == .boolean || goal.kind == .milestone {
-            Button(marked ? "İşareti kaldır" : "Bugünü işaretle") {
+            Button {
                 Task { await history.toggle(goal) }
+            } label: {
+                Text(marked ? "İşareti kaldır" : "Bugünü işaretle")
+                    .frame(maxWidth: .infinity)
             }
             .buttonStyle(InkSecondaryButtonStyle())
             .disabled(!history.canEdit || markReadOnly)
-            .frame(maxWidth: .infinity)
         }
     }
 
@@ -251,7 +275,8 @@ struct GoalDetailView: View {
             statCell(
                 title: String(
                     localized: "Zincir · en uzun \(status.longestStreak)", locale: locale),
-                value: GoalListPresentation.streakText(status.streak, locale: locale)
+                value: String(localized: "\(status.streak) gün", locale: locale),
+                systemImage: "link"
             )
             statsDivider(axis: axis)
         }
@@ -287,42 +312,65 @@ struct GoalDetailView: View {
             }
             return String(localized: "Affedildi", locale: locale)
         }()
-        return HStack(alignment: .center, spacing: 6) {
-            HeatmapCell(
-                kind: .forgiven, size: forgivenMark, accessibilityValue: Text("Affedildi"),
-                accessibilityLabel: Text("Affedildi"))
-            VStack(alignment: .leading, spacing: 2) {
-                Text(verbatim: String(localized: "\(count) gün", locale: locale))
-                    .font(.ink.value)
-                    .foregroundStyle(Color.ink.text)
-                Text(verbatim: title)
-                    .font(.ink.meta)
-                    .foregroundStyle(Color.ink.secondaryText)
-                    .fixedSize(horizontal: false, vertical: true)
+        return VStack(alignment: .leading, spacing: 2) {
+            HStack(alignment: .center, spacing: 6) {
+                HeatmapCell(
+                    kind: .forgiven, size: forgivenMark, accessibilityValue: Text("Affedildi"),
+                    accessibilityLabel: Text("Affedildi"))
+                statValue(String(localized: "\(count) gün", locale: locale))
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
+            statTitle(title)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, 4)
+        .padding(.horizontal, 6)
     }
 
-    private func statCell(title: String, value: String) -> some View {
+    /// A stat: an optional icon and a bold value ("🔗 12 gün"), the label under it on one line.
+    private func statCell(title: String, value: String, systemImage: String? = nil) -> some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text(verbatim: value)
-                .font(.ink.value)
-                .foregroundStyle(Color.ink.text)
-            Text(verbatim: title)
-                .font(.ink.meta)
-                .foregroundStyle(Color.ink.secondaryText)
-                .fixedSize(horizontal: false, vertical: true)
+            HStack(alignment: .firstTextBaseline, spacing: 4) {
+                if let systemImage {
+                    Image(systemName: systemImage)
+                        .font(.ink.meta.weight(.semibold))
+                        .foregroundStyle(Color.ink.accent)
+                        .accessibilityHidden(true)
+                }
+                statValue(value)
+            }
+            statTitle(title)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, 4)
+        .padding(.horizontal, 6)
+    }
+
+    private func statValue(_ value: String) -> some View {
+        Text(verbatim: value)
+            .font(.ink.value.weight(.bold))
+            .monospacedDigit()
+            .foregroundStyle(Color.ink.text)
+            .lineLimit(1)
+    }
+
+    private func statTitle(_ title: String) -> some View {
+        Text(verbatim: title)
+            .font(.ink.meta)
+            .foregroundStyle(Color.ink.secondaryText)
+            .lineLimit(1)
+            .minimumScaleFactor(0.75)
     }
 
     private var recentLogs: some View {
         VStack(alignment: .leading, spacing: 10) {
-            SectionHeader(title: String(localized: "Son kayıtlar"))
+            HStack(alignment: .firstTextBaseline) {
+                SectionHeader(title: String(localized: "Son kayıtlar"))
+                if history.canEdit, !(history.logs[goal.key] ?? []).isEmpty {
+                    Text("Dokun, düzelt")
+                        .font(.ink.meta)
+                        .foregroundStyle(Color.ink.secondaryText)
+                        .fixedSize()
+                        .accessibilityHidden(true)
+                }
+            }
             InkCard(padded: false) {
                 let logs = (history.logs[goal.key] ?? []).sorted { $0.day > $1.day }
                 if logs.isEmpty {
@@ -331,41 +379,68 @@ struct GoalDetailView: View {
                         .foregroundStyle(Color.ink.secondaryText)
                         .padding(InkSpacing.cardPadding)
                 } else {
-                    ForEach(Array(logs.enumerated()), id: \.element.day) { index, log in
-                        if index > 0 { InkCardDivider() }
-                        Button {
-                            Task { await edit(log.day) }
-                        } label: {
-                            HStack {
-                                Text(
-                                    LocalDay.instant(for: log.day),
-                                    format: .dateTime.day().month().year()
-                                )
-                                .font(.ink.meta)
-                                .foregroundStyle(Color.ink.secondaryText)
-                                Spacer()
-                                switch log.value {
-                                case .boolean(let value):
-                                    Text(value ? "Yapıldı" : "İşaretle")
-                                        .font(.ink.byline)
-                                        .foregroundStyle(Color.ink.text)
-                                case .number(let value):
-                                    Text(verbatim: value.formatted() + " " + (goal.unit ?? ""))
-                                        .font(.ink.value)
-                                        .foregroundStyle(Color.ink.text)
-                                }
+                    // One stack without the card's row gap: rows sit flush between hairlines.
+                    VStack(spacing: 0) {
+                        ForEach(Array(logs.enumerated()), id: \.element.day) { index, log in
+                            if index > 0 { InkCardDivider().padding(.leading, InkSpacing.cardPadding) }
+                            Button {
+                                Task { await edit(log.day) }
+                            } label: {
+                                logRow(log)
                             }
-                            .padding(.horizontal, InkSpacing.cardPadding)
-                            .padding(.vertical, 12)
-                            .contentShape(Rectangle())
-                            .tapTarget()
+                            .buttonStyle(.plain)
+                            .disabled(!history.canEdit)
                         }
-                        .buttonStyle(.plain)
-                        .disabled(!history.canEdit)
                     }
                 }
             }
         }
+    }
+
+    /// "19 Eyl Cumartesi … ✓ 25 sayfa ›": the check when the day met the target.
+    private func logRow(_ log: GoalLog) -> some View {
+        let date = LocalDay.instant(for: log.day)
+        let met: Bool =
+            switch log.value {
+            case .boolean(let value): value
+            case .number(let value): value >= goal.target
+            }
+        return HStack(alignment: .firstTextBaseline, spacing: 6) {
+            Text(date.formatted(.dateTime.day().month(.abbreviated).locale(locale)))
+                .font(.ink.content)
+                .foregroundStyle(Color.ink.text)
+            Text(date.formatted(.dateTime.weekday(.wide).locale(locale)))
+                .font(.ink.meta)
+                .foregroundStyle(Color.ink.secondaryText)
+            Spacer(minLength: 8)
+            if met {
+                Image(systemName: "checkmark")
+                    .font(.ink.meta.weight(.semibold))
+                    .foregroundStyle(Color.ink.secondaryText)
+                    .accessibilityHidden(true)
+            }
+            switch log.value {
+            case .boolean(let value):
+                Text(value ? "Yapıldı" : "İşaretle")
+                    .font(.ink.content.weight(.semibold))
+                    .foregroundStyle(Color.ink.text)
+            case .number(let value):
+                Text(verbatim: value.formatted(.number.locale(locale)) + (goal.unit.map { " " + $0 } ?? ""))
+                    .font(.ink.content.weight(.semibold))
+                    .monospacedDigit()
+                    .foregroundStyle(Color.ink.text)
+            }
+            if history.canEdit {
+                Image(systemName: "chevron.right")
+                    .font(.ink.meta.weight(.semibold))
+                    .foregroundStyle(Color.ink.tertiaryText)
+                    .accessibilityHidden(true)
+            }
+        }
+        .padding(.horizontal, InkSpacing.cardPadding)
+        .padding(.vertical, 10)
+        .frame(minHeight: TapTarget.minimumLength)
+        .contentShape(Rectangle())
     }
 
     private var footerActions: some View {

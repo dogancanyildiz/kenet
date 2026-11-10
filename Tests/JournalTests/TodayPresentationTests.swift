@@ -207,29 +207,68 @@ struct TodayPresentationTests {
         }
     }
 
+    /// B7: the carried-over label names the day and the carry: "14 Eyl'den devretti".
+    @Test func carriedOverPhraseSaysCarriedOver() {
+        let asOf = CalendarDate("2026-09-20")!
+        let cases: [(String, String, String, String)] = [
+            ("2026-09-14", "2026-09-20", "14 Eyl'den devretti", "carried over from Sep 14"),
+            ("2026-05-05", "2026-09-20", "5 May'tan devretti", "carried over from May 5"),
+            ("2025-12-31", "2026-01-02", "31 Ara 2025'ten devretti", "carried over from Dec 31, 2025"),
+        ]
+        for (date, today, turkish, englishText) in cases {
+            let value = CalendarDate(date)!
+            let day = CalendarDate(today) ?? asOf
+            #expect(
+                TodayPresentation.carriedOverPhrase(
+                    value, today: day, locale: Locale(identifier: "tr_TR"), calendar: calendar) == turkish)
+            #expect(
+                TodayPresentation.carriedOverPhrase(
+                    value, today: day, locale: Locale(identifier: "en_US"), calendar: calendar) == englishText)
+        }
+    }
+
     @Test(arguments: ["tr_TR", "en_US"])
-    func countersUseAllOpenGroupsAndDailyGoals(_ language: String) throws {
+    func countersUseAllOpenGroupsAndDailyAndWeeklyGoals(_ language: String) throws {
         let daily = (0..<3).map {
             GoalDefinition(id: "g\($0)", key: "g\($0)", name: "Sample", period: .day, kind: .boolean)!
         }
         let weekly = GoalDefinition(id: "week", key: "week", name: "Sample", period: .week, kind: .boolean)!
+        let openWeekly = GoalDefinition(
+            id: "week2", key: "week2", name: "Sample", period: .week, kind: .number, target: 3)!
+        let yearly = GoalDefinition(
+            id: "year", key: "year", name: "Sample", period: .year, kind: .number, target: 24)!
         let status = GoalProgress.compute(
             definition: daily[0], logs: [GoalLog(day: day, value: .boolean(true))], today: day)
+        // A weekly goal done this week counts as done today (the Goals page's "Bugün 2/5 tamam").
+        let weekDone = GoalProgress.compute(
+            definition: weekly, logs: [GoalLog(day: day, value: .boolean(true))], today: day)
+        #expect(weekDone.progress.isComplete)
         let rows = try [
             row(1, due: "2026-09-30"), row(2, due: day.description), row(3), row(4, status: "/"), row(5, status: "-"),
             row(6, status: "x"),
         ]
         let value = try TodayPresentation(
             day: summary(events: 3), groups: TaskGroups(rows: rows, on: day, isToday: true),
-            goals: daily + [weekly], goalStatuses: [daily[0].key: status], goalStatusesDay: day, today: day,
-            locale: Locale(identifier: language), calendar: calendar)
-        #expect(value.counter(for: .goals) == "1/3")
-        #expect(value.countedGoalIDs == daily.map(\.id))
+            goals: daily + [weekly, openWeekly, yearly], goalStatuses: [daily[0].key: status, weekly.key: weekDone],
+            goalStatusesDay: day, today: day, locale: Locale(identifier: language), calendar: calendar)
+        // Daily and weekly goals count; the yearly one does not.
+        #expect(value.counter(for: .goals) == "2/5")
+        #expect(value.countedGoalIDs == daily.map(\.id) + [weekly.id, openWeekly.id])
+        #expect(value.goalCount == 5)
+        #expect(value.completedGoalCount == 2)
         #expect(value.counter(for: .tasks) == "4")
         #expect(value.counter(for: .events) == "3")
         #expect(value.counter(for: .calendar) == nil)
         #expect(value.counter(for: .journal) == nil)
+        // The byline counts the open daily and weekly goals; the close-day flow the daily alone.
+        #expect(value.remainingCountedGoalCount == 3)
         #expect(value.remainingGoalCount == 2)
+        #expect(
+            value.byline
+                == TodayCopy.byline(events: 3, tasks: 4, goals: 3, locale: Locale(identifier: language)))
+        #expect(
+            value.byline
+                != TodayCopy.byline(events: 3, tasks: 4, goals: 2, locale: Locale(identifier: language)))
         #expect(try make(locale: language).counter(for: .goals) == "0/0")
         #expect(try make(locale: language).countedGoalIDs.isEmpty)
     }

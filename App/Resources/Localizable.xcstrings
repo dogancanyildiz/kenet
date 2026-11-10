@@ -2261,6 +2261,38 @@
         }
       }
     },
+    "%lld hedeften %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%2$@ of %1$lld"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld hedeften %@"
+          }
+        }
+      }
+    },
+    "%lld kaldı" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld left"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld kaldı"
+          }
+        }
+      }
+    },
     "%lld kişi · %lld konum" : {
       "localizations" : {
         "en" : {
@@ -5781,6 +5813,22 @@
         }
       }
     },
+    "Bugün %lld/%lld tamam" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Today %lld/%lld done"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bugün %lld/%lld tamam"
+          }
+        }
+      }
+    },
     "Bugün açıldı." : {
       "localizations" : {
         "en" : {
@@ -6465,6 +6513,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Diş ipi kullan"
+          }
+        }
+      }
+    },
+    "Dokun, düzelt" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tap to fix"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dokun, düzelt"
           }
         }
       }
@@ -14244,6 +14308,22 @@
         }
       }
     },
+    "Tamam" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Done"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tamam"
+          }
+        }
+      }
+    },
     "Tamamla, %@" : {
       "localizations" : {
         "en" : {
@@ -14965,6 +15045,22 @@
         }
       }
     },
+    "Tüm hedefler" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All goals"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tüm hedefler"
+          }
+        }
+      }
+    },
     "Tümü" : {
       "localizations" : {
         "en" : {
@@ -14977,6 +15073,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tümü"
+          }
+        }
+      }
+    },
+    "Tümünü göster" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show all"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tümünü göster"
           }
         }
       }

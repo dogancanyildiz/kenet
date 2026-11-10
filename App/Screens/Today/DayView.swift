@@ -79,6 +79,8 @@ struct DayView: View {
     /// Past-day schedule state: month picker, selected timeline card, and editors for events and
     /// tasks on the schedule.
     @State private var showsMonthPicker = false
+    /// The schedule card's leading icon box (the drawing's 32 pt square).
+    @ScaledMetric(relativeTo: .body) private var scheduleIconBox: CGFloat = 32
     @State private var selectedScheduleItemID: String?
     @State private var editingScheduleEvent: EventEditorModel?
     @State private var deletingScheduleEvent: EventRow?
@@ -802,56 +804,109 @@ struct DayView: View {
         }
     }
 
-    private func pastDayHeaderBlock(_ presented: TodayPresentation, todayInstant: Date) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            // The page's heading is the day's full date, on the icons' row; the month picker under it.
-            HStack(alignment: .top, spacing: 8) {
-                VStack(alignment: .leading, spacing: 0) {
-                    Text(verbatim: presented.headline)
-                        .font(.ink.section)
-                        .foregroundStyle(.ink.text)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .accessibilityAddTraits(.isHeader)
-                    Button {
-                        showsMonthPicker = true
-                    } label: {
-                        HStack(spacing: 4) {
-                            Text(LocalDay.instant(for: date), format: .dateTime.month(.wide).year())
-                                .font(.ink.byline)
-                                .foregroundStyle(.ink.secondaryText)
-                            Image(systemName: "chevron.down")
-                                .font(.ink.meta)
-                                .foregroundStyle(.ink.secondaryText)
-                                .accessibilityHidden(true)
-                        }
-                        .tapTarget()
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityHint(Text("Ay seç"))
-                    .accessibilityIdentifier("button.dayMonthPicker")
-                }
-
-                Spacer(minLength: 8)
-
-                if let dayGraph, dayGraph.date == date, dayGraph.isOffered {
-                    InkHeaderAction(
-                        "Günün grafiği", systemImage: "point.3.connected.trianglepath.dotted",
-                        identifier: "button.dayGraph"
-                    ) {
-                        showsDayGraph = true
-                    }
-                }
-                SearchButton()
-            }
-
-            weekStrip(todayInstant: todayInstant)
-                .frame(maxWidth: .infinity)
-
-            if let byline = day == nil ? nil : presented.byline, !byline.isEmpty {
-                Text(verbatim: byline)
-                    .font(.ink.byline)
+    /// "Eylül 2026 ⌄": opens the month picker; it heads the page with the graph and search.
+    private var monthPickerButton: some View {
+        Button {
+            showsMonthPicker = true
+        } label: {
+            HStack(spacing: 4) {
+                Text(LocalDay.instant(for: date), format: .dateTime.month(.wide))
+                    .font(.ink.section)
+                    .foregroundStyle(.ink.text)
+                Text(LocalDay.instant(for: date), format: .dateTime.year())
+                    .font(.ink.section)
                     .foregroundStyle(.ink.secondaryText)
+                Image(systemName: "chevron.down")
+                    .font(.ink.meta.weight(.semibold))
+                    .foregroundStyle(.ink.secondaryText)
+                    .accessibilityHidden(true)
             }
+            .tapTarget()
+        }
+        .buttonStyle(.plain)
+        .accessibilityHint(Text("Ay seç"))
+        .accessibilityIdentifier("button.dayMonthPicker")
+    }
+
+    @ViewBuilder private var dayGraphAction: some View {
+        if let dayGraph, dayGraph.date == date, dayGraph.isOffered {
+            InkHeaderAction(
+                "Günün grafiği", systemImage: "point.3.connected.trianglepath.dotted",
+                identifier: "button.dayGraph"
+            ) {
+                showsDayGraph = true
+            }
+        }
+    }
+
+    /// "3 olay · 2 görev" beside the day's title.
+    private func pastDayCounts(_ presented: TodayPresentation) -> String? {
+        guard day != nil else { return nil }
+        let tasks = tasksModel.rows?.count ?? 0
+        guard presented.eventCount > 0 || tasks > 0 else { return nil }
+        return String(
+            localized: "\(presented.eventCount) olay · \(tasks) görev",
+            bundle: PresentationLocalization.bundle(locale), locale: locale)
+    }
+
+    private func pastDayHeaderBlock(_ presented: TodayPresentation, todayInstant: Date) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            #if os(macOS)
+                // Mac: the page's heading shares the pinned row with the icons; the month picker
+                // sits under it.
+                HStack(alignment: .top, spacing: 8) {
+                    VStack(alignment: .leading, spacing: 0) {
+                        pastDayTitle(presented)
+                        monthPickerButton
+                    }
+                    Spacer(minLength: 8)
+                    dayGraphAction
+                    SearchButton()
+                }
+                weekStrip(todayInstant: todayInstant)
+                    .frame(maxWidth: .infinity)
+                pastDayCountsText(presented)
+            #else
+                // iPhone and iPad (the drawing): month picker and icons on top, the week strip,
+                // then the day's full date with its counts on the trailing side. Subpages keep
+                // their actions on the manşet row, not in `.toolbar` (InkPage).
+                HStack(alignment: .center, spacing: 8) {
+                    monthPickerButton
+                    Spacer(minLength: 8)
+                    dayGraphAction
+                    SearchButton()
+                }
+                weekStrip(todayInstant: todayInstant)
+                    .frame(maxWidth: .infinity)
+                ViewThatFits(in: .horizontal) {
+                    HStack(alignment: .firstTextBaseline, spacing: 8) {
+                        pastDayTitle(presented)
+                        Spacer(minLength: 8)
+                        pastDayCountsText(presented)
+                    }
+                    VStack(alignment: .leading, spacing: 2) {
+                        pastDayTitle(presented)
+                        pastDayCountsText(presented)
+                    }
+                }
+            #endif
+        }
+    }
+
+    private func pastDayTitle(_ presented: TodayPresentation) -> some View {
+        Text(verbatim: presented.headline)
+            .font(.ink.dayName.weight(.bold))
+            .foregroundStyle(.ink.text)
+            .fixedSize(horizontal: false, vertical: true)
+            .accessibilityAddTraits(.isHeader)
+    }
+
+    @ViewBuilder private func pastDayCountsText(_ presented: TodayPresentation) -> some View {
+        if let counts = pastDayCounts(presented) {
+            Text(verbatim: counts)
+                .font(.ink.meta)
+                .foregroundStyle(.ink.secondaryText)
+                .lineLimit(1)
         }
     }
 
@@ -863,12 +918,12 @@ struct DayView: View {
         let time = entry.time.map { EventTimeFormat.string(for: $0, locale: locale) }
         HStack(alignment: .top, spacing: 8) {
             // The card reads its time itself; the column is for the eye.
-            Text(verbatim: isTimedSection ? (time ?? "") : "—")
-                .font(.ink.time)
+            Text(verbatim: isTimedSection ? (time ?? "") : "")
+                .font(.ink.meta.weight(.semibold))
                 .monospacedDigit()
                 .foregroundStyle(Color.ink.secondaryText)
                 .frame(width: 52, alignment: .leading)
-                .padding(.top, 10)
+                .padding(.top, InkSpacing.cardPadding + 2)
                 .accessibilityHidden(true)
 
             switch entry.kind {
@@ -882,6 +937,13 @@ struct DayView: View {
                     entitiesByID: entitiesByID)
             }
         }
+    }
+
+    private var scheduleChevron: some View {
+        Image(systemName: "chevron.right")
+            .font(.ink.meta.weight(.semibold))
+            .foregroundStyle(Color.ink.tertiaryText)
+            .accessibilityHidden(true)
     }
 
     /// First tap selects the card, the second opens its editor.
@@ -908,26 +970,19 @@ struct DayView: View {
             InkLinkMapping.segments(from: event.text, entitiesByID: entitiesByID))
         let firstSegments = allLines.first ?? []
         let subLines = Array(allLines.dropFirst())
-        let barColor = Self.scheduleBarColor(for: firstSegments)
         let meta = scheduleEventMeta(subLineCount: subLines.count, isSelected: isSelected)
         let edit = { editingScheduleEvent = EventEditorModel(store: store, day: date, row: event) }
 
-        HStack(alignment: .top, spacing: 10) {
-            Capsule()
-                .fill(barColor)
-                .frame(width: InkSize.timelineBar)
-                .frame(maxHeight: .infinity)
-                .accessibilityHidden(true)
-
+        // The drawing's card: an icon box on the leading side, "›" on the trailing one, no rule.
+        HStack(alignment: .center, spacing: 12) {
             Image(systemName: "pencil")
-                .font(.ink.meta)
-                .foregroundStyle(Color.ink.accent)
-                .frame(width: 20, height: 20)
+                .font(.ink.meta.weight(.semibold))
+                .foregroundStyle(isSelected ? Color.ink.accent : Color.ink.text)
+                .frame(width: scheduleIconBox, height: scheduleIconBox)
                 .background(
-                    RoundedRectangle(cornerRadius: 5, style: .continuous)
-                        .fill(Color.ink.accentSoft)
+                    RoundedRectangle(cornerRadius: InkCorner.xs, style: .continuous)
+                        .fill(isSelected ? Color.ink.surface : Color.ink.well)
                 )
-                .padding(.top, 2)
                 .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: 4) {
@@ -974,6 +1029,8 @@ struct DayView: View {
             .accessibilityAction { tapScheduleCard(entryID, edit: edit) }
             .accessibilityAction(named: Text("Metni düzenle"), edit)
             .accessibilityAction(named: Text("Sil")) { deletingScheduleEvent = event }
+
+            scheduleChevron
         }
         .modifier(scheduleCardChrome(isSelected: isSelected))
         .onTapGesture { tapScheduleCard(entryID, edit: edit) }
@@ -1004,13 +1061,7 @@ struct DayView: View {
         let dates = isSelected ? scheduleTaskDates(task) : nil
         let edit = { editingScheduleTask = TaskEditorModel(store: store, row: task) }
 
-        HStack(alignment: .top, spacing: 10) {
-            Capsule()
-                .fill(isCompleted ? Color.ink.control : Color.ink.accent)
-                .frame(width: InkSize.timelineBar)
-                .frame(maxHeight: .infinity)
-                .accessibilityHidden(true)
-
+        HStack(alignment: .center, spacing: 12) {
             TaskBox(
                 state: box.state,
                 action: canToggle ? { Task { await tasksModel.complete(task) } } : nil,
@@ -1044,6 +1095,8 @@ struct DayView: View {
             .accessibilityAction { tapScheduleCard(entryID, edit: edit) }
             .accessibilityAction(named: Text("Metni düzenle"), edit)
             .accessibilityAction(named: Text("Sil")) { deletingScheduleTask = task }
+
+            scheduleChevron
         }
         .modifier(scheduleCardChrome(isSelected: isSelected))
         .onTapGesture { tapScheduleCard(entryID, edit: edit) }
@@ -1074,16 +1127,6 @@ struct DayView: View {
             parts.append(String(localized: "Tamamlandı: \(day(done))", bundle: bundle, locale: locale))
         }
         return parts.isEmpty ? nil : parts.joined(separator: " · ")
-    }
-
-    private static func scheduleBarColor(for segments: [InkLinkSegment]) -> Color {
-        if segments.contains(where: { $0.kind == .person }) {
-            return .ink.person
-        }
-        if segments.contains(where: { $0.kind == .place }) {
-            return .ink.place
-        }
-        return .ink.accent
     }
 
     private func scheduleEventMeta(subLineCount: Int, isSelected: Bool) -> String {
@@ -1184,33 +1227,33 @@ struct DayView: View {
         }
     #endif
 
-    /// Accent row with chevron; no thin rule (Şafak).
+    /// A small accent row with a chevron under a hairline (the drawing).
     private var closeDayEntry: some View {
-        Button {
-            closeDayRoute = CloseDayRoute(step: .tasks)
-        } label: {
-            HStack {
-                Text("Günü kapat")
-                    .font(.ink.byline)
-                    .foregroundStyle(Color.ink.accent)
-                Spacer(minLength: 0)
-                Image(systemName: "chevron.right")
-                    .font(.body.weight(.semibold))
-                    .foregroundStyle(Color.ink.accent)
+        VStack(spacing: 4) {
+            InkCardDivider()
+            Button {
+                closeDayRoute = CloseDayRoute(step: .tasks)
+            } label: {
+                HStack {
+                    Text("Günü kapat")
+                        .font(.ink.section)
+                        .foregroundStyle(Color.ink.accent)
+                    Spacer(minLength: 0)
+                    Image(systemName: "chevron.right")
+                        .font(.ink.meta.weight(.semibold))
+                        .foregroundStyle(Color.ink.accent)
+                }
+                .frame(maxWidth: .infinity, minHeight: TapTarget.minimumLength)
+                .contentShape(Rectangle())
             }
-            .frame(maxWidth: .infinity, minHeight: TapTarget.minimumLength)
-            .contentShape(Rectangle())
+            .buttonStyle(.plain)
+            .accessibilityIdentifier("button.closeDay")
         }
-        .buttonStyle(.plain)
-        .accessibilityIdentifier("button.closeDay")
     }
 
     @ViewBuilder private var journalSection: some View {
+        // No section title: the card itself reads as the day's writing (the drawing).
         VStack(alignment: .leading, spacing: InkSpacing.row) {
-            SectionHeader(
-                title: String(
-                    localized: "Günlük yazısı",
-                    bundle: PresentationLocalization.bundle(locale), locale: locale))
             #if os(iOS)
                 Button {
                     journalPresented.wrappedValue = true
@@ -1375,12 +1418,15 @@ struct DayJournalPreview: View {
                     .lineLimit(4)
                     .inkJournalParagraph()
                     .frame(maxWidth: .infinity, alignment: .leading)
-                Text(
-                    verbatim: String(
-                        localized: "Devamını yaz",
-                        bundle: PresentationLocalization.bundle(locale), locale: locale)
-                )
-                .font(.ink.byline)
+                Label {
+                    Text(
+                        verbatim: String(
+                            localized: "Devamını yaz",
+                            bundle: PresentationLocalization.bundle(locale), locale: locale))
+                } icon: {
+                    Image(systemName: "pencil")
+                }
+                .font(.subheadline.weight(.semibold))
                 .foregroundStyle(Color.ink.accent)
             } else if isLoaded {
                 Text(

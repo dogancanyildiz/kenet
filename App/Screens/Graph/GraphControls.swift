@@ -16,11 +16,13 @@ struct GraphControls: View {
     }
 
     private var periodTabs: some View {
-        InkTabs(selection: $filter.period, items: [
-            InkTabItem("Bu ay", value: .month, identifier: "tab.graph.month"),
-            InkTabItem("3 ay", value: .quarter, identifier: "tab.graph.quarter"),
-            InkTabItem("Yıl", value: .year, identifier: "tab.graph.year"),
-        ], identifier: "tabs.graph.period")
+        InkTabs(
+            selection: $filter.period,
+            items: [
+                InkTabItem("Bu ay", value: .month, identifier: "tab.graph.month"),
+                InkTabItem("3 ay", value: .quarter, identifier: "tab.graph.quarter"),
+                InkTabItem("Yıl", value: .year, identifier: "tab.graph.year"),
+            ], identifier: "tabs.graph.period")
     }
 
     private var zoomBar: some View {

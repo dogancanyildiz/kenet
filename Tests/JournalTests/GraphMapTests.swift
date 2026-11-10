@@ -107,7 +107,8 @@ import VaultIndex
         // 120 days back only the model's whole range (no longer offered in the UI) shows.
         #expect(GraphFilter().period == .month)
         #expect(GraphModel.compute(input: input, filter: GraphFilter(), today: today).nodes.count == 3 + 2)
-        #expect(GraphModel.compute(input: input, filter: GraphFilter(period: .quarter), today: today).nodes.count == 3 + 3)
+        #expect(
+            GraphModel.compute(input: input, filter: GraphFilter(period: .quarter), today: today).nodes.count == 3 + 3)
         #expect(GraphModel.compute(input: input, filter: GraphFilter(period: .all), today: today).nodes.count == 3 + 5)
         // A period without a written day keeps the relation.
         let empty = GraphModel.compute(input: input, filter: filter, today: today.addingDays(400)!)

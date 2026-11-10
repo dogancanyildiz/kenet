@@ -55,16 +55,22 @@ struct EntitiesView: View {
             // Side by side; stacked at accessibility text sizes (docs/screens.md).
             (dynamicTypeSize.isAccessibilitySize
                 ? AnyLayout(VStackLayout(spacing: 10)) : AnyLayout(HStackLayout(alignment: .top, spacing: 10))) {
-                let peopleCount = store.content.entities.filter { $0.kind == "person" }.count
-                let placeCount = store.content.entities.filter { $0.kind == "place" }.count
-                pageCard("Graph", detail: String(localized: "\(peopleCount) kişi · \(placeCount) konum", locale: locale), systemImage: "point.3.connected.trianglepath.dotted") {
-                    GraphView(store: store)
+                    let peopleCount = store.content.entities.filter { $0.kind == "person" }.count
+                    let placeCount = store.content.entities.filter { $0.kind == "place" }.count
+                    pageCard(
+                        "Graph", detail: String(localized: "\(peopleCount) kişi · \(placeCount) konum", locale: locale),
+                        systemImage: "point.3.connected.trianglepath.dotted"
+                    ) {
+                        GraphView(store: store)
+                    }
+                    pageCard(
+                        "Harita", detail: String(localized: "\(store.mapPlaces.count) konum", locale: locale),
+                        systemImage: "map"
+                    ) {
+                        PlacesMapView(store: store)
+                    }
                 }
-                pageCard("Harita", detail: String(localized: "\(store.mapPlaces.count) konum", locale: locale), systemImage: "map") {
-                    PlacesMapView(store: store)
-                }
-            }
-            .inkListRow()
+                .inkListRow()
             if let creatable = EntityCreateEntry.kind(forList: kind, types: store.entityTypes) {
                 createRow(creatable)
             }
@@ -87,9 +93,10 @@ struct EntitiesView: View {
                 NavigationLink(value: entity) {
                     EntityRow(
                         entity: entity, store: store, activity: activity[entity.id],
-                        onEdit: { editingEntity = entity })
-                        .padding(.vertical, 4)
-                        .padding(.trailing, InkSpacing.cardPadding)
+                        onEdit: { editingEntity = entity }
+                    )
+                    .padding(.vertical, 4)
+                    .padding(.trailing, InkSpacing.cardPadding)
                 }
                 .buttonStyle(.plain)
                 .inkListRow(cardSegment: .position(index, of: rows.count))
@@ -291,28 +298,34 @@ struct EntityRow: View {
     var body: some View {
         // One row view: the error band below the row, not a second row with the same tag.
         VStack(alignment: .leading, spacing: 0) {
-            MarginRow(kind: .vault, mark: {
-                EntityInitialBadge(entity: entity)
-            }, time: nil, primary: {
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(verbatim: entity.name).foregroundStyle(.ink.text)
-                    if let qualifier = entity.qualifier {
-                        Text(verbatim: qualifier).font(.ink.meta).foregroundStyle(.ink.secondaryText)
+            MarginRow(
+                kind: .vault,
+                mark: {
+                    EntityInitialBadge(entity: entity)
+                }, time: nil,
+                primary: {
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(verbatim: entity.name).foregroundStyle(.ink.text)
+                        if let qualifier = entity.qualifier {
+                            Text(verbatim: qualifier).font(.ink.meta).foregroundStyle(.ink.secondaryText)
+                        }
+                    }
+                },
+                secondary: {
+                    if let meta = EntityRowPresentation.meta(
+                        kind: entity.kind, lastDate: lastDate, links: relationCount,
+                        today: LocalDay.today(at: clockNow()), locale: locale)
+                    {
+                        Text(verbatim: meta).font(.ink.meta).foregroundStyle(.ink.secondaryText)
+                    }
+                },
+                trailing: {
+                    // Never-mentioned entities have no bar (docs/screens.md, Liste satırı).
+                    if lastDate != nil, let mentionData {
+                        EntityMonthlyBarChart(data: mentionData, compact: true)
                     }
                 }
-            }, secondary: {
-                if let meta = EntityRowPresentation.meta(
-                    kind: entity.kind, lastDate: lastDate, links: relationCount,
-                    today: LocalDay.today(at: clockNow()), locale: locale)
-                {
-                    Text(verbatim: meta).font(.ink.meta).foregroundStyle(.ink.secondaryText)
-                }
-            }, trailing: {
-                // Never-mentioned entities have no bar (docs/screens.md, Liste satırı).
-                if lastDate != nil, let mentionData {
-                    EntityMonthlyBarChart(data: mentionData, compact: true)
-                }
-            })
+            )
             .contextMenu {
                 if let store {
                     DefinitionMenuButtons(items: DefinitionMenu.items(forEntity: entity), canEdit: store.canAddEvent) {

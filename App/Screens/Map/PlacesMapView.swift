@@ -19,7 +19,11 @@ struct PlacesMapView: View {
         // Pinned manşet above the full-bleed map; its row carries the page's icons.
         VStack(alignment: .leading, spacing: 0) {
             // Both counts from the pins drawn: places with a coordinate and their visits.
-            InkPageTitle("Harita", byline: String(localized: "\(pins.count) konum · \(pins.reduce(0) { $0 + $1.count }) ziyaret", locale: locale)) {
+            InkPageTitle(
+                "Harita",
+                byline: String(
+                    localized: "\(pins.count) konum · \(pins.reduce(0) { $0 + $1.count }) ziyaret", locale: locale)
+            ) {
                 InkHeaderAction("Beni göster", systemImage: "location") {
                     showsUser = true
                     location.requestLocationIfNeeded(userInitiated: true)

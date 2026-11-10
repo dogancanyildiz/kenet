@@ -51,69 +51,69 @@ struct GraphView: View {
             let canvasHeight: CGFloat = dynamicTypeSize.isAccessibilitySize ? 280 : 360
             let masthead = self.masthead
             HStack(alignment: .top, spacing: 0) {
-              ScrollView {
-                VStack(alignment: .leading, spacing: 0) {
+                ScrollView {
                     VStack(alignment: .leading, spacing: 0) {
-                        InkScrolledMasthead(masthead)
-                        GraphControls(
-                            filter: $model.filter,
-                            zoom: $model.zoom,
-                            // The center control writes a zero pan: frame the layout as it is now.
-                            pan: Binding(
-                                get: { model.pan },
-                                set: { if $0 == .zero { model.recenter() } else { model.pan = $0 } })
-                        )
-                        if model.isLoading {
-                            InkProgress(kind: .indeterminate(label: "Yükleniyor…"))
-                                .padding(.horizontal, InkSpacing.margin)
+                        VStack(alignment: .leading, spacing: 0) {
+                            InkScrolledMasthead(masthead)
+                            GraphControls(
+                                filter: $model.filter,
+                                zoom: $model.zoom,
+                                // The center control writes a zero pan: frame the layout as it is now.
+                                pan: Binding(
+                                    get: { model.pan },
+                                    set: { if $0 == .zero { model.recenter() } else { model.pan = $0 } })
+                            )
+                            if model.isLoading {
+                                InkProgress(kind: .indeterminate(label: "Yükleniyor…"))
+                                    .padding(.horizontal, InkSpacing.margin)
+                            }
+                            if model.graph.nodes.isEmpty && !model.isLoading {
+                                EmptyState("Gösterilecek düğüm yok")
+                            }
                         }
-                        if model.graph.nodes.isEmpty && !model.isLoading {
-                            EmptyState("Gösterilecek düğüm yok")
-                        }
-                    }
-                    .inkPageColumn()
+                        .inkPageColumn()
 
-                    if !(model.graph.nodes.isEmpty && !model.isLoading) {
-                        InkCard(padded: false) {
-                            GraphCanvas(model: model)
-                                .frame(height: canvasHeight)
-                                .frame(maxWidth: .infinity)
-                                .background(Color.ink.paper)
-                                .clipShape(RoundedRectangle(cornerRadius: InkCorner.card))
-                        }
-                        .padding(.horizontal, InkSpacing.margin)
-                    }
-
-                    VStack(alignment: .leading, spacing: 0) {
-                        legendRow
-                        if let node = model.graph.nodes.first(where: { $0.id == model.selected }) {
-                            #if os(macOS)
-                                EmptyView()
-                            #else
-                            selectedRow(node)
-                            #endif
-                        }
-                        explanation
-                            .font(.ink.meta)
-                            .foregroundStyle(Color.ink.secondaryText)
-                            .fixedSize(horizontal: false, vertical: true)
+                        if !(model.graph.nodes.isEmpty && !model.isLoading) {
+                            InkCard(padded: false) {
+                                GraphCanvas(model: model)
+                                    .frame(height: canvasHeight)
+                                    .frame(maxWidth: .infinity)
+                                    .background(Color.ink.paper)
+                                    .clipShape(RoundedRectangle(cornerRadius: InkCorner.card))
+                            }
                             .padding(.horizontal, InkSpacing.margin)
-                            .padding(.bottom, 8)
+                        }
+
+                        VStack(alignment: .leading, spacing: 0) {
+                            legendRow
+                            if let node = model.graph.nodes.first(where: { $0.id == model.selected }) {
+                                #if os(macOS)
+                                    EmptyView()
+                                #else
+                                    selectedRow(node)
+                                #endif
+                            }
+                            explanation
+                                .font(.ink.meta)
+                                .foregroundStyle(Color.ink.secondaryText)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .padding(.horizontal, InkSpacing.margin)
+                                .padding(.bottom, 8)
+                        }
+                        .inkPageColumn()
                     }
-                    .inkPageColumn()
                 }
-              }
-              .frame(maxWidth: .infinity)
-              #if os(macOS)
-                // The panel stays; with no selection it says "Düğüm seç" (docs/screens.md).
-                GraphSelectionPanel(
-                    store: store, node: model.graph.nodes.first { $0.id == model.selected },
-                    graph: model.graph, currentDay: day
-                ) {
-                    model.select(nil, recenter: false)
-                }
-                .frame(width: 300)
-              #endif
+                .frame(maxWidth: .infinity)
+                #if os(macOS)
+                    // The panel stays; with no selection it says "Düğüm seç" (docs/screens.md).
+                    GraphSelectionPanel(
+                        store: store, node: model.graph.nodes.first { $0.id == model.selected },
+                        graph: model.graph, currentDay: day
+                    ) {
+                        model.select(nil, recenter: false)
+                    }
+                    .frame(width: 300)
+                #endif
             }
             .inkPinnedMasthead(masthead)
             .inkPage()
@@ -132,10 +132,12 @@ struct GraphView: View {
     private func selectedRow(_ node: GraphNode) -> some View {
         InkCard {
             VStack(alignment: .leading, spacing: 8) {
-                Text(verbatim: GraphSelectionPresentation.summary(
-                    name: node.name, links: GraphSelectionPresentation.relationCount(of: node.id, in: model.graph),
-                    daysSince: daysSinceLastMention(node), locale: locale))
-                    .font(.ink.content).foregroundStyle(.ink.text)
+                Text(
+                    verbatim: GraphSelectionPresentation.summary(
+                        name: node.name, links: GraphSelectionPresentation.relationCount(of: node.id, in: model.graph),
+                        daysSince: daysSinceLastMention(node), locale: locale)
+                )
+                .font(.ink.content).foregroundStyle(.ink.text)
                 openPageLink(node)
                     .buttonStyle(InkPrimaryButtonStyle())
             }
@@ -505,7 +507,8 @@ enum GraphSelectionPresentation {
         return switch daysSince {
         case nil: String(localized: "\(name) · \(links) bağ", bundle: bundle, locale: locale)
         case 0?: String(localized: "\(name) · \(links) bağ · son bugün", bundle: bundle, locale: locale)
-        case let days?: String(localized: "\(name) · \(links) bağ · son \(days) gün önce", bundle: bundle, locale: locale)
+        case let days?:
+            String(localized: "\(name) · \(links) bağ · son \(days) gün önce", bundle: bundle, locale: locale)
         }
     }
 }

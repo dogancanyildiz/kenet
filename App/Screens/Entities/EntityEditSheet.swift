@@ -105,7 +105,8 @@ struct EntityEditSheet: View {
                 if model.aliasesEditable {
                     EntityAliasesEditor(model: model).id(model.aliases)
                 } else {
-                    Text(verbatim: model.aliasesSource).font(.ink.content).foregroundStyle(.ink.text).textSelection(.enabled)
+                    Text(verbatim: model.aliasesSource).font(.ink.content).foregroundStyle(.ink.text).textSelection(
+                        .enabled)
                     Text("Takma ad alanı salt okunur.").font(.ink.meta).foregroundStyle(.ink.secondaryText)
                 }
             }

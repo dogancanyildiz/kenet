@@ -24,7 +24,8 @@ struct EntityTimelineQueryTests {
         let end = CalendarDate("2026-10-04")!
         let start = CalendarDate("2026-09-20")!
         let activity = try index.entityListActivity(from: start, through: end)
-        let files = try index.files().filter { $0.path.hasPrefix("people/") || $0.path.hasPrefix("places/") }.map(\.path)
+        let files = try index.files().filter { $0.path.hasPrefix("people/") || $0.path.hasPrefix("places/") }.map(
+            \.path)
         #expect(!files.isEmpty)
         var sawWindowEdge = false
         for file in files {
@@ -45,10 +46,13 @@ struct EntityTimelineQueryTests {
     @Test func entityListActivityCountsExplicitRelationsBothWays() throws {
         let vault = try StoreVault()
         defer { vault.remove() }
-        try vault.write("people/Ada.md", "---\ntype: person\nname: Ada\nspouse: \"[[Can]]\"\nrelated: [\"[[Can]]\", \"[[Koru]]\"]\n---\n")
+        try vault.write(
+            "people/Ada.md",
+            "---\ntype: person\nname: Ada\nspouse: \"[[Can]]\"\nrelated: [\"[[Can]]\", \"[[Koru]]\"]\n---\n")
         try vault.write("people/Can.md", "---\ntype: person\nname: Can\n---\n")
         try vault.write("places/Koru.md", "---\ntype: place\nname: Koru\n---\n")
-        try vault.write("journal/2026-03-01.md", "---\ntype: journal\ndate: 2026-03-01\n---\n\n## Events\n- 09:00 [[Can]] ile\n")
+        try vault.write(
+            "journal/2026-03-01.md", "---\ntype: journal\ndate: 2026-03-01\n---\n\n## Events\n- 09:00 [[Can]] ile\n")
         try vault.index.rebuild(vaultRoot: vault.root)
         let day = CalendarDate("2026-03-01")!
         let activity = try vault.index.entityListActivity(from: day, through: day)
@@ -57,7 +61,8 @@ struct EntityTimelineQueryTests {
             #expect(activity[file]?.relationCount == relations.outgoing.count + relations.incoming.count)
         }
         #expect(activity["people/Ada.md"]?.relationCount == 3)
-        #expect(activity["people/Can.md"] == EntityListActivity(lastEncounter: day, recentDays: [day], relationCount: 2))
+        #expect(
+            activity["people/Can.md"] == EntityListActivity(lastEncounter: day, recentDays: [day], relationCount: 2))
         #expect(activity["places/Koru.md"]?.lastEncounter == nil)
     }
 

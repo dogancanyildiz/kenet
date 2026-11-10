@@ -108,6 +108,9 @@ struct EntityView: View {
             }
         }
         .listStyle(.plain)
+        // Room under the last section: the page's end scrolls clear of the floating tab bar, so the
+        // timeline and notes are read above it, not under its edge.
+        .contentMargins(.bottom, 120, for: .scrollContent)
         .inkPage()
         .inkPageScrollColumn()
         .inkPinnedMasthead(masthead)
@@ -171,9 +174,11 @@ struct EntityView: View {
                 labeledRow(String(localized: "Ayırt edici"), qualifier, valueFont: .ink.content)
                 InkCardDivider()
             }
-            labeledRow(String(localized: "Gelen bağlantılar"), current.incomingLinks.formatted(.number), valueFont: .ink.value)
+            labeledRow(
+                String(localized: "Gelen bağlantılar"), current.incomingLinks.formatted(.number), valueFont: .ink.value)
             if !model.aliasesEditable, !model.aliasesSource.isEmpty {
-                Text(verbatim: model.aliasesSource).font(.ink.meta).foregroundStyle(.ink.secondaryText).textSelection(.enabled)
+                Text(verbatim: model.aliasesSource).font(.ink.meta).foregroundStyle(.ink.secondaryText).textSelection(
+                    .enabled)
             }
             if let result = model.renameResult { EntityRenameSummary(result: result) }
         }
@@ -276,6 +281,8 @@ struct EntityView: View {
                                 .frame(minHeight: TapTarget.minimumLength)
                                 .contentShape(Rectangle())
                         }
+                        // Two links share the list row: each keeps its own tap (borderless), not the whole row.
+                        .buttonStyle(.borderless)
                         Spacer()
                         NavigationLink {
                             GraphView(store: store, scope: .day(day.date))
@@ -283,10 +290,13 @@ struct EntityView: View {
                             Label("Günün grafiği", systemImage: "point.3.connected.trianglepath.dotted")
                                 .labelStyle(.iconOnly).tapTarget()
                         }
+                        .buttonStyle(.borderless)
                     }
                     InkCard {
                         ForEach(day.rows) { row in
-                            NavigationLink { DayView(store: store, date: day.date) } label: {
+                            NavigationLink {
+                                DayView(store: store, date: day.date)
+                            } label: {
                                 LinkedTextView(text: row.text, store: store)
                                     .frame(maxWidth: .infinity, minHeight: TapTarget.minimumLength, alignment: .leading)
                                     .contentShape(Rectangle())

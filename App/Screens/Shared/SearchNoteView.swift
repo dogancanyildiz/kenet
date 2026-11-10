@@ -95,7 +95,9 @@ struct SearchNoteView: View {
                 ForEach(Array(backlinks.enumerated()), id: \.element.id) { offset, day in
                     if offset > 0 { InkCardDivider() }
                     ForEach(day.rows) { row in
-                        NavigationLink { DayView(store: store, date: day.date) } label: {
+                        NavigationLink {
+                            DayView(store: store, date: day.date)
+                        } label: {
                             HStack(alignment: .firstTextBaseline, spacing: 12) {
                                 Text(LocalDay.instant(for: day.date), format: .dateTime.day().month(.abbreviated))
                                     .font(.ink.value)

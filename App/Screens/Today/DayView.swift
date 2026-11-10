@@ -182,7 +182,8 @@ struct DayView: View {
                 openTasks: carried + presented.datedTasks + presented.createdTasks,
                 carriedOver: carried,
                 nowHour: calendarValue.component(.hour, from: now),
-                nowMinute: calendarValue.component(.minute, from: now))
+                nowMinute: calendarValue.component(.minute, from: now),
+                completedTasks: presented.completedTasksOfDay, day: date)
         #else
             return nil
         #endif
@@ -446,7 +447,10 @@ struct DayView: View {
                     TodayDeskTimeline(
                         store: store, plan: deskPlan, day: date, today: date,
                         onSelectEvent: { editingScheduleEvent = EventEditorModel(store: store, day: date, row: $0) },
-                        onSelectTask: { editingScheduleTask = TaskEditorModel(store: store, row: $0) })
+                        onSelectTask: { editingScheduleTask = TaskEditorModel(store: store, row: $0) },
+                        completingTaskIDs: tasksModel.completing,
+                        onCompleteTask: store.canAddEvent
+                            ? { row in Task { await tasksModel.complete(row) } } : nil)
                     if !desk.showsPanel {
                         deskPanelSections(
                             presented: presented, goalModel: goalModel, day: day, deskPlan: deskPlan,

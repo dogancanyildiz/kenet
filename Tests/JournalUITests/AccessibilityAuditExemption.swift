@@ -23,6 +23,13 @@ struct AccessibilityAuditExemption {
     let element: Element
     let reason: String
     var open = false
+    /// The audited screens (the `screen` an audit names) this entry holds for; `nil` holds for all.
+    var screens: Set<String>? = nil
+
+    func applies(to screen: String?) -> Bool {
+        guard let screens else { return true }
+        return screen.map(screens.contains) ?? false
+    }
 
     /// The reason as logged: an open finding says so.
     var logged: String { open ? "OPEN FINDING: " + reason : reason }
@@ -138,6 +145,17 @@ extension AccessibilityAuditExemption {
         .init(
             type: .textClipped, element: .identifier("button.unlinkedMention.showAll"),
             reason: "position-dependent: the grown rows above push it under the tab bar (unlinkedMentions.light.png)"),
+        // The entity page's section titles (SectionHeader, "Timeline"/"Zaman çizelgesi" and the rest)
+        // have no line limit and are read whole. The test scrolls with swipes until the first "Link"
+        // button shows, so where the page stops varies; a title that stops on the viewport's lower edge
+        // (y 776 of 852 pt, under the tab bar) is reported as clipped by the audit's viewport cut
+        // (PR #377 run 42808922759; the page's layout is unchanged from dev). Position, not size: only
+        // this screen (d4-ci-duzeltme.md).
+        .init(
+            type: .textClipped, element: .identifier("sectionHeader"),
+            reason: "position-dependent: the swipe-scrolled page can stop with a section title on the"
+                + " viewport's lower edge (unlinkedMentions.light.png)",
+            screens: ["unlinkedMentions"]),
         // MARK: hitRegion
         .init(
             type: .hitRegion, element: .systemLabel(["Hide Sidebar", "Kenar Çubuğunu Gizle", "Kenar çubuğunu gizle"]),

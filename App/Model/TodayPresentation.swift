@@ -218,6 +218,8 @@ struct TodayPresentation: Sendable {
             (carriedOver + datedTasks + createdTasks + cancelled + completed).map(\.id))
     }
     var completedTaskCount: Int { completed.count }
+    /// Every row completed on this day (including ones being completed now), before any fold.
+    var completedTasksOfDay: [TaskRow] { completed }
     var completedTaskRows: [TaskRow] { isCompletedExpanded || completed.count <= 1 ? completed : [] }
     var completedDisclosure: String? {
         guard !isCompletedExpanded, completed.count > 1 else { return nil }

@@ -11,6 +11,11 @@ import VaultFormat
         let today: CalendarDate
         var onSelectEvent: (EventRow) -> Void = { _ in }
         var onSelectTask: (TaskRow) -> Void = { _ in }
+        /// Tasks being written as done right now; their box takes no second click.
+        var completingTaskIDs: Set<String> = []
+        /// Completes a task the way the day page's task row does (file first, then the index).
+        /// `nil` (vault not writable) leaves the boxes as marks only.
+        var onCompleteTask: ((TaskRow) -> Void)? = nil
 
         @Environment(\.calendar) private var calendar
         @Environment(\.locale) private var locale
@@ -18,6 +23,8 @@ import VaultFormat
 
         @ScaledMetric(relativeTo: .body) private var hourHeight: CGFloat = 68
         @ScaledMetric(relativeTo: .body) private var timeColumnWidth: CGFloat = 48
+        @ScaledMetric(relativeTo: .body) private var cardPadding = InkSpacing.cardPadding
+        @ScaledMetric(relativeTo: .body) private var boxSide = InkSize.taskBox
         @State private var rowHeights: [Int: CGFloat] = [:]
 
         /// Timed records only: the day page's own task and event lists keep the untimed ones
@@ -27,8 +34,7 @@ import VaultFormat
         }
 
         private func hourAxis(_ hours: ClosedRange<Int>) -> some View {
-            let eventsByHour = Dictionary(grouping: plan.timedEvents) { $0.time!.hour }
-            let tasksByHour = Dictionary(grouping: plan.timedTasks) { $0.time.hour }
+            let cardsByHour = plan.gridCardsByHour
             return VStack(spacing: 0) {
                 ForEach(Array(hours), id: \.self) { hour in
                     HStack(alignment: .top, spacing: 10) {
@@ -49,11 +55,13 @@ import VaultFormat
                                         .frame(height: 1)
                                 }
                                 .accessibilityHidden(true)
-                            ForEach(eventsByHour[hour] ?? []) { event in
-                                eventCard(event)
-                            }
-                            ForEach(tasksByHour[hour] ?? [], id: \.task.id) { item in
-                                timedTaskCard(item.task, time: item.time)
+                            ForEach(cardsByHour[hour] ?? [], id: \.gridID) { card in
+                                switch card {
+                                case .event(let event):
+                                    eventCard(event)
+                                case .task(let task, let time, let box):
+                                    timedTaskCard(task, time: time, box: box)
+                                }
                             }
                         }
                     }
@@ -108,9 +116,10 @@ import VaultFormat
             .buttonStyle(.plain)
         }
 
-        private func timedTaskCard(_ task: TaskRow, time: EventTime) -> some View {
-            let isLate = !task.isClosed && task.due.map { $0 < today } == true
+        private func timedTaskCard(_ task: TaskRow, time: EventTime, box: TaskBoxState) -> some View {
+            let isLate = !box.isCompleted && task.due.map { $0 < today } == true
             let projectLabel = task.project?.trimmingCharacters(in: .whitespacesAndNewlines)
+            let title = DaySchedulePresentation.strippingLeadingTime(from: task.text.plainText)
             let kindLabel: String = {
                 if isLate, let due = task.due {
                     return TodayPresentation.carriedOverDate(
@@ -119,15 +128,18 @@ import VaultFormat
                 if let projectLabel, !projectLabel.isEmpty { return projectLabel }
                 return String(localized: "Görev")
             }()
+            // The box sits over the card, not inside its button: a click on it completes the task
+            // and never opens the editor; the rest of the card does.
             return Button {
                 onSelectTask(task)
             } label: {
                 InkTimelineCard(
-                    title: DaySchedulePresentation.strippingLeadingTime(from: task.text.plainText),
+                    title: title,
                     meta: EventTimeFormat.string(for: time, locale: locale),
                     barColor: ProjectColor.color(for: task.project),
                     kindLabel: kindLabel,
-                    isCompleted: task.isClosed
+                    isCompleted: box.isCompleted,
+                    leadingAccessoryWidth: boxSide + 10
                 )
                 .overlay {
                     if isLate {
@@ -138,11 +150,43 @@ import VaultFormat
                 }
             }
             .buttonStyle(.plain)
+            .overlay(alignment: .topLeading) {
+                completionBox(task, title: title, box: box)
+                    .padding(InkTimelineCard.accessoryInset(padding: cardPadding))
+            }
         }
+
+        @ViewBuilder
+        private func completionBox(_ task: TaskRow, title: String, box: TaskBoxState) -> some View {
+            if box.isCompleted || box.isCancelled {
+                TaskBox(state: box, isDecorative: true)
+            } else {
+                let isBusy = completingTaskIDs.contains(task.id)
+                TaskBox(
+                    state: box,
+                    action: onCompleteTask.flatMap { complete in isBusy ? nil : { complete(task) } },
+                    accessibilityLabel: "Tamamla, \(title)"
+                )
+                .accessibilityIdentifier(Self.taskBoxIdentifier)
+            }
+        }
+
+        /// The grid task card's completion box (hosted tests find it by this).
+        static let taskBoxIdentifier = "today.desk.taskBox"
 
         private var now: Date { clockNow() }
         private var currentHour: Int { calendar.component(.hour, from: now) }
         private var currentMinute: Int { calendar.component(.minute, from: now) }
+    }
+
+    extension TodayDeskPlan.GridCard {
+        /// Stable identity within one hour's cards (an event and a task may share a number).
+        fileprivate var gridID: String {
+            switch self {
+            case .event(let event): "event-\(event.id)"
+            case .task(let task, _, _): "task-\(task.id)"
+            }
+        }
     }
 
     private struct TodayDeskHourHeightKey: PreferenceKey {

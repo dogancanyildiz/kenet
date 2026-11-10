@@ -22,10 +22,14 @@ enum KanbanBoardLayout {
         return max(minimumColumnWidth, available / CGFloat(count))
     }
 
-    /// The phone column: the board's width less a peek of the next column, between the floor and
+    /// Share of the board one phone column takes: the next column shows about a third of its
+    /// width beside it (Şafak drawing), so the board reads as swipeable.
+    static let phoneColumnShare: CGFloat = 0.72
+
+    /// The phone column: ``phoneColumnShare`` of the board, between the floor and
     /// ``maximumPhoneColumnWidth``.
     static func phoneColumnWidth(fitting boardWidth: CGFloat) -> CGFloat {
-        let width = boardWidth.isFinite ? max(0, boardWidth - 32) : 0
+        let width = boardWidth.isFinite ? max(0, (boardWidth * phoneColumnShare).rounded()) : 0
         return max(minimumColumnWidth, min(maximumPhoneColumnWidth, width))
     }
 }

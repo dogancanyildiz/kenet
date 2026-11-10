@@ -37,7 +37,7 @@ import UniformTypeIdentifiers
 
     /// The phone column keeps a peek of the next one and never grows past 360 pt.
     @Test func phoneBoardKeepsItsPagedColumn() {
-        #expect(KanbanBoardStyle.phone.columnWidth(fitting: 390, columns: 3) == 358)
+        #expect(KanbanBoardStyle.phone.columnWidth(fitting: 390, columns: 3) == 281)
         #expect(KanbanBoardStyle.phone.columnWidth(fitting: 1136, columns: 3) == 360)
         #expect(KanbanBoardStyle.phone.columnWidth(fitting: 200, columns: 3) == 240)
         #expect(KanbanBoardStyle.phone.columnWidth(fitting: .nan, columns: 3) == 240)

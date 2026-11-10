@@ -36,11 +36,15 @@ struct KanbanColumnView: View {
         return KanbanDropLanding.resolve(dragged, over: column, in: model)
     }
 
+    /// The phone board draws no column box: the header and the cards sit on the page
+    /// (Şafak drawing); a desktop column keeps its box, which also shows a drop target.
+    private var isBoxed: Bool { KanbanBoardStyle.resolve(shell: shellKind) == .desktop }
+
     private var content: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: isBoxed ? 12 : 4) {
             columnHeader
-                .padding(.horizontal, 12)
-                .padding(.top, 12)
+                .padding(.horizontal, isBoxed ? 12 : 4)
+                .padding(.top, isBoxed ? 12 : 0)
             ScrollView {
                 LazyVStack(spacing: 10) {
                     let landing = landing
@@ -53,40 +57,71 @@ struct KanbanColumnView: View {
                         EmptyState("Görev yok.")
                             .padding()
                     }
-                }.padding(10)
+                }.padding(isBoxed ? 10 : 4)
             }
+            .scrollClipDisabled(!isBoxed)
         }
         .frame(maxHeight: .infinity)
         .background {
-            RoundedRectangle(cornerRadius: InkSize.kanbanCorner, style: .continuous)
-                .fill(targeted ? Color.ink.well : Color.ink.paper)
+            if isBoxed {
+                RoundedRectangle(cornerRadius: InkSize.kanbanCorner, style: .continuous)
+                    .fill(targeted ? Color.ink.well : Color.ink.paper)
+            }
         }
         .overlay {
-            RoundedRectangle(cornerRadius: InkSize.kanbanCorner, style: .continuous)
-                .stroke(
-                    targeted ? Color.ink.accent : Color.ink.rule,
-                    lineWidth: targeted ? InkStroke.highPriority : InkStroke.control)
+            if isBoxed {
+                RoundedRectangle(cornerRadius: InkSize.kanbanCorner, style: .continuous)
+                    .stroke(
+                        targeted ? Color.ink.accent : Color.ink.rule,
+                        lineWidth: targeted ? InkStroke.highPriority : InkStroke.control)
+            }
         }
     }
 
     @ViewBuilder private var columnHeader: some View {
-        if let name = column.name {
-            SectionHeader(title: name, count: column.rows.count)
+        if isBoxed {
+            SectionHeader(title: columnTitle, count: column.rows.count)
         } else {
-            switch column.destination {
-            case .status(.todo), .status(.unknown):
-                SectionHeader("Yapılacak", count: column.rows.count)
-            case .status(.inProgress):
-                SectionHeader("Devam", count: column.rows.count)
-            case .status(.done):
-                SectionHeader("Bitti", count: column.rows.count)
-            case .status(.cancelled):
-                SectionHeader("İptal", count: column.rows.count)
-            case .project:
-                SectionHeader("Projesiz", count: column.rows.count)
-            case .person:
-                SectionHeader("Kişisiz", count: column.rows.count)
+            // Phone: state icon, name and a count capsule ("○ Yapılacak 4").
+            HStack(spacing: 6) {
+                if let icon = statusIcon {
+                    Image(systemName: icon)
+                        .font(.ink.meta.weight(.semibold))
+                        .foregroundStyle(.ink.secondaryText)
+                        .accessibilityHidden(true)
+                }
+                Text(verbatim: columnTitle)
+                    .font(.ink.section)
+                    .foregroundStyle(.ink.text)
+                    .lineLimit(1)
+                TasksCountPill(count: column.rows.count)
+                Spacer(minLength: 0)
             }
+            .accessibilityElement(children: .combine)
+            .accessibilityAddTraits(.isHeader)
+        }
+    }
+
+    private var columnTitle: String {
+        if let name = column.name { return name }
+        switch column.destination {
+        case .status(.todo), .status(.unknown): return String(localized: "Yapılacak")
+        case .status(.inProgress): return String(localized: "Devam")
+        case .status(.done): return String(localized: "Bitti")
+        case .status(.cancelled): return String(localized: "İptal")
+        case .project: return String(localized: "Projesiz")
+        case .person: return String(localized: "Kişisiz")
+        }
+    }
+
+    /// Status columns carry their state's mark; project and person columns have none.
+    private var statusIcon: String? {
+        switch column.destination {
+        case .status(.todo), .status(.unknown): return "circle"
+        case .status(.inProgress): return "circle.lefthalf.filled"
+        case .status(.done): return "checkmark.circle"
+        case .status(.cancelled): return "xmark.circle"
+        case .project, .person: return nil
         }
     }
 }

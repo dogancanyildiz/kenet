@@ -495,10 +495,10 @@ Uygulama önce dosyaya yazar, sonra indeksi günceller. Yazma hata verirse kutu 
 | Öğe | Yer | Davranış |
 |---|---|---|
 | Manşet | Listenin içinde | Manşet "Günlük". Gezinme çubuğunda büyük başlık yoktur. Sağda arama simgesi durur. |
-| Özetler ve Haftalık inceleme | Manşetin altı, yan yana | 44 pt yüksekliğinde iki çip. Özetler çipi Özetler ekranını iter. Haftalık inceleme çipi (`button.weeklyReview`) sheet açar. Bu hafta yapıldıysa çipin altında "Bu hafta yapıldı" yazar. Erişilebilirlik boyutunda çipler alt alta durur. |
+| Özetler ve Haftalık inceleme | Manşetin altı, sola yaslı | İçerik genişliğinde, 44 pt yüksekliğinde iki kapsül çip. Özetler çipi Özetler ekranını iter. Haftalık inceleme çipi (`button.weeklyReview`) sheet açar. Bu hafta yapıldıysa çipin altında "Bu hafta yapıldı" yazar. Erişilebilirlik boyutunda çipler alt alta durur. |
 | Bilgi bandı | Çiplerin altı | İnceleme yazıldıktan sonra görünür. Kapatma düğmesi vardır. |
-| Ay takvimi | Çiplerin altı, kartta | Güne atlar. Günün altında yoğunluk düzeyine göre 1–3 nokta durur. Boş gün işaretsizdir. Bugün halkalıdır; rakam ile halka arasında boşluk kalır. Gelecek günler üçüncül metin rengindedir. |
-| Gün listesi | Takvimin altı | Ters kronolojik kart satırları. Solda büyük gün rakamı ve kısa gün adı; sağda "2 olay · 2 görev" ve ilk olayın ilk satırı. Olay yoksa günlük yazısının ilk satırı durur. Gün yoksa "Henüz gün yok". |
+| Ay takvimi | Çiplerin altı, kartta | Ay adı solda, önceki ve sonraki ay okları sağda yan yanadır. Gün başlıkları kısaltmadır ("Pzt Sal Çar"). Haftalar arasında ek boşluk yoktur; 44 pt dokunma hedefleri satırları ayırır. Güne atlar. Günün altında yoğunluk düzeyine göre 1–3 nokta durur. Boş gün işaretsizdir. Bugün halkalıdır; rakam ile halka arasında boşluk kalır. Gelecek günler üçüncül metin rengindedir. |
+| Gün listesi | Takvimin altı | Ters kronolojik; her ayın günleri tek kartta, ayraçlı satırlardır. İçinde bulunulan ay başlıksızdır; önceki ayların kartı üstünde ay adı ve yılı yazar. Satırda solda büyük gün rakamı ve kısa gün adı (bugün vurgu renginde); ortada "Bugün · 2 olay · 2 görev" ve ilk olayın ilk satırı; sağda "›". Olay yoksa günlük yazısının ilk satırı durur. Gün yoksa "Henüz gün yok". |
 
 Bir güne dokunma Gün ekranını açar.
 
@@ -554,7 +554,7 @@ flowchart TD
 |---|---|
 | Giriş | Günlük ve Mac kenar çubuğu Özetler'i açar. |
 | Dönem sekmesi | Hafta \| Ay \| Yıl. Hafta pazartesi–pazar haftasıdır. Ay takvim ayıdır. Yıl takvim yılıdır. |
-| Dönem düğmeleri | Önceki ve sonraki dönem. Bugünün döneminden sonraki döneme geçiş yoktur. Gösterilen dönem bugünü içermiyorsa "Bu hafta", "Bu ay" ya da "Bu yıl" düğmesi görünür. iPhone'da yatay kaydırma da dönemi değiştirir. |
+| Dönem düğmeleri | Önceki ve sonraki dönem. Bugünün döneminden sonraki döneme geçiş yoktur. Gösterilen dönem bugünü içermiyorsa dönem adının yanında "Bu hafta", "Bu ay" ya da "Bu yıl" kapsülü görünür; ayrı satır açmaz. iPhone'da yatay kaydırma da dönemi değiştirir. |
 | Ritim | Kartta. Hafta ve Yıl: dönemin birimleri başına olay sayısı çubuğu; hafta birimi gündür, yıl birimi aydır. Önceki dönemin aynı sıradaki birimi arkada geniş ve soluk çubuktur. Ay: ayın her günü için bir kare. Olaylı gün dolu, yalnız günlük yazısı olan gün yarım, yazılmayan gün boş karedir. Gelecek günde kare yoktur. VoiceOver tek öğe okur: "30 günün 22'sinde yazıldı". |
 | Yazıldı işareti | Hafta ve Yıl ritminde her birimin altında durur. Dolu nokta: gün yazıldı ya da birimin ölçülen günlerinin en az yarısı yazıldı. Halka: yarıdan azı yazıldı. Kısa çizgi: hiç yazılmadı. İşaret yok: birim henüz başlamadı. |
 | Yazılan günler | Yalnız Yıl sekmesinde, ritim şeridinin altında. 12 satır: satır başında kısa ay adı, ardından ayın 1'inden 31'ine kadar birer ısı haritası hücresi. Yazılmayan gün boş hücredir. Yalnız `Journal` yazısı olan gün kısmi hücredir. En az bir olayı olan gün tam hücredir. Bugün çerçevelidir. Ayda olmayan tarih ve bugünden sonraki gün çizilmez. Başlığın sayacı yılın "Yazılan gün" sayısıdır: "243 gün". Erişilebilirlik boyutunda hücreler büyür ve pazartesi haftalarına dizilir; harita yatay kayar ve son ölçülen haftayla açılır. |
@@ -1047,8 +1047,8 @@ Grafikte "Ortalama", görünür aralıkta kaydı olan günlerin değer ortalamas
 | Giriş | iPhone'da her kök ekranın üstündeki simge. Mac'te kenar çubuğunun tepesindeki alan ve ⌘F. |
 | Manşet | Ekran adı manşet olarak ekranın içindedir. |
 | Kutu | Tek kutu: süzgeç alanı, `well` zemin. |
-| Kapsam çipleri | Kutunun altında, sonuç gruplarının üstünde: Hepsi, Olaylar, Görevler, Kişiler, Günler. Varsayılan Hepsi. Çip sonuçları o türe süzer. Kişiler çipi kişi, konum ve özel tip sonuçlarını gösterir. |
-| Sonuçlar | Türe göre gruplu, her grup bir kart: kişiler, konumlar, olaylar, görevler, günler, notlar. Notlar yalnız Hepsi'de görünür. |
+| Kapsam çipleri | Kutunun altında, sonuç gruplarının üstünde: Hepsi, Olaylar, Görevler, Kişiler, Günler. İnce kapsüllerdir; dokunma hedefi 44 pt kalır. Varsayılan Hepsi. Çip sonuçları o türe süzer. Kişiler çipi kişi, konum ve özel tip sonuçlarını gösterir. |
+| Sonuçlar | Türe göre gruplu, her grup bir kart; grup başlığında sonuç sayısı durur: kişiler, konumlar, olaylar, görevler, günler, notlar. Satırın solunda tür simgesi (kişi, konum, takvim, not; görevde boş kutu) durur. Kendi sayfasını açan satırlar (kişi, konum, varlık, not) "›" ile biter. Eşleşen metin kalın değil, `accentSoft` zeminlidir. Notlar yalnız Hepsi'de görünür. |
 | Not önizlemesi | Düz metin. Başlık işaretleri ve liste tireleri yoktur. Sıra sayısı gibi içerik kalır. Kod çitinin içi olduğu gibi görünür. |
 | Hızlı geçiş | Arama aynı zamanda hızlı geçiş ekranıdır. |
 
@@ -1179,7 +1179,7 @@ flowchart LR
     Tan --> Lisans[Üçüncü taraf lisansları]
 ```
 
-iPhone'da Ayarlar, Bugün gün başlığındaki düğmenin açtığı sheet'tir. Ekran adı ve alt ekran adları manşet olarak listenin içindedir. En üstte kasa kartı durur: kasa konumu (iCloud, Bu cihazda ya da Seçilen klasör) ve dosya sayısı; karta dokunma Kasa bölümünü açar. Altında 6 bölüm kart içinde satırdır. Mac'te aynı 6 bölüm Settings sekmeleridir ve Hızlı giriş ilk sekmedir. Hiçbir ayar kaybolmaz.
+iPhone'da Ayarlar, Bugün gün başlığındaki düğmenin açtığı sheet'tir. Ekran adı ve alt ekran adları manşet olarak listenin içindedir. En üstte parıltı tonlu kasa kartı durur: kasa konumu (iCloud, Bu cihazda ya da Seçilen klasör) ve dosya sayısı; karta dokunma Kasa bölümünü açar. Altında 6 bölüm kart içinde satırdır; her satırın altında bölümün içeriğini söyleyen kısa bir açıklama durur. Mac'te aynı 6 bölüm Settings sekmeleridir ve Hızlı giriş ilk sekmedir. Hiçbir ayar kaybolmaz.
 
 ### Ayarlar — Hızlı giriş
 
@@ -1448,7 +1448,7 @@ flowchart TD
 
 | Durum | Ekran |
 |---|---|
-| İlk açılış | Tek ekran, parıltılı zeminde; seçenekler 24 pt köşeli kartlardadır. Ekran Markdown veri sahipliğini anlatır. iCloud varsa ilk ve birincil seçenek “iCloud’da sakla”, altında “iPhone ve Mac aynı klasörü paylaşır.” açıklaması; sonra “Bu cihazda” ve “Var olan klasörü seç” gelir. iCloud yoksa ilk seçenek ve açıklaması görünmez; “Bu cihazda” birincil dolu düğme olur. Kapsayıcıdaki kasa başka cihazdan iniyorsa “iCloud’daki kasa açılıyor…” ilerlemesi görünür ve ekran bekler; süre dolarsa hata satırı yeniden denemeyi söyler. |
+| İlk açılış | Tek ekran, parıltılı zeminde. Üstte simge, "Kenet" ve veri sahipliği vaadi; seçenekler ekranın altındadır. Büyük metinde ekran kayar. iCloud varsa ilk ve birincil seçenek dolu “iCloud’da sakla” düğmesi, altında “iPhone ve Mac aynı klasörü paylaşır.” açıklaması; sonra tam genişlikte “Bu cihazda” ve metin bağlantısı “Var olan klasörü seç” gelir. En altta yeni kasanın yeri yazar. iCloud yoksa ilk seçenek ve açıklaması görünmez; “Bu cihazda” birincil dolu düğme olur. Kapsayıcıdaki kasa başka cihazdan iniyorsa “iCloud’daki kasa açılıyor…” ilerlemesi görünür ve ekran bekler; süre dolarsa hata satırı yeniden denemeyi söyler. |
 | Yerel kasayı iCloud’a taşıma | Güncellemeden sonraki açılışta varsayılan yerel kasa önce açılıp indekslenir; sonra iCloud varsa ana ekranın üstünde bir kez sorulur. Onboarding yalnız kasa yokken görünür. “Kasayı iCloud’a taşı?” sheet’i `.inkSheet` kullanır; araç çubuğunda tek eylem çifti “Taşı” ve “Vazgeç” bulunur. Gövdedeki açıklama Vazgeç’in kasayı bu cihazda tuttuğunu ve daha sonra Ayarlar’dan taşınabileceğini söyler. Taşırken düğmeler ve kapatma devre dışıdır. Hata aynı sheet’te görünür; tekrar denenebilir. Başka cihazın kasası varsa açılan kasa ve yerel kopyanın ayrı yolu bildirilir. |
 | iCloud kapalı | Kayıtlı tür iCloud ise “iCloud kapalı” ve erişim açıklaması gösterilir. Önce birincil “Yeniden dene”, sonra “Bu cihazda devam et”, ardından “Başka klasör seç” gelir. Sessizce yerel kasaya geçilmez; veri silinmez. iCloud yanıt verir ama Kenet klasörü yoksa ya da açılmıyorsa başlık “iCloud’daki kasaya erişilemiyor.” olur; düğmeler aynıdır. |
 | İlk kasa | Kullanıcı kasayı açınca boş Bugün ekranında ipucu görünür: "Gününden bir an yaz; @ ile kişi ekle". İlk kişi ve konum yazarken oluşur. |

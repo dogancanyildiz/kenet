@@ -32,4 +32,17 @@ enum SettingsSection: String, CaseIterable, Identifiable, Hashable {
         case .diagnostics: "wrench.and.screwdriver"
         }
     }
+
+    /// The line under the title in the iPhone and iPad hub: what the page holds.
+    @MainActor var summary: LocalizedStringResource {
+        switch self {
+        case .quickEntry:
+            DeviceIdiom.current == .phone ? "Siri, Kısayollar, Eylem düğmesi" : "Siri, Kısayollar"
+        case .privacy: "Uygulama kilidi, kişi hatırlatmaları"
+        case .notifications: "Hatırlatmalar, planlanan bildirimler"
+        case .calendarAndLocation: "Takvim izni, konuma girince"
+        case .vault: "Konum, varlık tipleri"
+        case .diagnostics: "İndeks sayıları, kopya dosyalar"
+        }
+    }
 }

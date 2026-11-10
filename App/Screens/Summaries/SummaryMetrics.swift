@@ -20,23 +20,40 @@ struct SummaryMetric: View {
         self.change = change
     }
 
+    /// Compact number card (Şafak çizimi): the number title2 bold, a "/30" tail smaller and
+    /// secondary, the title and the change in caption under it.
     var body: some View {
         InkCard {
-            VStack(alignment: .leading, spacing: 2) {
-                LargeNumberText(verbatim: valueText)
+            VStack(alignment: .leading, spacing: 4) {
+                valueLine
                     .lineLimit(1)
                     .minimumScaleFactor(0.5)
                 Text(title)
-                    .font(.ink.byline)
-                    .foregroundStyle(Color.ink.text)
+                    .font(.caption)
+                    .foregroundStyle(Color.ink.secondaryText)
                 Text(verbatim: change)
-                    .font(.ink.meta)
+                    .font(.caption2)
                     .monospacedDigit()
                     .foregroundStyle(Color.ink.secondaryText)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         }
         .accessibilityElement(children: .combine)
+    }
+
+    private var valueLine: some View {
+        let parts = valueText.split(separator: "/", maxSplits: 1)
+        return HStack(alignment: .firstTextBaseline, spacing: 0) {
+            Text(verbatim: String(parts.first ?? ""))
+                .font(.title2.bold())
+                .foregroundStyle(Color.ink.text)
+            if parts.count == 2 {
+                Text(verbatim: "/" + parts[1])
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(Color.ink.secondaryText)
+            }
+        }
+        .monospacedDigit()
     }
 }
 
@@ -57,9 +74,10 @@ struct MonthWritingRhythmView: View {
                     counter:
                         "\(rhythm.writtenDayCount)/\(rhythm.measuredDayCount)"
                 )
+                // Ten days a row (Şafak çizimi): three rows hold a month.
                 LazyVGrid(
-                    columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 7),
-                    spacing: 8
+                    columns: Array(repeating: GridItem(.flexible(), spacing: 5), count: 10),
+                    spacing: 6
                 ) {
                     ForEach(rhythm.days) { day in
                         dayCell(day)
@@ -79,48 +97,49 @@ struct MonthWritingRhythmView: View {
         )
     }
 
+    /// A rounded day square: filled (events), accent-framed with a low fill (journal only),
+    /// framed (not written) or bare (future). Today carries an ink ring outside the square.
     @ViewBuilder
     private func dayCell(_ day: MonthRhythmDay) -> some View {
-        switch day.state {
-        case .future:
-            Text(day.date.day, format: .number)
-                .font(.ink.meta)
-                .monospacedDigit()
-                .foregroundStyle(Color.ink.tertiaryText)
-                .frame(maxWidth: .infinity, minHeight: 26)
-        case .empty:
-            ZStack {
-                HeatmapCell(
-                    kind: .empty, size: 24, isToday: day.isToday,
-                    accessibilityValue: Text(verbatim: ""))
-                Text(day.date.day, format: .number)
-                    .font(.ink.meta)
-                    .monospacedDigit()
-                    .foregroundStyle(day.isToday ? Color.ink.accent : Color.ink.secondaryText)
+        let shape = RoundedRectangle(cornerRadius: 7, style: .continuous)
+        let numeral = Text(day.date.day, format: .number)
+            .font(.caption.weight(day.state == .future ? .regular : .semibold))
+            .monospacedDigit()
+            .lineLimit(1)
+            .minimumScaleFactor(0.6)
+        ZStack {
+            switch day.state {
+            case .future:
+                numeral.foregroundStyle(Color.ink.tertiaryText)
+            case .empty:
+                shape.strokeBorder(Color.ink.control, lineWidth: 1.5)
+                numeral.foregroundStyle(Color.ink.secondaryText)
+            case .partial:
+                shape.fill(Color.ink.accentSoft)
+                    .overlay(alignment: .bottom) {
+                        GeometryReader { geo in
+                            Rectangle()
+                                .fill(Color.ink.accent.opacity(0.55))
+                                .frame(height: geo.size.height * 0.4)
+                                .frame(maxHeight: .infinity, alignment: .bottom)
+                        }
+                    }
+                    .clipShape(shape)
+                    .overlay { shape.strokeBorder(Color.ink.accent, lineWidth: 1.5) }
+                numeral.foregroundStyle(Color.ink.text)
+            case .full:
+                shape.fill(Color.ink.accent)
+                numeral.foregroundStyle(Color.ink.onAccent)
             }
-            .frame(maxWidth: .infinity, minHeight: 26)
-        case .partial:
-            ZStack {
-                HeatmapCell(
-                    kind: .partial, size: 24, isToday: day.isToday,
-                    accessibilityValue: Text(verbatim: ""))
-                Text(day.date.day, format: .number)
-                    .font(.ink.meta)
-                    .monospacedDigit()
-                    .foregroundStyle(Color.ink.text)
+        }
+        .frame(maxWidth: .infinity)
+        .frame(height: 28)
+        .overlay {
+            if day.isToday {
+                RoundedRectangle(cornerRadius: 9, style: .continuous)
+                    .stroke(Color.ink.text, lineWidth: 2)
+                    .padding(-3)
             }
-            .frame(maxWidth: .infinity, minHeight: 26)
-        case .full:
-            ZStack {
-                HeatmapCell(
-                    kind: .full, size: 24, isToday: day.isToday,
-                    accessibilityValue: Text(verbatim: ""))
-                Text(day.date.day, format: .number)
-                    .font(.ink.meta)
-                    .monospacedDigit()
-                    .foregroundStyle(Color.ink.onAccent)
-            }
-            .frame(maxWidth: .infinity, minHeight: 26)
         }
     }
 
@@ -130,8 +149,8 @@ struct MonthWritingRhythmView: View {
             ? AnyLayout(VStackLayout(alignment: .leading, spacing: 6))
             : AnyLayout(InkFlowLayout(spacing: 12, lineSpacing: 6))
         return layout {
-            legendItem(.full, "Olaylı gün")
-            legendItem(.partial, "Günlük yazısı")
+            legendItem(.full, "Olay var")
+            legendItem(.partial, "Yalnız yazı")
             legendItem(.empty, "Yazılmadı")
         }
     }
@@ -156,20 +175,25 @@ struct SummaryTaskSection: View {
     var body: some View {
         InkCard {
             VStack(alignment: .leading, spacing: 12) {
-                SectionHeader(title: String(localized: "Görevler"))
+                // Title on the left; the created count and its change on the right, in one
+                // caption line (Şafak çizimi), under the title at accessibility sizes.
                 let layout =
                     dynamicTypeSize.isAccessibilitySize
                     ? AnyLayout(VStackLayout(alignment: .leading, spacing: 4))
                     : AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: 8))
                 layout {
-                    Text("\(counts.createdTasks) görev oluşturuldu")
-                        .font(.ink.byline)
+                    Text("Görevler")
+                        .font(.subheadline.bold())
                         .foregroundStyle(Color.ink.text)
+                        .accessibilityAddTraits(.isHeader)
                     if !dynamicTypeSize.isAccessibilitySize { Spacer(minLength: 8) }
-                    Text(verbatim: change)
-                        .font(.ink.meta)
-                        .monospacedDigit()
-                        .foregroundStyle(Color.ink.secondaryText)
+                    HStack(alignment: .firstTextBaseline, spacing: 0) {
+                        Text("\(counts.createdTasks) görev oluşturuldu")
+                        Text(verbatim: " · " + change)
+                    }
+                    .font(.caption)
+                    .monospacedDigit()
+                    .foregroundStyle(Color.ink.secondaryText)
                 }
                 .accessibilityElement(children: .combine)
                 if let taskFlow {

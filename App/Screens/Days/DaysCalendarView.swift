@@ -31,7 +31,16 @@ struct DaysCalendarView: View {
     var body: some View {
         InkCard {
             VStack(spacing: 8) {
-                HStack {
+                // Month on the leading edge, the arrows together on the trailing one (Şafak çizimi).
+                HStack(spacing: 0) {
+                    Text(LocalDay.instant(for: model.month), format: .dateTime.month(.wide).year())
+                        .font(.ink.section)
+                        .foregroundStyle(.ink.text)
+                        // A narrow column at accessibility sizes: month and year on two lines, never
+                        // cut, even where the column's stack is short of height.
+                        .fixedSize(horizontal: false, vertical: true)
+                        .padding(.leading, 4)
+                    Spacer(minLength: 8)
                     // From the asked month, not the one on screen: a second tap before the first
                     // month's answer arrives moves on instead of asking for the same month again.
                     Button {
@@ -39,41 +48,35 @@ struct DaysCalendarView: View {
                     } label: {
                         Label("Önceki ay", systemImage: "chevron.left")
                             .labelStyle(.iconOnly)
-                            .foregroundStyle(.ink.accent)
+                            .font(.body.weight(.semibold))
+                            .foregroundStyle(.ink.text)
                             .tapTarget()
                     }
-                    Spacer()
-                    Text(LocalDay.instant(for: model.month), format: .dateTime.month(.wide).year())
-                        .font(.ink.section)
-                        .foregroundStyle(.ink.text)
-                        // A narrow column at accessibility sizes: month and year on two lines, never
-                        // cut, even where the column's stack is short of height.
-                        .multilineTextAlignment(.center)
-                        .fixedSize(horizontal: false, vertical: true)
-                    Spacer()
                     Button {
                         month = JournalCalendar(month: resolvedMonth, days: []).adjacentMonth(1)
                     } label: {
                         Label("Sonraki ay", systemImage: "chevron.right")
                             .labelStyle(.iconOnly)
-                            .foregroundStyle(.ink.accent)
+                            .font(.body.weight(.semibold))
+                            .foregroundStyle(.ink.text)
                             .tapTarget()
                     }
                 }
                 // Inside a List row every bordered button fires on one tap; borderless keeps them separate.
                 .buttonStyle(.borderless)
-                let symbols = calendar.veryShortStandaloneWeekdaySymbols
+                let symbols = calendar.shortStandaloneWeekdaySymbols
                 let weekday = calendar.firstWeekday
                 let cells = model.cells(firstWeekday: weekday)
                 // An eager Grid, not a LazyVGrid: inside a List row the lazy grid's height came out
                 // 8 pt short on some passes and right on others (same build, same simulator), so the
                 // card and every row under it moved. No column gap: seven 44 pt tap targets fill the
-                // phone column (7 × 46.6 pt) without overflowing the card.
-                Grid(horizontalSpacing: 0, verticalSpacing: 8) {
+                // phone column (7 × 46.6 pt) without overflowing the card. No row gap either: the
+                // 44 pt targets already space the weeks (Şafak çizimi: tight rows).
+                Grid(horizontalSpacing: 0, verticalSpacing: 0) {
                     GridRow {
                         ForEach(0..<7, id: \.self) { offset in
                             Text(verbatim: symbols[(weekday - 1 + offset) % 7])
-                                .font(.ink.meta)
+                                .font(.caption)
                                 .foregroundStyle(.ink.secondaryText)
                                 .frame(maxWidth: .infinity)
                         }
@@ -212,7 +215,8 @@ struct DaysCalendarDayMark: View {
 
     private var numeralColor: Color {
         if isToday {
-            return .ink.accent
+            // The accent ring marks today; the numeral stays ink, bold (Şafak çizimi).
+            return .ink.text
         }
         if isSelected {
             return .ink.text
@@ -229,7 +233,7 @@ struct DaysCalendarDayMark: View {
                 preferred: preferredDiameter, cellWidth: geo.size.width)
             VStack(spacing: 2) {
                 Text(day, format: .number)
-                    .font(.ink.value)
+                    .font(.subheadline.monospacedDigit().weight(isToday ? .bold : .regular))
                     .foregroundStyle(numeralColor)
                     .minimumScaleFactor(0.35)
                     .lineLimit(1)

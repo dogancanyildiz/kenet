@@ -158,10 +158,29 @@ struct SummariesView: View {
                     .buttonStyle(.plain)
                 #endif
                 Spacer(minLength: 0)
-                periodTitle
-                    .font(.ink.byline.weight(.semibold))
-                    .foregroundStyle(Color.ink.text)
-                    .multilineTextAlignment(.center)
+                // Back to the current period beside the title, not on a row of its own (Şafak
+                // çizimi: nothing between the period row and the first card).
+                HStack(spacing: 8) {
+                    periodTitle
+                        .font(.ink.section)
+                        .foregroundStyle(Color.ink.text)
+                        .multilineTextAlignment(.center)
+                    if !model.isCurrent {
+                        Button {
+                            model.current()
+                        } label: {
+                            Text(currentTitle)
+                                .font(.footnote.weight(.semibold))
+                                .foregroundStyle(Color.ink.accent)
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 4)
+                                .background(Capsule(style: .continuous).fill(Color.ink.accentSoft))
+                                .frame(minHeight: TapTarget.minimumLength)
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
                 Spacer(minLength: 0)
                 Button {
                     model.next()
@@ -174,11 +193,6 @@ struct SummariesView: View {
                 #if os(macOS)
                     .buttonStyle(.plain)
                 #endif
-            }
-            if !model.isCurrent {
-                Button(currentTitle) { model.current() }
-                    .buttonStyle(InkTextButtonStyle())
-                    .frame(maxWidth: .infinity)
             }
         }
         #if os(macOS)
@@ -404,9 +418,13 @@ struct SummariesView: View {
         }
     }
 
+    /// Three equal-height number cards side by side; one column at accessibility sizes.
     private func stats(_ summary: PeriodSummary, columns: Int) -> some View {
-        let grid = Array(repeating: GridItem(.flexible(), spacing: 10, alignment: .topLeading), count: columns)
-        return LazyVGrid(columns: grid, alignment: .leading, spacing: 10) {
+        let layout =
+            columns == 1
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8))
+            : AnyLayout(HStackLayout(alignment: .top, spacing: 8))
+        return layout {
             SummaryMetric(
                 title: "Yazılan gün",
                 valueText: SummaryPresentation.writtenDaysValueText(summary, locale: locale),
@@ -418,6 +436,7 @@ struct SummariesView: View {
                 title: "Biten görev", value: summary.counts.completedTasks,
                 change: change(summary.change.completedTasks, summary))
         }
+        .fixedSize(horizontal: false, vertical: true)
     }
 
     @ViewBuilder

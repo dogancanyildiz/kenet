@@ -6734,6 +6734,22 @@
         }
       }
     },
+    "En düzenli gün: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Most regular day: %@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En düzenli gün: %@"
+          }
+        }
+      }
+    },
     "En uzun seri" : {
       "localizations" : {
         "en" : {
@@ -7996,6 +8012,22 @@
         }
       }
     },
+    "Günlerin **senin klasöründe**, düz Markdown dosyaları olarak kalır. Başka uygulamayla da açarsın." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your days stay **in your own folder** as plain Markdown files. Any other app can open them too."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Günlerin **senin klasöründe**, düz Markdown dosyaları olarak kalır. Başka uygulamayla da açarsın."
+          }
+        }
+      }
+    },
     "Günlerin yarısı ya da fazlası yazıldı" : {
       "localizations" : {
         "en" : {
@@ -8760,6 +8792,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Hatırlatmalar"
+          }
+        }
+      }
+    },
+    "Hatırlatmalar, planlanan bildirimler" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reminders, scheduled notifications"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hatırlatmalar, planlanan bildirimler"
           }
         }
       }
@@ -11181,6 +11229,22 @@
         }
       }
     },
+    "Konum, varlık tipleri" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Location, entity types"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Konum, varlık tipleri"
+          }
+        }
+      }
+    },
     "Konuma girince" : {
       "localizations" : {
         "en" : {
@@ -11850,6 +11914,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Olay taslağı"
+          }
+        }
+      }
+    },
+    "Olay var" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Has events"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Olay var"
           }
         }
       }
@@ -12891,6 +12971,22 @@
         }
       }
     },
+    "Siri, Kısayollar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Siri, Shortcuts"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Siri, Kısayollar"
+          }
+        }
+      }
+    },
     "Siri, Kısayollar ve Eylem düğmesiyle de yazabilirsin." : {
       "localizations" : {
         "en" : {
@@ -12919,6 +13015,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Siri, Kısayollar ve klavye kısayoluyla da yazabilirsin."
+          }
+        }
+      }
+    },
+    "Siri, Kısayollar, Eylem düğmesi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Siri, Shortcuts, Action button"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Siri, Kısayollar, Eylem düğmesi"
           }
         }
       }
@@ -13807,6 +13919,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Takvim izni alınamadı. Yeniden deneyebilirsin."
+          }
+        }
+      }
+    },
+    "Takvim izni, konuma girince" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calendar access, on arrival"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Takvim izni, konuma girince"
           }
         }
       }
@@ -14765,6 +14893,22 @@
         }
       }
     },
+    "Uygulama kilidi, kişi hatırlatmaları" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App lock, people reminders"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uygulama kilidi, kişi hatırlatmaları"
+          }
+        }
+      }
+    },
     "Uygulama şablonu yalnız templates/ klasörüne yazar. Bu yolda şablon oluşmaz." : {
       "localizations" : {
         "en" : {
@@ -15193,6 +15337,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Yakınlaştır"
+          }
+        }
+      }
+    },
+    "Yalnız yazı" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Writing only"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yalnız yazı"
           }
         }
       }
@@ -17034,6 +17194,22 @@
         }
       }
     },
+    "yazılan / gün" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "written / days"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "yazılan / gün"
+          }
+        }
+      }
+    },
     "yazıldı" : {
       "localizations" : {
         "en" : {
@@ -17831,6 +18007,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "İndeks güncelleniyor…"
+          }
+        }
+      }
+    },
+    "İndeks sayıları, kopya dosyalar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Index counts, duplicate files"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "İndeks sayıları, kopya dosyalar"
           }
         }
       }

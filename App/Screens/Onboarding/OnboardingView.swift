@@ -16,68 +16,27 @@ enum OnboardingCopy {
 struct OnboardingView: View {
     @Bindable var store: IndexStore
     @State private var choosesFolder = false
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: InkSpacing.section) {
-                VStack(alignment: .leading, spacing: InkSpacing.row) {
-                    KenetRingsBadge(size: 64, cornerRadius: 20, ringDiameter: 24, ringOffset: 6)
-                    PageHeadline("Kenet")
-                    Text(
-                        "Verilerin Markdown dosyalarında kalır. Yeni bir kasa oluşturabilir veya var olan Obsidian klasörünü seçebilirsin."
-                    )
-                    .font(.ink.byline)
-                    .foregroundStyle(Color.ink.secondaryText)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                }
-                VStack(alignment: .leading, spacing: InkSpacing.row) {
-                    if store.isCloudAvailable {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Button("iCloud’da sakla") { Task { await store.createCloudVault() } }
-                                .buttonStyle(InkPrimaryButtonStyle())
-                            Text("iPhone ve Mac aynı klasörü paylaşır.")
-                                .font(.ink.meta)
-                                .foregroundStyle(Color.ink.secondaryText)
-                                .frame(maxWidth: .infinity, alignment: .center)
-                        }
-                        // Side by side while both words fit one line; stacked otherwise and
-                        // always at accessibility text sizes.
-                        if dynamicTypeSize.isAccessibilitySize {
-                            VStack(alignment: .leading, spacing: InkSpacing.row) { secondaryButtons }
-                        } else {
-                            ViewThatFits(in: .horizontal) {
-                                HStack(spacing: InkSpacing.row) { secondaryButtons }
-                                VStack(alignment: .leading, spacing: InkSpacing.row) { secondaryButtons }
-                            }
-                        }
-                    } else {
-                        localVaultButton
-                            .buttonStyle(InkPrimaryButtonStyle())
-                        Button("Var olan klasörü seç") { choosesFolder = true }
-                            .buttonStyle(InkSecondaryButtonStyle())
+        // Welcome on top, the choices at the foot of the screen (Şafak çizimi); the page scrolls
+        // when large text needs more than one screen.
+        GeometryReader { proxy in
+            ScrollView {
+                VStack(alignment: .leading, spacing: InkSpacing.section) {
+                    welcome
+                    Spacer(minLength: 0)
+                    VStack(alignment: .leading, spacing: InkSpacing.row) {
+                        choices
+                        status
                     }
-                    Text(LocalizedStringKey(OnboardingCopy.newVaultLocation(for: .current).key))
-                        .font(.ink.meta)
-                        .foregroundStyle(Color.ink.secondaryText)
+                    // Mac's wide column keeps the choices button-sized, centered.
+                    .frame(maxWidth: 480)
+                    .frame(maxWidth: .infinity)
                 }
-                if let error = store.errorText {
-                    InfoBand(kind: .error, verbatim: error)
-                }
-                if store.isInspectingImport {
-                    InkProgress(kind: .indeterminate(label: "Klasör inceleniyor…"))
-                }
-                if store.isOpeningCloudVault {
-                    InkProgress(kind: .indeterminate(label: "iCloud’daki kasa açılıyor…"))
-                }
-                if store.isProcessing { VaultIndexingProgress(store: store) }
-                // While the chosen vault opens; it stays in Settings → Kasa afterwards.
-                if let synced = store.syncedFolder {
-                    InfoBand(kind: .info, verbatim: synced.notice())
-                }
+                .padding(InkSpacing.margin)
+                .frame(minHeight: proxy.size.height, alignment: .top)
+                .inkPageColumn()
+                .frame(maxWidth: .infinity)
             }
-            .padding(InkSpacing.margin)
-            .inkPageColumn()
-            .frame(maxWidth: .infinity)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .inkPage()
@@ -95,15 +54,95 @@ struct OnboardingView: View {
         }
     }
 
-    @ViewBuilder private var secondaryButtons: some View {
-        localVaultButton
-            .buttonStyle(InkSecondaryButtonStyle())
-        Button("Var olan klasörü seç") { choosesFolder = true }
-            .buttonStyle(InkSecondaryButtonStyle())
+    private var welcome: some View {
+        VStack(alignment: .leading, spacing: InkSpacing.row) {
+            KenetRingsBadge(size: 64, cornerRadius: 20, ringDiameter: 24, ringOffset: 6)
+            PageHeadline("Kenet")
+            Text(
+                "Günlerin **senin klasöründe**, düz Markdown dosyaları olarak kalır. Başka uygulamayla da açarsın."
+            )
+            .font(.body)
+            .foregroundStyle(Color.ink.text)
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    /// One filled capsule for the main choice, a full-width secondary under it and the folder
+    /// choice as a text link (Şafak çizimi).
+    @ViewBuilder private var choices: some View {
+        if store.isCloudAvailable {
+            VStack(spacing: 8) {
+                Button {
+                    Task { await store.createCloudVault() }
+                } label: {
+                    choiceLabel("iCloud’da sakla", systemImage: "icloud")
+                }
+                .buttonStyle(InkPrimaryButtonStyle())
+                Text("iPhone ve Mac aynı klasörü paylaşır.")
+                    .font(.ink.meta)
+                    .foregroundStyle(Color.ink.secondaryText)
+                    .frame(maxWidth: .infinity, alignment: .center)
+            }
+            localVaultButton
+                .buttonStyle(InkSecondaryButtonStyle())
+        } else {
+            localVaultButton
+                .buttonStyle(InkPrimaryButtonStyle())
+        }
+        Button {
+            choosesFolder = true
+        } label: {
+            Label("Var olan klasörü seç", systemImage: "folder")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(Color.ink.accent)
+                .frame(maxWidth: .infinity, minHeight: TapTarget.minimumLength)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        Text(LocalizedStringKey(OnboardingCopy.newVaultLocation(for: .current).key))
+            .font(.ink.meta)
+            .foregroundStyle(Color.ink.secondaryText)
+            .multilineTextAlignment(.center)
+            .frame(maxWidth: .infinity, alignment: .center)
+    }
+
+    @ViewBuilder private var status: some View {
+        if let error = store.errorText {
+            InfoBand(kind: .error, verbatim: error)
+        }
+        if store.isInspectingImport {
+            InkProgress(kind: .indeterminate(label: "Klasör inceleniyor…"))
+        }
+        if store.isOpeningCloudVault {
+            InkProgress(kind: .indeterminate(label: "iCloud’daki kasa açılıyor…"))
+        }
+        if store.isProcessing { VaultIndexingProgress(store: store) }
+        // While the chosen vault opens; it stays in Settings → Kasa afterwards.
+        if let synced = store.syncedFolder {
+            InfoBand(kind: .info, verbatim: synced.notice())
+        }
+    }
+
+    private func choiceLabel(_ title: LocalizedStringKey, systemImage: String) -> some View {
+        Label(title, systemImage: systemImage)
+            .font(.subheadline.weight(.semibold))
+            .frame(maxWidth: .infinity)
+    }
+
+    private var localVaultSymbol: String {
+        switch DeviceIdiom.current {
+        case .phone: "iphone"
+        case .pad: "ipad"
+        case .mac: "laptopcomputer"
+        }
     }
 
     private var localVaultButton: some View {
-        Button("Bu cihazda") { Task { await store.continueLocally() } }
+        Button {
+            Task { await store.continueLocally() }
+        } label: {
+            choiceLabel("Bu cihazda", systemImage: localVaultSymbol)
+        }
     }
 }
 

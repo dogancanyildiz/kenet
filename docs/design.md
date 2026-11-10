@@ -181,7 +181,7 @@ Kod karşılığı: `InkHeaderAction`, `InkHeaderMenu` ve `InkHeaderActionChrome
 | iPhone | Genel arama manşet satırının en sağındadır. Yer ve simge her ekranda aynıdır. |
 | Mac | Genel arama kenar çubuğunun tepesindeki tek alandır: "Ara" ve ⌘F. ⌘F alana odak verir. Yazılan sorgu Ara sheet'ini sonuçlarla açar. Araç çubuğunda ve manşet satırlarında büyüteç yoktur. |
 | Mac, Ara sheet'i | Sonuçlardan açılan sayfada manşet büyüteci Mac'te de durur ve sonuçlara döndürür. Sayfa not, kişi, konum ya da gün olabilir. Neden: kenar çubuğunun arama alanı sheet'in arkasında kalır. |
-| Kapsam çipleri | Ara sayfasında sonuç gruplarının üstünde: Hepsi, Olaylar, Görevler, Kişiler, Günler. Çip `well` zeminli kapsüldür; seçili çip vurgu rengindedir. |
+| Kapsam çipleri | Ara sayfasında sonuç gruplarının üstünde: Hepsi, Olaylar, Görevler, Kişiler, Günler. Çip `well` zeminli, ince çizgili, yaklaşık 28 pt yüksekliğinde kapsüldür; dokunma hedefi 44 pt'dir. Seçili çip `accentSoft` zeminli, vurgu renginde ve kalındır; "Renksiz ayırt et" açıkken onay işareti de taşır. |
 | Süzgeç alanı | Sayfa içi süzgeç alanı Ara sayfasındaki alanla aynı bileşendir: `well` zemin, 12 pt köşe, 1 pt `rule` sınır, odakta vurgu çizgisi. Yer tutucu italik değildir. |
 
 Kod karşılığı: süzgeç alanı `InkFilterField` bileşenidir.

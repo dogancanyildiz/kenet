@@ -86,31 +86,18 @@ struct UnseenPeopleSection: View {
                 InfoBand(kind: .error, verbatim: actionError)
                     .inkListRow()
             }
-            if groups.overdue.isEmpty {
-                Text("Bu süreyi aşan kayıt yok.")
-                    .font(.ink.meta)
-                    .foregroundStyle(.ink.secondaryText)
-                    .inkListRow()
-            }
-            ForEach(groups.overdue) { person in
-                personRow(person)
-                    .inkListRow()
-            }
-            if !groups.never.isEmpty {
-                Text("Henüz hiç")
-                    .font(.ink.meta)
-                    .foregroundStyle(.ink.secondaryText)
-                    .inkListRow()
-                ForEach(groups.never) { person in
-                    personRow(person)
-                        .inkListRow()
+            InkCard {
+                if groups.overdue.isEmpty && groups.never.isEmpty {
+                    Text("Bu süreyi aşan kayıt yok.")
+                        .font(.ink.meta).foregroundStyle(.ink.secondaryText)
+                }
+                ForEach(groups.overdue) { person in personRow(person) }
+                if !groups.never.isEmpty {
+                    SectionHeader("Henüz hiç")
+                    ForEach(groups.never) { person in personRow(person) }
                 }
             }
-            Rectangle()
-                .fill(Color.ink.rule)
-                .frame(height: InkStroke.hairline(scale: displayScale))
-                .accessibilityHidden(true)
-                .inkListRow()
+            .inkListRow()
         }
     }
 

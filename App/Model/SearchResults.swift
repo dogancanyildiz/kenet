@@ -23,6 +23,31 @@ enum SearchDestination: Hashable {
     case note(String)
 }
 
+enum SearchScope: String, CaseIterable, Identifiable {
+    case all, events, tasks, people, days
+    var id: String { rawValue }
+    var title: String {
+        switch self {
+        case .all: String(localized: "Hepsi")
+        case .events: String(localized: "Olaylar")
+        case .tasks: String(localized: "Görevler")
+        case .people: String(localized: "Kişiler")
+        case .days: String(localized: "Günler")
+        }
+    }
+
+    func includes(_ item: SearchItem) -> Bool {
+        switch self {
+        case .all: true
+        case .events: item.group == .events
+        case .tasks: item.group == .tasks
+        // "Kişiler" shows people, places and custom-type entities (docs/screens.md, Arama).
+        case .people: [.people, .places, .entities].contains(item.group)
+        case .days: if case .day = item.destination { true } else { false }
+        }
+    }
+}
+
 struct SearchItem: Identifiable, Hashable {
     let id: String
     let group: SearchGroup

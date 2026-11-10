@@ -17,6 +17,55 @@ struct EntityTimelineQueryTests {
         #expect(try index.lastEncounters(asOf: CalendarDate("2026-10-04")!)["people/Deniz Arıkan.md"] == deniz[0].date)
     }
 
+    /// The list's single read gives each entity what its own timeline and relations queries give.
+    @Test func entityListActivityMatchesPerEntityQueries() throws {
+        let index = try VaultIndex()
+        try index.rebuild(vaultRoot: Fixtures.root().appendingPathComponent("vaults/sample"))
+        let end = CalendarDate("2026-10-04")!
+        let start = CalendarDate("2026-09-20")!
+        let activity = try index.entityListActivity(from: start, through: end)
+        let files = try index.files().filter { $0.path.hasPrefix("people/") || $0.path.hasPrefix("places/") }.map(
+            \.path)
+        #expect(!files.isEmpty)
+        var sawWindowEdge = false
+        for file in files {
+            let timeline = try index.entityTimeline(for: file)
+            let relations = try index.relations(of: file)
+            let expected = EntityListActivity(
+                lastEncounter: try index.lastEncounters(asOf: end)[file],
+                recentDays: Set(timeline.map(\.date).filter { $0 >= start && $0 <= end }).sorted(),
+                relationCount: relations.outgoing.count + relations.incoming.count)
+            #expect((activity[file] ?? EntityListActivity()) == expected, "\(file)")
+            sawWindowEdge = sawWindowEdge || timeline.contains { $0.date < start }
+        }
+        // The sample leaves some encounter days outside the window.
+        #expect(sawWindowEdge)
+    }
+
+    /// Relations count in both directions, per relation row; a pair with two labels is two.
+    @Test func entityListActivityCountsExplicitRelationsBothWays() throws {
+        let vault = try StoreVault()
+        defer { vault.remove() }
+        try vault.write(
+            "people/Ada.md",
+            "---\ntype: person\nname: Ada\nspouse: \"[[Can]]\"\nrelated: [\"[[Can]]\", \"[[Koru]]\"]\n---\n")
+        try vault.write("people/Can.md", "---\ntype: person\nname: Can\n---\n")
+        try vault.write("places/Koru.md", "---\ntype: place\nname: Koru\n---\n")
+        try vault.write(
+            "journal/2026-03-01.md", "---\ntype: journal\ndate: 2026-03-01\n---\n\n## Events\n- 09:00 [[Can]] ile\n")
+        try vault.index.rebuild(vaultRoot: vault.root)
+        let day = CalendarDate("2026-03-01")!
+        let activity = try vault.index.entityListActivity(from: day, through: day)
+        for file in ["people/Ada.md", "people/Can.md", "places/Koru.md"] {
+            let relations = try vault.index.relations(of: file)
+            #expect(activity[file]?.relationCount == relations.outgoing.count + relations.incoming.count)
+        }
+        #expect(activity["people/Ada.md"]?.relationCount == 3)
+        #expect(
+            activity["people/Can.md"] == EntityListActivity(lastEncounter: day, recentDays: [day], relationCount: 2))
+        #expect(activity["places/Koru.md"]?.lastEncounter == nil)
+    }
+
     @Test func syntheticVaultMatchesSnapshotConstruction() throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)

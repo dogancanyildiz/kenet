@@ -36,51 +36,51 @@ struct PhoneSettingsView: View {
                 SyncStatusIndicator(status: store.syncStatus)
                     .inkListRow()
             }
-            NavigationLink(value: SettingsSection.vault) {
-                InkCard {
-                    HStack(spacing: InkSpacing.row) {
-                        RoundedRectangle(cornerRadius: InkCorner.sm, style: .continuous)
-                            .fill(Color.ink.accentSoft)
-                            .frame(width: 36, height: 36)
-                            .overlay {
-                                Image(systemName: store.vaultKind == .icloud ? "icloud" : "folder")
-                                    .font(.ink.section)
-                                    .foregroundStyle(Color.ink.accent)
-                            }
-                            .accessibilityHidden(true)
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(verbatim: vaultLocationTitle)
+            // The link sits behind the card as an invisible background: a NavigationLink as the
+            // row's content makes List draw its own disclosure chevron beside the card's.
+            InkCard {
+                HStack(spacing: InkSpacing.row) {
+                    RoundedRectangle(cornerRadius: InkCorner.sm, style: .continuous)
+                        .fill(Color.ink.accentSoft)
+                        .frame(width: 36, height: 36)
+                        .overlay {
+                            Image(systemName: store.vaultKind == .icloud ? "icloud" : "folder")
                                 .font(.ink.section)
-                                .foregroundStyle(Color.ink.text)
-                            HStack(spacing: 6) {
-                                Text("\(store.counts.files) dosya")
-                                    .font(.ink.meta)
-                                    .foregroundStyle(Color.ink.secondaryText)
-                                    .monospacedDigit()
-                                Text("·")
-                                    .font(.ink.meta)
-                                    .foregroundStyle(Color.ink.secondaryText)
-                                    .accessibilityHidden(true)
-                                Image(systemName: indexState.symbol(isCloudVault: store.vaultKind == .icloud))
-                                    .font(.ink.meta)
-                                    .foregroundStyle(
-                                        indexState.isFailure ? Color.ink.danger : Color.ink.secondaryText
-                                    )
-                                    .accessibilityHidden(true)
-                                Text(indexState.title)
-                                    .font(.ink.meta)
-                                    .foregroundStyle(Color.ink.secondaryText)
-                            }
+                                .foregroundStyle(Color.ink.accent)
                         }
-                        Spacer(minLength: 8)
-                        Image(systemName: "chevron.right")
-                            .font(.ink.weekday)
-                            .foregroundStyle(Color.ink.secondaryText)
-                            .accessibilityHidden(true)
+                        .accessibilityHidden(true)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(verbatim: vaultLocationTitle)
+                            .font(.ink.section)
+                            .foregroundStyle(Color.ink.text)
+                        HStack(spacing: 6) {
+                            Text("\(store.counts.files) dosya")
+                                .font(.ink.meta)
+                                .foregroundStyle(Color.ink.secondaryText)
+                                .monospacedDigit()
+                            Text("·")
+                                .font(.ink.meta)
+                                .foregroundStyle(Color.ink.secondaryText)
+                                .accessibilityHidden(true)
+                            Image(systemName: indexState.symbol(isCloudVault: store.vaultKind == .icloud))
+                                .font(.ink.meta)
+                                .foregroundStyle(
+                                    indexState.isFailure ? Color.ink.danger : Color.ink.secondaryText
+                                )
+                                .accessibilityHidden(true)
+                            Text(indexState.title)
+                                .font(.ink.meta)
+                                .foregroundStyle(Color.ink.secondaryText)
+                        }
                     }
+                    Spacer(minLength: 8)
+                    Image(systemName: "chevron.right")
+                        .font(.ink.weekday)
+                        .foregroundStyle(Color.ink.secondaryText)
+                        .accessibilityHidden(true)
                 }
             }
-            .buttonStyle(.plain)
+            .background(NavigationLink(value: SettingsSection.vault) { EmptyView() }.opacity(0))
             .inkListRow()
 
             InkCard(padded: false) {
@@ -90,31 +90,29 @@ struct PhoneSettingsView: View {
                         if index > 0 {
                             InkCardDivider()
                         }
-                        NavigationLink(value: section) {
-                            HStack(spacing: InkSpacing.row) {
-                                RoundedRectangle(cornerRadius: InkCorner.xs, style: .continuous)
-                                    .fill(Color.ink.well)
-                                    .frame(width: 30, height: 30)
-                                    .overlay {
-                                        Image(systemName: section.symbol)
-                                            .font(.ink.meta.weight(.semibold))
-                                            .foregroundStyle(Color.ink.accent)
-                                    }
-                                    .accessibilityHidden(true)
-                                Text(section.title)
-                                    .font(.ink.content)
-                                    .foregroundStyle(Color.ink.text)
-                                Spacer(minLength: 8)
-                                Image(systemName: "chevron.right")
-                                    .font(.ink.weekday)
-                                    .foregroundStyle(Color.ink.secondaryText)
-                                    .accessibilityHidden(true)
-                            }
-                            .frame(minHeight: InkButtonChrome.minimumHeight)
-                            .padding(.horizontal, InkSpacing.cardPadding)
-                            .contentShape(Rectangle())
+                        HStack(spacing: InkSpacing.row) {
+                            RoundedRectangle(cornerRadius: InkCorner.xs, style: .continuous)
+                                .fill(Color.ink.well)
+                                .frame(width: 30, height: 30)
+                                .overlay {
+                                    Image(systemName: section.symbol)
+                                        .font(.ink.meta.weight(.semibold))
+                                        .foregroundStyle(Color.ink.accent)
+                                }
+                                .accessibilityHidden(true)
+                            Text(section.title)
+                                .font(.ink.content)
+                                .foregroundStyle(Color.ink.text)
+                            Spacer(minLength: 8)
+                            Image(systemName: "chevron.right")
+                                .font(.ink.weekday)
+                                .foregroundStyle(Color.ink.secondaryText)
+                                .accessibilityHidden(true)
                         }
-                        .buttonStyle(.plain)
+                        .frame(minHeight: InkButtonChrome.minimumHeight)
+                        .padding(.horizontal, InkSpacing.cardPadding)
+                        .contentShape(Rectangle())
+                        .background(NavigationLink(value: section) { EmptyView() }.opacity(0))
                     }
                 }
             }

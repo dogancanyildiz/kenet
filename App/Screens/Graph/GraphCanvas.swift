@@ -161,6 +161,7 @@ private struct GraphFrame: View {
         let edgeKinds = Dictionary(edges.map { ([$0.first, $0.second], $0.kind) }) { first, _ in first }
         Canvas { context, size in
             guard points.count == nodes.count else { return }
+            Self.drawDotGrid(size: size, in: &context)
             var neighbors = Set<Int>()
             for link in links {
                 let highlighted = link.first == chosen || link.second == chosen
@@ -193,17 +194,37 @@ private struct GraphFrame: View {
                 let node = nodes[chosen]
                 let position = viewport.screen(points[chosen])
                 let radius = CGFloat(viewport.radius(of: node))
-                let ring = CGRect(
-                    x: position.x - radius - 3, y: position.y - radius - 3, width: radius * 2 + 6,
-                    height: radius * 2 + 6)
-                context.stroke(
-                    GraphNodeShape(kind: node.kind).path(in: ring),
-                    with: .color(Color.ink.accent),
-                    lineWidth: InkStroke.highPriority)
+                // Double ring in the accent colour (design.md "Graph düğümleri").
+                for gap in [3.0, 7.0] as [CGFloat] {
+                    let ring = CGRect(
+                        x: position.x - radius - gap, y: position.y - radius - gap,
+                        width: (radius + gap) * 2, height: (radius + gap) * 2)
+                    context.stroke(
+                        GraphNodeShape(kind: node.kind).path(in: ring),
+                        with: .color(Color.ink.accent),
+                        lineWidth: InkStroke.control)
+                }
                 Self.drawSelectedLabel(
                     node.name, at: position, radius: radius, canvasSize: size, in: &context)
             }
         }
+    }
+
+    /// Screen-space dot grid in `rule` under the edges; it does not move with the graph.
+    private static func drawDotGrid(size: CGSize, in context: inout GraphicsContext) {
+        let step: CGFloat = 20
+        let dot: CGFloat = 1.5
+        var dots = Path()
+        var y = step / 2
+        while y < size.height {
+            var x = step / 2
+            while x < size.width {
+                dots.addEllipse(in: CGRect(x: x - dot / 2, y: y - dot / 2, width: dot, height: dot))
+                x += step
+            }
+            y += step
+        }
+        context.fill(dots, with: .color(Color.ink.rule))
     }
 
     private static func drawSelectedLabel(

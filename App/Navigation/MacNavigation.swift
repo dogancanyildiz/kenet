@@ -1,5 +1,6 @@
 import SwiftUI
 import VaultFormat
+import VaultIndex
 import VaultStore
 
 /// Lists stay alongside their selection in the desktop's three columns. The Mac window, and
@@ -713,6 +714,8 @@ struct MacEntityList: View {
     var unseenReveal: UUID? = nil
     @Binding var selection: String?
     @State private var editingEntity: EntitySummary?
+    /// Every row's last encounter, 12-month days and relation count, read once for the column.
+    @State private var activity: [String: EntityListActivity] = [:]
 
     var body: some View {
         List(selection: $selection) {
@@ -725,7 +728,7 @@ struct MacEntityList: View {
             }
             ForEach(entities) { entity in
                 EntityRow(
-                    entity: entity, store: store, onEdit: { editingEntity = entity },
+                    entity: entity, store: store, activity: activity[entity.id], onEdit: { editingEntity = entity },
                     onDeleted: { if selection == $0 { selection = nil } }
                 )
                 .inkListRow(columnSelected: selection == entity.id)
@@ -734,6 +737,7 @@ struct MacEntityList: View {
         }
         .listStyle(.plain)
         .scrollContentBackground(.hidden)
+        .entityListActivity(store: store, into: $activity)
         .entityDefinitionActions(
             store: store, editing: $editingEntity,
             onRenamed: { old, new in if selection == old { selection = new } },

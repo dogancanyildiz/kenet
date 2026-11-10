@@ -29,6 +29,7 @@ struct SearchView: View {
                 searchField
                     .padding(.horizontal, InkSpacing.margin)
                     .padding(.bottom, 8)
+                scopeChips
                 if model.isSearching { ProgressView().padding(.bottom, 8) }
                 if let error = model.errorText {
                     Text(verbatim: error).foregroundStyle(.ink.danger).padding()
@@ -112,18 +113,25 @@ struct SearchView: View {
                             .inkListRow()
                         }
                     }
-                } else if model.results.isEmpty && !model.isSearching && model.errorText == nil {
+                } else if model.visibleResults.isEmpty && !model.isSearching && model.errorText == nil {
                     EmptyState("Sonuç bulunamadı")
                         .inkListRow()
                 } else {
                     ForEach(SearchGroup.allCases) { group in
-                        let items = model.results.filter { $0.group == group }
+                        let items = model.visibleResults.filter { $0.group == group }
                         if !items.isEmpty {
-                            Section {
+                            VStack(alignment: .leading, spacing: 8) {
                                 SectionHeader(title: group.title)
-                                    .inkListRow()
-                                ForEach(items) { item in resultRow(item) }
+                                InkCard(padded: false) {
+                                    VStack(spacing: 0) {
+                                        ForEach(items.indices, id: \.self) { index in
+                                            if index > 0 { InkCardDivider() }
+                                            resultRow(items[index])
+                                        }
+                                    }
+                                }
                             }
+                            .inkListRow()
                         }
                     }
                 }
@@ -134,6 +142,18 @@ struct SearchView: View {
                 if let id { proxy.scrollTo(id) }
             }
         }
+    }
+
+    private var scopeChips: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                ForEach(SearchScope.allCases) { item in
+                    TagChip(title: item.title, isSelected: model.scope == item, onTap: { model.scope = item })
+                }
+            }
+            .padding(.horizontal, InkSpacing.margin)
+        }
+        .padding(.bottom, 8)
     }
 
     private func resultRow(_ item: SearchItem) -> some View {
@@ -156,7 +176,10 @@ struct SearchView: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .inkListRow(columnSelected: item.id == model.selectedID)
+        .padding(.horizontal, InkSpacing.cardPadding)
+        .padding(.vertical, 8)
+        .background(item.id == model.selectedID ? Color.ink.accentSoft : Color.clear)
+        .accessibilityElement(children: .contain)
         .id(item.id)
     }
 

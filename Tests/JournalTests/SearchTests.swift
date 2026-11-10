@@ -182,6 +182,34 @@ struct SearchTests {
         #expect(model.selected == nil)
     }
 
+    /// Arrow keys and Enter act on what the scope chip shows; a new scope selects its first row.
+    @Test func scopeFiltersSelectionKeyboardAndActivation() async throws {
+        let context = try EntityPageTestContext()
+        defer { context.clean() }
+        await context.start()
+        let model = SearchModel(store: context.store, defaults: context.defaults.defaults)
+        model.query = "Deniz"
+        await model.search()
+        let person = try #require(model.results.first { $0.group == .people })
+        let events = model.results.filter { $0.group == .events }
+        try #require(!events.isEmpty)
+        model.scope = .events
+        #expect(model.visibleResults == events)
+        #expect(model.selected == events.first)
+        model.moveSelection(by: -1)
+        #expect(model.selected == events.first)
+        model.moveSelection(by: 10000)
+        #expect(model.selected == events.last)
+        // A hidden result is neither selected nor opened.
+        #expect(model.activate(person) == nil)
+        model.scope = .tasks
+        let tasks = model.results.filter { $0.group == .tasks }
+        #expect(model.selected == tasks.first)
+        model.scope = .all
+        #expect(model.selected == model.visibleResults.first && model.visibleResults.count == model.results.count)
+        #expect(model.activate(person) == person.destination)
+    }
+
     @Test func cancelledDebounceDoesNotPublishOldResults() async throws {
         let context = try EntityPageTestContext()
         defer { context.clean() }

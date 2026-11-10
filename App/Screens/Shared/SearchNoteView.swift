@@ -1,4 +1,5 @@
 import SwiftUI
+import VaultFormat
 
 /// Reads the original body for display; wikilink markup and block ids are hidden in the UI only.
 struct SearchNoteView: View {
@@ -7,6 +8,8 @@ struct SearchNoteView: View {
     @State private var bodyText = ""
     @State private var errorText: String?
     @State private var isLoaded = false
+    /// Days whose events and paragraphs link to this note, newest first (the entity timeline query).
+    @State private var backlinks: [EntityTimelineDay] = []
     @Environment(\.inkSheetDismissAction) private var sheetDismiss
     @Environment(\.dismiss) private var dismiss
 
@@ -24,11 +27,15 @@ struct SearchNoteView: View {
                     if let errorText {
                         Text(verbatim: errorText).foregroundStyle(.ink.danger)
                     } else if isLoaded {
-                        Text(verbatim: bodyText).textSelection(.enabled)
-                            .font(.ink.content)
-                            .inkJournalParagraph()
-                            .foregroundStyle(.ink.text)
-                            .frame(maxWidth: .infinity, alignment: .leading)
+                        VStack(alignment: .leading, spacing: InkSpacing.section) {
+                            // Reading text stays on the page, full width; only the backlinks are a card.
+                            Text(verbatim: bodyText).textSelection(.enabled)
+                                .font(.ink.content)
+                                .inkJournalParagraph()
+                                .foregroundStyle(.ink.text)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            if !backlinks.isEmpty { backlinksSection }
+                        }
                     } else {
                         ProgressView("Yükleniyor…")
                     }
@@ -65,16 +72,45 @@ struct SearchNoteView: View {
             isLoaded = false
             errorText = nil
             bodyText = ""
+            backlinks = []
             do {
                 let document = try await store.document(at: file)
                 try Task.checkCancellation()
                 let raw = document.lines.dropFirst(document.frontmatterLineRange?.upperBound ?? 0)
                     .map(\.displayText).joined(separator: "\n")
                 bodyText = VaultDisplayText.multiline(raw)
+                backlinks = (try? await store.computeEntityTimeline(for: file)) ?? []
                 isLoaded = true
             } catch is CancellationError {
             } catch {
                 errorText = DayEditError.message(for: error)
+            }
+        }
+    }
+
+    private var backlinksSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            SectionHeader("Bu nota bağlananlar", count: backlinks.reduce(0) { $0 + $1.rows.count })
+            InkCard {
+                ForEach(Array(backlinks.enumerated()), id: \.element.id) { offset, day in
+                    if offset > 0 { InkCardDivider() }
+                    ForEach(day.rows) { row in
+                        NavigationLink {
+                            DayView(store: store, date: day.date)
+                        } label: {
+                            HStack(alignment: .firstTextBaseline, spacing: 12) {
+                                Text(LocalDay.instant(for: day.date), format: .dateTime.day().month(.abbreviated))
+                                    .font(.ink.value)
+                                    .foregroundStyle(.ink.secondaryText)
+                                LinkedTextView(text: row.text, store: store)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                            }
+                            .frame(minHeight: TapTarget.minimumLength)
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
             }
         }
     }

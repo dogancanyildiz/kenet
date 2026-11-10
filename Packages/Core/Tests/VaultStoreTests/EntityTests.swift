@@ -3,6 +3,30 @@ import Testing
 import VaultStore
 
 struct EntityTests {
+    @Test func noteFromUnresolvedLinkIsEmptyFileUnderNotes() async throws {
+        let vault = try StoreVault()
+        defer { vault.remove() }
+        let path = try await vault.store.creatingNote(name: " Okuma Listesi ")
+        #expect(path == "notes/Okuma Listesi.md")
+        #expect(try vault.bytes(path) == Data())
+        #expect(try vault.index.files().contains { $0.path == path })
+        await #expect(throws: VaultStoreError.nameTaken) {
+            try await vault.store.creatingNote(name: "OKUMA LISTESI")
+        }
+        try vault.check()
+    }
+
+    @Test func noteNameTakenByAnyVaultFileIsNotWritten() async throws {
+        let vault = try StoreVault()
+        defer { vault.remove() }
+        try vault.write("people/Deniz Arıkan.md", "---\ntype: person\nname: Deniz Arıkan\n---\n")
+        await #expect(throws: VaultStoreError.nameTaken) {
+            try await vault.store.creatingNote(name: "Deniz Arıkan")
+        }
+        #expect(throws: (any Error).self) { try vault.bytes("notes/Deniz Arıkan.md") }
+        #expect(try vault.bytes("people/Deniz Arıkan.md") == Data("---\ntype: person\nname: Deniz Arıkan\n---\n".utf8))
+    }
+
     @Test func templateFieldsAndBodyArePreserved() async throws {
         let vault = try StoreVault(sample: true)
         defer { vault.remove() }

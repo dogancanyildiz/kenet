@@ -23,6 +23,11 @@ final class SearchModel {
     private(set) var fieldFocusRequests = 0
     private(set) var recentQueries: [String] = []
     private(set) var selectedID: String?
+    /// The scope chip. Selection, the arrow keys and Enter work on what it shows; a new scope
+    /// selects its first visible result.
+    var scope: SearchScope = .all {
+        didSet { if scope != oldValue { selectedID = visibleResults.first?.id } }
+    }
     private(set) var isSearching = false
     private(set) var errorText: String?
     @ObservationIgnored private let defaults: UserDefaults
@@ -37,7 +42,11 @@ final class SearchModel {
     }
 
     var isEmpty: Bool { query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
-    var selected: SearchItem? { results.first { $0.id == selectedID } }
+    /// The results the list draws, in its order: by group, then as built, filtered by `scope`.
+    var visibleResults: [SearchItem] {
+        SearchGroup.allCases.flatMap { group in results.filter { $0.group == group && scope.includes($0) } }
+    }
+    var selected: SearchItem? { visibleResults.first { $0.id == selectedID } }
 
     func search(debounce: Bool = false) async {
         let token = UUID()
@@ -58,7 +67,7 @@ final class SearchModel {
             guard request == token, root == store.vaultURL else { return }
             results = SearchResults.build(query: text, entities: store.content.entities, matches: matches)
             resultRoot = root
-            selectedID = results.first?.id
+            selectedID = visibleResults.first?.id
         } catch is CancellationError {
         } catch {
             guard request == token, root == store.vaultURL else { return }
@@ -67,9 +76,10 @@ final class SearchModel {
     }
 
     func moveSelection(by offset: Int) {
-        guard !results.isEmpty else { return }
-        let index = results.firstIndex { $0.id == selectedID } ?? 0
-        selectedID = results[min(max(index + offset, 0), results.count - 1)].id
+        let visible = visibleResults
+        guard !visible.isEmpty else { return }
+        let index = visible.firstIndex { $0.id == selectedID } ?? 0
+        selectedID = visible[min(max(index + offset, 0), visible.count - 1)].id
     }
 
     /// Back from an opened page to the result list.
@@ -82,7 +92,7 @@ final class SearchModel {
     }
 
     func activate(_ item: SearchItem) -> SearchDestination? {
-        guard resultRoot == store.vaultURL, results.contains(item) else { return nil }
+        guard resultRoot == store.vaultURL, visibleResults.contains(item) else { return nil }
         rememberQuery()
         return item.destination
     }

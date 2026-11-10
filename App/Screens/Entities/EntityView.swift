@@ -108,6 +108,9 @@ struct EntityView: View {
             }
         }
         .listStyle(.plain)
+        // Room under the last section: the page's end scrolls clear of the floating tab bar, so the
+        // timeline and notes are read above it, not under its edge.
+        .contentMargins(.bottom, 120, for: .scrollContent)
         .inkPage()
         .inkPageScrollColumn()
         .inkPinnedMasthead(masthead)
@@ -157,29 +160,31 @@ struct EntityView: View {
     }
 
     @ViewBuilder private var headRows: some View {
-        if !model.aliasesEditable, !model.aliasesSource.isEmpty {
-            Text(verbatim: model.aliasesSource)
-                .font(.ink.meta)
-                .foregroundStyle(.ink.secondaryText)
-                .textSelection(.enabled)
-                .inkListRow()
+        TagChip(title: kindLabel, filled: true)
+            .inkListRow()
+        // docs/screens.md order: the Son görüşme / Son ziyaret card sits right under the manşet.
+        if ["person", "place"].contains(current.kind), timeline != nil {
+            InkCard {
+                EntityInsightsCard(store: store, entity: current, timeline: timeline ?? [], lastDay: lastDay)
+            }
+            .inkListRow()
         }
-        if let qualifier = current.qualifier {
-            labeledRow(String(localized: "Ayırt edici"), qualifier, valueFont: .ink.content)
-                .inkListRow()
+        InkCard {
+            if let qualifier = current.qualifier {
+                labeledRow(String(localized: "Ayırt edici"), qualifier, valueFont: .ink.content)
+                InkCardDivider()
+            }
+            labeledRow(
+                String(localized: "Gelen bağlantılar"), current.incomingLinks.formatted(.number), valueFont: .ink.value)
+            if !model.aliasesEditable, !model.aliasesSource.isEmpty {
+                Text(verbatim: model.aliasesSource).font(.ink.meta).foregroundStyle(.ink.secondaryText).textSelection(
+                    .enabled)
+            }
+            if let result = model.renameResult { EntityRenameSummary(result: result) }
         }
-        labeledRow(
-            String(localized: "Gelen bağlantılar"),
-            current.incomingLinks.formatted(.number),
-            valueFont: .ink.value
-        )
         .inkListRow()
         if showsImportantDates {
             EntityImportantDatesRow(file: model.path, model: importantDates)
-        }
-        if let result = model.renameResult {
-            EntityRenameSummary(result: result)
-                .inkListRow()
         }
     }
 
@@ -205,9 +210,6 @@ struct EntityView: View {
                 .inkListRow()
             }
         }
-        if ["person", "place"].contains(current.kind) {
-            EntityInsightsCard(store: store, entity: current, timeline: timeline ?? [], lastDay: lastDay)
-        }
         if isGraphNode {
             EntityRelationsHost(store: store, path: model.path).id(model.path)
         }
@@ -231,41 +233,37 @@ struct EntityView: View {
         let grouped = EntityReadPresentation.fieldRows(
             fields: model.fields, schemaKeys: schemaKeys, locale: locale)
         if !grouped.known.isEmpty {
-            Section {
+            VStack(alignment: .leading, spacing: 8) {
                 SectionHeader(title: String(localized: "Alanlar"))
-                    .inkListRow()
-                ForEach(grouped.known) { row in
-                    labeledRow(row.label, row.value.isEmpty ? "\u{2014}" : row.value, valueFont: .ink.content)
-                        .inkListRow()
+                InkCard {
+                    ForEach(grouped.known.indices, id: \.self) { index in
+                        let row = grouped.known[index]
+                        if index > 0 { InkCardDivider() }
+                        labeledRow(row.label, row.value.isEmpty ? "\u{2014}" : row.value, valueFont: .ink.content)
+                    }
                 }
-            }
+            }.inkListRow()
         }
         if !grouped.other.isEmpty {
-            Section {
+            VStack(alignment: .leading, spacing: 8) {
                 SectionHeader(title: String(localized: "Diğer alanlar"))
-                    .inkListRow()
-                ForEach(grouped.other) { row in
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(verbatim: row.key)
-                            .font(.ink.meta)
-                            .foregroundStyle(.ink.secondaryText)
-                        Text(verbatim: row.value.isEmpty ? "\u{2014}" : row.value)
-                            .font(.ink.content)
-                            .foregroundStyle(.ink.secondaryText)
-                            .textSelection(.enabled)
+                InkCard {
+                    ForEach(grouped.other) { row in
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(verbatim: row.key).font(.ink.meta).foregroundStyle(.ink.secondaryText)
+                            Text(verbatim: row.value.isEmpty ? "\u{2014}" : row.value)
+                                .font(.ink.content).foregroundStyle(.ink.secondaryText).textSelection(.enabled)
+                        }
                     }
-                    .padding(.vertical, 2)
-                    .inkListRow()
                 }
-            }
+            }.inkListRow()
         }
     }
 
     @ViewBuilder private var timelineSection: some View {
         let timeline = self.timeline ?? []
         Section {
-            SectionHeader(title: String(localized: "Zaman akışı"), count: timeline.count)
-                .inkListRow()
+            SectionHeader(title: String(localized: "Zaman akışı"), count: timeline.count).inkListRow()
             if timeline.isEmpty {
                 Text("Henüz günlük kaydı yok.")
                     .font(.ink.meta)
@@ -273,18 +271,40 @@ struct EntityView: View {
                     .inkListRow()
             }
             ForEach(timeline) { day in
-                Text(LocalDay.instant(for: day.date), format: .dateTime.day().month().year())
-                    .font(.ink.section)
-                    .foregroundStyle(.ink.text)
-                    .inkListRow()
-                ForEach(day.rows) { row in
-                    NavigationLink {
-                        DayView(store: store, date: day.date)
-                    } label: {
-                        LinkedTextView(text: row.text, store: store)
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        NavigationLink {
+                            DayView(store: store, date: day.date)
+                        } label: {
+                            Text(LocalDay.instant(for: day.date), format: .dateTime.day().month().year())
+                                .font(.ink.section).foregroundStyle(.ink.text)
+                                .frame(minHeight: TapTarget.minimumLength)
+                                .contentShape(Rectangle())
+                        }
+                        // Two links share the list row: each keeps its own tap (borderless), not the whole row.
+                        .buttonStyle(.borderless)
+                        Spacer()
+                        NavigationLink {
+                            GraphView(store: store, scope: .day(day.date))
+                        } label: {
+                            Label("Günün grafiği", systemImage: "point.3.connected.trianglepath.dotted")
+                                .labelStyle(.iconOnly).tapTarget()
+                        }
+                        .buttonStyle(.borderless)
                     }
-                    .inkListRow()
+                    InkCard {
+                        ForEach(day.rows) { row in
+                            NavigationLink {
+                                DayView(store: store, date: day.date)
+                            } label: {
+                                LinkedTextView(text: row.text, store: store)
+                                    .frame(maxWidth: .infinity, minHeight: TapTarget.minimumLength, alignment: .leading)
+                                    .contentShape(Rectangle())
+                            }.buttonStyle(.plain)
+                        }
+                    }
                 }
+                .inkListRow()
             }
         }
     }
@@ -300,12 +320,10 @@ struct EntityView: View {
                     .foregroundStyle(.ink.secondaryText)
                     .inkListRow()
             } else {
-                Text(verbatim: display)
-                    .font(.ink.content)
-                    .inkJournalParagraph()
-                    .foregroundStyle(.ink.text)
-                    .textSelection(.enabled)
-                    .inkListRow()
+                InkCard {
+                    Text(verbatim: display).font(.ink.content).inkJournalParagraph()
+                        .foregroundStyle(.ink.text).textSelection(.enabled)
+                }.inkListRow()
             }
         }
     }

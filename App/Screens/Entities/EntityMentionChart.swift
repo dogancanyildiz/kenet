@@ -20,6 +20,7 @@ struct EntityMentionChartsView: View {
 struct EntityMonthlyBarChart: View {
     let data: EntityMentionsData
     var barHeight: CGFloat = 68
+    var compact = false
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     private var maxCount: Int {
@@ -28,12 +29,38 @@ struct EntityMonthlyBarChart: View {
 
     var body: some View {
         Group {
-            if dynamicTypeSize.isAccessibilitySize {
+            if compact {
+                compactColumns
+            } else if dynamicTypeSize.isAccessibilitySize {
                 accessibilityRows
             } else {
                 columns
             }
         }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(verbatim: data.spokenSummary))
+    }
+
+    private var compactColumns: some View {
+        HStack(alignment: .bottom, spacing: 2) {
+            ForEach(data.monthly) { item in
+                GeometryReader { geo in
+                    let height = item.count > 0 ? max(3, geo.size.height * CGFloat(item.count) / CGFloat(maxCount)) : 0
+                    VStack {
+                        Spacer(minLength: 0)
+                        if item.isCurrentMonth {
+                            Capsule().strokeBorder(Color.ink.accent, lineWidth: InkStroke.control)
+                                .frame(height: height)
+                        } else {
+                            Capsule().fill(Color.ink.accent).frame(height: height)
+                        }
+                    }
+                }
+                .frame(maxWidth: .infinity)
+            }
+        }
+        .frame(height: 30)
+        .frame(width: 96)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text(verbatim: data.spokenSummary))
     }

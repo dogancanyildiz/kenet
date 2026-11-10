@@ -73,7 +73,7 @@ Seçim sürecinin, oylamanın ve jürinin ayrıntılı gerekçesi git geçmişin
 | 4 | Her renk belirtecinin 4 varyantı vardır: açık, koyu ve ikisinin Kontrastı Artır karşılığı. Gövde ve ikincil metin en az 4,5:1 kontrast taşır; hedef 7:1'dir. İri metin ve denetim sınırları en az 3:1 kontrast taşır. |
 | 5 | Durumu hiçbir zaman yalnız renk, gölge ya da opaklık anlatmaz. Bağlantı renkten başka bir ipucu daha taşır. Devreden görev işaret ve tarih taşır. Tamamlanan görev dolu onay işareti taşır ve metni okunur kalır. Zaman kartının sol çubuğu rengin yanında metin taşır: "14 Eyl'den", "Bitti". |
 | 6 | Geciken tarih kırmızı değildir; uyarı rengini ve işareti taşır. Kırmızı yalnız gerçek hatayı ve yıkıcı eylemi gösterir. |
-| 7 | Vurgu kalanı gösterir: yapılmış hedef ve tamamlanan görev geri plana geçer. Biten işin ayrı yeşili yoktur; biten iş ikincil metin rengini alır. Gün halkasının ortasındaki sayı kalan iştir. |
+| 7 | Vurgu kalanı gösterir: yapılmış hedef ve tamamlanan görev geri plana geçer. Biten işin ayrı yeşili yoktur; biten iş ikincil metin rengini alır. Gün halkasının vurgu yayı ve ortasındaki sayı günün tamamlanan payıdır (yüzde). |
 | 8 | Uygulama yalnız sistem yazı tiplerini kullanır: SF Pro; New York yalnız `content` rolü serife dönerse. Metin semantik stilleri kullanır ve Dynamic Type ile büyür. Sabit punto yoktur. |
 | 9 | iOS'ta hiçbir metin 12 pt'nin altında değildir. Etiketler cümle düzenindedir: hafta şeridinde "Pzt". Büyük harfli, geniş aralıklı etiket yoktur. |
 | 10 | Dokunma hedefleri en az 44 pt'dir. iOS'ta kısa sözcüklü metin düğmesi ("Geri", "İleri") 44 pt genişliğe uzar; sözcük başta kalır. Tek satırlık satır ve anahtar satırı 44 pt yüksekliktedir. Hafta şeridinin her günü 44 × 56 pt'dir. |
@@ -91,10 +91,10 @@ Seçim sürecinin, oylamanın ve jürinin ayrıntılı gerekçesi git geçmişin
 | 2 | Her bölüm bir karttır. Bölüm başlığı ve sayaç kartın üstünde, kartın dışındadır. Kart içinde satırları `rule` ayraç ayırır. Kart içinde kart yoktur. |
 | 3 | Her satırın işareti kartın içinde, sol işaret sütunundadır: görev kutusu, hedef halkası, saat. Sütun 44 pt'dir ve yazıyla büyür. Öncelik görev kutusunun içindedir. |
 | 4 | Bağlantı metni metin rengindedir; anlamı alt çizgi taşır. Kişi düz mavi, konum noktalı yeşil, çözülmemiş bağlantı kesik ve ikincil alt çizgi taşır. Türkçe ek çizginin dışında kalır. |
-| 5 | Eylem tek renktir: vurgu. Parıltı ve hale eylem değildir. Dikkat yalnız uyarı rengiyle ve yalnız devreden tarihinde görünür. |
+| 5 | Eylem tek renktir: vurgu. Parıltı ve hale eylem değildir. Dikkat yalnız uyarı rengiyle görünür: devreden tarihinde ve yığılı çubuğun devreden parçasında. |
 | 6 | Tamamlanan görev ve yapılmış hedef soluklaşır: ikincil metin, dolu işaret. Bu satırlar listenin sonuna iner; Bugün hedef bölümünde yalnız günün ilk yüklemesinde, çünkü gün ekranda kaldıkça sıra değişmez (`screens.md` Hedefler bölümü). Üstleri çizili olmaz. |
 | 7 | Künye cümlesi sayıyı öne çıkarır: sayı ve sözcüğü metin renginde ve yarı kalındır; bağlaçlar ikincil renktedir. Örnek: "Günaydın. Bugün **2 olay**, **6 görev** ve **3 hedef** var." |
-| 8 | Gün seçimi hafta şeridiyle yapılır: 7 gün, bugün `well` kapsülde ve altında vurgu noktası. Şerit Bugün'de ve Gün ekranında aynı bileşendir. |
+| 8 | Gün seçimi hafta şeridiyle yapılır. Şerit yarı saydam karttır: 7 gün, olaylı ya da yazılı her günün altında nokta. Bugün vurgu rakam ve vurgu noktadır. Seçili bugün çerçeveli hücredir; seçili başka gün `text` dolgulu hücredir. Şerit Bugün'de ve Gün ekranında aynı bileşendir. |
 
 ### Bağlantı biçimleri
 
@@ -153,7 +153,8 @@ Denetim 84 gerçek ekran görüntüsünü ve kod envanterini inceledi. Aşağıd
 | Kök ekran, iPhone | Sayfa adı solda sans manşettir (`display`). Sayfanın eylem simgeleri aynı satırın sağında durur. Sistem gezinme çubuğu ve cam kapsül yoktur. |
 | Bugün ve Gün ekranı | Manşet gün başlığıdır: Bugün'de gün halkası, gün rakamı ve gün adı; altında hafta şeridi durur. Gün ekranında üst satır geri, ay seçici ve aramadır; altında hafta şeridi durur. |
 | Mac | Sayfa adı yine sayfanın içinde sans manşettir. Her liste sütunu manşetle başlar. Pencere araç çubuğunda başlık yoktur. Pencerenin adı seçili kenar çubuğu girdisidir ve yalnız Pencere menüsünde görünür. Araç çubuğunda arama düğmesi yoktur; arama kenar çubuğunun tepesindeki alandır. Araç çubuğu `paper` renginde ve opaktır. |
-| Alt sayfa | Sistem çubuğunda yalnız geri düğmesi kalır. Sayfanın eylemleri yine manşet satırındadır. |
+| Alt sayfa, iPhone | Manşetin üstünde gezinme satırı durur: solda "‹ Üst sayfa" metinli geri öğesi, sağda sayfanın simgeleri. Sistem çubuğu gizlenir. Başlık `title1` boyutundadır (`subpageTitle`); künye tek satır `footnote`tur. |
+| Alt sayfa, iPad bölünmüş kabuk, Mac ve sheet | Sistem çubuğunda yalnız geri düğmesi kalır. Sayfanın eylemleri manşet satırındadır. |
 | Kaydırma, iPhone ve iPad | Manşet satırı içerikle birlikte kayar. Bugün'de gün başlığı kaydırınca tek satıra iner ve üstte kalır. İstisna Ara sayfasıdır: manşet ve arama alanı sabittir, sonuçlar altta kayar. |
 | Kaydırma, Mac | Pencere sütunlarında manşet satırı sütunun üstünde sabittir; içerik altından kayar. İçerik kaydırılınca manşetin altında ince bir çizgi belirir, sayfa en üstteyken çizgi yoktur. Görevler'de sayfa üstünün tamamı sabittir: manşet, görünüm sekmeleri ve menü satırı. Günlük sütununda manşetle birlikte Özetler ve Haftalık inceleme çipleri sabittir; takvim ve günler kayar. Sheet'te açılan sayfa da manşetini sheet'in üstünde sabit tutar: kişi, konum, bulunamayan bağlantı, gün ve not sayfası. Haftalık inceleme ve günlük yazısı sheet'leri bu kalıbı kullanmaz. |
 | Kenar çubuğu, Mac | Satırlar arama alanının altına kayınca kenar çubuğunun üstünde aynı ince çizgi belirir. |
@@ -164,7 +165,7 @@ Kod karşılığı: `InkPageTitle`, `InkPageTitleRow`, `inkRootPageNavigationTit
 
 | Konu | Kural |
 |---|---|
-| Biçim | Çerçevesiz ve kapsülsüz simge. |
+| Biçim | iOS manşet satırında ve alt sayfanın gezinme satırında simge 40 pt yarı saydam yuvarlak çipte durur (`surface` %72, 0,5 pt `line`); simge `subheadline` boyutundadır. Mac'te simge çerçevesizdir. |
 | iPhone alanı | Dokunma alanı 44 pt. |
 | Mac alanı | Tıklama alanı en az 28 pt. Simge semantik `title2` boyutundadır. Komşu tıklama alanları arasında 4 pt boşluk vardır. |
 | Renk | Yardımcı eylemler ikincil metin rengindedir: ara, sırala, filtrele, Ayarlar, günün grafiği. Kayıt açan ya da içeriği değiştiren eylem vurgu rengindedir: ekle, düzenle. "Eylem tek renktir" kuralı bu eylemler içindir. |
@@ -370,7 +371,7 @@ flowchart TD
 | Duraklar | 0: renk A; %38: renk B; %70: saydam. |
 | Renk A | Mürdüm `#8E3F80`; koyuda %45, açıkta %16 |
 | Renk B | Kehribar `#C98B2F`; koyuda %28, açıkta %16 |
-| Kaydırma | İçerikle birlikte kayar. Sabit durmaz; kartların altında kalmaz. Kabın dışına taşan kısım kırpılır. |
+| Kaydırma | İçerikle birlikte kayar. Sabit durmaz; kartların altında kalmaz. Durum çubuğunun altına da uzanır. Kabın dışına taşan kısım kırpılır. |
 | Platform | iPhone ve iPad kök ekranları; Mac'te ayrıntı sütununun üstü |
 
 **Parıltının en güçlü noktasında kontrast.** Nokta, gradyan merkezindeki karışımdır; ekrandaki gerçek değer bundan yüksektir.
@@ -388,7 +389,7 @@ flowchart TD
 | Yasak içerik | Tehlike rengi, kişi ve konum bağlantısı ve üçüncül metin parıltı bölgesinde durmaz. |
 | Hale | "+" ve gönder düğmesinin çevresindeki ışık parıltı değildir. Hale yalnız birincil ekleme düğmesinde durur: `glowShadow`. |
 
-Parıltı bilgi taşımaz. Kod karşılığı `.inkGlow()` değiştiricisidir; Kontrastı Artır ve Saydamlığı Azalt'ta boş çizer.
+Parıltı bilgi taşımaz. Kod karşılığı `.inkGlow()` değiştiricisidir; Kontrastı Artır ve Saydamlığı Azalt'ta boş çizer. iPhone sekme kabuğunda `inkRootPageNavigationTitle` parıltıyı kök sayfaya kendisi verir; `inkPage()` parıltıyı kâğıdın üstüne çizer. Kök sayfanın liste satırları saydamdır; alt sayfa ve sheet parıltı almaz.
 
 ## Yazı belirteçleri
 
@@ -400,6 +401,7 @@ Parıltı bilgi taşımaz. Kod karşılığı `.inkGlow()` değiştiricisidir; K
 | Manşet: sayfa adı | `display` | SF Pro Bold | `largeTitle` | 34 | 26 |
 | Gün adı, ay | `dayName` | SF Pro Semibold, ikincil | `title2` | 22 | 17 |
 | Künye cümlesi | `byline` | SF Pro Medium; sayılar Semibold ve metin rengi | `title3` | 20 | 15 |
+| Manşet künyesi | `pageByline` | SF Pro Regular, ikincil metin; alt sayfada `meta`, tek satır | `subheadline` | 15 | 13 |
 | Bölüm başlığı | `section` | SF Pro Semibold | `headline` | 17 | 13 |
 | İçerik | `content` | SF Pro Regular | `body` | 17; günlük paragrafında satır yüksekliği 26 | 13 |
 | Küçük içerik: gün önizlemesi, kısa alıntı | `contentSmall` | `content` ile aynı aile | `footnote` | 13 | 10 |
@@ -408,7 +410,7 @@ Parıltı bilgi taşımaz. Kod karşılığı `.inkGlow()` değiştiricisidir; K
 | Saat | `time` | SF Pro, tabular | `subheadline` | 15 | 11 |
 | Değer | `value` | SF Pro, tabular | `body` | 17 | 13 |
 | Hafta şeridi gün harfi | `weekday` | SF Pro Medium | `caption1` | 12 | 10 |
-| Büyük rakam: hedef ayrıntısı, özet | `largeNumber` | SF Pro Light, tabular | `largeTitle` | 48 | 48 |
+| Büyük rakam: hedef ayrıntısı, özet | `largeNumber` | SF Pro Bold, tabular | `largeTitle` | 48 | 48 |
 
 `InkFonts.swift` yalnız semantik stilleri kullanır; kod kuraldır. Mac sütunu macOS'un aynı stile verdiği değerdir; Mac için ayrı bir boyut hedefi yoktur. `content` rolü ayrı kalır; serif dönerse yalnız bu rolün ailesi değişir. `inkJournalParagraph()` günlük paragrafına 9 pt ek satır aralığı verir. `LargeNumberText` 48 pt hedefini `@ScaledMetric` ile büyütür. Gün rakamının `Font.ink` rolü yoktur: `InkDayHeader` boyutu kendi `@ScaledMetric` değeriyle çizer.
 
@@ -428,8 +430,8 @@ flowchart LR
 | Ad | Değer | Kullanım |
 |---|---|---|
 | `r-xs` | 8 pt | Küçük rozet, Mac kenar çubuğu dolgusu |
-| `r-sm` | 12 pt | İç alan, süzgeç alanı, Mac kanban ve zaman kartı |
-| `r-md` | 16 pt | Hafta şeridindeki seçili gün |
+| `r-sm` | 12 pt | İç alan, süzgeç alanı, hafta şeridindeki seçili gün, Mac kanban ve zaman kartı |
+| `r-md` | 16 pt | İç kart |
 | `r-lg` | 20 pt | Bölüm kartı (iPhone, iPad), erişilebilirlik boyutunda hızlı giriş |
 | `r-xl` | 24 pt | Sheet içi büyük kart, ilk açılış kartı |
 | `r-pill` | Kapsül | Çip, birincil düğme, hızlı giriş, "+" düğmesi |
@@ -591,7 +593,7 @@ mindmap
 | `InkButtonChrome.swift`, `InkButtonStyles.swift` | Yeniden çizilir | Birincil düğme vurgu dolgulu kapsül, 44 pt |
 | `InkFilterField.swift` | Yeniden çizilir | `well`, 12 pt köşe |
 | `InkFlowLayout.swift` | Korunur | Yalnız yerleşim |
-| `InkHeaderAction.swift`, `InkHeaderButtonStyle.swift` | Korunur | Çerçevesiz simge |
+| `InkHeaderAction.swift`, `InkHeaderButtonStyle.swift` | Yeniden çizilir | iOS manşette yuvarlak çip; Mac'te çerçevesiz simge |
 | `InkLabeledMenu.swift` | Korunur | |
 | `InkLinkedText.swift`, `InkLinkStyle.swift` | Korunur | Mürekkep kuralı 4 göndermesi Şafak kuralı 4 olur |
 | `InkListSelection.swift` | Yeniden çizilir | `well` yerine `accentSoft`; solda 2 pt vurgu çizgisi kalır |
@@ -608,7 +610,7 @@ mindmap
 | `PageHeadline.swift` | Yeniden çizilir | Gün rakamı ve gün adı |
 | `QuickEntryCapsule.swift`, `QuickEntryMode.swift` | Yeniden çizilir | `surface` zemin, `line` sınır, gönderde hale |
 | `RhythmStrip.swift` | Korunur | |
-| `SectionHeader.swift` | Yeniden çizilir | Süs çizgisi kalkar; başlık `headline`, sayaç sağda |
+| `SectionHeader.swift` | Yeniden çizilir | Süs çizgisi kalkar; başlık `headline`, sayaç sağda `caption1` |
 | `SyncStatusIndicator.swift` | Korunur | |
 | `TagChip.swift` | Yeniden çizilir | Kapsül, `well` |
 | `TaskBox.swift` | Korunur | Köşeli kutu, öncelik içinde; köşe 6 pt |
@@ -690,11 +692,11 @@ Grafik hedef ayrıntısında kendi kartındadır. Grafik yüksekliği 160 pt'dir
 | Ritim: yazılmadı | Kısa çizgi | Kontrol çizgisi | "Yazılmadı" |
 | Ritim: başlamamış birim | Çubuk ve işaret yok | — | Yalnız önceki dönem |
 | Ay ritmi: 30 günlük kare | `HeatmapCell`: olaylı gün `full`, yalnız günlük yazısı `partial`, yazılmayan gün `empty`; gelecek günde kare yok | Vurgu, `well` | Tek öğe: "30 günün 22'sinde yazıldı" |
-| Yığılı çubuk: tamamlanan | Çapraz tarama ve ince çerçeve | İkincil metin | Açıklamada ad ve sayı |
-| Yığılı çubuk: devreden | Dolu | Metin | Açıklamada ad ve sayı |
-| Yığılı çubuk: tarihsiz açık | Yalnız çerçeve | Kontrol çizgisi | Açıklamada ad ve sayı |
+| Yığılı çubuk: tamamlanan | Dolu | İkincil metin | Açıklamada ad ve sayı |
+| Yığılı çubuk: devreden | Çapraz tarama ve ince çerçeve | Uyarı | Açıklamada ad ve sayı |
+| Yığılı çubuk: tarihsiz açık | `well` dolgu ve çerçeve | Kontrol çizgisi | Açıklamada ad ve sayı |
 
-Yığılı çubukta devreden parça uyarı rengini almaz. Uyarı rengi yalnız devreden görevin tarihinde kalır: Şafak kuralı 5. Önceki dönemin rengi `well` değildir, çünkü `well` kart üstünde seçilmez.
+Yığılı çubukta devreden parça çizimdeki gibi uyarı renginde taranır; tarama rengi tek başına anlam taşımaz. Tamamlanan parça yeşil değildir: biten iş ikincil metin rengini alır. Önceki dönemin rengi `well` değildir, çünkü `well` kart üstünde seçilmez.
 
 Kısa ritim şeridi (`RhythmStrip` `isCompact`) haftalık incelemenin ilk adımında durur. Çubuk yüksekliği 40 pt'dir. Sütunların üstündeki sayılar ve açıklama yoktur. Erişilebilirlik boyutunda şerit satıra döner ve her satır sayıyı yazar. Şeridin altındaki fark satırı ikincil metin ve `monospacedDigit()` kullanır.
 
@@ -847,7 +849,7 @@ Mac'te parıltı yalnız ayrıntı sütununun üstündedir. iPad üç sütunda M
 | Kalın Metin | Sistem yazısı ağırlığı artırır. Künye cümlesinde sayı ile bağlaç arasındaki ayrım renkle de sürer. |
 | Dynamic Type, AX boyutları | Hafta şeridi 2 satıra iner: 4 + 3 gün. Gün halkası gün rakamının üstüne çıkar. İşaret sütunu metnin üstüne iner. |
 | Renk Olmadan Ayırt Et | Devreden: işaret ve tarih metni. Zaman kartı çubuğu: metin etiketi. Graph: biçim. |
-| VoiceOver | Künye cümlesi tek öğedir. Hafta şeridi her gün için "20 Eylül Pazar, bugün, 3 olay" okur. Gün halkası "3 hedef kaldı" okur. |
+| VoiceOver | Künye cümlesi tek öğedir. Hafta şeridi her gün için "20 Eylül Pazar, bugün, 3 olay" okur. Gün halkası "3 hedef kaldı" okur. Alt sayfanın geri öğesi üst sayfanın adını okur. |
 
 Parıltı bilgi taşımaz. Bu yüzden kalktığında hiçbir bilgi kaybolmaz.
 

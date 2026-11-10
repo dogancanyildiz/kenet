@@ -260,8 +260,14 @@ struct InkSheetModifier: ViewModifier {
     @Environment(\.dismiss) private var dismiss
 
     func body(content: Content) -> some View {
+        // A sheet is never a root page (no glow) and its first page has no back item; the pages
+        // pushed inside it keep the system bar (``InkPageHeader`` draws no back item there).
         let page =
             content
+            .environment(\.inkInSheet, true)
+            .environment(\.inkHeaderBackTitle, nil)
+            .environment(\.inkBackTitle, nil)
+            .environment(\.inkPageGlow, false)
             .inkPage()
             .inkToggle()
             .presentationBackground(Color.ink.elevated)
@@ -278,6 +284,9 @@ struct InkSheetModifier: ViewModifier {
                 )
         #else
             page
+                // Drawing: a visible grabber and the sheet's large corner radius.
+                .presentationDragIndicator(.visible)
+                .presentationCornerRadius(InkCorner.xl)
                 .toolbar {
                     // iOS 26 draws every toolbar item in a glass capsule; hiding the shared
                     // background leaves the plain word while keeping the system placements.

@@ -27,12 +27,16 @@ struct InkCard<Content: View>: View {
 
 /// Hairline divider between rows inside an ``InkCard``.
 struct InkCardDivider: View {
+    /// The hairline starts where the row's content starts (``InkSpacing/cardPadding``), not at
+    /// the card edge (drawing: Görevler, Kişiler, Ayarlar). `false` for a full-width rule.
+    var inset = true
     @Environment(\.displayScale) private var displayScale
 
     var body: some View {
         Rectangle()
             .fill(Color.ink.rule)
             .frame(height: InkStroke.hairline(scale: displayScale))
+            .padding(.leading, inset ? InkSpacing.cardPadding : 0)
             .accessibilityHidden(true)
     }
 }
@@ -99,7 +103,7 @@ struct InkCardSegmentBackground: View {
             topTrailingRadius: segment.roundsTop ? radius : 0,
             style: .continuous)
         ZStack {
-            Color.ink.paper
+            InkListRowPaper()
             ZStack(alignment: .bottom) {
                 shape.fill(Color.ink.surface)
                 if isSelected {

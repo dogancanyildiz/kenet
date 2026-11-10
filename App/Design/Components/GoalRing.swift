@@ -1,6 +1,7 @@
 import SwiftUI
 
-/// Goal / day ring. Progress is an arc; completed rings fill and recede (rule 7).
+/// Goal / day ring. Progress is an arc; a completed ring is a full ring that recedes to the
+/// secondary text color (rule 7). Any diameter: pass ``diameter`` for the large summary ring.
 struct GoalRing: View {
     /// 0…1 progress. Boolean goals use 0 or 1; numeric goals use the fraction.
     var progress: Double
@@ -10,6 +11,8 @@ struct GoalRing: View {
     var diameter: CGFloat? = nil
     /// Optional center label (day-header remaining count).
     var centerLabel: String? = nil
+    /// Thicker accent arc on a light track (day ring, goal detail): the drawing's progress ring.
+    var emphasizesArc: Bool = false
 
     @ScaledMetric(relativeTo: .body) private var defaultSide = InkSize.goalRing
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -18,20 +21,27 @@ struct GoalRing: View {
     private var clamped: Double { GoalRingProgress.clamped(progress) }
     private var isComplete: Bool { GoalRingProgress.isComplete(clamped) }
     private var strokeWidth: CGFloat {
-        diameter == nil ? InkStroke.control : max(InkStroke.control, side * 0.06)
+        if emphasizesArc { return max(InkStroke.control, side * 0.1) }
+        return diameter == nil ? InkStroke.control : max(InkStroke.control, side * 0.06)
     }
+
+    /// The track under the arc: light on an emphasized ring, so the accent arc carries the
+    /// value; the control color elsewhere.
+    private var trackColor: Color { emphasizesArc ? Color.ink.rule : Color.ink.control }
 
     var body: some View {
         ZStack {
             Circle()
-                .strokeBorder(Color.ink.control, lineWidth: strokeWidth)
+                .strokeBorder(trackColor, lineWidth: strokeWidth)
             if isComplete {
+                // A full ring in the receding color, not a filled disc (drawing; no done green).
                 Circle()
-                    .fill(Color.ink.secondaryText)
+                    .strokeBorder(Color.ink.secondaryText, lineWidth: strokeWidth)
             } else if isBoolean {
                 EmptyView()
             } else if clamped > 0 {
                 Circle()
+                    .inset(by: strokeWidth / 2)
                     .trim(from: 0, to: clamped)
                     .stroke(
                         Color.ink.accent,
@@ -43,9 +53,9 @@ struct GoalRing: View {
             }
             if let centerLabel {
                 Text(verbatim: centerLabel)
-                    .font(.system(size: side * 0.36, weight: .semibold, design: .default))
+                    .font(.system(size: side * (emphasizesArc ? 0.3 : 0.36), weight: .semibold, design: .default))
                     .monospacedDigit()
-                    .foregroundStyle(isComplete ? Color.ink.paper : Color.ink.text)
+                    .foregroundStyle(Color.ink.text)
                     .minimumScaleFactor(0.5)
                     .lineLimit(1)
             }

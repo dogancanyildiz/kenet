@@ -407,6 +407,8 @@ final class ScreenTourDriver {
     }
 
     func backButton() -> XCUIElement? {
+        // A subpage in the tab shell draws its own "‹ <parent>" item; the system bar is hidden.
+        if let own = firstHittable(app.buttons.matching(identifier: "button.back")) { return own }
         if let byId = firstHittable(app.navigationBars.buttons.matching(identifier: "BackButton")) { return byId }
         for label in ["Geri", "Back"] {
             if let match = firstHittable(app.navigationBars.buttons.matching(ScreenTourDriver.exact(label))) {

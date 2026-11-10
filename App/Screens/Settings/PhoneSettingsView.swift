@@ -104,6 +104,9 @@ struct PhoneSettingsView: View {
                                 Text(section.title)
                                     .font(.ink.content)
                                     .foregroundStyle(Color.ink.text)
+                                    // On the title text the audit reads: NavigationLink cells drop
+                                    // identifiers on the link itself (settings a11y / AX3).
+                                    .accessibilityIdentifier("settings.section.\(section.rawValue)")
                                 Spacer(minLength: 8)
                                 Image(systemName: "chevron.right")
                                     .font(.ink.weekday)

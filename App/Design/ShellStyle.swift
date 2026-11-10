@@ -43,6 +43,9 @@ enum ShellTier: Equatable, Sendable {
 /// Split-shell tokens. The defaults leave the iPhone tab shell and the Mac window as they are:
 /// nothing here applies until the split shell runs on iOS.
 enum ShellStyle {
+    /// Mac Today right panel width (`docs/screens.md`, "Bugün sağ paneli").
+    static let todayPanelWidth: CGFloat = 300
+
     /// Sidebar, list and a readable detail fit side by side from here: the Mac window's
     /// smallest width (200 + 320 + 480 pt).
     static let threeColumnMinWidth: CGFloat = InkSpacing.macWindowMinWidth

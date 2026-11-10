@@ -92,7 +92,7 @@ enum AccessibilityAuditPolicy {
         confirming: Bool
     ) -> Bool {
         let seen = issue.element.map(Seen.init)
-        guard exemptionReason(for: issue, seen: seen, chrome: chrome) == nil, let seen else {
+        guard exemptionReason(for: issue, seen: seen, chrome: chrome, screen: screen) == nil, let seen else {
             return handle(issue, screen: screen, chrome: chrome)
         }
         let key = "\(name(of: issue.auditType)) '\(seen.identifier)' '\(seen.label)'"
@@ -112,7 +112,7 @@ enum AccessibilityAuditPolicy {
         let type = name(of: issue.auditType)
         let seen = issue.element.map(Seen.init)
         let described = seen?.described ?? "(no element)"
-        if let reason = exemptionReason(for: issue, seen: seen, chrome: chrome) {
+        if let reason = exemptionReason(for: issue, seen: seen, chrome: chrome, screen: screen) {
             print("A11Y EXEMPT (\(screen)): type=\(type) \(described) — \(reason)")
             return true
         }
@@ -122,7 +122,9 @@ enum AccessibilityAuditPolicy {
     }
 
     @MainActor
-    static func exemptionReason(for issue: XCUIAccessibilityAuditIssue, seen: Seen?, chrome: Chrome) -> String? {
+    static func exemptionReason(
+        for issue: XCUIAccessibilityAuditIssue, seen: Seen?, chrome: Chrome, screen: String? = nil
+    ) -> String? {
         guard let element = issue.element, let seen else {
             return "names no element: nothing to fix or exempt by element"
                 + (issue.auditType == .hitRegion ? " (touch targets measured by assertTouchTargets)" : "")
@@ -136,7 +138,8 @@ enum AccessibilityAuditPolicy {
             return "measured \(seen.frame.size) on screen, at least 44 × 44 pt (the audit's estimate disagrees)"
         }
         let exemption = (AccessibilityAuditExemption.all + AccessibilityAuditExemption.touchTargets).first {
-            $0.type == issue.auditType && $0.matches(identifier: seen.identifier, label: seen.label)
+            $0.type == issue.auditType && $0.applies(to: screen)
+                && $0.matches(identifier: seen.identifier, label: seen.label)
         }
         return exemption?.logged
     }

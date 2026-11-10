@@ -79,23 +79,6 @@ extension View {
             frame(minWidth: InkSpacing.macWindowMinWidth, minHeight: InkSpacing.macWindowMinHeight)
         }
     #endif
-
-    /// The window's one search button. Applied to the detail column, so it sits at the
-    /// trailing edge of the toolbar whatever is selected. iOS keeps search in the manşet row
-    /// (``SearchButton``), so there this adds nothing.
-    @ViewBuilder
-    func macSearchToolbar() -> some View {
-        #if os(macOS)
-            toolbar {
-                // The toolbar shows no title, and without one macOS packs its items at the leading
-                // edge; the flexible space keeps search at the trailing edge.
-                ToolbarSpacer(.flexible, placement: .primaryAction)
-                ToolbarItem(placement: .primaryAction) { SearchButton() }
-            }
-        #else
-            self
-        #endif
-    }
 }
 
 private struct SidebarColumnWidth: ViewModifier {

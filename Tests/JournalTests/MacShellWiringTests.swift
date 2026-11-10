@@ -82,7 +82,15 @@
             #expect(
                 fieldFrame.minX >= sidebarFrame.minX - 1 && fieldFrame.maxX <= sidebarFrame.maxX + 1,
                 "the field is outside the sidebar column: \(fieldFrame) vs \(sidebarFrame)")
-            #expect(field.placeholderString == String(localized: "Ara"))
+            // The app resolves the prompt in its own bundle; the test bundle may run in another
+            // language (CI: en), so the placeholder is checked against the catalog's own values.
+            let prompts = Set(
+                ["tr", "en"].compactMap { Bundle.main.path(forResource: $0, ofType: "lproj") }
+                    .compactMap(Bundle.init(path:))
+                    .map { $0.localizedString(forKey: "Ara", value: nil, table: nil) })
+            #expect(
+                prompts.contains(field.placeholderString ?? ""),
+                "placeholder: \(field.placeholderString ?? "nil") not in \(prompts)")
 
             let state = SidebarSearchState()
             state.focus()

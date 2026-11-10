@@ -20,7 +20,7 @@
             try await MacSplitMeasure.expectSidebar(widths[0], isIdeal: 200, window: 1280)
             #expect(abs(widths[1] - 320) <= 2, "list \(widths[1]) pt")
             #expect(widths[2] >= InkSpacing.macPageWidth, "detail \(widths[2]) pt")
-            #expect(shell.searchItems == 1, "toolbar: \(shell.toolbarLabels)")
+            #expect(shell.searchItems == 0, "search moved to the sidebar; toolbar: \(shell.toolbarLabels)")
         }
 
         @Test func windowDoesNotShrinkBelowItsMinimum() async throws {
@@ -31,8 +31,8 @@
             #expect(fitted.height == 560, "height \(fitted.height)")
         }
 
-        /// Down the sidebar with the arrow keys: every layout keeps one toolbar search, a board
-        /// row really opens its board, and focus stays in the sidebar across the layout swaps
+        /// Down the sidebar with the arrow keys: every layout keeps search out of the toolbar, a
+        /// board row really opens its board, and focus stays in the sidebar across the layout swaps
         /// (the test never puts it back itself).
         @Test func sidebarRowsOpenTheirLayoutsWithOneSearchEach() async throws {
             let shell = try await Shell()
@@ -59,7 +59,7 @@
             #expect(seen[String(localized: "Zaman çizelgesi")]?.panes == 2)
             #expect(seen[String(localized: "Özetler")]?.panes == 2)
             for (title, state) in seen {
-                #expect(state.search == 1, "\(title): \(state.search) toolbar search items")
+                #expect(state.search == 0, "\(title): \(state.search) toolbar search items")
             }
             #expect(shell.window.titleVisibility == .hidden)
         }

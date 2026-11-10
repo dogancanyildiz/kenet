@@ -166,6 +166,12 @@ struct JournalApp: App {
                 .appLockShield(appLock)
                 #if os(macOS)
                     .background(MainWindowMarker())
+                    .environment(
+                        \.macQuickEntry,
+                        MacQuickEntryBridge(
+                            shortcutDisplay: desktop.shortcut.shortcut.display,
+                            open: { desktop.open() })
+                    )
                     .task { await desktop.start() }
                 #else
                     // A tap in the home-screen widget opens the app with a widget link.

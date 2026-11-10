@@ -10,6 +10,9 @@ struct MacNavigation: View {
     let store: IndexStore
     @Environment(IntentNavigation.self) private var intentNavigation
     @Environment(NotificationService.self) private var notifications
+    #if os(macOS)
+        @Environment(\.openSearchQuery) private var openSearchQuery
+    #endif
     @State private var kanbanTasks: TasksModel
     @State private var navigation: ShellNavigationState
     @State private var sidebarRestoresFocus = false
@@ -19,6 +22,9 @@ struct MacNavigation: View {
     #if os(macOS)
         /// The menu bar's "Bugüne git". Made once (``ShellAction``).
         @State private var goToToday: ShellAction
+        /// Sidebar search field (``.searchable(placement: .sidebar)``); ⌘F focuses it.
+        @State private var sidebarSearch = ""
+        @State private var isSidebarSearchFocused = false
     #endif
     #if os(iOS)
         @State private var columnVisibility = NavigationSplitViewVisibility.automatic
@@ -75,6 +81,17 @@ struct MacNavigation: View {
         .environment(\.shellKind, .split)
         // The pages take their drafts from the bridge.
         .environment(navigation)
+        #if os(macOS)
+            .searchable(
+                text: $sidebarSearch, isPresented: $isSidebarSearchFocused,
+                placement: .sidebar, prompt: "Ara"
+            )
+            .onSubmit(of: .search) {
+                let query = sidebarSearch.trimmingCharacters(in: .whitespacesAndNewlines)
+                guard !query.isEmpty else { return }
+                openSearchQuery(query)
+            }
+        #endif
         // `initial: true` so a request from before the shell was built is still routed; the
         // bridge tells a shell rebuilt after the request (the Duo closed and opened again) to
         // leave it alone.
@@ -252,7 +269,11 @@ struct MacNavigation: View {
             NavigationStack(path: $navigation.detailPath) {
                 switch navigation.section ?? .today {
                 case .today:
-                    TodayView(store: store)
+                    #if os(macOS)
+                        TodayDeskView(store: store)
+                    #else
+                        TodayView(store: store)
+                    #endif
                 case .days:
                     if let path = navigation.selectedDay,
                         let day = CalendarDate(String(path.dropFirst("journal/".count).dropLast(3)))

@@ -95,6 +95,14 @@ extension AccessibilityAuditExemption {
         .init(type: .dynamicType, element: .catalogKey("İlk geçiş"), reason: Reason.entityPage),
         .init(type: .dynamicType, element: .containsCatalogKey("Son görülme: %@"), reason: Reason.entityPage),
         .init(type: .dynamicType, element: .labelPattern(Pattern.shortDate), reason: Reason.entityPage),
+        // Settings section rows (`PhoneSettingsView` InkCard): body text grows at AX3
+        // (shellSheet.settingsSheetAX3.png); the audit's live size change does not reach list-cell text.
+        .init(type: .dynamicType, element: .catalogKey("Hızlı giriş"), reason: Reason.settingsRow),
+        .init(type: .dynamicType, element: .catalogKey("Gizlilik"), reason: Reason.settingsRow),
+        .init(type: .dynamicType, element: .catalogKey("Bildirimler"), reason: Reason.settingsRow),
+        .init(type: .dynamicType, element: .catalogKey("Takvim ve Konum"), reason: Reason.settingsRow),
+        .init(type: .dynamicType, element: .catalogKey("Kasa"), reason: Reason.settingsRow),
+        .init(type: .dynamicType, element: .catalogKey("Tanılama"), reason: Reason.settingsRow),
         // MARK: textClipped
         .init(
             type: .textClipped, element: .catalogKey("Takvim ve Konum"),
@@ -134,6 +142,9 @@ private enum Reason {
     static let barItem =
         "sheet toolbar word in the system bar, which keeps bar-item text at a fixed size"
         + " (component.sheetReadingAX3.png)"
+    static let settingsRow =
+        "Settings section row grows at AX3 (shellSheet.settingsSheetAX3.png); list-cell text"
+        + " does not see the audit's live size change"
 }
 
 private enum Pattern {

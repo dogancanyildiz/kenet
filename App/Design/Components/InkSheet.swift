@@ -264,7 +264,7 @@ struct InkSheetModifier: ViewModifier {
             content
             .inkPage()
             .inkToggle()
-            .presentationBackground(Color.ink.paper)
+            .presentationBackground(Color.ink.elevated)
         #if os(macOS)
             // Mac: paper chrome, bottom action bar, non-zero ideal size so List content does
             // not collapse. Sans title is omitted via ``inkSheetNavigationTitle``.

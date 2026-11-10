@@ -88,6 +88,15 @@
                 #expect(MacSidebarChrome.iconToken(isSelected: false, isWindowActive: active) == .accent)
             }
         }
+
+        /// Sidebar ground is `elevated`: unselected text stays above 4.5:1 on that fill.
+        @Test(arguments: InkPalette.Appearance.allCases)
+        func elevatedSidebarKeepsUnselectedTextReadable(appearance: InkPalette.Appearance) {
+            let ground = InkPalette.Token.elevated.variant.hex(for: appearance)
+            let title = InkPalette.Token.text.variant.hex(for: appearance)
+            let ratio = InkPalette.contrastRatio(foreground: title, background: ground)
+            #expect(ratio >= 4.5, "text on elevated, \(appearance.rawValue): \(ratio)")
+        }
     }
 
     /// The shell's selection as pure transitions: the same value the shell view stores.

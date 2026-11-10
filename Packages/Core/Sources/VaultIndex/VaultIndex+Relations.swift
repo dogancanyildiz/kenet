@@ -33,7 +33,7 @@ extension VaultIndex {
         Array(Set(try relationRows().compactMap(\.label))).sorted()
     }
 
-    private func relationRows(path: String? = nil, kinds: Set<String>? = nil) throws -> [Relation] {
+    func relationRows(path: String? = nil, kinds: Set<String>? = nil) throws -> [Relation] {
         let sorted = kinds?.sorted() ?? []
         let marks = Array(repeating: "?", count: sorted.count).joined(separator: ",")
         let filter =

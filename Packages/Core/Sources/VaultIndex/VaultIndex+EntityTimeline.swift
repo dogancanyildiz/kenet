@@ -19,7 +19,7 @@ public struct EntityTimelineEntry: Sendable, Equatable {
 extension VaultIndex {
     /// Blocks counted as an encounter: events and Journal paragraphs of a day file. Tasks,
     /// headings, frontmatter and files outside `journal/<date>.md` never are.
-    private static let encounterBlocks = """
+    static let encounterBlocks = """
         f.kind = 'day' AND f.date IS NOT NULL
           AND (b.kind = 'event' OR (b.kind = 'paragraph' AND b.section = 'Journal'))
         """

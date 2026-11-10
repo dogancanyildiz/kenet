@@ -45,16 +45,16 @@ import VaultFormat
         #expect(plain.typeNames.isEmpty && !plain.entities.contains { $0.id == book })
     }
 
-    /// The whole graph opens on the last 90 days; any other period, "Tümü" included, stays chosen.
-    @Test func wholeGraphOpensOnTheLastNinetyDays() async throws {
-        #expect(GraphView.initialFilter(scope: .all, focusKind: nil).period == .quarter)
-        #expect(GraphView.initialFilter(scope: .all, focusKind: "book").period == .quarter)
+    /// The whole graph opens on the current month; other periods remain selectable.
+    @Test func wholeGraphOpensOnTheCurrentMonth() async throws {
+        #expect(GraphView.initialFilter(scope: .all, focusKind: nil).period == .month)
+        #expect(GraphView.initialFilter(scope: .all, focusKind: "book").period == .month)
         let context = try await graphVault()
         defer { context.clean() }
         let input = try await context.store.computeGraphInput()
-        // The fixture's last day, 2026-10-04, is the 90th day back from 2027-01-01 and gone a day later.
+        // The fixture's last day is outside the month at the start of 2027.
         let edge = GraphModel.compute(input: input, filter: GraphFilter(), today: CalendarDate("2027-01-01")!)
-        #expect(edge.nodes.filter { $0.kind == .day }.map(\.id) == [GraphModel.dayNodeID(today)])
+        #expect(edge.nodes.filter { $0.kind == .day }.isEmpty)
         let later = CalendarDate("2027-01-02")!
         let opening = GraphModel.compute(input: input, filter: GraphFilter(), today: later)
         #expect(!opening.nodes.contains { $0.kind == .day } && opening.edges.isEmpty)

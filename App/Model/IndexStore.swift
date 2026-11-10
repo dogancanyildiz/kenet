@@ -548,6 +548,31 @@ final class IndexStore {
         }
     }
 
+    func createNote(name: String) async throws -> String {
+        let root = vaultURL
+        return try await withWriteSlot {
+            try await awaitEditTurn(in: root)
+            guard canAddEvent, let writer else { throw VaultStoreError.staleTarget }
+            isProcessing = true
+            isWriting = true
+            do {
+                let path: String
+                do {
+                    path = try await writer.creatingNote(name: name)
+                } catch VaultStoreError.indexUpdateFailed(let savedPath, _) {
+                    path = savedPath
+                    entryErrorText = String(localized: "Not kaydedildi, indeks güncellenemedi.")
+                    queueRefresh(rebuild: true, directories: nil)
+                }
+                await finishEntityWrite()
+                return path
+            } catch {
+                await finishEntityWrite()
+                throw error
+            }
+        }
+    }
+
     private func finishEntityWrite() async {
         isProcessing = false
         isWriting = false
@@ -1011,6 +1036,15 @@ final class IndexStore {
     func computeEntityTimeline(for path: String) async throws -> [EntityTimelineDay] {
         try await indexQuery(seam: \.testingEntityTimelineQueryDidFinish, whenClosed: .empty([])) {
             EntityTimeline.days(from: try $0.entityTimeline(for: path))
+        }
+    }
+
+    /// The people/places list's rows in one read: last encounter, encounter days of the 12 calendar
+    /// months ending today (the row's bar) and explicit relation counts.
+    func computeEntityListActivity(today: CalendarDate) async throws -> [String: EntityListActivity] {
+        let start = today.startOfMonth.addingMonths(-11) ?? today
+        return try await indexQuery(seam: \.testingQueryDidFinish, whenClosed: .empty([:])) {
+            try $0.entityListActivity(from: start, through: today)
         }
     }
 

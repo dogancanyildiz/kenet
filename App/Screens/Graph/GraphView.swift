@@ -50,48 +50,70 @@ struct GraphView: View {
             let today = LocalDay.today(at: clockNow())
             let canvasHeight: CGFloat = dynamicTypeSize.isAccessibilitySize ? 280 : 360
             let masthead = self.masthead
-            ScrollView {
-                VStack(alignment: .leading, spacing: 0) {
+            HStack(alignment: .top, spacing: 0) {
+                ScrollView {
                     VStack(alignment: .leading, spacing: 0) {
-                        InkScrolledMasthead(masthead)
-                        GraphControls(
-                            filter: $model.filter,
-                            zoom: $model.zoom,
-                            // The center control writes a zero pan: frame the layout as it is now.
-                            pan: Binding(
-                                get: { model.pan },
-                                set: { if $0 == .zero { model.recenter() } else { model.pan = $0 } })
-                        )
-                        if model.isLoading {
-                            InkProgress(kind: .indeterminate(label: "Yükleniyor…"))
-                                .padding(.horizontal, InkSpacing.margin)
+                        VStack(alignment: .leading, spacing: 0) {
+                            InkScrolledMasthead(masthead)
+                            GraphControls(
+                                filter: $model.filter,
+                                zoom: $model.zoom,
+                                // The center control writes a zero pan: frame the layout as it is now.
+                                pan: Binding(
+                                    get: { model.pan },
+                                    set: { if $0 == .zero { model.recenter() } else { model.pan = $0 } })
+                            )
+                            if model.isLoading {
+                                InkProgress(kind: .indeterminate(label: "Yükleniyor…"))
+                                    .padding(.horizontal, InkSpacing.margin)
+                            }
+                            if model.graph.nodes.isEmpty && !model.isLoading {
+                                EmptyState("Gösterilecek düğüm yok")
+                            }
                         }
-                        if model.graph.nodes.isEmpty && !model.isLoading {
-                            EmptyState("Gösterilecek düğüm yok")
-                        }
-                    }
-                    .inkPageColumn()
+                        .inkPageColumn()
 
-                    if !(model.graph.nodes.isEmpty && !model.isLoading) {
-                        GraphCanvas(model: model)
-                            .frame(height: canvasHeight)
-                            .frame(maxWidth: .infinity)
-                    }
-
-                    VStack(alignment: .leading, spacing: 0) {
-                        legendRow
-                        if let node = model.graph.nodes.first(where: { $0.id == model.selected }) {
-                            selectedRow(node)
-                        }
-                        explanation
-                            .font(.ink.meta)
-                            .foregroundStyle(Color.ink.secondaryText)
-                            .fixedSize(horizontal: false, vertical: true)
+                        if !(model.graph.nodes.isEmpty && !model.isLoading) {
+                            InkCard(padded: false) {
+                                GraphCanvas(model: model)
+                                    .frame(height: canvasHeight)
+                                    .frame(maxWidth: .infinity)
+                                    .background(Color.ink.paper)
+                                    .clipShape(RoundedRectangle(cornerRadius: InkCorner.card))
+                            }
                             .padding(.horizontal, InkSpacing.margin)
-                            .padding(.bottom, 8)
+                        }
+
+                        VStack(alignment: .leading, spacing: 0) {
+                            legendRow
+                            if let node = model.graph.nodes.first(where: { $0.id == model.selected }) {
+                                #if os(macOS)
+                                    EmptyView()
+                                #else
+                                    selectedRow(node)
+                                #endif
+                            }
+                            explanation
+                                .font(.ink.meta)
+                                .foregroundStyle(Color.ink.secondaryText)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .padding(.horizontal, InkSpacing.margin)
+                                .padding(.bottom, 8)
+                        }
+                        .inkPageColumn()
                     }
-                    .inkPageColumn()
                 }
+                .frame(maxWidth: .infinity)
+                #if os(macOS)
+                    // The panel stays; with no selection it says "Düğüm seç" (docs/screens.md).
+                    GraphSelectionPanel(
+                        store: store, node: model.graph.nodes.first { $0.id == model.selected },
+                        graph: model.graph, currentDay: day
+                    ) {
+                        model.select(nil, recenter: false)
+                    }
+                    .frame(width: 300)
+                #endif
             }
             .inkPinnedMasthead(masthead)
             .inkPage()
@@ -108,33 +130,55 @@ struct GraphView: View {
     }
 
     private func selectedRow(_ node: GraphNode) -> some View {
-        HStack {
-            Text(verbatim: node.name)
-                .font(.ink.content)
-                .foregroundStyle(Color.ink.text)
-            Spacer()
-            if let date = node.date {
-                // A day's own graph came from that day's page.
-                if date != day {
-                    NavigationLink("Sayfayı aç") { DayView(store: store, date: date) }
-                }
-            } else if let entity = store.content.entities.first(where: { $0.id == node.id }) {
-                NavigationLink("Sayfayı aç") {
-                    EntityView(store: store, entity: entity)
-                }
+        InkCard {
+            VStack(alignment: .leading, spacing: 8) {
+                Text(
+                    verbatim: GraphSelectionPresentation.summary(
+                        name: node.name, links: GraphSelectionPresentation.relationCount(of: node.id, in: model.graph),
+                        daysSince: daysSinceLastMention(node), locale: locale)
+                )
+                .font(.ink.content).foregroundStyle(.ink.text)
+                openPageLink(node)
+                    .buttonStyle(InkPrimaryButtonStyle())
             }
         }
-        .padding(InkSpacing.margin)
+        .padding(.horizontal, InkSpacing.margin)
+        .padding(.bottom, InkSpacing.margin)
+    }
+
+    @ViewBuilder private func openPageLink(_ node: GraphNode) -> some View {
+        if let date = node.date {
+            if date != day { NavigationLink("Sayfayı aç") { DayView(store: store, date: date) } }
+        } else if let entity = store.content.entities.first(where: { $0.id == node.id }) {
+            NavigationLink("Sayfayı aç") { EntityView(store: store, entity: entity) }
+        }
+    }
+
+    /// Nil for day nodes and never-mentioned entities: the summary then has no "son" part.
+    private func daysSinceLastMention(_ node: GraphNode) -> Int? {
+        guard node.date == nil,
+            let last = store.entityUsage.first(where: { $0.file == node.id })?.lastDate
+        else { return nil }
+        return max(0, LocalDay.today(at: clockNow()).ordinal - last.ordinal)
     }
 
     /// The whole graph's manşet holds the kind filter; a day's graph names its day instead.
     private var masthead: InkPageTitle<some View> {
-        InkPageTitle(pageTitle, byline: day.map { Self.byline($0, locale: locale) }) {
+        InkPageTitle(pageTitle, byline: day.map { Self.byline($0, locale: locale) } ?? rootByline) {
             if day == nil {
                 GraphFilterMenu(filter: $model.filter, types: customTypes)
             }
             SearchButton()
         }
+    }
+
+    /// Counts of what the graph draws for the chosen period.
+    private var rootByline: String {
+        let nodes = model.graph.nodes
+        let people = nodes.filter { $0.kind == .person }.count
+        let places = nodes.filter { $0.kind == .place }.count
+        let days = nodes.filter { $0.kind == .day }.count
+        return String(localized: "\(people) kişi · \(places) konum · \(days) gün", locale: locale)
     }
 
     private var customTypes: [EntityTypeChoice] {
@@ -339,6 +383,132 @@ enum GraphNodeStyle {
         case .day: Color.ink.secondaryText
         // Same token as a custom type link's underline (docs/design.md "Bağlantı biçimleri").
         case .custom: Color.ink.control
+        }
+    }
+}
+
+/// Mac's persistent selection column; kept independent of the graph shell so the D7 split shell
+/// can host the same detail view later.
+struct GraphSelectionPanel: View {
+    let store: IndexStore
+    let node: GraphNode?
+    let graph: GraphModel
+    /// A day's own graph: its day node has no "Sayfayı aç" (the user came from that day).
+    var currentDay: CalendarDate? = nil
+    var onClose: () -> Void
+
+    var body: some View {
+        Group {
+            if let node {
+                GraphSelectionDetail(store: store, node: node, graph: graph, currentDay: currentDay, onClose: onClose)
+            } else {
+                Text("Düğüm seç")
+                    .font(.ink.meta)
+                    .foregroundStyle(.ink.secondaryText)
+                    .padding(InkSpacing.margin)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            }
+        }
+        .background(Color.ink.paper)
+        .overlay(alignment: .leading) { Rectangle().fill(Color.ink.rule).frame(width: 1) }
+    }
+}
+
+private struct GraphSelectionDetail: View {
+    let store: IndexStore
+    let node: GraphNode
+    let graph: GraphModel
+    let currentDay: CalendarDate?
+    var onClose: () -> Void
+
+    private var kindName: String {
+        switch node.kind {
+        case .person: String(localized: "Kişi")
+        case .place: String(localized: "Konum")
+        case .day: String(localized: "Gün")
+        case .custom(let type):
+            EntityTypeChoices.choices(store.entityTypes).first { $0.id == type }?.name ?? type
+        }
+    }
+
+    private var relatedDays: [GraphNode] {
+        let ids = graph.neighbors(of: node.id)
+        return graph.nodes.filter { ids.contains($0.id) && $0.date != nil }
+            .sorted { ($0.date?.ordinal ?? 0) > ($1.date?.ordinal ?? 0) }
+            .prefix(4).map { $0 }
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: InkSpacing.section) {
+            HStack {
+                Text(verbatim: node.name).font(.ink.dayName).foregroundStyle(.ink.text)
+                Spacer()
+                Button(action: onClose) {
+                    Label("Kapat", systemImage: "xmark").labelStyle(.iconOnly).tapTarget()
+                }.buttonStyle(InkTextButtonStyle())
+            }
+            Text(verbatim: kindName).font(.ink.meta).foregroundStyle(.ink.secondaryText)
+            InkCard {
+                detailRow("Bağlar", GraphSelectionPresentation.relationCount(of: node.id, in: graph).formatted())
+                InkCardDivider()
+                detailRow("Geçişler", node.count.formatted())
+            }
+            VStack(alignment: .leading, spacing: 8) {
+                SectionHeader("Birlikte geçen günler", count: relatedDays.count)
+                InkCard {
+                    if relatedDays.isEmpty {
+                        Text("Birlikte geçen gün yok.").font(.ink.meta).foregroundStyle(.ink.secondaryText)
+                    } else {
+                        ForEach(relatedDays.indices, id: \.self) { index in
+                            let day = relatedDays[index]
+                            if index > 0 { InkCardDivider() }
+                            NavigationLink {
+                                if let date = day.date { DayView(store: store, date: date) }
+                            } label: {
+                                Text(verbatim: day.name).frame(minHeight: TapTarget.minimumLength)
+                            }.buttonStyle(.plain)
+                        }
+                    }
+                }
+            }
+            if let entity = store.content.entities.first(where: { $0.id == node.id }) {
+                NavigationLink("Sayfayı aç") { EntityView(store: store, entity: entity) }
+                    .buttonStyle(InkPrimaryButtonStyle())
+            } else if let date = node.date, date != currentDay {
+                NavigationLink("Sayfayı aç") { DayView(store: store, date: date) }
+                    .buttonStyle(InkPrimaryButtonStyle())
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(InkSpacing.margin)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+    }
+
+    private func detailRow(_ label: LocalizedStringKey, _ value: String) -> some View {
+        HStack {
+            Text(label).font(.ink.meta).foregroundStyle(.ink.secondaryText)
+            Spacer()
+            Text(verbatim: value).font(.ink.value).foregroundStyle(.ink.text)
+        }
+    }
+}
+
+enum GraphSelectionPresentation {
+    /// "N bağ" counts explicit relations only; the day edges (a day meets everything mentioned
+    /// on it) are not relations.
+    static func relationCount(of id: String, in graph: GraphModel) -> Int {
+        graph.edges.filter { $0.kind == .relation && ($0.first == id || $0.second == id) }.count
+    }
+
+    /// "Baran Tunç · 8 bağ · son 3 gün önce"; today reads "bugün"; no date (a day node, a
+    /// never-mentioned entity) drops the last part.
+    static func summary(name: String, links: Int, daysSince: Int?, locale: Locale = .autoupdatingCurrent) -> String {
+        let bundle = PresentationLocalization.bundle(locale)
+        return switch daysSince {
+        case nil: String(localized: "\(name) · \(links) bağ", bundle: bundle, locale: locale)
+        case 0?: String(localized: "\(name) · \(links) bağ · son bugün", bundle: bundle, locale: locale)
+        case let days?:
+            String(localized: "\(name) · \(links) bağ · son \(days) gün önce", bundle: bundle, locale: locale)
         }
     }
 }

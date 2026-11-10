@@ -13,12 +13,11 @@ enum GraphScope: Hashable, Sendable {
     case all
     case day(CalendarDate)
 }
-/// Days are always drawn and are the graph's hubs; the whole graph opens on the last 90 days (one
-/// node per written day would crowd it), "Tümü" stays selectable.
+/// Days are always drawn and are the graph's hubs; the whole graph opens on the current month.
 struct GraphFilter: Equatable, Sendable {
     var people = true
     var places = true
-    var period = GraphPeriod.quarter
+    var period = GraphPeriod.month
     /// Custom entity types drawn as nodes, by type ID; none by default.
     var customTypes: Set<String> = []
     var scope = GraphScope.all

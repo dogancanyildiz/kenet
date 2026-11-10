@@ -3,6 +3,27 @@ import VaultFormat
 import VaultIndex
 
 extension VaultStore {
+    /// Creates an empty free note at `notes/<name>.md`, then indexes the saved file.
+    /// `docs/screens.md` ("Bağlantı bulunamadı: not"): the file is empty, with no frontmatter or
+    /// template; an existing file of the same name (vault-wide) is never overwritten.
+    @discardableResult
+    public func creatingNote(name: String) async throws -> String {
+        try await perform {
+            let name = try self.displayName(name)
+            let stem = try self.filenameComponent(name)
+            guard (stem + ".md").utf8.count <= 255 else { throw VaultStoreError.invalidName }
+            guard try !self.filenameIsTaken(stem) else { throw VaultStoreError.nameTaken }
+            let path = "notes/" + stem + ".md"
+            let document = RawDocument(bytes: [])
+            let url = try self.checkedURL(path, writing: true)
+            try self.fileCoordination.coordinate(.modify(url)) { _ in
+                try self.rejectPendingDownload(at: url, path: path)
+                try self.persist(document, path: path, exclusive: true)
+            }
+            return path
+        }
+    }
+
     /// Creates a person or place from its compatible template, then indexes the new file.
     /// Returns the vault-relative filename used by wikilinks.
     @discardableResult

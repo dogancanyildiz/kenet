@@ -58,6 +58,8 @@ struct EntityEditSheet: View {
                         canEdit: model.canEdit, onDeleted: { dismiss() })
                 }
                 .listStyle(.plain)
+                .scrollContentBackground(.hidden)
+                .background(Color.ink.elevated)
                 .onChange(of: model.errorText) { _, error in
                     guard error != nil else { return }
                     withAnimation { proxy.scrollTo("entity-edit-error", anchor: .top) }
@@ -79,49 +81,44 @@ struct EntityEditSheet: View {
                     model: EntityRenameModel(detail: model, name: entity.name, qualifier: entity.qualifier))
             }
         }
+        .background(Color.ink.elevated.ignoresSafeArea())
         .environment(\.entityEditorDraft, draft)
     }
 
     @ViewBuilder private var identityRows: some View {
-        SectionHeader("Varlık")
-            .inkListRow()
-        labeledRow("Ad", entity.name)
-            .inkListRow()
-        if let qualifier = entity.qualifier {
-            labeledRow("Ayırt edici", qualifier)
-                .inkListRow()
+        VStack(alignment: .leading, spacing: 8) {
+            SectionHeader("Varlık")
+            InkCard {
+                labeledRow("Ad", entity.name)
+                if let qualifier = entity.qualifier { labeledRow("Ayırt edici", qualifier) }
+                Button("Adı değiştir") { renamePresented = true }
+                    .buttonStyle(InkTextButtonStyle()).disabled(!model.canEdit)
+            }
         }
-        Button("Adı değiştir") { renamePresented = true }
-            .buttonStyle(InkTextButtonStyle())
-            .disabled(!model.canEdit)
-            .inkListRow()
+        .inkListRow()
     }
 
     @ViewBuilder private var aliasRows: some View {
-        SectionHeader("Takma adlar")
-            .inkListRow()
-        if model.aliasesEditable {
-            EntityAliasesEditor(model: model).id(model.aliases)
-                .inkListRow()
-        } else {
-            Text(verbatim: model.aliasesSource)
-                .font(.ink.content)
-                .foregroundStyle(.ink.text)
-                .textSelection(.enabled)
-                .inkListRow()
-            Text("Takma ad alanı salt okunur.")
-                .font(.ink.meta)
-                .foregroundStyle(.ink.secondaryText)
-                .inkListRow()
+        VStack(alignment: .leading, spacing: 8) {
+            SectionHeader("Takma adlar")
+            InkCard {
+                if model.aliasesEditable {
+                    EntityAliasesEditor(model: model).id(model.aliases)
+                } else {
+                    Text(verbatim: model.aliasesSource).font(.ink.content).foregroundStyle(.ink.text).textSelection(
+                        .enabled)
+                    Text("Takma ad alanı salt okunur.").font(.ink.meta).foregroundStyle(.ink.secondaryText)
+                }
+            }
         }
+        .inkListRow()
     }
 
     @ViewBuilder private var coordinateRows: some View {
-        SectionHeader("Koordinat")
-            .inkListRow()
-        PlaceCoordinateEditor(model: model)
-            .id(model.coordinatesSource)
-            .inkListRow()
+        VStack(alignment: .leading, spacing: 8) {
+            SectionHeader("Koordinat")
+            InkCard { PlaceCoordinateEditor(model: model).id(model.coordinatesSource) }
+        }.inkListRow()
     }
 
     /// A place's `coordinates` has its own editor, which also shows a value it cannot use.
@@ -131,47 +128,45 @@ struct EntityEditSheet: View {
 
     @ViewBuilder private var fieldRows: some View {
         let definitions = definitions.filter { entity.kind != "place" || $0.key != "coordinates" }
-        SectionHeader("Alanlar")
-            .inkListRow()
-        ForEach(definitions, id: \.key) { definition in
-            let value = model.fields.first { $0.key == definition.key }
-            if EntityTypedField.supports(value?.value, kind: definition.kind) {
-                EntityTypedFieldEditor(
-                    definition: definition, value: value?.value, model: model
-                )
-                .id(definition.key + String(describing: value?.value))
-                .inkListRow()
-            } else if let value {
-                EntityFieldEditor(field: value, model: model).id(value.value)
-                    .inkListRow()
-            }
-        }
-        ForEach(
-            model.fields.filter { field in
-                !definitions.contains { $0.key == field.key } && !hasOwnEditor(field)
-            }
-        ) { field in
-            EntityFieldEditor(field: field, model: model).id(field.value)
-                .inkListRow()
-        }
-        VStack(alignment: .leading, spacing: InkSpacing.section) {
-            InkFilterField("Alan adı", text: $newKey)
-            InkFilterField("Değer", text: $newValue)
-            Button("Alan ekle") {
-                let key = newKey
-                let value = newValue
-                Task {
-                    if await model.addField(key: key, text: value), newKey == key,
-                        newValue == value
-                    {
-                        newKey = ""
-                        newValue = ""
+        VStack(alignment: .leading, spacing: 8) {
+            SectionHeader("Alanlar")
+            InkCard {
+                ForEach(definitions, id: \.key) { definition in
+                    let value = model.fields.first { $0.key == definition.key }
+                    if EntityTypedField.supports(value?.value, kind: definition.kind) {
+                        EntityTypedFieldEditor(definition: definition, value: value?.value, model: model)
+                            .id(definition.key + String(describing: value?.value))
+                    } else if let value {
+                        EntityFieldEditor(field: value, model: model).id(value.value)
                     }
                 }
+                ForEach(
+                    model.fields.filter { field in
+                        !definitions.contains { $0.key == field.key } && !hasOwnEditor(field)
+                    }
+                ) { field in
+                    EntityFieldEditor(field: field, model: model).id(field.value)
+                }
+                VStack(alignment: .leading, spacing: InkSpacing.section) {
+                    InkFilterField("Alan adı", text: $newKey)
+                    InkFilterField("Değer", text: $newValue)
+                    Button("Alan ekle") {
+                        let key = newKey
+                        let value = newValue
+                        Task {
+                            if await model.addField(key: key, text: value), newKey == key,
+                                newValue == value
+                            {
+                                newKey = ""
+                                newValue = ""
+                            }
+                        }
+                    }
+                    .buttonStyle(InkTextButtonStyle())
+                }
+                .disabled(!model.canEdit)
             }
-            .buttonStyle(InkTextButtonStyle())
         }
-        .disabled(!model.canEdit)
         .inkListRow()
     }
 

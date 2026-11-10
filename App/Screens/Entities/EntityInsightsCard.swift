@@ -128,6 +128,9 @@ struct EntityInsightsCard: View {
                     EntityView(store: store, entity: entity)
                 } label: {
                     EntityRow(entity: entity)
+                        // The 36 pt badge row is shorter than the 44 pt touch target.
+                        .frame(minHeight: TapTarget.minimumLength)
+                        .contentShape(Rectangle())
                 }
                 .inkListRow()
             }

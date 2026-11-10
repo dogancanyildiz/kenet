@@ -1193,6 +1193,26 @@ final class IndexStore {
         }
     }
 
+    /// Open and done tasks per project key (spellings merged, cancelled left out), in one read.
+    func computeProjectTaskCounts() async throws -> [String: ProjectTaskCount] {
+        try await taskQuery([:]) { index in
+            var counts: [String: ProjectTaskCount] = [:]
+            for (project, count) in try index.projectTaskCounts() {
+                let key = VaultIndex.projectKey(project)
+                counts[key, default: ProjectTaskCount(open: 0, done: 0)].open += count.open
+                counts[key, default: ProjectTaskCount(open: 0, done: 0)].done += count.done
+            }
+            return counts
+        }
+    }
+
+    /// Tasks done from `from` through `to` and open tasks due in it, whatever the list's filters.
+    func computePeriodTaskCount(from: CalendarDate, through to: CalendarDate) async throws -> PeriodTaskCount {
+        try await taskQuery(PeriodTaskCount(done: 0, openDue: 0)) {
+            try $0.periodTaskCount(from: from, through: to)
+        }
+    }
+
     private func taskQuery<Value: Sendable>(
         _ empty: Value, _ body: @escaping @Sendable (VaultIndex) throws -> Value
     ) async throws -> Value {

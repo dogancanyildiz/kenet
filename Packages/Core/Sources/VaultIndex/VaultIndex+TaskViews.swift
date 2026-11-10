@@ -30,6 +30,30 @@ public struct TaskScope: Sendable, Hashable {
     public static let all = TaskScope()
 }
 
+/// One project spelling's tasks: open (neither done nor cancelled) and done; cancelled ones
+/// are left out.
+public struct ProjectTaskCount: Sendable, Equatable {
+    public var open: Int
+    public var done: Int
+
+    public init(open: Int, done: Int) {
+        self.open = open
+        self.done = done
+    }
+}
+
+/// A period's task progress, whatever the screens' filters: tasks done in it (by done day) and
+/// open tasks due in it.
+public struct PeriodTaskCount: Sendable, Equatable {
+    public var done: Int
+    public var openDue: Int
+
+    public init(done: Int, openDue: Int) {
+        self.done = done
+        self.openDue = openDue
+    }
+}
+
 /// Open tasks (neither done nor cancelled) split by due day around `today`.
 public struct TaskGroupEntries: Sendable, Equatable {
     /// Due before today.
@@ -171,6 +195,52 @@ extension VaultIndex {
                     GROUP BY project
                     """)
             return Dictionary(rows.map { ($0["project"] as String, $0["count"] as Int) }, uniquingKeysWith: +)
+        }
+    }
+
+    /// Open and done tasks per project spelling, in one read; tasks without a project are not
+    /// counted.
+    public func projectTaskCounts() throws -> [String: ProjectTaskCount] {
+        try database.read { db in
+            let rows = try Row.fetchAll(
+                db,
+                sql: """
+                    SELECT project,
+                        SUM(CASE WHEN status NOT IN ('done','cancelled') THEN 1 ELSE 0 END) AS open,
+                        SUM(CASE WHEN status='done' THEN 1 ELSE 0 END) AS done
+                    FROM blocks
+                    WHERE kind='task' AND project IS NOT NULL
+                    GROUP BY project
+                    """)
+            var counts: [String: ProjectTaskCount] = [:]
+            for row in rows {
+                let project: String = row["project"]
+                let open: Int = row["open"]
+                let done: Int = row["done"]
+                // Swift keys compare canonically: spellings SQLite keeps apart may meet here.
+                counts[project, default: ProjectTaskCount(open: 0, done: 0)].open += open
+                counts[project, default: ProjectTaskCount(open: 0, done: 0)].done += done
+            }
+            return counts.filter { $0.value.open + $0.value.done > 0 }
+        }
+    }
+
+    /// Tasks done from `from` through `to` (by done day) and open tasks due in it; no scope.
+    public func periodTaskCount(from: CalendarDate, through to: CalendarDate) throws -> PeriodTaskCount {
+        try database.read { db in
+            let row = try Row.fetchOne(
+                db,
+                sql: """
+                    SELECT
+                        SUM(CASE WHEN status='done' AND doneDate>=? AND doneDate<=? THEN 1 ELSE 0 END) AS done,
+                        SUM(CASE WHEN status NOT IN ('done','cancelled') AND dueDate>=? AND dueDate<=?
+                            THEN 1 ELSE 0 END) AS openDue
+                    FROM blocks WHERE kind='task'
+                    """,
+                arguments: [from.description, to.description, from.description, to.description])
+            let done: Int? = row?["done"]
+            let openDue: Int? = row?["openDue"]
+            return PeriodTaskCount(done: done ?? 0, openDue: openDue ?? 0)
         }
     }
 

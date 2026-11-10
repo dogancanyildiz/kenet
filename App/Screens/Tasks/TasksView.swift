@@ -11,6 +11,7 @@ struct TasksView: View {
     @State private var model: TasksModel
     @ScaledMetric(relativeTo: .body) private var projectCardWidth: CGFloat = 170
     @Environment(\.shellKind) private var shellKind
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     init(
         store: IndexStore, selection: Binding<String?> = .constant(nil), notificationRequest: UUID? = nil,
         tasks: TasksModel? = nil
@@ -155,41 +156,58 @@ struct TasksView: View {
         .inkListRow()
     }
 
+    /// Project cards (screens.md): a horizontal strip; at accessibility sizes the cards stack
+    /// full width, as the Graph and Map cards do, so grown text is never cut by the strip.
     @ViewBuilder private var projectCardsRow: some View {
         if !model.projects.isEmpty {
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 10) {
-                    ForEach(model.projects, id: \.self) { project in
-                        let open = model.openCount(ofProject: project)
-                        let key = VaultIndex.projectKey(project)
-                        let count = model.list?.projectCounts[key]
-                        let completed = count?.done ?? 0
-                        let total = (count?.open ?? open) + completed
-                        NavigationLink {
-                            ProjectView(store: store, name: project)
-                        } label: {
-                            InkCard {
-                                VStack(alignment: .leading, spacing: 8) {
-                                    HStack(spacing: 6) {
-                                        Circle().fill(ProjectColor.color(for: project)).frame(width: 8, height: 8)
-                                            .accessibilityHidden(true)
-                                        Text(verbatim: project).font(.ink.content).foregroundStyle(.ink.text)
-                                            .lineLimit(1)
-                                    }
-                                    Text(String(format: String(localized: "%1$d/%2$d açık"), open, total))
-                                        .font(.ink.meta).monospacedDigit().foregroundStyle(.ink.secondaryText)
-                                    InkProgress(kind: .fraction(total == 0 ? 0 : Double(completed) / Double(total)))
-                                }
-                                .frame(width: projectCardWidth, alignment: .leading)
-                            }
-                            .accessibilityElement(children: .combine)
-                        }
-                        .buttonStyle(.plain)
+            Group {
+                if dynamicTypeSize.isAccessibilitySize {
+                    VStack(alignment: .leading, spacing: 10) {
+                        ForEach(model.projects, id: \.self) { projectCard($0, width: nil) }
                     }
+                } else {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(alignment: .top, spacing: 10) {
+                            ForEach(model.projects, id: \.self) { projectCard($0, width: projectCardWidth) }
+                        }
+                        .fixedSize(horizontal: false, vertical: true)
+                    }
+                    // A text size change rebuilds the strip, so the row takes the grown cards'
+                    // height instead of clipping them at the old one (iPad Dynamic Type audit).
+                    .id(dynamicTypeSize)
+                    .scrollClipDisabled()
                 }
             }
             .inkListRow()
         }
+    }
+
+    private func projectCard(_ project: String, width: CGFloat?) -> some View {
+        let open = model.openCount(ofProject: project)
+        let count = model.list?.projectCounts[VaultIndex.projectKey(project)]
+        let completed = count?.done ?? 0
+        let total = (count?.open ?? open) + completed
+        return NavigationLink {
+            ProjectView(store: store, name: project)
+        } label: {
+            InkCard {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(spacing: 6) {
+                        Circle().fill(ProjectColor.color(for: project)).frame(width: 8, height: 8)
+                            .accessibilityHidden(true)
+                        Text(verbatim: project).font(.ink.content).foregroundStyle(.ink.text)
+                            .lineLimit(width == nil ? nil : 1)
+                    }
+                    Text(String(format: String(localized: "%1$d/%2$d açık"), open, total))
+                        .font(.ink.meta).monospacedDigit().foregroundStyle(.ink.secondaryText)
+                    InkProgress(kind: .fraction(total == 0 ? 0 : Double(completed) / Double(total)))
+                }
+                .frame(width: width, alignment: .leading)
+                .frame(maxWidth: width == nil ? .infinity : nil, alignment: .leading)
+            }
+            .accessibilityElement(children: .combine)
+        }
+        .buttonStyle(.plain)
     }
 
     @ViewBuilder private var listSections: some View {

@@ -41,8 +41,9 @@ struct TasksListRow: View {
             canAddEvent: store.canAddEvent)
     }
 
-    /// The detail chevron: the phone's tab shell only (never on Mac, whatever the environment).
-    private var showsDetailChevron: Bool {
+    /// The detail entry (menu and VoiceOver action): the phone's tab shell only. On Mac and in
+    /// the split shell a click on the row selects it and the detail column shows it.
+    private var showsDetailEntry: Bool {
         #if os(macOS)
             false
         #else
@@ -74,19 +75,6 @@ struct TasksListRow: View {
             .strikethrough(false)
         } secondary: {
             metaRow
-        } trailing: {
-            // Tabs only: on Mac and in the split shell a click on the row already selects it and
-            // the detail column (or panel) shows it, so a second path to a sheet would compete.
-            if showsDetailChevron {
-                Button(action: openDetail) {
-                    Image(systemName: "chevron.right")
-                        .font(.ink.meta.weight(.semibold))
-                        .foregroundStyle(.ink.tertiaryText)
-                        .tapTarget()
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel(Text("Ayrıntıları göster"))
-            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         // Inside the section card (`inkListRow(cardSegment:)` draws it behind the row). Completed
@@ -99,7 +87,12 @@ struct TasksListRow: View {
         .accessibilityAction(named: Text(LocalizedStringKey(completion.boxAccessibilityLabelKey))) {
             if rowTapCompletes { complete() }
         }
-        .accessibilityActions { moveButtons }
+        .accessibilityActions {
+            if showsDetailEntry {
+                Button("Ayrıntıları göster", action: openDetail)
+            }
+            moveButtons
+        }
         .contextMenu { editMenu }
         #if os(macOS)
             // The list column draws the selection; the system focus ring would double it.
@@ -169,6 +162,12 @@ struct TasksListRow: View {
     }
 
     @ViewBuilder private var editMenu: some View {
+        // The phone's way into the detail sheet: a touch on the row completes the task
+        // (screens.md "Tamamlama"), so the detail sits in the menu, not behind a chevron whose
+        // touch area would take touches meant for the row.
+        if showsDetailEntry {
+            Button("Ayrıntıları göster", systemImage: "info.circle", action: openDetail)
+        }
         Button("Metni düzenle", systemImage: "pencil") { textEditor = TaskEditorModel(store: store, row: row) }
         Button("Tarih ver / değiştir", systemImage: "calendar") {
             dateEditor = TaskEditorModel(store: store, row: row)

@@ -41,6 +41,7 @@ import Foundation
 enum EventKitRecurrence {
     static func recurrence(of rules: [EKRecurrenceRule]?) -> CalendarRecurrence {
         guard let rules, !rules.isEmpty else { return .none }
+        if rules.count == 1, let rule = rules.first, isLastDayOfFebruary(rule) { return .lastDayOfFebruary }
         // A rule that ends after a count cannot be shown or kept by the plain choices.
         guard rules.count == 1, let rule = rules.first, rule.interval == 1,
             (rule.recurrenceEnd?.occurrenceCount ?? 0) == 0,
@@ -54,6 +55,13 @@ enum EventKitRecurrence {
         case .yearly: return .yearly
         @unknown default: return .custom
         }
+    }
+
+    /// Yearly, in February, on the month's last day (`daysOfTheMonth: [-1]`), with no count.
+    static func isLastDayOfFebruary(_ rule: EKRecurrenceRule) -> Bool {
+        rule.frequency == .yearly && rule.interval == 1 && (rule.recurrenceEnd?.occurrenceCount ?? 0) == 0
+            && rule.monthsOfTheYear == [2] && rule.daysOfTheMonth == [-1] && rule.daysOfTheWeek == nil
+            && rule.weeksOfTheYear == nil && rule.daysOfTheYear == nil && rule.setPositions == nil
     }
 
     static func rules(for change: CalendarWritePlan.RuleChange) -> [EKRecurrenceRule]? {
@@ -77,6 +85,13 @@ enum EventKitRecurrence {
         case .weekly: frequency = .weekly
         case .monthly: frequency = .monthly
         case .yearly: frequency = .yearly
+        case .lastDayOfFebruary:
+            return [
+                EKRecurrenceRule(
+                    recurrenceWith: .yearly, interval: 1, daysOfTheWeek: nil, daysOfTheMonth: [-1],
+                    monthsOfTheYear: [2], weeksOfTheYear: nil, daysOfTheYear: nil, setPositions: nil,
+                    end: end.map { EKRecurrenceEnd(end: $0) })
+            ]
         }
         return [
             EKRecurrenceRule(

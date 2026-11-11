@@ -6,6 +6,9 @@ import VaultFormat
 /// it and never rewrites it unless the user picks one of the plain choices.
 enum CalendarRecurrence: String, CaseIterable, Sendable, Hashable {
     case none, daily, weekly, monthly, yearly, custom
+    /// Every year on February's last day: a 29 February birthday, shown on the 28th in other
+    /// years as the anniversary rule does (`docs/vault-format.md`).
+    case lastDayOfFebruary
 
     /// The form's menu, without `custom`.
     static let choices: [CalendarRecurrence] = [.none, .daily, .weekly, .monthly, .yearly]
@@ -19,6 +22,7 @@ enum CalendarRecurrence: String, CaseIterable, Sendable, Hashable {
         case .monthly: "Her ay"
         case .yearly: "Her yıl"
         case .custom: "Özel tekrar"
+        case .lastDayOfFebruary: "Her yıl, şubatın son günü"
         }
     }
 }
@@ -67,7 +71,8 @@ struct CalendarEventDraft: Equatable, Sendable {
             recurrence: .none, calendarID: calendarID)
     }
 
-    /// A yearly all-day event "<Ad> doğum günü" on `date`.
+    /// A yearly all-day event "<Ad> doğum günü" on `date`. On 29 February the rule is February's
+    /// last day, so the birthday shows on the 28th in the other years.
     static func birthday(
         name: String, on date: Date, calendarID: String?, locale: Locale, timeZone: TimeZone = .current
     ) -> CalendarEventDraft {
@@ -77,8 +82,10 @@ struct CalendarEventDraft: Equatable, Sendable {
         let resolved = PresentationLocalization.resolvedLocale(locale)
         let title = String(
             localized: "\(name) doğum günü", bundle: PresentationLocalization.bundle(resolved), locale: resolved)
+        let parts = calendar.dateComponents([.month, .day], from: start)
+        let recurrence: CalendarRecurrence = parts.month == 2 && parts.day == 29 ? .lastDayOfFebruary : .yearly
         return CalendarEventDraft(
-            title: title, start: start, end: start, isAllDay: true, recurrence: .yearly, calendarID: calendarID)
+            title: title, start: start, end: start, isAllDay: true, recurrence: recurrence, calendarID: calendarID)
     }
 
     init(
@@ -186,7 +193,8 @@ enum CalendarBirthday {
     static func isBirthday(_ event: CalendarEvent, fullName: String) -> Bool {
         let name = CalendarPersonMatch.words(fullName)
         guard !name.isEmpty else { return false }
-        if !event.isFromBirthdayCalendar, !(event.isAllDay && event.recurrence == .yearly) { return false }
+        let isYearly = event.recurrence == .yearly || event.recurrence == .lastDayOfFebruary
+        if !event.isFromBirthdayCalendar, !(event.isAllDay && isYearly) { return false }
         var title = CalendarPersonMatch.words(event.title)
         guard let marker = markers.first(where: { CalendarPersonMatch.contains(title, $0) }),
             let at = (0...(title.count - marker.count)).first(where: {

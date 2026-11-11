@@ -344,7 +344,8 @@ struct CalendarEventForm: View {
 
     private var recurrenceOptions: [InkMenuOption<CalendarRecurrence>] {
         var values = CalendarRecurrence.choices
-        if original?.recurrence == .custom { values.append(.custom) }
+        // A rule the plain choices cannot write stays on the menu, kept until changed.
+        if let kept = original?.recurrence, !values.contains(kept) { values.append(kept) }
         return values.map { InkMenuOption(LocalizedStringKey($0.catalogKey), value: $0) }
     }
 
@@ -400,12 +401,19 @@ struct CalendarBirthdayForm: View {
     @State private var calendarID: String?
     @State private var calendars: [CalendarTarget]?
     @State private var isSaving = false
+    /// The birthday is already on the calendar (added elsewhere, or by a second tap): say so.
+    @State private var alreadyExists = false
 
     private var text: CalendarEventText { CalendarEventText(locale: PresentationLocalization.resolvedLocale(locale)) }
 
     var body: some View {
         List {
             InkPageTitleRow("Doğum günü ekle")
+            if alreadyExists {
+                InfoBand(kind: .info, "Bu kişinin doğum günü takvimde zaten var.")
+                    .accessibilityIdentifier("band.birthday.exists")
+                    .inkListRow()
+            }
             if let error = calendar.writeError {
                 InfoBand(kind: .error, verbatim: text.message(error)).inkListRow()
             }
@@ -435,7 +443,7 @@ struct CalendarBirthdayForm: View {
         .inkPageScrollColumn()
         .disabled(calendar.isWriting || isSaving)
         .inkSheet(
-            "Doğum günü ekle", confirm: .create, isConfirmEnabled: calendars?.isEmpty == false,
+            "Doğum günü ekle", confirm: .create, isConfirmEnabled: calendars?.isEmpty == false && !alreadyExists,
             isBusy: calendar.isWriting || isSaving, isCancelEnabled: !(calendar.isWriting || isSaving),
             cancelIdentifier: "button.birthday.cancel", confirmIdentifier: "button.birthday.save"
         ) { save() }
@@ -465,7 +473,7 @@ struct CalendarBirthdayForm: View {
             defer { isSaving = false }
             let start = Calendar.current.startOfDay(for: clockNow())
             if await calendar.personEvents(names: names, from: start)?.birthday != nil {
-                dismiss()
+                alreadyExists = true
                 return
             }
             if await calendar.save(draft) { dismiss() }

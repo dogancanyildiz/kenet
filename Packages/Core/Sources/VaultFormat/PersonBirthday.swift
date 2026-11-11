@@ -43,10 +43,11 @@ public struct PersonBirthday: Hashable, Sendable {
         return nil
     }
 
-    /// The day the yearly event starts: the birth date itself, or for a yearless value this
-    /// year's day (the latest leap year's for 29 February).
+    /// The day the yearly event starts: the birth date itself, or for a yearless value (and a
+    /// year still to come) this year's day (the latest leap year's for 29 February).
     public func firstDay(currentYear: Int) -> CalendarDate? {
-        if let year { return CalendarDate(year: year, month: month, day: day) }
+        // A year after this one is a typo: read the value as yearless.
+        if let year, year <= currentYear { return CalendarDate(year: year, month: month, day: day) }
         var candidate = currentYear
         while candidate > currentYear - 8 {
             if let date = CalendarDate(year: candidate, month: month, day: day) { return date }

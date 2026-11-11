@@ -58,5 +58,9 @@ struct PersonBirthdayTests {
         #expect(PersonBirthday.parse("--04-12")?.firstDay(currentYear: 2026) == CalendarDate("2026-04-12"))
         #expect(PersonBirthday.parse("--02-29")?.firstDay(currentYear: 2026) == CalendarDate("2024-02-29"))
         #expect(PersonBirthday.parse("--02-29")?.firstDay(currentYear: 2028) == CalendarDate("2028-02-29"))
+        // A year still to come is a typo: read as yearless.
+        #expect(PersonBirthday.parse("2090-04-12")?.firstDay(currentYear: 2026) == CalendarDate("2026-04-12"))
+        #expect(PersonBirthday.parse("2026-04-12")?.firstDay(currentYear: 2026) == CalendarDate("2026-04-12"))
+        #expect(PersonBirthday.parse("2092-02-29")?.firstDay(currentYear: 2026) == CalendarDate("2024-02-29"))
     }
 }

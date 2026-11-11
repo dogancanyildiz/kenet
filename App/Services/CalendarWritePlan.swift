@@ -77,13 +77,14 @@ enum CalendarWritePlan {
 
     /// A new event writes every field; an edit only what differs from `original`. A changed repeat
     /// keeps the old rule's end date.
-    static func changes(draft: CalendarEventDraft, original: CalendarEvent?) -> Changes {
+    static func changes(draft: CalendarEventDraft, original: CalendarEvent?, timeZone: TimeZone = .current) -> Changes {
         guard let original else {
             return Changes(
                 title: draft.title, start: draft.start, end: draft.end, isAllDay: draft.isAllDay,
                 calendarID: draft.calendarID, rule: rule(for: draft.recurrence, end: nil))
         }
-        let before = CalendarEventDraft(event: original)
+        // Compared in the written form: EventKit ends an all-day event at 23:59:59 of its last day.
+        let before = CalendarEventDraft(event: original).normalized(timeZone: timeZone)
         var changes = Changes()
         if draft.title != before.title { changes.title = draft.title }
         if draft.start != before.start { changes.start = draft.start }

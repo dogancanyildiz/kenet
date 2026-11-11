@@ -58,15 +58,80 @@ import VaultFormat
         #expect(calendar.writeError == nil)
     }
 
-    @Test func oneWriteRefreshesOnce() async {
+    /// The source's echo of our own write does not refresh at once; a change inside the window is
+    /// never dropped either: one refresh follows when the window closes, however many came.
+    @Test func changesInsideTheWriteWindowRefreshOnceAfterIt() async {
         let source = InMemoryCalendarSource()
-        let calendar = service(source)
+        let calendar = CalendarService(
+            source: source, defaults: UserDefaults(suiteName: "CalendarWritingTests-\(UUID())")!, echoWindow: 0.3)
         await calendar.load(day)
         let before = calendar.changeCount
         #expect(await calendar.save(draft("Ders")))
-        // The source's echo of our own write does not run a second refresh.
+        #expect(calendar.changeCount == before + 1)
+        // Another device's change lands inside the window, twice.
+        source.onChange?()
+        source.onChange?()
         for _ in 0..<20 { await Task.yield() }
         #expect(calendar.changeCount == before + 1)
+        let settled = await waitUntil(timeout: .seconds(3)) { calendar.changeCount == before + 2 }
+        #expect(settled)
+        try? await Task.sleep(for: .seconds(0.5))
+        #expect(calendar.changeCount == before + 2)
+        // Outside the window a change refreshes at once.
+        source.onChange?()
+        let direct = await waitUntil(timeout: .seconds(1)) { calendar.changeCount == before + 3 }
+        #expect(direct)
+    }
+
+    /// EventKit ends an all-day event at 23:59:59 of its last day; a title-only edit writes the
+    /// title only and leaves the dates as the calendar has them.
+    @Test func allDayEditInEventKitFormWritesOnlyTheTitle() {
+        let start = Calendar.current.startOfDay(for: at(10))
+        let end = Calendar.current.date(byAdding: .day, value: 2, to: start)!.addingTimeInterval(-1)
+        let original = CalendarEvent(
+            id: "a", title: "Kamp", start: start, end: end, isAllDay: true, color: color, eventIdentifier: "a",
+            calendarID: "home", isEditable: true)
+        var draft = CalendarEventDraft(event: original)
+        #expect(CalendarWritePlan.changes(draft: draft.normalized(), original: original).isEmpty)
+        draft.title = "Yaz kampı"
+        #expect(
+            CalendarWritePlan.changes(draft: draft.normalized(), original: original)
+                == CalendarWritePlan.Changes(title: "Yaz kampı"))
+    }
+
+    /// 29 February is written as February's last day: the rule object itself, and the in-memory
+    /// calendar shows it on 28 February in a common year, as the anniversary rule says.
+    @Test func leapDayBirthdayUsesFebruarysLastDay() async throws {
+        let rule = try #require(EventKitRecurrence.rules(for: .lastDayOfFebruary)?.first)
+        #expect(rule.frequency == .yearly)
+        #expect(rule.interval == 1)
+        #expect(rule.monthsOfTheYear == [2])
+        #expect(rule.daysOfTheMonth == [-1])
+        #expect(rule.daysOfTheWeek == nil && rule.recurrenceEnd == nil)
+        #expect(EventKitRecurrence.recurrence(of: [rule]) == .lastDayOfFebruary)
+        let plainFeb = EKRecurrenceRule(
+            recurrenceWith: .yearly, interval: 1, daysOfTheWeek: nil, daysOfTheMonth: [28], monthsOfTheYear: [2],
+            weeksOfTheYear: nil, daysOfTheYear: nil, setPositions: nil, end: nil)
+        #expect(EventKitRecurrence.recurrence(of: [plainFeb]) == .custom)
+
+        let field = try #require(PersonBirthday.parse("1996-02-29"))
+        let first = try #require(field.firstDay(currentYear: 2026))
+        let birthday = CalendarEventDraft.birthday(
+            name: "Deniz Arıkan", on: LocalDay.instant(for: first), calendarID: nil, locale: Locale(identifier: "tr"))
+        #expect(birthday.recurrence == .lastDayOfFebruary)
+        let ordinary = CalendarEventDraft.birthday(
+            name: "Deniz Arıkan", on: at(10), calendarID: nil, locale: Locale(identifier: "tr"))
+        #expect(ordinary.recurrence == .yearly)
+        #expect(CalendarWritePlan.changes(draft: birthday, original: nil).rule == .set(.lastDayOfFebruary, end: nil))
+
+        let calendar = service(InMemoryCalendarSource())
+        #expect(await calendar.save(birthday))
+        #expect(await titles(calendar, on: CalendarDate("2027-02-28")!) == ["Deniz Arıkan doğum günü"])
+        #expect(await titles(calendar, on: CalendarDate("2028-02-28")!).isEmpty)
+        #expect(await titles(calendar, on: CalendarDate("2028-02-29")!) == ["Deniz Arıkan doğum günü"])
+        let names = CalendarPersonNames(fullName: "Deniz Arıkan", aliases: [])
+        let found = await calendar.personEvents(names: names, from: at(8))
+        #expect(found?.birthday?.recurrence == .lastDayOfFebruary)
     }
 
     @Test func emptyTitleIsNotWrittenAndTimesAreNormalized() async {

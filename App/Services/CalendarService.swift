@@ -24,10 +24,18 @@ final class CalendarService {
     @ObservationIgnored private var revision = 0
     /// Our own save already refreshed; the store's echo of it inside this window is not a change.
     @ObservationIgnored private var echoQuietUntil = Date.distantPast
+    @ObservationIgnored private let echoWindow: TimeInterval
+    /// A change came while writing or inside the echo window: one refresh follows the window.
+    @ObservationIgnored private var hasDeferredRefresh = false
 
-    init(source: any CalendarEventSource = EventKitCalendarSource(), defaults: UserDefaults = .standard) {
+    /// `echoWindow`: how long after our own write a store change counts as its echo.
+    init(
+        source: any CalendarEventSource = EventKitCalendarSource(), defaults: UserDefaults = .standard,
+        echoWindow: TimeInterval = 1
+    ) {
         self.source = source
         self.defaults = defaults
+        self.echoWindow = echoWindow
         authorization = source.authorization
         defaultCalendarID = defaults.string(forKey: Self.defaultCalendarKey)
         source.onChange = { [weak self] in Task { await self?.sourceChanged() } }
@@ -83,8 +91,20 @@ final class CalendarService {
         }.value
     }
 
+    /// A change inside the write window may be our echo or another device's edit; it is never
+    /// dropped: however many arrive, one refresh runs when the window closes.
     private func sourceChanged() async {
-        guard !isWriting, Date() >= echoQuietUntil else { return }
+        guard isWriting || Date() < echoQuietUntil else {
+            await refresh()
+            return
+        }
+        guard !hasDeferredRefresh else { return }
+        hasDeferredRefresh = true
+        while isWriting || Date() < echoQuietUntil {
+            let wait = max(0.05, echoQuietUntil.timeIntervalSinceNow)
+            try? await Task.sleep(for: .seconds(wait))
+        }
+        hasDeferredRefresh = false
         await refresh()
     }
 
@@ -95,7 +115,7 @@ final class CalendarService {
         defer { isWriting = false }
         do {
             try await body()
-            echoQuietUntil = Date().addingTimeInterval(1)
+            echoQuietUntil = Date().addingTimeInterval(echoWindow)
             await refresh()
             return true
         } catch {

@@ -158,13 +158,14 @@
             case .daily: component = .day
             case .weekly: component = .weekOfYear
             case .monthly: component = .month
-            case .yearly: component = .year
+            case .yearly, .lastDayOfFebruary: component = .year
             }
             let calendar = Calendar(identifier: .gregorian)
             let length = base.end.timeIntervalSince(base.start)
             var result: [CalendarEvent] = []
             var step = 0
-            while step < 2000, let begin = calendar.date(byAdding: component, value: step, to: base.start), begin < end
+            while step < 2000, let begin = occurrenceStart(base, step: step, component: component, calendar: calendar),
+                begin < end
             {
                 step += 1
                 if let last = base.recurrenceEnd, begin > last { break }
@@ -179,6 +180,21 @@
                         isFromBirthdayCalendar: base.isFromBirthdayCalendar))
             }
             return result
+        }
+
+        /// The `step`th occurrence. February's last day is 1 March minus a day, at the series' time.
+        private static func occurrenceStart(
+            _ base: CalendarEvent, step: Int, component: Calendar.Component, calendar: Calendar
+        ) -> Date? {
+            guard base.recurrence == .lastDayOfFebruary else {
+                return calendar.date(byAdding: component, value: step, to: base.start)
+            }
+            let time = base.start.timeIntervalSince(calendar.startOfDay(for: base.start))
+            let year = calendar.component(.year, from: base.start) + step
+            guard let march = calendar.date(from: DateComponents(year: year, month: 3, day: 1)),
+                let last = calendar.date(byAdding: .day, value: -1, to: march)
+            else { return nil }
+            return last.addingTimeInterval(time)
         }
 
         // MARK: - Changing

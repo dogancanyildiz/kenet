@@ -5844,6 +5844,22 @@
         }
       }
     },
+    "Bu kişinin doğum günü takvimde zaten var." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This person's birthday is already on the calendar."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bu kişinin doğum günü takvimde zaten var."
+          }
+        }
+      }
+    },
     "Bu klasör %@ ile eşitleniyor. Kenet dosyaları koordineli yazar; iki cihaz aynı günü düzenlerse gün kopyası oluşabilir ve kopya Tanılama'da görünür." : {
       "localizations" : {
         "en" : {
@@ -10264,6 +10280,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Her yıl tekrarlayan tüm gün etkinliği olarak takvime yazılır."
+          }
+        }
+      }
+    },
+    "Her yıl, şubatın son günü" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Every year, last day of February"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Her yıl, şubatın son günü"
           }
         }
       }
@@ -14767,23 +14799,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Takvim ve Konum"
-          }
-        }
-      }
-    },
-    "Takvim · salt okunur" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Calendar · read only"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Takvim · salt okunur"
           }
         }
       }

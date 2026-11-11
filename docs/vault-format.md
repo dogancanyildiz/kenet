@@ -1209,6 +1209,8 @@ Yıl dönümünün etiketi alanın kendi adıdır. Yıl dönümü hesabı anahta
 | Değer türü | Tek değer. Tırnaklı yazım da okunur: `"1990-04-12"`. Liste, eşlem ve ham alan okunmaz. |
 | Okunamayan değer | Alan yok sayılır. Form tarihi elle seçtirir. |
 | Kullanım | "Doğum günü ekle" formunun tarihi bu alandan gelir. Yıllı değerde etkinlik doğum tarihinden başlar. Yılsız değerde bu yılın o gününden başlar; `--02-29` son artık yıldan başlar. |
+| Gelecek yıl | Yıl bu yıldan büyükse uygulama yılı yok sayar ve değeri yılsız sayar. Örnek: `2090-04-12` bu yılın 12 Nisan'ından başlar. |
+| 29 Şubat | Takvim etkinliği şubatın son günü kuralıyla yazılır. Artık yılda 29 Şubat'ta, öteki yıllarda 28 Şubat'ta görünür. Bu, yıl dönümü kuralıyla aynıdır. |
 | Yazma | Uygulama bu alanı yalnız okur. Ne alanı ne dosyayı değiştirir. |
 
 Alan yıl dönümü kuralını değiştirmez: yıllı değer yine yıl dönümü satırı üretir, yılsız değer üretmez.

@@ -382,6 +382,50 @@ import VaultFormat
         #expect(first.x == 24 && last.x == 320 - 24)
     }
 
+    @Test func gridLinesStartUnderTheDateRow() {
+        // The today line and the week rules start under the dates, so they cross no label.
+        let dateRowBottom = TimelineAxisLayout.dateRowCenterY + TimelineAxisLayout.dateLabelHeight / 2
+        #expect(TimelineAxisLayout.dateRowBottom >= dateRowBottom)
+        let badgeTop = TimelineAxisLayout.todayCenterY(badgeHeight: 18) - 9
+        #expect(TimelineAxisLayout.dateRowBottom <= badgeTop)
+    }
+
+    @Test func dateLabelsTheScrollEdgeWouldCutAreLeftOut() throws {
+        let first = try #require(CalendarDate("2026-10-01"))
+        let lower = try #require(first.addingDays(10))
+        let upper = try #require(first.addingDays(49))
+        // Days 10...49 at 4 pt: the visible part runs from 40 to 200 chart points.
+        let span = TimelineAxisLayout.visibleSpan(lower...upper, firstDay: first, dayWidth: 4)
+        #expect(span == 40...200)
+        #expect(TimelineAxisLayout.showsWhole(centerX: 120, labelWidth: 40, in: span))
+        #expect(TimelineAxisLayout.showsWhole(centerX: 180, labelWidth: 40, in: span))
+        // "1 Şub" at the right edge: half of it would be cut, so it is not drawn.
+        #expect(!TimelineAxisLayout.showsWhole(centerX: 195, labelWidth: 40, in: span))
+        #expect(!TimelineAxisLayout.showsWhole(centerX: 50, labelWidth: 40, in: span))
+    }
+
+    @Test func openBarsAreAccentOnTheDesktopChartAndProjectColoredOnThePhone() {
+        // A project whose hue is the warning amber must not read as carried over on the Mac.
+        #expect(ProjectColor.color(for: "Ev") == .ink.warning)
+        #expect(TimelineBarChrome.openColor(project: "Ev", usesProjectColor: false) == .ink.accent)
+        #expect(TimelineBarChrome.openColor(project: "Ev", usesProjectColor: true) == .ink.warning)
+        #expect(TimelineBarChrome.openColor(project: nil, usesProjectColor: false) == .ink.accent)
+    }
+
+    @Test func undatedUnderTheChartCountsOpenTasksOnly() async throws {
+        let context = try TaskTestContext()
+        defer { context.clean() }
+        await context.start()
+        try "## Tasks\n- [ ] Open ^open\n- [x] Done ^done\n- [-] Dropped ^dropped\n".write(
+            to: context.file, atomically: true, encoding: .utf8)
+        await context.store.refresh()
+        let model = await timeline(context)
+        #expect(model.openUndated.map(\.sourceIdentifier) == ["open"])
+        await model.tasks.loadList()
+        // Liste's "Tarihsiz" and the chart's give the same count.
+        #expect(model.openUndated.count == model.tasks.undated.count)
+    }
+
     @Test func quarterScaleDrawsNoWeekendWells() {
         #expect(!TimelineAxisLayout.showsWeekends(scale: .quarter))
         #expect(TimelineAxisLayout.showsWeekends(scale: .month))

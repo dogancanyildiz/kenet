@@ -259,7 +259,9 @@ struct TaskTimelineView: View {
     }
 
     private func phoneControlsRow(showsPeriodButtons: Bool) -> some View {
-        HStack(spacing: 10) {
+        // One text baseline for "Ölçek", the scale words and "Bugün" (fark3 P5): centered, the
+        // label sat higher than the tab words, which stand at the bottom of their touch target.
+        HStack(alignment: .firstTextBaseline, spacing: 10) {
             Text("Ölçek")
                 .font(.ink.pageByline)
                 .foregroundStyle(.ink.secondaryText)

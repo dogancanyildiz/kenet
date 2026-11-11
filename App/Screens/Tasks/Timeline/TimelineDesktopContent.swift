@@ -28,6 +28,9 @@ enum TimelineAxisLayout {
     /// Center of the date row.
     static let dateRowCenterY: CGFloat = 14
 
+    /// Bottom of the date row: the grid's vertical lines start here, so they never cross a date.
+    static var dateRowBottom: CGFloat { dateRowCenterY + dateLabelHeight / 2 + 2 }
+
     /// The capsule's center: its bottom edge on the axis' lower edge.
     static func todayCenterY(badgeHeight: CGFloat) -> CGFloat {
         TimelineDesktopMetrics.axisHeight - max(badgeHeight, 0) / 2 - 1
@@ -59,6 +62,23 @@ enum TimelineAxisLayout {
         CGPoint(
             x: centerX(dayIndex: dayIndex, dayWidth: dayWidth, labelWidth: labelWidth, chartWidth: chartWidth),
             y: todayCenterY(badgeHeight: badgeHeight))
+    }
+
+    /// The chart's visible part, in chart points: the days of `visible` (whole days, as the
+    /// scroll view reports them) counted from `firstDay`, the chart's first drawn day.
+    static func visibleSpan(
+        _ visible: ClosedRange<CalendarDate>, firstDay: CalendarDate, dayWidth: CGFloat
+    ) -> ClosedRange<CGFloat> {
+        let lower = CGFloat(visible.lowerBound.ordinal - firstDay.ordinal) * max(dayWidth, 0)
+        let upper = CGFloat(visible.upperBound.ordinal - firstDay.ordinal + 1) * max(dayWidth, 0)
+        return lower...max(lower, upper)
+    }
+
+    /// A date label shows only whole: one that the scroll view's edge would cut is left out
+    /// (fark3 P6: "1 Şub" cut at the phone card's right edge).
+    static func showsWhole(centerX: CGFloat, labelWidth: CGFloat, in span: ClosedRange<CGFloat>) -> Bool {
+        let half = max(labelWidth, 0) / 2
+        return centerX - half >= span.lowerBound - 0.5 && centerX + half <= span.upperBound + 0.5
     }
 
     static func showsAxisDateLabel(_ day: CalendarDate, scale: TimelineModel.Scale) -> Bool {
@@ -111,7 +131,8 @@ struct TimelineDesktopContent: View {
         .background {
             TimelineGrid(
                 days: days, today: model.today, dayWidth: dayWidth,
-                showsWeekends: TimelineAxisLayout.showsWeekends(scale: model.scale))
+                showsWeekends: TimelineAxisLayout.showsWeekends(scale: model.scale),
+                lineTop: TimelineAxisLayout.dateRowBottom)
         }
         .coordinateSpace(name: "timeline-axis")
     }
@@ -141,6 +162,9 @@ struct TimelineDesktopContent: View {
             dayIndices: dateLabelDayIndices, dayWidth: dayWidth, labelWidth: dateLabelWidth,
             chartWidth: chartWidth)
         let showsWeekends = TimelineAxisLayout.showsWeekends(scale: model.scale)
+        let visible = days.first.map {
+            TimelineAxisLayout.visibleSpan(model.visibleRange, firstDay: $0, dayWidth: dayWidth)
+        }
         return HStack(spacing: 0) {
             ForEach(days, id: \.self) { day in
                 ZStack {
@@ -155,7 +179,14 @@ struct TimelineDesktopContent: View {
         }
         .overlay {
             ZStack {
-                ForEach(datePlacements) { item in
+                ForEach(
+                    datePlacements.filter { item in
+                        visible.map {
+                            TimelineAxisLayout.showsWhole(
+                                centerX: item.centerX, labelWidth: dateLabelWidth, in: $0)
+                        } ?? true
+                    }
+                ) { item in
                     let day = days[item.dayIndex]
                     Text(LocalDay.instant(for: day), format: .dateTime.day().month(.abbreviated))
                         .font(.ink.time)

@@ -758,15 +758,15 @@ Manşetin altında görünüm sekmesi durur. Sekmenin altında görünüme göre
 
 | Konu | Davranış |
 |---|---|
-| İçerik | Ortak kişi, konum ve proje filtreleriyle tarihli görevler. Tarihsizler ayrı listededir. |
+| İçerik | Ortak kişi, konum ve proje filtreleriyle tarihli görevler. Tarihsizler ayrı listededir. Bu liste yalnız açık tarihsiz görevleri sayar; sayı Liste'nin "Tarihsiz" bölümüyle aynıdır. |
 | Ölçek | Altı çizili sekme: Gün \| Hafta \| Çeyrek. Bütün platformlarda aynıdır. |
 | Gün ölçeği | Dikey saat ekseni: varsayılan 09:00–18:00, kesik çizgili saat çizgileri; o günün en erken ve en geç saatli kaydı aralığı genişletir. Saatli görevler ve olaylar zaman kartlarındadır: sol kenarda renkli çubuk ve kartta proje adı. "Şimdi" çizgisi ve saat rozeti durur. Geciken kart uyarı rengi çerçeve ve "geç" etiketi taşır. Saatsiz görevler eksenin altında ayrı listededir. |
 | Hafta ölçeği | 7 gün sütunu. Her sütunda o günün olayları ve görevleri zaman kartındadır; çubuk yoktur. Çok günlük görev haftadaki her gününde durur: ilk günde tam kart, sonraki günlerde devam rozeti. Sürükleme yoktur. Boş sütunda "Görev veya olay yok." yazar. Ölçek bütün platformlarda aynıdır. |
 | Çeyrek ölçeği | Kartlı Gantt: yuvarlak uçlu çubuklar, tek günlük görev yuvarlak rozet, "Bugün" çizgisi. |
 | Mac gruplama | Yalnız Çeyrek'te: proje (varsayılan), kişi ya da gruplamasız satırlar. Gün ve Hafta'da "Grupla" menüsü yoktur. Gruplar açılıp kapanır. Çok kişili görev kişi gruplarında tekrar eder. |
 | Biçim | Başlangıç ve bitiş varsa yuvarlak uçlu çubuk. Yalnız bitiş varsa tek günlük yuvarlak rozet. Yalnız başlangıç varsa bugüne kadar açık uçlu çubuk. Gelecekteki başlangıç tek noktadan başlar. |
-| Eksen | Tabular saat ve tarih sütunu. Tarihler tek satırdadır. "Bugün" çizgisinin üstünde, tarih satırının altında vurgu dolgulu "Bugün" kapsülü durur. Hafta sonu sütunu `well` renktedir; Çeyrek'te hafta sonu bandı yoktur. |
-| Durum | Tamamlananlar soluk gri dolgulu ve dolu uçludur. İptaller gizlidir. Devreden çubuk uyarı rengi çerçeve ve açık uyarı dolgusudur. |
+| Eksen | Tabular saat ve tarih sütunu. Tarihler tek satırdadır. Kaydırmanın kestiği tarih çizilmez. Dikey çizgiler tarih satırının altında başlar. "Bugün" çizgisinin üstünde, tarih satırının altında vurgu dolgulu "Bugün" kapsülü durur. Hafta sonu sütunu `well` renktedir; Çeyrek'te hafta sonu bandı yoktur. |
+| Durum | Açık çubuk Mac ve iPad'de vurgu dolguludur; telefonda proje rengindedir. Tamamlananlar soluk gri dolgulu ve dolu uçludur. İptaller gizlidir. Devreden çubuk uyarı rengi çerçeve ve açık uyarı dolgusudur. |
 | Ters aralık | Başka bir uygulamanın yazdığı ters aralık kaynakta kalır ve uyarıyla görünür. Yeni değişiklikler ters aralık üretmez. |
 | Aralık | Varsayılan: bugün -4 hafta / +12 hafta. Eksen ±365 gündür. Bugün düğmesi vardır. |
 | Telefon | "Ölçek", ölçek sekmesi ve "Bugün" tek satırdadır. Gün ölçeği dikey saat eksenidir; üstündeki hafta şeridinde her gün ayrı küçük kutudur. Çeyrek ilk ekranda kartlı Gantt'tır: dar etiket sütunu (tek satır başlık), proje grupları ve sayaç kapsülü, kendi kayan gün ekseni. Tarihsizler Gantt'ın altında kartta, kutulu satırlarla listelenir. Boş dönemde "Görev yok." Gantt kartının içindedir. Tarih menüden değişir; sürükleme yoktur. |

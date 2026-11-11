@@ -76,6 +76,7 @@ struct TimelineDesktopView: View {
                     .frame(height: height)
                     .environment(\.timelineRowHeight, rowHeight)
                     .environment(\.timelineDragsBars, !compact)
+                    .environment(\.timelineBarsUseProjectColor, compact)
                     // The phone's empty period sits in the chart's card, under its axis (one card).
                     if isEmpty {
                         if compact {
@@ -88,7 +89,7 @@ struct TimelineDesktopView: View {
                 }
                 .modifier(TimelineChartCard(isOn: compact))
                 .padding(.horizontal, outerMargin)
-                if !model.undated.isEmpty {
+                if !model.openUndated.isEmpty {
                     undatedCard
                 }
             }
@@ -102,10 +103,10 @@ struct TimelineDesktopView: View {
     /// phone, iPad and Mac alike).
     private var undatedCard: some View {
         VStack(alignment: .leading, spacing: InkSpacing.row) {
-            SectionHeader(title: String(localized: "Tarihsiz"), counter: TasksCounter.tasks(model.undated.count))
+            SectionHeader(title: String(localized: "Tarihsiz"), counter: TasksCounter.tasks(model.openUndated.count))
             InkCard(padded: false) {
                 VStack(alignment: .leading, spacing: 0) {
-                    ForEach(Array(model.undated.enumerated()), id: \.element.id) { index, row in
+                    ForEach(Array(model.openUndated.enumerated()), id: \.element.id) { index, row in
                         if index > 0 { InkCardDivider().padding(.leading, InkSpacing.cardPadding) }
                         TimelineTaskRow(model: model, row: row) {
                             select(row)
@@ -236,11 +237,20 @@ struct TasksCountPill: View {
     }
 }
 
+extension TimelineModel {
+    /// "Tarihsiz" under the chart: open tasks without a date, the Liste section's definition
+    /// (fark3 Y4: the chart counted completed ones too, 12 against the list's 3), in the
+    /// list's order so the two show the same rows the same way.
+    var openUndated: [TaskRow] { undated.filter { !$0.isClosed }.sorted(by: TasksModel.order) }
+}
+
 extension EnvironmentValues {
     /// Height of one chart row; the phone chart's rows are shorter (one-line titles).
     @Entry var timelineRowHeight: CGFloat = TimelineDesktopMetrics.rowHeight
     /// Whether a bar's ends are dragged: not on the phone chart.
     @Entry var timelineDragsBars = true
+    /// Whether an open bar takes its project color (the phone's chart) or accent (Mac, iPad).
+    @Entry var timelineBarsUseProjectColor = false
 }
 
 struct TimelineGroupTitle: View {

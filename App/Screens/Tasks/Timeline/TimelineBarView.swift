@@ -10,6 +10,7 @@ struct TimelineBarView: View {
     @State private var drag: TimelineDrag?
     @Environment(\.timelineRowHeight) private var rowHeight
     @Environment(\.timelineDragsBars) private var dragsBars
+    @Environment(\.timelineBarsUseProjectColor) private var usesProjectColor
     private var width: CGFloat { CGFloat(model.days.count) * dayWidth }
     private var dates: TimelineDates { model.dates(for: row) }
 
@@ -79,10 +80,11 @@ struct TimelineBarView: View {
     private var barColor: Color {
         if !dates.isValid { return Color.ink.warning }
         if presentation.usesSecondaryText { return Color.ink.secondaryText }
-        return presentation.showsOverdueCue ? Color.ink.warning : ProjectColor.color(for: row.project)
+        if presentation.showsOverdueCue { return Color.ink.warning }
+        return TimelineBarChrome.openColor(project: row.project, usesProjectColor: usesProjectColor)
     }
 
-    /// Şafak drawing (Mac Gantt): an open bar is filled in its project color; a carried-over one
+    /// Şafak drawing (Mac Gantt): an open bar is filled in accent (phone: its project color); a carried-over one
     /// is an amber outline over a soft amber fill; a completed one is a soft gray fill (its end
     /// dot says done, not the color alone).
     @ViewBuilder private func barChrome(isPoint: Bool) -> some View {
@@ -154,6 +156,13 @@ enum TimelineBarChrome: Equatable {
 
     /// Soft amber under a carried-over bar's outline.
     static let softOpacity = 0.14
+
+    /// Fill of an open bar. The Mac and iPad chart draw every open bar in accent: the row's
+    /// label column names the project, and a project hue of amber read as carried over (fark3
+    /// M2). The phone's carded chart keeps the project color (Şafak drawing, iPhone Çeyrek).
+    static func openColor(project: String?, usesProjectColor: Bool) -> Color {
+        usesProjectColor ? ProjectColor.color(for: project) : Color.ink.accent
+    }
 
     static func make(isValid: Bool, presentation: TaskStatusPresentation) -> Self {
         if presentation.usesSecondaryText { return .done }

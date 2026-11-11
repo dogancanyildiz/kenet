@@ -109,7 +109,8 @@ struct EntityInsightsCard: View {
                             .padding(.horizontal, 10)
                             .padding(.vertical, 5)
                             .background(Color.ink.well, in: Capsule())
-                            .frame(minHeight: TapTarget.minimumLength)
+                            // A short name ("Ece") draws a chip under 44 pt wide; the tap area keeps 44.
+                            .frame(minWidth: TapTarget.minimumLength, minHeight: TapTarget.minimumLength)
                             .contentShape(Rectangle())
                     }
                     .buttonStyle(.borderless)

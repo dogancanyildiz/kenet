@@ -19,7 +19,8 @@ struct TaskFlowSeriesTests {
             let day = try #require((fixture["containing"] as? String).flatMap(CalendarDate.init))
             let expected = try #require(fixture["expected"] as? [String: Any])
             let counts = try #require(expected["counts"] as? [String: Any])
-            let summary = PeriodSummary.compute(period: period, containing: day, data: data)
+            let today = (fixture["today"] as? String).flatMap(CalendarDate.init)
+            let summary = PeriodSummary.compute(period: period, containing: day, data: data, today: today)
             let actual = [
                 "createdTasks": summary.counts.createdTasks, "completedTasks": summary.counts.completedTasks,
                 "overdueTasks": summary.counts.overdueTasks, "undatedTasks": summary.counts.undatedTasks,
@@ -32,7 +33,7 @@ struct TaskFlowSeriesTests {
 
     @Test(arguments: [
         "empty", "running-week", "finished-leap-month", "inventory-exclusions", "running-year",
-        "future-period", "calendar-lower-bound", "running-month",
+        "future-period", "calendar-lower-bound", "running-month", "source-less-opens-today",
     ])
     func inventoryFixturesMatchHandCountedExpectations(id: String) throws {
         let fixtures = try #require(

@@ -20,8 +20,10 @@ struct PeriodSummaryTests {
             let day = try #require(CalendarDate(dayText))
             let bounds = period.bounds(containing: day)
             let first = period.previous(containing: day)?.lowerBound ?? bounds.lowerBound
+            let today = (fixture["today"] as? String).flatMap(CalendarDate.init)
             let summary = PeriodSummary.compute(
-                period: period, containing: day, data: try index.summaryInput(from: first, to: bounds.upperBound))
+                period: period, containing: day, data: try index.summaryInput(from: first, to: bounds.upperBound),
+                today: today)
             let expected = try #require(fixture["expected"] as? [String: Any])
             #expect(
                 try canonical(snapshot(summary)) == canonical(expected),
@@ -62,6 +64,11 @@ struct PeriodSummaryTests {
         #expect(summary.counts.createdTasks == 0 && summary.counts.completedTasks == 1)
         #expect(summary.counts.overdueTasks == 1 && summary.counts.undatedTasks == 1)
         #expect(summary.previous.overdueTasks == 2)
+        // A task outside day files opens on today: the week of today counts it, the week before does not.
+        let running = PeriodSummary.compute(
+            period: .week, containing: CalendarDate("2026-09-20")!, data: data, today: CalendarDate("2026-09-20"))
+        #expect(running.counts.overdueTasks == 2 && running.counts.undatedTasks == 1)
+        #expect(running.counts.createdTasks == 0 && running.previous.overdueTasks == 2)
     }
     @Test func goalAggregationKeepsHistoryForStreakAndAnnualProgress() throws {
         let weekly = try #require(

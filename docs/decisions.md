@@ -85,7 +85,7 @@ Harita konuları gösterir; satırların tam metni karar günlüğündedir. Bir 
 
 ```mermaid
 timeline
-    title Karar takvimi, 353 karar
+    title Karar takvimi, 354 karar
     2026-10-02 : 58 karar : Ürün kapsamı ve platform : Kasa biçimi ve ayrıştırıcı : Git, sürüm ve CI
     2026-10-03 : 19 karar : Yazma doğrulaması : İndeks ve arama : Varlık sayfası ve hızlı giriş
     2026-10-04 : 31 karar : Birleştirme ve kayıp yok : VaultStore ve dosya izleme : Görev, hedef ve otomasyon : Özet, graph ve harita
@@ -110,10 +110,10 @@ timeline
     2026-11-01 : 1 karar : Mac menü komutları kimlikli eylem, App sahnesi döngüsü
     2026-11-09 : 15 karar : Gün kopyası birleştirmesi varsayılan açık : Tasarım yönü Şafak ve Aşama 17 : Ekran davranışları
     2026-11-10 : 8 karar : CI kapısı simülatörü kayıt betiğiyle aynı : Görüntü referansı boyut tavanı 80 MiB : Hafta ölçeği kart sütunları : Graph dönemleri gün sayısı : Paylaşım kuyruğunda satır kimliği : D2 dalı D4 içinde : Katalog birleşiminde dev esas : Yazım kuralları ve terim sözlüğü repoda
-    2026-11-11 : 7 karar : Tamamlanan hedef halkası vurgu rengi : Kenar çubuğu seçimi yumuşak ton : Liste seçimi kart ve çubuk : Hedef miktarı ayrıntıda : Takvim etkinliği yazma : Doğum günü alanı : Proje paletinde amber yok
+    2026-11-11 : 8 karar : Tamamlanan hedef halkası vurgu rengi : Kenar çubuğu seçimi yumuşak ton : Liste seçimi kart ve çubuk : Hedef miktarı ayrıntıda : Takvim etkinliği yazma : Doğum günü alanı : Proje paletinde amber yok : Kaynak günü olmayan görev bugün açık
 ```
 
-Sayılar karar günlüğündeki satır sayısıdır. Toplam 353 satırdır.
+Sayılar karar günlüğündeki satır sayısıdır. Toplam 354 satırdır.
 
 ## Karar günlüğü
 
@@ -474,6 +474,7 @@ Sayılar karar günlüğündeki satır sayısıdır. Toplam 353 satırdır.
 | 2026-11-11 | Uygulama cihaz takvimine etkinlik ekler, düzenler ve siler: başlık, başlangıç–bitiş ya da tüm gün, tekrar (yok, her gün, her hafta, her ay, her yıl) ve hedef takvim. Etkinlik EventKit'te yaşar; kasaya aktarılmaz, `vault-format.md` değişmez. Görev ve olay takvime yazılmaz. Form uygulamanın kendi Şafak formudur; EventKitUI kullanılmaz. Varsayılan takvim cihaz tercihidir: `UserDefaults` anahtarı `calendar.defaultCalendarID`. Kişi sayfası başlığı ya da katılımcısı kişinin adı veya takma adıyla eşleşen yaklaşan etkinlikleri gösterir. "Doğum günü ekle" yıllık tüm gün etkinliği yazar: "<Ad> doğum günü". Önceki değer: EventKit salt okunur (kararlar 2026-10-04 ve 2026-10-11). Geri alma: `CalendarEventSource` yazma işlevlerini, formu ve kişi bölümünü kaldırmak; izin metnini eski haline döndürmek | Kullanıcı kararı (2026-11-11): ders, toplantı ve doğum günü uygulamadan eklenebilmeli. EventKitUI Mac'te yoktur ve Şafak diline uymaz. Etkinliğin tek kaynağı takvim kalır; kasada kopya olmaz. Sahte kaynakla birim testi yazılabilir |
 | 2026-11-11 | Kişi dosyasındaki doğum günü alanı "Doğum günü ekle" formunun tarihini verir. Anahtarlar: `doğum günü`, `doğum_günü`, `birthday`. Biçimler: `YYYY-MM-DD` ve yılsız `--MM-DD`. Uygulama alanı yalnız okur; okunamazsa tarih elle seçilir. Gelecek yıl yok sayılır. 29 Şubat şubatın son günü kuralıyla yazılır. Ayrıştırıcı Core'dadır: `PersonBirthday`. Önceki değer: uygulama anahtar adına anlam yüklemezdi, tarih bugünden başlardı. Geri alma: `PersonBirthday` çağrısını formdan kaldırmak; `vault-format.md` "Doğum günü alanı" bölümünü silmek | Kullanıcı kararı (2026-11-11): tarih kişi dosyasında zaten yazılı. Anlam yalnız bu üç anahtara ve yalnız takvim formuna verilir; yıl dönümü kuralı değişmez. Yılsız biçim vCard ve ISO 8601 ile uyumludur |
 | 2026-11-11 | Proje rengi paleti `warning` amberini içermez: `accent`, `person`, `place`, `control`; ad özeti 4'e bölünür. Önceki değer: beş belirteç, `warning` dördüncü sırada, özet 5'e bölünürdü. Geri alma: `ProjectColor.palette` dizisine `warning`'i geri koymak ve bölüneni 5 yapmak | fark3 M2: amber görev satırında, Kanban şeridinde ve çizelgede "devreden" demektir. Amber proje gecikmiş sanılıyordu. Projelerin rengi bir kez yeniden dağılır |
+| 2026-11-11 | Kaynak gün dosyası olmayan görev Özetler'de bugünden itibaren açık sayılır: süren dönemin sonu, devreden ve tarihsiz sayısı, açık görev eğrisinin bugünkü noktası. Bugünden önceki günlere girmez; oluşturma sayısına girmez. Bugün verilmezse sayılmaz. Dosya biçimi değişmez. Önceki değer: bu görev hiçbir açık sayısına girmezdi. Geri alma: `SummaryInput.Task.isOpen(on:today:)` içinde `created ?? today` yerine `created` kullanmak | fark4 Y4: örnek kasada Özetler "1 tarihsiz", Görevler listesi 3 tarihsiz görev gösteriyordu; 2'si proje dosyasında. Görevin oluşturma günü bilinmez. "Her zaman açık" seçeneği geçmiş dönemleri ve eğriyi geriye doğru değiştirirdi. Bugünden başlatmak geçmiş seriyi korur; eğride son noktada sıçrama olur |
 
 Satır sırası ekleme sırasıdır; tablonun ilk satırları tarih sırasında değildir. Sonradan değişen bir kararın gerekçe hücresi değişikliği tarihiyle anar. Güncel durum notları kararın verildiği günden sonraki gerçek durumu söyler.
 

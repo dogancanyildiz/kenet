@@ -70,8 +70,8 @@ public struct PeriodSummary: Sendable {
                 return prior.lowerBound...max(prior.lowerBound, same)
             }
         }
-        let counts = count(data, in: measured)
-        let previous = previousMeasured.map { count(data, in: $0) } ?? SummaryCounts()
+        let counts = count(data, in: measured, today: today)
+        let previous = previousMeasured.map { count(data, in: $0, today: today) } ?? SummaryCounts()
         let mentions = mentionCounts(data, in: measured)
         let oldMentions = previousMeasured.map { mentionCounts(data, in: $0) } ?? [:]
         return Self(
@@ -168,7 +168,9 @@ public struct PeriodSummary: Sendable {
             return SummaryUnit(range: unit, events: total, writtenDays: writtenDays, measuredDays: measuredDays)
         }
     }
-    private static func count(_ data: SummaryInput, in range: ClosedRange<CalendarDate>) -> SummaryCounts {
+    private static func count(
+        _ data: SummaryInput, in range: ClosedRange<CalendarDate>, today: CalendarDate?
+    ) -> SummaryCounts {
         var result = SummaryCounts()
         let days = data.days.filter { range.contains($0.date) }
         result.events = days.reduce(0) { $0 + max(0, $1.events) }
@@ -185,7 +187,7 @@ public struct PeriodSummary: Sendable {
         for task in data.tasks {
             if task.created.map(range.contains) == true { result.createdTasks += 1 }
             if task.status == .done && task.done.map(range.contains) == true { result.completedTasks += 1 }
-            guard task.isOpen(on: range.upperBound) else { continue }
+            guard task.isOpen(on: range.upperBound, today: today) else { continue }
             if let due = task.due {
                 if due < range.upperBound { result.overdueTasks += 1 }
             } else {

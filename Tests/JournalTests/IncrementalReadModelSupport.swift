@@ -278,6 +278,11 @@ extension VaultReadModel {
         matchesScreenFields(other) && counts.key == other.counts.key && fragments == other.fragments
     }
 
+    /// Usage counted from this model is the index's own query result.
+    func usageMatches(_ index: VaultIndex) throws -> Bool {
+        entityUsage() == (try index.entityUsage())
+    }
+
     /// Screen-visible equality used by incremental vs full-build tests.
     func matchesScreenFields(_ other: VaultReadModel) -> Bool {
         entities == other.entities

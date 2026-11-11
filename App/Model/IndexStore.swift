@@ -21,6 +21,11 @@ struct IndexCounts: Sendable {
     init() {}
 }
 
+/// Set by `IndexStore.waitUntil`'s timer once its time is up; read on the main actor only.
+@MainActor private final class WaitDeadline {
+    var passed = false
+}
+
 /// A service that reads the index after each publish with nobody watching the result on screen.
 enum BackgroundReader: String, Sendable {
     case widget, geofence
@@ -256,7 +261,8 @@ final class IndexStore {
         // Drain in-flight and queued writes before the intent write; do not abandon them mid-file.
         // The 8 s limit runs only while no vault is opening: a large vault's first refresh may take longer.
         await waitUntil(timeout: .seconds(8)) {
-            !self.isProcessing && !self.refreshInFlight && !self.writeBusy && self.writeWaiters.isEmpty
+            !self.isOpening && !self.isProcessing && !self.refreshInFlight && !self.writeBusy
+                && self.writeWaiters.isEmpty
         }
         try Task.checkCancellation()
         guard canAddEvent, lastUpdated != nil, !writeBusy, writeWaiters.isEmpty else {
@@ -536,16 +542,28 @@ final class IndexStore {
         // whose link targets match the last count keeps its rows (`hasSameUsageInputs`).
         let current = content
         let counted = usageInputs
+        let previousUsage = entityUsage
         let values = try await Task.detached {
             async let recount = current.usageRecount(since: counted)
             let entities = try index.knownEntities(kinds: kinds)
             let signatures = PlaceDocumentCache.signatures(of: entities, in: root)
-            let usage: [EntityUsage]? =
+            var usage: [EntityUsage]? =
                 switch await recount {
                 case .unchanged: nil
                 case .counted(let rows): rows
                 case .needsIndex: try index.entityUsage()
                 }
+            #if DEBUG
+                // Debug builds check the count against the index on every publish. A drifted read
+                // model stops here; release builds never pay for the query.
+                let fromIndex = try index.entityUsage()
+                if (usage ?? previousUsage) != fromIndex {
+                    assertionFailure("Entity usage drifted from the index")
+                    usage = fromIndex
+                }
+            #else
+                _ = previousUsage
+            #endif
             return (entities, usage, signatures)
         }.value
         var places: [NearbyPlace] = []
@@ -701,29 +719,35 @@ final class IndexStore {
     }
 
     /// Suspends until `condition` holds, the caller is cancelled, or `timeout` passes while no vault
-    /// is opening. The store re-checks waiters when its busy flags change; nothing polls.
+    /// is opening. The store wakes waiters when its busy flags change; nothing polls. A flag can
+    /// change mid-step (opening clears `isProcessing` just before its refresh sets `refreshInFlight`),
+    /// so a woken waiter checks again once it runs and waits on if the condition no longer holds.
     /// Returns whether the condition held.
     @discardableResult
     private func waitUntil(timeout: Duration? = nil, _ condition: @escaping @MainActor () -> Bool) async -> Bool {
-        if condition() { return true }
-        if Task.isCancelled { return false }
         let id = UUID()
+        let deadline = WaitDeadline()
         let timer: Task<Void, Never>? = timeout.map { timeout in
             Task { @MainActor [weak self] in
                 repeat {
                     try? await Task.sleep(for: timeout)
                     if Task.isCancelled { return }
                 } while self?.isOpening == true
+                deadline.passed = true
                 self?.resumeSettleWaiter(id, satisfied: false)
             }
         }
         defer { timer?.cancel() }
-        return await withTaskCancellationHandler {
-            await withCheckedContinuation { (continuation: CheckedContinuation<Bool, Never>) in
-                settleWaiters.append((id: id, condition: condition, continuation: continuation))
+        while true {
+            if condition() { return true }
+            if Task.isCancelled || deadline.passed { return false }
+            await withTaskCancellationHandler {
+                _ = await withCheckedContinuation { (continuation: CheckedContinuation<Bool, Never>) in
+                    settleWaiters.append((id: id, condition: condition, continuation: continuation))
+                }
+            } onCancel: {
+                Task { @MainActor [weak self] in self?.resumeSettleWaiter(id, satisfied: false) }
             }
-        } onCancel: {
-            Task { @MainActor [weak self] in self?.resumeSettleWaiter(id, satisfied: false) }
         }
     }
 
@@ -854,6 +878,9 @@ final class IndexStore {
         watcher = nil
         generation = UUID()
         let current = generation
+        // Raised before any busy flag drops, so a waiter never sees the store idle mid-open.
+        isOpening = true
+        defer { if generation == current { isOpening = false } }
         pendingRefresh = false
         pendingRebuild = false
         pendingDirectories = nil
@@ -864,8 +891,6 @@ final class IndexStore {
         // `writeBusy` is left alone: `open` can run inside a write body (pending selection),
         // and clearing it there would let two writes run at once.
         failQueuedWriters()
-        isOpening = true
-        defer { if generation == current { isOpening = false } }
         isVaultInaccessible = false
         unwatchedDirectoryCount = 0
         vaultURL = url
@@ -1017,12 +1042,13 @@ final class IndexStore {
                 allowSkip = false
                 needsFullRefresh = true
                 if contentReplaced {
-                    // Recognition failed after the content was replaced: screens watch `lastUpdated`,
-                    // so it moves too, and the next publish rebuilds the whole model (as a write does).
+                    // Recognition failed after the content was replaced: the next publish rebuilds the
+                    // whole model (as after a write). Screens watch `lastUpdated`, so it moves too, but
+                    // only for a vault already published: a failed first load stays unpublished.
                     var marked = content
                     marked.markNeedsFullReconcile()
                     content = marked
-                    lastUpdated = Date()
+                    if lastUpdated != nil { lastUpdated = Date() }
                 }
             }
             full = pendingRebuild

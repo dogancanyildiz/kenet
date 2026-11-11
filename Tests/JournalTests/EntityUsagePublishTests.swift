@@ -186,6 +186,32 @@ struct EntityUsagePublishTests {
         #expect(prepared)
     }
 
+    /// A background caller that arrives while the vault opens waits for the opening publish. The
+    /// opening clears its busy flag a moment before its refresh starts; that moment must not wake it.
+    @Test func backgroundPreparationWaitsForTheOpeningVault() async throws {
+        let temp = try testDirectory()
+        defer { try? FileManager.default.removeItem(at: temp) }
+        let suite = try TestDefaults()
+        defer { suite.clean() }
+        let store = IndexStore(
+            location: VaultLocation(defaults: suite.defaults, documentsURL: temp),
+            supportURL: temp.appendingPathComponent("indexes"))
+        let probe = ScanProbe()
+        let release = DispatchSemaphore(value: 0)
+        store.testingWatcherInitialScan = {
+            probe.begin()
+            probe.finish(timedOut: release.wait(timeout: .now() + 5) == .timedOut)
+        }
+        let opening = Task { await store.start() }
+        await waitUntil { probe.state.began }
+        let prepare = Task { try await store.prepareForBackground() }
+        for _ in 0..<20 { await Task.yield() }
+        release.signal()
+        await opening.value
+        await #expect(throws: Never.self) { try await prepare.value }
+        #expect(store.lastUpdated != nil)
+    }
+
     @Test func backgroundReadFailuresShowUntilTheNextSuccess() async throws {
         let context = try TaskTestContext(sample: true)
         defer { context.clean() }

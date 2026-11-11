@@ -513,7 +513,7 @@ Widget ekranlarla aynı hedef sorgusunu kullanır. Widget sorguyu kendisi çalı
 | Yazma sonrası yayım sürerken başka kasa açıldı | Yayım içeriği atamaz ve hatayı göstermez |
 | Yenileme sürerken başka kasa açıldı | Yenileme yeni kasanın `lastUpdated`, `errorText` ve `isProcessing` değerlerine dokunmaz |
 | Eski kasaya varlık kaydedildi | Yeni kasanın varlık listesi o varlığı göstermez |
-| Yayımda tanıma yenilemesi hata verdi | Yazmada ve yenilemede `lastUpdated` yine ilerler; ekranlar yeni içeriği çizer. Sonraki yayım okuma modelini baştan kurar |
+| Yayımda tanıma yenilemesi hata verdi | Yazmada ve yenilemede `lastUpdated` yine ilerler; ekranlar yeni içeriği çizer. Sonraki yayım okuma modelini baştan kurar. Kasanın ilk yüklemesi yayımlanmamış sayılır: `lastUpdated` boş kalır |
 | Ayarlar ekranının görevi plan sürerken iptal oldu | Bildirim planı son görüşme sorgusunu iptalden ayırır; plan yarıda kalmaz |
 
 `IndexStore` üzerinden yapılan her yazma çağrıldığı anda seçili olan kasaya aittir. Bu kural olay eklemeyi, `performEdit` düzenlemelerini, varlık oluşturmayı ve yeniden adlandırmayı kapsar. Olay eklemede taslak hızlı girişte kalır ve ekran var olan `staleTarget` iletisini gösterir. Öteki yollar hatayı çağırana atar. Bağlanmamış anma bağlama, satırı okuduğu kasayı bu denetime verir.

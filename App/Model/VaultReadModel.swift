@@ -114,7 +114,9 @@ struct VaultReadModel: Sendable {
     private mutating func reloadFragments(_ paths: Set<String>, index: VaultIndex) throws -> Bool {
         var missed = false
         for path in paths {
-            if let fragment = try index.loadFragment(path: path) {
+            // A fragment is keyed by the path the index stores. A reported path spelled otherwise (another
+            // Unicode form) would add a second key for the same file: take the full path instead.
+            if let fragment = try index.loadFragment(path: path), fragment.file.path == path {
                 fragments[path] = fragment
             } else {
                 fragments.removeValue(forKey: path)

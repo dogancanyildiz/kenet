@@ -37,6 +37,7 @@ struct IncrementalReadModelTests {
         ).content
         let full = try IncrementalReadModelVault.fullModel(index: index)
         #expect(incremental.matchesFullBuild(full))
+        #expect(try incremental.usageMatches(index))
         #expect(incremental.fragments[day]?.eventCount == 2 && incremental.counts.events == 3)
     }
 
@@ -60,6 +61,7 @@ struct IncrementalReadModelTests {
         ).content
         let full = try IncrementalReadModelVault.fullModel(index: index)
         #expect(incremental.matchesFullBuild(full))
+        #expect(try incremental.usageMatches(index))
         #expect(incremental.fragments[path]?.taskCount == 2 && incremental.counts.tasks == 3)
     }
 
@@ -78,6 +80,7 @@ struct IncrementalReadModelTests {
         let incremental = try IncrementalReadModelVault.apply(previous, index: index, result: result)
         let full = try IncrementalReadModelVault.fullModel(index: index)
         #expect(incremental.matchesFullBuild(full))
+        #expect(try incremental.usageMatches(index))
         #expect(incremental.fragments["notes/Scratch.md"] == nil && incremental.counts.tasks == 2)
     }
 
@@ -100,6 +103,7 @@ struct IncrementalReadModelTests {
         ).content
         let full = try IncrementalReadModelVault.fullModel(index: index)
         #expect(incremental.matchesFullBuild(full))
+        #expect(try incremental.usageMatches(index))
         #expect(incremental.entities.contains { $0.name == "Deniz Renamed" })
         #expect(!incremental.entities.contains { $0.id == "people/Deniz Example.md" })
     }
@@ -125,6 +129,7 @@ struct IncrementalReadModelTests {
         let incremental = try IncrementalReadModelVault.apply(previous, index: index, result: result)
         let full = try IncrementalReadModelVault.fullModel(index: index)
         #expect(incremental.matchesFullBuild(full))
+        #expect(try incremental.usageMatches(index))
         #expect(incremental.fragments[path]?.eventCount == 1 && incremental.counts.files == full.counts.files)
     }
 
@@ -184,9 +189,65 @@ struct IncrementalReadModelTests {
         ).content
         let full = try IncrementalReadModelVault.fullModel(index: index)
         #expect(incremental.matchesFullBuild(full))
+        #expect(try incremental.usageMatches(index))
         let zora = try #require(incremental.entities.first { $0.name == "Zora Example" })
         #expect(zora.incomingLinks >= 1)
         #expect(!(try index.entityTimeline(for: zora.id)).isEmpty)
+    }
+
+    /// Deleting an entity moves its links to the same-named file that remains; writing it again
+    /// takes them back. Usage follows the index both ways.
+    @Test func reResolvedLinksKeepUsageEqualToTheIndex() throws {
+        let root = try testDirectory()
+        defer { try? FileManager.default.removeItem(at: root) }
+        try IncrementalReadModelVault.seed(at: root)
+        let person = "people/Kaya Example.md"
+        let body = "---\ntype: person\nname: Kaya Example\naliases: []\n---\n"
+        try IncrementalReadModelVault.write(root, person, body)
+        try IncrementalReadModelVault.write(root, "zeta/Kaya Example.md", "Same name, not a person.\n")
+        try IncrementalReadModelVault.write(
+            root, "journal/2026-10-03.md",
+            "---\ntype: journal\ndate: 2026-10-03\n---\n## Events\n- 11:00 [[Kaya Example]] and [[Deniz Example]] ^k1\n"
+        )
+        let index = try VaultIndex()
+        try index.rebuild(vaultRoot: root)
+        var model = try IncrementalReadModelVault.fullModel(index: index)
+        #expect(try index.entityUsage().contains { $0.file == person && $0.totalCount == 1 })
+        #expect(try model.usageMatches(index))
+
+        try FileManager.default.removeItem(at: root.appendingPathComponent(person))
+        model = try IncrementalReadModelVault.apply(model, index: index, result: try index.refresh(vaultRoot: root))
+        #expect(!(try index.entityUsage()).contains { $0.file == person })
+        #expect(try model.usageMatches(index))
+
+        try IncrementalReadModelVault.write(root, person, body)
+        model = try IncrementalReadModelVault.apply(model, index: index, result: try index.refresh(vaultRoot: root))
+        #expect(try index.entityUsage().contains { $0.file == person && $0.totalCount == 1 })
+        #expect(try model.usageMatches(index))
+        #expect(model.matchesFullBuild(try IncrementalReadModelVault.fullModel(index: index)))
+    }
+
+    /// A changed path reported in another Unicode form never adds a second fragment for the same
+    /// file (links would count twice): the publish takes the full path.
+    @Test func aDecomposedPathDoesNotDuplicateAFragment() throws {
+        let root = try testDirectory()
+        defer { try? FileManager.default.removeItem(at: root) }
+        try IncrementalReadModelVault.seed(at: root)
+        let path = "people/Çağla Example.md"
+        try IncrementalReadModelVault.write(
+            root, path, "---\ntype: person\nname: Çağla Example\naliases: []\n---\n\n[[Deniz Example]]\n")
+        let index = try VaultIndex()
+        try index.rebuild(vaultRoot: root)
+        let previous = try IncrementalReadModelVault.fullModel(index: index)
+        let decomposed = path.decomposedStringWithCanonicalMapping
+        #expect(Array(decomposed.utf8) != Array(path.utf8))
+
+        let model = try VaultPublishedContent.applying(
+            previous: previous, index: index, changedPaths: [decomposed], today: IncrementalReadModelVault.today
+        ).content
+        #expect(model.fragments.allSatisfy { Array($0.key.utf8) == Array($0.value.file.path.utf8) })
+        #expect(model.fragments.count == previous.fragments.count)
+        #expect(try model.usageMatches(index))
     }
 
     @Test func guessedGoalPathReconcilesUsingWriterPath() async throws {
@@ -211,6 +272,7 @@ struct IncrementalReadModelTests {
         ).content
         let full = try IncrementalReadModelVault.fullModel(index: index)
         #expect(incremental.matchesFullBuild(full))
+        #expect(try incremental.usageMatches(index))
         #expect(try index.goalDefinitionsByName().contains { $0.definition.name == "Koşu: 5 km" })
         #expect(!incremental.needsFullReconcile)
     }
@@ -238,6 +300,7 @@ struct IncrementalReadModelTests {
         ).content
         let full = try IncrementalReadModelVault.fullModel(index: index, today: nextDay)
         #expect(incremental.matchesFullBuild(full))
+        #expect(try incremental.usageMatches(index))
         #expect(incremental.derivedForDay == nextDay)
     }
 
@@ -318,6 +381,7 @@ struct IncrementalReadModelTests {
         let incremental = try IncrementalReadModelVault.apply(previous, index: index, result: result)
         let full = try IncrementalReadModelVault.fullModel(index: index)
         #expect(incremental.matchesFullBuild(full))
+        #expect(try incremental.usageMatches(index))
         #expect(try index.reservedGoalKeys().contains("broken-milestone"))
     }
 
@@ -479,6 +543,7 @@ struct IncrementalReadModelTests {
             #expect(
                 model.matchesFullBuild(full), Comment(rawValue: "\(label) \(VaultReadModel.debugDiff(model, full))"))
             #expect(model.counts.key == IndexCounts(snapshot: try rebuilt.snapshot()).key, Comment(rawValue: label))
+            #expect(try model.usageMatches(rebuilt), Comment(rawValue: label))
             return expected
         }
         func publish(_ changed: Set<String>, deleted: Set<String> = []) throws {

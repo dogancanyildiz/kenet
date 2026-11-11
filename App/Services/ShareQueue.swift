@@ -119,14 +119,15 @@ struct ShareImportReport: Equatable, Sendable {
             if !refreshed { await store.refresh(directories: ["journal"]) }
             refreshed = true
             // The extension checked the new `^id` against its day file alone.
+            var failed = Set<String>()
             for entry in elements.compactMap(\.entry) {
                 do { try await store.renewClashingIdentifier(of: entry) } catch {
-                    // The marker stays; the next run tries again.
+                    // This marker stays for the next run; the others in the list go on.
                     listProblems.insert(url.lastPathComponent)
-                    return
+                    failed.insert(entry.id)
                 }
             }
-            let ids = Set(elements.compactMap(\.entry?.id))
+            let ids = Set(elements.compactMap(\.entry?.id)).subtracting(failed)
             do {
                 try file.remove(ids: ids, raws: Set(elements.filter { $0.entry == nil }.map(\.raw)))
                 result.added += ids.count

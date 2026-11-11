@@ -31,13 +31,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Calendar access is needed to show today's events and to draft an entry from an event you pick. Events are never modified."
+            "value" : "Calendar access is needed to show today's events, draft an entry from an event you pick, and save the events you add to your calendar. Tasks and entries are never written to the calendar."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bugünün takvim etkinliklerini göstermek ve seçtiğin etkinlikten olay taslağı hazırlamak için takvim erişimi gerekir. Etkinlikler değiştirilmez."
+            "value" : "Bugünün etkinliklerini göstermek, seçtiğin etkinlikten olay taslağı hazırlamak ve eklediğin etkinliği takvime yazmak için takvim erişimi gerekir. Görevler ve olaylar takvime yazılmaz."
           }
         }
       }

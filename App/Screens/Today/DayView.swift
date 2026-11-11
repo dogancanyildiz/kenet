@@ -286,7 +286,7 @@ struct DayView: View {
         // The strip draws nothing until its model has the goals; hosts wait for this, goals or none.
         .preference(key: GoalsStripReadyKey.self, value: goalModel.hasLoaded && !goalModel.isLoading)
         .task(id: date) {
-            if AppLaunchPolicy.allowsAutomaticStart() { await calendar.load(date) }
+            if AppLaunchPolicy.allowsCalendarLoad() { await calendar.load(date) }
         }
         .task(id: DayRequest(date: date, updated: store.lastUpdated)) {
             // One load: the day and its goal statuses as of that day are taken together.
@@ -332,8 +332,11 @@ struct DayView: View {
         }
         .navigationDestination(item: $goalDestination) { route in
             // As the Goals list opens it: the page's own day is today.
-            GoalDetailView(store: store, goal: route.goal, day: LocalDay.today(at: clockNow()))
-                .modifier(DayBackTitle(title: isToday ? nil : backTitle))
+            GoalDetailView(
+                store: store, goal: route.goal, day: LocalDay.today(at: clockNow()),
+                focusesAmount: route.focusesAmount, amountDay: route.amountDay
+            )
+            .modifier(DayBackTitle(title: isToday ? nil : backTitle))
         }
         .navigationDestination(item: $weekDestination) { day in
             DayView(
@@ -496,7 +499,10 @@ struct DayView: View {
             GoalStripView(
                 model: goalModels.model(store: store, day: date), countedGoalIDs: presented.countedGoalIDs,
                 counter: loadedGoals?.day == date ? presented.counter(for: .goals) : nil,
-                onOpen: { goalDestination = GoalDetailRoute(goal: $0) }
+                // A past day's card opens the page on that day (`amountDay`): a quick step there
+                // writes to the day on screen, not to today.
+                onOpen: { goalDestination = GoalDetailRoute(goal: $0, amountDay: date) },
+                onEnterAmount: { goalDestination = GoalDetailRoute(goal: $0, focusesAmount: true, amountDay: date) }
             )
             .id(GoalStripIdentity.key(day: date, vaultPath: store.vaultURL?.path))
 
@@ -605,7 +611,10 @@ struct DayView: View {
                 model: goalModels.model(store: store, day: date),
                 countedGoalIDs: presented.countedGoalIDs,
                 counter: loadedGoals?.day == date ? presented.counter(for: .goals) : nil,
-                onOpen: { goalDestination = GoalDetailRoute(goal: $0) }
+                // A past day's card opens the page on that day (`amountDay`): a quick step there
+                // writes to the day on screen, not to today.
+                onOpen: { goalDestination = GoalDetailRoute(goal: $0, amountDay: date) },
+                onEnterAmount: { goalDestination = GoalDetailRoute(goal: $0, focusesAmount: true, amountDay: date) }
             )
             .id(GoalStripIdentity.key(day: date, vaultPath: store.vaultURL?.path))
 

@@ -1195,7 +1195,25 @@ Serbest notlar...
 | Karşılaşılan gün kaynak tarihin kendisi: 0. yıl | Satır yok. |
 | 29 Şubat, artık olmayan yıl | Uygulama 28 Şubat'ta anar. |
 
-Yıl dönümünün etiketi alanın kendi adıdır. Uygulama doğum günü gibi bir anlam çıkarmaz ve anahtar adına göre dallanmaz. Yıl dönümü bir yorum kuralıdır; yeni alan ya da sözdizimi eklemez.
+Yıl dönümünün etiketi alanın kendi adıdır. Yıl dönümü hesabı anahtar adına göre dallanmaz. Tek istisna aşağıdaki doğum günü alanıdır. Yıl dönümü bir yorum kuralıdır; yeni alan ya da sözdizimi eklemez.
+
+### Doğum günü alanı
+
+| Konu | Kural |
+|---|---|
+| Dosya | Yalnız kişi dosyası (`type: person`). |
+| Anahtarlar | `doğum günü`, `doğum_günü`, `birthday`. Karşılaştırma harf boyuna bakmaz; Türkçe `İ`/`ı` kuralı ad karşılaştırmasıyla aynıdır. |
+| Birden çok anahtar | Dosya sırasında ilk okunabilen alan geçerlidir. |
+| Biçim: yıllı | `YYYY-MM-DD`, örnek `1990-04-12`. Geçersiz gün okunmaz: `1990-02-30`. |
+| Biçim: yılsız | `--MM-DD`, örnek `--04-12` (ISO 8601 yılsız tarih). `--02-29` geçerlidir. |
+| Değer türü | Tek değer. Tırnaklı yazım da okunur: `"1990-04-12"`. Liste, eşlem ve ham alan okunmaz. |
+| Okunamayan değer | Alan yok sayılır. Form tarihi elle seçtirir. |
+| Kullanım | "Doğum günü ekle" formunun tarihi bu alandan gelir. Yıllı değerde etkinlik doğum tarihinden başlar. Yılsız değerde bu yılın o gününden başlar; `--02-29` son artık yıldan başlar. |
+| Gelecek yıl | Yıl bu yıldan büyükse uygulama yılı yok sayar ve değeri yılsız sayar. Örnek: `2090-04-12` bu yılın 12 Nisan'ından başlar. |
+| 29 Şubat | Takvim etkinliği şubatın son günü kuralıyla yazılır. Artık yılda 29 Şubat'ta, öteki yıllarda 28 Şubat'ta görünür. Bu, yıl dönümü kuralıyla aynıdır. |
+| Yazma | Uygulama bu alanı yalnız okur. Ne alanı ne dosyayı değiştirir. |
+
+Alan yıl dönümü kuralını değiştirmez: yıllı değer yine yıl dönümü satırı üretir, yılsız değer üretmez.
 
 ### Aynı adlı varlıklar
 

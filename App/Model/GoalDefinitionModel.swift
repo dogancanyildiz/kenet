@@ -36,9 +36,10 @@ struct GoalDefinitionDraft: Equatable {
         unit = goal.unit ?? ""
     }
 
-    /// A whole amount without the fraction ("8", not "8.0"); other amounts as Swift spells them.
+    /// A whole amount without the fraction ("8", not "8.0"); other amounts in plain decimals with
+    /// "." (never exponent notation: "0.00001", not "1e-05"). The file's YAML gets the same text.
     static func spelling(_ value: Double) -> String {
-        value.rounded() == value && abs(value) < 1e15 ? String(Int64(value)) : String(value)
+        GoalAmountEditor.display(value, locale: Locale(identifier: "en_US_POSIX"))
     }
 }
 
@@ -67,6 +68,8 @@ final class GoalDefinitionModel {
 
     /// A milestone stays a yearly milestone: its period and kind are shown, not edited.
     var isScheduleLocked: Bool { goal.kind == .milestone }
+    /// How a typed target is read, as the amount panel reads it ("7.500" is 7500 in Turkish).
+    var locale: Locale = .current
 
     init(store: IndexStore, goal: GoalDefinition) {
         self.store = store
@@ -123,10 +126,9 @@ final class GoalDefinitionModel {
             return .valid(.text(clean), clean: clean)
         case "target":
             guard goal.kind != .milestone else { return .invalid }
-            guard let number = GoalValueModel.number(clean), number > 0 else { return .invalid }
-            // Keep numeric spelling in the supported YAML decimal subset.
-            guard !clean.lowercased().contains("e") else { return .invalid }
-            return .valid(.number(clean.replacingOccurrences(of: ",", with: ".")), clean: clean)
+            guard let number = GoalValueModel.number(clean, locale: locale), number > 0 else { return .invalid }
+            // The file gets the number read, in the YAML decimal subset ("7.500" typed → 7500).
+            return .valid(.number(GoalDefinitionDraft.spelling(number)), clean: clean)
         default: return .invalid
         }
     }
@@ -165,7 +167,12 @@ final class GoalDefinitionModel {
             if draft.kind != goal.kind {
                 changes.append(GoalDefinitionChange(field: .kind, text: draft.kind.rawValue))
             }
-            if GoalValueModel.number(draft.target) != goal.target {
+            // The text as the form showed it is no change, whatever the reading ("1.234" in a
+            // Turkish form); another text counts when it reads as another amount.
+            let target = draft.target.trimmingCharacters(in: .whitespacesAndNewlines)
+            if target != GoalDefinitionDraft.spelling(goal.target),
+                GoalValueModel.number(target, locale: locale) != goal.target
+            {
                 changes.append(GoalDefinitionChange(field: .target, text: draft.target))
             }
         }

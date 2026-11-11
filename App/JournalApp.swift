@@ -36,7 +36,7 @@ struct JournalApp: App {
     @State private var intentNavigation = IntentNavigation.shared
     @State private var geofences: GeofenceService
     @State private var location: LocationService
-    @State private var calendar = CalendarService()
+    @State private var calendar = CalendarService(source: AppLaunchPolicy.calendarSource())
     @State private var notifications: NotificationService
     @State private var store: IndexStore
     @State private var appLock: AppLockService

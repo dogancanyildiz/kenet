@@ -817,7 +817,7 @@ Kod karşılığı: `InkListSelectionBackground` ve `inkListRow(columnSelected:)
 | Bugün | Parıltı; gün başlığı: gün halkası, gün rakamı, gün adı; hafta şeridi; künye cümlesi ve 3 çip; her bölüm kart. İlk olay kaydırmadan görünür kalır. |
 | Gün ekranı | Üstte geri, ay seçici, Günün grafiği ve arama; hafta şeridi; saatli program: saat sütunu ve simge kutulu kartlar. Alt sayfa olduğu için parıltı yok. |
 | Günü kapat | Sheet, `elevated`; adımlar kart. |
-| Hızlı giriş | iPhone'da altta sabit iki satırlı kart: üstte kip ve saat çipi, altta alan ve gönder. Zemin `surface`, sınır `line`. Yüzen "+" yok. Mac'te kenar çubuğunun altında kart. |
+| Hızlı giriş | iPhone'da altta sabit iki satırlı kart: üstte kip, yana kayan ad çipleri ve saat ya da tarih çipi; altta alan ve gönder. Kart klavye açıkken satır eklemez. Zemin `surface`, sınır `line`. Yüzen "+" yok. Mac'te kenar çubuğunun altında kart. |
 | Günlük | Parıltı; ay takvimi kartta; Özetler ve Haftalık inceleme iki çip; gün satırları kart içinde. |
 | Özetler | Hafta \| Ay \| Yıl sekmesi; sayı kartları; Ay'da 30 günlük kare ritim; grafikler kart içinde. |
 | Haftalık inceleme | Sheet, 3 adım; soru kartları. |

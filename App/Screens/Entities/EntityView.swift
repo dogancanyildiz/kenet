@@ -26,6 +26,9 @@ struct EntityView: View {
     /// What a chip or a timeline row opens: pushed from outside the list, so rows draw no
     /// disclosure arrow (a `NavigationLink` in a list row adds one).
     @State private var pushed: EntityPagePush?
+    /// Optional: hosts without a calendar (some tests) draw no calendar section.
+    @Environment(CalendarService.self) private var calendar: CalendarService?
+    @State private var calendarModel = EntityCalendarModel()
 
     /// `model`: the page's file model; nil builds one for `entity`. A test hands its own in to rename
     /// the file as the edit sheet does and watch the page follow the new path.
@@ -48,6 +51,10 @@ struct EntityView: View {
         return EntitySummary(
             id: model.path, kind: entity.kind, name: name, qualifier: model.renamedQualifier,
             aliases: model.aliases, incomingLinks: 0)
+    }
+
+    private var calendarNames: CalendarPersonNames {
+        CalendarPersonNames(fullName: current.name, aliases: model.aliases)
     }
 
     private var kindLabel: String {
@@ -160,6 +167,15 @@ struct EntityView: View {
         .background {
             UnlinkedMentionsLoader(model: unlinkedMentions, file: model.path)
         }
+        .task(
+            id: EntityCalendarLoadKey(
+                fullName: current.name, aliases: model.aliases, changes: calendar?.changeCount ?? 0,
+                canRead: calendar?.authorization.canRead ?? false)
+        ) {
+            // The same gate as the day pages: a test or a tour never reads the real calendar.
+            guard current.kind == "person", let calendar, AppLaunchPolicy.allowsCalendarLoad() else { return }
+            await calendarModel.load(calendar: calendar, names: calendarNames, now: clockNow())
+        }
         .preference(
             key: ImportantDatesReadyKey.self,
             value: !showsImportantDates || (model.isLoaded && importantDates.hasLoaded)
@@ -234,6 +250,12 @@ struct EntityView: View {
             EntityRelationsHost(store: store, path: model.path).id(model.path)
         }
         EntityOpenTasksView(store: store, rows: openTasks).id(model.path)
+        if current.kind == "person", calendar != nil {
+            EntityCalendarSection(
+                names: calendarNames,
+                birthday: PersonBirthday.find(in: model.fields.map { ($0.key, $0.value) }),
+                model: calendarModel)
+        }
         UnlinkedMentionsSection(model: unlinkedMentions).id(model.path)
         timelineSection
         notesSection

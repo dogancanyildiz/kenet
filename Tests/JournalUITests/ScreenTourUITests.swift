@@ -449,13 +449,14 @@ final class ScreenTourUITests: XCTestCase {
             try tour.tap(labels: ["Vazgeç", "Kapat"])
         }
         tour.step("12-hedef-miktar-sheet") {
-            // Long press: the row's plus button would add to today's value.
+            // Long press: the card's plus button would add to today's value. "Miktar gir" opens
+            // the goal page with its amount field focused (no separate sheet).
             try openToday()
             try tour.require(labels: [numberGoal]).press(forDuration: 1.3)
             try tour.tap(labels: ["Miktar gir"])
-            try tour.waitFor(labels: ["Kaydet"])
+            try tour.waitFor(ids: ["field.goal.amount"])
+            try tour.waitFor(labels: ["Hedefe tamamla"])
             tour.shot("12-hedef-miktar-sheet")
-            try tour.tap(labels: ["Vazgeç", "Kapat"])
         }
     }
 
@@ -554,6 +555,10 @@ final class ScreenTourUITests: XCTestCase {
                 tour.optional(prefix + "-gorev") {
                     try tour.tap(ids: ["quickEntry.mode.task"], labels: ["Görev"])
                     tour.shot(prefix + "-gorev")
+                    // Task mode with a recognized name: on iPhone the date and the name chip share
+                    // the capsule's top row, clear of the goal cards above.
+                    tour.app.typeText("Deniz")
+                    tour.shot(prefix + "-gorev-ad", settle: 1.2)
                 }
             }
             tour.relaunch()

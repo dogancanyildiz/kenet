@@ -1340,7 +1340,7 @@ stateDiagram-v2
 | Öğe | Davranış |
 |---|---|
 | İndeks eylemleri | İndeksi yeniden üret. Arama geçmişini temizle. Her eylem kartta ayrı satırdır; aralarında ince çizgi durur. |
-| İndeks sayıları | Dosya, gün, kişi, konum, hedef, not, olay, görev, varlık, bağlantı, çözülmemiş, sistemin reddettiği iCloud indirme istekleri. Son güncelleme. Sayılar tabulardır. |
+| İndeks sayıları | Dosya, gün, kişi, konum, hedef, not, olay, görev, varlık, bağlantı, çözülmemiş, sistemin reddettiği iCloud indirme istekleri. Son güncelleme. Sayılar tabulardır. Widget verisi ya da konum hatırlatmaları okunamadıysa hata anı tehlike renginde bir satırda görünür. Sonraki başarılı okuma satırı kaldırır. |
 | Atlanan yollar | Sembolik bağlantı ya da yinelenen yol. Ekran uzun yolu kırpar. Kullanıcı yolu kopyalar. |
 | Kopya dosyalar | Gün kopyaları ve varlık kopyaları. Her satır kopyanın yolunu ve altında özgün dosyanın yolunu gösterir. Kopya yoksa bölüm görünmez. Tanılama kopyayı birleştirmez; gün kopyası birleştirmesi varsayılan kapalıdır ve birleşemeyen kopya burada kalır. Kural: [Varlık kopyası](vault-format.md#varlık-kopyası). |
 | Çakışan sürümler | Yalnız iCloud Drive kasasında. iCloud'un çözülmemiş sürüm sakladığı dosyalar. Her satır dosyanın yolunu, "N sürüm" ve en yeni sürümün zamanını, altında sürümü kaydeden cihazların adlarını gösterir. Bölümün altında tek cümle: "Kenet sürümleri birleştirmez ve silmez." Cümle bir çözüm yolu vaat etmez. Dosya yoksa bölüm görünmez. Liste ön plana dönüşte yenilenir. Kural: [Çakışan sürümün listesi](vault-format.md#çakışan-sürümün-listesi). |

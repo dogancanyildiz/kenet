@@ -290,7 +290,7 @@ struct SearchView: View {
             {
                 parts.append(item.detail)
             }
-            if let last = store.entityUsage.first(where: { $0.file == file })?.lastDate {
+            if let last = store.entityUsageByFile[file]?.lastDate {
                 parts.append(
                     PresentationLocalization.string(
                         localized: "son görülme \(dayText(last, weekday: false))", locale: locale))

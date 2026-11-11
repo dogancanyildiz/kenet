@@ -56,11 +56,13 @@ struct IdleRefreshTests {
 
         try Data("- [ ] Grown task\n".utf8).write(to: root.appendingPathComponent("notes/seed.md"))
         await store.refresh()
-        await waitUntil { center.additions.count > additionsAfterPlan && !service.isPlanning }
+        // The publish replans once: each pass ends with one removal. An undated task leaves the plan
+        // as it was, so nothing is added again.
+        await waitUntil { center.removals.count > removalsAfterPlan && !service.isPlanning }
 
         #expect(store.lastUpdated != afterStart)
         #expect(publishes == publishesAfterAttach + 1)
-        #expect(center.additions.count > additionsAfterPlan)
+        #expect(center.additions.count == additionsAfterPlan)
         #expect(center.removals.count == removalsAfterPlan + 1)
         #expect(store.counts.tasks == 1)
     }

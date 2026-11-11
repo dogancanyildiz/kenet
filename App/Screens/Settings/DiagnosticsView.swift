@@ -76,6 +76,14 @@ struct DiagnosticsView: View {
                             .frame(minHeight: InkButtonChrome.minimumHeight)
                             .padding(.horizontal, InkSpacing.cardPadding)
                         }
+                        if let date = store.backgroundReadFailures[.widget] {
+                            InkCardDivider()
+                            failureRow("Widget verisi okunamadı", date)
+                        }
+                        if let date = store.backgroundReadFailures[.geofence] {
+                            InkCardDivider()
+                            failureRow("Konum hatırlatmaları okunamadı", date)
+                        }
                     }
                 }
                 .inkListRow()
@@ -202,6 +210,17 @@ struct DiagnosticsView: View {
             SearchModel.clearStoredHistory(for: store.vaultURL)
         }
         .disabled(store.vaultURL == nil)
+    }
+
+    /// A background read that failed since its last success, with the moment it failed.
+    private func failureRow(_ label: LocalizedStringKey, _ date: Date) -> some View {
+        LabeledContent(label) {
+            Text(date, format: .dateTime)
+                .font(.ink.value)
+                .foregroundStyle(Color.ink.danger)
+        }
+        .frame(minHeight: InkButtonChrome.minimumHeight)
+        .padding(.horizontal, InkSpacing.cardPadding)
     }
 
     private func countRow(_ label: LocalizedStringKey, _ value: Int) -> some View {

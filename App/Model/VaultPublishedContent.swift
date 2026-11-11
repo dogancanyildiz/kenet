@@ -1,4 +1,5 @@
 import Foundation
+import Synchronization
 import VaultFormat
 import VaultIndex
 
@@ -7,23 +8,17 @@ struct VaultPublishedContent: Sendable {
     let content: VaultReadModel
     let counts: IndexCounts
 
+    typealias BuildProbe =
+        @Sendable (_ kind: String, _ body: () throws -> VaultPublishedContent) throws -> VaultPublishedContent
+
     /// Test seam: wraps read-model construction. The probe must run `body` exactly once and return
     /// its result. `kind` is `"full"` or `"incremental"` so suites can ignore unrelated builds.
-    nonisolated(unsafe) static var buildProbe:
-        (@Sendable (_ kind: String, _ body: () throws -> VaultPublishedContent) throws -> VaultPublishedContent)?
-
-    static func from(snapshot: IndexSnapshot, today: CalendarDate = LocalDay.today()) -> VaultPublishedContent {
-        let build = { () throws -> VaultPublishedContent in
-            let content = VaultReadModel(snapshot: snapshot, today: today)
-            return VaultPublishedContent(content: content, counts: content.counts)
-        }
-        if let buildProbe {
-            do { return try buildProbe("full", build) } catch {
-                return (try? build()) ?? VaultPublishedContent(content: .empty, counts: IndexCounts())
-            }
-        }
-        return (try? build()) ?? VaultPublishedContent(content: .empty, counts: IndexCounts())
+    /// Builds run in detached tasks, which a task-local value does not reach; a lock guards it instead.
+    static var buildProbe: BuildProbe? {
+        get { probe.withLock { $0 } }
+        set { probe.withLock { $0 = newValue } }
     }
+    private static let probe = Mutex<BuildProbe?>(nil)
 
     static func load(from index: VaultIndex, today: CalendarDate = LocalDay.today()) throws -> VaultPublishedContent {
         try runThrowingBuild(kind: "full") {
@@ -69,8 +64,8 @@ struct VaultPublishedContent: Sendable {
     private static func runThrowingBuild(
         kind: String, _ body: () throws -> VaultPublishedContent
     ) throws -> VaultPublishedContent {
-        if let buildProbe {
-            return try buildProbe(kind, body)
+        if let probe = buildProbe {
+            return try probe(kind, body)
         }
         return try body()
     }

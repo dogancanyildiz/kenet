@@ -5,10 +5,10 @@
 **Kapsam:**
 
 - Ürün tanımı, ürün vaatleri, ilkeler ve kullanıcı günü akışı
-- Özellik ağacı ve her modülün bugünkü durumu
+- Özellik ağacı ve modüllerin aşamaları
 - Konumlanma, kapsam dışı işler, dağıtım ve riskler
 
-**NOT:** Durum bilgisi 2026-10-12 tarihli `dev` dalını ve [yol haritasını](roadmap.md) izler.
+Modüllerin durumunu [yol haritası](roadmap.md) izler; bu belge durum tutmaz.
 
 ## Ürün tanımı
 
@@ -100,12 +100,12 @@ Uygulama satırı önce gün dosyasına yazar, sonra indeksi günceller. Siri ve
 
 ## Yerini alacağı uygulamalar
 
-| Şu an | Ne için kullanılıyor | Karşılığı | Aşama | Durum |
-|---|---|---|---|---|
-| Alışkanlık uygulaması | Zincir widget'ı | Hedefler ve ana ekran widget'ı | 3, 11 | Hazır. iOS ana ekran zincir widget'ı Aşama 11'de geldi. |
-| Lockday | Kilit ekranında takvim etkinlikleri | Kilit ekranı widget'ı | 11 | Yok. Aşama 11'in sonraki dalgasıdır. |
-| Notion | Kanban, zaman çizelgesi | Görevler'de Kanban ve zaman çizelgesi | 5 | Hazır. |
-| Obsidian | Notlar | Aynı formatta kasa; Obsidian Mac'te yedek editör olarak kalabilir | - | Kasa uyumlu. Uygulama var olan kasayı yerinde açar. |
+| Şu an | Ne için kullanılıyor | Karşılığı | Aşama |
+|---|---|---|---|
+| Alışkanlık uygulaması | Zincir widget'ı | Hedefler ve ana ekran widget'ı | 3, 11 |
+| Lockday | Kilit ekranında takvim etkinlikleri | Kilit ekranı widget'ı | 11 |
+| Notion | Kanban, zaman çizelgesi | Görevler'de Kanban ve zaman çizelgesi | 5 |
+| Obsidian | Notlar | Aynı formatta kasa; uygulama var olan kasayı yerinde açar. Obsidian Mac'te yedek editör olarak kalabilir | - |
 
 Widget maddeleri Aşama 3'ten Aşama 11'e geçti. Gerçek kullanım ölçütü iki uygulamanın telefondan silinmesidir: alışkanlık uygulaması ve Lockday.
 
@@ -158,21 +158,19 @@ mindmap
       Paylaşım uzantısı
 ```
 
-| Modül | İçerik | Aşama | Durum |
-|---|---|---|---|
-| Günlük | Saat damgalı kısa olaylar ve aynı güne ait serbest uzun yazı; günler arasında gezinme, tam metin arama, Mac hızlı giriş penceresi | 1 | Hazır |
-| Kişiler ve konumlar | Düzenlenebilir şablonlu varlık sayfaları, serbest ek alanlar, varlığın geçtiği her şeyin zaman akışı, varlık adını değiştirme | 1 | Hazır |
-| Görevler | Bugüne ya da ileri tarihe atanan, kişi ve konumlara bağlanabilen görevler; doğal dille tarih; cihaz takvimini okuma ve takvime etkinlik ekleme | 2 | Hazır |
-| Hedefler | Günlük, haftalık ve yıllık hedefler; zincir ve ilerleme takibi. Alışkanlık hedefin günlük biçimidir. | 3 | Hazır |
-| Otomasyon | Görev ve hedef bildirimleri, akşam günlük hatırlatması, GPS konum önerisi, konuma girince hedef işaretleme, Siri ve Kısayollar | 4 | Hazır |
-| Proje görünümleri | Kanban, zaman çizelgesi, proje sayfaları, tekrarlayan görevler, öncelik | 5 | Hazır |
-| Özetler | Haftalık ve aylık örüntüler, sayılara dayalı; kişi sayfasında son görüşme özeti; graph ve harita | 6 | Hazır. Yapay zekalı yazılı geri bildirim "Sonraki fikirler"dedir ve karar açıktır. |
-| Kasa ve güvenlik | İlk kullanım, var olan Obsidian kasasını yerinde açma, uygulama kilidi, özel varlık tipleri | 7 | Hazır |
-| Bağlam ve geri dönüş | Bu gün geçmişte, takvimden olay taslağı, bağlanmamış anmalar, önemli tarihler, görüşme ritmi, zincir affı, suçlamasız taşıma, günü kapat, haftalık inceleme, rehberden kişi içe aktarma, bu güne bağlananlar | 10 | Kısmen. Hızlı girişte tanınan alanların kutu içi vurgusu kullanıcı kararını bekler; çipler ve geri alma hazırdır. |
-| Eşitleme | iCloud kasası, dosya koordinasyonu, gün kopyası birleştirme, eşitleme durumu göstergesi | 11 | Kısmen. Kasa iCloud kapsayıcısında durabilir; yerel kasa iCloud'a doğrulanmış kopyayla taşınır. Koordinasyon ve Core'daki birleştirme hazırdır. İndirme isteği, birleştirmenin bağlanması ve eşitleme göstergesi açıktır. |
-| Widget'lar ve uzantılar | Zincir, günün görevleri, takvim etkinlikleri, hızlı giriş; kilit ekranı, Denetim Merkezi, Mac widget'ları, paylaşım uzantısı | 11 | Kısmen. iOS ana ekran zincir widget'ı ve iOS paylaşım uzantısı hazırdır. Kilit ekranı, hızlı giriş, Denetim Merkezi ve Mac widget'ları sonraki dalgadır. |
-
-"Hazır", yol haritasındaki `[x]` ile aynı anlamdadır: özellik kodda var, testlerden ve CI'dan geçti. Gerçek kullanım ölçütleri ayrıdır ve [yol haritası](roadmap.md) onları izler.
+| Modül | İçerik | Aşama |
+|---|---|---|
+| Günlük | Saat damgalı kısa olaylar ve aynı güne ait serbest uzun yazı; günler arasında gezinme, tam metin arama, Mac hızlı giriş penceresi | 1 |
+| Kişiler ve konumlar | Düzenlenebilir şablonlu varlık sayfaları, serbest ek alanlar, varlığın geçtiği her şeyin zaman akışı, varlık adını değiştirme | 1 |
+| Görevler | Bugüne ya da ileri tarihe atanan, kişi ve konumlara bağlanabilen görevler; doğal dille tarih; cihaz takvimini okuma ve takvime etkinlik ekleme | 2, 11 |
+| Hedefler | Günlük, haftalık ve yıllık hedefler; zincir ve ilerleme takibi. Alışkanlık hedefin günlük biçimidir. | 3 |
+| Otomasyon | Görev ve hedef bildirimleri, akşam günlük hatırlatması, GPS konum önerisi, konuma girince hedef işaretleme, Siri ve Kısayollar | 4 |
+| Proje görünümleri | Kanban, zaman çizelgesi, proje sayfaları, tekrarlayan görevler, öncelik | 5 |
+| Özetler | Haftalık ve aylık örüntüler, sayılara dayalı; kişi sayfasında son görüşme özeti; graph ve harita | 6 |
+| Kasa ve güvenlik | İlk kullanım, var olan Obsidian kasasını yerinde açma, uygulama kilidi, özel varlık tipleri | 7 |
+| Bağlam ve geri dönüş | Bu gün geçmişte, takvimden olay taslağı, bağlanmamış anmalar, önemli tarihler, görüşme ritmi, zincir affı, suçlamasız taşıma, günü kapat, haftalık inceleme, rehberden kişi içe aktarma, bu güne bağlananlar | 10 |
+| Eşitleme | iCloud kasası, dosya koordinasyonu, gün kopyası birleştirme, eşitleme durumu göstergesi | 11 |
+| Widget'lar ve uzantılar | Zincir, günün görevleri, takvim etkinlikleri, hızlı giriş; kilit ekranı, Denetim Merkezi, Mac widget'ları, paylaşım uzantısı | 11 |
 
 ## Ayırt eden bağlam
 
@@ -198,24 +196,24 @@ Ekim 2026 sektör taraması benzer ürünlerin o günkü durumunu karşılaştı
 
 ### Geride kalınan alanlar
 
-| Alan | Bugünkü durum |
+| Alan | Yol haritasındaki yer |
 |---|---|
-| Fotoğraf | "Sonraki fikirler"de. |
-| Bu gün geçmişte | Hazır, Aşama 10. |
-| Widget ve kilit ekranı girişleri | Aşama 11. Ana ekran zincir widget'ı hazır; kilit ekranı ve hızlı giriş girişleri sonraki dalgadır. |
-| Paylaşım uzantısı | Hazır, iOS, Aşama 11. |
-| Sesle giriş | "Sonraki fikirler"de. |
-| Cihazlar arası eşitleme | Aşama 11, kısmen hazır. |
-| Başka günlük uygulamalarından içe aktarma | "Sonraki fikirler"de: Day One ve Apple Journal. |
-| Görsel kimlik | Aşama 9: Mürekkep tasarım dili ve "Geçme" uygulama simgesi seçildi. Gerçek cihazda gözle doğrulama açıktır. |
+| Fotoğraf | "Sonraki fikirler" |
+| Bu gün geçmişte | Aşama 10 |
+| Widget ve kilit ekranı girişleri | Aşama 11 |
+| Paylaşım uzantısı | Aşama 11 |
+| Sesle giriş | "Sonraki fikirler" |
+| Cihazlar arası eşitleme | Aşama 11 |
+| Başka günlük uygulamalarından içe aktarma | "Sonraki fikirler": Day One ve Apple Journal |
+| Görsel kimlik | Aşama 9 ve 17: Şafak tasarım dili, "Geçme" uygulama simgesi |
 
-Tarama, sekiz alanın hepsini o gün eksik buldu. Tablo her alanın 2026-10-12 durumunu gösterir.
+Tarama sekiz alanın hepsini Ekim 2026'da eksik buldu.
 
 ### Kaçınılacak davranışlar
 
 | Davranış | İlgili kural ya da özellik |
 |---|---|
-| Veriyi ya da var olan özelliği sonradan kilitlemek | Veri kullanıcınındır vaadi. Yazılı "veri kilidi yok" taahhüdü Aşama 12'de açıktır. |
+| Veriyi ya da var olan özelliği sonradan kilitlemek | Veri kullanıcınındır vaadi. Yazılı "veri kilidi yok" taahhüdü Aşama 12'dedir. |
 | Zorunlu hesap ve sunucu denetimi | Hesap sistemi kapsam dışıdır. |
 | Suçlayan zincirler | Zincir affı ve suçlamasız taşıma, Aşama 10. |
 | Sormadan kişi oluşturmak | İlke 6. |
@@ -246,7 +244,7 @@ Tarama, sekiz alanın hepsini o gün eksik buldu. Tablo her alanın 2026-10-12 d
 |---|---|
 | Sıra | Önce yalnız kişisel kullanım, sonra mağaza yayını. |
 | Test | İlk sürüm `v0.9.0` 2026-10-07'de `main`'e çıktı. TestFlight'ta dahili test sürer; TestFlight yapıları `dev`'den gelir. |
-| Ad ve kimlik | Ad Kenet, bundle kimliği `com.dogancanyildiz.kenet`. Karar günlüğü, 2026-10-07. |
+| Ad ve kimlik | Ad Kenet. Kalıcı kimlikler [ajan kurallarındaki](../AGENTS.md) proje özetindedir. |
 | Cihaz | iOS hedefi iPhone ve iPad içindir. Karar günlüğü, 2026-10-16. |
 | Repo | Herkese açık. |
 | Lisans | Tüm hakları saklıdır. Karar günlüğü, 2026-10-07. |

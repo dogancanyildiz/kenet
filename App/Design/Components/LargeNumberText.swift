@@ -3,20 +3,20 @@ import SwiftUI
 /// Large tabular number at the design target (48 pt) that scales with Dynamic Type.
 struct LargeNumberText: View {
     private let text: Text
-    var weight: Font.Weight = .light
+    var weight: Font.Weight = .bold
     @ScaledMetric(relativeTo: .largeTitle) private var pointSize = InkSize.largeNumber
 
-    init(_ value: some StringProtocol, weight: Font.Weight = .light) {
+    init(_ value: some StringProtocol, weight: Font.Weight = .bold) {
         self.text = Text(verbatim: String(value))
         self.weight = weight
     }
 
-    init(verbatim value: String, weight: Font.Weight = .light) {
+    init(verbatim value: String, weight: Font.Weight = .bold) {
         self.text = Text(verbatim: value)
         self.weight = weight
     }
 
-    init(_ key: LocalizedStringKey, weight: Font.Weight = .light) {
+    init(_ key: LocalizedStringKey, weight: Font.Weight = .bold) {
         self.text = Text(key)
         self.weight = weight
     }

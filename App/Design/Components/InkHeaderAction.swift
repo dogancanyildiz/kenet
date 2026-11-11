@@ -111,6 +111,7 @@ struct InkHeaderMenu<Content: View>: View {
                         for: InkHeaderActionChrome.token(
                             role: role, isActive: isActive, isEnabled: isEnabled))
                 )
+                .inkHeaderIconChip()
                 .tapTarget()
         }
         .menuStyle(.button)

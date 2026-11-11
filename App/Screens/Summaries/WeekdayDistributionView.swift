@@ -13,7 +13,7 @@ struct WeekdayDistributionView: View {
     @Environment(\.displayScale) private var displayScale
     @ScaledMetric(relativeTo: .footnote) private var markSize: CGFloat = 6
     @ScaledMetric(relativeTo: .footnote) private var ratioBarHeight: CGFloat = 10
-    @ScaledMetric(relativeTo: .footnote) private var dayColumnWidth: CGFloat = 78
+    @ScaledMetric(relativeTo: .footnote) private var dayColumnWidth: CGFloat = 36
     @ScaledMetric(relativeTo: .footnote) private var countColumnWidth: CGFloat = 42
 
     private var resolvedLocale: Locale { PresentationLocalization.resolvedLocale(locale) }
@@ -25,11 +25,16 @@ struct WeekdayDistributionView: View {
     var body: some View {
         if distribution.entries.contains(where: { $0.totalDays > 0 }) {
             VStack(alignment: .leading, spacing: 12) {
-                SectionHeader(title: String(localized: "Haftanın günleri", bundle: bundle, locale: resolvedLocale))
+                SectionHeader(
+                    title: String(localized: "Haftanın günleri", bundle: bundle, locale: resolvedLocale),
+                    counter: String(localized: "yazılan / gün", bundle: bundle, locale: resolvedLocale))
                 if dynamicTypeSize.isAccessibilitySize {
                     accessibilityRows
                 } else {
                     regularRows
+                }
+                if let leading = distribution.leadingWeekday {
+                    leadingNote(leading)
                 }
             }
         }
@@ -42,15 +47,15 @@ struct WeekdayDistributionView: View {
                 HStack(alignment: .center, spacing: 8) {
                     if isLeading {
                         Circle()
-                            .fill(Color.ink.text)
+                            .fill(Color.ink.accent)
                             .frame(width: markSize, height: markSize)
                     } else {
                         Color.clear
                             .frame(width: markSize, height: markSize)
                     }
-                    Text(verbatim: Self.weekdayName(entry.weekday, locale: resolvedLocale))
+                    Text(verbatim: Self.weekdayName(entry.weekday, style: .abbreviated, locale: resolvedLocale))
                         .font(isLeading ? .ink.meta.weight(.semibold) : .ink.meta)
-                        .foregroundStyle(Color.ink.text)
+                        .foregroundStyle(isLeading ? Color.ink.text : Color.ink.secondaryText)
                         .lineLimit(1)
                         .minimumScaleFactor(0.8)
                         .frame(width: dayColumnWidth, alignment: .leading)
@@ -97,6 +102,20 @@ struct WeekdayDistributionView: View {
         }
     }
 
+    /// "● En düzenli gün: Cuma" under the rows.
+    private func leadingNote(_ weekday: Int) -> some View {
+        let name = Self.weekdayName(weekday, locale: resolvedLocale)
+        return HStack(spacing: 6) {
+            Circle()
+                .fill(Color.ink.accent)
+                .frame(width: markSize, height: markSize)
+                .accessibilityHidden(true)
+            Text(verbatim: String(localized: "En düzenli gün: \(name)", bundle: bundle, locale: resolvedLocale))
+                .font(.caption)
+                .foregroundStyle(Color.ink.secondaryText)
+        }
+    }
+
     private func ratioBar(entry: WeekdayDistribution.Entry, height: CGFloat) -> some View {
         GeometryReader { geo in
             let shape = RoundedRectangle(cornerRadius: 3, style: .continuous)
@@ -125,11 +144,13 @@ struct WeekdayDistributionView: View {
 
     // MARK: - Presentation & Localization
 
-    static func weekdayName(_ weekday: Int, locale: Locale) -> String {
+    static func weekdayName(
+        _ weekday: Int, style: Date.FormatStyle.Symbol.Weekday = .wide, locale: Locale
+    ) -> String {
         let resolved = PresentationLocalization.resolvedLocale(locale)
         guard let date = referenceMonday.addingDays(weekday) else { return "" }
         return LocalDay.instant(for: date).formatted(
-            Date.FormatStyle(locale: resolved).weekday(.wide))
+            Date.FormatStyle(locale: resolved).weekday(style))
     }
 
     static func fractionText(_ entry: WeekdayDistribution.Entry, locale: Locale) -> String {

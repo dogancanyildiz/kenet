@@ -37,7 +37,7 @@ struct PhoneSettingsView: View {
                     .inkListRow()
             }
             NavigationLink(value: SettingsSection.vault) {
-                InkCard {
+                VaultHubCard {
                     HStack(spacing: InkSpacing.row) {
                         RoundedRectangle(cornerRadius: InkCorner.sm, style: .continuous)
                             .fill(Color.ink.accentSoft)
@@ -103,12 +103,22 @@ struct PhoneSettingsView: View {
                                             .foregroundStyle(Color.ink.accent)
                                     }
                                     .accessibilityHidden(true)
-                                Text(section.title)
-                                    .font(.ink.content)
-                                    .foregroundStyle(Color.ink.text)
-                                    // On the title text the audit reads: NavigationLink cells drop
-                                    // identifiers on the link itself (settings a11y / AX3).
-                                    .accessibilityIdentifier("settings.section.\(section.rawValue)")
+                                VStack(alignment: .leading, spacing: 1) {
+                                    Text(section.title)
+                                        .font(.subheadline)
+                                        .foregroundStyle(Color.ink.text)
+                                        // On the title text the audit reads: NavigationLink cells
+                                        // drop identifiers on the link itself (settings a11y / AX3).
+                                        .accessibilityIdentifier("settings.section.\(section.rawValue)")
+                                    // VoiceOver reads the summary as the hint: in the label,
+                                    // "Eylem düğmesi" / "Action button" repeats the button trait.
+                                    Text(section.summary)
+                                        .font(.caption)
+                                        .foregroundStyle(Color.ink.secondaryText)
+                                        .accessibilityHidden(true)
+                                }
+                                .padding(.vertical, 6)
+                                .accessibilityHint(Text(section.summary))
                                 Spacer(minLength: 8)
                                 Image(systemName: "chevron.right")
                                     .font(.ink.weekday)
@@ -191,5 +201,32 @@ enum VaultCardIndexState: Equatable {
         case .failed: "exclamationmark.triangle"
         case .vaultUnavailable: "folder.badge.questionmark"
         }
+    }
+}
+
+/// The hub's vault card: the section card's padding, edge and corner on a surface washed with the
+/// accent from the leading top corner (Şafak çizimi: the card sits in the page's glow).
+private struct VaultHubCard<Content: View>: View {
+    @ViewBuilder var content: () -> Content
+    @ScaledMetric(relativeTo: .body) private var padding = InkSpacing.cardPadding
+    @Environment(\.displayScale) private var displayScale
+
+    var body: some View {
+        let shape = RoundedRectangle(cornerRadius: InkCorner.card, style: .continuous)
+        content()
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(padding)
+            .background {
+                shape.fill(Color.ink.surface)
+                    .overlay {
+                        shape.fill(
+                            LinearGradient(
+                                colors: [Color.ink.accentSoft, Color.ink.accentSoft.opacity(0)],
+                                startPoint: .topLeading, endPoint: .bottomTrailing))
+                    }
+            }
+            .overlay {
+                shape.stroke(Color.ink.rule, lineWidth: InkStroke.hairline(scale: displayScale))
+            }
     }
 }

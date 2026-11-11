@@ -79,16 +79,13 @@ struct InkTaskRow: View {
         }
     }
 
+    /// "14 Eyl'den devretti": amber semibold text, no arrow (drawing: Bugün).
     private func carriedLabel(_ text: String) -> some View {
-        Label {
-            Text(verbatim: text)
-        } icon: {
-            Image(systemName: "arrow.forward.circle")
-        }
-        .font(.ink.meta)
-        .foregroundStyle(.ink.warning)
-        .accessibilityLabel(Text("Devreden"))
-        .accessibilityValue(Text(verbatim: text))
+        Text(verbatim: text)
+            .font(.ink.meta.weight(.semibold))
+            .foregroundStyle(.ink.warning)
+            .accessibilityLabel(Text("Devreden"))
+            .accessibilityValue(Text(verbatim: text))
     }
 
     private func overdueLabel(_ date: Date) -> some View {

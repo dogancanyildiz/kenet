@@ -19,7 +19,7 @@ struct EntityMentionChartsView: View {
 
 struct EntityMonthlyBarChart: View {
     let data: EntityMentionsData
-    var barHeight: CGFloat = 68
+    var barHeight: CGFloat = 44
     var compact = false
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
@@ -41,46 +41,49 @@ struct EntityMonthlyBarChart: View {
         .accessibilityLabel(Text(verbatim: data.spokenSummary))
     }
 
+    /// Şafak mini bar: 12 thin bars, an empty month a short stub in `line`, the current month
+    /// outlined. `tint` is accent in lists and the place colour on map cards.
     private var compactColumns: some View {
         HStack(alignment: .bottom, spacing: 2) {
             ForEach(data.monthly) { item in
-                GeometryReader { geo in
-                    let height = item.count > 0 ? max(3, geo.size.height * CGFloat(item.count) / CGFloat(maxCount)) : 0
-                    VStack {
-                        Spacer(minLength: 0)
-                        if item.isCurrentMonth {
-                            Capsule().strokeBorder(Color.ink.accent, lineWidth: InkStroke.control)
-                                .frame(height: height)
-                        } else {
-                            Capsule().fill(Color.ink.accent).frame(height: height)
-                        }
+                let height = compactBarHeight * CGFloat(item.count) / CGFloat(maxCount)
+                Group {
+                    if item.count == 0 {
+                        RoundedRectangle(cornerRadius: 1)
+                            .fill(Color.ink.line)
+                            .frame(height: 2)
+                    } else if item.isCurrentMonth {
+                        UnevenRoundedRectangle(topLeadingRadius: 1.5, topTrailingRadius: 1.5, style: .continuous)
+                            .strokeBorder(tint, lineWidth: 1)
+                            .frame(height: max(4, height))
+                    } else {
+                        UnevenRoundedRectangle(topLeadingRadius: 1.5, topTrailingRadius: 1.5, style: .continuous)
+                            .fill(tint)
+                            .frame(height: max(3, height))
                     }
                 }
-                .frame(maxWidth: .infinity)
+                .frame(width: compactBarWidth)
             }
         }
-        .frame(height: 30)
-        .frame(width: 96)
+        .frame(height: compactBarHeight, alignment: .bottom)
+        .fixedSize()
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text(verbatim: data.spokenSummary))
     }
+
+    var tint: Color = .ink.accent
+    @ScaledMetric(relativeTo: .caption) private var compactBarHeight: CGFloat = 22
+    @ScaledMetric(relativeTo: .caption) private var compactBarWidth: CGFloat = 3
 
     private var columns: some View {
         HStack(alignment: .bottom, spacing: 3) {
             ForEach(data.monthly) { item in
                 VStack(spacing: 4) {
-                    Text(verbatim: item.count > 0 ? "\(item.count)" : " ")
-                        .font(.ink.meta)
-                        .monospacedDigit()
-                        .foregroundStyle(Color.ink.secondaryText)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.6)
-
                     GeometryReader { geo in
                         ZStack(alignment: .bottom) {
                             if item.count > 0 {
                                 barShape(item: item, height: barHeight(for: item.count, in: geo.size.height))
-                                    .frame(width: max(4, geo.size.width * 0.72))
+                                    .frame(width: geo.size.width)
                             }
                         }
                         .frame(width: geo.size.width, height: geo.size.height, alignment: .bottom)
@@ -163,19 +166,31 @@ struct EntityMonthlyBarChart: View {
 
 struct Entity90DayStrip: View {
     let data: EntityMentionsData
+    /// A sentence appended to the frequency line ("Günlükteki geçişlere dayanır.").
+    var footnote: String? = nil
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             stripRows
-                .accessibilityElement(children: .ignore)
-                .accessibilityLabel(Text(verbatim: data.recentIntervalText))
+                .accessibilityHidden(true)
 
-            Text(verbatim: data.recentIntervalText)
+            Text(verbatim: line)
                 .font(.ink.meta)
                 .foregroundStyle(Color.ink.secondaryText)
+                // Two sentences on one line: at larger text sizes they wrap, never cut (audit).
+                .fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .accessibilityHidden(true)
         }
+        // Strip and note read as one element: the strip alone is 18 pt tall, under the audit's
+        // 44 pt hit region once the card is no longer a list of rows.
+        .frame(minHeight: InkButtonChrome.minimumHeight, alignment: .topLeading)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(verbatim: line))
+    }
+
+    private var line: String {
+        [data.recentIntervalText, footnote].compactMap { $0 }.joined(separator: ". ")
     }
 
     static func computeCellSize(availableWidth: CGFloat, columns: Int, spacing: CGFloat = 1) -> CGFloat {

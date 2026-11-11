@@ -9,10 +9,14 @@ struct InkWeekStrip: View {
     var eventCounts: [Date: Int] = [:]
     /// When set, days after this instant are drawn but not tappable (Today / past-day strip).
     var latestSelectable: Date? = nil
+    /// `.boxed`: every day is its own small card and the strip has no card around it (drawing:
+    /// timeline Day scale). `.card` (default): one card around the seven days (Today, day screen).
+    var style: InkWeekStripChrome.StripStyle = .card
 
     @Environment(\.calendar) private var calendar
     @Environment(\.locale) private var locale
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @ScaledMetric(relativeTo: .body) private var dayWidth = InkSize.weekDayWidth
     @ScaledMetric(relativeTo: .body) private var dayHeight = InkSize.weekDayHeight
 
@@ -38,13 +42,29 @@ struct InkWeekStrip: View {
                 dayRow(days, weekday: weekday, spoken: spoken)
             }
         }
+        .padding(style == .card ? InkWeekStripChrome.inset : 0)
+        .background {
+            // The strip is its own translucent card over the glow (drawing: Today, day screen).
+            if style == .card {
+                stripCard
+            }
+        }
         .accessibilityElement(children: .contain)
+    }
+
+    private var stripCard: some View {
+        RoundedRectangle(cornerRadius: InkCorner.lg, style: .continuous)
+            .fill(Color.ink.surface.opacity(reduceTransparency ? 1 : 0.72))
+            .overlay {
+                RoundedRectangle(cornerRadius: InkCorner.lg, style: .continuous)
+                    .strokeBorder(Color.ink.line, lineWidth: 0.5)
+            }
     }
 
     private func dayRow(
         _ days: [Date], weekday: DateFormatter, spoken: DateFormatter
     ) -> some View {
-        HStack(spacing: 0) {
+        HStack(spacing: style == .boxed ? InkWeekStripChrome.boxGap : 0) {
             ForEach(days, id: \.self) { day in
                 dayCell(day, weekday: weekday, spoken: spoken)
             }
@@ -91,44 +111,68 @@ struct InkWeekStrip: View {
         _ day: Date, weekday: DateFormatter, selected: Bool, isToday: Bool, written: Bool,
         enabled: Bool
     ) -> some View {
-        VStack(spacing: 4) {
+        let style = InkWeekStripChrome.CellStyle.resolve(selected: selected, isToday: isToday)
+        let hasMark = written || eventCount(on: day) > 0
+        return VStack(spacing: 4) {
             Text(verbatim: weekday.string(from: day))
                 .font(.ink.weekday)
-                .foregroundStyle(enabled ? Color.ink.secondaryText : Color.ink.tertiaryText)
-            Text(verbatim: Self.dayNumber(day, calendar: calendar))
-                .font(.ink.value)
                 .foregroundStyle(
-                    enabled
-                        ? (selected ? Color.ink.text : Color.ink.secondaryText)
-                        : Color.ink.tertiaryText
-                )
+                    enabled ? (style == .filled ? Color.ink.paper : Color.ink.secondaryText) : Color.ink.tertiaryText)
+            Text(verbatim: Self.dayNumber(day, calendar: calendar))
+                .font(.ink.value.weight(.semibold))
+                .foregroundStyle(numberColor(style: style, isToday: isToday, enabled: enabled))
                 .monospacedDigit()
-            HStack(spacing: 3) {
-                if isToday {
-                    Circle()
-                        .fill(Color.ink.accent)
-                        .frame(width: 5, height: 5)
-                }
-                if written {
-                    Circle()
-                        .fill(Color.ink.secondaryText)
-                        .frame(width: 4, height: 4)
-                }
-                if !isToday && !written {
-                    Color.clear.frame(width: 5, height: 5)
-                }
-            }
-            .frame(height: 5)
+            // One dot under every day with writing or events; today's dot is accent.
+            Circle()
+                .fill(dotColor(style: style, isToday: isToday))
+                .frame(width: 4, height: 4)
+                .opacity(hasMark || isToday ? 1 : 0)
+                .frame(height: 5)
         }
         .frame(minWidth: dayWidth, minHeight: dayHeight)
         .background {
-            if selected {
-                RoundedRectangle(cornerRadius: InkCorner.md, style: .continuous)
-                    .fill(Color.ink.well)
+            switch style {
+            case .filled:
+                RoundedRectangle(cornerRadius: InkCorner.sm, style: .continuous)
+                    .fill(Color.ink.text)
+            case .framed:
+                RoundedRectangle(cornerRadius: InkCorner.sm, style: .continuous)
+                    .fill(Color.ink.paper)
+                    .overlay {
+                        RoundedRectangle(cornerRadius: InkCorner.sm, style: .continuous)
+                            .strokeBorder(Color.ink.line, lineWidth: 1)
+                    }
+            case .plain:
+                if self.style == .boxed {
+                    RoundedRectangle(cornerRadius: InkCorner.sm, style: .continuous)
+                        .fill(Color.ink.surface)
+                        .overlay {
+                            RoundedRectangle(cornerRadius: InkCorner.sm, style: .continuous)
+                                .strokeBorder(Color.ink.rule, lineWidth: 0.5)
+                        }
+                }
             }
         }
         .frame(maxWidth: .infinity)
         .contentShape(Rectangle())
+    }
+
+    private func eventCount(on day: Date) -> Int {
+        eventCounts.first { calendar.isDate($0.key, inSameDayAs: day) }?.value ?? 0
+    }
+
+    private func numberColor(style: InkWeekStripChrome.CellStyle, isToday: Bool, enabled: Bool) -> Color {
+        guard enabled else { return Color.ink.tertiaryText }
+        switch style {
+        case .filled: return Color.ink.paper
+        case .framed: return Color.ink.text
+        case .plain: return isToday ? Color.ink.accent : Color.ink.text
+        }
+    }
+
+    private func dotColor(style: InkWeekStripChrome.CellStyle, isToday: Bool) -> Color {
+        if style == .filled { return Color.ink.paper }
+        return isToday ? Color.ink.accent : Color.ink.secondaryText
     }
 
     /// Seven dates for the week containing `date`, ordered from the calendar's first weekday.
@@ -184,5 +228,34 @@ struct InkWeekStrip: View {
         formatter.locale = locale
         formatter.setLocalizedDateFormatFromTemplate(template)
         return formatter
+    }
+}
+
+/// Week strip drawing rules (unit-tested).
+enum InkWeekStripChrome {
+    /// Gap between the strip card's edge and the day cells.
+    static let inset: CGFloat = 4
+    /// Gap between day boxes in the boxed strip.
+    static let boxGap: CGFloat = 6
+
+    enum StripStyle: Equatable, Sendable {
+        /// One card around the seven days.
+        case card
+        /// Every day its own small card.
+        case boxed
+    }
+
+    enum CellStyle: Equatable, Sendable {
+        /// Selected past or future day: text-colored cell, paper text (day screen).
+        case filled
+        /// Selected today: paper cell with a line (Today).
+        case framed
+        /// Not selected.
+        case plain
+
+        static func resolve(selected: Bool, isToday: Bool) -> Self {
+            guard selected else { return .plain }
+            return isToday ? .framed : .filled
+        }
     }
 }

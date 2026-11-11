@@ -1,6 +1,7 @@
 import SwiftUI
 
-/// Each phone tab retains its own navigation stack. The selection, the stacks and the Settings
+/// Each phone tab retains its own navigation stack. Each stack names its tab for the back item
+/// of the pages pushed in it (``InkPageHeader``). The selection, the stacks and the Settings
 /// sheet live in the bridge (`ShellNavigationState`), which outlives the shell: the iPhone Duo
 /// builds this shell anew each time it closes.
 struct PhoneNavigation: View {
@@ -22,10 +23,12 @@ struct PhoneNavigation: View {
                     TodayView(store: store)
                         .environment(\.openSettings, { navigation.showingSettings = true })
                 }
+                .environment(\.inkBackTitle, Text("Bugün"))
             }
             .accessibilityIdentifier("tab.today")
             Tab("Günlük", systemImage: "book.closed", value: PhoneTab.days) {
                 NavigationStack { DaysView(store: store) }
+                    .environment(\.inkBackTitle, Text("Günlük"))
             }
             .accessibilityIdentifier("tab.days")
             Tab("Görevler", systemImage: "checklist", value: PhoneTab.tasks) {
@@ -35,6 +38,7 @@ struct PhoneNavigation: View {
                         notificationRequest: notifications.navigationRequest?.destination == .tasks
                             ? notifications.navigationRequest?.id : nil)
                 }
+                .environment(\.inkBackTitle, Text("Görevler"))
             }
             .accessibilityIdentifier("tab.tasks")
             Tab("Kişiler ve Konumlar", systemImage: "person.2", value: PhoneTab.entities) {
@@ -42,10 +46,12 @@ struct PhoneNavigation: View {
                     EntitiesView(store: store, initialUnseenExpanded: navigation.unseenReveal != nil)
                         .id(navigation.unseenReveal)
                 }
+                .environment(\.inkBackTitle, Text("Kişiler ve Konumlar"))
             }
             .accessibilityIdentifier("tab.entities")
             Tab("Hedefler", systemImage: "target", value: PhoneTab.goals) {
                 NavigationStack { GoalsView(store: store) }
+                    .environment(\.inkBackTitle, Text("Hedefler"))
             }
             .accessibilityIdentifier("tab.goals")
         }

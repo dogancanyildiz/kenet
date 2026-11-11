@@ -8,6 +8,7 @@ struct DaysView: View {
     @Environment(\.clockNow) private var clockNow
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.displayScale) private var displayScale
+    @Environment(\.locale) private var locale
     @Environment(ShellNavigationState.self) private var navigation: ShellNavigationState?
     @State private var selectedDay: CalendarDate?
     @State private var showsSummaries = false
@@ -42,14 +43,31 @@ struct DaysView: View {
                 ) { selectedDay = $0 }
                 .inkListRow()
             }
-            ForEach(visibleDays ?? []) { day in
-                Button {
-                    selectedDay = day.date
-                } label: {
-                    DayRow(day: day, isToday: day.date == today, showsCard: true)
+            // One card per month (Şafak çizimi: ayraçlı satırlar, sağda "›"). The month heads its
+            // card only when it is not the current one, so a row never repeats its month.
+            let lookup = LinkedTextInk.lookup(entities: store.content.entities)
+            ForEach(DayListMonth.grouped(visibleDays ?? [])) { group in
+                if group.id != DayListMonth.key(today) {
+                    SectionHeader(title: group.title(locale: locale))
+                        .inkListRow()
                 }
-                .buttonStyle(.plain)
-                .inkListRow()
+                ForEach(Array(group.days.enumerated()), id: \.element.id) { index, day in
+                    let segment = InkCardSegment.position(index, of: group.days.count)
+                    Button {
+                        selectedDay = day.date
+                    } label: {
+                        DayRow(
+                            day: day, isToday: day.date == today, showsMonth: false,
+                            showsChevron: true, entityLookup: lookup
+                        )
+                        .padding(.horizontal, InkSpacing.cardPadding)
+                        .padding(.top, segment.roundsTop ? 12 : 6)
+                        .padding(.bottom, segment.roundsBottom ? 12 : 6)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .inkListRow(cardSegment: segment)
+                }
             }
             if visibleDays?.isEmpty == true {
                 EmptyState("Henüz gün yok")
@@ -83,6 +101,8 @@ struct DaysView: View {
         .accessibilityIdentifier("screen.days")
     }
 
+    /// Özetler and Haftalık inceleme: two content-wide capsules on the leading edge (Şafak
+    /// çizimi), stacked at accessibility sizes.
     @ViewBuilder
     private var topChipsRow: some View {
         let layout =
@@ -93,26 +113,9 @@ struct DaysView: View {
             Button {
                 showsSummaries = true
             } label: {
-                HStack(spacing: 6) {
-                    Image(systemName: "chart.bar")
-                        .font(.ink.meta)
-                        .foregroundStyle(.ink.accent)
-                        .accessibilityHidden(true)
+                chipLabel(systemImage: "chart.bar") {
                     Text("Özetler")
-                        .font(.body)
-                        .foregroundStyle(.ink.text)
                 }
-                .padding(.horizontal, 14)
-                .frame(maxWidth: .infinity, minHeight: 44)
-                .background(
-                    Capsule(style: .continuous)
-                        .fill(Color.ink.surface)
-                )
-                .overlay(
-                    Capsule(style: .continuous)
-                        .strokeBorder(Color.ink.rule, lineWidth: InkStroke.hairline(scale: displayScale))
-                )
-                .contentShape(Capsule(style: .continuous))
             }
             .buttonStyle(.borderless)
             .accessibilityIdentifier("button.summaries")
@@ -120,32 +123,77 @@ struct DaysView: View {
             Button {
                 showsWeeklyReview = true
             } label: {
-                HStack(spacing: 6) {
-                    Image(systemName: "checklist")
-                        .font(.ink.meta)
-                        .foregroundStyle(.ink.accent)
-                        .accessibilityHidden(true)
+                chipLabel(systemImage: "checklist") {
                     Text("Haftalık inceleme")
-                        .font(.body)
-                        .foregroundStyle(.ink.text)
                     WeeklyReviewEntryStatus()
                 }
-                .padding(.horizontal, 14)
-                .frame(maxWidth: .infinity, minHeight: 44)
-                .background(
-                    Capsule(style: .continuous)
-                        .fill(Color.ink.surface)
-                )
-                .overlay(
-                    Capsule(style: .continuous)
-                        .strokeBorder(Color.ink.rule, lineWidth: InkStroke.hairline(scale: displayScale))
-                )
-                .contentShape(Capsule(style: .continuous))
             }
             .buttonStyle(.borderless)
             .accessibilityIdentifier("button.weeklyReview")
+            if !dynamicTypeSize.isAccessibilitySize {
+                Spacer(minLength: 0)
+            }
         }
         .padding(.vertical, 2)
+    }
+
+    private func chipLabel<Content: View>(
+        systemImage: String, @ViewBuilder content: () -> Content
+    ) -> some View {
+        HStack(spacing: 6) {
+            Image(systemName: systemImage)
+                .font(.ink.meta)
+                .foregroundStyle(.ink.accent)
+                .accessibilityHidden(true)
+            content()
+                .font(.subheadline)
+                .foregroundStyle(.ink.text)
+                // The capsule is as wide as its words: never truncated (audit "Text clipped").
+                .fixedSize(horizontal: !dynamicTypeSize.isAccessibilitySize, vertical: false)
+        }
+        .padding(.horizontal, 16)
+        .frame(minHeight: 44)
+        .background(
+            Capsule(style: .continuous)
+                .fill(Color.ink.surface)
+        )
+        .overlay(
+            Capsule(style: .continuous)
+                .strokeBorder(Color.ink.rule, lineWidth: InkStroke.hairline(scale: displayScale))
+        )
+        .contentShape(Capsule(style: .continuous))
+    }
+}
+
+/// The days of one month in the iPhone day list: one card.
+struct DayListMonth: Identifiable {
+    /// `year * 12 + month`, so groups compare and sort as months.
+    let id: Int
+    let days: [DayOverview]
+
+    static func key(_ date: CalendarDate) -> Int { date.year * 12 + date.month }
+
+    /// Consecutive days of the same month, in the list's order (newest first).
+    static func grouped(_ days: [DayOverview]) -> [DayListMonth] {
+        var result: [DayListMonth] = []
+        var current: [DayOverview] = []
+        for day in days {
+            if let last = current.last, key(last.date) != key(day.date) {
+                result.append(DayListMonth(id: key(last.date), days: current))
+                current = []
+            }
+            current.append(day)
+        }
+        if let last = current.last {
+            result.append(DayListMonth(id: key(last.date), days: current))
+        }
+        return result
+    }
+
+    func title(locale: Locale) -> String {
+        guard let first = days.first else { return "" }
+        return LocalDay.instant(for: first.date).formatted(
+            .dateTime.month(.wide).year().locale(locale))
     }
 }
 
@@ -153,7 +201,16 @@ struct DayRow: View {
     let day: DayOverview
     var isToday: Bool = false
     var showsCard: Bool = false
+    /// The Mac column runs back across months without headers, so each row names its month; the
+    /// iPhone list heads each month's card instead.
+    var showsMonth: Bool = true
+    var showsChevron: Bool = false
+    /// When set, people and places in the first event's line are drawn underlined (not tappable:
+    /// the whole row opens the day).
+    var entityLookup: [String: EntitySummary]? = nil
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.accessibilityDifferentiateWithoutColor) private var differentiateWithoutColor
+    @Environment(\.colorSchemeContrast) private var contrast
 
     var body: some View {
         Group {
@@ -163,7 +220,7 @@ struct DayRow: View {
                 }
             } else {
                 rowContent
-                    .padding(.vertical, 6)
+                    .padding(.vertical, showsChevron ? 0 : 6)
             }
         }
         .accessibilityElement(children: .ignore)
@@ -179,44 +236,72 @@ struct DayRow: View {
         layout {
             VStack(spacing: 1) {
                 Text(day.date.day, format: .number)
-                    .font(.ink.dayName)
+                    .font(showsChevron ? .title2.bold() : .ink.dayName)
                     .monospacedDigit()
                     .foregroundStyle(isToday ? .ink.accent : .ink.text)
                 Text(LocalDay.instant(for: day.date), format: .dateTime.weekday(.abbreviated))
-                    .font(.ink.meta)
+                    .font(showsChevron ? .caption : .ink.meta)
                     .foregroundStyle(.ink.secondaryText)
             }
             .frame(minWidth: dynamicTypeSize.isAccessibilitySize ? nil : 44)
 
-            VStack(alignment: .leading, spacing: 3) {
-                HStack(spacing: 4) {
-                    if isToday {
-                        Text("Bugün")
-                            .font(.ink.meta)
-                            .foregroundStyle(.ink.accent)
-                        Text(verbatim: "·")
-                            .font(.ink.meta)
-                            .foregroundStyle(.ink.secondaryText)
+            HStack(spacing: 8) {
+                VStack(alignment: .leading, spacing: 2) {
+                    metaLine
+                    if let preview = day.displayPreview {
+                        previewText(preview)
+                            .foregroundStyle(.ink.text)
+                            .lineLimit(1)
                     }
-                    // The list runs back across months: each row names its own month.
-                    Text(LocalDay.instant(for: day.date), format: .dateTime.month(.wide).year())
-                        .font(.ink.meta)
-                        .foregroundStyle(.ink.secondaryText)
-                    Text(verbatim: "·")
-                        .font(.ink.meta)
-                        .foregroundStyle(.ink.secondaryText)
-                    Text("\(day.eventCount) olay · \(day.taskCount) görev")
-                        .font(.ink.meta)
-                        .foregroundStyle(.ink.secondaryText)
                 }
-                if let preview = day.displayPreview {
-                    Text(verbatim: VaultDisplayText.line(preview))
-                        .font(.ink.contentSmall)
-                        .foregroundStyle(.ink.text)
-                        .lineLimit(1)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                if showsChevron {
+                    Image(systemName: "chevron.right")
+                        .font(.footnote.weight(.semibold))
+                        .foregroundStyle(.ink.tertiaryText)
+                        .accessibilityHidden(true)
                 }
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
         }
+    }
+
+    private var metaLine: some View {
+        HStack(spacing: 4) {
+            if isToday {
+                Text("Bugün")
+                    .foregroundStyle(showsMonth ? .ink.accent : .ink.secondaryText)
+                Text(verbatim: "·")
+            }
+            if showsMonth {
+                // The list runs back across months: each row names its own month.
+                Text(LocalDay.instant(for: day.date), format: .dateTime.month(.wide).year())
+                Text(verbatim: "·")
+            }
+            Text("\(day.eventCount) olay · \(day.taskCount) görev")
+        }
+        .font(.ink.meta)
+        .monospacedDigit()
+        .foregroundStyle(.ink.secondaryText)
+    }
+
+    private func previewText(_ preview: String) -> Text {
+        let font: Font = showsChevron ? .system(.subheadline, design: Font.ink.contentDesign) : .ink.contentSmall
+        guard let entityLookup, let spans = day.displayPreviewSpans else {
+            return Text(verbatim: VaultDisplayText.line(preview)).font(font)
+        }
+        var segments = LinkedTextInk.segments(
+            LinkedText(spans: spans.map(\.linkedSpan)), byPath: entityLookup)
+        // The last plain run drops a trailing block id the way `VaultDisplayText.line` does.
+        if let last = segments.last, last.kind == .plain {
+            segments[segments.count - 1] = InkLinkSegment(
+                id: last.id, text: VaultDisplayText.line(last.text), kind: .plain)
+        }
+        var attributed = InkLinkTextBuilder.attributed(
+            segments: segments, highContrast: contrast == .increased || differentiateWithoutColor)
+        // The whole row opens the day; a link inside it would take the tap.
+        for run in attributed.runs where run.link != nil {
+            attributed[run.range].link = nil
+        }
+        return Text(attributed).font(font)
     }
 }

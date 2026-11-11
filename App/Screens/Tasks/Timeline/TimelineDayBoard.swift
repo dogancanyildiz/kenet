@@ -37,7 +37,14 @@ struct TimelineDayBoard: View {
     var body: some View {
         let untimed = events.filter { $0.time == nil }
         VStack(alignment: .leading, spacing: InkSpacing.section) {
-            InkWeekStrip(selection: selection, writtenDays: events.isEmpty ? [] : [LocalDay.instant(for: day)])
+            // iPhone (drawing): each day in its own small box; Mac keeps the carded strip.
+            #if os(iOS)
+                InkWeekStrip(
+                    selection: selection, writtenDays: events.isEmpty ? [] : [LocalDay.instant(for: day)],
+                    style: .boxed)
+            #else
+                InkWeekStrip(selection: selection, writtenDays: events.isEmpty ? [] : [LocalDay.instant(for: day)])
+            #endif
 
             hourAxis(TimelineDayHours.range(forHours: events.compactMap(\.time).map(\.hour)))
 

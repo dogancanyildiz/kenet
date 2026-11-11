@@ -14,9 +14,15 @@ struct TasksListRow: View {
     var allowsReopening = false
     var footnote: Text? = nil
     var openDetail: () -> Void = {}
+    /// The Tasks list names a task with no project "Projesiz" on its meta line; the project
+    /// page (one project) does not.
+    var namesMissingProject = false
     let complete: () -> Void
 
     @Environment(\.shellKind) private var shellKind
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.locale) private var locale
+    @Environment(\.calendar) private var calendar
     @State private var textEditor: TaskEditorModel?
     @State private var recurrenceEditor: TaskEditorModel?
     @State private var dateEditor: TaskEditorModel?
@@ -64,6 +70,7 @@ struct TasksListRow: View {
                 action: completion.canToggleCompletion ? complete : nil,
                 accessibilityLabel: LocalizedStringKey(completion.boxAccessibilityLabelKey))
         } primary: {
+            // One line, cut at the end (the detail shows the whole text); accessibility sizes wrap.
             LinkedTextView(
                 text: row.text, store: store, isMuted: presentation.usesSecondaryText
             )
@@ -72,9 +79,12 @@ struct TasksListRow: View {
                     ? Color.ink.secondaryText
                     : Color.ink.text
             )
+            .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 1)
             .strikethrough(false)
         } secondary: {
             metaRow
+        } trailing: {
+            detailChevron
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         // Inside the section card (`inkListRow(cardSegment:)` draws it behind the row). Completed
@@ -114,22 +124,68 @@ struct TasksListRow: View {
         }
     }
 
+    /// The phone's way into the detail beside the row (the row's own touch completes it).
+    /// Mac and the split shell select the row instead and draw no chevron.
+    @ViewBuilder private var detailChevron: some View {
+        if showsDetailEntry {
+            Button(action: openDetail) {
+                Image(systemName: "chevron.right")
+                    .font(.ink.meta.weight(.semibold))
+                    .foregroundStyle(.ink.tertiaryText)
+                    .tapTarget()
+            }
+            .buttonStyle(.plain)
+            .accessibilityHidden(true)
+        }
+    }
+
+    /// "Projesiz" stands for a missing project on the Tasks list.
+    private var projectName: Text? {
+        if let project = row.project { return Text(verbatim: project) }
+        return namesMissingProject ? Text("Projesiz") : nil
+    }
+
+    /// A carried-over task's whole meta line is in the warning color:
+    /// "→ mobil · 14 Eyl'den devretti".
+    @ViewBuilder private var overdueLine: some View {
+        if let date = row.due {
+            let carried = TodayPresentation.carriedOverDate(date, today: day, locale: locale, calendar: calendar)
+            HStack(spacing: 4) {
+                Image(systemName: "arrow.right")
+                    .accessibilityHidden(true)
+                if let projectName {
+                    projectName
+                    Text(verbatim: "·").accessibilityHidden(true)
+                }
+                Text("\(carried) devretti")
+            }
+            .font(.ink.meta)
+            .foregroundStyle(.ink.warning)
+            .lineLimit(1)
+            .overdueAccessibilityValue(true)
+        }
+    }
+
     @ViewBuilder private var metaRow: some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack(spacing: 8) {
-                if let project = row.project {
-                    Text(verbatim: project)
-                        .font(.ink.meta)
-                        .foregroundStyle(.ink.secondaryText)
-                    if row.due != nil {
-                        Text(verbatim: "·")
+                if presentation.showsOverdueCue && row.due != nil {
+                    overdueLine
+                } else {
+                    if let projectName {
+                        projectName
                             .font(.ink.meta)
-                            .foregroundStyle(.ink.tertiaryText)
-                            .accessibilityHidden(true)
+                            .foregroundStyle(.ink.secondaryText)
+                        if row.due != nil {
+                            Text(verbatim: "·")
+                                .font(.ink.meta)
+                                .foregroundStyle(.ink.tertiaryText)
+                                .accessibilityHidden(true)
+                        }
                     }
-                }
-                if let date = row.due {
-                    TaskDueDateLabel(date: date, presentation: presentation, asOf: day)
+                    if let date = row.due {
+                        TaskDueDateLabel(date: date, presentation: presentation, asOf: day)
+                    }
                 }
                 if row.priority == .low {
                     TaskPriorityMark(priority: .low)

@@ -12,7 +12,8 @@ enum InkFilterFieldChrome {
 }
 
 /// In-page filter / search field: well background, `cornerSM`, control-line border (accent while
-/// focused), sans text, non-italic placeholder, and a clear button while there is text.
+/// focused), a leading magnifier, sans text, non-italic placeholder, and a clear button while
+/// there is text.
 /// It is the Search page's field as a component.
 ///
 /// Draws no horizontal page margin of its own. Submission, key presses and keyboard traits
@@ -52,6 +53,8 @@ struct InkFilterField: View {
     }
 
     private var focus: FocusState<Bool>.Binding { externalFocus ?? $internalFocus }
+    /// A search or filter field starts with a magnifier; a form field (no clear button) does not.
+    private var showsSearchIcon: Bool { showsClearButton }
     private var showsClear: Bool {
         showsClearButton && InkFilterFieldChrome.showsClear(text: text)
     }
@@ -63,7 +66,7 @@ struct InkFilterField: View {
             .foregroundStyle(.ink.text)
             .focused(focus)
             .inkAccessibilityIdentifier(identifier)
-            .padding(.leading, 12)
+            .padding(.leading, showsSearchIcon ? InkFilterFieldMetrics.iconSlot : 12)
             .padding(.trailing, showsClear ? InkFilterFieldMetrics.clearSlot : 12)
             .padding(.vertical, 10)
             .background(
@@ -77,6 +80,15 @@ struct InkFilterField: View {
                             for: InkFilterFieldChrome.borderToken(isFocused: focus.wrappedValue)),
                         lineWidth: InkStroke.control)
             )
+            .overlay(alignment: .leading) {
+                if showsSearchIcon {
+                    Image(systemName: "magnifyingglass")
+                        .font(.body)
+                        .foregroundStyle(Color.ink.secondaryText)
+                        .frame(width: InkFilterFieldMetrics.iconSlot)
+                        .accessibilityHidden(true)
+                }
+            }
             .overlay(alignment: .trailing) {
                 if showsClear {
                     Button {
@@ -110,4 +122,6 @@ struct InkFilterField: View {
 private enum InkFilterFieldMetrics {
     /// Trailing space kept free for the clear button so text never runs under it.
     static let clearSlot: CGFloat = 36
+    /// Leading space for the magnifier of a search / filter field.
+    static let iconSlot: CGFloat = 36
 }

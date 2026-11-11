@@ -78,6 +78,13 @@ extension AccessibilityAuditExemption {
             element: .catalogKey("Gün, o gün geçen her kayda bağlanır. Öteki çizgiler elle kurulan bağları gösterir."),
             reason: "graph legend caption grows (graph AX3 references); audit misses it on some runs",
             screens: ["dayGraph", "graph"]),
+        // A subpage's back item (InkBackButton) is `.body` text and grows with Dynamic Type; on the
+        // day graph it names the day ("Sunday, September 27"), and the CI runner's audit reported it
+        // once (PR #380 run 42933878685) after the title stopped being cut to one line.
+        .init(
+            type: .dynamicType, element: .labelPattern(Pattern.weekdayDate),
+            reason: "back item day title is .body text and grows with Dynamic Type",
+            screens: ["dayGraph"]),
         .init(
             type: .dynamicType, element: .catalogKey("Yaklaşan"),
             reason: "section menu value grows (tasksScreen.tasksAX3.png)"),
@@ -203,6 +210,8 @@ private enum Pattern {
     static let shortDate = #"\d{1,2} \p{L}{3}\.? \d{4}|\p{L}{3} \d{1,2}, \d{4}"#
     /// One weekday letter of the calendar header, English (S M T W F) or Turkish (P S Ç C).
     static let weekdayLetter = #"[SMTWFPÇC]"#
+    /// A back item's day title: "Sunday, September 27" or "27 Eylül Pazar".
+    static let weekdayDate = #"\p{L}+, \p{L}+ \d{1,2}|\d{1,2} \p{L}+ \p{L}+"#
 }
 
 /// The app's String Catalog read from the repository (the simulator shares the host's file system).

@@ -64,7 +64,9 @@ struct GoalStripView: View {
     /// The order taken once the day's history first loaded (open goals first); later loads keep
     /// it. The strip is a new view per day and vault (``GoalStripIdentity``), with a new order.
     @State private var keptOrder: [String]?
-    @ScaledMetric(relativeTo: .body) private var scrollColumnWidth: CGFloat = 110
+    @ScaledMetric(relativeTo: .body) private var scrollColumnWidth: CGFloat = 118
+    /// The drawing's 30 pt ring and "+" in the card's top row.
+    @ScaledMetric(relativeTo: .body) private var markSide: CGFloat = 30
     /// The page's editing model for the day: its count draws an edit made here before the answer.
     /// The page loads it on every publish; with no goals loaded the strip draws nothing.
     private let model: GoalDayModel
@@ -85,7 +87,9 @@ struct GoalStripView: View {
     var body: some View {
         let order = goalOrder
         let daily = ordered(dailySource, by: order)
-        let period = ordered(model.goals.filter { $0.period != .day }, by: order)
+        // The counted goals (daily and weekly) first, then the rest (yearly), each once.
+        let countedIDs = Set(daily.map(\.id))
+        let period = ordered(model.goals.filter { !countedIDs.contains($0.id) }, by: order)
         let columns = daily + period
         if !columns.isEmpty {
             VStack(alignment: .leading, spacing: InkSpacing.row) {
@@ -94,40 +98,36 @@ struct GoalStripView: View {
                         localized: "Hedefler",
                         bundle: PresentationLocalization.bundle(locale), locale: locale),
                     counter: counter
-                        ?? "\(daily.filter { model.isComplete(for: $0) }.count)/\(daily.count)"
+                        ?? "\(daily.filter { GoalStripPresentation.isPeriodComplete(status: model.status(for: $0)) }.count)/\(daily.count)"
                 )
-                InkCard(padded: true) {
-                    Group {
-                        if columns.count <= 3 {
-                            HStack(alignment: .top, spacing: 12) {
-                                ForEach(columns, id: \.id) { goal in
-                                    goalColumn(
-                                        goal,
-                                        metaText: goal.period == .day ? nil : periodMeta(for: goal)
-                                    )
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                }
-                            }
-                        } else {
-                            ScrollView(.horizontal, showsIndicators: false) {
-                                HStack(alignment: .top, spacing: 12) {
-                                    ForEach(columns, id: \.id) { goal in
-                                        goalColumn(
-                                            goal,
-                                            metaText: goal.period == .day ? nil : periodMeta(for: goal)
-                                        )
-                                        .frame(width: scrollColumnWidth, alignment: .leading)
-                                    }
-                                }
+                // One small card per goal (the drawing's three cards), equal heights in a row.
+                Group {
+                    if columns.count <= 3 {
+                        HStack(alignment: .top, spacing: 8) {
+                            ForEach(columns, id: \.id) { goal in
+                                goalCard(goal)
+                                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                             }
                         }
+                        .fixedSize(horizontal: false, vertical: true)
+                    } else {
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(alignment: .top, spacing: 8) {
+                                ForEach(columns, id: \.id) { goal in
+                                    goalCard(goal)
+                                        .frame(width: scrollColumnWidth, alignment: .topLeading)
+                                        .frame(maxHeight: .infinity, alignment: .top)
+                                }
+                            }
+                            .fixedSize(horizontal: false, vertical: true)
+                        }
                     }
-                    if let error = model.errorText {
-                        InfoBand(kind: .error, verbatim: error)
-                    }
-                    if let notice = geofences?.lockedMarkNotice {
-                        InfoBand(kind: .info, verbatim: notice)
-                    }
+                }
+                if let error = model.errorText {
+                    InfoBand(kind: .error, verbatim: error)
+                }
+                if let notice = geofences?.lockedMarkNotice {
+                    InfoBand(kind: .info, verbatim: notice)
                 }
             }
             .onChange(of: model.hasLoaded, initial: true) { keepOrder() }
@@ -145,7 +145,7 @@ struct GoalStripView: View {
     private var dailySource: [GoalDefinition] {
         let counted = Set(countedGoalIDs)
         return counted.isEmpty
-            ? model.goals.filter { $0.period == .day }
+            ? model.goals.filter { $0.period != .year }
             : model.goals.filter { counted.contains($0.id) }
     }
 
@@ -188,6 +188,24 @@ struct GoalStripView: View {
         return "\(period) \(amount)"
     }
 
+    /// A goal's own card: filled while open; a finished goal keeps only the outline and recedes.
+    private func goalCard(_ goal: GoalDefinition) -> some View {
+        let complete = GoalStripPresentation.isPeriodComplete(status: model.status(for: goal))
+        return goalColumn(goal, metaText: goal.period == .day ? nil : periodMeta(for: goal))
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+            .background {
+                if !complete {
+                    RoundedRectangle(cornerRadius: InkCorner.card, style: .continuous)
+                        .fill(Color.ink.surface)
+                }
+            }
+            .overlay {
+                RoundedRectangle(cornerRadius: InkCorner.card, style: .continuous)
+                    .stroke(Color.ink.rule, lineWidth: 1)
+            }
+    }
+
     @ViewBuilder private func goalColumn(_ goal: GoalDefinition, metaText: String?) -> some View {
         let status = model.status(for: goal)
         let progress = GoalStripPresentation.progressValue(status: status)
@@ -197,19 +215,20 @@ struct GoalStripView: View {
         let value = valueText(for: goal)
         let openValue = openAccessibilityValue(
             value: value, meta: metaText, streak: status.streak, locale: locale)
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(alignment: .top) {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(alignment: .center) {
                 ringControl(goal: goal, progress: progress, marked: marked, isBooleanMark: isBooleanMark)
                 Spacer(minLength: 0)
                 trailingSlot(
                     goal: goal, marked: marked, isBooleanMark: isBooleanMark, complete: complete)
             }
+            .frame(height: markSide)
             // The name and meta block opens the goal; the open button lies under the block so
             // its hit area spans the whole block (at least 44 pt tall, accessibility audit: hit
             // region) while the value button on top keeps its own taps (screens.md, Dokunma).
             VStack(alignment: .leading, spacing: 2) {
                 Text(verbatim: goal.name)
-                    .font(.ink.contentSmall)
+                    .font(.subheadline.weight(complete ? .medium : .semibold))
                     .foregroundStyle(complete ? Color.ink.secondaryText : Color.ink.text)
                     .lineLimit(2)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -220,15 +239,19 @@ struct GoalStripView: View {
                     Button {
                         if model.canEdit { editing = GoalValueModel(dayModel: model, goal: goal) }
                     } label: {
-                        Text(verbatim: value)
+                        // 44 pt tall to the touch, one line to the eye: the frame reaches into the
+                        // name above and the card padding below without taking layout room.
+                        Text(valueAttributed(value, complete: complete))
                             .font(.ink.meta)
                             .foregroundStyle(Color.ink.secondaryText)
+                            .monospacedDigit()
                             .lineLimit(2)
                             .frame(
                                 maxWidth: .infinity, minHeight: TapTarget.minimumLength,
-                                alignment: .topLeading
+                                alignment: .leading
                             )
                             .contentShape(Rectangle())
+                            .padding(.vertical, -valueOverlap)
                     }
                     .buttonStyle(.plain)
                     .disabled(!model.canEdit)
@@ -250,12 +273,15 @@ struct GoalStripView: View {
                     badge
                 }
             }
-            .frame(minHeight: TapTarget.minimumLength, alignment: .topLeading)
-            .background {
+            // Top-aligned: a short block (one-line name and value) is under 44 pt, so the open
+            // button reaches past its bottom into the card's padding instead of growing the card.
+            .background(alignment: .top) {
                 Button {
                     onOpen?(goal)
                 } label: {
-                    Color.clear.contentShape(Rectangle())
+                    Color.clear
+                        .frame(minHeight: TapTarget.minimumLength)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
                 .disabled(onOpen == nil)
@@ -271,7 +297,6 @@ struct GoalStripView: View {
         // One container per goal: columns sit side by side, so without it VoiceOver would read
         // every ring and plus across the strip before the first name.
         .accessibilityElement(children: .contain)
-        .opacity(complete ? 0.72 : 1)
         .contextMenu {
             if model.canEdit, goal.kind == .number {
                 Button("Miktar gir") { editing = GoalValueModel(dayModel: model, goal: goal) }
@@ -290,7 +315,8 @@ struct GoalStripView: View {
         goal: GoalDefinition, progress: Double, marked: Bool, isBooleanMark: Bool
     ) -> some View {
         let ring = GoalRing(
-            progress: progress, isBoolean: GoalStripPresentation.isBooleanRing(goal: goal))
+            progress: progress, isBoolean: GoalStripPresentation.isBooleanRing(goal: goal),
+            diameter: markSide)
         if marked {
             Button {
                 Task {
@@ -314,22 +340,26 @@ struct GoalStripView: View {
     @ViewBuilder private func trailingSlot(
         goal: GoalDefinition, marked: Bool, isBooleanMark: Bool, complete: Bool
     ) -> some View {
-        // Plus slot always keeps its place; a marked boolean goal shows a filled check in the
-        // same 30 pt chrome, so the row width never changes (screens.md, Hedefler).
+        // The slot keeps its place; a marked yes/no goal shows "✓ Tamam" in it (the drawing). A
+        // number goal keeps its plus when its period is done: the amount may go past the target,
+        // and the plus stays put while a write runs (screens.md, Hedefler).
         if isBooleanMark && marked {
-            Image(systemName: "checkmark.circle.fill")
-                .font(.system(size: 22, weight: .semibold))
-                .foregroundStyle(Color.ink.secondaryText)
-                .frame(width: 30, height: 30)
-                .frame(
-                    minWidth: TapTarget.minimumLength, minHeight: TapTarget.minimumLength,
-                    alignment: .topTrailing
-                )
-                .accessibilityLabel(
-                    Text(
-                        verbatim: String(
-                            localized: "Tamamlandı",
-                            bundle: PresentationLocalization.bundle(locale), locale: locale)))
+            Label {
+                Text("Tamam")
+            } icon: {
+                Image(systemName: "checkmark")
+            }
+            .labelStyle(GoalStripDoneLabelStyle())
+            .font(.ink.meta)
+            .foregroundStyle(Color.ink.secondaryText)
+            .lineLimit(1)
+            .fixedSize()
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(
+                Text(
+                    verbatim: String(
+                        localized: "Tamamlandı",
+                        bundle: PresentationLocalization.bundle(locale), locale: locale)))
         } else {
             Button {
                 if isBooleanMark {
@@ -341,20 +371,14 @@ struct GoalStripView: View {
                 }
             } label: {
                 Image(systemName: "plus")
-                    .font(.body.weight(.semibold))
-                    .foregroundStyle(complete ? Color.ink.secondaryText : Color.ink.accent)
-                    .frame(width: 30, height: 30)
-                    .background {
-                        ZStack {
-                            Circle().fill(Color.ink.control)
-                            Circle().inset(by: InkStroke.control).fill(Color.ink.paper)
-                        }
-                    }
-                    .frame(
-                        minWidth: TapTarget.minimumLength, minHeight: TapTarget.minimumLength,
-                        alignment: .topTrailing
-                    )
+                    .font(.ink.meta.weight(.semibold))
+                    .foregroundStyle(Color.ink.accent)
+                    .frame(width: markSide, height: markSide)
+                    .background(Circle().fill(Color.ink.accentSoft))
+                    // 44 pt to the touch around the 30 pt mark, without growing the row.
+                    .frame(width: TapTarget.minimumLength, height: TapTarget.minimumLength)
                     .contentShape(Rectangle())
+                    .padding(-(TapTarget.minimumLength - markSide) / 2)
                     .opacity(model.canEdit ? 1 : InkGoalRowTrailing.busyPlusOpacity)
             }
             .buttonStyle(.plain)
@@ -365,6 +389,21 @@ struct GoalStripView: View {
                         localized: "\(goal.name), artır",
                         bundle: PresentationLocalization.bundle(locale), locale: locale)))
         }
+    }
+
+    /// How far the value button's 44 pt frame reaches past its one line of text, each side.
+    private var valueOverlap: CGFloat { max(0, (TapTarget.minimumLength - 20) / 2) }
+
+    /// "**12**/20 sayfa": the amount done stands out.
+    private func valueAttributed(_ value: String, complete: Bool) -> AttributedString {
+        var text = AttributedString(value)
+        if !complete, let slash = value.firstIndex(of: "/"),
+            let range = Range(NSRange(value.startIndex..<slash, in: value), in: text)
+        {
+            text[range].inlinePresentationIntent = .stronglyEmphasized
+            text[range].foregroundColor = Color.ink.text
+        }
+        return text
     }
 
     private func openAccessibilityValue(
@@ -388,7 +427,7 @@ struct GoalStripView: View {
         let unit = goal.unit.map { " \($0)" } ?? ""
         let done = amount.formatted(.number.locale(locale))
         let target = goal.target.formatted(.number.locale(locale))
-        return "\(done) / \(target)\(unit)"
+        return "\(done)/\(target)\(unit)"
     }
 
     private func increment(_ goal: GoalDefinition) async {
@@ -396,6 +435,16 @@ struct GoalStripView: View {
             if case .number(let number) = model.value(for: goal) { number } else { 0 }
         if await model.set(goal, value: .number(current + 1)) {
             geofences?.clearLockedMarkNotice()
+        }
+    }
+}
+
+/// "✓ Tamam" with a tight gap.
+private struct GoalStripDoneLabelStyle: LabelStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        HStack(spacing: 3) {
+            configuration.icon.accessibilityHidden(true)
+            configuration.title
         }
     }
 }

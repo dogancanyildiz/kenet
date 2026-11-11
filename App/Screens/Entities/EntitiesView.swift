@@ -52,54 +52,52 @@ struct EntitiesView: View {
             }
             EntityTypePicker(store: store, selection: $kind)
                 .inkListRow()
+            // Şafak drawing: the filter sits right under the type tabs, above the page cards.
+            EntityFilterField(search: $search)
+                .inkListRow()
             // Side by side; stacked at accessibility text sizes (docs/screens.md).
             (dynamicTypeSize.isAccessibilitySize
-                ? AnyLayout(VStackLayout(spacing: 10)) : AnyLayout(HStackLayout(alignment: .top, spacing: 10))) {
+                ? AnyLayout(VStackLayout(spacing: 10)) : AnyLayout(HStackLayout(alignment: .top, spacing: 12))) {
                     let peopleCount = store.content.entities.filter { $0.kind == "person" }.count
                     let placeCount = store.content.entities.filter { $0.kind == "place" }.count
                     pageCard(
                         "Graph", detail: String(localized: "\(peopleCount) kişi · \(placeCount) konum", locale: locale),
-                        systemImage: "point.3.connected.trianglepath.dotted"
-                    ) {
-                        GraphView(store: store)
-                    }
+                        systemImage: "point.3.connected.trianglepath.dotted", page: .graph
+                    )
                     pageCard(
                         "Harita", detail: String(localized: "\(store.mapPlaces.count) konum", locale: locale),
-                        systemImage: "map"
-                    ) {
-                        PlacesMapView(store: store)
-                    }
+                        systemImage: "map", page: .map
+                    )
                 }
                 .inkListRow()
-            if let creatable = EntityCreateEntry.kind(forList: kind, types: store.entityTypes) {
-                createRow(creatable)
-            }
-            #if os(iOS)
-                if ContactImportEntry.isShown(forList: kind) {
-                    contactImportRow
-                }
-            #endif
-            newTypeRow
-            EntityFilterField(search: $search)
-                .inkListRow()
+            actionRow
             if kind == "person" {
                 UnseenPeopleSection(
                     store: store, people: entities, initiallyExpanded: initialUnseenExpanded)
             }
-            // One list card drawn across the rows (first and last round, hairlines between), so
-            // each entity stays its own lazy `List` row (docs/screens.md, Liste satırı).
             let rows = entities
-            ForEach(Array(rows.enumerated()), id: \.element.id) { index, entity in
-                NavigationLink(value: entity) {
+            if !rows.isEmpty {
+                SectionHeader(title: currentPlural, count: rows.count)
+                    .inkListRow()
+            }
+            // Each entity is its own card (Şafak "kartlı liste"); the row opens the entity page
+            // without a list disclosure arrow.
+            ForEach(rows) { entity in
+                Button {
+                    openedEntity = entity
+                } label: {
                     EntityRow(
                         entity: entity, store: store, activity: activity[entity.id],
                         onEdit: { editingEntity = entity }
                     )
-                    .padding(.vertical, 4)
-                    .padding(.trailing, InkSpacing.cardPadding)
+                    .padding(.vertical, 8)
+                    .padding(.horizontal, 12)
+                    .frame(minHeight: 56)
+                    .modifier(InkCardModifier(cornerRadius: InkCorner.md))
+                    .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
-                .inkListRow(cardSegment: .position(index, of: rows.count))
+                .inkListRow()
             }
             if !store.content.entities.contains(where: { $0.kind == kind }) {
                 EmptyState("Bu tipteki varlıklar burada görünecek.")
@@ -123,6 +121,15 @@ struct EntitiesView: View {
         .navigationDestination(item: $createdEntity) { entity in
             EntityView(store: store, entity: entity)
         }
+        .navigationDestination(item: $openedEntity) { entity in
+            EntityView(store: store, entity: entity)
+        }
+        .navigationDestination(item: $openedPage) { page in
+            switch page {
+            case .graph: GraphView(store: store)
+            case .map: PlacesMapView(store: store)
+            }
+        }
         .navigationDestination(for: EntitySummary.self) { entity in
             EntityView(store: store, entity: entity)
         }
@@ -131,87 +138,119 @@ struct EntitiesView: View {
     @Environment(\.locale) private var locale
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var showsTypeGallery = false
+    @State private var openedEntity: EntitySummary?
+    @State private var openedPage: EntitiesPage?
 
-    /// "Yeni kişi" / "Yeni konum" / "Yeni <tip>": a row like contact import, not a manşet symbol
-    /// (a third symbol next to sort and search truncates the long title).
-    private func createRow(_ creatable: VaultEntityKind) -> some View {
-        Button {
-            creationKind = creatable
-        } label: {
-            MarginRow(kind: .external, time: nil) {
-                Label(
-                    EntityCreateEntry.title(
-                        creatable, types: store.entityTypes,
-                        language: locale.language.languageCode?.identifier ?? "en"),
-                    systemImage: EntityCreateEntry.systemImage(creatable, types: store.entityTypes)
-                )
-                .font(.body)
-                .foregroundStyle(.ink.accent)
-            }
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .disabled(!store.canAddEvent)
-        .accessibilityIdentifier(EntityCreateEntry.identifier(creatable))
-        .inkListRow()
+    /// The section title over the cards: the selected type's plural ("Kişiler", "Konumlar", "Kitaplar").
+    private var currentPlural: String {
+        EntityTypeChoices.choices(store.entityTypes, language: locale.language.languageCode?.identifier ?? "en")
+            .first { $0.id == kind }?.plural ?? kind
     }
 
-    /// "Yeni tip…": always under the create rows; opens the gallery of ready-made types.
-    private var newTypeRow: some View {
-        Button {
-            showsTypeGallery = true
-        } label: {
-            MarginRow(kind: .external, time: nil) {
-                Label("Yeni tip…", systemImage: EntityTypeGalleryEntry.systemImage)
-                    .font(.body)
+    /// One action row (Şafak drawing "+ Yeni kişi"): the create button, then a "…" menu with
+    /// "Rehberden aktar" (people, iPhone) and "Yeni tip…", so the list starts on the first screen.
+    private var actionRow: some View {
+        HStack(spacing: 12) {
+            if let creatable = EntityCreateEntry.kind(forList: kind, types: store.entityTypes) {
+                Button {
+                    creationKind = creatable
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "plus").accessibilityHidden(true)
+                        Text(
+                            verbatim: EntityCreateEntry.title(
+                                creatable, types: store.entityTypes,
+                                language: locale.language.languageCode?.identifier ?? "en"))
+                    }
+                    .font(.subheadline.weight(.semibold))
                     .foregroundStyle(.ink.accent)
+                    .frame(minHeight: TapTarget.minimumLength)
+                    .contentShape(Rectangle())
+                }
+                // Two controls share the list row: each keeps its own tap.
+                .buttonStyle(.borderless)
+                .disabled(!store.canAddEvent)
+                .accessibilityIdentifier(EntityCreateEntry.identifier(creatable))
             }
-            .contentShape(Rectangle())
+            Spacer(minLength: 0)
+            Menu {
+                #if os(iOS)
+                    if ContactImportEntry.isShown(forList: kind) {
+                        Button {
+                            showsContactPicker = true
+                        } label: {
+                            ContactImportEntry.label
+                        }
+                        .disabled(!store.canAddEvent)
+                        .accessibilityIdentifier(ContactImportEntry.identifier)
+                    }
+                #endif
+                Button {
+                    showsTypeGallery = true
+                } label: {
+                    Label("Yeni tip…", systemImage: EntityTypeGalleryEntry.systemImage)
+                }
+                .disabled(!EntityTypeGalleryEntry.isEnabled(store))
+                .accessibilityIdentifier(EntityTypeGalleryEntry.identifier)
+            } label: {
+                Label("Diğer eylemler", systemImage: "ellipsis")
+                    .labelStyle(.iconOnly)
+                    .foregroundStyle(.ink.accent)
+                    .tapTarget()
+            }
+            .buttonStyle(.borderless)
+            .accessibilityIdentifier("menu.entities.more")
         }
-        .buttonStyle(.plain)
-        .disabled(!EntityTypeGalleryEntry.isEnabled(store))
-        .accessibilityIdentifier(EntityTypeGalleryEntry.identifier)
         .inkListRow()
     }
 
-    #if os(iOS)
-        /// Contact import stays a separate row below the page links (people only).
-        private var contactImportRow: some View {
-            Button {
-                showsContactPicker = true
-            } label: {
-                MarginRow(kind: .external, time: nil) {
-                    ContactImportEntry.label
-                        .font(.body)
-                        .foregroundStyle(.ink.accent)
-                }
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .disabled(!store.canAddEvent)
-            .accessibilityIdentifier(ContactImportEntry.identifier)
-            .inkListRow()
-        }
-    #endif
-
-    /// A page entry at the top of the list (the pattern of the "Özetler" row in Günlük).
-    private func pageCard<Destination: View>(
-        _ title: LocalizedStringKey, detail: String, systemImage: String, @ViewBuilder destination: () -> Destination
+    /// A page entry at the top of the list: icon box, name and short count, glow-tinted card
+    /// (Şafak drawing). A button, not a list `NavigationLink`, so no disclosure arrow is drawn.
+    private func pageCard(
+        _ title: LocalizedStringKey, detail: String, systemImage: String, page: EntitiesPage
     ) -> some View {
-        NavigationLink {
-            destination()
+        Button {
+            openedPage = page
         } label: {
-            InkCard {
-                VStack(alignment: .leading, spacing: 8) {
-                    Image(systemName: systemImage).foregroundStyle(.ink.accent)
-                    Text(title).font(.ink.content).foregroundStyle(.ink.text)
-                    Text(verbatim: detail).font(.ink.meta).foregroundStyle(.ink.secondaryText)
+            VStack(alignment: .leading, spacing: 10) {
+                Image(systemName: systemImage)
+                    .font(.body)
+                    .foregroundStyle(.ink.text)
+                    .frame(width: iconBox, height: iconBox)
+                    .background(
+                        Color.ink.surface.opacity(0.6),
+                        in: RoundedRectangle(cornerRadius: InkCorner.sm, style: .continuous)
+                    )
+                    .overlay {
+                        RoundedRectangle(cornerRadius: InkCorner.sm, style: .continuous)
+                            .stroke(Color.ink.rule, lineWidth: 1)
+                    }
+                    .accessibilityHidden(true)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title).font(.body.weight(.semibold)).foregroundStyle(.ink.text)
+                    Text(verbatim: detail).font(.caption).foregroundStyle(.ink.secondaryText)
                 }
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .frame(maxWidth: .infinity, minHeight: 96, alignment: .topLeading)
+            .padding(12)
+            .background {
+                RoundedRectangle(cornerRadius: InkCorner.card, style: .continuous)
+                    .fill(Color.ink.accentSoft.opacity(0.5))
+            }
+            .modifier(InkCardModifier(cornerRadius: InkCorner.card))
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(.isButton)
     }
+
+    @ScaledMetric(relativeTo: .body) private var iconBox: CGFloat = 36
+}
+
+/// The two page cards at the top of the list.
+enum EntitiesPage: Hashable {
+    case graph, map
 }
 
 #if os(iOS)
@@ -295,37 +334,42 @@ struct EntityRow: View {
         activity?.mentions(today: LocalDay.today(at: clockNow()), locale: locale)
     }
 
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    /// "iş · Son görüşme 3 gün önce · 9 bağ": the qualifier joins the meta line.
+    private var rowMeta: String? {
+        let meta = EntityRowPresentation.meta(
+            kind: entity.kind, lastDate: lastDate, links: relationCount,
+            today: LocalDay.today(at: clockNow()), locale: locale)
+        let parts = [entity.qualifier, meta].compactMap { $0 }
+        return parts.isEmpty ? nil : parts.joined(separator: " · ")
+    }
+
     var body: some View {
         // One row view: the error band below the row, not a second row with the same tag.
         VStack(alignment: .leading, spacing: 0) {
-            MarginRow(
-                kind: .vault,
-                mark: {
-                    EntityInitialBadge(entity: entity)
-                }, time: nil,
-                primary: {
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text(verbatim: entity.name).foregroundStyle(.ink.text)
-                        if let qualifier = entity.qualifier {
-                            Text(verbatim: qualifier).font(.ink.meta).foregroundStyle(.ink.secondaryText)
-                        }
-                    }
-                },
-                secondary: {
-                    if let meta = EntityRowPresentation.meta(
-                        kind: entity.kind, lastDate: lastDate, links: relationCount,
-                        today: LocalDay.today(at: clockNow()), locale: locale)
-                    {
-                        Text(verbatim: meta).font(.ink.meta).foregroundStyle(.ink.secondaryText)
-                    }
-                },
-                trailing: {
-                    // Never-mentioned entities have no bar (docs/screens.md, Liste satırı).
-                    if lastDate != nil, let mentionData {
-                        EntityMonthlyBarChart(data: mentionData, compact: true)
+            // Şafak list row: badge, name and one meta line, the 12-month mini bar on the right.
+            HStack(alignment: .center, spacing: 12) {
+                EntityInitialBadge(entity: entity)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(verbatim: entity.name)
+                        .font(.subheadline)
+                        .foregroundStyle(.ink.text)
+                        .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 1)
+                    if let meta = rowMeta {
+                        Text(verbatim: meta)
+                            .font(.footnote)
+                            .foregroundStyle(.ink.secondaryText)
+                            .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 1)
                     }
                 }
-            )
+                .frame(maxWidth: .infinity, alignment: .leading)
+                // Never-mentioned entities have no bar (docs/screens.md, Liste satırı).
+                if lastDate != nil, let mentionData {
+                    EntityMonthlyBarChart(data: mentionData, compact: true)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
             .contextMenu {
                 if let store {
                     DefinitionMenuButtons(items: DefinitionMenu.items(forEntity: entity), canEdit: store.canAddEvent) {
@@ -388,20 +432,34 @@ extension View {
     }
 }
 
-/// Tür renkli baş harf rozeti: `well` circle, person or place colour (custom types use person).
+/// Tür renkli baş harf rozeti: tinted circle with up to two initials ("BT"), person or place
+/// colour (custom types use person).
 private struct EntityInitialBadge: View {
     let entity: EntitySummary
     @Environment(\.locale) private var locale
-    @ScaledMetric(relativeTo: .body) private var side: CGFloat = 36
+    @ScaledMetric(relativeTo: .body) private var side: CGFloat = 40
+
+    private var tint: Color { entity.kind == "place" ? Color.ink.place : Color.ink.person }
 
     var body: some View {
-        // Locale-aware: "ilker" → "İ" in Turkish.
-        Text(verbatim: String(entity.name.prefix(1)).uppercased(with: locale))
-            .font(.ink.section)
-            .foregroundStyle(entity.kind == "place" ? Color.ink.place : Color.ink.person)
+        Text(verbatim: EntityInitials.of(entity.name, locale: locale))
+            .font(.footnote.weight(.bold))
+            .foregroundStyle(tint)
+            .lineLimit(1)
+            .minimumScaleFactor(0.7)
             .frame(width: side, height: side)
-            .background(Color.ink.well, in: Circle())
+            // 12%: bold footnote initials need 4.5:1; at 20% light person and place fall to 4.4–4.5.
+            .background(tint.opacity(0.12), in: Circle())
             .accessibilityHidden(true)
+    }
+}
+
+/// Up to two initials from the first two words; locale-aware ("ilker" → "İ" in Turkish).
+enum EntityInitials {
+    static func of(_ name: String, locale: Locale) -> String {
+        name.split(whereSeparator: { $0.isWhitespace }).prefix(2)
+            .compactMap { $0.first.map { String($0).uppercased(with: locale) } }
+            .joined()
     }
 }
 

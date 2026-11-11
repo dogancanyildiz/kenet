@@ -12,27 +12,55 @@ struct SummaryEntitySection: View {
     let kind: SummaryInput.Entity.Kind
     @Environment(\.locale) private var locale
 
+    @Environment(\.accessibilityDifferentiateWithoutColor) private var differentiateWithoutColor
+    @Environment(\.colorSchemeContrast) private var contrast
+
+    private var bundle: Bundle { PresentationLocalization.bundle(locale) }
+
+    /// Title and mention count above the card; rows with dividers inside it (Şafak çizimi).
     var body: some View {
-        InkCard {
-            VStack(alignment: .leading, spacing: 10) {
-                SectionHeader(title: title, count: mentions)
-                VStack(alignment: .leading, spacing: 8) {
-                    ForEach(entities, id: \.id) { item in
+        VStack(alignment: .leading, spacing: 8) {
+            SectionHeader(title: title, count: mentions)
+            InkCard(padded: false) {
+                VStack(alignment: .leading, spacing: 0) {
+                    ForEach(Array(entities.enumerated()), id: \.element.id) { index, item in
+                        if index > 0 { InkCardDivider() }
                         row(item)
                     }
                 }
-                if !firsts.isEmpty {
-                    Label {
-                        Text(verbatim: SummaryPresentation.firstNames(firsts, kind: kind, locale: locale))
-                    } icon: {
-                        Image(systemName: "sparkle")
-                            .accessibilityHidden(true)
-                    }
-                    .font(.ink.meta)
-                    .foregroundStyle(Color.ink.secondaryText)
+            }
+            if !firsts.isEmpty {
+                Label {
+                    Text(verbatim: SummaryPresentation.firstNames(firsts, kind: kind, locale: locale))
+                } icon: {
+                    Image(systemName: "sparkle")
+                        .accessibilityHidden(true)
                 }
+                .font(.ink.meta)
+                .foregroundStyle(Color.ink.secondaryText)
             }
         }
+    }
+
+    /// The name drawn as its link: person solid, place dotted underline.
+    private func name(_ text: String) -> Text {
+        Text(
+            InkLinkStyle.attributed(
+                text, kind: kind == .person ? .person : .place,
+                highContrast: contrast == .increased || differentiateWithoutColor))
+    }
+
+    /// "**9** geçiş": the number in ink, the word secondary.
+    private func countText(_ count: Int) -> Text {
+        let number = count.formatted(.number.locale(locale))
+        var value = AttributedString(
+            String(localized: "\(count) geçiş", bundle: bundle, locale: locale))
+        value.foregroundColor = Color.ink.secondaryText
+        if let range = value.range(of: number) {
+            value[range].foregroundColor = Color.ink.text
+            value[range].inlinePresentationIntent = .stronglyEmphasized
+        }
+        return Text(value)
     }
 
     @ViewBuilder
@@ -40,12 +68,13 @@ struct SummaryEntitySection: View {
         let isFirst = firsts.contains { $0.id == item.id }
         let spoken = SummaryPresentation.chipLabel(
             name: item.name, count: item.count, isFirst: isFirst, locale: locale)
-        let content = HStack(spacing: 10) {
+        let entity = store.content.entities.first(where: { $0.id == item.id })
+        let content = HStack(spacing: 12) {
             badge
                 .accessibilityHidden(true)
-            Text(verbatim: item.name)
-                .font(.ink.content)
-                .foregroundStyle(Color.ink.text)
+            name(item.name)
+                .font(.subheadline)
+                .lineLimit(1)
             if isFirst {
                 Image(systemName: "sparkle")
                     .font(.ink.meta)
@@ -53,16 +82,22 @@ struct SummaryEntitySection: View {
                     .accessibilityHidden(true)
             }
             Spacer(minLength: 8)
-            Text("\(item.count) geçiş")
-                .font(.ink.meta)
+            countText(item.count)
+                .font(.footnote)
                 .monospacedDigit()
-                .foregroundStyle(Color.ink.secondaryText)
+            if entity != nil {
+                Image(systemName: "chevron.right")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(Color.ink.tertiaryText)
+                    .accessibilityHidden(true)
+            }
         }
-        .padding(.vertical, 4)
+        .frame(minHeight: TapTarget.minimumLength)
+        .padding(.horizontal, InkSpacing.cardPadding)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text(verbatim: spoken))
 
-        if let entity = store.content.entities.first(where: { $0.id == item.id }) {
+        if let entity {
             NavigationLink {
                 EntityView(store: store, entity: entity)
             } label: {
@@ -74,18 +109,20 @@ struct SummaryEntitySection: View {
         }
     }
 
+    /// Outlined shapes: a ring for a person, a diamond for a place.
     @ViewBuilder
     private var badge: some View {
         switch kind {
         case .person:
             Circle()
-                .fill(Color.ink.person)
-                .frame(width: 8, height: 8)
+                .strokeBorder(Color.ink.person, lineWidth: 2)
+                .frame(width: 12, height: 12)
         case .place:
             Rectangle()
-                .fill(Color.ink.place)
-                .frame(width: 7, height: 7)
+                .strokeBorder(Color.ink.place, lineWidth: 2)
+                .frame(width: 10, height: 10)
                 .rotationEffect(.degrees(45))
+                .frame(width: 12, height: 12)
         }
     }
 }

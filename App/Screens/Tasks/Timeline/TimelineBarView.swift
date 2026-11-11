@@ -8,6 +8,8 @@ struct TimelineBarView: View {
     let select: () -> Void
     let edit: (TimelineDates.Edge) -> Void
     @State private var drag: TimelineDrag?
+    @Environment(\.timelineRowHeight) private var rowHeight
+    @Environment(\.timelineDragsBars) private var dragsBars
     private var width: CGFloat { CGFloat(model.days.count) * dayWidth }
     private var dates: TimelineDates { model.dates(for: row) }
 
@@ -21,7 +23,7 @@ struct TimelineBarView: View {
                 let length = CGFloat(span.last.ordinal - span.first.ordinal + 1) * dayWidth
                 let barWidth = max(isPoint ? 12 : 8, isPoint ? 12 : length - 4)
                 HStack(spacing: 0) {
-                    if !isPoint && dates.start.map(model.bounds.contains) == true {
+                    if dragsBars && !isPoint && dates.start.map(model.bounds.contains) == true {
                         handle(.start, barWidth: barWidth)
                     }
                     Spacer(minLength: 0)
@@ -44,7 +46,7 @@ struct TimelineBarView: View {
                             .padding(.trailing, 4)
                             .accessibilityHidden(true)
                     }
-                    if !isPoint && dates.due.map(model.bounds.contains) == true {
+                    if dragsBars && !isPoint && dates.due.map(model.bounds.contains) == true {
                         handle(.due, barWidth: barWidth)
                     }
                 }
@@ -53,7 +55,7 @@ struct TimelineBarView: View {
                 // The bar's shape bounds its ends' touch areas too: it reaches as far as they do.
                 // A short bar draws its grips past its own frame (quarter scale).
                 .contentShape(Rectangle().inset(by: -TimelineBarTouch.handleOutset)).onTapGesture(perform: select)
-                .gesture(gesture(edge: nil), including: TimelineBarTouch.dragsBody ? .all : .subviews)
+                .gesture(gesture(edge: nil), including: dragsBars && TimelineBarTouch.dragsBody ? .all : .subviews)
                 .offset(x: offset + (isPoint ? max(0, (dayWidth - 12) / 2) : 2))
                 .contextMenu { TimelineTaskMenu(edit: edit) }
                 .help(dates.isValid ? Text(verbatim: row.text.plainText) : Text("Geçersiz tarih aralığı"))
@@ -68,7 +70,7 @@ struct TimelineBarView: View {
                     edit(.due)
                 }
             }
-        }.frame(width: width, height: TimelineDesktopMetrics.rowHeight).clipped()
+        }.frame(width: width, height: rowHeight).clipped()
             .onDisappear { if !model.busy.contains(row.id) { model.preview(nil, for: row) } }
     }
     private var presentation: TaskStatusPresentation {

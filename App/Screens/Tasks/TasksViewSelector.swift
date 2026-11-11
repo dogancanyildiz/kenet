@@ -8,6 +8,13 @@ struct TasksViewTabs: View {
     /// The view that draws these tabs. A board hosted full-width by the Mac shell shows its
     /// own tab as selected and only reports the new choice through ``TasksModel/viewState``.
     let current: TasksViewState.Mode
+    /// Width the three words take on one row with the full labels (measured, hidden).
+    @State private var fullWidth: CGFloat = 0
+    @State private var availableWidth: CGFloat = .infinity
+
+    /// A narrow column (the iPad's list column) would stack the words; "Zaman çizelgesi"
+    /// becomes "Çizelge" there so the tabs stay on one row.
+    private var usesShortTitles: Bool { fullWidth > availableWidth + 0.5 }
 
     var body: some View {
         InkTabs(
@@ -15,11 +22,28 @@ struct TasksViewTabs: View {
             items: [
                 InkTabItem("Liste", value: TasksViewState.Mode.list, identifier: "tasks.tab.list"),
                 InkTabItem("Kanban", value: TasksViewState.Mode.kanban, identifier: "tasks.tab.kanban"),
-                InkTabItem(
-                    "Zaman çizelgesi", value: TasksViewState.Mode.timeline,
-                    identifier: "tasks.tab.timeline"),
+                usesShortTitles
+                    ? InkTabItem(
+                        "Çizelge", value: TasksViewState.Mode.timeline, identifier: "tasks.tab.timeline")
+                    : InkTabItem(
+                        "Zaman çizelgesi", value: TasksViewState.Mode.timeline,
+                        identifier: "tasks.tab.timeline"),
             ], identifier: "tasks.tabs",
-            accessibilityLabelPrefix: String(localized: "Görünüm"))
+            accessibilityLabelPrefix: String(localized: "Görünüm")
+        )
+        .onGeometryChange(for: CGFloat.self, of: { $0.size.width }) { availableWidth = $0 }
+        .background(alignment: .leading) {
+            // The full row as InkTabs draws it: selected word semibold, page spacing.
+            HStack(spacing: InkTabsChrome.pageSpacing) {
+                Text("Liste").inkTabWord(isSelected: true, size: .page)
+                Text("Kanban").inkTabWord(isSelected: true, size: .page)
+                Text("Zaman çizelgesi").inkTabWord(isSelected: true, size: .page)
+            }
+            .fixedSize()
+            .hidden()
+            .accessibilityHidden(true)
+            .onGeometryChange(for: CGFloat.self, of: { $0.size.width }) { fullWidth = $0 }
+        }
     }
 }
 
@@ -54,16 +78,20 @@ enum TasksViewSelector {
 struct TasksPageTop<Actions: View, MenuRow: View>: View {
     let tasks: TasksModel
     let current: TasksViewState.Mode
+    /// Künye of the view; `nil` gives the open and carried-over counts (Liste, Kanban).
+    var byline: Text? = nil
     @ViewBuilder var actions: Actions
     @ViewBuilder var menu: MenuRow
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            InkPageHeader("Görevler", byline: byline) {
+            // The künye highlights its numbers (Şafak rule 7): a styled byline of the manşet.
+            InkPageHeader("Görevler") {
                 actions
                 TaskFiltersMenu(model: tasks)
                 SearchButton()
             }
+            .byline(byline ?? countsByline)
             // Same insets as ``InkPageTitleRow``.
             .padding(.top, 8)
             .padding(.bottom, 4)
@@ -78,14 +106,18 @@ struct TasksPageTop<Actions: View, MenuRow: View>: View {
         }
         .padding(.horizontal, InkSpacing.margin)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.ink.paper)
+        // No paper of its own: the page's paper and, on the tab shell's root, its glow show.
+        // The boards show the list's counts too; the list view loads them itself.
+        .task(id: current == .kanban ? tasks.listRequest : nil) {
+            if current == .kanban { await tasks.loadList() }
+        }
     }
 
-    private var byline: String? {
-        guard current == .list, tasks.list != nil else { return nil }
+    private var countsByline: Text? {
+        guard current != .timeline, tasks.list != nil else { return nil }
         let open = tasks.agenda.flatMap(\.rows).count + tasks.undated.count
         let overdue = tasks.agenda.first(where: { $0.id == "overdue" })?.rows.count ?? 0
-        return String(format: String(localized: "%1$d açık · %2$d devreden"), open, overdue)
+        return TasksByline.counts(open: open, overdue: overdue)
     }
 
     /// Space above and below each row of the page top (same as a list row's inset).
@@ -93,8 +125,24 @@ struct TasksPageTop<Actions: View, MenuRow: View>: View {
 }
 
 extension TasksPageTop where Actions == EmptyView {
-    init(tasks: TasksModel, current: TasksViewState.Mode, @ViewBuilder menu: () -> MenuRow) {
-        self.init(tasks: tasks, current: current, actions: { EmptyView() }, menu: menu)
+    init(
+        tasks: TasksModel, current: TasksViewState.Mode, byline: Text? = nil, @ViewBuilder menu: () -> MenuRow
+    ) {
+        self.init(tasks: tasks, current: current, byline: byline, actions: { EmptyView() }, menu: menu)
+    }
+}
+
+/// Künye pieces of the Tasks page: numbers in text color and semibold, the carried-over
+/// count in the warning color ("**6** açık · 2 devreden").
+enum TasksByline {
+    static func number(_ value: Int) -> Text {
+        Text(value.formatted()).fontWeight(.semibold).foregroundStyle(.ink.text)
+    }
+
+    static func counts(open: Int, overdue: Int) -> Text {
+        guard overdue > 0 else { return Text("\(number(open)) açık") }
+        let carried = Text("\(overdue) devreden").fontWeight(.semibold).foregroundStyle(.ink.warning)
+        return Text("\(number(open)) açık · \(carried)")
     }
 }
 
@@ -103,7 +151,7 @@ extension View {
     func tasksPageTopRow() -> some View {
         listRowInsets(EdgeInsets())
             .listRowSeparator(.hidden)
-            .listRowBackground(Color.ink.paper)
+            .inkListRowBackground()
     }
 }
 

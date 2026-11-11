@@ -11,6 +11,9 @@ extension Font {
         /// Page title (manşet): SF Pro Bold ≈ largeTitle (34).
         static var display: Font { .system(.largeTitle, design: .default, weight: .bold) }
 
+        /// Subpage title under the back item: SF Pro Bold ≈ title1 (28).
+        static var subpageTitle: Font { .system(.title, design: .default, weight: .bold) }
+
         /// Day name / month: SF Pro Semibold ≈ title2 (22).
         static var dayName: Font { .system(.title2, design: .default, weight: .semibold) }
 
@@ -25,6 +28,9 @@ extension Font {
 
         /// Byline / künye: SF Pro Medium ≈ title3 (20).
         static var byline: Font { .system(.title3, design: .default, weight: .medium) }
+
+        /// Page manşet byline ("6 açık · 2 devreden"): SF Pro Regular ≈ subheadline (15).
+        static var pageByline: Font { .system(.subheadline, design: .default) }
 
         /// Section title: SF Pro Semibold ≈ headline (17).
         static var section: Font { .system(.headline, design: .default, weight: .semibold) }
@@ -41,10 +47,10 @@ extension Font {
         /// Week-strip weekday letter: SF Pro Medium ≈ caption1 (12).
         static var weekday: Font { .system(.caption, design: .default, weight: .medium) }
 
-        /// Large number fallback when ``LargeNumberText`` is unavailable: SF Pro Light tabular ≈ largeTitle.
+        /// Large number fallback when ``LargeNumberText`` is unavailable: SF Pro Bold tabular ≈ largeTitle.
         /// Prefer ``LargeNumberText`` so the design target (48 pt) scales with Dynamic Type.
         static var largeNumber: Font {
-            .system(.largeTitle, design: .default, weight: .light).monospacedDigit()
+            .system(.largeTitle, design: .default, weight: .bold).monospacedDigit()
         }
     }
 }

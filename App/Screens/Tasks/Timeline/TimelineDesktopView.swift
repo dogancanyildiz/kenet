@@ -4,12 +4,23 @@ import VaultFormat
 struct TimelineDesktopView: View {
     let model: TimelineModel
     let todayRequest: UUID
+    /// The phone's Çeyrek chart (tab shell): the chart sits in a card at the page margins with
+    /// a narrow label column and one-line titles; the bars are not dragged (screens.md
+    /// "Telefon": no drag), the date changes from the menu.
+    var compact = false
     let select: (TaskRow) -> Void
     let edit: (TaskRow, TimelineDates.Edge) -> Void
+    @ScaledMetric(relativeTo: .body) private var compactLabelWidth: CGFloat = 142
+    @ScaledMetric(relativeTo: .body) private var compactRowHeight: CGFloat = 52
+
+    private var labelColumnWidth: CGFloat { compact ? compactLabelWidth : TimelineDesktopMetrics.labelColumnWidth }
+    private var rowHeight: CGFloat { compact ? compactRowHeight : TimelineDesktopMetrics.rowHeight }
+    private var outerMargin: CGFloat { compact ? InkSpacing.margin : 0 }
 
     var body: some View {
         GeometryReader { geometry in
-            let chartWidth = max(200, geometry.size.width - TimelineDesktopMetrics.labelColumnWidth)
+            let chartWidth = max(
+                compact ? 120 : 200, geometry.size.width - outerMargin * 2 - labelColumnWidth)
             let dayWidth = chartWidth / CGFloat(model.scale.daysAcross)
             let groups = model.groups
             let height =
@@ -17,11 +28,11 @@ struct TimelineDesktopView: View {
                 + groups.reduce(CGFloat(0)) { partial, group in
                     let rows = model.collapsed.contains(group.id) ? 0 : group.rows.count
                     return partial + TimelineDesktopMetrics.groupHeaderHeight
-                        + CGFloat(rows) * TimelineDesktopMetrics.rowHeight
+                        + CGFloat(rows) * rowHeight
                 }
             ScrollView(.vertical) {
                 HStack(alignment: .top, spacing: 0) {
-                    labels(groups).frame(width: TimelineDesktopMetrics.labelColumnWidth)
+                    labels(groups).frame(width: labelColumnWidth)
                     ScrollViewReader { proxy in
                         ScrollView(.horizontal) {
                             TimelineDesktopContent(
@@ -52,32 +63,67 @@ struct TimelineDesktopView: View {
                         .onChange(of: todayRequest) { _, _ in scrollToday(proxy) }
                         .onChange(of: model.scale) { _, _ in scrollToday(proxy) }
                     }.frame(height: height)
-                }.frame(height: height)
+                }
+                .frame(height: height)
+                .environment(\.timelineRowHeight, rowHeight)
+                .environment(\.timelineDragsBars, !compact)
+                .modifier(TimelineChartCard(isOn: compact))
+                .padding(.horizontal, outerMargin)
                 // Not while the first answer is on its way: an empty timeline must not show while it loads.
                 if groups.isEmpty && model.rows != nil {
                     EmptyState("Görev yok.")
                         .padding()
                 }
                 if !model.undated.isEmpty {
-                    VStack(alignment: .leading, spacing: 8) {
-                        SectionHeader(title: String(localized: "Tarihsiz"), count: model.undated.count)
-                        ForEach(model.undated) { row in
-                            TimelineTaskRow(model: model, row: row) {
-                                select(row)
-                            } edit: {
-                                edit(row, $0)
-                            }
-                        }
-                    }.padding()
+                    if compact { compactUndated } else { undated }
                 }
             }
         }
-        .background(Color.ink.paper)
+        // The phone's carded chart lies on the page's paper (and glow); the desktop chart keeps
+        // its own paper.
+        .background(compact ? Color.clear : Color.ink.paper)
+    }
+
+    private var undated: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            SectionHeader(title: String(localized: "Tarihsiz"), count: model.undated.count)
+            ForEach(model.undated) { row in
+                TimelineTaskRow(model: model, row: row) {
+                    select(row)
+                } edit: {
+                    edit(row, $0)
+                }
+            }
+        }.padding()
+    }
+
+    /// The phone's undated tasks: a section header and the rows in one card, under the chart.
+    private var compactUndated: some View {
+        VStack(alignment: .leading, spacing: InkSpacing.row) {
+            SectionHeader(title: String(localized: "Tarihsiz"), count: model.undated.count)
+            InkCard(padded: false) {
+                VStack(alignment: .leading, spacing: 0) {
+                    ForEach(Array(model.undated.enumerated()), id: \.element.id) { index, row in
+                        if index > 0 { InkCardDivider().padding(.leading, InkSpacing.cardPadding) }
+                        TimelineTaskRow(model: model, row: row) {
+                            select(row)
+                        } edit: {
+                            edit(row, $0)
+                        }
+                        .padding(.horizontal, InkSpacing.cardPadding)
+                        .padding(.vertical, 4)
+                    }
+                }
+            }
+        }
+        .padding(.horizontal, InkSpacing.margin)
+        .padding(.top, InkSpacing.section)
+        .padding(.bottom, InkSpacing.section)
     }
     private func labels(_ groups: [TimelineGroup]) -> some View {
         VStack(spacing: 0) {
             Text("Görevler")
-                .font(.ink.section)
+                .font(compact ? .ink.meta.weight(.semibold) : .ink.section)
                 .foregroundStyle(.ink.text)
                 .frame(height: TimelineDesktopMetrics.axisHeight)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -100,13 +146,18 @@ struct TimelineDesktopView: View {
                                 .accessibilityHidden(true)
                         }
                         TimelineGroupTitle(group: group, grouping: model.grouping)
-                            .font(.ink.meta)
+                            .font(compact ? .ink.meta.weight(.semibold) : .ink.meta)
                             .foregroundStyle(.ink.text)
                             .lineLimit(1)
-                        Spacer()
-                        Text(group.rows.count.formatted())
-                            .font(.ink.value)
-                            .foregroundStyle(.ink.secondaryText)
+                        if compact {
+                            TasksCountPill(count: group.rows.count)
+                            Spacer(minLength: 0)
+                        } else {
+                            Spacer()
+                            Text(group.rows.count.formatted())
+                                .font(.ink.value)
+                                .foregroundStyle(.ink.secondaryText)
+                        }
                     }
                     .padding(.horizontal, 10)
                 }
@@ -122,19 +173,19 @@ struct TimelineDesktopView: View {
                                 text: row.text, store: model.store,
                                 isMuted: presentation.usesSecondaryText
                             )
-                            .font(.ink.content)
-                            .lineLimit(2)
+                            .font(compact ? .ink.meta : .ink.content)
+                            .lineLimit(compact ? 1 : 2)
                             .foregroundStyle(
                                 presentation.usesSecondaryText
                                     ? Color.ink.secondaryText
                                     : Color.ink.text
                             )
-                            TimelineTaskFacts(model: model, row: row, presentation: presentation)
+                            TimelineTaskFacts(model: model, row: row, presentation: presentation, compact: compact)
                                 .lineLimit(1)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.horizontal, 10)
-                        .frame(height: TimelineDesktopMetrics.rowHeight, alignment: .center)
+                        .frame(height: rowHeight, alignment: .center)
                         .contentShape(Rectangle()).onTapGesture { select(row) }
                         .contextMenu { TimelineTaskMenu { edit(row, $0) } }
                     }
@@ -146,6 +197,43 @@ struct TimelineDesktopView: View {
         let date = model.today.addingDays(-min(28, model.scale.daysAcross / 4)) ?? model.today
         proxy.scrollTo(date.description, anchor: .leading)
     }
+}
+
+/// Card chrome of the phone's chart (``TimelineDesktopView/compact``).
+private struct TimelineChartCard: ViewModifier {
+    let isOn: Bool
+
+    func body(content: Content) -> some View {
+        if isOn {
+            content
+                .clipShape(RoundedRectangle(cornerRadius: InkCorner.card, style: .continuous))
+                .modifier(InkCardModifier())
+        } else {
+            content
+        }
+    }
+}
+
+/// A count in a small capsule: phone chart groups and phone kanban columns.
+struct TasksCountPill: View {
+    let count: Int
+
+    var body: some View {
+        Text(count.formatted())
+            .font(.ink.meta)
+            .monospacedDigit()
+            .foregroundStyle(.ink.secondaryText)
+            .padding(.horizontal, 6)
+            .padding(.vertical, 1)
+            .background(Capsule().fill(Color.ink.well))
+    }
+}
+
+extension EnvironmentValues {
+    /// Height of one chart row; the phone chart's rows are shorter (one-line titles).
+    @Entry var timelineRowHeight: CGFloat = TimelineDesktopMetrics.rowHeight
+    /// Whether a bar's ends are dragged: not on the phone chart.
+    @Entry var timelineDragsBars = true
 }
 
 struct TimelineGroupTitle: View {

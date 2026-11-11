@@ -308,8 +308,8 @@ private enum EdgeGoalVault {
             let water = try #require(goals.first { $0.key == "su" })
             /// The page's goal counter from statuses by key.
             func counter(_ statuses: [String: GoalStatus]) -> String {
-                let daily = goals.filter { $0.period == .day }
-                return "\(daily.filter { statuses[$0.key]?.progress.isComplete == true }.count)/\(daily.count)"
+                let counted = goals.filter { $0.period != .year }  // daily and weekly
+                return "\(counted.filter { statuses[$0.key]?.progress.isComplete == true }.count)/\(counted.count)"
             }
             let queried = TodayPresentation.goalStatuses(try await store.computeGoalStatuses(today: day))
             let before = counter(queried)
@@ -348,8 +348,8 @@ private enum EdgeGoalVault {
             let goals = try await store.goalDefinitions()
             func counter(_ day: CalendarDate) async throws -> String {
                 let statuses = TodayPresentation.goalStatuses(try await store.computeGoalStatuses(today: day))
-                let daily = goals.filter { $0.period == .day }
-                return "\(daily.filter { statuses[$0.key]?.progress.isComplete == true }.count)/\(daily.count)"
+                let counted = goals.filter { $0.period != .year }  // daily and weekly
+                return "\(counted.filter { statuses[$0.key]?.progress.isComplete == true }.count)/\(counted.count)"
             }
             let firstCounter = try await counter(first)
             // A day whose count differs, so the first day's answer cannot pass for it.
@@ -422,8 +422,8 @@ private enum EdgeGoalVault {
                 TodayPresentation.goalStatuses(try await store.computeGoalStatuses(today: day))
             }
             func counter(_ statuses: [String: GoalStatus]) -> String {
-                let daily = goals.filter { $0.period == .day }
-                return "\(daily.filter { statuses[$0.key]?.progress.isComplete == true }.count)/\(daily.count)"
+                let counted = goals.filter { $0.period != .year }  // daily and weekly
+                return "\(counted.filter { statuses[$0.key]?.progress.isComplete == true }.count)/\(counted.count)"
             }
             func value(_ statuses: [String: GoalStatus]) throws -> String {
                 let status = try #require(statuses["su"])

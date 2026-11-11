@@ -1,7 +1,8 @@
 import XCTest
 
 /// iPhone task list: a touch anywhere on a row without links completes the task, not only a
-/// touch on the box or on the words. The vault is a temporary copy of the sample fixture.
+/// touch on the box; the "›" at the row's end opens the detail instead (screens.md, Ayrıntı).
+/// The vault is a temporary copy of the sample fixture.
 final class TaskRowTapUITests: XCTestCase {
     private var vaultURL: URL!
 
@@ -35,14 +36,15 @@ final class TaskRowTapUITests: XCTestCase {
         UITestSupport.waitForExistence(UITestSupport.element(in: app, identifier: "screen.today"), timeout: 30)
         UITestSupport.openTab(app, identifier: "tab.tasks", screen: "screen.tasks")
 
-        // Right of the words, on the text line.
+        // On the words of the text line: the line runs up to the "›" (one line, cut at its end),
+        // so the room right of the words is the "›" target, which opens the detail.
         let first = try taskText(textLineTask, in: app)
         let firstFrame = first.frame
-        touch(x: emptyX(rightOf: firstFrame, in: app), y: firstFrame.midY, in: app)
+        touch(x: firstFrame.midX, y: firstFrame.midY, in: app)
         // A completed task leaves "Yaklaşan".
         XCTAssertTrue(
             first.waitForNonExistence(timeout: 15),
-            "touch right of the task text did not complete the task")
+            "touch on the task text did not complete the task")
 
         // Right of the date, on the line under the words.
         let second = try taskText(dateLineTask, in: app)
@@ -79,12 +81,15 @@ final class TaskRowTapUITests: XCTestCase {
         return element
     }
 
-    /// A point inside the row and clear of the drawn content: between the content's trailing
-    /// edge and the page margin.
+    /// A point inside the row and clear of the drawn content: halfway between the content's
+    /// trailing edge and the "›" target at the row's end (44 pt inside the card's 16 pt padding
+    /// and the 16 pt page margin). A touch a few points from the "›" still lands on it.
     @MainActor
     private func emptyX(rightOf frame: CGRect, in app: XCUIApplication) -> CGFloat {
-        let x = app.frame.maxX - 28
-        XCTAssertGreaterThan(x, frame.maxX + 20, "no empty area right of the content (frame \(frame))")
+        let chevronMinX = app.frame.maxX - 16 - 16 - 44
+        let x = (frame.maxX + chevronMinX) / 2
+        XCTAssertGreaterThan(
+            chevronMinX - frame.maxX, 40, "no empty area right of the content (frame \(frame))")
         return x
     }
 }

@@ -92,13 +92,23 @@ private struct GoalListContent: View {
         }
     }
 
-    private var dailyGoals: [GoalDefinition] {
-        orderedGoals.filter { $0.period == .day && $0.kind != .milestone }
+    /// The summary card's rings: daily and weekly goals (the drawing's Kitap, Su and Spor).
+    private var ringGoals: [GoalDefinition] {
+        orderedGoals.filter { $0.period != .year && $0.kind != .milestone }
+    }
+
+    /// "Bugün 1/3 tamam" under the title: today's goals done out of all ringed goals.
+    private var todayLine: String? {
+        guard let answer, !ringGoals.isEmpty else { return nil }
+        let done = ringGoals.filter {
+            model.shownStatus(for: $0, answer: answer.statuses[$0.id]).progress.isComplete
+        }.count
+        return String(localized: "Bugün \(done)/\(ringGoals.count) tamam", locale: locale)
     }
 
     private var masthead: InkPageTitleRow<some View> {
-        InkPageTitleRow("Hedefler") {
-            InkHeaderAction("Yeni hedef", systemImage: "plus", role: .primary) {
+        InkPageTitleRow("Hedefler", byline: todayLine) {
+            InkHeaderAction("Yeni hedef", systemImage: "plus") {
                 showsCreation = true
             }
             .disabled(!store.canAddEvent)
@@ -110,8 +120,13 @@ private struct GoalListContent: View {
         List {
             InkScrolledMasthead(masthead)
             if let answer {
-                if !dailyGoals.isEmpty {
-                    dailyRingsRow(answer: answer)
+                if !ringGoals.isEmpty {
+                    summaryCard(answer: answer)
+                        .inkListRow()
+                }
+                if !orderedGoals.isEmpty {
+                    SectionHeader("Tüm hedefler", count: orderedGoals.count)
+                        .padding(.top, 8)
                         .inkListRow()
                 }
                 ForEach(orderedGoals, id: \.id) { goal in
@@ -232,30 +247,46 @@ private struct GoalListContent: View {
         return nil
     }
 
-    private func dailyRingsRow(answer: GoalListStatuses) -> some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: InkSpacing.row) {
-                ForEach(dailyGoals, id: \.id) { goal in
-                    let status = model.shownStatus(for: goal, answer: answer.statuses[goal.id])
-                    let ring = GoalDailyRingLabel(goal: goal, status: status, locale: locale)
-                    if let selection {
-                        Button {
-                            selection.wrappedValue = goal.id
-                        } label: {
-                            ring
+    /// The summary card: one large ring per daily and weekly goal, side by side.
+    private func summaryCard(answer: GoalListStatuses) -> some View {
+        InkCard(padded: true) {
+            ViewThatFits(in: .horizontal) {
+                HStack(alignment: .top, spacing: 8) {
+                    ForEach(ringGoals, id: \.id) { goal in
+                        summaryRing(goal: goal, answer: answer)
+                            .frame(maxWidth: .infinity)
+                    }
+                }
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(alignment: .top, spacing: 16) {
+                        ForEach(ringGoals, id: \.id) { goal in
+                            summaryRing(goal: goal, answer: answer)
                         }
-                        .buttonStyle(.plain)
-                    } else {
-                        NavigationLink {
-                            GoalDetailView(store: store, goal: goal, day: model.day)
-                        } label: {
-                            ring
-                        }
-                        .buttonStyle(.plain)
                     }
                 }
             }
-            .padding(.vertical, 4)
+        }
+    }
+
+    @ViewBuilder
+    private func summaryRing(goal: GoalDefinition, answer: GoalListStatuses) -> some View {
+        let status = model.shownStatus(for: goal, answer: answer.statuses[goal.id])
+        let ring = GoalSummaryRingLabel(goal: goal, status: status, locale: locale)
+        if let selection {
+            Button {
+                selection.wrappedValue = goal.id
+            } label: {
+                ring
+            }
+            .buttonStyle(.plain)
+        } else {
+            NavigationLink {
+                GoalDetailView(store: store, goal: goal, day: model.day)
+            } label: {
+                ring
+            }
+            .buttonStyle(.plain)
+            .navigationLinkIndicatorVisibility(.hidden)
         }
     }
 
@@ -270,46 +301,44 @@ private struct GoalListContent: View {
     }
 }
 
-/// One daily goal in the horizontal rings row under the masthead.
-private struct GoalDailyRingLabel: View {
+/// One goal in the summary card: a large progress ring with the percent, the name and the value.
+private struct GoalSummaryRingLabel: View {
     let goal: GoalDefinition
     let status: GoalStatus
     let locale: Locale
+    @ScaledMetric(relativeTo: .body) private var side: CGFloat = 64
 
     var body: some View {
         let progress = GoalRowPresentation.progress(goal: goal, status: status)
         let complete = progress >= 1
-        let center =
-            complete
-            ? "✓"
-            : GoalListPresentation.percentLabel(
-                done: status.progress.done, target: goal.target, locale: locale)
-        VStack(spacing: 6) {
-            GoalRing(
-                progress: progress,
-                isBoolean: GoalStripPresentation.isBooleanRing(goal: goal),
-                diameter: InkSize.dayRing,
-                centerLabel: center
-            )
+        let percent = GoalListPresentation.percentLabel(
+            done: status.progress.done, target: goal.target, locale: locale)
+        VStack(spacing: 4) {
+            GoalRing(progress: progress, diameter: side, centerLabel: percent, emphasizesArc: true)
+                .padding(.bottom, 4)
             Text(verbatim: goal.name)
-                .font(.ink.content)
-                .foregroundStyle(complete ? Color.ink.secondaryText : Color.ink.text)
+                .font(.ink.meta.weight(.semibold))
+                .foregroundStyle(Color.ink.text)
                 .lineLimit(1)
             Text(verbatim: valueLine(complete: complete))
                 .font(.ink.meta)
                 .foregroundStyle(Color.ink.secondaryText)
                 .lineLimit(1)
+                .minimumScaleFactor(0.8)
         }
         .frame(minWidth: 72)
-        .accessibilityElement(children: .combine)
+        .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text(verbatim: goal.name))
-        .accessibilityValue(
-            Text(
-                verbatim: GoalListPresentation.percentLabel(
-                    done: status.progress.done, target: goal.target, locale: locale)))
+        .accessibilityValue(Text(verbatim: "\(percent), \(valueLine(complete: complete))"))
     }
 
     private func valueLine(complete: Bool) -> String {
+        if goal.period == .week {
+            let amount =
+                status.progress.done.formatted(.number.locale(locale)) + "/"
+                + goal.target.formatted(.number.locale(locale))
+            return String(localized: "bu hafta \(amount)", locale: locale)
+        }
         let base = GoalRowPresentation.valueText(goal: goal, status: status) ?? ""
         return complete ? "✓ \(base)" : base
     }
@@ -335,13 +364,15 @@ private struct GoalListCard<Detail: View>: View {
     let onIncrement: () -> Void
     let onUnmark: () -> Void
 
+    @ScaledMetric(relativeTo: .body) private var plusSide: CGFloat = 46
+
     private var progress: Double { GoalRowPresentation.progress(goal: goal, status: status) }
     private var complete: Bool { progress >= 1 }
     private var isBooleanMark: Bool { goal.kind == .boolean || goal.kind == .milestone }
 
     var body: some View {
         InkCard(padded: true) {
-            HStack(alignment: .top, spacing: 12) {
+            HStack(alignment: .center, spacing: 12) {
                 openSection
                 trailingControl
             }
@@ -361,6 +392,8 @@ private struct GoalListCard<Detail: View>: View {
                 body
             }
             .buttonStyle(.plain)
+            // The drawing's row has no "›": the "+" is the only trailing mark.
+            .navigationLinkIndicatorVisibility(.hidden)
             .accessibilityLabel(Text(verbatim: accessibilityLabelText))
             .accessibilityHint(Text(openHint))
         } else if let onOpen {
@@ -394,38 +427,53 @@ private struct GoalListCard<Detail: View>: View {
     }
 
     private var cardBody: some View {
-        HStack(alignment: .top, spacing: 12) {
-            GoalRing(
-                progress: progress,
-                isBoolean: GoalStripPresentation.isBooleanRing(goal: goal),
-                centerLabel: complete ? "✓" : nil
-            )
-            VStack(alignment: .leading, spacing: 6) {
-                HStack(alignment: .firstTextBaseline, spacing: 8) {
-                    Text(verbatim: goal.name)
-                        .font(.ink.content)
-                        .foregroundStyle(complete ? Color.ink.secondaryText : Color.ink.text)
-                    TagChip(title: GoalListPresentation.periodChip(goal.period, locale: locale))
-                }
-                if let value = GoalRowPresentation.valueText(goal: goal, status: status) {
-                    Text(verbatim: value)
-                        .font(.ink.value)
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                if complete {
+                    Image(systemName: "checkmark")
+                        .font(.ink.meta.weight(.semibold))
                         .foregroundStyle(Color.ink.secondaryText)
-                } else if goal.kind == .milestone {
-                    Text(verbatim: GoalRowPresentation.meta(goal: goal, status: status) ?? "")
-                        .font(.ink.meta)
-                        .foregroundStyle(Color.ink.secondaryText)
+                        .accessibilityHidden(true)
                 }
-                meter
-                if goal.kind != .milestone, goal.period == .day {
-                    streakLine
-                } else if goal.period == .week, goal.kind != .milestone {
-                    Text(verbatim: weekProgress)
-                        .font(.ink.meta)
-                        .foregroundStyle(Color.ink.secondaryText)
-                }
+                Text(verbatim: goal.name)
+                    .font(.ink.content.weight(.semibold))
+                    .foregroundStyle(complete ? Color.ink.secondaryText : Color.ink.text)
+                TagChip(title: GoalListPresentation.periodChip(goal.period, locale: locale))
+            }
+            if goal.kind == .milestone {
+                Text(verbatim: GoalRowPresentation.meta(goal: goal, status: status) ?? "")
+                    .font(.ink.meta)
+                    .foregroundStyle(Color.ink.secondaryText)
+            } else {
+                Text(valueLine)
+                    .font(.ink.meta)
+                    .foregroundStyle(Color.ink.secondaryText)
+                    .monospacedDigit()
+            }
+            meter
+            if goal.kind != .milestone, goal.period == .day {
+                streakLine
             }
         }
+    }
+
+    /// "**30/20** sayfa · Son 30 gün %87" (daily) or "**17/24** kitap · 7 kitap kaldı".
+    private var valueLine: AttributedString {
+        var amount = AttributedString(
+            status.progress.done.formatted(.number.locale(locale)) + "/"
+                + goal.target.formatted(.number.locale(locale)))
+        amount.inlinePresentationIntent = .stronglyEmphasized
+        amount.foregroundColor = complete ? Color.ink.secondaryText : Color.ink.text
+        var line = amount
+        if let unit = goal.unit, !unit.isEmpty { line += AttributedString(" " + unit) }
+        let tail: String? =
+            goal.period == .day
+            ? status.score.map { GoalScoreCopy.sentence($0, locale: locale) }
+            : GoalListPresentation.remainingText(goal: goal, status: status, locale: locale)
+                ?? (goal.period == .week
+                    ? String(localized: "Bu hafta", locale: locale) : nil)
+        if let tail { line += AttributedString(" · " + tail) }
+        return line
     }
 
     @ViewBuilder private var meter: some View {
@@ -440,38 +488,33 @@ private struct GoalListCard<Detail: View>: View {
     }
 
     private var streakLine: some View {
-        VStack(alignment: .leading, spacing: 2) {
-            HStack(alignment: .firstTextBaseline, spacing: 6) {
+        HStack(alignment: .firstTextBaseline, spacing: 6) {
+            Label {
                 Text(verbatim: GoalListPresentation.streakText(status.streak, locale: locale))
-                    .font(.ink.meta)
-                    .foregroundStyle(Color.ink.secondaryText)
-                if let badge = GoalRowPresentation.graceBadge(
-                    goal: goal, status: status, locale: locale)
-                {
-                    badge
-                }
+            } icon: {
+                Image(systemName: "link")
+                    .foregroundStyle(Color.ink.accent)
             }
-            if let score = status.score {
-                Text(verbatim: GoalScoreCopy.sentence(score, locale: locale))
-                    .font(.ink.meta)
-                    .foregroundStyle(Color.ink.secondaryText)
+            .labelStyle(GoalStreakLabelStyle())
+            .font(.ink.meta)
+            .foregroundStyle(Color.ink.secondaryText)
+            if let badge = GoalRowPresentation.graceBadge(
+                goal: goal, status: status, locale: locale)
+            {
+                badge
             }
         }
-    }
-
-    private var weekProgress: String {
-        let amount =
-            status.progress.done.formatted(.number.locale(locale)) + "/"
-            + goal.target.formatted(.number.locale(locale))
-        return String(localized: "bu hafta \(amount)", locale: locale)
     }
 
     @ViewBuilder private var trailingControl: some View {
         if isBooleanMark {
             if markedToday {
                 Button(action: onUnmark) {
-                    GoalRing(progress: 1, isBoolean: true, centerLabel: "✓")
-                        .frame(width: InkSize.plus, height: InkSize.plus)
+                    Image(systemName: "checkmark")
+                        .font(.title3.weight(.semibold))
+                        .foregroundStyle(Color.ink.secondaryText)
+                        .frame(width: plusSide, height: plusSide)
+                        .background(Circle().fill(Color.ink.well))
                         .frame(minWidth: 44, minHeight: 44)
                 }
                 .buttonStyle(.plain)
@@ -497,17 +540,25 @@ private struct GoalListCard<Detail: View>: View {
 
     private var plusGlyph: some View {
         Image(systemName: "plus")
-            .font(.body.weight(.semibold))
+            .font(.title3.weight(.medium))
             .foregroundStyle(Color.ink.accent)
-            .frame(width: InkSize.plus, height: InkSize.plus)
+            .frame(width: plusSide, height: plusSide)
             .background {
-                ZStack {
-                    Circle().fill(Color.ink.control)
-                    Circle().inset(by: InkStroke.control).fill(Color.ink.paper)
-                }
+                Circle().fill(Color.ink.well)
+                Circle().strokeBorder(Color.ink.rule, lineWidth: 1)
             }
             .frame(minWidth: 44, minHeight: 44)
             .contentShape(Rectangle())
             .opacity(canEdit && !markReadOnly ? 1 : InkGoalRowTrailing.busyPlusOpacity)
+    }
+}
+
+/// Icon and title close together on one baseline ("🔗 Zincir 12 gün").
+private struct GoalStreakLabelStyle: LabelStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 4) {
+            configuration.icon.accessibilityHidden(true)
+            configuration.title
+        }
     }
 }

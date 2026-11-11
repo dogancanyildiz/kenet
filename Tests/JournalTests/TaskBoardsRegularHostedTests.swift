@@ -94,9 +94,20 @@
             }
         }
 
-        @Test func timelineTabShellKeepsTheDayList() async throws {
+        /// The tab shell keeps the phone page however wide the window: the Çeyrek chart in a card
+        /// with the phone's narrow label column (screens.md, Telefon: kartlı Gantt), not the
+        /// desktop chart with its 260 pt column and detail panel.
+        @Test func timelineTabShellKeepsThePhonePage() async throws {
             try await Self.hosted(.tabs, board: .timeline) { hosted in
-                #expect(!Self.views(UICollectionView.self, under: hosted.host.view).isEmpty, "no day list")
+                let scrollers = Self.views(UIScrollView.self, under: hosted.host.view)
+                    .filter { !($0 is UICollectionView) }
+                    .map { ($0.convert($0.bounds, to: hosted.window), $0.contentSize) }
+                let chart = try #require(Self.chart(in: hosted), "no chart: \(scrollers)")
+                let frame = chart.convert(chart.bounds, to: hosted.window)
+                #expect(
+                    frame.minX < TimelineDesktopMetrics.labelColumnWidth,
+                    "the chart starts after the desktop label column: \(frame), \(scrollers)")
+                #expect(hosted.host.presentedViewController == nil)
             }
         }
 

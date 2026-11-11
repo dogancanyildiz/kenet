@@ -4,7 +4,7 @@ import VaultFormat
 /// Seven small day squares under a daily goal card: filled / empty / forgiven; today outlined.
 struct GoalTallyStrip: View {
     let days: [GoalTallyDay]
-    @ScaledMetric(relativeTo: .caption) private var cell = 10
+    @ScaledMetric(relativeTo: .caption) private var cell: CGFloat = 14
     @Environment(\.locale) private var locale
 
     var body: some View {

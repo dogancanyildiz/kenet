@@ -38,6 +38,8 @@
             let calendar = CalendarService(source: SnapshotCalendarSource())
             let location = LocationService(source: FakeLocationSource(), defaults: defaults)
             let store = context.store
+            // Waited for below: the graph loads after the index goes idle (GraphScreenModel.load).
+            let graph = GraphView.makeModel(store: store, scope: .day(Self.day))
             let root = NavigationStack {
                 switch snapshotCase {
                 case .dayMastheadLight:
@@ -45,7 +47,7 @@
                 case .dayScheduleLight:
                     DayView(store: store, date: Self.day, isToday: false)
                 case .dayGraphLight:
-                    GraphView(store: store, scope: .day(Self.day), liveMotion: false)
+                    GraphView(model: graph, liveMotion: false)
                 }
             }
             .environment(notifications)
@@ -63,6 +65,7 @@
                 increaseContrast: false,
                 named: snapshotCase.rawValue,
                 store: store,
+                isReady: { snapshotCase != .dayGraphLight || (graph.hasLoaded && !graph.isLoading) },
                 testName: "dayGraph",
                 content: { root }
             )

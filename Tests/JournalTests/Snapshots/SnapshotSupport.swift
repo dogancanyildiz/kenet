@@ -254,9 +254,11 @@
             }
         }
 
-        static func hostedView(screen: SnapshotScreen, store: IndexStore, defaults: UserDefaults)
-            -> some View
-        {
+        /// - Parameter graph: The Graph screens' model, kept by the caller to wait for its load
+        ///   (``graphModel(for:store:)``); `nil` makes a fresh one.
+        static func hostedView(
+            screen: SnapshotScreen, store: IndexStore, defaults: UserDefaults, graph: GraphScreenModel? = nil
+        ) -> some View {
             defaults.set(TasksModel.Section.upcoming.rawValue, forKey: TasksModel.Section.storageKey)
             let notifications = NotificationService(
                 center: FakeNotificationCenter(), defaults: defaults,
@@ -289,10 +291,13 @@
                     AnyView(GoalsView(store: store))
                 case .summaries:
                     AnyView(SummariesView(store: store, today: { snapshotDay }))
-                case .graph:
-                    AnyView(GraphView(store: store, liveMotion: false))
-                case .graphSelected:
-                    AnyView(GraphView(store: store, focus: "people/Deniz Arıkan.md", liveMotion: false))
+                case .graph, .graphSelected:
+                    AnyView(
+                        GraphView(
+                            model: graph
+                                ?? GraphView.makeModel(
+                                    store: store, focus: screen == .graphSelected ? selectedNode : nil),
+                            liveMotion: false))
                 case .map:
                     AnyView(PlacesMapView(store: store))
                 case .goalDetail:
@@ -384,6 +389,18 @@
             }
         }
 
+        /// The node `graphSelected` opens with.
+        static let selectedNode = "people/Deniz Arıkan.md"
+
+        /// The Graph screens' model; `nil` for every other screen.
+        static func graphModel(for screen: SnapshotScreen, store: IndexStore) -> GraphScreenModel? {
+            switch screen {
+            case .graph: GraphView.makeModel(store: store)
+            case .graphSelected: GraphView.makeModel(store: store, focus: selectedNode)
+            default: nil
+            }
+        }
+
         /// Case-based entry: builds the shared ``hostedView`` and funnels into ``assertView``.
         static func assert(
             named name: String,
@@ -398,6 +415,10 @@
             line: UInt = #line,
             testName: String = "screen"
         ) async {
+            // The graph loads and settles its layout off the index (`GraphScreenModel.load`): the
+            // index going idle does not mean it is drawn (run 42945363123 captured "Yükleniyor…").
+            let graph = graphModel(for: screen, store: store)
+            let isReady: @MainActor () -> Bool = { graph.map { $0.hasLoaded && !$0.isLoading } ?? true }
             await assertView(
                 colorScheme: colorScheme,
                 dynamicType: dynamicType,
@@ -407,11 +428,12 @@
                 shell: shell,
                 size: shell == .phone ? canvasSize(for: screen, dynamicType: dynamicType) : shell.size,
                 clock: clock(for: screen),
+                isReady: isReady,
                 testName: testName,
                 file: file,
                 line: line
             ) {
-                hostedView(screen: screen, store: store, defaults: defaults)
+                hostedView(screen: screen, store: store, defaults: defaults, graph: graph)
             }
         }
 
@@ -490,8 +512,9 @@
                 host.view.setNeedsLayout()
                 host.view.layoutIfNeeded()
                 // Index + goal-strip `.task`: wait until processing stays idle across several frames.
+                // Up to 10 s: a slow runner's load, not a fixed delay, decides when the capture is taken.
                 var idlePasses = 0
-                for _ in 0..<80 {
+                for _ in 0..<200 {
                     await Task.yield()
                     try? await Task.sleep(for: .milliseconds(50))
                     host.view.setNeedsLayout()

@@ -73,7 +73,7 @@ final class GoalCardTapUITests: XCTestCase {
         let field = app.descendants(matching: .any)["field.goal.amount"]
         XCTAssertTrue(waitUntil { (field.value as? String) == "1" }, "+1 did not add to 27 Eyl")
 
-        field.tap()
+        UITestSupport.focus(field)
         field.typeText(XCUIKeyboardKey.delete.rawValue + "5")
         // Back without Enter or ✓: the page goes away and writes the typed value.
         app.buttons["button.back"].firstMatch.tap()

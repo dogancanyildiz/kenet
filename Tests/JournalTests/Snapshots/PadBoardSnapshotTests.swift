@@ -26,23 +26,36 @@
     struct PadBoardSnapshotTests {
         @Test(arguments: PadBoardCase.allCases)
         func board(_ snapshotCase: PadBoardCase) async throws {
+            var board: KanbanModel?
+            let isReady: @MainActor () -> Bool = {
+                snapshotCase.section == .timeline || (board.map(Self.isLoaded) ?? false)
+            }
             try await PadSnapshotHost.assertWindow(
                 named: snapshotCase.rawValue, testName: "board", canvas: .pad13Landscape,
-                colorScheme: snapshotCase.colorScheme, shellKind: .split
+                colorScheme: snapshotCase.colorScheme, shellKind: .split,
+                isReady: isReady
             ) { scene in
                 let tasks = TasksModel(store: scene.store, today: { snapshotDay })
                 tasks.section = snapshotCase.section
                 if snapshotCase == .timelineDayLight { tasks.viewState.timelineScale = .day }
+                let model = KanbanModel.board(for: tasks)
+                board = model
                 return AnyView(
                     Group {
                         if snapshotCase.section == .timeline {
                             TaskTimelineView(tasks: tasks, showsFilters: true)
                         } else {
-                            KanbanView(tasks: tasks, showsFilters: true)
+                            KanbanView(tasks: tasks, showsFilters: true, board: model)
                         }
                     }
                     .inkPage())
             }
+        }
+
+        /// The board's columns and its byline counts (``TasksModel/isListCurrent``) both answer the
+        /// index as it is now.
+        static func isLoaded(_ board: KanbanModel) -> Bool {
+            board.rows != nil && board.tasks.isListCurrent
         }
     }
 #endif

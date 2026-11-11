@@ -12,7 +12,7 @@ struct AccessibilityAuditExemption {
         case identifier(String)
         case identifierPrefix(String)
         case catalogKey(String)
-        /// A label that carries the key's text among other parts ("Kişi · … · Son görülme: …").
+        /// A label that carries the key's text among other parts ("Kişi · … · son görülme …").
         case containsCatalogKey(String)
         /// System chrome the catalog does not hold: its label in the test languages.
         case systemLabel([String])
@@ -131,7 +131,7 @@ extension AccessibilityAuditExemption {
             reason: Reason.entityPage),
         .init(type: .dynamicType, element: .catalogKey("Tümünü göster (%lld)"), reason: Reason.entityPage),
         .init(type: .dynamicType, element: .catalogKey("İlk geçiş"), reason: Reason.entityPage),
-        .init(type: .dynamicType, element: .containsCatalogKey("Son görülme: %@"), reason: Reason.entityPage),
+        .init(type: .dynamicType, element: .containsCatalogKey("son görülme %@"), reason: Reason.entityPage),
         .init(type: .dynamicType, element: .labelPattern(Pattern.shortDate), reason: Reason.entityPage),
         // Settings section rows (`PhoneSettingsView` InkCard): body text grows at AX3
         // (shellSheet.settingsSheetAX3.png); the audit's live size change does not reach list-cell text.
@@ -160,7 +160,7 @@ extension AccessibilityAuditExemption {
         // The entity page's byline (iPad detail column, a list cell): no line limit; it wraps and is
         // read whole at every size (entities.personDatesAX3.png; the iPad app measured at xxxLarge
         // and AX3). The audit reports it on the iPad only.
-        .init(type: .textClipped, element: .containsCatalogKey("Son görülme: %@"), reason: Reason.entityPage),
+        .init(type: .textClipped, element: .containsCatalogKey("son görülme %@"), reason: Reason.entityPage),
         // "Tümünü göster (n)" under the unlinked mentions: no line limit, it wraps. Reported only when
         // the row sits in the screen's lower third: the audit's size change grows the rows above and
         // pushes it under the tab bar; scrolled to the middle it is not reported (d5-ci-duzeltme.md).

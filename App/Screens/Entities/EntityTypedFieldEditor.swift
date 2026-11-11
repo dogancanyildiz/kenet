@@ -58,7 +58,8 @@ struct EntityTypedFieldEditor: View {
                 switch definition.kind {
                 case .date: DatePicker("Değer", selection: $date, displayedComponents: .date)
                 case .boolean: Toggle("Değer", isOn: $flag)
-                case .text, .number, .link: InkFilterField("Değer", text: $text).onSubmit { save() }
+                case .text, .number, .link:
+                    InkFilterField("Değer", text: $text, showsClearButton: false).onSubmit { save() }
                 }
             }
             .font(.ink.content)

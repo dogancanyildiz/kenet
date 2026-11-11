@@ -29,10 +29,10 @@ struct UnresolvedEntityView: View {
         } else {
             List {
                 InkScrolledMasthead(masthead)
-                InkFilterField("Ad", text: $model.name)
+                InkFilterField("Ad", text: $model.name, showsClearButton: false)
                     .inkListRow()
                 if model.needsQualifier {
-                    InkFilterField("Ayırt edici (ör. iş)", text: $model.qualifier)
+                    InkFilterField("Ayırt edici (ör. iş)", text: $model.qualifier, showsClearButton: false)
                         .inkListRow()
                     Button("Oluştur") { if let kind = model.kind { Task { await model.create(kind) } } }
                         .buttonStyle(InkTextButtonStyle())

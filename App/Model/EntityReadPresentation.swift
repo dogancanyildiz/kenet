@@ -13,18 +13,22 @@ enum EntityReadPresentation {
         var id: [UInt8] { Array(key.utf8) }
     }
 
-    /// Byline parts: type name, aliases, optional last-seen date text.
+    /// Byline parts (Şafak drawing): "Kişi · takma ad Baran · son görülme 19 Eyl". The year shows
+    /// only when the last-seen day falls in another year than `today`.
     static func byline(
-        kindLabel: String, aliases: [String], lastSeen: CalendarDate?, locale: Locale
+        kindLabel: String, aliases: [String], lastSeen: CalendarDate?, today: CalendarDate = LocalDay.today(),
+        locale: Locale
     ) -> String {
         var parts = [kindLabel]
         let aliasText = aliases.filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
             .joined(separator: ", ")
-        if !aliasText.isEmpty { parts.append(aliasText) }
+        if !aliasText.isEmpty { parts.append(String(localized: "takma ad \(aliasText)", locale: locale)) }
         if let lastSeen {
-            let date = LocalDay.instant(for: lastSeen).formatted(
-                .dateTime.day().month(.abbreviated).year().locale(locale))
-            parts.append(String(localized: "Son görülme: \(date)", locale: locale))
+            let style: Date.FormatStyle =
+                lastSeen.year == today.year
+                ? .dateTime.day().month(.abbreviated) : .dateTime.day().month(.abbreviated).year()
+            let date = LocalDay.instant(for: lastSeen).formatted(style.locale(locale))
+            parts.append(String(localized: "son görülme \(date)", locale: locale))
         }
         return parts.joined(separator: " · ")
     }

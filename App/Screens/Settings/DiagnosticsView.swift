@@ -39,19 +39,10 @@ struct DiagnosticsView: View {
                 }
                 InkCard(padded: false) {
                     VStack(alignment: .leading, spacing: 0) {
-                        ViewThatFits(in: .horizontal) {
-                            HStack(spacing: InkSpacing.row) {
-                                rebuildButton
-                                clearHistoryButton
-                            }
-                            VStack(alignment: .leading, spacing: 8) {
-                                rebuildButton
-                                clearHistoryButton
-                            }
-                        }
-                        .buttonStyle(.borderless)
-                        .frame(maxWidth: .infinity, minHeight: InkButtonChrome.minimumHeight, alignment: .leading)
-                        .padding(.horizontal, InkSpacing.cardPadding)
+                        // One action per row with a hairline between, as every other card row.
+                        actionRow(rebuildButton)
+                        InkCardDivider()
+                        actionRow(clearHistoryButton)
                         InkCardDivider()
                         countRow("Dosyalar", store.counts.files)
                         InkCardDivider()
@@ -172,6 +163,13 @@ struct DiagnosticsView: View {
         } catch {
             conflictCopies = []
         }
+    }
+
+    private func actionRow(_ button: some View) -> some View {
+        button
+            .buttonStyle(.borderless)
+            .frame(maxWidth: .infinity, minHeight: InkButtonChrome.minimumHeight, alignment: .leading)
+            .padding(.horizontal, InkSpacing.cardPadding)
     }
 
     private var rebuildButton: some View {

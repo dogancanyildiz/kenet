@@ -148,8 +148,8 @@ struct EntityEditSheet: View {
                     EntityFieldEditor(field: field, model: model).id(field.value)
                 }
                 VStack(alignment: .leading, spacing: InkSpacing.section) {
-                    InkFilterField("Alan adı", text: $newKey)
-                    InkFilterField("Değer", text: $newValue)
+                    InkFilterField("Alan adı", text: $newKey, showsClearButton: false)
+                    InkFilterField("Değer", text: $newValue, showsClearButton: false)
                     Button("Alan ekle") {
                         let key = newKey
                         let value = newValue
@@ -321,7 +321,7 @@ private struct PersonCadenceEditor: View {
                 "Görüşme ritmi", selection: $draft.choice, options: options,
                 identifier: "entity.cadence.menu")
             if draft.choice == .custom {
-                InkFilterField("Gün sayısı", text: $draft.customText)
+                InkFilterField("Gün sayısı", text: $draft.customText, showsClearButton: false)
                     .onSubmit { save() }
             }
             Button("Kaydet") { save() }

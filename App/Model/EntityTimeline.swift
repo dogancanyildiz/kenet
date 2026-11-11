@@ -12,6 +12,10 @@ struct EntityTimelineRow: Identifiable, Sendable {
     let file: String
     let ordinal: Int
     let text: LinkedText
+    /// The block's kind (`event`, `task`, `paragraph`…): the card's icon and second line.
+    var kind: String = ""
+    /// The event's own time ("10:30"), when the line has one.
+    var time: String? = nil
     var id: String { file + ":" + String(ordinal) }
 }
 
@@ -37,7 +41,8 @@ enum EntityTimeline {
             rows.append(
                 EntityTimelineRow(
                     file: entry.block.file, ordinal: entry.block.ordinal,
-                    text: LinkedText(row: entry.block, links: entry.links)))
+                    text: LinkedText(row: entry.block, links: entry.links), kind: entry.block.kind,
+                    time: entry.block.time))
             if offset == entries.count - 1 || entries[offset + 1].date != entry.date {
                 days.append(EntityTimelineDay(date: entry.date, rows: rows))
                 rows = []

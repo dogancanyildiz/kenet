@@ -23,7 +23,7 @@ struct EntityFilterField: View {
     @Binding var search: String
 
     var body: some View {
-        InkFilterField("Kişi veya konum ara", text: $search, identifier: "field.entities.filter")
+        InkFilterField("Süz", text: $search, identifier: "field.entities.filter")
             .autocorrectionDisabled()
     }
 }

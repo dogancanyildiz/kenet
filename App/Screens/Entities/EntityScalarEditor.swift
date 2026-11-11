@@ -60,7 +60,7 @@ struct EntityScalarEditor: View {
                             }
                         }
                 case .text, .empty, .number:
-                    InkFilterField("Değer", text: $text).onSubmit { submit() }
+                    InkFilterField("Değer", text: $text, showsClearButton: false).onSubmit { submit() }
                     Button("Kaydet") { submit() }.buttonStyle(InkTextButtonStyle())
                 }
             }

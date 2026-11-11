@@ -27,7 +27,7 @@ struct EntityAliasesEditor: View {
         VStack(alignment: .leading, spacing: InkSpacing.section) {
             ForEach($values) { $alias in
                 HStack(spacing: InkSpacing.section) {
-                    InkFilterField("Takma ad", text: $alias.text)
+                    InkFilterField("Takma ad", text: $alias.text, showsClearButton: false)
                     Button {
                         values.removeAll { $0.id == alias.id }
                     } label: {

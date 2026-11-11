@@ -26,6 +26,9 @@ struct EntityView: View {
     /// What a chip or a timeline row opens: pushed from outside the list, so rows draw no
     /// disclosure arrow (a `NavigationLink` in a list row adds one).
     @State private var pushed: EntityPagePush?
+    /// Optional: hosts without a calendar (some tests) draw no calendar section.
+    @Environment(CalendarService.self) private var calendar: CalendarService?
+    @State private var calendarModel = EntityCalendarModel()
 
     /// `model`: the page's file model; nil builds one for `entity`. A test hands its own in to rename
     /// the file as the edit sheet does and watch the page follow the new path.
@@ -160,6 +163,14 @@ struct EntityView: View {
         .background {
             UnlinkedMentionsLoader(model: unlinkedMentions, file: model.path)
         }
+        .task(
+            id: EntityCalendarLoadKey(
+                names: [current.name] + model.aliases, changes: calendar?.changeCount ?? 0,
+                canRead: calendar?.authorization.canRead ?? false)
+        ) {
+            guard current.kind == "person", let calendar else { return }
+            await calendarModel.load(calendar: calendar, names: [current.name] + model.aliases, now: clockNow())
+        }
         .preference(
             key: ImportantDatesReadyKey.self,
             value: !showsImportantDates || (model.isLoaded && importantDates.hasLoaded)
@@ -234,6 +245,9 @@ struct EntityView: View {
             EntityRelationsHost(store: store, path: model.path).id(model.path)
         }
         EntityOpenTasksView(store: store, rows: openTasks).id(model.path)
+        if current.kind == "person", calendar != nil {
+            EntityCalendarSection(name: current.name, model: calendarModel)
+        }
         UnlinkedMentionsSection(model: unlinkedMentions).id(model.path)
         timelineSection
         notesSection

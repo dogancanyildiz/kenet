@@ -177,6 +177,22 @@
         }
       }
     },
+    "%@ doğum günü" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@'s birthday"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ doğum günü"
+          }
+        }
+      }
+    },
     "%@ görev" : {
       "localizations" : {
         "en" : {
@@ -4514,6 +4530,22 @@
         }
       }
     },
+    "Başlangıç" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Starts"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Başlangıç"
+          }
+        }
+      }
+    },
     "Başlangıç tarihi" : {
       "localizations" : {
         "en" : {
@@ -4558,6 +4590,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Başlangıç: %@"
+          }
+        }
+      }
+    },
+    "Başlık" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Title"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Başlık"
           }
         }
       }
@@ -4882,6 +4930,22 @@
         }
       }
     },
+    "Bir etkinlikten düşürdüğün olay taslağı, sen gönderince günlüğüne yazılır." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "An entry drafted from an event is saved to your journal when you send it."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bir etkinlikten düşürdüğün olay taslağı, sen gönderince günlüğüne yazılır."
+          }
+        }
+      }
+    },
     "Bir görev seç" : {
       "localizations" : {
         "en" : {
@@ -5103,6 +5167,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Biten görev"
+          }
+        }
+      }
+    },
+    "Bitiş" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ends"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bitiş"
           }
         }
       }
@@ -5877,6 +5957,22 @@
         }
       }
     },
+    "Bu takvim salt okunur." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This calendar is read-only."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bu takvim salt okunur."
+          }
+        }
+      }
+    },
     "Bu tekrar kuralı uygulamada tanınmıyor. Değiştirmek için dosyada düzenle." : {
       "localizations" : {
         "en" : {
@@ -5905,6 +6001,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bu tipteki varlıklar burada görünecek."
+          }
+        }
+      }
+    },
+    "Bu ve sonrakiler" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This and following events"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bu ve sonrakiler"
           }
         }
       }
@@ -6789,6 +6901,22 @@
         }
       }
     },
+    "Doğum günü ekle" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add birthday"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Doğum günü ekle"
+          }
+        }
+      }
+    },
     "Duraklat" : {
       "localizations" : {
         "en" : {
@@ -7308,6 +7436,70 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Etiket geçersiz karakter içeriyor."
+          }
+        }
+      }
+    },
+    "Etkinlik silinsin mi?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete this event?"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Etkinlik silinsin mi?"
+          }
+        }
+      }
+    },
+    "Etkinlik takvime yazılamadı." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The event could not be saved to the calendar."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Etkinlik takvime yazılamadı."
+          }
+        }
+      }
+    },
+    "Etkinliği düzenle" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit event"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Etkinliği düzenle"
+          }
+        }
+      }
+    },
+    "Etkinliği sil" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete event"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Etkinliği sil"
           }
         }
       }
@@ -10012,6 +10204,22 @@
         }
       }
     },
+    "Her yıl tekrarlayan tüm gün etkinliği olarak takvime yazılır." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saved to your calendar as an all-day event that repeats every year."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Her yıl tekrarlayan tüm gün etkinliği olarak takvime yazılır."
+          }
+        }
+      }
+    },
     "Her zaman konum izni ver" : {
       "localizations" : {
         "en" : {
@@ -10601,6 +10809,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Katkı yok"
+          }
+        }
+      }
+    },
+    "Katılımcılar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Attendees"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Katılımcılar"
           }
         }
       }
@@ -13515,6 +13739,22 @@
         }
       }
     },
+    "Sistem varsayılanı" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "System default"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sistem varsayılanı"
+          }
+        }
+      }
+    },
     "Sistemin günlük önerilerinden birini seç" : {
       "localizations" : {
         "en" : {
@@ -14500,6 +14740,22 @@
         }
       }
     },
+    "Takvime etkinlik ekle" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add calendar event"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Takvime etkinlik ekle"
+          }
+        }
+      }
+    },
     "Tam katkı" : {
       "localizations" : {
         "en" : {
@@ -14992,6 +15248,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tekrar dene"
+          }
+        }
+      }
+    },
+    "Tekrar yok" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Does not repeat"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tekrar yok"
+          }
+        }
+      }
+    },
+    "Tekrarlayan etkinlik" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Repeating event"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tekrarlayan etkinlik"
           }
         }
       }
@@ -15517,6 +15805,22 @@
         }
       }
     },
+    "Uygulama takvim etkinliklerini okur. Takvime yalnız senin eklediğin, düzenlediğin ya da sildiğin etkinliği yazar; görevler ve olaylar takvime yazılmaz." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The app reads your calendar events. It writes to your calendar only the events you add, edit or delete; tasks and entries are never written to the calendar."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uygulama takvim etkinliklerini okur. Takvime yalnız senin eklediğin, düzenlediğin ya da sildiğin etkinliği yazar; görevler ve olaylar takvime yazılmaz."
+          }
+        }
+      }
+    },
     "Uygulama şablonu yalnız templates/ klasörüne yazar. Bu yolda şablon oluşmaz." : {
       "localizations" : {
         "en" : {
@@ -15837,6 +16141,22 @@
         }
       }
     },
+    "Varsayılan takvim" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Default calendar"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Varsayılan takvim"
+          }
+        }
+      }
+    },
     "Varsayılan tarih, değiştirmek için dokun" : {
       "localizations" : {
         "en" : {
@@ -15933,6 +16253,22 @@
         }
       }
     },
+    "Yaklaşan etkinlikler" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Upcoming events"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yaklaşan etkinlikler"
+          }
+        }
+      }
+    },
     "Yakınlaştır" : {
       "localizations" : {
         "en" : {
@@ -15945,6 +16281,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Yakınlaştır"
+          }
+        }
+      }
+    },
+    "Yalnız bu etkinlik" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This event only"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yalnız bu etkinlik"
           }
         }
       }
@@ -16157,6 +16509,22 @@
         }
       }
     },
+    "Yazılabilir takvim yok." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No calendar accepts new events."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yazılabilir takvim yok."
+          }
+        }
+      }
+    },
     "Yazılacak bir şey seçilmedi." : {
       "localizations" : {
         "en" : {
@@ -16265,6 +16633,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Yeni %@"
+          }
+        }
+      }
+    },
+    "Yeni etkinlik" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New event"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yeni etkinlik"
           }
         }
       }
@@ -16713,6 +17097,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Yıllık ilerleme"
+          }
+        }
+      }
+    },
+    "Zaman" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Time"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zaman"
           }
         }
       }
@@ -18375,6 +18775,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Özel"
+          }
+        }
+      }
+    },
+    "Özel tekrar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Custom repeat"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Özel tekrar"
           }
         }
       }

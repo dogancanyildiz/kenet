@@ -195,7 +195,7 @@ Uygulama açılışta Bugün ekranını gösterir. Bölüm 2–9 kartlarda durur
 | 1 | Gün başlığı | 17 | Solda gün halkası, yanında gün rakamı ve gün adı, sağda arama ve Ayarlar. Altında hafta şeridi, onun altında künye cümlesi ve 3 çip. | Her zaman. Künye ve çipler yalnız söyleyecek bir şey varken görünür. |
 | 2 | Hedefler | 3 | Günlük dönemli hedefler. Altında haftalık ve yıllık hedefler aynı satır bileşeniyle durur. | Hedef varken. |
 | 3 | Görevler | 2 | Devreden görevler, bugünün görevleri ve bugün yazılan açık görevler. Bugün yazılan görev bitiş tarihi ileride olsa da görünür. | Görev varken. |
-| 4 | Takvim | 2, 10 | Cihaz takvimindeki bugünkü etkinlikler. Salt okunur satır. | İzin sorulmadıysa ya da etkinlik varsa. |
+| 4 | Takvim | 2, 10, 11 | Cihaz takvimindeki bugünkü etkinlikler. Satır etkinlik ayrıntısını açar. Başlığın sağında "Takvime etkinlik ekle" düğmesi durur. | İzin sorulmadıysa ya da okuma izni varsa. |
 | 5 | Olaylar | 1 | Bugün yazılan olaylar, dosyadaki sırayla. İşaret sütununda saat durur. | Olay varken. |
 | 6 | Bağlam | 10 | "Bu gün geçmişte" ve "Önemli tarihler" satırları. Başlık yoktur. | Yalnız Bugün'de, söyleyecek bir şey varken. |
 | 7 | Günlük yazısı | 1 | Serbest yazının ilk 4 satırı ve "Devamını yaz". | Her zaman. |
@@ -261,14 +261,39 @@ Varsayılan yazı boyutunda hızlı giriş iki satırlı bir karttır: üstte ki
 | Toplu yazma | Uygulama her görevi yazmadan hemen önce dosyadan yeniden okur ve ayrı yazar. Bir görev değişmişse ya da yazma hata verirse uygulama kalan görevleri yine yazar. |
 | Sonuç | Bilgi bandı sayıları gösterir: taşınan, değişmiş olduğu için taşınmayan ve taşınamayan görev. Otomatik yeniden deneme yoktur. |
 
-#### Takvim bölümü (2, 10)
+#### Takvim bölümü (2, 10, 11)
 
 | Konu | Davranış |
 |---|---|
 | İzin sorulmadı | Bölüm "Takvim etkinliklerini göstermek için izin ver" düğmesini gösterir. |
-| İzin var | Bölüm yalnız etkinlik ya da okuma hatası varken görünür. Hata bandında "Yeniden dene" durur. |
+| İzin var | Bölüm her zaman görünür. Etkinlik yoksa kartta tek satır durur: "Takvime etkinlik ekle". Okuma hatasında bantta "Yeniden dene" durur. |
 | İzin yok | Bölüm, satır ve eylem yoktur. |
-| Olay taslağı | Satırın bağlam menüsündeki **Olay taslağı** etkinliği o günün hızlı girişine taslak olarak koyar. VoiceOver'da aynı adlı eylem vardır. Ayrıntı [Hızlı giriş](#hızlı-giriş-1-2) bölümündedir. |
+| Ekle | Başlığın sağındaki "+" düğmesi etkinlik formunu o günle açar. VoiceOver adı "Takvime etkinlik ekle"dir. |
+| Satır | Satıra dokunma etkinlik ayrıntısı sheet'ini açar. Satırın altında takvimin adı yazar; tekrarlayan etkinlikte tekrar da yazar. |
+| Olay taslağı | Satırın bağlam menüsündeki ve ayrıntı sheet'indeki **Olay taslağı** etkinliği o günün hızlı girişine taslak olarak koyar. VoiceOver'da aynı adlı eylem vardır. Ayrıntı [Hızlı giriş](#hızlı-giriş-1-2) bölümündedir. |
+
+**Etkinlik ayrıntısı sheet'i (11).**
+
+| Konu | Davranış |
+|---|---|
+| İçerik | Başlık manşette. Altında tarih ve saat aralığı, takvimin adı, tekrar ve katılımcılar. |
+| Eylemler | "Düzenle", "Olay taslağı" ve kırmızı "Etkinliği sil". Kapat sağ üsttedir. |
+| Salt okunur takvim | Abonelik ve doğum günleri takvimi gibi yazılamayan takvimde "Düzenle" ve "Sil" yoktur. Sheet "Bu takvim salt okunur." yazar. |
+| Silme | Onay ister: "Etkinlik silinsin mi?". Tekrarlayan etkinlikte iki seçenek vardır: "Yalnız bu etkinlik" ve "Bu ve sonrakiler". |
+
+**Etkinlik formu (11).**
+
+| Alan | Davranış |
+|---|---|
+| Kalıp | Ortak sheet kalıbı: solda Vazgeç, sağda yeni etkinlikte "Oluştur", düzenlemede "Kaydet". Başlık boşken onay kapalıdır. |
+| Başlık | Tek satır metin alanı. |
+| Tüm gün | Anahtar. Açıkken başlangıç ve bitiş yalnız tarih seçer. |
+| Başlangıç ve bitiş | Tarih ve saat seçicileri. Yeni etkinlik bir sonraki tam saatte başlar ve 1 saat sürer. Bitiş başlangıçtan önce olamaz; uygulama bitişi başlangıca çeker. |
+| Tekrar | Menü: Yok, Her gün, Her hafta, Her ay, Her yıl. Takvimde başka bir kural varsa menüde "Özel" görünür; uygulama o kurala dokunmaz. |
+| Takvim | Menü: yazılabilir takvimler. Yeni etkinlikte seçim Ayarlar'daki varsayılan takvimdir. |
+| Tekrarlayan etkinliği kaydetme | Uygulama sorar: "Yalnız bu etkinlik" ya da "Bu ve sonrakiler". Tekrar değiştiyse yalnız ikincisi vardır. |
+| Hata | Yazılamayan etkinlikte sheet açık kalır ve hatayı bantta gösterir. |
+| Yazma | Uygulama yalnız takvime yazar. Gün dosyasına ve kasaya hiçbir şey yazılmaz. Görev ve olay takvime yazılmaz. |
 
 #### Olaylar bölümü
 
@@ -474,7 +499,7 @@ Uygulama önce dosyaya yazar, sonra indeksi günceller. Yazma hata verirse kutu 
 | Karşılığı olmayan katılımcı | Metne kendiliğinden girmez. Kutunun üstünde `+ Ad` çipi olur. Dokunma `@Ad` ekler. "Kişi olarak ekle" sorusu her `@` anmasındaki gibi gönderimde çıkar. |
 | Kullanılmayan bilgi | E-posta biçimindeki ad, boş ad, takvimin kullanıcının kendisi diye işaretlediği katılımcı, oda, kaynak, grup ve etkinliğin konumu. |
 | Dolu kutu | Kutuda taslak varsa eylem kutuya dokunmaz. Şerit nedenini söyler. |
-| Yazma | Kaydı kullanıcı gönderir. Gönderimden önce uygulama dosyaya yazmaz. Uygulama takvime hiçbir durumda yazmaz. |
+| Yazma | Kaydı kullanıcı gönderir. Gönderimden önce uygulama dosyaya yazmaz. Taslak takvime yazmaz. |
 | Temizleme | Kullanıcı metni tümüyle silince ya da gönderince taslağın saati ve çipleri de gider. |
 
 **Konum önerisi.**
@@ -524,6 +549,7 @@ flowchart TD
 | Gün başlığı | Hafta şeridinin altında günün tam tarihi: "12 Ekim Pazartesi"; başka yılın gününde yıl da yazar. Sağında günün sayıları durur: "3 olay · 2 görev". Sıfır olan parça yazılmaz. Bugün'deki künye cümlesi ve çipler yoktur. |
 | Saatli program | Solda saat sütunu, sağda olay ve görev kartları saat sırasıyla. Kartın solunda simge kutusu, sağında "›" durur. Görev kartı görev kutusunu taşır. Renkli çubuk yoktur. |
 | Saatsiz grubu | Saati olmayan olay ve görevler en altta "Saatsiz" başlığının altında, dosyadaki sırayla. |
+| Takvim | Gün başlığının altında, Bugün'deki [Takvim bölümü](#takvim-bölümü-2-10-11): o günün etkinlikleri ve "Takvime etkinlik ekle". |
 | Seçili kart | Dokunulan kart `accentSoft` zemin alır ve altında not satırını gösterir: olayın alt satırları ya da görevin tarihi. İkinci dokunma düzenlemeyi açar. |
 | Hedef kayıtları | O günün hedef kayıtları kartta. Kullanıcı kaydı düzeltir. |
 | Günlük yazısı ve bağlananlar | Bugün'deki kartların aynısı. |
@@ -804,6 +830,8 @@ Manşetin altında görünüm sekmesi durur. Sekmenin altında görünüme göre
 | 6 | Bağlar | Kişi, konum ve özel tipte; kart üstünde başlık ve "Bağ kur" düğmesi. Giden satır "eşi · Selin Korkmaz", etiketsizde yalnız addır. Gelen satır "Mert Aksu'nun sayfasında · iş arkadaşı", etiketsizde yalnız kaynak sayfadır. Dokunma karşı varlığı açar. Uzun basma / Mac ikincil tık yalnız giden bağda "Bağı kaldır" sunar; özel tipin şema alanından gelen bağda kaldırma yoktur, o bağ Alanlar’da düzenlenir. Bağ kur sheet’i üstte isteğe bağlı etiketi ve kasadaki etiket önerilerini, altında aramalı listeyle kendisi hariç kişi, konum ve özel tip seçimini içerir; çubukta solda Vazgeç, sağda Kaydet durur (hedef seçilince etkin). Çakışan alan ve ayrılmış ad hatası sheet’te kalır; kaldırma hatası bölümde bilgi bandıdır. |
 | 7 | Alanlar ve Diğer alanlar | 3. sıradaki Alanlar kartındadır; ayrı başlık yoktur. Şablon alanları anahtar-değer satırlarıdır. Yalnız çözülen, uygulamanın yazdığı biçimdeki wikilinklerden (`[[Ad]]`) oluşan şema dışı bağ anahtarları okuma ve serbest alan düzenleyicisinde tekrar görünmez. Görünen metin (`[[Ad|metin]]`) ya da çapa (`[[Ad#başlık]]`) taşıyan, karışık metinli, çözülmeyen ya da sayfanın kendisine bağlanan değeri olan alan Alanlar’da kalır; şemadaki `link` alanı da kalır. Tanınmayan ön bilgi anahtarları şablon alanlarının altında ham adıyla, ikincil renkte durur. Uygulama frontmatter'ı okuyamıyorsa "Frontmatter okunamıyor." yazar. |
 | 8 | Açık görevler (2) | Bu varlığa bağlı tamamlanmamış görevler. |
+| 8a | Yaklaşan etkinlikler (11) | Yalnız kişide ve takvim okuma izni varken. Bugünden sonraki 365 günde başlığı ya da katılımcısı kişinin adı veya takma adıyla eşleşen etkinlikler, en çok 5. Eşleşme tam sözcüktür ve harf boyuna bakmaz. Satır etkinlik ayrıntısını açar. Doğum günü etkinliği yoksa başlıkta "Doğum günü ekle" durur; eşleşen etkinlik yoksa bölüm yalnız bu düğmedir. |
+| 8b | Doğum günü ekle (11) | Tarih soran küçük sheet. Kaydet her yıl tekrarlayan tüm gün etkinliği yazar: "<Ad> doğum günü", varsayılan takvime. Doğum günü sayılan etkinlik: doğum günleri takviminden gelen ya da yıllık, tüm gün ve başlığı "doğum günü" veya "birthday" içeren. |
 | 9 | Bağlanmamış anmalar | Zaman akışının hemen üstünde. |
 | 10 | Zaman akışı | Bu varlığın geçtiği olaylar ve günlük paragrafları, yeniden eskiye. Her kayıt ayrı kart satırıdır: simge kutusu (olayda takvim, günlük yazısında kalem), metin, altında "19 Eyl Cmt · 10:30" ya da "19 Eyl Cmt · günlük yazısı", ok. Gün başlığı yoktur. Bölüm başlığında gün sayacı durur ("2 gün"). Her satır ait olduğu günü açar. Satırın bağlam menüsü ve VoiceOver eylemi "Günün grafiği"ni açar. Boşsa "Henüz günlük kaydı yok." yazar. |
 | 11 | Serbest notlar | Okumada ham wikilink ve blok kimliği gizlidir. Boşsa "—" yazar. |
@@ -1278,7 +1306,8 @@ stateDiagram-v2
 | Öğe | Davranış |
 |---|---|
 | Takvim izni | İzin düğmesi ve sistem ayarları bağlantısı. |
-| Takvim okuma | Uygulama etkinlikleri okur. Takvime hiçbir zaman yazmaz. Gün dosyasına yalnız kullanıcının gönderdiği olay taslağı gider. |
+| Takvim erişimi | Uygulama etkinlikleri okur. Kullanıcının eklediği, düzenlediği ve sildiği etkinliği takvime yazar. Görev ve olay takvime yazılmaz. Gün dosyasına yalnız kullanıcının gönderdiği olay taslağı gider. |
+| Varsayılan takvim | Okuma izni varken görünür. Menü yazılabilir takvimleri listeler. Yeni etkinlik ve doğum günü bu takvime gider. Seçim yoksa sistemin varsayılan takvimi kullanılır. |
 | Konum önerisi | Anahtar, konum izni ve sistem ayarları bağlantısı. |
 | Konuma girince | Yalnız iOS'ta, bu bölümün altında. macOS'ta gizlidir. Ayrıntı [Ayarlar — Konuma girince](#ayarlar--konuma-girince-4-ios) bölümündedir. |
 

@@ -58,7 +58,7 @@ import VaultFormat
             let service = CalendarService(source: source)
             await service.load(day)
             #expect(service.authorization == status)
-            #expect(service.showsSection(on: day) == status.canRequest)
+            #expect(service.showsSection(on: day) == (status.canRequest || status.canRead))
             #expect(source.requests == 0)
             #expect(source.ranges.count == (status.canRead ? 1 : 0))
         }
@@ -150,7 +150,8 @@ import VaultFormat
         source.failRead = false
         await service.load(day)
         #expect(service.errorText == nil)
-        #expect(!service.showsSection(on: day))
+        // With read access the empty section stays: it holds "Takvime etkinlik ekle".
+        #expect(service.showsSection(on: day))
         source.authorization = .notDetermined
         source.failRequest = true
         await service.refresh()

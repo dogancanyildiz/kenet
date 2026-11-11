@@ -273,6 +273,36 @@
 
         // MARK: - List column
 
+        /// A selectable column list draws its own selection: the keyboard focus halo (iPadOS draws
+        /// it in the cell's tint) is not drawn over it in the split shell, as in the sidebar
+        /// (fark2 D4, D10). The tab shell keeps the system's tint.
+        @Test(arguments: [ShellKind.split, .tabs])
+        func columnListDrawsNoFocusHalo(_ kind: ShellKind) async throws {
+            let selection = "a"
+            let host = try HostedWindow(size: CGSize(width: 320, height: 240)) {
+                List(selection: .constant(Optional(selection))) {
+                    Text(verbatim: "Seçili").inkListRow(columnSelected: true).tag("a")
+                    Text(verbatim: "Diğer").inkListRow(columnSelected: false).tag("b")
+                }
+                .listStyle(.plain)
+                .inkColumnListFocus()
+                .environment(\.shellKind, kind)
+            }
+            defer { host.close() }
+            await host.settle()
+            let list = try #require(host.views(UICollectionView.self).first)
+            let cells = list.visibleCells
+            try #require(cells.count == 2)
+            for cell in cells {
+                switch kind {
+                case .split:
+                    #expect(cell.tintColor.alpha == 0, "a halo would be drawn in \(String(describing: cell.tintColor))")
+                case .tabs:
+                    #expect(cell.tintColor.alpha > 0, "the phone lost its tint")
+                }
+            }
+        }
+
         /// The split shell's list rows select like the Mac's (recessed fill, accent rule); the
         /// tab shell keeps paper and the search wash.
         @Test(arguments: [ShellKind.split, .tabs])
@@ -296,21 +326,22 @@
             let fill = image.color(at: CGPoint(x: selected.midX, y: selected.minY + 6))
             let mark = image.color(
                 at: CGPoint(
-                    x: selected.minX + InkListSelectionChrome.horizontalInset + InkListSelectionChrome.markWidth / 2,
+                    x: selected.minX + InkListSelectionChrome.horizontalInset + InkListSelectionChrome.markInset
+                        + InkListSelectionChrome.markWidth / 2,
                     y: selected.midY))
             let idle = image.color(at: CGPoint(x: other.midX, y: other.minY + 6))
             let paper = Pixels.color(.paper, style: .light)
             #expect(idle.isClose(to: paper), "an unselected row is paper: \(idle)")
             switch kind {
             case .split:
-                // Şafak: the selected row fills with `accentSoft` (design.md, Şafak kuralları).
-                let accentSoft = Pixels.color(.accentSoft, style: .light)
-                #expect(fill.isClose(to: accentSoft), "selected fill \(fill) is not accentSoft")
-                // The 2 pt rule at scale 1 meets the rounded clip: nearer the accent than the fill.
+                // Şafak `c-mac`: the selected row is a `surface` card (design.md, Liste seçimi).
+                let surface = Pixels.color(.surface, style: .light)
+                #expect(fill.isClose(to: surface), "selected fill \(fill) is not surface")
+                // The 3 pt bar 4 pt inside the card: nearer the accent than the fill.
                 let accent = Pixels.color(.accent, style: .light)
-                #expect(mark.distance(to: accent) < mark.distance(to: accentSoft) / 4, "no accent rule: \(mark)")
+                #expect(mark.distance(to: accent) < mark.distance(to: surface) / 4, "no accent bar: \(mark)")
             case .tabs:
-                #expect(!fill.isClose(to: Pixels.color(.accentSoft, style: .light)), "the phone drew the Mac selection")
+                #expect(!fill.isClose(to: Pixels.color(.surface, style: .light)), "the phone drew the Mac selection")
                 #expect(!fill.isClose(to: paper), "the search wash is gone: \(fill)")
             }
         }

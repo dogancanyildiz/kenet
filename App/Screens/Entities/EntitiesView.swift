@@ -147,60 +147,17 @@ struct EntitiesView: View {
             .first { $0.id == kind }?.plural ?? kind
     }
 
-    /// One action row (Şafak drawing "+ Yeni kişi"): the create button, then a "…" menu with
-    /// "Rehberden aktar" (people, iPhone) and "Yeni tip…", so the list starts on the first screen.
+    /// The shared action row: "+ Yeni kişi", then the "…" menu (``EntityActionRow``).
     private var actionRow: some View {
-        HStack(spacing: 12) {
-            if let creatable = EntityCreateEntry.kind(forList: kind, types: store.entityTypes) {
-                Button {
-                    creationKind = creatable
-                } label: {
-                    HStack(spacing: 8) {
-                        Image(systemName: "plus").accessibilityHidden(true)
-                        Text(
-                            verbatim: EntityCreateEntry.title(
-                                creatable, types: store.entityTypes,
-                                language: locale.language.languageCode?.identifier ?? "en"))
-                    }
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.ink.accent)
-                    .frame(minHeight: TapTarget.minimumLength)
-                    .contentShape(Rectangle())
-                }
-                // Two controls share the list row: each keeps its own tap.
-                .buttonStyle(.borderless)
-                .disabled(!store.canAddEvent)
-                .accessibilityIdentifier(EntityCreateEntry.identifier(creatable))
-            }
-            Spacer(minLength: 0)
-            Menu {
+        EntityActionRow(
+            store: store, kind: kind, create: { creationKind = $0 },
+            importContacts: {
                 #if os(iOS)
-                    if ContactImportEntry.isShown(forList: kind) {
-                        Button {
-                            showsContactPicker = true
-                        } label: {
-                            ContactImportEntry.label
-                        }
-                        .disabled(!store.canAddEvent)
-                        .accessibilityIdentifier(ContactImportEntry.identifier)
-                    }
+                    showsContactPicker = true
                 #endif
-                Button {
-                    showsTypeGallery = true
-                } label: {
-                    Label("Yeni tip…", systemImage: EntityTypeGalleryEntry.systemImage)
-                }
-                .disabled(!EntityTypeGalleryEntry.isEnabled(store))
-                .accessibilityIdentifier(EntityTypeGalleryEntry.identifier)
-            } label: {
-                Label("Diğer eylemler", systemImage: "ellipsis")
-                    .labelStyle(.iconOnly)
-                    .foregroundStyle(.ink.accent)
-                    .tapTarget()
-            }
-            .buttonStyle(.borderless)
-            .accessibilityIdentifier("menu.entities.more")
-        }
+            },
+            newType: { showsTypeGallery = true }
+        )
         .inkListRow()
     }
 

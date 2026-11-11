@@ -194,7 +194,7 @@ private struct GoalListContent: View {
             GoalColumnRow(
                 goal: goal, status: status, day: model.day, logs: model.logs[goal.key] ?? [],
                 locale: locale, isDisabled: goal.kind == .milestone && (!model.canEdit || markReadOnly),
-                onOpen: open)
+                isSelected: selection?.wrappedValue == goal.id, onOpen: open)
         } else {
             listCard(goal: goal, status: status, markedToday: markedToday, markReadOnly: markReadOnly)
         }
@@ -231,7 +231,8 @@ private struct GoalListContent: View {
                     }
                 }
             }
-            .inkListRow(columnSelected: selection?.wrappedValue == goal.id)
+            // The column's card draws its own selection (``View/inkCardSelection(_:cornerRadius:)``).
+            .inkListRow(columnSelected: isColumn ? false : selection?.wrappedValue == goal.id)
     }
 
     private func listCard(
@@ -597,6 +598,7 @@ private struct GoalColumnRow: View {
     let logs: [GoalLog]
     let locale: Locale
     let isDisabled: Bool
+    var isSelected = false
     let onOpen: () -> Void
     @ScaledMetric(relativeTo: .body) private var ringSide: CGFloat = 28
     @Environment(\.dynamicTypeSize) private var typeSize
@@ -618,6 +620,7 @@ private struct GoalColumnRow: View {
             .padding(.vertical, 10)
             .frame(maxWidth: .infinity, minHeight: TapTarget.minimumLength, alignment: .leading)
             .modifier(InkCardModifier(cornerRadius: InkCorner.md))
+            .inkCardSelection(isSelected)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)

@@ -3,18 +3,35 @@ import Testing
 
 @testable import Journal
 
-/// Mac list-column selection: the drawn fill is the well token, the mark is accent,
-/// and a sheet row does not inherit the column selection.
+/// Mac list-column selection: the selected row on paper is a `surface` card with an accent
+/// bar inside its leading edge, a row inside a section card takes `accentSoft`, and a sheet
+/// row does not inherit the column selection.
 struct InkListSelectionTests {
     private static let bodyMinimum = 4.5
 
     @Test func fillAndMarkArePaletteTokens() {
-        #expect(InkListSelectionChrome.fill == .accentSoft)
+        #expect(InkListSelectionChrome.fill == .surface)
+        #expect(InkListSelectionChrome.cardFill == .accentSoft)
         #expect(InkListSelectionChrome.mark == .accent)
-        #expect(InkListSelectionChrome.markWidth == InkSize.modeUnderline)
+        // Şafak `c-mac` `.tm-sel::before`: 3 px bar, 4 px inside the card, 12 px short of its ends.
+        #expect(InkListSelectionChrome.markWidth == 3)
+        #expect(InkListSelectionChrome.markInset == 4)
+        #expect(InkListSelectionChrome.markVerticalInset == 12)
         #expect(InkListSelectionChrome.cornerRadius == InkSize.listSelectionCorner)
         #expect(InkListSelectionChrome.horizontalInset == InkSpacing.listSelectionHorizontal)
         #expect(InkListSelectionChrome.verticalInset == InkSpacing.listSelectionVertical)
+    }
+
+    /// Text on the selected row inside a section card keeps the body minimum on `accentSoft`.
+    @Test func textTokensReadOnTheCardFill() {
+        for appearance in [InkPalette.Appearance.light, .dark] {
+            let background = InkListSelectionChrome.cardFill.variant.hex(for: appearance)
+            for token in InkListSelectionChrome.textTokens {
+                let ratio = InkPalette.contrastRatio(
+                    foreground: token.variant.hex(for: appearance), background: background)
+                #expect(ratio + 0.000_1 >= Self.bodyMinimum, "\(token.rawValue) on accentSoft \(appearance): \(ratio)")
+            }
+        }
     }
 
     @Test func keepingDropsAnIdThatLeftTheList() {
@@ -44,7 +61,10 @@ struct InkListSelectionTests {
                 #expect(
                     center.nearest(among: swatches) == .fill,
                     "center \(center) on \(appearance.scheme) is not the fill swatch \(swatches.fill)")
-                let mark = try #require(bitmap.color(x: 5, y: 24))
+                let markX =
+                    InkListSelectionChrome.horizontalInset + InkListSelectionChrome.markInset
+                    + InkListSelectionChrome.markWidth / 2
+                let mark = try #require(bitmap.color(x: Int(markX), y: 24))
                 #expect(
                     mark.nearest(among: swatches) == .mark,
                     "leading rule \(mark) on \(appearance.scheme) is not the mark swatch \(swatches.mark)")

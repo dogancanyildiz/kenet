@@ -344,7 +344,7 @@ Açık modda `tertiaryText` `#5E6168` değerindedir; önceki değer `#666972` id
 | `tertiaryText` (yeni) | `InkTertiaryText` | Yer tutucu, hafta şeridinde geçmiş gün, takvimde gelecek gün |
 | `accent` | `InkAccent`, `AccentColor` | Artı, gönder, seçili sekme, kip çizgisi, birincil düğme dolgusu |
 | `onAccent` | `InkOnAccent` | Vurgu dolgusundaki yazı ve simge |
-| `accentSoft` (yeni) | `InkAccentSoft` | Seçili liste satırı, seçili zaman kartı, seçili gün kartı |
+| `accentSoft` (yeni) | `InkAccentSoft` | Kart içindeki seçili liste satırı, seçili zaman kartı, seçili gün kartı |
 | `warning` | `InkWarning` | Yalnız devreden tarihi ve işareti; geciken zaman kartının çerçevesi |
 | `danger` | `InkDanger` | Yalnız yıkıcı eylem ve hata metni; yıkıcı eylem örneği silmedir |
 | `person` | `InkPerson` | Düz alt çizgi, simge, Graph dairesi |
@@ -469,7 +469,7 @@ flowchart LR
 | `send` | 36 pt | Gönder düğmesi: daire |
 | `largeNumber` | 48 pt | Büyük rakam hedefi |
 | `modeUnderline` | 2 pt | Seçili kip ve sekme çizgisi; liste seçiminin sol çizgisi |
-| `listSelectionCorner` | 6 pt | Liste seçim dolgusunun köşesi |
+| `listSelectionCorner` | 16 pt (`r-md`) | Seçili satır kartının köşesi |
 | `chipCorner` | Kapsül | Etiket çipi, künye çipi, kapsam çipi ve öneri şeridi |
 | `kanbanCorner` | 12 pt | Kanban kartı, zaman kartı |
 | `timelineBar` | 4 pt | Zaman kartının ve kanban kartının sol çubuğu |
@@ -587,7 +587,7 @@ mindmap
 | Dosya | Durum | Not |
 |---|---|---|
 | `ComponentGalleryControls.swift`, `ComponentGalleryPatterns.swift`, `ComponentGalleryRows.swift` | Korunur, içerik güncellenir | Yeni bileşenleri de gösterir |
-| `EmptyState.swift` | Yeniden çizilir | Kartın içinde: simge rozeti, 1 cümle, eylem |
+| `EmptyState.swift` | Yeniden çizilir | Kartın içinde: simge rozeti, 1 cümle, eylem. Kartsız seçenek içeriği var olan bir kartın içine koyar: telefon zaman çizelgesinin boş dönemi. |
 | `GoalRing.swift` | Korunur | Renkler belirteçten |
 | `GraceDayBadge.swift` | Korunur | Kapsül çerçeve |
 | `HeatmapCell.swift`, `HeatmapCellKind.swift` | Korunur | Boş hücre `well` |
@@ -598,7 +598,7 @@ mindmap
 | `InkHeaderAction.swift`, `InkHeaderButtonStyle.swift` | Yeniden çizilir | iOS manşette yuvarlak çip; Mac'te çerçevesiz simge |
 | `InkLabeledMenu.swift` | Korunur | |
 | `InkLinkedText.swift`, `InkLinkStyle.swift` | Korunur | Mürekkep kuralı 4 göndermesi Şafak kuralı 4 olur |
-| `InkListSelection.swift` | Yeniden çizilir | `well` yerine `accentSoft`; solda 2 pt vurgu çizgisi kalır |
+| `InkListSelection.swift` | Yeniden çizilir | Seçili satır `surface` kart olur; içeride 3 pt vurgu çubuğu |
 | `InkPageHeader.swift` | Yeniden çizilir | Sans manşet; Bugün'de gün başlığı |
 | `InkPinnedMasthead.swift` | Korunur | Zemin `paper` |
 | `InkProgress.swift`, `InkProgressMath.swift` | Yeniden çizilir | Kapsül çubuk; hesap değişmez |
@@ -778,10 +778,13 @@ Renk tek başına anlam taşımaz; proje adı ve durum metni yanında durur. Pro
 | Konu | Kural |
 |---|---|
 | Yer | Mac'te Görevler, Günlük, Kişiler ve Hedefler sütunları ve arama sonuçları. |
-| Dolgu | `accentSoft`, satırın içinde 6 pt yuvarlatılmış köşe. Dolgu satırın kenarından yatay 4 pt, dikey 2 pt içeridedir. |
-| İşaret | Solda 2 pt vurgu çizgisi. |
-| Yazı | Seçili satırdaki yazı belirteçleri `accentSoft` zeminde de alt sınır kontrastını taşır. |
-| iPad ve Duo, bölünmüş kabuk | Liste sütunlarında Mac'teki seçim. Arama sonucunda da aynı çizim. İşaretçi üstünde durduğu sütun satırını sistemin hafif vurgusuyla gösterir. |
+| Dolgu | Seçili satır kâğıt üstünde `surface` karttır: 16 pt köşe. Kart satırın kenarından yatay 4 pt, dikey 2 pt içeridedir. Mac'te kartın 1 pt `line` sınırı vardır. |
+| Kart içindeki satır | Görevler bölüm kartı zaten `surface` olduğu için seçili satır `accentSoft` dolgu alır. |
+| Kart satırı | Hedefler sütununda satır kendisi karttır. Seçilince kart 1 pt `line` sınır ve vurgu çubuğu alır. |
+| İşaret | Kartın sol kenarından 4 pt içeride 3 pt kapsül vurgu çubuğu. Çubuk üstten ve alttan 12 pt kısadır. |
+| Yazı | Seçili satırdaki yazı belirteçleri `surface` ve `accentSoft` zeminde alt sınır kontrastını taşır. |
+| Önceki değer | `accentSoft` dolgu, solda kenara yapışık 2 pt çizgi. Şafak `c-mac` ve `j-mac2` çizimi 2026-11-11'de değiştirdi. |
+| iPad ve Duo, bölünmüş kabuk | Liste sütunlarında Mac'teki seçim. Arama sonucunda da aynı çizim. Sistemin odak çerçevesi satıra çizilmez. İşaretçi üstünde durduğu sütun satırını sistemin hafif vurgusuyla gösterir. |
 | iPhone | Sekme kabuğunda satır `surface` kalır. Yalnız arama sonucunda klavye seçimi `accentSoft` alır. |
 | Görev sütunu | Kutu görevi tamamlar. Metindeki bağlantı kendi sayfasını açar. Satıra tıklamak ayrıntıyı seçer. Bağlam menüsündeki silme onay diyaloğuna gider. |
 

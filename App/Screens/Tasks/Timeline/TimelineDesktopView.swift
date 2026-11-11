@@ -79,7 +79,7 @@ struct TimelineDesktopView: View {
                     // The phone's empty period sits in the chart's card, under its axis (one card).
                     if isEmpty {
                         if compact {
-                            TimelineEmptyPeriod().padding(.vertical, InkSpacing.section)
+                            EmptyState("Görev yok.", isCarded: false).padding(.vertical, InkSpacing.section)
                         } else {
                             EmptyState("Görev yok.")
                                 .padding()
@@ -198,27 +198,6 @@ struct TimelineDesktopView: View {
     private func scrollToday(_ proxy: ScrollViewProxy) {
         let date = model.today.addingDays(-min(28, model.scale.daysAcross / 4)) ?? model.today
         proxy.scrollTo(date.description, anchor: .leading)
-    }
-}
-
-/// ``EmptyState``'s content without its card: the phone chart's card already holds it.
-private struct TimelineEmptyPeriod: View {
-    var body: some View {
-        VStack(spacing: 12) {
-            Image(systemName: "tray")
-                .font(.title2)
-                .foregroundStyle(Color.ink.secondaryText)
-                .frame(width: 44, height: 44)
-                .background(Color.ink.well, in: Circle())
-                .accessibilityHidden(true)
-            Text("Görev yok.")
-                .font(.ink.placeholder)
-                .foregroundStyle(Color.ink.secondaryText)
-                .multilineTextAlignment(.center)
-                .frame(maxWidth: .infinity)
-                .accessibilityIdentifier("emptyState")
-        }
-        .padding(.horizontal, InkSpacing.cardPadding)
     }
 }
 

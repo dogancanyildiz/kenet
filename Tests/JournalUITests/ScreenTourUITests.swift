@@ -204,6 +204,9 @@ final class ScreenTourUITests: XCTestCase {
             try openDays()
             try tour.row(pastDay).tap()
             try tour.waitFor(ids: ["screen.day"])
+            // The split shell keeps the day page scrolled from the step before; the scrolled
+            // manşet carries search only (screens.md), so the graph icon needs the page's top.
+            tour.scrollToTop()
             try tour.tap(ids: ["button.dayGraph"], labels: ["Günün grafiği"])
             try tour.waitFor(ids: ["screen.dayGraph"])
             tour.shot("02-gunun-grafigi", settle: 3)
@@ -358,7 +361,7 @@ final class ScreenTourUITests: XCTestCase {
             try openEntities("Konumlar")
             let field = try tour.field(
                 ids: ["field.entityFilter", "field.entitySearch", "field.entities.filter"],
-                placeholders: ["Kişi veya konum ara"])
+                placeholders: ["Süz"])
             tour.type("Li", into: field)
             tour.shot("09-konumlar-suzgec-dolu")
             tour.erase(2)

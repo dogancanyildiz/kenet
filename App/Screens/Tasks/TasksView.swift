@@ -128,6 +128,7 @@ struct TasksView: View {
             }
         }
         .listStyle(.plain)
+        .inkColumnListFocus()
         .inkPage()
         // The whole page top stays, as it does above the boards: manşet, view tabs, menu row.
         // A Mac list insets even a row with no insets of its own; the strip does the same.

@@ -85,7 +85,7 @@ Harita konuları gösterir; satırların tam metni karar günlüğündedir. Bir 
 
 ```mermaid
 timeline
-    title Karar takvimi, 347 karar
+    title Karar takvimi, 349 karar
     2026-10-02 : 58 karar : Ürün kapsamı ve platform : Kasa biçimi ve ayrıştırıcı : Git, sürüm ve CI
     2026-10-03 : 19 karar : Yazma doğrulaması : İndeks ve arama : Varlık sayfası ve hızlı giriş
     2026-10-04 : 31 karar : Birleştirme ve kayıp yok : VaultStore ve dosya izleme : Görev, hedef ve otomasyon : Özet, graph ve harita
@@ -110,10 +110,10 @@ timeline
     2026-11-01 : 1 karar : Mac menü komutları kimlikli eylem, App sahnesi döngüsü
     2026-11-09 : 15 karar : Gün kopyası birleştirmesi varsayılan açık : Tasarım yönü Şafak ve Aşama 17 : Ekran davranışları
     2026-11-10 : 8 karar : CI kapısı simülatörü kayıt betiğiyle aynı : Görüntü referansı boyut tavanı 80 MiB : Hafta ölçeği kart sütunları : Graph dönemleri gün sayısı : Paylaşım kuyruğunda satır kimliği : D2 dalı D4 içinde : Katalog birleşiminde dev esas : Yazım kuralları ve terim sözlüğü repoda
-    2026-11-11 : 1 karar : Tamamlanan hedef halkası vurgu rengi
+    2026-11-11 : 3 karar : Tamamlanan hedef halkası vurgu rengi : Kenar çubuğu seçimi yumuşak ton : Liste seçimi kart ve çubuk
 ```
 
-Sayılar karar günlüğündeki satır sayısıdır. Toplam 347 satırdır.
+Sayılar karar günlüğündeki satır sayısıdır. Toplam 349 satırdır.
 
 ## Karar günlüğü
 
@@ -468,6 +468,8 @@ Sayılar karar günlüğündeki satır sayısıdır. Toplam 347 satırdır.
 | 2026-11-10 | String Catalog birleştirme çatışmasında `dev`'deki anahtar esastır: iki tarafın anahtarları birleşir, aynı anahtarda `dev`'in değeri kalır; çıktı Xcode biçimindedir ve anahtarlar sıralıdır. Önceki yol: elle çözüm. Geri alma: çatışmayı elle çözmek | `dev`'e girmiş metin incelemeden geçmiştir. Elle çözüm binlerce satırlık JSON'da anahtar kaybettiriyordu; `check-docs.sh` biçimi ve tr/en tamlığını denetler |
 | 2026-11-10 | Yazım kuralları ve terim sözlüğü repoya yazıldı: doküman türü tablosu ve cümle kuralları `AGENTS.md` "Belge kuralları" bölümünde, terim sözlüğü `docs/design.md` sonunda. `check-docs.sh` 20 sözcüğü aşan cümle sayısını tavanla ve sır kalıplarını denetler. Başka depoyla ortak dosya yoktur. Önceki durum: kurallar yalnız brief'lerde. Geri alma: iki tabloyu, sözlüğü ve iki denetimi silmek | Kullanıcı kararı (2026-11-10). Repo herkese açıktır ve tek başına okunmalıdır; başka depoya gönderme kırılır. Tavan, uzun cümle sayısının artmasını CI'da durdurur |
 | 2026-11-11 | Tamamlanan hedef halkası tam vurgu halkasıdır. Önceki değer: ikincil metin renginde tam halka. Geri alma: `GoalRingProgress.completeColor` değerini `secondaryText` yapmak | Kullanıcı kararı: halkalar mürdümdür, yeşil yoktur. Gri halka bu kararın uygulama hatasıydı (fark2 O1) |
+| 2026-11-11 | Mac ve iPad kenar çubuğunun seçili satırı `accentSoft` dolgu, `text` yazı ve vurgu simgesi alır; öteki simgeler `secondaryText` çizgisidir. Önceki değer: vurgu dolgusu, vurgu üstü yazı ve simge. Geri alma: `MacSidebarChrome` belirteçlerini eski değere döndürmek | Şafak `c-mac` çizimi (fark2 D1, D2). Dolu mürdüm hap sayfanın en güçlü öğesi oluyordu |
+| 2026-11-11 | Liste sütununda seçili satır kâğıt üstünde `surface` karttır; kartın 4 pt içinde 3 pt vurgu çubuğu durur. Bölüm kartındaki satır `accentSoft` dolgu alır. Önceki değer: `accentSoft` dolgu ve kenara yapışık 2 pt çizgi. Geri alma: `InkListSelectionChrome.fill` değerini `accentSoft` yapmak | Şafak `c-mac` ve `j-mac2` çizimi (fark2 D4, D10). iPad'deki sistem odak çerçevesi de satırda kapatıldı |
 
 Satır sırası ekleme sırasıdır; tablonun ilk satırları tarih sırasında değildir. Sonradan değişen bir kararın gerekçe hücresi değişikliği tarihiyle anar. Güncel durum notları kararın verildiği günden sonraki gerçek durumu söyler.
 

@@ -107,18 +107,7 @@ struct InkCardSegmentBackground: View {
             ZStack(alignment: .bottom) {
                 shape.fill(Color.ink.surface)
                 if isSelected {
-                    RoundedRectangle(cornerRadius: InkListSelectionChrome.cornerRadius, style: .continuous)
-                        .fill(InkListSelectionChrome.fillColor)
-                        .overlay(alignment: .leading) {
-                            Rectangle()
-                                .fill(InkListSelectionChrome.markColor)
-                                .frame(width: InkListSelectionChrome.markWidth)
-                        }
-                        .clipShape(
-                            RoundedRectangle(cornerRadius: InkListSelectionChrome.cornerRadius, style: .continuous)
-                        )
-                        .padding(.horizontal, InkListSelectionChrome.horizontalInset)
-                        .padding(.vertical, InkListSelectionChrome.verticalInset)
+                    InkListSelectionShape(fill: InkListSelectionChrome.cardFillColor)
                 }
                 InkCardSegmentEdge(segment: segment, radius: radius)
                     .stroke(Color.ink.rule, lineWidth: InkStroke.hairline(scale: displayScale))

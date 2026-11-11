@@ -2,9 +2,18 @@ import SwiftUI
 import VaultFormat
 
 struct DaysCalendarView: View {
+    /// `card`: the phone's Günlük list and the month picker sheet. `column`: the Günlük column of
+    /// the iPad and the Mac (centred month between accent arrows, one-letter day names).
+    enum Style {
+        case card
+        case column
+    }
+
     let store: IndexStore
     var selected: CalendarDate? = nil
     var initialMonth: CalendarDate? = nil
+    /// The split shell's column calls with the default; the phone screens pass `card`.
+    var style: Style = .column
     let select: (CalendarDate) -> Void
     @Environment(\.locale) private var locale
     @Environment(\.clockNow) private var clockNow
@@ -29,68 +38,18 @@ struct DaysCalendarView: View {
     }
 
     var body: some View {
-        InkCard {
-            VStack(spacing: 8) {
-                // Month on the leading edge, the arrows together on the trailing one (Şafak çizimi).
-                HStack(spacing: 0) {
-                    Text(LocalDay.instant(for: model.month), format: .dateTime.month(.wide).year())
-                        .font(.ink.section)
-                        .foregroundStyle(.ink.text)
-                        // A narrow column at accessibility sizes: month and year on two lines, never
-                        // cut, even where the column's stack is short of height.
-                        .fixedSize(horizontal: false, vertical: true)
-                        .padding(.leading, 4)
-                    Spacer(minLength: 8)
-                    // From the asked month, not the one on screen: a second tap before the first
-                    // month's answer arrives moves on instead of asking for the same month again.
-                    Button {
-                        month = JournalCalendar(month: resolvedMonth, days: []).adjacentMonth(-1)
-                    } label: {
-                        Label("Önceki ay", systemImage: "chevron.left")
-                            .labelStyle(.iconOnly)
-                            .font(.body.weight(.semibold))
-                            .foregroundStyle(.ink.text)
-                            .tapTarget()
-                    }
-                    Button {
-                        month = JournalCalendar(month: resolvedMonth, days: []).adjacentMonth(1)
-                    } label: {
-                        Label("Sonraki ay", systemImage: "chevron.right")
-                            .labelStyle(.iconOnly)
-                            .font(.body.weight(.semibold))
-                            .foregroundStyle(.ink.text)
-                            .tapTarget()
-                    }
-                }
-                // Inside a List row every bordered button fires on one tap; borderless keeps them separate.
-                .buttonStyle(.borderless)
-                let symbols = calendar.shortStandaloneWeekdaySymbols
-                let weekday = calendar.firstWeekday
-                let cells = model.cells(firstWeekday: weekday)
-                // An eager Grid, not a LazyVGrid: inside a List row the lazy grid's height came out
-                // 8 pt short on some passes and right on others (same build, same simulator), so the
-                // card and every row under it moved. No column gap: seven 44 pt tap targets fill the
-                // phone column (7 × 46.6 pt) without overflowing the card. No row gap either: the
-                // 44 pt targets already space the weeks (Şafak çizimi: tight rows).
-                Grid(horizontalSpacing: 0, verticalSpacing: 0) {
-                    GridRow {
-                        ForEach(0..<7, id: \.self) { offset in
-                            Text(verbatim: symbols[(weekday - 1 + offset) % 7])
-                                .font(.caption)
-                                .foregroundStyle(.ink.secondaryText)
-                                // Short names ("Sun", "Paz") are never truncated (audit).
-                                .fixedSize()
-                                .frame(maxWidth: .infinity)
-                        }
-                    }
-                    ForEach(Self.weeks(of: cells), id: \.self) { week in
-                        GridRow {
-                            ForEach(week, id: \.self) { index in
-                                dayCell(cells[index])
-                            }
-                        }
-                    }
-                }
+        Group {
+            switch style {
+            case .card:
+                InkCard { grid }
+            case .column:
+                #if os(macOS)
+                    // Mac drawing (j-mac2): the month sits in a card in the column.
+                    InkCard { grid }
+                #else
+                    // iPad drawing (c-mac): the month lies on the column without a card.
+                    grid.padding(.horizontal, 12)
+                #endif
             }
         }
         .padding(.vertical, 4)
@@ -105,6 +64,98 @@ struct DaysCalendarView: View {
                 let enriched = days.map { $0.enriched(with: fragments[$0.id]) }
                 loaded = JournalCalendar(month: asked, days: enriched)
             }
+        }
+    }
+
+    private var grid: some View {
+        VStack(spacing: 8) {
+            header
+            let symbols =
+                style == .column ? calendar.veryShortStandaloneWeekdaySymbols : calendar.shortStandaloneWeekdaySymbols
+            let weekday = calendar.firstWeekday
+            let cells = model.cells(firstWeekday: weekday)
+            // An eager Grid, not a LazyVGrid: inside a List row the lazy grid's height came out
+            // 8 pt short on some passes and right on others (same build, same simulator), so the
+            // card and every row under it moved. No column gap: seven 44 pt tap targets fill the
+            // phone column (7 × 46.6 pt) without overflowing the card. No row gap either: the
+            // 44 pt targets already space the weeks (Şafak çizimi: tight rows).
+            Grid(horizontalSpacing: 0, verticalSpacing: 0) {
+                GridRow {
+                    ForEach(0..<7, id: \.self) { offset in
+                        Text(verbatim: symbols[(weekday - 1 + offset) % 7])
+                            .font(.caption)
+                            .foregroundStyle(.ink.secondaryText)
+                            // Short names ("Sun", "Paz") are never truncated (audit).
+                            .fixedSize()
+                            .frame(maxWidth: .infinity)
+                    }
+                }
+                ForEach(Self.weeks(of: cells), id: \.self) { week in
+                    GridRow {
+                        ForEach(week, id: \.self) { index in
+                            dayCell(cells[index])
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /// Phone list (`card`): month on the leading edge, both arrows on the trailing one. Column:
+    /// the arrows on either side of the centred month, in accent (iPad and Mac drawings).
+    @ViewBuilder private var header: some View {
+        HStack(spacing: 0) {
+            if style == .column {
+                previousButton
+                Spacer(minLength: 4)
+                monthTitle.multilineTextAlignment(.center)
+                Spacer(minLength: 4)
+                nextButton
+            } else {
+                monthTitle.padding(.leading, 4)
+                Spacer(minLength: 8)
+                previousButton
+                nextButton
+            }
+        }
+        // Inside a List row every bordered button fires on one tap; borderless keeps them separate.
+        .buttonStyle(.borderless)
+    }
+
+    private var monthTitle: some View {
+        Text(LocalDay.instant(for: model.month), format: .dateTime.month(.wide).year())
+            .font(.ink.section)
+            .foregroundStyle(.ink.text)
+            // A narrow column at accessibility sizes: month and year on two lines, never
+            // cut, even where the column's stack is short of height.
+            .fixedSize(horizontal: false, vertical: true)
+    }
+
+    private var arrowColor: Color { style == .column ? .ink.accent : .ink.text }
+
+    // From the asked month, not the one on screen: a second tap before the first month's answer
+    // arrives moves on instead of asking for the same month again.
+    private var previousButton: some View {
+        Button {
+            month = JournalCalendar(month: resolvedMonth, days: []).adjacentMonth(-1)
+        } label: {
+            Label("Önceki ay", systemImage: "chevron.left")
+                .labelStyle(.iconOnly)
+                .font(.body.weight(.semibold))
+                .foregroundStyle(arrowColor)
+                .tapTarget()
+        }
+    }
+
+    private var nextButton: some View {
+        Button {
+            month = JournalCalendar(month: resolvedMonth, days: []).adjacentMonth(1)
+        } label: {
+            Label("Sonraki ay", systemImage: "chevron.right")
+                .labelStyle(.iconOnly)
+                .font(.body.weight(.semibold))
+                .foregroundStyle(arrowColor)
+                .tapTarget()
         }
     }
 

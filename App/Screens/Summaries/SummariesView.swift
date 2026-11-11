@@ -246,7 +246,10 @@ struct SummariesView: View {
                 Button {
                     model.previous()
                 } label: {
+                    // A body-sized link under the sentence, not a title-sized one (drawing: 15 pt
+                    // page text); the text button style's own font is the larger byline.
                     Text("Önceki döneme git")
+                        .font(.subheadline.weight(.semibold))
                         .tapTarget()
                 }
                 .buttonStyle(InkTextButtonStyle())

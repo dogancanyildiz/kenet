@@ -448,7 +448,8 @@ private struct EntityInitialBadge: View {
             .lineLimit(1)
             .minimumScaleFactor(0.7)
             .frame(width: side, height: side)
-            .background(tint.opacity(0.2), in: Circle())
+            // 12%: bold footnote initials need 4.5:1; at 20% light person and place fall to 4.4–4.5.
+            .background(tint.opacity(0.12), in: Circle())
             .accessibilityHidden(true)
     }
 }

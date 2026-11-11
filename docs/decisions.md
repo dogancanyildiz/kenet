@@ -85,7 +85,7 @@ Harita konuları gösterir; satırların tam metni karar günlüğündedir. Bir 
 
 ```mermaid
 timeline
-    title Karar takvimi, 355 karar
+    title Karar takvimi, 356 karar
     2026-10-02 : 58 karar : Ürün kapsamı ve platform : Kasa biçimi ve ayrıştırıcı : Git, sürüm ve CI
     2026-10-03 : 19 karar : Yazma doğrulaması : İndeks ve arama : Varlık sayfası ve hızlı giriş
     2026-10-04 : 31 karar : Birleştirme ve kayıp yok : VaultStore ve dosya izleme : Görev, hedef ve otomasyon : Özet, graph ve harita
@@ -111,10 +111,10 @@ timeline
     2026-11-09 : 15 karar : Gün kopyası birleştirmesi varsayılan açık : Tasarım yönü Şafak ve Aşama 17 : Ekran davranışları
     2026-11-10 : 8 karar : CI kapısı simülatörü kayıt betiğiyle aynı : Görüntü referansı boyut tavanı 80 MiB : Hafta ölçeği kart sütunları : Graph dönemleri gün sayısı : Paylaşım kuyruğunda satır kimliği : D2 dalı D4 içinde : Katalog birleşiminde dev esas : Yazım kuralları ve terim sözlüğü repoda
     2026-11-11 : 8 karar : Tamamlanan hedef halkası vurgu rengi : Kenar çubuğu seçimi yumuşak ton : Liste seçimi kart ve çubuk : Hedef miktarı ayrıntıda : Takvim etkinliği yazma : Doğum günü alanı : Proje paletinde amber yok : Kaynak günü olmayan görev bugün açık
-    2026-11-12 : 1 karar : Kasa yazma güvenliği
+    2026-11-12 : 2 karar : Kasa yazma güvenliği : Uzantı kimliği yenileme
 ```
 
-Sayılar karar günlüğündeki satır sayısıdır. Toplam 355 satırdır.
+Sayılar karar günlüğündeki satır sayısıdır. Toplam 356 satırdır.
 
 ## Karar günlüğü
 
@@ -477,6 +477,7 @@ Sayılar karar günlüğündeki satır sayısıdır. Toplam 355 satırdır.
 | 2026-11-11 | Proje rengi paleti `warning` amberini içermez: `accent`, `person`, `place`, `control`; ad özeti 4'e bölünür. Önceki değer: beş belirteç, `warning` dördüncü sırada, özet 5'e bölünürdü. Geri alma: `ProjectColor.palette` dizisine `warning`'i geri koymak ve bölüneni 5 yapmak | fark3 M2: amber görev satırında, Kanban şeridinde ve çizelgede "devreden" demektir. Amber proje gecikmiş sanılıyordu. Projelerin rengi bir kez yeniden dağılır |
 | 2026-11-11 | Kaynak gün dosyası olmayan görev Özetler'de bugünden itibaren açık sayılır: süren dönemin sonu, devreden ve tarihsiz sayısı, açık görev eğrisinin bugünkü noktası. Bugünden önceki günlere girmez; oluşturma sayısına girmez. Bugün verilmezse sayılmaz. Önceki dönem bugün açık olan bu görevleri aynen taşır; fark onları saymaz. Dosya biçimi değişmez. Önceki değer: bu görev hiçbir açık sayısına girmezdi. Geri alma: `SummaryInput.Task.isOpen(on:today:)` içinde `created ?? today` yerine `created` kullanmak; `PeriodSummary` içindeki önceki dönem taşımasını silmek; `cases.json` `october-running-source-less` ve `task-flow.json` `source-less-opens-today` vakalarını silmek; `Tests/JournalTests/SummariesTests.swift` beklentisini tarihsiz 1 ve önceki 0 yapmak | fark4 Y4: örnek kasada Özetler "1 tarihsiz", Görevler listesi 3 tarihsiz görev gösteriyordu; 2'si proje dosyasında. Görevin oluşturma günü bilinmez. "Her zaman açık" seçeneği geçmiş dönemleri ve eğriyi geriye doğru değiştirirdi. Bugünden başlatmak geçmiş seriyi korur; eğride son noktada sıçrama olur |
 | 2026-11-12 | Kasa yazma güvenliği (R1 incelemesi). Journal kaydının taban denetimi Core'a taşındı: `VaultStore.changingJournal(expectedBody:)` karşılaştırmayı koordineli yazmanın içinde yapar. Önceki değer: uygulama bölümü ayrı bir okumada denetliyordu. Journal düzenlemesi değişmeyen satırın satır sonunu korur; önceki değer: bölümün bütün satırları dosyanın ilk satır sonunu alıyordu. Paylaşım uzantısı widget'ın geçici indeksini kullanır; önceki değer: boş indeks. Uygulama uzantının yazdığı satırın çakışan kimliğini yeniler. Paylaşım listesi şu an okunamıyorsa yerinde kalır; önceki değer: kenara taşınıyordu. Widget yazdıktan sonraki indeks hatasında işaretlemeyi sürdürür. Geri alma: ilgili PR'ın squash commit'ini geri almak | Denetim ile yazma arasındaki pencerede dış değişiklik sessizce siliniyordu. Boş indeks bütün kasayı gün dosyasının koordinasyonu içinde okuyordu. Kenara taşınan liste hiçbir zaman geri okunmuyordu. Karışık satır sonlu dosyada tek satır düzeltmesi bölümün baytlarını değiştiriyordu |
+| 2026-11-12 | Kimlik yenileme yalnız uzantının yazdığı satıra uygulanır: uzantı kimliği `writtenLineID` olarak işarete yazar. Uygulama yalnız `^kimlik` baytlarını değiştirir. Önceki değer: kaydın metni ve saatiyle eşleşen her satır yenileniyordu, satır `changingText` ile yeniden yazılıyordu. Geçici indeks kurulamazsa uzantı kuyruğa yazar, widget yazmaz; önceki değer: boş indeksle tüm kasa okunuyordu. Okunamayan paylaşım listesi Tanılama'da görünür; değiştirilemeyen `written.json` yerine işaret ayrı listeye gider. Geri alma: ilgili PR'ın squash commit'ini geri almak | Bağımsız inceleme O1, D2, D3, D4. Eski yol, kullanıcının aynı metinli eski satırının kimliğini değiştirip bağlantısını koparabiliyordu |
 
 Satır sırası ekleme sırasıdır; tablonun ilk satırları tarih sırasında değildir. Sonradan değişen bir kararın gerekçe hücresi değişikliği tarihiyle anar. Güncel durum notları kararın verildiği günden sonraki gerçek durumu söyler.
 

@@ -533,6 +533,22 @@ struct WidgetMarkingTests {
         #expect(harness.snapshot?.markedAt == WidgetSnapshotTests.noon)
     }
 
+    /// The vault's entity types cannot be read now: the throwaway index cannot start, and an
+    /// empty one would read the whole vault inside the day's coordinated write. Nothing is written.
+    @Test func unreadableEntityTypesLeaveTheDayAlone() async throws {
+        let harness = try CloudWidgetHarness()
+        defer { harness.clean() }
+        await harness.start()
+        let id = try harness.goalID("esneme")
+        let types = harness.root.appendingPathComponent(".app/types.json")
+        if !FileManager.default.fileExists(atPath: types.path) { try Data("{}".utf8).write(to: types) }
+        try FileManager.default.setAttributes([.posixPermissions: 0o000], ofItemAtPath: types.path)
+        defer { try? FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: types.path) }
+
+        #expect(await harness.marker().mark(goalID: id) == .unavailable)
+        #expect(try String(decoding: Data(contentsOf: harness.dayFile), as: UTF8.self) == Self.unmarkedDay)
+    }
+
     /// A container whose vault has not arrived yet (its settings file still an iCloud
     /// placeholder) gets nothing: no day file written ahead of the vault's own.
     @Test func vaultNotOnThisDeviceYetGetsNothing() async throws {

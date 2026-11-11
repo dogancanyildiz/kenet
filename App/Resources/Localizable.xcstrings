@@ -12800,6 +12800,22 @@
         }
       }
     },
+    "Okunamadı ya da değiştirilemedi. Paylaşımlar dosyada bekliyor; uygulama sonraki açılışta yeniden dener." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could not be read or changed. The shares wait in the file; the app tries again next time it opens."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Okunamadı ya da değiştirilemedi. Paylaşımlar dosyada bekliyor; uygulama sonraki açılışta yeniden dener."
+          }
+        }
+      }
+    },
     "Olay" : {
       "localizations" : {
         "en" : {
@@ -13293,6 +13309,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Paylaşım eklenemedi. Yeniden dene."
+          }
+        }
+      }
+    },
+    "Paylaşım listeleri" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Share lists"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paylaşım listeleri"
           }
         }
       }

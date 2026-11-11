@@ -740,12 +740,12 @@ tanışma: Üniversite                                # bağ değil: bağlantı 
 | Yazma biçimi | Satırın sonunda, bir boşluktan sonra `^` ve ardından 6 karakter: küçük harf `a-z` ve rakam. |
 | Anlam | Kimlik opaktır. Tür ya da başka anlam taşıyan önek içermez. Satırın olay mı görev mi olduğunu kimlik değil satırın yazımı belirler. |
 | Üretim | Uygulama kimliği rastgele üretir. Uygulama kasadaki mevcut kimliklerle çakışmayı denetler. Paylaşım uzantısı kasa indeksini açmaz; yeni kimliği yalnız gün dosyasındaki kimliklerle denetler. |
-| Uzantının yazdığı satır | Uygulama uzantının yazdığı satırı `written.json` işaretinden alır. Kimliği başka dosyada da varsa uygulama satıra yeni kimlik verir. Öteki dosya değişmez. |
+| Uzantının yazdığı satır | Uzantı yazdığı satırın kimliğini `written.json` işaretine yazar: `writtenLineID`. Kimlik başka dosyada da varsa uygulama yalnız bu satıra yeni kimlik verir. Uygulama yalnız `^kimlik` baytlarını değiştirir. Kimlik gün dosyasında birden çok satırdaysa uygulama dokunmaz. Alanı olmayan işarette de dokunmaz. Öteki dosya değişmez. |
 | Düzenleme | Satır değişse de kimlik değişmez. |
 | Kimliksiz satır | Kullanıcının elle ya da Obsidian'da yazdığı satırda kimlik olmayabilir. Uygulama o satırı ilk kez değiştirdiğinde kimlik ekler. |
 | Okuma | Uygulama Obsidian'ın kabul ettiği her kimliği tanır ve değiştirmez: harf, rakam ve `-`, her uzunlukta. |
 | Yinelenen kimlik | Benzersizlik amaçtır ama garanti değildir: dışarıdaki kopyalama aynı kimliği çoğaltabilir. Kimliğin sahibi ilk geçen satırdır: önce dosya yolu sırası, sonra dosya içi sıra. |
-| Yinelenen kimliğin onarımı | Uygulama diğer satırları kendiliğinden değiştirmez. Uygulama onlardan birini değiştirdiğinde o satıra yeni kimlik verir. Tek istisna uzantının yazdığı satırdır. |
+| Yinelenen kimliğin onarımı | Uygulama diğer satırları kendiliğinden değiştirmez. Uygulama onlardan birini değiştirdiğinde o satıra yeni kimlik verir. Uzantının yazdığı satır bu kurala aykırı değildir: satırı uygulamanın kendi yazısı yazdı. Kullanıcının aynı metinli eski satırı değişmez. |
 
 **Satır bloğu:** bir olay ya da görev satırı ve altındaki daha girintili satırlar.
 
@@ -918,6 +918,8 @@ flowchart TD
 | Değişmeyen satırın satır sonu | Uygulama satırı eski satır sonuyla yazar. Uygulama eski ve yeni satırları içerik sırasıyla eşler. |
 | Yeni ya da değişen satırın satır sonu | Satır dosyanın ilk satır sonunu alır. |
 | Korunan CR sonundan sonra boş LF satırı | İki satır CRLF okunurdu. Uygulama o satıra dosyanın ilk satır sonunu yazar. |
+| CR sonundan sonra korunan boş LF satırı | Aynı birleşme olurdu. Uygulama boş satıra eski LF sonunu yazmaz, yazının verdiği sonu bırakır. |
+| Satır sonu olmayan son satır | Bölümün son satırı dosyanın da son satırıysa ve satır sonu yoksa uygulama dosyanın ilk satır sonunu ekler. İçerik değişmese de ekler. |
 | Okunduktan sonra değişen bölüm | Düzenleyici okuduğu bölümü yazıya verir. Uygulama bölümü koordineli yazmanın içinde yeniden okur. Bölüm farklıysa uygulama yazmaz. |
 
 ### Olay satırı

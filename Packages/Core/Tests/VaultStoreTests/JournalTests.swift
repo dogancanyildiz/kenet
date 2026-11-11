@@ -60,25 +60,23 @@ struct JournalTests {
         try vault.check()
     }
 
-    /// Another process changes the section after the editor read it and before the write's turn:
-    /// the comparison with `expectedBody` runs inside the coordinated write, so the change stays.
+    /// Another process changes the section after the editor read it, at the moment the write's
+    /// coordinated `.modify` access begins: the comparison with `expectedBody` must run inside that
+    /// access, so the change stays. A comparison made before the access (a separate read) would see
+    /// the old section, pass, and the write would erase the change.
     @Test func journalChangedBeforeTheWriteIsStaleAndKept() async throws {
-        let external = "## Journal\nKitap\nSu\n"
-        let armed = OneShot()
-        let vault = try StoreVault(readFile: { url in
-            if url.lastPathComponent == "2026-09-27.md", armed.fire() {
-                try Data(external.utf8).write(to: url)
-            }
-            return try Data(contentsOf: url)
-        })
+        let vault = try StoreVault()
         defer { vault.remove() }
         try vault.write(storePath, "## Journal\nKitap\n")
         try vault.index.rebuild(vaultRoot: vault.root)
-        armed.arm()
+        let external = Data("## Journal\nKitap\nSu\n".utf8)
+        let coordination = WriteOnModify(fileName: "2026-09-27.md", bytes: external)
+        let store = VaultStore(vaultRoot: vault.root, index: vault.index, fileCoordination: coordination)
         await #expect(throws: VaultStoreError.staleTarget) {
-            try await vault.store.changingJournal(on: storeDate, to: "Deniz", expectedBody: "Kitap\n")
+            try await store.changingJournal(on: storeDate, to: "Deniz", expectedBody: "Kitap\n")
         }
-        #expect(try vault.bytes() == Data(external.utf8))
+        #expect(coordination.fired)
+        #expect(try vault.bytes() == external)
     }
 
     @Test func journalMatchingExpectedBodyIsWritten() async throws {
@@ -95,15 +93,31 @@ struct JournalTests {
     }
 }
 
-/// Fires once after `arm()`: the test's stand-in for another process writing at one exact moment.
-final class OneShot: @unchecked Sendable {
+/// Coordination whose first `.modify` access to `fileName` writes `bytes` into the file before
+/// the accessor runs: the test's stand-in for another process writing at that exact moment.
+final class WriteOnModify: FileCoordination, @unchecked Sendable {
     private let lock = NSLock()
-    private var armed = false
-    func arm() { lock.withLock { armed = true } }
-    func fire() -> Bool {
-        lock.withLock {
-            defer { armed = false }
-            return armed
+    private let fileName: String
+    private let bytes: Data
+    private var done = false
+
+    init(fileName: String, bytes: Data) {
+        self.fileName = fileName
+        self.bytes = bytes
+    }
+
+    var fired: Bool { lock.withLock { done } }
+
+    func coordinate<T>(
+        _ operation: FileCoordinationOperation, accessor: (FileCoordinationAccess) throws -> T
+    ) throws -> T {
+        if case .modify(let url) = operation, url.lastPathComponent == fileName {
+            let fire = lock.withLock {
+                defer { done = true }
+                return !done
+            }
+            if fire { try bytes.write(to: url) }
         }
+        return try accessor(FileCoordinationAccess())
     }
 }

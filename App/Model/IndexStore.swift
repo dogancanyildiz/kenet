@@ -60,6 +60,9 @@ final class IndexStore {
     @ObservationIgnored var onSnapshotChange: ((VaultReadModel?, URL?) -> Void)?
     private(set) var isProcessing = false
     private(set) var errorText: String?
+    /// Share lists in the App Group (`share/…json`) that could not be read or changed in the last
+    /// run of the share queue. They stay in place and wait; Diagnostics names them.
+    var shareListProblems: [String] = []
     private(set) var entryErrorText: String?
     private(set) var isWriting = false
     /// Vault is open and writable. Background refresh or an in-flight write does not clear this;

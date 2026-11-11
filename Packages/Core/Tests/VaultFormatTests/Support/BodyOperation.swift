@@ -39,6 +39,7 @@ struct BodyOperation {
         switch operation {
         case "text": return try document.changingText(of: block, to: text, newID: id)
         case "delete": return try document.deletingBlock(block)
+        case "identifier": return try document.changingIdentifier(of: block, to: try #require(id))
         case "status":
             let task = try #require(body.tasks.first { $0.block == block })
             let statusName = try #require(json["status"]?.stringValue)

@@ -67,6 +67,28 @@ struct EditingTests {
         }
     }
 
+    /// Renewing an identifier changes the `^id` bytes alone: the spacing of an event and a field
+    /// in the middle of a task stay as they were.
+    @Test func uniqueIdentifierChangesOnlyTheIdentifierBytes() async throws {
+        let random = CountingRandom()
+        let vault = try StoreVault(random: { random.next() })
+        defer { vault.remove() }
+        try vault.write("journal/2026-09-14.md", "## Events\n- Deniz ^abc123\n- Su ^def456\n")
+        let day = "## Tasks\n- [ ] Ara 📅 2026-11-20 Ayşe ^def456\n\n## Events\n- 09:00   Kitap  okudum   ^abc123\n"
+        try vault.write(storePath, day)
+        try vault.index.refresh(vaultRoot: vault.root)
+        let body = try await vault.store.dayDocument(for: storeDate).bodyLines
+        try await vault.store.givingUniqueIdentifier(to: body.events[0].block, at: storePath)
+        let task = try await vault.store.dayDocument(for: storeDate).bodyLines.tasks[0].block
+        try await vault.store.givingUniqueIdentifier(to: task, at: storePath)
+        #expect(
+            try vault.bytes()
+                == Data(
+                    "## Tasks\n- [ ] Ara 📅 2026-11-20 Ayşe ^bbbbbb\n\n## Events\n- 09:00   Kitap  okudum   ^aaaaaa\n"
+                        .utf8))
+        try vault.check()
+    }
+
     @Test func sameDocumentDuplicateAndUnindexedIdentifiersAreChecked() async throws {
         let random = CountingRandom()
         let vault = try StoreVault(random: { random.next() })

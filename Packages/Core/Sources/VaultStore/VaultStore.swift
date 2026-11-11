@@ -172,7 +172,7 @@ public actor VaultStore {
                 guard try self.index.files(holdingIdentifier: id).contains(where: { $0 != normalizedPath }) else {
                     return document
                 }
-                return try document.changingText(of: target, to: target.text, newID: self.freshID(in: document))
+                return try document.changingIdentifier(of: target, to: self.freshID(in: document))
             }
         }
     }

@@ -422,6 +422,53 @@ struct ShareEntryWritingTests {
         #expect(context.pending.read().elements.compactMap(\.entry) == [first, entry])
     }
 
+    /// The vault's entity types cannot be read now: the throwaway index cannot start, and an
+    /// empty one would read the whole vault inside the day's coordinated write. The text is queued;
+    /// the vault is not read and not written.
+    @Test func unreadableEntityTypesQueueTheText() async throws {
+        let context = try ShareWritingContext()
+        defer { context.clean() }
+        try context.publish(.icloud)
+        let types = context.root.appendingPathComponent(".app/types.json")
+        try Data("{}".utf8).write(to: types)
+        try FileManager.default.setAttributes([.posixPermissions: 0o000], ofItemAtPath: types.path)
+        defer { try? FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: types.path) }
+        try FileManager.default.createDirectory(
+            at: context.root.appendingPathComponent("notes"), withIntermediateDirectories: true)
+        try Data("- Eski\n".utf8).write(to: context.root.appendingPathComponent("notes/Kitap.md"))
+        let reads = ReadLog()
+        var writer = context.writer()
+        writer.indexReadFile = { url in
+            reads.append(url.lastPathComponent)
+            return try Data(contentsOf: url)
+        }
+
+        #expect(try await writer.add(context.entry("Yeni")) == .queued)
+        #expect(reads.names.filter { $0 != "stand-in.md" } == [])
+        #expect(!FileManager.default.fileExists(atPath: context.dayFile.path))
+        #expect(context.pending.read().elements.count == 1)
+    }
+
+    /// `written.json` cannot be changed now: the marker goes into a list of its own
+    /// (`ShareFiles.spareWritten`), not lost. The app takes those lists as it takes `written.json`.
+    @Test func aMarkerTheListCannotTakeGoesIntoASpareList() async throws {
+        let context = try ShareWritingContext()
+        defer { context.clean() }
+        try context.publish(.icloud)
+        try context.written.append(context.entry("Eski"))
+        let written = ShareFiles.written(in: context.group)
+        try FileManager.default.setAttributes([.posixPermissions: 0o000], ofItemAtPath: written.path)
+        defer { try? FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: written.path) }
+
+        let entry = context.entry("Yeni")
+        #expect(try await context.writer().add(entry) == .written)
+        let lists = ShareFiles.writtenLists(in: context.group)
+        #expect(lists.count == 2)
+        let spare = ShareListFile(url: try #require(lists.last))
+        #expect(spare.read().elements.compactMap(\.entry?.id) == [entry.id])
+        #expect(spare.read().elements.first?.entry?.writtenLineID == "new123")
+    }
+
     /// The extension's write reads the day file alone: Core's index update after the write starts
     /// from a throwaway index (``ThrowawayIndex``), not an empty one that would read the whole
     /// vault inside the day file's coordinated write.
@@ -469,7 +516,10 @@ struct ShareEntryWritingTests {
         if let expected = fixture.expected {
             #expect(outcome == .written)
             #expect(after[day] == expected)
-            #expect(context.written.read().elements.compactMap(\.entry) == [entry])
+            // The marker names the written line (`writtenLineID`).
+            var marker = entry
+            marker.writtenLineID = fixture.identifier
+            #expect(context.written.read().elements.compactMap(\.entry) == [marker])
             #expect(context.pending.read().elements.isEmpty)
         } else if entry.isWritable {
             #expect(outcome == .queued)
@@ -608,7 +658,10 @@ struct ShareEntryWritingTests {
         if let expected = fixture.expected {
             #expect(outcome == .written)
             #expect(after[day] == expected)
-            #expect(context.written.read().elements.compactMap(\.entry) == [entry])
+            // The marker names the written line (`writtenLineID`).
+            var marker = entry
+            marker.writtenLineID = fixture.identifier
+            #expect(context.written.read().elements.compactMap(\.entry) == [marker])
             #expect(context.pending.read().elements.isEmpty)
         } else if entry.isWritable {
             #expect(outcome == .queued)

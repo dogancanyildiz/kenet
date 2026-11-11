@@ -121,6 +121,7 @@ struct DiagnosticsView: View {
                 }
                 .inkListRow()
             }
+            ShareListProblemsSection(names: store.shareListProblems)
             CopyFilesSection(copies: copies)
             ConflictedFilesSection(files: conflictedFiles)
             ConflictCopiesSection(copies: conflictCopies)
@@ -354,6 +355,44 @@ struct ConflictCopiesSection: View {
                                     .foregroundStyle(Color.ink.secondaryText)
                                     .lineLimit(2)
                                     .truncationMode(.middle)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal, InkSpacing.cardPadding)
+                            .padding(.vertical, 10)
+                            .accessibilityElement(children: .combine)
+                        }
+                    }
+                }
+                .inkListRow()
+            }
+        }
+    }
+}
+
+/// Share lists in the App Group that the last run could not read or change. They stay in place
+/// and the next run reads them again; no problem, no section.
+struct ShareListProblemsSection: View {
+    let names: [String]
+
+    var body: some View {
+        if !names.isEmpty {
+            Section {
+                SectionHeader("Paylaşım listeleri")
+                    .inkListRow()
+                InkCard(padded: false) {
+                    VStack(alignment: .leading, spacing: 0) {
+                        ForEach(Array(names.enumerated()), id: \.element) { index, name in
+                            if index > 0 { InkCardDivider() }
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(verbatim: name)
+                                    .font(.ink.meta)
+                                    .foregroundStyle(Color.ink.text)
+                                    .textSelection(.enabled)
+                                Text(
+                                    "Okunamadı ya da değiştirilemedi. Paylaşımlar dosyada bekliyor; uygulama sonraki açılışta yeniden dener."
+                                )
+                                .font(.ink.meta)
+                                .foregroundStyle(Color.ink.secondaryText)
                             }
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(.horizontal, InkSpacing.cardPadding)

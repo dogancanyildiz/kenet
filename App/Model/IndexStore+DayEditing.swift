@@ -43,22 +43,25 @@ extension IndexStore {
         }
     }
 
-    /// The lines the share extension wrote for `entry` whose identifier another file also holds
-    /// get a new one (`VaultStore.givingUniqueIdentifier`). The extension checks a new identifier
-    /// against its day file alone. A line without a clash, or a day that cannot be read now, is
-    /// left as it is; the duplicate rule still applies to it.
-    func renewClashingIdentifiers(of entry: ShareEntry) async {
-        guard let day = entry.calendarDay, let document = try? await dayDocument(for: day) else { return }
+    /// The line the share extension wrote for `entry` (`ShareEntry.writtenLineID`) gets a new
+    /// identifier when another file also holds its identifier (`VaultStore.givingUniqueIdentifier`):
+    /// the extension checks a new identifier against its day file alone. Nothing else is renewed:
+    /// a marker without the identifier, an identifier on more than one line of the day, a day that
+    /// cannot be read now. Throws when the renewal write fails.
+    func renewClashingIdentifier(of entry: ShareEntry) async throws {
+        guard let id = entry.writtenLineID, let day = entry.calendarDay else { return }
+        let document: RawDocument
+        do { document = try await dayDocument(for: day) } catch { return }
+        let body = document.bodyLines
+        let lines = (body.tasks.map(\.block) + body.events.map(\.block)).filter { $0.id == id }
+        guard lines.count == 1, let line = lines.first else { return }
         let path = "journal/\(day).md"
-        for line in entry.matchingLines(in: document, text: entry.text) {
-            guard let id = line.id else { continue }
-            let holders = try? await indexQuery(seam: \.testingQueryDidFinish, whenClosed: .empty([])) {
-                try $0.files(holdingIdentifier: id)
-            }
-            guard let holders, holders.contains(where: { $0 != path }) else { continue }
-            try? await performEdit(path: path) { writer in
-                try await writer.givingUniqueIdentifier(to: line, at: path)
-            }
+        let holders = try await indexQuery(seam: \.testingQueryDidFinish, whenClosed: .empty([])) {
+            try $0.files(holdingIdentifier: id)
+        }
+        guard holders.contains(where: { $0 != path }) else { return }
+        try await performEdit(path: path) { writer in
+            try await writer.givingUniqueIdentifier(to: line, at: path)
         }
     }
 }

@@ -52,32 +52,44 @@ enum GoalAmountPresentation {
 
 /// A number goal's amount for one day, typed in place: the large number takes the keyboard
 /// (a number pad on iPhone), quick-add steps and "Hedefe tamamla" sit under it, and a small
-/// "Kaydı kaldır" removes the day's record after a confirmation. Writes go through
-/// ``GoalValueModel`` and the day's ``GoalDayModel``, as the former amount sheet did.
+/// "Kaydı kaldır" removes the day's record after a confirmation. ``GoalAmountEditor`` decides
+/// what is written; the panel writes a changed value when the field loses focus, on Enter or ✓,
+/// when the panel goes away (another day, back, Close Day's row closing) and when the app leaves
+/// the foreground, so a typed value is never dropped without a word.
 struct GoalAmountPanel: View {
-    let model: GoalDayModel
     let goal: GoalDefinition
     /// Close Day's row: no ring and no period line, a smaller number.
     var isCompact = false
-    /// Each change above zero focuses the amount field (a pencil, a heatmap day, a log row).
+    /// Each change above zero focuses the amount field once the day is loaded (a pencil, a
+    /// heatmap day, a log row).
     var focusToken = 0
+    /// Each change takes the focus away, which writes the typed value (Mac: a click on the page).
+    var blurToken = 0
     /// Runs after a write that succeeded (the page reloads its history for a past day).
     var onWrite: (() async -> Void)? = nil
 
+    @State private var editor: GoalAmountEditor
     @Environment(\.locale) private var locale
+    @Environment(\.scenePhase) private var scenePhase
     @FocusState private var focused: Bool
-    @State private var text = ""
     @State private var removal = DestructiveConfirmation<DestructiveConfirmationToken>()
     @ScaledMetric(relativeTo: .largeTitle) private var largeSide = InkSize.largeNumber
     @ScaledMetric(relativeTo: .title2) private var compactSide: CGFloat = 28
 
-    private var dayValue: Double {
-        if case .number(let number) = model.value(for: goal) { number } else { 0 }
+    init(
+        model: GoalDayModel, goal: GoalDefinition, isCompact: Bool = false, focusToken: Int = 0,
+        blurToken: Int = 0, onWrite: (() async -> Void)? = nil
+    ) {
+        self.goal = goal
+        self.isCompact = isCompact
+        self.focusToken = focusToken
+        self.blurToken = blurToken
+        self.onWrite = onWrite
+        _editor = State(initialValue: GoalAmountEditor(dayModel: model, goal: goal))
     }
 
-    private var hasRecord: Bool { model.value(for: goal) != nil }
-    private var canRemove: Bool { model.canEdit && hasRecord }
-    private var typedValue: Double? { GoalValueModel.number(text) }
+    private var model: GoalDayModel { editor.dayModel }
+    private var canRemove: Bool { !editor.isLocked && !editor.isCommitting && editor.hasRecord }
 
     var body: some View {
         let status = model.status(for: goal)
@@ -91,7 +103,7 @@ struct GoalAmountPanel: View {
                             .foregroundStyle(Color.ink.secondaryText)
                             .fixedSize(horizontal: false, vertical: true)
                     }
-                    if typedValue == nil {
+                    if editor.isInvalid {
                         Text("Sıfır veya pozitif bir sayı gir.")
                             .font(.ink.meta)
                             .foregroundStyle(Color.ink.secondaryText)
@@ -112,7 +124,10 @@ struct GoalAmountPanel: View {
                     .accessibilityHidden(true)
                 }
             }
-            quickButtons(status: status)
+            quickButtons
+            if let error = editor.errorText {
+                InfoBand(kind: .error, verbatim: error)
+            }
             // A small link, not a button row: removing is rare and asks first.
             Button(role: .destructive) {
                 removal.request(.pending)
@@ -127,22 +142,38 @@ struct GoalAmountPanel: View {
             .disabled(!canRemove)
             .accessibilityIdentifier("button.goal.amount.remove")
         }
-        .onChange(of: dayValue, initial: true) { _, _ in
-            if !focused { text = display(dayValue) }
-        }
+        .onChange(of: locale, initial: true) { _, locale in editor.locale = locale }
+        .onChange(of: editor.dayValue) { _, _ in editor.refresh() }
+        .onChange(of: model.hasLoaded) { _, _ in editor.refresh() }
         .onChange(of: focused) { _, isFocused in
             if !isFocused { Task { await commit() } }
         }
+        .onChange(of: blurToken) { _, _ in focused = false }
+        .onChange(of: scenePhase) { _, phase in
+            if phase != .active { Task { await commit() } }
+        }
+        // The panel goes away with a typed value (another day, back, the row closing): written to
+        // the day it was typed for, which the editor keeps.
+        .onDisappear {
+            // The editor and the callback are taken now: the view's state is gone after this.
+            let editor = editor
+            let onWrite = onWrite
+            Task { await Self.commit(editor, onWrite: onWrite) }
+        }
         .task(id: focusToken) {
             guard focusToken > 0 else { return }
-            // After the page's push: a field focused mid-transition loses the keyboard.
+            // After the page's push: a field focused mid-transition loses the keyboard. A past day
+            // is still loading: the field stays shut until it is, and focuses only then.
             try? await Task.sleep(for: .milliseconds(450))
-            focused = true
+            for _ in 0..<100 where editor.isLocked {
+                try? await Task.sleep(for: .milliseconds(100))
+            }
+            if !editor.isLocked { focused = true }
         }
         .destructiveConfirmationDialog(
             "Kaydı kaldır?", confirmation: $removal, confirmTitle: "Kaydı kaldır"
         ) { _ in
-            Task { await remove() }
+            Task { if await editor.remove() { await onWrite?() } }
         }
     }
 
@@ -154,11 +185,13 @@ struct GoalAmountPanel: View {
                 .font(.ink.value)
                 .foregroundStyle(Color.ink.secondaryText)
                 .fixedSize()
+                .accessibilityHidden(true)
             if let unit = goal.unit {
                 Text(verbatim: unit)
                     .font(.ink.meta)
                     .foregroundStyle(Color.ink.secondaryText)
                     .lineLimit(1)
+                    .accessibilityHidden(true)
             }
             if focused {
                 Button {
@@ -182,15 +215,24 @@ struct GoalAmountPanel: View {
         .system(size: isCompact ? compactSide : largeSide, weight: .bold).monospacedDigit()
     }
 
+    /// "Miktar, hedef 7500 adım" for VoiceOver: the target and unit beside the field are hidden.
+    private var fieldLabel: String {
+        let target = goal.target.formatted(.number.locale(locale)) + (goal.unit.map { " " + $0 } ?? "")
+        return String(
+            localized: "Miktar, hedef \(target)", bundle: PresentationLocalization.bundle(locale),
+            locale: locale)
+    }
+
     /// As wide as the typed number (plus one digit of room), not the placeholder's width.
     private var amountField: some View {
-        Text(verbatim: (text.isEmpty ? "0" : text) + "0")
+        @Bindable var editor = editor
+        return Text(verbatim: (editor.text.isEmpty ? "0" : editor.text) + "0")
             .font(amountFont)
             .lineLimit(1)
             .hidden()
             .accessibilityHidden(true)
             .overlay(alignment: .leading) {
-                TextField("Miktar", text: $text)
+                TextField("Miktar", text: $editor.text)
                     .textFieldStyle(.plain)
                     .font(amountFont)
                     .foregroundStyle(Color.ink.text)
@@ -199,7 +241,7 @@ struct GoalAmountPanel: View {
                     #endif
                     .focused($focused)
                     .onSubmit { focused = false }
-                    .accessibilityLabel(Text("Miktar"))
+                    .accessibilityLabel(Text(verbatim: fieldLabel))
                     .accessibilityIdentifier("field.goal.amount")
             }
             .frame(minWidth: TapTarget.minimumLength, minHeight: TapTarget.minimumLength, alignment: .leading)
@@ -214,18 +256,18 @@ struct GoalAmountPanel: View {
                         InkButtonChrome.color(for: InkFilterFieldChrome.borderToken(isFocused: focused)),
                         lineWidth: InkStroke.control)
             )
-            .disabled(!model.canEdit)
+            // Only a lasting lock or a day still loading shuts the field: a reload or a write in
+            // flight keeps it open and the commit waits for it.
+            .disabled(editor.isLocked)
     }
 
     /// "+500 +1000 +2500" and "Hedefe tamamla", wrapping on narrow widths and large text.
-    private func quickButtons(status: GoalStatus) -> some View {
-        let completion = GoalAmountPresentation.completionValue(
-            dayValue: dayValue, periodDone: status.progress.done, target: goal.target)
-        return InkFlowLayout(spacing: 8, lineSpacing: 8) {
+    private var quickButtons: some View {
+        InkFlowLayout(spacing: 8, lineSpacing: 8) {
             ForEach(GoalAmountPresentation.quickSteps(target: goal.target), id: \.self) { step in
                 let amount = step.formatted(.number.locale(locale))
                 Button {
-                    apply((typedValue ?? dayValue) + step)
+                    write { await editor.add(step) }
                 } label: {
                     Text(verbatim: "+" + amount).monospacedDigit()
                 }
@@ -233,18 +275,19 @@ struct GoalAmountPanel: View {
                 .accessibilityLabel(Text("\(amount) ekle"))
             }
             Button {
-                if let completion { apply(completion) }
+                write { await editor.completeTarget() }
             } label: {
                 Text("Hedefe tamamla")
             }
             .buttonStyle(GoalAmountButtonStyle())
-            .disabled(completion == nil)
+            .disabled(editor.completionValue == nil)
             .accessibilityIdentifier("button.goal.amount.complete")
         }
-        .disabled(!model.canEdit)
+        .disabled(editor.isLocked || editor.isCommitting)
     }
 
-    /// "Bu hafta 12/50 km" for a weekly or yearly goal; "2500 kaldı" for a daily one.
+    /// "Bu hafta 25/50 km" for a weekly or yearly goal, the whole period (also days after a past
+    /// day); "2500 kaldı" for a daily one.
     private func periodLine(status: GoalStatus) -> String? {
         if goal.period == .day {
             return GoalListPresentation.remainingText(goal: goal, status: status, locale: locale)
@@ -252,42 +295,23 @@ struct GoalAmountPanel: View {
         let key: String.LocalizationValue = goal.period == .week ? "Bu hafta" : "Bu yıl"
         let period = String(localized: key, bundle: PresentationLocalization.bundle(locale), locale: locale)
         let amount =
-            status.progress.done.formatted(.number.locale(locale)) + "/"
+            editor.periodTotal.formatted(.number.locale(locale)) + "/"
             + goal.target.formatted(.number.locale(locale))
         return [period, amount, goal.unit].compactMap { $0 }.joined(separator: " ")
     }
 
-    private func display(_ value: Double) -> String {
-        value.formatted(.number.grouping(.never).locale(locale))
-    }
-
-    /// A quick step or the completion: written at once, or through the field's commit while it
-    /// holds the keyboard, so one tap gives one write.
-    private func apply(_ value: Double) {
-        text = display(value)
-        if focused { focused = false } else { Task { await commit() } }
-    }
-
-    private func commit() async {
-        guard let value = typedValue else { return }
-        // Nothing changed: no write (an empty day stays without a record at zero).
-        if value == dayValue, hasRecord || value == 0 {
-            text = display(dayValue)
-            return
-        }
-        let editor = GoalValueModel(dayModel: model, goal: goal)
-        editor.amount = String(value)
-        if await editor.save() {
-            text = display(dayValue)
-            await onWrite?()
+    /// A quick step or the completion: one write, the field's own blur commit skipped while it runs.
+    private func write(_ action: @escaping () async -> Bool) {
+        Task {
+            if await action() { await onWrite?() }
+            focused = false
         }
     }
 
-    private func remove() async {
-        let editor = GoalValueModel(dayModel: model, goal: goal)
-        if await editor.save(remove: true) {
-            text = display(0)
-            await onWrite?()
-        }
+    private func commit() async { await Self.commit(editor, onWrite: onWrite) }
+
+    private static func commit(_ editor: GoalAmountEditor, onWrite: (() async -> Void)?) async {
+        guard editor.isDirty, !editor.isCommitting else { return }
+        if await editor.commit() { await onWrite?() }
     }
 }

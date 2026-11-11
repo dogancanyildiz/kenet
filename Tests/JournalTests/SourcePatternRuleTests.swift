@@ -18,7 +18,6 @@ struct SourcePatternRuleTests {
         "App/Screens/Entities/EntityScalarEditor.swift",
         "App/Screens/Settings/DiagnosticsView.swift",
         "App/Mac/HotKeySettingsView.swift",
-        "App/Screens/Goals/GoalValueEditor.swift",
         "App/Screens/Entities/UnseenPeopleSection.swift",
     ])
     func multiButtonListRowsUseBorderlessButtons(_ path: String) throws {

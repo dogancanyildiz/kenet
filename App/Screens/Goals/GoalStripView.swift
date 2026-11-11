@@ -359,9 +359,11 @@ struct GoalStripView: View {
                 onEnterAmount?(goal)
             } label: {
                 trailingGlyph("pencil")
+                    .opacity(model.canEdit ? 1 : InkGoalRowTrailing.busyPlusOpacity)
             }
             .buttonStyle(.plain)
             .disabled(onEnterAmount == nil)
+            .accessibilityHint(Text("Hedef sayfasını açar"))
             .accessibilityLabel(
                 Text(
                     verbatim: String(

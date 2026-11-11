@@ -30,12 +30,18 @@ struct GoalDetailView: View {
         self.store = store
         original = goal
         _history = State(initialValue: GoalDayModel(store: store, day: day))
-        _focusToken = State(initialValue: focusesAmount && goal.kind == .number ? 1 : 0)
-        initialAmountDay = amountDay == day ? nil : amountDay
+        let pastDay = amountDay == day ? nil : amountDay
+        // A past day focuses once it is picked and loaded (``edit(_:focuses:)``), not today's field.
+        _focusToken = State(initialValue: focusesAmount && goal.kind == .number && pastDay == nil ? 1 : 0)
+        initialAmountDay = pastDay
+        focusesInitialDay = focusesAmount
     }
 
     /// A past day's strip opened the page: that day is picked once the page appears.
     private let initialAmountDay: CalendarDate?
+    private let focusesInitialDay: Bool
+    /// Mac: a click on the page's empty room takes the amount field's focus, which writes it.
+    @State private var blurToken = 0
     @State private var pickedInitialDay = false
 
     /// The day the amount panel and the mark button edit.
@@ -60,8 +66,12 @@ struct GoalDetailView: View {
                 VStack(alignment: .leading, spacing: InkSpacing.section) {
                     InkScrolledMasthead(masthead)
 
-                    if let picked = pickedDay {
-                        pickedDayLine(picked.day)
+                    if goal.kind != .milestone {
+                        editedDayLine(editedDay.day)
+                            .padding(.horizontal, InkSpacing.margin)
+                    }
+                    if let error = pickedDay?.errorText {
+                        InfoBand(kind: .error, verbatim: error)
                             .padding(.horizontal, InkSpacing.margin)
                     }
 
@@ -118,6 +128,13 @@ struct GoalDetailView: View {
                 }
                 .padding(.vertical, 12)
                 .inkPageColumn()
+                #if os(macOS)
+                    // A click on the page's empty room ends the amount entry (and writes it):
+                    // AppKit keeps a text field's focus otherwise.
+                    .background {
+                        Color.clear.contentShape(Rectangle()).onTapGesture { blurToken += 1 }
+                    }
+                #endif
             }
             .scrollDismissesKeyboard(.interactively)
             .onChange(of: pickedDay?.day) { _, _ in
@@ -130,11 +147,15 @@ struct GoalDetailView: View {
         #if os(iOS)
             .toolbar(.hidden, for: .tabBar)
         #endif
-        .task(id: store.lastUpdated) { await history.load() }
+        .task(id: store.lastUpdated) {
+            await history.load()
+            // A picked past day follows outside changes too, or a quick step adds to a stale value.
+            await pickedDay?.load()
+        }
         .task {
             guard let day = initialAmountDay, !pickedInitialDay else { return }
             pickedInitialDay = true
-            await edit(day)
+            await edit(day, focuses: focusesInitialDay)
         }
         .sheet(isPresented: $isEditing) {
             NavigationStack { GoalDefinitionForm(store: store, goal: goal) }
@@ -208,10 +229,12 @@ struct GoalDetailView: View {
         Group {
             if goal.kind == .number {
                 GoalAmountPanel(
-                    model: editedDay, goal: goal, focusToken: focusToken,
+                    model: editedDay, goal: goal, focusToken: focusToken, blurToken: blurToken,
                     onWrite: { if pickedDay != nil { await history.load() } }
                 )
-                .id(editedDay.day)
+                // A new panel per day model: the old one writes what was typed for its own day as
+                // it goes (``GoalAmountPanel``).
+                .id(ObjectIdentifier(editedDay))
             } else if goal.kind == .milestone {
                 GoalProgressLabel(goal: goal, status: status)
             } else {
@@ -558,36 +581,42 @@ struct GoalDetailView: View {
         .accessibilityIdentifier("goal.graceDays")
     }
 
-    /// "12 Kas Perşembe düzenleniyor · Bugüne dön" over the panel while a past day is picked.
-    private func pickedDayLine(_ day: CalendarDate) -> some View {
+    /// "12 Kas Perşembe düzenleniyor" over the panel, always: the day the panel and the mark
+    /// button write to. A past day adds "Bugüne dön".
+    private func editedDayLine(_ day: CalendarDate) -> some View {
         let date = LocalDay.instant(for: day)
             .formatted(.dateTime.day().month(.abbreviated).weekday(.wide).locale(locale))
         return HStack(alignment: .firstTextBaseline, spacing: 8) {
             Text("\(date) düzenleniyor")
                 .font(.ink.meta.weight(.semibold))
-                .foregroundStyle(Color.ink.text)
+                .foregroundStyle(pickedDay == nil ? Color.ink.secondaryText : Color.ink.text)
                 .fixedSize(horizontal: false, vertical: true)
+                .accessibilityIdentifier("goal.editedDay")
             Spacer(minLength: 8)
-            Button("Bugüne dön") {
-                focusToken = 0
-                pickedDay = nil
+            if pickedDay != nil {
+                Button("Bugüne dön") {
+                    focusToken = 0
+                    pickedDay = nil
+                }
+                .buttonStyle(InkTextButtonStyle())
+                .accessibilityIdentifier("button.goal.backToToday")
             }
-            .buttonStyle(InkTextButtonStyle())
-            .accessibilityIdentifier("button.goal.backToToday")
         }
+        .frame(minHeight: TapTarget.minimumLength)
     }
 
-    /// A heatmap cell or a log row: the panel at the top edits that day (no separate sheet).
-    private func edit(_ day: CalendarDate) async {
+    /// A heatmap cell or a log row: the panel at the top edits that day (no separate sheet). The
+    /// day shows at once from the page's history and takes input once it loaded; a failed load
+    /// stays on that day with its error, never falling back to today.
+    private func edit(_ day: CalendarDate, focuses: Bool = true) async {
         if day == history.day {
             pickedDay = nil
         } else {
-            let model = GoalDayModel(store: store, day: day)
-            await model.load()
-            guard model.canEdit else { return }
+            let model = GoalDayModel(store: store, day: day, startingFrom: history)
             pickedDay = model
+            await model.load()
         }
-        if goal.kind == .number { focusToken += 1 }
+        if focuses, goal.kind == .number { focusToken += 1 }
     }
 }
 

@@ -499,7 +499,9 @@ struct DayView: View {
             GoalStripView(
                 model: goalModels.model(store: store, day: date), countedGoalIDs: presented.countedGoalIDs,
                 counter: loadedGoals?.day == date ? presented.counter(for: .goals) : nil,
-                onOpen: { goalDestination = GoalDetailRoute(goal: $0) },
+                // A past day's card opens the page on that day (`amountDay`): a quick step there
+                // writes to the day on screen, not to today.
+                onOpen: { goalDestination = GoalDetailRoute(goal: $0, amountDay: date) },
                 onEnterAmount: { goalDestination = GoalDetailRoute(goal: $0, focusesAmount: true, amountDay: date) }
             )
             .id(GoalStripIdentity.key(day: date, vaultPath: store.vaultURL?.path))
@@ -609,7 +611,9 @@ struct DayView: View {
                 model: goalModels.model(store: store, day: date),
                 countedGoalIDs: presented.countedGoalIDs,
                 counter: loadedGoals?.day == date ? presented.counter(for: .goals) : nil,
-                onOpen: { goalDestination = GoalDetailRoute(goal: $0) },
+                // A past day's card opens the page on that day (`amountDay`): a quick step there
+                // writes to the day on screen, not to today.
+                onOpen: { goalDestination = GoalDetailRoute(goal: $0, amountDay: date) },
                 onEnterAmount: { goalDestination = GoalDetailRoute(goal: $0, focusesAmount: true, amountDay: date) }
             )
             .id(GoalStripIdentity.key(day: date, vaultPath: store.vaultURL?.path))

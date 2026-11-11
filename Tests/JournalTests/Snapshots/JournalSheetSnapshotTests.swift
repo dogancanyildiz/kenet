@@ -8,8 +8,7 @@
 
     @testable import Journal
 
-    /// Sheet türleri (Bugün, Günlük, Hedefler): günlük düzenleyicisi, görev tarihi, hedef
-    /// miktarı. Her biri açık, koyu ve AX3; ayrıca tek vakalar. Hedef tanımı formu kendi
+    /// Sheet türleri (Bugün, Günlük): günlük düzenleyicisi, olay metni, görev tarihi. Her biri açık, koyu ve AX3; ayrıca tek vakalar. Hedef tanımı formu kendi
     /// kümesindedir: `GoalFormSnapshotTests`.
     enum JournalSheetSnapshotSubject: String, CaseIterable, Sendable {
         /// Toplu kaydeden: "Vazgeç / Kaydet".
@@ -18,8 +17,6 @@
         case eventEditor
         /// Her seçim anında yazar: yalnız "Kapat".
         case taskDate
-        /// Sayı hedefi: çukur zeminli miktar alanı, "Vazgeç / Kaydet".
-        case goalValue
     }
 
     enum JournalSheetSnapshotVariant: String, CaseIterable, Sendable {
@@ -45,18 +42,6 @@
             await Self.assert(
                 view, named: subject.rawValue + variant.rawValue, variant: variant,
                 store: context.store, clock: Self.clock(for: subject))
-        }
-
-        /// Evet / hayır hedefi: vurgu renkli anahtar.
-        @Test func goalValueToggleLight() async throws {
-            let context = try SnapshotHost.makeContext()
-            defer { context.clean() }
-            await context.start()
-            let goal = try #require((try await context.store.goalDefinitions()).first { $0.key == "spor" })
-            let view = try await Self.goalValueEditor(goal: goal, store: context.store)
-            await Self.assert(
-                view, named: "goalValueToggleLight", variant: .light, store: context.store,
-                clock: goalsSnapshotNow)
         }
 
         /// Yeni hedef sheet'inin koyu hâli (açık ve AX3 `GoalsSummarySnapshotTests` içinde).
@@ -106,7 +91,6 @@
 
         private static func clock(for subject: JournalSheetSnapshotSubject) -> Date {
             switch subject {
-            case .goalValue: goalsSnapshotNow
             case .journalEditor, .eventEditor, .taskDate: snapshotNow
             }
         }
@@ -127,19 +111,7 @@
                 let row = try #require(
                     try await store.allTasks().first { $0.due == snapshotDay && !$0.isClosed })
                 return AnyView(TaskDateEditor(model: TaskEditorModel(store: store, row: row)))
-            case .goalValue:
-                let goal = try #require((try await store.goalDefinitions()).first { $0.key == "kitap" })
-                return try await goalValueEditor(goal: goal, store: store)
             }
-        }
-
-        private static func goalValueEditor(goal: GoalDefinition, store: IndexStore) async throws
-            -> AnyView
-        {
-            let dayModel = GoalDayModel(store: store, day: goalsSnapshotDay)
-            await dayModel.load()
-            #expect(dayModel.canEdit)
-            return AnyView(GoalValueEditor(model: GoalValueModel(dayModel: dayModel, goal: goal)))
         }
 
         private static func assert(

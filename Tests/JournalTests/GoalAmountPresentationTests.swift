@@ -31,6 +31,10 @@ struct GoalAmountPresentationTests {
         (1, [1]),
         (100, [5, 10, 25]),
         (1000, [50, 100, 250]),
+        (21, [1, 2, 5]),
+        (2.5, [1]),
+        (0.5, [1]),
+        (3, [1]),
     ]
 
     @Test(arguments: stepCases)

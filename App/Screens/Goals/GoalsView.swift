@@ -563,11 +563,14 @@ private struct GoalListCard<Detail: View>: View {
                 .accessibilityLabel(Text(goal.kind == .milestone ? "Bugünü işaretle" : "Artır"))
             }
         } else if !GoalAmountPresentation.usesQuickIncrement(goal) {
+            // Opens the goal page also while the vault is read-only (to look); faded then.
             Button(action: onEnterAmount) {
                 trailingGlyph("pencil")
+                    .opacity(canEdit ? 1 : InkGoalRowTrailing.busyPlusOpacity)
             }
             .buttonStyle(.plain)
-            .accessibilityLabel(Text("Miktar gir"))
+            .accessibilityLabel(Text(verbatim: String(localized: "\(goal.name), miktar gir", locale: locale)))
+            .accessibilityHint(Text("Hedef sayfasını açar"))
         } else {
             Button(action: onIncrement) {
                 plusGlyph

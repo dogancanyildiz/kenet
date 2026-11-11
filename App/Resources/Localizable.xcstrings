@@ -6602,6 +6602,23 @@
         }
       }
     },
+    "Değer kaydedilemedi; yeniden dene." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The value could not be saved; try again."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Değer kaydedilemedi; yeniden dene."
+          }
+        }
+      }
+    },
     "Değeri boş bırak" : {
       "localizations" : {
         "en" : {
@@ -9537,6 +9554,23 @@
         }
       }
     },
+    "Hedef sayfasını açar" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opens the goal page"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hedef sayfasını açar"
+          }
+        }
+      }
+    },
     "Hedef tanımını düzenler" : {
       "localizations" : {
         "en" : {
@@ -12143,6 +12177,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Miktar gir"
+          }
+        }
+      }
+    },
+    "Miktar, hedef %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Amount, target %@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Miktar, hedef %@"
           }
         }
       }

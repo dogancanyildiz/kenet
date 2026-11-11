@@ -135,13 +135,13 @@ enum TurkishSuffix {
 
 enum LocationCopy {
     static func areYouAt(_ name: String, locale: Locale = .current) -> String {
-        String(
+        PresentationLocalization.string(
             localized: "📍 \(TurkishSuffix.locativeArgument(name, locale: locale)) misin?",
             locale: locale)
     }
 
     static func geofencePrompt(place: String, goal: String, locale: Locale = .current) -> String {
-        String(
+        PresentationLocalization.string(
             localized: "\(TurkishSuffix.youAreAtArgument(place, locale: locale)). \(goal) işaretlensin mi?",
             locale: locale)
     }
@@ -151,11 +151,11 @@ enum LocationCopy {
     ) -> String {
         if hideContent {
             return automatic
-                ? String(localized: "Hedef işaretlendi", locale: locale)
-                : String(localized: "Bir hedefin yakınındasın", locale: locale)
+                ? PresentationLocalization.string(localized: "Hedef işaretlendi", locale: locale)
+                : PresentationLocalization.string(localized: "Bir hedefin yakınındasın", locale: locale)
         }
         return automatic
-            ? String(localized: "\(goal) işaretlendi", locale: locale)
+            ? PresentationLocalization.string(localized: "\(goal) işaretlendi", locale: locale)
             : geofencePrompt(place: place, goal: goal, locale: locale)
     }
 }

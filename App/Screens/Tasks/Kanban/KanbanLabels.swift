@@ -8,13 +8,13 @@ extension KanbanMoveTarget {
         switch destination {
         case .status(let status):
             switch status {
-            case .todo, .unknown: return String(localized: "Yapılacak", locale: locale)
-            case .inProgress: return String(localized: "Devam", locale: locale)
-            case .done: return String(localized: "Bitti", locale: locale)
-            case .cancelled: return String(localized: "İptal", locale: locale)
+            case .todo, .unknown: return PresentationLocalization.string(localized: "Yapılacak", locale: locale)
+            case .inProgress: return PresentationLocalization.string(localized: "Devam", locale: locale)
+            case .done: return PresentationLocalization.string(localized: "Bitti", locale: locale)
+            case .cancelled: return PresentationLocalization.string(localized: "İptal", locale: locale)
             }
-        case .project: return String(localized: "Projesiz", locale: locale)
-        case .person: return String(localized: "Kişisiz", locale: locale)
+        case .project: return PresentationLocalization.string(localized: "Projesiz", locale: locale)
+        case .person: return PresentationLocalization.string(localized: "Kişisiz", locale: locale)
         }
     }
 

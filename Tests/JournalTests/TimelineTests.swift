@@ -405,10 +405,11 @@ import VaultFormat
     }
 
     @Test func openBarsAreAccentOnTheDesktopChartAndProjectColoredOnThePhone() {
-        // A project whose hue is the warning amber must not read as carried over on the Mac.
-        #expect(ProjectColor.color(for: "Ev") == .ink.warning)
+        // The desktop chart draws every open bar in the accent; the phone keeps the project hue
+        // ("Ev" is `place`; the palette has no amber, decisions.md 2026-11-11).
+        #expect(ProjectColor.color(for: "Ev") == .ink.place)
         #expect(TimelineBarChrome.openColor(project: "Ev", usesProjectColor: false) == .ink.accent)
-        #expect(TimelineBarChrome.openColor(project: "Ev", usesProjectColor: true) == .ink.warning)
+        #expect(TimelineBarChrome.openColor(project: "Ev", usesProjectColor: true) == .ink.place)
         #expect(TimelineBarChrome.openColor(project: nil, usesProjectColor: false) == .ink.accent)
     }
 

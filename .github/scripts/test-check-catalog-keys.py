@@ -2,7 +2,8 @@
 """check-catalog-keys.py'yi küçük örnek kaynak ağaçlarıyla sınar.
 
 Korunan şey: katalogda olmayan sabit metin denetimi düşürür; `verbatim:`, değişken argüman,
-enterpolasyonlu metin ve yorum düşürmez.
+enterpolasyonlu metin ve yorum düşürmez. `locale:` alıp `bundle:` almayan `String(localized:)`
+çağrısı da düşürür.
 """
 
 import json
@@ -72,6 +73,46 @@ class CatalogKeyTests(unittest.TestCase):
 
     def test_url_in_string_is_not_comment(self):
         self.assertFails('let u = "https://x"; Text("Eksik")', "Eksik")
+
+
+class ProcessLanguageTests(unittest.TestCase):
+    """`String(localized:locale:)` dili süreçten seçer; `bundle:` olmadan reddedilir."""
+
+    def assertFlags(self, source, line=1):
+        r = run(source)
+        self.assertEqual(r.returncode, 1, r.stdout + r.stderr)
+        self.assertIn("bundle: almıyor", r.stderr)
+        self.assertNotIn("Kodda var", r.stderr)
+        self.assertIn(f"App/Screens/View.swift:{line}", r.stderr)
+
+    def assertPasses(self, source):
+        r = run(source)
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+
+    def test_locale_without_bundle_fails(self):
+        cases = [
+            'let s = String(localized: "Kayıtlı", locale: locale)',
+            'let s = String(localized: "Kayıtlı \\(n)", locale: locale)',
+            'let s = String(\n    localized: "Kayıtlı",\n    locale: locale)',
+            'let s = String(localized: key, locale: f(x: "a)"))',
+            'let s = String(localized: "Kayıtlı \\(g(a: "b"))", locale: locale)',
+        ]
+        for source in cases:
+            with self.subTest(source=source):
+                self.assertFlags(source)
+
+    def test_bundle_or_no_locale_passes(self):
+        self.assertPasses(
+            'let a = String(localized: "Kayıtlı", bundle: PresentationLocalization.bundle(locale), locale: locale)\n'
+            'let b = String(\n    localized: "Kayıtlı",\n    bundle: b, locale: locale)\n'
+            'let c = String(localized: "Kayıtlı")\n'
+            'let d = PresentationLocalization.string(localized: "Kayıtlı", locale: locale)\n'
+            'let e = String(localized: "Kayıtlı \\(x.formatted(.number.locale(locale)))")\n'
+            '// String(localized: "Kayıtlı", locale: locale)\n'
+        )
+
+    def test_reports_the_call_line(self):
+        self.assertFlags('let a = 1\nlet b = 2\nlet s = String(localized: "Kayıtlı", locale: l)', line=3)
 
 
 if __name__ == "__main__":

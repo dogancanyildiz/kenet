@@ -64,7 +64,7 @@ struct KanbanCard: View {
             parts.append(VoiceOverCopy.priorityValue(priority))
         }
         if presentation.showsOverdueCue {
-            parts.append(String(localized: "Devreden", locale: locale))
+            parts.append(PresentationLocalization.string(localized: "Devreden", locale: locale))
         }
         return parts.joined(separator: ", ")
     }

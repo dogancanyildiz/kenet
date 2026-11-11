@@ -43,7 +43,7 @@ struct TaskDueDateLabel: View {
                 date, today: asOf, locale: locale, calendar: calendar)
         }
         let day = LocalDay.instant(for: date).formatted(format)
-        return String(localized: "\(day) devretti", locale: locale)
+        return PresentationLocalization.string(localized: "\(day) devretti", locale: locale)
     }
 }
 

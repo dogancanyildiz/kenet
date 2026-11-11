@@ -4,19 +4,26 @@ import Testing
 @testable import Journal
 
 @Suite struct ProjectColorTests {
-    @Test func projectNamesMapToOneOfFiveStableColors() {
-        #expect(ProjectColor.index(for: "Kenet") == 1)
-        #expect(ProjectColor.index(for: "Altyapı") == 2)
+    @Test func projectNamesMapToOneOfFourStableColors() {
+        #expect(ProjectColor.index(for: "Kenet") == 0)
+        #expect(ProjectColor.index(for: "Altyapı") == 1)
         #expect(ProjectColor.index(for: "Kenet") == ProjectColor.index(for: "Kenet"))
     }
 
-    /// design.md palette order: accent, person, place, warning, control (hash mod 5).
+    /// design.md palette order: accent, person, place, control (hash mod 4).
     @Test func paletteFollowsTheDesignOrder() {
-        #expect(ProjectColor.color(for: "İş") == .ink.accent)
-        #expect(ProjectColor.color(for: "Kenet") == .ink.person)
-        #expect(ProjectColor.color(for: "Altyapı") == .ink.place)
-        #expect(ProjectColor.color(for: "Ev") == .ink.warning)
-        #expect(ProjectColor.color(for: "Kitap") == .ink.control)
+        #expect(ProjectColor.color(for: "Kenet") == .ink.accent)
+        #expect(ProjectColor.color(for: "İş") == .ink.person)
+        #expect(ProjectColor.color(for: "Ev") == .ink.place)
+        #expect(ProjectColor.color(for: "Ev işleri") == .ink.control)
+    }
+
+    /// Amber is the carried-over color; no project may be drawn in it (fark3).
+    @Test func paletteNeverUsesTheWarningColor() {
+        let names = ["İş", "Kenet", "Altyapı", "Ev", "Kitap", "mobil", "Ev işleri", "Okuma", "Sağlık", "Kişisel"]
+        for name in names {
+            #expect(ProjectColor.color(for: name) != .ink.warning)
+        }
     }
 
     @Test func noProjectUsesControlColorSlot() {

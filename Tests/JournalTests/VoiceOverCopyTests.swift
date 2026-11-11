@@ -5,10 +5,15 @@ import VaultFormat
 @testable import Journal
 
 struct VoiceOverCopyTests {
-    // String lookups follow the test host's language, so expectations resolve the same keys
-    // instead of comparing against Turkish literals.
+    // String lookups follow the given locale's language (`PresentationLocalization`), so
+    // expectations resolve the same keys in that locale instead of comparing against literals.
     private let locale = Locale(identifier: "tr_TR")
-    private func localized(_ key: String.LocalizationValue) -> String { String(localized: key) }
+    private func localized(_ key: String.LocalizationValue) -> String {
+        PresentationLocalization.string(localized: key, locale: locale)
+    }
+    private func currentLocalized(_ key: String.LocalizationValue) -> String {
+        PresentationLocalization.string(localized: key, locale: .current)
+    }
 
     @Test func taskCompletionValueSpeaksDoneAndOpen() {
         #expect(VoiceOverCopy.taskCompletionValue(isCompleted: true, locale: locale) == localized("Tamamlandı"))
@@ -16,8 +21,8 @@ struct VoiceOverCopyTests {
         #expect(
             VoiceOverCopy.taskCompletionValue(isCompleted: true)
                 != VoiceOverCopy.taskCompletionValue(isCompleted: false))
-        #expect(VoiceOverCopy.taskCompletionValue(isCompleted: true) == String(localized: "Tamamlandı"))
-        #expect(VoiceOverCopy.taskCompletionValue(isCompleted: false) == String(localized: "Açık"))
+        #expect(VoiceOverCopy.taskCompletionValue(isCompleted: true) == currentLocalized("Tamamlandı"))
+        #expect(VoiceOverCopy.taskCompletionValue(isCompleted: false) == currentLocalized("Açık"))
     }
 
     @Test func priorityValueSpeaksNamedLevels() {
@@ -25,7 +30,7 @@ struct VoiceOverCopyTests {
         #expect(VoiceOverCopy.priorityValue(.medium, locale: locale) == localized("Orta öncelik"))
         #expect(VoiceOverCopy.priorityValue(.low, locale: locale) == localized("Düşük öncelik"))
         #expect(VoiceOverCopy.priorityValue(.other("⚡"), locale: locale) == localized("Öncelik \("⚡")"))
-        #expect(VoiceOverCopy.priorityValue(.high) == String(localized: "Yüksek öncelik"))
+        #expect(VoiceOverCopy.priorityValue(.high) == currentLocalized("Yüksek öncelik"))
     }
 
     @Test func dayRowLabelIncludesDateEventsAndPreview() throws {
@@ -45,15 +50,15 @@ struct VoiceOverCopyTests {
         #expect(VoiceOverCopy.changeDateActionName(locale: locale) == localized("Tarihi değiştir"))
         #expect(
             VoiceOverCopy.moveActionName(columnTitle: "Devam")
-                == String(localized: "Taşı: \("Devam")"))
-        #expect(VoiceOverCopy.changeDateActionName() == String(localized: "Tarihi değiştir"))
+                == currentLocalized("Taşı: \("Devam")"))
+        #expect(VoiceOverCopy.changeDateActionName() == currentLocalized("Tarihi değiştir"))
     }
 
     @Test func disclosureValueSpeaksExpandedState() {
         #expect(VoiceOverCopy.disclosureValue(isExpanded: true, locale: locale) == localized("Genişletilmiş"))
         #expect(VoiceOverCopy.disclosureValue(isExpanded: false, locale: locale) == localized("Daraltılmış"))
-        #expect(VoiceOverCopy.disclosureValue(isExpanded: true) == String(localized: "Genişletilmiş"))
-        #expect(VoiceOverCopy.disclosureValue(isExpanded: false) == String(localized: "Daraltılmış"))
+        #expect(VoiceOverCopy.disclosureValue(isExpanded: true) == currentLocalized("Genişletilmiş"))
+        #expect(VoiceOverCopy.disclosureValue(isExpanded: false) == currentLocalized("Daraltılmış"))
     }
 
     @Test func timelineBarLabelIncludesRangeAndOverdue() throws {

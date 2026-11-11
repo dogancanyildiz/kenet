@@ -193,7 +193,8 @@ struct GraphView: View {
         let people = nodes.filter { $0.kind == .person }.count
         let places = nodes.filter { $0.kind == .place }.count
         let days = nodes.filter { $0.kind == .day }.count
-        return String(localized: "\(people) kişi · \(places) konum · \(days) gün", locale: locale)
+        return PresentationLocalization.string(
+            localized: "\(people) kişi · \(places) konum · \(days) gün", locale: locale)
     }
 
     private var customTypes: [EntityTypeChoice] {

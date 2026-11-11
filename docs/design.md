@@ -769,7 +769,7 @@ Erişilebilirlik boyutunda 12 aylık çubuğun sütunları satıra döner. 90 g�
 | Biten | Metin ikincil renkte; "Bitti" etiketi | `secondaryText` |
 | Şimdi çizgisi | Yatay vurgu çizgisi ve saat rozeti | `accent`, rozet yazısı `onAccent` |
 
-**Proje rengi.** Proje adından kararlı türetilir: adın FNV-1a özeti 5 belirteçlik diziye bölünür: `accent`, `person`, `place`, `warning`, `control`. Projesiz görev `control` alır. Renk her zaman proje adı metniyle birlikte görünür; renk tek başına anlam taşımaz. Türetme tek yardımcıdadır: `ProjectColor` (`App/Model/ProjectColor.swift`). Kanban kartı, zaman kartı, zaman çizelgesi çubuğu, proje grubu başlığı ve proje kartı noktası aynı yardımcıyı kullanır.
+**Proje rengi.** Proje adından kararlı türetilir: adın FNV-1a özeti 4 belirteçlik diziye bölünür: `accent`, `person`, `place`, `control`. Amber (`warning`) dizide yoktur; amber "devreden" demektir. Projesiz görev `control` alır. Renk her zaman proje adı metniyle birlikte görünür; renk tek başına anlam taşımaz. Türetme tek yardımcıdadır: `ProjectColor` (`App/Model/ProjectColor.swift`). Kanban kartı, zaman kartı, zaman çizelgesi çubuğu, proje grubu başlığı ve proje kartı noktası aynı yardımcıyı kullanır.
 
 Renk tek başına anlam taşımaz; proje adı ve durum metni yanında durur. Proje renk dizisi henüz belirteç tablosunda yoktur; D3 dalgasından önce bu tabloya 4 varyantıyla girer.
 

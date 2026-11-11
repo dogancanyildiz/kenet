@@ -26,6 +26,18 @@ enum InkTabsChrome {
     /// Gap between words on the page-size tab row.
     static let pageSpacing: CGFloat = 20
 
+    /// Half the gap on each inner side of a word; the first word keeps the margin, the last
+    /// word's trailing side has no neighbour.
+    static func gapPadding(index: Int, count: Int) -> (leading: CGFloat, trailing: CGFloat) {
+        (index == 0 ? 0 : pageSpacing / 2, index == count - 1 ? 0 : pageSpacing / 2)
+    }
+
+    /// Where a word sits when its target is wider than word plus gap: middle words are centered
+    /// so the extra width splits between both gaps; the first and last stay leading.
+    static func wordAlignment(index: Int, count: Int) -> Alignment {
+        index == 0 || index == count - 1 ? .bottomLeading : .bottom
+    }
+
     /// Smallest side of one tab word: the touch target on iOS; a compact row for the Mac pointer.
     #if os(iOS)
         static let minimumWordLength: CGFloat = TapTarget.minimumLength
@@ -99,7 +111,9 @@ struct InkTabs<Value: Hashable>: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             ViewThatFits(in: .horizontal) {
-                HStack(spacing: InkTabsChrome.pageSpacing) { words(wraps: false) }
+                // The gap is drawn as padding inside each word's target (``InkTabsChrome/gapPadding``)
+                // so a short word's 44 pt target does not widen the gap after it (fark3 P25).
+                HStack(spacing: 0) { words(wraps: false) }
                 VStack(alignment: .leading, spacing: 0) { words(wraps: true) }
             }
             Rectangle()
@@ -113,8 +127,9 @@ struct InkTabs<Value: Hashable>: View {
     }
 
     private func words(wraps: Bool) -> some View {
-        ForEach(items) { item in
+        ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
             let selected = item.value == selection
+            let gap = wraps ? (leading: 0, trailing: 0) : InkTabsChrome.gapPadding(index: index, count: items.count)
             Button {
                 selection = item.value
             } label: {
@@ -132,9 +147,12 @@ struct InkTabs<Value: Hashable>: View {
                             )
                             .frame(height: InkSize.modeUnderline)
                     }
+                    .padding(.leading, gap.leading)
+                    .padding(.trailing, gap.trailing)
                     .frame(
                         minWidth: InkTabsChrome.minimumWordLength,
-                        minHeight: InkTabsChrome.minimumWordLength, alignment: .bottomLeading
+                        minHeight: InkTabsChrome.minimumWordLength,
+                        alignment: InkTabsChrome.wordAlignment(index: index, count: items.count)
                     )
                     .tapTarget()
             }

@@ -52,7 +52,7 @@ struct GoalScoreCopyTests {
             streak: 1, longestStreak: 1, isPendingToday: true, score: nil, yearDone: 2, yearProgress: nil)
         let meta = GoalRowPresentation.meta(
             goal: sport, status: week, bundle: turkish, locale: Locale(identifier: "tr"))
-        #expect(meta == sport.period.progressTitle)
+        #expect(meta == sport.period.progressTitle(locale: Locale(identifier: "tr")))
         #expect(meta?.contains("%") != true)
     }
 

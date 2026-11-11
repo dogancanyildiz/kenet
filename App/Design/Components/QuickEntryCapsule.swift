@@ -108,11 +108,15 @@ struct QuickEntryCapsule<Field: View, Accessory: View, Chips: View>: View {
                 VStack(alignment: .leading, spacing: 0) {
                     // Drawing: mode words on the left, the time chip at the row's trailing end. The
                     // recognized chips scroll sideways between them, so the card keeps two rows.
+                    // The mode words and the accessory keep their size; only the chips give way
+                    // (they scroll), so the task date is never cut at the card's edge.
                     HStack(alignment: .center, spacing: 6) {
                         modePicker
+                            .layoutPriority(1)
                         chips()
                         Spacer(minLength: 0)
                         accessory()
+                            .layoutPriority(1)
                     }
                     HStack(alignment: .center, spacing: 6) {
                         fieldSlot

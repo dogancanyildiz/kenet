@@ -224,6 +224,16 @@ struct TasksListRow: View {
         // The phone's way into the detail sheet: a touch on the row completes the task
         // (screens.md "Tamamlama"), so the detail sits in the menu, not behind a chevron whose
         // touch area would take touches meant for the row.
+        // "Bitti" first, as in the detail: in the split shell a touch on the row selects it, so
+        // the box and this item are the ways to complete it; a closed row offers reopening.
+        if completion.canToggleCompletion {
+            if row.isClosed {
+                Button("Görevi yeniden aç", systemImage: "arrow.uturn.backward", action: complete)
+            } else {
+                // The detail's word for completing (its primary button); not a sheet's confirm.
+                Button(action: complete) { Label("Bitti", systemImage: "checkmark.circle") }
+            }
+        }
         if showsDetailEntry {
             Button("Ayrıntıları göster", systemImage: "info.circle", action: openDetail)
         }

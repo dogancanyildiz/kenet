@@ -155,9 +155,16 @@ private struct DayCopyMergeBand: View {
     @MainActor
     private func openUITestVault(at path: String, store: IndexStore) async {
         let source = URL(fileURLWithPath: path, isDirectory: true)
-        let destination = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent("UITestVault", isDirectory: true)
+        let caches = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0]
+        let name = AppLaunchPolicy.uiTestVaultCopyName()
+        let destination = caches.appendingPathComponent(name, isDirectory: true)
         let manager = FileManager.default
+        // Copies named by earlier launches are not read again.
+        let prefix = AppLaunchPolicy.uiTestVaultCopyDefaultName + "-"
+        for old in (try? manager.contentsOfDirectory(atPath: caches.path)) ?? []
+        where old.hasPrefix(prefix) && old != name {
+            try? manager.removeItem(at: caches.appendingPathComponent(old, isDirectory: true))
+        }
         try? manager.removeItem(at: destination)
         do {
             try manager.copyItem(at: source, to: destination)

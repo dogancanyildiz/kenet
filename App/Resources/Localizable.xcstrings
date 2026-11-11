@@ -1685,46 +1685,6 @@
         }
       }
     },
-    "%lld görev açık" : {
-      "localizations" : {
-        "en" : {
-          "variations" : {
-            "plural" : {
-              "one" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld task open"
-                }
-              },
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld tasks open"
-                }
-              }
-            }
-          }
-        },
-        "tr" : {
-          "variations" : {
-            "plural" : {
-              "one" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld görev açık"
-                }
-              },
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld görev açık"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "%lld görev bugün" : {
       "localizations" : {
         "en" : {
@@ -5933,6 +5893,46 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bu hafta yapıldı"
+          }
+        }
+      }
+    },
+    "Bu haftadan %lld görev açık kaldı" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld task left open from this week"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld tasks left open from this week"
+                }
+              }
+            }
+          }
+        },
+        "tr" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Bu haftadan %lld görev açık kaldı"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Bu haftadan %lld görev açık kaldı"
+                }
+              }
+            }
           }
         }
       }

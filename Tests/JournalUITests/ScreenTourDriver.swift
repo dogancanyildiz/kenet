@@ -631,10 +631,13 @@ final class ScreenTourDriver {
     func changedVaultFiles(fixture: URL, copy: URL? = nil) -> [String] {
         let manager = FileManager.default
         guard let enumerator = manager.enumerator(at: fixture, includingPropertiesForKeys: nil) else { return [] }
+        // The app works on its own copy (`UITestSupport.appVault`); each relaunch copies afresh,
+        // so the check covers the last launch.
+        let used = copy ?? UITestSupport.appVault(for: vaultURL) ?? vaultURL
         var changed: [String] = []
         for case let file as URL in enumerator where file.pathExtension == "md" {
             let relative = String(file.path.dropFirst(fixture.path.count + 1))
-            let other = (copy ?? vaultURL).appendingPathComponent(relative)
+            let other = used.appendingPathComponent(relative)
             if manager.contents(atPath: file.path) != manager.contents(atPath: other.path) {
                 changed.append(relative)
             }

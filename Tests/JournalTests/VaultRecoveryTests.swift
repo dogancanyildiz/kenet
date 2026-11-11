@@ -25,6 +25,18 @@ struct VaultRecoveryTests {
         try await expectAutomaticStartBlocked(environment: [:], arguments: ["JOURNAL_UITEST_VAULT=" + path])
     }
 
+    /// The UI test names the app's vault copy; a name that could leave the caches folder falls back.
+    @Test func uiTestVaultCopyNameAcceptsOnlyPlainNames() {
+        let key = AppLaunchPolicy.uiTestVaultCopyKey
+        #expect(AppLaunchPolicy.uiTestVaultCopyName(environment: [:]) == "UITestVault")
+        #expect(
+            AppLaunchPolicy.uiTestVaultCopyName(environment: [key: "UITestVault-JournalUITest-1A2B_c"])
+                == "UITestVault-JournalUITest-1A2B_c")
+        for name in ["UITestVault-../x", "UITestVault-a/b", "Other-1", "UITestVault-ü", ""] {
+            #expect(AppLaunchPolicy.uiTestVaultCopyName(environment: [key: name]) == "UITestVault")
+        }
+    }
+
     private func expectAutomaticStartBlocked(environment: [String: String], arguments: [String]) async throws {
         let temp = try testDirectory()
         defer { try? FileManager.default.removeItem(at: temp) }

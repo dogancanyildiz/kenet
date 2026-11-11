@@ -52,6 +52,12 @@ struct MentionAssistStrip: View {
                     creationNoticeRow(notice)
                 }
             }
+            // A card of its own: the strip sits over the page's content (the goal cards on
+            // Bugün, a calendar card on iPad), never transparently on top of it.
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .inkSurface(bordered: true, cornerRadius: InkCorner.md)
             .onAppear { announceResolutionIfNeeded() }
             .onChange(of: announcementKey) { _, _ in announceResolutionIfNeeded() }
         }
@@ -111,21 +117,21 @@ struct MentionAssistStrip: View {
         if !composer.awaitingResolution, let range = composer.suggestionRange(at: insertionOffset),
             range.count > 1
         {
-            HStack {
+            InkFlowLayout(spacing: 16, lineSpacing: 0) {
                 Button {
                     beginCreation(.person)
                 } label: {
                     Text("Yeni kişi oluştur")
                         .tapTarget()
                 }
-                .buttonStyle(InkTextButtonStyle())
+                .buttonStyle(StripActionStyle())
                 Button {
                     beginCreation(.place)
                 } label: {
                     Text("Yeni konum oluştur")
                         .tapTarget()
                 }
-                .buttonStyle(InkTextButtonStyle())
+                .buttonStyle(StripActionStyle())
                 Menu("Özel tip olarak ekle") {
                     ForEach(
                         EntityTypeChoices.choices(
@@ -140,7 +146,12 @@ struct MentionAssistStrip: View {
                             Text("\(type.name) olarak ekle")
                         }
                     }
-                }.disabled(store.entityTypes.types.isEmpty)
+                }
+                .font(.ink.meta.weight(.semibold))
+                .lineLimit(1)
+                .fixedSize()
+                .frame(minHeight: InkButtonChrome.minimumHeight)
+                .disabled(store.entityTypes.types.isEmpty)
             }
         }
     }
@@ -171,6 +182,7 @@ struct MentionAssistStrip: View {
                             onResolved?()
                         } label: {
                             entityLabel(entity)
+                                .modifier(CandidatePill())
                                 .tapTarget()
                         }
                         .buttonStyle(.plain)
@@ -179,7 +191,7 @@ struct MentionAssistStrip: View {
                         composer.skip(mention)
                         onResolved?()
                     }
-                    .buttonStyle(InkTextButtonStyle())
+                    .buttonStyle(StripActionStyle())
                 }
             }
         } else if let mention = composer.pendingUnknown {
@@ -200,14 +212,15 @@ struct MentionAssistStrip: View {
                 Button("Oluştur") {
                     if let kind = composer.creationKind { create(kind) }
                 }
-                .buttonStyle(InkTextButtonStyle())
+                .buttonStyle(StripActionStyle())
                 .disabled(composer.qualifier.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             } else {
-                HStack {
+                // One line per action, wrapping to the next row when the strip is narrow.
+                InkFlowLayout(spacing: 16, lineSpacing: 0) {
                     Button("Kişi olarak ekle") { create(.person) }
-                        .buttonStyle(InkTextButtonStyle())
+                        .buttonStyle(StripActionStyle())
                     Button("Konum olarak ekle") { create(.place) }
-                        .buttonStyle(InkTextButtonStyle())
+                        .buttonStyle(StripActionStyle())
                     Menu("Özel tip olarak ekle") {
                         ForEach(
                             EntityTypeChoices.choices(
@@ -222,7 +235,12 @@ struct MentionAssistStrip: View {
                                 Text("\(type.name) olarak ekle")
                             }
                         }
-                    }.disabled(store.entityTypes.types.isEmpty)
+                    }
+                    .font(.ink.meta.weight(.semibold))
+                    .lineLimit(1)
+                    .fixedSize()
+                    .frame(minHeight: InkButtonChrome.minimumHeight)
+                    .disabled(store.entityTypes.types.isEmpty)
                 }
             }
             Button("Vazgeç") {
@@ -230,21 +248,24 @@ struct MentionAssistStrip: View {
                 onDidChangeText?(nil)
                 Self.finish(followUp, onResolved: onResolved)
             }
-            .buttonStyle(InkTextButtonStyle())
+            .buttonStyle(StripActionStyle())
         }
     }
 
+    /// One line: the name, then its qualifier in parentheses in the secondary color
+    /// ("Mert Aksu (iş)"), as the file is named.
     private func entityLabel(_ entity: KnownEntity) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
+        HStack(spacing: 4) {
             Text(verbatim: entity.name)
-                .font(.ink.meta)
                 .foregroundStyle(entityColor(entity))
             if let qualifier = entity.qualifier {
-                Text(verbatim: qualifier)
-                    .font(.ink.meta)
+                Text(verbatim: "(\(qualifier))")
                     .foregroundStyle(Color.ink.secondaryText)
             }
         }
+        .font(.ink.meta)
+        .lineLimit(1)
+        .fixedSize()
     }
 
     private func entityColor(_ entity: KnownEntity) -> Color {
@@ -276,5 +297,33 @@ struct MentionAssistStrip: View {
     static func finish(_ followUp: MentionComposer.CreationFollowUp?, onResolved: (() -> Void)?) {
         guard followUp == .commit else { return }
         onResolved?()
+    }
+}
+
+/// The outline of a "hangisi?" candidate, as the quick entry's chips are drawn.
+private struct CandidatePill: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .padding(.horizontal, 8 - InkStroke.control).padding(.vertical, 4 - InkStroke.control)
+            .background(Color.ink.well, in: Capsule())
+            .padding(InkStroke.control)
+            .background(Color.ink.control, in: Capsule())
+    }
+}
+
+/// The strip's text actions: the text button's colors at the strip's meta size, on one line,
+/// so "Kişi olarak ekle" never breaks inside the card.
+private struct StripActionStyle: ButtonStyle {
+    @Environment(\.isEnabled) private var isEnabled
+
+    func makeBody(configuration: Configuration) -> some View {
+        let role = InkButtonChrome.text.role(isPressed: configuration.isPressed, isEnabled: isEnabled)
+        return configuration.label
+            .font(.ink.meta.weight(.semibold))
+            .foregroundStyle(InkButtonChrome.color(for: role.foreground))
+            .lineLimit(1)
+            .fixedSize()
+            .frame(minHeight: InkButtonChrome.minimumHeight)
+            .contentShape(Rectangle())
     }
 }

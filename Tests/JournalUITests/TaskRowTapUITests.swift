@@ -58,6 +58,25 @@ final class TaskRowTapUITests: XCTestCase {
             "touch right of the task date did not complete the task")
     }
 
+    /// The row's menu starts with "Bitti" in every shell: in the split shell (iPad) a touch on
+    /// the row selects it, so the box and the menu are the ways to complete it.
+    @MainActor
+    func testRowMenuCompletesTask() throws {
+        let app = UITestSupport.launchApp(
+            vaultURL: vaultURL, quickEntryText: nil,
+            extraArguments: ["-tasks.view.mode", "list", "-tasks.view.list.section", "upcoming"]
+                + ScreenTourDriver.turkish)
+        UITestSupport.waitForExistence(UITestSupport.element(in: app, identifier: "screen.today"), timeout: 30)
+        UITestSupport.openTab(app, identifier: "tab.tasks", screen: "screen.tasks")
+
+        let row = try taskText(textLineTask, in: app)
+        row.press(forDuration: 1.2)
+        let done = app.buttons.matching(NSPredicate(format: "label == %@", "Bitti")).firstMatch
+        XCTAssertTrue(done.waitForExistence(timeout: 10), "the row menu has no \"Bitti\"")
+        done.tap()
+        XCTAssertTrue(row.waitForNonExistence(timeout: 15), "\"Bitti\" in the row menu did not complete the task")
+    }
+
     @MainActor
     private func touch(x: CGFloat, y: CGFloat, in app: XCUIApplication) {
         app.coordinate(withNormalizedOffset: .zero).withOffset(CGVector(dx: x, dy: y)).tap()

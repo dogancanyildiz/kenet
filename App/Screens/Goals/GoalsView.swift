@@ -569,7 +569,12 @@ private struct GoalListCard<Detail: View>: View {
                     .opacity(canEdit ? 1 : InkGoalRowTrailing.busyPlusOpacity)
             }
             .buttonStyle(.plain)
-            .accessibilityLabel(Text(verbatim: String(localized: "\(goal.name), miktar gir", locale: locale)))
+            .accessibilityLabel(
+                Text(
+                    verbatim: String(
+                        localized: "\(goal.name), miktar gir", bundle: PresentationLocalization.bundle(locale),
+                        locale: locale))
+            )
             .accessibilityHint(Text("Hedef sayfasını açar"))
         } else {
             Button(action: onIncrement) {

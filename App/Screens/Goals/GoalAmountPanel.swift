@@ -65,6 +65,8 @@ struct GoalAmountPanel: View {
     var focusToken = 0
     /// Each change takes the focus away, which writes the typed value (Mac: a click on the page).
     var blurToken = 0
+    /// Each change takes back what was typed and not written (the goal is being deleted).
+    var discardToken = 0
     /// Runs after a write that succeeded (the page reloads its history for a past day).
     var onWrite: (() async -> Void)? = nil
 
@@ -78,8 +80,9 @@ struct GoalAmountPanel: View {
 
     init(
         model: GoalDayModel, goal: GoalDefinition, isCompact: Bool = false, focusToken: Int = 0,
-        blurToken: Int = 0, onWrite: (() async -> Void)? = nil
+        blurToken: Int = 0, discardToken: Int = 0, onWrite: (() async -> Void)? = nil
     ) {
+        self.discardToken = discardToken
         self.goal = goal
         self.isCompact = isCompact
         self.focusToken = focusToken
@@ -92,12 +95,19 @@ struct GoalAmountPanel: View {
     private var canRemove: Bool { !editor.isLocked && !editor.isCommitting && editor.hasRecord }
 
     var body: some View {
-        let status = model.status(for: goal)
+        // The whole period, also days after a past day: the ring and the period line agree.
+        let total = editor.periodTotal
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .center, spacing: 16) {
                 VStack(alignment: .leading, spacing: 6) {
                     amountLine
-                    if !isCompact, let line = periodLine(status: status) {
+                    if let preview = readPreview {
+                        Text(verbatim: preview)
+                            .font(.ink.meta.weight(.semibold))
+                            .foregroundStyle(Color.ink.text)
+                            .accessibilityIdentifier("goal.amount.preview")
+                    }
+                    if !isCompact, let line = periodLine(total: total) {
                         Text(verbatim: line)
                             .font(.ink.meta)
                             .foregroundStyle(Color.ink.secondaryText)
@@ -112,14 +122,14 @@ struct GoalAmountPanel: View {
                 }
                 if !isCompact {
                     Spacer(minLength: 0)
+                    let amount = GoalAmount(done: total, target: goal.target)
                     GoalRing(
-                        progress: status.progress.fraction,
+                        progress: amount.fraction,
                         isBoolean: false,
                         diameter: 64,
-                        centerLabel: status.progress.isComplete
+                        centerLabel: amount.isComplete
                             ? "✓"
-                            : GoalListPresentation.percentLabel(
-                                done: status.progress.done, target: goal.target, locale: locale)
+                            : GoalListPresentation.percentLabel(done: total, target: goal.target, locale: locale)
                     )
                     .accessibilityHidden(true)
                 }
@@ -149,8 +159,10 @@ struct GoalAmountPanel: View {
             if !isFocused { Task { await commit() } }
         }
         .onChange(of: blurToken) { _, _ in focused = false }
+        .onChange(of: discardToken) { _, _ in editor.discard() }
+        // Only the background: Control Center makes the app inactive while a number is half typed.
         .onChange(of: scenePhase) { _, phase in
-            if phase != .active { Task { await commit() } }
+            if phase == .background { Task { await commit() } }
         }
         // The panel goes away with a typed value (another day, back, the row closing): written to
         // the day it was typed for, which the editor keeps.
@@ -158,6 +170,7 @@ struct GoalAmountPanel: View {
             // The editor and the callback are taken now: the view's state is gone after this.
             let editor = editor
             let onWrite = onWrite
+            editor.isDetached = true
             Task { await Self.commit(editor, onWrite: onWrite) }
         }
         .task(id: focusToken) {
@@ -286,16 +299,26 @@ struct GoalAmountPanel: View {
         .disabled(editor.isLocked || editor.isCommitting)
     }
 
+    /// "= 7500 adım" under a changed field whose text is not the plain reading ("7.500"), so a
+    /// thousands mark read as such (or a decimal mark) shows before it is written.
+    private var readPreview: String? {
+        guard editor.isDirty, let value = GoalValueModel.number(editor.text, locale: locale) else { return nil }
+        let plain = GoalAmountEditor.display(value, locale: locale)
+        guard plain != editor.text.trimmingCharacters(in: .whitespacesAndNewlines) else { return nil }
+        return "= " + plain + (goal.unit.map { " " + $0 } ?? "")
+    }
+
     /// "Bu hafta 25/50 km" for a weekly or yearly goal, the whole period (also days after a past
     /// day); "2500 kaldı" for a daily one.
-    private func periodLine(status: GoalStatus) -> String? {
+    private func periodLine(total: Double) -> String? {
         if goal.period == .day {
+            let status = model.status(for: goal)
             return GoalListPresentation.remainingText(goal: goal, status: status, locale: locale)
         }
         let key: String.LocalizationValue = goal.period == .week ? "Bu hafta" : "Bu yıl"
         let period = String(localized: key, bundle: PresentationLocalization.bundle(locale), locale: locale)
         let amount =
-            editor.periodTotal.formatted(.number.locale(locale)) + "/"
+            total.formatted(.number.locale(locale)) + "/"
             + goal.target.formatted(.number.locale(locale))
         return [period, amount, goal.unit].compactMap { $0 }.joined(separator: " ")
     }

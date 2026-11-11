@@ -5688,6 +5688,23 @@
         }
       }
     },
+    "Bu günün değeri bu arada değişti; yazdığın değer kaydedilmedi." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This day's value changed meanwhile; your value was not saved."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bu günün değeri bu arada değişti; yazdığın değer kaydedilmedi."
+          }
+        }
+      }
+    },
     "Bu hafta" : {
       "localizations" : {
         "en" : {

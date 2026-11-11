@@ -42,6 +42,10 @@ struct GoalDetailView: View {
     private let focusesInitialDay: Bool
     /// Mac: a click on the page's empty room takes the amount field's focus, which writes it.
     @State private var blurToken = 0
+    /// The goal is being deleted: the amount panel drops what was typed, so its exit write does not
+    /// bring the deleted goal's line back into a day file.
+    @State private var discardToken = 0
+    private let notice = GoalAmountNotice.shared
     @State private var pickedInitialDay = false
 
     /// The day the amount panel and the mark button edit.
@@ -117,6 +121,10 @@ struct GoalDetailView: View {
                         InfoBand(kind: .error, verbatim: error)
                             .padding(.horizontal, InkSpacing.margin)
                     }
+                    if let message = notice.message {
+                        InfoBand(kind: .error, verbatim: message, onDismiss: { notice.message = nil })
+                            .padding(.horizontal, InkSpacing.margin)
+                    }
                     if let error = deletion.errorText {
                         InfoBand(kind: .error, verbatim: error)
                             .padding(.horizontal, InkSpacing.margin)
@@ -168,6 +176,7 @@ struct GoalDetailView: View {
             confirmTitle: "Hedefi sil",
             message: "\(goal.name) silinsin mi? Gün kayıtları kalır."
         ) { path in
+            discardToken += 1
             Task { _ = await deletion.delete(store: store, path: path, goal: true) }
         }
     }
@@ -230,7 +239,7 @@ struct GoalDetailView: View {
             if goal.kind == .number {
                 GoalAmountPanel(
                     model: editedDay, goal: goal, focusToken: focusToken, blurToken: blurToken,
-                    onWrite: { if pickedDay != nil { await history.load() } }
+                    discardToken: discardToken, onWrite: { if pickedDay != nil { await history.load() } }
                 )
                 // A new panel per day model: the old one writes what was typed for its own day as
                 // it goes (``GoalAmountPanel``).

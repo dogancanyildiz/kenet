@@ -9,10 +9,25 @@ import VaultFormat
 /// A commit writes only text the person changed: a value shown and left alone is never written
 /// back, whatever its precision. A write that meets a reload or another write waits for it; a
 /// write that fails keeps the typed text and says why.
+/// A write that failed after its panel went away (back, another day): nobody sees that panel's
+/// band, so the goal page and Today's goal strip show it until it is closed or a later write
+/// succeeds.
+@MainActor @Observable
+final class GoalAmountNotice {
+    static let shared = GoalAmountNotice()
+    var message: String?
+}
+
 @MainActor @Observable
 final class GoalAmountEditor {
     let dayModel: GoalDayModel
-    let goal: GoalDefinition
+    /// The goal as the panel was opened with it; ``goal`` is its newest definition.
+    private let openedGoal: GoalDefinition
+    /// The goal's newest definition in the day model (an edit of the goal's name or target
+    /// reloads it); writes need it, since the day model takes only a definition it lists.
+    var goal: GoalDefinition { dayModel.goals.first { $0.id == openedGoal.id } ?? openedGoal }
+    /// The panel went away: a failure is reported through ``GoalAmountNotice``.
+    @ObservationIgnored var isDetached = false
     /// How numbers are shown and read ("7.500" is 7500 in Turkish).
     var locale: Locale {
         didSet { refresh() }
@@ -28,7 +43,7 @@ final class GoalAmountEditor {
 
     init(dayModel: GoalDayModel, goal: GoalDefinition, locale: Locale = .current) {
         self.dayModel = dayModel
-        self.goal = goal
+        openedGoal = goal
         self.locale = locale
         let shown = Self.display(Self.amount(in: dayModel, goal: goal), locale: locale)
         text = shown
@@ -86,23 +101,37 @@ final class GoalAmountEditor {
     }
 
     /// Writes the typed amount when the person changed it. Empty text goes back to the saved
-    /// value (removing is "Kaydı kaldır"). True when nothing is left to write.
+    /// value (removing is "Kaydı kaldır"). Text typed while a write runs is written right after
+    /// it, by the commit already running. True when nothing is left to write.
     @discardableResult
     func commit() async -> Bool {
-        guard isDirty else { return true }
-        if text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            text = shownText
-            errorText = nil
-            return true
+        // The running commit picks up what was typed meanwhile (its loop below).
+        guard !isCommitting else { return true }
+        var rounds = 0
+        while isDirty, rounds < 5 {
+            rounds += 1
+            let typed = text
+            if typed.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                text = shownText
+                errorText = nil
+                return true
+            }
+            guard let value = GoalValueModel.number(typed, locale: locale) else { return false }
+            // The same amount written another way ("7.500" for 7500): nothing to write.
+            if value == dayValue, hasRecord || value == 0 {
+                if text == typed { text = shownText }
+                errorText = nil
+                continue
+            }
+            guard await write(.number(value), typed: typed) else { return false }
         }
-        guard let value = GoalValueModel.number(text, locale: locale) else { return false }
-        // The same amount written another way ("7.500" for 7500): nothing to write.
-        if value == dayValue, hasRecord || value == 0 {
-            text = shownText
-            errorText = nil
-            return true
-        }
-        return await write(.number(value))
+        return !isDirty
+    }
+
+    /// Takes back what was typed and not written (the goal is being deleted).
+    func discard() {
+        text = shownText
+        errorText = nil
     }
 
     /// A quick step or "Hedefe tamamla": shown in the field and written at once.
@@ -124,39 +153,61 @@ final class GoalAmountEditor {
     /// Removes the day's record of this goal (after the page's confirmation).
     @discardableResult
     func remove() async -> Bool {
-        guard hasRecord else { return true }
-        return await write(nil)
+        guard hasRecord, !isCommitting else { return !hasRecord }
+        return await write(nil, typed: text)
     }
 
-    private func write(_ value: GoalValue?) async -> Bool {
+    /// One write of `value`, made for the field text `typed`. Text typed since stays in the field
+    /// (the commit loop writes it next).
+    private func write(_ value: GoalValue?, typed: String) async -> Bool {
         isCommitting = true
         defer { isCommitting = false }
-        await waitForTransientWork()
+        let before = dayModel.value(for: goal)
+        let waited = await waitForTransientWork()
+        // The day changed while this write waited (another page wrote it, an outside edit): this
+        // older write would overwrite the newer value, so it stops and says so.
+        if waited, dayModel.value(for: goal) != before {
+            fail(
+                String(
+                    localized: "Bu günün değeri bu arada değişti; yazdığın değer kaydedilmedi.",
+                    bundle: PresentationLocalization.bundle(locale), locale: locale))
+            return false
+        }
         let written = await dayModel.set(goal, value: value)
         if written {
-            text = Self.display(dayValue, locale: locale)
-            shownText = text
+            shownText = Self.display(dayValue, locale: locale)
+            if text == typed { text = shownText }
             errorText = dayModel.errorText
+            if errorText == nil { GoalAmountNotice.shared.message = nil }
         } else {
-            errorText =
+            fail(
                 dayModel.errorText
-                ?? String(
-                    localized: "Değer kaydedilemedi; yeniden dene.",
-                    bundle: PresentationLocalization.bundle(locale), locale: locale)
+                    ?? String(
+                        localized: "Değer kaydedilemedi; yeniden dene.",
+                        bundle: PresentationLocalization.bundle(locale), locale: locale))
         }
         return written
     }
 
+    private func fail(_ message: String) {
+        errorText = message
+        if isDetached { GoalAmountNotice.shared.message = "\(goal.name): \(message)" }
+    }
+
     /// A reload (an outside change published) or another write in flight: wait for it rather than
     /// let the write fail. A lock that stays (read-only vault) does not wait.
-    private func waitForTransientWork() async {
+    /// True when it had to wait.
+    private func waitForTransientWork() async -> Bool {
         let clock = ContinuousClock()
         let deadline = clock.now.advanced(by: transientWait)
+        var waited = false
         while !dayModel.canEdit, dayModel.isLoading || dayModel.isWriting || !dayModel.hasLoaded,
             dayModel.store.canAddEvent, dayModel.belongs(to: dayModel.store.vaultURL), clock.now < deadline
         {
+            waited = true
             try? await Task.sleep(for: .milliseconds(50))
         }
+        return waited
     }
 
     private static func amount(in model: GoalDayModel, goal: GoalDefinition) -> Double {
@@ -165,9 +216,9 @@ final class GoalAmountEditor {
 
     /// Lossless and in ASCII digits: a whole amount without a mark, else the shortest decimal
     /// that reads back as the same value, with `locale`'s decimal mark ("1,23456789" in Turkish).
-    static func display(_ value: Double, locale: Locale) -> String {
+    nonisolated static func display(_ value: Double, locale: Locale) -> String {
         let value = value == 0 ? 0 : value
-        if value == value.rounded(), abs(value) < 1e15 { return String(Int64(value)) }
+        if value == value.rounded(), abs(value) < 9e18 { return String(Int64(value)) }
         let decimal = locale.decimalSeparator == "," ? "," : "."
         var plain = String(value)
         if plain.contains("e") {

@@ -214,4 +214,144 @@ struct GoalAmountEditorTests {
             #expect(GoalValueModel.number(shown, locale: turkish) == value, "\(shown)")
         }
     }
+
+    // MARK: - Second review
+
+    /// O2-1: the goal's definition is edited while its page is open; the panel keeps writing.
+    @Test func writesAfterTheGoalDefinitionChanged() async throws {
+        let context = try TaskTestContext(sample: true)
+        defer { context.clean() }
+        await context.start()
+        let editor = try await editor(context, day: context.today)
+        try await context.store.setField(at: "goals/Su.md", key: "target", value: .number("12"))
+        await editor.dayModel.load()
+        #expect(editor.goal.target == 12)
+        editor.text = "5"
+        #expect(await editor.commit())
+        #expect(String(decoding: try Data(contentsOf: context.file), as: UTF8.self).contains("  su: 5\n"))
+        #expect(editor.completionValue == 12)
+    }
+
+    /// O2-2: a value typed while a write waits is written after it, not dropped.
+    @Test func valueTypedDuringAWriteIsWrittenAfterIt() async throws {
+        let context = try TaskTestContext(sample: true)
+        defer { context.clean() }
+        await context.start()
+        let editor = try await editor(context, day: context.today)
+        let reload = Task { await editor.dayModel.load() }
+        for _ in 0..<1000 where !editor.dayModel.isLoading { await Task.yield() }
+        editor.text = "500"
+        let first = Task { await editor.commit() }
+        for _ in 0..<1000 where !editor.isCommitting { await Task.yield() }
+        // Typed again and committed (a second blur) while the first write still runs.
+        editor.text = "800"
+        #expect(await editor.commit())
+        #expect(await first.value)
+        await reload.value
+        #expect(String(decoding: try Data(contentsOf: context.file), as: UTF8.self).contains("  su: 800\n"))
+        #expect(editor.text == "800" && !editor.isDirty)
+    }
+
+    /// D2-1: an older write that waited does not overwrite a value written meanwhile elsewhere.
+    @Test func waitedWriteDoesNotOverwriteANewerValue() async throws {
+        let context = try TaskTestContext(sample: true)
+        defer { context.clean() }
+        await context.start()
+        let day = CalendarDate("2026-09-21")!
+        let stale = try await editor(context, day: day)
+        let other = try await editor(context, day: day)
+        // The stale page's model is reloading when its write starts; meanwhile another page writes.
+        let reload = Task { await stale.dayModel.load() }
+        for _ in 0..<1000 where !stale.dayModel.isLoading { await Task.yield() }
+        stale.text = "3"
+        let staleWrite = Task { await stale.commit() }
+        #expect(await other.apply(9))
+        await reload.value
+        let written = await staleWrite.value
+        let file = String(decoding: try Data(contentsOf: file(context, day)), as: UTF8.self)
+        if written {
+            // The reload ended before the other write: no conflict to see, the later write wins.
+            #expect(file.contains("  su: 3\n") || file.contains("  su: 9\n"))
+        } else {
+            #expect(file.contains("  su: 9\n"))
+            #expect(stale.errorText != nil && stale.text == "3")
+        }
+    }
+
+    /// D2-3: the goal is being deleted; what was typed is taken back, so the exit commit writes nothing.
+    @Test func discardTakesBackTheTypedValue() async throws {
+        let context = try TaskTestContext(sample: true)
+        defer { context.clean() }
+        await context.start()
+        let day = CalendarDate("2026-09-21")!
+        let before = try Data(contentsOf: file(context, day))
+        let editor = try await editor(context, day: day)
+        editor.text = "42"
+        editor.discard()
+        #expect(!editor.isDirty)
+        #expect(await editor.commit())
+        #expect(try Data(contentsOf: file(context, day)) == before)
+    }
+
+    /// D2-2: a detached panel's failed write is reported where it is still seen.
+    @Test func detachedFailureReachesTheSharedNotice() async throws {
+        let context = try TaskTestContext(sample: true)
+        defer { context.clean() }
+        let model = GoalDayModel(store: context.store, day: context.today)
+        let goal = try #require(
+            GoalDefinition(id: "goals/Su.md", key: "su", name: "Su", period: .day, kind: .number, target: 8))
+        let editor = GoalAmountEditor(dayModel: model, goal: goal, locale: turkish)
+        editor.transientWait = .milliseconds(100)
+        editor.isDetached = true
+        GoalAmountNotice.shared.message = nil
+        editor.text = "5"
+        #expect(await !editor.commit())
+        #expect(GoalAmountNotice.shared.message?.hasPrefix("Su: ") == true)
+        GoalAmountNotice.shared.message = nil
+    }
+
+    // MARK: - D2-5, D2-6: the goal forms read and write targets the same way
+
+    @Test func definitionFormReadsTurkishThousandsAndWritesTheNumber() async throws {
+        let context = try TaskTestContext(sample: true)
+        defer { context.clean() }
+        await context.start()
+        let goal = try #require(try await context.store.goalDefinitions().first { $0.id == "goals/Su.md" })
+        let model = GoalDefinitionModel(store: context.store, goal: goal)
+        model.locale = turkish
+        var draft = GoalDefinitionDraft(goal: goal)
+        draft.target = "7.500"
+        #expect(model.changes(in: draft) == [GoalDefinitionChange(field: .target, text: "7.500")])
+        #expect(await model.apply(draft))
+        let text = String(
+            decoding: try Data(contentsOf: context.root.appendingPathComponent("goals/Su.md")), as: UTF8.self)
+        #expect(text.contains("target: 7500\n"))
+        // "+5" is refused like the panel refuses it: a sign is not part of an amount.
+        draft.target = "+5"
+        #expect(model.error(for: .target, in: draft) != nil)
+
+        let creation = GoalCreationModel(store: context.store)
+        creation.locale = turkish
+        creation.target = "10.000"
+        #expect(GoalValueModel.number(creation.target, locale: creation.locale) == 10000)
+    }
+
+    @Test func spellingNeverUsesExponentsAndTheShownTextIsNoChange() async throws {
+        #expect(GoalDefinitionDraft.spelling(0.00001) == "0.00001")
+        #expect(GoalDefinitionDraft.spelling(1.5e15) == "1500000000000000")
+        #expect(GoalDefinitionDraft.spelling(1.234) == "1.234")
+        let context = try TaskTestContext(sample: true)
+        defer { context.clean() }
+        let tiny = try #require(
+            GoalDefinition(id: "goals/T.md", key: "t", name: "T", period: .day, kind: .number, target: 0.00001))
+        let model = GoalDefinitionModel(store: context.store, goal: tiny)
+        model.locale = turkish
+        #expect(model.changes(in: GoalDefinitionDraft(goal: tiny)).isEmpty)
+        // "1.234" as the form shows it is no change in Turkish, though it would read as 1234.
+        let fraction = try #require(
+            GoalDefinition(id: "goals/F.md", key: "f", name: "F", period: .day, kind: .number, target: 1.234))
+        let fractionModel = GoalDefinitionModel(store: context.store, goal: fraction)
+        fractionModel.locale = turkish
+        #expect(fractionModel.changes(in: GoalDefinitionDraft(goal: fraction)).isEmpty)
+    }
 }

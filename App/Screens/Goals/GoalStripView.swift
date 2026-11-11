@@ -133,6 +133,12 @@ struct GoalStripView: View {
                 if let error = model.errorText {
                     InfoBand(kind: .error, verbatim: error)
                 }
+                // An amount typed on a goal page that went away and could not be saved.
+                if let message = GoalAmountNotice.shared.message {
+                    InfoBand(
+                        kind: .error, verbatim: message,
+                        onDismiss: { GoalAmountNotice.shared.message = nil })
+                }
                 if let notice = geofences?.lockedMarkNotice {
                     InfoBand(kind: .info, verbatim: notice)
                 }

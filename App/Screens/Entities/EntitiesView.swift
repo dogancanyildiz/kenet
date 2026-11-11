@@ -151,7 +151,7 @@ struct EntitiesView: View {
     /// The section title over the cards: the selected type's plural ("Kişiler", "Konumlar", "Kitaplar").
     private var currentPlural: String {
         EntityTypeChoices.choices(store.entityTypes, language: locale.language.languageCode?.identifier ?? "en")
-            .first { $0.id == kind }?.plural ?? kind
+            .first { $0.id == kind }?.plural(locale: locale) ?? kind
     }
 
     /// The shared action row: "+ Yeni kişi", then the "…" menu (``EntityActionRow``).

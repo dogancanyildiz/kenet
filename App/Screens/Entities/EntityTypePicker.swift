@@ -21,7 +21,8 @@ struct EntityTypePicker: View {
                 InkTabs(
                     selection: $selection,
                     items: choices.map {
-                        InkTabItem(verbatim: $0.plural, value: $0.id, identifier: "tab.entities." + $0.id)
+                        InkTabItem(
+                            verbatim: $0.plural(locale: locale), value: $0.id, identifier: "tab.entities." + $0.id)
                     },
                     identifier: "tabs.entities.kind",
                     accessibilityLabelPrefix: PresentationLocalization.string(localized: "Tür", locale: locale)
@@ -29,12 +30,25 @@ struct EntityTypePicker: View {
             } else {
                 InkLabeledMenu(
                     "Tür", selection: $selection,
-                    options: choices.map { InkMenuOption(verbatim: $0.plural, value: $0.id) },
+                    options: choices.map { InkMenuOption(verbatim: $0.plural(locale: locale), value: $0.id) },
                     identifier: "menu.entities.kind")
             }
         }
         .onChange(of: store.entityTypes.allTypes, initial: true) { _, _ in
             selection = EntityTypeChoices.selection(selection, in: store.entityTypes)
+        }
+    }
+}
+
+extension EntityTypeChoice {
+    /// The plural in the view's language: the built-in "Kişiler" and "Konumlar" come from the
+    /// catalog with the environment locale, not the process language (a Mac window or a snapshot
+    /// in Turkish under an English process showed "People" / "Places").
+    func plural(locale: Locale) -> String {
+        switch id {
+        case "person": PresentationLocalization.string(localized: "Kişiler", locale: locale)
+        case "place": PresentationLocalization.string(localized: "Konumlar", locale: locale)
+        default: plural
         }
     }
 }

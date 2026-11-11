@@ -54,7 +54,10 @@ jobs:
     if: needs.changes.outputs.docs_only != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    container: swift:6.4
+    container:
+      image: swift:6.4
+      # Kabın varsayılan DNS'i 2026-11-11'de Ubuntu aynalarını çözemedi; açık çözücüler apt'i ayakta tutar.
+      options: --dns 1.1.1.1 --dns 8.8.8.8
     steps:
       - uses: actions/checkout@v7
       - name: SwiftPM önbelleği
@@ -500,7 +503,10 @@ jobs:
     name: Biçim ve kurallar
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    container: swift:6.4
+    container:
+      image: swift:6.4
+      # Kabın varsayılan DNS'i 2026-11-11'de Ubuntu aynalarını çözemedi; açık çözücüler apt'i ayakta tutar.
+      options: --dns 1.1.1.1 --dns 8.8.8.8
     steps:
       - uses: actions/checkout@v7
       - name: Biçim ve lint

@@ -5342,6 +5342,22 @@
         }
       }
     },
+    "Bitiş %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ends %@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bitiş %@"
+          }
+        }
+      }
+    },
     "Bitiş tarihi" : {
       "localizations" : {
         "en" : {

@@ -170,8 +170,15 @@ struct TodayPresentation: Sendable {
         return max(0, openTasks.count - TodayAboveFoldBudget.maxVisibleTaskRows)
     }
 
+    /// Whether every folded task is carried over: the fold then reads like the iPad and Mac
+    /// carried-over line ("8 devreden daha", warning tint) instead of "8 görev daha".
+    var hiddenOpenTasksAreCarriedOver: Bool {
+        hiddenOpenTaskCount > 0 && hiddenOpenTaskCount <= max(0, carriedOver.count - visibleOpenTasks.count)
+    }
+
     var openTasksDisclosure: String? {
         guard hiddenOpenTaskCount > 0 else { return nil }
+        if hiddenOpenTasksAreCarriedOver { return TodayCopy.carriedOver(hiddenOpenTaskCount, locale: locale) }
         return TodayCopy.moreTasks(hiddenOpenTaskCount, locale: locale)
     }
 

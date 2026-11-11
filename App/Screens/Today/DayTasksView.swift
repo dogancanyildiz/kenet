@@ -72,9 +72,14 @@ struct DayTasksView: View {
                             .modifier(carriedOverCommands)
                         case .moreTasksDisclosure(let text):
                             Button(action: onExpandTasks) {
+                                // Only carried-over tasks behind the fold: same words and tint as
+                                // the iPad and Mac carried-over line.
                                 Text(verbatim: text)
                                     .font(.ink.meta)
-                                    .foregroundStyle(Color.ink.secondaryText)
+                                    .foregroundStyle(
+                                        presentation.hiddenOpenTasksAreCarriedOver
+                                            ? Color.ink.warning : Color.ink.secondaryText
+                                    )
                                     .frame(
                                         maxWidth: .infinity, minHeight: TapTarget.minimumLength,
                                         alignment: .leading

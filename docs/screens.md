@@ -248,7 +248,7 @@ Varsayılan boyutta hızlı giriş iki satırlı karttır: üstte kip, çipler v
 |---|---|
 | Kapsam | Bölüm üç grup gösterir: devreden görevler, bitişi bugün olan görevler ve bugünün dosyasına yazılan açık görevler. Bugün yazılan görevin bitiş tarihi yoksa ya da ileride ise görev bu grupta durur. Bitiş tarihi ileride olan satırın altında tarih yazar: "9 Eki". Bitişi bugün olan görev ikinci grupta, geçmiş olan devreden grupta durur; hiçbir görev iki kez görünmez. Görev sayacı ve künye bu görevleri kalan görev sayar. |
 | Tamamlama | Kutuya ya da bağlantısız satıra dokunma görevi tamamlar. Basılı tutma düzenleme açar. |
-| Devreden görev | Altında geldiği tarih yazar: "30 Eyl'den". En çok 3 tanesi görünür. "N devreden daha" satırı kalanı toplar. Satıra dokununca liste genişler. |
+| Devreden görev | Altında geldiği tarih yazar: "30 Eyl'den". En çok 3 tanesi görünür. "N devreden daha" satırı kalanı toplar. Satıra dokununca liste genişler. iPhone katlaması yalnız devreden görevleri saklıyorsa aynı satırı uyarı renginde yazar; karışıksa "N görev daha" gri yazar. |
 | Tamamlanan görev | Listenin sonuna iner. Uygulama birden çok tamamlanan görevi tek satıra katlar: "N görev tamamlandı". Satıra dokununca liste genişler. |
 | Taşıma menüsü | Açık görev satırının menüsünde Bugüne, Yarına ve Haftaya vardır. |
 | Gereksiz seçenek | Görevin bitişi zaten o günse menü o eylemi sunmaz. Bugüne ait görevde Bugüne yoktur. Yarına ait görevde Yarına yoktur. |
@@ -270,7 +270,7 @@ Varsayılan boyutta hızlı giriş iki satırlı karttır: üstte kip, çipler v
 | İzin yok | Bölüm, satır ve eylem yoktur. |
 | Ekle | Etkinlik varken başlığın sağındaki "+" düğmesi formu o günle açar. Boş günde "+" yoktur; kartın satırı açar. VoiceOver adı "Takvime etkinlik ekle"dir. |
 | Test ve tur | UI testinde ve ekran turunda takvim yalnız bellekteki sahte takvimden okunur; gerçek takvim okunmaz. Kişi sayfası da aynı kuralla çalışır. |
-| Satır | Satıra dokunma etkinlik ayrıntısı sheet'ini açar. Alt satırda takvimin renkli noktası, saat aralığı ve takvimin adı durur: "19:00–20:00 · Ev". Tekrarlayan etkinlikte tekrar da yazar. |
+| Satır | Satıra dokunma etkinlik ayrıntısı sheet'ini açar. Alt satırda takvimin renkli noktası, saat aralığı ve takvimin adı durur: "19:00–20:00 · Ev". Ertesi gün biten etkinlikte yalnız bitiş yazar: "Bitiş 12 Kas 00:20 · Ev". Tekrarlayan etkinlikte tekrar da yazar. |
 | Olay taslağı | Satırın bağlam menüsündeki ve ayrıntı sheet'indeki **Olay taslağı** etkinliği o günün hızlı girişine taslak olarak koyar. VoiceOver'da aynı adlı eylem vardır. Ayrıntı [Hızlı giriş](#hızlı-giriş-1-2) bölümündedir. |
 
 **Etkinlik ayrıntısı sheet'i (11).**

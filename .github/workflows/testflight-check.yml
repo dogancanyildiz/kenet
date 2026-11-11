@@ -29,8 +29,8 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
-          # Yapı numarası git rev-list --count HEAD'dir. Sığ kopyada betik 1 yazar,
-          # denetim de 1 sayar; gerçek numara için tam geçmiş gerekir.
+          # Yapı numarası HEAD'in işlenme zamanıdır (build-number.sh); tam geçmiş
+          # dev soy denetimi ve sürüm adımları için tutulur.
           fetch-depth: 0
       - name: Xcode
         uses: ./.github/actions/xcode

@@ -38,6 +38,35 @@ enum AppLaunchPolicy {
         return EventKitCalendarSource()
     }
 
+    /// DEBUG-only wall clock for the screen tour: `HH:mm` freezes `clockNow` at that time of
+    /// today, so the quick-entry time and the greeting match the simulator's 9:41 status bar.
+    static let uiTestClockKey = "JOURNAL_UITEST_CLOCK"
+
+    /// The app's `clockNow`: `Date()` unless a UI test with a vault asks for a frozen time.
+    static func clockNow(
+        environment: [String: String] = ProcessInfo.processInfo.environment,
+        calendar: Calendar = .current, now: Date = Date()
+    ) -> @MainActor @Sendable () -> Date {
+        #if DEBUG
+            if uiTestVaultPath(environment: environment) != nil,
+                let value = environment[uiTestClockKey],
+                let fixed = fixedTime(value, calendar: calendar, now: now)
+            {
+                return { fixed }
+            }
+        #endif
+        return { Date() }
+    }
+
+    /// `HH:mm` on the day of `now`; nil for anything else.
+    static func fixedTime(_ value: String, calendar: Calendar, now: Date) -> Date? {
+        let parts = value.split(separator: ":", omittingEmptySubsequences: false)
+        guard parts.count == 2, let hour = Int(parts[0]), let minute = Int(parts[1]),
+            (0..<24).contains(hour), (0..<60).contains(minute)
+        else { return nil }
+        return calendar.date(bySettingHour: hour, minute: minute, second: 0, of: now)
+    }
+
     /// Days read the calendar on their own when the app starts normally, or in a UI test whose
     /// calendar is the in-memory one (never the developer's real calendar).
     static func allowsCalendarLoad(

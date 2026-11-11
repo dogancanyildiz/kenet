@@ -20,7 +20,7 @@
 # çağıranın kurduğu anahtar zinciri kullanılır. Takım kimliği zincirdeki Apple Distribution
 # kimliğinden okunur ve GitHub günlüğünde maskelenir; bırakılan günlüklerde takım, anahtar ve
 # yayıncı kimliği yer tutucuyla değiştirilir (repo herkese açık). HEAD origin/dev geçmişinde
-# olmalı ve kopya tam olmalı (yapı numarası commit sayısıdır).
+# olmalı ve kopya tam olmalı (soy denetimi geçmiş ister).
 #
 # --mac kipi: Journal_macOS şeması generic/platform=macOS için arşivlenir ve aynı app-store-connect
 # dışa aktarımıyla yüklenir (Mac App Store paketi .pkg; Xcode "Mac Installer Distribution"
@@ -30,8 +30,8 @@
 #
 # Koşullar: dal `dev` ve origin/dev ile aynı (TestFlight `dev`'den, mağaza `main`'den çıkar),
 # Config/Local.xcconfig içinde takım kimliği var ve Xcode'da aynı Apple hesabıyla oturum açık.
-# Çalışma klasöründeki commit'lenmemiş değişiklikler arşive girmez; betik bunları listeler. Yapı numarası commit sayısıdır: aynı commit'ten
-# ikinci yükleme aynı numarayı alır ve reddedilir.
+# Çalışma klasöründeki commit'lenmemiş değişiklikler arşive girmez; betik bunları listeler. Yapı numarası commit'in işlenme
+# zamanıdır (build-number.sh): aynı commit'ten ikinci yükleme aynı numarayı alır ve reddedilir.
 set -eu
 
 MODE=upload
@@ -102,7 +102,7 @@ if [ "$MODE" = upload ]; then
 fi
 if [ "$CI_MODE" -eq 1 ]; then
   [ "$(git rev-parse --is-shallow-repository)" = false ] ||
-    fail "sığ kopya; yapı numarası commit sayısıdır, tam geçmiş gerekir (actions/checkout fetch-depth: 0)."
+    fail "sığ kopya; origin/dev soy denetimi tam geçmiş ister (actions/checkout fetch-depth: 0)."
   # CI kopyası commit'lenmiş durumdur. Eşitlik değil soy aranır: kuyrukta bekleyen koşu başlarken
   # dev ilerlemiş olabilir; yüklenen commit yine dev'dendir.
   git fetch -q origin dev || fail "origin/dev alınamadı."
@@ -222,7 +222,8 @@ echo "Şifreleme:     ITSAppUsesNonExemptEncryption=$(plist ITSAppUsesNonExemptE
 
 [ "$BUNDLE_ID" = "$EXPECTED_ID" ] || fail "kimlik '$BUNDLE_ID', beklenen '$EXPECTED_ID'."
 [ "$VERSION" = "$(cat "$TREE/VERSION")" ] || fail "sürüm '$VERSION', VERSION dosyası '$(cat "$TREE/VERSION")'."
-[ "$BUILD" = "$(git rev-list --count HEAD)" ] || fail "yapı numarası '$BUILD', commit sayısı '$(git rev-list --count HEAD)'."
+EXPECTED_BUILD=$(sh "$ROOT/.github/scripts/build-number.sh" "$TREE" || echo "?")
+[ "$BUILD" = "$EXPECTED_BUILD" ] || fail "yapı numarası '$BUILD', build-number.sh '$EXPECTED_BUILD'."
 [ -f "$PRIVACY" ] || fail "PrivacyInfo.xcprivacy pakette yok."
 if [ "$PLATFORM" = mac ]; then
   [ "$MIN_MACOS" = "$EXPECTED_MACOS" ] || fail "en düşük macOS '$MIN_MACOS', project.yml '$EXPECTED_MACOS'."

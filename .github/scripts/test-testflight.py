@@ -21,6 +21,9 @@ with (root / "calls").open("a") as calls:
 if tool == "git":
     if "--is-shallow-repository" in args:
         print(os.environ.get("TEST_SHALLOW", "false"))
+    elif "log" in args:
+        # build-number.sh: HEAD commit time in UTC, "%y%m%d %H%M%S".
+        print("261111 053012")
     elif "merge-base" in args:
         sys.exit(int(os.environ.get("TEST_NOT_ANCESTOR", "0")))
     elif "remove" in args:
@@ -34,8 +37,6 @@ if tool == "git":
         (tree / "VERSION").write_text("0.9.0\n")
     elif "--abbrev-ref" in args:
         print(os.environ.get("TEST_BRANCH", "dev"))
-    elif "--count" in args:
-        print("42")
     elif "rev-parse" in args:
         print("abc123")
 elif tool == "xcodebuild":
@@ -84,7 +85,7 @@ elif tool == "plutil":
 elif tool == "PlistBuddy":
     key = args[1].split(":")[-1]
     print({"CFBundleIdentifier": "example.test", "CFBundleShortVersionString": "0.9.0",
-           "CFBundleVersion": "42", "UIDeviceFamily": "Array {\n    1\n    2\n}",
+           "CFBundleVersion": "261111.53012", "UIDeviceFamily": "Array {\n    1\n    2\n}",
            "UISupportedInterfaceOrientations~ipad": "Array {\n" + "".join(
                f"    UIInterfaceOrientation{name}\n"
                for name in ("Portrait", "PortraitUpsideDown", "LandscapeLeft", "LandscapeRight")) + "}",
@@ -116,6 +117,8 @@ class TestFlightCleanupTests(unittest.TestCase):
             # Replace only the absolute system-tool dependency in this isolated test copy.
             subject = scripts / "testflight.sh"
             subject.write_text(source.read_text().replace("/usr/libexec/PlistBuddy", "PlistBuddy"))
+            # The build number check runs the real build-number.sh against the fake git.
+            (scripts / "build-number.sh").write_text(source.with_name("build-number.sh").read_text())
             (root / "Config").mkdir()
             if local_config:
                 (root / "Config/Local.xcconfig").write_text("DEVELOPMENT_TEAM = " + TEAM + "\n")
@@ -207,7 +210,7 @@ class TestFlightCleanupTests(unittest.TestCase):
     def test_mac_upload_reads_signed_entitlements(self):
         def inspect(result, root):
             self.assertTrue((root / "codesign-app").read_text().endswith("Kenet.app"))
-            self.assertIn("Yüklendi: Kenet (Mac) 0.9.0 (42)", result.stdout)
+            self.assertIn("Yüklendi: Kenet (Mac) 0.9.0 (261111.53012)", result.stdout)
             self.assertIn("<string>upload</string>", (root / "export-options").read_text())
         self.run_case("upload", ["--yes", "--mac"], 0, inspect=inspect)
 
@@ -231,7 +234,7 @@ class TestFlightCleanupTests(unittest.TestCase):
     def test_mac_ci_upload_reports_platform(self):
         def inspect(result, root):
             self.assertIn("-scheme Journal_macOS", (root / "signing").read_text())
-            self.assertIn("version=0.9.0\nbuild=42\nplatform=mac\n", (root / "github-output").read_text())
+            self.assertIn("version=0.9.0\nbuild=261111.53012\nplatform=mac\n", (root / "github-output").read_text())
         self.ci_case("upload", 0, inspect=inspect, arguments=self.CI_ARGUMENTS + ["--mac"])
 
     # --ci: CI upload (testflight.yml) with an API key and a prepared keychain.
@@ -264,7 +267,7 @@ class TestFlightCleanupTests(unittest.TestCase):
             self.assertTrue(result.stdout.startswith(f"::add-mask::{TEAM}\n"), result.stdout)
             self.assertEqual(result.stdout.count(TEAM), 1, result.stdout)
             self.assertNotIn("yüklensin mi", result.stdout)
-            self.assertIn("version=0.9.0\nbuild=42\nplatform=ios\n", (root / "github-output").read_text())
+            self.assertIn("version=0.9.0\nbuild=261111.53012\nplatform=ios\n", (root / "github-output").read_text())
             self.assertNotIn("Apple Development kimliği yok", result.stderr)
             calls = (root / "calls").read_text()
             self.assertIn("merge-base --is-ancestor HEAD origin/dev", calls)
@@ -330,6 +333,48 @@ class TestFlightCleanupTests(unittest.TestCase):
                         self.assertNotIn(secret, result.stderr)
                     self.assertFalse((root / "calls").exists(), "a tool ran before options were checked")
                 self.ci_case("refused", 2, arguments=arguments, inspect=inspect, started=False)
+
+
+class BuildNumberTests(unittest.TestCase):
+    """build-number.sh against a real temporary repository (no fake git)."""
+
+    def number(self, *dates):
+        script = Path(__file__).with_name("build-number.sh")
+        with tempfile.TemporaryDirectory(prefix="build-number-") as directory:
+            def git(*args, date=None):
+                environment = dict(os.environ, GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@example.test",
+                                   GIT_COMMITTER_NAME="t", GIT_COMMITTER_EMAIL="t@example.test")
+                if date:
+                    environment.update(GIT_AUTHOR_DATE=date, GIT_COMMITTER_DATE=date)
+                subprocess.run(["git", "-C", directory] + list(args), check=True, env=environment,
+                               capture_output=True)
+            git("init", "-q")
+            numbers = []
+            for date in dates:
+                git("commit", "-q", "--allow-empty", "-m", "c", date=date)
+                result = subprocess.run(["sh", str(script), directory], capture_output=True, text=True,
+                                        env=dict(os.environ, TZ="Europe/Istanbul"))
+                self.assertEqual(result.returncode, 0, result.stderr)
+                numbers.append(result.stdout.strip())
+            return numbers
+
+    def test_number_is_utc_commit_time_without_leading_zeros(self):
+        self.assertEqual(self.number("2026-11-11T03:05:01+03:00", "2026-11-11T00:00:00Z",
+                                     "2026-11-11T15:30:12Z"),
+                         ["261111.501", "261111.0", "261111.153012"])
+
+    def test_numbers_grow_and_stay_above_the_last_commit_count_build(self):
+        numbers = self.number("2026-10-02T09:00:00Z", "2026-12-31T23:59:59Z", "2027-01-01T00:00:00Z")
+        keys = [tuple(int(part) for part in number.split(".")) for number in numbers]
+        self.assertEqual(keys, sorted(keys))
+        # App Store Connect compares component-wise; the last commit-count build was 385.
+        self.assertTrue(all(key > (385,) for key in keys))
+
+    def test_outside_a_repository_prints_nothing(self):
+        script = Path(__file__).with_name("build-number.sh")
+        with tempfile.TemporaryDirectory() as directory:
+            result = subprocess.run(["sh", str(script), directory], capture_output=True, text=True)
+        self.assertEqual((result.returncode, result.stdout), (1, ""))
 
 
 if __name__ == "__main__":

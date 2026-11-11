@@ -198,8 +198,8 @@ targets:
           version=$(tr -d '[:space:]' < "$SRCROOT/VERSION")
           /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $version" "$TARGET_BUILD_DIR/$INFOPLIST_PATH"
           /usr/libexec/PlistBuddy -c "Set :CFBundleName '$INFOPLIST_KEY_CFBundleDisplayName'" "$TARGET_BUILD_DIR/$INFOPLIST_PATH"
-          # Yapı numarası: HEAD'e kadar olan commit sayısı (iOS ve Mac aynı). Her commit'te artar,
-          # elle düzenleme gerekmez. Git yoksa ya da kopya sığsa (sayı eksik çıkar) yedek değer kalır.
+          # Yapı numarası: HEAD commit'inin UTC işlenme zamanı, YYAAGG.SSDDss (iOS ve Mac aynı).
+          # Her yeni commit'te büyür, elle düzenleme gerekmez. Git yoksa yedek değer kalır.
           build=$(sh "$SRCROOT/.github/scripts/build-number.sh" "$SRCROOT" || true)
           if [ -n "$build" ]; then
             /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $build" "$TARGET_BUILD_DIR/$INFOPLIST_PATH"

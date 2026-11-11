@@ -211,7 +211,7 @@ flowchart TD
 | 1.0 öncesi | `0.<aşama>.<yama>` | Aşama 1 bitince `v0.1.0`; o aşamadaki düzeltme `v0.1.1` |
 | İlk sürüm | `v0.9.0` | 2026-10-07'de `main`'e çıktı |
 | İlk mağaza yayını | `v1.0.0` | Henüz yok |
-| Yapı numarası | `git rev-list --count HEAD` | `CFBundleVersion` alanı; elle yazma |
+| Yapı numarası | HEAD commit'inin UTC zamanı, `YYAAGG.SSDDss` | `CFBundleVersion` alanı, örnek `261111.153012`; elle yazma |
 
 - Sürüm numarasını kök dizindeki `VERSION` dosyasında tut: tek satır, `X.Y.Z`.
 - Yapı numarasını elle yazma.

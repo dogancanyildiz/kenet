@@ -126,7 +126,9 @@
                         self.panel?.makeKeyAndOrderFront(nil)
                         self.window.open()
                     }
-                ).environment(location))
+                )
+                .environment(location)
+                .environment(\.clockNow, AppLaunchPolicy.clockNow()))
             self.panel = panel
         }
 

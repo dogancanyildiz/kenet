@@ -89,8 +89,10 @@ final class ScreenTourDriver {
     private static func launch(
         vaultURL: URL, arguments: [String], environment: [String: String]
     ) -> XCUIApplication {
+        // The app's clock matches the simulator's 9:41 status bar (quick-entry time, greeting).
         UITestSupport.launchApp(
-            vaultURL: vaultURL, quickEntryText: nil, extraArguments: arguments, extraEnvironment: environment)
+            vaultURL: vaultURL, quickEntryText: nil, extraArguments: arguments,
+            extraEnvironment: ["JOURNAL_UITEST_CLOCK": "09:41"].merging(environment) { _, new in new })
     }
 
     /// The tour never edits the vault, so a fresh launch is always a safe way back to a known state.

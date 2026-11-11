@@ -68,7 +68,7 @@ jobs:
           fi
       - uses: actions/checkout@v7
         with:
-          # Yapı numarası git rev-list --count HEAD'dir; betik sığ kopyayı reddeder.
+          # Betik sığ kopyayı reddeder: origin/dev soy denetimi tam geçmiş ister.
           fetch-depth: 0
       - name: Xcode
         uses: ./.github/actions/xcode

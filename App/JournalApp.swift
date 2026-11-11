@@ -37,6 +37,8 @@ struct JournalApp: App {
     @State private var geofences: GeofenceService
     @State private var location: LocationService
     @State private var calendar = CalendarService(source: AppLaunchPolicy.calendarSource())
+    /// `Date()` in production; frozen only for the screen tour (`AppLaunchPolicy.uiTestClockKey`).
+    private let clockNow = AppLaunchPolicy.clockNow()
     @State private var notifications: NotificationService
     @State private var store: IndexStore
     @State private var appLock: AppLockService
@@ -140,6 +142,7 @@ struct JournalApp: App {
             }
             Settings {
                 MacSettingsView(store: store, shortcut: desktop.shortcut)
+                    .environment(\.clockNow, clockNow)
                     .environment(calendar)
                     .environment(location)
                     .environment(geofences)
@@ -156,6 +159,7 @@ struct JournalApp: App {
     private var mainWindow: some Scene {
         WindowGroup(id: "main") {
             ContentView(store: store)
+                .environment(\.clockNow, clockNow)
                 .environment(calendar)
                 .environment(location)
                 .environment(geofences)
